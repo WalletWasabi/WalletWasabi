@@ -70,7 +70,7 @@
         <DockPanel>
             <DockPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch">
                 <TextBlock Text="Balance over time" DockPanel.Dock="Left"/>
-                <StackPanel Orientation="Horizontal" Spacing="10" DockPanel.Dock="Right">
+                <StackPanel Orientation="Horizontal" Spacing="10" DockPanel.Dock="Right" HorizontalAlignment="Right">
                     <RadioButton Classes="text" Content="All" Command="{Binding AllCommand}" />
                     <RadioButton Classes="text" Content="1D" Command="{Binding DayCommand}" />
                     <RadioButton Classes="text" Content="1W" Command="{Binding WeekCommand}" />
@@ -79,16 +79,18 @@
                     <RadioButton Classes="text" Content="6M" Command="{Binding SixMonthCommand}" />
                     <RadioButton Classes="text" Content="1Y" Command="{Binding YearCommand}" />
                 </StackPanel>
-                <Panel/>
             </DockPanel>
-            <c:LineChart x:CompileBindings="True" x:DataType="vm:WalletBalanceChartTileViewModel" x:Name="GradientLineChart" DockPanel.Dock="Left" Margin="30 30 15 30"
+
+            <Separator DockPanel.Dock="Top" Margin="-16 15" />
+
+            <c:LineChart x:CompileBindings="True" x:DataType="vm:WalletBalanceChartTileViewModel" x:Name="GradientLineChart" DockPanel.Dock="Bottom" Margin="30 5 15 30"
                          Classes="area border xAxis xAxisLabels yAxis yAxisLabels"
                          SmoothCurve="True"
                          XAxisMinimum="{Binding XMinimum}"
                          XAxisValues="{Binding XValues}"
                          XAxisLabels="{Binding XLabels}"
                          YAxisValues="{Binding YValues}"
-                         YAxisLabels="{Binding YLabels}">
+                         YAxisLabels="{Binding YLabels}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                 <c:LineChart.AreaFill>
                     <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%" Opacity="0.2">
                         <LinearGradientBrush.GradientStops>
