@@ -19,7 +19,7 @@
                 </Viewbox>
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock Text="{Binding BalanceBtc, FallbackValue='1.21230001 BTC'}" FontSize="24" />
-                    <TextBlock Text="{Binding BalanceFiat, FallbackValue='≈ 218,197 USD'}" HorizontalAlignment="Right" Opacity="0.8" FontSize="12"/>
+                    <TextBlock Text="{Binding BalanceFiat, FallbackValue='≈ 218,197 USD'}" Opacity="0.8" FontSize="12"/>
                 </StackPanel>
             </StackPanel>
         </DockPanel>
