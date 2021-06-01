@@ -68,7 +68,7 @@
     </UserControl.Styles>
     <Border ClipToBounds="False" CornerRadius="5" Background="{DynamicResource TileRegionColor}" Margin="6" Padding="16" BoxShadow="{DynamicResource InfoBoxShadow}">
         <DockPanel>
-            <DockPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch" Margin="0,0,30,0">
+            <DockPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch">
                 <TextBlock Text="Balance over time" DockPanel.Dock="Left"/>
                 <StackPanel Orientation="Horizontal" Spacing="10" DockPanel.Dock="Right">
                     <RadioButton Classes="text" Content="All" Command="{Binding AllCommand}" />
@@ -81,7 +81,7 @@
                 </StackPanel>
                 <Panel/>
             </DockPanel>
-            <c:LineChart x:CompileBindings="True" x:DataType="vm:WalletBalanceChartTileViewModel" x:Name="GradientLineChart" DockPanel.Dock="Left" Margin="30"
+            <c:LineChart x:CompileBindings="True" x:DataType="vm:WalletBalanceChartTileViewModel" x:Name="GradientLineChart" DockPanel.Dock="Left" Margin="30 30 15 30"
                          Classes="area border xAxis xAxisLabels yAxis yAxisLabels"
                          SmoothCurve="True"
                          XAxisMinimum="{Binding XMinimum}"
