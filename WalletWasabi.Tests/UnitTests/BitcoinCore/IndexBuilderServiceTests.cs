@@ -94,7 +94,9 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 
 			await Task.Delay(TimeSpan.FromSeconds(10));
 			Assert.True(indexer.IsRunning);  // It is still working
-			Assert.Throws<ArgumentOutOfRangeException>(() => indexer.GetLastFilter());  // There are no filters
+
+			var lastFilter = indexer.GetLastFilter();
+			Assert.Equal(9, (int)lastFilter.Header.Height);
 			Assert.True(called > 1);
 		}
 
