@@ -24,7 +24,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			VsizeCredentialIssuerParameters = VsizeCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 
 			var allowedAmounts = new MoneyRange(roundParameters.MinRegistrableAmount, RoundParameters.MaxRegistrableAmount);
-			var txParams = new MultipartyTransactionParameters(roundParameters.FeeRate, allowedAmounts, allowedAmounts, roundParameters.Network, roundParameters.ConnectionConfirmationTimeout);
+			var txParams = new MultipartyTransactionParameters(roundParameters.FeeRate, allowedAmounts, allowedAmounts, roundParameters.Network);
 			CoinjoinState = new ConstructionState(txParams);
 
 			Id = CalculateHash();

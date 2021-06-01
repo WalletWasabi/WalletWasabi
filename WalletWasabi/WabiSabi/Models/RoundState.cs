@@ -12,10 +12,11 @@ namespace WalletWasabi.WabiSabi.Models
 		CredentialIssuerParameters VsizeCredentialIssuerParameters,
 		FeeRate FeeRate,
 		Phase Phase,
+		TimeSpan ConnectionConfirmationTimeout,
 		MultipartyTransactionState CoinjoinState)
 	{
 		public static RoundState FromRound(Round round) =>
-			new RoundState(round.Id, round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, round.FeeRate, round.Phase, round.CoinjoinState);
+			new RoundState(round.Id, round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, round.FeeRate, round.Phase, round.ConnectionConfirmationTimeout, round.CoinjoinState);
 
 		public TState Assert<TState>() where TState : MultipartyTransactionState =>
 			CoinjoinState switch
