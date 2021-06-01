@@ -68,20 +68,20 @@
     </UserControl.Styles>
     <Border ClipToBounds="False" CornerRadius="5" Background="{DynamicResource TileRegionColor}" Margin="6" Padding="16" BoxShadow="{DynamicResource InfoBoxShadow}">
         <DockPanel>
-            <DockPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch" Margin="0,0,30,0">
-                <TextBlock Text="Balance over time" DockPanel.Dock="Left"/>
-                <StackPanel Orientation="Horizontal" Spacing="10" DockPanel.Dock="Right">
-                    <RadioButton Classes="text" Content="All" Command="{Binding AllCommand}" />
-                    <RadioButton Classes="text" Content="1D" Command="{Binding DayCommand}" />
-                    <RadioButton Classes="text" Content="1W" Command="{Binding WeekCommand}" />
-                    <RadioButton Classes="text" Content="1M" Command="{Binding MonthCommand}" />
-                    <RadioButton Classes="text" Content="3M" Command="{Binding ThreeMonthCommand}" IsChecked="True" />
-                    <RadioButton Classes="text" Content="6M" Command="{Binding SixMonthCommand}" />
-                    <RadioButton Classes="text" Content="1Y" Command="{Binding YearCommand}" />
-                </StackPanel>
+            <StackPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch" Spacing="10">
+                <TextBlock Text="Balance over time" />
+                <Grid ColumnDefinitions="*,*,*,*,*,*,*" Margin="0 0 -30 0">
+                    <RadioButton Classes="text" Content="All" Command="{Binding AllCommand}" Grid.Column="0"/>
+                    <RadioButton Classes="text" Content="1D" Command="{Binding DayCommand}" Grid.Column="1" />
+                    <RadioButton Classes="text" Content="1W" Command="{Binding WeekCommand}" Grid.Column="2" />
+                    <RadioButton Classes="text" Content="1M" Command="{Binding MonthCommand}" Grid.Column="3" />
+                    <RadioButton Classes="text" Content="3M" Command="{Binding ThreeMonthCommand}" IsChecked="True" Grid.Column="4" />
+                    <RadioButton Classes="text" Content="6M" Command="{Binding SixMonthCommand}" Grid.Column="5" />
+                    <RadioButton Classes="text" Content="1Y" Command="{Binding YearCommand}" Grid.Column="6" />
+                </Grid>
                 <Panel/>
-            </DockPanel>
-            <c:LineChart x:CompileBindings="True" x:DataType="vm:WalletBalanceChartTileViewModel" x:Name="GradientLineChart" DockPanel.Dock="Left" Margin="30"
+            </StackPanel>
+            <c:LineChart x:CompileBindings="True" x:DataType="vm:WalletBalanceChartTileViewModel" x:Name="GradientLineChart" DockPanel.Dock="Left" Margin="30 15 15 30"
                          Classes="area border xAxis xAxisLabels yAxis yAxisLabels"
                          SmoothCurve="True"
                          XAxisMinimum="{Binding XMinimum}"
