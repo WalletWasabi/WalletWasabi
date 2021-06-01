@@ -15,6 +15,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		[AutoNotify] private string? _balanceFiat;
 		[AutoNotify] private string? _balancePrivateBtc;
 		[AutoNotify] private string? _balanceNonPrivateBtc;
+		[AutoNotify] private string? _recentTransactionName;
+		[AutoNotify] private string? _recentTransactionDate;
+		[AutoNotify] private string? _recentTransactionStatus;
 
 		public WalletBalanceTileViewModel(Wallet wallet, IObservable<Unit> balanceChanged)
 		{
@@ -50,6 +53,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			BalanceNonPrivateBtc = normalCoins.TotalAmount().ToDecimal(MoneyUnit.BTC)
 				.FormattedBtc() + " BTC";
+		}
+
+		private void UpdateTransaction()
+		{
+			// TODO: Update RecentTransactionName
+			// TODO: Update RecentTransactionDate
+			// TODO: Update RecentTransactionStatus
 		}
 	}
 }
