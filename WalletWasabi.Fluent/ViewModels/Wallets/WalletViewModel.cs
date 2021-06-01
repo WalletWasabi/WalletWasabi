@@ -73,73 +73,63 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 			LayoutIndex = _normalLayoutIndex;
 
-			// BalanceTile = new WalletBalanceTileViewModel(wallet, balanceChanged)
-			// {
-			// 	TilePresets = new ObservableCollection<TilePresetViewModel>()
-			// 	{
-			// 		new(0, 0, 1, 1, TileSize.Small),
-			// 		new(0, 0, 1, 1, TileSize.Small),
-			// 		new(0, 0, 1, 1, TileSize.Small)
-			// 	},
-			// 	TilePresetIndex = LayoutIndex
-			// };
-			// RoundStatusTile = new RoundStatusTileViewModel(wallet)
-			// {
-			// 	TilePresets = new ObservableCollection<TilePresetViewModel>()
-			// 	{
-			// 		new(1, 0, 1, 1, TileSize.Small),
-			// 		new(1, 0, 1, 1, TileSize.Small),
-			// 		new(1, 0, 1, 1, TileSize.Small)
-			// 	},
-			// 	TilePresetIndex = LayoutIndex
-			// };
-			// BtcPriceTile = new BtcPriceTileViewModel(wallet)
-			// {
-			// 	TilePresets = new ObservableCollection<TilePresetViewModel>()
-			// 	{
-			// 		new(2, 0, 1, 1, TileSize.Small),
-			// 		new(2, 0, 1, 1, TileSize.Small),
-			// 		new(0, 1, 1, 1, TileSize.Normal)
-			// 	},
-			// 	TilePresetIndex = LayoutIndex
-			// };
-			// WalletPieChart = new WalletPieChartTileViewModel(wallet, balanceChanged)
-			// {
-			// 	TilePresets = new ObservableCollection<TilePresetViewModel>()
-			// 	{
-			// 		new(3, 0, 1, 1, TileSize.Small),
-			// 		new(0, 1, 1, 1, TileSize.Normal),
-			// 		new(1, 1, 1, 1, TileSize.Normal)
-			// 	},
-			// 	TilePresetIndex = LayoutIndex
-			// };
-			// BalanceChartTile = new WalletBalanceChartTileViewModel(History.UnfilteredTransactions)
-			// {
-			// 	TilePresets = new ObservableCollection<TilePresetViewModel>()
-			// 	{
-			// 		new(4, 0, 1, 1, TileSize.Small),
-			// 		new(1, 1, 2, 1, TileSize.Wide),
-			// 		new(0, 2, 2, 1, TileSize.Wide)
-			// 	},
-			// 	TilePresetIndex = LayoutIndex
-			// };
-			BalanceChartTile = new WalletBalanceChartTileViewModel(History.UnfilteredTransactions)
+			BalanceTile = new WalletBalanceTileViewModel(wallet, balanceChanged)
 			{
 				TilePresets = new ObservableCollection<TilePresetViewModel>()
 				{
 					new(0, 0, 1, 1, TileSize.Small),
-					new(0, 0, 1, 2, TileSize.Normal),
-					new(0, 1, 2, 1, TileSize.Wide)
+					new(0, 0, 1, 1, TileSize.Small),
+					new(0, 0, 1, 1, TileSize.Small)
+				},
+				TilePresetIndex = LayoutIndex
+			};
+			RoundStatusTile = new RoundStatusTileViewModel(wallet)
+			{
+				TilePresets = new ObservableCollection<TilePresetViewModel>()
+				{
+					new(1, 0, 1, 1, TileSize.Small),
+					new(1, 0, 1, 1, TileSize.Small),
+					new(1, 0, 1, 1, TileSize.Small)
+				},
+				TilePresetIndex = LayoutIndex
+			};
+			BtcPriceTile = new BtcPriceTileViewModel(wallet)
+			{
+				TilePresets = new ObservableCollection<TilePresetViewModel>()
+				{
+					new(2, 0, 1, 1, TileSize.Small),
+					new(2, 0, 1, 1, TileSize.Small),
+					new(0, 1, 1, 1, TileSize.Normal)
+				},
+				TilePresetIndex = LayoutIndex
+			};
+			WalletPieChart = new WalletPieChartTileViewModel(wallet, balanceChanged)
+			{
+				TilePresets = new ObservableCollection<TilePresetViewModel>()
+				{
+					new(3, 0, 1, 1, TileSize.Small),
+					new(0, 1, 1, 1, TileSize.Normal),
+					new(1, 1, 1, 1, TileSize.Normal)
+				},
+				TilePresetIndex = LayoutIndex
+			};
+			BalanceChartTile = new WalletBalanceChartTileViewModel(History.UnfilteredTransactions)
+			{
+				TilePresets = new ObservableCollection<TilePresetViewModel>()
+				{
+					new(4, 0, 1, 1, TileSize.Small),
+					new(1, 1, 2, 1, TileSize.Wide),
+					new(0, 2, 2, 1, TileSize.Wide)
 				},
 				TilePresetIndex = LayoutIndex
 			};
 
 			_tiles = new List<TileViewModel>
 			{
-				// BalanceTile,
-				// RoundStatusTile,
-				// BtcPriceTile,
-				// WalletPieChart,
+				BalanceTile,
+				RoundStatusTile,
+				BtcPriceTile,
+				WalletPieChart,
 				BalanceChartTile
 			};
 

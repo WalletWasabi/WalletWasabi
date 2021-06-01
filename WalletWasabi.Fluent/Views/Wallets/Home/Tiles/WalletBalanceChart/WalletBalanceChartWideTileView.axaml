@@ -90,7 +90,7 @@
                          XAxisValues="{Binding XValues}"
                          XAxisLabels="{Binding XLabels}"
                          YAxisValues="{Binding YValues}"
-                         YAxisLabels="{Binding YLabels}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                         YAxisLabels="{Binding YLabels}">
                 <c:LineChart.AreaFill>
                     <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%" Opacity="0.2">
                         <LinearGradientBrush.GradientStops>
