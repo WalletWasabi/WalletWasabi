@@ -18,8 +18,10 @@
                     </Panel>
                 </Viewbox>
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="{Binding BalanceBtc, FallbackValue='1.21230001 BTC'}" FontSize="24" />
-                    <TextBlock Text="{Binding BalanceFiat, FallbackValue='≈ 218,197 USD'}" Opacity="0.8" FontSize="12"/>
+                    <TextBlock Text="{Binding BalanceBtc, FallbackValue='1.21230001 BTC'}"
+                               FontSize="24" />
+                    <TextBlock Text="{Binding BalanceFiat, FallbackValue='≈ 218,197 USD'}"
+                               Opacity="0.8" FontSize="12"/>
                 </StackPanel>
             </StackPanel>
             <Separator DockPanel.Dock="Top" Margin="-16 10" />
@@ -31,7 +33,8 @@
                     </Panel>
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="Private funds" Opacity="0.8" FontSize="12" />
-                        <TextBlock Text="{Binding BalancePrivateBtc, FallbackValue='1.0030001 BTC'}" FontSize="15" Margin="0,2,0,0"/>
+                        <TextBlock Text="{Binding BalancePrivateBtc, FallbackValue='1.0030001 BTC'}"
+                                   FontSize="15" Margin="0,4,0,0"/>
                     </StackPanel>
                 </StackPanel>
                 <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="16" Margin="0,12">
@@ -41,7 +44,8 @@
                     </Panel>
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="Non-private funds" Opacity="0.8" FontSize="12" />
-                        <TextBlock Text="{Binding BalanceNonPrivateBtc, FallbackValue='0.21200000 BTC'}" FontSize="15" Margin="0,2,0,0"/>
+                        <TextBlock Text="{Binding BalanceNonPrivateBtc, FallbackValue='0.21200000 BTC'}"
+                                   FontSize="15" Margin="0,4,0,0"/>
                     </StackPanel>
                 </StackPanel>
             </DockPanel>
