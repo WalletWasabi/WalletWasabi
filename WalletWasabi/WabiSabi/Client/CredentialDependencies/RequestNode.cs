@@ -4,7 +4,6 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 {
-	// make private inner class of Graph?
 	public class RequestNode
 	{
 		public RequestNode(IEnumerable<long> values, int inDegree, int outDegree, int zeroOnlyOutDegree)
@@ -17,7 +16,6 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 		public ImmutableArray<long> Values { get; }
 
-		// TODO ImmutableArray<int> (uint?)
 		public int MaxInDegree { get; }
 
 		public int MaxOutDegree { get; }

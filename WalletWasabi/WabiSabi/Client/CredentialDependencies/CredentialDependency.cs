@@ -1,6 +1,5 @@
 namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 {
-	// make private inner class of Graph class?
 	public class CredentialDependency
 	{
 		public CredentialDependency(RequestNode from, RequestNode to, CredentialType credentialType, ulong value)

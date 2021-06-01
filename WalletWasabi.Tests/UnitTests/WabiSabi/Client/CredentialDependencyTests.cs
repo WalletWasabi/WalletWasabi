@@ -200,7 +200,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		[InlineData("1,0 1,0 1,0", "3,0", 5)]
 		[InlineData("3,0", "1,0 1,0 1,0", 5)]
 		[InlineData("1,5 1,5 1,5", "3,1", 5)]
-		[InlineData("3,5", "1,1 1,1 1,1", 6)] // TODO 5?
+		[InlineData("3,5", "1,1 1,1 1,1", 6)] // Can be improved to 5
 		[InlineData("3,5", "1,1 1,1", 4)]
 		[InlineData("4,0", "1,0 1,0 1,0 1,0", 7)]
 		[InlineData("10,0", "1,0 1,0", 4)]
@@ -209,10 +209,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		[InlineData("10,0", "1,0 1,0 1,0 1,0 1,0", 10)]
 		[InlineData("10,0", "1,0 1,0 1,0 1,0 1,0 1,0", 12)]
 		[InlineData("10,0", "1,0 1,0 1,0 1,0 1,0 1,0 1,0 1,0 1,0 1,0", 19)]
-		[InlineData("3,0 3,0", "2,0 2,0 2,0", 6)] // not 5 because of insufficient zero creds
+		[InlineData("3,0 3,0", "2,0 2,0 2,0", 5)]
 		[InlineData("5,0 1,0", "2,0 2,0 2,0", 6)]
 		[InlineData("2,0 2,0", "3,0", 3)]
-		[InlineData("3,0 3,0", "2,0 2,0 1,0", 7)] // not 6 because of uneven amount requiring extra reissuance
+		[InlineData("3,0 3,0", "2,0 2,0 1,0", 6)]
 		[InlineData("8,0 1,0", "3,0 3,0 3,0", 6)]
 		[InlineData("8,0 2,0", "3,0 3,0 3,0", 6)]
 		[InlineData("8,3 1,0", "3,1 3,1 3,1", 6)]
@@ -232,7 +232,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		[InlineData("2,6 2,6", "1,3 1,3 1,3 1,3", 6)]
 		[InlineData("2,6 2,6", "1,1 1,1 1,1 1,1", 8)]
 		[InlineData("3,6 1,6", "4,1", 3)]
-		[InlineData("3,6 1,6", "2,1 1,1 1,1", 6)] // TODO 5
+		[InlineData("3,6 1,6", "2,1 1,1 1,1", 6)] // Can be improved to 5
 		[InlineData("3,6 1,6 1,6 1,6", "2,1 2,1 1,1", 7)]
 		[InlineData("3,6 1,6 1,6 1,6", "2,1 2,1 1,1 1,1", 8)]
 		[InlineData("3,6 1,6 1,6 1,6", "2,1 2,1 2,1", 7)]
@@ -271,7 +271,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			AssertResolvedGraphInvariants(g, inputValues, outputValues);
 			Assert.Equal(finalVertexCount, g.Vertices.Count);
 
-			// TODO when sum is even, reverse
+			// TODO when sum(in) == sum(out) for all credential types, also
+			// verify the reverse graph can be resolved.
 
 			await SimulateAsyncRequests(g);
 		}
@@ -323,7 +324,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				}
 			}
 
-			// TODO opportunistic draining of vsize credentials - add InlineData param for max depth?
+			// TODO add InlineData param for max depth?
+
 			// TODO assert max depth < ceil(log count)?
 		}
 

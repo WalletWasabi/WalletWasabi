@@ -9,15 +9,18 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 	{
 		public const int K = ProtocolConstants.CredentialNumber;
 
-		public static ImmutableArray<CredentialType> CredentialTypes { get; } = ImmutableArray.Create<CredentialType>(CredentialType.Amount, CredentialType.Vsize);
+		public static IEnumerable<CredentialType> CredentialTypes { get; } = Enum.GetValues<CredentialType>();
 
-		public ImmutableList<RequestNode> Vertices { get; private set; } = ImmutableList<RequestNode>.Empty;
+		public ImmutableList<RequestNode> Vertices { get; init; } = ImmutableList<RequestNode>.Empty;
 
-		public ImmutableList<RequestNode> Inputs { get; private set; } = ImmutableList<RequestNode>.Empty;
+		// The input nodes, in the order they were added
+		public ImmutableList<RequestNode> Inputs { get; init; } = ImmutableList<RequestNode>.Empty;
 
-		public ImmutableList<RequestNode> Outputs { get; private set; } = ImmutableList<RequestNode>.Empty;
+		// The output nodes, in the order they were added
+		public ImmutableList<RequestNode> Outputs { get; init; } = ImmutableList<RequestNode>.Empty;
 
-		public ImmutableList<RequestNode> Reissuances { get; private set; } = ImmutableList<RequestNode>.Empty; // TODO sort
+		// The reissuance nodes, unsorted
+		public ImmutableList<RequestNode> Reissuances { get; init; } = ImmutableList<RequestNode>.Empty;
 
 		// Internal properties used to keep track of effective values and edges
 		public ImmutableSortedDictionary<CredentialType, CredentialEdgeSet> edgeSets { get; init; } = ImmutableSortedDictionary<CredentialType, CredentialEdgeSet>.Empty
@@ -42,23 +45,20 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 		/// and may contain additional nodes if reissuance requests are
 		/// required.</remarks>
 		public static DependencyGraph ResolveCredentialDependencies(IEnumerable<IEnumerable<ulong>> inputValues, IEnumerable<IEnumerable<ulong>> outputValues)
-		{
-			return FromValues(inputValues, outputValues).ResolveCredentials();
-		}
+			=> FromValues(inputValues, outputValues).ResolveCredentials();
 
 		public static DependencyGraph FromValues(IEnumerable<IEnumerable<ulong>> inputValues, IEnumerable<IEnumerable<ulong>> outputValues)
 		{
-			if (Enumerable.Concat(inputValues, outputValues).Any(x => x.Count() != CredentialTypes.Length))
+			if (Enumerable.Concat(inputValues, outputValues).Any(x => x.Count() != CredentialTypes.Count()))
 			{
-				throw new ArgumentException($"Number of credential values must be {CredentialTypes.Length}");
+				throw new ArgumentException($"Number of credential values must be {CredentialTypes.Count()}");
 			}
 
 			foreach (var credentialType in CredentialTypes)
 			{
-				// no Sum(Func<ulong, ulong>)) variant
-				long credentialValue(IEnumerable<ulong> x) => (long)x.Skip((int)credentialType).First();
+				long credentialTypeValue(IEnumerable<ulong> x) => (long)x.ElementAt((int)credentialType);
 
-				if (inputValues.Sum(credentialValue) < outputValues.Sum(credentialValue))
+				if (inputValues.Sum(credentialTypeValue) < outputValues.Sum(credentialTypeValue))
 				{
 					throw new ArgumentException("Overall balance must not be negative.");
 				}
@@ -105,9 +105,8 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 		private (DependencyGraph, RequestNode) AddReissuance()
 		{
-			// TODO insert into reissuance requests property
 			var node = new RequestNode(Enumerable.Repeat(0L, K), inDegree: K, outDegree: K, zeroOnlyOutDegree: K * (K - 1));
-			return ((this with { Reissuances = Reissuances.Add(node) }).AddNode(node), node); // TODO keep sorted by topological order?
+			return ((this with { Reissuances = Reissuances.Add(node) }).AddNode(node), node);
 		}
 
 		/// <summary>Resolve edges for all credential types</summary>
@@ -188,14 +187,13 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 			var edgeSet = g.edgeSets[credentialType];
 
+			var positive = g.Vertices.Where(v => edgeSet.Balance(v) > 0);
 			var negative = g.Vertices.Where(v => edgeSet.Balance(v) < 0);
 
 			if (!negative.Any())
 			{
 				return g;
 			}
-
-			var positive = g.Vertices.Where(v => edgeSet.Balance(v) > 0);
 
 			(var largestMagnitudeNode, var smallMagnitudeNodes, var fanIn) = edgeSet.MatchNodesToDischarge(positive, negative);
 
@@ -217,8 +215,6 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 				(g, largestMagnitudeNode) = g.AggregateIntoReissuanceNode(new RequestNode[] { largestMagnitudeNode }, credentialType);
 			}
 
-			var preReduceSmallNodes = smallMagnitudeNodes;
-
 			// Reduce the number of small magnitude nodes to the number of edges
 			// available for use in the largest magnitude node
 			(g, smallMagnitudeNodes) = g.ReduceNodes(smallMagnitudeNodes, maxCount, credentialType);
@@ -234,7 +230,8 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 		{
 			var edgeSet = edgeSets[credentialType];
 
-			IEnumerable<RequestNode> negative = Vertices.Where(v => edgeSet.Balance(v) < 0).OrderBy(v => edgeSet.Balance(v));
+			// Evaluate the linq query eagerly since edgeSet is reassigned
+			IEnumerable<RequestNode> negative = Vertices.Where(v => edgeSet.Balance(v) < 0).OrderBy(v => edgeSet.Balance(v)).ToImmutableArray();
 
 			if (!negative.Any())
 			{
@@ -243,45 +240,28 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 			var g = this;
 
-			// First special case, handle uniform input values (should be the
-			// case for vbyte credentials) more efficiently, by spreading the
-			// negative nodes evenly.
-
 			// Unconstrained nodes have a remaining out degree greater than 1,
 			// so they can produce arbitary value outputs (final edge must leave
 			// balance = 0).
 			// The remaining outdegree > 1 condition is equivalent to == K for
 			// K=2, so that also implies the positive valued nodes haven't been
-			// used for this credential type yet (TODO affinity/avoid crossing?).
-			var unconstrainedPositive = Vertices.Where(v => edgeSet.Balance(v) > 0 && edgeSet.RemainingOutDegree(v) > 1).OrderByDescending(v => edgeSet.Balance(v));
+			// used for this credential type yet.
+			var unconstrainedPositive = Vertices.Where(v => edgeSet.Balance(v) > 0 && edgeSet.RemainingOutDegree(v) > 1).OrderByDescending(v => edgeSet.Balance(v)).ToImmutableArray();
+
+			// First special case, if the unconstrained inputs have uniform values (should be the
+			// common case for vbyte credentials)...
 			if (unconstrainedPositive.Select(v => edgeSet.Balance(v)).Distinct().Count() == 1)
 			{
-				if (edgeSet.Balance(negative.First()) * -1 * (negative.Count() / unconstrainedPositive.Count()) < edgeSet.Balance(unconstrainedPositive.First()))
+				// And if the total amount of the uniform unconstrained nodes is
+				// larger than the negative nodes, with room to spare
+				if (unconstrainedPositive.Count() * edgeSet.Balance(unconstrainedPositive.First()) > -1 * negative.Count() * edgeSet.Balance(negative.First()))
 				{
-					// TODO shuffle? not clear if it will benefit or reduce
-					// privacy, need to study it in more detail. The adverserial
-					// setting that should be considered is one where the
-					// coordinator can delay information and request processing
-					// and perform an arbitrary number of blameless round
-					// failures while attempting to detect correlations between
-					// the timings of the registrations of a single user. Random
-					// delays should add noise to this and ideally all clients
-					// should aim to have the same fixed baseline delay for
-					// their output registrations (something that should almost
-					// always be a few times longer than the expected RTT), then
-					// output registrations should mostly follow reissuances and
-					// be difficult to tell apart based on timing, which should
-					// render the ordering irrelevant.
-
+					// Aggregate the negative nodes if they are more numerous.
+					// Reducing to `unconstrainedPositive.Count()` (which can be
+					// significantly larger than K) creates a more balanced
+					// structure for the next special case, or later iterations.
 					if (negative.Count() > unconstrainedPositive.Count())
 					{
-						// TODO consolidate only lowest depth at each iteration
-						// (negative height, i.e. max of distance to terminal output
-						// nodes derived from the vertex, 0 for such nodes) nodes
-						// first. By only consolidating nodes with the lowest
-						// depth a balanced structure will be ensured regardless
-						// of prior reissuances potentially creating deeper
-						// nodes.
 						(g, negative) = g.ReduceNodes(negative, unconstrainedPositive.Count(), credentialType);
 					}
 				}
@@ -289,9 +269,10 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 			edgeSet = g.edgeSets[credentialType];
 
-			// Second special case, more general to the previous one, when for each
-			// negative node there is a satisfactory unconstrained positive node
-			// (not necessarily all of equal value), discharge via a 1:1 correspondence
+			// Second special case, more general than the previous one.
+			// If negative nodes are all strictly smaller than the corresponding
+			// positive nodes (not necessarily of uniform value), discharge them
+			// in a 1:1 correspondence.
 			if (negative.Count() <= unconstrainedPositive.Count() && Enumerable.Zip(unconstrainedPositive, negative).All(p => edgeSet.Balance(p.First) + edgeSet.Balance(p.Second) >= 0))
 			{
 				g = Enumerable.Zip(unconstrainedPositive, negative).Aggregate(g, (g, p) => g.DrainTerminal(p.First, new RequestNode[] { p.Second }, credentialType));
@@ -309,14 +290,21 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 				return (this, nodes);
 			}
 
+
 			// Replace up to k nodes, possibly the entire queue, with a
 			// single reissuance node which combines their values. The total
 			// number of items might be less than K but still larger than
 			// maxCount.
 			var take = Math.Min(K, nodes.Count());
+
+			// TODO order nodes by depth/height, so that this will produce a
+			// balanced structure. Currently nodes are just merged into a binary
+			// tree in the order given by the enumerable, but this can create an
+			// imbalance if a small magnitude node is a reissuance node left
+			// over from a previous iteration.
 			(var g, var reissuance) = AggregateIntoReissuanceNode(nodes.Take(take), credentialType);
-			var reduced = nodes.Skip(take).Append(reissuance).ToImmutableArray(); // keep enumerable expr size bounded by evaluating eagerly
-			return g.ReduceNodes(reduced, maxCount, credentialType);
+
+			return g.ReduceNodes(nodes.Skip(take).Append(reissuance), maxCount, credentialType);
 		}
 
 		private (DependencyGraph, RequestNode) AggregateIntoReissuanceNode(IEnumerable<RequestNode> nodes, CredentialType credentialType)
@@ -350,7 +338,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 			// dependencies between different requests, weight credentials
 			// should often be easily satisfiable with parallel edges to the
 			// amount credential edges.
-			if (CredentialTypes.Contains(credentialType + 1))
+			if (CredentialType.IsDefined(credentialType + 1))
 			{
 				// TODO Limit up to a certain height in the graph, no more than
 				// the initial value, this can sometimes create a deeper graph
@@ -374,14 +362,13 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 		private DependencyGraph ResolveZeroCredentials(CredentialType credentialType)
 		{
-			// TODO improve affinity/reduce crossings:
-			// resolve 0 credentials in 3 depth first passes, always discharging
-			// from remaining in = 0, available zero > 1 nodes.
-			// each pass should be iterated several times until reaching a fixed
-			// point (no more progress).
-			// - discharge only to AvailableZeroOutDegree > 1 nodes (should be 1 per)
-			// - discharge to direct descendents even if a net reduction in zero creds
-			// - discharge all remaining in degree >1 nodes by topological order
+			// TODO Build edges in parallel to existing ones to reduce
+			// dependencies per request.
+			// This can be done in 3 depth first passes, which all consume nodes
+			// whose remaining in degree is 0 and available zero degree is >0.
+			// - discharge only to AvailableZeroOutDegree >0 nodes (should be at most one such node per donor node)
+			// - discharge to direct descendents even if a net reduction in zero creds because of available zero out degree of 0
+			// - discharge all remaining in degree >0 nodes by topological order
 
 			var edgeSet = edgeSets[credentialType];
 			var unresolvedNodes = Vertices.Where(v => edgeSet.RemainingInDegree(v) > 0 && edgeSet.AvailableZeroOutDegree(v) > 0).OrderByDescending(v => edgeSet.AvailableZeroOutDegree(v));
@@ -395,9 +382,6 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 			// dependencies but remaining out degree (following DAG order)
 			var providers = Vertices.Where(v => edgeSet.RemainingInDegree(v) == 0 && edgeSet.AvailableZeroOutDegree(v) > 0)
 				.SelectMany(v => Enumerable.Repeat(v, edgeSet.AvailableZeroOutDegree(v)));
-
-			// TODO discharge iteratively by topological layer, each time applying different filters?
-			// intersect with successor set of providers of lower credential type edge set for better affinity?
 
 			var reduced = unresolvedNodes.SelectMany(v => Enumerable.Repeat(v, edgeSet.RemainingInDegree(v)))
 				.Zip(providers, (t, f) => new { From = f, To = t })

@@ -20,9 +20,9 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 		public int InDegree(RequestNode node) => InEdges(node).Count;
 
-		public int OutDegree(RequestNode node) => OutEdges(node).Where(x => x.Value != 0).Count();
+		public int OutDegree(RequestNode node) => OutEdges(node).Count(x => x.Value != 0);
 
-		public int ZeroOnlyOutDegree(RequestNode node) => OutEdges(node).Where(x => x.Value == 0).Count();
+		public int ZeroOnlyOutDegree(RequestNode node) => OutEdges(node).Count(x => x.Value == 0);
 
 		public int RemainingInDegree(RequestNode node) => node.MaxInDegree - InDegree(node);
 
@@ -36,9 +36,6 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 		{
 			var edge = new CredentialDependency(from, to, CredentialType, value);
 
-			var predecessors = InEdges(edge.To);
-			var successors = OutEdges(edge.From);
-
 			// Maintain degree invariant (subset of K-regular graph, sort of)
 			if (RemainingInDegree(edge.To) == 0)
 			{
@@ -50,6 +47,20 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 				if (RemainingOutDegree(edge.From) == 0)
 				{
 					throw new InvalidOperationException("Can't add more than k non-zero out edges per node.");
+				}
+				else if (RemainingOutDegree(edge.From) == 1)
+				{
+					// This is the final out edge for the node edge.From
+					if (Balance(edge.From) - (long)edge.Value > 0)
+					{
+						throw new InvalidOperationException($"Can't add final out edge without discharging positive value (edge value {edge.Value} but node balance is {Balance(edge.From)}).");
+					}
+
+					// If it's the final edge overall for that node, the final balance must be 0
+					if (RemainingInDegree(edge.From) == 0 && Balance(edge.From) - (long)edge.Value != 0)
+					{
+						throw new InvalidOperationException("Can't add final in edge without discharging negative value completely.");
+					}
 				}
 			}
 			else
@@ -87,23 +98,9 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 				}
 			}
 
-			if (value > 0)
-			{
-				if (RemainingOutDegree(edge.From) == 1)
-				{
-					// This is the final out edge for the node edge.From
-					if (Balance(edge.From) - (long)edge.Value > 0)
-					{
-						throw new InvalidOperationException($"Can't add final out edge without discharging positive value (edge value {edge.Value} but node balance is {Balance(edge.From)}).");
-					}
 
-					// If it's the final edge overall for that node, the final balance must be 0
-					if (RemainingInDegree(edge.From) == 0 && Balance(edge.From) - (long)edge.Value != 0)
-					{
-						throw new InvalidOperationException("Can't add final in edge without discharging negative value completely.");
-					}
-				}
-			}
+			var predecessors = InEdges(edge.To);
+			var successors = OutEdges(edge.From);
 
 			return this with
 			{
@@ -188,15 +185,15 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 				// Always satisfiy zero credential from new reissuance nodes
 				// (it's guaranteed to be possible) to avoid crossing edges,
 				// even if there's no balance to discharge.
-				_ => ( InDegree(reissuance) == 0 ? AddZeroEdges(reissuance, node) : this ),
+				_ => (InDegree(reissuance) == 0 ? AddZeroEdges(reissuance, node) : this),
 			};
 
 		public CredentialEdgeSet AddZeroEdges(RequestNode src, RequestNode dst)
 		   => RemainingInDegree(dst) switch
-			{
-				0 => this,
-				_ => AddZeroEdge(src, dst).AddZeroEdges(src, dst),
-			};
+		   {
+			   0 => this,
+			   _ => AddZeroEdge(src, dst).AddZeroEdges(src, dst),
+		   };
 
 		public CredentialEdgeSet AddZeroEdge(RequestNode src, RequestNode dst) => AddEdge(src, dst, 0);
 
