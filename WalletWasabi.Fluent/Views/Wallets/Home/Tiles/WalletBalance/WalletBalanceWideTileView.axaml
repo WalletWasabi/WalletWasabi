@@ -19,31 +19,69 @@
                     </Panel>
                 </Viewbox>
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="{Binding BalanceBtc, FallbackValue='1.21230001 BTC'}" FontSize="24" />
-                    <TextBlock Text="{Binding BalanceFiat, FallbackValue='≈ 218,197 USD'}" Opacity="0.8" FontSize="12"/>
+                    <TextBlock Text="{Binding BalanceBtc, FallbackValue='1.21230001 BTC'}"
+                               FontSize="24" />
+                    <TextBlock Text="{Binding BalanceFiat, FallbackValue='≈ 218,197 USD'}"
+                               Opacity="0.8" FontSize="12"/>
                 </StackPanel>
             </StackPanel>
             <DockPanel VerticalAlignment="Center">
-                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="16" Margin="0,12">
-                    <Panel Height="47" Width="47" DockPanel.Dock="Left">
-                        <PathIcon Data="{StaticResource private_funds}"
-                                  Height="21" Width="17" Foreground="#72BD81" />
-                    </Panel>
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="Private funds" Opacity="0.8" FontSize="12" />
-                        <TextBlock Text="{Binding BalancePrivateBtc, FallbackValue='1.0030001 BTC'}" FontSize="15" Margin="0,2,0,0"/>
+                <DockPanel VerticalAlignment="Center" DockPanel.Dock="Left">
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="16" Margin="0,12">
+                        <Panel Height="47" Width="47" DockPanel.Dock="Left">
+                            <PathIcon Data="{StaticResource private_funds}"
+                                      Height="21" Width="17" Foreground="#72BD81" />
+                        </Panel>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Private funds" Opacity="0.8" FontSize="12" />
+                            <TextBlock Text="{Binding BalancePrivateBtc, FallbackValue='1.0030001 BTC'}"
+                                       FontSize="15" Margin="0,4,0,0"/>
+                        </StackPanel>
                     </StackPanel>
-                </StackPanel>
-                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="16" Margin="0,12">
-                    <Panel Height="47" Width="47" DockPanel.Dock="Left">
-                    <PathIcon Data="{StaticResource non_private_funds}"
-                              Height="21" Width="17" Foreground="#F9DE7D" />
-                    </Panel>
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="Non-private funds" Opacity="0.8" FontSize="12" />
-                        <TextBlock Text="{Binding BalanceNonPrivateBtc, FallbackValue='0.21200000 BTC'}" FontSize="15" Margin="0,2,0,0"/>
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="16" Margin="0,12">
+                        <Panel Height="47" Width="47" DockPanel.Dock="Left">
+                        <PathIcon Data="{StaticResource non_private_funds}"
+                                  Height="21" Width="17" Foreground="#F9DE7D" />
+                        </Panel>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Non-private funds" Opacity="0.8" FontSize="12" />
+                            <TextBlock Text="{Binding BalanceNonPrivateBtc, FallbackValue='0.21200000 BTC'}"
+                                       FontSize="15" Margin="0,4,0,0"/>
+                        </StackPanel>
                     </StackPanel>
-                </StackPanel>
+                </DockPanel>
+                <DockPanel VerticalAlignment="Top" DockPanel.Dock="Left">
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="16" Margin="0,12">
+                        <Panel Height="47" Width="47" DockPanel.Dock="Left"/>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Recent Transaction" Opacity="0.8" FontSize="12" />
+                            <TextBlock Text="{Binding RecentTransactionName, FallbackValue='Purchase MotorBike'}"
+                                       FontSize="15" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="16" Margin="0,12">
+                        <Panel Height="47" Width="47" DockPanel.Dock="Left"/>
+                        <StackPanel VerticalAlignment="Center" Spacing="4">
+                            <DockPanel>
+                                <Viewbox Height="14" Width="14" DockPanel.Dock="Left">
+                                    <PathIcon Data="{StaticResource transaction_date}" Height="14" Width="14" Foreground="{DynamicResource SystemAccentColor}" />
+                                </Viewbox>
+                                <TextBlock Text="{Binding RecentTransactionDate, FallbackValue='7/12/2020'}"
+                                           Opacity="0.8" FontSize="12" Margin="10,0,0,0"/>
+                            </DockPanel>
+                            <DockPanel Margin="0,4,0,0">
+                                <Viewbox Height="14" Width="14" DockPanel.Dock="Left">
+                                    <Panel>
+                                        <Ellipse Stroke="{DynamicResource SystemAccentColor}" StrokeThickness="1" Height="20" Width="20" />
+                                        <Ellipse Stroke="{DynamicResource SystemAccentColor}" StrokeThickness="1" StrokeDashArray="2, 2" Height="16" Width="16" />
+                                    </Panel>
+                                </Viewbox>
+                                <TextBlock Text="{Binding RecentTransactionStatus, FallbackValue='1.2 BTC  -  Pending'}"
+                                           Opacity="0.8" FontSize="12" Margin="10,0,0,0"/>
+                            </DockPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </DockPanel>
             </DockPanel>
         </DockPanel>
         <Panel HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-16,-16,0" ClipToBounds="True">
