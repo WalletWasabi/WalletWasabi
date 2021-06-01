@@ -55,7 +55,7 @@
                     </TransformGroup>
                 </Panel.RenderTransform>
                 <Ellipse Stroke="White" StrokeThickness="12" Height="240" Width="240" />
-                <Ellipse Stroke="White" StrokeThickness="12" StrokeDashArray="2, 1" Height="200" Width="200" />
+                <Ellipse Stroke="White" StrokeThickness="12" StrokeDashArray="1, 1" Height="200" Width="200" />
                 <PathIcon Data="{StaticResource btc_logo}" Height="100" Width="100" Foreground="White" />
             </Panel>
         </Panel>
