@@ -5,18 +5,19 @@
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.WelcomePageView">
-  <controls:ContentArea Title="Welcome to Wasabi Wallet"
+  <controls:ContentArea Title="Wasabi Wallet"
                  EnableCancel="False"
                  EnableBack="False"
                  EnableNext="False"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel>
-      <TextBlock DockPanel.Dock="Top" TextAlignment="Left">
-        Wasabi is your personal Bitcoin wallet. You can use Wasabi to receive bitcoin from anyone, and to spend bitcoin to whomever you want to. It's that easy, because Wasabi is build to protect your privacy automagically in the background back by default.
-        With Wasabi you can generate and manage hot wallets, where the private keys are stored on your desktop computer; but also with a hardware wallet, where the private keys are stored in a dedicated device.
-      </TextBlock>
       <Button DockPanel.Dock="Bottom" HorizontalAlignment="Center" Classes="action" Content="Get Started" Command="{Binding GetStartedCommand}" />
-      <Viewbox Margin="30">
+
+      <TextBlock DockPanel.Dock="Bottom" TextAlignment="Left" TextWrapping="Wrap" Margin="0 30">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+      </TextBlock>
+
+      <Viewbox>
         <Image Source="/Assets/welcome.png" />
       </Viewbox>
     </DockPanel>
