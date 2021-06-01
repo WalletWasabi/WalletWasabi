@@ -9,9 +9,33 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 {
+	public enum TimePeriodOption
+	{
+		All,
+
+		[FriendlyName("1D")]
+		Day,
+
+		[FriendlyName("1W")]
+		Week,
+
+		[FriendlyName("1M")]
+		Month,
+
+		[FriendlyName("3M")]
+		ThreeMonths,
+
+		[FriendlyName("6M")]
+		SixMonths,
+
+		[FriendlyName("1Y")]
+		Year
+	}
+
 	public partial class WalletBalanceChartTileViewModel : TileViewModel
 	{
 		private readonly ObservableCollection<HistoryItemViewModel> _history;
@@ -20,7 +44,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		[AutoNotify] private double? _xMinimum;
 		[AutoNotify] private List<string>? _yLabels;
 		[AutoNotify] private List<string>? _xLabels;
-		private TimePeriodOption _currentTimePeriod = TimePeriodOption.ThreeMonths;
+		[AutoNotify] private TimePeriodOption _currentTimePeriod = TimePeriodOption.ThreeMonths;
 
 		public WalletBalanceChartTileViewModel(ObservableCollection<HistoryItemViewModel> history)
 		{
@@ -35,17 +59,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			SixMonthCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.SixMonths));
 			YearCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.Year));
 			AllCommand = ReactiveCommand.Create(() => { UpdateSample(TimePeriodOption.All); });
-		}
-
-		private enum TimePeriodOption
-		{
-			All,
-			Day,
-			Week,
-			Month,
-			ThreeMonths,
-			SixMonths,
-			Year
 		}
 
 		public ICommand DayCommand { get; }
@@ -115,7 +128,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 					break;
 			}
 
-			_currentTimePeriod = timePeriod;
+			CurrentTimePeriod = timePeriod;
 		}
 
 		private void UpdateSample(TimeSpan sampleTime, TimeSpan sampleBackFor)
