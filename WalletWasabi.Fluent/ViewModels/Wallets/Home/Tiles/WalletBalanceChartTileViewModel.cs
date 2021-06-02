@@ -29,7 +29,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			foreach (var item in (TimePeriodOption[]) Enum.GetValues(typeof(TimePeriodOption)))
 			{
-				TimePeriodOptions.Add(new TimePeriodOptionViewModel(item, UpdateSample));
+				TimePeriodOptions.Add(new TimePeriodOptionViewModel(item, UpdateSample)
+				{
+					IsSelected = item == TimePeriodOption.ThreeMonths
+				});
 			}
 		}
 
@@ -40,7 +43,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			base.OnActivated(disposables);
 
 			_history.ToObservableChangeSet()
-				.Subscribe(_ => UpdateSample(TimePeriodOptions.First(x => x.Option == TimePeriodOption.ThreeMonths)))
+				.Subscribe(_ => UpdateSample(TimePeriodOptions.First(x => x.IsSelected)))
 				.DisposeWith(disposables);
 		}
 
