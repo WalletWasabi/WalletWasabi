@@ -25,16 +25,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			_history = history;
 			_yValues = new ObservableCollection<double>();
 			_xValues = new ObservableCollection<double>();
-			TimePeriodOptions = new ObservableCollection<TimePeriodOptionViewModel>
+			TimePeriodOptions = new ObservableCollection<TimePeriodOptionViewModel>();
+
+			foreach (var item in (TimePeriodOption[]) Enum.GetValues(typeof(TimePeriodOption)))
 			{
-				new (TimePeriodOption.All, UpdateSample, 0),
-				new (TimePeriodOption.Day, UpdateSample, 1),
-				new (TimePeriodOption.Week, UpdateSample, 2),
-				new (TimePeriodOption.Month, UpdateSample, 3),
-				new (TimePeriodOption.ThreeMonths, UpdateSample, 4),
-				new (TimePeriodOption.SixMonths, UpdateSample, 5),
-				new (TimePeriodOption.Year, UpdateSample, 6),
-			};
+				TimePeriodOptions.Add(new TimePeriodOptionViewModel(item, UpdateSample));
+			}
 		}
 
 		public ObservableCollection<TimePeriodOptionViewModel> TimePeriodOptions { get; }

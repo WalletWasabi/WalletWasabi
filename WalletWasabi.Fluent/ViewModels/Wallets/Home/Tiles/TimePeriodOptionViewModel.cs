@@ -11,17 +11,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		public TimePeriodOption Option { get; }
 		[AutoNotify] private bool _isSelected;
 
-		public TimePeriodOptionViewModel(TimePeriodOption option, Action<TimePeriodOptionViewModel> updateAction, uint orderIndex)
+		public TimePeriodOptionViewModel(TimePeriodOption option, Action<TimePeriodOptionViewModel> updateAction)
 		{
 			Option = option;
 			Text = option.FriendlyName();
 			SelectCommand = ReactiveCommand.Create(() => updateAction(this));
-			OrderIndex = orderIndex;
 		}
 
 		public string Text { get; }
-
-		public uint OrderIndex { get; }
 
 		public ICommand SelectCommand { get; }
 	}
