@@ -7,11 +7,50 @@ using System.Windows.Input;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 {
+	public enum TimePeriodOption
+	{
+		All,
+		[FriendlyName("1D")]
+		Day,
+		[FriendlyName("1W")]
+		Week,
+		[FriendlyName("1M")]
+		Month,
+		[FriendlyName("3M")]
+		ThreeMonths,
+		[FriendlyName("6M")]
+		SixMonths,
+		[FriendlyName("1Y")]
+		Year
+	}
+
+	public partial class TimePeriodOptionViewModel
+	{
+		public TimePeriodOption Option { get; }
+		[AutoNotify] private bool _isSelected;
+
+		public TimePeriodOptionViewModel(TimePeriodOption option, Action<TimePeriodOptionViewModel> updateAction, uint orderIndex)
+		{
+			Option = option;
+			Text = option.FriendlyName();
+			SelectCommand = ReactiveCommand.Create(() => updateAction(this));
+			OrderIndex = orderIndex;
+		}
+
+		public string Text { get; }
+
+		public uint OrderIndex { get; }
+
+		public ICommand SelectCommand { get; }
+	}
+
 	public partial class WalletBalanceChartTileViewModel : TileViewModel
 	{
 		private readonly ObservableCollection<HistoryItemViewModel> _history;
@@ -20,64 +59,44 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		[AutoNotify] private double? _xMinimum;
 		[AutoNotify] private List<string>? _yLabels;
 		[AutoNotify] private List<string>? _xLabels;
-		private TimePeriodOption _currentTimePeriod = TimePeriodOption.ThreeMonths;
 
 		public WalletBalanceChartTileViewModel(ObservableCollection<HistoryItemViewModel> history)
 		{
 			_history = history;
 			_yValues = new ObservableCollection<double>();
 			_xValues = new ObservableCollection<double>();
-
-			DayCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.Day));
-			WeekCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.Week));
-			MonthCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.Month));
-			ThreeMonthCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.ThreeMonths));
-			SixMonthCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.SixMonths));
-			YearCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.Year));
-			AllCommand = ReactiveCommand.Create(() => { UpdateSample(TimePeriodOption.All); });
+			TimePeriodOptions = new ObservableCollection<TimePeriodOptionViewModel>
+			{
+				new (TimePeriodOption.All, UpdateSample, 0),
+				new (TimePeriodOption.Day, UpdateSample, 1),
+				new (TimePeriodOption.Week, UpdateSample, 2),
+				new (TimePeriodOption.Month, UpdateSample, 3),
+				new (TimePeriodOption.ThreeMonths, UpdateSample, 4),
+				new (TimePeriodOption.SixMonths, UpdateSample, 5),
+				new (TimePeriodOption.Year, UpdateSample, 6),
+			};
 		}
 
-		private enum TimePeriodOption
-		{
-			All,
-			Day,
-			Week,
-			Month,
-			ThreeMonths,
-			SixMonths,
-			Year
-		}
-
-		public ICommand DayCommand { get; }
-
-		public ICommand WeekCommand { get; }
-
-		public ICommand MonthCommand { get; }
-
-		public ICommand ThreeMonthCommand { get; }
-
-		public ICommand SixMonthCommand { get; }
-
-		public ICommand YearCommand { get; }
-
-		public ICommand AllCommand { get; }
+		public ObservableCollection<TimePeriodOptionViewModel> TimePeriodOptions { get; }
 
 		protected override void OnActivated(CompositeDisposable disposables)
 		{
 			base.OnActivated(disposables);
 
 			_history.ToObservableChangeSet()
-				.Subscribe(_ => UpdateSample())
+				.Subscribe(_ => UpdateSample(TimePeriodOptions.First(x => x.Option == TimePeriodOption.ThreeMonths)))
 				.DisposeWith(disposables);
 		}
 
-		private void UpdateSample()
+		private void UpdateSample(TimePeriodOptionViewModel selectedPeriodOption)
 		{
-			UpdateSample(_currentTimePeriod);
-		}
+			foreach (var item in TimePeriodOptions)
+			{
+				item.IsSelected = item == selectedPeriodOption;
+			}
 
-		private void UpdateSample(TimePeriodOption timePeriod)
-		{
+			var timePeriod = selectedPeriodOption.Option;
+
 			switch (timePeriod)
 			{
 				case TimePeriodOption.All:
@@ -114,8 +133,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 					UpdateSample(TimeSpan.FromDays(7), TimeSpan.FromDays(365));
 					break;
 			}
-
-			_currentTimePeriod = timePeriod;
 		}
 
 		private void UpdateSample(TimeSpan sampleTime, TimeSpan sampleBackFor)
