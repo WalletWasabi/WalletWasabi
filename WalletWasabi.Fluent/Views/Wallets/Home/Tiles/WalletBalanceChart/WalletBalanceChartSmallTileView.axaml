@@ -74,18 +74,17 @@
                 <TextBlock Text="Balance over time" DockPanel.Dock="Left"/>
                 <Button Classes="plain" DockPanel.Dock="Right" HorizontalAlignment="Right" Margin="0 0 0 -3">
                     <Button.Flyout>
-                        <MenuFlyout Placement="Bottom">
-                            <i:Interaction.Behaviors>
-                                <behaviors:MenuFlyoutSelectedItemBehavior CurrentTimePeriodOption="{Binding CurrentTimePeriod}" />
-                            </i:Interaction.Behaviors>
-                            <MenuItem Header="All" Command="{Binding AllCommand}" />
-                            <MenuItem Header="1D" Command="{Binding DayCommand}" />
-                            <MenuItem Header="1W" Command="{Binding WeekCommand}" />
-                            <MenuItem Header="1M" Command="{Binding MonthCommand}" />
-                            <MenuItem Header="3M" Command="{Binding ThreeMonthCommand}" />
-                            <MenuItem Header="6M" Command="{Binding SixMonthCommand}" />
-                            <MenuItem Header="1Y" Command="{Binding YearCommand}" />
-                        </MenuFlyout>
+                        <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <RadioButton Classes="text" Content="All" Command="{Binding AllCommand}" />
+                                <RadioButton Classes="text" Content="1D" Command="{Binding DayCommand}" />
+                                <RadioButton Classes="text" Content="1W" Command="{Binding WeekCommand}" />
+                                <RadioButton Classes="text" Content="1M" Command="{Binding MonthCommand}" />
+                                <RadioButton Classes="text" Content="3M" Command="{Binding ThreeMonthCommand}" IsChecked="True" />
+                                <RadioButton Classes="text" Content="6M" Command="{Binding SixMonthCommand}" />
+                                <RadioButton Classes="text" Content="1Y" Command="{Binding YearCommand}" />
+                            </StackPanel>
+                        </Flyout>
                     </Button.Flyout>
                     <PathIcon Data="{StaticResource more_regular}" Foreground="{DynamicResource TextForegroundColor}" />
                 </Button>
