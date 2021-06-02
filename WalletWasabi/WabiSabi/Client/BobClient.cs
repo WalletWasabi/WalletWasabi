@@ -15,7 +15,7 @@ namespace WalletWasabi.WabiSabi.Client
 			ArenaClient = arenaClient;
 		}
 
-		private uint256 RoundId { get; }
+		public uint256 RoundId { get; }
 		private ArenaClient ArenaClient { get; }
 
 		public async Task RegisterOutputAsync(Money amount, Script scriptPubKey, IEnumerable<Credential> amountCredential, IEnumerable<Credential> vsizeCredential, CancellationToken cancellationToken)

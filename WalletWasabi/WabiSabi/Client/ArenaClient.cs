@@ -240,7 +240,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public async Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken)
 		{
-			return await RequestHandler.GetStatusAsync(cancellationToken);
+			return await RequestHandler.GetStatusAsync(cancellationToken).ConfigureAwait(false);
 		}
 	}
 }

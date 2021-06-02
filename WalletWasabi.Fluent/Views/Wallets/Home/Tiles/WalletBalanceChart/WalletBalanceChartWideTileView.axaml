@@ -1,0 +1,111 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
+             mc:Ignorable="d" d:DesignWidth="620" d:DesignHeight="310"
+             x:CompileBindings="True" x:DataType="vm:WalletBalanceChartTileViewModel"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalanceChart.WalletBalanceChartWideTileView">
+    <UserControl.Styles>
+        <!-- LineChart Area -->
+        <Style Selector="c|LineChart.area">
+            <Setter Property="AreaMargin" Value="0"/>
+            <Setter Property="AreaStrokeThickness" Value="2"/>
+            <Setter Property="AreaStrokeLineCap" Value="Round"/>
+            <Setter Property="AreaMinViableWidth" Value="40"/>
+            <Setter Property="AreaMinViableHeight" Value="20"/>
+            <Setter Property="AreaFill">
+                <SolidColorBrush Color="#72BD81" Opacity="0.2"/>
+            </Setter>
+            <Setter Property="AreaStroke">
+                <SolidColorBrush Color="#72BD81" Opacity="1.0"/>
+            </Setter>
+        </Style>
+        <!-- LineChart Border -->
+        <Style Selector="c|LineChart.border">
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderRadiusX" Value="1" />
+            <Setter Property="BorderRadiusY" Value="1" />
+        </Style>
+        <!-- LineChart XAxis -->
+        <Style Selector="c|LineChart.xAxis">
+            <Setter Property="XAxisOffset" Value="0,0" />
+            <Setter Property="XAxisOpacity" Value="1.0" />
+            <Setter Property="XAxisStrokeThickness" Value="0.7" />
+            <Setter Property="XAxisArrowSize" Value="3.5" />
+            <Setter Property="XAxisMinViableWidth" Value="0"/>
+            <Setter Property="XAxisMinViableHeight" Value="0"/>
+        </Style>
+        <!-- LineChart XAxis Labels -->
+        <Style Selector="c|LineChart.xAxisLabels">
+            <Setter Property="XAxisLabelForeground" Value="{DynamicResource TextForegroundColor}" />
+            <Setter Property="XAxisLabelAngle" Value="0" />
+            <Setter Property="XAxisLabelOffset" Value="0,10" />
+            <Setter Property="XAxisLabelAlignment" Value="Center" />
+            <Setter Property="XAxisLabelFontSize" Value="10" />
+            <Setter Property="XAxisLabelOpacity" Value="0.8" />
+        </Style>
+        <!-- LineChart YAxis -->
+        <Style Selector="c|LineChart.yAxis">
+            <Setter Property="YAxisOffset" Value="0,0" />
+            <Setter Property="YAxisOpacity" Value="1.0" />
+            <Setter Property="YAxisStroke" Value="{DynamicResource TextForegroundColor}" />
+            <Setter Property="YAxisStrokeThickness" Value="0" />
+            <Setter Property="YAxisArrowSize" Value="3.5" />
+            <Setter Property="YAxisMinViableWidth" Value="0"/>
+            <Setter Property="YAxisMinViableHeight" Value="0"/>
+        </Style>
+        <!-- LineChart YAxis Labels -->
+        <Style Selector="c|LineChart.yAxisLabels">
+            <Setter Property="YAxisLabelForeground" Value="{DynamicResource TextForegroundColor}" />
+            <Setter Property="YAxisLabelAngle" Value="0" />
+            <Setter Property="YAxisLabelOffset" Value="-10,0" />
+            <Setter Property="YAxisLabelAlignment" Value="Right" />
+            <Setter Property="YAxisLabelFontSize" Value="10" />
+            <Setter Property="YAxisLabelOpacity" Value="0.8" />
+        </Style>
+    </UserControl.Styles>
+    <Border ClipToBounds="False" CornerRadius="5" Background="{DynamicResource TileRegionColor}" Margin="6" Padding="16" BoxShadow="{DynamicResource InfoBoxShadow}">
+        <DockPanel>
+            <DockPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch" Margin="0,0,30,0">
+                <TextBlock Text="Balance over time" DockPanel.Dock="Left"/>
+                <StackPanel Orientation="Horizontal" Spacing="10" DockPanel.Dock="Right">
+                    <RadioButton Classes="text" Content="All" Command="{Binding AllCommand}" />
+                    <RadioButton Classes="text" Content="1D" Command="{Binding DayCommand}" />
+                    <RadioButton Classes="text" Content="1W" Command="{Binding WeekCommand}" />
+                    <RadioButton Classes="text" Content="1M" Command="{Binding MonthCommand}" />
+                    <RadioButton Classes="text" Content="3M" Command="{Binding ThreeMonthCommand}" IsChecked="True" />
+                    <RadioButton Classes="text" Content="6M" Command="{Binding SixMonthCommand}" />
+                    <RadioButton Classes="text" Content="1Y" Command="{Binding YearCommand}" />
+                </StackPanel>
+                <Panel/>
+            </DockPanel>
+            <c:LineChart x:CompileBindings="True" x:DataType="vm:WalletBalanceChartTileViewModel" x:Name="GradientLineChart" DockPanel.Dock="Left" Margin="30"
+                         Classes="area border xAxis xAxisLabels yAxis yAxisLabels"
+                         SmoothCurve="True"
+                         XAxisMinimum="{Binding XMinimum}"
+                         XAxisValues="{Binding XValues}"
+                         XAxisLabels="{Binding XLabels}"
+                         YAxisValues="{Binding YValues}"
+                         YAxisLabels="{Binding YLabels}">
+                <c:LineChart.AreaFill>
+                    <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%" Opacity="0.2">
+                        <LinearGradientBrush.GradientStops>
+                            <GradientStop Offset="0.0" Color="#FF72BD81" />
+                            <GradientStop Offset="1.0" Color="#0072BD81" />
+                        </LinearGradientBrush.GradientStops>
+                    </LinearGradientBrush>
+                </c:LineChart.AreaFill>
+                <c:LineChart.AreaStroke>
+                    <LinearGradientBrush StartPoint="0%,50%" EndPoint="100%,50%">
+                        <LinearGradientBrush.GradientStops>
+                            <GradientStop Offset="0.0" Color="#72BD81" />
+                            <GradientStop Offset="1.0" Color="#72BD81" />
+                        </LinearGradientBrush.GradientStops>
+                    </LinearGradientBrush>
+                </c:LineChart.AreaStroke>
+            </c:LineChart>
+        </DockPanel>
+    </Border>
+</UserControl>
