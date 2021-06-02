@@ -8,8 +8,8 @@
              x:CompileBindings="True" x:DataType="vm:RoundStatusTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.RoundStatusTileView">
     <Panel>
-        <rs:RoundStatusSmallTileView IsVisible="{Binding IsSmallPreset}"/>
-        <rs:RoundStatusNormalTileView IsVisible="{Binding IsNormalPreset}"/>
-        <rs:RoundStatusWideTileView IsVisible="{Binding IsWidePreset}"/>
+        <rs:RoundStatusSmallTileView />
+        <rs:RoundStatusNormalTileView />
+        <rs:RoundStatusWideTileView />
     </Panel>
 </UserControl>

@@ -8,8 +8,8 @@
              x:CompileBindings="True" x:DataType="vm:BtcPriceTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.BtcPriceTileView">
     <Panel>
-        <bp:BtcPriceSmallTileView IsVisible="{Binding IsSmallPreset}"/>
-        <bp:BtcPriceNormalTileView IsVisible="{Binding IsNormalPreset}"/>
-        <bp:BtcPriceWideTileView IsVisible="{Binding IsWidePreset}"/>
+        <bp:BtcPriceSmallTileView />
+        <bp:BtcPriceNormalTileView />
+        <bp:BtcPriceWideTileView />
     </Panel>
 </UserControl>

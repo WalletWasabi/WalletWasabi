@@ -8,8 +8,8 @@
              x:CompileBindings="True" x:DataType="vm:WalletPieChartTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletPieChartTileView">
     <Panel>
-        <wpc:WalletPieChartSmallTileView IsVisible="{Binding IsSmallPreset}"/>
-        <wpc:WalletPieChartNormalTileView IsVisible="{Binding IsNormalPreset}"/>
-        <wpc:WalletPieChartWideTileView IsVisible="{Binding IsWidePreset}"/>
+        <wpc:WalletPieChartSmallTileView />
+        <wpc:WalletPieChartNormalTileView />
+        <wpc:WalletPieChartWideTileView />
     </Panel>
 </UserControl>
