@@ -60,7 +60,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 		{
 			var rounds = await wabiSabiHttpApiClient.GetStatusAsync(CancellationToken.None);
 			var round = rounds.First(x => x.CoinjoinState is ConstructionState);
-			var insecureRandom =  new InsecureRandom();
+			var insecureRandom = new InsecureRandom();
 			var arenaClient = new ArenaClient(
 				round.CreateAmountCredentialClient(new ZeroCredentialPool(), insecureRandom),
 				round.CreateVsizeCredentialClient(new ZeroCredentialPool(), insecureRandom),

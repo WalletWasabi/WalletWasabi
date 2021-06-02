@@ -56,7 +56,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				roundState.CreateVsizeCredentialClient(vsizeZeroCredentialPool, insecureRandom),
 				wabiSabiApi);
 
-
 			var inputRegistrationResponse = await aliceArenaClient.RegisterInputAsync(outpoint, key, round.Id, CancellationToken.None);
 			var aliceId = inputRegistrationResponse.Value;
 

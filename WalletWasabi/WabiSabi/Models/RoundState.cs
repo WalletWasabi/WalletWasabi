@@ -14,6 +14,7 @@ namespace WalletWasabi.WabiSabi.Models
 		CredentialIssuerParameters VsizeCredentialIssuerParameters,
 		FeeRate FeeRate,
 		Phase Phase,
+		TimeSpan ConnectionConfirmationTimeout,
 		ulong MaxAmountPerAlice,
 		ulong PerAliceVsizeAllocation,
 		MultipartyTransactionState CoinjoinState)
@@ -25,6 +26,7 @@ namespace WalletWasabi.WabiSabi.Models
 				round.VsizeCredentialIssuerParameters,
 				round.FeeRate,
 				round.Phase,
+				round.ConnectionConfirmationTimeout,
 				ProtocolConstants.MaxAmountPerAlice,
 				(ulong)round.PerAliceVsizeAllocation,
 				round.CoinjoinState);

@@ -332,7 +332,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		[Fact]
 		public async Task TooMuchVsizeAsync()
 		{
-			WabiSabiConfig cfg = new() { MaxInputCountByRound = 100_000 }; ;
+			WabiSabiConfig cfg = new() { MaxInputCountByRound = 100_000 };
 			var round = WabiSabiFactory.CreateRound(cfg);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 			using Key key = new();
