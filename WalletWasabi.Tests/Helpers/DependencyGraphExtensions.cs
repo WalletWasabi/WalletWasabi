@@ -34,7 +34,7 @@ namespace WalletWasabi.Tests.Helpers
 				output += "  {\n";
 				output += $"    edge [color={color}, fontcolor={color}];\n";
 
-				foreach (var e in g.edgeSets[credentialType].Predecessors.Values.Aggregate((a, b) => a.Union(b)).OrderByDescending(e => e.Value).ThenBy(e => id(e.From)).ThenBy(e => id(e.To)))
+				foreach (var e in g.EdgeSets[credentialType].Predecessors.Values.Aggregate((a, b) => a.Union(b)).OrderByDescending(e => e.Value).ThenBy(e => id(e.From)).ThenBy(e => id(e.To)))
 				{
 					output += $"    {id(e.From)} -> {id(e.To)} [label=\"{e.Value}{unit}\"{(e.Value == 0 ? ", style=dashed" : "")}];\n";
 				}

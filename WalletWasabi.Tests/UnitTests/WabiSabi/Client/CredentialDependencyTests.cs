@@ -12,18 +12,18 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 	public class CredentialDependencyTests
 	{
 		[Fact]
-		public async void AsyncDependencyGraphTraversal()
+		public async void AsyncDependencyGraphTraversalAsync()
 		{
 			var g = DependencyGraph.ResolveCredentialDependencies(
 				inputValues: new[] { new ulong[] { 10000, 1930 }, new ulong[] { 1000, 1930 } },
 				outputValues: new[] { new ulong[] { 5000, 31 }, new ulong[] { 3500, 31 }, new ulong[] { 2500, 31 } });
 
-			await SimulateAsyncRequests(g);
+			await SimulateAsyncRequestsAsync(g);
 		}
 
 		// Demonstrate how to use the dependency grap. Also checks it can be
 		// executed with no deadlocks.
-		private async Task SimulateAsyncRequests(DependencyGraph g)
+		private async Task SimulateAsyncRequestsAsync(DependencyGraph g)
 		{
 			// Keep track of the partial sets credentials to present. Requests
 			// that are keys in this dictionary are still waiting to be sent.
@@ -33,7 +33,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			// need to be presented is incomplete. Since input registrations and
 			// connection confirmation are modeled as a single node with in
 			// degree 0, they are never blocked.
-			ImmutableArray<RequestNode> unblockedRequests() => pendingCredentialsToPresent.Keys.Where(node => DependencyGraph.CredentialTypes.All(t => g.InDegree(node, t) == pendingCredentialsToPresent[node][t].Count)).ToImmutableArray();
+			ImmutableArray<RequestNode> UnblockedRequests() => pendingCredentialsToPresent.Keys.Where(node => DependencyGraph.CredentialTypes.All(t => g.InDegree(node, t) == pendingCredentialsToPresent[node][t].Count)).ToImmutableArray();
 
 			// Also keep track of the in-flight requests
 			var inFlightRequests = new List<(Task<ImmutableSortedDictionary<CredentialType, IEnumerable<ulong>>> Task, ImmutableSortedDictionary<CredentialType, IEnumerable<CredentialDependency>> Dependencies)>();
@@ -71,7 +71,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				// Clear unblocked but waiting requests. Not very efficient
 				// (quadratic complexity), but good enough for demonstration
 				// purposes.
-				foreach (var node in unblockedRequests())
+				foreach (var node in UnblockedRequests())
 				{
 					// FIXME this is a little ugly, how should it look in the real code? seems like we're missing an abstraction
 					var edgesByType = DependencyGraph.CredentialTypes.ToImmutableSortedDictionary(t => t, t => g.OutEdges(node, t));
@@ -177,7 +177,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			Assert.Equal(g.Vertices[1], nonZeroEdge.To);
 			Assert.Empty(g.OutEdges(nonZeroEdge.To, CredentialType.Amount));
 			Assert.Equal(2, g.InEdges(nonZeroEdge.To, CredentialType.Amount).Count());
-			Assert.Equal(1, g.InEdges(nonZeroEdge.To, CredentialType.Amount).Select(e => e.From).Distinct().Count());
+			Assert.Single(g.InEdges(nonZeroEdge.To, CredentialType.Amount).Select(e => e.From).Distinct());
 			Assert.Empty(g.OutEdges(nonZeroEdge.To, CredentialType.Vsize));
 			Assert.Equal(2, g.InEdges(nonZeroEdge.To, CredentialType.Vsize).Count());
 			Assert.Equal(2, g.InEdges(nonZeroEdge.To, CredentialType.Vsize).Select(e => e.Value == 0).Count());
@@ -253,7 +253,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		[InlineData("21,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1", "11,5 10,5 10,5 10,6", 42)]
 		[InlineData("21,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1", "10,5 10,5 10,5 10,6", 43)]
 		[InlineData("21,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1", "10,5 10,5 10,5 10,5", 42)]
-		public async void ResolveCredentialDependencies(string inputs, string outputs, int finalVertexCount)
+		public async void ResolveCredentialDependenciesAsync(string inputs, string outputs, int finalVertexCount)
 		{
 			// blackbox tests (apart from finalVertexCount, which leaks
 			// information about implementation) covering valid range
@@ -274,7 +274,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			// TODO when sum(in) == sum(out) for all credential types, also
 			// verify the reverse graph can be resolved.
 
-			await SimulateAsyncRequests(g);
+			await SimulateAsyncRequestsAsync(g);
 		}
 
 		private void AssertResolvedGraphInvariants(DependencyGraph graph, IEnumerable<IEnumerable<ulong>> inputValues, IEnumerable<IEnumerable<ulong>> outputValues)
@@ -354,7 +354,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var i = g.Inputs[0];
 			var o = g.Outputs[0];
 
-			var edgeSet = g.edgeSets[0];
+			var edgeSet = g.EdgeSets[0];
 
 			Assert.Equal(2, DependencyGraph.K);
 
