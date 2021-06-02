@@ -9,12 +9,9 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 {
-
-
 	public partial class WalletBalanceChartTileViewModel : TileViewModel
 	{
 		private readonly ObservableCollection<HistoryItemViewModel> _history;
