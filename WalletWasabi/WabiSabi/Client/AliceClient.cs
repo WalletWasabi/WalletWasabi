@@ -1,5 +1,6 @@
 using NBitcoin;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
@@ -56,8 +57,9 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private async Task<bool> TryConfirmConnectionAsync(CancellationToken cancellationToken)
 		{
-			var inputVsize = Constants.P2wpkhInputVirtualSize;
-			var inputRemainingVsizes = new[] { ProtocolConstants.MaxVsizePerAlice - inputVsize };
+			var inputVsize = Coin.ScriptPubKey.EstimateInputVsize();
+			var totalInputVsize = ArenaClient.VsizeCredentialClient.MaxAmount;
+			var inputRemainingVsizes = new[] { (long)totalInputVsize - inputVsize };
 
 			var totalFeeToPay = FeeRate.GetFee(Coin.ScriptPubKey.EstimateInputVsize());
 			var totalAmount = Coin.Amount;

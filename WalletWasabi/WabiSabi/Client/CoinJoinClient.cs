@@ -98,12 +98,9 @@ namespace WalletWasabi.WabiSabi.Client
 			foreach (var coin in Coins)
 			{
 				var aliceArenaClient = new ArenaClient(
-					roundState.AmountCredentialIssuerParameters,
-					roundState.VsizeCredentialIssuerParameters,
-					ZeroAmountCredentialPool,
-					ZeroVsizeCredentialPool,
-					ArenaRequestHandler,
-					SecureRandom);
+					roundState.CreateAmountCredentialClient(ZeroAmountCredentialPool, SecureRandom),
+					roundState.CreateVsizeCredentialClient(ZeroVsizeCredentialPool, SecureRandom),
+					ArenaRequestHandler);
 
 				var hdKey = Keymanager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey).Single();
 				var secret = hdKey.PrivateKey.GetBitcoinSecret(Keymanager.GetNetwork());
@@ -200,12 +197,9 @@ namespace WalletWasabi.WabiSabi.Client
 			return new BobClient(
 				roundState.Id,
 				new(
-					roundState.AmountCredentialIssuerParameters,
-					roundState.VsizeCredentialIssuerParameters,
-					ZeroAmountCredentialPool,
-					ZeroVsizeCredentialPool,
-					ArenaRequestHandler,
-					SecureRandom));
+					roundState.CreateAmountCredentialClient(ZeroAmountCredentialPool, SecureRandom),
+					roundState.CreateVsizeCredentialClient(ZeroVsizeCredentialPool, SecureRandom),
+					ArenaRequestHandler));
 		}
 
 		private bool SanityCheck(IEnumerable<(Money Value, Script ScriptPubKey)> expectedOutputs, Transaction unsignedCoinJoinTransaction)
