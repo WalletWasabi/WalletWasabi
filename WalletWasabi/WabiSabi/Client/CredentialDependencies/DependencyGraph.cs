@@ -23,19 +23,19 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 		public ImmutableList<RequestNode> Reissuances { get; init; } = ImmutableList<RequestNode>.Empty;
 
 		// Internal properties used to keep track of effective values and edges
-		public ImmutableSortedDictionary<CredentialType, CredentialEdgeSet> edgeSets { get; init; } = ImmutableSortedDictionary<CredentialType, CredentialEdgeSet>.Empty
+		public ImmutableSortedDictionary<CredentialType, CredentialEdgeSet> EdgeSets { get; init; } = ImmutableSortedDictionary<CredentialType, CredentialEdgeSet>.Empty
 			.Add(CredentialType.Amount, new() { CredentialType = CredentialType.Amount })
 			.Add(CredentialType.Vsize, new() { CredentialType = CredentialType.Vsize });
 
-		public long Balance(RequestNode node, CredentialType credentialType) => edgeSets[credentialType].Balance(node);
+		public long Balance(RequestNode node, CredentialType credentialType) => EdgeSets[credentialType].Balance(node);
 
-		public IEnumerable<CredentialDependency> InEdges(RequestNode node, CredentialType credentialType) => edgeSets[credentialType].InEdges(node);
+		public IEnumerable<CredentialDependency> InEdges(RequestNode node, CredentialType credentialType) => EdgeSets[credentialType].InEdges(node);
 
-		public IEnumerable<CredentialDependency> OutEdges(RequestNode node, CredentialType credentialType) => edgeSets[credentialType].OutEdges(node);
+		public IEnumerable<CredentialDependency> OutEdges(RequestNode node, CredentialType credentialType) => EdgeSets[credentialType].OutEdges(node);
 
-		public int InDegree(RequestNode node, CredentialType credentialType) => edgeSets[credentialType].InDegree(node);
+		public int InDegree(RequestNode node, CredentialType credentialType) => EdgeSets[credentialType].InDegree(node);
 
-		public int OutDegree(RequestNode node, CredentialType credentialType) => edgeSets[credentialType].OutDegree(node);
+		public int OutDegree(RequestNode node, CredentialType credentialType) => EdgeSets[credentialType].OutDegree(node);
 
 		/// <summary>Construct a graph from amounts, and resolve the
 		/// credential dependencies.</summary>
@@ -56,9 +56,9 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 			foreach (var credentialType in CredentialTypes)
 			{
-				long credentialTypeValue(IEnumerable<ulong> x) => (long)x.ElementAt((int)credentialType);
+				long CredentialTypeValue(IEnumerable<ulong> x) => (long)x.ElementAt((int)credentialType);
 
-				if (inputValues.Sum(credentialTypeValue) < outputValues.Sum(credentialTypeValue))
+				if (inputValues.Sum(CredentialTypeValue) < outputValues.Sum(CredentialTypeValue))
 				{
 					throw new ArgumentException("Overall balance must not be negative.");
 				}
@@ -71,7 +71,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 			=> this with
 			{
 				Vertices = Vertices.Add(node),
-				edgeSets = edgeSets.ToImmutableSortedDictionary(
+				EdgeSets = EdgeSets.ToImmutableSortedDictionary(
 					kvp => kvp.Key,
 					kvp => kvp.Value with
 					{
@@ -185,7 +185,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 		{
 			var g = ResolveUniformInputSpecialCases(credentialType);
 
-			var edgeSet = g.edgeSets[credentialType];
+			var edgeSet = g.EdgeSets[credentialType];
 
 			var positive = g.Vertices.Where(v => edgeSet.Balance(v) > 0);
 			var negative = g.Vertices.Where(v => edgeSet.Balance(v) < 0);
@@ -228,7 +228,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 		private DependencyGraph ResolveUniformInputSpecialCases(CredentialType credentialType)
 		{
-			var edgeSet = edgeSets[credentialType];
+			var edgeSet = EdgeSets[credentialType];
 
 			// Evaluate the linq query eagerly since edgeSet is reassigned
 			IEnumerable<RequestNode> negative = Vertices.Where(v => edgeSet.Balance(v) < 0).OrderBy(v => edgeSet.Balance(v)).ToImmutableArray();
@@ -254,26 +254,26 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 			{
 				// And if the total amount of the uniform unconstrained nodes is
 				// larger than the negative nodes, with room to spare
-				if (unconstrainedPositive.Count() * edgeSet.Balance(unconstrainedPositive.First()) > -1 * negative.Count() * edgeSet.Balance(negative.First()))
+				if (unconstrainedPositive.Length * edgeSet.Balance(unconstrainedPositive.First()) > -1 * negative.Count() * edgeSet.Balance(negative.First()))
 				{
 					// Aggregate the negative nodes if they are more numerous.
 					// Reducing to `unconstrainedPositive.Count()` (which can be
 					// significantly larger than K) creates a more balanced
 					// structure for the next special case, or later iterations.
-					if (negative.Count() > unconstrainedPositive.Count())
+					if (negative.Count() > unconstrainedPositive.Length)
 					{
-						(g, negative) = g.ReduceNodes(negative, unconstrainedPositive.Count(), credentialType);
+						(g, negative) = g.ReduceNodes(negative, unconstrainedPositive.Length, credentialType);
 					}
 				}
 			}
 
-			edgeSet = g.edgeSets[credentialType];
+			edgeSet = g.EdgeSets[credentialType];
 
 			// Second special case, more general than the previous one.
 			// If negative nodes are all strictly smaller than the corresponding
 			// positive nodes (not necessarily of uniform value), discharge them
 			// in a 1:1 correspondence.
-			if (negative.Count() <= unconstrainedPositive.Count() && Enumerable.Zip(unconstrainedPositive, negative).All(p => edgeSet.Balance(p.First) + edgeSet.Balance(p.Second) >= 0))
+			if (negative.Count() <= unconstrainedPositive.Length && Enumerable.Zip(unconstrainedPositive, negative).All(p => edgeSet.Balance(p.First) + edgeSet.Balance(p.Second) >= 0))
 			{
 				g = Enumerable.Zip(unconstrainedPositive, negative).Aggregate(g, (g, p) => g.DrainTerminal(p.First, new RequestNode[] { p.Second }, credentialType));
 			}
@@ -289,7 +289,6 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 			{
 				return (this, nodes);
 			}
-
 
 			// Replace up to k nodes, possibly the entire queue, with a
 			// single reissuance node which combines their values. The total
@@ -330,9 +329,9 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 		private DependencyGraph DrainReissuance(RequestNode reissuance, IEnumerable<RequestNode> nodes, CredentialType credentialType)
 		{
-			var drainedEdgeSet = edgeSets[credentialType].DrainReissuance(reissuance, nodes);
+			var drainedEdgeSet = EdgeSets[credentialType].DrainReissuance(reissuance, nodes);
 
-			var g = this with { edgeSets = edgeSets.SetItem(credentialType, drainedEdgeSet) };
+			var g = this with { EdgeSets = EdgeSets.SetItem(credentialType, drainedEdgeSet) };
 
 			// Also drain all subsequent credential types, to minimize
 			// dependencies between different requests, weight credentials
@@ -358,7 +357,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 			// Here we avoid opportunistically adding edges of other types as it
 			// provides no benefit with K=2. Stable sorting prevents edge
 			// crossing to a limited degree, but could be much better.
-			=> this with { edgeSets = edgeSets.SetItem(credentialType, edgeSets[credentialType].DrainTerminal(node, nodes)) };
+			=> this with { EdgeSets = EdgeSets.SetItem(credentialType, EdgeSets[credentialType].DrainTerminal(node, nodes)) };
 
 		private DependencyGraph ResolveZeroCredentials(CredentialType credentialType)
 		{
@@ -370,7 +369,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 			// - discharge to direct descendents even if a net reduction in zero creds because of available zero out degree of 0
 			// - discharge all remaining in degree >0 nodes by topological order
 
-			var edgeSet = edgeSets[credentialType];
+			var edgeSet = EdgeSets[credentialType];
 			var unresolvedNodes = Vertices.Where(v => edgeSet.RemainingInDegree(v) > 0 && edgeSet.AvailableZeroOutDegree(v) > 0).OrderByDescending(v => edgeSet.AvailableZeroOutDegree(v));
 
 			if (!unresolvedNodes.Any())
@@ -398,7 +397,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 			// This termination condition is guaranteed to be possible because
 			// connection confirmation and reissuance requests both have an out
 			// degree of K^2 when accounting for their extra zero credentials.
-			var edgeSet = edgeSets[credentialType];
+			var edgeSet = EdgeSets[credentialType];
 			var unresolvedNodes = Vertices.Where(v => edgeSet.RemainingInDegree(v) > 0).OrderByDescending(v => edgeSet.AvailableZeroOutDegree(v));
 
 			if (!unresolvedNodes.Any())
@@ -419,9 +418,9 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 		}
 
 		private DependencyGraph DrainZeroCredentials(RequestNode from, RequestNode to, CredentialType credentialType)
-			=> this with { edgeSets = edgeSets.SetItem(credentialType, edgeSets[credentialType].DrainZeroCredentials(from, to)) };
+			=> this with { EdgeSets = EdgeSets.SetItem(credentialType, EdgeSets[credentialType].DrainZeroCredentials(from, to)) };
 
 		private DependencyGraph AddZeroCredential(RequestNode from, RequestNode to, CredentialType credentialType)
-			=> this with { edgeSets = edgeSets.SetItem(credentialType, edgeSets[credentialType].AddZeroEdge(from, to)) };
+			=> this with { EdgeSets = EdgeSets.SetItem(credentialType, EdgeSets[credentialType].AddZeroEdge(from, to)) };
 	}
 }
