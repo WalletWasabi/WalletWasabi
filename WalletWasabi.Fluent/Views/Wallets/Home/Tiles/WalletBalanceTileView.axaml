@@ -4,12 +4,17 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
              xmlns:wb="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalance"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:CompileBindings="True" x:DataType="vm:WalletBalanceTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalanceTileView">
-    <Panel>
-        <wb:WalletBalanceSmallTileView IsVisible="{Binding IsSmallPreset}"/>
-        <wb:WalletBalanceNormalTileView IsVisible="{Binding IsNormalPreset}"/>
-        <wb:WalletBalanceWideTileView IsVisible="{Binding IsWidePreset}"/>
-    </Panel>
+  <controls:TileControl TileSize="{Binding CurrentTileSize}">
+    <wb:WalletBalanceSmallTileView />
+    <controls:TileControl.LargeSizeContent>
+      <wb:WalletBalanceNormalTileView  />
+    </controls:TileControl.LargeSizeContent>
+    <controls:TileControl.WideSizeContent>
+      <wb:WalletBalanceWideTileView />
+    </controls:TileControl.WideSizeContent>
+  </controls:TileControl>
 </UserControl>
