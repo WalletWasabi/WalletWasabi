@@ -3,54 +3,14 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
-using System.Windows.Input;
 using DynamicData.Binding;
 using NBitcoin;
-using ReactiveUI;
-using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Model;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 {
-	public enum TimePeriodOption
-	{
-		All,
-		[FriendlyName("1D")]
-		Day,
-		[FriendlyName("1W")]
-		Week,
-		[FriendlyName("1M")]
-		Month,
-		[FriendlyName("3M")]
-		ThreeMonths,
-		[FriendlyName("6M")]
-		SixMonths,
-		[FriendlyName("1Y")]
-		Year
-	}
-
-	public partial class TimePeriodOptionViewModel
-	{
-		public TimePeriodOption Option { get; }
-		[AutoNotify] private bool _isSelected;
-
-		public TimePeriodOptionViewModel(TimePeriodOption option, Action<TimePeriodOptionViewModel> updateAction, uint orderIndex)
-		{
-			Option = option;
-			Text = option.FriendlyName();
-			SelectCommand = ReactiveCommand.Create(() => updateAction(this));
-			OrderIndex = orderIndex;
-		}
-
-		public string Text { get; }
-
-		public uint OrderIndex { get; }
-
-		public ICommand SelectCommand { get; }
-	}
-
 	public partial class WalletBalanceChartTileViewModel : TileViewModel
 	{
 		private readonly ObservableCollection<HistoryItemViewModel> _history;
