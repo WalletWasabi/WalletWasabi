@@ -11,7 +11,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		[AutoNotify] private int _tilePresetIndex;
 		[AutoNotify] private TileSize _currentTileSize;
 
-
 		protected TileViewModel()
 		{
 			this.WhenAnyValue(x => x.TilePresetIndex)
