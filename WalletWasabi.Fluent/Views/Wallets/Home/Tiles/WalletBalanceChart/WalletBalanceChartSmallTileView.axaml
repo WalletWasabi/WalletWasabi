@@ -17,15 +17,20 @@
                 <Button Classes="plain" DockPanel.Dock="Right" HorizontalAlignment="Right" Margin="0 0 0 -3">
                     <Button.Flyout>
                         <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway">
-                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                <RadioButton Classes="text" Content="All" Command="{Binding AllCommand}" />
-                                <RadioButton Classes="text" Content="1D" Command="{Binding DayCommand}" />
-                                <RadioButton Classes="text" Content="1W" Command="{Binding WeekCommand}" />
-                                <RadioButton Classes="text" Content="1M" Command="{Binding MonthCommand}" />
-                                <RadioButton Classes="text" Content="3M" Command="{Binding ThreeMonthCommand}" IsChecked="True" />
-                                <RadioButton Classes="text" Content="6M" Command="{Binding SixMonthCommand}" />
-                                <RadioButton Classes="text" Content="1Y" Command="{Binding YearCommand}" />
-                            </StackPanel>
+                            <ItemsControl Items="{Binding TimePeriodOptions}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 0 0 -3" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <RadioButton x:DataType="vm:TimePeriodOptionViewModel" Classes="text"
+                                                     Content="{Binding Text}" Command="{Binding SelectCommand}"
+                                                     IsChecked="{Binding IsSelected}" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
                         </Flyout>
                     </Button.Flyout>
                     <PathIcon Data="{StaticResource more_regular}" Foreground="{DynamicResource TextForegroundColor}" />
