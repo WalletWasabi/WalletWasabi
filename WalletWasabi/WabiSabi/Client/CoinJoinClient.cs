@@ -13,6 +13,7 @@ using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Models.Decomposition;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Wallets;
 
@@ -158,7 +159,12 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private IEnumerable<Money> DecomposeAmounts(FeeRate feeRate)
 		{
-			return Coins.Select(c => c.Amount - feeRate.GetFee(c.ScriptPubKey.EstimateInputVsize()));
+			var allDenominations = BaseDenominationGenerator.Generate();
+			GreedyDecomposer greedyDecomposer = new(allDenominations);
+			var coins = Coins.Select(c => c.Amount - feeRate.GetFee(c.ScriptPubKey.EstimateInputVsize()));
+			var denominations = greedyDecomposer.Decompose(coins.Sum());
+
+			return coins; //TODO: return denominations instead
 		}
 
 		private IEnumerable<IEnumerable<(ulong RealAmountCredentialValue, ulong RealVsizeCredentialValue, Money Value)>> CreatePlan(
