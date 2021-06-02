@@ -176,10 +176,9 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 		/// input side the structure fans in so necessarily it leaves no nodes
 		/// with non-maximized in-degrees, it can only increase the available
 		/// out degree for nodes which are not fully consumed.</para></remarks>
-		private DependencyGraph ResolveCredentials()
-			=> CredentialTypes.Aggregate(
-				CredentialTypes.Aggregate(this, (g, credentialType) => g.ResolveNegativeBalanceNodes(credentialType)),
-				(g, credentialType) => g.ResolveZeroCredentials(credentialType));
+		private DependencyGraph ResolveCredentials() =>
+			ResolveNegativeBalanceNodes(CredentialType.Amount).ResolveNegativeBalanceNodes(CredentialType.Vsize)
+			.ResolveZeroCredentials(CredentialType.Amount).ResolveZeroCredentials(CredentialType.Vsize);
 
 		private DependencyGraph ResolveNegativeBalanceNodes(CredentialType credentialType)
 		{
