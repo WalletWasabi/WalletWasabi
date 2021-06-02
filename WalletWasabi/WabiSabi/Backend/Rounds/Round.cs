@@ -21,10 +21,10 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			CoinjoinState = new ConstructionState(txParams);
 
 			InitialInputVsizeAllocation = CoinjoinState.Parameters.MaxTransactionSize - MultipartyTransactionParameters.SharedOverhead;
-			PerAliceVsizeAllocation = InitialInputVsizeAllocation / RoundParameters.MaxInputCountByRound;
+			MaxVsizePerAlice = InitialInputVsizeAllocation / RoundParameters.MaxInputCountByRound;
 
 			AmountCredentialIssuer = new(new(RoundParameters.Random), RoundParameters.Random, MaxRegistrableAmount);
-			VsizeCredentialIssuer = new(new(RoundParameters.Random), RoundParameters.Random, (ulong)PerAliceVsizeAllocation);
+			VsizeCredentialIssuer = new(new(RoundParameters.Random), RoundParameters.Random, (ulong)MaxVsizePerAlice);
 			AmountCredentialIssuerParameters = AmountCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 			VsizeCredentialIssuerParameters = VsizeCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 
@@ -36,7 +36,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public Network Network => RoundParameters.Network;
 		public Money MinRegistrableAmount => RoundParameters.MinRegistrableAmount;
 		public Money MaxRegistrableAmount => RoundParameters.MaxRegistrableAmount;
-		public int PerAliceVsizeAllocation { get; }
+		public int MaxVsizePerAlice { get; }
 		public FeeRate FeeRate => RoundParameters.FeeRate;
 		public CredentialIssuer AmountCredentialIssuer { get; }
 		public CredentialIssuer VsizeCredentialIssuer { get; }
@@ -61,7 +61,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public DateTimeOffset TransactionSigningStart { get; private set; }
 		public DateTimeOffset TransactionBroadcastingStart { get; private set; }
 		public int InitialInputVsizeAllocation { get; internal set; } // for testing. replace for: CoinjoinState.Parameters.MaxTransactionSize - MultipartyTransactionParameters.SharedOverhead;
-		public int RemainingInputVsizeAllocation => InitialInputVsizeAllocation - InputCount * PerAliceVsizeAllocation;
+		public int RemainingInputVsizeAllocation => InitialInputVsizeAllocation - InputCount * MaxVsizePerAlice;
 
 		private RoundParameters RoundParameters { get; }
 
@@ -140,7 +140,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			=> StrobeHasher.Create(ProtocolConstants.RoundStrobeDomain)
 				.Append(ProtocolConstants.RoundMinRegistrableAmountStrobeLabel, MinRegistrableAmount)
 				.Append(ProtocolConstants.RoundMaxRegistrableAmountStrobeLabel, MaxRegistrableAmount)
-				.Append(ProtocolConstants.RoundPerAliceVsizeAllocationStrobeLabel, PerAliceVsizeAllocation)
+				.Append(ProtocolConstants.RoundMaxVsizePerAliceStrobeLabel, MaxVsizePerAlice)
 				.Append(ProtocolConstants.RoundAmountCredentialIssuerParametersStrobeLabel, AmountCredentialIssuerParameters)
 				.Append(ProtocolConstants.RoundVsizeCredentialIssuerParametersStrobeLabel, VsizeCredentialIssuerParameters)
 				.Append(ProtocolConstants.RoundFeeRateStrobeLabel, FeeRate.FeePerK)

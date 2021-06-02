@@ -94,12 +94,12 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
 			}
 
-			if (alice.TotalInputVsize > round.PerAliceVsizeAllocation)
+			if (alice.TotalInputVsize > round.MaxVsizePerAlice)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchVsize);
 			}
 
-			if (round.RemainingInputVsizeAllocation < round.PerAliceVsizeAllocation)
+			if (round.RemainingInputVsizeAllocation < round.MaxVsizePerAlice)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.VsizeQuotaExceeded);
 			}

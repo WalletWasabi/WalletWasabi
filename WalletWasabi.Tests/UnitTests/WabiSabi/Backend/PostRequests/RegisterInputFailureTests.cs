@@ -91,7 +91,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
 
 			// TODO add configuration parameter
-			round.InitialInputVsizeAllocation = (int)round.PerAliceVsizeAllocation;
+			round.InitialInputVsizeAllocation = (int)round.MaxVsizePerAlice;
 
 			// Add an alice
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -332,8 +332,13 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		[Fact]
 		public async Task TooMuchVsizeAsync()
 		{
+			// Configures a round that allows so many inputs (Alices) that
+			// the virtual size each of they have available is not enought
+			// to register anything.
 			WabiSabiConfig cfg = new() { MaxInputCountByRound = 100_000 };
 			var round = WabiSabiFactory.CreateRound(cfg);
+			Assert.Equal(0, round.MaxVsizePerAlice);
+
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 			using Key key = new();
 

@@ -151,7 +151,7 @@ namespace WalletWasabi.Tests.Helpers
 				zeroPresentables.amountCredentials,
 				CancellationToken.None);
 			var (realVsizeCredentialRequest, _) = vsClient.CreateRequest(
-				new[] { vsize ?? alice?.CalculateRemainingVsizeCredentials(round!.PerAliceVsizeAllocation) ?? MaxVsizePerAlice },
+				new[] { vsize ?? alice?.CalculateRemainingVsizeCredentials(round!.MaxVsizePerAlice) ?? MaxVsizePerAlice },
 				zeroPresentables.vsizeCredentials,
 				CancellationToken.None);
 
@@ -169,7 +169,7 @@ namespace WalletWasabi.Tests.Helpers
 				zeroPresentables.amountCredentials,
 				CancellationToken.None);
 			var (realVsizeCredentialRequest, _) = vsClient.CreateRequest(
-				new[] { alice?.CalculateRemainingVsizeCredentials(round!.PerAliceVsizeAllocation) ?? MaxVsizePerAlice },
+				new[] { alice?.CalculateRemainingVsizeCredentials(round!.MaxVsizePerAlice) ?? MaxVsizePerAlice },
 				zeroPresentables.vsizeCredentials,
 				CancellationToken.None);
 
@@ -207,7 +207,7 @@ namespace WalletWasabi.Tests.Helpers
 				zeroPresentables.amountCredentials,
 				CancellationToken.None);
 			var (realVsizeCredentialRequest, weVal) = vsClient.CreateRequest(
-				new[] { alice.CalculateRemainingVsizeCredentials(round.PerAliceVsizeAllocation) },
+				new[] { alice.CalculateRemainingVsizeCredentials(round.MaxVsizePerAlice) },
 				zeroPresentables.vsizeCredentials,
 				CancellationToken.None);
 
@@ -238,7 +238,7 @@ namespace WalletWasabi.Tests.Helpers
 				new[] { alice?.CalculateRemainingAmountCredentials(round!.FeeRate).Satoshi ?? MaxVsizePerAlice },
 				zeroPresentables.amountCredentials,
 				CancellationToken.None);
-			long startingVsizeCredentialAmount = alice?.CalculateRemainingVsizeCredentials(round!.PerAliceVsizeAllocation) ?? MaxVsizePerAlice;
+			long startingVsizeCredentialAmount = alice?.CalculateRemainingVsizeCredentials(round!.MaxVsizePerAlice) ?? MaxVsizePerAlice;
 			var (vsCredentialRequest, weValid) = vsClient.CreateRequest(
 				new[] { startingVsizeCredentialAmount },
 				zeroPresentables.vsizeCredentials,
@@ -283,7 +283,7 @@ namespace WalletWasabi.Tests.Helpers
 			foreach (var ccresp in ccresps)
 			{
 				var alice = round.Alices.First(x => x.Id == ccresp.aliceId);
-				var startingVsizeCredentialAmount = alice.CalculateRemainingVsizeCredentials(round!.PerAliceVsizeAllocation);
+				var startingVsizeCredentialAmount = alice.CalculateRemainingVsizeCredentials(round!.MaxVsizePerAlice);
 				var script = BitcoinFactory.CreateScript();
 				var vsize = script.EstimateOutputVsize();
 				var amountCredentialRequestData = ccresp.amountClient.CreateRequest(Array.Empty<long>(), ccresp.amountCredentials, CancellationToken.None);

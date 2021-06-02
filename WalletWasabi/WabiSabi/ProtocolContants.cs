@@ -12,7 +12,7 @@ namespace WalletWasabi.WabiSabi
 		public const string RoundStrobeDomain = "round-parameters";
 		public const string RoundMinRegistrableAmountStrobeLabel = "minimum-registrable-amount";
 		public const string RoundMaxRegistrableAmountStrobeLabel = "maximum-registrable-amount";
-		public const string RoundPerAliceVsizeAllocationStrobeLabel = "per-alice-vsize-allocation";
+		public const string RoundMaxVsizePerAliceStrobeLabel = "per-alice-vsize-allocation";
 		public const string RoundAmountCredentialIssuerParametersStrobeLabel = "amount-credential-issuer-parameters";
 		public const string RoundVsizeCredentialIssuerParametersStrobeLabel = "vsize-credential-issuer-parameters";
 		public const string RoundFeeRateStrobeLabel = "fee-rate";
