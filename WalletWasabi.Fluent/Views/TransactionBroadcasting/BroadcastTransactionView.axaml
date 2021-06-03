@@ -5,7 +5,6 @@
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:converters="using:WalletWasabi.Fluent.Converters"
              xmlns:transactionBroadcasting="using:WalletWasabi.Fluent.ViewModels.TransactionBroadcasting"
-             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="transactionBroadcasting:BroadcastTransactionViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.TransactionBroadcasting.BroadcastTransactionView">
@@ -15,17 +14,9 @@
                  EnableNext="True" NextContent="Broadcast"
                  IsBusy="{Binding IsBusy}">
     <StackPanel Spacing="20">
-      <c:PreviewItem Icon="{StaticResource btc_logo}"
+      <c:PreviewItem Icon="{StaticResource transaction_id}"
                      Text="Transaction ID"
                      Content="{Binding TransactionId, FallbackValue=ab550cbedcacc9e4d1d6d37b1dc54eee0cax7b70c4e0beeac2d0915353b70ae0}" />
-      <Separator />
-      <c:PreviewItem Icon="{StaticResource btc_logo}"
-                     Text="Input count"
-                     Content="{Binding InputCount, FallbackValue=1}" />
-      <Separator />
-      <c:PreviewItem Icon="{StaticResource btc_logo}"
-                     Text="Output count"
-                     Content="{Binding OutputCount, FallbackValue=1}" />
       <Separator />
       <c:PreviewItem Icon="{StaticResource btc_logo}"
                      Text="Input amount"
@@ -35,7 +26,15 @@
                      Text="Input amount"
                      Content="{Binding TotalOutputValue, Converter={x:Static converters:MoneyConverters.MoneyToString}, StringFormat={}{0} BTC,FallbackValue=0.00011234}" />
       <Separator />
-      <c:PreviewItem Icon="{StaticResource btc_logo}"
+      <c:PreviewItem Icon="{StaticResource arrow_down_right_circle_regular}"
+                     Text="Input count"
+                     Content="{Binding InputCount, FallbackValue=1}" />
+      <Separator />
+      <c:PreviewItem Icon="{StaticResource arrow_up_right_circle_regular}"
+                     Text="Output count"
+                     Content="{Binding OutputCount, FallbackValue=1}" />
+      <Separator />
+      <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
                      Text="Fee"
                      Content="{Binding NetworkFee, Converter={x:Static converters:MoneyConverters.MoneyToString}, StringFormat={}{0} BTC,FallbackValue=0.00011234}" />
     </StackPanel>
