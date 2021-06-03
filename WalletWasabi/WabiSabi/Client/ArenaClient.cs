@@ -162,24 +162,24 @@ namespace WalletWasabi.WabiSabi.Client
 		public async Task<ArenaResponse<bool>> ConfirmConnectionAsync(
 			uint256 roundId,
 			uint256 aliceId,
-			IEnumerable<long> inputsRegistrationVsize,
+			IEnumerable<Money> amountsToRequest,
+			IEnumerable<long> vsizesToRequest,
 			IEnumerable<Credential> amountCredentialsToPresent,
 			IEnumerable<Credential> vsizeCredentialsToPresent,
-			IEnumerable<Money> newAmount,
 			CancellationToken cancellationToken)
 		{
-			Guard.InRange(nameof(newAmount), newAmount, 1, ProtocolConstants.CredentialNumber);
+			Guard.InRange(nameof(amountsToRequest), amountsToRequest, 1, ProtocolConstants.CredentialNumber);
 			Guard.InRange(nameof(amountCredentialsToPresent), amountCredentialsToPresent, 0, ProtocolConstants.CredentialNumber);
 			Guard.InRange(nameof(vsizeCredentialsToPresent), vsizeCredentialsToPresent, 0, ProtocolConstants.CredentialNumber);
-			Guard.InRange(nameof(inputsRegistrationVsize), inputsRegistrationVsize, 1, VsizeCredentialClient.NumberOfCredentials);
+			Guard.InRange(nameof(vsizesToRequest), vsizesToRequest, 1, VsizeCredentialClient.NumberOfCredentials);
 
 			var realAmountCredentialRequestData = AmountCredentialClient.CreateRequest(
-				newAmount.Select(x => x.Satoshi),
+				amountsToRequest.Select(x => x.Satoshi),
 				amountCredentialsToPresent,
 				cancellationToken);
 
 			var realVsizeCredentialRequestData = VsizeCredentialClient.CreateRequest(
-				inputsRegistrationVsize,
+				vsizesToRequest,
 				vsizeCredentialsToPresent,
 				cancellationToken);
 
