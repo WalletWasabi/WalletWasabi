@@ -4,6 +4,7 @@ using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
+using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tor.Control;
 using WalletWasabi.Tor.Control.Messages;
 using Xunit;
@@ -16,6 +17,9 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 		[Fact]
 		public async Task ReceiveTorAsyncEventsUsingForeachAsync()
 		{
+			Common.GetWorkDir();
+			Logger.SetMinimumLevel(LogLevel.Trace);
+
 			using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(120));
 
 			// Test parameters.
@@ -57,9 +61,15 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 
 				if (counter == ExpectedEventsNo)
 				{
+					Assert.Equal(1, client.SubscriberCount);
 					break;
 				}
 			}
+
+			// Verifies that "break" in "await foreach" actually removes the internal Channel<T> (subscription).
+			Assert.Equal(0, client.SubscriberCount);
+
+			Logger.LogTrace("Client: Done.");
 		}
 
 		/// <summary>Verifies a correct result of a mix of sync and async messages from Tor.</summary>

@@ -67,6 +67,19 @@ namespace WalletWasabi.Tor.Control
 		/// <remarks>Tor control protocol does not provide a foolproof way to recognize that a response belongs to a request.</remarks>
 		private AsyncLock MessageLock { get; }
 
+		/// <summary>Number of subscribers that currently listen to Tor's async events using <see cref="ReadEventsAsync"/>.</summary>
+		/// <remarks>Mainly for tests.</remarks>
+		internal int SubscriberCount
+		{
+			get
+			{
+				lock (AsyncChannelsLock)
+				{
+					return AsyncChannels.Count;
+				}
+			}
+		}
+
 		/// <summary>
 		/// Gets protocol info (for version 1).
 		/// </summary>
