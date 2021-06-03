@@ -7,6 +7,7 @@
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="330" d:DesignHeight="330"
+             ClipToBounds="False"
              x:CompileBindings="True" x:DataType="vm:WalletPieChartTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletPieChart.WalletPieChartNormalTileView">
   <DockPanel>
@@ -16,22 +17,27 @@
       <ItemsRepeater DockPanel.Dock="Bottom" Margin="0,0,0,-8" Items="{Binding TestDataPointsLegend}">
         <ItemsRepeater.ItemTemplate>
           <DataTemplate x:DataType="wallets:DataLegend">
-            <DockPanel Margin="0,8">
-              <Ellipse DockPanel.Dock="Left" Margin="0,0,8,0" HorizontalAlignment="Left" Width="10"
-                       Height="10"
-                       Fill="{Binding HexColor, Converter={x:Static converters:ColorStringConverters.HexColorToBrush}}" />
-              <TextBlock DockPanel.Dock="Left" HorizontalAlignment="Left"
-                         Text="{Binding Amount, Converter={x:Static converters:MoneyConverters.MoneyToString}}" />
-              <TextBlock DockPanel.Dock="Right" Margin="8,0,0,0" HorizontalAlignment="Right"
-                         Text="{Binding PercentShare, StringFormat=\{0:P1\}}" />
-              <TextBlock DockPanel.Dock="Right" HorizontalAlignment="Right" Text="{Binding Label}" />
-            </DockPanel>
+            <Grid ColumnDefinitions="*,*">
+              <DockPanel Margin="0,8">
+                <Ellipse DockPanel.Dock="Left" Margin="0,0,8,0" HorizontalAlignment="Left" Width="10"
+                         Height="10"
+                         Fill="{Binding HexColor, Converter={x:Static converters:ColorStringConverters.HexColorToBrush}}" />
+                <TextBlock DockPanel.Dock="Left" HorizontalAlignment="Left"
+                           Text="{Binding Amount, StringFormat=BTC \{0\}, Converter={x:Static converters:MoneyConverters.MoneyToString}}" />
+              </DockPanel>
+              <DockPanel Grid.Column="1"  Margin="0,8" Opacity="0.5">
+                <TextBlock DockPanel.Dock="Right" Margin="8,0,0,0" HorizontalAlignment="Right"
+                           Text="{Binding PercentShare, StringFormat=\{0:P1\}}" />
+                <TextBlock DockPanel.Dock="Right" HorizontalAlignment="Right" Text="{Binding Label}" />
+              </DockPanel>
+            </Grid>
           </DataTemplate>
         </ItemsRepeater.ItemTemplate>
         <ItemsRepeater.Layout>
           <StackLayout />
         </ItemsRepeater.Layout>
       </ItemsRepeater>
+      <Separator DockPanel.Dock="Bottom" Margin="-16 5" HorizontalAlignment="Stretch" />
       <Panel Margin="8" VerticalAlignment="Center" HorizontalAlignment="Center">
         <controls:RingChartControl DataPoints="{Binding TestDataPoints}" />
       </Panel>
