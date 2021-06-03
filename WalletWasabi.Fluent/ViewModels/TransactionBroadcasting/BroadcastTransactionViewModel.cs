@@ -21,7 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 		NavigationTarget = NavigationTarget.DialogScreen)]
 	public partial class BroadcastTransactionViewModel : RoutableViewModel
 	{
-		[AutoNotify] private string _transactionId;
+		[AutoNotify] private string? _transactionId;
 		[AutoNotify] private Money? _totalInputValue;
 		[AutoNotify] private Money? _totalOutputValue;
 		[AutoNotify] private int _inputCount;
@@ -32,6 +32,27 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 		{
 			Title = "Broadcast Transaction";
 
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+
+			EnableBack = false;
+
+			this.WhenAnyValue(x => x.IsBusy)
+				.Subscribe(x => EnableCancel = !x);
+
+			var nextCommandCanExecute = this.WhenAnyValue(x => x.IsBusy)
+				.Select(x => !x);
+
+			NextCommand = ReactiveCommand.CreateFromTask(
+				async () => await OnNextAsync(transaction),
+				nextCommandCanExecute);
+
+			EnableAutoBusyOn(NextCommand);
+
+			ProcessTransaction(transaction, network);
+		}
+
+		private void ProcessTransaction(SmartTransaction transaction, Network network)
+		{
 			var nullMoney = new Money(-1L);
 			var nullOutput = new TxOut(nullMoney, Script.Empty);
 
@@ -65,22 +86,6 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 			_networkFee = TotalInputValue is null || TotalOutputValue is null
 				? null
 				: TotalInputValue - TotalOutputValue;
-
-			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
-
-			EnableBack = false;
-
-			this.WhenAnyValue(x => x.IsBusy)
-				.Subscribe(x => EnableCancel = !x);
-
-			var nextCommandCanExecute = this.WhenAnyValue(x => x.IsBusy)
-				.Select(x => !x);
-
-			NextCommand = ReactiveCommand.CreateFromTask(
-				async () => await OnNextAsync(transaction),
-				nextCommandCanExecute);
-
-			EnableAutoBusyOn(NextCommand);
 		}
 
 		private async Task OnNextAsync(SmartTransaction transaction)
