@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
@@ -24,21 +23,11 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 	{
 		public BroadcastTransactionViewModel(Network network, SmartTransaction transaction)
 		{
-			Title = "Broadcast Transaction";
-
 			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 			EnableBack = false;
 
-			this.WhenAnyValue(x => x.IsBusy)
-				.Subscribe(x => EnableCancel = !x);
-
-			var nextCommandCanExecute = this.WhenAnyValue(x => x.IsBusy)
-				.Select(x => !x);
-
-			NextCommand = ReactiveCommand.CreateFromTask(
-				async () => await OnNextAsync(transaction),
-				nextCommandCanExecute);
+			NextCommand = ReactiveCommand.CreateFromTask( async () => await OnNextAsync(transaction));
 
 			EnableAutoBusyOn(NextCommand);
 
