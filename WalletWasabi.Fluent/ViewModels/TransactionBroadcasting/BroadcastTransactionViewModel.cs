@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
 
@@ -28,8 +27,6 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 		[AutoNotify] private int _inputCount;
 		[AutoNotify] private int _outputCount;
 		[AutoNotify] private Money? _networkFee;
-		[AutoNotify] private string _inputCountString;
-		[AutoNotify] private string _outputCountString;
 
 		public BroadcastTransactionViewModel(Network network, SmartTransaction transaction)
 		{
@@ -58,9 +55,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 
 			_transactionId = psbtTxn.GetHash().ToString();
 			_inputCount = inputAddressAmount.Length;
-			_inputCountString = $" input{TextHelpers.AddSIfPlural(_inputCount)} and ";
 			_outputCount = outputAddressAmount.Length;
-			_outputCountString = $" output{TextHelpers.AddSIfPlural(_outputCount)}.";
 			_totalInputValue = inputAddressAmount.Any(x => x.Value == nullMoney)
 				? null
 				: inputAddressAmount.Select(x => x.Value).Sum();
