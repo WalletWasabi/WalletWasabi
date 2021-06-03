@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -53,11 +54,6 @@ namespace WalletWasabi.WabiSabi.Client
 			// Calculate outputs values
 			var outputValues = DecomposeAmounts(roundState.FeeRate);
 
-			// Get all locked internal keys we have and assert we have enough.
-			Keymanager.AssertLockedInternalKeysIndexed(howMany: Coins.Count());
-			var allLockedInternalKeys = Keymanager.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked);
-			var outputs = outputValues.Zip(allLockedInternalKeys, (amount, hdPubKey) => new TxOut(amount, hdPubKey.P2wpkhScript));
-
 			var plan = CreatePlan(
 				Coins.Select(x => (ulong)x.Amount.Satoshi),
 				Coins.Select(x => (ulong)x.ScriptPubKey.EstimateInputVsize()),
@@ -70,6 +66,15 @@ namespace WalletWasabi.WabiSabi.Client
 
 			// Confirm coins.
 			aliceClients = await ConfirmConnectionsAsync(aliceClients, roundState.ConnectionConfirmationTimeout, cancellationToken).ConfigureAwait(false);
+
+			// Reissuance.
+			var bobClient = CreateBobClient(roundState);
+			var outputAmountsWithCredentials = await ReissuancesAsync(bobClient, cancellationToken).ConfigureAwait(false);
+
+			// Generate and add output addresses.
+			Keymanager.AssertLockedInternalKeysIndexed(howMany: outputAmountsWithCredentials.Count());
+			var allLockedInternalKeys = Keymanager.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked);
+			var outputs = outputAmountsWithCredentials.Zip(allLockedInternalKeys, (amount, hdPubKey) => new TxOut(amount.Amount, hdPubKey.P2wpkhScript));
 
 			// Output registration.
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
@@ -167,6 +172,18 @@ namespace WalletWasabi.WabiSabi.Client
 			IEnumerable<Money> outputValues)
 		{
 			yield return realAmountCredentialValues.Zip(realVsizeCredentialValues, outputValues, (a, v, o) => (a, v, o));
+		}
+
+		private async Task<IEnumerable<(Money Amount, Credential[] RealAmountCredentials, Credential[] RealVsizeCredentials)>> ReissuancesAsync(BobClient bobClient, CancellationToken cancellationToken)
+		{
+			int outputVsize = Constants.OutputSizeInBytes;
+
+			do
+			{
+				// Do the reissuances
+
+				var response = await bobClient.ReissuanceAsync(Money.Coins(1), outputVsize, Money.Coins(1), outputVsize, null, null, cancellationToken).ConfigureAwait(false);
+			} while (true);
 		}
 
 		private async Task RegisterOutputsAsync(

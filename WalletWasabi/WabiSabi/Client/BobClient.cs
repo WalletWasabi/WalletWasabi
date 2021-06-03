@@ -29,5 +29,18 @@ namespace WalletWasabi.WabiSabi.Client
 				vsizeCredential,
 				cancellationToken).ConfigureAwait(false);
 		}
+
+		public async Task<ArenaResponse> ReissuanceAsync(Money amount1, int scriptPubKeyVsize1, Money amount2, int scriptPubKeyVsize2, IEnumerable<Credential> amountCredential, IEnumerable<Credential> vsizeCredential, CancellationToken cancellationToken)
+		{
+			return await ArenaClient.ReissueCredentialAsync(
+				RoundId,
+				amount1.Satoshi,
+				scriptPubKeyVsize1,
+				amount2.Satoshi,
+				scriptPubKeyVsize2,
+				amountCredential,
+				vsizeCredential,
+				cancellationToken).ConfigureAwait(false);
+		}
 	}
 }
