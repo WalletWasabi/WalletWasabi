@@ -70,10 +70,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var connectionConfirmationResponse1 = await aliceArenaClient.ConfirmConnectionAsync(
 				round.Id,
 				aliceId,
+				reissuanceAmounts,
 				inputRemainingVsizes,
 				inputRegistrationResponse.RealAmountCredentials,
 				inputRegistrationResponse.RealVsizeCredentials,
-				reissuanceAmounts,
 				CancellationToken.None);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
@@ -83,10 +83,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var connectionConfirmationResponse2 = await aliceArenaClient.ConfirmConnectionAsync(
 				round.Id,
 				aliceId,
+				reissuanceAmounts,
 				inputRemainingVsizes,
 				connectionConfirmationResponse1.RealAmountCredentials,
 				connectionConfirmationResponse1.RealVsizeCredentials,
-				reissuanceAmounts,
 				CancellationToken.None);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(1));

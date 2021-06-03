@@ -74,10 +74,10 @@ namespace WalletWasabi.WabiSabi.Client
 				.ConfirmConnectionAsync(
 					RoundId,
 					AliceId,
+					amountsToRequest,
 					inputRemainingVsizes,
 					RealAmountCredentials,
 					RealVsizeCredentials,
-					amountsToRequest,
 					cancellationToken)
 				.ConfigureAwait(false);
 

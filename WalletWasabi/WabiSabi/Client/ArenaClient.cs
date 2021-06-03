@@ -162,10 +162,10 @@ namespace WalletWasabi.WabiSabi.Client
 		public async Task<ArenaResponse<bool>> ConfirmConnectionAsync(
 			uint256 roundId,
 			uint256 aliceId,
+			IEnumerable<Money> newAmount,
 			IEnumerable<long> inputsRegistrationVsize,
 			IEnumerable<Credential> amountCredentialsToPresent,
 			IEnumerable<Credential> vsizeCredentialsToPresent,
-			IEnumerable<Money> newAmount,
 			CancellationToken cancellationToken)
 		{
 			Guard.InRange(nameof(newAmount), newAmount, 1, ProtocolConstants.CredentialNumber);
