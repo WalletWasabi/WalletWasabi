@@ -20,11 +20,11 @@
       <Separator />
       <c:PreviewItem Icon="{StaticResource btc_logo}"
                      Text="Input amount"
-                     Content="{Binding TotalInputValue, Converter={x:Static converters:MoneyConverters.MoneyToString}, StringFormat={}{0} BTC,FallbackValue=0.00011234}" />
+                     Content="{Binding InputAmountString, FallbackValue=0.00011234 BTC}" />
       <Separator />
       <c:PreviewItem Icon="{StaticResource btc_logo}"
-                     Text="Input amount"
-                     Content="{Binding TotalOutputValue, Converter={x:Static converters:MoneyConverters.MoneyToString}, StringFormat={}{0} BTC,FallbackValue=0.00011234}" />
+                     Text="Output amount"
+                     Content="{Binding OutputAmountString, FallbackValue=0.00011234 BTC}" />
       <Separator />
       <c:PreviewItem Icon="{StaticResource arrow_down_right_circle_regular}"
                      Text="Input count"
@@ -36,7 +36,7 @@
       <Separator />
       <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
                      Text="Fee"
-                     Content="{Binding NetworkFee, Converter={x:Static converters:MoneyConverters.MoneyToString}, StringFormat={}{0} BTC,FallbackValue=0.00011234}" />
+                     Content="{Binding FeeString, FallbackValue=0.00011234 BTC}" />
     </StackPanel>
   </c:ContentArea>
 </UserControl>

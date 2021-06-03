@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
 
@@ -21,13 +22,6 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 		NavigationTarget = NavigationTarget.DialogScreen)]
 	public partial class BroadcastTransactionViewModel : RoutableViewModel
 	{
-		[AutoNotify] private string? _transactionId;
-		[AutoNotify] private Money? _totalInputValue;
-		[AutoNotify] private Money? _totalOutputValue;
-		[AutoNotify] private int _inputCount;
-		[AutoNotify] private int _outputCount;
-		[AutoNotify] private Money? _networkFee;
-
 		public BroadcastTransactionViewModel(Network network, SmartTransaction transaction)
 		{
 			Title = "Broadcast Transaction";
@@ -50,6 +44,18 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 
 			ProcessTransaction(transaction, network);
 		}
+
+		public string? TransactionId { get; set; }
+
+		public string? OutputAmountString { get; set; }
+
+		public string? InputAmountString { get; set; }
+
+		public string? FeeString { get; set; }
+
+		public int InputCount { get; set; }
+
+		public int OutputCount { get; set; }
 
 		private void ProcessTransaction(SmartTransaction transaction, Network network)
 		{
@@ -74,18 +80,24 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 
 			var psbtTxn = psbt.GetOriginalTransaction();
 
-			_transactionId = psbtTxn.GetHash().ToString();
-			_inputCount = inputAddressAmount.Length;
-			_outputCount = outputAddressAmount.Length;
-			_totalInputValue = inputAddressAmount.Any(x => x.Value == nullMoney)
+			TransactionId = psbtTxn.GetHash().ToString();
+
+			InputCount = inputAddressAmount.Length;
+			var totalInputValue = inputAddressAmount.Any(x => x.Value == nullMoney)
 				? null
 				: inputAddressAmount.Select(x => x.Value).Sum();
-			_totalOutputValue = outputAddressAmount.Any(x => x.Value == nullMoney)
+			InputAmountString = totalInputValue is null ? "Unknown" : $"{totalInputValue.ToFormattedString()} BTC";
+
+			OutputCount = outputAddressAmount.Length;
+			var totalOutputValue = outputAddressAmount.Any(x => x.Value == nullMoney)
 				? null
 				: outputAddressAmount.Select(x => x.Value).Sum();
-			_networkFee = TotalInputValue is null || TotalOutputValue is null
+			OutputAmountString = totalOutputValue is null ? "Unknown" : $"{totalOutputValue.ToFormattedString()} BTC";
+
+			var networkFee = totalInputValue is null || totalOutputValue is null
 				? null
-				: TotalInputValue - TotalOutputValue;
+				: totalInputValue - totalOutputValue;
+			FeeString = networkFee is null ? "Unknown" : $"{networkFee.ToFormattedString()} BTC";
 		}
 
 		private async Task OnNextAsync(SmartTransaction transaction)
