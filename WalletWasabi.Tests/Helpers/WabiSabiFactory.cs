@@ -23,7 +23,7 @@ namespace WalletWasabi.Tests.Helpers
 {
 	public static class WabiSabiFactory
 	{
-		private static readonly int MaxVsizePerAlice = (1 << 8) - 1;
+		private static readonly int MaxVsizeAllocationPerAlice = (1 << 8) - 1;
 
 		public static Coin CreateCoin(OutPoint? prevout = null, Key? key = null, Money? value = null)
 			=> new(prevout ?? BitcoinFactory.CreateOutPoint(), new TxOut(value ?? Money.Coins(1), BitcoinFactory.CreateScript(key)));
@@ -147,11 +147,11 @@ namespace WalletWasabi.Tests.Helpers
 			var zeroPresentables = CreateZeroCredentials(amClient, vsClient, amIssuer, vsIssuer);
 			var alice = round?.Alices.FirstOrDefault();
 			var (realAmountCredentialRequest, _) = amClient.CreateRequest(
-				new[] { amount?.Satoshi ?? alice?.CalculateRemainingAmountCredentials(round!.FeeRate).Satoshi ?? MaxVsizePerAlice },
+				new[] { amount?.Satoshi ?? alice?.CalculateRemainingAmountCredentials(round!.FeeRate).Satoshi ?? MaxVsizeAllocationPerAlice },
 				zeroPresentables.amountCredentials,
 				CancellationToken.None);
 			var (realVsizeCredentialRequest, _) = vsClient.CreateRequest(
-				new[] { vsize ?? alice?.CalculateRemainingVsizeCredentials(round!.MaxVsizePerAlice) ?? MaxVsizePerAlice },
+				new[] { vsize ?? alice?.CalculateRemainingVsizeCredentials(round!.MaxVsizeAllocationPerAlice) ?? MaxVsizeAllocationPerAlice },
 				zeroPresentables.vsizeCredentials,
 				CancellationToken.None);
 
@@ -165,11 +165,11 @@ namespace WalletWasabi.Tests.Helpers
 			var zeroPresentables = CreateZeroCredentials(amClient, vsClient, amIssuer, vsIssuer);
 			var alice = round?.Alices.FirstOrDefault();
 			var (realAmountCredentialRequest, _) = amClient.CreateRequest(
-				new[] { alice?.CalculateRemainingAmountCredentials(round!.FeeRate).Satoshi ?? MaxVsizePerAlice },
+				new[] { alice?.CalculateRemainingAmountCredentials(round!.FeeRate).Satoshi ?? MaxVsizeAllocationPerAlice },
 				zeroPresentables.amountCredentials,
 				CancellationToken.None);
 			var (realVsizeCredentialRequest, _) = vsClient.CreateRequest(
-				new[] { alice?.CalculateRemainingVsizeCredentials(round!.MaxVsizePerAlice) ?? MaxVsizePerAlice },
+				new[] { alice?.CalculateRemainingVsizeCredentials(round!.MaxVsizeAllocationPerAlice) ?? MaxVsizeAllocationPerAlice },
 				zeroPresentables.vsizeCredentials,
 				CancellationToken.None);
 
@@ -207,7 +207,7 @@ namespace WalletWasabi.Tests.Helpers
 				zeroPresentables.amountCredentials,
 				CancellationToken.None);
 			var (realVsizeCredentialRequest, weVal) = vsClient.CreateRequest(
-				new[] { alice.CalculateRemainingVsizeCredentials(round.MaxVsizePerAlice) },
+				new[] { alice.CalculateRemainingVsizeCredentials(round.MaxVsizeAllocationPerAlice) },
 				zeroPresentables.vsizeCredentials,
 				CancellationToken.None);
 
@@ -235,10 +235,10 @@ namespace WalletWasabi.Tests.Helpers
 
 			var alice = round?.Alices.FirstOrDefault();
 			var (amCredentialRequest, amValid) = amClient.CreateRequest(
-				new[] { alice?.CalculateRemainingAmountCredentials(round!.FeeRate).Satoshi ?? MaxVsizePerAlice },
+				new[] { alice?.CalculateRemainingAmountCredentials(round!.FeeRate).Satoshi ?? MaxVsizeAllocationPerAlice },
 				zeroPresentables.amountCredentials,
 				CancellationToken.None);
-			long startingVsizeCredentialAmount = alice?.CalculateRemainingVsizeCredentials(round!.MaxVsizePerAlice) ?? MaxVsizePerAlice;
+			long startingVsizeCredentialAmount = alice?.CalculateRemainingVsizeCredentials(round!.MaxVsizeAllocationPerAlice) ?? MaxVsizeAllocationPerAlice;
 			var (vsCredentialRequest, weValid) = vsClient.CreateRequest(
 				new[] { startingVsizeCredentialAmount },
 				zeroPresentables.vsizeCredentials,
@@ -283,7 +283,7 @@ namespace WalletWasabi.Tests.Helpers
 			foreach (var ccresp in ccresps)
 			{
 				var alice = round.Alices.First(x => x.Id == ccresp.aliceId);
-				var startingVsizeCredentialAmount = alice.CalculateRemainingVsizeCredentials(round!.MaxVsizePerAlice);
+				var startingVsizeCredentialAmount = alice.CalculateRemainingVsizeCredentials(round!.MaxVsizeAllocationPerAlice);
 				var script = BitcoinFactory.CreateScript();
 				var vsize = script.EstimateOutputVsize();
 				var amountCredentialRequestData = ccresp.amountClient.CreateRequest(Array.Empty<long>(), ccresp.amountCredentials, CancellationToken.None);
