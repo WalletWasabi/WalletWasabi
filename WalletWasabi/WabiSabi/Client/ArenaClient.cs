@@ -75,7 +75,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public async Task<ArenaResponse> RegisterOutputAsync(
 			uint256 roundId,
-			long value,
+			long amount,
 			Script scriptPubKey,
 			IEnumerable<Credential> amountCredentialsToPresent,
 			IEnumerable<Credential> vsizeCredentialsToPresent,
@@ -86,7 +86,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 			var presentedAmount = amountCredentialsToPresent.Sum(x => (long)x.Amount.ToUlong());
 			var (realAmountCredentialRequest, realAmountCredentialResponseValidation) = AmountCredentialClient.CreateRequest(
-				new[] { presentedAmount - value },
+				new[] { presentedAmount - amount },
 				amountCredentialsToPresent,
 				cancellationToken);
 
@@ -112,10 +112,8 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public async Task<ArenaResponse> ReissueCredentialAsync(
 			uint256 roundId,
-			long amount1,
-			long amount2,
-			long vsize1,
-			long vsize2,
+			IEnumerable<long> amountsToRequest,
+			IEnumerable<long> vsizesToRequest,
 			IEnumerable<Credential> amountCredentialsToPresent,
 			IEnumerable<Credential> vsizeCredentialsToPresent,
 			CancellationToken cancellationToken)
@@ -123,19 +121,19 @@ namespace WalletWasabi.WabiSabi.Client
 			Guard.InRange(nameof(amountCredentialsToPresent), amountCredentialsToPresent, 0, AmountCredentialClient.NumberOfCredentials);
 
 			var presentedAmount = amountCredentialsToPresent.Sum(x => (long)x.Amount.ToUlong());
-			if (amount1 + amount2 != presentedAmount)
+			if (amountsToRequest.Sum() != presentedAmount)
 			{
 				throw new InvalidOperationException($"Reissuence amounts must equal with the sum of the presented ones.");
 			}
 
 			var presentedVsize = vsizeCredentialsToPresent.Sum(x => (long)x.Amount.ToUlong());
 			var (realVsizeCredentialRequest, realVsizeCredentialResponseValidation) = VsizeCredentialClient.CreateRequest(
-				new[] { vsize1, vsize2 },
+				vsizesToRequest,
 				vsizeCredentialsToPresent,
 				cancellationToken);
 
 			var (realAmountCredentialRequest, realAmountCredentialResponseValidation) = AmountCredentialClient.CreateRequest(
-				new[] { amount1, amount2 },
+				amountsToRequest,
 				amountCredentialsToPresent,
 				cancellationToken);
 
@@ -162,7 +160,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public async Task<ArenaResponse<bool>> ConfirmConnectionAsync(
 			uint256 roundId,
 			uint256 aliceId,
-			IEnumerable<Money> amountsToRequest,
+			IEnumerable<long> amountsToRequest,
 			IEnumerable<long> vsizesToRequest,
 			IEnumerable<Credential> amountCredentialsToPresent,
 			IEnumerable<Credential> vsizeCredentialsToPresent,
@@ -174,7 +172,7 @@ namespace WalletWasabi.WabiSabi.Client
 			Guard.InRange(nameof(vsizesToRequest), vsizesToRequest, 1, VsizeCredentialClient.NumberOfCredentials);
 
 			var realAmountCredentialRequestData = AmountCredentialClient.CreateRequest(
-				amountsToRequest.Select(x => x.Satoshi),
+				amountsToRequest,
 				amountCredentialsToPresent,
 				cancellationToken);
 

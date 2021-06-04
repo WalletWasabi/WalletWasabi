@@ -41,10 +41,8 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			var response = await ArenaClient.ReissueCredentialAsync(
 				RoundId,
-				amount1,
-				amount2,
-				vsize1,
-				vsize2,
+				new[] { amount1, amount2 },
+				new[] { vsize1,	vsize2 },
 				amountCredential,
 				vsizeCredential,
 				cancellationToken)

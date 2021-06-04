@@ -59,7 +59,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			{
 				Money.Coins(.75m) - round.FeeRate.GetFee(Constants.P2wpkhInputVirtualSize),
 				Money.Coins(.25m)
-			};
+			}.Select(x => x.Satoshi).ToArray();
 
 			var inputVsize = Constants.P2wpkhInputVirtualSize;
 			var vsizesToRequest = new[] { ProtocolConstants.MaxVsizePerAlice - inputVsize };
@@ -97,13 +97,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			// Phase: Output Registration
 			using var destinationKey1 = new Key();
 			using var destinationKey2 = new Key();
+			var p2pwkhScriptSize = (long)destinationKey1.PubKey.WitHash.ScriptPubKey.EstimateOutputVsize();
 
 			var reissuanceResponse = await bobArenaClient.ReissueCredentialAsync(
 				round.Id,
-				amountsToRequest[0],
-				amountsToRequest[1],
-				destinationKey1.PubKey.WitHash.ScriptPubKey.EstimateOutputVsize(),
-				destinationKey2.PubKey.WitHash.ScriptPubKey.EstimateOutputVsize(),
+				amountsToRequest,
+				Enumerable.Repeat(p2pwkhScriptSize, 2),
 				connectionConfirmationResponse2.RealAmountCredentials,
 				connectionConfirmationResponse2.RealVsizeCredentials,
 				CancellationToken.None);
