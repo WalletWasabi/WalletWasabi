@@ -398,5 +398,29 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			// final out edge must discharge remaining balance
 			Assert.Throws<InvalidOperationException>(() => edgeSet.AddEdge(i, o, 7).AddEdge(i, o2, 3));
 		}
+
+		[Fact]
+		public void CanProcessDependencyGraph()
+		{
+			// Create a graph that requires reissuance.
+			DependencyGraph g = DependencyGraph.ResolveCredentialDependencies(
+				inputValues: new[] { new ulong[] { 10_000, 1_930 }, new ulong[] { 1_000, 1_930 } },
+				outputValues: new[] { new ulong[] { 5_000, 31 }, new ulong[] { 3500, 31 }, new ulong[] { 2500, 31 } });
+
+			var visitedNodes = new Dictionary<RequestNode, IEnumerable<string>>();
+			var outputCredentials = g.Process<string>((node, prevResult) =>
+				new[]
+				{
+					node.MaxInDegree == 0
+						? $"Split {node.InitialBalance(CredentialType.Amount)} in [{string.Join(", ", g.OutEdges(node, CredentialType.Amount).Select(x => x.Value))}]"
+						: string.Join(", ", g.InEdges(node, CredentialType.Amount).Zip(prevResult, (e, x) => $"{e.Value} <--- ({x})")),
+					""
+				});
+
+			var firstOutput = outputCredentials.First();
+
+			Assert.Contains("5000 <--- (1000 <--- (Split 1000 in [1000]), 7500 <--- (Split 10000 in [0, 7500, 2500]))", firstOutput.First());
+			Assert.Contains("0 <--- (1000 <--- (Split 1000 in [1000]), 7500 <--- (Split 10000 in [0, 7500, 2500]))", firstOutput.First());
+		}
 	}
 }

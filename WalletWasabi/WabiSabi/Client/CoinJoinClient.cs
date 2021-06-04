@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using System;
 using System.Collections.Generic;
@@ -11,6 +10,7 @@ using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Client.CredentialDependencies;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
@@ -58,11 +58,6 @@ namespace WalletWasabi.WabiSabi.Client
 			var allLockedInternalKeys = Keymanager.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked);
 			var outputs = outputValues.Zip(allLockedInternalKeys, (amount, hdPubKey) => new TxOut(amount, hdPubKey.P2wpkhScript));
 
-			var plan = CreatePlan(
-				Coins.Select(x => (ulong)x.Amount.Satoshi),
-				Coins.Select(x => (ulong)x.ScriptPubKey.EstimateInputVsize()),
-				outputValues);
-
 			List<AliceClient> aliceClients = CreateAliceClients(roundState);
 
 			// Register coins.
@@ -74,6 +69,13 @@ namespace WalletWasabi.WabiSabi.Client
 			// Output registration.
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
 			var outputsWithCredentials = outputs.Zip(aliceClients, (output, alice) => (output, alice.RealAmountCredentials, alice.RealVsizeCredentials));
+
+			var plan = CreatePlan(
+				roundState,
+				aliceClients.Select(x => (x.RealAmountCredentials, x.RealVsizeCredentials)),
+				outputs,
+				cancellationToken);
+
 			var bobClients = Enumerable.Range(0, int.MaxValue).Select(_ => CreateBobClient(roundState));
 			await RegisterOutputsAsync(bobClients, outputsWithCredentials, cancellationToken).ConfigureAwait(false);
 
@@ -161,12 +163,77 @@ namespace WalletWasabi.WabiSabi.Client
 			return Coins.Select(c => c.Amount - feeRate.GetFee(c.ScriptPubKey.EstimateInputVsize()));
 		}
 
-		private IEnumerable<IEnumerable<(ulong RealAmountCredentialValue, ulong RealVsizeCredentialValue, Money Value)>> CreatePlan(
-			IEnumerable<ulong> realAmountCredentialValues,
-			IEnumerable<ulong> realVsizeCredentialValues,
-			IEnumerable<Money> outputValues)
+		private IEnumerable<IEnumerable<(Task<Credential>, CredentialDependency)>> CreatePlan(
+			RoundState roundState,
+			IEnumerable<(Credential[] realAmountCredentials, Credential[] realVsizeCredentials)> inputs,
+			IEnumerable<TxOut> outputs,
+			CancellationToken cancellationToken)
 		{
-			yield return realAmountCredentialValues.Zip(realVsizeCredentialValues, outputValues, (a, v, o) => (a, v, o));
+			var g = DependencyGraph.ResolveCredentialDependencies(
+				inputValues: inputs.SelectMany(i => new[] {
+					new[] { i.realAmountCredentials[0].Amount.ToUlong(), i.realVsizeCredentials[0].Amount.ToUlong() },
+					new[] { i.realAmountCredentials[1].Amount.ToUlong(), i.realVsizeCredentials[1].Amount.ToUlong() }}),
+				outputValues: outputs.Select(o => new[] {
+					(ulong)(o.Value.Satoshi - o.ScriptPubKey.EstimateOutputVsize()),
+					(ulong)(o.ScriptPubKey.EstimateOutputVsize())}));
+
+			var outputCredentials = g.Process<(Task<Credential> CredentialPromise, CredentialDependency Edge)>(async (n, prevCredentials) =>
+			{
+				var amountEdges = g.OutEdges(n, CredentialType.Amount);
+				var vsizeEdges = g.OutEdges(n, CredentialType.Vsize);
+				var amounts = amountEdges.Select(x => (long)x.Value);
+				var vsizes = vsizeEdges.Select(x => (long)x.Value);
+				var inputIdx = g.Inputs.IndexOf(n);
+				var outputIdx = g.Outputs.IndexOf(n);
+				if (inputIdx >= 0) // We are visiting an input node.
+				{
+					var credentials = inputs.ElementAt(inputIdx);
+					var needReissuance = true;
+					if (needReissuance)
+					{
+						var bobClient = CreateBobClient(roundState);
+						var newCredentials = await bobClient.ReissueCredentialsAsync(
+							amounts.First(),
+							amounts.ElementAtOrDefault(1),
+							vsizes.First(),
+							vsizes.ElementAtOrDefault(1),
+							credentials.realAmountCredentials,
+							credentials.realVsizeCredentials,
+							cancellationToken).ConfigureAwait(false);
+
+						return newCredentials.RealAmountCredentials.Zip(amountEdges).Concat(newCredentials.RealVsizeCredentials.Zip(vsizeEdges))
+							.Select(x => Task.FromResult(x));
+					}
+					else
+					{
+						return credentials.realAmountCredentials.Zip(amountEdges).Concat(credentials.realVsizeCredentials.Zip(vsizeEdges))
+							.Select(x => Task.FromResult(x));
+					}
+				}
+				else
+				{
+					var prevAmountCredentialPromises = prevCredentials.Where(x => amountEdges.Contains(x.Edge));
+					var prevVsizeCredentialPromises = prevCredentials.Where(x => vsizeEdges.Contains(x.Edge));
+					if(outputIdx >= 0) // We are visiting an output node.
+					{
+						return prevAmountCredentialPromises.Concat(prevVsizeCredentialPromises).Select(x => Task.FromResult(x));
+					}
+					else // reissuance
+					{
+						var bobClient = CreateBobClient(roundState);
+						return await bobClient.ReissueCredentialsAsync(
+							amounts.First(),
+							amounts.ElementAtOrDefault(1),
+							vsizes.First(),
+							vsizes.ElementAtOrDefault(1),
+							await Task.WhenAll(prevAmountCredentialPromises.Select(x => x.CredentialPromise)).ConfigureAwait(false),
+							await Task.WhenAll(prevVsizeCredentialPromises.Select(x => x.CredentialPromise)).ConfigureAwait(false),
+							cancellationToken).ConfigureAwait(false);
+					}
+				}
+			});
+
+			return outputCredentials;
 		}
 
 		private async Task RegisterOutputsAsync(
@@ -234,4 +301,7 @@ namespace WalletWasabi.WabiSabi.Client
 			await Task.WhenAll(signingRequests).ConfigureAwait(false);
 		}
 	}
+
+
+
 }
