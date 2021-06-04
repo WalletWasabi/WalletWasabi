@@ -14,7 +14,9 @@
       <Button DockPanel.Dock="Bottom" HorizontalAlignment="Center" Classes="action" Content="Get Started" Command="{Binding GetStartedCommand}" />
 
       <TextBlock DockPanel.Dock="Bottom" TextAlignment="Left" TextWrapping="Wrap" Margin="0 30">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        Welcome to Wasabi Wallet. Being put in a position to trust someone is always uncomfortable. Especially regarding personal information or your money. This is why Wasabi Wallet is trustless by design. We don’t, we haven’t and we never will collect information from you.
+        We live in a world where your information is being used to typecast, manipulate and surveil you. What you do with your Bitcoin is your business, so use Wasabi Wallet to retain your individuality, regain your identity and ultimately, reclaim your privacy.
+        We let you control what you reveal about your Bitcoin life.
       </TextBlock>
 
       <Viewbox>
