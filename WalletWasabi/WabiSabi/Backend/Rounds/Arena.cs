@@ -262,8 +262,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					ownershipProof,
 					zeroAmountCredentialRequests,
 					zeroVsizeCredentialRequests,
-					Rounds,
-					Network);
+					Rounds);
 			}
 		}
 

@@ -59,14 +59,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var inputRegistrationResponse = await aliceArenaClient.RegisterInputAsync(outpoint, key, round.Id, CancellationToken.None);
 			var aliceId = inputRegistrationResponse.Value;
 
-			var reissuanceAmounts = new[]
+			var amountsToRequest = new[]
 			{
 				Money.Coins(.75m) - round.FeeRate.GetFee(Constants.P2wpkhInputVirtualSize),
 				Money.Coins(.25m)
 			};
 
 			var inputVsize = Constants.P2wpkhInputVirtualSize;
-			var inputRemainingVsizes = new[] { roundState.MaxVsizeAllocationPerAlice - inputVsize };
+			var vsizesToRequest = new[] { roundState.MaxVsizeAllocationPerAlice - inputVsize };
 
 			// Phase: Input Registration
 			Assert.Equal(Phase.InputRegistration, round.Phase);
@@ -74,10 +74,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var connectionConfirmationResponse1 = await aliceArenaClient.ConfirmConnectionAsync(
 				round.Id,
 				aliceId,
-				inputRemainingVsizes,
+				amountsToRequest,
+				vsizesToRequest,
 				inputRegistrationResponse.RealAmountCredentials,
 				inputRegistrationResponse.RealVsizeCredentials,
-				reissuanceAmounts,
 				CancellationToken.None);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
@@ -87,10 +87,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var connectionConfirmationResponse2 = await aliceArenaClient.ConfirmConnectionAsync(
 				round.Id,
 				aliceId,
-				inputRemainingVsizes,
+				amountsToRequest,
+				vsizesToRequest,
 				connectionConfirmationResponse1.RealAmountCredentials,
 				connectionConfirmationResponse1.RealVsizeCredentials,
-				reissuanceAmounts,
 				CancellationToken.None);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(1));
@@ -107,9 +107,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			var reissuanceResponse = await bobArenaClient.ReissueCredentialAsync(
 				round.Id,
-				reissuanceAmounts[0],
+				amountsToRequest[0],
 				destinationKey1.PubKey.WitHash.ScriptPubKey,
-				reissuanceAmounts[1],
+				amountsToRequest[1],
 				destinationKey2.PubKey.WitHash.ScriptPubKey,
 				connectionConfirmationResponse2.RealAmountCredentials,
 				connectionConfirmationResponse2.RealVsizeCredentials,
@@ -123,7 +123,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			await bobArenaClient.RegisterOutputAsync(
 				round.Id,
-				reissuanceAmounts[0],
+				amountsToRequest[0],
 				destinationKey1.PubKey.WitHash.ScriptPubKey,
 				new[] { amountCred1 },
 				new[] { vsizeCred1 },
@@ -131,7 +131,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			await bobArenaClient.RegisterOutputAsync(
 				round.Id,
-				reissuanceAmounts[1],
+				amountsToRequest[1],
 				destinationKey2.PubKey.WitHash.ScriptPubKey,
 				new[] { amountCred2 },
 				new[] { vsizeCred2 },

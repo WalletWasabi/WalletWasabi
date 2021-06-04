@@ -54,8 +54,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			OwnershipProof ownershipProof,
 			ZeroCredentialsRequest zeroAmountCredentialRequests,
 			ZeroCredentialsRequest zeroVsizeCredentialRequests,
-			IDictionary<uint256, Round> rounds,
-			Network network)
+			IDictionary<uint256, Round> rounds)
 		{
 			if (!rounds.TryGetValue(roundId, out var round))
 			{

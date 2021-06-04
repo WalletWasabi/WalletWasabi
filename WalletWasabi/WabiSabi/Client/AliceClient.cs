@@ -58,7 +58,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private async Task<bool> TryConfirmConnectionAsync(long vsizeAllocationToRequest, CancellationToken cancellationToken)
 		{
 			var inputVsize = Coin.ScriptPubKey.EstimateInputVsize();
-			var inputRemainingVsizes = new[] { vsizeAllocationToRequest - inputVsize };
+			var vsizesToRequest = new[] { vsizeAllocationToRequest - inputVsize };
 
 			var totalFeeToPay = FeeRate.GetFee(Coin.ScriptPubKey.EstimateInputVsize());
 			var totalAmount = Coin.Amount;
@@ -75,10 +75,10 @@ namespace WalletWasabi.WabiSabi.Client
 				.ConfirmConnectionAsync(
 					RoundId,
 					AliceId,
-					inputRemainingVsizes,
+					amountsToRequest,
+					vsizesToRequest,
 					RealAmountCredentials,
 					RealVsizeCredentials,
-					amountsToRequest,
 					cancellationToken)
 				.ConfigureAwait(false);
 
