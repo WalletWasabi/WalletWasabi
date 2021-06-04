@@ -47,19 +47,18 @@ namespace WalletWasabi.WabiSabi.Client
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Registered an input.");
 		}
 
-		public async Task ConfirmConnectionAsync(TimeSpan connectionConfirmationTimeout, CancellationToken cancellationToken)
+		public async Task ConfirmConnectionAsync(TimeSpan connectionConfirmationTimeout, long vsizeAllocationToRequest, CancellationToken cancellationToken)
 		{
-			while (!await TryConfirmConnectionAsync(cancellationToken).ConfigureAwait(false))
+			while (!await TryConfirmConnectionAsync(vsizeAllocationToRequest, cancellationToken).ConfigureAwait(false))
 			{
 				await Task.Delay(connectionConfirmationTimeout / 2, cancellationToken).ConfigureAwait(false);
 			}
 		}
 
-		private async Task<bool> TryConfirmConnectionAsync(CancellationToken cancellationToken)
+		private async Task<bool> TryConfirmConnectionAsync(long vsizeAllocationToRequest, CancellationToken cancellationToken)
 		{
 			var inputVsize = Coin.ScriptPubKey.EstimateInputVsize();
-			var totalInputVsize = ArenaClient.VsizeCredentialClient.MaxAmount;
-			var inputRemainingVsizes = new[] { (long)totalInputVsize - inputVsize };
+			var inputRemainingVsizes = new[] { vsizeAllocationToRequest - inputVsize };
 
 			var totalFeeToPay = FeeRate.GetFee(Coin.ScriptPubKey.EstimateInputVsize());
 			var totalAmount = Coin.Amount;

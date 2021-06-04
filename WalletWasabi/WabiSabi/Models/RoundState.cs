@@ -15,8 +15,9 @@ namespace WalletWasabi.WabiSabi.Models
 		FeeRate FeeRate,
 		Phase Phase,
 		TimeSpan ConnectionConfirmationTimeout,
-		ulong MaxAmountPerAlice,
-		ulong MaxVsizePerAlice,
+		long MaxAmountPerAlice,
+		long MaxVsizePerAlice,
+		long MaxVsizeAllocationPerAlice,
 		MultipartyTransactionState CoinjoinState)
 	{
 		public static RoundState FromRound(Round round) =>
@@ -28,7 +29,8 @@ namespace WalletWasabi.WabiSabi.Models
 				round.Phase,
 				round.ConnectionConfirmationTimeout,
 				ProtocolConstants.MaxAmountPerAlice,
-				(ulong)round.MaxVsizePerAlice,
+				round.MaxVsizePerAlice,
+				round.MaxVsizePerAlice,
 				round.CoinjoinState);
 
 		public TState Assert<TState>() where TState : MultipartyTransactionState =>
@@ -39,9 +41,9 @@ namespace WalletWasabi.WabiSabi.Models
 			};
 
 		public WabiSabiClient CreateAmountCredentialClient(ZeroCredentialPool zeroAmountCredentialPool, WasabiRandom random) =>
-			new WabiSabiClient(AmountCredentialIssuerParameters, random, MaxAmountPerAlice, zeroAmountCredentialPool);
+			new WabiSabiClient(AmountCredentialIssuerParameters, random, (ulong)MaxAmountPerAlice, zeroAmountCredentialPool);
 
 		public WabiSabiClient CreateVsizeCredentialClient(ZeroCredentialPool zeroVsizeCredentialPool, WasabiRandom random) =>
-			new WabiSabiClient(VsizeCredentialIssuerParameters, random, MaxVsizePerAlice, zeroVsizeCredentialPool);
+			new WabiSabiClient(VsizeCredentialIssuerParameters, random, (ulong)MaxVsizePerAlice, zeroVsizeCredentialPool);
 	}
 }

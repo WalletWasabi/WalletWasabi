@@ -69,7 +69,7 @@ namespace WalletWasabi.WabiSabi.Client
 			aliceClients = await RegisterCoinsAsync(aliceClients, cancellationToken).ConfigureAwait(false);
 
 			// Confirm coins.
-			aliceClients = await ConfirmConnectionsAsync(aliceClients, roundState.ConnectionConfirmationTimeout, cancellationToken).ConfigureAwait(false);
+			aliceClients = await ConfirmConnectionsAsync(aliceClients, roundState.MaxVsizeAllocationPerAlice, roundState.ConnectionConfirmationTimeout, cancellationToken).ConfigureAwait(false);
 
 			// Output registration.
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
@@ -131,13 +131,13 @@ namespace WalletWasabi.WabiSabi.Client
 			return completedRequests.Where(x => x is not null).Cast<AliceClient>().ToList();
 		}
 
-		private async Task<List<AliceClient>> ConfirmConnectionsAsync(IEnumerable<AliceClient> aliceClients, TimeSpan connectionConfirmationTimeout, CancellationToken cancellationToken)
+		private async Task<List<AliceClient>> ConfirmConnectionsAsync(IEnumerable<AliceClient> aliceClients, long maxVsizeAllocationPerAlice, TimeSpan connectionConfirmationTimeout, CancellationToken cancellationToken)
 		{
 			async Task<AliceClient?> ConfirmConnectionTask(AliceClient aliceClient)
 			{
 				try
 				{
-					await aliceClient.ConfirmConnectionAsync(connectionConfirmationTimeout, cancellationToken).ConfigureAwait(false);
+					await aliceClient.ConfirmConnectionAsync(connectionConfirmationTimeout, maxVsizeAllocationPerAlice, cancellationToken).ConfigureAwait(false);
 					return aliceClient;
 				}
 				catch (Exception e)

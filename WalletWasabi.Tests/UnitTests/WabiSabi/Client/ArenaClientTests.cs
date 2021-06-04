@@ -65,9 +65,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				Money.Coins(.25m)
 			};
 
-			var ProtocolConstants_MaxVsizePerAlice = (long)aliceArenaClient.VsizeCredentialClient.MaxAmount;
 			var inputVsize = Constants.P2wpkhInputVirtualSize;
-			var inputRemainingVsizes = new[] { ProtocolConstants_MaxVsizePerAlice - inputVsize };
+			var inputRemainingVsizes = new[] { roundState.MaxVsizeAllocationPerAlice - inputVsize };
 
 			// Phase: Input Registration
 			Assert.Equal(Phase.InputRegistration, round.Phase);
