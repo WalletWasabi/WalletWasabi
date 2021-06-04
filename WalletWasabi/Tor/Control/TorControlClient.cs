@@ -242,6 +242,7 @@ namespace WalletWasabi.Tor.Control
 			// Wait until the reader loop stops.
 			await ReaderLoopTask.ConfigureAwait(false);
 
+			ReaderCts.Dispose();
 			TcpClient?.Dispose();
 		}
 	}
