@@ -112,10 +112,10 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public async Task<ArenaResponse> ReissueCredentialAsync(
 			uint256 roundId,
-			long value1,
-			Script scriptPubKey1,
-			long value2,
-			Script scriptPubKey2,
+			long amount1,
+			long amount2,
+			long vsize1,
+			long vsize2,
 			IEnumerable<Credential> amountCredentialsToPresent,
 			IEnumerable<Credential> vsizeCredentialsToPresent,
 			CancellationToken cancellationToken)
@@ -123,19 +123,19 @@ namespace WalletWasabi.WabiSabi.Client
 			Guard.InRange(nameof(amountCredentialsToPresent), amountCredentialsToPresent, 0, AmountCredentialClient.NumberOfCredentials);
 
 			var presentedAmount = amountCredentialsToPresent.Sum(x => (long)x.Amount.ToUlong());
-			if (value1 + value2 != presentedAmount)
+			if (amount1 + amount2 != presentedAmount)
 			{
 				throw new InvalidOperationException($"Reissuence amounts must equal with the sum of the presented ones.");
 			}
 
 			var presentedVsize = vsizeCredentialsToPresent.Sum(x => (long)x.Amount.ToUlong());
 			var (realVsizeCredentialRequest, realVsizeCredentialResponseValidation) = VsizeCredentialClient.CreateRequest(
-				new[] { (long)scriptPubKey1.EstimateOutputVsize(), scriptPubKey2.EstimateOutputVsize() },
+				new[] { vsize1, vsize2 },
 				vsizeCredentialsToPresent,
 				cancellationToken);
 
 			var (realAmountCredentialRequest, realAmountCredentialResponseValidation) = AmountCredentialClient.CreateRequest(
-				new[] { value1, value2 },
+				new[] { amount1, amount2 },
 				amountCredentialsToPresent,
 				cancellationToken);
 
