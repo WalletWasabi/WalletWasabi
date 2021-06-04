@@ -101,9 +101,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var reissuanceResponse = await bobArenaClient.ReissueCredentialAsync(
 				round.Id,
 				amountsToRequest[0],
-				destinationKey1.PubKey.WitHash.ScriptPubKey,
 				amountsToRequest[1],
-				destinationKey2.PubKey.WitHash.ScriptPubKey,
+				destinationKey1.PubKey.WitHash.ScriptPubKey.EstimateOutputVsize(),
 				connectionConfirmationResponse2.RealAmountCredentials,
 				connectionConfirmationResponse2.RealVsizeCredentials,
 				CancellationToken.None);
