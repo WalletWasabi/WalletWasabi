@@ -4,9 +4,9 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets.Home.Tiles.RoundStatus
 {
-	public class RoundStatusSmallTileView : UserControl
+	public class RoundStatusMediumTileView : UserControl
 	{
-		public RoundStatusSmallTileView()
+		public RoundStatusMediumTileView()
 		{
 			InitializeComponent();
 		}

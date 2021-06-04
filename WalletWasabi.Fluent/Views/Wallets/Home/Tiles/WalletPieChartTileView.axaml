@@ -9,9 +9,9 @@
              x:CompileBindings="True" x:DataType="vm:WalletPieChartTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletPieChartTileView">
   <controls:TileControl TileSize="{Binding CurrentTileSize}">
-    <wpc:WalletPieChartSmallTileView />
+    <wpc:WalletPieChartMediumTileView />
     <controls:TileControl.LargeSizeContent>
-      <wpc:WalletPieChartNormalTileView />
+      <wpc:WalletPieChartLargeTileView />
     </controls:TileControl.LargeSizeContent>
     <controls:TileControl.WideSizeContent>
       <wpc:WalletPieChartWideTileView />

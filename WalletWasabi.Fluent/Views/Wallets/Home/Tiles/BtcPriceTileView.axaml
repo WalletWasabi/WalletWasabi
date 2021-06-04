@@ -9,9 +9,9 @@
              x:CompileBindings="True" x:DataType="vm:BtcPriceTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.BtcPriceTileView">
   <controls:TileControl TileSize="{Binding CurrentTileSize}">
-    <bp:BtcPriceSmallTileView />
+    <bp:BtcPriceMediumTileView />
     <controls:TileControl.LargeSizeContent>
-      <bp:BtcPriceNormalTileView />
+      <bp:BtcPriceLargeTileView />
     </controls:TileControl.LargeSizeContent>
     <controls:TileControl.WideSizeContent>
       <bp:BtcPriceWideTileView />

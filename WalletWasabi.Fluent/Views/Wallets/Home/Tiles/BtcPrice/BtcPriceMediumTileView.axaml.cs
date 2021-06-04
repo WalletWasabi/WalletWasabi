@@ -2,11 +2,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Wallets.Home.Tiles.RoundStatus
+namespace WalletWasabi.Fluent.Views.Wallets.Home.Tiles.BtcPrice
 {
-	public class RoundStatusNormalTileView : UserControl
+	public class BtcPriceMediumTileView : UserControl
 	{
-		public RoundStatusNormalTileView()
+		public BtcPriceMediumTileView()
 		{
 			InitializeComponent();
 		}

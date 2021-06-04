@@ -4,9 +4,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
-             mc:Ignorable="d" d:DesignWidth="330" d:DesignHeight="330"
+             mc:Ignorable="d" d:DesignWidth="330" d:DesignHeight="150"
              x:CompileBindings="True" x:DataType="vm:WalletBalanceChartTileViewModel"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalanceChart.WalletBalanceChartNormalTileView"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalanceChart.WalletBalanceChartMediumTileView"
              ClipToBounds="False">
   <UserControl.Styles>
     <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/BalanceLineChart.axaml" />
@@ -14,26 +14,30 @@
   <DockPanel>
     <DockPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch">
       <TextBlock Text="Balance over time" DockPanel.Dock="Left" />
-      <ItemsControl DockPanel.Dock="Right" HorizontalAlignment="Right" Items="{Binding TimePeriodOptions}">
-        <ItemsControl.ItemsPanel>
-          <ItemsPanelTemplate>
-            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 0 0 -3" />
-          </ItemsPanelTemplate>
-        </ItemsControl.ItemsPanel>
-        <ItemsControl.ItemTemplate>
-          <DataTemplate>
-            <RadioButton x:DataType="vm:TimePeriodOptionViewModel" Classes="text"
-                         Content="{Binding Text}" Command="{Binding SelectCommand}"
-                         IsChecked="{Binding IsSelected}" />
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
+      <Button Classes="plain" DockPanel.Dock="Right" HorizontalAlignment="Right" Margin="0 0 0 -3">
+        <Button.Flyout>
+          <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway">
+            <ItemsControl Items="{Binding TimePeriodOptions}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 0 0 -3" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <RadioButton x:DataType="vm:TimePeriodOptionViewModel" Classes="text"
+                               Content="{Binding Text}" Command="{Binding SelectCommand}"
+                               IsChecked="{Binding IsSelected}" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </Flyout>
+        </Button.Flyout>
+        <PathIcon Data="{StaticResource more_regular}" Foreground="{DynamicResource TextForegroundColor}" />
+      </Button>
     </DockPanel>
-
-    <Separator DockPanel.Dock="Top" Margin="-16 15" />
-
     <c:LineChart x:CompileBindings="True" x:DataType="vm:WalletBalanceChartTileViewModel" x:Name="GradientLineChart"
-                 DockPanel.Dock="Bottom" Margin="30 10 15 30"
+                 DockPanel.Dock="Left" Margin="30 15 15 15"
                  Classes="area border xAxis xAxisLabels yAxis yAxisLabels"
                  SmoothCurve="True"
                  XAxisMinimum="{Binding XMinimum}"

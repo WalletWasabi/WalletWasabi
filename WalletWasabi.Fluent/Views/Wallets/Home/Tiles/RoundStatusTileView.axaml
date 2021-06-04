@@ -9,9 +9,9 @@
              x:CompileBindings="True" x:DataType="vm:RoundStatusTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.RoundStatusTileView">
   <controls:TileControl TileSize="{Binding CurrentTileSize}">
-    <rs:RoundStatusSmallTileView />
+    <rs:RoundStatusMediumTileView />
     <controls:TileControl.LargeSizeContent>
-      <rs:RoundStatusNormalTileView />
+      <rs:RoundStatusLargeTileView />
     </controls:TileControl.LargeSizeContent>
     <controls:TileControl.WideSizeContent>
       <rs:RoundStatusWideTileView />

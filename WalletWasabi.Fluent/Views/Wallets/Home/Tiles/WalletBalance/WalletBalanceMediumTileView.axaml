@@ -5,7 +5,7 @@
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
              mc:Ignorable="d" d:DesignWidth="330" d:DesignHeight="150"
              x:CompileBindings="True" x:DataType="vm:WalletBalanceTileViewModel"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalance.WalletBalanceSmallTileView">
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalance.WalletBalanceMediumTileView">
   <DockPanel>
     <TextBlock Text="Balance" DockPanel.Dock="Top" />
     <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Spacing="16">

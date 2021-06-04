@@ -2,11 +2,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Wallets.Home.Tiles.BtcPrice
+namespace WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalance
 {
-	public class BtcPriceSmallTileView : UserControl
+	public class WalletBalanceMediumTileView : UserControl
 	{
-		public BtcPriceSmallTileView()
+		public WalletBalanceMediumTileView()
 		{
 			InitializeComponent();
 		}
