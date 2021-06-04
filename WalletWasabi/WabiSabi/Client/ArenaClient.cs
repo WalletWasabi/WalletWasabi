@@ -41,9 +41,9 @@ namespace WalletWasabi.WabiSabi.Client
 		public IWabiSabiApiRequestHandler RequestHandler { get; }
 
 		public async Task<ArenaResponse<uint256>> RegisterInputAsync(
+			uint256 roundId,
 			OutPoint outPoint,
 			Key key,
-			uint256 roundId,
 			CancellationToken cancellationToken)
 		{
 			var ownershipProof = OwnershipProof.GenerateCoinJoinInputProof(
