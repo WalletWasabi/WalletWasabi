@@ -45,9 +45,6 @@ using System;
 
 namespace WalletWasabi.Fluent.QRCodeDecoder
 {
-	/// <summary>
-	/// QR code finder class
-	/// </summary>
 	internal class Finder
 	{
 		// horizontal scan
@@ -67,9 +64,6 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 		internal double Distance = double.MaxValue;
 		internal double ModuleSize;
 
-		/// <summary>
-		/// Constructor during horizontal scan
-		/// </summary>
 		internal Finder(int row, int col1, int col2, double hModule)
 		{
 			Row = row;
@@ -78,9 +72,6 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 			HModule = hModule;
 		}
 
-		/// <summary>
-		/// Match during vertical scan
-		/// </summary>
 		internal void Match(int col, int row1, int row2, double vModule)
 		{
 			// test if horizontal and vertical are not related
@@ -119,17 +110,11 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 			return;
 		}
 
-		/// <summary>
-		/// Horizontal and vertical scans overlap
-		/// </summary>
 		internal bool Overlap(Finder other)
 		{
 			return other.Col1 < Col2 && other.Col2 >= Col1 && other.Row1 < Row2 && other.Row2 >= Row1;
 		}
 
-		/// <summary>
-		/// Finder to string
-		/// </summary>
 		public override string ToString()
 		{
 			if (Distance == double.MaxValue)
