@@ -30,7 +30,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				}),
 			};
 			using var blockNotifier = new BlockNotifier(TimeSpan.MaxValue, rpc);
-			var indexer = new IndexBuilderService(rpc, blockNotifier, ".");
+			var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.txt");
 
 			indexer.Synchronize();
 
@@ -57,7 +57,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				}
 			};
 			using var blockNotifier = new BlockNotifier(TimeSpan.MaxValue, rpc);
-			var indexer = new IndexBuilderService(rpc, blockNotifier, ".");
+			var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.txt");
 
 			indexer.Synchronize();
 
@@ -88,13 +88,15 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				OnGetVerboseBlockAsync = (hash) => Task.FromResult(blockchain.Single(x => x.Hash == hash))
 			};
 			using var blockNotifier = new BlockNotifier(TimeSpan.MaxValue, rpc);
-			var indexer = new IndexBuilderService(rpc, blockNotifier, ".");
+			var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.txt");
 
 			indexer.Synchronize();
 
 			await Task.Delay(TimeSpan.FromSeconds(10));
 			Assert.True(indexer.IsRunning);  // It is still working
-			Assert.Throws<ArgumentOutOfRangeException>(() => indexer.GetLastFilter());  // There are no filters
+
+			var lastFilter = indexer.GetLastFilter();
+			Assert.Equal(9, (int)lastFilter.Header.Height);
 			Assert.True(called > 1);
 		}
 

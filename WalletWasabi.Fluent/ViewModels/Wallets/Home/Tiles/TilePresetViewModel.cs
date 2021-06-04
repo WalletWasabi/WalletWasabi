@@ -1,3 +1,6 @@
+using WalletWasabi.Fluent.Controls;
+using WalletWasabi.Fluent.Models;
+
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 {
 	public partial class TilePresetViewModel : ViewModelBase

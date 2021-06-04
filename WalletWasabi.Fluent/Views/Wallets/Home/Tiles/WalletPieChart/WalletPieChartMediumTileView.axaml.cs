@@ -4,9 +4,9 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletPieChart
 {
-	public class WalletPieChartSmallTileView : UserControl
+	public class WalletPieChartMediumTileView : UserControl
 	{
-		public WalletPieChartSmallTileView()
+		public WalletPieChartMediumTileView()
 		{
 			InitializeComponent();
 		}

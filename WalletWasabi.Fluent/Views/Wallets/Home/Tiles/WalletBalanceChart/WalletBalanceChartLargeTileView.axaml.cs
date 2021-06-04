@@ -2,11 +2,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalance
+namespace WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalanceChart
 {
-	public class WalletBalanceSmallTileView : UserControl
+	public class WalletBalanceChartLargeTileView : UserControl
 	{
-		public WalletBalanceSmallTileView()
+		public WalletBalanceChartLargeTileView()
 		{
 			InitializeComponent();
 		}
