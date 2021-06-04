@@ -6,7 +6,7 @@ using System.Reactive.Disposables;
 using DynamicData.Binding;
 using NBitcoin;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Model;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles

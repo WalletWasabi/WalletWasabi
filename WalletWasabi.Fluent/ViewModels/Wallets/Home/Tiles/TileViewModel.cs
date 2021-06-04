@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using ReactiveUI;
 using WalletWasabi.Fluent.Controls;
+using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 {
@@ -45,7 +46,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 		private void UpdatePresetFlags()
 		{
-			CurrentTileSize = CurrentTilePreset?.TileSize ?? TileSize.Normal;
+			CurrentTileSize = CurrentTilePreset?.TileSize ?? TileSize.Large;
 		}
 	}
 }

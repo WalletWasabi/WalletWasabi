@@ -2,7 +2,7 @@ using System;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Extensions;
-using WalletWasabi.Fluent.Model;
+using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 {

@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
+using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.Controls
 {
@@ -42,11 +43,11 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				switch (TileSize)
 				{
-					case TileSize.Small:
+					case TileSize.Medium:
 						_contentPresenter.Content = Content;
 						break;
 
-					case TileSize.Normal:
+					case TileSize.Large:
 						_contentPresenter.Content = LargeSizeContent;
 						break;
 
