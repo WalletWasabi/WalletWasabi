@@ -3,9 +3,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
-             mc:Ignorable="d" d:DesignWidth="660" d:DesignHeight="330"
+             mc:Ignorable="d" d:DesignWidth="330" d:DesignHeight="330"
              x:CompileBindings="True" x:DataType="vm:BtcPriceTileViewModel"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.BtcPrice.BtcPriceWideTileView">
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.BtcPrice.BtcPriceLargeTileView">
   <DockPanel>
     <TextBlock Text="BTC Price" DockPanel.Dock="Top" />
     <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">

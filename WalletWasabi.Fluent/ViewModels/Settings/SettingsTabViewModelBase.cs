@@ -1,7 +1,7 @@
 using System;
 using System.Reactive.Concurrency;
 using ReactiveUI;
-using WalletWasabi.Fluent.Model;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui;
 using WalletWasabi.Logging;
