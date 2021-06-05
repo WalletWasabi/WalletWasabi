@@ -26,6 +26,7 @@
             </StackPanel>
             <DockPanel VerticalAlignment="Center">
                 <DockPanel VerticalAlignment="Center" DockPanel.Dock="Left">
+                    <!-- Private Funds -->
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="16" Margin="0,12">
                         <Panel Height="47" Width="47" DockPanel.Dock="Left">
                             <PathIcon Data="{StaticResource private_funds}"
@@ -37,6 +38,7 @@
                                         FontSize="15" Margin="0,4,0,0"/>
                         </StackPanel>
                     </StackPanel>
+                    <!-- Non-private funds -->
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="16" Margin="0,12">
                         <Panel Height="47" Width="47" DockPanel.Dock="Left">
                         <PathIcon Data="{StaticResource non_private_funds}"
@@ -50,6 +52,7 @@
                     </StackPanel>
                 </DockPanel>
                 <DockPanel VerticalAlignment="Top" DockPanel.Dock="Left">
+                    <!-- Recent transaction name -->
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="16" Margin="0,12">
                         <Panel Height="47" Width="47" DockPanel.Dock="Left"/>
                         <StackPanel VerticalAlignment="Center">
@@ -61,6 +64,7 @@
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="16" Margin="0,12">
                         <Panel Height="47" Width="47" DockPanel.Dock="Left"/>
                         <StackPanel VerticalAlignment="Center" Spacing="4">
+                            <!-- Recent transaction date -->
                             <DockPanel>
                                 <Viewbox Height="14" Width="14" DockPanel.Dock="Left">
                                     <PathIcon Data="{StaticResource transaction_date}" Height="14" Width="14" Foreground="{DynamicResource SystemAccentColor}" />
@@ -68,6 +72,7 @@
                                 <TextBlock Text="{Binding RecentTransactionDate, FallbackValue='7/12/2020'}"
                                             Opacity="0.8" FontSize="12" Margin="10,0,0,0"/>
                             </DockPanel>
+                            <!-- Recent transaction status -->
                             <DockPanel Margin="0,4,0,0">
                                 <Viewbox Height="14" Width="14" DockPanel.Dock="Left">
                                     <Panel>
@@ -83,6 +88,7 @@
                 </DockPanel>
             </DockPanel>
         </DockPanel>
+        <!-- BTC logo -->
         <Panel HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-16,-16,0" ClipToBounds="True">
             <Panel Opacity="0.1">
                 <Panel.RenderTransform>
