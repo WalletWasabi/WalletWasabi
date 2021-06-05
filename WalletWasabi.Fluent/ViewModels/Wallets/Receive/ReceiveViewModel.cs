@@ -27,16 +27,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 	public partial class ReceiveViewModel : NavBarItemViewModel
 	{
 		private readonly Wallet _wallet;
-		private readonly ObservableCollection<SuggestionLabelViewModel>? _suggestionLabels;
-		private readonly ReadOnlyObservableCollection<SuggestionLabelViewModel>? _suggestionLabelResults;
-		[AutoNotify] private ObservableCollection<string> _labels;
+		private readonly SourceList<SuggestionLabelViewModel> _suggestionLabels;
+		private readonly ObservableCollectionExtended<SuggestionLabelViewModel> _suggestionLabelResults;
+		private readonly ObservableCollectionExtended<string> _labels;
 		[AutoNotify] private HashSet<string> _suggestions;
 		[AutoNotify] private bool _isExistingAddressesButtonVisible;
 
 		public ReceiveViewModel(Wallet wallet) : base(NavigationMode.Normal)
 		{
 			_wallet = wallet;
-			_labels = new ObservableCollection<string>();
+			_labels = new ObservableCollectionExtended<string>();
 			var allLabels = GetLabels();
 
 			var mostUsedLabels = allLabels.GroupBy(x => x)
@@ -50,27 +50,30 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 			_suggestions = mostUsedLabels.Select(x => x.Label).ToHashSet();
 
-			_suggestionLabels = new ObservableCollection<SuggestionLabelViewModel>(
+			_suggestionLabels = new SourceList<SuggestionLabelViewModel>();
+			_suggestionLabelResults = new ObservableCollectionExtended<SuggestionLabelViewModel>();
+
+			_suggestionLabels.AddRange(
 				mostUsedLabels.Select(x =>
-				{
-					return new SuggestionLabelViewModel(
-						x.Label,
-						x.Count,
-						ReactiveCommand.Create(() => _labels.Add(x.Label)));
-				}));
+					{
+						return new SuggestionLabelViewModel(
+							x.Label,
+							x.Count,
+							ReactiveCommand.Create(() => _labels.Add(x.Label)));
+					}));
 
 			var suggestionLabelsFilter = this.WhenAnyValue(x => x.Labels).Select(_ => Unit.Default)
 				.Merge(Observable.FromEventPattern(Labels, nameof(Labels.CollectionChanged)).Select(_ => Unit.Default))
 				.Select(SuggestionLabelsFilter);
 
 			_suggestionLabels
-				.ToObservableChangeSet()
+				.Connect()
 				.Filter(suggestionLabelsFilter)
 				.Sort(SortExpressionComparer<SuggestionLabelViewModel>.Descending(x => x.Count))
-				.Take(3)
+				.Top(3)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Bind(out _suggestionLabelResults)
-				.AsObservableList();
+				.Bind(_suggestionLabelResults)
+				.Subscribe();
 
 			SelectionMode = NavBarItemSelectionMode.Button;
 
@@ -84,7 +87,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			ShowExistingAddressesCommand = ReactiveCommand.Create(OnShowExistingAddresses);
 		}
 
-		public ReadOnlyObservableCollection<SuggestionLabelViewModel> SuggestionLabelResults => _suggestionLabelResults!;
+		public ObservableCollection<SuggestionLabelViewModel> SuggestionLabelResults => _suggestionLabelResults;
+
+		public ObservableCollection<string> Labels => _labels;
 
 		private Func<SuggestionLabelViewModel, bool> SuggestionLabelsFilter(Unit unit)
 		{
