@@ -28,7 +28,7 @@
         </StackPanel>
       </StackPanel>
       <DockPanel VerticalAlignment="Center">
-        <DockPanel VerticalAlignment="Center" DockPanel.Dock="Left">
+        <DockPanel VerticalAlignment="Center" DockPanel.Dock="Left" MinWidth="240">
           <!-- Private Funds -->
           <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="16" Margin="0,12">
             <Panel Height="47" Width="47" DockPanel.Dock="Left">
