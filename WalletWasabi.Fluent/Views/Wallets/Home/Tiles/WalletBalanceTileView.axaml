@@ -14,7 +14,7 @@
       <wb:WalletBalanceLargeTileView  />
     </controls:TileControl.LargeSizeContent>
     <controls:TileControl.WideSizeContent>
-      <wb:WalletBalanceWideTileView />
+      <wb:WalletBalanceWideTileView ClipToBounds="False" />
     </controls:TileControl.WideSizeContent>
   </controls:TileControl>
 </UserControl>
