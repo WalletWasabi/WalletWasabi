@@ -36,7 +36,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public async Task RegisterInputAsync(CancellationToken cancellationToken)
 		{
-			var response = await ArenaClient.RegisterInputAsync(Coin.Outpoint, BitcoinSecret.PrivateKey, RoundId, cancellationToken).ConfigureAwait(false);
+			var response = await ArenaClient.RegisterInputAsync(RoundId, Coin.Outpoint, BitcoinSecret.PrivateKey, cancellationToken).ConfigureAwait(false);
 			var remoteAliceId = response.Value;
 			if (AliceId != remoteAliceId)
 			{
@@ -69,7 +69,7 @@ namespace WalletWasabi.WabiSabi.Client
 				throw new InvalidOperationException($"Round({ RoundId }), Alice({ AliceId}): Not enough funds to pay for the fees.");
 			}
 
-			var amountsToRequest = new[] { effectiveAmount };
+			var amountsToRequest = new[] { effectiveAmount.Satoshi };
 
 			var response = await ArenaClient
 				.ConfirmConnectionAsync(
