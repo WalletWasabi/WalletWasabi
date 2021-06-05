@@ -51,7 +51,8 @@
                         </StackPanel>
                     </StackPanel>
                 </DockPanel>
-                <DockPanel VerticalAlignment="Top" DockPanel.Dock="Left">
+                <DockPanel VerticalAlignment="Top" DockPanel.Dock="Left"
+                           IsVisible="{Binding ShowRecentTransaction, FallbackValue=True}">
                     <!-- Recent transaction name -->
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="16" Margin="0,12">
                         <Panel Height="47" Width="47" DockPanel.Dock="Left"/>
@@ -69,7 +70,7 @@
                                 <Viewbox Height="14" Width="14" DockPanel.Dock="Left">
                                     <PathIcon Data="{StaticResource transaction_date}" Height="14" Width="14" Foreground="{DynamicResource SystemAccentColor}" />
                                 </Viewbox>
-                                <TextBlock Text="{Binding RecentTransactionDate, FallbackValue='7/12/2020'}"
+                                <TextBlock Text="{Binding RecentTransactionDate, StringFormat='{}{0:MM/dd/yyyy HH:mm}', FallbackValue='7/12/2020'}"
                                             Opacity="0.8" FontSize="12" Margin="10,0,0,0"/>
                             </DockPanel>
                             <!-- Recent transaction status -->

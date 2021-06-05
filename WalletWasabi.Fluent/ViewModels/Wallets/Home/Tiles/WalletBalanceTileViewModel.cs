@@ -1,9 +1,14 @@
 using System;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using DynamicData.Binding;
 using NBitcoin;
 using WalletWasabi.Wallets;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 {
@@ -11,18 +16,21 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 	{
 		private readonly Wallet _wallet;
 		private readonly IObservable<Unit> _balanceChanged;
-		[AutoNotify] private string? _balanceBtc;
-		[AutoNotify] private string? _balanceFiat;
-		[AutoNotify] private string? _balancePrivateBtc;
-		[AutoNotify] private string? _balanceNonPrivateBtc;
-		[AutoNotify] private string? _recentTransactionName;
-		[AutoNotify] private string? _recentTransactionDate;
-		[AutoNotify] private string? _recentTransactionStatus;
+		private readonly ObservableCollection<HistoryItemViewModel> _history;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _showRecentTransaction;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _balanceBtc;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _balanceFiat;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _balancePrivateBtc;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _balanceNonPrivateBtc;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _recentTransactionName;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private DateTimeOffset? _recentTransactionDate;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _recentTransactionStatus;
 
-		public WalletBalanceTileViewModel(Wallet wallet, IObservable<Unit> balanceChanged)
+		public WalletBalanceTileViewModel(Wallet wallet, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModel> history)
 		{
 			_wallet = wallet;
 			_balanceChanged = balanceChanged;
+			_history = history;
 		}
 
 		protected override void OnActivated(CompositeDisposable disposables)
@@ -31,6 +39,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			_balanceChanged
 				.Subscribe(_ => UpdateBalance())
+				.DisposeWith(disposables);
+
+			_history.ToObservableChangeSet()
+				.Subscribe(_ => UpdateRecentTransaction())
 				.DisposeWith(disposables);
 
 			UpdateBalance();
@@ -55,11 +67,38 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				.FormattedBtc() + " BTC";
 		}
 
-		private void UpdateTransaction()
+		private void UpdateRecentTransaction()
 		{
-			// TODO: Update RecentTransactionName
-			// TODO: Update RecentTransactionDate
-			// TODO: Update RecentTransactionStatus
+			var recent = _history.FirstOrDefault();
+			if (recent is { })
+			{
+				var transactionSummary = recent.TransactionSummary;
+				var confirmations = transactionSummary.Height.Type == HeightType.Chain ? (int)_wallet.BitcoinStore.SmartHeaderChain.TipHeight - transactionSummary.Height.Value + 1 : 0;
+				var isConfirmed = confirmations > 0;
+				var isIncoming = true;
+				var amount = transactionSummary.Amount;
+				if (amount < Money.Zero)
+				{
+					amount *= -1;
+					isIncoming = false;
+				}
+
+				RecentTransactionName = isIncoming ? "Incoming" : "Outgoing";
+
+				RecentTransactionDate = transactionSummary.DateTime.ToLocalTime();
+
+				RecentTransactionStatus = $"{(amount.ToDecimal(MoneyUnit.BTC).FormattedBtc() + " BTC")}" +
+				                          $"  -  {(isConfirmed ? "Confirmed" : "Pending")}";
+
+				ShowRecentTransaction = true;
+			}
+			else
+			{
+				RecentTransactionName = default;
+				RecentTransactionDate = default;
+				RecentTransactionStatus = default;
+				ShowRecentTransaction = false;
+			}
 		}
 	}
 }
