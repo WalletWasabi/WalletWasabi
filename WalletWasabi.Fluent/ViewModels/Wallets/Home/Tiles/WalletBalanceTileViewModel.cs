@@ -73,7 +73,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			if (recent is { })
 			{
 				var transactionSummary = recent.TransactionSummary;
-				var confirmations = transactionSummary.Height.Type == HeightType.Chain ? (int)_wallet.BitcoinStore.SmartHeaderChain.TipHeight - transactionSummary.Height.Value + 1 : 0;
+				var confirmations = transactionSummary.Height.Type == HeightType.Chain ?
+					(int)_wallet.BitcoinStore.SmartHeaderChain.TipHeight - transactionSummary.Height.Value + 1
+					: 0;
 				var isConfirmed = confirmations > 0;
 				var isIncoming = true;
 				var amount = transactionSummary.Amount;
