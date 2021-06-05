@@ -62,7 +62,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public DateTimeOffset OutputRegistrationStart { get; private set; }
 		public DateTimeOffset TransactionSigningStart { get; private set; }
 		public DateTimeOffset TransactionBroadcastingStart { get; private set; }
-		public int InitialInputVsizeAllocation { get; internal set; } // for testing. replace for: CoinjoinState.Parameters.MaxTransactionSize - MultipartyTransactionParameters.SharedOverhead;
+		public int InitialInputVsizeAllocation { get; internal set; }
 		public int RemainingInputVsizeAllocation => InitialInputVsizeAllocation - InputCount * MaxVsizeAllocationPerAlice;
 
 		private RoundParameters RoundParameters { get; }
