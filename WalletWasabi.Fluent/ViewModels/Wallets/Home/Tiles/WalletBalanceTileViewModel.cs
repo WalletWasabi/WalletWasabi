@@ -17,7 +17,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		private readonly Wallet _wallet;
 		private readonly IObservable<Unit> _balanceChanged;
 		private readonly ObservableCollection<HistoryItemViewModel> _history;
-		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _showRecentTransaction;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _balanceBtc;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _balanceFiat;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _balancePrivateBtc;
@@ -25,6 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _recentTransactionName;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private DateTimeOffset? _recentTransactionDate;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _recentTransactionStatus;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _showRecentTransaction;
 
 		public WalletBalanceTileViewModel(Wallet wallet, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModel> history)
 		{
