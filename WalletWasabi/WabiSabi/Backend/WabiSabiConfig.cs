@@ -42,16 +42,6 @@ namespace WalletWasabi.WabiSabi.Backend
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
 		public Money MaxRegistrableAmount { get; set; } = Money.Coins(43_000m);
 
-		/// <summary>
-		/// How many virtual bytes the server gives to alices per registrations.
-		/// If it's 250, then about 400 alices can participate.
-		/// The width of the rangeproofs are calculated from this, so don't choose stupid numbers.
-		/// Consider that it applies to registrations, not for inputs. This usually consists one input, but can be more.
-		/// </summary>
-		[DefaultValue(ProtocolConstants.MaxVsizePerAlice)]
-		[JsonProperty(PropertyName = "PerAliceVsizeAllocation", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public uint PerAliceVsizeAllocation { get; set; } = ProtocolConstants.MaxVsizePerAlice;
-
 		[DefaultValue(true)]
 		[JsonProperty(PropertyName = "AllowNotedInputRegistration", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public bool AllowNotedInputRegistration { get; set; } = true;
@@ -83,13 +73,13 @@ namespace WalletWasabi.WabiSabi.Backend
 
 		[DefaultValue(100)]
 		[JsonProperty(PropertyName = "MaxInputCountByRound", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public uint MaxInputCountByRound { get; set; } = 100;
+		public int MaxInputCountByRound { get; set; } = 100;
 
 		[DefaultValue(0.5)]
 		[JsonProperty(PropertyName = "MinInputCountByRoundMultiplier", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public double MinInputCountByRoundMultiplier { get; set; } = 0.5;
 
-		public uint MinInputCountByRound => (uint)(MaxInputCountByRound * MinInputCountByRoundMultiplier);
+		public int MinInputCountByRound => (int)(MaxInputCountByRound * MinInputCountByRoundMultiplier);
 
 		/// <summary>
 		/// If money comes to the blame script, then either an attacker lost money or there's a client bug.

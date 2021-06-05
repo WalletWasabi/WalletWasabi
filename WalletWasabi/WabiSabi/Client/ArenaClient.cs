@@ -17,19 +17,9 @@ namespace WalletWasabi.WabiSabi.Client
 	public class ArenaClient
 	{
 		public ArenaClient(
-			CredentialIssuerParameters amountCredentialIssuerParameters,
-			CredentialIssuerParameters vsizeCredentialIssuerParameters,
-			ZeroCredentialPool zeroAmountCredentialPool,
-			ZeroCredentialPool zeroVsizeCredentialPool,
-			IWabiSabiApiRequestHandler requestHandler,
-			WasabiRandom random)
-		{
-			AmountCredentialClient = new WabiSabiClient(amountCredentialIssuerParameters, random, ProtocolConstants.MaxAmountPerAlice, zeroAmountCredentialPool);
-			VsizeCredentialClient = new WabiSabiClient(vsizeCredentialIssuerParameters, random, ProtocolConstants.MaxVsizePerAlice, zeroVsizeCredentialPool);
-			RequestHandler = requestHandler;
-		}
-
-		public ArenaClient(WabiSabiClient amountCredentialClient, WabiSabiClient vsizeCredentialClient, IWabiSabiApiRequestHandler requestHandler)
+			WabiSabiClient amountCredentialClient,
+			WabiSabiClient vsizeCredentialClient,
+			IWabiSabiApiRequestHandler requestHandler)
 		{
 			AmountCredentialClient = amountCredentialClient;
 			VsizeCredentialClient = vsizeCredentialClient;
