@@ -15,6 +15,7 @@ using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Crypto;
+using WalletWasabi.WabiSabi.Models;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
@@ -48,7 +49,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			ZeroCredentialPool amountCredentialPool = new();
 			ZeroCredentialPool vsizeCredentialPool = new();
-			var arenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, amountCredentialPool, vsizeCredentialPool, wabiSabiApi, new InsecureRandom());
+			var insecureRandom = new InsecureRandom();
+			var roundState = RoundState.FromRound(round);
+			var arenaClient = new ArenaClient(
+				roundState.CreateAmountCredentialClient(amountCredentialPool, insecureRandom),
+				roundState.CreateVsizeCredentialClient(vsizeCredentialPool, insecureRandom),
+				wabiSabiApi);
 			Assert.Equal(Phase.InputRegistration, arena.Rounds.First().Value.Phase);
 
 			var bitcoinSecret = km.GetSecrets("", coin1.ScriptPubKey).Single().PrivateKey.GetBitcoinSecret(Network.Main);
@@ -56,7 +62,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var aliceClient = new AliceClient(round.Id, arenaClient, coin1.Coin, round.FeeRate, bitcoinSecret);
 			await aliceClient.RegisterInputAsync(CancellationToken.None);
 
-			Task confirmationTask = aliceClient.ConfirmConnectionAsync(TimeSpan.FromSeconds(3), CancellationToken.None);
+			Task confirmationTask = aliceClient.ConfirmConnectionAsync(TimeSpan.FromSeconds(1), roundState.MaxVsizeAllocationPerAlice, CancellationToken.None);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 			await confirmationTask;

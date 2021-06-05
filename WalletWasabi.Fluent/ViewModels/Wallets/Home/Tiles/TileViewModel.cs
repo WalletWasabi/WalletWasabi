@@ -1,6 +1,8 @@
 using System;
 using System.Collections.ObjectModel;
 using ReactiveUI;
+using WalletWasabi.Fluent.Controls;
+using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 {
@@ -8,9 +10,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 	{
 		[AutoNotify] private ObservableCollection<TilePresetViewModel>? _tilePresets;
 		[AutoNotify] private int _tilePresetIndex;
-		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSmallPreset;
-		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isNormalPreset;
-		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWidePreset;
+		[AutoNotify] private TileSize _currentTileSize;
 
 		protected TileViewModel()
 		{
@@ -46,9 +46,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 		private void UpdatePresetFlags()
 		{
-			IsSmallPreset = CurrentTilePreset?.TileSize == TileSize.Small;
-			IsNormalPreset = CurrentTilePreset?.TileSize == TileSize.Normal;
-			IsWidePreset = CurrentTilePreset?.TileSize == TileSize.Wide;
+			CurrentTileSize = CurrentTilePreset?.TileSize ?? TileSize.Large;
 		}
 	}
 }
