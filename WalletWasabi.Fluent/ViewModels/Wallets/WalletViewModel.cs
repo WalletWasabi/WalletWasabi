@@ -121,7 +121,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				{
 					new(4, 0, 1, 1, TileSize.Medium),
 					new(1, 1, 2, 1, TileSize.Wide),
-					new(1, 1, 1, 1, TileSize.Large)
+					new(0, 2, 2, 1, TileSize.Wide)
 				},
 				TilePresetIndex = LayoutIndex
 			};
