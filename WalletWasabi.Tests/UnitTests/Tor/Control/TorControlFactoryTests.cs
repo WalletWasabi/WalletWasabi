@@ -37,7 +37,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 			Pipe toServer = new();
 			Pipe toClient = new();
 
-			using TorControlClient testClient = new(pipeReader: toClient.Reader, pipeWriter: toServer.Writer);
+			await using TorControlClient testClient = new(pipeReader: toClient.Reader, pipeWriter: toServer.Writer);
 
 			Logger.LogTrace("Client: Start authentication task.");
 			Task<TorControlClient> authenticationTask = clientFactory.AuthSafeCookieOrThrowAsync(testClient, cookieString, timeoutCts.Token);
@@ -45,7 +45,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 			Logger.LogTrace("Server: Read 'AUTHCHALLENGE SAFECOOKIE' command from the client.");
 			string authChallengeCommand = await toServer.Reader.ReadLineAsync(timeoutCts.Token);
 
-			Logger.LogTrace($"Server: Received authchallenge line: '{authChallengeCommand}'.");
+			Logger.LogTrace($"Server: Received AUTHCHALLENGE line: '{authChallengeCommand}'.");
 			Assert.Equal("AUTHCHALLENGE SAFECOOKIE 6F14C18D5B00BF54E16E4728A4BFC81B1FF469F0B012CD71D9724BFBE14DB5E6", authChallengeCommand);
 
 			Logger.LogTrace("Server: Respond to client's AUTHCHALLENGE request.");

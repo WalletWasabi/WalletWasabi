@@ -31,7 +31,7 @@ namespace WalletWasabi.Tor.Control
 			Random = random ?? new InsecureRandom();
 		}
 
-		/// <summary>Helps generate nonces for auth challenges.</summary>
+		/// <summary>Helps generate nonces for AUTH challenges.</summary>
 		private IRandom Random { get; }
 
 		/// <summary>Connects to Tor Control endpoint and authenticates using safe-cookie mechanism.</summary>
@@ -55,7 +55,12 @@ namespace WalletWasabi.Tor.Control
 			}
 			finally
 			{
-				clientToDispose?.Dispose();
+				// `!=` instead `is not null` to avoid CA2000. The analyzer should be fixed over time.
+				// https://github.com/dotnet/roslyn-analyzers/issues/4981
+				if (clientToDispose != null)
+				{
+					await clientToDispose.DisposeAsync().ConfigureAwait(false);
+				}
 			}
 		}
 
