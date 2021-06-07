@@ -22,9 +22,9 @@
                        Fill="{Binding HexColor, Converter={x:Static converters:ColorStringConverters.HexColorToBrush}}" />
               <TextBlock DockPanel.Dock="Left" HorizontalAlignment="Left"
                          Text="{Binding Amount, Converter={x:Static converters:MoneyConverters.MoneyToString}}" />
-              <TextBlock DockPanel.Dock="Right" Margin="8,0,0,0" HorizontalAlignment="Right"
+              <TextBlock Opacity="0.5" DockPanel.Dock="Right" Margin="8,0,0,0" HorizontalAlignment="Right"
                          Text="{Binding PercentShare, StringFormat=\{0:P1\}}" />
-              <TextBlock DockPanel.Dock="Right" HorizontalAlignment="Right" Text="{Binding Label}" />
+              <TextBlock Opacity="0.5" DockPanel.Dock="Right" HorizontalAlignment="Right" Text="{Binding Label}" />
             </DockPanel>
           </DataTemplate>
         </ItemsRepeater.ItemTemplate>
