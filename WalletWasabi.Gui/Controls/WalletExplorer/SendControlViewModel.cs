@@ -664,10 +664,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					Image<Rgb, byte> image = _frame.ToImage<Rgb, byte>();
 
-					_videocapture.Retrieve(_frame);
-
 					//TODO: make this work
-					TestImage = _frame.ToImage<Rgb, byte>();
+					TestImage = image;
 
 					string result = GetQRcodeValueFromImage(image);
 					if (!string.IsNullOrWhiteSpace(result))
