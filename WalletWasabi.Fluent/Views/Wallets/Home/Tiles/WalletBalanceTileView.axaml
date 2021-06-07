@@ -9,9 +9,9 @@
              x:CompileBindings="True" x:DataType="vm:WalletBalanceTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalanceTileView">
   <controls:TileControl TileSize="{Binding CurrentTileSize}">
-    <wb:WalletBalanceSmallTileView />
+    <wb:WalletBalanceMediumTileView />
     <controls:TileControl.LargeSizeContent>
-      <wb:WalletBalanceNormalTileView  />
+      <wb:WalletBalanceLargeTileView  />
     </controls:TileControl.LargeSizeContent>
     <controls:TileControl.WideSizeContent>
       <wb:WalletBalanceWideTileView />

@@ -1,6 +1,6 @@
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Fluent.Model
+namespace WalletWasabi.Fluent.Models
 {
 	public enum TimePeriodOption
 	{

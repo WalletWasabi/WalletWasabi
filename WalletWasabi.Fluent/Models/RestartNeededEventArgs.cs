@@ -1,6 +1,6 @@
 using System;
 
-namespace WalletWasabi.Fluent.Model
+namespace WalletWasabi.Fluent.Models
 {
 	public class RestartNeededEventArgs : EventArgs
 	{

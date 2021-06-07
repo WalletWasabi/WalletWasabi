@@ -41,7 +41,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			using var signingKey = new Key();
 
 			var ex = await Assert.ThrowsAsync<HttpRequestException>(async () =>
-			   await apiClient.RegisterInputAsync(nonExistingOutPoint, signingKey, round.Id, CancellationToken.None));
+			   await apiClient.RegisterInputAsync(round.Id, nonExistingOutPoint, signingKey, CancellationToken.None));
 
 			var wex = Assert.IsType<WabiSabiProtocolException>(ex.InnerException);
 			Assert.Equal(WabiSabiProtocolErrorCode.InputSpent, wex.ErrorCode);
@@ -149,7 +149,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var rounds = await apiClient.GetStatusAsync(CancellationToken.None);
 			var round = rounds.First(x => x.CoinjoinState is ConstructionState);
 
-			var response = await apiClient.RegisterInputAsync(coinToRegister.Outpoint, signingKey, round.Id, CancellationToken.None);
+			var response = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, signingKey, CancellationToken.None);
 
 			Assert.NotEqual(uint256.Zero, response.Value);
 		}
@@ -182,7 +182,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var rounds = await apiClient.GetStatusAsync(CancellationToken.None);
 			var round = rounds.First(x => x.CoinjoinState is ConstructionState);
 
-			var response = await apiClient.RegisterInputAsync(coinToRegister.Outpoint, signingKey, round.Id, CancellationToken.None);
+			var response = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, signingKey, CancellationToken.None);
 
 			Assert.NotEqual(uint256.Zero, response.Value);
 		}

@@ -6,7 +6,7 @@ using System.Reactive.Disposables;
 using DynamicData.Binding;
 using NBitcoin;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Model;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
@@ -148,9 +148,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				{
 					XLabels = new List<string>
 					{
-						DateTimeOffset.FromUnixTimeMilliseconds((long) minX).DateTime.ToString("dddd MMM-d"),
-						DateTimeOffset.FromUnixTimeMilliseconds((long) halfX).DateTime.ToString("dddd MMM-d"),
-						DateTimeOffset.FromUnixTimeMilliseconds((long) maxX).DateTime.ToString("dddd MMM-d"),
+						DateTimeOffset.FromUnixTimeMilliseconds((long) minX).DateTime.ToString("ddd MMM-d"),
+						DateTimeOffset.FromUnixTimeMilliseconds((long) halfX).DateTime.ToString("ddd MMM-d"),
+						DateTimeOffset.FromUnixTimeMilliseconds((long) maxX).DateTime.ToString("ddd MMM-d"),
 					};
 				}
 				else
