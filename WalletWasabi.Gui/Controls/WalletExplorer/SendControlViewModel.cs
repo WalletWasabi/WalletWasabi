@@ -1,4 +1,6 @@
 using Avalonia.Input;
+using Emgu.CV;
+using Emgu.CV.Structure;
 using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
@@ -64,6 +66,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isSliderFeeUsed = true;
 		private double _feeControlOpacity;
 		private string _amountWaterMarkText;
+		private string _qrCodeValue;
 
 		protected SendControlViewModel(Wallet wallet, string title)
 			: base(title)
@@ -347,6 +350,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				(isMax, amount, address, busy) => (isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy)
 				.ObserveOn(RxApp.MainThreadScheduler));
 
+			CaptureImageCommand = ReactiveCommand.Create(CaptureImage, outputScheduler: RxApp.MainThreadScheduler);
+
 			UserFeeTextKeyUpCommand = ReactiveCommand.Create((KeyEventArgs key) =>
 			{
 				IsSliderFeeUsed = !IsCustomFee;
@@ -370,6 +375,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(FeeRateCommand.ThrownExceptions)
 				.Merge(OnAddressPasteCommand.ThrownExceptions)
 				.Merge(BuildTransactionCommand.ThrownExceptions)
+				.Merge(CaptureImageCommand.ThrownExceptions)
 				.Merge(UserFeeTextKeyUpCommand.ThrownExceptions)
 				.Merge(FeeSliderClickedCommand.ThrownExceptions)
 				.Merge(HighLightFeeSliderCommand.ThrownExceptions)
@@ -535,6 +541,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _feeToolTip, value);
 		}
 
+		public string QRCodeValue
+		{
+			get => _qrCodeValue;
+			private set => this.RaiseAndSetIfChanged(ref _qrCodeValue, value);
+		}
+
+		private Image<Rgb, byte> _testImage;
+
+		public Image<Rgb, byte> TestImage
+		{
+			get => _testImage;
+			set => this.RaiseAndSetIfChanged(ref _testImage, value);
+		}
+
 		public bool IsSliderFeeUsed
 		{
 			get => _isSliderFeeUsed;
@@ -578,6 +598,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<bool, Unit> HighLightFeeSliderCommand { get; }
 
 		public ReactiveCommand<KeyEventArgs, Unit> AmountKeyUpCommand { get; }
+
+		public ReactiveCommand<Unit, Unit> CaptureImageCommand { get; }
 
 		private void SetAmountWatermark(Money amount)
 		{
@@ -623,6 +645,70 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						   select val).DefaultIfEmpty().First();
 			FeeDisplayFormat = nextval;
 			SetFeesAndTexts();
+		}
+
+		private VideoCapture _videocapture;
+		private Mat _frame;
+
+		private void CaptureImage()
+		{
+			_videocapture = new VideoCapture();
+			_frame = new Mat();
+			_videocapture.QueryFrame().ToImage<Bgra, byte>();
+			_videocapture.ImageGrabbed += ProcessFrame;
+			_videocapture.Start();
+		}
+
+		private void ProcessFrame(object sender, EventArgs e)
+		{
+			try
+			{
+				VideoCapture videocapture = (VideoCapture)sender;
+
+				if (_videocapture != null && _videocapture.Ptr != IntPtr.Zero)
+				{
+					videocapture.Retrieve(_frame);
+
+					Image<Rgb, byte> image = _frame.ToImage<Rgb, byte>();
+
+					_videocapture.Retrieve(_frame);
+
+					TestImage = _frame.ToImage<Rgb, byte>();
+
+					string result = GetQRcodeValueFromImage(image);
+					if (!string.IsNullOrWhiteSpace(result))
+					{
+						Address = result;
+						CloseWebCam();
+					}
+				}
+			}
+			catch (Exception)
+			{
+			}
+		}
+
+		private string GetQRcodeValueFromImage(IInputArray image)
+		{
+			string qrCodeValue = "";
+			using IOutputArray result = new Mat();
+			using IOutputArray resultImg = new Mat();
+			using QRCodeDetector qrCodeDetector = new();
+
+			bool isQRCodeDetected = qrCodeDetector.Detect(image, result);
+			if (isQRCodeDetected)
+			{
+				qrCodeValue = qrCodeDetector.Decode(image, result, resultImg);
+			}
+
+			return qrCodeValue;
+		}
+
+		private void CloseWebCam()
+		{
+			_frame.Dispose();
+			_videocapture.ImageGrabbed -= ProcessFrame;
+			_videocapture.Dispose();
 		}
 
 		private void SetFeesAndTexts()
