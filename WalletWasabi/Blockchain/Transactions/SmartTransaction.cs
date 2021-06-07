@@ -207,6 +207,9 @@ namespace WalletWasabi.Blockchain.Transactions
 
 		public static SmartTransaction FromLine(string line, Network expectedNetwork)
 		{
+			line = Guard.NotNullOrEmptyOrWhitespace(nameof(line), line, trim: true);
+			expectedNetwork = Guard.NotNull(nameof(expectedNetwork), expectedNetwork);
+
 			var parts = line.Split(':', StringSplitOptions.None).Select(x => x.Trim()).ToArray();
 
 			var transactionString = parts[1];
