@@ -48,7 +48,7 @@
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="receive:SuggestionLabelViewModel">
-              <Button Classes="action"
+              <Button Classes="option"
                       Focusable="False"
                       Content="{Binding Label}"
                       Command="{Binding SelectedCommand}"/>
