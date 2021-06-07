@@ -66,7 +66,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isSliderFeeUsed = true;
 		private double _feeControlOpacity;
 		private string _amountWaterMarkText;
-		private string _qrCodeValue;
 
 		protected SendControlViewModel(Wallet wallet, string title)
 			: base(title)
@@ -541,12 +540,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _feeToolTip, value);
 		}
 
-		public string QRCodeValue
-		{
-			get => _qrCodeValue;
-			private set => this.RaiseAndSetIfChanged(ref _qrCodeValue, value);
-		}
-
 		private Image<Rgb, byte> _testImage;
 
 		public Image<Rgb, byte> TestImage
@@ -673,6 +666,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					_videocapture.Retrieve(_frame);
 
+					//TODO: make this work
 					TestImage = _frame.ToImage<Rgb, byte>();
 
 					string result = GetQRcodeValueFromImage(image);
