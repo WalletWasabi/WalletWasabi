@@ -24,7 +24,7 @@
                                      Height="10"
                                      Fill="{Binding HexColor, Converter={x:Static converters:ColorStringConverters.HexColorToBrush}}" />
                             <TextBlock Grid.Column="1" FontSize="19" HorizontalAlignment="Left"
-                                       Text="{Binding Amount, Converter={x:Static converters:MoneyConverters.MoneyToString}}" />
+                                       Text="{Binding Amount, StringFormat=BTC \{0\}, Converter={x:Static converters:MoneyConverters.MoneyToString}}" />
                             <StackPanel Opacity="0.5" Grid.Row="1" Grid.Column="1" TextBlock.FontSize="13"
                                         Orientation="Horizontal">
                                 <TextBlock Text="{Binding Label}" />
