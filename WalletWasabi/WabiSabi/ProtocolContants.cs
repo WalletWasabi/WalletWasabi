@@ -3,7 +3,7 @@ namespace WalletWasabi.WabiSabi
 	public static class ProtocolConstants
 	{
 		public const int CredentialNumber = 2;
-		public const long MaxAmountPerAlice = 4_300_000_000_000l;
+		public const long MaxAmountPerAlice = 4_300_000_000_000L;
 
 		public const string WabiSabiProtocolIdentifier = "WabiSabi_v1.0";
 		public const string DomainStrobeSeparator = "domain-separator";
