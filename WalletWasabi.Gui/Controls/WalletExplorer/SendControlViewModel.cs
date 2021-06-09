@@ -543,9 +543,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _feeToolTip, value);
 		}
 
-		private Avalonia.Media.Imaging.Bitmap _testImage;
+		private Avalonia.Media.Imaging.Bitmap? _testImage;
 
-		public Avalonia.Media.Imaging.Bitmap TestImage
+		public Avalonia.Media.Imaging.Bitmap? TestImage
 		{
 			get => _testImage;
 			set => this.RaiseAndSetIfChanged(ref _testImage, value);
@@ -686,8 +686,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				}
 			}
-			catch (Exception)
+			catch (Exception ex)
 			{
+				Logger.LogError(ex);
 			}
 		}
 
