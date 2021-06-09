@@ -115,7 +115,7 @@ namespace WalletWasabi.BitcoinCore.Mempool
 				}
 			}
 
-			var added = AddTransactions(Node.GetMempoolTransactions(missing, cancel));
+			var added = AddTransactions(await Rpc.GetRawTransactionsAsync(missing, cancel).ConfigureAwait(false));
 			return added;
 		}
 

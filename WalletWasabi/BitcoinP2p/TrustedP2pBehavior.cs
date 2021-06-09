@@ -16,9 +16,6 @@ namespace WalletWasabi.BitcoinP2p
 
 		public event EventHandler<uint256>? BlockInv;
 
-		private HashSet<uint256> DisabledFromProcessing { get; } = new();
-		private object DisabledFromProcessingLock { get; } = new();
-
 		protected override bool ProcessInventoryVector(InventoryVector inv, EndPoint remoteSocketEndpoint)
 		{
 			if (inv.Type.HasFlag(InventoryType.MSG_TX))
@@ -52,42 +49,9 @@ namespace WalletWasabi.BitcoinP2p
 
 		protected override void ProcessTx(TxPayload payload)
 		{
-			var txid = payload.Object.GetHash();
-
-			// Skip processing if txid is disabled.
-			bool toProcess;
-			lock (DisabledFromProcessingLock)
-			{
-				toProcess = !DisabledFromProcessing.Contains(txid);
-			}
-			if (toProcess)
-			{
-				base.ProcessTx(payload);
-			}
+			base.ProcessTx(payload);
 		}
 
 		public override object Clone() => new TrustedP2pBehavior(MempoolService);
-
-		public void DisableProcess(IEnumerable<uint256> txids)
-		{
-			lock (DisabledFromProcessingLock)
-			{
-				foreach (var txid in txids)
-				{
-					DisabledFromProcessing.Add(txid);
-				}
-			}
-		}
-
-		public void EnableProcess(IEnumerable<uint256> txids)
-		{
-			lock (DisabledFromProcessingLock)
-			{
-				foreach (var txid in txids)
-				{
-					DisabledFromProcessing.Remove(txid);
-				}
-			}
-		}
 	}
 }
