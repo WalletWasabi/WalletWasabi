@@ -526,7 +526,7 @@ It's useful to [log the time](https://www.cyberciti.biz/faq/unix-linux-bash-hist
 HISTTIMEFORMAT="%d/%m/%y %T "
 ```
 
-Then you can issue the `history` command to see when a bash command was issued.
+Then you can issue the `history` command to see when a bash command was issued. Unfortunately it doesn't work retroactively.
 
 ## Accessing Software Logs
 
