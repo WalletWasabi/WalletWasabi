@@ -66,7 +66,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 				.Take(InputCount)
 				.Select((x, i) => new Coin(
 					BitcoinFactory.CreateOutPoint(),
-					new TxOut(Money.Coins((decimal)(i + 1) / 10), x.P2wpkhScript)))
+					new TxOut(Money.Coins((decimal)(i + 1) / 5), x.P2wpkhScript)))
 				.ToArray();
 
 			var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
