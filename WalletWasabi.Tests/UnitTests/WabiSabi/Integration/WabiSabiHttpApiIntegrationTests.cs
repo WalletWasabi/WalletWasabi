@@ -50,7 +50,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 		[Fact]
 		public async Task SoloCoinJoinTest()
 		{
-			const int InputCount = 2;
+			const int InputCount = 4;
 
 			// At the end of the test a coinjoin transaction has to be created and broadcasted.
 			var transactionCompleted = new TaskCompletionSource<Transaction>();
@@ -64,9 +64,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			keyManager.AssertCleanKeysIndexed();
 			var coins = keyManager.GetKeys()
 				.Take(InputCount)
-				.Select(x => new Coin(
+				.Select((x, i) => new Coin(
 					BitcoinFactory.CreateOutPoint(),
-					new TxOut(Money.Coins(1), x.P2wpkhScript)))
+					new TxOut(Money.Coins((decimal)(i + 1) / 10), x.P2wpkhScript)))
 				.ToArray();
 
 			var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>

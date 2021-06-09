@@ -1,3 +1,4 @@
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -44,6 +45,25 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 		/// <see>Vertices</see> property will correspond to the given values in order,
 		/// and may contain additional nodes if reissuance requests are
 		/// required.</remarks>
+		///
+		public static DependencyGraph ResolveCredentialDependencies(IEnumerable<Coin> inputs, IEnumerable<TxOut> outputs, FeeRate feerate)
+		{
+			var inputSizes = inputs.Select(x => x.ScriptPubKey.EstimateInputVsize());
+			var effectiveValues = Enumerable.Zip(inputs, inputSizes, (coin, size) => coin.Amount - feerate.GetFee(size));
+
+			if (effectiveValues.Any(x => x <= Money.Zero))
+			{
+				throw new InvalidOperationException($"Not enough funds to pay for the fees.");
+			}
+
+			var outputSizes = outputs.Select(x => x.ScriptPubKey.EstimateOutputVsize());
+			var effectiveCosts = Enumerable.Zip(outputs, outputSizes, (txout, size) => txout.Value - feerate.GetFee(size));
+
+			return ResolveCredentialDependencies(
+				Enumerable.Zip(effectiveValues.Select(a => (ulong)a.Satoshi), inputSizes.Select(i => (ulong)i), ImmutableArray.Create).Cast<IEnumerable<ulong>>(),
+				Enumerable.Zip(effectiveCosts.Select(a => (ulong)a.Satoshi), outputSizes.Select(i => (ulong)i), ImmutableArray.Create).Cast<IEnumerable<ulong>>()
+			);
+		}
 		public static DependencyGraph ResolveCredentialDependencies(IEnumerable<IEnumerable<ulong>> inputValues, IEnumerable<IEnumerable<ulong>> outputValues)
 			=> FromValues(inputValues, outputValues).ResolveCredentials();
 

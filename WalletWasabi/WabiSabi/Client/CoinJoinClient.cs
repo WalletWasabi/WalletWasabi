@@ -11,8 +11,10 @@ using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Client.CredentialDependencies;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Models.Decomposition;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Wallets;
 
@@ -56,12 +58,7 @@ namespace WalletWasabi.WabiSabi.Client
 			// Get all locked internal keys we have and assert we have enough.
 			Keymanager.AssertLockedInternalKeysIndexed(howMany: Coins.Count());
 			var allLockedInternalKeys = Keymanager.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked);
-			var outputs = outputValues.Zip(allLockedInternalKeys, (amount, hdPubKey) => new TxOut(amount, hdPubKey.P2wpkhScript));
-
-			var plan = CreatePlan(
-				Coins.Select(x => (ulong)x.Amount.Satoshi),
-				Coins.Select(x => (ulong)x.ScriptPubKey.EstimateInputVsize()),
-				outputValues);
+			var outputTxOuts = outputValues.Zip(allLockedInternalKeys, (amount, hdPubKey) => new TxOut(amount, hdPubKey.P2wpkhScript));
 
 			List<AliceClient> aliceClients = CreateAliceClients(roundState);
 
@@ -71,9 +68,15 @@ namespace WalletWasabi.WabiSabi.Client
 			// Confirm coins.
 			aliceClients = await ConfirmConnectionsAsync(aliceClients, roundState.MaxVsizeAllocationPerAlice, roundState.ConnectionConfirmationTimeout, cancellationToken).ConfigureAwait(false);
 
+			// Re-issuances.
+			DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(aliceClients.Select(a => a.Coin), outputTxOuts, roundState.FeeRate);
+			var bobClient = CreateBobClient(roundState);
+			DependencyGraphResolver dgr = new(dependencyGraph);
+			var outputs = await dgr.ResolveAsync(aliceClients, bobClient, cancellationToken).ConfigureAwait(false);
+
 			// Output registration.
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
-			var outputsWithCredentials = outputs.Zip(aliceClients, (output, alice) => (output, alice.RealAmountCredentials, alice.RealVsizeCredentials));
+			var outputsWithCredentials = outputTxOuts.Zip(aliceClients, (output, alice) => (output, alice.RealAmountCredentials, alice.RealVsizeCredentials));
 			var bobClients = Enumerable.Range(0, int.MaxValue).Select(_ => CreateBobClient(roundState));
 			await RegisterOutputsAsync(bobClients, outputsWithCredentials, cancellationToken).ConfigureAwait(false);
 
@@ -82,7 +85,7 @@ namespace WalletWasabi.WabiSabi.Client
 			var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
 
 			// Sanity check.
-			var effectiveOutputs = outputs.Select(o => (o.Value - roundState.FeeRate.GetFee(o.ScriptPubKey.EstimateOutputVsize()), o.ScriptPubKey));
+			var effectiveOutputs = outputTxOuts.Select(o => (o.Value - roundState.FeeRate.GetFee(o.ScriptPubKey.EstimateOutputVsize()), o.ScriptPubKey));
 			if (!SanityCheck(effectiveOutputs, unsignedCoinJoin))
 			{
 				throw new InvalidOperationException($"Round ({roundState.Id}): My output is missing.");
@@ -155,7 +158,11 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private IEnumerable<Money> DecomposeAmounts(FeeRate feeRate)
 		{
-			return Coins.Select(c => c.Amount - feeRate.GetFee(c.ScriptPubKey.EstimateInputVsize()));
+			var allDenominations = BaseDenominationGenerator.Generate();
+			GreedyDecomposer greedyDecomposer = new(allDenominations);
+			var amounts = Coins.Select(c => c.Amount - feeRate.GetFee(c.ScriptPubKey.EstimateInputVsize()));
+			var denominations = greedyDecomposer.Decompose(amounts.Sum());
+			return amounts;
 		}
 
 		private IEnumerable<IEnumerable<(ulong RealAmountCredentialValue, ulong RealVsizeCredentialValue, Money Value)>> CreatePlan(
