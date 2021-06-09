@@ -259,6 +259,45 @@
           "System.Reactive": "5.0.0"
         }
       },
+      "Emgu.CV": {
+        "type": "Transitive",
+        "resolved": "4.5.1.4349",
+        "contentHash": "HkjpYLxh9IVK311p/MXd54hRd2mF62LEO6vswYgiFdHdSQvNmnnZR3umQYP3lcuInqK2qp75w69m5Rz9lgA2bg==",
+        "dependencies": {
+          "System.Drawing.Primitives": "4.3.0",
+          "System.Runtime": "4.3.1",
+          "System.Runtime.InteropServices.RuntimeInformation": "4.3.0"
+        }
+      },
+      "Emgu.CV.Bitmap": {
+        "type": "Transitive",
+        "resolved": "4.5.1.4349",
+        "contentHash": "Dq9vno6Gb0FESrd8WexIOILgQyXLG56xWKJJsx/kCErGsMZxHAN5NysDerHg1G+39aphUiHDMPykkTLiYt4ANQ==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)",
+          "System.Drawing.Common": "5.0.0"
+        }
+      },
+      "Emgu.CV.runtime.windows": {
+        "type": "Transitive",
+        "resolved": "4.5.1.4349",
+        "contentHash": "IOhubaLFZUv9WZgdlCw9jmXODWhr8UWnoJqUkPmKp0q7fK+NmRdiAtR9yKyo4jtOrb5bytmpGQcTJ2weFP3DUg==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)",
+          "Emgu.runtime.windows.msvc.rt.x64": "[19.28.29336]",
+          "Emgu.runtime.windows.msvc.rt.x86": "[19.28.29336]"
+        }
+      },
+      "Emgu.runtime.windows.msvc.rt.x64": {
+        "type": "Transitive",
+        "resolved": "19.28.29336",
+        "contentHash": "GCDS8BtMW+xTE7p6eTbZmJQAdrjMMC+ThGk7b1c+2J/OKwqwjsCkAr6IGVcyx0C3cpQkJX79XyEj8L48SZCGzA=="
+      },
+      "Emgu.runtime.windows.msvc.rt.x86": {
+        "type": "Transitive",
+        "resolved": "19.28.29336",
+        "contentHash": "GkZCA+RyK4S6PSWE8pVisud6v//p35T+bR49BIU+AMOrnAzCTGt6AxWx9nZd7mjaseWFuBg0svHf6BxDj6Uneg=="
+      },
       "JetBrains.Annotations": {
         "type": "Transitive",
         "resolved": "10.3.0",
@@ -1078,11 +1117,19 @@
       },
       "System.Drawing.Common": {
         "type": "Transitive",
-        "resolved": "4.5.0",
-        "contentHash": "AiJFxxVPdeITstiRS5aAu8+8Dpf5NawTMoapZ53Gfirml24p7HIfhjmCRxdXnmmf3IUA3AX3CcW7G73CjWxW/Q==",
+        "resolved": "5.0.0",
+        "contentHash": "SztFwAnpfKC8+sEKXAFxCBWhKQaEd97EiOL7oZJZP56zbqnLpmxACWA8aGseaUExciuEAUuR9dY8f7HkTRAdnw==",
         "dependencies": {
-          "Microsoft.NETCore.Platforms": "2.0.0",
-          "Microsoft.Win32.SystemEvents": "4.5.0"
+          "Microsoft.Win32.SystemEvents": "5.0.0"
+        }
+      },
+      "System.Drawing.Primitives": {
+        "type": "Transitive",
+        "resolved": "4.3.0",
+        "contentHash": "1QU/c35gwdhvj77fkScXQQbjiVAqIL3fEYn/19NE0CV/ic5TN5PyWAft8HsrbRd4SBLEoErNCkWSzMDc0MmbRw==",
+        "dependencies": {
+          "System.Runtime": "4.3.0",
+          "System.Runtime.Extensions": "4.3.0"
         }
       },
       "System.Dynamic.Runtime": {
@@ -2106,6 +2153,9 @@
           "Avalonia.Desktop": "0.9.12",
           "Dock.Avalonia.Themes.Default": "0.9.9",
           "Dock.Avalonia.Themes.Metro": "0.9.9",
+          "Emgu.CV": "4.5.1.4349",
+          "Emgu.CV.Bitmap": "4.5.1.4349",
+          "Emgu.CV.runtime.windows": "4.5.1.4349",
           "System.Reactive": "5.0.0",
           "System.Runtime": "4.3.1",
           "WalletWasabi": "1.0.0"
@@ -2136,6 +2186,26 @@
           "Microsoft.NETCore.Platforms": "1.0.1",
           "SkiaSharp": "[1.68.0]"
         }
+      },
+      "Emgu.CV.runtime.windows": {
+        "type": "Transitive",
+        "resolved": "4.5.1.4349",
+        "contentHash": "IOhubaLFZUv9WZgdlCw9jmXODWhr8UWnoJqUkPmKp0q7fK+NmRdiAtR9yKyo4jtOrb5bytmpGQcTJ2weFP3DUg==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)",
+          "Emgu.runtime.windows.msvc.rt.x64": "[19.28.29336]",
+          "Emgu.runtime.windows.msvc.rt.x86": "[19.28.29336]"
+        }
+      },
+      "Emgu.runtime.windows.msvc.rt.x64": {
+        "type": "Transitive",
+        "resolved": "19.28.29336",
+        "contentHash": "GCDS8BtMW+xTE7p6eTbZmJQAdrjMMC+ThGk7b1c+2J/OKwqwjsCkAr6IGVcyx0C3cpQkJX79XyEj8L48SZCGzA=="
+      },
+      "Emgu.runtime.windows.msvc.rt.x86": {
+        "type": "Transitive",
+        "resolved": "19.28.29336",
+        "contentHash": "GkZCA+RyK4S6PSWE8pVisud6v//p35T+bR49BIU+AMOrnAzCTGt6AxWx9nZd7mjaseWFuBg0svHf6BxDj6Uneg=="
       },
       "Libuv": {
         "type": "Transitive",
@@ -2537,11 +2607,10 @@
       },
       "System.Drawing.Common": {
         "type": "Transitive",
-        "resolved": "4.5.0",
-        "contentHash": "AiJFxxVPdeITstiRS5aAu8+8Dpf5NawTMoapZ53Gfirml24p7HIfhjmCRxdXnmmf3IUA3AX3CcW7G73CjWxW/Q==",
+        "resolved": "5.0.0",
+        "contentHash": "SztFwAnpfKC8+sEKXAFxCBWhKQaEd97EiOL7oZJZP56zbqnLpmxACWA8aGseaUExciuEAUuR9dY8f7HkTRAdnw==",
         "dependencies": {
-          "Microsoft.NETCore.Platforms": "2.0.0",
-          "Microsoft.Win32.SystemEvents": "4.5.0"
+          "Microsoft.Win32.SystemEvents": "5.0.0"
         }
       },
       "System.Globalization": {
@@ -3166,6 +3235,26 @@
           "SkiaSharp": "[1.68.0]"
         }
       },
+      "Emgu.CV.runtime.windows": {
+        "type": "Transitive",
+        "resolved": "4.5.1.4349",
+        "contentHash": "IOhubaLFZUv9WZgdlCw9jmXODWhr8UWnoJqUkPmKp0q7fK+NmRdiAtR9yKyo4jtOrb5bytmpGQcTJ2weFP3DUg==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)",
+          "Emgu.runtime.windows.msvc.rt.x64": "[19.28.29336]",
+          "Emgu.runtime.windows.msvc.rt.x86": "[19.28.29336]"
+        }
+      },
+      "Emgu.runtime.windows.msvc.rt.x64": {
+        "type": "Transitive",
+        "resolved": "19.28.29336",
+        "contentHash": "GCDS8BtMW+xTE7p6eTbZmJQAdrjMMC+ThGk7b1c+2J/OKwqwjsCkAr6IGVcyx0C3cpQkJX79XyEj8L48SZCGzA=="
+      },
+      "Emgu.runtime.windows.msvc.rt.x86": {
+        "type": "Transitive",
+        "resolved": "19.28.29336",
+        "contentHash": "GkZCA+RyK4S6PSWE8pVisud6v//p35T+bR49BIU+AMOrnAzCTGt6AxWx9nZd7mjaseWFuBg0svHf6BxDj6Uneg=="
+      },
       "Libuv": {
         "type": "Transitive",
         "resolved": "1.9.1",
@@ -3566,11 +3655,10 @@
       },
       "System.Drawing.Common": {
         "type": "Transitive",
-        "resolved": "4.5.0",
-        "contentHash": "AiJFxxVPdeITstiRS5aAu8+8Dpf5NawTMoapZ53Gfirml24p7HIfhjmCRxdXnmmf3IUA3AX3CcW7G73CjWxW/Q==",
+        "resolved": "5.0.0",
+        "contentHash": "SztFwAnpfKC8+sEKXAFxCBWhKQaEd97EiOL7oZJZP56zbqnLpmxACWA8aGseaUExciuEAUuR9dY8f7HkTRAdnw==",
         "dependencies": {
-          "Microsoft.NETCore.Platforms": "2.0.0",
-          "Microsoft.Win32.SystemEvents": "4.5.0"
+          "Microsoft.Win32.SystemEvents": "5.0.0"
         }
       },
       "System.Globalization": {
@@ -4195,6 +4283,26 @@
           "SkiaSharp": "[1.68.0]"
         }
       },
+      "Emgu.CV.runtime.windows": {
+        "type": "Transitive",
+        "resolved": "4.5.1.4349",
+        "contentHash": "IOhubaLFZUv9WZgdlCw9jmXODWhr8UWnoJqUkPmKp0q7fK+NmRdiAtR9yKyo4jtOrb5bytmpGQcTJ2weFP3DUg==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)",
+          "Emgu.runtime.windows.msvc.rt.x64": "[19.28.29336]",
+          "Emgu.runtime.windows.msvc.rt.x86": "[19.28.29336]"
+        }
+      },
+      "Emgu.runtime.windows.msvc.rt.x64": {
+        "type": "Transitive",
+        "resolved": "19.28.29336",
+        "contentHash": "GCDS8BtMW+xTE7p6eTbZmJQAdrjMMC+ThGk7b1c+2J/OKwqwjsCkAr6IGVcyx0C3cpQkJX79XyEj8L48SZCGzA=="
+      },
+      "Emgu.runtime.windows.msvc.rt.x86": {
+        "type": "Transitive",
+        "resolved": "19.28.29336",
+        "contentHash": "GkZCA+RyK4S6PSWE8pVisud6v//p35T+bR49BIU+AMOrnAzCTGt6AxWx9nZd7mjaseWFuBg0svHf6BxDj6Uneg=="
+      },
       "Libuv": {
         "type": "Transitive",
         "resolved": "1.9.1",
@@ -4685,11 +4793,10 @@
       },
       "System.Drawing.Common": {
         "type": "Transitive",
-        "resolved": "4.5.0",
-        "contentHash": "AiJFxxVPdeITstiRS5aAu8+8Dpf5NawTMoapZ53Gfirml24p7HIfhjmCRxdXnmmf3IUA3AX3CcW7G73CjWxW/Q==",
+        "resolved": "5.0.0",
+        "contentHash": "SztFwAnpfKC8+sEKXAFxCBWhKQaEd97EiOL7oZJZP56zbqnLpmxACWA8aGseaUExciuEAUuR9dY8f7HkTRAdnw==",
         "dependencies": {
-          "Microsoft.NETCore.Platforms": "2.0.0",
-          "Microsoft.Win32.SystemEvents": "4.5.0"
+          "Microsoft.Win32.SystemEvents": "5.0.0"
         }
       },
       "System.Globalization": {

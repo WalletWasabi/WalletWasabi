@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Input;
 using Emgu.CV;
 using Emgu.CV.Structure;
@@ -7,6 +8,8 @@ using ReactiveUI;
 using Splat;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive;
@@ -540,9 +543,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _feeToolTip, value);
 		}
 
-		private Image<Rgb, byte> _testImage;
+		private Avalonia.Media.Imaging.Bitmap _testImage;
 
-		public Image<Rgb, byte> TestImage
+		public Avalonia.Media.Imaging.Bitmap TestImage
 		{
 			get => _testImage;
 			set => this.RaiseAndSetIfChanged(ref _testImage, value);
@@ -641,12 +644,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		private VideoCapture _videocapture;
-		private Mat _frame;
 
 		private void CaptureImage()
 		{
 			_videocapture = new VideoCapture();
-			_frame = new Mat();
 			_videocapture.QueryFrame().ToImage<Bgra, byte>();
 			_videocapture.ImageGrabbed += ProcessFrame;
 			_videocapture.Start();
@@ -660,17 +661,27 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				if (_videocapture != null && _videocapture.Ptr != IntPtr.Zero)
 				{
-					videocapture.Retrieve(_frame);
+					Mat frame = new();
 
-					Image<Rgb, byte> image = _frame.ToImage<Rgb, byte>();
+					videocapture.Retrieve(frame);
 
-					//TODO: make this work
-					TestImage = image;
+					Image<Rgb, byte> image = frame.ToImage<Rgb, byte>();
+
+					System.Drawing.Bitmap bmp = image.ToBitmap();
+
+					using (MemoryStream memory = new MemoryStream())
+					{
+						bmp.Save(memory, ImageFormat.Png);
+						memory.Position = 0;
+
+						TestImage = new Avalonia.Media.Imaging.Bitmap(memory);
+					}
 
 					string result = GetQRcodeValueFromImage(image);
 					if (!string.IsNullOrWhiteSpace(result))
 					{
 						Address = result;
+						TestImage = null;
 						CloseWebCam();
 					}
 				}
@@ -698,7 +709,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void CloseWebCam()
 		{
-			_frame.Dispose();
+			_videocapture.Stop();
 			_videocapture.ImageGrabbed -= ProcessFrame;
 			_videocapture.Dispose();
 		}
