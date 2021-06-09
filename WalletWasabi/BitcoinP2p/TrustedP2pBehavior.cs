@@ -47,11 +47,6 @@ namespace WalletWasabi.BitcoinP2p
 			return false;
 		}
 
-		protected override void ProcessTx(TxPayload payload)
-		{
-			base.ProcessTx(payload);
-		}
-
 		public override object Clone() => new TrustedP2pBehavior(MempoolService);
 	}
 }
