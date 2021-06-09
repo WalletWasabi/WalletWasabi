@@ -19,7 +19,7 @@ namespace WalletWasabi.WabiSabi.Client
 				.SelectMany(type => Enumerable.Concat(Graph.Reissuances, Graph.Outputs)
 				.SelectMany(node => Graph.EdgeSets[type].InEdges(node)));
 
-			DependencyTasks = allInEdges.ToDictionary(edge => edge, _ => new TaskCompletionSource<Credential>());
+			DependencyTasks = allInEdges.ToDictionary(edge => edge, _ => new TaskCompletionSource<Credential>(TaskCreationOptions.RunContinuationsAsynchronously));
 		}
 
 		private DependencyGraph Graph { get; }
@@ -67,8 +67,15 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 			await Task.WhenAll(alltask).ConfigureAwait(false);
 
-			var amountEdges = Graph.Outputs.SelectMany(node => Graph.OutEdges(node, CredentialType.Amount));
-			var vsizeEdges = Graph.Outputs.SelectMany(node => Graph.OutEdges(node, CredentialType.Vsize));
+			var amountEdges = Graph.Outputs.SelectMany(node => Graph.InEdges(node, CredentialType.Amount));
+			var vsizeEdges = Graph.Outputs.SelectMany(node => Graph.InEdges(node, CredentialType.Vsize));
+
+			// Check if all tasks were finished, otherwise Task.Result will block.
+			if (!amountEdges.Concat(vsizeEdges).All(edge => DependencyTasks[edge].Task.IsCompletedSuccessfully))
+			{
+				throw new InvalidOperationException("");
+			}
+
 			var amountCreds = amountEdges.Select(edge => DependencyTasks[edge].Task.Result);
 			var vsizeCreds = vsizeEdges.Select(edge => DependencyTasks[edge].Task.Result);
 
