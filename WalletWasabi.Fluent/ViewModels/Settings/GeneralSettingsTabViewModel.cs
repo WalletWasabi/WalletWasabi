@@ -28,14 +28,14 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		[AutoNotify] private bool _customChangeAddress;
 		[AutoNotify] private FeeDisplayFormat _selectedFeeDisplayFormat;
 
-		public GeneralSettingsTabViewModel(Config config, UiConfig uiConfig) : base(config)
+		public GeneralSettingsTabViewModel()
 		{
-			_darkModeEnabled = uiConfig.DarkModeEnabled;
-			_autoCopy = uiConfig.Autocopy;
-			_customFee = uiConfig.IsCustomFee;
-			_customChangeAddress = uiConfig.IsCustomChangeAddress;
-			_selectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), uiConfig.FeeDisplayFormat)
-				? (FeeDisplayFormat)uiConfig.FeeDisplayFormat
+			_darkModeEnabled = Services.UiConfig.DarkModeEnabled;
+			_autoCopy = Services.UiConfig.Autocopy;
+			_customFee = Services.UiConfig.IsCustomFee;
+			_customChangeAddress = Services.UiConfig.IsCustomChangeAddress;
+			_selectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), Services.UiConfig.FeeDisplayFormat)
+				? (FeeDisplayFormat) Services.UiConfig.FeeDisplayFormat
 				: FeeDisplayFormat.SatoshiPerByte;
 
 			this.WhenAnyValue(x => x.DarkModeEnabled)
@@ -43,29 +43,29 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.Subscribe(
 					x =>
 					{
-						uiConfig.DarkModeEnabled = x;
+						Services.UiConfig.DarkModeEnabled = x;
 						Navigate(NavigationTarget.CompactDialogScreen).To(new ThemeChangeViewModel(x ? Theme.Dark : Theme.Light));
 					});
 
 			this.WhenAnyValue(x => x.AutoCopy)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Skip(1)
-				.Subscribe(x => uiConfig.Autocopy = x);
+				.Subscribe(x => Services.UiConfig.Autocopy = x);
 
 			this.WhenAnyValue(x => x.CustomFee)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Skip(1)
-				.Subscribe(x => uiConfig.IsCustomFee = x);
+				.Subscribe(x => Services.UiConfig.IsCustomFee = x);
 
 			this.WhenAnyValue(x => x.CustomChangeAddress)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Skip(1)
-				.Subscribe(x => uiConfig.IsCustomChangeAddress = x);
+				.Subscribe(x => Services.UiConfig.IsCustomChangeAddress = x);
 
 			this.WhenAnyValue(x => x.SelectedFeeDisplayFormat)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Skip(1)
-				.Subscribe(x => uiConfig.FeeDisplayFormat = (int)x);
+				.Subscribe(x => Services.UiConfig.FeeDisplayFormat = (int)x);
 		}
 
 		public IEnumerable<FeeDisplayFormat> FeeDisplayFormats =>

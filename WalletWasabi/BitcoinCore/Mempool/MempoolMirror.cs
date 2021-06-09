@@ -123,8 +123,9 @@ namespace WalletWasabi.BitcoinCore.Mempool
 					Mempool.Remove(txid);
 				}
 			}
-
-			return missing;
+      
+			var added = AddTransactions(await Rpc.GetRawTransactionsAsync(missing, cancel).ConfigureAwait(false));
+			return added;
 		}
 
 		public IEnumerable<Transaction> GetSpenderTransactions(IEnumerable<OutPoint> txOuts)

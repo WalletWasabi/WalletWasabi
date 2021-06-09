@@ -16,25 +16,18 @@ using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
 	[NavigationMetaData(Title = "Enter recovery words")]
 	public partial class RecoverWalletViewModel : RoutableViewModel
 	{
-		private readonly WalletManager _walletManager;
-
 		[AutoNotify] private IEnumerable<string>? _suggestions;
 		[AutoNotify] private Mnemonic? _currentMnemonics;
 
-		public RecoverWalletViewModel(
-			string walletName,
-			WalletManagerViewModel walletManagerViewModel)
+		public RecoverWalletViewModel(string walletName)
 		{
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
-			_walletManager = walletManagerViewModel.WalletManager;
-			var network = _walletManager.Network;
 
 			Mnemonics.ToObservableChangeSet().ToCollection()
 				.Select(x => x.Count is 12 or 15 or 18 or 21 or 24 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : default)
@@ -52,7 +45,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					.Select(currentMnemonics => currentMnemonics is { } && !Validations.Any);
 
 			NextCommand = ReactiveCommand.CreateFromTask(
-				async () => await OnNextAsync(_walletManager, network, walletName),
+				async () => await OnNextAsync(walletName),
 				NextCommandCanExecute);
 
 			AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
@@ -61,10 +54,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			EnableAutoBusyOn(NextCommand);
 		}
 
-		private async Task OnNextAsync(
-			WalletManager walletManager,
-			Network network,
-			string? walletName)
+		private async Task OnNextAsync(string? walletName)
 		{
 			var dialogResult = await NavigateDialogAsync(
 				new CreatePasswordDialogViewModel(
@@ -77,7 +67,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					var keyManager = await Task.Run(
 						() =>
 						{
-							var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName!)
+							var walletFilePath = Services.WalletManager.WalletDirectories.GetWalletFilePaths(walletName!)
 								.walletFilePath;
 
 							var result = KeyManager.Recover(
@@ -87,12 +77,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 								AccountKeyPath,
 								MinGapLimit);
 
-							result.SetNetwork(network);
+							result.SetNetwork(Services.WalletManager.Network);
 
 							return result;
 						});
 
-					Navigate().To(new AddedWalletPageViewModel(walletManager, keyManager));
+					Navigate().To(new AddedWalletPageViewModel(keyManager));
 
 					return;
 				}
@@ -153,7 +143,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
-			var enableCancel = _walletManager.HasWallet();
+			var enableCancel = Services.WalletManager.HasWallet();
 			SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
 		}
 	}

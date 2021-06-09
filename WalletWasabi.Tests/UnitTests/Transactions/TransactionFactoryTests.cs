@@ -179,7 +179,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		}
 
 		[Fact]
-		public async Task SelectSameClusterCoinsAsync()
+		public void SelectSameClusterCoins()
 		{
 			var password = "foo";
 			var keyManager = ServiceFactory.CreateKeyManager(password);
@@ -296,7 +296,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Equal(2, tx.Outputs.Count);
 
 			var changeOutput = Assert.Single<TxOut>(tx.Outputs, x => x.ScriptPubKey == changeKey.ScriptPubKey);
-			Assert.Null(transactionFactory.KeyManager.GetKeyForScriptPubKey(changeOutput.ScriptPubKey));
+			Assert.False(transactionFactory.KeyManager.TryGetKeyForScriptPubKey(changeOutput.ScriptPubKey, out _));
 			Assert.Equal(Money.Coins(0.9m), changeOutput.Value + result.Fee);
 		}
 
@@ -331,7 +331,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var destination2Output = Assert.Single<TxOut>(tx.Outputs, x => x.ScriptPubKey == key2.ScriptPubKey);
 			Assert.Equal(Money.Coins(0.3m), destination2Output.Value + result.Fee);
 
-			var changeOutput = Assert.Single(tx.Outputs, x => transactionFactory.KeyManager.GetKeyForScriptPubKey(x.ScriptPubKey) is { });
+			var changeOutput = Assert.Single(tx.Outputs, x => transactionFactory.KeyManager.TryGetKeyForScriptPubKey(x.ScriptPubKey, out _));
 			Assert.Equal(Money.Coins(0.1m), changeOutput.Value);
 		}
 

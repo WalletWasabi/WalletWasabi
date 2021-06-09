@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Xaml.Interactivity;
 
 namespace WalletWasabi.Fluent.Behaviors

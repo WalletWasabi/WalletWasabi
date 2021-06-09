@@ -1,7 +1,7 @@
-using System;
 using System.Linq;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
@@ -12,28 +12,25 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	[NavigationMetaData(Title = "Success")]
 	public partial class AddedWalletPageViewModel : RoutableViewModel
 	{
-		public AddedWalletPageViewModel(WalletManager walletManager, KeyManager keyManager)
+		public AddedWalletPageViewModel(KeyManager keyManager)
 		{
-			WalletIcon = keyManager.Icon;
-			IsHardwareWallet = keyManager.IsHardwareWallet;
 			WalletName = keyManager.WalletName;
+			WalletType = WalletHelpers.GetType(keyManager);
 
 			SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
 
 			EnableBack = false;
 
-			NextCommand = ReactiveCommand.Create(() => OnNext(walletManager, keyManager));
+			NextCommand = ReactiveCommand.Create(() => OnNext(keyManager));
 		}
 
-		public string? WalletIcon { get; }
-
-		public bool IsHardwareWallet { get; }
+		public WalletType WalletType { get; }
 
 		public string WalletName { get; }
 
-		private void OnNext(WalletManager walletManager, KeyManager keyManager)
+		private void OnNext(KeyManager keyManager)
 		{
-			walletManager.AddWallet(keyManager);
+			Services.WalletManager.AddWallet(keyManager);
 
 			Navigate().Clear();
 

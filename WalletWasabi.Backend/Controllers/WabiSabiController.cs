@@ -1,23 +1,26 @@
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using WalletWasabi.Backend.Filters;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.Backend.Filters;
 
 namespace WalletWasabi.Backend.Controllers
 {
-	[Produces("application/json")]
 	[ApiController]
+	[ExceptionTranslate]
 	[Route("[controller]")]
-	public class WabiSabiController : ControllerBase
+	[Produces("application/json")]
+	public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 	{
-		public WabiSabiController(IArenaRequestHandler handler)
+		public WabiSabiController(ArenaRequestHandler handler)
 		{
 			RequestHandler = handler;
 		}
 
-		private IArenaRequestHandler RequestHandler { get; }
+		private ArenaRequestHandler RequestHandler { get; }
 
 		[HttpPost("connection-confirmation")]
 		[Idempotent]
@@ -57,6 +60,12 @@ namespace WalletWasabi.Backend.Controllers
 		public Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellableToken)
 		{
 			return RequestHandler.SignTransactionAsync(request, cancellableToken);
+		}
+
+		[HttpGet("status")]
+		public Task<RoundState[]> GetStatusAsync(CancellationToken cancellableToken)
+		{
+			return Task.FromResult(RequestHandler.Arena.Rounds.Values.Select(x => RoundState.FromRound(x)).ToArray());
 		}
 	}
 }

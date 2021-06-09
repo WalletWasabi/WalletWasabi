@@ -6,9 +6,6 @@ namespace WalletWasabi.Tor.Control
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See section "4. Replies".</seealso>
 	public enum StatusCode : int
 	{
-		/// <summary>This should never occur ideally, unless a response was malformed or incomplete.</summary>
-		Unknown = 0,
-
 		/// <summary>The command was processed.</summary>
 		OK = 250,
 
@@ -58,6 +55,7 @@ namespace WalletWasabi.Tor.Control
 		UnmanagedEntity = 555,
 
 		/// <summary>A notification sent following an asynchronous operation.</summary>
+		/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">4.1. Asynchronous events</seealso>
 		AsynchronousEventNotify = 650,
 	}
 }
