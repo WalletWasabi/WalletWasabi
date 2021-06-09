@@ -2,11 +2,11 @@ using System.Reactive.Concurrency;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Login.PasswordFinder;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
-using WalletWasabi.Services;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 
@@ -26,8 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			WalletName = wallet.WalletName;
 			_password = "";
 			_errorMessage = "";
-			WalletIcon = wallet.KeyManager.Icon;
-			IsHardwareWallet = wallet.KeyManager.IsHardwareWallet;
+			WalletType = WalletHelpers.GetType(closedWalletViewModel.Wallet.KeyManager);
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(walletManagerViewModel, closedWalletViewModel, wallet));
 
@@ -37,6 +36,14 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 			EnableAutoBusyOn(NextCommand);
 		}
+
+		public WalletType WalletType { get; }
+
+		public string WalletName { get; }
+
+		public ICommand OkCommand { get; }
+
+		public ICommand ForgotPasswordCommand { get; }
 
 		private async Task OnNextAsync(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletViewModel, Wallet wallet)
 		{
@@ -55,7 +62,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 				await ShowErrorAsync(Title, PasswordHelper.CompatibilityPasswordWarnMessage, "Compatibility password was used");
 			}
 
-			var legalResult = await ShowLegalAsync(walletManagerViewModel.LegalChecker);
+			var legalResult = await ShowLegalAsync();
 
 			if (legalResult)
 			{
@@ -79,16 +86,6 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			Navigate(NavigationTarget.DialogScreen).To(new PasswordFinderIntroduceViewModel(wallet));
 		}
 
-		public string? WalletIcon { get; }
-
-		public bool IsHardwareWallet { get; }
-
-		public string WalletName { get; }
-
-		public ICommand OkCommand { get; }
-
-		public ICommand ForgotPasswordCommand { get; }
-
 		private void LoginWallet(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletViewModel)
 		{
 			closedWalletViewModel.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
@@ -96,9 +93,9 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			Navigate().To(closedWalletViewModel, NavigationMode.Clear);
 		}
 
-		private async Task<bool> ShowLegalAsync(LegalChecker legalChecker)
+		private async Task<bool> ShowLegalAsync()
 		{
-			if (!legalChecker.TryGetNewLegalDocs(out var document))
+			if (!Services.LegalChecker.TryGetNewLegalDocs(out var document))
 			{
 				return true;
 			}
@@ -109,7 +106,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 			if (dialogResult.Result)
 			{
-				await legalChecker.AgreeAsync();
+				await Services.LegalChecker.AgreeAsync();
 			}
 
 			return dialogResult.Result;

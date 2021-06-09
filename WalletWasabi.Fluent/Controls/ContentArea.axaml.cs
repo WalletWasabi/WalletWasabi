@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
+using Avalonia.Media;
 
 namespace WalletWasabi.Fluent.Controls
 {
@@ -41,6 +42,9 @@ namespace WalletWasabi.Fluent.Controls
 
 		public static readonly StyledProperty<bool> IsBusyProperty =
 			AvaloniaProperty.Register<ContentArea, bool>(nameof(IsBusy));
+
+		public static readonly StyledProperty<IBrush> HeaderBackgroundProperty =
+			AvaloniaProperty.Register<ContentArea, IBrush>(nameof(HeaderBackground));
 
 		private IContentPresenter? _titlePresenter;
 		private IContentPresenter? _captionPresenter;
@@ -115,6 +119,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(IsBusyProperty);
 			set => SetValue(IsBusyProperty, value);
+		}
+
+		public IBrush HeaderBackground
+		{
+			get => GetValue(HeaderBackgroundProperty);
+			set => SetValue(HeaderBackgroundProperty, value);
 		}
 
 		protected override bool RegisterContentPresenter(IContentPresenter presenter)

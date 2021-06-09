@@ -36,8 +36,6 @@ namespace WalletWasabi.Helpers
 
 		public const int BigFileReadWriteBufferSize = 1 * 1024 * 1024;
 
-		public const int DefaultTorSocksPort = 9050;
-
 		public const int DefaultMainNetBitcoinP2pPort = 8333;
 		public const int DefaultTestNetBitcoinP2pPort = 18333;
 		public const int DefaultRegTestBitcoinP2pPort = 18444;
@@ -53,8 +51,8 @@ namespace WalletWasabi.Helpers
 
 		public const string BuiltinBitcoinNodeName = "Bitcoin Knots";
 
-		public static readonly Version ClientVersion = new(1, 1, 12, 8);
-		public static readonly Version HwiVersion = new("2.0.1");
+		public static readonly Version ClientVersion = new(1, 1, 12, 9);
+		public static readonly Version HwiVersion = new("2.0.2");
 		public static readonly Version BitcoinCoreVersion = new("0.21.0");
 		public static readonly Version LegalDocumentsVersion = new(2, 0);
 

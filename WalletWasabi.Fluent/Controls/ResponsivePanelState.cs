@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Collections;
@@ -100,8 +100,8 @@ namespace WalletWasabi.Fluent.Controls
 			for (var i = 0; i < ItemCount; i++)
 			{
 				var element = GetItemAt(i);
-				var columnSpanPropertyValue = NonVirtualizingResponsiveLayout.GetColumnSpan((Control) element);
-				var rowSpanPropertyValue = NonVirtualizingResponsiveLayout.GetRowSpan((Control) element);
+				var columnSpanPropertyValue = NonVirtualizingResponsiveLayout.GetColumnSpan((Control)element);
+				var rowSpanPropertyValue = NonVirtualizingResponsiveLayout.GetRowSpan((Control)element);
 				var columnSpan = columnSpanPropertyValue is not null && columnSpanPropertyValue.Count - 1 >= layoutIndex ? columnSpanPropertyValue[layoutIndex] : 1;
 				var rowSpan = rowSpanPropertyValue is not null && rowSpanPropertyValue.Count - 1 >= layoutIndex ? rowSpanPropertyValue[layoutIndex] : 1;
 

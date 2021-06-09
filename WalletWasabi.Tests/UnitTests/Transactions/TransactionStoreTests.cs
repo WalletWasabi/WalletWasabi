@@ -14,7 +14,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public async Task CanInitializeAsync()
 		{
-			var txStore = await CreateTransactionStoreAsync();
+			await using var txStore = await CreateTransactionStoreAsync();
 
 			Assert.Equal(Network.Main, txStore.Network);
 			Assert.Empty(txStore.GetTransactionHashes());
@@ -29,7 +29,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public async Task CanDoOperationsAsync()
 		{
-			var txStore = await CreateTransactionStoreAsync();
+			await using var txStore = await CreateTransactionStoreAsync();
 
 			Assert.True(txStore.IsEmpty());
 

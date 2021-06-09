@@ -9,6 +9,7 @@ using WalletWasabi.Tor;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Tor.Socks5.Pool;
+using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using Xunit;
 
 namespace WalletWasabi.Tests.IntegrationTests
@@ -18,7 +19,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		public TorTests()
 		{
 			TorHttpPool = new(new TorTcpConnectionFactory(Common.TorSocks5Endpoint));
-			TorManager = new(Common.TorSettings, Common.TorSocks5Endpoint);
+			TorManager = new(Common.TorSettings);
 		}
 
 		private TorHttpPool TorHttpPool { get; }
@@ -174,9 +175,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 		{
 			using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(2));
 
-			TorHttpClient c1 = MakeTorHttpClient(new("http://api.ipify.org"), isolateStream: true);
-			TorHttpClient c2 = MakeTorHttpClient(new("http://api.ipify.org"), isolateStream: true);
-			TorHttpClient c3 = MakeTorHttpClient(new("http://api.ipify.org"), isolateStream: true);
+			TorHttpClient c1 = MakeTorHttpClient(new("http://api.ipify.org"), Mode.NewCircuitPerRequest);
+			TorHttpClient c2 = MakeTorHttpClient(new("http://api.ipify.org"), Mode.NewCircuitPerRequest);
+			TorHttpClient c3 = MakeTorHttpClient(new("http://api.ipify.org"), Mode.NewCircuitPerRequest);
 			Task<HttpResponseMessage> t1 = c1.SendAsync(HttpMethod.Get, "", null, ctsTimeout.Token);
 			Task<HttpResponseMessage> t2 = c2.SendAsync(HttpMethod.Get, "", null, ctsTimeout.Token);
 			Task<HttpResponseMessage> t3 = c3.SendAsync(HttpMethod.Get, "", null, ctsTimeout.Token);
@@ -194,7 +195,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[Fact]
 		public async Task TorRunningAsync()
 		{
-			TorTcpConnectionFactory client1 = new(new IPEndPoint(IPAddress.Loopback, 9050));
+			TorTcpConnectionFactory client1 = new(new IPEndPoint(IPAddress.Loopback, 37150));
 			Assert.True(await client1.IsTorRunningAsync());
 
 			TorTcpConnectionFactory client2 = new(new IPEndPoint(IPAddress.Loopback, 9054));
@@ -231,9 +232,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 			return contents;
 		}
 
-		private TorHttpClient MakeTorHttpClient(Uri uri, bool isolateStream = false)
+		private TorHttpClient MakeTorHttpClient(Uri uri, Mode mode = Mode.DefaultCircuit)
 		{
-			return new(uri, TorHttpPool, isolateStream);
+			return new(uri, TorHttpPool, mode);
 		}
 	}
 }

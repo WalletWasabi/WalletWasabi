@@ -54,8 +54,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			OwnershipProof ownershipProof,
 			ZeroCredentialsRequest zeroAmountCredentialRequests,
 			ZeroCredentialsRequest zeroVsizeCredentialRequests,
-			IDictionary<uint256, Round> rounds,
-			Network network)
+			IDictionary<uint256, Round> rounds)
 		{
 			if (!rounds.TryGetValue(roundId, out var round))
 			{
@@ -75,7 +74,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			// Compute but don't commit updated CoinJoin to round state, it will
 			// be re-calculated on input confirmation. This is computed it here
 			// for validation purposes.
-			round.CoinjoinState.AssertConstruction().AddInput(coin);
+			round.Assert<ConstructionState>().AddInput(coin);
 
 			var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", round.Id);
 			if (!OwnershipProof.VerifyCoinJoinInputProof(ownershipProof, coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
@@ -94,12 +93,12 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
 			}
 
-			if (alice.TotalInputVsize > round.PerAliceVsizeAllocation)
+			if (alice.TotalInputVsize > round.MaxVsizeAllocationPerAlice)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchVsize);
 			}
 
-			if (round.RemainingInputVsizeAllocation < round.PerAliceVsizeAllocation)
+			if (round.RemainingInputVsizeAllocation < round.MaxVsizeAllocationPerAlice)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.VsizeQuotaExceeded);
 			}

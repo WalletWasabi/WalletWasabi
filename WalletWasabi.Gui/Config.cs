@@ -22,7 +22,6 @@ namespace WalletWasabi.Gui
 		public const int DefaultPrivacyLevelSome = 2;
 		public const int DefaultPrivacyLevelFine = 21;
 		public const int DefaultPrivacyLevelStrong = 50;
-		public const int DefaultTorSock5Port = 9050;
 		public const int DefaultJsonRpcServerPort = 37128;
 		public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);
 
@@ -85,10 +84,6 @@ namespace WalletWasabi.Gui
 
 		[JsonProperty(PropertyName = "LocalBitcoinCoreDataDir")]
 		public string LocalBitcoinCoreDataDir { get; internal set; } = EnvironmentHelpers.GetDefaultBitcoinCoreDataDirOrEmptyString();
-
-		[JsonProperty(PropertyName = "TorSocks5EndPoint")]
-		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultTorSocksPort)]
-		public EndPoint TorSocks5EndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultTorSocksPort);
 
 		[JsonProperty(PropertyName = "MainNetBitcoinP2pEndPoint")]
 		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultMainNetBitcoinP2pPort)]
@@ -384,17 +379,6 @@ namespace WalletWasabi.Gui
 				var testNetBitcoinCorePort = jsObject.Value<int?>("TestNetBitcoinCorePort");
 				var regTestBitcoinCoreHost = jsObject.Value<string>("RegTestBitcoinCoreHost");
 				var regTestBitcoinCorePort = jsObject.Value<int?>("RegTestBitcoinCorePort");
-
-				if (torHost is { })
-				{
-					int port = torSocks5Port ?? Constants.DefaultTorSocksPort;
-
-					if (EndPointParser.TryParse(torHost, port, out EndPoint? ep))
-					{
-						TorSocks5EndPoint = ep;
-						saveIt = true;
-					}
-				}
 
 				if (mainNetBitcoinCoreHost is { })
 				{

@@ -1,7 +1,7 @@
 using System;
 using System.Reactive.Concurrency;
 using ReactiveUI;
-using WalletWasabi.Fluent.Model;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui;
 using WalletWasabi.Logging;
@@ -12,9 +12,9 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 	{
 		protected const int ThrottleTime = 500;
 
-		protected SettingsTabViewModelBase(Config config)
+		protected SettingsTabViewModelBase()
 		{
-			ConfigOnOpen = new Config(config.FilePath);
+			ConfigOnOpen = new Config(Services.Config.FilePath);
 			ConfigOnOpen.LoadFile();
 		}
 
