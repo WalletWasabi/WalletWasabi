@@ -116,9 +116,9 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 				for (int i = 0; i < 5; i++)
 				{
 					await rpc.SendRawTransactionAsync(tx);
-
-					await mempoolInstance.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
 				}
+
+				await mempoolInstance.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
 
 				var localMempoolHashes = mempoolInstance.GetMempoolHashes();
 
