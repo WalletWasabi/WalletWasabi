@@ -518,6 +518,16 @@ Check all of the certificates that you’ve obtained and tries to renew any that
 
 Detailed instuctions about configuration [here](https://certbot.eff.org/lets-encrypt/ubuntubionic-nginx).
 
+## Logging Bash History
+
+It's useful to [log the time](https://www.cyberciti.biz/faq/unix-linux-bash-history-display-date-time/) when bash commands are issued.
+
+```
+HISTTIMEFORMAT="%d/%m/%y %T "
+```
+
+Then you can issue the `history` command to see when a bash command was issued.
+
 ## Accessing Software Logs
 
 You can read the log file with the `tail -1000 ~/.walletwasabi/backend/Logs.txt`. However these logs aren't kept around forever. In order to access a longer timeframe use `sudo tail -1000 /var/log/syslog | grep "walletwasabi-backend"` and `sudo tail -1000 /var/log/syslog.1 | grep "walletwasabi-backend"`.
