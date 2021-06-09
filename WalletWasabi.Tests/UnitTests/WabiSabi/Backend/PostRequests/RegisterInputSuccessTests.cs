@@ -4,21 +4,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Client;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 {
 	public class RegisterInputSuccessTests
 	{
-		private static void AssertSingleAliceSuccessfullyRegistered(Round round, DateTimeOffset minAliceDeadline, InputRegistrationResponse resp)
+		private static void AssertSingleAliceSuccessfullyRegistered(Round round, DateTimeOffset minAliceDeadline, ArenaResponse<uint256> resp)
 		{
 			var alice = Assert.Single(round.Alices);
 			Assert.NotNull(resp);
-			Assert.NotNull(resp.AmountCredentials);
-			Assert.NotNull(resp.VsizeCredentials);
+			Assert.NotNull(resp.RealAmountCredentials);
+			Assert.NotNull(resp.RealVsizeCredentials);
 			Assert.True(minAliceDeadline <= alice.Deadline);
 		}
 
@@ -27,14 +26,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		{
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+
 			using Key key = new();
+			var coin = WabiSabiFactory.CreateCoin(key);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, WabiSabiFactory.CreatePreconfiguredRpcClient(coin), round);
 
-			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
-
-			var req = WabiSabiFactory.CreateInputRegistrationRequest(key, round);
 			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
-			var resp = await handler.RegisterInputAsync(req, CancellationToken.None);
+			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
+			var resp = await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, key, CancellationToken.None).ConfigureAwait(false);
 			AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -45,18 +44,18 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		{
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
-			using Key key = new();
 
-			var req = WabiSabiFactory.CreateInputRegistrationRequest(key, round);
+			using Key key = new();
+			var coin = WabiSabiFactory.CreateCoin(key);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, WabiSabiFactory.CreatePreconfiguredRpcClient(coin), round);
 
 			// Make sure an Alice have already been registered with the same input.
-			var preAlice = WabiSabiFactory.CreateAlice(prevout: req.Input, ownershipProof: req.OwnershipProof);
+			var preAlice = WabiSabiFactory.CreateAlice(coin, WabiSabiFactory.CreateOwnershipProof(key));
 			round.Alices.Add(preAlice);
 
-			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
 			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
-			var resp = await handler.RegisterInputAsync(req, CancellationToken.None);
+			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
+			var resp = await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, key, CancellationToken.None).ConfigureAwait(false);
 			AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -68,20 +67,21 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
 			var anotherRound = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round, anotherRound);
-			using Key key = new();
 
-			var req = WabiSabiFactory.CreateInputRegistrationRequest(key, round);
+			using Key key = new();
+			var coin = WabiSabiFactory.CreateCoin(key);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, WabiSabiFactory.CreatePreconfiguredRpcClient(coin), round, anotherRound);
 
 			// Make sure an Alice have already been registered with the same input.
-			var preAlice = WabiSabiFactory.CreateAlice(prevout: req.Input, ownershipProof: req.OwnershipProof);
+			var preAlice = WabiSabiFactory.CreateAlice(coin, WabiSabiFactory.CreateOwnershipProof(key));
 
 			var initialRemaining = anotherRound.RemainingInputVsizeAllocation;
 			anotherRound.Alices.Add(preAlice);
 
-			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
 			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
-			var resp = await handler.RegisterInputAsync(req, CancellationToken.None);
+			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
+			var resp = await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, key, CancellationToken.None).ConfigureAwait(false);
+
 			AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);
 			Assert.Empty(anotherRound.Alices);
 			Assert.Equal(initialRemaining, anotherRound.RemainingInputVsizeAllocation);
