@@ -27,8 +27,10 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public async Task<List<(Money Amount, Credential[] AmounCreds, Credential[] VsizeCreds)>> ResolveAsync(IEnumerable<AliceClient> aliceClients, BobClient bobClient, CancellationToken cancellationToken)
 		{
+			var aliceNodePairs = PairAliceClientAndRequestNodes(aliceClients, Graph);
+
 			// Set the result for the inputs.
-			foreach ((var aliceClient, var node) in Enumerable.Zip(aliceClients, Graph.Inputs))
+			foreach ((var aliceClient, var node) in aliceNodePairs)
 			{
 				foreach ((var edge, var credential) in Enumerable.Zip(Graph.OutEdges(node, CredentialType.Amount).Where(edge => edge.Value > 0), aliceClient.RealAmountCredentials))
 				{
@@ -97,6 +99,18 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 
 			return outputs;
+		}
+
+		private IEnumerable<(AliceClient AliceClient, RequestNode Node)> PairAliceClientAndRequestNodes(IEnumerable<AliceClient> aliceClients, DependencyGraph graph)
+		{
+			var inputNodes = graph.Inputs;
+
+			if (aliceClients.Count() != inputNodes.Count)
+			{
+				throw new InvalidOperationException("Graph vs Alice inputs mismatch");
+			}
+
+			return aliceClients.OrderBy(alice => alice.Coin.Amount).Zip(inputNodes.OrderBy(node => node.Values[(int)CredentialType.Amount]));
 		}
 	}
 }
