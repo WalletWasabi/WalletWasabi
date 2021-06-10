@@ -7,7 +7,7 @@ using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.Tests.Helpers
 {
-	class ArenaRequestHandlerAdapter : IWabiSabiApiRequestHandler
+	public class ArenaRequestHandlerAdapter : IWabiSabiApiRequestHandler
 	{
 		private readonly Arena arena;
 
