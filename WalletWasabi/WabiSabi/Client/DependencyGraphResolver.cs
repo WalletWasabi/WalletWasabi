@@ -19,7 +19,7 @@ namespace WalletWasabi.WabiSabi.Client
 				.SelectMany(type => Enumerable.Concat(Graph.Reissuances, Graph.Outputs)
 				.SelectMany(node => Graph.EdgeSets[type].InEdges(node)));
 
-			DependencyTasks = allInEdges.ToDictionary(edge => edge, _ => new TaskCompletionSource<Credential>(TaskCreationOptions.RunContinuationsAsynchronously));
+			DependencyTasks = allInEdges.ToDictionary(edge => edge, _ => new TaskCompletionSource<Credential?>(TaskCreationOptions.RunContinuationsAsynchronously));
 		}
 
 		private DependencyGraph Graph { get; }
@@ -30,7 +30,6 @@ namespace WalletWasabi.WabiSabi.Client
 			// Set the result for the inputs.
 			foreach ((var aliceClient, var node) in Enumerable.Zip(aliceClients, Graph.Inputs))
 			{
-
 				foreach ((var edge, var credential) in Enumerable.Zip(Graph.OutEdges(node, CredentialType.Amount).Where(edge => edge.Value > 0), aliceClient.RealAmountCredentials))
 				{
 					DependencyTasks[edge].SetResult(credential);
