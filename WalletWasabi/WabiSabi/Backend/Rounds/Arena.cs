@@ -249,6 +249,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			var coin = await InputRegistrationHandler.OutpointToCoinAsync(request, Prison, Rpc, Config).ConfigureAwait(false);
 			using (await AsyncLock.LockAsync().ConfigureAwait(false))
 			{
+				var registeredCoins = Rounds.SelectMany(r => r.Value.Alices.Select(a => a.Coin));
+
+				if (registeredCoins.Any(x => x.Outpoint == coin.Outpoint))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
+				}
 				return InputRegistrationHandler.RegisterInput(
 					Config,
 					request.RoundId,
