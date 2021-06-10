@@ -76,9 +76,8 @@ namespace WalletWasabi.WabiSabi.Client
 
 			// Output registration.
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
-			var outputsWithCredentials = outputTxOuts.Zip(aliceClients, (output, alice) => (output, alice.RealAmountCredentials, alice.RealVsizeCredentials));
-			var bobClients = Enumerable.Range(0, int.MaxValue).Select(_ => CreateBobClient(roundState));
-			await RegisterOutputsAsync(bobClients, outputsWithCredentials, cancellationToken).ConfigureAwait(false);
+
+			await RegisterOutputsAsync(bobClient, outputTxOuts, outputs, cancellationToken).ConfigureAwait(false);
 
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
 			var signingState = roundState.Assert<SigningState>();
@@ -94,6 +93,8 @@ namespace WalletWasabi.WabiSabi.Client
 			// Send signature.
 			await SignTransactionAsync(aliceClients, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
 		}
+
+
 
 		private List<AliceClient> CreateAliceClients(RoundState roundState)
 		{
@@ -173,11 +174,12 @@ namespace WalletWasabi.WabiSabi.Client
 			yield return realAmountCredentialValues.Zip(realVsizeCredentialValues, outputValues, (a, v, o) => (a, v, o));
 		}
 
-		private async Task RegisterOutputsAsync(
-			IEnumerable<BobClient> bobClients,
-			IEnumerable<(TxOut Output, Credential[] RealAmountCredentials, Credential[] RealVsizeCredentials)> outputsWithCredentials,
+		private async Task RegisterOutputsAsync(BobClient bobClient,
+			IEnumerable<TxOut> outputTxOuts,
+			List<(Money Amount, Credential[] AmounCreds, Credential[] VsizeCreds)> outputCredentials,
 			CancellationToken cancellationToken)
 		{
+
 			async Task<TxOut?> RegisterOutputTask(BobClient bobClient, TxOut output, Credential[] realAmountCredentials, Credential[] realVsizeCredentials)
 			{
 				try
@@ -192,9 +194,20 @@ namespace WalletWasabi.WabiSabi.Client
 				}
 			}
 
-			var outputRegisterRequests = bobClients.Zip(
-					outputsWithCredentials,
-					(bobClient, data) => RegisterOutputTask(bobClient, data.Output, data.RealAmountCredentials, data.RealVsizeCredentials));
+			List<(TxOut Output, Credential[] RealAmountCredentials, Credential[] RealVsizeCredentials)> outputWithCredentials = new();
+			var remainingCredentials = outputCredentials.ToList();
+
+			foreach (var txOut in outputTxOuts)
+			{
+				var creds = remainingCredentials.First(op => op.Amount == txOut.Value);
+				outputWithCredentials.Add((txOut, creds.AmounCreds, creds.VsizeCreds));
+
+				// Make sure to not use the same credentials twice.
+				remainingCredentials.Remove(creds);
+			}
+
+
+			var outputRegisterRequests = outputWithCredentials.Select(output => RegisterOutputTask(bobClient, output.Output, output.RealAmountCredentials, output.RealVsizeCredentials));
 
 			await Task.WhenAll(outputRegisterRequests).ConfigureAwait(false);
 		}

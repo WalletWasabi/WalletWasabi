@@ -23,21 +23,32 @@ namespace WalletWasabi.WabiSabi.Client
 		}
 
 		private DependencyGraph Graph { get; }
-		private Dictionary<CredentialDependency, TaskCompletionSource<Credential>> DependencyTasks { get; }
+		private Dictionary<CredentialDependency, TaskCompletionSource<Credential?>> DependencyTasks { get; }
 
 		public async Task<List<(Money Amount, Credential[] AmounCreds, Credential[] VsizeCreds)>> ResolveAsync(IEnumerable<AliceClient> aliceClients, BobClient bobClient, CancellationToken cancellationToken)
 		{
 			// Set the result for the inputs.
 			foreach ((var aliceClient, var node) in Enumerable.Zip(aliceClients, Graph.Inputs))
 			{
-				foreach ((var edge, var credential) in Enumerable.Zip(Graph.OutEdges(node, CredentialType.Amount), aliceClient.RealAmountCredentials))
+
+				foreach ((var edge, var credential) in Enumerable.Zip(Graph.OutEdges(node, CredentialType.Amount).Where(edge => edge.Value > 0), aliceClient.RealAmountCredentials))
 				{
 					DependencyTasks[edge].SetResult(credential);
 				}
 
-				foreach ((var edge, var credential) in Enumerable.Zip(Graph.OutEdges(node, CredentialType.Vsize), aliceClient.RealVsizeCredentials))
+				foreach (var edge in Graph.OutEdges(node, CredentialType.Amount).Where(edge => edge.Value == 0))
+				{
+					DependencyTasks[edge].SetResult(null);
+				}
+
+				foreach ((var edge, var credential) in Enumerable.Zip(Graph.OutEdges(node, CredentialType.Vsize).Where(edge => edge.Value > 0), aliceClient.RealVsizeCredentials))
 				{
 					DependencyTasks[edge].SetResult(credential);
+				}
+
+				foreach (var edge in Graph.OutEdges(node, CredentialType.Vsize).Where(edge => edge.Value == 0))
+				{
+					DependencyTasks[edge].SetResult(null);
 				}
 			}
 
@@ -76,8 +87,8 @@ namespace WalletWasabi.WabiSabi.Client
 				throw new InvalidOperationException("");
 			}
 
-			var amountCreds = amountEdges.Select(edge => DependencyTasks[edge].Task.Result);
-			var vsizeCreds = vsizeEdges.Select(edge => DependencyTasks[edge].Task.Result);
+			var amountCreds = amountEdges.Select(edge => DependencyTasks[edge].Task.Result).Where(cred => cred != null);
+			var vsizeCreds = vsizeEdges.Select(edge => DependencyTasks[edge].Task.Result).Where(cred => cred != null);
 
 			List<(Money, Credential[], Credential[])> outputs = new();
 
