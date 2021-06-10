@@ -265,10 +265,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		[Fact]
 		public void UneconomicalInputs()
 		{
-			var alice1 = WabiSabiFactory.CreateAlice(value: new Money(1000L));
+			var alice1 = WabiSabiFactory.CreateAlice(new Money(1000L));
 			var alice1Coin = alice1.Coin;
 
-			var alice2 = WabiSabiFactory.CreateAlice(value: new Money(1001L));
+			var alice2 = WabiSabiFactory.CreateAlice(new Money(1001L));
 			var alice2Coin = alice2.Coin;
 
 			// requires 1k sats per input in sat/vKB
