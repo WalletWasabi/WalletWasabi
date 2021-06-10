@@ -669,7 +669,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					System.Drawing.Bitmap bmp = image.ToBitmap();
 
-					using (MemoryStream memory = new MemoryStream())
+					using (MemoryStream memory = new())
 					{
 						bmp.Save(memory, ImageFormat.Png);
 						memory.Position = 0;

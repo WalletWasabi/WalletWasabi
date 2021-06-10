@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -11,6 +13,8 @@ using Avalonia;
 using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
+using Emgu.CV;
+using Emgu.CV.Structure;
 using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
@@ -63,6 +67,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _xAxisMinValue = 0;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _xAxisMaxValue = 9;
 		[AutoNotify] private string? _payJoinEndPoint;
+		[AutoNotify] private Avalonia.Media.Imaging.Bitmap? _testImage;
 
 		private bool _parsingUrl;
 		private bool _updatingCurrentValue;
@@ -124,6 +129,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			EnableBack = true;
 
 			PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
+			QRCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteQRValue());
 			AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
 
 			var nextCommandCanExecute =
@@ -143,6 +149,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		}
 
 		public ICommand PasteCommand { get; }
+
+		public ICommand QRCommand { get; }
 
 		public ICommand AutoPasteCommand { get; }
 
@@ -168,6 +176,78 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 
 			_parsingUrl = false;
+		}
+
+		private VideoCapture _videocapture;
+
+		private async Task OnPasteQRValue()
+		{
+			_videocapture = new VideoCapture();
+			_videocapture.QueryFrame();
+			_videocapture.ImageGrabbed += ProcessFrame;
+			_videocapture.Start();
+		}
+
+		private void ProcessFrame(object sender, EventArgs e)
+		{
+			try
+			{
+				VideoCapture videocapture = (VideoCapture)sender;
+
+				if (_videocapture != null && _videocapture.Ptr != IntPtr.Zero)
+				{
+					Mat frame = new();
+
+					videocapture.Retrieve(frame);
+
+					Image<Rgb, byte> image = frame.ToImage<Rgb, byte>();
+
+					System.Drawing.Bitmap bmp = image.ToBitmap();
+
+					using (MemoryStream memory = new())
+					{
+						bmp.Save(memory, ImageFormat.Png);
+						memory.Position = 0;
+
+						TestImage = new Avalonia.Media.Imaging.Bitmap(memory);
+					}
+
+					string result = GetQRcodeValueFromImage(image);
+					if (!string.IsNullOrWhiteSpace(result))
+					{
+						To = result;
+						TestImage = null;
+						CloseWebCam();
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+			}
+		}
+
+		private string GetQRcodeValueFromImage(IInputArray image)
+		{
+			string qrCodeValue = "";
+			using IOutputArray result = new Mat();
+			using IOutputArray resultImg = new Mat();
+			using QRCodeDetector qrCodeDetector = new();
+
+			bool isQRCodeDetected = qrCodeDetector.Detect(image, result);
+			if (isQRCodeDetected)
+			{
+				qrCodeValue = qrCodeDetector.Decode(image, result, resultImg);
+			}
+
+			return qrCodeValue;
+		}
+
+		private void CloseWebCam()
+		{
+			_videocapture.Stop();
+			_videocapture.ImageGrabbed -= ProcessFrame;
+			_videocapture.Dispose();
 		}
 
 		private async Task OnNextAsync()
