@@ -72,13 +72,13 @@ namespace WalletWasabi.WabiSabi.Client
 			DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(aliceClients.Select(a => a.Coin), outputTxOuts, roundState.FeeRate);
 			var bobClient = CreateBobClient(roundState);
 			DependencyGraphResolver dgr = new(dependencyGraph);
-			var outputs = await dgr.ResolveAsync(aliceClients, bobClient, cancellationToken).ConfigureAwait(false);
+			var outputCredentials = await dgr.ResolveAsync(aliceClients, bobClient, cancellationToken).ConfigureAwait(false);
 
 			// Output registration.
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
+			await RegisterOutputsAsync(bobClient, outputTxOuts, outputCredentials, cancellationToken).ConfigureAwait(false);
 
-			await RegisterOutputsAsync(bobClient, outputTxOuts, outputs, cancellationToken).ConfigureAwait(false);
-
+			// Signing.
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
 			var signingState = roundState.Assert<SigningState>();
 			var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
@@ -93,8 +93,6 @@ namespace WalletWasabi.WabiSabi.Client
 			// Send signature.
 			await SignTransactionAsync(aliceClients, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
 		}
-
-
 
 		private List<AliceClient> CreateAliceClients(RoundState roundState)
 		{
@@ -179,7 +177,6 @@ namespace WalletWasabi.WabiSabi.Client
 			List<(Money Amount, Credential[] AmounCreds, Credential[] VsizeCreds)> outputCredentials,
 			CancellationToken cancellationToken)
 		{
-
 			async Task<TxOut?> RegisterOutputTask(BobClient bobClient, TxOut output, Credential[] realAmountCredentials, Credential[] realVsizeCredentials)
 			{
 				try
@@ -205,7 +202,6 @@ namespace WalletWasabi.WabiSabi.Client
 				// Make sure to not use the same credentials twice.
 				remainingCredentials.Remove(creds);
 			}
-
 
 			var outputRegisterRequests = outputWithCredentials.Select(output => RegisterOutputTask(bobClient, output.Output, output.RealAmountCredentials, output.RealVsizeCredentials));
 
