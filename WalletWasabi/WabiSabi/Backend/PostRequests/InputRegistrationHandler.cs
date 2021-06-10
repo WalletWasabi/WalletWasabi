@@ -54,9 +54,9 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			OwnershipProof ownershipProof,
 			ZeroCredentialsRequest zeroAmountCredentialRequests,
 			ZeroCredentialsRequest zeroVsizeCredentialRequests,
-			IDictionary<uint256, Round> rounds)
+			HashSet<Round> rounds)
 		{
-			if (!rounds.TryGetValue(roundId, out var round))
+			if (rounds.FirstOrDefault(x => x.Id == roundId) is not Round round)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
 			}
@@ -115,9 +115,9 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				commitVsizeCredentialResponse.Commit());
 		}
 
-		private static void RemoveDuplicateAlices(IDictionary<uint256, Round> roundsWithId, Alice alice)
+		private static void RemoveDuplicateAlices(HashSet<Round> roundsWithId, Alice alice)
 		{
-			var rounds = roundsWithId.Values;
+			var rounds = roundsWithId;
 			if (rounds.Any(x => x.Phase != Phase.InputRegistration))
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);

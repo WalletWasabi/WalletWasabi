@@ -74,7 +74,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await aliceClient1.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await aliceClient2.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.DoesNotContain(round.Id, arena.Rounds.Keys);
+			Assert.DoesNotContain(round, arena.Rounds);
 			Assert.Empty(arena.Prison.GetInmates());
 
 			await arena.StopAsync(CancellationToken.None);
@@ -109,7 +109,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await aliceClient1.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await aliceClient2.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.DoesNotContain(round.Id, arena.Rounds.Keys);
+			Assert.DoesNotContain(round, arena.Rounds);
 
 			// There should be no inmate, because we aren't punishing spenders with banning
 			// as there's no reason to ban already spent UTXOs,
@@ -147,8 +147,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var signedCoinJoin = round.Assert<SigningState>().CreateTransaction();
 			await aliceClient1.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.DoesNotContain(round.Id, arena.Rounds.Keys);
-			Assert.Empty(arena.Rounds.Where(x => x.Value.IsBlameRound));
+			Assert.DoesNotContain(round, arena.Rounds);
+			Assert.Empty(arena.Rounds.Where(x => x.IsBlameRound));
 			Assert.Contains(aliceClient2.Coin.Outpoint, arena.Prison.GetInmates().Select(x => x.Utxo));
 
 			await arena.StopAsync(CancellationToken.None);
@@ -189,13 +189,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await aliceClient1.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await aliceClient2.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-
-			Assert.DoesNotContain(round.Id, arena.Rounds.Keys);
-			Assert.Single(arena.Rounds.Where(x => x.Value.IsBlameRound));
+			Assert.DoesNotContain(round, arena.Rounds);
+			Assert.Single(arena.Rounds.Where(x => x.IsBlameRound));
 			var badOutpoint = alice3.Coin.Outpoint;
 			Assert.Contains(badOutpoint, arena.Prison.GetInmates().Select(x => x.Utxo));
 
-			var blameRound = arena.Rounds.Single(x => x.Value.IsBlameRound).Value;
+			var blameRound = arena.Rounds.Single(x => x.IsBlameRound);
 			Assert.True(blameRound.IsBlameRound);
 			Assert.NotNull(blameRound.BlameOf);
 			Assert.Equal(round.Id, blameRound.BlameOf?.Id);
@@ -214,7 +213,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			// Create the round.
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 
-			var round = Assert.Single(arena.Rounds).Value;
+			var round = Assert.Single(arena.Rounds);
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
 			// Register Alices.
