@@ -94,7 +94,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var preDeadline = alice.Deadline;
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
-			var round = arena.Rounds.First().Value;
+			var round = arena.Rounds.First();
 			round.Alices.Add(alice);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);

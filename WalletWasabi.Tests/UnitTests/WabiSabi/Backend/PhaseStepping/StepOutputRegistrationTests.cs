@@ -198,9 +198,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 		{
 			// Create the round.
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-
-			var round = Assert.Single(arena.Rounds).Value;
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
+			var round = Assert.Single(arena.Rounds);
 
 			// Register Alices.
 			var aliceClient1 = new AliceClient(round.Id, arenaClient, coin1, round.FeeRate, key1.GetBitcoinSecret(round.Network));

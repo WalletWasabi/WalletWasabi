@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
+using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
 using Xunit;
@@ -53,38 +54,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var preAlice = WabiSabiFactory.CreateAlice(coin, WabiSabiFactory.CreateOwnershipProof(key));
 			round.Alices.Add(preAlice);
 
-			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
-			var resp = await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, key, CancellationToken.None).ConfigureAwait(false);
-			AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);
-
-			await arena.StopAsync(CancellationToken.None);
-		}
-
-		[Fact]
-		public async Task SuccessWithAliceUpdateCrossRoundAsync()
-		{
-			WabiSabiConfig cfg = new();
-			var round = WabiSabiFactory.CreateRound(cfg);
-			var anotherRound = WabiSabiFactory.CreateRound(cfg);
-
-			using Key key = new();
-			var coin = WabiSabiFactory.CreateCoin(key);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, WabiSabiFactory.CreatePreconfiguredRpcClient(coin), round, anotherRound);
-
-			// Make sure an Alice have already been registered with the same input.
-			var preAlice = WabiSabiFactory.CreateAlice(coin, WabiSabiFactory.CreateOwnershipProof(key));
-
-			var initialRemaining = anotherRound.RemainingInputVsizeAllocation;
-			anotherRound.Alices.Add(preAlice);
-
-			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
-			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
-			var resp = await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, key, CancellationToken.None).ConfigureAwait(false);
-
-			AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);
-			Assert.Empty(anotherRound.Alices);
-			Assert.Equal(initialRemaining, anotherRound.RemainingInputVsizeAllocation);
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, key, CancellationToken.None).ConfigureAwait(false));
+			Assert.Equal(WabiSabiProtocolErrorCode.AliceAlreadyRegistered, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
 		}

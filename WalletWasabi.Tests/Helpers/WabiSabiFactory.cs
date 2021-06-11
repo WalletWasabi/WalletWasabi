@@ -98,7 +98,7 @@ namespace WalletWasabi.Tests.Helpers
 			Arena arena = new(TimeSpan.FromHours(1), Network.Main, cfg, mockRpc.Object, new Prison());
 			foreach (var round in rounds)
 			{
-				arena.Rounds.Add(round.Id, round);
+				arena.Rounds.Add(round);
 			}
 			await arena.StartAsync(CancellationToken.None).ConfigureAwait(false);
 			return arena;
@@ -121,7 +121,7 @@ namespace WalletWasabi.Tests.Helpers
 
 		public static ArenaClient CreateArenaClient(Arena arena)
 		{
-			var roundState = RoundState.FromRound(arena.Rounds.First().Value);
+			var roundState = RoundState.FromRound(arena.Rounds.First());
 			var random = new InsecureRandom();
 			return new ArenaClient(
 				roundState.CreateAmountCredentialClient(new ZeroCredentialPool(), random),

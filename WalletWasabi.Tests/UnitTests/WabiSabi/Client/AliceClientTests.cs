@@ -47,7 +47,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				roundState.CreateAmountCredentialClient(amountCredentialPool, insecureRandom),
 				roundState.CreateVsizeCredentialClient(vsizeCredentialPool, insecureRandom),
 				wabiSabiApi);
-			Assert.Equal(Phase.InputRegistration, arena.Rounds.First().Value.Phase);
+			Assert.Equal(Phase.InputRegistration, arena.Rounds.First().Phase);
 
 			var bitcoinSecret = km.GetSecrets("", coin1.ScriptPubKey).Single().PrivateKey.GetBitcoinSecret(Network.Main);
 
@@ -59,7 +59,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 			await confirmationTask;
 
-			Assert.Equal(Phase.ConnectionConfirmation, arena.Rounds.First().Value.Phase);
+			Assert.Equal(Phase.ConnectionConfirmation, arena.Rounds.First().Phase);
 		}
 	}
 }
