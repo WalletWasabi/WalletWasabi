@@ -11,7 +11,7 @@ namespace WalletWasabi.Tor.Control.Messages
 	/// <remarks>
 	/// Note that the protocol_version is the only mandatory data for a valid PROTOCOLINFO response.
 	/// </remarks>
-	public class ProtocolInfoReply
+	public record ProtocolInfoReply
 	{
 		private const string LineTypeProtocolInfo = "PROTOCOLINFO";
 		private const string LineTypeVersion = "VERSION";

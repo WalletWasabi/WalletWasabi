@@ -5,7 +5,7 @@ using WalletWasabi.Tor.Control.Messages.CircuitStatus;
 
 namespace WalletWasabi.Tor.Control.Messages
 {
-	public class GetInfoCircuitStatusReply
+	public record GetInfoCircuitStatusReply
 	{
 		public GetInfoCircuitStatusReply(IList<CircuitInfo> circuits)
 		{

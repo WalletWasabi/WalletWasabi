@@ -10,7 +10,7 @@ namespace WalletWasabi.Tor.Control.Messages.CircuitStatus
 	/// Note that the <see cref="CircuitID"/> and <see cref="CircStatus"/> are then only mandatory
 	/// fields in <c>GETINFO circuit-status</c> reply.
 	/// </remarks>
-	public class CircuitInfo
+	public record CircuitInfo
 	{
 		public CircuitInfo(string circuitID, CircStatus circStatus)
 		{
