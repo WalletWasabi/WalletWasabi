@@ -44,7 +44,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			WabiSabiConfig cfg = new();
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
-			var round = arena.Rounds.First().Value;
+			var round = arena.Rounds.First();
 			using Key key = new();
 			var req = WabiSabiFactory.CreateInputRegistrationRequest(round, key: key);
 			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreatePreconfiguredRpcClient().Object);
@@ -94,7 +94,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 
-			arena.Rounds.Add(round.Id, round);
+			arena.Rounds.Add(round);
 
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
@@ -114,7 +114,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, WabiSabiFactory.CreatePreconfiguredRpcClient(coin));
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			var round = arena.Rounds.First().Value;
+
+			var round = arena.Rounds.First();
 
 			cfg.StandardInputRegistrationTimeout = TimeSpan.Zero;
 

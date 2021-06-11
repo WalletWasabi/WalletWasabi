@@ -150,7 +150,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg);
 			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
-			var round = arena.Rounds.First().Value;
+			var round = arena.Rounds.First();
 			round.Alices.Add(WabiSabiFactory.CreateAlice());
 
 			foreach (Phase phase in Enum.GetValues(typeof(Phase)))
