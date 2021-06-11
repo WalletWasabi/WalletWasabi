@@ -41,6 +41,7 @@ namespace WalletWasabi.Tor.Control
 		/// </remarks>
 		/// <seealso href="https://docs.microsoft.com/en-us/dotnet/standard/io/pipelines#read-a-single-message"/>
 		/// <exception cref="InvalidDataException">The message is incomplete and there's no more data to process.</exception>
+		/// <exception cref="OperationCanceledException"/>
 		public static async ValueTask<string> ReadLineAsync(this PipeReader reader, CancellationToken cancellationToken = default)
 		{
 			while (true)
@@ -82,6 +83,7 @@ namespace WalletWasabi.Tor.Control
 							throw new InvalidDataException("Incomplete message.");
 						}
 
+						Logger.LogTrace("No more data to be processed.");
 						break;
 					}
 				}
@@ -101,7 +103,7 @@ namespace WalletWasabi.Tor.Control
 		{
 			SequencePosition position = buffer.Start;
 			SequencePosition previous = position;
-			var index = -1;
+			int index = -1;
 			line = default;
 
 			while (buffer.TryGet(ref position, out ReadOnlyMemory<byte> segment))
@@ -167,7 +169,7 @@ namespace WalletWasabi.Tor.Control
 			{
 				// linearize
 				int length = checked((int)payload.Length);
-				var oversized = ArrayPool<byte>.Shared.Rent(length);
+				byte[] oversized = ArrayPool<byte>.Shared.Rent(length);
 				try
 				{
 					payload.CopyTo(oversized);
