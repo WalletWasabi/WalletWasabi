@@ -4,7 +4,6 @@ using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
-using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tor.Control;
 using WalletWasabi.Tor.Control.Messages;
 using Xunit;
@@ -17,10 +16,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 		[Fact]
 		public async Task ReceiveTorAsyncEventsUsingForeachAsync()
 		{
-			Common.GetWorkDir();
-			Logger.SetMinimumLevel(LogLevel.Trace);
-
-			using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(120));
+			using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(3));
 
 			// Test parameters.
 			const int ExpectedEventsNo = 5;
