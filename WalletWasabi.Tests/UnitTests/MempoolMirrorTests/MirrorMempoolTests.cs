@@ -33,6 +33,11 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 				var txid = await rpc.SendToAddressAsync(BitcoinFactory.CreateBitcoinAddress(network), spendAmount);
 				var txid2 = await rpc.SendToAddressAsync(BitcoinFactory.CreateBitcoinAddress(network), spendAmount2);
 
+				while ((await rpc.GetRawMempoolAsync()).Length != 2)
+				{
+					await Task.Delay(50);
+				}
+
 				await services.StartAllAsync();
 				await mempoolInstance.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
 				var localMempoolHashes = mempoolInstance.GetMempoolHashes();
@@ -63,12 +68,14 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 
 				await services.StartAllAsync();
 
-				var spendAmount = new Money(0.0004m, MoneyUnit.BTC);
 				await rpc.GenerateAsync(101);
 
-				var txid = await rpc.SendToAddressAsync(BitcoinFactory.CreateBitcoinAddress(network), spendAmount);
+				var txid = await rpc.SendToAddressAsync(BitcoinFactory.CreateBitcoinAddress(network), new Money(0.0004m, MoneyUnit.BTC));
 
-				Thread.Sleep(3000);
+				while (!(await rpc.GetRawMempoolAsync()).Any())
+				{
+					await Task.Delay(50);
+				}
 
 				var mempoolInstance = services.Get<MempoolMirror>();
 				await mempoolInstance.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -118,12 +125,63 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 					await rpc.SendRawTransactionAsync(tx);
 				}
 
+				while (!(await rpc.GetRawMempoolAsync()).Any())
+				{
+					await Task.Delay(50);
+				}
+
 				await mempoolInstance.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
 
 				var localMempoolHashes = mempoolInstance.GetMempoolHashes();
 
 				Assert.Single(localMempoolHashes);
 				Assert.Contains(tx.GetHash(), localMempoolHashes);
+			}
+			finally
+			{
+				await services.StopAllAsync();
+				await coreNode.TryStopAsync();
+			}
+		}
+
+		[Fact]
+		public async Task CanHandleManyTxsAsync()
+		{
+			var coreNode = await TestNodeBuilder.CreateAsync();
+			using HostedServices services = new();
+			services.Register<MempoolMirror>(new MempoolMirror(TimeSpan.FromSeconds(2), coreNode.RpcClient, coreNode.P2pNode), "Mempool Mirror");
+			try
+			{
+				var rpc = coreNode.RpcClient;
+				var network = rpc.Network;
+				await services.StartAllAsync();
+				var mempoolInstance = services.Get<MempoolMirror>();
+
+				var walletName = "RandomWalletName";
+				await rpc.CreateWalletAsync(walletName);
+
+				using var k1 = new Key();
+				var blockIds = await rpc.GenerateToAddressAsync(1, k1.PubKey.WitHash.GetAddress(network));
+				var block = await rpc.GetBlockAsync(blockIds[0]);
+				var coinBaseTx = block.Transactions[0];
+
+				await rpc.GenerateAsync(101);
+
+				for (int i = 0; i < 5; i++)
+				{
+					await rpc.SendToAddressAsync(BitcoinFactory.CreateBitcoinAddress(network), new Money(0.0004m, MoneyUnit.BTC));
+				}
+
+				while ((await rpc.GetRawMempoolAsync()).Length != 5)
+				{
+					await Task.Delay(50);
+				}
+
+				await mempoolInstance.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
+
+				var localMempoolHashes = mempoolInstance.GetMempoolHashes();
+
+				Assert.Equal(5, localMempoolHashes.Count);
 			}
 			finally
 			{
@@ -157,22 +215,25 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 				Assert.Equal(rpcMempoolBeforeSend.Length, localMempoolBeforeSend.Count);
 
 				await rpc.SendToAddressAsync(BitcoinFactory.CreateBitcoinAddress(network), spendAmount);
-				await mempoolInstance.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
-				Thread.Sleep(5000);
+				while (!(await rpc.GetRawMempoolAsync()).Any())
+				{
+					await Task.Delay(50);
+				}
 
-				var rpcMempoolAfterSend = await rpc.GetRawMempoolAsync();
+				await mempoolInstance.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
+
 				var localMempoolAfterSend = mempoolInstance.GetMempoolHashes();
-				Assert.Equal(rpcMempoolAfterSend.Length, localMempoolAfterSend.Count);
+				Assert.Equal(1, localMempoolAfterSend.Count);
 				Assert.Single(localMempoolAfterSend);
-				Assert.Single(rpcMempoolAfterSend);
 
 				await rpc.GenerateAsync(1);
+				while ((await rpc.GetRawMempoolAsync()).Any())
+				{
+					await Task.Delay(50);
+				}
 				await mempoolInstance.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
 
-				var rpcMempoolAfterBlockMined = await rpc.GetRawMempoolAsync();
 				var localMempoolAfterBlockMined = mempoolInstance.GetMempoolHashes();
-				Assert.Equal(rpcMempoolAfterBlockMined.Length, localMempoolAfterBlockMined.Count);
-				Assert.Empty(rpcMempoolAfterBlockMined);
 				Assert.Empty(localMempoolAfterBlockMined);
 			}
 			finally
