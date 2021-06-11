@@ -52,7 +52,7 @@ namespace WalletWasabi.Tor.Control.Messages
 				{
 					// VersionLine = "250-VERSION" SP "Tor=" TorVersion OptArguments CRLF
 					// TorVersion = QuotedString
-					(string value, _) = Tokenizer.ReadKeyQuotedValueAssignment(key: "Tor=", remainder);
+					(string value, _) = Tokenizer.ReadKeyQuotedValueAssignment(key: "Tor", remainder);
 
 					torVersion = value;
 				}
@@ -64,7 +64,7 @@ namespace WalletWasabi.Tor.Control.Messages
 
 					if (optCookieFileRemainder.StartsWith("COOKIEFILE=", StringComparison.Ordinal))
 					{
-						(cookieFilePath, _) = Tokenizer.ReadKeyQuotedValueAssignment(key: "COOKIEFILE=", optCookieFileRemainder);
+						(cookieFilePath, _) = Tokenizer.ReadKeyQuotedValueAssignment(key: "COOKIEFILE", optCookieFileRemainder);
 					}					
 				}
 			}
