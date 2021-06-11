@@ -8,12 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore.Rpc;
-using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
-using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
@@ -246,22 +244,24 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		public async Task<InputRegistrationResponse> RegisterInputAsync(
-			uint256 roundId,
-			Coin coin,
-			OwnershipProof ownershipProof,
-			ZeroCredentialsRequest zeroAmountCredentialRequests,
-			ZeroCredentialsRequest zeroVsizeCredentialRequests)
+		public async Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request)
 		{
+			var coin = await InputRegistrationHandler.OutpointToCoinAsync(request, Prison, Rpc, Config).ConfigureAwait(false);
 			using (await AsyncLock.LockAsync().ConfigureAwait(false))
 			{
+				var registeredCoins = Rounds.SelectMany(r => r.Value.Alices.Select(a => a.Coin));
+
+				if (registeredCoins.Any(x => x.Outpoint == coin.Outpoint))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
+				}
 				return InputRegistrationHandler.RegisterInput(
 					Config,
-					roundId,
+					request.RoundId,
 					coin,
-					ownershipProof,
-					zeroAmountCredentialRequests,
-					zeroVsizeCredentialRequests,
+					request.OwnershipProof,
+					request.ZeroAmountCredentialRequests,
+					request.ZeroVsizeCredentialRequests,
 					Rounds);
 			}
 		}

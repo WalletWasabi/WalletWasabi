@@ -7,6 +7,7 @@ using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Client;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
@@ -19,22 +20,17 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			// Alice times out when its deadline is reached.
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
-
-			MockRpcClient rpc = new();
 			using Key key = new();
+			var coin = WabiSabiFactory.CreateCoin(key);
+			var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);
 
-			rpc.OnGetTxOutAsync = (_, _, _) => new()
-			{
-				Confirmations = 1,
-				ScriptPubKeyType = "witness_v0_keyhash",
-				TxOut = new TxOut(Money.Coins(1), key.PubKey.GetSegwitAddress(Network.Main))
-			};
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, rpc, round);
+			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
-			var req = WabiSabiFactory.CreateInputRegistrationRequest(key, round);
-			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, rpc);
+			// Register Alices.
 			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
-			await handler.RegisterInputAsync(req, CancellationToken.None);
+			var aliceClient = new AliceClient(round.Id, arenaClient, coin, round.FeeRate, key.GetBitcoinSecret(round.Network));
+			await aliceClient.RegisterInputAsync(CancellationToken.None).ConfigureAwait(false);
 
 			var alice = Assert.Single(round.Alices);
 			alice.Deadline = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(1);

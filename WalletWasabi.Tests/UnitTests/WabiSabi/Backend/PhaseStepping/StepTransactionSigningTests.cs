@@ -1,16 +1,14 @@
+using Moq;
 using NBitcoin;
 using NBitcoin.RPC;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.WabiSabi.Crypto;
-using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
 
@@ -26,71 +24,22 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 				MaxInputCountByRound = 2,
 				MinInputCountByRoundMultiplier = 0.5
 			};
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg);
-
-			// Create the round.
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			var round = Assert.Single(arena.Rounds).Value;
-
-			// Register Alices.
 			using Key key1 = new();
 			using Key key2 = new();
-			var irreq1 = WabiSabiFactory.CreateInputRegistrationRequest(key1, round);
-			var irres1 = await arena.RegisterInputAsync(
-				irreq1.RoundId,
-				new Coin(irreq1.Input, new TxOut(Money.Coins(1), key1.PubKey.GetSegwitAddress(Network.Main))),
-irreq1.OwnershipProof,
-				irreq1.ZeroAmountCredentialRequests,
-				irreq1.ZeroVsizeCredentialRequests);
-			var irreq2 = WabiSabiFactory.CreateInputRegistrationRequest(key2, round);
-			var irres2 = await arena.RegisterInputAsync(
-				irreq2.RoundId,
-				new Coin(irreq2.Input, new TxOut(Money.Coins(1), key2.PubKey.GetSegwitAddress(Network.Main))),
-irreq2.OwnershipProof,
-				irreq2.ZeroAmountCredentialRequests,
-				irreq2.ZeroVsizeCredentialRequests);
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
-			var alice1 = round.Alices.Single(x => x.Id == irres1.AliceId);
-			var alice2 = round.Alices.Single(x => x.Id == irres2.AliceId);
+			var coin1 = WabiSabiFactory.CreateCoin(key1);
+			var coin2 = WabiSabiFactory.CreateCoin(key2);
 
-			// Confirm connections.
-			var ccresps = new List<(ConnectionConfirmationResponse resp, WabiSabiClient amountClient, WabiSabiClient vsizeClient, uint256 aliceId, IEnumerable<Credential> amountCredentials, IEnumerable<Credential> vsizeCredentials)>();
-			var ccreq1 = WabiSabiFactory.CreateConnectionConfirmationRequest(round, irres1);
-			var ccresp1 = await arena.ConfirmConnectionAsync(ccreq1.request);
-			var amountCredentials1 = ccreq1.amountClient.HandleResponse(ccresp1.RealAmountCredentials!, ccreq1.amountValidation);
-			var vsizeCredentials1 = ccreq1.vsizeClient.HandleResponse(ccresp1.RealVsizeCredentials!, ccreq1.vsizeValidation);
-			ccresps.Add((ccresp1, ccreq1.amountClient, ccreq1.vsizeClient, irres2.AliceId, amountCredentials1, vsizeCredentials1));
+			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1, coin2);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
+			var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, key1, coin1, key2, coin2).ConfigureAwait(false);
 
-			var ccreq2 = WabiSabiFactory.CreateConnectionConfirmationRequest(round, irres2);
-			var ccresp2 = await arena.ConfirmConnectionAsync(ccreq2.request);
-			var amountCredentials2 = ccreq2.amountClient.HandleResponse(ccresp2.RealAmountCredentials!, ccreq2.amountValidation);
-			var vsizeCredentials2 = ccreq2.vsizeClient.HandleResponse(ccresp2.RealVsizeCredentials!, ccreq2.vsizeValidation);
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.Equal(Phase.OutputRegistration, round.Phase);
-			ccresps.Add((ccresp2, ccreq2.amountClient, ccreq2.vsizeClient, irres1.AliceId, amountCredentials2, vsizeCredentials2));
-
-			// Register outputs.
-			foreach (var orreq in WabiSabiFactory.CreateOutputRegistrationRequests(round, ccresps))
-			{
-				var orresp = await arena.RegisterOutputAsync(orreq);
-			}
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
 
 			var signedCoinJoin = round.Assert<SigningState>().CreateTransaction();
-			var coin1 = alice1.Coin;
-			var coin2 = alice2.Coin;
-			var idx1 = signedCoinJoin.Inputs.IndexOf(signedCoinJoin.Inputs.Single(x => x.PrevOut == coin1.Outpoint));
-			var idx2 = signedCoinJoin.Inputs.IndexOf(signedCoinJoin.Inputs.Single(x => x.PrevOut == coin2.Outpoint));
-			signedCoinJoin.Sign(key1.GetBitcoinSecret(Network.Main), coin1);
-			var txsigreq1 = new TransactionSignaturesRequest(round.Id, new[] { new InputWitnessPair((uint)idx1, signedCoinJoin.Inputs[idx1].WitScript) });
 
-			signedCoinJoin.Sign(key2.GetBitcoinSecret(Network.Main), coin2);
-			var txsigreq2 = new TransactionSignaturesRequest(round.Id, new[] { new InputWitnessPair((uint)idx2, signedCoinJoin.Inputs[idx2].WitScript) });
-
-			await arena.SignTransactionAsync(txsigreq1);
-			await arena.SignTransactionAsync(txsigreq2);
+			await aliceClient1.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
+			await aliceClient2.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.TransactionBroadcasting, round.Phase);
 
@@ -105,75 +54,25 @@ irreq2.OwnershipProof,
 				MaxInputCountByRound = 2,
 				MinInputCountByRoundMultiplier = 0.5
 			};
-			var mockRpc = new MockRpcClient();
-			mockRpc.OnSendRawTransactionAsync = _ => throw new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null);
-
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
-
-			// Create the round.
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			var round = Assert.Single(arena.Rounds).Value;
-
-			// Register Alices.
 			using Key key1 = new();
 			using Key key2 = new();
-			var irreq1 = WabiSabiFactory.CreateInputRegistrationRequest(key1, round);
-			var irres1 = await arena.RegisterInputAsync(
-				irreq1.RoundId,
-				new Coin(irreq1.Input, new TxOut(Money.Coins(1), key1.PubKey.GetSegwitAddress(Network.Main))),
-				irreq1.OwnershipProof,
-				irreq1.ZeroAmountCredentialRequests,
-				irreq1.ZeroVsizeCredentialRequests);
-			var irreq2 = WabiSabiFactory.CreateInputRegistrationRequest(key2, round);
-			var irres2 = await arena.RegisterInputAsync(
-				irreq2.RoundId,
-				new Coin(irreq2.Input, new TxOut(Money.Coins(1), key2.PubKey.GetSegwitAddress(Network.Main))),
-				irreq2.OwnershipProof,
-				irreq2.ZeroAmountCredentialRequests,
-				irreq2.ZeroVsizeCredentialRequests);
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
-			var alice1 = round.Alices.Single(x => x.Id == irres1.AliceId);
-			var alice2 = round.Alices.Single(x => x.Id == irres2.AliceId);
+			var coin1 = WabiSabiFactory.CreateCoin(key1);
+			var coin2 = WabiSabiFactory.CreateCoin(key2);
 
-			// Confirm connections.
-			var ccresps = new List<(ConnectionConfirmationResponse resp, WabiSabiClient amountClient, WabiSabiClient vsizeClient, uint256 aliceId, IEnumerable<Credential> amountCredentials, IEnumerable<Credential> vsizeCredentials)>();
-			var ccreq1 = WabiSabiFactory.CreateConnectionConfirmationRequest(round, irres1);
-			var ccresp1 = await arena.ConfirmConnectionAsync(ccreq1.request);
-			var amountCredentials1 = ccreq1.amountClient.HandleResponse(ccresp1.RealAmountCredentials!, ccreq1.amountValidation);
-			var vsizeCredentials1 = ccreq1.vsizeClient.HandleResponse(ccresp1.RealVsizeCredentials!, ccreq1.vsizeValidation);
-			ccresps.Add((ccresp1, ccreq1.amountClient, ccreq1.vsizeClient, irres2.AliceId, amountCredentials1, vsizeCredentials1));
+			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1, coin2);
+			mockRpc.Setup(rpc => rpc.SendRawTransactionAsync(It.IsAny<Transaction>()))
+				.ThrowsAsync(new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null));
 
-			var ccreq2 = WabiSabiFactory.CreateConnectionConfirmationRequest(round, irres2);
-			var ccresp2 = await arena.ConfirmConnectionAsync(ccreq2.request);
-			var amountCredentials2 = ccreq2.amountClient.HandleResponse(ccresp2.RealAmountCredentials!, ccreq2.amountValidation);
-			var vsizeCredentials2 = ccreq2.vsizeClient.HandleResponse(ccresp2.RealVsizeCredentials!, ccreq2.vsizeValidation);
-			ccresps.Add((ccresp2, ccreq2.amountClient, ccreq2.vsizeClient, irres1.AliceId, amountCredentials2, vsizeCredentials2));
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
+			var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, key1, coin1, key2, coin2).ConfigureAwait(false);
 
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.Equal(Phase.OutputRegistration, round.Phase);
-
-			// Register outputs.
-			foreach (var orreq in WabiSabiFactory.CreateOutputRegistrationRequests(round, ccresps))
-			{
-				var orresp = await arena.RegisterOutputAsync(orreq);
-			}
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
 
 			var signedCoinJoin = round.Assert<SigningState>().CreateTransaction();
-			var coin1 = alice1.Coin;
-			var coin2 = alice2.Coin;
-			var idx1 = signedCoinJoin.Inputs.IndexOf(signedCoinJoin.Inputs.Single(x => x.PrevOut == coin1.Outpoint));
-			var idx2 = signedCoinJoin.Inputs.IndexOf(signedCoinJoin.Inputs.Single(x => x.PrevOut == coin2.Outpoint));
-			signedCoinJoin.Sign(key1.GetBitcoinSecret(Network.Main), coin1);
-			var txsigreq1 = new TransactionSignaturesRequest(round.Id, new[] { new InputWitnessPair((uint)idx1, signedCoinJoin.Inputs[idx1].WitScript) });
 
-			signedCoinJoin.Sign(key2.GetBitcoinSecret(Network.Main), coin2);
-			var txsigreq2 = new TransactionSignaturesRequest(round.Id, new[] { new InputWitnessPair((uint)idx2, signedCoinJoin.Inputs[idx2].WitScript) });
-
-			await arena.SignTransactionAsync(txsigreq1);
-			await arena.SignTransactionAsync(txsigreq2);
+			await aliceClient1.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
+			await aliceClient2.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.DoesNotContain(round.Id, arena.Rounds.Keys);
 			Assert.Empty(arena.Prison.GetInmates());
@@ -189,75 +88,26 @@ irreq2.OwnershipProof,
 				MaxInputCountByRound = 2,
 				MinInputCountByRoundMultiplier = 0.5
 			};
-			var mockRpc = new MockRpcClient();
-			mockRpc.OnSendRawTransactionAsync = _ => throw new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null);
-			mockRpc.OnGetTxOutAsync ??= (_, _, _) => null;
 
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
-
-			// Create the round.
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			var round = Assert.Single(arena.Rounds).Value;
-
-			// Register Alices.
 			using Key key1 = new();
 			using Key key2 = new();
-			var irreq1 = WabiSabiFactory.CreateInputRegistrationRequest(key1, round);
-			var irres1 = await arena.RegisterInputAsync(
-				irreq1.RoundId,
-				new Coin(irreq1.Input, new TxOut(Money.Coins(1), key1.PubKey.GetSegwitAddress(Network.Main))),
-				irreq1.OwnershipProof,
-				irreq1.ZeroAmountCredentialRequests,
-				irreq1.ZeroVsizeCredentialRequests);
-			var irreq2 = WabiSabiFactory.CreateInputRegistrationRequest(key2, round);
-			var irres2 = await arena.RegisterInputAsync(
-				irreq2.RoundId,
-				new Coin(irreq2.Input, new TxOut(Money.Coins(1), key2.PubKey.GetSegwitAddress(Network.Main))),
-				irreq2.OwnershipProof,
-				irreq2.ZeroAmountCredentialRequests,
-				irreq2.ZeroVsizeCredentialRequests);
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
-			var alice1 = round.Alices.Single(x => x.Id == irres1.AliceId);
-			var alice2 = round.Alices.Single(x => x.Id == irres2.AliceId);
+			var coin1 = WabiSabiFactory.CreateCoin(key1);
+			var coin2 = WabiSabiFactory.CreateCoin(key2);
 
-			// Confirm connections.
-			var ccresps = new List<(ConnectionConfirmationResponse resp, WabiSabiClient amountClient, WabiSabiClient vsizeClient, uint256 aliceId, IEnumerable<Credential> amountCredentials, IEnumerable<Credential> vsizeCredentials)>();
-			var ccreq1 = WabiSabiFactory.CreateConnectionConfirmationRequest(round, irres1);
-			var ccresp1 = await arena.ConfirmConnectionAsync(ccreq1.request);
-			var amountCredentials1 = ccreq1.amountClient.HandleResponse(ccresp1.RealAmountCredentials!, ccreq1.amountValidation);
-			var vsizeCredentials1 = ccreq1.vsizeClient.HandleResponse(ccresp1.RealVsizeCredentials!, ccreq1.vsizeValidation);
-			ccresps.Add((ccresp1, ccreq1.amountClient, ccreq1.vsizeClient, irres2.AliceId, amountCredentials1, vsizeCredentials1));
+			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1, coin2);
+			mockRpc.Setup(rpc => rpc.SendRawTransactionAsync(It.IsAny<Transaction>()))
+				.ThrowsAsync(new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null));
 
-			var ccreq2 = WabiSabiFactory.CreateConnectionConfirmationRequest(round, irres2);
-			var ccresp2 = await arena.ConfirmConnectionAsync(ccreq2.request);
-			var amountCredentials2 = ccreq2.amountClient.HandleResponse(ccresp2.RealAmountCredentials!, ccreq2.amountValidation);
-			var vsizeCredentials2 = ccreq2.vsizeClient.HandleResponse(ccresp2.RealVsizeCredentials!, ccreq2.vsizeValidation);
-			ccresps.Add((ccresp2, ccreq2.amountClient, ccreq2.vsizeClient, irres1.AliceId, amountCredentials2, vsizeCredentials2));
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.Equal(Phase.OutputRegistration, round.Phase);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
+			var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, key1, coin1, key2, coin2).ConfigureAwait(false);
 
-			// Register outputs.
-			foreach (var orreq in WabiSabiFactory.CreateOutputRegistrationRequests(round, ccresps))
-			{
-				var orresp = await arena.RegisterOutputAsync(orreq);
-			}
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
 
 			var signedCoinJoin = round.Assert<SigningState>().CreateTransaction();
-			var coin1 = alice1.Coin;
-			var coin2 = alice2.Coin;
-			var idx1 = signedCoinJoin.Inputs.IndexOf(signedCoinJoin.Inputs.Single(x => x.PrevOut == coin1.Outpoint));
-			var idx2 = signedCoinJoin.Inputs.IndexOf(signedCoinJoin.Inputs.Single(x => x.PrevOut == coin2.Outpoint));
-			signedCoinJoin.Sign(key1.GetBitcoinSecret(Network.Main), coin1);
-			var txsigreq1 = new TransactionSignaturesRequest(round.Id, new[] { new InputWitnessPair((uint)idx1, signedCoinJoin.Inputs[idx1].WitScript) });
 
-			signedCoinJoin.Sign(key2.GetBitcoinSecret(Network.Main), coin2);
-			var txsigreq2 = new TransactionSignaturesRequest(round.Id, new[] { new InputWitnessPair((uint)idx2, signedCoinJoin.Inputs[idx2].WitScript) });
-
-			await arena.SignTransactionAsync(txsigreq1);
-			await arena.SignTransactionAsync(txsigreq2);
+			await aliceClient1.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
+			await aliceClient2.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.DoesNotContain(round.Id, arena.Rounds.Keys);
 
@@ -278,72 +128,28 @@ irreq2.OwnershipProof,
 				MinInputCountByRoundMultiplier = 1,
 				TransactionSigningTimeout = TimeSpan.Zero
 			};
-			var mockRpc = new MockRpcClient();
-			mockRpc.OnSendRawTransactionAsync = _ => throw new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null);
 
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
-
-			// Create the round.
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			var round = Assert.Single(arena.Rounds).Value;
-
-			// Register Alices.
 			using Key key1 = new();
 			using Key key2 = new();
-			var irreq1 = WabiSabiFactory.CreateInputRegistrationRequest(key1, round);
-			var irres1 = await arena.RegisterInputAsync(
-				irreq1.RoundId,
-				new Coin(irreq1.Input, new TxOut(Money.Coins(1), key1.PubKey.GetSegwitAddress(Network.Main))),
-				irreq1.OwnershipProof,
-				irreq1.ZeroAmountCredentialRequests,
-				irreq1.ZeroVsizeCredentialRequests);
-			var irreq2 = WabiSabiFactory.CreateInputRegistrationRequest(key2, round);
-			var irres2 = await arena.RegisterInputAsync(
-				irreq2.RoundId,
-				new Coin(irreq2.Input, new TxOut(Money.Coins(1), key2.PubKey.GetSegwitAddress(Network.Main))),
-				irreq2.OwnershipProof,
-				irreq2.ZeroAmountCredentialRequests,
-				irreq2.ZeroVsizeCredentialRequests);
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
-			var alice1 = round.Alices.Single(x => x.Id == irres1.AliceId);
-			var alice2 = round.Alices.Single(x => x.Id == irres2.AliceId);
+			var coin1 = WabiSabiFactory.CreateCoin(key1);
+			var coin2 = WabiSabiFactory.CreateCoin(key2);
 
-			// Confirm connections.
-			var ccresps = new List<(ConnectionConfirmationResponse resp, WabiSabiClient amountClient, WabiSabiClient vsizeClient, uint256 aliceId, IEnumerable<Credential> amountCredentials, IEnumerable<Credential> vsizeCredentials)>();
-			var ccreq1 = WabiSabiFactory.CreateConnectionConfirmationRequest(round, irres1);
-			var ccresp1 = await arena.ConfirmConnectionAsync(ccreq1.request);
-			var amountCredentials1 = ccreq1.amountClient.HandleResponse(ccresp1.RealAmountCredentials!, ccreq1.amountValidation);
-			var vsizeCredentials1 = ccreq1.vsizeClient.HandleResponse(ccresp1.RealVsizeCredentials!, ccreq1.vsizeValidation);
-			ccresps.Add((ccresp1, ccreq1.amountClient, ccreq1.vsizeClient, irres2.AliceId, amountCredentials1, vsizeCredentials1));
+			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1, coin2);
+			mockRpc.Setup(rpc => rpc.SendRawTransactionAsync(It.IsAny<Transaction>()))
+				.ThrowsAsync(new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null));
 
-			var ccreq2 = WabiSabiFactory.CreateConnectionConfirmationRequest(round, irres2);
-			var ccresp2 = await arena.ConfirmConnectionAsync(ccreq2.request);
-			var amountCredentials2 = ccreq2.amountClient.HandleResponse(ccresp2.RealAmountCredentials!, ccreq2.amountValidation);
-			var vsizeCredentials2 = ccreq2.vsizeClient.HandleResponse(ccresp2.RealVsizeCredentials!, ccreq2.vsizeValidation);
-			ccresps.Add((ccresp2, ccreq2.amountClient, ccreq2.vsizeClient, irres1.AliceId, amountCredentials2, vsizeCredentials2));
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.Equal(Phase.OutputRegistration, round.Phase);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
+			var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, key1, coin1, key2, coin2).ConfigureAwait(false);
 
-			// Register outputs.
-			foreach (var orreq in WabiSabiFactory.CreateOutputRegistrationRequests(round, ccresps))
-			{
-				var orresp = await arena.RegisterOutputAsync(orreq);
-			}
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
 
 			var signedCoinJoin = round.Assert<SigningState>().CreateTransaction();
-			var coin1 = alice1.Coin;
-			var idx1 = signedCoinJoin.Inputs.IndexOf(signedCoinJoin.Inputs.Single(x => x.PrevOut == coin1.Outpoint));
-			signedCoinJoin.Sign(key1.GetBitcoinSecret(Network.Main), coin1);
-			var txsigreq1 = new TransactionSignaturesRequest(round.Id, new[] { new InputWitnessPair((uint)idx1, signedCoinJoin.Inputs[idx1].WitScript) });
-
-			await arena.SignTransactionAsync(txsigreq1);
+			await aliceClient1.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.DoesNotContain(round.Id, arena.Rounds.Keys);
 			Assert.Empty(arena.Rounds.Where(x => x.Value.IsBlameRound));
-			Assert.Contains(alice2.Coin.Outpoint, arena.Prison.GetInmates().Select(x => x.Utxo));
+			Assert.Contains(aliceClient2.Coin.Outpoint, arena.Prison.GetInmates().Select(x => x.Utxo));
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -358,58 +164,18 @@ irreq2.OwnershipProof,
 				TransactionSigningTimeout = TimeSpan.Zero,
 				OutputRegistrationTimeout = TimeSpan.Zero
 			};
-			var mockRpc = new MockRpcClient();
-			mockRpc.OnSendRawTransactionAsync = _ => throw new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null);
 
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
-
-			// Create the round.
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			var round = Assert.Single(arena.Rounds).Value;
-
-			// Register Alices.
 			using Key key1 = new();
 			using Key key2 = new();
-			var irreq1 = WabiSabiFactory.CreateInputRegistrationRequest(key1, round);
-			var irres1 = await arena.RegisterInputAsync(
-				irreq1.RoundId,
-				new Coin(irreq1.Input, new TxOut(Money.Coins(1), key1.PubKey.GetSegwitAddress(Network.Main))),
-				irreq1.OwnershipProof,
-				irreq1.ZeroAmountCredentialRequests,
-				irreq1.ZeroVsizeCredentialRequests);
-			var irreq2 = WabiSabiFactory.CreateInputRegistrationRequest(key2, round);
-			var irres2 = await arena.RegisterInputAsync(
-				irreq2.RoundId,
-				new Coin(irreq2.Input, new TxOut(Money.Coins(1), key2.PubKey.GetSegwitAddress(Network.Main))),
-				irreq2.OwnershipProof,
-				irreq2.ZeroAmountCredentialRequests,
-				irreq2.ZeroVsizeCredentialRequests);
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
-			var alice1 = round.Alices.Single(x => x.Id == irres1.AliceId);
-			var alice2 = round.Alices.Single(x => x.Id == irres2.AliceId);
+			var coin1 = WabiSabiFactory.CreateCoin(key1);
+			var coin2 = WabiSabiFactory.CreateCoin(key2);
 
-			// Confirm connections.
-			var ccresps = new List<(ConnectionConfirmationResponse resp, WabiSabiClient amountClient, WabiSabiClient vsizeClient, uint256 aliceId, IEnumerable<Credential> amountCredentials, IEnumerable<Credential> vsizeCredentials)>();
-			var ccreq1 = WabiSabiFactory.CreateConnectionConfirmationRequest(round, irres1);
-			var ccresp1 = await arena.ConfirmConnectionAsync(ccreq1.request);
-			var amountCredentials1 = ccreq1.amountClient.HandleResponse(ccresp1.RealAmountCredentials!, ccreq1.amountValidation);
-			var vsizeCredentials1 = ccreq1.vsizeClient.HandleResponse(ccresp1.RealVsizeCredentials!, ccreq1.vsizeValidation);
-			ccresps.Add((ccresp1, ccreq1.amountClient, ccreq1.vsizeClient, irres2.AliceId, amountCredentials1, vsizeCredentials1));
+			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1, coin2);
+			mockRpc.Setup(rpc => rpc.SendRawTransactionAsync(It.IsAny<Transaction>()))
+				.ThrowsAsync(new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null));
 
-			var ccreq2 = WabiSabiFactory.CreateConnectionConfirmationRequest(round, irres2);
-			var ccresp2 = await arena.ConfirmConnectionAsync(ccreq2.request);
-			var amountCredentials2 = ccreq2.amountClient.HandleResponse(ccresp2.RealAmountCredentials!, ccreq2.amountValidation);
-			var vsizeCredentials2 = ccreq2.vsizeClient.HandleResponse(ccresp2.RealVsizeCredentials!, ccreq2.vsizeValidation);
-			ccresps.Add((ccresp2, ccreq2.amountClient, ccreq2.vsizeClient, irres1.AliceId, amountCredentials2, vsizeCredentials2));
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.Equal(Phase.OutputRegistration, round.Phase);
-
-			// Register outputs.
-			foreach (var orreq in WabiSabiFactory.CreateOutputRegistrationRequests(round, ccresps))
-			{
-				var orresp = await arena.RegisterOutputAsync(orreq);
-			}
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
+			var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, key1, coin1, key2, coin2).ConfigureAwait(false);
 
 			// Make sure not all alices signed.
 			var alice3 = WabiSabiFactory.CreateAlice();
@@ -420,19 +186,10 @@ irreq2.OwnershipProof,
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
 
 			var signedCoinJoin = round.Assert<SigningState>().CreateTransaction();
-			var coin1 = alice1.Coin;
-			var coin2 = alice2.Coin;
-			var idx1 = signedCoinJoin.Inputs.IndexOf(signedCoinJoin.Inputs.Single(x => x.PrevOut == coin1.Outpoint));
-			var idx2 = signedCoinJoin.Inputs.IndexOf(signedCoinJoin.Inputs.Single(x => x.PrevOut == coin2.Outpoint));
-			signedCoinJoin.Sign(key1.GetBitcoinSecret(Network.Main), coin1);
-			var txsigreq1 = new TransactionSignaturesRequest(round.Id, new[] { new InputWitnessPair((uint)idx1, signedCoinJoin.Inputs[idx1].WitScript) });
-
-			signedCoinJoin.Sign(key2.GetBitcoinSecret(Network.Main), coin2);
-			var txsigreq2 = new TransactionSignaturesRequest(round.Id, new[] { new InputWitnessPair((uint)idx2, signedCoinJoin.Inputs[idx2].WitScript) });
-
-			await arena.SignTransactionAsync(txsigreq1);
-			await arena.SignTransactionAsync(txsigreq2);
+			await aliceClient1.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
+			await aliceClient2.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+
 			Assert.DoesNotContain(round.Id, arena.Rounds.Keys);
 			Assert.Single(arena.Rounds.Where(x => x.Value.IsBlameRound));
 			var badOutpoint = alice3.Coin.Outpoint;
@@ -444,11 +201,58 @@ irreq2.OwnershipProof,
 			Assert.Equal(round.Id, blameRound.BlameOf?.Id);
 
 			var whitelist = blameRound.BlameWhitelist;
-			Assert.Contains(alice1.Coin.Outpoint, whitelist);
-			Assert.Contains(alice2.Coin.Outpoint, whitelist);
+			Assert.Contains(aliceClient1.Coin.Outpoint, whitelist);
+			Assert.Contains(aliceClient2.Coin.Outpoint, whitelist);
 			Assert.DoesNotContain(badOutpoint, whitelist);
 
 			await arena.StopAsync(CancellationToken.None);
+		}
+
+		private async Task<(Round Round, AliceClient AliceClient1, AliceClient AliceClient2)>
+			CreateRoundWithOutputsReadyToSignAsync(Arena arena, Key key1, Coin coin1, Key key2, Coin coin2)
+		{
+			// Create the round.
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+
+			var round = Assert.Single(arena.Rounds).Value;
+			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
+
+			// Register Alices.
+			var aliceClient1 = new AliceClient(round.Id, arenaClient, coin1, round.FeeRate, key1.GetBitcoinSecret(round.Network));
+			var aliceClient2 = new AliceClient(round.Id, arenaClient, coin2, round.FeeRate, key2.GetBitcoinSecret(round.Network));
+
+			await aliceClient1.RegisterInputAsync(CancellationToken.None).ConfigureAwait(false);
+			await aliceClient2.RegisterInputAsync(CancellationToken.None).ConfigureAwait(false);
+
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
+
+			// Confirm connections.
+			await aliceClient1.ConfirmConnectionAsync(TimeSpan.FromMilliseconds(100), round.MaxVsizeAllocationPerAlice, CancellationToken.None).ConfigureAwait(false);
+			await aliceClient2.ConfirmConnectionAsync(TimeSpan.FromMilliseconds(100), round.MaxVsizeAllocationPerAlice, CancellationToken.None).ConfigureAwait(false);
+
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+			Assert.Equal(Phase.OutputRegistration, round.Phase);
+
+			// Register outputs.
+			var bobClient = new BobClient(round.Id, arenaClient);
+			using var destKey1 = new Key();
+			using var destKey2 = new Key();
+			await bobClient.RegisterOutputAsync(
+				coin1.Amount - round.FeeRate.GetFee(coin1.ScriptPubKey.EstimateInputVsize()),
+				destKey1.PubKey.WitHash.ScriptPubKey,
+				aliceClient1.RealAmountCredentials,
+				aliceClient1.RealVsizeCredentials,
+				CancellationToken.None).ConfigureAwait(false);
+
+			await bobClient.RegisterOutputAsync(
+				coin2.Amount - round.FeeRate.GetFee(coin2.ScriptPubKey.EstimateInputVsize()),
+				destKey1.PubKey.WitHash.ScriptPubKey,
+				aliceClient2.RealAmountCredentials,
+				aliceClient2.RealVsizeCredentials,
+				CancellationToken.None).ConfigureAwait(false);
+
+			return (round, aliceClient1, aliceClient2);
 		}
 	}
 }
