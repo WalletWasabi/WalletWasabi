@@ -70,8 +70,8 @@ namespace WalletWasabi.WabiSabi.Client
 
 			// Re-issuances.
 			DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(aliceClients.Select(a => a.Coin), outputTxOuts, roundState.FeeRate);
-			var bobClient = CreateBobClient(roundState);
 			DependencyGraphResolver dgr = new(dependencyGraph);
+			var bobClient = CreateBobClient(roundState);
 			var outputCredentials = await dgr.ResolveAsync(aliceClients, bobClient, cancellationToken).ConfigureAwait(false);
 
 			// Output registration.
@@ -84,7 +84,7 @@ namespace WalletWasabi.WabiSabi.Client
 			var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
 
 			// Sanity check.
-			var effectiveOutputs = outputTxOuts.Select(o => (o.Value - roundState.FeeRate.GetFee(o.ScriptPubKey.EstimateOutputVsize()), o.ScriptPubKey));
+			var effectiveOutputs = outputTxOuts.Select(o => (o.EffectiveValue(roundState.FeeRate), o.ScriptPubKey));
 			if (!SanityCheck(effectiveOutputs, unsignedCoinJoin))
 			{
 				throw new InvalidOperationException($"Round ({roundState.Id}): My output is missing.");
@@ -159,7 +159,7 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			var allDenominations = BaseDenominationGenerator.Generate();
 			GreedyDecomposer greedyDecomposer = new(allDenominations);
-			var amounts = Coins.Select(c => c.Amount - feeRate.GetFee(c.ScriptPubKey.EstimateInputVsize()));
+			var amounts = Coins.Select(c => c.EffectiveValue(feeRate));
 			var denominations = greedyDecomposer.Decompose(amounts.Sum());
 			return amounts;
 		}
