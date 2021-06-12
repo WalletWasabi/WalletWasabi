@@ -55,6 +55,7 @@ namespace WalletWasabi.Tor.Control
 		UnmanagedEntity = 555,
 
 		/// <summary>A notification sent following an asynchronous operation.</summary>
+		/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">4.1. Asynchronous events</seealso>
 		AsynchronousEventNotify = 650,
 	}
 }

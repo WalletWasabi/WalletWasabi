@@ -18,10 +18,8 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.WabiSabi.Client
 {
-	public class CoinJoinClient : BackgroundService, IDisposable
+	public class CoinJoinClient
 	{
-		private bool _disposedValue;
-
 		public CoinJoinClient(
 			IWabiSabiApiRequestHandler arenaRequestHandler,
 			IEnumerable<Coin> coins,
@@ -39,63 +37,59 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private ZeroCredentialPool ZeroAmountCredentialPool { get; } = new();
 		private ZeroCredentialPool ZeroVsizeCredentialPool { get; } = new();
-		private SecureRandom SecureRandom { get; }
-		private CancellationTokenSource DisposeCts { get; } = new();
 		private IEnumerable<Coin> Coins { get; set; }
+		private SecureRandom SecureRandom { get; } = new SecureRandom();
 		private Random Random { get; } = new();
 		public IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
 		public Kitchen Kitchen { get; }
 		public KeyManager Keymanager { get; }
 		private RoundStateUpdater RoundStatusUpdater { get; }
 
-		protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+		public async Task StartCoinJoinAsync(CancellationToken cancellationToken)
 		{
-			try
+			var roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cancellationToken).ConfigureAwait(false);
+			var constructionState = roundState.Assert<ConstructionState>();
+
+			// Calculate outputs values
+			var outputValues = DecomposeAmounts(roundState.FeeRate);
+
+			// Get all locked internal keys we have and assert we have enough.
+			Keymanager.AssertLockedInternalKeysIndexed(howMany: Coins.Count());
+			var allLockedInternalKeys = Keymanager.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked);
+			var outputs = outputValues.Zip(allLockedInternalKeys, (amount, hdPubKey) => new TxOut(amount, hdPubKey.P2wpkhScript));
+
+			var plan = CreatePlan(
+				Coins.Select(x => (ulong)x.Amount.Satoshi),
+				Coins.Select(x => (ulong)x.ScriptPubKey.EstimateInputVsize()),
+				outputValues);
+
+			List<AliceClient> aliceClients = CreateAliceClients(roundState);
+
+			// Register coins.
+			aliceClients = await RegisterCoinsAsync(aliceClients, cancellationToken).ConfigureAwait(false);
+
+			// Confirm coins.
+			aliceClients = await ConfirmConnectionsAsync(aliceClients, roundState.MaxVsizeAllocationPerAlice, roundState.ConnectionConfirmationTimeout, cancellationToken).ConfigureAwait(false);
+
+			// Output registration.
+			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
+			var outputsWithCredentials = outputs.Zip(aliceClients, (output, alice) => (output, alice.RealAmountCredentials, alice.RealVsizeCredentials));
+			var bobClients = Enumerable.Range(0, int.MaxValue).Select(_ => CreateBobClient(roundState));
+			await RegisterOutputsAsync(bobClients, outputsWithCredentials, cancellationToken).ConfigureAwait(false);
+
+			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
+			var signingState = roundState.Assert<SigningState>();
+			var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
+
+			// Sanity check.
+			var effectiveOutputs = outputs.Select(o => (o.Value - roundState.FeeRate.GetFee(o.ScriptPubKey.EstimateOutputVsize()), o.ScriptPubKey));
+			if (!SanityCheck(effectiveOutputs, unsignedCoinJoin))
 			{
-				var roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cancellationToken).ConfigureAwait(false);
-				var constructionState = roundState.Assert<ConstructionState>();
-
-				// Calculate outputs values
-				var outputValues = DecomposeAmounts(roundState);
-
-				// Get all locked internal keys we have and assert we have enough.
-				Keymanager.AssertLockedInternalKeysIndexed(howMany: Coins.Count());
-				var allLockedInternalKeys = Keymanager.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked);
-				var outputs = outputValues.Zip(allLockedInternalKeys, (amount, hdPubKey) => new TxOut(amount, hdPubKey.P2wpkhScript));
-
-				var plan = CreatePlan(
-					Coins.Select(x => (ulong)x.Amount.Satoshi),
-					Coins.Select(x => (ulong)x.ScriptPubKey.EstimateInputVsize()),
-					outputValues);
-
-				var aliceClients = CreateAliceClients(roundState);
-
-				// Register coins.
-				aliceClients = await RegisterCoinsAsync(aliceClients, roundState, cancellationToken).ConfigureAwait(false);
-
-				// Confirm coins.
-				aliceClients = await ConfirmConnectionsAsync(aliceClients, roundState, cancellationToken).ConfigureAwait(false);
-
-				// Output registration.
-				roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
-				var outputsWithCredentials = outputs.Zip(aliceClients, (output, alice) => (output, alice.RealAmountCredentials, alice.RealVsizeCredentials));
-				await RegisterOutputsAsync(outputsWithCredentials, roundState, cancellationToken).ConfigureAwait(false);
-
-				// Signing.
-				roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
-				var signingState = roundState.Assert<SigningState>();
-				var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
-
-				// Sanity check.
-				SanityCheck(outputs, unsignedCoinJoin, roundState, cancellationToken);
-
-				// Send signature.
-				await SignTransactionAsync(aliceClients, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
+				throw new InvalidOperationException($"Round ({roundState.Id}): My output is missing.");
 			}
-			catch (Exception ex)
-			{
-				// The game is over for this round, no fallback mechanism. In the next round we will create another CoinJoinClient and try again.
-			}
+
+			// Send signature.
+			await SignTransactionAsync(aliceClients, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
 		}
 
 		private List<AliceClient> CreateAliceClients(RoundState roundState)
@@ -104,12 +98,9 @@ namespace WalletWasabi.WabiSabi.Client
 			foreach (var coin in Coins)
 			{
 				var aliceArenaClient = new ArenaClient(
-					roundState.AmountCredentialIssuerParameters,
-					roundState.VsizeCredentialIssuerParameters,
-					ZeroAmountCredentialPool,
-					ZeroVsizeCredentialPool,
-					ArenaRequestHandler,
-					SecureRandom);
+					roundState.CreateAmountCredentialClient(ZeroAmountCredentialPool, SecureRandom),
+					roundState.CreateVsizeCredentialClient(ZeroVsizeCredentialPool, SecureRandom),
+					ArenaRequestHandler);
 
 				var hdKey = Keymanager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey).Single();
 				var secret = hdKey.PrivateKey.GetBitcoinSecret(Keymanager.GetNetwork());
@@ -118,34 +109,53 @@ namespace WalletWasabi.WabiSabi.Client
 			return aliceClients;
 		}
 
-		private async Task<List<AliceClient>> RegisterCoinsAsync(IEnumerable<AliceClient> aliceClients, RoundState roundState, CancellationToken cancellationToken)
+		private async Task<List<AliceClient>> RegisterCoinsAsync(IEnumerable<AliceClient> aliceClients, CancellationToken cancellationToken)
 		{
-			var registerRequests = aliceClients.Select(alice => WrapCall(alice, alice.RegisterInputAsync(cancellationToken)));
+			async Task<AliceClient?> RegisterInputTask(AliceClient aliceClient)
+			{
+				try
+				{
+					await aliceClient.RegisterInputAsync(cancellationToken).ConfigureAwait(false);
+					return aliceClient;
+				}
+				catch (Exception e)
+				{
+					Logger.LogWarning($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): {nameof(AliceClient.RegisterInputAsync)} failed, reason:'{e}'.");
+					return default;
+				}
+			}
+
+			var registerRequests = aliceClients.Select(RegisterInputTask);
 			var completedRequests = await Task.WhenAll(registerRequests).ConfigureAwait(false);
 
-			foreach (var request in completedRequests.Where(x => !x.Success))
-			{
-				Logger.LogWarning($"Round ({roundState.Id}), Alice ({request.Sender.AliceId}): {nameof(AliceClient.RegisterInputAsync)} failed, reason:'{request.Exception}'.");
-			}
-			return completedRequests.Where(x => x.Success).Select(x => x.Sender).ToList();
+			return completedRequests.Where(x => x is not null).Cast<AliceClient>().ToList();
 		}
 
-		private async Task<List<AliceClient>> ConfirmConnectionsAsync(IEnumerable<AliceClient> aliceClients, RoundState roundState, CancellationToken cancellationToken)
+		private async Task<List<AliceClient>> ConfirmConnectionsAsync(IEnumerable<AliceClient> aliceClients, long maxVsizeAllocationPerAlice, TimeSpan connectionConfirmationTimeout, CancellationToken cancellationToken)
 		{
-			var confirmationRequests = aliceClients.Select(alice => WrapCall(alice, alice.ConfirmConnectionAsync(TimeSpan.FromMilliseconds(Random.Next(100, 1_000)), cancellationToken))).ToArray();
+			async Task<AliceClient?> ConfirmConnectionTask(AliceClient aliceClient)
+			{
+				try
+				{
+					await aliceClient.ConfirmConnectionAsync(connectionConfirmationTimeout, maxVsizeAllocationPerAlice, cancellationToken).ConfigureAwait(false);
+					return aliceClient;
+				}
+				catch (Exception e)
+				{
+					Logger.LogWarning($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): {nameof(AliceClient.ConfirmConnectionAsync)} failed, reason:'{e}'.");
+					return default;
+				}
+			}
+
+			var confirmationRequests = aliceClients.Select(ConfirmConnectionTask);
 			var completedRequests = await Task.WhenAll(confirmationRequests).ConfigureAwait(false);
 
-			foreach (var request in completedRequests.Where(x => !x.Success))
-			{
-				Logger.LogWarning($"Round ({roundState.Id}), Alice ({request.Sender.AliceId}): {nameof(AliceClient.ConfirmConnectionAsync)} failed, reason:'{request.Exception}'.");
-			}
-
-			return completedRequests.Where(x => x.Success).Select(x => x.Sender).ToList();
+			return completedRequests.Where(x => x is not null).Cast<AliceClient>().ToList();
 		}
 
-		private IEnumerable<Money> DecomposeAmounts(RoundState roundState)
+		private IEnumerable<Money> DecomposeAmounts(FeeRate feeRate)
 		{
-			return Coins.Select(c => c.Amount - roundState.FeeRate.GetFee(c.ScriptPubKey.EstimateInputVsize()));
+			return Coins.Select(c => c.Amount - feeRate.GetFee(c.ScriptPubKey.EstimateInputVsize()));
 		}
 
 		private IEnumerable<IEnumerable<(ulong RealAmountCredentialValue, ulong RealVsizeCredentialValue, Money Value)>> CreatePlan(
@@ -157,27 +167,29 @@ namespace WalletWasabi.WabiSabi.Client
 		}
 
 		private async Task RegisterOutputsAsync(
+			IEnumerable<BobClient> bobClients,
 			IEnumerable<(TxOut Output, Credential[] RealAmountCredentials, Credential[] RealVsizeCredentials)> outputsWithCredentials,
-			RoundState roundState,
 			CancellationToken cancellationToken)
 		{
-			var bobClients = Enumerable.Range(0, int.MaxValue).Select(_ => CreateBobClient(roundState));
-			var outputRegistrationData = outputsWithCredentials.Zip(
-					bobClients,
-					(o, b) => (
-						TxOut: o.Output,
-						RealAmountCredentials: o.RealAmountCredentials,
-						RealVsizeCredentials: o.RealVsizeCredentials,
-						BobClient: b));
-
-			var outputRegisterRequests = outputRegistrationData
-				.Select(x => WrapCall(x.TxOut, x.BobClient.RegisterOutputAsync(x.TxOut.Value, x.TxOut.ScriptPubKey, x.RealAmountCredentials, x.RealVsizeCredentials, cancellationToken)));
-			var completedRequests = await Task.WhenAll(outputRegisterRequests).ConfigureAwait(false);
-
-			foreach (var request in completedRequests.Where(x => !x.Success))
+			async Task<TxOut?> RegisterOutputTask(BobClient bobClient, TxOut output, Credential[] realAmountCredentials, Credential[] realVsizeCredentials)
 			{
-				Logger.LogWarning($"Round ({roundState.Id}), Bob ({request.Sender.ScriptPubKey}): {nameof(BobClient.RegisterOutputAsync)} failed, reason:'{request.Exception}'.");
+				try
+				{
+					await bobClient.RegisterOutputAsync(output.Value, output.ScriptPubKey, realAmountCredentials, realVsizeCredentials, cancellationToken).ConfigureAwait(false);
+					return output;
+				}
+				catch (Exception e)
+				{
+					Logger.LogWarning($"Round ({bobClient.RoundId}), Bob ({{output.ScriptPubKey}}): {nameof(BobClient.RegisterOutputAsync)} failed, reason:'{e}'.");
+					return default;
+				}
 			}
+
+			var outputRegisterRequests = bobClients.Zip(
+					outputsWithCredentials,
+					(bobClient, data) => RegisterOutputTask(bobClient, data.Output, data.RealAmountCredentials, data.RealVsizeCredentials));
+
+			await Task.WhenAll(outputRegisterRequests).ConfigureAwait(false);
 		}
 
 		private BobClient CreateBobClient(RoundState roundState)
@@ -185,74 +197,35 @@ namespace WalletWasabi.WabiSabi.Client
 			return new BobClient(
 				roundState.Id,
 				new(
-					roundState.AmountCredentialIssuerParameters,
-					roundState.VsizeCredentialIssuerParameters,
-					ZeroAmountCredentialPool,
-					ZeroVsizeCredentialPool,
-					ArenaRequestHandler,
-					SecureRandom));
+					roundState.CreateAmountCredentialClient(ZeroAmountCredentialPool, SecureRandom),
+					roundState.CreateVsizeCredentialClient(ZeroVsizeCredentialPool, SecureRandom),
+					ArenaRequestHandler));
 		}
 
-		public async override Task StartAsync(CancellationToken cancellationToken)
-		{
-			using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(DisposeCts.Token, cancellationToken);
-			await base.StartAsync(linkedCts.Token).ConfigureAwait(false);
-		}
-
-		private void SanityCheck(IEnumerable<TxOut> outputs, Transaction unsignedCoinJoinTransaction, RoundState roundState, CancellationToken cancellationToken)
+		private bool SanityCheck(IEnumerable<(Money Value, Script ScriptPubKey)> expectedOutputs, Transaction unsignedCoinJoinTransaction)
 		{
 			var coinJoinOutputs = unsignedCoinJoinTransaction.Outputs.Select(o => (o.Value, o.ScriptPubKey));
-			var expectedOutputs = outputs.Select(o => (o.Value, o.ScriptPubKey));
-			if (coinJoinOutputs.IsSuperSetOf(expectedOutputs))
-			{
-				throw new InvalidOperationException($"Round ({roundState.Id}): My output is missing.");
-			}
+			return coinJoinOutputs.IsSuperSetOf(expectedOutputs);
 		}
 
 		private async Task SignTransactionAsync(IEnumerable<AliceClient> aliceClients, Transaction unsignedCoinJoinTransaction, CancellationToken cancellationToken)
 		{
-			foreach (var aliceClient in aliceClients)
+			async Task<AliceClient?> SignTransactionTask(AliceClient aliceClient)
 			{
-				await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, cancellationToken).ConfigureAwait(false);
-			}
-		}
-
-		private async Task<(bool Success, TSender Sender, Exception? Exception)> WrapCall<TSender>(TSender sender, Task task)
-		{
-			try
-			{
-				await task.ConfigureAwait(false);
-				return (true, sender, default);
-			}
-			catch (Exception e)
-			{
-				return (false, sender, e);
-			}
-		}
-
-		public async override Task StopAsync(CancellationToken cancellationToken)
-		{
-			using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(DisposeCts.Token, cancellationToken);
-			await base.StopAsync(linkedCts.Token).ConfigureAwait(false);
-		}
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
+				try
 				{
-					DisposeCts.Cancel();
-					SecureRandom.Dispose();
+					await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, cancellationToken).ConfigureAwait(false);
+					return aliceClient;
 				}
-				_disposedValue = true;
+				catch (Exception e)
+				{
+					Logger.LogWarning($"Round ({aliceClient.RoundId}), Alice ({{aliceClient.AliceId}}): {nameof(AliceClient.SignTransactionAsync)} failed, reason:'{e}'.");
+					return default;
+				}
 			}
-		}
 
-		public void Dispose()
-		{
-			Dispose(disposing: true);
-			GC.SuppressFinalize(this);
+			var signingRequests = aliceClients.Select(SignTransactionTask);
+			await Task.WhenAll(signingRequests).ConfigureAwait(false);
 		}
 	}
 }

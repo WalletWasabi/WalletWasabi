@@ -41,7 +41,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			using var signingKey = new Key();
 
 			var ex = await Assert.ThrowsAsync<HttpRequestException>(async () =>
-			   await apiClient.RegisterInputAsync(nonExistingOutPoint, signingKey, round.Id, CancellationToken.None));
+			   await apiClient.RegisterInputAsync(round.Id, nonExistingOutPoint, signingKey, CancellationToken.None));
 
 			var wex = Assert.IsType<WabiSabiProtocolException>(ex.InnerException);
 			Assert.Equal(WabiSabiProtocolErrorCode.InputSpent, wex.ErrorCode);
@@ -104,24 +104,20 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 			// Create the coinjoin client
 			var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
-
-			var rounds = await apiClient.GetStatusAsync(CancellationToken.None);
-			var roundState = rounds.First(x => x.CoinjoinState is ConstructionState);
-			var kitchen = new Kitchen();
-			kitchen.Cook("");
-
 			using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(1), apiClient);
 			await roundStateUpdater.StartAsync(CancellationToken.None);
 
-			using var coinJoinClient = new CoinJoinClient(apiClient, coins, kitchen, keyManager, roundStateUpdater);
+			var kitchen = new Kitchen();
+			kitchen.Cook("");
+
+			var coinJoinClient = new CoinJoinClient(apiClient, coins, kitchen, keyManager, roundStateUpdater);
 
 			// Run the coinjoin client task.
-			await coinJoinClient.StartAsync(CancellationToken.None);
+			await coinJoinClient.StartCoinJoinAsync(cts.Token);
 
 			var boadcastedTx = await transactionCompleted.Task.ConfigureAwait(false); // wait for the transaction to be broadcasted.
 			Assert.NotNull(boadcastedTx);
 
-			await coinJoinClient.StopAsync(CancellationToken.None);
 			await roundStateUpdater.StopAsync(CancellationToken.None);
 		}
 
@@ -153,7 +149,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var rounds = await apiClient.GetStatusAsync(CancellationToken.None);
 			var round = rounds.First(x => x.CoinjoinState is ConstructionState);
 
-			var response = await apiClient.RegisterInputAsync(coinToRegister.Outpoint, signingKey, round.Id, CancellationToken.None);
+			var response = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, signingKey, CancellationToken.None);
 
 			Assert.NotEqual(uint256.Zero, response.Value);
 		}
@@ -186,7 +182,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var rounds = await apiClient.GetStatusAsync(CancellationToken.None);
 			var round = rounds.First(x => x.CoinjoinState is ConstructionState);
 
-			var response = await apiClient.RegisterInputAsync(coinToRegister.Outpoint, signingKey, round.Id, CancellationToken.None);
+			var response = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, signingKey, CancellationToken.None);
 
 			Assert.NotEqual(uint256.Zero, response.Value);
 		}
