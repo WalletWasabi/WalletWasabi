@@ -1,5 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 namespace WalletWasabi.Tor.Control.Messages.CircuitStatus
 {
+	[SuppressMessage("Usage", "CA1707:Identifiers should not contain underscores", Justification = "Identifiers are the same as in the Tor spec.")]
 	public enum CircStatus
 	{
 		/// <summary>Circuit ID assigned to new circuit</summary>

@@ -1,8 +1,10 @@
+using Moq;
 using NBitcoin;
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
@@ -25,12 +27,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		[Fact]
 		public async Task RoundNotFoundAsync()
 		{
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync();
 			using Key key = new();
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(new(), WabiSabiFactory.CreatePreconfiguredRpcClient());
 
-			await using ArenaRequestHandler handler = new(new(), new(), arena, WabiSabiFactory.CreateMockRpc(key));
-			var req = WabiSabiFactory.CreateInputRegistrationRequest();
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req, CancellationToken.None));
+			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
+				async () => await arenaClient.RegisterInputAsync(uint256.Zero, BitcoinFactory.CreateOutPoint(), key, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.RoundNotFound, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -42,10 +44,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			WabiSabiConfig cfg = new();
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
-			var round = arena.Rounds.First().Value;
+			var round = arena.Rounds.First();
 			using Key key = new();
-			var req = WabiSabiFactory.CreateInputRegistrationRequest(key, round);
-			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
+			var req = WabiSabiFactory.CreateInputRegistrationRequest(round, key: key);
+			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreatePreconfiguredRpcClient().Object);
 
 			foreach (Phase phase in Enum.GetValues(typeof(Phase)))
 			{
@@ -64,45 +66,19 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		{
 			WabiSabiConfig cfg = new() { MaxInputCountByRound = 3 };
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 			using Key key = new();
-
-			var req = WabiSabiFactory.CreateInputRegistrationRequest(key, round);
-			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, WabiSabiFactory.CreatePreconfiguredRpcClient(), round);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			round.Alices.Add(WabiSabiFactory.CreateAlice());
 			round.Alices.Add(WabiSabiFactory.CreateAlice());
 			round.Alices.Add(WabiSabiFactory.CreateAlice());
-			await RegisterAndAssertWrongPhaseAsync(req, handler);
+
+			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
+				async () => await arenaClient.RegisterInputAsync(round.Id, BitcoinFactory.CreateOutPoint(), key, CancellationToken.None));
+			Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 			Assert.Equal(Phase.InputRegistration, round.Phase);
-
-			await arena.StopAsync(CancellationToken.None);
-		}
-
-		[Fact]
-		public async Task InputRegistrationFullVsizeAsync()
-		{
-			WabiSabiConfig cfg = new();
-			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
-			using Key key = new();
-
-			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
-
-			// TODO add configuration parameter
-			round.InitialInputVsizeAllocation = (int)round.MaxVsizeAllocationPerAlice;
-
-			// Add an alice
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			round.Alices.Add(WabiSabiFactory.CreateAlice());
-
-			Assert.Equal(0, round.RemainingInputVsizeAllocation);
-
-			// try to add an additional input
-			var req = WabiSabiFactory.CreateInputRegistrationRequest(key, round);
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req, CancellationToken.None));
-			Assert.Equal(WabiSabiProtocolErrorCode.VsizeQuotaExceeded, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -112,15 +88,18 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		{
 			WabiSabiConfig cfg = new() { StandardInputRegistrationTimeout = TimeSpan.Zero };
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg);
 			using Key key = new();
+			var coin = WabiSabiFactory.CreateCoin(key);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, WabiSabiFactory.CreatePreconfiguredRpcClient(coin));
 
-			var req = WabiSabiFactory.CreateInputRegistrationRequest(key, round);
-			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 
-			arena.Rounds.Add(round.Id, round);
-			await RegisterAndAssertWrongPhaseAsync(req, handler);
+			arena.Rounds.Add(round);
+
+			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
+				async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, key, CancellationToken.None));
+			Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 			Assert.Equal(Phase.InputRegistration, round.Phase);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -130,17 +109,20 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		public async Task InputRegistrationTimeoutCanBeModifiedRuntimeAsync()
 		{
 			WabiSabiConfig cfg = new() { StandardInputRegistrationTimeout = TimeSpan.FromHours(1) };
-
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg);
 			using Key key = new();
+			var coin = WabiSabiFactory.CreateCoin(key);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, WabiSabiFactory.CreatePreconfiguredRpcClient(coin));
 
-			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			var round = arena.Rounds.First().Value;
-			var req = WabiSabiFactory.CreateInputRegistrationRequest(key, round);
+
+			var round = arena.Rounds.First();
 
 			cfg.StandardInputRegistrationTimeout = TimeSpan.Zero;
-			await RegisterAndAssertWrongPhaseAsync(req, handler);
+
+			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
+				async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, key, CancellationToken.None));
+			Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 			Assert.Equal(Phase.InputRegistration, round.Phase);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -149,16 +131,19 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		[Fact]
 		public async Task InputBannedAsync()
 		{
-			Prison prison = new();
-			using var key = new Key();
+			using Key key = new();
 			var outpoint = BitcoinFactory.CreateOutPoint();
-			prison.Punish(outpoint, Punishment.Banned, uint256.One);
+
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
-			await using ArenaRequestHandler handler = new(cfg, prison, arena, WabiSabiFactory.CreateMockRpc());
-			var req = WabiSabiFactory.CreateInputRegistrationRequest(prevout: outpoint, round: round);
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req, CancellationToken.None));
+			arena.Prison.Punish(outpoint, Punishment.Banned, uint256.One);
+
+			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
+
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
+				async () => await arenaClient.RegisterInputAsync(round.Id, outpoint, key, CancellationToken.None));
+
 			Assert.Equal(WabiSabiProtocolErrorCode.InputBanned, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -167,20 +152,19 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		[Fact]
 		public async Task InputCanBeNotedAsync()
 		{
-			Prison prison = new();
+			using Key key = new();
 			var outpoint = BitcoinFactory.CreateOutPoint();
-			prison.Punish(outpoint, Punishment.Noted, uint256.One);
+
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+			arena.Prison.Punish(outpoint, Punishment.Noted, uint256.One);
 
-			await using ArenaRequestHandler handler = new(cfg, prison, arena, WabiSabiFactory.CreateMockRpc());
-			var req = WabiSabiFactory.CreateInputRegistrationRequest(prevout: outpoint, round: round);
-			var ex = await Assert.ThrowsAnyAsync<Exception>(async () => await handler.RegisterInputAsync(req, CancellationToken.None));
-			if (ex is WabiSabiProtocolException wspex)
-			{
-				Assert.NotEqual(WabiSabiProtocolErrorCode.InputBanned, wspex.ErrorCode);
-			}
+			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
+
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
+				async () => await arenaClient.RegisterInputAsync(round.Id, outpoint, key, CancellationToken.None));
+			Assert.NotEqual(WabiSabiProtocolErrorCode.InputBanned, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -188,16 +172,18 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		[Fact]
 		public async Task InputCantBeNotedAsync()
 		{
-			Prison prison = new();
+			using Key key = new();
 			var outpoint = BitcoinFactory.CreateOutPoint();
-			prison.Punish(outpoint, Punishment.Noted, uint256.One);
+
 			WabiSabiConfig cfg = new() { AllowNotedInputRegistration = false };
 			var round = WabiSabiFactory.CreateRound(cfg);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+			arena.Prison.Punish(outpoint, Punishment.Noted, uint256.One);
 
-			await using ArenaRequestHandler handler = new(cfg, prison, arena, WabiSabiFactory.CreateMockRpc());
-			var req = WabiSabiFactory.CreateInputRegistrationRequest(prevout: outpoint, round: round);
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req, CancellationToken.None));
+			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
+
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
+				async () => await arenaClient.RegisterInputAsync(round.Id, outpoint, key, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.InputBanned, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -206,15 +192,19 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		[Fact]
 		public async Task InputSpentAsync()
 		{
+			using Key key = new();
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
-			MockRpcClient rpc = new();
-			rpc.OnGetTxOutAsync = (_, _, _) => null;
 
-			await using ArenaRequestHandler handler = new(cfg, new(), arena, rpc);
-			var req = WabiSabiFactory.CreateInputRegistrationRequest(round: round);
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req, CancellationToken.None));
+			var mockRpc = new Mock<IRPCClient>();
+			mockRpc.Setup(rpc => rpc.GetTxOutAsync(It.IsAny<uint256>(), It.IsAny<int>(), It.IsAny<bool>()))
+				.ReturnsAsync((NBitcoin.RPC.GetTxOutResponse?)null);
+
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc, round);
+			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
+
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
+				async () => await arenaClient.RegisterInputAsync(round.Id, BitcoinFactory.CreateOutPoint(), key, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.InputSpent, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -223,15 +213,19 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		[Fact]
 		public async Task InputUnconfirmedAsync()
 		{
+			using Key key = new();
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
-			MockRpcClient rpc = new();
-			rpc.OnGetTxOutAsync = (_, _, _) => new() { Confirmations = 0 };
 
-			await using ArenaRequestHandler handler = new(cfg, new(), arena, rpc);
-			var req = WabiSabiFactory.CreateInputRegistrationRequest(round: round);
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req, CancellationToken.None));
+			var mockRpc = new Mock<IRPCClient>();
+			mockRpc.Setup(rpc => rpc.GetTxOutAsync(It.IsAny<uint256>(), It.IsAny<int>(), It.IsAny<bool>()))
+				.ReturnsAsync(new NBitcoin.RPC.GetTxOutResponse { Confirmations = 0 });
+
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc, round);
+			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
+
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
+				async () => await arenaClient.RegisterInputAsync(round.Id, BitcoinFactory.CreateOutPoint(), key, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.InputUnconfirmed, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -240,18 +234,24 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		[Fact]
 		public async Task InputImmatureAsync()
 		{
+			using Key key = new();
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
-			MockRpcClient rpc = new();
+			var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient();
+			var rpcCfg = rpc.SetupSequence(rpc => rpc.GetTxOutAsync(It.IsAny<uint256>(), It.IsAny<int>(), It.IsAny<bool>()));
+			foreach (var i in Enumerable.Range(1, 100))
+			{
+				rpcCfg = rpcCfg.ReturnsAsync(new NBitcoin.RPC.GetTxOutResponse { Confirmations = i, IsCoinBase = true });
+			}
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, rpc, round);
+			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
 			var req = WabiSabiFactory.CreateInputRegistrationRequest(round: round);
-			for (int i = 1; i <= 100; i++)
+			foreach (var i in Enumerable.Range(1, 100))
 			{
-				rpc.OnGetTxOutAsync = (_, _, _) => new() { Confirmations = i, IsCoinBase = true };
+				var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
+					async () => await arenaClient.RegisterInputAsync(round.Id, BitcoinFactory.CreateOutPoint(), key, CancellationToken.None));
 
-				await using ArenaRequestHandler handler = new(cfg, new(), arena, rpc);
-				var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req, CancellationToken.None));
 				Assert.Equal(WabiSabiProtocolErrorCode.InputImmature, ex.ErrorCode);
 			}
 
@@ -263,19 +263,23 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		{
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
-			MockRpcClient rpc = new();
 			using Key key = new();
 
-			rpc.OnGetTxOutAsync = (_, _, _) => new()
-			{
-				Confirmations = 1,
-				TxOut = new(Money.Coins(1), key.PubKey.GetScriptAddress(Network.Main))
-			};
+			var mockRpc = new Mock<IRPCClient>();
+			mockRpc.Setup(rpc => rpc.GetTxOutAsync(It.IsAny<uint256>(), It.IsAny<int>(), It.IsAny<bool>()))
+				.ReturnsAsync(new NBitcoin.RPC.GetTxOutResponse
+				{
+					Confirmations = 1,
+					TxOut = new(Money.Coins(1), key.PubKey.GetScriptAddress(Network.Main))
+				});
 
-			await using ArenaRequestHandler handler = new(cfg, new(), arena, rpc);
-			var req = WabiSabiFactory.CreateInputRegistrationRequest(round: round);
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req, CancellationToken.None));
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc, round);
+
+			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
+
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
+				async () => await arenaClient.RegisterInputAsync(round.Id, BitcoinFactory.CreateOutPoint(), key, CancellationToken.None));
+
 			Assert.Equal(WabiSabiProtocolErrorCode.ScriptNotAllowed, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -284,14 +288,16 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		[Fact]
 		public async Task WrongOwnershipProofAsync()
 		{
+			using Key key = new();
+			var coin = WabiSabiFactory.CreateCoin(key);
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
-			using Key key = new();
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, WabiSabiFactory.CreatePreconfiguredRpcClient(coin), round);
 
-			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
-			var req = WabiSabiFactory.CreateInputRegistrationRequest(round: round);
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req, CancellationToken.None));
+			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
+			using Key nonOwnerKey = new();
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
+				async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, nonOwnerKey, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.WrongOwnershipProof, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -300,14 +306,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		[Fact]
 		public async Task NotEnoughFundsAsync()
 		{
+			using Key key = new();
 			WabiSabiConfig cfg = new() { MinRegistrableAmount = Money.Coins(2) };
 			var round = WabiSabiFactory.CreateRound(cfg);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
-			using Key key = new();
 
-			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
-			var req = WabiSabiFactory.CreateInputRegistrationRequest(key, round);
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req, CancellationToken.None));
+			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
+				async () => await arenaClient.RegisterInputAsync(round.Id, BitcoinFactory.CreateOutPoint(), key, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.NotEnoughFunds, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -316,14 +322,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		[Fact]
 		public async Task TooMuchFundsAsync()
 		{
+			using Key key = new();
 			WabiSabiConfig cfg = new() { MaxRegistrableAmount = Money.Coins(0.9m) };
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
-			using Key key = new();
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, WabiSabiFactory.CreatePreconfiguredRpcClient(), round);
 
-			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
-			var req = WabiSabiFactory.CreateInputRegistrationRequest(key, round);
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req, CancellationToken.None));
+			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
+				async () => await arenaClient.RegisterInputAsync(round.Id, BitcoinFactory.CreateOutPoint(), key, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.TooMuchFunds, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -335,16 +341,17 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			// Configures a round that allows so many inputs (Alices) that
 			// the virtual size each of they have available is not enought
 			// to register anything.
+			using Key key = new();
+			var coin = WabiSabiFactory.CreateCoin(key);
 			WabiSabiConfig cfg = new() { MaxInputCountByRound = 100_000 };
 			var round = WabiSabiFactory.CreateRound(cfg);
 			Assert.Equal(0, round.MaxVsizeAllocationPerAlice);
 
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
-			using Key key = new();
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, WabiSabiFactory.CreatePreconfiguredRpcClient(coin), round);
 
-			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
-			var req = WabiSabiFactory.CreateInputRegistrationRequest(key, round);
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req, CancellationToken.None));
+			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
+				async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, key, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.TooMuchVsize, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -353,20 +360,21 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		[Fact]
 		public async Task AliceAlreadyRegisteredIntraRoundAsync()
 		{
+			using Key key = new();
+			var coin = WabiSabiFactory.CreateCoin(key);
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
-			using Key key = new();
-
-			var req = WabiSabiFactory.CreateInputRegistrationRequest(key, round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, WabiSabiFactory.CreatePreconfiguredRpcClient(coin), round);
 
 			// Make sure an Alice have already been registered with the same input.
-			var anotherAlice = WabiSabiFactory.CreateAlice(prevout: req.Input, ownershipProof: req.OwnershipProof);
+			var anotherAlice = WabiSabiFactory.CreateAlice(coin, WabiSabiFactory.CreateOwnershipProof(key));
 			round.Alices.Add(anotherAlice);
 			round.SetPhase(Phase.ConnectionConfirmation);
 
-			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
-			await RegisterAndAssertWrongPhaseAsync(req, handler);
+			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
+				async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, key, CancellationToken.None));
+			Assert.Equal(WabiSabiProtocolErrorCode.AliceAlreadyRegistered, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -374,21 +382,21 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		[Fact]
 		public async Task AliceAlreadyRegisteredCrossRoundAsync()
 		{
+			using Key key = new();
+			var coin = WabiSabiFactory.CreateCoin(key);
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
 			var anotherRound = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round, anotherRound);
-			using Key key = new();
-
-			var req = WabiSabiFactory.CreateInputRegistrationRequest(key, round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, WabiSabiFactory.CreatePreconfiguredRpcClient(coin), round, anotherRound);
 
 			// Make sure an Alice have already been registered with the same input.
-			var preAlice = WabiSabiFactory.CreateAlice(prevout: req.Input, ownershipProof: req.OwnershipProof);
+			var preAlice = WabiSabiFactory.CreateAlice(coin, WabiSabiFactory.CreateOwnershipProof(key));
 			anotherRound.Alices.Add(preAlice);
 			anotherRound.SetPhase(Phase.ConnectionConfirmation);
 
-			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req, CancellationToken.None));
+			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
+				async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, key, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.AliceAlreadyRegistered, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);

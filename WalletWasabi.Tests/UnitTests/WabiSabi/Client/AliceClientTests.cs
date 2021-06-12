@@ -27,22 +27,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		{
 			var config = new WabiSabiConfig { MaxInputCountByRound = 1 };
 			var round = WabiSabiFactory.CreateRound(config);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, round);
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
-
 			var km = ServiceFactory.CreateKeyManager("");
 			var key = BitcoinFactory.CreateHdPubKey(km);
 			SmartCoin coin1 = BitcoinFactory.CreateSmartCoin(key, Money.Coins(1m));
 			var outpoint = coin1.OutPoint;
 
-			var mockRpc = new Mock<IRPCClient>();
-			mockRpc.Setup(rpc => rpc.GetTxOutAsync(outpoint.Hash, (int)outpoint.N, true))
-				.ReturnsAsync(new NBitcoin.RPC.GetTxOutResponse
-				{
-					IsCoinBase = false,
-					Confirmations = coin1.Height,
-					TxOut = coin1.TxOut,
-				});
+			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, mockRpc, round);
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 
 			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
 			var wabiSabiApi = new WabiSabiController(coordinator);
@@ -55,7 +47,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				roundState.CreateAmountCredentialClient(amountCredentialPool, insecureRandom),
 				roundState.CreateVsizeCredentialClient(vsizeCredentialPool, insecureRandom),
 				wabiSabiApi);
-			Assert.Equal(Phase.InputRegistration, arena.Rounds.First().Value.Phase);
+			Assert.Equal(Phase.InputRegistration, arena.Rounds.First().Phase);
 
 			var bitcoinSecret = km.GetSecrets("", coin1.ScriptPubKey).Single().PrivateKey.GetBitcoinSecret(Network.Main);
 
@@ -67,7 +59,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 			await confirmationTask;
 
-			Assert.Equal(Phase.ConnectionConfirmation, arena.Rounds.First().Value.Phase);
+			Assert.Equal(Phase.ConnectionConfirmation, arena.Rounds.First().Phase);
 		}
 	}
 }
