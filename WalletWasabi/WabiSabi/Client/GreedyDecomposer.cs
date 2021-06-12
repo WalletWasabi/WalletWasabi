@@ -28,16 +28,17 @@ namespace WalletWasabi.WabiSabi.Client
 					yield return denomination;
 					amount -= denomination;
 				}
-				else if (++i < Denominations.Count)
+				else if ((i + 1) < Denominations.Count)
 				{
+					i++;
 					denomination = Denominations[i];
 				}
 				else
 				{
 					yield return amount;
+					break;
 				}
 			}
 		}
 	}
 }
-

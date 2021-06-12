@@ -47,13 +47,13 @@ namespace WalletWasabi.WabiSabi.Client
 		public KeyManager Keymanager { get; }
 		private RoundStateUpdater RoundStatusUpdater { get; }
 
-		public async Task StartCoinJoinAsync(CancellationToken cancellationToken)
+		public async Task StartCoinJoinAsync(CancellationToken cancellationToken, IEnumerable<Money>? forcedOutputDenominations = null)
 		{
 			var roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cancellationToken).ConfigureAwait(false);
 			var constructionState = roundState.Assert<ConstructionState>();
 
 			// Calculate outputs values
-			var outputValues = DecomposeAmounts(roundState.FeeRate);
+			var outputValues = DecomposeAmounts(roundState.FeeRate, forcedOutputDenominations);
 
 			// Get all locked internal keys we have and assert we have enough.
 			Keymanager.AssertLockedInternalKeysIndexed(howMany: Coins.Count());
@@ -155,12 +155,17 @@ namespace WalletWasabi.WabiSabi.Client
 			return completedRequests.Where(x => x is not null).Cast<AliceClient>().ToList();
 		}
 
-		private IEnumerable<Money> DecomposeAmounts(FeeRate feeRate)
+		private IEnumerable<Money> DecomposeAmounts(FeeRate feeRate, IEnumerable<Money>? forcedOutputDenominations = null)
 		{
-			var allDenominations = BaseDenominationGenerator.Generate();
+			var allDenominations = forcedOutputDenominations is null ? BaseDenominationGenerator.Generate() : forcedOutputDenominations;
 			GreedyDecomposer greedyDecomposer = new(allDenominations);
 			var amounts = Coins.Select(c => c.Amount - feeRate.GetFee(c.ScriptPubKey.EstimateInputVsize()));
-			var denominations = greedyDecomposer.Decompose(amounts.Sum());
+			var sum = amounts.Sum();
+			var denominations = greedyDecomposer.Decompose(sum);
+			if (sum != denominations.Sum())
+			{
+				throw new InvalidOperationException("Decomposed amounts and inputs sum not equal.");
+			}
 			return amounts;
 		}
 
