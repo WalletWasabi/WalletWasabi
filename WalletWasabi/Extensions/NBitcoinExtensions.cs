@@ -464,8 +464,8 @@ namespace NBitcoin
 				false => throw new NotImplementedException($"Size estimation isn't implemented for provided script type.")
 			};
 
-		public static Money EffectiveValue(this TxOut output, FeeRate feeRate) =>
-			output.Value - feeRate.GetFee(output.ScriptPubKey.EstimateOutputVsize());
+		public static Money EffectiveCost(this TxOut output, FeeRate feeRate) =>
+			output.Value + feeRate.GetFee(output.ScriptPubKey.EstimateOutputVsize());
 
 		public static Money EffectiveValue(this Coin coin, FeeRate feeRate) =>
 			coin.Amount - feeRate.GetFee(coin.ScriptPubKey.EstimateInputVsize());

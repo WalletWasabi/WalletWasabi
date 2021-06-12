@@ -84,7 +84,7 @@ namespace WalletWasabi.WabiSabi.Client
 			var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
 
 			// Sanity check.
-			var effectiveOutputs = outputTxOuts.Select(o => (o.EffectiveValue(roundState.FeeRate), o.ScriptPubKey));
+			var effectiveOutputs = outputTxOuts.Select(o => (o.EffectiveCost(roundState.FeeRate), o.ScriptPubKey));
 			if (!SanityCheck(effectiveOutputs, unsignedCoinJoin))
 			{
 				throw new InvalidOperationException($"Round ({roundState.Id}): My output is missing.");

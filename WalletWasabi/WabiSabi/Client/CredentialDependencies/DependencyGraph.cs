@@ -57,7 +57,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 			}
 
 			var outputSizes = outputs.Select(x => x.ScriptPubKey.EstimateOutputVsize());
-			var effectiveCosts = Enumerable.Zip(outputs, outputSizes, (txout, size) => txout.EffectiveValue(feerate));
+			var effectiveCosts = Enumerable.Zip(outputs, outputSizes, (txout, size) => txout.EffectiveCost(feerate));
 
 			return ResolveCredentialDependencies(
 				Enumerable.Zip(effectiveValues.Select(a => (ulong)a.Satoshi), inputSizes.Select(i => (ulong)i), ImmutableArray.Create).Cast<IEnumerable<ulong>>(),
