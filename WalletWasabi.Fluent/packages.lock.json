@@ -51,15 +51,6 @@
           "Avalonia.Xaml.Interactivity": "0.10.6"
         }
       },
-      "Avalonia.Xaml.Interactivity": {
-        "type": "Direct",
-        "requested": "[0.10.6, )",
-        "resolved": "0.10.6",
-        "contentHash": "bHK6Cv7hkqoz2YKT6SS+UIrD5uS6+Z1Nx4swsxMWZrOvc5ioOSoRi97EbFHo1siJsfWJmmpevO6IM7Hz45qfog==",
-        "dependencies": {
-          "Avalonia": "0.10.6"
-        }
-      },
       "Avalonia.Angle.Windows.Natives": {
         "type": "Transitive",
         "resolved": "2.1.0.2019013001",
@@ -181,6 +172,14 @@
         "dependencies": {
           "Avalonia": "0.9.9",
           "Avalonia.Xaml.Interactivity": "0.9.9"
+        }
+      },
+      "Avalonia.Xaml.Interactivity": {
+        "type": "Transitive",
+        "resolved": "0.10.6",
+        "contentHash": "bHK6Cv7hkqoz2YKT6SS+UIrD5uS6+Z1Nx4swsxMWZrOvc5ioOSoRi97EbFHo1siJsfWJmmpevO6IM7Hz45qfog==",
+        "dependencies": {
+          "Avalonia": "0.10.6"
         }
       },
       "AvalonStudio.Shell": {

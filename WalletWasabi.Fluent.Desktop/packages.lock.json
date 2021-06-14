@@ -1000,7 +1000,6 @@
           "Avalonia.Diagnostics": "0.10.6",
           "Avalonia.ReactiveUI": "0.10.6",
           "Avalonia.Xaml.Behaviors": "0.10.6",
-          "Avalonia.Xaml.Interactivity": "0.10.6",
           "WalletWasabi": "1.0.0",
           "Wasabi Wallet": "1.0.0"
         }
