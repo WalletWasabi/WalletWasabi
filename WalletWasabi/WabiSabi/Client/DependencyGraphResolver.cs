@@ -57,7 +57,7 @@ namespace WalletWasabi.WabiSabi.Client
 			List<SmartRequestNode> smartRequestNodes = new();
 			List<Task> alltask = new();
 
-			using CancellationTokenSource ctsOnError = new CancellationTokenSource();
+			using CancellationTokenSource ctsOnError = new();
 			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctsOnError.Token);
 
 			foreach (var node in Graph.Reissuances)
