@@ -75,7 +75,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 			LayoutIndex = _normalLayoutIndex;
 
-			BalanceTile = new WalletBalanceTileViewModel(wallet, balanceChanged)
+			BalanceTile = new WalletBalanceTileViewModel(wallet, balanceChanged, History.UnfilteredTransactions)
 			{
 				TilePresets = new ObservableCollection<TilePresetViewModel>()
 				{
