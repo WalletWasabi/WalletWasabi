@@ -255,7 +255,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void CloseWebCam()
 		{
-			if (_videocapture.IsOpened)
+			if (_videocapture != null)
 			{
 				_videocapture.Stop();
 				_videocapture.ImageGrabbed -= ProcessFrame;
