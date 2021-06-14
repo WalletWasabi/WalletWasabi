@@ -46,7 +46,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 		/// and may contain additional nodes if reissuance requests are
 		/// required.</remarks>
 		///
-		public static DependencyGraph ResolveCredentialDependencies(IEnumerable<Coin> inputs, IEnumerable<TxOut> outputs, FeeRate feerate)
+		public static DependencyGraph ResolveCredentialDependencies(IEnumerable<Coin> inputs, IEnumerable<TxOut> outputs, FeeRate feerate, long vsizeAllocationPerInput)
 		{
 			var inputSizes = inputs.Select(x => x.ScriptPubKey.EstimateInputVsize());
 			var effectiveValues = Enumerable.Zip(inputs, inputSizes, (coin, size) => coin.EffectiveValue(feerate));
@@ -60,7 +60,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 			var effectiveCosts = Enumerable.Zip(outputs, outputSizes, (txout, size) => txout.EffectiveCost(feerate));
 
 			return ResolveCredentialDependencies(
-				Enumerable.Zip(effectiveValues.Select(a => (ulong)a.Satoshi), inputSizes.Select(i => (ulong)i), ImmutableArray.Create).Cast<IEnumerable<ulong>>(),
+				Enumerable.Zip(effectiveValues.Select(a => (ulong)a.Satoshi), inputSizes.Select(i => (ulong)(vsizeAllocationPerInput - i)), ImmutableArray.Create).Cast<IEnumerable<ulong>>(),
 				Enumerable.Zip(effectiveCosts.Select(a => (ulong)a.Satoshi), outputSizes.Select(i => (ulong)i), ImmutableArray.Create).Cast<IEnumerable<ulong>>()
 			);
 		}

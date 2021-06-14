@@ -69,7 +69,7 @@ namespace WalletWasabi.WabiSabi.Client
 			aliceClients = await ConfirmConnectionsAsync(aliceClients, roundState.MaxVsizeAllocationPerAlice, roundState.ConnectionConfirmationTimeout, cancellationToken).ConfigureAwait(false);
 
 			// Re-issuances.
-			DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(aliceClients.Select(a => a.Coin), outputTxOuts, roundState.FeeRate);
+			DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(aliceClients.Select(a => a.Coin), outputTxOuts, roundState.FeeRate, roundState.MaxVsizeAllocationPerAlice);
 			DependencyGraphResolver dgr = new(dependencyGraph);
 			var bobClient = CreateBobClient(roundState);
 			var outputCredentials = await dgr.ResolveAsync(aliceClients, bobClient, cancellationToken).ConfigureAwait(false);
@@ -161,7 +161,7 @@ namespace WalletWasabi.WabiSabi.Client
 			GreedyDecomposer greedyDecomposer = new(allDenominations);
 			var amounts = Coins.Select(c => c.Amount);
 			var sum = amounts.Sum();
-			var denominations = greedyDecomposer.Decompose(sum, feeRate);
+			var denominations = greedyDecomposer.Decompose(sum, feeRate.GetFee(31));
 			if (sum != denominations.Sum())
 			{
 				throw new InvalidOperationException("Decomposed amounts and inputs sum not equal.");
