@@ -418,6 +418,39 @@ GET fees
 
 http://www.wasabiwallet.io/
 
+# 9. Setup Cloudflare Anti-DDoS for website
+
+Properly implemented DDoS mitigation is what keeps websites online during an attack.
+We use Cloudflare to mitigate a DDoS attack by detecting, responding, routing and adapting to it.
+
+## Create a Cloudflare account
+
+1. Visit https://dash.cloudflare.com/sign-up
+2. Enter Email address and Password
+3. Click `Create Account`
+
+## Add a domain to Cloudflare
+
+1. Log in to your Cloudflare account
+2. Click on `Add site` from the top navigation bar
+3. Enter your website’s root domain and then click `Add Site`.
+For example, if your website is `https://www.wasabiwallet.co`, type `wasabiwallet.co`
+4. Cloudflare will automatically identify your DNS records
+5. Click `Next`
+6. Select a plan level (the `Free` package is enough, as it contains DDoS attack mitigation and Global Content Delivery Network services)
+7. Click `Confirm` in the Confirm Plan window that appears
+8. Review whether all DNS records were identified in the DNS query results window
+9. Click `Continue`
+10. Copy the 2 Cloudflare nameservers displayed and click `Continue`
+
+## Replace default nameservers with Cloudflare ones
+
+1. Log in to your registrar (eg. Godaddy)
+2. Make sure your registrar has disabled DNSSEC for your domain
+3. Replace the current/default nameserver records in your registrar account with the information you copied from Cloudflare
+4. Wait some hours (max 24) while your registrar updates your nameservers and the DNS propagates
+You will receive an email when your site is active on Cloudflare
+
 # Check Statuses
 
 ```sh
