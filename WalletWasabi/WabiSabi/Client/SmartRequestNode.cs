@@ -35,13 +35,13 @@ namespace WalletWasabi.WabiSabi.Client
 			IEnumerable<Credential> inputVsizeCredentials = InputVsizeCredentialTasks.Select(x => x.Result);
 
 			(Credential[] RealAmountCredentials, Credential[] RealVsizeCredentials) result = await bobClient.ReissueCredentialsAsync(
-							amounts.First(),
-							amounts.Last(),
-							vsizes.First(),
-							vsizes.Last(),
-							inputAmountCredentials,
-							inputVsizeCredentials,
-							cancellationToken).ConfigureAwait(false);
+				amounts.ElementAtOrDefault(0),
+				amounts.ElementAtOrDefault(1),
+				vsizes.ElementAtOrDefault(0),
+				vsizes.ElementAtOrDefault(1),
+				inputAmountCredentials,
+				inputVsizeCredentials,
+				cancellationToken).ConfigureAwait(false);
 
 			foreach ((TaskCompletionSource<Credential> tcs, Credential credential) in OutputAmountCredentialTasks.Zip(result.RealAmountCredentials))
 			{
