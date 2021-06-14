@@ -203,7 +203,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 					videocapture.Retrieve(frame);
 
-					Image<Rgb, byte> image = frame.ToImage<Rgb, byte>();
+					Image<Rgba, byte> image = frame.ToImage<Rgba, byte>();
 
 					System.Drawing.Bitmap bmp = image.ToBitmap();
 
