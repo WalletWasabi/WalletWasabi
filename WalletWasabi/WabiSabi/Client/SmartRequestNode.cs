@@ -31,8 +31,8 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			await Task.WhenAll(InputAmountCredentialTasks.Concat(InputVsizeCredentialTasks)).ConfigureAwait(false);
 
-			IEnumerable<Credential> inputAmountCredentials = InputAmountCredentialTasks.Select(x => x.Result);
-			IEnumerable<Credential> inputVsizeCredentials = InputVsizeCredentialTasks.Select(x => x.Result);
+			IEnumerable<Credential> inputAmountCredentials = InputAmountCredentialTasks.Select(x => x.Result).Where(x => x is { });
+			IEnumerable<Credential> inputVsizeCredentials = InputVsizeCredentialTasks.Select(x => x.Result).Where(x => x is { });
 
 			(Credential[] RealAmountCredentials, Credential[] RealVsizeCredentials) result = await bobClient.ReissueCredentialsAsync(
 				amounts.ElementAtOrDefault(0),
