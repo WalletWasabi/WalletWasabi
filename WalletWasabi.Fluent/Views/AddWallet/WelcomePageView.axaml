@@ -5,6 +5,11 @@
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.WelcomePageView">
+  <UserControl.Styles>
+    <Style Selector="Button.action /template/ ContentPresenter">
+      <Setter Property="Background" Value="#45C2BA" />
+    </Style>
+  </UserControl.Styles>
   <controls:ContentArea
     EnableCancel="False"
     EnableBack="False"
@@ -23,7 +28,7 @@
                      TextWrapping="Wrap" MaxWidth="200" />
         </StackPanel>
 
-        <StackPanel Spacing="30" VerticalAlignment="Center" HorizontalAlignment="Right" DockPanel.Dock="Bottom">
+        <StackPanel Spacing="30" VerticalAlignment="Bottom" HorizontalAlignment="Right" DockPanel.Dock="Bottom">
           <StackPanel.Styles>
             <Style Selector="PathIcon">
               <Setter Property="Foreground" Value="#45C2BA" />
@@ -103,11 +108,8 @@
 
       <Button HorizontalAlignment="Center" VerticalAlignment="Bottom" Classes="action" Content="Get Started"
               DockPanel.Dock="Bottom" Margin="0 40 0 0"
-              Background="#45c2ba"
               Command="{Binding GetStartedCommand}" />
 
     </DockPanel>
-
-
   </controls:ContentArea>
 </UserControl>

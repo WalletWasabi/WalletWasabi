@@ -82,7 +82,11 @@
       <Border Padding="12 12 12 5" Margin="0 -3 0 0">
         <Panel>
           <Panel Width="45" HorizontalAlignment="Left">
-            <PathIcon Data="{StaticResource wasabi_logo}" HorizontalAlignment="Left" Height="20" Width="20" Opacity="0.8" />
+            <Image Height="28" HorizontalAlignment="Left">
+              <Image.Source>
+                <DrawingImage Drawing="{StaticResource placeholder_wasabi_logo}" />
+              </Image.Source>
+            </Image>
           </Panel>
           <TextBlock Text="Wasabi Wallet" Classes="h6" VerticalAlignment="Center" FontWeight="Normal" Margin="55 0 0 0" />
         </Panel>
