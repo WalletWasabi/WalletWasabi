@@ -68,6 +68,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _xAxisMaxValue = 9;
 		[AutoNotify] private string? _payJoinEndPoint;
 		[AutoNotify] private Avalonia.Media.Imaging.Bitmap? _testImage;
+		[AutoNotify] private bool _isQrPanelVisible;
 
 		private bool _parsingUrl;
 		private bool _updatingCurrentValue;
@@ -81,6 +82,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_transactionInfo = new TransactionInfo();
 			_labels = new ObservableCollection<string>();
 			_lastXAxisCurrentValue = _xAxisCurrentValue;
+			_isQrPanelVisible = false;
 
 			SelectionMode = NavBarItemSelectionMode.Button;
 
@@ -129,7 +131,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			EnableBack = true;
 
 			PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
-			QRCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteQRValue());
+			QRCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteQRValueAsync());
 			AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
 
 			var nextCommandCanExecute =
@@ -180,9 +182,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private VideoCapture _videocapture;
 
-		private async Task OnPasteQRValue()
+		private async Task OnPasteQRValueAsync()
 		{
 			_videocapture = new VideoCapture();
+			IsQrPanelVisible = true;
 			_videocapture.QueryFrame();
 			_videocapture.ImageGrabbed += ProcessFrame;
 			_videocapture.Start();
@@ -194,7 +197,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				VideoCapture videocapture = (VideoCapture)sender!;
 
-				if (_videocapture != null && _videocapture.Ptr != IntPtr.Zero)
+				if (_videocapture.Ptr != IntPtr.Zero)
 				{
 					Mat frame = new();
 
@@ -250,6 +253,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_videocapture.Stop();
 			_videocapture.ImageGrabbed -= ProcessFrame;
 			_videocapture.Dispose();
+			IsQrPanelVisible = false;
 		}
 
 		private async Task OnNextAsync()

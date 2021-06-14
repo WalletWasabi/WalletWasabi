@@ -659,7 +659,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				VideoCapture videocapture = (VideoCapture)sender!;
 
-				if (_videocapture != null && _videocapture.Ptr != IntPtr.Zero)
+				if (_videocapture.Ptr != IntPtr.Zero)
 				{
 					Mat frame = new();
 

@@ -139,6 +139,11 @@
 					</TextBox>
 				</DockPanel>
 
+				<DockPanel IsVisible="{Binding IsQrPanelVisible}">
+					<Label DockPanel.Dock="Left" Content="_QRCamera:" Target="qrcamera" />
+					<Image Source="{Binding TestImage}" Width="300" Height="100" Name="testImage" />
+				</DockPanel>
+
 				<DockPanel>
 					<Label DockPanel.Dock="Left" Content="_Amount:" Target="amountTb" />
 					<DockPanel>
@@ -209,7 +214,6 @@
 					</c:LineChart.AreaStroke>
 				</c:LineChart>
 			</DockPanel>
-			<Image Source="{Binding TestImage}" Width="300" Height="300" Name="image1" />
 		</DockPanel>
 	</c:ContentArea>
 </UserControl>
