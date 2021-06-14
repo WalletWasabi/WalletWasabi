@@ -2,7 +2,15 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="using:WalletWasabi.Fluent.Controls">
   <Design.PreviewWith>
-    <controls:TileControl />
+    <controls:TileControl TileSize="Large">
+      <Panel Width="330" Height="150" Background="Blue" />
+      <controls:TileControl.LargeSizeContent>
+        <Panel Width="330" Height="330" Background="Blue" />
+      </controls:TileControl.LargeSizeContent>
+      <controls:TileControl.WideSizeContent>
+        <Panel Width="660" Height="330" Background="Blue" />
+      </controls:TileControl.WideSizeContent>
+      </controls:TileControl>
   </Design.PreviewWith>
 
   <Style Selector="controls|TileControl">

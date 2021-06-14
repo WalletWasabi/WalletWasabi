@@ -98,6 +98,8 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			RxApp.MainThreadScheduler.Schedule(async () =>
 			{
+				IsSetup = true;
+				
 				if (!Services.WalletManager.HasWallet())
 				{
 					IsSetup = false;
@@ -105,8 +107,6 @@ namespace WalletWasabi.Fluent.ViewModels
 					await _dialogScreen.NavigateDialogAsync(new WelcomePageViewModel());
 
 					_dialogScreen.To(_addWalletPage, NavigationMode.Clear);
-
-					IsSetup = true;
 				}
 			});
 		}

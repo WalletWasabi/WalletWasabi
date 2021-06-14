@@ -11,17 +11,18 @@
     <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Spacing="16">
       <Viewbox Height="47" Width="47" DockPanel.Dock="Left">
         <Panel>
-          <Ellipse Stroke="{DynamicResource SystemAccentColor}" StrokeThickness="4" Height="115" Width="115" />
-          <Ellipse Stroke="{DynamicResource SystemAccentColor}" StrokeThickness="4" StrokeDashArray="2, 1" Height="100"
-                   Width="100" />
-          <PathIcon Data="{StaticResource btc_logo}" Height="50" Width="50"
+          <Ellipse Stroke="{DynamicResource SystemAccentColor}" StrokeThickness="4"
+                   Height="115" Width="115" />
+          <Ellipse Stroke="{DynamicResource SystemAccentColor}" StrokeThickness="4" StrokeDashArray="2, 1"
+                   Height="100" Width="100" />
+          <PathIcon Data="{StaticResource btc_logo}"
+                    Height="50" Width="50"
                     Foreground="{DynamicResource SystemAccentColor}" />
         </Panel>
       </Viewbox>
       <StackPanel VerticalAlignment="Center">
         <TextBlock Text="{Binding BalanceBtc, FallbackValue='1.21230001 BTC'}" FontSize="24" />
-        <TextBlock Text="{Binding BalanceFiat, FallbackValue='≈ 218,197 USD'}" HorizontalAlignment="Right"
-                   Opacity="0.8" FontSize="12" />
+        <TextBlock Text="{Binding BalanceFiat, FallbackValue='≈ 218,197 USD'}" Opacity="0.8" FontSize="12" />
       </StackPanel>
     </StackPanel>
   </DockPanel>

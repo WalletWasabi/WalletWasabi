@@ -11,10 +11,10 @@
   <controls:TileControl TileSize="{Binding CurrentTileSize}">
     <wb:WalletBalanceMediumTileView />
     <controls:TileControl.LargeSizeContent>
-      <wb:WalletBalanceLargeTileView  />
+      <wb:WalletBalanceLargeTileView ClipToBounds="False" />
     </controls:TileControl.LargeSizeContent>
     <controls:TileControl.WideSizeContent>
-      <wb:WalletBalanceWideTileView />
+      <wb:WalletBalanceWideTileView ClipToBounds="False" />
     </controls:TileControl.WideSizeContent>
   </controls:TileControl>
 </UserControl>
