@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Disposables;
+using Avalonia.Animation.Easings;
+using Avalonia.Threading;
 using DynamicData.Binding;
 using NBitcoin;
 using WalletWasabi.Fluent.Helpers;
@@ -11,6 +14,62 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 {
+	internal class PolyLine
+	{
+		public ObservableCollection<double> XValues { get; set; }
+		public ObservableCollection<double> YValues { get; set; }
+
+		public PolyLine Clone()
+		{
+			return new()
+			{
+				XValues = new ObservableCollection<double>(XValues),
+				YValues = new ObservableCollection<double>(YValues)
+			};
+		}
+	}
+
+	internal static class PolyLineMorph
+	{
+		public static List<PolyLine> ToCache(PolyLine source, PolyLine target, double speed, IEasing easing)
+		{
+			int steps = (int) (1 / speed);
+			double p = speed;
+			var cache = new List<PolyLine>(steps);
+
+			for (int i = 0; i < steps; i++)
+			{
+				var clone = source.Clone();
+				var easeP = easing.Ease(p);
+
+				To(clone, target, easeP);
+
+				p += speed;
+
+				cache.Add(clone);
+			}
+
+			return cache;
+		}
+
+		public static void To(PolyLine source, PolyLine target, double progress)
+		{
+			Debug.Assert(source.XValues.Count == target.XValues.Count);
+			Debug.Assert(source.YValues.Count == target.YValues.Count);
+
+			for (int j = 0; j < source.XValues.Count; j++)
+			{
+				source.XValues[j] = Interpolate(source.XValues[j], target.XValues[j], progress);
+				source.YValues[j] = Interpolate(source.YValues[j], target.YValues[j], progress);
+			}
+		}
+
+		public static double Interpolate(double from, double to, double progress)
+		{
+			return from + (to - from) * progress;
+		}
+	}
+
 	public partial class WalletBalanceChartTileViewModel : TileViewModel
 	{
 		private readonly ObservableCollection<HistoryItemViewModel> _history;
@@ -107,18 +166,30 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				sampleLimit,
 				DateTime.Now);
 
+			var source = new PolyLine()
+			{
+				XValues = new ObservableCollection<double>(XValues),
+				YValues = new ObservableCollection<double>(YValues)
+			};
+
+			var target = new PolyLine()
+			{
+				XValues = new ObservableCollection<double>(),
+				YValues = new ObservableCollection<double>()
+			};
+
 			XValues.Clear();
 			YValues.Clear();
 
 			foreach (var (timestamp, balance) in values.Reverse())
 			{
-				YValues.Add((double)balance.ToDecimal(MoneyUnit.BTC));
-				XValues.Add(timestamp.ToUnixTimeMilliseconds());
+				target.YValues.Add((double)balance.ToDecimal(MoneyUnit.BTC));
+				target.XValues.Add(timestamp.ToUnixTimeMilliseconds());
 			}
 
-			if (YValues.Any())
+			if (target.YValues.Any())
 			{
-				var maxY = YValues.Max();
+				var maxY = target.YValues.Max();
 				YLabels = new List<string> { "0", (maxY / 2).ToString("F2"), maxY.ToString("F2") };
 			}
 			else
@@ -126,10 +197,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				YLabels = null;
 			}
 
-			if (XValues.Any())
+			if (target.XValues.Any())
 			{
-				var minX = XValues.Min();
-				var maxX = XValues.Max();
+				var minX = target.XValues.Min();
+				var maxX = target.XValues.Max();
 				var halfX = minX + ((maxX - minX) / 2);
 
 				var range = DateTimeOffset.FromUnixTimeMilliseconds((long)maxX) -
@@ -166,6 +237,35 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			else
 			{
 				XLabels = null;
+			}
+
+			if (source.XValues.Count == target.XValues.Count)
+			{
+				var speed = 0.01;
+				var easing = new SplineEasing();
+				var cache = PolyLineMorph.ToCache(source, target, 0.01, easing);
+
+				int frames = (int) (1 / speed);
+				var frame = 0;
+				var timer = new DispatcherTimer();
+				timer.Interval = TimeSpan.FromSeconds(1 / 60.0);
+				timer.Tick += (sender, e) =>
+				{
+					XValues = cache[frame].XValues;
+					YValues = cache[frame].YValues;
+
+					frame++;
+					if (frame == frames)
+					{
+						timer.Stop();
+					}
+				};
+				timer.Start();
+			}
+			else
+			{
+				XValues = target.XValues;
+				YValues = target.YValues;
 			}
 		}
 	}
