@@ -23,6 +23,11 @@ end_of_line = lf
 indent_style = space
 indent_size = 2
 
+[*.axaml]
+
+indent_style = space
+indent_size = 4
+
 [*.cs]
 
 # require braces to be on a new line for all
