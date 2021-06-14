@@ -3,25 +3,111 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="800"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.WelcomePageView">
-  <controls:ContentArea Title="Wasabi Wallet"
-                 EnableCancel="False"
-                 EnableBack="False"
-                 EnableNext="False"
-                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+  <controls:ContentArea
+    EnableCancel="False"
+    EnableBack="False"
+    EnableNext="False"
+    ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel>
-      <Button DockPanel.Dock="Bottom" HorizontalAlignment="Center" Classes="action" Content="Get Started" Command="{Binding GetStartedCommand}" />
+      <DockPanel DockPanel.Dock="Top">
+        <StackPanel Spacing="36" DockPanel.Dock="Left">
+          <Image Height="62" HorizontalAlignment="Left">
+            <Image.Source>
+              <DrawingImage Drawing="{StaticResource placeholder_wasabi_logo}" />
+            </Image.Source>
+          </Image>
 
-      <TextBlock DockPanel.Dock="Bottom" TextAlignment="Left" TextWrapping="Wrap" Margin="0 30">
-        Welcome to Wasabi Wallet. Being put in a position to trust someone is always uncomfortable. Especially regarding personal information or your money. This is why Wasabi Wallet is trustless by design. We don’t, we haven’t and we never will collect information from you.
-        We live in a world where your information is being used to typecast, manipulate and surveil you. What you do with your Bitcoin is your business, so use Wasabi Wallet to retain your individuality, regain your identity and ultimately, reclaim your privacy.
-        We let you control what you reveal about your Bitcoin life.
-      </TextBlock>
+          <TextBlock FontWeight="600" HorizontalAlignment="Left" FontSize="28" Text="Welcome to Wasabi Wallet"
+                     TextWrapping="Wrap" MaxWidth="200" />
+        </StackPanel>
 
-      <Viewbox>
-        <Image Source="/Assets/welcome.png" />
-      </Viewbox>
+        <StackPanel Spacing="30" VerticalAlignment="Center" HorizontalAlignment="Right" DockPanel.Dock="Bottom">
+          <StackPanel.Styles>
+            <Style Selector="PathIcon">
+              <Setter Property="Foreground" Value="#45C2BA" />
+              <Setter Property="Height" Value="22" />
+            </Style>
+            <Style Selector="StackPanel">
+              <Setter Property="VerticalAlignment" Value="Top" />
+            </Style>
+
+            <Style Selector="StackPanel.benefit">
+              <Setter Property="Width" Value="200" />
+            </Style>
+
+            <Style Selector="TextBlock">
+              <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+          </StackPanel.Styles>
+
+          <StackPanel Orientation="Horizontal" Spacing="20">
+            <StackPanel Classes="benefit" Orientation="Horizontal" Spacing="10">
+              <PathIcon Data="{StaticResource shield_regular}" />
+              <TextBlock Text="Trustless" />
+            </StackPanel>
+
+            <StackPanel Classes="benefit" Orientation="Horizontal" Spacing="10">
+              <PathIcon Data="{StaticResource private_regular}" />
+              <TextBlock Text="Private" />
+            </StackPanel>
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal" Spacing="20">
+            <StackPanel Classes="benefit" Orientation="Horizontal" Spacing="10">
+              <PathIcon Data="{StaticResource fingerprint_regular}" />
+              <TextBlock Text="Anonymous" />
+            </StackPanel>
+
+            <StackPanel Classes="benefit" Orientation="Horizontal" Spacing="10">
+              <PathIcon Data="{StaticResource heart_regular}" />
+              <TextBlock Text="Free and Open Source" />
+            </StackPanel>
+          </StackPanel>
+        </StackPanel>
+
+      </DockPanel>
+
+      <StackPanel Spacing="8" TextBlock.FontSize="12" Margin="0 38 0 0" DockPanel.Dock="Top">
+        <TextBlock TextWrapping="Wrap">
+          Being put in a position to trust someone is always uncomfortable. Especially regarding personal information or your money.
+        </TextBlock>
+
+        <StackPanel Orientation="Horizontal" Spacing="04">
+          <TextBlock>
+            This is why Wasabi Wallet is trustless by design.
+          </TextBlock>
+        </StackPanel>
+
+        <TextBlock>
+          We do not, have not and we never will collect information from you.
+        </TextBlock>
+
+        <TextBlock>
+          We live in a world where your information is being used to typecast, manipulate and surveil you.
+        </TextBlock>
+
+        <TextBlock>
+          What you do with your Bitcoin is your business.
+        </TextBlock>
+
+        <TextBlock>
+          Use Wasabi Wallet to retain your individuality, regain your identity and ultimately, reclaim your privacy.
+        </TextBlock>
+
+        <TextBlock>
+          We let you control what you reveal about your Bitcoin life.
+        </TextBlock>
+      </StackPanel>
+
+      <Button HorizontalAlignment="Center" VerticalAlignment="Bottom" Classes="action" Content="Get Started"
+              DockPanel.Dock="Bottom" Margin="0 40 0 0"
+              Background="#45c2ba"
+              Command="{Binding GetStartedCommand}" />
+
     </DockPanel>
+
+
   </controls:ContentArea>
 </UserControl>
