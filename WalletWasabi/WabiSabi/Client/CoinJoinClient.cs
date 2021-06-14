@@ -157,11 +157,11 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private IEnumerable<Money> DecomposeAmounts(FeeRate feeRate, IEnumerable<Money>? forcedOutputDenominations = null)
 		{
-			var allDenominations = forcedOutputDenominations is null ? BaseDenominationGenerator.Generate() : forcedOutputDenominations;
+			var allDenominations = forcedOutputDenominations is null ? StandardDenomination.Values : forcedOutputDenominations;
 			GreedyDecomposer greedyDecomposer = new(allDenominations);
-			var amounts = Coins.Select(c => c.EffectiveValue(feeRate));
+			var amounts = Coins.Select(c => c.Amount);
 			var sum = amounts.Sum();
-			var denominations = greedyDecomposer.Decompose(sum);
+			var denominations = greedyDecomposer.Decompose(sum, feeRate);
 			if (sum != denominations.Sum())
 			{
 				throw new InvalidOperationException("Decomposed amounts and inputs sum not equal.");

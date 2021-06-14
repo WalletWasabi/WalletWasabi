@@ -17,7 +17,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public ImmutableList<Money> Denominations { get; }
 
-		public IEnumerable<Money> Decompose(Money amount)
+		public IEnumerable<Money> Decompose(Money amount, FeeRate feeRate)
 		{
 			var i = 0;
 			var denomination = Denominations[i];
@@ -26,7 +26,7 @@ namespace WalletWasabi.WabiSabi.Client
 				if (denomination <= amount)
 				{
 					yield return denomination;
-					amount -= denomination;
+					amount -= denomination + feeRate.GetFee(31); // TODO how to determine output size?;
 				}
 				else if ((i + 1) < Denominations.Count)
 				{
