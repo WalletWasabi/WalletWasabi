@@ -18,15 +18,10 @@ indent_size = 4
 # Formatting - set preferred newline characters
 end_of_line = lf
 
-[*.xaml]
+[*.{xaml,axaml}]
 
 indent_style = space
 indent_size = 2
-
-[*.axaml]
-
-indent_style = space
-indent_size = 4
 
 [*.cs]
 
