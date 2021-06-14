@@ -21,6 +21,7 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 		public int OutputsVsize => Outputs.Sum(x => x.ScriptPubKey.EstimateOutputVsize());
 
 		public int EstimatedVsize => MultipartyTransactionParameters.SharedOverhead + EstimatedInputsVsize + OutputsVsize;
+		public int MaxTransactionSize => Parameters.MaxTransactionSize;
 
 		// With no coordinator fees we can't ensure that the shared overhead
 		// of the transaction also pays at the nominal feerate so this will have

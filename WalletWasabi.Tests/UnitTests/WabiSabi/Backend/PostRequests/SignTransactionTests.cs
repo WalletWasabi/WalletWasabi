@@ -56,7 +56,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			WabiSabiConfig cfg = new();
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
-			var round = arena.Rounds.First().Value;
+			var round = arena.Rounds.First();
 
 			var req = new TransactionSignaturesRequest(round.Id, null!);
 			foreach (Phase phase in Enum.GetValues(typeof(Phase)))

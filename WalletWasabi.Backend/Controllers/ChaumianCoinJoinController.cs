@@ -344,7 +344,7 @@ namespace WalletWasabi.Backend.Controllers
 		/// </summary>
 		/// <param name="uniqueId">Unique identifier, obtained previously.</param>
 		/// <param name="roundId">Round identifier, obtained previously.</param>
-		/// <returns>Current phase and blinded output sinatures if Alice is found.</returns>
+		/// <returns>Current phase and blinded output signatures if Alice is found.</returns>
 		/// <response code="200">Current phase and blinded output signatures if Alice is found.</response>
 		/// <response code="400">The provided uniqueId or roundId was malformed.</response>
 		/// <response code="404">If Alice or the round is not found.</response>
@@ -407,7 +407,7 @@ namespace WalletWasabi.Backend.Controllers
 		/// <param name="uniqueId">Unique identifier, obtained previously.</param>
 		/// <param name="roundId">Round identifier, obtained previously.</param>
 		/// <response code="200">Alice or the round was not found.</response>
-		/// <response code="204">Alice sucessfully unconfirmed her participation.</response>
+		/// <response code="204">Alice successfully unconfirmed her participation.</response>
 		/// <response code="400">The provided uniqueId or roundId was malformed.</response>
 		/// <response code="410">Participation can be only unconfirmed from a Running round's InputRegistration phase.</response>
 		[HttpPost("unconfirmation")]

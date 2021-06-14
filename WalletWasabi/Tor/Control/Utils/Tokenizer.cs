@@ -1,6 +1,5 @@
 using System;
 using WalletWasabi.Tor.Control.Exceptions;
-using WalletWasabi.Tor.Control.Messages.CircuitStatus;
 
 namespace WalletWasabi.Tor.Control.Utils
 {
@@ -35,7 +34,8 @@ namespace WalletWasabi.Tor.Control.Utils
 		/// <summary>
 		/// Reads <c>&lt;KEY&gt;=&lt;VALUE&gt;</c>.
 		/// </summary>
-		public static (string key, string value, string remainder) ReadKeyValueAssignment(string input)
+		/// <param name="allowValueAsQuotedString">If <c>true</c>, reads <c>&lt;KEY&gt;=QuotedString</c>.</param>
+		public static (string key, string value, string remainder) ReadKeyValueAssignment(string input, bool allowValueAsQuotedString = false)
 		{
 			int valueStartAt = input.IndexOf('=');
 
@@ -45,8 +45,17 @@ namespace WalletWasabi.Tor.Control.Utils
 			}
 
 			string key = input[0..valueStartAt];
+			string remainder = input[(valueStartAt + 1)..];
+			string value;
 
-			(string value, string remainder) = ReadUntilSeparator(input[(valueStartAt+1)..]);
+			if (allowValueAsQuotedString && remainder.Length > 0 && remainder[0] == '"')
+			{
+				(value, remainder) = ReadQuotedString(remainder);
+			}
+			else
+			{
+				(value, remainder) = ReadUntilSeparator(remainder);
+			}
 
 			return (key, value, remainder);
 		}
@@ -58,12 +67,24 @@ namespace WalletWasabi.Tor.Control.Utils
 		public static (string value, string remainder) ReadKeyQuotedValueAssignment(string key, string input)
 		{
 			input = ReadExactString(key, input);
+			input = ReadExactString("=", input);
+			(string value, string remainder) = ReadQuotedString(input);
 
+			if (remainder != "")
+			{
+				remainder = remainder[1..];
+			}
+
+			return (value, remainder);
+		}
+
+		public static (string value, string remainder) ReadQuotedString(string input)
+		{
 			int startAt = input.IndexOf('"');
 
-			if (startAt == -1)
+			if (startAt != 0)
 			{
-				throw new TorControlReplyParseException("Missing opening quote character.");
+				throw new TorControlReplyParseException("Quote character must be the first character in the input.");
 			}
 
 			startAt++;

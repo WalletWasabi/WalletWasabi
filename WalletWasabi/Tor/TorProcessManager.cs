@@ -186,7 +186,7 @@ namespace WalletWasabi.Tor
 				}
 
 				// Leads to Tor termination because we sent TAKEOWNERSHIP command.
-				torControlClient.Dispose();
+				await torControlClient.DisposeAsync().ConfigureAwait(false);
 			}
 
 			// Dispose Tor process resources (does not stop/kill Tor process).
