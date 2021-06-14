@@ -19,8 +19,8 @@
 		<PackageReference Include="Avalonia" Version="0.10.6" />
 		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.6" />
 		<PackageReference Include="Avalonia.Diagnostics" Version="0.10.6" />
-		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.5" />
-		<PackageReference Include="Avalonia.Xaml.Interactivity" Version="0.10.5" />
+		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.6" />
+		<PackageReference Include="Avalonia.Xaml.Interactivity" Version="0.10.6" />
 		<PackageReference Include="Avalonia.Lottie" Version="0.10.3-cibuild14389" />
 	</ItemGroup>
 	<ItemGroup>
