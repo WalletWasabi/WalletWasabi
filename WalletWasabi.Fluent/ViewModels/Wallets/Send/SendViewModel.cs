@@ -188,11 +188,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_videocapture.Start();
 		}
 
-		private void ProcessFrame(object sender, EventArgs e)
+		private void ProcessFrame(object? sender, EventArgs e)
 		{
 			try
 			{
-				VideoCapture videocapture = (VideoCapture)sender;
+				VideoCapture videocapture = (VideoCapture)sender!;
 
 				if (_videocapture != null && _videocapture.Ptr != IntPtr.Zero)
 				{
@@ -203,6 +203,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					Image<Rgb, byte> image = frame.ToImage<Rgb, byte>();
 
 					System.Drawing.Bitmap bmp = image.ToBitmap();
+
+					frame.Dispose();
 
 					using (MemoryStream memory = new())
 					{

@@ -653,11 +653,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_videocapture.Start();
 		}
 
-		private void ProcessFrame(object sender, EventArgs e)
+		private void ProcessFrame(object? sender, EventArgs e)
 		{
 			try
 			{
-				VideoCapture videocapture = (VideoCapture)sender;
+				VideoCapture videocapture = (VideoCapture)sender!;
 
 				if (_videocapture != null && _videocapture.Ptr != IntPtr.Zero)
 				{
@@ -666,6 +666,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					videocapture.Retrieve(frame);
 
 					Image<Rgb, byte> image = frame.ToImage<Rgb, byte>();
+
+					frame.Dispose();
 
 					System.Drawing.Bitmap bmp = image.ToBitmap();
 
