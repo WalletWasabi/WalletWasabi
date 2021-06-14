@@ -253,6 +253,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		[InlineData("21,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1", "11,5 10,5 10,5 10,6", 42)]
 		[InlineData("21,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1", "10,5 10,5 10,5 10,6", 43)]
 		[InlineData("21,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1", "10,5 10,5 10,5 10,5", 42)]
+		[InlineData("99991099,19919 39991099,19919 29991099,19919 9991099,19919 19991099,19919", "134221727,31 50003999,31 266143,31 14352906,31 1066881,31", 14)]
 		public async void ResolveCredentialDependenciesAsync(string inputs, string outputs, int finalVertexCount)
 		{
 			// blackbox tests (apart from finalVertexCount, which leaks
@@ -270,6 +271,13 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			// the resulting graph can be rendered with graphviz (dot -Tpng -O *.dot)
 			AssertResolvedGraphInvariants(g, inputValues, outputValues);
 			Assert.Equal(finalVertexCount, g.Vertices.Count);
+
+			foreach (var node in g.Reissuances)
+			{
+				var inputAmountSum = g.InEdges(node, CredentialType.Amount).Sum(cd => (decimal)cd.Value);
+				var outputAmountSum = g.OutEdges(node, CredentialType.Amount).Sum(cd => (decimal)cd.Value);
+				Assert.Equal(inputAmountSum, outputAmountSum);
+			}
 
 			// TODO when sum(in) == sum(out) for all credential types, also
 			// verify the reverse graph can be resolved.
