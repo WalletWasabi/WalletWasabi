@@ -24,7 +24,7 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 
 		public bool ConfirmedConnection { get; set; } = false;
 
-		public long CalculateRemainingVsizeCredentials(uint maxRegistrableSize) => maxRegistrableSize - TotalInputVsize;
+		public long CalculateRemainingVsizeCredentials(int maxRegistrableSize) => maxRegistrableSize - TotalInputVsize;
 
 		public Money CalculateRemainingAmountCredentials(FeeRate feeRate) => TotalInputAmount - feeRate.GetFee(TotalInputVsize);
 
