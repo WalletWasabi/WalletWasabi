@@ -13,13 +13,13 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 		private static IEnumerable<long> Multiple(IEnumerable<long> coefficients, IEnumerable<long> values) =>
 			values
 			.SelectMany(c => coefficients, (v, c) => c * v)
-			.TakeWhile(x => x < ProtocolConstants.MaxAmountPerAlice);
+			.TakeWhile(x => x <= ProtocolConstants.MaxAmountPerAlice);
 
 		private static IEnumerable<long> PowersOf(int b) =>
 			Enumerable
 			.Range(0, int.MaxValue)
 			.Select(x => (long)Math.Pow(b, x))
-			.TakeWhile(x => x < ProtocolConstants.MaxAmountPerAlice);
+			.TakeWhile(x => x <= ProtocolConstants.MaxAmountPerAlice);
 
 		private static IEnumerable<Money> Generate()
 		{
