@@ -36,6 +36,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		[AutoNotify] private string _title = "Wasabi Wallet";
 		[AutoNotify] private WindowState _windowState;
 		[AutoNotify] private bool _isLoaded;
+		[AutoNotify] private bool _isSetup;
 
 		public MainViewModel()
 		{
@@ -99,9 +100,13 @@ namespace WalletWasabi.Fluent.ViewModels
 			{
 				if (!Services.WalletManager.HasWallet())
 				{
+					IsSetup = false;
+
 					await _dialogScreen.NavigateDialogAsync(new WelcomePageViewModel());
 
 					_dialogScreen.To(_addWalletPage, NavigationMode.Clear);
+
+					IsSetup = true;
 				}
 			});
 		}
