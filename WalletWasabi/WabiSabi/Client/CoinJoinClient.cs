@@ -56,7 +56,7 @@ namespace WalletWasabi.WabiSabi.Client
 			var outputValues = DecomposeAmounts(roundState.FeeRate, forcedOutputDenominations);
 
 			// Get all locked internal keys we have and assert we have enough.
-			Keymanager.AssertLockedInternalKeysIndexed(howMany: Coins.Count());
+			Keymanager.AssertLockedInternalKeysIndexed(howMany: outputValues.Count());
 			var allLockedInternalKeys = Keymanager.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked);
 			var outputTxOuts = outputValues.Zip(allLockedInternalKeys, (amount, hdPubKey) => new TxOut(amount, hdPubKey.P2wpkhScript));
 
