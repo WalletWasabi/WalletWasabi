@@ -141,7 +141,7 @@
 
 				<DockPanel IsVisible="{Binding IsQrPanelVisible}">
 					<Label DockPanel.Dock="Left" Content="_QRCamera:" Target="qrcamera" />
-					<Image Source="{Binding TestImage}" Width="300" Height="100" Name="testImage" />
+					<Image Source="{Binding TestImage}" Width="250" Height="250" Name="testImage" />
 				</DockPanel>
 
 				<DockPanel>
