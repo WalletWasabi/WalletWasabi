@@ -161,12 +161,7 @@ namespace WalletWasabi.WabiSabi.Client
 			GreedyDecomposer greedyDecomposer = new(allDenominations);
 			var amounts = Coins.Select(c => c.Amount);
 			var sum = amounts.Sum();
-			var denominations = greedyDecomposer.Decompose(sum, feeRate.GetFee(31));
-			if (sum != denominations.Sum())
-			{
-				throw new InvalidOperationException("Decomposed amounts and inputs sum not equal.");
-			}
-			return amounts;
+			return greedyDecomposer.Decompose(sum, feeRate.GetFee(31));
 		}
 
 		private IEnumerable<IEnumerable<(ulong RealAmountCredentialValue, ulong RealVsizeCredentialValue, Money Value)>> CreatePlan(

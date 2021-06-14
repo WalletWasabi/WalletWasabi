@@ -57,6 +57,9 @@ namespace WalletWasabi.WabiSabi.Client
 			List<SmartRequestNode> smartRequestNodes = new();
 			List<Task> alltask = new();
 
+			using CancellationTokenSource ctsOnError = new CancellationTokenSource();
+			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctsOnError.Token);
+
 			foreach (var node in Graph.Reissuances)
 			{
 				var inputAmountEdgeTasks = Graph.InEdges(node, CredentialType.Amount).Select(edge => DependencyTasks[edge].Task);
@@ -74,9 +77,20 @@ namespace WalletWasabi.WabiSabi.Client
 					outputAmountEdgeTaskCompSources,
 					outputVsizeEdgeTaskCompSources);
 
-				var task = smartRequestNode.StartAsync(bobClient, requestedAmounts, requestedVSizes, cancellationToken);
+				var task = smartRequestNode
+					.StartAsync(bobClient, requestedAmounts, requestedVSizes, linkedCts.Token)
+					.ContinueWith((t) =>
+				{
+					if (t.IsFaulted && t.Exception is { } exception)
+					{
+						// If one task is failing, cancel all the tasks and throw.
+						ctsOnError.Cancel();
+						throw exception;
+					}
+				}, linkedCts.Token);
 				alltask.Add(task);
 			}
+
 			await Task.WhenAll(alltask).ConfigureAwait(false);
 
 			var amountEdges = Graph.Outputs.SelectMany(node => Graph.InEdges(node, CredentialType.Amount));
