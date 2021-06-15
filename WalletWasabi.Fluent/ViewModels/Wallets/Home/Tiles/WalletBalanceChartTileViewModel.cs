@@ -200,7 +200,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				const double Speed = 0.05;
 				const int Frames = (int) (1 / Speed);
 				var easing = new SplineEasing();
-				var cache = PolyLineMorph.ToCache(source, target, 0.01, easing);
+				var cache = PolyLineMorph.ToCache(source, target, Speed, easing);
 				var frame = 0;
 
 				_timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1 / 60.0) };
