@@ -95,16 +95,22 @@ namespace WalletWasabi.Fluent.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => IsMainContentEnabled = !x);
 
+			IsSetup = !Services.UiConfig.Oobe;
+
 			RxApp.MainThreadScheduler.Schedule(async () =>
 			{
-				IsSetup = true;
-
-				//if (!Services.WalletManager.HasWallet())
+				if (!Services.WalletManager.HasWallet() || Services.UiConfig.Oobe)
 				{
 					IsSetup = false;
 
 					await _dialogScreen.NavigateDialogAsync(new WelcomePageViewModel());
 
+					Services.UiConfig.Oobe = false;
+					IsSetup = true;
+				}
+
+				if (!Services.WalletManager.HasWallet())
+				{
 					_dialogScreen.To(_addWalletPage, NavigationMode.Clear);
 				}
 			});
