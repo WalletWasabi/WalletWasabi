@@ -440,11 +440,13 @@ EOS
 The following command line adds a welcome banner indicating the ssh logged user that he is in the production server.
 
 ```sh
-sudo tee -a /etc/motd <<EOS
+sudo pico /etc/motd
+```
+
+```
 ****************************************************************************
-*** Attention! Wasabi PRODUCTION server                                  ***
+***            Attention! Wasabi PRODUCTION server                       ***
 ****************************************************************************
-EOS
 ```
 
 ## Prompt
