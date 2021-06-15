@@ -54,8 +54,33 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 		public static void To(PolyLine source, PolyLine target, double progress)
 		{
-			Debug.Assert(source.XValues.Count == target.XValues.Count);
-			Debug.Assert(source.YValues.Count == target.YValues.Count);
+			//Debug.Assert(source.XValues.Count == target.XValues.Count);
+			//Debug.Assert(source.YValues.Count == target.YValues.Count);
+
+			if (source.XValues.Count < target.XValues.Count)
+			{
+				var toAdd = target.XValues.Count - source.XValues.Count;
+				var x = source.XValues.Last();
+				var y = source.YValues.Last();
+
+				for (var i = 0; i < toAdd; i++)
+				{
+					source.XValues.Add(x);
+					source.YValues.Add(y);
+				}
+			}
+			else if (source.XValues.Count > target.XValues.Count)
+			{
+				var toAdd = source.XValues.Count - target.XValues.Count;
+				var x = target.XValues.Last();
+				var y = target.YValues.Last();
+
+				for (var i = 0; i < toAdd; i++)
+				{
+					target.XValues.Add(x);
+					target.YValues.Add(y);
+				}
+			}
 
 			for (int j = 0; j < source.XValues.Count; j++)
 			{
