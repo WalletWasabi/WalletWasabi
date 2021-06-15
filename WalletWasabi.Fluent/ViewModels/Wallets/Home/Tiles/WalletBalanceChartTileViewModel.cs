@@ -190,6 +190,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				XLabels = null;
 			}
 
+			UpdateValues(source, target);
+		}
+
+		private void UpdateValues(PolyLine source, PolyLine target)
+		{
 			if (source.XValues.Count > 0 && target.XValues.Count > 0)
 			{
 				const double Speed = 0.05;
@@ -198,7 +203,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				var cache = PolyLineMorph.ToCache(source, target, 0.01, easing);
 				var frame = 0;
 
-				_timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1 / 60.0) };
+				_timer = new DispatcherTimer {Interval = TimeSpan.FromSeconds(1 / 60.0)};
 				_timer.Tick += (sender, e) =>
 				{
 					XValues = cache[frame].XValues;
