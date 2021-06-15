@@ -239,7 +239,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				XLabels = null;
 			}
 
-			if (source.XValues.Count == target.XValues.Count)
+			if (source.XValues.Count > 0 && target.XValues.Count > 0)
 			{
 				var speed = 0.01;
 				var easing = new SplineEasing();
