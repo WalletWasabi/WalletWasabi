@@ -109,7 +109,12 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 					}
 				}
 
-				foreach (var tx in ex2.Message.Split(":::", StringSplitOptions.RemoveEmptyEntries).Skip(1).Select(x => new SmartTransaction(Transaction.Parse(x, Network), Height.Mempool)))
+				// Exception message is in form: 'message:::tx1:::tx2:::etc.' where txs are encoded in HEX.
+				IEnumerable<SmartTransaction> txs = ex2.Message.Split(":::", StringSplitOptions.RemoveEmptyEntries)
+					.Skip(1) // Skip the exception message.
+					.Select(x => new SmartTransaction(Transaction.Parse(x, Network), Height.Mempool));
+
+				foreach (var tx in txs)
 				{
 					WalletManager.Process(tx);
 				}
