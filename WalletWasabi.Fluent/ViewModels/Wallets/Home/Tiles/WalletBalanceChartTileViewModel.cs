@@ -16,8 +16,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 {
 	public partial class WalletBalanceChartTileViewModel : TileViewModel
 	{
-		private DispatcherTimer? _timer;
 		private readonly ObservableCollection<HistoryItemViewModel> _history;
+		private DispatcherTimer? _timer;
 		[AutoNotify] private ObservableCollection<double> _yValues;
 		[AutoNotify] private ObservableCollection<double> _xValues;
 		[AutoNotify] private double? _xMinimum;
@@ -198,7 +198,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				var cache = PolyLineMorph.ToCache(source, target, 0.01, easing);
 				var frame = 0;
 
-				_timer = new DispatcherTimer {Interval = TimeSpan.FromSeconds(1 / 60.0)};
+				_timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1 / 60.0) };
 				_timer.Tick += (sender, e) =>
 				{
 					XValues = cache[frame].XValues;
