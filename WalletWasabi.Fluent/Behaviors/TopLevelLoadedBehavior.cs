@@ -10,13 +10,16 @@ using Avalonia.VisualTree;
 
 namespace WalletWasabi.Fluent.Behaviors
 {
-
-
 	public class TopLevelLoadedBehavior : AttachedToVisualTreeBehavior<Visual>, IRenderLoopTask
 	{
+		private bool _triggered;
+
 		private IDisposable? _disposable;
+
 		public static readonly StyledProperty<bool> IsLoadedProperty =
 			AvaloniaProperty.Register<TopLevelLoadedBehavior, bool>(nameof(IsLoaded), defaultBindingMode: BindingMode.TwoWay);
+
+		public bool NeedsUpdate { get; }
 
 		public bool IsLoaded
 		{
@@ -44,11 +47,8 @@ namespace WalletWasabi.Fluent.Behaviors
 
 		public void Update(TimeSpan time)
 		{
-			//throw new NotImplementedException();
+			// throw new NotImplementedException();
 		}
-
-		private bool _triggered;
-
 
 		public void Render()
 		{
@@ -65,7 +65,5 @@ namespace WalletWasabi.Fluent.Behaviors
 				});
 			}
 		}
-
-		public bool NeedsUpdate { get; }
 	}
 }
