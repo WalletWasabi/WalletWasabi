@@ -9,6 +9,7 @@ using Avalonia.Threading;
 using DynamicData.Binding;
 using NBitcoin;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.MathNet;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 
@@ -52,34 +53,48 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			return cache;
 		}
 
+		public static void InterpolatePolyLine(double[] xs, double[] ys, int count, out ObservableCollection<double> xValues, out ObservableCollection<double> yValues)
+		{
+			var a = xs.Min();
+			var b = xs.Max();
+			var range = b - a;
+			var step = range / count;
+			var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
+
+			xValues = new ObservableCollection<double>();
+			yValues = new ObservableCollection<double>();
+
+			for (var x = a + step; x < b; x += step)
+			{
+				var y = spline.Interpolate(x);
+				xValues.Add(x);
+				yValues.Add(y);
+			}
+		}
+
 		public static void To(PolyLine source, PolyLine target, double progress)
 		{
-			//Debug.Assert(source.XValues.Count == target.XValues.Count);
-			//Debug.Assert(source.YValues.Count == target.YValues.Count);
-
 			if (source.XValues.Count < target.XValues.Count)
 			{
-				var toAdd = target.XValues.Count - source.XValues.Count;
-				var x = source.XValues.Last();
-				var y = source.YValues.Last();
-
-				for (var i = 0; i < toAdd; i++)
-				{
-					source.XValues.Add(x);
-					source.YValues.Add(y);
-				}
+				InterpolatePolyLine(
+					source.XValues.ToArray(),
+					source.YValues.ToArray(),
+					target.XValues.Count,
+					out var xValues,
+					out var yValues);
+				source.XValues = xValues;
+				source.YValues = yValues;
 			}
 			else if (source.XValues.Count > target.XValues.Count)
 			{
-				var toAdd = source.XValues.Count - target.XValues.Count;
-				var x = target.XValues.Last();
-				var y = target.YValues.Last();
-
-				for (var i = 0; i < toAdd; i++)
-				{
-					target.XValues.Add(x);
-					target.YValues.Add(y);
-				}
+				InterpolatePolyLine(
+					target.XValues.ToArray(),
+					target.YValues.ToArray(),
+					source.XValues.Count,
+					out var xValues,
+					out var yValues);
+				target.XValues = xValues;
+				target.YValues = yValues;
 			}
 
 			for (int j = 0; j < source.XValues.Count; j++)
