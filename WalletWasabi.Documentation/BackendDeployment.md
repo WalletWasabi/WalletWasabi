@@ -235,18 +235,8 @@ cd WalletWasabi
 dotnet restore
 dotnet build
 dotnet publish WalletWasabi.Backend --configuration Release --self-contained false
-dotnet WalletWasabi.Backend/bin/Release/net5.0/publish/WalletWasabi.Backend.dll
 cd ..
-cat .walletwasabi/backend/Logs.txt
-pico .walletwasabi/backend/Config.json
-pico .walletwasabi/backend/CcjRoundConfig.json
-dotnet WalletWasabi/WalletWasabi.Backend/bin/Release/net5.0/publish/WalletWasabi.Backend.dll
-cat .walletwasabi/backend/Logs.txt
 ```
-
-# 7. Monitor the Apps
-
-## WalletWasabi.Backend
 
 https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/linux-nginx?view=aspnetcore-2.0&tabs=aspnetcore2x
 
@@ -276,7 +266,11 @@ sudo systemctl enable walletwasabi.service
 sudo systemctl start walletwasabi.service
 systemctl status walletwasabi.service
 tail -10000 .walletwasabi/backend/Logs.txt
-```
+
+pico .walletwasabi/backend/Config.json
+pico .walletwasabi/backend/CcjRoundConfig.json
+sudo systemctl start walletwasabi.service
+tail -10000 .walletwasabi/backend/Logs.txt
 
 ## Tor
 
