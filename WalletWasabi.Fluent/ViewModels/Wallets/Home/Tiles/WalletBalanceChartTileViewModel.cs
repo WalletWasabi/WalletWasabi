@@ -199,6 +199,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			{
 				const double Speed = 0.05;
 				const int Frames = (int) (1 / Speed);
+
+				// TODO:
+				// source.Normalize();
+				// target.Normalize();
+
 				var easing = new SplineEasing();
 				var cache = PolyLineMorph.ToCache(source, target, Speed, easing);
 				var frame = 0;
