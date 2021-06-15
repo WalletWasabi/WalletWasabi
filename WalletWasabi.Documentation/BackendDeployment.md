@@ -49,7 +49,7 @@ pgrep -ilfa bitcoin
 WalletWasabi.Backend.[TestNet/Main]
 
 ## Image
-Ubuntu 18.04 x64
+Ubuntu 20.04 x64
 
 ## Region
 Mostly anywhere is fine, except the US or China.
@@ -62,7 +62,7 @@ https://bitcoin.org/en/full-node#minimum-requirements
 
 # 2. Setup Server
 
-https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-18-04
+https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-20-04
 
 ## SSH in as Root
 
@@ -83,7 +83,7 @@ usermod -aG sudo user
 By default a process can keep open up to 4096 files. Increase that limit for the `user` user as follows:
 
 ```sh
-sudo pico /etc/security/limits.conf
+pico /etc/security/limits.conf
 ```
 
 ```
@@ -132,23 +132,14 @@ export DOTNET_CLI_TELEMETRY_OPTOUT=1
 
 ```sh
 sudo apt-get install tor
-```
-
-Check if Tor is already running in the background:
-
-```sh
 pgrep -ilfa tor
 sudo killall tor
-```
-
-Verify Tor is properly running:
-```sh
-tor
 ```
 
 Create torrc:
 
 ```sh
+mkdir ~/.walletwasabi
 sudo pico /etc/tor/torrc
 ```
 
@@ -178,25 +169,13 @@ Enable firewall:
 sudo ufw allow 80
 ```
 
+Start Tor and verify it is properly running:
+```sh
+tor
+pgrep -ilfa tor
+```
+
 **Backup the generated private key!**
-
-## Update Tor
-
-```
-$ sudo pico /etc/apt/sources.list
-
-Append these two lines:
-deb https://deb.torproject.org/torproject.org bionic main
-deb-src https://deb.torproject.org/torproject.org bionic main
-
-$ curl https://deb.torproject.org/torproject.org/A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc | gpg --import
-$ gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 > exported
-$ sudo apt-key add exported
-$ rm exported
-$ sudo apt update
-$ sudo apt install tor
-IMPORTANT! Press N otherwise it will replace the torrc with a default version and bye wasabi hidden service
-```
 
 # 5. Install, Configure and Synchronize bitcoind (Bitcoin Knots)
 
@@ -232,7 +211,7 @@ https://github.com/MrChrisJ/fullnode/issues/18
 
 ```sh
 sudo ufw allow ssh
-sudo ufw allow [18333/8333]
+sudo ufw allow [8333/18333]
 bitcoind
 bitcoin-cli getblockcount
 bitcoin-cli stop
@@ -256,18 +235,8 @@ cd WalletWasabi
 dotnet restore
 dotnet build
 dotnet publish WalletWasabi.Backend --configuration Release --self-contained false
-dotnet WalletWasabi.Backend/bin/Release/net5.0/publish/WalletWasabi.Backend.dll
 cd ..
-cat .walletwasabi/backend/Logs.txt
-pico .walletwasabi/backend/Config.json
-pico .walletwasabi/backend/CcjRoundConfig.json
-dotnet WalletWasabi/WalletWasabi.Backend/bin/Release/net5.0/publish/WalletWasabi.Backend.dll
-cat .walletwasabi/backend/Logs.txt
 ```
-
-# 7. Monitor the Apps
-
-## WalletWasabi.Backend
 
 https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/linux-nginx?view=aspnetcore-2.0&tabs=aspnetcore2x
 
@@ -296,6 +265,11 @@ WantedBy=multi-user.target
 sudo systemctl enable walletwasabi.service
 sudo systemctl start walletwasabi.service
 systemctl status walletwasabi.service
+tail -10000 .walletwasabi/backend/Logs.txt
+
+pico .walletwasabi/backend/Config.json
+pico .walletwasabi/backend/CcjRoundConfig.json
+sudo systemctl start walletwasabi.service
 tail -10000 .walletwasabi/backend/Logs.txt
 ```
 
@@ -466,11 +440,13 @@ EOS
 The following command line adds a welcome banner indicating the ssh logged user that he is in the production server.
 
 ```sh
-sudo tee -a /etc/motd <<EOS
+sudo pico /etc/motd
+```
+
+```
 ****************************************************************************
-*** Attention! Wasabi PRODUCTION server                                  ***
+***            Attention! Wasabi PRODUCTION server                       ***
 ****************************************************************************
-EOS
 ```
 
 ## Prompt
