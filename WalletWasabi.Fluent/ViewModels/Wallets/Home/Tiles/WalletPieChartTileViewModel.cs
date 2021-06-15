@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
-using NBitcoin;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 {
 	public readonly struct DataLegend
 	{
-		public DataLegend(Money amount, string label, string hexColor, double percentShare)
+		public DataLegend(string amount, string label, string hexColor, double percentShare)
 		{
 			Amount = amount;
 			Label = label;
@@ -18,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			PercentShare = percentShare;
 		}
 
-		public Money Amount { get; }
+		public string Amount { get; }
 		public string Label { get; }
 		public string HexColor { get; }
 		public double PercentShare { get; }
@@ -26,8 +26,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 	public partial class WalletPieChartTileViewModel : TileViewModel
 	{
-		private readonly Wallet _wallet;
 		private readonly IObservable<Unit> _balanceChanged;
+		private readonly Wallet _wallet;
 
 		[AutoNotify] private IList<(string color, double percentShare)>? _testDataPoints;
 		[AutoNotify] private IList<DataLegend>? _testDataPointsLegend;
@@ -55,12 +55,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			var privateCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold);
 			var normalCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold);
-			var totalCount = (double)_wallet.Coins.Count();
+			var totalCount = (double) _wallet.Coins.Count();
 
-			var pcPrivate = (privateCoins.Count() / totalCount);
-			var pcNormal = (normalCoins.Count() / totalCount);
+			var pcPrivate = privateCoins.Count() / totalCount;
+			var pcNormal = normalCoins.Count() / totalCount;
 
-			TestDataPoints = new List<(string, double)>()
+			TestDataPoints = new List<(string, double)>
 			{
 				("#72BD81", pcPrivate),
 				("#F9DE7D", pcNormal)
@@ -68,8 +68,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			TestDataPointsLegend = new List<DataLegend>
 			{
-				new(privateCoins.TotalAmount(), "Private", "#72BD81", pcPrivate),
-				new(normalCoins.TotalAmount(), "Not Private", "#F9DE7D", pcNormal)
+				new($"{privateCoins.TotalAmount().FormattedBtc()} BTC", "Private", "#72BD81", pcPrivate),
+				new($"{normalCoins.TotalAmount().FormattedBtc()} BTC", "Not Private", "#F9DE7D", pcNormal)
 			};
 		}
 	}
