@@ -33,7 +33,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			{
 				var loop = AvaloniaLocator.Current.GetService<IRenderLoop>();
 
-				_disposable = Disposable.Create(() => { loop.Remove(this); });
+				_disposable = Disposable.Create(() => loop.Remove(this));
 
 				loop.Add(this);
 			}
