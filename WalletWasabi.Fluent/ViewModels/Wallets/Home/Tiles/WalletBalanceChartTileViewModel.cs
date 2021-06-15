@@ -203,7 +203,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				var cache = PolyLineMorph.ToCache(source, target, 0.01, easing);
 				var frame = 0;
 
-				_timer = new DispatcherTimer {Interval = TimeSpan.FromSeconds(1 / 60.0)};
+				_timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1 / 60.0) };
 				_timer.Tick += (sender, e) =>
 				{
 					XValues = cache[frame].XValues;
