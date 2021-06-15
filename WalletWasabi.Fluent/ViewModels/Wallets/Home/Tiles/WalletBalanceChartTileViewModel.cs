@@ -16,6 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 {
 	public partial class WalletBalanceChartTileViewModel : TileViewModel
 	{
+		private DispatcherTimer? _timer;
 		private readonly ObservableCollection<HistoryItemViewModel> _history;
 		[AutoNotify] private ObservableCollection<double> _yValues;
 		[AutoNotify] private ObservableCollection<double> _xValues;
@@ -99,6 +100,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 		private void UpdateSample(TimeSpan sampleTime, TimeSpan sampleBackFor)
 		{
+			if (_timer is not null)
+			{
+				_timer.Stop();
+				_timer = null;
+			}
+
 			var sampleLimit = DateTimeOffset.Now - sampleBackFor;
 
 			XMinimum = sampleLimit.ToUnixTimeMilliseconds();
@@ -185,15 +192,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			if (source.XValues.Count > 0 && target.XValues.Count > 0)
 			{
-				var speed = 0.01;
+				var speed = 0.05;
 				var easing = new SplineEasing();
 				var cache = PolyLineMorph.ToCache(source, target, 0.01, easing);
 
 				int frames = (int) (1 / speed);
 				var frame = 0;
-				var timer = new DispatcherTimer();
-				timer.Interval = TimeSpan.FromSeconds(1 / 60.0);
-				timer.Tick += (sender, e) =>
+				_timer = new DispatcherTimer();
+				_timer.Interval = TimeSpan.FromSeconds(1 / 60.0);
+				_timer.Tick += (sender, e) =>
 				{
 					XValues = cache[frame].XValues;
 					YValues = cache[frame].YValues;
@@ -201,10 +208,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 					frame++;
 					if (frame == frames)
 					{
-						timer.Stop();
+						_timer?.Stop();
 					}
 				};
-				timer.Start();
+				_timer?.Start();
 			}
 			else
 			{
