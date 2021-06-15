@@ -49,7 +49,7 @@ pgrep -ilfa bitcoin
 WalletWasabi.Backend.[TestNet/Main]
 
 ## Image
-Ubuntu 18.04 x64
+Ubuntu 20.04 x64
 
 ## Region
 Mostly anywhere is fine, except the US or China.
@@ -62,7 +62,7 @@ https://bitcoin.org/en/full-node#minimum-requirements
 
 # 2. Setup Server
 
-https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-18-04
+https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-20-04
 
 ## SSH in as Root
 
