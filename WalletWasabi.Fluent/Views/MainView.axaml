@@ -61,9 +61,9 @@
       <ExperimentalAcrylicBorder.Material>
         <ExperimentalAcrylicMaterial BackgroundSource="Digger"
                                      TintColor="{DynamicResource SystemAltHighColor}"
-                                     TintOpacity="1"
+                                     TintOpacity="0.8"
                                      FallbackColor="{DynamicResource AcrylicFallbackColor}"
-                                     MaterialOpacity="0.55" />
+                                     MaterialOpacity="0.2" />
       </ExperimentalAcrylicBorder.Material>
       <Image Source="/Assets/oobe.png" Stretch="UniformToFill" />
     </ExperimentalAcrylicBorder>

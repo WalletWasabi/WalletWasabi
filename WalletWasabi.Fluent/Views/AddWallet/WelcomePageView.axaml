@@ -15,7 +15,7 @@
     EnableBack="False"
     EnableNext="False"
     ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <StackPanel Spacing="40">
+    <StackPanel Spacing="32">
       <StackPanel>
         <DockPanel>
           <StackPanel Spacing="36" DockPanel.Dock="Left">
