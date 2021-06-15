@@ -132,18 +132,8 @@ export DOTNET_CLI_TELEMETRY_OPTOUT=1
 
 ```sh
 sudo apt-get install tor
-```
-
-Check if Tor is already running in the background:
-
-```sh
 pgrep -ilfa tor
 sudo killall tor
-```
-
-Verify Tor is properly running:
-```sh
-tor
 ```
 
 Create torrc:
@@ -177,6 +167,12 @@ HiddenServiceSingleHopMode 1
 Enable firewall:
 ```sh
 sudo ufw allow 80
+```
+
+Start Tor and verify it is properly running:
+```sh
+tor
+pgrep -ilfa tor
 ```
 
 **Backup the generated private key!**
