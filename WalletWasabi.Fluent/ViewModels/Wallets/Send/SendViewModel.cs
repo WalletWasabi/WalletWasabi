@@ -74,6 +74,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private bool _updatingCurrentValue;
 		private double _lastXAxisCurrentValue;
 		private FeeRate _feeRate;
+		private VideoCapture _videocapture;
 
 		public SendViewModel(Wallet wallet) : base(NavigationMode.Normal)
 		{
@@ -131,8 +132,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			EnableBack = true;
 
 			PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
-			QRCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteQRValueAsync());
 			AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
+			QRCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteQRValueAsync());
 			BackCommand = ReactiveCommand.Create(() =>
 			{
 				CloseWebCam();
@@ -157,9 +158,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public ICommand PasteCommand { get; }
 
-		public ICommand QRCommand { get; }
-
 		public ICommand AutoPasteCommand { get; }
+
+		public ICommand QRCommand { get; }
 
 		private async Task OnAutoPasteAsync()
 		{
@@ -184,8 +185,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			_parsingUrl = false;
 		}
-
-		private VideoCapture _videocapture;
 
 		private async Task OnPasteQRValueAsync()
 		{
