@@ -149,12 +149,12 @@ tor
 Create torrc:
 
 ```sh
+mkdir ~/.walletwasabi
 sudo pico /etc/tor/torrc
 ```
 
 ```sh
-mkdir ~/.walletwasabi
-Log notice file ~/.walletwasabi/notices.log
+Log notice file /home/user/.walletwasabi/notices.log
 
 HiddenServiceDir /home/user/.hidden_service_v3
 HiddenServiceVersion 3
