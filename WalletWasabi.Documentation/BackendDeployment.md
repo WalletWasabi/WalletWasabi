@@ -180,24 +180,6 @@ sudo ufw allow 80
 
 **Backup the generated private key!**
 
-## Update Tor
-
-```
-$ sudo pico /etc/apt/sources.list
-
-Append these two lines:
-deb https://deb.torproject.org/torproject.org bionic main
-deb-src https://deb.torproject.org/torproject.org bionic main
-
-$ curl https://deb.torproject.org/torproject.org/A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc | gpg --import
-$ gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 > exported
-$ sudo apt-key add exported
-$ rm exported
-$ sudo apt update
-$ sudo apt install tor
-IMPORTANT! Press N otherwise it will replace the torrc with a default version and bye wasabi hidden service
-```
-
 # 5. Install, Configure and Synchronize bitcoind (Bitcoin Knots)
 
 https://bitcoinknots.org/
