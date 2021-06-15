@@ -35,7 +35,6 @@ namespace WalletWasabi.Fluent.ViewModels
 		[AutoNotify] private StatusBarViewModel _statusBar;
 		[AutoNotify] private string _title = "Wasabi Wallet";
 		[AutoNotify] private WindowState _windowState;
-		[AutoNotify] private bool _isLoaded;
 		[AutoNotify] private bool _isSetup;
 
 		public MainViewModel()
@@ -99,8 +98,8 @@ namespace WalletWasabi.Fluent.ViewModels
 			RxApp.MainThreadScheduler.Schedule(async () =>
 			{
 				IsSetup = true;
-				
-				if (!Services.WalletManager.HasWallet())
+
+				//if (!Services.WalletManager.HasWallet())
 				{
 					IsSetup = false;
 

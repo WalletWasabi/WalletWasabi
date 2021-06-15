@@ -12,32 +12,8 @@
              x:DataType="vm:MainViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.MainView">
-  <i:Interaction.Behaviors>
-    <behaviors:TopLevelLoadedBehavior IsLoaded="{Binding IsLoaded}" />
-  </i:Interaction.Behaviors>
   <Panel>
-    <Panel.Styles>
-      <Style Selector="SplitView.presenting">
-        <Style.Animations>
-          <Animation Delay="0:0:0" Duration="0:0:4" Easing="{StaticResource FluentEasing}" FillMode="Forward">
-            <KeyFrame KeyTime="0">
-              <Setter Property="(ScaleTransform.ScaleX)" Value="1.1" />
-              <Setter Property="(ScaleTransform.ScaleY)" Value="1.1" />
-            </KeyFrame>
-            <KeyFrame KeyTime="0:0:2.5">
-              <Setter Property="(ScaleTransform.ScaleX)" Value="1.1" />
-              <Setter Property="(ScaleTransform.ScaleY)" Value="1.1" />
-            </KeyFrame>
-            <KeyFrame KeyTime="0:0:4">
-              <Setter Property="(ScaleTransform.ScaleX)" Value="1" />
-              <Setter Property="(ScaleTransform.ScaleY)" Value="1" />
-            </KeyFrame>
-          </Animation>
-        </Style.Animations>
-      </Style>
-    </Panel.Styles>
-
-    <SplitView Classes.presenting="{Binding IsLoaded}"
+    <SplitView
       IsEnabled="{Binding IsMainContentEnabled}"
       CompactPaneLength="{Binding NavBar.CurrentCompactPaneLength}"
       OpenPaneLength="{Binding NavBar.CurrentOpenPaneLength}"
@@ -139,12 +115,5 @@
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
       <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
-    <Panel IsHitTestVisible="False">
-      <Lottie IsEnabled="{Binding IsLoaded}"
-              Speed="1.25"
-              Stretch="UniformToFill"
-              RepeatCount="0"
-              Source="avares://WalletWasabi.Fluent/Assets/loadingscreen2.json" />
-    </Panel>
   </Panel>
 </UserControl>
