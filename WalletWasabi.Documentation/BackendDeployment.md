@@ -271,6 +271,7 @@ pico .walletwasabi/backend/Config.json
 pico .walletwasabi/backend/CcjRoundConfig.json
 sudo systemctl start walletwasabi.service
 tail -10000 .walletwasabi/backend/Logs.txt
+```
 
 ## Tor
 
