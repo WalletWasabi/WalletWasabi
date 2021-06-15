@@ -153,7 +153,8 @@ sudo pico /etc/tor/torrc
 ```
 
 ```sh
-Log notice file /home/user/.walletwasabi/notices.log
+mkdir ~/.walletwasabi
+Log notice file ~/.walletwasabi/notices.log
 
 HiddenServiceDir /home/user/.hidden_service_v3
 HiddenServiceVersion 3
