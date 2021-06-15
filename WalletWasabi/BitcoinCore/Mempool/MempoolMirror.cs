@@ -136,7 +136,7 @@ namespace WalletWasabi.BitcoinCore.Mempool
 				}
 			}
 
-			return spenders.Values.ToArray();
+			return spenders.Values;
 		}
 
 		public ISet<uint256> GetMempoolHashes()
