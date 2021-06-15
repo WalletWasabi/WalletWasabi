@@ -43,6 +43,7 @@ namespace WalletWasabi.WabiSabi.Client
 				inputAmountCredentials,
 				inputVsizeCredentials,
 				cancellationToken).ConfigureAwait(false);
+
 			foreach ((TaskCompletionSource<Credential> tcs, Credential credential) in OutputAmountCredentialTasks.Zip(result.RealAmountCredentials))
 			{
 				tcs.SetResult(credential);
