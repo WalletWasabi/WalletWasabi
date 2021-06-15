@@ -192,21 +192,20 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			if (source.XValues.Count > 0 && target.XValues.Count > 0)
 			{
-				var speed = 0.05;
+				const double Speed = 0.05;
+				const int Frames = (int) (1 / Speed);
 				var easing = new SplineEasing();
 				var cache = PolyLineMorph.ToCache(source, target, 0.01, easing);
-
-				int frames = (int) (1 / speed);
 				var frame = 0;
-				_timer = new DispatcherTimer();
-				_timer.Interval = TimeSpan.FromSeconds(1 / 60.0);
+
+				_timer = new DispatcherTimer {Interval = TimeSpan.FromSeconds(1 / 60.0)};
 				_timer.Tick += (sender, e) =>
 				{
 					XValues = cache[frame].XValues;
 					YValues = cache[frame].YValues;
 
 					frame++;
-					if (frame == frames)
+					if (frame == Frames)
 					{
 						_timer?.Stop();
 					}
