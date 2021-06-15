@@ -211,7 +211,7 @@ https://github.com/MrChrisJ/fullnode/issues/18
 
 ```sh
 sudo ufw allow ssh
-sudo ufw allow [18333/8333]
+sudo ufw allow [8333/18333]
 bitcoind
 bitcoin-cli getblockcount
 bitcoin-cli stop
