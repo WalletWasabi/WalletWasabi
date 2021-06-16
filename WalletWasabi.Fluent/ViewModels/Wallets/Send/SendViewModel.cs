@@ -189,7 +189,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private async Task OnPasteQRValueAsync()
 		{
-			_videocapture = new VideoCapture();
+			_videocapture = new VideoCapture(0, VideoCapture.API.DShow);
 			IsQrPanelVisible = true;
 			_videocapture.QueryFrame();
 			_videocapture.ImageGrabbed += ProcessFrame;
