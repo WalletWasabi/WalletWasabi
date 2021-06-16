@@ -1,6 +1,8 @@
 using NBitcoin;
 using NBitcoin.RPC;
 using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc.Models;
@@ -57,6 +59,8 @@ namespace WalletWasabi.BitcoinCore.Rpc
 		Task<BumpResponse> BumpFeeAsync(uint256 txid);
 
 		Task<Transaction> GetRawTransactionAsync(uint256 txid, bool throwIfNotFound = true);
+
+		Task<IEnumerable<Transaction>> GetRawTransactionsAsync(IEnumerable<uint256> txids, CancellationToken cancel);
 
 		Task<int> GetBlockCountAsync();
 

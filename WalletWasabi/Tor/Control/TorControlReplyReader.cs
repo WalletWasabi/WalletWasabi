@@ -30,6 +30,10 @@ namespace WalletWasabi.Tor.Control
 			{
 				line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
 			}
+			catch (OperationCanceledException)
+			{
+				throw;
+			}
 			catch (InvalidDataException e)
 			{
 				throw new TorControlReplyParseException("No reply line was received.", e);
@@ -94,8 +98,10 @@ namespace WalletWasabi.Tor.Control
 
 				responses.Add(line);
 
-				if (id == '+' && ".".Equals(line))
+				if (id == '+' && ".".Equals(line, StringComparison.Ordinal))
 				{
+					line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
+					responses.Add(line);
 					break;
 				}
 			}

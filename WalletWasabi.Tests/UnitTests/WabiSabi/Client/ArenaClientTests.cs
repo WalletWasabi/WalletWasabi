@@ -1,5 +1,6 @@
 using Moq;
 using NBitcoin;
+using NBitcoin.RPC;
 using System;
 using System.Linq;
 using System.Threading;
@@ -31,12 +32,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		{
 			var config = new WabiSabiConfig { MaxInputCountByRound = 1 };
 			var round = WabiSabiFactory.CreateRound(config);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, round);
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
-
 			using var key = new Key();
 			var outpoint = BitcoinFactory.CreateOutPoint();
-
 			var mockRpc = new Mock<IRPCClient>();
 			mockRpc.Setup(rpc => rpc.GetTxOutAsync(outpoint.Hash, (int)outpoint.N, true))
 				.ReturnsAsync(new NBitcoin.RPC.GetTxOutResponse
@@ -45,6 +42,21 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 					Confirmations = 200,
 					TxOut = new TxOut(Money.Coins(1m), key.PubKey.WitHash.GetAddress(Network.Main)),
 				});
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), It.IsAny<EstimateSmartFeeMode>()))
+				.ReturnsAsync(new EstimateSmartFeeResponse
+				{
+					Blocks = 1000,
+					FeeRate = new FeeRate(10m)
+				});
+			mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>()))
+				.ReturnsAsync(new MemPoolInfo
+				{
+					MinRelayTxFee = 1
+				});
+
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, mockRpc, round);
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
+
 			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
 			var wabiSabiApi = new WabiSabiController(coordinator);
 			var insecureRandom = new InsecureRandom();

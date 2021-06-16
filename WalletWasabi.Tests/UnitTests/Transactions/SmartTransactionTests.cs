@@ -199,18 +199,6 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 					}
 				}
 			}
-
-			// Null and empty arguments.
-			string input = $"{txHash}:{txHex}:{height}:{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}";
-			Network network = null;
-			Assert.Throws<ArgumentNullException>(() => SmartTransaction.FromLine(input, network));
-			network = Network.Main;
-			input = "";
-			Assert.Throws<ArgumentException>(() => SmartTransaction.FromLine(input, network));
-			input = " ";
-			Assert.Throws<ArgumentException>(() => SmartTransaction.FromLine(input, network));
-			input = null;
-			Assert.Throws<ArgumentNullException>(() => SmartTransaction.FromLine(input, network));
 		}
 
 		public static IEnumerable<object[]> GetSmartTransactionCombinations()
@@ -241,7 +229,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			};
 			var defaultHeight = new Height(0);
 
-			var blockHashes = new List<uint256>
+			var blockHashes = new List<uint256?>
 			{
 				null,
 				uint256.Parse("000000000000000000093e2e41b170cd9e10ed8a0469c9719abd227d5226672f")

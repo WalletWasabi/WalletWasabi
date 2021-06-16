@@ -53,7 +53,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			Assert.Empty(arena.Rounds);
 			await arena.StartAsync(CancellationToken.None).ConfigureAwait(false);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
-			var round = Assert.Single(arena.Rounds).Value;
+			var round = Assert.Single(arena.Rounds);
 
 			round.SetPhase(Phase.ConnectionConfirmation);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
@@ -78,16 +78,16 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			Assert.Empty(arena.Rounds);
 			await arena.StartAsync(CancellationToken.None).ConfigureAwait(false);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
-			var round = Assert.Single(arena.Rounds).Value;
+			var round = Assert.Single(arena.Rounds);
 
 			round.SetPhase(Phase.ConnectionConfirmation);
 			round.Alices.Add(WabiSabiFactory.CreateAlice());
 			Round blameRound = WabiSabiFactory.CreateBlameRound(round, cfg);
 			Assert.Equal(Phase.InputRegistration, blameRound.Phase);
-			arena.Rounds.Add(blameRound.Id, blameRound);
+			arena.Rounds.Add(blameRound);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
 			Assert.Equal(3, arena.Rounds.Count);
-			Assert.Equal(2, arena.Rounds.Where(x => x.Value.Phase == Phase.InputRegistration).Count());
+			Assert.Equal(2, arena.Rounds.Where(x => x.Phase == Phase.InputRegistration).Count());
 
 			await arena.StopAsync(CancellationToken.None);
 		}

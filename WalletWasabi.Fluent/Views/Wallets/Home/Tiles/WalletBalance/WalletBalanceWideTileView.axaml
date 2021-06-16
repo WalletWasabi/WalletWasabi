@@ -6,23 +6,111 @@
              mc:Ignorable="d" d:DesignWidth="660" d:DesignHeight="330"
              x:CompileBindings="True" x:DataType="vm:WalletBalanceTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalance.WalletBalanceWideTileView">
-  <DockPanel>
-    <TextBlock Text="Balance" DockPanel.Dock="Top" />
-    <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Spacing="16">
-      <Viewbox Height="47" Width="47" DockPanel.Dock="Left">
-        <Panel>
-          <Ellipse Stroke="{DynamicResource SystemAccentColor}" StrokeThickness="4" Height="115" Width="115" />
-          <Ellipse Stroke="{DynamicResource SystemAccentColor}" StrokeThickness="4" StrokeDashArray="2, 1" Height="100"
-                   Width="100" />
-          <PathIcon Data="{StaticResource btc_logo}" Height="50" Width="50"
-                    Foreground="{DynamicResource SystemAccentColor}" />
-        </Panel>
-      </Viewbox>
-      <StackPanel VerticalAlignment="Center">
-        <TextBlock Text="{Binding BalanceBtc, FallbackValue='1.21230001 BTC'}" FontSize="24" />
-        <TextBlock Text="{Binding BalanceFiat, FallbackValue='≈ 218,197 USD'}" HorizontalAlignment="Right"
-                   Opacity="0.8" FontSize="12" />
+  <Panel>
+    <DockPanel>
+      <TextBlock Text="Balance" DockPanel.Dock="Top" />
+      <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="16" Margin="0,20">
+        <Viewbox Height="47" Width="47" DockPanel.Dock="Left">
+          <Panel>
+            <Ellipse Stroke="{DynamicResource SystemAccentColor}" StrokeThickness="4"
+                     Height="115" Width="115" />
+            <Ellipse Stroke="{DynamicResource SystemAccentColor}" StrokeThickness="4" StrokeDashArray="2, 1"
+                     Height="100" Width="100" />
+            <PathIcon Data="{StaticResource btc_logo}"
+                      Height="50" Width="50" Foreground="{DynamicResource SystemAccentColor}" />
+          </Panel>
+        </Viewbox>
+        <StackPanel VerticalAlignment="Center">
+          <TextBlock Text="{Binding BalanceBtc, FallbackValue='1.21230001 BTC'}"
+                     FontSize="24" />
+          <TextBlock Text="{Binding BalanceFiat, FallbackValue='≈ 218,197 USD'}"
+                     Opacity="0.8" FontSize="12" />
+        </StackPanel>
       </StackPanel>
-    </StackPanel>
-  </DockPanel>
+      <DockPanel VerticalAlignment="Center">
+        <DockPanel VerticalAlignment="Center" DockPanel.Dock="Left" MinWidth="240">
+          <!-- Private Funds -->
+          <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="16" Margin="0,12">
+            <Panel Height="47" Width="47" DockPanel.Dock="Left">
+              <PathIcon Data="{StaticResource private_funds}"
+                        Height="21" Width="17" Foreground="#72BD81" />
+            </Panel>
+            <StackPanel VerticalAlignment="Center">
+              <TextBlock Text="Private funds" Opacity="0.8" FontSize="12" />
+              <TextBlock Text="{Binding BalancePrivateBtc, FallbackValue='1.0030001 BTC'}"
+                         FontSize="15" Margin="0,4,0,0" />
+            </StackPanel>
+          </StackPanel>
+          <!-- Non-private funds -->
+          <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="16" Margin="0,12">
+            <Panel Height="47" Width="47" DockPanel.Dock="Left">
+              <PathIcon Data="{StaticResource non_private_funds}"
+                        Height="21" Width="17" Foreground="#F9DE7D" />
+            </Panel>
+            <StackPanel VerticalAlignment="Center">
+              <TextBlock Text="Non-private funds" Opacity="0.8" FontSize="12" />
+              <TextBlock Text="{Binding BalanceNonPrivateBtc, FallbackValue='0.21200000 BTC'}"
+                         FontSize="15" Margin="0,4,0,0" />
+            </StackPanel>
+          </StackPanel>
+        </DockPanel>
+        <DockPanel VerticalAlignment="Top" DockPanel.Dock="Left"
+                   IsVisible="{Binding ShowRecentTransaction, FallbackValue=True}">
+          <!-- Recent transaction name -->
+          <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="16" Margin="0,12">
+            <Panel Height="47" Width="47" DockPanel.Dock="Left" />
+            <StackPanel VerticalAlignment="Center">
+              <TextBlock Text="Recent Transaction" Opacity="0.8" FontSize="12" />
+              <TextBlock Text="{Binding RecentTransactionName, FallbackValue='Purchase MotorBike'}"
+                         FontSize="15" Margin="0,4,0,0" />
+            </StackPanel>
+          </StackPanel>
+          <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="16" Margin="0,12">
+            <Panel Height="47" Width="47" DockPanel.Dock="Left" />
+            <StackPanel VerticalAlignment="Center" Spacing="4">
+              <!-- Recent transaction date -->
+              <DockPanel>
+                <Viewbox Height="14" Width="14" DockPanel.Dock="Left">
+                  <PathIcon Data="{StaticResource transaction_date}"
+                            Height="14" Width="14" Foreground="{DynamicResource SystemAccentColor}" />
+                </Viewbox>
+                <TextBlock
+                  Text="{Binding RecentTransactionDate, StringFormat='{}{0:MM/dd/yyyy HH:mm}', FallbackValue='7/12/2020'}"
+                  Opacity="0.8" FontSize="12" Margin="10,0,0,0" />
+              </DockPanel>
+              <!-- Recent transaction status -->
+              <DockPanel Margin="0,4,0,0">
+                <Viewbox Height="14" Width="14" DockPanel.Dock="Left">
+                  <Panel>
+                    <Ellipse Stroke="{DynamicResource SystemAccentColor}" StrokeThickness="1"
+                             Height="20" Width="20" />
+                    <Ellipse Stroke="{DynamicResource SystemAccentColor}" StrokeThickness="1" StrokeDashArray="2, 2"
+                             Height="16" Width="16" />
+                  </Panel>
+                </Viewbox>
+                <TextBlock Text="{Binding RecentTransactionStatus, FallbackValue='1.2 BTC  -  Pending'}"
+                           Opacity="0.8" FontSize="12" Margin="10,0,0,0" />
+              </DockPanel>
+            </StackPanel>
+          </StackPanel>
+        </DockPanel>
+      </DockPanel>
+    </DockPanel>
+    <!-- BTC logo -->
+    <Panel HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-16,-16,0" ClipToBounds="True">
+      <Panel Opacity="0.1">
+        <Panel.RenderTransform>
+          <TransformGroup>
+            <TranslateTransform X="70" Y="-40" />
+            <RotateTransform Angle="-12.17" />
+          </TransformGroup>
+        </Panel.RenderTransform>
+        <Ellipse Stroke="{DynamicResource TextControlForeground}" StrokeThickness="12" Height="240" Width="240" />
+        <Ellipse Stroke="{DynamicResource TextControlForeground}" StrokeThickness="12" StrokeDashArray="1, 1"
+                 Height="200" Width="200" />
+        <PathIcon Data="{StaticResource btc_logo}"
+                  Height="100" Width="100" Foreground="{DynamicResource TextControlForeground}" />
+      </Panel>
+    </Panel>
+  </Panel>
 </UserControl>

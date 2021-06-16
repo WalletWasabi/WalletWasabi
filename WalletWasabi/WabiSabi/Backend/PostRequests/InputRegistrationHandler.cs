@@ -54,9 +54,9 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			OwnershipProof ownershipProof,
 			ZeroCredentialsRequest zeroAmountCredentialRequests,
 			ZeroCredentialsRequest zeroVsizeCredentialRequests,
-			IDictionary<uint256, Round> rounds)
+			HashSet<Round> rounds)
 		{
-			if (!rounds.TryGetValue(roundId, out var round))
+			if (rounds.FirstOrDefault(x => x.Id == roundId) is not Round round)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
 			}
@@ -105,34 +105,12 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			var commitAmountCredentialResponse = round.AmountCredentialIssuer.PrepareResponse(zeroAmountCredentialRequests);
 			var commitVsizeCredentialResponse = round.VsizeCredentialIssuer.PrepareResponse(zeroVsizeCredentialRequests);
 
-			RemoveDuplicateAlices(rounds, alice);
-
 			alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeout);
 			round.Alices.Add(alice);
 
 			return new(alice.Id,
 				commitAmountCredentialResponse.Commit(),
 				commitVsizeCredentialResponse.Commit());
-		}
-
-		private static void RemoveDuplicateAlices(IDictionary<uint256, Round> roundsWithId, Alice alice)
-		{
-			var rounds = roundsWithId.Values;
-			if (rounds.Any(x => x.Phase != Phase.InputRegistration))
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
-			}
-
-			var aliceOutPoint = alice.Coin.Outpoint;
-			var flattenTable = rounds.SelectMany(x => x.Alices.Select(y => (Round: x, Alice: y, Outpoint: y.Coin.Outpoint)));
-
-			foreach (var (round, aliceInRound, _) in flattenTable.Where(x => x.Outpoint == aliceOutPoint).ToArray())
-			{
-				if (round.Alices.Remove(aliceInRound))
-				{
-					Logger.LogInfo("Updated Alice registration.");
-				}
-			}
 		}
 	}
 }

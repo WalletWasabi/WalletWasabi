@@ -1,6 +1,7 @@
 using NBitcoin;
 using NBitcoin.RPC;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -272,6 +273,49 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			Assert.Equal(Money.Coins((decimal)1.00000000), blockInfo.Transactions.ElementAt(1).Outputs.ElementAt(1).Value);
 			Assert.Equal(RpcPubkeyType.TxPubkeyhash, blockInfo.Transactions.ElementAt(1).Outputs.ElementAt(0).PubkeyType);
 			Assert.Equal(RpcPubkeyType.TxPubkeyhash, blockInfo.Transactions.ElementAt(1).Outputs.ElementAt(1).PubkeyType);
+		}
+
+		[Fact]
+		public async Task GetRawTransactionsAsync()
+		{
+			var coreNode = await TestNodeBuilder.CreateAsync();
+			try
+			{
+				var rpc = coreNode.RpcClient;
+				var txs = await rpc.GetRawTransactionsAsync(new[] { BitcoinFactory.CreateUint256(), BitcoinFactory.CreateUint256() }, CancellationToken.None);
+				Assert.Empty(txs);
+
+				await rpc.CreateWalletAsync("wallet");
+				await rpc.GenerateAsync(101);
+				var txid = await rpc.SendToAddressAsync(BitcoinFactory.CreateScript().GetDestinationAddress(Network.RegTest), Money.Coins(1));
+
+				txs = await rpc.GetRawTransactionsAsync(new[] { txid }, CancellationToken.None);
+				Assert.Single(txs);
+
+				List<uint256> txids = new();
+				for (int i = 0; i < 2; i++)
+				{
+					var txid2 = await rpc.SendToAddressAsync(BitcoinFactory.CreateScript().GetDestinationAddress(Network.RegTest), Money.Coins(1));
+					txids.Add(txid2);
+				}
+
+				txs = await rpc.GetRawTransactionsAsync(txids, CancellationToken.None);
+				Assert.Equal(2, txs.Count());
+
+				txids = new();
+				for (int i = 0; i < 20; i++)
+				{
+					var txid2 = await rpc.SendToAddressAsync(BitcoinFactory.CreateScript().GetDestinationAddress(Network.RegTest), Money.Coins(1));
+					txids.Add(txid2);
+				}
+
+				txs = await rpc.GetRawTransactionsAsync(txids, CancellationToken.None);
+				Assert.Equal(20, txs.Count());
+			}
+			finally
+			{
+				await coreNode.TryStopAsync();
+			}
 		}
 	}
 }
