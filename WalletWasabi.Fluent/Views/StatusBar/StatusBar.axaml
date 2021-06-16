@@ -2,74 +2,106 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:converters="using:WalletWasabi.Gui.Converters"
-             xmlns:vm="using:WalletWasabi.Gui.ViewModels"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:statusBar="clr-namespace:WalletWasabi.Fluent.ViewModels.StatusBar"
+             xmlns:converters="using:WalletWasabi.Fluent.Converters"
+             xmlns:models="clr-namespace:WalletWasabi.Fluent.Models"
              mc:Ignorable="d" d:DesignWidth="671" d:DesignHeight="32"
-             x:DataType="vm:StatusBarViewModel"
+             x:DataType="statusBar:StatusBarViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.StatusBar.StatusBar">
-  <UserControl.Resources>
-    <converters:FilterLeftStatusConverter x:Key="FilterLeftStatusConverter" />
-    <converters:ShowCursorConverter x:Key="ShowCursorConverter" />
-    <converters:ShouldDisplayValueConverter x:Key="ShouldDisplayValueConverter" />
-    <converters:PascalToPhraseConverter x:Key="PascalToPhraseConverter" />
-    <converters:RpcStatusStringConverter x:Key="RpcStatusStringConverter" />
-  </UserControl.Resources>
+  <Panel HorizontalAlignment="Right" VerticalAlignment="Stretch">
+    <Interaction.Behaviors>
+      <behaviors:ShowFlyoutOnPointerOverBehavior />
+    </Interaction.Behaviors>
+    <FlyoutBase.AttachedFlyout>
+      <Flyout Placement="Top" ShowMode="TransientWithDismissOnPointerMoveAway">
+        <StackPanel TextBlock.Foreground="{DynamicResource TextControlForeground}"
+                    TextBlock.FontSize="14"
+                    MaxWidth="160"
+                    ClipToBounds="False">
 
-  <Panel Background="{DynamicResource StatusBarControlBackground}" Cursor="{Binding UpdateAvailable, Converter={StaticResource ShowCursorConverter}}">
-    <Panel.Styles>
-      <Styles>
-        <Style Selector="TextBlock">
-          <Setter Property="Foreground" Value="{DynamicResource StatusBarControlForeground}"/>
-        </Style>
-      </Styles>
-    </Panel.Styles>
-    <!--
-    <i:Interaction.Behaviors>
-      <behaviors:CommandOnClickBehavior Command="{Binding UpdateCommand}" />
-    </i:Interaction.Behaviors>-->
-
-    <!--
-    <Panel Background="IndianRed" IsVisible="{Binding CriticalUpdateAvailable}" />-->
-
-    <DockPanel LastChildFill="True" Margin="20 0" VerticalAlignment="Center">
-      <StackPanel Orientation="Horizontal" Spacing="20" DockPanel.Dock="Right" IsVisible="{Binding !CriticalUpdateAvailable}">
-        <!-- <StackPanel Orientation="Horizontal" Spacing="4"> -->
-        <!--   <TextBlock Text="{Binding ShowNetwork}" /> -->
-        <!-- </StackPanel> -->
-        <Panel IsVisible="{Binding DownloadingBlock}">
-          <StackPanel Orientation="Horizontal" Spacing="4">
-            <Panel Height="10" Width="10">
-              <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_DownloadingBlock}" />
-            </Panel>
-            <TextBlock Text="Downloading a block..." />
+          <!-- Status -->
+          <StackPanel Spacing="16">
+            <c:StatusItem Icon="{StaticResource tor_icon}"
+                          Title="Tor"
+                          StatusText="{Binding TorStatus, Converter={x:Static converters:StatusConverters.TorStatusToString}}" />
+            <c:StatusItem Icon="{StaticResource connector_regular}"
+                          Title="Backend"
+                          StatusText="{Binding BackendStatus, Converter={x:Static converters:StatusConverters.BackendStatusToString}}" />
+            <c:StatusItem Icon="{StaticResource entities_regular}"
+                          Title="Peers"
+                          StatusText="{Binding Peers, StringFormat={}{0} connected}" />
+            <c:StatusItem Icon="{StaticResource btc_logo}"
+                          Title="{Binding BitcoinCoreName}"
+                          StatusText="{Binding BitcoinCoreStatus, Converter={x:Static converters:StatusConverters.RpcStatusStringConverter}}"
+                          IsVisible="{Binding UseBitcoinCore}" />
           </StackPanel>
-        </Panel>
-        <Panel IsVisible="{Binding FiltersLeft, Converter={StaticResource ShouldDisplayValueConverter}}">
-          <StackPanel Orientation="Horizontal" Spacing="4">
-            <Panel Height="10" Width="10">
-              <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_Filter}" />
-            </Panel>
-            <TextBlock Text="{Binding FiltersLeft, Converter={StaticResource FilterLeftStatusConverter}}" />
+
+          <!-- Update -->
+          <StackPanel Spacing="10">
+            <StackPanel.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.Or}">
+                <Binding Path="UpdateAvailable" />
+                <Binding Path="CriticalUpdateAvailable" />
+              </MultiBinding>
+            </StackPanel.IsVisible>
+
+            <Separator Margin="-12 16 -12 6" />
+
+            <c:StatusItem Icon="{StaticResource arrow_clockwise_regular}"
+                          Title="Update available"
+                          StatusText="{Binding VersionText}" />
+            <Button Classes="plain" Command="{Binding UpdateCommand}">
+              <StackPanel Spacing="5" Orientation="Horizontal">
+                <PathIcon Data="{StaticResource arrow_download_regular}" Height="13"
+                          Foreground="{StaticResource SystemAccentColor}" />
+                <TextBlock Text="Update now" Foreground="{StaticResource SystemAccentColor}" />
+              </StackPanel>
+            </Button>
+
+            <Button Classes="plain" Command="{Binding AskMeLaterCommand}" IsVisible="{Binding !CriticalUpdateAvailable}">
+              <StackPanel Spacing="5" Orientation="Horizontal">
+                <PathIcon Data="{StaticResource clock_regular}" Height="13" />
+                <TextBlock Text="Ask me later" />
+              </StackPanel>
+            </Button>
           </StackPanel>
-        </Panel>
-        <StackPanel IsVisible="{Binding IsExchangeRateAvailable}" Orientation="Horizontal" Spacing="0">
-          <TextBlock Text="BTC/USD: " />
-          <TextBlock Text="{Binding ExchangeRate}" />
         </StackPanel>
-      </StackPanel>
+      </Flyout>
+    </FlyoutBase.AttachedFlyout>
 
-      <StackPanel Orientation="Horizontal" Spacing="4">
-        <Panel IsVisible="{Binding !CriticalUpdateAvailable}">
-          <Panel Height="10" Width="10" IsVisible="{Binding UpdateAvailable}">
-            <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_GreenFlag}" />
-          </Panel>
-        </Panel>
-        <Panel Height="10" Width="10" IsVisible="{Binding CriticalUpdateAvailable}">
-          <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_YellowFlag}" />
-        </Panel>
-        <TextBlock Text="{Binding Status}" />
-      </StackPanel>
-    </DockPanel>
+    <!-- Update available -->
+    <StackPanel Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" Margin="10 0"
+                IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.UpdateAvailable}}"                >
+      <TextBlock Text="Update available" VerticalAlignment="Center" FontSize="14" Foreground="Gold"/>
+      <PathIcon Data="{StaticResource arrow_clockwise_with_elipse}"
+                Foreground="Gold"
+                Height="30" />
+    </StackPanel>
+
+    <!-- Critical update available -->
+    <StackPanel Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" Margin="10 0"
+                IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.CriticalUpdateAvailable}}"                >
+      <TextBlock Text="Critical update available" VerticalAlignment="Center" FontSize="14" Foreground="IndianRed" />
+      <PathIcon Data="{StaticResource critical_update}"
+                Foreground="IndianRed"
+                Height="30" />
+    </StackPanel>
+
+    <!-- Ready -->
+    <PathIcon Data="{StaticResource checkmark_circle_filled}"
+              Foreground="{StaticResource SystemAccentColor}"
+              VerticalAlignment="Center" HorizontalAlignment="Right"
+              Height="30"
+              Margin="10 0"
+              IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.Ready}}" />
+
+    <!-- Loading -->
+    <c:ProgressRing IsIndeterminate="True" Margin="10 0" Height="30"
+                    IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.Loading}}"
+                    ClipToBounds="False" />
+
   </Panel>
 </UserControl>
