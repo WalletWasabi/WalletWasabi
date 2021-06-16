@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using Avalonia.Data.Converters;
+using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.Converters
 {
