@@ -7,7 +7,7 @@
              mc:Ignorable="d" d:DesignWidth="671" d:DesignHeight="32"
              x:DataType="vm:StatusBarViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.StatusBar">
+             x:Class="WalletWasabi.Fluent.Views.StatusBar.StatusBar">
   <UserControl.Resources>
     <converters:FilterLeftStatusConverter x:Key="FilterLeftStatusConverter" />
     <converters:ShowCursorConverter x:Key="ShowCursorConverter" />
