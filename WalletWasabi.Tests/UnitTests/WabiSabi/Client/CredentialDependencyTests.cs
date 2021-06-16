@@ -272,13 +272,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			AssertResolvedGraphInvariants(g, inputValues, outputValues);
 			Assert.Equal(finalVertexCount, g.Vertices.Count);
 
-			foreach (var node in g.Reissuances)
-			{
-				var inputAmountSum = g.InEdges(node, CredentialType.Amount).Sum(cd => (decimal)cd.Value);
-				var outputAmountSum = g.OutEdges(node, CredentialType.Amount).Sum(cd => (decimal)cd.Value);
-				Assert.Equal(inputAmountSum, outputAmountSum);
-			}
-
 			// TODO when sum(in) == sum(out) for all credential types, also
 			// verify the reverse graph can be resolved.
 
