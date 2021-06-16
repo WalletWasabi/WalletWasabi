@@ -210,24 +210,22 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 					var writeableBitmap = ConvertMatToWriteableBitmap(frame);
 
-					Image<Rgba, byte> image = frame.ToImage<Rgba, byte>();
-
-					frame.Dispose();
-
 					TestImage = writeableBitmap;
 
-					string result = GetQRcodeValueFromImage(image);
+					string result = GetQRcodeValueFromMat(frame);
 					if (!string.IsNullOrWhiteSpace(result))
 					{
 						To = result;
 						TestImage = null;
 						CloseWebCam();
 					}
+					frame.Dispose();
 				}
 			}
 			catch (Exception ex)
 			{
 				Logger.LogError(ex);
+				CloseWebCam();
 			}
 		}
 
@@ -260,11 +258,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return writeableBitmap;
 		}
 
-		private string GetQRcodeValueFromImage(IInputArray image)
+		private string GetQRcodeValueFromMat(IInputArray image)
 		{
 			string qrCodeValue = "";
 			using IOutputArray result = new Mat();
-			using IOutputArray resultImg = new Mat();
+			using IOutputArray resultImg = new Mat(); // This is needed, Decode() will throw an exception without it
 			using QRCodeDetector qrCodeDetector = new();
 
 			bool isQRCodeDetected = qrCodeDetector.Detect(image, result);
