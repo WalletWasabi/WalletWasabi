@@ -70,6 +70,26 @@
           "Avalonia": "0.10.5"
         }
       },
+      "Emgu.CV.runtime.ubuntu.20.04-x64": {
+        "type": "Direct",
+        "requested": "[4.5.1.4349, )",
+        "resolved": "4.5.1.4349",
+        "contentHash": "PlIbNHrIuwbcW+DEGZnwxbZmXRIb0IGzoGgTyF8LCaacouVmfYQmD6etffbIO5h1biE+F2p4sEGTABUZKnlybQ==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)"
+        }
+      },
+      "Emgu.CV.runtime.windows": {
+        "type": "Direct",
+        "requested": "[4.5.1.4349, )",
+        "resolved": "4.5.1.4349",
+        "contentHash": "IOhubaLFZUv9WZgdlCw9jmXODWhr8UWnoJqUkPmKp0q7fK+NmRdiAtR9yKyo4jtOrb5bytmpGQcTJ2weFP3DUg==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)",
+          "Emgu.runtime.windows.msvc.rt.x64": "[19.28.29336]",
+          "Emgu.runtime.windows.msvc.rt.x86": "[19.28.29336]"
+        }
+      },
       "Avalonia.Angle.Windows.Natives": {
         "type": "Transitive",
         "resolved": "2.1.0.2019013001",
@@ -276,16 +296,6 @@
         "dependencies": {
           "Emgu.CV": "(4.5.1, 4.5.2)",
           "System.Drawing.Common": "5.0.0"
-        }
-      },
-      "Emgu.CV.runtime.windows": {
-        "type": "Transitive",
-        "resolved": "4.5.1.4349",
-        "contentHash": "IOhubaLFZUv9WZgdlCw9jmXODWhr8UWnoJqUkPmKp0q7fK+NmRdiAtR9yKyo4jtOrb5bytmpGQcTJ2weFP3DUg==",
-        "dependencies": {
-          "Emgu.CV": "(4.5.1, 4.5.2)",
-          "Emgu.runtime.windows.msvc.rt.x64": "[19.28.29336]",
-          "Emgu.runtime.windows.msvc.rt.x86": "[19.28.29336]"
         }
       },
       "Emgu.runtime.windows.msvc.rt.x64": {
@@ -2163,6 +2173,26 @@
       }
     },
     ".NETCoreApp,Version=v5.0/linux-x64": {
+      "Emgu.CV.runtime.ubuntu.20.04-x64": {
+        "type": "Direct",
+        "requested": "[4.5.1.4349, )",
+        "resolved": "4.5.1.4349",
+        "contentHash": "PlIbNHrIuwbcW+DEGZnwxbZmXRIb0IGzoGgTyF8LCaacouVmfYQmD6etffbIO5h1biE+F2p4sEGTABUZKnlybQ==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)"
+        }
+      },
+      "Emgu.CV.runtime.windows": {
+        "type": "Direct",
+        "requested": "[4.5.1.4349, )",
+        "resolved": "4.5.1.4349",
+        "contentHash": "IOhubaLFZUv9WZgdlCw9jmXODWhr8UWnoJqUkPmKp0q7fK+NmRdiAtR9yKyo4jtOrb5bytmpGQcTJ2weFP3DUg==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)",
+          "Emgu.runtime.windows.msvc.rt.x64": "[19.28.29336]",
+          "Emgu.runtime.windows.msvc.rt.x86": "[19.28.29336]"
+        }
+      },
       "Avalonia.Angle.Windows.Natives": {
         "type": "Transitive",
         "resolved": "2.1.0.2019013001",
@@ -2185,16 +2215,6 @@
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.0.1",
           "SkiaSharp": "[1.68.0]"
-        }
-      },
-      "Emgu.CV.runtime.windows": {
-        "type": "Transitive",
-        "resolved": "4.5.1.4349",
-        "contentHash": "IOhubaLFZUv9WZgdlCw9jmXODWhr8UWnoJqUkPmKp0q7fK+NmRdiAtR9yKyo4jtOrb5bytmpGQcTJ2weFP3DUg==",
-        "dependencies": {
-          "Emgu.CV": "(4.5.1, 4.5.2)",
-          "Emgu.runtime.windows.msvc.rt.x64": "[19.28.29336]",
-          "Emgu.runtime.windows.msvc.rt.x86": "[19.28.29336]"
         }
       },
       "Emgu.runtime.windows.msvc.rt.x64": {
@@ -3211,6 +3231,26 @@
       }
     },
     ".NETCoreApp,Version=v5.0/osx-x64": {
+      "Emgu.CV.runtime.ubuntu.20.04-x64": {
+        "type": "Direct",
+        "requested": "[4.5.1.4349, )",
+        "resolved": "4.5.1.4349",
+        "contentHash": "PlIbNHrIuwbcW+DEGZnwxbZmXRIb0IGzoGgTyF8LCaacouVmfYQmD6etffbIO5h1biE+F2p4sEGTABUZKnlybQ==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)"
+        }
+      },
+      "Emgu.CV.runtime.windows": {
+        "type": "Direct",
+        "requested": "[4.5.1.4349, )",
+        "resolved": "4.5.1.4349",
+        "contentHash": "IOhubaLFZUv9WZgdlCw9jmXODWhr8UWnoJqUkPmKp0q7fK+NmRdiAtR9yKyo4jtOrb5bytmpGQcTJ2weFP3DUg==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)",
+          "Emgu.runtime.windows.msvc.rt.x64": "[19.28.29336]",
+          "Emgu.runtime.windows.msvc.rt.x86": "[19.28.29336]"
+        }
+      },
       "Avalonia.Angle.Windows.Natives": {
         "type": "Transitive",
         "resolved": "2.1.0.2019013001",
@@ -3233,16 +3273,6 @@
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.0.1",
           "SkiaSharp": "[1.68.0]"
-        }
-      },
-      "Emgu.CV.runtime.windows": {
-        "type": "Transitive",
-        "resolved": "4.5.1.4349",
-        "contentHash": "IOhubaLFZUv9WZgdlCw9jmXODWhr8UWnoJqUkPmKp0q7fK+NmRdiAtR9yKyo4jtOrb5bytmpGQcTJ2weFP3DUg==",
-        "dependencies": {
-          "Emgu.CV": "(4.5.1, 4.5.2)",
-          "Emgu.runtime.windows.msvc.rt.x64": "[19.28.29336]",
-          "Emgu.runtime.windows.msvc.rt.x86": "[19.28.29336]"
         }
       },
       "Emgu.runtime.windows.msvc.rt.x64": {
@@ -4259,6 +4289,26 @@
       }
     },
     ".NETCoreApp,Version=v5.0/win7-x64": {
+      "Emgu.CV.runtime.ubuntu.20.04-x64": {
+        "type": "Direct",
+        "requested": "[4.5.1.4349, )",
+        "resolved": "4.5.1.4349",
+        "contentHash": "PlIbNHrIuwbcW+DEGZnwxbZmXRIb0IGzoGgTyF8LCaacouVmfYQmD6etffbIO5h1biE+F2p4sEGTABUZKnlybQ==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)"
+        }
+      },
+      "Emgu.CV.runtime.windows": {
+        "type": "Direct",
+        "requested": "[4.5.1.4349, )",
+        "resolved": "4.5.1.4349",
+        "contentHash": "IOhubaLFZUv9WZgdlCw9jmXODWhr8UWnoJqUkPmKp0q7fK+NmRdiAtR9yKyo4jtOrb5bytmpGQcTJ2weFP3DUg==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)",
+          "Emgu.runtime.windows.msvc.rt.x64": "[19.28.29336]",
+          "Emgu.runtime.windows.msvc.rt.x86": "[19.28.29336]"
+        }
+      },
       "Avalonia.Angle.Windows.Natives": {
         "type": "Transitive",
         "resolved": "2.1.0.2019013001",
@@ -4281,16 +4331,6 @@
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.0.1",
           "SkiaSharp": "[1.68.0]"
-        }
-      },
-      "Emgu.CV.runtime.windows": {
-        "type": "Transitive",
-        "resolved": "4.5.1.4349",
-        "contentHash": "IOhubaLFZUv9WZgdlCw9jmXODWhr8UWnoJqUkPmKp0q7fK+NmRdiAtR9yKyo4jtOrb5bytmpGQcTJ2weFP3DUg==",
-        "dependencies": {
-          "Emgu.CV": "(4.5.1, 4.5.2)",
-          "Emgu.runtime.windows.msvc.rt.x64": "[19.28.29336]",
-          "Emgu.runtime.windows.msvc.rt.x86": "[19.28.29336]"
         }
       },
       "Emgu.runtime.windows.msvc.rt.x64": {

@@ -253,6 +253,14 @@
           "System.Drawing.Common": "5.0.0"
         }
       },
+      "Emgu.CV.runtime.ubuntu.20.04-x64": {
+        "type": "Transitive",
+        "resolved": "4.5.1.4349",
+        "contentHash": "PlIbNHrIuwbcW+DEGZnwxbZmXRIb0IGzoGgTyF8LCaacouVmfYQmD6etffbIO5h1biE+F2p4sEGTABUZKnlybQ==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)"
+        }
+      },
       "Emgu.CV.runtime.windows": {
         "type": "Transitive",
         "resolved": "4.5.1.4349",
@@ -1049,6 +1057,8 @@
           "Avalonia.Xaml.Behaviors": "0.10.5",
           "Avalonia.Xaml.Interactions.Custom": "0.10.3",
           "Avalonia.Xaml.Interactivity": "0.10.5",
+          "Emgu.CV.runtime.ubuntu.20.04-x64": "4.5.1.4349",
+          "Emgu.CV.runtime.windows": "4.5.1.4349",
           "WalletWasabi": "1.0.0",
           "Wasabi Wallet": "1.0.0"
         }
@@ -1081,6 +1091,14 @@
         "contentHash": "ozWkIgnqRWenSuQonM2sjGzqmyewGIRc+iz+vMpxHLHwzeS4Q52UwuaZuEleDoQCEhutvJ1Qz+b0AsNlElyUaA==",
         "dependencies": {
           "Avalonia": "0.10.5"
+        }
+      },
+      "Emgu.CV.runtime.ubuntu.20.04-x64": {
+        "type": "Transitive",
+        "resolved": "4.5.1.4349",
+        "contentHash": "PlIbNHrIuwbcW+DEGZnwxbZmXRIb0IGzoGgTyF8LCaacouVmfYQmD6etffbIO5h1biE+F2p4sEGTABUZKnlybQ==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)"
         }
       },
       "Emgu.CV.runtime.windows": {
@@ -1625,6 +1643,14 @@
           "Avalonia": "0.10.5"
         }
       },
+      "Emgu.CV.runtime.ubuntu.20.04-x64": {
+        "type": "Transitive",
+        "resolved": "4.5.1.4349",
+        "contentHash": "PlIbNHrIuwbcW+DEGZnwxbZmXRIb0IGzoGgTyF8LCaacouVmfYQmD6etffbIO5h1biE+F2p4sEGTABUZKnlybQ==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)"
+        }
+      },
       "Emgu.CV.runtime.windows": {
         "type": "Transitive",
         "resolved": "4.5.1.4349",
@@ -2165,6 +2191,14 @@
         "contentHash": "ozWkIgnqRWenSuQonM2sjGzqmyewGIRc+iz+vMpxHLHwzeS4Q52UwuaZuEleDoQCEhutvJ1Qz+b0AsNlElyUaA==",
         "dependencies": {
           "Avalonia": "0.10.5"
+        }
+      },
+      "Emgu.CV.runtime.ubuntu.20.04-x64": {
+        "type": "Transitive",
+        "resolved": "4.5.1.4349",
+        "contentHash": "PlIbNHrIuwbcW+DEGZnwxbZmXRIb0IGzoGgTyF8LCaacouVmfYQmD6etffbIO5h1biE+F2p4sEGTABUZKnlybQ==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)"
         }
       },
       "Emgu.CV.runtime.windows": {
