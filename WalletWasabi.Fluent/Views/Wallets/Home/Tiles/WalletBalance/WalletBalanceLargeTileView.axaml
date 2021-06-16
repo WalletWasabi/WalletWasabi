@@ -8,21 +8,49 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalance.WalletBalanceLargeTileView">
   <DockPanel>
     <TextBlock Text="Balance" DockPanel.Dock="Top" />
-    <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Spacing="16">
+    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="16" Margin="0,20">
       <Viewbox Height="47" Width="47" DockPanel.Dock="Left">
         <Panel>
-          <Ellipse Stroke="{DynamicResource SystemAccentColor}" StrokeThickness="4" Height="115" Width="115" />
-          <Ellipse Stroke="{DynamicResource SystemAccentColor}" StrokeThickness="4" StrokeDashArray="2, 1" Height="100"
-                   Width="100" />
+          <Ellipse Stroke="{DynamicResource SystemAccentColor}" StrokeThickness="4"
+                   Height="115" Width="115" />
+          <Ellipse Stroke="{DynamicResource SystemAccentColor}" StrokeThickness="4" StrokeDashArray="2, 1"
+                   Height="100" Width="100" />
           <PathIcon Data="{StaticResource btc_logo}" Height="50" Width="50"
                     Foreground="{DynamicResource SystemAccentColor}" />
         </Panel>
       </Viewbox>
       <StackPanel VerticalAlignment="Center">
-        <TextBlock Text="{Binding BalanceBtc, FallbackValue='1.21230001 BTC'}" FontSize="24" />
-        <TextBlock Text="{Binding BalanceFiat, FallbackValue='≈ 218,197 USD'}" HorizontalAlignment="Right"
+        <TextBlock Text="{Binding BalanceBtc, FallbackValue='1.21230001 BTC'}"
+                   FontSize="24" />
+        <TextBlock Text="{Binding BalanceFiat, FallbackValue='≈ 218,197 USD'}"
                    Opacity="0.8" FontSize="12" />
       </StackPanel>
     </StackPanel>
+    <Separator DockPanel.Dock="Top" Margin="-16 10" />
+    <DockPanel VerticalAlignment="Center">
+      <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="16" Margin="0,12">
+        <Panel Height="47" Width="47" DockPanel.Dock="Left">
+          <PathIcon Data="{StaticResource private_funds}"
+                    Height="21" Width="17" Foreground="#72BD81" />
+        </Panel>
+        <StackPanel VerticalAlignment="Center">
+          <TextBlock Text="Private funds" Opacity="0.8" FontSize="12" />
+          <TextBlock Text="{Binding BalancePrivateBtc, FallbackValue='1.0030001 BTC'}"
+                     FontSize="15" Margin="0,4,0,0" />
+        </StackPanel>
+      </StackPanel>
+      <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="16" Margin="0,12">
+        <Panel Height="47" Width="47" DockPanel.Dock="Left">
+          <PathIcon Data="{StaticResource non_private_funds}"
+                    Height="21" Width="17"
+                    Foreground="#F9DE7D" />
+        </Panel>
+        <StackPanel VerticalAlignment="Center">
+          <TextBlock Text="Non-private funds" Opacity="0.8" FontSize="12" />
+          <TextBlock Text="{Binding BalanceNonPrivateBtc, FallbackValue='0.21200000 BTC'}"
+                     FontSize="15" Margin="0,4,0,0" />
+        </StackPanel>
+      </StackPanel>
+    </DockPanel>
   </DockPanel>
 </UserControl>
