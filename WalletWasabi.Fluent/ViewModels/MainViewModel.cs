@@ -14,7 +14,6 @@ using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.OpenDirectory;
 using WalletWasabi.Logging;
-using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Fluent.ViewModels.StatusBar;
 
 namespace WalletWasabi.Fluent.ViewModels
