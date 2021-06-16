@@ -51,6 +51,25 @@
           "Avalonia.Xaml.Interactivity": "0.10.6"
         }
       },
+      "Avalonia.Xaml.Interactions.Custom": {
+        "type": "Direct",
+        "requested": "[0.10.3, )",
+        "resolved": "0.10.3",
+        "contentHash": "vygO1aKfp+YVO4oY+n01s3fCXRweYFRDXXfsO4KVfFQu2cowU7MGoT08IqwW/PKZvaZRjNAkM4ypTNCJ1jKwCQ==",
+        "dependencies": {
+          "Avalonia": "0.10.3",
+          "Avalonia.Xaml.Interactivity": "0.10.3"
+        }
+      },
+      "Avalonia.Xaml.Interactivity": {
+        "type": "Direct",
+        "requested": "[0.10.6, )",
+        "resolved": "0.10.6",
+        "contentHash": "bHK6Cv7hkqoz2YKT6SS+UIrD5uS6+Z1Nx4swsxMWZrOvc5ioOSoRi97EbFHo1siJsfWJmmpevO6IM7Hz45qfog==",
+        "dependencies": {
+          "Avalonia": "0.10.6"
+        }
+      },
       "Emgu.CV.runtime.ubuntu.20.04-x64": {
         "type": "Direct",
         "requested": "[4.5.1.4349, )",
@@ -183,23 +202,6 @@
         "dependencies": {
           "Avalonia": "0.10.6",
           "Avalonia.Xaml.Interactivity": "0.10.6"
-        }
-      },
-      "Avalonia.Xaml.Interactions.Custom": {
-        "type": "Transitive",
-        "resolved": "0.9.9",
-        "contentHash": "j1F+UPlhcITTfRKWXvoqrRZKodyj33uwl6S6oIfomex9y5Kha2G1Y9ykc1ewGBK5OWemJ2i7Kh77aiwp7rFedA==",
-        "dependencies": {
-          "Avalonia": "0.9.9",
-          "Avalonia.Xaml.Interactivity": "0.9.9"
-        }
-      },
-      "Avalonia.Xaml.Interactivity": {
-        "type": "Transitive",
-        "resolved": "0.10.6",
-        "contentHash": "bHK6Cv7hkqoz2YKT6SS+UIrD5uS6+Z1Nx4swsxMWZrOvc5ioOSoRi97EbFHo1siJsfWJmmpevO6IM7Hz45qfog==",
-        "dependencies": {
-          "Avalonia": "0.10.6"
         }
       },
       "AvalonStudio.Shell": {

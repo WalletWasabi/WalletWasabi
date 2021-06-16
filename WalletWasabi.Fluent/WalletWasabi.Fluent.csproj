@@ -17,7 +17,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Avalonia.Xaml.Interactions.Custom" Version="0.10.3" />
-		<PackageReference Include="Avalonia.Xaml.Interactivity" Version="0.10.5" />
+		<PackageReference Include="Avalonia.Xaml.Interactivity" Version="0.10.6" />
 		<PackageReference Include="Emgu.CV.runtime.ubuntu.20.04-x64" Version="4.5.1.4349" />
 		<PackageReference Include="Emgu.CV.runtime.windows" Version="4.5.1.4349" />
 		<PackageReference Include="Avalonia" Version="0.10.6" />

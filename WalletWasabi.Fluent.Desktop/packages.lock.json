@@ -144,11 +144,11 @@
       },
       "Avalonia.Xaml.Interactions.Custom": {
         "type": "Transitive",
-        "resolved": "0.9.9",
-        "contentHash": "j1F+UPlhcITTfRKWXvoqrRZKodyj33uwl6S6oIfomex9y5Kha2G1Y9ykc1ewGBK5OWemJ2i7Kh77aiwp7rFedA==",
+        "resolved": "0.10.3",
+        "contentHash": "vygO1aKfp+YVO4oY+n01s3fCXRweYFRDXXfsO4KVfFQu2cowU7MGoT08IqwW/PKZvaZRjNAkM4ypTNCJ1jKwCQ==",
         "dependencies": {
-          "Avalonia": "0.9.9",
-          "Avalonia.Xaml.Interactivity": "0.9.9"
+          "Avalonia": "0.10.3",
+          "Avalonia.Xaml.Interactivity": "0.10.3"
         }
       },
       "Avalonia.Xaml.Interactivity": {
@@ -1051,14 +1051,14 @@
       "walletwasabi.fluent": {
         "type": "Project",
         "dependencies": {
-          "Avalonia.Xaml.Interactions.Custom": "0.10.3",
-          "Avalonia.Xaml.Interactivity": "0.10.5",
-          "Emgu.CV.runtime.ubuntu.20.04-x64": "4.5.1.4349",
-          "Emgu.CV.runtime.windows": "4.5.1.4349",
           "Avalonia": "0.10.6",
           "Avalonia.Diagnostics": "0.10.6",
           "Avalonia.ReactiveUI": "0.10.6",
           "Avalonia.Xaml.Behaviors": "0.10.6",
+          "Avalonia.Xaml.Interactions.Custom": "0.10.3",
+          "Avalonia.Xaml.Interactivity": "0.10.6",
+          "Emgu.CV.runtime.ubuntu.20.04-x64": "4.5.1.4349",
+          "Emgu.CV.runtime.windows": "4.5.1.4349",
           "WalletWasabi": "1.0.0",
           "Wasabi Wallet": "1.0.0"
         }
