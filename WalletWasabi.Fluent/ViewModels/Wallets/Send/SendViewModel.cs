@@ -1,15 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Drawing.Imaging;
-using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
@@ -67,7 +68,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _xAxisMinValue = 0;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _xAxisMaxValue = 9;
 		[AutoNotify] private string? _payJoinEndPoint;
-		[AutoNotify] private Avalonia.Media.Imaging.Bitmap? _testImage;
+		[AutoNotify] private WriteableBitmap? _testImage;
 		[AutoNotify] private bool _isQrPanelVisible;
 
 		private bool _parsingUrl;
@@ -207,40 +208,61 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 					videocapture.Retrieve(frame);
 
-					Image<Rgba, byte> image = frame.ToImage<Rgba, byte>();
+					var writeableBitmap = ConvertMatToWriteableBitmap(frame);
 
-					System.Drawing.Bitmap bmp = image.ToBitmap();
+					TestImage = writeableBitmap;
 
-					frame.Dispose();
-
-					using (MemoryStream memory = new())
-					{
-						bmp.Save(memory, ImageFormat.Png);
-						memory.Position = 0;
-
-						TestImage = new Avalonia.Media.Imaging.Bitmap(memory);
-					}
-
-					string result = GetQRcodeValueFromImage(image);
+					string result = GetQRcodeValueFromMat(frame);
 					if (!string.IsNullOrWhiteSpace(result))
 					{
 						To = result;
 						TestImage = null;
 						CloseWebCam();
 					}
+					frame.Dispose();
 				}
 			}
 			catch (Exception ex)
 			{
 				Logger.LogError(ex);
+				CloseWebCam();
 			}
 		}
 
-		private string GetQRcodeValueFromImage(IInputArray image)
+		private WriteableBitmap ConvertMatToWriteableBitmap(Mat frame)
+		{
+			PixelSize pixelSize = new(frame.Size.Width, frame.Size.Height);
+			Vector dpi = new(96, 96);
+			byte[,,] arr = (byte[,,])frame.GetData();
+			Avalonia.Platform.PixelFormat pixelFormat = Avalonia.Platform.PixelFormat.Rgba8888;
+			Avalonia.Platform.AlphaFormat alphaFormat = Avalonia.Platform.AlphaFormat.Unpremul;
+			var writeableBitmap = new WriteableBitmap(pixelSize, dpi, pixelFormat, alphaFormat);
+
+			using (var fb = writeableBitmap.Lock())
+			{
+				int[] data = new int[fb.Size.Width * fb.Size.Height];
+				for (int y = 0; y < fb.Size.Height; y++)
+				{
+					for (int x = 0; x < fb.Size.Width; x++)
+					{
+						byte r = arr[y, x, 0];
+						byte g = arr[y, x, 1];
+						byte b = arr[y, x, 2];
+						var color = new Color(255, r, g, b);
+						data[y * fb.Size.Width + x] = (int)color.ToUint32();
+					}
+				}
+				Marshal.Copy(data, 0, fb.Address, fb.Size.Width * fb.Size.Height);
+			}
+
+			return writeableBitmap;
+		}
+
+		private string GetQRcodeValueFromMat(IInputArray image)
 		{
 			string qrCodeValue = "";
 			using IOutputArray result = new Mat();
-			using IOutputArray resultImg = new Mat();
+			using IOutputArray resultImg = new Mat(); // This is needed, Decode() will throw an exception without it
 			using QRCodeDetector qrCodeDetector = new();
 
 			bool isQRCodeDetected = qrCodeDetector.Detect(image, result);
