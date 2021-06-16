@@ -7,9 +7,12 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
@@ -67,7 +70,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _xAxisMinValue = 0;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _xAxisMaxValue = 9;
 		[AutoNotify] private string? _payJoinEndPoint;
-		[AutoNotify] private Avalonia.Media.Imaging.Bitmap? _testImage;
+		[AutoNotify] private WriteableBitmap? _testImage;
 		[AutoNotify] private bool _isQrPanelVisible;
 
 		private bool _parsingUrl;
@@ -207,19 +210,37 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 					videocapture.Retrieve(frame);
 
+					Avalonia.PixelSize pixelSize = new(frame.Size.Width, frame.Size.Height);
+					Avalonia.Vector dpi = new(96, 96);
+					byte[,,] arr = (byte[,,])frame.GetData();
+					Avalonia.Platform.PixelFormat pixelFormat = Avalonia.Platform.PixelFormat.Rgba8888;
+					Avalonia.Platform.AlphaFormat alphaFormat = Avalonia.Platform.AlphaFormat.Unpremul;
+					var writeableBitmap = new WriteableBitmap(pixelSize, dpi, pixelFormat, alphaFormat);
+
+					using (var fb = writeableBitmap.Lock())
+					{
+						int[] data = new int[fb.Size.Width * fb.Size.Height];
+						for (int y = 0; y < fb.Size.Height; y++)
+						{
+							for (int x = 0; x < fb.Size.Width; x++)
+							{
+								byte r = arr[y, x, 0];
+								byte g = arr[y, x, 1];
+								byte b = arr[y, x, 2];
+								var color = new Color(255, r, g, b);
+								data[y * fb.Size.Width + x] = (int)color.ToUint32();
+							}
+						}
+						Marshal.Copy(data, 0, fb.Address, fb.Size.Width * fb.Size.Height);
+					}
+
 					Image<Rgba, byte> image = frame.ToImage<Rgba, byte>();
 
-					System.Drawing.Bitmap bmp = image.ToBitmap();
+					//System.Drawing.Bitmap bmp = image.ToBitmap();
 
 					frame.Dispose();
 
-					using (MemoryStream memory = new())
-					{
-						bmp.Save(memory, ImageFormat.Png);
-						memory.Position = 0;
-
-						TestImage = new Avalonia.Media.Imaging.Bitmap(memory);
-					}
+					TestImage = writeableBitmap;
 
 					string result = GetQRcodeValueFromImage(image);
 					if (!string.IsNullOrWhiteSpace(result))
