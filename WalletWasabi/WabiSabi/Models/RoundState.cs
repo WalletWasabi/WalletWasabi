@@ -43,6 +43,8 @@ namespace WalletWasabi.WabiSabi.Models
 				round.MaxVsizeAllocationPerAlice,
 				round.CoinjoinState);
 
+		public uint256 Id => CalculateHash();
+
 		public TState Assert<TState>() where TState : MultipartyTransactionState =>
 			CoinjoinState switch
 			{
