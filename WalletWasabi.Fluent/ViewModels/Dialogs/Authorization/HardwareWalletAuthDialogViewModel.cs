@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Model;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Hwi;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;

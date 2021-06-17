@@ -9,7 +9,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Model;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;

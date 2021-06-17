@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc.Models;
@@ -187,6 +188,34 @@ namespace WalletWasabi.BitcoinCore.Rpc
 		public virtual async Task<Transaction> GetRawTransactionAsync(uint256 txid, bool throwIfNotFound = true)
 		{
 			return await Rpc.GetRawTransactionAsync(txid, throwIfNotFound).ConfigureAwait(false);
+		}
+
+		public virtual async Task<IEnumerable<Transaction>> GetRawTransactionsAsync(IEnumerable<uint256> txids, CancellationToken cancel)
+		{
+			// 8 is half of the default rpcworkqueue
+			List<Transaction> acquiredTransactions = new();
+			foreach (var txidsChunk in txids.ChunkBy(8))
+			{
+				IRPCClient batchingRpc = PrepareBatch();
+				List<Task<Transaction>> tasks = new();
+				foreach (var txid in txidsChunk)
+				{
+					tasks.Add(batchingRpc.GetRawTransactionAsync(txid, throwIfNotFound: false));
+				}
+
+				await batchingRpc.SendBatchAsync().ConfigureAwait(false);
+
+				foreach (var tx in await Task.WhenAll(tasks).ConfigureAwait(false))
+				{
+					if (tx is not null)
+					{
+						acquiredTransactions.Add(tx);
+					}
+					cancel.ThrowIfCancellationRequested();
+				}
+			}
+
+			return acquiredTransactions;
 		}
 
 		public virtual async Task<int> GetBlockCountAsync()

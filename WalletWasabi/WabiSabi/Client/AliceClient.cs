@@ -1,5 +1,6 @@
 using NBitcoin;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
@@ -35,7 +36,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public async Task RegisterInputAsync(CancellationToken cancellationToken)
 		{
-			var response = await ArenaClient.RegisterInputAsync(Coin.Outpoint, BitcoinSecret.PrivateKey, RoundId, cancellationToken).ConfigureAwait(false);
+			var response = await ArenaClient.RegisterInputAsync(RoundId, Coin.Outpoint, BitcoinSecret.PrivateKey, cancellationToken).ConfigureAwait(false);
 			var remoteAliceId = response.Value;
 			if (AliceId != remoteAliceId)
 			{
@@ -46,18 +47,18 @@ namespace WalletWasabi.WabiSabi.Client
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Registered an input.");
 		}
 
-		public async Task ConfirmConnectionAsync(TimeSpan connectionConfirmationTimeout, CancellationToken cancellationToken)
+		public async Task ConfirmConnectionAsync(TimeSpan connectionConfirmationTimeout, long vsizeAllocationToRequest, CancellationToken cancellationToken)
 		{
-			while (!await TryConfirmConnectionAsync(cancellationToken).ConfigureAwait(false))
+			while (!await TryConfirmConnectionAsync(vsizeAllocationToRequest, cancellationToken).ConfigureAwait(false))
 			{
 				await Task.Delay(connectionConfirmationTimeout / 2, cancellationToken).ConfigureAwait(false);
 			}
 		}
 
-		private async Task<bool> TryConfirmConnectionAsync(CancellationToken cancellationToken)
+		private async Task<bool> TryConfirmConnectionAsync(long vsizeAllocationToRequest, CancellationToken cancellationToken)
 		{
-			var inputVsize = Constants.P2wpkhInputVirtualSize;
-			var vsizesToRequest = new[] { ProtocolConstants.MaxVsizePerAlice - inputVsize };
+			var inputVsize = Coin.ScriptPubKey.EstimateInputVsize();
+			var vsizesToRequest = new[] { vsizeAllocationToRequest - inputVsize };
 
 			var totalFeeToPay = FeeRate.GetFee(Coin.ScriptPubKey.EstimateInputVsize());
 			var totalAmount = Coin.Amount;
@@ -68,7 +69,7 @@ namespace WalletWasabi.WabiSabi.Client
 				throw new InvalidOperationException($"Round({ RoundId }), Alice({ AliceId}): Not enough funds to pay for the fees.");
 			}
 
-			var amountsToRequest = new[] { effectiveAmount };
+			var amountsToRequest = new[] { effectiveAmount.Satoshi };
 
 			var response = await ArenaClient
 				.ConfirmConnectionAsync(

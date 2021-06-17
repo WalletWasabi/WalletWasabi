@@ -10,6 +10,7 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 {
@@ -77,7 +78,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				}
 				else
 				{
-					FinalTransaction = new SmartTransaction(Transaction.Parse(textToPaste, Network), Models.Height.Unknown);
+					FinalTransaction = new SmartTransaction(Transaction.Parse(textToPaste, Network), Height.Unknown);
 				}
 			}
 			catch (Exception ex)
@@ -112,7 +113,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				}
 				catch
 				{
-					return new SmartTransaction(Transaction.Parse(text, Network), Models.Height.Unknown);
+					return new SmartTransaction(Transaction.Parse(text, Network), Height.Unknown);
 				}
 			}
 

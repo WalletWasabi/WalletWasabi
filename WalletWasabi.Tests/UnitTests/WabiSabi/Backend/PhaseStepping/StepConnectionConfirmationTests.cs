@@ -124,7 +124,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.DoesNotContain(round.Id, arena.Rounds.Keys);
+			Assert.DoesNotContain(round, arena.Rounds);
 			Assert.Equal(3, arena.Prison.CountInmates().noted);
 			Assert.Equal(0, arena.Prison.CountInmates().banned);
 

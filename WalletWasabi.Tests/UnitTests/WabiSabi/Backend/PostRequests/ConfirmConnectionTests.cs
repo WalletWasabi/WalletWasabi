@@ -1,8 +1,6 @@
 using NBitcoin;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
@@ -75,10 +73,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		[Fact]
 		public async Task RoundNotFoundAsync()
 		{
+			var cfg = new WabiSabiConfig();
+			var nonExistingRound = WabiSabiFactory.CreateRound(cfg);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync();
-			await using ArenaRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, new MockRpcClient());
-			var req = WabiSabiFactory.CreateConnectionConfirmationRequest();
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.ConfirmConnectionAsync(req, CancellationToken.None));
+			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
+			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(nonExistingRound);
+
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
+				async () => await handler.ConfirmConnectionAsync(req, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.RoundNotFound, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -92,17 +94,19 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var preDeadline = alice.Deadline;
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
-			var round = arena.Rounds.First().Value;
+			var round = arena.Rounds.First();
 			round.Alices.Add(alice);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
+			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 			foreach (Phase phase in Enum.GetValues(typeof(Phase)))
 			{
 				if (phase != Phase.InputRegistration && phase != Phase.ConnectionConfirmation)
 				{
 					round.SetPhase(phase);
-					await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
-					var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.ConfirmConnectionAsync(req, CancellationToken.None));
+					var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
+						async () => await handler.ConfirmConnectionAsync(req, CancellationToken.None));
+
 					Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 				}
 			}
@@ -137,14 +141,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			round.Alices.Add(alice);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
-			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
-			req = new(
-				req.RoundId,
-				req.AliceId,
-				req.ZeroAmountCredentialRequests,
-				req.RealAmountCredentialRequests,
-				req.ZeroVsizeCredentialRequests,
-				WabiSabiFactory.CreateRealCredentialRequests(round, null, 234).vsizeReq);
+			var incorrectVsizeCredentials = WabiSabiFactory.CreateRealCredentialRequests(round, null, 234).vsizeRequest;
+			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round) with { RealVsizeCredentialRequests = incorrectVsizeCredentials };
+
 			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.ConfirmConnectionAsync(req, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.IncorrectRequestedVsizeCredentials, ex.ErrorCode);
@@ -163,14 +162,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			round.Alices.Add(alice);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
-			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
-			req = new(
-				req.RoundId,
-				req.AliceId,
-				req.ZeroAmountCredentialRequests,
-				WabiSabiFactory.CreateRealCredentialRequests(round, Money.Coins(3), null).amountReq,
-				req.ZeroVsizeCredentialRequests,
-				req.RealVsizeCredentialRequests);
+			var incorrectAmountCredentials = WabiSabiFactory.CreateRealCredentialRequests(round, Money.Coins(3), null).amountRequest;
+			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round) with { RealAmountCredentialRequests = incorrectAmountCredentials };
+
 			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.ConfirmConnectionAsync(req, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.IncorrectRequestedAmountCredentials, ex.ErrorCode);

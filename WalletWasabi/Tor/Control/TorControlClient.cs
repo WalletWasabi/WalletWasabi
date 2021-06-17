@@ -1,8 +1,12 @@
+using Nito.AsyncEx;
 using System;
+using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Control.Messages;
@@ -12,16 +16,17 @@ namespace WalletWasabi.Tor.Control
 	/// <summary>
 	/// Client already authenticated to Tor Control.
 	/// </summary>
-	public class TorControlClient : IDisposable
+	public class TorControlClient : IAsyncDisposable
 	{
-		private volatile bool _disposedValue = false; // To detect redundant calls
+		private static readonly UnboundedChannelOptions Options = new()
+		{
+			SingleWriter = true
+		};
 
-		public TorControlClient(TcpClient tcpClient)
+		public TorControlClient(TcpClient tcpClient) :
+			this(PipeReader.Create(tcpClient.GetStream()), PipeWriter.Create(tcpClient.GetStream()))
 		{
 			TcpClient = tcpClient;
-
-			PipeReader = PipeReader.Create(tcpClient.GetStream());
-			PipeWriter = PipeWriter.Create(tcpClient.GetStream());
 		}
 
 		/// <summary>For testing.</summary>
@@ -30,11 +35,50 @@ namespace WalletWasabi.Tor.Control
 			TcpClient = null;
 			PipeReader = pipeReader;
 			PipeWriter = pipeWriter;
+			ReaderCts = new();
+
+			SyncChannel = Channel.CreateUnbounded<TorControlReply>(Options);
+			AsyncChannels = new List<Channel<TorControlReply>>();
+			ReaderLoopTask = Task.Run(ReaderLoopAsync);
+			MessageLock = new();
 		}
 
 		private TcpClient? TcpClient { get; }
 		private PipeReader PipeReader { get; }
 		private PipeWriter PipeWriter { get; }
+		private CancellationTokenSource ReaderCts { get; }
+		private Task ReaderLoopTask { get; }
+
+		/// <summary>Channel only for synchronous replies from Tor control.</summary>
+		/// <remarks>Typically, there is at most one message in the channel at a time.</remarks>
+		private Channel<TorControlReply> SyncChannel { get; }
+
+		/// <summary>Guards <see cref="AsyncChannels"/>.</summary>
+		private object AsyncChannelsLock { get; } = new();
+
+		/// <summary>Channel only for <see cref="StatusCode.AsynchronousEventNotify"/> events.</summary>
+		/// <remarks>
+		/// Guarded by <see cref="AsyncChannelsLock"/>.
+		/// <para>This list should be used only in a copy-on-write way to avoid iterating a modified list.</para>
+		/// </remarks>
+		private List<Channel<TorControlReply>> AsyncChannels { get; set; }
+
+		/// <summary>Lock to when sending a request to Tor control and waiting for a reply.</summary>
+		/// <remarks>Tor control protocol does not provide a foolproof way to recognize that a response belongs to a request.</remarks>
+		private AsyncLock MessageLock { get; }
+
+		/// <summary>Number of subscribers that currently listen to Tor's async events using <see cref="ReadEventsAsync"/>.</summary>
+		/// <remarks>Mainly for tests.</remarks>
+		internal int SubscriberCount
+		{
+			get
+			{
+				lock (AsyncChannelsLock)
+				{
+					return AsyncChannels.Count;
+				}
+			}
+		}
 
 		/// <summary>
 		/// Gets protocol info (for version 1).
@@ -90,31 +134,116 @@ namespace WalletWasabi.Tor.Control
 		/// <param name="command">A Tor control command which must end with <c>\r\n</c>.</param>
 		public async Task<TorControlReply> SendCommandAsync(string command, CancellationToken cancellationToken = default)
 		{
+			using var _ = await MessageLock.LockAsync(cancellationToken).ConfigureAwait(false);
+
 			Logger.LogTrace($"Client: About to send command: '{command.TrimEnd()}'");
 			await PipeWriter.WriteAsync(new ReadOnlyMemory<byte>(Encoding.ASCII.GetBytes(command)), cancellationToken).ConfigureAwait(false);
 			await PipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
 
-			TorControlReply reply = await TorControlReplyReader.ReadReplyAsync(PipeReader, cancellationToken).ConfigureAwait(false);
-
+			TorControlReply reply = await SyncChannel.Reader.ReadAsync(cancellationToken).ConfigureAwait(false);
 			return reply;
 		}
 
-		protected virtual void Dispose(bool disposing)
+		/// <summary>Allows the caller to read Tor events using <c>await foreach</c>.</summary>
+		/// <remarks>Processing of replies does not block other readers.</remarks>
+		/// <example>
+		/// <code>
+		/// await foreach (TorControlReply reply in TorControlClient.ReadEventsAsync())
+		/// {
+		///    Console.WriteLine(reply.ToString());
+		/// }
+		/// </code> 
+		/// </example>
+		public async IAsyncEnumerable<TorControlReply> ReadEventsAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
 		{
-			if (!_disposedValue)
+			Channel<TorControlReply> channel = Channel.CreateUnbounded<TorControlReply>(Options);
+			List<Channel<TorControlReply>> newList;
+
+			try
 			{
-				if (disposing)
+				lock (AsyncChannelsLock)
 				{
-					TcpClient?.Dispose();
+					newList = new(AsyncChannels);
+					newList.Add(channel);
+
+					AsyncChannels = newList;
 				}
 
-				_disposedValue = true;
+				Logger.LogTrace($"ReadEventsAsync: subscribers: {newList.Count}.");
+
+				await foreach (TorControlReply item in channel.Reader.ReadAllAsync(cancellationToken))
+				{
+					yield return item;
+				}
+			}
+			finally
+			{
+				Logger.LogTrace("ReadEventsAsync: About to unsubscribe.");
+				lock (AsyncChannelsLock)
+				{
+					newList = new(AsyncChannels);
+					newList.Remove(channel);
+
+					AsyncChannels = newList;
+				}
 			}
 		}
 
-		public void Dispose()
+		/// <summary>
+		/// Loop that continues reading received messages from Tor control TCP connection.
+		/// </summary>
+		private async Task ReaderLoopAsync()
 		{
-			Dispose(true);
+			try
+			{
+				while (!ReaderCts.IsCancellationRequested)
+				{
+					TorControlReply reply = await TorControlReplyReader.ReadReplyAsync(PipeReader, ReaderCts.Token).ConfigureAwait(false);
+
+					if (reply.StatusCode == StatusCode.AsynchronousEventNotify)
+					{
+						List<Channel<TorControlReply>> list;
+
+						lock (AsyncChannelsLock)
+						{
+							list = AsyncChannels;
+						}
+
+						// Notify every "subscriber" who reads all Tor events.
+						foreach (Channel<TorControlReply> channel in list)
+						{
+							await channel.Writer.WriteAsync(reply, ReaderCts.Token).ConfigureAwait(false);
+						}
+					}
+					else
+					{
+						// Propagate a response back to the requester.
+						await SyncChannel.Writer.WriteAsync(reply, ReaderCts.Token).ConfigureAwait(false);
+					}
+				}
+			}
+			catch (OperationCanceledException)
+			{
+				Logger.LogTrace("Reader loop was stopped.");
+			}
+			catch (Exception e)
+			{
+				// This is an unrecoverable issue.
+				Logger.LogError($"Exception occurred in the reader loop: {e}.");
+				throw;
+			}
+		}
+
+		public async ValueTask DisposeAsync()
+		{
+			// Stop reader loop.
+			ReaderCts.Cancel();
+
+			// Wait until the reader loop stops.
+			await ReaderLoopTask.ConfigureAwait(false);
+
+			ReaderCts.Dispose();
+			TcpClient?.Dispose();
 		}
 	}
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -86,6 +87,11 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		public Task<Transaction> GetRawTransactionAsync(uint256 txid, bool throwIfNotFound = true)
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task<IEnumerable<Transaction>> GetRawTransactionsAsync(IEnumerable<uint256> txids, CancellationToken cancel)
 		{
 			throw new NotImplementedException();
 		}
