@@ -188,11 +188,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void OpenWebCam()
 		{
-			_videocapture = new VideoCapture();
-			IsQrPanelVisible = true;
-			_videocapture.QueryFrame();
-			_videocapture.ImageGrabbed += ProcessFrame;
-			_videocapture.Start();
+			try
+			{
+				_videocapture = new VideoCapture();
+				IsQrPanelVisible = true;
+				_videocapture.QueryFrame();
+				_videocapture.ImageGrabbed += ProcessFrame;
+				_videocapture.Start();
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+			}
 		}
 
 		private void ProcessFrame(object? sender, EventArgs e)
