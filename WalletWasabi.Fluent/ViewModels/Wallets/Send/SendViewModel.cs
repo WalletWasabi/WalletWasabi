@@ -15,7 +15,6 @@ using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
 using Emgu.CV;
-using Emgu.CV.Structure;
 using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
@@ -134,7 +133,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
 			AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
-			QRCommand = ReactiveCommand.Create(() => OnPasteQRValueAsync());
+			QRCommand = ReactiveCommand.Create(() => OpenWebCam());
 			BackCommand = ReactiveCommand.Create(() =>
 			{
 				CloseWebCam();
@@ -187,7 +186,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_parsingUrl = false;
 		}
 
-		private void OnPasteQRValueAsync()
+		private void OpenWebCam()
 		{
 			_videocapture = new VideoCapture();
 			IsQrPanelVisible = true;
