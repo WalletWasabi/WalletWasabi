@@ -99,7 +99,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 			catch (Exception ex)
 			{
 				Logger.LogError(ex);
-				await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "It was not possible to broadcast the transaction.");
+				await ShowErrorAsync("Transaction Broadcaster", ex.ToUserFriendlyString(), "It was not possible to broadcast the transaction.");
 			}
 		}
 	}
