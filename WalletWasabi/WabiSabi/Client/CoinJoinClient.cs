@@ -34,7 +34,8 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private SecureRandom SecureRandom { get; }
 		private Random Random { get; } = new();
-		public IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
+		public IWabiSabiApiRequestHandler ArenaRequestHandler { get; private set; }
+		public uint256 RoundId { get; }
 		public Kitchen Kitchen { get; }
 		public KeyManager Keymanager { get; }
 		private RoundStateUpdater RoundStatusUpdater { get; }
