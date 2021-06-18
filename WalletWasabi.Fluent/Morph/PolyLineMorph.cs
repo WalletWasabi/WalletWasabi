@@ -56,7 +56,7 @@ namespace WalletWasabi.Fluent.Morph
 
 			for (int j = 0; j < source.XValues.Count; j++)
 			{
-				// TODO: source.XValues[j] = Interpolate(source.XValues[j], target.XValues[j], progress);
+				source.XValues[j] = Interpolate(source.XValues[j], target.XValues[j], progress);
 				source.YValues[j] = Interpolate(source.YValues[j], target.YValues[j], progress);
 			}
 		}
