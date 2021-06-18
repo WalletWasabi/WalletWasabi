@@ -1,0 +1,20 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:WalletWasabi.Fluent.Controls">
+
+  <Style Selector="c|StatusItem">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Grid ColumnDefinitions="Auto,*"
+              RowDefinitions="Auto,Auto">
+          <PathIcon Data="{TemplateBinding Icon}" Height="13" Grid.Column="0" Grid.Row="0"
+                    HorizontalAlignment="Left" VerticalAlignment="Center"
+                    Margin="0 0 5 0" />
+          <TextBlock Grid.Column="1" Grid.Row="0" Text="{TemplateBinding Title}" VerticalAlignment="Center" />
+          <TextBlock Grid.Column="1" Grid.Row="1" Text="{TemplateBinding StatusText}" Opacity="0.6"
+                     VerticalAlignment="Center" TextWrapping="Wrap" />
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+</Styles>
