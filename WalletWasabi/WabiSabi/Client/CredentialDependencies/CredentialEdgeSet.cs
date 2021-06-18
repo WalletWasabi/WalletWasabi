@@ -8,6 +8,9 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 	public record CredentialEdgeSet
 	{
 		public CredentialType CredentialType { get; init; }
+
+		public long MaxCredentialValue { get; init; }
+
 		public ImmutableDictionary<RequestNode, ImmutableHashSet<CredentialDependency>> Predecessors { get; init; } = ImmutableDictionary.Create<RequestNode, ImmutableHashSet<CredentialDependency>>();
 		public ImmutableDictionary<RequestNode, ImmutableHashSet<CredentialDependency>> Successors { get; init; } = ImmutableDictionary.Create<RequestNode, ImmutableHashSet<CredentialDependency>>();
 		public ImmutableDictionary<RequestNode, long> EdgeBalances { get; init; } = ImmutableDictionary.Create<RequestNode, long>();
@@ -167,17 +170,37 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 		// Drain values into a reissuance request (towards the center of the graph).
 		public CredentialEdgeSet DrainReissuance(RequestNode reissuance, IEnumerable<RequestNode> nodes)
-			// The amount for the edge is always determined by the dicharged
+			// The amount for the edge is always determined by the discharged
 			// nodes' values, since we only add reissuance nodes to reduce the
 			// number of charged nodes overall.
 			=> nodes.Aggregate(this, (edgeSet, node) => edgeSet.DrainReissuance(reissuance, node));
 
 		private CredentialEdgeSet DrainReissuance(RequestNode reissuance, RequestNode node)
-			=> Balance(node) switch
-			{
-				> 0 and long value => AddEdge(node, reissuance, (ulong)value),
-				< 0 and long value => AddEdge(reissuance, node, (ulong)(-1 * value)).AddZeroEdges(reissuance, node),
+		{
+			var value = Balance(node);
 
+			if (Math.Abs(Balance(reissuance) + value) > MaxCredentialValue)
+			{
+				// Avoid creating graphs that cannot be executed due to range
+				// proof constraints. Technically up to K * MaxCredentialValue
+				// is possible, but being stricter keeps it simple by avoiding
+				// edge cases, and is likely to be good enough in practice as
+				// this only really applies to vsize credentials and those
+				// should almost always have a significant surplus, so this
+				// should result in few strictly unnecessary reissuance
+				// requests overall.
+				return this;
+			}
+			else if ( value > 0 )
+			{
+				return AddEdge(node, reissuance, (ulong)value);
+			}
+			else if (value < 0 )
+			{
+				return AddEdge(reissuance, node, (ulong)(-1 * value)).AddZeroEdges(reissuance, node);
+			}
+			else if (InDegree(reissuance) == 0)
+			{
 				// Due to opportunistic draining of lower priority credential
 				// types when defining a reissuance node for higher priority
 				// ones, the amount is not guaranteed to be zero, avoid adding
@@ -185,8 +208,11 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 				// Always satisfiy zero credential from new reissuance nodes
 				// (it's guaranteed to be possible) to avoid crossing edges,
 				// even if there's no balance to discharge.
-				_ => (InDegree(reissuance) == 0 ? AddZeroEdges(reissuance, node) : this),
-			};
+				return AddZeroEdges(reissuance, node);
+			} else {
+				return this;
+			}
+		}
 
 		public CredentialEdgeSet AddZeroEdges(RequestNode src, RequestNode dst)
 		   => RemainingInDegree(dst) switch

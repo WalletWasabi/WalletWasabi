@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views
+namespace WalletWasabi.Fluent.Views.StatusBar
 {
 	public class StatusBar : UserControl
 	{
