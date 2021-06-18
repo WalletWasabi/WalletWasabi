@@ -129,14 +129,14 @@ namespace WalletWasabi.Fluent.ViewModels.StatusBar
 				{
 					var updateStatus = e.EventArgs;
 					var cancelToken = new CancellationTokenSource(TimeSpan.FromMinutes(1));
-					var (clientVersion, backendMajorVersion, _) = await updateChecker.WasabiClient.GetVersionsAsync(cancelToken.Token);
+					var (clientVersion, _, _) = await updateChecker.WasabiClient.GetVersionsAsync(cancelToken.Token);
 
 					UpdateAvailable = !updateStatus.ClientUpToDate;
 					CriticalUpdateAvailable = !updateStatus.BackendCompatible;
 
 					if (CriticalUpdateAvailable)
 					{
-						VersionText = $"Backend version {backendMajorVersion} is now available";
+						VersionText = $"Critical update required";
 					}
 					else if (UpdateAvailable)
 					{
