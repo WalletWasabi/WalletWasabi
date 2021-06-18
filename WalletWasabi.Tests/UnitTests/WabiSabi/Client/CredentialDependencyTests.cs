@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
 using Xunit;
 
@@ -253,6 +254,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		[InlineData("21,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1", "11,5 10,5 10,5 10,6", 42)]
 		[InlineData("21,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1", "10,5 10,5 10,5 10,6", 43)]
 		[InlineData("21,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1", "10,5 10,5 10,5 10,5", 42)]
+		[InlineData("1,255 1,255 1,255 1,255", "4,1", 7)]
+		[InlineData("13,255 1,255 1,255 1,255 1,255 1,255", "3,255 3,255 3,255 3,255 3,255 3,255", 17)]
 		public async void ResolveCredentialDependenciesAsync(string inputs, string outputs, int finalVertexCount)
 		{
 			// blackbox tests (apart from finalVertexCount, which leaks
@@ -287,6 +290,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 					var balance = graph.Balance(node, credentialType);
 
 					Assert.True(balance >= 0);
+					if (credentialType == CredentialType.Vsize)
+					{
+						Assert.InRange(balance, 0, ProtocolConstants.MaxVsizeCredentialValue);
+					}
 					Assert.Equal(0, node.MaxInDegree);
 					Assert.Equal(node.MaxInDegree, graph.InDegree(node, credentialType));
 
@@ -315,6 +322,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 					var balance = graph.Balance(node, credentialType);
 
 					Assert.True(balance >= 0);
+					if (credentialType == CredentialType.Vsize)
+					{
+						Assert.InRange(balance, 0, ProtocolConstants.MaxVsizeCredentialValue);
+					}
 
 					Assert.Equal(DependencyGraph.K, node.MaxInDegree);
 					Assert.Equal(node.MaxInDegree, graph.InDegree(node, credentialType));
@@ -322,6 +333,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 					var outDegree = graph.OutDegree(node, credentialType);
 					Assert.InRange(outDegree, 0, DependencyGraph.K - (balance == 0 ? 0 : 1));
 				}
+			}
+
+			// Ensure that vsize credentials do not exceed the range proof width
+			foreach (var edge in graph.EdgeSets[CredentialType.Vsize].Successors.Values.SelectMany(x => x))
+			{
+				Assert.InRange<ulong>(edge.Value, 0, ProtocolConstants.MaxVsizeCredentialValue);
 			}
 
 			// TODO add InlineData param for max depth?

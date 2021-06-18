@@ -4,6 +4,7 @@ namespace WalletWasabi.WabiSabi
 	{
 		public const int CredentialNumber = 2;
 		public const long MaxAmountPerAlice = 4_300_000_000_000L;
+		public const long MaxVsizeCredentialValue = 255;
 
 		public const string WabiSabiProtocolIdentifier = "WabiSabi_v1.0";
 		public const string DomainStrobeSeparator = "domain-separator";

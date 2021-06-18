@@ -1,6 +1,7 @@
 using NBitcoin;
 using NBitcoin.Protocol;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -107,6 +108,16 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 					{
 						coin.SpentAccordingToBackend = true;
 					}
+				}
+
+				// Exception message is in form: 'message:::tx1:::tx2:::etc.' where txs are encoded in HEX.
+				IEnumerable<SmartTransaction> txs = ex2.Message.Split(":::", StringSplitOptions.RemoveEmptyEntries)
+					.Skip(1) // Skip the exception message.
+					.Select(x => new SmartTransaction(Transaction.Parse(x, Network), Height.Mempool));
+
+				foreach (var tx in txs)
+				{
+					WalletManager.Process(tx);
 				}
 
 				throw;

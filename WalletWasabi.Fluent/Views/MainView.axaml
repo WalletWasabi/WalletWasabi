@@ -3,11 +3,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:local="using:WalletWasabi.Fluent.Views"
              xmlns:navbar="using:WalletWasabi.Fluent.Views.NavBar"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
+             xmlns:statusBar="clr-namespace:WalletWasabi.Fluent.Views.StatusBar"
              mc:Ignorable="d" d:DesignWidth="536" d:DesignHeight="459"
              x:DataType="vm:MainViewModel"
              x:CompileBindings="True"
@@ -39,7 +39,9 @@
       </SplitView.Pane>
       <Panel>
         <DockPanel>
-          <local:StatusBar DockPanel.Dock="Bottom" Classes="h8" DataContext="{Binding StatusBar}" VerticalAlignment="Bottom" Height="32" />
+          <Panel Background="{DynamicResource RegionColor}" DockPanel.Dock="Bottom" VerticalAlignment="Bottom" Height="32">
+            <statusBar:StatusBar DataContext="{Binding StatusBar}" />
+          </Panel>
           <Panel>
             <Panel.Styles>
               <Style Selector="ContentControl c|ContentArea /template/ Panel#PART_ButtonArea">
@@ -50,7 +52,7 @@
                   <Setter Property="Margin" Value="31 36 31 0" />
               </Style>
             </Panel.Styles>
-            <Border Background="{DynamicResource RegionColor}" BoxShadow="{DynamicResource BoxShadow}" IsHitTestVisible="False" />
+            <Border Background="{DynamicResource RegionColor}" IsHitTestVisible="False" />
             <ContentControl ClipToBounds="False" Content="{Binding MainScreen.CurrentPage}" />
           </Panel>
         </DockPanel>
