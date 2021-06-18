@@ -51,7 +51,9 @@
               <Button Classes="option"
                       Focusable="False"
                       Content="{Binding Label}"
-                      Command="{Binding SelectedCommand}"/>
+                      Command="{Binding #LabelsTbx.AddTag}"
+                      CommandParameter="{Binding Label}"
+                      x:CompileBindings="False"/>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
