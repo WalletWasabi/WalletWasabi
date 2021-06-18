@@ -10,22 +10,15 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Runtime.InteropServices;
-using System.Threading;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Gui.Dialogs;
-using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models.StatusBarStatuses;
 using WalletWasabi.Gui.Tabs;
-using WalletWasabi.Helpers;
-using WalletWasabi.Legal;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
-using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Wallets;
-using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -382,16 +375,6 @@ namespace WalletWasabi.Gui.ViewModels
 				if (MainWindowViewModel.Instance.ModalDialog is { })
 				{
 					// Do nothing.
-				}
-				else
-				{
-					// Show GenSocksServFail dialog on OS-es we suspect Tor is outdated.
-					var osDesc = RuntimeInformation.OSDescription;
-					if (osDesc.Contains("16.04.1-Ubuntu", StringComparison.InvariantCultureIgnoreCase)
-						|| osDesc.Contains("16.04.0-Ubuntu", StringComparison.InvariantCultureIgnoreCase))
-					{
-						MainWindowViewModel.Instance.ShowDialogAsync(new GenSocksServFailDialogViewModel()).GetAwaiter().GetResult();
-					}
 				}
 			}
 			else
