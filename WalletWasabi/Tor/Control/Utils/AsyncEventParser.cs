@@ -6,6 +6,9 @@ using WalletWasabi.Tor.Control.Messages.Events.StatusEvents;
 
 namespace WalletWasabi.Tor.Control.Utils
 {
+	/// <summary>
+	/// Parses an incoming Tor control event based on its name.
+	/// </summary>
 	public static class AsyncEventParser
 	{
 		/// <exception cref="TorControlReplyParseException"/>

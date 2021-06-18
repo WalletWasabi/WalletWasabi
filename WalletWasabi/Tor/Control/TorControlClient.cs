@@ -204,7 +204,7 @@ namespace WalletWasabi.Tor.Control
 
 				Logger.LogTrace($"ReadEventsAsync: subscribers: {newList.Count}.");
 
-				await foreach (TorControlReply item in channel.Reader.ReadAllAsync(cancellationToken))
+				await foreach (TorControlReply item in channel.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
 				{
 					yield return item;
 				}

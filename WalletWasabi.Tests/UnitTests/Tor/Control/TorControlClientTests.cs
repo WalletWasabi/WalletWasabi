@@ -16,10 +16,10 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 		[Fact]
 		public async Task ReceiveTorAsyncEventsUsingForeachAsync()
 		{
-			using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(3));
+			using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(4));
 
 			// Test parameters.
-			const int ExpectedEventsNo = 5;
+			const int ExpectedEventsNo = 3;
 			const string AsyncEventContent = "CIRC 1000 EXTENDED moria1,moria2";
 
 			Pipe toServer = new();
@@ -38,7 +38,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 				for (int i = 0; i < ExpectedEventsNo; i++)
 				{
 					Logger.LogTrace($"Server: Send async Tor event (#{i}): '650 {AsyncEventContent}'.");
-					await toClient.Writer.WriteAsciiAsync($"650 {AsyncEventContent}\r\n", timeoutCts.Token).ConfigureAwait(false);
+					await toClient.Writer.WriteAsciiAndFlushAsync($"650 {AsyncEventContent}\r\n", timeoutCts.Token).ConfigureAwait(false);
 				}
 			});
 
@@ -91,20 +91,20 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 			Task serverTask = Task.Run(async () =>
 			{
 				Logger.LogTrace($"Server: Send msg #1 (async) to client: '650 {AsyncEventContent}'.");
-				await toClient.Writer.WriteAsciiAsync($"650 {AsyncEventContent}\r\n", timeoutCts.Token).ConfigureAwait(false);
+				await toClient.Writer.WriteAsciiAndFlushAsync($"650 {AsyncEventContent}\r\n", timeoutCts.Token).ConfigureAwait(false);
 
 				Logger.LogTrace($"Server: Send msg #2 (async) to client: '650 {AsyncEventContent}'.");
-				await toClient.Writer.WriteAsciiAsync($"650 {AsyncEventContent}\r\n", timeoutCts.Token).ConfigureAwait(false);
+				await toClient.Writer.WriteAsciiAndFlushAsync($"650 {AsyncEventContent}\r\n", timeoutCts.Token).ConfigureAwait(false);
 
 				Logger.LogTrace("Server: Wait for TAKEOWNERSHIP command.");
 				string command = await toServer.Reader.ReadLineAsync(timeoutCts.Token).ConfigureAwait(false);
 				Assert.Equal("TAKEOWNERSHIP", command);
 
 				Logger.LogTrace("Server: Send msg #3 (sync) to client in response to TAKEOWNERSHIP command.");
-				await toClient.Writer.WriteAsciiAsync($"250 OK\r\n", timeoutCts.Token).ConfigureAwait(false);
+				await toClient.Writer.WriteAsciiAndFlushAsync($"250 OK\r\n", timeoutCts.Token).ConfigureAwait(false);
 
 				Logger.LogTrace($"Server: Send msg #4 (async) to client: '650 {AsyncEventContent}'.");
-				await toClient.Writer.WriteAsciiAsync($"650 {AsyncEventContent}\r\n", timeoutCts.Token).ConfigureAwait(false);
+				await toClient.Writer.WriteAsciiAndFlushAsync($"650 {AsyncEventContent}\r\n", timeoutCts.Token).ConfigureAwait(false);
 			});
 
 			Logger.LogTrace("Client: Receive msg #1 (async).");
@@ -166,7 +166,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 				Assert.Equal("SETEVENTS CIRC", command);
 
 				Logger.LogTrace("Server: Reply with OK code.");
-				await toClient.Writer.WriteAsciiAsync("250 OK\r\n", timeoutCts.Token);
+				await toClient.Writer.WriteAsciiAndFlushAsync("250 OK\r\n", timeoutCts.Token);
 
 				await task;
 			}
@@ -184,7 +184,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 				Assert.Equal("SETEVENTS CIRC,STATUS_CLIENT", command);
 
 				Logger.LogTrace("Server: Reply with OK code.");
-				await toClient.Writer.WriteAsciiAsync("250 OK\r\n", timeoutCts.Token);
+				await toClient.Writer.WriteAsciiAndFlushAsync("250 OK\r\n", timeoutCts.Token);
 
 				await task;
 			}
@@ -202,7 +202,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 				Assert.Equal("SETEVENTS CIRC", command);
 
 				Logger.LogTrace("Server: Reply with OK code.");
-				await toClient.Writer.WriteAsciiAsync("250 OK\r\n", timeoutCts.Token);
+				await toClient.Writer.WriteAsciiAndFlushAsync("250 OK\r\n", timeoutCts.Token);
 
 				await task;
 			}
@@ -219,7 +219,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 				Assert.Equal("SETEVENTS", command);
 
 				Logger.LogTrace("Server: Reply with OK code.");
-				await toClient.Writer.WriteAsciiAsync("250 OK\r\n", timeoutCts.Token);
+				await toClient.Writer.WriteAsciiAndFlushAsync("250 OK\r\n", timeoutCts.Token);
 
 				await task;
 			}
