@@ -34,7 +34,9 @@
         <StackPanel TextBlock.Foreground="{DynamicResource TextControlForeground}"
                     TextBlock.FontSize="14"
                     MaxWidth="160"
-                    ClipToBounds="False">
+                    ClipToBounds="False"
+                    ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                    ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 
           <!-- Status -->
           <StackPanel Spacing="16">
