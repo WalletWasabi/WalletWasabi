@@ -77,7 +77,8 @@
               </StackPanel>
             </Button>
 
-            <Button Classes="plain" Command="{Binding AskMeLaterCommand}" IsVisible="{Binding !CriticalUpdateAvailable}">
+            <Button Classes="plain" Command="{Binding AskMeLaterCommand}"
+                    IsVisible="{Binding !CriticalUpdateAvailable}">
               <StackPanel Spacing="5" Orientation="Horizontal">
                 <PathIcon Data="{StaticResource clock_regular}" Height="13" />
                 <TextBlock Text="Ask me later" />
@@ -90,8 +91,8 @@
 
     <!-- Update available -->
     <StackPanel Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" Margin="10 0"
-                IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.UpdateAvailable}}"                >
-      <TextBlock Text="Update available" VerticalAlignment="Center" FontSize="14" Foreground="Gold"/>
+                IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.UpdateAvailable}}">
+      <TextBlock Text="Update available" VerticalAlignment="Center" FontSize="14" Foreground="Gold" />
       <PathIcon Data="{StaticResource arrow_clockwise_with_elipse}"
                 Foreground="Gold"
                 Height="30" />
@@ -99,7 +100,7 @@
 
     <!-- Critical update available -->
     <StackPanel Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" Margin="10 0"
-                IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.CriticalUpdateAvailable}}"                >
+                IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.CriticalUpdateAvailable}}">
       <TextBlock Text="Critical update available" VerticalAlignment="Center" FontSize="14" Foreground="IndianRed" />
       <PathIcon Data="{StaticResource critical_update}"
                 Foreground="IndianRed"
@@ -121,6 +122,6 @@
               Height="30"
               Margin="10 0"
               IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.Loading}}"
-              Classes="rotate"/>
+              Classes="rotate" />
   </Panel>
 </UserControl>
