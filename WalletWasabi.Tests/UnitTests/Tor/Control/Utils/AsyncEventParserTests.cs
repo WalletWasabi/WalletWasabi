@@ -16,7 +16,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control.Utils
 		[Fact]
 		public async Task ParseUnknownEventAsync()
 		{
-			/// "XXX" is not a valid event name.
+			// "XXX" is not a valid event name.
 			string data = "650 XXX NOTICE\r\n";
 
 			TorControlReply rawReply = await TorControlReplyReaderTest.ParseAsync(data);
