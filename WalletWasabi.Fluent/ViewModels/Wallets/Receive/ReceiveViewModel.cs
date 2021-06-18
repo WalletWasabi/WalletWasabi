@@ -54,13 +54,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			_suggestionLabelResults = new ObservableCollectionExtended<SuggestionLabelViewModel>();
 
 			_suggestionLabels.AddRange(
-				mostUsedLabels.Select(x =>
-					{
-						return new SuggestionLabelViewModel(
-							x.Label,
-							x.Count,
-							ReactiveCommand.Create(() => _labels.Add(x.Label)));
-					}));
+				mostUsedLabels.Select(x => new SuggestionLabelViewModel(x.Label, x.Count)));
 
 			var suggestionLabelsFilter = this.WhenAnyValue(x => x.Labels).Select(_ => Unit.Default)
 				.Merge(Observable.FromEventPattern(Labels, nameof(Labels.CollectionChanged)).Select(_ => Unit.Default))
