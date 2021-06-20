@@ -31,18 +31,16 @@ namespace WalletWasabi.WabiSabi.Client
 		}
 
 		public async Task<(Credential[] RealAmountCredentials, Credential[] RealVsizeCredentials)> ReissueCredentialsAsync(
-			long amount1,
-			long amount2,
-			long vsize1,
-			long vsize2,
+			IEnumerable<long> amountsToRequest,
+			IEnumerable<long> vsizesToRequest,
 			IEnumerable<Credential> amountCredential,
 			IEnumerable<Credential> vsizeCredential,
 			CancellationToken cancellationToken)
 		{
 			var response = await ArenaClient.ReissueCredentialAsync(
 				RoundId,
-				new[] { amount1, amount2 },
-				new[] { vsize1,	vsize2 },
+				amountsToRequest,
+				vsizesToRequest,
 				amountCredential,
 				vsizeCredential,
 				cancellationToken)
