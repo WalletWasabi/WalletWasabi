@@ -159,8 +159,7 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			var allDenominations = forcedOutputDenominations is null ? StandardDenomination.Values : forcedOutputDenominations;
 			GreedyDecomposer greedyDecomposer = new(allDenominations);
-			var amounts = Coins.Select(c => c.Amount);
-			var sum = amounts.Sum();
+			var sum = Coins.Sum(c => c.EffectiveValue(feeRate));
 			return greedyDecomposer.Decompose(sum, feeRate.GetFee(31));
 		}
 
