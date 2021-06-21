@@ -32,14 +32,12 @@ namespace WalletWasabi.WabiSabi.Client
 			await Task.WhenAll(InputAmountCredentialTasks.Concat(InputVsizeCredentialTasks)).ConfigureAwait(false);
 			IEnumerable<Credential> inputAmountCredentials = InputAmountCredentialTasks.Select(x => x.Result).Where(x => x is { });
 			IEnumerable<Credential> inputVsizeCredentials = InputVsizeCredentialTasks.Select(x => x.Result).Where(x => x is { });
-			(var amount1, var amount2) = AddExtraCredential(amounts, inputAmountCredentials);
-			(var vsize1, var vsize2) = AddExtraCredential(vsizes, inputVsizeCredentials);
+			var amountsToRequest = AddExtraCredential(amounts, inputAmountCredentials);
+			var vsizesToRequest = AddExtraCredential(vsizes, inputVsizeCredentials);
 
 			(Credential[] RealAmountCredentials, Credential[] RealVsizeCredentials) result = await bobClient.ReissueCredentialsAsync(
-				amount1,
-				amount2,
-				vsize1,
-				vsize2,
+				amountsToRequest,
+				vsizesToRequest,
 				inputAmountCredentials,
 				inputVsizeCredentials,
 				cancellationToken).ConfigureAwait(false);
@@ -54,31 +52,25 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 		}
 
-		private (long value1, long value2) AddExtraCredential(IEnumerable<long> valuesToRequest, IEnumerable<Credential> presentedCredentials)
+		private IEnumerable<long> AddExtraCredential(IEnumerable<long> valuesToRequest, IEnumerable<Credential> presentedCredentials)
 		{
-			if (!valuesToRequest.Any())
+			var nonZeroValues = valuesToRequest.Where(v => v > 0);
+
+			if (nonZeroValues.Count() == ProtocolConstants.CredentialNumber)
 			{
-				throw new ArgumentException("No values to request.", nameof(valuesToRequest));
+				return nonZeroValues;
 			}
 
-			if (valuesToRequest.Where(v => v > 0).Count() == 2)
-			{
-				return (valuesToRequest.ElementAt(0), valuesToRequest.ElementAt(1));
-			}
-
-			List<long> result = new();
-			var v = valuesToRequest.First(v => v > 0);
-			result.Add(v);
 			var missing = presentedCredentials.Sum(cr => (long)cr.Amount.ToUlong()) - valuesToRequest.Sum();
+
 			if (missing > 0)
 			{
-				result.Add(missing);
+				nonZeroValues = nonZeroValues.Append(missing);
 			}
-			else
-			{
-				result.Add(0);
-			}
-			return (result[0], result[1]);
+
+			var additionalZeros = ProtocolConstants.CredentialNumber - nonZeroValues.Count();
+
+			return nonZeroValues.Concat(Enumerable.Repeat(0L, additionalZeros));
 		}
 	}
 }
