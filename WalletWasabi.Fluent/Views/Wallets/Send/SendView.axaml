@@ -132,7 +132,7 @@
                                                   Focusable="False"
                                                   Command="{Binding QRCommand}"
                                                   ToolTip.Tip="QRReader"
-                                                  NormalIcon="{StaticResource open_regular}" />
+                                                  NormalIcon="{StaticResource qr_code_regular}" />
               </StackPanel>
             </TextBox.InnerRightContent>
           </TextBox>
