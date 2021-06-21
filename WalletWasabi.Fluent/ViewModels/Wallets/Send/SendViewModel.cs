@@ -74,7 +74,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private bool _updatingCurrentValue;
 		private double _lastXAxisCurrentValue;
 		private FeeRate _feeRate;
-		private VideoCapture _videocapture;
+		private VideoCapture? _videocapture;
 
 		public SendViewModel(Wallet wallet) : base(NavigationMode.Normal)
 		{
@@ -190,11 +190,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			try
 			{
-				_videocapture = new VideoCapture();
-				IsQrPanelVisible = true;
-				_videocapture.QueryFrame();
-				_videocapture.ImageGrabbed += ProcessFrame;
-				_videocapture.Start();
+				if (_videocapture is null)
+				{
+					_videocapture = new VideoCapture();
+					IsQrPanelVisible = true;
+					_videocapture.QueryFrame();
+					_videocapture.ImageGrabbed += ProcessFrame;
+					_videocapture.Start();
+				}
+				else
+				{
+					CloseWebCam();
+				}
 			}
 			catch (Exception ex)
 			{
@@ -208,7 +215,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				VideoCapture videocapture = (VideoCapture)sender!;
 
-				if (_videocapture.Ptr != IntPtr.Zero)
+				if (videocapture.Ptr != IntPtr.Zero)
 				{
 					Mat frame = new();
 
@@ -288,6 +295,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				_videocapture.ImageGrabbed -= ProcessFrame;
 				_videocapture.Dispose();
 				IsQrPanelVisible = false;
+				_videocapture = null;
 			}
 		}
 
