@@ -16,10 +16,10 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 		[Fact]
 		public async Task ReceiveTorAsyncEventsUsingForeachAsync()
 		{
-			using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(3));
+			using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(4));
 
 			// Test parameters.
-			const int ExpectedEventsNo = 5;
+			const int ExpectedEventsNo = 3;
 			const string AsyncEventContent = "CIRC 1000 EXTENDED moria1,moria2";
 
 			Pipe toServer = new();
@@ -38,7 +38,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 				for (int i = 0; i < ExpectedEventsNo; i++)
 				{
 					Logger.LogTrace($"Server: Send async Tor event (#{i}): '650 {AsyncEventContent}'.");
-					await toClient.Writer.WriteAsciiAsync($"650 {AsyncEventContent}\r\n", timeoutCts.Token);
+					await toClient.Writer.WriteAsciiAndFlushAsync($"650 {AsyncEventContent}\r\n", timeoutCts.Token).ConfigureAwait(false);
 				}
 			});
 
@@ -91,20 +91,20 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 			Task serverTask = Task.Run(async () =>
 			{
 				Logger.LogTrace($"Server: Send msg #1 (async) to client: '650 {AsyncEventContent}'.");
-				await toClient.Writer.WriteAsciiAsync($"650 {AsyncEventContent}\r\n", timeoutCts.Token);
+				await toClient.Writer.WriteAsciiAndFlushAsync($"650 {AsyncEventContent}\r\n", timeoutCts.Token).ConfigureAwait(false);
 
 				Logger.LogTrace($"Server: Send msg #2 (async) to client: '650 {AsyncEventContent}'.");
-				await toClient.Writer.WriteAsciiAsync($"650 {AsyncEventContent}\r\n", timeoutCts.Token);
+				await toClient.Writer.WriteAsciiAndFlushAsync($"650 {AsyncEventContent}\r\n", timeoutCts.Token).ConfigureAwait(false);
 
 				Logger.LogTrace("Server: Wait for TAKEOWNERSHIP command.");
-				string command = await toServer.Reader.ReadLineAsync(timeoutCts.Token);
+				string command = await toServer.Reader.ReadLineAsync(timeoutCts.Token).ConfigureAwait(false);
 				Assert.Equal("TAKEOWNERSHIP", command);
 
 				Logger.LogTrace("Server: Send msg #3 (sync) to client in response to TAKEOWNERSHIP command.");
-				await toClient.Writer.WriteAsciiAsync($"250 OK\r\n", timeoutCts.Token);
+				await toClient.Writer.WriteAsciiAndFlushAsync($"250 OK\r\n", timeoutCts.Token).ConfigureAwait(false);
 
 				Logger.LogTrace($"Server: Send msg #4 (async) to client: '650 {AsyncEventContent}'.");
-				await toClient.Writer.WriteAsciiAsync($"650 {AsyncEventContent}\r\n", timeoutCts.Token);
+				await toClient.Writer.WriteAsciiAndFlushAsync($"650 {AsyncEventContent}\r\n", timeoutCts.Token).ConfigureAwait(false);
 			});
 
 			Logger.LogTrace("Client: Receive msg #1 (async).");
@@ -143,6 +143,86 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 
 			// No more async events.
 			_ = Assert.ThrowsAsync<OperationCanceledException>(async () => await eventsEnumerator.MoveNextAsync());
+		}
+
+		/// <summary>Verifies behavior of the subscription API and its logical subscription model.</summary>
+		[Fact]
+		public async Task SubscribeAndUnsubscribeAsync()
+		{
+			using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(120));
+
+			Pipe toServer = new();
+			Pipe toClient = new();
+
+			// Set up Tor control client.
+			await using TorControlClient client = new(pipeReader: toClient.Reader, pipeWriter: toServer.Writer);
+
+			Logger.LogTrace("Client: Subscribe 'CIRC' events.");
+			{
+				Task task = client.SubscribeEventsAsync(new string[] { "CIRC" }, timeoutCts.Token);
+
+				Logger.LogTrace("Server: Wait for 'SETEVENTS CIRC' command.");
+				string command = await toServer.Reader.ReadLineAsync(timeoutCts.Token);
+				Assert.Equal("SETEVENTS CIRC", command);
+
+				Logger.LogTrace("Server: Reply with OK code.");
+				await toClient.Writer.WriteAsciiAndFlushAsync("250 OK\r\n", timeoutCts.Token);
+
+				await task;
+			}
+
+			Logger.LogTrace("Client: Subscribe 'CIRC' (already subscribed) and 'STATUS_CLIENT' (not subscribed) events.");
+			{
+				Task task = client.SubscribeEventsAsync(new string[] { "CIRC", "STATUS_CLIENT" }, timeoutCts.Token);
+
+				// CIRC is already subscribed.
+				Logger.LogTrace("Server: Wait for 'SETEVENTS CIRC,STATUS_CLIENT' command.");
+				string command = await toServer.Reader.ReadLineAsync(timeoutCts.Token);
+
+				// This means that BOTH 'CIRC' and 'STATUS_CLIENT' must be subscribed now.
+				// Note: Given we count logical event subscriptions, 'CIRC' is now (logically) subscribed twice!
+				Assert.Equal("SETEVENTS CIRC,STATUS_CLIENT", command);
+
+				Logger.LogTrace("Server: Reply with OK code.");
+				await toClient.Writer.WriteAsciiAndFlushAsync("250 OK\r\n", timeoutCts.Token);
+
+				await task;
+			}
+
+			Logger.LogTrace("Client: Unsubscribe 'CIRC' and 'STATUS_CLIENT' events.");
+			{
+				Task task = client.UnsubscribeEventsAsync(new string[] { "CIRC", "STATUS_CLIENT" }, timeoutCts.Token);
+
+				// CIRC is already subscribed.
+				Logger.LogTrace("Server: Wait for 'SETEVENTS CIRC' command.");
+				string command = await toServer.Reader.ReadLineAsync(timeoutCts.Token);
+
+				// This means that CIRC is still subscribed (!). The reason for that is that we count logical subscriptions,
+				// so when two distinct components can work the subscription API and they don't affect each other.
+				Assert.Equal("SETEVENTS CIRC", command);
+
+				Logger.LogTrace("Server: Reply with OK code.");
+				await toClient.Writer.WriteAsciiAndFlushAsync("250 OK\r\n", timeoutCts.Token);
+
+				await task;
+			}
+
+			Logger.LogTrace("Client: Unsubscribe 'CIRC' events.");
+			{
+				Task task = client.UnsubscribeEventsAsync(new string[] { "CIRC" }, timeoutCts.Token);
+
+				// CIRC is already subscribed.
+				Logger.LogTrace("Server: Wait for 'SETEVENTS' command.");
+				string command = await toServer.Reader.ReadLineAsync(timeoutCts.Token);
+
+				// This means that no events are subscribed.
+				Assert.Equal("SETEVENTS", command);
+
+				Logger.LogTrace("Server: Reply with OK code.");
+				await toClient.Writer.WriteAsciiAndFlushAsync("250 OK\r\n", timeoutCts.Token);
+
+				await task;
+			}
 		}
 	}
 }

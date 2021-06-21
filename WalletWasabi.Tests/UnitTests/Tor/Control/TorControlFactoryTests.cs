@@ -50,7 +50,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 
 			Logger.LogTrace("Server: Respond to client's AUTHCHALLENGE request.");
 			string challengeResponse = $"250 AUTHCHALLENGE SERVERHASH={serverHash} SERVERNONCE={serverNonce}\r\n";
-			await toClient.Writer.WriteAsciiAsync(challengeResponse, timeoutCts.Token);
+			await toClient.Writer.WriteAsciiAndFlushAsync(challengeResponse, timeoutCts.Token);
 
 			Logger.LogTrace("Server: Read 'AUTHENTICATE' command from the client.");
 			string authCommand = await toServer.Reader.ReadLineAsync(timeoutCts.Token);
@@ -59,7 +59,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 			Assert.Equal("AUTHENTICATE 6013EA09D4E36B6CF01C18A707D350C1B5AFF8C1A21527266B9FC40C89BDCB4A", authCommand);
 
 			Logger.LogTrace("Server: Respond to the client's AUTHENTICATION request.");
-			await toClient.Writer.WriteAsciiAsync("250 OK\r\n", timeoutCts.Token);
+			await toClient.Writer.WriteAsciiAndFlushAsync("250 OK\r\n", timeoutCts.Token);
 
 			Logger.LogTrace("Client: Verify the authentication task finishes correctly.");
 			TorControlClient authenticatedClient = await authenticationTask;
