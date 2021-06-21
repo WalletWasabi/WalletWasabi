@@ -491,6 +491,12 @@ section {
     margin-right: 17px;
 }
 
+.icon-colored-clearnet {
+    width: 25px;
+    height: auto;
+    margin-right: 10px;
+}
+
 .weareblock-link {
     color: #FF859D !important;
 }

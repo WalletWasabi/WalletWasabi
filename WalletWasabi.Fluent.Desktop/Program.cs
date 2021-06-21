@@ -168,6 +168,7 @@ namespace WalletWasabi.Fluent.Desktop
 			if (MainViewModel.Instance is { } mainViewModel)
 			{
 				mainViewModel.ClearStacks();
+				mainViewModel.StatusBar.Dispose();
 				Logger.LogSoftwareStopped("Wasabi GUI");
 			}
 
