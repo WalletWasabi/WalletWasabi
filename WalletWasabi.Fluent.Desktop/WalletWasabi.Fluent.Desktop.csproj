@@ -50,6 +50,7 @@
 		<PackageReference Include="Avalonia" Version="0.10.6" />
 		<PackageReference Include="Avalonia.Desktop" Version="0.10.6" />
 		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.6" />
+		<PackageReference Include="Emgu.CV.runtime.linux-arm" Version="4.5.1.4349" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi.Fluent\WalletWasabi.Fluent.csproj" />

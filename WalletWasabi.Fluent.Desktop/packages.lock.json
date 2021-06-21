@@ -41,6 +41,15 @@
           "System.Reactive": "5.0.0"
         }
       },
+      "Emgu.CV.runtime.linux-arm": {
+        "type": "Direct",
+        "requested": "[4.5.1.4349, )",
+        "resolved": "4.5.1.4349",
+        "contentHash": "WfLQHjGbgCgmYTlRpCSNsyNGNguR7wAtVepPGmjSP73Hyze61NqDVDe4kEvHlxIAu8gR9VMebGMvSmtJmgFZ3A==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)"
+        }
+      },
       "Avalonia.Angle.Windows.Natives": {
         "type": "Transitive",
         "resolved": "2.1.0.2020091801",
@@ -1080,6 +1089,15 @@
       }
     },
     ".NETCoreApp,Version=v5.0/linux-x64": {
+      "Emgu.CV.runtime.linux-arm": {
+        "type": "Direct",
+        "requested": "[4.5.1.4349, )",
+        "resolved": "4.5.1.4349",
+        "contentHash": "WfLQHjGbgCgmYTlRpCSNsyNGNguR7wAtVepPGmjSP73Hyze61NqDVDe4kEvHlxIAu8gR9VMebGMvSmtJmgFZ3A==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)"
+        }
+      },
       "Avalonia.Angle.Windows.Natives": {
         "type": "Transitive",
         "resolved": "2.1.0.2020091801",
@@ -1630,6 +1648,15 @@
       }
     },
     ".NETCoreApp,Version=v5.0/osx-x64": {
+      "Emgu.CV.runtime.linux-arm": {
+        "type": "Direct",
+        "requested": "[4.5.1.4349, )",
+        "resolved": "4.5.1.4349",
+        "contentHash": "WfLQHjGbgCgmYTlRpCSNsyNGNguR7wAtVepPGmjSP73Hyze61NqDVDe4kEvHlxIAu8gR9VMebGMvSmtJmgFZ3A==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)"
+        }
+      },
       "Avalonia.Angle.Windows.Natives": {
         "type": "Transitive",
         "resolved": "2.1.0.2020091801",
@@ -2180,6 +2207,15 @@
       }
     },
     ".NETCoreApp,Version=v5.0/win7-x64": {
+      "Emgu.CV.runtime.linux-arm": {
+        "type": "Direct",
+        "requested": "[4.5.1.4349, )",
+        "resolved": "4.5.1.4349",
+        "contentHash": "WfLQHjGbgCgmYTlRpCSNsyNGNguR7wAtVepPGmjSP73Hyze61NqDVDe4kEvHlxIAu8gR9VMebGMvSmtJmgFZ3A==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)"
+        }
+      },
       "Avalonia.Angle.Windows.Natives": {
         "type": "Transitive",
         "resolved": "2.1.0.2020091801",
