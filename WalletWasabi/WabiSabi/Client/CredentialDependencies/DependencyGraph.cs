@@ -229,11 +229,20 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 				// because the negative balance of the last loop iteration can't
 				// exceed the the remaining positive elements, their total sum
 				// must be positive as checked in the constructor.
-				// maxCount-- could make sense here if it's >= 2, but that's
-				// already handled by ResolveUniformInputSpecialCases. Just
-				// Drain the largest magnitude node into a new reissuance node
-				// which will have room for an unused edge in its out edge set.
-				(g, largestMagnitudeNode) = g.AggregateIntoReissuanceNode(new RequestNode[] { largestMagnitudeNode }, credentialType);
+				if (maxCount > 1)
+				{
+					// when the edge capacity makes it possible, we can just
+					// ensure the largest magnitude node ends up with an unused
+					// edge by reducing maxCount
+					maxCount--;
+				}
+				else
+				{
+					// otherwise, drain the largest magnitude node into a new
+					// reissuance node which will have room for an unused edge
+					// in its out edge set.
+					(g, largestMagnitudeNode) = g.AggregateIntoReissuanceNode(new RequestNode[] { largestMagnitudeNode }, credentialType);
+				}
 			}
 
 			// Reduce the number of small magnitude nodes to the number of edges
