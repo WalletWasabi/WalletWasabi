@@ -7,23 +7,31 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
+using WalletWasabi.WabiSabi.Crypto;
 
 namespace WalletWasabi.WabiSabi.Client
 {
 	public class DependencyGraphResolver
 	{
-		public DependencyGraphResolver(DependencyGraph graph)
+		public DependencyGraphResolver(
+			DependencyGraph graph,
+			ZeroCredentialPool zeroAmountCredentialPool,
+			ZeroCredentialPool zeroVsizeCredentialPool)
 		{
 			Graph = graph;
 			var allInEdges = Enum.GetValues<CredentialType>()
 				.SelectMany(type => Enumerable.Concat(Graph.Reissuances, Graph.Outputs)
 				.SelectMany(node => Graph.EdgeSets[type].InEdges(node)));
+			DependencyTasks = allInEdges.ToDictionary(edge => edge, _ => new TaskCompletionSource<Credential>(TaskCreationOptions.RunContinuationsAsynchronously));
 
-			DependencyTasks = allInEdges.ToDictionary(edge => edge, _ => new TaskCompletionSource<Credential?>(TaskCreationOptions.RunContinuationsAsynchronously));
+			ZeroAmountCredentialPool = zeroAmountCredentialPool;
+			ZeroVsizeCredentialPool = zeroVsizeCredentialPool;
 		}
 
 		private DependencyGraph Graph { get; }
-		private Dictionary<CredentialDependency, TaskCompletionSource<Credential?>> DependencyTasks { get; }
+		public ZeroCredentialPool ZeroAmountCredentialPool { get; }
+		public ZeroCredentialPool ZeroVsizeCredentialPool { get; }
+		private Dictionary<CredentialDependency, TaskCompletionSource<Credential>> DependencyTasks { get; }
 
 		public async Task<List<(Money Amount, Credential[] AmounCreds, Credential[] VsizeCreds)>> ResolveAsync(IEnumerable<AliceClient> aliceClients, BobClient bobClient, CancellationToken cancellationToken)
 		{
@@ -39,7 +47,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 				foreach (var edge in Graph.OutEdges(node, CredentialType.Amount).Where(edge => edge.Value == 0))
 				{
-					DependencyTasks[edge].SetResult(null);
+					DependencyTasks[edge].SetResult(ZeroAmountCredentialPool.GetZeroCredential());
 				}
 
 				foreach ((var edge, var credential) in Enumerable.Zip(Graph.OutEdges(node, CredentialType.Vsize).Where(edge => edge.Value > 0), aliceClient.RealVsizeCredentials))
@@ -49,7 +57,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 				foreach (var edge in Graph.OutEdges(node, CredentialType.Vsize).Where(edge => edge.Value == 0))
 				{
-					DependencyTasks[edge].SetResult(null);
+					DependencyTasks[edge].SetResult(ZeroVsizeCredentialPool.GetZeroCredential());
 				}
 			}
 

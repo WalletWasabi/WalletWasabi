@@ -70,7 +70,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 			// Re-issuances.
 			DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(aliceClients.Select(a => a.Coin), outputTxOuts, roundState.FeeRate, roundState.MaxVsizeAllocationPerAlice);
-			DependencyGraphResolver dgr = new(dependencyGraph);
+			DependencyGraphResolver dgr = new(dependencyGraph, ZeroAmountCredentialPool, ZeroVsizeCredentialPool);
 			var bobClient = CreateBobClient(roundState);
 			var outputCredentials = await dgr.ResolveAsync(aliceClients, bobClient, cancellationToken).ConfigureAwait(false);
 
