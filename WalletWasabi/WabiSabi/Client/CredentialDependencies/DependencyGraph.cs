@@ -30,9 +30,9 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 		public long Balance(RequestNode node, CredentialType credentialType) => EdgeSets[credentialType].Balance(node);
 
-		public IEnumerable<CredentialDependency> InEdges(RequestNode node, CredentialType credentialType) => EdgeSets[credentialType].InEdges(node);
+		public IEnumerable<CredentialDependency> InEdges(RequestNode node, CredentialType credentialType) => EdgeSets[credentialType].InEdges(node).OrderByDescending(e => e.Value);
 
-		public IEnumerable<CredentialDependency> OutEdges(RequestNode node, CredentialType credentialType) => EdgeSets[credentialType].OutEdges(node);
+		public IEnumerable<CredentialDependency> OutEdges(RequestNode node, CredentialType credentialType) => EdgeSets[credentialType].OutEdges(node).OrderByDescending(e => e.Value);
 
 		public int InDegree(RequestNode node, CredentialType credentialType) => EdgeSets[credentialType].InDegree(node);
 
