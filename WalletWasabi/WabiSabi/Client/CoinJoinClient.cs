@@ -76,7 +76,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 			// Output registration.
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
-			await RegisterOutputsAsync(bobClient, outputTxOuts, outputCredentials, cancellationToken).ConfigureAwait(false);
+			await RegisterOutputsAsync(bobClient, outputTxOuts, outputCredentials, roundState.FeeRate, cancellationToken).ConfigureAwait(false);
 
 			// Signing.
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
@@ -84,8 +84,7 @@ namespace WalletWasabi.WabiSabi.Client
 			var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
 
 			// Sanity check.
-			var effectiveOutputs = outputTxOuts.Select(o => (o.EffectiveCost(roundState.FeeRate), o.ScriptPubKey));
-			if (!SanityCheck(effectiveOutputs, unsignedCoinJoin))
+			if (!SanityCheck(outputTxOuts, unsignedCoinJoin))
 			{
 				throw new InvalidOperationException($"Round ({roundState.Id}): My output is missing.");
 			}
@@ -174,12 +173,14 @@ namespace WalletWasabi.WabiSabi.Client
 		private async Task RegisterOutputsAsync(BobClient bobClient,
 			IEnumerable<TxOut> outputTxOuts,
 			List<(Money Amount, Credential[] AmounCreds, Credential[] VsizeCreds)> outputCredentials,
+			FeeRate feeRate,
 			CancellationToken cancellationToken)
 		{
 			async Task<TxOut?> RegisterOutputTask(BobClient bobClient, TxOut output, Credential[] realAmountCredentials, Credential[] realVsizeCredentials)
 			{
 				try
 				{
+					var effectiveCost = output.EffectiveCost(feeRate);
 					await bobClient.RegisterOutputAsync(output.Value, output.ScriptPubKey, realAmountCredentials, realVsizeCredentials, cancellationToken).ConfigureAwait(false);
 					return output;
 				}
@@ -217,10 +218,11 @@ namespace WalletWasabi.WabiSabi.Client
 					ArenaRequestHandler));
 		}
 
-		private bool SanityCheck(IEnumerable<(Money Value, Script ScriptPubKey)> expectedOutputs, Transaction unsignedCoinJoinTransaction)
+		private bool SanityCheck(IEnumerable<TxOut> expectedOutputs, Transaction unsignedCoinJoinTransaction)
 		{
 			var coinJoinOutputs = unsignedCoinJoinTransaction.Outputs.Select(o => (o.Value, o.ScriptPubKey));
-			return coinJoinOutputs.IsSuperSetOf(expectedOutputs);
+			var expectedOutputTuples = expectedOutputs.Select(o => (o.Value, o.ScriptPubKey));
+			return coinJoinOutputs.IsSuperSetOf(expectedOutputTuples);
 		}
 
 		private async Task SignTransactionAsync(IEnumerable<AliceClient> aliceClients, Transaction unsignedCoinJoinTransaction, CancellationToken cancellationToken)
