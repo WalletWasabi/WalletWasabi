@@ -78,22 +78,10 @@
   <DockPanel Margin="0 0 0 4">
     <StackPanel DockPanel.Dock="Top" Spacing="5">
       <Panel Height="30" />
-      <!-- Logo -->
-      <!-- <Style Selector="PathIcon"> -->
-      <!--   <Setter Property="Margin" Value="13 0 0 0" /> -->
-      <!--   <Setter Property="Height" Value="18" /> -->
-      <!--   <Setter Property="Width" Value="18" /> -->
-      <!-- </Style> -->
-      <!--   <Panel> -->
-      <!--     <Panel Width="45" HorizontalAlignment="Left"> -->
-      <!--       <PathIcon Data="{StaticResource wasabi_logo}" HorizontalAlignment="Left" Height="20" Width="20" Opacity="0.8" /> -->
-      <!--     </Panel> -->
-
-
       <Border Padding="12 12 12 5" Margin="0 -3 0 0">
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
           <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" Margin="13,0,0,0" VerticalAlignment="Center" />
-          <ContentControl Template="{DynamicResource wasabi_logo_text_dynamic}" Margin="11,0,0,0"
+          <ContentControl Template="{DynamicResource wasabi_logo_text_dynamic}" Margin="21,0,0,0"
                           VerticalAlignment="Center" ClipToBounds="False" />
         </StackPanel>
       </Border>
