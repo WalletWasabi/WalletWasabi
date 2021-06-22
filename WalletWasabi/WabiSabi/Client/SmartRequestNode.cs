@@ -1,3 +1,4 @@
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -5,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto.ZeroKnowledge;
+using WalletWasabi.WabiSabi.Crypto;
 
 namespace WalletWasabi.WabiSabi.Client
 {
@@ -14,24 +16,30 @@ namespace WalletWasabi.WabiSabi.Client
 			IEnumerable<Task<Credential>> inputAmountCredentialTasks,
 			IEnumerable<Task<Credential>> inputVsizeCredentialTasks,
 			IEnumerable<TaskCompletionSource<Credential>> outputAmountCredentialTasks,
-			IEnumerable<TaskCompletionSource<Credential>> outputVsizeCredentialTasks)
+			IEnumerable<TaskCompletionSource<Credential>> outputVsizeCredentialTasks,
+			ZeroCredentialPool zeroAmountCredentialPool,
+			ZeroCredentialPool zeroVsizeCredentialPool)
 		{
-			InputAmountCredentialTasks = inputAmountCredentialTasks;
-			InputVsizeCredentialTasks = inputVsizeCredentialTasks;
-			OutputAmountCredentialTasks = outputAmountCredentialTasks;
-			OutputVsizeCredentialTasks = outputVsizeCredentialTasks;
+			AmountCredentialToPresentTasks = inputAmountCredentialTasks;
+			VsizeCredentialToPresentTasks = inputVsizeCredentialTasks;
+			AmountCredentialTasks = outputAmountCredentialTasks;
+			VsizeCredentialTasks = outputVsizeCredentialTasks;
+			ZeroAmountCredentialPool = zeroAmountCredentialPool;
+			ZeroVsizeCredentialPool = zeroVsizeCredentialPool;
 		}
 
-		public IEnumerable<Task<Credential>> InputAmountCredentialTasks { get; }
-		public IEnumerable<Task<Credential>> InputVsizeCredentialTasks { get; }
-		public IEnumerable<TaskCompletionSource<Credential>> OutputAmountCredentialTasks { get; }
-		public IEnumerable<TaskCompletionSource<Credential>> OutputVsizeCredentialTasks { get; }
+		public IEnumerable<Task<Credential>> AmountCredentialToPresentTasks { get; }
+		public IEnumerable<Task<Credential>> VsizeCredentialToPresentTasks { get; }
+		public IEnumerable<TaskCompletionSource<Credential>> AmountCredentialTasks { get; }
+		public IEnumerable<TaskCompletionSource<Credential>> VsizeCredentialTasks { get; }
+		public ZeroCredentialPool ZeroAmountCredentialPool { get; }
+		public ZeroCredentialPool ZeroVsizeCredentialPool { get; }
 
 		public async Task StartAsync(BobClient bobClient, IEnumerable<long> amounts, IEnumerable<long> vsizes, CancellationToken cancellationToken)
 		{
-			await Task.WhenAll(InputAmountCredentialTasks.Concat(InputVsizeCredentialTasks)).ConfigureAwait(false);
-			IEnumerable<Credential> inputAmountCredentials = InputAmountCredentialTasks.Select(x => x.Result).Where(x => x is { });
-			IEnumerable<Credential> inputVsizeCredentials = InputVsizeCredentialTasks.Select(x => x.Result).Where(x => x is { });
+			await Task.WhenAll(AmountCredentialToPresentTasks.Concat(VsizeCredentialToPresentTasks)).ConfigureAwait(false);
+			IEnumerable<Credential> inputAmountCredentials = AmountCredentialToPresentTasks.Select(x => x.Result);
+			IEnumerable<Credential> inputVsizeCredentials = VsizeCredentialToPresentTasks.Select(x => x.Result);
 			var amountsToRequest = AddExtraCredential(amounts, inputAmountCredentials);
 			var vsizesToRequest = AddExtraCredential(vsizes, inputVsizeCredentials);
 
@@ -42,14 +50,28 @@ namespace WalletWasabi.WabiSabi.Client
 				inputVsizeCredentials,
 				cancellationToken).ConfigureAwait(false);
 
-			foreach ((TaskCompletionSource<Credential> tcs, Credential credential) in OutputAmountCredentialTasks.Zip(result.RealAmountCredentials))
+			foreach ((TaskCompletionSource<Credential> tcs, Credential credential) in AmountCredentialTasks.Zip(result.RealAmountCredentials))
 			{
 				tcs.SetResult(credential);
 			}
-			foreach ((TaskCompletionSource<Credential> tcs, Credential credential) in OutputVsizeCredentialTasks.Zip(result.RealVsizeCredentials))
+			foreach ((TaskCompletionSource<Credential> tcs, Credential credential) in VsizeCredentialTasks.Zip(result.RealVsizeCredentials))
 			{
 				tcs.SetResult(credential);
 			}
+		}
+
+		public async Task StartOutputRegistrationAsync(BobClient bobClient, Money effectiveCost, Script scriptPubKey, CancellationToken cancellationToken)
+		{
+			await Task.WhenAll(AmountCredentialToPresentTasks.Concat(VsizeCredentialToPresentTasks)).ConfigureAwait(false);
+			IEnumerable<Credential> inputAmountCredentials = AmountCredentialToPresentTasks.Select(x => x.Result);
+			IEnumerable<Credential> inputVsizeCredentials = VsizeCredentialToPresentTasks.Select(x => x.Result);
+
+			await bobClient.RegisterOutputAsync(
+				effectiveCost, scriptPubKey,
+				inputAmountCredentials,
+				inputVsizeCredentials,
+				cancellationToken
+			).ConfigureAwait(false);
 		}
 
 		private IEnumerable<long> AddExtraCredential(IEnumerable<long> valuesToRequest, IEnumerable<Credential> presentedCredentials)

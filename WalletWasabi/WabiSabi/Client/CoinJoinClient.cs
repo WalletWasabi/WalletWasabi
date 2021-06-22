@@ -72,11 +72,11 @@ namespace WalletWasabi.WabiSabi.Client
 			DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(aliceClients.Select(a => a.Coin), outputTxOuts, roundState.FeeRate, roundState.MaxVsizeAllocationPerAlice);
 			DependencyGraphResolver dgr = new(dependencyGraph, ZeroAmountCredentialPool, ZeroVsizeCredentialPool);
 			var bobClient = CreateBobClient(roundState);
-			var outputCredentials = await dgr.ResolveAsync(aliceClients, bobClient, cancellationToken).ConfigureAwait(false);
+			await dgr.ResolveAsync(aliceClients, bobClient, cancellationToken).ConfigureAwait(false);
 
 			// Output registration.
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
-			await RegisterOutputsAsync(bobClient, outputTxOuts, outputCredentials, roundState.FeeRate, cancellationToken).ConfigureAwait(false);
+			await dgr.StartOutputRegistrationsAsync(outputTxOuts, bobClient, cancellationToken).ConfigureAwait(false);
 
 			// Signing.
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
@@ -168,44 +168,6 @@ namespace WalletWasabi.WabiSabi.Client
 			IEnumerable<Money> outputValues)
 		{
 			yield return realAmountCredentialValues.Zip(realVsizeCredentialValues, outputValues, (a, v, o) => (a, v, o));
-		}
-
-		private async Task RegisterOutputsAsync(BobClient bobClient,
-			IEnumerable<TxOut> outputTxOuts,
-			List<(Money Amount, Credential[] AmounCreds, Credential[] VsizeCreds)> outputCredentials,
-			FeeRate feeRate,
-			CancellationToken cancellationToken)
-		{
-			async Task<TxOut?> RegisterOutputTask(BobClient bobClient, TxOut output, Credential[] realAmountCredentials, Credential[] realVsizeCredentials)
-			{
-				try
-				{
-					var effectiveCost = output.EffectiveCost(feeRate);
-					await bobClient.RegisterOutputAsync(output.Value, output.ScriptPubKey, realAmountCredentials, realVsizeCredentials, cancellationToken).ConfigureAwait(false);
-					return output;
-				}
-				catch (Exception e)
-				{
-					Logger.LogWarning($"Round ({bobClient.RoundId}), Bob ({{output.ScriptPubKey}}): {nameof(BobClient.RegisterOutputAsync)} failed, reason:'{e}'.");
-					return default;
-				}
-			}
-
-			List<(TxOut Output, Credential[] RealAmountCredentials, Credential[] RealVsizeCredentials)> outputWithCredentials = new();
-			var remainingCredentials = outputCredentials.ToList();
-
-			foreach (var txOut in outputTxOuts)
-			{
-				var creds = remainingCredentials.First(op => op.Amount == txOut.Value);
-				outputWithCredentials.Add((txOut, creds.AmounCreds, creds.VsizeCreds));
-
-				// Make sure to not use the same credentials twice.
-				remainingCredentials.Remove(creds);
-			}
-
-			var outputRegisterRequests = outputWithCredentials.Select(output => RegisterOutputTask(bobClient, output.Output, output.RealAmountCredentials, output.RealVsizeCredentials));
-
-			await Task.WhenAll(outputRegisterRequests).ConfigureAwait(false);
 		}
 
 		private BobClient CreateBobClient(RoundState roundState)

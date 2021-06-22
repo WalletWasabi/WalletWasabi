@@ -15,13 +15,13 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 		public ImmutableList<RequestNode> Vertices { get; init; } = ImmutableList<RequestNode>.Empty;
 
 		// The input nodes, in the order they were added
-		public ImmutableList<RequestNode> Inputs { get; init; } = ImmutableList<RequestNode>.Empty;
+		public ImmutableList<InputNode> Inputs { get; init; } = ImmutableList<InputNode>.Empty;
 
 		// The output nodes, in the order they were added
-		public ImmutableList<RequestNode> Outputs { get; init; } = ImmutableList<RequestNode>.Empty;
+		public ImmutableList<OutputNode> Outputs { get; init; } = ImmutableList<OutputNode>.Empty;
 
 		// The reissuance nodes, unsorted
-		public ImmutableList<RequestNode> Reissuances { get; init; } = ImmutableList<RequestNode>.Empty;
+		public ImmutableList<ReissuanceNode> Reissuances { get; init; } = ImmutableList<ReissuanceNode>.Empty;
 
 		// Internal properties used to keep track of effective values and edges
 		public ImmutableSortedDictionary<CredentialType, CredentialEdgeSet> EdgeSets { get; init; } = ImmutableSortedDictionary<CredentialType, CredentialEdgeSet>.Empty
@@ -110,13 +110,13 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 		// approach.
 		private DependencyGraph AddInput(IEnumerable<ulong> values)
 		{
-			var node = new RequestNode(values.Select(y => (long)y), inDegree: 0, outDegree: K, zeroOnlyOutDegree: K * (K - 1));
+			var node = new InputNode(values.Select(y => (long)y));
 			return (this with { Inputs = Inputs.Add(node) }).AddNode(node);
 		}
 
 		private DependencyGraph AddOutput(IEnumerable<ulong> values)
 		{
-			var node = new RequestNode(values.Select(y => -1 * (long)y), inDegree: K, outDegree: 0, zeroOnlyOutDegree: 0);
+			var node = new OutputNode(values.Select(y => -1 * (long)y));
 			return (this with { Outputs = Outputs.Add(node) }).AddNode(node);
 		}
 		private DependencyGraph AddInputs(IEnumerable<IEnumerable<ulong>> values) => values.Aggregate(this, (g, v) => g.AddInput(v));
@@ -125,7 +125,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 		private (DependencyGraph, RequestNode) AddReissuance()
 		{
-			var node = new RequestNode(Enumerable.Repeat(0L, K), inDegree: K, outDegree: K, zeroOnlyOutDegree: K * (K - 1));
+			var node = new ReissuanceNode();
 			return ((this with { Reissuances = Reissuances.Add(node) }).AddNode(node), node);
 		}
 
