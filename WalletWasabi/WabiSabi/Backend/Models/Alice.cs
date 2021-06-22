@@ -26,7 +26,7 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 
 		public long CalculateRemainingVsizeCredentials(int maxRegistrableSize) => maxRegistrableSize - TotalInputVsize;
 
-		public Money CalculateRemainingAmountCredentials(FeeRate feeRate) => TotalInputAmount - feeRate.GetFee(TotalInputVsize);
+		public Money CalculateRemainingAmountCredentials(FeeRate feeRate) => Coin.EffectiveValue(feeRate);
 
 		public void SetDeadlineRelativeTo(TimeSpan connectionConfirmationTimeout)
 		{
