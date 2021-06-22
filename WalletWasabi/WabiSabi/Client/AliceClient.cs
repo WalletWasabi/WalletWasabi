@@ -1,5 +1,6 @@
 using NBitcoin;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,18 +48,29 @@ namespace WalletWasabi.WabiSabi.Client
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Registered an input.");
 		}
 
-		public async Task ConfirmConnectionAsync(TimeSpan connectionConfirmationTimeout, long vsizeAllocationToRequest, CancellationToken cancellationToken)
+		[ObsoleteAttribute("This method should be removed after making the tests using the overload.")]
+		public async Task ConfirmConnectionAsync(TimeSpan connectionConfirmationTimeout, long vsizeAllocation, CancellationToken cancellationToken)
 		{
-			while (!await TryConfirmConnectionAsync(vsizeAllocationToRequest, cancellationToken).ConfigureAwait(false))
+			var inputVsize = Coin.ScriptPubKey.EstimateInputVsize();
+
+			var totalFeeToPay = FeeRate.GetFee(Coin.ScriptPubKey.EstimateInputVsize());
+			var totalAmount = Coin.Amount;
+			var effectiveAmount = totalAmount - totalFeeToPay;
+
+			await ConfirmConnectionAsync(connectionConfirmationTimeout, new long[] { effectiveAmount }, new long[] { vsizeAllocation - inputVsize }, cancellationToken).ConfigureAwait(false);
+		}
+
+		public async Task ConfirmConnectionAsync(TimeSpan connectionConfirmationTimeout, IEnumerable<long> amountsToRequest, IEnumerable<long> vsizesToRequest, CancellationToken cancellationToken)
+		{
+			while (!await TryConfirmConnectionAsync(amountsToRequest, vsizesToRequest, cancellationToken).ConfigureAwait(false))
 			{
 				await Task.Delay(connectionConfirmationTimeout / 2, cancellationToken).ConfigureAwait(false);
 			}
 		}
 
-		private async Task<bool> TryConfirmConnectionAsync(long vsizeAllocationToRequest, CancellationToken cancellationToken)
+		private async Task<bool> TryConfirmConnectionAsync(IEnumerable<long> amountsToRequest, IEnumerable<long> vsizesToRequest, CancellationToken cancellationToken)
 		{
 			var inputVsize = Coin.ScriptPubKey.EstimateInputVsize();
-			var vsizesToRequest = new[] { vsizeAllocationToRequest - inputVsize };
 
 			var totalFeeToPay = FeeRate.GetFee(Coin.ScriptPubKey.EstimateInputVsize());
 			var totalAmount = Coin.Amount;
@@ -66,10 +78,8 @@ namespace WalletWasabi.WabiSabi.Client
 
 			if (effectiveAmount <= Money.Zero)
 			{
-				throw new InvalidOperationException($"Round({ RoundId }), Alice({ AliceId}): Not enough funds to pay for the fees.");
+				throw new InvalidOperationException($"Round({ RoundId }), Alice({ AliceId}): Adding this input is uneconomical.");
 			}
-
-			var amountsToRequest = new[] { effectiveAmount.Satoshi };
 
 			var response = await ArenaClient
 				.ConfirmConnectionAsync(
