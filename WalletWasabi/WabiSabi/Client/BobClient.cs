@@ -30,7 +30,7 @@ namespace WalletWasabi.WabiSabi.Client
 				cancellationToken).ConfigureAwait(false);
 		}
 
-		public async Task<(Credential[] RealAmountCredentials, Credential[] RealVsizeCredentials)> ReissueCredentialsAsync(
+		public async Task<(IEnumerable<Credential> RealAmountCredentials, IEnumerable<Credential> RealVsizeCredentials)> ReissueCredentialsAsync(
 			IEnumerable<long> amountsToRequest,
 			IEnumerable<long> vsizesToRequest,
 			IEnumerable<Credential> amountCredential,

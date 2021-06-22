@@ -43,7 +43,7 @@ namespace WalletWasabi.WabiSabi.Client
 			var amountsToRequest = AddExtraCredential(amounts, inputAmountCredentials);
 			var vsizesToRequest = AddExtraCredential(vsizes, inputVsizeCredentials);
 
-			(Credential[] RealAmountCredentials, Credential[] RealVsizeCredentials) result = await bobClient.ReissueCredentialsAsync(
+			(IEnumerable<Credential> RealAmountCredentials, IEnumerable<Credential> RealVsizeCredentials) result = await bobClient.ReissueCredentialsAsync(
 				amountsToRequest,
 				vsizesToRequest,
 				inputAmountCredentials,
