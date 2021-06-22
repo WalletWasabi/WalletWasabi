@@ -33,9 +33,6 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 		[Fact]
 		public async Task AuthenticationErrorScenarioAsync()
 		{
-			Common.GetWorkDir();
-			Logger.SetMinimumLevel(LogLevel.Trace);
-
 			using CancellationTokenSource timeoutCts = new(TimeoutLimit);
 			CancellationToken timeoutToken = timeoutCts.Token;
 
