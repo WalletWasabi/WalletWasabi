@@ -33,7 +33,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public ZeroCredentialPool ZeroVsizeCredentialPool { get; }
 		private Dictionary<CredentialDependency, TaskCompletionSource<Credential>> DependencyTasks { get; }
 
-		public async Task ResolveAsync(IEnumerable<AliceClient> aliceClients, BobClient bobClient, CancellationToken cancellationToken)
+		public async Task StartReissuancesAsync(IEnumerable<AliceClient> aliceClients, BobClient bobClient, CancellationToken cancellationToken)
 		{
 			var aliceNodePairs = PairAliceClientAndRequestNodes(aliceClients, Graph);
 
@@ -88,7 +88,7 @@ namespace WalletWasabi.WabiSabi.Client
 					ZeroVsizeCredentialPool);
 
 				var task = smartRequestNode
-					.StartAsync(bobClient, requestedAmounts, requestedVSizes, linkedCts.Token)
+					.StartReissuanceAsync(bobClient, requestedAmounts, requestedVSizes, linkedCts.Token)
 					.ContinueWith((t) =>
 				{
 					if (t.IsFaulted && t.Exception is { } exception)

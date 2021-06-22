@@ -35,7 +35,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public ZeroCredentialPool ZeroAmountCredentialPool { get; }
 		public ZeroCredentialPool ZeroVsizeCredentialPool { get; }
 
-		public async Task StartAsync(BobClient bobClient, IEnumerable<long> amounts, IEnumerable<long> vsizes, CancellationToken cancellationToken)
+		public async Task StartReissuanceAsync(BobClient bobClient, IEnumerable<long> amounts, IEnumerable<long> vsizes, CancellationToken cancellationToken)
 		{
 			await Task.WhenAll(AmountCredentialToPresentTasks.Concat(VsizeCredentialToPresentTasks)).ConfigureAwait(false);
 			IEnumerable<Credential> inputAmountCredentials = AmountCredentialToPresentTasks.Select(x => x.Result);

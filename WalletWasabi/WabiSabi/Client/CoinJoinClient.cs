@@ -72,7 +72,7 @@ namespace WalletWasabi.WabiSabi.Client
 			DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(aliceClients.Select(a => a.Coin), outputTxOuts, roundState.FeeRate, roundState.MaxVsizeAllocationPerAlice);
 			DependencyGraphResolver dgr = new(dependencyGraph, ZeroAmountCredentialPool, ZeroVsizeCredentialPool);
 			var bobClient = CreateBobClient(roundState);
-			await dgr.ResolveAsync(aliceClients, bobClient, cancellationToken).ConfigureAwait(false);
+			await dgr.StartReissuancesAsync(aliceClients, bobClient, cancellationToken).ConfigureAwait(false);
 
 			// Output registration.
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
