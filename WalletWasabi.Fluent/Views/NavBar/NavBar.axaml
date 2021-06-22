@@ -82,13 +82,8 @@
       <Border Padding="12" Margin="0,0,0,-6">
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
           <ContentControl Template="{DynamicResource wasabi_logo_fixed}" Margin="13,0,0,0" VerticalAlignment="Center" />
-          <StackPanel Margin="11,0,0,-5" TextBlock.FontFamily="{StaticResource WasabiLogoTextFont}"
-                      TextBlock.FontWeight="Light" Orientation="Horizontal"
-                      VerticalAlignment="Center">
-            <TextBlock Text="WASABI" Classes="h6" />
-            <TextBlock Text="." Classes="h6" Foreground="{StaticResource SystemAccentColor}" />
-            <TextBlock Text="WALLET" Classes="h6" />
-          </StackPanel>
+          <ContentControl Template="{DynamicResource wasabi_logo_text_fixed}" Margin="11,0,0,0"
+                          VerticalAlignment="Center" ClipToBounds="False" />
         </StackPanel>
       </Border>
       <!-- TopItems List -->
