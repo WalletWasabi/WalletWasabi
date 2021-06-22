@@ -16,7 +16,7 @@
                TextAlignment="Center"
                TextWrapping="Wrap" />
     <Viewbox MaxHeight="200">
-      <ContentControl Template="{DynamicResource wasabi_logo_canvas}"
+      <ContentControl Template="{DynamicResource wasabi_logo_dynamic}"
                       OpacityMask="{StaticResource LogoWashoutOpacityMaskGradient}" />
     </Viewbox>
   </DockPanel>
