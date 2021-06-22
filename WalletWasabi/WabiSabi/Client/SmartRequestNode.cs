@@ -50,11 +50,27 @@ namespace WalletWasabi.WabiSabi.Client
 				inputVsizeCredentials,
 				cancellationToken).ConfigureAwait(false);
 
-			foreach ((TaskCompletionSource<Credential> tcs, Credential credential) in AmountCredentialTasks.Zip(result.RealAmountCredentials))
+			// TODO keep the credentials that were not needed by the graph
+			// Strip out any credentials that have to be requested for the
+			// remaining amount but do not have a corresponding edge in the
+			// graph (because no request node depends on them.)
+			var amountCredentials = result.RealAmountCredentials.Take(amounts.Where(v => v != 0).Count());
+			var vsizeCredentials = result.RealVsizeCredentials.Take(vsizes.Where(v => v != 0).Count());
+
+			// TODO remove
+			// Add back any zero credentials that do have a corresponding edge
+			// (and therefore a task completion source), so that the
+			// `amountCredentials` enumerator matches the `amounts` enumerator.
+			// Assumes that `amounts` is ordered by value descending, so zero
+			// credentials are at the end. (same for vsizes).
+			amountCredentials = amountCredentials.Concat(Enumerable.Range(0, AmountCredentialTasks.Count() - amountCredentials.Count()).Select(_ => ZeroAmountCredentialPool.GetZeroCredential()));
+			vsizeCredentials = vsizeCredentials.Concat(Enumerable.Range(0, VsizeCredentialTasks.Count() - vsizeCredentials.Count()).Select(_ => ZeroVsizeCredentialPool.GetZeroCredential()));
+
+			foreach ((TaskCompletionSource<Credential> tcs, Credential credential) in AmountCredentialTasks.Zip(amountCredentials))
 			{
 				tcs.SetResult(credential);
 			}
-			foreach ((TaskCompletionSource<Credential> tcs, Credential credential) in VsizeCredentialTasks.Zip(result.RealVsizeCredentials))
+			foreach ((TaskCompletionSource<Credential> tcs, Credential credential) in VsizeCredentialTasks.Zip(vsizeCredentials))
 			{
 				tcs.SetResult(credential);
 			}
