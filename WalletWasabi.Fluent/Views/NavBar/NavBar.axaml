@@ -81,8 +81,8 @@
       <!-- Logo -->
       <Border Padding="12" Margin="0,0,0,-6">
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-          <ContentControl Template="{DynamicResource wasabi_logo_fixed}" Margin="13,0,0,0" VerticalAlignment="Center" />
-          <ContentControl Template="{DynamicResource wasabi_logo_text_fixed}" Margin="11,0,0,0"
+          <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" Margin="13,0,0,0" VerticalAlignment="Center" />
+          <ContentControl Template="{DynamicResource wasabi_logo_text_dynamic}" Margin="11,0,0,0"
                           VerticalAlignment="Center" ClipToBounds="False" />
         </StackPanel>
       </Border>
