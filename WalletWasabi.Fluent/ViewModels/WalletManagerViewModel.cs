@@ -133,10 +133,8 @@ namespace WalletWasabi.Fluent.ViewModels
 			throw new Exception("Wallet not found, invalid api usage");
 		}
 
-		public async Task LoadWalletAsync(ClosedWalletViewModel closedWalletViewModel)
+		public async Task LoadWalletAsync(Wallet wallet)
 		{
-			var wallet = closedWalletViewModel.Wallet;
-
 			if (wallet.State != WalletState.Uninitialized)
 			{
 				throw new Exception("Wallet is already being logged in.");
