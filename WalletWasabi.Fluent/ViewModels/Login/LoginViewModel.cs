@@ -89,7 +89,6 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 		private void LoginWallet(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletViewModel)
 		{
 			closedWalletViewModel.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
-			RxApp.MainThreadScheduler.Schedule(async () => await walletManagerViewModel.LoadWalletAsync(closedWalletViewModel));
 			Navigate().To(closedWalletViewModel, NavigationMode.Clear);
 		}
 
