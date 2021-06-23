@@ -58,6 +58,12 @@
                                           Height="{Binding HeightSource, Mode=TwoWay}"
                                           x:CompileBindings="False"/>
       </i:Interaction.Behaviors>
+      <c:InfoMessage Content="Wasabi was unable to connect to the server, thus the balance can be incorrect."
+                     Foreground="{StaticResource WarningMessageForeground}"
+                     Margin="0 20 0 0"
+                     HorizontalAlignment="Center"
+                     Opacity="{Binding LimitedModeEnabled, Converter={x:Static converters:BoolOpacityConverters.BoolToOpacity}}"
+                     DockPanel.Dock="Bottom" />
       <ScrollViewer Name="ScrollViewer"
                     Classes.smallLayout="{Binding IsSmallLayout}"
                     Classes.normalLayout="{Binding IsNormalLayout}"
