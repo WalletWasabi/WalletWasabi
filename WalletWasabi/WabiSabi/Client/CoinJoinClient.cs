@@ -53,7 +53,7 @@ namespace WalletWasabi.WabiSabi.Client
 			var constructionState = roundState.Assert<ConstructionState>();
 
 			// Calculate outputs values
-			var outputValues = DecomposeAmounts(roundState.FeeRate, forcedOutputDenominations);
+			var outputValues = DecomposeAmounts(roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min, forcedOutputDenominations);
 
 			// Get all locked internal keys we have and assert we have enough.
 			Keymanager.AssertLockedInternalKeysIndexed(howMany: outputValues.Count());
@@ -154,10 +154,10 @@ namespace WalletWasabi.WabiSabi.Client
 			return completedRequests.Where(x => x is not null).Cast<AliceClient>().ToList();
 		}
 
-		private IEnumerable<Money> DecomposeAmounts(FeeRate feeRate, IEnumerable<Money>? forcedOutputDenominations = null)
+		private IEnumerable<Money> DecomposeAmounts(FeeRate feeRate, Money minimumOutputAmount, IEnumerable<Money>? forcedOutputDenominations = null)
 		{
 			var allDenominations = forcedOutputDenominations is null ? StandardDenomination.Values : forcedOutputDenominations;
-			GreedyDecomposer greedyDecomposer = new(allDenominations);
+			GreedyDecomposer greedyDecomposer = new(allDenominations.Where(x => x >= minimumOutputAmount));
 			var sum = Coins.Sum(c => c.EffectiveValue(feeRate));
 			return greedyDecomposer.Decompose(sum, feeRate.GetFee(31));
 		}
