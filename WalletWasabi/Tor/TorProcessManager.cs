@@ -143,9 +143,8 @@ namespace WalletWasabi.Tor
 				Logger.LogDebug($"Environment variable 'LD_LIBRARY_PATH' set to: '{env["LD_LIBRARY_PATH"]}'.");
 			}
 
+			Logger.LogInfo("Starting Tor process ...");
 			ProcessAsync process = new(startInfo);
-
-			Logger.LogInfo($"Starting Tor process ...");
 			process.Start();
 
 			return process;
