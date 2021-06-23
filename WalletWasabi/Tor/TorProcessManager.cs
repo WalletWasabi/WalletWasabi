@@ -58,32 +58,7 @@ namespace WalletWasabi.Tor
 				}
 
 				string torArguments = Settings.GetCmdArguments();
-
-				ProcessStartInfo startInfo = new()
-				{
-					FileName = Settings.TorBinaryFilePath,
-					Arguments = torArguments,
-					UseShellExecute = false,
-					CreateNoWindow = true,
-					RedirectStandardOutput = true,
-					WorkingDirectory = Settings.TorBinaryDir
-				};
-
-				if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-				{
-					var env = startInfo.EnvironmentVariables;
-
-					env["LD_LIBRARY_PATH"] = !env.ContainsKey("LD_LIBRARY_PATH") || string.IsNullOrEmpty(env["LD_LIBRARY_PATH"])
-						? Settings.TorBinaryDir
-						: Settings.TorBinaryDir + Path.PathSeparator + env["LD_LIBRARY_PATH"];
-
-					Logger.LogDebug($"Environment variable 'LD_LIBRARY_PATH' set to: '{env["LD_LIBRARY_PATH"]}'.");
-				}
-
-				TorProcess = new(startInfo);
-
-				Logger.LogInfo($"Starting Tor process ...");
-				TorProcess.Start();
+				TorProcess = StartProcess(torArguments);
 
 				bool isRunning = await EnsureRunningAsync(TorProcess, token).ConfigureAwait(false);
 
@@ -142,6 +117,38 @@ namespace WalletWasabi.Tor
 				// Wait 250 milliseconds between attempts.
 				await Task.Delay(250, token).ConfigureAwait(false);
 			}
+		}
+
+		/// <param name="arguments">Command line arguments to start Tor OS process with.</param>
+		private ProcessAsync StartProcess(string arguments)
+		{
+			ProcessStartInfo startInfo = new()
+			{
+				FileName = Settings.TorBinaryFilePath,
+				Arguments = arguments,
+				UseShellExecute = false,
+				CreateNoWindow = true,
+				RedirectStandardOutput = true,
+				WorkingDirectory = Settings.TorBinaryDir
+			};
+
+			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				var env = startInfo.EnvironmentVariables;
+
+				env["LD_LIBRARY_PATH"] = !env.ContainsKey("LD_LIBRARY_PATH") || string.IsNullOrEmpty(env["LD_LIBRARY_PATH"])
+					? Settings.TorBinaryDir
+					: Settings.TorBinaryDir + Path.PathSeparator + env["LD_LIBRARY_PATH"];
+
+				Logger.LogDebug($"Environment variable 'LD_LIBRARY_PATH' set to: '{env["LD_LIBRARY_PATH"]}'.");
+			}
+
+			ProcessAsync process = new(startInfo);
+
+			Logger.LogInfo($"Starting Tor process ...");
+			process.Start();
+
+			return process;
 		}
 
 		/// <summary>
