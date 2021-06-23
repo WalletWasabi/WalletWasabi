@@ -155,7 +155,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			{
 				Navigate(NavigationTarget.DialogScreen)
 					.To(new SendViewModel(wallet));
-			}, this.WhenAnyValue(x => x.LimitedModeEnabled).Select(x => !x));
+			});
 
 			ReceiveCommand = ReactiveCommand.Create(() =>
 			{
