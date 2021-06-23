@@ -15,9 +15,7 @@ using WalletWasabi.Tor.Socks5;
 
 namespace WalletWasabi.Tor
 {
-	/// <summary>
-	/// Manages lifetime of Tor process.
-	/// </summary>
+	/// <summary>Manages lifetime of Tor process.</summary>
 	/// <seealso href="https://2019.www.torproject.org/docs/tor-manual.html.en"/>
 	public class TorProcessManager
 	{
@@ -37,9 +35,7 @@ namespace WalletWasabi.Tor
 
 		private TorControlClient? TorControlClient { get; set; }
 
-		/// <summary>
-		/// Starts Tor process if it is not running already.
-		/// </summary>
+		/// <summary>Starts Tor process if it is not running already.</summary>
 		/// <exception cref="OperationCanceledException"/>
 		public async Task<bool> StartAsync(CancellationToken token = default)
 		{
@@ -150,9 +146,7 @@ namespace WalletWasabi.Tor
 			return process;
 		}
 
-		/// <summary>
-		/// Connects to Tor control using a TCP client or throws <see cref="TorControlException"/>.
-		/// </summary>
+		/// <summary>Connects to Tor control using a TCP client or throws <see cref="TorControlException"/>.</summary>
 		/// <exception cref="TorControlException">When authentication fails for some reason.</exception>
 		/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">This method follows instructions in 3.23. TAKEOWNERSHIP.</seealso>
 		private async Task<TorControlClient> InitTorControlAsync(CancellationToken token = default)
