@@ -41,6 +41,9 @@ namespace WalletWasabi.Tor
 		{
 			ThrowIfDisposed();
 
+			ProcessAsync? process = null;
+			TorControlClient? controlClient = null;
+
 			try
 			{
 				// Is Tor already running? Either our Tor process from previous Wasabi Wallet run or possibly user's own Tor.
@@ -54,9 +57,9 @@ namespace WalletWasabi.Tor
 				}
 
 				string torArguments = Settings.GetCmdArguments();
-				TorProcess = StartProcess(torArguments);
+				process = StartProcess(torArguments);
 
-				bool isRunning = await EnsureRunningAsync(TorProcess, token).ConfigureAwait(false);
+				bool isRunning = await EnsureRunningAsync(process, token).ConfigureAwait(false);
 
 				if (!isRunning)
 				{
@@ -64,7 +67,13 @@ namespace WalletWasabi.Tor
 				}
 
 				Logger.LogInfo("Tor is running.");
-				TorControlClient = await InitTorControlAsync(token).ConfigureAwait(false);
+				controlClient = await InitTorControlAsync(token).ConfigureAwait(false);
+
+				// Only now we know that Tor process is fully started.
+				TorProcess = process;
+				TorControlClient = controlClient;
+				controlClient = null;
+				process = null;
 
 				return true;
 			}
@@ -76,6 +85,15 @@ namespace WalletWasabi.Tor
 			catch (Exception ex)
 			{
 				Logger.LogError("Could not automatically start Tor. Try running Tor manually.", ex);
+			}
+			finally
+			{
+				if (controlClient is not null)
+				{
+					await controlClient.DisposeAsync().ConfigureAwait(false);
+				}
+
+				process?.Dispose();
 			}
 
 			return false;
