@@ -1,3 +1,4 @@
+using Newtonsoft.Json.Linq;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -84,35 +85,11 @@ namespace WalletWasabi.Tor
 				Logger.LogInfo($"Starting Tor process ...");
 				TorProcess.Start();
 
-				// Ensure it's running.
-				int i = 0;
-				while (true)
+				bool isRunning = await EnsureRunningAsync(TorProcess, token).ConfigureAwait(false);
+
+				if (!isRunning)
 				{
-					i++;
-
-					bool isRunning = await TcpConnectionFactory.IsTorRunningAsync().ConfigureAwait(false);
-
-					if (isRunning)
-					{
-						break;
-					}
-
-					if (TorProcess.HasExited)
-					{
-						Logger.LogError("Tor process failed to start!");
-						return false;
-					}
-
-					const int MaxAttempts = 25;
-
-					if (i >= MaxAttempts)
-					{
-						Logger.LogError($"All {MaxAttempts} attempts to connect to Tor failed.");
-						return false;
-					}
-
-					// Wait 250 milliseconds between attempts.
-					await Task.Delay(250, token).ConfigureAwait(false);
+					return false;
 				}
 
 				Logger.LogInfo("Tor is running.");
@@ -131,6 +108,40 @@ namespace WalletWasabi.Tor
 			}
 
 			return false;
+		}
+
+		/// <summary>Ensure <paramref name="process"/> is actually running.</summary>
+		private async Task<bool> EnsureRunningAsync(ProcessAsync process, CancellationToken token)
+		{
+			int i = 0;
+			while (true)
+			{
+				i++;
+
+				bool isRunning = await TcpConnectionFactory.IsTorRunningAsync().ConfigureAwait(false);
+
+				if (isRunning)
+				{
+					return true;
+				}
+
+				if (process.HasExited)
+				{
+					Logger.LogError("Tor process failed to start!");
+					return false;
+				}
+
+				const int MaxAttempts = 25;
+
+				if (i >= MaxAttempts)
+				{
+					Logger.LogError($"All {MaxAttempts} attempts to connect to Tor failed.");
+					return false;
+				}
+
+				// Wait 250 milliseconds between attempts.
+				await Task.Delay(250, token).ConfigureAwait(false);
+			}
 		}
 
 		/// <summary>
