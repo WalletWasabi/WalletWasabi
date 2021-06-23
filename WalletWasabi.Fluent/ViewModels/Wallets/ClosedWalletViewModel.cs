@@ -8,11 +8,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
 	public class ClosedWalletViewModel : WalletViewModelBase
 	{
-		protected ClosedWalletViewModel(WalletManagerViewModel walletManagerViewModel, Wallet wallet)
+		protected ClosedWalletViewModel(Wallet wallet)
 			: base(wallet)
 		{
 			Loading = new LoadingViewModel(wallet);
-			OpenCommand = ReactiveCommand.Create(() => OnOpen(walletManagerViewModel));
+			OpenCommand = ReactiveCommand.Create(OnOpen);
 		}
 
 		public LoadingViewModel Loading { get; }
@@ -24,11 +24,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			Loading.Activate(disposables);
 		}
 
-		private void OnOpen(WalletManagerViewModel walletManagerViewModel)
+		private void OnOpen()
 		{
 			if (!Wallet.IsLoggedIn)
 			{
-				Navigate().To(new LoginViewModel(walletManagerViewModel, this), NavigationMode.Clear);
+				Navigate().To(new LoginViewModel(this), NavigationMode.Clear);
 			}
 			else
 			{
@@ -36,13 +36,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			}
 		}
 
-		public static WalletViewModelBase Create(WalletManagerViewModel walletManager, Wallet wallet)
+		public static WalletViewModelBase Create(Wallet wallet)
 		{
 			return wallet.KeyManager.IsHardwareWallet
-				? new ClosedHardwareWalletViewModel(walletManager, wallet)
+				? new ClosedHardwareWalletViewModel(wallet)
 				: wallet.KeyManager.IsWatchOnly
-					? new ClosedWatchOnlyWalletViewModel(walletManager, wallet)
-					: new ClosedWalletViewModel(walletManager, wallet);
+					? new ClosedWatchOnlyWalletViewModel(wallet)
+					: new ClosedWalletViewModel(wallet);
 		}
 	}
 }
