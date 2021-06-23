@@ -26,7 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			OpenCommand = ReactiveCommand.Create(() => OnOpen(walletManagerViewModel));
 		}
 
-		public LoadingControlViewModel Loading { get; } = new();
+		public LoadingViewModel Loading { get; } = new();
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{

@@ -1,11 +1,11 @@
 namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
-	public partial class LoadingControlViewModel : ViewModelBase
+	public partial class LoadingViewModel : ViewModelBase
 	{
 		[AutoNotify] private double _percent;
 		[AutoNotify] private string? _statusText;
 
-		public LoadingControlViewModel()
+		public LoadingViewModel()
 		{
 			_statusText = "";
 			_percent = 0;
