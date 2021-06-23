@@ -64,8 +64,8 @@ namespace WalletWasabi.Tor
 					return false;
 				}
 
-				Logger.LogInfo("Tor is running.");
 				controlClient = await InitTorControlAsync(token).ConfigureAwait(false);
+				Logger.LogInfo("Tor is running.");
 
 				// Only now we know that Tor process is fully started.
 				TorProcess = process;
