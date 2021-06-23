@@ -19,6 +19,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
+using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
@@ -38,6 +39,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSmallLayout;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isNormalLayout;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWideLayout;
+		[AutoNotify] private bool _limitedModeEnabled;
 
 		protected WalletViewModel(Wallet wallet) : base(wallet)
 		{
@@ -153,7 +155,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			{
 				Navigate(NavigationTarget.DialogScreen)
 					.To(new SendViewModel(wallet));
-			});
+			}, this.WhenAnyValue(x => x.LimitedModeEnabled).Select(x => !x));
 
 			ReceiveCommand = ReactiveCommand.Create(() =>
 			{
@@ -181,6 +183,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 				Navigate(NavigationTarget.DialogScreen).To(new WalletInfoViewModel(wallet));
 			});
+
+			LimitedModeEnabled = Services.Synchronizer.BackendStatus == BackendStatus.NotConnected;
 		}
 
 		public ICommand SendCommand { get; }
@@ -271,6 +275,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			}
 
 			History.Activate(disposables);
+
+			Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(status => LimitedModeEnabled = status == BackendStatus.NotConnected)
+				.DisposeWith(disposables);
 		}
 
 		public static WalletViewModel Create(Wallet wallet)
