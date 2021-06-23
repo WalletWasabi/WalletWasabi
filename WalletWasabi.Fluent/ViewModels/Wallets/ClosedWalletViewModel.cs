@@ -11,7 +11,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		protected ClosedWalletViewModel(WalletManagerViewModel walletManagerViewModel, Wallet wallet)
 			: base(wallet)
 		{
-			Loading = new LoadingViewModel();
+			Loading = new LoadingViewModel(wallet);
 			OpenCommand = ReactiveCommand.Create(() => OnOpen(walletManagerViewModel));
 		}
 
