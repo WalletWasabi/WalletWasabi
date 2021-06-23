@@ -56,8 +56,8 @@ namespace WalletWasabi.Tor
 					return true;
 				}
 
-				string torArguments = Settings.GetCmdArguments();
-				process = StartProcess(torArguments);
+				string arguments = Settings.GetCmdArguments();
+				process = StartProcess(arguments);
 
 				bool isRunning = await EnsureRunningAsync(process, token).ConfigureAwait(false);
 
