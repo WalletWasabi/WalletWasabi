@@ -114,8 +114,10 @@ namespace WalletWasabi.WabiSabi.Client
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Posted a signature.");
 		}
 
-		public async Task SignalReadyAsync()
+		public async Task ReadyToSignAsync(CancellationToken cancellationToken)
 		{
+			await ArenaClient.ReadyToSignAsync(RoundId, AliceId, BitcoinSecret.PrivateKey, cancellationToken).ConfigureAwait(false);
+			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Inputs removed.");
 		}
 
 		private static uint256 CalculateHash(Coin coin, BitcoinSecret bitcoinSecret, uint256 roundId)

@@ -79,6 +79,9 @@ namespace WalletWasabi.WabiSabi.Client
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
 			await dgr.StartOutputRegistrationsAsync(outputTxOuts, bobClient, cancellationToken).ConfigureAwait(false);
 
+			// ReadyToSign.
+			await ReadyToSignAsync(aliceClients, cancellationToken).ConfigureAwait(false);
+
 			// Signing.
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
 			var signingState = roundState.Assert<SigningState>();
@@ -165,6 +168,17 @@ namespace WalletWasabi.WabiSabi.Client
 
 			var signingRequests = aliceClients.Select(SignTransactionTask);
 			await Task.WhenAll(signingRequests).ConfigureAwait(false);
+		}
+
+		private async Task ReadyToSignAsync(IEnumerable<AliceClient> aliceClients, CancellationToken cancellationToken)
+		{
+			async Task ReadyToSignTask(AliceClient aliceClient)
+			{
+				await aliceClient.ReadyToSignAsync(cancellationToken).ConfigureAwait(false);
+			}
+
+			var readyRequests = aliceClients.Select(ReadyToSignTask);
+			await Task.WhenAll(readyRequests).ConfigureAwait(false);
 		}
 	}
 }

@@ -23,6 +23,7 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		public int TotalInputVsize => Coin.ScriptPubKey.EstimateInputVsize();
 
 		public bool ConfirmedConnection { get; set; } = false;
+		public bool ReadyToSign { get; set; }
 
 		public long CalculateRemainingVsizeCredentials(int maxRegistrableSize) => maxRegistrableSize - TotalInputVsize;
 

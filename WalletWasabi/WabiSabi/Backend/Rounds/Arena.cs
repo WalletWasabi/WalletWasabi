@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -115,7 +116,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate));
 				long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
 				var diff = aliceSum - bobSum;
-				if (diff == 0 || round.OutputRegistrationStart + round.OutputRegistrationTimeout < DateTimeOffset.UtcNow)
+				var allReady = round.Alices.All(a => a.ReadyToSign);
+
+				if (allReady || round.OutputRegistrationStart + round.OutputRegistrationTimeout < DateTimeOffset.UtcNow)
 				{
 					var coinjoin = round.Assert<ConstructionState>();
 
@@ -263,6 +266,22 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					request.ZeroAmountCredentialRequests,
 					request.ZeroVsizeCredentialRequests,
 					Rounds);
+			}
+		}
+
+		public async Task ReadyToSignAsync(ReadyToSignRequestRequest request)
+		{
+			using (await AsyncLock.LockAsync().ConfigureAwait(false))
+			{
+				var alice = Rounds.Single(r => r.Id == request.RoundId).Alices.Single(a => a.Id == request.AliceId);
+
+				var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", request.RoundId);
+				if (!OwnershipProof.VerifyCoinJoinInputProof(request.OwnershipProof, alice.Coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
+				}
+
+				alice.ReadyToSign = true;
 			}
 		}
 
