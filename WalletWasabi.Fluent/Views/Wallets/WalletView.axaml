@@ -134,8 +134,23 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
       </ScrollViewer>
-      <history:HistoryTable Name="HistoryTable" DataContext="{Binding History}"
-                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+      <Panel>
+        <history:HistoryTable Name="HistoryTable" DataContext="{Binding History}"
+                              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                              IsVisible="{Binding UnfilteredTransactions.Count}"/>
+        <Border ClipToBounds="False"
+                CornerRadius="5"
+                Background="{DynamicResource TileRegionColor}"
+                Margin="6"
+                Padding="16"
+                BoxShadow="{DynamicResource InfoBoxShadow}"
+                DataContext="{Binding History}"
+                IsVisible="{Binding !UnfilteredTransactions.Count}">
+          <Label Content="No transaction history. Please click Send or Receive buttons to start using your wallet."
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center"/>
+        </Border>
+      </Panel>
     </DockPanel>
   </c:ContentArea>
 </UserControl>
