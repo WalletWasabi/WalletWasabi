@@ -127,7 +127,7 @@
       </ControlTemplate>
       <ControlTemplate x:Key="wasabi_logo_text_fixed">
         <StackPanel Margin="0,0,0,-5" TextBlock.FontFamily="{StaticResource WasabiLogoTextFont}"
-                    TextBlock.FontWeight="Light" Orientation="Horizontal">
+                    TextBlock.FontWeight="Light" Orientation="Horizontal" ClipToBounds="False">
           <TextBlock Text="WASABI" Classes="h6" Foreground="{StaticResource LogoFixedForegroundColor}" />
           <TextBlock Text="." Classes="h6" Foreground="{StaticResource LogoFixedAccentColor}" />
           <TextBlock Text="WALLET" Classes="h6" Foreground="{StaticResource LogoFixedForegroundColor}" />
@@ -135,7 +135,7 @@
       </ControlTemplate>
       <ControlTemplate x:Key="wasabi_logo_text_dynamic">
         <StackPanel Margin="0,0,0,-5" TextBlock.FontFamily="{StaticResource WasabiLogoTextFont}"
-                    TextBlock.FontWeight="Light" Orientation="Horizontal">
+                    TextBlock.FontWeight="Light" Orientation="Horizontal" ClipToBounds="False">
           <TextBlock Text="WASABI" Classes="h6" Foreground="{StaticResource TextForegroundColor}" />
           <TextBlock Text="." Classes="h6" Foreground="{StaticResource LogoFixedAccentColor}" />
           <TextBlock Text="WALLET" Classes="h6" Foreground="{StaticResource TextForegroundColor}" />
