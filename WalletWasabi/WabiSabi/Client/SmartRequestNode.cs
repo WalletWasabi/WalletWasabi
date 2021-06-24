@@ -118,11 +118,11 @@ namespace WalletWasabi.WabiSabi.Client
 			IEnumerable<Credential> inputVsizeCredentials = VsizeCredentialToPresentTasks.Select(x => x.Result);
 
 			await bobClient.RegisterOutputAsync(
-				effectiveCost, scriptPubKey,
+				effectiveCost,
+				scriptPubKey,
 				inputAmountCredentials,
 				inputVsizeCredentials,
-				cancellationToken
-			).ConfigureAwait(false);
+				cancellationToken).ConfigureAwait(false);
 		}
 
 		private IEnumerable<long> AddExtraCredential(IEnumerable<long> valuesToRequest, IEnumerable<Credential> presentedCredentials)
