@@ -51,5 +51,15 @@
         <GradientStop Color="#4AFFFFFF" Offset="0.1" />
       </LinearGradientBrush.GradientStops>
     </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="LogoGradientFixed" StartPoint="62%,31%" EndPoint="24%,81%">
+      <LinearGradientBrush.GradientStops>
+        <GradientStop Color="#FFFFFF" Offset="0" />
+        <GradientStop Color="#EFEFEF" Offset="0.1591" />
+        <GradientStop Color="#D4D4D4" Offset="0.4862" />
+        <GradientStop Color="#C3C3C3" Offset="0.775" />
+        <GradientStop Color="#BDBDBD" Offset="0.993" />
+      </LinearGradientBrush.GradientStops>
+    </LinearGradientBrush>
   </Styles.Resources>
 </Styles>
