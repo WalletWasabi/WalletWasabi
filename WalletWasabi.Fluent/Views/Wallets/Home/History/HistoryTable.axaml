@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:history="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -172,6 +173,23 @@
                        x:DataType="history:HistoryItemViewModel"
                        Text="{Binding Balance, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
                        Margin="10 0" />
+          </DataTemplate>
+        </DataGridTemplateColumn.CellTemplate>
+      </DataGridTemplateColumn>
+
+      <!-- Labels -->
+
+      <DataGridTemplateColumn Header="Labels"
+                              Width="*"
+                              CanUserSort="True"
+                              SortMemberPath="Label">
+        <DataGridTemplateColumn.CellTemplate>
+          <DataTemplate>
+            <DockPanel LastChildFill="True" x:DataType="history:HistoryItemViewModel">
+              <c:TagsBox Padding="0" IsReadOnly="True"
+                         Items="{Binding Label}"
+                         VerticalAlignment="Center" />
+            </DockPanel>
           </DataTemplate>
         </DataGridTemplateColumn.CellTemplate>
       </DataGridTemplateColumn>

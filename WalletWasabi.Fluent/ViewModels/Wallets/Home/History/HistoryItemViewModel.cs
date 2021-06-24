@@ -3,6 +3,7 @@ using System.Reactive;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
@@ -35,6 +36,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				IncomingAmount = amount;
 			}
 
+			Label = transactionSummary.Label;
+
 			ShowDetailsCommand = ReactiveCommand.Create(() => RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(new TransactionDetailsViewModel(transactionSummary, wallet, updateTrigger)));
 		}
 
@@ -53,6 +56,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		public Money? IncomingAmount { get; }
 
 		public Money? OutgoingAmount { get; }
+
+		public SmartLabel Label { get; }
 
 		public bool IsCoinJoin { get; }
 
