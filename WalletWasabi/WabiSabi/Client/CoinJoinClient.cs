@@ -122,42 +122,12 @@ namespace WalletWasabi.WabiSabi.Client
 			await Task.WhenAll(registerRequests).ConfigureAwait(false);
 		}
 
-		private async Task<List<AliceClient>> ConfirmConnectionsAsync(IEnumerable<AliceClient> aliceClients, long maxVsizeAllocationPerAlice, TimeSpan connectionConfirmationTimeout, CancellationToken cancellationToken)
-		{
-			async Task<AliceClient?> ConfirmConnectionTask(AliceClient aliceClient)
-			{
-				try
-				{
-					await aliceClient.ConfirmConnectionAsync(connectionConfirmationTimeout, maxVsizeAllocationPerAlice, cancellationToken).ConfigureAwait(false);
-					return aliceClient;
-				}
-				catch (Exception e)
-				{
-					Logger.LogWarning($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): {nameof(AliceClient.ConfirmConnectionAsync)} failed, reason:'{e}'.");
-					return default;
-				}
-			}
-
-			var confirmationRequests = aliceClients.Select(ConfirmConnectionTask);
-			var completedRequests = await Task.WhenAll(confirmationRequests).ConfigureAwait(false);
-
-			return completedRequests.Where(x => x is not null).Cast<AliceClient>().ToList();
-		}
-
 		private IEnumerable<Money> DecomposeAmounts(FeeRate feeRate, Money minimumOutputAmount, IEnumerable<Money>? forcedOutputDenominations = null)
 		{
 			var allDenominations = forcedOutputDenominations is null ? StandardDenomination.Values : forcedOutputDenominations;
 			GreedyDecomposer greedyDecomposer = new(allDenominations.Where(x => x >= minimumOutputAmount));
 			var sum = Coins.Sum(c => c.EffectiveValue(feeRate));
 			return greedyDecomposer.Decompose(sum, feeRate.GetFee(31));
-		}
-
-		private IEnumerable<IEnumerable<(ulong RealAmountCredentialValue, ulong RealVsizeCredentialValue, Money Value)>> CreatePlan(
-			IEnumerable<ulong> realAmountCredentialValues,
-			IEnumerable<ulong> realVsizeCredentialValues,
-			IEnumerable<Money> outputValues)
-		{
-			yield return realAmountCredentialValues.Zip(realVsizeCredentialValues, outputValues, (a, v, o) => (a, v, o));
 		}
 
 		private BobClient CreateBobClient(RoundState roundState)
