@@ -1,8 +1,7 @@
 using System;
 using System.Linq;
-using WalletWasabi.WabiSabi.Client.CredentialDependencies;
 
-namespace WalletWasabi.Tests.Helpers
+namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 {
 	public static class DependencyGraphExtensions
 	{
