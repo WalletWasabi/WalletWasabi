@@ -33,33 +33,68 @@ namespace WalletWasabi.WabiSabi.Client
 		public ZeroCredentialPool ZeroVsizeCredentialPool { get; }
 		private Dictionary<CredentialDependency, TaskCompletionSource<Credential>> DependencyTasks { get; }
 
-		public async Task StartReissuancesAsync(IEnumerable<AliceClient> aliceClients, BobClient bobClient, CancellationToken cancellationToken)
+		public async Task StartConfirmConnectionsAsync(IEnumerable<AliceClient> aliceClients, DependencyGraph dependencyGraph, TimeSpan connectionConfirmationTimeout, CancellationToken cancellationToken)
 		{
 			var aliceNodePairs = PairAliceClientAndRequestNodes(aliceClients, Graph);
 
-			// Set the result for the inputs.
+			List<SmartRequestNode> smartRequestNodes = new();
+			List<Task> connectionConfirmationTasks = new();
+
+			using CancellationTokenSource ctsOnError = new();
+			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctsOnError.Token);
+
 			foreach ((var aliceClient, var node) in aliceNodePairs)
 			{
-				foreach ((var edge, var credential) in Enumerable.Zip(Graph.OutEdges(node, CredentialType.Amount).Where(edge => edge.Value > 0), aliceClient.RealAmountCredentials))
-				{
-					DependencyTasks[edge].SetResult(credential);
-				}
+				var amountEdgeTaskCompSources = Graph.OutEdges(node, CredentialType.Amount).Select(edge => DependencyTasks[edge]);
+				var vsizeEdgeTaskCompSources = Graph.OutEdges(node, CredentialType.Vsize).Select(edge => DependencyTasks[edge]);
+				SmartRequestNode smartRequestNode = new(
+					Enumerable.Empty<Task<Credential>>(),
+					Enumerable.Empty<Task<Credential>>(),
+					amountEdgeTaskCompSources,
+					vsizeEdgeTaskCompSources,
+					ZeroAmountCredentialPool,
+					ZeroVsizeCredentialPool);
 
-				foreach (var edge in Graph.OutEdges(node, CredentialType.Amount).Where(edge => edge.Value == 0))
-				{
-					DependencyTasks[edge].SetResult(ZeroAmountCredentialPool.GetZeroCredential());
-				}
+				var amountsToRequest = dependencyGraph.OutEdges(node, CredentialType.Amount).Select(e => (long)e.Value);
+				var vsizesToRequest = dependencyGraph.OutEdges(node, CredentialType.Vsize).Select(e => (long)e.Value);
 
-				foreach ((var edge, var credential) in Enumerable.Zip(Graph.OutEdges(node, CredentialType.Vsize).Where(edge => edge.Value > 0), aliceClient.RealVsizeCredentials))
-				{
-					DependencyTasks[edge].SetResult(credential);
-				}
+				var task = smartRequestNode
+					.ConfirmConnectionTaskAsync(
+						connectionConfirmationTimeout,
+						aliceClient,
+						amountsToRequest,
+						vsizesToRequest,
+						node.EffectiveValue,
+						node.VsizeRemainingAllocation,
+						linkedCts.Token)
+					.ContinueWith((t) =>
+					{
+						if (t.IsFaulted && t.Exception is { } exception)
+						{
+							// If one task is failing, cancel all the tasks and throw.
+							ctsOnError.Cancel();
+							throw exception;
+						}
+					}, linkedCts.Token);
 
-				foreach (var edge in Graph.OutEdges(node, CredentialType.Vsize).Where(edge => edge.Value == 0))
-				{
-					DependencyTasks[edge].SetResult(ZeroVsizeCredentialPool.GetZeroCredential());
-				}
+				connectionConfirmationTasks.Add(task);
 			}
+
+			await Task.WhenAll(connectionConfirmationTasks).ConfigureAwait(false);
+
+			var amountEdges = Graph.Inputs.SelectMany(node => Graph.OutEdges(node, CredentialType.Amount));
+			var vsizeEdges = Graph.Inputs.SelectMany(node => Graph.OutEdges(node, CredentialType.Vsize));
+
+			// Check if all tasks were finished, otherwise Task.Result will block.
+			if (!amountEdges.Concat(vsizeEdges).All(edge => DependencyTasks[edge].Task.IsCompletedSuccessfully))
+			{
+				throw new InvalidOperationException("All Input nodes' outedges should be completed.");
+			}
+		}
+
+		public async Task StartReissuancesAsync(IEnumerable<AliceClient> aliceClients, BobClient bobClient, CancellationToken cancellationToken)
+		{
+			var aliceNodePairs = PairAliceClientAndRequestNodes(aliceClients, Graph);
 
 			// Build tasks and link them together.
 			List<SmartRequestNode> smartRequestNodes = new();
@@ -109,7 +144,7 @@ namespace WalletWasabi.WabiSabi.Client
 			// Check if all tasks were finished, otherwise Task.Result will block.
 			if (!amountEdges.Concat(vsizeEdges).All(edge => DependencyTasks[edge].Task.IsCompletedSuccessfully))
 			{
-				throw new InvalidOperationException("");
+				throw new InvalidOperationException("All Output nodes' inedges should be completed.");
 			}
 		}
 

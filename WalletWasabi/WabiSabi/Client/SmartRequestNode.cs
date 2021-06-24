@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto.ZeroKnowledge;
+using WalletWasabi.WabiSabi.Client.CredentialDependencies;
 using WalletWasabi.WabiSabi.Crypto;
 
 namespace WalletWasabi.WabiSabi.Client
@@ -34,6 +35,36 @@ namespace WalletWasabi.WabiSabi.Client
 		public IEnumerable<TaskCompletionSource<Credential>> VsizeCredentialTasks { get; }
 		public ZeroCredentialPool ZeroAmountCredentialPool { get; }
 		public ZeroCredentialPool ZeroVsizeCredentialPool { get; }
+
+		public async Task ConfirmConnectionTaskAsync(
+			TimeSpan connectionConfirmationTimeout,
+			AliceClient aliceClient,
+			IEnumerable<long> amounts,
+			IEnumerable<long> vsizes,
+			Money effectiveValue,
+			int vsizeValue,
+			CancellationToken cancellationToken)
+		{
+			var amountsToRequest = AddExtraCredential(amounts, effectiveValue.Satoshi);
+			var vsizesToRequest = AddExtraCredential(vsizes, vsizeValue);
+
+			await aliceClient.ConfirmConnectionAsync(connectionConfirmationTimeout, amountsToRequest, vsizesToRequest, cancellationToken).ConfigureAwait(false);
+
+			var amountCredentials = aliceClient.RealAmountCredentials.Take(amounts.Where(v => v != 0).Count());
+			var vsizeCredentials = aliceClient.RealVsizeCredentials.Take(vsizes.Where(v => v != 0).Count());
+
+			amountCredentials = amountCredentials.Concat(Enumerable.Range(0, AmountCredentialTasks.Count() - amountCredentials.Count()).Select(_ => ZeroAmountCredentialPool.GetZeroCredential()));
+			vsizeCredentials = vsizeCredentials.Concat(Enumerable.Range(0, VsizeCredentialTasks.Count() - vsizeCredentials.Count()).Select(_ => ZeroVsizeCredentialPool.GetZeroCredential()));
+
+			foreach ((TaskCompletionSource<Credential> tcs, Credential credential) in AmountCredentialTasks.Zip(amountCredentials))
+			{
+				tcs.SetResult(credential);
+			}
+			foreach ((TaskCompletionSource<Credential> tcs, Credential credential) in VsizeCredentialTasks.Zip(vsizeCredentials))
+			{
+				tcs.SetResult(credential);
+			}
+		}
 
 		public async Task StartReissuanceAsync(BobClient bobClient, IEnumerable<long> amounts, IEnumerable<long> vsizes, CancellationToken cancellationToken)
 		{
@@ -76,7 +107,11 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 		}
 
-		public async Task StartOutputRegistrationAsync(BobClient bobClient, Money effectiveCost, Script scriptPubKey, CancellationToken cancellationToken)
+		public async Task StartOutputRegistrationAsync(
+			BobClient bobClient,
+			Money effectiveCost,
+			Script scriptPubKey,
+			CancellationToken cancellationToken)
 		{
 			await Task.WhenAll(AmountCredentialToPresentTasks.Concat(VsizeCredentialToPresentTasks)).ConfigureAwait(false);
 			IEnumerable<Credential> inputAmountCredentials = AmountCredentialToPresentTasks.Select(x => x.Result);
@@ -100,6 +135,27 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 
 			var missing = presentedCredentials.Sum(cr => (long)cr.Amount.ToUlong()) - valuesToRequest.Sum();
+
+			if (missing > 0)
+			{
+				nonZeroValues = nonZeroValues.Append(missing);
+			}
+
+			var additionalZeros = ProtocolConstants.CredentialNumber - nonZeroValues.Count();
+
+			return nonZeroValues.Concat(Enumerable.Repeat(0L, additionalZeros));
+		}
+
+		private IEnumerable<long> AddExtraCredential(IEnumerable<long> valuesToRequest, long sum)
+		{
+			var nonZeroValues = valuesToRequest.Where(v => v > 0);
+
+			if (nonZeroValues.Count() == ProtocolConstants.CredentialNumber)
+			{
+				return nonZeroValues;
+			}
+
+			var missing = sum - valuesToRequest.Sum();
 
 			if (missing > 0)
 			{
