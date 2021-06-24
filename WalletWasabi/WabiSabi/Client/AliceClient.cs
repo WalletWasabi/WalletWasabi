@@ -114,6 +114,10 @@ namespace WalletWasabi.WabiSabi.Client
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Posted a signature.");
 		}
 
+		public async Task SignalReadyAsync()
+		{
+		}
+
 		private static uint256 CalculateHash(Coin coin, BitcoinSecret bitcoinSecret, uint256 roundId)
 		{
 			var ownershipProof = OwnershipProof.GenerateCoinJoinInputProof(

@@ -66,7 +66,7 @@ namespace WalletWasabi.WabiSabi.Client
 			DependencyGraphResolver dgr = new(dependencyGraph, ZeroAmountCredentialPool, ZeroVsizeCredentialPool);
 
 			// Register coins.
-			aliceClients = await RegisterCoinsAsync(aliceClients, cancellationToken).ConfigureAwait(false);
+			await RegisterCoinsAsync(aliceClients, cancellationToken).ConfigureAwait(false);
 
 			// Confirm coins.
 			await dgr.StartConfirmConnectionsAsync(aliceClients, dependencyGraph, roundState.ConnectionConfirmationTimeout, cancellationToken).ConfigureAwait(false);
@@ -111,26 +111,15 @@ namespace WalletWasabi.WabiSabi.Client
 			return aliceClients;
 		}
 
-		private async Task<List<AliceClient>> RegisterCoinsAsync(IEnumerable<AliceClient> aliceClients, CancellationToken cancellationToken)
+		private async Task RegisterCoinsAsync(IEnumerable<AliceClient> aliceClients, CancellationToken cancellationToken)
 		{
-			async Task<AliceClient?> RegisterInputTask(AliceClient aliceClient)
+			async Task RegisterInputTask(AliceClient aliceClient)
 			{
-				try
-				{
-					await aliceClient.RegisterInputAsync(cancellationToken).ConfigureAwait(false);
-					return aliceClient;
-				}
-				catch (Exception e)
-				{
-					Logger.LogWarning($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): {nameof(AliceClient.RegisterInputAsync)} failed, reason:'{e}'.");
-					return default;
-				}
+				await aliceClient.RegisterInputAsync(cancellationToken).ConfigureAwait(false);
 			}
 
 			var registerRequests = aliceClients.Select(RegisterInputTask);
-			var completedRequests = await Task.WhenAll(registerRequests).ConfigureAwait(false);
-
-			return completedRequests.Where(x => x is not null).Cast<AliceClient>().ToList();
+			await Task.WhenAll(registerRequests).ConfigureAwait(false);
 		}
 
 		private async Task<List<AliceClient>> ConfirmConnectionsAsync(IEnumerable<AliceClient> aliceClients, long maxVsizeAllocationPerAlice, TimeSpan connectionConfirmationTimeout, CancellationToken cancellationToken)
