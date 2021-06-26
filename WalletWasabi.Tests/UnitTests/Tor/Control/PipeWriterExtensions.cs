@@ -13,12 +13,10 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 			return writer.WriteAsync(new ReadOnlyMemory<byte>(encoding.GetBytes(data)), cancellationToken);
 		}
 
-		public static ValueTask WriteAsciiAndFlushAsync(this PipeWriter writer, string data, CancellationToken cancellationToken = default)
+		public static async ValueTask WriteAsciiAndFlushAsync(this PipeWriter writer, string data, CancellationToken cancellationToken = default)
 		{
-			_ = writer.WriteAsync(new ReadOnlyMemory<byte>(Encoding.ASCII.GetBytes(data)), cancellationToken);
-			_ = writer.FlushAsync(cancellationToken).ConfigureAwait(false);
-
-			return ValueTask.CompletedTask;
+			await writer.WriteAsync(new ReadOnlyMemory<byte>(Encoding.ASCII.GetBytes(data)), cancellationToken).ConfigureAwait(false);
+			await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
 		}
 	}
 }
