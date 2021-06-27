@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
 
@@ -9,7 +8,6 @@ namespace WalletWasabi.Backend
 {
 	public static class Program
 	{
-		[SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "The Main method is the entry point of a C# application")]
 		public static async Task Main(string[] args)
 		{
 			try
