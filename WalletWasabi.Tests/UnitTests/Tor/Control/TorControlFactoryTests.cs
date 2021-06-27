@@ -37,7 +37,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 			Pipe toServer = new();
 			Pipe toClient = new();
 
-			using TorControlClient testClient = new(pipeReader: toClient.Reader, pipeWriter: toServer.Writer);
+			await using TorControlClient testClient = new(pipeReader: toClient.Reader, pipeWriter: toServer.Writer);
 
 			Logger.LogTrace("Client: Start authentication task.");
 			Task<TorControlClient> authenticationTask = clientFactory.AuthSafeCookieOrThrowAsync(testClient, cookieString, timeoutCts.Token);
@@ -45,12 +45,12 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 			Logger.LogTrace("Server: Read 'AUTHCHALLENGE SAFECOOKIE' command from the client.");
 			string authChallengeCommand = await toServer.Reader.ReadLineAsync(timeoutCts.Token);
 
-			Logger.LogTrace($"Server: Received authchallenge line: '{authChallengeCommand}'.");
+			Logger.LogTrace($"Server: Received AUTHCHALLENGE line: '{authChallengeCommand}'.");
 			Assert.Equal("AUTHCHALLENGE SAFECOOKIE 6F14C18D5B00BF54E16E4728A4BFC81B1FF469F0B012CD71D9724BFBE14DB5E6", authChallengeCommand);
 
 			Logger.LogTrace("Server: Respond to client's AUTHCHALLENGE request.");
 			string challengeResponse = $"250 AUTHCHALLENGE SERVERHASH={serverHash} SERVERNONCE={serverNonce}\r\n";
-			await toClient.Writer.WriteAsciiAsync(challengeResponse, timeoutCts.Token);
+			await toClient.Writer.WriteAsciiAndFlushAsync(challengeResponse, timeoutCts.Token);
 
 			Logger.LogTrace("Server: Read 'AUTHENTICATE' command from the client.");
 			string authCommand = await toServer.Reader.ReadLineAsync(timeoutCts.Token);
@@ -59,7 +59,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 			Assert.Equal("AUTHENTICATE 6013EA09D4E36B6CF01C18A707D350C1B5AFF8C1A21527266B9FC40C89BDCB4A", authCommand);
 
 			Logger.LogTrace("Server: Respond to the client's AUTHENTICATION request.");
-			await toClient.Writer.WriteAsciiAsync("250 OK\r\n", timeoutCts.Token);
+			await toClient.Writer.WriteAsciiAndFlushAsync("250 OK\r\n", timeoutCts.Token);
 
 			Logger.LogTrace("Client: Verify the authentication task finishes correctly.");
 			TorControlClient authenticatedClient = await authenticationTask;

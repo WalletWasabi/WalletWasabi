@@ -8,7 +8,7 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Model;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;

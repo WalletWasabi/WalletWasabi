@@ -1,7 +1,11 @@
+using WalletWasabi.Fluent.Controls;
+using WalletWasabi.Fluent.Models;
+
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 {
 	public partial class TilePresetViewModel : ViewModelBase
 	{
+		[AutoNotify] private TileSize _tileSize;
 		[AutoNotify] private int _column;
 		[AutoNotify] private int _row;
 		[AutoNotify] private int _columnSpan;
@@ -12,12 +16,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		{
 		}
 
-		public TilePresetViewModel(int column, int row, int columnSpan, int rowSpan, bool isVisible = true)
+		public TilePresetViewModel(int column, int row, int columnSpan, int rowSpan, TileSize tileSize, bool isVisible = true)
 		{
 			Column = column;
 			Row = row;
 			ColumnSpan = columnSpan;
 			RowSpan = rowSpan;
+			TileSize = tileSize;
 			IsVisible = isVisible;
 		}
 	}

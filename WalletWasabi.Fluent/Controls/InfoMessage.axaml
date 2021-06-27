@@ -2,13 +2,14 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:c="using:WalletWasabi.Fluent.Controls"
         xmlns:conv="using:WalletWasabi.Fluent.Converters">
-<Design.PreviewWith>
-  <Border Padding="40" >
-    <c:InfoMessage Classes="overlay" Padding="25">This is a test message.</c:InfoMessage>
-  </Border>
-</Design.PreviewWith>
+  <Design.PreviewWith>
+    <Border Padding="40">
+      <c:InfoMessage Classes="overlay" Padding="25">This is a test message.</c:InfoMessage>
+    </Border>
+  </Design.PreviewWith>
   <Style Selector="c|InfoMessage">
-    <Setter Property="IsVisible" x:CompileBindings="False" Value="{Binding $self.Opacity, Converter={x:Static conv:BoolOpacityConverters.OpacityToBool}}" />
+    <Setter Property="IsVisible" x:CompileBindings="False"
+            Value="{Binding $self.Opacity, Converter={x:Static conv:BoolOpacityConverters.OpacityToBool}}" />
     <Setter Property="VerticalAlignment" Value="Top" />
     <Setter Property="Template">
       <ControlTemplate>
@@ -17,7 +18,7 @@
                 Padding="{TemplateBinding Padding}"
                 BorderBrush="{TemplateBinding BorderBrush}"
                 BorderThickness="{TemplateBinding BorderThickness}"
-                ClipToBounds="False" >
+                ClipToBounds="False">
           <DockPanel>
 
             <PathIcon Data="{StaticResource info_regular}"
@@ -25,12 +26,12 @@
                       DockPanel.Dock="Left"
                       VerticalAlignment="Center"
                       Width="{TemplateBinding IconSize}"
-                      Height="{TemplateBinding IconSize}"/>
+                      Height="{TemplateBinding IconSize}" />
 
             <ContentPresenter Name="PART_ContentPresenter"
                               ContentTemplate="{TemplateBinding ContentTemplate}"
                               Content="{TemplateBinding Content}"
-                              Margin="10 0 0 0"/>
+                              Margin="10 0 0 0" />
           </DockPanel>
         </Border>
       </ControlTemplate>
@@ -43,11 +44,12 @@
   </Style>
 
   <Style Selector="c|InfoMessage[IsVisible=True]">
-    <Setter Property="Opacity" Value="1"/>
+    <Setter Property="Opacity" Value="1" />
   </Style>
 
   <Style Selector="c|InfoMessage :is(TextBlock)">
     <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="VerticalAlignment" Value="Center" />
   </Style>
 
   <Style Selector="c|InfoMessage.overlay">

@@ -65,7 +65,7 @@ namespace WalletWasabi.Backend.Controllers
 		[HttpGet("status")]
 		public Task<RoundState[]> GetStatusAsync(CancellationToken cancellableToken)
 		{
-			return Task.FromResult(RequestHandler.Arena.Rounds.Values.Select(x => RoundState.FromRound(x)).ToArray());
+			return Task.FromResult(RequestHandler.Arena.Rounds.Select(x => RoundState.FromRound(x)).ToArray());
 		}
 	}
 }

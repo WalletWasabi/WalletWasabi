@@ -19,7 +19,7 @@ using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.MathNet;
-using WalletWasabi.Fluent.Model;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.NavBar;
@@ -28,6 +28,7 @@ using WalletWasabi.Gui.Converters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Tor.Http;
+using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
@@ -262,7 +263,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					}
 				}
 
-				IHttpClient httpClient = Services.ExternalHttpClientFactory.NewHttpClient(() => payjoinEndPointUri, isolateStream: false);
+				IHttpClient httpClient = Services.ExternalHttpClientFactory.NewHttpClient(() => payjoinEndPointUri, Mode.DefaultCircuit);
 				return new PayjoinClient(payjoinEndPointUri, httpClient);
 			}
 

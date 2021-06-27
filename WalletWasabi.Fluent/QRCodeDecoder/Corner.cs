@@ -45,10 +45,6 @@ using System;
 
 namespace WalletWasabi.Fluent.QRCodeDecoder
 {
-	/////////////////////////////////////////////////////////////////////
-	// QR corner three finders pattern class
-	/////////////////////////////////////////////////////////////////////
-
 	internal class Corner
 	{
 		internal Finder TopLeftFinder;
@@ -61,10 +57,6 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 		internal double LeftLineDeltaX;
 		internal double LeftLineDeltaY;
 		internal double LeftLineLength;
-
-		/////////////////////////////////////////////////////////////////////
-		// QR corner constructor
-		/////////////////////////////////////////////////////////////////////
 
 		private Corner(Finder topLeftFinder, Finder topRightFinder, Finder bottomLeftFinder)
 		{
@@ -87,10 +79,6 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 			// left line length
 			LeftLineLength = Math.Sqrt(LeftLineDeltaX * LeftLineDeltaX + LeftLineDeltaY * LeftLineDeltaY);
 		}
-
-		/////////////////////////////////////////////////////////////////////
-		// Test QR corner for validity
-		/////////////////////////////////////////////////////////////////////
 
 		internal static Corner? CreateCorner(Finder topLeftFinder, Finder topRightFinder, Finder bottomLeftFinder)
 		{
@@ -153,10 +141,6 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 			}
 			return null;
 		}
-
-		/////////////////////////////////////////////////////////////////////
-		// Test QR corner for validity
-		/////////////////////////////////////////////////////////////////////
 
 		internal int InitialVersionNumber()
 		{

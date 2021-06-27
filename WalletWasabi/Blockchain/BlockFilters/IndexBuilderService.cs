@@ -87,6 +87,9 @@ namespace WalletWasabi.Blockchain.BlockFilters
 
 		public void Synchronize()
 		{
+			// Check permissions.
+			using var _ = File.Open(IndexFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+
 			Task.Run(async () =>
 			{
 				try
@@ -205,6 +208,9 @@ namespace WalletWasabi.Blockchain.BlockFilters
 							catch (Exception ex)
 							{
 								Logger.LogDebug(ex);
+
+								// Pause the while loop for a while to not flood logs in case of permanent error.
+								await Task.Delay(1000).ConfigureAwait(false);
 							}
 						}
 					}

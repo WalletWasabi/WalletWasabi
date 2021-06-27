@@ -50,9 +50,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[Fact]
 		public async Task GetFeeEstimatesTorMainnetAsync()
 		{
-			Common.GetWorkDir();
-			Logging.Logger.SetMinimumLevel(Logging.LogLevel.Trace);
-
 			BlockstreamInfoClient client = new(Network.Main, TorHttpClientFactory);
 			AllFeeEstimate estimates = await client.GetFeeEstimatesAsync(CancellationToken.None);
 			Assert.NotNull(estimates);

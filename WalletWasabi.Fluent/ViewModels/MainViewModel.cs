@@ -5,7 +5,6 @@ using ReactiveUI;
 using System.Reactive.Linq;
 using Avalonia.Controls;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
-using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -15,7 +14,7 @@ using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.OpenDirectory;
 using WalletWasabi.Logging;
-using WalletWasabi.BitcoinP2p;
+using WalletWasabi.Fluent.ViewModels.StatusBar;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -53,13 +52,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			_isDialogScreenEnabled = true;
 			_isFullScreenEnabled = true;
 
-			_statusBar = new StatusBarViewModel(
-				Services.DataDir,
-				Services.Config.Network,
-				Services.Config,
-				Services.HostedServices,
-				Services.BitcoinStore.SmartHeaderChain,
-				Services.Synchronizer);
+			_statusBar = new StatusBarViewModel();
 
 			UiServices.Initialize();
 
@@ -113,7 +106,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public void Initialize()
 		{
-			StatusBar.Initialize(Services.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes);
+			StatusBar.Initialize();
 
 			if (Services.Config.Network != Network.Main)
 			{

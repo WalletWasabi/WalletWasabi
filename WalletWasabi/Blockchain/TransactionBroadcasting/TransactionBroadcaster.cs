@@ -1,6 +1,7 @@
 using NBitcoin;
 using NBitcoin.Protocol;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
 using WalletWasabi.Tor.Http;
+using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -89,7 +91,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 		private async Task BroadcastTransactionToBackendAsync(SmartTransaction transaction)
 		{
 			Logger.LogInfo("Broadcasting with backend...");
-			IHttpClient httpClient = HttpClientFactory.NewBackendHttpClient(isolateStream: true);
+			IHttpClient httpClient = HttpClientFactory.NewBackendHttpClient(Mode.NewCircuitPerRequest);
 
 			WasabiClient client = new(httpClient);
 
@@ -106,6 +108,16 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 					{
 						coin.SpentAccordingToBackend = true;
 					}
+				}
+
+				// Exception message is in form: 'message:::tx1:::tx2:::etc.' where txs are encoded in HEX.
+				IEnumerable<SmartTransaction> txs = ex2.Message.Split(":::", StringSplitOptions.RemoveEmptyEntries)
+					.Skip(1) // Skip the exception message.
+					.Select(x => new SmartTransaction(Transaction.Parse(x, Network), Height.Mempool));
+
+				foreach (var tx in txs)
+				{
+					WalletManager.Process(tx);
 				}
 
 				throw;

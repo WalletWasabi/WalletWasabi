@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
@@ -22,19 +21,33 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 		NavigationTarget = NavigationTarget.DialogScreen)]
 	public partial class BroadcastTransactionViewModel : RoutableViewModel
 	{
-		[AutoNotify] private string _transactionId;
-		[AutoNotify] private Money? _totalInputValue;
-		[AutoNotify] private Money? _totalOutputValue;
-		[AutoNotify] private int _inputCount;
-		[AutoNotify] private int _outputCount;
-		[AutoNotify] private Money? _networkFee;
-		[AutoNotify] private string _inputCountString;
-		[AutoNotify] private string _outputCountString;
-
 		public BroadcastTransactionViewModel(Network network, SmartTransaction transaction)
 		{
-			Title = "Broadcast Transaction";
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
+			EnableBack = false;
+
+			NextCommand = ReactiveCommand.CreateFromTask( async () => await OnNextAsync(transaction));
+
+			EnableAutoBusyOn(NextCommand);
+
+			ProcessTransaction(transaction, network);
+		}
+
+		public string? TransactionId { get; set; }
+
+		public string? OutputAmountString { get; set; }
+
+		public string? InputAmountString { get; set; }
+
+		public string? FeeString { get; set; }
+
+		public int InputCount { get; set; }
+
+		public int OutputCount { get; set; }
+
+		private void ProcessTransaction(SmartTransaction transaction, Network network)
+		{
 			var nullMoney = new Money(-1L);
 			var nullOutput = new TxOut(nullMoney, Script.Empty);
 
@@ -56,36 +69,24 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 
 			var psbtTxn = psbt.GetOriginalTransaction();
 
-			_transactionId = psbtTxn.GetHash().ToString();
-			_inputCount = inputAddressAmount.Length;
-			_inputCountString = $" input{TextHelpers.AddSIfPlural(_inputCount)} and ";
-			_outputCount = outputAddressAmount.Length;
-			_outputCountString = $" output{TextHelpers.AddSIfPlural(_outputCount)}.";
-			_totalInputValue = inputAddressAmount.Any(x => x.Value == nullMoney)
+			TransactionId = psbtTxn.GetHash().ToString();
+
+			InputCount = inputAddressAmount.Length;
+			var totalInputValue = inputAddressAmount.Any(x => x.Value == nullMoney)
 				? null
 				: inputAddressAmount.Select(x => x.Value).Sum();
-			_totalOutputValue = outputAddressAmount.Any(x => x.Value == nullMoney)
+			InputAmountString = totalInputValue is null ? "Unknown" : $"{totalInputValue.ToFormattedString()} BTC";
+
+			OutputCount = outputAddressAmount.Length;
+			var totalOutputValue = outputAddressAmount.Any(x => x.Value == nullMoney)
 				? null
 				: outputAddressAmount.Select(x => x.Value).Sum();
-			_networkFee = TotalInputValue is null || TotalOutputValue is null
+			OutputAmountString = totalOutputValue is null ? "Unknown" : $"{totalOutputValue.ToFormattedString()} BTC";
+
+			var networkFee = totalInputValue is null || totalOutputValue is null
 				? null
-				: TotalInputValue - TotalOutputValue;
-
-			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
-
-			EnableBack = false;
-
-			this.WhenAnyValue(x => x.IsBusy)
-				.Subscribe(x => EnableCancel = !x);
-
-			var nextCommandCanExecute = this.WhenAnyValue(x => x.IsBusy)
-				.Select(x => !x);
-
-			NextCommand = ReactiveCommand.CreateFromTask(
-				async () => await OnNextAsync(transaction),
-				nextCommandCanExecute);
-
-			EnableAutoBusyOn(NextCommand);
+				: totalInputValue - totalOutputValue;
+			FeeString = networkFee is null ? "Unknown" : $"{networkFee.ToFormattedString()} BTC";
 		}
 
 		private async Task OnNextAsync(SmartTransaction transaction)
@@ -98,7 +99,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 			catch (Exception ex)
 			{
 				Logger.LogError(ex);
-				await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "It was not possible to broadcast the transaction.");
+				await ShowErrorAsync("Broadcast Transaction", ex.ToUserFriendlyString(), "It was not possible to broadcast the transaction.");
 			}
 		}
 	}

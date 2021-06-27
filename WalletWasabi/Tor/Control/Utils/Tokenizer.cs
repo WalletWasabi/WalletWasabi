@@ -32,18 +32,59 @@ namespace WalletWasabi.Tor.Control.Utils
 		}
 
 		/// <summary>
+		/// Reads <c>&lt;KEY&gt;=&lt;VALUE&gt;</c>.
+		/// </summary>
+		/// <param name="allowValueAsQuotedString">If <c>true</c>, reads <c>&lt;KEY&gt;=QuotedString</c>.</param>
+		public static (string key, string value, string remainder) ReadKeyValueAssignment(string input, bool allowValueAsQuotedString = false)
+		{
+			int valueStartAt = input.IndexOf('=');
+
+			if (valueStartAt == -1)
+			{
+				throw new TorControlReplyParseException("Missing equal sign ('=').");
+			}
+
+			string key = input[0..valueStartAt];
+			string remainder = input[(valueStartAt + 1)..];
+			string value;
+
+			if (allowValueAsQuotedString && remainder.Length > 0 && remainder[0] == '"')
+			{
+				(value, remainder) = ReadQuotedString(remainder);
+			}
+			else
+			{
+				(value, remainder) = ReadUntilSeparator(remainder);
+			}
+
+			return (key, value, remainder);
+		}
+
+		/// <summary>
 		/// Reads <c>&lt;KEY&gt;=QuotedString</c> string from <paramref name="input"/>.
 		/// </summary>
 		/// <returns>Quoted string content.</returns>
-		public static (string value, string remainder) ReadKeyValueAssignment(string key, string input)
+		public static (string value, string remainder) ReadKeyQuotedValueAssignment(string key, string input)
 		{
 			input = ReadExactString(key, input);
+			input = ReadExactString("=", input);
+			(string value, string remainder) = ReadQuotedString(input);
 
+			if (remainder != "")
+			{
+				remainder = remainder[1..];
+			}
+
+			return (value, remainder);
+		}
+
+		public static (string value, string remainder) ReadQuotedString(string input)
+		{
 			int startAt = input.IndexOf('"');
 
-			if (startAt == -1)
+			if (startAt != 0)
 			{
-				throw new TorControlReplyParseException("Missing opening quote character.");
+				throw new TorControlReplyParseException("Quote character must be the first character in the input.");
 			}
 
 			startAt++;
@@ -91,6 +132,18 @@ namespace WalletWasabi.Tor.Control.Utils
 			}
 
 			return input[expectedStart.Length..];
+		}
+
+		/// <summary>Parses a string value to an enum value.</summary>
+		/// <remarks>Tor spec mandates (in general) that unknown values cannot lead to crash of a Tor control parser.</remarks>
+		public static T ParseEnumValue<T>(string value, T defaultValue) where T : struct
+		{
+			if (!Enum.TryParse<T>(value, out T result))
+			{
+				result = defaultValue;
+			}
+
+			return result;
 		}
 	}
 }
