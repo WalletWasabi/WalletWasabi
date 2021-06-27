@@ -47,7 +47,7 @@ namespace WalletWasabi.Tests.Helpers
 
 		public static Mock<IRPCClient> CreatePreconfiguredRpcClient(params Coin[] coins)
 		{
-			using Key key = new Key();
+			using Key key = new();
 			var mockRpc = new Mock<IRPCClient>();
 			mockRpc.Setup(rpc => rpc.GetTxOutAsync(It.IsAny<uint256>(), It.IsAny<int>(), It.IsAny<bool>()))
 				.ReturnsAsync(new NBitcoin.RPC.GetTxOutResponse
@@ -105,7 +105,7 @@ namespace WalletWasabi.Tests.Helpers
 		}
 
 		public static Alice CreateAlice(Coin coin, OwnershipProof ownershipProof)
-			=> new Alice(coin, ownershipProof) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
+			=> new(coin, ownershipProof) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
 
 		public static Alice CreateAlice(Key key, Money amount)
 			=> CreateAlice(CreateCoin(key, amount), CreateOwnershipProof(key));
