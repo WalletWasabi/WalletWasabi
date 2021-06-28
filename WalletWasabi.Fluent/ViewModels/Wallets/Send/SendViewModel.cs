@@ -228,10 +228,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				if (_camera is null)
 				{
-					Logger.LogInfo("Starting camera...");
 					IsQrPanelVisible = true;
 					_cameraCapture = new(new ThreadStart(CaptureCameraCallback));
-					Logger.LogInfo("Starting camera reader thread...");
 					_isCameraRunning = true;
 					_cameraCapture.Start();
 				}
@@ -317,12 +315,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			if (_camera != null)
 			{
-				Logger.LogInfo("Closing camera...");
 				_camera.Release();
-				_camera.Dispose();
+				//_camera.Dispose();
+				_camera = null;
 				_isCameraRunning = false;
 				IsQrPanelVisible = false;
-				_camera = null;
 			}
 		}
 
