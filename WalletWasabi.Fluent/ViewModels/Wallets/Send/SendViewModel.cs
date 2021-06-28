@@ -226,7 +226,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			if (_camera != null)
 			{
-				_cameraCapture.A
 				_camera.Release();
 				_camera.Dispose();
 				_isCameraRunning = false;
@@ -266,18 +265,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_camera = new VideoCapture();
 			_camera.Open(0);
 
-			if (_camera.IsOpened())
+			while (_camera.IsOpened())
 			{
-				while (_isCameraRunning)
+				_camera.Read(_frame);
+				if (!_frame.Empty())
 				{
-					_camera.Read(_frame);
-					if (!_frame.Empty())
-					{
-						var wbtm = ConvertMatToWriteableBitmap(_frame);
+					var wbtm = ConvertMatToWriteableBitmap(_frame);
 
-						TestImage = wbtm;
-						InsertAddressFromQRIfAble(_frame);
-					}
+					TestImage = wbtm;
+					InsertAddressFromQRIfAble(_frame);
 				}
 			}
 		}
