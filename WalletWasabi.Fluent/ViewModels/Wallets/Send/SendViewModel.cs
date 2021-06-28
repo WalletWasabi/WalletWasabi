@@ -33,6 +33,11 @@ using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
+using OpenCvSharp;
+using Avalonia.Media.Imaging;
+using System.Threading;
+using Avalonia.Media;
+using System.Runtime.InteropServices;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
@@ -62,7 +67,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _xAxisMinValue = 0;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _xAxisMaxValue = 9;
 		[AutoNotify] private string? _payJoinEndPoint;
+		[AutoNotify] private WriteableBitmap? _testImage;
+		[AutoNotify] private bool _isQrPanelVisible;
 
+		private VideoCapture? _camera;
+		private Thread _cameraCapture;
+		private Mat _frame;
+		private bool _isCameraRunning;
 		private bool _parsingUrl;
 		private bool _updatingCurrentValue;
 		private double _lastXAxisCurrentValue;
@@ -75,6 +86,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_transactionInfo = new TransactionInfo();
 			_labels = new ObservableCollection<string>();
 			_lastXAxisCurrentValue = _xAxisCurrentValue;
+			_isQrPanelVisible = false;
+			_isCameraRunning = false;
 
 			SelectionMode = NavBarItemSelectionMode.Button;
 
@@ -124,7 +137,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
 			AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
-
+			QRCommand = ReactiveCommand.Create(() => OpenWebCam());
+			BackCommand = ReactiveCommand.Create(() =>
+			{
+				CloseWebCam();
+				Navigate().Back();
+			});
 			var nextCommandCanExecute =
 				this.WhenAnyValue(x => x.Labels, x => x.AmountBtc, x => x.To, x => x.XAxisCurrentValue).Select(_ => Unit.Default)
 					.Merge(Observable.FromEventPattern(Labels, nameof(Labels.CollectionChanged)).Select(_ => Unit.Default))
@@ -144,6 +162,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public ICommand PasteCommand { get; }
 
 		public ICommand AutoPasteCommand { get; }
+
+		public ICommand QRCommand { get; }
 
 		private async Task OnAutoPasteAsync()
 		{
@@ -200,6 +220,114 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				Logger.LogError(ex);
 				await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(), "Wasabi was unable to create your transaction.");
 			}
+		}
+
+		private void CloseWebCam()
+		{
+			if (_camera != null)
+			{
+				_cameraCapture.A
+				_camera.Release();
+				_camera.Dispose();
+				_isCameraRunning = false;
+				IsQrPanelVisible = false;
+				_camera = null;
+			}
+		}
+
+		private void OpenWebCam()
+		{
+			try
+			{
+				if (_camera is null)
+				{
+					Logger.LogInfo("Starting camera...");
+					IsQrPanelVisible = true;
+					_cameraCapture = new(new ThreadStart(CaptureCameraCallback));
+					Logger.LogInfo("Starting camera reader thread...");
+					_isCameraRunning = true;
+					_cameraCapture.Start();
+				}
+				else
+				{
+					Logger.LogInfo("Closing camera...");
+					CloseWebCam();
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+			}
+		}
+
+		private void CaptureCameraCallback()
+		{
+			_frame = new Mat();
+			_camera = new VideoCapture();
+			_camera.Open(0);
+
+			if (_camera.IsOpened())
+			{
+				while (_isCameraRunning)
+				{
+					_camera.Read(_frame);
+					if (!_frame.Empty())
+					{
+						var wbtm = ConvertMatToWriteableBitmap(_frame);
+
+						TestImage = wbtm;
+						InsertAddressFromQRIfAble(_frame);
+					}
+				}
+			}
+		}
+
+		private WriteableBitmap? ConvertMatToWriteableBitmap(Mat frame)
+		{
+			if (frame.Width != 0 || frame.Height != 0)
+			{
+				PixelSize pixelSize = new(frame.Width, frame.Height);
+				Vector dpi = new(96, 96);
+				Avalonia.Platform.PixelFormat pixelFormat = Avalonia.Platform.PixelFormat.Rgba8888;
+				Avalonia.Platform.AlphaFormat alphaFormat = Avalonia.Platform.AlphaFormat.Unpremul;
+				var writeableBitmap = new WriteableBitmap(pixelSize, dpi, pixelFormat, alphaFormat);
+
+				using (var fb = writeableBitmap.Lock())
+				{
+					var indexer = frame.GetGenericIndexer<Vec3b>();
+					int[] data = new int[fb.Size.Width * fb.Size.Height];
+					for (int y = 0; y < frame.Height; y++)
+					{
+						for (int x = 0; x < frame.Width; x++)
+						{
+							Vec3b pixel = indexer[y, x];
+							byte r = pixel.Item0;
+							byte g = pixel.Item1;
+							byte b = pixel.Item2;
+							var color = new Color(255, r, g, b);
+							data[y * fb.Size.Width + x] = (int)color.ToUint32();
+						}
+					}
+					Marshal.Copy(data, 0, fb.Address, fb.Size.Width * fb.Size.Height);
+				}
+				return writeableBitmap;
+			}
+			return new WriteableBitmap(new PixelSize(1, 1), new Vector(1, 1), Avalonia.Platform.PixelFormat.Rgba8888, Avalonia.Platform.AlphaFormat.Unpremul);
+		}
+
+		private void InsertAddressFromQRIfAble(Mat frame)
+		{
+			QRCodeDetector qRCodeDetector = new();
+			if (qRCodeDetector.Detect(frame, out Point2f[] points))
+			{
+				string qrCode = qRCodeDetector.Decode(frame, points, new Mat());
+				if (!string.IsNullOrWhiteSpace(qrCode))
+				{
+					To = qrCode;
+					CloseWebCam();
+				}
+			}
+			qRCodeDetector.Dispose();
 		}
 
 		private async Task BuildTransactionAsNormalAsync(TransactionInfo transactionInfo, Money totalMixedCoinsAmount)
