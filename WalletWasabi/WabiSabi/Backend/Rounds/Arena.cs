@@ -128,7 +128,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					// If timeout we must fill up the outputs to build a reasonable transaction.
 					// This won't be signed by the alice who failed to provide output, so we know who to ban.
 					var diffMoney = Money.Satoshis(diff) - coinjoin.Parameters.FeeRate.GetFee(Config.BlameScript.EstimateOutputVsize());
-					if (diffMoney > coinjoin.Parameters.AllowedOutputAmounts.Min)
+					if (!allReady && diffMoney > coinjoin.Parameters.AllowedOutputAmounts.Min)
 					{
 						coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, Config.BlameScript));
 						round.LogInfo("Filled up the outputs to build a reasonable transaction because some alice failed to provide its output.");
