@@ -222,18 +222,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 		}
 
-		private void CloseWebCam()
-		{
-			if (_camera != null)
-			{
-				_camera.Release();
-				_camera.Dispose();
-				_isCameraRunning = false;
-				IsQrPanelVisible = false;
-				_camera = null;
-			}
-		}
-
 		private void OpenWebCam()
 		{
 			try
@@ -249,7 +237,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				}
 				else
 				{
-					Logger.LogInfo("Closing camera...");
 					CloseWebCam();
 				}
 			}
@@ -324,6 +311,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				}
 			}
 			qRCodeDetector.Dispose();
+		}
+
+		private void CloseWebCam()
+		{
+			if (_camera != null)
+			{
+				Logger.LogInfo("Closing camera...");
+				_camera.Release();
+				_camera.Dispose();
+				_isCameraRunning = false;
+				IsQrPanelVisible = false;
+				_camera = null;
+			}
 		}
 
 		private async Task BuildTransactionAsNormalAsync(TransactionInfo transactionInfo, Money totalMixedCoinsAmount)
