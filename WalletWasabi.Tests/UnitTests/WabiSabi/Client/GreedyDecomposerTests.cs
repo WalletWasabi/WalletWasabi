@@ -95,7 +95,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var costPerOutput = Money.Satoshis(1);
 			var decomposition = decomposer.Decompose(Money.Satoshis(amount), costPerOutput);
 			var totalCost = decomposition.Sum() + costPerOutput * decomposition.Count();
-			Assert.InRange(Money.Satoshis(amount) - totalCost, Money.Zero, decomposer.Denominations.Last());
+			var minimumDenomination = decomposer.Denominations.Last();
+			Assert.InRange(Money.Satoshis(amount) - totalCost, Money.Zero, minimumDenomination);
 			Assert.Equal(expected, decomposition.Select(x => x.Satoshi));
 		}
 
@@ -127,7 +128,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var costPerOutput = Money.Satoshis(1);
 			var decomposition = decomposer.Decompose(Money.Satoshis(amount), costPerOutput);
 			var totalCost = decomposition.Sum() + costPerOutput * decomposition.Count();
-			Assert.InRange(Money.Satoshis(amount) - totalCost, Money.Zero, decomposer.Denominations.Last());
+			var minimumDenomination = decomposer.Denominations.Last();
+			Assert.InRange(Money.Satoshis(amount) - totalCost, Money.Zero, minimumDenomination);
 			Assert.Equal(expected, decomposition.Select(x => x.Satoshi));
 		}
 	}
