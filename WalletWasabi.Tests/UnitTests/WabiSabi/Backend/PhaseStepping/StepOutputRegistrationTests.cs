@@ -56,7 +56,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 
 			foreach (var alice in alices)
 			{
-				await alice.ReadyToSignAsync(CancellationToken.None);
+				await alice.ReadyToSignAsync(CancellationToken.None).ConfigureAwait(false);
 			}
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
