@@ -186,6 +186,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		public ICommand SendCommand { get; }
 
+		public ICommand BroadcastPsbtCommand { get; set; }
+
 		public ICommand ReceiveCommand { get; }
 
 		public ICommand WalletInfoCommand { get; }

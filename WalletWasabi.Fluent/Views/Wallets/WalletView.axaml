@@ -26,6 +26,12 @@
                 <TextBlock Text="Send" />
               </StackPanel>
             </Button>
+            <Button Classes="function" Command="{Binding BroadcastPsbtCommand}" IsVisible="{Binding PsbtWorkflowEnabled}">
+              <StackPanel Orientation="Horizontal" Spacing="15">
+                <PathIcon Data="{StaticResource live_regular}" />
+                <TextBlock Text="Broadcast" />
+              </StackPanel>
+            </Button>
             <Button Classes="function" Command="{Binding ReceiveCommand}">
               <StackPanel Orientation="Horizontal" Spacing="15">
                 <PathIcon Data="{StaticResource wallet_action_receive}" />

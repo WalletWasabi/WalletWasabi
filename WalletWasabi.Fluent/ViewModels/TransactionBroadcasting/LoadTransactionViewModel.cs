@@ -46,7 +46,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				var path = await FileDialogHelper.ShowOpenFileDialogAsync("Import Transaction", new[] { "psbt", "*" });
 				if (path is { })
 				{
-					FinalTransaction = await ParseTransactionAsync(path);
+					FinalTransaction = await TransactionHelpers.ParseTransactionAsync(path, Network);
 				}
 			}
 			catch (Exception ex)
@@ -93,36 +93,5 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 		public ICommand PasteCommand { get; }
 
 		public ICommand ImportTransactionCommand { get; }
-
-		private async Task<SmartTransaction> ParseTransactionAsync(string path)
-		{
-			var psbtBytes = await File.ReadAllBytesAsync(path);
-			PSBT psbt;
-
-			try
-			{
-				psbt = PSBT.Load(psbtBytes, Network);
-			}
-			catch
-			{
-				var text = await File.ReadAllTextAsync(path);
-				text = text.Trim();
-				try
-				{
-					psbt = PSBT.Parse(text, Network);
-				}
-				catch
-				{
-					return new SmartTransaction(Transaction.Parse(text, Network), Height.Unknown);
-				}
-			}
-
-			if (!psbt.IsAllFinalized())
-			{
-				psbt.Finalize();
-			}
-
-			return psbt.ExtractSmartTransaction();
-		}
 	}
 }
