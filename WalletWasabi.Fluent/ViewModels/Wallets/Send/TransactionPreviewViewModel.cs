@@ -23,6 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private readonly TransactionInfo _info;
 
 		[AutoNotify] private string _confirmationTimeText;
+		[AutoNotify] private string _nextButtonText;
 		[AutoNotify] private SmartLabel _labels;
 
 		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, BuildTransactionResult transaction)
@@ -49,7 +50,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
 			IsPayJoin = PayJoinUrl is not null;
 
-			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(transaction));
+			if (Services.UiConfig.UsePsbtWorkflow)
+			{
+				NextCommand = ReactiveCommand.CreateFromTask(async () => await TransactionHelpers.ExportTransactionToBinaryAsync(transaction));
+				_nextButtonText = "Save to file";
+			}
+			else
+			{
+				NextCommand = ReactiveCommand.CreateFromTask(async () => await OnConfirmAsync(transaction));
+				_nextButtonText = "Confirm";
+			}
+
 		}
 
 		public string AmountText { get; }
@@ -67,10 +78,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			base.OnNavigatedTo(isInHistory, disposables);
 
 			ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(_info.ConfirmationTimeSpan)} ";
+			Console.WriteLine(_info.Labels);
 			Labels = _info.Labels;
 		}
 
-		private async Task OnNextAsync(BuildTransactionResult transaction)
+		private async Task OnConfirmAsync(BuildTransactionResult transaction)
 		{
 			var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
 

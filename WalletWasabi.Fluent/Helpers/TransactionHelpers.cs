@@ -90,5 +90,21 @@ namespace WalletWasabi.Fluent.Helpers
 
 			return psbt.ExtractSmartTransaction();
 		}
+
+		public static async Task ExportTransactionToBinaryAsync(BuildTransactionResult transaction)
+		{
+			var psbtExtension = "psbt";
+			var filePath = await FileDialogHelper.ShowSaveFileDialogAsync("Export transaction", psbtExtension);
+
+            if (!string.IsNullOrWhiteSpace(filePath))
+            {
+            	var ext = Path.GetExtension(filePath);
+            	if (string.IsNullOrWhiteSpace(ext))
+            	{
+	                filePath = $"{filePath}.{psbtExtension}";
+            	}
+            	await File.WriteAllBytesAsync(filePath, transaction.Psbt.ToBytes());
+            }
+		}
 	}
 }

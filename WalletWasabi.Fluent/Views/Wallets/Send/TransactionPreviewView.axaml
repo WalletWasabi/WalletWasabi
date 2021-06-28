@@ -11,7 +11,7 @@
     <c:ContentArea Title="Send - Preview Transaction" Caption=""
                    EnableCancel="{Binding EnableCancel}"
                    EnableBack="{Binding EnableBack}"
-                   EnableNext="True" NextContent="Confirm"
+                   EnableNext="True" NextContent="{Binding NextButtonText}"
                    IsBusy="{Binding IsBusy}"
                    ScrollViewer.VerticalScrollBarVisibility="Auto">
         <StackPanel Spacing="20">
