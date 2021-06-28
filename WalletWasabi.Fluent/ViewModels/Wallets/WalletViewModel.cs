@@ -35,6 +35,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		[AutoNotify] private int _layoutIndex;
 		[AutoNotify] private double _widthSource;
 		[AutoNotify] private double _heightSource;
+		[AutoNotify] private bool _psbtWorkflowEnabled;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSmallLayout;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isNormalLayout;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWideLayout;
