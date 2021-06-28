@@ -30,7 +30,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var km = ServiceFactory.CreateKeyManager("");
 			var key = BitcoinFactory.CreateHdPubKey(km);
 			SmartCoin coin1 = BitcoinFactory.CreateSmartCoin(key, Money.Coins(1m));
-			var outpoint = coin1.OutPoint;
 
 			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, mockRpc, round);
