@@ -103,7 +103,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		public static Knowledge ShowCredentialKnowledge(CredentialPresentation presentation, Scalar z, Credential credential, CredentialIssuerParameters iparams)
 			=> new(
 				ShowCredentialStatement(presentation, z * iparams.I, iparams),
-				new ScalarVector(z, (credential.Mac.T * z).Negate(), credential.Mac.T, credential.Amount, credential.Randomness));
+				new ScalarVector(z, (credential.Mac.T * z).Negate(), credential.Mac.T, new Scalar((ulong)credential.Value), credential.Randomness));
 
 		public static Statement ShowCredentialStatement(CredentialPresentation c, GroupElement z, CredentialIssuerParameters iparams)
 			=> new(new GroupElement[,]
