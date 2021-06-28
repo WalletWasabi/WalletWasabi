@@ -1,7 +1,7 @@
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
-namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
+namespace WalletWasabi.Fluent.ViewModels
 {
 	[NavigationMetaData(Title = "Success")]
 	public partial class SuccessViewModel : RoutableViewModel

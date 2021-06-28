@@ -3,11 +3,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:transactionBroadcasting="using:WalletWasabi.Fluent.ViewModels.TransactionBroadcasting"
+             xmlns:viewModels="clr-namespace:WalletWasabi.Fluent.ViewModels"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
-             x:DataType="transactionBroadcasting:SuccessViewModel"
+             x:DataType="viewModels:SuccessViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.TransactionBroadcasting.SuccessView">
+             x:Class="WalletWasabi.Fluent.Views.SuccessView">
     <c:ContentArea Title="{Binding Title}"
                    EnableNext="True" NextContent="Done"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
