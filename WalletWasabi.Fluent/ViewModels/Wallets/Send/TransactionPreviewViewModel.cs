@@ -83,7 +83,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			base.OnNavigatedTo(isInHistory, disposables);
 
 			ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(_info.ConfirmationTimeSpan)} ";
-			Console.WriteLine(_info.Labels);
 			Labels = _info.Labels;
 		}
 
