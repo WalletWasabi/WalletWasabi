@@ -252,7 +252,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_camera = new VideoCapture();
 			_camera.Open(0);
 
-			while (_camera.IsOpened())
+			while (_camera is not null)
 			{
 				_camera.Read(_frame);
 				if (!_frame.Empty())
