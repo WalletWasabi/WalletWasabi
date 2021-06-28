@@ -11,6 +11,7 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
@@ -52,7 +53,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (Services.UiConfig.UsePsbtWorkflow)
 			{
-				NextCommand = ReactiveCommand.CreateFromTask(async () => await TransactionHelpers.ExportTransactionToBinaryAsync(transaction));
+				NextCommand = ReactiveCommand.CreateFromTask(async () =>
+				{
+					await TransactionHelpers.ExportTransactionToBinaryAsync(transaction);
+					Navigate().To(new SuccessViewModel("The PSBT has been successfully created."));
+				});
 				_nextButtonText = "Save to file";
 			}
 			else

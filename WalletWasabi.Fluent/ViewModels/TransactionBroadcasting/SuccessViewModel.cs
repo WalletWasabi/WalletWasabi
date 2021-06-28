@@ -4,13 +4,16 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 {
 	[NavigationMetaData(Title = "Success")]
-	public partial class SuccessBroadcastTransactionViewModel : RoutableViewModel
+	public partial class SuccessViewModel : RoutableViewModel
 	{
-		public SuccessBroadcastTransactionViewModel()
+		public SuccessViewModel(string successText)
 		{
+			SuccessText = successText;
 			NextCommand = ReactiveCommand.Create(() => Navigate().Clear());
 
 			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		}
+
+		public string SuccessText { get; }
 	}
 }

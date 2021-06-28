@@ -3,9 +3,9 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.TransactionBroadcasting
 {
-	public class SuccessBroadcastTransactionView : UserControl
+	public class SuccessView : UserControl
 	{
-		public SuccessBroadcastTransactionView()
+		public SuccessView()
 		{
 			InitializeComponent();
 		}
