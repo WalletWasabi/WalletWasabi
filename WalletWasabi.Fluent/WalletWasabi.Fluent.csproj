@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFramework>net5.0</TargetFramework>
 		<AnalysisLevel>latest</AnalysisLevel>
@@ -21,6 +21,8 @@
 		<PackageReference Include="Avalonia.Diagnostics" Version="0.10.999-cibuild0014678-beta" />
 		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.6" />
 		<PackageReference Include="OpenCvSharp4" Version="4.5.2.20210404" />
+		<PackageReference Include="OpenCvSharp4.runtime.osx.10.15-x64" Version="4.5.2.20210404" />
+		<PackageReference Include="OpenCvSharp4.runtime.ubuntu.18.04-x64" Version="4.5.2.20210404" />
 		<PackageReference Include="OpenCvSharp4.runtime.win" Version="4.5.2.20210404" />
 	</ItemGroup>
 	<ItemGroup>

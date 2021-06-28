@@ -62,6 +62,18 @@
           "System.Runtime.CompilerServices.Unsafe": "5.0.0"
         }
       },
+      "OpenCvSharp4.runtime.osx.10.15-x64": {
+        "type": "Direct",
+        "requested": "[4.5.2.20210404, )",
+        "resolved": "4.5.2.20210404",
+        "contentHash": "Qg+3w7H8zzRGhpRRWtqUmxJakExb3DPyAaBRrBEHflwFiZMsCjfkTUsu9E1JYyTxvP/0spbfmm6l95rkeFtC2A=="
+      },
+      "OpenCvSharp4.runtime.ubuntu.18.04-x64": {
+        "type": "Direct",
+        "requested": "[4.5.2.20210404, )",
+        "resolved": "4.5.2.20210404",
+        "contentHash": "96+i8f8K5yZVwRvxKAlpeskdNAd8iDDo/WXFefB7VemigednaHGvLNqsTqA9r9K07c3TzVAhn3qkIeyajivZww=="
+      },
       "OpenCvSharp4.runtime.win": {
         "type": "Direct",
         "requested": "[4.5.2.20210404, )",
@@ -2127,6 +2139,18 @@
       }
     },
     ".NETCoreApp,Version=v5.0/linux-x64": {
+      "OpenCvSharp4.runtime.osx.10.15-x64": {
+        "type": "Direct",
+        "requested": "[4.5.2.20210404, )",
+        "resolved": "4.5.2.20210404",
+        "contentHash": "Qg+3w7H8zzRGhpRRWtqUmxJakExb3DPyAaBRrBEHflwFiZMsCjfkTUsu9E1JYyTxvP/0spbfmm6l95rkeFtC2A=="
+      },
+      "OpenCvSharp4.runtime.ubuntu.18.04-x64": {
+        "type": "Direct",
+        "requested": "[4.5.2.20210404, )",
+        "resolved": "4.5.2.20210404",
+        "contentHash": "96+i8f8K5yZVwRvxKAlpeskdNAd8iDDo/WXFefB7VemigednaHGvLNqsTqA9r9K07c3TzVAhn3qkIeyajivZww=="
+      },
       "OpenCvSharp4.runtime.win": {
         "type": "Direct",
         "requested": "[4.5.2.20210404, )",
@@ -3161,6 +3185,18 @@
       }
     },
     ".NETCoreApp,Version=v5.0/osx-x64": {
+      "OpenCvSharp4.runtime.osx.10.15-x64": {
+        "type": "Direct",
+        "requested": "[4.5.2.20210404, )",
+        "resolved": "4.5.2.20210404",
+        "contentHash": "Qg+3w7H8zzRGhpRRWtqUmxJakExb3DPyAaBRrBEHflwFiZMsCjfkTUsu9E1JYyTxvP/0spbfmm6l95rkeFtC2A=="
+      },
+      "OpenCvSharp4.runtime.ubuntu.18.04-x64": {
+        "type": "Direct",
+        "requested": "[4.5.2.20210404, )",
+        "resolved": "4.5.2.20210404",
+        "contentHash": "96+i8f8K5yZVwRvxKAlpeskdNAd8iDDo/WXFefB7VemigednaHGvLNqsTqA9r9K07c3TzVAhn3qkIeyajivZww=="
+      },
       "OpenCvSharp4.runtime.win": {
         "type": "Direct",
         "requested": "[4.5.2.20210404, )",
@@ -4195,6 +4231,18 @@
       }
     },
     ".NETCoreApp,Version=v5.0/win7-x64": {
+      "OpenCvSharp4.runtime.osx.10.15-x64": {
+        "type": "Direct",
+        "requested": "[4.5.2.20210404, )",
+        "resolved": "4.5.2.20210404",
+        "contentHash": "Qg+3w7H8zzRGhpRRWtqUmxJakExb3DPyAaBRrBEHflwFiZMsCjfkTUsu9E1JYyTxvP/0spbfmm6l95rkeFtC2A=="
+      },
+      "OpenCvSharp4.runtime.ubuntu.18.04-x64": {
+        "type": "Direct",
+        "requested": "[4.5.2.20210404, )",
+        "resolved": "4.5.2.20210404",
+        "contentHash": "96+i8f8K5yZVwRvxKAlpeskdNAd8iDDo/WXFefB7VemigednaHGvLNqsTqA9r9K07c3TzVAhn3qkIeyajivZww=="
+      },
       "OpenCvSharp4.runtime.win": {
         "type": "Direct",
         "requested": "[4.5.2.20210404, )",
