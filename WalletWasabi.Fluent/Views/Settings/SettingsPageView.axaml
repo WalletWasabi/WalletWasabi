@@ -26,6 +26,8 @@
   <DockPanel LastChildFill="True">
     <c:InfoMessage Content="Changes will be applied after restarting the application."
                    Foreground="{StaticResource WarningMessageForeground}"
+                   Margin="0,16"
+                   HorizontalAlignment="Center"
                    Opacity="{Binding IsModified, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}"
                    DockPanel.Dock="Bottom" />
 
@@ -40,7 +42,7 @@
           </TabItem>
 
           <TabItem Header="Privacy">
-             <v:PrivacySettingsTabView DataContext="{Binding PrivacySettingsTab}" />
+            <v:PrivacySettingsTabView DataContext="{Binding PrivacySettingsTab}" />
           </TabItem>
 
           <TabItem Header="Network">

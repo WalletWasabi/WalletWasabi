@@ -14,10 +14,9 @@ namespace WalletWasabi.Tests.UnitTests.Tor
 		public void GetCmdArgumentsTest()
 		{
 			string dataDir = Path.Combine("temp", "tempDataDir");
-			string logFilePath = Path.Combine("temp", "Tor.log");
 			string distributionFolder = "tempDistributionDir";
 
-			TorSettings settings = new(dataDir, logFilePath, distributionFolder, terminateOnExit: true, owningProcessId: 7);
+			TorSettings settings = new(dataDir, distributionFolder, terminateOnExit: true, owningProcessId: 7);
 
 			string arguments = settings.GetCmdArguments();
 
@@ -30,7 +29,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor
 				$"--DataDirectory \"{Path.Combine("temp", "tempDataDir", "tordata2")}\"",
 				$"--GeoIPFile \"{Path.Combine("tempDistributionDir", "Tor", "Geoip", "geoip")}\"",
 				$"--GeoIPv6File \"{Path.Combine("tempDistributionDir", "Tor", "Geoip", "geoip6")}\"",
-				$"--Log \"notice file {Path.Combine("temp", "Tor.log")}\"",
+				$"--Log \"notice file {Path.Combine("temp", "tempDataDir", "TorLogs.txt")}\"",
 				$"__OwningControllerProcess 7");
 
 			Assert.Equal(expected, arguments);

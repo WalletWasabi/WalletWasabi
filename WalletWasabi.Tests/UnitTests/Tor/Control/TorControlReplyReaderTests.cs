@@ -69,8 +69,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 			using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(1));
 
 			Pipe pipe = new();
-			await pipe.Writer.WriteAsciiAsync(data, timeoutCts.Token);
-			await pipe.Writer.FlushAsync(timeoutCts.Token);
+			await pipe.Writer.WriteAsciiAndFlushAsync(data, timeoutCts.Token);
 			await pipe.Writer.CompleteAsync();
 			return await TorControlReplyReader.ReadReplyAsync(pipe.Reader, timeoutCts.Token);
 		}
