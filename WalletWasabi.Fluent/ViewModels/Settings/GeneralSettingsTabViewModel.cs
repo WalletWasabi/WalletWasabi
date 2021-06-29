@@ -2,10 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Reflection;
+using Microsoft.Win32;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.Models;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
@@ -27,6 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		[AutoNotify] private bool _customFee;
 		[AutoNotify] private bool _customChangeAddress;
 		[AutoNotify] private FeeDisplayFormat _selectedFeeDisplayFormat;
+		[AutoNotify] private bool _osStartup;
 
 		public GeneralSettingsTabViewModel()
 		{
@@ -35,7 +39,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			_customFee = Services.UiConfig.IsCustomFee;
 			_customChangeAddress = Services.UiConfig.IsCustomChangeAddress;
 			_selectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), Services.UiConfig.FeeDisplayFormat)
-				? (FeeDisplayFormat) Services.UiConfig.FeeDisplayFormat
+				? (FeeDisplayFormat)Services.UiConfig.FeeDisplayFormat
 				: FeeDisplayFormat.SatoshiPerByte;
 
 			this.WhenAnyValue(x => x.DarkModeEnabled)
@@ -52,6 +56,11 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.Skip(1)
 				.Subscribe(x => Services.UiConfig.Autocopy = x);
 
+			this.WhenAnyValue(x => x.OsStartup)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Skip(1)
+				.Subscribe(x => MakeRegistry(x));
+
 			this.WhenAnyValue(x => x.CustomFee)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Skip(1)
@@ -66,6 +75,26 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Skip(1)
 				.Subscribe(x => Services.UiConfig.FeeDisplayFormat = (int)x);
+		}
+
+		private void MakeRegistry(bool changedOption)
+		{
+			string keyName = @"Software\Microsoft\Windows\CurrentVersion\Run";
+			using RegistryKey key = Registry.CurrentUser.OpenSubKey(keyName, true);
+			if (changedOption)
+			{
+				string pathToExe = Assembly.GetExecutingAssembly().Location;
+				pathToExe = pathToExe.Remove(pathToExe.Length - 3);
+				pathToExe += "exe";
+
+				RegistryKey rkApp = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+				rkApp.SetValue("WasabiWallet", pathToExe);
+			}
+			else
+			{
+				key.DeleteValue("WasabiWallet");
+				key.DeleteSubKey("WasabiWallet");
+			}
 		}
 
 		public IEnumerable<FeeDisplayFormat> FeeDisplayFormats =>
