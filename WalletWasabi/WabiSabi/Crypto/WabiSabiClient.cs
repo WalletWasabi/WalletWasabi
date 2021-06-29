@@ -132,18 +132,18 @@ namespace WalletWasabi.WabiSabi.Crypto
 			var validationData = new IssuanceValidationData[NumberOfCredentials];
 			for (var i = 0; i < NumberOfCredentials; i++)
 			{
-				var amount = credentialAmountsToRequest[i];
-				var scalarAmount = new Scalar((ulong)amount);
+				var value = credentialAmountsToRequest[i];
+				var scalar = new Scalar((ulong)value);
 
 				var randomness = RandomNumberGenerator.GetScalar(allowZero: false);
-				var ma = ProofSystem.PedersenCommitment(scalarAmount, randomness);
+				var ma = ProofSystem.PedersenCommitment(scalar, randomness);
 
-				var (rangeKnowledge, bitCommitments) = ProofSystem.RangeProofKnowledge(scalarAmount, randomness, RangeProofWidth, RandomNumberGenerator);
+				var (rangeKnowledge, bitCommitments) = ProofSystem.RangeProofKnowledge(scalar, randomness, RangeProofWidth, RandomNumberGenerator);
 				knowledgeToProve.Add(rangeKnowledge);
 
 				var credentialRequest = new IssuanceRequest(ma, bitCommitments);
 				credentialsToRequest[i] = credentialRequest;
-				validationData[i] = new IssuanceValidationData(amount, randomness, ma);
+				validationData[i] = new IssuanceValidationData(value, randomness, ma);
 			}
 
 			// Generate Balance Proof
@@ -158,7 +158,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			var transcript = BuildTransnscript(isNullRequest: false);
 			return new(
 				new RealCredentialsRequest(
-					amountsToRequest.Sum() - credentialsToPresent.Sum(x => x.Amount.ToLong()),
+					amountsToRequest.Sum() - credentialsToPresent.Sum(x => x.Value),
 					presentations,
 					credentialsToRequest,
 					ProofSystem.Prove(transcript, knowledgeToProve, RandomNumberGenerator)),
@@ -208,7 +208,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			}
 
 			var credentialReceived = credentials.Select(x =>
-				new Credential(new Scalar((ulong)x.Requested.Amount), x.Requested.Randomness, x.Issued));
+				new Credential(x.Requested.Value, x.Requested.Randomness, x.Issued));
 
 			return ZeroCredentialPool.ProcessAndGetValuableCredentials(credentialReceived).ToArray();
 		}

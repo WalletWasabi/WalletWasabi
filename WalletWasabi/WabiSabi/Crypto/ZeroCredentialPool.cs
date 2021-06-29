@@ -26,7 +26,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		{
 			foreach (var credential in credentials)
 			{
-				if (credential.Amount.IsZero)
+				if (credential.Value == 0)
 				{
 					_zeroValueCredentials.Enqueue(credential);
 				}

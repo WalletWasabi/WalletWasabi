@@ -74,13 +74,13 @@ namespace WalletWasabi.WabiSabi.Client
 			Guard.InRange(nameof(amountCredentialsToPresent), amountCredentialsToPresent, 0, AmountCredentialClient.NumberOfCredentials);
 			Guard.InRange(nameof(vsizeCredentialsToPresent), vsizeCredentialsToPresent, 0, VsizeCredentialClient.NumberOfCredentials);
 
-			var presentedAmount = amountCredentialsToPresent.Sum(x => x.Amount.ToLong());
+			var presentedAmount = amountCredentialsToPresent.Sum(x => x.Value);
 			var (realAmountCredentialRequest, realAmountCredentialResponseValidation) = AmountCredentialClient.CreateRequest(
 				new[] { presentedAmount - amount },
 				amountCredentialsToPresent,
 				cancellationToken);
 
-			var presentedVsize = vsizeCredentialsToPresent.Sum(x => x.Amount.ToLong());
+			var presentedVsize = vsizeCredentialsToPresent.Sum(x => x.Value);
 			var (realVsizeCredentialRequest, realVsizeCredentialResponseValidation) = VsizeCredentialClient.CreateRequest(
 				new[] { presentedVsize - scriptPubKey.EstimateOutputVsize() },
 				vsizeCredentialsToPresent,
@@ -110,13 +110,13 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			Guard.InRange(nameof(amountCredentialsToPresent), amountCredentialsToPresent, 0, AmountCredentialClient.NumberOfCredentials);
 
-			var presentedAmount = amountCredentialsToPresent.Sum(x => x.Amount.ToLong());
+			var presentedAmount = amountCredentialsToPresent.Sum(x => x.Value);
 			if (amountsToRequest.Sum() != presentedAmount)
 			{
 				throw new InvalidOperationException($"Reissuence amounts must equal with the sum of the presented ones.");
 			}
 
-			var presentedVsize = vsizeCredentialsToPresent.Sum(x => x.Amount.ToLong());
+			var presentedVsize = vsizeCredentialsToPresent.Sum(x => x.Value);
 			var (realVsizeCredentialRequest, realVsizeCredentialResponseValidation) = VsizeCredentialClient.CreateRequest(
 				vsizesToRequest,
 				vsizeCredentialsToPresent,
