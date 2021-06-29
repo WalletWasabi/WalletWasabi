@@ -273,7 +273,17 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			using (await AsyncLock.LockAsync().ConfigureAwait(false))
 			{
-				var alice = Rounds.Single(r => r.Id == request.RoundId).Alices.Single(a => a.Id == request.AliceId);
+				var round = Rounds.FirstOrDefault(r => r.Id == request.RoundId);
+				if (round is null)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound, $"Round ({request.RoundId}) not found.");
+				}
+
+				var alice = round.Alices.FirstOrDefault(a => a.Id == request.AliceId);
+				if (alice is null)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound, $"Round ({request.RoundId}): Alice id ({request.AliceId}).");
+				}
 
 				var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", request.RoundId);
 				if (!OwnershipProof.VerifyCoinJoinInputProof(request.OwnershipProof, alice.Coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
