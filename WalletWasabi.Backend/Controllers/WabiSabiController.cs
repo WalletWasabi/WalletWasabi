@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using WalletWasabi.Backend.Filters;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Models;
-using WalletWasabi.Backend.Filters;
 
 namespace WalletWasabi.Backend.Controllers
 {

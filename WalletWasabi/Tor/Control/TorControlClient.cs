@@ -168,8 +168,8 @@ namespace WalletWasabi.Tor.Control
 			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ReaderCts.Token, cancellationToken);
 
 			Logger.LogTrace($"Client: About to send command: '{command.TrimEnd()}'");
-			_ = await PipeWriter.WriteAsync(new ReadOnlyMemory<byte>(Encoding.ASCII.GetBytes(command)), linkedCts.Token).ConfigureAwait(false);
-			_ = await PipeWriter.FlushAsync(linkedCts.Token).ConfigureAwait(false);
+			await PipeWriter.WriteAsync(new ReadOnlyMemory<byte>(Encoding.ASCII.GetBytes(command)), linkedCts.Token).ConfigureAwait(false);
+			await PipeWriter.FlushAsync(linkedCts.Token).ConfigureAwait(false);
 
 			TorControlReply reply = await SyncChannel.Reader.ReadAsync(linkedCts.Token).ConfigureAwait(false);
 			Logger.LogTrace($"Client: Reply: '{reply}'");
@@ -203,7 +203,6 @@ namespace WalletWasabi.Tor.Control
 				}
 
 				Logger.LogTrace($"ReadEventsAsync: subscribers: {newList.Count}.");
-
 				await foreach (TorControlReply item in channel.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
 				{
 					yield return item;
