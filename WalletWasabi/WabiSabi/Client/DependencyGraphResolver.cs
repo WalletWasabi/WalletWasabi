@@ -98,7 +98,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 			// Build tasks and link them together.
 			List<SmartRequestNode> smartRequestNodes = new();
-			List<Task> alltask = new();
+			List<Task> allTasks = new();
 
 			using CancellationTokenSource ctsOnError = new();
 			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctsOnError.Token);
@@ -133,10 +133,10 @@ namespace WalletWasabi.WabiSabi.Client
 						throw exception;
 					}
 				}, linkedCts.Token);
-				alltask.Add(task);
+				allTasks.Add(task);
 			}
 
-			await Task.WhenAll(alltask).ConfigureAwait(false);
+			await Task.WhenAll(allTasks).ConfigureAwait(false);
 
 			var amountEdges = Graph.Outputs.SelectMany(node => Graph.InEdges(node, CredentialType.Amount));
 			var vsizeEdges = Graph.Outputs.SelectMany(node => Graph.InEdges(node, CredentialType.Vsize));
