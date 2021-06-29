@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using System;
 using System.Collections.Generic;
@@ -7,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;

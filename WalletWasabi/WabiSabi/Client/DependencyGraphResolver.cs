@@ -73,7 +73,7 @@ namespace WalletWasabi.WabiSabi.Client
 						{
 							// If one task is failing, cancel all the tasks and throw.
 							ctsOnError.Cancel();
-							throw exception;
+							throw t.Exception;
 						}
 					}, linkedCts.Token);
 
@@ -88,7 +88,7 @@ namespace WalletWasabi.WabiSabi.Client
 			// Check if all tasks were finished, otherwise Task.Result will block.
 			if (!amountEdges.Concat(vsizeEdges).All(edge => DependencyTasks[edge].Task.IsCompletedSuccessfully))
 			{
-				throw new InvalidOperationException("All Input nodes' outedges should be completed.");
+				throw new InvalidOperationException("Some Input nodes out-edges failed to complete.");
 			}
 		}
 
