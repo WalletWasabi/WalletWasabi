@@ -43,11 +43,6 @@
       <ToggleSwitch IsChecked="{Binding CustomChangeAddress}" />
     </DockPanel>
 
-    <DockPanel>
-      <TextBlock VerticalAlignment="Center" Text="PSBT workflow" />
-      <ToggleSwitch IsChecked="{Binding UsePsbtWorkflow}" />
-    </DockPanel>
-
     <StackPanel Spacing="10">
       <TextBlock Text="Fee Display Format" />
       <ComboBox HorizontalAlignment="Stretch" Items="{Binding FeeDisplayFormats}" SelectedItem="{Binding SelectedFeeDisplayFormat}">

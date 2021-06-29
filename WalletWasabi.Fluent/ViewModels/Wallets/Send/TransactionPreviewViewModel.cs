@@ -51,7 +51,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
 			IsPayJoin = PayJoinUrl is not null;
 
-			if (Services.UiConfig.UsePsbtWorkflow)
+			if (wallet.KeyManager.PreferPsbtWorkflow)
 			{
 				NextCommand = ReactiveCommand.CreateFromTask(async () =>
 				{

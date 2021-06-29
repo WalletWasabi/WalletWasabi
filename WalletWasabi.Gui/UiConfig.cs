@@ -41,8 +41,7 @@ namespace WalletWasabi.Gui
 					x => x.FeeDisplayFormat,
 					x => x.LastSelectedWallet,
 					x => x.WindowState,
-					x => x.UsePsbtWorkflow,
-					(_, _, _, _, _, _, _, _, _) => Unit.Default)
+					(_, _, _, _, _, _, _, _) => Unit.Default)
 				.Throttle(TimeSpan.FromMilliseconds(500))
 				.Skip(1) // Won't save on UiConfig creation.
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -135,14 +134,6 @@ namespace WalletWasabi.Gui
 		{
 			get => _lastSelectedWallet;
 			set => RaiseAndSetIfChanged(ref _lastSelectedWallet, value);
-		}
-
-		[DefaultValue(false)]
-		[JsonProperty(PropertyName = "UsePsbtWorkflow", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public bool UsePsbtWorkflow
-		{
-			get => _usePsbtWorkflow;
-			set => RaiseAndSetIfChanged(ref _usePsbtWorkflow, value);
 		}
 
 		[JsonProperty(PropertyName = "CoinListViewSortingPreference")]

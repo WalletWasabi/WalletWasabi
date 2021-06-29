@@ -12,8 +12,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 	{
 		internal HardwareWalletViewModel(Wallet wallet) : base(wallet)
 		{
-			PsbtWorkflowEnabled = Services.UiConfig.UsePsbtWorkflow;
-
 			BroadcastPsbtCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				try
@@ -31,15 +29,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
                 	await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "It was not possible to load the transaction.");
                 }
 			});
-		}
-
-		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-		{
-			base.OnNavigatedTo(isInHistory, disposables);
-
-			Services.UiConfig.WhenAnyValue(x => x.UsePsbtWorkflow)
-				.Subscribe(value => PsbtWorkflowEnabled = value)
-				.DisposeWith(disposables);
 		}
 	}
 }

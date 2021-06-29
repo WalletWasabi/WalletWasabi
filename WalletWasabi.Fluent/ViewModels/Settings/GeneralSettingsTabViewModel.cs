@@ -26,7 +26,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		[AutoNotify] private bool _autoCopy;
 		[AutoNotify] private bool _customFee;
 		[AutoNotify] private bool _customChangeAddress;
-		[AutoNotify] private bool _usePsbtWorkflow;
 		[AutoNotify] private FeeDisplayFormat _selectedFeeDisplayFormat;
 
 		public GeneralSettingsTabViewModel()
@@ -35,7 +34,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			_autoCopy = Services.UiConfig.Autocopy;
 			_customFee = Services.UiConfig.IsCustomFee;
 			_customChangeAddress = Services.UiConfig.IsCustomChangeAddress;
-			_usePsbtWorkflow = Services.UiConfig.UsePsbtWorkflow;
 			_selectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), Services.UiConfig.FeeDisplayFormat)
 				? (FeeDisplayFormat) Services.UiConfig.FeeDisplayFormat
 				: FeeDisplayFormat.SatoshiPerByte;
@@ -68,11 +66,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Skip(1)
 				.Subscribe(x => Services.UiConfig.FeeDisplayFormat = (int)x);
-
-			this.WhenAnyValue(x => x.UsePsbtWorkflow)
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Skip(1)
-				.Subscribe(x => Services.UiConfig.UsePsbtWorkflow = x);
 		}
 
 		public IEnumerable<FeeDisplayFormat> FeeDisplayFormats =>

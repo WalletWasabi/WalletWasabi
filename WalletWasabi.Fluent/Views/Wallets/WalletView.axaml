@@ -26,7 +26,7 @@
                 <TextBlock Text="Send" />
               </StackPanel>
             </Button>
-            <Button Classes="function" Command="{Binding BroadcastPsbtCommand}" IsVisible="{Binding PsbtWorkflowEnabled}">
+            <Button Classes="function" Command="{Binding BroadcastPsbtCommand}" IsVisible="{Binding PreferPsbtWorkflow}">
               <StackPanel Orientation="Horizontal" Spacing="15">
                 <PathIcon Data="{StaticResource live_regular}" />
                 <TextBlock Text="Broadcast" />
