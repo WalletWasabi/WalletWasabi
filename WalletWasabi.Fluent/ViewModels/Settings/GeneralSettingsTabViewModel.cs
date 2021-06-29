@@ -58,7 +58,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			this.WhenAnyValue(x => x.OsStartup)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Skip(1)
-				.Subscribe(x => MakeRegistry(x));
+				.Subscribe(x => ModifyRegistry(x));
 
 			this.WhenAnyValue(x => x.CustomFee)
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -75,7 +75,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.Skip(1)
 				.Subscribe(x => Services.UiConfig.FeeDisplayFormat = (int)x);
 		}
-		
+
 		//TODO: Save the changed option to the UI Config File
 		private void ModifyRegistry(bool changedOption)
 		{
