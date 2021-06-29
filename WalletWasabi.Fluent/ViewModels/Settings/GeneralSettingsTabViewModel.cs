@@ -76,16 +76,17 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.Skip(1)
 				.Subscribe(x => Services.UiConfig.FeeDisplayFormat = (int)x);
 		}
-
-		private void MakeRegistry(bool changedOption)
+		
+		//TODO: Save the changed option to the UI Config File
+		private void ModifyRegistry(bool changedOption)
 		{
 			string keyName = @"Software\Microsoft\Windows\CurrentVersion\Run";
 			using RegistryKey key = Registry.CurrentUser.OpenSubKey(keyName, true);
 			if (changedOption)
 			{
 				string pathToExe = Assembly.GetExecutingAssembly().Location;
-				pathToExe = pathToExe.Remove(pathToExe.Length - 3);
-				pathToExe += "exe";
+				pathToExe = pathToExe.Remove(pathToExe.Length - 11);        //This part has to change if this gets released
+				pathToExe += ".Fluent.Desktop.exe";
 
 				RegistryKey rkApp = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
 				rkApp.SetValue("WasabiWallet", pathToExe);
@@ -93,7 +94,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			else
 			{
 				key.DeleteValue("WasabiWallet");
-				key.DeleteSubKey("WasabiWallet");
 			}
 		}
 
