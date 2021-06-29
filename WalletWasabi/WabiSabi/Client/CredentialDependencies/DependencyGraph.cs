@@ -64,14 +64,14 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 			var effectiveCosts = Enumerable.Zip(outputs, outputSizes, (txout, size) => txout.EffectiveCost(feerate));
 
 			return ResolveCredentialDependencies(
-				Enumerable.Zip(effectiveValues.Select(a => (ulong)a.Satoshi), inputSizes.Select(i => (ulong)(vsizeAllocationPerInput - i)), ImmutableArray.Create).Cast<IEnumerable<ulong>>(),
-				Enumerable.Zip(effectiveCosts.Select(a => (ulong)a.Satoshi), outputSizes.Select(i => (ulong)i), ImmutableArray.Create).Cast<IEnumerable<ulong>>()
+				Enumerable.Zip(effectiveValues.Select(a => a.Satoshi), inputSizes.Select(i => (vsizeAllocationPerInput - i)), ImmutableArray.Create).Cast<IEnumerable<long>>(),
+				Enumerable.Zip(effectiveCosts.Select(a => a.Satoshi), outputSizes.Select(i => (long)i), ImmutableArray.Create).Cast<IEnumerable<long>>()
 			);
 		}
-		public static DependencyGraph ResolveCredentialDependencies(IEnumerable<IEnumerable<ulong>> inputValues, IEnumerable<IEnumerable<ulong>> outputValues)
+		public static DependencyGraph ResolveCredentialDependencies(IEnumerable<IEnumerable<long>> inputValues, IEnumerable<IEnumerable<long>> outputValues)
 			=> FromValues(inputValues, outputValues).ResolveCredentials();
 
-		public static DependencyGraph FromValues(IEnumerable<IEnumerable<ulong>> inputValues, IEnumerable<IEnumerable<ulong>> outputValues)
+		public static DependencyGraph FromValues(IEnumerable<IEnumerable<long>> inputValues, IEnumerable<IEnumerable<long>> outputValues)
 		{
 			if (Enumerable.Concat(inputValues, outputValues).Any(x => x.Count() != CredentialTypes.Count()))
 			{
@@ -80,7 +80,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 			foreach (var credentialType in CredentialTypes)
 			{
-				long CredentialTypeValue(IEnumerable<ulong> x) => (long)x.ElementAt((int)credentialType);
+				long CredentialTypeValue(IEnumerable<long> x) => x.ElementAt((int)credentialType);
 
 				if (inputValues.Sum(CredentialTypeValue) < outputValues.Sum(CredentialTypeValue))
 				{
@@ -112,20 +112,20 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 		// early but using it implies connection confirmations may have
 		// dependencies, posing some complexity for a privacy preserving
 		// approach.
-		private DependencyGraph AddInput(IEnumerable<ulong> values)
+		private DependencyGraph AddInput(IEnumerable<long> values)
 		{
-			var node = new InputNode(values.Select(y => (long)y));
+			var node = new InputNode(values.Select(y => y));
 			return (this with { Inputs = Inputs.Add(node) }).AddNode(node);
 		}
 
-		private DependencyGraph AddOutput(IEnumerable<ulong> values)
+		private DependencyGraph AddOutput(IEnumerable<long> values)
 		{
-			var node = new OutputNode(values.Select(y => -1 * (long)y));
+			var node = new OutputNode(values.Select(y => -1 * y));
 			return (this with { Outputs = Outputs.Add(node) }).AddNode(node);
 		}
-		private DependencyGraph AddInputs(IEnumerable<IEnumerable<ulong>> values) => values.Aggregate(this, (g, v) => g.AddInput(v));
+		private DependencyGraph AddInputs(IEnumerable<IEnumerable<long>> values) => values.Aggregate(this, (g, v) => g.AddInput(v));
 
-		private DependencyGraph AddOutputs(IEnumerable<IEnumerable<ulong>> values) => values.Aggregate(this, (g, v) => g.AddOutput(v));
+		private DependencyGraph AddOutputs(IEnumerable<IEnumerable<long>> values) => values.Aggregate(this, (g, v) => g.AddOutput(v));
 
 		private (DependencyGraph, RequestNode) AddReissuance()
 		{

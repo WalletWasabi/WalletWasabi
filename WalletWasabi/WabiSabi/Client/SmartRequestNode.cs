@@ -134,7 +134,7 @@ namespace WalletWasabi.WabiSabi.Client
 				return nonZeroValues;
 			}
 
-			var missing = presentedCredentials.Sum(cr => (long)cr.Amount.ToUlong()) - valuesToRequest.Sum();
+			var missing = presentedCredentials.Sum(cr => cr.Amount.ToLong()) - valuesToRequest.Sum();
 
 			if (missing > 0)
 			{

@@ -24,7 +24,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		public WabiSabiClient(
 			CredentialIssuerParameters credentialIssuerParameters,
 			WasabiRandom randomNumberGenerator,
-			ulong rangeProofUpperBound,
+			long rangeProofUpperBound,
 			ZeroCredentialPool zeroCredentialPool)
 		{
 			RangeProofWidth = (int)Math.Ceiling(Math.Log2(rangeProofUpperBound));
@@ -158,7 +158,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			var transcript = BuildTransnscript(isNullRequest: false);
 			return new(
 				new RealCredentialsRequest(
-					amountsToRequest.Sum() - credentialsToPresent.Sum(x => (long)x.Amount.ToUlong()),
+					amountsToRequest.Sum() - credentialsToPresent.Sum(x => x.Amount.ToLong()),
 					presentations,
 					credentialsToRequest,
 					ProofSystem.Prove(transcript, knowledgeToProve, RandomNumberGenerator)),

@@ -203,8 +203,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var rnd = new InsecureRandom();
 			ZeroCredentialPool zeroAmountCredentials = new();
 			ZeroCredentialPool zeroVsizeCredentials = new();
-			var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, rnd, 4300000000000ul, zeroAmountCredentials);
-			var vsizeClient = new WabiSabiClient(round.VsizeCredentialIssuerParameters, rnd, 2000ul, zeroVsizeCredentials);
+			var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, rnd, 4300000000000l, zeroAmountCredentials);
+			var vsizeClient = new WabiSabiClient(round.VsizeCredentialIssuerParameters, rnd, 2000l, zeroVsizeCredentials);
 			var apiClient = new ArenaClient(amountClient, vsizeClient, wabiSabiApi);
 
 			round.SetPhase(Phase.TransactionSigning);

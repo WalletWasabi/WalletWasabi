@@ -35,7 +35,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 		public int AvailableZeroOutDegree(RequestNode node) => RemainingZeroOnlyOutDegree(node) + (RemainingOutDegree(node) - (Balance(node) > 0 ? 1 : 0));
 
-		public CredentialEdgeSet AddEdge(RequestNode from, RequestNode to, ulong value)
+		public CredentialEdgeSet AddEdge(RequestNode from, RequestNode to, long value)
 		{
 			var edge = new CredentialDependency(from, to, CredentialType, value);
 
@@ -54,13 +54,13 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 				else if (RemainingOutDegree(edge.From) == 1)
 				{
 					// This is the final out edge for the node edge.From
-					if (Balance(edge.From) - (long)edge.Value > 0)
+					if (Balance(edge.From) - edge.Value > 0)
 					{
 						throw new InvalidOperationException($"Can't add final out edge without discharging positive value (edge value {edge.Value} but node balance is {Balance(edge.From)}).");
 					}
 
 					// If it's the final edge overall for that node, the final balance must be 0
-					if (RemainingInDegree(edge.From) == 0 && Balance(edge.From) - (long)edge.Value != 0)
+					if (RemainingInDegree(edge.From) == 0 && Balance(edge.From) - edge.Value != 0)
 					{
 						throw new InvalidOperationException("Can't add final in edge without discharging negative value completely.");
 					}
@@ -81,13 +81,13 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 			if (RemainingInDegree(edge.To) == 1)
 			{
 				// This is the final in edge for the node edge.To
-				if (Balance(edge.To) + (long)edge.Value < 0)
+				if (Balance(edge.To) + edge.Value < 0)
 				{
 					throw new InvalidOperationException("Can't add final in edge without discharging negative value.");
 				}
 
 				// If it's the final edge overall for that node, the final balance must be 0
-				if (RemainingOutDegree(edge.To) == 0 && Balance(edge.To) + (long)edge.Value != 0)
+				if (RemainingOutDegree(edge.To) == 0 && Balance(edge.To) + edge.Value != 0)
 				{
 					throw new InvalidOperationException("Can't add final in edge without discharging negative value completely.");
 				}
@@ -95,12 +95,11 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 			if (RemainingOutDegree(edge.To) == 0)
 			{
-				if (Balance(edge.To) + (long)edge.Value > 0)
+				if (Balance(edge.To) + edge.Value > 0)
 				{
 					throw new InvalidOperationException("Can't add edge with excess value to node with no remaining out degree.");
 				}
 			}
-
 
 			var predecessors = InEdges(edge.To);
 			var successors = OutEdges(edge.From);
@@ -112,8 +111,8 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 				EdgeBalances = EdgeBalances.SetItems(
 					new KeyValuePair<RequestNode, long>[]
 					{
-						new (edge.From, EdgeBalances[edge.From] - (long)edge.Value),
-						new (edge.To,   EdgeBalances[edge.To]   + (long)edge.Value),
+						new (edge.From, EdgeBalances[edge.From] - edge.Value),
+						new (edge.To,   EdgeBalances[edge.To]   + edge.Value),
 					}),
 			};
 		}
@@ -191,13 +190,13 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 				// requests overall.
 				return this;
 			}
-			else if ( value > 0 )
+			else if (value > 0)
 			{
-				return AddEdge(node, reissuance, (ulong)value);
+				return AddEdge(node, reissuance, value);
 			}
-			else if (value < 0 )
+			else if (value < 0)
 			{
-				return AddEdge(reissuance, node, (ulong)(-1 * value)).AddZeroEdges(reissuance, node);
+				return AddEdge(reissuance, node, (-1 * value)).AddZeroEdges(reissuance, node);
 			}
 			else if (InDegree(reissuance) == 0)
 			{
@@ -209,7 +208,9 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 				// (it's guaranteed to be possible) to avoid crossing edges,
 				// even if there's no balance to discharge.
 				return AddZeroEdges(reissuance, node);
-			} else {
+			}
+			else
+			{
 				return this;
 			}
 		}
@@ -238,13 +239,13 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 				// Fan out, discharge the entire balance, adding zero edges if
 				// needed (might not be if the discharged node has already
 				// received an input edge in a previous pass).
-				return AddEdge(node, dischargeNode, (ulong)Math.Min(Balance(node), -1 * value));
+				return AddEdge(node, dischargeNode, Math.Min(Balance(node), -1 * value));
 			}
 			else if (value > 0)
 			{
 				// Fan in, draining zero credentials is never necessary.
-				var edgeAmount = (ulong)Math.Min(-1 * Balance(node), value);
-				if (edgeAmount == (ulong)value || RemainingOutDegree(dischargeNode) > 1)
+				var edgeAmount = Math.Min(-1 * Balance(node), value);
+				if (edgeAmount == value || RemainingOutDegree(dischargeNode) > 1)
 				{
 					return AddEdge(dischargeNode, node, edgeAmount);
 				}
