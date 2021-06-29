@@ -22,8 +22,8 @@ namespace WalletWasabi.WabiSabi.Client
 			Coin = coin;
 			FeeRate = feeRate;
 			BitcoinSecret = bitcoinSecret;
-			RealAmountCredentials = Array.Empty<Credential>();
-			RealVsizeCredentials = Array.Empty<Credential>();
+			IssuedAmountCredentials = Array.Empty<Credential>();
+			IssuedVsizeCredentials = Array.Empty<Credential>();
 		}
 
 		public uint256 AliceId { get; }
@@ -32,8 +32,8 @@ namespace WalletWasabi.WabiSabi.Client
 		public Coin Coin { get; }
 		private FeeRate FeeRate { get; }
 		private BitcoinSecret BitcoinSecret { get; }
-		public Credential[] RealAmountCredentials { get; private set; }
-		public Credential[] RealVsizeCredentials { get; private set; }
+		public IEnumerable<Credential> IssuedAmountCredentials { get; private set; }
+		public IEnumerable<Credential> IssuedVsizeCredentials { get; private set; }
 
 		public async Task RegisterInputAsync(CancellationToken cancellationToken)
 		{
@@ -43,8 +43,8 @@ namespace WalletWasabi.WabiSabi.Client
 			{
 				throw new InvalidOperationException($"Round ({RoundId}), Local Alice ({AliceId}) was computed as {remoteAliceId}");
 			}
-			RealAmountCredentials = response.RealAmountCredentials;
-			RealVsizeCredentials = response.RealVsizeCredentials;
+			IssuedAmountCredentials = response.IssuedAmountCredentials;
+			IssuedVsizeCredentials = response.IssuedVsizeCredentials;
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Registered an input.");
 		}
 
@@ -87,18 +87,15 @@ namespace WalletWasabi.WabiSabi.Client
 					AliceId,
 					amountsToRequest,
 					vsizesToRequest,
-					RealAmountCredentials,
-					RealVsizeCredentials,
+					IssuedAmountCredentials,
+					IssuedVsizeCredentials,
 					cancellationToken)
 				.ConfigureAwait(false);
 
-			var isConfirmed = response.Value;
-			if (isConfirmed)
-			{
-				RealAmountCredentials = response.RealAmountCredentials;
-				RealVsizeCredentials = response.RealVsizeCredentials;
-			}
-			return isConfirmed;
+			IssuedAmountCredentials = response.IssuedAmountCredentials;
+			IssuedVsizeCredentials = response.IssuedVsizeCredentials;
+
+			return response.Value;
 		}
 
 		public async Task RemoveInputAsync(CancellationToken cancellationToken)

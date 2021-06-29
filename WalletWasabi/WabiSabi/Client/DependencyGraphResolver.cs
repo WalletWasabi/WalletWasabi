@@ -13,24 +13,16 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class DependencyGraphResolver
 	{
-		public DependencyGraphResolver(
-			DependencyGraph graph,
-			ZeroCredentialPool zeroAmountCredentialPool,
-			ZeroCredentialPool zeroVsizeCredentialPool)
+		public DependencyGraphResolver(DependencyGraph graph)
 		{
 			Graph = graph;
 			var allInEdges = Enum.GetValues<CredentialType>()
 				.SelectMany(type => Enumerable.Concat<RequestNode>(Graph.Reissuances, Graph.Outputs)
 				.SelectMany(node => Graph.EdgeSets[type].InEdges(node)));
 			DependencyTasks = allInEdges.ToDictionary(edge => edge, _ => new TaskCompletionSource<Credential>(TaskCreationOptions.RunContinuationsAsynchronously));
-
-			ZeroAmountCredentialPool = zeroAmountCredentialPool;
-			ZeroVsizeCredentialPool = zeroVsizeCredentialPool;
 		}
 
 		private DependencyGraph Graph { get; }
-		public ZeroCredentialPool ZeroAmountCredentialPool { get; }
-		public ZeroCredentialPool ZeroVsizeCredentialPool { get; }
 		private Dictionary<CredentialDependency, TaskCompletionSource<Credential>> DependencyTasks { get; }
 
 		public async Task StartConfirmConnectionsAsync(IEnumerable<AliceClient> aliceClients, DependencyGraph dependencyGraph, TimeSpan connectionConfirmationTimeout, CancellationToken cancellationToken)
@@ -51,9 +43,7 @@ namespace WalletWasabi.WabiSabi.Client
 					Enumerable.Empty<Task<Credential>>(),
 					Enumerable.Empty<Task<Credential>>(),
 					amountEdgeTaskCompSources,
-					vsizeEdgeTaskCompSources,
-					ZeroAmountCredentialPool,
-					ZeroVsizeCredentialPool);
+					vsizeEdgeTaskCompSources);
 
 				var amountsToRequest = dependencyGraph.OutEdges(node, CredentialType.Amount).Select(e => (long)e.Value);
 				var vsizesToRequest = dependencyGraph.OutEdges(node, CredentialType.Vsize).Select(e => (long)e.Value);
@@ -118,9 +108,7 @@ namespace WalletWasabi.WabiSabi.Client
 					inputAmountEdgeTasks,
 					inputVsizeEdgeTasks,
 					outputAmountEdgeTaskCompSources,
-					outputVsizeEdgeTaskCompSources,
-					ZeroAmountCredentialPool,
-					ZeroVsizeCredentialPool);
+					outputVsizeEdgeTaskCompSources);
 
 				var task = smartRequestNode
 					.StartReissuanceAsync(bobClient, requestedAmounts, requestedVSizes, linkedCts.Token)
@@ -164,10 +152,7 @@ namespace WalletWasabi.WabiSabi.Client
 					amountCredsToPresentTasks,
 					vsizeCredsToPresentTasks,
 					Array.Empty<TaskCompletionSource<Credential>>(),
-					Array.Empty<TaskCompletionSource<Credential>>(),
-					ZeroAmountCredentialPool,
-					ZeroVsizeCredentialPool
-				);
+					Array.Empty<TaskCompletionSource<Credential>>());
 
 				var task = smartRequestNode
 					.StartOutputRegistrationAsync(bobClient, node.EffectiveCost, txOut.ScriptPubKey, cancellationToken)

@@ -38,13 +38,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
 			var wabiSabiApi = new WabiSabiController(coordinator);
 
-			ZeroCredentialPool amountCredentialPool = new();
-			ZeroCredentialPool vsizeCredentialPool = new();
 			var insecureRandom = new InsecureRandom();
 			var roundState = RoundState.FromRound(round);
 			var arenaClient = new ArenaClient(
-				roundState.CreateAmountCredentialClient(amountCredentialPool, insecureRandom),
-				roundState.CreateVsizeCredentialClient(vsizeCredentialPool, insecureRandom),
+				roundState.CreateAmountCredentialClient(insecureRandom),
+				roundState.CreateVsizeCredentialClient(insecureRandom),
 				wabiSabiApi);
 			Assert.Equal(Phase.InputRegistration, arena.Rounds.First().Phase);
 
