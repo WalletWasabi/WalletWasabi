@@ -52,7 +52,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 		[InlineData(new long[] { 10_000_000, 20_000_000, 30_000_000, 40_000_000, 100_000_000 })]
 		[InlineData(new long[] { 10_000_000, 20_000_000, 30_000_000, 40_000_000, 100_000_000 }, new long[] { 100_000_000, 100_000_000 })]
 		[InlineData(new long[] { 120_000_000 }, new long[] { 20_000_000, 40_000_000, 60_000_000 })]
-		[InlineData(new long[] { 100_000_000, 10_000_000, 10_000 })] // failing test
+		[InlineData(new long[] { 100_000_000, 10_000_000, 10_000 })]
 		public async Task SoloCoinJoinTestAsync(long[] amounts, long[]? outputs = null)
 		{
 			int inputCount = amounts.Length;
