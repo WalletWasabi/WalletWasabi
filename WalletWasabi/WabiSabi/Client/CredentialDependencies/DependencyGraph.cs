@@ -2,10 +2,12 @@ using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 
 namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 {
+	[DebuggerDisplay("{AsGraphviz(),nq}")]
 	public record DependencyGraph
 	{
 		public const int K = ProtocolConstants.CredentialNumber;
@@ -37,6 +39,8 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 		public int InDegree(RequestNode node, CredentialType credentialType) => EdgeSets[credentialType].InDegree(node);
 
 		public int OutDegree(RequestNode node, CredentialType credentialType) => EdgeSets[credentialType].OutDegree(node);
+
+		private string AsGraphviz() => DependencyGraphExtensions.AsGraphviz(this);
 
 		/// <summary>Construct a graph from amounts, and resolve the
 		/// credential dependencies.</summary>

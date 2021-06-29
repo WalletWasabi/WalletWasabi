@@ -7,7 +7,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 	{
 		/// <summary>Format the graph in graphviz dot format, suitable for
 		/// reading or viewing.</summary>
-		public static string Graphviz(this DependencyGraph g)
+		public static string AsGraphviz(this DependencyGraph g)
 		{
 			var output = "digraph {\n";
 
