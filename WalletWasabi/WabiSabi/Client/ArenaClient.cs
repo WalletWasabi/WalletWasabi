@@ -230,5 +230,23 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			return await RequestHandler.GetStatusAsync(cancellationToken).ConfigureAwait(false);
 		}
+
+		public async Task ReadyToSignAsync(
+			uint256 roundId,
+			uint256 aliceId,
+			Key key,
+			CancellationToken cancellationToken)
+		{
+			var ownershipProof = OwnershipProof.GenerateCoinJoinInputProof(
+				key,
+				new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundId));
+
+			await RequestHandler.ReadyToSign(
+				new ReadyToSignRequestRequest(
+					roundId,
+					aliceId,
+					ownershipProof),
+				cancellationToken).ConfigureAwait(false);
+		}
 	}
 }

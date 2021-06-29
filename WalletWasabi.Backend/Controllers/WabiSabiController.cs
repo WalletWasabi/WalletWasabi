@@ -66,5 +66,11 @@ namespace WalletWasabi.Backend.Controllers
 		{
 			return Task.FromResult(RequestHandler.Arena.Rounds.Select(x => RoundState.FromRound(x)).ToArray());
 		}
+
+		[HttpPost("ready-to-sign")]
+		public Task ReadyToSign(ReadyToSignRequestRequest request, CancellationToken cancellableToken)
+		{
+			return RequestHandler.ReadyToSignAsync(request, cancellableToken);
+		}
 	}
 }
