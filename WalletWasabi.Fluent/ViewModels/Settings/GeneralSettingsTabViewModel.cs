@@ -8,7 +8,6 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.Models;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
