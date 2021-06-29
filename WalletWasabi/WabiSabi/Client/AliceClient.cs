@@ -48,18 +48,6 @@ namespace WalletWasabi.WabiSabi.Client
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Registered an input.");
 		}
 
-		[ObsoleteAttribute("This method should be removed after making the tests using the overload.")]
-		public async Task ConfirmConnectionAsync(TimeSpan connectionConfirmationTimeout, long vsizeAllocation, CancellationToken cancellationToken)
-		{
-			var inputVsize = Coin.ScriptPubKey.EstimateInputVsize();
-
-			var totalFeeToPay = FeeRate.GetFee(Coin.ScriptPubKey.EstimateInputVsize());
-			var totalAmount = Coin.Amount;
-			var effectiveAmount = totalAmount - totalFeeToPay;
-
-			await ConfirmConnectionAsync(connectionConfirmationTimeout, new long[] { effectiveAmount }, new long[] { vsizeAllocation - inputVsize }, cancellationToken).ConfigureAwait(false);
-		}
-
 		public async Task ConfirmConnectionAsync(TimeSpan connectionConfirmationTimeout, IEnumerable<long> amountsToRequest, IEnumerable<long> vsizesToRequest, CancellationToken cancellationToken)
 		{
 			while (!await TryConfirmConnectionAsync(amountsToRequest, vsizesToRequest, cancellationToken).ConfigureAwait(false))
