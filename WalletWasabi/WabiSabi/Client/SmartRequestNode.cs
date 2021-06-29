@@ -85,8 +85,8 @@ namespace WalletWasabi.WabiSabi.Client
 			// Strip out any credentials that have to be requested for the
 			// remaining amount but do not have a corresponding edge in the
 			// graph (because no request node depends on them.)
-			var amountCredentials = result.RealAmountCredentials.Take(amounts.Where(v => v != 0).Count());
-			var vsizeCredentials = result.RealVsizeCredentials.Take(vsizes.Where(v => v != 0).Count());
+			var amountCredentials = result.RealAmountCredentials.Take(amounts.Count(v => v != 0));
+			var vsizeCredentials = result.RealVsizeCredentials.Take(vsizes.Count(v => v != 0));
 
 			// TODO remove
 			// Add back any zero credentials that do have a corresponding edge
