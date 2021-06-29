@@ -73,7 +73,7 @@ namespace WalletWasabi.WabiSabi.Client
 						{
 							// If one task is failing, cancel all the tasks and throw.
 							ctsOnError.Cancel();
-							throw t.Exception;
+							throw exception;
 						}
 					}, linkedCts.Token);
 
