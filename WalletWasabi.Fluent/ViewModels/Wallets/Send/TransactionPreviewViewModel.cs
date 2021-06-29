@@ -58,7 +58,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					await TransactionHelpers.ExportTransactionToBinaryAsync(transaction);
 					Navigate().To(new SuccessViewModel("The PSBT has been successfully created."));
 				});
-				_nextButtonText = "Save to file";
+				_nextButtonText = "Save PSBT file";
 			}
 			else
 			{
