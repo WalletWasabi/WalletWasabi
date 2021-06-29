@@ -58,13 +58,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private async Task<bool> TryConfirmConnectionAsync(IEnumerable<long> amountsToRequest, IEnumerable<long> vsizesToRequest, CancellationToken cancellationToken)
 		{
-			var inputVsize = Coin.ScriptPubKey.EstimateInputVsize();
-
-			var totalFeeToPay = FeeRate.GetFee(Coin.ScriptPubKey.EstimateInputVsize());
-			var totalAmount = Coin.Amount;
-			var effectiveAmount = totalAmount - totalFeeToPay;
-
-			if (effectiveAmount <= Money.Zero)
+			if (Coin.EffectiveValue(FeeRate) <= Money.Zero)
 			{
 				throw new InvalidOperationException($"Round({ RoundId }), Alice({ AliceId}): Adding this input is uneconomical.");
 			}
