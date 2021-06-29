@@ -144,7 +144,7 @@ namespace WalletWasabi.WabiSabi.Client
 			// Check if all tasks were finished, otherwise Task.Result will block.
 			if (!amountEdges.Concat(vsizeEdges).All(edge => DependencyTasks[edge].Task.IsCompletedSuccessfully))
 			{
-				throw new InvalidOperationException("All Output nodes' inedges should be completed.");
+				throw new InvalidOperationException("Some Output nodes in-edges failed to complete");
 			}
 		}
 
