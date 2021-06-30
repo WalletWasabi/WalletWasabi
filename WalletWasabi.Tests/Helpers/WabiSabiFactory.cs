@@ -185,7 +185,7 @@ namespace WalletWasabi.Tests.Helpers
 
 		public static (Alice alice, RealCredentialsRequest amountRequest, RealCredentialsRequest vsizeRequest) CreateRealCredentialRequests(Round round, Money? amount = null, long? vsize = null)
 		{
-			var (amClient, vsClient, amIssuer, vsIssuer, amZeroCredentials, vsZeroCredentials) = CreateWabiSabiClientsAndIssuers(round);
+			var (amClient, vsClient, _, _, amZeroCredentials, vsZeroCredentials) = CreateWabiSabiClientsAndIssuers(round);
 
 			var alice = round.Alices.FirstOrDefault() ?? CreateAlice();
 			var (realAmountCredentialRequest, _) = amClient.CreateRequest(
@@ -204,7 +204,7 @@ namespace WalletWasabi.Tests.Helpers
 		{
 			var (alice, realAmountCredentialRequest, realVsizeCredentialRequest) = CreateRealCredentialRequests(round);
 
-			var (amClient, vsClient, amIssuer, vsIssuer, _, _) = CreateWabiSabiClientsAndIssuers(round);
+			var (amClient, vsClient, _, _, _, _) = CreateWabiSabiClientsAndIssuers(round);
 			var (zeroAmountCredentialRequest, _) = amClient.CreateRequestForZeroAmount();
 			var (zeroVsizeCredentialRequest, _) = vsClient.CreateRequestForZeroAmount();
 

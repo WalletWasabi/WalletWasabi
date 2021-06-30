@@ -95,7 +95,8 @@ namespace WalletWasabi.WabiSabi.Client
 			IssuedAmountCredentials = response.IssuedAmountCredentials;
 			IssuedVsizeCredentials = response.IssuedVsizeCredentials;
 
-			return response.Value;
+			var isConfirmed = response.Value;
+			return isConfirmed;
 		}
 
 		public async Task RemoveInputAsync(CancellationToken cancellationToken)

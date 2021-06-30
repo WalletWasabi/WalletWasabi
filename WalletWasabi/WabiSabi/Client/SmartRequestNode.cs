@@ -138,19 +138,31 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private IEnumerable<(bool IsExtra, Credential Credential)> TagExtraCredentials(IEnumerable<Credential> issuedCredentials, IEnumerable<long> requiredValues)
 		{
-			var requiredEnumerator = requiredValues.GetEnumerator();
-			requiredEnumerator.MoveNext();
+			using var requiredEnumerator = requiredValues.GetEnumerator();
+			using var issuedEnumerator = issuedCredentials.GetEnumerator();
 
-			foreach (var credential in issuedCredentials)
+			while (requiredEnumerator.MoveNext())
 			{
-				var isExtra = requiredEnumerator.Current != credential.Value;
-
-				yield return (isExtra, credential);
-
-				if (!isExtra)
+				var required = requiredEnumerator.Current;
+				while (issuedEnumerator.MoveNext())
 				{
-					requiredEnumerator.MoveNext(); // assert true?
+					var issued = issuedEnumerator.Current;
+					var isExtra = issued.Value != required;
+
+					yield return (isExtra, issued);
+
+					if (!isExtra)
+					{
+						// Move to next required value
+						break;
+					}
 				}
+			}
+
+			while (issuedEnumerator.MoveNext())
+			{
+				var issued = issuedEnumerator.Current;
+				yield return (true, issued);
 			}
 		}
 	}
