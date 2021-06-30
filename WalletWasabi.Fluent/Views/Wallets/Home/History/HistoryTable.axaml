@@ -139,14 +139,16 @@
             <DockPanel x:DataType="history:HistoryItemViewModel">
               <DockPanel.Styles>
                 <Style Selector="Button.labelFlyout /template/ ContentPresenter">
-                  <Setter Property="VerticalAlignment" Value="Stretch" />
+                  <Setter Property="VerticalAlignment" Value="Center" />
                   <Setter Property="HorizontalAlignment" Value="Center" />
                   <Setter Property="Cursor" Value="Hand" />
                   <Setter Property="BorderThickness" Value="1" />
+                  <Setter Property="Margin" Value="0" />
                   <Setter Property="Padding" Value="12,6,12,6" />
                   <Setter Property="MinHeight" Value="{DynamicResource TextControlThemeMinHeight}" />
                   <Setter Property="BorderBrush" Value="{StaticResource TagsBoxControlForeground}" />
                   <Setter Property="Background" Value="{DynamicResource InvisibleButtonBackgroundColor}" />
+                  <Setter Property="CornerRadius" Value="2" />
                 </Style>
                 <Style Selector="Button.labelFlyout:pointerover /template/ ContentPresenter">
                   <Setter Property="BorderBrush" Value="{StaticResource TagsBoxControlForeground}" />
