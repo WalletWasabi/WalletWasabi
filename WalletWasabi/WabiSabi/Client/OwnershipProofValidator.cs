@@ -27,7 +27,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public IBlockProvider BlockProvider { get; }
 
 		// Verifies the coins and ownership proofs. These proofs are provided by the coordinator who should
-		// have validate them before which means that when dealing with a honest coordinator all these proof
+		// have validated them before which means that when dealing with an honest coordinator all these proofs
 		// are valid.
 		//
 		// In case one proof is invalid we have evidence enough to know the coordinator is malicious and we
@@ -43,7 +43,7 @@ namespace WalletWasabi.WabiSabi.Client
 			var mineTxIds = TransactionStore.GetTransactionHashes();
 			var alreadySeenCoins = othersCoins.Where(x => mineTxIds.Contains(x.Coin.Outpoint.Hash));
 
-			// In case one Alice is trying to spend a output from a transaction that we already have
+			// In case one Alice is trying to spend an output from a transaction that we already have
 			// seen before then we can verify its script without downloading anything from the network.
 			foreach (var (coin, ownershipProof) in alreadySeenCoins)
 			{
@@ -63,7 +63,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 			// In case we cannot validate enough proofs using only our already seen transactions, we
 			// would need to start downloading the blocks containing the coins that need to be
-			// validated. We use out block filters for that.
+			// validated. We use our block filters for that.
 			var scripts = othersCoins.Select(x => x.Coin.ScriptPubKey.ToCompressedBytes()).ToArray();
 			await IndexStore.ForeachFiltersAsync(async (filterModel) =>
 			{
@@ -98,11 +98,11 @@ namespace WalletWasabi.WabiSabi.Client
 				var (aliceCoin, realCoin, ownershipProof) = await proofChannel.Reader.ReadAsync(cancellationToken).ConfigureAwait(false);
 				if (realCoin is not { } coin || (aliceCoin.TxOut, aliceCoin.Outpoint) != (coin.TxOut, coin.Outpoint))
 				{
-					throw new InvalidOperationException("The coordinator lies (coin doesn't exists or is different than the provided by the coordinator).");
+					throw new InvalidOperationException("The coordinator lies (coin doesn't exist or is different from the one provided by the coordinator).");
 				}
 				if (!OwnershipProof.VerifyCoinJoinInputProof(ownershipProof, aliceCoin.ScriptPubKey, coinJoinInputCommitmentData))
 				{
-					throw new InvalidOperationException("The coordinator lies (the ownership proof is not valid what means Alice cannot really spend it).");
+					throw new InvalidOperationException("The coordinator lies (the ownership proof is not valid which means Alice cannot really spend it).");
 				}
 				validProofs++;
 			}
