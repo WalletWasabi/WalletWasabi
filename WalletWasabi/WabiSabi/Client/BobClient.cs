@@ -18,15 +18,14 @@ namespace WalletWasabi.WabiSabi.Client
 		public uint256 RoundId { get; }
 		private ArenaClient ArenaClient { get; }
 
-		public async Task RegisterOutputAsync(Money amount, Script scriptPubKey, IEnumerable<Credential> amountCredential, IEnumerable<Credential> vsizeCredential, CancellationToken cancellationToken)
+		public async Task RegisterOutputAsync(Money amount, Script scriptPubKey, IEnumerable<Credential> amountCredentials, IEnumerable<Credential> vsizeCredentials, CancellationToken cancellationToken)
 		{
-			// TODO: what to do with the credentials returned?
 			var response = await ArenaClient.RegisterOutputAsync(
 				RoundId,
 				amount.Satoshi,
 				scriptPubKey,
-				amountCredential,
-				vsizeCredential,
+				amountCredentials,
+				vsizeCredentials,
 				cancellationToken).ConfigureAwait(false);
 		}
 
@@ -46,7 +45,7 @@ namespace WalletWasabi.WabiSabi.Client
 				cancellationToken)
 				.ConfigureAwait(false);
 
-			return (response.RealAmountCredentials, response.RealVsizeCredentials);
+			return (response.IssuedAmountCredentials, response.IssuedVsizeCredentials);
 		}
 	}
 }
