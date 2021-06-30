@@ -47,7 +47,7 @@ namespace WalletWasabi.Tests.Helpers
 
 		public static Mock<IRPCClient> CreatePreconfiguredRpcClient(params Coin[] coins)
 		{
-			using Key key = new Key();
+			using Key key = new();
 			var mockRpc = new Mock<IRPCClient>();
 			mockRpc.Setup(rpc => rpc.GetTxOutAsync(It.IsAny<uint256>(), It.IsAny<int>(), It.IsAny<bool>()))
 				.ReturnsAsync(new NBitcoin.RPC.GetTxOutResponse
@@ -105,7 +105,7 @@ namespace WalletWasabi.Tests.Helpers
 		}
 
 		public static Alice CreateAlice(Coin coin, OwnershipProof ownershipProof)
-			=> new Alice(coin, ownershipProof) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
+			=> new(coin, ownershipProof) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
 
 		public static Alice CreateAlice(Key key, Money amount)
 			=> CreateAlice(CreateCoin(key, amount), CreateOwnershipProof(key));
@@ -178,7 +178,7 @@ namespace WalletWasabi.Tests.Helpers
 
 		public static (Alice alice, RealCredentialsRequest amountRequest, RealCredentialsRequest vsizeRequest) CreateRealCredentialRequests(Round round, Money? amount = null, long? vsize = null)
 		{
-			var (amClient, vsClient, amIssuer, vsIssuer) = CreateWabiSabiClientsAndIssuers(round);
+			var (amClient, vsClient, _, _) = CreateWabiSabiClientsAndIssuers(round);
 
 			var alice = round.Alices.FirstOrDefault() ?? CreateAlice();
 			var (realAmountCredentialRequest, _) = amClient.CreateRequest(
@@ -197,7 +197,7 @@ namespace WalletWasabi.Tests.Helpers
 		{
 			var (alice, realAmountCredentialRequest, realVsizeCredentialRequest) = CreateRealCredentialRequests(round);
 
-			var (amClient, vsClient, amIssuer, vsIssuer) = CreateWabiSabiClientsAndIssuers(round);
+			var (amClient, vsClient, _, _) = CreateWabiSabiClientsAndIssuers(round);
 			var (zeroAmountCredentialRequest, _) = amClient.CreateRequestForZeroAmount();
 			var (zeroVsizeCredentialRequest, _) = vsClient.CreateRequestForZeroAmount();
 

@@ -12,7 +12,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 	/// </summary>
 	public class ZeroCredentialPool
 	{
-		private readonly ConcurrentQueue<Credential> _zeroValueCredentials = new ();
+		private readonly ConcurrentQueue<Credential> _zeroValueCredentials = new();
 
 		internal ZeroCredentialPool()
 		{
@@ -26,7 +26,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		{
 			foreach (var credential in credentials)
 			{
-				if (credential.Amount.IsZero)
+				if (credential.Value == 0)
 				{
 					_zeroValueCredentials.Enqueue(credential);
 				}
@@ -61,6 +61,18 @@ namespace WalletWasabi.WabiSabi.Crypto
 				}
 			}
 			return credentialsToReturn;
+		}
+
+		public Credential GetZeroCredential()
+		{
+			if (_zeroValueCredentials.TryDequeue(out var credential))
+			{
+				return credential;
+			}
+			else
+			{
+				throw new InvalidOperationException("ran out of zero credentials");
+			}
 		}
 	}
 }

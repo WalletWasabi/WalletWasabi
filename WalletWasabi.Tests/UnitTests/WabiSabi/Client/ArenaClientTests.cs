@@ -148,6 +148,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				new[] { vsizeCred2 },
 				CancellationToken.None);
 
+			await aliceArenaClient.ReadyToSignAsync(round.Id, aliceId, key, CancellationToken.None);
+
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
 

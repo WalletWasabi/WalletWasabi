@@ -21,7 +21,7 @@ namespace WalletWasabi.WabiSabi.Models
 		MultipartyTransactionState CoinjoinState)
 	{
 		public static RoundState FromRound(Round round) =>
-			new RoundState(
+			new(
 				round.Id,
 				round.AmountCredentialIssuerParameters,
 				round.VsizeCredentialIssuerParameters,
@@ -41,9 +41,9 @@ namespace WalletWasabi.WabiSabi.Models
 			};
 
 		public WabiSabiClient CreateAmountCredentialClient(ZeroCredentialPool zeroAmountCredentialPool, WasabiRandom random) =>
-			new WabiSabiClient(AmountCredentialIssuerParameters, random, (ulong)MaxRegistrableAmount, zeroAmountCredentialPool);
+			new(AmountCredentialIssuerParameters, random, (ulong)MaxRegistrableAmount, zeroAmountCredentialPool);
 
 		public WabiSabiClient CreateVsizeCredentialClient(ZeroCredentialPool zeroVsizeCredentialPool, WasabiRandom random) =>
-			new WabiSabiClient(VsizeCredentialIssuerParameters, random, (ulong)MaxRegistrableVsize, zeroVsizeCredentialPool);
+			new(VsizeCredentialIssuerParameters, random, (ulong)MaxRegistrableVsize, zeroVsizeCredentialPool);
 	}
 }
