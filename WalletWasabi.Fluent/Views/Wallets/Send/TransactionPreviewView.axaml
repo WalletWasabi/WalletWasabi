@@ -12,7 +12,7 @@
                    EnableCancel="{Binding EnableCancel}"
                    EnableBack="{Binding EnableBack}"
                    EnableNext="True" NextContent="{Binding NextButtonText}"
-                   EnableSkip="{Binding PreferPsbtWorkflow}" SkipContent="Confirm"
+                   EnableSkip="{Binding PreferPsbtWorkflow}" SkipContent="Send Now"
                    IsBusy="{Binding IsBusy}"
                    ScrollViewer.VerticalScrollBarVisibility="Auto">
         <StackPanel Spacing="20">
