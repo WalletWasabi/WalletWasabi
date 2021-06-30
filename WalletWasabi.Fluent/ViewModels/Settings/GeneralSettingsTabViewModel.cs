@@ -37,6 +37,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			_autoCopy = Services.UiConfig.Autocopy;
 			_customFee = Services.UiConfig.IsCustomFee;
 			_customChangeAddress = Services.UiConfig.IsCustomChangeAddress;
+			_osStartup = Services.UiConfig.IsOsStartup;
 			_selectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), Services.UiConfig.FeeDisplayFormat)
 				? (FeeDisplayFormat)Services.UiConfig.FeeDisplayFormat
 				: FeeDisplayFormat.SatoshiPerByte;
@@ -58,7 +59,11 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			this.WhenAnyValue(x => x.OsStartup)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Skip(1)
-				.Subscribe(x => ModifyRegistry(x));
+				.Subscribe(x =>
+				{
+					Services.UiConfig.IsOsStartup = x;
+					ModifyRegistry(x);
+				});
 
 			this.WhenAnyValue(x => x.CustomFee)
 				.ObserveOn(RxApp.TaskpoolScheduler)
