@@ -38,8 +38,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				IncomingAmount = amount;
 			}
 
-			Label = transactionSummary.Label.ToList();
-			FilteredLabel = Label.Count > 3 ? Label.Take(3).Append("...").ToList() : Label.ToList();
+			Label = transactionSummary.Label.Take(1).ToList();
+			FilteredLabel = transactionSummary.Label.Skip(1).ToList();
 
 			ShowDetailsCommand = ReactiveCommand.Create(() => RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(new TransactionDetailsViewModel(transactionSummary, wallet, updateTrigger)));
 		}
