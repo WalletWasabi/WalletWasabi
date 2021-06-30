@@ -51,12 +51,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
 			IsPayJoin = PayJoinUrl is not null;
 
-			if (wallet.KeyManager.PreferPsbtWorkflow)
+			if (PreferPsbtWorkflow)
 			{
+				SkipCommand = ReactiveCommand.CreateFromTask(async () => await OnConfirmAsync(transaction));
 				NextCommand = ReactiveCommand.CreateFromTask(async () =>
 				{
-					await TransactionHelpers.ExportTransactionToBinaryAsync(transaction);
-					Navigate().To(new SuccessViewModel("The PSBT has been successfully created."));
+					var saved = await TransactionHelpers.ExportTransactionToBinaryAsync(transaction);
+
+					if (saved)
+					{
+						Navigate().To(new SuccessViewModel("The PSBT has been successfully created."));
+					}
 				});
 				_nextButtonText = "Save PSBT file";
 			}
@@ -67,6 +72,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 
 		}
+
+		public bool PreferPsbtWorkflow => _wallet.KeyManager.PreferPsbtWorkflow;
 
 		public string AmountText { get; }
 

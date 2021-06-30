@@ -91,7 +91,7 @@ namespace WalletWasabi.Fluent.Helpers
 			return psbt.ExtractSmartTransaction();
 		}
 
-		public static async Task ExportTransactionToBinaryAsync(BuildTransactionResult transaction)
+		public static async Task<bool> ExportTransactionToBinaryAsync(BuildTransactionResult transaction)
 		{
 			var psbtExtension = "psbt";
 			var filePath = await FileDialogHelper.ShowSaveFileDialogAsync("Export transaction", psbtExtension);
@@ -104,7 +104,11 @@ namespace WalletWasabi.Fluent.Helpers
 	                filePath = $"{filePath}.{psbtExtension}";
             	}
             	await File.WriteAllBytesAsync(filePath, transaction.Psbt.ToBytes());
+
+                return true;
             }
+
+            return false;
 		}
 	}
 }
