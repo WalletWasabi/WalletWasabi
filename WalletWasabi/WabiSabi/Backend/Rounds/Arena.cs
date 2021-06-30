@@ -172,7 +172,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 						// Broadcasting.
 						await Rpc.SendRawTransactionAsync(coinjoin).ConfigureAwait(false);
-						round.SetPhase(Phase.TransactionBroadcasting);
+						round.SetPhase(Phase.TransactionBroadcasting); // TODO remove from Rounds after timeout?
 
 						round.LogInfo($"Successfully broadcast the CoinJoin: {coinjoin.GetHash()}.");
 					}
@@ -207,7 +207,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 
 			round.Alices.RemoveAll(x => alicesWhoDidntSign.Contains(x));
-			Rounds.Remove(round);
+			round.SetPhase(Phase.Failed); // TODO remove from Rounds after timeout?
 
 			if (round.InputCount >= Config.MinInputCountByRound)
 			{
