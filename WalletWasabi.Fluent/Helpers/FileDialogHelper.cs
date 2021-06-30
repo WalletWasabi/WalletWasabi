@@ -36,7 +36,7 @@ namespace WalletWasabi.Fluent.Helpers
 		{
 			var sfd = new SaveFileDialog
 			{
-				DefaultExtension = filterExtTypes.First(),
+				DefaultExtension = filterExtTypes.FirstOrDefault(),
 				Title = title
 			};
 
