@@ -30,13 +30,13 @@
       <behaviors:ShowFlyoutOnPointerOverBehavior />
     </Interaction.Behaviors>
     <FlyoutBase.AttachedFlyout>
-      <Flyout Placement="Top" ShowMode="TransientWithDismissOnPointerMoveAway">
+      <Flyout Placement="Top" ShowMode="TransientWithDismissOnPointerMoveAway"
+              ScrollViewer.VerticalScrollBarVisibility="Disabled"
+              ScrollViewer.HorizontalScrollBarVisibility="Disabled">
         <StackPanel TextBlock.Foreground="{DynamicResource TextControlForeground}"
                     TextBlock.FontSize="14"
                     MaxWidth="160"
-                    ClipToBounds="False"
-                    ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                    ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    ClipToBounds="False">
 
           <!-- Status -->
           <StackPanel Spacing="16">
