@@ -128,6 +128,27 @@
         </DataGridTemplateColumn.CellTemplate>
       </DataGridTemplateColumn>
 
+      <!-- Labels -->
+
+      <DataGridTemplateColumn Header="Labels"
+                              Width="*"
+                              CanUserSort="True"
+                              SortMemberPath="Label">
+        <DataGridTemplateColumn.CellTemplate>
+          <DataTemplate>
+            <DockPanel LastChildFill="True" x:DataType="history:HistoryItemViewModel">
+              <ToolTip.Tip>
+                <c:TagsBox IsReadOnly="True"
+                           Items="{Binding Label}" />
+              </ToolTip.Tip>
+              <c:TagsBox Padding="0" IsReadOnly="True"
+                         Items="{Binding FilteredLabel}"
+                         VerticalAlignment="Center" />
+            </DockPanel>
+          </DataTemplate>
+        </DataGridTemplateColumn.CellTemplate>
+      </DataGridTemplateColumn>
+
       <!-- Incoming -->
       <DataGridTemplateColumn Header="Incoming (BTC)"
                               Width="*"
@@ -173,27 +194,6 @@
                        x:DataType="history:HistoryItemViewModel"
                        Text="{Binding Balance, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
                        Margin="10 0" />
-          </DataTemplate>
-        </DataGridTemplateColumn.CellTemplate>
-      </DataGridTemplateColumn>
-
-      <!-- Labels -->
-
-      <DataGridTemplateColumn Header="Labels"
-                              Width="*"
-                              CanUserSort="True"
-                              SortMemberPath="Label">
-        <DataGridTemplateColumn.CellTemplate>
-          <DataTemplate>
-            <DockPanel LastChildFill="True" x:DataType="history:HistoryItemViewModel">
-              <ToolTip.Tip>
-                <c:TagsBox IsReadOnly="True"
-                           Items="{Binding Label}" />
-              </ToolTip.Tip>
-              <c:TagsBox Padding="0" IsReadOnly="True"
-                         Items="{Binding FilteredLabel}"
-                         VerticalAlignment="Center" />
-            </DockPanel>
           </DataTemplate>
         </DataGridTemplateColumn.CellTemplate>
       </DataGridTemplateColumn>
