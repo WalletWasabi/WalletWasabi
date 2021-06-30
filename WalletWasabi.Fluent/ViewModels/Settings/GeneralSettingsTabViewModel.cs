@@ -84,7 +84,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		public IEnumerable<FeeDisplayFormat> FeeDisplayFormats =>
 			Enum.GetValues(typeof(FeeDisplayFormat)).Cast<FeeDisplayFormat>();
 
-		// TODO: Save the changed option to the UI Config File
 		private void ModifyRegistry(bool changedOption)
 		{
 			string keyName = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
