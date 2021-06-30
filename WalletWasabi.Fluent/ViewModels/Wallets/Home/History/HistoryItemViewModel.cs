@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reactive;
 using System.Windows.Input;
 using NBitcoin;
@@ -36,7 +38,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				IncomingAmount = amount;
 			}
 
-			Label = transactionSummary.Label;
+			Label = transactionSummary.Label.ToList();
+			FilteredLabel = Label.Count > 3 ? Label.Take(3).Append("...").ToList() : Label.ToList();
 
 			ShowDetailsCommand = ReactiveCommand.Create(() => RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(new TransactionDetailsViewModel(transactionSummary, wallet, updateTrigger)));
 		}
@@ -57,7 +60,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 		public Money? OutgoingAmount { get; }
 
-		public SmartLabel Label { get; }
+		public List<string> FilteredLabel { get; }
+
+		public List<string> Label { get; }
 
 		public bool IsCoinJoin { get; }
 

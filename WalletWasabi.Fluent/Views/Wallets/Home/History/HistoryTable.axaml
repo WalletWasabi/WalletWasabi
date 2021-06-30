@@ -186,8 +186,12 @@
         <DataGridTemplateColumn.CellTemplate>
           <DataTemplate>
             <DockPanel LastChildFill="True" x:DataType="history:HistoryItemViewModel">
+              <ToolTip.Tip>
+                <c:TagsBox IsReadOnly="True"
+                           Items="{Binding Label}" />
+              </ToolTip.Tip>
               <c:TagsBox Padding="0" IsReadOnly="True"
-                         Items="{Binding Label}"
+                         Items="{Binding FilteredLabel}"
                          VerticalAlignment="Center" />
             </DockPanel>
           </DataTemplate>
