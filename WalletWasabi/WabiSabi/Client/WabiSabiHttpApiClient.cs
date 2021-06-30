@@ -30,7 +30,8 @@ namespace WalletWasabi.WabiSabi.Client
 			RegisterOutput,
 			ReissueCredential,
 			SignTransaction,
-			GetStatus
+			GetStatus,
+			ReadyToSign
 		}
 
 		public Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken) =>
@@ -62,6 +63,9 @@ namespace WalletWasabi.WabiSabi.Client
 			var jsonString = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 			return Deserialize<RoundState[]>(jsonString);
 		}
+
+		public Task ReadyToSign(ReadyToSignRequestRequest request, CancellationToken cancellationToken) =>
+			SendAndReceiveAsync<ReadyToSignRequestRequest>(RemoteAction.ReadyToSign, request, cancellationToken);
 
 		private async Task<string> SendAsync<TRequest>(RemoteAction action, TRequest request, CancellationToken cancellationToken) where TRequest : class
 		{
@@ -95,7 +99,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private static TResponse Deserialize<TResponse>(string jsonString)
 		{
 			return JsonConvert.DeserializeObject<TResponse>(jsonString, JsonSerializationOptions.Default.Settings)
-				?? throw new InvalidOperationException("Deserealization error");
+				?? throw new InvalidOperationException("Deserialization error");
 		}
 
 		private static string GetUriEndPoint(RemoteAction action) =>
@@ -108,6 +112,7 @@ namespace WalletWasabi.WabiSabi.Client
 				RemoteAction.RemoveInput => "input-unregistration",
 				RemoteAction.SignTransaction => "transaction-signature",
 				RemoteAction.GetStatus => "status",
+				RemoteAction.ReadyToSign => "ready-to-sign",
 				_ => throw new NotSupportedException($"Action '{action}' is unknown and has no endpoint associated.")
 			};
 	}

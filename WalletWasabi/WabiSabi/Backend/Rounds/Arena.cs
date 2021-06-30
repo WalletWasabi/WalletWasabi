@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -115,7 +116,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate));
 				long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
 				var diff = aliceSum - bobSum;
-				if (diff == 0 || round.OutputRegistrationStart + round.OutputRegistrationTimeout < DateTimeOffset.UtcNow)
+				var allReady = round.Alices.All(a => a.ReadyToSign);
+
+				if (allReady || round.OutputRegistrationStart + round.OutputRegistrationTimeout < DateTimeOffset.UtcNow)
 				{
 					var coinjoin = round.Assert<ConstructionState>();
 
@@ -124,9 +127,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 					// If timeout we must fill up the outputs to build a reasonable transaction.
 					// This won't be signed by the alice who failed to provide output, so we know who to ban.
-					if (diff > coinjoin.Parameters.AllowedOutputAmounts.Min)
+					var diffMoney = Money.Satoshis(diff) - coinjoin.Parameters.FeeRate.GetFee(Config.BlameScript.EstimateOutputVsize());
+					if (!allReady && diffMoney > coinjoin.Parameters.AllowedOutputAmounts.Min)
 					{
-						var diffMoney = Money.Satoshis(diff) - coinjoin.Parameters.FeeRate.GetFee(Config.BlameScript.EstimateOutputVsize());
 						coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, Config.BlameScript));
 						round.LogInfo("Filled up the outputs to build a reasonable transaction because some alice failed to provide its output.");
 					}
@@ -263,6 +266,30 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					request.ZeroAmountCredentialRequests,
 					request.ZeroVsizeCredentialRequests,
 					Rounds);
+			}
+		}
+
+		public async Task ReadyToSignAsync(ReadyToSignRequestRequest request)
+		{
+			using (await AsyncLock.LockAsync().ConfigureAwait(false))
+			{
+				if (Rounds.FirstOrDefault(r => r.Id == request.RoundId) is not Round round)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound, $"Round ({request.RoundId}) not found.");
+				}
+
+				if (round.Alices.FirstOrDefault(a => a.Id == request.AliceId) is not Alice alice)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound, $"Round ({request.RoundId}): Alice id ({request.AliceId}).");
+				}
+
+				var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", request.RoundId);
+				if (!OwnershipProof.VerifyCoinJoinInputProof(request.OwnershipProof, alice.Coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
+				}
+
+				alice.ReadyToSign = true;
 			}
 		}
 

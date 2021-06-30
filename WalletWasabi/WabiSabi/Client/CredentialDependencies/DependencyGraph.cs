@@ -1,10 +1,13 @@
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 
 namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 {
+	[DebuggerDisplay("{AsGraphviz(),nq}")]
 	public record DependencyGraph
 	{
 		public const int K = ProtocolConstants.CredentialNumber;
@@ -14,13 +17,13 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 		public ImmutableList<RequestNode> Vertices { get; init; } = ImmutableList<RequestNode>.Empty;
 
 		// The input nodes, in the order they were added
-		public ImmutableList<RequestNode> Inputs { get; init; } = ImmutableList<RequestNode>.Empty;
+		public ImmutableList<InputNode> Inputs { get; init; } = ImmutableList<InputNode>.Empty;
 
 		// The output nodes, in the order they were added
-		public ImmutableList<RequestNode> Outputs { get; init; } = ImmutableList<RequestNode>.Empty;
+		public ImmutableList<OutputNode> Outputs { get; init; } = ImmutableList<OutputNode>.Empty;
 
 		// The reissuance nodes, unsorted
-		public ImmutableList<RequestNode> Reissuances { get; init; } = ImmutableList<RequestNode>.Empty;
+		public ImmutableList<ReissuanceNode> Reissuances { get; init; } = ImmutableList<ReissuanceNode>.Empty;
 
 		// Internal properties used to keep track of effective values and edges
 		public ImmutableSortedDictionary<CredentialType, CredentialEdgeSet> EdgeSets { get; init; } = ImmutableSortedDictionary<CredentialType, CredentialEdgeSet>.Empty
@@ -29,13 +32,15 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 		public long Balance(RequestNode node, CredentialType credentialType) => EdgeSets[credentialType].Balance(node);
 
-		public IEnumerable<CredentialDependency> InEdges(RequestNode node, CredentialType credentialType) => EdgeSets[credentialType].InEdges(node);
+		public IEnumerable<CredentialDependency> InEdges(RequestNode node, CredentialType credentialType) => EdgeSets[credentialType].InEdges(node).OrderByDescending(e => e.Value);
 
-		public IEnumerable<CredentialDependency> OutEdges(RequestNode node, CredentialType credentialType) => EdgeSets[credentialType].OutEdges(node);
+		public IEnumerable<CredentialDependency> OutEdges(RequestNode node, CredentialType credentialType) => EdgeSets[credentialType].OutEdges(node).OrderByDescending(e => e.Value);
 
 		public int InDegree(RequestNode node, CredentialType credentialType) => EdgeSets[credentialType].InDegree(node);
 
 		public int OutDegree(RequestNode node, CredentialType credentialType) => EdgeSets[credentialType].OutDegree(node);
+
+		private string AsGraphviz() => DependencyGraphExtensions.AsGraphviz(this);
 
 		/// <summary>Construct a graph from amounts, and resolve the
 		/// credential dependencies.</summary>
@@ -44,6 +49,25 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 		/// <see>Vertices</see> property will correspond to the given values in order,
 		/// and may contain additional nodes if reissuance requests are
 		/// required.</remarks>
+		///
+		public static DependencyGraph ResolveCredentialDependencies(IEnumerable<Coin> inputs, IEnumerable<TxOut> outputs, FeeRate feerate, long vsizeAllocationPerInput)
+		{
+			var inputSizes = inputs.Select(x => x.ScriptPubKey.EstimateInputVsize());
+			var effectiveValues = Enumerable.Zip(inputs, inputSizes, (coin, size) => coin.EffectiveValue(feerate));
+
+			if (effectiveValues.Any(x => x <= Money.Zero))
+			{
+				throw new InvalidOperationException($"Not enough funds to pay for the fees.");
+			}
+
+			var outputSizes = outputs.Select(x => x.ScriptPubKey.EstimateOutputVsize());
+			var effectiveCosts = Enumerable.Zip(outputs, outputSizes, (txout, size) => txout.EffectiveCost(feerate));
+
+			return ResolveCredentialDependencies(
+				Enumerable.Zip(effectiveValues.Select(a => (ulong)a.Satoshi), inputSizes.Select(i => (ulong)(vsizeAllocationPerInput - i)), ImmutableArray.Create).Cast<IEnumerable<ulong>>(),
+				Enumerable.Zip(effectiveCosts.Select(a => (ulong)a.Satoshi), outputSizes.Select(i => (ulong)i), ImmutableArray.Create).Cast<IEnumerable<ulong>>()
+			);
+		}
 		public static DependencyGraph ResolveCredentialDependencies(IEnumerable<IEnumerable<ulong>> inputValues, IEnumerable<IEnumerable<ulong>> outputValues)
 			=> FromValues(inputValues, outputValues).ResolveCredentials();
 
@@ -90,13 +114,13 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 		// approach.
 		private DependencyGraph AddInput(IEnumerable<ulong> values)
 		{
-			var node = new RequestNode(values.Select(y => (long)y), inDegree: 0, outDegree: K, zeroOnlyOutDegree: K * (K - 1));
+			var node = new InputNode(values.Select(y => (long)y));
 			return (this with { Inputs = Inputs.Add(node) }).AddNode(node);
 		}
 
 		private DependencyGraph AddOutput(IEnumerable<ulong> values)
 		{
-			var node = new RequestNode(values.Select(y => -1 * (long)y), inDegree: K, outDegree: 0, zeroOnlyOutDegree: 0);
+			var node = new OutputNode(values.Select(y => -1 * (long)y));
 			return (this with { Outputs = Outputs.Add(node) }).AddNode(node);
 		}
 		private DependencyGraph AddInputs(IEnumerable<IEnumerable<ulong>> values) => values.Aggregate(this, (g, v) => g.AddInput(v));
@@ -105,7 +129,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 		private (DependencyGraph, RequestNode) AddReissuance()
 		{
-			var node = new RequestNode(Enumerable.Repeat(0L, K), inDegree: K, outDegree: K, zeroOnlyOutDegree: K * (K - 1));
+			var node = new ReissuanceNode();
 			return ((this with { Reissuances = Reissuances.Add(node) }).AddNode(node), node);
 		}
 
@@ -209,11 +233,20 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 				// because the negative balance of the last loop iteration can't
 				// exceed the the remaining positive elements, their total sum
 				// must be positive as checked in the constructor.
-				// maxCount-- could make sense here if it's >= 2, but that's
-				// already handled by ResolveUniformInputSpecialCases. Just
-				// Drain the largest magnitude node into a new reissuance node
-				// which will have room for an unused edge in its out edge set.
-				(g, largestMagnitudeNode) = g.AggregateIntoReissuanceNode(new RequestNode[] { largestMagnitudeNode }, credentialType);
+				if (maxCount > 1)
+				{
+					// when the edge capacity makes it possible, we can just
+					// ensure the largest magnitude node ends up with an unused
+					// edge by reducing maxCount
+					maxCount--;
+				}
+				else
+				{
+					// otherwise, drain the largest magnitude node into a new
+					// reissuance node which will have room for an unused edge
+					// in its out edge set.
+					(g, largestMagnitudeNode) = g.AggregateIntoReissuanceNode(new RequestNode[] { largestMagnitudeNode }, credentialType);
+				}
 			}
 
 			// Reduce the number of small magnitude nodes to the number of edges
