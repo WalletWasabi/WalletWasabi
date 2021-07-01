@@ -78,7 +78,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 						foreach (var (coin, ownershipProof) in othersCoins)
 						{
-							if (block.Transactions.FirstOrDefault(x => x.GetHash() == coin.Outpoint.Hash) is { } tx)
+							if (block?.Transactions.FirstOrDefault(x => x.GetHash() == coin.Outpoint.Hash) is { } tx)
 							{
 								var transactionCoins = tx.Outputs.AsCoins();
 								var foundCoin = transactionCoins.ElementAtOrDefault((int)coin.Outpoint.N);
