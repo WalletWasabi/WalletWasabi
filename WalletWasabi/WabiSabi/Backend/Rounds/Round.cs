@@ -25,7 +25,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			MaxVsizeAllocationPerAlice = MaxRegistrableVsize;
 
 			AmountCredentialIssuer = new(new(RoundParameters.Random), RoundParameters.Random, MaxRegistrableAmount);
-			VsizeCredentialIssuer = new(new(RoundParameters.Random), RoundParameters.Random, (ulong)MaxRegistrableVsize);
+			VsizeCredentialIssuer = new(new(RoundParameters.Random), RoundParameters.Random, MaxRegistrableVsize);
 			AmountCredentialIssuerParameters = AmountCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 			VsizeCredentialIssuerParameters = VsizeCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 

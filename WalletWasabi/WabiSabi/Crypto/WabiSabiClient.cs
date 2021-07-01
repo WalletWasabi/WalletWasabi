@@ -24,13 +24,11 @@ namespace WalletWasabi.WabiSabi.Crypto
 		public WabiSabiClient(
 			CredentialIssuerParameters credentialIssuerParameters,
 			WasabiRandom randomNumberGenerator,
-			ulong rangeProofUpperBound,
-			ZeroCredentialPool zeroCredentialPool)
+			long rangeProofUpperBound)
 		{
 			RangeProofWidth = (int)Math.Ceiling(Math.Log2(rangeProofUpperBound));
 			RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);
 			CredentialIssuerParameters = Guard.NotNull(nameof(credentialIssuerParameters), credentialIssuerParameters);
-			ZeroCredentialPool = zeroCredentialPool;
 		}
 
 		public int RangeProofWidth { get; }
@@ -40,11 +38,6 @@ namespace WalletWasabi.WabiSabi.Crypto
 		private CredentialIssuerParameters CredentialIssuerParameters { get; }
 
 		private WasabiRandom RandomNumberGenerator { get; }
-
-		/// <summary>
-		/// The credentials pool containing the available zero value credentials.
-		/// </summary>
-		private ZeroCredentialPool ZeroCredentialPool { get; }
 
 		/// <summary>
 		/// Creates a <see cref="CredentialsRequest">credential registration request messages</see>
@@ -106,8 +99,6 @@ namespace WalletWasabi.WabiSabi.Crypto
 			{
 				credentialAmountsToRequest.Add(0);
 			}
-
-			credentialsToPresent = ZeroCredentialPool.FillOutWithZeroCredentials(credentialsToPresent, cancellationToken);
 
 			var macsToPresent = credentialsToPresent.Select(x => x.Mac);
 			if (macsToPresent.Distinct().Count() < macsToPresent.Count())
@@ -178,7 +169,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// </remarks>
 		/// <param name="registrationResponse">The registration response message received from the coordinator.</param>
 		/// <param name="registrationValidationData">The state data required to validate the issued credentials and the proofs.</param>
-		public Credential[] HandleResponse(
+		public IEnumerable<Credential> HandleResponse(
 			CredentialsResponse registrationResponse,
 			CredentialsResponseValidation registrationValidationData)
 		{
@@ -207,10 +198,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 				throw new WabiSabiCryptoException(WabiSabiCryptoErrorCode.ClientReceivedInvalidProofs);
 			}
 
-			var credentialReceived = credentials.Select(x =>
-				new Credential(x.Requested.Value, x.Requested.Randomness, x.Issued));
-
-			return ZeroCredentialPool.ProcessAndGetValuableCredentials(credentialReceived).ToArray();
+			return credentials.Select(x => new Credential(x.Requested.Value, x.Requested.Randomness, x.Issued));
 		}
 
 		private Transcript BuildTransnscript(bool isNullRequest)

@@ -35,8 +35,6 @@ namespace WalletWasabi.WabiSabi.Client
 			Coins = coins;
 		}
 
-		private ZeroCredentialPool ZeroAmountCredentialPool { get; } = new();
-		private ZeroCredentialPool ZeroVsizeCredentialPool { get; } = new();
 		private IEnumerable<Coin> Coins { get; set; }
 		private SecureRandom SecureRandom { get; } = new SecureRandom();
 		private Random Random { get; } = new();
@@ -60,7 +58,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 			List<AliceClient> aliceClients = CreateAliceClients(roundState);
 			DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(aliceClients.Select(a => a.Coin), outputTxOuts, roundState.FeeRate, roundState.MaxVsizeAllocationPerAlice);
-			DependencyGraphResolver dgr = new(dependencyGraph, ZeroAmountCredentialPool, ZeroVsizeCredentialPool);
+			DependencyGraphResolver dgr = new(dependencyGraph);
 
 			// Register coins.
 			await RegisterCoinsAsync(aliceClients, cancellationToken).ConfigureAwait(false);
@@ -100,8 +98,8 @@ namespace WalletWasabi.WabiSabi.Client
 			foreach (var coin in Coins)
 			{
 				var aliceArenaClient = new ArenaClient(
-					roundState.CreateAmountCredentialClient(ZeroAmountCredentialPool, SecureRandom),
-					roundState.CreateVsizeCredentialClient(ZeroVsizeCredentialPool, SecureRandom),
+					roundState.CreateAmountCredentialClient(SecureRandom),
+					roundState.CreateVsizeCredentialClient(SecureRandom),
 					ArenaRequestHandler);
 
 				var hdKey = Keymanager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey).Single();
@@ -135,8 +133,8 @@ namespace WalletWasabi.WabiSabi.Client
 			return new BobClient(
 				roundState.Id,
 				new(
-					roundState.CreateAmountCredentialClient(ZeroAmountCredentialPool, SecureRandom),
-					roundState.CreateVsizeCredentialClient(ZeroVsizeCredentialPool, SecureRandom),
+					roundState.CreateAmountCredentialClient(SecureRandom),
+					roundState.CreateVsizeCredentialClient(SecureRandom),
 					ArenaRequestHandler));
 		}
 
