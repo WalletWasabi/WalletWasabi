@@ -125,19 +125,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		private void UpdateStatus(uint processedCount, double elapsedMilliseconds)
 		{
-			if (TotalCount == 0)
+			if (TotalCount == 0 || processedCount == 0)
 			{
 				return;
 			}
 
 			var percent = (decimal) processedCount / TotalCount * 100;
-			// _startingFilterIndex ??= processedFilters; // Store the filter index we started on. It is needed for better remaining time calculation.
-			// var realProcessedFilters = processedFilters - _startingFilterIndex.Value;
 			var remainingCount = TotalCount - processedCount;
-
 			var tempPercent = (uint) Math.Round(percent);
 
-			if (tempPercent == 0 || processedCount == 0)
+			if (tempPercent == 0 )
 			{
 				return;
 			}
