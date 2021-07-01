@@ -17,12 +17,14 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		[AutoNotify] private int _minimalPrivacyLevel;
 		[AutoNotify] private int _mediumPrivacyLevel;
 		[AutoNotify] private int _strongPrivacyLevel;
+		[AutoNotify] private bool _autoCoinJoin;
 
 		public PrivacySettingsTabViewModel()
 		{
 			_minimalPrivacyLevel = Services.Config.PrivacyLevelSome;
 			_mediumPrivacyLevel = Services.Config.PrivacyLevelFine;
 			_strongPrivacyLevel = Services.Config.PrivacyLevelStrong;
+			_autoCoinJoin = Services.UiConfig.AutoCoinJoin;
 
 			this.WhenAnyValue(
 					x => x.MinimalPrivacyLevel,
@@ -72,6 +74,11 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 							MediumPrivacyLevel = x - 1;
 						}
 					});
+
+			this.WhenAnyValue(x => x.AutoCoinJoin)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Skip(1)
+				.Subscribe(x => Services.UiConfig.AutoCoinJoin = x);
 		}
 
 		protected override void EditConfigOnSave(Config config)

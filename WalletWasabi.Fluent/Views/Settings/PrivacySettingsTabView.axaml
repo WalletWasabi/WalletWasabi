@@ -20,6 +20,14 @@
         <Setter Property="TickFrequency" Value="1" />
       </Style>
     </StackPanel.Styles>
+    <StackPanel.Styles>
+      <Style Selector="DockPanel > ToggleSwitch">
+        <Setter Property="Margin" Value="0 0 -12 0" />
+        <Setter Property="HorizontalAlignment" Value="Right" />
+        <Setter Property="OnContent" Value="{x:Null}" />
+        <Setter Property="OffContent" Value="{x:Null}" />
+      </Style>
+    </StackPanel.Styles>
 
     <StackPanel Spacing="10">
       <TextBlock Text="Minimal Anonymity Level" />
@@ -50,5 +58,10 @@
         <Slider Minimum="4" Value="{Binding StrongPrivacyLevel}" Margin="10 0" />
       </DockPanel>
     </StackPanel>
+
+    <DockPanel>
+      <TextBlock Text="Auto CoinJoin" />
+      <ToggleSwitch IsChecked="{Binding AutoCoinJoin}" />
+    </DockPanel>
   </StackPanel>
 </UserControl>
