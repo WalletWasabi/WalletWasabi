@@ -9,52 +9,6 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.HelpAndSupport.AboutView">
   <UserControl.Styles>
-    <Style Selector="TextBlock#LogoText1">
-      <Style.Animations>
-        <Animation Delay="0.3" Duration="0.37" Easing="{StaticResource FluentEasing}">
-          <KeyFrame Cue="0%">
-            <Setter Property="Opacity" Value="0" />
-            <Setter Property="(TranslateTransform.Y)" Value="12" />
-          </KeyFrame>
-          <KeyFrame Cue="100%">
-            <Setter Property="Opacity" Value="1" />
-            <Setter Property="(TranslateTransform.Y)" Value="0" />
-          </KeyFrame>
-        </Animation>
-      </Style.Animations>
-    </Style>
-    <Style Selector="TextBlock#LogoText2">
-      <Style.Animations>
-        <Animation Delay="0.32" Duration="0.37" Easing="{StaticResource FluentEasing}">
-          <KeyFrame Cue="0%">
-            <Setter Property="Opacity" Value="0" />
-            <Setter Property="(TranslateTransform.Y)" Value="-12" />
-          </KeyFrame>
-          <KeyFrame Cue="100%">
-            <Setter Property="Opacity" Value="1" />
-            <Setter Property="(TranslateTransform.Y)" Value="0" />
-          </KeyFrame>
-        </Animation>
-      </Style.Animations>
-    </Style>
-    <Style Selector="TextBlock#LogoText3">
-      <Setter Property="Foreground" Value="{StaticResource VersionHighlightRadialBrush}" />
-      <Setter Property="RenderTransformOrigin" Value="50%,50%" />
-      <Style.Animations>
-        <Animation Delay="0.34" Duration="0.37" Easing="{StaticResource FluentEasing}">
-          <KeyFrame Cue="0%">
-            <Setter Property="Opacity" Value="0" />
-            <Setter Property="(ScaleTransform.ScaleX)" Value="0.80" />
-            <Setter Property="(ScaleTransform.ScaleY)" Value="0.80" />
-          </KeyFrame>
-          <KeyFrame Cue="100%">
-            <Setter Property="Opacity" Value="1" />
-            <Setter Property="(ScaleTransform.ScaleX)" Value="1" />
-            <Setter Property="(ScaleTransform.ScaleY)" Value="1" />
-          </KeyFrame>
-        </Animation>
-      </Style.Animations>
-    </Style>
     <Style Selector="TextBlock.LinkSeparatorPadding">
       <Setter Property="Margin" Value="5 -0.5" />
       <Setter Property="VerticalAlignment" Value="Center" />
@@ -74,148 +28,143 @@
   </UserControl.Styles>
   <Panel>
     <controls:ContentArea EnableNext="True" NextContent="Close">
-      <controls:ContentArea.Title>
-        <StackPanel Orientation="Horizontal">
-          <TextBlock Name="LogoText1" Classes="h1 semibold">Wasabi</TextBlock>
-          <Panel Width="5" Height="5" />
-          <TextBlock Name="LogoText2" Classes="h1 light">Wallet</TextBlock>
-          <Panel Width="10" Height="10" />
-          <TextBlock Name="LogoText3" Classes="h1 ultrabold">2.0</TextBlock>
-        </StackPanel>
-      </controls:ContentArea.Title>
-      <controls:ContentArea.Caption>
-        <StackPanel Orientation="Horizontal">
-          <TextBlock Classes="Header" Text="Current Version: " />
-          <TextBox Classes="Content selectableTextBlock"
-                   Text="{Binding ClientVersion}" />
-        </StackPanel>
-      </controls:ContentArea.Caption>
-      <DockPanel>
-        <StackPanel Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Center" Orientation="Vertical">
-          <WrapPanel Margin="0 0 0 25" HorizontalAlignment="Center">
-            <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
-              <Button Classes="plain"
-                      Command="{Binding OpenBrowserCommand}"
-                      CommandParameter="{x:Static vm:AboutViewModel.DocsLink}">
-                <TextBlock Text="Documentation" Classes="Hyperlink" />
-              </Button>
-              <controls:AnimatedButton ToolTip.Tip="Copy link"
-                                       Command="{Binding CopyLinkCommand}"
-                                       CommandParameter="{x:Static vm:AboutViewModel.DocsLink}"
-                                       NormalIcon="{StaticResource copy_regular}"
-                                       ClickIcon="{StaticResource copy_confirmed}"/>
-            </StackPanel>
-            <TextBlock Classes="LinkSeparatorPadding" Text="-" />
-            <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
-              <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
-                      CommandParameter="{x:Static vm:AboutViewModel.SourceCodeLink}">
-                <TextBlock Text="Source Code (Github)" Classes="Hyperlink" />
-              </Button>
-              <controls:AnimatedButton ToolTip.Tip="Copy link"
-                                       Command="{Binding CopyLinkCommand}"
-                                       CommandParameter="{x:Static vm:AboutViewModel.SourceCodeLink}"
-                                       NormalIcon="{StaticResource copy_regular}"
-                                       ClickIcon="{StaticResource copy_confirmed}"/>
-            </StackPanel>
-            <TextBlock Classes="LinkSeparatorPadding" Text="-" />
-            <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
-              <Button Classes="plain"
-                      Command="{Binding OpenBrowserCommand}"
-                      CommandParameter="{x:Static vm:AboutViewModel.ClearnetLink}">
-                <TextBlock Text="Website (Clearnet)" Classes="Hyperlink" />
-              </Button>
-              <controls:AnimatedButton ToolTip.Tip="Copy link"
-                                       Command="{Binding CopyLinkCommand}"
-                                       CommandParameter="{x:Static vm:AboutViewModel.ClearnetLink}"
-                                       NormalIcon="{StaticResource copy_regular}"
-                                       ClickIcon="{StaticResource copy_confirmed}"/>
-            </StackPanel>
-            <TextBlock Classes="LinkSeparatorPadding" Text="-" />
-            <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
-              <TextBlock Text="Website (Tor)" />
-              <controls:AnimatedButton ToolTip.Tip="Copy link"
-                                       Command="{Binding CopyLinkCommand}"
-                                       CommandParameter="{x:Static vm:AboutViewModel.TorLink}"
-                                       NormalIcon="{StaticResource copy_regular}"
-                                       ClickIcon="{StaticResource copy_confirmed}"/>
-            </StackPanel>
-            <TextBlock Classes="LinkSeparatorPadding" Text="-" />
-            <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
-              <Button Classes="plain"
-                      Command="{Binding OpenBrowserCommand}"
-                      CommandParameter="{x:Static vm:AboutViewModel.StatusPageLink}">
-                <TextBlock Text="Coordinator Status Page" Classes="Hyperlink" />
-              </Button>
-              <controls:AnimatedButton ToolTip.Tip="Copy link"
-                                       Command="{Binding CopyLinkCommand}"
-                                       CommandParameter="{x:Static vm:AboutViewModel.StatusPageLink}"
-                                       NormalIcon="{StaticResource copy_regular}"
-                                       ClickIcon="{StaticResource copy_confirmed}"/>
-            </StackPanel>
-            <TextBlock Classes="LinkSeparatorPadding" Text="-" />
-            <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
-              <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
-                      CommandParameter="{x:Static vm:AboutViewModel.UserSupportLink}">
-                <TextBlock Text="User Support" Classes="Hyperlink" />
-              </Button>
-              <controls:AnimatedButton ToolTip.Tip="Copy link"
-                                       Command="{Binding CopyLinkCommand}"
-                                       CommandParameter="{x:Static vm:AboutViewModel.UserSupportLink}"
-                                       NormalIcon="{StaticResource copy_regular}"
-                                       ClickIcon="{StaticResource copy_confirmed}"/>
-            </StackPanel>
-            <TextBlock Classes="LinkSeparatorPadding" Text="-" />
-            <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
-              <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
-                      CommandParameter="{x:Static vm:AboutViewModel.BugReportLink}">
-                <TextBlock Text="Bug Reporting" Classes="Hyperlink" />
-              </Button>
-              <controls:AnimatedButton ToolTip.Tip="Copy link"
-                                       Command="{Binding CopyLinkCommand}"
-                                       CommandParameter="{x:Static vm:AboutViewModel.BugReportLink}"
-                                       NormalIcon="{StaticResource copy_regular}"
-                                       ClickIcon="{StaticResource copy_confirmed}"/>
-            </StackPanel>
-            <TextBlock Classes="LinkSeparatorPadding" Text="-" />
-            <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
-              <Button Classes="plain"
-                      Command="{Binding OpenBrowserCommand}"
-                      CommandParameter="{x:Static vm:AboutViewModel.FAQLink}">
-                <TextBlock Text="FAQs" Classes="Hyperlink" />
-              </Button>
-              <controls:AnimatedButton ToolTip.Tip="Copy link"
-                                       Command="{Binding CopyLinkCommand}"
-                                       CommandParameter="{x:Static vm:AboutViewModel.FAQLink}"
-                                       NormalIcon="{StaticResource copy_regular}"
-                                       ClickIcon="{StaticResource copy_confirmed}"/>
-            </StackPanel>
-          </WrapPanel>
-          <Button HorizontalAlignment="Center" Classes="plain obscured"
-                  Command="{Binding AboutAdvancedInfoDialogCommand}">
-            <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
-              <PathIcon Data="{StaticResource info_regular}" />
-              <TextBlock Text="Advanced Information..." Classes="Hyperlink" />
-            </StackPanel>
-          </Button>
-          <WrapPanel HorizontalAlignment="Center">
-            <TextBlock Margin=" 0 0 0 -0.5"
-                       VerticalAlignment="Center"
-                       Text="This open source software is licensed with " />
-            <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
-              <Button Classes="plain"
-                      Command="{Binding OpenBrowserCommand}"
-                      CommandParameter="{x:Static vm:AboutViewModel.LicenseLink}">
-                <TextBlock Text="MIT License" Classes="Hyperlink" />
-              </Button>
-              <controls:AnimatedButton ToolTip.Tip="Copy link"
-                                       Command="{Binding CopyLinkCommand}"
-                                       CommandParameter="{x:Static vm:AboutViewModel.LicenseLink}"
-                                       NormalIcon="{StaticResource copy_regular}"
-                                       ClickIcon="{StaticResource copy_confirmed}"/>
-            </StackPanel>
-          </WrapPanel>
-        </StackPanel>
-        <Panel Height="150" />
+      <DockPanel LastChildFill="True">
+        <Viewbox DockPanel.Dock="Top" Margin="25,25,25,50" Width="112" VerticalAlignment="Center"
+                 HorizontalAlignment="Center">
+          <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
+        </Viewbox>
+        <Viewbox ClipToBounds="False" DockPanel.Dock="Top" Width="220" Margin="0,0,0,50" VerticalAlignment="Center"
+                 HorizontalAlignment="Center">
+          <ContentControl Template="{DynamicResource wasabi_logo_text_dynamic}"
+                          VerticalAlignment="Center" ClipToBounds="False" />
+        </Viewbox>
+
+        <DockPanel>
+          <StackPanel Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Center" Orientation="Vertical">
+            <WrapPanel Margin="0 0 0 25" HorizontalAlignment="Center">
+              <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
+                <Button Classes="plain"
+                        Command="{Binding OpenBrowserCommand}"
+                        CommandParameter="{x:Static vm:AboutViewModel.DocsLink}">
+                  <TextBlock Text="Documentation" Classes="Hyperlink" />
+                </Button>
+                <controls:AnimatedButton ToolTip.Tip="Copy link"
+                                         Command="{Binding CopyLinkCommand}"
+                                         CommandParameter="{x:Static vm:AboutViewModel.DocsLink}"
+                                         NormalIcon="{StaticResource copy_regular}"
+                                         ClickIcon="{StaticResource copy_confirmed}" />
+              </StackPanel>
+              <TextBlock Classes="LinkSeparatorPadding" Text="-" />
+              <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
+                <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
+                        CommandParameter="{x:Static vm:AboutViewModel.SourceCodeLink}">
+                  <TextBlock Text="Source Code (Github)" Classes="Hyperlink" />
+                </Button>
+                <controls:AnimatedButton ToolTip.Tip="Copy link"
+                                         Command="{Binding CopyLinkCommand}"
+                                         CommandParameter="{x:Static vm:AboutViewModel.SourceCodeLink}"
+                                         NormalIcon="{StaticResource copy_regular}"
+                                         ClickIcon="{StaticResource copy_confirmed}" />
+              </StackPanel>
+              <TextBlock Classes="LinkSeparatorPadding" Text="-" />
+              <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
+                <Button Classes="plain"
+                        Command="{Binding OpenBrowserCommand}"
+                        CommandParameter="{x:Static vm:AboutViewModel.ClearnetLink}">
+                  <TextBlock Text="Website (Clearnet)" Classes="Hyperlink" />
+                </Button>
+                <controls:AnimatedButton ToolTip.Tip="Copy link"
+                                         Command="{Binding CopyLinkCommand}"
+                                         CommandParameter="{x:Static vm:AboutViewModel.ClearnetLink}"
+                                         NormalIcon="{StaticResource copy_regular}"
+                                         ClickIcon="{StaticResource copy_confirmed}" />
+              </StackPanel>
+              <TextBlock Classes="LinkSeparatorPadding" Text="-" />
+              <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
+                <TextBlock Text="Website (Tor)" />
+                <controls:AnimatedButton ToolTip.Tip="Copy link"
+                                         Command="{Binding CopyLinkCommand}"
+                                         CommandParameter="{x:Static vm:AboutViewModel.TorLink}"
+                                         NormalIcon="{StaticResource copy_regular}"
+                                         ClickIcon="{StaticResource copy_confirmed}" />
+              </StackPanel>
+              <TextBlock Classes="LinkSeparatorPadding" Text="-" />
+              <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
+                <Button Classes="plain"
+                        Command="{Binding OpenBrowserCommand}"
+                        CommandParameter="{x:Static vm:AboutViewModel.StatusPageLink}">
+                  <TextBlock Text="Coordinator Status Page" Classes="Hyperlink" />
+                </Button>
+                <controls:AnimatedButton ToolTip.Tip="Copy link"
+                                         Command="{Binding CopyLinkCommand}"
+                                         CommandParameter="{x:Static vm:AboutViewModel.StatusPageLink}"
+                                         NormalIcon="{StaticResource copy_regular}"
+                                         ClickIcon="{StaticResource copy_confirmed}" />
+              </StackPanel>
+              <TextBlock Classes="LinkSeparatorPadding" Text="-" />
+              <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
+                <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
+                        CommandParameter="{x:Static vm:AboutViewModel.UserSupportLink}">
+                  <TextBlock Text="User Support" Classes="Hyperlink" />
+                </Button>
+                <controls:AnimatedButton ToolTip.Tip="Copy link"
+                                         Command="{Binding CopyLinkCommand}"
+                                         CommandParameter="{x:Static vm:AboutViewModel.UserSupportLink}"
+                                         NormalIcon="{StaticResource copy_regular}"
+                                         ClickIcon="{StaticResource copy_confirmed}" />
+              </StackPanel>
+              <TextBlock Classes="LinkSeparatorPadding" Text="-" />
+              <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
+                <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
+                        CommandParameter="{x:Static vm:AboutViewModel.BugReportLink}">
+                  <TextBlock Text="Bug Reporting" Classes="Hyperlink" />
+                </Button>
+                <controls:AnimatedButton ToolTip.Tip="Copy link"
+                                         Command="{Binding CopyLinkCommand}"
+                                         CommandParameter="{x:Static vm:AboutViewModel.BugReportLink}"
+                                         NormalIcon="{StaticResource copy_regular}"
+                                         ClickIcon="{StaticResource copy_confirmed}" />
+              </StackPanel>
+              <TextBlock Classes="LinkSeparatorPadding" Text="-" />
+              <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
+                <Button Classes="plain"
+                        Command="{Binding OpenBrowserCommand}"
+                        CommandParameter="{x:Static vm:AboutViewModel.FAQLink}">
+                  <TextBlock Text="FAQs" Classes="Hyperlink" />
+                </Button>
+                <controls:AnimatedButton ToolTip.Tip="Copy link"
+                                         Command="{Binding CopyLinkCommand}"
+                                         CommandParameter="{x:Static vm:AboutViewModel.FAQLink}"
+                                         NormalIcon="{StaticResource copy_regular}"
+                                         ClickIcon="{StaticResource copy_confirmed}" />
+              </StackPanel>
+            </WrapPanel>
+            <Button HorizontalAlignment="Center" Classes="plain obscured"
+                    Command="{Binding AboutAdvancedInfoDialogCommand}">
+              <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
+                <PathIcon Data="{StaticResource info_regular}" />
+                <TextBlock Text="Advanced Information..." Classes="Hyperlink" />
+              </StackPanel>
+            </Button>
+            <WrapPanel HorizontalAlignment="Center">
+              <TextBlock Margin=" 0 0 0 -0.5"
+                         VerticalAlignment="Center"
+                         Text="This open source software is licensed with " />
+              <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
+                <Button Classes="plain"
+                        Command="{Binding OpenBrowserCommand}"
+                        CommandParameter="{x:Static vm:AboutViewModel.LicenseLink}">
+                  <TextBlock Text="MIT License" Classes="Hyperlink" />
+                </Button>
+                <controls:AnimatedButton ToolTip.Tip="Copy link"
+                                         Command="{Binding CopyLinkCommand}"
+                                         CommandParameter="{x:Static vm:AboutViewModel.LicenseLink}"
+                                         NormalIcon="{StaticResource copy_regular}"
+                                         ClickIcon="{StaticResource copy_confirmed}" />
+              </StackPanel>
+            </WrapPanel>
+          </StackPanel>
+        </DockPanel>
       </DockPanel>
     </controls:ContentArea>
   </Panel>

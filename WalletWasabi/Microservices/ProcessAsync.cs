@@ -22,7 +22,7 @@ namespace WalletWasabi.Microservices
 		{
 		}
 
-		private ProcessAsync(Process process)
+		internal ProcessAsync(Process process)
 		{
 			Process = process;
 		}
@@ -80,7 +80,7 @@ namespace WalletWasabi.Microservices
 		/// <param name="cancellationToken">Cancellation token.</param>
 		/// <param name="killOnCancel">If <c>true</c> the process will be killed (with entire process tree) when this asynchronous action is canceled via <paramref name="cancellationToken"/> token.</param>
 		/// <returns><see cref="Task"/>.</returns>
-		public async Task WaitForExitAsync(CancellationToken cancellationToken, bool killOnCancel = false)
+		public virtual async Task WaitForExitAsync(CancellationToken cancellationToken, bool killOnCancel = false)
 		{
 			if (Process.HasExited)
 			{
