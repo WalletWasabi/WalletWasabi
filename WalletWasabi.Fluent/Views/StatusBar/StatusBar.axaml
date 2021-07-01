@@ -24,15 +24,17 @@
         </Animation>
       </Style.Animations>
     </Style>
+    <Style Selector="FlyoutPresenter">
+      <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled"/>
+      <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+    </Style>
   </UserControl.Styles>
   <Panel HorizontalAlignment="Right" VerticalAlignment="Stretch">
     <Interaction.Behaviors>
       <behaviors:ShowFlyoutOnPointerOverBehavior />
     </Interaction.Behaviors>
     <FlyoutBase.AttachedFlyout>
-      <Flyout Placement="Top" ShowMode="TransientWithDismissOnPointerMoveAway"
-              ScrollViewer.VerticalScrollBarVisibility="Disabled"
-              ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+      <Flyout Placement="Top" ShowMode="TransientWithDismissOnPointerMoveAway">
         <StackPanel TextBlock.Foreground="{DynamicResource TextControlForeground}"
                     TextBlock.FontSize="14"
                     MaxWidth="160"
