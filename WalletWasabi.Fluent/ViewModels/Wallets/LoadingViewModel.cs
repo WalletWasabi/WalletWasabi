@@ -43,15 +43,30 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		{
 			base.OnActivated(disposables);
 
-			var deactivateCancelToken = new CancellationTokenSource();
-			disposables.Add(Disposable.Create(() => deactivateCancelToken.Cancel()));
+			_stopwatch ??= Stopwatch.StartNew();
 
-			if (_isLoading)
-			{
-				// TODO: Refactor status
-				ShowFilterProcessingStatus(disposables);
-			}
-			else
+			Observable.Interval(TimeSpan.FromSeconds(1))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					var downloadedFilters = _filtersToSyncCount - RemainingFiltersToSync;
+
+					uint processedFilters = 0;
+					if (Services.BitcoinStore.SmartHeaderChain.TipHeight is { } tipHeight &&
+					    _wallet.LastProcessedFilter?.Header?.Height is { } lastProcessedFilterHeight)
+					{
+						processedFilters = _filtersToProcessCount - (tipHeight - lastProcessedFilterHeight);
+					}
+
+					var processedCount = downloadedFilters + processedFilters;
+
+					// Console.WriteLine($"Total: {TotalCount} Processed:{processedCount} Downloaded: {downloadedFilters} ProcessedF: {processedFilters}");
+
+					UpdateStatus(processedCount, _stopwatch.ElapsedMilliseconds);
+				})
+				.DisposeWith(disposables);
+
+			if (!_isLoading)
 			{
 				Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
 					.ObserveOn(RxApp.MainThreadScheduler)
@@ -63,17 +78,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				Observable.FromEventPattern<bool>(Services.Synchronizer, nameof(Services.Synchronizer.ResponseArrivedIsGenSocksServFail))
 					.Select(x => x.EventArgs)
 					.Where(x => x)
-					.Subscribe(async _ => await LoadWalletAsync(disposables, syncFilters: false))
+					.Subscribe(async _ => await LoadWalletAsync(syncFilters: false))
 					.DisposeWith(disposables);
 
 				this.WhenAnyValue(x => x.IsBackendConnected)
 					.Where(x => x)
-					.Subscribe(async _ => await LoadWalletAsync(disposables, syncFilters: true))
+					.Subscribe(async _ => await LoadWalletAsync(syncFilters: true))
 					.DisposeWith(disposables);
 			}
 		}
 
-		private async Task LoadWalletAsync(CompositeDisposable disposables, bool syncFilters)
+		private async Task LoadWalletAsync(bool syncFilters)
 		{
 			if (_isLoading)
 			{
@@ -93,29 +108,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			}
 
 			await UiServices.WalletManager.LoadWalletAsync(_wallet);
-		}
-
-		private void ShowFilterProcessingStatus(CompositeDisposable disposables)
-		{
-			_stopwatch ??= Stopwatch.StartNew();
-
-			Observable.Interval(TimeSpan.FromSeconds(1))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					var segwitActivationHeight = SmartHeader.GetStartingHeader(_wallet.Network).Height;
-					if (_wallet.LastProcessedFilter?.Header?.Height is { } lastProcessedFilterHeight
-					    && lastProcessedFilterHeight > segwitActivationHeight
-					    && Services.BitcoinStore.SmartHeaderChain.TipHeight is { } tipHeight
-					    && tipHeight > segwitActivationHeight)
-					{
-						var allFilters = tipHeight - segwitActivationHeight;
-						var processedFilters = lastProcessedFilterHeight - segwitActivationHeight;
-
-						UpdateStatus(allFilters, processedFilters, _stopwatch.ElapsedMilliseconds);
-					}
-				})
-				.DisposeWith(disposables);
 		}
 
 		private void SetInitValues()
