@@ -34,18 +34,18 @@ namespace WalletWasabi.Helpers
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				{
 					string keyName = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
-					using RegistryKey key = Registry.CurrentUser.OpenSubKey(keyName, writable: true);
+					using RegistryKey? key = Registry.CurrentUser.OpenSubKey(keyName, writable: true);
 					if (isWasabiStartsWithOS)
 					{
 						string pathToExeFile = Assembly.GetExecutingAssembly().Location;
 						pathToExeFile = pathToExeFile.Remove(pathToExeFile.Length - 4);        // This part has to change if this gets released
 						pathToExeFile += ".Fluent.Desktop.exe";
 
-						key.SetValue("WasabiWallet", pathToExeFile);
+						key?.SetValue("WasabiWallet", pathToExeFile);
 					}
 					else
 					{
-						key.DeleteValue("WasabiWallet");
+						key?.DeleteValue("WasabiWallet");
 					}
 
 					return true;
@@ -62,6 +62,10 @@ namespace WalletWasabi.Helpers
 			catch (ObjectDisposedException ex)
 			{
 				Logger.LogError("The RegistryKey is closed or cannot be accessed.", ex);
+			}
+			catch (NullReferenceException ex)
+			{
+				Logger.LogError("Couldn't open registry subkey in SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", ex);
 			}
 
 			return false;
