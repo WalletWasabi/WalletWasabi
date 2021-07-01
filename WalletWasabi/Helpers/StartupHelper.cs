@@ -33,28 +33,26 @@ namespace WalletWasabi.Helpers
 			try
 			{
 				// This extra check is here only to eliminate warnings.
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-				{
-					using RegistryKey key = Registry.CurrentUser.OpenSubKey(keyName, writable: true) ?? throw new NullReferenceException();
-					if (isWasabiStartsWithOS)
-					{
-						string pathToExeFile = Assembly.GetExecutingAssembly().Location;
-						pathToExeFile = pathToExeFile.Remove(pathToExeFile.Length - 4);        // This part has to change if this gets released
-						pathToExeFile += ".Fluent.Desktop.exe";
-
-						key.SetValue("WasabiWallet", pathToExeFile);
-					}
-					else
-					{
-						key.DeleteValue("WasabiWallet");
-					}
-
-					return true;
-				}
-				else
+				if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				{
 					throw new InvalidOperationException("It can only be called on Windows.");
 				}
+
+				using RegistryKey key = Registry.CurrentUser.OpenSubKey(keyName, writable: true) ?? throw new NullReferenceException();
+				if (isWasabiStartsWithOS)
+				{
+					string pathToExeFile = Assembly.GetExecutingAssembly().Location;
+					pathToExeFile = pathToExeFile.Remove(pathToExeFile.Length - 4);        // This part has to change if this gets released
+					pathToExeFile += ".Fluent.Desktop.exe";
+
+					key.SetValue("WasabiWallet", pathToExeFile);
+				}
+				else
+				{
+					key.DeleteValue("WasabiWallet");
+				}
+
+				return true;
 			}
 			catch (ArgumentNullException ex)
 			{
