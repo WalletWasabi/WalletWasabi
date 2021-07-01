@@ -123,16 +123,21 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			}
 		}
 
-		private void UpdateStatus(uint allFilters, uint processedFilters, double elapsedMilliseconds)
+		private void UpdateStatus(uint processedCount, double elapsedMilliseconds)
 		{
-			var percent = (decimal) processedFilters / allFilters * 100;
-			_startingFilterIndex ??= processedFilters; // Store the filter index we started on. It is needed for better remaining time calculation.
-			var realProcessedFilters = processedFilters - _startingFilterIndex.Value;
-			var remainingFilterCount = allFilters - processedFilters;
+			if (TotalCount == 0)
+			{
+				return;
+			}
+
+			var percent = (decimal) processedCount / TotalCount * 100;
+			// _startingFilterIndex ??= processedFilters; // Store the filter index we started on. It is needed for better remaining time calculation.
+			// var realProcessedFilters = processedFilters - _startingFilterIndex.Value;
+			var remainingCount = TotalCount - processedCount;
 
 			var tempPercent = (uint) Math.Round(percent);
 
-			if (tempPercent == 0 || realProcessedFilters == 0 || remainingFilterCount == 0)
+			if (tempPercent == 0 || processedCount == 0)
 			{
 				return;
 			}
@@ -140,7 +145,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			Percent = tempPercent;
 			var percentText = $"{Percent}% completed";
 
-			var remainingMilliseconds = elapsedMilliseconds / realProcessedFilters * remainingFilterCount;
+			var remainingMilliseconds = elapsedMilliseconds / processedCount * remainingCount;
 			var userFriendlyTime = TextHelpers.TimeSpanToFriendlyString(TimeSpan.FromMilliseconds(remainingMilliseconds));
 			var remainingTimeText = string.IsNullOrEmpty(userFriendlyTime) ? "" : $"- {userFriendlyTime} remaining";
 
