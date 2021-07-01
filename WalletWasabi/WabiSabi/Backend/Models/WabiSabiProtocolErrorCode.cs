@@ -36,6 +36,7 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		UneconomicalInput,
 		VsizeQuotaExceeded,
 		DeltaNotZero,
-		WrongNumberOfCreds
+		WrongNumberOfCreds,
+		CryptoException
 	}
 }

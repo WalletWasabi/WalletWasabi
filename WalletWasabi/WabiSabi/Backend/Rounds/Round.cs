@@ -21,11 +21,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			CoinjoinState = new ConstructionState(txParams);
 
 			InitialInputVsizeAllocation = CoinjoinState.Parameters.MaxTransactionSize - MultipartyTransactionParameters.SharedOverhead;
-			MaxRegistrableVsize = InitialInputVsizeAllocation / RoundParameters.MaxInputCountByRound;
+			MaxRegistrableVsize = Math.Min(InitialInputVsizeAllocation / RoundParameters.MaxInputCountByRound, (int)ProtocolConstants.MaxVsizeCredentialValue);
 			MaxVsizeAllocationPerAlice = MaxRegistrableVsize;
 
 			AmountCredentialIssuer = new(new(RoundParameters.Random), RoundParameters.Random, MaxRegistrableAmount);
-			VsizeCredentialIssuer = new(new(RoundParameters.Random), RoundParameters.Random, (ulong)MaxRegistrableVsize);
+			VsizeCredentialIssuer = new(new(RoundParameters.Random), RoundParameters.Random, MaxRegistrableVsize);
 			AmountCredentialIssuerParameters = AmountCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 			VsizeCredentialIssuerParameters = VsizeCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 

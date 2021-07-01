@@ -84,6 +84,15 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			}
 		}
 
+		public async Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellableToken)
+		{
+			DisposeGuard();
+			using (RunningTasks.RememberWith(RunningRequests))
+			{
+				await Arena.ReadyToSignAsync(request).ConfigureAwait(false);
+			}
+		}
+
 		public async ValueTask DisposeAsync()
 		{
 			lock (DisposeStartedLock)

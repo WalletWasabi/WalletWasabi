@@ -19,12 +19,18 @@ namespace WalletWasabi.Tor
 	{
 		private bool _disposed = false;
 
-		public TorProcessManager(TorSettings settings)
+		public TorProcessManager(TorSettings settings) :
+			this(settings, new(settings.SocksEndpoint))
+		{
+		}
+
+		/// <summary>For tests.</summary>
+		internal TorProcessManager(TorSettings settings, TorTcpConnectionFactory tcpConnectionFactory)
 		{
 			TorProcess = null;
 			TorControlClient = null;
 			Settings = settings;
-			TcpConnectionFactory = new(settings.SocksEndpoint);
+			TcpConnectionFactory = tcpConnectionFactory;
 		}
 
 		private ProcessAsync? TorProcess { get; set; }
@@ -98,7 +104,7 @@ namespace WalletWasabi.Tor
 		}
 
 		/// <summary>Ensure <paramref name="process"/> is actually running.</summary>
-		private async Task<bool> EnsureRunningAsync(ProcessAsync process, CancellationToken token)
+		internal virtual async Task<bool> EnsureRunningAsync(ProcessAsync process, CancellationToken token)
 		{
 			int i = 0;
 			while (true)
@@ -132,7 +138,7 @@ namespace WalletWasabi.Tor
 		}
 
 		/// <param name="arguments">Command line arguments to start Tor OS process with.</param>
-		private ProcessAsync StartProcess(string arguments)
+		internal virtual ProcessAsync StartProcess(string arguments)
 		{
 			ProcessStartInfo startInfo = new()
 			{
@@ -165,7 +171,7 @@ namespace WalletWasabi.Tor
 		/// <summary>Connects to Tor control using a TCP client or throws <see cref="TorControlException"/>.</summary>
 		/// <exception cref="TorControlException">When authentication fails for some reason.</exception>
 		/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">This method follows instructions in 3.23. TAKEOWNERSHIP.</seealso>
-		private async Task<TorControlClient> InitTorControlAsync(CancellationToken token = default)
+		internal virtual async Task<TorControlClient> InitTorControlAsync(CancellationToken token = default)
 		{
 			// Get cookie.
 			string cookieString = ByteHelpers.ToHex(File.ReadAllBytes(Settings.CookieAuthFilePath));
