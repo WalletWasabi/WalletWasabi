@@ -35,6 +35,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			_isBackendConnected = Services.Synchronizer.BackendStatus == BackendStatus.Connected;
 		}
 
+		private uint TotalCount => _filtersToProcessCount + _filtersToSyncCount;
+
+		private uint RemainingFiltersToSync => (uint) Services.BitcoinStore.SmartHeaderChain.HashesLeft;
+
 		protected override void OnActivated(CompositeDisposable disposables)
 		{
 			base.OnActivated(disposables);
