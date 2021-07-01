@@ -14,9 +14,10 @@
                DockPanel.Dock="Bottom"
                Margin="10 20 10 0"
                TextAlignment="Center"
-               TextWrapping="Wrap"/>
+               TextWrapping="Wrap" />
     <Viewbox MaxHeight="200">
-      <Image Source="avares://WalletWasabi.Fluent/Assets/Theme/wasabi_theme_change.png"/>
+      <ContentControl Template="{DynamicResource wasabi_logo_dynamic}"
+                      OpacityMask="{StaticResource LogoWashoutOpacityMaskGradient}" />
     </Viewbox>
   </DockPanel>
 </UserControl>
