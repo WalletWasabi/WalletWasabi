@@ -24,7 +24,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		public WabiSabiClient(
 			CredentialIssuerParameters credentialIssuerParameters,
 			WasabiRandom randomNumberGenerator,
-			ulong rangeProofUpperBound)
+			long rangeProofUpperBound)
 		{
 			RangeProofWidth = (int)Math.Ceiling(Math.Log2(rangeProofUpperBound));
 			RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);

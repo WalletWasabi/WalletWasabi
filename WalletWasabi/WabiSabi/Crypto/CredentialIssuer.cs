@@ -51,7 +51,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		public CredentialIssuer(
 			CredentialIssuerSecretKey credentialIssuerSecretKey,
 			WasabiRandom randomNumberGenerator,
-			ulong maxAmount)
+			long maxAmount)
 		{
 			MaxAmount = maxAmount;
 			RangeProofWidth = (int)Math.Ceiling(Math.Log2(MaxAmount));
@@ -60,7 +60,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);
 		}
 
-		public ulong MaxAmount { get; }
+		public long MaxAmount { get; }
 
 		public int RangeProofWidth { get; }
 
@@ -238,7 +238,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			return new Transcript(encodedLabel);
 		}
 
-		private class PreparedCredentialsResponse : ICommitableCredentialsResponse 
+		private class PreparedCredentialsResponse : ICommitableCredentialsResponse
 		{
 			private readonly CredentialIssuer _issuer;
 			private readonly CredentialsResponse _response;

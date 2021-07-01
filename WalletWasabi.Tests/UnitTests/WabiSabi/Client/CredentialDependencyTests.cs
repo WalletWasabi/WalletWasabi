@@ -16,8 +16,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		public async void AsyncDependencyGraphTraversalAsync()
 		{
 			var g = DependencyGraph.ResolveCredentialDependencies(
-				inputValues: new[] { new ulong[] { 10000, 1930 }, new ulong[] { 1000, 1930 } },
-				outputValues: new[] { new ulong[] { 5000, 31 }, new ulong[] { 3500, 31 }, new ulong[] { 2500, 31 } });
+				inputValues: new[] { new[] { 10000L, 1930L }, new[] { 1000L, 1930L } },
+				outputValues: new[] { new[] { 5000L, 31L }, new[] { 3500L, 31L }, new[] { 2500L, 31L } });
 
 			await SimulateAsyncRequestsAsync(g);
 		}
@@ -28,7 +28,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		{
 			// Keep track of the partial sets credentials to present. Requests
 			// that are keys in this dictionary are still waiting to be sent.
-			var pendingCredentialsToPresent = g.Vertices.ToDictionary(v => v, _ => DependencyGraph.CredentialTypes.ToDictionary(t => t, _ => new List<ulong>()));
+			var pendingCredentialsToPresent = g.Vertices.ToDictionary(v => v, _ => DependencyGraph.CredentialTypes.ToDictionary(t => t, _ => new List<long>()));
 
 			// A waiting request is blocked if either set of credentials that
 			// need to be presented is incomplete. Since input registrations and
@@ -37,7 +37,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			ImmutableArray<RequestNode> UnblockedRequests() => pendingCredentialsToPresent.Keys.Where(node => DependencyGraph.CredentialTypes.All(t => g.InDegree(node, t) == pendingCredentialsToPresent[node][t].Count)).ToImmutableArray();
 
 			// Also keep track of the in-flight requests
-			var inFlightRequests = new List<(Task<ImmutableSortedDictionary<CredentialType, IEnumerable<ulong>>> Task, ImmutableSortedDictionary<CredentialType, IEnumerable<CredentialDependency>> Dependencies)>();
+			var inFlightRequests = new List<(Task<ImmutableSortedDictionary<CredentialType, IEnumerable<long>>> Task, ImmutableSortedDictionary<CredentialType, IEnumerable<CredentialDependency>> Dependencies)>();
 
 			// And all sent requests, for testing purposes.
 			var sent = new HashSet<RequestNode>();
@@ -45,11 +45,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var rng = new Random();
 
 			// Simulate sending a request. Instead of actual Credential objects,
-			// credentials are just represented as ulongs.
-			async Task<ImmutableSortedDictionary<CredentialType, IEnumerable<ulong>>> SimulateRequest(
+			// credentials are just represented as longs.
+			async Task<ImmutableSortedDictionary<CredentialType, IEnumerable<long>>> SimulateRequest(
 				RequestNode node,
-				ImmutableSortedDictionary<CredentialType, IEnumerable<ulong>> presented,
-				ImmutableSortedDictionary<CredentialType, IEnumerable<ulong>> requested)
+				ImmutableSortedDictionary<CredentialType, IEnumerable<long>> presented,
+				ImmutableSortedDictionary<CredentialType, IEnumerable<long>> requested)
 			{
 				foreach (var credentialType in presented.Keys)
 				{
@@ -126,8 +126,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		{
 			// Whitebox test of simple case, ensuring that edge values are
 			// correct
-			var inputValues = new ulong[][] { new[] { 3UL, 3UL } };
-			var outputValues = new ulong[][] { new[] { 1UL, 1UL }, new[] { 1UL, 1UL }, new[] { 1UL, 1UL } };
+			var inputValues = new long[][] { new[] { 3L, 3L } };
+			var outputValues = new long[][] { new[] { 1L, 1L }, new[] { 1L, 1L }, new[] { 1L, 1L } };
 			var g = DependencyGraph.ResolveCredentialDependencies(inputValues, outputValues);
 
 			Assert.Equal(5, g.Vertices.Count);
@@ -138,17 +138,17 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			Assert.Equal(2, edges.Where(x => x.Value > 0).Count());
 
 			var small = edges.OrderByDescending(e => e.Value).Skip(1).First();
-			Assert.Equal(1UL, small.Value);
+			Assert.Equal(1L, small.Value);
 			Assert.Equal(g.Vertices[3], small.To);
 			Assert.Empty(g.OutEdges(small.To, CredentialType.Amount));
 			Assert.Equal(2, g.InEdges(small.To, CredentialType.Amount).Count());
-			Assert.Equal(1, g.InEdges(small.To, CredentialType.Amount).Select(e => e.From).Distinct().Count());
+			Assert.Single(g.InEdges(small.To, CredentialType.Amount).Select(e => e.From).Distinct());
 			Assert.Empty(g.OutEdges(small.To, CredentialType.Vsize));
 			Assert.Equal(2, g.InEdges(small.To, CredentialType.Vsize).Count());
 			Assert.Equal(g.Vertices[0], g.InEdges(small.To, CredentialType.Vsize).Select(e => e.From).Distinct().Single());
 
 			var large = edges.OrderByDescending(e => e.Value).First();
-			Assert.Equal(2UL, large.Value);
+			Assert.Equal(2L, large.Value);
 			Assert.Equal(2, g.InEdges(large.To, CredentialType.Amount).Count());
 			Assert.Equal(1, g.InEdges(large.To, CredentialType.Amount).Select(e => e.From).Distinct().Count());
 
@@ -162,8 +162,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		[Fact]
 		public void ResolveCredentialDependenciesNoVsize()
 		{
-			var inputValues = new ulong[][] { new[] { 1UL, 0UL } };
-			var outputValues = new ulong[][] { new[] { 1UL, 0UL } };
+			var inputValues = new long[][] { new[] { 1L, 0L } };
+			var outputValues = new long[][] { new[] { 1L, 0L } };
 			var g = DependencyGraph.ResolveCredentialDependencies(inputValues, outputValues);
 
 			Assert.Equal(2, g.Vertices.Count);
@@ -171,10 +171,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var edges = g.OutEdges(g.Vertices[0], CredentialType.Amount);
 
 			Assert.Equal(2, edges.Count());
-			Assert.Equal(1, edges.Where(x => x.Value > 0).Count());
+			Assert.Single(edges.Where(x => x.Value > 0));
 
 			var nonZeroEdge = edges.OrderByDescending(e => e.Value).First();
-			Assert.Equal(1UL, nonZeroEdge.Value);
+			Assert.Equal(1L, nonZeroEdge.Value);
 			Assert.Equal(g.Vertices[1], nonZeroEdge.To);
 			Assert.Empty(g.OutEdges(nonZeroEdge.To, CredentialType.Amount));
 			Assert.Equal(2, g.InEdges(nonZeroEdge.To, CredentialType.Amount).Count());
@@ -263,8 +263,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			// of inputs with various corner cases that must be handled.
 
 			// Parse values out of strings because InputData can't contain arrays
-			var inputValues = inputs.Split(" ").Select(x => x.Split(",").Select(y => ulong.Parse(y)));
-			var outputValues = outputs.Split(" ").Select(x => x.Split(",").Select(y => ulong.Parse(y)));
+			var inputValues = inputs.Split(" ").Select(x => x.Split(",").Select(y => long.Parse(y)));
+			var outputValues = outputs.Split(" ").Select(x => x.Split(",").Select(y => long.Parse(y)));
 
 			var g = DependencyGraph.ResolveCredentialDependencies(inputValues, outputValues);
 
@@ -280,7 +280,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			await SimulateAsyncRequestsAsync(g);
 		}
 
-		private void AssertResolvedGraphInvariants(DependencyGraph graph, IEnumerable<IEnumerable<ulong>> inputValues, IEnumerable<IEnumerable<ulong>> outputValues)
+		private void AssertResolvedGraphInvariants(DependencyGraph graph, IEnumerable<IEnumerable<long>> inputValues, IEnumerable<IEnumerable<long>> outputValues)
 		{
 			foreach (var credentialType in DependencyGraph.CredentialTypes)
 			{
@@ -338,7 +338,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			// Ensure that vsize credentials do not exceed the range proof width
 			foreach (var edge in graph.EdgeSets[CredentialType.Vsize].Successors.Values.SelectMany(x => x))
 			{
-				Assert.InRange<ulong>(edge.Value, 0, ProtocolConstants.MaxVsizeCredentialValue);
+				Assert.InRange<long>(edge.Value, 0, ProtocolConstants.MaxVsizeCredentialValue);
 			}
 
 			// TODO add InlineData param for max depth?
@@ -349,14 +349,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		[Fact]
 		public void ResolveCredentialDependenciesThrows()
 		{
-			foreach ((var inputValues, var outputAmounts) in new (ulong[][], ulong[][])[]
+			foreach ((var inputValues, var outputAmounts) in new (long[][], long[][])[]
 			{
-				(new[] { new[] { 1UL, 0UL } }, new[] { new[] { 2UL, 0UL } }),
-				(new[] { Array.Empty<ulong>() }, new[] { new[] { 1UL, 0UL } }),
-				(new[] { new[] { 1UL } }, new[] { new[] { 1UL, 0UL } }),
-				(new[] { new[] { 1UL, 1UL, 1UL, } }, new[] { new[] { 1UL, 0UL } }),
-				(new[] { new[] { 1UL, 0UL } }, new[] { new[] { 1UL } }),
-				(new[] { new[] { 1UL, 0UL } }, new[] { new[] { 1UL, 0UL, 0UL } }),
+				(new[] { new[] { 1L, 0L } }, new[] { new[] { 2L, 0L } }),
+				(new[] { Array.Empty<long>() }, new[] { new[] { 1L, 0L } }),
+				(new[] { new[] { 1L } }, new[] { new[] { 1L, 0L } }),
+				(new[] { new[] { 1L, 1L, 1L, } }, new[] { new[] { 1L, 0L } }),
+				(new[] { new[] { 1L, 0L } }, new[] { new[] { 1L } }),
+				(new[] { new[] { 1L, 0L } }, new[] { new[] { 1L, 0L, 0L } }),
 			})
 			{
 				Assert.Throws<ArgumentException>(() => DependencyGraph.ResolveCredentialDependencies(inputValues, outputAmounts));
@@ -366,7 +366,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		[Fact]
 		public void EdgeConstraints()
 		{
-			var g = DependencyGraph.FromValues(new[] { new ulong[] { 11, 0 }, new ulong[] { 8, 0 } }, new[] { new ulong[] { 7, 0 }, new ulong[] { 11, 0 } });
+			var g = DependencyGraph.FromValues(new[] { new[] { 11L, 0L }, new[] { 8L, 0L } }, new[] { new[] { 7L, 0L }, new[] { 11L, 0L } });
 
 			var i = g.Inputs[0];
 			var o = g.Outputs[0];
