@@ -1,5 +1,6 @@
 using NBitcoin;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,8 +22,8 @@ namespace WalletWasabi.WabiSabi.Client
 			Coin = coin;
 			FeeRate = feeRate;
 			BitcoinSecret = bitcoinSecret;
-			RealAmountCredentials = Array.Empty<Credential>();
-			RealVsizeCredentials = Array.Empty<Credential>();
+			IssuedAmountCredentials = Array.Empty<Credential>();
+			IssuedVsizeCredentials = Array.Empty<Credential>();
 		}
 
 		public uint256 AliceId { get; }
@@ -31,8 +32,8 @@ namespace WalletWasabi.WabiSabi.Client
 		public Coin Coin { get; }
 		private FeeRate FeeRate { get; }
 		private BitcoinSecret BitcoinSecret { get; }
-		public Credential[] RealAmountCredentials { get; private set; }
-		public Credential[] RealVsizeCredentials { get; private set; }
+		public IEnumerable<Credential> IssuedAmountCredentials { get; private set; }
+		public IEnumerable<Credential> IssuedVsizeCredentials { get; private set; }
 
 		public async Task RegisterInputAsync(CancellationToken cancellationToken)
 		{
@@ -42,23 +43,34 @@ namespace WalletWasabi.WabiSabi.Client
 			{
 				throw new InvalidOperationException($"Round ({RoundId}), Local Alice ({AliceId}) was computed as {remoteAliceId}");
 			}
-			RealAmountCredentials = response.RealAmountCredentials;
-			RealVsizeCredentials = response.RealVsizeCredentials;
+			IssuedAmountCredentials = response.IssuedAmountCredentials;
+			IssuedVsizeCredentials = response.IssuedVsizeCredentials;
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Registered an input.");
 		}
 
-		public async Task ConfirmConnectionAsync(TimeSpan connectionConfirmationTimeout, long vsizeAllocationToRequest, CancellationToken cancellationToken)
+		[ObsoleteAttribute("This method should be removed after making the tests using the overload.")]
+		public async Task ConfirmConnectionAsync(TimeSpan connectionConfirmationTimeout, long vsizeAllocation, CancellationToken cancellationToken)
 		{
-			while (!await TryConfirmConnectionAsync(vsizeAllocationToRequest, cancellationToken).ConfigureAwait(false))
+			var inputVsize = Coin.ScriptPubKey.EstimateInputVsize();
+
+			var totalFeeToPay = FeeRate.GetFee(Coin.ScriptPubKey.EstimateInputVsize());
+			var totalAmount = Coin.Amount;
+			var effectiveAmount = totalAmount - totalFeeToPay;
+
+			await ConfirmConnectionAsync(connectionConfirmationTimeout, new long[] { effectiveAmount }, new long[] { vsizeAllocation - inputVsize }, cancellationToken).ConfigureAwait(false);
+		}
+
+		public async Task ConfirmConnectionAsync(TimeSpan connectionConfirmationTimeout, IEnumerable<long> amountsToRequest, IEnumerable<long> vsizesToRequest, CancellationToken cancellationToken)
+		{
+			while (!await TryConfirmConnectionAsync(amountsToRequest, vsizesToRequest, cancellationToken).ConfigureAwait(false))
 			{
 				await Task.Delay(connectionConfirmationTimeout / 2, cancellationToken).ConfigureAwait(false);
 			}
 		}
 
-		private async Task<bool> TryConfirmConnectionAsync(long vsizeAllocationToRequest, CancellationToken cancellationToken)
+		private async Task<bool> TryConfirmConnectionAsync(IEnumerable<long> amountsToRequest, IEnumerable<long> vsizesToRequest, CancellationToken cancellationToken)
 		{
 			var inputVsize = Coin.ScriptPubKey.EstimateInputVsize();
-			var vsizesToRequest = new[] { vsizeAllocationToRequest - inputVsize };
 
 			var totalFeeToPay = FeeRate.GetFee(Coin.ScriptPubKey.EstimateInputVsize());
 			var totalAmount = Coin.Amount;
@@ -66,10 +78,8 @@ namespace WalletWasabi.WabiSabi.Client
 
 			if (effectiveAmount <= Money.Zero)
 			{
-				throw new InvalidOperationException($"Round({ RoundId }), Alice({ AliceId}): Not enough funds to pay for the fees.");
+				throw new InvalidOperationException($"Round({ RoundId }), Alice({ AliceId}): Adding this input is uneconomical.");
 			}
-
-			var amountsToRequest = new[] { effectiveAmount.Satoshi };
 
 			var response = await ArenaClient
 				.ConfirmConnectionAsync(
@@ -77,17 +87,15 @@ namespace WalletWasabi.WabiSabi.Client
 					AliceId,
 					amountsToRequest,
 					vsizesToRequest,
-					RealAmountCredentials,
-					RealVsizeCredentials,
+					IssuedAmountCredentials,
+					IssuedVsizeCredentials,
 					cancellationToken)
 				.ConfigureAwait(false);
 
+			IssuedAmountCredentials = response.IssuedAmountCredentials;
+			IssuedVsizeCredentials = response.IssuedVsizeCredentials;
+
 			var isConfirmed = response.Value;
-			if (isConfirmed)
-			{
-				RealAmountCredentials = response.RealAmountCredentials;
-				RealVsizeCredentials = response.RealVsizeCredentials;
-			}
 			return isConfirmed;
 		}
 
@@ -102,6 +110,12 @@ namespace WalletWasabi.WabiSabi.Client
 			await ArenaClient.SignTransactionAsync(RoundId, Coin, BitcoinSecret, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
 
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Posted a signature.");
+		}
+
+		public async Task ReadyToSignAsync(CancellationToken cancellationToken)
+		{
+			await ArenaClient.ReadyToSignAsync(RoundId, AliceId, BitcoinSecret.PrivateKey, cancellationToken).ConfigureAwait(false);
+			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Ready to sign.");
 		}
 
 		private static uint256 CalculateHash(Coin coin, BitcoinSecret bitcoinSecret, uint256 roundId)

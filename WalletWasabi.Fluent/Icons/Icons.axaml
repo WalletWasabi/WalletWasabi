@@ -2,114 +2,148 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Design.PreviewWith>
     <WrapPanel Margin="10" Orientation="Vertical" ItemHeight="50" ItemWidth="50" MaxHeight="400">
-        <PathIcon Data="{StaticResource wasabi_logo}" />
-        <PathIcon Data="{StaticResource settings_regular}" />
-        <PathIcon Data="{StaticResource settings_general_regular}" />
-        <PathIcon Data="{StaticResource settings_privacy_regular}" />
-        <PathIcon Data="{StaticResource settings_network_regular}" />
-        <PathIcon Data="{StaticResource settings_bitcoin_regular}" />
-        <PathIcon Data="{StaticResource home_regular}" />
-        <PathIcon Data="{StaticResource add_circle_regular}" />
-        <PathIcon Data="{StaticResource navigation_regular}" />
-        <PathIcon Data="{StaticResource arrow_left_regular}" />
-        <PathIcon Data="{StaticResource add_regular}" />
-        <PathIcon Data="{StaticResource recover_arrow_right_regular}" />
-        <PathIcon Data="{StaticResource import_regular}" />
-        <PathIcon Data="{StaticResource open_regular}" />
-        <PathIcon Data="{StaticResource checkmark_filled}" />
-        <PathIcon Data="{StaticResource warning_regular}" />
-        <PathIcon Data="{StaticResource options_regular}" />
-        <PathIcon Data="{StaticResource search_regular}" />
-        <PathIcon Data="{StaticResource info_regular}" />
-        <PathIcon Data="{StaticResource live_regular}" />
-        <PathIcon Data="{StaticResource folder_move_regular}" />
-        <PathIcon Data="{StaticResource clipboard_text_regular}" />
-        <PathIcon Data="{StaticResource calculator_regular}" />
-        <PathIcon Data="{StaticResource privacy_mode_on}" />
-        <PathIcon Data="{StaticResource privacy_mode_off}" />
-        <PathIcon Data="{StaticResource usb_logo}" />
-        <PathIcon Data="{StaticResource privacy_none}" />
-        <PathIcon Data="{StaticResource privacy_minimal}" />
-        <PathIcon Data="{StaticResource privacy_medium}" />
-        <PathIcon Data="{StaticResource privacy_strong}" />
-        <PathIcon Data="{StaticResource privacy_extreme}" />
-        <PathIcon Data="{StaticResource board_regular}" />
-        <PathIcon Data="{StaticResource cast_regular}" />
-        <PathIcon Data="{StaticResource dialpad_regular}" />
-        <PathIcon Data="{StaticResource glance_regular}" />
-        <PathIcon Data="{StaticResource grid_regular}" />
-        <PathIcon Data="{StaticResource officeapps_regular}" />
-        <PathIcon Data="{StaticResource ledger_regular}" />
-        <PathIcon Data="{StaticResource person_support_regular}" />
-        <PathIcon Data="{StaticResource book_question_mark_regular}" />
-        <PathIcon Data="{StaticResource bug_regular}" />
-        <PathIcon Data="{StaticResource folder_regular}" />
-        <PathIcon Data="{StaticResource document_regular}" />
-        <PathIcon Data="{StaticResource copy_link}" />
-        <PathIcon Data="{StaticResource copy_regular}" />
-        <PathIcon Data="{StaticResource copy_confirmed}" />
-        <PathIcon Data="{StaticResource paste_regular}" />
-        <PathIcon Data="{StaticResource wallet_action_send}" />
-        <PathIcon Data="{StaticResource wallet_action_receive}" />
-        <PathIcon Data="{StaticResource wallet_action_coinjoin}" />
-        <PathIcon Data="{StaticResource wallet_action_advanced}" />
-        <PathIcon Data="{StaticResource edit_regular}" />
-        <PathIcon Data="{StaticResource dismiss_regular}" />
-        <PathIcon Data="{StaticResource search_info_regular}" />
-        <PathIcon Data="{StaticResource arrow_swap}" />
-        <PathIcon Data="{StaticResource info_tip}" />
-        <PathIcon Data="{StaticResource dismiss_light}" />
-        <PathIcon Data="{StaticResource save_regular}" />
-        <PathIcon Data="{StaticResource share_regular}" />
-        <PathIcon Data="{StaticResource arrow_down_regular}" />
-        <PathIcon Data="{StaticResource arrow_up_regular}" />
-        <PathIcon Data="{StaticResource delete_regular}" />
-        <PathIcon Data="{StaticResource btc_logo}" />
-        <PathIcon Data="{StaticResource entities_regular}" />
-        <PathIcon Data="{StaticResource transceive_regular}" />
-        <PathIcon Data="{StaticResource timer_regular}" />
-        <PathIcon Data="{StaticResource paper_cash_regular}" />
-        <PathIcon Data="{StaticResource lock_shield_regular}" />
-        <PathIcon Data="{StaticResource arrow_down_right_regular}" />
-        <PathIcon Data="{StaticResource arrow_up_right_regular}" />
-        <PathIcon Data="{StaticResource channel_regular}" />
-        <PathIcon Data="{StaticResource shield_regular}" />
-        <PathIcon Data="{StaticResource normal_transaction}" />
-        <PathIcon Data="{StaticResource status_regular}" />
-        <PathIcon Data="{StaticResource block_height}" />
-        <PathIcon Data="{StaticResource transaction_id}" />
-        <PathIcon Data="{StaticResource people_regular}" />
-        <PathIcon Data="{StaticResource qr_code_regular}" />
-        <PathIcon Data="{StaticResource details_regular}" />
-        <PathIcon Data="{StaticResource more_regular}" />
-        <PathIcon Data="{StaticResource key_regular}" />
-        <PathIcon Data="{StaticResource fingerprint_regular}" />
-        <PathIcon Data="{StaticResource organization_regular}" />
-        <PathIcon Data="{StaticResource eye_hide_regular}" />
-        <PathIcon Data="{StaticResource eye_show_regular}" />
-        <PathIcon Data="{StaticResource private_funds}" />
-        <PathIcon Data="{StaticResource non_private_funds}" />
-        <PathIcon Data="{StaticResource transaction_date}" />
-        <PathIcon Data="{StaticResource checkmark_circle_filled}" />
-        <PathIcon Data="{StaticResource connector_regular}" />
-        <PathIcon Data="{StaticResource arrow_clockwise_regular}" />
-        <PathIcon Data="{StaticResource arrow_download_regular}" />
-        <PathIcon Data="{StaticResource clock_regular}" />
-        <PathIcon Data="{StaticResource tor_icon}" />
-        <PathIcon Data="{StaticResource arrow_clockwise_with_elipse}" />
-        <PathIcon Data="{StaticResource critical_update}" />
-        <PathIcon Data="{StaticResource arrow_sync_regular}" />
-        <!-- Wallet icons -->
-        <PathIcon Data="{StaticResource default_wallet_icon}" />
-        <PathIcon Data="{StaticResource Ledger}" />
-        <PathIcon Data="{StaticResource Trezor}" />
-        <PathIcon Data="{StaticResource Coldcard}" />
-        <PathIcon Data="{StaticResource General}" />
+      <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
+      <ContentControl Template="{DynamicResource wasabi_logo_fixed}" />
+      <PathIcon Data="{StaticResource settings_regular}" />
+      <PathIcon Data="{StaticResource settings_general_regular}" />
+      <PathIcon Data="{StaticResource settings_privacy_regular}" />
+      <PathIcon Data="{StaticResource settings_network_regular}" />
+      <PathIcon Data="{StaticResource settings_bitcoin_regular}" />
+      <PathIcon Data="{StaticResource home_regular}" />
+      <PathIcon Data="{StaticResource add_circle_regular}" />
+      <PathIcon Data="{StaticResource navigation_regular}" />
+      <PathIcon Data="{StaticResource arrow_left_regular}" />
+      <PathIcon Data="{StaticResource add_regular}" />
+      <PathIcon Data="{StaticResource recover_arrow_right_regular}" />
+      <PathIcon Data="{StaticResource import_regular}" />
+      <PathIcon Data="{StaticResource open_regular}" />
+      <PathIcon Data="{StaticResource checkmark_filled}" />
+      <PathIcon Data="{StaticResource warning_regular}" />
+      <PathIcon Data="{StaticResource options_regular}" />
+      <PathIcon Data="{StaticResource search_regular}" />
+      <PathIcon Data="{StaticResource info_regular}" />
+      <PathIcon Data="{StaticResource live_regular}" />
+      <PathIcon Data="{StaticResource folder_move_regular}" />
+      <PathIcon Data="{StaticResource clipboard_text_regular}" />
+      <PathIcon Data="{StaticResource calculator_regular}" />
+      <PathIcon Data="{StaticResource privacy_mode_on}" />
+      <PathIcon Data="{StaticResource privacy_mode_off}" />
+      <PathIcon Data="{StaticResource usb_logo}" />
+      <PathIcon Data="{StaticResource privacy_none}" />
+      <PathIcon Data="{StaticResource privacy_minimal}" />
+      <PathIcon Data="{StaticResource privacy_medium}" />
+      <PathIcon Data="{StaticResource privacy_strong}" />
+      <PathIcon Data="{StaticResource privacy_extreme}" />
+      <PathIcon Data="{StaticResource board_regular}" />
+      <PathIcon Data="{StaticResource cast_regular}" />
+      <PathIcon Data="{StaticResource dialpad_regular}" />
+      <PathIcon Data="{StaticResource glance_regular}" />
+      <PathIcon Data="{StaticResource grid_regular}" />
+      <PathIcon Data="{StaticResource officeapps_regular}" />
+      <PathIcon Data="{StaticResource ledger_regular}" />
+      <PathIcon Data="{StaticResource person_support_regular}" />
+      <PathIcon Data="{StaticResource book_question_mark_regular}" />
+      <PathIcon Data="{StaticResource bug_regular}" />
+      <PathIcon Data="{StaticResource folder_regular}" />
+      <PathIcon Data="{StaticResource document_regular}" />
+      <PathIcon Data="{StaticResource copy_link}" />
+      <PathIcon Data="{StaticResource copy_regular}" />
+      <PathIcon Data="{StaticResource copy_confirmed}" />
+      <PathIcon Data="{StaticResource paste_regular}" />
+      <PathIcon Data="{StaticResource wallet_action_send}" />
+      <PathIcon Data="{StaticResource wallet_action_receive}" />
+      <PathIcon Data="{StaticResource wallet_action_coinjoin}" />
+      <PathIcon Data="{StaticResource wallet_action_advanced}" />
+      <PathIcon Data="{StaticResource edit_regular}" />
+      <PathIcon Data="{StaticResource dismiss_regular}" />
+      <PathIcon Data="{StaticResource search_info_regular}" />
+      <PathIcon Data="{StaticResource arrow_swap}" />
+      <PathIcon Data="{StaticResource info_tip}" />
+      <PathIcon Data="{StaticResource dismiss_light}" />
+      <PathIcon Data="{StaticResource save_regular}" />
+      <PathIcon Data="{StaticResource share_regular}" />
+      <PathIcon Data="{StaticResource arrow_down_regular}" />
+      <PathIcon Data="{StaticResource arrow_up_regular}" />
+      <PathIcon Data="{StaticResource delete_regular}" />
+      <PathIcon Data="{StaticResource btc_logo}" />
+      <PathIcon Data="{StaticResource entities_regular}" />
+      <PathIcon Data="{StaticResource transceive_regular}" />
+      <PathIcon Data="{StaticResource timer_regular}" />
+      <PathIcon Data="{StaticResource paper_cash_regular}" />
+      <PathIcon Data="{StaticResource lock_shield_regular}" />
+      <PathIcon Data="{StaticResource arrow_down_right_regular}" />
+      <PathIcon Data="{StaticResource arrow_up_right_regular}" />
+      <PathIcon Data="{StaticResource channel_regular}" />
+      <PathIcon Data="{StaticResource shield_regular}" />
+      <PathIcon Data="{StaticResource normal_transaction}" />
+      <PathIcon Data="{StaticResource status_regular}" />
+      <PathIcon Data="{StaticResource block_height}" />
+      <PathIcon Data="{StaticResource transaction_id}" />
+      <PathIcon Data="{StaticResource people_regular}" />
+      <PathIcon Data="{StaticResource qr_code_regular}" />
+      <PathIcon Data="{StaticResource details_regular}" />
+      <PathIcon Data="{StaticResource more_regular}" />
+      <PathIcon Data="{StaticResource key_regular}" />
+      <PathIcon Data="{StaticResource fingerprint_regular}" />
+      <PathIcon Data="{StaticResource organization_regular}" />
+      <PathIcon Data="{StaticResource eye_hide_regular}" />
+      <PathIcon Data="{StaticResource eye_show_regular}" />
+      <PathIcon Data="{StaticResource private_funds}" />
+      <PathIcon Data="{StaticResource non_private_funds}" />
+      <PathIcon Data="{StaticResource transaction_date}" />
+      <PathIcon Data="{StaticResource checkmark_circle_filled}" />
+      <PathIcon Data="{StaticResource connector_regular}" />
+      <PathIcon Data="{StaticResource arrow_clockwise_regular}" />
+      <PathIcon Data="{StaticResource arrow_download_regular}" />
+      <PathIcon Data="{StaticResource clock_regular}" />
+      <PathIcon Data="{StaticResource tor_icon}" />
+      <PathIcon Data="{StaticResource arrow_clockwise_with_elipse}" />
+      <PathIcon Data="{StaticResource critical_update}" />
+      <PathIcon Data="{StaticResource arrow_sync_regular}" />
+      <!-- Wallet icons -->
+      <PathIcon Data="{StaticResource default_wallet_icon}" />
+      <PathIcon Data="{StaticResource Ledger}" />
+      <PathIcon Data="{StaticResource Trezor}" />
+      <PathIcon Data="{StaticResource Coldcard}" />
+      <PathIcon Data="{StaticResource General}" />
     </WrapPanel>
   </Design.PreviewWith>
   <Style>
     <Style.Resources>
-      <StreamGeometry x:Key="wasabi_logo">F1M454.7039794921875,148.458984375C440.803955078125,148.083984375 428.0279541015625,148.083984375 416.0050048828125,148.458984375L416.0050048828125,148.458984375L415.6300048828125,84.5849609375C347.6240234375,84.5849609375 267.97100830078125,103.3709716796875 217.62600708007812,152.2169189453125L217.62600708007812,152.2169189453125L214.6199951171875,155.221923828125L213.86798095703125,158.9788818359375C195.08197021484375,232.9989013671875 222.50897216796875,395.31390380859375 379.93701171875,491.1248779296875L379.93701171875,491.1248779296875C216.49798583984375,336.699951171875 236.03497314453125,195.42596435546875 240.91900634765625,170.2509765625L240.91900634765625,170.2509765625C286.00799560546875,128.9210205078125 357.39300537109375,116.14697265625 387.07501220703125,114.2669677734375L387.07501220703125,114.2669677734375L386.69903564453125,150.3380126953125C347.2490234375,154.8470458984375 305.54302978515625,165.7430419921875 272.48101806640625,189.7900390625L272.48101806640625,189.7900390625C264.96600341796875,244.64605712890625 287.884033203125,308.52001953125 320.94903564453125,363.00103759765625L320.94903564453125,363.00103759765625C347.2490234375,406.9620361328125 380.31201171875,441.905029296875 418.259033203125,475.72003173828125L418.259033203125,475.72003173828125L435.34405517578125,289.3070068359375L435.30206298828125,289.3070068359375L386.323974609375,403.5799560546875C356.2659912109375,368.261962890625 302.5379638671875,293.490966796875 300.65899658203125,206.3209228515625L300.65899658203125,206.3209228515625C341.23699951171875,185.6549072265625 387.07501220703125,179.2689208984375 432.1610107421875,178.8929443359375L432.1610107421875,178.8929443359375C477.9990234375,178.5169677734375 528.7210083007812,185.28094482421875 570.051025390625,206.3209228515625L570.051025390625,206.3209228515625C568.1729736328125,293.490966796875 514.4439697265625,368.261962890625 484.385986328125,403.5799560546875L484.385986328125,403.5799560546875L435.406982421875,289.30694580078125L435.364990234375,289.30694580078125L452.448974609375,475.719970703125C490.39898681640625,441.90496826171875 523.4619750976562,406.96197509765625 549.760986328125,363.0009765625L549.760986328125,363.0009765625C582.823974609375,308.51995849609375 605.7440185546875,244.64599609375 598.22900390625,189.78997802734375L598.22900390625,189.78997802734375C565.5419921875,165.742919921875 523.4620361328125,155.9739990234375 484.010986328125,151.0899658203125L484.010986328125,151.0899658203125L483.635986328125,114.2669677734375C513.3170166015625,116.14697265625 584.7030029296875,128.9210205078125 629.7899780273438,170.2509765625L629.7899780273438,170.2509765625C634.6749877929688,195.42596435546875 654.2129516601562,336.699951171875 490.77294921875,491.125L490.77294921875,491.125C648.199951171875,395.31402587890625 675.6279296875,232.9990234375 656.8419189453125,158.97900390625L656.8419189453125,158.97900390625L656.0919189453125,155.2220458984375L653.0848999023438,152.217041015625C602.7368774414062,103.37109375 523.0859375,84.5850830078125 455.07989501953125,84.5850830078125L455.07989501953125,84.5850830078125z</StreamGeometry>
+      <!-- Logo Templates -->
+      <ControlTemplate x:Key="wasabi_logo_fixed">
+        <Canvas Width="21" Height="16">
+          <Path Fill="{StaticResource LogoGradientFixed}"
+                Data="M14.9852 7.56906C12.9957 4.56736 12.2647 1.64471 11.9692 0C10.7768 0.7258 9.58445 1.4516 8.39206 2.1774C8.73293 3.60826 9.37967 5.73382 10.6407 8.05767H6.9275C6.81474 7.89826 6.70198 7.73755 6.59182 7.57035C4.60235 4.56736 3.87266 1.64471 3.57716 0C2.38477 0.7258 1.19239 1.4516 0 2.1774C0.440664 4.02171 1.38291 7.02341 3.50458 10.1145C5.60551 13.1746 7.96177 15.0098 9.45873 16C10.4412 15.0603 11.4236 14.122 12.406 13.1823C11.723 12.7702 10.7768 12.1364 9.74516 11.2162H12.7041C14.5808 13.6243 16.5431 15.1342 17.8508 15.9987C18.8332 15.0591 19.8156 14.1207 20.7981 13.181C20.115 12.7689 19.1689 12.1351 18.1372 11.2149H20.7981V8.05767H15.3196C15.2081 7.89826 15.0953 7.73625 14.9852 7.56906Z" />
+          <Path Fill="{StaticResource LogoFixedAccentColor}" Data="M20.857 0H17.6855V3.17149H20.857V0Z" />
+        </Canvas>
+      </ControlTemplate>
+      <ControlTemplate x:Key="wasabi_logo_dynamic">
+        <Canvas Width="21" Height="16">
+          <Path Fill="{StaticResource TextForegroundColor}"
+                Data="M14.9852 7.56906C12.9957 4.56736 12.2647 1.64471 11.9692 0C10.7768 0.7258 9.58445 1.4516 8.39206 2.1774C8.73293 3.60826 9.37967 5.73382 10.6407 8.05767H6.9275C6.81474 7.89826 6.70198 7.73755 6.59182 7.57035C4.60235 4.56736 3.87266 1.64471 3.57716 0C2.38477 0.7258 1.19239 1.4516 0 2.1774C0.440664 4.02171 1.38291 7.02341 3.50458 10.1145C5.60551 13.1746 7.96177 15.0098 9.45873 16C10.4412 15.0603 11.4236 14.122 12.406 13.1823C11.723 12.7702 10.7768 12.1364 9.74516 11.2162H12.7041C14.5808 13.6243 16.5431 15.1342 17.8508 15.9987C18.8332 15.0591 19.8156 14.1207 20.7981 13.181C20.115 12.7689 19.1689 12.1351 18.1372 11.2149H20.7981V8.05767H15.3196C15.2081 7.89826 15.0953 7.73625 14.9852 7.56906Z" />
+          <Path Fill="{StaticResource LogoFixedAccentColor}" Data="M20.857 0H17.6855V3.17149H20.857V0Z" />
+        </Canvas>
+      </ControlTemplate>
+      <ControlTemplate x:Key="wasabi_logo_text_fixed">
+        <StackPanel Margin="0,0,0,-5" TextBlock.FontFamily="{StaticResource WasabiLogoTextFont}"
+                    TextBlock.FontWeight="Light" Orientation="Horizontal" ClipToBounds="False">
+          <TextBlock Text="WASABI" Classes="h6" Foreground="{StaticResource LogoFixedForegroundColor}"
+                     ClipToBounds="False" />
+          <TextBlock Text="." Classes="h6" Foreground="{StaticResource LogoFixedAccentColor}" ClipToBounds="False" />
+          <TextBlock Text="WALLET" Classes="h6" Foreground="{StaticResource LogoFixedForegroundColor}"
+                     ClipToBounds="False" />
+        </StackPanel>
+      </ControlTemplate>
+      <ControlTemplate x:Key="wasabi_logo_text_dynamic">
+        <StackPanel Margin="0,0,0,-5" TextBlock.FontFamily="{StaticResource WasabiLogoTextFont}"
+                    TextBlock.FontWeight="Light" Orientation="Horizontal" ClipToBounds="False">
+          <TextBlock Text="WASABI" Classes="h6" Foreground="{StaticResource TextForegroundColor}" ClipToBounds="False" />
+          <TextBlock Text="." Classes="h6" Foreground="{StaticResource LogoFixedAccentColor}" ClipToBounds="False" />
+          <TextBlock Text="WALLET" Classes="h6" Foreground="{StaticResource TextForegroundColor}" ClipToBounds="False" />
+        </StackPanel>
+      </ControlTemplate>
+
       <StreamGeometry x:Key="settings_regular">M14 9.50006C11.5147 9.50006 9.5 11.5148 9.5 14.0001C9.5 16.4853 11.5147 18.5001 14 18.5001C15.3488 18.5001 16.559 17.9066 17.3838 16.9666C18.0787 16.1746 18.5 15.1365 18.5 14.0001C18.5 13.5401 18.431 13.0963 18.3028 12.6784C17.7382 10.8381 16.0253 9.50006 14 9.50006ZM11 14.0001C11 12.3432 12.3431 11.0001 14 11.0001C15.6569 11.0001 17 12.3432 17 14.0001C17 15.6569 15.6569 17.0001 14 17.0001C12.3431 17.0001 11 15.6569 11 14.0001Z M21.7093 22.3948L19.9818 21.6364C19.4876 21.4197 18.9071 21.4515 18.44 21.7219C17.9729 21.9924 17.675 22.4693 17.6157 23.0066L17.408 24.8855C17.3651 25.273 17.084 25.5917 16.7055 25.682C14.9263 26.1061 13.0725 26.1061 11.2933 25.682C10.9148 25.5917 10.6336 25.273 10.5908 24.8855L10.3834 23.0093C10.3225 22.4731 10.0112 21.9976 9.54452 21.7281C9.07783 21.4586 8.51117 21.4269 8.01859 21.6424L6.29071 22.4009C5.93281 22.558 5.51493 22.4718 5.24806 22.1859C4.00474 20.8536 3.07924 19.2561 2.54122 17.5137C2.42533 17.1384 2.55922 16.7307 2.8749 16.4977L4.40219 15.3703C4.83721 15.0501 5.09414 14.5415 5.09414 14.0007C5.09414 13.4598 4.83721 12.9512 4.40162 12.6306L2.87529 11.5051C2.55914 11.272 2.42513 10.8638 2.54142 10.4882C3.08038 8.74734 4.00637 7.15163 5.24971 5.82114C5.51684 5.53528 5.93492 5.44941 6.29276 5.60691L8.01296 6.36404C8.50793 6.58168 9.07696 6.54881 9.54617 6.27415C10.0133 6.00264 10.3244 5.52527 10.3844 4.98794L10.5933 3.11017C10.637 2.71803 10.9245 2.39704 11.3089 2.31138C12.19 2.11504 13.0891 2.01071 14.0131 2.00006C14.9147 2.01047 15.8128 2.11485 16.6928 2.31149C17.077 2.39734 17.3643 2.71823 17.4079 3.11017L17.617 4.98937C17.7116 5.85221 18.4387 6.50572 19.3055 6.50663C19.5385 6.507 19.769 6.45838 19.9843 6.36294L21.7048 5.60568C22.0626 5.44818 22.4807 5.53405 22.7478 5.81991C23.9912 7.1504 24.9172 8.74611 25.4561 10.487C25.5723 10.8623 25.4386 11.2703 25.1228 11.5035L23.5978 12.6297C23.1628 12.95 22.9 13.4586 22.9 13.9994C22.9 14.5403 23.1628 15.0489 23.5988 15.3698L25.1251 16.4965C25.441 16.7296 25.5748 17.1376 25.4586 17.5131C24.9198 19.2536 23.9944 20.8492 22.7517 22.1799C22.4849 22.4657 22.0671 22.5518 21.7093 22.3948ZM16.263 22.1966C16.4982 21.4685 16.9889 20.8288 17.6884 20.4238C18.5702 19.9132 19.6536 19.8547 20.5841 20.2627L21.9281 20.8526C22.791 19.8538 23.4593 18.7013 23.8981 17.4552L22.7095 16.5778L22.7086 16.5771C21.898 15.98 21.4 15.0277 21.4 13.9994C21.4 12.9719 21.8974 12.0195 22.7073 11.4227L22.7085 11.4218L23.8957 10.545C23.4567 9.2988 22.7881 8.14636 21.9248 7.1477L20.5922 7.73425L20.5899 7.73527C20.1844 7.91463 19.7472 8.00722 19.3039 8.00663C17.6715 8.00453 16.3046 6.77431 16.1261 5.15465L16.1259 5.15291L15.9635 3.69304C15.3202 3.57328 14.6677 3.50872 14.013 3.50017C13.3389 3.50891 12.6821 3.57367 12.0377 3.69328L11.8751 5.15452C11.7625 6.16272 11.1793 7.05909 10.3019 7.56986C9.41937 8.0856 8.34453 8.14844 7.40869 7.73694L6.07273 7.14893C5.20949 8.14751 4.54092 9.29983 4.10196 10.5459L5.29181 11.4233C6.11115 12.0269 6.59414 12.9837 6.59414 14.0007C6.59414 15.0173 6.11142 15.9742 5.29237 16.5776L4.10161 17.4566C4.54002 18.7044 5.2085 19.8585 6.07205 20.8587L7.41742 20.2682C8.34745 19.8613 9.41573 19.9215 10.2947 20.4292C11.174 20.937 11.7593 21.832 11.8738 22.84L11.8744 22.8445L12.0362 24.3088C13.3326 24.5638 14.6662 24.5638 15.9626 24.3088L16.1247 22.8418C16.1491 22.6217 16.1955 22.4055 16.263 22.1966Z</StreamGeometry>
       <StreamGeometry x:Key="settings_general_regular">M14 9.50006C11.5147 9.50006 9.5 11.5148 9.5 14.0001C9.5 16.4853 11.5147 18.5001 14 18.5001C15.3488 18.5001 16.559 17.9066 17.3838 16.9666C18.0787 16.1746 18.5 15.1365 18.5 14.0001C18.5 13.5401 18.431 13.0963 18.3028 12.6784C17.7382 10.8381 16.0253 9.50006 14 9.50006ZM11 14.0001C11 12.3432 12.3431 11.0001 14 11.0001C15.6569 11.0001 17 12.3432 17 14.0001C17 15.6569 15.6569 17.0001 14 17.0001C12.3431 17.0001 11 15.6569 11 14.0001Z M21.7093 22.3948L19.9818 21.6364C19.4876 21.4197 18.9071 21.4515 18.44 21.7219C17.9729 21.9924 17.675 22.4693 17.6157 23.0066L17.408 24.8855C17.3651 25.273 17.084 25.5917 16.7055 25.682C14.9263 26.1061 13.0725 26.1061 11.2933 25.682C10.9148 25.5917 10.6336 25.273 10.5908 24.8855L10.3834 23.0093C10.3225 22.4731 10.0112 21.9976 9.54452 21.7281C9.07783 21.4586 8.51117 21.4269 8.01859 21.6424L6.29071 22.4009C5.93281 22.558 5.51493 22.4718 5.24806 22.1859C4.00474 20.8536 3.07924 19.2561 2.54122 17.5137C2.42533 17.1384 2.55922 16.7307 2.8749 16.4977L4.40219 15.3703C4.83721 15.0501 5.09414 14.5415 5.09414 14.0007C5.09414 13.4598 4.83721 12.9512 4.40162 12.6306L2.87529 11.5051C2.55914 11.272 2.42513 10.8638 2.54142 10.4882C3.08038 8.74734 4.00637 7.15163 5.24971 5.82114C5.51684 5.53528 5.93492 5.44941 6.29276 5.60691L8.01296 6.36404C8.50793 6.58168 9.07696 6.54881 9.54617 6.27415C10.0133 6.00264 10.3244 5.52527 10.3844 4.98794L10.5933 3.11017C10.637 2.71803 10.9245 2.39704 11.3089 2.31138C12.19 2.11504 13.0891 2.01071 14.0131 2.00006C14.9147 2.01047 15.8128 2.11485 16.6928 2.31149C17.077 2.39734 17.3643 2.71823 17.4079 3.11017L17.617 4.98937C17.7116 5.85221 18.4387 6.50572 19.3055 6.50663C19.5385 6.507 19.769 6.45838 19.9843 6.36294L21.7048 5.60568C22.0626 5.44818 22.4807 5.53405 22.7478 5.81991C23.9912 7.1504 24.9172 8.74611 25.4561 10.487C25.5723 10.8623 25.4386 11.2703 25.1228 11.5035L23.5978 12.6297C23.1628 12.95 22.9 13.4586 22.9 13.9994C22.9 14.5403 23.1628 15.0489 23.5988 15.3698L25.1251 16.4965C25.441 16.7296 25.5748 17.1376 25.4586 17.5131C24.9198 19.2536 23.9944 20.8492 22.7517 22.1799C22.4849 22.4657 22.0671 22.5518 21.7093 22.3948ZM16.263 22.1966C16.4982 21.4685 16.9889 20.8288 17.6884 20.4238C18.5702 19.9132 19.6536 19.8547 20.5841 20.2627L21.9281 20.8526C22.791 19.8538 23.4593 18.7013 23.8981 17.4552L22.7095 16.5778L22.7086 16.5771C21.898 15.98 21.4 15.0277 21.4 13.9994C21.4 12.9719 21.8974 12.0195 22.7073 11.4227L22.7085 11.4218L23.8957 10.545C23.4567 9.2988 22.7881 8.14636 21.9248 7.1477L20.5922 7.73425L20.5899 7.73527C20.1844 7.91463 19.7472 8.00722 19.3039 8.00663C17.6715 8.00453 16.3046 6.77431 16.1261 5.15465L16.1259 5.15291L15.9635 3.69304C15.3202 3.57328 14.6677 3.50872 14.013 3.50017C13.3389 3.50891 12.6821 3.57367 12.0377 3.69328L11.8751 5.15452C11.7625 6.16272 11.1793 7.05909 10.3019 7.56986C9.41937 8.0856 8.34453 8.14844 7.40869 7.73694L6.07273 7.14893C5.20949 8.14751 4.54092 9.29983 4.10196 10.5459L5.29181 11.4233C6.11115 12.0269 6.59414 12.9837 6.59414 14.0007C6.59414 15.0173 6.11142 15.9742 5.29237 16.5776L4.10161 17.4566C4.54002 18.7044 5.2085 19.8585 6.07205 20.8587L7.41742 20.2682C8.34745 19.8613 9.41573 19.9215 10.2947 20.4292C11.174 20.937 11.7593 21.832 11.8738 22.84L11.8744 22.8445L12.0362 24.3088C13.3326 24.5638 14.6662 24.5638 15.9626 24.3088L16.1247 22.8418C16.1491 22.6217 16.1955 22.4055 16.263 22.1966Z</StreamGeometry>
       <StreamGeometry x:Key="settings_privacy_regular">M14 9.50006C11.5147 9.50006 9.5 11.5148 9.5 14.0001C9.5 16.4853 11.5147 18.5001 14 18.5001C15.3488 18.5001 16.559 17.9066 17.3838 16.9666C18.0787 16.1746 18.5 15.1365 18.5 14.0001C18.5 13.5401 18.431 13.0963 18.3028 12.6784C17.7382 10.8381 16.0253 9.50006 14 9.50006ZM11 14.0001C11 12.3432 12.3431 11.0001 14 11.0001C15.6569 11.0001 17 12.3432 17 14.0001C17 15.6569 15.6569 17.0001 14 17.0001C12.3431 17.0001 11 15.6569 11 14.0001Z M21.7093 22.3948L19.9818 21.6364C19.4876 21.4197 18.9071 21.4515 18.44 21.7219C17.9729 21.9924 17.675 22.4693 17.6157 23.0066L17.408 24.8855C17.3651 25.273 17.084 25.5917 16.7055 25.682C14.9263 26.1061 13.0725 26.1061 11.2933 25.682C10.9148 25.5917 10.6336 25.273 10.5908 24.8855L10.3834 23.0093C10.3225 22.4731 10.0112 21.9976 9.54452 21.7281C9.07783 21.4586 8.51117 21.4269 8.01859 21.6424L6.29071 22.4009C5.93281 22.558 5.51493 22.4718 5.24806 22.1859C4.00474 20.8536 3.07924 19.2561 2.54122 17.5137C2.42533 17.1384 2.55922 16.7307 2.8749 16.4977L4.40219 15.3703C4.83721 15.0501 5.09414 14.5415 5.09414 14.0007C5.09414 13.4598 4.83721 12.9512 4.40162 12.6306L2.87529 11.5051C2.55914 11.272 2.42513 10.8638 2.54142 10.4882C3.08038 8.74734 4.00637 7.15163 5.24971 5.82114C5.51684 5.53528 5.93492 5.44941 6.29276 5.60691L8.01296 6.36404C8.50793 6.58168 9.07696 6.54881 9.54617 6.27415C10.0133 6.00264 10.3244 5.52527 10.3844 4.98794L10.5933 3.11017C10.637 2.71803 10.9245 2.39704 11.3089 2.31138C12.19 2.11504 13.0891 2.01071 14.0131 2.00006C14.9147 2.01047 15.8128 2.11485 16.6928 2.31149C17.077 2.39734 17.3643 2.71823 17.4079 3.11017L17.617 4.98937C17.7116 5.85221 18.4387 6.50572 19.3055 6.50663C19.5385 6.507 19.769 6.45838 19.9843 6.36294L21.7048 5.60568C22.0626 5.44818 22.4807 5.53405 22.7478 5.81991C23.9912 7.1504 24.9172 8.74611 25.4561 10.487C25.5723 10.8623 25.4386 11.2703 25.1228 11.5035L23.5978 12.6297C23.1628 12.95 22.9 13.4586 22.9 13.9994C22.9 14.5403 23.1628 15.0489 23.5988 15.3698L25.1251 16.4965C25.441 16.7296 25.5748 17.1376 25.4586 17.5131C24.9198 19.2536 23.9944 20.8492 22.7517 22.1799C22.4849 22.4657 22.0671 22.5518 21.7093 22.3948ZM16.263 22.1966C16.4982 21.4685 16.9889 20.8288 17.6884 20.4238C18.5702 19.9132 19.6536 19.8547 20.5841 20.2627L21.9281 20.8526C22.791 19.8538 23.4593 18.7013 23.8981 17.4552L22.7095 16.5778L22.7086 16.5771C21.898 15.98 21.4 15.0277 21.4 13.9994C21.4 12.9719 21.8974 12.0195 22.7073 11.4227L22.7085 11.4218L23.8957 10.545C23.4567 9.2988 22.7881 8.14636 21.9248 7.1477L20.5922 7.73425L20.5899 7.73527C20.1844 7.91463 19.7472 8.00722 19.3039 8.00663C17.6715 8.00453 16.3046 6.77431 16.1261 5.15465L16.1259 5.15291L15.9635 3.69304C15.3202 3.57328 14.6677 3.50872 14.013 3.50017C13.3389 3.50891 12.6821 3.57367 12.0377 3.69328L11.8751 5.15452C11.7625 6.16272 11.1793 7.05909 10.3019 7.56986C9.41937 8.0856 8.34453 8.14844 7.40869 7.73694L6.07273 7.14893C5.20949 8.14751 4.54092 9.29983 4.10196 10.5459L5.29181 11.4233C6.11115 12.0269 6.59414 12.9837 6.59414 14.0007C6.59414 15.0173 6.11142 15.9742 5.29237 16.5776L4.10161 17.4566C4.54002 18.7044 5.2085 19.8585 6.07205 20.8587L7.41742 20.2682C8.34745 19.8613 9.41573 19.9215 10.2947 20.4292C11.174 20.937 11.7593 21.832 11.8738 22.84L11.8744 22.8445L12.0362 24.3088C13.3326 24.5638 14.6662 24.5638 15.9626 24.3088L16.1247 22.8418C16.1491 22.6217 16.1955 22.4055 16.263 22.1966Z</StreamGeometry>
