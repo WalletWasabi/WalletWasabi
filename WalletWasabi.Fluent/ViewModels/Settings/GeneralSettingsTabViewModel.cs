@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Reflection;
-using Microsoft.Win32;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Gui;
@@ -62,7 +60,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.Subscribe(x =>
 				{
 					Services.UiConfig.IsOsStartup = x;
-					ModifyRegistry(x);
+					WalletWasabi.Helpers.StartupHelper.ModifyStartupSetting(x);
 				});
 
 			this.WhenAnyValue(x => x.CustomFee)
@@ -83,24 +81,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 		public IEnumerable<FeeDisplayFormat> FeeDisplayFormats =>
 			Enum.GetValues(typeof(FeeDisplayFormat)).Cast<FeeDisplayFormat>();
-
-		private void ModifyRegistry(bool changedOption)
-		{
-			string keyName = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
-			using RegistryKey key = Registry.CurrentUser.OpenSubKey(keyName, true);
-			if (changedOption)
-			{
-				string pathToExe = Assembly.GetExecutingAssembly().Location;
-				pathToExe = pathToExe.Remove(pathToExe.Length - 11);        // This part has to change if this gets released
-				pathToExe += ".Fluent.Desktop.exe";
-
-				key.SetValue("WasabiWallet", pathToExe);
-			}
-			else
-			{
-				key.DeleteValue("WasabiWallet");
-			}
-		}
 
 		protected override void EditConfigOnSave(Config config)
 		{
