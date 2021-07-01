@@ -299,16 +299,26 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private void InsertAddressFromQRIfAble(Mat frame)
 		{
 			QRCodeDetector qRCodeDetector = new();
-			if (qRCodeDetector.Detect(frame, out Point2f[] points))
+			try
 			{
-				string qrCode = qRCodeDetector.Decode(frame, points, new Mat());
-				if (!string.IsNullOrWhiteSpace(qrCode))
+				if (qRCodeDetector.Detect(frame, out Point2f[] points))
 				{
-					To = qrCode;
-					CloseWebCam();
+					string qrCode = qRCodeDetector.Decode(frame, points, new Mat());
+					if (!string.IsNullOrWhiteSpace(qrCode))
+					{
+						To = qrCode;
+						CloseWebCam();
+					}
 				}
 			}
-			qRCodeDetector.Dispose();
+			catch (OpenCVException exc)
+			{
+				Logger.LogWarning(exc);
+			}
+			finally
+			{
+				qRCodeDetector.Dispose();
+			}
 		}
 
 		private void CloseWebCam()
