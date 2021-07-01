@@ -244,10 +244,10 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 			else if (value > 0)
 			{
 				// Fan in, draining zero credentials is never necessary.
-				var edgeAmount = Math.Min(-1 * Balance(node), value);
-				if (edgeAmount == value || RemainingOutDegree(dischargeNode) > 1)
+				var edgeValue = Math.Min(-1 * Balance(node), value);
+				if (edgeValue == value || RemainingOutDegree(dischargeNode) > 1)
 				{
-					return AddEdge(dischargeNode, node, edgeAmount);
+					return AddEdge(dischargeNode, node, edgeValue);
 				}
 				else
 				{

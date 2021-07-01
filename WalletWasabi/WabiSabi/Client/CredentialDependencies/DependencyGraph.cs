@@ -68,12 +68,19 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 				Enumerable.Zip(effectiveCosts.Select(a => a.Satoshi), outputSizes.Select(i => (long)i), ImmutableArray.Create).Cast<IEnumerable<long>>()
 			);
 		}
+
 		public static DependencyGraph ResolveCredentialDependencies(IEnumerable<IEnumerable<long>> inputValues, IEnumerable<IEnumerable<long>> outputValues)
 			=> FromValues(inputValues, outputValues).ResolveCredentials();
 
 		public static DependencyGraph FromValues(IEnumerable<IEnumerable<long>> inputValues, IEnumerable<IEnumerable<long>> outputValues)
 		{
-			if (Enumerable.Concat(inputValues, outputValues).Any(x => x.Count() != CredentialTypes.Count()))
+			var allValues = Enumerable.Concat(inputValues, outputValues);
+			if (allValues.SelectMany(x => x).Any(x => x < 0))
+			{
+				throw new ArgumentException($"All values must be positive.");
+			}
+
+			if (allValues.Any(x => x.Count() != CredentialTypes.Count()))
 			{
 				throw new ArgumentException($"Number of credential values must be {CredentialTypes.Count()}");
 			}

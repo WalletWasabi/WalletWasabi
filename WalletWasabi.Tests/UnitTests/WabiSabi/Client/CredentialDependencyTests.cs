@@ -16,8 +16,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		public async void AsyncDependencyGraphTraversalAsync()
 		{
 			var g = DependencyGraph.ResolveCredentialDependencies(
-				inputValues: new[] { new long[] { 10000, 1930 }, new long[] { 1000, 1930 } },
-				outputValues: new[] { new long[] { 5000, 31 }, new long[] { 3500, 31 }, new long[] { 2500, 31 } });
+				inputValues: new[] { new[] { 10000L, 1930L }, new[] { 1000L, 1930L } },
+				outputValues: new[] { new[] { 5000L, 31L }, new[] { 3500L, 31L }, new[] { 2500L, 31L } });
 
 			await SimulateAsyncRequestsAsync(g);
 		}
@@ -366,7 +366,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		[Fact]
 		public void EdgeConstraints()
 		{
-			var g = DependencyGraph.FromValues(new[] { new long[] { 11, 0 }, new long[] { 8, 0 } }, new[] { new long[] { 7, 0 }, new long[] { 11, 0 } });
+			var g = DependencyGraph.FromValues(new[] { new[] { 11L, 0L }, new[] { 8L, 0L } }, new[] { new[] { 7L, 0L }, new[] { 11L, 0L } });
 
 			var i = g.Inputs[0];
 			var o = g.Outputs[0];
