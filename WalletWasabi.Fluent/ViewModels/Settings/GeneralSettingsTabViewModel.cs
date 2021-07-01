@@ -57,7 +57,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			this.WhenAnyValue(x => x.RunOnSystemStartup)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Skip(1)
-				.Subscribe(x =>
+				.Subscribe(async x =>
 				{
 					if (WalletWasabi.Helpers.StartupHelper.TryModifyStartupSetting(x))
 					{
@@ -65,7 +65,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 					}
 					else
 					{
-						// Show notification with error message!
+						await ShowErrorAsync(Title, WalletWasabi.Helpers.StartupHelper.StartupErrorMessage, "Something went wrong.");
 					}
 				});
 

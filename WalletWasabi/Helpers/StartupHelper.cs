@@ -8,6 +8,8 @@ namespace WalletWasabi.Helpers
 {
 	public static class StartupHelper
 	{
+		public const string StartupErrorMessage = "Something went wrong while trying to make your changes.";
+
 		public static bool TryModifyStartupSetting(bool isWasabiStartsWithOS)
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
