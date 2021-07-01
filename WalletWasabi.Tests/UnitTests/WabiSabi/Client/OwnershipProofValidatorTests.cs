@@ -6,12 +6,9 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Backend.Models;
-using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Crypto;
 using WalletWasabi.Models;
-using WalletWasabi.Stores;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
@@ -25,10 +22,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		public async Task CoinsAlreadySeenTestAsync()
 		{
 			// We need the `TransactionStore` instance to verify coins created in transactions (coinjoins by sure)
-			// that are saved in our disk (because they are relevant for us). The `BlockProvider` and the `IndexStore`
-			// are used to find and get the blocks containing the transactions that create the coins that we have
-			// to verify.
-			await using var indexStore = await CreateIndexStoreAsync().ConfigureAwait(false);
+			// that are saved in our disk (because they are relevant for us). The `BlockProvider` is used to get
+			// the blocks containing the transactions that creates the coins that we have to verify.
 			await using var transactionStore = await CreateTransactionStoreAsync().ConfigureAwait(false);
 			var blockProvider = new Mock<IBlockProvider>();
 
@@ -44,31 +39,23 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				otherAliceKey,
 				new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundId));
 
-			var validator = new OwnershipProofValidator(indexStore, transactionStore, blockProvider.Object);
+			var validator = new OwnershipProofValidator(transactionStore, blockProvider.Object);
 
 			// Verify the ownership proof is valid.
+			var dummyBlockId = uint256.Zero;
 			var coin = tx.Transaction.Outputs.AsCoins().First();
 			var validProofs = await validator.VerifyOtherAlicesOwnershipProofsAsync(
 				roundId,
-				new[] { (coin, proof) },
+				new[] { (dummyBlockId, coin.Outpoint, coin.Amount, proof) },
 				10,
 				CancellationToken.None);
 			Assert.Equal(1, validProofs);
 
-			// Verify the ownership proof is valid (different script).
-			coin.ScriptPubKey = BitcoinFactory.CreateScript();
-			var ex = Assert.ThrowsAsync<InvalidOperationException>(async () => await validator.VerifyOtherAlicesOwnershipProofsAsync(
-				roundId,
-				new[] { (coin, proof) },
-				10,
-				CancellationToken.None));
-			Assert.Equal(1, validProofs);
-
 			// Verify the ownership proof is valid (non-existing one).
 			coin.Outpoint.N = 10; // non-existing coin
-			ex = Assert.ThrowsAsync<InvalidOperationException>(async () => await validator.VerifyOtherAlicesOwnershipProofsAsync(
+			await Assert.ThrowsAsync<InvalidOperationException>(async () => await validator.VerifyOtherAlicesOwnershipProofsAsync(
 				roundId,
-				new[] { (coin, proof) },
+				new[] { (dummyBlockId, coin.Outpoint, coin.Amount, proof) },
 				10,
 				CancellationToken.None));
 
@@ -76,7 +63,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			coin.Outpoint = BitcoinFactory.CreateOutPoint(); // non-existing transaction
 			validProofs = await validator.VerifyOtherAlicesOwnershipProofsAsync(
 				roundId,
-				new[] { (coin, proof) },
+				new[] { (dummyBlockId, coin.Outpoint, coin.Amount, proof) },
 				10,
 				CancellationToken.None);
 
@@ -86,7 +73,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		[Fact]
 		public async Task CoinsNeverSeenBeforeTestAsync()
 		{
-			await using var indexStore = await CreateIndexStoreAsync().ConfigureAwait(false);
 			await using var transactionStore = await CreateTransactionStoreAsync().ConfigureAwait(false);
 			var blockProvider = new Mock<IBlockProvider>();
 
@@ -97,19 +83,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			// put the transaction in a block.
 			var block = Block.CreateBlock(Network.Main);
 			block.AddTransaction(stx.Transaction);
-			var blockHash = block.GetHash();
-			blockProvider.Setup(x => x.GetBlockAsync(blockHash, It.IsAny<CancellationToken>())).ReturnsAsync(block);
-
-			// index the block
-			var filter = new GolombRiceFilterBuilder()
-				.SetKey(block.GetHash())
-				.SetP(20)
-				.SetM(1 << 20)
-				.AddEntries(block.Transactions.SelectMany(tx => tx.Outputs.Select(o => o.ScriptPubKey.ToCompressedBytes())))
-				.Build();
-
-			var filterModel = new FilterModel(new SmartHeader(blockHash, uint256.Zero, 1, DateTimeOffset.Now), filter);
-			await indexStore.AddNewFiltersAsync(new[] { filterModel }, CancellationToken.None).ConfigureAwait(false);
+			var blockId = block.GetHash();
+			blockProvider.Setup(x => x.GetBlockAsync(blockId, It.IsAny<CancellationToken>())).ReturnsAsync(block);
 
 			var roundId = uint256.Zero;
 			var proof = OwnershipProof.GenerateCoinJoinInputProof(
@@ -117,19 +92,26 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundId));
 
 			// verify the proof is valid.
-			var validator = new OwnershipProofValidator(indexStore, transactionStore, blockProvider.Object);
+			var validCoin = stx.Transaction.Outputs.AsCoins().First();
+			var validator = new OwnershipProofValidator(transactionStore, blockProvider.Object);
 			var validProofs = await validator.VerifyOtherAlicesOwnershipProofsAsync(
 				roundId,
-				new[] { (stx.Transaction.Outputs.AsCoins().First(), proof) },
+				new[] { (blockId, validCoin.Outpoint, validCoin.Amount, proof) },
 				10,
 				CancellationToken.None);
 			Assert.Equal(1, validProofs);
 
 			// validate a coin comming from a non-existing transaction.
-			var fakeCoin = new Coin(BitcoinFactory.CreateOutPoint(), new TxOut(Money.Coins(8.118736401m), BitcoinFactory.CreateScript()));
+			await Assert.ThrowsAsync<InvalidOperationException>(async () => await validator.VerifyOtherAlicesOwnershipProofsAsync(
+				roundId,
+				new[] { (blockId, BitcoinFactory.CreateOutPoint(), Money.Coins(8.118736401m), proof) },
+				10,
+				CancellationToken.None));
+
+			// validate a coin comming from an non-existing block.
 			validProofs = await validator.VerifyOtherAlicesOwnershipProofsAsync(
 				roundId,
-				new[] { (fakeCoin, proof) },
+				new[] { (uint256.One, validCoin.Outpoint, validCoin.Amount, proof) },
 				10,
 				CancellationToken.None);
 
@@ -143,14 +125,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var txStore = new TransactionStore();
 			await txStore.InitializeAsync(dir, Network.Main, "", CancellationToken.None);
 			return txStore;
-		}
-
-		private async Task<IndexStore> CreateIndexStoreAsync([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
-		{
-			string dir = Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName), "IndexStore");
-			await IoHelpers.TryDeleteDirectoryAsync(dir);
-			var indexStore = new IndexStore(dir, Network.Main, new SmartHeaderChain());
-			return indexStore;
 		}
 
 		private static SmartTransaction CreateCreditingTransaction(Script scriptPubKey, Money amount, int height = 0)

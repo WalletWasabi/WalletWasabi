@@ -15,14 +15,12 @@ namespace WalletWasabi.WabiSabi.Client
 	// OwnershipProofValidator validates the ownership proofs provided by the coordinator.
 	public class OwnershipProofValidator
 	{
-		public OwnershipProofValidator(IndexStore indexStore, TransactionStore transactionStore, IBlockProvider blockProvider)
+		public OwnershipProofValidator(TransactionStore transactionStore, IBlockProvider blockProvider)
 		{
-			IndexStore = indexStore;
 			TransactionStore = transactionStore;
 			BlockProvider = blockProvider;
 		}
 
-		public IndexStore IndexStore { get; }
 		public TransactionStore TransactionStore { get; }
 		public IBlockProvider BlockProvider { get; }
 
@@ -34,87 +32,96 @@ namespace WalletWasabi.WabiSabi.Client
 		// have to abort the process, notify the user and ban the coordinator.
 		public async ValueTask<int> VerifyOtherAlicesOwnershipProofsAsync(
 			uint256 roundId,
-			IEnumerable<(Coin Coin, OwnershipProof OwnershipProof)> othersCoins,
-			int minimumNumberOfCoinsToValidate,
+			IEnumerable<(uint256 BlockId, OutPoint OutPoint, Money Amount, OwnershipProof OwnershipProof)> othersCoins,
+			int minimumNumberOfValidProofs,
 			CancellationToken cancellationToken)
 		{
-			var proofChannel = Channel.CreateBounded<(Coin, Coin?, OwnershipProof)>(10);
-			using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+			var validProofs = 0;
+			var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundId);
 
 			var mineTxIds = TransactionStore.GetTransactionHashes();
-			var alreadySeenCoins = othersCoins.Where(x => mineTxIds.Contains(x.Coin.Outpoint.Hash));
+			var alreadySeenCoins = othersCoins.Where(x => mineTxIds.Contains(x.OutPoint.Hash));
 
 			// In case one Alice is trying to spend an output from a transaction that we already have
 			// seen before then we can verify its script without downloading anything from the network.
-			foreach (var (coin, ownershipProof) in alreadySeenCoins)
+			foreach (var (_, outpoint, amount, ownershipProof) in alreadySeenCoins)
 			{
-				if (TransactionStore.TryGetTransaction(coin.Outpoint.Hash, out var stx))
+				if (validProofs >= minimumNumberOfValidProofs)
+				{
+					break;
+				}
+
+				if (TransactionStore.TryGetTransaction(outpoint.Hash, out var stx))
 				{
 					var transactionCoins = stx.Transaction.Outputs.AsCoins();
-					var foundCoin = transactionCoins.ElementAtOrDefault((int)coin.Outpoint.N);
-					await proofChannel.Writer.WriteAsync((coin, foundCoin, ownershipProof), cts.Token).ConfigureAwait(false);
-				}
-			}
+					var foundCoin = transactionCoins.ElementAtOrDefault((int)outpoint.N);
 
-			// In case there are no filters.
-			if (IndexStore.SmartHeaderChain.HashCount == 0)
-			{
-				proofChannel.Writer.Complete();
+					if (foundCoin is not { } coin || coin.Amount != amount)
+					{
+						throw new InvalidOperationException("The coordinator lies (coin doesn't exists or is different than the provided by the coordinator).");
+					}
+					VerifyCoin(foundCoin.ScriptPubKey, coinJoinInputCommitmentData, ownershipProof);
+					validProofs++;
+				}
 			}
 
 			// In case we cannot validate enough proofs using only our already seen transactions, we
 			// would need to start downloading the blocks containing the coins that need to be
-			// validated. We use our block filters for that.
-			var scripts = othersCoins.Select(x => x.Coin.ScriptPubKey.ToCompressedBytes()).ToArray();
-			_ = Task.Run(async () =>
-			{
-				await IndexStore.ForeachFiltersAsync(async (filterModel) =>
-				{
-					var matchFound = filterModel.Filter.MatchAny(scripts, filterModel.FilterKey);
-					if (matchFound)
-					{
-						var blockId = filterModel.Header.BlockHash;
-						var block = await BlockProvider.GetBlockAsync(blockId, cts.Token).ConfigureAwait(false);
+			// validated.
+			var coinsGroupedByBlocks = othersCoins.GroupBy(x => x.BlockId).ToArray();
 
-						foreach (var (coin, ownershipProof) in othersCoins)
+			// We sort the groups (blocks) randomly.
+			var random = new Random();
+			var randomNumbers = othersCoins.Select(r => random.Next()).ToArray();
+			coinsGroupedByBlocks = coinsGroupedByBlocks.Zip(randomNumbers, (group, rnd) => new { Groupd = group, Order = rnd })
+				.OrderBy(x => x.Order)
+				.Select(x => x.Groupd)
+				.ToArray();
+
+			foreach (var coinsInBlock in coinsGroupedByBlocks)
+			{
+				if (validProofs >= minimumNumberOfValidProofs)
+				{
+					break;
+				}
+
+				var blockId = coinsInBlock.Key;
+				var block = await BlockProvider.GetBlockAsync(blockId, cancellationToken).ConfigureAwait(false);
+
+				if (block is { })
+				{
+					foreach (var (_, outpoint, amount, ownershipProof) in coinsInBlock)
+					{
+						var tx = block.Transactions.FirstOrDefault(x => x.GetHash() == outpoint.Hash);
+						if (tx is null)
 						{
-							if (block?.Transactions.FirstOrDefault(x => x.GetHash() == coin.Outpoint.Hash) is { } tx)
-							{
-								var transactionCoins = tx.Outputs.AsCoins();
-								var foundCoin = transactionCoins.ElementAtOrDefault((int)coin.Outpoint.N);
-								await proofChannel.Writer.WriteAsync((coin, foundCoin, ownershipProof), cts.Token).ConfigureAwait(false);
-							}
+							throw new InvalidOperationException($"The coordinator lies (there is not transaction with id '{outpoint.Hash}' in block '{blockId}').");
 						}
+						var transactionCoins = tx.Outputs.AsCoins();
+						var foundCoin = transactionCoins.ElementAtOrDefault((int)outpoint.N);
+						if (foundCoin is not { } coin || coin.Amount != amount)
+						{
+							throw new InvalidOperationException("The coordinator lies (coin doesn't exists or is different than the provided by the coordinator).");
+						}
+						VerifyCoin(foundCoin.ScriptPubKey, coinJoinInputCommitmentData, ownershipProof);
+						validProofs++;
 					}
-					// there are no more filters
-					if (filterModel.Header.BlockHash == IndexStore.SmartHeaderChain.TipHash)
-					{
-						proofChannel.Writer.Complete();
-					}
-				}, 0, cts.Token).ConfigureAwait(false);
-			});
-
-			// Consumes and validates the coins and their proofs.
-			var validProofs = 0;
-			var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundId);
-			while (validProofs < minimumNumberOfCoinsToValidate && await proofChannel.Reader.WaitToReadAsync(cts.Token).ConfigureAwait(false))
-			{
-				var (aliceCoin, realCoin, ownershipProof) = await proofChannel.Reader.ReadAsync(cts.Token).ConfigureAwait(false);
-				if (realCoin is not { } coin || (aliceCoin.TxOut, aliceCoin.Outpoint) != (coin.TxOut, coin.Outpoint))
-				{
-					cts.Cancel();
-					throw new InvalidOperationException("The coordinator lies (coin doesn't exists or is different than the provided by the coordinator).");
 				}
-				if (!OwnershipProof.VerifyCoinJoinInputProof(ownershipProof, aliceCoin.ScriptPubKey, coinJoinInputCommitmentData))
+				else
 				{
-					cts.Cancel();
-					throw new InvalidOperationException("The coordinator lies (the ownership proof is not valid what means Alice cannot really spend it).");
+					// FIXME: what if no peer has the block?
 				}
-				validProofs++;
 			}
 
-			cts.Cancel();
 			return validProofs;
+		}
+
+		private static void VerifyCoin(Script scriptPubKey, CoinJoinInputCommitmentData coinJoinInputCommitmentData, OwnershipProof ownershipProof)
+		{
+			if (!OwnershipProof.VerifyCoinJoinInputProof(ownershipProof, scriptPubKey, coinJoinInputCommitmentData))
+			{
+				throw new InvalidOperationException("The coordinator lies (the ownership proof is not valid what means Alice cannot really spend it).");
+			}
 		}
 	}
 }
