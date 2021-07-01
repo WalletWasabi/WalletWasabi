@@ -66,7 +66,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 					else
 					{
 						// Show notification with error message!
-					};
+					}
 				});
 
 			this.WhenAnyValue(x => x.CustomFee)

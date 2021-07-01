@@ -49,6 +49,10 @@ namespace WalletWasabi.Helpers
 
 					return true;
 				}
+				else
+				{
+					throw new InvalidOperationException("It can only be called on Windows.");
+				}
 			}
 			catch (ArgumentNullException ex)
 			{
