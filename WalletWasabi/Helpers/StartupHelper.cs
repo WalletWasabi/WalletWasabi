@@ -10,11 +10,11 @@ namespace WalletWasabi.Helpers
 	{
 		public const string StartupErrorMessage = "Something went wrong while trying to make your changes.";
 
-		public static bool TryModifyStartupSetting(bool isWasabiStartsWithOS)
+		public static bool TryModifyStartupSetting(bool runOnSystemStartup)
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				return TryModifyRegistry(isWasabiStartsWithOS);
+				return TryModifyRegistry(runOnSystemStartup);
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
@@ -27,7 +27,7 @@ namespace WalletWasabi.Helpers
 			return false;
 		}
 
-		private static bool TryModifyRegistry(bool isWasabiStartsWithOS)
+		private static bool TryModifyRegistry(bool runOnSystemStartup)
 		{
 			string keyName = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
 			try
@@ -39,7 +39,7 @@ namespace WalletWasabi.Helpers
 				}
 
 				using RegistryKey key = Registry.CurrentUser.OpenSubKey(keyName, writable: true) ?? throw new NullReferenceException();
-				if (isWasabiStartsWithOS)
+				if (runOnSystemStartup)
 				{
 					string pathToExeFile = Assembly.GetExecutingAssembly().Location;
 					pathToExeFile = pathToExeFile.Remove(pathToExeFile.Length - 4);        // This part has to change if this gets released
