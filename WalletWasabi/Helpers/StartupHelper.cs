@@ -27,12 +27,12 @@ namespace WalletWasabi.Helpers
 
 		private static bool TryModifyRegistry(bool isWasabiStartsWithOS)
 		{
+			string keyName = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
 			try
 			{
 				// This extra check is here only to eliminate warnings.
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				{
-					string keyName = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
 					using RegistryKey key = Registry.CurrentUser.OpenSubKey(keyName, writable: true) ?? throw new NullReferenceException();
 					if (isWasabiStartsWithOS)
 					{
@@ -68,7 +68,7 @@ namespace WalletWasabi.Helpers
 			}
 			catch (NullReferenceException ex)
 			{
-				Logger.LogError("Couldn't open registry subkey in SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", ex);
+				Logger.LogError($"Couldn't open registry subkey in {keyName}.", ex);
 			}
 
 			return false;
