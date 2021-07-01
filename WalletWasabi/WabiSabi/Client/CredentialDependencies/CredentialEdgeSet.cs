@@ -37,7 +37,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 		public CredentialEdgeSet AddEdge(RequestNode from, RequestNode to, long value)
 		{
-			var edge = new CredentialDependency(from, to, CredentialType, value);
+			var edge = new CredentialDependency(from, to, CredentialType, Guard.MinimumAndNotNull(nameof(value), value, 0));
 
 			// Maintain degree invariant (subset of K-regular graph, sort of)
 			if (RemainingInDegree(edge.To) == 0)
