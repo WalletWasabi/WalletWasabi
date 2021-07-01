@@ -27,7 +27,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		[AutoNotify] private bool _customFee;
 		[AutoNotify] private bool _customChangeAddress;
 		[AutoNotify] private FeeDisplayFormat _selectedFeeDisplayFormat;
-		[AutoNotify] private bool _osStartup;
+		[AutoNotify] private bool _runOnSystemStartup;
 
 		public GeneralSettingsTabViewModel()
 		{
@@ -35,7 +35,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			_autoCopy = Services.UiConfig.Autocopy;
 			_customFee = Services.UiConfig.IsCustomFee;
 			_customChangeAddress = Services.UiConfig.IsCustomChangeAddress;
-			_osStartup = Services.UiConfig.IsOsStartup;
+			_runOnSystemStartup = Services.UiConfig.RunOnSystemStartup;
 			_selectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), Services.UiConfig.FeeDisplayFormat)
 				? (FeeDisplayFormat)Services.UiConfig.FeeDisplayFormat
 				: FeeDisplayFormat.SatoshiPerByte;
@@ -54,14 +54,18 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.Skip(1)
 				.Subscribe(x => Services.UiConfig.Autocopy = x);
 
-			this.WhenAnyValue(x => x.OsStartup)
+			this.WhenAnyValue(x => x.RunOnSystemStartup)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Skip(1)
 				.Subscribe(x =>
 				{
 					if (WalletWasabi.Helpers.StartupHelper.TryModifyStartupSetting(x))
 					{
-						Services.UiConfig.IsOsStartup = x;
+						Services.UiConfig.RunOnSystemStartup = x;
+					}
+					else
+					{
+						// Show notification with error message!
 					};
 				});
 
