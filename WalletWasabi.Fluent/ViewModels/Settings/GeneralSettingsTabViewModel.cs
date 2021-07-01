@@ -59,8 +59,10 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.Skip(1)
 				.Subscribe(x =>
 				{
-					Services.UiConfig.IsOsStartup = x;
-					WalletWasabi.Helpers.StartupHelper.ModifyStartupSetting(x);
+					if (WalletWasabi.Helpers.StartupHelper.TryModifyStartupSetting(x))
+					{
+						Services.UiConfig.IsOsStartup = x;
+					};
 				});
 
 			this.WhenAnyValue(x => x.CustomFee)

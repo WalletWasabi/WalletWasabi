@@ -1,16 +1,19 @@
 using Microsoft.Win32;
+using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security.Permissions;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Helpers
 {
 	public static class StartupHelper
 	{
-		public static void ModifyStartupSetting(bool isWasabiStartsWithOS)
+		public static bool TryModifyStartupSetting(bool isWasabiStartsWithOS)
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				ModifyRegistry(isWasabiStartsWithOS);
+				return TryModifyRegistry(isWasabiStartsWithOS);
 			}
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
@@ -20,28 +23,48 @@ namespace WalletWasabi.Helpers
 			{
 				// Method call here
 			}
+			return false;
 		}
 
-		private static void ModifyRegistry(bool isWasabiStartsWithOS)
+		private static bool TryModifyRegistry(bool isWasabiStartsWithOS)
 		{
-			// This extra check is only to eliminate warnings.
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			try
 			{
-				string keyName = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
-				using RegistryKey key = Registry.CurrentUser.OpenSubKey(keyName, true);
-				if (isWasabiStartsWithOS)
+				// This extra check is only to eliminate warnings.
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				{
-					string pathToExe = Assembly.GetExecutingAssembly().Location;
-					pathToExe = pathToExe.Remove(pathToExe.Length - 4);        // This part has to change if this gets released
-					pathToExe += ".Fluent.Desktop.exe";
+					string keyName = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
+					using RegistryKey key = Registry.CurrentUser.OpenSubKey(keyName, writable: true);
+					if (isWasabiStartsWithOS)
+					{
+						string pathToExeFile = Assembly.GetExecutingAssembly().Location;
+						pathToExeFile = pathToExeFile.Remove(pathToExeFile.Length - 4);        // This part has to change if this gets released
+						pathToExeFile += ".Fluent.Desktop.exe";
 
-					key.SetValue("WasabiWallet", pathToExe);
-				}
-				else
-				{
-					key.DeleteValue("WasabiWallet");
+						key.SetValue("WasabiWallet", pathToExeFile);
+					}
+					else
+					{
+						key.DeleteValue("WasabiWallet");
+					}
+
+					return true;
 				}
 			}
+			catch (ArgumentNullException ex)
+			{
+				Logger.LogError(ex);
+			}
+			catch (System.Security.SecurityException ex)
+			{
+				Logger.LogError("Permission to create registry entry is denied.", ex);
+			}
+			catch (ObjectDisposedException ex)
+			{
+				Logger.LogError("The RegistryKey is closed or cannot be accessed.", ex);
+			}
+
+			return false;
 		}
 	}
 }
