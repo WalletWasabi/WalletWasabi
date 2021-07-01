@@ -23,6 +23,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		private uint? _startingFilterIndex;
 		private Stopwatch? _stopwatch;
 		private bool _isLoading;
+		private uint _filtersToSyncCount;
+		private uint _filtersToProcessCount;
 
 		public LoadingViewModel(Wallet wallet)
 		{
@@ -105,6 +107,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					}
 				})
 				.DisposeWith(disposables);
+		}
+
+		private void SetInitValues()
+		{
+			_filtersToSyncCount = (uint) Services.BitcoinStore.SmartHeaderChain.HashesLeft;
+
+			if (Services.BitcoinStore.SmartHeaderChain.ServerTipHeight is { } tipHeight)
+			{
+				var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network).Height;
+				var bestHeight = (uint) _wallet.KeyManager.GetBestHeight().Value;
+
+				_filtersToProcessCount = tipHeight - (bestHeight < startingHeight ? startingHeight : bestHeight);
+			}
 		}
 
 		private void UpdateStatus(uint allFilters, uint processedFilters, double elapsedMilliseconds)
