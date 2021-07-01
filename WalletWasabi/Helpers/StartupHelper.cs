@@ -1,5 +1,6 @@
 using Microsoft.Win32;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using WalletWasabi.Logging;
@@ -9,12 +10,17 @@ namespace WalletWasabi.Helpers
 	public static class StartupHelper
 	{
 		public const string StartupErrorMessage = "Something went wrong while trying to make your changes.";
+		private const string KeyPath = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
 
 		public static bool TryModifyStartupSetting(bool runOnSystemStartup)
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				return TryModifyRegistry(runOnSystemStartup);
+				string pathToExeFile = Assembly.GetExecutingAssembly().Location;
+				pathToExeFile = pathToExeFile.Remove(pathToExeFile.Length - 4);        // This part has to change if this gets released
+				pathToExeFile += ".Fluent.Desktop.exe";
+
+				return TryModifyRegistry(runOnSystemStartup, pathToExeFile);
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
@@ -27,24 +33,14 @@ namespace WalletWasabi.Helpers
 			return false;
 		}
 
-		private static bool TryModifyRegistry(bool runOnSystemStartup)
+		[SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "Method can be called only on Windows.")]
+		private static bool TryModifyRegistry(bool runOnSystemStartup, string pathToExeFile)
 		{
-			string keyName = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
 			try
 			{
-				// This extra check is here only to eliminate warnings.
-				if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-				{
-					throw new InvalidOperationException("It can only be called on Windows.");
-				}
-
-				using RegistryKey key = Registry.CurrentUser.OpenSubKey(keyName, writable: true) ?? throw new NullReferenceException();
+				using RegistryKey key = Registry.CurrentUser.OpenSubKey(KeyPath, writable: true) ?? throw new NullReferenceException();
 				if (runOnSystemStartup)
 				{
-					string pathToExeFile = Assembly.GetExecutingAssembly().Location;
-					pathToExeFile = pathToExeFile.Remove(pathToExeFile.Length - 4);        // This part has to change if this gets released
-					pathToExeFile += ".Fluent.Desktop.exe";
-
 					key.SetValue("WasabiWallet", pathToExeFile);
 				}
 				else
@@ -53,18 +49,6 @@ namespace WalletWasabi.Helpers
 				}
 
 				return true;
-			}
-			catch (System.Security.SecurityException ex)
-			{
-				Logger.LogError("Permission to create registry entry is denied.", ex);
-			}
-			catch (ObjectDisposedException ex)
-			{
-				Logger.LogError("The RegistryKey is closed or cannot be accessed.", ex);
-			}
-			catch (NullReferenceException ex)
-			{
-				Logger.LogError($"Couldn't open registry subkey in {keyName}.", ex);
 			}
 			catch (Exception ex)
 			{
