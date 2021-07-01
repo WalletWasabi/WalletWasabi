@@ -135,7 +135,8 @@
         </ItemsControl>
       </ScrollViewer>
       <Panel>
-        <history:HistoryTable Name="HistoryTable" DataContext="{Binding History}"
+        <history:HistoryTable Name="HistoryTable"
+                              DataContext="{Binding History}"
                               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                               IsVisible="{Binding UnfilteredTransactions.Count}"/>
         <Border ClipToBounds="False"
