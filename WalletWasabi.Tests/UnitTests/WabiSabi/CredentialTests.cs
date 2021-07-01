@@ -14,12 +14,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 			using var rnd = new SecureRandom();
 			var sk = new CredentialIssuerSecretKey(rnd);
 
-			var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000, new ZeroCredentialPool());
+			var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000);
 			var issuer = new CredentialIssuer(sk, rnd, 4300000000000);
 			Assert.Equal(42, client.RangeProofWidth);
 			Assert.Equal(42, issuer.RangeProofWidth);
 
-			client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4400000000001, new ZeroCredentialPool());
+			client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4400000000001);
 			issuer = new CredentialIssuer(sk, rnd, 4400000000001);
 			Assert.Equal(43, client.RangeProofWidth);
 			Assert.Equal(43, issuer.RangeProofWidth);
@@ -33,7 +33,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 			// Split 10 sats into 1, 1, 1, 1, 6.
 			using var rnd = new SecureRandom();
 			var sk = new CredentialIssuerSecretKey(rnd);
-			var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000, new ZeroCredentialPool());
+			var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000);
 			var issuer = new CredentialIssuer(sk, rnd, 4300000000000);
 
 			// Input Reg
@@ -86,7 +86,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 			using var rnd = new SecureRandom();
 			var sk = new CredentialIssuerSecretKey(rnd);
 
-			var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000, new ZeroCredentialPool());
+			var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000);
 
 			{
 				// Null request. This requests `numberOfCredentials` zero-value credentials.
@@ -158,7 +158,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 			}
 
 			{
-				var client0 = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000, new ZeroCredentialPool());
+				var client0 = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000);
 				(CredentialsRequest credentialRequest, CredentialsResponseValidation validationData) = client0.CreateRequestForZeroAmount();
 
 				var issuer = new CredentialIssuer(sk, rnd, 4300000000000);
@@ -188,7 +188,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 
 			var issuer = new CredentialIssuer(sk, rnd, 4300000000000);
 			{
-				var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000, new ZeroCredentialPool());
+				var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000);
 
 				// Null request. This requests `numberOfCredentials` zero-value credentials.
 				var (credentialRequest, validationData) = client.CreateRequestForZeroAmount();
@@ -260,7 +260,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 			}
 
 			{
-				var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000, new ZeroCredentialPool());
+				var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000);
 				var (validCredentialRequest, validationData) = client.CreateRequestForZeroAmount();
 
 				// Test invalid proofs.
@@ -275,7 +275,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 			}
 
 			{
-				var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000, new ZeroCredentialPool());
+				var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000);
 				(CredentialsRequest validCredentialRequest, CredentialsResponseValidation validationData) = client.CreateRequestForZeroAmount();
 
 				var credentialResponse = issuer.HandleRequest(validCredentialRequest);

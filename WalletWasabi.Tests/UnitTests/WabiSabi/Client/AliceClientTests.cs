@@ -30,7 +30,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var km = ServiceFactory.CreateKeyManager("");
 			var key = BitcoinFactory.CreateHdPubKey(km);
 			SmartCoin coin1 = BitcoinFactory.CreateSmartCoin(key, Money.Coins(1m));
-			var outpoint = coin1.OutPoint;
 
 			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, mockRpc, round);
@@ -39,13 +38,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
 			var wabiSabiApi = new WabiSabiController(coordinator);
 
-			ZeroCredentialPool amountCredentialPool = new();
-			ZeroCredentialPool vsizeCredentialPool = new();
 			var insecureRandom = new InsecureRandom();
 			var roundState = RoundState.FromRound(round);
 			var arenaClient = new ArenaClient(
-				roundState.CreateAmountCredentialClient(amountCredentialPool, insecureRandom),
-				roundState.CreateVsizeCredentialClient(vsizeCredentialPool, insecureRandom),
+				roundState.CreateAmountCredentialClient(insecureRandom),
+				roundState.CreateVsizeCredentialClient(insecureRandom),
 				wabiSabiApi);
 			Assert.Equal(Phase.InputRegistration, arena.Rounds.First().Phase);
 

@@ -65,9 +65,9 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			// A blinded amount is known as an `attribute`. In this case the attribute Ma is the
 			// value 10000 blinded with a random `blindingFactor`. This attribute is sent to
 			// the coordinator.
-			var amount = new Scalar(10_000);
+			var amount = 10_000L;
 			var r = rnd.GetScalar();
-			var ma = amount * Generators.Gg + r * Generators.Gh;
+			var ma = new Scalar((ulong)amount) * Generators.Gg + r * Generators.Gh;
 
 			// The coordinator generates a MAC and a proof that the MAC was generated using the
 			// coordinator's secret key. The coordinator sends the pair (MAC, proofOfMac) back
