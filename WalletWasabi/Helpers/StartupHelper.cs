@@ -2,7 +2,6 @@ using Microsoft.Win32;
 using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Security.Permissions;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Helpers
@@ -15,11 +14,11 @@ namespace WalletWasabi.Helpers
 			{
 				return TryModifyRegistry(isWasabiStartsWithOS);
 			}
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
 				// Method call here
 			}
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
 				// Method call here
 			}
@@ -30,7 +29,7 @@ namespace WalletWasabi.Helpers
 		{
 			try
 			{
-				// This extra check is only to eliminate warnings.
+				// This extra check is here only to eliminate warnings.
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				{
 					string keyName = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
