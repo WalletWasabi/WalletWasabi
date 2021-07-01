@@ -161,7 +161,13 @@
                 IsVisible="{Binding IsWalletEmpty}">
           <Label Content="Please click Send or Receive buttons to start using your wallet."
                  HorizontalAlignment="Center"
-                 VerticalAlignment="Center"/>
+                 VerticalAlignment="Center">
+            <Label.Styles>
+              <Style Selector="Label > AccessText">
+                <Setter Property="TextWrapping" Value="Wrap"/>
+              </Style>
+            </Label.Styles>
+          </Label>
         </Border>
       </Panel>
       <Panel>
@@ -179,7 +185,13 @@
                 IsVisible="{Binding IsWalletEmpty}">
           <Label Content="No transaction history."
                  HorizontalAlignment="Center"
-                 VerticalAlignment="Center"/>
+                 VerticalAlignment="Center">
+            <Label.Styles>
+              <Style Selector="Label > AccessText">
+                <Setter Property="TextWrapping" Value="Wrap"/>
+              </Style>
+            </Label.Styles>
+          </Label>
         </Border>
       </Panel>
     </DockPanel>
