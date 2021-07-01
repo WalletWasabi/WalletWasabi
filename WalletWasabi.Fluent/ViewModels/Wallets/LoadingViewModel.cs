@@ -1,9 +1,7 @@
 using System;
 using System.Diagnostics;
-using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Blocks;
@@ -21,7 +19,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		[AutoNotify] private string? _statusText;
 		[AutoNotify] private bool _isBackendConnected;
 
-		private uint? _startingFilterIndex;
 		private Stopwatch? _stopwatch;
 		private bool _isLoading;
 		private uint _filtersToSyncCount;
@@ -60,7 +57,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 					var processedCount = downloadedFilters + processedFilters;
 
-					// Console.WriteLine($"Total: {TotalCount} Processed:{processedCount} Downloaded: {downloadedFilters} ProcessedF: {processedFilters}");
+					Console.WriteLine($"Total: {TotalCount}/{processedCount} Downloaded: {_filtersToSyncCount}/{downloadedFilters} Processed: {_filtersToProcessCount}/{processedFilters}");
 
 					UpdateStatus(processedCount, _stopwatch.ElapsedMilliseconds);
 				})
