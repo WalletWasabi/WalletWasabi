@@ -4,7 +4,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 {
-	public class RequestNode
+	public abstract class RequestNode
 	{
 		public RequestNode(IEnumerable<long> values, int inDegree, int outDegree, int zeroOnlyOutDegree)
 		{

@@ -6,6 +6,7 @@
     <Easing x:Key="FluentEasing">0.4,0,0.6,1</Easing>
     <KeySpline x:Key="FluentKeySpline">0.4,0,0.6,1</KeySpline>
     <FontFamily x:Key="MonospacedFont">avares://WalletWasabi.Fluent/Assets/Fonts/CascadiaCode.ttf</FontFamily>
+    <FontFamily x:Key="WasabiLogoTextFont">avares://WalletWasabi.Fluent/Assets/Fonts#Objectivity</FontFamily>
   </Styles.Resources>
 
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Button.axaml" />

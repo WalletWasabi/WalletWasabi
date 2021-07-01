@@ -78,14 +78,12 @@
   <DockPanel Margin="0 0 0 4">
     <StackPanel DockPanel.Dock="Top" Spacing="5">
       <Panel Height="30" />
-      <!-- Logo -->
-      <Border Padding="12 12 12 5" Margin="0 -3 0 0">
-        <Panel>
-          <Panel Width="45" HorizontalAlignment="Left">
-            <PathIcon Data="{StaticResource wasabi_logo}" HorizontalAlignment="Left" Height="20" Width="20" Opacity="0.8" />
-          </Panel>
-          <TextBlock Text="Wasabi Wallet" Classes="h6" VerticalAlignment="Center" FontWeight="Normal" Margin="55 0 0 0" />
-        </Panel>
+      <Border Padding="12 12 12 5" Margin="0,-3 ,0,4">
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+          <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" Margin="13,0,0,0" VerticalAlignment="Center" />
+          <ContentControl Template="{DynamicResource wasabi_logo_text_dynamic}" Margin="22,0,0,0"
+                          VerticalAlignment="Center" ClipToBounds="False" />
+        </StackPanel>
       </Border>
       <!-- TopItems List -->
       <c:NavBarListBox Items="{Binding TopItems}"
@@ -142,7 +140,8 @@
     </StackPanel>
     <!-- Items List -->
     <DockPanel>
-      <TextBlock DockPanel.Dock="Top" Text="Wallets" FontSize="14" IsVisible="{Binding IsOpen}" Margin="25 15 0 12" Opacity="0.8" FontWeight="Light" />
+      <TextBlock DockPanel.Dock="Top" Text="Wallets" FontSize="14" IsVisible="{Binding IsOpen}" Margin="25 15 0 12"
+                 Opacity="0.8" FontWeight="Light" />
       <c:NavBarListBox Items="{Binding Wallets}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                        Name="ItemsListBox"
@@ -158,7 +157,8 @@
                     <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
                   </PathIcon.Data>
                 </PathIcon>
-                <Ellipse IsVisible="{Binding IsLoggedIn, Mode=OneWay}" Width="9" Height="9" Margin="15,0,0,-13" Fill="#F2994A"/>
+                <Ellipse IsVisible="{Binding IsLoggedIn, Mode=OneWay}" Width="9" Height="9" Margin="15,0,0,-13"
+                         Fill="#F2994A" />
               </Panel>
               <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" Margin="55 0 15 0" />
             </Panel>
