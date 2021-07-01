@@ -54,10 +54,6 @@ namespace WalletWasabi.Helpers
 
 				return true;
 			}
-			catch (ArgumentNullException ex)
-			{
-				Logger.LogError(ex);
-			}
 			catch (System.Security.SecurityException ex)
 			{
 				Logger.LogError("Permission to create registry entry is denied.", ex);
@@ -69,6 +65,10 @@ namespace WalletWasabi.Helpers
 			catch (NullReferenceException ex)
 			{
 				Logger.LogError($"Couldn't open registry subkey in {keyName}.", ex);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
 			}
 
 			return false;
