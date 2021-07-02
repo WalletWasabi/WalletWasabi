@@ -132,7 +132,7 @@
 
       <DataGridTemplateColumn Header="Labels"
                               Width="*"
-                              CanUserSort="True"
+                              CanUserSort="False"
                               SortMemberPath="Label">
         <DataGridTemplateColumn.CellTemplate>
           <DataTemplate>
