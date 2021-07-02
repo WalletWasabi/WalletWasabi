@@ -39,7 +39,10 @@
           <DataTemplate x:DataType="search:SearchResult">
             <DockPanel Margin="0,0,0,30">
               <Panel Margin="8 0"  DockPanel.Dock="Top">
-                <Label Classes="h6 bold" DataContext="{Binding Category}" Content="{Binding Title}" />
+                <Label Classes="h6 bold"
+                       Margin="-6,0,0,0"
+                       DataContext="{Binding Category}"
+                       Content="{Binding Title}" />
               </Panel>
               <ItemsControl HorizontalAlignment="Left"
                             Items="{Binding Items}"
