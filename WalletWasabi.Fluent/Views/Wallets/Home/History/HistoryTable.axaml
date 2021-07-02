@@ -136,8 +136,8 @@
                               SortMemberPath="Label">
         <DataGridTemplateColumn.CellTemplate>
           <DataTemplate>
-            <DockPanel x:DataType="history:HistoryItemViewModel">
-              <DockPanel.Styles>
+            <WrapPanel x:DataType="history:HistoryItemViewModel">
+              <WrapPanel.Styles>
                 <Style Selector="Button.labelFlyout">
                   <Setter Property="Margin" Value="0,0,0,1" />
                   <Setter Property="Padding" Value="12,5,12,5" />
@@ -162,7 +162,7 @@
                 <Style Selector="Button.labelFlyout:disabled /template/ ContentPresenter">
                   <Setter Property="BorderBrush" Value="{StaticResource TagsBoxControlForeground}" />
                 </Style>
-              </DockPanel.Styles>
+              </WrapPanel.Styles>
               <c:TagsBox Padding="0"
                          Margin="0,0,0,1"
                          BorderThickness="0"
@@ -181,7 +181,7 @@
                   </Flyout>
                 </Button.Flyout>
               </Button>
-            </DockPanel>
+            </WrapPanel>
           </DataTemplate>
         </DataGridTemplateColumn.CellTemplate>
       </DataGridTemplateColumn>
