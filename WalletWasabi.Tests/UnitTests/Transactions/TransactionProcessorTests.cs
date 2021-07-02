@@ -792,7 +792,6 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Empty(matureTxs);
 
 			Assert.Contains(spentCoin, tx1.WalletInputs);
-			Assert.Contains(spentCoin, tx2.WalletInputs);
 		}
 
 		[Fact]
