@@ -484,7 +484,14 @@ namespace WalletWasabi.Wallets
 				for (int i = 0; i < currentBlock.Transactions.Count; i++)
 				{
 					Transaction tx = currentBlock.Transactions[i];
-					txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime));
+					SmartTransaction stx = new(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime);
+					if (BitcoinStore.TransactionStore.TryGetTransaction(stx.GetHash(), out var foundTx))
+					{
+						foundTx.TryUpdate(stx);
+						stx = foundTx;
+					}
+
+					txsToProcess.Add(stx);
 				}
 				TransactionProcessor.Process(txsToProcess);
 				KeyManager.SetBestHeight(height);
