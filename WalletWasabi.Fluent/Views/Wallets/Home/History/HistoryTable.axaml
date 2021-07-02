@@ -138,14 +138,17 @@
           <DataTemplate>
             <DockPanel x:DataType="history:HistoryItemViewModel">
               <DockPanel.Styles>
+                <Style Selector="Button.labelFlyout">
+                  <Setter Property="Margin" Value="0,0,0,1" />
+                  <Setter Property="Padding" Value="12,5,12,5" />
+                </Style>
                 <Style Selector="Button.labelFlyout /template/ ContentPresenter">
-                  <Setter Property="VerticalAlignment" Value="Center" />
-                  <Setter Property="HorizontalAlignment" Value="Center" />
+                  <Setter Property="MinHeight" Value="0" />
+                  <Setter Property="MinWidth" Value="38" />
+                  <Setter Property="VerticalAlignment" Value="Top" />
+                  <Setter Property="HorizontalAlignment" Value="Left" />
                   <Setter Property="Cursor" Value="Hand" />
                   <Setter Property="BorderThickness" Value="1" />
-                  <Setter Property="Margin" Value="0" />
-                  <Setter Property="Padding" Value="12,6,12,6" />
-                  <Setter Property="MinHeight" Value="{DynamicResource TextControlThemeMinHeight}" />
                   <Setter Property="BorderBrush" Value="{StaticResource TagsBoxControlForeground}" />
                   <Setter Property="Background" Value="{DynamicResource InvisibleButtonBackgroundColor}" />
                   <Setter Property="CornerRadius" Value="2" />
@@ -161,14 +164,15 @@
                 </Style>
               </DockPanel.Styles>
               <c:TagsBox Padding="0"
+                         Margin="0,0,0,1"
                          BorderThickness="0"
                          DockPanel.Dock="Left"
                          IsReadOnly="True"
                          Items="{Binding Label}"
                          VerticalAlignment="Center" />
               <Button Classes="labelFlyout"
-                      IsVisible="{Binding !!FilteredLabel.Count}"
                       DockPanel.Dock="Left"
+                      IsVisible="{Binding !!FilteredLabel.Count}"
                       Content="...">
                 <Button.Flyout>
                   <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway">
