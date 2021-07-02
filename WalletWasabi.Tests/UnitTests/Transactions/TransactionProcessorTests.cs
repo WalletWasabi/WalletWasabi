@@ -806,6 +806,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// Spend the received coin
 			var tx1 = CreateSpendingTransaction(createdCoin, BitcoinFactory.CreateScript());
 			tx1.Label = "foo";
+
 			// Add the transaction to the tx store manually and don't process it.
 			transactionProcessor.TransactionStore.AddOrUpdate(tx1);
 
