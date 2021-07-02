@@ -178,7 +178,7 @@
                                  XAxisPlotMode="EvenlySpaced"
                                  Margin="18,10,18,0"
                                  Classes="cursor border xAxisLabels yAxis yAxisTitle"
-                                 MinHeight="160"
+                                 MinHeight="150"
                                  XAxisLabels="{Binding XAxisLabels}"
                                  XAxisValues="{Binding XAxisValues}"
                                  XAxisCurrentValue="{Binding XAxisCurrentValue, Mode=TwoWay}"
