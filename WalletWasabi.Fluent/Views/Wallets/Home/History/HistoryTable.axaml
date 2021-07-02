@@ -175,7 +175,7 @@
                       IsVisible="{Binding !!FilteredLabel.Count}"
                       Content="...">
                 <Button.Flyout>
-                  <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway">
+                  <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="TransientWithDismissOnPointerMoveAway">
                     <c:TagsBox IsReadOnly="True"
                                Items="{Binding FilteredLabel}" />
                   </Flyout>
