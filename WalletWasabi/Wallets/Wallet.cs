@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
-using NBitcoin.Protocol;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
