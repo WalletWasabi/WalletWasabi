@@ -77,6 +77,44 @@
         <Setter Property="(ScrollViewer.HorizontalScrollBarVisibility)" Value="Disabled" />
     </Style>
 
+  <Style Selector="c|TagsBox:readonly">
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <DataValidationErrors>
+          <Border x:Name="PART_Border" Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  Padding="{TemplateBinding Padding}">
+            <Panel>
+              <TextBlock Name="PART_Watermark"
+                         Opacity="0.5"
+                         Padding="15 0"
+                         VerticalAlignment="Center"
+                         Text="{TemplateBinding Watermark}" />
+              <ItemsPresenter Name="PART_ItemsPresenter"
+                              Focusable="False"
+                              Items="{TemplateBinding Items}">
+                <ItemsPresenter.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" Focusable="False" VerticalAlignment="Center" />
+                  </ItemsPanelTemplate>
+                </ItemsPresenter.ItemsPanel>
+                <ItemsPresenter.ItemTemplate>
+                  <DataTemplate>
+                    <c:TagControl Content="{Binding .}" />
+                  </DataTemplate>
+                </ItemsPresenter.ItemTemplate>
+              </ItemsPresenter>
+            </Panel>
+          </Border>
+        </DataValidationErrors>
+      </ControlTemplate>
+    </Setter>
+    <Setter Property="(ScrollViewer.HorizontalScrollBarVisibility)" Value="Disabled" />
+  </Style>
+
     <Style Selector="c|TagsBox:pointerover /template/ Border#PART_Border">
         <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushPointerOver}" />
         <Setter Property="Background" Value="{DynamicResource TextControlBackgroundPointerOver}" />
@@ -100,15 +138,6 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
-    </Style>
-
-    <Style Selector="c|TagsBox:readonly AutoCompleteBox">
-        <Setter Property="IsVisible" Value="False" />
-    </Style>
-
-    <Style Selector="c|TagsBox:readonly">
-        <Setter Property="Cursor" Value="Arrow" />
-        <Setter Property="Padding" Value="0" />
     </Style>
 
     <Style Selector="c|TagsBox c|TagControl">

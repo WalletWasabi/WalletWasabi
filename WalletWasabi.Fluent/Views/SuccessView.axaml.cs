@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.TransactionBroadcasting
+namespace WalletWasabi.Fluent.Views
 {
-	public class SuccessBroadcastTransactionView : UserControl
+	public class SuccessView : UserControl
 	{
-		public SuccessBroadcastTransactionView()
+		public SuccessView()
 		{
 			InitializeComponent();
 		}
