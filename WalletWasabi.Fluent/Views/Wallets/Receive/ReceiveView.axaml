@@ -40,7 +40,8 @@
             <behaviors:FocusOnAttachedBehavior />
           </i:Interaction.Behaviors>
         </c:TagsBox>
-        <ItemsControl Items="{Binding SuggestionLabelResults}">
+        <ItemsControl Items="{Binding SuggestionLabelResults}"
+                      ClipToBounds="False">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
               <StackPanel Orientation="Horizontal" Spacing="2" />
