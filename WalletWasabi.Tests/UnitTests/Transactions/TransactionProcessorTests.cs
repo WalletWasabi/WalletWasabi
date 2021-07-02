@@ -795,6 +795,35 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		}
 
 		[Fact]
+		public async Task CorrectCoinReferenceAsync()
+		{
+			await using var txStore = await CreateTransactionStoreAsync();
+			var transactionProcessor = CreateTransactionProcessor(txStore);
+			var tx0 = CreateCreditingTransaction(transactionProcessor.KeyManager.GetKeys().First().P2wpkhScript, Money.Coins(1.0m));
+			transactionProcessor.Process(tx0);
+			var createdCoin = tx0.Transaction.Outputs.AsCoins().First();
+
+			// Spend the received coin
+			var tx1 = CreateSpendingTransaction(createdCoin, BitcoinFactory.CreateScript());
+			tx1.Label = "foo";
+			// Add the transaction to the tx store manually and don't process it.
+			transactionProcessor.TransactionStore.AddOrUpdate(tx1);
+
+			var tx2 = new SmartTransaction(tx1.Transaction, tx1.Height, tx1.BlockHash, tx1.BlockIndex, tx1.Label, tx1.IsReplacement, tx1.FirstSeen);
+			tx2.Label = "bar";
+			transactionProcessor.Process(tx2);
+
+			// Ensure even if only tx2 was processed, the reference of the registered spender is to tx1
+			// and that the labels were merged.
+			var txid = tx1.GetHash();
+			var registeredSpender = transactionProcessor.Coins.AsAllCoinsView().SpentBy(txid).Single().SpenderTransaction;
+			Assert.Same(tx1, registeredSpender);
+			Assert.NotSame(tx2, registeredSpender);
+			Assert.Contains("foo", registeredSpender?.Label.Select(x => x.ToString()));
+			Assert.Contains("bar", registeredSpender?.Label.Select(x => x.ToString()));
+		}
+
+		[Fact]
 		public async Task ReceiveTransactionWithDustForWalletAsync()
 		{
 			await using var txStore = await CreateTransactionStoreAsync();
