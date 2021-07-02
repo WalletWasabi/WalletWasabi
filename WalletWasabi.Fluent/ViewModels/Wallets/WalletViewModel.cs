@@ -179,11 +179,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					}
 				}
 
-				Navigate(NavigationTarget.DialogScreen).To(new WalletInfoViewModel(wallet));
+				Navigate(NavigationTarget.DialogScreen).To(new WalletInfoViewModel(this));
 			});
 		}
 
 		public ICommand SendCommand { get; }
+
+		public ICommand BroadcastPsbtCommand { get; set; }
 
 		public ICommand ReceiveCommand { get; }
 
