@@ -59,13 +59,13 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.Skip(1)
 				.Subscribe(async x =>
 				{
-					if (WalletWasabi.Helpers.StartupHelper.TryModifyStartupSetting(x))
+					if (StartupHelper.TryModifyStartupSetting(x))
 					{
 						Services.UiConfig.RunOnSystemStartup = x;
 					}
 					else
 					{
-						await ShowErrorAsync(Title, WalletWasabi.Helpers.StartupHelper.StartupErrorMessage, "Something went wrong.");
+						await ShowErrorAsync(Title, StartupHelper.StartupErrorMessage, "Something went wrong.");
 					}
 				});
 

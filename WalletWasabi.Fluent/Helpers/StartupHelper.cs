@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.Helpers
+namespace WalletWasabi.Fluent.Helpers
 {
 	public static class StartupHelper
 	{
@@ -18,7 +18,7 @@ namespace WalletWasabi.Helpers
 			{
 				string pathToExeFile = Assembly.GetExecutingAssembly().Location;
 				pathToExeFile = pathToExeFile.Remove(pathToExeFile.Length - 4);        // This part has to change if this gets released
-				pathToExeFile += ".Fluent.Desktop.exe";
+				pathToExeFile += ".Desktop.exe";
 
 				return TryModifyRegistry(runOnSystemStartup, pathToExeFile);
 			}
