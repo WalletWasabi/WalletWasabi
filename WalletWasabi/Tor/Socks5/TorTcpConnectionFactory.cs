@@ -5,7 +5,6 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Socks5.Exceptions;
@@ -120,7 +119,7 @@ namespace WalletWasabi.Tor.Socks5
 		/// <summary>
 		/// Checks whether communication can be established with Tor over <see cref="TorSocks5EndPoint"/> endpoint.
 		/// </summary>
-		public async Task<bool> IsTorRunningAsync()
+		public async virtual Task<bool> IsTorRunningAsync()
 		{
 			try
 			{

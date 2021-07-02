@@ -17,8 +17,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		{
 			var alice = Assert.Single(round.Alices);
 			Assert.NotNull(resp);
-			Assert.NotNull(resp.RealAmountCredentials);
-			Assert.NotNull(resp.RealVsizeCredentials);
+			Assert.NotNull(resp.IssuedAmountCredentials);
+			Assert.NotNull(resp.IssuedVsizeCredentials);
 			Assert.True(minAliceDeadline <= alice.Deadline);
 		}
 

@@ -11,20 +11,16 @@ namespace WalletWasabi.Tor
 	/// </summary>
 	public class TorSettings
 	{
-		/// <summary>
-		/// Creates a new instance.
-		/// </summary>
 		/// <param name="dataDir">Application data directory.</param>
-		/// <param name="logFilePath">Full Tor log file path.</param>
 		/// <param name="distributionFolderPath">Full path to folder containing Tor installation files.</param>
-		public TorSettings(string dataDir, string logFilePath, string distributionFolderPath, bool terminateOnExit, int? owningProcessId = null)
+		public TorSettings(string dataDir, string distributionFolderPath, bool terminateOnExit, int? owningProcessId = null)
 		{
 			TorBinaryFilePath = GetTorBinaryFilePath();
 			TorBinaryDir = Path.Combine(MicroserviceHelpers.GetBinaryFolder(), "Tor");
 
 			TorDataDir = Path.Combine(dataDir, "tordata2");
 			CookieAuthFilePath = Path.Combine(dataDir, "control_auth_cookie");
-			LogFilePath = logFilePath;
+			LogFilePath = Path.Combine(dataDir, "TorLogs.txt");
 			IoHelpers.EnsureContainingDirectoryExists(LogFilePath);
 			DistributionFolder = distributionFolderPath;
 			TerminateOnExit = terminateOnExit;

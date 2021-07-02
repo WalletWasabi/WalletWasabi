@@ -9,12 +9,16 @@
     <Color x:Key="SystemAccentColorDark3">#FF2E8041</Color>
     <Color x:Key="SystemAccentColor">#FF72BD81</Color>
     <Color x:Key="SystemErrorTextColor">#D85050</Color>
-    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="{StaticResource SystemAccentColor}"/>
+
+    <Color x:Key="LogoFixedAccentColor">#97D234</Color>
+    <Color x:Key="LogoFixedForegroundColor">#D8DED7</Color>
+
+    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="{StaticResource SystemAccentColor}" />
     <SolidColorBrush x:Key="ActionButtonForegroundColor">#FFFFFF</SolidColorBrush>
-    <SolidColorBrush x:Key="ActionButtonBackgroundColor" Color="{StaticResource SystemAccentColor}"/>
-    <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Color="#59B164"/>
-    <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="#90CB9C"/>
-    <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="#80A3A3A3"/>
+    <SolidColorBrush x:Key="ActionButtonBackgroundColor" Color="{StaticResource SystemAccentColor}" />
+    <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Color="#59B164" />
+    <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="#90CB9C" />
+    <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="#80A3A3A3" />
 
     <SolidColorBrush x:Key="PrivacyLevelNoneBrush" Color="#C95050" />
     <SolidColorBrush x:Key="PrivacyLevelMinimalBrush" Color="#E06868" />
@@ -39,5 +43,23 @@
     <x:String x:Key="LabelsWatermarkText">i.e. Alice, Bob, Wasabi Inc, Exchange</x:String>
 
     <StaticResource x:Key="NotificationCardInformationBackgroundBrush" ResourceKey="SystemAccentColor" />
+
+    <LinearGradientBrush x:Key="LogoWashoutOpacityMaskGradient" StartPoint="0%,100%" EndPoint="100%,00%">
+      <LinearGradientBrush.GradientStops>
+        <GradientStop Color="#4AFFFFFF" Offset="0.1" />
+        <GradientStop Color="#FFFFFFFF" Offset="1" />
+        <GradientStop Color="#4AFFFFFF" Offset="0.1" />
+      </LinearGradientBrush.GradientStops>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="LogoGradientFixed" StartPoint="62%,31%" EndPoint="24%,81%">
+      <LinearGradientBrush.GradientStops>
+        <GradientStop Color="#FFFFFF" Offset="0" />
+        <GradientStop Color="#EFEFEF" Offset="0.1591" />
+        <GradientStop Color="#D4D4D4" Offset="0.4862" />
+        <GradientStop Color="#C3C3C3" Offset="0.775" />
+        <GradientStop Color="#BDBDBD" Offset="0.993" />
+      </LinearGradientBrush.GradientStops>
+    </LinearGradientBrush>
   </Styles.Resources>
 </Styles>

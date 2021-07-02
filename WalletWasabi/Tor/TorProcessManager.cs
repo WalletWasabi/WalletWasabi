@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Net;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,20 +13,24 @@ using WalletWasabi.Tor.Socks5;
 
 namespace WalletWasabi.Tor
 {
-	/// <summary>
-	/// Manages lifetime of Tor process.
-	/// </summary>
+	/// <summary>Manages lifetime of Tor process.</summary>
 	/// <seealso href="https://2019.www.torproject.org/docs/tor-manual.html.en"/>
 	public class TorProcessManager
 	{
 		private bool _disposed = false;
 
-		public TorProcessManager(TorSettings settings)
+		public TorProcessManager(TorSettings settings) :
+			this(settings, new(settings.SocksEndpoint))
+		{
+		}
+
+		/// <summary>For tests.</summary>
+		internal TorProcessManager(TorSettings settings, TorTcpConnectionFactory tcpConnectionFactory)
 		{
 			TorProcess = null;
 			TorControlClient = null;
 			Settings = settings;
-			TcpConnectionFactory = new(settings.SocksEndpoint);
+			TcpConnectionFactory = tcpConnectionFactory;
 		}
 
 		private ProcessAsync? TorProcess { get; set; }
@@ -36,13 +39,14 @@ namespace WalletWasabi.Tor
 
 		private TorControlClient? TorControlClient { get; set; }
 
-		/// <summary>
-		/// Starts Tor process if it is not running already.
-		/// </summary>
+		/// <summary>Starts Tor process if it is not running already.</summary>
 		/// <exception cref="OperationCanceledException"/>
 		public async Task<bool> StartAsync(CancellationToken token = default)
 		{
 			ThrowIfDisposed();
+
+			ProcessAsync? process = null;
+			TorControlClient? controlClient = null;
 
 			try
 			{
@@ -56,67 +60,24 @@ namespace WalletWasabi.Tor
 					return true;
 				}
 
-				string torArguments = Settings.GetCmdArguments();
+				string arguments = Settings.GetCmdArguments();
+				process = StartProcess(arguments);
 
-				ProcessStartInfo startInfo = new()
+				bool isRunning = await EnsureRunningAsync(process, token).ConfigureAwait(false);
+
+				if (!isRunning)
 				{
-					FileName = Settings.TorBinaryFilePath,
-					Arguments = torArguments,
-					UseShellExecute = false,
-					CreateNoWindow = true,
-					RedirectStandardOutput = true,
-					WorkingDirectory = Settings.TorBinaryDir
-				};
-
-				if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-				{
-					var env = startInfo.EnvironmentVariables;
-
-					env["LD_LIBRARY_PATH"] = !env.ContainsKey("LD_LIBRARY_PATH") || string.IsNullOrEmpty(env["LD_LIBRARY_PATH"])
-						? Settings.TorBinaryDir
-						: Settings.TorBinaryDir + Path.PathSeparator + env["LD_LIBRARY_PATH"];
-
-					Logger.LogDebug($"Environment variable 'LD_LIBRARY_PATH' set to: '{env["LD_LIBRARY_PATH"]}'.");
+					return false;
 				}
 
-				TorProcess = new(startInfo);
-
-				Logger.LogInfo($"Starting Tor process ...");
-				TorProcess.Start();
-
-				// Ensure it's running.
-				int i = 0;
-				while (true)
-				{
-					i++;
-
-					bool isRunning = await TcpConnectionFactory.IsTorRunningAsync().ConfigureAwait(false);
-
-					if (isRunning)
-					{
-						break;
-					}
-
-					if (TorProcess.HasExited)
-					{
-						Logger.LogError("Tor process failed to start!");
-						return false;
-					}
-
-					const int MaxAttempts = 25;
-
-					if (i >= MaxAttempts)
-					{
-						Logger.LogError($"All {MaxAttempts} attempts to connect to Tor failed.");
-						return false;
-					}
-
-					// Wait 250 milliseconds between attempts.
-					await Task.Delay(250, token).ConfigureAwait(false);
-				}
-
+				controlClient = await InitTorControlAsync(token).ConfigureAwait(false);
 				Logger.LogInfo("Tor is running.");
-				TorControlClient = await InitTorControlAsync(token).ConfigureAwait(false);
+
+				// Only now we know that Tor process is fully started.
+				TorProcess = process;
+				TorControlClient = controlClient;
+				controlClient = null;
+				process = null;
 
 				return true;
 			}
@@ -129,16 +90,88 @@ namespace WalletWasabi.Tor
 			{
 				Logger.LogError("Could not automatically start Tor. Try running Tor manually.", ex);
 			}
+			finally
+			{
+				if (controlClient is not null)
+				{
+					await controlClient.DisposeAsync().ConfigureAwait(false);
+				}
+
+				process?.Dispose();
+			}
 
 			return false;
 		}
 
-		/// <summary>
-		/// Connects to Tor control using a TCP client or throws <see cref="TorControlException"/>.
-		/// </summary>
+		/// <summary>Ensure <paramref name="process"/> is actually running.</summary>
+		internal virtual async Task<bool> EnsureRunningAsync(ProcessAsync process, CancellationToken token)
+		{
+			int i = 0;
+			while (true)
+			{
+				i++;
+
+				bool isRunning = await TcpConnectionFactory.IsTorRunningAsync().ConfigureAwait(false);
+
+				if (isRunning)
+				{
+					return true;
+				}
+
+				if (process.HasExited)
+				{
+					Logger.LogError("Tor process failed to start!");
+					return false;
+				}
+
+				const int MaxAttempts = 25;
+
+				if (i >= MaxAttempts)
+				{
+					Logger.LogError($"All {MaxAttempts} attempts to connect to Tor failed.");
+					return false;
+				}
+
+				// Wait 250 milliseconds between attempts.
+				await Task.Delay(250, token).ConfigureAwait(false);
+			}
+		}
+
+		/// <param name="arguments">Command line arguments to start Tor OS process with.</param>
+		internal virtual ProcessAsync StartProcess(string arguments)
+		{
+			ProcessStartInfo startInfo = new()
+			{
+				FileName = Settings.TorBinaryFilePath,
+				Arguments = arguments,
+				UseShellExecute = false,
+				CreateNoWindow = true,
+				RedirectStandardOutput = true,
+				WorkingDirectory = Settings.TorBinaryDir
+			};
+
+			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				var env = startInfo.EnvironmentVariables;
+
+				env["LD_LIBRARY_PATH"] = !env.ContainsKey("LD_LIBRARY_PATH") || string.IsNullOrEmpty(env["LD_LIBRARY_PATH"])
+					? Settings.TorBinaryDir
+					: Settings.TorBinaryDir + Path.PathSeparator + env["LD_LIBRARY_PATH"];
+
+				Logger.LogDebug($"Environment variable 'LD_LIBRARY_PATH' set to: '{env["LD_LIBRARY_PATH"]}'.");
+			}
+
+			Logger.LogInfo("Starting Tor process ...");
+			ProcessAsync process = new(startInfo);
+			process.Start();
+
+			return process;
+		}
+
+		/// <summary>Connects to Tor control using a TCP client or throws <see cref="TorControlException"/>.</summary>
 		/// <exception cref="TorControlException">When authentication fails for some reason.</exception>
 		/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">This method follows instructions in 3.23. TAKEOWNERSHIP.</seealso>
-		private async Task<TorControlClient> InitTorControlAsync(CancellationToken token = default)
+		internal virtual async Task<TorControlClient> InitTorControlAsync(CancellationToken token = default)
 		{
 			// Get cookie.
 			string cookieString = ByteHelpers.ToHex(File.ReadAllBytes(Settings.CookieAuthFilePath));

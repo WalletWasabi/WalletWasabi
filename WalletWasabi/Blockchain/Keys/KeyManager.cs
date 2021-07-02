@@ -125,6 +125,9 @@ namespace WalletWasabi.Blockchain.Keys
 		[JsonProperty(Order = 10, PropertyName = "Icon")]
 		public string? Icon { get; private set; }
 
+		[JsonProperty(Order = 11, PropertyName = "PreferPsbtWorkflow")]
+		public bool PreferPsbtWorkflow { get; set; }
+
 		private object BlockchainStateLock { get; }
 
 		private object HdPubKeysLock { get; }
