@@ -24,6 +24,10 @@
         </Animation>
       </Style.Animations>
     </Style>
+    <Style Selector="FlyoutPresenter">
+      <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled"/>
+      <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+    </Style>
   </UserControl.Styles>
   <Panel HorizontalAlignment="Right" VerticalAlignment="Stretch">
     <Interaction.Behaviors>
@@ -34,9 +38,7 @@
         <StackPanel TextBlock.Foreground="{DynamicResource TextControlForeground}"
                     TextBlock.FontSize="14"
                     MaxWidth="160"
-                    ClipToBounds="False"
-                    ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                    ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    ClipToBounds="False">
 
           <!-- Status -->
           <StackPanel Spacing="16">
