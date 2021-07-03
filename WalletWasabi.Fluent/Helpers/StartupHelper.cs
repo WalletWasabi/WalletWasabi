@@ -9,18 +9,15 @@ namespace WalletWasabi.Fluent.Helpers
 {
 	public static class StartupHelper
 	{
-		public const string StartupErrorMessage = "Something went wrong while trying to make your changes.";
+		public static string StartupErrorMessage => "Something went wrong while trying to make your changes.";
 		private const string KeyPath = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
 
 		public static bool TryModifyStartupSetting(bool runOnSystemStartup)
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				string pathToExeFile = Assembly.GetExecutingAssembly().Location;
-				pathToExeFile = pathToExeFile.Remove(pathToExeFile.Length - 4);        // This part has to change if this gets released
-				pathToExeFile += ".Desktop.exe";
-
-				return TryModifyRegistry(runOnSystemStartup, pathToExeFile);
+				Assembly assembly = Assembly.GetEntryAssembly() ?? throw new NullReferenceException();
+				return TryModifyRegistry(runOnSystemStartup, assembly.Location);
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
@@ -41,11 +38,11 @@ namespace WalletWasabi.Fluent.Helpers
 				using RegistryKey key = Registry.CurrentUser.OpenSubKey(KeyPath, writable: true) ?? throw new NullReferenceException();
 				if (runOnSystemStartup)
 				{
-					key.SetValue("WasabiWallet", pathToExeFile);
+					key.SetValue(nameof(WalletWasabi), pathToExeFile);
 				}
 				else
 				{
-					key.DeleteValue("WasabiWallet");
+					key.DeleteValue(nameof(WalletWasabi));
 				}
 
 				return true;
