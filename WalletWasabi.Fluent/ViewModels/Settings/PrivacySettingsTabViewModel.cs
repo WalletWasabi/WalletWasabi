@@ -10,7 +10,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		Caption = "Manage privacy settings",
 		Order = 1,
 		Category = "Settings",
-		Keywords = new[] { "Settings", "Privacy", "Minimal", "Medium", "Strong", "Anonymity", "Level" },
+		Keywords = new[] { "Settings", "Privacy", "Minimal", "Medium", "Strong", "Anonymity", "Level", "Auto", "CoinJoin" },
 		IconName = "settings_privacy_regular")]
 	public partial class PrivacySettingsTabViewModel : SettingsTabViewModelBase
 	{
