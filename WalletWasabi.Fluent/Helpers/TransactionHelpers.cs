@@ -1,11 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
+using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 
@@ -54,6 +58,57 @@ namespace WalletWasabi.Fluent.Helpers
 				subtractFee,
 				isPayJoin ? transactionInfo.PayJoinClient : null);
 
+		}
+
+		public static async Task<SmartTransaction> ParseTransactionAsync(string path, Network network)
+		{
+			var psbtBytes = await File.ReadAllBytesAsync(path);
+			PSBT psbt;
+
+			try
+			{
+				psbt = PSBT.Load(psbtBytes, network);
+			}
+			catch
+			{
+				var text = await File.ReadAllTextAsync(path);
+				text = text.Trim();
+				try
+				{
+					psbt = PSBT.Parse(text, network);
+				}
+				catch
+				{
+					return new SmartTransaction(Transaction.Parse(text, network), Height.Unknown);
+				}
+			}
+
+			if (!psbt.IsAllFinalized())
+			{
+				psbt.Finalize();
+			}
+
+			return psbt.ExtractSmartTransaction();
+		}
+
+		public static async Task<bool> ExportTransactionToBinaryAsync(BuildTransactionResult transaction)
+		{
+			var psbtExtension = "psbt";
+			var filePath = await FileDialogHelper.ShowSaveFileDialogAsync("Export transaction", psbtExtension);
+
+            if (!string.IsNullOrWhiteSpace(filePath))
+            {
+            	var ext = Path.GetExtension(filePath);
+            	if (string.IsNullOrWhiteSpace(ext))
+            	{
+	                filePath = $"{filePath}.{psbtExtension}";
+            	}
+            	await File.WriteAllBytesAsync(filePath, transaction.Psbt.ToBytes());
+
+                return true;
+            }
+
+            return false;
 		}
 	}
 }

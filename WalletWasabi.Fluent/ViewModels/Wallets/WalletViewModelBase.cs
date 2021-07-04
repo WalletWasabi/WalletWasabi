@@ -47,6 +47,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		public bool IsLoggedIn => Wallet.IsLoggedIn;
 
+		public bool PreferPsbtWorkflow => Wallet.KeyManager.PreferPsbtWorkflow;
+
 		private void SetIcon()
 		{
 			if (Wallet.KeyManager.Icon is { } iconString)

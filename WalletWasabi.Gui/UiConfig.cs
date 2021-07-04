@@ -24,7 +24,8 @@ namespace WalletWasabi.Gui
 		private bool _darkModeEnabled;
 		private string? _lastSelectedWallet;
 		private string _windowState = "Normal";
-		private bool _autoCoinJoin;
+		private bool _usePsbtWorkflow;
+    private bool _autoCoinJoin;
 
 		public UiConfig() : base()
 		{
