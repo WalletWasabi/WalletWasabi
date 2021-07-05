@@ -5,15 +5,20 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Threading;
+using Avalonia.Media.Imaging;
+using Avalonia.Media;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
+using OpenCvSharp;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Exceptions;
@@ -33,11 +38,6 @@ using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
-using OpenCvSharp;
-using Avalonia.Media.Imaging;
-using System.Threading;
-using Avalonia.Media;
-using System.Runtime.InteropServices;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
@@ -73,7 +73,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private VideoCapture? _camera;
 		private Thread _cameraCapture;
 		private Mat _frame;
-		private bool _isCameraRunning;
 		private bool _parsingUrl;
 		private bool _updatingCurrentValue;
 		private double _lastXAxisCurrentValue;
@@ -87,7 +86,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_labels = new ObservableCollection<string>();
 			_lastXAxisCurrentValue = _xAxisCurrentValue;
 			_isQrPanelVisible = false;
-			_isCameraRunning = false;
 
 			SelectionMode = NavBarItemSelectionMode.Button;
 
@@ -230,7 +228,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					IsQrPanelVisible = true;
 					_cameraCapture = new(new ThreadStart(CaptureCameraCallback));
-					_isCameraRunning = true;
 					_cameraCapture.Start();
 				}
 				else
@@ -327,7 +324,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				_camera.Release();
 				_camera = null;
-				_isCameraRunning = false;
 				IsQrPanelVisible = false;
 			}
 		}
