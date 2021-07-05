@@ -1,6 +1,7 @@
 using Microsoft.Win32;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using WalletWasabi.Logging;
@@ -9,7 +10,6 @@ namespace WalletWasabi.Fluent.Helpers
 {
 	public static class StartupHelper
 	{
-		public static string StartupErrorMessage => "Something went wrong while trying to make your changes.";
 		private const string KeyPath = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
 
 		public static bool TryModifyStartupSetting(bool runOnSystemStartup)
@@ -17,7 +17,11 @@ namespace WalletWasabi.Fluent.Helpers
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
 				Assembly assembly = Assembly.GetEntryAssembly() ?? throw new NullReferenceException();
-				return TryModifyRegistry(runOnSystemStartup, assembly.Location);
+				string pathToExeFile = assembly.Location[..^4] + ".exe";
+				if (File.Exists(pathToExeFile))
+				{
+					return TryModifyRegistry(runOnSystemStartup, pathToExeFile);
+				}
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
@@ -27,6 +31,7 @@ namespace WalletWasabi.Fluent.Helpers
 			{
 				// Method call here
 			}
+
 			return false;
 		}
 

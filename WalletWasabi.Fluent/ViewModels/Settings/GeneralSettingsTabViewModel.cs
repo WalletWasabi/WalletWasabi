@@ -29,6 +29,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		[AutoNotify] private FeeDisplayFormat _selectedFeeDisplayFormat;
 		[AutoNotify] private bool _runOnSystemStartup;
 
+		private const string RunWithSystemStartupErrorMessage = "Something went wrong while trying to make your changes.";
+
 		public GeneralSettingsTabViewModel()
 		{
 			_darkModeEnabled = Services.UiConfig.DarkModeEnabled;
@@ -65,7 +67,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 					}
 					else
 					{
-						await ShowErrorAsync(Title, StartupHelper.StartupErrorMessage, "Something went wrong.");
+						await ShowErrorAsync(Title, RunWithSystemStartupErrorMessage, "Something went wrong.");
 					}
 				});
 
