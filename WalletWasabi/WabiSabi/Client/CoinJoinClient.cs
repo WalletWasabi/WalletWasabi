@@ -43,7 +43,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public KeyManager Keymanager { get; }
 		private RoundStateUpdater RoundStatusUpdater { get; }
 
-		public async Task StartCoinJoinAsync(CancellationToken cancellationToken, IEnumerable<Money>? forcedOutputDenominations = null)
+		public async Task<bool> StartCoinJoinAsync(CancellationToken cancellationToken, IEnumerable<Money>? forcedOutputDenominations = null)
 		{
 			var roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cancellationToken).ConfigureAwait(false);
 			var constructionState = roundState.Assert<ConstructionState>();
@@ -90,6 +90,14 @@ namespace WalletWasabi.WabiSabi.Client
 
 			// Send signature.
 			await SignTransactionAsync(aliceClients, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
+
+			// TODO wait for round to end when it is pruned from the Arena:
+			// 1. success: round disappears without a trace (wait for it to appear in mempool?)
+			// 2. failed: a new round with isBlameOf appears
+
+			var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundState.Id && ( s.Phase == Phase.Failed || s.Phase == Phase.TransactionBroadcasting ), cancellationToken).ConfigureAwait(false);
+
+			return finalRoundState.Phase == Phase.TransactionBroadcasting;
 		}
 
 		private List<AliceClient> CreateAliceClients(RoundState roundState)
