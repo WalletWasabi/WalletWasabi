@@ -326,7 +326,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			if (_camera != null)
 			{
 				_camera.Release();
-				//_camera.Dispose();
 				_camera = null;
 				_isCameraRunning = false;
 				IsQrPanelVisible = false;
