@@ -94,7 +94,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 			try
 			{
 				await Services.TransactionBroadcaster.SendTransactionAsync(transaction);
-				Navigate().To(new SuccessBroadcastTransactionViewModel());
+				Navigate().To(new SuccessViewModel("The transaction has been successfully broadcasted."));
 			}
 			catch (Exception ex)
 			{

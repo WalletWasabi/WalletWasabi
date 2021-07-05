@@ -8,11 +8,11 @@ namespace WalletWasabi.WabiSabi.Client
 	{
 		public ArenaResponse(IEnumerable<Credential> realAmountCredentials, IEnumerable<Credential> realVsizeCredentials)
 		{
-			RealAmountCredentials = realAmountCredentials.ToArray();
-			RealVsizeCredentials = realVsizeCredentials.ToArray();
+			IssuedAmountCredentials = realAmountCredentials.ToArray();
+			IssuedVsizeCredentials = realVsizeCredentials.ToArray();
 		}
-		public Credential[] RealAmountCredentials { get; }
-		public Credential[] RealVsizeCredentials { get; }
+		public IEnumerable<Credential> IssuedAmountCredentials { get; }
+		public IEnumerable<Credential> IssuedVsizeCredentials { get; }
 	}
 
 	public class ArenaResponse<T> : ArenaResponse

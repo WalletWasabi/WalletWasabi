@@ -47,26 +47,31 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			Assert.Equal(WabiSabiProtocolErrorCode.InputSpent, wex.ErrorCode);
 		}
 
-		[Fact]
-		public async Task SoloCoinJoinTest()
+		[Theory]
+		[InlineData(new long[] { 20_000_000, 40_000_000, 60_000_000, 80_000_000 })]
+		[InlineData(new long[] { 10_000_000, 20_000_000, 30_000_000, 40_000_000, 100_000_000 })]
+		[InlineData(new long[] { 10_000_000, 20_000_000, 30_000_000, 40_000_000, 100_000_000 }, new long[] { 100_000_000, 100_000_000 })]
+		[InlineData(new long[] { 120_000_000 }, new long[] { 20_000_000, 40_000_000, 60_000_000 })]
+		[InlineData(new long[] { 100_000_000, 10_000_000, 10_000 })]
+		public async Task SoloCoinJoinTestAsync(long[] amounts, long[]? outputs = null)
 		{
-			const int InputCount = 2;
+			int inputCount = amounts.Length;
 
 			// At the end of the test a coinjoin transaction has to be created and broadcasted.
 			var transactionCompleted = new TaskCompletionSource<Transaction>();
 
 			// Total test timeout.
-			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(180));
 			cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
 
 			// Create a key manager and use it to create two fake coins.
 			var keyManager = KeyManager.CreateNew(out var _, password: "");
 			keyManager.AssertCleanKeysIndexed();
 			var coins = keyManager.GetKeys()
-				.Take(InputCount)
-				.Select(x => new Coin(
+				.Take(inputCount)
+				.Select((x, i) => new Coin(
 					BitcoinFactory.CreateOutPoint(),
-					new TxOut(Money.Coins(1), x.P2wpkhScript)))
+					new TxOut(Money.Satoshis(amounts[i]), x.P2wpkhScript)))
 				.ToArray();
 
 			var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
@@ -98,7 +103,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 					// Instruct the coodinator DI container to use these two scoped
 					// services to build everything (wabisabi controller, arena, etc)
 					services.AddScoped<IRPCClient>(s => rpc);
-					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig { MaxInputCountByRound = InputCount });
+					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig { MaxInputCountByRound = inputCount });
 				});
 			}).CreateClient();
 
@@ -113,7 +118,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var coinJoinClient = new CoinJoinClient(apiClient, coins, kitchen, keyManager, roundStateUpdater);
 
 			// Run the coinjoin client task.
-			await coinJoinClient.StartCoinJoinAsync(cts.Token);
+			await coinJoinClient.StartCoinJoinAsync(cts.Token, outputs?.Select(s => Money.Satoshis(s)));
 
 			var boadcastedTx = await transactionCompleted.Task.ConfigureAwait(false); // wait for the transaction to be broadcasted.
 			Assert.NotNull(boadcastedTx);
