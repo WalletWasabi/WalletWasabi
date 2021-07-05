@@ -47,8 +47,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced
 			ExtendedAccountZpub = wallet.KeyManager.ExtPubKey.ToZpub(network);
 			AccountKeyPath = $"m/{wallet.KeyManager.AccountKeyPath}";
 			MasterKeyFingerprint = wallet.KeyManager.MasterFingerprint.ToString();
-
-
 		}
 
 		public string ExtendedAccountPublicKey { get; }
