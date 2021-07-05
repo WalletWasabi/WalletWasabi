@@ -46,7 +46,7 @@
                       <PathIcon Data="{StaticResource info_regular}" />
                     </MenuItem.Icon>
                   </MenuItem>
-                  <MenuItem Header="Wallet Settings">
+                  <MenuItem Header="Wallet Settings" Command="{Binding WalletSettingsCommand}">
                     <MenuItem.Icon>
                       <PathIcon Data="{StaticResource settings_regular}" />
                     </MenuItem.Icon>
