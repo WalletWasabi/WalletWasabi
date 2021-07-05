@@ -23,7 +23,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		{
 			// We need the `TransactionStore` instance to verify coins created in transactions (coinjoins by sure)
 			// that are saved in our disk (because they are relevant for us). The `BlockProvider` is used to get
-			// the blocks containing the transactions that creates the coins that we have to verify.
+			// the blocks containing the transactions that create the coins that we have to verify.
 			await using var transactionStore = await CreateTransactionStoreAsync().ConfigureAwait(false);
 			var blockProvider = new Mock<IBlockProvider>();
 

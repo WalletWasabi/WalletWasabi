@@ -58,7 +58,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 					if (foundCoin is not { } coin || coin.Amount != amount)
 					{
-						throw new InvalidOperationException("The coordinator lies (coin doesn't exists or is different than the provided by the coordinator).");
+						throw new InvalidOperationException("The coordinator lies (coin doesn't exist or is different from the one provided by the coordinator).");
 					}
 					VerifyCoin(foundCoin.ScriptPubKey, coinJoinInputCommitmentData, ownershipProof);
 					validProofs++;
@@ -101,7 +101,7 @@ namespace WalletWasabi.WabiSabi.Client
 						var foundCoin = transactionCoins.ElementAtOrDefault((int)outpoint.N);
 						if (foundCoin is not { } coin || coin.Amount != amount)
 						{
-							throw new InvalidOperationException("The coordinator lies (coin doesn't exists or is different than the provided by the coordinator).");
+							throw new InvalidOperationException("The coordinator lies (coin doesn't exist or is different from the one provided by the coordinator).");
 						}
 						VerifyCoin(foundCoin.ScriptPubKey, coinJoinInputCommitmentData, ownershipProof);
 						validProofs++;
@@ -120,7 +120,7 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			if (!OwnershipProof.VerifyCoinJoinInputProof(ownershipProof, scriptPubKey, coinJoinInputCommitmentData))
 			{
-				throw new InvalidOperationException("The coordinator lies (the ownership proof is not valid what means Alice cannot really spend it).");
+				throw new InvalidOperationException("The coordinator lies (the ownership proof is not valid which means Alice cannot really spend it).");
 			}
 		}
 	}
