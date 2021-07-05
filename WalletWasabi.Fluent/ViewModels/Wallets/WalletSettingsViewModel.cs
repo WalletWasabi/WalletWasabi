@@ -7,7 +7,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 	{
 		public WalletSettingsViewModel(WalletViewModel walletViewModel)
 		{
+			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
+			NextCommand = CancelCommand;
 		}
 	}
 }
