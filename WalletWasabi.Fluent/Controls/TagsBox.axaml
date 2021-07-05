@@ -75,7 +75,7 @@
                               Items="{TemplateBinding Items}">
                 <ItemsPresenter.ItemsPanel>
                   <ItemsPanelTemplate>
-                    <StackPanel Orientation="Horizontal" Focusable="False" VerticalAlignment="Center" />
+                    <WrapPanel Orientation="Horizontal" Focusable="False" VerticalAlignment="Center" />
                   </ItemsPanelTemplate>
                 </ItemsPresenter.ItemsPanel>
                 <ItemsPresenter.ItemTemplate>
@@ -121,7 +121,8 @@
         <Setter Property="Margin" Value="0,0,4,0" />
     </Style>
 
-    <Style Selector="c|TagsBox c|ConcatenatingWrapPanel:wrapped c|TagControl">
+    <Style Selector="c|TagsBox c|ConcatenatingWrapPanel:wrapped c|TagControl,
+                     c|TagsBox:readonly WrapPanel c|TagControl">
         <Setter Property="Margin" Value="0,0,4,4" />
     </Style>
 
