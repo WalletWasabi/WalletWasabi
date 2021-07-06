@@ -35,7 +35,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		{
 			ClearnetHttpClientFactory.Dispose();
 			TorHttpClientFactory.Dispose();
-			await TorManager.StopAsync();
+			await TorManager.DisposeAsync();
 		}
 
 		[Fact]

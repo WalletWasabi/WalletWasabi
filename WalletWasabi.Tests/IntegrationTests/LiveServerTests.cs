@@ -44,7 +44,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		public async Task DisposeAsync()
 		{
 			TorHttpPool.Dispose();
-			await TorManager.StopAsync();
+			await TorManager.DisposeAsync();
 		}
 
 		#region Blockchain

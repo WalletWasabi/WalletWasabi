@@ -15,7 +15,7 @@ namespace WalletWasabi.Tor
 {
 	/// <summary>Manages lifetime of Tor process.</summary>
 	/// <seealso href="https://2019.www.torproject.org/docs/tor-manual.html.en"/>
-	public class TorProcessManager
+	public class TorProcessManager : IAsyncDisposable
 	{
 		private bool _disposed = false;
 
@@ -201,7 +201,7 @@ namespace WalletWasabi.Tor
 			return client;
 		}
 
-		public async Task StopAsync()
+		public async ValueTask DisposeAsync()
 		{
 			_disposed = true;
 
