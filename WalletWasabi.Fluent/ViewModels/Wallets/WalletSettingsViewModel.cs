@@ -4,7 +4,6 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
-	[NavigationMetaData(Title="Wallet Settings")]
 	public partial class WalletSettingsViewModel : RoutableViewModel
 	{
 		[AutoNotify] private bool _preferPsbtWorkflow;
@@ -12,6 +11,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		public WalletSettingsViewModel(WalletViewModelBase walletViewModelBase)
 		{
 			var wallet = walletViewModelBase.Wallet;
+			Title = $"{wallet.WalletName} - Wallet Settings";
 			_preferPsbtWorkflow = wallet.KeyManager.PreferPsbtWorkflow;
 			IsHardwareWallet = wallet.KeyManager.IsHardwareWallet;
 
@@ -29,5 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		}
 
 		public bool IsHardwareWallet { get; }
+
+		public sealed override string Title { get; protected set; }
 	}
 }

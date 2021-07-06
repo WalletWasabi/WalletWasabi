@@ -9,7 +9,6 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletSettingsView">
   <c:ContentArea Title="{Binding Title}"
-                 Caption="These settings only apply to this wallet."
                  EnableNext="True" NextContent="Done"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}">
