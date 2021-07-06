@@ -2,16 +2,16 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Styles.Resources>
     <Color x:Key="SystemAccentColor">#78A827</Color>
-    <Color x:Key="NavBarAccentColorLight1">#6BA700</Color>
-    <Color x:Key="NavBarAccentColor">#97D234</Color>
 
     <SolidColorBrush x:Key="TextControlBackground">#EFEFEF</SolidColorBrush>
     <SolidColorBrush x:Key="TextControlBackgroundFocused">#EFEFEF</SolidColorBrush>
     <SolidColorBrush x:Key="TextControlBackgroundPointerOver">#EFEFEF</SolidColorBrush>
+
     <SolidColorBrush x:Key="TextControlForeground">#212121</SolidColorBrush>
     <SolidColorBrush x:Key="TextForegroundColor">#212121</SolidColorBrush>
     <SolidColorBrush x:Key="TextControlBorderBrush">#33323232</SolidColorBrush>
     <SolidColorBrush x:Key="TextControlBorderBrushPointerOver">#33323232</SolidColorBrush>
+
     <SolidColorBrush x:Key="StatusBarControlBackground">#ECECEC</SolidColorBrush>
     <SolidColorBrush x:Key="StatusBarControlForeground">#777777</SolidColorBrush>
     <Color x:Key="AcrylicFallbackColor">#134074</Color>

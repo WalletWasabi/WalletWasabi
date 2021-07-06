@@ -1,20 +1,24 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Styles.Resources>
-    <Color x:Key="SystemAccentColor">#FF97D234</Color>
-    <Color x:Key="NavBarAccentColorLight1">#FF6BA700</Color>
-    <Color x:Key="NavBarAccentColor">#FF97D234</Color>
+    <Color x:Key="SystemAccentColor">#97D234</Color>
 
-    <SolidColorBrush x:Key="TextControlBackground">#2F2F2F</SolidColorBrush>
-    <SolidColorBrush x:Key="TextControlBackgroundFocused">#2F2F2F</SolidColorBrush>
-    <SolidColorBrush x:Key="TextControlBackgroundPointerOver">#2F2F2F</SolidColorBrush>
+    <Color x:Key="FeeChartAreaGradientStartStopColor">#FF00FF00</Color>
+    <Color x:Key="FeeChartAreaGradientEndStopColor">#FF0000FF</Color>
+    <Color x:Key="FeeChartLineColor">#97D234</Color>
+
+    <SolidColorBrush x:Key="TextControlBackground">#1A8093AE</SolidColorBrush>
+    <SolidColorBrush x:Key="TextControlBackgroundFocused">#1A8093AE</SolidColorBrush>
+    <SolidColorBrush x:Key="TextControlBackgroundPointerOver">#1A8093AE</SolidColorBrush>
+
+    <SolidColorBrush x:Key="TextControlBorderBrushFocused">#FF8093AE</SolidColorBrush>
+    <SolidColorBrush x:Key="TextControlBorderBrush">#338093AE</SolidColorBrush>
+    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver">#4d8093AE</SolidColorBrush>
+
     <SolidColorBrush x:Key="TextControlForeground">#FFFFFF</SolidColorBrush>
     <SolidColorBrush x:Key="TextForegroundColor">#FFFFFF</SolidColorBrush>
-    <SolidColorBrush x:Key="TextControlBorderBrush">#434343</SolidColorBrush>
-    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver">#434343</SolidColorBrush>
     <SolidColorBrush x:Key="StatusBarControlBackground">#191919</SolidColorBrush>
     <SolidColorBrush x:Key="StatusBarControlForeground">#A3A3A3</SolidColorBrush>
-    <Color x:Key="AcrylicFallbackColor">#1F1F1F</Color>
     <SolidColorBrush x:Key="InvisibleButtonBackgroundColor">Transparent</SolidColorBrush>
     <SolidColorBrush x:Key="InvisibleButtonPointerOverBackgroundColor">#2FFFFFFF</SolidColorBrush>
     <SolidColorBrush x:Key="InvisibleButtonPressedBackgroundColor">#3FFFFFFF</SolidColorBrush>
