@@ -39,8 +39,8 @@ namespace WalletWasabi.WabiSabi.Client
 			var validProofs = 0;
 			var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundId);
 
-			var mineTxIds = TransactionStore.GetTransactionHashes();
-			var alreadySeenCoins = othersCoins.Where(x => mineTxIds.Contains(x.OutPoint.Hash));
+			var myConfirmedTxIds = TransactionStore.GetTransactionHashes();
+			var alreadySeenCoins = othersCoins.Where(x => myConfirmedTxIds.Contains(x.OutPoint.Hash));
 
 			// In case one Alice is trying to spend an output from a transaction that we already have
 			// seen before then we can verify its script without downloading anything from the network.
