@@ -14,14 +14,7 @@
                  EnableNext="True" NextContent="OK"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel LastChildFill="True">
-      <DockPanel.Styles>
-        <Style Selector="TextBlock">
-          <Setter Property="FontWeight" Value="ExtraLight"/>
-          <Setter Property="TextWrapping" Value="Wrap"/>
-          <Setter Property="TextAlignment" Value="Center"/>
-          <Setter Property="HorizontalAlignment" Value="Center"/>
-        </Style>
-      </DockPanel.Styles>
+
       <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Spacing="30">
         <DockPanel HorizontalAlignment="Center">
           <DockPanel>
@@ -38,7 +31,7 @@
                                 ClickIcon="{StaticResource copy_confirmed}"
                                 ExecuteOnOpen="{Binding IsAutoCopyEnabled}"/>
             </StackPanel>
-            <TextBox Classes="selectableTextBlock" TextWrapping="Wrap" Text="{Binding Address}" FontWeight="Normal" FontSize="{StaticResource FontSizeH5}" />
+            <TextBox Classes="selectableTextBlock" TextWrapping="Wrap" Text="{Binding Address}" FontSize="{StaticResource FontSizeH5}" />
           </DockPanel>
         </DockPanel>
         <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Labels}" HorizontalAlignment="Center" />
@@ -52,7 +45,7 @@
             </Button>
           </Panel>
         </c:AdorningContentControl.Adornment>
-        <Viewbox HorizontalAlignment="Center" VerticalAlignment="Bottom" DockPanel.Dock="Left" Margin="20">
+        <Viewbox Margin="20">
           <c:QrCode Height="250" Matrix="{Binding QrCode}" SaveCommand="{Binding QrCodeCommand, Mode=OneWayToSource}" Margin="0 0 0 -18"/>
         </Viewbox>
       </c:AdorningContentControl>
