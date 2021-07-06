@@ -156,7 +156,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 			var sk = new CredentialIssuerSecretKey(rnd);
 
 			var issuer = new CredentialIssuer(sk, rnd, 4300000000000);
-			var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000, new ZeroCredentialPool());
+			var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000);
 			(CredentialsRequest credentialRequest, CredentialsResponseValidation validationData) = client.CreateRequestForZeroAmount();
 			var credentialResponse = issuer.HandleRequest(credentialRequest);
 			var present = client.HandleResponse(credentialResponse, validationData);

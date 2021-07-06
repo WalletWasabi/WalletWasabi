@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using WalletWasabi.Backend.Filters;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Models;
-using WalletWasabi.Backend.Filters;
 
 namespace WalletWasabi.Backend.Controllers
 {
@@ -66,6 +65,12 @@ namespace WalletWasabi.Backend.Controllers
 		public Task<RoundState[]> GetStatusAsync(CancellationToken cancellableToken)
 		{
 			return Task.FromResult(RequestHandler.Arena.Rounds.Select(x => RoundState.FromRound(x)).ToArray());
+		}
+
+		[HttpPost("ready-to-sign")]
+		public Task ReadyToSign(ReadyToSignRequestRequest request, CancellationToken cancellableToken)
+		{
+			return RequestHandler.ReadyToSignAsync(request, cancellableToken);
 		}
 	}
 }

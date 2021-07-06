@@ -31,10 +31,34 @@
                    RestrictInputToSuggestions="False"
                    Watermark="{StaticResource LabelsWatermarkText}"
                    Suggestions="{Binding Suggestions}">
+          <c:TagsBox.Styles>
+            <Style Selector="c|TagsBox AutoCompleteBox">
+              <Setter Property="MinimumPrefixLength" Value="0" />
+            </Style>
+          </c:TagsBox.Styles>
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
           </i:Interaction.Behaviors>
         </c:TagsBox>
+        <ItemsControl Items="{Binding SuggestionLabelResults}"
+                      ClipToBounds="False">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Horizontal" Spacing="2" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="receive:SuggestionLabelViewModel">
+              <Button Classes="option"
+                      Margin="0,0,4,0"
+                      Focusable="False"
+                      Content="{Binding Label}"
+                      Command="{Binding #LabelsTbx.AddTag}"
+                      CommandParameter="{Binding Label}"
+                      x:CompileBindings="False"/>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
       </StackPanel>
     </DockPanel>
   </c:ContentArea>

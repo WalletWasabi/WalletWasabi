@@ -1,3 +1,4 @@
+using System;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -13,9 +14,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced
 		[AutoNotify] private string _showButtonText = "Show sensitive data";
 		[AutoNotify] private string _lockIconString = "eye_show_regular";
 
-		public WalletInfoViewModel(Wallet wallet)
+		public WalletInfoViewModel(WalletViewModelBase walletViewModelBase)
 		{
+			var wallet = walletViewModelBase.Wallet;
 			var network = wallet.Network;
+			IsHardwareWallet = wallet.KeyManager.IsHardwareWallet;
 
 			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -61,5 +64,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced
 		public string? ExtendedMasterZprv { get; }
 
 		public string? ExtendedAccountZprv { get; }
+
+		public bool IsHardwareWallet { get; }
 	}
 }

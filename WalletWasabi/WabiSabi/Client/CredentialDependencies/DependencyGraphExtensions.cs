@@ -1,14 +1,13 @@
 using System;
 using System.Linq;
-using WalletWasabi.WabiSabi.Client.CredentialDependencies;
 
-namespace WalletWasabi.Tests.Helpers
+namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 {
 	public static class DependencyGraphExtensions
 	{
 		/// <summary>Format the graph in graphviz dot format, suitable for
 		/// reading or viewing.</summary>
-		public static string Graphviz(this DependencyGraph g)
+		public static string AsGraphviz(this DependencyGraph g)
 		{
 			var output = "digraph {\n";
 

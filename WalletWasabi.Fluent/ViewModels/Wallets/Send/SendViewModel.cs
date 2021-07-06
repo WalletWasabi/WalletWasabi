@@ -464,20 +464,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			base.OnNavigatedTo(inHistory, disposables);
 		}
 
-		private static readonly string[] TestNetXAxisLabels =
-		{
-			"1w",
-			"3d",
-			"1d",
-			"12h",
-			"6h",
-			"3h",
-			"1h",
-			"30m",
-			"20m",
-			"fastest"
-		};
-
 		private static readonly double[] TestNetXAxisValues =
 		{
 			1,
@@ -522,7 +508,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				var xs = feeEstimates.Select(x => (double)x.Key).ToArray();
 				var ys = feeEstimates.Select(x => (double)x.Value).ToArray();
 #if true
-				// GetSmoothValues(xs, ys, out var ts, out var xts);
 				GetSmoothValuesSubdivide(xs, ys, out var ts, out var xts);
 				xAxisValues = ts.ToArray();
 				yAxisValues = xts.ToArray();
@@ -535,7 +520,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			else
 			{
 #if true
-				// GetSmoothValues(TestNetXAxisValues, TestNetYAxisValues, out var ts, out var xts);
 				GetSmoothValuesSubdivide(TestNetXAxisValues, TestNetYAxisValues, out var ts, out var xts);
 				xAxisValues = ts.ToArray();
 				yAxisValues = xts.ToArray();
@@ -543,7 +527,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				xAxisValues = xs.Reverse().ToArray();
 				yAxisValues = ys.Reverse().ToArray();
 #endif
-				// xAxisLabels = TestNetXAxisLabels;
 				var labels = TestNetXAxisValues.Select(x => x)
 					.Select(x => FeeTargetTimeConverter.Convert((int)x, "m", "h", "h", "d", "d"))
 					.Reverse()
@@ -619,26 +602,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					ts.Add(xs[i]);
 					xts.Add(ys[i]);
 				}
-			}
-
-			ts.Reverse();
-			xts.Reverse();
-		}
-
-		private void GetSmoothValues(double[] xs, double[] ys, out List<double> ts, out List<double> xts)
-		{
-			var min = xs.Min();
-			var max = xs.Max();
-			var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
-
-			ts = new List<double>();
-			xts = new List<double>();
-
-			for (double t = min; t <= max; t += 1)
-			{
-				var xt = spline.Interpolate(t);
-				ts.Add(t);
-				xts.Add(xt);
 			}
 
 			ts.Reverse();

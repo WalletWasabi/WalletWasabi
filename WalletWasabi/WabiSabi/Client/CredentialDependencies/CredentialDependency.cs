@@ -2,7 +2,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 {
 	public class CredentialDependency
 	{
-		public CredentialDependency(RequestNode from, RequestNode to, CredentialType credentialType, ulong value)
+		public CredentialDependency(RequestNode from, RequestNode to, CredentialType credentialType, long value)
 		{
 			From = from;
 			To = to;
@@ -13,6 +13,6 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 		public RequestNode From { get; }
 		public RequestNode To { get; }
 		public CredentialType CredentialType { get; }
-		public ulong Value { get; }
+		public long Value { get; }
 	}
 }
