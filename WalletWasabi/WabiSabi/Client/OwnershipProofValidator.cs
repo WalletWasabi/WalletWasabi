@@ -7,6 +7,7 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Crypto;
+using WalletWasabi.Logging;
 using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 
@@ -109,7 +110,7 @@ namespace WalletWasabi.WabiSabi.Client
 				}
 				else
 				{
-					// FIXME: what if no peer has the block?
+					Logger.LogError($"Block is missing: '{blockId}'");
 				}
 			}
 
