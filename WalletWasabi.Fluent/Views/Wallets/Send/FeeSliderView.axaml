@@ -99,7 +99,7 @@
   <c:ContentArea Title="{Binding Title}"
                  CancelContent="Cancel"
                  EnableCancel="{Binding EnableCancel}"
-                 EnableBack="{Binding EnableBack}"
+                 EnableBack="true"
                  EnableNext="True" NextContent="Continue"
                  IsBusy="{Binding IsBusy}">
     <DockPanel>
