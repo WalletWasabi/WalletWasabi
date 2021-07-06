@@ -12,7 +12,7 @@
                  EnableNext="True" NextContent="Done"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}">
-    <StackPanel Spacing="20">
+    <StackPanel Spacing="20" MinWidth="360" HorizontalAlignment="Left">
       <StackPanel.Styles>
         <Style Selector="DockPanel > TextBlock">
           <Setter Property="Margin" Value="0 8 20 0" />
