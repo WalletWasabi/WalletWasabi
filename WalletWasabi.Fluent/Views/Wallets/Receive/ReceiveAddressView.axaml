@@ -35,12 +35,14 @@
         <c:TagsBox IsReadOnly="True" Items="{Binding Labels}" HorizontalAlignment="Center" />
       </StackPanel>
 
-      <c:AdorningContentControl MaxHeight="270" HorizontalAlignment="Center">
+      <c:AdorningContentControl MaxHeight="270" HorizontalAlignment="Center" ClipToBounds="False">
         <c:AdorningContentControl.Adornment>
-          <Button Command="{Binding SaveQrCodeCommand}" ToolTip.Tip="Save" Classes="plain icon"
-                  HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0 0 -5 20">
-            <PathIcon Data="{StaticResource save_regular}" />
-          </Button>
+          <Panel Margin="0 0 -5 20">
+            <Button Command="{Binding SaveQrCodeCommand}" ToolTip.Tip="Save" Classes="plain icon"
+                    HorizontalAlignment="Right" VerticalAlignment="Bottom">
+              <PathIcon Data="{StaticResource save_regular}" />
+            </Button>
+          </Panel>
         </c:AdorningContentControl.Adornment>
         <Viewbox Margin="20">
           <c:QrCode Height="250" Matrix="{Binding QrCode}" SaveCommand="{Binding QrCodeCommand, Mode=OneWayToSource}" Margin="0 0 0 -18" />
