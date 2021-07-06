@@ -10,6 +10,7 @@ namespace WalletWasabi.WabiSabi.Models
 {
 	public record RoundState(
 		uint256 Id,
+		uint256? BlameOf,
 		CredentialIssuerParameters AmountCredentialIssuerParameters,
 		CredentialIssuerParameters VsizeCredentialIssuerParameters,
 		FeeRate FeeRate,
@@ -23,6 +24,7 @@ namespace WalletWasabi.WabiSabi.Models
 		public static RoundState FromRound(Round round) =>
 			new(
 				round.Id,
+				round.BlameOf?.Id,
 				round.AmountCredentialIssuerParameters,
 				round.VsizeCredentialIssuerParameters,
 				round.FeeRate,
