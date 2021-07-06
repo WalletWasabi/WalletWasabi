@@ -54,8 +54,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				this.RaisePropertyChanged(nameof(IsBackendConnected));
 
 				Observable.FromEventPattern<bool>(Services.Synchronizer, nameof(Services.Synchronizer.ResponseArrivedIsGenSocksServFail))
-					.Select(x => x.EventArgs)
-					.Where(x => x)
 					.Subscribe(_ => LoadWallet(disposables, syncFilters: false))
 					.DisposeWith(disposables);
 
