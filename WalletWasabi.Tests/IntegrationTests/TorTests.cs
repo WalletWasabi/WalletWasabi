@@ -27,8 +27,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 		public async Task InitializeAsync()
 		{
-			bool started = await TorManager.StartAsync();
-			Assert.True(started, "Tor failed to start.");
+			await TorManager.StartAsync();
 		}
 
 		public async Task DisposeAsync()
