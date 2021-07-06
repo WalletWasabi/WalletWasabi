@@ -45,7 +45,33 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public async Task<bool> StartCoinJoinAsync(CancellationToken cancellationToken, IEnumerable<Money>? forcedOutputDenominations = null)
 		{
-			var roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cancellationToken).ConfigureAwait(false);
+			var currentRoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cancellationToken).ConfigureAwait(false);
+
+			// This should be roughly log(#inputs), it could be set slightly
+			// higher if more inputs are observed but that involves trusting the
+			// coordinator with those values. Therefore, conservatively set this
+			// so that a maximum of 5 blame rounds are executed.
+			// FIXME should smaller rounds abort earlier?
+			var tryLimit = 6;
+
+			for (var tries = 0; tries < tryLimit; tries++)
+			{
+				if (await StartRoundAsync(currentRoundState, cancellationToken, forcedOutputDenominations))
+				{
+					return true;
+				}
+				else
+				{
+					var blameRoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.BlameOf == currentRoundState.Id, cancellationToken).ConfigureAwait(false);
+					currentRoundState = blameRoundState;
+				}
+			}
+
+			return false;
+		}
+
+		public async Task<bool> StartRoundAsync(RoundState roundState, CancellationToken cancellationToken, IEnumerable<Money>? forcedOutputDenominations = null)
+		{
 			var constructionState = roundState.Assert<ConstructionState>();
 
 			// Calculate outputs values
@@ -91,13 +117,9 @@ namespace WalletWasabi.WabiSabi.Client
 			// Send signature.
 			await SignTransactionAsync(aliceClients, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
 
-			// TODO wait for round to end when it is pruned from the Arena:
-			// 1. success: round disappears without a trace (wait for it to appear in mempool?)
-			// 2. failed: a new round with isBlameOf appears
+			var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundState.Id && ( s.Phase == Phase.Failed || s.Phase == Phase.TransactionBroadcasting ) || s.BlameOf == roundState.Id, cancellationToken).ConfigureAwait(false);
 
-			var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundState.Id && ( s.Phase == Phase.Failed || s.Phase == Phase.TransactionBroadcasting ), cancellationToken).ConfigureAwait(false);
-
-			return finalRoundState.Phase == Phase.TransactionBroadcasting;
+			return finalRoundState.Id == roundState.Id && finalRoundState.Phase == Phase.TransactionBroadcasting;
 		}
 
 		private List<AliceClient> CreateAliceClients(RoundState roundState)

@@ -221,6 +221,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			RoundParameters parameters = new(Config, Network, Random, feeRate, blameOf: round);
 			Round blameRound = new(parameters);
 			Rounds.Add(blameRound);
+			Rounds.Remove(round);
 		}
 
 		private async Task CreateRoundsAsync()
