@@ -774,16 +774,6 @@ namespace WalletWasabi.Fluent.Controls
 			}
 		}
 
-		protected override Size MeasureOverride(Size availableSize)
-		{
-			return base.MeasureOverride(availableSize);
-		}
-
-		protected override Size ArrangeOverride(Size finalSize)
-		{
-			return base.ArrangeOverride(finalSize);
-		}
-
 		public override void Render(DrawingContext context)
 		{
 			base.Render(context);
