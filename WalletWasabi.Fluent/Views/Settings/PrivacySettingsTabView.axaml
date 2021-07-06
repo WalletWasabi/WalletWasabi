@@ -38,10 +38,5 @@
         <Slider Minimum="4" Value="{Binding StrongPrivacyLevel}" Margin="10 0" />
       </DockPanel>
     </StackPanel>
-
-    <DockPanel>
-      <TextBlock Text="Auto CoinJoin" />
-      <ToggleSwitch IsChecked="{Binding AutoCoinJoin}" />
-    </DockPanel>
   </StackPanel>
 </UserControl>

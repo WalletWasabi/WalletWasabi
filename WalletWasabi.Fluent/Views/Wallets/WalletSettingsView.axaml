@@ -18,6 +18,11 @@
         <TextBlock Text="PSBT workflow" />
         <ToggleSwitch IsChecked="{Binding PreferPsbtWorkflow}" />
       </DockPanel>
+
+      <DockPanel>
+        <TextBlock Text="Auto CoinJoin" />
+        <ToggleSwitch IsChecked="{Binding AutoCoinJoin}" />
+      </DockPanel>
     </StackPanel>
   </c:ContentArea>
 </UserControl>

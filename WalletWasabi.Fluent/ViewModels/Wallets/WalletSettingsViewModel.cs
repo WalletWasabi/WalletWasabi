@@ -1,4 +1,5 @@
 using System;
+using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
@@ -7,12 +8,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 	public partial class WalletSettingsViewModel : RoutableViewModel
 	{
 		[AutoNotify] private bool _preferPsbtWorkflow;
+		[AutoNotify] private bool _autoCoinJoin;
 
 		public WalletSettingsViewModel(WalletViewModelBase walletViewModelBase)
 		{
 			var wallet = walletViewModelBase.Wallet;
 			Title = $"{wallet.WalletName} - Wallet Settings";
 			_preferPsbtWorkflow = wallet.KeyManager.PreferPsbtWorkflow;
+			_autoCoinJoin = Services.UiConfig.AutoCoinJoin;
 			IsHardwareWallet = wallet.KeyManager.IsHardwareWallet;
 
 			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
@@ -26,6 +29,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					wallet.KeyManager.ToFile();
 					walletViewModelBase.RaisePropertyChanged(nameof(walletViewModelBase.PreferPsbtWorkflow));
 				});
+
+			this.WhenAnyValue(x => x.AutoCoinJoin)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Skip(1)
+				.Subscribe(x => Services.UiConfig.AutoCoinJoin = x);
 		}
 
 		public bool IsHardwareWallet { get; }
