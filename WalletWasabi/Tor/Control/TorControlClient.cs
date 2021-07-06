@@ -1,6 +1,7 @@
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Pipelines;
 using System.Linq;
 using System.Net.Sockets;
@@ -417,6 +418,10 @@ namespace WalletWasabi.Tor.Control
 			catch (OperationCanceledException)
 			{
 				Logger.LogTrace("Reader loop was stopped.");
+			}
+			catch (IOException e)
+			{
+				Logger.LogError("Reply reader failed to read from pipe. Internal stream was most likely forcefully closed.", e);
 			}
 			catch (Exception e)
 			{
