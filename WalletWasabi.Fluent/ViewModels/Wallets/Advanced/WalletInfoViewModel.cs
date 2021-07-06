@@ -13,14 +13,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced
 		[AutoNotify] private bool _showSensitiveData;
 		[AutoNotify] private string _showButtonText = "Show sensitive data";
 		[AutoNotify] private string _lockIconString = "eye_show_regular";
-		[AutoNotify] private bool _preferPsbtWorkflow;
 
 		public WalletInfoViewModel(WalletViewModelBase walletViewModelBase)
 		{
 			var wallet = walletViewModelBase.Wallet;
 			var network = wallet.Network;
 			IsHardwareWallet = wallet.KeyManager.IsHardwareWallet;
-			_preferPsbtWorkflow = wallet.KeyManager.PreferPsbtWorkflow;
 
 			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -49,14 +47,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced
 			ExtendedAccountZpub = wallet.KeyManager.ExtPubKey.ToZpub(network);
 			AccountKeyPath = $"m/{wallet.KeyManager.AccountKeyPath}";
 			MasterKeyFingerprint = wallet.KeyManager.MasterFingerprint.ToString();
-
-			this.WhenAnyValue(x => x.PreferPsbtWorkflow)
-				.Subscribe(value =>
-				{
-					wallet.KeyManager.PreferPsbtWorkflow = value;
-					wallet.KeyManager.ToFile();
-					walletViewModelBase.RaisePropertyChanged(nameof(walletViewModelBase.PreferPsbtWorkflow));
-				});
 		}
 
 		public string ExtendedAccountPublicKey { get; }
