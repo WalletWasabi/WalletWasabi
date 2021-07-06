@@ -1,6 +1,10 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Styles.Resources>
+    <Color x:Key="SystemAccentColor">#FF97D234</Color>
+    <Color x:Key="NavBarAccentColorLight1">#FF6BA700</Color>
+    <Color x:Key="NavBarAccentColor">#FF97D234</Color>
+
     <SolidColorBrush x:Key="TextControlBackground">#2F2F2F</SolidColorBrush>
     <SolidColorBrush x:Key="TextControlBackgroundFocused">#2F2F2F</SolidColorBrush>
     <SolidColorBrush x:Key="TextControlBackgroundPointerOver">#2F2F2F</SolidColorBrush>
@@ -28,26 +32,28 @@
 
     <SolidColorBrush x:Key="PrivacySuggestionControlSelectedBackground">#353535</SolidColorBrush>
 
-    <SolidColorBrush x:Key="TileRegionColor">#FF2B2B2B</SolidColorBrush>
-    <Color x:Key="RegionColor">#FF212121</Color>
-    <Color x:Key="HeaderRegionColor">#FF242424</Color>
+    <SolidColorBrush x:Key="TileRegionColor">#152032</SolidColorBrush>
+    <Color x:Key="RegionColor">#010D20</Color>
+    <Color x:Key="HeaderRegionColor">#010D20</Color>
     <BoxShadows x:Key="BoxShadow">0 1 4 #121212</BoxShadows>
     <BoxShadows x:Key="OptionButtonShadow">0 2 2 #121212</BoxShadows>
 
     <RadialGradientBrush x:Key="VersionHighlightRadialBrush" Radius="0.5" GradientOrigin="50%,15%" Center="50%,50%">
       <RadialGradientBrush.GradientStops>
-        <GradientStop Color="#F9FF5C" Offset="0"/>
-        <GradientStop Color="#86DF18" Offset="1"/>
+        <GradientStop Color="#F9FF5C" Offset="0" />
+        <GradientStop Color="#86DF18" Offset="1" />
       </RadialGradientBrush.GradientStops>
     </RadialGradientBrush>
 
     <SolidColorBrush x:Key="DataGridRowSelectedBackgroundColor" Color="#1C1C1C" />
-    <StaticResource x:Key="DataGridRowSelectedUnfocusedBackgroundColor" ResourceKey="DataGridRowSelectedBackgroundColor" />
+    <StaticResource x:Key="DataGridRowSelectedUnfocusedBackgroundColor"
+                    ResourceKey="DataGridRowSelectedBackgroundColor" />
 
     <StaticResource x:Key="NotificationCardBackgroundBrush" ResourceKey="TileRegionColor" />
   </Styles.Resources>
-  <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentDark.xaml"/>
-  <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" /> <!-- Needs to be here because of dependency reason -->
+  <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentDark.xaml" />
+  <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
+  <!-- Needs to be here because of dependency reason -->
   <StyleInclude Source="avares://Avalonia.Xaml.Interactions/Draggable/Styles.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Base.axaml" />
 </Styles>

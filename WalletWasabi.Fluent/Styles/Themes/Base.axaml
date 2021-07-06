@@ -1,13 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Styles.Resources>
-    <Color x:Key="SystemAccentColorLight1">#FF82C690</Color>
-    <Color x:Key="SystemAccentColorLight2">#FF92CF9E</Color>
-    <Color x:Key="SystemAccentColorLight3">#FFA2D8AD</Color>
-    <Color x:Key="SystemAccentColorDark1">#FF5BA96C</Color>
-    <Color x:Key="SystemAccentColorDark2">#FF449556</Color>
-    <Color x:Key="SystemAccentColorDark3">#FF2E8041</Color>
-    <Color x:Key="SystemAccentColor">#FF72BD81</Color>
+    <Color x:Key="SystemAltHighColor">#134074</Color>
     <Color x:Key="SystemErrorTextColor">#D85050</Color>
 
     <Color x:Key="LogoFixedAccentColor">#97D234</Color>
