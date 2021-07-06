@@ -259,7 +259,7 @@ namespace WalletWasabi.Tor.Control
 				}
 
 				// Get all event names that must be subscribed.
-				subscribedEventNames = string.Join(',', SubscribedEvents.Keys);
+				subscribedEventNames = string.Join(' ', SubscribedEvents.Keys);
 			}
 
 			if (sendCommand)
@@ -307,7 +307,7 @@ namespace WalletWasabi.Tor.Control
 				}
 
 				// Get all event names that remained.
-				subscribedEventNames = string.Join(',', SubscribedEvents.Keys);
+				subscribedEventNames = string.Join(' ', SubscribedEvents.Keys);
 			}
 
 			if (sendCommand)
