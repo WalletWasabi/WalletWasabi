@@ -70,14 +70,7 @@ namespace WalletWasabi.WabiSabi.Client
 			// would need to start downloading the blocks containing the coins that need to be
 			// validated.
 			var coinsGroupedByBlocks = othersCoins.GroupBy(x => x.BlockId).ToArray();
-
-			// We sort the groups (blocks) randomly.
-			var random = new Random();
-			var randomNumbers = othersCoins.Select(r => random.Next()).ToArray();
-			coinsGroupedByBlocks = coinsGroupedByBlocks.Zip(randomNumbers, (group, rnd) => new { Groupd = group, Order = rnd })
-				.OrderBy(x => x.Order)
-				.Select(x => x.Groupd)
-				.ToArray();
+			coinsGroupedByBlocks.Shuffle();
 
 			foreach (var coinsInBlock in coinsGroupedByBlocks)
 			{
