@@ -9,24 +9,11 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletSettingsView">
   <c:ContentArea Title="{Binding Title}"
+                 Caption="Manage your wallet's settings"
                  EnableNext="True" NextContent="Done"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}">
-    <StackPanel Spacing="20" MinWidth="360" HorizontalAlignment="Left">
-      <StackPanel.Styles>
-        <Style Selector="DockPanel > TextBlock">
-          <Setter Property="Margin" Value="0 8 20 0" />
-          <Setter Property="VerticalAlignment" Value="Top" />
-          <Setter Property="(DockPanel.Dock)" Value="Left" />
-        </Style>
-        <Style Selector="DockPanel > ToggleSwitch">
-          <Setter Property="Margin" Value="0 0 -12 0" />
-          <Setter Property="HorizontalAlignment" Value="Right" />
-          <Setter Property="OnContent" Value="{x:Null}" />
-          <Setter Property="OffContent" Value="{x:Null}" />
-        </Style>
-      </StackPanel.Styles>
-
+    <StackPanel Classes="settingsLayout">
       <DockPanel IsVisible="{Binding IsHardwareWallet}">
         <TextBlock Text="PSBT workflow" />
         <ToggleSwitch IsChecked="{Binding PreferPsbtWorkflow}" />
