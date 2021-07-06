@@ -12,7 +12,7 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="OK"
-                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                 ScrollViewer.VerticalScrollBarVisibility="Auto">
     <DockPanel LastChildFill="True">
 
       <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Spacing="30">
@@ -44,7 +44,7 @@
             </Button>
           </Panel>
         </c:AdorningContentControl.Adornment>
-        <Viewbox Margin="20">
+        <Viewbox Margin="20" MinHeight="100">
           <c:QrCode Height="250" Matrix="{Binding QrCode}" SaveCommand="{Binding QrCodeCommand, Mode=OneWayToSource}" Margin="0 0 0 -18" />
         </Viewbox>
       </c:AdorningContentControl>
