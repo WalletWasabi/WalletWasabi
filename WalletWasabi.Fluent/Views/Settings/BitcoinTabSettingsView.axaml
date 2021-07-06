@@ -7,24 +7,7 @@
              x:DataType="settings:BitcoinTabSettingsViewModel"
              x:Class="WalletWasabi.Fluent.Views.Settings.BitcoinTabSettingsView"
              x:CompileBindings="True">
-  <StackPanel Spacing="20" MinWidth="360" MaxWidth="650" HorizontalAlignment="Left" Orientation="Vertical">
-    <StackPanel.Styles>
-      <Style Selector="DockPanel > TextBlock">
-        <Setter Property="Margin" Value="0 8 20 0" />
-        <Setter Property="VerticalAlignment" Value="Top" />
-        <Setter Property="(DockPanel.Dock)"  Value="Left" />
-      </Style>
-      <Style Selector="DockPanel > ToggleSwitch">
-        <Setter Property="Margin" Value="0 0 -12 0" />
-        <Setter Property="HorizontalAlignment" Value="Right" />
-        <Setter Property="OnContent" Value="{x:Null}" />
-        <Setter Property="OffContent" Value="{x:Null}" />
-      </Style>
-      <Style Selector="DockPanel > Label">
-        <Setter Property="Margin" Value="0 8 0 0" />
-        <Setter Property="HorizontalAlignment" Value="Right" />
-      </Style>
-    </StackPanel.Styles>
+  <StackPanel Classes="settingsLayout">
 
     <StackPanel Spacing="10">
       <TextBlock Text="Network" />
