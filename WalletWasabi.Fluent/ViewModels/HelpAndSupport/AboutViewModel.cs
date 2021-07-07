@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows.Input;
 using Avalonia;
@@ -26,6 +28,66 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport
 	{
 		public AboutViewModel()
 		{
+			Links = new List<LinkViewModel>()
+			{
+				new ()
+				{
+					Link = DocsLink,
+					Description = "Documentation",
+					IsClickable = true,
+					IsLast = false
+				},
+				new ()
+				{
+					Link = SourceCodeLink,
+					Description = "Source Code (Github)",
+					IsClickable = true,
+					IsLast = false
+				},
+				new ()
+				{
+					Link = ClearnetLink,
+					Description = "Website (Clearnet)",
+					IsClickable = true,
+					IsLast = false
+				},
+				new ()
+				{
+					Link = TorLink,
+					Description = "Website (Tor)",
+					IsClickable = false,
+					IsLast = false
+				},
+				new ()
+				{
+					Link = StatusPageLink,
+					Description = "Coordinator Status Page",
+					IsClickable = true,
+					IsLast = false
+				},
+				new ()
+				{
+					Link = UserSupportLink,
+					Description = "User Support",
+					IsClickable = true,
+					IsLast = false
+				},
+				new ()
+				{
+					Link = BugReportLink,
+					Description = "Bug Reporting",
+					IsClickable = true,
+					IsLast = false
+				},
+				new ()
+				{
+					Link = FAQLink,
+					Description = "FAQs",
+					IsClickable = true,
+					IsLast = true
+				},
+			};
+
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
 			AboutAdvancedInfoDialogCommand = ReactiveCommand.CreateFromTask(
@@ -43,6 +105,8 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport
 
 			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		}
+
+		public List<LinkViewModel> Links { get; }
 
 		public ICommand AboutAdvancedInfoDialogCommand { get; }
 
