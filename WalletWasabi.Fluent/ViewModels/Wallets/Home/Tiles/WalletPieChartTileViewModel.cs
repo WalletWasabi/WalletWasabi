@@ -53,12 +53,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		{
 			var privateThreshold = _wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
 
-			var privateCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold);
-			var normalCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold);
-			var totalCount = (double)_wallet.Coins.Count();
+			var privateAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
+			var normalAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold).TotalAmount();
 
-			var pcPrivate = (privateCoins.Count() / totalCount);
-			var pcNormal = (normalCoins.Count() / totalCount);
+			var privateDecimalAmount = privateAmount.ToDecimal(MoneyUnit.BTC);
+			var normalDecimalAmount = normalAmount.ToDecimal(MoneyUnit.BTC);
+			var totalDecimalAmount = privateDecimalAmount + normalDecimalAmount;
+
+			var pcPrivate = (double)(privateDecimalAmount / totalDecimalAmount);
+			var pcNormal = 1 - pcPrivate;
 
 			TestDataPoints = new List<(string, double)>()
 			{
@@ -68,8 +71,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			TestDataPointsLegend = new List<DataLegend>
 			{
-				new(privateCoins.TotalAmount(), "Private", "#72BD81", pcPrivate),
-				new(normalCoins.TotalAmount(), "Not Private", "#F9DE7D", pcNormal)
+				new(privateAmount, "Private", "#72BD81", pcPrivate),
+				new(normalAmount, "Not Private", "#F9DE7D", pcNormal)
 			};
 		}
 	}
