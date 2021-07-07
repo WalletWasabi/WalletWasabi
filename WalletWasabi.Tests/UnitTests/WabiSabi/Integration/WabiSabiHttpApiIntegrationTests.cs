@@ -137,7 +137,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var transactionCompleted = new TaskCompletionSource<Transaction>();
 
 			// Total test timeout.
-			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
 			cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
 
 			var rpc = GetStatefullMockRpc(transactionCompleted);
