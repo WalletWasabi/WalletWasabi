@@ -27,7 +27,6 @@
           <ContentControl Template="{DynamicResource wasabi_logo_text_dynamic}"
                           VerticalAlignment="Center" ClipToBounds="False" />
         </Viewbox>
-
         <DockPanel>
           <StackPanel Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Center" Orientation="Vertical">
             <!-- Links -->
