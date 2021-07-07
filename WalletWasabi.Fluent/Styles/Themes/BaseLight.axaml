@@ -2,9 +2,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Styles.Resources>
     <Color x:Key="SystemAccentColor">#78A827</Color>
-    <Color x:Key="FeeChartAreaGradientStartStopColor">#FF78A827</Color>
-    <Color x:Key="FeeChartAreaGradientEndStopColor">#0078A827</Color>
-    <Color x:Key="FeeChartLineColor">#78A827</Color>
+    <Color x:Key="LineChartAreaGradientStartStopColor">#FF78A827</Color>
+    <Color x:Key="LineChartAreaGradientEndStopColor">#0078A827</Color>
+    <Color x:Key="LineChartLineColor">#78A827</Color>
 
     <SolidColorBrush x:Key="TextControlBackground">#EFEFEF</SolidColorBrush>
     <SolidColorBrush x:Key="TextControlBackgroundFocused">#EFEFEF</SolidColorBrush>
