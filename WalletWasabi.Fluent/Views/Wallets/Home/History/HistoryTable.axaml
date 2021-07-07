@@ -136,17 +136,17 @@
                               SortMemberPath="Label">
         <DataGridTemplateColumn.CellTemplate>
           <DataTemplate>
-            <WrapPanel x:DataType="history:HistoryItemViewModel">
-              <WrapPanel.Styles>
+            <DockPanel Margin="0,4,0,0" x:DataType="history:HistoryItemViewModel">
+              <DockPanel.Styles>
                 <Style Selector="Button.labelFlyout">
-                  <Setter Property="Margin" Value="0,0,0,1" />
+                  <Setter Property="Margin" Value="0" />
                   <Setter Property="Padding" Value="12,5,12,5" />
-                </Style>
-                <Style Selector="Button.labelFlyout /template/ ContentPresenter">
-                  <Setter Property="MinHeight" Value="0" />
-                  <Setter Property="MinWidth" Value="38" />
                   <Setter Property="VerticalAlignment" Value="Top" />
                   <Setter Property="HorizontalAlignment" Value="Left" />
+                  <Setter Property="MinHeight" Value="0" />
+                  <Setter Property="MinWidth" Value="38" />
+                </Style>
+                <Style Selector="Button.labelFlyout /template/ ContentPresenter">
                   <Setter Property="Cursor" Value="Hand" />
                   <Setter Property="BorderThickness" Value="1" />
                   <Setter Property="BorderBrush" Value="{StaticResource TagsBoxControlForeground}" />
@@ -162,9 +162,9 @@
                 <Style Selector="Button.labelFlyout:disabled /template/ ContentPresenter">
                   <Setter Property="BorderBrush" Value="{StaticResource TagsBoxControlForeground}" />
                 </Style>
-              </WrapPanel.Styles>
+              </DockPanel.Styles>
               <c:TagsBox Padding="0"
-                         Margin="0,0,0,1"
+                         Margin="0"
                          BorderThickness="0"
                          DockPanel.Dock="Left"
                          IsReadOnly="True"
@@ -181,7 +181,7 @@
                   </Flyout>
                 </Button.Flyout>
               </Button>
-            </WrapPanel>
+            </DockPanel>
           </DataTemplate>
         </DataGridTemplateColumn.CellTemplate>
       </DataGridTemplateColumn>
