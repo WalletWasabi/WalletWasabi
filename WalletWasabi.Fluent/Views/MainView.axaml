@@ -28,12 +28,12 @@
           <ExperimentalAcrylicBorder DockPanel.Dock="Left" IsHitTestVisible="False">
             <ExperimentalAcrylicBorder.Material>
               <ExperimentalAcrylicMaterial BackgroundSource="Digger"
-                                           TintColor="Transparent"
+                                           TintColor="{DynamicResource NavBarTintColor}"
+                                           TintOpacity="1"
                                            FallbackColor="{DynamicResource AcrylicFallbackColor}"
-                                           MaterialOpacity="0.4" />
+                                           MaterialOpacity="0.8" />
             </ExperimentalAcrylicBorder.Material>
           </ExperimentalAcrylicBorder>
-          <Panel Opacity="0.8" Background="{DynamicResource NavBarTintColor}" />
           <navbar:NavBar DataContext="{Binding NavBar}" />
         </Panel>
       </SplitView.Pane>

@@ -6,7 +6,7 @@
     <Color x:Key="AcrylicFallbackColor">#1F1F1F</Color>
 
     <SolidColorBrush x:Key="NavBarAccentColor">#97D234</SolidColorBrush>
-    <SolidColorBrush x:Key="NavBarAccentColorLight">#719B2A</SolidColorBrush>
+    <SolidColorBrush x:Key="NavBarAccentColorPressed">#719B2A</SolidColorBrush>
     <SolidColorBrush x:Key="NavBarItemPressedAccentColor">#719B2A</SolidColorBrush>
     <SolidColorBrush x:Key="NavBarItemDisabledBrush">#66FFFFFF</SolidColorBrush>
     <SolidColorBrush x:Key="NavBarItemPointerOverBrush">#FFFFFFFF</SolidColorBrush>

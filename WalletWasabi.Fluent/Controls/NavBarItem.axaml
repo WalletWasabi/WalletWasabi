@@ -140,7 +140,7 @@
 
   <!-- Selected Pressed State -->
   <Style Selector="c|NavBarItem:selected:pressed /template/ Border">
-    <Setter Property="BorderBrush" Value="{DynamicResource NavBarAccentColorLight}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource NavBarAccentColorPressed}" />
   </Style>
   <Style Selector="c|NavBarItem:selected:pressed /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource NavBarItemSelectedPressedBrush}" />
