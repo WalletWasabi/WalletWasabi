@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -124,6 +126,113 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			Assert.NotNull(boadcastedTx);
 
 			await roundStateUpdater.StopAsync(CancellationToken.None);
+		}
+
+		[Fact]
+		public async Task MultiClientsCoinJoinTestAsync()
+		{
+			int inputCount = 10;
+
+			// At the end of the test a coinjoin transaction has to be created and broadcasted.
+			var transactionCompleted = new TaskCompletionSource<Transaction>();
+
+			// Total test timeout.
+			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+			cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
+
+			var rpc = GetStatefullMockRpc(transactionCompleted);
+
+			var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
+			{
+				builder.ConfigureServices(services =>
+				{
+					// Instruct the coodinator DI container to use these two scoped
+					// services to build everything (wabisabi controller, arena, etc)
+					services.AddScoped<IRPCClient>(s => rpc);
+					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig { MaxInputCountByRound = inputCount });
+				});
+			}).CreateClient();
+
+			// Create the coinjoin client
+			var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
+
+			var nuberOfParticipants = 10;
+
+			var participants = Enumerable
+				.Range(0, nuberOfParticipants)
+				.Select(_ => new Participant(rpc, apiClient))
+				.ToArray();
+
+			foreach (var participant in participants)
+			{
+				await participant.InitializeAsync(2, cts.Token);
+			}
+			foreach (var participant in participants)
+			{
+				_ = Task.Run(async () => await participant.StartParticipatingAsync(cts.Token));
+			}
+
+			var boadcastedTx = await transactionCompleted.Task;
+			Assert.NotNull(boadcastedTx);
+		}
+
+		private IRPCClient GetStatefullMockRpc(TaskCompletionSource<Transaction> transactionCompleted)
+		{
+			var rpc = BitcoinFactory.GetMockMinimalRpc();
+
+			var blocks = new List<Block>();
+			var mempool = new List<Transaction>();
+
+			// Declarations
+			var confirmedTransactions = blocks.SelectMany(b => b.Transactions);
+			var transactions = confirmedTransactions.Concat(mempool);
+			var coins = transactions.SelectMany(t => t.Outputs.Select(o => new Coin(t, o)));
+			var spentCoins = transactions.SelectMany(t => t.Inputs.Where(i => i.PrevOut.Hash != uint256.Zero).Select(i => coins.Single(c => c.Outpoint == i.PrevOut)));
+			var unspentCoins = coins.Except(spentCoins);
+
+			// Make the coordinator to believe that those two coins are real and
+			// that they exist in the blockchain with many confirmations.
+			rpc.OnGetTxOutAsync = (txId, idx, _) =>
+			{
+				var coin = unspentCoins.FirstOrDefault(c => (c.Outpoint.Hash, c.Outpoint.N) == (txId, idx));
+				if (coin is null)
+				{
+					return null;
+				}
+				return new()
+				{
+					Confirmations = 101,
+					IsCoinBase = false,
+					ScriptPubKeyType = "witness_v0_keyhash",
+					TxOut = coin.TxOut
+				};
+			};
+
+			rpc.OnGetBlockAsync = (blockId) =>
+				Task.FromResult(blocks.First(b => b.GetHash() == blockId));
+
+			// Make the coordinator believe that the transaction is being
+			// broadcasted using the RPC interface. Once we receive this tx
+			// (the `SendRawTransationAsync` was invoked) we stop waiting
+			// and finish the waiting tasks to finish the test successfully.
+			rpc.OnSendRawTransactionAsync = (tx) =>
+			{
+				mempool.Add(tx);
+				transactionCompleted.TrySetResult(tx);
+				return tx.GetHash();
+			};
+
+			rpc.OnGenerateToAddressAsync = (n, address) =>
+			{
+				var block = Block
+					.CreateBlock(Network.Main)
+					.CreateNextBlockWithCoinbase(address, blocks.Count);
+
+				blocks.Add(block);
+				return Task.FromResult(new[] { block.GetHash() });
+			};
+
+			return rpc;
 		}
 
 		[Fact]
