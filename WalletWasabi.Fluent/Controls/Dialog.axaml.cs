@@ -7,6 +7,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
+using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Controls
 {
@@ -43,9 +44,20 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<double> MaxContentWidthProperty =
 			AvaloniaProperty.Register<Dialog, double>(nameof(MaxContentWidth), double.PositiveInfinity);
 
+		public static readonly StyledProperty<bool> FullScreenEnabledProperty =
+			AvaloniaProperty.Register<Dialog, bool>(nameof(FullScreenEnabled));
+
 		public Dialog()
 		{
 			this.GetObservable(IsDialogOpenProperty).Subscribe(UpdateDelay);
+
+			this.WhenAnyValue(x => x.Bounds)
+				.Subscribe(bounds =>
+				{
+					var width = bounds.Width;
+					var height = bounds.Height;
+					FullScreenEnabled = width < 600 && height < 600;
+				});
 		}
 
 		public bool IsDialogOpen
@@ -94,6 +106,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(MaxContentWidthProperty);
 			set => SetValue(MaxContentWidthProperty, value);
+		}
+
+		public bool FullScreenEnabled
+		{
+			get => GetValue(FullScreenEnabledProperty);
+			set => SetValue(FullScreenEnabledProperty, value);
 		}
 
 		private CancellationTokenSource? CancelPointerPressedDelay { get; set; }

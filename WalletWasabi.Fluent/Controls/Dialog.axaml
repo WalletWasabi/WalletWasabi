@@ -84,4 +84,12 @@
   <Style Selector="c|Dialog:not(:open) /template/ Panel#PART_Overlay">
     <Setter Property="Opacity" Value="0"/>
   </Style>
+
+  <!-- Dialog Fullscreen State -->
+  <Style Selector="c|Dialog[FullScreenEnabled=True] /template/ Border#PART_Border">
+    <Setter Property="Margin" Value="0" />
+  </Style>
+  <Style Selector="c|Dialog[FullScreenEnabled=True] /template/ Panel#PART_DialogHost">
+    <Setter Property="Margin" Value="0" />
+  </Style>
 </Styles>
