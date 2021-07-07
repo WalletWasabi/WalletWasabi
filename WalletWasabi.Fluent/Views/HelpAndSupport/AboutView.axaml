@@ -35,7 +35,7 @@
                           HorizontalAlignment="Center">
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                  <WrapPanel/>
+                  <WrapPanel />
                 </ItemsPanelTemplate>
               </ItemsControl.ItemsPanel>
             </ItemsControl>
@@ -52,7 +52,7 @@
               <TextBlock Margin=" 0 0 0 -0.5"
                          VerticalAlignment="Center"
                          Text="This open source software is licensed with " />
-              <ContentControl Content="{Binding License}"/>
+              <ContentControl Content="{Binding License}" />
             </WrapPanel>
           </StackPanel>
         </DockPanel>
