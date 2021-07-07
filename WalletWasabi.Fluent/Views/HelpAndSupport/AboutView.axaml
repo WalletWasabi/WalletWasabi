@@ -50,30 +50,6 @@
                   <WrapPanel/>
                 </ItemsPanelTemplate>
               </ItemsControl.ItemsPanel>
-              <ItemsControl.ItemTemplate>
-                <DataTemplate DataType="vm:LinkViewModel">
-                  <StackPanel Orientation="Horizontal">
-                    <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
-                      <Button Classes="plain"
-                              Command="{Binding OpenBrowserCommand}"
-                              CommandParameter="{Binding Link}"
-                              IsVisible="{Binding IsClickable}">
-                        <TextBlock Text="{Binding Description}" Classes="Hyperlink" />
-                      </Button>
-                      <TextBlock Text="{Binding Description}"
-                                 IsVisible="{Binding !IsClickable}"/>
-                      <controls:AnimatedButton ToolTip.Tip="Copy link"
-                                               Command="{Binding CopyLinkCommand}"
-                                               CommandParameter="{Binding Link}"
-                                               NormalIcon="{StaticResource copy_regular}"
-                                               ClickIcon="{StaticResource copy_confirmed}" />
-                    </StackPanel>
-                    <TextBlock Classes="LinkSeparatorPadding"
-                               IsVisible="{Binding !IsLast}"
-                               Text="-" />
-                  </StackPanel>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
             </ItemsControl>
             <!-- Advanced -->
             <Button HorizontalAlignment="Center" Classes="plain obscured"
