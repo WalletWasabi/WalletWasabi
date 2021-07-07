@@ -169,23 +169,27 @@
                         Value="{Binding XAxisCurrentValueIndex}">
                 </Slider>
                 <c:LineChart x:Name="GradientLineChart"
-                             XAxisPlotMode="EvenlySpaced"
-                             Margin="18,0,18,0"
                              Classes="cursor border xAxisLabels yAxis yAxisTitle"
-                             MinHeight="30"
                              XAxisLabels="{Binding XAxisLabels}"
                              XAxisValues="{Binding XAxisValues}"
                              XAxisCurrentValue="{Binding XAxisCurrentValue, Mode=TwoWay}"
-                             YAxisValues="{Binding YAxisValues}"
-                             YAxisLogarithmicScale="False"
-                             AreaMargin="10,0,10,30"
-                             AreaStrokeThickness="2"
-                             AreaStrokeLineCap="Round"
-                             AreaMinViableWidth="40"
-                             AreaMinViableHeight="20"
-                             Focusable="True"
-                             YAxisTitle="More Expensive">
-                    <c:LineChart.AreaFill>
+                             YAxisValues="{Binding YAxisValues}">
+                  <c:LineChart.Styles>
+                    <Style Selector="c|LineChart">
+                      <Setter Property="XAxisPlotMode" Value="EvenlySpaced"/>
+                      <Setter Property="Margin" Value="18,0,18,0"/>
+                      <Setter Property="MinHeight" Value="30"/>
+                      <Setter Property="YAxisLogarithmicScale" Value="False"/>
+                      <Setter Property="AreaMargin" Value="10,0,10,30"/>
+                      <Setter Property="AreaStrokeThickness" Value="2"/>
+                      <Setter Property="AreaStrokeLineCap" Value="Round"/>
+                      <Setter Property="AreaMinViableWidth" Value="40"/>
+                      <Setter Property="AreaMinViableHeight" Value="20"/>
+                      <Setter Property="Focusable" Value="True"/>
+                      <Setter Property="YAxisTitle" Value="More Expensive"/>
+                    </Style>
+                  </c:LineChart.Styles>
+                  <c:LineChart.AreaFill>
                         <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%" Opacity="0.2">
                             <LinearGradientBrush.GradientStops>
                                 <GradientStop Offset="0.0" Color="#FF72BD81" />
