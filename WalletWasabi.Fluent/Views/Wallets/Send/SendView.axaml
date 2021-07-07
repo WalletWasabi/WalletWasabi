@@ -198,6 +198,9 @@
                     <ia:DataTriggerBehavior Binding="{Binding #GradientLineChart.Bounds.Width}" ComparisonCondition="LessThan" Value="350">
                       <behaviors:AddClassAction StyledElement="{Binding #GradientLineChart}" ClassName="narrow" RemoveIfExists="True"/>
                     </ia:DataTriggerBehavior>
+                    <ia:DataTriggerBehavior Binding="{Binding #GradientLineChart.Bounds.Width}" ComparisonCondition="GreaterThanOrEqual" Value="350">
+                      <behaviors:RemoveClassAction StyledElement="{Binding #GradientLineChart}" ClassName="narrow"/>
+                    </ia:DataTriggerBehavior>
                   </i:Interaction.Behaviors>
                   <c:LineChart.AreaFill>
                         <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%" Opacity="0.2">
