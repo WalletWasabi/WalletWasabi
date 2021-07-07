@@ -33,7 +33,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			foreach (var key in keys)
 			{
 				cancellationToken.ThrowIfCancellationRequested();
-				var blockIds = await Rpc.GenerateToAddressAsync(1, key.GetP2wpkhAddress(Network.Main));
+				var blockIds = await Rpc.GenerateToAddressAsync(1, key.GetP2wpkhAddress(Rpc.Network));
 				var block = await Rpc.GetBlockAsync(blockIds.First());
 				var coin = block.Transactions[0].Outputs.GetCoins(key.P2wpkhScript).First();
 				Coins.Add(coin);
@@ -42,7 +42,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 		public async Task StartParticipatingAsync(CancellationToken cancellationToken)
 		{
-			using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(1), ApiClient);
+			using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(3), ApiClient);
 			await roundStateUpdater.StartAsync(cancellationToken);
 
 			var kitchen = new Kitchen();
