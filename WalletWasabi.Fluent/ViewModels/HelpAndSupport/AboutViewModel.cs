@@ -88,6 +88,14 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport
 				},
 			};
 
+			License = new()
+			{
+				Link = LicenseLink,
+				Description = "MIT License",
+				IsClickable = true,
+				IsLast = true
+			};
+
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
 			AboutAdvancedInfoDialogCommand = ReactiveCommand.CreateFromTask(
@@ -107,6 +115,8 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport
 		}
 
 		public List<LinkViewModel> Links { get; }
+
+		public LinkViewModel License { get; }
 
 		public ICommand AboutAdvancedInfoDialogCommand { get; }
 

@@ -53,18 +53,7 @@
               <TextBlock Margin=" 0 0 0 -0.5"
                          VerticalAlignment="Center"
                          Text="This open source software is licensed with " />
-              <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
-                <Button Classes="plain"
-                        Command="{Binding OpenBrowserCommand}"
-                        CommandParameter="{x:Static vm:AboutViewModel.LicenseLink}">
-                  <TextBlock Text="MIT License" Classes="Hyperlink" />
-                </Button>
-                <controls:AnimatedButton ToolTip.Tip="Copy link"
-                                         Command="{Binding CopyLinkCommand}"
-                                         CommandParameter="{x:Static vm:AboutViewModel.LicenseLink}"
-                                         NormalIcon="{StaticResource copy_regular}"
-                                         ClickIcon="{StaticResource copy_confirmed}" />
-              </StackPanel>
+              <ContentControl Content="{Binding License}"/>
             </WrapPanel>
           </StackPanel>
         </DockPanel>
