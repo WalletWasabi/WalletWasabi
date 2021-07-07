@@ -9,21 +9,10 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.HelpAndSupport.AboutView">
   <UserControl.Styles>
-    <Style Selector="TextBlock.LinkSeparatorPadding">
-      <Setter Property="Margin" Value="5 -0.5" />
-      <Setter Property="VerticalAlignment" Value="Center" />
-    </Style>
-    <Style Selector="TextBlock.Header">
-      <Setter Property="Margin" Value="0 4 0 0" />
-      <Setter Property="FontWeight" Value="Bold" />
-    </Style>
     <Style Selector="TextBlock.Hyperlink">
       <Setter Property="TextDecorations" Value="Underline" />
       <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
       <Setter Property="VerticalAlignment" Value="Center" />
-    </Style>
-    <Style Selector="TextBox.Content">
-      <Setter Property="Margin" Value="0 4 0 0" />
     </Style>
   </UserControl.Styles>
   <Panel>
