@@ -2,6 +2,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.HelpAndSupport"
              xmlns:controls="using:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
@@ -30,14 +33,33 @@
         <DockPanel>
           <StackPanel Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Center" Orientation="Vertical">
             <!-- Links -->
-            <ItemsControl Items="{Binding Links}"
+            <ItemsControl Name="LinksItemsControl"
+                          Items="{Binding Links}"
                           Margin="0 0 0 25"
                           HorizontalAlignment="Center">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <WrapPanel />
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
+              <i:Interaction.Behaviors>
+                <ia:DataTriggerBehavior Binding="{Binding #LinksItemsControl.Bounds.Width}" ComparisonCondition="LessThan" Value="500">
+                  <behaviors:AddClassAction StyledElement="{Binding #LinksItemsControl}" ClassName="narrow" RemoveIfExists="True"/>
+                </ia:DataTriggerBehavior>
+                <!-- TODO:
+                <ia:DataTriggerBehavior Binding="{Binding #LinksItemsControl.Bounds.Width}" ComparisonCondition="GreaterThanOrEqual" Value="500">
+                  <behaviors:RemoveClassAction StyledElement="{Binding #LinksItemsControl}" ClassName="narrow"/>
+                </ia:DataTriggerBehavior>-->
+              </i:Interaction.Behaviors>
+              <ItemsControl.Styles>
+                <Style Selector="ItemsControl">
+                  <Setter Property="ItemsPanel">
+                    <Setter.Value>
+                      <ItemsPanelTemplate>
+                        <WrapPanel />
+                      </ItemsPanelTemplate>
+                    </Setter.Value>
+                  </Setter>
+                </Style>
+                <Style Selector="ItemsControl.narrow /template/ #PART_ItemsPresenter > WrapPanel">
+                  <Setter Property="Orientation" Value="Vertical"/>
+                </Style>
+              </ItemsControl.Styles>
             </ItemsControl>
             <!-- Advanced -->
             <Button HorizontalAlignment="Center" Classes="plain obscured"
