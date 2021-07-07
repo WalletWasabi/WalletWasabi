@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
@@ -188,7 +189,16 @@
                       <Setter Property="Focusable" Value="True"/>
                       <Setter Property="YAxisTitle" Value="More Expensive"/>
                     </Style>
+                    <Style Selector="c|LineChart.narrow">
+                      <Setter Property="AreaMargin" Value="10,0,10,45"/>
+                      <Setter Property="XAxisLabelAngle" Value="45" />
+                    </Style>
                   </c:LineChart.Styles>
+                  <i:Interaction.Behaviors>
+                    <ia:DataTriggerBehavior Binding="{Binding #GradientLineChart.Bounds.Width}" ComparisonCondition="LessThan" Value="350">
+                      <behaviors:AddClassAction StyledElement="{Binding #GradientLineChart}" ClassName="narrow" RemoveIfExists="True"/>
+                    </ia:DataTriggerBehavior>
+                  </i:Interaction.Behaviors>
                   <c:LineChart.AreaFill>
                         <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%" Opacity="0.2">
                             <LinearGradientBrush.GradientStops>
