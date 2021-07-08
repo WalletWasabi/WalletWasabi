@@ -102,6 +102,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					IsQrPanelVisible = false;
 				});
 
+			Observable.FromEventPattern<WriteableBitmap>(_qrReader, nameof(_qrReader.ErrorOccured))
+				.Subscribe(async args =>
+				{
+					IsQrPanelVisible = false;
+					await ShowErrorAsync(Title, args.EventArgs.ToString(), "Something went wrong");
+				});
+
 			this.ValidateProperty(x => x.To, ValidateToField);
 			this.ValidateProperty(x => x.AmountBtc, ValidateAmount);
 
