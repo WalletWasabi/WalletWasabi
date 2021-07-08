@@ -45,10 +45,9 @@
                 <ia:DataTriggerBehavior Binding="{Binding #LinksItemsControl.Bounds.Width}" ComparisonCondition="LessThan" Value="500">
                   <behaviors:AddClassAction StyledElement="{Binding #LinksItemsControl}" ClassName="narrow" RemoveIfExists="True"/>
                 </ia:DataTriggerBehavior>
-                <!-- TODO:
                 <ia:DataTriggerBehavior Binding="{Binding #LinksItemsControl.Bounds.Width}" ComparisonCondition="GreaterThanOrEqual" Value="500">
                   <behaviors:RemoveClassAction StyledElement="{Binding #LinksItemsControl}" ClassName="narrow"/>
-                </ia:DataTriggerBehavior>-->
+                </ia:DataTriggerBehavior>
               </i:Interaction.Behaviors>
               <ItemsControl.Styles>
                 <Style Selector="ItemsControl">
