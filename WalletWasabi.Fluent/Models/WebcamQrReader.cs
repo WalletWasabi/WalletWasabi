@@ -17,6 +17,7 @@ namespace WalletWasabi.Fluent.Models
 	public class WebcamQrReader
 	{
 		public Network Network { get; }
+		public Task? ScanningTask { get; set; }
 
 		public WebcamQrReader(Network network)
 		{
@@ -25,8 +26,11 @@ namespace WalletWasabi.Fluent.Models
 
 		public void StartScanning()
 		{
-			VideoCapture camera = OpenCamera();
-			Scan(camera);
+			ScanningTask = Task.Run(() =>
+			{
+				VideoCapture camera = OpenCamera();
+				Scan(camera);
+			});
 		}
 
 		private void Scan(VideoCapture camera)
@@ -35,16 +39,16 @@ namespace WalletWasabi.Fluent.Models
 			{
 				try
 				{
-					Mat frame = new();
+					using Mat frame = new();
 					camera.Read(frame);
 					if (frame.Empty() || frame.Width == 0 || frame.Height == 0)
 					{
 						continue;
 					}
 
-					var writeableBitmap = ConvertMatToWriteableBitmap(frame);
+					using var writeableBitmap = ConvertMatToWriteableBitmap(frame);
 					NewImageArrived?.Invoke(this, writeableBitmap);
-					QRCodeDetector qRCodeDetector = new();
+					using QRCodeDetector qRCodeDetector = new();
 					if (qRCodeDetector.Detect(frame, out Point2f[] points))
 					{
 						string qrCode = qRCodeDetector.Decode(frame, points, new Mat());
