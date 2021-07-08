@@ -17,6 +17,10 @@
       <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
+    <Style Selector="TextBlock.LinkSeparatorPadding">
+      <Setter Property="Margin" Value="5 -0.5" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
   </UserControl.Styles>
   <Panel>
     <controls:ContentArea EnableNext="True" NextContent="Close">
@@ -64,6 +68,13 @@
                   <Setter Property="Orientation" Value="Vertical"/>
                 </Style>
               </ItemsControl.Styles>
+              <ItemsControl.DataTemplates>
+                <DataTemplate DataType="vm:SeparatorViewModel">
+                  <TextBlock Classes="LinkSeparatorPadding"
+                             Text="-"
+                             IsVisible="True" />
+                </DataTemplate>
+              </ItemsControl.DataTemplates>
             </ItemsControl>
             <!-- Advanced -->
             <Button HorizontalAlignment="Center" Classes="plain obscured"

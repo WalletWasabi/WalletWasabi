@@ -28,63 +28,62 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport
 	{
 		public AboutViewModel()
 		{
-			Links = new List<LinkViewModel>()
+			Links = new List<ViewModelBase>()
 			{
-				new ()
+				new LinkViewModel()
 				{
 					Link = DocsLink,
 					Description = "Documentation",
-					IsClickable = true,
-					IsLast = false
+					IsClickable = true
 				},
-				new ()
+				new SeparatorViewModel(),
+				new LinkViewModel()
 				{
 					Link = SourceCodeLink,
 					Description = "Source Code (Github)",
-					IsClickable = true,
-					IsLast = false
+					IsClickable = true
 				},
-				new ()
+				new SeparatorViewModel(),
+				new LinkViewModel()
 				{
 					Link = ClearnetLink,
 					Description = "Website (Clearnet)",
-					IsClickable = true,
-					IsLast = false
+					IsClickable = true
 				},
-				new ()
+				new SeparatorViewModel(),
+				new LinkViewModel()
 				{
 					Link = TorLink,
 					Description = "Website (Tor)",
-					IsClickable = false,
-					IsLast = false
+					IsClickable = false
 				},
-				new ()
+				new SeparatorViewModel(),
+				new LinkViewModel()
 				{
 					Link = StatusPageLink,
 					Description = "Coordinator Status Page",
-					IsClickable = true,
-					IsLast = false
+					IsClickable = true
 				},
-				new ()
+				new SeparatorViewModel(),
+				new LinkViewModel()
 				{
 					Link = UserSupportLink,
 					Description = "User Support",
-					IsClickable = true,
-					IsLast = false
+					IsClickable = true
 				},
-				new ()
+				new SeparatorViewModel(),
+				new LinkViewModel()
 				{
 					Link = BugReportLink,
 					Description = "Bug Reporting",
-					IsClickable = true,
-					IsLast = false
+					IsClickable = true
 				},
-				new ()
+				new SeparatorViewModel(),
+				new LinkViewModel()
 				{
 					Link = FAQLink,
 					Description = "FAQs",
-					IsClickable = true,
-					IsLast = true
+					IsClickable = true
 				},
 			};
 
@@ -92,8 +91,7 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport
 			{
 				Link = LicenseLink,
 				Description = "MIT License",
-				IsClickable = true,
-				IsLast = true
+				IsClickable = true
 			};
 
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
@@ -114,7 +112,7 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport
 			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		}
 
-		public List<LinkViewModel> Links { get; }
+		public List<ViewModelBase> Links { get; }
 
 		public LinkViewModel License { get; }
 

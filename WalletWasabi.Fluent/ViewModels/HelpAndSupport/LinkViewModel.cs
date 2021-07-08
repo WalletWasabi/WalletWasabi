@@ -24,8 +24,6 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport
 
 		public bool IsClickable { get; set; }
 
-		public bool IsLast { get; set; }
-
 		public ICommand OpenBrowserCommand { get; }
 
 		public ICommand CopyLinkCommand { get; }
