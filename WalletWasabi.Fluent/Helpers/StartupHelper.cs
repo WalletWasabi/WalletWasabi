@@ -13,19 +13,19 @@ namespace WalletWasabi.Fluent.Helpers
 	{
 		private const string KeyPath = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
 
-		public static bool TryModifyStartupSetting(bool runOnSystemStartup)
+		public static void ModifyStartupSetting(bool runOnSystemStartup)
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
 				string pathToExeFile = EnvironmentHelpers.GetExecutablePath();
-				if (File.Exists(pathToExeFile))
-				{
-					return TryModifyRegistry(runOnSystemStartup, pathToExeFile);
-				}
-				else
+				if (!File.Exists(pathToExeFile))
 				{
 					Logger.LogError($"Path {pathToExeFile} does not exist.");
 				}
+				if (!TryModifyRegistry(runOnSystemStartup, pathToExeFile))
+				{
+					throw new InvalidOperationException("Couldn't  modify Registry.");
+				};
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
@@ -35,8 +35,6 @@ namespace WalletWasabi.Fluent.Helpers
 			{
 				throw new NotImplementedException();
 			}
-
-			return false;
 		}
 
 		[SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "Method can be called only on Windows.")]
