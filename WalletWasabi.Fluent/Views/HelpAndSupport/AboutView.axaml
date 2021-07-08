@@ -56,6 +56,10 @@
                     </Setter.Value>
                   </Setter>
                 </Style>
+                <Style Selector="ItemsControl > ContentPresenter">
+                  <Setter Property="HorizontalAlignment" Value="Center" />
+                  <Setter Property="VerticalAlignment" Value="Center" />
+                </Style>
                 <Style Selector="ItemsControl.narrow /template/ #PART_ItemsPresenter > WrapPanel">
                   <Setter Property="Orientation" Value="Vertical"/>
                 </Style>
