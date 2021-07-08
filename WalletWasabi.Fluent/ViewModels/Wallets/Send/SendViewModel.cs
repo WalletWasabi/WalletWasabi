@@ -70,9 +70,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private WriteableBitmap? _testImage;
 		[AutoNotify] private bool _isQrPanelVisible;
 
-		private VideoCapture? _camera;
-		private Thread _cameraCapture;
-		private Mat _frame;
+		private WebcamQrReader _qrReader;
 		private bool _parsingUrl;
 		private bool _updatingCurrentValue;
 		private double _lastXAxisCurrentValue;
@@ -86,11 +84,23 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_labels = new ObservableCollection<string>();
 			_lastXAxisCurrentValue = _xAxisCurrentValue;
 			_isQrPanelVisible = false;
+			_qrReader = new(_wallet.Network);
 
 			SelectionMode = NavBarItemSelectionMode.Button;
 
 			ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 			PriorLabels = new();
+
+			Observable.FromEventPattern<WriteableBitmap>(_qrReader, nameof(_qrReader.NewImageArrived))
+				.Subscribe(args => TestImage = args.EventArgs);
+
+			Observable.FromEventPattern<string>(_qrReader, nameof(_qrReader.BitcoinAddressFound))
+				.Subscribe(args =>
+				{
+					To = args.EventArgs;
+					_qrReader.StopScanning();
+					IsQrPanelVisible = false;
+				});
 
 			this.ValidateProperty(x => x.To, ValidateToField);
 			this.ValidateProperty(x => x.AmountBtc, ValidateAmount);
@@ -135,10 +145,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
 			AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
-			QRCommand = ReactiveCommand.Create(() => OpenWebCam());
+			QRCommand = ReactiveCommand.Create(() =>
+			{
+				IsQrPanelVisible = true;
+				_qrReader.StartScanning();
+			});
 			BackCommand = ReactiveCommand.Create(() =>
 			{
-				CloseWebCam();
 				Navigate().Back();
 			});
 			var nextCommandCanExecute =
@@ -217,114 +230,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				Logger.LogError(ex);
 				await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(), "Wasabi was unable to create your transaction.");
-			}
-		}
-
-		private void OpenWebCam()
-		{
-			try
-			{
-				if (_camera is null)
-				{
-					IsQrPanelVisible = true;
-					_cameraCapture = new(new ThreadStart(CaptureCameraCallback));
-					_cameraCapture.Start();
-				}
-				else
-				{
-					CloseWebCam();
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-			}
-		}
-
-		private void CaptureCameraCallback()
-		{
-			_frame = new Mat();
-			_camera = new VideoCapture();
-			_camera.Open(0);
-
-			while (_camera is not null)
-			{
-				_camera.Read(_frame);
-				if (!_frame.Empty())
-				{
-					var wbtm = ConvertMatToWriteableBitmap(_frame);
-
-					TestImage = wbtm;
-					InsertAddressFromQRIfAble(_frame);
-				}
-			}
-		}
-
-		private WriteableBitmap? ConvertMatToWriteableBitmap(Mat frame)
-		{
-			if (frame.Width != 0 || frame.Height != 0)
-			{
-				PixelSize pixelSize = new(frame.Width, frame.Height);
-				Vector dpi = new(96, 96);
-				Avalonia.Platform.PixelFormat pixelFormat = Avalonia.Platform.PixelFormat.Rgba8888;
-				Avalonia.Platform.AlphaFormat alphaFormat = Avalonia.Platform.AlphaFormat.Unpremul;
-				var writeableBitmap = new WriteableBitmap(pixelSize, dpi, pixelFormat, alphaFormat);
-
-				using (var fb = writeableBitmap.Lock())
-				{
-					var indexer = frame.GetGenericIndexer<Vec3b>();
-					int[] data = new int[fb.Size.Width * fb.Size.Height];
-					for (int y = 0; y < frame.Height; y++)
-					{
-						for (int x = 0; x < frame.Width; x++)
-						{
-							Vec3b pixel = indexer[y, x];
-							byte r = pixel.Item0;
-							byte g = pixel.Item1;
-							byte b = pixel.Item2;
-							var color = new Color(255, r, g, b);
-							data[y * fb.Size.Width + x] = (int)color.ToUint32();
-						}
-					}
-					Marshal.Copy(data, 0, fb.Address, fb.Size.Width * fb.Size.Height);
-				}
-				return writeableBitmap;
-			}
-			return new WriteableBitmap(new PixelSize(1, 1), new Vector(1, 1), Avalonia.Platform.PixelFormat.Rgba8888, Avalonia.Platform.AlphaFormat.Unpremul);
-		}
-
-		private void InsertAddressFromQRIfAble(Mat frame)
-		{
-			QRCodeDetector qRCodeDetector = new();
-			try
-			{
-				if (qRCodeDetector.Detect(frame, out Point2f[] points))
-				{
-					string qrCode = qRCodeDetector.Decode(frame, points, new Mat());
-					if (!string.IsNullOrWhiteSpace(qrCode))
-					{
-						To = qrCode;
-						CloseWebCam();
-					}
-				}
-			}
-			catch (OpenCVException exc)
-			{
-				Logger.LogWarning(exc);
-			}
-			finally
-			{
-				qRCodeDetector.Dispose();
-			}
-		}
-
-		private void CloseWebCam()
-		{
-			if (_camera != null)
-			{
-				_camera.Release();
-				_camera = null;
-				IsQrPanelVisible = false;
 			}
 		}
 
@@ -533,6 +438,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			base.OnNavigatedFrom(isInHistory);
 			_lastXAxisCurrentValue = XAxisCurrentValue;
 			_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(_lastXAxisCurrentValue);
+			_qrReader.StopScanning();
 		}
 
 		protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)

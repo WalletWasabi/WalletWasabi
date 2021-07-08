@@ -30,7 +30,15 @@ namespace WalletWasabi.Fluent.Models
 			{
 				VideoCapture camera = OpenCamera();
 				Scan(camera);
+				camera.Release();
 			});
+		}
+
+		public void StopScanning()
+		{
+			if (ScanningTask is { } task)
+			{
+			}
 		}
 
 		private void Scan(VideoCapture camera)
@@ -55,6 +63,7 @@ namespace WalletWasabi.Fluent.Models
 						if (!string.IsNullOrWhiteSpace(qrCode) && AddressStringParser.TryParse(qrCode, Network, out _))
 						{
 							BitcoinAddressFound?.Invoke(this, qrCode);
+							break;
 						}
 					}
 				}
