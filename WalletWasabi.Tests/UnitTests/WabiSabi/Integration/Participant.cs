@@ -23,7 +23,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 		}
 
 		public KeyManager KeyManager { get; }
-		public List<Coin> Coins { get; } = new ();
+		public List<Coin> Coins { get; } = new();
 		public IRPCClient Rpc { get; }
 		public WabiSabiHttpApiClient ApiClient { get; }
 
@@ -43,7 +43,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 		public async Task StartParticipatingAsync(CancellationToken cancellationToken)
 		{
 			using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(3), ApiClient);
-			await roundStateUpdater.StartAsync(cancellationToken);
+			await roundStateUpdater.StartAsync(cancellationToken).ConfigureAwait(false);
 
 			var kitchen = new Kitchen();
 			kitchen.Cook("");
@@ -51,9 +51,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var coinJoinClient = new CoinJoinClient(ApiClient, Coins, kitchen, KeyManager, roundStateUpdater);
 
 			// Run the coinjoin client task.
-			await coinJoinClient.StartCoinJoinAsync(cancellationToken);
+			await coinJoinClient.StartCoinJoinAsync(cancellationToken).ConfigureAwait(false);
 
-			await roundStateUpdater.StopAsync(cancellationToken);
+			await roundStateUpdater.StopAsync(cancellationToken).ConfigureAwait(false);
 		}
 	}
 }

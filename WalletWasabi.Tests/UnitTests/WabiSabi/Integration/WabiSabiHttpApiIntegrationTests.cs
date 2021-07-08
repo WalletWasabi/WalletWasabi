@@ -131,6 +131,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 		[Fact]
 		public async Task MultiClientsCoinJoinTestAsync()
 		{
+			const int NumberOfParticipants = 30;
+			const int NumberOfCoinsPerParticipant = 1;
+			int expectedInputNumber = NumberOfParticipants * NumberOfCoinsPerParticipant;
+
 			var node = await TestNodeBuilder.CreateAsync();
 			var rpc = node.RpcClient;
 
@@ -141,7 +145,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 					// Instruct the coodinator DI container to use these two scoped
 					// services to build everything (wabisabi controller, arena, etc)
 					services.AddScoped<IRPCClient>(s => rpc);
-					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig { MaxInputCountByRound = 20 });
+					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig { MaxInputCountByRound = expectedInputNumber });
 				});
 			}).CreateClient();
 
@@ -155,23 +159,19 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
 			cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
 
-			var nuberOfParticipants = 30;
-
 			var participants = Enumerable
-				.Range(0, nuberOfParticipants)
+				.Range(0, NumberOfParticipants)
 				.Select(_ => new Participant(rpc, apiClient))
 				.ToArray();
 
 			foreach (var participant in participants)
 			{
-				await participant.InitializeAsync(1, cts.Token);
+				await participant.InitializeAsync(NumberOfCoinsPerParticipant, cts.Token);
 			}
 			using var dummyKey = new Key();
 			await rpc.GenerateToAddressAsync(101, dummyKey.PubKey.GetAddress(ScriptPubKeyType.Segwit, rpc.Network));
-			foreach (var participant in participants)
-			{
-				_ = Task.Run(async () => await participant.StartParticipatingAsync(cts.Token));
-			}
+
+			var tasks = participants.Select(x => x.StartParticipatingAsync(cts.Token)).ToArray();
 
 			while ((await rpc.GetRawMempoolAsync()).Length == 0)
 			{
@@ -181,12 +181,17 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 				}
 
 				await Task.Delay(500);
+
+				if (tasks.FirstOrDefault(t => t.IsFaulted)?.Exception is { } exc)
+				{
+					throw exc;
+				}
 			}
 			var mempool = await rpc.GetRawMempoolAsync();
 			var coinjoin = await rpc.GetRawTransactionAsync(mempool.Single());
 
-			Assert.True(coinjoin.Outputs.Count >= 30);
-			Assert.True(coinjoin.Inputs.Count >= 20);
+			Assert.True(coinjoin.Outputs.Count >= expectedInputNumber);
+			Assert.True(coinjoin.Inputs.Count == expectedInputNumber);
 		}
 
 		[Fact]
