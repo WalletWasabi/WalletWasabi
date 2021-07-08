@@ -11,11 +11,13 @@ using System.Runtime.InteropServices;
 using WalletWasabi.Logging;
 using WalletWasabi.Userfacing;
 using NBitcoin;
+using System.Threading;
 
 namespace WalletWasabi.Fluent.Models
 {
 	public class WebcamQrReader
 	{
+		public bool RequestEnd { get; set; }
 		public Network Network { get; }
 		public Task? ScanningTask { get; set; }
 
@@ -28,22 +30,37 @@ namespace WalletWasabi.Fluent.Models
 		{
 			ScanningTask = Task.Run(() =>
 			{
-				VideoCapture camera = OpenCamera();
-				Scan(camera);
-				camera.Release();
+				VideoCapture? camera = null;
+				try
+				{
+					camera = OpenCamera();
+					RequestEnd = false;
+					Scan(camera);
+				}
+				catch (Exception exc)
+				{
+					Logger.LogError("QR scanning stopped. Reason:", exc);
+					ErrorOccured?.Invoke(this, exc);
+				}
+				finally
+				{
+					camera?.Release();
+				}
 			});
 		}
 
-		public void StopScanning()
+		public async Task StopScanningAsync()
 		{
 			if (ScanningTask is { } task)
 			{
+				RequestEnd = true;
+				await task;
 			}
 		}
 
 		private void Scan(VideoCapture camera)
 		{
-			while (camera is not null)
+			while (!RequestEnd)
 			{
 				try
 				{
@@ -116,5 +133,7 @@ namespace WalletWasabi.Fluent.Models
 		public event EventHandler<WriteableBitmap>? NewImageArrived;
 
 		public event EventHandler<string>? BitcoinAddressFound;
+
+		public event EventHandler<Exception>? ErrorOccured;
 	}
 }

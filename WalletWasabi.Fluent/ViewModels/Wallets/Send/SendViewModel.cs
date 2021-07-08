@@ -95,10 +95,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				.Subscribe(args => TestImage = args.EventArgs);
 
 			Observable.FromEventPattern<string>(_qrReader, nameof(_qrReader.BitcoinAddressFound))
-				.Subscribe(args =>
+				.Subscribe(async args =>
 				{
 					To = args.EventArgs;
-					_qrReader.StopScanning();
+					await _qrReader.StopScanningAsync();
 					IsQrPanelVisible = false;
 				});
 
@@ -438,7 +438,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			base.OnNavigatedFrom(isInHistory);
 			_lastXAxisCurrentValue = XAxisCurrentValue;
 			_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(_lastXAxisCurrentValue);
-			_qrReader.StopScanning();
+			_ = _qrReader.StopScanningAsync();
 		}
 
 		protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
