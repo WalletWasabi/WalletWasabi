@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent.Helpers
 				{
 					Logger.LogError($"Path {pathToExeFile} does not exist.");
 				}
-				if (!TryModifyRegistry(runOnSystemStartup, pathToExeFile))
+				if (!ModifyRegistry(runOnSystemStartup, pathToExeFile))
 				{
 					throw new InvalidOperationException("Couldn't  modify Registry.");
 				};
@@ -37,29 +37,21 @@ namespace WalletWasabi.Fluent.Helpers
 			}
 		}
 
-		[SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "Method can be called only on Windows.")]
-		private static bool TryModifyRegistry(bool runOnSystemStartup, string pathToExeFile)
+		private static void ModifyRegistry(bool runOnSystemStartup, string pathToExeFile)
 		{
-			try
+			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				using RegistryKey key = Registry.CurrentUser.OpenSubKey(KeyPath, writable: true) ?? throw new NullReferenceException();
-				if (runOnSystemStartup)
-				{
-					key.SetValue(nameof(WalletWasabi), pathToExeFile);
-				}
-				else
-				{
-					key.DeleteValue(nameof(WalletWasabi));
-				}
-
-				return true;
+				throw new InvalidOperationException("Registry modification can only be done on Windows.");
 			}
-			catch (Exception ex)
+			using RegistryKey key = Registry.CurrentUser.OpenSubKey(KeyPath, writable: true) ?? throw new InvalidOperationException("Registry operation failed.");
+			if (runOnSystemStartup)
 			{
-				Logger.LogError(ex);
+				key.SetValue(nameof(WalletWasabi), pathToExeFile);
 			}
-
-			return false;
+			else
+			{
+				key.DeleteValue(nameof(WalletWasabi));
+			}
 		}
 	}
 }
