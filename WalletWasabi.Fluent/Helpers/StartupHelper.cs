@@ -22,10 +22,7 @@ namespace WalletWasabi.Fluent.Helpers
 				{
 					Logger.LogError($"Path {pathToExeFile} does not exist.");
 				}
-				if (!ModifyRegistry(runOnSystemStartup, pathToExeFile))
-				{
-					throw new InvalidOperationException("Couldn't  modify Registry.");
-				};
+				ModifyRegistry(runOnSystemStartup, pathToExeFile);
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
