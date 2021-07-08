@@ -25,7 +25,6 @@ namespace WalletWasabi.Gui
 		private string? _lastSelectedWallet;
 		private string _windowState = "Normal";
 		private bool _usePsbtWorkflow;
-    private bool _autoCoinJoin;
 
 		public UiConfig() : base()
 		{
@@ -42,8 +41,7 @@ namespace WalletWasabi.Gui
 					x => x.FeeDisplayFormat,
 					x => x.LastSelectedWallet,
 					x => x.WindowState,
-					x => x.AutoCoinJoin,
-					(_, _, _, _, _, _, _, _, _) => Unit.Default)
+					(_, _, _, _, _, _, _, _) => Unit.Default)
 				.Throttle(TimeSpan.FromMilliseconds(500))
 				.Skip(1) // Won't save on UiConfig creation.
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -136,14 +134,6 @@ namespace WalletWasabi.Gui
 		{
 			get => _lastSelectedWallet;
 			set => RaiseAndSetIfChanged(ref _lastSelectedWallet, value);
-		}
-
-		[DefaultValue(true)]
-		[JsonProperty(PropertyName = "AutoCoinJoin", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public bool AutoCoinJoin
-		{
-			get => _autoCoinJoin;
-			set => RaiseAndSetIfChanged(ref _autoCoinJoin, value);
 		}
 
 		[JsonProperty(PropertyName = "CoinListViewSortingPreference")]

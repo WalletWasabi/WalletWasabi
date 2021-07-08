@@ -15,7 +15,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			var wallet = walletViewModelBase.Wallet;
 			Title = $"{wallet.WalletName} - Wallet Settings";
 			_preferPsbtWorkflow = wallet.KeyManager.PreferPsbtWorkflow;
-			_autoCoinJoin = Services.UiConfig.AutoCoinJoin;
+			_autoCoinJoin = wallet.KeyManager.AutoCoinJoin;
 			IsHardwareWallet = wallet.KeyManager.IsHardwareWallet;
 
 			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
@@ -33,7 +33,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			this.WhenAnyValue(x => x.AutoCoinJoin)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Skip(1)
-				.Subscribe(x => Services.UiConfig.AutoCoinJoin = x);
+				.Subscribe(x =>
+				{
+					wallet.KeyManager.AutoCoinJoin = x;
+					wallet.KeyManager.ToFile();
+				});
 		}
 
 		public bool IsHardwareWallet { get; }
