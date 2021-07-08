@@ -20,6 +20,7 @@ using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Models.Decomposition;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Wallets;
 using Xunit;
@@ -111,7 +112,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 					// Instruct the coordinator DI container to use these two scoped
 					// services to build everything (WabiSabi controller, arena, etc)
 					services.AddScoped<IRPCClient>(s => rpc);
-					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig { MaxInputCountByRound = inputCount });
+					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig
+					{
+						MaxInputCountByRound = inputCount,
+						StandardInputRegistrationTimeout = TimeSpan.FromSeconds(20)
+					});
 				});
 			}).CreateClient();
 
@@ -120,17 +125,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 			using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(1), apiClient);
 			await roundStateUpdater.StartAsync(CancellationToken.None);
-			var roundState = await roundStateUpdater.CreateRoundAwaiter(rs => rs.Phase == Phase.InputRegistration, cts.Token).ConfigureAwait(false);
-
-			// Create the API client that randomizes the remote API calls
-			// by applying uniform distributed delays scoped by a time window
-			// that begins with the signal of the phase and its duration is
-			// the same that the phase timeout period.
-			var apiClientWithDelays = new WabiSabiApiClientWithDelay(
-					apiClient,
-					InputCount,
-					roundStateUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.InputRegistration, cts.Token).ThenAsync(x => x.InputRegistrationTimeout),
-					roundStateUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.TransactionSigning, cts.Token).ThenAsync(x => x.TransactionSigningTimeout));
 
 			var kitchen = new Kitchen();
 			kitchen.Cook("");
