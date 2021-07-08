@@ -6,10 +6,10 @@ namespace WalletWasabi.Fluent.Behaviors
 	public class RemoveClassAction : AvaloniaObject, IAction
 	{
 		public static readonly StyledProperty<string> ClassNameProperty =
-			AvaloniaProperty.Register<AddClassAction, string>(nameof(ClassName));
+			AvaloniaProperty.Register<RemoveClassAction, string>(nameof(ClassName));
 
 		public static readonly StyledProperty<IStyledElement?> StyledElementProperty =
-			AvaloniaProperty.Register<AddClassAction, IStyledElement?>(nameof(StyledElement));
+			AvaloniaProperty.Register<RemoveClassAction, IStyledElement?>(nameof(StyledElement));
 
 		public string ClassName
 		{
