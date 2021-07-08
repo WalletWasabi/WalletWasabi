@@ -49,6 +49,7 @@ namespace WalletWasabi.Helpers
 		public const string AlphaNumericCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 		public const string CapitalAlphaNumericCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
+		public const string ExecutableName = "wassabee";
 		public const string BuiltinBitcoinNodeName = "Bitcoin Knots";
 
 		public static readonly Version ClientVersion = new(1, 1, 12, 9);

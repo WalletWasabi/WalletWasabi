@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.Helpers
@@ -16,8 +17,7 @@ namespace WalletWasabi.Fluent.Helpers
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				Assembly assembly = Assembly.GetEntryAssembly() ?? throw new NullReferenceException();
-				string pathToExeFile = assembly.Location[..^4] + ".exe";
+				string pathToExeFile = EnvironmentHelpers.GetExecutablePath();
 				if (File.Exists(pathToExeFile))
 				{
 					return TryModifyRegistry(runOnSystemStartup, pathToExeFile);
@@ -29,11 +29,11 @@ namespace WalletWasabi.Fluent.Helpers
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
-				// Method call here
+				throw new NotImplementedException();
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
-				// Method call here
+				throw new NotImplementedException();
 			}
 
 			return false;
