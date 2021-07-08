@@ -48,7 +48,7 @@ namespace WalletWasabi.Fluent.Helpers
 			}
 			else
 			{
-				key.DeleteValue(nameof(WalletWasabi));
+				key.DeleteValue(nameof(WalletWasabi), false);
 			}
 		}
 	}

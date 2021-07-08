@@ -6,6 +6,7 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.Models;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
@@ -66,9 +67,10 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 						StartupHelper.ModifyStartupSetting(runOnStartup);
 						Services.UiConfig.RunOnSystemStartup = runOnStartup;
 					}
-					catch (Exception)
+					catch (Exception ex)
 					{
 						await ShowErrorAsync(Title, RunWithSystemStartupErrorMessage, "Something went wrong.");
+						Logger.LogError(ex);
 					}
 				});
 
