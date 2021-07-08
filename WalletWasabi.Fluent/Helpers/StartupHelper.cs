@@ -20,7 +20,7 @@ namespace WalletWasabi.Fluent.Helpers
 				string pathToExeFile = EnvironmentHelpers.GetExecutablePath();
 				if (!File.Exists(pathToExeFile))
 				{
-					Logger.LogError($"Path {pathToExeFile} does not exist.");
+					throw new InvalidOperationException($"Path {pathToExeFile} does not exist.");
 				}
 				ModifyRegistry(runOnSystemStartup, pathToExeFile);
 			}
@@ -40,6 +40,7 @@ namespace WalletWasabi.Fluent.Helpers
 			{
 				throw new InvalidOperationException("Registry modification can only be done on Windows.");
 			}
+
 			using RegistryKey key = Registry.CurrentUser.OpenSubKey(KeyPath, writable: true) ?? throw new InvalidOperationException("Registry operation failed.");
 			if (runOnSystemStartup)
 			{

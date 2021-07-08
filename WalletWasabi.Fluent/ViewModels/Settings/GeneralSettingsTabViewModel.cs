@@ -66,7 +66,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 						StartupHelper.ModifyStartupSetting(runOnStartup);
 						Services.UiConfig.RunOnSystemStartup = runOnStartup;
 					}
-					catch (Exception ex)
+					catch (Exception)
 					{
 						await ShowErrorAsync(Title, RunWithSystemStartupErrorMessage, "Something went wrong.");
 					}
