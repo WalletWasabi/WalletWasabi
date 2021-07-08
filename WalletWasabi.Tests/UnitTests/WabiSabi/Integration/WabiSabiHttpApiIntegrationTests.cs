@@ -131,7 +131,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 		[Fact]
 		public async Task MultiClientsCoinJoinTestAsync()
 		{
-			const int NumberOfParticipants = 30;
+			const int NumberOfParticipants = 50;
 			const int NumberOfCoinsPerParticipant = 1;
 			int expectedInputNumber = NumberOfParticipants * NumberOfCoinsPerParticipant;
 
@@ -145,7 +145,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 					// Instruct the coodinator DI container to use these two scoped
 					// services to build everything (wabisabi controller, arena, etc)
 					services.AddScoped<IRPCClient>(s => rpc);
-					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig { MaxInputCountByRound = expectedInputNumber });
+					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig
+					{
+						MaxInputCountByRound = expectedInputNumber,
+						OutputRegistrationTimeout = TimeSpan.FromMinutes(3)
+					});
 				});
 			}).CreateClient();
 
