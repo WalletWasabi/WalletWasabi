@@ -39,7 +39,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSmallLayout;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isNormalLayout;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWideLayout;
-		[AutoNotify] private bool _limitedModeEnabled;
 
 		protected WalletViewModel(Wallet wallet) : base(wallet)
 		{
@@ -184,8 +183,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				Navigate(NavigationTarget.DialogScreen).To(new WalletInfoViewModel(this));
 			});
 
-			LimitedModeEnabled = Services.Synchronizer.BackendStatus == BackendStatus.NotConnected;
-			
 			WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletSettingsViewModel(this)));
 		}
 
@@ -281,11 +278,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			}
 
 			History.Activate(disposables);
-
-			Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(status => LimitedModeEnabled = status == BackendStatus.NotConnected)
-				.DisposeWith(disposables);
 		}
 
 		public static WalletViewModel Create(Wallet wallet)
