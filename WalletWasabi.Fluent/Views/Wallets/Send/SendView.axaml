@@ -57,7 +57,7 @@
       <!-- Labels -->
       <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
         <Label DockPanel.Dock="Left" Content="_Labels:" Target="LabelTagBox" />
-        <c:TagsBox x:Name="LabelTagBox"
+        <c:TagsBox x:Name="LabelTagBox" VerticalAlignment="Top"
                    Watermark="{StaticResource LabelsWatermarkText}"
                    TagSeparator=","
                    SuggestionsAreCaseSensitive="True"
