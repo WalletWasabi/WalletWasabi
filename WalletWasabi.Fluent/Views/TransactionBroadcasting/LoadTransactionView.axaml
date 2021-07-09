@@ -12,13 +12,13 @@
                  Caption="Paste or import the transaction and broadcast it to the network."
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}">
-    <WrapPanel Orientation="Horizontal" Margin="0 0 0 20" HorizontalAlignment="Center">
+    <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
       <WrapPanel.Styles>
         <Style Selector="c|TileButton">
-          <Setter Property="Margin" Value="20" />
-          <Setter Property="Height" Value="250" />
-          <Setter Property="Width" Value="250" />
-          <Setter Property="IconSize" Value="80" />
+          <Setter Property="Margin" Value="20 0" />
+          <Setter Property="Height" Value="170" />
+          <Setter Property="Width" Value="170" />
+          <Setter Property="IconSize" Value="60" />
         </Style>
       </WrapPanel.Styles>
       <c:TileButton Text="Import transaction"
