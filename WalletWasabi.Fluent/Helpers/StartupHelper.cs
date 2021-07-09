@@ -55,6 +55,11 @@ namespace WalletWasabi.Fluent.Helpers
 
 		private static void ModifyMacOsLoginItems(bool runOnSystemStartup)
 		{
+			if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			{
+				throw new InvalidOperationException("Running osascript can only be done on MacOS.");
+			}
+
 			ProcessStartInfo processInfo = new()
 			{
 				UseShellExecute = true,
