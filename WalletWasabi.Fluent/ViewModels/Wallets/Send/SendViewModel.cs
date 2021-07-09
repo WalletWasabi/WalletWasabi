@@ -5,20 +5,16 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Runtime.InteropServices;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Threading;
 using Avalonia.Media.Imaging;
-using Avalonia.Media;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
-using OpenCvSharp;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Exceptions;
@@ -38,6 +34,7 @@ using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
+using System.Reactive.Concurrency;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
@@ -158,10 +155,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				IsQrPanelVisible = true;
 				_qrReader.StartScanning();
 			});
-			BackCommand = ReactiveCommand.Create(() =>
-			{
-				Navigate().Back();
-			});
+
 			var nextCommandCanExecute =
 				this.WhenAnyValue(x => x.Labels, x => x.AmountBtc, x => x.To, x => x.XAxisCurrentValue).Select(_ => Unit.Default)
 					.Merge(Observable.FromEventPattern(Labels, nameof(Labels.CollectionChanged)).Select(_ => Unit.Default))
@@ -447,7 +441,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_lastXAxisCurrentValue = XAxisCurrentValue;
 			_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(_lastXAxisCurrentValue);
 			Logger.LogWarning("Exiting");
-			_ = _qrReader.StopScanningAsync();
+			RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StopScanningAsync());
 		}
 
 		protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
