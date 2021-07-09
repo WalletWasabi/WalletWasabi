@@ -2,6 +2,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -134,22 +137,40 @@
               Maximum="{Binding XAxisMaxValue}"
               Value="{Binding XAxisCurrentValueIndex}" />
       <c:LineChart x:Name="GradientLineChart"
-                   XAxisPlotMode="EvenlySpaced"
-                   Margin="18,10,18,0"
                    Classes="cursor border xAxisLabels yAxis yAxisTitle area"
-                   MinHeight="150"
                    XAxisLabels="{Binding XAxisLabels}"
                    XAxisValues="{Binding XAxisValues}"
                    XAxisCurrentValue="{Binding XAxisCurrentValue, Mode=TwoWay}"
-                   YAxisValues="{Binding YAxisValues}"
-                   YAxisLogarithmicScale="False"
-                   AreaMargin="10,0,10,30"
-                   AreaStrokeThickness="2"
-                   AreaStrokeLineCap="Round"
-                   AreaMinViableWidth="40"
-                   AreaMinViableHeight="20"
-                   Focusable="True"
-                   YAxisTitle="More Expensive" />
+                   YAxisValues="{Binding YAxisValues}">
+        <c:LineChart.Styles>
+          <Style Selector="c|LineChart">
+            <Setter Property="XAxisPlotMode" Value="EvenlySpaced"/>
+            <Setter Property="Margin" Value="18,10,18,0"/>
+            <Setter Property="MinHeight" Value="150"/>
+            <Setter Property="YAxisLogarithmicScale" Value="False"/>
+            <Setter Property="AreaMargin" Value="10,0,10,30"/>
+            <Setter Property="AreaStrokeThickness" Value="2"/>
+            <Setter Property="AreaStrokeLineCap" Value="Round"/>
+            <Setter Property="AreaMinViableWidth" Value="40"/>
+            <Setter Property="AreaMinViableHeight" Value="20"/>
+            <Setter Property="Focusable" Value="True"/>
+            <Setter Property="YAxisTitle" Value="More Expensive"/>
+          </Style>
+          <Style Selector="c|LineChart.narrow">
+            <Setter Property="AreaMargin" Value="10,0,10,45"/>
+            <Setter Property="MinHeight" Value="170"/>
+            <Setter Property="XAxisLabelAngle" Value="45" />
+          </Style>
+        </c:LineChart.Styles>
+        <i:Interaction.Behaviors>
+          <ia:DataTriggerBehavior Binding="{Binding #GradientLineChart.Bounds.Width}" ComparisonCondition="LessThan" Value="350">
+            <behaviors:AddClassAction StyledElement="{Binding #GradientLineChart}" ClassName="narrow" RemoveIfExists="True"/>
+          </ia:DataTriggerBehavior>
+          <ia:DataTriggerBehavior Binding="{Binding #GradientLineChart.Bounds.Width}" ComparisonCondition="GreaterThanOrEqual" Value="350">
+            <behaviors:RemoveClassAction StyledElement="{Binding #GradientLineChart}" ClassName="narrow"/>
+          </ia:DataTriggerBehavior>
+        </i:Interaction.Behaviors>
+      </c:LineChart>
     </DockPanel>
   </c:ContentArea>
 </UserControl>
