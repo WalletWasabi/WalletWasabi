@@ -47,8 +47,8 @@
             <PathIcon Data="{StaticResource info_regular}"
                       DockPanel.Dock="Top"
                       HorizontalAlignment="Center"
-                      Height="25"/>
-            <TextBlock DockPanel.Dock="Bottom" Text="Wasabi was unable to connect to the server." TextWrapping="Wrap"
+                      Height="30" />
+            <TextBlock DockPanel.Dock="Bottom" Text="Due to Wasabi was unable to connect to the server, some features can be unavailable, your balance can be incorrect. Don't worry, we keep trying to connect." TextWrapping="Wrap"
                        TextAlignment="Center" />
           </DockPanel>
 
@@ -106,9 +106,9 @@
     <!-- Update available -->
     <StackPanel Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" Margin="10 0"
                 IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.UpdateAvailable}}">
-      <TextBlock Text="Update available" VerticalAlignment="Center" FontSize="14" Foreground="Gold" />
+      <TextBlock Text="Update available" VerticalAlignment="Center" FontSize="14" Foreground="Goldenrod" />
       <PathIcon Data="{StaticResource arrow_clockwise_with_elipse}"
-                Foreground="Gold"
+                Foreground="Goldenrod"
                 Height="30" />
     </StackPanel>
 
@@ -131,7 +131,7 @@
 
     <!-- Connection issue -->
     <PathIcon Data="{StaticResource warning_filled}"
-              Foreground="Yellow"
+              Foreground="Gold"
               VerticalAlignment="Center" HorizontalAlignment="Right"
               Height="30"
               Margin="10 0"
