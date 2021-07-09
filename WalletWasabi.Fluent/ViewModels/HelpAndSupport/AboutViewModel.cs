@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows.Input;
 using Avalonia;
@@ -26,6 +27,72 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport
 	{
 		public AboutViewModel()
 		{
+			Links = new List<ViewModelBase>()
+			{
+				new LinkViewModel()
+				{
+					Link = DocsLink,
+					Description = "Documentation",
+					IsClickable = true
+				},
+				new SeparatorViewModel(),
+				new LinkViewModel()
+				{
+					Link = SourceCodeLink,
+					Description = "Source Code (Github)",
+					IsClickable = true
+				},
+				new SeparatorViewModel(),
+				new LinkViewModel()
+				{
+					Link = ClearnetLink,
+					Description = "Website (Clearnet)",
+					IsClickable = true
+				},
+				new SeparatorViewModel(),
+				new LinkViewModel()
+				{
+					Link = TorLink,
+					Description = "Website (Tor)",
+					IsClickable = false
+				},
+				new SeparatorViewModel(),
+				new LinkViewModel()
+				{
+					Link = StatusPageLink,
+					Description = "Coordinator Status Page",
+					IsClickable = true
+				},
+				new SeparatorViewModel(),
+				new LinkViewModel()
+				{
+					Link = UserSupportLink,
+					Description = "User Support",
+					IsClickable = true
+				},
+				new SeparatorViewModel(),
+				new LinkViewModel()
+				{
+					Link = BugReportLink,
+					Description = "Bug Reporting",
+					IsClickable = true
+				},
+				new SeparatorViewModel(),
+				new LinkViewModel()
+				{
+					Link = FAQLink,
+					Description = "FAQs",
+					IsClickable = true
+				},
+			};
+
+			License = new LinkViewModel()
+			{
+				Link = LicenseLink,
+				Description = "MIT License",
+				IsClickable = true
+			};
+
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
 			AboutAdvancedInfoDialogCommand = ReactiveCommand.CreateFromTask(
@@ -43,6 +110,10 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport
 
 			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		}
+
+		public List<ViewModelBase> Links { get; }
+
+		public LinkViewModel License { get; }
 
 		public ICommand AboutAdvancedInfoDialogCommand { get; }
 

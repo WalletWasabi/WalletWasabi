@@ -453,7 +453,7 @@ namespace WalletWasabi.Fluent.Controls
 			CheckIsInputEnabled();
 		}
 
-		private void AddTag(string tag)
+		public void AddTag(string tag)
 		{
 			if (Items is IList x)
 			{
