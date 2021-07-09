@@ -68,7 +68,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 					catch (Exception ex)
 					{
 						Logger.LogError(ex);
-						await ShowErrorAsync(Title, "Couldn't save your change, please see the logs for further information.", "Something went wrong.");
+						await ShowErrorAsync(Title, "Couldn't save your change, please see the logs for further information.", "Error occured.");
 					}
 				});
 
