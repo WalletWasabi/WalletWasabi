@@ -1,24 +1,26 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Styles.Resources>
-    <Color x:Key="SystemAccentColorLight1">#FF82C690</Color>
-    <Color x:Key="SystemAccentColorLight2">#FF92CF9E</Color>
-    <Color x:Key="SystemAccentColorLight3">#FFA2D8AD</Color>
-    <Color x:Key="SystemAccentColorDark1">#FF5BA96C</Color>
-    <Color x:Key="SystemAccentColorDark2">#FF449556</Color>
-    <Color x:Key="SystemAccentColorDark3">#FF2E8041</Color>
-    <Color x:Key="SystemAccentColor">#FF72BD81</Color>
     <Color x:Key="SystemErrorTextColor">#D85050</Color>
+    <Color x:Key="NavBarTintColor">#134074</Color>
+    <Color x:Key="AcrylicFallbackColor">#1F1F1F</Color>
+
+    <SolidColorBrush x:Key="NavBarAccentColor">#97D234</SolidColorBrush>
+    <SolidColorBrush x:Key="NavBarAccentColorPressed">#719B2A</SolidColorBrush>
+    <SolidColorBrush x:Key="NavBarItemPressedAccentColor">#719B2A</SolidColorBrush>
+    <SolidColorBrush x:Key="NavBarItemDisabledBrush">#66FFFFFF</SolidColorBrush>
+    <SolidColorBrush x:Key="NavBarItemPointerOverBrush">#FFFFFFFF</SolidColorBrush>
+    <SolidColorBrush x:Key="NavBarItemPointerOverBackgroundBrush">#19FFFFFF</SolidColorBrush>
+    <SolidColorBrush x:Key="NavBarItemPressedBrush">#FFFFFFFF</SolidColorBrush>
+    <SolidColorBrush x:Key="NavBarItemSelectedBrush">#FFFFFFFF</SolidColorBrush>
+    <SolidColorBrush x:Key="NavBarItemSelectedUnfocusedBrush">#FFFFFFFF</SolidColorBrush>
+    <SolidColorBrush x:Key="NavBarItemSelectedPointerOverBrush">#FFFFFFFF</SolidColorBrush>
+    <SolidColorBrush x:Key="NavBarItemSelectedPressedBrush">#FFFFFFFF</SolidColorBrush>
+    <SolidColorBrush x:Key="NavBarItemForegroundBrush">#FFFFFFFF</SolidColorBrush>
+    <SolidColorBrush x:Key="NavBarSeparatorBrush">#FFFFFFFF</SolidColorBrush>
 
     <Color x:Key="LogoFixedAccentColor">#97D234</Color>
     <Color x:Key="LogoFixedForegroundColor">#D8DED7</Color>
-
-    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="{StaticResource SystemAccentColor}" />
-    <SolidColorBrush x:Key="ActionButtonForegroundColor">#FFFFFF</SolidColorBrush>
-    <SolidColorBrush x:Key="ActionButtonBackgroundColor" Color="{StaticResource SystemAccentColor}" />
-    <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Color="#59B164" />
-    <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="#90CB9C" />
-    <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="#80A3A3A3" />
 
     <SolidColorBrush x:Key="PrivacyLevelNoneBrush" Color="#C95050" />
     <SolidColorBrush x:Key="PrivacyLevelMinimalBrush" Color="#E06868" />
@@ -43,6 +45,8 @@
     <x:String x:Key="LabelsWatermarkText">i.e. Alice, Bob, Wasabi Inc, Exchange</x:String>
 
     <StaticResource x:Key="NotificationCardInformationBackgroundBrush" ResourceKey="SystemAccentColor" />
+
+    <BoxShadows x:Key="EmptyBoxShadow">0 0 0 0 #000000</BoxShadows>
 
     <LinearGradientBrush x:Key="LogoWashoutOpacityMaskGradient" StartPoint="0%,100%" EndPoint="100%,00%">
       <LinearGradientBrush.GradientStops>

@@ -7,19 +7,7 @@
              x:Class="WalletWasabi.Fluent.Views.Settings.PrivacySettingsTabView"
              x:DataType="settings:PrivacySettingsTabViewModel"
              x:CompileBindings="True">
-  <StackPanel Spacing="20" MinWidth="360" MaxWidth="650" HorizontalAlignment="Left" Orientation="Vertical">
-    <StackPanel.Styles>
-      <Style Selector="PathIcon">
-        <Setter Property="Height" Value="32" />
-        <Setter Property="Width" Value="32" />
-      </Style>
-    </StackPanel.Styles>
-    <StackPanel.Styles>
-      <Style Selector="Slider">
-        <Setter Property="IsSnapToTickEnabled" Value="True" />
-        <Setter Property="TickFrequency" Value="1" />
-      </Style>
-    </StackPanel.Styles>
+  <StackPanel Classes="settingsLayout">
 
     <StackPanel Spacing="10">
       <TextBlock Text="Minimal Anonymity Level" />
