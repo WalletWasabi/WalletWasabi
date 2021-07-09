@@ -18,6 +18,7 @@ namespace WalletWasabi.Tor.Control
 		/// <para>However, such implementation is available <see href="https://github.com/zcash/zcash/pull/2251">here</see>.</para>
 		/// </remarks>
 		/// <exception cref="OperationCanceledException">When operation is canceled.</exception>
+		/// <exception cref="IOException">When reading fails because the internal stream is forcibly closed, etc.</exception>
 		/// <exception cref="TorControlReplyParseException">When received message does not follow Tor Control reply grammar.</exception>
 		/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See section "4. Replies".</seealso>
 		/// <seealso href="https://github.com/lontivero/Torino/blob/d891616777ed596ef54dbf1d86c9b4771e45e8f3/src/Reply.cs#L72"/>

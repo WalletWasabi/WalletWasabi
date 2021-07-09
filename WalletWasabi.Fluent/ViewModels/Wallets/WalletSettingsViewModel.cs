@@ -1,4 +1,5 @@
 using System;
+using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
@@ -20,6 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			NextCommand = CancelCommand;
 
 			this.WhenAnyValue(x => x.PreferPsbtWorkflow)
+				.Skip(1)
 				.Subscribe(value =>
 				{
 					wallet.KeyManager.PreferPsbtWorkflow = value;
