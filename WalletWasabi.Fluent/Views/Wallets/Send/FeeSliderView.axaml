@@ -92,6 +92,18 @@
       <Setter Property="BorderRadiusX" Value="4" />
       <Setter Property="BorderRadiusY" Value="4" />
     </Style>
+    <!-- LineChart Area -->
+    <Style Selector="c|LineChart.area">
+      <Setter Property="AreaFill">
+        <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%" Opacity="0.2">
+          <LinearGradientBrush.GradientStops>
+            <GradientStop Offset="0.0" Color="{DynamicResource LineChartAreaGradientStartStopColor}" />
+            <GradientStop Offset="1.0" Color="{DynamicResource LineChartAreaGradientEndStopColor}" />
+          </LinearGradientBrush.GradientStops>
+        </LinearGradientBrush>
+      </Setter>
+      <Setter Property="AreaStroke" Value="{DynamicResource LineChartLineColor}" />
+    </Style>
   </UserControl.Styles>
   <UserControl.KeyBindings>
     <KeyBinding Gesture="Enter" Command="{Binding NextCommand}" />
@@ -103,55 +115,38 @@
                  EnableBack="true"
                  EnableNext="True" NextContent="Continue"
                  IsBusy="{Binding IsBusy}">
-      <DockPanel MinHeight="80">
-        <DockPanel.Resources>
-          <Thickness x:Key="SliderTopHeaderMargin">0,0,0,4</Thickness>
-          <GridLength x:Key="SliderPreContentMargin">0</GridLength>
-          <GridLength x:Key="SliderPostContentMargin">0</GridLength>
-        </DockPanel.Resources>
-        <Slider x:Name="CursorValue2"
-                Margin="18,0,18,0"
-                KeyboardNavigation.IsTabStop="False"
-                DockPanel.Dock="Bottom"
-                Classes="cursor"
-                Focusable="True"
-                Minimum="{Binding XAxisMinValue}"
-                Maximum="{Binding XAxisMaxValue}"
-                Value="{Binding XAxisCurrentValueIndex}" />
-        <c:LineChart x:Name="GradientLineChart"
-                     XAxisPlotMode="EvenlySpaced"
-                     Margin="18,10,18,0"
-                     Classes="cursor border xAxisLabels yAxis yAxisTitle"
-                     MinHeight="150"
-                     XAxisLabels="{Binding XAxisLabels}"
-                     XAxisValues="{Binding XAxisValues}"
-                     XAxisCurrentValue="{Binding XAxisCurrentValue, Mode=TwoWay}"
-                     YAxisValues="{Binding YAxisValues}"
-                     YAxisLogarithmicScale="False"
-                     AreaMargin="10,0,10,30"
-                     AreaStrokeThickness="2"
-                     AreaStrokeLineCap="Round"
-                     AreaMinViableWidth="40"
-                     AreaMinViableHeight="20"
-                     Focusable="True"
-                     YAxisTitle="More Expensive">
-          <c:LineChart.AreaFill>
-            <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%" Opacity="0.2">
-              <LinearGradientBrush.GradientStops>
-                <GradientStop Offset="0.0" Color="#FF72BD81" />
-                <GradientStop Offset="1.0" Color="#0072BD81" />
-              </LinearGradientBrush.GradientStops>
-            </LinearGradientBrush>
-          </c:LineChart.AreaFill>
-          <c:LineChart.AreaStroke>
-            <LinearGradientBrush StartPoint="0%,50%" EndPoint="100%,50%">
-              <LinearGradientBrush.GradientStops>
-                <GradientStop Offset="0.0" Color="#72BD81" />
-                <GradientStop Offset="1.0" Color="#72BD81" />
-              </LinearGradientBrush.GradientStops>
-            </LinearGradientBrush>
-          </c:LineChart.AreaStroke>
-        </c:LineChart>
-      </DockPanel>
+    <DockPanel MinHeight="80">
+      <DockPanel.Resources>
+        <Thickness x:Key="SliderTopHeaderMargin">0,0,0,4</Thickness>
+        <GridLength x:Key="SliderPreContentMargin">0</GridLength>
+        <GridLength x:Key="SliderPostContentMargin">0</GridLength>
+      </DockPanel.Resources>
+      <Slider x:Name="CursorValue2"
+              Margin="18,0,18,0"
+              KeyboardNavigation.IsTabStop="False"
+              DockPanel.Dock="Bottom"
+              Classes="cursor"
+              Focusable="True"
+              Minimum="{Binding XAxisMinValue}"
+              Maximum="{Binding XAxisMaxValue}"
+              Value="{Binding XAxisCurrentValueIndex}" />
+      <c:LineChart x:Name="GradientLineChart"
+                   XAxisPlotMode="EvenlySpaced"
+                   Margin="18,10,18,0"
+                   Classes="cursor border xAxisLabels yAxis yAxisTitle area"
+                   MinHeight="150"
+                   XAxisLabels="{Binding XAxisLabels}"
+                   XAxisValues="{Binding XAxisValues}"
+                   XAxisCurrentValue="{Binding XAxisCurrentValue, Mode=TwoWay}"
+                   YAxisValues="{Binding YAxisValues}"
+                   YAxisLogarithmicScale="False"
+                   AreaMargin="10,0,10,30"
+                   AreaStrokeThickness="2"
+                   AreaStrokeLineCap="Round"
+                   AreaMinViableWidth="40"
+                   AreaMinViableHeight="20"
+                   Focusable="True"
+                   YAxisTitle="More Expensive" />
+    </DockPanel>
   </c:ContentArea>
 </UserControl>
