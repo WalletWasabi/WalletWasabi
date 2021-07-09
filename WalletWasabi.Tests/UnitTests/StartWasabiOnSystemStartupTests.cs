@@ -5,7 +5,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests
 {
-	public class StartWasabiOnSystemStartup
+	public class StartWasabiOnSystemStartupTests
 	{
 		[Fact]
 		public void ModifyStartupOnDifferentSystemsTest()
