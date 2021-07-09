@@ -161,6 +161,21 @@ this.WhenAnyValue(...)
 	.Subscribe(...);
 ```
 
+## Subscribe triggered once on initialization
+
+When you subscribe with the usage of `.WhenAnyValue()` right after the creation one call of Subcription will be triggered. This is by design and most of the cases it is fine. Still you can supress this behaviour by adding `Skip(1)`. 
+
+```cs
+this.WhenAnyValue(x => x.PreferPsbtWorkflow)
+	.Skip(1)
+	.Subscribe(value =>
+	{
+		// Expensive operation, that should not run unnecessary. 
+	});
+```
+
+- [Example](https://stackoverflow.com/questions/36705139/why-does-whenanyvalue-observable-trigger-on-subscription)
+
 ## ObservableAsPropertyHelpers Over Properties
 
 **DO** follow [ReactiveUI's Oaph Over Properties Principle](https://reactiveui.net/docs/guidelines/framework/prefer-oaph-over-properties).
