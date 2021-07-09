@@ -9,6 +9,8 @@ namespace WalletWasabi.Fluent.Helpers
 	public static class StartupHelper
 	{
 		private const string KeyPath = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
+		private static string ArgumentToAddWasabiToMacOsStartupSetting = $"-c \"osascript -e \' tell application \\\"System Events\\\" to make new login item at end of login items with properties {{name:\\\"{nameof(WalletWasabi)}\\\", path:\\\"/Applications/WasabiWallet.app\\\",hidden:false}} \' \"";
+		private static string ArgumentToDeleteWasabiFromMacOsStartupSetting = $"-c \"osascript -e \' tell application \\\"System Events\\\" to delete login item \\\"{nameof(WalletWasabi)}\\\" \' \"";
 
 		public static void ModifyStartupSetting(bool runOnSystemStartup)
 		{
