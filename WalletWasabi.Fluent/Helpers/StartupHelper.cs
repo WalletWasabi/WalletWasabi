@@ -1,8 +1,10 @@
 using Microsoft.Win32;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.Helpers
 {
@@ -48,6 +50,28 @@ namespace WalletWasabi.Fluent.Helpers
 			else
 			{
 				key.DeleteValue(nameof(WalletWasabi), false);
+			}
+		}
+
+		private static void ModifyMacOsLoginItems(bool runOnSystemStartup)
+		{
+			ProcessStartInfo processInfo = new()
+			{
+				UseShellExecute = true,
+				WindowStyle = ProcessWindowStyle.Normal,
+				FileName = "/bin/bash",
+				CreateNoWindow = false
+			};
+
+			processInfo.Arguments = runOnSystemStartup ? ArgumentToAddWasabiToMacOsStartupSetting : ArgumentToDeleteWasabiFromMacOsStartupSetting;
+
+			try
+			{
+				Process.Start(processInfo);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
 			}
 		}
 	}
