@@ -117,6 +117,14 @@
               Margin="10 0"
               IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.Ready}}" />
 
+    <!-- Connection issue -->
+    <PathIcon Data="{StaticResource warning_filled}"
+              Foreground="Yellow"
+              VerticalAlignment="Center" HorizontalAlignment="Right"
+              Height="30"
+              Margin="10 0"
+              IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.ConnectionIssueDetected}}" />
+
     <!-- Loading -->
     <PathIcon Data="{StaticResource arrow_sync_regular}"
               Foreground="{StaticResource SystemAccentColor}"
@@ -125,5 +133,6 @@
               Margin="10 0"
               IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.Loading}}"
               Classes="rotate" />
+
   </Panel>
 </UserControl>
