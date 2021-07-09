@@ -86,7 +86,7 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport
 				},
 			};
 
-			License = new()
+			License = new LinkViewModel()
 			{
 				Link = LicenseLink,
 				Description = "MIT License",
