@@ -5,7 +5,7 @@ using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport
 {
-	public partial class LinkViewModel : ViewModelBase
+	public class LinkViewModel : ViewModelBase
 	{
 		public LinkViewModel()
 		{
