@@ -1,6 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui">
   <Style Selector=":is(PathIcon).checkMark">
-    <Setter Property="Foreground" Value="{DynamicResource SystemControlBackgroundAccentBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
     <Setter Property="Width" Value="15" />
     <Setter Property="Height" Value="15" />
     <Setter Property="Data" Value="{StaticResource checkmark_filled}" />

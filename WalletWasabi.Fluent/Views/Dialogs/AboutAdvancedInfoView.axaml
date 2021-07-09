@@ -12,6 +12,7 @@
         <Style Selector="TextBlock.Header">
             <Setter Property="Margin" Value="0 4 0 0" />
             <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="TextWrapping" Value="Wrap" />
         </Style>
         <Style Selector="TextBox.Content">
             <Setter Property="Margin" Value="0 4 0 0" />
@@ -21,7 +22,7 @@
                           EnableCancel="{Binding EnableCancel}"
                           EnableBack="{Binding EnableBack}"
                           EnableNext="True" NextContent="OK">
-        <StackPanel HorizontalAlignment="Center" Spacing="20" MinWidth="380" Margin="30 0 0 0">
+        <StackPanel HorizontalAlignment="Center" Spacing="20">
             <StackPanel>
                 <TextBlock Classes="Header" Text="Compatible Coordinator Versions" />
                 <TextBox Classes="Content selectableTextBlock" Text="{Binding BackendCompatibleVersions}" />
