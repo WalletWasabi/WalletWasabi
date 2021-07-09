@@ -17,7 +17,7 @@
                    IsBusy="{Binding IsBusy}"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
         <DockPanel>
-            <Panel DockPanel.Dock="Bottom" Margin="0 30 0 0" MinHeight="22">
+            <Panel DockPanel.Dock="Bottom" Margin="0 10 0 0">
                 <c:InfoMessage  IsVisible="{Binding ExactAmountWarningVisible}" VerticalAlignment="Bottom" HorizontalAlignment="Center" Content="Some services only accept the exact amount that was requested." Foreground="{DynamicResource PrivacyLevelMediumBrush}" />
             </Panel>
             <ListBox DockPanel.Dock="Top" Background="Transparent" VerticalAlignment="Center" HorizontalAlignment="Center" Items="{Binding PrivacySuggestions}" SelectedItem="{Binding SelectedPrivacySuggestion}">
