@@ -23,8 +23,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		IconName = "settings_general_regular")]
 	public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 	{
-		private const string RunWithSystemStartupErrorMessage = "Something went wrong while trying to make your changes.";
-
 		[AutoNotify] private bool _darkModeEnabled;
 		[AutoNotify] private bool _autoCopy;
 		[AutoNotify] private bool _customFee;
@@ -69,8 +67,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 					}
 					catch (Exception ex)
 					{
-						await ShowErrorAsync(Title, RunWithSystemStartupErrorMessage, "Something went wrong.");
 						Logger.LogError(ex);
+						await ShowErrorAsync(Title, "Couldn't save your change, please see the logs for further information.", "Something went wrong.");
 					}
 				});
 
