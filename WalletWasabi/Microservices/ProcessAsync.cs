@@ -90,8 +90,7 @@ namespace WalletWasabi.Microservices
 
 			try
 			{
-				Logger.LogTrace($"Wait for the process to exit: '{Process.StartInfo.FileName}'");
-
+				Logger.LogTrace($"Wait for the process to exit: '{Process.Id}'");
 				await Process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
 
 				Logger.LogTrace("Process has exited.");
@@ -137,7 +136,7 @@ namespace WalletWasabi.Microservices
 			_disposed = true;
 		}
 
-		public void Dispose()
+		public virtual void Dispose()
 		{
 			// Dispose of unmanaged resources.
 			Dispose(true);
