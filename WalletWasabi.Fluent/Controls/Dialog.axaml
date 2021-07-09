@@ -89,7 +89,7 @@
   <!-- Dialog Fullscreen State -->
   <Style Selector="c|Dialog[FullScreenEnabled=True] /template/ Border#PART_Border">
     <Setter Property="Margin" Value="0 30 0 0" />
-    <Setter Property="BoxShadow" Value="0 0 0 0 #000000" />
+    <Setter Property="BoxShadow" Value="{StaticResource EmptyBoxShadow}" />
   </Style>
   <Style Selector="c|Dialog[FullScreenEnabled=True] /template/ Panel#PART_DialogHost">
     <Setter Property="Margin" Value="0" />
