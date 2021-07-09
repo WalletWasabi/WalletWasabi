@@ -3,7 +3,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
@@ -117,107 +116,95 @@
                  NextContent="Continue"
                  IsBusy="{Binding IsBusy}"
                  ScrollViewer.VerticalScrollBarVisibility="Auto">
-
     <DockPanel>
-      <StackPanel DockPanel.Dock="Top" Spacing="10">
-        <StackPanel.Styles>
-          <Style Selector="DockPanel > Label">
-            <Setter Property="MinWidth" Value="80" />
-          </Style>
-        </StackPanel.Styles>
-        <DockPanel>
-          <Label DockPanel.Dock="Left" Content="_To:" Target="toTb" />
-          <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To}"
-                   Watermark="(e.g. Bitcoin address or PayJoin URL)">
-            <i:Interaction.Behaviors>
-              <behaviors:FocusOnAttachedBehavior />
-              <behaviors:ExecuteCommandOnClickBehavior Command="{Binding AutoPasteCommand}" />
-            </i:Interaction.Behaviors>
-            <TextBox.InnerRightContent>
-              <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
-                <c:AnimatedButton KeyboardNavigation.IsTabStop="False"
-                                  Focusable="False"
-                                  Command="{Binding PasteCommand}"
-                                  ToolTip.Tip="Paste"
-                                  NormalIcon="{StaticResource paste_regular}"
-                                  ClickIcon="{StaticResource copy_confirmed}" />
-              </StackPanel>
-            </TextBox.InnerRightContent>
-          </TextBox>
-        </DockPanel>
-
-        <DockPanel>
-          <Label DockPanel.Dock="Left" Content="_Amount:" Target="amountTb" />
-          <DockPanel>
-            <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
-                   DockPanel.Dock="Right" IsVisible="{Binding IsPayJoin}" Margin="0 8 8 0" VerticalAlignment="Top" />
-            <c:CurrencyEntryBox KeyboardNavigation.IsTabStop="{Binding !IsFixedAmount}" x:Name="amountTb"
-                                IsReadOnly="{Binding IsFixedAmount}" AmountBtc="{Binding AmountBtc}"
-                                ConversionRate="{Binding ExchangeRate}" ConversionCurrencyCode="USD" />
-          </DockPanel>
-        </DockPanel>
-
-        <DockPanel>
-          <Label DockPanel.Dock="Left" Content="_Labels:" Target="LabelTagBox" />
-          <c:TagsBox x:Name="LabelTagBox"
-                     Watermark="{StaticResource LabelsWatermarkText}"
-                     TagSeparator=","
-                     SuggestionsAreCaseSensitive="True"
-                     RestrictInputToSuggestions="False"
-                     Items="{Binding Labels}"
-                     Suggestions="{Binding PriorLabels}" />
-        </DockPanel>
-        <Separator DockPanel.Dock="Top"
-                   HorizontalAlignment="Stretch"
-                   Margin="-200 20 0 0" />
-        <Label Margin="0 10 0 20" Content="_Priority:" Target="CursorValue2" />
-      </StackPanel>
-
-      <DockPanel MinHeight="80">
-        <Slider x:Name="CursorValue2"
-                Margin="18,0,18,0"
-                KeyboardNavigation.IsTabStop="False"
-                DockPanel.Dock="Bottom"
-                Classes="cursor"
-                Focusable="True"
-                Minimum="{Binding XAxisMinValue}"
-                Maximum="{Binding XAxisMaxValue}"
-                Value="{Binding XAxisCurrentValueIndex}" />
-        <c:LineChart x:Name="GradientLineChart"
-                     Margin="18,0,18,0"
-                     Classes="cursor border xAxisLabels yAxis yAxisTitle area"
-                     XAxisLabels="{Binding XAxisLabels}"
-                     XAxisValues="{Binding XAxisValues}"
-                     XAxisCurrentValue="{Binding XAxisCurrentValue, Mode=TwoWay}"
-                     YAxisValues="{Binding YAxisValues}">
-          <c:LineChart.Styles>
-            <Style Selector="c|LineChart">
-              <Setter Property="XAxisPlotMode" Value="EvenlySpaced"/>
-              <Setter Property="Margin" Value="18,0,18,0"/>
-              <Setter Property="MinHeight" Value="30"/>
-              <Setter Property="YAxisLogarithmicScale" Value="False"/>
-              <Setter Property="AreaMargin" Value="10,0,10,30"/>
-              <Setter Property="AreaStrokeThickness" Value="2"/>
-              <Setter Property="AreaStrokeLineCap" Value="Round"/>
-              <Setter Property="AreaMinViableWidth" Value="40"/>
-              <Setter Property="AreaMinViableHeight" Value="20"/>
-              <Setter Property="Focusable" Value="True"/>
-              <Setter Property="YAxisTitle" Value="More Expensive"/>
-            </Style>
-            <Style Selector="c|LineChart.narrow">
-              <Setter Property="AreaMargin" Value="10,0,10,45"/>
-              <Setter Property="XAxisLabelAngle" Value="45" />
-            </Style>
-          </c:LineChart.Styles>
+      <DockPanel.Styles>
+        <Style Selector="DockPanel > Label">
+          <Setter Property="MinWidth" Value="80" />
+        </Style>
+      </DockPanel.Styles>
+      <!-- To -->
+      <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+        <Label DockPanel.Dock="Left" Content="_To:" Target="toTb" />
+        <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To}"
+                 Watermark="(e.g. Bitcoin address or PayJoin URL)">
           <i:Interaction.Behaviors>
-            <ia:DataTriggerBehavior Binding="{Binding #GradientLineChart.Bounds.Width}" ComparisonCondition="LessThan" Value="350">
-              <behaviors:AddClassAction StyledElement="{Binding #GradientLineChart}" ClassName="narrow" RemoveIfExists="True"/>
-            </ia:DataTriggerBehavior>
-            <ia:DataTriggerBehavior Binding="{Binding #GradientLineChart.Bounds.Width}" ComparisonCondition="GreaterThanOrEqual" Value="350">
-              <behaviors:RemoveClassAction StyledElement="{Binding #GradientLineChart}" ClassName="narrow"/>
-            </ia:DataTriggerBehavior>
+            <behaviors:FocusOnAttachedBehavior />
+            <behaviors:ExecuteCommandOnClickBehavior Command="{Binding AutoPasteCommand}" />
           </i:Interaction.Behaviors>
-        </c:LineChart>
+          <TextBox.InnerRightContent>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
+              <c:AnimatedButton KeyboardNavigation.IsTabStop="False"
+                                Focusable="False"
+                                Command="{Binding PasteCommand}"
+                                ToolTip.Tip="Paste"
+                                NormalIcon="{StaticResource paste_regular}"
+                                ClickIcon="{StaticResource copy_confirmed}" />
+            </StackPanel>
+          </TextBox.InnerRightContent>
+        </TextBox>
+      </DockPanel>
+      <!-- Amount -->
+      <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+        <Label DockPanel.Dock="Left" Content="_Amount:" Target="amountTb" />
+        <DockPanel>
+          <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
+                 DockPanel.Dock="Right" IsVisible="{Binding IsPayJoin}" Margin="0 8 8 0" VerticalAlignment="Top" />
+          <c:CurrencyEntryBox KeyboardNavigation.IsTabStop="{Binding !IsFixedAmount}" x:Name="amountTb"
+                              IsReadOnly="{Binding IsFixedAmount}" AmountBtc="{Binding AmountBtc}"
+                              ConversionRate="{Binding ExchangeRate}" ConversionCurrencyCode="USD" />
+        </DockPanel>
+      </DockPanel>
+      <!-- Labels -->
+      <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+        <Label DockPanel.Dock="Left" Content="_Labels:" Target="LabelTagBox" />
+        <c:TagsBox x:Name="LabelTagBox"
+                   Watermark="{StaticResource LabelsWatermarkText}"
+                   TagSeparator=","
+                   SuggestionsAreCaseSensitive="True"
+                   RestrictInputToSuggestions="False"
+                   Items="{Binding Labels}"
+                   Suggestions="{Binding PriorLabels}" />
+      </DockPanel>
+      <!-- Separator -->
+      <Separator DockPanel.Dock="Top"
+                 HorizontalAlignment="Stretch"
+                 Margin="-200 20 0 0" />
+      <!-- Priority -->
+      <DockPanel>
+        <Label Margin="0 10 0 20" Content="_Priority:" Target="CursorValue2" />
+        <DockPanel MinHeight="80">
+          <DockPanel.Resources>
+            <Thickness x:Key="SliderTopHeaderMargin">0,0,0,4</Thickness>
+            <GridLength x:Key="SliderPreContentMargin">0</GridLength>
+            <GridLength x:Key="SliderPostContentMargin">0</GridLength>
+          </DockPanel.Resources>
+          <Slider x:Name="CursorValue2"
+                  Margin="18,0,18,0"
+                  KeyboardNavigation.IsTabStop="False"
+                  DockPanel.Dock="Bottom"
+                  Classes="cursor"
+                  Focusable="True"
+                  Minimum="{Binding XAxisMinValue}"
+                  Maximum="{Binding XAxisMaxValue}"
+                  Value="{Binding XAxisCurrentValueIndex}" />
+          <c:LineChart x:Name="GradientLineChart"
+                       XAxisPlotMode="EvenlySpaced"
+                       Margin="18,10,18,0"
+                       Classes="cursor border xAxisLabels yAxis yAxisTitle area"
+                       MinHeight="150"
+                       XAxisLabels="{Binding XAxisLabels}"
+                       XAxisValues="{Binding XAxisValues}"
+                       XAxisCurrentValue="{Binding XAxisCurrentValue, Mode=TwoWay}"
+                       YAxisValues="{Binding YAxisValues}"
+                       YAxisLogarithmicScale="False"
+                       AreaMargin="10,0,10,30"
+                       AreaStrokeThickness="2"
+                       AreaStrokeLineCap="Round"
+                       AreaMinViableWidth="40"
+                       AreaMinViableHeight="20"
+                       Focusable="True"
+                       YAxisTitle="More Expensive" />
+        </DockPanel>
       </DockPanel>
     </DockPanel>
   </c:ContentArea>
