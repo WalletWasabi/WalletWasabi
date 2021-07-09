@@ -47,11 +47,15 @@ namespace WalletWasabi.Fluent.ViewModels.StatusBar
 					x => x.IsConnectionIssueDetected)
 				.Throttle(TimeSpan.FromMilliseconds(100))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => SetStatusBarState());
+				.Subscribe(_ =>
+				{
+					if (BackendStatus == BackendStatus.Connected)
+					{
+						IsConnectionIssueDetected = false;
+					}
 
-			this.WhenAnyValue(x => x.BackendStatus)
-				.Where(status => status == BackendStatus.Connected)
-				.Subscribe(_ => IsConnectionIssueDetected = false);
+					SetStatusBarState();
+				});
 		}
 
 		public ICommand UpdateCommand { get; }
