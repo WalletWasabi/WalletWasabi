@@ -123,8 +123,19 @@ Basically every async library method should use `ConfigureAwait(false)` except:
 - Methods that touch objects on the UI Thread, like modifying UI controls. 
 - Methods that are unit tests, xUnit [Fact].
 
+**Usage:**
 ```cs
 await MyMethodAsync().ConfigureAwait(false);
+```
+
+**Top level synchronization**
+```cs
+// Later we need to modify UI control so we need to sync back to this thread, thus don't use .ConfigureAwait(false);.
+// Note: inside MyMethodAsync() you can still use .ConfigureAwait(false);.
+var result = await MyMethodAsync();
+
+// At this point we are still on the UI thread, so you can safely touch UI elements. 
+myUiControl.Text = result;
 ```
 
 - [ConfigureAwait FAQ](https://devblogs.microsoft.com/dotnet/configureawait-faq/)
