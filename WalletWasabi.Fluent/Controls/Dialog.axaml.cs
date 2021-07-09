@@ -56,7 +56,7 @@ namespace WalletWasabi.Fluent.Controls
 				{
 					var width = bounds.Width;
 					var height = bounds.Height;
-					FullScreenEnabled = width < 600 && height < 600;
+					FullScreenEnabled = width < 740 && height < 580;
 				});
 		}
 
