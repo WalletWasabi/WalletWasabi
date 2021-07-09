@@ -123,8 +123,19 @@ Basically every async library method should use `ConfigureAwait(false)` except:
 - Methods that touch objects on the UI Thread, like modifying UI controls. 
 - Methods that are unit tests, xUnit [Fact].
 
+**Usage:**
 ```cs
 await MyMethodAsync().ConfigureAwait(false);
+```
+
+**Top level synchronization**
+```cs
+// Later we need to modify UI control so we need to sync back to this thread, thus don't use .ConfigureAwait(false);.
+// Note: inside MyMethodAsync() you can still use .ConfigureAwait(false);.
+var result = await MyMethodAsync();
+
+// At this point we are still on the UI thread, so you can safely touch UI elements. 
+myUiControl.Text = result;
 ```
 
 - [ConfigureAwait FAQ](https://devblogs.microsoft.com/dotnet/configureawait-faq/)
@@ -149,6 +160,21 @@ this.WhenAnyValue(...)
 	.ObserveOn(RxApp.MainThreadScheduler)
 	.Subscribe(...);
 ```
+
+## Subscribe triggered once on initialization
+
+When you subscribe with the usage of `.WhenAnyValue()` right after the creation one call of Subcription will be triggered. This is by design and most of the cases it is fine. Still you can supress this behaviour by adding `Skip(1)`. 
+
+```cs
+this.WhenAnyValue(x => x.PreferPsbtWorkflow)
+	.Skip(1)
+	.Subscribe(value =>
+	{
+		// Expensive operation, that should not run unnecessary. 
+	});
+```
+
+- [Example](https://stackoverflow.com/questions/36705139/why-does-whenanyvalue-observable-trigger-on-subscription)
 
 ## ObservableAsPropertyHelpers Over Properties
 
