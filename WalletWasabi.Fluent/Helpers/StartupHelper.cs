@@ -65,10 +65,9 @@ namespace WalletWasabi.Fluent.Helpers
 				UseShellExecute = true,
 				WindowStyle = ProcessWindowStyle.Normal,
 				FileName = "/bin/bash",
-				CreateNoWindow = false
+				CreateNoWindow = false,
+				Arguments = runOnSystemStartup ? ArgumentToAddWasabiToMacOsStartupSetting : ArgumentToDeleteWasabiFromMacOsStartupSetting
 			};
-
-			processInfo.Arguments = runOnSystemStartup ? ArgumentToAddWasabiToMacOsStartupSetting : ArgumentToDeleteWasabiFromMacOsStartupSetting;
 
 			try
 			{
