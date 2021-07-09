@@ -163,10 +163,10 @@
           </Style>
         </c:LineChart.Styles>
         <i:Interaction.Behaviors>
-          <ia:DataTriggerBehavior Binding="{Binding #GradientLineChart.Bounds.Width}" ComparisonCondition="LessThan" Value="350">
+          <ia:DataTriggerBehavior Binding="{Binding #GradientLineChart.Bounds.Width}" ComparisonCondition="LessThan" Value="550">
             <behaviors:AddClassAction StyledElement="{Binding #GradientLineChart}" ClassName="narrow" RemoveIfExists="True"/>
           </ia:DataTriggerBehavior>
-          <ia:DataTriggerBehavior Binding="{Binding #GradientLineChart.Bounds.Width}" ComparisonCondition="GreaterThanOrEqual" Value="350">
+          <ia:DataTriggerBehavior Binding="{Binding #GradientLineChart.Bounds.Width}" ComparisonCondition="GreaterThanOrEqual" Value="550">
             <behaviors:RemoveClassAction StyledElement="{Binding #GradientLineChart}" ClassName="narrow"/>
           </ia:DataTriggerBehavior>
         </i:Interaction.Behaviors>
