@@ -4,6 +4,7 @@
     <Color x:Key="SystemAccentColor">#78A827</Color>
     <Color x:Key="LineChartAreaGradientStartStopColor">#FF78A827</Color>
     <Color x:Key="LineChartAreaGradientEndStopColor">#0078A827</Color>
+    <Color x:Key="LineChartAreaGradientCursorStrokeColor">#F078A827</Color>
     <Color x:Key="LineChartLineColor">#78A827</Color>
 
     <Color x:Key="TextControlBackground">#EFEFEF</Color>
@@ -61,8 +62,10 @@
     <StaticResource x:Key="NotificationCardBackgroundBrush" ResourceKey="TileRegionColor" />
   </Styles.Resources>
   <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentLight.xaml" />
-  <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
+
   <!-- Needs to be here because of dependency reason -->
+  <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
+
   <StyleInclude Source="avares://Avalonia.Xaml.Interactions/Draggable/Styles.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Base.axaml" />
 </Styles>
