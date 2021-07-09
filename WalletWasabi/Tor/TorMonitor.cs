@@ -62,16 +62,7 @@ namespace WalletWasabi.Tor
 					{
 						bool isRunning = await HttpClient.IsTorRunningAsync().ConfigureAwait(false);
 
-						if (!isRunning)
-						{
-							Logger.LogInfo($"Tor did not work properly for {(int)torMisbehavedFor.TotalSeconds} seconds. Maybe it crashed. Attempting to start it...");
-
-							// Try starting Tor, if it does not work it'll be another issue.
-							bool started = await TorProcessManager.StartAsync(token).ConfigureAwait(false);
-
-							Logger.LogInfo($"Tor re-starting attempt {(started ? "succeeded." : "FAILED. Will try again later.")}");
-						}
-						else
+						if (isRunning)
 						{
 							Logger.LogInfo("Tor is running. Waiting for a confirmation that HTTP requests can pass through.");
 						}
