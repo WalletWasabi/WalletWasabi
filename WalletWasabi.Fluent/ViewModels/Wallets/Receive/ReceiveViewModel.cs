@@ -24,7 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 		NavBarPosition = NavBarPosition.None,
 		Searchable = false,
 		NavigationTarget = NavigationTarget.DialogScreen)]
-	public partial class ReceiveViewModel : NavBarItemViewModel
+	public partial class ReceiveViewModel : RoutableViewModel
 	{
 		private readonly Wallet _wallet;
 		private readonly SourceList<SuggestionLabelViewModel> _suggestionLabels;
@@ -33,7 +33,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 		[AutoNotify] private HashSet<string> _suggestions;
 		[AutoNotify] private bool _isExistingAddressesButtonVisible;
 
-		public ReceiveViewModel(Wallet wallet) : base(NavigationMode.Normal)
+		public ReceiveViewModel(Wallet wallet)
 		{
 			_wallet = wallet;
 			_labels = new ObservableCollectionExtended<string>();
@@ -68,8 +68,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Bind(_suggestionLabelResults)
 				.Subscribe();
-
-			SelectionMode = NavBarItemSelectionMode.Button;
 
 			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
