@@ -103,10 +103,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				});
 
 			Observable.FromEventPattern<WriteableBitmap>(_qrReader, nameof(_qrReader.ErrorOccured))
-				.Subscribe(async args =>
-				{
-					IsQrPanelVisible = false;
-					await ShowErrorAsync(Title, args.EventArgs.ToString(), "Something went wrong");
+				.Subscribe(args =>
+			   {
+				   IsQrPanelVisible = false;
+					// Error message to the user here
 				});
 
 			this.ValidateProperty(x => x.To, ValidateToField);
@@ -445,6 +445,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			base.OnNavigatedFrom(isInHistory);
 			_lastXAxisCurrentValue = XAxisCurrentValue;
 			_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(_lastXAxisCurrentValue);
+			Logger.LogWarning("Exiting");
 			_ = _qrReader.StopScanningAsync();
 		}
 
