@@ -187,12 +187,12 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 				Task task = client.SubscribeEventsAsync(new string[] { "CIRC", "STATUS_CLIENT" }, timeoutCts.Token);
 
 				// CIRC is already subscribed.
-				Logger.LogTrace("Server: Wait for 'SETEVENTS CIRC,STATUS_CLIENT' command.");
+				Logger.LogTrace("Server: Wait for 'SETEVENTS CIRC STATUS_CLIENT' command.");
 				string command = await toServer.Reader.ReadLineAsync(timeoutCts.Token);
 
 				// This means that BOTH 'CIRC' and 'STATUS_CLIENT' must be subscribed now.
 				// Note: Given we count logical event subscriptions, 'CIRC' is now (logically) subscribed twice!
-				Assert.Equal("SETEVENTS CIRC,STATUS_CLIENT", command);
+				Assert.Equal("SETEVENTS CIRC STATUS_CLIENT", command);
 
 				Logger.LogTrace("Server: Reply with OK code.");
 				await toClient.Writer.WriteAsciiAndFlushAsync("250 OK\r\n", timeoutCts.Token);
