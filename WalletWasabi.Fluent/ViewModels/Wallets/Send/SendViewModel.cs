@@ -110,7 +110,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			NextCommand = ReactiveCommand.Create(() =>
 			{
-				Navigate().To(new FeeSliderViewModel(_wallet, _transactionInfo));
+				Navigate().To(new SendFeeViewModel(_wallet, _transactionInfo));
 			}, nextCommandCanExecute);
 
 			EnableAutoBusyOn(NextCommand);

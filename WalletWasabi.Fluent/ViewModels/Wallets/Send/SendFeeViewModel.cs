@@ -12,7 +12,6 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.MathNet;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui.Converters;
 using WalletWasabi.Logging;
@@ -27,7 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		NavBarPosition = NavBarPosition.None,
 		Searchable = false,
 		NavigationTarget = NavigationTarget.DialogScreen)]
-	public partial class FeeSliderViewModel : RoutableViewModel
+	public partial class SendFeeViewModel : RoutableViewModel
 	{
 		private readonly Wallet _wallet;
 		private readonly TransactionInfo _transactionInfo;
@@ -48,7 +47,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private FeeRate _feeRate;
 		private double _lastXAxisCurrentValue;
 
-		public FeeSliderViewModel(Wallet wallet, TransactionInfo transactionInfo)
+		public SendFeeViewModel(Wallet wallet, TransactionInfo transactionInfo)
 		{
 			_wallet = wallet;
 			_transactionInfo = transactionInfo;

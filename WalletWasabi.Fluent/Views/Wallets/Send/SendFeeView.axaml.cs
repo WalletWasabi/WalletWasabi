@@ -4,9 +4,9 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets.Send
 {
-	public class FeeSliderView : UserControl
+	public class SendFeeView : UserControl
 	{
-		public FeeSliderView()
+		public SendFeeView()
 		{
 			InitializeComponent();
 		}
