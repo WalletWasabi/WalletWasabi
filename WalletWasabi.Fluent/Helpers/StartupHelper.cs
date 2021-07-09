@@ -1,11 +1,8 @@
 using Microsoft.Win32;
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.Helpers
 {
