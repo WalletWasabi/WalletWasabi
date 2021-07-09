@@ -38,7 +38,19 @@
         <StackPanel TextBlock.Foreground="{DynamicResource TextControlForeground}"
                     TextBlock.FontSize="14"
                     MaxWidth="160"
-                    ClipToBounds="False">
+                    ClipToBounds="False"
+                    Spacing="16">
+
+          <!-- Warning message TODO: use InfoMessage control-->
+          <DockPanel
+            IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.ConnectionIssueDetected}}">
+            <PathIcon Data="{StaticResource info_regular}"
+                      DockPanel.Dock="Top"
+                      HorizontalAlignment="Center"
+                      Height="25"/>
+            <TextBlock DockPanel.Dock="Bottom" Text="Wasabi was unable to connect to the server." TextWrapping="Wrap"
+                       TextAlignment="Center" />
+          </DockPanel>
 
           <!-- Status -->
           <StackPanel Spacing="16">
@@ -66,7 +78,7 @@
               </MultiBinding>
             </StackPanel.IsVisible>
 
-            <Separator Margin="-12 16 -12 6" />
+            <Separator Margin="-12 0 -12 6" />
 
             <c:StatusItem Icon="{StaticResource arrow_clockwise_regular}"
                           Title="Update available"
