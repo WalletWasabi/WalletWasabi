@@ -46,6 +46,8 @@
 
     <StaticResource x:Key="NotificationCardInformationBackgroundBrush" ResourceKey="SystemAccentColor" />
 
+    <BoxShadows x:Key="EmptyBoxShadow">0 0 0 0 #000000</BoxShadows>
+
     <LinearGradientBrush x:Key="LogoWashoutOpacityMaskGradient" StartPoint="0%,100%" EndPoint="100%,00%">
       <LinearGradientBrush.GradientStops>
         <GradientStop Color="#4AFFFFFF" Offset="0.1" />
