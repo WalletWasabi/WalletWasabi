@@ -33,7 +33,7 @@ namespace WalletWasabi.Fluent.Helpers
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
-				throw new NotImplementedException();
+				ModifyMacOsLoginItems(runOnSystemStartup);
 			}
 		}
 
