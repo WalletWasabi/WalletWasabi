@@ -122,13 +122,24 @@
       <c:NavBarListBox Items="{Binding BottomItems}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                        Name="BottomListBox"
-                       Classes="horizontal">
+                       Classes.horizontal="{Binding IsOpen}"
+                       Classes.vertical="{Binding !IsOpen}">
         <c:NavBarListBox.Styles>
+          <Style Selector=":is(ListBox).vertical /template/ #PART_ItemsPresenter > ReversibleStackPanel">
+            <Setter Property="Orientation" Value="Vertical" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="ReverseOrder" Value="True" />
+          </Style>
+          <Style Selector=":is(ListBox).horizontal /template/ #PART_ItemsPresenter > ReversibleStackPanel">
+            <Setter Property="Orientation" Value="Horizontal" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="ReverseOrder" Value="False" />
+          </Style>
           <Style Selector=":is(ListBox)">
             <Setter Property="ItemsPanel">
               <Setter.Value>
                 <ItemsPanelTemplate>
-                  <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" />
+                  <ReversibleStackPanel />
                 </ItemsPanelTemplate>
               </Setter.Value>
             </Setter>
