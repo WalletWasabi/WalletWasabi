@@ -19,7 +19,7 @@
         <ToggleSwitch IsChecked="{Binding PreferPsbtWorkflow}" />
       </DockPanel>
 
-      <DockPanel>
+      <DockPanel IsVisible="{Binding !IsWatchOnly}">
         <TextBlock Text="Auto CoinJoin" />
         <ToggleSwitch IsChecked="{Binding AutoCoinJoin}" />
       </DockPanel>

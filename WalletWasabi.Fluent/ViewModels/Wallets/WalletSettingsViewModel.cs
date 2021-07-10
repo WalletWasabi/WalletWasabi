@@ -17,6 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			_preferPsbtWorkflow = wallet.KeyManager.PreferPsbtWorkflow;
 			_autoCoinJoin = wallet.KeyManager.AutoCoinJoin;
 			IsHardwareWallet = wallet.KeyManager.IsHardwareWallet;
+			IsWatchOnly = wallet.KeyManager.IsWatchOnly;
 
 			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -41,6 +42,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		}
 
 		public bool IsHardwareWallet { get; }
+
+		public bool IsWatchOnly { get; }
 
 		public sealed override string Title { get; protected set; }
 	}

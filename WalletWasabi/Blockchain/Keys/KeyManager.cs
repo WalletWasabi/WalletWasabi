@@ -2,7 +2,6 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -129,7 +128,6 @@ namespace WalletWasabi.Blockchain.Keys
 		[JsonProperty(Order = 11, PropertyName = "PreferPsbtWorkflow")]
 		public bool PreferPsbtWorkflow { get; set; }
 
-		[DefaultValue(true)]
 		[JsonProperty(Order = 12, PropertyName = "AutoCoinJoin", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public bool AutoCoinJoin { get; set; }
 
