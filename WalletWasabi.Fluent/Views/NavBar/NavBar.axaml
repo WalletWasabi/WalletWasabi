@@ -15,9 +15,17 @@
       <Setter Property="Margin" Value="13 0 0 0" />
       <Setter Property="Height" Value="18" />
       <Setter Property="Width" Value="18" />
+      <Setter Property="Foreground" Value="{DynamicResource NavBarItemForegroundBrush}" />
+    </Style>
+    <Style Selector="TextBlock.headerText">
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="Margin" Value="25 15 0 12" />
+      <Setter Property="Opacity" Value="0.8" />
+      <Setter Property="FontWeight" Value="Light" />
+      <Setter Property="Foreground" Value="{DynamicResource NavBarItemForegroundBrush}" />
     </Style>
     <Style Selector="Separator">
-      <Setter Property="Background" Value="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" />
+      <Setter Property="Background" Value="{DynamicResource NavBarSeparatorBrush}" />
       <Setter Property="HorizontalAlignment" Value="Stretch" />
       <Setter Property="Margin" Value="{DynamicResource MenuFlyoutSeparatorThemePadding}" />
       <Setter Property="Height" Value="{DynamicResource MenuFlyoutSeparatorThemeHeight}" />
@@ -34,7 +42,7 @@
       <Setter Property="IsEnabled" Value="{Binding IsEnabled}" x:CompileBindings="False" />
     </Style>
     <Style Selector="ListBox.vertical > c|NavBarItem:disabled PathIcon">
-      <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
+      <Setter Property="Foreground" Value="{DynamicResource NavBarItemDisabledBrush}" />
     </Style>
     <Style Selector="ListBox.horizontal > c|NavBarItem">
       <Setter Property="IndicatorOrientation" Value="Horizontal" />
@@ -44,17 +52,18 @@
       <Setter Property="IsEnabled" Value="{Binding IsEnabled}" x:CompileBindings="False" />
     </Style>
     <Style Selector="ListBox.horizontal > c|NavBarItem:disabled PathIcon">
-      <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
+      <Setter Property="Foreground" Value="{DynamicResource NavBarItemDisabledBrush}" />
     </Style>
     <Style Selector="c|NavBarTreeItem">
       <Setter Property="IsExpanded" Value="{Binding IsExpanded}" x:CompileBindings="False" />
+      <Setter Property="TextBlock.Foreground" Value="{DynamicResource NavBarItemForegroundBrush}" />
     </Style>
     <Style Selector=":is(Button).NavButton">
       <Setter Property="Width" Value="{DynamicResource SplitViewCompactPaneLength}" />
       <Setter Property="Padding" Value="12,9,12,12" />
     </Style>
     <Style Selector=":is(Button).NavButton:disabled > PathIcon">
-      <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
+      <Setter Property="Foreground" Value="{DynamicResource NavBarItemDisabledBrush}" />
     </Style>
     <Style Selector=":is(Button).NavButton /template/ ContentPresenter">
       <Setter Property="Background" Value="Transparent" />
@@ -72,7 +81,7 @@
       <Setter Property="Background" Value="Transparent" />
     </Style>
     <Style Selector=":is(Button):pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListLowBrush}" />
+      <Setter Property="Background" Value="{DynamicResource NavBarItemPointerOverBackgroundBrush}" />
     </Style>
   </UserControl.Styles>
   <DockPanel Margin="0 0 0 4">
@@ -80,8 +89,8 @@
       <Panel Height="30" />
       <Border Padding="12 12 12 5" Margin="0,-3 ,0,4">
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-          <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" Margin="13,0,0,0" VerticalAlignment="Center" />
-          <ContentControl Template="{DynamicResource wasabi_logo_text_dynamic}" Margin="22,0,0,0"
+          <ContentControl Template="{DynamicResource wasabi_logo_fixed}" Margin="13,0,0,0" VerticalAlignment="Center" />
+          <ContentControl Template="{DynamicResource wasabi_logo_text_fixed}" Margin="22,0,0,0"
                           VerticalAlignment="Center" ClipToBounds="False" />
         </StackPanel>
       </Border>
@@ -113,13 +122,24 @@
       <c:NavBarListBox Items="{Binding BottomItems}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                        Name="BottomListBox"
-                       Classes="horizontal">
+                       Classes.horizontal="{Binding IsOpen}"
+                       Classes.vertical="{Binding !IsOpen}">
         <c:NavBarListBox.Styles>
+          <Style Selector=":is(ListBox).vertical /template/ #PART_ItemsPresenter > ReversibleStackPanel">
+            <Setter Property="Orientation" Value="Vertical" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="ReverseOrder" Value="True" />
+          </Style>
+          <Style Selector=":is(ListBox).horizontal /template/ #PART_ItemsPresenter > ReversibleStackPanel">
+            <Setter Property="Orientation" Value="Horizontal" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="ReverseOrder" Value="False" />
+          </Style>
           <Style Selector=":is(ListBox)">
             <Setter Property="ItemsPanel">
               <Setter.Value>
                 <ItemsPanelTemplate>
-                  <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" />
+                  <ReversibleStackPanel />
                 </ItemsPanelTemplate>
               </Setter.Value>
             </Setter>
@@ -140,8 +160,7 @@
     </StackPanel>
     <!-- Items List -->
     <DockPanel>
-      <TextBlock DockPanel.Dock="Top" Text="Wallets" FontSize="14" IsVisible="{Binding IsOpen}" Margin="25 15 0 12"
-                 Opacity="0.8" FontWeight="Light" />
+      <TextBlock Classes="headerText" DockPanel.Dock="Top" Text="Wallets" IsVisible="{Binding IsOpen}" />
       <c:NavBarListBox Items="{Binding Wallets}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                        Name="ItemsListBox"
