@@ -475,7 +475,7 @@ namespace WalletWasabi.Packager
 						$"Icon={ExecutableName}\n" +
 						$"Terminal=false\n" +
 						$"Exec={ExecutableName}\n" +
-						$"Categories=Office;Finance;\n" +
+						$"Categories=Internet;Finance;\n" +
 						$"Keywords=bitcoin;wallet;crypto;blockchain;wasabi;privacy;anon;awesome;qwe;asd;\n";
 
 					File.WriteAllText(desktopFilePath, desktopFileContent, Encoding.ASCII);
