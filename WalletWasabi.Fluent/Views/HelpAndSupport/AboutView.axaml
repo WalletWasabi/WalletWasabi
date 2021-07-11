@@ -3,9 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
-             xmlns:ic="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.HelpAndSupport"
              xmlns:controls="using:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
@@ -38,17 +36,13 @@
         <DockPanel>
           <StackPanel Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Orientation="Vertical">
             <!-- Links -->
-            <ItemsControl Name="LinksItemsControl"
-                          Items="{Binding Links}"
+            <ItemsControl Items="{Binding Links}"
                           Margin="0 0 0 25"
                           HorizontalAlignment="Stretch">
               <i:Interaction.Behaviors>
-                <ia:DataTriggerBehavior Binding="{Binding #LinksItemsControl.Bounds.Width}" ComparisonCondition="LessThan" Value="500">
-                  <ic:AddClassAction StyledElement="{Binding #LinksItemsControl}" ClassName="narrow" RemoveIfExists="True"/>
-                </ia:DataTriggerBehavior>
-                <ia:DataTriggerBehavior Binding="{Binding #LinksItemsControl.Bounds.Width}" ComparisonCondition="GreaterThanOrEqual" Value="500">
-                  <ic:RemoveClassAction StyledElement="{Binding #LinksItemsControl}" ClassName="narrow"/>
-                </ia:DataTriggerBehavior>
+                <ir:ResponsiveControlBehavior>
+                  <ir:ResponsiveClassSetter Minimum="0" Maximum="500" ClassName="narrow"/>
+                </ir:ResponsiveControlBehavior>
               </i:Interaction.Behaviors>
               <ItemsControl.Styles>
                 <Style Selector="ItemsControl">
