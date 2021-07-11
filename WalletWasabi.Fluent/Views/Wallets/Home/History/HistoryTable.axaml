@@ -2,6 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions"
              xmlns:history="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -138,7 +140,21 @@
                         HorizontalAlignment="Right">
               <PathIcon Data="{StaticResource arrow_down_right_regular}" Opacity="0.6" />
               <TextBlock Classes="monoSpaced"
-                         Text="{Binding IncomingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
+                         Text="{Binding IncomingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" >
+                <TextBlock.Styles>
+                  <Style Selector="TextBlock">
+                    <Setter Property="IsVisible" Value="True"/>
+                  </Style>
+                  <Style Selector="TextBlock.narrow">
+                    <Setter Property="IsVisible" Value="False"/>
+                  </Style>
+                </TextBlock.Styles>
+                <i:Interaction.Behaviors>
+                  <ir:ResponsiveControlBehavior>
+                    <ir:ResponsiveClassSetter Minimum="0" Maximum="80" ClassName="narrow"/>
+                  </ir:ResponsiveControlBehavior>
+                </i:Interaction.Behaviors>
+                </TextBlock>
             </StackPanel>
           </DataTemplate>
         </DataGridTemplateColumn.CellTemplate>
