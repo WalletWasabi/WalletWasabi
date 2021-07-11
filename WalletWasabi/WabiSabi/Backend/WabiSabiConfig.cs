@@ -71,6 +71,11 @@ namespace WalletWasabi.WabiSabi.Backend
 		[JsonConverter(typeof(TimeSpanJsonConverter))]
 		public TimeSpan TransactionSigningTimeout { get; set; } = TimeSpan.FromMinutes(1);
 
+		[DefaultValueTimeSpan("0d 0h 1m 0s")]
+		[JsonProperty(PropertyName = "RoundExpiryTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonConverter(typeof(TimeSpanJsonConverter))]
+		public TimeSpan RoundExpiryTimeout { get; set; } = TimeSpan.FromMinutes(5);
+
 		[DefaultValue(100)]
 		[JsonProperty(PropertyName = "MaxInputCountByRound", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public int MaxInputCountByRound { get; set; } = 100;

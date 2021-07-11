@@ -96,9 +96,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				TransactionSigningStart = DateTimeOffset.UtcNow;
 			}
-			else if (phase == Phase.TransactionBroadcasting)
+			else if (phase == Phase.TransactionBroadcasting || phase == Phase.Failed)
 			{
-				TransactionBroadcastingStart = DateTimeOffset.UtcNow;
+				TransactionBroadcastingStart = DateTimeOffset.UtcNow; // TODO rename End
 			}
 		}
 
