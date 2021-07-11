@@ -62,14 +62,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			TestDataPoints = new List<(string, double)>
 			{
-				("#72BD81", pcPrivate),
-				("#F9DE7D", pcNormal)
+				("#78A827", pcPrivate),
+				("#D8DED7", pcNormal)
 			};
 
 			TestDataPointsLegend = new List<DataLegend>
 			{
-				new($"{privateCoins.TotalAmount().FormattedBtc()} BTC", "Private", "#72BD81", pcPrivate),
-				new($"{normalCoins.TotalAmount().FormattedBtc()} BTC", "Not Private", "#F9DE7D", pcNormal)
+				new(privateCoins.TotalAmount(), "Private", "#78A827", pcPrivate),
+				new(normalCoins.TotalAmount(), "Not Private", "#D8DED7", pcNormal)
 			};
 		}
 	}

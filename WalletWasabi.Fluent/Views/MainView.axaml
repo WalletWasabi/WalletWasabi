@@ -3,11 +3,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:local="using:WalletWasabi.Fluent.Views"
              xmlns:navbar="using:WalletWasabi.Fluent.Views.NavBar"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
+             xmlns:statusBar="clr-namespace:WalletWasabi.Fluent.Views.StatusBar"
              mc:Ignorable="d" d:DesignWidth="536" d:DesignHeight="459"
              x:DataType="vm:MainViewModel"
              x:CompileBindings="True"
@@ -20,18 +20,18 @@
       IsPaneOpen="{Binding NavBar.IsOpen, Mode=TwoWay}">
       <i:Interaction.Behaviors>
         <behaviors:SplitViewAutoBehavior ToggleAction="{Binding NavBar.ToggleAction, Mode=OneWayToSource}"
-                                        CollapseOnClickAction="{Binding NavBar.CollapseOnClickAction, Mode=OneWayToSource}"
-                                        CollapseThreshold="{StaticResource SplitViewCollapseThreshold}" />
+                                         CollapseOnClickAction="{Binding NavBar.CollapseOnClickAction, Mode=OneWayToSource}"
+                                         CollapseThreshold="{StaticResource SplitViewCollapseThreshold}" />
       </i:Interaction.Behaviors>
       <SplitView.Pane>
         <Panel>
           <ExperimentalAcrylicBorder DockPanel.Dock="Left" IsHitTestVisible="False">
             <ExperimentalAcrylicBorder.Material>
               <ExperimentalAcrylicMaterial BackgroundSource="Digger"
-                                          TintColor="{DynamicResource SystemAltHighColor}"
-                                          TintOpacity="1"
-                                          FallbackColor="{DynamicResource AcrylicFallbackColor}"
-                                          MaterialOpacity="0.55" />
+                                           TintColor="{DynamicResource NavBarTintColor}"
+                                           TintOpacity="1"
+                                           FallbackColor="{DynamicResource AcrylicFallbackColor}"
+                                           MaterialOpacity="0.8" />
             </ExperimentalAcrylicBorder.Material>
           </ExperimentalAcrylicBorder>
           <navbar:NavBar DataContext="{Binding NavBar}" />
@@ -39,7 +39,10 @@
       </SplitView.Pane>
       <Panel>
         <DockPanel>
-          <local:StatusBar DockPanel.Dock="Bottom" Classes="h8" DataContext="{Binding StatusBar}" VerticalAlignment="Bottom" Height="32" />
+          <Panel Background="{DynamicResource RegionColor}" DockPanel.Dock="Bottom" VerticalAlignment="Bottom"
+                 Height="32">
+            <statusBar:StatusBar DataContext="{Binding StatusBar}" />
+          </Panel>
           <Panel>
             <Panel.Styles>
               <Style Selector="ContentControl c|ContentArea /template/ Panel#PART_ButtonArea">
@@ -47,10 +50,10 @@
               </Style>
 
               <Style Selector="c|ContentArea /template/ StackPanel#PART_Header">
-                  <Setter Property="Margin" Value="31 36 31 0" />
+                <Setter Property="Margin" Value="31 36 31 0" />
               </Style>
             </Panel.Styles>
-            <Border Background="{DynamicResource RegionColor}" BoxShadow="{DynamicResource BoxShadow}" IsHitTestVisible="False" />
+            <Border Background="{DynamicResource RegionColor}" IsHitTestVisible="False" />
             <ContentControl ClipToBounds="False" Content="{Binding MainScreen.CurrentPage}" />
           </Panel>
         </DockPanel>
@@ -69,12 +72,12 @@
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
       <c:Dialog.Styles>
         <Style Selector="c|Dialog /template/ Panel#PART_Overlay">
-          <Setter Property="Background" Value="{DynamicResource RegionColor}"/>
+          <Setter Property="Background" Value="{DynamicResource RegionColor}" />
         </Style>
         <Style Selector="c|Dialog /template/ Border#PART_Border">
-          <Setter Property="Margin" Value="0"/>
-          <Setter Property="CornerRadius" Value="0"/>
-          <Setter Property="BoxShadow" Value=""/>
+          <Setter Property="Margin" Value="0" />
+          <Setter Property="CornerRadius" Value="0" />
+          <Setter Property="BoxShadow" Value="" />
         </Style>
       </c:Dialog.Styles>
       <ContentControl Content="{Binding CurrentPage}" />

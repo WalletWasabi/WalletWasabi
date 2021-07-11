@@ -22,7 +22,7 @@ namespace WalletWasabi.Microservices
 		{
 		}
 
-		private ProcessAsync(Process process)
+		internal ProcessAsync(Process process)
 		{
 			Process = process;
 		}
@@ -80,7 +80,7 @@ namespace WalletWasabi.Microservices
 		/// <param name="cancellationToken">Cancellation token.</param>
 		/// <param name="killOnCancel">If <c>true</c> the process will be killed (with entire process tree) when this asynchronous action is canceled via <paramref name="cancellationToken"/> token.</param>
 		/// <returns><see cref="Task"/>.</returns>
-		public async Task WaitForExitAsync(CancellationToken cancellationToken, bool killOnCancel = false)
+		public virtual async Task WaitForExitAsync(CancellationToken cancellationToken, bool killOnCancel = false)
 		{
 			if (Process.HasExited)
 			{
@@ -90,8 +90,7 @@ namespace WalletWasabi.Microservices
 
 			try
 			{
-				Logger.LogTrace($"Wait for the process to exit: '{Process.StartInfo.FileName}'");
-
+				Logger.LogTrace($"Wait for the process to exit: '{Process.Id}'");
 				await Process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
 
 				Logger.LogTrace("Process has exited.");
@@ -137,7 +136,7 @@ namespace WalletWasabi.Microservices
 			_disposed = true;
 		}
 
-		public void Dispose()
+		public virtual void Dispose()
 		{
 			// Dispose of unmanaged resources.
 			Dispose(true);

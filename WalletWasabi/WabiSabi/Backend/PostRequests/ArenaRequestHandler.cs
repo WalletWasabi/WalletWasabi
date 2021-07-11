@@ -35,14 +35,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
-				var coin = await InputRegistrationHandler.OutpointToCoinAsync(request, Prison, Rpc, Config).ConfigureAwait(false);
-
-				return await Arena.RegisterInputAsync(
-					request.RoundId,
-					coin,
-					request.OwnershipProof,
-					request.ZeroAmountCredentialRequests,
-					request.ZeroVsizeCredentialRequests).ConfigureAwait(false);
+				return await Arena.RegisterInputAsync(request).ConfigureAwait(false);
 			}
 		}
 
@@ -88,6 +81,15 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
 				return await Arena.ReissuanceAsync(request).ConfigureAwait(false);
+			}
+		}
+
+		public async Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellableToken)
+		{
+			DisposeGuard();
+			using (RunningTasks.RememberWith(RunningRequests))
+			{
+				await Arena.ReadyToSignAsync(request).ConfigureAwait(false);
 			}
 		}
 

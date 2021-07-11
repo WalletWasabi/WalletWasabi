@@ -3,9 +3,9 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views
 {
-	public class StatusBar : UserControl
+	public class SuccessView : UserControl
 	{
-		public StatusBar()
+		public SuccessView()
 		{
 			InitializeComponent();
 		}

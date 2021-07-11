@@ -74,15 +74,15 @@ namespace WalletWasabi.WabiSabi.Client
 			Guard.InRange(nameof(amountCredentialsToPresent), amountCredentialsToPresent, 0, AmountCredentialClient.NumberOfCredentials);
 			Guard.InRange(nameof(vsizeCredentialsToPresent), vsizeCredentialsToPresent, 0, VsizeCredentialClient.NumberOfCredentials);
 
-			var presentedAmount = amountCredentialsToPresent.Sum(x => (long)x.Amount.ToUlong());
+			var presentedAmount = amountCredentialsToPresent.Sum(x => x.Value);
 			var (realAmountCredentialRequest, realAmountCredentialResponseValidation) = AmountCredentialClient.CreateRequest(
-				new[] { presentedAmount - amount },
+				new[] { presentedAmount - amount }, // FIXME remove
 				amountCredentialsToPresent,
 				cancellationToken);
 
-			var presentedVsize = vsizeCredentialsToPresent.Sum(x => (long)x.Amount.ToUlong());
+			var presentedVsize = vsizeCredentialsToPresent.Sum(x => x.Value);
 			var (realVsizeCredentialRequest, realVsizeCredentialResponseValidation) = VsizeCredentialClient.CreateRequest(
-				new[] { presentedVsize - scriptPubKey.EstimateOutputVsize() },
+				new[] { presentedVsize - scriptPubKey.EstimateOutputVsize() }, // FIXME remove
 				vsizeCredentialsToPresent,
 				cancellationToken);
 
@@ -110,13 +110,13 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			Guard.InRange(nameof(amountCredentialsToPresent), amountCredentialsToPresent, 0, AmountCredentialClient.NumberOfCredentials);
 
-			var presentedAmount = amountCredentialsToPresent.Sum(x => (long)x.Amount.ToUlong());
+			var presentedAmount = amountCredentialsToPresent.Sum(x => x.Value);
 			if (amountsToRequest.Sum() != presentedAmount)
 			{
 				throw new InvalidOperationException($"Reissuence amounts must equal with the sum of the presented ones.");
 			}
 
-			var presentedVsize = vsizeCredentialsToPresent.Sum(x => (long)x.Amount.ToUlong());
+			var presentedVsize = vsizeCredentialsToPresent.Sum(x => x.Value);
 			var (realVsizeCredentialRequest, realVsizeCredentialResponseValidation) = VsizeCredentialClient.CreateRequest(
 				vsizesToRequest,
 				vsizeCredentialsToPresent,
@@ -141,10 +141,10 @@ namespace WalletWasabi.WabiSabi.Client
 
 			var realAmountCredentials = AmountCredentialClient.HandleResponse(reissuanceResponse.RealAmountCredentials, realAmountCredentialResponseValidation);
 			var realVsizeCredentials = VsizeCredentialClient.HandleResponse(reissuanceResponse.RealVsizeCredentials, realVsizeCredentialResponseValidation);
-			AmountCredentialClient.HandleResponse(reissuanceResponse.ZeroAmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
-			VsizeCredentialClient.HandleResponse(reissuanceResponse.ZeroVsizeCredentials, zeroVsizeCredentialRequestData.CredentialsResponseValidation);
+			var zeroAmountCredentials = AmountCredentialClient.HandleResponse(reissuanceResponse.ZeroAmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
+			var zeroVsizeCredentials = VsizeCredentialClient.HandleResponse(reissuanceResponse.ZeroVsizeCredentials, zeroVsizeCredentialRequestData.CredentialsResponseValidation);
 
-			return new(realAmountCredentials, realVsizeCredentials);
+			return new(realAmountCredentials.Concat(zeroAmountCredentials), realVsizeCredentials.Concat(zeroVsizeCredentials));
 		}
 
 		public async Task<ArenaResponse<bool>> ConfirmConnectionAsync(
@@ -184,17 +184,17 @@ namespace WalletWasabi.WabiSabi.Client
 					realVsizeCredentialRequestData.CredentialsRequest),
 				cancellationToken).ConfigureAwait(false);
 
-			AmountCredentialClient.HandleResponse(confirmConnectionResponse.ZeroAmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
-			VsizeCredentialClient.HandleResponse(confirmConnectionResponse.ZeroVsizeCredentials, zeroVsizeCredentialRequestData.CredentialsResponseValidation);
+			var zeroAmountCredentials = AmountCredentialClient.HandleResponse(confirmConnectionResponse.ZeroAmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
+			var zeroVsizeCredentials = VsizeCredentialClient.HandleResponse(confirmConnectionResponse.ZeroVsizeCredentials, zeroVsizeCredentialRequestData.CredentialsResponseValidation);
 
 			if (confirmConnectionResponse is { RealAmountCredentials: { }, RealVsizeCredentials: { } })
 			{
 				var realAmountCredentials = AmountCredentialClient.HandleResponse(confirmConnectionResponse.RealAmountCredentials, realAmountCredentialRequestData.CredentialsResponseValidation);
 				var realVsizeCredentials = VsizeCredentialClient.HandleResponse(confirmConnectionResponse.RealVsizeCredentials, realVsizeCredentialRequestData.CredentialsResponseValidation);
-				return new(true, realAmountCredentials, realVsizeCredentials);
+				return new(true, realAmountCredentials.Concat(zeroAmountCredentials), realVsizeCredentials.Concat(zeroVsizeCredentials));
 			}
 
-			return new(false, Enumerable.Empty<Credential>(), Enumerable.Empty<Credential>());
+			return new(false, zeroAmountCredentials, zeroVsizeCredentials);
 		}
 
 		public async Task SignTransactionAsync(uint256 roundId, Coin coin, BitcoinSecret bitcoinSecret, Transaction unsignedCoinJoin, CancellationToken cancellationToken)
@@ -229,6 +229,24 @@ namespace WalletWasabi.WabiSabi.Client
 		public async Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken)
 		{
 			return await RequestHandler.GetStatusAsync(cancellationToken).ConfigureAwait(false);
+		}
+
+		public async Task ReadyToSignAsync(
+			uint256 roundId,
+			uint256 aliceId,
+			Key key,
+			CancellationToken cancellationToken)
+		{
+			var ownershipProof = OwnershipProof.GenerateCoinJoinInputProof(
+				key,
+				new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundId));
+
+			await RequestHandler.ReadyToSign(
+				new ReadyToSignRequestRequest(
+					roundId,
+					aliceId,
+					ownershipProof),
+				cancellationToken).ConfigureAwait(false);
 		}
 	}
 }

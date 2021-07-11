@@ -186,7 +186,7 @@
               <!-- Confirmed -->
               <StackPanel IsVisible="{Binding IsConfirmed}">
                 <PathIcon Data="{StaticResource checkmark_filled}"
-                          Foreground="{DynamicResource SystemControlBackgroundAccentBrush}"
+                          Foreground="{DynamicResource SystemAccentColor}"
                           Height="11" />
                 <TextBlock Classes="monoSpaced" Text="Confirmed" />
               </StackPanel>

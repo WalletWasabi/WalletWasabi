@@ -27,15 +27,14 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 		public async Task InitializeAsync()
 		{
-			bool started = await TorManager.StartAsync();
-			Assert.True(started, "Tor failed to start.");
+			await TorManager.StartAsync();
 		}
 
 		public async Task DisposeAsync()
 		{
 			ClearnetHttpClientFactory.Dispose();
 			TorHttpClientFactory.Dispose();
-			await TorManager.StopAsync();
+			await TorManager.DisposeAsync();
 		}
 
 		[Fact]
@@ -50,9 +49,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[Fact]
 		public async Task GetFeeEstimatesTorMainnetAsync()
 		{
-			Common.GetWorkDir();
-			Logging.Logger.SetMinimumLevel(Logging.LogLevel.Trace);
-
 			BlockstreamInfoClient client = new(Network.Main, TorHttpClientFactory);
 			AllFeeEstimate estimates = await client.GetFeeEstimatesAsync(CancellationToken.None);
 			Assert.NotNull(estimates);
