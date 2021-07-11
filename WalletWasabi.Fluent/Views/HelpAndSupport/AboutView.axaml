@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
+             xmlns:ic="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.HelpAndSupport"
              xmlns:controls="using:WalletWasabi.Fluent.Controls"
@@ -43,10 +44,10 @@
                           HorizontalAlignment="Stretch">
               <i:Interaction.Behaviors>
                 <ia:DataTriggerBehavior Binding="{Binding #LinksItemsControl.Bounds.Width}" ComparisonCondition="LessThan" Value="500">
-                  <behaviors:AddClassAction StyledElement="{Binding #LinksItemsControl}" ClassName="narrow" RemoveIfExists="True"/>
+                  <ic:AddClassAction StyledElement="{Binding #LinksItemsControl}" ClassName="narrow" RemoveIfExists="True"/>
                 </ia:DataTriggerBehavior>
                 <ia:DataTriggerBehavior Binding="{Binding #LinksItemsControl.Bounds.Width}" ComparisonCondition="GreaterThanOrEqual" Value="500">
-                  <behaviors:RemoveClassAction StyledElement="{Binding #LinksItemsControl}" ClassName="narrow"/>
+                  <ic:RemoveClassAction StyledElement="{Binding #LinksItemsControl}" ClassName="narrow"/>
                 </ia:DataTriggerBehavior>
               </i:Interaction.Behaviors>
               <ItemsControl.Styles>

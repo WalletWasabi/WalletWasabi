@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+             xmlns:ic="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -164,10 +164,10 @@
         </c:LineChart.Styles>
         <i:Interaction.Behaviors>
           <ia:DataTriggerBehavior Binding="{Binding #GradientLineChart.Bounds.Width}" ComparisonCondition="LessThan" Value="550">
-            <behaviors:AddClassAction StyledElement="{Binding #GradientLineChart}" ClassName="narrow" RemoveIfExists="True"/>
+            <ic:AddClassAction StyledElement="{Binding #GradientLineChart}" ClassName="narrow" RemoveIfExists="True"/>
           </ia:DataTriggerBehavior>
           <ia:DataTriggerBehavior Binding="{Binding #GradientLineChart.Bounds.Width}" ComparisonCondition="GreaterThanOrEqual" Value="550">
-            <behaviors:RemoveClassAction StyledElement="{Binding #GradientLineChart}" ClassName="narrow"/>
+            <ic:RemoveClassAction StyledElement="{Binding #GradientLineChart}" ClassName="narrow"/>
           </ia:DataTriggerBehavior>
         </i:Interaction.Behaviors>
       </c:LineChart>
