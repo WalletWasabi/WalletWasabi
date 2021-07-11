@@ -117,9 +117,9 @@ namespace WalletWasabi.WabiSabi.Client
 			// Send signature.
 			await SignTransactionAsync(aliceClients, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
 
-			var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundState.Id && ( s.Phase == Phase.Failed || s.Phase == Phase.TransactionBroadcasting ) || s.BlameOf == roundState.Id, cancellationToken).ConfigureAwait(false);
+			var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundState.Id && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
 
-			return finalRoundState.Id == roundState.Id && finalRoundState.Phase == Phase.TransactionBroadcasting;
+			return finalRoundState.IsTransactionBroadcasted;
 		}
 
 		private List<AliceClient> CreateAliceClients(RoundState roundState)

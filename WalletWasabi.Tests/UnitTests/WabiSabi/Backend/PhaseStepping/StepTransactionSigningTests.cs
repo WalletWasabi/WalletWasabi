@@ -45,7 +45,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await aliceClient1.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await aliceClient2.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.Equal(Phase.TransactionBroadcasting, round.Phase);
+			Assert.Equal(Phase.Ended, round.Phase);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -81,7 +81,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await aliceClient1.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await aliceClient2.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.Equal(Phase.Failed, round.Phase);
+			Assert.Equal(Phase.Ended, round.Phase);
+			Assert.False(round.IsTransactionBroadcasted);
 			Assert.Empty(arena.Prison.GetInmates());
 
 			await arena.StopAsync(CancellationToken.None);
@@ -119,7 +120,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await aliceClient1.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await aliceClient2.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.Equal(Phase.Failed, round.Phase);
+			Assert.Equal(Phase.Ended, round.Phase);
+			Assert.False(round.IsTransactionBroadcasted);
 
 			// There should be no inmate, because we aren't punishing spenders with banning
 			// as there's no reason to ban already spent UTXOs,
@@ -160,7 +162,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var signedCoinJoin = round.Assert<SigningState>().CreateTransaction();
 			await aliceClient1.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.Equal(Phase.Failed, round.Phase);
+			Assert.Equal(Phase.Ended, round.Phase);
+			Assert.False(round.IsTransactionBroadcasted);
 			Assert.Empty(arena.Rounds.Where(x => x.IsBlameRound));
 			Assert.Contains(aliceClient2.Coin.Outpoint, arena.Prison.GetInmates().Select(x => x.Utxo));
 
