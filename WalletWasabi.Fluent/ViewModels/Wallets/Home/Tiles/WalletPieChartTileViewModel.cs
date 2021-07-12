@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
-using WalletWasabi.Fluent.Helpers;
+using NBitcoin;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 {
 	public readonly struct DataLegend
 	{
-		public DataLegend(string amount, string label, string hexColor, double percentShare)
+		public DataLegend(Money amount, string label, string hexColor, double percentShare)
 		{
 			Amount = amount;
 			Label = label;
@@ -18,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			PercentShare = percentShare;
 		}
 
-		public string Amount { get; }
+		public Money Amount { get; }
 		public string Label { get; }
 		public string HexColor { get; }
 		public double PercentShare { get; }
