@@ -70,14 +70,7 @@ namespace WalletWasabi.Fluent.Helpers
 				Arguments = runOnSystemStartup ? argumentToAddWasabiToMacOsStartupSetting : argumentToDeleteWasabiFromMacOsStartupSetting
 			};
 
-			try
-			{
-				Process.Start(processInfo);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-			}
+			Process.Start(processInfo);
 		}
 	}
 }
