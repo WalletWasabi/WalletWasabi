@@ -21,7 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		private Stopwatch? _stopwatch;
 		private bool _isLoading;
-		private uint _filtersToSyncCount;
+		private uint _filtersToDownloadCount;
 		private uint _filtersToProcessCount;
 
 		public LoadingViewModel(Wallet wallet)
@@ -32,7 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			_isBackendConnected = Services.Synchronizer.BackendStatus == BackendStatus.Connected;
 		}
 
-		private uint TotalCount => _filtersToProcessCount + _filtersToSyncCount;
+		private uint TotalCount => _filtersToProcessCount + _filtersToDownloadCount;
 
 		private uint RemainingFiltersToSync => (uint) Services.BitcoinStore.SmartHeaderChain.HashesLeft;
 
@@ -46,7 +46,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
-					var downloadedFilters = _filtersToSyncCount - RemainingFiltersToSync;
+					var downloadedFilters = _filtersToDownloadCount - RemainingFiltersToSync;
 
 					uint processedFilters = 0;
 					if (Services.BitcoinStore.SmartHeaderChain.TipHeight is { } tipHeight &&
@@ -57,7 +57,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 					var processedCount = downloadedFilters + processedFilters;
 
-					Console.WriteLine($"Total: {TotalCount}/{processedCount} Downloaded: {_filtersToSyncCount}/{downloadedFilters} Processed: {_filtersToProcessCount}/{processedFilters}");
+					Console.WriteLine($"Total: {TotalCount}/{processedCount} Downloaded: {_filtersToDownloadCount}/{downloadedFilters} Processed: {_filtersToProcessCount}/{processedFilters}");
 
 					UpdateStatus(processedCount, _stopwatch.ElapsedMilliseconds);
 				})
@@ -115,10 +115,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		private void SetInitValues()
 		{
-			_filtersToSyncCount = (uint) Services.BitcoinStore.SmartHeaderChain.HashesLeft;
+			_filtersToDownloadCount = (uint) Services.BitcoinStore.SmartHeaderChain.HashesLeft;
 
-			if (Services.BitcoinStore.SmartHeaderChain.ServerTipHeight is { } tipHeight)
+			if (Services.BitcoinStore.SmartHeaderChain.ServerTipHeight is { } serverTipHeight &&
+				Services.BitcoinStore.SmartHeaderChain.TipHeight is { } clientTipHeight)
 			{
+				var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
 				var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network).Height;
 				var bestHeight = (uint) _wallet.KeyManager.GetBestHeight().Value;
 
