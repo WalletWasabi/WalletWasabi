@@ -24,7 +24,6 @@ namespace WalletWasabi.Gui
 		private bool _darkModeEnabled;
 		private string? _lastSelectedWallet;
 		private string _windowState = "Normal";
-		private bool _usePsbtWorkflow;
 
 		public UiConfig() : base()
 		{
