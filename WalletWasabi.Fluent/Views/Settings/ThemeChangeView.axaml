@@ -21,7 +21,7 @@
                Margin="10 20 10 0"
                TextAlignment="Center"
                TextWrapping="Wrap" />
-    <Viewbox>
+    <Viewbox MaxHeight="200">
       <Panel Clip="{StaticResource ClipRounded}">
         <Canvas Width="100" Height="60" Clip="{StaticResource TriClipTop}">
           <Panel>
