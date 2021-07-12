@@ -20,6 +20,9 @@ namespace WalletWasabi.Fluent.Models
 		public bool RequestEnd { get; set; }
 		public Network Network { get; }
 		public Task? ScanningTask { get; set; }
+		private Mat _frame;
+		private QRCodeDetector _qRCodeDetector;
+		private WriteableBitmap _writeableBitmap;
 
 		public WebcamQrReader(Network network)
 		{
@@ -64,19 +67,19 @@ namespace WalletWasabi.Fluent.Models
 			{
 				try
 				{
-					using Mat frame = new();
-					camera.Read(frame);
-					if (frame.Empty() || frame.Width == 0 || frame.Height == 0)
+					_frame = new();
+					camera.Read(_frame);
+					if (_frame.Empty() || _frame.Width == 0 || _frame.Height == 0)
 					{
 						continue;
 					}
 
-					using var writeableBitmap = ConvertMatToWriteableBitmap(frame);
-					NewImageArrived?.Invoke(this, writeableBitmap);
-					using QRCodeDetector qRCodeDetector = new();
-					if (qRCodeDetector.Detect(frame, out Point2f[] points))
+					_writeableBitmap = ConvertMatToWriteableBitmap(_frame);
+					NewImageArrived?.Invoke(this, _writeableBitmap);
+					_qRCodeDetector = new();
+					if (_qRCodeDetector.Detect(_frame, out Point2f[] points))
 					{
-						string qrCode = qRCodeDetector.Decode(frame, points, new Mat());
+						string qrCode = _qRCodeDetector.Decode(_frame, points, new Mat());
 						if (!string.IsNullOrWhiteSpace(qrCode) && AddressStringParser.TryParse(qrCode, Network, out _))
 						{
 							BitcoinAddressFound?.Invoke(this, qrCode);
@@ -89,6 +92,9 @@ namespace WalletWasabi.Fluent.Models
 					Logger.LogWarning(exc);
 				}
 			}
+			_frame.Dispose();
+			_writeableBitmap.Dispose();
+			_qRCodeDetector.Dispose();
 		}
 
 		private VideoCapture OpenCamera()
