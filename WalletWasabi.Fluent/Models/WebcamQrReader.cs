@@ -31,25 +31,28 @@ namespace WalletWasabi.Fluent.Models
 
 		public void StartScanning()
 		{
-			ScanningTask = Task.Run(() =>
+			if (ScanningTask is not { })
 			{
-				VideoCapture? camera = null;
-				try
+				ScanningTask = Task.Run(() =>
 				{
-					camera = OpenCamera();
-					RequestEnd = false;
-					Scan(camera);
-				}
-				catch (Exception exc)
-				{
-					Logger.LogError("QR scanning stopped. Reason:", exc);
-					ErrorOccured?.Invoke(this, exc);
-				}
-				finally
-				{
-					camera?.Release();
-				}
-			});
+					VideoCapture? camera = null;
+					try
+					{
+						camera = OpenCamera();
+						RequestEnd = false;
+						Scan(camera);
+					}
+					catch (Exception exc)
+					{
+						Logger.LogError("QR scanning stopped. Reason:", exc);
+						ErrorOccured?.Invoke(this, exc);
+					}
+					finally
+					{
+						camera?.Release();
+					}
+				});
+			}
 		}
 
 		public async Task StopScanningAsync()
@@ -58,6 +61,7 @@ namespace WalletWasabi.Fluent.Models
 			{
 				RequestEnd = true;
 				await task;
+				ScanningTask = null;
 			}
 		}
 

@@ -440,7 +440,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			base.OnNavigatedFrom(isInHistory);
 			_lastXAxisCurrentValue = XAxisCurrentValue;
 			_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(_lastXAxisCurrentValue);
-			Logger.LogWarning("Exiting");
 			RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StopScanningAsync());
 		}
 
