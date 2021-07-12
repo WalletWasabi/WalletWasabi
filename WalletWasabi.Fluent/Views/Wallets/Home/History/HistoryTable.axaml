@@ -135,27 +135,29 @@
                               SortMemberPath="IncomingAmount">
         <DataGridTemplateColumn.CellTemplate>
           <DataTemplate>
-            <StackPanel x:DataType="history:HistoryItemViewModel"
-                        IsVisible="{Binding !!IncomingAmount}"
-                        HorizontalAlignment="Right">
-              <PathIcon Data="{StaticResource arrow_down_right_regular}" Opacity="0.6" />
-              <TextBlock Classes="monoSpaced"
-                         Text="{Binding IncomingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" >
-                <TextBlock.Styles>
-                  <Style Selector="TextBlock">
-                    <Setter Property="IsVisible" Value="True"/>
-                  </Style>
-                  <Style Selector="TextBlock.narrow">
-                    <Setter Property="IsVisible" Value="False"/>
-                  </Style>
-                </TextBlock.Styles>
-                <i:Interaction.Behaviors>
-                  <ir:ResponsiveControlBehavior>
-                    <ir:ResponsiveClassSetter Minimum="0" Maximum="80" ClassName="narrow"/>
-                  </ir:ResponsiveControlBehavior>
-                </i:Interaction.Behaviors>
-                </TextBlock>
-            </StackPanel>
+            <Panel Name="Panel" HorizontalAlignment="Stretch">
+              <StackPanel x:DataType="history:HistoryItemViewModel"
+                          IsVisible="{Binding !!IncomingAmount}"
+                          HorizontalAlignment="Right">
+                <PathIcon Data="{StaticResource arrow_down_right_regular}" Opacity="0.6" >
+                  <PathIcon.Styles>
+                    <Style Selector="PathIcon">
+                      <Setter Property="IsVisible" Value="True"/>
+                    </Style>
+                    <Style Selector="PathIcon.narrow">
+                      <Setter Property="IsVisible" Value="False"/>
+                    </Style>
+                  </PathIcon.Styles>
+                  <i:Interaction.Behaviors>
+                    <ir:ResponsiveControlBehavior SourceControl="{Binding #Panel}" x:CompileBindings="False">
+                      <ir:ResponsiveClassSetter Minimum="0" Maximum="120" ClassName="narrow"/>
+                    </ir:ResponsiveControlBehavior>
+                  </i:Interaction.Behaviors>
+                </PathIcon>
+                <TextBlock Classes="monoSpaced"
+                           Text="{Binding IncomingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
+              </StackPanel>
+            </Panel>
           </DataTemplate>
         </DataGridTemplateColumn.CellTemplate>
       </DataGridTemplateColumn>
