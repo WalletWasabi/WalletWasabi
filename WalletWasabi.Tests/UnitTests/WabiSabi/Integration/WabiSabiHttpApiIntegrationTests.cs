@@ -132,7 +132,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 		public async Task MultiClientsCoinJoinTestAsync()
 		{
 			const int NumberOfParticipants = 50;
-			const int NumberOfCoinsPerParticipant = 1;
+			const int NumberOfCoinsPerParticipant = 2;
 			int expectedInputNumber = NumberOfParticipants * NumberOfCoinsPerParticipant;
 
 			var node = await TestNodeBuilder.CreateAsync();
@@ -147,8 +147,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 					services.AddScoped<IRPCClient>(s => rpc);
 					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig
 					{
+						MaxRegistrableAmount = Money.Coins(500m),
 						MaxInputCountByRound = expectedInputNumber,
-						OutputRegistrationTimeout = TimeSpan.FromMinutes(3)
+						ConnectionConfirmationTimeout = TimeSpan.FromSeconds(10 * expectedInputNumber),
+						OutputRegistrationTimeout = TimeSpan.FromSeconds(15 * expectedInputNumber),
 					});
 				});
 			}).CreateClient();
@@ -160,7 +162,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var transactionCompleted = new TaskCompletionSource<Transaction>();
 
 			// Total test timeout.
-			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30 * expectedInputNumber));
 			cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
 
 			var participants = Enumerable
