@@ -141,7 +141,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		private void UpdateStatus(uint processedCount)
 		{
-			if (TotalCount == 0 || processedCount == 0 || _stopwatch is null)
+			if (TotalCount == 0 || processedCount == 0 || processedCount > TotalCount|| _stopwatch is null)
 			{
 				return;
 			}
