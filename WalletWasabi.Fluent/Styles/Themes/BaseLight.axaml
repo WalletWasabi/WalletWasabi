@@ -2,6 +2,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Styles.Resources>
     <Color x:Key="SystemAccentColor">#78A827</Color>
+    <Color x:Key="SystemAccentColorLight1">#719E26</Color>
+    <Color x:Key="SystemAccentColorDark1">#608522</Color>
+    <Color x:Key="SystemControlDisabledBaseLowBrush">#80A3A3A3</Color>
+
     <Color x:Key="LineChartAreaGradientStartStopColor">#FF78A827</Color>
     <Color x:Key="LineChartAreaGradientEndStopColor">#0078A827</Color>
     <Color x:Key="LineChartAreaGradientCursorStrokeColor">#F078A827</Color>
@@ -18,9 +22,9 @@
 
     <SolidColorBrush x:Key="ActionButtonForegroundColor" Color="White" />
     <SolidColorBrush x:Key="ActionButtonBackgroundColor" Color="{DynamicResource SystemAccentColor}" />
-    <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Color="#608522" />
-    <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="#719E26" />
-    <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="#80A3A3A3" />
+    <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Color="{DynamicResource SystemAccentColorDark1}" />
+    <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="{DynamicResource SystemAccentColorLight1}" />
+    <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="{DynamicResource SystemControlDisabledBaseLowBrush}" />
 
     <SolidColorBrush x:Key="StatusBarControlBackground">#ECECEC</SolidColorBrush>
     <SolidColorBrush x:Key="StatusBarControlForeground">#777777</SolidColorBrush>
