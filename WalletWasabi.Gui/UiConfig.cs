@@ -24,6 +24,7 @@ namespace WalletWasabi.Gui
 		private bool _darkModeEnabled;
 		private string? _lastSelectedWallet;
 		private string _windowState = "Normal";
+		private bool _runOnSystemStartup;
 
 		public UiConfig() : base()
 		{
@@ -40,7 +41,8 @@ namespace WalletWasabi.Gui
 					x => x.FeeDisplayFormat,
 					x => x.LastSelectedWallet,
 					x => x.WindowState,
-					(_, _, _, _, _, _, _, _) => Unit.Default)
+					x => x.RunOnSystemStartup,
+					(_, _, _, _, _, _, _, _, _) => Unit.Default)
 				.Throttle(TimeSpan.FromMilliseconds(500))
 				.Skip(1) // Won't save on UiConfig creation.
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -133,6 +135,14 @@ namespace WalletWasabi.Gui
 		{
 			get => _lastSelectedWallet;
 			set => RaiseAndSetIfChanged(ref _lastSelectedWallet, value);
+		}
+
+		[DefaultValue(false)]
+		[JsonProperty(PropertyName = "RunOnSystemStartup", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool RunOnSystemStartup
+		{
+			get => _runOnSystemStartup;
+			set => RaiseAndSetIfChanged(ref _runOnSystemStartup, value);
 		}
 
 		[JsonProperty(PropertyName = "CoinListViewSortingPreference")]
