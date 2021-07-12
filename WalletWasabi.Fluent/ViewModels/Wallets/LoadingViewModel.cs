@@ -23,6 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		private bool _isLoading;
 		private uint _filtersToDownloadCount;
 		private uint _filtersToProcessCount;
+		private uint _filterProcessStartingHeight;
 
 		public LoadingViewModel(Wallet wallet)
 		{
@@ -49,10 +50,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					var downloadedFilters = _filtersToDownloadCount - RemainingFiltersToSync;
 
 					uint processedFilters = 0;
-					if (Services.BitcoinStore.SmartHeaderChain.TipHeight is { } tipHeight &&
-					    _wallet.LastProcessedFilter?.Header?.Height is { } lastProcessedFilterHeight)
+					if (_wallet.LastProcessedFilter?.Header?.Height is { } lastProcessedFilterHeight)
 					{
-						processedFilters = _filtersToProcessCount - (tipHeight - lastProcessedFilterHeight);
+						processedFilters = lastProcessedFilterHeight - _filterProcessStartingHeight;
 					}
 
 					var processedCount = downloadedFilters + processedFilters;
@@ -122,9 +122,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			{
 				var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
 				var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network).Height;
-				var bestHeight = (uint) _wallet.KeyManager.GetBestHeight().Value;
+				_filterProcessStartingHeight = (uint) _wallet.KeyManager.GetBestHeight().Value;
 
-				_filtersToProcessCount = tipHeight - (bestHeight < startingHeight ? startingHeight : bestHeight);
+				_filtersToProcessCount = tipHeight - (_filterProcessStartingHeight < startingHeight ? startingHeight : _filterProcessStartingHeight);
 			}
 		}
 
