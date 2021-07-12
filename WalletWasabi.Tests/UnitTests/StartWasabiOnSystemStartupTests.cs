@@ -22,8 +22,8 @@ namespace WalletWasabi.Tests.UnitTests
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
-				Assert.Throws<NotImplementedException>(() => StartupHelper.ModifyStartupSetting(true));
-				Assert.Throws<NotImplementedException>(() => StartupHelper.ModifyStartupSetting(false));
+				StartupHelper.ModifyStartupSetting(true);
+				StartupHelper.ModifyStartupSetting(false);
 			}
 		}
 	}
