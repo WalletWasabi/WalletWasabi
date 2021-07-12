@@ -41,6 +41,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		{
 			base.OnActivated(disposables);
 
+			Percent = 0;
+			StatusText = "";
 			_stopwatch ??= Stopwatch.StartNew();
 
 			Observable.Interval(TimeSpan.FromSeconds(1))
@@ -122,9 +124,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			{
 				var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
 				var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network).Height;
-				_filterProcessStartingHeight = (uint) _wallet.KeyManager.GetBestHeight().Value;
+				var bestHeight = (uint) _wallet.KeyManager.GetBestHeight().Value;
+				_filterProcessStartingHeight = bestHeight < startingHeight ? startingHeight : bestHeight;
 
-				_filtersToProcessCount = tipHeight - (_filterProcessStartingHeight < startingHeight ? startingHeight : _filterProcessStartingHeight);
+				_filtersToProcessCount = tipHeight - _filterProcessStartingHeight;
 			}
 		}
 
