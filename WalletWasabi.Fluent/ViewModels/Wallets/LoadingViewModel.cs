@@ -73,9 +73,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				this.RaisePropertyChanged(nameof(IsBackendConnected));
 
 				Observable.FromEventPattern<bool>(Services.Synchronizer, nameof(Services.Synchronizer.ResponseArrivedIsGenSocksServFail))
-					.Select(x => x.EventArgs)
-					.Where(x => x)
-					.Subscribe(async _ => await LoadWalletAsync(syncFilters: false))
+					.Subscribe(_ =>
+					{
+						if (Services.Synchronizer.BackendStatus == BackendStatus.Connected) // TODO: the event invoke must be refactored in Synchronizer
+						{
+							return;
+						}
+
+						LoadWallet(disposables, syncFilters: false);
+					})
 					.DisposeWith(disposables);
 
 				this.WhenAnyValue(x => x.IsBackendConnected)

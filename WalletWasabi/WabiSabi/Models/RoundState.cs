@@ -41,9 +41,9 @@ namespace WalletWasabi.WabiSabi.Models
 			};
 
 		public WabiSabiClient CreateAmountCredentialClient(WasabiRandom random) =>
-			new(AmountCredentialIssuerParameters, random, (ulong)MaxRegistrableAmount);
+			new(AmountCredentialIssuerParameters, random, MaxRegistrableAmount);
 
 		public WabiSabiClient CreateVsizeCredentialClient(WasabiRandom random) =>
-			new(VsizeCredentialIssuerParameters, random, (ulong)MaxRegistrableVsize);
+			new(VsizeCredentialIssuerParameters, random, MaxRegistrableVsize);
 	}
 }

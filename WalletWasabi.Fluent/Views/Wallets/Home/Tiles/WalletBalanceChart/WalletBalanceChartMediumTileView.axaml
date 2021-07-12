@@ -44,23 +44,6 @@
                  XAxisValues="{Binding XValues}"
                  XAxisLabels="{Binding XLabels}"
                  YAxisValues="{Binding YValues}"
-                 YAxisLabels="{Binding YLabels}">
-      <c:LineChart.AreaFill>
-        <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%" Opacity="0.2">
-          <LinearGradientBrush.GradientStops>
-            <GradientStop Offset="0.0" Color="#FF72BD81" />
-            <GradientStop Offset="1.0" Color="#0072BD81" />
-          </LinearGradientBrush.GradientStops>
-        </LinearGradientBrush>
-      </c:LineChart.AreaFill>
-      <c:LineChart.AreaStroke>
-        <LinearGradientBrush StartPoint="0%,50%" EndPoint="100%,50%">
-          <LinearGradientBrush.GradientStops>
-            <GradientStop Offset="0.0" Color="#72BD81" />
-            <GradientStop Offset="1.0" Color="#72BD81" />
-          </LinearGradientBrush.GradientStops>
-        </LinearGradientBrush>
-      </c:LineChart.AreaStroke>
-    </c:LineChart>
+                 YAxisLabels="{Binding YLabels}" />
   </DockPanel>
 </UserControl>

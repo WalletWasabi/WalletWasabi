@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using System.Windows.Input;
-using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -19,7 +18,6 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
-using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
@@ -39,7 +37,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSmallLayout;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isNormalLayout;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWideLayout;
-		[AutoNotify] private bool _limitedModeEnabled;
 
 		protected WalletViewModel(Wallet wallet) : base(wallet)
 		{
@@ -181,17 +178,21 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					}
 				}
 
-				Navigate(NavigationTarget.DialogScreen).To(new WalletInfoViewModel(wallet));
+				Navigate(NavigationTarget.DialogScreen).To(new WalletInfoViewModel(this));
 			});
 
-			LimitedModeEnabled = Services.Synchronizer.BackendStatus == BackendStatus.NotConnected;
+			WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletSettingsViewModel(this)));
 		}
 
 		public ICommand SendCommand { get; }
 
+		public ICommand BroadcastPsbtCommand { get; set; }
+
 		public ICommand ReceiveCommand { get; }
 
 		public ICommand WalletInfoCommand { get; }
+
+		public ICommand WalletSettingsCommand { get; }
 
 		private CompositeDisposable Disposables { get; set; }
 
@@ -275,11 +276,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			}
 
 			History.Activate(disposables);
-
-			Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(status => LimitedModeEnabled = status == BackendStatus.NotConnected)
-				.DisposeWith(disposables);
 		}
 
 		public static WalletViewModel Create(Wallet wallet)
