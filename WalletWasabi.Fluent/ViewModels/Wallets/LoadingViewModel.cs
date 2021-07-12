@@ -69,13 +69,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 							return;
 						}
 
-						await LoadWalletAsync(syncFilters: false);
+						await LoadWalletAsync(syncFilters: false).ConfigureAwait(false);
 					})
 					.DisposeWith(disposables);
 
 				this.WhenAnyValue(x => x.IsBackendConnected)
 					.Where(x => x)
-					.Subscribe(async _ => await LoadWalletAsync(syncFilters: true))
+					.Subscribe(async _ => await LoadWalletAsync(syncFilters: true).ConfigureAwait(false))
 					.DisposeWith(disposables);
 			}
 		}
@@ -91,7 +91,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			uint processedFilters = 0;
 			if (_wallet.LastProcessedFilter?.Header?.Height is { } lastProcessedFilterHeight)
 			{
-				processedFilters = lastProcessedFilterHeight - _filterProcessStartingHeight;
+				processedFilters = lastProcessedFilterHeight - _filterProcessStartingHeight - 1;
 			}
 
 			var processedCount = downloadedFilters + processedFilters;
@@ -116,11 +116,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			{
 				while (RemainingFiltersToDownload > 0)
 				{
-					await Task.Delay(1000);
+					await Task.Delay(1000).ConfigureAwait(false);
 				}
 			}
 
-			await UiServices.WalletManager.LoadWalletAsync(_wallet);
+			await UiServices.WalletManager.LoadWalletAsync(_wallet).ConfigureAwait(false);
 		}
 
 		private void SetInitValues()
@@ -158,7 +158,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			Percent = tempPercent;
 			var percentText = $"{Percent}% completed";
 
-			var remainingMilliseconds = _stopwatch.ElapsedMilliseconds / processedCount * remainingCount;
+			var remainingMilliseconds = (double) _stopwatch.ElapsedMilliseconds / processedCount * remainingCount;
 			var userFriendlyTime = TextHelpers.TimeSpanToFriendlyString(TimeSpan.FromMilliseconds(remainingMilliseconds));
 			var remainingTimeText = string.IsNullOrEmpty(userFriendlyTime) ? "" : $"- {userFriendlyTime} remaining";
 
