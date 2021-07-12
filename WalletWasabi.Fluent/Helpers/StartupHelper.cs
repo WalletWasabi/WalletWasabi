@@ -60,13 +60,16 @@ namespace WalletWasabi.Fluent.Helpers
 				throw new InvalidOperationException("Running osascript can only be done on MacOS.");
 			}
 
+			string argumentToAddWasabiToMacOsStartupSetting = $"-c \"osascript -e \' tell application \\\"System Events\\\" to make new login item at end of login items with properties {{name:\\\"{nameof(WalletWasabi)}\\\", path:\\\"/Applications/WasabiWallet.app\\\",hidden:false}} \' \"";
+			string argumentToDeleteWasabiFromMacOsStartupSetting = $"-c \"osascript -e \' tell application \\\"System Events\\\" to delete login item \\\"{nameof(WalletWasabi)}\\\" \' \"";
+
 			ProcessStartInfo processInfo = new()
 			{
 				UseShellExecute = true,
 				WindowStyle = ProcessWindowStyle.Normal,
 				FileName = "/bin/bash",
 				CreateNoWindow = false,
-				Arguments = runOnSystemStartup ? ArgumentToAddWasabiToMacOsStartupSetting : ArgumentToDeleteWasabiFromMacOsStartupSetting
+				Arguments = runOnSystemStartup ? argumentToAddWasabiToMacOsStartupSetting : argumentToDeleteWasabiFromMacOsStartupSetting
 			};
 
 			try
