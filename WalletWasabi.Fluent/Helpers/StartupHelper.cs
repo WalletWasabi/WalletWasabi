@@ -62,8 +62,8 @@ namespace WalletWasabi.Fluent.Helpers
 
 			ProcessStartInfo processInfo = new()
 			{
-				UseShellExecute = true,
-				WindowStyle = ProcessWindowStyle.Normal,
+				UseShellExecute = false,
+				WindowStyle = ProcessWindowStyle.Hidden,
 				FileName = "/bin/bash",
 				CreateNoWindow = false,
 				Arguments = runOnSystemStartup ? argumentToAddWasabiToMacOsStartupSetting : argumentToDeleteWasabiFromMacOsStartupSetting
