@@ -54,7 +54,7 @@ namespace WalletWasabi.Fluent.Helpers
 		{
 			if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
-				throw new InvalidOperationException("Running osascript can only be done on MacOS.");
+				throw new InvalidOperationException("Running osascript can only be done on macOS.");
 			}
 
 			string argumentToAddWasabiToMacOsStartupSetting = $"-c \"osascript -e \' tell application \\\"System Events\\\" to make new login item at end of login items with properties {{name:\\\"{nameof(WalletWasabi)}\\\", path:\\\"/Applications/WasabiWallet.app\\\",hidden:false}} \' \"";
