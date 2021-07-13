@@ -48,9 +48,10 @@
           </TextBox.InnerRightContent>
         </TextBox>
       </DockPanel>
-      <DockPanel IsVisible="{Binding IsQrPanelVisible}">
-          <Label DockPanel.Dock="Left" Content="_QR Camera:" Target="qrcamera" />
-          <Image Source="{Binding TestImage}" Width="250" Height="250" Name="testImage" />
+      <!-- QR Camera -->
+      <DockPanel  DockPanel.Dock="Top" Margin="0,0,0,6" IsVisible="{Binding IsQrPanelVisible}">
+        <Label DockPanel.Dock="Left" Content="_QR Camera:" Target="qrcamera" />
+        <Image Source="{Binding TestImage}" Width="275" Height="275" Name="testImage" />
       </DockPanel>
       <!-- Amount -->
       <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
