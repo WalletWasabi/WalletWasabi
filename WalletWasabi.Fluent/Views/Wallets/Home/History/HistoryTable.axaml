@@ -149,9 +149,9 @@
                     </Style>
                   </PathIcon.Styles>
                   <i:Interaction.Behaviors>
-                    <ir:ResponsiveControlBehavior SourceControl="{Binding #Panel}" x:CompileBindings="False">
-                      <ir:ResponsiveClassSetter Minimum="0" Maximum="120" ClassName="narrow"/>
-                    </ir:ResponsiveControlBehavior>
+                    <ir:AdaptiveBehavior SourceControl="{Binding #Panel}" x:CompileBindings="False">
+                      <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="120" ClassName="narrow"/>
+                    </ir:AdaptiveBehavior>
                   </i:Interaction.Behaviors>
                 </PathIcon>
                 <TextBlock Classes="monoSpaced"
