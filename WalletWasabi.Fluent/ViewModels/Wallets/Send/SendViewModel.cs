@@ -51,6 +51,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private string? _payJoinEndPoint;
 		[AutoNotify] private WriteableBitmap? _testImage;
 		[AutoNotify] private bool _isQrPanelVisible;
+		[AutoNotify] private bool _isCameraLoading;
 
 		private WebcamQrReader _qrReader;
 		private bool _parsingUrl;
@@ -62,12 +63,20 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_transactionInfo = new TransactionInfo();
 			_labels = new ObservableCollection<string>();
 			_isQrPanelVisible = false;
+			_isCameraLoading = false;
 			_qrReader = new(_wallet.Network);
 			ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 			PriorLabels = new();
 
 			Observable.FromEventPattern<WriteableBitmap>(_qrReader, nameof(_qrReader.NewImageArrived))
-				.Subscribe(args => TestImage = args.EventArgs);
+				.Subscribe(args =>
+				{
+					if (IsCameraLoading == true)
+					{
+						IsCameraLoading = false;
+					}
+					TestImage = args.EventArgs;
+				});
 
 			Observable.FromEventPattern<string>(_qrReader, nameof(_qrReader.BitcoinAddressFound))
 				.Subscribe(async args =>
@@ -120,6 +129,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
 			QRCommand = ReactiveCommand.Create(() =>
 			{
+				if (IsQrPanelVisible == false)
+				{
+					IsCameraLoading = true;
+				}
 				IsQrPanelVisible = true;
 				_qrReader.StartScanning();
 			});
