@@ -49,7 +49,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private ObservableCollection<string> _labels;
 		[AutoNotify] private bool _isPayJoin;
 		[AutoNotify] private string? _payJoinEndPoint;
-		[AutoNotify] private WriteableBitmap? _testImage;
+		[AutoNotify] private WriteableBitmap? _qrImage;
 		[AutoNotify] private bool _isQrPanelVisible;
 		[AutoNotify] private bool _isCameraLoading;
 
@@ -75,7 +75,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					{
 						IsCameraLoading = false;
 					}
-					TestImage = args.EventArgs;
+					QrImage = args.EventArgs;
 				});
 
 			Observable.FromEventPattern<string>(_qrReader, nameof(_qrReader.BitcoinAddressFound))
