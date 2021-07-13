@@ -65,11 +65,9 @@ namespace WalletWasabi.Fluent.Models
 
 		private void Scan(VideoCapture camera)
 		{
-			// bool isFirstBitmapShown = false;
 			WriteableBitmap? lastBitmap = null;
 			WriteableBitmap? currentBitmap = null;
 			using QRCodeDetector qRCodeDetector = new();
-			// WriteableBitmap? secondWriteableBitmap = null;
 			while (!RequestEnd)
 			{
 				try
