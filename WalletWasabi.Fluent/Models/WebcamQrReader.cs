@@ -20,9 +20,6 @@ namespace WalletWasabi.Fluent.Models
 		public bool RequestEnd { get; set; }
 		public Network Network { get; }
 		public Task? ScanningTask { get; set; }
-		private Mat _frame;
-		private QRCodeDetector _qRCodeDetector;
-		private WriteableBitmap _writeableBitmap;
 
 		public WebcamQrReader(Network network)
 		{
@@ -61,29 +58,37 @@ namespace WalletWasabi.Fluent.Models
 			{
 				RequestEnd = true;
 				await task;
+
 				ScanningTask = null;
 			}
 		}
 
 		private void Scan(VideoCapture camera)
 		{
+			// bool isFirstBitmapShown = false;
+			WriteableBitmap? lastBitmap = null;
+			WriteableBitmap? currentBitmap = null;
+			using QRCodeDetector qRCodeDetector = new();
+			// WriteableBitmap? secondWriteableBitmap = null;
 			while (!RequestEnd)
 			{
 				try
 				{
-					_frame = new();
-					camera.Read(_frame);
-					if (_frame.Empty() || _frame.Width == 0 || _frame.Height == 0)
+					using Mat frame = new();
+					camera.Read(frame);
+					if (frame.Empty() || frame.Width == 0 || frame.Height == 0)
 					{
 						continue;
 					}
+					currentBitmap = ConvertMatToWriteableBitmap(frame);
 
-					_writeableBitmap = ConvertMatToWriteableBitmap(_frame);
-					NewImageArrived?.Invoke(this, _writeableBitmap);
-					_qRCodeDetector = new();
-					if (_qRCodeDetector.Detect(_frame, out Point2f[] points))
+					NewImageArrived?.Invoke(this, currentBitmap);
+					lastBitmap?.Dispose();
+					lastBitmap = currentBitmap;
+
+					if (qRCodeDetector.Detect(frame, out Point2f[] points))
 					{
-						string qrCode = _qRCodeDetector.Decode(_frame, points, new Mat());
+						string qrCode = qRCodeDetector.Decode(frame, points, new Mat());
 						if (!string.IsNullOrWhiteSpace(qrCode) && AddressStringParser.TryParse(qrCode, Network, out _))
 						{
 							BitcoinAddressFound?.Invoke(this, qrCode);
@@ -94,11 +99,11 @@ namespace WalletWasabi.Fluent.Models
 				catch (OpenCVException exc)
 				{
 					Logger.LogWarning(exc);
+					currentBitmap?.Dispose();
 				}
 			}
-			_frame.Dispose();
-			_writeableBitmap.Dispose();
-			_qRCodeDetector.Dispose();
+			lastBitmap?.Dispose();
+			currentBitmap?.Dispose();
 		}
 
 		private VideoCapture OpenCamera()
@@ -106,7 +111,7 @@ namespace WalletWasabi.Fluent.Models
 			VideoCapture camera = new();
 			if (!camera.Open(0))
 			{
-				throw new InvalidOperationException("Could not open webcam");
+				throw new InvalidOperationException("Could not open webcam.");
 			}
 			return camera;
 		}

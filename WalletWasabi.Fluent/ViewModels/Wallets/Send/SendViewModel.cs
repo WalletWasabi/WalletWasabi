@@ -26,6 +26,7 @@ using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
+using System.Reactive.Concurrency;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
@@ -332,6 +333,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			PriorLabels = new ObservableCollection<string>(PriorLabels.Distinct());
 
 			base.OnNavigatedTo(inHistory, disposables);
+		}
+
+		protected override void OnNavigatedFrom(bool isInHistory)
+		{
+			RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StopScanningAsync());
+			base.OnNavigatedFrom(isInHistory);
 		}
 	}
 }
