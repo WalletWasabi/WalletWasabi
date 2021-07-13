@@ -141,9 +141,6 @@
                           HorizontalAlignment="Right">
                 <PathIcon Data="{StaticResource arrow_down_right_regular}" Opacity="0.6" >
                   <PathIcon.Styles>
-                    <Style Selector="PathIcon">
-                      <Setter Property="IsVisible" Value="True"/>
-                    </Style>
                     <Style Selector="PathIcon.narrow">
                       <Setter Property="IsVisible" Value="False"/>
                     </Style>
