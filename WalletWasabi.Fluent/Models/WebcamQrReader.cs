@@ -87,10 +87,18 @@ namespace WalletWasabi.Fluent.Models
 					if (qRCodeDetector.Detect(frame, out Point2f[] points))
 					{
 						string qrCode = qRCodeDetector.Decode(frame, points, new Mat());
-						if (!string.IsNullOrWhiteSpace(qrCode) && AddressStringParser.TryParse(qrCode, Network, out _))
+						if (string.IsNullOrWhiteSpace(qrCode))
+						{
+							continue;
+						}
+						if (AddressStringParser.TryParse(qrCode, Network, out _))
 						{
 							BitcoinAddressFound?.Invoke(this, qrCode);
 							break;
+						}
+						else
+						{
+							InvalidAddressFound?.Invoke(this, qrCode);
 						}
 					}
 				}
@@ -146,6 +154,8 @@ namespace WalletWasabi.Fluent.Models
 		public event EventHandler<WriteableBitmap>? NewImageArrived;
 
 		public event EventHandler<string>? BitcoinAddressFound;
+
+		public event EventHandler<string>? InvalidAddressFound;
 
 		public event EventHandler<Exception>? ErrorOccured;
 	}

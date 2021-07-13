@@ -77,6 +77,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					IsQrPanelVisible = false;
 				});
 
+			Observable.FromEventPattern<string>(_qrReader, nameof(_qrReader.InvalidAddressFound))
+				.Subscribe(args => To = args.EventArgs);
+
 			Observable.FromEventPattern<Exception>(_qrReader, nameof(_qrReader.ErrorOccured))
 				.Subscribe(async args =>
 			   {
