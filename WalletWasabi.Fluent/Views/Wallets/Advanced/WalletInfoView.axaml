@@ -20,6 +20,7 @@
       </StackPanel>
     </c:ContentArea.CancelContent>
     <StackPanel Spacing="10" Margin="0 0 20 0">
+
       <c:PreviewItem Icon="{StaticResource key_regular}"
                      Text="Extended Master Private Key"
                      Content="{Binding ExtendedMasterPrivateKey}"

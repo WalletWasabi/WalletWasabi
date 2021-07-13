@@ -16,7 +16,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 		[Fact]
 		public async Task ReceiveTorAsyncEventsUsingForeachAsync()
 		{
-			using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(4));
+			using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(3));
 
 			// Test parameters.
 			const int ExpectedEventsNo = 3;
@@ -35,6 +35,17 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 			// This must happen after a client is subscribed.
 			Task serverTask = Task.Run(async () =>
 			{
+				// We do not want to send the data until the client is really subscribed.
+				while (!timeoutCts.IsCancellationRequested)
+				{
+					if (client.SubscriberCount == 1)
+					{
+						break;
+					}
+
+					await Task.Delay(200).ConfigureAwait(false);
+				}
+
 				for (int i = 0; i < ExpectedEventsNo; i++)
 				{
 					Logger.LogTrace($"Server: Send async Tor event (#{i}): '650 {AsyncEventContent}'.");
@@ -176,12 +187,12 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 				Task task = client.SubscribeEventsAsync(new string[] { "CIRC", "STATUS_CLIENT" }, timeoutCts.Token);
 
 				// CIRC is already subscribed.
-				Logger.LogTrace("Server: Wait for 'SETEVENTS CIRC,STATUS_CLIENT' command.");
+				Logger.LogTrace("Server: Wait for 'SETEVENTS CIRC STATUS_CLIENT' command.");
 				string command = await toServer.Reader.ReadLineAsync(timeoutCts.Token);
 
 				// This means that BOTH 'CIRC' and 'STATUS_CLIENT' must be subscribed now.
 				// Note: Given we count logical event subscriptions, 'CIRC' is now (logically) subscribed twice!
-				Assert.Equal("SETEVENTS CIRC,STATUS_CLIENT", command);
+				Assert.Equal("SETEVENTS CIRC STATUS_CLIENT", command);
 
 				Logger.LogTrace("Server: Reply with OK code.");
 				await toClient.Writer.WriteAsciiAndFlushAsync("250 OK\r\n", timeoutCts.Token);

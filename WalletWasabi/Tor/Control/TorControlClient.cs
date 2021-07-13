@@ -1,6 +1,7 @@
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Pipelines;
 using System.Linq;
 using System.Net.Sockets;
@@ -12,12 +13,11 @@ using System.Threading.Tasks;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Control.Exceptions;
 using WalletWasabi.Tor.Control.Messages;
+using WalletWasabi.Tor.Control.Utils;
 
 namespace WalletWasabi.Tor.Control
 {
-	/// <summary>
-	/// Client already authenticated to Tor Control.
-	/// </summary>
+	/// <summary>Client already authenticated to Tor Control.</summary>
 	public class TorControlClient : IAsyncDisposable
 	{
 		private static readonly UnboundedChannelOptions Options = new()
@@ -34,7 +34,6 @@ namespace WalletWasabi.Tor.Control
 			TcpClient = tcpClient;
 		}
 
-		/// <summary>For testing.</summary>
 		internal TorControlClient(PipeReader pipeReader, PipeWriter pipeWriter)
 		{
 			TcpClient = null;
@@ -106,6 +105,31 @@ namespace WalletWasabi.Tor.Control
 		}
 
 		/// <summary>
+		/// Gets process ID belonging to the main Tor process.
+		/// </summary>
+		/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">3.9. GETINFO</seealso>
+		public async Task<int> GetTorProcessIdAsync(CancellationToken cancellationToken = default)
+		{
+			TorControlReply reply = await SendCommandAsync("GETINFO process/pid\r\n", cancellationToken).ConfigureAwait(false);
+
+			if (!reply.Success)
+			{
+				throw new TorControlException("Failed to get Tor process ID."); // This should never happen.
+			}
+
+			(string key, string value, string _) = Tokenizer.ReadKeyValueAssignment(reply.ResponseLines[0]);
+
+			if (key != "process/pid")
+			{
+				throw new TorControlException("Invalid key received."); // This should never happen.
+			}
+
+			int result = int.Parse(value);
+
+			return result;
+		}
+
+		/// <summary>
 		/// Gets Tor's circuits that are currently available.
 		/// </summary>
 		/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">3.9. GETINFO, and 4.1.1. Circuit status changed.</seealso>
@@ -168,8 +192,8 @@ namespace WalletWasabi.Tor.Control
 			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ReaderCts.Token, cancellationToken);
 
 			Logger.LogTrace($"Client: About to send command: '{command.TrimEnd()}'");
-			_ = await PipeWriter.WriteAsync(new ReadOnlyMemory<byte>(Encoding.ASCII.GetBytes(command)), linkedCts.Token).ConfigureAwait(false);
-			_ = await PipeWriter.FlushAsync(linkedCts.Token).ConfigureAwait(false);
+			await PipeWriter.WriteAsync(new ReadOnlyMemory<byte>(Encoding.ASCII.GetBytes(command)), linkedCts.Token).ConfigureAwait(false);
+			await PipeWriter.FlushAsync(linkedCts.Token).ConfigureAwait(false);
 
 			TorControlReply reply = await SyncChannel.Reader.ReadAsync(linkedCts.Token).ConfigureAwait(false);
 			Logger.LogTrace($"Client: Reply: '{reply}'");
@@ -203,7 +227,6 @@ namespace WalletWasabi.Tor.Control
 				}
 
 				Logger.LogTrace($"ReadEventsAsync: subscribers: {newList.Count}.");
-
 				await foreach (TorControlReply item in channel.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
 				{
 					yield return item;
@@ -260,7 +283,7 @@ namespace WalletWasabi.Tor.Control
 				}
 
 				// Get all event names that must be subscribed.
-				subscribedEventNames = string.Join(',', SubscribedEvents.Keys);
+				subscribedEventNames = string.Join(' ', SubscribedEvents.Keys);
 			}
 
 			if (sendCommand)
@@ -308,7 +331,7 @@ namespace WalletWasabi.Tor.Control
 				}
 
 				// Get all event names that remained.
-				subscribedEventNames = string.Join(',', SubscribedEvents.Keys);
+				subscribedEventNames = string.Join(' ', SubscribedEvents.Keys);
 			}
 
 			if (sendCommand)
@@ -395,6 +418,10 @@ namespace WalletWasabi.Tor.Control
 			catch (OperationCanceledException)
 			{
 				Logger.LogTrace("Reader loop was stopped.");
+			}
+			catch (IOException e)
+			{
+				Logger.LogError("Reply reader failed to read from pipe. Internal stream was most likely forcefully closed.", e);
 			}
 			catch (Exception e)
 			{

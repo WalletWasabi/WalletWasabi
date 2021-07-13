@@ -36,5 +36,8 @@ namespace WalletWasabi.Tests.Helpers
 
 		public Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken)
 			=> arena.SignTransactionAsync(request);
+
+		public Task ReadyToSign(ReadyToSignRequestRequest request, CancellationToken cancellationToken)
+			=> arena.ReadyToSignAsync(request);
 	}
 }
