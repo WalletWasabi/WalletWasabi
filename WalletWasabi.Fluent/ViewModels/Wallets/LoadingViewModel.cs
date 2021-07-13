@@ -69,13 +69,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 							return;
 						}
 
-						await LoadWalletAsync(syncFilters: false).ConfigureAwait(false);
+						await LoadWalletAsync(isBackendAvailable: false).ConfigureAwait(false);
 					})
 					.DisposeWith(disposables);
 
 				this.WhenAnyValue(x => x.IsBackendConnected)
 					.Where(x => x)
-					.Subscribe(async _ => await LoadWalletAsync(syncFilters: true).ConfigureAwait(false))
+					.Subscribe(async _ => await LoadWalletAsync(isBackendAvailable: true).ConfigureAwait(false))
 					.DisposeWith(disposables);
 			}
 		}
@@ -101,7 +101,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			return processedCount;
 		}
 
-		private async Task LoadWalletAsync(bool syncFilters)
+		private async Task LoadWalletAsync(bool isBackendAvailable)
 		{
 			if (_isLoading)
 			{
@@ -110,9 +110,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 			_isLoading = true;
 
-			SetInitValues();
+			await SetInitValuesAsync(isBackendAvailable);
 
-			if (syncFilters)
+			if (isBackendAvailable)
 			{
 				while (RemainingFiltersToDownload > 0)
 				{
@@ -123,8 +123,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			await UiServices.WalletManager.LoadWalletAsync(_wallet).ConfigureAwait(false);
 		}
 
-		private void SetInitValues()
+		private async Task SetInitValuesAsync(bool isBackendAvailable)
 		{
+			while (isBackendAvailable && Services.Synchronizer.LastResponse is null)
+			{
+				await Task.Delay(500).ConfigureAwait(false);
+			}
+
 			_filtersToDownloadCount = (uint) Services.BitcoinStore.SmartHeaderChain.HashesLeft;
 
 			if (Services.BitcoinStore.SmartHeaderChain.ServerTipHeight is { } serverTipHeight &&
