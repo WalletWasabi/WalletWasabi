@@ -49,7 +49,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 		[Fact]
 		public async Task InvalidStatusCodeAsync()
 		{
-			var ex = await Assert.ThrowsAsync<TorControlReplyParseException>(async () => await ParseAsync("2 OK\r\n").ConfigureAwait(false));
+			var ex = await Assert.ThrowsAsync<TorControlReplyParseException>(async () => await ParseAsync("2 OK\r\n"));
 			Assert.StartsWith("Unknown status code: '2 O'", ex.Message, StringComparison.Ordinal);
 		}
 
@@ -60,7 +60,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 		[InlineData("Unknown status code: '2 O'.", "2 OK\r\n")]
 		public async Task InvalidRepliesAsync(string expectedExceptionMsg, string data)
 		{
-			var ex = await Assert.ThrowsAsync<TorControlReplyParseException>(async () => await ParseAsync(data).ConfigureAwait(false));
+			var ex = await Assert.ThrowsAsync<TorControlReplyParseException>(async () => await ParseAsync(data));
 			Assert.Equal(expectedExceptionMsg, ex.Message);
 		}
 

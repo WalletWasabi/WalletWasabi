@@ -34,7 +34,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 
 			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
-			var resp = await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, key, CancellationToken.None).ConfigureAwait(false);
+			var resp = await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, key, CancellationToken.None);
 			AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -55,7 +55,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			round.Alices.Add(preAlice);
 
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, key, CancellationToken.None).ConfigureAwait(false));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, key, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.AliceAlreadyRegistered, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);

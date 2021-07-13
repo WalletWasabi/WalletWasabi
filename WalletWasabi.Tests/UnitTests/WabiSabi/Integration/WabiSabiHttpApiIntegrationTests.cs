@@ -120,7 +120,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			// Run the coinjoin client task.
 			await coinJoinClient.StartCoinJoinAsync(cts.Token, outputs?.Select(s => Money.Satoshis(s)));
 
-			var boadcastedTx = await transactionCompleted.Task.ConfigureAwait(false); // wait for the transaction to be broadcasted.
+			var boadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
 			Assert.NotNull(boadcastedTx);
 
 			await roundStateUpdater.StopAsync(CancellationToken.None);

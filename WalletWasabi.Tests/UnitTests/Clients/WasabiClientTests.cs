@@ -26,9 +26,9 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			async Task<HttpResponseMessage> FakeServerCodeAsync(HttpMethod method, string relativeUri, HttpContent? content, CancellationToken cancellation)
 			{
 				string body = (content is { })
-					? await content.ReadAsStringAsync(cancellation).ConfigureAwait(false)
+					? await content.ReadAsStringAsync(cancellation)
 					: "";
-	
+
 				Uri baseUri = new("http://127.0.0.1");
 				Uri uri = new(baseUri, relativeUri);
 				var parameters = HttpUtility.ParseQueryString(uri.Query);
@@ -89,7 +89,6 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			var ex = await Assert.ThrowsAsync<HttpRequestException>(async () =>
 				await client.GetTransactionsAsync(Network.Main, new[] { RandomUtils.GetUInt256() }, CancellationToken.None));
 			Assert.Equal("Bad Request\nSome RPC problem...", ex.Message);
-			
 		}
 
 		private static Transaction CreateTransaction()

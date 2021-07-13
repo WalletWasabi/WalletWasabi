@@ -113,7 +113,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 			Task sendTask = Task.Run(async () =>
 			{
 				Debug.WriteLine("[client] About send HTTP request.");
-				using HttpResponseMessage httpResponseMessage = await pool.SendAsync(request, circuit).ConfigureAwait(false);
+				using HttpResponseMessage httpResponseMessage = await pool.SendAsync(request, circuit);
 				Assert.Equal(HttpStatusCode.OK, httpResponseMessage.StatusCode);
 				Debug.WriteLine("[client] Done sending HTTP request.");
 			});
@@ -184,8 +184,8 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 			public async Task ConnectAsync(CancellationToken cancellationToken)
 			{
 				Task connectClientTask = Server.WaitForConnectionAsync(cancellationToken);
-				await Client.ConnectAsync(cancellationToken).ConfigureAwait(false);
-				await connectClientTask.ConfigureAwait(false);
+				await Client.ConnectAsync(cancellationToken);
+				await connectClientTask;
 			}
 
 			public async ValueTask DisposeAsync()

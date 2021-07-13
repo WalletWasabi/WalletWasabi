@@ -61,7 +61,7 @@ namespace WalletWasabi.Tests.UnitTests
 				try
 				{
 					// Wait for the cancellation.
-					await Task.Delay(-1, cts.Token).ConfigureAwait(false);
+					await Task.Delay(-1, cts.Token);
 				}
 				catch
 				{
