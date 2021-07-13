@@ -26,7 +26,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			async Task<HttpResponseMessage> FakeServerCodeAsync(HttpMethod method, string relativeUri, HttpContent? content, CancellationToken cancellation)
 			{
 				string body = (content is { })
-					? await content.ReadAsStringAsync(cancellation)
+					? await content.ReadAsStringAsync(cancellation).ConfigureAwait(false)
 					: "";
 
 				Uri baseUri = new("http://127.0.0.1");

@@ -113,7 +113,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 			Task sendTask = Task.Run(async () =>
 			{
 				Debug.WriteLine("[client] About send HTTP request.");
-				using HttpResponseMessage httpResponseMessage = await pool.SendAsync(request, circuit);
+				using HttpResponseMessage httpResponseMessage = await pool.SendAsync(request, circuit).ConfigureAwait(false);
 				Assert.Equal(HttpStatusCode.OK, httpResponseMessage.StatusCode);
 				Debug.WriteLine("[client] Done sending HTTP request.");
 			});

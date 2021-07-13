@@ -43,13 +43,13 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 						break;
 					}
 
-					await Task.Delay(200);
+					await Task.Delay(200).ConfigureAwait(false);
 				}
 
 				for (int i = 0; i < ExpectedEventsNo; i++)
 				{
 					Logger.LogTrace($"Server: Send async Tor event (#{i}): '650 {AsyncEventContent}'.");
-					await toClient.Writer.WriteAsciiAndFlushAsync($"650 {AsyncEventContent}\r\n", timeoutCts.Token);
+					await toClient.Writer.WriteAsciiAndFlushAsync($"650 {AsyncEventContent}\r\n", timeoutCts.Token).ConfigureAwait(false);
 				}
 			});
 
@@ -102,20 +102,20 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 			Task serverTask = Task.Run(async () =>
 			{
 				Logger.LogTrace($"Server: Send msg #1 (async) to client: '650 {AsyncEventContent}'.");
-				await toClient.Writer.WriteAsciiAndFlushAsync($"650 {AsyncEventContent}\r\n", timeoutCts.Token);
+				await toClient.Writer.WriteAsciiAndFlushAsync($"650 {AsyncEventContent}\r\n", timeoutCts.Token).ConfigureAwait(false);
 
 				Logger.LogTrace($"Server: Send msg #2 (async) to client: '650 {AsyncEventContent}'.");
-				await toClient.Writer.WriteAsciiAndFlushAsync($"650 {AsyncEventContent}\r\n", timeoutCts.Token);
+				await toClient.Writer.WriteAsciiAndFlushAsync($"650 {AsyncEventContent}\r\n", timeoutCts.Token).ConfigureAwait(false);
 
 				Logger.LogTrace("Server: Wait for TAKEOWNERSHIP command.");
-				string command = await toServer.Reader.ReadLineAsync(timeoutCts.Token);
+				string command = await toServer.Reader.ReadLineAsync(timeoutCts.Token).ConfigureAwait(false);
 				Assert.Equal("TAKEOWNERSHIP", command);
 
 				Logger.LogTrace("Server: Send msg #3 (sync) to client in response to TAKEOWNERSHIP command.");
-				await toClient.Writer.WriteAsciiAndFlushAsync($"250 OK\r\n", timeoutCts.Token);
+				await toClient.Writer.WriteAsciiAndFlushAsync($"250 OK\r\n", timeoutCts.Token).ConfigureAwait(false);
 
 				Logger.LogTrace($"Server: Send msg #4 (async) to client: '650 {AsyncEventContent}'.");
-				await toClient.Writer.WriteAsciiAndFlushAsync($"650 {AsyncEventContent}\r\n", timeoutCts.Token);
+				await toClient.Writer.WriteAsciiAndFlushAsync($"650 {AsyncEventContent}\r\n", timeoutCts.Token).ConfigureAwait(false);
 			});
 
 			Logger.LogTrace("Client: Receive msg #1 (async).");
