@@ -72,7 +72,11 @@ namespace WalletWasabi.Fluent.Helpers
 				Arguments = runOnSystemStartup ? AddArgument : DeleteArgument
 			};
 
-			Process.Start(processInfo);
+			using Process? process = Process.Start(processInfo);
+			if (process?.ExitCode != 0)
+			{
+				throw new InvalidOperationException("Couldn't add WasabiWallet to the Login Items.");
+			}
 		}
 	}
 }
