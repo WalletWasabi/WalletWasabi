@@ -165,13 +165,26 @@
                               SortMemberPath="OutgoingAmount">
         <DataGridTemplateColumn.CellTemplate>
           <DataTemplate>
-            <StackPanel x:DataType="history:HistoryItemViewModel"
-                        IsVisible="{Binding !!OutgoingAmount}"
-                        HorizontalAlignment="Right">
-              <PathIcon Data="{StaticResource arrow_up_right_regular}" Opacity="0.6" />
-              <TextBlock Classes="monoSpaced"
-                         Text="{Binding OutgoingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
-            </StackPanel>
+            <Panel Name="Panel" HorizontalAlignment="Stretch">
+              <StackPanel x:DataType="history:HistoryItemViewModel"
+                          IsVisible="{Binding !!OutgoingAmount}"
+                          HorizontalAlignment="Right">
+                <PathIcon Data="{StaticResource arrow_up_right_regular}" Opacity="0.6">
+                  <PathIcon.Styles>
+                    <Style Selector="PathIcon.narrow">
+                      <Setter Property="IsVisible" Value="False"/>
+                    </Style>
+                  </PathIcon.Styles>
+                  <i:Interaction.Behaviors>
+                    <ir:AdaptiveBehavior SourceControl="{Binding #Panel}" x:CompileBindings="False">
+                      <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="120" ClassName="narrow"/>
+                    </ir:AdaptiveBehavior>
+                  </i:Interaction.Behaviors>
+                </PathIcon>
+                <TextBlock Classes="monoSpaced"
+                           Text="{Binding OutgoingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
+              </StackPanel>
+            </Panel>
           </DataTemplate>
         </DataGridTemplateColumn.CellTemplate>
       </DataGridTemplateColumn>
