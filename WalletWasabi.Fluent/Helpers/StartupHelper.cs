@@ -11,6 +11,12 @@ namespace WalletWasabi.Fluent.Helpers
 	{
 		private const string KeyPath = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
 
+		// Arguments to add Wasabi to macOS's startup settings.
+		private static readonly string AddArgument = $"-c \"osascript -e \' tell application \\\"System Events\\\" to make new login item at end of login items with properties {{name:\\\"{nameof(WalletWasabi)}\\\", path:\\\"/Applications/WasabiWallet.app\\\",hidden:false}} \' \"";
+
+		// Argument to delete Wasabi from macOS startup settings.
+		private static readonly string DeleteArgument = $"-c \"osascript -e \' tell application \\\"System Events\\\" to delete login item \\\"{nameof(WalletWasabi)}\\\" \' \"";
+
 		public static void ModifyStartupSetting(bool runOnSystemStartup)
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -57,16 +63,13 @@ namespace WalletWasabi.Fluent.Helpers
 				throw new InvalidOperationException("Running osascript can only be done on macOS.");
 			}
 
-			string argumentToAddWasabiToMacOsStartupSetting = $"-c \"osascript -e \' tell application \\\"System Events\\\" to make new login item at end of login items with properties {{name:\\\"{nameof(WalletWasabi)}\\\", path:\\\"/Applications/WasabiWallet.app\\\",hidden:false}} \' \"";
-			string argumentToDeleteWasabiFromMacOsStartupSetting = $"-c \"osascript -e \' tell application \\\"System Events\\\" to delete login item \\\"{nameof(WalletWasabi)}\\\" \' \"";
-
 			ProcessStartInfo processInfo = new()
 			{
 				UseShellExecute = false,
 				WindowStyle = ProcessWindowStyle.Hidden,
 				FileName = "/bin/bash",
 				CreateNoWindow = false,
-				Arguments = runOnSystemStartup ? argumentToAddWasabiToMacOsStartupSetting : argumentToDeleteWasabiFromMacOsStartupSetting
+				Arguments = runOnSystemStartup ? AddArgument : DeleteArgument
 			};
 
 			Process.Start(processInfo);
