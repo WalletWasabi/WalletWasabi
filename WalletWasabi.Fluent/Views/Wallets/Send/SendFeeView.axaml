@@ -161,9 +161,9 @@
           </Style>
         </c:LineChart.Styles>
         <i:Interaction.Behaviors>
-          <ir:ResponsiveControlBehavior>
-            <ir:ResponsiveClassSetter Minimum="0" Maximum="550" ClassName="narrow"/>
-          </ir:ResponsiveControlBehavior>
+          <ir:AdaptiveBehavior>
+            <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="550" ClassName="narrow"/>
+          </ir:AdaptiveBehavior>
         </i:Interaction.Behaviors>
       </c:LineChart>
     </DockPanel>

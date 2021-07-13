@@ -40,9 +40,9 @@
                           Margin="0 0 0 25"
                           HorizontalAlignment="Stretch">
               <i:Interaction.Behaviors>
-                <ir:ResponsiveControlBehavior>
-                  <ir:ResponsiveClassSetter Minimum="0" Maximum="500" ClassName="narrow"/>
-                </ir:ResponsiveControlBehavior>
+                <ir:AdaptiveBehavior>
+                  <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="500" ClassName="narrow"/>
+                </ir:AdaptiveBehavior>
               </i:Interaction.Behaviors>
               <ItemsControl.Styles>
                 <Style Selector="ItemsControl">
