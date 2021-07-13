@@ -73,6 +73,11 @@ namespace WalletWasabi.Fluent.Helpers
 			};
 
 			using Process? process = Process.Start(processInfo);
+
+			int timeout = 5000;
+
+			process?.WaitForExit(timeout);
+
 			if (process?.ExitCode != 0)
 			{
 				throw new InvalidOperationException("Couldn't add Wasabi Wallet to the Login Items.");
