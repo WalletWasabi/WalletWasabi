@@ -65,7 +65,7 @@ namespace WalletWasabi.Fluent.Helpers
 
 			ProcessStartInfo processInfo = new()
 			{
-				UseShellExecute = false,
+				UseShellExecute = true,
 				WindowStyle = ProcessWindowStyle.Hidden,
 				FileName = "/bin/bash",
 				CreateNoWindow = false,
