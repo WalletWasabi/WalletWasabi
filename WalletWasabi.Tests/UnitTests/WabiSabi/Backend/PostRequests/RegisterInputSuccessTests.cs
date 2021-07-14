@@ -55,7 +55,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			round.Alices.Add(preAlice);
 
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, key, CancellationToken.None));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, key, CancellationToken.None).ConfigureAwait(false));
 			Assert.Equal(WabiSabiProtocolErrorCode.AliceAlreadyRegistered, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
