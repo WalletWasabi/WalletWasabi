@@ -45,7 +45,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 		private static async Task<HttpResponseMessage> PayjoinServerOkAsync(HttpRequestMessage request, Func<PSBT, PSBT> transformPsbt, HttpStatusCode statusCode = HttpStatusCode.OK)
 		{
-			var body = await request.Content.ReadAsStringAsync();
+			var body = await request.Content.ReadAsStringAsync().ConfigureAwait(false);
 			var psbt = PSBT.Parse(body, Network.Main);
 			var newPsbt = transformPsbt(psbt);
 			var message = new HttpResponseMessage(statusCode);

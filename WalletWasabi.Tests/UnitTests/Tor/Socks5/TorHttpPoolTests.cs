@@ -184,7 +184,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 			public async Task ConnectAsync(CancellationToken cancellationToken)
 			{
 				Task connectClientTask = Server.WaitForConnectionAsync(cancellationToken);
-				await Client.ConnectAsync(cancellationToken);
+				await Client.ConnectAsync(cancellationToken).ConfigureAwait(false);
 				await connectClientTask;
 			}
 

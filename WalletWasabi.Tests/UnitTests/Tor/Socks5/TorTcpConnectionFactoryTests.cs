@@ -88,7 +88,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 				stream.Flush();
 
 				Logger.LogTrace($"[{nameof(AuthenticationErrorScenarioAsync)}][server] Expecting exception.");
-				await Assert.ThrowsAsync<NotSupportedException>(async () => await clientTask.WithAwaitCancellationAsync(timeoutToken));
+				await Assert.ThrowsAsync<NotSupportedException>(async () => await clientTask.WithAwaitCancellationAsync(timeoutToken).ConfigureAwait(false));
 			}
 			finally
 			{
