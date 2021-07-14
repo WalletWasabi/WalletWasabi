@@ -12,9 +12,11 @@ namespace WalletWasabi.Fluent.Helpers
 		private const string KeyPath = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
 
 		// Arguments to add Wasabi to macOS startup settings.
-		private static readonly string AddArguments = $"-c \"osascript -e \' tell application \\\"System Events\\\" to make new login item at end of login items with properties {{name:\\\"WasabiWallet\\\", path:\\\"/Applications/WasabiWallet.app\\\",hidden:false}} end tell\' \"";
+		///<remarks><code>'tell application "System Events" to make new login item at end with properties {name:"WasabiWallet", path:"/Applications/WasabiWallet.app",hidden:false}} end tell'</code></remarks>
+		private static readonly string AddArguments = $"-c \"osascript -e \' tell application \\\"System Events\\\" to make new login item at end with properties {{name:\\\"WasabiWallet\\\", path:\\\"/Applications/WasabiWallet.app\\\",hidden:false}} end tell\' \"";
 
 		// Arguments to delete Wasabi from macOS startup settings.
+		///<remarks><code>'tell application "System Events" to delete login item "WasabiWallet" end tell'</code></remarks>
 		private static readonly string DeleteArguments = $"-c \"osascript -e \' tell application \\\"System Events\\\" to delete login item \\\"WasabiWallet\\\" end tell\' \"";
 
 		public static void ModifyStartupSetting(bool runOnSystemStartup)
