@@ -199,6 +199,8 @@
       <!-- Incoming -->
       <DataGridTemplateColumn Header="Incoming (BTC)"
                               Width="*"
+                              MinWidth="90"
+                              MaxWidth="140"
                               SortMemberPath="IncomingAmount">
         <DataGridTemplateColumn.CellTemplate>
           <DataTemplate>
@@ -229,6 +231,8 @@
       <!-- Outgoing -->
       <DataGridTemplateColumn Header="Outgoing (BTC)"
                               Width="*"
+                              MinWidth="90"
+                              MaxWidth="140"
                               SortMemberPath="OutgoingAmount">
         <DataGridTemplateColumn.CellTemplate>
           <DataTemplate>
