@@ -81,11 +81,11 @@ namespace WalletWasabi.Fluent.Helpers
 
 			int timeout = 5000;
 
-			process?.WaitForExit(timeout);
+			process.WaitForExit(timeout);
 
-			if (process?.ExitCode != 0)
+			if (process.ExitCode != 0)
 			{
-				throw new InvalidOperationException($"Couldn't add Wasabi Wallet to the Login Items. Exit code: {process?.ExitCode}");
+				throw new InvalidOperationException($"Couldn't add Wasabi Wallet to the Login Items. Exit code: {process.ExitCode}");
 			}
 		}
 	}
