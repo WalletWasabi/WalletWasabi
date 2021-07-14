@@ -295,8 +295,8 @@
                 <TextBlock Classes="monoSpaced" Text="Confirmed">
                   <i:Interaction.Behaviors>
                     <ir:AdaptiveBehavior SourceControl="{Binding $parent[DataGrid]}" x:CompileBindings="False">
-                      <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="680" ClassName="hidden"/>
-                      <ir:AdaptiveClassSetter MinWidth="680" MaxWidth="Infinity" ClassName="visible"/>
+                      <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="940" ClassName="hidden"/>
+                      <ir:AdaptiveClassSetter MinWidth="940" MaxWidth="Infinity" ClassName="visible"/>
                     </ir:AdaptiveBehavior>
                   </i:Interaction.Behaviors>
                 </TextBlock>
@@ -309,8 +309,8 @@
                 <TextBlock Classes="monoSpaced" Text="Pending">
                   <i:Interaction.Behaviors>
                     <ir:AdaptiveBehavior SourceControl="{Binding $parent[DataGrid]}" x:CompileBindings="False">
-                      <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="680" ClassName="hidden"/>
-                      <ir:AdaptiveClassSetter MinWidth="680" MaxWidth="Infinity" ClassName="visible"/>
+                      <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="940" ClassName="hidden"/>
+                      <ir:AdaptiveClassSetter MinWidth="940" MaxWidth="Infinity" ClassName="visible"/>
                     </ir:AdaptiveBehavior>
                   </i:Interaction.Behaviors>
                 </TextBlock>
