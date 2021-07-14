@@ -8,9 +8,9 @@ using NBitcoin;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tor.Http;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Models;
-using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Models;
@@ -211,7 +211,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			// Run the coinjoin client task.
 			var coinJoinTask = Task.Run(async () => await coinJoinClient.StartCoinJoinAsync(cts.Token));
 
-			var noSignatureApiClient = new SignatureDroppingClient(apiClient);
+			var noSignatureApiClient = new SignatureDroppingClient(new HttpClientWrapper(httpClient));
 			var badCoinJoinClient = new CoinJoinClient(noSignatureApiClient, badCoins, kitchen, keyManager2, roundStateUpdater);
 			var badCoinsTask = Task.Run(async () => await badCoinJoinClient.StartRoundAsync(roundState, cts.Token) );
 
@@ -313,34 +313,16 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			}
 		}
 
-		private class SignatureDroppingClient : IWabiSabiApiRequestHandler
+		private class SignatureDroppingClient : WabiSabiHttpApiClient
 		{
-			private IWabiSabiApiRequestHandler ApiClient;
-
-			public SignatureDroppingClient(IWabiSabiApiRequestHandler apiClient)
+			public SignatureDroppingClient(IHttpClient client) : base(client)
 			{
-				ApiClient = apiClient;
 			}
 
-			public async Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken)
+			public override async Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken)
 			{
 				return;
 			}
-
-			public Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
-				=> ApiClient.RegisterInputAsync(request, cancellationToken);
-			public Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken)
-				=> ApiClient.ConfirmConnectionAsync(request, cancellationToken);
-			public Task<OutputRegistrationResponse> RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
-				=> ApiClient.RegisterOutputAsync(request, cancellationToken);
-			public Task<ReissueCredentialResponse> ReissueCredentialAsync(ReissueCredentialRequest request, CancellationToken cancellationToken)
-				=> ApiClient.ReissueCredentialAsync(request, cancellationToken);
-			public Task ReadyToSign(ReadyToSignRequestRequest request, CancellationToken cancellationToken) // FIXME naming
-				=> ApiClient.ReadyToSign(request, cancellationToken);
-			public Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellationToken)
-				=> ApiClient.RemoveInputAsync(request, cancellationToken);
-			public Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken)
-				=> ApiClient.GetStatusAsync(cancellationToken);
 		}
 	}
 }
