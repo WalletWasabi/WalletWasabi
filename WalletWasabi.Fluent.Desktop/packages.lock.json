@@ -125,21 +125,21 @@
       },
       "Avalonia.Xaml.Behaviors": {
         "type": "Transitive",
-        "resolved": "0.10.6.7",
-        "contentHash": "MfYXMOXqzXsQTwBBTopRdn0X6i/Weg2GAY1IBqaWIJEvyhY7YOEGUsVil+qxcj9PhzoXiVFv7Vlh4mYUCRmnrw==",
+        "resolved": "0.10.6.8",
+        "contentHash": "b4+ZpUMO6zvC4p920oM2TdzDakVnrEHGBUVjL82POw984Gjb07eKoEcS4PpKBuZAYuWRAFHGCft37p2Jg75uOw==",
         "dependencies": {
           "Avalonia": "0.10.6",
-          "Avalonia.Xaml.Interactions": "0.10.6.7",
-          "Avalonia.Xaml.Interactivity": "0.10.6.7"
+          "Avalonia.Xaml.Interactions": "0.10.6.8",
+          "Avalonia.Xaml.Interactivity": "0.10.6.8"
         }
       },
       "Avalonia.Xaml.Interactions": {
         "type": "Transitive",
-        "resolved": "0.10.6.7",
-        "contentHash": "fcxRrrG5JZsY5j/bsx/pUgCBlSSGpASK0X1LLMO2bgDDns1Z32sldxpHHG8gnl2dXFOduCDcVj7ivMWI64s+yA==",
+        "resolved": "0.10.6.8",
+        "contentHash": "4w1Go9HZVKI7bR8Moc/5W8OLrDrrMeypyEAanu3cdohY+TlvfOf5nU/SS7Dr6que0hIxxCE8cla1Kv6adLd0WQ==",
         "dependencies": {
           "Avalonia": "0.10.6",
-          "Avalonia.Xaml.Interactivity": "0.10.6.7"
+          "Avalonia.Xaml.Interactivity": "0.10.6.8"
         }
       },
       "Avalonia.Xaml.Interactions.Custom": {
@@ -153,8 +153,8 @@
       },
       "Avalonia.Xaml.Interactivity": {
         "type": "Transitive",
-        "resolved": "0.10.6.7",
-        "contentHash": "FLZAQZ2Th0P1IEFmXqInihlC03qUOmnG5qOfu1Qd1bKRB9BB0kO/QpjPgLVZ14DpnJutJ3/P5kbE17OcYMmy0g==",
+        "resolved": "0.10.6.8",
+        "contentHash": "D7GbJUcyJegNvJPYVYm4OgWqMQv1MxFMocU6Ao67dc15oboed2rSt8qAkB+k1l4cmD3JIqSMQyaPFSXbG45HAQ==",
         "dependencies": {
           "Avalonia": "0.10.6"
         }
@@ -999,7 +999,7 @@
           "Avalonia": "0.10.999-cibuild0014678-beta",
           "Avalonia.Diagnostics": "0.10.999-cibuild0014678-beta",
           "Avalonia.ReactiveUI": "0.10.999-cibuild0014678-beta",
-          "Avalonia.Xaml.Behaviors": "0.10.6.7",
+          "Avalonia.Xaml.Behaviors": "0.10.6.8",
           "WalletWasabi": "1.0.0",
           "Wasabi Wallet": "1.0.0"
         }
