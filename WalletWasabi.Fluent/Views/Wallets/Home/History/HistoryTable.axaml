@@ -184,6 +184,12 @@
                                Items="{Binding FilteredLabel}" />
                   </Flyout>
                 </Button.Flyout>
+                <ToolTip.Tip>
+                  <Panel Width="400">
+                    <c:TagsBox IsReadOnly="True"
+                               Items="{Binding FilteredLabel}" />
+                  </Panel>
+                </ToolTip.Tip>
               </Button>
             </DockPanel>
           </DataTemplate>
