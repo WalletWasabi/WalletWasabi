@@ -11,7 +11,7 @@ namespace WalletWasabi.Fluent.Helpers
 	{
 		private const string KeyPath = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
 
-		// Arguments to add Wasabi to macOS's startup settings.
+		// Arguments to add Wasabi to macOS startup settings.
 		private static readonly string AddArguments = $"-c \"osascript -e \' tell application \\\"System Events\\\" to make new login item at end of login items with properties {{name:\\\"{nameof(WalletWasabi)}\\\", path:\\\"/Applications/WasabiWallet.app\\\",hidden:false}} \' \"";
 
 		// Arguments to delete Wasabi from macOS startup settings.
@@ -80,7 +80,7 @@ namespace WalletWasabi.Fluent.Helpers
 
 			if (process?.ExitCode != 0)
 			{
-				throw new InvalidOperationException("Couldn't add Wasabi Wallet to the Login Items.");
+				throw new InvalidOperationException($"Couldn't add Wasabi Wallet to the Login Items. Exit code: {process?.ExitCode}");
 			}
 		}
 	}
