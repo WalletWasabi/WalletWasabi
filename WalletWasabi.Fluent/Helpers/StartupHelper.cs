@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.Helpers
@@ -12,14 +13,12 @@ namespace WalletWasabi.Fluent.Helpers
 		private const string KeyPath = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
 
 		// Arguments to add Wasabi to macOS startup settings.
-		///<remarks><code>'tell application "System Events" to make new login item at end with properties {name:"WasabiWallet", path:"/Applications/WasabiWallet.app",hidden:false}} end tell'</code></remarks>
-		private static readonly string AddArguments = $"-c \"osascript -e \' tell application \\\"System Events\\\" to make new login item at end with properties {{name:\\\"WasabiWallet\\\", path:\\\"/Applications/WasabiWallet.app\\\",hidden:false}} end tell\' \"";
+		private static readonly string AddCmd = $"osascript -e \' tell application \"System Events\" to make new login item at end with properties {{name:\"WasabiWallet\", path:\"/Applications/WasabiWallet.app\",hidden:false}} \'";
 
 		// Arguments to delete Wasabi from macOS startup settings.
-		///<remarks><code>'tell application "System Events" to delete login item "WasabiWallet" end tell'</code></remarks>
-		private static readonly string DeleteArguments = $"-c \"osascript -e \' tell application \\\"System Events\\\" to delete login item \\\"WasabiWallet\\\" end tell\' \"";
+		private static readonly string DeleteCmd = "osascript -e \' tell application \"System Events\" to delete login item \"WasabiWallet\" \'";
 
-		public static void ModifyStartupSetting(bool runOnSystemStartup)
+		public async static Task ModifyStartupSettingAsync(bool runOnSystemStartup)
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
@@ -36,7 +35,7 @@ namespace WalletWasabi.Fluent.Helpers
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
-				StartOnMacStartUp(runOnSystemStartup);
+				await StartOnMacStartUpAsync(runOnSystemStartup);
 			}
 		}
 
@@ -58,36 +57,20 @@ namespace WalletWasabi.Fluent.Helpers
 			}
 		}
 
-		private static void StartOnMacStartUp(bool runOnSystemStartup)
+		private async static Task StartOnMacStartUpAsync(bool runOnSystemStartup)
 		{
 			if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
 				throw new InvalidOperationException("Running osascript can only be done on macOS.");
 			}
 
-			ProcessStartInfo processInfo = new()
+			if (runOnSystemStartup)
 			{
-				UseShellExecute = true,
-				WindowStyle = ProcessWindowStyle.Hidden,
-				FileName = "/bin/bash",
-				CreateNoWindow = false,
-				Arguments = runOnSystemStartup ? AddArguments : DeleteArguments
-			};
-
-			using Process? process = Process.Start(processInfo);
-
-			if (process is null)
-			{
-				throw new NullReferenceException("Couldn't run the osascript. Process returned null.");
+				await EnvironmentHelpers.ShellExecAsync(AddCmd);
 			}
-
-			int timeout = 5000;
-
-			process.WaitForExit(timeout);
-
-			if (process.ExitCode != 0)
+			else
 			{
-				throw new InvalidOperationException($"Couldn't add Wasabi Wallet to the Login Items. Exit code: {process.ExitCode}");
+				await EnvironmentHelpers.ShellExecAsync(DeleteCmd);
 			}
 		}
 	}

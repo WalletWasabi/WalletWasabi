@@ -62,7 +62,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				{
 					try
 					{
-						StartupHelper.ModifyStartupSetting(runOnStartup);
+						await StartupHelper.ModifyStartupSettingAsync(runOnStartup);
 						Services.UiConfig.RunOnSystemStartup = runOnStartup;
 					}
 					catch (Exception ex)
