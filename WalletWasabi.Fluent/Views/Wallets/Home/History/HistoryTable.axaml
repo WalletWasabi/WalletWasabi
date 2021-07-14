@@ -258,7 +258,7 @@
 
       <!-- Balance -->
       <DataGridTemplateColumn Header="Balance (BTC)"
-                              Width="*"
+                              Width="Auto"
                               SortMemberPath="Balance">
         <DataGridTemplateColumn.CellTemplate>
           <DataTemplate>
