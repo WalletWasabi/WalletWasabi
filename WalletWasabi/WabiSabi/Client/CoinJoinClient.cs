@@ -43,7 +43,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public KeyManager Keymanager { get; }
 		private RoundStateUpdater RoundStatusUpdater { get; }
 
-		public async Task<bool> StartCoinJoinAsync(CancellationToken cancellationToken, IEnumerable<Money>? forcedOutputDenominations = null)
+		public async Task<bool> StartCoinJoinAsync(CancellationToken cancellationToken)
 		{
 			var currentRoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cancellationToken).ConfigureAwait(false);
 
@@ -56,7 +56,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 			for (var tries = 0; tries < tryLimit; tries++)
 			{
-				if (await StartRoundAsync(currentRoundState, cancellationToken, forcedOutputDenominations))
+				if (await StartRoundAsync(currentRoundState, cancellationToken))
 				{
 					return true;
 				}
@@ -70,12 +70,12 @@ namespace WalletWasabi.WabiSabi.Client
 			return false;
 		}
 
-		public async Task<bool> StartRoundAsync(RoundState roundState, CancellationToken cancellationToken, IEnumerable<Money>? forcedOutputDenominations = null)
+		public async Task<bool> StartRoundAsync(RoundState roundState, CancellationToken cancellationToken)
 		{
 			var constructionState = roundState.Assert<ConstructionState>();
 
 			// Calculate outputs values
-			var outputValues = DecomposeAmounts(roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min, forcedOutputDenominations);
+			var outputValues = DecomposeAmounts(roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min);
 
 			// Get all locked internal keys we have and assert we have enough.
 			Keymanager.AssertLockedInternalKeysIndexed(howMany: outputValues.Count());
@@ -150,10 +150,9 @@ namespace WalletWasabi.WabiSabi.Client
 			await Task.WhenAll(registerRequests).ConfigureAwait(false);
 		}
 
-		private IEnumerable<Money> DecomposeAmounts(FeeRate feeRate, Money minimumOutputAmount, IEnumerable<Money>? forcedOutputDenominations = null)
+		private IEnumerable<Money> DecomposeAmounts(FeeRate feeRate, Money minimumOutputAmount)
 		{
-			var allDenominations = forcedOutputDenominations is null ? StandardDenomination.Values : forcedOutputDenominations;
-			GreedyDecomposer greedyDecomposer = new(allDenominations.Where(x => x >= minimumOutputAmount));
+			GreedyDecomposer greedyDecomposer = new(StandardDenomination.Values.Where(x => x >= minimumOutputAmount));
 			var sum = Coins.Sum(c => c.EffectiveValue(feeRate));
 			return greedyDecomposer.Decompose(sum, feeRate.GetFee(31));
 		}
