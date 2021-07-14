@@ -272,17 +272,39 @@
         <DataGridTemplateColumn.CellTemplate>
           <DataTemplate>
             <Panel x:DataType="history:HistoryItemViewModel">
+              <Panel.Styles>
+                <Style Selector="TextBlock.hidden">
+                  <Setter Property="IsVisible" Value="False"/>
+                </Style>
+                <Style Selector="TextBlock.visible">
+                  <Setter Property="IsVisible" Value="True"/>
+                </Style>
+              </Panel.Styles>
               <!-- Confirmed -->
               <StackPanel IsVisible="{Binding IsConfirmed}">
                 <PathIcon Data="{StaticResource checkmark_filled}"
                           Foreground="{DynamicResource SystemAccentColor}"
                           Height="11" />
-                <TextBlock Classes="monoSpaced" Text="Confirmed" />
+                <TextBlock Classes="monoSpaced" Text="Confirmed">
+                  <i:Interaction.Behaviors>
+                    <ir:AdaptiveBehavior SourceControl="{Binding $parent[DataGrid]}" x:CompileBindings="False">
+                      <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="680" ClassName="hidden"/>
+                      <ir:AdaptiveClassSetter MinWidth="680" MaxWidth="Infinity" ClassName="visible"/>
+                    </ir:AdaptiveBehavior>
+                  </i:Interaction.Behaviors>
+                </TextBlock>
               </StackPanel>
               <!-- Pending -->
               <StackPanel IsVisible="{Binding !IsConfirmed}">
                 <PathIcon Data="{StaticResource channel_regular}" Opacity="0.6" />
-                <TextBlock Classes="monoSpaced" Text="Pending" />
+                <TextBlock Classes="monoSpaced" Text="Pending">
+                  <i:Interaction.Behaviors>
+                    <ir:AdaptiveBehavior SourceControl="{Binding $parent[DataGrid]}" x:CompileBindings="False">
+                      <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="680" ClassName="hidden"/>
+                      <ir:AdaptiveClassSetter MinWidth="680" MaxWidth="Infinity" ClassName="visible"/>
+                    </ir:AdaptiveBehavior>
+                  </i:Interaction.Behaviors>
+                </TextBlock>
               </StackPanel>
             </Panel>
           </DataTemplate>
