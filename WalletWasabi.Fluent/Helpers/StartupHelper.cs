@@ -18,7 +18,7 @@ namespace WalletWasabi.Fluent.Helpers
 		// Arguments to delete Wasabi from macOS startup settings.
 		private static readonly string DeleteCmd = "osascript -e \' tell application \"System Events\" to delete login item \"WasabiWallet\" \'";
 
-		public async static Task ModifyStartupSettingAsync(bool runOnSystemStartup)
+		public static async Task ModifyStartupSettingAsync(bool runOnSystemStartup)
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
@@ -57,7 +57,7 @@ namespace WalletWasabi.Fluent.Helpers
 			}
 		}
 
-		private async static Task StartOnMacStartUpAsync(bool runOnSystemStartup)
+		private static async Task StartOnMacStartUpAsync(bool runOnSystemStartup)
 		{
 			if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
