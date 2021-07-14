@@ -24,7 +24,7 @@ namespace WalletWasabi.Packager
 		public const bool DoRestoreProgramCs = false;
 
 		public const string PfxPath = "C:\\digicert.pfx";
-		public const string ExecutableName = "wassabee";
+		public const string ExecutableName = Constants.ExecutableName;
 
 		// https://docs.microsoft.com/en-us/dotnet/articles/core/rid-catalog
 		// BOTTLENECKS:
