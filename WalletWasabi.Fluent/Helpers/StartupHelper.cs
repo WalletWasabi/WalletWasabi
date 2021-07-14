@@ -74,6 +74,11 @@ namespace WalletWasabi.Fluent.Helpers
 
 			using Process? process = Process.Start(processInfo);
 
+			if (process is null)
+			{
+				throw new NullReferenceException("Couldn't run the osascript. Process returned null.");
+			}
+
 			int timeout = 5000;
 
 			process?.WaitForExit(timeout);
