@@ -49,7 +49,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 		[Fact]
 		public async Task InvalidStatusCodeAsync()
 		{
-			var ex = await Assert.ThrowsAsync<TorControlReplyParseException>(async () => await ParseAsync("2 OK\r\n"));
+			var ex = await Assert.ThrowsAsync<TorControlReplyParseException>(async () => await ParseAsync("2 OK\r\n").ConfigureAwait(false));
 			Assert.StartsWith("Unknown status code: '2 O'", ex.Message, StringComparison.Ordinal);
 		}
 
