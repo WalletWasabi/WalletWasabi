@@ -284,7 +284,8 @@
               <StackPanel IsVisible="{Binding IsConfirmed}">
                 <PathIcon Data="{StaticResource checkmark_filled}"
                           Foreground="{DynamicResource SystemAccentColor}"
-                          Height="11" />
+                          Height="11"
+                          ToolTip.Tip="Confirmed"/>
                 <TextBlock Classes="monoSpaced" Text="Confirmed">
                   <i:Interaction.Behaviors>
                     <ir:AdaptiveBehavior SourceControl="{Binding $parent[DataGrid]}" x:CompileBindings="False">
@@ -296,7 +297,9 @@
               </StackPanel>
               <!-- Pending -->
               <StackPanel IsVisible="{Binding !IsConfirmed}">
-                <PathIcon Data="{StaticResource channel_regular}" Opacity="0.6" />
+                <PathIcon Data="{StaticResource channel_regular}"
+                          Opacity="0.6"
+                          ToolTip.Tip="Pending"/>
                 <TextBlock Classes="monoSpaced" Text="Pending">
                   <i:Interaction.Behaviors>
                     <ir:AdaptiveBehavior SourceControl="{Binding $parent[DataGrid]}" x:CompileBindings="False">
