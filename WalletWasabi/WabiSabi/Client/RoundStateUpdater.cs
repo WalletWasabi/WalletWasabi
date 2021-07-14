@@ -18,7 +18,7 @@ namespace WalletWasabi.WabiSabi.Client
 		}
 
 		private IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
-		private Dictionary<uint256, RoundState> RoundStates { get; set; } = new();
+		public Dictionary<uint256, RoundState> RoundStates { get; set; } = new();
 
 		private List<RoundStateAwaiter> Awaiters { get; } = new();
 		private object AwaitersLock { get; } = new();

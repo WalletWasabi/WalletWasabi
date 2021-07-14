@@ -27,6 +27,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 		public IRPCClient Rpc { get; }
 		public WabiSabiHttpApiClient ApiClient { get; }
 
+		public CoinJoinClient? CoinJoinClient { get; set; }
+
+		public RoundStateUpdater? RoundStateUpdater { get; set; }
+
 		public async Task InitializeAsync(int numberOfCoins, CancellationToken cancellationToken)
 		{
 			var keys = KeyManager.GetKeys().Take(numberOfCoins);
@@ -42,18 +46,25 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 		public async Task StartParticipatingAsync(CancellationToken cancellationToken)
 		{
-			using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(3), ApiClient);
-			await roundStateUpdater.StartAsync(cancellationToken).ConfigureAwait(false);
+			try
+			{
+				RoundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(3), ApiClient);
+				await RoundStateUpdater.StartAsync(cancellationToken).ConfigureAwait(false);
 
-			var kitchen = new Kitchen();
-			kitchen.Cook("");
+				var kitchen = new Kitchen();
+				kitchen.Cook("");
 
-			var coinJoinClient = new CoinJoinClient(ApiClient, Coins, kitchen, KeyManager, roundStateUpdater);
+				CoinJoinClient = new CoinJoinClient(ApiClient, Coins, kitchen, KeyManager, RoundStateUpdater);
 
-			// Run the coinjoin client task.
-			await coinJoinClient.StartCoinJoinAsync(cancellationToken).ConfigureAwait(false);
+				// Run the coinjoin client task.
+				await CoinJoinClient.StartCoinJoinAsync(cancellationToken).ConfigureAwait(false);
 
-			await roundStateUpdater.StopAsync(cancellationToken).ConfigureAwait(false);
+				await RoundStateUpdater.StopAsync(cancellationToken).ConfigureAwait(false);
+			}
+			finally
+			{
+				RoundStateUpdater?.Dispose();
+			}
 		}
 	}
 }

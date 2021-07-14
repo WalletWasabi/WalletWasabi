@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -16,16 +17,19 @@ using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Wallets;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 {
 	public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicationFactory<Startup>>
 	{
 		private readonly WabiSabiApiApplicationFactory<Startup> _apiApplicationFactory;
+		private readonly ITestOutputHelper _testOutputHelper;
 
-		public WabiSabiHttpApiIntegrationTests(WabiSabiApiApplicationFactory<Startup> apiApplicationFactory)
+		public WabiSabiHttpApiIntegrationTests(ITestOutputHelper testOutputHelper, WabiSabiApiApplicationFactory<Startup> apiApplicationFactory)
 		{
 			_apiApplicationFactory = apiApplicationFactory;
+			_testOutputHelper = testOutputHelper;
 		}
 
 		[Fact]
@@ -131,7 +135,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 		[Fact]
 		public async Task MultiClientsCoinJoinTestAsync()
 		{
-			const int NumberOfParticipants = 50;
+			const int NumberOfParticipants = 10;
 			const int NumberOfCoinsPerParticipant = 2;
 			int expectedInputNumber = NumberOfParticipants * NumberOfCoinsPerParticipant;
 
@@ -185,6 +189,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 				{
 					throw new TimeoutException("CoinJoin was not propagated.");
 				}
+
+				Debug.WriteLine(string.Join(",", participants.Select(x => x.RoundStateUpdater?.RoundStates.Values.FirstOrDefault()?.Phase.ToString() ?? "none")));
 
 				await Task.Delay(500);
 
