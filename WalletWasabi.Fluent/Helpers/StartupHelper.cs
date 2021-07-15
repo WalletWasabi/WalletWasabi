@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent.Helpers
 		private const string KeyPath = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
 
 		// Arguments to add Wasabi to macOS startup settings.
-		private static readonly string AddCmd = $"osascript -e \' tell application \"System Events\" to make new login item at end with properties {{name:\"{Constants.AppName}\", path:\"/Applications/{Constants.AppName}.app\",hidden:false}} \'";
+		private static readonly string AddCmd = $"osascript -e \' tell application \"System Events\" to make new login item at end with properties {{name:\"{Constants.AppName}\", path:\"/Applications/{Constants.AppName}.app\", hidden:false}} \'";
 
 		// Arguments to delete Wasabi from macOS startup settings.
 		private static readonly string DeleteCmd = $"osascript -e \' tell application \"System Events\" to delete login item \"{Constants.AppName}\" \'";
@@ -35,7 +35,14 @@ namespace WalletWasabi.Fluent.Helpers
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
-				await StartOnMacStartUpAsync(runOnSystemStartup);
+				if (runOnSystemStartup)
+				{
+					await EnvironmentHelpers.ShellExecAsync(AddCmd);
+				}
+				else
+				{
+					await EnvironmentHelpers.ShellExecAsync(DeleteCmd);
+				}
 			}
 		}
 
@@ -54,23 +61,6 @@ namespace WalletWasabi.Fluent.Helpers
 			else
 			{
 				key.DeleteValue(nameof(WalletWasabi), false);
-			}
-		}
-
-		private static async Task StartOnMacStartUpAsync(bool runOnSystemStartup)
-		{
-			if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-			{
-				throw new InvalidOperationException("Running osascript can only be done on macOS.");
-			}
-
-			if (runOnSystemStartup)
-			{
-				await EnvironmentHelpers.ShellExecAsync(AddCmd);
-			}
-			else
-			{
-				await EnvironmentHelpers.ShellExecAsync(DeleteCmd);
 			}
 		}
 	}
