@@ -71,8 +71,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			TestDataPointsLegend = new List<DataLegend>
 			{
-				new(privateAmount, "Private", "#72BD81", pcPrivate),
-				new(normalAmount, "Not Private", "#F9DE7D", pcNormal)
 				new(privateAmount, "Private", "#78A827", pcPrivate),
 				new(normalAmount, "Not Private", "#D8DED7", pcNormal)
 			};
