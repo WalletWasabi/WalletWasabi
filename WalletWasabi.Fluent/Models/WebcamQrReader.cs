@@ -52,6 +52,7 @@ namespace WalletWasabi.Fluent.Models
 					finally
 					{
 						camera?.Release();
+						camera?.Dispose();
 					}
 				});
 			}
