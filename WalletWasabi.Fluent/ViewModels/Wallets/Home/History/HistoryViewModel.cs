@@ -79,8 +79,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			_updateTrigger
 				.Subscribe(async _ => await UpdateAsync())
 				.DisposeWith(disposables);
-
-			disposables.Add(Disposable.Create(() => _transactionSourceList.Clear()));
 		}
 
 		private async Task UpdateAsync()
