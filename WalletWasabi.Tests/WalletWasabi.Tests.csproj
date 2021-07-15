@@ -42,6 +42,21 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Update="UnitTests\QrDecode\QrResources\AddressTest1.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="UnitTests\QrDecode\QrResources\AddressTest2.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="UnitTests\QrDecode\QrResources\qr-embed-logos.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="UnitTests\QrDecode\QrResources\QrByPhone.jpg">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="UnitTests\QrDecode\QrResources\QRwithZebraBackground.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="xunit.runner.json">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
