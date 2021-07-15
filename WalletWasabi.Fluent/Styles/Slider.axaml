@@ -6,10 +6,14 @@
     <Setter Property="BorderBrush" Value="{DynamicResource SliderThumbBorderBrushPointerOver}" />
   </Style>
   <Style Selector="Slider /template/ Thumb">
+    <Setter Property="BorderThickness" Value="0" />
     <Setter Property="RenderTransform" Value="scaleX(1) scaleY(1)" />
     <Setter Property="Transitions">
       <Transitions>
-        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:.135" Easing="{StaticResource FluentEasing}" />
+        <ThicknessTransition Property="BorderThickness" Duration="0:0:.175"
+                          Easing="{StaticResource FluentEasing}" />
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:.135"
+                                       Easing="{StaticResource FluentEasing}" />
       </Transitions>
     </Setter>
   </Style>

@@ -15,10 +15,6 @@
     <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="{DynamicResource SystemAccentColorLight1}" />
     <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="{DynamicResource SystemControlDisabledBaseLowBrush}" />
 
-    <Color x:Key="SliderTrackFill">#8093AE</Color>
-    <Color x:Key="SliderTrackFillPointerOver">#8093AE</Color>
-    <Color x:Key="SliderTrackFillPressed">#8093AE</Color>
-
     <SolidColorBrush x:Key="NavBarAccentColor">#97D234</SolidColorBrush>
     <SolidColorBrush x:Key="NavBarAccentColorPressed">#719B2A</SolidColorBrush>
     <SolidColorBrush x:Key="NavBarItemPressedAccentColor">#719B2A</SolidColorBrush>

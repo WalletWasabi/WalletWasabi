@@ -13,6 +13,10 @@
     <Color x:Key="SliderThumbBackgroundPressed">#8093AE</Color>
     <Color x:Key="SliderThumbBorderBrushPointerOver">#010D20</Color>
 
+    <Color x:Key="SliderTrackFill">#344359</Color>
+    <Color x:Key="SliderTrackFillPointerOver">#344359</Color>
+    <Color x:Key="SliderTrackFillPressed">#344359</Color>
+
     <SolidColorBrush x:Key="TextControlBackground">#1A8093AE</SolidColorBrush>
     <SolidColorBrush x:Key="TextControlBackgroundFocused">#1A8093AE</SolidColorBrush>
     <SolidColorBrush x:Key="TextControlBackgroundPointerOver">#1A8093AE</SolidColorBrush>
