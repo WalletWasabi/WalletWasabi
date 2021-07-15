@@ -51,7 +51,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private string? _payJoinEndPoint;
 		[AutoNotify] private WriteableBitmap? _qrImage;
 		[AutoNotify] private bool _isQrPanelVisible;
-		[AutoNotify] private bool _isCameraLoading;
+		[AutoNotify] private bool _isCameraLoadingAnimationVisible;
 
 		private WebcamQrReader _qrReader;
 		private bool _parsingUrl;
@@ -63,7 +63,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_transactionInfo = new TransactionInfo();
 			_labels = new ObservableCollection<string>();
 			_isQrPanelVisible = false;
-			_isCameraLoading = false;
+			_isCameraLoadingAnimationVisible = false;
 			_qrReader = new(_wallet.Network);
 			ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 			PriorLabels = new();
@@ -71,9 +71,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			Observable.FromEventPattern<WriteableBitmap>(_qrReader, nameof(_qrReader.NewImageArrived))
 				.Subscribe(args =>
 				{
-					if (IsCameraLoading == true)
+					if (IsCameraLoadingAnimationVisible == true)
 					{
-						IsCameraLoading = false;
+						IsCameraLoadingAnimationVisible = false;
 					}
 					QrImage = args.EventArgs;
 				});
@@ -131,7 +131,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				if (!_qrReader.IsRunning)
 				{
-					IsCameraLoading = true;
+					IsCameraLoadingAnimationVisible = true;
 					IsQrPanelVisible = true;
 					await _qrReader.StartScanningAsync();
 				}
