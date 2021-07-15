@@ -101,7 +101,7 @@ namespace WalletWasabi.Fluent.Models
 						}
 						if (AddressStringParser.TryParse(qrCode, Network, out _))
 						{
-							BitcoinAddressFound?.Invoke(this, qrCode);
+							CorrectAddressFound?.Invoke(this, qrCode);
 							break;
 						}
 						else
@@ -161,7 +161,7 @@ namespace WalletWasabi.Fluent.Models
 
 		public event EventHandler<WriteableBitmap>? NewImageArrived;
 
-		public event EventHandler<string>? BitcoinAddressFound;
+		public event EventHandler<string>? CorrectAddressFound;
 
 		public event EventHandler<string>? InvalidAddressFound;
 

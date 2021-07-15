@@ -78,7 +78,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					QrImage = args.EventArgs;
 				});
 
-			Observable.FromEventPattern<string>(_qrReader, nameof(_qrReader.BitcoinAddressFound))
+			Observable.FromEventPattern<string>(_qrReader, nameof(_qrReader.CorrectAddressFound))
 				.Subscribe(async args =>
 				{
 					To = args.EventArgs;
