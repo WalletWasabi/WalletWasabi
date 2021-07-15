@@ -127,14 +127,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
 			AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
-			QRCommand = ReactiveCommand.Create(() =>
+			QRCommand = ReactiveCommand.Create(async () =>
 			{
-				if (IsQrPanelVisible == false)
+				if (!_qrReader.IsRunning)
 				{
 					IsCameraLoading = true;
+					IsQrPanelVisible = true;
+					await _qrReader.StartScanningAsync();
 				}
-				IsQrPanelVisible = true;
-				_qrReader.StartScanning();
 			});
 
 			var nextCommandCanExecute =

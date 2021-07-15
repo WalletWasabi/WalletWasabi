@@ -1,8 +1,5 @@
 using Avalonia.Media.Imaging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using OpenCvSharp;
 using Avalonia;
@@ -11,24 +8,27 @@ using System.Runtime.InteropServices;
 using WalletWasabi.Logging;
 using WalletWasabi.Userfacing;
 using NBitcoin;
-using System.Threading;
+using Nito.AsyncEx;
 
 namespace WalletWasabi.Fluent.Models
 {
 	public class WebcamQrReader
 	{
+		private AsyncLock ScanningTaskLock { get; set; }
 		public bool RequestEnd { get; set; }
 		public Network Network { get; }
 		public Task? ScanningTask { get; set; }
+		public bool IsRunning => ScanningTask is not null;
 
 		public WebcamQrReader(Network network)
 		{
+			ScanningTaskLock = new();
 			Network = network;
 		}
 
-		public void StartScanning()
+		public async Task StartScanningAsync()
 		{
-			if (ScanningTask is not { })
+			using (await ScanningTaskLock.LockAsync().ConfigureAwait(false))
 			{
 				ScanningTask = Task.Run(() =>
 				{
@@ -58,12 +58,15 @@ namespace WalletWasabi.Fluent.Models
 
 		public async Task StopScanningAsync()
 		{
-			if (ScanningTask is { } task)
+			using (await ScanningTaskLock.LockAsync().ConfigureAwait(false))
 			{
-				RequestEnd = true;
-				await task;
+				if (ScanningTask is { } task)
+				{
+					RequestEnd = true;
+					await task;
 
-				ScanningTask = null;
+					ScanningTask = null;
+				}
 			}
 		}
 
