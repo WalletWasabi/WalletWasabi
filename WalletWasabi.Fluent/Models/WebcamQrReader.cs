@@ -35,6 +35,10 @@ namespace WalletWasabi.Fluent.Models
 					VideoCapture? camera = null;
 					try
 					{
+						if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+						{
+							throw new NotImplementedException("This operating system is not supported.");
+						}
 						camera = OpenCamera();
 						RequestEnd = false;
 						Scan(camera);
