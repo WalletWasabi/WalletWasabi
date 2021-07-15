@@ -82,8 +82,8 @@ namespace WalletWasabi.Fluent.Models
 				try
 				{
 					using Mat frame = new();
-					camera.Read(frame);
-					if (frame.Empty() || frame.Width == 0 || frame.Height == 0)
+					bool gotBackFrame = camera.Read(frame);
+					if (gotBackFrame || frame.Width == 0 || frame.Height == 0)
 					{
 						continue;
 					}
