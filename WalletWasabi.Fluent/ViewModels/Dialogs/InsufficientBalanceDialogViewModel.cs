@@ -18,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			AmountText = $"{btcAmountText}{fiatAmountText}";
 
 			var fee = transaction.Fee;
-			var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} satoshis ";
+			var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} sats ";
 			var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC).GenerateFiatText(usdExchangeRate, "USD");
 			FeeText = $"{btcFeeText}{fiatFeeText}";
 
