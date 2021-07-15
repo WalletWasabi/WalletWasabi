@@ -11,7 +11,7 @@
     <Color x:Key="SliderThumbBackground">#8093AE</Color>
     <Color x:Key="SliderThumbBackgroundPointerOver">#8093AE</Color>
     <Color x:Key="SliderThumbBackgroundPressed">#8093AE</Color>
-    <Color x:Key="SliderThumbBorderBrushPointerOver">#010D20</Color>
+    <Color x:Key="SliderThumbBorderBrushPointerOver">#414F67</Color>
 
     <Color x:Key="SliderTrackFill">#344359</Color>
     <Color x:Key="SliderTrackFillPointerOver">#344359</Color>
