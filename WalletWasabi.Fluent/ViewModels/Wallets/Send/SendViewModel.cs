@@ -69,6 +69,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			PriorLabels = new();
 
 			Observable.FromEventPattern<WriteableBitmap>(_qrReader, nameof(_qrReader.NewImageArrived))
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(args =>
 				{
 					if (IsCameraLoadingAnimationVisible == true)
@@ -79,6 +80,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				});
 
 			Observable.FromEventPattern<string>(_qrReader, nameof(_qrReader.CorrectAddressFound))
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(async args =>
 				{
 					To = args.EventArgs;
@@ -87,9 +89,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				});
 
 			Observable.FromEventPattern<string>(_qrReader, nameof(_qrReader.InvalidAddressFound))
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(args => To = args.EventArgs);
 
 			Observable.FromEventPattern<Exception>(_qrReader, nameof(_qrReader.ErrorOccured))
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(async args =>
 			   {
 				   IsQrPanelVisible = false;
