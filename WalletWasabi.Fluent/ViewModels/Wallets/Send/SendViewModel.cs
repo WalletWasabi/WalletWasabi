@@ -353,8 +353,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		protected override void OnNavigatedFrom(bool isInHistory)
 		{
-			RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StopScanningAsync());
-			base.OnNavigatedFrom(isInHistory);
+			try
+			{
+				RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StopScanningAsync());
+				base.OnNavigatedFrom(isInHistory);
+			}
+			catch (Exception exc)
+			{
+				Logger.LogError(exc);
+			}
 		}
 	}
 }
