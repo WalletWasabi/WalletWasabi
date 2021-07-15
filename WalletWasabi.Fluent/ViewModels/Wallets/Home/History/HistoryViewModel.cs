@@ -90,14 +90,31 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 				lock (_transactionListLock)
 				{
-					_transactionSourceList.Clear();
+					var copyList = Transactions.ToList();
+
+					foreach (HistoryItemViewModel historyItemViewModel in copyList)
+					{
+						if (txRecordList.All(x => x.TransactionId != historyItemViewModel.TransactionSummary.TransactionId))
+						{
+							_transactionSourceList.Remove(historyItemViewModel);
+						}
+					}
 
 					Money balance = Money.Zero;
 					for (var i = 0; i < txRecordList.Count; i++)
 					{
 						var transactionSummary = txRecordList[i];
 						balance += transactionSummary.Amount;
-						_transactionSourceList.Add(new HistoryItemViewModel(i, transactionSummary, _walletViewModel, balance, _updateTrigger));
+						var newItem = new HistoryItemViewModel(i, transactionSummary, _walletViewModel, balance, _updateTrigger);
+
+						if (_transactions.FirstOrDefault(x => x.TransactionSummary.TransactionId == newItem.TransactionSummary.TransactionId) is { } item)
+						{
+							item.Update(newItem);
+						}
+						else
+						{
+							_transactionSourceList.Add(newItem);
+						}
 					}
 				}
 			}
