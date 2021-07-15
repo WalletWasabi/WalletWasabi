@@ -95,7 +95,8 @@ namespace WalletWasabi.Fluent.Models
 
 					if (qRCodeDetector.Detect(frame, out Point2f[] points))
 					{
-						string qrCode = qRCodeDetector.Decode(frame, points, new Mat());
+						using Mat tmpMat = new();
+						string qrCode = qRCodeDetector.Decode(frame, points, tmpMat);
 						if (string.IsNullOrWhiteSpace(qrCode))
 						{
 							continue;
