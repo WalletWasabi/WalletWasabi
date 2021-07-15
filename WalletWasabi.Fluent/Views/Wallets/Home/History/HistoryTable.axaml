@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:history="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -123,6 +124,64 @@
               <PathIcon ToolTip.Tip="CoinJoin" Data="{StaticResource shield_regular}" Height="15" Opacity="0.6"
                         IsVisible="{Binding IsCoinJoin}" />
             </Panel>
+          </DataTemplate>
+        </DataGridTemplateColumn.CellTemplate>
+      </DataGridTemplateColumn>
+
+      <!-- Labels -->
+
+      <DataGridTemplateColumn Header="Labels"
+                              Width="*"
+                              CanUserSort="False"
+                              SortMemberPath="Label">
+        <DataGridTemplateColumn.CellTemplate>
+          <DataTemplate>
+            <DockPanel Margin="0,4,0,0" x:DataType="history:HistoryItemViewModel">
+              <DockPanel.Styles>
+                <Style Selector="Button.labelFlyout">
+                  <Setter Property="Margin" Value="0" />
+                  <Setter Property="Padding" Value="12,5,12,5" />
+                  <Setter Property="VerticalAlignment" Value="Top" />
+                  <Setter Property="HorizontalAlignment" Value="Left" />
+                  <Setter Property="MinHeight" Value="0" />
+                  <Setter Property="MinWidth" Value="38" />
+                </Style>
+                <Style Selector="Button.labelFlyout /template/ ContentPresenter">
+                  <Setter Property="Cursor" Value="Hand" />
+                  <Setter Property="BorderThickness" Value="1" />
+                  <Setter Property="BorderBrush" Value="{StaticResource TagsBoxControlForeground}" />
+                  <Setter Property="Background" Value="{DynamicResource InvisibleButtonBackgroundColor}" />
+                  <Setter Property="CornerRadius" Value="2" />
+                </Style>
+                <Style Selector="Button.labelFlyout:pointerover /template/ ContentPresenter">
+                  <Setter Property="BorderBrush" Value="{StaticResource TagsBoxControlForeground}" />
+                </Style>
+                <Style Selector="Button.labelFlyout:pressed /template/ ContentPresenter">
+                  <Setter Property="BorderBrush" Value="{StaticResource TagsBoxControlForeground}" />
+                </Style>
+                <Style Selector="Button.labelFlyout:disabled /template/ ContentPresenter">
+                  <Setter Property="BorderBrush" Value="{StaticResource TagsBoxControlForeground}" />
+                </Style>
+              </DockPanel.Styles>
+              <c:TagsBox Padding="0"
+                         Margin="0"
+                         BorderThickness="0"
+                         DockPanel.Dock="Left"
+                         IsReadOnly="True"
+                         Items="{Binding Label}"
+                         VerticalAlignment="Center" />
+              <Button Classes="labelFlyout"
+                      DockPanel.Dock="Left"
+                      IsVisible="{Binding !!FilteredLabel.Count}"
+                      Content="...">
+                <Button.Flyout>
+                  <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="TransientWithDismissOnPointerMoveAway">
+                    <c:TagsBox IsReadOnly="True"
+                               Items="{Binding FilteredLabel}" />
+                  </Flyout>
+                </Button.Flyout>
+              </Button>
+            </DockPanel>
           </DataTemplate>
         </DataGridTemplateColumn.CellTemplate>
       </DataGridTemplateColumn>
