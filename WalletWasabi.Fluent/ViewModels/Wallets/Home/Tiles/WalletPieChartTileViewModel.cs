@@ -26,8 +26,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 	public partial class WalletPieChartTileViewModel : TileViewModel
 	{
-		private readonly Wallet _wallet;
 		private readonly IObservable<Unit> _balanceChanged;
+		private readonly Wallet _wallet;
 
 		[AutoNotify] private IList<(string color, double percentShare)>? _testDataPoints;
 		[AutoNotify] private IList<DataLegend>? _testDataPointsLegend;
@@ -63,16 +63,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			var pcPrivate = (double)(privateDecimalAmount / totalDecimalAmount);
 			var pcNormal = 1 - pcPrivate;
 
-			TestDataPoints = new List<(string, double)>()
+			TestDataPoints = new List<(string, double)>
 			{
-				("#72BD81", pcPrivate),
-				("#F9DE7D", pcNormal)
+				("#78A827", pcPrivate),
+				("#D8DED7", pcNormal)
 			};
 
 			TestDataPointsLegend = new List<DataLegend>
 			{
 				new(privateAmount, "Private", "#72BD81", pcPrivate),
 				new(normalAmount, "Not Private", "#F9DE7D", pcNormal)
+				new(privateAmount, "Private", "#78A827", pcPrivate),
+				new(normalAmount, "Not Private", "#D8DED7", pcNormal)
 			};
 		}
 	}
