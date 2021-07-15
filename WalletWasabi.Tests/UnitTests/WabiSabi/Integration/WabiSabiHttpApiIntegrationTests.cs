@@ -6,6 +6,8 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using NBitcoin;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Keys;
@@ -131,12 +133,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 		[Fact]
 		public async Task MultiClientsCoinJoinTestAsync()
 		{
-			const int NumberOfParticipants = 50;
+			const int NumberOfParticipants = 20;
 			const int NumberOfCoinsPerParticipant = 2;
 			int expectedInputNumber = NumberOfParticipants * NumberOfCoinsPerParticipant;
 
-			var node = await TestNodeBuilder.CreateAsync();
-			var rpc = node.RpcClient;
+			var rpc = GetStatefullMockRpc();
 
 			var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
 			{
@@ -149,8 +150,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 					{
 						MaxRegistrableAmount = Money.Coins(500m),
 						MaxInputCountByRound = expectedInputNumber,
-						ConnectionConfirmationTimeout = TimeSpan.FromSeconds(10 * expectedInputNumber),
-						OutputRegistrationTimeout = TimeSpan.FromSeconds(15 * expectedInputNumber),
+						ConnectionConfirmationTimeout = TimeSpan.FromSeconds(20 * expectedInputNumber),
+						OutputRegistrationTimeout = TimeSpan.FromSeconds(20 * expectedInputNumber),
 					});
 				});
 			}).CreateClient();
@@ -162,7 +163,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var transactionCompleted = new TaskCompletionSource<Transaction>();
 
 			// Total test timeout.
-			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30 * expectedInputNumber));
+			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20 * expectedInputNumber));
 			cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
 
 			var participants = Enumerable
@@ -264,6 +265,74 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var response = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, signingKey, CancellationToken.None);
 
 			Assert.NotEqual(uint256.Zero, response.Value);
+		}
+
+		private IRPCClient GetStatefullMockRpc()
+		{
+			var rpc = BitcoinFactory.GetMockMinimalRpc();
+
+			var blocks = new List<Block>();
+			var mempool = new List<Transaction>();
+
+			// Declarations
+			var confirmedTransactions = blocks.SelectMany(b => b.Transactions);
+			var transactions = confirmedTransactions.Concat(mempool);
+			var coins = transactions.SelectMany(t => t.Outputs.Select(o => new Coin(t, o)));
+			var spentCoins = transactions.SelectMany(t => t.Inputs.Where(i => i.PrevOut.Hash != uint256.Zero).Select(i => coins.Single(c => c.Outpoint == i.PrevOut)));
+			var unspentCoins = coins.Except(spentCoins);
+
+			// Make the coordinator to believe that those two coins are real and
+			// that they exist in the blockchain with many confirmations.
+			rpc.OnGetTxOutAsync = (txId, idx, _) =>
+			{
+				var coin = unspentCoins.FirstOrDefault(c => (c.Outpoint.Hash, c.Outpoint.N) == (txId, idx));
+				if (coin is null)
+				{
+					return null;
+				}
+				return new()
+				{
+					Confirmations = 101,
+					IsCoinBase = false,
+					ScriptPubKeyType = "witness_v0_keyhash",
+					TxOut = coin.TxOut
+				};
+			};
+
+			rpc.OnGetBlockAsync = (blockId) =>
+				Task.FromResult(blocks.First(b => b.GetHash() == blockId));
+
+			// Make the coordinator believe that the transaction is being
+			// broadcasted using the RPC interface. Once we receive this tx
+			// (the `SendRawTransationAsync` was invoked) we stop waiting
+			// and finish the waiting tasks to finish the test successfully.
+			rpc.OnSendRawTransactionAsync = (tx) =>
+			{
+				mempool.Add(tx);
+				return tx.GetHash();
+			};
+
+			rpc.OnGenerateToAddressAsync = (n, address) =>
+			{
+				var block = Block
+					.CreateBlock(Network.Main)
+					.CreateNextBlockWithCoinbase(address, blocks.Count);
+
+				blocks.Add(block);
+				return Task.FromResult(new[] { block.GetHash() });
+			};
+
+			rpc.OnGetRawMempoolAsync = () =>
+			{
+				return Task.FromResult(mempool.Select(x => x.GetHash()).ToArray());
+			};
+
+			rpc.OnGetRawTransactionAsync = (txid, includeMempool) =>
+			{
+				return Task.FromResult(transactions.First(x => x.GetHash() == txid));
+			};
+
+			return rpc;
 		}
 
 		private class StuttererHttpClient : HttpClientWrapper
