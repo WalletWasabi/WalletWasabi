@@ -7,9 +7,11 @@
   <Style Selector="Slider /template/ Thumb">
     <Setter Property="Transitions">
       <Transitions>
-        <ThicknessTransition Property="BorderThickness" Duration="0:0:.175"
-                          Easing="{StaticResource FluentEasing}" />
-        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:.135"
+        <ThicknessTransition Property="BorderThickness"
+                             Duration="0:0:.175"
+                             Easing="{StaticResource FluentEasing}" />
+        <TransformOperationsTransition Property="RenderTransform"
+                                       Duration="0:0:.135"
                                        Easing="{StaticResource FluentEasing}" />
       </Transitions>
     </Setter>
