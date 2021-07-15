@@ -34,7 +34,7 @@ namespace WalletWasabi.Packager
 			var workingDir = Path.Combine(desktopPath, "wasabiTemp");
 			var dmgPath = Path.Combine(workingDir, "dmg");
 			var unzippedPath = Path.Combine(workingDir, "unzipped");
-			var appName = Constants.AppName;
+			var appName = $"{Constants.AppName}.app";
 			var appPath = Path.Combine(dmgPath, appName);
 			var appContentsPath = Path.Combine(appPath, "Contents");
 			var appMacOsPath = Path.Combine(appContentsPath, "MacOS");
