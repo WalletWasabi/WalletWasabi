@@ -76,8 +76,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		{
 			base.OnActivated(disposables);
 
-			RxApp.MainThreadScheduler.Schedule(async () => await UpdateAsync());
-
 			_updateTrigger
 				.Subscribe(async _ => await UpdateAsync())
 				.DisposeWith(disposables);
