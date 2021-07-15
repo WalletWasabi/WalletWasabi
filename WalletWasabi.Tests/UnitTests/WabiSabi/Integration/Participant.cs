@@ -29,12 +29,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 		public async Task InitializeAsync(int numberOfCoins, CancellationToken cancellationToken)
 		{
-			var keys = KeyManager.GetKeys().Take(numberOfCoins);
+			var keys = KeyManager.GetKeys().Take(numberOfCoins).ToArray();
 			foreach (var key in keys)
 			{
 				cancellationToken.ThrowIfCancellationRequested();
-				var blockIds = await Rpc.GenerateToAddressAsync(1, key.GetP2wpkhAddress(Rpc.Network));
-				var block = await Rpc.GetBlockAsync(blockIds.First());
+				var blockIds = await Rpc.GenerateToAddressAsync(1, key.GetP2wpkhAddress(Rpc.Network)).ConfigureAwait(false);
+				var block = await Rpc.GetBlockAsync(blockIds.First()).ConfigureAwait(false);
 				var coin = block.Transactions[0].Outputs.GetCoins(key.P2wpkhScript).First();
 				Coins.Add(coin);
 			}
