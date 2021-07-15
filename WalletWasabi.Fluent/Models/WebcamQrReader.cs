@@ -14,6 +14,7 @@ namespace WalletWasabi.Fluent.Models
 {
 	public class WebcamQrReader
 	{
+		private const byte DefaultCameraId = 0;
 		private AsyncLock ScanningTaskLock { get; set; }
 		public bool RequestEnd { get; set; }
 		public Network Network { get; }
@@ -122,7 +123,7 @@ namespace WalletWasabi.Fluent.Models
 		private VideoCapture OpenCamera()
 		{
 			VideoCapture camera = new();
-			if (!camera.Open(0))
+			if (!camera.Open(DefaultCameraId))
 			{
 				throw new InvalidOperationException("Could not open webcam.");
 			}
