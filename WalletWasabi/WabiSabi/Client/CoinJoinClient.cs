@@ -42,50 +42,52 @@ namespace WalletWasabi.WabiSabi.Client
 		public Kitchen Kitchen { get; }
 		public KeyManager Keymanager { get; }
 		private RoundStateUpdater RoundStatusUpdater { get; }
+		public RoundState? RoundState { get; private set; }
 
 		public async Task StartCoinJoinAsync(CancellationToken cancellationToken, IEnumerable<Money>? forcedOutputDenominations = null)
 		{
-			var roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cancellationToken).ConfigureAwait(false);
-			var constructionState = roundState.Assert<ConstructionState>();
+			RoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cancellationToken).ConfigureAwait(false);
+			var constructionState = RoundState.Assert<ConstructionState>();
 
 			// Calculate outputs values
-			var outputValues = DecomposeAmounts(roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min, forcedOutputDenominations);
+			var outputValues = DecomposeAmounts(RoundState.FeeRate, RoundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min, forcedOutputDenominations);
 
 			// Get all locked internal keys we have and assert we have enough.
 			Keymanager.AssertLockedInternalKeysIndexed(howMany: outputValues.Count());
 			var allLockedInternalKeys = Keymanager.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked);
 			var outputTxOuts = outputValues.Zip(allLockedInternalKeys, (amount, hdPubKey) => new TxOut(amount, hdPubKey.P2wpkhScript));
 
-			List<AliceClient> aliceClients = CreateAliceClients(roundState);
-			DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(aliceClients.Select(a => a.Coin), outputTxOuts, roundState.FeeRate, roundState.MaxVsizeAllocationPerAlice);
+			List<AliceClient> aliceClients = CreateAliceClients(RoundState);
+			DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(aliceClients.Select(a => a.Coin), outputTxOuts, RoundState.FeeRate, RoundState.MaxVsizeAllocationPerAlice);
 			DependencyGraphResolver dgr = new(dependencyGraph);
 
 			// Register coins.
 			await RegisterCoinsAsync(aliceClients, cancellationToken).ConfigureAwait(false);
 
+			RoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.ConnectionConfirmation, cancellationToken).ConfigureAwait(false);
 			// Confirm coins.
-			await dgr.StartConfirmConnectionsAsync(aliceClients, dependencyGraph, roundState.ConnectionConfirmationTimeout, cancellationToken).ConfigureAwait(false);
+			await dgr.StartConfirmConnectionsAsync(aliceClients, dependencyGraph, RoundState.ConnectionConfirmationTimeout, cancellationToken).ConfigureAwait(false);
 
 			// Re-issuances.
-			var bobClient = CreateBobClient(roundState);
+			var bobClient = CreateBobClient(RoundState);
 			await dgr.StartReissuancesAsync(aliceClients, bobClient, cancellationToken).ConfigureAwait(false);
 
 			// Output registration.
-			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
+			RoundState = await RoundStatusUpdater.CreateRoundAwaiter(RoundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
 			await dgr.StartOutputRegistrationsAsync(outputTxOuts, bobClient, cancellationToken).ConfigureAwait(false);
 
 			// ReadyToSign.
 			await ReadyToSignAsync(aliceClients, cancellationToken).ConfigureAwait(false);
 
 			// Signing.
-			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
-			var signingState = roundState.Assert<SigningState>();
+			RoundState = await RoundStatusUpdater.CreateRoundAwaiter(RoundState.Id, rs => rs.Phase == Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
+			var signingState = RoundState.Assert<SigningState>();
 			var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
 
 			// Sanity check.
 			if (!SanityCheck(outputTxOuts, unsignedCoinJoin))
 			{
-				throw new InvalidOperationException($"Round ({roundState.Id}): My output is missing.");
+				throw new InvalidOperationException($"Round ({RoundState.Id}): My output is missing.");
 			}
 
 			// Send signature.

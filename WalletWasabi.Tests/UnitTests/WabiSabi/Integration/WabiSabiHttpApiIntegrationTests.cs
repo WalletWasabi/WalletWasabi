@@ -19,17 +19,17 @@ using WalletWasabi.Wallets;
 using Xunit;
 using Xunit.Abstractions;
 
+[assembly: CollectionBehavior(MaxParallelThreads = -1)]
+
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 {
 	public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicationFactory<Startup>>
 	{
 		private readonly WabiSabiApiApplicationFactory<Startup> _apiApplicationFactory;
-		private readonly ITestOutputHelper _testOutputHelper;
 
-		public WabiSabiHttpApiIntegrationTests(ITestOutputHelper testOutputHelper, WabiSabiApiApplicationFactory<Startup> apiApplicationFactory)
+		public WabiSabiHttpApiIntegrationTests(WabiSabiApiApplicationFactory<Startup> apiApplicationFactory)
 		{
 			_apiApplicationFactory = apiApplicationFactory;
-			_testOutputHelper = testOutputHelper;
 		}
 
 		[Fact]
@@ -135,7 +135,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 		[Fact]
 		public async Task MultiClientsCoinJoinTestAsync()
 		{
-			const int NumberOfParticipants = 10;
+			const int NumberOfParticipants = 100;
 			const int NumberOfCoinsPerParticipant = 2;
 			int expectedInputNumber = NumberOfParticipants * NumberOfCoinsPerParticipant;
 
@@ -151,10 +151,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 					services.AddScoped<IRPCClient>(s => rpc);
 					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig
 					{
-						MaxRegistrableAmount = Money.Coins(500m),
+						MaxRegistrableAmount = Money.Coins(50000m),
 						MaxInputCountByRound = expectedInputNumber,
-						ConnectionConfirmationTimeout = TimeSpan.FromSeconds(10 * expectedInputNumber),
-						OutputRegistrationTimeout = TimeSpan.FromSeconds(15 * expectedInputNumber),
+						ConnectionConfirmationTimeout = TimeSpan.FromMinutes(10),
+						OutputRegistrationTimeout = TimeSpan.FromMinutes(10),
 					});
 				});
 			}).CreateClient();
@@ -163,10 +163,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
 
 			// At the end of the test a coinjoin transaction has to be created and broadcasted.
-			var transactionCompleted = new TaskCompletionSource<Transaction>();
+			var transactionCompleted = new TaskCompletionSource<Transaction>(TaskCreationOptions.RunContinuationsAsynchronously);
 
 			// Total test timeout.
-			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30 * expectedInputNumber));
+			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
 			cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
 
 			var participants = Enumerable
@@ -183,21 +183,30 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 			var tasks = participants.Select(x => x.StartParticipatingAsync(cts.Token)).ToArray();
 
-			while ((await rpc.GetRawMempoolAsync()).Length == 0)
+			while (participants.FirstOrDefault()?.CoinJoinClient?.RoundState?.Phase is not WalletWasabi.WabiSabi.Backend.Rounds.Phase.TransactionBroadcasting)
 			{
 				if (cts.IsCancellationRequested)
 				{
 					throw new TimeoutException("CoinJoin was not propagated.");
 				}
 
-				Debug.WriteLine(string.Join(",", participants.Select(x => x.RoundStateUpdater?.RoundStates.Values.FirstOrDefault()?.Phase.ToString() ?? "none")));
+				Debug.WriteLine(string.Join(",", participants.GroupBy(p => p.CoinJoinClient?.RoundState?.Phase.ToString()).Select(x => $"Phase: {(string.IsNullOrEmpty(x.Key) ? "none" : x.Key)}: {x.Count()}")));
 
-				await Task.Delay(500);
+				await Task.Delay(1000);
 
 				if (tasks.FirstOrDefault(t => t.IsFaulted)?.Exception is { } exc)
 				{
 					throw exc;
 				}
+			}
+
+			while ((await rpc.GetRawMempoolAsync()).Length == 0)
+			{
+				if (cts.IsCancellationRequested)
+				{
+					throw new TimeoutException("CoinJoin was not propagated.");
+				}
+				await Task.Delay(1000);
 			}
 			var mempool = await rpc.GetRawMempoolAsync();
 			var coinjoin = await rpc.GetRawTransactionAsync(mempool.Single());

@@ -48,7 +48,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 		{
 			try
 			{
-				RoundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(3), ApiClient);
+				RoundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(10), ApiClient);
 				await RoundStateUpdater.StartAsync(cancellationToken).ConfigureAwait(false);
 
 				var kitchen = new Kitchen();
