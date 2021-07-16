@@ -160,12 +160,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			// Create the API client
 			var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
 
-			// At the end of the test a coinjoin transaction has to be created and broadcasted.
-			var transactionCompleted = new TaskCompletionSource<Transaction>();
-
 			// Total test timeout.
 			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20 * expectedInputNumber));
-			cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
 
 			var participants = Enumerable
 				.Range(0, NumberOfParticipants)
