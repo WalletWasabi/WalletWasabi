@@ -44,7 +44,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			AddressText = info.Address.ToString();
 
 			var fee = transaction.Fee;
-			var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} satoshis ";
+			var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} sats ";
 			var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC).GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
 			FeeText = $"{btcFeeText}{fiatFeeText}";
 
