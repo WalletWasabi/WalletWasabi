@@ -56,7 +56,7 @@ namespace WalletWasabi.Fluent.Helpers
 		public static double YIntersectionBetween(StraightLineFormula f, StraightLineFormula g)
 		{
 			StraightLineFormula tempA = (f * g.M) - (g * f.M);
-			tempA = tempA / tempA.Y;
+			tempA /= tempA.Y;
 			return tempA.C;
 		}
 
