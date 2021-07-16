@@ -52,23 +52,18 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 		public static InputRegistrationResponse RegisterInput(
 			WabiSabiConfig config,
 			uint256 roundId,
-			Coin coin,
-			OwnershipProof ownershipProof,
+			Alice alice,
 			ZeroCredentialsRequest zeroAmountCredentialRequests,
-			ZeroCredentialsRequest zeroVsizeCredentialRequests,
-			IEnumerable<Round> rounds)
+			ZeroCredentialsRequest zeroVsizeCredentialRequests)
 		{
-			if (rounds.FirstOrDefault(x => x.Id == roundId) is not Round round)
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
-			}
+			var round = alice.Round;
 
 			if (round.IsInputRegistrationEnded(config.MaxInputCountByRound, config.GetInputRegistrationTimeout(round)))
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
 			}
 
-			if (round.IsBlameRound && !round.BlameWhitelist.Contains(coin.Outpoint))
+			if (round.IsBlameRound && !round.BlameWhitelist.Contains(alice.Coin.Outpoint))
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputNotWhitelisted);
 			}
@@ -76,15 +71,13 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			// Compute but don't commit updated CoinJoin to round state, it will
 			// be re-calculated on input confirmation. This is computed it here
 			// for validation purposes.
-			round.Assert<ConstructionState>().AddInput(coin);
+			round.Assert<ConstructionState>().AddInput(alice.Coin);
 
 			var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", round.Id);
-			if (!OwnershipProof.VerifyCoinJoinInputProof(ownershipProof, coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
+			if (!OwnershipProof.VerifyCoinJoinInputProof(alice.OwnershipProof, alice.Coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
 			}
-
-			var alice = new Alice(coin, ownershipProof, round);
 
 			if (alice.TotalInputAmount < round.MinRegistrableAmount)
 			{

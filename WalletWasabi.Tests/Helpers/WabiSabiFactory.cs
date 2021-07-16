@@ -107,6 +107,7 @@ namespace WalletWasabi.Tests.Helpers
 				arena.Rounds.Add(round);
 			}
 			await arena.StartAsync(CancellationToken.None).ConfigureAwait(false);
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(10));
 			return arena;
 		}
 

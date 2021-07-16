@@ -53,6 +53,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			await aliceClient.RegisterInputAsync(CancellationToken.None);
 
 			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), wabiSabiApi);
+
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
+
 			Task confirmationTask = aliceClient.ConfirmConnectionAsync(
 				TimeSpan.FromSeconds(1),
 				new long[] { coin1.EffectiveValue(round.FeeRate) },
@@ -60,9 +63,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				roundStateUpdater,
 				CancellationToken.None);
 
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 			await confirmationTask;
-			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 			Assert.Equal(Phase.OutputRegistration, round.Phase);

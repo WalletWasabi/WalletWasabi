@@ -1,4 +1,5 @@
 using NBitcoin;
+using Nito.AsyncEx;
 using System;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.StrobeProtocol;
@@ -18,6 +19,7 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		}
 
 		public Round Round { get; }
+		public AsyncLock AsyncLock { get; } = new();
 		public uint256 Id { get; }
 		public DateTimeOffset Deadline { get; set; } = DateTimeOffset.UtcNow;
 		public Coin Coin { get; }
