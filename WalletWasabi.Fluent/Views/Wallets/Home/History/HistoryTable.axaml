@@ -286,12 +286,12 @@
                           Height="11"
                           ToolTip.Tip="Confirmed"/>
                 <TextBlock Classes="monoSpaced" Text="Confirmed">
-                  <i:Interaction.Behaviors>
+                  <!--<i:Interaction.Behaviors>
                     <ir:AdaptiveBehavior SourceControl="{Binding $parent[DataGrid]}" x:CompileBindings="False">
                       <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="940" ClassName="hidden"/>
                       <ir:AdaptiveClassSetter MinWidth="940" MaxWidth="Infinity" ClassName="visible"/>
                     </ir:AdaptiveBehavior>
-                  </i:Interaction.Behaviors>
+                  </i:Interaction.Behaviors>-->
                 </TextBlock>
               </StackPanel>
               <!-- Pending -->
@@ -300,12 +300,12 @@
                           Opacity="0.6"
                           ToolTip.Tip="Pending"/>
                 <TextBlock Classes="monoSpaced" Text="Pending">
-                  <i:Interaction.Behaviors>
+                  <!--<i:Interaction.Behaviors>
                     <ir:AdaptiveBehavior SourceControl="{Binding $parent[DataGrid]}" x:CompileBindings="False">
                       <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="940" ClassName="hidden"/>
                       <ir:AdaptiveClassSetter MinWidth="940" MaxWidth="Infinity" ClassName="visible"/>
                     </ir:AdaptiveBehavior>
-                  </i:Interaction.Behaviors>
+                  </i:Interaction.Behaviors>-->
                 </TextBlock>
               </StackPanel>
             </Panel>
