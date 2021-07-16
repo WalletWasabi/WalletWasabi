@@ -204,7 +204,7 @@
       <!-- Incoming -->
       <DataGridTemplateColumn Header="Incoming (BTC)"
                               Width="*"
-                              MinWidth="90"
+                              MinWidth="160"
                               MaxWidth="170"
                               SortMemberPath="IncomingAmount">
         <DataGridTemplateColumn.CellTemplate>
@@ -231,7 +231,7 @@
       <!-- Outgoing -->
       <DataGridTemplateColumn Header="Outgoing (BTC)"
                               Width="*"
-                              MinWidth="90"
+                              MinWidth="160"
                               MaxWidth="170"
                               SortMemberPath="OutgoingAmount">
         <DataGridTemplateColumn.CellTemplate>
@@ -273,7 +273,7 @@
       <!-- Status -->
       <DataGridTemplateColumn Header="Status"
                               Width="*"
-                              MinWidth="80"
+                              MinWidth="100"
                               MaxWidth="120"
                               SortMemberPath="IsConfirmed">
         <DataGridTemplateColumn.CellTemplate>
