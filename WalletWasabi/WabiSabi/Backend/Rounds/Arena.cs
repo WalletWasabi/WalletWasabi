@@ -360,7 +360,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
 			}
 
-			var coin = await InputRegistrationHandler.OutpointToCoinAsync(request, Prison, Rpc, Config, cancellationToken).ConfigureAwait(false);
+			var coin = await OutpointToCoinAsync(request, cancellationToken).ConfigureAwait(false);
 
 			var alice = new Alice(coin, request.OwnershipProof, round);
 
@@ -369,38 +369,122 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			using (await alice.AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
 				var otherAlice = AlicesByOutpoint.GetOrAdd(coin.Outpoint, alice);
-
 				if (otherAlice != alice)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
 				}
 
-				using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
-				{
-					try
-					{
-						var response = InputRegistrationHandler.RegisterInput(
-							Config,
-							request.RoundId,
-							alice,
-							request.ZeroAmountCredentialRequests,
-							request.ZeroVsizeCredentialRequests);
+				var inputRegistered = false;
 
-						// Now that alice is in the round, make it available by id.
-						if (!AlicesById.TryAdd(alice.Id, alice))
+				try
+				{
+					using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+					{
+						if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.GetInputRegistrationTimeout(round)))
 						{
-							throw new InvalidOperationException($"Alice {alice.Id} already exists.");
+							throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
 						}
 
-						return response;
+						if (round.IsBlameRound && !round.BlameWhitelist.Contains(alice.Coin.Outpoint))
+						{
+							throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputNotWhitelisted);
+						}
 					}
-					catch
+
+					// Compute but don't commit updated CoinJoin to round state, it will
+					// be re-calculated on input confirmation. This is computed it here
+					// for validation purposes.
+					_ = round.Assert<ConstructionState>().AddInput(alice.Coin);
+
+					var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", round.Id);
+					if (!OwnershipProof.VerifyCoinJoinInputProof(alice.OwnershipProof, alice.Coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
+					{
+						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
+					}
+
+					if (alice.TotalInputAmount < round.MinRegistrableAmount)
+					{
+						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds);
+					}
+					if (alice.TotalInputAmount > round.MaxRegistrableAmount)
+					{
+						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
+					}
+
+					if (alice.TotalInputVsize > round.MaxVsizeAllocationPerAlice)
+					{
+						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchVsize);
+					}
+
+					if (round.RemainingInputVsizeAllocation < round.MaxVsizeAllocationPerAlice)
+					{
+						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.VsizeQuotaExceeded);
+					}
+
+					var zeroAmountCredentialRequests = request.ZeroAmountCredentialRequests;
+					var zeroVsizeCredentialRequests = request.ZeroVsizeCredentialRequests;
+
+					var commitAmountCredentialResponse = round.AmountCredentialIssuer.PrepareResponse(zeroAmountCredentialRequests);
+					var commitVsizeCredentialResponse = round.VsizeCredentialIssuer.PrepareResponse(zeroVsizeCredentialRequests);
+
+					using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+					{
+						// Check that everything is the same
+						if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.GetInputRegistrationTimeout(round)))
+						{
+							throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
+						}
+
+						alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeout);
+						round.Alices.Add(alice);
+					}
+
+					// Now that alice is in the round, make it available by id.
+					if (!AlicesById.TryAdd(alice.Id, alice))
+					{
+						throw new InvalidOperationException($"Alice {alice.Id} already exists.");
+					}
+
+					inputRegistered = true;
+
+					return new(alice.Id,
+							   commitAmountCredentialResponse.Commit(),
+							   commitVsizeCredentialResponse.Commit());
+				}
+				finally
+				{
+					if (!inputRegistered)
 					{
 						AlicesByOutpoint.Remove(coin.Outpoint, out _);
-						throw;
 					}
 				}
 			}
+		}
+
+		private async Task<Coin> OutpointToCoinAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
+		{
+			OutPoint input = request.Input;
+
+			if (Prison.TryGet(input, out var inmate) && (!Config.AllowNotedInputRegistration || inmate.Punishment != Punishment.Noted))
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned);
+			}
+
+			var txOutResponse = await Rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true).ConfigureAwait(false);
+			if (txOutResponse is null)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputSpent);
+			}
+			if (txOutResponse.Confirmations == 0)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputUnconfirmed);
+			}
+			if (txOutResponse.IsCoinBase && txOutResponse.Confirmations <= 100)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputImmature);
+			}
+
+			return new Coin(input, txOutResponse.TxOut);
 		}
 
 		public async Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken)
