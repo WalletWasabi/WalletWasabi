@@ -13,7 +13,6 @@ namespace WalletWasabi.Tests.Helpers
 		public HttpClientWrapper(HttpClient httpClient)
 		{
 			_httpClient = httpClient;
-			_httpClient.Timeout = TimeSpan.FromMinutes(2);
 		}
 
 		public Func<Uri>? BaseUriGetter => ()=> _httpClient.BaseAddress;

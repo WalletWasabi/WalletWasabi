@@ -34,6 +34,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			return host;
 		}
 
+		protected override void ConfigureClient(HttpClient client)
+		{
+			client.Timeout = TimeSpan.FromMinutes(10);
+		}
+
 		protected override IHostBuilder CreateHostBuilder()
 		{
 			var builder = Host.CreateDefaultBuilder().ConfigureWebHostDefaults(x =>
