@@ -196,6 +196,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 			Assert.True(coinjoin.Outputs.Count >= expectedInputNumber);
 			Assert.True(coinjoin.Inputs.Count == expectedInputNumber);
+			await node.TryStopAsync();
 		}
 
 		[Fact]
