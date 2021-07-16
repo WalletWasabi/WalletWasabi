@@ -192,6 +192,7 @@
                 <ToolTip.Tip>
                   <Panel>
                     <c:TagsBox IsReadOnly="True"
+                               Margin="4,6,0,0"
                                Items="{Binding FilteredLabel}" />
                   </Panel>
                 </ToolTip.Tip>
