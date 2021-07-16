@@ -137,7 +137,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			const int NumberOfCoinsPerParticipant = 2;
 			int expectedInputNumber = NumberOfParticipants * NumberOfCoinsPerParticipant;
 
-			var rpc = GetStatefullMockRpc();
+			var node = await TestNodeBuilder.CreateForHeavyConcurrencyAsync();
+			var rpc = node.RpcClient;
 
 			var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
 			{
