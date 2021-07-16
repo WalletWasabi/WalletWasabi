@@ -138,65 +138,71 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			int expectedInputNumber = NumberOfParticipants * NumberOfCoinsPerParticipant;
 
 			var node = await TestNodeBuilder.CreateForHeavyConcurrencyAsync();
-			var rpc = node.RpcClient;
-
-			var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
+			try
 			{
-				builder.ConfigureServices(services =>
+				var rpc = node.RpcClient;
+
+				var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
 				{
-					// Instruct the coodinator DI container to use these two scoped
-					// services to build everything (wabisabi controller, arena, etc)
-					services.AddScoped<IRPCClient>(s => rpc);
-					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig
+					builder.ConfigureServices(services =>
 					{
-						MaxRegistrableAmount = Money.Coins(500m),
-						MaxInputCountByRound = expectedInputNumber,
-						ConnectionConfirmationTimeout = TimeSpan.FromSeconds(20 * expectedInputNumber),
-						OutputRegistrationTimeout = TimeSpan.FromSeconds(20 * expectedInputNumber),
+						// Instruct the coodinator DI container to use these two scoped
+						// services to build everything (wabisabi controller, arena, etc)
+						services.AddScoped<IRPCClient>(s => rpc);
+						services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig
+						{
+							MaxRegistrableAmount = Money.Coins(500m),
+							MaxInputCountByRound = expectedInputNumber,
+							ConnectionConfirmationTimeout = TimeSpan.FromSeconds(20 * expectedInputNumber),
+							OutputRegistrationTimeout = TimeSpan.FromSeconds(20 * expectedInputNumber),
+						});
 					});
-				});
-			}).CreateClient();
+				}).CreateClient();
 
-			// Create the API client
-			var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
+				// Create the API client
+				var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
 
-			// Total test timeout.
-			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20 * expectedInputNumber));
+				// Total test timeout.
+				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20 * expectedInputNumber));
 
-			var participants = Enumerable
-				.Range(0, NumberOfParticipants)
-				.Select(_ => new Participant(rpc, apiClient))
-				.ToArray();
+				var participants = Enumerable
+					.Range(0, NumberOfParticipants)
+					.Select(_ => new Participant(rpc, apiClient))
+					.ToArray();
 
-			foreach (var participant in participants)
-			{
-				await participant.InitializeAsync(NumberOfCoinsPerParticipant, cts.Token);
-			}
-			using var dummyKey = new Key();
-			await rpc.GenerateToAddressAsync(101, dummyKey.PubKey.GetAddress(ScriptPubKeyType.Segwit, rpc.Network));
-
-			var tasks = participants.Select(x => x.StartParticipatingAsync(cts.Token)).ToArray();
-
-			while ((await rpc.GetRawMempoolAsync()).Length == 0)
-			{
-				if (cts.IsCancellationRequested)
+				foreach (var participant in participants)
 				{
-					throw new TimeoutException("CoinJoin was not propagated.");
+					await participant.InitializeAsync(NumberOfCoinsPerParticipant, cts.Token);
 				}
+				using var dummyKey = new Key();
+				await rpc.GenerateToAddressAsync(101, dummyKey.PubKey.GetAddress(ScriptPubKeyType.Segwit, rpc.Network));
 
-				await Task.Delay(500);
+				var tasks = participants.Select(x => x.StartParticipatingAsync(cts.Token)).ToArray();
 
-				if (tasks.FirstOrDefault(t => t.IsFaulted)?.Exception is { } exc)
+				while ((await rpc.GetRawMempoolAsync()).Length == 0)
 				{
-					throw exc;
-				}
-			}
-			var mempool = await rpc.GetRawMempoolAsync();
-			var coinjoin = await rpc.GetRawTransactionAsync(mempool.Single());
+					if (cts.IsCancellationRequested)
+					{
+						throw new TimeoutException("CoinJoin was not propagated.");
+					}
 
-			Assert.True(coinjoin.Outputs.Count >= expectedInputNumber);
-			Assert.True(coinjoin.Inputs.Count == expectedInputNumber);
-			await node.TryStopAsync();
+					await Task.Delay(500);
+
+					if (tasks.FirstOrDefault(t => t.IsFaulted)?.Exception is { } exc)
+					{
+						throw exc;
+					}
+				}
+				var mempool = await rpc.GetRawMempoolAsync();
+				var coinjoin = await rpc.GetRawTransactionAsync(mempool.Single());
+
+				Assert.True(coinjoin.Outputs.Count >= expectedInputNumber);
+				Assert.True(coinjoin.Inputs.Count == expectedInputNumber);
+			}
+			finally
+			{
+				await node.TryStopAsync();
+			}
 		}
 
 		[Fact]
