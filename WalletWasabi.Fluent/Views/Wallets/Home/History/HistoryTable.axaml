@@ -190,7 +190,7 @@
                   </Flyout>
                 </Button.Flyout>
                 <ToolTip.Tip>
-                  <Panel Width="400">
+                  <Panel>
                     <c:TagsBox IsReadOnly="True"
                                Items="{Binding FilteredLabel}" />
                   </Panel>
