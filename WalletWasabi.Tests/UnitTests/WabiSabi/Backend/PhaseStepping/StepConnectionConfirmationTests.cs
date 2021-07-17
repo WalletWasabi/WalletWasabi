@@ -31,7 +31,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.Equal(Phase.OutputRegistration, round.Phase);
+			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
