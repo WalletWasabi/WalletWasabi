@@ -16,17 +16,26 @@ namespace WalletWasabi.Fluent.Models
 	public class WebcamQrReader
 	{
 		private const byte DefaultCameraId = 0;
-		private AsyncLock ScanningTaskLock { get; set; }
-		public bool RequestEnd { get; set; }
-		public Network Network { get; }
-		public Task? ScanningTask { get; set; }
-		public bool IsRunning => ScanningTask is not null;
 
 		public WebcamQrReader(Network network)
 		{
 			ScanningTaskLock = new();
 			Network = network;
 		}
+
+		public event EventHandler<WriteableBitmap>? NewImageArrived;
+
+		public event EventHandler<string>? CorrectAddressFound;
+
+		public event EventHandler<string>? InvalidAddressFound;
+
+		public event EventHandler<Exception>? ErrorOccured;
+
+		private AsyncLock ScanningTaskLock { get; set; }
+		public bool RequestEnd { get; set; }
+		public Network Network { get; }
+		public Task? ScanningTask { get; set; }
+		public bool IsRunning => ScanningTask is not null;
 
 		public async Task StartScanningAsync()
 		{
@@ -159,13 +168,5 @@ namespace WalletWasabi.Fluent.Models
 			}
 			return writeableBitmap;
 		}
-
-		public event EventHandler<WriteableBitmap>? NewImageArrived;
-
-		public event EventHandler<string>? CorrectAddressFound;
-
-		public event EventHandler<string>? InvalidAddressFound;
-
-		public event EventHandler<Exception>? ErrorOccured;
 	}
 }
