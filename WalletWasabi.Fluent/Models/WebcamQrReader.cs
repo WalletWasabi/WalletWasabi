@@ -9,6 +9,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Userfacing;
 using NBitcoin;
 using Nito.AsyncEx;
+using Avalonia.Platform;
 
 namespace WalletWasabi.Fluent.Models
 {
@@ -136,9 +137,7 @@ namespace WalletWasabi.Fluent.Models
 		{
 			PixelSize pixelSize = new(frame.Width, frame.Height);
 			Vector dpi = new(96, 96);
-			Avalonia.Platform.PixelFormat pixelFormat = Avalonia.Platform.PixelFormat.Rgba8888;
-			Avalonia.Platform.AlphaFormat alphaFormat = Avalonia.Platform.AlphaFormat.Unpremul;
-			var writeableBitmap = new WriteableBitmap(pixelSize, dpi, pixelFormat, alphaFormat);
+			var writeableBitmap = new WriteableBitmap(pixelSize, dpi, PixelFormat.Rgba8888, AlphaFormat.Unpremul);
 
 			using (var fb = writeableBitmap.Lock())
 			{
