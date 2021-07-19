@@ -34,7 +34,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 
 			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
-			var resp = await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, key, CancellationToken.None).ConfigureAwait(false);
+			var resp = await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, key, CancellationToken.None);
 			AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);
 
 			await arena.StopAsync(CancellationToken.None);
