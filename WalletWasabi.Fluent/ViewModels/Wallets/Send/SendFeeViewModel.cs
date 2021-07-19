@@ -30,12 +30,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	{
 		private readonly Wallet _wallet;
 		private readonly TransactionInfo _transactionInfo;
-		[AutoNotify] private double[]? _confirmationTargets;
-		[AutoNotify] private double[]? _yAxisValues;
-		[AutoNotify] private string[] _confirmationTargetLabels;
-		[AutoNotify] private double _currentConfirmationTarget = 36;
-		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMinimum = 0;
-		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMaximum = 9;
+		[AutoNotify] private double[]? _confirmationTargetValues;
+		[AutoNotify] private double[]? _satoshiPerByteValues;
+		[AutoNotify] private string[]? _confirmationTargetLabels;
+		[AutoNotify] private double _currentConfirmationTarget;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMinimum;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMaximum;
 		[AutoNotify] private int _sliderValue;
 		private bool _updatingCurrentValue;
 		private FeeRate _feeRate;
@@ -46,7 +46,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_wallet = wallet;
 			_transactionInfo = transactionInfo;
 
+			_sliderMinimum = 0;
+			_sliderMaximum = 9;
+			_currentConfirmationTarget = 36;
 			_lastConfirmationTarget = _currentConfirmationTarget;
+			_feeRate = new FeeRate(GetSatoshiPerByte(_lastConfirmationTarget));
 
 			this.WhenAnyValue(x => x.CurrentConfirmationTarget)
 				.Subscribe(x =>
@@ -179,9 +183,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			if (!_updatingCurrentValue)
 			{
 				_updatingCurrentValue = true;
-				if (_confirmationTargets is not null)
+				if (_confirmationTargetValues is not null)
 				{
-					SliderValue = GetSliderValue(xAxisCurrentValue, _confirmationTargets);
+					SliderValue = GetSliderValue(xAxisCurrentValue, _confirmationTargetValues);
 				}
 
 				_updatingCurrentValue = false;
@@ -190,13 +194,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void SetXAxisCurrentValue(int sliderValue)
 		{
-			if (_confirmationTargets is not null)
+			if (_confirmationTargetValues is not null)
 			{
 				if (!_updatingCurrentValue)
 				{
 					_updatingCurrentValue = true;
-					var index = _confirmationTargets.Length - sliderValue - 1;
-					CurrentConfirmationTarget = _confirmationTargets[index];
+					var index = _confirmationTargetValues.Length - sliderValue - 1;
+					CurrentConfirmationTarget = _confirmationTargetValues[index];
 					_updatingCurrentValue = false;
 				}
 			}
@@ -205,8 +209,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private void UpdateFeeEstimates(Dictionary<int, int> feeEstimates)
 		{
 			string[] confirmationTargetLabels;
-			double[] confirmationTargets;
-			double[] yAxisValues;
+			double[] confirmationTargetValues;
+			double[] satoshiPerByteValues;
 
 			if (_wallet.Network != Network.TestNet)
 			{
@@ -218,26 +222,26 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				var xs = feeEstimates.Select(x => (double)x.Key).ToArray();
 				var ys = feeEstimates.Select(x => (double)x.Value).ToArray();
 #if true
-				GetSmoothValuesSubdivide(xs, ys, out var ts, out var xts);
-				confirmationTargets = ts.ToArray();
-				yAxisValues = xts.ToArray();
+				GetSmoothValuesSubdivide(xs, ys, out var xts, out var yts);
+				confirmationTargetValues = xts.ToArray();
+				satoshiPerByteValues = yts.ToArray();
 #else
-				confirmationTargets = xs.Reverse().ToArray();
-				yAxisValues = ys.Reverse().ToArray();
+				confirmationTargetValues = xs.Reverse().ToArray();
+				satoshiPerByteValues = ys.Reverse().ToArray();
 #endif
 				confirmationTargetLabels = labels;
 			}
 			else
 			{
 #if true
-				GetSmoothValuesSubdivide(TestNetXAxisValues, TestNetYAxisValues, out var ts, out var xts);
-				confirmationTargets = ts.ToArray();
-				yAxisValues = xts.ToArray();
+				GetSmoothValuesSubdivide(TestNetConfirmationTargetValues, TestNetSatoshiPerByteValues, out var xts, out var yts);
+				confirmationTargetValues = xts.ToArray();
+				satoshiPerByteValues = yts.ToArray();
 #else
-				confirmationTargets = xs.Reverse().ToArray();
-				yAxisValues = ys.Reverse().ToArray();
+				confirmationTargetValues = TestNetConfirmationTargetValues.Reverse().ToArray();
+				satoshiPerByteValues = TestNetSatoshiPerByteValues.Reverse().ToArray();
 #endif
-				var labels = TestNetXAxisValues.Select(x => x)
+				var labels = TestNetConfirmationTargetValues.Select(x => x)
 					.Select(x => FeeTargetTimeConverter.Convert((int)x, "m", "h", "h", "d", "d"))
 					.Reverse()
 					.ToArray();
@@ -246,16 +250,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			_updatingCurrentValue = true;
 			ConfirmationTargetLabels = confirmationTargetLabels;
-			ConfirmationTargets = confirmationTargets;
-			YAxisValues = yAxisValues;
+			ConfirmationTargetValues = confirmationTargetValues;
+			SatoshiPerByteValues = satoshiPerByteValues;
 			SliderMinimum = 0;
-			SliderMaximum = confirmationTargets.Length - 1;
-			CurrentConfirmationTarget = Math.Clamp(CurrentConfirmationTarget, ConfirmationTargets.Min(), ConfirmationTargets.Max());
-			SliderValue = GetSliderValue(CurrentConfirmationTarget, ConfirmationTargets);
+			SliderMaximum = confirmationTargetValues.Length - 1;
+			CurrentConfirmationTarget = Math.Clamp(CurrentConfirmationTarget, ConfirmationTargetValues.Min(), ConfirmationTargetValues.Max());
+			SliderValue = GetSliderValue(CurrentConfirmationTarget, ConfirmationTargetValues);
 			_updatingCurrentValue = false;
 		}
 
-		private static readonly double[] TestNetXAxisValues =
+		private static readonly double[] TestNetConfirmationTargetValues =
 		{
 			1,
 			2,
@@ -269,7 +273,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			1008
 		};
 
-		private static readonly double[] TestNetYAxisValues =
+		private static readonly double[] TestNetSatoshiPerByteValues =
 		{
 			185,
 			123,
@@ -283,13 +287,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			4
 		};
 
-		private int GetSliderValue(double xAxisCurrentValue, double[] xAxisValues)
+		private int GetSliderValue(double x, double[] xs)
 		{
-			for (var i = 0; i < xAxisValues.Length; i++)
+			for (var i = 0; i < xs.Length; i++)
 			{
-				if (xAxisValues[i] <= xAxisCurrentValue)
+				if (xs[i] <= x)
 				{
-					var index = xAxisValues.Length - i - 1;
+					var index = xs.Length - i - 1;
 					return index;
 				}
 			}
@@ -348,32 +352,32 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private decimal GetSatoshiPerByte(double t)
 		{
-			if (_confirmationTargets is { } && _yAxisValues is { })
+			if (_confirmationTargetValues is { } && _satoshiPerByteValues is { })
 			{
-				var confirmationTargetsReversed = _confirmationTargets.Reverse().ToArray();
-				var y = _yAxisValues.Reverse().ToArray();
+				var xs = _confirmationTargetValues.Reverse().ToArray();
+				var ys = _satoshiPerByteValues.Reverse().ToArray();
 
-				if (confirmationTargetsReversed.Length > 2)
+				if (xs.Length > 2)
 				{
-					var spline = CubicSpline.InterpolatePchipSorted(confirmationTargetsReversed, y);
+					var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
 					var interpolated = (decimal) spline.Interpolate(t);
-					return Math.Clamp(interpolated, (decimal) y[^1], (decimal) y[0]);
+					return Math.Clamp(interpolated, (decimal) ys[^1], (decimal) ys[0]);
 				}
 
-				if (confirmationTargetsReversed.Length == 2)
+				if (xs.Length == 2)
 				{
-					if (confirmationTargetsReversed[1] - confirmationTargetsReversed[0] == 0.0)
+					if (xs[1] - xs[0] == 0.0)
 					{
-						return (decimal) y[0];
+						return (decimal) ys[0];
 					}
-					var slope = (y[1] - y[0]) / (confirmationTargetsReversed[1] - confirmationTargetsReversed[0]);
-					var interpolated = (decimal)(y[0] + (t - confirmationTargetsReversed[0]) * slope);
-					return Math.Clamp(interpolated, (decimal) y[^1], (decimal) y[0]);
+					var slope = (ys[1] - ys[0]) / (xs[1] - xs[0]);
+					var interpolated = (decimal)(ys[0] + (t - xs[0]) * slope);
+					return Math.Clamp(interpolated, (decimal) ys[^1], (decimal) ys[0]);
 				}
 
-				if (confirmationTargetsReversed.Length == 1)
+				if (xs.Length == 1)
 				{
-					return (decimal)y[0];
+					return (decimal)ys[0];
 				}
 			}
 

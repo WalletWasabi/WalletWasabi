@@ -137,9 +137,9 @@
               Value="{Binding SliderValue}" />
       <c:LineChart Classes="cursor border xAxisLabels yAxis yAxisTitle area"
                    XAxisLabels="{Binding ConfirmationTargetLabels}"
-                   XAxisValues="{Binding ConfirmationTargets}"
+                   XAxisValues="{Binding ConfirmationTargetValues}"
                    XAxisCurrentValue="{Binding CurrentConfirmationTarget, Mode=TwoWay}"
-                   YAxisValues="{Binding YAxisValues}">
+                   YAxisValues="{Binding SatoshiPerByteValues}">
         <c:LineChart.Styles>
           <Style Selector="c|LineChart">
             <Setter Property="XAxisPlotMode" Value="EvenlySpaced"/>
