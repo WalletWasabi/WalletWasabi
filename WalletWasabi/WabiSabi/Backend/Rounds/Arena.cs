@@ -175,7 +175,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 						// Broadcasting.
 						await Rpc.SendRawTransactionAsync(coinjoin).ConfigureAwait(false);
-						round.IsTransactionBroadcasted = true;
+						round.WasTransactionBroadcast = true;
 						round.SetPhase(Phase.Ended);
 
 						round.LogInfo($"Successfully broadcast the CoinJoin: {coinjoin.GetHash()}.");
@@ -275,7 +275,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			var coin = await InputRegistrationHandler.OutpointToCoinAsync(request, Prison, Rpc, Config).ConfigureAwait(false);
 			using (await AsyncLock.LockAsync().ConfigureAwait(false))
 			{
-				var registeredCoins = Rounds.Where(x => !(x.Phase == Phase.Ended && !x.IsTransactionBroadcasted)).SelectMany(r => r.Alices.Select(a => a.Coin));
+				var registeredCoins = Rounds.Where(x => !(x.Phase == Phase.Ended && !x.WasTransactionBroadcast)).SelectMany(r => r.Alices.Select(a => a.Coin));
 
 				if (registeredCoins.Any(x => x.Outpoint == coin.Outpoint))
 				{

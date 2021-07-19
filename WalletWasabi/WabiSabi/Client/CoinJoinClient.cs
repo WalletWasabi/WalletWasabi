@@ -119,7 +119,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 			var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundState.Id && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
 
-			return finalRoundState.IsTransactionBroadcasted;
+			return finalRoundState.WasTransactionBroadcast;
 		}
 
 		private List<AliceClient> CreateAliceClients(RoundState roundState)

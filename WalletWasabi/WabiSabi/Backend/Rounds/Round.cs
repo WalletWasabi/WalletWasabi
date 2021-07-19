@@ -62,7 +62,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public DateTimeOffset OutputRegistrationStart { get; private set; }
 		public DateTimeOffset TransactionSigningStart { get; private set; }
 		public DateTimeOffset End { get; private set; }
-		public bool IsTransactionBroadcasted { get; set; }
+		public bool WasTransactionBroadcast { get; set; }
 		public int InitialInputVsizeAllocation { get; internal set; }
 		public int RemainingInputVsizeAllocation => InitialInputVsizeAllocation - InputCount * MaxVsizeAllocationPerAlice;
 

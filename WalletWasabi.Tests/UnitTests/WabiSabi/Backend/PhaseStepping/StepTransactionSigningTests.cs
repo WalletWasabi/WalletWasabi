@@ -84,7 +84,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.DoesNotContain(round, arena.ActiveRounds);
 			Assert.Equal(Phase.Ended, round.Phase);
-			Assert.False(round.IsTransactionBroadcasted);
+			Assert.False(round.WasTransactionBroadcast);
 			Assert.Empty(arena.Prison.GetInmates());
 
 			await arena.StopAsync(CancellationToken.None);
@@ -124,7 +124,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.DoesNotContain(round, arena.ActiveRounds);
 			Assert.Equal(Phase.Ended, round.Phase);
-			Assert.False(round.IsTransactionBroadcasted);
+			Assert.False(round.WasTransactionBroadcast);
 
 			// There should be no inmate, because we aren't punishing spenders with banning
 			// as there's no reason to ban already spent UTXOs,
@@ -167,7 +167,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.DoesNotContain(round, arena.ActiveRounds);
 			Assert.Equal(Phase.Ended, round.Phase);
-			Assert.False(round.IsTransactionBroadcasted);
+			Assert.False(round.WasTransactionBroadcast);
 			Assert.Empty(arena.Rounds.Where(x => x.IsBlameRound));
 			Assert.Contains(aliceClient2.Coin.Outpoint, arena.Prison.GetInmates().Select(x => x.Utxo));
 
