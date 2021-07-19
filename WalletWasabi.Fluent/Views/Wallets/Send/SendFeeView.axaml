@@ -132,6 +132,8 @@
               DockPanel.Dock="Bottom"
               Classes="cursor"
               Focusable="True"
+              IsSnapToTickEnabled="True"
+              TickFrequency="1"
               Minimum="{Binding SliderMinimum}"
               Maximum="{Binding SliderMaximum}"
               Value="{Binding SliderValue}" />
