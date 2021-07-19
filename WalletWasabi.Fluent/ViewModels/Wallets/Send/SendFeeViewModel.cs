@@ -352,11 +352,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			xts.Reverse();
 		}
 
-		private static double Interpolate(double from, double to, double t)
-		{
-			return from + (to - from) * t;
-		}
-
 		private decimal GetYAxisValueFromXAxisCurrentValue(double xValue)
 		{
 			if (_xAxisValues is { } && _yAxisValues is { })
@@ -371,12 +366,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					var interpolated = (decimal) spline.Interpolate(t);
 					return Math.Clamp(interpolated, (decimal) y[^1], (decimal) y[0]);
 				}
-				else if (x.Length == 2)
+
+				if (x.Length == 2)
 				{
-					var interpolated = (decimal) Interpolate(y[1], y[0], t);
+					if (x[1] - x[0] == 0.0)
+					{
+						return (decimal) y[0];
+					}
+					var slope = (y[1] - y[0]) / (x[1] - x[0]);
+					var interpolated = (decimal)(y[0] + (xValue - x[0]) * slope);
 					return Math.Clamp(interpolated, (decimal) y[^1], (decimal) y[0]);
 				}
-				else if (x.Length == 1)
+
+				if (x.Length == 1)
 				{
 					return (decimal)y[0];
 				}
