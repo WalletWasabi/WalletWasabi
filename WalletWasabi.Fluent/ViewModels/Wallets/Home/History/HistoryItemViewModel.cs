@@ -5,16 +5,18 @@ using System.Reactive;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 {
-	public class HistoryItemViewModel : ViewModelBase
+	public partial class HistoryItemViewModel : ViewModelBase
 	{
-		private bool _isSelected;
+		[AutoNotify] private bool _isSelected;
+		[AutoNotify] private bool _isConfirmed;
+		[AutoNotify] private int _orderIndex;
+		[AutoNotify] private DateTimeOffset _date;
 
 		public HistoryItemViewModel(int orderIndex, TransactionSummary transactionSummary, WalletViewModel walletViewModel, Money balance, IObservable<Unit> updateTrigger)
 		{
@@ -23,9 +25,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			IsCoinJoin = transactionSummary.IsLikelyCoinJoinOutput;
 			OrderIndex = orderIndex;
 			Balance = balance;
-			var wallet = walletViewModel.Wallet;
 
-			var confirmations = transactionSummary.Height.Type == HeightType.Chain ? (int)wallet.BitcoinStore.SmartHeaderChain.TipHeight - transactionSummary.Height.Value + 1 : 0;
+			var confirmations = transactionSummary.Height.Type == HeightType.Chain ? (int) Services.BitcoinStore.SmartHeaderChain.TipHeight - transactionSummary.Height.Value + 1 : 0;
 			IsConfirmed = confirmations > 0;
 
 			var amount = transactionSummary.Amount;
@@ -41,20 +42,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			Label = transactionSummary.Label.Take(1).ToList();
 			FilteredLabel = transactionSummary.Label.Skip(1).ToList();
 
-			ShowDetailsCommand = ReactiveCommand.Create(() => RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(new TransactionDetailsViewModel(transactionSummary, wallet, updateTrigger)));
+			ShowDetailsCommand = ReactiveCommand.Create(() => RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(new TransactionDetailsViewModel(transactionSummary, walletViewModel.Wallet, updateTrigger)));
 		}
 
 		public ICommand ShowDetailsCommand { get; }
 
 		public TransactionSummary TransactionSummary { get; }
 
-		public int OrderIndex { get; }
-
 		public Money Balance { get; set; }
-
-		public DateTimeOffset Date { get; set; }
-
-		public bool IsConfirmed { get; }
 
 		public Money? IncomingAmount { get; }
 
@@ -66,10 +61,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 		public bool IsCoinJoin { get; }
 
-		public bool IsSelected
+		public void Update(HistoryItemViewModel item)
 		{
-			get => _isSelected;
-			set => this.RaiseAndSetIfChanged(ref _isSelected, value);
+			OrderIndex = item.OrderIndex;
+			Date = item.TransactionSummary.DateTime.ToLocalTime();
+			var confirmations = item.TransactionSummary.Height.Type == HeightType.Chain ? (int) Services.BitcoinStore.SmartHeaderChain.TipHeight - item.TransactionSummary.Height.Value + 1 : 0;
+			IsConfirmed = confirmations > 0;
 		}
 	}
 }

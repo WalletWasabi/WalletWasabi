@@ -41,7 +41,7 @@
             <Separator />
             <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
                            Text="for an additional charge of"
-                           Content="{Binding FeeText, FallbackValue=235 satoshis (≈55.34 USD)}" />
+                           Content="{Binding FeeText, FallbackValue=235 sats (≈55.34 USD)}" />
         </StackPanel>
     </c:ContentArea>
 </UserControl>
