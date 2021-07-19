@@ -132,9 +132,9 @@
               DockPanel.Dock="Bottom"
               Classes="cursor"
               Focusable="True"
-              Minimum="{Binding XAxisMinValue}"
-              Maximum="{Binding XAxisMaxValue}"
-              Value="{Binding XAxisCurrentValueIndex}" />
+              Minimum="{Binding SliderMinimum}"
+              Maximum="{Binding SliderMaximum}"
+              Value="{Binding SliderValue}" />
       <c:LineChart Classes="cursor border xAxisLabels yAxis yAxisTitle area"
                    XAxisLabels="{Binding XAxisLabels}"
                    XAxisValues="{Binding XAxisValues}"

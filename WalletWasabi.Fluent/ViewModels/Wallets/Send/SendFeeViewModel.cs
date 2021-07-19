@@ -35,13 +35,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private double[] _yAxisValues;
 		[AutoNotify] private string[] _xAxisLabels;
 		[AutoNotify] private double _xAxisCurrentValue = 36;
-		[AutoNotify] private int _xAxisCurrentValueIndex;
-
-		[AutoNotify(SetterModifier = AccessModifier.Private)]
-		private int _xAxisMinValue = 0;
-
-		[AutoNotify(SetterModifier = AccessModifier.Private)]
-		private int _xAxisMaxValue = 9;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMinimum = 0;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMaximum = 9;
+		[AutoNotify] private int _sliderValue;
 
 		private bool _updatingCurrentValue;
 		private FeeRate _feeRate;
@@ -64,7 +60,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					}
 				});
 
-			this.WhenAnyValue(x => x.XAxisCurrentValueIndex)
+			this.WhenAnyValue(x => x.SliderValue)
 				.Subscribe(SetXAxisCurrentValue);
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
@@ -187,21 +183,21 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				_updatingCurrentValue = true;
 				if (_xAxisValues is not null)
 				{
-					XAxisCurrentValueIndex = GetCurrentValueIndex(xAxisCurrentValue, _xAxisValues);
+					SliderValue = GetCurrentValueIndex(xAxisCurrentValue, _xAxisValues);
 				}
 
 				_updatingCurrentValue = false;
 			}
 		}
 
-		private void SetXAxisCurrentValue(int xAxisCurrentValueIndex)
+		private void SetXAxisCurrentValue(int sliderValue)
 		{
 			if (_xAxisValues is not null)
 			{
 				if (!_updatingCurrentValue)
 				{
 					_updatingCurrentValue = true;
-					var index = _xAxisValues.Length - xAxisCurrentValueIndex - 1;
+					var index = _xAxisValues.Length - sliderValue - 1;
 					XAxisCurrentValue = _xAxisValues[index];
 					_updatingCurrentValue = false;
 				}
@@ -254,10 +250,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			XAxisLabels = xAxisLabels;
 			XAxisValues = xAxisValues;
 			YAxisValues = yAxisValues;
-			XAxisMinValue = 0;
-			XAxisMaxValue = xAxisValues.Length - 1;
-			XAxisCurrentValue = Math.Clamp(XAxisCurrentValue, XAxisMinValue, XAxisMaxValue);
-			XAxisCurrentValueIndex = GetCurrentValueIndex(XAxisCurrentValue, XAxisValues);
+			SliderMinimum = 0;
+			SliderMaximum = xAxisValues.Length - 1;
+			XAxisCurrentValue = Math.Clamp(XAxisCurrentValue, XAxisValues.Min(), XAxisValues.Max());
+			SliderValue = GetCurrentValueIndex(XAxisCurrentValue, XAxisValues);
 			_updatingCurrentValue = false;
 		}
 
@@ -384,7 +380,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				}
 			}
 
-			return XAxisMaxValue;
+			return SliderMaximum;
 		}
 	}
 }
