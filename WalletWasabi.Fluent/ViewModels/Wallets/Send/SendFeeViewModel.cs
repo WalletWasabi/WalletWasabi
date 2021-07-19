@@ -208,7 +208,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			double[] confirmationTargets;
 			double[] yAxisValues;
 
-			if (_wallet.Network == Network.TestNet)
+			if (_wallet.Network != Network.TestNet)
 			{
 				var labels = feeEstimates.Select(x => x.Key)
 					.Select(x => FeeTargetTimeConverter.Convert(x, "m", "h", "h", "d", "d"))
