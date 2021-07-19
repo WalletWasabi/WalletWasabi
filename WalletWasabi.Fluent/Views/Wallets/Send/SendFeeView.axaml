@@ -3,8 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -136,8 +135,7 @@
               Minimum="{Binding XAxisMinValue}"
               Maximum="{Binding XAxisMaxValue}"
               Value="{Binding XAxisCurrentValueIndex}" />
-      <c:LineChart x:Name="GradientLineChart"
-                   Classes="cursor border xAxisLabels yAxis yAxisTitle area"
+      <c:LineChart Classes="cursor border xAxisLabels yAxis yAxisTitle area"
                    XAxisLabels="{Binding XAxisLabels}"
                    XAxisValues="{Binding XAxisValues}"
                    XAxisCurrentValue="{Binding XAxisCurrentValue, Mode=TwoWay}"
@@ -163,12 +161,9 @@
           </Style>
         </c:LineChart.Styles>
         <i:Interaction.Behaviors>
-          <ia:DataTriggerBehavior Binding="{Binding #GradientLineChart.Bounds.Width}" ComparisonCondition="LessThan" Value="550">
-            <behaviors:AddClassAction StyledElement="{Binding #GradientLineChart}" ClassName="narrow" RemoveIfExists="True"/>
-          </ia:DataTriggerBehavior>
-          <ia:DataTriggerBehavior Binding="{Binding #GradientLineChart.Bounds.Width}" ComparisonCondition="GreaterThanOrEqual" Value="550">
-            <behaviors:RemoveClassAction StyledElement="{Binding #GradientLineChart}" ClassName="narrow"/>
-          </ia:DataTriggerBehavior>
+          <ir:AdaptiveBehavior>
+            <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="550" ClassName="narrow"/>
+          </ir:AdaptiveBehavior>
         </i:Interaction.Behaviors>
       </c:LineChart>
     </DockPanel>

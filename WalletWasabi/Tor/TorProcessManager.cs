@@ -132,7 +132,7 @@ namespace WalletWasabi.Tor
 				}
 				catch (OperationCanceledException ex)
 				{
-					Logger.LogDebug("User canceled operation.", ex);
+					Logger.LogDebug("User canceled operation.");
 					setNewTcs = false;
 					break;
 				}
