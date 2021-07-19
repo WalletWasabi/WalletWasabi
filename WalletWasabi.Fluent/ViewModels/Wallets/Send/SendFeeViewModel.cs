@@ -30,33 +30,31 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	{
 		private readonly Wallet _wallet;
 		private readonly TransactionInfo _transactionInfo;
-
-		[AutoNotify] private double[] _xAxisValues;
-		[AutoNotify] private double[] _yAxisValues;
-		[AutoNotify] private string[] _xAxisLabels;
-		[AutoNotify] private double _xAxisCurrentValue = 36;
+		[AutoNotify] private double[]? _confirmationTargets;
+		[AutoNotify] private double[]? _yAxisValues;
+		[AutoNotify] private string[] _confirmationTargetLabels;
+		[AutoNotify] private double _currentConfirmationTarget = 36;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMinimum = 0;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMaximum = 9;
 		[AutoNotify] private int _sliderValue;
-
 		private bool _updatingCurrentValue;
 		private FeeRate _feeRate;
-		private double _lastXAxisCurrentValue;
+		private double _lastConfirmationTarget;
 
 		public SendFeeViewModel(Wallet wallet, TransactionInfo transactionInfo)
 		{
 			_wallet = wallet;
 			_transactionInfo = transactionInfo;
 
-			_lastXAxisCurrentValue = _xAxisCurrentValue;
+			_lastConfirmationTarget = _currentConfirmationTarget;
 
-			this.WhenAnyValue(x => x.XAxisCurrentValue)
+			this.WhenAnyValue(x => x.CurrentConfirmationTarget)
 				.Subscribe(x =>
 				{
 					if (x > 0)
 					{
-						_feeRate = new FeeRate(GetYAxisValueFromXAxisCurrentValue(x));
-						SetXAxisCurrentValueIndex(x);
+						_feeRate = new FeeRate(GetSatoshiPerByte(x));
+						SetSliderValue(x);
 					}
 				});
 
@@ -65,8 +63,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				_lastXAxisCurrentValue = XAxisCurrentValue;
-				_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(_lastXAxisCurrentValue);
+				_lastConfirmationTarget = CurrentConfirmationTarget;
+				_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(_lastConfirmationTarget);
 
 				await OnNextAsync();
 			});
@@ -176,14 +174,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return time;
 		}
 
-		private void SetXAxisCurrentValueIndex(double xAxisCurrentValue)
+		private void SetSliderValue(double xAxisCurrentValue)
 		{
 			if (!_updatingCurrentValue)
 			{
 				_updatingCurrentValue = true;
-				if (_xAxisValues is not null)
+				if (_confirmationTargets is not null)
 				{
-					SliderValue = GetCurrentValueIndex(xAxisCurrentValue, _xAxisValues);
+					SliderValue = GetSliderValue(xAxisCurrentValue, _confirmationTargets);
 				}
 
 				_updatingCurrentValue = false;
@@ -192,13 +190,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void SetXAxisCurrentValue(int sliderValue)
 		{
-			if (_xAxisValues is not null)
+			if (_confirmationTargets is not null)
 			{
 				if (!_updatingCurrentValue)
 				{
 					_updatingCurrentValue = true;
-					var index = _xAxisValues.Length - sliderValue - 1;
-					XAxisCurrentValue = _xAxisValues[index];
+					var index = _confirmationTargets.Length - sliderValue - 1;
+					CurrentConfirmationTarget = _confirmationTargets[index];
 					_updatingCurrentValue = false;
 				}
 			}
@@ -206,11 +204,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void UpdateFeeEstimates(Dictionary<int, int> feeEstimates)
 		{
-			string[] xAxisLabels;
-			double[] xAxisValues;
+			string[] confirmationTargetLabels;
+			double[] confirmationTargets;
 			double[] yAxisValues;
 
-			if (_wallet.Network != Network.TestNet)
+			if (_wallet.Network == Network.TestNet)
 			{
 				var labels = feeEstimates.Select(x => x.Key)
 					.Select(x => FeeTargetTimeConverter.Convert(x, "m", "h", "h", "d", "d"))
@@ -221,39 +219,39 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				var ys = feeEstimates.Select(x => (double)x.Value).ToArray();
 #if true
 				GetSmoothValuesSubdivide(xs, ys, out var ts, out var xts);
-				xAxisValues = ts.ToArray();
+				confirmationTargets = ts.ToArray();
 				yAxisValues = xts.ToArray();
 #else
-				xAxisValues = xs.Reverse().ToArray();
+				confirmationTargets = xs.Reverse().ToArray();
 				yAxisValues = ys.Reverse().ToArray();
 #endif
-				xAxisLabels = labels;
+				confirmationTargetLabels = labels;
 			}
 			else
 			{
 #if true
 				GetSmoothValuesSubdivide(TestNetXAxisValues, TestNetYAxisValues, out var ts, out var xts);
-				xAxisValues = ts.ToArray();
+				confirmationTargets = ts.ToArray();
 				yAxisValues = xts.ToArray();
 #else
-				xAxisValues = xs.Reverse().ToArray();
+				confirmationTargets = xs.Reverse().ToArray();
 				yAxisValues = ys.Reverse().ToArray();
 #endif
 				var labels = TestNetXAxisValues.Select(x => x)
 					.Select(x => FeeTargetTimeConverter.Convert((int)x, "m", "h", "h", "d", "d"))
 					.Reverse()
 					.ToArray();
-				xAxisLabels = labels;
+				confirmationTargetLabels = labels;
 			}
 
 			_updatingCurrentValue = true;
-			XAxisLabels = xAxisLabels;
-			XAxisValues = xAxisValues;
+			ConfirmationTargetLabels = confirmationTargetLabels;
+			ConfirmationTargets = confirmationTargets;
 			YAxisValues = yAxisValues;
 			SliderMinimum = 0;
-			SliderMaximum = xAxisValues.Length - 1;
-			XAxisCurrentValue = Math.Clamp(XAxisCurrentValue, XAxisValues.Min(), XAxisValues.Max());
-			SliderValue = GetCurrentValueIndex(XAxisCurrentValue, XAxisValues);
+			SliderMaximum = confirmationTargets.Length - 1;
+			CurrentConfirmationTarget = Math.Clamp(CurrentConfirmationTarget, ConfirmationTargets.Min(), ConfirmationTargets.Max());
+			SliderValue = GetSliderValue(CurrentConfirmationTarget, ConfirmationTargets);
 			_updatingCurrentValue = false;
 		}
 
@@ -285,7 +283,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			4
 		};
 
-		private int GetCurrentValueIndex(double xAxisCurrentValue, double[] xAxisValues)
+		private int GetSliderValue(double xAxisCurrentValue, double[] xAxisValues)
 		{
 			for (var i = 0; i < xAxisValues.Length; i++)
 			{
@@ -299,12 +297,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return 0;
 		}
 
-		private void GetSmoothValuesSubdivide(double[] xs, double[] ys, out List<double> ts, out List<double> xts)
+		private void GetSmoothValuesSubdivide(double[] xs, double[] ys, out List<double> xts, out List<double> yts)
 		{
 			const int Divisions = 256;
 
-			ts = new List<double>();
 			xts = new List<double>();
+			yts = new List<double>();
 
 			if (xs.Length > 2)
 			{
@@ -317,64 +315,63 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					var range = b - a;
 					var step = range / Divisions;
 
-					var t0 = xs[i];
-					ts.Add(t0);
-					var xt0 = spline.Interpolate(xs[i]);
-					xts.Add(xt0);
+					var x0 = xs[i];
+					xts.Add(x0);
+					var yt0 = spline.Interpolate(xs[i]);
+					yts.Add(yt0);
 
-					for (var t = a + step; t < b; t += step)
+					for (var xt = a + step; xt < b; xt += step)
 					{
-						var xt = spline.Interpolate(t);
-						ts.Add(t);
+						var yt = spline.Interpolate(xt);
 						xts.Add(xt);
+						yts.Add(yt);
 					}
 				}
 
-				var tn = xs[^1];
-				ts.Add(tn);
-				var xtn = spline.Interpolate(xs[^1]);
-				xts.Add(xtn);
+				var xn = xs[^1];
+				xts.Add(xn);
+				var yn = spline.Interpolate(xs[^1]);
+				yts.Add(yn);
 			}
 			else
 			{
 				for (var i = 0; i < xs.Length; i++)
 				{
-					ts.Add(xs[i]);
-					xts.Add(ys[i]);
+					xts.Add(xs[i]);
+					yts.Add(ys[i]);
 				}
 			}
 
-			ts.Reverse();
 			xts.Reverse();
+			yts.Reverse();
 		}
 
-		private decimal GetYAxisValueFromXAxisCurrentValue(double xValue)
+		private decimal GetSatoshiPerByte(double t)
 		{
-			if (_xAxisValues is { } && _yAxisValues is { })
+			if (_confirmationTargets is { } && _yAxisValues is { })
 			{
-				var x = _xAxisValues.Reverse().ToArray();
+				var confirmationTargetsReversed = _confirmationTargets.Reverse().ToArray();
 				var y = _yAxisValues.Reverse().ToArray();
-				double t = xValue;
 
-				if (x.Length > 2)
+				if (confirmationTargetsReversed.Length > 2)
 				{
-					var spline = CubicSpline.InterpolatePchipSorted(x, y);
+					var spline = CubicSpline.InterpolatePchipSorted(confirmationTargetsReversed, y);
 					var interpolated = (decimal) spline.Interpolate(t);
 					return Math.Clamp(interpolated, (decimal) y[^1], (decimal) y[0]);
 				}
 
-				if (x.Length == 2)
+				if (confirmationTargetsReversed.Length == 2)
 				{
-					if (x[1] - x[0] == 0.0)
+					if (confirmationTargetsReversed[1] - confirmationTargetsReversed[0] == 0.0)
 					{
 						return (decimal) y[0];
 					}
-					var slope = (y[1] - y[0]) / (x[1] - x[0]);
-					var interpolated = (decimal)(y[0] + (xValue - x[0]) * slope);
+					var slope = (y[1] - y[0]) / (confirmationTargetsReversed[1] - confirmationTargetsReversed[0]);
+					var interpolated = (decimal)(y[0] + (t - confirmationTargetsReversed[0]) * slope);
 					return Math.Clamp(interpolated, (decimal) y[^1], (decimal) y[0]);
 				}
 
-				if (x.Length == 1)
+				if (confirmationTargetsReversed.Length == 1)
 				{
 					return (decimal)y[0];
 				}
