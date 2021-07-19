@@ -135,7 +135,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 		{
 			const int NumberOfParticipants = 20;
 			const int NumberOfCoinsPerParticipant = 2;
-			int expectedInputNumber = NumberOfParticipants * NumberOfCoinsPerParticipant;
+			const int ExpectedInputNumber = NumberOfParticipants * NumberOfCoinsPerParticipant;
 
 			var node = await TestNodeBuilder.CreateForHeavyConcurrencyAsync();
 			try
@@ -146,15 +146,15 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 				{
 					builder.ConfigureServices(services =>
 					{
-						// Instruct the coodinator DI container to use these two scoped
+						// Instruct the coordinator DI container to use these two scoped
 						// services to build everything (wabisabi controller, arena, etc)
 						services.AddScoped<IRPCClient>(s => rpc);
 						services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig
 						{
 							MaxRegistrableAmount = Money.Coins(500m),
-							MaxInputCountByRound = expectedInputNumber,
-							ConnectionConfirmationTimeout = TimeSpan.FromSeconds(20 * expectedInputNumber),
-							OutputRegistrationTimeout = TimeSpan.FromSeconds(20 * expectedInputNumber),
+							MaxInputCountByRound = ExpectedInputNumber,
+							ConnectionConfirmationTimeout = TimeSpan.FromSeconds(20 * ExpectedInputNumber),
+							OutputRegistrationTimeout = TimeSpan.FromSeconds(20 * ExpectedInputNumber),
 						});
 					});
 				}).CreateClient();
@@ -163,7 +163,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 				var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
 
 				// Total test timeout.
-				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20 * expectedInputNumber));
+				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20 * ExpectedInputNumber));
 
 				var participants = Enumerable
 					.Range(0, NumberOfParticipants)
@@ -186,7 +186,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 						throw new TimeoutException("CoinJoin was not propagated.");
 					}
 
-					await Task.Delay(500);
+					await Task.Delay(500, cts.Token);
 
 					if (tasks.FirstOrDefault(t => t.IsFaulted)?.Exception is { } exc)
 					{
@@ -196,8 +196,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 				var mempool = await rpc.GetRawMempoolAsync();
 				var coinjoin = await rpc.GetRawTransactionAsync(mempool.Single());
 
-				Assert.True(coinjoin.Outputs.Count >= expectedInputNumber);
-				Assert.True(coinjoin.Inputs.Count == expectedInputNumber);
+				Assert.True(coinjoin.Outputs.Count >= ExpectedInputNumber);
+				Assert.True(coinjoin.Inputs.Count == ExpectedInputNumber);
 			}
 			finally
 			{
