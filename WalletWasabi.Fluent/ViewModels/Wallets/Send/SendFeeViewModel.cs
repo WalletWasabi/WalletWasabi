@@ -214,11 +214,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (_wallet.Network != Network.TestNet)
 			{
-				var labels = feeEstimates.Select(x => x.Key)
-					.Select(x => FeeTargetTimeConverter.Convert(x, "m", "h", "h", "d", "d"))
-					.Reverse()
-					.ToArray();
-
 				var xs = feeEstimates.Select(x => (double)x.Key).ToArray();
 				var ys = feeEstimates.Select(x => (double)x.Value).ToArray();
 #if true
@@ -229,6 +224,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				confirmationTargetValues = xs.Reverse().ToArray();
 				satoshiPerByteValues = ys.Reverse().ToArray();
 #endif
+				var labels = feeEstimates.Select(x => x.Key)
+					.Select(x => FeeTargetTimeConverter.Convert(x, "m", "h", "h", "d", "d"))
+					.Reverse()
+					.ToArray();
 				confirmationTargetLabels = labels;
 			}
 			else
