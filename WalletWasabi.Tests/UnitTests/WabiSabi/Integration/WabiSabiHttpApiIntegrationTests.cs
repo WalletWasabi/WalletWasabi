@@ -126,7 +126,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			// Run the coinjoin client task.
 			Assert.True(await coinJoinClient.StartCoinJoinAsync(cts.Token));
 
-			var broadcastedTx = await transactionCompleted.Task.ConfigureAwait(false); // wait for the transaction to be broadcasted.
+			var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
 			Assert.NotNull(broadcastedTx);
 
 			await roundStateUpdater.StopAsync(CancellationToken.None);
@@ -141,7 +141,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			int inputCount = amounts.Length;
 
 			// At the end of the test a coinjoin transaction has to be created and broadcasted.
-			var transactionCompleted = new TaskCompletionSource<Transaction>();
+			var transactionCompleted = new TaskCompletionSource<Transaction>(TaskCreationOptions.RunContinuationsAsynchronously);
 
 			// Total test timeout.
 			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
@@ -213,18 +213,18 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var coinJoinClient = new CoinJoinClient(apiClient, coins, kitchen, keyManager1, roundStateUpdater);
 
 			// Run the coinjoin client task.
-			var coinJoinTask = Task.Run(async () => await coinJoinClient.StartCoinJoinAsync(cts.Token));
+			var coinJoinTask = Task.Run(async () => await coinJoinClient.StartCoinJoinAsync(cts.Token).ConfigureAwait(false));
 
 			var noSignatureApiClient = new SignatureDroppingClient(new HttpClientWrapper(httpClient));
 			var badCoinJoinClient = new CoinJoinClient(noSignatureApiClient, badCoins, kitchen, keyManager2, roundStateUpdater);
-			var badCoinsTask = Task.Run(async () => await badCoinJoinClient.StartRoundAsync(roundState, cts.Token) );
+			var badCoinsTask = Task.Run(async () => await badCoinJoinClient.StartRoundAsync(roundState, cts.Token).ConfigureAwait(false));
 
 			await Task.WhenAll(new Task[] { badCoinsTask, coinJoinTask });
 
 			Assert.False(badCoinsTask.Result);
 			Assert.True(coinJoinTask.Result);
 
-			var broadcastedTx = await transactionCompleted.Task.ConfigureAwait(false); // wait for the transaction to be broadcasted.
+			var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
 			Assert.NotNull(broadcastedTx);
 
 			Assert.Equal(
