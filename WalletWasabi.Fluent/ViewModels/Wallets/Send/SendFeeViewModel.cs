@@ -118,12 +118,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				.FromEventPattern(feeProvider, nameof(feeProvider.AllFeeEstimateChanged))
 				.Select(x => (x.EventArgs as AllFeeEstimate)!.Estimations)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(UpdateFeeEstimates)
+				.Subscribe(estimations =>
+				{
+					UpdateFeeEstimates(_wallet.Network == Network.TestNet ? TestNetFeeEstimates : estimations);
+				})
 				.DisposeWith(disposables);
 
 			if (feeProvider.AllFeeEstimate is { })
 			{
-				UpdateFeeEstimates(feeProvider.AllFeeEstimate.Estimations);
+				UpdateFeeEstimates(_wallet.Network == Network.TestNet ? TestNetFeeEstimates : feeProvider.AllFeeEstimate.Estimations);
 			}
 		}
 
@@ -208,44 +211,20 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void UpdateFeeEstimates(Dictionary<int, int> feeEstimates)
 		{
-			string[] confirmationTargetLabels;
-			double[] confirmationTargetValues;
-			double[] satoshiPerByteValues;
-
-			if (_wallet.Network != Network.TestNet)
-			{
-				var xs = feeEstimates.Select(x => (double)x.Key).ToArray();
-				var ys = feeEstimates.Select(x => (double)x.Value).ToArray();
+			var xs = feeEstimates.Select(x => (double)x.Key).ToArray();
+			var ys = feeEstimates.Select(x => (double)x.Value).ToArray();
 #if true
-				GetSmoothValuesSubdivide(xs, ys, out var xts, out var yts);
-				confirmationTargetValues = xts.ToArray();
-				satoshiPerByteValues = yts.ToArray();
+			GetSmoothValuesSubdivide(xs, ys, out var xts, out var yts);
+			var confirmationTargetValues = xts.ToArray();
+			var satoshiPerByteValues = yts.ToArray();
 #else
-				confirmationTargetValues = xs.Reverse().ToArray();
-				satoshiPerByteValues = ys.Reverse().ToArray();
+			var confirmationTargetValues = xs.Reverse().ToArray();
+			var satoshiPerByteValues = ys.Reverse().ToArray();
 #endif
-				var labels = feeEstimates.Select(x => x.Key)
-					.Select(x => FeeTargetTimeConverter.Convert(x, "m", "h", "h", "d", "d"))
-					.Reverse()
-					.ToArray();
-				confirmationTargetLabels = labels;
-			}
-			else
-			{
-#if true
-				GetSmoothValuesSubdivide(TestNetConfirmationTargetValues, TestNetSatoshiPerByteValues, out var xts, out var yts);
-				confirmationTargetValues = xts.ToArray();
-				satoshiPerByteValues = yts.ToArray();
-#else
-				confirmationTargetValues = TestNetConfirmationTargetValues.Reverse().ToArray();
-				satoshiPerByteValues = TestNetSatoshiPerByteValues.Reverse().ToArray();
-#endif
-				var labels = TestNetConfirmationTargetValues.Select(x => x)
-					.Select(x => FeeTargetTimeConverter.Convert((int)x, "m", "h", "h", "d", "d"))
-					.Reverse()
-					.ToArray();
-				confirmationTargetLabels = labels;
-			}
+			var confirmationTargetLabels = feeEstimates.Select(x => x.Key)
+				.Select(x => FeeTargetTimeConverter.Convert(x, "m", "h", "h", "d", "d"))
+				.Reverse()
+				.ToArray();
 
 			_updatingCurrentValue = true;
 			ConfirmationTargetLabels = confirmationTargetLabels;
@@ -258,32 +237,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_updatingCurrentValue = false;
 		}
 
-		private static readonly double[] TestNetConfirmationTargetValues =
+		private static readonly Dictionary<int, int> TestNetFeeEstimates = new ()
 		{
-			1,
-			2,
-			3,
-			6,
-			18,
-			36,
-			72,
-			144,
-			432,
-			1008
-		};
-
-		private static readonly double[] TestNetSatoshiPerByteValues =
-		{
-			185,
-			123,
-			123,
-			102,
-			97,
-			57,
-			22,
-			7,
-			4,
-			4
+			[1] = 185,
+			[2] = 123,
+			[3] = 123,
+			[6] = 102,
+			[18] = 97,
+			[36] = 57,
+			[72] = 22,
+			[144] = 7,
+			[432] = 4,
+			[1008] = 4
 		};
 
 		private int GetSliderValue(double x, double[] xs)
