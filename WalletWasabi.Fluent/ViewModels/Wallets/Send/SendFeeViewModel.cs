@@ -352,6 +352,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			xts.Reverse();
 		}
 
+		private static double Interpolate(double from, double to, double t)
+		{
+			return from + (to - from) * t;
+		}
+
 		private decimal GetYAxisValueFromXAxisCurrentValue(double xValue)
 		{
 			if (_xAxisValues is { } && _yAxisValues is { })
@@ -359,9 +364,22 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				var x = _xAxisValues.Reverse().ToArray();
 				var y = _yAxisValues.Reverse().ToArray();
 				double t = xValue;
-				var spline = CubicSpline.InterpolatePchipSorted(x, y);
-				var interpolated = (decimal)spline.Interpolate(t);
-				return Math.Clamp(interpolated, (decimal)y[^1], (decimal)y[0]);
+
+				if (x.Length > 2)
+				{
+					var spline = CubicSpline.InterpolatePchipSorted(x, y);
+					var interpolated = (decimal) spline.Interpolate(t);
+					return Math.Clamp(interpolated, (decimal) y[^1], (decimal) y[0]);
+				}
+				else if (x.Length == 2)
+				{
+					var interpolated = (decimal) Interpolate(y[1], y[0], t);
+					return Math.Clamp(interpolated, (decimal) y[^1], (decimal) y[0]);
+				}
+				else if (x.Length == 1)
+				{
+					return (decimal)y[0];
+				}
 			}
 
 			return XAxisMaxValue;
