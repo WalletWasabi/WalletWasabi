@@ -178,14 +178,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return time;
 		}
 
-		private void SetSliderValue(double xAxisCurrentValue)
+		private void SetSliderValue(double confirmationTarget)
 		{
 			if (!_updatingCurrentValue)
 			{
 				_updatingCurrentValue = true;
 				if (_confirmationTargetValues is not null)
 				{
-					SliderValue = GetSliderValue(xAxisCurrentValue, _confirmationTargetValues);
+					SliderValue = GetSliderValue(confirmationTarget, _confirmationTargetValues);
 				}
 
 				_updatingCurrentValue = false;
