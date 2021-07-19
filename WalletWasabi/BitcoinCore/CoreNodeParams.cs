@@ -57,6 +57,9 @@ namespace WalletWasabi.BitcoinCore
 		public int? Upnp { get; set; }
 		public int? NatPmp { get; set; }
 		public int? PersistMempool { get; set; }
+		public int? RpcWorkQueue { get; set; }
+		public int? RpcThreads { get; set; }
+
 		public EndPointStrategy P2pEndPointStrategy { get; }
 		public EndPointStrategy RpcEndPointStrategy { get; }
 		public IMemoryCache Cache { get; }
