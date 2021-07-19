@@ -196,7 +196,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 					// Instruct the coodinator DI container to use these two scoped
 					// services to build everything (wabisabi controller, arena, etc)
 					services.AddScoped<IRPCClient>(s => rpc);
-					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig { MaxInputCountByRound = 2 * inputCount });
+					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig {
+							MaxInputCountByRound = 2 * inputCount,
+							TransactionSigningTimeout = TimeSpan.FromSeconds(5 * inputCount),
+						});
 				});
 			}).CreateClient();
 
