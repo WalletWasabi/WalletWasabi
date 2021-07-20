@@ -37,11 +37,11 @@ namespace WalletWasabi.Fluent.Helpers
 			{
 				if (runOnSystemStartup)
 				{
-					await EnvironmentHelpers.ShellExecAsync(AddCmd);
+					await EnvironmentHelpers.ShellExecAsync(AddCmd).ConfigureAwait(false);
 				}
 				else
 				{
-					await EnvironmentHelpers.ShellExecAsync(DeleteCmd);
+					await EnvironmentHelpers.ShellExecAsync(DeleteCmd).ConfigureAwait(false);
 				}
 			}
 		}
