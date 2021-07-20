@@ -63,7 +63,7 @@ namespace WalletWasabi.Fluent.Helpers
 			}
 		}
 
-		private async static Task StartOnLinuxStartupAsync(bool runOnSystemStartup)
+		private static async Task StartOnLinuxStartupAsync(bool runOnSystemStartup)
 		{
 			string pathToDesktopFile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/.config/autostart/Wasabi.desktop";
 			if (runOnSystemStartup)
