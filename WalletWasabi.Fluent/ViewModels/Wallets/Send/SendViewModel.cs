@@ -287,7 +287,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				.Subscribe(x => ExchangeRate = x)
 				.DisposeWith(disposables);
 
-			_wallet.TransactionProcessor.WhenAnyValue(x => x.Coins)
+			_wallet.TransactionProcessor.WhenAnyValue(x => x.Coins).Select(_ => Unit.Default)
+				.Merge(this.WhenAnyValue(x => x.Labels.Count).Select(_ => Unit.Default))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => UpdateSuggestedLabels())
 				.DisposeWith(disposables);
@@ -297,8 +298,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void UpdateSuggestedLabels()
 		{
-			var labels = WalletHelpers.GetLabels().Distinct();
-			PriorLabels = new ObservableCollection<string>(labels);
+			var enteredLabels = Labels;
+			var allLabels = WalletHelpers.GetLabels();
+			var newSuggestedLabels = allLabels.Except(enteredLabels).Distinct();
+
+			PriorLabels = new ObservableCollection<string>(newSuggestedLabels);
 		}
 	}
 }
