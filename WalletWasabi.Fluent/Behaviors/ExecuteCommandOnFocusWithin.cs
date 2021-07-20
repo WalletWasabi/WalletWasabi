@@ -23,7 +23,13 @@ namespace WalletWasabi.Fluent.Behaviors
 		{
 			AssociatedObject?.WhenAnyValue(x => x.IsKeyboardFocusWithin)
 				.Where(x => x)
-				.Subscribe(_ => Command?.Execute(default))
+				.Subscribe(_ =>
+				{
+					if (Command is { } cmd && cmd.CanExecute(default))
+					{
+						cmd.Execute(default);
+					}
+				})
 				.DisposeWith(disposables);
 		}
 	}
