@@ -10,6 +10,9 @@
              x:DataType="vm:SendViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendView">
+  <i:Interaction.Behaviors>
+    <behaviors:ExecuteCommandOnFocusWithin Command="{Binding AutoPasteCommand}" />
+  </i:Interaction.Behaviors>
   <c:ContentArea Title="Send" Caption=""
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True"
@@ -29,7 +32,6 @@
                  Watermark="(e.g. Bitcoin address or PayJoin URL)">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
-            <behaviors:ExecuteCommandOnClickBehavior Command="{Binding AutoPasteCommand}" />
           </i:Interaction.Behaviors>
           <TextBox.InnerRightContent>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
