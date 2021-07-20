@@ -228,7 +228,7 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			if (_watermark is { } && _autoCompleteBox is { })
 			{
-				if ((Items is null || (Items is { } && !Items.Any())) && string.IsNullOrWhiteSpace(_autoCompleteBox?.Text))
+				if ((Items is null || (Items is { } && !Items.Any())) && string.IsNullOrEmpty(_autoCompleteBox?.Text))
 				{
 					_watermark.IsVisible = true;
 				}
