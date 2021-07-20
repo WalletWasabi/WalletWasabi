@@ -30,7 +30,7 @@ namespace WalletWasabi.Fluent.Helpers
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
-				throw new NotImplementedException();
+				StartOnLinuxStartup(runOnSystemStartup);
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
@@ -65,14 +65,16 @@ namespace WalletWasabi.Fluent.Helpers
 
 		private static void StartOnLinuxStartup(bool runOnSystemStartup)
 		{
+			string pathToDesktopFile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/.config/autostart/Wasabi.desktop";
 			if (runOnSystemStartup)
 			{
-				string fileContent = "[Desktop Entry] \n Type=Application \n Exec=/home/adam/Desktop/Wasabi/WalletWasabi/WalletWasabi.Fluent.Desktop/bin/Debug/net5.0/WalletWasabi.Fluent.Desktop \n Hidden=false \n NoDisplay=false \n X-GNOME-Autostart-enabled=true \n Name=WasabiWallet";
-				File.WriteAllText("/home/.config/autostart/Wasabi.desktop", fileContent.Trim());
+				string pathToExec = EnvironmentHelpers.GetExecutablePath();
+				string fileContent = $"[Desktop Entry]\nName=WasabiWallet\nType=Application\nExec={pathToExec}\nHidden=false\nNoDisplay=false\nX-GNOME-Autostart-enabled=true";
+				File.WriteAllText(pathToDesktopFile, fileContent.Trim());
 			}
 			else
 			{
-				File.Delete("/home/.config/autostart/Wasabi.desktop");
+				File.Delete(pathToDesktopFile);
 			}
 		}
 	}
