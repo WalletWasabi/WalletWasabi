@@ -78,5 +78,15 @@ namespace WalletWasabi.Fluent.Helpers
 
 			return moneyString;
 		}
+
+		public static string RemoveExtraWhitespaces(this string text)
+		{
+			while (text.Contains("  "))
+			{
+				text = text.Replace("  ", " ");
+			}
+
+			return text;
+		}
 	}
 }

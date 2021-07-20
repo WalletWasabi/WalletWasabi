@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Text.RegularExpressions;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
@@ -14,6 +15,7 @@ using Avalonia.Interactivity;
 using Avalonia.Metadata;
 using Avalonia.Threading;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.Controls
@@ -471,12 +473,14 @@ namespace WalletWasabi.Fluent.Controls
 					return;
 				}
 
-				if (!AllowDuplication && x.Contains(tag))
+				var finalTag = tag.RemoveExtraWhitespaces().Trim();
+
+				if (!AllowDuplication && x.Contains(finalTag))
 				{
 					return;
 				}
 
-				x.Add(tag);
+				x.Add(finalTag);
 			}
 
 			InvalidateWatermark();
