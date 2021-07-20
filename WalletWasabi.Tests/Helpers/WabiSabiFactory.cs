@@ -24,8 +24,6 @@ namespace WalletWasabi.Tests.Helpers
 {
 	public static class WabiSabiFactory
 	{
-		private static readonly int MaxVsizeAllocationPerAlice = (1 << 8) - 1;
-
 		public static Coin CreateCoin(Key key)
 			=> CreateCoin(key, Money.Coins(1));
 
