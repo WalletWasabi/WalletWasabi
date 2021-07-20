@@ -63,9 +63,17 @@ namespace WalletWasabi.Fluent.Helpers
 			}
 		}
 
+		// ToDo: Check if autostart folder exist, create it if not
 		private static async Task StartOnLinuxStartupAsync(bool runOnSystemStartup)
 		{
-			string pathToDesktopFile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/.config/autostart/Wasabi.desktop";
+			string pathToDestination = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/.config/autostart";
+			string pathToDesktopFile = pathToDestination + "/Wasabi.desktop";
+
+			if (!Directory.Exists(pathToDestination))
+			{
+				Directory.CreateDirectory(pathToDestination);
+			}
+
 			if (runOnSystemStartup)
 			{
 				string pathToExec = EnvironmentHelpers.GetExecutablePath();
