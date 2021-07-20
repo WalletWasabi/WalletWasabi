@@ -32,6 +32,7 @@
                  Watermark="(e.g. Bitcoin address or PayJoin URL)">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
+            <behaviors:FocusNextWhenValid />
           </i:Interaction.Behaviors>
           <TextBox.InnerRightContent>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
