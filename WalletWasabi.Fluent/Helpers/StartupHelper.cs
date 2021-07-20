@@ -62,5 +62,18 @@ namespace WalletWasabi.Fluent.Helpers
 				key.DeleteValue(nameof(WalletWasabi), false);
 			}
 		}
+
+		private static void StartOnLinuxStartup(bool runOnSystemStartup)
+		{
+			if (runOnSystemStartup)
+			{
+				string fileContent = "[Desktop Entry] \n Type=Application \n Exec=/home/adam/Desktop/Wasabi/WalletWasabi/WalletWasabi.Fluent.Desktop/bin/Debug/net5.0/WalletWasabi.Fluent.Desktop \n Hidden=false \n NoDisplay=false \n X-GNOME-Autostart-enabled=true \n Name=WasabiWallet";
+				File.WriteAllText("/home/.config/autostart/Wasabi.desktop", fileContent.Trim());
+			}
+			else
+			{
+				File.Delete("/home/.config/autostart/Wasabi.desktop");
+			}
+		}
 	}
 }
