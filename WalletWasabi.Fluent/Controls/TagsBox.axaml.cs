@@ -35,6 +35,9 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<bool> SuggestionsAreCaseSensitiveProperty =
 			AvaloniaProperty.Register<TagsBox, bool>(nameof(SuggestionsAreCaseSensitive), defaultValue: true);
 
+		public static readonly StyledProperty<bool> AllowDuplicationProperty =
+			AvaloniaProperty.Register<TagsBox, bool>(nameof(AllowDuplication));
+
 		public static readonly DirectProperty<TagsBox, IEnumerable<string>?> ItemsProperty =
 			AvaloniaProperty.RegisterDirect<TagsBox, IEnumerable<string>?>(nameof(Items),
 				o => o.Items,
@@ -121,6 +124,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(SuggestionsAreCaseSensitiveProperty);
 			set => SetValue(SuggestionsAreCaseSensitiveProperty, value);
+		}
+
+		public bool AllowDuplication
+		{
+			get => GetValue(AllowDuplicationProperty);
+			set => SetValue(AllowDuplicationProperty, value);
 		}
 
 		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
@@ -458,6 +467,11 @@ namespace WalletWasabi.Fluent.Controls
 			if (Items is IList x)
 			{
 				if (ItemCountLimit > 0 && x.Count + 1 > ItemCountLimit)
+				{
+					return;
+				}
+
+				if (!AllowDuplication && x.Contains(tag))
 				{
 					return;
 				}
