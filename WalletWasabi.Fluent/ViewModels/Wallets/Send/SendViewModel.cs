@@ -289,24 +289,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			_wallet.TransactionProcessor.WhenAnyValue(x => x.Coins)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					PriorLabels.AddRange(x.SelectMany(coin => coin.HdPubKey.Label.Labels));
-
-					PriorLabels = new ObservableCollection<string>(PriorLabels.Distinct());
-				})
+				.Subscribe(_ => UpdateSuggestedLabels())
 				.DisposeWith(disposables);
 
-			PriorLabels.AddRange(_wallet
-				.KeyManager
-				.GetLabels()
-				.Select(x => x.ToString()
-					.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
-					.SelectMany(x => x));
-
-			PriorLabels = new ObservableCollection<string>(PriorLabels.Distinct());
-
 			base.OnNavigatedTo(inHistory, disposables);
+		}
+
+		private void UpdateSuggestedLabels()
+		{
+			var labels = WalletHelpers.GetLabels().Distinct();
+			PriorLabels = new ObservableCollection<string>(labels);
 		}
 	}
 }
