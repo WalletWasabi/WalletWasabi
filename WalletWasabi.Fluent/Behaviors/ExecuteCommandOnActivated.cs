@@ -4,14 +4,14 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
-using ReactiveUI;
+using Avalonia.Controls.ApplicationLifetimes;
 
 namespace WalletWasabi.Fluent.Behaviors
 {
-	public class ExecuteCommandOnFocusWithin : DisposingBehavior<Control>
+	public class ExecuteCommandOnActivated : DisposingBehavior<Control>
 	{
 		public static readonly StyledProperty<ICommand?> CommandProperty =
-			AvaloniaProperty.Register<ExecuteCommandOnFocusWithin, ICommand?>(nameof(Command));
+			AvaloniaProperty.Register<ExecuteCommandOnActivated, ICommand?>(nameof(Command));
 
 		public ICommand? Command
 		{
@@ -21,8 +21,10 @@ namespace WalletWasabi.Fluent.Behaviors
 
 		protected override void OnAttached(CompositeDisposable disposables)
 		{
-			AssociatedObject?.WhenAnyValue(x => x.IsKeyboardFocusWithin)
-				.Where(x => x)
+			var mainWindow = ((IClassicDesktopStyleApplicationLifetime) Application.Current.ApplicationLifetime).MainWindow;
+
+			Observable
+				.FromEventPattern(mainWindow, nameof(mainWindow.Activated))
 				.Subscribe(_ =>
 				{
 					if (Command is { } cmd && cmd.CanExecute(default))

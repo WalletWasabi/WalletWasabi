@@ -11,7 +11,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendView">
   <i:Interaction.Behaviors>
-    <behaviors:ExecuteCommandOnFocusWithin Command="{Binding AutoPasteCommand}" />
+    <behaviors:ExecuteCommandOnActivated Command="{Binding AutoPasteCommand}" />
   </i:Interaction.Behaviors>
   <c:ContentArea Title="Send" Caption=""
                  EnableBack="{Binding EnableBack}"
