@@ -63,7 +63,6 @@ namespace WalletWasabi.Fluent.Helpers
 			}
 		}
 
-		// ToDo: Check if autostart folder exist, create it if not
 		private static async Task StartOnLinuxStartupAsync(bool runOnSystemStartup)
 		{
 			string pathToDestination = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/.config/autostart";
