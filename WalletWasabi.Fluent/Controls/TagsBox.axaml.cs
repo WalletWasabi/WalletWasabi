@@ -472,7 +472,7 @@ namespace WalletWasabi.Fluent.Controls
 					return;
 				}
 
-				var finalTag = tag.RemoveExtraWhitespaces().Trim();
+				var finalTag = tag.ParseLabel();
 
 				if (!AllowDuplication && x.Contains(finalTag))
 				{
