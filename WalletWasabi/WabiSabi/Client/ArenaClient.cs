@@ -76,13 +76,13 @@ namespace WalletWasabi.WabiSabi.Client
 
 			var presentedAmount = amountCredentialsToPresent.Sum(x => x.Value);
 			var (realAmountCredentialRequest, realAmountCredentialResponseValidation) = AmountCredentialClient.CreateRequest(
-				new[] { presentedAmount - amount }, // FIXME remove
+				new[] { 0L },
 				amountCredentialsToPresent,
 				cancellationToken);
 
 			var presentedVsize = vsizeCredentialsToPresent.Sum(x => x.Value);
 			var (realVsizeCredentialRequest, realVsizeCredentialResponseValidation) = VsizeCredentialClient.CreateRequest(
-				new[] { presentedVsize - scriptPubKey.EstimateOutputVsize() }, // FIXME remove
+				new[] { 0L },
 				vsizeCredentialsToPresent,
 				cancellationToken);
 
