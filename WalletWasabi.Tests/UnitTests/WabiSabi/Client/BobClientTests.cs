@@ -49,14 +49,15 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			var bitcoinSecret = km.GetSecrets("", coin1.ScriptPubKey).Single().PrivateKey.GetBitcoinSecret(Network.Main);
 
-			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), wabiSabiApi);
-			var aliceClient = new AliceClient(round.Id, aliceArenaClient, coin1.Coin, round.FeeRate, bitcoinSecret, roundStateUpdater);
+			var aliceClient = new AliceClient(round.Id, aliceArenaClient, coin1.Coin, round.FeeRate, bitcoinSecret);
 			await aliceClient.RegisterInputAsync(CancellationToken.None);
 
+			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), wabiSabiApi);
 			Task confirmationTask = aliceClient.ConfirmConnectionAsync(
 				TimeSpan.FromSeconds(1),
 				new long[] { coin1.EffectiveValue(round.FeeRate) },
 				new long[] { roundState.MaxVsizeAllocationPerAlice - coin1.ScriptPubKey.EstimateInputVsize() },
+				roundStateUpdater,
 				CancellationToken.None);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));

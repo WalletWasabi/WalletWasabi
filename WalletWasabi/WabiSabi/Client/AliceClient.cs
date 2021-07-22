@@ -15,7 +15,7 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class AliceClient
 	{
-		public AliceClient(uint256 roundId, ArenaClient arenaClient, Coin coin, FeeRate feeRate, BitcoinSecret bitcoinSecret, RoundStateUpdater roundStatusUpdater)
+		public AliceClient(uint256 roundId, ArenaClient arenaClient, Coin coin, FeeRate feeRate, BitcoinSecret bitcoinSecret)
 		{
 			AliceId = CalculateHash(coin, bitcoinSecret, roundId);
 			RoundId = roundId;
@@ -23,7 +23,6 @@ namespace WalletWasabi.WabiSabi.Client
 			Coin = coin;
 			FeeRate = feeRate;
 			BitcoinSecret = bitcoinSecret;
-			RoundStatusUpdater = roundStatusUpdater;
 			IssuedAmountCredentials = Array.Empty<Credential>();
 			IssuedVsizeCredentials = Array.Empty<Credential>();
 		}
@@ -34,7 +33,6 @@ namespace WalletWasabi.WabiSabi.Client
 		public Coin Coin { get; }
 		private FeeRate FeeRate { get; }
 		private BitcoinSecret BitcoinSecret { get; }
-		private RoundStateUpdater RoundStatusUpdater { get; }
 		public IEnumerable<Credential> IssuedAmountCredentials { get; private set; }
 		public IEnumerable<Credential> IssuedVsizeCredentials { get; private set; }
 
@@ -51,7 +49,7 @@ namespace WalletWasabi.WabiSabi.Client
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Registered an input.");
 		}
 
-		public async Task ConfirmConnectionAsync(TimeSpan connectionConfirmationTimeout, IEnumerable<long> amountsToRequest, IEnumerable<long> vsizesToRequest, CancellationToken cancellationToken)
+		public async Task ConfirmConnectionAsync(TimeSpan connectionConfirmationTimeout, IEnumerable<long> amountsToRequest, IEnumerable<long> vsizesToRequest, RoundStateUpdater roundStatusUpdater, CancellationToken cancellationToken)
 		{
 			do
 			{
@@ -60,7 +58,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 				try
 				{
-					await RoundStatusUpdater
+					await roundStatusUpdater
 						.CreateRoundAwaiter(
 							RoundId,
 							roundState => roundState.Phase == Phase.ConnectionConfirmation,

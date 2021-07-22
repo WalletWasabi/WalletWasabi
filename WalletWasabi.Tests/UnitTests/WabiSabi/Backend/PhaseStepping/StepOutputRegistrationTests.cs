@@ -207,9 +207,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var round = Assert.Single(arena.Rounds);
 
 			// Register Alices.
-			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), new ArenaRequestHandlerAdapter(arena));
-			var aliceClient1 = new AliceClient(round.Id, arenaClient, coin1, round.FeeRate, key1.GetBitcoinSecret(round.Network), roundStateUpdater);
-			var aliceClient2 = new AliceClient(round.Id, arenaClient, coin2, round.FeeRate, key2.GetBitcoinSecret(round.Network), roundStateUpdater);
+			var aliceClient1 = new AliceClient(round.Id, arenaClient, coin1, round.FeeRate, key1.GetBitcoinSecret(round.Network));
+			var aliceClient2 = new AliceClient(round.Id, arenaClient, coin2, round.FeeRate, key2.GetBitcoinSecret(round.Network));
 
 			await aliceClient1.RegisterInputAsync(CancellationToken.None).ConfigureAwait(false);
 			await aliceClient2.RegisterInputAsync(CancellationToken.None).ConfigureAwait(false);
@@ -218,16 +217,19 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
 			// Confirm connections.
+			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), new ArenaRequestHandlerAdapter(arena));
 			await aliceClient1.ConfirmConnectionAsync(
 				TimeSpan.FromSeconds(1),
 				new long[] { coin1.EffectiveValue(round.FeeRate) },
 				new long[] { round.MaxVsizeAllocationPerAlice - coin1.ScriptPubKey.EstimateInputVsize() },
+				roundStateUpdater,
 				CancellationToken.None).ConfigureAwait(false);
 
 			await aliceClient2.ConfirmConnectionAsync(
 				TimeSpan.FromSeconds(1),
 				new long[] { coin2.EffectiveValue(round.FeeRate) },
 				new long[] { round.MaxVsizeAllocationPerAlice - coin2.ScriptPubKey.EstimateInputVsize() },
+				roundStateUpdater,
 				CancellationToken.None).ConfigureAwait(false);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
