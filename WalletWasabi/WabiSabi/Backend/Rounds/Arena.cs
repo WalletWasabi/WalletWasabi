@@ -412,7 +412,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				var outputValue = bob.CalculateOutputAmount(round.FeeRate);
 
 				var vsizeCredentialRequests = request.VsizeCredentialRequests;
-				if (-vsizeCredentialRequests.Delta != bob.OutputVsize)
+				if (-vsizeCredentialRequests.Delta < bob.OutputVsize)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedVsizeCredentials, $"Round ({request.RoundId}): Incorrect requested vsize credentials.");
 				}
