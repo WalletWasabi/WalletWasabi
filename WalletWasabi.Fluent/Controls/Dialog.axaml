@@ -100,4 +100,9 @@
   <Style Selector="c|Dialog[FullScreenEnabled=True] /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Margin" Value="16 0 16 16" />
   </Style>
+
+  <!-- Dialog Increased width State -->
+  <Style Selector="c|Dialog[IncreasedWidthEnabled=True] /template/ Border#PART_Border">
+    <Setter Property="Margin" Value="0 40" />
+  </Style>
 </Styles>
