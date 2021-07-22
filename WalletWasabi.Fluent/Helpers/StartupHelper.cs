@@ -68,10 +68,7 @@ namespace WalletWasabi.Fluent.Helpers
 			string pathToDestination = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/.config/autostart";
 			string pathToDesktopFile = pathToDestination + "/Wasabi.desktop";
 
-			if (!Directory.Exists(pathToDestination))
-			{
-				Directory.CreateDirectory(pathToDestination);
-			}
+			IoHelpers.EnsureContainingDirectoryExists(pathToDesktopFile);
 
 			if (runOnSystemStartup)
 			{
