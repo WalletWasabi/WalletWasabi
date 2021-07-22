@@ -108,7 +108,6 @@
             <KeyFrame Cue="0%">
               <Setter Property="Opacity" Value="0.0" />
               <Setter Property="TranslateTransform.X" Value="-25"/>
-
             </KeyFrame>
             <KeyFrame Cue="100%">
               <Setter Property="Opacity" Value="1.0" />
