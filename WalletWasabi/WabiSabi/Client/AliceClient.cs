@@ -58,9 +58,16 @@ namespace WalletWasabi.WabiSabi.Client
 				using CancellationTokenSource timeout = new(connectionConfirmationTimeout / 2);
 				using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
 
-				await RoundStatusUpdater
-					.CreateRoundAwaiter(RoundId, roundState => roundState.Phase == Phase.ConnectionConfirmation, cts.Token)
-					.ConfigureAwait(false);
+				try
+				{
+					await RoundStatusUpdater
+						.CreateRoundAwaiter(RoundId, roundState => roundState.Phase == Phase.ConnectionConfirmation,
+							cts.Token)
+						.ConfigureAwait(false);
+				}
+				catch (OperationCanceledException)
+				{
+				}
 			}
 			while (!await TryConfirmConnectionAsync(amountsToRequest, vsizesToRequest, cancellationToken).ConfigureAwait(false));
 		}
