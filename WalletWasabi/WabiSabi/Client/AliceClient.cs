@@ -61,7 +61,9 @@ namespace WalletWasabi.WabiSabi.Client
 				try
 				{
 					await RoundStatusUpdater
-						.CreateRoundAwaiter(RoundId, roundState => roundState.Phase == Phase.ConnectionConfirmation,
+						.CreateRoundAwaiter(
+							RoundId,
+							roundState => roundState.Phase == Phase.ConnectionConfirmation,
 							cts.Token)
 						.ConfigureAwait(false);
 				}
