@@ -65,7 +65,6 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public async Task RegisterOutputAsync(
 			uint256 roundId,
-			long amount,
 			Script scriptPubKey,
 			IEnumerable<Credential> amountCredentialsToPresent,
 			IEnumerable<Credential> vsizeCredentialsToPresent,
@@ -75,14 +74,12 @@ namespace WalletWasabi.WabiSabi.Client
 			Guard.InRange(nameof(vsizeCredentialsToPresent), vsizeCredentialsToPresent, 0, VsizeCredentialClient.NumberOfCredentials);
 
 			var presentedAmount = amountCredentialsToPresent.Sum(x => x.Value);
-			var (realAmountCredentialRequest, realAmountCredentialResponseValidation) = AmountCredentialClient.CreateRequest(
-				new[] { 0L },
+			var (realAmountCredentialRequest, realAmountCredentialResponseValidation) = AmountCredentialClient.CreatePresentationRequest(
 				amountCredentialsToPresent,
 				cancellationToken);
 
 			var presentedVsize = vsizeCredentialsToPresent.Sum(x => x.Value);
-			var (realVsizeCredentialRequest, realVsizeCredentialResponseValidation) = VsizeCredentialClient.CreateRequest(
-				new[] { 0L },
+			var (realVsizeCredentialRequest, realVsizeCredentialResponseValidation) = VsizeCredentialClient.CreatePresentationRequest(
 				vsizeCredentialsToPresent,
 				cancellationToken);
 
