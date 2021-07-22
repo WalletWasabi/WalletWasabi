@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -263,6 +264,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 							ConnectionConfirmationTimeout = TimeSpan.FromSeconds(20 * ExpectedInputNumber),
 							OutputRegistrationTimeout = TimeSpan.FromSeconds(20 * ExpectedInputNumber),
 						});
+					});
+					builder.ConfigureLogging(o=> {
+						o.SetMinimumLevel(LogLevel.Warning);
 					});
 				});
 
