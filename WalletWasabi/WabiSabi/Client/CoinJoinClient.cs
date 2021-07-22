@@ -91,7 +91,6 @@ namespace WalletWasabi.WabiSabi.Client
 
 			// Register coins.
 			await RegisterCoinsAsync(aliceClients, cancellationToken).ConfigureAwait(false);
-			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.ConnectionConfirmation, cancellationToken).ConfigureAwait(false);
 
 			// Confirm coins.
 			await scheduler.StartConfirmConnectionsAsync(aliceClients, dependencyGraph, roundState.ConnectionConfirmationTimeout, cancellationToken).ConfigureAwait(false);
@@ -138,7 +137,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 				var hdKey = Keymanager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey).Single();
 				var secret = hdKey.PrivateKey.GetBitcoinSecret(Keymanager.GetNetwork());
-				aliceClients.Add(new AliceClient(roundState.Id, aliceArenaClient, coin, roundState.FeeRate, secret));
+				aliceClients.Add(new AliceClient(roundState.Id, aliceArenaClient, coin, roundState.FeeRate, secret, RoundStatusUpdater));
 			}
 			return aliceClients;
 		}

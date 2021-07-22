@@ -9,12 +9,13 @@ using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Models;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.WabiSabi.Client
 {
 	public class AliceClient
 	{
-		public AliceClient(uint256 roundId, ArenaClient arenaClient, Coin coin, FeeRate feeRate, BitcoinSecret bitcoinSecret)
+		public AliceClient(uint256 roundId, ArenaClient arenaClient, Coin coin, FeeRate feeRate, BitcoinSecret bitcoinSecret, RoundStateUpdater roundStatusUpdater)
 		{
 			AliceId = CalculateHash(coin, bitcoinSecret, roundId);
 			RoundId = roundId;
@@ -22,6 +23,7 @@ namespace WalletWasabi.WabiSabi.Client
 			Coin = coin;
 			FeeRate = feeRate;
 			BitcoinSecret = bitcoinSecret;
+			RoundStatusUpdater = roundStatusUpdater;
 			IssuedAmountCredentials = Array.Empty<Credential>();
 			IssuedVsizeCredentials = Array.Empty<Credential>();
 		}
@@ -32,6 +34,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public Coin Coin { get; }
 		private FeeRate FeeRate { get; }
 		private BitcoinSecret BitcoinSecret { get; }
+		private RoundStateUpdater RoundStatusUpdater { get; }
 		public IEnumerable<Credential> IssuedAmountCredentials { get; private set; }
 		public IEnumerable<Credential> IssuedVsizeCredentials { get; private set; }
 
@@ -50,10 +53,16 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public async Task ConfirmConnectionAsync(TimeSpan connectionConfirmationTimeout, IEnumerable<long> amountsToRequest, IEnumerable<long> vsizesToRequest, CancellationToken cancellationToken)
 		{
-			while (!await TryConfirmConnectionAsync(amountsToRequest, vsizesToRequest, cancellationToken).ConfigureAwait(false))
+			do
 			{
-				await Task.Delay(connectionConfirmationTimeout / 2, cancellationToken).ConfigureAwait(false);
+				using CancellationTokenSource timeout = new(connectionConfirmationTimeout / 2);
+				using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
+
+				await RoundStatusUpdater
+					.CreateRoundAwaiter(RoundId, roundState => roundState.Phase == Phase.ConnectionConfirmation, cts.Token)
+					.ConfigureAwait(false);
 			}
+			while (!await TryConfirmConnectionAsync(amountsToRequest, vsizesToRequest, cancellationToken).ConfigureAwait(false));
 		}
 
 		private async Task<bool> TryConfirmConnectionAsync(IEnumerable<long> amountsToRequest, IEnumerable<long> vsizesToRequest, CancellationToken cancellationToken)

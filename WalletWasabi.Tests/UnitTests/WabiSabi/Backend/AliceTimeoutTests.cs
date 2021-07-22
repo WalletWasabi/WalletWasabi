@@ -29,7 +29,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 
 			// Register Alices.
 			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
-			var aliceClient = new AliceClient(round.Id, arenaClient, coin, round.FeeRate, key.GetBitcoinSecret(round.Network));
+
+			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), new ArenaRequestHandlerAdapter(arena));
+			var aliceClient = new AliceClient(round.Id, arenaClient, coin, round.FeeRate, key.GetBitcoinSecret(round.Network), roundStateUpdater);
 			await aliceClient.RegisterInputAsync(CancellationToken.None);
 
 			var alice = Assert.Single(round.Alices);
