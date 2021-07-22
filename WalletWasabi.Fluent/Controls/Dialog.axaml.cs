@@ -112,16 +112,16 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(MaxContentWidthProperty, value);
 		}
 
-		public bool FullScreenEnabled
+		private bool FullScreenEnabled
 		{
 			get => GetValue(FullScreenEnabledProperty);
-			private set => SetValue(FullScreenEnabledProperty, value);
+			set => SetValue(FullScreenEnabledProperty, value);
 		}
 
-		public bool IncreasedWidthEnabled
+		private bool IncreasedWidthEnabled
 		{
 			get => GetValue(IncreasedWidthEnabledProperty);
-			private set => SetValue(IncreasedWidthEnabledProperty, value);
+			set => SetValue(IncreasedWidthEnabledProperty, value);
 		}
 
 		private CancellationTokenSource? CancelPointerPressedDelay { get; set; }
