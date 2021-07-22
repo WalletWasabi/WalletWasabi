@@ -73,7 +73,8 @@ namespace WalletWasabi.Fluent.Helpers
 			if (runOnSystemStartup)
 			{
 				string pathToExec = EnvironmentHelpers.GetExecutablePath();
-				string fileContent = string.Join("\n",
+				string fileContent = string.Join(
+					"\n",
 					$"[Desktop Entry]",
 					$"Name=WasabiWallet",
 					$"Type=Application",
