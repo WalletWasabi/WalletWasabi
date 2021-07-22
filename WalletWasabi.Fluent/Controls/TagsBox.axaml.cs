@@ -175,7 +175,7 @@ namespace WalletWasabi.Fluent.Controls
 			_internalTextBox.WhenAnyValue(x => x.IsFocused)
 				.Subscribe(isFocused =>
 				{
-					if (isFocused || !_isInputEnabled || string.IsNullOrWhiteSpace(_internalTextBox.Text))
+					if (isFocused || !_isInputEnabled || string.IsNullOrWhiteSpace(_internalTextBox.Text) || _autoCompleteBox is { IsDropDownOpen: true })
 					{
 						return;
 					}
@@ -267,11 +267,7 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
-			// Deal with a nasty corner case...
-			var disableDropDownCommit = _internalTextBox!.CaretIndex == _internalTextBox.Text.Length &&
-										_internalTextBox.SelectionEnd == _internalTextBox.SelectionStart;
-
-			if (_internalTextBox is null || disableDropDownCommit)
+			if (_internalTextBox is null)
 			{
 				return;
 			}
