@@ -267,11 +267,7 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
-			// Deal with a nasty corner case...
-			var disableDropDownCommit = _internalTextBox!.CaretIndex == _internalTextBox.Text.Length &&
-										_internalTextBox.SelectionEnd == _internalTextBox.SelectionStart;
-
-			if (_internalTextBox is null || disableDropDownCommit)
+			if (_internalTextBox is null)
 			{
 				return;
 			}
