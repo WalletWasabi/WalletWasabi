@@ -83,7 +83,6 @@ namespace WalletWasabi.WabiSabi.Crypto
 			return CreateRequest(Array.Empty<long>(), credentialsToPresent, cancellationToken);
 		}
 
-
 		/// <summary>
 		/// Creates a <see cref="RealCredentialsRequest">credential registration request messages</see>
 		/// for requesting `k` non-zero-value credentials.
