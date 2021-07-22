@@ -75,13 +75,13 @@ namespace WalletWasabi.Fluent.Helpers
 				string pathToExec = EnvironmentHelpers.GetExecutablePath();
 				string fileContent = string.Join(
 					"\n",
-					$"[Desktop Entry]",
-					$"Name=WasabiWallet",
-					$"Type=Application",
+					"[Desktop Entry]",
+					"Name=WasabiWallet",
+					"Type=Application",
 					$"Exec={pathToExec}",
-					$"Hidden=false",
-					$"Terminal=false",
-					$"X-GNOME-Autostart-enabled=true");
+					"Hidden=false",
+					"Terminal=false",
+					"X-GNOME-Autostart-enabled=true");
 
 				await File.WriteAllTextAsync(pathToDesktopFile, fileContent).ConfigureAwait(false);
 			}
