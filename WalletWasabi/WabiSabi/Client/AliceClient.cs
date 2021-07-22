@@ -67,6 +67,7 @@ namespace WalletWasabi.WabiSabi.Client
 				}
 				catch (OperationCanceledException)
 				{
+					cancellationToken.ThrowIfCancellationRequested();
 				}
 			}
 			while (!await TryConfirmConnectionAsync(amountsToRequest, vsizesToRequest, cancellationToken).ConfigureAwait(false));
