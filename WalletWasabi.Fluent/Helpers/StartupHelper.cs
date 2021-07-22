@@ -76,7 +76,7 @@ namespace WalletWasabi.Fluent.Helpers
 				string fileContents = string.Join(
 					"\n",
 					"[Desktop Entry]",
-					"Name=WasabiWallet",
+					$"Name={Constants.AppName}",
 					"Type=Application",
 					$"Exec={pathToExec}",
 					"Hidden=false",
