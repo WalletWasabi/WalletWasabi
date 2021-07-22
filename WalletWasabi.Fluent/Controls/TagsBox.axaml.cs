@@ -175,7 +175,7 @@ namespace WalletWasabi.Fluent.Controls
 			_internalTextBox.WhenAnyValue(x => x.IsFocused)
 				.Subscribe(isFocused =>
 				{
-					if (isFocused || !_isInputEnabled || string.IsNullOrWhiteSpace(_internalTextBox.Text))
+					if (isFocused || !_isInputEnabled || string.IsNullOrWhiteSpace(_internalTextBox.Text) || _autoCompleteBox is { IsDropDownOpen: true })
 					{
 						return;
 					}
