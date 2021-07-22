@@ -115,6 +115,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
+			XAxisCurrentValue = _lastXAxisCurrentValue;
+
 			var feeProvider = _wallet.FeeProvider;
 			Observable
 				.FromEventPattern(feeProvider, nameof(feeProvider.AllFeeEstimateChanged))
