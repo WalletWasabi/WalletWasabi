@@ -240,7 +240,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 		}
 
 		[Theory]
-		[InlineData(0xdecafbad)]
+		[InlineData(123456)]
 		public async Task MultiClientsCoinJoinTestAsync(int seed)
 		{
 			const int NumberOfParticipants = 20;
