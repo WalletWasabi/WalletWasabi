@@ -38,16 +38,17 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			minerKey.SetKeyState(KeyState.Used);
 		}
 
-		public async Task GenerateCoinsAsync(int numberOfCoins, CancellationToken cancellationToken)
+		public async Task GenerateCoinsAsync(int numberOfCoins, int seed, CancellationToken cancellationToken)
 		{
 			var feeRate = new FeeRate(4.0m);
 			var splitTx = Transaction.Create(Rpc.Network);
 			splitTx.Inputs.Add(new TxIn(SourceCoin!.Outpoint));
 
-			var rnd = new Random();
+			var rnd = new Random(seed);
+			double NextNotTooSmall() => 0.00001 + (rnd.NextDouble() * 0.99999);
 			var sampling = Enumerable
 				.Range(0, numberOfCoins-1)
-				.Select(_ => rnd.NextDouble())
+				.Select(_ => NextNotTooSmall())
 				.Prepend(0)
 				.Prepend(1)
 				.OrderBy(x => x)

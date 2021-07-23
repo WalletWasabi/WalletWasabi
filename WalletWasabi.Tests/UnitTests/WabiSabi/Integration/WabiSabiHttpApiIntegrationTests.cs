@@ -131,8 +131,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			await roundStateUpdater.StopAsync(CancellationToken.None);
 		}
 
-		[Fact]
-		public async Task MultiClientsCoinJoinTestAsync()
+		[Theory]
+		[InlineData(0xdecafbad)]
+		public async Task MultiClientsCoinJoinTestAsync(int seed)
 		{
 			const int NumberOfParticipants = 20;
 			const int NumberOfCoinsPerParticipant = 2;
@@ -179,7 +180,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 				await rpc.GenerateToAddressAsync(101, dummyKey.PubKey.GetAddress(ScriptPubKeyType.Segwit, rpc.Network));
 				foreach (var participant in participants)
 				{
-					await participant.GenerateCoinsAsync(NumberOfCoinsPerParticipant, cts.Token);
+					await participant.GenerateCoinsAsync(NumberOfCoinsPerParticipant, seed, cts.Token);
 				}
 				await rpc.GenerateToAddressAsync(101, dummyKey.PubKey.GetAddress(ScriptPubKeyType.Segwit, rpc.Network));
 
