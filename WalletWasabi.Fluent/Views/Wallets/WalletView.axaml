@@ -195,9 +195,14 @@
                 DataContext="{Binding History}"
                 IsVisible="{Binding IsWalletEmpty}">
           <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-            <ContentControl Template="{DynamicResource placeholder_empty_wallet}"
+            <!--<ContentControl Template="{DynamicResource placeholder_empty_wallet}"
                             HorizontalAlignment="Center"
-                            VerticalAlignment="Center" />
+                            VerticalAlignment="Center" />-->
+            <Image Width="234" Height="110" HorizontalAlignment="Center" VerticalAlignment="Center">
+              <Image.Source>
+                <DrawingImage Drawing="{StaticResource history_table_empty_wallet}"/>
+              </Image.Source>
+            </Image>
             <Label Content="Nothing to show here yet."
                    Classes="bold center wrap h5"
                    MaxWidth="400"
