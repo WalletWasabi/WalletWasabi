@@ -234,6 +234,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 
 			var round = Assert.Single(arena.Rounds);
+			round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
 			// Register Alices.

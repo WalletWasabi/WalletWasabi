@@ -33,6 +33,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		{
 			var config = new WabiSabiConfig { MaxInputCountByRound = 1 };
 			var round = WabiSabiFactory.CreateRound(config);
+			round.MaxVsizeAllocationPerAlice = 255;
 			using var key = new Key();
 			var outpoint = BitcoinFactory.CreateOutPoint();
 			var mockRpc = new Mock<IRPCClient>();

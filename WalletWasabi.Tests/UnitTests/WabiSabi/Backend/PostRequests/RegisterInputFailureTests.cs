@@ -345,7 +345,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var coin = WabiSabiFactory.CreateCoin(key);
 			WabiSabiConfig cfg = new() { MaxInputCountByRound = 100_000 };
 			var round = WabiSabiFactory.CreateRound(cfg);
-			Assert.Equal(0, round.MaxVsizeAllocationPerAlice);
+			round.MaxVsizeAllocationPerAlice = 0;
 
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, WabiSabiFactory.CreatePreconfiguredRpcClient(coin), round);
 

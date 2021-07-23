@@ -19,6 +19,7 @@ using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.Tests.Helpers
 {
@@ -38,11 +39,15 @@ namespace WalletWasabi.Tests.Helpers
 				new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundHash ?? BitcoinFactory.CreateUint256()));
 
 		public static Round CreateRound(WabiSabiConfig cfg)
-			=> new(new RoundParameters(
+		{
+			Round round = new(new RoundParameters(
 				cfg,
 				Network.Main,
 				new InsecureRandom(),
 				new(100m)));
+			round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
+			return round;
+		}
 
 		public static Mock<IRPCClient> CreatePreconfiguredRpcClient(params Coin[] coins)
 		{
