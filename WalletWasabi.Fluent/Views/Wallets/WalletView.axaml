@@ -194,15 +194,23 @@
                 BoxShadow="{DynamicResource InfoBoxShadow}"
                 DataContext="{Binding History}"
                 IsVisible="{Binding IsWalletEmpty}">
-          <Label Content="No transaction history."
-                 HorizontalAlignment="Center"
-                 VerticalAlignment="Center">
-            <Label.Styles>
-              <Style Selector="Label > AccessText">
-                <Setter Property="TextWrapping" Value="Wrap"/>
-              </Style>
-            </Label.Styles>
-          </Label>
+          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+            <ContentControl Template="{DynamicResource placeholder_empty_wallet}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center" />
+            <Label Content="Nothing to show here yet."
+                   Classes="bold center wrap"
+                   MaxWidth="400"
+                   Margin="0,24,0,0"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"/>
+            <Label Content="Recent transactions will appear here once you make some transactions or when your wallet finishes loading."
+                   Classes="wrap"
+                   MaxWidth="400"
+                   HorizontalContentAlignment="Center"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"/>
+          </StackPanel>
         </Border>
       </Panel>
     </DockPanel>
