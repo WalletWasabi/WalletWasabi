@@ -113,7 +113,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
-			XAxisCurrentValue = _lastXAxisCurrentValue;
+			CurrentConfirmationTarget = _lastConfirmationTarget;
 
 			var feeProvider = _wallet.FeeProvider;
 			Observable
