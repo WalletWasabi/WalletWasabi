@@ -32,8 +32,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		[AutoNotify] private FeeDisplayFormat _selectedFeeDisplayFormat;
 		[AutoNotify] private bool _runOnSystemStartup;
 
-		public ICommand StartUpCommand { get; }
-
 		public GeneralSettingsTabViewModel()
 		{
 			_darkModeEnabled = Services.UiConfig.DarkModeEnabled;
@@ -89,6 +87,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.Skip(1)
 				.Subscribe(x => Services.UiConfig.FeeDisplayFormat = (int)x);
 		}
+
+		public ICommand StartUpCommand { get; }
 
 		public IEnumerable<FeeDisplayFormat> FeeDisplayFormats =>
 			Enum.GetValues(typeof(FeeDisplayFormat)).Cast<FeeDisplayFormat>();
