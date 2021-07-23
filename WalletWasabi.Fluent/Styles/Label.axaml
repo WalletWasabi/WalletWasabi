@@ -7,4 +7,7 @@
   <Style Selector="Label.wrap > AccessText">
     <Setter Property="TextWrapping" Value="Wrap"/>
   </Style>
+  <Style Selector="Label.center > AccessText">
+    <Setter Property="TextAlignment" Value="Center"/>
+  </Style>
 </Styles>
