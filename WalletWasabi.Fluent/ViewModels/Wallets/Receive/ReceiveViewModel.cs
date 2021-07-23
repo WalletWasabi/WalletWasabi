@@ -11,7 +11,7 @@ using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
@@ -37,7 +37,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 		{
 			_wallet = wallet;
 			_labels = new ObservableCollectionExtended<string>();
-			var allLabels = GetLabels();
+			var allLabels = WalletHelpers.GetLabels();
 
 			var mostUsedLabels = allLabels.GroupBy(x => x)
 				.Select(x => new
@@ -73,11 +73,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 			EnableBack = false;
 
-			NextCommand = ReactiveCommand.Create(OnNext, _labels.ToObservableChangeSet()
-				.Select(_ => _labels.Count > 0));
+			NextCommand = ReactiveCommand.Create(OnNext, _labels.ToObservableChangeSet().Select(_ => _labels.Count > 0));
 
 			ShowExistingAddressesCommand = ReactiveCommand.Create(OnShowExistingAddresses);
 		}
+
+		public ICommand ShowExistingAddressesCommand { get; }
 
 		public ObservableCollection<SuggestionLabelViewModel> SuggestionLabelResults => _suggestionLabelResults;
 
@@ -97,6 +98,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 				int minGapLimit = _wallet.KeyManager.MinGapLimit.Value;
 				int prevMinGapLimit = minGapLimit - 1;
 				var minGapLimitMessage = $"Minimum gap limit increased from {prevMinGapLimit} to {minGapLimit}.";
+
 				// TODO: notification
 			}
 
@@ -110,29 +112,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			Navigate().To(new ReceiveAddressesViewModel(_wallet, Suggestions));
 		}
 
-		public ICommand ShowExistingAddressesCommand { get; }
-
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposable)
 		{
 			base.OnNavigatedTo(isInHistory, disposable);
 
 			IsExistingAddressesButtonVisible = _wallet.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Any();
-		}
-
-		private IEnumerable<string> GetLabels()
-		{
-			// Don't refresh wallet list as it may be slow.
-			IEnumerable<SmartLabel> labels = Services.WalletManager.GetWallets(refreshWalletList: false)
-				.Select(x => x.KeyManager)
-				.SelectMany(x => x.GetLabels());
-
-			var txStore = Services.BitcoinStore.TransactionStore;
-			if (txStore is { })
-			{
-				labels = labels.Concat(txStore.GetLabels());
-			}
-
-			return labels.SelectMany(x => x.Labels);
 		}
 	}
 }
