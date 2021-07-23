@@ -1,12 +1,11 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
+using WalletWasabi.Crypto.StrobeProtocol;
 using WalletWasabi.Crypto.ZeroKnowledge;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Models;
 
@@ -46,18 +45,6 @@ namespace WalletWasabi.WabiSabi.Client
 			IssuedAmountCredentials = response.IssuedAmountCredentials;
 			IssuedVsizeCredentials = response.IssuedVsizeCredentials;
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Registered an input.");
-		}
-
-		[ObsoleteAttribute("This method should be removed after making the tests using the overload.")]
-		public async Task ConfirmConnectionAsync(TimeSpan connectionConfirmationTimeout, long vsizeAllocation, CancellationToken cancellationToken)
-		{
-			var inputVsize = Coin.ScriptPubKey.EstimateInputVsize();
-
-			var totalFeeToPay = FeeRate.GetFee(Coin.ScriptPubKey.EstimateInputVsize());
-			var totalAmount = Coin.Amount;
-			var effectiveAmount = totalAmount - totalFeeToPay;
-
-			await ConfirmConnectionAsync(connectionConfirmationTimeout, new long[] { effectiveAmount }, new long[] { vsizeAllocation - inputVsize }, cancellationToken).ConfigureAwait(false);
 		}
 
 		public async Task ConfirmConnectionAsync(TimeSpan connectionConfirmationTimeout, IEnumerable<long> amountsToRequest, IEnumerable<long> vsizesToRequest, CancellationToken cancellationToken)
@@ -123,7 +110,8 @@ namespace WalletWasabi.WabiSabi.Client
 			var ownershipProof = OwnershipProof.GenerateCoinJoinInputProof(
 				bitcoinSecret.PrivateKey,
 				new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundId));
-			return new Alice(coin, ownershipProof).Id;
+
+			return Alice.CalculateHash(coin, ownershipProof);
 		}
 	}
 }

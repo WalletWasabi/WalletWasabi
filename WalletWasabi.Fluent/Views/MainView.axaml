@@ -20,18 +20,18 @@
       IsPaneOpen="{Binding NavBar.IsOpen, Mode=TwoWay}">
       <i:Interaction.Behaviors>
         <behaviors:SplitViewAutoBehavior ToggleAction="{Binding NavBar.ToggleAction, Mode=OneWayToSource}"
-                                        CollapseOnClickAction="{Binding NavBar.CollapseOnClickAction, Mode=OneWayToSource}"
-                                        CollapseThreshold="{StaticResource SplitViewCollapseThreshold}" />
+                                         CollapseOnClickAction="{Binding NavBar.CollapseOnClickAction, Mode=OneWayToSource}"
+                                         CollapseThreshold="{StaticResource SplitViewCollapseThreshold}" />
       </i:Interaction.Behaviors>
       <SplitView.Pane>
         <Panel>
           <ExperimentalAcrylicBorder DockPanel.Dock="Left" IsHitTestVisible="False">
             <ExperimentalAcrylicBorder.Material>
               <ExperimentalAcrylicMaterial BackgroundSource="Digger"
-                                          TintColor="{DynamicResource SystemAltHighColor}"
-                                          TintOpacity="1"
-                                          FallbackColor="{DynamicResource AcrylicFallbackColor}"
-                                          MaterialOpacity="0.55" />
+                                           TintColor="{DynamicResource NavBarTintColor}"
+                                           TintOpacity="1"
+                                           FallbackColor="{DynamicResource AcrylicFallbackColor}"
+                                           MaterialOpacity="0.8" />
             </ExperimentalAcrylicBorder.Material>
           </ExperimentalAcrylicBorder>
           <navbar:NavBar DataContext="{Binding NavBar}" />
@@ -39,7 +39,8 @@
       </SplitView.Pane>
       <Panel>
         <DockPanel>
-          <Panel Background="{DynamicResource RegionColor}" DockPanel.Dock="Bottom" VerticalAlignment="Bottom" Height="32">
+          <Panel Background="{DynamicResource RegionColor}" DockPanel.Dock="Bottom" VerticalAlignment="Bottom"
+                 Height="32">
             <statusBar:StatusBar DataContext="{Binding StatusBar}" />
           </Panel>
           <Panel>
@@ -49,7 +50,7 @@
               </Style>
 
               <Style Selector="c|ContentArea /template/ StackPanel#PART_Header">
-                  <Setter Property="Margin" Value="31 36 31 0" />
+                <Setter Property="Margin" Value="31 36 31 0" />
               </Style>
             </Panel.Styles>
             <Border Background="{DynamicResource RegionColor}" IsHitTestVisible="False" />
@@ -71,12 +72,12 @@
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
       <c:Dialog.Styles>
         <Style Selector="c|Dialog /template/ Panel#PART_Overlay">
-          <Setter Property="Background" Value="{DynamicResource RegionColor}"/>
+          <Setter Property="Background" Value="{DynamicResource RegionColor}" />
         </Style>
         <Style Selector="c|Dialog /template/ Border#PART_Border">
-          <Setter Property="Margin" Value="0"/>
-          <Setter Property="CornerRadius" Value="0"/>
-          <Setter Property="BoxShadow" Value=""/>
+          <Setter Property="Margin" Value="0" />
+          <Setter Property="CornerRadius" Value="0" />
+          <Setter Property="BoxShadow" Value="" />
         </Style>
       </c:Dialog.Styles>
       <ContentControl Content="{Binding CurrentPage}" />
@@ -105,6 +106,12 @@
               EnableCancelOnEscape="{Binding CurrentPage.EnableCancelOnEscape, FallbackValue=True}"
               IsEnabled="{Binding $parent.DataContext.IsDialogScreenEnabled}"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+      <c:Dialog.Styles>
+        <Style Selector="c|Dialog[FullScreenEnabled=True]">
+          <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+          <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        </Style>
+      </c:Dialog.Styles>
       <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
   </Panel>

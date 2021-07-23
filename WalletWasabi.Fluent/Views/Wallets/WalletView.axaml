@@ -46,6 +46,11 @@
                       <PathIcon Data="{StaticResource info_regular}" />
                     </MenuItem.Icon>
                   </MenuItem>
+                  <MenuItem Header="Wallet Settings" Command="{Binding WalletSettingsCommand}">
+                    <MenuItem.Icon>
+                      <PathIcon Data="{StaticResource settings_regular}" />
+                    </MenuItem.Icon>
+                  </MenuItem>
                 </MenuFlyout>
               </Button.Flyout>
               <PathIcon Data="{StaticResource more_regular}" Foreground="{DynamicResource TextForegroundColor}" />

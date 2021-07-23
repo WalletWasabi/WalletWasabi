@@ -18,22 +18,16 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			AmountText = $"{btcAmountText}{fiatAmountText}";
 
 			var fee = transaction.Fee;
-			var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} satoshis ";
+			var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} sats ";
 			var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC).GenerateFiatText(usdExchangeRate, "USD");
 			FeeText = $"{btcFeeText}{fiatFeeText}";
 
-			switch (type)
+			Caption = type switch
 			{
-				case BalanceType.Private:
-					Caption = $"There are not enough private funds to cover the transaction fee. Alternatively you could:";
-					break;
-				case BalanceType.Pocket:
-					Caption = $"There are not enough funds selected to cover the transaction fee. Alternatively you could:";
-					break;
-				default:
-					Caption = $"There are not enough funds available to cover the transaction fee. Alternatively you could:";
-					break;
-			}
+				BalanceType.Private => $"There are not enough private funds to cover the transaction fee. Alternatively you could:",
+				BalanceType.Pocket => $"There are not enough funds selected to cover the transaction fee. Alternatively you could:",
+				_ => $"There are not enough funds available to cover the transaction fee. Alternatively you could:",
+			};
 
 			NextCommand = ReactiveCommand.Create(() => Close(result: true));
 			CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel));

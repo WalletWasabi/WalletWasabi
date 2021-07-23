@@ -9,18 +9,10 @@
              x:DataType="advanced:WalletInfoViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Advanced.WalletInfoView">
-  <c:ContentArea EnableNext="True" NextContent="Done"
+  <c:ContentArea Title="{Binding Title}"
+                 EnableNext="True" NextContent="Done"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}">
-    <c:ContentArea.Title>
-      <DockPanel>
-        <StackPanel Orientation="Horizontal" Spacing="10" DockPanel.Dock="Right" IsVisible="{Binding IsHardwareWallet}">
-          <TextBlock VerticalAlignment="Center" Text="PSBT workflow" FontSize="14"/>
-          <ToggleSwitch IsChecked="{Binding PreferPsbtWorkflow}" OnContent="{x:Null}" OffContent="{x:Null}" />
-        </StackPanel>
-        <TextBlock TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Text="{Binding Title}" />
-      </DockPanel>
-    </c:ContentArea.Title>
     <c:ContentArea.CancelContent>
       <StackPanel Spacing="10" Orientation="Horizontal">
         <PathIcon Data="{Binding LockIconString, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
