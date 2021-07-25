@@ -339,7 +339,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		public async Task TooMuchVsizeAsync()
 		{
 			// Configures a round that allows so many inputs (Alices) that
-			// the virtual size each of they have available is not enought
+			// the virtual size each of they have available is not enough
 			// to register anything.
 			using Key key = new();
 			var coin = WabiSabiFactory.CreateCoin(key);
