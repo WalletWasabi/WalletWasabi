@@ -64,11 +64,14 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			base.OnApplyTemplate(e);
 
-			var textBlock = e.NameScope.Find<TextBlock>("PART_Text");
-			textBlock.Classes.Add(TextBlockClasses);
+			if (TextBlockClasses is { } classes)
+			{
+				var textBlock = e.NameScope.Find<TextBlock>("PART_Text");
+				textBlock.Classes.Add(classes);
 
-			var privacyTextBlock = e.NameScope.Find<TextBlock>("PART_PrivacyText");
-			privacyTextBlock.Classes.Add(TextBlockClasses);
+				var privacyTextBlock = e.NameScope.Find<TextBlock>("PART_PrivacyText");
+				privacyTextBlock.Classes.Add(classes);
+			}
 		}
 
 		protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
