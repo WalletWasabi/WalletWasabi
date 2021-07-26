@@ -23,8 +23,8 @@
                             <TextBlock Margin="0,0,8,0" FontSize="12"
                                        DockPanel.Dock="Left" HorizontalAlignment="Left"
                                        Text="{Binding Label}" />
-                            <TextBlock DockPanel.Dock="Left" HorizontalAlignment="Left" FontSize="12"
-                                       Text="{Binding PercentShare, StringFormat=\{0:P1\}}" />
+                            <controls:PrivacyTextControl DockPanel.Dock="Left" HorizontalAlignment="Left" FontSize="12"
+                                                         Text="{Binding PercentShare, StringFormat=\{0:P1\}}" />
                         </DockPanel>
                     </DataTemplate>
                 </ItemsRepeater.ItemTemplate>

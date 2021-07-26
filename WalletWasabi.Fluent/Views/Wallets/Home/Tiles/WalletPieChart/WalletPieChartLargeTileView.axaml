@@ -22,11 +22,12 @@
                                 <Ellipse DockPanel.Dock="Left" Margin="0,0,8,0" HorizontalAlignment="Left" Width="10"
                                          Height="10"
                                          Fill="{Binding HexColor, Converter={x:Static converters:ColorStringConverters.HexColorToBrush}}" />
-                                <TextBlock DockPanel.Dock="Left" HorizontalAlignment="Left"
-                                           Text="{Binding Amount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
+                                <controls:PrivacyTextControl DockPanel.Dock="Left" HorizontalAlignment="Left"
+                                           Text="{Binding Amount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
+                                           NumberOfPrivacyChars="9"/>
                             </DockPanel>
                             <DockPanel Grid.Column="1" Margin="0,8" Opacity="0.5">
-                                <TextBlock DockPanel.Dock="Right" Margin="8,0,0,0" HorizontalAlignment="Right"
+                                <controls:PrivacyTextControl DockPanel.Dock="Right" Margin="8,0,0,0" HorizontalAlignment="Right"
                                            Text="{Binding PercentShare, StringFormat=\{0:P1\}}" />
                                 <TextBlock DockPanel.Dock="Right" HorizontalAlignment="Right" Text="{Binding Label}" />
                             </DockPanel>
