@@ -176,6 +176,7 @@
                          DockPanel.Dock="Left"
                          IsReadOnly="True"
                          Items="{Binding Label}"
+                         HorizontalAlignment="Stretch"
                          VerticalAlignment="Center" />
               <Button Classes="labelFlyout"
                       DockPanel.Dock="Left"
