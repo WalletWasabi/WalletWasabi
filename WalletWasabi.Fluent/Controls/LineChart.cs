@@ -298,13 +298,11 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				state.Points = new Point[xAxisValues.Count];
 
-				using (var enumerator = xAxisValuesEnumerable.GetEnumerator())
+				using var enumerator = xAxisValuesEnumerable.GetEnumerator();
+				for (var i = 0; i < yAxisValuesScaled.Count; i++)
 				{
-					for (var i = 0; i < yAxisValuesScaled.Count; i++)
-					{
-						enumerator.MoveNext();
-						state.Points[i] = new Point(enumerator.Current, yAxisValuesScaled[i]);
-					}
+					enumerator.MoveNext();
+					state.Points[i] = new Point(enumerator.Current, yAxisValuesScaled[i]);
 				}
 			}
 		}
@@ -386,7 +384,8 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				if (xAxisValues[i] <= xAxisCurrentValue)
 				{
-					return areaWidth / xAxisValues.Count * i;
+					var cursorPosition = i == 0 ? 0.0 : areaWidth / (xAxisValues.Count - 1) * i;
+					return cursorPosition;
 				}
 			}
 
@@ -749,10 +748,7 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				newValue.CollectionChanged += ItemsPropertyCollectionChanged;
 
-				_collectionChangedSubscriptions[newValue] = Disposable.Create(() =>
-				{
-					newValue.CollectionChanged -= ItemsPropertyCollectionChanged;
-				});
+				_collectionChangedSubscriptions[newValue] = Disposable.Create(() => newValue.CollectionChanged -= ItemsPropertyCollectionChanged);
 			}
 		}
 

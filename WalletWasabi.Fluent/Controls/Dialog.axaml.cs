@@ -7,6 +7,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
+using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Controls
 {
@@ -43,9 +44,24 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<double> MaxContentWidthProperty =
 			AvaloniaProperty.Register<Dialog, double>(nameof(MaxContentWidth), double.PositiveInfinity);
 
+		public static readonly StyledProperty<bool> FullScreenEnabledProperty =
+			AvaloniaProperty.Register<Dialog, bool>(nameof(FullScreenEnabled));
+
+		public static readonly StyledProperty<bool> IncreasedWidthEnabledProperty =
+			AvaloniaProperty.Register<Dialog, bool>(nameof(IncreasedWidthEnabled));
+
 		public Dialog()
 		{
 			this.GetObservable(IsDialogOpenProperty).Subscribe(UpdateDelay);
+
+			this.WhenAnyValue(x => x.Bounds)
+				.Subscribe(bounds =>
+				{
+					var width = bounds.Width;
+					var height = bounds.Height;
+					IncreasedWidthEnabled = width < 740;
+					FullScreenEnabled = IncreasedWidthEnabled && height < 580;
+				});
 		}
 
 		public bool IsDialogOpen
@@ -96,6 +112,18 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(MaxContentWidthProperty, value);
 		}
 
+		private bool FullScreenEnabled
+		{
+			get => GetValue(FullScreenEnabledProperty);
+			set => SetValue(FullScreenEnabledProperty, value);
+		}
+
+		private bool IncreasedWidthEnabled
+		{
+			get => GetValue(IncreasedWidthEnabledProperty);
+			set => SetValue(IncreasedWidthEnabledProperty, value);
+		}
+
 		private CancellationTokenSource? CancelPointerPressedDelay { get; set; }
 
 		private void UpdateDelay(bool isDialogOpen)
@@ -109,10 +137,7 @@ namespace WalletWasabi.Fluent.Controls
 				{
 					CancelPointerPressedDelay = new CancellationTokenSource();
 
-					Task.Delay(TimeSpan.FromSeconds(1), CancelPointerPressedDelay.Token).ContinueWith(_ =>
-					{
-						_canCancelOnPointerPressed = true;
-					});
+					Task.Delay(TimeSpan.FromSeconds(1), CancelPointerPressedDelay.Token).ContinueWith(_ => _canCancelOnPointerPressed = true);
 				}
 			}
 			catch (OperationCanceledException)

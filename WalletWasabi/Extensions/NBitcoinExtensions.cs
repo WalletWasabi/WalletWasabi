@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -400,8 +401,7 @@ namespace NBitcoin
 				{
 					if (script is { })
 					{
-						var hdPubKey = keyManager.GetKeyForScriptPubKey(script);
-						if (hdPubKey is { })
+						if (keyManager.TryGetKeyForScriptPubKey(script, out HdPubKey? hdPubKey))
 						{
 							psbt.AddKeyPath(fp, hdPubKey, script);
 						}
@@ -411,8 +411,7 @@ namespace NBitcoin
 				// Add output keypaths.
 				foreach (var script in psbt.Outputs.Select(x => x.ScriptPubKey).ToArray())
 				{
-					var hdPubKey = keyManager.GetKeyForScriptPubKey(script);
-					if (hdPubKey is { })
+					if (keyManager.TryGetKeyForScriptPubKey(script, out HdPubKey? hdPubKey))
 					{
 						psbt.AddKeyPath(fp, hdPubKey, script);
 					}
@@ -465,6 +464,15 @@ namespace NBitcoin
 				true => Constants.P2wpkhInputVirtualSize,
 				false => throw new NotImplementedException($"Size estimation isn't implemented for provided script type.")
 			};
+
+		public static Money EffectiveCost(this TxOut output, FeeRate feeRate) =>
+			output.Value + feeRate.GetFee(output.ScriptPubKey.EstimateOutputVsize());
+
+		public static Money EffectiveValue(this Coin coin, FeeRate feeRate) =>
+			coin.Amount - feeRate.GetFee(coin.ScriptPubKey.EstimateInputVsize());
+
+		public static Money EffectiveValue(this SmartCoin coin, FeeRate feeRate) =>
+			EffectiveValue(coin.Coin, feeRate);
 
 		public static T FromBytes<T>(byte[] input) where T : IBitcoinSerializable, new()
 		{

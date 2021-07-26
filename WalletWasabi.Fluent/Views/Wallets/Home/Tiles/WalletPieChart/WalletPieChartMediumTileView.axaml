@@ -1,0 +1,42 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
+             xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             mc:Ignorable="d" d:DesignWidth="330" d:DesignHeight="150"
+             x:CompileBindings="True" x:DataType="vm:WalletPieChartTileViewModel"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletPieChart.WalletPieChartMediumTileView">
+    <DockPanel LastChildFill="True">
+        <TextBlock Text="Wallet Privacy Status" DockPanel.Dock="Top" />
+        <Grid ColumnDefinitions="*,*">
+            <ItemsRepeater Grid.ColumnSpan="2" VerticalAlignment="Center" Margin="0,0,0,-4"
+                           Items="{Binding TestDataPointsLegend}">
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="wallets:DataLegend">
+                        <DockPanel Margin="0,0,0,4">
+                            <Ellipse DockPanel.Dock="Left" Margin="0,0,8,0" HorizontalAlignment="Left" Width="10"
+                                     Height="10"
+                                     Fill="{Binding HexColor, Converter={x:Static converters:ColorStringConverters.HexColorToBrush}}" />
+                            <TextBlock Margin="0,0,8,0" FontSize="12"
+                                       DockPanel.Dock="Left" HorizontalAlignment="Left"
+                                       Text="{Binding Label}" />
+                            <TextBlock DockPanel.Dock="Left" HorizontalAlignment="Left" FontSize="12"
+                                       Text="{Binding PercentShare, StringFormat=\{0:P1\}}" />
+                        </DockPanel>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+                <ItemsRepeater.Layout>
+                    <StackLayout />
+                </ItemsRepeater.Layout>
+            </ItemsRepeater>
+            <controls:RingChartControl Grid.Column="1"
+                                       Margin="16,0,0,0"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Center"
+                                       DataPoints="{Binding TestDataPoints}" />
+        </Grid>
+    </DockPanel>
+</UserControl>

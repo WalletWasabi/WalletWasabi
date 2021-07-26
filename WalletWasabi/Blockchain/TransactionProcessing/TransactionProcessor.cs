@@ -80,7 +80,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 		public IEnumerable<ProcessedResult> Process(params SmartTransaction[] txs)
 			=> Process(txs as IEnumerable<SmartTransaction>);
 
-
 		/// <summary>
 		/// Was the transaction already processed by the transaction processor?
 		/// </summary>
@@ -126,6 +125,14 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			}
 
 			uint256 txId = tx.GetHash();
+
+			// If we already have the transaction, then let's work on that.
+			if (TransactionStore.TryGetTransaction(txId, out var foundTx))
+			{
+				foundTx.TryUpdate(tx);
+				tx = foundTx;
+				result = new ProcessedResult(tx);
+			}
 
 			// Performance ToDo: txids could be cached in a hashset here by the AllCoinsView and then the contains would be fast.
 			if (!tx.Transaction.IsCoinBase && !Coins.AsAllCoinsView().CreatedBy(txId).Any()) // Transactions we already have and processed would be "double spends" but they shouldn't.
@@ -205,8 +212,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			{
 				// If transaction received to any of the wallet keys:
 				var output = tx.Transaction.Outputs[i];
-				HdPubKey foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
-				if (foundKey is { })
+				if (KeyManager.TryGetKeyForScriptPubKey(output.ScriptPubKey, out HdPubKey? foundKey))
 				{
 					if (!foundKey.IsInternal)
 					{

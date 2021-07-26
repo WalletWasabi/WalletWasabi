@@ -25,12 +25,38 @@ namespace WalletWasabi.Fluent.Helpers
 			return await GetDialogResultAsync(ofd);
 		}
 
+		public static async Task<string?> ShowSaveFileDialogAsync(string title, params string[] filterExtTypes)
+		{
+			var sfd = CreateSaveFileDialog(title, filterExtTypes);
+			sfd.Filters = GenerateFilters(filterExtTypes);
+			return await GetDialogResultAsync(sfd);
+		}
+
+		private static SaveFileDialog CreateSaveFileDialog(string title, IEnumerable<string> filterExtTypes)
+		{
+			var sfd = new SaveFileDialog
+			{
+				DefaultExtension = filterExtTypes.FirstOrDefault(),
+				Title = title
+			};
+
+			return sfd;
+		}
+
 		private static async Task<string?> GetDialogResultAsync(OpenFileDialog ofd)
 		{
 			var window = ((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).MainWindow;
 			var selected = await ofd.ShowAsync(window);
 
 			return selected.FirstOrDefault();
+		}
+
+		private static async Task<string?> GetDialogResultAsync(SaveFileDialog sfd)
+		{
+			var window = ((IClassicDesktopStyleApplicationLifetime) Application.Current.ApplicationLifetime).MainWindow;
+			var selected = await sfd.ShowAsync(window);
+
+			return selected;
 		}
 
 		private static OpenFileDialog CreateOpenFileDialog(string title)

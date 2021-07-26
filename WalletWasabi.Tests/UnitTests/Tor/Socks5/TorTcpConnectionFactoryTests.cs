@@ -4,11 +4,12 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
+using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Tor.Socks5.Exceptions;
-using WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 using WalletWasabi.Tor.Socks5.Models.Messages;
+using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
@@ -58,7 +59,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 						TorTcpConnectionFactory factory = new(new IPEndPoint(IPAddress.Loopback, serverPort));
 
 						Logger.LogTrace($"[{nameof(AuthenticationErrorScenarioAsync)}][client] About to make connection.");
-						using TorTcpConnection torConnection = await factory.ConnectAsync(httpRequestHost, httpRequestPort, useSsl: false, isolateStream: false, timeoutToken).ConfigureAwait(false);
+						using TorTcpConnection torConnection = await factory.ConnectAsync(httpRequestHost, httpRequestPort, useSsl: false, DefaultCircuit.Instance, timeoutToken).ConfigureAwait(false);
 						Logger.LogTrace($"[{nameof(AuthenticationErrorScenarioAsync)}][client] Connection established.");
 					},
 					timeoutToken);
@@ -79,7 +80,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 
 				// Read SOCKS version.
 				int methodByte = stream.ReadByte();
-				Assert.Equal(MethodField.NoAuthenticationRequired.ToByte(), methodByte);
+				Assert.Equal(MethodField.UsernamePassword.ToByte(), methodByte);
 
 				// Write response: version + method selected.
 				stream.WriteByte(VerField.Socks5.Value);
@@ -131,7 +132,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 						TorTcpConnectionFactory factory = new(new IPEndPoint(IPAddress.Loopback, serverPort));
 
 						Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][client] About to make connection.");
-						using TorTcpConnection torConnection = await factory.ConnectAsync(httpRequestHost, httpRequestPort, useSsl: false, isolateStream: false, timeoutToken);
+						using TorTcpConnection torConnection = await factory.ConnectAsync(httpRequestHost, httpRequestPort, useSsl: false, DefaultCircuit.Instance, timeoutToken);
 						Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][client] Connection established.");
 					},
 					timeoutToken);
@@ -142,6 +143,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 				using NetworkStream stream = client.GetStream();
 				stream.ReadTimeout = (int)TimeoutLimit.TotalMilliseconds;
 
+				// <Version method request>
 				// Read SOCKS protocol version.
 				int versionByte = stream.ReadByte();
 				Assert.Equal(VerField.Socks5.Value, versionByte);
@@ -150,14 +152,46 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 				int nmethodsByte = stream.ReadByte();
 				Assert.Equal(1, nmethodsByte);
 
-				// Read SOCKS version.
+				// Read method byte.
 				int methodByte = stream.ReadByte();
-				Assert.Equal(MethodField.NoAuthenticationRequired.ToByte(), methodByte);
+				Assert.Equal(MethodField.UsernamePassword.ToByte(), methodByte);
 
 				// Write response: version + method selected.
 				stream.WriteByte(VerField.Socks5.Value);
-				stream.WriteByte(MethodField.NoAuthenticationRequired.ToByte());
+				stream.WriteByte(MethodField.UsernamePassword.ToByte());
 				stream.Flush();
+
+				// </Version method request>
+
+				// <UsernamePasswordRequest>
+				// Read "AuthVerField" byte.
+				int authVerByte = stream.ReadByte();
+				Assert.Equal(AuthVerField.Version1.Value, authVerByte);
+
+				int ulenByte = stream.ReadByte();
+				Assert.Equal(21, ulenByte);
+
+				// Read "UName".
+				for (int j = 0; j < 21; j++)
+				{
+					_ = stream.ReadByte();
+				}
+
+				int plenByte = stream.ReadByte();
+				Assert.Equal(21, plenByte);
+
+				// Read "Passwd".
+				for (int j = 0; j < 21; j++)
+				{
+					_ = stream.ReadByte();
+				}
+
+				// Write response (UsernamePasswordResponse): version + method selected.
+				stream.WriteByte((byte)AuthVerField.Version1.Value);
+				stream.WriteByte(AuthStatusField.Success.ToByte());
+				stream.Flush();
+
+				// </UsernamePasswordRequest>
 
 				TorSocks5Request expectedConnectionRequest = new(cmd: CmdField.Connect, new(httpRequestHost), new(httpRequestPort));
 

@@ -125,6 +125,12 @@ namespace WalletWasabi.Blockchain.Keys
 		[JsonProperty(Order = 10, PropertyName = "Icon")]
 		public string? Icon { get; private set; }
 
+		[JsonProperty(Order = 11, PropertyName = "PreferPsbtWorkflow")]
+		public bool PreferPsbtWorkflow { get; set; }
+
+		[JsonProperty(Order = 12, PropertyName = "AutoCoinJoin", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool AutoCoinJoin { get; set; }
+
 		private object BlockchainStateLock { get; }
 
 		private object HdPubKeysLock { get; }
@@ -418,16 +424,19 @@ namespace WalletWasabi.Blockchain.Keys
 			}
 		}
 
-		public HdPubKey GetKeyForScriptPubKey(Script scriptPubKey)
+		public bool TryGetKeyForScriptPubKey(Script scriptPubKey, [NotNullWhen(true)] out HdPubKey? hdPubKey)
 		{
+			hdPubKey = default;
+
 			lock (ScriptHdPubKeyMapLock)
 			{
 				if (ScriptHdPubKeyMap.TryGetValue(scriptPubKey, out var key))
 				{
-					return key;
+					hdPubKey = key;
+					return true;
 				}
 
-				return default;
+				return false;
 			}
 		}
 

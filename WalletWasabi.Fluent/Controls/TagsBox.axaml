@@ -1,7 +1,24 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:WalletWasabi.Fluent.Controls">
-    <Styles.Resources>
+        xmlns:c="using:WalletWasabi.Fluent.Controls"
+        xmlns:generic="clr-namespace:System.Collections.Generic;assembly=System.Collections"
+        xmlns:system="clr-namespace:System;assembly=System.Runtime">
+  <Design.PreviewWith>
+    <Panel>
+      <Border Margin="10">
+        <c:TagsBox>
+          <c:TagsBox.Items>
+            <generic:List x:TypeArguments="system:String">
+              <system:String>Label1</system:String>
+              <system:String>Label2</system:String>
+              <system:String>Label3</system:String>
+            </generic:List>
+          </c:TagsBox.Items>
+        </c:TagsBox>
+      </Border>
+    </Panel>
+  </Design.PreviewWith>
+  <Styles.Resources>
         <Thickness x:Key="TagsBoxBorderPadding">4,4,0,0</Thickness>
     </Styles.Resources>
     <Style Selector="c|TagsBox">
@@ -35,12 +52,6 @@
                                         <c:ConcatenatingWrapPanel Focusable="False" VerticalAlignment="Center">
                                             <c:ConcatenatingWrapPanel.ConcatenatedChildren>
                                                 <AutoCompleteBox x:Name="PART_AutoCompleteBox"
-                                                                 Padding="15 10 15 8"
-                                                                 Margin="0"
-                                                                 MaxDropDownHeight="90"
-                                                                 MinimumPrefixLength="1"
-                                                                 Focusable="False"
-                                                                 IsTextCompletionEnabled="True"
                                                                  Items="{Binding #PART_Border.TemplatedParent.Suggestions}" />
                                             </c:ConcatenatingWrapPanel.ConcatenatedChildren>
                                         </c:ConcatenatingWrapPanel>
@@ -59,6 +70,44 @@
         </Setter>
         <Setter Property="(ScrollViewer.HorizontalScrollBarVisibility)" Value="Disabled" />
     </Style>
+
+  <Style Selector="c|TagsBox:readonly">
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <DataValidationErrors>
+          <Border x:Name="PART_Border" Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  Padding="{TemplateBinding Padding}">
+            <Panel>
+              <TextBlock Name="PART_Watermark"
+                         Opacity="0.5"
+                         Padding="15 0"
+                         VerticalAlignment="Center"
+                         Text="{TemplateBinding Watermark}" />
+              <ItemsPresenter Name="PART_ItemsPresenter"
+                              Focusable="False"
+                              Items="{TemplateBinding Items}">
+                <ItemsPresenter.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <WrapPanel Orientation="Horizontal" Focusable="False" VerticalAlignment="Center" />
+                  </ItemsPanelTemplate>
+                </ItemsPresenter.ItemsPanel>
+                <ItemsPresenter.ItemTemplate>
+                  <DataTemplate>
+                    <c:TagControl Content="{Binding .}" />
+                  </DataTemplate>
+                </ItemsPresenter.ItemTemplate>
+              </ItemsPresenter>
+            </Panel>
+          </Border>
+        </DataValidationErrors>
+      </ControlTemplate>
+    </Setter>
+    <Setter Property="(ScrollViewer.HorizontalScrollBarVisibility)" Value="Disabled" />
+  </Style>
 
     <Style Selector="c|TagsBox:pointerover /template/ Border#PART_Border">
         <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushPointerOver}" />
@@ -85,24 +134,23 @@
         <Setter Property="BorderThickness" Value="0" />
     </Style>
 
-    <Style Selector="c|TagsBox:readonly AutoCompleteBox">
-        <Setter Property="IsVisible" Value="False" />
-    </Style>
-
-    <Style Selector="c|TagsBox:readonly">
-        <Setter Property="Cursor" Value="Arrow" />
-        <Setter Property="Padding" Value="0" />
-    </Style>
-
     <Style Selector="c|TagsBox c|TagControl">
         <Setter Property="Margin" Value="0,0,4,0" />
     </Style>
 
-    <Style Selector="c|TagsBox c|ConcatenatingWrapPanel:wrapped c|TagControl">
+    <Style Selector="c|TagsBox c|ConcatenatingWrapPanel:wrapped c|TagControl,
+                     c|TagsBox:readonly WrapPanel c|TagControl">
         <Setter Property="Margin" Value="0,0,4,4" />
     </Style>
 
     <Style Selector="c|TagsBox AutoCompleteBox">
+        <Setter Property="Background" Value="{x:Null}" />
+        <Setter Property="Padding" Value="15 10 15 8" />
+        <Setter Property="Margin" Value="0,0,0,0" />
+        <Setter Property="MaxDropDownHeight" Value="90" />
+        <Setter Property="MinimumPrefixLength" Value="1" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="IsTextCompletionEnabled" Value="True" />
         <Setter Property="Template">
             <ControlTemplate>
                 <Grid Name="PART_LayoutRoot">
@@ -150,12 +198,6 @@
         <Setter Property="KeyboardNavigation.IsTabStop" Value="True" />
     </Style>
 
-    <Style Selector="c|TagsBox AutoCompleteBox">
-        <Setter Property="Background" Value="{x:Null}" />
-        <Setter Property="Padding" Value="4,5,0,0 " />
-        <Setter Property="Margin" Value="0,0,0,0" />
-    </Style>
-
     <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox">
         <Setter Property="Padding" Value="0" />
         <Setter Property="Margin" Value="0" />
@@ -167,6 +209,10 @@
 
     <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox /template/ Border#PART_BorderElement">
         <Setter Property="IsVisible" Value="False" />
+    </Style>
+
+    <Style Selector="c|TagsBox AutoCompleteBox /template/ ListBox#PART_SelectingItemsControl">
+        <Setter Property="MinWidth" Value="286" />
     </Style>
 
     <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox">

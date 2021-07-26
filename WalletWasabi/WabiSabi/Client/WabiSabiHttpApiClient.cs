@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -12,7 +13,7 @@ using WalletWasabi.WabiSabi.Models.Serialization;
 
 namespace WalletWasabi.WabiSabi.Client
 {
-	public class WabiSabiHttpApiClient : IArenaRequestHandler
+	public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 	{
 		private IHttpClient _client;
 
@@ -28,7 +29,9 @@ namespace WalletWasabi.WabiSabi.Client
 			ConfirmConnection,
 			RegisterOutput,
 			ReissueCredential,
-			SignTransaction
+			SignTransaction,
+			GetStatus,
+			ReadyToSign
 		}
 
 		public Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken) =>
@@ -46,8 +49,23 @@ namespace WalletWasabi.WabiSabi.Client
 		public Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellationToken) =>
 			SendAndReceiveAsync<InputsRemovalRequest>(RemoteAction.RemoveInput, request, cancellationToken);
 
-		public Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken) =>
+		public virtual Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken) =>
 			SendAndReceiveAsync<TransactionSignaturesRequest>(RemoteAction.SignTransaction, request, cancellationToken);
+
+		public async Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken)
+		{
+			using var response = await _client.SendAsync(HttpMethod.Get, GetUriEndPoint(RemoteAction.GetStatus), cancel: cancellationToken).ConfigureAwait(false);
+
+			if (!response.IsSuccessStatusCode)
+			{
+				await response.ThrowRequestExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
+			}
+			var jsonString = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+			return Deserialize<RoundState[]>(jsonString);
+		}
+
+		public Task ReadyToSign(ReadyToSignRequestRequest request, CancellationToken cancellationToken) =>
+			SendAndReceiveAsync<ReadyToSignRequestRequest>(RemoteAction.ReadyToSign, request, cancellationToken);
 
 		private async Task<string> SendAsync<TRequest>(RemoteAction action, TRequest request, CancellationToken cancellationToken) where TRequest : class
 		{
@@ -81,7 +99,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private static TResponse Deserialize<TResponse>(string jsonString)
 		{
 			return JsonConvert.DeserializeObject<TResponse>(jsonString, JsonSerializationOptions.Default.Settings)
-				?? throw new InvalidOperationException("Deserealization error");
+				?? throw new InvalidOperationException("Deserialization error");
 		}
 
 		private static string GetUriEndPoint(RemoteAction action) =>
@@ -93,6 +111,8 @@ namespace WalletWasabi.WabiSabi.Client
 				RemoteAction.ReissueCredential => "credential-issuance",
 				RemoteAction.RemoveInput => "input-unregistration",
 				RemoteAction.SignTransaction => "transaction-signature",
+				RemoteAction.GetStatus => "status",
+				RemoteAction.ReadyToSign => "ready-to-sign",
 				_ => throw new NotSupportedException($"Action '{action}' is unknown and has no endpoint associated.")
 			};
 	}

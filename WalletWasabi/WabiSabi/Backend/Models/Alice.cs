@@ -23,10 +23,11 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		public int TotalInputVsize => Coin.ScriptPubKey.EstimateInputVsize();
 
 		public bool ConfirmedConnection { get; set; } = false;
+		public bool ReadyToSign { get; set; }
 
-		public long CalculateRemainingVsizeCredentials(uint maxRegistrableSize) => maxRegistrableSize - TotalInputVsize;
+		public long CalculateRemainingVsizeCredentials(int maxRegistrableSize) => maxRegistrableSize - TotalInputVsize;
 
-		public Money CalculateRemainingAmountCredentials(FeeRate feeRate) => TotalInputAmount - feeRate.GetFee(TotalInputVsize);
+		public Money CalculateRemainingAmountCredentials(FeeRate feeRate) => Coin.EffectiveValue(feeRate);
 
 		public void SetDeadlineRelativeTo(TimeSpan connectionConfirmationTimeout)
 		{
@@ -34,11 +35,13 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 			Deadline = DateTimeOffset.UtcNow + (connectionConfirmationTimeout * 0.9);
 		}
 
-		private uint256 CalculateHash()
+		private uint256 CalculateHash() => CalculateHash(Coin, OwnershipProof);
+
+		public static uint256 CalculateHash(Coin coin, OwnershipProof ownershipProof)
 			=> StrobeHasher.Create(ProtocolConstants.AliceStrobeDomain)
-				.Append(ProtocolConstants.AliceCoinTxOutStrobeLabel, Coin.TxOut)
-				.Append(ProtocolConstants.AliceCoinOutpointStrobeLabel, Coin.Outpoint)
-				.Append(ProtocolConstants.AliceOwnershipProofStrobeLabel, OwnershipProof)
+				.Append(ProtocolConstants.AliceCoinTxOutStrobeLabel, coin.TxOut)
+				.Append(ProtocolConstants.AliceCoinOutpointStrobeLabel, coin.Outpoint)
+				.Append(ProtocolConstants.AliceOwnershipProofStrobeLabel, ownershipProof)
 				.GetHash();
 	}
 }

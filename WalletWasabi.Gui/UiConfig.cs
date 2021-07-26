@@ -22,9 +22,9 @@ namespace WalletWasabi.Gui
 		private bool _autocopy;
 		private int _feeDisplayFormat;
 		private bool _darkModeEnabled;
-		private bool _showCoinJoinInHistory;
 		private string? _lastSelectedWallet;
 		private string _windowState = "Normal";
+		private bool _runOnSystemStartup;
 
 		public UiConfig() : base()
 		{
@@ -39,9 +39,9 @@ namespace WalletWasabi.Gui
 					x => x.IsCustomChangeAddress,
 					x => x.DarkModeEnabled,
 					x => x.FeeDisplayFormat,
-					x => x.ShowCoinJoinInHistory,
 					x => x.LastSelectedWallet,
 					x => x.WindowState,
+					x => x.RunOnSystemStartup,
 					(_, _, _, _, _, _, _, _, _) => Unit.Default)
 				.Throttle(TimeSpan.FromMilliseconds(500))
 				.Skip(1) // Won't save on UiConfig creation.
@@ -129,20 +129,20 @@ namespace WalletWasabi.Gui
 			set => RaiseAndSetIfChanged(ref _darkModeEnabled, value);
 		}
 
-		[DefaultValue(false)]
-		[JsonProperty(PropertyName = "ShowCoinJoinInHistory", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public bool ShowCoinJoinInHistory
-		{
-			get => _showCoinJoinInHistory;
-			set => RaiseAndSetIfChanged(ref _showCoinJoinInHistory, value);
-		}
-
 		[DefaultValue(null)]
 		[JsonProperty(PropertyName = "LastSelectedWallet", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public string? LastSelectedWallet
 		{
 			get => _lastSelectedWallet;
 			set => RaiseAndSetIfChanged(ref _lastSelectedWallet, value);
+		}
+
+		[DefaultValue(false)]
+		[JsonProperty(PropertyName = "RunOnSystemStartup", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool RunOnSystemStartup
+		{
+			get => _runOnSystemStartup;
+			set => RaiseAndSetIfChanged(ref _runOnSystemStartup, value);
 		}
 
 		[JsonProperty(PropertyName = "CoinListViewSortingPreference")]

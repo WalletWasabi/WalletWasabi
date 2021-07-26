@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -19,9 +20,11 @@ namespace WalletWasabi.Tests.UnitTests
 		public Func<uint256, Task<VerboseBlockInfo>> OnGetVerboseBlockAsync { get; set; }
 		public Func<Transaction, uint256> OnSendRawTransactionAsync { get; set; }
 		public Func<Task<MemPoolInfo>> OnGetMempoolInfoAsync { get; set; }
+		public Func<Task<uint256[]>> OnGetRawMempoolAsync { get; set; }
+		public Func<uint256, bool, Task<Transaction>> OnGetRawTransactionAsync { get; set; }
 		public Func<int, EstimateSmartFeeMode, Task<EstimateSmartFeeResponse>> OnEstimateSmartFeeAsync { get; set; }
 		public Func<Task<PeerInfo[]>> OnGetPeersInfoAsync { get; set; }
-
+		public Func<int, BitcoinAddress, Task<uint256[]>> OnGenerateToAddressAsync { get; set; }
 		public Network Network { get; set; } = Network.RegTest;
 		public RPCCredentialString CredentialString => new();
 
@@ -82,10 +85,15 @@ namespace WalletWasabi.Tests.UnitTests
 
 		public Task<uint256[]> GetRawMempoolAsync()
 		{
-			throw new NotImplementedException();
+			return OnGetRawMempoolAsync();
 		}
 
 		public Task<Transaction> GetRawTransactionAsync(uint256 txid, bool throwIfNotFound = true)
+		{
+			return OnGetRawTransactionAsync(txid, throwIfNotFound);
+		}
+
+		public Task<IEnumerable<Transaction>> GetRawTransactionsAsync(IEnumerable<uint256> txids, CancellationToken cancel)
 		{
 			throw new NotImplementedException();
 		}
@@ -179,7 +187,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 		public Task<uint256[]> GenerateToAddressAsync(int nBlocks, BitcoinAddress address)
 		{
-			throw new NotImplementedException();
+			return OnGenerateToAddressAsync(nBlocks, address);
 		}
 
 		public Task<RPCClient> CreateWalletAsync(string walletNameOrPath, CreateWalletOptions? options = null)

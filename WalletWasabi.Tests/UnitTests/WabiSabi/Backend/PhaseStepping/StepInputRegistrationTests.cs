@@ -128,8 +128,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 
 			round.Alices.Add(WabiSabiFactory.CreateAlice());
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.Equal(Phase.InputRegistration, round.Phase);
-			Assert.DoesNotContain(round.Id, arena.Rounds.Keys);
+			Assert.Equal(Phase.Ended, round.Phase);
+			Assert.DoesNotContain(round, arena.ActiveRounds);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -157,8 +157,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, blameRound);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.Equal(Phase.InputRegistration, blameRound.Phase);
-			Assert.DoesNotContain(blameRound.Id, arena.Rounds.Keys);
+			Assert.Equal(Phase.Ended, blameRound.Phase);
+			Assert.DoesNotContain(blameRound, arena.ActiveRounds);
 
 			await arena.StopAsync(CancellationToken.None);
 		}

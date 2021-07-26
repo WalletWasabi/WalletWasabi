@@ -31,6 +31,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			WalletState = wallet.State;
 
 			OpenCommand = ReactiveCommand.Create(() => Navigate().To(this, NavigationMode.Clear));
+
+			SetIcon();
 		}
 
 		public override string Title
@@ -44,6 +46,24 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		public string WalletName => Wallet.WalletName;
 
 		public bool IsLoggedIn => Wallet.IsLoggedIn;
+
+		public bool PreferPsbtWorkflow => Wallet.KeyManager.PreferPsbtWorkflow;
+
+		private void SetIcon()
+		{
+			if (Wallet.KeyManager.Icon is { } iconString)
+			{
+				IconName = iconString;
+			}
+			else if (Wallet.KeyManager.IsHardwareWallet)
+			{
+				IconName = "General";
+			}
+			else
+			{
+				IconName = "default_wallet_icon";
+			}
+		}
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{

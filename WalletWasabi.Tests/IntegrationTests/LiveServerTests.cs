@@ -28,7 +28,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			LiveServerTestsFixture = liveServerTestsFixture;
 
 			TorHttpPool = new(new TorTcpConnectionFactory(Common.TorSocks5Endpoint));
-			TorManager = new(Common.TorSettings, Common.TorSocks5Endpoint);
+			TorManager = new(Common.TorSettings);
 		}
 
 		private TorProcessManager TorManager { get; }
@@ -37,14 +37,13 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 		public async Task InitializeAsync()
 		{
-			bool started = await TorManager.StartAsync();
-			Assert.True(started, "Tor failed to start.");
+			await TorManager.StartAsync();
 		}
 
 		public async Task DisposeAsync()
 		{
 			TorHttpPool.Dispose();
-			await TorManager.StopAsync();
+			await TorManager.DisposeAsync();
 		}
 
 		#region Blockchain

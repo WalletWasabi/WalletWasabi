@@ -8,9 +8,10 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Model;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
@@ -23,6 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private readonly TransactionInfo _info;
 
 		[AutoNotify] private string _confirmationTimeText;
+		[AutoNotify] private string _nextButtonText;
 		[AutoNotify] private SmartLabel _labels;
 
 		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, BuildTransactionResult transaction)
@@ -42,15 +44,36 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			AddressText = info.Address.ToString();
 
 			var fee = transaction.Fee;
-			var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} satoshis ";
+			var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} sats ";
 			var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC).GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
 			FeeText = $"{btcFeeText}{fiatFeeText}";
 
 			PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
 			IsPayJoin = PayJoinUrl is not null;
 
-			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(transaction));
+			if (PreferPsbtWorkflow)
+			{
+				SkipCommand = ReactiveCommand.CreateFromTask(async () => await OnConfirmAsync(transaction));
+				NextCommand = ReactiveCommand.CreateFromTask(async () =>
+				{
+					var saved = await TransactionHelpers.ExportTransactionToBinaryAsync(transaction);
+
+					if (saved)
+					{
+						Navigate().To(new SuccessViewModel("The PSBT has been successfully created."));
+					}
+				});
+				_nextButtonText = "Save PSBT file";
+			}
+			else
+			{
+				NextCommand = ReactiveCommand.CreateFromTask(async () => await OnConfirmAsync(transaction));
+				_nextButtonText = "Confirm";
+			}
+
 		}
+
+		public bool PreferPsbtWorkflow => _wallet.KeyManager.PreferPsbtWorkflow;
 
 		public string AmountText { get; }
 
@@ -70,7 +93,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			Labels = _info.Labels;
 		}
 
-		private async Task OnNextAsync(BuildTransactionResult transaction)
+		private async Task OnConfirmAsync(BuildTransactionResult transaction)
 		{
 			var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
 

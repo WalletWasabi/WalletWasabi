@@ -10,43 +10,18 @@
              x:DataType="vm:AddWalletPageViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.AddWalletPageView">
-  <c:ContentArea Title="{Binding Title}" Caption="Type in your wallet's name and select an option:"
+  <c:ContentArea Title="{Binding Title}" Caption="Type in your wallet's name"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
-                 IsBusy="{Binding IsBusy}">
-    <DockPanel>
-      <StackPanel DockPanel.Dock="Top" Margin="0 0 0 20">
-        <Label Content="Wallet _Name:" Target="walletNameTb" />
-        <TextBox x:Name="walletNameTb" MaxLength="250" Text="{Binding WalletName}" Watermark="(e.g. My Wallet)">
-          <i:Interaction.Behaviors>
-            <behaviors:FocusOnAttachedBehavior />
-          </i:Interaction.Behaviors>
-        </TextBox>
-      </StackPanel>
-      <WrapPanel Orientation="Horizontal" Margin="0 0 0 20" HorizontalAlignment="Center">
-        <WrapPanel.Styles>
-          <Style Selector="c|TileButton">
-            <Setter Property="Margin" Value="4"/>
-          </Style>
-        </WrapPanel.Styles>
-        <c:TileButton Text="Create a new wallet"
-                      Classes="action"
-                      Icon="{StaticResource add_regular}"
-                      Command="{Binding CreateWalletCommand}"
-                      IsEnabled="{Binding OptionsEnabled}" />
-        <c:TileButton Text="Connect to hardware wallet"
-                      Icon="{StaticResource calculator_regular}"
-                      Command="{Binding ConnectHardwareWalletCommand}"
-                      IsEnabled="{Binding OptionsEnabled}" />
-        <c:TileButton Text="Import a wallet"
-                      Icon="{StaticResource import_regular}"
-                      Command="{Binding ImportWalletCommand}"
-                      IsEnabled="{Binding OptionsEnabled}" />
-        <c:TileButton Text="Recover a wallet"
-                      Icon="{StaticResource recover_arrow_right_regular}"
-                      Command="{Binding RecoverWalletCommand}"
-                      IsEnabled="{Binding OptionsEnabled}" />
-      </WrapPanel>
-    </DockPanel>
+                 IsBusy="{Binding IsBusy}"
+                 EnableNext="True" NextContent="Continue">
+    <StackPanel DockPanel.Dock="Top" Margin="0 0 0 20">
+      <Label Content="Wallet _Name:" Target="walletNameTb" />
+      <TextBox x:Name="walletNameTb" MaxLength="250" Text="{Binding WalletName}" Watermark="(e.g. My Wallet)">
+        <i:Interaction.Behaviors>
+          <behaviors:FocusOnAttachedBehavior />
+        </i:Interaction.Behaviors>
+      </TextBox>
+    </StackPanel>
   </c:ContentArea>
 </UserControl>

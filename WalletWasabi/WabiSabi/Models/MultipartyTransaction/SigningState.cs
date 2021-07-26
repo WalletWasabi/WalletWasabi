@@ -1,4 +1,6 @@
 using NBitcoin;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -6,19 +8,20 @@ using WalletWasabi.WabiSabi.Backend.Models;
 
 namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 {
-	public record SigningState(MultipartyTransactionParameters Parameters, ImmutableArray<Coin> Inputs, ImmutableArray<TxOut> Outputs) : IState
+	public record SigningState : MultipartyTransactionState
 	{
+		public SigningState(MultipartyTransactionParameters parameters, IEnumerable<Coin> inputs, IEnumerable<TxOut> outputs)
+			: base(parameters)
+		{
+			Inputs = inputs.ToImmutableList();
+			Outputs = outputs.ToImmutableList();
+		}
+
 		public ImmutableDictionary<int, WitScript> Witnesses { get; init; } = ImmutableDictionary<int, WitScript>.Empty;
 
-		public bool IsFullySigned => Witnesses.Count == Inputs.Length;
+		public bool IsFullySigned => Witnesses.Count == Inputs.Count;
 
-		public Money Balance => Inputs.Sum(x => x.Amount) - Outputs.Sum(x => x.Value);
-		public int EstimatedInputsVsize => Inputs.Sum(x => x.TxOut.ScriptPubKey.EstimateInputVsize());
-		public int OutputsVsize => Outputs.Sum(x => x.ScriptPubKey.EstimateOutputVsize());
-
-		public int EstimatedVsize => MultipartyTransactionParameters.SharedOverhead + EstimatedInputsVsize + OutputsVsize;
-		public FeeRate EffectiveFeeRate => new(Balance, EstimatedVsize);
-
+		[JsonIgnore]
 		public IEnumerable<Coin> UnsignedInputs => Inputs.Where((_, i) => !IsInputSigned(i));
 
 		public bool IsInputSigned(int index) => Witnesses.ContainsKey(index);

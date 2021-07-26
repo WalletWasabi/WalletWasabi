@@ -1,0 +1,43 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             mc:Ignorable="d" d:DesignWidth="620" d:DesignHeight="310"
+             x:CompileBindings="True" x:DataType="vm:WalletPieChartTileViewModel"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletPieChart.WalletPieChartWideTileView">
+    <DockPanel LastChildFill="True">
+        <TextBlock Text="Wallet Privacy Status" DockPanel.Dock="Top" />
+        <Grid ColumnDefinitions="*,*">
+            <controls:RingChartControl Grid.ColumnSpan="1" Margin="12,28,28,28" VerticalAlignment="Center"
+                                       HorizontalAlignment="Center" DataPoints="{Binding TestDataPoints}" />
+            <ItemsRepeater Grid.Column="1" VerticalAlignment="Center" Margin="0,0, 0, -16"
+                           Items="{Binding TestDataPointsLegend}">
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="wallets:DataLegend">
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="*,*" HorizontalAlignment="Left"
+                              Margin="0,0,0, 16">
+                            <Ellipse Margin="0,0,12,0" Width="10"
+                                     Height="10"
+                                     Fill="{Binding HexColor, Converter={x:Static converters:ColorStringConverters.HexColorToBrush}}" />
+                            <TextBlock Grid.Column="1" FontSize="19" HorizontalAlignment="Left"
+                                       Text="{Binding Amount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
+                            <StackPanel Opacity="0.5" Grid.Row="1" Grid.Column="1" TextBlock.FontSize="13"
+                                        Orientation="Horizontal">
+                                <TextBlock Text="{Binding Label}" />
+                                <TextBlock Margin="8,0,0,0" HorizontalAlignment="Right"
+                                           Text="{Binding PercentShare, StringFormat=\{0:P1\}}" />
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+                <ItemsRepeater.Layout>
+                    <StackLayout />
+                </ItemsRepeater.Layout>
+            </ItemsRepeater>
+        </Grid>
+    </DockPanel>
+</UserControl>

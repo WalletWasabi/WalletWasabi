@@ -3,10 +3,8 @@ using System.IO;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Socks5.Exceptions;
@@ -14,6 +12,7 @@ using WalletWasabi.Tor.Socks5.Models.Bases;
 using WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 using WalletWasabi.Tor.Socks5.Models.Messages;
+using WalletWasabi.Tor.Socks5.Pool.Circuits;
 
 namespace WalletWasabi.Tor.Socks5
 {
@@ -44,14 +43,14 @@ namespace WalletWasabi.Tor.Socks5
 		/// <summary>
 		/// Creates a new connected TCP client connected to Tor SOCKS5 endpoint.
 		/// </summary>
-		/// <inheritdoc cref="ConnectAsync(string, int, bool, bool, CancellationToken)"/>
-		public virtual async Task<TorTcpConnection> ConnectAsync(Uri requestUri, bool isolateStream, CancellationToken token = default)
+		/// <inheritdoc cref="ConnectAsync(string, int, bool, ICircuit, CancellationToken)"/>
+		public virtual async Task<TorTcpConnection> ConnectAsync(Uri requestUri, ICircuit circuit, CancellationToken token = default)
 		{
 			bool useSsl = requestUri.Scheme == Uri.UriSchemeHttps;
 			string host = requestUri.DnsSafeHost;
 			int port = requestUri.Port;
 
-			return await ConnectAsync(host, port, useSsl, isolateStream, token).ConfigureAwait(false);
+			return await ConnectAsync(host, port, useSsl, circuit, token).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -60,11 +59,11 @@ namespace WalletWasabi.Tor.Socks5
 		/// <param name="host">Tor SOCKS5 host.</param>
 		/// <param name="port">Tor SOCKS5 port.</param>
 		/// <param name="useSsl">Whether to use SSL to send the HTTP request over Tor.</param>
-		/// <param name="isolateStream"><c>true</c> if a new Tor circuit is required for this HTTP request.</param>
+		/// <param name="circuit">Tor circuit we want to use in authentication.</param>
 		/// <param name="cancellationToken">Cancellation token to cancel the asynchronous operation.</param>
 		/// <returns>New <see cref="TorTcpConnection"/> instance.</returns>
 		/// <exception cref="TorConnectionException">When <see cref="ConnectAsync(TcpClient, CancellationToken)"/> fails.</exception>
-		public async Task<TorTcpConnection> ConnectAsync(string host, int port, bool useSsl, bool isolateStream, CancellationToken cancellationToken = default)
+		public async Task<TorTcpConnection> ConnectAsync(string host, int port, bool useSsl, ICircuit circuit, CancellationToken cancellationToken = default)
 		{
 			TcpClient? tcpClient = null;
 			Stream? transportStream = null;
@@ -74,7 +73,7 @@ namespace WalletWasabi.Tor.Socks5
 				tcpClient = new(TorSocks5EndPoint.AddressFamily);
 
 				transportStream = await ConnectAsync(tcpClient, cancellationToken).ConfigureAwait(false);
-				await HandshakeAsync(tcpClient, isolateStream, cancellationToken).ConfigureAwait(false);
+				await HandshakeAsync(tcpClient, circuit, cancellationToken).ConfigureAwait(false);
 				await ConnectToDestinationAsync(tcpClient, host, port, cancellationToken).ConfigureAwait(false);
 
 				if (useSsl)
@@ -82,7 +81,8 @@ namespace WalletWasabi.Tor.Socks5
 					transportStream = await UpgradeToSslAsync(tcpClient, host).ConfigureAwait(false);
 				}
 
-				TorTcpConnection result = new(tcpClient, transportStream, allowRecycling: !useSsl && !isolateStream);
+				bool allowRecycling = !useSsl && (circuit is DefaultCircuit or PersonCircuit);
+				TorTcpConnection result = new(tcpClient, transportStream, circuit, allowRecycling);
 
 				transportStream = null;
 				tcpClient = null;
@@ -119,14 +119,14 @@ namespace WalletWasabi.Tor.Socks5
 		/// <summary>
 		/// Checks whether communication can be established with Tor over <see cref="TorSocks5EndPoint"/> endpoint.
 		/// </summary>
-		public async Task<bool> IsTorRunningAsync()
+		public async virtual Task<bool> IsTorRunningAsync()
 		{
 			try
 			{
 				// Internal TCP client may close, so we need a new instance here.
 				using TcpClient tcpClient = new(TorSocks5EndPoint.AddressFamily);
 				await ConnectAsync(tcpClient).ConfigureAwait(false);
-				await HandshakeAsync(tcpClient, isolateStream: false).ConfigureAwait(false);
+				await HandshakeAsync(tcpClient, DefaultCircuit.Instance).ConfigureAwait(false);
 
 				return true;
 			}
@@ -139,14 +139,14 @@ namespace WalletWasabi.Tor.Socks5
 		/// <summary>
 		/// Do the authentication part of Tor's SOCKS5 protocol.
 		/// </summary>
-		/// <param name="isolateStream">Whether random username/password should be used for authentication and thus effectively create a new Tor circuit.</param>
+		/// <param name="circuit">Tor circuit we want to use in authentication.</param>
 		/// <remarks>Tor process must be started with enabled <c>IsolateSOCKSAuth</c> option. It's ON by default.</remarks>
 		/// <seealso href="https://www.torproject.org/docs/tor-manual.html.en"/>
 		/// <seealso href="https://linux.die.net/man/1/tor">For <c>IsolateSOCKSAuth</c> option explanation.</seealso>
 		/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt#n35"/>
 		/// <exception cref="NotSupportedException">When authentication fails due to unsupported authentication method.</exception>
 		/// <exception cref="InvalidOperationException">When authentication fails due to invalid credentials.</exception>
-		private async Task HandshakeAsync(TcpClient tcpClient, bool isolateStream = false, CancellationToken cancellationToken = default)
+		private async Task HandshakeAsync(TcpClient tcpClient, ICircuit circuit, CancellationToken cancellationToken = default)
 		{
 			// https://github.com/torproject/torspec/blob/master/socks-extensions.txt
 			// The "NO AUTHENTICATION REQUIRED" (SOCKS5) authentication method [00] is
@@ -158,7 +158,7 @@ namespace WalletWasabi.Tor.Socks5
 			// username / password fields of this message to be empty. This technically
 			// violates RFC1929[4], but ensures interoperability with somewhat broken
 			// SOCKS5 client implementations.
-			MethodsField methods = new(isolateStream ? MethodField.UsernamePassword : MethodField.NoAuthenticationRequired);
+			MethodsField methods = new(MethodField.UsernamePassword);
 
 			byte[] receiveBuffer = await SendRequestAsync(tcpClient, new VersionMethodRequest(methods), cancellationToken).ConfigureAwait(false);
 
@@ -182,9 +182,8 @@ namespace WalletWasabi.Tor.Socks5
 				// Username / Password Authentication protocol, the Username / Password
 				// sub-negotiation begins. This begins with the client producing a
 				// Username / Password request:
-				var identity = RandomString.CapitalAlphaNumeric(21);
-				UNameField uName = new(uName: identity);
-				PasswdField passwd = new(password: identity);
+				UNameField uName = new(uName: circuit.Name);
+				PasswdField passwd = new(password: circuit.Name);
 				UsernamePasswordRequest usernamePasswordRequest = new(uName, passwd);
 
 				receiveBuffer = await SendRequestAsync(tcpClient, usernamePasswordRequest, cancellationToken).ConfigureAwait(false);

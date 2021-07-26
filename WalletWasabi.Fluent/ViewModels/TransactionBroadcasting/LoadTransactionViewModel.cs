@@ -10,6 +10,7 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 {
@@ -45,7 +46,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				var path = await FileDialogHelper.ShowOpenFileDialogAsync("Import Transaction", new[] { "psbt", "*" });
 				if (path is { })
 				{
-					FinalTransaction = await ParseTransactionAsync(path);
+					FinalTransaction = await TransactionHelpers.ParseTransactionAsync(path, Network);
 				}
 			}
 			catch (Exception ex)
@@ -77,7 +78,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				}
 				else
 				{
-					FinalTransaction = new SmartTransaction(Transaction.Parse(textToPaste, Network), Models.Height.Unknown);
+					FinalTransaction = new SmartTransaction(Transaction.Parse(textToPaste, Network), Height.Unknown);
 				}
 			}
 			catch (Exception ex)
@@ -92,36 +93,5 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 		public ICommand PasteCommand { get; }
 
 		public ICommand ImportTransactionCommand { get; }
-
-		private async Task<SmartTransaction> ParseTransactionAsync(string path)
-		{
-			var psbtBytes = await File.ReadAllBytesAsync(path);
-			PSBT psbt;
-
-			try
-			{
-				psbt = PSBT.Load(psbtBytes, Network);
-			}
-			catch
-			{
-				var text = await File.ReadAllTextAsync(path);
-				text = text.Trim();
-				try
-				{
-					psbt = PSBT.Parse(text, Network);
-				}
-				catch
-				{
-					return new SmartTransaction(Transaction.Parse(text, Network), Models.Height.Unknown);
-				}
-			}
-
-			if (!psbt.IsAllFinalized())
-			{
-				psbt.Finalize();
-			}
-
-			return psbt.ExtractSmartTransaction();
-		}
 	}
 }

@@ -60,7 +60,6 @@ namespace WalletWasabi.Gui
 		{
 			string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
 			Directory.CreateDirectory(dataDir);
-			string torLogsFile = Path.Combine(dataDir, "TorLogs.txt");
 
 			var uiConfig = new UiConfig(Path.Combine(dataDir, "UiConfig.json"));
 			uiConfig.LoadOrCreateDefaultFile();
@@ -71,7 +70,7 @@ namespace WalletWasabi.Gui
 
 			Logger.InitializeDefaults(Path.Combine(dataDir, "Logs.txt"));
 
-			return new Global(dataDir, torLogsFile, config, uiConfig, walletManager);
+			return new Global(dataDir, config, uiConfig, walletManager);
 		}
 
 		private static void SetTheme() => AvalonStudio.Extensibility.Theme.ColorTheme.LoadTheme(AvalonStudio.Extensibility.Theme.ColorTheme.VisualStudioDark);

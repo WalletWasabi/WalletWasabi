@@ -1,9 +1,7 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using WalletWasabi.Crypto;
-using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.StrobeProtocol;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Crypto;
@@ -18,25 +16,29 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			RoundParameters = roundParameters;
 
-			AmountCredentialIssuer = new(new(RoundParameters.Random), RoundParameters.Random, MaxRegistrableAmount);
-			VsizeCredentialIssuer = new(new(RoundParameters.Random), RoundParameters.Random, PerAliceVsizeAllocation);
-			AmountCredentialIssuerParameters = AmountCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
-			VsizeCredentialIssuerParameters = VsizeCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
-
 			var allowedAmounts = new MoneyRange(roundParameters.MinRegistrableAmount, RoundParameters.MaxRegistrableAmount);
 			var txParams = new MultipartyTransactionParameters(roundParameters.FeeRate, allowedAmounts, allowedAmounts, roundParameters.Network);
 			CoinjoinState = new ConstructionState(txParams);
 
+			InitialInputVsizeAllocation = CoinjoinState.Parameters.MaxTransactionSize - MultipartyTransactionParameters.SharedOverhead;
+			MaxRegistrableVsize = Math.Min(InitialInputVsizeAllocation / RoundParameters.MaxInputCountByRound, (int)ProtocolConstants.MaxVsizeCredentialValue);
+			MaxVsizeAllocationPerAlice = MaxRegistrableVsize;
+
+			AmountCredentialIssuer = new(new(RoundParameters.Random), RoundParameters.Random, MaxRegistrableAmount);
+			VsizeCredentialIssuer = new(new(RoundParameters.Random), RoundParameters.Random, MaxRegistrableVsize);
+			AmountCredentialIssuerParameters = AmountCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
+			VsizeCredentialIssuerParameters = VsizeCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
+
 			Id = CalculateHash();
 		}
 
-		public IState CoinjoinState { get; set; }
+		public MultipartyTransactionState CoinjoinState { get; set; }
 		public uint256 Id { get; }
 		public Network Network => RoundParameters.Network;
-		public uint MaxInputCountByAlice => RoundParameters.MaxInputCountByAlice;
 		public Money MinRegistrableAmount => RoundParameters.MinRegistrableAmount;
 		public Money MaxRegistrableAmount => RoundParameters.MaxRegistrableAmount;
-		public uint PerAliceVsizeAllocation => RoundParameters.PerAliceVsizeAllocation;
+		public int MaxRegistrableVsize { get; }
+		public int MaxVsizeAllocationPerAlice { get; }
 		public FeeRate FeeRate => RoundParameters.FeeRate;
 		public CredentialIssuer AmountCredentialIssuer { get; }
 		public CredentialIssuer VsizeCredentialIssuer { get; }
@@ -59,11 +61,19 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public DateTimeOffset ConnectionConfirmationStart { get; private set; }
 		public DateTimeOffset OutputRegistrationStart { get; private set; }
 		public DateTimeOffset TransactionSigningStart { get; private set; }
-		public DateTimeOffset TransactionBroadcastingStart { get; private set; }
-		public int InitialInputVsizeAllocation { get; set; } = 99954; // TODO compute as CoinjoinState.Parameters.MaxWeight - CoinjoinState.Parameters.SharedOverhead, mutable for testing until then
-		public int RemainingInputVsizeAllocation => InitialInputVsizeAllocation - Alices.Count * (int)PerAliceVsizeAllocation;
+		public DateTimeOffset End { get; private set; }
+		public bool WasTransactionBroadcast { get; set; }
+		public int InitialInputVsizeAllocation { get; internal set; }
+		public int RemainingInputVsizeAllocation => InitialInputVsizeAllocation - InputCount * MaxVsizeAllocationPerAlice;
 
 		private RoundParameters RoundParameters { get; }
+
+		public TState Assert<TState>() where TState : MultipartyTransactionState =>
+			CoinjoinState switch
+			{
+				TState s => s,
+				_ => throw new InvalidOperationException($"{typeof(TState).Name} state was expected but {CoinjoinState.GetType().Name} state was received.")
+			};
 
 		public void SetPhase(Phase phase)
 		{
@@ -87,13 +97,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				TransactionSigningStart = DateTimeOffset.UtcNow;
 			}
-			else if (phase == Phase.TransactionBroadcasting)
+			else if (phase == Phase.Ended)
 			{
-				TransactionBroadcastingStart = DateTimeOffset.UtcNow;
+				End = DateTimeOffset.UtcNow;
 			}
 		}
 
-		public bool IsInputRegistrationEnded(uint maxInputCount, TimeSpan inputRegistrationTimeout)
+		public bool IsInputRegistrationEnded(int maxInputCount, TimeSpan inputRegistrationTimeout)
 		{
 			if (Phase > Phase.InputRegistration)
 			{
@@ -121,20 +131,20 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		}
 
 		public ConstructionState AddInput(Coin coin)
-			=> CoinjoinState.AssertConstruction().AddInput(coin);
+			=> Assert<ConstructionState>().AddInput(coin);
 
 		public ConstructionState AddOutput(TxOut output)
-			=> CoinjoinState.AssertConstruction().AddOutput(output);
+			=> Assert<ConstructionState>().AddOutput(output);
 
 		public SigningState AddWitness(int index, WitScript witness)
-			=> CoinjoinState.AssertSigning().AddWitness(index, witness);
+			=> Assert<SigningState>().AddWitness(index, witness);
 
 		private uint256 CalculateHash()
 			=> StrobeHasher.Create(ProtocolConstants.RoundStrobeDomain)
-				.Append(ProtocolConstants.RoundMaxInputCountByAliceStrobeLabel, MaxInputCountByAlice)
 				.Append(ProtocolConstants.RoundMinRegistrableAmountStrobeLabel, MinRegistrableAmount)
 				.Append(ProtocolConstants.RoundMaxRegistrableAmountStrobeLabel, MaxRegistrableAmount)
-				.Append(ProtocolConstants.RoundPerAliceVsizeAllocationStrobeLabel, PerAliceVsizeAllocation)
+				.Append(ProtocolConstants.RoundMaxRegistrableVsizeStrobeLabel, MaxRegistrableVsize)
+				.Append(ProtocolConstants.RoundMaxVsizePerAliceStrobeLabel, MaxVsizeAllocationPerAlice)
 				.Append(ProtocolConstants.RoundAmountCredentialIssuerParametersStrobeLabel, AmountCredentialIssuerParameters)
 				.Append(ProtocolConstants.RoundVsizeCredentialIssuerParametersStrobeLabel, VsizeCredentialIssuerParameters)
 				.Append(ProtocolConstants.RoundFeeRateStrobeLabel, FeeRate.FeePerK)

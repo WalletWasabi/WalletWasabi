@@ -1,0 +1,28 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Style Selector="StackPanel.settingsLayout">
+    <Setter Property="Spacing" Value="20"/>
+    <Setter Property="MinWidth" Value="360"/>
+    <Setter Property="MaxWidth" Value="650"/>
+    <Setter Property="HorizontalAlignment" Value="Left"/>
+    <Setter Property="Orientation" Value="Vertical"/>
+  </Style>
+
+  <Style Selector="StackPanel.settingsLayout > DockPanel > ToggleSwitch">
+    <Setter Property="Margin" Value="0 0 -12 0" />
+    <Setter Property="HorizontalAlignment" Value="Right" />
+    <Setter Property="OnContent" Value="{x:Null}" />
+    <Setter Property="OffContent" Value="{x:Null}" />
+  </Style>
+
+  <Style Selector="StackPanel.settingsLayout > DockPanel > TextBlock">
+    <Setter Property="Margin" Value="0 8 20 0" />
+    <Setter Property="VerticalAlignment" Value="Top" />
+    <Setter Property="(DockPanel.Dock)" Value="Left" />
+  </Style>
+
+  <Style Selector="StackPanel.settingsLayout > DockPanel > Label">
+    <Setter Property="Margin" Value="0 8 0 0" />
+    <Setter Property="HorizontalAlignment" Value="Right" />
+  </Style>
+</Styles>

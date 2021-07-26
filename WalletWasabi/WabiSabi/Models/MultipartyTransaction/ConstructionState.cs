@@ -1,27 +1,17 @@
 using NBitcoin;
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using WalletWasabi.WabiSabi.Backend.Models;
 
 namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 {
 	// This class represents actions of the BIP 370 creator and constructor roles
-	public record ConstructionState(MultipartyTransactionParameters Parameters) : IState
+	public record ConstructionState : MultipartyTransactionState
 	{
-		public ImmutableList<Coin> Inputs { get; init; } = ImmutableList<Coin>.Empty;
-		public ImmutableList<TxOut> Outputs { get; init; } = ImmutableList<TxOut>.Empty;
-
-		public Money Balance => Inputs.Sum(x => x.Amount) - Outputs.Sum(x => x.Value);
-		public int EstimatedInputsVsize => Inputs.Sum(x => x.TxOut.ScriptPubKey.EstimateInputVsize());
-		public int OutputsVsize => Outputs.Sum(x => x.ScriptPubKey.EstimateOutputVsize());
-
-		public int EstimatedVsize => MultipartyTransactionParameters.SharedOverhead + EstimatedInputsVsize + OutputsVsize;
-		// With no coordinator fees we can't ensure that the shared overhead
-		// of the transaction also pays at the nominal feerate so this will have
-		// to do for now, but in the future EstimatedVsize should be used
-		// including the shared overhead
-		public FeeRate EffectiveFeeRate => new(Balance, EstimatedInputsVsize + OutputsVsize);
+		public ConstructionState(MultipartyTransactionParameters parameters)
+			: base(parameters)
+		{
+		}
 
 		// TODO ownership proofs and spend status also in scope
 		public ConstructionState AddInput(Coin coin)
@@ -119,7 +109,7 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InsufficientFees);
 			}
 
-			return new SigningState(Parameters, Inputs.ToImmutableArray(), Outputs.ToImmutableArray());
+			return new SigningState(Parameters, Inputs, Outputs);
 		}
 	}
 }
