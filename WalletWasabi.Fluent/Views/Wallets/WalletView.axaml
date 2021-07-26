@@ -26,13 +26,17 @@
                 <TextBlock Text="Broadcast" />
               </StackPanel>
             </Button>
-            <Button Classes="function" Command="{Binding SendCommand}">
+            <Button Classes="function"
+                    IsVisible="{Binding !IsWalletBalanceZero}"
+                    Command="{Binding SendCommand}">
               <StackPanel Orientation="Horizontal" Spacing="15">
                 <PathIcon Data="{StaticResource wallet_action_send}" />
                 <TextBlock Text="Send" />
               </StackPanel>
             </Button>
-            <Button Classes="function" Command="{Binding ReceiveCommand}">
+            <Button Classes="function"
+                    IsVisible="{Binding !IsWalletBalanceZero}"
+                    Command="{Binding ReceiveCommand}">
               <StackPanel Orientation="Horizontal" Spacing="15">
                 <PathIcon Data="{StaticResource wallet_action_receive}" />
                 <TextBlock Text="Receive" />
@@ -72,7 +76,7 @@
       <Panel Classes.smallLayout="{Binding IsSmallLayout}"
              Classes.normalLayout="{Binding IsNormalLayout}"
              Classes.wideLayout="{Binding IsWideLayout}"
-             Classes.isEmptyWallet="{Binding History.IsWalletEmpty}">
+             Classes.isEmptyWallet="{Binding IsWalletBalanceZero}">
         <Panel.Styles>
           <Style Selector="Panel.smallLayout">
             <Setter Property="HorizontalAlignment" Value="Left"/>
@@ -98,7 +102,7 @@
           </Style>
         </Panel.Styles>
         <ScrollViewer Name="ScrollViewer"
-                      IsVisible="{Binding !History.IsWalletEmpty}"
+                      IsVisible="{Binding !IsWalletBalanceZero}"
                       Classes.smallLayout="{Binding IsSmallLayout}"
                       Classes.normalLayout="{Binding IsNormalLayout}"
                       Classes.wideLayout="{Binding IsWideLayout}">
@@ -168,24 +172,30 @@
                 Margin="6"
                 Padding="16"
                 BoxShadow="{DynamicResource InfoBoxShadow}"
-                DataContext="{Binding History}"
-                IsVisible="{Binding IsWalletEmpty}">
-          <Label Content="Please click Send or Receive buttons to start using your wallet."
-                 HorizontalAlignment="Center"
-                 VerticalAlignment="Center">
-            <Label.Styles>
-              <Style Selector="Label > AccessText">
-                <Setter Property="TextWrapping" Value="Wrap"/>
-              </Style>
-            </Label.Styles>
-          </Label>
+                IsVisible="{Binding IsWalletBalanceZero}">
+          <StackPanel>
+            <Label Content="Since this is a empty wallet, there isn't a lot going on here. Click an option below to receive BitCoin."
+                   Classes="wrap center"
+                   MaxWidth="400"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"/>
+              <Button Classes="function"
+                      Command="{Binding ReceiveCommand}"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center">
+              <StackPanel Orientation="Horizontal" Spacing="15">
+                <PathIcon Data="{StaticResource wallet_action_receive}" />
+                <TextBlock Text="Receive" />
+              </StackPanel>
+            </Button>
+          </StackPanel>
         </Border>
       </Panel>
       <Panel>
         <history:HistoryTable Name="HistoryTable"
                               DataContext="{Binding History}"
                               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                              IsVisible="{Binding !IsWalletEmpty}"/>
+                              IsVisible="{Binding !IsTransactionHistoryEmpty}"/>
         <Border ClipToBounds="False"
                 CornerRadius="5"
                 Background="{DynamicResource TileRegionColor}"
@@ -193,11 +203,8 @@
                 Padding="16"
                 BoxShadow="{DynamicResource InfoBoxShadow}"
                 DataContext="{Binding History}"
-                IsVisible="{Binding IsWalletEmpty}">
+                IsVisible="{Binding IsTransactionHistoryEmpty}">
           <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-            <!--<ContentControl Template="{DynamicResource placeholder_empty_wallet}"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center" />-->
             <Image Width="234" Height="110" HorizontalAlignment="Center" VerticalAlignment="Center">
               <Image.Source>
                 <DrawingImage Drawing="{StaticResource history_table_empty_wallet}"/>

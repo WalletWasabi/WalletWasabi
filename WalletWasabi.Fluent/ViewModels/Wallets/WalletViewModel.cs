@@ -38,6 +38,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSmallLayout;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isNormalLayout;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWideLayout;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWalletBalanceZero;
 
 		protected WalletViewModel(Wallet wallet) : base(wallet)
 		{
@@ -56,6 +57,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					.Merge(Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Select(_ => Unit.Default))
 					.Throttle(TimeSpan.FromSeconds(0.1))
 					.ObserveOn(RxApp.MainThreadScheduler);
+
+			balanceChanged
+				.Subscribe(_ => IsWalletBalanceZero = wallet.Coins.TotalAmount() == Money.Zero)
+				.DisposeWith(Disposables);
 
 			History = new HistoryViewModel(this, balanceChanged);
 

@@ -27,7 +27,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		private readonly object _transactionListLock = new();
 
 		[AutoNotify] private HistoryItemViewModel? _selectedItem;
-		[AutoNotify] private bool _isWalletEmpty;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isTransactionHistoryEmpty;
 
 		public HistoryViewModel(WalletViewModel walletViewModel, IObservable<Unit> updateTrigger)
 		{
@@ -38,7 +38,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			_unfilteredTransactions = new ObservableCollectionExtended<HistoryItemViewModel>();
 
 			this.WhenAnyValue(x => x.UnfilteredTransactions.Count)
-				.Subscribe(x => IsWalletEmpty = x <= 0);
+				.Subscribe(x => IsTransactionHistoryEmpty = x <= 0);
 
 			var sortDescription = DataGridSortDescription.FromPath(nameof(HistoryItemViewModel.OrderIndex), ListSortDirection.Descending);
 			CollectionView = new DataGridCollectionView(Transactions);
