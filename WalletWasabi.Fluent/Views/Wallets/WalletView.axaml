@@ -174,7 +174,7 @@
                 BoxShadow="{DynamicResource InfoBoxShadow}"
                 IsVisible="{Binding IsWalletBalanceZero}">
           <StackPanel>
-            <Label Content="Since this is a empty wallet, there isn't a lot going on here. Click an option below to receive BitCoin."
+            <Label Content="Since this is a empty wallet, there isn't a lot going on here. Click an option below to receive Bitcoin."
                    Classes="wrap center"
                    MaxWidth="400"
                    HorizontalAlignment="Center"
