@@ -26,10 +26,10 @@ namespace WalletWasabi.Tests.UnitTests
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
 				await StartupHelper.ModifyStartupSettingAsync(true);
-				Assert.True(CheckIfRegistryKeyExist());
+				Assert.True(RegistryKeyExists());
 
 				await StartupHelper.ModifyStartupSettingAsync(false);
-				Assert.False(CheckIfRegistryKeyExist());
+				Assert.False(RegistryKeyExists());
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
@@ -58,7 +58,7 @@ namespace WalletWasabi.Tests.UnitTests
 			return uiConfig;
 		}
 
-		private bool CheckIfRegistryKeyExist()
+		private bool RegistryKeyExists()
 		{
 			bool result = false;
 
