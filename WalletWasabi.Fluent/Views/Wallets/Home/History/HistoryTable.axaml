@@ -137,7 +137,7 @@
                               SortMemberPath="Label">
         <DataGridTemplateColumn.CellTemplate>
           <DataTemplate>
-            <DockPanel x:DataType="history:HistoryItemViewModel">
+            <DockPanel Margin="0,4,0,0" x:DataType="history:HistoryItemViewModel">
               <DockPanel.Styles>
                 <Style Selector="Button.labelFlyout">
                   <Setter Property="Margin" Value="0" />

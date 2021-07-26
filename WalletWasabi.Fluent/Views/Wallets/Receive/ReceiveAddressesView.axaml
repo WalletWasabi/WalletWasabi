@@ -73,7 +73,7 @@
                         ToolTip.Tip="QR Code">
                   <PathIcon Data="{StaticResource qr_code_regular}" Classes=" addressActionIcon"/>
                 </Button>
-                <TextBox Classes="selectableTextBlock" Text="{Binding Address}" VerticalAlignment="Center" />
+                <c:PrivacyTextControl Text="{Binding Address}" VerticalAlignment="Center" NumberOfPrivacyChars="38"/>
               </DockPanel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
