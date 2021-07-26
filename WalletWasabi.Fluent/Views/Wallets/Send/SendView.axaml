@@ -63,6 +63,7 @@
                    TagSeparator=","
                    SuggestionsAreCaseSensitive="True"
                    RestrictInputToSuggestions="False"
+                   Focusable="True"
                    Items="{Binding Labels}"
                    Suggestions="{Binding PriorLabels}" />
       </DockPanel>
