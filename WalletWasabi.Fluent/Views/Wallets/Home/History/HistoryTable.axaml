@@ -274,7 +274,7 @@
       <!-- Status -->
       <DataGridTemplateColumn Header="Status"
                               Width="*"
-                              MinWidth="100"
+                              MinWidth="120"
                               MaxWidth="120"
                               SortMemberPath="IsConfirmed">
         <DataGridTemplateColumn.CellTemplate>
