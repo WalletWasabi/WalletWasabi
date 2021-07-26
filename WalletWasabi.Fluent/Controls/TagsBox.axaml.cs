@@ -383,7 +383,7 @@ namespace WalletWasabi.Fluent.Controls
 
 			var canAddTag = _isInputEnabled && !string.IsNullOrEmpty(currentText);
 
-			if (e.Key == Key.Tab && canAddTag)
+			if ((e.Key == Key.Tab || e.Key == Key.Enter) && canAddTag)
 			{
 				e.Handled = true;
 			}
@@ -395,7 +395,7 @@ namespace WalletWasabi.Fluent.Controls
 					break;
 
 				case Key.Tab when canAddTag:
-				case Key.Enter when canAddTag && noTextSelection:
+				case Key.Enter when canAddTag:
 					// Reject entry of the tag when user pressed enter and
 					// the input tag is not on the suggestions list.
 					if (RestrictInputToSuggestions && Suggestions is { } &&
@@ -408,6 +408,9 @@ namespace WalletWasabi.Fluent.Controls
 					BackspaceLogicClear();
 					AddTag(currentText);
 					ExecuteCompletedCommand();
+
+					_internalTextBox.ClearSelection();
+					_internalTextBox.ClearValue(AutoCompleteBox.TextProperty);
 
 					autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
 					Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
