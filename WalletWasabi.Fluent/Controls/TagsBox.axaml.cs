@@ -272,8 +272,6 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void OnAutoCompleteBoxDropDownClosed(object? sender, EventArgs e)
 		{
-			// TODO: Remove as this is handled now in OnKeyDown
-			/*
 			if (sender is not AutoCompleteBox autoCompleteBox)
 			{
 				return;
@@ -298,7 +296,6 @@ namespace WalletWasabi.Fluent.Controls
 			BackspaceLogicClear();
 			autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
 			Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
-			*/
 		}
 
 		private void BackspaceLogicClear()
