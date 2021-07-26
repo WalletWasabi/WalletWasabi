@@ -205,7 +205,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				var frame = 0;
 
 				_timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1 / 60.0) };
-				_timer.Tick += (sender, e) =>
+				_timer.Tick += (_, _) =>
 				{
 					XValues = cache[frame].XValues;
 					YValues = cache[frame].YValues;
