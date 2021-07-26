@@ -374,7 +374,6 @@ namespace WalletWasabi.Fluent.Controls
 
 			_backspaceEmptyField2 = _backspaceEmptyField1;
 			_backspaceEmptyField1 = currentText.Length == 0;
-			var noTextSelection = Math.Max(0, _internalTextBox!.SelectionEnd - _internalTextBox.SelectionStart) == 0;
 
 			currentText = currentText.Trim();
 
