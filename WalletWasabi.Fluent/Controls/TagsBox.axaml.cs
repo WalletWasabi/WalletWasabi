@@ -272,6 +272,8 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void OnAutoCompleteBoxDropDownClosed(object? sender, EventArgs e)
 		{
+			// TODO: Remove as this is handled now in OnKeyDown
+			/*
 			if (sender is not AutoCompleteBox autoCompleteBox)
 			{
 				return;
@@ -296,6 +298,7 @@ namespace WalletWasabi.Fluent.Controls
 			BackspaceLogicClear();
 			autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
 			Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
+			*/
 		}
 
 		private void BackspaceLogicClear()
@@ -374,9 +377,16 @@ namespace WalletWasabi.Fluent.Controls
 
 			_backspaceEmptyField2 = _backspaceEmptyField1;
 			_backspaceEmptyField1 = currentText.Length == 0;
-			var selectedTextLength = Math.Max(0, _internalTextBox!.SelectionEnd - _internalTextBox.SelectionStart);
+			var noTextSelection = Math.Max(0, _internalTextBox!.SelectionEnd - _internalTextBox.SelectionStart) == 0;
 
 			currentText = currentText.Trim();
+
+			var canAddTag = _isInputEnabled && !string.IsNullOrEmpty(currentText);
+
+			if (e.Key == Key.Tab && canAddTag)
+			{
+				e.Handled = true;
+			}
 
 			switch (e.Key)
 			{
@@ -384,8 +394,8 @@ namespace WalletWasabi.Fluent.Controls
 					RemoveLastTag();
 					break;
 
-				case Key.Tab when _isInputEnabled && !string.IsNullOrEmpty(currentText) && selectedTextLength == 0:
-				case Key.Enter when _isInputEnabled && !string.IsNullOrEmpty(currentText) && selectedTextLength == 0:
+				case Key.Tab when canAddTag:
+				case Key.Enter when canAddTag && noTextSelection:
 					// Reject entry of the tag when user pressed enter and
 					// the input tag is not on the suggestions list.
 					if (RestrictInputToSuggestions && Suggestions is { } &&
@@ -399,6 +409,7 @@ namespace WalletWasabi.Fluent.Controls
 					AddTag(currentText);
 					ExecuteCompletedCommand();
 
+					autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
 					Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
 					e.Handled = true;
 
