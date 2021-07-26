@@ -42,7 +42,8 @@
                                 </i:Interaction.Behaviors>
                             </Button>
                             <StackPanel Orientation="Horizontal" Spacing="30" Margin="0 10" HorizontalAlignment="Right">
-                                <Button IsVisible="{TemplateBinding EnableSkip}"
+                                <Button Name="PART_SkipButton"
+                                        IsVisible="{TemplateBinding EnableSkip}"
                                         Content="{TemplateBinding SkipContent}"
                                         Command="{Binding SkipCommand}"
                                         Classes="activeHyperLink skip"
@@ -64,7 +65,8 @@
                             <Panel IsHitTestVisible="False" Background="{TemplateBinding HeaderBackground}" />
                             <StackPanel Name="PART_Header" Spacing="10">
                                 <DockPanel>
-                                    <Button Margin="-31,0,0,0"
+                                    <Button Name="PART_BackButton"
+                                            Margin="-31,0,0,0"
                                             Classes="plain"
                                             Command="{Binding BackCommand}"
                                             IsVisible="{TemplateBinding EnableBack}">
