@@ -35,7 +35,7 @@
               </StackPanel>
             </Button>
             <Button Classes="function"
-                    IsVisible="{Binding !IsWalletBalanceZero}"
+                    IsVisible="{Binding !IsEmptyWallet}"
                     Command="{Binding ReceiveCommand}">
               <StackPanel Orientation="Horizontal" Spacing="15">
                 <PathIcon Data="{StaticResource wallet_action_receive}" />
@@ -76,7 +76,7 @@
       <Panel Classes.smallLayout="{Binding IsSmallLayout}"
              Classes.normalLayout="{Binding IsNormalLayout}"
              Classes.wideLayout="{Binding IsWideLayout}"
-             Classes.isEmptyWallet="{Binding IsWalletBalanceZero}">
+             Classes.isEmptyWallet="{Binding IsEmptyWallet}">
         <Panel.Styles>
           <Style Selector="Panel.smallLayout">
             <Setter Property="HorizontalAlignment" Value="Left"/>
@@ -102,7 +102,7 @@
           </Style>
         </Panel.Styles>
         <ScrollViewer Name="ScrollViewer"
-                      IsVisible="{Binding !IsWalletBalanceZero}"
+                      IsVisible="{Binding !IsEmptyWallet}"
                       Classes.smallLayout="{Binding IsSmallLayout}"
                       Classes.normalLayout="{Binding IsNormalLayout}"
                       Classes.wideLayout="{Binding IsWideLayout}">
@@ -172,7 +172,7 @@
                 Margin="6"
                 Padding="16"
                 BoxShadow="{DynamicResource InfoBoxShadow}"
-                IsVisible="{Binding IsWalletBalanceZero}">
+                IsVisible="{Binding IsEmptyWallet}">
           <StackPanel>
             <Label Content="Since this is a empty wallet, there isn't a lot going on here. Click an option below to receive Bitcoin."
                    Classes="wrap center"

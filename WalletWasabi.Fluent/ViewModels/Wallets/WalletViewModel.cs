@@ -39,6 +39,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isNormalLayout;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWideLayout;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWalletBalanceZero;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isEmptyWallet;
 
 		protected WalletViewModel(Wallet wallet) : base(wallet)
 		{
@@ -58,11 +59,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					.Throttle(TimeSpan.FromSeconds(0.1))
 					.ObserveOn(RxApp.MainThreadScheduler);
 
+			History = new HistoryViewModel(this, balanceChanged);
+
 			balanceChanged
 				.Subscribe(_ => IsWalletBalanceZero = wallet.Coins.TotalAmount() == Money.Zero)
 				.DisposeWith(Disposables);
 
-			History = new HistoryViewModel(this, balanceChanged);
+			this.WhenAnyValue(x => x.IsWalletBalanceZero, x => x.History.IsTransactionHistoryEmpty)
+				.Subscribe(tuple => IsEmptyWallet = tuple.Item1 && tuple.Item2);
 
 			_smallLayoutHeightBreakpoint = 650;
 			_wideLayoutWidthBreakpoint = 1400;
