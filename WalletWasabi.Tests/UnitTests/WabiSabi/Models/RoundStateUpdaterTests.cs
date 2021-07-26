@@ -42,7 +42,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			var round1IRTask = roundStatusUpdater.CreateRoundAwaiter(roundState1.Id, rs => rs.Phase == Phase.InputRegistration, cancellationToken);
 			var round1ORTask = roundStatusUpdater.CreateRoundAwaiter(roundState1.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken);
 			var round1TSTask = roundStatusUpdater.CreateRoundAwaiter(roundState1.Id, rs => rs.Phase == Phase.TransactionSigning, round1TSCts.Token);
-			var round1TBTask = roundStatusUpdater.CreateRoundAwaiter(roundState1.Id, rs => rs.Phase == Phase.TransactionBroadcasting, cancellationToken);
+			var round1TBTask = roundStatusUpdater.CreateRoundAwaiter(roundState1.Id, rs => rs.Phase == Phase.Ended, cancellationToken);
 
 			// Start
 			await roundStatusUpdater.StartAsync(cancellationTokenSource.Token);
@@ -57,7 +57,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			// we can subscribe to events.
 			await roundStatusUpdater.TriggerAndWaitRoundAsync(TestTimeOut);
 			var round2IRTask = roundStatusUpdater.CreateRoundAwaiter(roundState2.Id, rs => rs.Phase == Phase.InputRegistration, cancellationToken);
-			var round2TBTask = roundStatusUpdater.CreateRoundAwaiter(roundState2.Id, rs => rs.Phase == Phase.TransactionBroadcasting, cancellationToken);
+			var round2TBTask = roundStatusUpdater.CreateRoundAwaiter(roundState2.Id, rs => rs.Phase == Phase.Ended, cancellationToken);
 
 			// Force the RoundStatusUpdater to run again just to make it trigger the events.
 			await roundStatusUpdater.TriggerAndWaitRoundAsync(TestTimeOut);

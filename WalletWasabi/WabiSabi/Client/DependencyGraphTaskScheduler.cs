@@ -11,9 +11,9 @@ using WalletWasabi.WabiSabi.Crypto;
 
 namespace WalletWasabi.WabiSabi.Client
 {
-	public class DependencyGraphResolver
+	public class DependencyGraphTaskScheduler
 	{
-		public DependencyGraphResolver(DependencyGraph graph)
+		public DependencyGraphTaskScheduler(DependencyGraph graph)
 		{
 			Graph = graph;
 			var allInEdges = Enum.GetValues<CredentialType>()
