@@ -15,6 +15,9 @@ namespace WalletWasabi.Tests.UnitTests
 	{
 		private const string PathToRegistyKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
 
+		// Path to Wasabi.desktop file. Only Linux distributions need this.
+		private string _filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config", "autostart", "Wasabi.desktop");
+
 		[Fact]
 		public async Task ModifyStartupOnDifferentSystemsTestAsync()
 		{
@@ -31,7 +34,10 @@ namespace WalletWasabi.Tests.UnitTests
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
 				await StartupHelper.ModifyStartupSettingAsync(true);
+				Assert.True(File.Exists(_filePath));
+
 				await StartupHelper.ModifyStartupSettingAsync(false);
+				Assert.False(File.Exists(_filePath));
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
