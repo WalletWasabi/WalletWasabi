@@ -405,8 +405,8 @@ namespace WalletWasabi.Fluent.Controls
 					AddTag(currentText);
 					ExecuteCompletedCommand();
 
-					_internalTextBox.ClearSelection();
-					_internalTextBox.ClearValue(AutoCompleteBox.TextProperty);
+					_internalTextBox?.ClearSelection();
+					_internalTextBox?.ClearValue(AutoCompleteBox.TextProperty);
 
 					autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
 					Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
