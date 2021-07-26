@@ -19,7 +19,7 @@
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="HorizontalAlignment" Value="Center" />
       </Style>
-      <Style Selector="TextBlock">
+      <Style Selector="TextBlock, c|PrivacyTextControl">
         <Setter Property="VerticalAlignment" Value="Center" />
       </Style>
       <Style Selector="StackPanel">
@@ -104,10 +104,11 @@
                               SortMemberPath="OrderIndex">
         <DataGridTemplateColumn.CellTemplate>
           <DataTemplate>
-            <TextBlock x:DataType="history:HistoryItemViewModel"
-                       Text="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}"
-                       Classes="monoSpaced"
-                       Margin="10 0" />
+            <c:PrivacyTextControl x:DataType="history:HistoryItemViewModel"
+                                  Text="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}"
+                                  TextBlockClasses="monoSpaced"
+                                  Margin="10 0"
+                                  NumberOfPrivacyChars="15"/>
           </DataTemplate>
         </DataGridTemplateColumn.CellTemplate>
       </DataGridTemplateColumn>
@@ -136,7 +137,7 @@
                               SortMemberPath="Label">
         <DataGridTemplateColumn.CellTemplate>
           <DataTemplate>
-            <DockPanel Margin="0,4,0,0" x:DataType="history:HistoryItemViewModel">
+            <DockPanel x:DataType="history:HistoryItemViewModel">
               <DockPanel.Styles>
                 <Style Selector="Button.labelFlyout">
                   <Setter Property="Margin" Value="0" />
@@ -196,8 +197,9 @@
                         IsVisible="{Binding !!IncomingAmount}"
                         HorizontalAlignment="Right">
               <PathIcon Data="{StaticResource arrow_down_right_regular}" Opacity="0.6" />
-              <TextBlock Classes="monoSpaced"
-                         Text="{Binding IncomingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
+              <c:PrivacyTextControl Text="{Binding IncomingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
+                                    TextBlockClasses="monoSpaced"
+                                    NumberOfPrivacyChars="9" />
             </StackPanel>
           </DataTemplate>
         </DataGridTemplateColumn.CellTemplate>
@@ -213,8 +215,9 @@
                         IsVisible="{Binding !!OutgoingAmount}"
                         HorizontalAlignment="Right">
               <PathIcon Data="{StaticResource arrow_up_right_regular}" Opacity="0.6" />
-              <TextBlock Classes="monoSpaced"
-                         Text="{Binding OutgoingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
+              <c:PrivacyTextControl Text="{Binding OutgoingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
+                                    TextBlockClasses="monoSpaced"
+                                    NumberOfPrivacyChars="9" />
             </StackPanel>
           </DataTemplate>
         </DataGridTemplateColumn.CellTemplate>
@@ -226,11 +229,12 @@
                               SortMemberPath="Balance">
         <DataGridTemplateColumn.CellTemplate>
           <DataTemplate>
-            <TextBlock Classes="monoSpaced"
-                       HorizontalAlignment="Right"
-                       x:DataType="history:HistoryItemViewModel"
-                       Text="{Binding Balance, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
-                       Margin="10 0" />
+            <c:PrivacyTextControl x:DataType="history:HistoryItemViewModel"
+                                  Text="{Binding Balance, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
+                                  TextBlockClasses="monoSpaced"
+                                  NumberOfPrivacyChars="9"
+                                  HorizontalAlignment="Right"
+                                  Margin="10 0" />
           </DataTemplate>
         </DataGridTemplateColumn.CellTemplate>
       </DataGridTemplateColumn>
@@ -259,7 +263,7 @@
         </DataGridTemplateColumn.CellTemplate>
       </DataGridTemplateColumn>
 
-      <!-- Status -->
+      <!-- Details -->
       <DataGridTemplateColumn Width="Auto"
                               CanUserSort="False">
         <DataGridTemplateColumn.CellTemplate>
