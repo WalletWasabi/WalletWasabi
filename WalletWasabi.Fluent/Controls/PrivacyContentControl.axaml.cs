@@ -9,6 +9,8 @@ namespace WalletWasabi.Fluent.Controls
 {
 	public class PrivacyContentControl : ContentControl
 	{
+		private CompositeDisposable? _disposable;
+
 		public static readonly StyledProperty<bool> PrivacyModeEnabledProperty =
 			AvaloniaProperty.Register<PrivacyContentControl, bool>(nameof(PrivacyModeEnabled));
 
@@ -17,8 +19,6 @@ namespace WalletWasabi.Fluent.Controls
 			get => GetValue(PrivacyModeEnabledProperty);
 			set => SetValue(PrivacyModeEnabledProperty, value);
 		}
-
-		private CompositeDisposable? _disposable;
 
 		protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
 		{
