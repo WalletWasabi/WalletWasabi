@@ -18,6 +18,16 @@ namespace WalletWasabi.Tests.UnitTests
 		// Path to Wasabi.desktop file. Only Linux distributions need this.
 		private string _filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config", "autostart", "Wasabi.desktop");
 
+		private string _expectedDesktopFileContent = string.Join(
+					"\n",
+					"[Desktop Entry]",
+					$"Name={Constants.AppName}",
+					"Type=Application",
+					$"Exec={EnvironmentHelpers.GetExecutablePath()}",
+					"Hidden=false",
+					"Terminal=false",
+					"X-GNOME-Autostart-enabled=true");
+
 		[Fact]
 		public async Task ModifyStartupOnDifferentSystemsTestAsync()
 		{
@@ -34,7 +44,9 @@ namespace WalletWasabi.Tests.UnitTests
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
 				await StartupHelper.ModifyStartupSettingAsync(true);
+
 				Assert.True(File.Exists(_filePath));
+				Assert.Equal(_expectedDesktopFileContent, GetFileContent(_filePath));
 
 				await StartupHelper.ModifyStartupSettingAsync(false);
 				Assert.False(File.Exists(_filePath));
@@ -69,6 +81,11 @@ namespace WalletWasabi.Tests.UnitTests
 			}
 
 			return result;
+		}
+
+		private string GetFileContent(string filePath)
+		{
+			return string.Join("\n", File.ReadAllLines(filePath));
 		}
 	}
 }
