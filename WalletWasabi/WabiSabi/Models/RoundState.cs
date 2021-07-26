@@ -10,10 +10,12 @@ namespace WalletWasabi.WabiSabi.Models
 {
 	public record RoundState(
 		uint256 Id,
+		uint256? BlameOf,
 		CredentialIssuerParameters AmountCredentialIssuerParameters,
 		CredentialIssuerParameters VsizeCredentialIssuerParameters,
 		FeeRate FeeRate,
 		Phase Phase,
+		bool WasTransactionBroadcast,
 		TimeSpan ConnectionConfirmationTimeout,
 		long MaxRegistrableAmount,
 		long MaxRegistrableVsize,
@@ -23,10 +25,12 @@ namespace WalletWasabi.WabiSabi.Models
 		public static RoundState FromRound(Round round) =>
 			new(
 				round.Id,
+				round.BlameOf?.Id,
 				round.AmountCredentialIssuerParameters,
 				round.VsizeCredentialIssuerParameters,
 				round.FeeRate,
 				round.Phase,
+				round.WasTransactionBroadcast,
 				round.ConnectionConfirmationTimeout,
 				round.MaxRegistrableAmount,
 				round.MaxRegistrableVsize,

@@ -19,7 +19,10 @@ namespace WalletWasabi.Tests.Helpers
 
 		public virtual Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
 		{
-			return _httpClient.SendAsync(request, token);
+			// HttpCompletionOption is required here because of a bug in dotnet.
+			// without it the test fails randomly with ObjectDisposedException
+			// see: https://github.com/dotnet/runtime/issues/23870
+			return _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
 		}
 	}
 }

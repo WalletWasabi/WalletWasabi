@@ -14,6 +14,7 @@ using Avalonia.Interactivity;
 using Avalonia.Metadata;
 using Avalonia.Threading;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.Controls
@@ -34,6 +35,9 @@ namespace WalletWasabi.Fluent.Controls
 
 		public static readonly StyledProperty<bool> SuggestionsAreCaseSensitiveProperty =
 			AvaloniaProperty.Register<TagsBox, bool>(nameof(SuggestionsAreCaseSensitive), defaultValue: true);
+
+		public static readonly StyledProperty<bool> AllowDuplicationProperty =
+			AvaloniaProperty.Register<TagsBox, bool>(nameof(AllowDuplication));
 
 		public static readonly DirectProperty<TagsBox, IEnumerable<string>?> ItemsProperty =
 			AvaloniaProperty.RegisterDirect<TagsBox, IEnumerable<string>?>(nameof(Items),
@@ -123,6 +127,12 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(SuggestionsAreCaseSensitiveProperty, value);
 		}
 
+		public bool AllowDuplication
+		{
+			get => GetValue(AllowDuplicationProperty);
+			set => SetValue(AllowDuplicationProperty, value);
+		}
+
 		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
 		{
 			base.OnApplyTemplate(e);
@@ -175,7 +185,7 @@ namespace WalletWasabi.Fluent.Controls
 			_internalTextBox.WhenAnyValue(x => x.IsFocused)
 				.Subscribe(isFocused =>
 				{
-					if (isFocused || !_isInputEnabled || string.IsNullOrWhiteSpace(_internalTextBox.Text))
+					if (isFocused || !_isInputEnabled || string.IsNullOrWhiteSpace(_internalTextBox.Text) || _autoCompleteBox is { IsDropDownOpen: true })
 					{
 						return;
 					}
@@ -217,7 +227,7 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			if (_watermark is { } && _autoCompleteBox is { })
 			{
-				if ((Items is null || (Items is { } && !Items.Any())) && string.IsNullOrWhiteSpace(_autoCompleteBox?.Text))
+				if ((Items is null || (Items is { } && !Items.Any())) && string.IsNullOrEmpty(_autoCompleteBox?.Text))
 				{
 					_watermark.IsVisible = true;
 				}
@@ -267,11 +277,7 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
-			// Deal with a nasty corner case...
-			var disableDropDownCommit = _internalTextBox!.CaretIndex == _internalTextBox.Text.Length &&
-										_internalTextBox.SelectionEnd == _internalTextBox.SelectionStart;
-
-			if (_internalTextBox is null || disableDropDownCommit)
+			if (_internalTextBox is null)
 			{
 				return;
 			}
@@ -453,7 +459,7 @@ namespace WalletWasabi.Fluent.Controls
 			CheckIsInputEnabled();
 		}
 
-		private void AddTag(string tag)
+		public void AddTag(string tag)
 		{
 			if (Items is IList x)
 			{
@@ -462,7 +468,14 @@ namespace WalletWasabi.Fluent.Controls
 					return;
 				}
 
-				x.Add(tag);
+				var finalTag = tag.ParseLabel();
+
+				if (!AllowDuplication && x.Contains(finalTag))
+				{
+					return;
+				}
+
+				x.Add(finalTag);
 			}
 
 			InvalidateWatermark();

@@ -37,11 +37,14 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public Prison Prison { get; }
 		public SecureRandom Random { get; }
 
+		public IEnumerable<Round> ActiveRounds => Rounds.Where(x => x.Phase != Phase.Ended);
+
 		protected override async Task ActionAsync(CancellationToken cancel)
 		{
 			using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
 			{
-				// Remove timed out alices.
+				TimeoutRounds();
+
 				TimeoutAlices();
 
 				await StepTransactionSigningPhaseAsync().ConfigureAwait(false);
@@ -68,7 +71,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				if (round.InputCount < Config.MinInputCountByRound)
 				{
-					Rounds.Remove(round);
+					round.SetPhase(Phase.Ended);
 					round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase.");
 				}
 				else
@@ -98,7 +101,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 					if (round.InputCount < Config.MinInputCountByRound)
 					{
-						Rounds.Remove(round);
+						round.SetPhase(Phase.Ended);
 						round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.ConnectionConfirmation)} phase.");
 					}
 					else
@@ -172,7 +175,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 						// Broadcasting.
 						await Rpc.SendRawTransactionAsync(coinjoin).ConfigureAwait(false);
-						round.SetPhase(Phase.TransactionBroadcasting);
+						round.WasTransactionBroadcast = true;
+						round.SetPhase(Phase.Ended);
 
 						round.LogInfo($"Successfully broadcast the CoinJoin: {coinjoin.GetHash()}.");
 					}
@@ -207,7 +211,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 
 			round.Alices.RemoveAll(x => alicesWhoDidntSign.Contains(x));
-			Rounds.Remove(round);
+			round.SetPhase(Phase.Ended);
 
 			if (round.InputCount >= Config.MinInputCountByRound)
 			{
@@ -235,6 +239,17 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
+		private void TimeoutRounds()
+		{
+		    foreach (var expiredRound in Rounds.Where(
+				x =>
+				x.Phase == Phase.Ended
+				&& x.End + Config.RoundExpiryTimeout < DateTimeOffset.UtcNow).ToArray())
+			{
+				Rounds.Remove(expiredRound);
+			}
+		}
+
 		private void TimeoutAlices()
 		{
 			foreach (var round in Rounds.Where(x => !x.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.GetInputRegistrationTimeout(x))).ToArray())
@@ -247,12 +262,20 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
+		public async Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken)
+		{
+			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+			{
+				return Rounds.Select(x => RoundState.FromRound(x)).ToArray();
+			}
+		}
+
 		public async Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request)
 		{
 			var coin = await InputRegistrationHandler.OutpointToCoinAsync(request, Prison, Rpc, Config).ConfigureAwait(false);
 			using (await AsyncLock.LockAsync().ConfigureAwait(false))
 			{
-				var registeredCoins = Rounds.SelectMany(r => r.Alices.Select(a => a.Coin));
+				var registeredCoins = Rounds.Where(x => !(x.Phase == Phase.Ended && !x.WasTransactionBroadcast)).SelectMany(r => r.Alices.Select(a => a.Coin));
 
 				if (registeredCoins.Any(x => x.Outpoint == coin.Outpoint))
 				{
