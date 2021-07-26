@@ -162,14 +162,13 @@
       </DataGridTemplateColumn>
 
       <!-- Labels -->
-
       <DataGridTemplateColumn Header="Labels"
                               Width="Auto"
                               CanUserSort="False"
                               SortMemberPath="Label">
         <DataGridTemplateColumn.CellTemplate>
           <DataTemplate>
-            <DockPanel Margin="0,4,0,0" x:DataType="history:HistoryItemViewModel">
+            <DockPanel Margin="0,4,0,0" LastChildFill="False" x:DataType="history:HistoryItemViewModel">
               <c:TagsBox Padding="0"
                          Margin="0"
                          MinWidth="0"
