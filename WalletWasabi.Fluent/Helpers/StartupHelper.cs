@@ -1,4 +1,3 @@
-using Microsoft.Win32;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -20,7 +19,7 @@ namespace WalletWasabi.Fluent.Helpers
 				{
 					throw new InvalidOperationException($"Path {pathToExeFile} does not exist.");
 				}
-				StartOnWindowsStartup(runOnSystemStartup, pathToExeFile);
+				WindowsStartUpHelper.StartOnWindowsStartup(runOnSystemStartup, pathToExeFile);
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
@@ -29,24 +28,6 @@ namespace WalletWasabi.Fluent.Helpers
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
 				await MacOsStartUpHelper.ModifyLoginItemsAsync(runOnSystemStartup);
-			}
-		}
-
-		private static void StartOnWindowsStartup(bool runOnSystemStartup, string pathToExeFile)
-		{
-			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-			{
-				throw new InvalidOperationException("Registry modification can only be done on Windows.");
-			}
-
-			using RegistryKey key = Registry.CurrentUser.OpenSubKey(KeyPath, writable: true) ?? throw new InvalidOperationException("Registry operation failed.");
-			if (runOnSystemStartup)
-			{
-				key.SetValue(nameof(WalletWasabi), pathToExeFile);
-			}
-			else
-			{
-				key.DeleteValue(nameof(WalletWasabi), false);
 			}
 		}
 	}
