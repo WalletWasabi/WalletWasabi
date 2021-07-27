@@ -91,6 +91,7 @@ namespace WalletWasabi.Services
 				{
 					Logger.LogWarning($"XXX: Stop task.");
 					await task.StopAsync().ConfigureAwait(false);
+					_powerSavingTask = null;
 				}
 			}
 		}
