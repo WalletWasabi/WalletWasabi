@@ -106,7 +106,8 @@
           <DataTemplate>
             <c:PrivacyTextControl x:DataType="history:HistoryItemViewModel"
                                   Text="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}"
-                                  TextBlockClasses="monoSpaced"
+                                  Classes="monoSpaced"
+                                  FontSize="15"
                                   Margin="10 0"
                                   NumberOfPrivacyChars="15"/>
           </DataTemplate>
@@ -198,7 +199,8 @@
                         HorizontalAlignment="Right">
               <PathIcon Data="{StaticResource arrow_down_right_regular}" Opacity="0.6" />
               <c:PrivacyTextControl Text="{Binding IncomingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
-                                    TextBlockClasses="monoSpaced"
+                                    Classes="monoSpaced"
+                                    FontSize="15"
                                     NumberOfPrivacyChars="9" />
             </StackPanel>
           </DataTemplate>
@@ -216,7 +218,8 @@
                         HorizontalAlignment="Right">
               <PathIcon Data="{StaticResource arrow_up_right_regular}" Opacity="0.6" />
               <c:PrivacyTextControl Text="{Binding OutgoingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
-                                    TextBlockClasses="monoSpaced"
+                                    Classes="monoSpaced"
+                                    FontSize="15"
                                     NumberOfPrivacyChars="9" />
             </StackPanel>
           </DataTemplate>
@@ -231,7 +234,8 @@
           <DataTemplate>
             <c:PrivacyTextControl x:DataType="history:HistoryItemViewModel"
                                   Text="{Binding Balance, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
-                                  TextBlockClasses="monoSpaced"
+                                  Classes="monoSpaced"
+                                  FontSize="15"
                                   NumberOfPrivacyChars="9"
                                   HorizontalAlignment="Right"
                                   Margin="10 0" />

@@ -41,4 +41,8 @@
       </Transitions>
     </Setter>
   </Style>
+
+  <Style Selector="controls|PrivacyTextControl.monoSpaced">
+    <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
+  </Style>
 </Styles>

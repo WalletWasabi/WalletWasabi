@@ -3,7 +3,6 @@ using System;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using ReactiveUI;
 
@@ -20,9 +19,6 @@ namespace WalletWasabi.Fluent.Controls
 
 		public static readonly StyledProperty<string> TextProperty =
 			AvaloniaProperty.Register<PrivacyTextControl, string>(nameof(Text));
-
-		public static readonly StyledProperty<string> TextBlockClassesProperty =
-			AvaloniaProperty.Register<PrivacyContentControl, string>(nameof(TextBlockClasses));
 
 		public static readonly StyledProperty<uint> NumberOfPrivacyCharsProperty =
 			AvaloniaProperty.Register<PrivacyContentControl, uint>(nameof(NumberOfPrivacyChars), 5);
@@ -42,12 +38,6 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(TextProperty, value);
 		}
 
-		public string TextBlockClasses
-		{
-			get => GetValue(TextBlockClassesProperty);
-			set => SetValue(TextBlockClassesProperty, value);
-		}
-
 		public uint NumberOfPrivacyChars
 		{
 			get => GetValue(NumberOfPrivacyCharsProperty);
@@ -58,20 +48,6 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(PrivacyTextProperty);
 			set => SetValue(PrivacyTextProperty, value);
-		}
-
-		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
-		{
-			base.OnApplyTemplate(e);
-
-			if (TextBlockClasses is { } classes)
-			{
-				var textBlock = e.NameScope.Find<TextBlock>("PART_Text");
-				textBlock.Classes.Add(classes);
-
-				var privacyTextBlock = e.NameScope.Find<TextBlock>("PART_PrivacyText");
-				privacyTextBlock.Classes.Add(classes);
-			}
 		}
 
 		protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
