@@ -213,33 +213,36 @@ namespace WalletWasabi.WabiSabi.Crypto
 
 			var transcript = BuildTransnscript(registrationRequest.IsNullRequest);
 
-			// Verify all statements.
+			bool areProofsValid = false;
+
 			try
 			{
-				var areProofsValid = ProofSystem.Verify(transcript, statements, registrationRequest.Proofs);
+				// Verify all statements.
+				areProofsValid = ProofSystem.Verify(transcript, statements, registrationRequest.Proofs);
 				if (!areProofsValid)
 				{
 					throw new WabiSabiCryptoException(WabiSabiCryptoErrorCode.CoordinatorReceivedInvalidProofs);
 				}
 			}
-			catch
+			finally
 			{
-				// Request was invalid, but all serial numbers were unused.
-				// Ensure nullifier set can't be clogged with invalid serial
-				// numbers. Valid serial numbers are only issued in response to
-				// valid requests, which in turn depend on valid ownership
-				// proofs and the banning mechanism, and they actually matter
-				// for double spending, so only they need to be stored in the
-				// nullifier set.
-				lock (SerialNumbersLock)
+				if (!areProofsValid)
 				{
-					foreach (var serialNumber in presentedSerialNumbers)
+					// Request was invalid, but all serial numbers were unused.
+					// Ensure nullifier set can't be clogged with invalid serial
+					// numbers. Valid serial numbers are only issued in response to
+					// valid requests, which in turn depend on valid ownership
+					// proofs and the banning mechanism, and they actually matter
+					// for double spending, so only they need to be stored in the
+					// nullifier set.
+					lock (SerialNumbersLock)
 					{
-						SerialNumbers.Remove(serialNumber);
+						foreach (var serialNumber in presentedSerialNumbers)
+						{
+							SerialNumbers.Remove(serialNumber);
+						}
 					}
 				}
-
-				throw;
 			}
 
 			// After this point serial numbers are committed irrevocably, even
