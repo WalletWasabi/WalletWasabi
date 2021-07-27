@@ -45,15 +45,7 @@ namespace WalletWasabi.Tests.UnitTests
 			{
 				await StartupHelper.ModifyStartupSettingAsync(true);
 
-				//string loginItems = await _macOsHelper.GetLoginItemsAsync();
-
-				//Assert.Contains(Constants.AppName, loginItems);
-
 				await StartupHelper.ModifyStartupSettingAsync(false);
-
-				//loginItems = await _macOsHelper.GetLoginItemsAsync();
-
-				//Assert.DoesNotContain(Constants.AppName, loginItems);
 			}
 
 			// Restore original setting for devs.
