@@ -47,7 +47,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 				TimeoutAlices();
 
-				await StepTransactionSigningPhaseAsync().ConfigureAwait(false);
+				await StepTransactionSigningPhaseAsync(cancel).ConfigureAwait(false);
 
 				StepOutputRegistrationPhase();
 
@@ -58,7 +58,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				cancel.ThrowIfCancellationRequested();
 
 				// Ensure there's at least one non-blame round in input registration.
-				await CreateRoundsAsync().ConfigureAwait(false);
+				await CreateRoundsAsync(cancel).ConfigureAwait(false);
 			}
 		}
 
@@ -144,7 +144,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		private async Task StepTransactionSigningPhaseAsync()
+		private async Task StepTransactionSigningPhaseAsync(CancellationToken cancellationToken)
 		{
 			foreach (var round in Rounds.Where(x => x.Phase == Phase.TransactionSigning).ToArray())
 			{
@@ -188,12 +188,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				catch (Exception ex)
 				{
 					round.LogWarning($"Signing phase failed, reason: '{ex}'.");
-					await FailTransactionSigningPhaseAsync(round).ConfigureAwait(false);
+					await FailTransactionSigningPhaseAsync(round, cancellationToken).ConfigureAwait(false);
 				}
 			}
 		}
 
-		private async Task FailTransactionSigningPhaseAsync(Round round)
+		private async Task FailTransactionSigningPhaseAsync(Round round, CancellationToken cancellationToken)
 		{
 			var state = round.Assert<SigningState>();
 
@@ -215,11 +215,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 			if (round.InputCount >= Config.MinInputCountByRound)
 			{
-				await CreateBlameRoundAsync(round).ConfigureAwait(false);
+				await CreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
 			}
 		}
 
-		private async Task CreateBlameRoundAsync(Round round)
+		private async Task CreateBlameRoundAsync(Round round, CancellationToken cancellationToken)
 		{
 			var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false)).FeeRate;
 			RoundParameters parameters = new(Config, Network, Random, feeRate, blameOf: round);
@@ -227,7 +227,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			Rounds.Add(blameRound);
 		}
 
-		private async Task CreateRoundsAsync()
+		private async Task CreateRoundsAsync(CancellationToken cancellationToken)
 		{
 			if (!Rounds.Any(x => !x.IsBlameRound && x.Phase == Phase.InputRegistration))
 			{
@@ -270,10 +270,10 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		public async Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request)
+		public async Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 		{
-			var coin = await InputRegistrationHandler.OutpointToCoinAsync(request, Prison, Rpc, Config).ConfigureAwait(false);
-			using (await AsyncLock.LockAsync().ConfigureAwait(false))
+			var coin = await InputRegistrationHandler.OutpointToCoinAsync(request, Prison, Rpc, Config, cancellationToken).ConfigureAwait(false);
+			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
 				var registeredCoins = Rounds.Where(x => !(x.Phase == Phase.Ended && !x.WasTransactionBroadcast)).SelectMany(r => r.Alices.Select(a => a.Coin));
 
@@ -292,9 +292,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		public async Task ReadyToSignAsync(ReadyToSignRequestRequest request)
+		public async Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken)
 		{
-			using (await AsyncLock.LockAsync().ConfigureAwait(false))
+			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
 				if (Rounds.FirstOrDefault(r => r.Id == request.RoundId) is not Round round)
 				{
@@ -316,9 +316,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		public async Task RemoveInputAsync(InputsRemovalRequest request)
+		public async Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellationToken)
 		{
-			using (await AsyncLock.LockAsync().ConfigureAwait(false))
+			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
 				if (Rounds.FirstOrDefault(x => x.Id == request.RoundId) is not Round round)
 				{
@@ -332,9 +332,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		public async Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request)
+		public async Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken)
 		{
-			using (await AsyncLock.LockAsync().ConfigureAwait(false))
+			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
 				if (Rounds.FirstOrDefault(x => x.Id == request.RoundId) is not Round round)
 				{
@@ -396,9 +396,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		public async Task<OutputRegistrationResponse> RegisterOutputAsync(OutputRegistrationRequest request)
+		public async Task<OutputRegistrationResponse> RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
 		{
-			using (await AsyncLock.LockAsync().ConfigureAwait(false))
+			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
 				if (Rounds.FirstOrDefault(x => x.Id == request.RoundId) is not Round round)
 				{
@@ -440,9 +440,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		public async Task SignTransactionAsync(TransactionSignaturesRequest request)
+		public async Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken)
 		{
-			using (await AsyncLock.LockAsync().ConfigureAwait(false))
+			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
 				if (Rounds.FirstOrDefault(x => x.Id == request.RoundId) is not Round round)
 				{
@@ -465,9 +465,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		public async Task<ReissueCredentialResponse> ReissuanceAsync(ReissueCredentialRequest request)
+		public async Task<ReissueCredentialResponse> ReissuanceAsync(ReissueCredentialRequest request, CancellationToken cancellationToken)
 		{
-			using (await AsyncLock.LockAsync().ConfigureAwait(false))
+			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
 				if (Rounds.FirstOrDefault(x => x.Id == request.RoundId) is not Round round)
 				{
