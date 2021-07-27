@@ -7,7 +7,7 @@ namespace WalletWasabi.Tests.Helpers
 {
 	public class MacOsStartupHelper
 	{
-		private string _listCmd = $"osascript -e \' tell application \"System Events\" to get every login item\'";
+		private string _listCmd = $"osascript -e \' tell application \"System Events\" to get the name of every login item\'";
 
 		public async Task<string> GetLoginItemsAsync()
 		{
