@@ -43,6 +43,9 @@ namespace WalletWasabi.Tests.UnitTests
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
+				// We don't read back the results, because on the CI pipeline, we cannot hit the "Allow" option of the pop-up window,
+				// which comes up when a third-party app wants to modify the Login Items.
+
 				await StartupHelper.ModifyStartupSettingAsync(true);
 
 				await StartupHelper.ModifyStartupSettingAsync(false);
