@@ -40,12 +40,12 @@ namespace WalletWasabi.Tests.UnitTests
 			{
 				await StartupHelper.ModifyStartupSettingAsync(true);
 
-				//Assert.True(File.Exists(_linuxHelper.FilePath));
-				//Assert.Equal(_linuxHelper.ExpectedDesktopFileContent, _linuxHelper.GetFileContent());
+				Assert.True(File.Exists(LinuxStartupHelper.FilePath));
+				Assert.Equal(LinuxStartupHelper.ExpectedDesktopFileContent, LinuxStartupHelper.GetFileContent());
 
 				await StartupHelper.ModifyStartupSettingAsync(false);
 
-				//Assert.False(File.Exists(_linuxHelper.FilePath));
+				Assert.False(File.Exists(LinuxStartupHelper.FilePath));
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
