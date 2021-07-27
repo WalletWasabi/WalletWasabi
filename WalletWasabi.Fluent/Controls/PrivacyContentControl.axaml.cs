@@ -20,8 +20,11 @@ namespace WalletWasabi.Fluent.Controls
 
 		private CompositeDisposable? _disposable;
 
-		public static readonly StyledProperty<bool> PrivacyModeEnabledProperty =
-			AvaloniaProperty.Register<PrivacyContentControl, bool>(nameof(PrivacyModeEnabled));
+		public static readonly StyledProperty<bool> IsPrivacyContentVisibleProperty =
+			AvaloniaProperty.Register<PrivacyContentControl, bool>(nameof(IsPrivacyContentVisible));
+
+		public static readonly StyledProperty<bool> IsContentVisibleProperty =
+			AvaloniaProperty.Register<PrivacyContentControl, bool>(nameof(IsContentVisible));
 
 		public static readonly StyledProperty<uint> NumberOfPrivacyCharsProperty =
 			AvaloniaProperty.Register<PrivacyContentControl, uint>(nameof(NumberOfPrivacyChars), 5);
@@ -32,10 +35,16 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<ReplacementMode> PrivacyReplacementModeProperty =
 			AvaloniaProperty.Register<PrivacyContentControl, ReplacementMode>(nameof(PrivacyReplacementMode));
 
-		private bool PrivacyModeEnabled
+		private bool IsPrivacyContentVisible
 		{
-			get => GetValue(PrivacyModeEnabledProperty);
-			set => SetValue(PrivacyModeEnabledProperty, value);
+			get => GetValue(IsPrivacyContentVisibleProperty);
+			set => SetValue(IsPrivacyContentVisibleProperty, value);
+		}
+
+		private bool IsContentVisible
+		{
+			get => GetValue(IsContentVisibleProperty);
+			set => SetValue(IsContentVisibleProperty, value);
 		}
 
 		public uint NumberOfPrivacyChars
@@ -65,7 +74,11 @@ namespace WalletWasabi.Fluent.Controls
 			Services.UiConfig
 				.WhenAnyValue(x => x.PrivacyMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(value => PrivacyModeEnabled = value)
+				.Subscribe(value =>
+				{
+					IsPrivacyContentVisible = value;
+					IsContentVisible = !value;
+				})
 				.DisposeWith(_disposable);
 
 			PrivacyText = new string(Enumerable.Repeat(PrivacyChar, (int) NumberOfPrivacyChars).ToArray());
