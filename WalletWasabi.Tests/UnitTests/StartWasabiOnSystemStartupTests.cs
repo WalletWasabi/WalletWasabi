@@ -120,11 +120,12 @@ namespace WalletWasabi.Tests.UnitTests
 			};
 
 			using var process = new ProcessAsync(startInfo);
+
 			process.Start();
 
-			await process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
+			string output = process.StandardOutput.ReadToEnd();  // Gives back "login item Wasabi Wallet" or "login item"
 
-			string output = process.StandardOutput.ReadToEnd();  // Gives back "login items Wasabi Wallet" or "login items"
+			await process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
 
 			return output;
 		}
