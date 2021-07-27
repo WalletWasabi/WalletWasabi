@@ -51,6 +51,9 @@
   <Style Selector="controls|PrivacyContentControl.monoSpaced">
     <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
   </Style>
+  <Style Selector="controls|PrivacyContentControl.monoSpacedPrivacyReplacement /template/ TextBlock#PART_PrivacyText">
+    <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
+  </Style>
 
   <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Text] /template/ Viewbox#PART_Icon">
     <Setter Property="IsVisible" Value="False" />
