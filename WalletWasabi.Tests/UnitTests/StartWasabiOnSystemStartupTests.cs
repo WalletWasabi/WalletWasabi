@@ -1,15 +1,9 @@
-using Microsoft.Win32;
-using System;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Gui;
 using WalletWasabi.Helpers;
-using WalletWasabi.Microservices;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 
