@@ -25,6 +25,7 @@
       </Style.Animations>
     </Style>
     <Style Selector="FlyoutPresenter">
+      <Setter Property="Background" Value="{DynamicResource SystemControlTransientBackgroundBrush}"/>
       <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled"/>
       <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
     </Style>
