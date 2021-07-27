@@ -5,7 +5,7 @@ using WalletWasabi.Microservices;
 
 namespace WalletWasabi.Tests.Helpers
 {
-	public class MacOsStartupHelper
+	public class MacOsStartupTestHelper
 	{
 		private string _listCmd = $"osascript -e \' tell application \"System Events\" to get the name of every login item\'";
 

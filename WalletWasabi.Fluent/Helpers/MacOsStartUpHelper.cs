@@ -3,7 +3,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.Helpers
 {
-	public static class MacOsStartUpHelper
+	public static class MacOsStartupHelper
 	{
 		private static readonly string AddCmd = $"osascript -e \' tell application \"System Events\" to make new login item at end with properties {{name:\"{Constants.AppName}\", path:\"/Applications/{Constants.AppName}.app\", hidden:true}} \'";
 		private static readonly string DeleteCmd = $"osascript -e \' tell application \"System Events\" to delete login item \"{Constants.AppName}\" \'";

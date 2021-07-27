@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace WalletWasabi.Fluent.Helpers
 {
-	public static class WindowsStartUpHelper
+	public static class WindowsStartupHelper
 	{
 		private const string KeyPath = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
 

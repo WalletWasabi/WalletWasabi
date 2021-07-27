@@ -4,7 +4,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Tests.Helpers
 {
-	public static class LinuxStartupHelper
+	public static class LinuxStartupTestHelper
 	{
 		public static readonly string FilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config", "autostart", "Wasabi.desktop");
 

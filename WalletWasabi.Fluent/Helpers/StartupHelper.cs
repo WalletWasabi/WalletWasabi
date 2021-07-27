@@ -17,15 +17,15 @@ namespace WalletWasabi.Fluent.Helpers
 				{
 					throw new InvalidOperationException($"Path {pathToExeFile} does not exist.");
 				}
-				WindowsStartUpHelper.StartOnWindowsStartup(runOnSystemStartup, pathToExeFile);
+				WindowsStartupHelper.StartOnWindowsStartup(runOnSystemStartup, pathToExeFile);
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
-				await LinuxStartUpHelper.StartOnLinuxStartupAsync(runOnSystemStartup);
+				await LinuxStartupHelper.StartOnLinuxStartupAsync(runOnSystemStartup);
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
-				await MacOsStartUpHelper.ModifyLoginItemsAsync(runOnSystemStartup);
+				await MacOsStartupHelper.ModifyLoginItemsAsync(runOnSystemStartup);
 			}
 		}
 	}

@@ -11,9 +11,9 @@ namespace WalletWasabi.Tests.UnitTests
 {
 	public class StartWasabiOnSystemStartupTests
 	{
-		private readonly WindowsStartupHelper _windowsHelper = new();
+		private readonly WindowsStartupTestHelper _windowsHelper = new();
 
-		private readonly MacOsStartupHelper _macOsHelper = new();
+		private readonly MacOsStartupTestHelper _macOsHelper = new();
 
 		[Fact]
 		public async Task ModifyStartupOnDifferentSystemsTestAsync()
@@ -34,12 +34,12 @@ namespace WalletWasabi.Tests.UnitTests
 			{
 				await StartupHelper.ModifyStartupSettingAsync(true);
 
-				Assert.True(File.Exists(LinuxStartupHelper.FilePath));
-				Assert.Equal(LinuxStartupHelper.ExpectedDesktopFileContent, LinuxStartupHelper.GetFileContent());
+				Assert.True(File.Exists(LinuxStartupTestHelper.FilePath));
+				Assert.Equal(LinuxStartupTestHelper.ExpectedDesktopFileContent, LinuxStartupTestHelper.GetFileContent());
 
 				await StartupHelper.ModifyStartupSettingAsync(false);
 
-				Assert.False(File.Exists(LinuxStartupHelper.FilePath));
+				Assert.False(File.Exists(LinuxStartupTestHelper.FilePath));
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{

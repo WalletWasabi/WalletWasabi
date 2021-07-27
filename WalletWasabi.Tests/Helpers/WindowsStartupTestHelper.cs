@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace WalletWasabi.Tests.Helpers
 {
-	public class WindowsStartupHelper
+	public class WindowsStartupTestHelper
 	{
 		private const string PathToRegistyKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
 

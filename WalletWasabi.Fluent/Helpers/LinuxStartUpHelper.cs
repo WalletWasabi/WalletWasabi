@@ -5,7 +5,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.Helpers
 {
-	public static class LinuxStartUpHelper
+	public static class LinuxStartupHelper
 	{
 		public static async Task StartOnLinuxStartupAsync(bool runOnSystemStartup)
 		{
