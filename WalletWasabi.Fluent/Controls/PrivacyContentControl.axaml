@@ -20,7 +20,7 @@
           <Panel Name="PART_PrivacyReplacement"
                  Opacity="{TemplateBinding PrivacyModeEnabled, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}"
                  IsVisible="{Binding $self.Opacity, Converter={x:Static conv:BoolOpacityConverters.OpacityToBool}}">
-            <Viewbox Margin="25" Name="PART_Icon">
+            <Viewbox Name="PART_Icon">
               <PathIcon Data="{StaticResource incognito_regular}" Opacity="0.15" />
             </Viewbox>
             <TextBlock Name="PART_PrivacyText"
@@ -30,6 +30,10 @@
         </Panel>
       </ControlTemplate>
     </Setter>
+  </Style>
+
+  <Style Selector="controls|PrivacyContentControl /template/ Viewbox#PART_Icon">
+    <Setter Property="Margin" Value="25" />
   </Style>
 
   <Style Selector="controls|PrivacyContentControl /template/ Panel#PART_PrivacyReplacement">
