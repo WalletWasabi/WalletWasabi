@@ -19,7 +19,7 @@
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="HorizontalAlignment" Value="Center" />
       </Style>
-      <Style Selector="TextBlock, c|PrivacyTextControl">
+      <Style Selector="TextBlock, c|PrivacyContentControl">
         <Setter Property="VerticalAlignment" Value="Center" />
       </Style>
       <Style Selector="StackPanel">
@@ -104,12 +104,12 @@
                               SortMemberPath="OrderIndex">
         <DataGridTemplateColumn.CellTemplate>
           <DataTemplate>
-            <c:PrivacyTextControl x:DataType="history:HistoryItemViewModel"
-                                  Text="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}"
-                                  Classes="monoSpaced"
-                                  FontSize="15"
-                                  Margin="10 0"
-                                  NumberOfPrivacyChars="15"/>
+            <c:PrivacyContentControl x:DataType="history:HistoryItemViewModel"
+                                     Content="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}"
+                                     Classes="monoSpaced"
+                                     FontSize="15"
+                                     Margin="10 0"
+                                     NumberOfPrivacyChars="15" />
           </DataTemplate>
         </DataGridTemplateColumn.CellTemplate>
       </DataGridTemplateColumn>
@@ -198,10 +198,10 @@
                         IsVisible="{Binding !!IncomingAmount}"
                         HorizontalAlignment="Right">
               <PathIcon Data="{StaticResource arrow_down_right_regular}" Opacity="0.6" />
-              <c:PrivacyTextControl Text="{Binding IncomingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
-                                    Classes="monoSpaced"
-                                    FontSize="15"
-                                    NumberOfPrivacyChars="9" />
+              <c:PrivacyContentControl Content="{Binding IncomingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
+                                       Classes="monoSpaced"
+                                       FontSize="15"
+                                       NumberOfPrivacyChars="9" />
             </StackPanel>
           </DataTemplate>
         </DataGridTemplateColumn.CellTemplate>
@@ -217,10 +217,10 @@
                         IsVisible="{Binding !!OutgoingAmount}"
                         HorizontalAlignment="Right">
               <PathIcon Data="{StaticResource arrow_up_right_regular}" Opacity="0.6" />
-              <c:PrivacyTextControl Text="{Binding OutgoingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
-                                    Classes="monoSpaced"
-                                    FontSize="15"
-                                    NumberOfPrivacyChars="9" />
+              <c:PrivacyContentControl Content="{Binding OutgoingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
+                                       Classes="monoSpaced"
+                                       FontSize="15"
+                                       NumberOfPrivacyChars="9" />
             </StackPanel>
           </DataTemplate>
         </DataGridTemplateColumn.CellTemplate>
@@ -232,13 +232,13 @@
                               SortMemberPath="Balance">
         <DataGridTemplateColumn.CellTemplate>
           <DataTemplate>
-            <c:PrivacyTextControl x:DataType="history:HistoryItemViewModel"
-                                  Text="{Binding Balance, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
-                                  Classes="monoSpaced"
-                                  FontSize="15"
-                                  NumberOfPrivacyChars="9"
-                                  HorizontalAlignment="Right"
-                                  Margin="10 0" />
+            <c:PrivacyContentControl x:DataType="history:HistoryItemViewModel"
+                                     Content="{Binding Balance, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
+                                     Classes="monoSpaced"
+                                     FontSize="15"
+                                     NumberOfPrivacyChars="9"
+                                     HorizontalAlignment="Right"
+                                     Margin="10 0" />
           </DataTemplate>
         </DataGridTemplateColumn.CellTemplate>
       </DataGridTemplateColumn>

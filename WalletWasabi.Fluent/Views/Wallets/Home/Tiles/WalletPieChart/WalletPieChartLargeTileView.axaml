@@ -22,13 +22,14 @@
                                 <Ellipse DockPanel.Dock="Left" Margin="0,0,8,0" HorizontalAlignment="Left" Width="10"
                                          Height="10"
                                          Fill="{Binding HexColor, Converter={x:Static converters:ColorStringConverters.HexColorToBrush}}" />
-                                <controls:PrivacyTextControl DockPanel.Dock="Left" HorizontalAlignment="Left"
-                                           Text="{Binding Amount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
-                                           NumberOfPrivacyChars="9"/>
+                                <controls:PrivacyContentControl DockPanel.Dock="Left" HorizontalAlignment="Left"
+                                                                NumberOfPrivacyChars="9"
+                                                                Content="{Binding Amount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
                             </DockPanel>
                             <DockPanel Grid.Column="1" Margin="0,8" Opacity="0.5">
-                                <controls:PrivacyTextControl DockPanel.Dock="Right" Margin="8,0,0,0" HorizontalAlignment="Right"
-                                           Text="{Binding PercentShare, StringFormat=\{0:P1\}}" />
+                              <controls:PrivacyContentControl DockPanel.Dock="Right" Margin="8,0,0,0"
+                                                              HorizontalAlignment="Right"
+                                                              Content="{Binding PercentShare, StringFormat=\{0:P1\}}" />
                                 <TextBlock DockPanel.Dock="Right" HorizontalAlignment="Right" Text="{Binding Label}" />
                             </DockPanel>
                         </Grid>
@@ -39,7 +40,7 @@
                 </ItemsRepeater.Layout>
             </ItemsRepeater>
             <Separator DockPanel.Dock="Bottom" Margin="-16 5" HorizontalAlignment="Stretch" />
-            <controls:PrivacyContentControl>
+            <controls:PrivacyContentControl PrivacyReplacementMode="Icon">
               <Panel Margin="8" VerticalAlignment="Center" HorizontalAlignment="Center">
                 <controls:RingChartControl DataPoints="{Binding TestDataPoints}" />
               </Panel>

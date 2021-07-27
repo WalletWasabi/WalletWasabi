@@ -31,7 +31,7 @@
 
     <Separator DockPanel.Dock="Top" Margin="-16 15" />
 
-    <c:PrivacyContentControl DockPanel.Dock="Bottom" >
+    <c:PrivacyContentControl DockPanel.Dock="Bottom" PrivacyReplacementMode="Icon">
       <c:LineChart x:CompileBindings="True" x:DataType="vm:WalletBalanceChartTileViewModel" x:Name="GradientLineChart"
                    Classes="area border xAxis xAxisLabels yAxis yAxisLabels"
                    Margin="30 5 15 30"

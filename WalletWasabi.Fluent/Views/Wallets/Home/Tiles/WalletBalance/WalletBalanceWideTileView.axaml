@@ -22,10 +22,13 @@
           </Panel>
         </Viewbox>
         <StackPanel VerticalAlignment="Center">
-          <controls:PrivacyTextControl Text="{Binding BalanceBtc, FallbackValue='1.21230001 BTC'}" FontSize="24"
-                                       NumberOfPrivacyChars="13" />
-          <controls:PrivacyTextControl Text="{Binding BalanceFiat, FallbackValue='≈ 218,197 USD'}" Opacity="0.8" FontSize="12"
-                                       NumberOfPrivacyChars="13" />
+          <controls:PrivacyContentControl FontSize="24"
+                                          NumberOfPrivacyChars="13"
+                                          Content="{Binding BalanceBtc, FallbackValue='1.21230001 BTC'}" />
+          <controls:PrivacyContentControl FontSize="12"
+                                          NumberOfPrivacyChars="13"
+                                          Opacity="0.8"
+                                          Content="{Binding BalanceFiat, FallbackValue='≈ 218,197 USD'}" />
         </StackPanel>
       </StackPanel>
       <DockPanel VerticalAlignment="Center">
@@ -38,10 +41,10 @@
             </Panel>
             <StackPanel VerticalAlignment="Center">
               <TextBlock Text="Private funds" Opacity="0.8" FontSize="12" />
-              <controls:PrivacyTextControl Text="{Binding BalancePrivateBtc, FallbackValue='1.0030001 BTC'}"
-                                           NumberOfPrivacyChars="13"
-                                           FontSize="15"
-                                           Margin="0,4,0,0" />
+              <controls:PrivacyContentControl FontSize="15"
+                                              NumberOfPrivacyChars="13"
+                                              Margin="0,4,0,0"
+                                              Content="{Binding BalancePrivateBtc, FallbackValue='1.0030001 BTC'}" />
             </StackPanel>
           </StackPanel>
           <!-- Non-private funds -->
@@ -52,10 +55,10 @@
             </Panel>
             <StackPanel VerticalAlignment="Center">
               <TextBlock Text="Non-private funds" Opacity="0.8" FontSize="12" />
-              <controls:PrivacyTextControl Text="{Binding BalanceNonPrivateBtc, FallbackValue='0.21200000 BTC'}"
-                                           NumberOfPrivacyChars="13"
-                                           FontSize="15"
-                                           Margin="0,4,0,0" />
+              <controls:PrivacyContentControl FontSize="15"
+                                              NumberOfPrivacyChars="13"
+                                              Margin="0,4,0,0"
+                                              Content="{Binding BalanceNonPrivateBtc, FallbackValue='0.21200000 BTC'}" />
             </StackPanel>
           </StackPanel>
         </DockPanel>

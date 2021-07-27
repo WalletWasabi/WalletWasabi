@@ -11,23 +11,28 @@
       <ControlTemplate>
         <Panel Background="Transparent">
           <ContentPresenter Name="PART_Content"
-                            Opacity="{Binding !#PART_PrivacyIconViewBox.IsVisible, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}"
+                            Opacity="{Binding !#PART_PrivacyReplacement.IsVisible, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}"
                             IsVisible="{Binding $self.Opacity, Converter={x:Static conv:BoolOpacityConverters.OpacityToBool}}"
                             ContentTemplate="{TemplateBinding ContentTemplate}"
                             Content="{TemplateBinding Content}"
                             VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
                             HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
-          <Viewbox Opacity="{TemplateBinding PrivacyModeEnabled, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}"
-                   IsVisible="{Binding $self.Opacity, Converter={x:Static conv:BoolOpacityConverters.OpacityToBool}}"
-                   Name="PART_PrivacyIconViewBox" Margin="25">
-            <PathIcon Data="{StaticResource incognito_filled}" Opacity="0.15"/>
-          </Viewbox>
+          <Panel Name="PART_PrivacyReplacement"
+                 Opacity="{TemplateBinding PrivacyModeEnabled, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}"
+                 IsVisible="{Binding $self.Opacity, Converter={x:Static conv:BoolOpacityConverters.OpacityToBool}}">
+            <Viewbox Margin="25" Name="PART_Icon">
+              <PathIcon Data="{StaticResource incognito_filled}" Opacity="0.15" />
+            </Viewbox>
+            <TextBlock Name="PART_PrivacyText"
+                       IsVisible="{Binding !#PART_Icon.IsVisible}"
+                       Text="{TemplateBinding PrivacyText}"/>
+          </Panel>
         </Panel>
       </ControlTemplate>
     </Setter>
   </Style>
 
-  <Style Selector="controls|PrivacyContentControl /template/ Viewbox#PART_PrivacyIconViewBox">
+  <Style Selector="controls|PrivacyContentControl /template/ Panel#PART_PrivacyReplacement">
     <Setter Property="Transitions">
       <Transitions>
         <DoubleTransition Property="Opacity" Duration="0:0:0.3" />
@@ -43,4 +48,14 @@
     </Setter>
   </Style>
 
+  <Style Selector="controls|PrivacyContentControl.monoSpaced">
+    <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
+  </Style>
+
+  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Text] /template/ Viewbox#PART_Icon">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Icon] /template/ Viewbox#PART_Icon">
+    <Setter Property="IsVisible" Value="True"/>
+  </Style>
 </Styles>

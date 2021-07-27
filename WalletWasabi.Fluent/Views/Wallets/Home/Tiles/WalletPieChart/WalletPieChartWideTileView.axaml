@@ -12,7 +12,7 @@
     <DockPanel LastChildFill="True">
         <TextBlock Text="Wallet Privacy Status" DockPanel.Dock="Top" />
         <Grid ColumnDefinitions="*,*">
-          <controls:PrivacyContentControl Grid.ColumnSpan="1">
+          <controls:PrivacyContentControl Grid.ColumnSpan="1" PrivacyReplacementMode="Icon">
             <controls:RingChartControl Margin="12,28,28,28" VerticalAlignment="Center"
                                        HorizontalAlignment="Center" DataPoints="{Binding TestDataPoints}" />
           </controls:PrivacyContentControl>

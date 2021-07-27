@@ -22,10 +22,14 @@
         </Panel>
       </Viewbox>
       <StackPanel VerticalAlignment="Center">
-        <controls:PrivacyTextControl Text="{Binding BalanceBtc, FallbackValue='1.21230001 BTC'}" FontSize="24"
-                                     NumberOfPrivacyChars="13" />
-        <controls:PrivacyTextControl Text="{Binding BalanceFiat, FallbackValue='≈ 218,197 USD'}" Opacity="0.8" FontSize="12"
-                                     NumberOfPrivacyChars="13" />
+        <controls:PrivacyContentControl Content="{Binding BalanceBtc, FallbackValue='1.21230001 BTC'}"
+                                        FontSize="24"
+                                        NumberOfPrivacyChars="13" />
+
+        <controls:PrivacyContentControl Content="{Binding BalanceFiat, FallbackValue='≈ 218,197 USD'}"
+                                        Opacity="0.8"
+                                        FontSize="12"
+                                        NumberOfPrivacyChars="13" />
       </StackPanel>
     </StackPanel>
   </DockPanel>

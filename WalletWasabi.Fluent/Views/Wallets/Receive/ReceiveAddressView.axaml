@@ -30,7 +30,7 @@
                               ClickIcon="{StaticResource copy_confirmed}"
                               ExecuteOnOpen="{Binding IsAutoCopyEnabled}" />
           </StackPanel>
-          <c:PrivacyTextControl Text="{Binding Address}" FontSize="{StaticResource FontSizeH5}" NumberOfPrivacyChars="38"/>
+          <c:PrivacyContentControl Content="{Binding Address}" FontSize="{StaticResource FontSizeH5}" NumberOfPrivacyChars="38" />
         </DockPanel>
         <c:TagsBox IsReadOnly="True" Items="{Binding Labels}" HorizontalAlignment="Center" />
       </StackPanel>
