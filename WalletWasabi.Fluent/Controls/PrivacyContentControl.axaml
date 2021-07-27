@@ -21,7 +21,7 @@
                  Opacity="{TemplateBinding PrivacyModeEnabled, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}"
                  IsVisible="{Binding $self.Opacity, Converter={x:Static conv:BoolOpacityConverters.OpacityToBool}}">
             <Viewbox Margin="25" Name="PART_Icon">
-              <PathIcon Data="{StaticResource incognito_filled}" Opacity="0.15" />
+              <PathIcon Data="{StaticResource incognito_regular}" Opacity="0.15" />
             </Viewbox>
             <TextBlock Name="PART_PrivacyText"
                        IsVisible="{Binding !#PART_Icon.IsVisible}"

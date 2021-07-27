@@ -30,7 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				});
 		}
 
-		public override string IconName => _privacyMode ? "eye_hide_regular" : "eye_show_regular";
+		public override string IconName => _privacyMode ? "incognito_filled" : "incognito_regular";
 
 		public override void Toggle()
 		{
