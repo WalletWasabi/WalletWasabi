@@ -36,18 +36,11 @@
     <Setter Property="Margin" Value="25" />
   </Style>
 
-  <Style Selector="controls|PrivacyContentControl /template/ Panel#PART_PrivacyReplacement">
+  <Style Selector="controls|PrivacyContentControl /template/ ContentPresenter#PART_Content,
+                   controls|PrivacyContentControl /template/ Panel#PART_PrivacyReplacement">
     <Setter Property="Transitions">
       <Transitions>
-        <DoubleTransition Property="Opacity" Duration="0:0:0.3" />
-      </Transitions>
-    </Setter>
-  </Style>
-
-  <Style Selector="controls|PrivacyContentControl /template/ ContentPresenter#PART_Content">
-    <Setter Property="Transitions">
-      <Transitions>
-        <DoubleTransition Property="Opacity" Duration="0:0:0.3" />
+        <DoubleTransition Property="Opacity" Duration="0:0:0.15" Easing="{StaticResource FluentEasing}" />
       </Transitions>
     </Setter>
   </Style>
