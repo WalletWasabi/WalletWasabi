@@ -198,7 +198,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, key1, coin1, key2, coin2);
 
 			// Make sure not all alices signed.
-			var alice3 = WabiSabiFactory.CreateAlice();
+			var alice3 = WabiSabiFactory.CreateAlice(round);
 			alice3.ConfirmedConnection = true;
 			round.Alices.Add(alice3);
 			round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice3.Coin);
@@ -248,16 +248,19 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
 			// Confirm connections.
+			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), new ArenaRequestHandlerAdapter(arena));
 			await aliceClient1.ConfirmConnectionAsync(
 				TimeSpan.FromMilliseconds(100),
 				new long[] { coin1.EffectiveValue(round.FeeRate) },
 				new long[] { round.MaxVsizeAllocationPerAlice - coin1.ScriptPubKey.EstimateInputVsize() },
+				roundStateUpdater,
 				CancellationToken.None).ConfigureAwait(false);
 
 			await aliceClient2.ConfirmConnectionAsync(
 				TimeSpan.FromMilliseconds(100),
 				new long[] { coin2.EffectiveValue(round.FeeRate) },
 				new long[] { round.MaxVsizeAllocationPerAlice - coin2.ScriptPubKey.EstimateInputVsize() },
+				roundStateUpdater,
 				CancellationToken.None).ConfigureAwait(false);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
