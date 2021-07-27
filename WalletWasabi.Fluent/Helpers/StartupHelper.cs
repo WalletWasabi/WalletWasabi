@@ -21,11 +21,11 @@ namespace WalletWasabi.Fluent.Helpers
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
-				await LinuxStartupHelper.StartOnLinuxStartupAsync(runOnSystemStartup);
+				await LinuxStartupHelper.StartOnLinuxStartupAsync(runOnSystemStartup).ConfigureAwait(false);
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
-				await MacOsStartupHelper.ModifyLoginItemsAsync(runOnSystemStartup);
+				await MacOsStartupHelper.ModifyLoginItemsAsync(runOnSystemStartup).ConfigureAwait(false);
 			}
 		}
 	}
