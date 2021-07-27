@@ -8,8 +8,6 @@ namespace WalletWasabi.Fluent.Helpers
 {
 	public static class StartupHelper
 	{
-		private const string KeyPath = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
-
 		public static async Task ModifyStartupSettingAsync(bool runOnSystemStartup)
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
