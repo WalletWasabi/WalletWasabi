@@ -2,6 +2,7 @@ using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto;
@@ -21,7 +22,8 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			InputRegistrationRequest request,
 			Prison prison,
 			IRPCClient rpc,
-			WabiSabiConfig config)
+			WabiSabiConfig config,
+			CancellationToken cancellationToken)
 		{
 			OutPoint input = request.Input;
 
