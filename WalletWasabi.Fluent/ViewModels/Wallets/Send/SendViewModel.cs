@@ -357,6 +357,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				Logger.LogError(exc);
 			}
+		}
 
 		private void UpdateSuggestedLabels()
 		{
