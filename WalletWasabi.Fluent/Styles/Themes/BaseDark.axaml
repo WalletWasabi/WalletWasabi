@@ -47,6 +47,10 @@
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
 
+    <SolidColorBrush x:Key="TextControlBorderBrush" Color="#303F54" />
+    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#4A5970" />
+    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#8093AE" />
+
     <Color x:Key="SliderTrackValueFill">#8093AE</Color>
     <Color x:Key="SliderTrackValueFillPointerOver">#8093AE</Color>
     <Color x:Key="SliderTrackValueFillPressed">#8093AE</Color>
