@@ -41,11 +41,7 @@
           <Color x:Key="SystemAccentColorDark2">#FF528217</Color>
           <Color x:Key="SystemAccentColorDark3">#FF3F6F10</Color>
           <Color x:Key="RegionColor">#FCFDFF</Color>
-          <Color x:Key="TileRegionColor">#FFFFFF</Color> 
-          
-          <SolidColorBrush x:Key="RegionBrush" Color="{DynamicResource RegionColor}" />
-          <SolidColorBrush x:Key="SystemControlTransientBackgroundBrush"
-                           Color="{DynamicResource SystemChromeMediumLowColor}" />
+          <Color x:Key="TileRegionColor">#FFFFFF</Color>
         </ResourceDictionary>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>

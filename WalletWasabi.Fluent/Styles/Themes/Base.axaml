@@ -1,6 +1,19 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Styles.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary>
+          <SolidColorBrush x:Key="RegionBrush"
+                           Color="{DynamicResource RegionColor}" />
+          <SolidColorBrush x:Key="SystemControlTransientBackgroundBrush"
+                           Color="{DynamicResource SystemChromeMediumLowColor}" />
+          <SolidColorBrush x:Key="SystemControlBackgroundChromeMediumLowBrush"
+                           Color="{DynamicResource SystemBaseLowColor}" />
+        </ResourceDictionary>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+
     <Color x:Key="NavBarTintColor">#134074</Color>
     <Color x:Key="AcrylicFallbackColor">#1F1F1F</Color>
 
