@@ -56,7 +56,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			OwnershipProof ownershipProof,
 			ZeroCredentialsRequest zeroAmountCredentialRequests,
 			ZeroCredentialsRequest zeroVsizeCredentialRequests,
-			HashSet<Round> rounds)
+			IEnumerable<Round> rounds)
 		{
 			if (rounds.FirstOrDefault(x => x.Id == roundId) is not Round round)
 			{

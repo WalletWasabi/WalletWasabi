@@ -2,6 +2,7 @@ using NBitcoin;
 using NBitcoin.RPC;
 using Nito.AsyncEx;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -28,9 +29,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			Rpc = rpc;
 			Prison = prison;
 			Random = new SecureRandom();
+
+			Rounds = new(RoundsById, r => r.Id);
 		}
 
-		public HashSet<Round> Rounds { get; } = new();
+		public ConcurrentDictionary<uint256, Round> RoundsById { get; } = new();
+		[ObsoleteAttribute("Access to internal Arena state should be removed from tests.")]
+		public ConcurrentDictionaryValueCollectionView<Round> Rounds { get; }
 		private AsyncLock AsyncLock { get; } = new();
 		public Network Network { get; }
 		public WabiSabiConfig Config { get; }
