@@ -41,7 +41,8 @@
           <Color x:Key="SystemAccentColorLight1">#FF6B9C25</Color>
           <Color x:Key="SystemAccentColorLight2">#FF57881C</Color>
           <Color x:Key="SystemAccentColorLight3">#FF447512</Color>
-          <Color x:Key="RegionColor">#FF010D20</Color>
+          <Color x:Key="RegionColor">#010D20</Color>
+          <Color x:Key="TileRegionColor">#152032</Color>
 
           <SolidColorBrush x:Key="RegionBrush" Color="{DynamicResource RegionColor}" />
           <SolidColorBrush x:Key="SystemControlTransientBackgroundBrush" Color="{DynamicResource SystemChromeMediumLowColor}" />

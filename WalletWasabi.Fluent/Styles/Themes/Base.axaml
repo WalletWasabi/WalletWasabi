@@ -19,11 +19,10 @@
                      Color="{DynamicResource SystemBaseMediumHighColor}" />
 
     <SolidColorBrush x:Key="PopupBackground" Color="{DynamicResource SystemBaseLowColor}" />
-    <SolidColorBrush x:Key="OptionButtonBackground" Color="{DynamicResource SystemBaseLowColor}" />
+    <SolidColorBrush x:Key="OptionButtonBackground" Color="{DynamicResource TileRegionColor}" />
     <SolidColorBrush x:Key="OptionButtonBorderBrush" Opacity="0.5" Color="{DynamicResource SystemBaseHighColor}" />
     <SolidColorBrush x:Key="SeparatorBackgroundBrush" Opacity="0.5" Color="{DynamicResource SystemBaseHighColor}" />
     <SolidColorBrush x:Key="TagsBoxBorderBrush" Opacity="0.5" Color="{DynamicResource SystemBaseHighColor}" />
-    <SolidColorBrush x:Key="TileRegionColor" Color="{DynamicResource SystemBaseLowColor}" />
     <SolidColorBrush x:Key="HeaderRegionColor" Color="{DynamicResource RegionColor}" />
     <SolidColorBrush x:Key="DataGridRowSelectedBackgroundColor" Opacity="0.25"
                      Color="{DynamicResource SystemBaseMediumLowColor}" />

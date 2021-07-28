@@ -11,10 +11,10 @@
           <Color x:Key="SystemAltMediumHighColor">#FFFFFFFF</Color>
           <Color x:Key="SystemAltMediumLowColor">#FFFFFFFF</Color>
           <Color x:Key="SystemBaseHighColor">#FF000000</Color>
-          <Color x:Key="SystemBaseLowColor">#FFFFFF</Color>
-          <Color x:Key="SystemBaseMediumColor">#FF929FB6</Color>
-          <Color x:Key="SystemBaseMediumHighColor">#FF5C6F8F</Color>
-          <Color x:Key="SystemBaseMediumLowColor">#FF7787A2</Color>
+          <Color x:Key="SystemBaseLowColor">#ff929fb6</Color>
+          <Color x:Key="SystemBaseMediumColor">#4D8093AE</Color>
+          <Color x:Key="SystemBaseMediumHighColor">#338093AE</Color>
+          <Color x:Key="SystemBaseMediumLowColor">#808093AE</Color>
           <Color x:Key="SystemChromeAltLowColor">#FF5C6F8F</Color>
           <Color x:Key="SystemChromeBlackHighColor">#FF000000</Color>
           <Color x:Key="SystemChromeBlackLowColor">#FFE3E8F0</Color>
@@ -40,9 +40,12 @@
           <Color x:Key="SystemAccentColorDark1">#FF65951F</Color>
           <Color x:Key="SystemAccentColorDark2">#FF528217</Color>
           <Color x:Key="SystemAccentColorDark3">#FF3F6F10</Color>
-          <Color x:Key="RegionColor">#FFFFFF</Color>
+
+          <Color x:Key="RegionColor">#FCFDFF</Color>
+          <Color x:Key="TileRegionColor">#FFFFFF</Color>
 
           <SolidColorBrush x:Key="RegionBrush" Color="{DynamicResource RegionColor}" />
+
           <SolidColorBrush x:Key="SystemControlTransientBackgroundBrush"
                            Color="{DynamicResource SystemChromeMediumLowColor}" />
         </ResourceDictionary>
