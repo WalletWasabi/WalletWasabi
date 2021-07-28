@@ -1,11 +1,6 @@
-using System;
-using System.Linq;
 using Xunit;
 using OpenCvSharp;
 using System.IO;
-using Avalonia;
-using Avalonia.Media.Imaging;
-using Avalonia.Skia;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Tests.UnitTests.QrDecode

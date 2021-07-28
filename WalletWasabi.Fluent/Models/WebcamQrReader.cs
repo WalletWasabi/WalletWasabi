@@ -9,24 +9,33 @@ using WalletWasabi.Logging;
 using WalletWasabi.Userfacing;
 using NBitcoin;
 using Nito.AsyncEx;
-using System.Threading;
+using Avalonia.Platform;
 
 namespace WalletWasabi.Fluent.Models
 {
 	public class WebcamQrReader
 	{
 		private const byte DefaultCameraId = 0;
-		private AsyncLock ScanningTaskLock { get; set; }
-		public bool RequestEnd { get; set; }
-		public Network Network { get; }
-		public Task? ScanningTask { get; set; }
-		public bool IsRunning => ScanningTask is not null;
 
 		public WebcamQrReader(Network network)
 		{
 			ScanningTaskLock = new();
 			Network = network;
 		}
+
+		public event EventHandler<WriteableBitmap>? NewImageArrived;
+
+		public event EventHandler<string>? CorrectAddressFound;
+
+		public event EventHandler<string>? InvalidAddressFound;
+
+		public event EventHandler<Exception>? ErrorOccured;
+
+		private AsyncLock ScanningTaskLock { get; set; }
+		public bool RequestEnd { get; set; }
+		public Network Network { get; }
+		public Task? ScanningTask { get; set; }
+		public bool IsRunning => ScanningTask is not null;
 
 		public async Task StartScanningAsync()
 		{
@@ -137,9 +146,7 @@ namespace WalletWasabi.Fluent.Models
 		{
 			PixelSize pixelSize = new(frame.Width, frame.Height);
 			Vector dpi = new(96, 96);
-			Avalonia.Platform.PixelFormat pixelFormat = Avalonia.Platform.PixelFormat.Rgba8888;
-			Avalonia.Platform.AlphaFormat alphaFormat = Avalonia.Platform.AlphaFormat.Unpremul;
-			var writeableBitmap = new WriteableBitmap(pixelSize, dpi, pixelFormat, alphaFormat);
+			var writeableBitmap = new WriteableBitmap(pixelSize, dpi, PixelFormat.Rgba8888, AlphaFormat.Unpremul);
 
 			using (var fb = writeableBitmap.Lock())
 			{
@@ -161,13 +168,5 @@ namespace WalletWasabi.Fluent.Models
 			}
 			return writeableBitmap;
 		}
-
-		public event EventHandler<WriteableBitmap>? NewImageArrived;
-
-		public event EventHandler<string>? CorrectAddressFound;
-
-		public event EventHandler<string>? InvalidAddressFound;
-
-		public event EventHandler<Exception>? ErrorOccured;
 	}
 }
