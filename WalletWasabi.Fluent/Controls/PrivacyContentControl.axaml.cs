@@ -35,6 +35,9 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<ReplacementMode> PrivacyReplacementModeProperty =
 			AvaloniaProperty.Register<PrivacyContentControl, ReplacementMode>(nameof(PrivacyReplacementMode));
 
+		public static readonly StyledProperty<bool> ForceShowProperty =
+			AvaloniaProperty.Register<PrivacyContentControl, bool>(nameof(ForceShow));
+
 		private bool IsPrivacyContentVisible
 		{
 			get => GetValue(IsPrivacyContentVisibleProperty);
@@ -65,6 +68,12 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(PrivacyReplacementModeProperty, value);
 		}
 
+		public bool ForceShow
+		{
+			get => GetValue(ForceShowProperty);
+			set => SetValue(ForceShowProperty, value);
+		}
+
 		protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
 		{
 			base.OnAttachedToVisualTree(e);
@@ -73,11 +82,14 @@ namespace WalletWasabi.Fluent.Controls
 
 			Services.UiConfig
 				.WhenAnyValue(x => x.PrivacyMode)
+				.Merge(this.WhenAnyValue(x => x.ForceShow))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(value =>
+				.Subscribe(_ =>
 				{
-					IsPrivacyContentVisible = value;
-					IsContentVisible = !value;
+					var value = !Services.UiConfig.PrivacyMode || ForceShow;
+
+					IsPrivacyContentVisible = !value;
+					IsContentVisible = value;
 				})
 				.DisposeWith(_disposable);
 
