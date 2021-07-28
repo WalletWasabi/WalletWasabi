@@ -24,7 +24,6 @@
               <PathIcon Data="{StaticResource incognito_regular}" Opacity="0.15" />
             </Viewbox>
             <TextBlock Name="PART_PrivacyText"
-                       IsVisible="{Binding !#PART_Icon.IsVisible}"
                        Text="{TemplateBinding PrivacyText}"/>
           </Panel>
         </Panel>
@@ -52,10 +51,19 @@
     <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
   </Style>
 
-  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Text] /template/ Viewbox#PART_Icon">
+  <!-- Icon privacy mode -->
+  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Icon] /template/ TextBlock#PART_PrivacyText">
     <Setter Property="IsVisible" Value="False" />
   </Style>
   <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Icon] /template/ Viewbox#PART_Icon">
     <Setter Property="IsVisible" Value="True"/>
+  </Style>
+
+  <!-- Text privacy mode -->
+  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Text] /template/ TextBlock#PART_PrivacyText">
+    <Setter Property="IsVisible" Value="True" />
+  </Style>
+  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Text] /template/ Viewbox#PART_Icon">
+    <Setter Property="IsVisible" Value="False" />
   </Style>
 </Styles>
