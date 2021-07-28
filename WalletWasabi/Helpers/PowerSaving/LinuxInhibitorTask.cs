@@ -200,7 +200,8 @@ namespace WalletWasabi.Helpers.PowerSaving
 			}
 			catch (Exception ex)
 			{
-				Logger.LogError($"Failed to find out whether {command} is supported or not.", ex);
+				Logger.LogDebug($"Failed to find out whether {command} is supported or not.");
+				Logger.LogTrace(ex);
 			}
 
 			return false;
@@ -235,7 +236,7 @@ namespace WalletWasabi.Helpers.PowerSaving
 				arguments = $"--why=\"{reason}\" --what=\"{whatArgument}\" --mode=block {innerCommand}";
 			}
 
-			Logger.LogWarning($"XXX: shell command to invoke: {command}");
+			Logger.LogWarning($"XXX: shell command to invoke: {command} {arguments}");
 			ProcessStartInfo startInfo = GetProcessStartInfo(command, arguments);
 
 			ProcessAsync process = new(startInfo);
