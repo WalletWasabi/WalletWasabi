@@ -70,25 +70,26 @@
       </Style>
 
       <Style Selector="DataGridRow /template/ Rectangle#BackgroundRectangle.selectAnimation">
+        <Setter Property="Fill" Value="{DynamicResource SystemAccentColor}"/>
         <Style.Animations>
           <Animation Duration="1.25">
             <KeyFrame KeyTime="0:0:0.0">
-              <Setter Property="Fill" Value="{DynamicResource SystemAccentColor}" />
+              <Setter Property="Opacity" Value="0.5" />
             </KeyFrame>
             <KeyFrame KeyTime="0:0:0.25">
-              <Setter Property="Fill" Value="Transparent" />
+              <Setter Property="Opacity" Value="0" />
             </KeyFrame>
             <KeyFrame KeyTime="0:0:0.50">
-              <Setter Property="Fill" Value="{DynamicResource SystemAccentColor}" />
+              <Setter Property="Opacity" Value="0.5" />
             </KeyFrame>
             <KeyFrame KeyTime="0:0:0.75">
-              <Setter Property="Fill" Value="Transparent" />
+              <Setter Property="Opacity" Value="0" />
             </KeyFrame>
             <KeyFrame KeyTime="0:0:1">
-              <Setter Property="Fill" Value="{DynamicResource SystemAccentColor}" />
+              <Setter Property="Opacity" Value="0.5" />
             </KeyFrame>
             <KeyFrame KeyTime="0:0:1.25">
-              <Setter Property="Fill" Value="Transparent" />
+              <Setter Property="Opacity" Value="0" />
             </KeyFrame>
           </Animation>
         </Style.Animations>
