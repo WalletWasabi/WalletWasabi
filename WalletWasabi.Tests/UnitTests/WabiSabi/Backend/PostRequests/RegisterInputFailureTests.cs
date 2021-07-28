@@ -43,7 +43,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		{
 			WabiSabiConfig cfg = new();
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg);
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			var round = arena.Rounds.First();
 			using Key key = new();
 			var req = WabiSabiFactory.CreateInputRegistrationRequest(round, key: key);
@@ -70,9 +70,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, WabiSabiFactory.CreatePreconfiguredRpcClient(), round);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			round.Alices.Add(WabiSabiFactory.CreateAlice());
-			round.Alices.Add(WabiSabiFactory.CreateAlice());
-			round.Alices.Add(WabiSabiFactory.CreateAlice());
+			round.Alices.Add(WabiSabiFactory.CreateAlice(round));
+			round.Alices.Add(WabiSabiFactory.CreateAlice(round));
+			round.Alices.Add(WabiSabiFactory.CreateAlice(round));
 
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
@@ -339,7 +339,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		public async Task TooMuchVsizeAsync()
 		{
 			// Configures a round that allows so many inputs (Alices) that
-			// the virtual size each of they have available is not enought
+			// the virtual size each of they have available is not enough
 			// to register anything.
 			using Key key = new();
 			var coin = WabiSabiFactory.CreateCoin(key);
@@ -364,12 +364,13 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var coin = WabiSabiFactory.CreateCoin(key);
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, WabiSabiFactory.CreatePreconfiguredRpcClient(coin), round);
 
 			// Make sure an Alice have already been registered with the same input.
-			var anotherAlice = WabiSabiFactory.CreateAlice(coin, WabiSabiFactory.CreateOwnershipProof(key));
+			var anotherAlice = WabiSabiFactory.CreateAlice(coin, WabiSabiFactory.CreateOwnershipProof(key), round);
 			round.Alices.Add(anotherAlice);
 			round.SetPhase(Phase.ConnectionConfirmation);
+
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, WabiSabiFactory.CreatePreconfiguredRpcClient(coin), round);
 
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
@@ -387,12 +388,13 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
 			var anotherRound = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, WabiSabiFactory.CreatePreconfiguredRpcClient(coin), round, anotherRound);
 
 			// Make sure an Alice have already been registered with the same input.
-			var preAlice = WabiSabiFactory.CreateAlice(coin, WabiSabiFactory.CreateOwnershipProof(key));
+			var preAlice = WabiSabiFactory.CreateAlice(coin, WabiSabiFactory.CreateOwnershipProof(key), round);
 			anotherRound.Alices.Add(preAlice);
 			anotherRound.SetPhase(Phase.ConnectionConfirmation);
+
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, WabiSabiFactory.CreatePreconfiguredRpcClient(coin), round, anotherRound);
 
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(

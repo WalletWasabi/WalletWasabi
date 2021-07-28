@@ -61,7 +61,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public DateTimeOffset ConnectionConfirmationStart { get; private set; }
 		public DateTimeOffset OutputRegistrationStart { get; private set; }
 		public DateTimeOffset TransactionSigningStart { get; private set; }
-		public DateTimeOffset TransactionBroadcastingStart { get; private set; }
+		public DateTimeOffset End { get; private set; }
+		public bool WasTransactionBroadcast { get; set; }
 		public int InitialInputVsizeAllocation { get; internal set; }
 		public int RemainingInputVsizeAllocation => InitialInputVsizeAllocation - InputCount * MaxVsizeAllocationPerAlice;
 
@@ -96,9 +97,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				TransactionSigningStart = DateTimeOffset.UtcNow;
 			}
-			else if (phase == Phase.TransactionBroadcasting)
+			else if (phase == Phase.Ended)
 			{
-				TransactionBroadcastingStart = DateTimeOffset.UtcNow;
+				End = DateTimeOffset.UtcNow;
 			}
 		}
 

@@ -322,11 +322,11 @@ namespace WalletWasabi.Fluent.Controls
 				{
 					var start = Math.Min(selectionStart, selectionEnd);
 					var end = Math.Max(selectionStart, selectionEnd);
-					preComposedText = preComposedText.Substring(0, start) + preComposedText.Substring(end);
+					preComposedText = $"{preComposedText[..start]}{preComposedText[end..]}";
 					caretIndex = start;
 				}
 
-				return preComposedText.Substring(0, caretIndex) + input + preComposedText.Substring(caretIndex);
+				return $"{preComposedText[..caretIndex]}{input}{preComposedText[caretIndex..]}";
 			}
 
 			return "";
@@ -371,7 +371,7 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			IsConversionReversed = !IsConversionReversed;
 			UpdateDisplay(true);
-			ClearSelection();
+			CaretIndex = SelectionStart = SelectionEnd = Text.Length;
 		}
 
 		private void InputText(string text)

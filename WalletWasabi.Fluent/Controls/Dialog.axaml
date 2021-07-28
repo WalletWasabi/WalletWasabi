@@ -86,6 +86,11 @@
     <Setter Property="Opacity" Value="0"/>
   </Style>
 
+  <!-- Dialog Increased width State -->
+  <Style Selector="c|Dialog[IncreasedWidthEnabled=True] /template/ Border#PART_Border">
+    <Setter Property="Margin" Value="0 40" />
+  </Style>
+
   <!-- Dialog Fullscreen State -->
   <Style Selector="c|Dialog[FullScreenEnabled=True] /template/ Border#PART_Border">
     <Setter Property="Margin" Value="0 30 0 0" />

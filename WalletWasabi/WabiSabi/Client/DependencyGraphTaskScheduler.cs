@@ -11,9 +11,9 @@ using WalletWasabi.WabiSabi.Crypto;
 
 namespace WalletWasabi.WabiSabi.Client
 {
-	public class DependencyGraphResolver
+	public class DependencyGraphTaskScheduler
 	{
-		public DependencyGraphResolver(DependencyGraph graph)
+		public DependencyGraphTaskScheduler(DependencyGraph graph)
 		{
 			Graph = graph;
 			var allInEdges = Enum.GetValues<CredentialType>()
@@ -25,7 +25,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private DependencyGraph Graph { get; }
 		private Dictionary<CredentialDependency, TaskCompletionSource<Credential>> DependencyTasks { get; }
 
-		public async Task StartConfirmConnectionsAsync(IEnumerable<AliceClient> aliceClients, DependencyGraph dependencyGraph, TimeSpan connectionConfirmationTimeout, CancellationToken cancellationToken)
+		public async Task StartConfirmConnectionsAsync(IEnumerable<AliceClient> aliceClients, DependencyGraph dependencyGraph, TimeSpan connectionConfirmationTimeout, RoundStateUpdater roundStateUpdater, CancellationToken cancellationToken)
 		{
 			var aliceNodePairs = PairAliceClientAndRequestNodes(aliceClients, Graph);
 
@@ -56,6 +56,7 @@ namespace WalletWasabi.WabiSabi.Client
 						vsizesToRequest,
 						node.EffectiveValue,
 						node.VsizeRemainingAllocation,
+						roundStateUpdater,
 						linkedCts.Token)
 					.ContinueWith((t) =>
 					{
