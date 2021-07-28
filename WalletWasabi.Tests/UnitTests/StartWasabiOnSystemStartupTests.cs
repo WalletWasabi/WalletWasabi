@@ -19,40 +19,44 @@ namespace WalletWasabi.Tests.UnitTests
 		public async Task ModifyStartupOnDifferentSystemsTestAsync()
 		{
 			UiConfig originalConfig = GetUiConfig();
-
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			try
 			{
-				await StartupHelper.ModifyStartupSettingAsync(true);
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				{
+					await StartupHelper.ModifyStartupSettingAsync(true);
 
-				Assert.True(_windowsHelper.RegistryKeyExists());
+					Assert.True(_windowsHelper.RegistryKeyExists());
 
-				await StartupHelper.ModifyStartupSettingAsync(false);
+					await StartupHelper.ModifyStartupSettingAsync(false);
 
-				Assert.False(_windowsHelper.RegistryKeyExists());
+					Assert.False(_windowsHelper.RegistryKeyExists());
+				}
+				else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				{
+					await StartupHelper.ModifyStartupSettingAsync(true);
+
+					Assert.True(File.Exists(LinuxStartupTestHelper.FilePath));
+					Assert.Equal(LinuxStartupTestHelper.ExpectedDesktopFileContent, LinuxStartupTestHelper.GetFileContent());
+
+					await StartupHelper.ModifyStartupSettingAsync(false);
+
+					Assert.False(File.Exists(LinuxStartupTestHelper.FilePath));
+				}
+				else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+				{
+					// We don't read back the results, because on the CI pipeline, we cannot hit the "Allow" option of the pop-up window,
+					// which comes up when a third-party app wants to modify the Login Items.
+
+					await StartupHelper.ModifyStartupSettingAsync(true);
+
+					await StartupHelper.ModifyStartupSettingAsync(false);
+				}
 			}
-			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+			finally
 			{
-				await StartupHelper.ModifyStartupSettingAsync(true);
-
-				Assert.True(File.Exists(LinuxStartupTestHelper.FilePath));
-				Assert.Equal(LinuxStartupTestHelper.ExpectedDesktopFileContent, LinuxStartupTestHelper.GetFileContent());
-
-				await StartupHelper.ModifyStartupSettingAsync(false);
-
-				Assert.False(File.Exists(LinuxStartupTestHelper.FilePath));
+				// Restore original setting for devs.
+				await StartupHelper.ModifyStartupSettingAsync(originalConfig.RunOnSystemStartup);
 			}
-			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-			{
-				// We don't read back the results, because on the CI pipeline, we cannot hit the "Allow" option of the pop-up window,
-				// which comes up when a third-party app wants to modify the Login Items.
-
-				await StartupHelper.ModifyStartupSettingAsync(true);
-
-				await StartupHelper.ModifyStartupSettingAsync(false);
-			}
-
-			// Restore original setting for devs.
-			await StartupHelper.ModifyStartupSettingAsync(originalConfig.RunOnSystemStartup);
 		}
 
 		private UiConfig GetUiConfig()
