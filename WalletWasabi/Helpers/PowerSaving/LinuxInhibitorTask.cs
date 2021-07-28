@@ -262,6 +262,12 @@ namespace WalletWasabi.Helpers.PowerSaving
 				whatList.Add("suspend");
 			}
 
+			if (what.HasFlag(InhibitWhat.Shutdown))
+			{
+				// The best option available probably.
+				whatList.Add("logout");
+			}
+
 			string whatArgument = string.Join(':', whatList);
 			return whatArgument;
 		}
