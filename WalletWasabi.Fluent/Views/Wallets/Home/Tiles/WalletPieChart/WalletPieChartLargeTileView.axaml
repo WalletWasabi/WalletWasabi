@@ -23,7 +23,7 @@
                                          Height="10"
                                          Fill="{Binding HexColor, Converter={x:Static converters:ColorStringConverters.HexColorToBrush}}" />
                                 <TextBlock DockPanel.Dock="Left" HorizontalAlignment="Left"
-                                           Text="{Binding Amount}" />
+                                           Text="{Binding Amount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
                             </DockPanel>
                             <DockPanel Grid.Column="1" Margin="0,8" Opacity="0.5">
                                 <TextBlock DockPanel.Dock="Right" Margin="8,0,0,0" HorizontalAlignment="Right"

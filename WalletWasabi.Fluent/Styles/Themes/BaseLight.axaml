@@ -40,17 +40,27 @@
           <Color x:Key="SystemAccentColorDark1">#FF65951F</Color>
           <Color x:Key="SystemAccentColorDark2">#FF528217</Color>
           <Color x:Key="SystemAccentColorDark3">#FF3F6F10</Color>
-
           <Color x:Key="RegionColor">#FCFDFF</Color>
-          <Color x:Key="TileRegionColor">#FFFFFF</Color>
-
+          <Color x:Key="TileRegionColor">#FFFFFF</Color> 
+          
           <SolidColorBrush x:Key="RegionBrush" Color="{DynamicResource RegionColor}" />
-
           <SolidColorBrush x:Key="SystemControlTransientBackgroundBrush"
                            Color="{DynamicResource SystemChromeMediumLowColor}" />
         </ResourceDictionary>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
+
+    <Color x:Key="SliderTrackValueFill">#0B2545</Color>
+    <Color x:Key="SliderTrackValueFillPointerOver">#0B2545</Color>
+    <Color x:Key="SliderTrackValueFillPressed">#0B2545</Color>
+    <Color x:Key="SliderThumbBackground">#0B2545</Color>
+    <Color x:Key="SliderThumbBackgroundPointerOver">#0B2545</Color>
+    <Color x:Key="SliderThumbBackgroundPressed">#0B2545</Color>
+    <Color x:Key="SliderThumbBorderBrushPointerOver">#8093AE</Color>
+
+    <Color x:Key="SliderTrackFill">#BEC7D6</Color>
+    <Color x:Key="SliderTrackFillPointerOver">#BEC7D6</Color>
+    <Color x:Key="SliderTrackFillPressed">#BEC7D6</Color>
 
     <Color x:Key="LineChartAreaGradientStartStopColor">#FF78A827</Color>
     <Color x:Key="LineChartAreaGradientEndStopColor">#0078A827</Color>

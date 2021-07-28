@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -237,8 +239,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			await roundStateUpdater.StopAsync(CancellationToken.None);
 		}
 
-		[Fact]
-		public async Task MultiClientsCoinJoinTestAsync()
+		[Theory]
+		[InlineData(123456)]
+		public async Task MultiClientsCoinJoinTestAsync(int seed)
 		{
 			const int NumberOfParticipants = 20;
 			const int NumberOfCoinsPerParticipant = 2;
@@ -249,7 +252,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			{
 				var rpc = node.RpcClient;
 
-				var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
+				var app = _apiApplicationFactory.WithWebHostBuilder(builder =>
 				{
 					builder.ConfigureServices(services =>
 					{
@@ -264,24 +267,29 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 							OutputRegistrationTimeout = TimeSpan.FromSeconds(20 * ExpectedInputNumber),
 						});
 					});
-				}).CreateClient();
-
-				// Create the API client
-				var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
+					builder.ConfigureLogging(o=> {
+						o.SetMinimumLevel(LogLevel.Warning);
+					});
+				});
 
 				// Total test timeout.
 				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20 * ExpectedInputNumber));
 
 				var participants = Enumerable
 					.Range(0, NumberOfParticipants)
-					.Select(_ => new Participant(rpc, apiClient))
+					.Select(_ => new Participant(rpc, _apiApplicationFactory.CreateWabiSabiHttpApiClient(app.CreateClient())))
 					.ToArray();
 
 				foreach (var participant in participants)
 				{
-					await participant.InitializeAsync(NumberOfCoinsPerParticipant, cts.Token);
+					await participant.GenerateSourceCoinAsync(cts.Token);
 				}
 				using var dummyKey = new Key();
+				await rpc.GenerateToAddressAsync(101, dummyKey.PubKey.GetAddress(ScriptPubKeyType.Segwit, rpc.Network));
+				foreach (var participant in participants)
+				{
+					await participant.GenerateCoinsAsync(NumberOfCoinsPerParticipant, seed, cts.Token);
+				}
 				await rpc.GenerateToAddressAsync(101, dummyKey.PubKey.GetAddress(ScriptPubKeyType.Segwit, rpc.Network));
 
 				var tasks = participants.Select(x => x.StartParticipatingAsync(cts.Token)).ToArray();
