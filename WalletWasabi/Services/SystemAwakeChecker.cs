@@ -72,9 +72,14 @@ namespace WalletWasabi.Services
 					if (task is not null)
 					{
 						Logger.LogWarning($"XXX: Prolong power saving prevention task by one minute.");
-						task.Prolong(TimeSpan.FromMinutes(1));
+						if (!task.Prolong(TimeSpan.FromMinutes(1)))
+						{
+							Logger.LogWarning($"XXX: Failed to prolong.");
+							task = null;
+						}
 					}
-					else
+
+					if (task is null)
 					{
 						Logger.LogWarning($"XXX: Create new power saving prevention task.");
 						_powerSavingTask = await TaskFactory!().ConfigureAwait(false);
