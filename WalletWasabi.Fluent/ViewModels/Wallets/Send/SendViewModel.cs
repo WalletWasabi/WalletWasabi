@@ -96,6 +96,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(async args =>
 			   {
+				   IsCameraLoadingAnimationVisible = false;
 				   IsQrPanelVisible = false;
 				   await _qrReader.StopScanningAsync();
 				   await ShowErrorAsync(Title, args.EventArgs.Message, "Something went wrong");

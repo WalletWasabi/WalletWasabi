@@ -9,6 +9,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Userfacing;
 using NBitcoin;
 using Nito.AsyncEx;
+using System.Threading;
 
 namespace WalletWasabi.Fluent.Models
 {
@@ -33,7 +34,7 @@ namespace WalletWasabi.Fluent.Models
 			{
 				if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				{
-					throw new NotImplementedException("This operating system is not supported.");
+					ErrorOccured?.Invoke(this, new NotImplementedException("This operating system is not supported."));
 				}
 				ScanningTask = Task.Run(() =>
 				{
