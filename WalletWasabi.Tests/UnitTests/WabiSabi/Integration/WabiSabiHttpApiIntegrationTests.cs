@@ -267,9 +267,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 							OutputRegistrationTimeout = TimeSpan.FromSeconds(20 * ExpectedInputNumber),
 						});
 					});
-					builder.ConfigureLogging(o=> {
-						o.SetMinimumLevel(LogLevel.Warning);
-					});
 				});
 
 				// Total test timeout.
