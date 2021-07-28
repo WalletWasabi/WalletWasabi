@@ -1,8 +1,12 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Moq;
+using NBitcoin;
+using NBitcoin.RPC;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
+using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using Xunit;
 
@@ -29,6 +33,32 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
+			await arena.StopAsync(CancellationToken.None);
+		}
+
+		[Fact]
+		public async Task DetectSpentTxoBeforeSteppingIntoConnectionConfirmationAsync()
+		{
+			WabiSabiConfig cfg = new() { MaxInputCountByRound = 3 };
+			var round = WabiSabiFactory.CreateRound(cfg);
+			var offendingAlice = WabiSabiFactory.CreateAlice(round); // this Alice spent the coin after registration
+
+			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient();
+			mockRpc.Setup(rpc => rpc.GetTxOutAsync(offendingAlice.Coin.Outpoint.Hash, (int)offendingAlice.Coin.Outpoint.N, true))
+				.ReturnsAsync((GetTxOutResponse)null!);
+
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc, round);
+
+			round.Alices.Add(WabiSabiFactory.CreateAlice(round));
+			round.Alices.Add(offendingAlice);
+			round.Alices.Add(WabiSabiFactory.CreateAlice(round));
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+			Assert.Equal(Phase.Ended, round.Phase);
+
+			var punishedAlice = Assert.Single(arena.Prison.GetInmates());
+			Assert.Equal(offendingAlice.Coin.Outpoint, punishedAlice.Utxo);
+			Assert.Equal(round.Id, punishedAlice.LastDisruptedRoundId);
+			Assert.Equal(Punishment.Banned, punishedAlice.Punishment);
 			await arena.StopAsync(CancellationToken.None);
 		}
 

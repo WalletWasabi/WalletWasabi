@@ -53,7 +53,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 				StepConnectionConfirmationPhase();
 
-				StepInputRegistrationPhase();
+				await StepInputRegistrationPhaseAsync(cancel).ConfigureAwait(false);
 
 				cancel.ThrowIfCancellationRequested();
 
@@ -62,7 +62,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		private void StepInputRegistrationPhase()
+		private async Task StepInputRegistrationPhaseAsync(CancellationToken cancel)
 		{
 			foreach (var round in Rounds.Where(x =>
 				x.Phase == Phase.InputRegistration
@@ -76,9 +76,49 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				}
 				else
 				{
-					round.SetPhase(Phase.ConnectionConfirmation);
+					var areAllTxoUnspent = await CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false);
+					if (areAllTxoUnspent)
+					{
+						round.SetPhase(Phase.ConnectionConfirmation);
+					}
+					else
+					{
+						round.SetPhase(Phase.Ended);
+						round.LogInfo($"The round was disrupted by users who spent their coins.");
+					}
 				}
 			}
+		}
+
+		private async Task<bool> CheckTxoSpendStatusAsync(Round round, CancellationToken cancellationToken)
+		{
+			IEnumerable<(Alice Alice, Task<GetTxOutResponse?> Status)> GetTxoSpendingStatus()
+			{
+				foreach (var alice in round.Alices)
+				{
+					var input = alice.Coin.Outpoint;
+					var getTxOutTask = Rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true);
+					yield return (alice, getTxOutTask);
+				}
+			}
+
+			var allTxoAreUnspent = true;
+			var batchedRpc = Rpc.PrepareBatch();
+			var spendStatusCheckingTasks = GetTxoSpendingStatus().ToArray();
+
+			cancellationToken.ThrowIfCancellationRequested();
+			await batchedRpc.SendBatchAsync().ConfigureAwait(false);
+
+			foreach (var (alice, task) in spendStatusCheckingTasks)
+			{
+				var status = await task.ConfigureAwait(false);
+				if (status is null)
+				{
+					allTxoAreUnspent = false;
+					Prison.Ban(alice, round.Id);
+				}
+			}
+			return allTxoAreUnspent;
 		}
 
 		private void StepConnectionConfirmationPhase()

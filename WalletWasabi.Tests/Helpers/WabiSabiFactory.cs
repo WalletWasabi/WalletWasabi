@@ -78,6 +78,8 @@ namespace WalletWasabi.Tests.Helpers
 				{
 					MinRelayTxFee = 1
 				});
+			mockRpc.Setup(rpc => rpc.PrepareBatch()).Returns(mockRpc.Object);
+			mockRpc.Setup(rpc => rpc.SendBatchAsync()).Returns(Task.CompletedTask);
 			return mockRpc;
 		}
 
