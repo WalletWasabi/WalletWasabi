@@ -35,7 +35,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
-				return await Arena.RegisterInputAsync(request).ConfigureAwait(false);
+				return await Arena.RegisterInputAsync(request, cancellationToken).ConfigureAwait(false);
 			}
 		}
 
@@ -44,7 +44,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
-				await Arena.RemoveInputAsync(request).ConfigureAwait(false);
+				await Arena.RemoveInputAsync(request, cancellationToken).ConfigureAwait(false);
 			}
 		}
 
@@ -53,7 +53,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
-				return await Arena.ConfirmConnectionAsync(request).ConfigureAwait(false);
+				return await Arena.ConfirmConnectionAsync(request, cancellationToken).ConfigureAwait(false);
 			}
 		}
 
@@ -62,7 +62,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
-				await Arena.RegisterOutputAsync(request).ConfigureAwait(false);
+				await Arena.RegisterOutputAsync(request, cancellationToken).ConfigureAwait(false);
 			}
 		}
 
@@ -71,7 +71,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
-				await Arena.SignTransactionAsync(request).ConfigureAwait(false);
+				await Arena.SignTransactionAsync(request, cancellationToken).ConfigureAwait(false);
 			}
 		}
 
@@ -80,16 +80,16 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
-				return await Arena.ReissuanceAsync(request).ConfigureAwait(false);
+				return await Arena.ReissuanceAsync(request, cancellationToken).ConfigureAwait(false);
 			}
 		}
 
-		public async Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellableToken)
+		public async Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken)
 		{
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
-				await Arena.ReadyToSignAsync(request).ConfigureAwait(false);
+				await Arena.ReadyToSignAsync(request, cancellationToken).ConfigureAwait(false);
 			}
 		}
 

@@ -17,27 +17,27 @@ namespace WalletWasabi.Tests.Helpers
 		}
 
 		public Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken)
-			=> arena.ConfirmConnectionAsync(request);
+			=> arena.ConfirmConnectionAsync(request, cancellationToken);
 
 		public Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken)
 			=> throw new NotImplementedException();
 
 		public Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
-			=> arena.RegisterInputAsync((request));
+			=> arena.RegisterInputAsync(request, cancellationToken);
 
 		public Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
-			=> arena.RegisterOutputAsync(request);
+			=> arena.RegisterOutputAsync(request, cancellationToken);
 
 		public Task<ReissueCredentialResponse> ReissueCredentialAsync(ReissueCredentialRequest request, CancellationToken cancellationToken)
-			=> arena.ReissuanceAsync(request);
+			=> arena.ReissuanceAsync(request, cancellationToken);
 
 		public Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellationToken)
-			=> arena.RemoveInputAsync(request);
+			=> arena.RemoveInputAsync(request, cancellationToken);
 
 		public Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken)
-			=> arena.SignTransactionAsync(request);
+			=> arena.SignTransactionAsync(request, cancellationToken);
 
 		public Task ReadyToSign(ReadyToSignRequestRequest request, CancellationToken cancellationToken)
-			=> arena.ReadyToSignAsync(request);
+			=> arena.ReadyToSignAsync(request, cancellationToken);
 	}
 }
