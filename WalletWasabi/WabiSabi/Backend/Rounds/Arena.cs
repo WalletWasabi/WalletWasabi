@@ -31,14 +31,14 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			Prison = prison;
 			Random = new SecureRandom();
 
-			Rounds = new(RoundsById, r => r.Id);
+			Rounds = new() { ConcurrentDictionary = RoundsById, KeyFunc = r => r.Id };
 		}
 
-		public ConcurrentDictionary<uint256, Round> RoundsById { get; } = new();
+		private ConcurrentDictionary<uint256, Round> RoundsById { get; } = new();
 		[ObsoleteAttribute("Access to internal Arena state should be removed from tests.")]
-		public ConcurrentDictionaryValueCollectionView<Round> Rounds { get; }
-		public ConcurrentDictionary<OutPoint, Alice> AlicesByOutpoint { get; } = new();
-		public ConcurrentDictionary<uint256, Alice> AlicesById { get; } = new();
+		internal ConcurrentDictionaryValueCollectionView<Round> Rounds { get; }
+		private ConcurrentDictionary<OutPoint, Alice> AlicesByOutpoint { get; } = new();
+		private ConcurrentDictionary<uint256, Alice> AlicesById { get; } = new();
 		private AsyncLock AsyncLock { get; } = new();
 		public Network Network { get; }
 		public WabiSabiConfig Config { get; }
@@ -85,17 +85,14 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				// Ensure there's at least one non-blame round in input registration.
 				await CreateRoundsAsync(cancel).ConfigureAwait(false);
 
-				foreach (var round in RoundsById.Select(x => x.Value))
+				foreach (var round in ActiveRounds)
 				{
-					if (round.Phase != Phase.Ended)
+					// FIXME remove, hack to make alices injected by tests accessible from requests
+					foreach (var alice in round.Alices.Where(alice => !AlicesById.ContainsKey(alice.Id)))
 					{
-						// FIXME remove, hack to make alices injected by tests accessible from requests
-						foreach (var alice in round.Alices.Where(alice => !AlicesById.ContainsKey(alice.Id)))
+						if (!AlicesByOutpoint.TryAdd(alice.Coin.Outpoint, alice) || !AlicesById.TryAdd(alice.Id, alice))
 						{
-							if (!AlicesByOutpoint.TryAdd(alice.Coin.Outpoint, alice) || !AlicesById.TryAdd(alice.Id, alice))
-							{
-								throw new InvalidOperationException();
-							}
+							throw new InvalidOperationException();
 						}
 					}
 				}
@@ -282,7 +279,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				Prison.Note(alice, round.Id);
 			}
 
-			foreach (var alice in AlicesById.Select(x => x.Value))
+			foreach (var alice in round.Alices)
 			{
 				RemoveAlice(alice);
 			}
@@ -305,7 +302,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				throw new InvalidOperationException();
 			}
-			Rounds.Add(blameRound);
 		}
 
 		private async Task CreateRoundsAsync(CancellationToken cancellationToken)
@@ -320,7 +316,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				{
 					throw new InvalidOperationException();
 				}
-				Rounds.Add(r);
 			}
 		}
 
@@ -341,7 +336,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				var expiredAlices = round.Alices.Where(x => x.Deadline < DateTimeOffset.UtcNow).ToArray();
 
-				if (expiredAlices.Count() > 0)
+				if (expiredAlices.Any())
 				{
 					foreach (var alice in expiredAlices)
 					{
@@ -360,12 +355,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		public async Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 		{
-			var coin = await InputRegistrationHandler.OutpointToCoinAsync(request, Prison, Rpc, Config, cancellationToken).ConfigureAwait(false);
-
 			if (!RoundsById.TryGetValue(request.RoundId, out var round))
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
 			}
+
+			var coin = await InputRegistrationHandler.OutpointToCoinAsync(request, Prison, Rpc, Config, cancellationToken).ConfigureAwait(false);
 
 			var alice = new Alice(coin, request.OwnershipProof, round);
 
@@ -392,7 +387,10 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 							request.ZeroVsizeCredentialRequests);
 
 						// Now that alice is in the round, make it available by id.
-						(AlicesById as IDictionary<uint256, Alice>).Add(alice.Id, alice);
+						if (!AlicesById.TryAdd(alice.Id, alice))
+						{
+							throw new InvalidOperationException($"Alice {alice.Id} already exists.");
+						}
 
 						return response;
 					}
@@ -505,7 +503,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					else if (round.Phase == Phase.ConnectionConfirmation)
 					{
 						// Ensure the input can be added to the CoinJoin
-						round.Assert<ConstructionState>().AddInput(alice.Coin);
+						_ = round.Assert<ConstructionState>().AddInput(alice.Coin);
 					}
 					else
 					{

@@ -149,8 +149,13 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			round.Alices.Add(extraAlice);
 			round.CoinjoinState = round.Assert<ConstructionState>().AddInput(extraAlice.Coin);
 
+			// Wait until the timeout of output registration. The injected input
+			// will not signal readyness to sign.
 			await Task.Delay(TimeSpan.FromSeconds(10));
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+
+			// Since the additional input's value is too small to claim with the
+			// blame script, its value is simply consumed for fees.
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
 			var tx = round.Assert<SigningState>().CreateTransaction();
 			Assert.Equal(3, tx.Inputs.Count);

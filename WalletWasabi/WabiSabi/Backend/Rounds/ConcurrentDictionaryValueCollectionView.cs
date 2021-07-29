@@ -8,13 +8,19 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 {
 	// Expose the values of a concurrent dictionary as a mutable collection
 	// using a function that maps to keys.
-	public record ConcurrentDictionaryValueCollectionView<T>(ConcurrentDictionary<uint256, T> ConcurrentDictionary, Func<T, uint256> KeyFunc) : IEnumerable<T>
+	internal class ConcurrentDictionaryValueCollectionView<T> : IEnumerable<T>
 	{
+		public ConcurrentDictionary<uint256, T> ConcurrentDictionary { get; init; }
+		public Func<T, uint256> KeyFunc { get; init; }
+
 		public int Count => ConcurrentDictionary.Count;
 
 		public void Add(T value)
 		{
-			ConcurrentDictionary[KeyFunc(value)] = value;
+			if (!ConcurrentDictionary.TryAdd(KeyFunc(value), value))
+			{
+				throw new ArgumentException("Duplicate key");
+			}
 		}
 
 		public void Remove(T value)

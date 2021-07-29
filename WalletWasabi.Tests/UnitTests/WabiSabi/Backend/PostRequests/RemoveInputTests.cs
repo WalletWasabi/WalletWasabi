@@ -68,7 +68,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var alice = WabiSabiFactory.CreateAlice(round);
 			round.Alices.Add(alice);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 
 			var req = new InputsRemovalRequest(round.Id, alice.Id);
 			foreach (Phase phase in Enum.GetValues(typeof(Phase)))

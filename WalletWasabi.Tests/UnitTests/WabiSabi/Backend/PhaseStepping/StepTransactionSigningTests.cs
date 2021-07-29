@@ -32,7 +32,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 
 			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1, coin2);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
-			var (round, aliceClient1, aliceClient2) = await CreateRoundWithRegisteredOutputsAsync(arena, key1, coin1, key2, coin2).ConfigureAwait(false);
+			var (round, aliceClient1, aliceClient2) = await CreateRoundWithRegisteredOutputsAsync(arena, key1, coin1, key2, coin2);
 
 			await aliceClient1.ReadyToSignAsync(CancellationToken.None);
 			await aliceClient2.ReadyToSignAsync(CancellationToken.None);
@@ -69,7 +69,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 				.ThrowsAsync(new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null));
 
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
-			var (round, aliceClient1, aliceClient2) = await CreateRoundWithRegisteredOutputsAsync(arena, key1, coin1, key2, coin2).ConfigureAwait(false);
+			var (round, aliceClient1, aliceClient2) = await CreateRoundWithRegisteredOutputsAsync(arena, key1, coin1, key2, coin2);
 
 			await aliceClient1.ReadyToSignAsync(CancellationToken.None);
 			await aliceClient2.ReadyToSignAsync(CancellationToken.None);
@@ -109,7 +109,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 				.ThrowsAsync(new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null));
 
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
-			var (round, aliceClient1, aliceClient2) = await CreateRoundWithRegisteredOutputsAsync(arena, key1, coin1, key2, coin2).ConfigureAwait(false);
+			var (round, aliceClient1, aliceClient2) = await CreateRoundWithRegisteredOutputsAsync(arena, key1, coin1, key2, coin2);
 
 			await aliceClient1.ReadyToSignAsync(CancellationToken.None);
 			await aliceClient2.ReadyToSignAsync(CancellationToken.None);
@@ -154,7 +154,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 				.ThrowsAsync(new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null));
 
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
-			var (round, aliceClient1, aliceClient2) = await CreateRoundWithRegisteredOutputsAsync(arena, key1, coin1, key2, coin2).ConfigureAwait(false);
+			var (round, aliceClient1, aliceClient2) = await CreateRoundWithRegisteredOutputsAsync(arena, key1, coin1, key2, coin2);
 
 			await aliceClient1.ReadyToSignAsync(CancellationToken.None);
 			await aliceClient2.ReadyToSignAsync(CancellationToken.None);
@@ -196,7 +196,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 				.ThrowsAsync(new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null));
 
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
-			var (round, aliceClient1, aliceClient2) = await CreateRoundWithRegisteredOutputsAsync(arena, key1, coin1, key2, coin2).ConfigureAwait(false);
+			var (round, aliceClient1, aliceClient2) = await CreateRoundWithRegisteredOutputsAsync(arena, key1, coin1, key2, coin2);
 
 			// Make sure not all alices signed.
 			var alice3 = WabiSabiFactory.CreateAlice(round);
@@ -238,7 +238,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			CreateRoundWithRegisteredOutputsAsync(Arena arena, Key key1, Coin coin1, Key key2, Coin coin2)
 		{
 			// Create the round.
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
 
 			var round = Assert.Single(arena.Rounds);
 			round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
@@ -251,7 +251,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await aliceClient1.RegisterInputAsync(CancellationToken.None).ConfigureAwait(false);
 			await aliceClient2.RegisterInputAsync(CancellationToken.None).ConfigureAwait(false);
 
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
 			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
 			// Confirm connections.
@@ -270,7 +270,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 				roundStateUpdater,
 				CancellationToken.None).ConfigureAwait(false);
 
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
 			Assert.Equal(Phase.OutputRegistration, round.Phase);
 
 			// Register outputs.
