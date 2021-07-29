@@ -2,13 +2,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-             xmlns:locator="using:WalletWasabi.Fluent"
-             xmlns:tiles="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
+             xmlns:home="using:WalletWasabi.Fluent.Views.Wallets.Home"
              xmlns:history="using:WalletWasabi.Fluent.Views.Wallets.Home.History"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="850"
              x:DataType="wallets:WalletViewModel"
@@ -25,7 +23,7 @@
               <Button.IsVisible>
                 <MultiBinding Converter="{x:Static BoolConverters.And}">
                   <Binding Path="PreferPsbtWorkflow"/>
-                  <Binding Path="IsWalletBalanceZero" Converter="{x:Static converters:BoolConverters.Not}"/>
+                  <Binding Path="IsWalletBalanceZero"/>
                 </MultiBinding>
               </Button.IsVisible>
               <StackPanel Orientation="Horizontal" Spacing="15">
@@ -71,7 +69,6 @@
         </DockPanel>
         <Separator DockPanel.Dock="Bottom" Margin="-200 13 -200 0" HorizontalAlignment="Stretch" />
       </StackPanel>
-
     </c:ContentArea.Title>
     <DockPanel Name="Panel" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
       <i:Interaction.Behaviors>
@@ -108,95 +105,9 @@
             <Setter Property="VerticalAlignment" Value="Stretch"/>
           </Style>
         </Panel.Styles>
-        <ScrollViewer Name="ScrollViewer"
-                      IsVisible="{Binding !IsEmptyWallet}"
-                      Classes.smallLayout="{Binding IsSmallLayout}"
-                      Classes.normalLayout="{Binding IsNormalLayout}"
-                      Classes.wideLayout="{Binding IsWideLayout}">
-          <ScrollViewer.Styles>
-            <Style Selector="ScrollViewer.smallLayout">
-              <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
-              <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
-            </Style>
-            <Style Selector="ScrollViewer.normalLayout">
-              <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
-              <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
-            </Style>
-            <Style Selector="ScrollViewer.wideLayout">
-              <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
-              <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
-            </Style>
-          </ScrollViewer.Styles>
-          <i:Interaction.Behaviors>
-            <behaviors:HorizontalScrollViewerBehavior RequireShiftKey="False" ScrollChangeSize="Page"/>
-          </i:Interaction.Behaviors>
-          <ItemsControl Items="{Binding Tiles}"
-                        Classes.smallLayout="{Binding IsSmallLayout}"
-                        Classes.normalLayout="{Binding IsNormalLayout}"
-                        Classes.wideLayout="{Binding IsWideLayout}">
-            <ItemsControl.Styles>
-              <Style Selector="ItemsControl.smallLayout">
-                <Setter Property="HorizontalAlignment" Value="Left"/>
-                <Setter Property="VerticalAlignment" Value="Top"/>
-                <Setter Property="Margin" Value="0 0"/>
-                <Setter Property="Padding" Value="0,0,0,10"/>
-              </Style>
-              <Style Selector="ItemsControl.normalLayout">
-                <Setter Property="HorizontalAlignment" Value="Left"/>
-                <Setter Property="VerticalAlignment" Value="Top"/>
-                <Setter Property="Margin" Value="0 0"/>
-                <Setter Property="Padding" Value="0,0,0,10"/>
-              </Style>
-              <Style Selector="ItemsControl.wideLayout">
-                <Setter Property="HorizontalAlignment" Value="Left"/>
-                <Setter Property="VerticalAlignment" Value="Top"/>
-                <Setter Property="Margin" Value="0 0"/>
-                <Setter Property="Padding" Value="0,0,10,0"/>
-              </Style>
-              <Style Selector="ItemsControl > ContentPresenter" x:DataType="tiles:TileViewModel">
-                <Setter Property="Grid.Column" Value="{Binding Column}" />
-                <Setter Property="Grid.Row" Value="{Binding Row}" />
-                <Setter Property="Grid.ColumnSpan" Value="{Binding ColumnSpan}" />
-                <Setter Property="Grid.RowSpan" Value="{Binding RowSpan}" />
-                <Setter Property="IsVisible" Value="{Binding IsVisible}" />
-              </Style>
-            </ItemsControl.Styles>
-            <ItemsControl.ItemsPanel>
-              <ItemsPanelTemplate>
-                <c:BindableGrid ColumnDefinitionsSource="{Binding CurrentLayout.ColumnDefinitions}"
-                                RowDefinitionsSource="{Binding CurrentLayout.RowDefinitions}"
-                                ShowGridLines="False" />
-              </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-              <locator:ViewLocator />
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
-        </ScrollViewer>
-        <Border ClipToBounds="False"
-                CornerRadius="5"
-                Background="{DynamicResource TileRegionColor}"
-                Margin="6"
-                Padding="16"
-                BoxShadow="{DynamicResource InfoBoxShadow}"
-                IsVisible="{Binding IsEmptyWallet}">
-          <StackPanel>
-            <Label Content="Since this is a empty wallet, there isn't a lot going on here. Click below to receive Bitcoin."
-                   Classes="wrap center"
-                   MaxWidth="400"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"/>
-              <Button Classes="function"
-                      Command="{Binding ReceiveCommand}"
-                      HorizontalAlignment="Center"
-                      VerticalAlignment="Center">
-              <StackPanel Orientation="Horizontal" Spacing="15">
-                <PathIcon Data="{StaticResource wallet_action_receive}" />
-                <TextBlock Text="Receive" />
-              </StackPanel>
-            </Button>
-          </StackPanel>
-        </Border>
+        <home:WalletTiles IsVisible="{Binding !IsEmptyWallet}"/>
+        <home:WalletTilesPlaceholder HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                     IsVisible="{Binding IsEmptyWallet}"/>
       </Panel>
       <Panel>
         <history:HistoryTable Name="HistoryTable"
