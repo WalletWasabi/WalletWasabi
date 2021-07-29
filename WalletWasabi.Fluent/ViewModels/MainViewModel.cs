@@ -87,6 +87,54 @@ namespace WalletWasabi.Fluent.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => IsMainContentEnabled = !x);
 
+			this.WhenAnyValue(
+					x => x.DialogScreen.CurrentPage,
+					x => x.CompactDialogScreen.CurrentPage,
+					x => x.FullScreen.CurrentPage)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(tup =>
+				{
+					var (currentDialog, currentCompactDialog, currentFullScreenDialog) = tup;
+
+					if (currentDialog is { })
+					{
+						currentDialog.IsActive = false;
+					}
+
+					if (currentDialog is { })
+					{
+						currentDialog.IsActive = false;
+					}
+
+					if (currentFullScreenDialog is { })
+					{
+						currentFullScreenDialog.IsActive = false;
+					}
+
+					if (currentCompactDialog is { })
+					{
+						currentCompactDialog.IsActive = false;
+					}
+
+					if (currentCompactDialog is { })
+					{
+						currentCompactDialog.IsActive = true;
+						return;
+					}
+
+					if (currentDialog is { })
+					{
+						currentDialog.IsActive = true;
+						return;
+					}
+
+					if (currentFullScreenDialog is { })
+					{
+						currentFullScreenDialog.IsActive = true;
+						return;
+					}
+				});
+
 			if (!Services.WalletManager.HasWallet())
 			{
 				_dialogScreen.To(_addWalletPage, NavigationMode.Clear);

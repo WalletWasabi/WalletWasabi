@@ -16,6 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		[AutoNotify] private bool _enableCancelOnEscape;
 		[AutoNotify] private bool _enableBack;
 		[AutoNotify] private bool _enableCancel;
+		[AutoNotify] private bool _isActive;
 
 		public abstract string Title { get; protected set; }
 
