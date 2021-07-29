@@ -204,25 +204,30 @@
                 BoxShadow="{DynamicResource InfoBoxShadow}"
                 DataContext="{Binding History}"
                 IsVisible="{Binding IsTransactionHistoryEmpty}">
-          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-            <Image Width="234" Height="110" HorizontalAlignment="Center" VerticalAlignment="Center">
-              <Image.Source>
-                <DrawingImage Drawing="{StaticResource history_table_empty_wallet}"/>
-              </Image.Source>
-            </Image>
+          <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
             <Label Content="Nothing to show here yet."
                    Classes="bold center wrap h5"
                    MaxWidth="400"
                    Margin="0,24,0,0"
                    HorizontalAlignment="Center"
-                   VerticalAlignment="Center"/>
+                   VerticalAlignment="Center"
+                   DockPanel.Dock="Bottom"/>
             <Label Content="Recent transactions will appear here once you make some transactions or when your wallet finishes loading."
                    Classes="wrap center"
                    MaxWidth="400"
+                   Margin="0,0,24,0"
                    HorizontalContentAlignment="Center"
                    HorizontalAlignment="Center"
-                   VerticalAlignment="Center"/>
-          </StackPanel>
+                   VerticalAlignment="Center"
+                   DockPanel.Dock="Bottom"/>
+            <Viewbox MaxHeight="234" Margin="24,24,24,24">
+              <Image HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Image.Source>
+                  <DrawingImage Drawing="{StaticResource history_table_empty_wallet}"/>
+                </Image.Source>
+              </Image>
+            </Viewbox>
+          </DockPanel>
         </Border>
       </Panel>
     </DockPanel>
