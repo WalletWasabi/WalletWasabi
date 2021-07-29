@@ -196,39 +196,10 @@
                               DataContext="{Binding History}"
                               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                               IsVisible="{Binding !IsTransactionHistoryEmpty}"/>
-        <Border ClipToBounds="False"
-                CornerRadius="5"
-                Background="{DynamicResource TileRegionColor}"
-                Margin="6"
-                Padding="16"
-                BoxShadow="{DynamicResource InfoBoxShadow}"
-                DataContext="{Binding History}"
-                IsVisible="{Binding IsTransactionHistoryEmpty}">
-          <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-            <Label Content="Nothing to show here yet."
-                   Classes="bold center wrap h5"
-                   MaxWidth="400"
-                   Margin="0,24,0,0"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   DockPanel.Dock="Bottom"/>
-            <Label Content="Recent transactions will appear here once you make some transactions or when your wallet finishes loading."
-                   Classes="wrap center"
-                   MaxWidth="400"
-                   Margin="0,0,24,0"
-                   HorizontalContentAlignment="Center"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   DockPanel.Dock="Bottom"/>
-            <Viewbox MaxHeight="234" Margin="24,24,24,24">
-              <Image HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Image.Source>
-                  <DrawingImage Drawing="{StaticResource history_table_empty_wallet}"/>
-                </Image.Source>
-              </Image>
-            </Viewbox>
-          </DockPanel>
-        </Border>
+        <history:HistoryTablePlaceholder Name="HistoryTablePlaceholder"
+                                         DataContext="{Binding History}"
+                                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                         IsVisible="{Binding IsTransactionHistoryEmpty}"/>
       </Panel>
     </DockPanel>
   </c:ContentArea>
