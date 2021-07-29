@@ -13,8 +13,6 @@ namespace WalletWasabi.Tests.UnitTests
 	{
 		private readonly WindowsStartupTestHelper _windowsHelper = new();
 
-		private readonly MacOsStartupTestHelper _macOsHelper = new();
-
 		[Fact]
 		public async Task ModifyStartupOnDifferentSystemsTestAsync()
 		{
