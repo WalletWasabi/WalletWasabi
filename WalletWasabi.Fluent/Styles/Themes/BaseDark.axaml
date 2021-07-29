@@ -20,8 +20,8 @@
           <Color x:Key="SystemChromeBlackLowColor">#FFA3B0C2</Color>
           <Color x:Key="SystemChromeBlackMediumColor">#FF000000</Color>
           <Color x:Key="SystemChromeBlackMediumLowColor">#FF000000</Color>
-          <Color x:Key="SystemChromeDisabledHighColor">#FF1A283D</Color>
-          <Color x:Key="SystemChromeDisabledLowColor">#FF8895A7</Color>
+          <Color x:Key="SystemChromeDisabledHighColor">#2F1A283D</Color>
+          <Color x:Key="SystemChromeDisabledLowColor">#2F8895A7</Color>
           <Color x:Key="SystemChromeGrayColor">#FF6C7A8D</Color>
           <Color x:Key="SystemChromeHighColor">#FF6C7A8D</Color>
           <Color x:Key="SystemChromeLowColor">#FF05122F</Color>
