@@ -4,6 +4,7 @@ using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
@@ -76,49 +77,39 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				}
 				else
 				{
-					var areAllTxoUnspent = await CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false);
-					if (areAllTxoUnspent)
+					var thereAreOffendingAlices = false;
+					await foreach(var offendingAlices in CheckTxoSpendStatusAsync(round).WithCancellation(cancel).ConfigureAwait(false))
+					{
+						if (offendingAlices.Any())
+						{
+							thereAreOffendingAlices = true;
+							round.Alices.RemoveAll(x => offendingAlices.Contains(x));
+						}
+					}
+					if (!thereAreOffendingAlices)
 					{
 						round.SetPhase(Phase.ConnectionConfirmation);
-					}
-					else
-					{
-						round.SetPhase(Phase.Ended);
-						round.LogInfo($"The round was disrupted by users who spent their coins.");
 					}
 				}
 			}
 		}
 
-		private async Task<bool> CheckTxoSpendStatusAsync(Round round, CancellationToken cancellationToken)
+		private async IAsyncEnumerable<Alice[]> CheckTxoSpendStatusAsync(Round round, [EnumeratorCancellation] CancellationToken cancellationToken = default)
 		{
-			IEnumerable<(Alice Alice, Task<GetTxOutResponse?> Status)> GetTxoSpendingStatus()
+			foreach (var chunckOfAlices in round.Alices.ToList().ChunkBy(16))
 			{
-				foreach (var alice in round.Alices)
-				{
-					var input = alice.Coin.Outpoint;
-					var getTxOutTask = Rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true);
-					yield return (alice, getTxOutTask);
-				}
+				var batchedRpc = Rpc.PrepareBatch();
+
+				var spendStatusCheckingTasks = chunckOfAlices
+					.Select(x => (Alice: x, StatusTask: Rpc.GetTxOutAsync(x.Coin.Outpoint.Hash, (int)x.Coin.Outpoint.N, includeMempool: true)))
+					.ToList();
+
+				cancellationToken.ThrowIfCancellationRequested();
+				await batchedRpc.SendBatchAsync().ConfigureAwait(false);
+
+				var alices = await Task.WhenAll(spendStatusCheckingTasks.Select(async x => (x.Alice, Status: await x.StatusTask.ConfigureAwait(false))));
+				yield return alices.Where(x => x.Status is null).Select(x => x.Alice).ToArray();
 			}
-
-			var allTxoAreUnspent = true;
-			var batchedRpc = Rpc.PrepareBatch();
-			var spendStatusCheckingTasks = GetTxoSpendingStatus().ToArray();
-
-			cancellationToken.ThrowIfCancellationRequested();
-			await batchedRpc.SendBatchAsync().ConfigureAwait(false);
-
-			foreach (var (alice, task) in spendStatusCheckingTasks)
-			{
-				var status = await task.ConfigureAwait(false);
-				if (status is null)
-				{
-					allTxoAreUnspent = false;
-					Prison.Ban(alice, round.Id);
-				}
-			}
-			return allTxoAreUnspent;
 		}
 
 		private void StepConnectionConfirmationPhase()

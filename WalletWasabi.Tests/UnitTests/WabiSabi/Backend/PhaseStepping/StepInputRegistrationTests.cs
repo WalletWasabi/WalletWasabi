@@ -2,11 +2,9 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
-using NBitcoin;
 using NBitcoin.RPC;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using Xunit;
 
@@ -53,12 +51,13 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			round.Alices.Add(offendingAlice);
 			round.Alices.Add(WabiSabiFactory.CreateAlice(round));
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.Equal(Phase.Ended, round.Phase);
+			Assert.Equal(Phase.InputRegistration, round.Phase);
 
-			var punishedAlice = Assert.Single(arena.Prison.GetInmates());
-			Assert.Equal(offendingAlice.Coin.Outpoint, punishedAlice.Utxo);
-			Assert.Equal(round.Id, punishedAlice.LastDisruptedRoundId);
-			Assert.Equal(Punishment.Banned, punishedAlice.Punishment);
+			round.Alices.Add(WabiSabiFactory.CreateAlice(round));
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
+			Assert.Equal(3, round.Alices.Count);
+
 			await arena.StopAsync(CancellationToken.None);
 		}
 
