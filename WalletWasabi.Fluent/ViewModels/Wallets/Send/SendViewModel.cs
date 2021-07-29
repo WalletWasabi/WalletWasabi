@@ -28,6 +28,7 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Views.Wallets.Send;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
@@ -77,7 +78,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					{
 						IsCameraLoadingAnimationVisible = false;
 					}
-					QrImage = args.EventArgs;
+
+					if (QrImage == null)
+					{
+						QrImage = args.EventArgs;
+					}
+					else
+					{
+						SendView.QrImage?.InvalidateVisual();
+					}
 				});
 
 			Observable.FromEventPattern<string>(_qrReader, nameof(_qrReader.CorrectAddressFound))

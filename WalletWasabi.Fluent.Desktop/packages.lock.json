@@ -1013,9 +1013,9 @@
           "Avalonia": "0.10.999-cibuild0014678-beta",
           "Avalonia.Diagnostics": "0.10.999-cibuild0014678-beta",
           "Avalonia.ReactiveUI": "0.10.999-cibuild0014678-beta",
+          "Avalonia.Xaml.Behaviors": "0.10.6.7",
           "OpenCvSharp4": "4.5.2.20210404",
           "OpenCvSharp4.runtime.win": "4.5.2.20210404",
-          "Avalonia.Xaml.Behaviors": "0.10.6.7",
           "WalletWasabi": "1.0.0",
           "Wasabi Wallet": "1.0.0"
         }

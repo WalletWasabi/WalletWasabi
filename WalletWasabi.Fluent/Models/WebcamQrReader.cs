@@ -47,12 +47,15 @@ namespace WalletWasabi.Fluent.Models
 				}
 				ScanningTask = Task.Run(() =>
 				{
-					VideoCapture? camera = null;
+					using VideoCapture? camera = new();
 					try
 					{
-						camera = OpenCamera();
+						if (!camera.Open(DefaultCameraId))
+						{
+							throw new InvalidOperationException("Could not open webcam.");
+						}
 						RequestEnd = false;
-						Scan(camera);
+						KeepScan(camera);
 					}
 					catch (Exception exc)
 					{
@@ -62,7 +65,6 @@ namespace WalletWasabi.Fluent.Models
 					finally
 					{
 						camera?.Release();
-						camera?.Dispose();
 					}
 				});
 			}
@@ -82,26 +84,28 @@ namespace WalletWasabi.Fluent.Models
 			}
 		}
 
-		private void Scan(VideoCapture camera)
+		private void KeepScan(VideoCapture camera)
 		{
-			WriteableBitmap? lastBitmap = null;
-			WriteableBitmap? currentBitmap = null;
+			PixelSize pixelSize = new(camera.FrameWidth, camera.FrameHeight);
+			Vector dpi = new(96, 96);
+			using WriteableBitmap writeableBitmap = new(pixelSize, dpi, PixelFormat.Rgba8888, AlphaFormat.Unpremul);
+
+			int dataSize = camera.FrameWidth * camera.FrameHeight;
+			int[] helperArray = new int[dataSize];
 			using QRCodeDetector qRCodeDetector = new();
+			using Mat frame = new();
 			while (!RequestEnd)
 			{
 				try
 				{
-					using Mat frame = new();
 					bool gotBackFrame = camera.Read(frame);
 					if (!gotBackFrame || frame.Width == 0 || frame.Height == 0)
 					{
 						continue;
 					}
-					currentBitmap = ConvertMatToWriteableBitmap(frame);
+					ConvertMatToWriteableBitmap(frame, writeableBitmap, helperArray);
 
-					NewImageArrived?.Invoke(this, currentBitmap);
-					lastBitmap?.Dispose();
-					lastBitmap = currentBitmap;
+					NewImageArrived?.Invoke(this, writeableBitmap);
 
 					if (qRCodeDetector.Detect(frame, out Point2f[] points))
 					{
@@ -125,48 +129,29 @@ namespace WalletWasabi.Fluent.Models
 				catch (OpenCVException exc)
 				{
 					Logger.LogWarning(exc);
-					currentBitmap?.Dispose();
 				}
 			}
-			lastBitmap?.Dispose();
-			currentBitmap?.Dispose();
 		}
 
-		private VideoCapture OpenCamera()
+		private void ConvertMatToWriteableBitmap(Mat frame, WriteableBitmap writeableBitmap, int[] helperArray)
 		{
-			VideoCapture camera = new();
-			if (!camera.Open(DefaultCameraId))
-			{
-				throw new InvalidOperationException("Could not open webcam.");
-			}
-			return camera;
-		}
+			using ILockedFramebuffer fb = writeableBitmap.Lock();
+			Mat.Indexer<Vec3b> indexer = frame.GetGenericIndexer<Vec3b>();
 
-		private WriteableBitmap ConvertMatToWriteableBitmap(Mat frame)
-		{
-			PixelSize pixelSize = new(frame.Width, frame.Height);
-			Vector dpi = new(96, 96);
-			var writeableBitmap = new WriteableBitmap(pixelSize, dpi, PixelFormat.Rgba8888, AlphaFormat.Unpremul);
-
-			using (var fb = writeableBitmap.Lock())
+			for (int y = 0; y < frame.Height; y++)
 			{
-				var indexer = frame.GetGenericIndexer<Vec3b>();
-				int[] data = new int[fb.Size.Width * fb.Size.Height];
-				for (int y = 0; y < frame.Height; y++)
+				int rowIndex = y * fb.Size.Width;
+
+				for (int x = 0; x < frame.Width; x++)
 				{
-					for (int x = 0; x < frame.Width; x++)
-					{
-						Vec3b pixel = indexer[y, x];
-						byte r = pixel.Item0;
-						byte g = pixel.Item1;
-						byte b = pixel.Item2;
-						var color = new Color(255, r, g, b);
-						data[y * fb.Size.Width + x] = (int)color.ToUint32();
-					}
+					(byte r, byte g, byte b) = indexer[y, x];
+					Color color = new(255, r, g, b);
+
+					helperArray[rowIndex + x] = (int)color.ToUint32();
 				}
-				Marshal.Copy(data, 0, fb.Address, fb.Size.Width * fb.Size.Height);
 			}
-			return writeableBitmap;
+
+			Marshal.Copy(helperArray, 0, fb.Address, helperArray.Length);
 		}
 	}
 }
