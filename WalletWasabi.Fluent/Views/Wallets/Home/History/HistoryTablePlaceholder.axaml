@@ -22,7 +22,6 @@
              HorizontalAlignment="Center"
              VerticalAlignment="Center"
              DockPanel.Dock="Bottom"/>
-      <Viewbox MaxHeight="234" Margin="24,24,24,24">
       <Label Content="Nothing to show here yet."
              Classes="bold center wrap h5"
              MaxWidth="400"
@@ -30,6 +29,7 @@
              HorizontalAlignment="Center"
              VerticalAlignment="Center"
              DockPanel.Dock="Bottom"/>
+      <Viewbox MaxHeight="234" Margin="24,24,24,0">
         <Image HorizontalAlignment="Center" VerticalAlignment="Center">
           <Image.Source>
             <DrawingImage Drawing="{StaticResource history_table_empty_wallet}"/>
