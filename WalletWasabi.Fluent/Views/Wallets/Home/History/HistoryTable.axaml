@@ -185,7 +185,6 @@
                 <Button.Flyout>
                   <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="TransientWithDismissOnPointerMoveAway">
                     <c:TagsBox IsReadOnly="True"
-                               MinWidth="0"
                                Items="{Binding FilteredLabel}" />
                   </Flyout>
                 </Button.Flyout>
