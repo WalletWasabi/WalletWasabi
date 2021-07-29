@@ -78,7 +78,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				else
 				{
 					var thereAreOffendingAlices = false;
-					await foreach(var offendingAlices in CheckTxoSpendStatusAsync(round).WithCancellation(cancel).ConfigureAwait(false))
+					await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round).WithCancellation(cancel).ConfigureAwait(false))
 					{
 						if (offendingAlices.Any())
 						{
