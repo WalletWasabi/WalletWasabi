@@ -358,7 +358,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 				fromOutpoint: BitcoinFactory.CreateOutPoint(),
 				fromTxOut: new TxOut(Money.Coins(1), signingKey.PubKey.WitHash.ScriptPubKey));
 
-			HttpClient httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
+			using HttpClient httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
 			{
 				builder.ConfigureServices(services =>
 				{
