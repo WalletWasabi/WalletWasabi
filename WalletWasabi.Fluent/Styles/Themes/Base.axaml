@@ -40,8 +40,7 @@
     <SolidColorBrush x:Key="ActionButtonBackgroundColor" Color="{DynamicResource SystemAccentColor}" />
     <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Color="{DynamicResource SystemAccentColorDark1}" />
     <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="{DynamicResource SystemAccentColorLight1}" />
-    <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor"
-                     Color="{DynamicResource SystemControlDisabledBaseLowBrush}" />
+    <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="{DynamicResource SystemChromeDisabledLowColor}" />
 
     <SolidColorBrush x:Key="NavBarAccentColor">#97D234</SolidColorBrush>
     <SolidColorBrush x:Key="NavBarAccentColorPressed">#719B2A</SolidColorBrush>
