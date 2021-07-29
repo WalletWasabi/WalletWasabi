@@ -52,6 +52,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_lastConfirmationTarget = _currentConfirmationTarget;
 			_feeRate = new FeeRate(GetSatoshiPerByte(_lastConfirmationTarget));
 
+			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
+
 			this.WhenAnyValue(x => x.CurrentConfirmationTarget)
 				.Subscribe(x =>
 				{
