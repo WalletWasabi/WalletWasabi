@@ -65,23 +65,20 @@ namespace WalletWasabi.Services
 
 			if (WalletManager.AnyCoinJoinInProgress())
 			{
-				Logger.LogWarning($"XXX: CJ is in progress, make sure to prolong awake state.");
-
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 				{
 					if (task is not null)
 					{
-						Logger.LogWarning($"XXX: Prolong power saving prevention task by one minute.");
 						if (!task.Prolong(Timeout.Add(TimeSpan.FromMinutes(1))))
 						{
-							Logger.LogWarning($"XXX: Failed to prolong.");
+							Logger.LogTrace("Failed to prolong the power saving task.");
 							task = null;
 						}
 					}
 
 					if (task is null)
 					{
-						Logger.LogWarning($"XXX: Create new power saving prevention task.");
+						Logger.LogTrace("Create new power saving prevention task.");
 						_powerSavingTask = await TaskFactory!().ConfigureAwait(false);
 					}
 				}
@@ -94,7 +91,7 @@ namespace WalletWasabi.Services
 			{
 				if (task is not null)
 				{
-					Logger.LogWarning($"XXX: Stop task.");
+					Logger.LogWarning("Stop the power saving task.");
 					await task.StopAsync().ConfigureAwait(false);
 					_powerSavingTask = null;
 				}

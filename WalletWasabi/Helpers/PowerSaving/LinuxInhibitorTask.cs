@@ -102,7 +102,7 @@ namespace WalletWasabi.Helpers.PowerSaving
 					try
 					{
 						Process.Kill();
-						Logger.LogWarning($"XXX: Inhibit task was killed.");
+						Logger.LogTrace("Inhibit task was killed.");
 					}
 					catch (Exception ex)
 					{
@@ -119,7 +119,6 @@ namespace WalletWasabi.Helpers.PowerSaving
 				}
 
 				Logger.LogTrace("Inhibit task is finished.");
-				Logger.LogWarning($"XXX: Inhibit task is finished.");
 			}
 		}
 
@@ -151,7 +150,6 @@ namespace WalletWasabi.Helpers.PowerSaving
 			}
 			finally
 			{
-				Logger.LogWarning($"XXX: {logMessage}");
 				Logger.LogTrace(logMessage);
 			}
 		}
@@ -236,7 +234,7 @@ namespace WalletWasabi.Helpers.PowerSaving
 				arguments = $"--why=\"{reason}\" --what=\"{whatArgument}\" --mode=block {innerCommand}";
 			}
 
-			Logger.LogWarning($"XXX: shell command to invoke: {command} {arguments}");
+			Logger.LogTrace($"Command to invoke: {command} {arguments}");
 			ProcessStartInfo startInfo = GetProcessStartInfo(command, arguments);
 
 			ProcessAsync process = new(startInfo);
