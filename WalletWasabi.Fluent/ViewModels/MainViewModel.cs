@@ -99,7 +99,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 					/*
 					 * Order is important.
-					 * Always the the topmost content will be the active one.
+					 * Always the topmost content will be the active one.
 					 */
 
 					if (compactDialog is { })
