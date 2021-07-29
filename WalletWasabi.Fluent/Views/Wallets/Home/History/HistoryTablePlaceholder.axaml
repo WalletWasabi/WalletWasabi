@@ -9,9 +9,9 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.HistoryTablePlaceholder">
   <Border ClipToBounds="False"
           CornerRadius="5"
-          Background="{DynamicResource TileRegionColor}"
           Margin="6"
           Padding="16"
+          Background="{DynamicResource TileRegionColor}"
           BoxShadow="{DynamicResource InfoBoxShadow}">
     <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
       <Label Content="Recent transactions will appear here once you make some transactions or when your wallet finishes loading."
