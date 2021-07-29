@@ -90,47 +90,39 @@ namespace WalletWasabi.Fluent.ViewModels
 			this.WhenAnyValue(
 					x => x.DialogScreen.CurrentPage,
 					x => x.CompactDialogScreen.CurrentPage,
-					x => x.FullScreen.CurrentPage)
+					x => x.FullScreen.CurrentPage,
+					x => x.MainScreen.CurrentPage)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(tup =>
 				{
-					var (currentDialog, currentCompactDialog, currentFullScreenDialog) = tup;
+					var (dialog, compactDialog, fullscreenDialog, mainsScreen) = tup;
 
-					if (currentDialog is { })
-					{
-						currentDialog.IsActive = false;
-					}
+					/*
+					 * Order is important.
+					 * Always the the topmost content will be the active one.
+					 */
 
-					if (currentDialog is { })
+					if (compactDialog is { })
 					{
-						currentDialog.IsActive = false;
-					}
-
-					if (currentFullScreenDialog is { })
-					{
-						currentFullScreenDialog.IsActive = false;
-					}
-
-					if (currentCompactDialog is { })
-					{
-						currentCompactDialog.IsActive = false;
-					}
-
-					if (currentCompactDialog is { })
-					{
-						currentCompactDialog.IsActive = true;
+						compactDialog.SetActive();
 						return;
 					}
 
-					if (currentDialog is { })
+					if (dialog is { })
 					{
-						currentDialog.IsActive = true;
+						dialog.SetActive();
 						return;
 					}
 
-					if (currentFullScreenDialog is { })
+					if (fullscreenDialog is { })
 					{
-						currentFullScreenDialog.IsActive = true;
+						fullscreenDialog.SetActive();
+						return;
+					}
+
+					if (mainsScreen is { })
+					{
+						mainsScreen.SetActive();
 						return;
 					}
 				});
