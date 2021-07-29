@@ -15,7 +15,7 @@
           Background="{DynamicResource TileRegionColor}"
           BoxShadow="{DynamicResource InfoBoxShadow}">
     <StackPanel>
-      <Label Content="Since this is a empty wallet, there isn't a lot going on here. Click below to receive Bitcoin."
+      <Label Content="Since this is an empty wallet, there isn't a lot going on here. Click below to receive Bitcoin."
              Classes="wrap center"
              MaxWidth="400"
              HorizontalAlignment="Center"
