@@ -65,8 +65,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				.Subscribe(_ => IsWalletBalanceZero = wallet.Coins.TotalAmount() == Money.Zero)
 				.DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.IsWalletBalanceZero, x => x.History.IsTransactionHistoryEmpty)
-				.Subscribe(tuple => IsEmptyWallet = tuple.Item1 && tuple.Item2);
+			this.WhenAnyValue(x => x.History.IsTransactionHistoryEmpty)
+				.Subscribe(x => IsEmptyWallet = x);
 
 			_smallLayoutHeightBreakpoint = 650;
 			_wideLayoutWidthBreakpoint = 1400;
