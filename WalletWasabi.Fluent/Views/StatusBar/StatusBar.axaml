@@ -48,7 +48,7 @@
                       DockPanel.Dock="Top"
                       HorizontalAlignment="Center"
                       Height="30" />
-            <TextBlock DockPanel.Dock="Bottom" Text="Due to Wasabi unable to connect to the server, some features can be unavailable, your balance can be incorrect. Don't worry, we keep trying to connect." TextWrapping="Wrap"
+            <TextBlock DockPanel.Dock="Bottom" Text="Wasabi was unable to connect to the server, some features may be unavailable, the reported balance could also be inaccurate. Retrying to connect." TextWrapping="Wrap"
                        TextAlignment="Center" />
           </DockPanel>
 
