@@ -61,7 +61,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 		private void OnShowExistingAddresses()
 		{
-			Navigate().To(new ReceiveAddressesViewModel(_wallet, _suggestionLabels.Suggestions));
+			Navigate().To(new ReceiveAddressesViewModel(_wallet, _suggestionLabels.Suggestions.ToHashSet()));
 		}
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposable)

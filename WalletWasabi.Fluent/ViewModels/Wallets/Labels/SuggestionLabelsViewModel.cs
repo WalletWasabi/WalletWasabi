@@ -15,9 +15,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels
 	{
 		private readonly SourceList<SuggestionLabelViewModel> _suggestionLabels;
 		private readonly ObservableCollectionExtended<SuggestionLabelViewModel> _suggestionLabelResults;
+		private readonly ObservableCollectionExtended<string> _suggestions;
 		private readonly ObservableCollectionExtended<string> _labels;
 		private Action<string>? _addTag;
-		[AutoNotify] private HashSet<string> _suggestions;
 
 		public SuggestionLabelsViewModel()
 		{
@@ -33,10 +33,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels
 				.OrderByDescending(x => x.Count)
 				.ToList();
 
-			_suggestions = mostUsedLabels.Select(x => x.Label).ToHashSet();
-
 			_suggestionLabels = new SourceList<SuggestionLabelViewModel>();
 			_suggestionLabelResults = new ObservableCollectionExtended<SuggestionLabelViewModel>();
+			_suggestions = new ObservableCollectionExtended<string>();
 
 			_suggestionLabels.AddRange(
 				mostUsedLabels.Select(x => new SuggestionLabelViewModel(x.Label, x.Count, label => _addTag?.Invoke(label))));
@@ -54,10 +53,21 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels
 				.Bind(_suggestionLabelResults)
 				.Subscribe();
 
+			_suggestionLabels
+				.Connect()
+				.Filter(suggestionLabelsFilter)
+				.Sort(SortExpressionComparer<SuggestionLabelViewModel>.Descending(x => x.Count))
+				.Transform(x => x.Label)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Bind(_suggestions)
+				.Subscribe();
+
 			SetAddTag = (addTag) => _addTag = addTag;
 		}
 
 		public ObservableCollection<SuggestionLabelViewModel> SuggestionLabelResults => _suggestionLabelResults;
+
+		public ObservableCollection<string> Suggestions => _suggestions;
 
 		public ObservableCollection<string> Labels => _labels;
 
