@@ -46,6 +46,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_wallet = wallet;
 			_transactionInfo = transactionInfo;
 
+			SetupCancel(false, true, false);
+			EnableBack = true;
+
 			_sliderMinimum = 0;
 			_sliderMaximum = 9;
 			_currentConfirmationTarget = 36;

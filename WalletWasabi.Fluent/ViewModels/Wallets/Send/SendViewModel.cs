@@ -67,7 +67,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 			PriorLabels = new();
 
-			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+
+			EnableBack = false;
 
 			this.ValidateProperty(x => x.To, ValidateToField);
 			this.ValidateProperty(x => x.AmountBtc, ValidateAmount);
@@ -93,8 +95,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				});
 
 			Labels.ToObservableChangeSet().Subscribe(x => _transactionInfo.UserLabels = new SmartLabel(_labels.ToArray()));
-
-			EnableBack = true;
 
 			PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
 			AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
