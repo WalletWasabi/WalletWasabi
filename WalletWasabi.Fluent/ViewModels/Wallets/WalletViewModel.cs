@@ -59,6 +59,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 			History = new HistoryViewModel(this, balanceChanged);
 
+			Settings = new WalletSettingsViewModel(this);
+
 			_smallLayoutHeightBreakpoint = 650;
 			_wideLayoutWidthBreakpoint = 1400;
 
@@ -182,8 +184,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				Navigate(NavigationTarget.DialogScreen).To(new WalletInfoViewModel(this));
 			});
 
-			WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletSettingsViewModel(this)));
+			WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(Settings));
 		}
+
+		public WalletSettingsViewModel Settings { get; }
 
 		public ICommand SendCommand { get; }
 
