@@ -97,7 +97,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			QRCommand = ReactiveCommand.Create(async () =>
 			{
 				ShowQrCameraDialogViewModel dialog = new(_wallet.Network);
-				var result = await NavigateDialogAsync(dialog);
+				var result = await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen);
 				if (!string.IsNullOrWhiteSpace(result.Result))
 				{
 					To = result.Result;

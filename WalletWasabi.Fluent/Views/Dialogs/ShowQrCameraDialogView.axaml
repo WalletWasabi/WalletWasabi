@@ -9,11 +9,12 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.ShowQrCameraDialogView">
   <c:ContentArea EnableNext="False"
+                 EnableCancel="{Binding EnableCancel}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <!-- QR Camera -->
-    <Panel>
-      <c:ProgressRing IsIndeterminate="True" IsVisible="{Binding QrImage,Converter={x:Static ObjectConverters.IsNull}}" />
-      <Image Source="{Binding QrImage}" Width="275" Height="275" IsVisible="{Binding QrImage,Converter={x:Static ObjectConverters.IsNotNull}}" />
+    <Panel Width="400" Height="300">
+      <c:ProgressRing IsIndeterminate="True" Height="100" IsVisible="{Binding QrImage,Converter={x:Static ObjectConverters.IsNull}}" />
+      <Image Name="qrImage" Source="{Binding QrImage}" IsVisible="{Binding QrImage,Converter={x:Static ObjectConverters.IsNotNull}}" />
     </Panel>
   </c:ContentArea>
 </UserControl>

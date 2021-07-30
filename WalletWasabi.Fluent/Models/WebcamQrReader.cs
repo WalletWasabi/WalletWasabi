@@ -47,9 +47,10 @@ namespace WalletWasabi.Fluent.Models
 				}
 				ScanningTask = Task.Run(() =>
 				{
-					using VideoCapture? camera = new();
+					VideoCapture? camera = null;
 					try
 					{
+						camera = new();
 						if (!camera.Open(DefaultCameraId))
 						{
 							throw new InvalidOperationException("Could not open webcam.");
@@ -65,6 +66,7 @@ namespace WalletWasabi.Fluent.Models
 					finally
 					{
 						camera?.Release();
+						camera?.Dispose();
 					}
 				});
 			}
@@ -129,6 +131,7 @@ namespace WalletWasabi.Fluent.Models
 				catch (OpenCVException exc)
 				{
 					Logger.LogWarning(exc);
+					ErrorOccured?.Invoke(this, exc);
 				}
 			}
 		}
