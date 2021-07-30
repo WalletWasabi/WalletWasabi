@@ -52,6 +52,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private ObservableCollection<string> _labels;
 		[AutoNotify] private bool _isPayJoin;
 		[AutoNotify] private string? _payJoinEndPoint;
+		[AutoNotify] private bool _isDialogOpen;
 
 		private bool _parsingUrl;
 
@@ -94,15 +95,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
 			AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
+			var canExecute = this.WhenAnyValue(x => x.IsDialogOpen).Select(x => !x);
 			QRCommand = ReactiveCommand.Create(async () =>
 			{
+				IsDialogOpen = true;
 				ShowQrCameraDialogViewModel dialog = new(_wallet.Network);
 				var result = await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen);
 				if (!string.IsNullOrWhiteSpace(result.Result))
 				{
 					To = result.Result;
 				}
-			});
+				IsDialogOpen = false;
+			}, canExecute);
 
 			var nextCommandCanExecute =
 				this.WhenAnyValue(x => x.Labels, x => x.AmountBtc, x => x.To).Select(_ => Unit.Default)
