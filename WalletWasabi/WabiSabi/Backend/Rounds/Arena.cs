@@ -100,14 +100,15 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				var batchedRpc = Rpc.PrepareBatch();
 
-				var spendStatusCheckingTasks = chunckOfAlices
+				var aliceCheckingTaskPairs = chunckOfAlices
 					.Select(x => (Alice: x, StatusTask: Rpc.GetTxOutAsync(x.Coin.Outpoint.Hash, (int)x.Coin.Outpoint.N, includeMempool: true)))
 					.ToList();
 
 				cancellationToken.ThrowIfCancellationRequested();
 				await batchedRpc.SendBatchAsync().ConfigureAwait(false);
 
-				var alices = await Task.WhenAll(spendStatusCheckingTasks.Select(async x => (x.Alice, Status: await x.StatusTask.ConfigureAwait(false))));
+				var spendStatusCheckingTasks = aliceCheckingTaskPairs.Select(async x => (x.Alice, Status: await x.StatusTask.ConfigureAwait(false)));
+				var alices = await Task.WhenAll(spendStatusCheckingTasks).ConfigureAwait(false);
 				yield return alices.Where(x => x.Status is null).Select(x => x.Alice).ToArray();
 			}
 		}

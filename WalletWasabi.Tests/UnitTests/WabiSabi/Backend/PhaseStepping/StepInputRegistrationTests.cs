@@ -43,7 +43,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 
 			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient();
 			mockRpc.Setup(rpc => rpc.GetTxOutAsync(offendingAlice.Coin.Outpoint.Hash, (int)offendingAlice.Coin.Outpoint.N, true))
-				.ReturnsAsync((GetTxOutResponse)null!);
+				.ReturnsAsync((GetTxOutResponse?)null);
 
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc, round);
 
@@ -52,6 +52,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			round.Alices.Add(WabiSabiFactory.CreateAlice(round));
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.InputRegistration, round.Phase);
+			Assert.Equal(2, round.Alices.Count); // the offending alice was removed
 
 			round.Alices.Add(WabiSabiFactory.CreateAlice(round));
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
