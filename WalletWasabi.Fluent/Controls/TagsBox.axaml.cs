@@ -70,7 +70,10 @@ namespace WalletWasabi.Fluent.Controls
 				(o, v) => o.CompletedCommand = v);
 
 		public static readonly StyledProperty<bool> IsReadOnlyProperty =
-			AvaloniaProperty.Register<TagsBox, bool>("IsReadOnly");
+			AvaloniaProperty.Register<TagsBox, bool>(nameof(IsReadOnly));
+
+		public static readonly StyledProperty<Action<Action<string>>?> SetAddTagActionProperty =
+			AvaloniaProperty.Register<TagsBox, Action<Action<string>>?>(nameof(SetAddTagAction));
 
 		[Content]
 		public IEnumerable<string>? Items
@@ -131,6 +134,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(AllowDuplicationProperty);
 			set => SetValue(AllowDuplicationProperty, value);
+		}
+
+		public Action<Action<string>>? SetAddTagAction
+		{
+			get => GetValue(SetAddTagActionProperty);
+			set => SetValue(SetAddTagActionProperty, value);
 		}
 
 		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
@@ -455,6 +464,10 @@ namespace WalletWasabi.Fluent.Controls
 				_stringComparison = SuggestionsAreCaseSensitive
 					? StringComparison.CurrentCulture
 					: StringComparison.CurrentCultureIgnoreCase;
+			}
+			else if (e.Property == SetAddTagActionProperty)
+			{
+				SetAddTagAction?.Invoke(AddTag);
 			}
 		}
 

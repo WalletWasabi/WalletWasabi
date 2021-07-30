@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:labels="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Labels"
+             x:DataType="labels:SuggestionLabelsViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Labels.SuggestionLabelsView">
+  <ItemsControl Items="{Binding SuggestionLabelResults}"
+                ClipToBounds="False">
+    <ItemsControl.ItemsPanel>
+      <ItemsPanelTemplate>
+        <StackPanel Orientation="Horizontal" Spacing="2" />
+      </ItemsPanelTemplate>
+    </ItemsControl.ItemsPanel>
+    <ItemsControl.ItemTemplate>
+      <DataTemplate x:DataType="labels:SuggestionLabelViewModel">
+        <Button Classes="activeHyperLink"
+                Margin="0,0,4,0"
+                Focusable="False"
+                Content="{Binding Label}"
+                Command="{Binding AddTagCommand}"
+                CommandParameter="{Binding Label}"
+                x:CompileBindings="False"/>
+      </DataTemplate>
+    </ItemsControl.ItemTemplate>
+  </ItemsControl>
+</UserControl>
