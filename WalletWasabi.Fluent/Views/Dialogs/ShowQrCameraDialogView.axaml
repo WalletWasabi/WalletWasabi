@@ -1,0 +1,19 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:dialog="using:WalletWasabi.Fluent.ViewModels.Dialogs"
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
+             x:DataType="dialog:ShowQrCameraDialogViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Dialogs.ShowQrCameraDialogView">
+  <c:ContentArea EnableNext="False"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <!-- QR Camera -->
+    <Panel>
+      <c:ProgressRing IsIndeterminate="True" IsVisible="{Binding QrImage,Converter={x:Static ObjectConverters.IsNull}}" />
+      <Image Source="{Binding QrImage}" Width="275" Height="275" IsVisible="{Binding QrImage,Converter={x:Static ObjectConverters.IsNotNull}}" />
+    </Panel>
+  </c:ContentArea>
+</UserControl>

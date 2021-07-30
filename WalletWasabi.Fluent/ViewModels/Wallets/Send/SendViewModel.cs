@@ -29,6 +29,7 @@ using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Views.Wallets.Send;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
@@ -51,11 +52,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private ObservableCollection<string> _labels;
 		[AutoNotify] private bool _isPayJoin;
 		[AutoNotify] private string? _payJoinEndPoint;
-		[AutoNotify] private WriteableBitmap? _qrImage;
-		[AutoNotify] private bool _isQrPanelVisible;
-		[AutoNotify] private bool _isCameraLoadingAnimationVisible;
 
-		private WebcamQrReader _qrReader;
 		private bool _parsingUrl;
 
 		public SendViewModel(Wallet wallet)
@@ -64,53 +61,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_wallet = wallet;
 			_transactionInfo = new TransactionInfo();
 			_labels = new ObservableCollection<string>();
-			_isQrPanelVisible = false;
-			_isCameraLoadingAnimationVisible = false;
-			_qrReader = new(_wallet.Network);
 			ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 			PriorLabels = new();
-
-			Observable.FromEventPattern<WriteableBitmap>(_qrReader, nameof(_qrReader.NewImageArrived))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(args =>
-				{
-					if (IsCameraLoadingAnimationVisible == true)
-					{
-						IsCameraLoadingAnimationVisible = false;
-					}
-
-					if (QrImage == null)
-					{
-						QrImage = args.EventArgs;
-					}
-					else
-					{
-						SendView.QrImage?.InvalidateVisual();
-					}
-				});
-
-			Observable.FromEventPattern<string>(_qrReader, nameof(_qrReader.CorrectAddressFound))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(async args =>
-				{
-					To = args.EventArgs;
-					await _qrReader.StopScanningAsync();
-					IsQrPanelVisible = false;
-				});
-
-			Observable.FromEventPattern<string>(_qrReader, nameof(_qrReader.InvalidAddressFound))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(args => To = args.EventArgs);
-
-			Observable.FromEventPattern<Exception>(_qrReader, nameof(_qrReader.ErrorOccured))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(async args =>
-			   {
-				   IsCameraLoadingAnimationVisible = false;
-				   IsQrPanelVisible = false;
-				   await _qrReader.StopScanningAsync();
-				   await ShowErrorAsync(Title, args.EventArgs.Message, "Something went wrong");
-			   });
 
 			this.ValidateProperty(x => x.To, ValidateToField);
 			this.ValidateProperty(x => x.AmountBtc, ValidateAmount);
@@ -144,11 +96,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
 			QRCommand = ReactiveCommand.Create(async () =>
 			{
-				if (!_qrReader.IsRunning)
+				ShowQrCameraDialogViewModel dialog = new(_wallet.Network);
+				var result = await NavigateDialogAsync(dialog);
+				if (!string.IsNullOrWhiteSpace(result.Result))
 				{
-					IsCameraLoadingAnimationVisible = true;
-					IsQrPanelVisible = true;
-					await _qrReader.StartScanningAsync();
+					To = result.Result;
 				}
 			});
 
@@ -353,19 +305,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			RxApp.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
 
 			base.OnNavigatedTo(inHistory, disposables);
-		}
-
-		protected override void OnNavigatedFrom(bool isInHistory)
-		{
-			try
-			{
-				RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StopScanningAsync());
-				base.OnNavigatedFrom(isInHistory);
-			}
-			catch (Exception exc)
-			{
-				Logger.LogError(exc);
-			}
 		}
 
 		private void UpdateSuggestedLabels()
