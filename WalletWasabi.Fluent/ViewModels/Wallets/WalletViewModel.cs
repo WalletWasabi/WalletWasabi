@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using System.Windows.Input;
-using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -116,7 +115,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				},
 				TilePresetIndex = LayoutIndex
 			};
-			WalletPieChart = new WalletPieChartTileViewModel(wallet, balanceChanged)
+			WalletPieChart = new WalletPieChartTileViewModel(this, balanceChanged)
 			{
 				TilePresets = new ObservableCollection<TilePresetViewModel>()
 				{
@@ -200,7 +199,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		public ICommand SendCommand { get; }
 
-		public ICommand BroadcastPsbtCommand { get; set; }
+		public ICommand? BroadcastPsbtCommand { get; set; }
 
 		public ICommand ReceiveCommand { get; }
 
