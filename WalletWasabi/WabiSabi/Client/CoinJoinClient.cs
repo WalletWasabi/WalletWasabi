@@ -37,7 +37,6 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private IEnumerable<Coin> Coins { get; set; }
 		private SecureRandom SecureRandom { get; } = new SecureRandom();
-		private Random Random { get; } = new();
 		public IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
 		public Kitchen Kitchen { get; }
 		public KeyManager Keymanager { get; }
