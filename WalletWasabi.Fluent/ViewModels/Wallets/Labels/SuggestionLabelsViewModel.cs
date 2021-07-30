@@ -13,10 +13,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels
 {
 	public partial class SuggestionLabelsViewModel
 	{
-		private Action<string>? _addTag;
 		private readonly SourceList<SuggestionLabelViewModel> _suggestionLabels;
 		private readonly ObservableCollectionExtended<SuggestionLabelViewModel> _suggestionLabelResults;
 		private readonly ObservableCollectionExtended<string> _labels;
+		private Action<string>? _addTag;
 		[AutoNotify] private HashSet<string> _suggestions;
 
 		public SuggestionLabelsViewModel()
