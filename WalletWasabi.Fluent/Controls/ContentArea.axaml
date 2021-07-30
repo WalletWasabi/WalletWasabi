@@ -52,7 +52,7 @@
                                         IsVisible="{TemplateBinding EnableNext}"
                                         Content="{TemplateBinding NextContent}"
                                         Command="{Binding NextCommand}"
-                                        IsDefault="True">
+                                        IsDefault="{Binding IsActive}">
                                     <i:Interaction.Behaviors>
                                         <behaviors:FocusOnAttachedBehavior
                                             IsEnabled="{Binding FocusNext, RelativeSource={RelativeSource TemplatedParent}}" />
