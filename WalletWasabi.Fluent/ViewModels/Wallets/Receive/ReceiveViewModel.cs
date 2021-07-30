@@ -69,7 +69,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 				.Bind(_suggestionLabelResults)
 				.Subscribe();
 
-			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 			EnableBack = false;
 
