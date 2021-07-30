@@ -142,6 +142,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			MainScreen.Clear();
 			DialogScreen.Clear();
 			FullScreen.Clear();
+			CompactDialogScreen.Clear();
 		}
 
 		public void Initialize()
