@@ -1,0 +1,75 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:WalletWasabi.Fluent.Controls">
+  <Design.PreviewWith>
+    <controls:PrivacyContentControl />
+  </Design.PreviewWith>
+
+  <Style Selector="controls|PrivacyContentControl">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Panel Background="Transparent">
+          <ContentPresenter Name="PART_Content"
+                            IsVisible="{TemplateBinding IsContentVisible}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Content="{TemplateBinding Content}"
+                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
+          <Panel Name="PART_PrivacyReplacement"
+                 IsVisible="{TemplateBinding IsPrivacyContentVisible}">
+            <Viewbox Name="PART_Icon">
+              <PathIcon Data="{StaticResource incognito_regular}" Opacity="0.15" />
+            </Viewbox>
+            <TextBlock Name="PART_PrivacyText"
+                       Text="{TemplateBinding PrivacyText}"/>
+          </Panel>
+        </Panel>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+
+  <Style Selector="controls|PrivacyContentControl /template/ Viewbox#PART_Icon">
+    <Setter Property="Margin" Value="25" />
+  </Style>
+
+  <!-- Transitions -->
+  <Style Selector="controls|PrivacyContentControl /template/ ContentPresenter#PART_Content,
+                   controls|PrivacyContentControl /template/ Panel#PART_PrivacyReplacement">
+    <Setter Property="Transitions">
+      <Transitions>
+        <DoubleTransition Property="Opacity" Duration="0:0:0.3" Easing="{StaticResource FluentEasing}" />
+      </Transitions>
+    </Setter>
+  </Style>
+  <Style Selector="controls|PrivacyContentControl /template/ ContentPresenter#PART_Content[IsVisible=True],
+                   controls|PrivacyContentControl /template/ Panel#PART_PrivacyReplacement[IsVisible=True]">
+    <Setter Property="Opacity" Value="1" />
+  </Style>
+  <Style Selector="controls|PrivacyContentControl /template/ ContentPresenter#PART_Content[IsVisible=False],
+                   controls|PrivacyContentControl /template/ Panel#PART_PrivacyReplacement[IsVisible=False]">
+    <Setter Property="Opacity" Value="0" />
+  </Style>
+
+  <Style Selector="controls|PrivacyContentControl.monoSpaced">
+    <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
+  </Style>
+  <Style Selector="controls|PrivacyContentControl.monoSpacedPrivacyReplacement /template/ TextBlock#PART_PrivacyText">
+    <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
+  </Style>
+
+  <!-- Icon privacy mode -->
+  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Icon] /template/ TextBlock#PART_PrivacyText">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Icon] /template/ Viewbox#PART_Icon">
+    <Setter Property="IsVisible" Value="True"/>
+  </Style>
+
+  <!-- Text privacy mode -->
+  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Text] /template/ TextBlock#PART_PrivacyText">
+    <Setter Property="IsVisible" Value="True" />
+  </Style>
+  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Text] /template/ Viewbox#PART_Icon">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+</Styles>

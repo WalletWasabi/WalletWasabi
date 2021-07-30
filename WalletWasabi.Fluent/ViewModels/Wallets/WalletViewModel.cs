@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using System.Windows.Input;
-using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -38,6 +37,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSmallLayout;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isNormalLayout;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWideLayout;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWalletBalanceZero;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isEmptyWallet;
 
 		protected WalletViewModel(Wallet wallet) : base(wallet)
 		{
@@ -58,6 +59,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					.ObserveOn(RxApp.MainThreadScheduler);
 
 			History = new HistoryViewModel(this, balanceChanged);
+
+			balanceChanged
+				.Subscribe(_ => IsWalletBalanceZero = wallet.Coins.TotalAmount() == Money.Zero)
+				.DisposeWith(Disposables);
+
+			this.WhenAnyValue(x => x.History.IsTransactionHistoryEmpty)
+				.Subscribe(x => IsEmptyWallet = x);
 
 			_smallLayoutHeightBreakpoint = 650;
 			_wideLayoutWidthBreakpoint = 1400;

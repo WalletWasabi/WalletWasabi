@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="330" d:DesignHeight="150"
              x:CompileBindings="True" x:DataType="vm:WalletBalanceTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalance.WalletBalanceMediumTileView">
@@ -21,8 +22,14 @@
         </Panel>
       </Viewbox>
       <StackPanel VerticalAlignment="Center">
-        <TextBlock Text="{Binding BalanceBtc, FallbackValue='1.21230001 BTC'}" FontSize="24" />
-        <TextBlock Text="{Binding BalanceFiat, FallbackValue='≈ 218,197 USD'}" Opacity="0.8" FontSize="12" />
+        <controls:PrivacyContentControl Content="{Binding BalanceBtc, FallbackValue='1.21230001 BTC'}"
+                                        FontSize="24"
+                                        NumberOfPrivacyChars="13" />
+
+        <controls:PrivacyContentControl Content="{Binding BalanceFiat, FallbackValue='≈ 218,197 USD'}"
+                                        Opacity="0.8"
+                                        FontSize="12"
+                                        NumberOfPrivacyChars="13" />
       </StackPanel>
     </StackPanel>
   </DockPanel>

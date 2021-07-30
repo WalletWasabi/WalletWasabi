@@ -108,8 +108,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 						return tx.GetHash();
 					};
 
-					// Instruct the coodinator DI container to use these two scoped
-					// services to build everything (wabisabi controller, arena, etc)
+					// Instruct the coordinator DI container to use these two scoped
+					// services to build everything (WabiSabi controller, arena, etc)
 					services.AddScoped<IRPCClient>(s => rpc);
 					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig { MaxInputCountByRound = inputCount });
 				});
@@ -266,9 +266,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 							ConnectionConfirmationTimeout = TimeSpan.FromSeconds(20 * ExpectedInputNumber),
 							OutputRegistrationTimeout = TimeSpan.FromSeconds(20 * ExpectedInputNumber),
 						});
-					});
-					builder.ConfigureLogging(o=> {
-						o.SetMinimumLevel(LogLevel.Warning);
 					});
 				});
 

@@ -23,8 +23,9 @@
                             <TextBlock Margin="0,0,8,0" FontSize="12"
                                        DockPanel.Dock="Left" HorizontalAlignment="Left"
                                        Text="{Binding Label}" />
-                            <TextBlock DockPanel.Dock="Left" HorizontalAlignment="Left" FontSize="12"
-                                       Text="{Binding PercentShare, StringFormat=\{0:P1\}}" />
+                            <controls:PrivacyContentControl DockPanel.Dock="Left" HorizontalAlignment="Left"
+                                                            FontSize="12"
+                                                            Content="{Binding PercentShare, StringFormat=\{0:P1\}}" />
                         </DockPanel>
                     </DataTemplate>
                 </ItemsRepeater.ItemTemplate>
@@ -32,11 +33,11 @@
                     <StackLayout />
                 </ItemsRepeater.Layout>
             </ItemsRepeater>
-            <controls:RingChartControl Grid.Column="1"
-                                       Margin="16,0,0,0"
-                                       VerticalAlignment="Center"
-                                       HorizontalAlignment="Center"
-                                       DataPoints="{Binding TestDataPoints}" />
+            <controls:PrivacyContentControl Grid.Column="1" Margin="16,0,0,0" PrivacyReplacementMode="Icon">
+                <controls:RingChartControl VerticalAlignment="Center"
+                                           HorizontalAlignment="Center"
+                                           DataPoints="{Binding TestDataPoints}" />
+            </controls:PrivacyContentControl>
         </Grid>
     </DockPanel>
 </UserControl>
