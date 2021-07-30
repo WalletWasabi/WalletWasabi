@@ -72,25 +72,30 @@
         </Setter>
       </Style>
       <Style Selector="DataGridRow /template/ Rectangle#BackgroundRectangle.selectAnimation">
+        <Setter Property="Fill" Value="{DynamicResource SystemAccentColor}"/>
+        <Setter Property="Opacity" Value="0" />
         <Style.Animations>
-          <Animation Duration="1.25">
+          <Animation Duration="1.5">
             <KeyFrame KeyTime="0:0:0.0">
-              <Setter Property="Fill" Value="#FF72BD81" />
+              <Setter Property="Opacity" Value="0" />
             </KeyFrame>
             <KeyFrame KeyTime="0:0:0.25">
-              <Setter Property="Fill" Value="Transparent" />
+              <Setter Property="Opacity" Value="0.5" />
             </KeyFrame>
             <KeyFrame KeyTime="0:0:0.50">
-              <Setter Property="Fill" Value="#FF72BD81" />
+              <Setter Property="Opacity" Value="0" />
             </KeyFrame>
             <KeyFrame KeyTime="0:0:0.75">
-              <Setter Property="Fill" Value="Transparent" />
+              <Setter Property="Opacity" Value="0.5" />
             </KeyFrame>
             <KeyFrame KeyTime="0:0:1">
-              <Setter Property="Fill" Value="#FF72BD81" />
+              <Setter Property="Opacity" Value="0" />
             </KeyFrame>
             <KeyFrame KeyTime="0:0:1.25">
-              <Setter Property="Fill" Value="Transparent" />
+              <Setter Property="Opacity" Value="0.5" />
+            </KeyFrame>
+            <KeyFrame KeyTime="0:0:1.5">
+              <Setter Property="Opacity" Value="0" />
             </KeyFrame>
           </Animation>
         </Style.Animations>
@@ -106,18 +111,18 @@
       <Style Selector="Button.labelFlyout /template/ ContentPresenter">
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="BorderBrush" Value="{StaticResource TagsBoxControlForeground}" />
+        <Setter Property="BorderBrush" Value="{StaticResource TagsBoxBorderBrush}" />
         <Setter Property="Background" Value="{DynamicResource InvisibleButtonBackgroundColor}" />
         <Setter Property="CornerRadius" Value="2" />
       </Style>
       <Style Selector="Button.labelFlyout:pointerover /template/ ContentPresenter">
-        <Setter Property="BorderBrush" Value="{StaticResource TagsBoxControlForeground}" />
+        <Setter Property="BorderBrush" Value="{StaticResource TagsBoxBorderBrush}" />
       </Style>
       <Style Selector="Button.labelFlyout:pressed /template/ ContentPresenter">
-        <Setter Property="BorderBrush" Value="{StaticResource TagsBoxControlForeground}" />
+        <Setter Property="BorderBrush" Value="{StaticResource TagsBoxBorderBrush}" />
       </Style>
       <Style Selector="Button.labelFlyout:disabled /template/ ContentPresenter">
-        <Setter Property="BorderBrush" Value="{StaticResource TagsBoxControlForeground}" />
+        <Setter Property="BorderBrush" Value="{StaticResource TagsBoxBorderBrush}" />
       </Style>
       <Style Selector="TextBlock.hidden">
         <Setter Property="IsVisible" Value="False"/>
