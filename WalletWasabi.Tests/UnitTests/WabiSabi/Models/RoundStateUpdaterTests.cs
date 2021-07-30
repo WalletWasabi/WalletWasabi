@@ -42,7 +42,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			var round1IRTask = roundStatusUpdater.CreateRoundAwaiter(roundState1.Id, rs => rs.Phase == Phase.InputRegistration, cancellationToken);
 			var round1ORTask = roundStatusUpdater.CreateRoundAwaiter(roundState1.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken);
 			var round1TSTask = roundStatusUpdater.CreateRoundAwaiter(roundState1.Id, rs => rs.Phase == Phase.TransactionSigning, round1TSCts.Token);
-			var round1TBTask = roundStatusUpdater.CreateRoundAwaiter(roundState1.Id, rs => rs.Phase == Phase.TransactionBroadcasting, cancellationToken);
+			var round1TBTask = roundStatusUpdater.CreateRoundAwaiter(roundState1.Id, rs => rs.Phase == Phase.Ended, cancellationToken);
 
 			// Start
 			await roundStatusUpdater.StartAsync(cancellationTokenSource.Token);
@@ -53,11 +53,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			Assert.Equal(Phase.InputRegistration, round1.Phase);
 			Assert.All(new[] { round1ORTask, round1TSTask, round1TBTask }, t => Assert.Equal(TaskStatus.WaitingForActivation, t.Status));
 
-			// Force the RoundStatusUpdater to run. After this it will know about the existance of `round2` so,
+			// Force the RoundStatusUpdater to run. After this it will know about the existence of `round2` so,
 			// we can subscribe to events.
 			await roundStatusUpdater.TriggerAndWaitRoundAsync(TestTimeOut);
 			var round2IRTask = roundStatusUpdater.CreateRoundAwaiter(roundState2.Id, rs => rs.Phase == Phase.InputRegistration, cancellationToken);
-			var round2TBTask = roundStatusUpdater.CreateRoundAwaiter(roundState2.Id, rs => rs.Phase == Phase.TransactionBroadcasting, cancellationToken);
+			var round2TBTask = roundStatusUpdater.CreateRoundAwaiter(roundState2.Id, rs => rs.Phase == Phase.Ended, cancellationToken);
 
 			// Force the RoundStatusUpdater to run again just to make it trigger the events.
 			await roundStatusUpdater.TriggerAndWaitRoundAsync(TestTimeOut);
@@ -78,14 +78,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			round1TSCts.Cancel();
 			Assert.True(round1TSTask.IsCanceled);
 
-			// At this point in time all the rounds have disappeared and then the awaiter that was waiting for round1 to bradcast
+			// At this point in time all the rounds have disappeared and then the awaiter that was waiting for round1 to broadcast
 			// the transaction has to fail to let the sleeping component that the round doesn't exist any more.
 			await roundStatusUpdater.TriggerAndWaitRoundAsync(TestTimeOut);
 			var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () => await round1TBTask);
 			Assert.Contains(round1.Id.ToString(), ex.Message);
 			Assert.Contains("not running", ex.Message);
 
-			// `Round2 ` awaiter has to be cancelled immediatelly when we stop the updater.
+			// `Round2` awaiter has to be cancelled immediately when we stop the updater.
 			Assert.Equal(TaskStatus.WaitingForActivation, round2TBTask.Status);
 			await roundStatusUpdater.StopAsync(cancellationToken);
 

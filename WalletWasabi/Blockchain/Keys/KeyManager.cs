@@ -128,6 +128,9 @@ namespace WalletWasabi.Blockchain.Keys
 		[JsonProperty(Order = 11, PropertyName = "PreferPsbtWorkflow")]
 		public bool PreferPsbtWorkflow { get; set; }
 
+		[JsonProperty(Order = 12, PropertyName = "AutoCoinJoin", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool AutoCoinJoin { get; set; }
+
 		private object BlockchainStateLock { get; }
 
 		private object HdPubKeysLock { get; }

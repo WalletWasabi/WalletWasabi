@@ -27,6 +27,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		private readonly object _transactionListLock = new();
 
 		[AutoNotify] private HistoryItemViewModel? _selectedItem;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isTransactionHistoryEmpty;
 
 		public HistoryViewModel(WalletViewModel walletViewModel, IObservable<Unit> updateTrigger)
 		{
@@ -35,6 +36,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			_transactionSourceList = new SourceList<HistoryItemViewModel>();
 			_transactions = new ObservableCollectionExtended<HistoryItemViewModel>();
 			_unfilteredTransactions = new ObservableCollectionExtended<HistoryItemViewModel>();
+
+			this.WhenAnyValue(x => x.UnfilteredTransactions.Count)
+				.Subscribe(x => IsTransactionHistoryEmpty = x <= 0);
 
 			var sortDescription = DataGridSortDescription.FromPath(nameof(HistoryItemViewModel.OrderIndex), ListSortDirection.Descending);
 			CollectionView = new DataGridCollectionView(Transactions);
@@ -62,13 +66,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			if (txnItem is { })
 			{
 				SelectedItem = txnItem;
-				SelectedItem.IsSelected = true;
-
-				RxApp.MainThreadScheduler.Schedule(async () =>
-				{
-					await Task.Delay(1260);
-					SelectedItem.IsSelected = false;
-				});
+				SelectedItem.IsFlashing = true;
 			}
 		}
 
@@ -76,13 +74,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		{
 			base.OnActivated(disposables);
 
-			RxApp.MainThreadScheduler.Schedule(async () => await UpdateAsync());
-
 			_updateTrigger
 				.Subscribe(async _ => await UpdateAsync())
 				.DisposeWith(disposables);
-
-			disposables.Add(Disposable.Create(() => _transactionSourceList.Clear()));
 		}
 
 		private async Task UpdateAsync()
@@ -94,14 +88,31 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 				lock (_transactionListLock)
 				{
-					_transactionSourceList.Clear();
+					var copyList = Transactions.ToList();
+
+					foreach (HistoryItemViewModel historyItemViewModel in copyList)
+					{
+						if (txRecordList.All(x => x.TransactionId != historyItemViewModel.TransactionSummary.TransactionId))
+						{
+							_transactionSourceList.Remove(historyItemViewModel);
+						}
+					}
 
 					Money balance = Money.Zero;
 					for (var i = 0; i < txRecordList.Count; i++)
 					{
 						var transactionSummary = txRecordList[i];
 						balance += transactionSummary.Amount;
-						_transactionSourceList.Add(new HistoryItemViewModel(i, transactionSummary, _walletViewModel, balance, _updateTrigger));
+						var newItem = new HistoryItemViewModel(i, transactionSummary, _walletViewModel, balance, _updateTrigger);
+
+						if (_transactions.FirstOrDefault(x => x.TransactionSummary.TransactionId == newItem.TransactionSummary.TransactionId) is { } item)
+						{
+							item.Update(newItem);
+						}
+						else
+						{
+							_transactionSourceList.Add(newItem);
+						}
 					}
 				}
 			}
