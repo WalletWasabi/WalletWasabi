@@ -89,8 +89,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 			var processedCount = downloadedFilters + processedFilters;
 
-			Console.WriteLine($"Total: {TotalCount}/{processedCount} Downloaded: {_filtersToDownloadCount}/{downloadedFilters} Processed: {_filtersToProcessCount}/{processedFilters}");
-
 			return processedCount;
 		}
 
