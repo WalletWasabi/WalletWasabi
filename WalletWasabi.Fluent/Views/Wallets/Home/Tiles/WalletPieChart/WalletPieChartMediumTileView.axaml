@@ -15,7 +15,7 @@
       <StackPanel DockPanel.Dock="Bottom">
         <Separator Margin="-16 0" ClipToBounds="False" />
         <DockPanel>
-          <ToggleSwitch DockPanel.Dock="Right" />
+          <ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding IsAutoCoinJoinEnabled}" />
           <TextBlock Text="Wallet Privacy" VerticalAlignment="Center" />
         </DockPanel>
       </StackPanel>

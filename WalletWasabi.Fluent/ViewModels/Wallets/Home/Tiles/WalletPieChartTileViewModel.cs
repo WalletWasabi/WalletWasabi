@@ -42,6 +42,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			walletVm.Settings.WhenAnyValue(x => x.AutoCoinJoin)
 				.Subscribe(x => IsAutoCoinJoinEnabled = x);
+
+			this.WhenAnyValue(x => x.IsAutoCoinJoinEnabled)
+				.Subscribe(x => walletVm.Settings.AutoCoinJoin = x);
 		}
 
 		protected override void OnActivated(CompositeDisposable disposables)
