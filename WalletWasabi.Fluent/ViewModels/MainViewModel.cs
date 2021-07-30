@@ -75,17 +75,17 @@ namespace WalletWasabi.Fluent.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(windowState => Services.UiConfig.WindowState = windowState.ToString());
 
-			this.WhenAnyValue(x => x.DialogScreen!.IsDialogOpen)
+			this.WhenAnyValue(
+					x => x.DialogScreen!.IsDialogOpen,
+					x => x.FullScreen!.IsDialogOpen,
+					x => x.CompactDialogScreen!.IsDialogOpen)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => IsMainContentEnabled = !x);
+				.Subscribe(tup =>
+				{
+					var (dialogScreenIsOpen, fullScreenIsOpen, compactDialogScreenIsOpen) = tup;
 
-			this.WhenAnyValue(x => x.FullScreen!.IsDialogOpen)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => IsMainContentEnabled = !x);
-
-			this.WhenAnyValue(x => x.CompactDialogScreen!.IsDialogOpen)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => IsMainContentEnabled = !x);
+					IsMainContentEnabled = !(dialogScreenIsOpen || fullScreenIsOpen || compactDialogScreenIsOpen);
+				});
 
 			this.WhenAnyValue(
 					x => x.DialogScreen.CurrentPage,
