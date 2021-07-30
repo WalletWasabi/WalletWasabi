@@ -45,7 +45,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await aliceClient1.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await aliceClient2.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.Equal(Phase.TransactionBroadcasting, round.Phase);
+			Assert.DoesNotContain(round, arena.ActiveRounds);
+			Assert.Equal(Phase.Ended, round.Phase);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -81,7 +82,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await aliceClient1.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await aliceClient2.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.DoesNotContain(round, arena.Rounds);
+			Assert.DoesNotContain(round, arena.ActiveRounds);
+			Assert.Equal(Phase.Ended, round.Phase);
+			Assert.False(round.WasTransactionBroadcast);
 			Assert.Empty(arena.Prison.GetInmates());
 
 			await arena.StopAsync(CancellationToken.None);
@@ -119,7 +122,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await aliceClient1.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await aliceClient2.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.DoesNotContain(round, arena.Rounds);
+			Assert.DoesNotContain(round, arena.ActiveRounds);
+			Assert.Equal(Phase.Ended, round.Phase);
+			Assert.False(round.WasTransactionBroadcast);
 
 			// There should be no inmate, because we aren't punishing spenders with banning
 			// as there's no reason to ban already spent UTXOs,
@@ -160,7 +165,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var signedCoinJoin = round.Assert<SigningState>().CreateTransaction();
 			await aliceClient1.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.DoesNotContain(round, arena.Rounds);
+			Assert.DoesNotContain(round, arena.ActiveRounds);
+			Assert.Equal(Phase.Ended, round.Phase);
+			Assert.False(round.WasTransactionBroadcast);
 			Assert.Empty(arena.Rounds.Where(x => x.IsBlameRound));
 			Assert.Contains(aliceClient2.Coin.Outpoint, arena.Prison.GetInmates().Select(x => x.Utxo));
 
@@ -191,7 +198,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, key1, coin1, key2, coin2);
 
 			// Make sure not all alices signed.
-			var alice3 = WabiSabiFactory.CreateAlice();
+			var alice3 = WabiSabiFactory.CreateAlice(round);
 			alice3.ConfirmedConnection = true;
 			round.Alices.Add(alice3);
 			round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice3.Coin);
@@ -202,7 +209,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await aliceClient1.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await aliceClient2.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.DoesNotContain(round, arena.Rounds);
+			Assert.DoesNotContain(round, arena.ActiveRounds);
 			Assert.Single(arena.Rounds.Where(x => x.IsBlameRound));
 			var badOutpoint = alice3.Coin.Outpoint;
 			Assert.Contains(badOutpoint, arena.Prison.GetInmates().Select(x => x.Utxo));
@@ -240,16 +247,19 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
 			// Confirm connections.
+			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), new ArenaRequestHandlerAdapter(arena));
 			await aliceClient1.ConfirmConnectionAsync(
 				TimeSpan.FromMilliseconds(100),
 				new long[] { coin1.EffectiveValue(round.FeeRate) },
 				new long[] { round.MaxVsizeAllocationPerAlice - coin1.ScriptPubKey.EstimateInputVsize() },
+				roundStateUpdater,
 				CancellationToken.None).ConfigureAwait(false);
 
 			await aliceClient2.ConfirmConnectionAsync(
 				TimeSpan.FromMilliseconds(100),
 				new long[] { coin2.EffectiveValue(round.FeeRate) },
 				new long[] { round.MaxVsizeAllocationPerAlice - coin2.ScriptPubKey.EstimateInputVsize() },
+				roundStateUpdater,
 				CancellationToken.None).ConfigureAwait(false);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));

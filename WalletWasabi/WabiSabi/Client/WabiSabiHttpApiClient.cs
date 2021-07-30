@@ -49,7 +49,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellationToken) =>
 			SendAndReceiveAsync<InputsRemovalRequest>(RemoteAction.RemoveInput, request, cancellationToken);
 
-		public Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken) =>
+		public virtual Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken) =>
 			SendAndReceiveAsync<TransactionSignaturesRequest>(RemoteAction.SignTransaction, request, cancellationToken);
 
 		public async Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken)

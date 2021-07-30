@@ -371,7 +371,7 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			IsConversionReversed = !IsConversionReversed;
 			UpdateDisplay(true);
-			ClearSelection();
+			CaretIndex = SelectionStart = SelectionEnd = Text.Length;
 		}
 
 		private void InputText(string text)

@@ -43,13 +43,42 @@ namespace WalletWasabi.WabiSabi.Client
 		public KeyManager Keymanager { get; }
 		private RoundStateUpdater RoundStatusUpdater { get; }
 
-		public async Task StartCoinJoinAsync(CancellationToken cancellationToken, IEnumerable<Money>? forcedOutputDenominations = null)
+		public async Task<bool> StartCoinJoinAsync(CancellationToken cancellationToken)
 		{
-			var roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cancellationToken).ConfigureAwait(false);
+			var currentRoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cancellationToken).ConfigureAwait(false);
+
+			// This should be roughly log(#inputs), it could be set slightly
+			// higher if more inputs are observed but that involves trusting the
+			// coordinator with those values. Therefore, conservatively set this
+			// so that a maximum of 5 blame rounds are executed.
+			// FIXME should smaller rounds abort earlier?
+			var tryLimit = 6;
+
+			for (var tries = 0; tries < tryLimit; tries++)
+			{
+				if (await StartRoundAsync(currentRoundState, cancellationToken))
+				{
+					return true;
+				}
+				else
+				{
+					var blameRoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.BlameOf == currentRoundState.Id, cancellationToken).ConfigureAwait(false);
+					currentRoundState = blameRoundState;
+				}
+			}
+
+			return false;
+		}
+
+		/// <summary>Attempt to participate in a specified dround.</summary>
+		/// <param name="roundState">Defines the round parameter and state information to use.</param>
+		/// <returns>Whether or not the round resulted in a successful transaction.</returns>
+		public async Task<bool> StartRoundAsync(RoundState roundState, CancellationToken cancellationToken)
+		{
 			var constructionState = roundState.Assert<ConstructionState>();
 
 			// Calculate outputs values
-			var outputValues = DecomposeAmounts(roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min, forcedOutputDenominations);
+			var outputValues = DecomposeAmounts(roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min);
 
 			// Get all locked internal keys we have and assert we have enough.
 			Keymanager.AssertLockedInternalKeysIndexed(howMany: outputValues.Count());
@@ -58,21 +87,21 @@ namespace WalletWasabi.WabiSabi.Client
 
 			List<AliceClient> aliceClients = CreateAliceClients(roundState);
 			DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(aliceClients.Select(a => a.Coin), outputTxOuts, roundState.FeeRate, roundState.MaxVsizeAllocationPerAlice);
-			DependencyGraphResolver dgr = new(dependencyGraph);
+			DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
 
 			// Register coins.
 			await RegisterCoinsAsync(aliceClients, cancellationToken).ConfigureAwait(false);
 
 			// Confirm coins.
-			await dgr.StartConfirmConnectionsAsync(aliceClients, dependencyGraph, roundState.ConnectionConfirmationTimeout, cancellationToken).ConfigureAwait(false);
+			await scheduler.StartConfirmConnectionsAsync(aliceClients, dependencyGraph, roundState.ConnectionConfirmationTimeout, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
 
 			// Re-issuances.
 			var bobClient = CreateBobClient(roundState);
-			await dgr.StartReissuancesAsync(aliceClients, bobClient, cancellationToken).ConfigureAwait(false);
+			await scheduler.StartReissuancesAsync(aliceClients, bobClient, cancellationToken).ConfigureAwait(false);
 
 			// Output registration.
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
-			await dgr.StartOutputRegistrationsAsync(outputTxOuts, bobClient, cancellationToken).ConfigureAwait(false);
+			await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, cancellationToken).ConfigureAwait(false);
 
 			// ReadyToSign.
 			await ReadyToSignAsync(aliceClients, cancellationToken).ConfigureAwait(false);
@@ -90,6 +119,10 @@ namespace WalletWasabi.WabiSabi.Client
 
 			// Send signature.
 			await SignTransactionAsync(aliceClients, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
+
+			var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundState.Id && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
+
+			return finalRoundState.WasTransactionBroadcast;
 		}
 
 		private List<AliceClient> CreateAliceClients(RoundState roundState)
@@ -120,10 +153,9 @@ namespace WalletWasabi.WabiSabi.Client
 			await Task.WhenAll(registerRequests).ConfigureAwait(false);
 		}
 
-		private IEnumerable<Money> DecomposeAmounts(FeeRate feeRate, Money minimumOutputAmount, IEnumerable<Money>? forcedOutputDenominations = null)
+		private IEnumerable<Money> DecomposeAmounts(FeeRate feeRate, Money minimumOutputAmount)
 		{
-			var allDenominations = forcedOutputDenominations is null ? StandardDenomination.Values : forcedOutputDenominations;
-			GreedyDecomposer greedyDecomposer = new(allDenominations.Where(x => x >= minimumOutputAmount));
+			GreedyDecomposer greedyDecomposer = new(StandardDenomination.Values.Where(x => x >= minimumOutputAmount));
 			var sum = Coins.Sum(c => c.EffectiveValue(feeRate));
 			return greedyDecomposer.Decompose(sum, feeRate.GetFee(31));
 		}
