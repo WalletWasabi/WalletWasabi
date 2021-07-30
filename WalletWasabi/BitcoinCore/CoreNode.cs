@@ -201,6 +201,16 @@ namespace WalletWasabi.BitcoinCore
 					desiredConfigLines.Add($"{configPrefix}.persistmempool = {coreNodeParams.PersistMempool}");
 				}
 
+				if (coreNodeParams.RpcWorkQueue is { })
+				{
+					desiredConfigLines.Add($"{configPrefix}.rpcworkqueue = {coreNodeParams.RpcWorkQueue}");
+				}
+
+				if (coreNodeParams.RpcThreads is { })
+				{
+					desiredConfigLines.Add($"{configPrefix}.rpcthreads = {coreNodeParams.RpcThreads}");
+				}
+
 				var sectionComment = $"# The following configuration options were added or modified by Wasabi Wallet.";
 				// If the comment is not already present.
 				// And there would be new config entries added.

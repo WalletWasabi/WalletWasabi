@@ -125,21 +125,21 @@
       },
       "Avalonia.Xaml.Behaviors": {
         "type": "Transitive",
-        "resolved": "0.10.6",
-        "contentHash": "pz0akn+Y+OcCS9W2vetkEAZh7/IuPY9rXKLT7bpccSY9ngGp8j0Xhqt+hyV4ULH5wC0YZG11TuIdJBnxyZaxaw==",
+        "resolved": "0.10.6.10",
+        "contentHash": "1JPA+b1mMwRuTrGFQRnoCfm9iZSP4GkffSOVo0lG21wMm5LN2Hi/N89tGtWTt8idrFPsAIzLVAFCpycf40az1w==",
         "dependencies": {
           "Avalonia": "0.10.6",
-          "Avalonia.Xaml.Interactions": "0.10.6",
-          "Avalonia.Xaml.Interactivity": "0.10.6"
+          "Avalonia.Xaml.Interactions": "0.10.6.10",
+          "Avalonia.Xaml.Interactivity": "0.10.6.10"
         }
       },
       "Avalonia.Xaml.Interactions": {
         "type": "Transitive",
-        "resolved": "0.10.6",
-        "contentHash": "JsfVWVeCBLwJN4UciKwy7G1Ui2g+MrMJbu0JnseSqsFeh03SA2HyRRzVPXoF2PljHSM0dbR8jIF8YXN8LeqNPA==",
+        "resolved": "0.10.6.10",
+        "contentHash": "6zfiw6lZmOcZFiYwJggsJLFZAzTcM6me+qf3x/sTI2xf5WD2GPCaANlNjrQm0a9RKaK70AJAUd6nv5MPm6F0Gg==",
         "dependencies": {
           "Avalonia": "0.10.6",
-          "Avalonia.Xaml.Interactivity": "0.10.6"
+          "Avalonia.Xaml.Interactivity": "0.10.6.10"
         }
       },
       "Avalonia.Xaml.Interactions.Custom": {
@@ -153,8 +153,8 @@
       },
       "Avalonia.Xaml.Interactivity": {
         "type": "Transitive",
-        "resolved": "0.10.6",
-        "contentHash": "bHK6Cv7hkqoz2YKT6SS+UIrD5uS6+Z1Nx4swsxMWZrOvc5ioOSoRi97EbFHo1siJsfWJmmpevO6IM7Hz45qfog==",
+        "resolved": "0.10.6.10",
+        "contentHash": "3XY4bvWjbadUJKvlsvqfXKmMTVY4aqZr9zi1b/Su1amA3VTCQQiuKm7HUj9W/Q8qlJU9fdodCpr8Ihya74tmmQ==",
         "dependencies": {
           "Avalonia": "0.10.6"
         }
@@ -999,7 +999,7 @@
           "Avalonia": "0.10.999-cibuild0014678-beta",
           "Avalonia.Diagnostics": "0.10.999-cibuild0014678-beta",
           "Avalonia.ReactiveUI": "0.10.999-cibuild0014678-beta",
-          "Avalonia.Xaml.Behaviors": "0.10.6",
+          "Avalonia.Xaml.Behaviors": "0.10.6.10",
           "WalletWasabi": "1.0.0",
           "Wasabi Wallet": "1.0.0"
         }

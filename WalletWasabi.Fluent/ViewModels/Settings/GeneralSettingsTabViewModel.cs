@@ -6,6 +6,7 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.Models;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
@@ -17,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		Keywords = new[]
 		{
 			"Settings", "General", "Dark", "Mode", "Bitcoin", "Addresses", "Manual", "Entry", "Fee", "Custom", "Change",
-			"Address", "Display", "Format", "Dust", "Threshold", "BTC"
+			"Address", "Display", "Format", "Dust", "Threshold", "BTC", "Start", "System"
 		},
 		IconName = "settings_general_regular")]
 	public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
@@ -27,6 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		[AutoNotify] private bool _customFee;
 		[AutoNotify] private bool _customChangeAddress;
 		[AutoNotify] private FeeDisplayFormat _selectedFeeDisplayFormat;
+		[AutoNotify] private bool _runOnSystemStartup;
 
 		public GeneralSettingsTabViewModel()
 		{
@@ -34,8 +36,9 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			_autoCopy = Services.UiConfig.Autocopy;
 			_customFee = Services.UiConfig.IsCustomFee;
 			_customChangeAddress = Services.UiConfig.IsCustomChangeAddress;
+			_runOnSystemStartup = Services.UiConfig.RunOnSystemStartup;
 			_selectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), Services.UiConfig.FeeDisplayFormat)
-				? (FeeDisplayFormat) Services.UiConfig.FeeDisplayFormat
+				? (FeeDisplayFormat)Services.UiConfig.FeeDisplayFormat
 				: FeeDisplayFormat.SatoshiPerByte;
 
 			this.WhenAnyValue(x => x.DarkModeEnabled)
@@ -51,6 +54,23 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Skip(1)
 				.Subscribe(x => Services.UiConfig.Autocopy = x);
+
+			this.WhenAnyValue(x => x.RunOnSystemStartup)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Skip(1)
+				.Subscribe(async runOnStartup =>
+				{
+					try
+					{
+						await StartupHelper.ModifyStartupSettingAsync(runOnStartup);
+						Services.UiConfig.RunOnSystemStartup = runOnStartup;
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError(ex);
+						await ShowErrorAsync(Title, "Couldn't save your change, please see the logs for further information.", "Error occured.");
+					}
+				});
 
 			this.WhenAnyValue(x => x.CustomFee)
 				.ObserveOn(RxApp.TaskpoolScheduler)

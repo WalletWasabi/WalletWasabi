@@ -13,7 +13,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 	public partial class PrivacySuggestionControlViewModel : ViewModelBase
 	{
-		private readonly BuildTransactionResult _transactionResult;
 		[AutoNotify] private string _amount;
 		[AutoNotify] private string _amountFiat;
 		[AutoNotify] private string _caption;
@@ -22,7 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public PrivacySuggestionControlViewModel(decimal originalAmount, BuildTransactionResult transactionResult, PrivacyOptimisationLevel optimisationLevel, decimal fiatExchangeRate, params string[] benefits)
 		{
-			_transactionResult = transactionResult;
+			TransactionResult = transactionResult;
 			_optimisationLevel = optimisationLevel;
 			_benefits = benefits;
 
@@ -48,6 +47,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_amount = $"{total}";
 		}
 
-		public BuildTransactionResult TransactionResult => _transactionResult;
+		public BuildTransactionResult TransactionResult { get; }
 	}
 }
