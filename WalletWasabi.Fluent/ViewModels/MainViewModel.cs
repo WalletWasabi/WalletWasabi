@@ -87,6 +87,46 @@ namespace WalletWasabi.Fluent.ViewModels
 					IsMainContentEnabled = !(dialogScreenIsOpen || fullScreenIsOpen || compactDialogScreenIsOpen);
 				});
 
+			this.WhenAnyValue(
+					x => x.DialogScreen.CurrentPage,
+					x => x.CompactDialogScreen.CurrentPage,
+					x => x.FullScreen.CurrentPage,
+					x => x.MainScreen.CurrentPage)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(tup =>
+				{
+					var (dialog, compactDialog, fullscreenDialog, mainsScreen) = tup;
+
+					/*
+					 * Order is important.
+					 * Always the topmost content will be the active one.
+					 */
+
+					if (compactDialog is { })
+					{
+						compactDialog.SetActive();
+						return;
+					}
+
+					if (dialog is { })
+					{
+						dialog.SetActive();
+						return;
+					}
+
+					if (fullscreenDialog is { })
+					{
+						fullscreenDialog.SetActive();
+						return;
+					}
+
+					if (mainsScreen is { })
+					{
+						mainsScreen.SetActive();
+						return;
+					}
+				});
+
 			if (!Services.WalletManager.HasWallet())
 			{
 				_dialogScreen.To(_addWalletPage, NavigationMode.Clear);
@@ -102,6 +142,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			MainScreen.Clear();
 			DialogScreen.Clear();
 			FullScreen.Clear();
+			CompactDialogScreen.Clear();
 		}
 
 		public void Initialize()
