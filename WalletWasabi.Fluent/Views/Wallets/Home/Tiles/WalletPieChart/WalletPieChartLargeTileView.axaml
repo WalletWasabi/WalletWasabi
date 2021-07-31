@@ -20,8 +20,8 @@
           <TextBlock Text="Wallet Privacy" VerticalAlignment="Center" />
         </DockPanel>
       </StackPanel>
-      <DockPanel>
-        <Viewbox Margin="20 0" Height="120" Width="120" DockPanel.Dock="Top" VerticalAlignment="Center" HorizontalAlignment="Stretch">
+      <Grid Margin="20 10 20 20" RowDefinitions="*,Auto">
+        <Viewbox Grid.RowSpan="1" Height="120" Width="120"   VerticalAlignment="Center" HorizontalAlignment="Stretch">
             <Viewbox.Resources>
               <LinearGradientBrush x:Key="paint0_linear" StartPoint="0%,1%" EndPoint="100%,100%">
                 <LinearGradientBrush.GradientStops>
@@ -37,8 +37,11 @@
                   Data="M 34.015 34.0437 23.8034 23.8309 c -1.097 -1.0969 -2.8755 -1.0969 -3.9725 0 -1.0969 1.097 -1.0969 2.8755 0 3.9725 L 30.0437 38.015 19.8309 48.2327 19.559 48.5477 c -0.816 1.0997 -0.7253 2.6602 0.2719 3.6575 l 0.3151 0.2719 c 1.0996 0.816 2.6602 0.7253 3.6574 -0.2719 L 34.015 41.99 44.2327 52.2052 c 1.0969 1.0969 2.8755 1.0969 3.9725 0 1.0969 -1.097 1.0969 -2.8756 0 -3.9725 L 37.99 38.015 48.2052 27.8034 l 0.2719 -0.315 c 0.816 -1.0997 0.7253 -2.6602 -0.2719 -3.6575 L 47.8901 23.559 c -1.0997 -0.816 -2.6602 -0.7253 -3.6574 0.2719 z" />
           </Panel>
         </Viewbox>
-        <TextBlock VerticalAlignment="Center" Margin="0 10 20 10" Text="Warning! Your financial privacy is not being protected." TextWrapping="Wrap" />
-      </DockPanel>
+        <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="5">
+          <TextBlock Classes="h6" FontWeight="Bold"  TextAlignment="Center" Text="Warning!" />
+          <TextBlock Classes="h8" Text="Your financial privacy is not currently protected." TextAlignment="Center" TextWrapping="WrapWithOverflow" />
+        </StackPanel>
+      </Grid>
     </DockPanel>
     <DockPanel IsVisible="{Binding IsAutoCoinJoinEnabled}">
         <TextBlock Text="Wallet Privacy Status" DockPanel.Dock="Top" />
