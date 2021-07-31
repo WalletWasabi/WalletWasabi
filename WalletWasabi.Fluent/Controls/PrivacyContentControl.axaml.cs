@@ -76,6 +76,11 @@ namespace WalletWasabi.Fluent.Controls
 
 		protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
 		{
+			if (Design.IsDesignMode)
+			{
+				return;
+			}
+
 			base.OnAttachedToVisualTree(e);
 
 			_disposable = new CompositeDisposable();
