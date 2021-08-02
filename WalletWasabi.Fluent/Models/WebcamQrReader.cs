@@ -51,9 +51,12 @@ namespace WalletWasabi.Fluent.Models
 					try
 					{
 						camera = new();
-						if (!camera.Open(DefaultCameraId))
+						camera.SetExceptionMode(true);
+						// Setting VIdeoCaptureAPI to DirectShow, to remove warning logs,
+						// might need to be changed in the future for other operating systems
+						if (!camera.Open(DefaultCameraId, VideoCaptureAPIs.DSHOW))
 						{
-							throw new InvalidOperationException("Could not open webcam.");
+							throw new InvalidOperationException("Could not open webcamera.");
 						}
 						RequestEnd = false;
 						KeepScan(camera);

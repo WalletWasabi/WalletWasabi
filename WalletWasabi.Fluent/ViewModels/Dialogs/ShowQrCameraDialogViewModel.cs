@@ -51,7 +51,10 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 				.Subscribe(async args =>
 				{
 					Close();
-					await ShowErrorAsync(Title, args.EventArgs.Message, "Something went wrong");
+					await ShowErrorAsync(
+						Title,
+						string.IsNullOrWhiteSpace(args.EventArgs.Message) ? "Could not read frames. Please make sure no other program uses yor camera." : args.EventArgs.Message,
+						"Something went wrong");
 				});
 		}
 
