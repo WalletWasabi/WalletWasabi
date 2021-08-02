@@ -52,7 +52,7 @@ namespace WalletWasabi.Fluent.Models
 					{
 						camera = new();
 						camera.SetExceptionMode(true);
-						// Setting VIdeoCaptureAPI to DirectShow, to remove warning logs,
+						// Setting VideoCaptureAPI to DirectShow, to remove warning logs,
 						// might need to be changed in the future for other operating systems
 						if (!camera.Open(DefaultCameraId, VideoCaptureAPIs.DSHOW))
 						{
