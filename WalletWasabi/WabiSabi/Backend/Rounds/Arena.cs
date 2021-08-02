@@ -4,6 +4,7 @@ using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
@@ -53,7 +54,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 				StepConnectionConfirmationPhase();
 
-				StepInputRegistrationPhase();
+				await StepInputRegistrationPhaseAsync(cancel).ConfigureAwait(false);
 
 				cancel.ThrowIfCancellationRequested();
 
@@ -62,7 +63,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		private void StepInputRegistrationPhase()
+		private async Task StepInputRegistrationPhaseAsync(CancellationToken cancel)
 		{
 			foreach (var round in Rounds.Where(x =>
 				x.Phase == Phase.InputRegistration
@@ -76,8 +77,39 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				}
 				else
 				{
-					round.SetPhase(Phase.ConnectionConfirmation);
+					var thereAreOffendingAlices = false;
+					await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round).WithCancellation(cancel).ConfigureAwait(false))
+					{
+						if (offendingAlices.Any())
+						{
+							thereAreOffendingAlices = true;
+							round.Alices.RemoveAll(x => offendingAlices.Contains(x));
+						}
+					}
+					if (!thereAreOffendingAlices)
+					{
+						round.SetPhase(Phase.ConnectionConfirmation);
+					}
 				}
+			}
+		}
+
+		private async IAsyncEnumerable<Alice[]> CheckTxoSpendStatusAsync(Round round, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+		{
+			foreach (var chunckOfAlices in round.Alices.ToList().ChunkBy(16))
+			{
+				var batchedRpc = Rpc.PrepareBatch();
+
+				var aliceCheckingTaskPairs = chunckOfAlices
+					.Select(x => (Alice: x, StatusTask: Rpc.GetTxOutAsync(x.Coin.Outpoint.Hash, (int)x.Coin.Outpoint.N, includeMempool: true)))
+					.ToList();
+
+				cancellationToken.ThrowIfCancellationRequested();
+				await batchedRpc.SendBatchAsync().ConfigureAwait(false);
+
+				var spendStatusCheckingTasks = aliceCheckingTaskPairs.Select(async x => (x.Alice, Status: await x.StatusTask.ConfigureAwait(false)));
+				var alices = await Task.WhenAll(spendStatusCheckingTasks).ConfigureAwait(false);
+				yield return alices.Where(x => x.Status is null).Select(x => x.Alice).ToArray();
 			}
 		}
 
