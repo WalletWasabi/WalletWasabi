@@ -14,6 +14,7 @@
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True"
                  NextContent="Continue"
+                 EnableCancel="{Binding EnableCancel}"
                  IsBusy="{Binding IsBusy}"
                  ScrollViewer.VerticalScrollBarVisibility="Auto">
     <DockPanel>

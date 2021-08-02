@@ -42,7 +42,8 @@ namespace WalletWasabi.Gui
 					x => x.LastSelectedWallet,
 					x => x.WindowState,
 					x => x.RunOnSystemStartup,
-					(_, _, _, _, _, _, _, _, _) => Unit.Default)
+					x => x.PrivacyMode,
+					(_, _, _, _, _, _, _, _, _, _) => Unit.Default)
 				.Throttle(TimeSpan.FromMilliseconds(500))
 				.Skip(1) // Won't save on UiConfig creation.
 				.ObserveOn(RxApp.TaskpoolScheduler)

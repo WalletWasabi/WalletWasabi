@@ -12,7 +12,7 @@
           <DockPanel HorizontalAlignment="Stretch" MaxWidth="500" DockPanel.Dock="Bottom">
             <Button Name="PART_NoButton" HorizontalAlignment="Left" Content="No" Classes="yesNo"
                     Command="{TemplateBinding NoCommand}" />
-            <Button Name="PART_YesButton" HorizontalAlignment="Right" Content="Yes" Classes="yesNo" IsDefault="True"
+            <Button Name="PART_YesButton" HorizontalAlignment="Right" Content="Yes" Classes="yesNo"
                     Command="{TemplateBinding YesCommand}" />
           </DockPanel>
           <ContentPresenter Content="{TemplateBinding Content}"
@@ -73,4 +73,15 @@
     <Setter Property="Background" Value="{DynamicResource ActionButtonPressedBackgroundColor}" />
   </Style>
 
+  <!-- IsDefault -->
+  <Style Selector="c|QuestionControl[HighlightButton=Both] /template/ Button#PART_NoButton,
+                   c|QuestionControl[HighlightButton=Both] /template/ Button#PART_YesButton">
+    <Setter Property="IsDefault" Value="false" />
+  </Style>
+  <Style Selector="c|QuestionControl[HighlightButton=NoButton] /template/ Button#PART_NoButton">
+    <Setter Property="IsDefault" Value="{Binding IsActive}" />
+  </Style>
+  <Style Selector="c|QuestionControl[HighlightButton=YesButton] /template/ Button#PART_YesButton">
+    <Setter Property="IsDefault" Value="{Binding IsActive}" />
+  </Style>
 </Styles>

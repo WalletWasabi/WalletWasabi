@@ -52,7 +52,7 @@
     </Style>
     <!-- LineChart Cursor -->
     <Style Selector="c|LineChart.cursor">
-      <Setter Property="CursorStroke" Value="#72BD81" />
+      <Setter Property="CursorStroke" Value="{DynamicResource SliderThumbBackground}" />
       <Setter Property="CursorStrokeThickness" Value="2" />
       <!-- <Setter Property="CursorStrokeDashStyle" Value="{x:Static DashStyle.Dash}" /> -->
       <Setter Property="CursorStrokeLineCap" Value="Round" />
