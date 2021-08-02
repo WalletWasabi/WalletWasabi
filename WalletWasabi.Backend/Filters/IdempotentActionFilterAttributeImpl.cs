@@ -13,14 +13,17 @@ namespace WalletWasabi.Backend.Filters
 {
 	public class IdempotentActionFilterAttributeImpl : ActionFilterAttribute
 	{
-		private readonly IMemoryCache _cache;
+		private static TimeSpan CacheTimeout { get; } = TimeSpan.FromMinutes(5);
+		private const string ContextCacheKey = "cached-key";
+		private readonly IMemoryCache _responseCache;
 
 		public IdempotentActionFilterAttributeImpl(IMemoryCache cache)
 			: base()
 		{
-			_cache = cache;
+			_responseCache = cache;
 		}
 
+		/// <inheritdoc/>
 		public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
 		{
 			HttpRequest request = context.HttpContext.Request;
@@ -31,14 +34,14 @@ namespace WalletWasabi.Backend.Filters
 				{
 					string cacheKey = GetCacheEntryKey(request.Path, model);
 
-					if (_cache.TryGetValue(cacheKey, out ObjectResult? cachedResponse))
+					if (_responseCache.TryGetValue(cacheKey, out ObjectResult? cachedResponse))
 					{
 						context.Result = cachedResponse;
-						context.HttpContext.Items.Remove("cached-key");
+						context.HttpContext.Items.Remove(ContextCacheKey);
 						return;
 					}
 
-					context.HttpContext.Items["cached-key"] = cacheKey;
+					context.HttpContext.Items[ContextCacheKey] = cacheKey;
 				}
 				else
 				{
@@ -49,11 +52,12 @@ namespace WalletWasabi.Backend.Filters
 			await next().ConfigureAwait(false);
 		}
 
+		/// <inheritdoc/>
 		public override void OnResultExecuted(ResultExecutedContext context)
 		{
-			if (context.HttpContext.Items.TryGetValue("cached-key", out object? cacheKey) && cacheKey is not null)
+			if (context.HttpContext.Items.TryGetValue(ContextCacheKey, out object? cacheKey) && cacheKey is not null)
 			{
-				_cache.Set(cacheKey, context.Result, DateTimeOffset.UtcNow.AddMinutes(5));
+				_responseCache.Set(cacheKey, context.Result, DateTimeOffset.UtcNow.Add(CacheTimeout));
 			}
 		}
 
