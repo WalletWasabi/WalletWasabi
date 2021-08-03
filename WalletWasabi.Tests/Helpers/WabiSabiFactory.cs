@@ -19,6 +19,7 @@ using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.Tests.Helpers
 {
@@ -38,11 +39,15 @@ namespace WalletWasabi.Tests.Helpers
 				new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundHash ?? BitcoinFactory.CreateUint256()));
 
 		public static Round CreateRound(WabiSabiConfig cfg)
-			=> new(new RoundParameters(
+		{
+			Round round = new(new RoundParameters(
 				cfg,
 				Network.Main,
 				new InsecureRandom(),
 				new(100m)));
+			round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
+			return round;
+		}
 
 		public static Mock<IRPCClient> CreatePreconfiguredRpcClient(params Coin[] coins)
 		{
@@ -226,7 +231,7 @@ namespace WalletWasabi.Tests.Helpers
 				new[] { alice.CalculateRemainingAmountCredentials(round.FeeRate).Satoshi },
 				amZeroCredentials, // FIXME doesn't make much sense
 				CancellationToken.None);
-			long startingVsizeCredentialAmount = alice.CalculateRemainingVsizeCredentials(round.MaxVsizeAllocationPerAlice);
+			long startingVsizeCredentialAmount = vsize ?? alice.CalculateRemainingVsizeCredentials(round.MaxVsizeAllocationPerAlice);
 			var (vsCredentialRequest, weValid) = vsClient.CreateRequest(
 				new[] { startingVsizeCredentialAmount },
 				vsZeroCredentials, // FIXME doesn't make much sense
@@ -239,21 +244,10 @@ namespace WalletWasabi.Tests.Helpers
 
 			script ??= BitcoinFactory.CreateScript();
 			var (realAmountCredentialRequest, _) = amClient.CreateRequest(
-				Array.Empty<long>(),
 				amountCredentials,
 				CancellationToken.None);
 
-			try
-			{
-				vsize ??= script.EstimateOutputVsize();
-			}
-			catch (NotImplementedException)
-			{
-				vsize = 25;
-			}
-
 			var (realVsizeCredentialRequest, _) = vsClient.CreateRequest(
-				new[] { startingVsizeCredentialAmount - (long)vsize },
 				vsizeCredentials,
 				CancellationToken.None);
 

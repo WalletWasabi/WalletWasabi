@@ -9,6 +9,7 @@ using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
@@ -26,11 +27,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 
 			var req = WabiSabiFactory.CreateOutputRegistrationRequest(round);
-			var resp = await handler.RegisterOutputAsync(req, CancellationToken.None);
+			await handler.RegisterOutputAsync(req, CancellationToken.None);
 			Assert.NotEmpty(round.Bobs);
-			Assert.NotNull(resp);
-			Assert.NotNull(resp.AmountCredentials);
-			Assert.NotNull(resp.VsizeCredentials);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -54,6 +52,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		{
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
+			round.MaxVsizeAllocationPerAlice = 11 + 34 + MultipartyTransactionParameters.SharedOverhead;
+
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 			using Key key = new();
 
@@ -73,6 +73,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		{
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
+			round.MaxVsizeAllocationPerAlice += 13;
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			round.SetPhase(Phase.OutputRegistration);
@@ -151,6 +152,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			var round = arena.Rounds.First();
+			round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
+
 			round.Alices.Add(WabiSabiFactory.CreateAlice(round));
 
 			foreach (Phase phase in Enum.GetValues(typeof(Phase)))

@@ -76,17 +76,13 @@ namespace WalletWasabi.WabiSabi.Crypto
 					validationData));
 		}
 
-		/// <summary>
-		/// Creates a <see cref="RealCredentialsRequest">credential registration request messages</see>
-		/// for requesting `k` non-zero-value credentials.
-		/// </summary>
-		/// <param name="amountsToRequest">List of amounts requested in credentials.</param>
-		/// <param name="credentialsToPresent">List of credentials to be presented to the coordinator.</param>
-		/// <param name="cancellationToken">The cancellation token to be used in case shut down is in progress..</param>
-		/// <returns>
-		/// A tuple containing the registration request message instance and the registration validation data
-		/// to be used to validate the coordinator response message (the issued credentials).
-		/// </returns>
+		public RealCredentialsRequestData CreateRequest(
+			IEnumerable<Credential> credentialsToPresent,
+			CancellationToken cancellationToken)
+		{
+			return InternalCreateRequest(Array.Empty<long>(), credentialsToPresent, cancellationToken);
+		}
+
 		public RealCredentialsRequestData CreateRequest(
 			IEnumerable<long> amountsToRequest,
 			IEnumerable<Credential> credentialsToPresent,
@@ -99,6 +95,28 @@ namespace WalletWasabi.WabiSabi.Crypto
 			{
 				credentialAmountsToRequest.Add(0);
 			}
+
+			return InternalCreateRequest(credentialAmountsToRequest, credentialsToPresent, cancellationToken);
+		}
+
+		/// <summary>
+		/// Creates a <see cref="RealCredentialsRequest">credential registration request messages</see>
+		/// for requesting `k` non-zero-value credentials.
+		/// </summary>
+		/// <param name="amountsToRequest">List of amounts requested in credentials.</param>
+		/// <param name="credentialsToPresent">List of credentials to be presented to the coordinator.</param>
+		/// <param name="cancellationToken">The cancellation token to be used in case shut down is in progress..</param>
+		/// <returns>
+		/// A tuple containing the registration request message instance and the registration validation data
+		/// to be used to validate the coordinator response message (the issued credentials).
+		/// </returns>
+		private RealCredentialsRequestData InternalCreateRequest(
+			IEnumerable<long> amountsToRequest,
+			IEnumerable<Credential> credentialsToPresent,
+			CancellationToken cancellationToken)
+		{
+			// Make sure we request always the same number of credentials
+			var credentialAmountsToRequest = amountsToRequest.ToList();
 
 			var macsToPresent = credentialsToPresent.Select(x => x.Mac);
 			if (macsToPresent.Distinct().Count() < macsToPresent.Count())
@@ -119,9 +137,10 @@ namespace WalletWasabi.WabiSabi.Crypto
 			}
 
 			// Generate RangeProofs (or ZeroProof) for each requested credential
-			var credentialsToRequest = new IssuanceRequest[NumberOfCredentials];
-			var validationData = new IssuanceValidationData[NumberOfCredentials];
-			for (var i = 0; i < NumberOfCredentials; i++)
+			var expectedNumberOfCredentials = credentialAmountsToRequest.Count;
+			var credentialsToRequest = new IssuanceRequest[expectedNumberOfCredentials];
+			var validationData = new IssuanceValidationData[expectedNumberOfCredentials];
+			for (var i = 0; i < expectedNumberOfCredentials; i++)
 			{
 				var value = credentialAmountsToRequest[i];
 				var scalar = new Scalar((ulong)value);
