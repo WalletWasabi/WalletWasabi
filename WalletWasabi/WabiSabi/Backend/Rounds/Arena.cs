@@ -32,13 +32,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		public HashSet<Round> Rounds { get; } = new();
 		private AsyncLock AsyncLock { get; } = new();
-		public Network Network { get; }
-		public WabiSabiConfig Config { get; }
-		public IRPCClient Rpc { get; }
-		public Prison Prison { get; }
-		public SecureRandom Random { get; }
+		private Network Network { get; }
+		private WabiSabiConfig Config { get; }
+		internal IRPCClient Rpc { get; }
+		internal Prison Prison { get; }
+		private SecureRandom Random { get; }
 
-		public IEnumerable<Round> ActiveRounds => Rounds.Where(x => x.Phase != Phase.Ended);
+		internal IEnumerable<Round> ActiveRounds => Rounds.Where(x => x.Phase != Phase.Ended);
 
 		protected override async Task ActionAsync(CancellationToken cancel)
 		{

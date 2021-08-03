@@ -84,15 +84,10 @@ namespace WalletWasabi.Tests.Helpers
 		}
 
 		public static async Task<Arena> CreateAndStartArenaAsync()
-			=> await CreateAndStartArenaAsync(
-				new WabiSabiConfig(),
-				CreatePreconfiguredRpcClient());
+			=> await CreateAndStartArenaAsync(new WabiSabiConfig(), CreatePreconfiguredRpcClient());
 
 		public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig cfg, params Round[] rounds)
-			=> await CreateAndStartArenaAsync(
-				cfg,
-				CreatePreconfiguredRpcClient(),
-				rounds);
+			=> await CreateAndStartArenaAsync(cfg, CreatePreconfiguredRpcClient(), rounds);
 
 		public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig cfg, IMock<IRPCClient> mockRpc, params Round[] rounds)
 		{
