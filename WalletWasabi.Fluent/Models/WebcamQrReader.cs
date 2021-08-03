@@ -134,7 +134,8 @@ namespace WalletWasabi.Fluent.Models
 				catch (OpenCVException exc)
 				{
 					Logger.LogWarning(exc);
-					ErrorOccured?.Invoke(this, exc);
+					ErrorOccured?.Invoke(this, new OpenCVException("Could not read frames. Please make sure no other program uses yor camera."));
+					RequestEnd = true;
 				}
 			}
 		}

@@ -53,7 +53,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 					Close();
 					await ShowErrorAsync(
 						Title,
-						string.IsNullOrWhiteSpace(args.EventArgs.Message) ? "Could not read frames. Please make sure no other program uses yor camera." : args.EventArgs.Message,
+						args.EventArgs.Message,
 						"Something went wrong");
 				});
 		}
