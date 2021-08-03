@@ -79,6 +79,7 @@ namespace WalletWasabi.Tor
 				$"--CookieAuthentication 1",
 				$"--ControlPort {ControlEndpoint.Port}",
 				$"--CookieAuthFile \"{CookieAuthFilePath}\"",
+				$"--ExitRelay 0",
 				$"--DataDirectory \"{TorDataDir}\"",
 				$"--GeoIPFile \"{GeoIpPath}\"",
 				$"--GeoIPv6File \"{GeoIp6Path}\"",
