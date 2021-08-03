@@ -117,7 +117,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 
 			var requestedCount = requested.Count();
 			var requiredNumberOfRequested = registrationRequest.IsPresentationOnlyRequest ? 0 : NumberOfCredentials;
-			if (requestedCount != NumberOfCredentials)
+			if (requestedCount != requiredNumberOfRequested)
 			{
 				throw new WabiSabiCryptoException(
 					WabiSabiCryptoErrorCode.InvalidNumberOfRequestedCredentials,

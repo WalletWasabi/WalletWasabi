@@ -101,7 +101,8 @@ namespace WalletWasabi.WabiSabi.Crypto
 		{
 			// Make sure we request always the same number of credentials
 			var credentialAmountsToRequest = amountsToRequest.ToList();
-			var missingCredentialRequests = NumberOfCredentials - amountsToRequest.Count();
+			var expectedNumberOfCredentials = amountsToRequest.Any() ? NumberOfCredentials : 0;
+			var missingCredentialRequests = expectedNumberOfCredentials - amountsToRequest.Count();
 			for (var i = 0; i < missingCredentialRequests; i++)
 			{
 				credentialAmountsToRequest.Add(0);
@@ -126,9 +127,9 @@ namespace WalletWasabi.WabiSabi.Crypto
 			}
 
 			// Generate RangeProofs (or ZeroProof) for each requested credential
-			var credentialsToRequest = new IssuanceRequest[NumberOfCredentials];
-			var validationData = new IssuanceValidationData[NumberOfCredentials];
-			for (var i = 0; i < NumberOfCredentials; i++)
+			var credentialsToRequest = new IssuanceRequest[expectedNumberOfCredentials];
+			var validationData = new IssuanceValidationData[expectedNumberOfCredentials];
+			for (var i = 0; i < expectedNumberOfCredentials; i++)
 			{
 				var value = credentialAmountsToRequest[i];
 				var scalar = new Scalar((ulong)value);
