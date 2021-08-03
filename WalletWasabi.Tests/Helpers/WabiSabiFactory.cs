@@ -241,11 +241,11 @@ namespace WalletWasabi.Tests.Helpers
 			var vsizeCredentials = vsClient.HandleResponse(weResp, weValid);
 
 			script ??= BitcoinFactory.CreateScript();
-			var (realAmountCredentialRequest, _) = amClient.CreatePresentationRequest(
+			var (realAmountCredentialRequest, _) = amClient.CreateRequest(
 				amountCredentials,
 				CancellationToken.None);
 
-			var (realVsizeCredentialRequest, _) = vsClient.CreatePresentationRequest(
+			var (realVsizeCredentialRequest, _) = vsClient.CreateRequest(
 				vsizeCredentials,
 				CancellationToken.None);
 

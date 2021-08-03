@@ -76,11 +76,27 @@ namespace WalletWasabi.WabiSabi.Crypto
 					validationData));
 		}
 
-		public RealCredentialsRequestData CreatePresentationRequest(
+		public RealCredentialsRequestData CreateRequest(
 			IEnumerable<Credential> credentialsToPresent,
 			CancellationToken cancellationToken)
 		{
-			return CreateRequest(Array.Empty<long>(), credentialsToPresent, cancellationToken);
+			return InternalCreateRequest(Array.Empty<long>(), credentialsToPresent, cancellationToken);
+		}
+
+		public RealCredentialsRequestData CreateRequest(
+			IEnumerable<long> amountsToRequest,
+			IEnumerable<Credential> credentialsToPresent,
+			CancellationToken cancellationToken)
+		{
+			// Make sure we request always the same number of credentials
+			var credentialAmountsToRequest = amountsToRequest.ToList();
+			var missingCredentialRequests = NumberOfCredentials - amountsToRequest.Count();
+			for (var i = 0; i < missingCredentialRequests; i++)
+			{
+				credentialAmountsToRequest.Add(0);
+			}
+
+			return InternalCreateRequest(credentialAmountsToRequest, credentialsToPresent, cancellationToken);
 		}
 
 		/// <summary>
@@ -94,19 +110,13 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// A tuple containing the registration request message instance and the registration validation data
 		/// to be used to validate the coordinator response message (the issued credentials).
 		/// </returns>
-		public RealCredentialsRequestData CreateRequest(
+		private RealCredentialsRequestData InternalCreateRequest(
 			IEnumerable<long> amountsToRequest,
 			IEnumerable<Credential> credentialsToPresent,
 			CancellationToken cancellationToken)
 		{
 			// Make sure we request always the same number of credentials
 			var credentialAmountsToRequest = amountsToRequest.ToList();
-			var expectedNumberOfCredentials = amountsToRequest.Any() ? NumberOfCredentials : 0;
-			var missingCredentialRequests = expectedNumberOfCredentials - amountsToRequest.Count();
-			for (var i = 0; i < missingCredentialRequests; i++)
-			{
-				credentialAmountsToRequest.Add(0);
-			}
 
 			var macsToPresent = credentialsToPresent.Select(x => x.Mac);
 			if (macsToPresent.Distinct().Count() < macsToPresent.Count())
@@ -127,6 +137,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			}
 
 			// Generate RangeProofs (or ZeroProof) for each requested credential
+			var expectedNumberOfCredentials = credentialAmountsToRequest.Count;
 			var credentialsToRequest = new IssuanceRequest[expectedNumberOfCredentials];
 			var validationData = new IssuanceValidationData[expectedNumberOfCredentials];
 			for (var i = 0; i < expectedNumberOfCredentials; i++)
