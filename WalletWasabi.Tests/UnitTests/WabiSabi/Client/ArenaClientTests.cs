@@ -54,6 +54,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				{
 					MinRelayTxFee = 1
 				});
+			mockRpc.Setup(rpc => rpc.PrepareBatch()).Returns(mockRpc.Object);
+			mockRpc.Setup(rpc => rpc.SendBatchAsync()).Returns(Task.CompletedTask);
 
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, mockRpc, round);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
