@@ -18,10 +18,12 @@ namespace WalletWasabi.Fluent.Helpers
 			{
 				string pathToExec = EnvironmentHelpers.GetExecutablePath();
 
-				if (!File.Exists(pathToExec))
+				/*if (!File.Exists(pathToExec))
 				{
 					throw new InvalidOperationException($"Path: {pathToExec} does not exist.");
-				}
+				}*/
+
+				IoHelpers.EnsureFileExists(pathToExec);
 
 				string fileContents = string.Join(
 					"\n",
