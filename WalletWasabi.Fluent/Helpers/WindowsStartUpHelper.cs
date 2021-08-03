@@ -8,7 +8,7 @@ namespace WalletWasabi.Fluent.Helpers
 	{
 		private const string KeyPath = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
 
-		public static void StartOnWindowsStartup(bool runOnSystemStartup, string pathToExeFile)
+		public static void AddOrRemoveRegistryKey(bool runOnSystemStartup, string pathToExeFile)
 		{
 			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{

@@ -8,7 +8,7 @@ namespace WalletWasabi.Fluent.Helpers
 		private static readonly string AddCmd = $"osascript -e \' tell application \"System Events\" to make new login item at end with properties {{name:\"{Constants.AppName}\", path:\"/Applications/{Constants.AppName}.app\", hidden:true}} \'";
 		private static readonly string DeleteCmd = $"osascript -e \' tell application \"System Events\" to delete login item \"{Constants.AppName}\" \'";
 
-		public static async Task ModifyLoginItemsAsync(bool runOnSystemStartup)
+		public static async Task AddOrRemoveLoginItem(bool runOnSystemStartup)
 		{
 			if (runOnSystemStartup)
 			{

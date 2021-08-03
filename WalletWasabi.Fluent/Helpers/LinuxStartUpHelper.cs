@@ -7,7 +7,7 @@ namespace WalletWasabi.Fluent.Helpers
 {
 	public static class LinuxStartupHelper
 	{
-		public static async Task StartOnLinuxStartupAsync(bool runOnSystemStartup)
+		public static async Task AddOrRemoveDesktopFile(bool runOnSystemStartup)
 		{
 			string pathToDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config", "autostart");
 			string pathToDesktopFile = Path.Combine(pathToDir, "Wasabi.desktop");
