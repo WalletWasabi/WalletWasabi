@@ -57,7 +57,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.Skip(1)
 				.Subscribe(x => Services.UiConfig.Autocopy = x);
 
-			StartUpCommand = ReactiveCommand.Create(async () =>
+			StartupCommand = ReactiveCommand.Create(async () =>
 			{
 				try
 				{
@@ -88,7 +88,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.Subscribe(x => Services.UiConfig.FeeDisplayFormat = (int)x);
 		}
 
-		public ICommand StartUpCommand { get; }
+		public ICommand StartupCommand { get; }
 
 		public IEnumerable<FeeDisplayFormat> FeeDisplayFormats =>
 			Enum.GetValues(typeof(FeeDisplayFormat)).Cast<FeeDisplayFormat>();
