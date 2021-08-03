@@ -12,20 +12,15 @@ namespace WalletWasabi.Fluent.Helpers
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				string pathToExeFile = EnvironmentHelpers.GetExecutablePath();
-				if (!File.Exists(pathToExeFile))
-				{
-					throw new InvalidOperationException($"Path {pathToExeFile} does not exist.");
-				}
-				WindowsStartupHelper.AddOrRemoveRegistryKey(runOnSystemStartup, pathToExeFile);
+				WindowsStartupHelper.AddOrRemoveRegistryKey(runOnSystemStartup);
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
-				await LinuxStartupHelper.AddOrRemoveDesktopFile(runOnSystemStartup).ConfigureAwait(false);
+				await LinuxStartupHelper.AddOrRemoveDesktopFileAsync(runOnSystemStartup).ConfigureAwait(false);
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
-				await MacOsStartupHelper.AddOrRemoveLoginItem(runOnSystemStartup).ConfigureAwait(false);
+				await MacOsStartupHelper.AddOrRemoveLoginItemAsync(runOnSystemStartup).ConfigureAwait(false);
 			}
 		}
 	}

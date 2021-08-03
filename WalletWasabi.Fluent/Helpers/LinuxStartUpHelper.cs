@@ -7,7 +7,7 @@ namespace WalletWasabi.Fluent.Helpers
 {
 	public static class LinuxStartupHelper
 	{
-		public static async Task AddOrRemoveDesktopFile(bool runOnSystemStartup)
+		public static async Task AddOrRemoveDesktopFileAsync(bool runOnSystemStartup)
 		{
 			string pathToDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config", "autostart");
 			string pathToDesktopFile = Path.Combine(pathToDir, "Wasabi.desktop");
@@ -17,6 +17,12 @@ namespace WalletWasabi.Fluent.Helpers
 			if (runOnSystemStartup)
 			{
 				string pathToExec = EnvironmentHelpers.GetExecutablePath();
+
+				if (!File.Exists(pathToExec))
+				{
+					throw new InvalidOperationException($"Path: {pathToExec} does not exist.");
+				}
+
 				string fileContents = string.Join(
 					"\n",
 					"[Desktop Entry]",
