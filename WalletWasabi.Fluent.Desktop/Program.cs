@@ -13,6 +13,7 @@ using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Gui;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Wallets;
@@ -39,8 +40,10 @@ namespace WalletWasabi.Fluent.Desktop
 			{
 				if (CrashReporter.TryGetExceptionFromCliArgs(args, out var exceptionToShow))
 				{
-					// Show the exception.
-					Console.WriteLine($"TODO Implement crash reporting. {exceptionToShow}");
+					var dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
+					var logPath = Path.Combine(dataDir, "Logs.txt");
+					Logger.InitializeDefaults(logPath);
+					BuildCrashReporterApp(exceptionToShow, logPath).StartWithClassicDesktopLifetime(args);
 
 					runGui = false;
 				}
@@ -228,6 +231,37 @@ namespace WalletWasabi.Fluent.Desktop
 				.With(new X11PlatformOptions { UseGpu = useGpuLinux, WmClass = "Wasabi Wallet" })
 				.With(new AvaloniaNativePlatformOptions { UseDeferredRendering = true, UseGpu = true })
 				.With(new MacOSPlatformOptions { ShowInDock = true });
+		}
+
+		/// <summary>
+		/// Sets up and initializes the crash reporting UI.
+		/// </summary>
+		/// <param name="serializableException"></param>
+		/// <param name="logPath"></param>
+		/// <returns></returns>
+		private static AppBuilder BuildCrashReporterApp(SerializableException serializableException, string logPath)
+		{
+			var result = AppBuilder
+				.Configure(() => new CrashReportApp(serializableException, logPath))
+				.UseReactiveUI();
+
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				result
+					.UseWin32()
+					.UseSkia();
+			}
+			else
+			{
+				result.UsePlatformDetect();
+			}
+
+			return result
+				.With(new Win32PlatformOptions {AllowEglInitialization = false, UseDeferredRendering = true})
+				.With(new X11PlatformOptions {UseGpu = false, WmClass = "Wasabi Wallet Crash Reporting"})
+				.With(new AvaloniaNativePlatformOptions {UseDeferredRendering = true, UseGpu = false})
+				.With(new MacOSPlatformOptions {ShowInDock = true})
+				.AfterSetup(_ => ThemeHelper.ApplyTheme(Theme.Dark));
 		}
 	}
 }
