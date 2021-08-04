@@ -2,6 +2,7 @@ using NBitcoin;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -497,7 +498,7 @@ namespace WalletWasabi.Stores
 					}
 				}
 
-				foreach (FilterModel filter in ImmatureFilters)
+				foreach (FilterModel filter in ImmatureFilters.ToImmutableArray())
 				{
 					await todo(filter).ConfigureAwait(false);
 				}
