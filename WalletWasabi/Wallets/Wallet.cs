@@ -473,7 +473,7 @@ namespace WalletWasabi.Wallets
 
 		private async Task ProcessFilterModelAsync(FilterModel filterModel, CancellationToken cancel)
 		{
-			var matchFound = filterModel.Filter.MatchAny(KeyManager.GetPubKeyScriptBytes().ToList(), filterModel.FilterKey);
+			var matchFound = filterModel.Filter.MatchAny(KeyManager.GetPubKeyScriptBytes(), filterModel.FilterKey);
 			if (matchFound)
 			{
 				Block currentBlock = await BlockProvider.GetBlockAsync(filterModel.Header.BlockHash, cancel).ConfigureAwait(false); // Wait until not downloaded.
