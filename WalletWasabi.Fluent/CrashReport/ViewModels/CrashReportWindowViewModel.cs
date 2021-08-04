@@ -17,6 +17,5 @@ namespace WalletWasabi.Fluent.CrashReport.ViewModels
 		public string Details => $"{_serializableException.Message}";
 		public string Message => $"{_serializableException.Message}";
 		public string Title => $"{_serializableException.Message}";
-
 	}
 }

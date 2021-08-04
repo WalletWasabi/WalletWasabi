@@ -33,8 +33,7 @@ namespace WalletWasabi.Fluent.CrashReport
 			}
 		}
 
-		public static bool TryGetExceptionFromCliArgs(string[] args,
-			[NotNullWhen(true)] out SerializableException? exception)
+		public static bool TryGetExceptionFromCliArgs(string[] args, [NotNullWhen(true)] out SerializableException? exception)
 		{
 			exception = null;
 			try
