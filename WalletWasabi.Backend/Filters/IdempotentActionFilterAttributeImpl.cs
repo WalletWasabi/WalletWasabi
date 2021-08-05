@@ -76,10 +76,7 @@ namespace WalletWasabi.Backend.Filters
 				// Request failed for some reason, we don't want to hold any other requests that wait for this one request to finish.
 				if (executed.Exception != null && !executed.ExceptionHandled)
 				{
-					if (responseTcs is not null)
-					{
-						responseTcs.TrySetCanceled();
-					}
+					responseTcs?.TrySetCanceled();
 				}
 			}
 			else
