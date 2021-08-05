@@ -60,6 +60,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 				// Ensure there's at least one non-blame round in input registration.
 				await CreateRoundsAsync(cancel).ConfigureAwait(false);
+
+				//TODO: Demonstration, imagine we have the list of rounds and their tasks.
+				Task[] roundTasks;
+				var roundTask = await Task.WhenAny(roundTasks).ConfigureAwait(false);
+				// Process what happened
+				// roundTask.IsFaulted? Completed? Remove? Add new?
 			}
 		}
 
@@ -91,25 +97,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 						round.SetPhase(Phase.ConnectionConfirmation);
 					}
 				}
-			}
-		}
-
-		private async IAsyncEnumerable<Alice[]> CheckTxoSpendStatusAsync(Round round, [EnumeratorCancellation] CancellationToken cancellationToken = default)
-		{
-			foreach (var chunckOfAlices in round.Alices.ToList().ChunkBy(16))
-			{
-				var batchedRpc = Rpc.PrepareBatch();
-
-				var aliceCheckingTaskPairs = chunckOfAlices
-					.Select(x => (Alice: x, StatusTask: Rpc.GetTxOutAsync(x.Coin.Outpoint.Hash, (int)x.Coin.Outpoint.N, includeMempool: true)))
-					.ToList();
-
-				cancellationToken.ThrowIfCancellationRequested();
-				await batchedRpc.SendBatchAsync().ConfigureAwait(false);
-
-				var spendStatusCheckingTasks = aliceCheckingTaskPairs.Select(async x => (x.Alice, Status: await x.StatusTask.ConfigureAwait(false)));
-				var alices = await Task.WhenAll(spendStatusCheckingTasks).ConfigureAwait(false);
-				yield return alices.Where(x => x.Status is null).Select(x => x.Alice).ToArray();
 			}
 		}
 
@@ -267,13 +254,15 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 				RoundParameters roundParams = new(Config, Network, Random, feeRate);
 				Round r = new(roundParams);
+				//TODO: only demonstration, there should be a list of these task, not to forget.
+				var importantTask = r.StartAsync(Rpc, cancellationToken).ConfigureAwait(false);
 				Rounds.Add(r);
 			}
 		}
 
 		private void TimeoutRounds()
 		{
-		    foreach (var expiredRound in Rounds.Where(
+			foreach (var expiredRound in Rounds.Where(
 				x =>
 				x.Phase == Phase.Ended
 				&& x.End + Config.RoundExpiryTimeout < DateTimeOffset.UtcNow).ToArray())
@@ -304,24 +293,47 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		public async Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 		{
-			var coin = await InputRegistrationHandler.OutpointToCoinAsync(request, Prison, Rpc, Config, cancellationToken).ConfigureAwait(false);
+			OutPoint input = request.Input;
+
+			if (Prison.TryGet(input, out var inmate) && (!Config.AllowNotedInputRegistration || inmate.Punishment != Punishment.Noted))
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned);
+			}
+
+			var txOutResponse = await Rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true).ConfigureAwait(false);
+			if (txOutResponse is null)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputSpent);
+			}
+			if (txOutResponse.Confirmations == 0)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputUnconfirmed);
+			}
+			if (txOutResponse.IsCoinBase && txOutResponse.Confirmations <= 100)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputImmature);
+			}
+			var coin = new Coin(input, txOutResponse.TxOut);
+
+			Round? round;
 			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
+				round = Rounds.FirstOrDefault(r => r.Id == request.RoundId);
+				if (round is null)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound, $"Round ({request.RoundId}) not found.");
+				}
+
+				// TODO: make sure alice cannot register into more rounds. Like a ConcurrentDictionary in Arena.
 				var registeredCoins = Rounds.Where(x => !(x.Phase == Phase.Ended && !x.WasTransactionBroadcast)).SelectMany(r => r.Alices.Select(a => a.Coin));
 
 				if (registeredCoins.Any(x => x.Outpoint == coin.Outpoint))
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
 				}
-				return InputRegistrationHandler.RegisterInput(
-					Config,
-					request.RoundId,
-					coin,
-					request.OwnershipProof,
-					request.ZeroAmountCredentialRequests,
-					request.ZeroVsizeCredentialRequests,
-					Rounds);
 			}
+
+			return round.RegisterInput(coin, request.OwnershipProof, request.ZeroAmountCredentialRequests, request.ZeroVsizeCredentialRequests);
 		}
 
 		public async Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken)

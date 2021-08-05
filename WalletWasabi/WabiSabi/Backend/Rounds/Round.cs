@@ -1,10 +1,16 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.StrobeProtocol;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Crypto;
+using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
@@ -30,6 +36,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			VsizeCredentialIssuerParameters = VsizeCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 
 			Id = CalculateHash();
+			InputRegistrationTimeout = IsBlameRound ? roundParameters.BlameInputRegistrationTimeout : roundParameters.StandardInputRegistrationTimeout;
+			MaxInputCountByRound = roundParameters.MaxInputCountByRound;
+			MinInputCountByRound = roundParameters.MinInputCountByRound;
 		}
 
 		public MultipartyTransactionState CoinjoinState { get; set; }
@@ -57,7 +66,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public TimeSpan TransactionSigningTimeout => RoundParameters.TransactionSigningTimeout;
 
 		public Phase Phase { get; private set; } = Phase.InputRegistration;
-		public DateTimeOffset InputRegistrationStart { get; } = DateTimeOffset.UtcNow;
 		public DateTimeOffset ConnectionConfirmationStart { get; private set; }
 		public DateTimeOffset OutputRegistrationStart { get; private set; }
 		public DateTimeOffset TransactionSigningStart { get; private set; }
@@ -67,6 +75,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public int RemainingInputVsizeAllocation => InitialInputVsizeAllocation - InputCount * MaxVsizeAllocationPerAlice;
 
 		private RoundParameters RoundParameters { get; }
+		private TimeSpan InputRegistrationTimeout { get; }
+		public int MaxInputCountByRound { get; }
+		public int MinInputCountByRound { get; }
 
 		public TState Assert<TState>() where TState : MultipartyTransactionState =>
 			CoinjoinState switch
@@ -103,33 +114,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		public bool IsInputRegistrationEnded(int maxInputCount, TimeSpan inputRegistrationTimeout)
-		{
-			if (Phase > Phase.InputRegistration)
-			{
-				return true;
-			}
-
-			if (IsBlameRound)
-			{
-				if (BlameWhitelist.Count <= InputCount)
-				{
-					return true;
-				}
-			}
-			else if (InputCount >= maxInputCount)
-			{
-				return true;
-			}
-
-			if (InputRegistrationStart + inputRegistrationTimeout < DateTimeOffset.UtcNow)
-			{
-				return true;
-			}
-
-			return false;
-		}
-
 		public ConstructionState AddInput(Coin coin)
 			=> Assert<ConstructionState>().AddInput(coin);
 
@@ -149,5 +133,136 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				.Append(ProtocolConstants.RoundVsizeCredentialIssuerParametersStrobeLabel, VsizeCredentialIssuerParameters)
 				.Append(ProtocolConstants.RoundFeeRateStrobeLabel, FeeRate.FeePerK)
 				.GetHash();
+
+		public async Task StartAsync(IRPCClient rpc, CancellationToken cancel)
+		{
+			// Input registration
+			using CancellationTokenSource inputRegistrationTimeout = new(InputRegistrationTimeout);
+			using CancellationTokenSource inputRegistrationCancel = CancellationTokenSource.CreateLinkedTokenSource(cancel, inputRegistrationTimeout.Token);
+
+			while (true)
+			{
+				//TODO: this can be replaces with SemaphoreSlim to avoid unnecessary iterations.
+				await Task.Delay(500, inputRegistrationCancel.Token).ConfigureAwait(false);
+
+				if (IsBlameRound)
+				{
+					if (BlameWhitelist.Count <= InputCount)
+					{
+						break;
+					}
+				}
+				else if (InputCount >= MaxInputCountByRound)
+				{
+					break;
+				}
+
+				if (!inputRegistrationTimeout.IsCancellationRequested)
+				{
+					continue;
+				}
+
+				if (InputCount >= MinInputCountByRound)
+				{
+					var thereAreOffendingAlices = false;
+					await foreach (var offendingAlices in CheckTxoSpendStatusAsync(rpc, this, cancel).WithCancellation(cancel).ConfigureAwait(false))
+					{
+						if (offendingAlices.Any())
+						{
+							thereAreOffendingAlices = true;
+							Alices.RemoveAll(x => offendingAlices.Contains(x));
+						}
+					}
+
+					if (!thereAreOffendingAlices)
+					{
+						SetPhase(Phase.ConnectionConfirmation);
+						break;
+					}
+				}
+
+				SetPhase(Phase.Ended);
+				throw new InvalidOperationException($"Not enough inputs ({InputCount}) in {nameof(Phase.InputRegistration)} phase.");
+			}
+
+			// Connection confirmation
+		}
+
+		public InputRegistrationResponse RegisterInput(
+			Coin coin,
+			OwnershipProof ownershipProof,
+			ZeroCredentialsRequest zeroAmountCredentialRequests,
+			ZeroCredentialsRequest zeroVsizeCredentialRequests)
+		{
+			if (Phase != Phase.InputRegistration)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
+			}
+
+			if (IsBlameRound && !BlameWhitelist.Contains(coin.Outpoint))
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputNotWhitelisted);
+			}
+
+			// Compute but don't commit updated CoinJoin to round state, it will
+			// be re-calculated on input confirmation. This is computed it here
+			// for validation purposes.
+			Assert<ConstructionState>().AddInput(coin);
+
+			var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", Id);
+			if (!OwnershipProof.VerifyCoinJoinInputProof(ownershipProof, coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
+			}
+
+			var alice = new Alice(coin, ownershipProof, this);
+
+			if (alice.TotalInputAmount < MinRegistrableAmount)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds);
+			}
+			if (alice.TotalInputAmount > MaxRegistrableAmount)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
+			}
+
+			if (alice.TotalInputVsize > MaxVsizeAllocationPerAlice)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchVsize);
+			}
+
+			if (RemainingInputVsizeAllocation < MaxVsizeAllocationPerAlice)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.VsizeQuotaExceeded);
+			}
+			var commitAmountCredentialResponse = AmountCredentialIssuer.PrepareResponse(zeroAmountCredentialRequests);
+			var commitVsizeCredentialResponse = VsizeCredentialIssuer.PrepareResponse(zeroVsizeCredentialRequests);
+
+			alice.SetDeadlineRelativeTo(ConnectionConfirmationTimeout);
+			Alices.Add(alice);
+
+			return new(alice.Id,
+				commitAmountCredentialResponse.Commit(),
+				commitVsizeCredentialResponse.Commit());
+		}
+
+		private static async IAsyncEnumerable<Alice[]> CheckTxoSpendStatusAsync(IRPCClient rpc, Round round, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+		{
+			foreach (var chunckOfAlices in round.Alices.ToList().ChunkBy(16))
+			{
+				var batchedRpc = rpc.PrepareBatch();
+
+				var aliceCheckingTaskPairs = chunckOfAlices
+					.Select(x => (Alice: x, StatusTask: rpc.GetTxOutAsync(x.Coin.Outpoint.Hash, (int)x.Coin.Outpoint.N, includeMempool: true)))
+					.ToList();
+
+				cancellationToken.ThrowIfCancellationRequested();
+				await batchedRpc.SendBatchAsync().ConfigureAwait(false);
+
+				var spendStatusCheckingTasks = aliceCheckingTaskPairs.Select(async x => (x.Alice, Status: await x.StatusTask.ConfigureAwait(false)));
+				var alices = await Task.WhenAll(spendStatusCheckingTasks).ConfigureAwait(false);
+				yield return alices.Where(x => x.Status is null).Select(x => x.Alice).ToArray();
+			}
+		}
 	}
 }
