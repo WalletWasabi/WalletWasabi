@@ -14,6 +14,7 @@ namespace WalletWasabi.Backend.Filters
 	public class IdempotentActionFilterAttributeImpl : ActionFilterAttribute
 	{
 		private static TimeSpan CacheTimeout { get; } = TimeSpan.FromMinutes(5);
+		private static TimeSpan RequestTimeout { get; } = TimeSpan.FromMinutes(1);
 		private const string ContextCacheKey = "cached-key";
 
 		public IdempotentActionFilterAttributeImpl(IMemoryCache cache)
@@ -59,7 +60,7 @@ namespace WalletWasabi.Backend.Filters
 				{
 					try
 					{
-						context.Result = await cachedResponseTcs!.Task.WithAwaitCancellationAsync(TimeSpan.FromMinutes(1)).ConfigureAwait(false);
+						context.Result = await cachedResponseTcs!.Task.WithAwaitCancellationAsync(RequestTimeout).ConfigureAwait(false);
 						context.HttpContext.Items.Remove(ContextCacheKey);
 						return;
 					}
