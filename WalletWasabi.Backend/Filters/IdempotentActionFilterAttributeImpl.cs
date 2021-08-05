@@ -37,43 +37,55 @@ namespace WalletWasabi.Backend.Filters
 
 			if (context.ModelState.IsValid)
 			{
-				if (context.ActionArguments.TryGetValue("request", out object? model))
-				{
-					string cacheKey = GetCacheEntryKey(request.Path, model);
-
-					TaskCompletionSource<IActionResult>? cachedResponseTcs = null;
-
-					lock (ResponseCacheLock)
-					{
-						if (!ResponseCache.TryGetValue(cacheKey, out cachedResponseTcs))
-						{
-							ResponseCache.Set(cacheKey, new TaskCompletionSource<IActionResult>(), DateTimeOffset.UtcNow.Add(CacheTimeout));
-						}
-					}
-
-					if (cachedResponseTcs is not null)
-					{
-						try
-						{
-							context.Result = await cachedResponseTcs!.Task.WithAwaitCancellationAsync(TimeSpan.FromMinutes(1)).ConfigureAwait(false);
-							context.HttpContext.Items.Remove(ContextCacheKey);
-							return;
-						}
-						catch (OperationCanceledException)
-						{
-							// Failed to get cached response. Continue as if it were a non-cached request.
-						}
-					}
-
-					context.HttpContext.Items[ContextCacheKey] = cacheKey;
-				}
-				else
+				if (!context.ActionArguments.TryGetValue("request", out object? model))
 				{
 					throw new InvalidOperationException("Control actions marked as Idempotent must receive a 'request' argument.");
 				}
-			}
 
-			await next().ConfigureAwait(false);
+				string cacheKey = GetCacheEntryKey(request.Path, model);
+				TaskCompletionSource<IActionResult>? cachedResponseTcs = null;
+				TaskCompletionSource<IActionResult>? responseTcs = null;
+
+				lock (ResponseCacheLock)
+				{
+					if (!ResponseCache.TryGetValue(cacheKey, out cachedResponseTcs))
+					{
+						responseTcs = new();
+						ResponseCache.Set(cacheKey, responseTcs, DateTimeOffset.UtcNow.Add(CacheTimeout));
+					}
+				}
+
+				if (cachedResponseTcs is not null)
+				{
+					try
+					{
+						context.Result = await cachedResponseTcs!.Task.WithAwaitCancellationAsync(TimeSpan.FromMinutes(1)).ConfigureAwait(false);
+						context.HttpContext.Items.Remove(ContextCacheKey);
+						return;
+					}
+					catch (OperationCanceledException)
+					{
+						// Failed to get cached response. Continue as if it were a non-cached request.
+					}
+				}
+
+				context.HttpContext.Items[ContextCacheKey] = cacheKey;
+
+				ActionExecutedContext executed = await next().ConfigureAwait(false);
+
+				// Request failed for some reason, we don't want to hold any other requests that wait for this one request to finish.
+				if (executed.Exception != null && !executed.ExceptionHandled)
+				{
+					if (responseTcs is not null)
+					{
+						responseTcs.TrySetCanceled();
+					}
+				}
+			}
+			else
+			{
+				await next().ConfigureAwait(false);
+			}
 		}
 
 		/// <inheritdoc/>
