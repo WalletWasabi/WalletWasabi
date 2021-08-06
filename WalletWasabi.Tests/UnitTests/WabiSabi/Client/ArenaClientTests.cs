@@ -33,6 +33,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		{
 			var config = new WabiSabiConfig { MaxInputCountByRound = 1 };
 			var round = WabiSabiFactory.CreateRound(config);
+			round.MaxVsizeAllocationPerAlice = 255;
 			using var key = new Key();
 			var outpoint = BitcoinFactory.CreateOutPoint();
 			var mockRpc = new Mock<IRPCClient>();
@@ -140,7 +141,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			await bobArenaClient.RegisterOutputAsync(
 				round.Id,
-				amountsToRequest[0],
 				destinationKey1.PubKey.WitHash.ScriptPubKey,
 				new[] { amountCred1, zeroAmountCred1 },
 				new[] { vsizeCred1, zeroVsizeCred1 },
@@ -148,7 +148,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			await bobArenaClient.RegisterOutputAsync(
 				round.Id,
-				amountsToRequest[1],
 				destinationKey2.PubKey.WitHash.ScriptPubKey,
 				new[] { amountCred2, zeroAmountCred2 },
 				new[] { vsizeCred2, zeroVsizeCred2 },
