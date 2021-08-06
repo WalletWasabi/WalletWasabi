@@ -44,7 +44,7 @@
               <c:AnimatedButton KeyboardNavigation.IsTabStop="False"
                                 Focusable="False"
                                 Command="{Binding QRCommand}"
-                                ToolTip.Tip="QRReader"
+                                ToolTip.Tip="Scan QR Code"
                                 NormalIcon="{StaticResource qr_code_regular}" />
             </StackPanel>
           </TextBox.InnerRightContent>
