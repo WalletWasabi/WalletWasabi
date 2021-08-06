@@ -273,7 +273,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private void TimeoutRounds()
 		{
-		    foreach (var expiredRound in Rounds.Where(
+			foreach (var expiredRound in Rounds.Where(
 				x =>
 				x.Phase == Phase.Ended
 				&& x.End + Config.RoundExpiryTimeout < DateTimeOffset.UtcNow).ToArray())
@@ -307,20 +307,26 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			var coin = await InputRegistrationHandler.OutpointToCoinAsync(request, Prison, Rpc, Config, cancellationToken).ConfigureAwait(false);
 			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
+				Round? round = Rounds.FirstOrDefault(x => x.Id == request.RoundId);
+				if (round is null)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
+				}
+
 				var registeredCoins = Rounds.Where(x => !(x.Phase == Phase.Ended && !x.WasTransactionBroadcast)).SelectMany(r => r.Alices.Select(a => a.Coin));
 
 				if (registeredCoins.Any(x => x.Outpoint == coin.Outpoint))
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
 				}
+
 				return InputRegistrationHandler.RegisterInput(
 					Config,
-					request.RoundId,
+					round,
 					coin,
 					request.OwnershipProof,
 					request.ZeroAmountCredentialRequests,
-					request.ZeroVsizeCredentialRequests,
-					Rounds);
+					request.ZeroVsizeCredentialRequests);
 			}
 		}
 

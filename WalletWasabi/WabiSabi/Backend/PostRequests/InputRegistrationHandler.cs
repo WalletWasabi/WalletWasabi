@@ -51,18 +51,12 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 
 		public static InputRegistrationResponse RegisterInput(
 			WabiSabiConfig config,
-			uint256 roundId,
+			Round round,
 			Coin coin,
 			OwnershipProof ownershipProof,
 			ZeroCredentialsRequest zeroAmountCredentialRequests,
-			ZeroCredentialsRequest zeroVsizeCredentialRequests,
-			HashSet<Round> rounds)
+			ZeroCredentialsRequest zeroVsizeCredentialRequests)
 		{
-			if (rounds.FirstOrDefault(x => x.Id == roundId) is not Round round)
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
-			}
-
 			if (round.IsInputRegistrationEnded(config.MaxInputCountByRound, config.GetInputRegistrationTimeout(round)))
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
