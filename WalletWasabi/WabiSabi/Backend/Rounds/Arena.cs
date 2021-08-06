@@ -306,27 +306,78 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public async Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 		{
 			var coin = await OutpointToCoinAsync(request, cancellationToken).ConfigureAwait(false);
+
 			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
-				Round? round = Rounds.FirstOrDefault(x => x.Id == request.RoundId);
+				var round = Rounds.FirstOrDefault(x => x.Id == request.RoundId);
 				if (round is null)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
 				}
 
-				var registeredCoins = Rounds.Where(x => !(x.Phase == Phase.Ended && !x.WasTransactionBroadcast)).SelectMany(r => r.Alices.Select(a => a.Coin));
+				var registeredCoins = Rounds.Where(x => !(x.Phase == Phase.Ended && !x.WasTransactionBroadcast))
+					.SelectMany(r => r.Alices.Select(a => a.Coin));
 
 				if (registeredCoins.Any(x => x.Outpoint == coin.Outpoint))
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
 				}
 
-				return RegisterInput(
-					round,
-					coin,
-					request.OwnershipProof,
-					request.ZeroAmountCredentialRequests,
-					request.ZeroVsizeCredentialRequests);
+				if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound,
+					Config.GetInputRegistrationTimeout(round)))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
+				}
+
+				if (round.IsBlameRound && !round.BlameWhitelist.Contains(coin.Outpoint))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputNotWhitelisted);
+				}
+
+				// Compute but don't commit updated CoinJoin to round state, it will
+				// be re-calculated on input confirmation. This is computed it here
+				// for validation purposes.
+				round.Assert<ConstructionState>().AddInput(coin);
+
+				var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", round.Id);
+				if (!OwnershipProof.VerifyCoinJoinInputProof(request.OwnershipProof, coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
+				}
+
+				var alice = new Alice(coin, request.OwnershipProof, round);
+
+				if (alice.TotalInputAmount < round.MinRegistrableAmount)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds);
+				}
+				if (alice.TotalInputAmount > round.MaxRegistrableAmount)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
+				}
+
+				if (alice.TotalInputVsize > round.MaxVsizeAllocationPerAlice)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchVsize);
+				}
+
+				var amountCredentialTask = Task.Run(() => round.AmountCredentialIssuer.PrepareResponse(request.ZeroAmountCredentialRequests), cancellationToken);
+				var vsizeCredentialTask = Task.Run(() => round.VsizeCredentialIssuer.PrepareResponse(request.ZeroVsizeCredentialRequests), cancellationToken);
+
+				if (round.RemainingInputVsizeAllocation < round.MaxVsizeAllocationPerAlice)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.VsizeQuotaExceeded);
+				}
+
+				var commitAmountCredentialResponse = await amountCredentialTask.ConfigureAwait(false);
+				var commitVsizeCredentialResponse = await vsizeCredentialTask.ConfigureAwait(false);
+
+				alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeout);
+				round.Alices.Add(alice);
+
+				return new(alice.Id,
+					commitAmountCredentialResponse.Commit(),
+					commitVsizeCredentialResponse.Commit());
 			}
 		}
 
@@ -569,65 +620,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 
 			return new Coin(input, txOutResponse.TxOut);
-		}
-
-		public InputRegistrationResponse RegisterInput(
-			Round round,
-			Coin coin,
-			OwnershipProof ownershipProof,
-			ZeroCredentialsRequest zeroAmountCredentialRequests,
-			ZeroCredentialsRequest zeroVsizeCredentialRequests)
-		{
-			if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.GetInputRegistrationTimeout(round)))
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
-			}
-
-			if (round.IsBlameRound && !round.BlameWhitelist.Contains(coin.Outpoint))
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputNotWhitelisted);
-			}
-
-			// Compute but don't commit updated CoinJoin to round state, it will
-			// be re-calculated on input confirmation. This is computed it here
-			// for validation purposes.
-			round.Assert<ConstructionState>().AddInput(coin);
-
-			var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", round.Id);
-			if (!OwnershipProof.VerifyCoinJoinInputProof(ownershipProof, coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
-			}
-
-			var alice = new Alice(coin, ownershipProof, round);
-
-			if (alice.TotalInputAmount < round.MinRegistrableAmount)
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds);
-			}
-			if (alice.TotalInputAmount > round.MaxRegistrableAmount)
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
-			}
-
-			if (alice.TotalInputVsize > round.MaxVsizeAllocationPerAlice)
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchVsize);
-			}
-
-			if (round.RemainingInputVsizeAllocation < round.MaxVsizeAllocationPerAlice)
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.VsizeQuotaExceeded);
-			}
-			var commitAmountCredentialResponse = round.AmountCredentialIssuer.PrepareResponse(zeroAmountCredentialRequests);
-			var commitVsizeCredentialResponse = round.VsizeCredentialIssuer.PrepareResponse(zeroVsizeCredentialRequests);
-
-			alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeout);
-			round.Alices.Add(alice);
-
-			return new(alice.Id,
-				commitAmountCredentialResponse.Commit(),
-				commitVsizeCredentialResponse.Commit());
 		}
 
 		public override void Dispose()
