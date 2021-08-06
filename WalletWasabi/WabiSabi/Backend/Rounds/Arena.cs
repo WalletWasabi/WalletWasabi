@@ -323,7 +323,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
 				}
 
-				if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound,
+				if (round.IsInputRegistrationEnded(
+					Config.MaxInputCountByRound,
 					Config.GetInputRegistrationTimeout(round)))
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
