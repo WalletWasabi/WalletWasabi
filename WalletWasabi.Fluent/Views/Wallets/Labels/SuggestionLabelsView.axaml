@@ -7,7 +7,7 @@
              x:DataType="labels:SuggestionLabelsViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Labels.SuggestionLabelsView">
-  <ItemsControl Items="{Binding SuggestionLabelResults}"
+  <ItemsControl Items="{Binding TopSuggestions}"
                 ClipToBounds="False">
     <ItemsControl.ItemsPanel>
       <ItemsPanelTemplate>
