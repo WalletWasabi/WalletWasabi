@@ -19,7 +19,6 @@ namespace WalletWasabi.Fluent.Models
 
 		public WebcamQrReader(Network network)
 		{
-			ScanningTaskLock = new();
 			Network = network;
 		}
 
@@ -31,11 +30,10 @@ namespace WalletWasabi.Fluent.Models
 
 		public event EventHandler<Exception>? ErrorOccured;
 
-		private AsyncLock ScanningTaskLock { get; set; }
-		public bool RequestEnd { get; set; }
-		public Network Network { get; }
-		public Task? ScanningTask { get; set; }
-		public bool IsRunning => ScanningTask is not null;
+		private AsyncLock ScanningTaskLock { get; } = new();
+		private bool RequestEnd { get; set; }
+		private Network Network { get; }
+		private Task? ScanningTask { get; set; }
 
 		public async Task StartScanningAsync()
 		{
@@ -59,7 +57,7 @@ namespace WalletWasabi.Fluent.Models
 							throw new InvalidOperationException("Could not open webcamera.");
 						}
 						RequestEnd = false;
-						KeepScan(camera);
+						KeepScanning(camera);
 					}
 					catch (Exception exc)
 					{
@@ -89,7 +87,7 @@ namespace WalletWasabi.Fluent.Models
 			}
 		}
 
-		private void KeepScan(VideoCapture camera)
+		private void KeepScanning(VideoCapture camera)
 		{
 			PixelSize pixelSize = new(camera.FrameWidth, camera.FrameHeight);
 			Vector dpi = new(96, 96);
@@ -115,25 +113,25 @@ namespace WalletWasabi.Fluent.Models
 					if (qRCodeDetector.Detect(frame, out Point2f[] points))
 					{
 						using Mat tmpMat = new();
-						string qrCode = qRCodeDetector.Decode(frame, points, tmpMat);
-						if (string.IsNullOrWhiteSpace(qrCode))
+						string decodedText = qRCodeDetector.Decode(frame, points, tmpMat);
+						if (string.IsNullOrWhiteSpace(decodedText))
 						{
 							continue;
 						}
-						if (AddressStringParser.TryParse(qrCode, Network, out _))
+						if (AddressStringParser.TryParse(decodedText, Network, out _))
 						{
-							CorrectAddressFound?.Invoke(this, qrCode);
+							CorrectAddressFound?.Invoke(this, decodedText);
 							break;
 						}
 						else
 						{
-							InvalidAddressFound?.Invoke(this, qrCode);
+							InvalidAddressFound?.Invoke(this, decodedText);
 						}
 					}
 				}
-				catch (OpenCVException exc)
+				catch (OpenCVException ex)
 				{
-					Logger.LogWarning(exc);
+					Logger.LogWarning(ex);
 					ErrorOccured?.Invoke(this, new OpenCVException("Could not read frames. Please make sure no other program uses your camera."));
 					RequestEnd = true;
 				}
