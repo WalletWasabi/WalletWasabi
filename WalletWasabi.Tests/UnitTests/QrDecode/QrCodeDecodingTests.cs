@@ -22,21 +22,23 @@ namespace WalletWasabi.Tests.UnitTests.QrDecode
 			string expectedAddress = "tb1ql27ya3gufs5h0ptgjhjd0tm52fq6q0xrav7xza";
 			string otherExpectedAddress = "tb1qfas0k9rn8daqggu7wzp2yne9qdd5fr5wf2u478";
 
+			// First Test
 			string path = Path.Combine(_commonPartialPath, "AddressTest1.png");
 			using var qrImage = new Mat(path);
-			bool qrFound = decoder.Detect(new Mat(path), out var points);
-
+			bool qrFound = decoder.Detect(qrImage, out var points);
 			Assert.True(qrFound);
+
 			string address = decoder.Decode(qrImage, points);
 			Assert.Equal(expectedAddress, address);
 
+			//Second Test
 			string otherPath = Path.Combine(_commonPartialPath, "AddressTest2.png");
 			using var secondQrImage = new Mat(otherPath);
 			qrFound = decoder.Detect(secondQrImage, out var otherPoints);
-
 			Assert.True(qrFound);
-			string secondAddress = decoder.Decode(qrImage, points);
-			Assert.NotEqual(otherExpectedAddress, secondAddress);
+
+			string secondAddress = decoder.Decode(secondQrImage, otherPoints);
+			Assert.Equal(otherExpectedAddress, secondAddress);
 		}
 
 		[Fact]
@@ -51,9 +53,9 @@ namespace WalletWasabi.Tests.UnitTests.QrDecode
 
 			string path = Path.Combine(_commonPartialPath, "QrByPhone.jpg");
 			using var qrImage = new Mat(path);
-			bool qrFound = decoder.Detect(new Mat(path), out var points);
-
+			bool qrFound = decoder.Detect(qrImage, out var points);
 			Assert.True(qrFound);
+
 			string address = decoder.Decode(qrImage, points);
 			Assert.Equal(expectedOutput, address);
 		}
@@ -70,9 +72,9 @@ namespace WalletWasabi.Tests.UnitTests.QrDecode
 
 			string path = Path.Combine(_commonPartialPath, "QRwithZebraBackground.png");
 			using var qrImage = new Mat(path);
-			bool qrFound = decoder.Detect(new Mat(path), out var points);
-
+			bool qrFound = decoder.Detect(qrImage, out var points);
 			Assert.True(qrFound);
+
 			string address = decoder.Decode(qrImage, points);
 			Assert.Equal(expectedOutput, address);
 		}
@@ -89,9 +91,9 @@ namespace WalletWasabi.Tests.UnitTests.QrDecode
 
 			string path = Path.Combine(_commonPartialPath, "qr-embed-logos.png");
 			using var qrImage = new Mat(path);
-			bool qrFound = decoder.Detect(new Mat(path), out var points);
-
+			bool qrFound = decoder.Detect(qrImage, out var points);
 			Assert.True(qrFound);
+
 			string address = decoder.Decode(qrImage, points);
 			Assert.Equal(expectedOutput, address);
 		}
