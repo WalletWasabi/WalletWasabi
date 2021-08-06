@@ -19,7 +19,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels
 		private readonly ObservableCollectionExtended<string> _labels;
 		private Action<string>? _addTag;
 
-		public SuggestionLabelsViewModel()
+		public SuggestionLabelsViewModel(int topSuggestionsCount)
 		{
 			_labels = new ObservableCollectionExtended<string>();
 			var allLabels = WalletHelpers.GetLabels();
@@ -48,7 +48,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels
 				.Connect()
 				.Filter(suggestionLabelsFilter)
 				.Sort(SortExpressionComparer<SuggestionLabelViewModel>.Descending(x => x.Count))
-				.Top(3)
+				.Top(topSuggestionsCount)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Bind(_suggestionLabelResults)
 				.Subscribe();

@@ -63,7 +63,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_to = "";
 			_wallet = wallet;
 			_transactionInfo = new TransactionInfo();
-			_suggestionLabels = new SuggestionLabelsViewModel();
+			_suggestionLabels = new SuggestionLabelsViewModel(3);
 
 			ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 			PriorLabels = new();

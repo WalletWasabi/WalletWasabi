@@ -32,7 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 			EnableBack = false;
 
-			_suggestionLabels = new SuggestionLabelsViewModel();
+			_suggestionLabels = new SuggestionLabelsViewModel(3);
 
 			NextCommand = ReactiveCommand.Create(OnNext, _suggestionLabels.Labels.ToObservableChangeSet().Select(_ => _suggestionLabels.Labels.Count > 0));
 
