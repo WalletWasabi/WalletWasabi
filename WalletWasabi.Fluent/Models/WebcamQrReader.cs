@@ -44,6 +44,7 @@ namespace WalletWasabi.Fluent.Models
 				{
 					return;
 				}
+				RequestEnd = false;
 				ScanningTask = Task.Run(() =>
 				{
 					VideoCapture? camera = null;
@@ -61,7 +62,6 @@ namespace WalletWasabi.Fluent.Models
 						{
 							throw new InvalidOperationException("Could not open webcamera.");
 						}
-						RequestEnd = false;
 						KeepScanning(camera);
 					}
 					catch (Exception ex)
@@ -136,9 +136,7 @@ namespace WalletWasabi.Fluent.Models
 				}
 				catch (OpenCVException ex)
 				{
-					Logger.LogWarning(ex);
-					ErrorOccured?.Invoke(this, new OpenCVException("Could not read frames. Please make sure no other program uses your camera."));
-					RequestEnd = true;
+					throw new OpenCVException("Could not read frames. Please make sure no other program uses your camera.");
 				}
 			}
 		}
