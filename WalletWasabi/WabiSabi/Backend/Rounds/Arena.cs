@@ -14,6 +14,7 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
+using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
@@ -273,7 +274,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private void TimeoutRounds()
 		{
-		    foreach (var expiredRound in Rounds.Where(
+			foreach (var expiredRound in Rounds.Where(
 				x =>
 				x.Phase == Phase.Ended
 				&& x.End + Config.RoundExpiryTimeout < DateTimeOffset.UtcNow).ToArray())
@@ -366,21 +367,24 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		public async Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken)
 		{
+			Round? round;
+			Alice? alice;
+			var realAmountCredentialRequests = request.RealAmountCredentialRequests;
+			var realVsizeCredentialRequests = request.RealVsizeCredentialRequests;
+
 			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
-				if (Rounds.FirstOrDefault(x => x.Id == request.RoundId) is not Round round)
+				round = Rounds.FirstOrDefault(x => x.Id == request.RoundId);
+				if (round is null)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound, $"Round ({request.RoundId}) not found.");
 				}
 
-				var alice = round.Alices.FirstOrDefault(x => x.Id == request.AliceId);
+				alice = round.Alices.FirstOrDefault(x => x.Id == request.AliceId);
 				if (alice is null)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound, $"Round ({request.RoundId}): Alice ({request.AliceId}) not found.");
 				}
-
-				var realAmountCredentialRequests = request.RealAmountCredentialRequests;
-				var realVsizeCredentialRequests = request.RealVsizeCredentialRequests;
 
 				if (realVsizeCredentialRequests.Delta != alice.CalculateRemainingVsizeCredentials(round.MaxVsizeAllocationPerAlice))
 				{
@@ -391,39 +395,68 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedAmountCredentials, $"Round ({request.RoundId}): Incorrect requested amount credentials.");
 				}
 
-				var commitAmountZeroCredentialResponse = round.AmountCredentialIssuer.PrepareResponse(request.ZeroAmountCredentialRequests);
-				var commitVsizeZeroCredentialResponse = round.VsizeCredentialIssuer.PrepareResponse(request.ZeroVsizeCredentialRequests);
-
-				if (round.Phase == Phase.InputRegistration)
-				{
-					alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeout);
-					return new(
-						commitAmountZeroCredentialResponse.Commit(),
-						commitVsizeZeroCredentialResponse.Commit());
-				}
-				else if (round.Phase == Phase.ConnectionConfirmation)
-				{
-					var state = round.Assert<ConstructionState>();
-
-					// Ensure the input can be added to the CoinJoin
-					state = state.AddInput(alice.Coin);
-
-					var commitAmountRealCredentialResponse = round.AmountCredentialIssuer.PrepareResponse(realAmountCredentialRequests);
-					var commitVsizeRealCredentialResponse = round.VsizeCredentialIssuer.PrepareResponse(realVsizeCredentialRequests);
-
-					// update state
-					alice.ConfirmedConnection = true;
-					round.CoinjoinState = state;
-
-					return new(
-						commitAmountZeroCredentialResponse.Commit(),
-						commitVsizeZeroCredentialResponse.Commit(),
-						commitAmountRealCredentialResponse.Commit(),
-						commitVsizeRealCredentialResponse.Commit());
-				}
-				else
+				if (round.Phase is not (Phase.InputRegistration or Phase.ConnectionConfirmation))
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({request.RoundId}): Wrong phase ({round.Phase}).");
+				}
+			}
+
+			var amountZeroTask = Task.Run(() => round.AmountCredentialIssuer.PrepareResponse(request.ZeroAmountCredentialRequests), cancellationToken);
+			var vsizeZeroTask = Task.Run(() => round.VsizeCredentialIssuer.PrepareResponse(request.ZeroVsizeCredentialRequests), cancellationToken);
+			Task<ICommitableCredentialsResponse>? amountRealTask = null;
+			Task<ICommitableCredentialsResponse>? vsizeRealTask = null;
+
+			if (round.Phase is Phase.ConnectionConfirmation)
+			{
+				amountRealTask = Task.Run(() => round.AmountCredentialIssuer.PrepareResponse(realAmountCredentialRequests), cancellationToken);
+				vsizeRealTask = Task.Run(() => round.VsizeCredentialIssuer.PrepareResponse(realVsizeCredentialRequests), cancellationToken);
+			}
+
+			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+			{
+				if (round.Alices.FirstOrDefault(x => x.Id == request.AliceId) != alice)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound, $"Round ({request.RoundId}): Alice ({request.AliceId}) not found.");
+				}
+
+				switch (round.Phase)
+				{
+					case Phase.InputRegistration:
+						{
+							var commitAmountZeroCredentialResponse = await amountZeroTask.ConfigureAwait(false);
+							var commitVsizeZeroCredentialResponse = await vsizeZeroTask.ConfigureAwait(false);
+							alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeout);
+							return new(
+								commitAmountZeroCredentialResponse.Commit(),
+								commitVsizeZeroCredentialResponse.Commit());
+						}
+
+					case Phase.ConnectionConfirmation:
+						{
+							// If the phase was InputRegistration before then we did not pre-calculate real credentials.
+							amountRealTask ??= Task.Run(() => round.AmountCredentialIssuer.PrepareResponse(realAmountCredentialRequests), cancellationToken);
+							vsizeRealTask ??= Task.Run(() => round.VsizeCredentialIssuer.PrepareResponse(realVsizeCredentialRequests), cancellationToken);
+
+							var commitAmountZeroCredentialResponse = await amountZeroTask.ConfigureAwait(false);
+							var commitVsizeZeroCredentialResponse = await vsizeZeroTask.ConfigureAwait(false);
+							var commitAmountRealCredentialResponse = await amountRealTask.ConfigureAwait(false);
+							var commitVsizeRealCredentialResponse = await vsizeRealTask.ConfigureAwait(false);
+
+							// Ensure the input can be added to the CoinJoin
+							round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice.Coin);
+
+							// update state
+							alice.ConfirmedConnection = true;
+
+							return new(
+								commitAmountZeroCredentialResponse.Commit(),
+								commitVsizeZeroCredentialResponse.Commit(),
+								commitAmountRealCredentialResponse.Commit(),
+								commitVsizeRealCredentialResponse.Commit());
+						}
+
+					default:
+						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({request.RoundId}): Wrong phase ({round.Phase}).");
 				}
 			}
 		}
