@@ -528,10 +528,10 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongNumberOfCreds, $"Round ({round.Id}): Incorrect requested number of weight credentials.");
 			}
 
-			var realAmountTask = Task.Run(() => round.AmountCredentialIssuer.PrepareResponse(request.RealAmountCredentialRequests), cancellationToken);
-			var realVsizeTask = Task.Run(() => round.VsizeCredentialIssuer.PrepareResponse(request.RealVsizeCredentialRequests), cancellationToken);
-			var zeroAmountTask = Task.Run(() => round.AmountCredentialIssuer.PrepareResponse(request.ZeroAmountCredentialRequests), cancellationToken);
-			var zeroVsizeTask = Task.Run(() => round.VsizeCredentialIssuer.PrepareResponse(request.ZeroVsizeCredentialsRequests), cancellationToken);
+			var realAmountTask = round.AmountCredentialIssuer.PrepareResponse(request.RealAmountCredentialRequests, cancellationToken);
+			var realVsizeTask = round.VsizeCredentialIssuer.PrepareResponse(request.RealVsizeCredentialRequests, cancellationToken);
+			var zeroAmountTask = round.AmountCredentialIssuer.PrepareResponse(request.ZeroAmountCredentialRequests, cancellationToken);
+			var zeroVsizeTask = round.VsizeCredentialIssuer.PrepareResponse(request.ZeroVsizeCredentialsRequests, cancellationToken);
 
 			var commitRealAmountCredentialResponse = await realAmountTask.ConfigureAwait(false);
 			var commitRealVsizeCredentialResponse = await realVsizeTask.ConfigureAwait(false);

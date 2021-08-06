@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto;
@@ -294,6 +295,11 @@ namespace WalletWasabi.WabiSabi.Crypto
 			var label = $"UnifiedRegistration/{NumberOfCredentials}/{isNullRequest}";
 			var encodedLabel = Encoding.UTF8.GetBytes(label);
 			return new Transcript(encodedLabel);
+		}
+
+		public Task<ICommitableCredentialsResponse> PrepareResponse(CredentialsRequest registrationRequest, CancellationToken cancel)
+		{
+			return Task.Run(() => PrepareResponse(registrationRequest), cancel);
 		}
 
 		private class PreparedCredentialsResponse : ICommitableCredentialsResponse
