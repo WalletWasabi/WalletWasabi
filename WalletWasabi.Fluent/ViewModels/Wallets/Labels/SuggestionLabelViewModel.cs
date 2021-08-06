@@ -4,7 +4,7 @@ using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels
 {
-	public partial class SuggestionLabelViewModel : ViewModelBase
+	public class SuggestionLabelViewModel : ViewModelBase
 	{
 		public SuggestionLabelViewModel(string label, int count, Action<string> addTag)
 		{
