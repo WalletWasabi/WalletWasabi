@@ -22,9 +22,21 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels
 		public SuggestionLabelsViewModel(int topSuggestionsCount)
 		{
 			_labels = new ObservableCollectionExtended<string>();
-			var allLabels = WalletHelpers.GetLabels();
+			_suggestionLabels = new SourceList<SuggestionLabelViewModel>();
+			_topSuggestions = new ObservableCollectionExtended<SuggestionLabelViewModel>();
+			_suggestions = new ObservableCollectionExtended<string>();
 
-			var mostUsedLabels = allLabels.GroupBy(x => x)
+			UpdateLabels();
+			CreateSuggestions(topSuggestionsCount);
+
+			SetAddTag = (addTag) => _addTag = addTag;
+		}
+
+		public void UpdateLabels()
+		{
+			var labels = WalletHelpers.GetLabels();
+
+			var mostUsedLabels = labels.GroupBy(x => x)
 				.Select(x => new
 				{
 					Label = x.Key,
@@ -33,13 +45,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels
 				.OrderByDescending(x => x.Count)
 				.ToList();
 
-			_suggestionLabels = new SourceList<SuggestionLabelViewModel>();
-			_topSuggestions = new ObservableCollectionExtended<SuggestionLabelViewModel>();
-			_suggestions = new ObservableCollectionExtended<string>();
-
+			_suggestionLabels.Clear();
 			_suggestionLabels.AddRange(
 				mostUsedLabels.Select(x => new SuggestionLabelViewModel(x.Label, x.Count, label => _addTag?.Invoke(label))));
+		}
 
+		private void CreateSuggestions(int topSuggestionsCount)
+		{
 			var suggestionLabelsFilter = this.WhenAnyValue(x => x.Labels).Select(_ => Unit.Default)
 				.Merge(Observable.FromEventPattern(Labels, nameof(Labels.CollectionChanged)).Select(_ => Unit.Default))
 				.Select(SuggestionLabelsFilter);
@@ -61,8 +73,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Bind(_suggestions)
 				.Subscribe();
-
-			SetAddTag = (addTag) => _addTag = addTag;
 		}
 
 		public ObservableCollection<SuggestionLabelViewModel> TopSuggestions => _topSuggestions;
