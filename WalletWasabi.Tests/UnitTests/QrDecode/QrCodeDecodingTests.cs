@@ -8,13 +8,13 @@ namespace WalletWasabi.Tests.UnitTests.QrDecode
 {
 	public class QrCodeDecodingTests
 	{
-		private readonly string _commonPartialPath = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "UnitTests", "QrDecode", "QrResources");
-		private readonly bool _isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+		private string CommonPartialPath { get; } = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "UnitTests", "QrDecode", "QrResources");
+		private bool IsWindows { get; } = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
 		[Fact]
 		public void GetCorrectAddressFromImages()
 		{
-			if (!_isWindows)
+			if (!IsWindows)
 			{
 				return;
 			}
@@ -23,7 +23,7 @@ namespace WalletWasabi.Tests.UnitTests.QrDecode
 			string otherExpectedAddress = "tb1qfas0k9rn8daqggu7wzp2yne9qdd5fr5wf2u478";
 
 			// First Test
-			string path = Path.Combine(_commonPartialPath, "AddressTest1.png");
+			string path = Path.Combine(CommonPartialPath, "AddressTest1.png");
 			using var qrImage = new Mat(path);
 			bool qrFound = decoder.Detect(qrImage, out var points);
 			Assert.True(qrFound);
@@ -32,7 +32,7 @@ namespace WalletWasabi.Tests.UnitTests.QrDecode
 			Assert.Equal(expectedAddress, address);
 
 			//Second Test
-			string otherPath = Path.Combine(_commonPartialPath, "AddressTest2.png");
+			string otherPath = Path.Combine(CommonPartialPath, "AddressTest2.png");
 			using var secondQrImage = new Mat(otherPath);
 			qrFound = decoder.Detect(secondQrImage, out var otherPoints);
 			Assert.True(qrFound);
@@ -44,14 +44,14 @@ namespace WalletWasabi.Tests.UnitTests.QrDecode
 		[Fact]
 		public void DecodePictureTakenByPhone()
 		{
-			if (!_isWindows)
+			if (!IsWindows)
 			{
 				return;
 			}
 			using QRCodeDetector decoder = new();
 			string expectedOutput = "tb1qutgpgraaze3hqnvt2xyw5acsmd3urprk3ff27d";
 
-			string path = Path.Combine(_commonPartialPath, "QrByPhone.jpg");
+			string path = Path.Combine(CommonPartialPath, "QrByPhone.jpg");
 			using var qrImage = new Mat(path);
 			bool qrFound = decoder.Detect(qrImage, out var points);
 			Assert.True(qrFound);
@@ -63,14 +63,14 @@ namespace WalletWasabi.Tests.UnitTests.QrDecode
 		[Fact]
 		public void DecodeDifficultPictureTakenByPhone()
 		{
-			if (!_isWindows)
+			if (!IsWindows)
 			{
 				return;
 			}
 			using QRCodeDetector decoder = new();
 			string expectedOutput = "Let's see a Zebra.";
 
-			string path = Path.Combine(_commonPartialPath, "QRwithZebraBackground.png");
+			string path = Path.Combine(CommonPartialPath, "QRwithZebraBackground.png");
 			using var qrImage = new Mat(path);
 			bool qrFound = decoder.Detect(qrImage, out var points);
 			Assert.True(qrFound);
@@ -82,14 +82,14 @@ namespace WalletWasabi.Tests.UnitTests.QrDecode
 		[Fact]
 		public void DecodePictureWithImageInsideTheQR()
 		{
-			if (!_isWindows)
+			if (!IsWindows)
 			{
 				return;
 			}
 			using QRCodeDetector decoder = new();
 			string expectedOutput = "https://twitter.com/SimonHearne";
 
-			string path = Path.Combine(_commonPartialPath, "qr-embed-logos.png");
+			string path = Path.Combine(CommonPartialPath, "qr-embed-logos.png");
 			using var qrImage = new Mat(path);
 			bool qrFound = decoder.Detect(qrImage, out var points);
 			Assert.True(qrFound);
