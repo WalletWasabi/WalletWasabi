@@ -38,7 +38,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public Money MinRegistrableAmount => RoundParameters.MinRegistrableAmount;
 		public Money MaxRegistrableAmount => RoundParameters.MaxRegistrableAmount;
 		public int MaxRegistrableVsize { get; }
-		public int MaxVsizeAllocationPerAlice { get; }
+		public int MaxVsizeAllocationPerAlice { get; internal set; }
 		public FeeRate FeeRate => RoundParameters.FeeRate;
 		public CredentialIssuer AmountCredentialIssuer { get; }
 		public CredentialIssuer VsizeCredentialIssuer { get; }
