@@ -51,7 +51,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private decimal _amountBtc;
 		[AutoNotify] private decimal _exchangeRate;
 		[AutoNotify] private bool _isFixedAmount;
-		[AutoNotify] private ObservableCollection<string> _priorLabels;
 		[AutoNotify] private bool _isPayJoin;
 		[AutoNotify] private string? _payJoinEndPoint;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private SuggestionLabelsViewModel _suggestionLabels;
@@ -66,7 +65,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_suggestionLabels = new SuggestionLabelsViewModel(3);
 
 			ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
-			PriorLabels = new();
 
 			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
