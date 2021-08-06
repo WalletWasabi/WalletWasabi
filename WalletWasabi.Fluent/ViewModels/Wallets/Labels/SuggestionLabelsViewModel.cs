@@ -32,6 +32,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels
 			SetAddTag = (addTag) => _addTag = addTag;
 		}
 
+		public ObservableCollection<SuggestionLabelViewModel> TopSuggestions => _topSuggestions;
+
+		public ObservableCollection<string> Suggestions => _suggestions;
+
+		public ObservableCollection<string> Labels => _labels;
+
+		public Action<Action<string>>? SetAddTag { get; }
+
 		public void UpdateLabels()
 		{
 			var labels = WalletHelpers.GetLabels();
@@ -74,14 +82,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels
 				.Bind(_suggestions)
 				.Subscribe();
 		}
-
-		public ObservableCollection<SuggestionLabelViewModel> TopSuggestions => _topSuggestions;
-
-		public ObservableCollection<string> Suggestions => _suggestions;
-
-		public ObservableCollection<string> Labels => _labels;
-
-		public Action<Action<string>>? SetAddTag { get; }
 
 		private Func<SuggestionLabelViewModel, bool> SuggestionLabelsFilter(Unit unit)
 		{
