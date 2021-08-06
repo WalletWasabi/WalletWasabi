@@ -42,6 +42,11 @@
                                 ToolTip.Tip="Paste"
                                 NormalIcon="{StaticResource paste_regular}"
                                 ClickIcon="{StaticResource copy_confirmed}" />
+              <c:AnimatedButton KeyboardNavigation.IsTabStop="False"
+                                Focusable="False"
+                                Command="{Binding QRCommand}"
+                                ToolTip.Tip="Scan QR Code"
+                                NormalIcon="{StaticResource qr_code_regular}" />
             </StackPanel>
           </TextBox.InnerRightContent>
         </TextBox>
