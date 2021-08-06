@@ -53,7 +53,7 @@ namespace WalletWasabi.Services
 					gui = GraphicalEnvironment.Gnome;
 				}
 
-				taskFactory = () => Task.FromResult<IPowerSavingInhibitorTask>(LinuxInhibitorTask.Create(InhibitWhat.All, Timeout, Reason, gui));
+				taskFactory = () => Task.FromResult<IPowerSavingInhibitorTask>(LinuxInhibitorTask.Create(InhibitWhat.Idle, Timeout, Reason, gui));
 			}
 
 			return new SystemAwakeChecker(walletManager, taskFactory);
