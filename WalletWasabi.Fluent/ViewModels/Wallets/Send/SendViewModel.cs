@@ -288,6 +288,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				.Subscribe(x => ExchangeRate = x)
 				.DisposeWith(disposables);
 
+			_wallet.TransactionProcessor.WhenAnyValue(x => x.Coins)
+				.Select(_ => Unit.Default)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => _suggestionLabels.UpdateLabels())
+				.DisposeWith(disposables);
+
 			RxApp.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
 
 			base.OnNavigatedTo(inHistory, disposables);
