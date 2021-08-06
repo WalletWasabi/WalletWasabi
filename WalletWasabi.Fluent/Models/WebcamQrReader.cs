@@ -39,15 +39,19 @@ namespace WalletWasabi.Fluent.Models
 		{
 			using (await ScanningTaskLock.LockAsync().ConfigureAwait(false))
 			{
-				if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				if (ScanningTask is { })
 				{
-					ErrorOccured?.Invoke(this, new NotImplementedException("This operating system is not supported."));
+					return;
 				}
 				ScanningTask = Task.Run(() =>
 				{
 					VideoCapture? camera = null;
 					try
 					{
+						if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+						{
+							throw new NotImplementedException("This operating system is not supported.");
+						}
 						camera = new();
 						camera.SetExceptionMode(true);
 						// Setting VideoCaptureAPI to DirectShow, to remove warning logs,
@@ -59,10 +63,10 @@ namespace WalletWasabi.Fluent.Models
 						RequestEnd = false;
 						KeepScanning(camera);
 					}
-					catch (Exception exc)
+					catch (Exception ex)
 					{
-						Logger.LogError("QR scanning stopped. Reason:", exc);
-						ErrorOccured?.Invoke(this, exc);
+						Logger.LogError("QR scanning stopped. Reason:", ex);
+						ErrorOccured?.Invoke(this, ex);
 					}
 					finally
 					{
