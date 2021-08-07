@@ -8,7 +8,7 @@ namespace WalletWasabi.WabiSabi.Models.Serialization
 {
 	public class JsonSerializationOptions
 	{
-		private static readonly JsonSerializerSettings CurrentSettings = new ()
+		private static readonly JsonSerializerSettings CurrentSettings = new()
 		{
 			Converters = new List<JsonConverter>()
 			{
