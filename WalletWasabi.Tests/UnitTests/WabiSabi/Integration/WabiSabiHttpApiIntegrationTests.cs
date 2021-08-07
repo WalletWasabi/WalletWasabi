@@ -353,12 +353,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 		[Fact]
 		public async Task RegisterCoinIdempotencyAsync()
 		{
-			using var signingKey = new Key();
-			var coinToRegister = new Coin(
-				BitcoinFactory.CreateOutPoint(),
-				new TxOut(Money.Coins(1), signingKey.PubKey.WitHash.ScriptPubKey));
+			using Key signingKey = new();
+			Coin coinToRegister = new(
+				fromOutpoint: BitcoinFactory.CreateOutPoint(),
+				fromTxOut: new TxOut(Money.Coins(1), signingKey.PubKey.WitHash.ScriptPubKey));
 
-			var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
+			using HttpClient httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
 			{
 				builder.ConfigureServices(services =>
 				{
@@ -374,11 +374,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 				});
 			}).CreateClient();
 
-			var apiClient = await _apiApplicationFactory.CreateArenaClientAsync(new StuttererHttpClient(httpClient));
-			var rounds = await apiClient.GetStatusAsync(CancellationToken.None);
-			var round = rounds.First(x => x.CoinjoinState is ConstructionState);
+			ArenaClient apiClient = await _apiApplicationFactory.CreateArenaClientAsync(new StuttererHttpClient(httpClient));
+			RoundState[] rounds = await apiClient.GetStatusAsync(CancellationToken.None);
+			RoundState round = rounds.First(x => x.CoinjoinState is ConstructionState);
 
-			var response = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, signingKey, CancellationToken.None);
+			ArenaResponse<uint256> response = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, signingKey, CancellationToken.None);
 
 			Assert.NotEqual(uint256.Zero, response.Value);
 		}
@@ -391,10 +391,15 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 			public override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
 			{
-				var result1 = await base.SendAsync(request.Clone(), token);
-				var result2 = await base.SendAsync(request.Clone(), token);
-				var content1 = await result1.Content.ReadAsStringAsync();
-				var content2 = await result2.Content.ReadAsStringAsync();
+				using HttpRequestMessage requestClone1 = request.Clone();
+				using HttpRequestMessage requestClone2 = request.Clone();
+
+				HttpResponseMessage result1 = await base.SendAsync(requestClone1, token).ConfigureAwait(false);
+				HttpResponseMessage result2 = await base.SendAsync(requestClone2, token).ConfigureAwait(false);
+
+				string content1 = await result1.Content.ReadAsStringAsync(token).ConfigureAwait(false);
+				string content2 = await result2.Content.ReadAsStringAsync(token).ConfigureAwait(false);
+
 				Assert.Equal(content1, content2);
 				return result2;
 			}
@@ -406,9 +411,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			{
 			}
 
-			public override async Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken)
+			public override Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken)
 			{
-				return;
+				return Task.CompletedTask;
 			}
 		}
 	}
