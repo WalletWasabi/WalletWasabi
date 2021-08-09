@@ -113,7 +113,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 		private void UpdateSample(TimeSpan sampleTime, TimeSpan sampleBackFor)
 		{
-			Console.WriteLine($"[WalletBalanceChartTile] UpdateSample()");
 			StopTimer();
 
 			var sampleLimit = DateTimeOffset.Now - sampleBackFor;
@@ -134,7 +133,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			{
 				if (_currentAnimationFrame < _totalAnimationFrames)
 				{
-					Console.WriteLine($"[WalletBalanceChartTile] Use last frame.");
 					sourceXValues = _animationFrames[_totalAnimationFrames - 1].XValues;
 					sourceYValues = _animationFrames[_totalAnimationFrames - 1].YValues;
 				}
@@ -220,22 +218,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		{
 			if (source.XValues.Count > 0 && target.XValues.Count > 0)
 			{
-				Console.WriteLine($"[WalletBalanceChartTile] UpdateValues() - Animation: source.XValues.Count='{source.XValues.Count}', target.XValues.Count='{target.XValues.Count}'");
-				try
-				{
-					CreateAnimation(source, target);
-					Console.WriteLine($"[WalletBalanceChartTile] UpdateValues() - StartTimer() BEGIN");
-					StartTimer();
-					Console.WriteLine($"[WalletBalanceChartTile] UpdateValues() - StartTimer() END");
-				}
-				catch (Exception e)
-				{
-					Console.WriteLine($"[WalletBalanceChartTile] {e}");
-				}
+				CreateAnimation(source, target);
+				StartTimer();
 			}
 			else
 			{
-				Console.WriteLine($"[WalletBalanceChartTile] UpdateValues() - No Animation");
 				XValues = target.XValues;
 				YValues = target.YValues;
 			}
@@ -243,37 +230,31 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 		private void CreateAnimation(PolyLine source, PolyLine target)
 		{
-			Console.WriteLine($"[WalletBalanceChartTile] CreateAnimation()");
 			_totalAnimationFrames = (int)(1 / _animationSpeed);
 			_animationFrames = PolyLineMorph.ToCache(source, target, _animationSpeed, _animationEasing, interpolateXAxis: false);
 			_currentAnimationFrame = 0;
-			Console.WriteLine($"[WalletBalanceChartTile] CreateAnimation(): {_currentAnimationFrame}/{_totalAnimationFrames}");
 		}
 
 		private void StartTimer()
 		{
 			if (_timer is null)
 			{
-				Console.WriteLine($"[WalletBalanceChartTile] StartTimer(): new DispatcherTimer(...)");
 				_timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1 / 60.0) };
 				_timer.Tick += AnimationTimerOnTick;
 			}
 
-			Console.WriteLine($"[WalletBalanceChartTile] StartTimer(): _timer is null='{_timer is null}'");
 			_timer?.Start();
 			_isAnimationaRunning = true;
 		}
 
 		private void StopTimer()
 		{
-			Console.WriteLine($"[WalletBalanceChartTile] StopTimer()");
 			_timer?.Stop();
 			_isAnimationaRunning = false;
 		}
 
 		private void AnimationTimerOnTick(object? sender, EventArgs e)
 		{
-			Console.WriteLine($"[WalletBalanceChartTile] AnimationTimerOnTick(): {_currentAnimationFrame}/{_totalAnimationFrames}");
 			if (_animationFrames is null)
 			{
 				return;
@@ -284,7 +265,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			if (_currentAnimationFrame >= _totalAnimationFrames)
 			{
-				Console.WriteLine($"[WalletBalanceChartTile] AnimationTimerOnTick() - StopTimer(): {_currentAnimationFrame}/{_totalAnimationFrames}");
 				StopTimer();
 			}
 		}
