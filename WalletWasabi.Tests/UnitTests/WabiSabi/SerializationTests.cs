@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading;
+using NBitcoin;
 using NBitcoin.Secp256k1;
 using Newtonsoft.Json;
 using WalletWasabi.Crypto;
@@ -140,6 +141,37 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 
 			var deserializedScalarVector = JsonConvert.DeserializeObject<ScalarVector>("[\"000000000000000000000000000000014551231950B75FC4402DA1732FC9BEC2\",\"0000000000000000000000000000000000000000000000000000000000000003\"]", converters);
 			Assert.Equal(deserializedScalars, deserializedScalarVector);
+		}
+
+		[Fact]
+		public void MoneySerialization()
+		{
+			JsonConverter[] converters = new JsonConverter[]
+			{
+				new MoneySatoshiJsonConverter()
+			};
+
+			// Simple values.
+			Assert.Equal(Money.Satoshis(0), JsonConvert.DeserializeObject<Money>("0", converters));
+			Assert.Equal(Money.Satoshis(1), JsonConvert.DeserializeObject<Money>("1", converters));
+			Assert.Equal(Money.Satoshis(-1), JsonConvert.DeserializeObject<Money>("-1", converters));
+			Assert.Equal(Money.Satoshis(16), JsonConvert.DeserializeObject<Money>("0x10", converters));
+			Assert.Null(JsonConvert.DeserializeObject<Money>("", converters));
+
+			// Simple round-trip test.
+			Money money = Money.Satoshis(100);
+			Assert.Equal("100", JsonConvert.SerializeObject(money, converters));
+			Assert.Equal(money, JsonConvert.DeserializeObject<Money>("100", converters));
+
+			// Out-of-range.
+			Assert.Throws<InvalidCastException>(() => JsonConvert.DeserializeObject<Money>("90000000000000000000000000", converters));
+			Assert.Throws<InvalidCastException>(() => JsonConvert.DeserializeObject<Money>("-90000000000000000000000000", converters));
+
+			// Invalid values.
+			Assert.Throws<ArgumentNullException>(() => JsonConvert.DeserializeObject<Money>(null, converters));
+			Assert.Throws<InvalidCastException>(() => JsonConvert.DeserializeObject<Money>("0.1", converters));
+			Assert.Throws<InvalidCastException>(() => JsonConvert.DeserializeObject<Money>("1e6", converters));
+			Assert.Throws<JsonReaderException>(() => JsonConvert.DeserializeObject<Money>("Satoshi", converters));
 		}
 
 		[Fact]
