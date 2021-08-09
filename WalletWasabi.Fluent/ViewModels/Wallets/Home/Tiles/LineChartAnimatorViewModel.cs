@@ -33,21 +33,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			_xValues = new ObservableCollection<double>();
 		}
 
-		private void CreateAnimation(PolyLine source, PolyLine target)
-		{
-			_totalAnimationFrames = (int)(1 / _animationSpeed);
-			_animationFrames = PolyLineMorph.ToCache(source, target, _animationSpeed, _animationEasing, interpolateXAxis: false);
-			_currentAnimationFrame = 0;
-		}
-
-		private void AnimationTimerOnTick(object? sender, EventArgs e)
+		private void TickFrame()
 		{
 			if (_animationFrames is null)
 			{
 				return;
 			}
 
-			SetFrameValues(_animationFrames, _currentAnimationFrame);
+			XValues = _animationFrames[_currentAnimationFrame].XValues;
+			YValues = _animationFrames[_currentAnimationFrame].YValues;
+
 			_currentAnimationFrame++;
 
 			if (_currentAnimationFrame >= _totalAnimationFrames)
@@ -56,10 +51,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			}
 		}
 
-		private void SetFrameValues(List<PolyLine> frames, int count)
+		private void AnimationTimerOnTick(object? sender, EventArgs e)
 		{
-			XValues = frames[count].XValues;
-			YValues = frames[count].YValues;
+			TickFrame();
 		}
 
 		public void StartTimer()
@@ -89,7 +83,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			if (_source.XValues.Count > 0 && _target.XValues.Count > 0)
 			{
-				CreateAnimation(_source, _target);
+				_totalAnimationFrames = (int)(1 / _animationSpeed);
+				_animationFrames = PolyLineMorph.ToCache(_source, _target, _animationSpeed, _animationEasing, interpolateXAxis: false);
+				_currentAnimationFrame = 0;
+
+				TickFrame();
 				StartTimer();
 			}
 			else
