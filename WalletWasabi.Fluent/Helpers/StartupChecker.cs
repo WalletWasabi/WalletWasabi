@@ -9,7 +9,7 @@ namespace WalletWasabi.Fluent.Helpers
 {
 	public static class StartupChecker
 	{
-		public static bool Checker()
+		public static bool Validate()
 		{
 			bool result = false;
 
