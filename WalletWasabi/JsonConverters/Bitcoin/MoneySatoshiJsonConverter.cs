@@ -4,16 +4,10 @@ using System;
 
 namespace WalletWasabi.JsonConverters.Bitcoin
 {
-	public class MoneySatoshiJsonConverter : JsonConverter
+	public class MoneySatoshiJsonConverter : JsonConverter<Money>
 	{
 		/// <inheritdoc />
-		public override bool CanConvert(Type objectType)
-		{
-			return objectType == typeof(Money);
-		}
-
-		/// <inheritdoc />
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+		public override Money ReadJson(JsonReader reader, Type objectType, Money existingValue, bool hasExistingValue, JsonSerializer serializer)
 		{
 			var serialized = (long)reader.Value;
 
@@ -21,11 +15,9 @@ namespace WalletWasabi.JsonConverters.Bitcoin
 		}
 
 		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+		public override void WriteJson(JsonWriter writer, Money value, JsonSerializer serializer)
 		{
-			var money = (Money)value;
-
-			writer.WriteValue(money.Satoshi);
+			writer.WriteValue(value.Satoshi);
 		}
 	}
 }
