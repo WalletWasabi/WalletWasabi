@@ -247,6 +247,15 @@ namespace WalletWasabi.Gui
 					BitcoinStore.BlockRepository);
 
 				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), blockProvider);
+
+				try
+				{
+					UiConfig.RunOnSystemStartup = await StartupChecker.ValidateAsync().ConfigureAwait(false);
+				}
+				catch (Exception e)
+				{
+					Logger.LogWarning($"Failed to validate the start up option, error: {e.Message}.");
+				}
 			}
 			finally
 			{
