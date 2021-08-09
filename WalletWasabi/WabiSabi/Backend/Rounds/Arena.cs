@@ -326,26 +326,31 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		public async Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken)
 		{
+			Alice? alice;
+
 			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
-				if (Rounds.FirstOrDefault(r => r.Id == request.RoundId) is not Round round)
+				if (Rounds.FirstOrDefault(r => r.Id == request.RoundId) is not { } round)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound, $"Round ({request.RoundId}) not found.");
 				}
 
-				if (round.Alices.FirstOrDefault(a => a.Id == request.AliceId) is not Alice alice)
+				alice = round.Alices.FirstOrDefault(a => a.Id == request.AliceId);
+				if (alice is null)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound, $"Round ({request.RoundId}): Alice id ({request.AliceId}).");
 				}
-
-				var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", request.RoundId);
-				if (!OwnershipProof.VerifyCoinJoinInputProof(request.OwnershipProof, alice.Coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
-				}
-
-				alice.ReadyToSign = true;
 			}
+
+			var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", request.RoundId);
+			if (!OwnershipProof.VerifyCoinJoinInputProof(request.OwnershipProof, alice.Coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
+			}
+
+			// Locking is not strictly required because ReadyToSign is monotone (only
+			// changes from false to true) and primitive value types are atomic.
+			alice.ReadyToSign = true;
 		}
 
 		public async Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellationToken)
