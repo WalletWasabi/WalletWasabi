@@ -17,7 +17,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 	public partial class WalletBalanceChartTileViewModel : TileViewModel
 	{
 		private readonly ObservableCollection<HistoryItemViewModel> _history;
+		private readonly IEasing _animationEasing;
+		private readonly double _animationSpeed;
 		private DispatcherTimer? _timer;
+		private List<PolyLine>? _animationFrames;
+		private int _totalFrames;
+		private int _currentAnimationFrame;
 		[AutoNotify] private ObservableCollection<double> _yValues;
 		[AutoNotify] private ObservableCollection<double> _xValues;
 		[AutoNotify] private double? _xMinimum;
@@ -27,6 +32,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		public WalletBalanceChartTileViewModel(ObservableCollection<HistoryItemViewModel> history)
 		{
 			_history = history;
+
+			_animationEasing = new SplineEasing();
+			_animationSpeed = 0.05;
+
 			_yValues = new ObservableCollection<double>();
 			_xValues = new ObservableCollection<double>();
 			TimePeriodOptions = new ObservableCollection<TimePeriodOptionViewModel>();
@@ -100,11 +109,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 		private void UpdateSample(TimeSpan sampleTime, TimeSpan sampleBackFor)
 		{
-			if (_timer is not null)
-			{
-				_timer.Stop();
-				_timer = null;
-			}
+			StopTimer();
 
 			var sampleLimit = DateTimeOffset.Now - sampleBackFor;
 
@@ -197,35 +202,54 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		{
 			if (source.XValues.Count > 0 && target.XValues.Count > 0)
 			{
-				const double Speed = 0.05;
-				const int Frames = (int) (1 / Speed);
-
-				var easing = new SplineEasing();
-				var cache = PolyLineMorph.ToCache(source, target, Speed, easing);
-				var frame = 0;
-
-				_timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1 / 60.0) };
-				_timer.Tick += (_, _) =>
-				{
-					if (_timer is null)
-					{
-						return;
-					}
-					XValues = cache[frame].XValues;
-					YValues = cache[frame].YValues;
-
-					frame++;
-					if (frame == Frames)
-					{
-						_timer?.Stop();
-					}
-				};
-				_timer?.Start();
+				CreateAnimation(source, target);
+				StartTimer();
 			}
 			else
 			{
 				XValues = target.XValues;
 				YValues = target.YValues;
+			}
+		}
+
+		private void CreateAnimation(PolyLine source, PolyLine target)
+		{
+			_totalFrames = (int)(1 / _animationSpeed);
+			_animationFrames = PolyLineMorph.ToCache(source, target, _animationSpeed, _animationEasing);
+			_currentAnimationFrame = 0;
+		}
+
+		private void StartTimer()
+		{
+			if (_timer is null)
+			{
+				_timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1 / 60.0) };
+				_timer.Tick += AnimationTimerOnTick;
+			}
+
+			_timer?.Start();
+		}
+
+		private void StopTimer()
+		{
+			_timer?.Stop();
+		}
+
+		private void AnimationTimerOnTick(object? sender, EventArgs e)
+		{
+			if (_animationFrames is null)
+			{
+				return;
+			}
+
+			XValues = _animationFrames[_currentAnimationFrame].XValues;
+			YValues = _animationFrames[_currentAnimationFrame].YValues;
+
+			_currentAnimationFrame++;
+
+			if (_currentAnimationFrame >= _totalFrames)
+			{
+				StopTimer();
 			}
 		}
 	}
