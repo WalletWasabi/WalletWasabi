@@ -1,9 +1,5 @@
-using System;
-using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
-using WalletWasabi.Microservices;
 
 namespace WalletWasabi.Fluent.Helpers
 {
@@ -11,7 +7,6 @@ namespace WalletWasabi.Fluent.Helpers
 	{
 		private static readonly string AddCmd = $"osascript -e \' tell application \"System Events\" to make new login item at end with properties {{name:\"{Constants.AppName}\", path:\"/Applications/{Constants.AppName}.app\", hidden:true}} \'";
 		private static readonly string DeleteCmd = $"osascript -e \' tell application \"System Events\" to delete login item \"{Constants.AppName}\" \'";
-		private static readonly string ListCmd = $"osascript -e \' tell application \"System Events\" to get every login item\'";
 
 		public static async Task AddOrRemoveLoginItemAsync(bool runOnSystemStartup)
 		{
@@ -23,31 +18,6 @@ namespace WalletWasabi.Fluent.Helpers
 			{
 				await EnvironmentHelpers.ShellExecAsync(DeleteCmd).ConfigureAwait(false);
 			}
-		}
-
-		internal static async Task<bool> CheckLoginItemExistsAsync()
-		{
-			var escapedArgs = ListCmd.Replace("\"", "\\\"");
-
-			var startInfo = new ProcessStartInfo
-			{
-				FileName = "/usr/bin/env",
-				Arguments = $"sh -c \"{escapedArgs}\"",
-				RedirectStandardOutput = true,
-				UseShellExecute = false,
-				CreateNoWindow = true,
-				WindowStyle = ProcessWindowStyle.Hidden
-			};
-
-			using var process = new ProcessAsync(startInfo);
-
-			process.Start();
-
-			string output = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
-
-			await process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
-
-			return output.Contains(Constants.AppName);
 		}
 	}
 }

@@ -3,7 +3,6 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using WalletWasabi.Helpers;
-using System.Linq;
 
 namespace WalletWasabi.Fluent.Helpers
 {
@@ -34,19 +33,6 @@ namespace WalletWasabi.Fluent.Helpers
 			{
 				key.DeleteValue(nameof(WalletWasabi), false);
 			}
-		}
-
-		internal static bool CheckRegistryKeyExists()
-		{
-			bool result = false;
-
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-			{
-				RegistryKey? registryKey = Registry.CurrentUser.OpenSubKey(KeyPath, false) ?? throw new InvalidOperationException("Registry operation failed.");
-				result = registryKey.GetValueNames().Contains(nameof(WalletWasabi));
-			}
-
-			return result;
 		}
 	}
 }
