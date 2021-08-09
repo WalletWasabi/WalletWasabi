@@ -21,8 +21,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		private readonly double _animationSpeed;
 		private DispatcherTimer? _timer;
 		private List<PolyLine>? _animationFrames;
-		private int _totalFrames;
+		private int _totalAnimationFrames;
 		private int _currentAnimationFrame;
+		private bool _isAnimationaRunning;
 		[AutoNotify] private ObservableCollection<double> _yValues;
 		[AutoNotify] private ObservableCollection<double> _xValues;
 		[AutoNotify] private double? _xMinimum;
@@ -35,6 +36,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			_animationEasing = new SplineEasing();
 			_animationSpeed = 0.05;
+			_isAnimationaRunning = false;
 
 			_yValues = new ObservableCollection<double>();
 			_xValues = new ObservableCollection<double>();
@@ -122,10 +124,23 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				sampleLimit,
 				DateTime.Now);
 
+			var sourceXValues = XValues;
+			var sourceYValues = YValues;
+
+			if (_animationFrames is { })
+			{
+				if (_currentAnimationFrame < _totalAnimationFrames)
+				{
+					Console.WriteLine($"[WalletBalanceChartTile] Use last frame.");
+					sourceXValues = _animationFrames[_totalAnimationFrames - 1].XValues;
+					sourceYValues = _animationFrames[_totalAnimationFrames - 1].YValues;
+				}
+			}
+
 			var source = new PolyLine()
 			{
-				XValues = new ObservableCollection<double>(XValues),
-				YValues = new ObservableCollection<double>(YValues)
+				XValues = new ObservableCollection<double>(sourceXValues),
+				YValues = new ObservableCollection<double>(sourceYValues)
 			};
 
 			var target = new PolyLine()
@@ -214,7 +229,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 		private void CreateAnimation(PolyLine source, PolyLine target)
 		{
-			_totalFrames = (int)(1 / _animationSpeed);
+			_totalAnimationFrames = (int)(1 / _animationSpeed);
 			_animationFrames = PolyLineMorph.ToCache(source, target, _animationSpeed, _animationEasing);
 			_currentAnimationFrame = 0;
 		}
@@ -228,11 +243,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			}
 
 			_timer?.Start();
+			_isAnimationaRunning = true;
 		}
 
 		private void StopTimer()
 		{
 			_timer?.Stop();
+			_isAnimationaRunning = false;
 		}
 
 		private void AnimationTimerOnTick(object? sender, EventArgs e)
@@ -242,15 +259,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				return;
 			}
 
-			XValues = _animationFrames[_currentAnimationFrame].XValues;
-			YValues = _animationFrames[_currentAnimationFrame].YValues;
-
+			SetFrameValues(_animationFrames, _currentAnimationFrame);
 			_currentAnimationFrame++;
 
-			if (_currentAnimationFrame >= _totalFrames)
+			if (_currentAnimationFrame >= _totalAnimationFrames)
 			{
 				StopTimer();
 			}
+		}
+
+		private void SetFrameValues(List<PolyLine> frames, int count)
+		{
+			XValues = frames[count].XValues;
+			YValues = frames[count].YValues;
 		}
 	}
 }
