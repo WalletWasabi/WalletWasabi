@@ -19,7 +19,7 @@ namespace WalletWasabi.Helpers
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
-				result = LinuxStartupChecker.CheckDesktopFile();
+				result = await LinuxStartupChecker.CheckDesktopFileAsync().ConfigureAwait(false);
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
