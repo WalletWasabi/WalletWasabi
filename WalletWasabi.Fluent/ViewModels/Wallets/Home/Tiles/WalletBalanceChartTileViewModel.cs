@@ -20,6 +20,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		private readonly IEasing _animationEasing;
 		private readonly double _animationSpeed;
 		private DispatcherTimer? _timer;
+		private PolyLine? _source;
+		private PolyLine? _target;
 		private List<PolyLine>? _animationFrames;
 		private int _totalAnimationFrames;
 		private int _currentAnimationFrame;
@@ -138,13 +140,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				}
 			}
 
-			var source = new PolyLine()
+			_source = new PolyLine()
 			{
 				XValues = new ObservableCollection<double>(sourceXValues),
 				YValues = new ObservableCollection<double>(sourceYValues)
 			};
 
-			var target = new PolyLine()
+			_target = new PolyLine()
 			{
 				XValues = new ObservableCollection<double>(),
 				YValues = new ObservableCollection<double>()
@@ -155,13 +157,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			foreach (var (timestamp, balance) in values.Reverse())
 			{
-				target.YValues.Add((double)balance.ToDecimal(MoneyUnit.BTC));
-				target.XValues.Add(timestamp.ToUnixTimeMilliseconds());
+				_target.YValues.Add((double)balance.ToDecimal(MoneyUnit.BTC));
+				_target.XValues.Add(timestamp.ToUnixTimeMilliseconds());
 			}
 
-			if (target.YValues.Any())
+			if (_target.YValues.Any())
 			{
-				var maxY = target.YValues.Max();
+				var maxY = _target.YValues.Max();
 				YLabels = new List<string> { "0", (maxY / 2).ToString("F2"), maxY.ToString("F2") };
 			}
 			else
@@ -169,10 +171,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				YLabels = null;
 			}
 
-			if (target.XValues.Any())
+			if (_target.XValues.Any())
 			{
-				var minX = target.XValues.Min();
-				var maxX = target.XValues.Max();
+				var minX = _target.XValues.Min();
+				var maxX = _target.XValues.Max();
 				var halfX = minX + ((maxX - minX) / 2);
 
 				var range = DateTimeOffset.FromUnixTimeMilliseconds((long)maxX) -
@@ -211,7 +213,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				XLabels = null;
 			}
 
-			UpdateValues(source, target);
+			UpdateValues(_source, _target);
 		}
 
 		private void UpdateValues(PolyLine source, PolyLine target)
