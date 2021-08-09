@@ -43,16 +43,11 @@ namespace WalletWasabi.Fluent.Helpers
 			bool result = false;
 			if (File.Exists(PathToDesktopFile))
 			{
-				result = CheckFileContent();
+				string realFileContent = string.Join("\n", File.ReadAllLines(PathToDesktopFile));
+
+				result = string.Equals(DesktopFileContent, realFileContent);
 			}
 			return result;
-		}
-
-		private static bool CheckFileContent()
-		{
-			string realFileContent = string.Join("\n", File.ReadAllLines(PathToDesktopFile));
-
-			return string.Equals(DesktopFileContent, realFileContent);
 		}
 	}
 }
