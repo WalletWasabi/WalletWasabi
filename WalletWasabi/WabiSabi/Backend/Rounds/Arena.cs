@@ -342,6 +342,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				}
 			}
 
+			if (alice.ReadyToSign)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadySigned);
+			}
+
 			var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", request.RoundId);
 			if (!OwnershipProof.VerifyCoinJoinInputProof(request.OwnershipProof, alice.Coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
 			{

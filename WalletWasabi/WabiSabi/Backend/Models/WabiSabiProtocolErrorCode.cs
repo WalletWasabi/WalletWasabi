@@ -37,6 +37,7 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		VsizeQuotaExceeded,
 		DeltaNotZero,
 		WrongNumberOfCreds,
-		CryptoException
+		CryptoException,
+		AlreadySigned
 	}
 }
