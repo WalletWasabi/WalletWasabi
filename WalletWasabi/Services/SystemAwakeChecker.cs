@@ -91,7 +91,7 @@ namespace WalletWasabi.Services
 			{
 				if (task is not null)
 				{
-					Logger.LogWarning("Stop the power saving task.");
+					Logger.LogWarning("Computer idle state is allowed again.");
 					await task.StopAsync().ConfigureAwait(false);
 					_powerSavingTask = null;
 				}
