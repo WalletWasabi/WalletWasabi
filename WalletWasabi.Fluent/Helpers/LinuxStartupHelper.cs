@@ -7,9 +7,6 @@ namespace WalletWasabi.Fluent.Helpers
 {
 	public static class LinuxStartupHelper
 	{
-		private static string PathToDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config", "autostart");
-		private static string PathToDesktopFile = Path.Combine(PathToDir, "Wasabi.desktop");
-
 		private static readonly string DesktopFileContent = string.Join(
 					"\n",
 					"[Desktop Entry]",
@@ -19,6 +16,9 @@ namespace WalletWasabi.Fluent.Helpers
 					"Hidden=false",
 					"Terminal=false",
 					"X-GNOME-Autostart-enabled=true");
+
+		private static string PathToDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config", "autostart");
+		private static string PathToDesktopFile = Path.Combine(PathToDir, "Wasabi.desktop");
 
 		public static async Task AddOrRemoveDesktopFileAsync(bool runOnSystemStartup)
 		{

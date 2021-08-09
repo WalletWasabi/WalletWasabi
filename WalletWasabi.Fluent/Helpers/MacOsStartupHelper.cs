@@ -25,7 +25,7 @@ namespace WalletWasabi.Fluent.Helpers
 			}
 		}
 
-		internal async static Task<bool> CheckLoginItemExistsAsync()
+		internal static async Task<bool> CheckLoginItemExistsAsync()
 		{
 			var escapedArgs = ListCmd.Replace("\"", "\\\"");
 
