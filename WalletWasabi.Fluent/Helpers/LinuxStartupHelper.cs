@@ -10,7 +10,7 @@ namespace WalletWasabi.Fluent.Helpers
 		private static string PathToDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config", "autostart");
 		private static string PathToDesktopFile = Path.Combine(PathToDir, "Wasabi.desktop");
 
-		private static readonly string ExpectedDesktopFileContent = string.Join(
+		private static readonly string DesktopFileContent = string.Join(
 					"\n",
 					"[Desktop Entry]",
 					$"Name={Constants.AppName}",
@@ -30,17 +30,7 @@ namespace WalletWasabi.Fluent.Helpers
 
 				IoHelpers.EnsureFileExists(pathToExec);
 
-				string fileContents = string.Join(
-					"\n",
-					"[Desktop Entry]",
-					$"Name={Constants.AppName}",
-					"Type=Application",
-					$"Exec={pathToExec}",
-					"Hidden=false",
-					"Terminal=false",
-					"X-GNOME-Autostart-enabled=true");
-
-				await File.WriteAllTextAsync(PathToDesktopFile, fileContents).ConfigureAwait(false);
+				await File.WriteAllTextAsync(PathToDesktopFile, DesktopFileContent).ConfigureAwait(false);
 			}
 			else
 			{
@@ -50,14 +40,19 @@ namespace WalletWasabi.Fluent.Helpers
 
 		internal static bool CheckDesktopFile()
 		{
-			return File.Exists(PathToDesktopFile) && CheckFileContent();
+			bool result = false;
+			if (File.Exists(PathToDesktopFile))
+			{
+				result = CheckFileContent();
+			}
+			return result;
 		}
 
 		private static bool CheckFileContent()
 		{
 			string realFileContent = string.Join("\n", File.ReadAllLines(PathToDesktopFile));
 
-			return string.Equals(ExpectedDesktopFileContent, realFileContent);
+			return string.Equals(DesktopFileContent, realFileContent);
 		}
 	}
 }
