@@ -309,8 +309,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
-				var round = Rounds.FirstOrDefault(x => x.Id == request.RoundId);
-				if (round is null)
+				if (Rounds.FirstOrDefault(x => x.Id == request.RoundId) is not { } round)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
 				}
