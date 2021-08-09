@@ -219,10 +219,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			if (source.XValues.Count > 0 && target.XValues.Count > 0)
 			{
 				Console.WriteLine($"[WalletBalanceChartTile] UpdateValues() - Animation: source.XValues.Count='{source.XValues.Count}', target.XValues.Count='{target.XValues.Count}'");
-				CreateAnimation(source, target);
-				Console.WriteLine($"[WalletBalanceChartTile] UpdateValues() - StartTimer() BEGIN");
-				StartTimer();
-				Console.WriteLine($"[WalletBalanceChartTile] UpdateValues() - StartTimer() END");
+				try
+				{
+					CreateAnimation(source, target);
+					Console.WriteLine($"[WalletBalanceChartTile] UpdateValues() - StartTimer() BEGIN");
+					StartTimer();
+					Console.WriteLine($"[WalletBalanceChartTile] UpdateValues() - StartTimer() END");
+				}
+				catch (Exception e)
+				{
+					Console.WriteLine($"[WalletBalanceChartTile] {e}");
+				}
 			}
 			else
 			{
