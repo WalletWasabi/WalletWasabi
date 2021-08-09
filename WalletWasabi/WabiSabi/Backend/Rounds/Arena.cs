@@ -449,13 +449,16 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 							// Update the CoinJoin state, adding the confirmed input.
 							round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice.Coin);
-							alice.ConfirmedConnection = true;
 
-							return new(
+							ConnectionConfirmationResponse response = new(
 								commitAmountZeroCredentialResponse.Commit(),
 								commitVsizeZeroCredentialResponse.Commit(),
 								commitAmountRealCredentialResponse.Commit(),
 								commitVsizeRealCredentialResponse.Commit());
+
+							alice.ConfirmedConnection = true;
+
+							return response;
 						}
 
 					default:
