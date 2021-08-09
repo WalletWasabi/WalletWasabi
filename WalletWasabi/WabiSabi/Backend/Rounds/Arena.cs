@@ -327,26 +327,31 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		public async Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken)
 		{
+			Alice? alice;
+
 			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
-				if (Rounds.FirstOrDefault(r => r.Id == request.RoundId) is not Round round)
+				if (Rounds.FirstOrDefault(r => r.Id == request.RoundId) is not { } round)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound, $"Round ({request.RoundId}) not found.");
 				}
 
-				if (round.Alices.FirstOrDefault(a => a.Id == request.AliceId) is not Alice alice)
+				alice = round.Alices.FirstOrDefault(a => a.Id == request.AliceId);
+				if (alice is null)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound, $"Round ({request.RoundId}): Alice id ({request.AliceId}).");
 				}
-
-				var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", request.RoundId);
-				if (!OwnershipProof.VerifyCoinJoinInputProof(request.OwnershipProof, alice.Coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
-				}
-
-				alice.ReadyToSign = true;
 			}
+
+			var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", request.RoundId);
+			if (!OwnershipProof.VerifyCoinJoinInputProof(request.OwnershipProof, alice.Coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
+			}
+
+			// Locking is not strictly required because ReadyToSign is monotone (only
+			// changes from false to true) and primitive value types are atomic.
+			alice.ReadyToSign = true;
 		}
 
 		public async Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellationToken)
@@ -531,9 +536,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		public async Task<ReissueCredentialResponse> ReissuanceAsync(ReissueCredentialRequest request, CancellationToken cancellationToken)
 		{
+			Round? round;
 			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
-				if (Rounds.FirstOrDefault(x => x.Id == request.RoundId) is not Round round)
+				round = Rounds.FirstOrDefault(x => x.Id == request.RoundId);
+				if (round is null)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound, $"Round ({request.RoundId}) not found.");
 				}
@@ -542,34 +549,39 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({round.Id}): Wrong phase ({round.Phase}).");
 				}
-
-				if (request.RealAmountCredentialRequests.Delta != 0)
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.DeltaNotZero, $"Round ({round.Id}): Amount credentials delta must be zero.");
-				}
-
-				if (request.RealAmountCredentialRequests.Requested.Count() != ProtocolConstants.CredentialNumber)
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongNumberOfCreds, $"Round ({round.Id}): Incorrect requested number of amount credentials.");
-				}
-
-				if (request.RealVsizeCredentialRequests.Requested.Count() != ProtocolConstants.CredentialNumber)
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongNumberOfCreds, $"Round ({round.Id}): Incorrect requested number of weight credentials.");
-				}
-
-				var commitRealAmountCredentialResponse = round.AmountCredentialIssuer.PrepareResponse(request.RealAmountCredentialRequests);
-				var commitRealVsizeCredentialResponse = round.VsizeCredentialIssuer.PrepareResponse(request.RealVsizeCredentialRequests);
-				var commitZeroAmountCredentialResponse = round.AmountCredentialIssuer.PrepareResponse(request.ZeroAmountCredentialRequests);
-				var commitZeroVsizeCredentialResponse = round.VsizeCredentialIssuer.PrepareResponse(request.ZeroVsizeCredentialsRequests);
-
-				return new(
-					commitRealAmountCredentialResponse.Commit(),
-					commitRealVsizeCredentialResponse.Commit(),
-					commitZeroAmountCredentialResponse.Commit(),
-					commitZeroVsizeCredentialResponse.Commit()
-					);
 			}
+
+			if (request.RealAmountCredentialRequests.Delta != 0)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.DeltaNotZero, $"Round ({round.Id}): Amount credentials delta must be zero.");
+			}
+
+			if (request.RealAmountCredentialRequests.Requested.Count() != ProtocolConstants.CredentialNumber)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongNumberOfCreds, $"Round ({round.Id}): Incorrect requested number of amount credentials.");
+			}
+
+			if (request.RealVsizeCredentialRequests.Requested.Count() != ProtocolConstants.CredentialNumber)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongNumberOfCreds, $"Round ({round.Id}): Incorrect requested number of weight credentials.");
+			}
+
+			var realAmountTask = round.AmountCredentialIssuer.PrepareResponse(request.RealAmountCredentialRequests, cancellationToken);
+			var realVsizeTask = round.VsizeCredentialIssuer.PrepareResponse(request.RealVsizeCredentialRequests, cancellationToken);
+			var zeroAmountTask = round.AmountCredentialIssuer.PrepareResponse(request.ZeroAmountCredentialRequests, cancellationToken);
+			var zeroVsizeTask = round.VsizeCredentialIssuer.PrepareResponse(request.ZeroVsizeCredentialsRequests, cancellationToken);
+
+			var commitRealAmountCredentialResponse = await realAmountTask.ConfigureAwait(false);
+			var commitRealVsizeCredentialResponse = await realVsizeTask.ConfigureAwait(false);
+			var commitZeroAmountCredentialResponse = await zeroAmountTask.ConfigureAwait(false);
+			var commitZeroVsizeCredentialResponse = await zeroVsizeTask.ConfigureAwait(false);
+
+			return new(
+				commitRealAmountCredentialResponse.Commit(),
+				commitRealVsizeCredentialResponse.Commit(),
+				commitZeroAmountCredentialResponse.Commit(),
+				commitZeroVsizeCredentialResponse.Commit()
+				);
 		}
 
 		public override void Dispose()
