@@ -25,7 +25,7 @@ namespace WalletWasabi.Helpers.PowerSaving
 			Process = process;
 			Cts = new CancellationTokenSource(period);
 
-			Task = WaitAsync();
+			_ = WaitAsync();
 		}
 
 		/// <summary>Linux GUI environments.</summary>
@@ -67,7 +67,6 @@ namespace WalletWasabi.Helpers.PowerSaving
 		private ProcessAsync Process { get; }
 		private CancellationTokenSource Cts { get; }
 		private TaskCompletionSource StoppedTcs { get; } = new();
-		private Task Task { get; }
 
 		/// <inheritdoc/>
 		public bool IsDone
