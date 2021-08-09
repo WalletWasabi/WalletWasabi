@@ -43,7 +43,7 @@ namespace WalletWasabi.Fluent.Helpers
 
 			process.Start();
 
-			string output = process.StandardOutput.ReadToEnd();
+			string output = await process.StandardOutput.ReadToEndAsync();
 
 			await process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
 
