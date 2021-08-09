@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -9,7 +8,7 @@ namespace WalletWasabi.Fluent.Morph
 {
 	public static class PolyLineMorph
 	{
-		public static List<PolyLine> ToCache(PolyLine source, PolyLine target, double speed, IEasing easing)
+		public static List<PolyLine> ToCache(PolyLine source, PolyLine target, double speed, IEasing easing, bool interpolateXAxis)
 		{
 			int steps = (int) (1 / speed);
 			double p = speed;
@@ -20,7 +19,7 @@ namespace WalletWasabi.Fluent.Morph
 				var clone = source.Clone();
 				var easeP = easing.Ease(p);
 
-				To(clone, target, easeP);
+				To(clone, target, easeP, interpolateXAxis);
 
 				p += speed;
 
@@ -30,7 +29,7 @@ namespace WalletWasabi.Fluent.Morph
 			return cache;
 		}
 
-		public static void To(PolyLine source, PolyLine target, double progress)
+		public static void To(PolyLine source, PolyLine target, double progress, bool interpolateXAxis)
 		{
 			if (source.XValues.Count < target.XValues.Count)
 			{
@@ -55,13 +54,18 @@ namespace WalletWasabi.Fluent.Morph
 				target.YValues = yValues;
 			}
 
-			Console.WriteLine($"[WalletBalanceChartTile] {source.XValues.Count} == {target.XValues.Count}");
-
 			for (int j = 0; j < source.XValues.Count; j++)
 			{
-				// TODO: For smooth animation we set all XValues on each frame to target without interpolation.
-				// TODO: source.XValues[j] = Interpolate(source.XValues[j], target.XValues[j], progress);
-				source.XValues[j] = target.XValues[j];
+				if (!interpolateXAxis)
+				{
+					// To achieve smooth transition we set all XValues for each frame to target without interpolation.
+					source.XValues[j] = target.XValues[j];
+				}
+				else
+				{
+					source.XValues[j] = Interpolate(source.XValues[j], target.XValues[j], progress);
+				}
+
 				source.YValues[j] = Interpolate(source.YValues[j], target.YValues[j], progress);
 			}
 		}

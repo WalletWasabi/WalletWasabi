@@ -245,7 +245,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		{
 			Console.WriteLine($"[WalletBalanceChartTile] CreateAnimation()");
 			_totalAnimationFrames = (int)(1 / _animationSpeed);
-			_animationFrames = PolyLineMorph.ToCache(source, target, _animationSpeed, _animationEasing);
+			_animationFrames = PolyLineMorph.ToCache(source, target, _animationSpeed, _animationEasing, interpolateXAxis: false);
 			_currentAnimationFrame = 0;
 			Console.WriteLine($"[WalletBalanceChartTile] CreateAnimation(): {_currentAnimationFrame}/{_totalAnimationFrames}");
 		}
