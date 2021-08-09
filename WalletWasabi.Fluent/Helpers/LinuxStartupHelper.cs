@@ -7,12 +7,22 @@ namespace WalletWasabi.Fluent.Helpers
 {
 	public static class LinuxStartupHelper
 	{
+		private static string PathToDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config", "autostart");
+		private static string PathToDesktopFile = Path.Combine(PathToDir, "Wasabi.desktop");
+
+		private static readonly string ExpectedDesktopFileContent = string.Join(
+					"\n",
+					"[Desktop Entry]",
+					$"Name={Constants.AppName}",
+					"Type=Application",
+					$"Exec={EnvironmentHelpers.GetExecutablePath()}",
+					"Hidden=false",
+					"Terminal=false",
+					"X-GNOME-Autostart-enabled=true");
+
 		public static async Task AddOrRemoveDesktopFileAsync(bool runOnSystemStartup)
 		{
-			string pathToDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config", "autostart");
-			string pathToDesktopFile = Path.Combine(pathToDir, "Wasabi.desktop");
-
-			IoHelpers.EnsureContainingDirectoryExists(pathToDesktopFile);
+			IoHelpers.EnsureContainingDirectoryExists(PathToDesktopFile);
 
 			if (runOnSystemStartup)
 			{
@@ -30,17 +40,24 @@ namespace WalletWasabi.Fluent.Helpers
 					"Terminal=false",
 					"X-GNOME-Autostart-enabled=true");
 
-				await File.WriteAllTextAsync(pathToDesktopFile, fileContents).ConfigureAwait(false);
+				await File.WriteAllTextAsync(PathToDesktopFile, fileContents).ConfigureAwait(false);
 			}
 			else
 			{
-				File.Delete(pathToDesktopFile);
+				File.Delete(PathToDesktopFile);
 			}
 		}
 
 		internal static bool CheckDesktopFile()
 		{
-			throw new NotImplementedException();
+			return File.Exists(PathToDesktopFile) && CheckFileContent();
+		}
+
+		private static bool CheckFileContent()
+		{
+			string realFileContent = string.Join("\n", File.ReadAllLines(PathToDesktopFile));
+
+			return string.Equals(ExpectedDesktopFileContent, realFileContent);
 		}
 	}
 }
