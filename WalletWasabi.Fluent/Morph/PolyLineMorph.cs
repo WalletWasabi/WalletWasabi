@@ -82,8 +82,9 @@ namespace WalletWasabi.Fluent.Morph
 			xValues = new ObservableCollection<double>();
 			yValues = new ObservableCollection<double>();
 
-			for (var x = a + step; x < b; x += step)
+			for (var i = 0; i < count; i++)
 			{
+				var x = a + i * step;
 				var y = spline.Interpolate(x);
 				xValues.Add(x);
 				yValues.Add(y);
