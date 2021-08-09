@@ -58,7 +58,6 @@ namespace WalletWasabi.Fluent.Morph
 			{
 				if (!interpolateXAxis)
 				{
-					// To achieve smooth transition we set all XValues for each frame to target without interpolation.
 					source.XValues[j] = target.XValues[j];
 				}
 				else

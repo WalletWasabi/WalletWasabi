@@ -83,6 +83,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			if (_source.XValues.Count > 0 && _target.XValues.Count > 0)
 			{
+				// To achieve smooth transition we set all XValues for each frame to target without interpolation by setting interpolateXAxis to false.
 				_totalAnimationFrames = (int)(1 / _animationSpeed);
 				_animationFrames = PolyLineMorph.ToCache(_source, _target, _animationSpeed, _animationEasing, interpolateXAxis: false);
 				_currentAnimationFrame = 0;
