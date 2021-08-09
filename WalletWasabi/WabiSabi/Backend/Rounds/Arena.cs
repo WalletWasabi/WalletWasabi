@@ -385,6 +385,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound, $"Round ({request.RoundId}) not found.");
 				}
 
+				if (round.Phase is not (Phase.InputRegistration or Phase.ConnectionConfirmation))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({request.RoundId}): Wrong phase ({round.Phase}).");
+				}
+
 				alice = round.Alices.FirstOrDefault(x => x.Id == request.AliceId);
 				if (alice is null)
 				{
@@ -398,11 +403,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				if (realAmountCredentialRequests.Delta != alice.CalculateRemainingAmountCredentials(round.FeeRate))
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedAmountCredentials, $"Round ({request.RoundId}): Incorrect requested amount credentials.");
-				}
-
-				if (round.Phase is not (Phase.InputRegistration or Phase.ConnectionConfirmation))
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({request.RoundId}): Wrong phase ({round.Phase}).");
 				}
 			}
 
