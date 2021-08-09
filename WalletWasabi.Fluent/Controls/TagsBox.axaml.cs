@@ -374,9 +374,15 @@ namespace WalletWasabi.Fluent.Controls
 
 			_backspaceEmptyField2 = _backspaceEmptyField1;
 			_backspaceEmptyField1 = currentText.Length == 0;
-			var selectedTextLength = Math.Max(0, _internalTextBox!.SelectionEnd - _internalTextBox.SelectionStart);
 
 			currentText = currentText.Trim();
+
+			var canAddTag = _isInputEnabled && !string.IsNullOrEmpty(currentText);
+
+			if ((e.Key == Key.Tab || e.Key == Key.Enter) && canAddTag)
+			{
+				e.Handled = true;
+			}
 
 			switch (e.Key)
 			{
@@ -384,8 +390,8 @@ namespace WalletWasabi.Fluent.Controls
 					RemoveLastTag();
 					break;
 
-				case Key.Tab when _isInputEnabled && !string.IsNullOrEmpty(currentText) && selectedTextLength == 0:
-				case Key.Enter when _isInputEnabled && !string.IsNullOrEmpty(currentText) && selectedTextLength == 0:
+				case Key.Tab when canAddTag:
+				case Key.Enter when canAddTag:
 					// Reject entry of the tag when user pressed enter and
 					// the input tag is not on the suggestions list.
 					if (RestrictInputToSuggestions && Suggestions is { } &&
@@ -399,6 +405,10 @@ namespace WalletWasabi.Fluent.Controls
 					AddTag(currentText);
 					ExecuteCompletedCommand();
 
+					_internalTextBox?.ClearSelection();
+					_internalTextBox?.ClearValue(AutoCompleteBox.TextProperty);
+
+					autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
 					Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
 					e.Handled = true;
 

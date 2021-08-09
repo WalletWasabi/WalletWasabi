@@ -27,6 +27,20 @@ namespace WalletWasabi.Nito.AsyncEx
 			}
 		}
 
+		/// <summary>Gets the number of outstanding tasks.</summary>
+		/// <remarks>As a side-effect completed tasks are removed.</remarks>
+		public int Count
+		{
+			get
+			{
+				lock (Lock)
+				{
+					ClearCompletedNoLock();
+					return Tasks.Count;
+				}
+			}
+		}
+
 		/// <summary>
 		/// Wait for all tasks to complete.
 		/// </summary>

@@ -19,6 +19,7 @@ using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.Tests.Helpers
 {
@@ -38,11 +39,15 @@ namespace WalletWasabi.Tests.Helpers
 				new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundHash ?? BitcoinFactory.CreateUint256()));
 
 		public static Round CreateRound(WabiSabiConfig cfg)
-			=> new(new RoundParameters(
+		{
+			Round round = new(new RoundParameters(
 				cfg,
 				Network.Main,
 				new InsecureRandom(),
 				new(100m)));
+			round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
+			return round;
+		}
 
 		public static Mock<IRPCClient> CreatePreconfiguredRpcClient(params Coin[] coins)
 		{
@@ -78,6 +83,8 @@ namespace WalletWasabi.Tests.Helpers
 				{
 					MinRelayTxFee = 1
 				});
+			mockRpc.Setup(rpc => rpc.PrepareBatch()).Returns(mockRpc.Object);
+			mockRpc.Setup(rpc => rpc.SendBatchAsync()).Returns(Task.CompletedTask);
 			return mockRpc;
 		}
 
@@ -103,20 +110,20 @@ namespace WalletWasabi.Tests.Helpers
 			return arena;
 		}
 
-		public static Alice CreateAlice(Coin coin, OwnershipProof ownershipProof)
-			=> new(coin, ownershipProof) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
+		public static Alice CreateAlice(Coin coin, OwnershipProof ownershipProof, Round round)
+			=> new(coin, ownershipProof, round) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
 
-		public static Alice CreateAlice(Key key, Money amount)
-			=> CreateAlice(CreateCoin(key, amount), CreateOwnershipProof(key));
+		public static Alice CreateAlice(Key key, Money amount, Round round)
+			=> CreateAlice(CreateCoin(key, amount), CreateOwnershipProof(key), round);
 
-		public static Alice CreateAlice(Money amount)
-			=> CreateAlice(new Key(), amount);
+		public static Alice CreateAlice(Money amount, Round round)
+			=> CreateAlice(new Key(), amount, round);
 
-		public static Alice CreateAlice(Key key)
-			=> CreateAlice(key, Money.Coins(1));
+		public static Alice CreateAlice(Key key, Round round)
+			=> CreateAlice(key, Money.Coins(1), round);
 
-		public static Alice CreateAlice()
-			=> CreateAlice(new Key(), Money.Coins(1));
+		public static Alice CreateAlice(Round round)
+			=> CreateAlice(new Key(), Money.Coins(1), round);
 
 		public static ArenaClient CreateArenaClient(Arena arena)
 		{
@@ -185,7 +192,7 @@ namespace WalletWasabi.Tests.Helpers
 		{
 			var (amClient, vsClient, _, _, amZeroCredentials, vsZeroCredentials) = CreateWabiSabiClientsAndIssuers(round);
 
-			var alice = round.Alices.FirstOrDefault() ?? CreateAlice();
+			var alice = round.Alices.FirstOrDefault() ?? CreateAlice(round);
 			var (realAmountCredentialRequest, _) = amClient.CreateRequest(
 				new[] { amount?.Satoshi ?? alice.CalculateRemainingAmountCredentials(round.FeeRate).Satoshi },
 				amZeroCredentials,
@@ -219,12 +226,12 @@ namespace WalletWasabi.Tests.Helpers
 		{
 			var (amClient, vsClient, amIssuer, vsIssuer, amZeroCredentials, vsZeroCredentials) = CreateWabiSabiClientsAndIssuers(round);
 
-			var alice = round.Alices.FirstOrDefault() ?? CreateAlice();
+			var alice = round.Alices.FirstOrDefault() ?? CreateAlice(round);
 			var (amCredentialRequest, amValid) = amClient.CreateRequest(
 				new[] { alice.CalculateRemainingAmountCredentials(round.FeeRate).Satoshi },
 				amZeroCredentials, // FIXME doesn't make much sense
 				CancellationToken.None);
-			long startingVsizeCredentialAmount = alice.CalculateRemainingVsizeCredentials(round.MaxVsizeAllocationPerAlice);
+			long startingVsizeCredentialAmount = vsize ?? alice.CalculateRemainingVsizeCredentials(round.MaxVsizeAllocationPerAlice);
 			var (vsCredentialRequest, weValid) = vsClient.CreateRequest(
 				new[] { startingVsizeCredentialAmount },
 				vsZeroCredentials, // FIXME doesn't make much sense
@@ -237,21 +244,10 @@ namespace WalletWasabi.Tests.Helpers
 
 			script ??= BitcoinFactory.CreateScript();
 			var (realAmountCredentialRequest, _) = amClient.CreateRequest(
-				Array.Empty<long>(),
 				amountCredentials,
 				CancellationToken.None);
 
-			try
-			{
-				vsize ??= script.EstimateOutputVsize();
-			}
-			catch (NotImplementedException)
-			{
-				vsize = 25;
-			}
-
 			var (realVsizeCredentialRequest, _) = vsClient.CreateRequest(
-				new[] { startingVsizeCredentialAmount - (long)vsize },
 				vsizeCredentials,
 				CancellationToken.None);
 

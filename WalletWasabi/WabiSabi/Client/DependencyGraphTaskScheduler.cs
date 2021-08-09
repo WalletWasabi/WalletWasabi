@@ -25,7 +25,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private DependencyGraph Graph { get; }
 		private Dictionary<CredentialDependency, TaskCompletionSource<Credential>> DependencyTasks { get; }
 
-		public async Task StartConfirmConnectionsAsync(IEnumerable<AliceClient> aliceClients, DependencyGraph dependencyGraph, TimeSpan connectionConfirmationTimeout, CancellationToken cancellationToken)
+		public async Task StartConfirmConnectionsAsync(IEnumerable<AliceClient> aliceClients, DependencyGraph dependencyGraph, TimeSpan connectionConfirmationTimeout, RoundStateUpdater roundStateUpdater, CancellationToken cancellationToken)
 		{
 			var aliceNodePairs = PairAliceClientAndRequestNodes(aliceClients, Graph);
 
@@ -56,6 +56,7 @@ namespace WalletWasabi.WabiSabi.Client
 						vsizesToRequest,
 						node.EffectiveValue,
 						node.VsizeRemainingAllocation,
+						roundStateUpdater,
 						linkedCts.Token)
 					.ContinueWith((t) =>
 					{
@@ -155,7 +156,7 @@ namespace WalletWasabi.WabiSabi.Client
 					Array.Empty<TaskCompletionSource<Credential>>());
 
 				var task = smartRequestNode
-					.StartOutputRegistrationAsync(bobClient, node.EffectiveCost, txOut.ScriptPubKey, cancellationToken)
+					.StartOutputRegistrationAsync(bobClient, txOut.ScriptPubKey, cancellationToken)
 					.ContinueWith((t) =>
 					{
 						if (t.IsFaulted && t.Exception is { } exception)

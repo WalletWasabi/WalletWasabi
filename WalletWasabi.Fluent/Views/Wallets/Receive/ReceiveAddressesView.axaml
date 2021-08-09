@@ -44,7 +44,9 @@
                 <Button Classes="plain addressActionButton" ToolTip.Tip="Edit" DockPanel.Dock="Right" Command="{Binding EditLabelCommand}">
                   <PathIcon Data="{StaticResource edit_regular}" Classes="addressActionIcon" />
                 </Button>
-                <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Label}" VerticalAlignment="Center" />
+                <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15" VerticalAlignment="Center">
+                  <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Label}" />
+                </c:PrivacyContentControl>
               </DockPanel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
@@ -73,7 +75,7 @@
                         ToolTip.Tip="QR Code">
                   <PathIcon Data="{StaticResource qr_code_regular}" Classes=" addressActionIcon"/>
                 </Button>
-                <TextBox Classes="selectableTextBlock" Text="{Binding Address}" VerticalAlignment="Center" />
+                <c:PrivacyContentControl Content="{Binding Address}" VerticalAlignment="Center" NumberOfPrivacyChars="38" />
               </DockPanel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>

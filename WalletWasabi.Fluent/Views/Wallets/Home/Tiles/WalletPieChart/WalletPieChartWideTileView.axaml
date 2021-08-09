@@ -12,8 +12,11 @@
     <DockPanel LastChildFill="True">
         <TextBlock Text="Wallet Privacy Status" DockPanel.Dock="Top" />
         <Grid ColumnDefinitions="*,*">
-            <controls:RingChartControl Grid.ColumnSpan="1" Margin="12,28,28,28" VerticalAlignment="Center"
+          <controls:PrivacyContentControl Grid.ColumnSpan="1" PrivacyReplacementMode="Icon">
+            <controls:RingChartControl Margin="12,28,28,28" VerticalAlignment="Center"
                                        HorizontalAlignment="Center" DataPoints="{Binding TestDataPoints}" />
+          </controls:PrivacyContentControl>
+
             <ItemsRepeater Grid.Column="1" VerticalAlignment="Center" Margin="0,0, 0, -16"
                            Items="{Binding TestDataPointsLegend}">
                 <ItemsRepeater.ItemTemplate>
@@ -23,13 +26,15 @@
                             <Ellipse Margin="0,0,12,0" Width="10"
                                      Height="10"
                                      Fill="{Binding HexColor, Converter={x:Static converters:ColorStringConverters.HexColorToBrush}}" />
-                            <TextBlock Grid.Column="1" FontSize="19" HorizontalAlignment="Left"
-                                       Text="{Binding Amount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
+                            <controls:PrivacyContentControl Grid.Column="1" FontSize="19" HorizontalAlignment="Left"
+                                                            NumberOfPrivacyChars="9"
+                                                            Content="{Binding Amount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
                             <StackPanel Opacity="0.5" Grid.Row="1" Grid.Column="1" TextBlock.FontSize="13"
                                         Orientation="Horizontal">
                                 <TextBlock Text="{Binding Label}" />
-                                <TextBlock Margin="8,0,0,0" HorizontalAlignment="Right"
-                                           Text="{Binding PercentShare, StringFormat=\{0:P1\}}" />
+                                <controls:PrivacyContentControl Margin="8,0,0,0"
+                                                                HorizontalAlignment="Right"
+                                                                Content="{Binding PercentShare, StringFormat=\{0:P1\}}" />
                             </StackPanel>
                         </Grid>
                     </DataTemplate>

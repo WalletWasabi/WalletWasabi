@@ -30,9 +30,11 @@
                               ClickIcon="{StaticResource copy_confirmed}"
                               ExecuteOnOpen="{Binding IsAutoCopyEnabled}" />
           </StackPanel>
-          <TextBox Classes="selectableTextBlock" TextWrapping="Wrap" Text="{Binding Address}" FontSize="{StaticResource FontSizeH5}" />
+          <c:PrivacyContentControl Content="{Binding Address}" FontSize="{StaticResource FontSizeH5}" NumberOfPrivacyChars="38" />
         </DockPanel>
-        <c:TagsBox IsReadOnly="True" Items="{Binding Labels}" HorizontalAlignment="Center" />
+        <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15" HorizontalAlignment="Center">
+          <c:TagsBox IsReadOnly="True" Items="{Binding Labels}" />
+        </c:PrivacyContentControl>
       </StackPanel>
 
       <c:AdorningContentControl MaxHeight="270" HorizontalAlignment="Center" ClipToBounds="False">
@@ -45,7 +47,9 @@
           </Panel>
         </c:AdorningContentControl.Adornment>
         <Viewbox Margin="20" MinHeight="100">
-          <c:QrCode Height="250" Matrix="{Binding QrCode}" SaveCommand="{Binding QrCodeCommand, Mode=OneWayToSource}" Margin="0 0 0 -18" />
+          <c:PrivacyContentControl Height="250" Margin="0 0 0 -18" PrivacyReplacementMode="Icon">
+            <c:QrCode Matrix="{Binding QrCode}" SaveCommand="{Binding QrCodeCommand, Mode=OneWayToSource}"  />
+          </c:PrivacyContentControl>
         </Viewbox>
       </c:AdorningContentControl>
     </DockPanel>

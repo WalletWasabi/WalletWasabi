@@ -9,19 +9,15 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Threading;
+using Avalonia.Media.Imaging;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Exceptions;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Validation;
-using WalletWasabi.Fluent.ViewModels.Dialogs;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
-using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -31,6 +27,9 @@ using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
+using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Views.Wallets.Send;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
@@ -45,7 +44,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	{
 		private readonly Wallet _wallet;
 		private readonly TransactionInfo _transactionInfo;
-
 		[AutoNotify] private string _to;
 		[AutoNotify] private decimal _amountBtc;
 		[AutoNotify] private decimal _exchangeRate;
@@ -63,9 +61,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_wallet = wallet;
 			_transactionInfo = new TransactionInfo();
 			_labels = new ObservableCollection<string>();
-
 			ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 			PriorLabels = new();
+
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+
+			EnableBack = false;
 
 			this.ValidateProperty(x => x.To, ValidateToField);
 			this.ValidateProperty(x => x.AmountBtc, ValidateAmount);
@@ -92,11 +93,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			Labels.ToObservableChangeSet().Subscribe(x => _transactionInfo.UserLabels = new SmartLabel(_labels.ToArray()));
 
-			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
-			EnableBack = true;
-
 			PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
 			AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
+			QRCommand = ReactiveCommand.Create(async () =>
+			{
+				ShowQrCameraDialogViewModel dialog = new(_wallet.Network);
+				var result = await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen);
+				if (!string.IsNullOrWhiteSpace(result.Result))
+				{
+					To = result.Result;
+				}
+			});
 
 			var nextCommandCanExecute =
 				this.WhenAnyValue(x => x.Labels, x => x.AmountBtc, x => x.To).Select(_ => Unit.Default)
@@ -120,6 +127,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public ICommand PasteCommand { get; }
 
 		public ICommand AutoPasteCommand { get; }
+
+		public ICommand QRCommand { get; }
 
 		private async Task OnAutoPasteAsync()
 		{
@@ -148,7 +157,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private IPayjoinClient? GetPayjoinClient(string endPoint)
 		{
 			if (!string.IsNullOrWhiteSpace(endPoint) &&
-			    Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
+				Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
 			{
 				var payjoinEndPointUri = new Uri(endPoint);
 				if (!Services.Config.UseTor)

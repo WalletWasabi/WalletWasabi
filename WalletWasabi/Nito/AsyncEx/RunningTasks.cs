@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace WalletWasabi.Nito.AsyncEx
@@ -14,7 +11,7 @@ namespace WalletWasabi.Nito.AsyncEx
 		}
 
 		private bool DisposedValue { get; set; } = false;
-		public static TaskCompletionSource Completion { get; } = new();
+		private TaskCompletionSource Completion { get; } = new();
 
 		public static IDisposable RememberWith(AbandonedTasks taskCollection) => new RunningTasks(taskCollection);
 

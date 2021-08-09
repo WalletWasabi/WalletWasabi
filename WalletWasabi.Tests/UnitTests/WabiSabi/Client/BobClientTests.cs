@@ -52,10 +52,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var aliceClient = new AliceClient(round.Id, aliceArenaClient, coin1.Coin, round.FeeRate, bitcoinSecret);
 			await aliceClient.RegisterInputAsync(CancellationToken.None);
 
+			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), wabiSabiApi);
 			Task confirmationTask = aliceClient.ConfirmConnectionAsync(
 				TimeSpan.FromSeconds(1),
 				new long[] { coin1.EffectiveValue(round.FeeRate) },
 				new long[] { roundState.MaxVsizeAllocationPerAlice - coin1.ScriptPubKey.EstimateInputVsize() },
+				roundStateUpdater,
 				CancellationToken.None);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
@@ -71,7 +73,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var bobClient = new BobClient(round.Id, bobArenaClient);
 
 			await bobClient.RegisterOutputAsync(
-				Money.Coins(0.25m),
 				destination,
 				aliceClient.IssuedAmountCredentials.Take(ProtocolConstants.CredentialNumber),
 				aliceClient.IssuedVsizeCredentials.Take(ProtocolConstants.CredentialNumber),
@@ -79,7 +80,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			var bob = Assert.Single(round.Bobs);
 			Assert.Equal(destination, bob.Script);
-			Assert.Equal(25_000_000, bob.CredentialAmount);
+
+			var credentialAmountSum = aliceClient.IssuedAmountCredentials.Take(ProtocolConstants.CredentialNumber).Sum(x => x.Value);
+			Assert.Equal(credentialAmountSum, bob.CredentialAmount);
 		}
 	}
 }

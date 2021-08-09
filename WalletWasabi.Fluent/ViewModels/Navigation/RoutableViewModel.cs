@@ -16,6 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		[AutoNotify] private bool _enableCancelOnEscape;
 		[AutoNotify] private bool _enableBack;
 		[AutoNotify] private bool _enableCancel;
+		[AutoNotify] private bool _isActive;
 
 		public abstract string Title { get; protected set; }
 
@@ -82,6 +83,31 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 				NavigationTarget.CompactDialogScreen => NavigationState.Instance.CompactDialogScreenNavigation,
 				_ => throw new NotSupportedException(),
 			};
+		}
+
+		public void SetActive()
+		{
+			if (NavigationState.Instance.HomeScreenNavigation.CurrentPage is { } homeScreen)
+			{
+				homeScreen.IsActive = false;
+			}
+
+			if (NavigationState.Instance.DialogScreenNavigation.CurrentPage is { } dialogScreen)
+			{
+				dialogScreen.IsActive = false;
+			}
+
+			if (NavigationState.Instance.FullScreenNavigation.CurrentPage is { } fullScreen)
+			{
+				fullScreen.IsActive = false;
+			}
+
+			if (NavigationState.Instance.CompactDialogScreenNavigation.CurrentPage is { } compactDialogScreen)
+			{
+				compactDialogScreen.IsActive = false;
+			}
+
+			IsActive = true;
 		}
 
 		public void OnNavigatedTo(bool isInHistory)
