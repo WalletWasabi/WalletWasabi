@@ -406,15 +406,15 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				}
 			}
 
-			var amountZeroTask = Task.Run(() => round.AmountCredentialIssuer.PrepareResponse(request.ZeroAmountCredentialRequests), cancellationToken);
-			var vsizeZeroTask = Task.Run(() => round.VsizeCredentialIssuer.PrepareResponse(request.ZeroVsizeCredentialRequests), cancellationToken);
+			var amountZeroTask = round.AmountCredentialIssuer.PrepareResponse(request.ZeroAmountCredentialRequests, cancellationToken);
+			var vsizeZeroTask = round.VsizeCredentialIssuer.PrepareResponse(request.ZeroVsizeCredentialRequests, cancellationToken);
 			Task<ICommitableCredentialsResponse>? amountRealTask = null;
 			Task<ICommitableCredentialsResponse>? vsizeRealTask = null;
 
 			if (round.Phase is Phase.ConnectionConfirmation)
 			{
-				amountRealTask = Task.Run(() => round.AmountCredentialIssuer.PrepareResponse(realAmountCredentialRequests), cancellationToken);
-				vsizeRealTask = Task.Run(() => round.VsizeCredentialIssuer.PrepareResponse(realVsizeCredentialRequests), cancellationToken);
+				amountRealTask = round.AmountCredentialIssuer.PrepareResponse(realAmountCredentialRequests, cancellationToken);
+				vsizeRealTask = round.VsizeCredentialIssuer.PrepareResponse(realVsizeCredentialRequests, cancellationToken);
 			}
 
 			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
@@ -439,8 +439,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					case Phase.ConnectionConfirmation:
 						{
 							// If the phase was InputRegistration before then we did not pre-calculate real credentials.
-							amountRealTask ??= Task.Run(() => round.AmountCredentialIssuer.PrepareResponse(realAmountCredentialRequests), cancellationToken);
-							vsizeRealTask ??= Task.Run(() => round.VsizeCredentialIssuer.PrepareResponse(realVsizeCredentialRequests), cancellationToken);
+							amountRealTask ??= round.AmountCredentialIssuer.PrepareResponse(realAmountCredentialRequests, cancellationToken);
+							vsizeRealTask ??= round.VsizeCredentialIssuer.PrepareResponse(realVsizeCredentialRequests, cancellationToken);
 
 							var commitAmountZeroCredentialResponse = await amountZeroTask.ConfigureAwait(false);
 							var commitVsizeZeroCredentialResponse = await vsizeZeroTask.ConfigureAwait(false);
