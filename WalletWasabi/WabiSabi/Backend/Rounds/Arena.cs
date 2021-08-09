@@ -338,7 +338,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				// Compute but don't commit updated CoinJoin to round state, it will
 				// be re-calculated on input confirmation. This is computed it here
 				// for validation purposes.
-				round.Assert<ConstructionState>().AddInput(coin);
+				_ = round.Assert<ConstructionState>().AddInput(coin);
 
 				var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", round.Id);
 				if (!OwnershipProof.VerifyCoinJoinInputProof(request.OwnershipProof, coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
