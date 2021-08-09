@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
-using Avalonia.Animation.Easings;
-using Avalonia.Threading;
 using DynamicData.Binding;
 using NBitcoin;
 using WalletWasabi.Fluent.Helpers;
@@ -17,31 +15,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 	public partial class WalletBalanceChartTileViewModel : TileViewModel
 	{
 		private readonly ObservableCollection<HistoryItemViewModel> _history;
-		private readonly IEasing _animationEasing;
-		private readonly double _animationSpeed;
-		private DispatcherTimer? _timer;
-		private PolyLine? _source;
-		private PolyLine? _target;
-		private List<PolyLine>? _animationFrames;
-		private int _totalAnimationFrames;
-		private int _currentAnimationFrame;
-		[AutoNotify] private ObservableCollection<double> _yValues;
-		[AutoNotify] private ObservableCollection<double> _xValues;
-		[AutoNotify] private double? _xMinimum;
-		[AutoNotify] private List<string>? _yLabels;
-		[AutoNotify] private List<string>? _xLabels;
-		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isAnimationRunning;
 
 		public WalletBalanceChartTileViewModel(ObservableCollection<HistoryItemViewModel> history)
 		{
 			_history = history;
 
-			_animationEasing = new SplineEasing();
-			_animationSpeed = 0.05;
-			_isAnimationRunning = false;
+			Animator = new LineChartAnimatorViewModel();
 
-			_yValues = new ObservableCollection<double>();
-			_xValues = new ObservableCollection<double>();
 			TimePeriodOptions = new ObservableCollection<TimePeriodOptionViewModel>();
 
 			foreach (var item in (TimePeriodOption[]) Enum.GetValues(typeof(TimePeriodOption)))
@@ -52,6 +32,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				});
 			}
 		}
+
+		public LineChartAnimatorViewModel Animator { get; }
 
 		public ObservableCollection<TimePeriodOptionViewModel> TimePeriodOptions { get; }
 
@@ -113,11 +95,38 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 		private void UpdateSample(TimeSpan sampleTime, TimeSpan sampleBackFor)
 		{
-			StopTimer();
+			Animator.StopTimer();
 
 			var sampleLimit = DateTimeOffset.Now - sampleBackFor;
 
-			XMinimum = sampleLimit.ToUnixTimeMilliseconds();
+			Animator.XMinimum = sampleLimit.ToUnixTimeMilliseconds();
+
+			var sourceXValues = Animator.XValues;
+			var sourceYValues = Animator.YValues;
+
+			if (Animator.AnimationFrames is { })
+			{
+				if (Animator.CurrentAnimationFrame < Animator.TotalAnimationFrames)
+				{
+					sourceXValues = Animator.AnimationFrames[Animator.TotalAnimationFrames - 1].XValues;
+					sourceYValues = Animator.AnimationFrames[Animator.TotalAnimationFrames - 1].YValues;
+				}
+			}
+
+			Animator.Source = new PolyLine()
+			{
+				XValues = new ObservableCollection<double>(sourceXValues),
+				YValues = new ObservableCollection<double>(sourceYValues)
+			};
+
+			Animator.Target = new PolyLine()
+			{
+				XValues = new ObservableCollection<double>(),
+				YValues = new ObservableCollection<double>()
+			};
+
+			Animator.XValues.Clear();
+			Animator.YValues.Clear();
 
 			var values = _history.SelectTimeSampleBackwards(
 				x => x.Date,
@@ -126,53 +135,26 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				sampleLimit,
 				DateTime.Now);
 
-			var sourceXValues = XValues;
-			var sourceYValues = YValues;
-
-			if (_animationFrames is { })
-			{
-				if (_currentAnimationFrame < _totalAnimationFrames)
-				{
-					sourceXValues = _animationFrames[_totalAnimationFrames - 1].XValues;
-					sourceYValues = _animationFrames[_totalAnimationFrames - 1].YValues;
-				}
-			}
-
-			_source = new PolyLine()
-			{
-				XValues = new ObservableCollection<double>(sourceXValues),
-				YValues = new ObservableCollection<double>(sourceYValues)
-			};
-
-			_target = new PolyLine()
-			{
-				XValues = new ObservableCollection<double>(),
-				YValues = new ObservableCollection<double>()
-			};
-
-			XValues.Clear();
-			YValues.Clear();
-
 			foreach (var (timestamp, balance) in values.Reverse())
 			{
-				_target.YValues.Add((double)balance.ToDecimal(MoneyUnit.BTC));
-				_target.XValues.Add(timestamp.ToUnixTimeMilliseconds());
+				Animator.Target.YValues.Add((double)balance.ToDecimal(MoneyUnit.BTC));
+				Animator.Target.XValues.Add(timestamp.ToUnixTimeMilliseconds());
 			}
 
-			if (_target.YValues.Any())
+			if (Animator.Target.YValues.Any())
 			{
-				var maxY = _target.YValues.Max();
-				YLabels = new List<string> { "0", (maxY / 2).ToString("F2"), maxY.ToString("F2") };
+				var maxY = Animator.Target.YValues.Max();
+				Animator.YLabels = new List<string> { "0", (maxY / 2).ToString("F2"), maxY.ToString("F2") };
 			}
 			else
 			{
-				YLabels = null;
+				Animator.YLabels = null;
 			}
 
-			if (_target.XValues.Any())
+			if (Animator.Target.XValues.Any())
 			{
-				var minX = _target.XValues.Min();
-				var maxX = _target.XValues.Max();
+				var minX = Animator.Target.XValues.Min();
+				var maxX = Animator.Target.XValues.Max();
 				var halfX = minX + ((maxX - minX) / 2);
 
 				var range = DateTimeOffset.FromUnixTimeMilliseconds((long)maxX) -
@@ -180,7 +162,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 				if (range <= TimeSpan.FromDays(1))
 				{
-					XLabels = new List<string>
+					Animator.XLabels = new List<string>
 					{
 						DateTimeOffset.FromUnixTimeMilliseconds((long) minX).DateTime.ToString("t"),
 						DateTimeOffset.FromUnixTimeMilliseconds((long) halfX).DateTime.ToString("t"),
@@ -189,7 +171,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				}
 				else if (range <= TimeSpan.FromDays(7))
 				{
-					XLabels = new List<string>
+					Animator.XLabels = new List<string>
 					{
 						DateTimeOffset.FromUnixTimeMilliseconds((long) minX).DateTime.ToString("ddd MMM-d"),
 						DateTimeOffset.FromUnixTimeMilliseconds((long) halfX).DateTime.ToString("ddd MMM-d"),
@@ -198,7 +180,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				}
 				else
 				{
-					XLabels = new List<string>
+					Animator.XLabels = new List<string>
 					{
 						DateTimeOffset.FromUnixTimeMilliseconds((long) minX).DateTime.ToString("MMM-d"),
 						DateTimeOffset.FromUnixTimeMilliseconds((long) halfX).DateTime.ToString("MMM-d"),
@@ -208,71 +190,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			}
 			else
 			{
-				XLabels = null;
+				Animator.XLabels = null;
 			}
 
-			UpdateValues(_source, _target);
-		}
-
-		private void UpdateValues(PolyLine source, PolyLine target)
-		{
-			if (source.XValues.Count > 0 && target.XValues.Count > 0)
-			{
-				CreateAnimation(source, target);
-				StartTimer();
-			}
-			else
-			{
-				XValues = target.XValues;
-				YValues = target.YValues;
-			}
-		}
-
-		private void CreateAnimation(PolyLine source, PolyLine target)
-		{
-			_totalAnimationFrames = (int)(1 / _animationSpeed);
-			_animationFrames = PolyLineMorph.ToCache(source, target, _animationSpeed, _animationEasing, interpolateXAxis: false);
-			_currentAnimationFrame = 0;
-		}
-
-		private void StartTimer()
-		{
-			if (_timer is null)
-			{
-				_timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1 / 60.0) };
-				_timer.Tick += AnimationTimerOnTick;
-			}
-
-			_timer?.Start();
-			IsAnimationRunning = true;
-		}
-
-		private void StopTimer()
-		{
-			_timer?.Stop();
-			IsAnimationRunning = false;
-		}
-
-		private void AnimationTimerOnTick(object? sender, EventArgs e)
-		{
-			if (_animationFrames is null)
-			{
-				return;
-			}
-
-			SetFrameValues(_animationFrames, _currentAnimationFrame);
-			_currentAnimationFrame++;
-
-			if (_currentAnimationFrame >= _totalAnimationFrames)
-			{
-				StopTimer();
-			}
-		}
-
-		private void SetFrameValues(List<PolyLine> frames, int count)
-		{
-			XValues = frames[count].XValues;
-			YValues = frames[count].YValues;
+			Animator.UpdateValues();
 		}
 	}
 }
