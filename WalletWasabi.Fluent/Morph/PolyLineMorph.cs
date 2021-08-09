@@ -8,7 +8,7 @@ namespace WalletWasabi.Fluent.Morph
 {
 	public static class PolyLineMorph
 	{
-		public static List<PolyLine> ToCache(PolyLine source, PolyLine target, double speed, IEasing easing, bool interpolateXAxis)
+		public static List<PolyLine> ToCache(PolyLine source, PolyLine target, double speed, IEasing easing, bool interpolateXAxis = true)
 		{
 			int steps = (int) (1 / speed);
 			double p = speed;
