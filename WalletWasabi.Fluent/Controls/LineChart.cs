@@ -44,7 +44,7 @@ namespace WalletWasabi.Fluent.Controls
 			}
 
 			context.LineTo(new Point(width, height));
-			context.LineTo(new Point(0, height));
+			context.LineTo(new Point(points[0].X, height));
 			context.EndFigure(true);
 			return geometry;
 		}
