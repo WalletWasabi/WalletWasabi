@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -53,6 +54,8 @@ namespace WalletWasabi.Fluent.Morph
 				target.XValues = xValues;
 				target.YValues = yValues;
 			}
+
+			Console.WriteLine($"[WalletBalanceChartTile] {source.XValues.Count} == {target.XValues.Count}");
 
 			for (int j = 0; j < source.XValues.Count; j++)
 			{
