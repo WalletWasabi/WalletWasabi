@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WalletWasabi.Fluent.Helpers
+namespace WalletWasabi.Helpers
 {
 	public static class StartupChecker
 	{
@@ -15,15 +15,15 @@ namespace WalletWasabi.Fluent.Helpers
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				result = WindowsStartupHelper.CheckRegistryKeyExists();
+				result = WindowsStartupChecker.CheckRegistryKeyExists();
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
-				result = LinuxStartupHelper.CheckDesktopFile();
+				result = LinuxStartupChecker.CheckDesktopFile();
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
-				result = await MacOsStartupHelper.CheckLoginItemExistsAsync().ConfigureAwait(false);
+				result = await MacOsStartupChecker.CheckLoginItemExistsAsync().ConfigureAwait(false);
 			}
 
 			return result;
