@@ -14,11 +14,7 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
-<<<<<<< HEAD
 using WalletWasabi.WabiSabi.Crypto;
-=======
-using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
->>>>>>> master
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
