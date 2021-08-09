@@ -34,5 +34,10 @@ namespace WalletWasabi.Fluent.Helpers
 				key.DeleteValue(nameof(WalletWasabi), false);
 			}
 		}
+
+		internal static bool CheckRegistryKeyExists()
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

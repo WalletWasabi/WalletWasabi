@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 
@@ -18,6 +19,11 @@ namespace WalletWasabi.Fluent.Helpers
 			{
 				await EnvironmentHelpers.ShellExecAsync(DeleteCmd).ConfigureAwait(false);
 			}
+		}
+
+		internal static bool CheckLoginItemExists()
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

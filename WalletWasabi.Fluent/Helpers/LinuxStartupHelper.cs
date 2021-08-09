@@ -37,5 +37,10 @@ namespace WalletWasabi.Fluent.Helpers
 				File.Delete(pathToDesktopFile);
 			}
 		}
+
+		internal static bool CheckDesktopFile()
+		{
+			throw new NotImplementedException();
+		}
 	}
 }
