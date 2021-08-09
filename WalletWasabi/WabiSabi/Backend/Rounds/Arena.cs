@@ -348,6 +348,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
 			}
 
+			// Locking is not strictly required because ReadyToSign is monotone (only
+			// changes from false to true) and primitive value types are atomic.
 			alice.ReadyToSign = true;
 		}
 
