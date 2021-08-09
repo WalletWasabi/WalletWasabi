@@ -26,7 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 		public LineChartAnimatorViewModel()
 		{
-			_animationEasing = new SplineEasing();
+			_animationEasing = Easing.Parse("0.4,0,0.6,1");
 			_animationSpeed = 0.05;
 			_isAnimationRunning = false;
 			_yValues = new ObservableCollection<double>();
