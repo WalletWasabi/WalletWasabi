@@ -15,9 +15,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private List<PolyLine>? _animationFrames;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _totalAnimationFrames;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _currentAnimationFrame;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isAnimationRunning;
 		[AutoNotify] private PolyLine? _source;
 		[AutoNotify] private PolyLine? _target;
-		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isAnimationRunning;
 		[AutoNotify] private ObservableCollection<double> _yValues;
 		[AutoNotify] private ObservableCollection<double> _xValues;
 		[AutoNotify] private double? _xMinimum;
