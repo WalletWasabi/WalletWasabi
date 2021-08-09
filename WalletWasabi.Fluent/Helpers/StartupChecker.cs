@@ -9,7 +9,7 @@ namespace WalletWasabi.Fluent.Helpers
 {
 	public static class StartupChecker
 	{
-		public static bool Validate()
+		public async static Task<bool> ValidateAsync()
 		{
 			bool result = false;
 
@@ -23,7 +23,7 @@ namespace WalletWasabi.Fluent.Helpers
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
-				result = MacOsStartupHelper.CheckLoginItemExists();
+				result = await MacOsStartupHelper.CheckLoginItemExistsAsync().ConfigureAwait(false);
 			}
 
 			return result;

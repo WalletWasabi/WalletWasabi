@@ -42,7 +42,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				? (FeeDisplayFormat)Services.UiConfig.FeeDisplayFormat
 				: FeeDisplayFormat.SatoshiPerByte;
 
-			_runOnSystemStartup = Services.UiConfig.RunOnSystemStartup = StartupChecker.Validate();
+			_runOnSystemStartup = Services.UiConfig.RunOnSystemStartup = StartupChecker.ValidateAsync().Result;
 
 			this.WhenAnyValue(x => x.DarkModeEnabled)
 				.Skip(1)
