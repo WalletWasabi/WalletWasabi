@@ -447,10 +447,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 							var commitAmountRealCredentialResponse = await amountRealTask.ConfigureAwait(false);
 							var commitVsizeRealCredentialResponse = await vsizeRealTask.ConfigureAwait(false);
 
-							// Ensure the input can be added to the CoinJoin
+							// Update the CoinJoin state, adding the confirmed input.
 							round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice.Coin);
-
-							// update state
 							alice.ConfirmedConnection = true;
 
 							return new(
