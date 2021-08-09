@@ -25,12 +25,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		private List<PolyLine>? _animationFrames;
 		private int _totalAnimationFrames;
 		private int _currentAnimationFrame;
-		private bool _isAnimationaRunning;
 		[AutoNotify] private ObservableCollection<double> _yValues;
 		[AutoNotify] private ObservableCollection<double> _xValues;
 		[AutoNotify] private double? _xMinimum;
 		[AutoNotify] private List<string>? _yLabels;
 		[AutoNotify] private List<string>? _xLabels;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isAnimationRunning;
 
 		public WalletBalanceChartTileViewModel(ObservableCollection<HistoryItemViewModel> history)
 		{
@@ -38,7 +38,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			_animationEasing = new SplineEasing();
 			_animationSpeed = 0.05;
-			_isAnimationaRunning = false;
+			_isAnimationRunning = false;
 
 			_yValues = new ObservableCollection<double>();
 			_xValues = new ObservableCollection<double>();
@@ -244,13 +244,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			}
 
 			_timer?.Start();
-			_isAnimationaRunning = true;
+			IsAnimationRunning = true;
 		}
 
 		private void StopTimer()
 		{
 			_timer?.Stop();
-			_isAnimationaRunning = false;
+			IsAnimationRunning = false;
 		}
 
 		private void AnimationTimerOnTick(object? sender, EventArgs e)
