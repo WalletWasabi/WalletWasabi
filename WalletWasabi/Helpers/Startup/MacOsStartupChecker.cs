@@ -7,7 +7,7 @@ namespace WalletWasabi.Helpers
 {
 	public static class MacOsStartupChecker
 	{
-		private static readonly string ListCmd = $"osascript -e \' tell application \"System Events\" to get every login item\'";
+		private const string ListCmd = "osascript -e \' tell application \"System Events\" to get every login item\'";
 
 		internal static async Task<bool> CheckLoginItemExistsAsync()
 		{
