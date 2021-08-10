@@ -97,10 +97,11 @@ namespace WalletWasabi.Helpers.PowerSaving
 		[DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true, ExactSpelling = true)]
 		internal static extern int CloseHandle(IntPtr hObject);
 
-		// Availability Request Structures
-		// Note: Windows defines the POWER_REQUEST_CONTEXT structure with an internal union of SimpleReasonString and Detailed information.
-		// To avoid runtime interop issues, this version of  POWER_REQUEST_CONTEXT only supports SimpleReasonString.  
-		// To use the detailed information, define the PowerCreateRequest function with the first  parameter of type POWER_REQUEST_CONTEXT_DETAILED.
+		/// <remarks>
+		/// Windows defines the POWER_REQUEST_CONTEXT structure with an internal union of <c>SimpleReasonString</c> and Detailed information.
+		/// <para>To avoid runtime interop issues, this version of POWER_REQUEST_CONTEXT only supports <c>SimpleReasonString</c>.</para>
+		/// <para>To use the detailed information, define the PowerCreateRequest function with the first parameter of type POWER_REQUEST_CONTEXT_DETAILED.</para>
+		/// </remarks>
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]		
 		public struct POWER_REQUEST_CONTEXT
 		{
