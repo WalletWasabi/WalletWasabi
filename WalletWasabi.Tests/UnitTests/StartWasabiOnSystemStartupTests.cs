@@ -1,31 +1,69 @@
-using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Gui;
+using WalletWasabi.Helpers;
+using WalletWasabi.Tests.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests
 {
 	public class StartWasabiOnSystemStartupTests
 	{
+		private readonly WindowsStartupTestHelper _windowsHelper = new();
+
 		[Fact]
 		public async Task ModifyStartupOnDifferentSystemsTestAsync()
 		{
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			UiConfig originalConfig = GetUiConfig();
+			try
 			{
-				await StartupHelper.ModifyStartupSettingAsync(true);
-				await StartupHelper.ModifyStartupSettingAsync(false);
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				{
+					await StartupHelper.ModifyStartupSettingAsync(true);
+
+					Assert.True(_windowsHelper.RegistryKeyExists());
+
+					await StartupHelper.ModifyStartupSettingAsync(false);
+
+					Assert.False(_windowsHelper.RegistryKeyExists());
+				}
+				else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				{
+					await StartupHelper.ModifyStartupSettingAsync(true);
+
+					Assert.True(File.Exists(LinuxStartupTestHelper.FilePath));
+					Assert.Equal(LinuxStartupTestHelper.ExpectedDesktopFileContent, LinuxStartupTestHelper.GetFileContent());
+
+					await StartupHelper.ModifyStartupSettingAsync(false);
+
+					Assert.False(File.Exists(LinuxStartupTestHelper.FilePath));
+				}
+				else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+				{
+					// We don't read back the results, because on the CI pipeline, we cannot hit the "Allow" option of the pop-up window,
+					// which comes up when a third-party app wants to modify the Login Items.
+
+					await StartupHelper.ModifyStartupSettingAsync(true);
+
+					await StartupHelper.ModifyStartupSettingAsync(false);
+				}
 			}
-			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+			finally
 			{
-				await Assert.ThrowsAsync<NotImplementedException>(async () => await StartupHelper.ModifyStartupSettingAsync(true));
-				await Assert.ThrowsAsync<NotImplementedException>(async () => await StartupHelper.ModifyStartupSettingAsync(false));
+				// Restore original setting for devs.
+				await StartupHelper.ModifyStartupSettingAsync(originalConfig.RunOnSystemStartup);
 			}
-			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-			{
-				await StartupHelper.ModifyStartupSettingAsync(true);
-				await StartupHelper.ModifyStartupSettingAsync(false);
-			}
+		}
+
+		private UiConfig GetUiConfig()
+		{
+			string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
+			UiConfig uiConfig = new(Path.Combine(dataDir, "UiConfig.json"));
+			uiConfig.LoadOrCreateDefaultFile();
+
+			return uiConfig;
 		}
 	}
 }

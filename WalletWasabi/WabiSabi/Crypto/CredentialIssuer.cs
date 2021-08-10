@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto;
@@ -27,11 +30,12 @@ namespace WalletWasabi.WabiSabi.Crypto
 	/// key).
 	///
 	/// Note that this is a stateful component because it needs to keep track of the
-	/// presented credentials' serial numbers in order to prevent credential reuse.
-	/// Additionally it keeps also track of the `balance` in order to make sure it never
-	/// issues credentials for more money than the total presented amount. All this means
-	/// that the same instance has to be used for a given round (the coordinator needs to
-	/// maintain only one instance of this class per round)
+	/// presented credentials' serial numbers in order to prevent credential
+	/// reuse. The API is concurrency safe. Additionally it keeps also track of
+	/// the <see cref="Balance">balance</see> in order to make sure it never
+	/// issues credentials for more money than the total presented amount. All
+	/// this means that the same instance has to be used for a given round (the
+	/// coordinator needs to maintain only one instance of this class per round)
 	///
 	/// About replay requests: a replay request is a <see cref="CredentialsRequest">request</see>
 	/// that has already been seen before. These kind of requests can be the result of misbehaving
@@ -43,6 +47,10 @@ namespace WalletWasabi.WabiSabi.Crypto
 	/// </remarks>
 	public class CredentialIssuer
 	{
+		// Canary test check to ensure credential balance is never negative.
+		// Accessed using Interlocked methods.
+		private long _balance = 0;
+
 		/// <summary>
 		/// Initializes a new instance of the CredentialIssuer class.
 		/// </summary>
@@ -66,10 +74,11 @@ namespace WalletWasabi.WabiSabi.Crypto
 
 		// Keeps track of the used serial numbers. This is part of
 		// the double-spending prevention mechanism.
-		private HashSet<GroupElement> SerialNumbers { get; } = new HashSet<GroupElement>();
+		private HashSet<GroupElement> SerialNumbers { get; } = new();
 
-		// Canary test check to ensure credential balance is never negative
-		public long Balance { get; private set; } = 0;
+		private object SerialNumbersLock { get; } = new();
+
+		public long Balance => Interlocked.Read(ref _balance);
 
 		private WasabiRandom RandomNumberGenerator { get; }
 
@@ -108,7 +117,8 @@ namespace WalletWasabi.WabiSabi.Crypto
 			var presented = registrationRequest.Presented ?? Enumerable.Empty<CredentialPresentation>();
 
 			var requestedCount = requested.Count();
-			if (requestedCount != NumberOfCredentials)
+			var requiredNumberOfRequested = registrationRequest.IsPresentationOnlyRequest ? 0 : NumberOfCredentials;
+			if (requestedCount != requiredNumberOfRequested)
 			{
 				throw new WabiSabiCryptoException(
 					WabiSabiCryptoErrorCode.InvalidNumberOfRequestedCredentials,
@@ -128,7 +138,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			// then there is a problem somewhere because this should not be possible.
 			if (Balance + registrationRequest.Delta < 0)
 			{
-				throw new WabiSabiCryptoException(WabiSabiCryptoErrorCode.NegativeBalance);
+				throw new InvalidOperationException("Negative issuer balance");
 			}
 
 			// Check that the range proofs are of the appropriate bitwidth
@@ -147,6 +157,28 @@ namespace WalletWasabi.WabiSabi.Crypto
 				throw new WabiSabiCryptoException(WabiSabiCryptoErrorCode.SerialNumberDuplicated);
 			}
 
+			var presentedSerialNumbers = presented.Select(x => x.S);
+
+			lock (SerialNumbersLock)
+			{
+				// Check if the serial numbers have been used before.
+				// Note that the serial numbers have not yet been verified at
+				// this point, but a request with an invalid proof and a used
+				// serial number should also be rejected.
+				if (presentedSerialNumbers.Any(s => SerialNumbers.Contains(s)))
+				{
+					throw new WabiSabiCryptoException(WabiSabiCryptoErrorCode.SerialNumberAlreadyUsed, $"Serial number reused");
+				}
+
+				// Since serial numbers are cryptographically unguessable, we
+				// just add them, any reuse is necessarily a double spend
+				// attempt.
+				foreach (var serialNumber in presentedSerialNumbers)
+				{
+					SerialNumbers.Add(serialNumber);
+				}
+			}
+
 			var statements = new List<Statement>();
 			foreach (var presentation in presented)
 			{
@@ -155,15 +187,6 @@ namespace WalletWasabi.WabiSabi.Crypto
 
 				// Add the credential presentation to the statements to be verified.
 				statements.Add(ProofSystem.ShowCredentialStatement(presentation, z, CredentialIssuerParameters));
-
-				// Check if the serial numbers have been used before. Note that
-				// the serial numbers have not yet been verified at this point, but a
-				// request with an invalid proof and a used serial number should also be
-				// rejected.
-				if (SerialNumbers.Contains(presentation.S))
-				{
-					throw new WabiSabiCryptoException(WabiSabiCryptoErrorCode.SerialNumberAlreadyUsed, $"Serial number reused {presentation.S}");
-				}
 			}
 
 			foreach (var credentialRequest in requested)
@@ -190,37 +213,73 @@ namespace WalletWasabi.WabiSabi.Crypto
 				statements.Add(ProofSystem.BalanceProofStatement(balanceTweak + sumCa - sumMa));
 			}
 
-			var transcript = BuildTransnscript(registrationRequest.IsNullRequest);
+			var transcript = BuildTranscript(registrationRequest.IsNullRequest);
 
-			// Verify all statements.
-			var areProofsValid = ProofSystem.Verify(transcript, statements, registrationRequest.Proofs);
-			if (!areProofsValid)
+			bool areProofsValid = false;
+
+			try
 			{
-				throw new WabiSabiCryptoException(WabiSabiCryptoErrorCode.CoordinatorReceivedInvalidProofs);
+				// Verify all statements.
+				areProofsValid = ProofSystem.Verify(transcript, statements, registrationRequest.Proofs);
+				if (!areProofsValid)
+				{
+					throw new WabiSabiCryptoException(WabiSabiCryptoErrorCode.CoordinatorReceivedInvalidProofs);
+				}
+			}
+			finally
+			{
+				if (!areProofsValid)
+				{
+					// Request was invalid, but all serial numbers were unused.
+					// Ensure nullifier set can't be clogged with invalid serial
+					// numbers. Valid serial numbers are only issued in response to
+					// valid requests, which in turn depend on valid ownership
+					// proofs and the banning mechanism, and they actually matter
+					// for double spending, so only they need to be stored in the
+					// nullifier set.
+					lock (SerialNumbersLock)
+					{
+						foreach (var serialNumber in presentedSerialNumbers)
+						{
+							SerialNumbers.Remove(serialNumber);
+						}
+					}
+				}
 			}
 
-			// Issue credentials.
-			var credentials = requested.Select(x => IssueCredential(x.Ma, RandomNumberGenerator.GetScalar())).ToArray();
+			// After this point serial numbers are committed irrevocably, even
+			// if the request fails at a higher level, and the credentials
+			// were never revealed because `Commit` was not called. This is
+			// because any request that made it this far is formally valid, and
+			// thus any invalidity with regard to state is unambiguously a
+			// double spend attempt, and there is no point in allowing those
+			// serial numbers to be reused and the round to proceed.
+
+			// Issue the credentials, but they won't actually be returned until
+			// Commit() is called.
+			var credentials = requested.Select(x => IssueCredential(x.Ma, RandomNumberGenerator.GetScalar())).ToImmutableArray();
 
 			// Construct response.
 			var proofs = ProofSystem.Prove(transcript, credentials.Select(x => x.Knowledge), RandomNumberGenerator);
 			var macs = credentials.Select(x => x.Mac);
 			var response = new CredentialsResponse(macs, proofs);
 
-			var serialNumbers = presented.Select(x => x.S);
-			return new PreparedCredentialsResponse(this, response, registrationRequest.Delta, serialNumbers);
+			return new PreparedCredentialsResponse(this, response, registrationRequest.Delta);
 		}
 
-		private CredentialsResponse Commit(CredentialsResponse response, long delta, IEnumerable<GroupElement> serialNumbers)
+		private CredentialsResponse Commit(CredentialsResponse response, long delta)
 		{
-			// Register the serial numbers to prevent credential reuse.
-			foreach (var serialNumber in serialNumbers)
+			if (Interlocked.Add(ref _balance, delta) < 0)
 			{
-				SerialNumbers.Add(serialNumber);
+				throw new InvalidOperationException("Negative balance");
 			}
-			Balance += delta;
 
-			return response;
+			// Although there are no side effects, eagerly evaluate enumerables
+			// to ensure the expensive computations are not repeated.
+			return new(
+				response.IssuedCredentials.ToImmutableArray(),
+				response.Proofs.ToImmutableArray()
+			);
 		}
 
 		private (MAC Mac, Knowledge Knowledge) IssueCredential(GroupElement ma, Scalar t)
@@ -231,11 +290,16 @@ namespace WalletWasabi.WabiSabi.Crypto
 			return (mac, knowledge);
 		}
 
-		private Transcript BuildTransnscript(bool isNullRequest)
+		private Transcript BuildTranscript(bool isNullRequest)
 		{
 			var label = $"UnifiedRegistration/{NumberOfCredentials}/{isNullRequest}";
 			var encodedLabel = Encoding.UTF8.GetBytes(label);
 			return new Transcript(encodedLabel);
+		}
+
+		public Task<ICommitableCredentialsResponse> PrepareResponse(CredentialsRequest registrationRequest, CancellationToken cancel)
+		{
+			return Task.Run(() => PrepareResponse(registrationRequest), cancel);
 		}
 
 		private class PreparedCredentialsResponse : ICommitableCredentialsResponse
@@ -243,15 +307,13 @@ namespace WalletWasabi.WabiSabi.Crypto
 			private readonly CredentialIssuer _issuer;
 			private readonly CredentialsResponse _response;
 			private readonly long _delta;
-			private readonly IEnumerable<GroupElement> _serialNumbers;
 			private bool _committed;
 
-			public PreparedCredentialsResponse(CredentialIssuer issuer, CredentialsResponse response, long delta, IEnumerable<GroupElement> serialNumbers)
+			public PreparedCredentialsResponse(CredentialIssuer issuer, CredentialsResponse response, long delta)
 			{
 				_issuer = issuer;
 				_response = response;
 				_delta = delta;
-				_serialNumbers = serialNumbers;
 				_committed = false;
 			}
 
@@ -262,7 +324,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 					throw new InvalidOperationException("The instance was already committed.");
 				}
 				_committed = true;
-				return _issuer.Commit(_response, _delta, _serialNumbers);
+				return _issuer.Commit(_response, _delta);
 			}
 		}
 	}

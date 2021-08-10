@@ -198,7 +198,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, key1, coin1, key2, coin2);
 
 			// Make sure not all alices signed.
-			var alice3 = WabiSabiFactory.CreateAlice();
+			var alice3 = WabiSabiFactory.CreateAlice(round);
 			alice3.ConfirmedConnection = true;
 			round.Alices.Add(alice3);
 			round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice3.Coin);
@@ -234,6 +234,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 
 			var round = Assert.Single(arena.Rounds);
+			round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
 			// Register Alices.
@@ -247,16 +248,19 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
 			// Confirm connections.
+			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), new ArenaRequestHandlerAdapter(arena));
 			await aliceClient1.ConfirmConnectionAsync(
 				TimeSpan.FromMilliseconds(100),
 				new long[] { coin1.EffectiveValue(round.FeeRate) },
 				new long[] { round.MaxVsizeAllocationPerAlice - coin1.ScriptPubKey.EstimateInputVsize() },
+				roundStateUpdater,
 				CancellationToken.None).ConfigureAwait(false);
 
 			await aliceClient2.ConfirmConnectionAsync(
 				TimeSpan.FromMilliseconds(100),
 				new long[] { coin2.EffectiveValue(round.FeeRate) },
 				new long[] { round.MaxVsizeAllocationPerAlice - coin2.ScriptPubKey.EstimateInputVsize() },
+				roundStateUpdater,
 				CancellationToken.None).ConfigureAwait(false);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -267,14 +271,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			using var destKey1 = new Key();
 			using var destKey2 = new Key();
 			await bobClient.RegisterOutputAsync(
-				coin1.Amount - round.FeeRate.GetFee(coin1.ScriptPubKey.EstimateInputVsize()),
 				destKey1.PubKey.WitHash.ScriptPubKey,
 				aliceClient1.IssuedAmountCredentials.Take(ProtocolConstants.CredentialNumber),
 				aliceClient1.IssuedVsizeCredentials.Take(ProtocolConstants.CredentialNumber),
 				CancellationToken.None).ConfigureAwait(false);
 
 			await bobClient.RegisterOutputAsync(
-				coin2.Amount - round.FeeRate.GetFee(coin2.ScriptPubKey.EstimateInputVsize()),
 				destKey1.PubKey.WitHash.ScriptPubKey,
 				aliceClient2.IssuedAmountCredentials.Take(ProtocolConstants.CredentialNumber),
 				aliceClient2.IssuedVsizeCredentials.Take(ProtocolConstants.CredentialNumber),

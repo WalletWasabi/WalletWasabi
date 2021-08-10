@@ -2,6 +2,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -420,7 +421,7 @@ namespace WalletWasabi.Blockchain.Keys
 		{
 			lock (HdPubKeyScriptBytesLock)
 			{
-				return HdPubKeyScriptBytes;
+				return HdPubKeyScriptBytes.ToImmutableArray();
 			}
 		}
 

@@ -58,8 +58,13 @@
             </TextBox>
             <Panel Margin="0 -20 0 0 ">
               <Button Classes="activeHyperLink skip" Content="Forgot password?" HorizontalAlignment="Left" Command="{Binding ForgotPasswordCommand}"/>
-              <Button Content="Login" IsDefault="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNullOrEmpty}}" Focusable="False" Classes="action" HorizontalAlignment="Right" Command="{Binding NextCommand}">
-
+              <Button Content="Login" Focusable="False" Classes="action" HorizontalAlignment="Right" Command="{Binding NextCommand}">
+                <Button.IsDefault>
+                  <MultiBinding Converter="{x:Static BoolConverters.And}">
+                    <Binding Path="ErrorMessage" Converter="{x:Static StringConverters.IsNullOrEmpty}" />
+                    <Binding Path="IsActive" />
+                  </MultiBinding>
+                </Button.IsDefault>
               </Button>
             </Panel>
           </DockPanel>
@@ -75,7 +80,14 @@
                     VerticalAlignment="Bottom"
                     Classes="fadeAnimation">
           <TextBlock Text="{Binding ErrorMessage}" HorizontalAlignment="Center" />
-          <Button Content="OK" IsDefault="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Focusable="False" Classes="action" HorizontalAlignment="Center" Command="{Binding OkCommand}" />
+          <Button Content="OK" Focusable="False" Classes="action" HorizontalAlignment="Center" Command="{Binding OkCommand}">
+            <Button.IsDefault>
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="ErrorMessage" Converter="{x:Static StringConverters.IsNotNullOrEmpty}" />
+                <Binding Path="IsActive" />
+              </MultiBinding>
+            </Button.IsDefault>
+          </Button>
         </StackPanel>
 
       </StackPanel>

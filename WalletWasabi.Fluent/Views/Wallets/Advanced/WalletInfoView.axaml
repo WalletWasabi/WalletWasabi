@@ -67,14 +67,16 @@
 
       <c:PreviewItem Icon="{StaticResource key_regular}"
                      Text="Extended Account Public Key"
-                     Content="{Binding ExtendedAccountPublicKey}"
-                     CopyParameter="{Binding ExtendedAccountPublicKey}" />
-      <Separator />
+                     CopyParameter="{Binding ExtendedAccountPublicKey}">
+        <c:PrivacyContentControl Content="{Binding ExtendedAccountPublicKey}" ForceShow="{Binding ShowSensitiveData}" NumberOfPrivacyChars="38" />
+      </c:PreviewItem>
+        <Separator />
 
       <c:PreviewItem Icon="{StaticResource key_regular}"
                      Text="Extended Account zpub"
-                     Content="{Binding ExtendedAccountZpub}"
-                     CopyParameter="{Binding ExtendedAccountZpub}" />
+                     CopyParameter="{Binding ExtendedAccountZpub}">
+        <c:PrivacyContentControl Content="{Binding ExtendedAccountZpub}" ForceShow="{Binding ShowSensitiveData}" NumberOfPrivacyChars="38" />
+      </c:PreviewItem>
     </StackPanel>
   </c:ContentArea>
 </UserControl>

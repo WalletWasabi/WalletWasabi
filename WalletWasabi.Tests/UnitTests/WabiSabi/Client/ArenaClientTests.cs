@@ -33,6 +33,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		{
 			var config = new WabiSabiConfig { MaxInputCountByRound = 1 };
 			var round = WabiSabiFactory.CreateRound(config);
+			round.MaxVsizeAllocationPerAlice = 255;
 			using var key = new Key();
 			var outpoint = BitcoinFactory.CreateOutPoint();
 			var mockRpc = new Mock<IRPCClient>();
@@ -54,6 +55,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				{
 					MinRelayTxFee = 1
 				});
+			mockRpc.Setup(rpc => rpc.PrepareBatch()).Returns(mockRpc.Object);
+			mockRpc.Setup(rpc => rpc.SendBatchAsync()).Returns(Task.CompletedTask);
 
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, mockRpc, round);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
@@ -138,7 +141,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			await bobArenaClient.RegisterOutputAsync(
 				round.Id,
-				amountsToRequest[0],
 				destinationKey1.PubKey.WitHash.ScriptPubKey,
 				new[] { amountCred1, zeroAmountCred1 },
 				new[] { vsizeCred1, zeroVsizeCred1 },
@@ -146,7 +148,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			await bobArenaClient.RegisterOutputAsync(
 				round.Id,
-				amountsToRequest[1],
 				destinationKey2.PubKey.WitHash.ScriptPubKey,
 				new[] { amountCred2, zeroAmountCred2 },
 				new[] { vsizeCred2, zeroVsizeCred2 },
@@ -170,7 +171,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			round.SetPhase(Phase.ConnectionConfirmation);
 			var fundingTx = BitcoinFactory.CreateSmartTransaction(ownOutputCount: 1);
 			var coin = fundingTx.WalletOutputs.First().Coin;
-			var alice = new Alice(coin, new OwnershipProof());
+			var alice = new Alice(coin, new OwnershipProof(), round);
 			round.Alices.Add(alice);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, round);
 
@@ -191,11 +192,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			Round round = WabiSabiFactory.CreateRound(config);
 
 			using Key key1 = new();
-			Alice alice1 = WabiSabiFactory.CreateAlice(key: key1);
+			Alice alice1 = WabiSabiFactory.CreateAlice(key: key1, round: round);
 			round.Alices.Add(alice1);
 
 			using Key key2 = new();
-			Alice alice2 = WabiSabiFactory.CreateAlice(key: key2);
+			Alice alice2 = WabiSabiFactory.CreateAlice(key: key2, round: round);
 			round.Alices.Add(alice2);
 
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, round);
