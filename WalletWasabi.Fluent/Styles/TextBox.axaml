@@ -173,7 +173,7 @@
     <Setter Property="Background" Value="Transparent" />
   </Style>
 
-  <Style Selector="TextBox.readOnly.monoSpace /template/ TextPresenter">
+  <Style Selector="TextBox.readOnly /template/ TextPresenter">
     <Setter Property="TextBlock.FontFamily" Value="{StaticResource MonospacedFont}" />
   </Style>
 </Styles>
