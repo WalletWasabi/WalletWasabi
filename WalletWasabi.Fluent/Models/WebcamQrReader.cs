@@ -34,7 +34,15 @@ namespace WalletWasabi.Fluent.Models
 		private bool RequestEnd { get; set; }
 		private Network Network { get; }
 		private Task? ScanningTask { get; set; }
-		public static bool IsOsPlatformSupported => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+		public static bool IsOsPlatformSupported()
+		{
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			{
+				return true;
+			}
+			return false;
+		}
 
 		public async Task StartScanningAsync()
 		{
@@ -50,7 +58,7 @@ namespace WalletWasabi.Fluent.Models
 					VideoCapture? camera = null;
 					try
 					{
-						if (!IsOsPlatformSupported)
+						if (!IsOsPlatformSupported())
 						{
 							throw new NotImplementedException("This operating system is not supported.");
 						}

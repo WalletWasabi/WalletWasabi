@@ -426,6 +426,11 @@
           "System.Runtime.CompilerServices.Unsafe": "5.0.0"
         }
       },
+      "OpenCvSharp4.runtime.osx.10.15-x64": {
+        "type": "Transitive",
+        "resolved": "4.5.3.20210725",
+        "contentHash": "tGTgCfN37gpPb2o+zquKqW0armxoLMoA6HQ2zjy4Ly9D92sriOlBSizGZCz5unGk6Z+7oxiz5rIR2ZmVrVQjrQ=="
+      },
       "OpenCvSharp4.runtime.win": {
         "type": "Transitive",
         "resolved": "4.5.2.20210404",
@@ -1015,6 +1020,7 @@
           "Avalonia.ReactiveUI": "0.10.999-cibuild0014678-beta",
           "Avalonia.Xaml.Behaviors": "0.10.6.10",
           "OpenCvSharp4": "4.5.2.20210404",
+          "OpenCvSharp4.runtime.osx.10.15-x64": "4.5.3.20210725",
           "OpenCvSharp4.runtime.win": "4.5.2.20210404",
           "WalletWasabi": "1.0.0",
           "Wasabi Wallet": "1.0.0"
@@ -1070,6 +1076,11 @@
         "dependencies": {
           "Microsoft.NETCore.Platforms": "5.0.0"
         }
+      },
+      "OpenCvSharp4.runtime.osx.10.15-x64": {
+        "type": "Transitive",
+        "resolved": "4.5.3.20210725",
+        "contentHash": "tGTgCfN37gpPb2o+zquKqW0armxoLMoA6HQ2zjy4Ly9D92sriOlBSizGZCz5unGk6Z+7oxiz5rIR2ZmVrVQjrQ=="
       },
       "OpenCvSharp4.runtime.win": {
         "type": "Transitive",
@@ -1607,6 +1618,11 @@
           "Microsoft.NETCore.Platforms": "5.0.0"
         }
       },
+      "OpenCvSharp4.runtime.osx.10.15-x64": {
+        "type": "Transitive",
+        "resolved": "4.5.3.20210725",
+        "contentHash": "tGTgCfN37gpPb2o+zquKqW0armxoLMoA6HQ2zjy4Ly9D92sriOlBSizGZCz5unGk6Z+7oxiz5rIR2ZmVrVQjrQ=="
+      },
       "OpenCvSharp4.runtime.win": {
         "type": "Transitive",
         "resolved": "4.5.2.20210404",
@@ -2142,6 +2158,11 @@
         "dependencies": {
           "Microsoft.NETCore.Platforms": "5.0.0"
         }
+      },
+      "OpenCvSharp4.runtime.osx.10.15-x64": {
+        "type": "Transitive",
+        "resolved": "4.5.3.20210725",
+        "contentHash": "tGTgCfN37gpPb2o+zquKqW0armxoLMoA6HQ2zjy4Ly9D92sriOlBSizGZCz5unGk6Z+7oxiz5rIR2ZmVrVQjrQ=="
       },
       "OpenCvSharp4.runtime.win": {
         "type": "Transitive",

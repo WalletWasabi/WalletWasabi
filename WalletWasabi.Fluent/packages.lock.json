@@ -62,6 +62,12 @@
           "System.Runtime.CompilerServices.Unsafe": "5.0.0"
         }
       },
+      "OpenCvSharp4.runtime.osx.10.15-x64": {
+        "type": "Direct",
+        "requested": "[4.5.3.20210725, )",
+        "resolved": "4.5.3.20210725",
+        "contentHash": "tGTgCfN37gpPb2o+zquKqW0armxoLMoA6HQ2zjy4Ly9D92sriOlBSizGZCz5unGk6Z+7oxiz5rIR2ZmVrVQjrQ=="
+      },
       "OpenCvSharp4.runtime.win": {
         "type": "Direct",
         "requested": "[4.5.2.20210404, )",
@@ -2127,6 +2133,12 @@
       }
     },
     ".NETCoreApp,Version=v5.0/linux-x64": {
+      "OpenCvSharp4.runtime.osx.10.15-x64": {
+        "type": "Direct",
+        "requested": "[4.5.3.20210725, )",
+        "resolved": "4.5.3.20210725",
+        "contentHash": "tGTgCfN37gpPb2o+zquKqW0armxoLMoA6HQ2zjy4Ly9D92sriOlBSizGZCz5unGk6Z+7oxiz5rIR2ZmVrVQjrQ=="
+      },
       "OpenCvSharp4.runtime.win": {
         "type": "Direct",
         "requested": "[4.5.2.20210404, )",
@@ -3161,6 +3173,12 @@
       }
     },
     ".NETCoreApp,Version=v5.0/osx-x64": {
+      "OpenCvSharp4.runtime.osx.10.15-x64": {
+        "type": "Direct",
+        "requested": "[4.5.3.20210725, )",
+        "resolved": "4.5.3.20210725",
+        "contentHash": "tGTgCfN37gpPb2o+zquKqW0armxoLMoA6HQ2zjy4Ly9D92sriOlBSizGZCz5unGk6Z+7oxiz5rIR2ZmVrVQjrQ=="
+      },
       "OpenCvSharp4.runtime.win": {
         "type": "Direct",
         "requested": "[4.5.2.20210404, )",
@@ -4195,6 +4213,12 @@
       }
     },
     ".NETCoreApp,Version=v5.0/win7-x64": {
+      "OpenCvSharp4.runtime.osx.10.15-x64": {
+        "type": "Direct",
+        "requested": "[4.5.3.20210725, )",
+        "resolved": "4.5.3.20210725",
+        "contentHash": "tGTgCfN37gpPb2o+zquKqW0armxoLMoA6HQ2zjy4Ly9D92sriOlBSizGZCz5unGk6Z+7oxiz5rIR2ZmVrVQjrQ=="
+      },
       "OpenCvSharp4.runtime.win": {
         "type": "Direct",
         "requested": "[4.5.2.20210404, )",
