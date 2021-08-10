@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.CrashReport.ViewModels
 			LogPath = logPath;
 		}
 
-		public string Details => $"{_serializableException.Message}";
+		public string Details => $"A problem has occurred and Wasabi is unable to continue.";
 		public string Message => $"{_serializableException.Message}";
 		public string Title => $"{_serializableException.Message}";
 	}

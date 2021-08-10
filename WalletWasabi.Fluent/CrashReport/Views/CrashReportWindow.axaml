@@ -19,13 +19,27 @@
                           EnableNext="True"
                           NextContent="Exit"
                           EnableCancel="True"
-                          CancelContent="Open Logs"
+                          CancelContent="Restart Wasabi"
                           Caption="{Binding Details}"
                           FocusNext="True"
                           Margin="0 50 0 0">
-      <Panel>
-        <TextBlock TextWrapping="Wrap" Text="{Binding Message}"/>
-      </Panel>
+      <DockPanel LastChildFill="True">
+        <controls:InfoMessage DockPanel.Dock="Bottom" VerticalAlignment="Center" HorizontalAlignment="Center">
+          <WrapPanel>
+            <TextBlock>You can copy the above text and post an issue tracker in our </TextBlock>
+            <Panel Width="5"></Panel>
+            <Button Classes="activeHyperLink" Content="GitHub repo here" HorizontalAlignment="Left" />
+            <Panel Width="5"></Panel>
+            <TextBlock>so we can take a closer look.</TextBlock>
+          </WrapPanel>
+        </controls:InfoMessage>
+        <TextBox Classes="readOnly" Text="{Binding Message}" />
+      </DockPanel>
     </controls:ContentArea>
+
+    <Viewbox Width="300" Height="300" Opacity="0.1" VerticalAlignment="Center"
+             HorizontalAlignment="Right">
+      <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
+    </Viewbox>
   </Panel>
 </Window>
