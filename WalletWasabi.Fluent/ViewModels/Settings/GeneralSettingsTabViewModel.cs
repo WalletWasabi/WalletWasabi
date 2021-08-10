@@ -9,6 +9,7 @@ using WalletWasabi.Gui.Models;
 using WalletWasabi.Logging;
 using System.Windows.Input;
 using DynamicData;
+using System.Reactive.Disposables;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
@@ -38,7 +39,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			_autoCopy = Services.UiConfig.Autocopy;
 			_customFee = Services.UiConfig.IsCustomFee;
 			_customChangeAddress = Services.UiConfig.IsCustomChangeAddress;
-			_runOnSystemStartup = Services.UiConfig.RunOnSystemStartup;
 			_selectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), Services.UiConfig.FeeDisplayFormat)
 				? (FeeDisplayFormat)Services.UiConfig.FeeDisplayFormat
 				: FeeDisplayFormat.SatoshiPerByte;
@@ -95,6 +95,12 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 		protected override void EditConfigOnSave(Config config)
 		{
+		}
+
+		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+		{
+			_runOnSystemStartup = Services.UiConfig.RunOnSystemStartup;
+			base.OnNavigatedTo(isInHistory, disposables);
 		}
 	}
 }
