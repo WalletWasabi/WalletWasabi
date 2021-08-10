@@ -162,8 +162,18 @@
     </Setter>
   </Style>
 
-  <Style Selector="TextBlock.monoSpaced">
-    <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
-    <Setter Property="FontSize" Value="15" />
+  <Style Selector="TextBox.readOnly">
+    <Setter Property="IsReadOnly" Value="True" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+
+  <Style Selector="TextBox.readOnly:pointerover /template/ Border#PART_BorderElement">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+
+  <Style Selector="TextBox.readOnly.monoSpace /template/ TextPresenter">
+    <Setter Property="TextBlock.FontFamily" Value="{StaticResource MonospacedFont}" />
   </Style>
 </Styles>
