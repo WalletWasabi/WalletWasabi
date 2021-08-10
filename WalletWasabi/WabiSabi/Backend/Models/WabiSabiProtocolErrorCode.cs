@@ -38,6 +38,6 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		DeltaNotZero,
 		WrongNumberOfCreds,
 		CryptoException,
-		AlreadySigned
+		AliceAlreadySignalled
 	}
 }

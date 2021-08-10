@@ -255,7 +255,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		private async Task CreateBlameRoundAsync(Round round, CancellationToken cancellationToken)
 		{
 			var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false)).FeeRate;
-			RoundParameters parameters = new(Config, Network, Random, feeRate, blameOf: round);
+			RoundParameters parameters = new(Config, Network, Random, feeRate, blameOf: round, Prison);
 			Round blameRound = new(parameters);
 			Rounds.Add(blameRound);
 		}
@@ -397,11 +397,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound, $"Round ({request.RoundId}): Alice id ({request.AliceId}).");
 				}
-			}
 
-			if (alice.ReadyToSign)
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadySigned);
+				if (alice.ReadyToSign)
+				{
+					Prison.Ban(alice, round.Id);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadySignalled);
+				}
 			}
 
 			var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", request.RoundId);
