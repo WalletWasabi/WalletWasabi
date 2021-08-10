@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
@@ -13,11 +14,15 @@ namespace WalletWasabi.Fluent.Helpers
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
-				await LinuxStartupHelper.AddOrRemoveDesktopFile(runOnSystemStartup).ConfigureAwait(false);
+				LinuxStartupHelper.AddOrRemoveDesktopFile(runOnSystemStartup);
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
 				await MacOsStartupHelper.AddOrRemoveLoginItemAsync(runOnSystemStartup).ConfigureAwait(false);
+			}
+			else
+			{
+				throw new NotImplementedException("Your operating system is not supported yet.");
 			}
 		}
 	}

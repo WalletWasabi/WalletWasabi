@@ -25,6 +25,10 @@ namespace WalletWasabi.Helpers
 			{
 				result = await MacOsStartupChecker.CheckLoginItemExistsAsync().ConfigureAwait(false);
 			}
+			else
+			{
+				throw new NotImplementedException("Your operating system is not supported yet.");
+			}
 
 			return result;
 		}
