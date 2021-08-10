@@ -15,7 +15,7 @@ namespace WalletWasabi.Helpers
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				RegistryKey? registryKey = Registry.CurrentUser.OpenSubKey(KeyPath, false) ?? throw new InvalidOperationException("Registry operation failed.");
+				RegistryKey? registryKey = Registry.CurrentUser.OpenSubKey(KeyPath, writable: false) ?? throw new InvalidOperationException("Registry operation failed.");
 				result = registryKey.GetValueNames().Contains(nameof(WalletWasabi));
 			}
 
