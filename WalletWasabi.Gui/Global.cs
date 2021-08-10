@@ -250,7 +250,7 @@ namespace WalletWasabi.Gui
 
 				try
 				{
-					UiConfig.RunOnSystemStartup = await StartupChecker.ValidateAsync().ConfigureAwait(false);
+					UiConfig.RunOnSystemStartup = await StartupChecker.GetCurrentValueAsync().ConfigureAwait(false);
 				}
 				catch (Exception e)
 				{

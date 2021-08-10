@@ -9,7 +9,7 @@ namespace WalletWasabi.Helpers
 {
 	public static class StartupChecker
 	{
-		public static async Task<bool> ValidateAsync()
+		public static async Task<bool> GetCurrentValueAsync()
 		{
 			bool result = false;
 
