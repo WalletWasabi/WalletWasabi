@@ -1,5 +1,6 @@
 using Microsoft.Win32;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 
@@ -9,15 +10,13 @@ namespace WalletWasabi.Helpers
 	{
 		private const string KeyPath = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
 
+		[SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "We checked the platform one layer above this.")]
 		public static bool CheckRegistryKeyExists()
 		{
 			bool result = false;
 
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-			{
-				RegistryKey? registryKey = Registry.CurrentUser.OpenSubKey(KeyPath, writable: false) ?? throw new InvalidOperationException("Registry operation failed.");
-				result = registryKey.GetValueNames().Contains(nameof(WalletWasabi));
-			}
+			RegistryKey? registryKey = Registry.CurrentUser.OpenSubKey(KeyPath, writable: false) ?? throw new InvalidOperationException("Registry operation failed.");
+			result = registryKey.GetValueNames().Contains(nameof(WalletWasabi));
 
 			return result;
 		}
