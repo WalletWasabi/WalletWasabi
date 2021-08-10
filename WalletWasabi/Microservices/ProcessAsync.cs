@@ -36,7 +36,7 @@ namespace WalletWasabi.Microservices
 		public int ExitCode => Process.ExitCode;
 
 		/// <inheritdoc cref="Process.HasExited"/>
-		public bool HasExited => Process.HasExited;
+		public virtual bool HasExited => Process.HasExited;
 
 		/// <inheritdoc cref="Process.Id"/>
 		public int Id => Process.Id;
@@ -69,7 +69,7 @@ namespace WalletWasabi.Microservices
 		}
 
 		/// <inheritdoc cref="Process.Kill()"/>
-		public void Kill()
+		public virtual void Kill()
 		{
 			Process.Kill();
 		}
