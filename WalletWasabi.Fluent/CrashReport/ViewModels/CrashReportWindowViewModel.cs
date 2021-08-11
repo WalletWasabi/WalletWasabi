@@ -21,7 +21,7 @@ namespace WalletWasabi.Fluent.CrashReport.ViewModels
 			NextCommand = ReactiveCommand.Create(CrashReporter.ShutdownWasabi);
 			OpenGitHubRepoCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				await IoHelpers.OpenBrowserAsync(AboutViewModel.BugReportLink);
+				await IoHelpers.OpenBrowserAsync(AboutViewModel.UserSupportLink);
 			});
 		}
 
