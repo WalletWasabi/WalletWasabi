@@ -39,6 +39,6 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		WrongNumberOfCreds,
 		CryptoException,
 		AliceAlreadySignalled,
-        AlreadyConfirmedConnection
+		AliceAlreadyConfirmedConnection
 	}
 }
