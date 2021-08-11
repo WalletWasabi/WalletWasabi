@@ -25,9 +25,9 @@ namespace WalletWasabi.Fluent.CrashReport.ViewModels
 			});
 		}
 
-		public ICommand OpenGitHubRepoCommand { get; set; }
-		public ICommand NextCommand { get; set; }
-		public ICommand CancelCommand { get; set; }
+		public ICommand OpenGitHubRepoCommand { get; }
+		public ICommand NextCommand { get; }
+		public ICommand CancelCommand { get; }
 
 		public string Caption => $"A problem has occurred and Wasabi is unable to continue.";
 
