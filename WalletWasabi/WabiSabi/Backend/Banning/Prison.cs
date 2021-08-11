@@ -122,12 +122,7 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 
 		public bool IsBanned(OutPoint utxo)
 		{
-			if (!TryGet(utxo, out var inmate))
-			{
-				return false;
-			}
-
-			return inmate.Punishment is Punishment.Banned;
+			return TryGet(utxo, out var inmate) && inmate.Punishment is Punishment.Banned;
 		}
 
 		public IEnumerable<Inmate> GetInmates()
