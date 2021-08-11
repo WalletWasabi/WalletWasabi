@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using ReactiveUI;
 using System.Windows.Input;
+using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Models;
 using WalletWasabi.Gui.ViewModels;
 
@@ -20,7 +21,7 @@ namespace WalletWasabi.Fluent.CrashReport.ViewModels
 			NextCommand = ReactiveCommand.Create(CrashReporter.ShutdownWasabi);
 			OpenGitHubRepoCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				await IoHelpers.OpenBrowserAsync("https://github.com/zkSNACKs/WalletWasabi/issues");
+				await IoHelpers.OpenBrowserAsync(AboutViewModel.BugReportLink);
 			});
 		}
 
