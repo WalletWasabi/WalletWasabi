@@ -11,12 +11,10 @@ namespace WalletWasabi.Fluent.CrashReport.ViewModels
 	public partial class CrashReportWindowViewModel : ViewModelBase
 	{
 		[AutoNotify] private SerializableException _serializableException;
-		[AutoNotify] private string _logPath;
 
-		public CrashReportWindowViewModel(SerializableException exception, string logPath)
+		public CrashReportWindowViewModel(SerializableException exception)
 		{
 			SerializableException = exception;
-			LogPath = logPath;
 			CancelCommand = ReactiveCommand.Create(CrashReporter.RestartWasabi);
 			NextCommand = ReactiveCommand.Create(CrashReporter.ShutdownWasabi);
 			OpenGitHubRepoCommand = ReactiveCommand.CreateFromTask(async () =>

@@ -34,16 +34,17 @@ namespace WalletWasabi.Fluent.Desktop
 		{
 			AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 			TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+
+			var dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
+			SetupLogger(dataDir, args);
+
 			bool runGui = true;
 
 			try
 			{
 				if (CrashReporter.TryGetExceptionFromCliArgs(args, out var exceptionToShow))
 				{
-					var dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
-					var logPath = Path.Combine(dataDir, "Logs.txt");
-					Logger.InitializeDefaults(logPath);
-					BuildCrashReporterApp(exceptionToShow, logPath).StartWithClassicDesktopLifetime(args);
+					BuildCrashReporterApp(exceptionToShow).StartWithClassicDesktopLifetime(args);
 
 					runGui = false;
 				}
@@ -62,9 +63,6 @@ namespace WalletWasabi.Fluent.Desktop
 			{
 				try
 				{
-					string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
-
-					SetupLogger(dataDir, args);
 					var (uiConfig, config) = LoadOrCreateConfigs(dataDir);
 
 					singleInstanceChecker = new SingleInstanceChecker(config.Network);
@@ -239,10 +237,10 @@ namespace WalletWasabi.Fluent.Desktop
 		/// <param name="serializableException"></param>
 		/// <param name="logPath"></param>
 		/// <returns></returns>
-		private static AppBuilder BuildCrashReporterApp(SerializableException serializableException, string logPath)
+		private static AppBuilder BuildCrashReporterApp(SerializableException serializableException)
 		{
 			var result = AppBuilder
-				.Configure(() => new CrashReportApp(serializableException, logPath))
+				.Configure(() => new CrashReportApp(serializableException))
 				.UseReactiveUI();
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

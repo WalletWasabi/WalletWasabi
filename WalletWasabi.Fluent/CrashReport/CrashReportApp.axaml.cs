@@ -11,17 +11,15 @@ namespace WalletWasabi.Fluent.CrashReport
 	public class CrashReportApp : Application
 	{
 		private readonly SerializableException _serializableException;
-		private readonly string _logPath;
 
 		public CrashReportApp()
 		{
 			Name = "Wasabi Wallet Crash Report";
 		}
 
-		public CrashReportApp(SerializableException exception, string logPath) : this()
+		public CrashReportApp(SerializableException exception) : this()
 		{
 			_serializableException = exception;
-			_logPath = logPath;
 		}
 
 		public override void Initialize()
@@ -35,7 +33,7 @@ namespace WalletWasabi.Fluent.CrashReport
 			{
 				desktop.MainWindow = new CrashReportWindow
 				{
-					DataContext = new CrashReportWindowViewModel(_serializableException, _logPath)
+					DataContext = new CrashReportWindowViewModel(_serializableException)
 				};
 			}
 
