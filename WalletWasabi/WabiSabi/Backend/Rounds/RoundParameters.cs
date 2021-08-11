@@ -51,17 +51,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 							 ?? new HashSet<OutPoint>();
 		}
 
-		public static RoundParameters CreateBlameRoundParameters(
-			WabiSabiConfig wabiSabiConfig,
-			Network network,
-			WasabiRandom random,
-			FeeRate feeRate,
-			Round blameOf,
-			Prison prison)
-		{
-			return new RoundParameters(wabiSabiConfig, network, random, feeRate, blameOf, prison);
-		}
-
 		public WasabiRandom Random { get; }
 		public FeeRate FeeRate { get; }
 		public Network Network { get; }
@@ -77,5 +66,16 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public TimeSpan OutputRegistrationTimeout { get; }
 		public TimeSpan TransactionSigningTimeout { get; }
 		public TimeSpan BlameInputRegistrationTimeout { get; }
+
+		public static RoundParameters CreateBlameRoundParameters(
+			WabiSabiConfig wabiSabiConfig,
+			Network network,
+			WasabiRandom random,
+			FeeRate feeRate,
+			Round blameOf,
+			Prison prison)
+		{
+			return new RoundParameters(wabiSabiConfig, network, random, feeRate, blameOf, prison);
+		}
 	}
 }
