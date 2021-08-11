@@ -13,6 +13,14 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			WabiSabiConfig wabiSabiConfig,
 			Network network,
 			WasabiRandom random,
+			FeeRate feeRate) : this(wabiSabiConfig, network, random, feeRate, null)
+		{
+		}
+
+		private RoundParameters(
+			WabiSabiConfig wabiSabiConfig,
+			Network network,
+			WasabiRandom random,
 			FeeRate feeRate,
 			Round? blameOf = null,
 			Prison? prison = null)
@@ -36,11 +44,22 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			BlameOf = blameOf;
 			IsBlameRound = BlameOf is not null;
 			BlameWhitelist = BlameOf
-				?.Alices
-				.Select(x => x.Coin.Outpoint)
-				.Where(x => prison is null || !prison.IsBanned(x))
-				.ToHashSet()
-			?? new HashSet<OutPoint>();
+								 ?.Alices
+								 .Select(x => x.Coin.Outpoint)
+								 .Where(x => prison is null || !prison.IsBanned(x))
+								 .ToHashSet()
+							 ?? new HashSet<OutPoint>();
+		}
+
+		public static RoundParameters CreateBlameRoundParameters(
+			WabiSabiConfig wabiSabiConfig,
+			Network network,
+			WasabiRandom random,
+			FeeRate feeRate,
+			Round blameOf,
+			Prison prison)
+		{
+			return new RoundParameters(wabiSabiConfig, network, random, feeRate, blameOf, prison);
 		}
 
 		public WasabiRandom Random { get; }

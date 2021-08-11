@@ -258,7 +258,7 @@ namespace WalletWasabi.Tests.Helpers
 				realVsizeCredentialRequest);
 		}
 
-		public static Round CreateBlameRound(Round round, WabiSabiConfig cfg)
-			=> new(new(cfg, round.Network, new InsecureRandom(), round.FeeRate, blameOf: round));
+		public static Round CreateBlameRound(Round round, WabiSabiConfig cfg, Prison? prison = null)
+			=> new(RoundParameters.CreateBlameRoundParameters(cfg, round.Network, new InsecureRandom(), round.FeeRate, round, prison!));
 	}
 }
