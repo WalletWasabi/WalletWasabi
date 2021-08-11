@@ -1,5 +1,10 @@
-using WalletWasabi.Gui.ViewModels;
+using System;
+using System.IO;
+using System.Windows.Input;
+using ReactiveUI;
 using WalletWasabi.Models;
+using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.CrashReport.ViewModels
 {
@@ -12,10 +17,23 @@ namespace WalletWasabi.Fluent.CrashReport.ViewModels
 		{
 			SerializableException = exception;
 			LogPath = logPath;
+			CancelCommand = ReactiveCommand.Create(CrashReporter.RestartWasabi);
+			NextCommand = ReactiveCommand.Create(CrashReporter.ShutdownWasabi);
+			OpenGitHubRepoCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				await IoHelpers.OpenBrowserAsync("https://github.com/zkSNACKs/WalletWasabi/issues");
+			});
 		}
 
-		public string Details => $"A problem has occurred and Wasabi is unable to continue.";
-		public string Message => $"{_serializableException.Message}";
-		public string Title => $"{_serializableException.Message}";
+		public ICommand OpenGitHubRepoCommand { get; set; }
+		public ICommand NextCommand { get; set; }
+		public ICommand CancelCommand { get; set; }
+
+		public string Caption => $"A problem has occurred and Wasabi is unable to continue.";
+
+		public string Trace => $"{_serializableException.Message}{Environment.NewLine}" +
+		                       $"{Environment.NewLine}{_serializableException.StackTrace}";
+
+		public string Title => "Wasabi has crashed.";
 	}
 }
