@@ -142,7 +142,7 @@ namespace WalletWasabi.WabiSabi.Client
 				var secret = hdKey.PrivateKey.GetBitcoinSecret(Keymanager.GetNetwork());
 				aliceClients.Add(new AliceClient(roundState.Id, aliceArenaClient, coin, roundState.FeeRate, secret));
 			}
-			return aliceClients.MoveToImmutable();
+			return aliceClients.ToImmutable();
 		}
 
 		private async Task<ImmutableArray<AliceClient>> RegisterCoinsAsync(ImmutableArray<AliceClient> aliceClients, CancellationToken cancellationToken)
@@ -162,7 +162,7 @@ namespace WalletWasabi.WabiSabi.Client
 				}
 			}
 
-			return successfulAlices.MoveToImmutable();
+			return successfulAlices.ToImmutable();
 		}
 
 		private static IEnumerable<Money> DecomposeAmounts(IEnumerable<Coin> coins, FeeRate feeRate, Money minimumOutputAmount)
