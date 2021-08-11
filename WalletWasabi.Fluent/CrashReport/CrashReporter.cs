@@ -43,7 +43,7 @@ namespace WalletWasabi.Fluent.CrashReport
 					return false;
 				}
 
-				var arg1 = args.SingleOrDefault(x => x.Contains("crashreport"));
+				var arg1 = args.SingleOrDefault(x => x == "crashreport");
 				var arg2 = args.SingleOrDefault(x => x.Contains("-exception="));
 
 				if (arg1 is not null && arg2 is not null)
