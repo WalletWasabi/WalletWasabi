@@ -10,6 +10,7 @@ using WalletWasabi.Userfacing;
 using NBitcoin;
 using Nito.AsyncEx;
 using Avalonia.Platform;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.Models
 {
@@ -53,7 +54,7 @@ namespace WalletWasabi.Fluent.Models
 					return;
 				}
 				RequestEnd = false;
-				ScanningTask = Task.Run(() =>
+				ScanningTask = Task.Run(async () =>
 				{
 					VideoCapture? camera = null;
 					try
@@ -66,7 +67,7 @@ namespace WalletWasabi.Fluent.Models
 						camera.SetExceptionMode(true);
 						// Setting VideoCaptureAPI to DirectShow, to remove warning logs,
 						// might need to be changed in the future for other operating systems
-						if (!camera.Open(DefaultCameraId, VideoCaptureAPIs.DSHOW))
+						if (!camera.Open(DefaultCameraId, VideoCaptureAPIs.ANY))
 						{
 							throw new InvalidOperationException("Could not open webcamera.");
 						}
@@ -75,6 +76,11 @@ namespace WalletWasabi.Fluent.Models
 					catch (Exception ex)
 					{
 						Logger.LogError("QR scanning stopped. Reason:", ex);
+						if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+						{
+							var command = "/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh) \"";
+							await EnvironmentHelpers.ShellExecAsync(command).ConfigureAwait(false);
+						}
 						ErrorOccured?.Invoke(this, ex);
 					}
 					finally
