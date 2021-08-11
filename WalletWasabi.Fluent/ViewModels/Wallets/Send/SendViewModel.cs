@@ -40,6 +40,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		NavigationTarget = NavigationTarget.DialogScreen)]
 	public partial class SendViewModel : RoutableViewModel
 	{
+		public bool IsQrButtonVisible { get; }
+
 		private readonly Wallet _wallet;
 		private readonly TransactionInfo _transactionInfo;
 		[AutoNotify] private string _to;
@@ -50,8 +52,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private ObservableCollection<string> _labels;
 		[AutoNotify] private bool _isPayJoin;
 		[AutoNotify] private string? _payJoinEndPoint;
-		[AutoNotify] private bool _isQrButtonVisible;
-
 		private bool _parsingUrl;
 
 		public SendViewModel(Wallet wallet)
@@ -60,7 +60,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_wallet = wallet;
 			_transactionInfo = new TransactionInfo();
 			_labels = new ObservableCollection<string>();
-			_isQrButtonVisible = WebcamQrReader.IsOsPlatformSupported;
+			IsQrButtonVisible = WebcamQrReader.IsOsPlatformSupported;
 			ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 			PriorLabels = new();
 
