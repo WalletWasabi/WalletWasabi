@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Threading;
-using Avalonia.Media.Imaging;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
@@ -28,7 +27,6 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Views.Wallets.Send;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
