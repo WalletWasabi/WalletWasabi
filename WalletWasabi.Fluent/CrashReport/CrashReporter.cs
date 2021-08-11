@@ -60,12 +60,12 @@ namespace WalletWasabi.Fluent.CrashReport
 					return false;
 				}
 
-				var arg1 = args.SingleOrDefault(x => x == "crashreport");
-				var arg2 = args.SingleOrDefault(x => x.Contains("-exception="));
+				var commandArgument = args.SingleOrDefault(x => x == "crashreport");
+				var parameterArgument = args.SingleOrDefault(x => x.Contains("-exception="));
 
-				if (arg1 is not null && arg2 is not null)
+				if (commandArgument is not null && parameterArgument is not null)
 				{
-					var exceptionString = arg2.Split("=", count: 2)[1].Trim('"');
+					var exceptionString = parameterArgument.Split("=", count: 2)[1].Trim('"');
 
 					exception = SerializableException.FromBase64String(exceptionString);
 					return true;
