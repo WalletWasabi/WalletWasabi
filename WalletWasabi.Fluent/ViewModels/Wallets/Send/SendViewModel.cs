@@ -40,8 +40,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		NavigationTarget = NavigationTarget.DialogScreen)]
 	public partial class SendViewModel : RoutableViewModel
 	{
-		public bool IsQrButtonVisible { get; }
-
 		private readonly Wallet _wallet;
 		private readonly TransactionInfo _transactionInfo;
 		[AutoNotify] private string _to;
@@ -123,6 +121,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			EnableAutoBusyOn(NextCommand);
 		}
+
+		public bool IsQrButtonVisible { get; }
 
 		public ICommand PasteCommand { get; }
 
