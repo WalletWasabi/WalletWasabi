@@ -80,7 +80,10 @@ namespace WalletWasabi.WabiSabi.Client
 			// Register coins.
 			aliceClients = await RegisterCoinsAsync(aliceClients, cancellationToken).ConfigureAwait(false);
 
-			//TODO: add sanity check here. What is the feasible limit to proceed forward?
+			if (aliceClients.Length == 0)
+			{
+				throw new InvalidOperationException($"Round ({roundState.Id}): Failed to register any coins.");
+			}
 
 			// Calculate outputs values
 			var outputValues = DecomposeAmounts(aliceClients.Select(a => a.Coin), roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min);
