@@ -52,6 +52,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private ObservableCollection<string> _labels;
 		[AutoNotify] private bool _isPayJoin;
 		[AutoNotify] private string? _payJoinEndPoint;
+		[AutoNotify] private bool _isQrButtonVisible;
 
 		private bool _parsingUrl;
 
@@ -61,6 +62,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_wallet = wallet;
 			_transactionInfo = new TransactionInfo();
 			_labels = new ObservableCollection<string>();
+			_isQrButtonVisible = WebcamQrReader.IsOsPlatformSupported;
 			ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 			PriorLabels = new();
 
