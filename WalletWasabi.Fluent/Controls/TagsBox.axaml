@@ -143,6 +143,10 @@
         <Setter Property="Margin" Value="0,0,4,4" />
     </Style>
 
+  <Style Selector="c|TagsBox:readonly WrapPanel">
+    <Setter Property="Margin" Value="0 4 0 0" />
+  </Style>
+
     <Style Selector="c|TagsBox AutoCompleteBox">
         <Setter Property="Background" Value="{x:Null}" />
         <Setter Property="Padding" Value="15 10 15 8" />
