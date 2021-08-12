@@ -1,9 +1,9 @@
-using NBitcoin;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.ComponentModel;
 using System.Net;
+using NBitcoin;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using WalletWasabi.Bases;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
@@ -14,7 +14,7 @@ using WalletWasabi.Models;
 using WalletWasabi.Tor;
 using WalletWasabi.Userfacing;
 
-namespace WalletWasabi.Gui
+namespace WalletWasabi.Fluent
 {
 	[JsonObject(MemberSerialization.OptIn)]
 	public class Config : ConfigBase
