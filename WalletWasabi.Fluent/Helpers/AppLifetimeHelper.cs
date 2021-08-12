@@ -46,7 +46,7 @@ namespace WalletWasabi.Fluent.Helpers
 			{
 				FileName = path,
 				WorkingDirectory = workingDir,
-				Arguments =  args,
+				Arguments = args,
 				UseShellExecute = false,
 			};
 

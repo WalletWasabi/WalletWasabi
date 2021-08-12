@@ -21,7 +21,8 @@ namespace WalletWasabi.Fluent.CrashReport.ViewModels
 				await IoHelpers.OpenBrowserAsync(AboutViewModel.UserSupportLink);
 			});
 
-			if (SerializedException.ExceptionType.Contains(nameof(WasabiAlreadyRunningException),
+			if (SerializedException.ExceptionType.Contains(
+				nameof(WasabiAlreadyRunningException),
 				StringComparison.Ordinal))
 			{
 				Title = "Wasabi is already running";

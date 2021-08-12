@@ -61,6 +61,5 @@ namespace WalletWasabi.Fluent.CrashReport
 
 			return false;
 		}
-
 	}
 }
