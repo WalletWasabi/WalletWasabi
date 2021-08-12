@@ -20,7 +20,7 @@
     </Viewbox>
     <controls:ContentArea EnableNext="True"
                           NextContent="Exit"
-                          EnableCancel="True"
+                          EnableCancel="{Binding !HideTraceTextBox}"
                           CancelContent="Restart Wasabi"
                           FocusNext="True"
                           Background="Transparent"
