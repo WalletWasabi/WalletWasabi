@@ -30,7 +30,7 @@
           <WrapPanel>
             <TextBlock>You can copy the above text and post an issue tracker in our </TextBlock>
             <Panel Width="5"></Panel>
-            <Button Classes="activeHyperLink" Content="GitHub repo here" HorizontalAlignment="Left" Command="{Binding OpenGitHubRepoCommand}" />
+            <Button Classes="activeHyperLink" Content="GitHub repo here" Command="{Binding OpenGitHubRepoCommand}" />
             <Panel Width="5"></Panel>
             <TextBlock>so we can take a closer look.</TextBlock>
           </WrapPanel>
