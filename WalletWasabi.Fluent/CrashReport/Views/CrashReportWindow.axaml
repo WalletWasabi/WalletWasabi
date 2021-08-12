@@ -35,7 +35,7 @@
             <TextBlock>so we can take a closer look.</TextBlock>
           </WrapPanel>
         </controls:InfoMessage>
-        <TextBox Classes="selectableTextBlock monoSpaced" Text="{Binding Trace}" />
+        <TextBox Classes="selectableTextBlock monoSpaced wrap" Text="{Binding Trace}" />
       </DockPanel>
     </controls:ContentArea>
   </Panel>
