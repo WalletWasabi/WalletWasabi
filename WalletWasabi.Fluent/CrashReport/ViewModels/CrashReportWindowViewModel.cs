@@ -13,16 +13,29 @@ namespace WalletWasabi.Fluent.CrashReport.ViewModels
 	{
 		public CrashReportWindowViewModel(SerializableException serializedException)
 		{
-			SerializedSerializedException = serializedException;
+			SerializedException = serializedException;
 			CancelCommand = ReactiveCommand.Create(AppLifetimeHelper.Restart);
 			NextCommand = ReactiveCommand.Create(AppLifetimeHelper.Shutdown);
 			OpenGitHubRepoCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				await IoHelpers.OpenBrowserAsync(AboutViewModel.UserSupportLink);
 			});
+
+			if (SerializedException.ExceptionType.Contains(nameof(WasabiAlreadyRunningException),
+				StringComparison.Ordinal))
+			{
+				Title = "Wasabi is already running";
+				Caption = "Please close any instance of Wasabi that is already running " +
+				          "and try launching the app again.";
+
+				SuggestionTextFragment1  = "Still has some questions? You can check out our";
+				SuggestionTextFragment2  = "for some quick pointers.";
+
+ 				HideTraceTextBox = false;
+			}
 		}
 
-		public SerializableException SerializedSerializedException { get; }
+		public SerializableException SerializedException { get; }
 
 		public ICommand OpenGitHubRepoCommand { get; }
 
@@ -30,11 +43,17 @@ namespace WalletWasabi.Fluent.CrashReport.ViewModels
 
 		public ICommand CancelCommand { get; }
 
-		public string Caption => $"A problem has occurred and Wasabi is unable to continue.";
+		public string Caption { get; } = $"A problem has occurred and Wasabi is unable to continue.";
 
-		public string Trace => $"{SerializedSerializedException.Message}{Environment.NewLine}" +
-		                       $"{Environment.NewLine}{SerializedSerializedException.StackTrace}";
+		public string Trace => $"{SerializedException.Message}{Environment.NewLine}" +
+		                       $"{Environment.NewLine}{SerializedException.StackTrace}";
 
-		public string Title => "Wasabi has crashed.";
+		public string Title { get; } = "Wasabi has crashed.";
+
+		public string SuggestionTextFragment1 { get; } = "You can copy the above text and post an issue tracker in our";
+
+		public string SuggestionTextFragment2 { get; } = "so we can take a closer look.";
+
+		public bool HideTraceTextBox { get; }
 	}
 }

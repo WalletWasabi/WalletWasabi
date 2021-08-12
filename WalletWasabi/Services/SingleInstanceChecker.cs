@@ -6,8 +6,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+using System.Threading.Tasks; 
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Services
 {
@@ -102,7 +103,7 @@ namespace WalletWasabi.Services
 				throw new InvalidOperationException($"Wasabi is already running, but cannot be signaled, reason: '{ex}'");
 			}
 
-			throw new OperationCanceledException($"Wasabi is already running, signaled the first instance.");
+			throw new WasabiAlreadyRunningException();
 		}
 
 		private static int NetworkToPort(Network network) => network switch
