@@ -28,12 +28,10 @@
                           Caption="{Binding Caption}"
                           Margin="0 50 0 0">
       <DockPanel LastChildFill="True">
-        <controls:InfoMessage DockPanel.Dock="Bottom" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <controls:InfoMessage DockPanel.Dock="Bottom" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0 20 0 0">
           <WrapPanel>
-            <TextBlock>You can copy the above text and post an issue tracker in our </TextBlock>
-            <Panel Width="5"></Panel>
-            <Button Classes="activeHyperLink" Content="GitHub repo here" Command="{Binding OpenGitHubRepoCommand}" />
-            <Panel Width="5"></Panel>
+            <TextBlock>You can copy the above text and post an issue tracker in our</TextBlock>
+            <Button Margin="5 0" Classes="activeHyperLink" Content="GitHub repo here" Command="{Binding OpenGitHubRepoCommand}" />
             <TextBlock>so we can take a closer look.</TextBlock>
           </WrapPanel>
         </controls:InfoMessage>
