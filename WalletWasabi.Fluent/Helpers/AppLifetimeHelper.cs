@@ -1,8 +1,8 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using WalletWasabi.Microservices;
 
 namespace WalletWasabi.Fluent.Helpers
 {
@@ -35,11 +35,21 @@ namespace WalletWasabi.Fluent.Helpers
 		public static void StartAppWithArgs(string args = "")
 		{
 			var path = Process.GetCurrentProcess().MainModule?.FileName;
+			var workingDir = new DirectoryInfo(path).Parent.ToString();
+
 			if (string.IsNullOrEmpty(path))
 			{
 				throw new InvalidOperationException($"Invalid path: '{path}'");
 			}
-			var startInfo = ProcessStartInfoFactory.Make(path, args);
+
+			var startInfo = new ProcessStartInfo
+			{
+				FileName = path,
+				WorkingDirectory = workingDir,
+				Arguments =  args,
+				UseShellExecute = false,
+			};
+
 			using var p = Process.Start(startInfo);
 		}
 
@@ -48,7 +58,7 @@ namespace WalletWasabi.Fluent.Helpers
 		/// </summary>
 		public static void Shutdown()
 		{
-			(Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Shutdown();
+			(Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Shutdown();
 		}
 	}
 }
