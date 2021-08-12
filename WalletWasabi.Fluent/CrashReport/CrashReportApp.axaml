@@ -17,9 +17,5 @@
     <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Styles.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/ContentArea.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/InfoMessage.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/Dialog.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/TileButton.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/PreviewItem.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/TileControl.axaml" />
   </Application.Styles>
 </Application>
