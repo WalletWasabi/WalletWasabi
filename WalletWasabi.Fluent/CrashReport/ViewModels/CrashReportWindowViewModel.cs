@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using ReactiveUI;
 using System.Windows.Input;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Models;
@@ -13,8 +14,8 @@ namespace WalletWasabi.Fluent.CrashReport.ViewModels
 		public CrashReportWindowViewModel(SerializableException serializedException)
 		{
 			SerializedSerializedException = serializedException;
-			CancelCommand = ReactiveCommand.Create(CrashReporter.RestartWasabi);
-			NextCommand = ReactiveCommand.Create(CrashReporter.ShutdownWasabi);
+			CancelCommand = ReactiveCommand.Create(AppLifetimeHelper.Restart);
+			NextCommand = ReactiveCommand.Create(AppLifetimeHelper.Shutdown);
 			OpenGitHubRepoCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				await IoHelpers.OpenBrowserAsync(AboutViewModel.UserSupportLink);
