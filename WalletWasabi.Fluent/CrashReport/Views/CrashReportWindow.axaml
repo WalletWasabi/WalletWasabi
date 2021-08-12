@@ -6,7 +6,7 @@
         Width="640" Height="480"
         MinWidth="640" MinHeight="480"
         MaxWidth="640" MaxHeight="480"
-        Title="Wasabi Wallet - Crash Reporting"
+        Title="{Binding Title}"
         WindowStartupLocation="CenterScreen"
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaChromeHints="PreferSystemChrome"
