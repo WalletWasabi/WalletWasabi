@@ -4,16 +4,13 @@
         xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
         x:Class="WalletWasabi.Fluent.CrashReport.Views.CrashReportWindow"
         Width="600" Height="500"
-        MinWidth="600" MinHeight="500"
-        MaxWidth="600" MaxHeight="500"
         Title="Wasabi Wallet - Crash Reporting"
         WindowStartupLocation="CenterScreen"
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaChromeHints="PreferSystemChrome"
         x:Name="CrashReporterWindow"
         x:CompileBindings="True"
-        x:DataType="vm:CrashReportWindowViewModel"
-        CanResize="False">
+        x:DataType="vm:CrashReportWindowViewModel">
   <Panel Margin="{Binding #CrashReporterWindow.OffScreenMargin}">
     <Viewbox Width="300" Height="300" Opacity="0.1" VerticalAlignment="Center"
              HorizontalAlignment="Right">
