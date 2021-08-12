@@ -270,7 +270,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 				.ReturnsAsync(new NBitcoin.RPC.GetTxOutResponse
 				{
 					Confirmations = 1,
-					TxOut = new(Money.Coins(1), key.PubKey.GetScriptAddress(Network.Main))
+					TxOut = new(Money.Coins(1), key.PubKey.ScriptPubKey.Hash.GetAddress(Network.Main))
 				});
 
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc, round);
