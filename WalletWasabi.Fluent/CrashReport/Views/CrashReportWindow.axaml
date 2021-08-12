@@ -26,7 +26,9 @@
                           Background="Transparent"
                           Title="{Binding Title}"
                           Caption="{Binding Caption}"
-                          Margin="0 50 0 0">
+                          Margin="0 50 0 0"
+                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                          ScrollViewer.VerticalScrollBarVisibility="Disabled">
       <DockPanel LastChildFill="True">
         <controls:InfoMessage DockPanel.Dock="Bottom" VerticalAlignment="Center" HorizontalAlignment="Center"
                               Margin="0 20 0 0">
