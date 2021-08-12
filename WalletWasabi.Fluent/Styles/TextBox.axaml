@@ -162,6 +162,11 @@
     </Setter>
   </Style>
 
+  <Style Selector="TextBlock.monoSpaced">
+    <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
+    <Setter Property="FontSize" Value="15" />
+  </Style>
+
   <Style Selector="TextBox.readOnly">
     <Setter Property="IsReadOnly" Value="True" />
     <Setter Property="Background" Value="Transparent" />
