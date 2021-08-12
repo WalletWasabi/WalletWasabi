@@ -9,7 +9,7 @@ namespace WalletWasabi.Helpers
 	{
 		private const string ListCmd = "osascript -e \' tell application \"System Events\" to get every login item\'";
 
-		internal static async Task<bool> CheckLoginItemExistsAsync()
+		public static async Task<bool> CheckLoginItemExistsAsync()
 		{
 			var escapedArgs = ListCmd.Replace("\"", "\\\"");
 
