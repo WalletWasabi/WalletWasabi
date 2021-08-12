@@ -49,7 +49,7 @@ namespace WalletWasabi.Fluent.CrashReport.ViewModels
 		public string Trace => $"{SerializedException.Message}{Environment.NewLine}" +
 		                       $"{Environment.NewLine}{SerializedException.StackTrace}";
 
-		public string Title { get; } = "Wasabi has crashed.";
+		public string Title { get; } = "Wasabi has crashed";
 
 		public string SuggestionTextFragment1 { get; } = "You can copy the above text and post an issue tracker in our";
 
