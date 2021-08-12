@@ -50,7 +50,7 @@ namespace WalletWasabi.Crypto
 				ScriptPubKeyType.Segwit => new Bip322Signature(
 					Script.Empty,
 					PayToWitPubKeyHashTemplate.Instance.GenerateWitScript(
-						key.Sign(hash, SigHash.All, false),
+						key.Sign(hash, new SigningOptions(SigHash.All, useLowR: false)),
 						key.PubKey)),
 				_ => throw new NotImplementedException("Only P2WPKH scripts are supported.")
 			};
