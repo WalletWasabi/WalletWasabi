@@ -32,7 +32,7 @@ namespace WalletWasabi.Fluent.CrashReport.ViewModels
 				SuggestionTextFragment1  = "Still has some questions? You can check out our";
 				SuggestionTextFragment2  = "for some quick pointers.";
 
- 				HideTraceTextBox = false;
+ 				HideTraceTextBox = true;
 			}
 		}
 

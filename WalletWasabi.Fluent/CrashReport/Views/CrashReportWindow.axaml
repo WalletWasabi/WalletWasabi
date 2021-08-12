@@ -37,7 +37,7 @@
             <TextBlock Text="{Binding SuggestionTextFragment2}" />
           </WrapPanel>
         </controls:InfoMessage>
-        <TextBox IsVisible="{Binding HideTraceTextBox}" Classes="selectableTextBlock monoSpaced wrap"
+        <TextBox IsVisible="{Binding !HideTraceTextBox}" Classes="selectableTextBlock monoSpaced wrap"
                  Text="{Binding Trace}" />
       </DockPanel>
     </controls:ContentArea>
