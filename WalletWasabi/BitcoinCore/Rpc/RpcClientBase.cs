@@ -112,9 +112,9 @@ namespace WalletWasabi.BitcoinCore.Rpc
 			return await Rpc.GetTxOutAsync(txid, index, includeMempool).ConfigureAwait(false);
 		}
 
-		public virtual async Task<MempoolAcceptResult> TestMempoolAcceptAsync(Transaction transaction, bool allowHighFees = false)
+		public virtual async Task<MempoolAcceptResult> TestMempoolAcceptAsync(Transaction transaction)
 		{
-			return await Rpc.TestMempoolAcceptAsync(transaction, allowHighFees).ConfigureAwait(false);
+			return await Rpc.TestMempoolAcceptAsync(transaction).ConfigureAwait(false);
 		}
 
 		public virtual async Task StopAsync()
@@ -160,9 +160,10 @@ namespace WalletWasabi.BitcoinCore.Rpc
 
 		#region For Testing Only
 
-		public virtual async Task<uint256> SendToAddressAsync(BitcoinAddress address, Money amount, string? commentTx = null, string? commentDest = null, bool subtractFeeFromAmount = false, bool replaceable = false)
+		public virtual async Task<uint256> SendToAddressAsync(BitcoinAddress address, Money amount, bool replaceable = false)
 		{
-			return await Rpc.SendToAddressAsync(address, amount, commentTx, commentDest, subtractFeeFromAmount, replaceable).ConfigureAwait(false);
+			var parameters = new SendToAddressParameters{ Replaceable = replaceable };
+			return await Rpc.SendToAddressAsync(address, amount, parameters).ConfigureAwait(false);
 		}
 
 		public virtual async Task<uint256> GetBlockHashAsync(int height)

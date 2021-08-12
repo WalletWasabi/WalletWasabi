@@ -140,7 +140,7 @@ namespace WalletWasabi.Tests.UnitTests
 			return Task.FromResult(resp);
 		}
 
-		public Task<uint256> SendToAddressAsync(BitcoinAddress address, Money amount, string? commentTx = null, string? commentDest = null, bool subtractFeeFromAmount = false, bool replaceable = false)
+		public Task<uint256> SendToAddressAsync(BitcoinAddress address, Money amount, bool replaceable = false)
 		{
 			throw new NotImplementedException();
 		}
@@ -155,7 +155,7 @@ namespace WalletWasabi.Tests.UnitTests
 			throw new NotImplementedException();
 		}
 
-		public Task<MempoolAcceptResult> TestMempoolAcceptAsync(Transaction transaction, bool allowHighFees = false)
+		public Task<MempoolAcceptResult> TestMempoolAcceptAsync(Transaction transaction)
 		{
 			throw new NotImplementedException();
 		}
