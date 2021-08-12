@@ -51,7 +51,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				node.VersionHandshake();
 
 				using Key k = new();
-				BitcoinWitPubKeyAddress address = k.PubKey.GetSegwitAddress(network);
+				var address = k.PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
 
 				// Number of transactions to send.
 				const int TransactionsCount = 3;
@@ -101,7 +101,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				var dir = Common.GetWorkDir();
 
 				using Key k = new();
-				var addr = k.PubKey.GetSegwitAddress(network);
+				var addr = k.PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
 				var notifier = coreNode.MempoolService;
 
 				var txNum = 10;
