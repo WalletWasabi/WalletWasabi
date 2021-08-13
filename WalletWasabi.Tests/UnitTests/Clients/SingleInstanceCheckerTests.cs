@@ -43,17 +43,17 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			await using SingleInstanceChecker sicMainNet = new(mainNetPort);
 			await sicMainNet.EnsureSingleOrThrowAsync();
 			await using SingleInstanceChecker sicMainNet2 = new(mainNetPort);
-			await Assert.ThrowsAsync<OperationCanceledException>(async () => await sicMainNet2.EnsureSingleOrThrowAsync());
+			await Assert.ThrowsAsync<WasabiAlreadyRunningException>(async () => await sicMainNet2.EnsureSingleOrThrowAsync());
 
 			await using SingleInstanceChecker sicTestNet = new(testNetPort);
 			await sicTestNet.EnsureSingleOrThrowAsync();
 			await using SingleInstanceChecker sicTestNet2 = new(testNetPort);
-			await Assert.ThrowsAsync<OperationCanceledException>(async () => await sicTestNet2.EnsureSingleOrThrowAsync());
+			await Assert.ThrowsAsync<WasabiAlreadyRunningException>(async () => await sicTestNet2.EnsureSingleOrThrowAsync());
 
 			await using SingleInstanceChecker sicRegTest = new(regTestPort);
 			await sicRegTest.EnsureSingleOrThrowAsync();
 			await using SingleInstanceChecker sicRegTest2 = new(regTestPort);
-			await Assert.ThrowsAsync<OperationCanceledException>(async () => await sicRegTest2.EnsureSingleOrThrowAsync());
+			await Assert.ThrowsAsync<WasabiAlreadyRunningException>(async () => await sicRegTest2.EnsureSingleOrThrowAsync());
 		}
 
 		[Fact]
