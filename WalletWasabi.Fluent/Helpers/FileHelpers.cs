@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.Gui.Helpers
+namespace WalletWasabi.Fluent.Helpers
 {
 	public static class FileHelpers
 	{
@@ -61,7 +61,7 @@ namespace WalletWasabi.Gui.Helpers
 			}
 			else
 			{
-				NotificationHelpers.Error("File not found.");
+				// NotificationHelpers.Error("File not found.");
 			}
 		}
 	}

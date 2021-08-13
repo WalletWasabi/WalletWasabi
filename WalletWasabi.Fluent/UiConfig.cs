@@ -1,15 +1,13 @@
 using System;
-using Avalonia.Controls;
-using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Reactive;
 using System.Reactive.Linq;
+using Newtonsoft.Json;
 using ReactiveUI;
 using WalletWasabi.Bases;
-using WalletWasabi.Gui.Converters;
-using WalletWasabi.Gui.Models.Sorting;
+using WalletWasabi.Fluent.Converters;
 
-namespace WalletWasabi.Gui
+namespace WalletWasabi.Fluent
 {
 	[JsonObject(MemberSerialization.OptIn)]
 	public class UiConfig : ConfigBase
@@ -145,17 +143,5 @@ namespace WalletWasabi.Gui
 			get => _runOnSystemStartup;
 			set => RaiseAndSetIfChanged(ref _runOnSystemStartup, value);
 		}
-
-		[JsonProperty(PropertyName = "CoinListViewSortingPreference")]
-		[JsonConverter(typeof(SortingPreferenceJsonConverter))]
-		public SortingPreference CoinListViewSortingPreference { get; internal set; } = new SortingPreference(SortOrder.Increasing, "Amount");
-
-		[JsonProperty(PropertyName = "CoinJoinTabSortingPreference")]
-		[JsonConverter(typeof(SortingPreferenceJsonConverter))]
-		public SortingPreference CoinJoinTabSortingPreference { get; internal set; } = new SortingPreference(SortOrder.Increasing, "Amount");
-
-		[JsonProperty(PropertyName = "HistoryTabViewSortingPreference")]
-		[JsonConverter(typeof(SortingPreferenceJsonConverter))]
-		public SortingPreference HistoryTabViewSortingPreference { get; internal set; } = new SortingPreference(SortOrder.Decreasing, "Date");
 	}
 }

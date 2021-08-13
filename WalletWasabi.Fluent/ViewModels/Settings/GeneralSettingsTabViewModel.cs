@@ -5,10 +5,10 @@ using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Gui;
-using WalletWasabi.Gui.Models;
 using WalletWasabi.Logging;
 using System.Windows.Input;
 using DynamicData;
+using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {

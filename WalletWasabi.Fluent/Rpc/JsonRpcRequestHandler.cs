@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using WalletWasabi.JsonConverters;
 
-namespace WalletWasabi.Gui.Rpc
+namespace WalletWasabi.Fluent.Rpc
 {
 	/// <summary>
 	/// This class coordinates all the major steps in processing the RPC call.

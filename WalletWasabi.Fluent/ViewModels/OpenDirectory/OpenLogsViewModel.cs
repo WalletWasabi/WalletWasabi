@@ -1,6 +1,6 @@
 using System.Windows.Input;
 using ReactiveUI;
-using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.OpenDirectory

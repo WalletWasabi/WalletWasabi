@@ -8,12 +8,12 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Exceptions;
+using WalletWasabi.Fluent.Converters;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.MathNet;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Gui.Converters;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
