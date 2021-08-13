@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Threading;
-using Avalonia.Media.Imaging;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
@@ -29,7 +28,6 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Views.Wallets.Send;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
@@ -52,7 +50,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private bool _isPayJoin;
 		[AutoNotify] private string? _payJoinEndPoint;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private SuggestionLabelsViewModel _suggestionLabels;
-
 		private bool _parsingUrl;
 
 		public SendViewModel(Wallet wallet)
@@ -61,6 +58,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_wallet = wallet;
 			_transactionInfo = new TransactionInfo();
 			_suggestionLabels = new SuggestionLabelsViewModel(3);
+
+			IsQrButtonVisible = WebcamQrReader.IsOsPlatformSupported;
 
 			ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 
@@ -123,6 +122,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			EnableAutoBusyOn(NextCommand);
 		}
+
+		public bool IsQrButtonVisible { get; }
 
 		public ICommand PasteCommand { get; }
 
