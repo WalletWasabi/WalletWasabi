@@ -1,3 +1,4 @@
+using System;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
@@ -17,6 +18,16 @@ namespace WalletWasabi.Fluent.ViewModels.OpenDirectory
 	public partial class OpenTorLogsViewModel : TriggerCommandViewModel
 	{
 		public override ICommand TargetCommand =>
-			ReactiveCommand.Create(() => FileHelpers.OpenFileInTextEditorAsync(Services.TorSettings.LogFilePath));
+			ReactiveCommand.CreateFromTask(async () =>
+			{
+				try
+				{
+					await FileHelpers.OpenFileInTextEditorAsync(Services.TorSettings.LogFilePath);
+				}
+				catch (Exception ex)
+				{
+					await ShowErrorAsync("Open", ex.Message, "Wasabi was unable to open the file");
+				}
+			});
 	}
 }
