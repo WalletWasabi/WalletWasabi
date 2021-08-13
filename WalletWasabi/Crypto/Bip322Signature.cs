@@ -62,17 +62,24 @@ namespace WalletWasabi.Crypto
 				return false;
 			}
 
-			if (PayToWitPubKeyHashTemplate.Instance.ExtractWitScriptParameters(Witness) is not { } witnessParameters)
+			try
+			{
+				if (PayToWitPubKeyHashTemplate.Instance.ExtractWitScriptParameters(Witness) is not { } witnessParameters)
+				{
+					return false;
+				}
+
+				if (witnessParameters.PublicKey.GetScriptPubKey(ScriptPubKeyType.Segwit) != scriptPubKey)
+				{
+					return false;
+				}
+
+				return witnessParameters.PublicKey.Verify(hash, witnessParameters.TransactionSignature.Signature);
+			}
+			catch (FormatException)
 			{
 				return false;
 			}
-
-			if (witnessParameters.PublicKey.GetScriptPubKey(ScriptPubKeyType.Segwit) != scriptPubKey)
-			{
-				return false;
-			}
-
-			return witnessParameters.PublicKey.Verify(hash, witnessParameters.TransactionSignature.Signature);
 		}
 	}
 }
