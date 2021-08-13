@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Models;
 using WalletWasabi.Services;
 using Xunit;
 
@@ -76,7 +77,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 				for (int i = 0; i < 2; i++)
 				{
 					// I am the second one.
-					await Assert.ThrowsAsync<OperationCanceledException>(async () => await secondInstance.EnsureSingleOrThrowAsync());
+					await Assert.ThrowsAsync<WasabiAlreadyRunningException>(async () => await secondInstance.EnsureSingleOrThrowAsync());
 				}
 
 				// Overall Timeout.
@@ -127,7 +128,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 				}
 
 				// One more to check if the first instance was able to recover from the port scan operation.
-				await Assert.ThrowsAsync<OperationCanceledException>(async () => await secondInstance.EnsureSingleOrThrowAsync());
+				await Assert.ThrowsAsync<WasabiAlreadyRunningException>(async () => await secondInstance.EnsureSingleOrThrowAsync());
 
 				while (Interlocked.Read(ref eventCalled) != 3)
 				{
