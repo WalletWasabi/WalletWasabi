@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.Helpers
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
-				LinuxStartupHelper.AddOrRemoveDesktopFile(runOnSystemStartup);
+				await LinuxStartupHelper.AddOrRemoveDesktopFileAsync(runOnSystemStartup);
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
