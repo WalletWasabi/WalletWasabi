@@ -1,13 +1,10 @@
 using Avalonia.Controls.Notifications;
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
-using NBitcoin.Protocol;
-using NBitcoin.Protocol.Behaviors;
 using System;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
@@ -16,7 +13,6 @@ using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
-using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
@@ -164,7 +160,9 @@ namespace WalletWasabi.Gui
 					}
 
 					Tor.Http.TorHttpClient torHttpClient = BackendHttpClientFactory.NewTorHttpClient(Mode.DefaultCircuit);
-					HostedServices.Register<TorMonitor>(new TorMonitor(period: TimeSpan.FromSeconds(3), fallbackBackendUri: Config.GetFallbackBackendUri(), torHttpClient, TorManager), nameof(TorMonitor));
+					TorMonitor torMonitor = new(period: TimeSpan.FromSeconds(3), fallbackBackendUri: Config.GetFallbackBackendUri(), torHttpClient, TorManager);
+					_ = torMonitor.StartBootstrapMonitorAsync(cancel);
+					HostedServices.Register<TorMonitor>(torMonitor, nameof(TorMonitor));
 				}
 
 				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
