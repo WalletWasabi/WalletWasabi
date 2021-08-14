@@ -149,7 +149,10 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			var successfulAlices = ImmutableArray.CreateBuilder<AliceClient>();
 
-			foreach (var aliceClient in aliceClients.OrderByDescending(x => x.Coin.Amount))
+			List<AliceClient> shuffledAlices = new (aliceClients);
+			shuffledAlices.Shuffle();
+
+			foreach (var aliceClient in shuffledAlices)
 			{
 				try
 				{
