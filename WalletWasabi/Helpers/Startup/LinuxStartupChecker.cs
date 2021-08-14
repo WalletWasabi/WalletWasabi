@@ -24,7 +24,7 @@ namespace WalletWasabi.Helpers
 			bool result = false;
 			if (File.Exists(PathToDesktopFile))
 			{
-				string realFileContent = string.Join("\n", await File.ReadAllLinesAsync(PathToDesktopFile).ConfigureAwait(false));
+				string realFileContent = await File.ReadAllTextAsync(PathToDesktopFile).ConfigureAwait(false);
 
 				result = string.Equals(DesktopFileContent, realFileContent);
 			}
