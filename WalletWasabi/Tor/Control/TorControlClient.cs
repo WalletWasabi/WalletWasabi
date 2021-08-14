@@ -258,9 +258,9 @@ namespace WalletWasabi.Tor.Control
 		/// <summary>Subscribes Tor control events by their names.</summary>
 		/// <remarks>If an event stream is already subscribed, no command is sent to Tor control.</remarks>
 		/// <param name="cancellationToken">
-		/// Useful when the whole application stops. Otherwise, the internal state of this object may get corrupted.
+		/// Useful when the whole Tor process stops. Otherwise, the internal state of this object may get corrupted.
 		/// </param>
-		public async Task SubscribeEventsAsync(string[] names, CancellationToken cancellationToken = default)
+		public async Task SubscribeEventsAsync(IEnumerable<string> names, CancellationToken cancellationToken = default)
 		{
 			using IDisposable _ = await MessageLock.LockAsync(cancellationToken).ConfigureAwait(false);
 
@@ -433,11 +433,18 @@ namespace WalletWasabi.Tor.Control
 
 		public async ValueTask DisposeAsync()
 		{
-			bool isOk = await UnsubscribeAllEventsAsync().ConfigureAwait(false);
-
-			if (!isOk)
+			try
 			{
-				Logger.LogWarning("Failed to unsubscribe all Tor control events.");
+				bool isOk = await UnsubscribeAllEventsAsync().ConfigureAwait(false);
+
+				if (!isOk)
+				{
+					Logger.LogWarning("Failed to unsubscribe all Tor control events.");
+				}
+			}
+			catch (Exception e)
+			{
+				Logger.LogDebug("Tor process might have terminated.", e);
 			}
 
 			// Stop reader loop.
