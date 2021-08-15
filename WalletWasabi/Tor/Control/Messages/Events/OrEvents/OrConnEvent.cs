@@ -1,4 +1,3 @@
-using System;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Control.Exceptions;
 using WalletWasabi.Tor.Control.Utils;
@@ -83,13 +82,13 @@ namespace WalletWasabi.Tor.Control.Messages.Events.OrEvents
 		/// <inheritdoc/>
 		public override string ToString()
 		{
-			string args = string.Join(", ",
+			string args = string.Join(
+				separator: ", ",
 				$"{nameof(Target)}='{Target}'",
 				$"{nameof(OrStatus)}={OrStatus}",
 				$"{nameof(Reason)}={Reason}",
 				$"{nameof(NCircs)}={(NCircs.HasValue ? NCircs : "null")}",
-				$"{nameof(ConnId)}={ConnId ?? "null"}"
-				);
+				$"{nameof(ConnId)}={ConnId ?? "null"}");
 
 			return $"{nameof(OrConnEvent)}{{{args}}}";
 		}

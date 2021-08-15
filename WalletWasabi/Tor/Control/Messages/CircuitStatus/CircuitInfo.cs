@@ -174,7 +174,8 @@ namespace WalletWasabi.Tor.Control.Messages.CircuitStatus
 		/// <inheritdoc/>
 		public override string ToString()
 		{
-			string args = string.Join(", ",
+			string args = string.Join(
+				separator: ", ",
 				$"{nameof(CircuitID)}='{CircuitID}'",
 				$"{nameof(CircStatus)}={CircStatus}",
 				$"{nameof(RendQuery)}={RendQuery ?? "null"}",
@@ -185,8 +186,7 @@ namespace WalletWasabi.Tor.Control.Messages.CircuitStatus
 				$"{nameof(RemoteReason)}={(RemoteReason.HasValue ? RemoteReason : "null")}",
 				$"{nameof(BuildFlags)}='{string.Join('|', BuildFlags)}'",
 				$"{nameof(UserName)}={UserName ?? "null"}",
-				$"{nameof(UserPassword)}={UserPassword ?? "null"}"
-				);
+				$"{nameof(UserPassword)}={UserPassword ?? "null"}");
 
 			return $"{nameof(CircuitInfo)}{{{args}}}";
 		}
