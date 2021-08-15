@@ -254,7 +254,7 @@ namespace WalletWasabi.Gui
 				}
 				catch (Exception e)
 				{
-					Logger.LogWarning($"Failed to get the start up setting, error: {e.Message}.");
+					Logger.LogWarning($"Failed to get the start up setting.", e);
 				}
 			}
 			finally
