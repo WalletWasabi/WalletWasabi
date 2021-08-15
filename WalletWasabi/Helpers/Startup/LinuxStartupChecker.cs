@@ -6,7 +6,7 @@ namespace WalletWasabi.Helpers
 {
 	public static class LinuxStartupChecker
 	{
-		private static readonly string DesktopFileContent = string.Join(
+		private static readonly string ExpectedFileContent = string.Join(
 					"\n",
 					"[Desktop Entry]",
 					$"Name={Constants.AppName}",
