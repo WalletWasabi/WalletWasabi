@@ -78,9 +78,6 @@ namespace WalletWasabi.Tor
 							continue;
 						}
 
-						// TODO: remove.
-						Logger.LogInfo($"XXX: Received event: {asyncEvent})");
-
 						if (asyncEvent is BootstrapStatusEvent bootstrapEvent)
 						{
 							BootstrapStatusEvent.Phases.TryGetValue(bootstrapEvent.Progress, out string? bootstrapInfo);
