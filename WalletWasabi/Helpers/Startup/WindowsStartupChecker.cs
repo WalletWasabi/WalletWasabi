@@ -10,7 +10,7 @@ namespace WalletWasabi.Helpers
 	{
 		private const string KeyPath = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
 
-		[SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "We checked the platform one layer above this.")]
+		[SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "Platform must be checked by the caller.")]
 		public static bool CheckRegistryKeyExists()
 		{
 			bool result = false;
