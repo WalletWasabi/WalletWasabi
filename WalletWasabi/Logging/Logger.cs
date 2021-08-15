@@ -401,6 +401,19 @@ namespace WalletWasabi.Logging
 		/// <example>For example: <c>FileNotFoundException for file quotes.txt.</c></example>
 		public static void LogWarning(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1) => Log(exception, LogLevel.Warning, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 
+		/// <summary>
+		/// Logs <paramref name="message"/> with <paramref name="exception"/> using <see cref="Exception.ToString()"/> concatenated to it at <see cref="LogLevel.Warning"/> level.
+		///
+		/// <para>For abnormal or unexpected events in the application flow.</para>
+		/// </summary>
+		/// <remarks>
+		/// <para>Includes situations when errors or other conditions occur that do not cause the application to stop, but which may need to be investigated.</para>
+		/// <para>Handled exceptions are a common place to use the <see cref="LogLevel.Warning"/> log level.</para>
+		/// </remarks>
+		/// <example>For example: <c>FileNotFoundException for file quotes.txt.</c></example>
+		public static void LogWarning(string message, Exception exception, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
+			=> Log(message, exception, LogLevel.Warning, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+
 		#endregion WarningLoggingMethods
 
 		#region ErrorLoggingMethods
