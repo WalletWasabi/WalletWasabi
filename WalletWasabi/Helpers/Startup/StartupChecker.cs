@@ -27,7 +27,7 @@ namespace WalletWasabi.Helpers
 			}
 			else
 			{
-				throw new NotImplementedException("Your operating system is not supported yet.");
+				throw new NotImplementedException("Your platform is not supported yet.");
 			}
 
 			return result;
