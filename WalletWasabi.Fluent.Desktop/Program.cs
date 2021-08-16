@@ -80,6 +80,11 @@ namespace WalletWasabi.Fluent.Desktop
 						.AfterSetup(_ => ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light))
 						.StartWithClassicDesktopLifetime(args);
 				}
+				catch (WasabiAlreadyRunningException ex)
+				{
+					exceptionToReport = ex;
+					Logger.LogDebug(ex);
+				}
 				catch (Exception ex)
 				{
 					exceptionToReport = ex;
