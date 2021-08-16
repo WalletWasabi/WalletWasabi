@@ -62,7 +62,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels
 		{
 			var suggestionLabelsFilter = this.WhenAnyValue(x => x.Labels).Select(_ => Unit.Default)
 				.Merge(Observable.FromEventPattern(Labels, nameof(Labels.CollectionChanged)).Select(_ => Unit.Default))
-				.Select(SuggestionLabelsFilter);
+				.Select(_ => SuggestionLabelsFilter());
 
 			_suggestionLabels
 				.Connect()
@@ -81,11 +81,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Bind(_suggestions)
 				.Subscribe();
-		}
 
-		private Func<SuggestionLabelViewModel, bool> SuggestionLabelsFilter(Unit unit)
-		{
-			return suggestionLabel => !_labels.Contains(suggestionLabel.Label);
+			Func<SuggestionLabelViewModel, bool> SuggestionLabelsFilter() => suggestionLabel => !_labels.Contains(suggestionLabel.Label);
 		}
 	}
 }
