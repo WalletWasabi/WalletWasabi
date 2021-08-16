@@ -104,7 +104,7 @@
 
   <!-- TODO: temporary fix to prevent layout issue when error occurs  -->
   <Style Selector="TextBox /template/ DataValidationErrors">
-    <Setter Property="MinHeight" Value="20" />
+    <Setter Property="MinHeight" Value="21" />
   </Style>
 
   <Style Selector="TextBox:not(.hasCheckMark) /template/ PathIcon.checkMark.checkMarkDataValidation">
