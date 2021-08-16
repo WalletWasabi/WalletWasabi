@@ -22,7 +22,13 @@
             <Separator />
             <c:PreviewItem Icon="{StaticResource entities_regular}"
                            Text="Will be sent to and / or known by">
-                <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Labels}" />
+                <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Labels}">
+                  <c:TagsBox.Styles>
+                    <Style Selector="c|TagsBox:readonly WrapPanel">
+                      <Setter Property="Margin" Value="0" />
+                    </Style>
+                  </c:TagsBox.Styles>
+                </c:TagsBox>
             </c:PreviewItem>
             <Separator />
             <c:PreviewItem Icon="{StaticResource transceive_regular}"
