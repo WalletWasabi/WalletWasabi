@@ -102,6 +102,9 @@ namespace WalletWasabi.WabiSabi.Crypto
 		public CredentialsResponse HandleRequest(CredentialsRequest registrationRequest)
 			=> PrepareResponse(registrationRequest).Commit();
 
+		public Task<CredentialsResponse> HandleRequest(CredentialsRequest registrationRequest, CancellationToken cancel)
+			=> Task.Run(() => HandleRequest(registrationRequest), cancel);
+
 		/// <summary>
 		/// Validate the <see cref="CredentialsRequest">credentials registration requests</see> and
 		/// prepare to mark the serial numbers as used and issue the credentials.
