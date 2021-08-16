@@ -105,7 +105,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			});
 
 			var nextCommandCanExecute =
-				this.WhenAnyValue(x => x.SuggestionLabels.Labels, x => x.AmountBtc, x => x.To).Select(_ => Unit.Default)
+				this.WhenAnyValue(x => x.AmountBtc, x => x.To).Select(_ => Unit.Default)
 					.Merge(Observable.FromEventPattern(SuggestionLabels.Labels, nameof(SuggestionLabels.Labels.CollectionChanged)).Select(_ => Unit.Default))
 					.Select(_ =>
 					{
