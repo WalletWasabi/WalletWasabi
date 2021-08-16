@@ -11,13 +11,13 @@
                 ClipToBounds="False">
     <ItemsControl.ItemsPanel>
       <ItemsPanelTemplate>
-        <StackPanel Orientation="Horizontal" Spacing="2" />
+        <WrapPanel Orientation="Horizontal" />
       </ItemsPanelTemplate>
     </ItemsControl.ItemsPanel>
     <ItemsControl.ItemTemplate>
       <DataTemplate x:DataType="labels:SuggestionLabelViewModel">
         <Button Classes="activeHyperLink"
-                Margin="0,0,4,0"
+                Margin="0,0,6,0"
                 Focusable="False"
                 Content="{Binding Label}"
                 Command="{Binding AddTagCommand}"
