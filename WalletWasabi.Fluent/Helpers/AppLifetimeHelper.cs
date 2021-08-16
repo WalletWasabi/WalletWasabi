@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using WalletWasabi.Microservices;
 
 namespace WalletWasabi.Fluent.Helpers
 {
@@ -42,14 +43,7 @@ namespace WalletWasabi.Fluent.Helpers
 				throw new InvalidOperationException($"Invalid path: '{path}'");
 			}
 
-			var startInfo = new ProcessStartInfo
-			{
-				FileName = path,
-				WorkingDirectory = workingDir,
-				Arguments = args,
-				UseShellExecute = false,
-			};
-
+			var startInfo = ProcessStartInfoFactory.Make(path, args);
 			using var p = Process.Start(startInfo);
 		}
 
