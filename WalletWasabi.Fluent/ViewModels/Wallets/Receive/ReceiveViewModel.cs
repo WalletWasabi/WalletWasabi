@@ -33,7 +33,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 			SuggestionLabels = new SuggestionLabelsViewModel(3);
 
-			NextCommand = ReactiveCommand.Create(OnNext, _suggestionLabels.Labels.ToObservableChangeSet().Select(_ => _suggestionLabels.Labels.Count > 0));
+			NextCommand = ReactiveCommand.Create(OnNext, SuggestionLabels.WhenAnyValue(x => x.Labels.Count).Select(c => c > 0));
 
 			ShowExistingAddressesCommand = ReactiveCommand.Create(OnShowExistingAddresses);
 		}
