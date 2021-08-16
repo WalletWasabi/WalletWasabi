@@ -2,7 +2,6 @@ using System;
 using System.Net;
 using System.Reactive.Linq;
 using ReactiveUI;
-using WalletWasabi.Gui;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;

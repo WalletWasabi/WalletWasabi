@@ -13,7 +13,7 @@ using WalletWasabi.Models;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Gui.Rpc
+namespace WalletWasabi.Fluent.Rpc
 {
 	public partial class WasabiJsonRpcService
 	{
