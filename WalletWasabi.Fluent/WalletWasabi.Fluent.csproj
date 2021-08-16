@@ -22,9 +22,9 @@
 		<PackageReference Include="OpenCvSharp4" Version="4.5.2.20210404" />
 		<PackageReference Include="OpenCvSharp4.runtime.win" Version="4.5.2.20210404" />
 		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.6.10" />
+		<PackageReference Include="System.Runtime" Version="4.3.1" />
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\WalletWasabi.Gui\WalletWasabi.Gui.csproj" />
 		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
 		<ProjectReference Include="..\WalletWasabi.Fluent.Generators\WalletWasabi.Fluent.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
