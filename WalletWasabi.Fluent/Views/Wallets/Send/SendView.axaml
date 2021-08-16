@@ -41,7 +41,8 @@
                                 ToolTip.Tip="Paste"
                                 NormalIcon="{StaticResource paste_regular}"
                                 ClickIcon="{StaticResource copy_confirmed}" />
-              <c:AnimatedButton KeyboardNavigation.IsTabStop="False"
+              <c:AnimatedButton IsVisible="{Binding IsQrButtonVisible}"
+                                KeyboardNavigation.IsTabStop="False"
                                 Focusable="False"
                                 Command="{Binding QRCommand}"
                                 ToolTip.Tip="Scan QR Code"
