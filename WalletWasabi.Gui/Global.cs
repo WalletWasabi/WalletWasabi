@@ -250,8 +250,9 @@ namespace WalletWasabi.Gui
 
 				try
 				{
-					StoppingCts.CancelAfter(10000);
-					UiConfig.RunOnSystemStartup = await StartupChecker.GetCurrentValueAsync(cancel).ConfigureAwait(false);
+					using var cts = new CancellationTokenSource(10000);
+					using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancel, cts.Token);
+					UiConfig.RunOnSystemStartup = await StartupChecker.GetCurrentValueAsync(linkedCts.Token).ConfigureAwait(false);
 				}
 				catch (Exception e)
 				{
