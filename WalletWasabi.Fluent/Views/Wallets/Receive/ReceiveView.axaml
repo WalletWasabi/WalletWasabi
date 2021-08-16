@@ -28,8 +28,8 @@
         </DockPanel>
         <c:TagsBox x:Name="LabelsTbx"
                    DataContext="{Binding SuggestionLabels}"
-                   SetAddTagAction="{Binding SetAddTag}"
                    Items="{Binding Labels}"
+                   TopItems="{Binding TopSuggestions}"
                    TagSeparator=","
                    SuggestionsAreCaseSensitive="True"
                    RestrictInputToSuggestions="False"
@@ -44,7 +44,6 @@
             <behaviors:FocusOnAttachedBehavior />
           </i:Interaction.Behaviors>
         </c:TagsBox>
-        <labels:SuggestionLabelsView DataContext="{Binding SuggestionLabels}"/>
       </StackPanel>
     </DockPanel>
   </c:ContentArea>

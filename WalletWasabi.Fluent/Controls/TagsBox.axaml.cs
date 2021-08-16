@@ -45,6 +45,11 @@ namespace WalletWasabi.Fluent.Controls
 				(o, v) => o.Items = v,
 				enableDataValidation: true);
 
+		public static readonly DirectProperty<TagsBox, IEnumerable<string>?> TopItemsProperty =
+			AvaloniaProperty.RegisterDirect<TagsBox, IEnumerable<string>?>(nameof(TopItems),
+				o => o.TopItems,
+				(o, v) => o.TopItems = v);
+
 		public static readonly DirectProperty<TagsBox, IEnumerable?> SuggestionsProperty =
 			AvaloniaProperty.RegisterDirect<TagsBox, IEnumerable?>(
 				nameof(Suggestions),
@@ -62,6 +67,7 @@ namespace WalletWasabi.Fluent.Controls
 		private IEnumerable? _suggestions;
 		private ICommand? _completedCommand;
 		private IEnumerable<string>? _items;
+		private IEnumerable<string>? _topItems;
 
 		public static readonly DirectProperty<TagsBox, ICommand?> CompletedCommandProperty =
 			AvaloniaProperty.RegisterDirect<TagsBox, ICommand?>(
@@ -72,14 +78,17 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<bool> IsReadOnlyProperty =
 			AvaloniaProperty.Register<TagsBox, bool>(nameof(IsReadOnly));
 
-		public static readonly StyledProperty<Action<Action<string>>?> SetAddTagActionProperty =
-			AvaloniaProperty.Register<TagsBox, Action<Action<string>>?>(nameof(SetAddTagAction));
-
 		[Content]
 		public IEnumerable<string>? Items
 		{
 			get => _items;
 			set => SetAndRaise(ItemsProperty, ref _items, value);
+		}
+
+		public IEnumerable<string>? TopItems
+		{
+			get => _topItems;
+			set => SetAndRaise(TopItemsProperty, ref _topItems, value);
 		}
 
 		public string Watermark
@@ -134,12 +143,6 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(AllowDuplicationProperty);
 			set => SetValue(AllowDuplicationProperty, value);
-		}
-
-		public Action<Action<string>>? SetAddTagAction
-		{
-			get => GetValue(SetAddTagActionProperty);
-			set => SetValue(SetAddTagActionProperty, value);
 		}
 
 		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
@@ -464,10 +467,6 @@ namespace WalletWasabi.Fluent.Controls
 				_stringComparison = SuggestionsAreCaseSensitive
 					? StringComparison.CurrentCulture
 					: StringComparison.CurrentCultureIgnoreCase;
-			}
-			else if (e.Property == SetAddTagActionProperty)
-			{
-				SetAddTagAction?.Invoke(AddTag);
 			}
 		}
 

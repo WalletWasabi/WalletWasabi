@@ -13,18 +13,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels
 {
 	public partial class SuggestionLabelsViewModel
 	{
-		private readonly SourceList<SuggestionLabelViewModel> _suggestionLabels;
-		private readonly ObservableCollectionExtended<SuggestionLabelViewModel> _topSuggestions;
+		private readonly SourceList<SuggestionLabelViewModel> _sourceLabels;
+		private readonly ObservableCollectionExtended<string> _topSuggestions;
 		private readonly ObservableCollectionExtended<string> _suggestions;
 		private readonly ObservableCollectionExtended<string> _labels;
 		private Action<string>? _addTag;
 
 		public SuggestionLabelsViewModel(int topSuggestionsCount)
 		{
-			_labels = new ObservableCollectionExtended<string>();
-			_suggestionLabels = new SourceList<SuggestionLabelViewModel>();
-			_topSuggestions = new ObservableCollectionExtended<SuggestionLabelViewModel>();
+			_sourceLabels = new SourceList<SuggestionLabelViewModel>();
+			_topSuggestions = new ObservableCollectionExtended<string>();
 			_suggestions = new ObservableCollectionExtended<string>();
+			_labels = new ObservableCollectionExtended<string>();
 
 			UpdateLabels();
 			CreateSuggestions(topSuggestionsCount);
@@ -32,7 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels
 			SetAddTag = (addTag) => _addTag = addTag;
 		}
 
-		public ObservableCollection<SuggestionLabelViewModel> TopSuggestions => _topSuggestions;
+		public ObservableCollection<string> TopSuggestions => _topSuggestions;
 
 		public ObservableCollection<string> Suggestions => _suggestions;
 
@@ -53,8 +53,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels
 				.OrderByDescending(x => x.Count)
 				.ToList();
 
-			_suggestionLabels.Clear();
-			_suggestionLabels.AddRange(
+			_sourceLabels.Clear();
+			_sourceLabels.AddRange(
 				mostUsedLabels.Select(x => new SuggestionLabelViewModel(x.Label, x.Count, label => _addTag?.Invoke(label))));
 		}
 
@@ -64,16 +64,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels
 				.Merge(Observable.FromEventPattern(Labels, nameof(Labels.CollectionChanged)).Select(_ => Unit.Default))
 				.Select(_ => SuggestionLabelsFilter());
 
-			_suggestionLabels
+			_sourceLabels
 				.Connect()
 				.Filter(suggestionLabelsFilter)
 				.Sort(SortExpressionComparer<SuggestionLabelViewModel>.Descending(x => x.Count))
 				.Top(topSuggestionsCount)
+				.Transform(x => x.Label)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Bind(_topSuggestions)
 				.Subscribe();
 
-			_suggestionLabels
+			_sourceLabels
 				.Connect()
 				.Filter(suggestionLabelsFilter)
 				.Sort(SortExpressionComparer<SuggestionLabelViewModel>.Descending(x => x.Count))
