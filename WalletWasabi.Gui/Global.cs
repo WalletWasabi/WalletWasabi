@@ -144,7 +144,16 @@ namespace WalletWasabi.Gui
 				await LegalChecker.InitializeAsync(HostedServices.Get<UpdateChecker>()).ConfigureAwait(false);
 				cancel.ThrowIfCancellationRequested();
 
-				HostedServices.Register<SystemAwakeChecker>(new SystemAwakeChecker(WalletManager), "System Awake Checker");
+				SystemAwakeChecker? systemAwakeChecker = await SystemAwakeChecker.CreateAsync(WalletManager).ConfigureAwait(false);
+
+				if (systemAwakeChecker is not null)
+				{
+					HostedServices.Register<SystemAwakeChecker>(systemAwakeChecker, "System Awake Checker");
+				}
+				else
+				{
+					Logger.LogInfo("System Awake Checker is not available on this platform.");
+				}
 
 				if (Config.UseTor && Network != Network.RegTest)
 				{
