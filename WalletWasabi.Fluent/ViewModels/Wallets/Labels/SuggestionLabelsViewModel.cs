@@ -10,7 +10,7 @@ using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels
 {
-	public partial class SuggestionLabelsViewModel
+	public class SuggestionLabelsViewModel : ViewModelBase
 	{
 		private readonly SourceList<SuggestionLabelViewModel> _sourceLabels;
 		private readonly ObservableCollectionExtended<string> _topSuggestions;
