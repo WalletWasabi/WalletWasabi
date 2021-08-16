@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
@@ -17,7 +16,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels
 		private readonly ObservableCollectionExtended<string> _topSuggestions;
 		private readonly ObservableCollectionExtended<string> _suggestions;
 		private readonly ObservableCollectionExtended<string> _labels;
-		private Action<string>? _addTag;
 
 		public SuggestionLabelsViewModel(int topSuggestionsCount)
 		{
@@ -28,8 +26,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels
 
 			UpdateLabels();
 			CreateSuggestions(topSuggestionsCount);
-
-			SetAddTag = (addTag) => _addTag = addTag;
 		}
 
 		public ObservableCollection<string> TopSuggestions => _topSuggestions;
@@ -37,8 +33,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels
 		public ObservableCollection<string> Suggestions => _suggestions;
 
 		public ObservableCollection<string> Labels => _labels;
-
-		public Action<Action<string>>? SetAddTag { get; }
 
 		public void UpdateLabels()
 		{
@@ -55,7 +49,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels
 
 			_sourceLabels.Clear();
 			_sourceLabels.AddRange(
-				mostUsedLabels.Select(x => new SuggestionLabelViewModel(x.Label, x.Count, label => _addTag?.Invoke(label))));
+				mostUsedLabels.Select(x => new SuggestionLabelViewModel(x.Label, x.Count)));
 		}
 
 		private void CreateSuggestions(int topSuggestionsCount)
