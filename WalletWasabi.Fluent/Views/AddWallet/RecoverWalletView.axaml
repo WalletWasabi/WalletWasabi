@@ -30,7 +30,8 @@
                            RestrictInputToSuggestions="True"
                            Items="{Binding Mnemonics}"
                            Suggestions="{Binding Suggestions}"
-                           CompletedCommand="{Binding NextCommand}">
+                           CompletedCommand="{Binding NextCommand}"
+                           AllowDuplication="True">
                     <i:Interaction.Behaviors>
                         <behaviors:FocusOnAttachedBehavior />
                     </i:Interaction.Behaviors>
