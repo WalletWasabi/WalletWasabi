@@ -23,7 +23,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 	{
 		private readonly Wallet _wallet;
 		[AutoNotify] private bool _isExistingAddressesButtonVisible;
-		[AutoNotify(SetterModifier = AccessModifier.Private)] private SuggestionLabelsViewModel _suggestionLabels;
 
 		public ReceiveViewModel(Wallet wallet)
 		{
@@ -32,12 +31,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 			EnableBack = false;
 
-			_suggestionLabels = new SuggestionLabelsViewModel(3);
+			SuggestionLabels = new SuggestionLabelsViewModel(3);
 
 			NextCommand = ReactiveCommand.Create(OnNext, _suggestionLabels.Labels.ToObservableChangeSet().Select(_ => _suggestionLabels.Labels.Count > 0));
 
 			ShowExistingAddressesCommand = ReactiveCommand.Create(OnShowExistingAddresses);
 		}
+
+		public SuggestionLabelsViewModel SuggestionLabels { get; }
 
 		public ICommand ShowExistingAddressesCommand { get; }
 
@@ -54,14 +55,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 				// TODO: notification
 			}
 
-			_suggestionLabels.Labels.Clear();
+			SuggestionLabels.Labels.Clear();
 
 			Navigate().To(new ReceiveAddressViewModel(_wallet, newKey));
 		}
 
 		private void OnShowExistingAddresses()
 		{
-			Navigate().To(new ReceiveAddressesViewModel(_wallet, _suggestionLabels.Suggestions.ToHashSet()));
+			Navigate().To(new ReceiveAddressesViewModel(_wallet, SuggestionLabels.Suggestions.ToHashSet()));
 		}
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposable)
