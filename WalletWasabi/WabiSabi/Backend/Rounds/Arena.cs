@@ -14,6 +14,7 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
+using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
@@ -401,7 +402,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				if (alice.ReadyToSign)
 				{
 					Prison.Ban(alice, round.Id);
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadySignalled);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadySignalled, $"Round ({request.RoundId}): Alice id ({request.AliceId}) already signaled readiness.");
 				}
 			}
 
@@ -456,6 +457,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				if (alice is null)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound, $"Round ({request.RoundId}): Alice ({request.AliceId}) not found.");
+				}
+
+				if (alice.ConfirmedConnection)
+				{
+					Prison.Ban(alice, round.Id);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyConfirmedConnection, $"Round ({request.RoundId}): Alice ({request.AliceId}) already confirmed connection.");
 				}
 
 				if (realVsizeCredentialRequests.Delta != alice.CalculateRemainingVsizeCredentials(round.MaxVsizeAllocationPerAlice))
