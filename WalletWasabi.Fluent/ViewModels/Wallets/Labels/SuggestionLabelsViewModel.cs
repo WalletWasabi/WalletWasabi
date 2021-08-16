@@ -61,7 +61,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels
 			_sourceLabels
 				.Connect()
 				.Filter(suggestionLabelsFilter)
-				.Sort(SortExpressionComparer<SuggestionLabelViewModel>.Descending(x => x.Count).ThenByDescending(x => x.Label))
+				.Sort(SortExpressionComparer<SuggestionLabelViewModel>.Descending(x => x.Count).ThenByAscending(x => x.Label))
 				.Top(topSuggestionsCount)
 				.Transform(x => x.Label)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -71,7 +71,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels
 			_sourceLabels
 				.Connect()
 				.Filter(suggestionLabelsFilter)
-				.Sort(SortExpressionComparer<SuggestionLabelViewModel>.Descending(x => x.Count).ThenByDescending(x => x.Label))
+				.Sort(SortExpressionComparer<SuggestionLabelViewModel>.Descending(x => x.Count).ThenByAscending(x => x.Label))
 				.Transform(x => x.Label)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Bind(_suggestions)
