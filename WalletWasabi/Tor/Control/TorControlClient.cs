@@ -444,7 +444,8 @@ namespace WalletWasabi.Tor.Control
 			}
 			catch (Exception e)
 			{
-				Logger.LogDebug("Tor process might have terminated.", e);
+				Logger.LogDebug("Tor process might have terminated.");
+				Logger.LogTrace(e);
 			}
 
 			// Stop reader loop.
