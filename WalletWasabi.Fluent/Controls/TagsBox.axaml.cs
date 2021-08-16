@@ -45,6 +45,11 @@ namespace WalletWasabi.Fluent.Controls
 				(o, v) => o.Items = v,
 				enableDataValidation: true);
 
+		public static readonly DirectProperty<TagsBox, IEnumerable<string>?> TopItemsProperty =
+			AvaloniaProperty.RegisterDirect<TagsBox, IEnumerable<string>?>(nameof(TopItems),
+				o => o.TopItems,
+				(o, v) => o.TopItems = v);
+
 		public static readonly DirectProperty<TagsBox, IEnumerable?> SuggestionsProperty =
 			AvaloniaProperty.RegisterDirect<TagsBox, IEnumerable?>(
 				nameof(Suggestions),
@@ -62,6 +67,7 @@ namespace WalletWasabi.Fluent.Controls
 		private IEnumerable? _suggestions;
 		private ICommand? _completedCommand;
 		private IEnumerable<string>? _items;
+		private IEnumerable<string>? _topItems;
 
 		public static readonly DirectProperty<TagsBox, ICommand?> CompletedCommandProperty =
 			AvaloniaProperty.RegisterDirect<TagsBox, ICommand?>(
@@ -70,13 +76,19 @@ namespace WalletWasabi.Fluent.Controls
 				(o, v) => o.CompletedCommand = v);
 
 		public static readonly StyledProperty<bool> IsReadOnlyProperty =
-			AvaloniaProperty.Register<TagsBox, bool>("IsReadOnly");
+			AvaloniaProperty.Register<TagsBox, bool>(nameof(IsReadOnly));
 
 		[Content]
 		public IEnumerable<string>? Items
 		{
 			get => _items;
 			set => SetAndRaise(ItemsProperty, ref _items, value);
+		}
+
+		public IEnumerable<string>? TopItems
+		{
+			get => _topItems;
+			set => SetAndRaise(TopItemsProperty, ref _topItems, value);
 		}
 
 		public string Watermark
