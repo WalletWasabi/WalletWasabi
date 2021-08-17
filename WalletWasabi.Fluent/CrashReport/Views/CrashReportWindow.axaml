@@ -16,7 +16,7 @@
   <Panel Margin="{Binding #CrashReporterWindow.OffScreenMargin}">
     <controls:ContentArea EnableNext="True"
                           NextContent="Exit"
-                          EnableCancel="{Binding !HideTraceTextBox}"
+                          EnableCancel="{Binding !IsWarningForSingleInstance}"
                           CancelContent="Restart Wasabi"
                           FocusNext="True"
                           Title="{Binding Title}"
@@ -38,7 +38,7 @@
             <TextBlock Text="{Binding SuggestionTextFragment2}" />
           </WrapPanel>
         </controls:InfoMessage>
-        <TextBox IsVisible="{Binding !HideTraceTextBox}" Classes="selectableTextBlock monoSpaced wrap"
+        <TextBox IsVisible="{Binding !IsWarningForSingleInstance}" Classes="selectableTextBlock monoSpaced wrap"
                  Text="{Binding Trace}" />
       </DockPanel>
     </controls:ContentArea>
