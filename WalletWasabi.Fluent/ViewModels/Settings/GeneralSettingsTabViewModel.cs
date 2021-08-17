@@ -9,7 +9,6 @@ using WalletWasabi.Gui.Models;
 using WalletWasabi.Logging;
 using System.Windows.Input;
 using DynamicData;
-using System.Reactive.Disposables;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
@@ -96,12 +95,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 		protected override void EditConfigOnSave(Config config)
 		{
-		}
-
-		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-		{
-			_runOnSystemStartup = Services.UiConfig.RunOnSystemStartup;
-			base.OnNavigatedTo(isInHistory, disposables);
 		}
 	}
 }
