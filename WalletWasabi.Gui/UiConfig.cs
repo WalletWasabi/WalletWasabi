@@ -140,6 +140,7 @@ namespace WalletWasabi.Gui
 
 		[DefaultValue(false)]
 		[JsonProperty(PropertyName = "RunOnSystemStartup", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonConverter(typeof(RunOnSystemStartupAfterStartJsonConverter))]
 		public bool RunOnSystemStartup
 		{
 			get => _runOnSystemStartup;

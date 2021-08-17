@@ -145,15 +145,6 @@ namespace WalletWasabi.Fluent.Desktop
 
 			UiConfig uiConfig = new(Path.Combine(dataDir, "UiConfig.json"));
 			uiConfig.LoadOrCreateDefaultFile();
-			try
-			{
-				using var cts = new CancellationTokenSource(10000);
-				uiConfig.RunOnSystemStartup = StartupChecker.GetCurrentValueAsync(cts.Token).Result;
-			}
-			catch (Exception e)
-			{
-				Logger.LogWarning($"Failed to get the start up setting.", e);
-			}
 
 			Config config = new(Path.Combine(dataDir, "Config.json"));
 			config.LoadOrCreateDefaultFile();
