@@ -27,6 +27,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		[AutoNotify] private decimal _stillNeeded;
 		[AutoNotify] private bool _enoughSelected;
+		[AutoNotify] private bool _isWarningOpen;
 
 		public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo)
 		{
@@ -47,10 +48,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			selected.Sum(x => x.TotalBtc)
 				.Subscribe(x =>
 				{
-					if (_privatePocket is { })
-					{
-						_privatePocket.IsWarningOpen = _privatePocket.IsSelected && selectedList.Count > 1;
-					}
+					IsWarningOpen = selectedList.Count > 1 && selectedList.Items.Any(x => x == _privatePocket);
 
 					StillNeeded = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC) - x;
 					EnoughSelected = StillNeeded <= 0;
@@ -149,12 +147,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					if (pocket.SmartLabel.Labels.Any(x => x == CoinPocketHelper.PrivateFundsText))
 					{
-						_privatePocket = new PocketViewModel(pocket)
-						{
-							WarningMessage =
-								"Warning, using both private and non-private funds in the same transaction can destroy your privacy."
-						};
-
+						_privatePocket = new PocketViewModel(pocket);
 						_pocketSource.Add(_privatePocket);
 					}
 					else
