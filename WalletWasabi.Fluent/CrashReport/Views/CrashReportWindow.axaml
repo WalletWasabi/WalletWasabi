@@ -35,7 +35,6 @@
             <WrapPanel IsVisible="{Binding !IsWarningForSingleInstance}">
               <TextBlock Text="You can click this icon" />
               <controls:AnimatedButton Margin="5 0"
-                                       Classes="addressActionButton"
                                        ToolTip.Tip="Copy Log"
                                        Command="{Binding CopyTraceCommand}"
                                        NormalIcon="{StaticResource copy_regular}"
