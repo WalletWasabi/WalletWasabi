@@ -423,6 +423,10 @@ namespace WalletWasabi.Tor.Control
 			{
 				Logger.LogError("Reply reader failed to read from pipe. Internal stream was most likely forcefully closed.", e);
 			}
+			catch (TorControlReplyParseException e) when (e.Message == "No reply line was received.")
+			{
+				Logger.LogError("Incomplete Tor control reply was received. Tor probably terminated abruptly.", e);
+			}
 			catch (Exception e)
 			{
 				// This is an unrecoverable issue.
@@ -444,15 +448,23 @@ namespace WalletWasabi.Tor.Control
 			}
 			catch (Exception e)
 			{
-				Logger.LogDebug("Tor process might have terminated.");
+				Logger.LogDebug("Tor process might have terminated, so we cannot unsubscribe Tor events.");
 				Logger.LogTrace(e);
 			}
 
 			// Stop reader loop.
 			ReaderCts.Cancel();
 
-			// Wait until the reader loop stops.
-			await ReaderLoopTask.ConfigureAwait(false);
+			try
+			{ 
+				// Wait until the reader loop stops.
+				await ReaderLoopTask.ConfigureAwait(false);
+			}
+			catch (Exception e)
+			{
+				Logger.LogDebug("Tor process might have terminated and so the reading loop might have terminated abruptly.");
+				Logger.LogTrace(e);
+			}
 
 			ReaderCts.Dispose();
 			TcpClient?.Dispose();
