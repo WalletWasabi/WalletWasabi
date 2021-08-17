@@ -31,12 +31,20 @@
       <DockPanel LastChildFill="True">
         <controls:InfoMessage DockPanel.Dock="Bottom" VerticalAlignment="Center" HorizontalAlignment="Center"
                               Margin="0 20 0 0">
-          <WrapPanel>
-            <TextBlock Text="{Binding SuggestionTextFragment1}" />
-            <Button Margin="5 0" Classes="activeHyperLink" Content="GitHub repo here"
-                    Command="{Binding OpenGitHubRepoCommand}" />
-            <TextBlock Text="{Binding SuggestionTextFragment2}" />
-          </WrapPanel>
+          <Panel>
+            <WrapPanel IsVisible="{Binding !IsWarningForSingleInstance}">
+              <TextBlock Text="You can copy the above text and post an issue tracker in our" />
+              <Button Margin="5 0" Classes="activeHyperLink" Content="GitHub repo here"
+                      Command="{Binding OpenGitHubRepoCommand}" />
+              <TextBlock Text="so we can take a closer look." />
+            </WrapPanel>
+            <WrapPanel IsVisible="{Binding IsWarningForSingleInstance}">
+              <TextBlock Text="Still has some questions? You can check out our" />
+              <Button Margin="5 0" Classes="activeHyperLink" Content="GitHub repo here"
+                      Command="{Binding OpenGitHubRepoCommand}" />
+              <TextBlock Text="for some quick pointers." />
+            </WrapPanel>
+          </Panel>
         </controls:InfoMessage>
         <TextBox IsVisible="{Binding !IsWarningForSingleInstance}" Classes="selectableTextBlock monoSpaced wrap"
                  Text="{Binding Trace}" />

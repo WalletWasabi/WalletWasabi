@@ -21,9 +21,9 @@ namespace WalletWasabi.Fluent.CrashReport.ViewModels
 				await IoHelpers.OpenBrowserAsync(AboutViewModel.UserSupportLink);
 			});
 
-			if (!(SerializedException?.ExceptionType?.Contains(
+			if (!SerializedException?.ExceptionType?.Contains(
 				nameof(WasabiAlreadyRunningException),
-				StringComparison.Ordinal) ?? false))
+				StringComparison.Ordinal) ?? true)
 			{
 				return;
 			}
@@ -31,9 +31,6 @@ namespace WalletWasabi.Fluent.CrashReport.ViewModels
 			Title = "Wasabi is already running";
 			Caption = "Please close any instance of Wasabi that is already running " +
 			          "and try launching the app again.";
-
-			SuggestionTextFragment1  = "Still has some questions? You can check out our";
-			SuggestionTextFragment2  = "for some quick pointers.";
 
 			IsWarningForSingleInstance = true;
 		}
@@ -52,10 +49,6 @@ namespace WalletWasabi.Fluent.CrashReport.ViewModels
 		                       $"{Environment.NewLine}{SerializedException.StackTrace}";
 
 		public string Title { get; } = "Wasabi has crashed";
-
-		public string SuggestionTextFragment1 { get; } = "You can copy the above text and post an issue tracker in our";
-
-		public string SuggestionTextFragment2 { get; } = "so we can take a closer look.";
 
 		public bool IsWarningForSingleInstance { get; }
 	}
