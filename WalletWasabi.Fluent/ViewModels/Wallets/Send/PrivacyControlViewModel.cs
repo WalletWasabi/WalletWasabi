@@ -172,6 +172,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			if (_pocketSource.Count == 1)
 			{
 				_pocketSource.Items.First().IsSelected = true;
+
+				if (isInHistory)
+				{
+					Navigate().Back();
+				}
+				else
+				{
+					if (NextCommand is {} cmd && cmd.CanExecute(default))
+					{
+						cmd.Execute(default);
+					}
+				}
+
 			}
 		}
 	}
