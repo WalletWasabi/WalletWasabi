@@ -42,6 +42,11 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 			Punish(alice.Coin.Outpoint, Punishment.Noted, lastDisruptedRoundId);
 		}
 
+		public void Ban(Alice alice, uint256 lastDisruptedRoundId)
+		{
+			Punish(alice.Coin.Outpoint, Punishment.Banned, lastDisruptedRoundId);
+		}
+
 		public void Punish(OutPoint utxo, Punishment punishment, uint256 lastDisruptedRoundId)
 			=> Punish(new Inmate(utxo, punishment, DateTimeOffset.UtcNow, lastDisruptedRoundId));
 
@@ -113,6 +118,11 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 			{
 				return Inmates.TryGetValue(utxo, out inmate);
 			}
+		}
+
+		public bool IsBanned(OutPoint utxo)
+		{
+			return TryGet(utxo, out var inmate) && inmate.Punishment is Punishment.Banned;
 		}
 
 		public IEnumerable<Inmate> GetInmates()

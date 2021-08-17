@@ -7,6 +7,7 @@
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:local="using:WalletWasabi.Fluent.Views.Wallets.Send"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d"
              x:DataType="vm:OptimisePrivacyViewModel"
              x:CompileBindings="True"
@@ -17,8 +18,8 @@
                    IsBusy="{Binding IsBusy}"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
         <DockPanel>
-            <Panel DockPanel.Dock="Bottom" Margin="0 10 0 0">
-                <c:InfoMessage  IsVisible="{Binding ExactAmountWarningVisible}" VerticalAlignment="Bottom" HorizontalAlignment="Center" Content="Some services only accept the exact amount that was requested." Foreground="{DynamicResource PrivacyLevelMediumBrush}" />
+            <Panel DockPanel.Dock="Bottom" Height="25">
+                <c:InfoMessage Opacity="{Binding ExactAmountWarningVisible, Converter={x:Static converters:BoolOpacityConverters.BoolToOpacity}}" VerticalAlignment="Bottom" HorizontalAlignment="Center" Content="Some services only accept the exact amount that was requested." Foreground="{DynamicResource PrivacyLevelMediumBrush}" />
             </Panel>
             <ListBox DockPanel.Dock="Top" Background="Transparent" VerticalAlignment="Center" HorizontalAlignment="Center" Items="{Binding PrivacySuggestions}" SelectedItem="{Binding SelectedPrivacySuggestion}">
                 <ListBox.Styles>

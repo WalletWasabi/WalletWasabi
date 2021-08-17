@@ -16,9 +16,14 @@
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
         <DockPanel>
             <Panel Margin="0 10 0 0" DockPanel.Dock="Bottom">
-                <c:InfoMessage Foreground="{DynamicResource WarningMessageForeground}"
-                               HorizontalAlignment="Center"
-                               IsVisible="{Binding !EnoughSelected}">
+              <Panel.Styles>
+                <Style Selector="c|InfoMessage[IsVisible=False]">
+                  <Setter Property="Opacity" Value="0" />
+                </Style>
+              </Panel.Styles>
+              <c:InfoMessage Foreground="{DynamicResource WarningMessageForeground}"
+                             HorizontalAlignment="Center"
+                             IsVisible="{Binding !EnoughSelected}">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="Insufficient funds selected. Select at least another " />
                         <TextBlock Text="{Binding StillNeeded}" />

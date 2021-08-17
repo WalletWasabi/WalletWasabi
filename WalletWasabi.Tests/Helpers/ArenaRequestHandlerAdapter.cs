@@ -25,7 +25,7 @@ namespace WalletWasabi.Tests.Helpers
 		public Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 			=> arena.RegisterInputAsync(request, cancellationToken);
 
-		public Task<OutputRegistrationResponse> RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
+		public Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
 			=> arena.RegisterOutputAsync(request, cancellationToken);
 
 		public Task<ReissueCredentialResponse> ReissueCredentialAsync(ReissueCredentialRequest request, CancellationToken cancellationToken)

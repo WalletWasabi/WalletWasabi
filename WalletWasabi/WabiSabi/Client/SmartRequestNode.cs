@@ -88,7 +88,6 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public async Task StartOutputRegistrationAsync(
 			BobClient bobClient,
-			Money effectiveCost,
 			Script scriptPubKey,
 			CancellationToken cancellationToken)
 		{
@@ -97,7 +96,6 @@ namespace WalletWasabi.WabiSabi.Client
 			IEnumerable<Credential> inputVsizeCredentials = VsizeCredentialToPresentTasks.Select(x => x.Result);
 
 			await bobClient.RegisterOutputAsync(
-				effectiveCost,
 				scriptPubKey,
 				inputAmountCredentials,
 				inputVsizeCredentials,

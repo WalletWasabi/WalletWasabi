@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.WabiSabi.Backend.Banning;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds
 {
@@ -13,7 +14,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			Network network,
 			WasabiRandom random,
 			FeeRate feeRate,
-			Round? blameOf = null)
+			Round? blameOf = null,
+			Prison? prison = null)
 		{
 			Network = network;
 			Random = random;
@@ -36,6 +38,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			BlameWhitelist = BlameOf
 				?.Alices
 				.Select(x => x.Coin.Outpoint)
+				.Where(x => prison is null || !prison.IsBanned(x))
 				.ToHashSet()
 			?? new HashSet<OutPoint>();
 		}

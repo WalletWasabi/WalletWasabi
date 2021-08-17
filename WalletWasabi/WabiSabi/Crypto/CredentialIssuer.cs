@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto;
@@ -116,7 +117,8 @@ namespace WalletWasabi.WabiSabi.Crypto
 			var presented = registrationRequest.Presented ?? Enumerable.Empty<CredentialPresentation>();
 
 			var requestedCount = requested.Count();
-			if (requestedCount != NumberOfCredentials)
+			var requiredNumberOfRequested = registrationRequest.IsPresentationOnlyRequest ? 0 : NumberOfCredentials;
+			if (requestedCount != requiredNumberOfRequested)
 			{
 				throw new WabiSabiCryptoException(
 					WabiSabiCryptoErrorCode.InvalidNumberOfRequestedCredentials,
@@ -211,7 +213,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 				statements.Add(ProofSystem.BalanceProofStatement(balanceTweak + sumCa - sumMa));
 			}
 
-			var transcript = BuildTransnscript(registrationRequest.IsNullRequest);
+			var transcript = BuildTranscript(registrationRequest.IsNullRequest);
 
 			bool areProofsValid = false;
 
@@ -288,11 +290,16 @@ namespace WalletWasabi.WabiSabi.Crypto
 			return (mac, knowledge);
 		}
 
-		private Transcript BuildTransnscript(bool isNullRequest)
+		private Transcript BuildTranscript(bool isNullRequest)
 		{
 			var label = $"UnifiedRegistration/{NumberOfCredentials}/{isNullRequest}";
 			var encodedLabel = Encoding.UTF8.GetBytes(label);
 			return new Transcript(encodedLabel);
+		}
+
+		public Task<ICommitableCredentialsResponse> PrepareResponse(CredentialsRequest registrationRequest, CancellationToken cancel)
+		{
+			return Task.Run(() => PrepareResponse(registrationRequest), cancel);
 		}
 
 		private class PreparedCredentialsResponse : ICommitableCredentialsResponse

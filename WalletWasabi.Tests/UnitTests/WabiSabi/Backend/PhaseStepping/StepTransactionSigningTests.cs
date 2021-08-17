@@ -234,6 +234,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 
 			var round = Assert.Single(arena.Rounds);
+			round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
 			// Register Alices.
@@ -270,14 +271,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			using var destKey1 = new Key();
 			using var destKey2 = new Key();
 			await bobClient.RegisterOutputAsync(
-				coin1.Amount - round.FeeRate.GetFee(coin1.ScriptPubKey.EstimateInputVsize()),
 				destKey1.PubKey.WitHash.ScriptPubKey,
 				aliceClient1.IssuedAmountCredentials.Take(ProtocolConstants.CredentialNumber),
 				aliceClient1.IssuedVsizeCredentials.Take(ProtocolConstants.CredentialNumber),
 				CancellationToken.None).ConfigureAwait(false);
 
 			await bobClient.RegisterOutputAsync(
-				coin2.Amount - round.FeeRate.GetFee(coin2.ScriptPubKey.EstimateInputVsize()),
 				destKey1.PubKey.WitHash.ScriptPubKey,
 				aliceClient2.IssuedAmountCredentials.Take(ProtocolConstants.CredentialNumber),
 				aliceClient2.IssuedVsizeCredentials.Take(ProtocolConstants.CredentialNumber),

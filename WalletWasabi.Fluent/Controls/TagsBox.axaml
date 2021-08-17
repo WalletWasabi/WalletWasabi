@@ -34,6 +34,29 @@
         <Setter Property="Template">
             <ControlTemplate>
                 <DataValidationErrors>
+                  <DockPanel x:Name="PART_DockPanel">
+                    <ItemsControl Items="{TemplateBinding TopItems}"
+                                  IsVisible="{TemplateBinding TopItems, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                  ClipToBounds="False"
+                                  Margin="0,10,0,0"
+                                  DockPanel.Dock="Bottom">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <WrapPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <Button Classes="activeHyperLink"
+                                  Margin="0,0,6,0"
+                                  Focusable="False"
+                                  Content="{Binding}"
+                                  Command="{Binding #PART_DockPanel.TemplatedParent.AddTag}"
+                                  CommandParameter="{Binding }"
+                                  x:CompileBindings="False"/>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                     <Border x:Name="PART_Border" Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
@@ -52,7 +75,7 @@
                                         <c:ConcatenatingWrapPanel Focusable="False" VerticalAlignment="Center">
                                             <c:ConcatenatingWrapPanel.ConcatenatedChildren>
                                                 <AutoCompleteBox x:Name="PART_AutoCompleteBox"
-                                                                 Items="{Binding #PART_Border.TemplatedParent.Suggestions}" />
+                                                                 Items="{Binding #PART_DockPanel.TemplatedParent.Suggestions}" />
                                             </c:ConcatenatingWrapPanel.ConcatenatedChildren>
                                         </c:ConcatenatingWrapPanel>
                                     </ItemsPanelTemplate>
@@ -65,6 +88,7 @@
                             </ItemsPresenter>
                         </Panel>
                     </Border>
+                  </DockPanel>
                 </DataValidationErrors>
             </ControlTemplate>
         </Setter>
@@ -142,6 +166,10 @@
                      c|TagsBox:readonly WrapPanel c|TagControl">
         <Setter Property="Margin" Value="0,0,4,4" />
     </Style>
+
+  <Style Selector="c|TagsBox:readonly WrapPanel">
+    <Setter Property="Margin" Value="0 4 0 0" />
+  </Style>
 
     <Style Selector="c|TagsBox AutoCompleteBox">
         <Setter Property="Background" Value="{x:Null}" />
