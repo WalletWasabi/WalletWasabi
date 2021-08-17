@@ -36,7 +36,6 @@ namespace WalletWasabi.Fluent.Helpers
 		public static void StartAppWithArgs(string args = "")
 		{
 			var path = Process.GetCurrentProcess().MainModule?.FileName;
-			var workingDir = new DirectoryInfo(path).Parent.ToString();
 
 			if (string.IsNullOrEmpty(path))
 			{
