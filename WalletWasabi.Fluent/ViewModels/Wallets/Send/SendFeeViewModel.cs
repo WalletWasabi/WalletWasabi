@@ -38,7 +38,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMaximum;
 		[AutoNotify] private int _sliderValue;
 		private bool _updatingCurrentValue;
-		private FeeRate _feeRate;
 		private double _lastConfirmationTarget;
 
 		public SendFeeViewModel(Wallet wallet, TransactionInfo transactionInfo)
@@ -53,14 +52,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_sliderMaximum = 9;
 			_currentConfirmationTarget = 36;
 			_lastConfirmationTarget = _currentConfirmationTarget;
-			_feeRate = new FeeRate(GetSatoshiPerByte(_lastConfirmationTarget));
 
 			this.WhenAnyValue(x => x.CurrentConfirmationTarget)
 				.Subscribe(x =>
 				{
 					if (x > 0)
 					{
-						_feeRate = new FeeRate(GetSatoshiPerByte(x));
 						SetSliderValue(x);
 					}
 				});
@@ -85,7 +82,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			var totalMixedCoinsAmount = Money.FromUnit(mixedCoins.Sum(coin => coin.Amount), MoneyUnit.Satoshi);
 			transactionInfo.Coins = mixedCoins;
 
-			transactionInfo.FeeRate = _feeRate;
+			transactionInfo.FeeRate = new FeeRate(GetSatoshiPerByte(CurrentConfirmationTarget));
 
 			if (transactionInfo.Amount > totalMixedCoinsAmount)
 			{
