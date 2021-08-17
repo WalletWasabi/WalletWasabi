@@ -160,7 +160,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						cmd.Execute(default);
 					}
 				}
-
 			}
 		}
 	}
