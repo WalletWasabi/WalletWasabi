@@ -247,17 +247,6 @@ namespace WalletWasabi.Gui
 					BitcoinStore.BlockRepository);
 
 				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), blockProvider);
-
-				try
-				{
-					using var cts = new CancellationTokenSource(10000);
-					using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancel, cts.Token);
-					UiConfig.RunOnSystemStartup = await StartupChecker.GetCurrentValueAsync(linkedCts.Token).ConfigureAwait(false);
-				}
-				catch (Exception e)
-				{
-					Logger.LogWarning($"Failed to get the start up setting.", e);
-				}
 			}
 			finally
 			{
