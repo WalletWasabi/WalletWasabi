@@ -6,6 +6,7 @@
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             xmlns:labels="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Labels"
              mc:Ignorable="d"
              x:DataType="vm:SendViewModel"
              x:CompileBindings="True"
@@ -41,6 +42,12 @@
                                 ToolTip.Tip="Paste"
                                 NormalIcon="{StaticResource paste_regular}"
                                 ClickIcon="{StaticResource copy_confirmed}" />
+              <c:AnimatedButton IsVisible="{Binding IsQrButtonVisible}"
+                                KeyboardNavigation.IsTabStop="False"
+                                Focusable="False"
+                                Command="{Binding QRCommand}"
+                                ToolTip.Tip="Scan QR Code"
+                                NormalIcon="{StaticResource qr_code_regular}" />
             </StackPanel>
           </TextBox.InnerRightContent>
         </TextBox>
@@ -57,15 +64,20 @@
         </DockPanel>
       </DockPanel>
       <!-- Labels -->
-      <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+      <DockPanel DockPanel.Dock="Top"
+                 VerticalAlignment="Top"
+                 Margin="0,0,0,10">
         <Label DockPanel.Dock="Left" Content="_Labels:" Target="LabelTagBox" />
-        <c:TagsBox x:Name="LabelTagBox" VerticalAlignment="Top"
+        <c:TagsBox x:Name="LabelTagBox"
+                   DataContext="{Binding SuggestionLabels}"
+                   VerticalAlignment="Top"
                    Watermark="{StaticResource LabelsWatermarkText}"
                    TagSeparator=","
                    SuggestionsAreCaseSensitive="True"
                    RestrictInputToSuggestions="False"
                    Items="{Binding Labels}"
-                   Suggestions="{Binding PriorLabels}" />
+                   TopItems="{Binding TopSuggestions}"
+                   Suggestions="{Binding Suggestions}" />
       </DockPanel>
     </DockPanel>
   </c:ContentArea>

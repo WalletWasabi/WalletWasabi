@@ -29,7 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 
 			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
-			EnableBack = true;
+			EnableBack = false;
 		}
 
 		public WalletType WalletType { get; }

@@ -32,7 +32,6 @@
 
                         <Panel DockPanel.Dock="Bottom" x:Name="PART_ButtonArea">
                             <Button Name="PART_CancelButton"
-                                    IsCancel="{TemplateBinding EnableCancel}"
                                     Classes="invisible"
                                     IsVisible="{TemplateBinding EnableCancel}"
                                     Content="{TemplateBinding CancelContent}"
