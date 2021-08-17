@@ -21,19 +21,21 @@ namespace WalletWasabi.Fluent.CrashReport.ViewModels
 				await IoHelpers.OpenBrowserAsync(AboutViewModel.UserSupportLink);
 			});
 
-			if (SerializedException.ExceptionType.Contains(
+			if (!(SerializedException?.ExceptionType?.Contains(
 				nameof(WasabiAlreadyRunningException),
-				StringComparison.Ordinal))
+				StringComparison.Ordinal) ?? false))
 			{
-				Title = "Wasabi is already running";
-				Caption = "Please close any instance of Wasabi that is already running " +
-				          "and try launching the app again.";
-
-				SuggestionTextFragment1  = "Still has some questions? You can check out our";
-				SuggestionTextFragment2  = "for some quick pointers.";
-
- 				HideTraceTextBox = true;
+				return;
 			}
+
+			Title = "Wasabi is already running";
+			Caption = "Please close any instance of Wasabi that is already running " +
+			          "and try launching the app again.";
+
+			SuggestionTextFragment1  = "Still has some questions? You can check out our";
+			SuggestionTextFragment2  = "for some quick pointers.";
+
+			IsWarningForSingleInstance = true;
 		}
 
 		public SerializableException SerializedException { get; }
@@ -55,6 +57,6 @@ namespace WalletWasabi.Fluent.CrashReport.ViewModels
 
 		public string SuggestionTextFragment2 { get; } = "so we can take a closer look.";
 
-		public bool HideTraceTextBox { get; }
+		public bool IsWarningForSingleInstance { get; }
 	}
 }
