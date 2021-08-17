@@ -33,7 +33,15 @@
                               Margin="0 20 0 0">
           <Panel>
             <WrapPanel IsVisible="{Binding !IsWarningForSingleInstance}">
-              <TextBlock Text="You can copy the above text and post an issue tracker in our" />
+              <TextBlock Text="You can click this icon" />
+              <controls:AnimatedButton Margin="5 0"
+                                       Classes="addressActionButton"
+                                       ToolTip.Tip="Copy"
+                                       Command="{Binding CopyTraceCommand}"
+                                       NormalIcon="{StaticResource copy_regular}"
+                                       ClickIcon="{StaticResource copy_confirmed}"
+                                       InitialOpacity="1.0"/>
+              <TextBlock Text="to copy the above text and post an issue tracker on our" />
               <Button Margin="5 0" Classes="activeHyperLink" Content="GitHub repo here"
                       Command="{Binding OpenGitHubRepoCommand}" />
               <TextBlock Text="so we can take a closer look." />

@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using ReactiveUI;
 using System.Windows.Input;
+using Avalonia;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
@@ -16,9 +17,15 @@ namespace WalletWasabi.Fluent.CrashReport.ViewModels
 			SerializedException = serializedException;
 			CancelCommand = ReactiveCommand.Create(AppLifetimeHelper.Restart);
 			NextCommand = ReactiveCommand.Create(AppLifetimeHelper.Shutdown);
+
 			OpenGitHubRepoCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				await IoHelpers.OpenBrowserAsync(AboutViewModel.UserSupportLink);
+			});
+
+			CopyTraceCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				 await Application.Current.Clipboard.SetTextAsync(Trace);
 			});
 
 			if (!SerializedException?.ExceptionType?.Contains(
@@ -42,6 +49,8 @@ namespace WalletWasabi.Fluent.CrashReport.ViewModels
 		public ICommand NextCommand { get; }
 
 		public ICommand CancelCommand { get; }
+
+		public ICommand CopyTraceCommand { get; }
 
 		public string Caption { get; } = $"A problem has occurred and Wasabi is unable to continue.";
 
