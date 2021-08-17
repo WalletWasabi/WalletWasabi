@@ -75,7 +75,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private async Task OnNextAsync(TransactionInfo transactionInfo,
 			IObservableList<PocketViewModel> selectedList)
 		{
-			_buildingTransaction = true;
 			transactionInfo.Coins = selectedList.Items.SelectMany(x => x.Coins).ToArray();
 
 			if (_privatePocket is not null)
@@ -85,6 +84,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			try
 			{
+				_buildingTransaction = true;
+
 				if (transactionInfo.PayJoinClient is { })
 				{
 					await BuildTransactionAsPayJoinAsync(transactionInfo);
