@@ -12,8 +12,7 @@
                  Caption="Parts of your wallet are known to certain entities. Select the entities you can tolerate leaking information about this transaction:"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="Continue"
-                 IsBusy="{Binding IsBusy}"
-                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                 IsBusy="{Binding IsBusy}">
     <DockPanel>
 
       <!-- Warning messages -->
@@ -39,9 +38,8 @@
 
       <c:AdorningContentControl ClipToBounds="False" IsAdornmentVisible="{Binding IsWarningOpen}" RevealMode="Manual" DockPanel.Dock="Top" VerticalAlignment="Top">
         <c:AdorningContentControl.Adornment>
-
           <!-- Private funds warning -->
-          <c:InfoMessage Classes="overlay" Padding="15" MaxWidth="400" Foreground="{DynamicResource SystemErrorTextColor}" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+          <c:InfoMessage Classes="overlay" Padding="15" MaxWidth="400" Margin="0 0 0 -55" Foreground="{DynamicResource SystemErrorTextColor}" HorizontalAlignment="Right" VerticalAlignment="Bottom">
             <TextBlock Text="Warning, using both private and non-private funds in the same transaction can destroy your privacy." TextWrapping="Wrap" />
           </c:InfoMessage>
         </c:AdorningContentControl.Adornment>
