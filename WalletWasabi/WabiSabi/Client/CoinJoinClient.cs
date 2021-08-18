@@ -5,8 +5,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
@@ -22,7 +24,7 @@ namespace WalletWasabi.WabiSabi.Client
 	{
 		public CoinJoinClient(
 			IWabiSabiApiRequestHandler arenaRequestHandler,
-			IEnumerable<Coin> coins,
+			IEnumerable<SmartCoin> coins,
 			Kitchen kitchen,
 			KeyManager keymanager,
 			RoundStateUpdater roundStatusUpdater)
@@ -35,7 +37,7 @@ namespace WalletWasabi.WabiSabi.Client
 			Coins = coins;
 		}
 
-		private IEnumerable<Coin> Coins { get; set; }
+		private IEnumerable<SmartCoin> Coins { get; set; }
 		private SecureRandom SecureRandom { get; } = new SecureRandom();
 		public IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
 		public Kitchen Kitchen { get; }
@@ -127,7 +129,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private List<AliceClient> CreateAliceClients(RoundState roundState)
 		{
 			List<AliceClient> aliceClients = new();
-			foreach (var coin in Coins)
+			foreach (var coin in Coins.Select(x => x.Coin))
 			{
 				var aliceArenaClient = new ArenaClient(
 					roundState.CreateAmountCredentialClient(SecureRandom),
@@ -145,7 +147,32 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			async Task RegisterInputTask(AliceClient aliceClient)
 			{
-				await aliceClient.RegisterInputAsync(cancellationToken).ConfigureAwait(false);
+				var smartCoin = Coins.Single(x => x.Coin == aliceClient.Coin);
+				try
+				{
+					await aliceClient.RegisterInputAsync(cancellationToken).ConfigureAwait(false);
+					smartCoin.CoinJoinInProgress = true;
+				}
+				catch (System.Net.Http.HttpRequestException ex)
+				{
+					if (ex.InnerException is WabiSabiProtocolException wpe)
+					{
+						switch (wpe.ErrorCode)
+						{
+							case WabiSabiProtocolErrorCode.InputSpent:
+								smartCoin.SpentAccordingToBackend = true;
+								break;
+							case WabiSabiProtocolErrorCode.InputBanned:
+								smartCoin.BannedUntilUtc = DateTimeOffset.UtcNow.AddDays(1);
+								smartCoin.SetIsBanned();
+								break;
+							default:
+								return;
+						}
+
+					}
+					throw;
+				}
 			}
 
 			var registerRequests = aliceClients.Select(RegisterInputTask);
