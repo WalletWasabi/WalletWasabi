@@ -1,11 +1,13 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -77,20 +79,23 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			var constructionState = roundState.Assert<ConstructionState>();
 
+			List<AliceClient> aliceClients = CreateAliceClients(roundState);
+
+			// Register coins.
+			await RegisterCoinsAsync(aliceClients, cancellationToken).ConfigureAwait(false);
+
+			roundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Phase == Phase.ConnectionConfirmation, cancellationToken).ConfigureAwait(false);
 			// Calculate outputs values
-			var outputValues = DecomposeAmounts(roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min);
+			AmountDecomposer amountDecomposer = new(roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts, Constants.OutputSizeInBytes); // OutputSizeInBytes is 33?
+			var outputValues = amountDecomposer.Decompose(Coins.ToImmutableArray(), roundState.CoinjoinState.Inputs.ToImmutableArray());
 
 			// Get all locked internal keys we have and assert we have enough.
 			Keymanager.AssertLockedInternalKeysIndexed(howMany: outputValues.Count());
 			var allLockedInternalKeys = Keymanager.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked);
 			var outputTxOuts = outputValues.Zip(allLockedInternalKeys, (amount, hdPubKey) => new TxOut(amount, hdPubKey.P2wpkhScript));
 
-			List<AliceClient> aliceClients = CreateAliceClients(roundState);
 			DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(aliceClients.Select(a => a.Coin), outputTxOuts, roundState.FeeRate, roundState.MaxVsizeAllocationPerAlice);
 			DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
-
-			// Register coins.
-			await RegisterCoinsAsync(aliceClients, cancellationToken).ConfigureAwait(false);
 
 			// Confirm coins.
 			await scheduler.StartConfirmConnectionsAsync(aliceClients, dependencyGraph, roundState.ConnectionConfirmationTimeout, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
@@ -151,13 +156,6 @@ namespace WalletWasabi.WabiSabi.Client
 
 			var registerRequests = aliceClients.Select(RegisterInputTask);
 			await Task.WhenAll(registerRequests).ConfigureAwait(false);
-		}
-
-		private IEnumerable<Money> DecomposeAmounts(FeeRate feeRate, Money minimumOutputAmount)
-		{
-			GreedyDecomposer greedyDecomposer = new(StandardDenomination.Values.Where(x => x >= minimumOutputAmount));
-			var sum = Coins.Sum(c => c.EffectiveValue(feeRate));
-			return greedyDecomposer.Decompose(sum, feeRate.GetFee(31));
 		}
 
 		private BobClient CreateBobClient(RoundState roundState)
