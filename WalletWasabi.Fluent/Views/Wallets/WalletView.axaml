@@ -24,7 +24,7 @@
               <Button.IsVisible>
                 <MultiBinding Converter="{x:Static BoolConverters.And}">
                   <Binding Path="PreferPsbtWorkflow"/>
-                  <Binding Path="IsWalletBalanceZero" Converter="{x:Static converters:BoolConverters.Not}"/>
+                  <Binding Path="IsWalletBalanceZero" Converter="{x:Static BoolConverters.Not}"/>
                 </MultiBinding>
               </Button.IsVisible>
               <StackPanel Orientation="Horizontal" Spacing="15">
