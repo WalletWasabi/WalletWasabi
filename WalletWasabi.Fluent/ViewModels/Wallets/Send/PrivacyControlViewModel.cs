@@ -28,6 +28,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private decimal _stillNeeded;
 		[AutoNotify] private bool _enoughSelected;
 
+		private bool _buildingTransaction;
+
 		public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo)
 		{
 			_wallet = wallet;
@@ -82,6 +84,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			try
 			{
+				_buildingTransaction = true;
+
 				if (transactionInfo.PayJoinClient is { })
 				{
 					await BuildTransactionAsPayJoinAsync(transactionInfo);
@@ -96,6 +100,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				Logger.LogError(ex);
 				await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(), "Wasabi was unable to create your transaction.");
 				Navigate().BackTo<SendViewModel>();
+			}
+			finally
+			{
+				_buildingTransaction = false;
 			}
 		}
 
@@ -139,6 +147,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
+			if (_buildingTransaction)
+			{
+				return;
+			}
+
 			base.OnNavigatedTo(isInHistory, disposables);
 
 			if (!isInHistory)
@@ -172,6 +185,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			if (_pocketSource.Count == 1)
 			{
 				_pocketSource.Items.First().IsSelected = true;
+
+				if (isInHistory)
+				{
+					Navigate().Back();
+				}
+				else
+				{
+					if (NextCommand is {} cmd && cmd.CanExecute(default))
+					{
+						cmd.Execute(default);
+					}
+				}
+
 			}
 		}
 	}
