@@ -11,6 +11,7 @@
 		<DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
 		<RuntimeIdentifiers>win7-x64;linux-x64;osx-x64</RuntimeIdentifiers>
 		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Fluent.Generators</PathMap>
+		<IsRoslynComponent>true</IsRoslynComponent>
     </PropertyGroup>
 
 	<ItemGroup>
