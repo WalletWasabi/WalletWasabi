@@ -103,7 +103,7 @@ namespace WalletWasabi.Services
 				throw new InvalidOperationException($"Wasabi is already running, but cannot be signaled, reason: '{ex}'");
 			}
 
-			throw new WasabiAlreadyRunningException();
+			throw new OperationCanceledException($"Wasabi is already running, signaled the first instance.");
 		}
 
 		private static int NetworkToPort(Network network) => network switch
