@@ -47,6 +47,7 @@ namespace WalletWasabi.Fluent
         Internal = 4
     }
 }";
+
 		public void Initialize(GeneratorInitializationContext context)
 		{
 			// System.Diagnostics.Debugger.Launch();
