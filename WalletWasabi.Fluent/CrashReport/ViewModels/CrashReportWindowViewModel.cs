@@ -29,7 +29,7 @@ namespace WalletWasabi.Fluent.CrashReport.ViewModels
 			});
 
 			if (!SerializedException?.ExceptionType?.Contains(
-				nameof(WasabiAlreadyRunningException),
+				nameof(OperationCanceledException),
 				StringComparison.Ordinal) ?? true)
 			{
 				return;
