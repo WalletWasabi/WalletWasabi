@@ -17,7 +17,10 @@ namespace WalletWasabi.WabiSabi.Client
 			OutputSize = outputSize;
 			FeeRate = feeRate;
 			MinimumAmountPlusFee = allowedOutputAmount.Min + OutputFee;
-			StandardDenominationsPlusFee = StandardDenomination.Values.Select(x => x + OutputFee).ToImmutableArray();
+			StandardDenominationsPlusFee = StandardDenomination.Values
+				.Select(x => x + OutputFee)
+				.OrderByDescending(x => x)
+				.ToImmutableArray();
 		}
 
 		public FeeRate FeeRate { get; }

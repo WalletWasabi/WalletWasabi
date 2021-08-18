@@ -85,10 +85,11 @@ namespace WalletWasabi.WabiSabi.Client
 			await RegisterCoinsAsync(aliceClients, cancellationToken).ConfigureAwait(false);
 
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Phase == Phase.ConnectionConfirmation, cancellationToken).ConfigureAwait(false);
+			var allInputs = roundState.CoinjoinState.Inputs.Union(Coins).ToImmutableArray(); //TODO: CoinjoinState.Inputs are empty? bug?
 
 			// Calculate outputs values
 			AmountDecomposer amountDecomposer = new(roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts, Constants.OutputSizeInBytes); // OutputSizeInBytes is 33?
-			var outputValues = amountDecomposer.Decompose(Coins.ToImmutableArray(), roundState.CoinjoinState.Inputs.ToImmutableArray());
+			var outputValues = amountDecomposer.Decompose(Coins.ToImmutableArray(), allInputs);
 
 			// Get all locked internal keys we have and assert we have enough.
 			Keymanager.AssertLockedInternalKeysIndexed(howMany: outputValues.Count());
