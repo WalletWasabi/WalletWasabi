@@ -123,9 +123,9 @@ namespace WalletWasabi.Fluent
 
 			var source = new StringBuilder();
 
-            var format = new SymbolDisplayFormat(
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints | SymbolDisplayGenericsOptions.IncludeVariance            );
+			var format = new SymbolDisplayFormat(
+				typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+				genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints | SymbolDisplayGenericsOptions.IncludeVariance);
 
 			if (addNotifyInterface)
 			{
@@ -248,7 +248,7 @@ namespace {namespaceName}
 			public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
 			{
 				if (context.Node is FieldDeclarationSyntax fieldDeclarationSyntax
-				    && fieldDeclarationSyntax.AttributeLists.Count > 0)
+					&& fieldDeclarationSyntax.AttributeLists.Count > 0)
 				{
 					foreach (VariableDeclaratorSyntax variable in fieldDeclarationSyntax.Declaration.Variables)
 					{

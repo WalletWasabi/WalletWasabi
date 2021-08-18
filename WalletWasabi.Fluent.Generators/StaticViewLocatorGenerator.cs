@@ -74,9 +74,9 @@ namespace WalletWasabi.Fluent
 
 			string namespaceNameLocator = namedTypeSymbolLocator.ContainingNamespace.ToDisplayString();
 
-            var format = new SymbolDisplayFormat(
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints | SymbolDisplayGenericsOptions.IncludeVariance);
+			var format = new SymbolDisplayFormat(
+				typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+				genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints | SymbolDisplayGenericsOptions.IncludeVariance);
 
 			string classNameLocator = namedTypeSymbolLocator.ToDisplayString(format);
 
@@ -90,7 +90,7 @@ namespace {namespaceNameLocator}
 {{
     public partial class {classNameLocator}
     {{");
-		source.Append($@"
+			source.Append($@"
 		private static Dictionary<Type, Func<Control>> s_views = new()
 		{{
 ");
