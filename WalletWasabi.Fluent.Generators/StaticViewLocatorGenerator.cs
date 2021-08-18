@@ -54,7 +54,10 @@ namespace WalletWasabi.Fluent
 
 			foreach (var namedTypeSymbol in receiver.NamedTypeSymbolLocators)
 			{
-				var classSource = ProcessClass(context.Compilation, namedTypeSymbol, receiver.NamedTypeSymbolViewModels);
+				var namedTypeSymbolViewModels = receiver.NamedTypeSymbolViewModels.ToList();
+				namedTypeSymbolViewModels.Sort((x, y) => x.ToDisplayString().CompareTo(y.ToDisplayString()));
+
+				var classSource = ProcessClass(context.Compilation, namedTypeSymbol, namedTypeSymbolViewModels);
 				if (classSource is not null)
 				{
 					context.AddSource($"{namedTypeSymbol.Name}_StaticViewLocator.cs", SourceText.From(classSource, Encoding.UTF8));
