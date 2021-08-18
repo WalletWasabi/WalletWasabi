@@ -77,7 +77,7 @@ namespace WalletWasabi.WabiSabi.Client
 		/// <returns>Whether or not the round resulted in a successful transaction.</returns>
 		public async Task<bool> StartRoundAsync(RoundState roundState, CancellationToken cancellationToken)
 		{
-			var constructionState = roundState.Assert<ConstructionState>();
+			_ = roundState.Assert<ConstructionState>();
 
 			List<AliceClient> aliceClients = CreateAliceClients(roundState);
 
@@ -85,6 +85,7 @@ namespace WalletWasabi.WabiSabi.Client
 			await RegisterCoinsAsync(aliceClients, cancellationToken).ConfigureAwait(false);
 
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Phase == Phase.ConnectionConfirmation, cancellationToken).ConfigureAwait(false);
+
 			// Calculate outputs values
 			AmountDecomposer amountDecomposer = new(roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts, Constants.OutputSizeInBytes); // OutputSizeInBytes is 33?
 			var outputValues = amountDecomposer.Decompose(Coins.ToImmutableArray(), roundState.CoinjoinState.Inputs.ToImmutableArray());
