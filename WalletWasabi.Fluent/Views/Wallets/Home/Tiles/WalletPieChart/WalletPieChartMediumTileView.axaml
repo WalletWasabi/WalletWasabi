@@ -6,38 +6,72 @@
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
-             mc:Ignorable="d" d:DesignWidth="330" d:DesignHeight="150"
+             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="120"
              x:CompileBindings="True" x:DataType="vm:WalletPieChartTileViewModel"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletPieChart.WalletPieChartMediumTileView">
-    <DockPanel LastChildFill="True">
-        <TextBlock Text="Wallet Privacy Status" DockPanel.Dock="Top" />
-        <Grid ColumnDefinitions="*,*">
-            <ItemsRepeater Grid.ColumnSpan="2" VerticalAlignment="Center" Margin="0,0,0,-4"
-                           Items="{Binding TestDataPointsLegend}">
-                <ItemsRepeater.ItemTemplate>
-                    <DataTemplate x:DataType="wallets:DataLegend">
-                        <DockPanel Margin="0,0,0,4">
-                            <Ellipse DockPanel.Dock="Left" Margin="0,0,8,0" HorizontalAlignment="Left" Width="10"
-                                     Height="10"
-                                     Fill="{Binding HexColor, Converter={x:Static converters:ColorStringConverters.HexColorToBrush}}" />
-                            <TextBlock Margin="0,0,8,0" FontSize="12"
-                                       DockPanel.Dock="Left" HorizontalAlignment="Left"
-                                       Text="{Binding Label}" />
-                            <controls:PrivacyContentControl DockPanel.Dock="Left" HorizontalAlignment="Left"
-                                                            FontSize="12"
-                                                            Content="{Binding PercentShare, StringFormat=\{0:P1\}}" />
-                        </DockPanel>
-                    </DataTemplate>
-                </ItemsRepeater.ItemTemplate>
-                <ItemsRepeater.Layout>
-                    <StackLayout />
-                </ItemsRepeater.Layout>
-            </ItemsRepeater>
-            <controls:PrivacyContentControl Grid.Column="1" Margin="16,0,0,0" PrivacyReplacementMode="Icon">
-                <controls:RingChartControl VerticalAlignment="Center"
-                                           HorizontalAlignment="Center"
-                                           DataPoints="{Binding TestDataPoints}" />
-            </controls:PrivacyContentControl>
-        </Grid>
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletPieChart.WalletPieChartMediumTileView" ClipToBounds="False">
+  <Panel>
+    <DockPanel LastChildFill="True" Margin="0 0 0 -16" IsVisible="{Binding !IsAutoCoinJoinEnabled}">
+      <TextBlock Text="Wallet Privacy Status" DockPanel.Dock="Top" />
+      <StackPanel DockPanel.Dock="Bottom">
+        <Separator Margin="-16 0" ClipToBounds="False" />
+        <DockPanel>
+          <ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding IsAutoCoinJoinEnabled}" />
+          <TextBlock Text="Wallet Privacy" FontWeight="Bold" VerticalAlignment="Center" />
+        </DockPanel>
+      </StackPanel>
+      <DockPanel Margin="3 0 0 5">
+        <Viewbox Height="50" Width="50" DockPanel.Dock="Left" VerticalAlignment="Center" HorizontalAlignment="Stretch">
+            <Viewbox.Resources>
+              <LinearGradientBrush x:Key="paint0_linear" StartPoint="0%,1%" EndPoint="100%,100%">
+                <LinearGradientBrush.GradientStops>
+                  <GradientStop Color="#EE5C5C" />
+                  <GradientStop Color="#C44747" Offset="1" />
+                </LinearGradientBrush.GradientStops>
+              </LinearGradientBrush>
+            </Viewbox.Resources>
+          <Panel>
+            <Path Name="path833" Fill="{StaticResource paint0_linear}"
+                  Data="m 64.9375 11.75 c -9.9878 0 -19.7174 -3.53804 -29.25 -10.6875 -1 -0.75 -2.375 -0.75 -3.375 0 C 22.7799 8.21196 13.0503 11.75 3.0625 11.75 1.5092 11.75 0.25 13.0092 0.25 14.5625 V 34.25 c 0 18.7545 11.0909 32.534 32.7192 41.0543 0.6624 0.2609 1.3992 0.2609 2.0616 0 C 56.6591 66.784 67.75 53.0045 67.75 34.25 V 14.5625 c 0 -1.5533 -1.2592 -2.8125 -2.8125 -2.8125 z" />
+            <Path Name="path835" Fill="White"
+                  Data="M 34.015 34.0437 23.8034 23.8309 c -1.097 -1.0969 -2.8755 -1.0969 -3.9725 0 -1.0969 1.097 -1.0969 2.8755 0 3.9725 L 30.0437 38.015 19.8309 48.2327 19.559 48.5477 c -0.816 1.0997 -0.7253 2.6602 0.2719 3.6575 l 0.3151 0.2719 c 1.0996 0.816 2.6602 0.7253 3.6574 -0.2719 L 34.015 41.99 44.2327 52.2052 c 1.0969 1.0969 2.8755 1.0969 3.9725 0 1.0969 -1.097 1.0969 -2.8756 0 -3.9725 L 37.99 38.015 48.2052 27.8034 l 0.2719 -0.315 c 0.816 -1.0997 0.7253 -2.6602 -0.2719 -3.6575 L 47.8901 23.559 c -1.0997 -0.816 -2.6602 -0.7253 -3.6574 0.2719 z" />
+          </Panel>
+        </Viewbox>
+        <StackPanel VerticalAlignment="Center" Classes="h8" Margin="11 0 0 0">
+          <TextBlock Text="Your financial privacy is not currently protected." TextWrapping="WrapWithOverflow" />
+        </StackPanel>
+       </DockPanel>
     </DockPanel>
+    <DockPanel LastChildFill="True" IsVisible="{Binding IsAutoCoinJoinEnabled}">
+      <TextBlock Text="Wallet Privacy Status" DockPanel.Dock="Top" />
+      <Grid ColumnDefinitions="*,*">
+        <ItemsRepeater Grid.ColumnSpan="2" VerticalAlignment="Center" Margin="0,0,0,-4"
+                       Items="{Binding TestDataPointsLegend}">
+          <ItemsRepeater.ItemTemplate>
+            <DataTemplate x:DataType="wallets:DataLegend">
+              <DockPanel Margin="0,0,0,4">
+                <Ellipse DockPanel.Dock="Left" Margin="0,0,8,0" HorizontalAlignment="Left" Width="10"
+                         Height="10"
+                         Fill="{Binding HexColor, Converter={x:Static converters:ColorStringConverters.HexColorToBrush}}" />
+                <TextBlock Margin="0,0,8,0" FontSize="12"
+                           DockPanel.Dock="Left" HorizontalAlignment="Left"
+                           Text="{Binding Label}" />
+                <TextBlock DockPanel.Dock="Left" HorizontalAlignment="Left" FontSize="12"
+                           Text="{Binding PercentShare, StringFormat=\{0:P1\}}" />
+              </DockPanel>
+            </DataTemplate>
+          </ItemsRepeater.ItemTemplate>
+          <ItemsRepeater.Layout>
+            <StackLayout />
+          </ItemsRepeater.Layout>
+        </ItemsRepeater>
+        <controls:PrivacyContentControl Grid.Column="1" Margin="16,0,0,0" PrivacyReplacementMode="Icon">
+          <controls:RingChartControl Grid.Column="1"
+                                     Margin="16,0,0,0"
+                                     VerticalAlignment="Center"
+                                     HorizontalAlignment="Center"
+                                     DataPoints="{Binding TestDataPoints}" />
+        </controls:PrivacyContentControl>
+      </Grid>
+    </DockPanel>
+  </Panel>
 </UserControl>
