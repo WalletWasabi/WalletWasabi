@@ -16,6 +16,11 @@
     </DockPanel>
 
     <DockPanel>
+      <TextBlock Text="Start Wasabi with the system" />
+      <ToggleSwitch IsChecked="{Binding RunOnSystemStartup}" Command="{Binding StartupCommand}" />
+    </DockPanel>
+
+    <DockPanel>
       <TextBlock Text="Auto Copy/Paste Bitcoin addresses" />
       <ToggleSwitch IsChecked="{Binding AutoCopy}" />
     </DockPanel>
@@ -40,7 +45,5 @@
         </ComboBox.ItemTemplate>
       </ComboBox>
     </StackPanel>
-
-
   </StackPanel>
 </UserControl>

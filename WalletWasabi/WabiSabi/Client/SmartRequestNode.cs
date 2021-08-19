@@ -35,12 +35,13 @@ namespace WalletWasabi.WabiSabi.Client
 			IEnumerable<long> vsizes,
 			Money effectiveValue,
 			int vsizeValue,
+			RoundStateUpdater roundStateUpdater,
 			CancellationToken cancellationToken)
 		{
 			var amountsToRequest = AddExtraCredentialRequests(amounts, effectiveValue.Satoshi);
 			var vsizesToRequest = AddExtraCredentialRequests(vsizes, vsizeValue);
 
-			await aliceClient.ConfirmConnectionAsync(connectionConfirmationTimeout, amountsToRequest, vsizesToRequest, cancellationToken).ConfigureAwait(false);
+			await aliceClient.ConfirmConnectionAsync(connectionConfirmationTimeout, amountsToRequest, vsizesToRequest, roundStateUpdater, cancellationToken).ConfigureAwait(false);
 
 			// TODO keep extra credentials
 			var (amountCredentials, _) = SeparateExtraCredentials(aliceClient.IssuedAmountCredentials, amounts);
@@ -87,7 +88,6 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public async Task StartOutputRegistrationAsync(
 			BobClient bobClient,
-			Money effectiveCost,
 			Script scriptPubKey,
 			CancellationToken cancellationToken)
 		{
@@ -96,7 +96,6 @@ namespace WalletWasabi.WabiSabi.Client
 			IEnumerable<Credential> inputVsizeCredentials = VsizeCredentialToPresentTasks.Select(x => x.Result);
 
 			await bobClient.RegisterOutputAsync(
-				effectiveCost,
 				scriptPubKey,
 				inputAmountCredentials,
 				inputVsizeCredentials,

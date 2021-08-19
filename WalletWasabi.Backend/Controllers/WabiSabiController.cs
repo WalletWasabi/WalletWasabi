@@ -21,6 +21,12 @@ namespace WalletWasabi.Backend.Controllers
 
 		private ArenaRequestHandler RequestHandler { get; }
 
+		[HttpGet("status")]
+		public Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken)
+		{
+			return RequestHandler.GetStatusAsync(cancellationToken);
+		}
+
 		[HttpPost("connection-confirmation")]
 		[Idempotent]
 		public Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellableToken)
@@ -37,7 +43,7 @@ namespace WalletWasabi.Backend.Controllers
 
 		[HttpPost("output-registration")]
 		[Idempotent]
-		public Task<OutputRegistrationResponse> RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellableToken)
+		public Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellableToken)
 		{
 			return RequestHandler.RegisterOutputAsync(request, cancellableToken);
 		}
@@ -59,12 +65,6 @@ namespace WalletWasabi.Backend.Controllers
 		public Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellableToken)
 		{
 			return RequestHandler.SignTransactionAsync(request, cancellableToken);
-		}
-
-		[HttpGet("status")]
-		public Task<RoundState[]> GetStatusAsync(CancellationToken cancellableToken)
-		{
-			return Task.FromResult(RequestHandler.Arena.Rounds.Select(x => RoundState.FromRound(x)).ToArray());
 		}
 
 		[HttpPost("ready-to-sign")]

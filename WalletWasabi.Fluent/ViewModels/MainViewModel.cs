@@ -76,17 +76,57 @@ namespace WalletWasabi.Fluent.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(windowState => Services.UiConfig.WindowState = windowState.ToString());
 
-			this.WhenAnyValue(x => x.DialogScreen!.IsDialogOpen)
+			this.WhenAnyValue(
+					x => x.DialogScreen!.IsDialogOpen,
+					x => x.FullScreen!.IsDialogOpen,
+					x => x.CompactDialogScreen!.IsDialogOpen)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => IsMainContentEnabled = !x);
+				.Subscribe(tup =>
+				{
+					var (dialogScreenIsOpen, fullScreenIsOpen, compactDialogScreenIsOpen) = tup;
 
-			this.WhenAnyValue(x => x.FullScreen!.IsDialogOpen)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => IsMainContentEnabled = !x);
+					IsMainContentEnabled = !(dialogScreenIsOpen || fullScreenIsOpen || compactDialogScreenIsOpen);
+				});
 
-			this.WhenAnyValue(x => x.CompactDialogScreen!.IsDialogOpen)
+			this.WhenAnyValue(
+					x => x.DialogScreen.CurrentPage,
+					x => x.CompactDialogScreen.CurrentPage,
+					x => x.FullScreen.CurrentPage,
+					x => x.MainScreen.CurrentPage)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => IsMainContentEnabled = !x);
+				.Subscribe(tup =>
+				{
+					var (dialog, compactDialog, fullscreenDialog, mainsScreen) = tup;
+
+					/*
+					 * Order is important.
+					 * Always the topmost content will be the active one.
+					 */
+
+					if (compactDialog is { })
+					{
+						compactDialog.SetActive();
+						return;
+					}
+
+					if (dialog is { })
+					{
+						dialog.SetActive();
+						return;
+					}
+
+					if (fullscreenDialog is { })
+					{
+						fullscreenDialog.SetActive();
+						return;
+					}
+
+					if (mainsScreen is { })
+					{
+						mainsScreen.SetActive();
+						return;
+					}
+				});
 
 			IsSetup = !Services.UiConfig.Oobe;
 
@@ -118,6 +158,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			MainScreen.Clear();
 			DialogScreen.Clear();
 			FullScreen.Clear();
+			CompactDialogScreen.Clear();
 		}
 
 		public void Initialize()

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -217,6 +218,20 @@ namespace WalletWasabi.Helpers
 			}
 
 			return fullBaseDirectory;
+		}
+
+		public static string GetExecutablePath()
+		{
+			var fullBaseDir = GetFullBaseDirectory();
+			var wassabeeFileName = Path.Combine(fullBaseDir, Constants.ExecutableName);
+			wassabeeFileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"{wassabeeFileName}.exe" : $"{wassabeeFileName}";
+			if (File.Exists(wassabeeFileName))
+			{
+				return wassabeeFileName;
+			}
+			var assemblyName = Assembly.GetEntryAssembly()?.GetName().Name ?? throw new NullReferenceException("Assembly or Assembly's Name was null.");
+			var fluentExecutable = Path.Combine(fullBaseDir, assemblyName);
+			return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"{fluentExecutable}.exe" : $"{fluentExecutable}";
 		}
 
 		[DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]

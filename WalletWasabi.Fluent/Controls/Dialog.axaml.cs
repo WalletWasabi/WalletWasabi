@@ -23,6 +23,9 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<bool> IsDialogOpenProperty =
 			AvaloniaProperty.Register<Dialog, bool>(nameof(IsDialogOpen));
 
+		public static readonly StyledProperty<bool> IsActiveProperty =
+			AvaloniaProperty.Register<Dialog, bool>(nameof(IsActive));
+
 		public static readonly StyledProperty<bool> IsBusyProperty =
 			AvaloniaProperty.Register<Dialog, bool>(nameof(IsBusy));
 
@@ -47,6 +50,9 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<bool> FullScreenEnabledProperty =
 			AvaloniaProperty.Register<Dialog, bool>(nameof(FullScreenEnabled));
 
+		public static readonly StyledProperty<bool> IncreasedWidthEnabledProperty =
+			AvaloniaProperty.Register<Dialog, bool>(nameof(IncreasedWidthEnabled));
+
 		public Dialog()
 		{
 			this.GetObservable(IsDialogOpenProperty).Subscribe(UpdateDelay);
@@ -56,7 +62,8 @@ namespace WalletWasabi.Fluent.Controls
 				{
 					var width = bounds.Width;
 					var height = bounds.Height;
-					FullScreenEnabled = width < 740 && height < 580;
+					IncreasedWidthEnabled = width < 740;
+					FullScreenEnabled = IncreasedWidthEnabled && height < 580;
 				});
 		}
 
@@ -64,6 +71,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(IsDialogOpenProperty);
 			set => SetValue(IsDialogOpenProperty, value);
+		}
+
+		public bool IsActive
+		{
+			get => GetValue(IsActiveProperty);
+			set => SetValue(IsActiveProperty, value);
 		}
 
 		public bool IsBusy
@@ -108,10 +121,16 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(MaxContentWidthProperty, value);
 		}
 
-		public bool FullScreenEnabled
+		private bool FullScreenEnabled
 		{
 			get => GetValue(FullScreenEnabledProperty);
 			set => SetValue(FullScreenEnabledProperty, value);
+		}
+
+		private bool IncreasedWidthEnabled
+		{
+			get => GetValue(IncreasedWidthEnabledProperty);
+			set => SetValue(IncreasedWidthEnabledProperty, value);
 		}
 
 		private CancellationTokenSource? CancelPointerPressedDelay { get; set; }
@@ -127,10 +146,7 @@ namespace WalletWasabi.Fluent.Controls
 				{
 					CancelPointerPressedDelay = new CancellationTokenSource();
 
-					Task.Delay(TimeSpan.FromSeconds(1), CancelPointerPressedDelay.Token).ContinueWith(_ =>
-					{
-						_canCancelOnPointerPressed = true;
-					});
+					Task.Delay(TimeSpan.FromSeconds(1), CancelPointerPressedDelay.Token).ContinueWith(_ => _canCancelOnPointerPressed = true);
 				}
 			}
 			catch (OperationCanceledException)
@@ -175,13 +191,14 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void CancelPointerPressed(object? sender, PointerPressedEventArgs e)
 		{
-			if (IsDialogOpen && EnableCancelOnPressed && !IsBusy && _dismissPanel is { } && _overlayPanel is { } && _canCancelOnPointerPressed)
+			if (IsDialogOpen && IsActive && EnableCancelOnPressed && !IsBusy && _dismissPanel is { } && _overlayPanel is { } && _canCancelOnPointerPressed)
 			{
 				var point = e.GetPosition(_dismissPanel);
 				var isPressedOnTitleBar = e.GetPosition(_overlayPanel).Y < 30;
 
 				if (!_dismissPanel.Bounds.Contains(point) && !isPressedOnTitleBar)
 				{
+					e.Handled = true;
 					Close();
 				}
 			}
@@ -189,8 +206,9 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void CancelKeyDown(object? sender, KeyEventArgs e)
 		{
-			if (e.Key == Key.Escape && EnableCancelOnEscape && !IsBusy)
+			if (e.Key == Key.Escape && EnableCancelOnEscape && !IsBusy && IsActive)
 			{
+				e.Handled = true;
 				Close();
 			}
 		}

@@ -30,8 +30,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var coin2 = WabiSabiFactory.CreateCoin(key2);
 
 			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1, coin2);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc).ConfigureAwait(false);
-			var (round, arenaClient, alices) = await CreateRoundWithTwoConfirmedConnectionsAsync(arena, key1, coin1, key2, coin2).ConfigureAwait(false);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
+			var (round, arenaClient, alices) = await CreateRoundWithTwoConfirmedConnectionsAsync(arena, key1, coin1, key2, coin2);
 			var (amountCredentials1, vsizeCredentials1) = (alices[0].IssuedAmountCredentials, alices[0].IssuedVsizeCredentials);
 			var (amountCredentials2, vsizeCredentials2) = (alices[1].IssuedAmountCredentials, alices[1].IssuedVsizeCredentials);
 
@@ -39,23 +39,21 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var bobClient = new BobClient(round.Id, arenaClient);
 			using var destKey1 = new Key();
 			await bobClient.RegisterOutputAsync(
-				coin1.Amount - round.FeeRate.GetFee(coin1.ScriptPubKey.EstimateInputVsize()),
 				destKey1.PubKey.WitHash.ScriptPubKey,
 				amountCredentials1.Take(ProtocolConstants.CredentialNumber),
 				vsizeCredentials1.Take(ProtocolConstants.CredentialNumber),
-				CancellationToken.None).ConfigureAwait(false);
+				CancellationToken.None);
 
 			using var destKey2 = new Key();
 			await bobClient.RegisterOutputAsync(
-				coin2.Amount - round.FeeRate.GetFee(coin2.ScriptPubKey.EstimateInputVsize()),
 				destKey2.PubKey.WitHash.ScriptPubKey,
 				amountCredentials2.Take(ProtocolConstants.CredentialNumber),
 				vsizeCredentials2.Take(ProtocolConstants.CredentialNumber),
-				CancellationToken.None).ConfigureAwait(false);
+				CancellationToken.None);
 
 			foreach (var alice in alices)
 			{
-				await alice.ReadyToSignAsync(CancellationToken.None).ConfigureAwait(false);
+				await alice.ReadyToSignAsync(CancellationToken.None);
 			}
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -82,8 +80,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var coin2 = WabiSabiFactory.CreateCoin(key2);
 
 			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1, coin2);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc).ConfigureAwait(false);
-			var (round, arenaClient, alices) = await CreateRoundWithTwoConfirmedConnectionsAsync(arena, key1, coin1, key2, coin2).ConfigureAwait(false);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
+			var (round, arenaClient, alices) = await CreateRoundWithTwoConfirmedConnectionsAsync(arena, key1, coin1, key2, coin2);
 			var (amountCredentials1, vsizeCredentials1) = (alices[0].IssuedAmountCredentials, alices[0].IssuedVsizeCredentials);
 			var (amountCredentials2, vsizeCredentials2) = (alices[1].IssuedAmountCredentials, alices[1].IssuedVsizeCredentials);
 
@@ -91,11 +89,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var bobClient = new BobClient(round.Id, arenaClient);
 			using var destKey = new Key();
 			await bobClient.RegisterOutputAsync(
-				coin1.Amount - round.FeeRate.GetFee(coin1.ScriptPubKey.EstimateInputVsize()),
 				destKey.PubKey.WitHash.ScriptPubKey,
 				amountCredentials1.Take(ProtocolConstants.CredentialNumber),
 				vsizeCredentials1.Take(ProtocolConstants.CredentialNumber),
-				CancellationToken.None).ConfigureAwait(false);
+				CancellationToken.None);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
@@ -123,7 +120,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 
 			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1, coin2);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
-			var (round, arenaClient, alices) = await CreateRoundWithTwoConfirmedConnectionsAsync(arena, key1, coin1, key2, coin2).ConfigureAwait(false);
+			var (round, arenaClient, alices) = await CreateRoundWithTwoConfirmedConnectionsAsync(arena, key1, coin1, key2, coin2);
 			var (amountCredentials1, vsizeCredentials1) = (alices[0].IssuedAmountCredentials, alices[0].IssuedVsizeCredentials);
 			var (amountCredentials2, vsizeCredentials2) = (alices[1].IssuedAmountCredentials, alices[1].IssuedVsizeCredentials);
 
@@ -132,24 +129,22 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			using var destKey1 = new Key();
 			using var destKey2 = new Key();
 			await bobClient.RegisterOutputAsync(
-				coin1.Amount - round.FeeRate.GetFee(coin1.ScriptPubKey.EstimateInputVsize()),
 				destKey1.PubKey.WitHash.ScriptPubKey,
 				amountCredentials1.Take(ProtocolConstants.CredentialNumber),
 				vsizeCredentials1.Take(ProtocolConstants.CredentialNumber),
-				CancellationToken.None).ConfigureAwait(false);
+				CancellationToken.None);
 
 			await bobClient.RegisterOutputAsync(
-				coin2.Amount - round.FeeRate.GetFee(coin2.ScriptPubKey.EstimateInputVsize()),
 				destKey2.PubKey.WitHash.ScriptPubKey,
 				amountCredentials2.Take(ProtocolConstants.CredentialNumber),
 				vsizeCredentials2.Take(ProtocolConstants.CredentialNumber),
-				CancellationToken.None).ConfigureAwait(false);
+				CancellationToken.None);
 
 			// Add another input. The input must be able to pay for itself, but
 			// the remaining amount after deducting the fees needs to be less
 			// than the minimum.
 			var txParams = round.Assert<ConstructionState>().Parameters;
-			var extraAlice = WabiSabiFactory.CreateAlice(txParams.FeeRate.GetFee(Constants.P2wpkhInputVirtualSize) + txParams.AllowedOutputAmounts.Min - new Money(1L));
+			var extraAlice = WabiSabiFactory.CreateAlice(txParams.FeeRate.GetFee(Constants.P2wpkhInputVirtualSize) + txParams.AllowedOutputAmounts.Min - new Money(1L), round);
 			round.Alices.Add(extraAlice);
 			round.CoinjoinState = round.Assert<ConstructionState>().AddInput(extraAlice.Coin);
 
@@ -178,7 +173,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 
 			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1, coin2);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
-			var (round, arenaClient, alices) = await CreateRoundWithTwoConfirmedConnectionsAsync(arena, key1, coin1, key2, coin2).ConfigureAwait(false);
+			var (round, arenaClient, alices) = await CreateRoundWithTwoConfirmedConnectionsAsync(arena, key1, coin1, key2, coin2);
 			var (amountCredentials1, vsizeCredentials1) = (alices[0].IssuedAmountCredentials, alices[0].IssuedVsizeCredentials);
 			var (amountCredentials2, vsizeCredentials2) = (alices[1].IssuedAmountCredentials, alices[1].IssuedVsizeCredentials);
 
@@ -186,11 +181,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var bobClient = new BobClient(round.Id, arenaClient);
 			using var destKey = new Key();
 			await bobClient.RegisterOutputAsync(
-				coin1.Amount - round.FeeRate.GetFee(coin1.ScriptPubKey.EstimateInputVsize()),
 				destKey.PubKey.WitHash.ScriptPubKey,
 				amountCredentials1.Take(ProtocolConstants.CredentialNumber),
 				vsizeCredentials1.Take(ProtocolConstants.CredentialNumber),
-				CancellationToken.None).ConfigureAwait(false);
+				CancellationToken.None);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.OutputRegistration, round.Phase);
@@ -205,6 +199,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 			var round = Assert.Single(arena.Rounds);
+			round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
 
 			// Register Alices.
 			var aliceClient1 = new AliceClient(round.Id, arenaClient, coin1, round.FeeRate, key1.GetBitcoinSecret(round.Network));
@@ -217,16 +212,19 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
 			// Confirm connections.
+			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), new ArenaRequestHandlerAdapter(arena));
 			await aliceClient1.ConfirmConnectionAsync(
 				TimeSpan.FromSeconds(1),
 				new long[] { coin1.EffectiveValue(round.FeeRate) },
 				new long[] { round.MaxVsizeAllocationPerAlice - coin1.ScriptPubKey.EstimateInputVsize() },
+				roundStateUpdater,
 				CancellationToken.None).ConfigureAwait(false);
 
 			await aliceClient2.ConfirmConnectionAsync(
 				TimeSpan.FromSeconds(1),
 				new long[] { coin2.EffectiveValue(round.FeeRate) },
 				new long[] { round.MaxVsizeAllocationPerAlice - coin2.ScriptPubKey.EstimateInputVsize() },
+				roundStateUpdater,
 				CancellationToken.None).ConfigureAwait(false);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
@@ -31,11 +32,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 		[AutoNotify] private IList<(string color, double percentShare)>? _testDataPoints;
 		[AutoNotify] private IList<DataLegend>? _testDataPointsLegend;
+		[AutoNotify] private bool _isPrivacyProtected;
+		[AutoNotify] private bool _isAutoCoinJoinEnabled;
 
-		public WalletPieChartTileViewModel(Wallet wallet, IObservable<Unit> balanceChanged)
+		public WalletPieChartTileViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
 		{
 			_balanceChanged = balanceChanged;
-			_wallet = wallet;
+			_wallet = walletVm.Wallet;
+
+			walletVm.Settings.WhenAnyValue(x => x.AutoCoinJoin)
+				.Subscribe(x => IsAutoCoinJoinEnabled = x);
+
+			this.WhenAnyValue(x => x.IsAutoCoinJoinEnabled)
+				.Subscribe(x => walletVm.Settings.AutoCoinJoin = x);
 		}
 
 		protected override void OnActivated(CompositeDisposable disposables)
@@ -53,12 +62,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		{
 			var privateThreshold = _wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
 
-			var privateCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold);
-			var normalCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold);
-			var totalCount = (double) _wallet.Coins.Count();
+			var privateAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
+			var normalAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold).TotalAmount();
 
-			var pcPrivate = privateCoins.Count() / totalCount;
-			var pcNormal = normalCoins.Count() / totalCount;
+			var privateDecimalAmount = privateAmount.ToDecimal(MoneyUnit.BTC);
+			var normalDecimalAmount = normalAmount.ToDecimal(MoneyUnit.BTC);
+			var totalDecimalAmount = privateDecimalAmount + normalDecimalAmount;
+
+ 			var pcPrivate = totalDecimalAmount == 0M ? 0d : (double)(privateDecimalAmount / totalDecimalAmount);
+			var pcNormal = 1 - pcPrivate;
 
 			TestDataPoints = new List<(string, double)>
 			{
@@ -68,8 +80,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			TestDataPointsLegend = new List<DataLegend>
 			{
-				new(privateCoins.TotalAmount(), "Private", "#78A827", pcPrivate),
-				new(normalCoins.TotalAmount(), "Not Private", "#D8DED7", pcNormal)
+				new(privateAmount, "Private", "#78A827", pcPrivate),
+				new(normalAmount, "Not Private", "#D8DED7", pcNormal)
 			};
 		}
 	}

@@ -1,9 +1,46 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Styles.Resources>
-    <Color x:Key="SystemErrorTextColor">#D85050</Color>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary>
+          <SolidColorBrush x:Key="RegionBrush"
+                           Color="{DynamicResource RegionColor}" />
+          <SolidColorBrush x:Key="SystemControlTransientBackgroundBrush"
+                           Color="{DynamicResource SystemChromeMediumLowColor}" />
+          <SolidColorBrush x:Key="SystemControlBackgroundChromeMediumLowBrush"
+                           Color="{DynamicResource SystemBaseLowColor}" />
+        </ResourceDictionary>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+
     <Color x:Key="NavBarTintColor">#134074</Color>
     <Color x:Key="AcrylicFallbackColor">#1F1F1F</Color>
+
+    <SolidColorBrush x:Key="InvisibleButtonBackgroundColor" Opacity="0" Color="{DynamicResource SystemBaseHighColor}" />
+    <SolidColorBrush x:Key="InvisibleButtonPointerOverBackgroundColor" Opacity="0.15"
+                     Color="{DynamicResource SystemBaseHighColor}" />
+    <SolidColorBrush x:Key="InvisibleButtonPressedBackgroundColor" Opacity="0.25"
+                     Color="{DynamicResource SystemBaseHighColor}" />
+
+    <SolidColorBrush x:Key="TextControlBackground" Color="{DynamicResource SystemChromeMediumColor}" />
+    <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="{DynamicResource SystemChromeMediumColor}" />
+    <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="{DynamicResource SystemChromeMediumColor}" />
+
+    <SolidColorBrush x:Key="PopupBackground" Color="{DynamicResource SystemBaseLowColor}" />
+    <SolidColorBrush x:Key="OptionButtonBackground" Color="{DynamicResource TileRegionColor}" />
+    <SolidColorBrush x:Key="OptionButtonBorderBrush" Opacity="0.5" Color="{DynamicResource SystemBaseHighColor}" />
+    <SolidColorBrush x:Key="SeparatorBackgroundBrush" Opacity="0.5" Color="{DynamicResource SystemBaseHighColor}" />
+    <SolidColorBrush x:Key="TagsBoxBorderBrush" Opacity="0.5" Color="{DynamicResource SystemBaseHighColor}" />
+    <SolidColorBrush x:Key="HeaderRegionColor" Color="{DynamicResource RegionColor}" />
+    <SolidColorBrush x:Key="DataGridRowSelectedBackgroundColor" Opacity="0.25"
+                     Color="{DynamicResource SystemBaseMediumLowColor}" />
+
+    <SolidColorBrush x:Key="ActionButtonForegroundColor" Color="White" />
+    <SolidColorBrush x:Key="ActionButtonBackgroundColor" Color="{DynamicResource SystemAccentColor}" />
+    <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Color="{DynamicResource SystemAccentColorDark1}" />
+    <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="{DynamicResource SystemAccentColorLight1}" />
+    <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="{DynamicResource SystemChromeDisabledLowColor}" />
 
     <SolidColorBrush x:Key="NavBarAccentColor">#97D234</SolidColorBrush>
     <SolidColorBrush x:Key="NavBarAccentColorPressed">#719B2A</SolidColorBrush>
@@ -45,16 +82,13 @@
     <x:String x:Key="LabelsWatermarkText">i.e. Alice, Bob, Wasabi Inc, Exchange</x:String>
 
     <StaticResource x:Key="NotificationCardInformationBackgroundBrush" ResourceKey="SystemAccentColor" />
+    <StaticResource x:Key="TextControlForeground" ResourceKey="SystemBaseHighColor" />
+    <StaticResource x:Key="TextForegroundColor" ResourceKey="SystemBaseHighColor" />
+    <StaticResource x:Key="DataGridRowSelectedUnfocusedBackgroundColor"
+                    ResourceKey="DataGridRowSelectedBackgroundColor" />
+    <StaticResource x:Key="NotificationCardBackgroundBrush" ResourceKey="TileRegionColor" />
 
     <BoxShadows x:Key="EmptyBoxShadow">0 0 0 0 #000000</BoxShadows>
-
-    <LinearGradientBrush x:Key="LogoWashoutOpacityMaskGradient" StartPoint="0%,100%" EndPoint="100%,00%">
-      <LinearGradientBrush.GradientStops>
-        <GradientStop Color="#4AFFFFFF" Offset="0.1" />
-        <GradientStop Color="#FFFFFFFF" Offset="1" />
-        <GradientStop Color="#4AFFFFFF" Offset="0.1" />
-      </LinearGradientBrush.GradientStops>
-    </LinearGradientBrush>
 
     <LinearGradientBrush x:Key="LogoGradientFixed" StartPoint="62%,31%" EndPoint="24%,81%">
       <LinearGradientBrush.GradientStops>

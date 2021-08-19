@@ -17,7 +17,7 @@ namespace WalletWasabi.Tor
 	/// <seealso href="https://2019.www.torproject.org/docs/tor-manual.html.en"/>
 	public class TorProcessManager : IAsyncDisposable
 	{
-		/// <summary>Task competion source returning a cancellation token which is canceled when Tor process is terminated.</summary>
+		/// <summary>Task completion source returning a cancellation token which is canceled when Tor process is terminated.</summary>
 		private volatile TaskCompletionSource<CancellationToken> _tcs = new();
 
 		public TorProcessManager(TorSettings settings) :
@@ -130,9 +130,9 @@ namespace WalletWasabi.Tor
 
 					await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
 				}
-				catch (OperationCanceledException ex)
+				catch (OperationCanceledException)
 				{
-					Logger.LogDebug("User canceled operation.", ex);
+					Logger.LogDebug("User canceled operation.");
 					setNewTcs = false;
 					break;
 				}

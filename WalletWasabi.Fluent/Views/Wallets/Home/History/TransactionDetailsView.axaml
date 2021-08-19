@@ -24,10 +24,11 @@
       <!-- Transaction ID -->
       <c:PreviewItem Icon="{StaticResource transaction_id}"
                      Text="Transaction ID"
-                     Content="{Binding TransactionId}"
-                     CopyParameter="{Binding TransactionId}"/>
+                     CopyParameter="{Binding TransactionId}">
+        <c:PrivacyContentControl Content="{Binding TransactionId}" NumberOfPrivacyChars="48" />
+      </c:PreviewItem>
 
-      <Separator />
+        <Separator />
 
       <!-- Status -->
       <c:PreviewItem Icon="{StaticResource status_regular}"
@@ -52,8 +53,9 @@
       <c:PreviewItem Icon="{StaticResource block_height}"
                      Text="Block height"
                      Content="{Binding BlockHeight}"
-                     CopyParameter="{Binding BlockHeight}" />
-      <Separator />
+                     CopyParameter="{Binding BlockHeight}"
+                     IsVisible="{Binding IsConfirmed}" />
+      <Separator IsVisible="{Binding IsConfirmed}" />
 
       <!-- Confirmations -->
       <c:PreviewItem Icon="{StaticResource copy_confirmed}"
@@ -67,9 +69,10 @@
       <c:PreviewItem Icon="{StaticResource entities_regular}"
                      Text="Labels"
                      CopyParameter="{Binding Labels}">
-        <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Labels}" />
+        <c:PrivacyContentControl NumberOfPrivacyChars="20">
+          <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Labels}" />
+        </c:PrivacyContentControl>
       </c:PreviewItem>
-
     </StackPanel>
   </c:ContentArea>
 </UserControl>

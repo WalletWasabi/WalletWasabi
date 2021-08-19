@@ -2,6 +2,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -127,6 +128,9 @@ namespace WalletWasabi.Blockchain.Keys
 
 		[JsonProperty(Order = 11, PropertyName = "PreferPsbtWorkflow")]
 		public bool PreferPsbtWorkflow { get; set; }
+
+		[JsonProperty(Order = 12, PropertyName = "AutoCoinJoin", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool AutoCoinJoin { get; set; }
 
 		private object BlockchainStateLock { get; }
 
@@ -417,7 +421,7 @@ namespace WalletWasabi.Blockchain.Keys
 		{
 			lock (HdPubKeyScriptBytesLock)
 			{
-				return HdPubKeyScriptBytes;
+				return HdPubKeyScriptBytes.ToImmutableArray();
 			}
 		}
 
