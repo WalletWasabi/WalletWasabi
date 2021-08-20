@@ -60,6 +60,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 			History = new HistoryViewModel(this, balanceChanged);
 
+			Settings = new WalletSettingsViewModel(this);
+
 			balanceChanged
 				.Subscribe(_ => IsWalletBalanceZero = wallet.Coins.TotalAmount() == Money.Zero)
 				.DisposeWith(Disposables);
@@ -76,7 +78,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 			Layouts = new ObservableCollection<TileLayoutViewModel>()
 			{
-				new("Small", "330,330,330,330,330", "150"),
+				new("Small", "330,330,330,330", "150"),
 				new("Normal", "330,330,330", "150,300"),
 				new("Wide", "330,330", "150,300,300")
 			};
@@ -93,31 +95,21 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				},
 				TilePresetIndex = LayoutIndex
 			};
-			RoundStatusTile = new RoundStatusTileViewModel(wallet)
-			{
-				TilePresets = new ObservableCollection<TilePresetViewModel>()
-				{
-					new(1, 0, 1, 1, TileSize.Medium),
-					new(1, 0, 1, 1, TileSize.Medium),
-					new(1, 0, 1, 1, TileSize.Medium)
-				},
-				TilePresetIndex = LayoutIndex
-			};
 			BtcPriceTile = new BtcPriceTileViewModel(wallet)
 			{
 				TilePresets = new ObservableCollection<TilePresetViewModel>()
 				{
 					new(2, 0, 1, 1, TileSize.Medium),
-					new(2, 0, 1, 1, TileSize.Medium),
+					new(1, 0, 1, 1, TileSize.Medium),
 					new(0, 1, 1, 1, TileSize.Large)
 				},
 				TilePresetIndex = LayoutIndex
 			};
-			WalletPieChart = new WalletPieChartTileViewModel(wallet, balanceChanged)
+			WalletPieChart = new WalletPieChartTileViewModel(this, balanceChanged)
 			{
 				TilePresets = new ObservableCollection<TilePresetViewModel>()
 				{
-					new(3, 0, 1, 1, TileSize.Medium),
+					new(1, 0, 1, 1, TileSize.Medium),
 					new(0, 1, 1, 1, TileSize.Large),
 					new(1, 1, 1, 1, TileSize.Large)
 				},
@@ -127,7 +119,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			{
 				TilePresets = new ObservableCollection<TilePresetViewModel>()
 				{
-					new(4, 0, 1, 1, TileSize.Medium),
+					new(3, 0, 1, 1, TileSize.Medium),
 					new(1, 1, 2, 1, TileSize.Wide),
 					new(0, 2, 2, 1, TileSize.Wide)
 				},
@@ -137,7 +129,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			_tiles = new List<TileViewModel>
 			{
 				BalanceTile,
-				RoundStatusTile,
 				BtcPriceTile,
 				WalletPieChart,
 				BalanceChartTile
@@ -190,12 +181,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				Navigate(NavigationTarget.DialogScreen).To(new WalletInfoViewModel(this));
 			});
 
-			WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletSettingsViewModel(this)));
+			WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(Settings));
 		}
+
+		public WalletSettingsViewModel Settings { get; }
 
 		public ICommand SendCommand { get; }
 
-		public ICommand BroadcastPsbtCommand { get; set; }
+		public ICommand? BroadcastPsbtCommand { get; set; }
 
 		public ICommand ReceiveCommand { get; }
 
@@ -208,8 +201,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		public HistoryViewModel History { get; }
 
 		public WalletBalanceTileViewModel BalanceTile { get; }
-
-		public RoundStatusTileViewModel RoundStatusTile { get; }
 
 		public BtcPriceTileViewModel BtcPriceTile { get; }
 
