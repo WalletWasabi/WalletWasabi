@@ -39,7 +39,15 @@ namespace WalletWasabi.Tor
 		private TorHttpClient HttpClient { get; }
 		private TorProcessManager TorProcessManager { get; }
 
-		public async Task StartBootstrapMonitorAsync(CancellationToken appShutdownToken)
+		/// <inheritdoc/>
+		public override Task StartAsync(CancellationToken cancellationToken)
+		{
+			_ = StartBootstrapMonitorAsync(cancellationToken);
+
+			return base.StartAsync(cancellationToken);
+		}
+
+		private async Task StartBootstrapMonitorAsync(CancellationToken appShutdownToken)
 		{
 			using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(appShutdownToken, LoopCts.Token);
 
@@ -167,10 +175,11 @@ namespace WalletWasabi.Tor
 		}
 
 		/// <inheritdoc/>
-		public override void Dispose()
+		public override Task StopAsync(CancellationToken cancellationToken)
 		{
 			LoopCts.Cancel();
-			base.Dispose();
+
+			return base.StopAsync(cancellationToken);
 		}
 	}
 }
