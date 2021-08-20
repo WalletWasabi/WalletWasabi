@@ -20,8 +20,6 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class CoinJoinManager : BackgroundService
 	{
-		private const int MaxInputsRegistrableByWallet = 7; // how many
-
 		public CoinJoinManager(WalletManager walletManager, RoundStateUpdater roundStatusUpdater, HttpClientFactory backendHttpClientFactory, ServiceConfiguration serviceConfiguration)
 		{
 			WalletManager = walletManager;
@@ -39,31 +37,19 @@ namespace WalletWasabi.WabiSabi.Client
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
 			var trackedWallets = new Dictionary<string, WalletTrackingData>();
-			Task<RoundState> roundUpdateTask = RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, stoppingToken);
-			var currentRoundState = await roundUpdateTask.ConfigureAwait(false);
 
 			while (!stoppingToken.IsCancellationRequested)
 			{
-				var delayTask = Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
-				var completedTask = await Task.WhenAny(
-					roundUpdateTask,
-					delayTask
-				).ConfigureAwait(false);
-
-				if (completedTask == roundUpdateTask)
-				{
-					currentRoundState = await roundUpdateTask.ConfigureAwait(false);
-					roundUpdateTask = RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, stoppingToken);
-				}
-				Logger.LogInfo($"Current round: {currentRoundState.Id} - ({currentRoundState.Phase} ({currentRoundState.BlameOf} )");
+				await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
 				var mixableWallets = GetMixableWallets();
 				var openedWallets = mixableWallets.Where(x => !trackedWallets.ContainsKey(x.Key));
 				var closedWallets = trackedWallets.Where(x => !mixableWallets.ContainsKey(x.Key));
 
 				foreach (var openedWallet in openedWallets.Select(x => x.Value))
 				{
-					var coins = SelectCoinsForWallet(openedWallet, currentRoundState);
-					var coinjoinClient = new CoinJoinClient(ArenaRequestHandler, coins, openedWallet.Kitchen, openedWallet.KeyManager, RoundStatusUpdater);
+					var coinCandidates = openedWallet.Coins.Available().Confirmed().Where(x => x.HdPubKey.AnonymitySet < ServiceConfiguration.GetMixUntilAnonymitySetValue());
+
+					var coinjoinClient = new CoinJoinClient(ArenaRequestHandler, coinCandidates, openedWallet.Kitchen, openedWallet.KeyManager, RoundStatusUpdater);
 					var cts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
 					var coinjoinTask = coinjoinClient.StartCoinJoinAsync(cts.Token);
 
@@ -93,6 +79,11 @@ namespace WalletWasabi.WabiSabi.Client
 					}
 					else if (finishedCoinJoinTask.IsFaulted)
 					{
+						if (finishedCoinJoinTask.Exception?.InnerException is InvalidOperationException ioe)
+						{
+							await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+							continue;
+						}
 						Logger.LogError(finishedCoinJoinTask.Exception!);
 					}
 					else if (finishedCoinJoinTask.IsCanceled)
@@ -102,16 +93,6 @@ namespace WalletWasabi.WabiSabi.Client
 				}
 			}
 		}
-
-		private ImmutableList<SmartCoin> SelectCoinsForWallet(Wallet wallet, RoundState roundState) =>
-			wallet.Coins.Available().Confirmed()
-				.Where(x => x.HdPubKey.AnonymitySet < ServiceConfiguration.GetMixUntilAnonymitySetValue())
-				.Where(x => roundState.CoinjoinState.Parameters.AllowedInputAmounts.Contains(x.Amount) )
-				.Where(x => roundState.CoinjoinState.Parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t)))
-				.OrderBy(x => x.HdPubKey.AnonymitySet)
-				.ThenByDescending(x => x.Amount)
-				.Take(MaxInputsRegistrableByWallet)
-				.ToImmutableList();
 
 		private ImmutableDictionary<string, Wallet> GetMixableWallets() =>
 			WalletManager.GetWallets()

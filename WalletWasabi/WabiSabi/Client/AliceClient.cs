@@ -31,7 +31,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private ArenaClient ArenaClient { get; }
 		public Coin Coin { get; }
 		private FeeRate FeeRate { get; }
-		private BitcoinSecret BitcoinSecret { get; }
+		public BitcoinSecret BitcoinSecret { get; }
 		public IEnumerable<Credential> IssuedAmountCredentials { get; private set; }
 		public IEnumerable<Credential> IssuedVsizeCredentials { get; private set; }
 
