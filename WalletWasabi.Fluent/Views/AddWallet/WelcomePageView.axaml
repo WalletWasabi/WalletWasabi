@@ -7,7 +7,7 @@
              x:Class="WalletWasabi.Fluent.Views.AddWallet.WelcomePageView">
   <UserControl.Styles>
     <Style Selector="Button.action /template/ ContentPresenter">
-      <Setter Property="Background" Value="#45C2BA" />
+      <Setter Property="Background" Value="{DynamicResource AccentButtonBackgroundPointerOver}" />
     </Style>
   </UserControl.Styles>
   <controls:ContentArea
@@ -18,12 +18,10 @@
     <StackPanel Spacing="32">
       <StackPanel>
         <DockPanel>
-          <StackPanel Spacing="36" DockPanel.Dock="Left">
-            <Image Height="62" HorizontalAlignment="Left">
-              <Image.Source>
-                <DrawingImage Drawing="{StaticResource placeholder_wasabi_logo}" />
-              </Image.Source>
-            </Image>
+          <StackPanel Spacing="20" DockPanel.Dock="Left">
+            <Viewbox Height="48" HorizontalAlignment="Left">
+              <ContentControl Template="{DynamicResource wasabi_logo_fixed}" />
+            </Viewbox>
 
             <TextBlock FontWeight="600" HorizontalAlignment="Left" FontSize="28" Text="Welcome to Wasabi Wallet"
                        TextWrapping="Wrap" />
@@ -53,7 +51,7 @@
       <StackPanel Spacing="30" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0 32 0 0">
         <StackPanel.Styles>
           <Style Selector="PathIcon">
-            <Setter Property="Foreground" Value="#45C2BA" />
+            <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
             <Setter Property="Height" Value="18" />
           </Style>
           <Style Selector="StackPanel">
