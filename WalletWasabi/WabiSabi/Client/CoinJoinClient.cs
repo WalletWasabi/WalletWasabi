@@ -136,7 +136,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private List<AliceClient> CreateAliceClients(RoundState roundState)
 		{
 			List<AliceClient> aliceClients = new();
-			var coins = SelectCoinsForRound(Coins, roundState).Select(x => x.Coin);
+			var coins = SelectCoinsForRound(Coins, roundState.CoinjoinState.Parameters).Select(x => x.Coin);
 			foreach (var coin in coins)
 			{
 				var aliceArenaClient = new ArenaClient(
@@ -261,11 +261,13 @@ namespace WalletWasabi.WabiSabi.Client
 			await Task.WhenAll(readyRequests).ConfigureAwait(false);
 		}
 
-		private ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, RoundState roundState) =>
+		private ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, MultipartyTransactionParameters parameters) =>
 			coins
-				.Where(x => roundState.CoinjoinState.Parameters.AllowedInputAmounts.Contains(x.Amount) )
-				.Where(x => roundState.CoinjoinState.Parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t)))
-				.OrderBy(x => x.HdPubKey.AnonymitySet)
+				.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount)) // Only coin with amount in the allowed range
+				.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t))) // Only coins with allowed script types
+				.GroupBy(x => x.TransactionId) // Only one coin from the same transaction (do not consolidate same transaction outputs)
+				.Select(x => x.OrderByDescending(y => y.Amount).First()) // In case of coins from same tx then take the biggest one
+				.OrderBy(x => x.HdPubKey.AnonymitySet) // Less private coins should be the first ones
 				.ThenByDescending(x => x.Amount)
 				.Take(MaxInputsRegistrableByWallet)
 				.ToImmutableList();
