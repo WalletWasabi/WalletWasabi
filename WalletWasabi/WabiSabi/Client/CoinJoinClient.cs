@@ -55,7 +55,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 			for (var tries = 0; tries < tryLimit; tries++)
 			{
-				if (await StartRoundAsync(currentRoundState, cancellationToken))
+				if (await StartRoundAsync(currentRoundState, cancellationToken).ConfigureAwait(false))
 				{
 					return true;
 				}
