@@ -32,7 +32,6 @@ namespace WalletWasabi.WabiSabi.Client
 		public IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
 		public RoundStateUpdater RoundStatusUpdater { get; }
 		public ServiceConfiguration ServiceConfiguration { get; }
-		//public HttpClientFactory BackendHttpClientFactory { get; }
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
@@ -81,7 +80,7 @@ namespace WalletWasabi.WabiSabi.Client
 					{
 						if (finishedCoinJoinTask.Exception?.InnerException is InvalidOperationException ioe)
 						{
-							await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+							await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken).ConfigureAwait(false);
 							continue;
 						}
 						Logger.LogError(finishedCoinJoinTask.Exception!);
@@ -102,6 +101,6 @@ namespace WalletWasabi.WabiSabi.Client
 				.Where(x => x.Kitchen.HasIngredients)
 				.ToImmutableDictionary(x => x.WalletName, x => x);
 
-		record WalletTrackingData(Wallet Wallet, Task<bool> CoinJoinTask, CancellationTokenSource CancellationTokenSource);
+		private record WalletTrackingData(Wallet Wallet, Task<bool> CoinJoinTask, CancellationTokenSource CancellationTokenSource);
 	}
 }

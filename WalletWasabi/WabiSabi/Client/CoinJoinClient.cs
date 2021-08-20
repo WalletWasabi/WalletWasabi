@@ -24,6 +24,8 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class CoinJoinClient
 	{
+		private const int MaxInputsRegistrableByWallet = 7; // how many
+
 		public CoinJoinClient(
 			IWabiSabiApiRequestHandler arenaRequestHandler,
 			IEnumerable<SmartCoin> coins,
@@ -46,12 +48,9 @@ namespace WalletWasabi.WabiSabi.Client
 		public KeyManager Keymanager { get; }
 		private RoundStateUpdater RoundStatusUpdater { get; }
 
-		private const int MaxInputsRegistrableByWallet = 7; // how many
-
 		public async Task<bool> StartCoinJoinAsync(CancellationToken cancellationToken)
 		{
 			var currentRoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cancellationToken).ConfigureAwait(false);
-
 
 			// This should be roughly log(#inputs), it could be set slightly
 			// higher if more inputs are observed but that involves trusting the
