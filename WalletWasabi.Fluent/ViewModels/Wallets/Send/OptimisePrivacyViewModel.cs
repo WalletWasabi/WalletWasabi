@@ -15,7 +15,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
-	[NavigationMetaData(Title = "Optimise your privacy")]
+	[NavigationMetaData(Title = "Change Payment Amount to Optimise your Privacy")]
 	public partial class OptimisePrivacyViewModel : RoutableViewModel
 	{
 		private readonly TransactionInfo _transactionInfo;
