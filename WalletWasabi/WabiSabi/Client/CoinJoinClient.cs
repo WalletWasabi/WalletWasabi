@@ -1,7 +1,6 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +10,6 @@ using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
-using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.Decomposition;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
@@ -80,7 +78,7 @@ namespace WalletWasabi.WabiSabi.Client
 			// Register coins.
 			aliceClients = await RegisterCoinsAsync(aliceClients, cancellationToken).ConfigureAwait(false);
 
-			if (aliceClients.Length == 0)
+			if (!aliceClients.Any())
 			{
 				throw new InvalidOperationException($"Round ({roundState.Id}): Failed to register any coins.");
 			}
@@ -128,9 +126,9 @@ namespace WalletWasabi.WabiSabi.Client
 			return finalRoundState.WasTransactionBroadcast;
 		}
 
-		private ImmutableArray<AliceClient> CreateAliceClients(IEnumerable<Coin> coins, RoundState roundState)
+		private IEnumerable<AliceClient> CreateAliceClients(IEnumerable<Coin> coins, RoundState roundState)
 		{
-			var aliceClients = ImmutableArray.CreateBuilder<AliceClient>();
+			List<AliceClient> aliceClients = new();
 			foreach (var coin in coins)
 			{
 				var aliceArenaClient = new ArenaClient(
@@ -142,14 +140,13 @@ namespace WalletWasabi.WabiSabi.Client
 				var secret = hdKey.PrivateKey.GetBitcoinSecret(Keymanager.GetNetwork());
 				aliceClients.Add(new AliceClient(roundState.Id, aliceArenaClient, coin, roundState.FeeRate, secret));
 			}
-			return aliceClients.ToImmutable();
+			return aliceClients;
 		}
 
-		private async Task<ImmutableArray<AliceClient>> RegisterCoinsAsync(ImmutableArray<AliceClient> aliceClients, CancellationToken cancellationToken)
+		private async Task<IEnumerable<AliceClient>> RegisterCoinsAsync(IEnumerable<AliceClient> aliceClients, CancellationToken cancellationToken)
 		{
-			var successfulAlices = ImmutableArray.CreateBuilder<AliceClient>();
-
-			List<AliceClient> shuffledAlices = new (aliceClients);
+			List<AliceClient> successfulAlices = new();
+			List<AliceClient> shuffledAlices = new(aliceClients);
 			shuffledAlices.Shuffle();
 
 			foreach (var aliceClient in shuffledAlices)
@@ -165,7 +162,7 @@ namespace WalletWasabi.WabiSabi.Client
 				}
 			}
 
-			return successfulAlices.ToImmutable();
+			return successfulAlices;
 		}
 
 		private static IEnumerable<Money> DecomposeAmounts(IEnumerable<Coin> coins, FeeRate feeRate, Money minimumOutputAmount)
