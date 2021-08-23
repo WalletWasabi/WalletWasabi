@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
@@ -31,11 +32,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 		[AutoNotify] private IList<(string color, double percentShare)>? _testDataPoints;
 		[AutoNotify] private IList<DataLegend>? _testDataPointsLegend;
+		[AutoNotify] private bool _isPrivacyProtected;
+		[AutoNotify] private bool _isAutoCoinJoinEnabled;
 
-		public WalletPieChartTileViewModel(Wallet wallet, IObservable<Unit> balanceChanged)
+		public WalletPieChartTileViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
 		{
 			_balanceChanged = balanceChanged;
-			_wallet = wallet;
+			_wallet = walletVm.Wallet;
+
+			walletVm.Settings.WhenAnyValue(x => x.AutoCoinJoin)
+				.Subscribe(x => IsAutoCoinJoinEnabled = x);
+
+			this.WhenAnyValue(x => x.IsAutoCoinJoinEnabled)
+				.Subscribe(x => walletVm.Settings.AutoCoinJoin = x);
 		}
 
 		protected override void OnActivated(CompositeDisposable disposables)

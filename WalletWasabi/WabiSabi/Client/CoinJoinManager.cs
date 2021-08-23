@@ -46,11 +46,10 @@ namespace WalletWasabi.WabiSabi.Client
 
 				foreach (var openedWallet in openedWallets.Select(x => x.Value))
 				{
-					var coinCandidates = openedWallet.Coins.Available().Confirmed().Where(x => x.HdPubKey.AnonymitySet < ServiceConfiguration.GetMixUntilAnonymitySetValue());
-
-					var coinjoinClient = new CoinJoinClient(ArenaRequestHandler, coinCandidates, openedWallet.Kitchen, openedWallet.KeyManager, RoundStatusUpdater);
+					var coinjoinClient = new CoinJoinClient(ArenaRequestHandler, openedWallet.Kitchen, openedWallet.KeyManager, RoundStatusUpdater);
 					var cts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
-					var coinjoinTask = coinjoinClient.StartCoinJoinAsync(cts.Token);
+					var coinCandidates = openedWallet.Coins.Available().Confirmed().Where(x => x.HdPubKey.AnonymitySet < ServiceConfiguration.GetMixUntilAnonymitySetValue());
+					var coinjoinTask = coinjoinClient.StartCoinJoinAsync(coinCandidates, cts.Token);
 
 					trackedWallets.Add(openedWallet.WalletName, new WalletTrackingData(openedWallet, coinjoinTask, cts));
 				}
