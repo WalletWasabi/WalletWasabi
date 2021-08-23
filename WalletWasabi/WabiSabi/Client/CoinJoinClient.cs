@@ -149,7 +149,6 @@ namespace WalletWasabi.WabiSabi.Client
 			return new AliceClient(roundState.Id, aliceArenaClient, coin, roundState.FeeRate, secret);
 		}
 
-
 		private async Task<ImmutableArray<AliceClient>> RegisterCoinsAsync(
 			IEnumerable<(SmartCoin SmartCoin, AliceClient AliceClient)> aliceClients, CancellationToken cancellationToken)
 		{
@@ -200,7 +199,6 @@ namespace WalletWasabi.WabiSabi.Client
 				.Select(x => x.Result!)
 				.ToImmutableArray();
 		}
-
 
 		private static IEnumerable<Money> DecomposeAmounts(IEnumerable<Coin> coins, FeeRate feeRate, Money minimumOutputAmount)
 		{
@@ -261,8 +259,8 @@ namespace WalletWasabi.WabiSabi.Client
 			coins
 				.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount)) // Only coin with amount in the allowed range
 				.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t))) // Only coins with allowed script types
-				//.GroupBy(x => x.TransactionId) // Only one coin from the same transaction (do not consolidate same transaction outputs)
-				//.Select(x => x.OrderByDescending(y => y.Amount).First()) // In case of coins from same tx then take the biggest one
+				// .GroupBy(x => x.TransactionId) // Only one coin from the same transaction (do not consolidate same transaction outputs)
+				// .Select(x => x.OrderByDescending(y => y.Amount).First()) // In case of coins from same tx then take the biggest one
 				.OrderBy(x => x.HdPubKey.AnonymitySet) // Less private coins should be the first ones
 				.ThenByDescending(x => x.Amount)
 				.Take(MaxInputsRegistrableByWallet)
