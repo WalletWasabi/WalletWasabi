@@ -47,7 +47,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var rnd = new Random(seed);
 			double NextNotTooSmall() => 0.00001 + (rnd.NextDouble() * 0.99999);
 			var sampling = Enumerable
-				.Range(0, numberOfCoins-1)
+				.Range(0, numberOfCoins - 1)
 				.Select(_ => NextNotTooSmall())
 				.Prepend(0)
 				.Prepend(1)
@@ -80,10 +80,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var kitchen = new Kitchen();
 			kitchen.Cook("");
 
-			var coinJoinClient = new CoinJoinClient(ApiClient, Coins, kitchen, KeyManager, roundStateUpdater);
+			var coinJoinClient = new CoinJoinClient(ApiClient, kitchen, KeyManager, roundStateUpdater);
 
 			// Run the coinjoin client task.
-			await coinJoinClient.StartCoinJoinAsync(cancellationToken).ConfigureAwait(false);
+			await coinJoinClient.StartCoinJoinAsync(Coins, cancellationToken).ConfigureAwait(false);
 
 			await roundStateUpdater.StopAsync(cancellationToken).ConfigureAwait(false);
 		}

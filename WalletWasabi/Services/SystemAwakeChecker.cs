@@ -55,6 +55,10 @@ namespace WalletWasabi.Services
 
 				taskFactory = () => Task.FromResult<IPowerSavingInhibitorTask>(LinuxInhibitorTask.Create(InhibitWhat.Idle, Timeout, Reason, gui));
 			}
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				taskFactory = () => Task.FromResult<IPowerSavingInhibitorTask>(WindowsPowerAvailabilityTask.Create(Reason));
+			}
 
 			return new SystemAwakeChecker(walletManager, taskFactory);
 		}
@@ -65,7 +69,7 @@ namespace WalletWasabi.Services
 
 			if (WalletManager.AnyCoinJoinInProgress())
 			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				{
 					if (task is not null)
 					{

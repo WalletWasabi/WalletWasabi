@@ -10,7 +10,6 @@ using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
-using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.Decomposition;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
@@ -22,7 +21,6 @@ namespace WalletWasabi.WabiSabi.Client
 	{
 		public CoinJoinClient(
 			IWabiSabiApiRequestHandler arenaRequestHandler,
-			IEnumerable<Coin> coins,
 			Kitchen kitchen,
 			KeyManager keymanager,
 			RoundStateUpdater roundStatusUpdater)
@@ -32,18 +30,16 @@ namespace WalletWasabi.WabiSabi.Client
 			Keymanager = keymanager;
 			RoundStatusUpdater = roundStatusUpdater;
 			SecureRandom = new SecureRandom();
-			Coins = coins;
 		}
 
-		private IEnumerable<Coin> Coins { get; set; }
-		private SecureRandom SecureRandom { get; } = new SecureRandom();
+		private SecureRandom SecureRandom { get; }
 		private Random Random { get; } = new();
 		public IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
 		public Kitchen Kitchen { get; }
 		public KeyManager Keymanager { get; }
 		private RoundStateUpdater RoundStatusUpdater { get; }
 
-		public async Task<bool> StartCoinJoinAsync(CancellationToken cancellationToken)
+		public async Task<bool> StartCoinJoinAsync(IEnumerable<Coin> coins, CancellationToken cancellationToken)
 		{
 			var currentRoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cancellationToken).ConfigureAwait(false);
 
@@ -56,7 +52,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 			for (var tries = 0; tries < tryLimit; tries++)
 			{
-				if (await StartRoundAsync(currentRoundState, cancellationToken))
+				if (await StartRoundAsync(coins, currentRoundState, cancellationToken).ConfigureAwait(false))
 				{
 					return true;
 				}
@@ -73,24 +69,29 @@ namespace WalletWasabi.WabiSabi.Client
 		/// <summary>Attempt to participate in a specified dround.</summary>
 		/// <param name="roundState">Defines the round parameter and state information to use.</param>
 		/// <returns>Whether or not the round resulted in a successful transaction.</returns>
-		public async Task<bool> StartRoundAsync(RoundState roundState, CancellationToken cancellationToken)
+		public async Task<bool> StartRoundAsync(IEnumerable<Coin> coins, RoundState roundState, CancellationToken cancellationToken)
 		{
-			var constructionState = roundState.Assert<ConstructionState>();
+			_ = roundState.Assert<ConstructionState>();
+
+			var aliceClients = CreateAliceClients(coins, roundState);
+
+			// Register coins.
+			aliceClients = await RegisterCoinsAsync(aliceClients, cancellationToken).ConfigureAwait(false);
+
+			if (!aliceClients.Any())
+			{
+				throw new InvalidOperationException($"Round ({roundState.Id}): Failed to register any coins.");
+			}
 
 			// Calculate outputs values
-			var outputValues = DecomposeAmounts(roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min);
+			var outputValues = DecomposeAmounts(aliceClients.Select(a => a.Coin), roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min);
 
 			// Get all locked internal keys we have and assert we have enough.
 			Keymanager.AssertLockedInternalKeysIndexed(howMany: outputValues.Count());
 			var allLockedInternalKeys = Keymanager.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked);
 			var outputTxOuts = outputValues.Zip(allLockedInternalKeys, (amount, hdPubKey) => new TxOut(amount, hdPubKey.P2wpkhScript));
-
-			List<AliceClient> aliceClients = CreateAliceClients(roundState);
 			DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(aliceClients.Select(a => a.Coin), outputTxOuts, roundState.FeeRate, roundState.MaxVsizeAllocationPerAlice);
 			DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
-
-			// Register coins.
-			await RegisterCoinsAsync(aliceClients, cancellationToken).ConfigureAwait(false);
 
 			// Confirm coins.
 			await scheduler.StartConfirmConnectionsAsync(aliceClients, dependencyGraph, roundState.ConnectionConfirmationTimeout, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
@@ -125,10 +126,10 @@ namespace WalletWasabi.WabiSabi.Client
 			return finalRoundState.WasTransactionBroadcast;
 		}
 
-		private List<AliceClient> CreateAliceClients(RoundState roundState)
+		private IEnumerable<AliceClient> CreateAliceClients(IEnumerable<Coin> coins, RoundState roundState)
 		{
 			List<AliceClient> aliceClients = new();
-			foreach (var coin in Coins)
+			foreach (var coin in coins)
 			{
 				var aliceArenaClient = new ArenaClient(
 					roundState.CreateAmountCredentialClient(SecureRandom),
@@ -142,21 +143,32 @@ namespace WalletWasabi.WabiSabi.Client
 			return aliceClients;
 		}
 
-		private async Task RegisterCoinsAsync(IEnumerable<AliceClient> aliceClients, CancellationToken cancellationToken)
+		private async Task<IEnumerable<AliceClient>> RegisterCoinsAsync(IEnumerable<AliceClient> aliceClients, CancellationToken cancellationToken)
 		{
-			async Task RegisterInputTask(AliceClient aliceClient)
+			List<AliceClient> successfulAlices = new();
+			List<AliceClient> shuffledAlices = new(aliceClients);
+			shuffledAlices.Shuffle();
+
+			foreach (var aliceClient in shuffledAlices)
 			{
-				await aliceClient.RegisterInputAsync(cancellationToken).ConfigureAwait(false);
+				try
+				{
+					await aliceClient.RegisterInputAsync(cancellationToken).ConfigureAwait(false);
+					successfulAlices.Add(aliceClient);
+				}
+				catch (Exception e)
+				{
+					Logger.LogWarning($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): {nameof(AliceClient.RegisterInputAsync)} failed, reason:'{e}'.");
+				}
 			}
 
-			var registerRequests = aliceClients.Select(RegisterInputTask);
-			await Task.WhenAll(registerRequests).ConfigureAwait(false);
+			return successfulAlices;
 		}
 
-		private IEnumerable<Money> DecomposeAmounts(FeeRate feeRate, Money minimumOutputAmount)
+		private static IEnumerable<Money> DecomposeAmounts(IEnumerable<Coin> coins, FeeRate feeRate, Money minimumOutputAmount)
 		{
 			GreedyDecomposer greedyDecomposer = new(StandardDenomination.Values.Where(x => x >= minimumOutputAmount));
-			var sum = Coins.Sum(c => c.EffectiveValue(feeRate));
+			var sum = coins.Sum(c => c.EffectiveValue(feeRate));
 			return greedyDecomposer.Decompose(sum, feeRate.GetFee(31));
 		}
 

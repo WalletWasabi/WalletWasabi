@@ -31,7 +31,7 @@
       </Style>
       <Style Selector="DataGridRow">
         <Setter Property="Focusable" Value="False" />
-        <Setter Property="Height" Value="36" />
+        <Setter Property="Height" Value="37.5" />
         <Setter Property="Template">
           <ControlTemplate>
             <DockPanel LastChildFill="True">
@@ -184,8 +184,8 @@
                               SortMemberPath="Label">
         <DataGridTemplateColumn.CellTemplate>
           <DataTemplate>
-            <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15" Classes="monoSpacedPrivacyReplacement">  
-              <DockPanel Margin="0,4,0,0" LastChildFill="False" x:DataType="history:HistoryItemViewModel">
+            <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15" Classes="monoSpacedPrivacyReplacement">
+              <DockPanel LastChildFill="False" x:DataType="history:HistoryItemViewModel">
                 <c:TagsBox Padding="0"
                           Margin="0"
                           MinWidth="0"
@@ -198,7 +198,8 @@
                 <Button Classes="labelFlyout"
                         DockPanel.Dock="Left"
                         IsVisible="{Binding !!FilteredLabel.Count}"
-                        Content="...">
+                        Content="..."
+                        Margin="0 4 0 0">
                   <Button.Flyout>
                     <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="TransientWithDismissOnPointerMoveAway">
                       <c:TagsBox IsReadOnly="True"
