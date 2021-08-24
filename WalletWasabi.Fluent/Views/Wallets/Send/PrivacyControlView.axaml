@@ -12,7 +12,8 @@
                  Caption="Parts of your wallet are known to certain entities. Select the entities you can tolerate leaking information about this transaction:"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="Continue"
-                 IsBusy="{Binding IsBusy}">
+                 IsBusy="{Binding IsBusy}"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel>
 
       <!-- Warning messages -->
@@ -27,7 +28,7 @@
         </Panel.Styles>
 
         <c:InfoMessage Foreground="{DynamicResource WarningMessageForeground}"
-                       IsVisible="{Binding !EnoughSelected}" >
+                       IsVisible="{Binding !EnoughSelected}">
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Insufficient funds selected. Select at least another " />
             <TextBlock Text="{Binding StillNeeded}" />
@@ -42,7 +43,7 @@
           <c:InfoMessage.IsVisible>
             <MultiBinding Converter="{x:Static BoolConverters.And}">
               <Binding Path="EnoughSelected" />
-              <Binding Path="IsWarningOpen" Converter="{x:Static BoolConverters.Not}"/>
+              <Binding Path="IsWarningOpen" Converter="{x:Static BoolConverters.Not}" />
             </MultiBinding>
           </c:InfoMessage.IsVisible>
         </c:InfoMessage>
