@@ -30,7 +30,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public int OutputSize { get; }
 		private ImmutableArray<Money> StandardDenominationsPlusFee { get; }
 
-		public IEnumerable<Money> Decompose(ImmutableArray<Coin> myInputCoins, ImmutableArray<Coin> allInputCoins)
+		public IEnumerable<Money> Decompose(IEnumerable<Coin> myInputCoins, IEnumerable<Coin> allInputCoins)
 		{
 			var histogram = GetDenominationProbabilities(allInputCoins);
 
@@ -67,7 +67,7 @@ namespace WalletWasabi.WabiSabi.Client
 			return outputAmounts.Select(x => x - OutputFee);
 		}
 
-		private Dictionary<Money, uint> GetDenominationProbabilities(ImmutableArray<Coin> allInputCoins)
+		private Dictionary<Money, uint> GetDenominationProbabilities(IEnumerable<Coin> allInputCoins)
 		{
 			var secondLargestInput = allInputCoins.OrderByDescending(x => x.Amount).Skip(1).FirstOrDefault();
 			IEnumerable<Money> demonsForBreakDown = StandardDenominationsPlusFee.Where(x => secondLargestInput is null || x <= secondLargestInput.EffectiveValue(FeeRate));
