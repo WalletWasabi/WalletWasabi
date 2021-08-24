@@ -39,10 +39,12 @@ namespace WalletWasabi.Tor
 		private TorHttpClient HttpClient { get; }
 		private TorProcessManager TorProcessManager { get; }
 
+		private Task? BootstrapTask { get; set; }
+
 		/// <inheritdoc/>
 		public override Task StartAsync(CancellationToken cancellationToken)
 		{
-			_ = StartBootstrapMonitorAsync(cancellationToken);
+			BootstrapTask = StartBootstrapMonitorAsync(cancellationToken);
 
 			return base.StartAsync(cancellationToken);
 		}
@@ -175,11 +177,17 @@ namespace WalletWasabi.Tor
 		}
 
 		/// <inheritdoc/>
-		public override Task StopAsync(CancellationToken cancellationToken)
+		public override async Task StopAsync(CancellationToken cancellationToken)
 		{
 			LoopCts.Cancel();
 
-			return base.StopAsync(cancellationToken);
+			if (BootstrapTask is not null)
+			{
+				Logger.LogDebug("Wait until Tor bootstrap monitor finishes.");
+				await BootstrapTask.ConfigureAwait(false);
+			}
+
+			await base.StopAsync(cancellationToken).ConfigureAwait(false);
 		}
 	}
 }
