@@ -11,6 +11,9 @@ using NBitcoin;
 using Nito.AsyncEx;
 using Avalonia.Platform;
 using WalletWasabi.Helpers;
+using System.Diagnostics;
+using WalletWasabi.Microservices;
+using System.Threading;
 
 namespace WalletWasabi.Fluent.Models
 {
@@ -78,8 +81,7 @@ namespace WalletWasabi.Fluent.Models
 						Logger.LogError("QR scanning stopped. Reason:", ex);
 						if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 						{
-							var command = "/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh) \"";
-							await EnvironmentHelpers.ShellExecAsync(command).ConfigureAwait(false);
+							HandleOSXAsync();
 						}
 						ErrorOccured?.Invoke(this, ex);
 					}
@@ -90,6 +92,33 @@ namespace WalletWasabi.Fluent.Models
 					}
 				});
 			}
+		}
+
+		private async void HandleOSXAsync()
+		{
+			bool isBrewInstalled = await CheckIfBrewIsInstalledAsync();
+			if (!isBrewInstalled)
+			{
+				InstallBrewAsync();
+				InstallDependencies();
+			}
+		}
+
+		private void InstallDependencies()
+		{
+			// It looks like if you uninstall brew, all things installed via brew is removed as well.
+			// This way, if brew is not installed, we can tell 99% sure that neither the dependencies are.
+			// TODO: Finish depencency installment function
+			throw new NotImplementedException();
+		}
+
+		private async void InstallBrewAsync()
+		{
+			// This command installs brew, that could be the most optimal, but may not be the handiest.
+			// After testing, cloning the og repo and running brew there is better, as it doesn't require a password from the user.
+			// TODO: Replace this with cloning the repository
+			var command = "/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh) \"";
+			await EnvironmentHelpers.ShellExecAsync(command).ConfigureAwait(false);
 		}
 
 		public async Task StopScanningAsync()
@@ -174,6 +203,31 @@ namespace WalletWasabi.Fluent.Models
 			}
 
 			Marshal.Copy(helperArray, 0, fb.Address, helperArray.Length);
+		}
+
+		public static async Task<bool> CheckIfBrewIsInstalledAsync()
+		{
+			string argument = "brew --version";
+			string brewPath = "path/to/brew/repository/bin/brew"; //Insert brew's path after cloning repository
+			var startInfo = new ProcessStartInfo
+			{
+				FileName = brewPath,
+				Arguments = argument,
+				RedirectStandardOutput = true,
+				UseShellExecute = false,
+				CreateNoWindow = false,
+				WindowStyle = ProcessWindowStyle.Normal
+			};
+
+			using var process = new ProcessAsync(startInfo);
+
+			process.Start();
+
+			string output = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+
+			await process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
+
+			return output.Contains("Homebrew"); //Replace this with something more correct to search for
 		}
 	}
 }
