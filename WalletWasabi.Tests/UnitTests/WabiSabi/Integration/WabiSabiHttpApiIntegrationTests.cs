@@ -123,10 +123,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var kitchen = new Kitchen();
 			kitchen.Cook("");
 
-			var coinJoinClient = new CoinJoinClient(apiClient, coins, kitchen, keyManager, roundStateUpdater);
+			var coinJoinClient = new CoinJoinClient(apiClient, kitchen, keyManager, roundStateUpdater);
 
 			// Run the coinjoin client task.
-			Assert.True(await coinJoinClient.StartCoinJoinAsync(cts.Token));
+			Assert.True(await coinJoinClient.StartCoinJoinAsync(coins, cts.Token));
 
 			var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
 			Assert.NotNull(broadcastedTx);
@@ -198,10 +198,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 					// Instruct the coordinator DI container to use these two scoped
 					// services to build everything (WabiSabi controller, arena, etc)
 					services.AddScoped<IRPCClient>(s => rpc);
-					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig {
-							MaxInputCountByRound = 2 * inputCount,
-							TransactionSigningTimeout = TimeSpan.FromSeconds(5 * inputCount),
-						});
+					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig
+					{
+						MaxInputCountByRound = 2 * inputCount,
+						TransactionSigningTimeout = TimeSpan.FromSeconds(5 * inputCount),
+					});
 				});
 			}).CreateClient();
 
@@ -215,14 +216,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var kitchen = new Kitchen();
 			kitchen.Cook("");
 
-			var coinJoinClient = new CoinJoinClient(apiClient, coins, kitchen, keyManager1, roundStateUpdater);
+			var coinJoinClient = new CoinJoinClient(apiClient, kitchen, keyManager1, roundStateUpdater);
 
 			// Run the coinjoin client task.
-			var coinJoinTask = Task.Run(async () => await coinJoinClient.StartCoinJoinAsync(cts.Token).ConfigureAwait(false), cts.Token);
+			var coinJoinTask = Task.Run(async () => await coinJoinClient.StartCoinJoinAsync(coins, cts.Token).ConfigureAwait(false), cts.Token);
 
 			var noSignatureApiClient = new SignatureDroppingClient(new HttpClientWrapper(httpClient));
-			var badCoinJoinClient = new CoinJoinClient(noSignatureApiClient, badCoins, kitchen, keyManager2, roundStateUpdater);
-			var badCoinsTask = Task.Run(async () => await badCoinJoinClient.StartRoundAsync(roundState, cts.Token).ConfigureAwait(false), cts.Token);
+			var badCoinJoinClient = new CoinJoinClient(noSignatureApiClient, kitchen, keyManager2, roundStateUpdater);
+			var badCoinsTask = Task.Run(async () => await badCoinJoinClient.StartRoundAsync(badCoins, roundState, cts.Token).ConfigureAwait(false), cts.Token);
 
 			await Task.WhenAll(new Task[] { badCoinsTask, coinJoinTask });
 
