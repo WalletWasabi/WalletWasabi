@@ -93,7 +93,7 @@ namespace WalletWasabi.WabiSabi.Client
 			ImmutableList<Coin> allInputs = roundState.CoinjoinState.Inputs;
 			if (!allInputs.Any())
 			{
-				throw new InvalidOperationException("There are no other inputs in the CoinJoin.");
+				throw new InvalidOperationException("There are no inputs in the CoinJoin.");
 			}
 
 			// Calculate outputs values
