@@ -191,7 +191,7 @@ namespace WalletWasabi.WabiSabi.Client
 				}
 			}
 
-			var registerRequests = aliceClients.Select(x => RegisterInputTask(x.SmartCoin, x.AliceClient));
+			var registerRequests = aliceClients.Select(x => RegisterInputTask(x.SmartCoin, x.AliceClient)).ToImmutableArray();
 			await Task.WhenAll(registerRequests).ConfigureAwait(false);
 
 			return registerRequests
