@@ -15,7 +15,22 @@ namespace WalletWasabi.WabiSabi.Client
 		private DateTimeOffset firstOutputRegistrationTime;
 		private TaskCompletionSource allOutputsRegistered = new ();
 
-		public WabiSabiApiClientWithDelay(
+		private readonly static Task<TimeSpan> ImmediateTimeout = Task.FromResult(TimeSpan.Zero);
+
+		public static WabiSabiApiClientWithDelay CreateForInputRegistration(
+			IWabiSabiApiRequestHandler innerClient,
+			int expectedNumberOfInputs,
+			Task<TimeSpan> inputRegistrationPhaseTimeout)
+			=> new WabiSabiApiClientWithDelay(innerClient, expectedNumberOfInputs, 0, inputRegistrationPhaseTimeout, ImmediateTimeout, ImmediateTimeout);
+
+		public WabiSabiApiClientWithDelay CreateAfterInputRegistration(
+			int expectedNumberOfOutputs,
+			Task<TimeSpan> outputRegistrationPhaseTimeout,
+			Task<TimeSpan> signingPhaseTimeout)
+			=> new WabiSabiApiClientWithDelay(InnerClient, ExpectedNumberOfInputs, expectedNumberOfOutputs, InputRegistrationPhaseTimeout, outputRegistrationPhaseTimeout, signingPhaseTimeout);
+
+
+		private WabiSabiApiClientWithDelay(
 			IWabiSabiApiRequestHandler innerClient,
 			int expectedNumberOfInputs,
 			int expectedNumberOfOutputs,
@@ -64,16 +79,14 @@ namespace WalletWasabi.WabiSabi.Client
 			return await InnerClient.ReissueCredentialAsync(request, cancellationToken).ConfigureAwait(false);
 		}
 
-		public async Task<OutputRegistrationResponse> RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
+		public async Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
 		{
-			var outputRegistrationResponse = await InnerClient.RegisterOutputAsync(request, cancellationToken);
+			await InnerClient.RegisterOutputAsync(request, cancellationToken).ConfigureAwait(false);
 			firstOutputRegistrationTime = firstOutputRegistrationTime == default ? DateTimeOffset.Now : firstOutputRegistrationTime;
 			if (Interlocked.Increment(ref outputRegisteredCount) == ExpectedNumberOfOutputs)
 			{
 				allOutputsRegistered.SetResult();
 			}
-
-			return outputRegistrationResponse;
 		}
 
 		public async Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellationToken)

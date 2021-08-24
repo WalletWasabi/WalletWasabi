@@ -73,7 +73,16 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			_ = roundState.Assert<ConstructionState>();
 
-			var aliceClients = CreateAliceClients(coins, roundState);
+			// Create the API client that randomizes the remote API calls
+			// by applying uniform distributed delays scoped by a time window
+			// that begins with the signal of the phase and its duration is
+			// the same that the phase timeout period.
+			var arenaRequestHandler = WabiSabiApiClientWithDelay.CreateForInputRegistration(
+					ArenaRequestHandler,
+					coins.Count(),
+					RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.InputRegistration, cancellationToken).ThenAsync(x => x.InputRegistrationTimeout));
+
+			var aliceClients = CreateAliceClients(coins, arenaRequestHandler, roundState);
 
 			// Register coins.
 			aliceClients = await RegisterCoinsAsync(aliceClients, cancellationToken).ConfigureAwait(false);
@@ -96,8 +105,13 @@ namespace WalletWasabi.WabiSabi.Client
 			// Confirm coins.
 			await scheduler.StartConfirmConnectionsAsync(aliceClients, dependencyGraph, roundState.ConnectionConfirmationTimeout, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
 
+			arenaRequestHandler = arenaRequestHandler.CreateAfterInputRegistration(
+				outputTxOuts.Count(),
+				RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ThenAsync(x => x.TransactionSigningTimeout),
+				RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.TransactionSigning, cancellationToken).ThenAsync(x => x.TransactionSigningTimeout));
+
 			// Re-issuances.
-			var bobClient = CreateBobClient(roundState);
+			var bobClient = CreateBobClient(arenaRequestHandler, roundState);
 			await scheduler.StartReissuancesAsync(aliceClients, bobClient, cancellationToken).ConfigureAwait(false);
 
 			// Output registration.
@@ -126,7 +140,7 @@ namespace WalletWasabi.WabiSabi.Client
 			return finalRoundState.WasTransactionBroadcast;
 		}
 
-		private IEnumerable<AliceClient> CreateAliceClients(IEnumerable<Coin> coins, RoundState roundState)
+		private IEnumerable<AliceClient> CreateAliceClients(IEnumerable<Coin> coins, IWabiSabiApiRequestHandler arenaRequestHandler, RoundState roundState)
 		{
 			List<AliceClient> aliceClients = new();
 			foreach (var coin in coins)
@@ -134,7 +148,7 @@ namespace WalletWasabi.WabiSabi.Client
 				var aliceArenaClient = new ArenaClient(
 					roundState.CreateAmountCredentialClient(SecureRandom),
 					roundState.CreateVsizeCredentialClient(SecureRandom),
-					ArenaRequestHandler);
+					arenaRequestHandler);
 
 				var hdKey = Keymanager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey).Single();
 				var secret = hdKey.PrivateKey.GetBitcoinSecret(Keymanager.GetNetwork());
@@ -172,14 +186,14 @@ namespace WalletWasabi.WabiSabi.Client
 			return greedyDecomposer.Decompose(sum, feeRate.GetFee(31));
 		}
 
-		private BobClient CreateBobClient(RoundState roundState)
+		private BobClient CreateBobClient(IWabiSabiApiRequestHandler arenaRequestHandler, RoundState roundState)
 		{
 			return new BobClient(
 				roundState.Id,
 				new(
 					roundState.CreateAmountCredentialClient(SecureRandom),
 					roundState.CreateVsizeCredentialClient(SecureRandom),
-					ArenaRequestHandler));
+					arenaRequestHandler));
 		}
 
 		private bool SanityCheck(IEnumerable<TxOut> expectedOutputs, Transaction unsignedCoinJoinTransaction)
