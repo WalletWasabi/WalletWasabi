@@ -156,19 +156,7 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo("System Awake Checker is not available on this platform.");
 				}
 
-				if (Config.UseTor && Network != Network.RegTest)
-				{
-					using (BenchmarkLogger.Measure(operationName: "TorProcessManager.Start"))
-					{
-						TorManager = new TorProcessManager(TorSettings);
-						await TorManager.StartAsync(cancel).ConfigureAwait(false);
-					}
-
-					Tor.Http.TorHttpClient torHttpClient = BackendHttpClientFactory.NewTorHttpClient(Mode.DefaultCircuit);
-					HostedServices.Register<TorMonitor>(new TorMonitor(period: TimeSpan.FromSeconds(3), fallbackBackendUri: Config.GetFallbackBackendUri(), torHttpClient, TorManager), nameof(TorMonitor));
-				}
-
-				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
+				await StartTorProcessManagerAsync(cancel).ConfigureAwait(false);
 
 				try
 				{
@@ -202,20 +190,7 @@ namespace WalletWasabi.Gui
 				TransactionBroadcaster.Initialize(HostedServices.Get<P2pNetwork>().Nodes, BitcoinCoreNode?.RpcClient);
 				CoinJoinProcessor = new CoinJoinProcessor(Network, Synchronizer, WalletManager, BitcoinCoreNode?.RpcClient);
 
-				var jsonRpcServerConfig = new JsonRpcServerConfiguration(Config);
-				if (jsonRpcServerConfig.IsEnabled)
-				{
-					RpcServer = new JsonRpcServer(this, jsonRpcServerConfig, terminateService);
-					try
-					{
-						await RpcServer.StartAsync(cancel).ConfigureAwait(false);
-					}
-					catch (HttpListenerException e)
-					{
-						Logger.LogWarning($"Failed to start {nameof(JsonRpcServer)} with error: {e.Message}.");
-						RpcServer = null;
-					}
-				}
+				await StartRpcServerAsync(terminateService, cancel).ConfigureAwait(false);
 
 				var blockProvider = new CachedBlockProvider(
 					new SmartBlockProvider(
@@ -228,6 +203,40 @@ namespace WalletWasabi.Gui
 			finally
 			{
 				InitializationCompleted.TrySetResult(true);
+			}
+		}
+
+		private async Task StartRpcServerAsync(TerminateService terminateService, CancellationToken cancel)
+		{
+			var jsonRpcServerConfig = new JsonRpcServerConfiguration(Config);
+			if (jsonRpcServerConfig.IsEnabled)
+			{
+				RpcServer = new JsonRpcServer(this, jsonRpcServerConfig, terminateService);
+				try
+				{
+					await RpcServer.StartAsync(cancel).ConfigureAwait(false);
+				}
+				catch (HttpListenerException e)
+				{
+					Logger.LogWarning($"Failed to start {nameof(JsonRpcServer)} with error: {e.Message}.");
+					RpcServer = null;
+				}
+			}
+		}
+
+		private async Task StartTorProcessManagerAsync(CancellationToken cancel)
+		{
+			if (Config.UseTor && Network != Network.RegTest)
+			{
+				using (BenchmarkLogger.Measure(operationName: "TorProcessManager.Start"))
+				{
+					TorManager = new TorProcessManager(TorSettings);
+					await TorManager.StartAsync(cancel).ConfigureAwait(false);
+					Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
+				}
+
+				Tor.Http.TorHttpClient torHttpClient = BackendHttpClientFactory.NewTorHttpClient(Mode.DefaultCircuit);
+				HostedServices.Register<TorMonitor>(new TorMonitor(period: TimeSpan.FromSeconds(3), fallbackBackendUri: Config.GetFallbackBackendUri(), torHttpClient, TorManager), nameof(TorMonitor));
 			}
 		}
 
