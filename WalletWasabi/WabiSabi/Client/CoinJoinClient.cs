@@ -93,9 +93,6 @@ namespace WalletWasabi.WabiSabi.Client
 			DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(aliceClients.Select(a => a.Coin), outputTxOuts, roundState.FeeRate, roundState.MaxVsizeAllocationPerAlice);
 			DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
 
-			// Confirm coins.
-			await scheduler.StartConfirmConnectionsAsync(aliceClients, dependencyGraph, roundState.ConnectionConfirmationTimeout, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
-
 			// Re-issuances.
 			var bobClient = CreateBobClient(roundState);
 			await scheduler.StartReissuancesAsync(aliceClients, bobClient, cancellationToken).ConfigureAwait(false);
@@ -138,7 +135,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 				var hdKey = Keymanager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey).Single();
 				var secret = hdKey.PrivateKey.GetBitcoinSecret(Keymanager.GetNetwork());
-				aliceClients.Add(new AliceClient(roundState.Id, aliceArenaClient, coin, roundState.FeeRate, secret));
+				aliceClients.Add(new AliceClient(roundState, aliceArenaClient, coin, secret));
 			}
 			return aliceClients;
 		}
@@ -153,7 +150,7 @@ namespace WalletWasabi.WabiSabi.Client
 			{
 				try
 				{
-					await aliceClient.RegisterInputAsync(cancellationToken).ConfigureAwait(false);
+					await aliceClient.RegisterInputAsync(RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
 					successfulAlices.Add(aliceClient);
 				}
 				catch (Exception e)
