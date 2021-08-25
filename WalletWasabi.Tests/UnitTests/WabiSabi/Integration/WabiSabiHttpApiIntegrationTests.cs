@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using NBitcoin;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.WabiSabi.Backend;
@@ -77,9 +78,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			keyManager.AssertCleanKeysIndexed();
 			var coins = keyManager.GetKeys()
 				.Take(inputCount)
-				.Select((x, i) => new Coin(
-					BitcoinFactory.CreateOutPoint(),
-					new TxOut(Money.Satoshis(amounts[i]), x.P2wpkhScript)))
+				.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, amounts[i]))
 				.ToArray();
 
 			var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
@@ -95,7 +94,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 						Confirmations = 101,
 						IsCoinBase = false,
 						ScriptPubKeyType = "witness_v0_keyhash",
-						TxOut = coins.Single(x => x.Outpoint.Hash == txId && x.Outpoint.N == idx).TxOut
+						TxOut = coins.Single(x => x.TransactionId == txId && x.Index == idx).TxOut
 					};
 
 					// Make the coordinator believe that the transaction is being
@@ -157,16 +156,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 			var coins = keyManager1.GetKeys()
 				.Take(inputCount)
-				.Select((x, i) => new Coin(
-					BitcoinFactory.CreateOutPoint(),
-					new TxOut(Money.Satoshis(amounts[i]), x.P2wpkhScript)))
+				.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, amounts[i]))
 				.ToArray();
 
 			var badCoins = keyManager2.GetKeys()
 				.Take(inputCount)
-				.Select((x, i) => new Coin(
-							BitcoinFactory.CreateOutPoint(),
-							new TxOut(Money.Satoshis(amounts[i]), x.P2wpkhScript)))
+				.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, amounts[i]))
 				.ToArray();
 
 			var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
@@ -182,7 +177,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 						Confirmations = 101,
 						IsCoinBase = false,
 						ScriptPubKeyType = "witness_v0_keyhash",
-						TxOut = Enumerable.Concat(coins, badCoins).Single(x => x.Outpoint.Hash == txId && x.Outpoint.N == idx).TxOut
+						TxOut = Enumerable.Concat(coins, badCoins).Single(x => x.TransactionId == txId && x.Index == idx).TxOut
 					};
 
 					// Make the coordinator believe that the transaction is being
@@ -234,7 +229,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			Assert.NotNull(broadcastedTx);
 
 			Assert.Equal(
-				coins.Select(x => x.Outpoint.ToString()).OrderBy(x => x),
+				coins.Select(x => x.Coin.Outpoint.ToString()).OrderBy(x => x),
 				broadcastedTx.Inputs.Select(x => x.PrevOut.ToString()).OrderBy(x => x));
 
 			await roundStateUpdater.StopAsync(CancellationToken.None);
