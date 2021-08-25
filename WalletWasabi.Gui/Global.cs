@@ -186,45 +186,10 @@ namespace WalletWasabi.Gui
 
 				HostedServices.Register<P2pNetwork>(new P2pNetwork(Network, Config.GetBitcoinP2pEndPoint(), Config.UseTor ? TorSettings.SocksEndpoint : null, Path.Combine(DataDir, "BitcoinP2pNetwork"), BitcoinStore), "Bitcoin P2P Network");
 
-				try
-				{
-					if (Config.StartLocalBitcoinCoreOnStartup)
-					{
-						BitcoinCoreNode = await CoreNode
-							.CreateAsync(
-								new CoreNodeParams(
-									Network,
-									BitcoinStore.MempoolService,
-									Config.LocalBitcoinCoreDataDir,
-									tryRestart: false,
-									tryDeleteDataDir: false,
-									EndPointStrategy.Default(Network, EndPointType.P2p),
-									EndPointStrategy.Default(Network, EndPointType.Rpc),
-									txIndex: null,
-									prune: null,
-									mempoolReplacement: "fee,optin",
-									userAgent: $"/WasabiClient:{Constants.ClientVersion}/",
-									fallbackFee: null, // ToDo: Maybe we should have it, not only for tests?
-									Cache),
-								cancel)
-							.ConfigureAwait(false);
+				await StartLocalBitcoinNodeAsync(cancel).ConfigureAwait(false);
 
-						HostedServices.Register<BlockNotifier>(new BlockNotifier(TimeSpan.FromSeconds(7), BitcoinCoreNode.RpcClient, BitcoinCoreNode.P2pNode), "Block Notifier");
-						HostedServices.Register<RpcMonitor>(new RpcMonitor(TimeSpan.FromSeconds(7), BitcoinCoreNode.RpcClient), "RPC Monitor");
-						HostedServices.Register<RpcFeeProvider>(new RpcFeeProvider(TimeSpan.FromMinutes(1), BitcoinCoreNode.RpcClient, HostedServices.Get<RpcMonitor>()), "RPC Fee Provider");
-						HostedServices.Register<MempoolMirror>(new MempoolMirror(TimeSpan.FromSeconds(21), BitcoinCoreNode.RpcClient, BitcoinCoreNode.P2pNode), "Full Node Mempool Mirror");
-					}
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError(ex);
-				}
-
-				HostedServices.Register<BlockstreamInfoFeeProvider>(new BlockstreamInfoFeeProvider(TimeSpan.FromMinutes(3), new(Network, ExternalHttpClientFactory)) { IsPaused = true }, "Blockstream.info Fee Provider");
-				HostedServices.Register<ThirdPartyFeeProvider>(new ThirdPartyFeeProvider(TimeSpan.FromSeconds(1), Synchronizer, HostedServices.Get<BlockstreamInfoFeeProvider>()), "Third Party Fee Provider");
-				HostedServices.Register<HybridFeeProvider>(new HybridFeeProvider(HostedServices.Get<ThirdPartyFeeProvider>(), HostedServices.GetOrDefault<RpcFeeProvider>()), "Hybrid Fee Provider");
-				HostedServices.Register<RoundStateUpdater>(new RoundStateUpdater(TimeSpan.FromSeconds(5), new WabiSabiHttpApiClient(BackendHttpClientFactory.NewBackendHttpClient(Mode.SingleCircuitPerLifetime))), "Round infor updater");
-				HostedServices.Register<CoinJoinManager>(new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), BackendHttpClientFactory, Config.ServiceConfiguration), "CoinJoin Manager");
+				RegisterFeeRateProviders();
+				RegisterCoinJoinComponents();
 
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
@@ -264,6 +229,61 @@ namespace WalletWasabi.Gui
 			{
 				InitializationCompleted.TrySetResult(true);
 			}
+		}
+
+		private async Task StartLocalBitcoinNodeAsync(CancellationToken cancel)
+		{
+			try
+			{
+				if (Config.StartLocalBitcoinCoreOnStartup)
+				{
+					BitcoinCoreNode = await CoreNode
+						.CreateAsync(
+							new CoreNodeParams(
+								Network,
+								BitcoinStore.MempoolService,
+								Config.LocalBitcoinCoreDataDir,
+								tryRestart: false,
+								tryDeleteDataDir: false,
+								EndPointStrategy.Default(Network, EndPointType.P2p),
+								EndPointStrategy.Default(Network, EndPointType.Rpc),
+								txIndex: null,
+								prune: null,
+								mempoolReplacement: "fee,optin",
+								userAgent: $"/WasabiClient:{Constants.ClientVersion}/",
+								fallbackFee: null, // ToDo: Maybe we should have it, not only for tests?
+								Cache),
+							cancel)
+						.ConfigureAwait(false);
+
+					RegisterLocalNodeDependantComponents();
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+			}
+		}
+
+		private void RegisterLocalNodeDependantComponents()
+		{
+			HostedServices.Register<BlockNotifier>(new BlockNotifier(TimeSpan.FromSeconds(7), BitcoinCoreNode.RpcClient, BitcoinCoreNode.P2pNode), "Block Notifier");
+			HostedServices.Register<RpcMonitor>(new RpcMonitor(TimeSpan.FromSeconds(7), BitcoinCoreNode.RpcClient), "RPC Monitor");
+			HostedServices.Register<RpcFeeProvider>(new RpcFeeProvider(TimeSpan.FromMinutes(1), BitcoinCoreNode.RpcClient, HostedServices.Get<RpcMonitor>()), "RPC Fee Provider");
+			HostedServices.Register<MempoolMirror>(new MempoolMirror(TimeSpan.FromSeconds(21), BitcoinCoreNode.RpcClient, BitcoinCoreNode.P2pNode), "Full Node Mempool Mirror");
+		}
+
+		private void RegisterFeeRateProviders()
+		{
+			HostedServices.Register<BlockstreamInfoFeeProvider>(new BlockstreamInfoFeeProvider(TimeSpan.FromMinutes(3), new(Network, ExternalHttpClientFactory)) { IsPaused = true }, "Blockstream.info Fee Provider");
+			HostedServices.Register<ThirdPartyFeeProvider>(new ThirdPartyFeeProvider(TimeSpan.FromSeconds(1), Synchronizer, HostedServices.Get<BlockstreamInfoFeeProvider>()), "Third Party Fee Provider");
+			HostedServices.Register<HybridFeeProvider>(new HybridFeeProvider(HostedServices.Get<ThirdPartyFeeProvider>(), HostedServices.GetOrDefault<RpcFeeProvider>()), "Hybrid Fee Provider");
+		}
+
+		private void RegisterCoinJoinComponents()
+		{
+			HostedServices.Register<RoundStateUpdater>(new RoundStateUpdater(TimeSpan.FromSeconds(5), new WabiSabiHttpApiClient(BackendHttpClientFactory.NewBackendHttpClient(Mode.SingleCircuitPerLifetime))), "Round infor updater");
+			HostedServices.Register<CoinJoinManager>(new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), BackendHttpClientFactory, Config.ServiceConfiguration), "CoinJoin Manager");
 		}
 
 		private void WalletManager_OnDequeue(object? sender, DequeueResult e)
