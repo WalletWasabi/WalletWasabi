@@ -15,6 +15,7 @@
         x:DataType="vm:CrashReportWindowViewModel">
   <Panel Margin="{Binding #CrashReporterWindow.OffScreenMargin}">
     <controls:ContentArea EnableNext="True"
+                          EnableCancel="True"
                           NextContent="Exit"
                           CancelContent="Restart Wasabi"
                           FocusNext="True"
