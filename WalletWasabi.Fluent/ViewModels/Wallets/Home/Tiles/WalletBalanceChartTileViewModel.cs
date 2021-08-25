@@ -105,6 +105,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				x => x.Balance,
 				sampleTime,
 				sampleLimit,
+				0,
 				DateTime.Now);
 
 			XValues.Clear();

@@ -21,7 +21,7 @@ namespace WalletWasabi.Fluent.Helpers
 		public static IEnumerable<(DateTimeOffset timestamp, TResult result)> SelectTimeSampleBackwards<TSource, TResult>(
 			this IEnumerable<TSource> sourceData,
 			Func<TSource, DateTimeOffset> timeSampler, Func<TSource, TResult> sampler,
-			TimeSpan interval, DateTimeOffset endTime, DateTimeOffset? startFrom = default)
+			TimeSpan interval, DateTimeOffset endTime, TResult defaultValue, DateTimeOffset? startFrom = default)
 		{
 			var source = sourceData.ToArray();
 
@@ -44,16 +44,9 @@ namespace WalletWasabi.Fluent.Helpers
 			{
 				var current = source.FirstOrDefault(x => timeSampler(x) <= currentTime);
 
-				if (current is { })
-				{
-					lastFound = (currentTime, sampler(current));
+				lastFound = current is { } ? (currentTime, sampler(current)) : (currentTime, defaultValue);
 
-					yield return lastFound;
-				}
-				else
-				{
-					yield break;
-				}
+				yield return lastFound;
 
 				currentTime -= interval;
 			}
