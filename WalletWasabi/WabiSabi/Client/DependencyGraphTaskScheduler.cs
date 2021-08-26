@@ -29,7 +29,6 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			var aliceNodePairs = PairAliceClientAndRequestNodes(aliceClients, Graph);
 
-			List<SmartRequestNode> smartRequestNodes = new();
 			List<Task> connectionConfirmationTasks = new();
 
 			using CancellationTokenSource ctsOnError = new();
@@ -45,8 +44,8 @@ namespace WalletWasabi.WabiSabi.Client
 					amountEdgeTaskCompSources,
 					vsizeEdgeTaskCompSources);
 
-				var amountsToRequest = Graph.OutEdges(node, CredentialType.Amount).Select(e => (long)e.Value);
-				var vsizesToRequest = Graph.OutEdges(node, CredentialType.Vsize).Select(e => (long)e.Value);
+				var amountsToRequest = Graph.OutEdges(node, CredentialType.Amount).Select(e => e.Value);
+				var vsizesToRequest = Graph.OutEdges(node, CredentialType.Vsize).Select(e => e.Value);
 
 				// Although connection confirmation requests support k
 				// credential requests, for now we only know which amounts to
@@ -108,8 +107,8 @@ namespace WalletWasabi.WabiSabi.Client
 				var outputAmountEdgeTaskCompSources = Graph.OutEdges(node, CredentialType.Amount).Select(edge => DependencyTasks[edge]);
 				var outputVsizeEdgeTaskCompSources = Graph.OutEdges(node, CredentialType.Vsize).Select(edge => DependencyTasks[edge]);
 
-				var requestedAmounts = Graph.OutEdges(node, CredentialType.Amount).Select(edge => (long)edge.Value);
-				var requestedVSizes = Graph.OutEdges(node, CredentialType.Vsize).Select(edge => (long)edge.Value);
+				var requestedAmounts = Graph.OutEdges(node, CredentialType.Amount).Select(edge => edge.Value);
+				var requestedVSizes = Graph.OutEdges(node, CredentialType.Vsize).Select(edge => edge.Value);
 
 				SmartRequestNode smartRequestNode = new(
 					inputAmountEdgeTasks,
