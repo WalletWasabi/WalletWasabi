@@ -16,7 +16,7 @@
                  EnableNext="False"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
-    <c:QuestionControl Content="{Binding TypeName, StringFormat={}{0}  was detected. Is this correct?}"
+    <c:QuestionControl Content="{Binding TypeName, StringFormat={}{0} was detected. Is this correct?}"
                        YesCommand="{Binding NextCommand}"
                        NoCommand="{Binding NoCommand}"
                        ImageIcon="{Binding Type, Converter={x:Static conv:WalletIconConverter.WalletTypeToImage}}"
