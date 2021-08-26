@@ -29,6 +29,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
 			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), new ArenaRequestHandlerAdapter(arena));
+			await roundStateUpdater.StartAsync(CancellationToken.None);
 
 			// Register Alices.
 			var aliceClient = new AliceClient(RoundState.FromRound(round), arenaClient, coin, key.GetBitcoinSecret(round.Network));
@@ -50,6 +51,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			cancellationTokenSource.Cancel();
 			await Assert.ThrowsAsync<OperationCanceledException>(async () => await task);
 
+			await roundStateUpdater.StopAsync(CancellationToken.None);
 			await arena.StopAsync(CancellationToken.None);
 		}
 

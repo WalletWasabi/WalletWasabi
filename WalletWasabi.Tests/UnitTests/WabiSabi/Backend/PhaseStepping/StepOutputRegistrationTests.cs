@@ -207,6 +207,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var aliceClient2 = new AliceClient(RoundState.FromRound(round), arenaClient, coin2, key2.GetBitcoinSecret(round.Network));
 
 			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), new ArenaRequestHandlerAdapter(arena));
+			await roundStateUpdater.StartAsync(CancellationToken.None);
 
 			var task1 = aliceClient1.RegisterInputAsync(roundStateUpdater, CancellationToken.None);
 			var task2 = aliceClient2.RegisterInputAsync(roundStateUpdater, CancellationToken.None);
@@ -219,6 +220,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.OutputRegistration, round.Phase);
+
+			await roundStateUpdater.StopAsync(CancellationToken.None);
 
 			return (round,
 					arenaClient,
