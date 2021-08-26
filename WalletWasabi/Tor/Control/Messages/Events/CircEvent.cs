@@ -8,6 +8,8 @@ namespace WalletWasabi.Tor.Control.Messages.Events.StatusEvents
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt"/>
 	public record CircEvent : IAsyncEvent
 	{
+		public const string EventName = "CIRC";
+
 		public CircEvent(CircuitInfo circuitInfo)
 		{
 			CircuitInfo = circuitInfo;
@@ -25,9 +27,9 @@ namespace WalletWasabi.Tor.Control.Messages.Events.StatusEvents
 
 			(string value, string remainder) = Tokenizer.ReadUntilSeparator(reply.ResponseLines[0]);
 
-			if (value != "CIRC")
+			if (value != EventName)
 			{
-				throw new TorControlReplyParseException("CircEvent: Expected 'CIRC' event name.");
+				throw new TorControlReplyParseException($"CircEvent: Expected '{EventName}' event name.");
 			}
 
 			return new CircEvent(CircuitInfo.ParseLine(remainder));
