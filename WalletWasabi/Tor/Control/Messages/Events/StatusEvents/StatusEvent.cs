@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using WalletWasabi.Tor.Control.Exceptions;
 using WalletWasabi.Tor.Control.Utils;
 
@@ -38,6 +39,17 @@ namespace WalletWasabi.Tor.Control.Messages.Events.StatusEvents
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt"/>
 	public record StatusEvent : IAsyncEvent
 	{
+		public const string EventNameStatusGeneral = "STATUS_GENERAL";
+		public const string EventNameStatusClient = "STATUS_CLIENT";
+		public const string EventNameStatusServer = "STATUS_SERVER";
+
+		/// <remarks>
+		/// From spec: This event will only be sent if Tor just built a circuit that changed our mind --
+		/// that is, prior to this event we didn't know whether we could establish circuits.
+		/// <para>Suggested use: Controllers can notify their users that Tor is ready for use as a client once they see this status event.</para>
+		/// </remarks>
+		public const string ActionCircuitEstablished = "CIRCUIT_ESTABLISHED";
+
 		public StatusEvent(string action, Dictionary<string, string> arguments)
 		{
 			Action = action;
@@ -57,7 +69,7 @@ namespace WalletWasabi.Tor.Control.Messages.Events.StatusEvents
 		{
 			if (reply.StatusCode != StatusCode.AsynchronousEventNotify)
 			{
-				throw new TorControlReplyParseException($"StatusEvent: Expected {StatusCode.AsynchronousEventNotify} status code.");
+				throw new TorControlReplyParseException($"{nameof(StatusEvent)}: Expected {StatusCode.AsynchronousEventNotify} status code.");
 			}
 
 			string remainder = reply.ResponseLines[0];
@@ -67,14 +79,14 @@ namespace WalletWasabi.Tor.Control.Messages.Events.StatusEvents
 
 			if (!Enum.TryParse(value, out StatusType statusType))
 			{
-				throw new TorControlReplyParseException("StatusEvent: Unknown status type.");
+				throw new TorControlReplyParseException($"{nameof(StatusEvent)}: Unknown status type.");
 			}
 
 			(value, remainder) = Tokenizer.ReadUntilSeparator(remainder);
 
 			if (!Enum.TryParse(value, out StatusSeverity statusSeverity))
 			{
-				throw new TorControlReplyParseException("StatusEvent: Unknown status type.");
+				throw new TorControlReplyParseException($"{nameof(StatusEvent)}: Unknown status type.");
 			}
 
 			// Mandatory piece of information per spec.
@@ -91,7 +103,7 @@ namespace WalletWasabi.Tor.Control.Messages.Events.StatusEvents
 
 				if (!arguments.TryAdd(key, value))
 				{
-					throw new TorControlReplyParseException("StatusEvent: Argument already defined.");
+					throw new TorControlReplyParseException($"{nameof(StatusEvent)}: Argument already defined.");
 				}
 			}
 
@@ -111,6 +123,13 @@ namespace WalletWasabi.Tor.Control.Messages.Events.StatusEvents
 					Severity = statusSeverity,
 				};
 			}
+		}
+
+		/// <inheritdoc/>
+		public override string ToString()
+		{
+			string prettyArguments = string.Join(", ", Arguments.Select(kv => $"{kv.Key}={kv.Value}"));
+			return $"{nameof(StatusEvent)}{{{nameof(Type)}={Type}, {nameof(Severity)}={Severity}, {nameof(Action)}={Action}, {nameof(Arguments)}={{{prettyArguments}}}}}";
 		}
 	}
 }

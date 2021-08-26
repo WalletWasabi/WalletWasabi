@@ -1,12 +1,16 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
@@ -19,6 +23,8 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class CoinJoinClient
 	{
+		private const int MaxInputsRegistrableByWallet = 7; // how many
+
 		public CoinJoinClient(
 			IWabiSabiApiRequestHandler arenaRequestHandler,
 			Kitchen kitchen,
@@ -39,7 +45,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public KeyManager Keymanager { get; }
 		private RoundStateUpdater RoundStatusUpdater { get; }
 
-		public async Task<bool> StartCoinJoinAsync(IEnumerable<Coin> coins, CancellationToken cancellationToken)
+		public async Task<bool> StartCoinJoinAsync(IEnumerable<SmartCoin> coins, CancellationToken cancellationToken)
 		{
 			var currentRoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cancellationToken).ConfigureAwait(false);
 
@@ -69,43 +75,45 @@ namespace WalletWasabi.WabiSabi.Client
 		/// <summary>Attempt to participate in a specified dround.</summary>
 		/// <param name="roundState">Defines the round parameter and state information to use.</param>
 		/// <returns>Whether or not the round resulted in a successful transaction.</returns>
-		public async Task<bool> StartRoundAsync(IEnumerable<Coin> coins, RoundState roundState, CancellationToken cancellationToken)
+		public async Task<bool> StartRoundAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 		{
-			_ = roundState.Assert<ConstructionState>();
+			var constructionState = roundState.Assert<ConstructionState>();
 
-			var aliceClients = CreateAliceClients(coins, roundState);
+			var coinCandidates = SelectCoinsForRound(smartCoins, constructionState.Parameters);
+			var aliceClientsToRegister = coinCandidates.Select(x => (SmartCoin: x, AliceClient: CreateAliceClient(x.Coin, roundState))).ToImmutableArray();
 
 			// Register coins.
-			aliceClients = await RegisterCoinsAsync(aliceClients, cancellationToken).ConfigureAwait(false);
-
-			if (!aliceClients.Any())
+			var registeredAliceClients = await RegisterCoinsAsync(aliceClientsToRegister, cancellationToken).ConfigureAwait(false);
+			if (!registeredAliceClients.Any())
 			{
-				throw new InvalidOperationException($"Round ({roundState.Id}): Failed to register any coins.");
+				throw new InvalidOperationException($"Round ({roundState.Id}): There is no available alices to participate with.");
 			}
 
 			// Calculate outputs values
-			var outputValues = DecomposeAmounts(aliceClients.Select(a => a.Coin), roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min);
+			var registeredCoins = registeredAliceClients.Select(x => x.Coin);
+			var outputValues = DecomposeAmounts(registeredCoins, roundState.FeeRate, constructionState.Parameters.AllowedOutputAmounts.Min);
 
 			// Get all locked internal keys we have and assert we have enough.
 			Keymanager.AssertLockedInternalKeysIndexed(howMany: outputValues.Count());
 			var allLockedInternalKeys = Keymanager.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked);
 			var outputTxOuts = outputValues.Zip(allLockedInternalKeys, (amount, hdPubKey) => new TxOut(amount, hdPubKey.P2wpkhScript));
-			DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(aliceClients.Select(a => a.Coin), outputTxOuts, roundState.FeeRate, roundState.MaxVsizeAllocationPerAlice);
+
+			DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(registeredCoins, outputTxOuts, roundState.FeeRate, roundState.MaxVsizeAllocationPerAlice);
 			DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
 
 			// Confirm coins.
-			await scheduler.StartConfirmConnectionsAsync(aliceClients, dependencyGraph, roundState.ConnectionConfirmationTimeout, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
+			await scheduler.StartConfirmConnectionsAsync(registeredAliceClients, dependencyGraph, roundState.ConnectionConfirmationTimeout, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
 
 			// Re-issuances.
 			var bobClient = CreateBobClient(roundState);
-			await scheduler.StartReissuancesAsync(aliceClients, bobClient, cancellationToken).ConfigureAwait(false);
+			await scheduler.StartReissuancesAsync(registeredAliceClients, bobClient, cancellationToken).ConfigureAwait(false);
 
 			// Output registration.
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
 			await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, cancellationToken).ConfigureAwait(false);
 
 			// ReadyToSign.
-			await ReadyToSignAsync(aliceClients, cancellationToken).ConfigureAwait(false);
+			await ReadyToSignAsync(registeredAliceClients, cancellationToken).ConfigureAwait(false);
 
 			// Signing.
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
@@ -119,50 +127,77 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 
 			// Send signature.
-			await SignTransactionAsync(aliceClients, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
+			await SignTransactionAsync(registeredAliceClients, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
 
 			var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundState.Id && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
-
 			return finalRoundState.WasTransactionBroadcast;
 		}
 
-		private IEnumerable<AliceClient> CreateAliceClients(IEnumerable<Coin> coins, RoundState roundState)
+		private AliceClient CreateAliceClient(Coin coin, RoundState roundState)
 		{
-			List<AliceClient> aliceClients = new();
-			foreach (var coin in coins)
-			{
-				var aliceArenaClient = new ArenaClient(
-					roundState.CreateAmountCredentialClient(SecureRandom),
-					roundState.CreateVsizeCredentialClient(SecureRandom),
-					ArenaRequestHandler);
+			var aliceArenaClient = new ArenaClient(
+				roundState.CreateAmountCredentialClient(SecureRandom),
+				roundState.CreateVsizeCredentialClient(SecureRandom),
+				ArenaRequestHandler);
 
-				var hdKey = Keymanager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey).Single();
-				var secret = hdKey.PrivateKey.GetBitcoinSecret(Keymanager.GetNetwork());
-				aliceClients.Add(new AliceClient(roundState.Id, aliceArenaClient, coin, roundState.FeeRate, secret));
+			var hdKey = Keymanager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey).Single();
+			var secret = hdKey.PrivateKey.GetBitcoinSecret(Keymanager.GetNetwork());
+			if (hdKey.PrivateKey.PubKey.WitHash.ScriptPubKey != coin.ScriptPubKey)
+			{
+				throw new InvalidOperationException("The key cannot generate the utxo scriptpubkey. This could happen if the wallet password is not the correct one.");
 			}
-			return aliceClients;
+			return new AliceClient(roundState.Id, aliceArenaClient, coin, roundState.FeeRate, secret);
 		}
 
-		private async Task<IEnumerable<AliceClient>> RegisterCoinsAsync(IEnumerable<AliceClient> aliceClients, CancellationToken cancellationToken)
+		private async Task<ImmutableArray<AliceClient>> RegisterCoinsAsync(
+			IEnumerable<(SmartCoin SmartCoin, AliceClient AliceClient)> aliceClients, CancellationToken cancellationToken)
 		{
-			List<AliceClient> successfulAlices = new();
-			List<AliceClient> shuffledAlices = new(aliceClients);
-			shuffledAlices.Shuffle();
-
-			foreach (var aliceClient in shuffledAlices)
+			async Task<AliceClient?> RegisterInputTask(SmartCoin smartCoin, AliceClient aliceClient)
 			{
 				try
 				{
 					await aliceClient.RegisterInputAsync(cancellationToken).ConfigureAwait(false);
-					successfulAlices.Add(aliceClient);
+					smartCoin.CoinJoinInProgress = true;
+					return aliceClient;
 				}
-				catch (Exception e)
+				catch (System.Net.Http.HttpRequestException ex)
 				{
-					Logger.LogWarning($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): {nameof(AliceClient.RegisterInputAsync)} failed, reason:'{e}'.");
+					if (ex.InnerException is WabiSabiProtocolException wpe)
+					{
+						switch (wpe.ErrorCode)
+						{
+							case WabiSabiProtocolErrorCode.InputSpent:
+								smartCoin.SpentAccordingToBackend = true;
+								Logger.LogInfo($"{smartCoin.Coin.Outpoint} is spent according to the backend. The wallet is not fully synchronized or corrupted.");
+								break;
+							case WabiSabiProtocolErrorCode.InputBanned:
+								smartCoin.BannedUntilUtc = DateTimeOffset.UtcNow.AddDays(1);
+								smartCoin.SetIsBanned();
+								Logger.LogInfo($"{smartCoin.Coin.Outpoint} is banned.");
+								break;
+							case WabiSabiProtocolErrorCode.InputNotWhitelisted:
+								smartCoin.SpentAccordingToBackend = false;
+								Logger.LogInfo($"{smartCoin.Coin.Outpoint} cannot be registered in the blame round.");
+								break;
+							case WabiSabiProtocolErrorCode.AliceAlreadyRegistered:
+								Logger.LogInfo($"{smartCoin.Coin.Outpoint} was already registered.");
+								return aliceClient;
+							case WabiSabiProtocolErrorCode.WrongPhase:
+								return null; // The coin didn't get it and arrived too late to the party.
+						}
+					}
+					Logger.LogInfo($"{smartCoin.Coin.Outpoint} registration failed with {ex}.");
+					return null;
 				}
 			}
 
-			return successfulAlices;
+			var registerRequests = aliceClients.Select(x => RegisterInputTask(x.SmartCoin, x.AliceClient)).ToImmutableArray();
+			await Task.WhenAll(registerRequests).ConfigureAwait(false);
+
+			return registerRequests
+				.Where(x => x.Result is not null)
+				.Select(x => x.Result!)
+				.ToImmutableArray();
 		}
 
 		private static IEnumerable<Money> DecomposeAmounts(IEnumerable<Coin> coins, FeeRate feeRate, Money minimumOutputAmount)
@@ -219,5 +254,16 @@ namespace WalletWasabi.WabiSabi.Client
 			var readyRequests = aliceClients.Select(ReadyToSignTask);
 			await Task.WhenAll(readyRequests).ConfigureAwait(false);
 		}
+
+		private ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, MultipartyTransactionParameters parameters) =>
+			coins
+				.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount)) // Only coin with amount in the allowed range
+				.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t))) // Only coins with allowed script types
+				// .GroupBy(x => x.TransactionId) // Only one coin from the same transaction (do not consolidate same transaction outputs)
+				// .Select(x => x.OrderByDescending(y => y.Amount).First()) // In case of coins from same tx then take the biggest one
+				.OrderBy(x => x.HdPubKey.AnonymitySet) // Less private coins should be the first ones
+				.ThenByDescending(x => x.Amount)
+				.Take(MaxInputsRegistrableByWallet)
+				.ToImmutableList();
 	}
 }
