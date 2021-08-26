@@ -657,8 +657,8 @@ namespace WalletWasabi.Fluent.Controls
 				LabelAlignment.Auto => isFirst
 					? offsetCenter.WithY(offsetCenter.Y + height / 2)
 					: isLast
-						? offsetCenter.WithY(offsetCenter.Y - height / 2)
-						: offsetCenter.WithY(offsetCenter.Y + height - height / 2),
+						? offsetCenter.WithY(offsetCenter.Y - height + height / 2)
+						: offsetCenter.WithY(offsetCenter.Y),
 				LabelAlignment.Left => offsetCenter,
 				LabelAlignment.Center => offsetCenter,
 				LabelAlignment.Right => offsetCenter,
