@@ -624,6 +624,22 @@ namespace WalletWasabi.Fluent.Controls
 			opacityState.Dispose();
 		}
 
+		private static TextAlignment GetLabelTextAlignment(LabelAlignment alignment, int index, int count)
+		{
+			var isFirst = index == 0;
+			var isLast = index == count - 1;
+
+			return alignment switch
+			{
+				LabelAlignment.Auto => isFirst ? TextAlignment.Left :
+					isLast ? TextAlignment.Right : TextAlignment.Center,
+				LabelAlignment.Left => TextAlignment.Left,
+				LabelAlignment.Center => TextAlignment.Center,
+				LabelAlignment.Right => TextAlignment.Right,
+				_ => TextAlignment.Center
+			};
+		}
+
 		private void DrawYAxisLabels(DrawingContext context, LineChartState state)
 		{
 			var foreground = YAxisLabelForeground;
@@ -655,14 +671,7 @@ namespace WalletWasabi.Fluent.Controls
 			for (var i = labels.Count - 1; i >= 0; i--)
 			{
 				var label = labels[i];
-				var textAlignment = alignment switch
-				{
-					LabelAlignment.Auto => i == 0 ? TextAlignment.Left : i == labels.Count - 1 ? TextAlignment.Right : TextAlignment.Center,
-					LabelAlignment.Left => TextAlignment.Left,
-					LabelAlignment.Center => TextAlignment.Center,
-					LabelAlignment.Right => TextAlignment.Right,
-					_ => TextAlignment.Center
-				};
+				var textAlignment = GetLabelTextAlignment(alignment, i, labels.Count);
 				var formattedText = CreateFormattedText(label, typeface, textAlignment, fontSize, Size.Empty);
 				formattedTextLabels.Add(formattedText);
 				constrainWidthMax = Math.Max(constrainWidthMax, formattedText.Bounds.Width);
