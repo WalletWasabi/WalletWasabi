@@ -9,6 +9,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
@@ -91,7 +92,11 @@ namespace WalletWasabi.WabiSabi.Client
 
 			// Calculate outputs values
 			var registeredCoins = registeredAliceClients.Select(x => x.Coin);
-			var outputValues = DecomposeAmounts(registeredCoins, roundState.FeeRate, constructionState.Parameters.AllowedOutputAmounts.Min);
+
+			// TODO: after connection confirmation this should be replaced by:
+			// var availableVsize = registeredAliceClients.SelectMany(x=>x.IssuedVsizeCredentials).Sum(x=>x.Value);
+			var availableVsize = registeredAliceClients.Sum(x => roundState.MaxVsizeAllocationPerAlice - x.Coin.ScriptPubKey.EstimateInputVsize());
+			var outputValues = DecomposeAmounts(registeredCoins, roundState.FeeRate, constructionState.Parameters.AllowedOutputAmounts.Min, (int)availableVsize);
 
 			// Get all locked internal keys we have and assert we have enough.
 			Keymanager.AssertLockedInternalKeysIndexed(howMany: outputValues.Count());
@@ -200,11 +205,17 @@ namespace WalletWasabi.WabiSabi.Client
 				.ToImmutableArray();
 		}
 
-		private static IEnumerable<Money> DecomposeAmounts(IEnumerable<Coin> coins, FeeRate feeRate, Money minimumOutputAmount)
+		private static IEnumerable<Money> DecomposeAmounts(IEnumerable<Coin> coins, FeeRate feeRate, Money minimumOutputAmount, int availableVsize)
 		{
 			GreedyDecomposer greedyDecomposer = new(StandardDenomination.Values.Where(x => x >= minimumOutputAmount));
 			var sum = coins.Sum(c => c.EffectiveValue(feeRate));
-			return greedyDecomposer.Decompose(sum, feeRate.GetFee(31));
+			var decomposedAmounts = greedyDecomposer.Decompose(sum, feeRate.GetFee(Constants.P2WPKHOutputSizeInBytes)).ToImmutableArray();
+			var maxNumberOfComponents = availableVsize / Constants.P2WPKHOutputSizeInBytes;
+
+			var standardAmounts = decomposedAmounts.Take(maxNumberOfComponents - 1);
+			var sumOfRest = decomposedAmounts.Skip(maxNumberOfComponents - 1).Sum();
+
+			return standardAmounts.Append(sumOfRest).Where(x => x > Money.Zero).ToImmutableArray();
 		}
 
 		private BobClient CreateBobClient(RoundState roundState)
@@ -255,13 +266,25 @@ namespace WalletWasabi.WabiSabi.Client
 			await Task.WhenAll(readyRequests).ConfigureAwait(false);
 		}
 
+		// Selects coin candidates for participating in a round.
+		// The criteria is the following:
+		// * Only coin with amount in the allowed range
+		// * Only coins with allowed script types
+		// * Only one coin (the biggest one) from the same transaction (do not consolidate same transaction outputs)
+		//
+		// Then prefer:
+		// * less private coins should be the first ones
+		// * bigger coins first (this makes economical sense because mix more money paying less netwrok fees)
+		//
+		// Note: this method works on already pre-filteres coins: those available and that didn't reached the
+		// expected anonymity set threshold.
 		private ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, MultipartyTransactionParameters parameters) =>
 			coins
-				.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount)) // Only coin with amount in the allowed range
-				.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t))) // Only coins with allowed script types
-				// .GroupBy(x => x.TransactionId) // Only one coin from the same transaction (do not consolidate same transaction outputs)
-				// .Select(x => x.OrderByDescending(y => y.Amount).First()) // In case of coins from same tx then take the biggest one
-				.OrderBy(x => x.HdPubKey.AnonymitySet) // Less private coins should be the first ones
+				.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
+				.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t)))
+				.GroupBy(x => x.TransactionId)
+				.Select(x => x.OrderByDescending(y => y.Amount).First())
+				.OrderBy(x => x.HdPubKey.AnonymitySet)
 				.ThenByDescending(x => x.Amount)
 				.Take(MaxInputsRegistrableByWallet)
 				.ToImmutableList();
