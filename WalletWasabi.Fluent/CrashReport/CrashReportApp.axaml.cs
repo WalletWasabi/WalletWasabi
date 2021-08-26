@@ -1,4 +1,3 @@
-using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
@@ -10,7 +9,7 @@ namespace WalletWasabi.Fluent.CrashReport
 {
 	public class CrashReportApp : Application
 	{
-		private readonly SerializableException _serializableException;
+		private readonly SerializableException? _serializableException;
 
 		public CrashReportApp()
 		{
@@ -29,7 +28,7 @@ namespace WalletWasabi.Fluent.CrashReport
 
 		public override void OnFrameworkInitializationCompleted()
 		{
-			if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+			if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && _serializableException is { })
 			{
 				desktop.MainWindow = new CrashReportWindow
 				{

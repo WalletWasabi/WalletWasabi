@@ -38,11 +38,6 @@ namespace WalletWasabi.Fluent.CrashReport
 			exception = null;
 			try
 			{
-				if (args.Length < 2)
-				{
-					return false;
-				}
-
 				var commandArgument = args.SingleOrDefault(x => x == "crashreport");
 				var parameterArgument = args.SingleOrDefault(x => x.Contains("-exception="));
 

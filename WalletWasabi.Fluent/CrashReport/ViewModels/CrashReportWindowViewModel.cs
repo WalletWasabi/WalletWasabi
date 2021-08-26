@@ -39,11 +39,11 @@ namespace WalletWasabi.Fluent.CrashReport.ViewModels
 
 		public ICommand CopyTraceCommand { get; }
 
-		public string Caption { get; } = $"A problem has occurred and Wasabi is unable to continue.";
+		public string Caption => $"A problem has occurred and Wasabi is unable to continue.";
 
 		public string Trace => $"{SerializedException.Message}{Environment.NewLine}" +
 		                       $"{Environment.NewLine}{SerializedException.StackTrace}";
 
-		public string Title { get; } = "Wasabi has crashed";
+		public string Title => "Wasabi has crashed";
 	}
 }

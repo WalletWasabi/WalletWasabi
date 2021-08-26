@@ -7,10 +7,6 @@
     <local:ViewLocator />
   </Application.DataTemplates>
 
-  <Application.Resources>
-    <x:Double x:Key="ToggleSwitchThemeMinWidth">0</x:Double>
-  </Application.Resources>
-
   <Application.Styles>
     <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/BaseDark.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Icons/Icons.axaml" />
