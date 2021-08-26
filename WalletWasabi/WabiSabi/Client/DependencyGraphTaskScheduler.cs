@@ -25,7 +25,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private DependencyGraph Graph { get; }
 		private Dictionary<CredentialDependency, TaskCompletionSource<Credential>> DependencyTasks { get; }
 
-		public async Task CompleteConnectionConfirmationAsync(IEnumerable<AliceClient> aliceClients, BobClient bobClient, CancellationToken cancellationToken)
+		private async Task CompleteConnectionConfirmationAsync(IEnumerable<AliceClient> aliceClients, BobClient bobClient, CancellationToken cancellationToken)
 		{
 			var aliceNodePairs = PairAliceClientAndRequestNodes(aliceClients, Graph);
 
@@ -40,8 +40,8 @@ namespace WalletWasabi.WabiSabi.Client
 				var amountEdgeTaskCompSources = Graph.OutEdges(node, CredentialType.Amount).Select(edge => DependencyTasks[edge]);
 				var vsizeEdgeTaskCompSources = Graph.OutEdges(node, CredentialType.Vsize).Select(edge => DependencyTasks[edge]);
 				SmartRequestNode smartRequestNode = new(
-					Enumerable.Empty<Task<Credential>>(),
-					Enumerable.Empty<Task<Credential>>(),
+					aliceClient.IssuedAmountCredentials.Take(ProtocolConstants.CredentialNumber).Select(Task.FromResult),
+					aliceClient.IssuedVsizeCredentials.Take(ProtocolConstants.CredentialNumber).Select(Task.FromResult),
 					amountEdgeTaskCompSources,
 					vsizeEdgeTaskCompSources);
 
