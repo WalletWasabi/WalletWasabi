@@ -12,6 +12,32 @@ namespace WalletWasabi.Fluent.Controls
 		Logarithmic
 	}
 
+	/// <summary>
+	/// Defines how a label aligns itself along axis.
+	/// </summary>
+	public enum LabelAlignment
+	{
+		/// <summary>
+		/// The label is auto-aligned.
+		/// </summary>
+		Auto,
+
+		/// <summary>
+		/// The label is left-aligned.
+		/// </summary>
+		Left,
+
+		/// <summary>
+		/// The label is centered.
+		/// </summary>
+		Center,
+
+		/// <summary>
+		/// The label is right-aligned.
+		/// </summary>
+		Right,
+	}
+
 	public partial class LineChart
 	{
 		// Area
