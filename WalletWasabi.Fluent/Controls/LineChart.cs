@@ -579,6 +579,7 @@ namespace WalletWasabi.Fluent.Controls
 				var origin = new Point(i * state.XAxisLabelStep + constraintMax.Width / 2 + state.AreaMargin.Left,
 					originTop);
 				var offsetCenter = new Point(constraintMax.Width / 2 - constraintMax.Width / 2, 0);
+				offsetCenter = AlignXAxisLabelOffset(offsetCenter, formattedTextLabels[i].Bounds.Width, i, formattedTextLabels.Count, alignment);
 				var xPosition = origin.X + constraintMax.Width / 2;
 				var yPosition = origin.Y + constraintMax.Height / 2;
 				var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
@@ -586,7 +587,6 @@ namespace WalletWasabi.Fluent.Controls
 							 * Matrix.CreateTranslation(xPosition, yPosition);
 				var labelTransform = context.PushPreTransform(matrix);
 				var opacityState = context.PushOpacity(opacity);
-				offsetCenter = AlignXAxisLabelOffset(offsetCenter, formattedTextLabels[i].Bounds.Width, i, formattedTextLabels.Count, alignment);
 				context.DrawText(foreground, origin + offsetCenter, formattedTextLabels[i]);
 				opacityState.Dispose();
 				labelTransform.Dispose();
@@ -635,19 +635,34 @@ namespace WalletWasabi.Fluent.Controls
 			opacityState.Dispose();
 		}
 
-		private static TextAlignment GetLabelTextAlignment(LabelAlignment alignment, int index, int count)
+		private static TextAlignment GetYAxisLabelTextAlignment(LabelAlignment alignment)
+		{
+			return alignment switch
+			{
+				LabelAlignment.Auto => TextAlignment.Right,
+				LabelAlignment.Left => TextAlignment.Left,
+				LabelAlignment.Center => TextAlignment.Center,
+				LabelAlignment.Right => TextAlignment.Right,
+				_ => TextAlignment.Center
+			};
+		}
+
+		private static Point AlignYAxisLabelOffset(Point offsetCenter, double height, int index, int count, LabelAlignment alignment)
 		{
 			var isFirst = index == 0;
 			var isLast = index == count - 1;
 
 			return alignment switch
 			{
-				LabelAlignment.Auto => isFirst ? TextAlignment.Left :
-					isLast ? TextAlignment.Right : TextAlignment.Center,
-				LabelAlignment.Left => TextAlignment.Left,
-				LabelAlignment.Center => TextAlignment.Center,
-				LabelAlignment.Right => TextAlignment.Right,
-				_ => TextAlignment.Center
+				LabelAlignment.Auto => isFirst
+					? offsetCenter.WithY(offsetCenter.Y + height / 2)
+					: isLast
+						? offsetCenter.WithY(offsetCenter.Y - height / 2)
+						: offsetCenter.WithY(offsetCenter.Y + height - height / 2),
+				LabelAlignment.Left => offsetCenter,
+				LabelAlignment.Center => offsetCenter,
+				LabelAlignment.Right => offsetCenter,
+				_ => offsetCenter
 			};
 		}
 
@@ -682,7 +697,7 @@ namespace WalletWasabi.Fluent.Controls
 			for (var i = labels.Count - 1; i >= 0; i--)
 			{
 				var label = labels[i];
-				var textAlignment = GetLabelTextAlignment(alignment, i, labels.Count);
+				var textAlignment = GetYAxisLabelTextAlignment(alignment);
 				var formattedText = CreateFormattedText(label, typeface, textAlignment, fontSize, Size.Empty);
 				formattedTextLabels.Add(formattedText);
 				constrainWidthMax = Math.Max(constrainWidthMax, formattedText.Bounds.Width);
@@ -699,6 +714,7 @@ namespace WalletWasabi.Fluent.Controls
 				var origin = new Point(originLeft - constraintMax.Width,
 					i * state.YAxisLabelStep - constraintMax.Height / 2 + state.AreaMargin.Top);
 				var offsetCenter = new Point(constraintMax.Width / 2 - constraintMax.Width / 2, 0);
+				offsetCenter = AlignYAxisLabelOffset(offsetCenter, formattedTextLabels[i].Bounds.Height, i, formattedTextLabels.Count, alignment);
 				var xPosition = origin.X + constraintMax.Width / 2;
 				var yPosition = origin.Y + constraintMax.Height / 2;
 				var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
