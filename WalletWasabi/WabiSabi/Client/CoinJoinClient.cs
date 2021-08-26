@@ -83,7 +83,7 @@ namespace WalletWasabi.WabiSabi.Client
 			var aliceClientsToRegister = coinCandidates.Select(x => (SmartCoin: x, AliceClient: CreateAliceClient(x.Coin, roundState))).ToImmutableArray();
 
 			// Register coins.
-			var registeredAliceClients = await RegisterCoinsAsync(aliceClientsToRegister, cancellationToken).ConfigureAwait(false);
+			var registeredAliceClients = await RegisterAndConfirmCoinsAsync(aliceClientsToRegister, cancellationToken).ConfigureAwait(false);
 			if (!registeredAliceClients.Any())
 			{
 				throw new InvalidOperationException($"Round ({roundState.Id}): There is no available alices to participate with.");
@@ -100,9 +100,6 @@ namespace WalletWasabi.WabiSabi.Client
 
 			DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(registeredCoins, outputTxOuts, roundState.FeeRate, roundState.MaxVsizeAllocationPerAlice);
 			DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
-
-			// Confirm coins.
-			await scheduler.StartConfirmConnectionsAsync(registeredAliceClients, dependencyGraph, roundState.ConnectionConfirmationTimeout, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
 
 			// Re-issuances.
 			var bobClient = CreateBobClient(roundState);
@@ -146,17 +143,17 @@ namespace WalletWasabi.WabiSabi.Client
 			{
 				throw new InvalidOperationException("The key cannot generate the utxo scriptpubkey. This could happen if the wallet password is not the correct one.");
 			}
-			return new AliceClient(roundState.Id, aliceArenaClient, coin, roundState.FeeRate, secret);
+			return new AliceClient(roundState, aliceArenaClient, coin, secret);
 		}
 
-		private async Task<ImmutableArray<AliceClient>> RegisterCoinsAsync(
+		private async Task<ImmutableArray<AliceClient>> RegisterAndConfirmCoinsAsync(
 			IEnumerable<(SmartCoin SmartCoin, AliceClient AliceClient)> aliceClients, CancellationToken cancellationToken)
 		{
 			async Task<AliceClient?> RegisterInputTask(SmartCoin smartCoin, AliceClient aliceClient)
 			{
 				try
 				{
-					await aliceClient.RegisterInputAsync(cancellationToken).ConfigureAwait(false);
+					await aliceClient.RegisterAndConfirmInputAsync(RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
 					smartCoin.CoinJoinInProgress = true;
 					return aliceClient;
 				}
@@ -170,18 +167,22 @@ namespace WalletWasabi.WabiSabi.Client
 								smartCoin.SpentAccordingToBackend = true;
 								Logger.LogInfo($"{smartCoin.Coin.Outpoint} is spent according to the backend. The wallet is not fully synchronized or corrupted.");
 								break;
+
 							case WabiSabiProtocolErrorCode.InputBanned:
 								smartCoin.BannedUntilUtc = DateTimeOffset.UtcNow.AddDays(1);
 								smartCoin.SetIsBanned();
 								Logger.LogInfo($"{smartCoin.Coin.Outpoint} is banned.");
 								break;
+
 							case WabiSabiProtocolErrorCode.InputNotWhitelisted:
 								smartCoin.SpentAccordingToBackend = false;
 								Logger.LogInfo($"{smartCoin.Coin.Outpoint} cannot be registered in the blame round.");
 								break;
+
 							case WabiSabiProtocolErrorCode.AliceAlreadyRegistered:
 								Logger.LogInfo($"{smartCoin.Coin.Outpoint} was already registered.");
 								return aliceClient;
+
 							case WabiSabiProtocolErrorCode.WrongPhase:
 								return null; // The coin didn't get it and arrived too late to the party.
 						}
@@ -259,8 +260,8 @@ namespace WalletWasabi.WabiSabi.Client
 			coins
 				.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount)) // Only coin with amount in the allowed range
 				.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t))) // Only coins with allowed script types
-				// .GroupBy(x => x.TransactionId) // Only one coin from the same transaction (do not consolidate same transaction outputs)
-				// .Select(x => x.OrderByDescending(y => y.Amount).First()) // In case of coins from same tx then take the biggest one
+																								   // .GroupBy(x => x.TransactionId) // Only one coin from the same transaction (do not consolidate same transaction outputs)
+																								   // .Select(x => x.OrderByDescending(y => y.Amount).First()) // In case of coins from same tx then take the biggest one
 				.OrderBy(x => x.HdPubKey.AnonymitySet) // Less private coins should be the first ones
 				.ThenByDescending(x => x.Amount)
 				.Take(MaxInputsRegistrableByWallet)

@@ -9,6 +9,7 @@ using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
 
@@ -202,33 +203,25 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
 
 			// Register Alices.
-			var aliceClient1 = new AliceClient(round.Id, arenaClient, coin1, round.FeeRate, key1.GetBitcoinSecret(round.Network));
-			var aliceClient2 = new AliceClient(round.Id, arenaClient, coin2, round.FeeRate, key2.GetBitcoinSecret(round.Network));
+			var aliceClient1 = new AliceClient(RoundState.FromRound(round), arenaClient, coin1, key1.GetBitcoinSecret(round.Network));
+			var aliceClient2 = new AliceClient(RoundState.FromRound(round), arenaClient, coin2, key2.GetBitcoinSecret(round.Network));
 
-			await aliceClient1.RegisterInputAsync(CancellationToken.None).ConfigureAwait(false);
-			await aliceClient2.RegisterInputAsync(CancellationToken.None).ConfigureAwait(false);
+			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), new ArenaRequestHandlerAdapter(arena));
+			await roundStateUpdater.StartAsync(CancellationToken.None);
+
+			var task1 = aliceClient1.RegisterAndConfirmInputAsync(roundStateUpdater, CancellationToken.None);
+			var task2 = aliceClient2.RegisterAndConfirmInputAsync(roundStateUpdater, CancellationToken.None);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
-			// Confirm connections.
-			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), new ArenaRequestHandlerAdapter(arena));
-			await aliceClient1.ConfirmConnectionAsync(
-				TimeSpan.FromSeconds(1),
-				new long[] { coin1.EffectiveValue(round.FeeRate) },
-				new long[] { round.MaxVsizeAllocationPerAlice - coin1.ScriptPubKey.EstimateInputVsize() },
-				roundStateUpdater,
-				CancellationToken.None).ConfigureAwait(false);
-
-			await aliceClient2.ConfirmConnectionAsync(
-				TimeSpan.FromSeconds(1),
-				new long[] { coin2.EffectiveValue(round.FeeRate) },
-				new long[] { round.MaxVsizeAllocationPerAlice - coin2.ScriptPubKey.EstimateInputVsize() },
-				roundStateUpdater,
-				CancellationToken.None).ConfigureAwait(false);
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+			await Task.WhenAll(task1, task2);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.OutputRegistration, round.Phase);
+
+			await roundStateUpdater.StopAsync(CancellationToken.None);
 
 			return (round,
 					arenaClient,
