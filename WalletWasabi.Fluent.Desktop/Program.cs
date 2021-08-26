@@ -36,13 +36,16 @@ namespace WalletWasabi.Fluent.Desktop
 			TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 			bool runGui = true;
 
+			// Initialize the logger.
+			string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
+			SetupLogger(dataDir, args);
+
 			try
 			{
 				if (CrashReporter.TryGetExceptionFromCliArgs(args, out var exceptionToShow))
 				{
 					// Show the exception.
 					BuildCrashReporterApp(exceptionToShow).StartWithClassicDesktopLifetime(args);
-
 					runGui = false;
 				}
 			}
@@ -60,11 +63,7 @@ namespace WalletWasabi.Fluent.Desktop
 			{
 				try
 				{
-					string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
-
-					SetupLogger(dataDir, args);
 					var (uiConfig, config) = LoadOrCreateConfigs(dataDir);
-
 					singleInstanceChecker = new SingleInstanceChecker(config.Network);
 					singleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
 
@@ -255,10 +254,10 @@ namespace WalletWasabi.Fluent.Desktop
 			}
 
 			return result
-				.With(new Win32PlatformOptions {AllowEglInitialization = false, UseDeferredRendering = true})
-				.With(new X11PlatformOptions {UseGpu = false, WmClass = "Wasabi Wallet Crash Reporting"})
-				.With(new AvaloniaNativePlatformOptions {UseDeferredRendering = true, UseGpu = false})
-				.With(new MacOSPlatformOptions {ShowInDock = true})
+				.With(new Win32PlatformOptions { AllowEglInitialization = false, UseDeferredRendering = true })
+				.With(new X11PlatformOptions { UseGpu = false, WmClass = "Wasabi Wallet Crash Reporting" })
+				.With(new AvaloniaNativePlatformOptions { UseDeferredRendering = true, UseGpu = false })
+				.With(new MacOSPlatformOptions { ShowInDock = true })
 				.AfterSetup(_ => ThemeHelper.ApplyTheme(Theme.Dark));
 		}
 	}
