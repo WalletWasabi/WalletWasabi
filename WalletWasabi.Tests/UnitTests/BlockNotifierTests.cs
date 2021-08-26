@@ -264,7 +264,8 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			var rpc = new MockRpcClient();
 			rpc.OnGetBestBlockHashAsync = () => Task.FromResult(chain.Tip.HashBlock);
-			rpc.OnGetBlockAsync = (blockHash) => {
+			rpc.OnGetBlockAsync = (blockHash) =>
+			{
 				var block = rpc.Network.Consensus.ConsensusFactory.CreateBlock();
 				block.Header = chain.GetBlock(blockHash).Header;
 				return Task.FromResult(block);
