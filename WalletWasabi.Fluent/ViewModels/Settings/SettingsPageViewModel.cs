@@ -1,4 +1,7 @@
 using System.Reactive.Disposables;
+using System.Windows.Input;
+using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Gui;
@@ -25,7 +28,11 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			PrivacySettingsTab = new PrivacySettingsTabViewModel();
 			NetworkSettingsTab = new NetworkSettingsTabViewModel();
 			BitcoinTabSettings = new BitcoinTabSettingsViewModel();
+
+			RestartCommand = ReactiveCommand.Create(AppLifetimeHelper.Restart);
 		}
+
+		public ICommand RestartCommand { get; }
 
 		public GeneralSettingsTabViewModel GeneralSettingsTab { get; }
 		public PrivacySettingsTabViewModel PrivacySettingsTab { get; }
