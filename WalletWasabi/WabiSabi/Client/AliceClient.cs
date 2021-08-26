@@ -9,21 +9,24 @@ using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client
 {
 	public class AliceClient
 	{
-		public AliceClient(uint256 roundId, ArenaClient arenaClient, Coin coin, FeeRate feeRate, BitcoinSecret bitcoinSecret)
+		public AliceClient(RoundState roundState, ArenaClient arenaClient, Coin coin, BitcoinSecret bitcoinSecret)
 		{
-			AliceId = CalculateHash(coin, bitcoinSecret, roundId);
-			RoundId = roundId;
+			AliceId = CalculateHash(coin, bitcoinSecret, roundState.Id);
+			RoundId = roundState.Id;
 			ArenaClient = arenaClient;
 			Coin = coin;
-			FeeRate = feeRate;
+			FeeRate = roundState.FeeRate;
 			BitcoinSecret = bitcoinSecret;
 			IssuedAmountCredentials = Array.Empty<Credential>();
 			IssuedVsizeCredentials = Array.Empty<Credential>();
+			MaxVsizeAllocationPerAlice = roundState.MaxVsizeAllocationPerAlice;
+			ConfirmationTimeout = roundState.ConnectionConfirmationTimeout / 2;
 		}
 
 		public uint256 AliceId { get; }
@@ -34,8 +37,10 @@ namespace WalletWasabi.WabiSabi.Client
 		private BitcoinSecret BitcoinSecret { get; }
 		public IEnumerable<Credential> IssuedAmountCredentials { get; private set; }
 		public IEnumerable<Credential> IssuedVsizeCredentials { get; private set; }
+		private long MaxVsizeAllocationPerAlice { get; }
+		private TimeSpan ConfirmationTimeout { get; }
 
-		public async Task RegisterInputAsync(CancellationToken cancellationToken)
+		public async Task RegisterAndConfirmInputAsync(RoundStateUpdater roundStatusUpdater, CancellationToken cancellationToken)
 		{
 			var response = await ArenaClient.RegisterInputAsync(RoundId, Coin.Outpoint, BitcoinSecret.PrivateKey, cancellationToken).ConfigureAwait(false);
 			var remoteAliceId = response.Value;
@@ -46,13 +51,13 @@ namespace WalletWasabi.WabiSabi.Client
 			IssuedAmountCredentials = response.IssuedAmountCredentials;
 			IssuedVsizeCredentials = response.IssuedVsizeCredentials;
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Registered an input.");
-		}
 
-		public async Task ConfirmConnectionAsync(TimeSpan connectionConfirmationTimeout, IEnumerable<long> amountsToRequest, IEnumerable<long> vsizesToRequest, RoundStateUpdater roundStatusUpdater, CancellationToken cancellationToken)
-		{
+			long[] amountsToRequest = { Coin.EffectiveValue(FeeRate).Satoshi };
+			long[] vsizesToRequest = { MaxVsizeAllocationPerAlice - Coin.ScriptPubKey.EstimateInputVsize() };
+
 			do
 			{
-				using CancellationTokenSource timeout = new(connectionConfirmationTimeout / 2);
+				using CancellationTokenSource timeout = new(ConfirmationTimeout);
 				using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
 
 				try

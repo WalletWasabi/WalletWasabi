@@ -8,6 +8,7 @@ using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Models;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
@@ -27,16 +28,30 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, rpc, round);
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
+			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), new ArenaRequestHandlerAdapter(arena));
+			await roundStateUpdater.StartAsync(CancellationToken.None);
+
 			// Register Alices.
-			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
-			var aliceClient = new AliceClient(round.Id, arenaClient, coin, round.FeeRate, key.GetBitcoinSecret(round.Network));
-			await aliceClient.RegisterInputAsync(CancellationToken.None);
+			var aliceClient = new AliceClient(RoundState.FromRound(round), arenaClient, coin, key.GetBitcoinSecret(round.Network));
+
+			using CancellationTokenSource cancellationTokenSource = new();
+			var task = aliceClient.RegisterAndConfirmInputAsync(roundStateUpdater, cancellationTokenSource.Token);
+
+			while (round.Alices.Count == 0)
+			{
+				await Task.Delay(10);
+			}
 
 			var alice = Assert.Single(round.Alices);
 			alice.Deadline = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(1);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+
 			Assert.Empty(round.Alices);
 
+			cancellationTokenSource.Cancel();
+			await Assert.ThrowsAsync<OperationCanceledException>(async () => await task);
+
+			await roundStateUpdater.StopAsync(CancellationToken.None);
 			await arena.StopAsync(CancellationToken.None);
 		}
 
