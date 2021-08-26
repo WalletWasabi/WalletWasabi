@@ -93,9 +93,7 @@ namespace WalletWasabi.WabiSabi.Client
 			// Calculate outputs values
 			var registeredCoins = registeredAliceClients.Select(x => x.Coin);
 
-			// TODO: after connection confirmation this should be replaced by:
-			// var availableVsize = registeredAliceClients.SelectMany(x=>x.IssuedVsizeCredentials).Sum(x=>x.Value);
-			var availableVsize = registeredAliceClients.Sum(x => roundState.MaxVsizeAllocationPerAlice - x.Coin.ScriptPubKey.EstimateInputVsize());
+			var availableVsize = registeredAliceClients.SelectMany(x=>x.IssuedVsizeCredentials).Sum(x=>x.Value);
 			var outputValues = DecomposeAmounts(registeredCoins, roundState.FeeRate, constructionState.Parameters.AllowedOutputAmounts.Min, (int)availableVsize);
 
 			// Get all locked internal keys we have and assert we have enough.
