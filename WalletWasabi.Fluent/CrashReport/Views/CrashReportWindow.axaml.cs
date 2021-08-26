@@ -17,7 +17,6 @@ namespace WalletWasabi.Fluent.CrashReport.Views
 		private void InitializeComponent()
 		{
 			AvaloniaXamlLoader.Load(this);
-			Activate();
 		}
 	}
 }
