@@ -540,10 +540,20 @@ namespace WalletWasabi.Fluent.Controls
 			var formattedTextLabels = new List<FormattedText>();
 			var constrainWidthMax = 0.0;
 			var constrainHeightMax = 0.0;
+			var labels = state.XAxisLabels;
 
-			foreach (var label in state.XAxisLabels)
+			for (var i = 0; i < labels.Count; i++)
 			{
-				var formattedText = CreateFormattedText(label, typeface, alignment, fontSize, Size.Empty);
+				var label = labels[i];
+				var textAlignment = alignment switch
+				{
+					LabelAlignment.Auto => i == 0 ? TextAlignment.Left : i == labels.Count - 1 ? TextAlignment.Right : TextAlignment.Center,
+					LabelAlignment.Left => TextAlignment.Left,
+					LabelAlignment.Center => TextAlignment.Center,
+					LabelAlignment.Right => TextAlignment.Right,
+					_ => TextAlignment.Center
+				};
+				var formattedText = CreateFormattedText(label, typeface, textAlignment, fontSize, Size.Empty);
 				formattedTextLabels.Add(formattedText);
 				constrainWidthMax = Math.Max(constrainWidthMax, formattedText.Bounds.Width);
 				constrainHeightMax = Math.Max(constrainHeightMax, formattedText.Bounds.Height);
@@ -640,11 +650,20 @@ namespace WalletWasabi.Fluent.Controls
 			var formattedTextLabels = new List<FormattedText>();
 			var constrainWidthMax = 0.0;
 			var constrainHeightMax = 0.0;
+			var labels = state.YAxisLabels;
 
-			for (var index = state.YAxisLabels.Count - 1; index >= 0; index--)
+			for (var i = labels.Count - 1; i >= 0; i--)
 			{
-				var label = state.YAxisLabels[index];
-				var formattedText = CreateFormattedText(label, typeface, alignment, fontSize, Size.Empty);
+				var label = labels[i];
+				var textAlignment = alignment switch
+				{
+					LabelAlignment.Auto => i == 0 ? TextAlignment.Left : i == labels.Count - 1 ? TextAlignment.Right : TextAlignment.Center,
+					LabelAlignment.Left => TextAlignment.Left,
+					LabelAlignment.Center => TextAlignment.Center,
+					LabelAlignment.Right => TextAlignment.Right,
+					_ => TextAlignment.Center
+				};
+				var formattedText = CreateFormattedText(label, typeface, textAlignment, fontSize, Size.Empty);
 				formattedTextLabels.Add(formattedText);
 				constrainWidthMax = Math.Max(constrainWidthMax, formattedText.Bounds.Width);
 				constrainHeightMax = Math.Max(constrainHeightMax, formattedText.Bounds.Height);

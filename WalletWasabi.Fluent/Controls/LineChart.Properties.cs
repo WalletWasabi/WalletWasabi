@@ -126,8 +126,8 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<Point> XAxisLabelOffsetProperty =
 			AvaloniaProperty.Register<LineChart, Point>(nameof(XAxisLabelOffset), new Point(0, 5));
 
-		public static readonly StyledProperty<TextAlignment> XAxisLabelAlignmentProperty =
-			AvaloniaProperty.Register<LineChart, TextAlignment>(nameof(XAxisLabelAlignment), TextAlignment.Center);
+		public static readonly StyledProperty<LabelAlignment> XAxisLabelAlignmentProperty =
+			AvaloniaProperty.Register<LineChart, LabelAlignment>(nameof(XAxisLabelAlignment), LabelAlignment.Center);
 
 		public static readonly StyledProperty<double> XAxisLabelAngleProperty =
 			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisLabelAngle));
@@ -231,8 +231,8 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<Point> YAxisLabelOffsetProperty =
 			AvaloniaProperty.Register<LineChart, Point>(nameof(YAxisLabelOffset), new Point(-5, 0));
 
-		public static readonly StyledProperty<TextAlignment> YAxisLabelAlignmentProperty =
-			AvaloniaProperty.Register<LineChart, TextAlignment>(nameof(YAxisLabelAlignment), TextAlignment.Right);
+		public static readonly StyledProperty<LabelAlignment> YAxisLabelAlignmentProperty =
+			AvaloniaProperty.Register<LineChart, LabelAlignment>(nameof(YAxisLabelAlignment), LabelAlignment.Right);
 
 		public static readonly StyledProperty<double> YAxisLabelAngleProperty =
 			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisLabelAngle));
@@ -591,7 +591,7 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(XAxisLabelOffsetProperty, value);
 		}
 
-		public TextAlignment XAxisLabelAlignment
+		public LabelAlignment XAxisLabelAlignment
 		{
 			get => GetValue(XAxisLabelAlignmentProperty);
 			set => SetValue(XAxisLabelAlignmentProperty, value);
@@ -795,7 +795,7 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(YAxisLabelOffsetProperty, value);
 		}
 
-		public TextAlignment YAxisLabelAlignment
+		public LabelAlignment YAxisLabelAlignment
 		{
 			get => GetValue(YAxisLabelAlignmentProperty);
 			set => SetValue(YAxisLabelAlignmentProperty, value);
