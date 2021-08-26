@@ -241,7 +241,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 		{
 			const int NumberOfParticipants = 20;
 			const int NumberOfCoinsPerParticipant = 2;
-			const int ExpectedInputNumber = NumberOfParticipants * NumberOfCoinsPerParticipant;
+			const int ExpectedInputNumber = (NumberOfParticipants * NumberOfCoinsPerParticipant) / 2;
 
 			var node = await TestNodeBuilder.CreateForHeavyConcurrencyAsync();
 			try
