@@ -59,7 +59,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			do
 			{
 				await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
-			} while (round.Phase != Phase.ConnectionConfirmation);
+			}
+			while (round.Phase != Phase.ConnectionConfirmation);
 
 			await task;
 
