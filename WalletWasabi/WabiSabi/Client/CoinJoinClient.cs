@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -39,7 +38,6 @@ namespace WalletWasabi.WabiSabi.Client
 		}
 
 		private SecureRandom SecureRandom { get; }
-		private Random Random { get; } = new();
 		public IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
 		public Kitchen Kitchen { get; }
 		public KeyManager Keymanager { get; }
@@ -89,6 +87,11 @@ namespace WalletWasabi.WabiSabi.Client
 				throw new InvalidOperationException($"Round ({roundState.Id}): There is no available alices to participate with.");
 			}
 
+			// Unregister the coins in case it receives a cancellation request.
+			var registeredAliceClientsAndCoins = aliceClientsToRegister.Where(x => registeredAliceClients.Contains(x.AliceClient));
+			cancellationToken.Register(async () =>
+				await TryToUnregisterAlicesAsync(registeredAliceClientsAndCoins, CancellationToken.None).ConfigureAwait(false));
+
 			// Calculate outputs values
 			var registeredCoins = registeredAliceClients.Select(x => x.Coin);
 			var outputValues = DecomposeAmounts(registeredCoins, roundState.FeeRate, constructionState.Parameters.AllowedOutputAmounts.Min);
@@ -128,6 +131,40 @@ namespace WalletWasabi.WabiSabi.Client
 
 			var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundState.Id && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
 			return finalRoundState.WasTransactionBroadcast;
+		}
+
+		private async Task TryToUnregisterAlicesAsync(IEnumerable<(SmartCoin SmartCoin, AliceClient AliceClient)> registeredAliceClients, CancellationToken cancellationToken)
+		{
+			async Task UnregisterInputTask(SmartCoin smartCoin, AliceClient aliceClient)
+			{
+				try
+				{
+					await aliceClient.RemoveInputAsync(cancellationToken).ConfigureAwait(false);
+					smartCoin.CoinJoinInProgress = false;
+				}
+				catch (System.Net.Http.HttpRequestException ex)
+				{
+					if (ex.InnerException is WabiSabiProtocolException wpe)
+					{
+						switch (wpe.ErrorCode)
+						{
+							case WabiSabiProtocolErrorCode.RoundNotFound:
+								smartCoin.CoinJoinInProgress = false;
+								Logger.LogInfo($"{smartCoin.Coin.Outpoint} the round was not found. Nothing to unregister.");
+								break;
+							case WabiSabiProtocolErrorCode.WrongPhase:
+								Logger.LogInfo($"{smartCoin.Coin.Outpoint} could not be unregistered at this phase (too late).");
+								break;
+						}
+						return;
+					}
+
+					Logger.LogInfo($"{smartCoin.Coin.Outpoint} unregistration failed with {ex}.");
+				}
+			}
+
+			var unregisterRequests = registeredAliceClients.Select(x => UnregisterInputTask(x.SmartCoin, x.AliceClient)).ToImmutableArray();
+			await Task.WhenAll(unregisterRequests).ConfigureAwait(false);
 		}
 
 		private AliceClient CreateAliceClient(Coin coin, RoundState roundState)
