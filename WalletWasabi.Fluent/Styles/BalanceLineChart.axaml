@@ -37,7 +37,7 @@
     <Setter Property="XAxisLabelForeground" Value="{DynamicResource TextForegroundColor}" />
     <Setter Property="XAxisLabelAngle" Value="0" />
     <Setter Property="XAxisLabelOffset" Value="0,10" />
-    <Setter Property="XAxisLabelAlignment" Value="Center" />
+    <Setter Property="XAxisLabelAlignment" Value="Auto" />
     <Setter Property="XAxisLabelFontSize" Value="10" />
     <Setter Property="XAxisLabelOpacity" Value="0.8" />
   </Style>
