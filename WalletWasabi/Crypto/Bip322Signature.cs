@@ -1,5 +1,6 @@
 using System;
 using NBitcoin;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace WalletWasabi.Crypto
 {
@@ -17,8 +18,10 @@ namespace WalletWasabi.Crypto
 		{
 		}
 
+		[ValidateNever]
 		public Script ScriptSig => _scriptSig;
 
+		[ValidateNever]
 		public WitScript Witness { get; private set; } = WitScript.Empty;
 
 		public void ReadWrite(BitcoinStream bitcoinStream)
