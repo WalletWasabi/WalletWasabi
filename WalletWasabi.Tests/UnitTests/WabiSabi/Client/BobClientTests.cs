@@ -54,7 +54,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), wabiSabiApi);
 			await roundStateUpdater.StartAsync(CancellationToken.None);
 
-			var task = aliceClient.RegisterInputAsync(roundStateUpdater, CancellationToken.None);
+			var task = aliceClient.RegisterAndConfirmInputAsync(roundStateUpdater, CancellationToken.None);
 
 			do
 			{

@@ -83,7 +83,7 @@ namespace WalletWasabi.WabiSabi.Client
 			var aliceClientsToRegister = coinCandidates.Select(x => (SmartCoin: x, AliceClient: CreateAliceClient(x.Coin, roundState))).ToImmutableArray();
 
 			// Register coins.
-			var registeredAliceClients = await RegisterCoinsAsync(aliceClientsToRegister, cancellationToken).ConfigureAwait(false);
+			var registeredAliceClients = await RegisterAndConfirmCoinsAsync(aliceClientsToRegister, cancellationToken).ConfigureAwait(false);
 			if (!registeredAliceClients.Any())
 			{
 				throw new InvalidOperationException($"Round ({roundState.Id}): There is no available alices to participate with.");
@@ -146,14 +146,14 @@ namespace WalletWasabi.WabiSabi.Client
 			return new AliceClient(roundState, aliceArenaClient, coin, secret);
 		}
 
-		private async Task<ImmutableArray<AliceClient>> RegisterCoinsAsync(
+		private async Task<ImmutableArray<AliceClient>> RegisterAndConfirmCoinsAsync(
 			IEnumerable<(SmartCoin SmartCoin, AliceClient AliceClient)> aliceClients, CancellationToken cancellationToken)
 		{
 			async Task<AliceClient?> RegisterInputTask(SmartCoin smartCoin, AliceClient aliceClient)
 			{
 				try
 				{
-					await aliceClient.RegisterInputAsync(RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
+					await aliceClient.RegisterAndConfirmInputAsync(RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
 					smartCoin.CoinJoinInProgress = true;
 					return aliceClient;
 				}

@@ -40,7 +40,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private long MaxVsizeAllocationPerAlice { get; }
 		private TimeSpan ConfirmationTimeout { get; }
 
-		public async Task RegisterInputAsync(RoundStateUpdater roundStatusUpdater, CancellationToken cancellationToken)
+		public async Task RegisterAndConfirmInputAsync(RoundStateUpdater roundStatusUpdater, CancellationToken cancellationToken)
 		{
 			var response = await ArenaClient.RegisterInputAsync(RoundId, Coin.Outpoint, BitcoinSecret.PrivateKey, cancellationToken).ConfigureAwait(false);
 			var remoteAliceId = response.Value;

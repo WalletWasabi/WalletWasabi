@@ -35,7 +35,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var aliceClient = new AliceClient(RoundState.FromRound(round), arenaClient, coin, key.GetBitcoinSecret(round.Network));
 
 			using CancellationTokenSource cancellationTokenSource = new();
-			var task = aliceClient.RegisterInputAsync(roundStateUpdater, cancellationTokenSource.Token);
+			var task = aliceClient.RegisterAndConfirmInputAsync(roundStateUpdater, cancellationTokenSource.Token);
 
 			while (round.Alices.Count == 0)
 			{

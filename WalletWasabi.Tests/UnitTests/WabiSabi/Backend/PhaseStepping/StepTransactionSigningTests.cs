@@ -246,8 +246,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), new ArenaRequestHandlerAdapter(arena));
 			await roundStateUpdater.StartAsync(CancellationToken.None);
 
-			var task1 = aliceClient1.RegisterInputAsync(roundStateUpdater, CancellationToken.None);
-			var task2 = aliceClient2.RegisterInputAsync(roundStateUpdater, CancellationToken.None);
+			var task1 = aliceClient1.RegisterAndConfirmInputAsync(roundStateUpdater, CancellationToken.None);
+			var task2 = aliceClient2.RegisterAndConfirmInputAsync(roundStateUpdater, CancellationToken.None);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
