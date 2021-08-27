@@ -402,12 +402,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound, $"Round ({request.RoundId}): Alice id ({request.AliceId}).");
 				}
 
-				var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", request.RoundId);
-				if (!OwnershipProof.VerifyCoinJoinInputProof(request.OwnershipProof, alice.Coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
-				}
-
 				if (alice.ReadyToSign)
 				{
 					Prison.Ban(alice, round.Id);

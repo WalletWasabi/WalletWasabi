@@ -226,18 +226,12 @@ namespace WalletWasabi.WabiSabi.Client
 		public async Task ReadyToSignAsync(
 			uint256 roundId,
 			Guid aliceId,
-			Key key,
 			CancellationToken cancellationToken)
 		{
-			var ownershipProof = OwnershipProof.GenerateCoinJoinInputProof(
-				key,
-				new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundId));
-
 			await RequestHandler.ReadyToSign(
 				new ReadyToSignRequestRequest(
 					roundId,
-					aliceId,
-					ownershipProof),
+					aliceId),
 				cancellationToken).ConfigureAwait(false);
 		}
 	}

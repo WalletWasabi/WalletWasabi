@@ -119,7 +119,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public async Task ReadyToSignAsync(CancellationToken cancellationToken)
 		{
-			await ArenaClient.ReadyToSignAsync(RoundId, (Guid)AliceId, BitcoinSecret.PrivateKey, cancellationToken).ConfigureAwait(false);
+			await ArenaClient.ReadyToSignAsync(RoundId, (Guid)AliceId, cancellationToken).ConfigureAwait(false);
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Ready to sign.");
 		}
 	}
