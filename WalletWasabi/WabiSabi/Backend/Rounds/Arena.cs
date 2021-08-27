@@ -402,12 +402,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound, $"Round ({request.RoundId}): Alice id ({request.AliceId}).");
 				}
 
-				if (alice.ReadyToSign)
-				{
-					Prison.Ban(alice, round.Id);
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadySignalled, $"Round ({request.RoundId}): Alice id ({request.AliceId}) already signaled readiness.");
-				}
-
 				alice.ReadyToSign = true;
 			}
 		}
