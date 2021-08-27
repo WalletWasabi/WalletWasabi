@@ -273,7 +273,7 @@ namespace WalletWasabi.WabiSabi.Client
 		//
 		// Then prefer:
 		// * less private coins should be the first ones
-		// * bigger coins first (this makes economical sense because mix more money paying less netwrok fees)
+		// * bigger coins first (this makes economical sense because mix more money paying less network fees)
 		//
 		// Note: this method works on already pre-filteres coins: those available and that didn't reached the
 		// expected anonymity set threshold.
