@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
-using WalletWasabi.Crypto.StrobeProtocol;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -79,10 +78,8 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private async Task<bool> TryConfirmConnectionAsync(IEnumerable<long> amountsToRequest, IEnumerable<long> vsizesToRequest, CancellationToken cancellationToken)
 		{
-			var inputVsize = Coin.ScriptPubKey.EstimateInputVsize();
-
-			var totalFeeToPay = FeeRate.GetFee(Coin.ScriptPubKey.EstimateInputVsize());
-			var totalAmount = Coin.Amount;
+			var totalFeeToPay = FeeRate.GetFee(SmartCoin.ScriptPubKey.EstimateInputVsize());
+			var totalAmount = SmartCoin.Amount;
 			var effectiveAmount = totalAmount - totalFeeToPay;
 
 			if (effectiveAmount <= Money.Zero)
