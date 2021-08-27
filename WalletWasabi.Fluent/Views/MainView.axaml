@@ -68,7 +68,10 @@
                                      FallbackColor="{DynamicResource AcrylicFallbackColor}"
                                      MaterialOpacity="0.2" />
       </ExperimentalAcrylicBorder.Material>
-      <Image Source="/Assets/oobe.png" Stretch="UniformToFill" />
+      <Viewbox Stretch="Uniform" ClipToBounds="False" >
+        <ContentControl Template="{StaticResource WelcomeBg}" ClipToBounds="False" />
+      </Viewbox>
+
     </ExperimentalAcrylicBorder>
     <c:Dialog x:CompileBindings="False"
               DataContext="{Binding FullScreen}"
