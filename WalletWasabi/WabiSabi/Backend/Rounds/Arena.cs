@@ -391,13 +391,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
-				if (Rounds.FirstOrDefault(r => r.Id == request.RoundId) is not { } round)
+				if (Rounds.FirstOrDefault(r => r.Id == request.RoundId) is not Round round)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound, $"Round ({request.RoundId}) not found.");
 				}
 
-				var alice = round.Alices.FirstOrDefault(a => a.Id == request.AliceId);
-				if (alice is null)
+				if (round.Alices.FirstOrDefault(a => a.Id == request.AliceId) is not Alice alice)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound, $"Round ({request.RoundId}): Alice id ({request.AliceId}).");
 				}
