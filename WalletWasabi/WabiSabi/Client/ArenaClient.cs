@@ -30,7 +30,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public WabiSabiClient VsizeCredentialClient { get; }
 		public IWabiSabiApiRequestHandler RequestHandler { get; }
 
-		public async Task<ArenaResponse<uint256>> RegisterInputAsync(
+		public async Task<ArenaResponse<Guid>> RegisterInputAsync(
 			uint256 roundId,
 			OutPoint outPoint,
 			Key key,
@@ -58,7 +58,7 @@ namespace WalletWasabi.WabiSabi.Client
 			return new(inputRegistrationResponse.AliceId, realAmountCredentials, realVsizeCredentials);
 		}
 
-		public async Task RemoveInputAsync(uint256 roundId, uint256 aliceId, CancellationToken cancellationToken)
+		public async Task RemoveInputAsync(uint256 roundId, Guid aliceId, CancellationToken cancellationToken)
 		{
 			await RequestHandler.RemoveInputAsync(new InputsRemovalRequest(roundId, aliceId), cancellationToken).ConfigureAwait(false);
 		}
@@ -141,7 +141,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public async Task<ArenaResponse<bool>> ConfirmConnectionAsync(
 			uint256 roundId,
-			uint256 aliceId,
+			Guid aliceId,
 			IEnumerable<long> amountsToRequest,
 			IEnumerable<long> vsizesToRequest,
 			IEnumerable<Credential> amountCredentialsToPresent,
@@ -225,7 +225,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public async Task ReadyToSignAsync(
 			uint256 roundId,
-			uint256 aliceId,
+			Guid aliceId,
 			Key key,
 			CancellationToken cancellationToken)
 		{

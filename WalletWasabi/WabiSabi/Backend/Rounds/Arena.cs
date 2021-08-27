@@ -346,7 +346,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
 				}
 
-				var alice = new Alice(coin, request.OwnershipProof, round);
+				// Generate a new Guid with the secure random source, to be sure
+				// that it is not guessable (Guid.NewGuid() documentation does
+				// not say anything about GUID version or randomness source,
+				// only that the probability of duplicates is very low).
+				var id = new Guid(Random.GetBytes(16));
+				var alice = new Alice(coin, request.OwnershipProof, round, id);
 
 				if (alice.TotalInputAmount < round.MinRegistrableAmount)
 				{
