@@ -42,8 +42,16 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public async Task RegisterAndConfirmInputAsync(RoundStateUpdater roundStatusUpdater, CancellationToken cancellationToken)
 		{
-			await RegisterInputAsync(cancellationToken).ConfigureAwait(false);
-			await ConfirmConnectionAsync(roundStatusUpdater, cancellationToken).ConfigureAwait(false);
+			try
+			{
+				await RegisterInputAsync(cancellationToken).ConfigureAwait(false);
+				await ConfirmConnectionAsync(roundStatusUpdater, cancellationToken).ConfigureAwait(false);
+			}
+			catch (OperationCanceledException)
+			{
+				await TryToUnregisterAlicesAsync(CancellationToken.None).ConfigureAwait(false);
+				throw;
+			}
 		}
 
 		private async Task RegisterInputAsync(CancellationToken cancellationToken)
@@ -60,7 +68,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 				IssuedAmountCredentials = response.IssuedAmountCredentials;
 				IssuedVsizeCredentials = response.IssuedVsizeCredentials;
-				Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Registered an input.");
+				Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Registered {SmartCoin.OutPoint}.");
 			}
 			catch (System.Net.Http.HttpRequestException ex)
 			{
@@ -150,6 +158,34 @@ namespace WalletWasabi.WabiSabi.Client
 
 			var isConfirmed = response.Value;
 			return isConfirmed;
+		}
+
+		private async Task TryToUnregisterAlicesAsync(CancellationToken cancellationToken)
+		{
+			try
+			{
+				await RemoveInputAsync(cancellationToken).ConfigureAwait(false);
+				SmartCoin.CoinJoinInProgress = false;
+			}
+			catch (System.Net.Http.HttpRequestException ex)
+			{
+				if (ex.InnerException is WabiSabiProtocolException wpe)
+				{
+					switch (wpe.ErrorCode)
+					{
+						case WabiSabiProtocolErrorCode.RoundNotFound:
+							SmartCoin.CoinJoinInProgress = false;
+							Logger.LogInfo($"{SmartCoin.Coin.Outpoint} the round was not found. Nothing to unregister.");
+							break;
+						case WabiSabiProtocolErrorCode.WrongPhase:
+							Logger.LogInfo($"{SmartCoin.Coin.Outpoint} could not be unregistered at this phase (too late).");
+							break;
+					}
+					return;
+				}
+
+				Logger.LogInfo($"{SmartCoin.Coin.Outpoint} unregistration failed with {ex}.");
+			}
 		}
 
 		public async Task RemoveInputAsync(CancellationToken cancellationToken)
