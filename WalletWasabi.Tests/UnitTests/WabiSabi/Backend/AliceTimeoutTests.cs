@@ -1,7 +1,10 @@
 using NBitcoin;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
@@ -21,9 +24,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			// Alice times out when its deadline is reached.
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Key key = new();
-			var coin = WabiSabiFactory.CreateCoin(key);
-			var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);
+			var km = ServiceFactory.CreateKeyManager("");
+			var key = BitcoinFactory.CreateHdPubKey(km);
+			var smartCoin = BitcoinFactory.CreateSmartCoin(key, 10m);
+			var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(smartCoin.Coin);
 
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, rpc, round);
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
@@ -32,7 +36,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			await roundStateUpdater.StartAsync(CancellationToken.None);
 
 			// Register Alices.
-			var aliceClient = new AliceClient(RoundState.FromRound(round), arenaClient, coin, key.GetBitcoinSecret(round.Network));
+			var esk = km.GetSecrets("", smartCoin.ScriptPubKey).Single();
+			var aliceClient = new AliceClient(RoundState.FromRound(round), arenaClient, smartCoin, esk.PrivateKey.GetBitcoinSecret(round.Network));
 
 			using CancellationTokenSource cancellationTokenSource = new();
 			var task = aliceClient.RegisterAndConfirmInputAsync(roundStateUpdater, cancellationTokenSource.Token);
