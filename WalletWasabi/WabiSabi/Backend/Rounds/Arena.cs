@@ -384,8 +384,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		public async Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken)
 		{
-			Alice? alice;
-
 			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
 				if (Rounds.FirstOrDefault(r => r.Id == request.RoundId) is not { } round)
@@ -393,10 +391,16 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound, $"Round ({request.RoundId}) not found.");
 				}
 
-				alice = round.Alices.FirstOrDefault(a => a.Id == request.AliceId);
+				var alice = round.Alices.FirstOrDefault(a => a.Id == request.AliceId);
 				if (alice is null)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound, $"Round ({request.RoundId}): Alice id ({request.AliceId}).");
+				}
+
+				var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", request.RoundId);
+				if (!OwnershipProof.VerifyCoinJoinInputProof(request.OwnershipProof, alice.Coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
 				}
 
 				if (alice.ReadyToSign)
@@ -404,17 +408,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					Prison.Ban(alice, round.Id);
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadySignalled, $"Round ({request.RoundId}): Alice id ({request.AliceId}) already signaled readiness.");
 				}
-			}
 
-			var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", request.RoundId);
-			if (!OwnershipProof.VerifyCoinJoinInputProof(request.OwnershipProof, alice.Coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
+				alice.ReadyToSign = true;
 			}
-
-			// Locking is not strictly required because ReadyToSign is monotone (only
-			// changes from false to true) and primitive value types are atomic.
-			alice.ReadyToSign = true;
 		}
 
 		public async Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellationToken)
