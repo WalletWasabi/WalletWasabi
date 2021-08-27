@@ -720,9 +720,9 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// We have to 4 participant so, this data structure is for keeping track of
 			// important data for each of the participants in the coinjoin session.
-			var participants = new List<(AliceClient4 aliceClient,
-										 List<(Requester requester, BitcoinAddress outputAddress, BlindedOutputWithNonceIndex blindedScript)> outouts,
-										 List<(OutPoint input, byte[] proof, Coin coin, Key key)> inputs)>();
+			var participants = new List<(AliceClient4,
+										 List<(Requester requester, BitcoinAddress outputAddress, BlindedOutputWithNonceIndex blindedScript)>,
+										 List<(OutPoint input, byte[] proof, Coin coin, Key key)>)>();
 
 			// INPUTS REGISTRATION PHASE --
 			for (var anosetIdx = 0; anosetIdx < anonymitySet; anosetIdx++)
