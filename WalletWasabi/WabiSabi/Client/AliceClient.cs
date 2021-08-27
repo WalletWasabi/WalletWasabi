@@ -72,33 +72,30 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 			catch (System.Net.Http.HttpRequestException ex)
 			{
-				if (ex.InnerException is not WabiSabiProtocolException wpe)
+				if (ex.InnerException is WabiSabiProtocolException wpe)
 				{
-					Logger.LogInfo($"{SmartCoin.Coin.Outpoint} registration failed with {ex}.");
-					throw;
-				}
+					switch (wpe.ErrorCode)
+					{
+						case WabiSabiProtocolErrorCode.InputSpent:
+							SmartCoin.SpentAccordingToBackend = true;
+							Logger.LogInfo($"{SmartCoin.Coin.Outpoint} is spent according to the backend. The wallet is not fully synchronized or corrupted.");
+							break;
 
-				switch (wpe.ErrorCode)
-				{
-					case WabiSabiProtocolErrorCode.InputSpent:
-						SmartCoin.SpentAccordingToBackend = true;
-						Logger.LogInfo($"{SmartCoin.Coin.Outpoint} is spent according to the backend. The wallet is not fully synchronized or corrupted.");
-						break;
+						case WabiSabiProtocolErrorCode.InputBanned:
+							SmartCoin.BannedUntilUtc = DateTimeOffset.UtcNow.AddDays(1);
+							SmartCoin.SetIsBanned();
+							Logger.LogInfo($"{SmartCoin.Coin.Outpoint} is banned.");
+							break;
 
-					case WabiSabiProtocolErrorCode.InputBanned:
-						SmartCoin.BannedUntilUtc = DateTimeOffset.UtcNow.AddDays(1);
-						SmartCoin.SetIsBanned();
-						Logger.LogInfo($"{SmartCoin.Coin.Outpoint} is banned.");
-						break;
+						case WabiSabiProtocolErrorCode.InputNotWhitelisted:
+							SmartCoin.SpentAccordingToBackend = false;
+							Logger.LogWarning($"{SmartCoin.Coin.Outpoint} cannot be registered in the blame round.");
+							break;
 
-					case WabiSabiProtocolErrorCode.InputNotWhitelisted:
-						SmartCoin.SpentAccordingToBackend = false;
-						Logger.LogInfo($"{SmartCoin.Coin.Outpoint} cannot be registered in the blame round.");
-						break;
-
-					case WabiSabiProtocolErrorCode.AliceAlreadyRegistered:
-						Logger.LogInfo($"{SmartCoin.Coin.Outpoint} was already registered.");
-						break;
+						case WabiSabiProtocolErrorCode.AliceAlreadyRegistered:
+							Logger.LogInfo($"{SmartCoin.Coin.Outpoint} was already registered.");
+							break;
+					}
 				}
 				throw;
 			}
@@ -166,6 +163,7 @@ namespace WalletWasabi.WabiSabi.Client
 			{
 				await RemoveInputAsync(cancellationToken).ConfigureAwait(false);
 				SmartCoin.CoinJoinInProgress = false;
+				Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Unregistered {SmartCoin.OutPoint}.");
 			}
 			catch (System.Net.Http.HttpRequestException ex)
 			{
@@ -181,10 +179,10 @@ namespace WalletWasabi.WabiSabi.Client
 							Logger.LogInfo($"{SmartCoin.Coin.Outpoint} could not be unregistered at this phase (too late).");
 							break;
 					}
-					return;
 				}
 
-				Logger.LogInfo($"{SmartCoin.Coin.Outpoint} unregistration failed with {ex}.");
+				// Log and swallow the exception because there is nothing else that can be done here.
+				Logger.LogWarning($"{SmartCoin.Coin.Outpoint} unregistration failed with {ex}.");
 			}
 		}
 
