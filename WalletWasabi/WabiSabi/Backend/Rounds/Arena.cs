@@ -362,8 +362,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchVsize);
 				}
 
-				var amountCredentialTask = round.AmountCredentialIssuer.HandleRequest(request.ZeroAmountCredentialRequests, cancellationToken);
-				var vsizeCredentialTask = round.VsizeCredentialIssuer.HandleRequest(request.ZeroVsizeCredentialRequests, cancellationToken);
+				var amountCredentialTask = round.AmountCredentialIssuer.HandleRequestAsync(request.ZeroAmountCredentialRequests, cancellationToken);
+				var vsizeCredentialTask = round.VsizeCredentialIssuer.HandleRequestAsync(request.ZeroVsizeCredentialRequests, cancellationToken);
 
 				if (round.RemainingInputVsizeAllocation < round.MaxVsizeAllocationPerAlice)
 				{
@@ -475,15 +475,15 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				}
 			}
 
-			var amountZeroCredentialTask = round.AmountCredentialIssuer.HandleRequest(request.ZeroAmountCredentialRequests, cancellationToken);
-			var vsizeZeroCredentialTask = round.VsizeCredentialIssuer.HandleRequest(request.ZeroVsizeCredentialRequests, cancellationToken);
+			var amountZeroCredentialTask = round.AmountCredentialIssuer.HandleRequestAsync(request.ZeroAmountCredentialRequests, cancellationToken);
+			var vsizeZeroCredentialTask = round.VsizeCredentialIssuer.HandleRequestAsync(request.ZeroVsizeCredentialRequests, cancellationToken);
 			Task<CredentialsResponse>? amountRealCredentialTask = null;
 			Task<CredentialsResponse>? vsizeRealCredentialTask = null;
 
 			if (round.Phase is Phase.ConnectionConfirmation)
 			{
-				amountRealCredentialTask = round.AmountCredentialIssuer.HandleRequest(realAmountCredentialRequests, cancellationToken);
-				vsizeRealCredentialTask = round.VsizeCredentialIssuer.HandleRequest(realVsizeCredentialRequests, cancellationToken);
+				amountRealCredentialTask = round.AmountCredentialIssuer.HandleRequestAsync(realAmountCredentialRequests, cancellationToken);
+				vsizeRealCredentialTask = round.VsizeCredentialIssuer.HandleRequestAsync(realVsizeCredentialRequests, cancellationToken);
 			}
 
 			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
@@ -508,8 +508,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					case Phase.ConnectionConfirmation:
 						{
 							// If the phase was InputRegistration before then we did not pre-calculate real credentials.
-							amountRealCredentialTask ??= round.AmountCredentialIssuer.HandleRequest(realAmountCredentialRequests, cancellationToken);
-							vsizeRealCredentialTask ??= round.VsizeCredentialIssuer.HandleRequest(realVsizeCredentialRequests, cancellationToken);
+							amountRealCredentialTask ??= round.AmountCredentialIssuer.HandleRequestAsync(realAmountCredentialRequests, cancellationToken);
+							vsizeRealCredentialTask ??= round.VsizeCredentialIssuer.HandleRequestAsync(realVsizeCredentialRequests, cancellationToken);
 
 							ConnectionConfirmationResponse response = new(
 								await amountZeroCredentialTask.ConfigureAwait(false),
@@ -560,8 +560,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				var newState = round.AddOutput(new TxOut(outputValue, bob.Script));
 
 				// Verify the credential requests and prepare their responses.
-				await round.AmountCredentialIssuer.HandleRequest(request.AmountCredentialRequests, cancellationToken).ConfigureAwait(false);
-				await round.VsizeCredentialIssuer.HandleRequest(vsizeCredentialRequests, cancellationToken).ConfigureAwait(false);
+				await round.AmountCredentialIssuer.HandleRequestAsync(request.AmountCredentialRequests, cancellationToken).ConfigureAwait(false);
+				await round.VsizeCredentialIssuer.HandleRequestAsync(vsizeCredentialRequests, cancellationToken).ConfigureAwait(false);
 
 				// Update round state.
 				round.Bobs.Add(bob);
@@ -626,10 +626,10 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongNumberOfCreds, $"Round ({round.Id}): Incorrect requested number of weight credentials.");
 			}
 
-			var realAmountTask = round.AmountCredentialIssuer.HandleRequest(request.RealAmountCredentialRequests, cancellationToken);
-			var realVsizeTask = round.VsizeCredentialIssuer.HandleRequest(request.RealVsizeCredentialRequests, cancellationToken);
-			var zeroAmountTask = round.AmountCredentialIssuer.HandleRequest(request.ZeroAmountCredentialRequests, cancellationToken);
-			var zeroVsizeTask = round.VsizeCredentialIssuer.HandleRequest(request.ZeroVsizeCredentialsRequests, cancellationToken);
+			var realAmountTask = round.AmountCredentialIssuer.HandleRequestAsync(request.RealAmountCredentialRequests, cancellationToken);
+			var realVsizeTask = round.VsizeCredentialIssuer.HandleRequestAsync(request.RealVsizeCredentialRequests, cancellationToken);
+			var zeroAmountTask = round.AmountCredentialIssuer.HandleRequestAsync(request.ZeroAmountCredentialRequests, cancellationToken);
+			var zeroVsizeTask = round.VsizeCredentialIssuer.HandleRequestAsync(request.ZeroVsizeCredentialsRequests, cancellationToken);
 
 			return new(
 				await realAmountTask.ConfigureAwait(false),
