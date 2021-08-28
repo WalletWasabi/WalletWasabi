@@ -99,7 +99,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// <param name="registrationRequest">The request containing the credentials presentations, credential requests and the proofs.</param>
 		/// <returns>The <see cref="CredentialsResponse">registration response</see> containing the issued credentials and the proofs.</returns>
 		/// <exception cref="WabiSabiCryptoException">Error code: <see cref="WabiSabiCryptoErrorCode">WabiSabiErrorCode</see></exception>
-		public Task<CredentialsResponse> HandleRequest(CredentialsRequest registrationRequest, CancellationToken cancel)
+		public Task<CredentialsResponse> HandleRequestAsync(CredentialsRequest registrationRequest, CancellationToken cancel)
 			=> Task.Run(() => HandleRequest(registrationRequest), cancel);
 
 		/// <summary>
