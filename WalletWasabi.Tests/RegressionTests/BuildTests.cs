@@ -334,7 +334,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				{
 					if (onAddress)
 					{
-						overwriteTx.Outputs.Add(new TxOut(invalidOutput.Value, new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network)));
+						overwriteTx.Outputs.Add(new TxOut(invalidOutput.Value, new Key().GetAddress(ScriptPubKeyType.Segwit, network)));
 					}
 					else
 					{

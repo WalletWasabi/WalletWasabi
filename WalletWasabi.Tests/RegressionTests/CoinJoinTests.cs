@@ -162,19 +162,19 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			BlindedOutputWithNonceIndex nullBlindedScript = new(0, uint256.One);
 			inputsRequest.BlindedOutputScripts = Enumerable.Range(0, round.MixingLevels.Count() + 1).Select(x => nullBlindedScript);
-			inputsRequest.ChangeOutputAddress = new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
+			inputsRequest.ChangeOutputAddress = new Key().GetAddress(ScriptPubKeyType.Segwit, network);
 			inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(uint256.One, 0), Proof = dummySignature } };
 			httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await CreateNewAliceClientAsync(roundId, registeredAddresses, signerPubKeys, requesters, inputsRequest));
 			Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}\nToo many blinded output was provided", httpRequestException.Message);
 
 			inputsRequest.BlindedOutputScripts = Enumerable.Range(0, round.MixingLevels.Count() - 2).Select(x => nullBlindedScript);
-			inputsRequest.ChangeOutputAddress = new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
+			inputsRequest.ChangeOutputAddress = new Key().GetAddress(ScriptPubKeyType.Segwit, network);
 			inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(uint256.One, 0), Proof = dummySignature } };
 			httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await CreateNewAliceClientAsync(roundId, registeredAddresses, signerPubKeys, requesters, inputsRequest));
 			Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}\nDuplicate blinded output found", httpRequestException.Message);
 
 			inputsRequest.BlindedOutputScripts = new[] { nullBlindedScript };
-			inputsRequest.ChangeOutputAddress = new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
+			inputsRequest.ChangeOutputAddress = new Key().GetAddress(ScriptPubKeyType.Segwit, network);
 			inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(uint256.One, 0), Proof = dummySignature } };
 			httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await CreateNewAliceClientAsync(roundId, registeredAddresses, signerPubKeys, requesters, inputsRequest));
 			Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}\nProvided input is not unspent", httpRequestException.Message);
@@ -419,7 +419,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var utxos = coordinator.UtxoReferee;
 			Assert.NotNull(await utxos.TryGetBannedAsync(bannedCoin, false));
 			spendingTx.Inputs.Add(new TxIn(bannedCoin));
-			spendingTx.Outputs.Add(new TxOut(Money.Coins(1), new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network)));
+			spendingTx.Outputs.Add(new TxOut(Money.Coins(1), new Key().GetAddress(ScriptPubKeyType.Segwit, network)));
 			await coordinator.ProcessConfirmedTransactionAsync(spendingTx);
 
 			Assert.NotNull(await utxos.TryGetBannedAsync(new OutPoint(spendingTx.GetHash(), 0), false));
@@ -448,7 +448,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 			requester = new Requester();
 			requesters = new[] { requester };
-			var bitcoinWitPubKeyAddress = new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
+			var bitcoinWitPubKeyAddress = new Key().GetAddress(ScriptPubKeyType.Segwit, network);
 			registeredAddresses = new[] { bitcoinWitPubKeyAddress };
 			Script script = bitcoinWitPubKeyAddress.ScriptPubKey;
 			nonce = round.NonceProvider.GetNextNonce();
@@ -458,7 +458,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var inputRequest = new InputsRequest4
 			{
 				BlindedOutputScripts = new[] { blindedData },
-				ChangeOutputAddress = new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network),
+				ChangeOutputAddress = new Key().GetAddress(ScriptPubKeyType.Segwit, network),
 				Inputs = new InputProofModel[]
 				{
 					new InputProofModel { Input = coin.Outpoint, Proof = key.SignCompact(blindedOutputScriptsHash) }
@@ -507,7 +507,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			inputRequest = new InputsRequest4
 			{
 				BlindedOutputScripts = new[] { blindedData },
-				ChangeOutputAddress = new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network),
+				ChangeOutputAddress = new Key().GetAddress(ScriptPubKeyType.Segwit, network),
 				Inputs = new InputProofModel[]
 				{
 					new InputProofModel { Input = coin.Outpoint, Proof = key.SignCompact(blindedOutputScriptsHash) }
@@ -580,7 +580,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var inputRequest1 = new InputsRequest4
 			{
 				BlindedOutputScripts = new[] { blinded1 },
-				ChangeOutputAddress = new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network),
+				ChangeOutputAddress = new Key().GetAddress(ScriptPubKeyType.Segwit, network),
 				Inputs = new InputProofModel[]
 				{
 					new InputProofModel { Input = input1, Proof = key1.SignCompact(blindedOutputScriptsHash1) }
@@ -589,7 +589,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var inputRequest2 = new InputsRequest4
 			{
 				BlindedOutputScripts = new[] { blinded2 },
-				ChangeOutputAddress = new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network),
+				ChangeOutputAddress = new Key().GetAddress(ScriptPubKeyType.Segwit, network),
 				Inputs = new InputProofModel[]
 				{
 					new InputProofModel { Input = input2, Proof = key2.SignCompact(blindedOutputScriptsHash2) }
@@ -732,7 +732,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				foreach (var level in round.MixingLevels.Levels)
 				{
 					var requester = new Requester();
-					var outputsAddress = new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
+					var outputsAddress = new Key().GetAddress(ScriptPubKeyType.Segwit, network);
 					var scriptPubKey = outputsAddress.ScriptPubKey;
 					// We blind the scriptPubKey with a new requester by mixin level
 					var nonce = round.NonceProvider.GetNextNonce();
@@ -769,7 +769,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				var inputRequest = new InputsRequest4
 				{
 					BlindedOutputScripts = blindedOutputScriptList,
-					ChangeOutputAddress = new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network),
+					ChangeOutputAddress = new Key().GetAddress(ScriptPubKeyType.Segwit, network),
 					Inputs = inputs.Select(x => new InputProofModel { Input = x.input, Proof = x.proof }).ToArray()
 				};
 				var aliceClient = await CreateNewAliceClientAsync(
@@ -870,8 +870,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			for (int i = 0; i < roundConfig.AnonymitySet; i++)
 			{
 				var userInputData = new List<(Key key, BitcoinAddress inputAddress, uint256 txHash, Transaction tx, OutPoint input)>();
-				var activeOutputAddress = new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
-				var changeOutputAddress = new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
+				var activeOutputAddress = new Key().GetAddress(ScriptPubKeyType.Segwit, network);
+				var changeOutputAddress = new Key().GetAddress(ScriptPubKeyType.Segwit, network);
 				CoordinatorRound round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 				var requester = new Requester();
 				var nonce = round.NonceProvider.GetNextNonce();

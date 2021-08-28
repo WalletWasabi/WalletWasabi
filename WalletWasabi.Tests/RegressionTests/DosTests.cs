@@ -70,8 +70,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			for (int i = 0; i < roundConfig.AnonymitySet; i++)
 			{
 				List<(Key key, BitcoinAddress inputAddress, uint256 txHash, Transaction tx, OutPoint input)> userInputData = new();
-				var activeOutputAddress = new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
-				var changeOutputAddress = new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
+				var activeOutputAddress = new Key().GetAddress(ScriptPubKeyType.Segwit, network);
+				var changeOutputAddress = new Key().GetAddress(ScriptPubKeyType.Segwit, network);
 				round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 				Requester requester = new();
 				var nonce = round.NonceProvider.GetNextNonce();
@@ -274,8 +274,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			CoordinatorRound round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 			for (int i = 0; i < roundConfig.AnonymitySet; i++)
 			{
-				var activeOutputAddress = new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
-				var changeOutputAddress = new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
+				var activeOutputAddress = new Key().GetAddress(ScriptPubKeyType.Segwit, network);
+				var changeOutputAddress = new Key().GetAddress(ScriptPubKeyType.Segwit, network);
 				Key inputKey = new();
 				var inputAddress = inputKey.PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
 
