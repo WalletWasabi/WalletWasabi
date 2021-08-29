@@ -579,7 +579,12 @@ namespace WalletWasabi.Tests.RegressionTests
 				TransactionBroadcaster broadcaster = new(network, bitcoinStore, httpClientFactory, walletManager);
 				broadcaster.Initialize(nodes, rpc);
 
-				PaymentIntent operations = new(new DestinationRequest(key.P2wpkhScript, Money.Coins(0.01m)), new DestinationRequest(new Key().PubKey.ScriptPubKey, Money.Coins(0.01m)), new DestinationRequest(new Key().PubKey.ScriptPubKey, Money.Coins(0.01m)));
+				var destination1 = key.PubKey.GetAddress(ScriptPubKeyType.Segwit, Network.Main);
+				var destination2 = new Key().PubKey.GetAddress(ScriptPubKeyType.Legacy, Network.Main);
+				var destination3 = new Key().PubKey.GetAddress(ScriptPubKeyType.Legacy, Network.Main);
+
+				PaymentIntent operations = new(new DestinationRequest(destination1, Money.Coins(0.01m)), new DestinationRequest(destination2, Money.Coins(0.01m)), new DestinationRequest(destination3, Money.Coins(0.01m)));
+
 				var tx1Res = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
 				Assert.Equal(2, tx1Res.InnerWalletOutputs.Count());
 				Assert.Equal(2, tx1Res.OuterWalletOutputs.Count());
