@@ -17,8 +17,7 @@ namespace WalletWasabi.WabiSabi.Client
 	{
 		public AliceClient(RoundState roundState, ArenaClient arenaClient, SmartCoin coin, BitcoinSecret bitcoinSecret)
 		{
-			AliceId = CalculateHash(coin.Coin, bitcoinSecret, roundState.Id);
-			RoundId = roundState.Id;
+            RoundId = roundState.Id;
 			ArenaClient = arenaClient;
 			SmartCoin = coin;
 			FeeRate = roundState.FeeRate;
@@ -29,7 +28,7 @@ namespace WalletWasabi.WabiSabi.Client
 			ConfirmationTimeout = roundState.ConnectionConfirmationTimeout / 2;
 		}
 
-		public uint256 AliceId { get; }
+		public Guid? AliceId { get; private set; }
 		public uint256 RoundId { get; }
 		private ArenaClient ArenaClient { get; }
 		public SmartCoin SmartCoin { get; }
@@ -59,11 +58,7 @@ namespace WalletWasabi.WabiSabi.Client
 			try
 			{
 				var response = await ArenaClient.RegisterInputAsync(RoundId, SmartCoin.Coin.Outpoint, BitcoinSecret.PrivateKey, cancellationToken).ConfigureAwait(false);
-				var remoteAliceId = response.Value;
-				if (AliceId != remoteAliceId)
-				{
-					throw new InvalidOperationException($"Round ({RoundId}), Local Alice ({AliceId}) was computed as {remoteAliceId}");
-				}
+                AliceId = response.Value;
 				SmartCoin.CoinJoinInProgress = true;
 
 				IssuedAmountCredentials = response.IssuedAmountCredentials;
@@ -142,7 +137,7 @@ namespace WalletWasabi.WabiSabi.Client
 			var response = await ArenaClient
 				.ConfirmConnectionAsync(
 					RoundId,
-					AliceId,
+					(Guid)AliceId,
 					amountsToRequest,
 					vsizesToRequest,
 					IssuedAmountCredentials,
@@ -188,7 +183,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public async Task RemoveInputAsync(CancellationToken cancellationToken)
 		{
-			await ArenaClient.RemoveInputAsync(RoundId, AliceId, cancellationToken).ConfigureAwait(false);
+			await ArenaClient.RemoveInputAsync(RoundId, (Guid)AliceId, cancellationToken).ConfigureAwait(false);
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Inputs removed.");
 		}
 
@@ -201,17 +196,8 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public async Task ReadyToSignAsync(CancellationToken cancellationToken)
 		{
-			await ArenaClient.ReadyToSignAsync(RoundId, AliceId, BitcoinSecret.PrivateKey, cancellationToken).ConfigureAwait(false);
+			await ArenaClient.ReadyToSignAsync(RoundId, (Guid)AliceId, cancellationToken).ConfigureAwait(false);
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Ready to sign.");
-		}
-
-		private static uint256 CalculateHash(Coin coin, BitcoinSecret bitcoinSecret, uint256 roundId)
-		{
-			var ownershipProof = OwnershipProof.GenerateCoinJoinInputProof(
-				bitcoinSecret.PrivateKey,
-				new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundId));
-
-			return Alice.CalculateHash(coin, ownershipProof);
 		}
 	}
 }

@@ -112,7 +112,7 @@ namespace WalletWasabi.Tests.Helpers
 		}
 
 		public static Alice CreateAlice(Coin coin, OwnershipProof ownershipProof, Round round)
-			=> new(coin, ownershipProof, round) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
+			=> new(coin, ownershipProof, round, Guid.NewGuid()) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
 
 		public static Alice CreateAlice(Key key, Money amount, Round round)
 			=> CreateAlice(CreateCoin(key, amount), CreateOwnershipProof(key), round);
