@@ -6,6 +6,7 @@ using WalletWasabi.Tor.Control.Utils;
 
 namespace WalletWasabi.Tor.Control.Messages.CircuitStatus
 {
+	/// <summary>Implemented as specified in <c>4.1.1. Circuit status changed</c> spec.</summary>
 	/// <remarks>
 	/// Note that the <see cref="CircuitID"/> and <see cref="CircStatus"/> are then only mandatory
 	/// fields in <c>GETINFO circuit-status</c> reply.
@@ -30,6 +31,12 @@ namespace WalletWasabi.Tor.Control.Messages.CircuitStatus
 		public List<BuildFlag> BuildFlags { get; init; } = new();
 		public Purpose? Purpose { get; init; }
 		public HsState? HsState { get; init; }
+
+		/// <summary>Onion address.</summary>
+		/// <remarks>
+		/// This field is provided only for hidden-service-related circuits.
+		/// <para>Clients MUST accept hidden service addresses in formats other than that specified above.</para>
+		/// </remarks>
 		public string? RendQuery { get; init; }
 		public string? TimeCreated { get; init; }
 		public Reason? Reason { get; init; }
@@ -162,6 +169,26 @@ namespace WalletWasabi.Tor.Control.Messages.CircuitStatus
 			}
 
 			return result;
+		}
+
+		/// <inheritdoc/>
+		public override string ToString()
+		{
+			string args = string.Join(
+				separator: ", ",
+				$"{nameof(CircuitID)}='{CircuitID}'",
+				$"{nameof(CircStatus)}={CircStatus}",
+				$"{nameof(RendQuery)}={RendQuery ?? "null"}",
+				$"{nameof(TimeCreated)}={TimeCreated ?? "null"}",
+				$"{nameof(Purpose)}={(Purpose.HasValue ? Purpose : "null")}",
+				$"{nameof(HsState)}={(HsState.HasValue ? HsState : "null")}",
+				$"{nameof(Reason)}={(Reason.HasValue ? Reason : "null")}",
+				$"{nameof(RemoteReason)}={(RemoteReason.HasValue ? RemoteReason : "null")}",
+				$"{nameof(BuildFlags)}='{string.Join('|', BuildFlags)}'",
+				$"{nameof(UserName)}={UserName ?? "null"}",
+				$"{nameof(UserPassword)}={UserPassword ?? "null"}");
+
+			return $"{nameof(CircuitInfo)}{{{args}}}";
 		}
 	}
 }

@@ -1,0 +1,17 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:WalletWasabi.Fluent"
+             x:Class="WalletWasabi.Fluent.CrashReport.CrashReportApp">
+
+  <Application.DataTemplates>
+    <local:ViewLocator />
+  </Application.DataTemplates>
+
+  <Application.Styles>
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/BaseDark.axaml" />
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Icons/Icons.axaml" />
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Styles.axaml" />
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/ContentArea.axaml" />
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/InfoMessage.axaml" />
+  </Application.Styles>
+</Application>

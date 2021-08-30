@@ -28,35 +28,6 @@ namespace WalletWasabi.WabiSabi.Client
 		public IEnumerable<TaskCompletionSource<Credential>> AmountCredentialTasks { get; }
 		public IEnumerable<TaskCompletionSource<Credential>> VsizeCredentialTasks { get; }
 
-		public async Task ConfirmConnectionTaskAsync(
-			TimeSpan connectionConfirmationTimeout,
-			AliceClient aliceClient,
-			IEnumerable<long> amounts,
-			IEnumerable<long> vsizes,
-			Money effectiveValue,
-			int vsizeValue,
-			RoundStateUpdater roundStateUpdater,
-			CancellationToken cancellationToken)
-		{
-			var amountsToRequest = AddExtraCredentialRequests(amounts, effectiveValue.Satoshi);
-			var vsizesToRequest = AddExtraCredentialRequests(vsizes, vsizeValue);
-
-			await aliceClient.ConfirmConnectionAsync(connectionConfirmationTimeout, amountsToRequest, vsizesToRequest, roundStateUpdater, cancellationToken).ConfigureAwait(false);
-
-			// TODO keep extra credentials
-			var (amountCredentials, _) = SeparateExtraCredentials(aliceClient.IssuedAmountCredentials, amounts);
-			var (vsizeCredentials, _) = SeparateExtraCredentials(aliceClient.IssuedVsizeCredentials, vsizes);
-
-			foreach (var (tcs, credential) in AmountCredentialTasks.Zip(amountCredentials))
-			{
-				tcs.SetResult(credential);
-			}
-			foreach (var (tcs, credential) in VsizeCredentialTasks.Zip(vsizeCredentials))
-			{
-				tcs.SetResult(credential);
-			}
-		}
-
 		public async Task StartReissuanceAsync(BobClient bobClient, IEnumerable<long> amounts, IEnumerable<long> vsizes, CancellationToken cancellationToken)
 		{
 			await Task.WhenAll(AmountCredentialToPresentTasks.Concat(VsizeCredentialToPresentTasks)).ConfigureAwait(false);

@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
 using WalletWasabi.Models;
@@ -37,14 +38,12 @@ namespace WalletWasabi.Fluent.CrashReport
 			exception = null;
 			try
 			{
-				if (args.Length < 2)
-				{
-					return false;
-				}
+				var commandArgument = args.SingleOrDefault(x => x == "crashreport");
+				var parameterArgument = args.SingleOrDefault(x => x.Contains("-exception="));
 
-				if (args[0].Contains("crashreport") && args[1].Contains("-exception="))
+				if (commandArgument is not null && parameterArgument is not null)
 				{
-					var exceptionString = args[1].Split("=", count: 2)[1].Trim('"');
+					var exceptionString = parameterArgument.Split("=", count: 2)[1].Trim('"');
 
 					exception = SerializableException.FromBase64String(exceptionString);
 					return true;
