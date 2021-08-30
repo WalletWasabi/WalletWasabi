@@ -25,7 +25,7 @@ namespace WalletWasabi.Gui
 		private string? _lastSelectedWallet;
 		private string _windowState = "Normal";
 		private bool _runOnSystemStartup;
-    private bool _oobe = true;
+		private bool _oobe = true;
 
 		public UiConfig() : base()
 		{

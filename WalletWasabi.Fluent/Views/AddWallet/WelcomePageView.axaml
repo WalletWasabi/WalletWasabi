@@ -27,7 +27,6 @@
         </StackPanel>
       </DockPanel>
 
-
       <Button HorizontalAlignment="Center" VerticalAlignment="Bottom" Classes="action" Content="Get Started"
               DockPanel.Dock="Bottom" Margin="0 40 0 0"
               Command="{Binding GetStartedCommand}" />
