@@ -273,7 +273,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 				throw new TorConnectionWriteException("Could not use transport stream to write data.", e);
 			}
 
-			return await HttpResponseMessageExtensions.CreateNewAsync(transportStream, request.Method).ConfigureAwait(false);
+			return await HttpResponseMessageExtensions.CreateNewAsync(transportStream, request.Method, token).ConfigureAwait(false);
 		}
 
 		private static string GetRequestHost(HttpRequestMessage request)
@@ -319,6 +319,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 					{
 						foreach (TorTcpConnection connection in list)
 						{
+							Logger.LogTrace($"Dispose connection: '{connection}'");
 							connection.Dispose();
 						}
 					}
