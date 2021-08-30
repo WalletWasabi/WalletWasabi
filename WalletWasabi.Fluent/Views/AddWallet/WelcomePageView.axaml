@@ -15,20 +15,26 @@
     EnableBack="False"
     EnableNext="False"
     ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <StackPanel Spacing="32">
-      <StackPanel>
-        <DockPanel>
-          <StackPanel Spacing="20" DockPanel.Dock="Left">
-            <Viewbox Height="48" HorizontalAlignment="Left">
-              <ContentControl Template="{DynamicResource wasabi_logo_fixed}" />
-            </Viewbox>
+    <DockPanel LastChildFill="True">
+      <DockPanel DockPanel.Dock="Top">
+        <StackPanel Spacing="20" DockPanel.Dock="Left">
+          <Viewbox Height="48" HorizontalAlignment="Left">
+            <ContentControl Template="{DynamicResource wasabi_logo_fixed}" />
+          </Viewbox>
 
-            <TextBlock FontWeight="600" HorizontalAlignment="Left" FontSize="28" Text="Welcome to Wasabi Wallet"
-                       TextWrapping="Wrap" />
-          </StackPanel>
-        </DockPanel>
+          <TextBlock FontWeight="600" HorizontalAlignment="Left" FontSize="28" Text="Welcome to Wasabi Wallet"
+                     TextWrapping="Wrap" />
+        </StackPanel>
+      </DockPanel>
 
-        <StackPanel Spacing="22" TextBlock.FontSize="12" Margin="0 15 0 0">
+
+      <Button HorizontalAlignment="Center" VerticalAlignment="Bottom" Classes="action" Content="Get Started"
+              DockPanel.Dock="Bottom" Margin="0 40 0 0"
+              Command="{Binding GetStartedCommand}" />
+
+      <ScrollViewer HorizontalScrollBarVisibility="Disabled" Margin="0 15 0 0">
+
+        <StackPanel Spacing="22" TextBlock.FontSize="12" >
           <StackPanel.Styles>
             <Style Selector="TextBlock">
               <Setter Property="TextWrapping" Value="Wrap" />
@@ -46,68 +52,8 @@
             Use Wasabi Wallet to retain your individuality, regain your identity and ultimately, reclaim your privacy. We let you control what you reveal about your Bitcoin life.
           </TextBlock>
         </StackPanel>
-      </StackPanel>
+      </ScrollViewer>
 
-      <StackPanel Spacing="30" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0 32 0 0">
-        <StackPanel.Styles>
-          <Style Selector="PathIcon">
-            <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
-            <Setter Property="Height" Value="18" />
-          </Style>
-          <Style Selector="StackPanel">
-            <Setter Property="VerticalAlignment" Value="Top" />
-          </Style>
-
-          <Style Selector="Border.benefit">
-            <Setter Property="Width" Value="200" />
-            <Setter Property="Padding" Value="10" />
-            <Setter Property="CornerRadius" Value="5" />
-            <Setter Property="Background" Value="#1FFFFFFF" />
-            <Setter Property="TextBlock.FontSize" Value="12" />
-          </Style>
-
-          <Style Selector="TextBlock">
-            <Setter Property="VerticalAlignment" Value="Center" />
-          </Style>
-        </StackPanel.Styles>
-
-        <StackPanel Orientation="Horizontal" Spacing="20">
-          <Border Classes="benefit">
-            <StackPanel Orientation="Horizontal" Spacing="10">
-              <PathIcon Data="{StaticResource shield_regular}" />
-              <TextBlock Text="Trustless" />
-            </StackPanel>
-          </Border>
-
-
-          <Border Classes="benefit">
-            <StackPanel Orientation="Horizontal" Spacing="10">
-              <PathIcon Data="{StaticResource private_regular}" />
-              <TextBlock Text="Private" />
-            </StackPanel>
-          </Border>
-        </StackPanel>
-
-        <StackPanel Orientation="Horizontal" Spacing="20">
-          <Border Classes="benefit">
-            <StackPanel Orientation="Horizontal" Spacing="10">
-              <PathIcon Data="{StaticResource fingerprint_regular}" />
-              <TextBlock Text="Anonymous" />
-            </StackPanel>
-          </Border>
-
-          <Border Classes="benefit">
-            <StackPanel Orientation="Horizontal" Spacing="10">
-              <PathIcon Data="{StaticResource heart_regular}" />
-              <TextBlock Text="Free and Open Source" />
-            </StackPanel>
-          </Border>
-        </StackPanel>
-      </StackPanel>
-
-      <Button HorizontalAlignment="Center" VerticalAlignment="Bottom" Classes="action" Content="Get Started"
-              DockPanel.Dock="Bottom" Margin="0 40 0 0"
-              Command="{Binding GetStartedCommand}" />
-    </StackPanel>
+    </DockPanel>
   </controls:ContentArea>
 </UserControl>
