@@ -10,6 +10,5 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 {
 	public record ReadyToSignRequestRequest(
 		uint256 RoundId,
-		uint256 AliceId,
-		OwnershipProof OwnershipProof);
+		Guid AliceId);
 }
