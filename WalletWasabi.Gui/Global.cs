@@ -504,9 +504,15 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"{nameof(Synchronizer)} is stopped.");
 				}
 
-				if (BackendHttpClientFactory is { } httpClientFactory)
+				if (ExternalHttpClientFactory is { } externalHttpClientFactory)
 				{
-					httpClientFactory.Dispose();
+					externalHttpClientFactory.Dispose();
+					Logger.LogInfo($"{nameof(ExternalHttpClientFactory)} is disposed.");
+				}
+
+				if (BackendHttpClientFactory is { } backendHttpClientFactory)
+				{
+					backendHttpClientFactory.Dispose();
 					Logger.LogInfo($"{nameof(BackendHttpClientFactory)} is disposed.");
 				}
 
