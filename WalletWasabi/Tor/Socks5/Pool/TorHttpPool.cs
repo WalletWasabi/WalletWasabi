@@ -163,7 +163,11 @@ namespace WalletWasabi.Tor.Socks5.Pool
 					}
 					finally
 					{
-						connectionToDispose?.Dispose();
+						if (connectionToDispose is not null)
+						{
+							Logger.LogTrace($"['{connectionToDispose}'] marked as to be disposed.");
+							connectionToDispose.MarkAsToDispose();
+						}
 					}
 				} while (i < attemptsNo);
 			}
