@@ -23,6 +23,7 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class CoinJoinClient
 	{
+		private CoinJoinClientState _state;
 		private const int MaxInputsRegistrableByWallet = 7; // how many
 
 		public CoinJoinClient(
@@ -36,6 +37,7 @@ namespace WalletWasabi.WabiSabi.Client
 			Keymanager = keymanager;
 			RoundStatusUpdater = roundStatusUpdater;
 			SecureRandom = new SecureRandom();
+			State = CoinJoinClientState.Idle;
 		}
 
 		private SecureRandom SecureRandom { get; }
@@ -44,37 +46,62 @@ namespace WalletWasabi.WabiSabi.Client
 		public KeyManager Keymanager { get; }
 		private RoundStateUpdater RoundStatusUpdater { get; }
 
+		public CoinJoinClientState State
+		{
+			get => _state;
+			set
+			{
+				if (_state == value)
+				{
+					return;
+				}
+
+				_state = value;
+				StateChanged?.Invoke(this, value);
+			}
+		}
+
+		public event EventHandler<CoinJoinClientState>? StateChanged;
+
 		public async Task<bool> StartCoinJoinAsync(IEnumerable<SmartCoin> coins, CancellationToken cancellationToken)
 		{
-			var currentRoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cancellationToken).ConfigureAwait(false);
-
-			// This should be roughly log(#inputs), it could be set slightly
-			// higher if more inputs are observed but that involves trusting the
-			// coordinator with those values. Therefore, conservatively set this
-			// so that a maximum of 5 blame rounds are executed.
-			// FIXME should smaller rounds abort earlier?
-			var tryLimit = 6;
-
-			for (var tries = 0; tries < tryLimit; tries++)
+			State = CoinJoinClientState.WaitingForInputRegistration;
+			try
 			{
-				if (await StartRoundAsync(coins, currentRoundState, cancellationToken).ConfigureAwait(false))
+				var currentRoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cancellationToken).ConfigureAwait(false);
+
+				// This should be roughly log(#inputs), it could be set slightly
+				// higher if more inputs are observed but that involves trusting the
+				// coordinator with those values. Therefore, conservatively set this
+				// so that a maximum of 5 blame rounds are executed.
+				// FIXME should smaller rounds abort earlier?
+				var tryLimit = 6;
+
+				for (var tries = 0; tries < tryLimit; tries++)
 				{
-					return true;
-				}
-				else
-				{
-					var blameRoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.BlameOf == currentRoundState.Id, cancellationToken).ConfigureAwait(false);
-					currentRoundState = blameRoundState;
+					if (await StartRoundAsync(coins, currentRoundState, cancellationToken).ConfigureAwait(false))
+					{
+						return true;
+					}
+					else
+					{
+						State = CoinJoinClientState.WaitingForInputRegistration;
+						var blameRoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.BlameOf == currentRoundState.Id, cancellationToken).ConfigureAwait(false);
+						currentRoundState = blameRoundState;
+					}
 				}
 			}
-
+			finally
+			{
+				State = CoinJoinClientState.Idle;
+			}
 			return false;
 		}
 
 		/// <summary>Attempt to participate in a specified dround.</summary>
 		/// <param name="roundState">Defines the round parameter and state information to use.</param>
 		/// <returns>Whether or not the round resulted in a successful transaction.</returns>
-		public async Task<bool> StartRoundAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
+		private async Task<bool> StartRoundAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 		{
 			var constructionState = roundState.Assert<ConstructionState>();
 
@@ -87,6 +114,8 @@ namespace WalletWasabi.WabiSabi.Client
 			{
 				throw new InvalidOperationException($"Round ({roundState.Id}): There is no available alices to participate with.");
 			}
+
+			State = CoinJoinClientState.ConnectionConfirmed;
 
 			// Calculate outputs values
 			var registeredCoins = registeredAliceClients.Select(x => x.SmartCoin.Coin);
