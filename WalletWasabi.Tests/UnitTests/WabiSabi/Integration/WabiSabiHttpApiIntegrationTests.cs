@@ -124,6 +124,19 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 			var coinJoinClient = new CoinJoinClient(apiClient, kitchen, keyManager, roundStateUpdater);
 
+			// Verifying state changes.
+			var expectedState = CoinJoinClientState.Idle;
+			Assert.Equal(expectedState, coinJoinClient.State);
+			var lastState = Enum.GetValues(typeof(CoinJoinClientState)).Cast<CoinJoinClientState>().Last();
+			coinJoinClient.StateChanged += (_, state) =>
+			{
+				expectedState = expectedState >= lastState
+					? CoinJoinClientState.Idle
+					: expectedState + 1;
+
+				Assert.Equal(expectedState, coinJoinClient.State);
+			};
+
 			// Run the coinjoin client task.
 			Assert.True(await coinJoinClient.StartCoinJoinAsync(coins, cts.Token));
 
@@ -218,7 +231,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 			var noSignatureApiClient = new SignatureDroppingClient(new HttpClientWrapper(httpClient));
 			var badCoinJoinClient = new CoinJoinClient(noSignatureApiClient, kitchen, keyManager2, roundStateUpdater);
-			var badCoinsTask = Task.Run(async () => await badCoinJoinClient.StartRoundAsync(badCoins, roundState, cts.Token).ConfigureAwait(false), cts.Token);
+			var badCoinsTask = Task.Run(async () => await badCoinJoinClient.StartCoinJoinAsync(badCoins, cts.Token).ConfigureAwait(false), cts.Token);
 
 			await Task.WhenAll(new Task[] { badCoinsTask, coinJoinTask });
 
