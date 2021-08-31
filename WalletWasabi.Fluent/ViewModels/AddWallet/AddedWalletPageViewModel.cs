@@ -33,6 +33,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		private void OnNext()
 		{
+			Services.UiConfig.Oobe = false;
+
 			Navigate().Clear();
 
 			var navBar = NavigationManager.Get<NavBarViewModel>();
