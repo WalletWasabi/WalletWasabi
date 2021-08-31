@@ -10,41 +10,42 @@
              x:DataType="recoverWallet:RecoverWalletViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.RecoverWalletView">
-    <c:ContentArea x:Name="RecoveryPageRoot"
-                   Title="{Binding Title}" Caption="Type in your 12 recovery words and click Continue."
-                   CancelContent="Cancel"
-                   EnableCancel="{Binding EnableCancel}"
-                   EnableBack="{Binding EnableBack}"
-                   EnableNext="True" NextContent="Finish"
-                   IsBusy="{Binding IsBusy}">
-        <StackPanel>
-            <DockPanel>
-                <PathIcon Name="IconCheckmark" Classes="checkMark" Margin="15 42 0 0" VerticalAlignment="Top"
-                          DockPanel.Dock="Right"
-                          Opacity="{Binding NextCommandCanExecute^}" />
-                <Label Content="_Type in your recovery words here:" Target="SeedTagsBox" DockPanel.Dock="Top" />
-                <c:TagsBox x:Name="SeedTagsBox"
-                           DockPanel.Dock="Top"
-                           ItemCountLimit="24"
-                           SuggestionsAreCaseSensitive="False"
-                           RestrictInputToSuggestions="True"
-                           Items="{Binding Mnemonics}"
-                           Suggestions="{Binding Suggestions}"
-                           CompletedCommand="{Binding NextCommand}"
-                           AllowDuplication="True">
-                    <i:Interaction.Behaviors>
-                        <behaviors:FocusOnAttachedBehavior />
-                    </i:Interaction.Behaviors>
-                </c:TagsBox>
-            </DockPanel>
-
-            <Button Classes="plain obscured"  Margin="0 10 0 0"
-                    Command="{Binding AdvancedRecoveryOptionsDialogCommand}">
-                <StackPanel Orientation="Horizontal">
-                    <PathIcon Data="{StaticResource options_regular}" Margin="0 0 10 0"/>
-                    <TextBlock Text="Advanced Recovery Options..." />
-                </StackPanel>
-            </Button>
-        </StackPanel>
-    </c:ContentArea>
+  <c:ContentArea x:Name="RecoveryPageRoot"
+                 Title="{Binding Title}" Caption="Type in your 12 recovery words and click Continue."
+                 CancelContent="Cancel"
+                 EnableCancel="{Binding EnableCancel}"
+                 EnableBack="{Binding EnableBack}"
+                 EnableNext="True" NextContent="Finish"
+                 IsBusy="{Binding IsBusy}">
+    <DockPanel>
+      <Label Content="_Type in your recovery words here:" Target="SeedTagsBox" DockPanel.Dock="Top" />
+      <DockPanel DockPanel.Dock="Top">
+        <PathIcon Name="IconCheckmark"
+                  Margin="15 0 0 0"
+                  Classes="checkMark"
+                  VerticalAlignment="Center"
+                  DockPanel.Dock="Right"
+                  Opacity="{Binding NextCommandCanExecute^}" />
+        <c:TagsBox x:Name="SeedTagsBox"
+                   DockPanel.Dock="Left"
+                   ItemCountLimit="24"
+                   SuggestionsAreCaseSensitive="False"
+                   RestrictInputToSuggestions="True"
+                   Items="{Binding Mnemonics}"
+                   Suggestions="{Binding Suggestions}"
+                   CompletedCommand="{Binding NextCommand}"
+                   AllowDuplication="True">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+          </i:Interaction.Behaviors>
+        </c:TagsBox>
+      </DockPanel>
+      <Button Classes="h7 plain activeHyperLink" Margin="0 10 0 0"
+              DockPanel.Dock="Bottom"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Bottom"
+              Command="{Binding AdvancedRecoveryOptionsDialogCommand}"
+              Content="Advanced Recovery Options..."/>
+    </DockPanel>
+  </c:ContentArea>
 </UserControl>

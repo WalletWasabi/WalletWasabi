@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
@@ -111,7 +112,7 @@ namespace WalletWasabi.Tests.Helpers
 		}
 
 		public static Alice CreateAlice(Coin coin, OwnershipProof ownershipProof, Round round)
-			=> new(coin, ownershipProof, round) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
+			=> new(coin, ownershipProof, round, Guid.NewGuid()) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
 
 		public static Alice CreateAlice(Key key, Money amount, Round round)
 			=> CreateAlice(CreateCoin(key, amount), CreateOwnershipProof(key), round);
@@ -260,5 +261,15 @@ namespace WalletWasabi.Tests.Helpers
 
 		public static Round CreateBlameRound(Round round, WabiSabiConfig cfg)
 			=> new(new(cfg, round.Network, new InsecureRandom(), round.FeeRate, blameOf: round));
+
+		public static (Key, SmartCoin, Key, SmartCoin) CreateCoinKeyPairs()
+		{
+			var km = ServiceFactory.CreateKeyManager("");
+			var smartCoin1 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m));
+			var smartCoin2 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(2m));
+			var sk1 = km.GetSecrets("", smartCoin1.ScriptPubKey).Single();
+			var sk2 = km.GetSecrets("", smartCoin2.ScriptPubKey).Single();
+			return (sk1.PrivateKey, smartCoin1, sk2.PrivateKey, smartCoin2);
+		}
 	}
 }

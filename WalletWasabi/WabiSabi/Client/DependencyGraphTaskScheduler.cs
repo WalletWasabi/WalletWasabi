@@ -25,11 +25,10 @@ namespace WalletWasabi.WabiSabi.Client
 		private DependencyGraph Graph { get; }
 		private Dictionary<CredentialDependency, TaskCompletionSource<Credential>> DependencyTasks { get; }
 
-		public async Task StartConfirmConnectionsAsync(IEnumerable<AliceClient> aliceClients, DependencyGraph dependencyGraph, TimeSpan connectionConfirmationTimeout, RoundStateUpdater roundStateUpdater, CancellationToken cancellationToken)
+		private async Task CompleteConnectionConfirmationAsync(IEnumerable<AliceClient> aliceClients, BobClient bobClient, CancellationToken cancellationToken)
 		{
 			var aliceNodePairs = PairAliceClientAndRequestNodes(aliceClients, Graph);
 
-			List<SmartRequestNode> smartRequestNodes = new();
 			List<Task> connectionConfirmationTasks = new();
 
 			using CancellationTokenSource ctsOnError = new();
@@ -40,24 +39,23 @@ namespace WalletWasabi.WabiSabi.Client
 				var amountEdgeTaskCompSources = Graph.OutEdges(node, CredentialType.Amount).Select(edge => DependencyTasks[edge]);
 				var vsizeEdgeTaskCompSources = Graph.OutEdges(node, CredentialType.Vsize).Select(edge => DependencyTasks[edge]);
 				SmartRequestNode smartRequestNode = new(
-					Enumerable.Empty<Task<Credential>>(),
-					Enumerable.Empty<Task<Credential>>(),
+					aliceClient.IssuedAmountCredentials.Take(ProtocolConstants.CredentialNumber).Select(Task.FromResult),
+					aliceClient.IssuedVsizeCredentials.Take(ProtocolConstants.CredentialNumber).Select(Task.FromResult),
 					amountEdgeTaskCompSources,
 					vsizeEdgeTaskCompSources);
 
-				var amountsToRequest = dependencyGraph.OutEdges(node, CredentialType.Amount).Select(e => (long)e.Value);
-				var vsizesToRequest = dependencyGraph.OutEdges(node, CredentialType.Vsize).Select(e => (long)e.Value);
+				var amountsToRequest = Graph.OutEdges(node, CredentialType.Amount).Select(e => e.Value);
+				var vsizesToRequest = Graph.OutEdges(node, CredentialType.Vsize).Select(e => e.Value);
 
+				// Although connection confirmation requests support k
+				// credential requests, for now we only know which amounts to
+				// request after connection confirmation has finished and the
+				// final decomposition can be computed, so as a workaround we
+				// unconditionally request the full amount in one credential and
+				// then do an equivalent reissuance request for every connection
+				// confirmation.
 				var task = smartRequestNode
-					.ConfirmConnectionTaskAsync(
-						connectionConfirmationTimeout,
-						aliceClient,
-						amountsToRequest,
-						vsizesToRequest,
-						node.EffectiveValue,
-						node.VsizeRemainingAllocation,
-						roundStateUpdater,
-						linkedCts.Token)
+					.StartReissuanceAsync(bobClient, amountsToRequest, vsizesToRequest, linkedCts.Token)
 					.ContinueWith((t) =>
 					{
 						if (t.IsFaulted && t.Exception is { } exception)
@@ -91,6 +89,13 @@ namespace WalletWasabi.WabiSabi.Client
 			List<SmartRequestNode> smartRequestNodes = new();
 			List<Task> allTasks = new();
 
+			// Temporary workaround because we don't yet have a mechanism to
+			// propagate the final amounts to request amounts to AliceClient's
+			// connection confirmation loop even though they are already known
+			// after the final successful input registration, which may be well
+			// before the connection confirmation phase actually starts.
+			allTasks.Add(CompleteConnectionConfirmationAsync(aliceClients, bobClient, cancellationToken));
+
 			using CancellationTokenSource ctsOnError = new();
 			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctsOnError.Token);
 
@@ -102,8 +107,8 @@ namespace WalletWasabi.WabiSabi.Client
 				var outputAmountEdgeTaskCompSources = Graph.OutEdges(node, CredentialType.Amount).Select(edge => DependencyTasks[edge]);
 				var outputVsizeEdgeTaskCompSources = Graph.OutEdges(node, CredentialType.Vsize).Select(edge => DependencyTasks[edge]);
 
-				var requestedAmounts = Graph.OutEdges(node, CredentialType.Amount).Select(edge => (long)edge.Value);
-				var requestedVSizes = Graph.OutEdges(node, CredentialType.Vsize).Select(edge => (long)edge.Value);
+				var requestedAmounts = Graph.OutEdges(node, CredentialType.Amount).Select(edge => edge.Value);
+				var requestedVSizes = Graph.OutEdges(node, CredentialType.Vsize).Select(edge => edge.Value);
 
 				SmartRequestNode smartRequestNode = new(
 					inputAmountEdgeTasks,

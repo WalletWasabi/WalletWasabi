@@ -11,6 +11,9 @@ namespace WalletWasabi.Tor.Control.Messages.CircuitStatus
 		/// <summary>HS client-side rendezvous circuit; carries AP streams</summary>
 		HS_CLIENT_REND,
 
+		/// <summary>Circuit is used for getting HS directories</summary>
+		HS_CLIENT_HSDIR,
+
 		/// <summary>HS service-side introduction-point circuit</summary>
 		HS_SERVICE_INTRO,
 

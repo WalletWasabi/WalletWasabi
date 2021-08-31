@@ -37,7 +37,8 @@
       </Button>
     </DockPanel>
     <c:PrivacyContentControl PrivacyReplacementMode="Icon">
-      <c:LineChart x:CompileBindings="True" x:DataType="vm:WalletBalanceChartTileViewModel" x:Name="GradientLineChart"
+      <c:LineChart x:CompileBindings="True"
+                   DataContext="{Binding Animator}"
                    Classes="area border xAxis xAxisLabels yAxis yAxisLabels"
                    Margin="30 15 15 25"
                    SmoothCurve="True"

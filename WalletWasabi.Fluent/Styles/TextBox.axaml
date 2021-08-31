@@ -166,4 +166,12 @@
     <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
     <Setter Property="FontSize" Value="15" />
   </Style>
+
+  <Style Selector="TextBox.wrap /template/ TextPresenter#PART_TextPresenter">
+    <Setter Property="TextBlock.TextWrapping" Value="Wrap" />
+  </Style>
+
+  <Style Selector="TextBox.wrap /template/ ScrollViewer">
+    <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
+  </Style>
 </Styles>
