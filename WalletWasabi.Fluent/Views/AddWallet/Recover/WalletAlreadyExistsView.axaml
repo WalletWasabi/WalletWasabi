@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:recover="clr-namespace:WalletWasabi.Fluent.ViewModels.AddWallet.Recover"
+             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="recover:WalletAlreadyExistsViewModel"
              x:CompileBindings="True"
@@ -14,7 +15,14 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="Done"
-                 IsBusy="{Binding IsBusy}">
-
+                 IsBusy="{Binding IsBusy}"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <StackPanel Spacing="10">
+      <Viewbox MaxHeight="150">
+        <Image Height="100" Source="{Binding WalletType, Converter={x:Static conv:WalletIconConverter.WalletTypeToImage}}" />
+      </Viewbox>
+      <TextBlock Margin="0 10 0 0" Text="We noticed the wallet you want to recover is already exists. Click below to open it."/>
+      <Button Classes="activeHyperLink plain" Content="Open Wallet" Command="{Binding OpenWalletCommand}"/>
+    </StackPanel>
   </c:ContentArea>
 </UserControl>

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -84,7 +85,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Recover
 
 					if (Services.WalletManager.WalletExists(keyManager.MasterFingerprint))
 					{
+						var walletList = Services.WalletManager.GetWallets(refreshWalletList: false);
+						var existingWallet = walletList.First(x => x.KeyManager.MasterFingerprint == keyManager.MasterFingerprint);
+						var existingWalletViewModel =  UiServices.WalletManager.GetWalletViewModel(existingWallet);
 
+						Navigate().To(new WalletAlreadyExistsViewModel(existingWalletViewModel));
 					}
 					else
 					{
