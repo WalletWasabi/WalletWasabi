@@ -15,6 +15,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 	public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 	{
 		[AutoNotify] private WriteableBitmap? _qrImage;
+		[AutoNotify] private string _message = "";
 
 		private WebcamQrReader _qrReader;
 
@@ -44,7 +45,13 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 			Observable.FromEventPattern<string>(_qrReader, nameof(_qrReader.InvalidAddressFound))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(args => Close(DialogResultKind.Normal, args.EventArgs));
+				.Subscribe(args =>
+				{
+					if (string.IsNullOrWhiteSpace(Message))
+					{
+						Message = $"Invalid content. Please make sure the QR code contains a correct {network.Name} address.";
+					}
+				});
 
 			Observable.FromEventPattern<Exception>(_qrReader, nameof(_qrReader.ErrorOccured))
 				.ObserveOn(RxApp.MainThreadScheduler)
