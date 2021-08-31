@@ -343,7 +343,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 			var response = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, signingKey, CancellationToken.None);
 
-			Assert.NotEqual(uint256.Zero, response.Value);
+			Assert.NotEqual(Guid.Empty, response.Value);
 		}
 
 		[Fact]
@@ -374,9 +374,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			RoundState[] rounds = await apiClient.GetStatusAsync(CancellationToken.None);
 			RoundState round = rounds.First(x => x.CoinjoinState is ConstructionState);
 
-			ArenaResponse<uint256> response = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, signingKey, CancellationToken.None);
+			ArenaResponse<Guid> response = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, signingKey, CancellationToken.None);
 
-			Assert.NotEqual(uint256.Zero, response.Value);
+			Assert.NotEqual(Guid.Empty, response.Value);
 		}
 
 		private class StuttererHttpClient : HttpClientWrapper

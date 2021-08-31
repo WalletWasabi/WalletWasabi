@@ -346,7 +346,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
 				}
 
-				var alice = new Alice(coin, request.OwnershipProof, round);
+				// Generate a new Guid with the secure random source, to be sure
+				// that it is not guessable (Guid.NewGuid() documentation does
+				// not say anything about GUID version or randomness source,
+				// only that the probability of duplicates is very low).
+				var id = new Guid(Random.GetBytes(16));
+				var alice = new Alice(coin, request.OwnershipProof, round, id);
 
 				if (alice.TotalInputAmount < round.MinRegistrableAmount)
 				{
@@ -384,37 +389,20 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		public async Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken)
 		{
-			Alice? alice;
-
 			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
-				if (Rounds.FirstOrDefault(r => r.Id == request.RoundId) is not { } round)
+				if (Rounds.FirstOrDefault(r => r.Id == request.RoundId) is not Round round)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound, $"Round ({request.RoundId}) not found.");
 				}
 
-				alice = round.Alices.FirstOrDefault(a => a.Id == request.AliceId);
-				if (alice is null)
+				if (round.Alices.FirstOrDefault(a => a.Id == request.AliceId) is not Alice alice)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound, $"Round ({request.RoundId}): Alice id ({request.AliceId}).");
 				}
 
-				if (alice.ReadyToSign)
-				{
-					Prison.Ban(alice, round.Id);
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadySignalled, $"Round ({request.RoundId}): Alice id ({request.AliceId}) already signaled readiness.");
-				}
+				alice.ReadyToSign = true;
 			}
-
-			var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", request.RoundId);
-			if (!OwnershipProof.VerifyCoinJoinInputProof(request.OwnershipProof, alice.Coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
-			}
-
-			// Locking is not strictly required because ReadyToSign is monotone (only
-			// changes from false to true) and primitive value types are atomic.
-			alice.ReadyToSign = true;
 		}
 
 		public async Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellationToken)
