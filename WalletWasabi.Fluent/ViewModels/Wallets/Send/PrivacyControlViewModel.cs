@@ -23,10 +23,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private readonly Wallet _wallet;
 		private readonly SourceList<PocketViewModel> _pocketSource;
 		private readonly ReadOnlyObservableCollection<PocketViewModel> _pockets;
-		private PocketViewModel? _privatePocket;
 
 		[AutoNotify] private decimal _stillNeeded;
 		[AutoNotify] private bool _enoughSelected;
+		[AutoNotify] private bool _isWarningOpen;
 
 		private bool _buildingTransaction;
 
@@ -49,10 +49,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			selected.Sum(x => x.TotalBtc)
 				.Subscribe(x =>
 				{
-					if (_privatePocket is { })
-					{
-						_privatePocket.IsWarningOpen = _privatePocket.IsSelected && selectedList.Count > 1;
-					}
+					IsWarningOpen = selectedList.Count > 1 && selectedList.Items.Any(x => x.Labels == CoinPocketHelper.PrivateFundsText);
 
 					StillNeeded = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC) - x;
 					EnoughSelected = StillNeeded <= 0;
@@ -76,11 +73,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			IObservableList<PocketViewModel> selectedList)
 		{
 			transactionInfo.Coins = selectedList.Items.SelectMany(x => x.Coins).ToArray();
-
-			if (_privatePocket is not null)
-			{
-				_privatePocket.IsSelected = false;
-			}
 
 			try
 			{
@@ -156,25 +148,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (!isInHistory)
 			{
-				var pockets = _wallet.Coins.GetPockets(_wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue());
+				var pockets = _wallet.Coins.GetPockets(_wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue()).Select(x => new PocketViewModel(x));
 
-				foreach (var pocket in pockets)
-				{
-					if (pocket.SmartLabel.Labels.Any(x => x == CoinPocketHelper.PrivateFundsText))
-					{
-						_privatePocket = new PocketViewModel(pocket)
-						{
-							WarningMessage =
-								"Warning, using both private and non-private funds in the same transaction can destroy your privacy."
-						};
-
-						_pocketSource.Add(_privatePocket);
-					}
-					else
-					{
-						_pocketSource.Add(new PocketViewModel(pocket));
-					}
-				}
+				_pocketSource.AddRange(pockets);
 			}
 
 			foreach (var pocket in _pockets)
@@ -197,7 +173,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						cmd.Execute(default);
 					}
 				}
-
 			}
 		}
 	}
