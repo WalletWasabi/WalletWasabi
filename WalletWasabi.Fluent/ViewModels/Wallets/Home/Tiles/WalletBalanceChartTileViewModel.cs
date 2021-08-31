@@ -133,6 +133,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				x => x.Balance,
 				sampleTime,
 				sampleLimit,
+				0,
 				DateTime.Now);
 
 			foreach (var (timestamp, balance) in values.Reverse())
@@ -160,33 +161,23 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				var range = DateTimeOffset.FromUnixTimeMilliseconds((long)maxX) -
 							DateTimeOffset.FromUnixTimeMilliseconds((long)minX);
 
+				var stringFormatOption = "MMM-d";
+
 				if (range <= TimeSpan.FromDays(1))
 				{
-					Animator.XLabels = new List<string>
-					{
-						DateTimeOffset.FromUnixTimeMilliseconds((long) minX).DateTime.ToString("t"),
-						DateTimeOffset.FromUnixTimeMilliseconds((long) halfX).DateTime.ToString("t"),
-						DateTimeOffset.FromUnixTimeMilliseconds((long) maxX).DateTime.ToString("t"),
-					};
+					stringFormatOption = "t";
 				}
 				else if (range <= TimeSpan.FromDays(7))
 				{
-					Animator.XLabels = new List<string>
-					{
-						DateTimeOffset.FromUnixTimeMilliseconds((long) minX).DateTime.ToString("ddd MMM-d"),
-						DateTimeOffset.FromUnixTimeMilliseconds((long) halfX).DateTime.ToString("ddd MMM-d"),
-						DateTimeOffset.FromUnixTimeMilliseconds((long) maxX).DateTime.ToString("ddd MMM-d"),
-					};
+					stringFormatOption = "ddd MMM-d";
 				}
-				else
+
+				Animator.XLabels = new List<string>
 				{
-					Animator.XLabels = new List<string>
-					{
-						DateTimeOffset.FromUnixTimeMilliseconds((long) minX).DateTime.ToString("MMM-d"),
-						DateTimeOffset.FromUnixTimeMilliseconds((long) halfX).DateTime.ToString("MMM-d"),
-						DateTimeOffset.FromUnixTimeMilliseconds((long) maxX).DateTime.ToString("MMM-d"),
-					};
-				}
+					DateTimeOffset.FromUnixTimeMilliseconds((long)minX).ToLocalTime().ToString(stringFormatOption),
+					DateTimeOffset.FromUnixTimeMilliseconds((long)halfX).ToLocalTime().ToString(stringFormatOption),
+					DateTimeOffset.FromUnixTimeMilliseconds((long)maxX).ToLocalTime().ToString(stringFormatOption),
+				};
 			}
 			else
 			{
