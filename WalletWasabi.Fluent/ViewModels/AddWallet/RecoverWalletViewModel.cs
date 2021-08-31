@@ -82,7 +82,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 							return result;
 						});
 
-					Navigate().To(new AddedWalletPageViewModel(keyManager));
+					if (Services.WalletManager.WalletExists(keyManager.MasterFingerprint))
+					{
+
+					}
+					else
+					{
+						Navigate().To(new AddedWalletPageViewModel(keyManager));
+					}
 
 					return;
 				}
