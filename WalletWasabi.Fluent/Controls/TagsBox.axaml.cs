@@ -421,7 +421,7 @@ namespace WalletWasabi.Fluent.Controls
 					_internalTextBox?.ClearValue(AutoCompleteBox.TextProperty);
 
 					autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
-					Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
+					Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty), DispatcherPriority.Background);
 					e.Handled = true;
 
 					break;
