@@ -218,7 +218,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 			var noSignatureApiClient = new SignatureDroppingClient(new HttpClientWrapper(httpClient));
 			var badCoinJoinClient = new CoinJoinClient(noSignatureApiClient, kitchen, keyManager2, roundStateUpdater);
-			var badCoinsTask = Task.Run(async () => await badCoinJoinClient.StartRoundAsync(badCoins, roundState, cts.Token).ConfigureAwait(false), cts.Token);
+			var badCoinsTask = Task.Run(async () => await badCoinJoinClient.StartCoinJoinAsync(badCoins, cts.Token).ConfigureAwait(false), cts.Token);
 
 			await Task.WhenAll(new Task[] { badCoinsTask, coinJoinTask });
 
