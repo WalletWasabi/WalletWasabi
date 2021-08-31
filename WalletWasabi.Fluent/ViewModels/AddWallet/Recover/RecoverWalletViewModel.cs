@@ -10,14 +10,14 @@ using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Fluent.ViewModels.Dialogs;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.Validation;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Fluent.ViewModels.AddWallet
+namespace WalletWasabi.Fluent.ViewModels.AddWallet.Recover
 {
 	[NavigationMetaData(Title = "Enter recovery words")]
 	public partial class RecoverWalletViewModel : RoutableViewModel

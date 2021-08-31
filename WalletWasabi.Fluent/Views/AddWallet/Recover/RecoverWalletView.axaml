@@ -5,11 +5,11 @@
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
-             xmlns:recoverWallet="using:WalletWasabi.Fluent.ViewModels.AddWallet"
+             xmlns:recover="clr-namespace:WalletWasabi.Fluent.ViewModels.AddWallet.Recover"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
-             x:DataType="recoverWallet:RecoverWalletViewModel"
+             x:DataType="recover:RecoverWalletViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.AddWallet.RecoverWalletView">
+             x:Class="WalletWasabi.Fluent.Views.AddWallet.Recover.RecoverWalletView">
   <c:ContentArea x:Name="RecoveryPageRoot"
                  Title="{Binding Title}" Caption="Type in your 12 recovery words and click Continue."
                  CancelContent="Cancel"

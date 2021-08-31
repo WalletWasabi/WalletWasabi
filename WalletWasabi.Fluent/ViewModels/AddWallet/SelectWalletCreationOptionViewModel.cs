@@ -7,6 +7,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 using WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
+using WalletWasabi.Fluent.ViewModels.AddWallet.Recover;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
