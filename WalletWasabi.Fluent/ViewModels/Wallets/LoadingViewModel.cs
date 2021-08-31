@@ -1,9 +1,8 @@
 using System;
 using System.Diagnostics;
-using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Threading;
+using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Fluent.Helpers;
@@ -18,61 +17,82 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		[AutoNotify] private double _percent;
 		[AutoNotify] private string? _statusText;
-		[AutoNotify] private bool _isBackendConnected;
 
-		private uint? _startingFilterIndex;
 		private Stopwatch? _stopwatch;
 		private bool _isLoading;
+		private uint _filtersToDownloadCount;
+		private uint _filtersToProcessCount;
+		private uint _filterProcessStartingHeight;
 
 		public LoadingViewModel(Wallet wallet)
 		{
 			_wallet = wallet;
 			_statusText = "";
 			_percent = 0;
-			_isBackendConnected = Services.Synchronizer.BackendStatus == BackendStatus.Connected;
 		}
+
+		private uint TotalCount => _filtersToProcessCount + _filtersToDownloadCount;
+
+		private uint RemainingFiltersToDownload => (uint) Services.BitcoinStore.SmartHeaderChain.HashesLeft;
 
 		protected override void OnActivated(CompositeDisposable disposables)
 		{
 			base.OnActivated(disposables);
 
-			var deactivateCancelToken = new CancellationTokenSource();
-			disposables.Add(Disposable.Create(() => deactivateCancelToken.Cancel()));
+			Percent = 0;
+			StatusText = "";
+			_stopwatch ??= Stopwatch.StartNew();
 
-			if (_isLoading)
-			{
-				// TODO: Refactor status
-				ShowFilterProcessingStatus(disposables);
-			}
-			else
+			Observable.Interval(TimeSpan.FromSeconds(1))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					var processedCount = GetCurrentProcessedCount();
+					UpdateStatus(processedCount);
+				})
+				.DisposeWith(disposables);
+
+			if (!_isLoading)
 			{
 				Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
-					.ObserveOn(RxApp.MainThreadScheduler)
-					.Subscribe(status => IsBackendConnected = status == BackendStatus.Connected)
+					.Where(status => status == BackendStatus.Connected)
+					.Subscribe(async _ => await LoadWalletAsync(isBackendAvailable: true).ConfigureAwait(false))
 					.DisposeWith(disposables);
 
-				this.RaisePropertyChanged(nameof(IsBackendConnected));
-
 				Observable.FromEventPattern<bool>(Services.Synchronizer, nameof(Services.Synchronizer.ResponseArrivedIsGenSocksServFail))
-					.Subscribe(_ =>
+					.Subscribe(async _ =>
 					{
-						if (Services.Synchronizer.BackendStatus == BackendStatus.Connected) // TODO: the event invoke must be refactored in Synchronizer
+						if (Services.Synchronizer.BackendStatus == BackendStatus.Connected)
 						{
 							return;
 						}
 
-						LoadWallet(disposables, syncFilters: false);
+						await LoadWalletAsync(isBackendAvailable: false).ConfigureAwait(false);
 					})
-					.DisposeWith(disposables);
-
-				this.WhenAnyValue(x => x.IsBackendConnected)
-					.Where(x => x)
-					.Subscribe(_ => LoadWallet(disposables, syncFilters: true))
 					.DisposeWith(disposables);
 			}
 		}
 
-		private void LoadWallet(CompositeDisposable disposables, bool syncFilters)
+		private uint GetCurrentProcessedCount()
+		{
+			uint downloadedFilters = 0;
+			if (_filtersToDownloadCount > 0)
+			{
+				downloadedFilters = _filtersToDownloadCount - RemainingFiltersToDownload;
+			}
+
+			uint processedFilters = 0;
+			if (_wallet.LastProcessedFilter?.Header?.Height is { } lastProcessedFilterHeight)
+			{
+				processedFilters = lastProcessedFilterHeight - _filterProcessStartingHeight - 1;
+			}
+
+			var processedCount = downloadedFilters + processedFilters;
+
+			return processedCount;
+		}
+
+		private async Task LoadWalletAsync(bool isBackendAvailable)
 		{
 			if (_isLoading)
 			{
@@ -81,48 +101,49 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 			_isLoading = true;
 
-			if (syncFilters)
+			await SetInitValuesAsync(isBackendAvailable).ConfigureAwait(false);
+
+			while (isBackendAvailable && RemainingFiltersToDownload > 0)
 			{
-				// TODO: filter sync here
+				await Task.Delay(1000).ConfigureAwait(false);
 			}
 
-			RxApp.MainThreadScheduler.Schedule(async () => await UiServices.WalletManager.LoadWalletAsync(_wallet));
-			ShowFilterProcessingStatus(disposables);
+			await UiServices.WalletManager.LoadWalletAsync(_wallet).ConfigureAwait(false);
 		}
 
-		private void ShowFilterProcessingStatus(CompositeDisposable disposables)
+		private async Task SetInitValuesAsync(bool isBackendAvailable)
 		{
-			_stopwatch ??= Stopwatch.StartNew();
+			while (isBackendAvailable && Services.Synchronizer.LastResponse is null)
+			{
+				await Task.Delay(500).ConfigureAwait(false);
+			}
 
-			Observable.Interval(TimeSpan.FromSeconds(1))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					var segwitActivationHeight = SmartHeader.GetStartingHeader(_wallet.Network).Height;
-					if (_wallet.LastProcessedFilter?.Header?.Height is { } lastProcessedFilterHeight
-					    && lastProcessedFilterHeight > segwitActivationHeight
-					    && Services.BitcoinStore.SmartHeaderChain.TipHeight is { } tipHeight
-					    && tipHeight > segwitActivationHeight)
-					{
-						var allFilters = tipHeight - segwitActivationHeight;
-						var processedFilters = lastProcessedFilterHeight - segwitActivationHeight;
+			_filtersToDownloadCount = (uint) Services.BitcoinStore.SmartHeaderChain.HashesLeft;
 
-						UpdateStatus(allFilters, processedFilters, _stopwatch.ElapsedMilliseconds);
-					}
-				})
-				.DisposeWith(disposables);
+			if (Services.BitcoinStore.SmartHeaderChain.ServerTipHeight is { } serverTipHeight &&
+			    Services.BitcoinStore.SmartHeaderChain.TipHeight is { } clientTipHeight)
+			{
+				var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
+				var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network).Height;
+				var bestHeight = (uint) _wallet.KeyManager.GetBestHeight().Value;
+				_filterProcessStartingHeight = bestHeight < startingHeight ? startingHeight : bestHeight;
+
+				_filtersToProcessCount = tipHeight - _filterProcessStartingHeight;
+			}
 		}
 
-		private void UpdateStatus(uint allFilters, uint processedFilters, double elapsedMilliseconds)
+		private void UpdateStatus(uint processedCount)
 		{
-			var percent = (decimal) processedFilters / allFilters * 100;
-			_startingFilterIndex ??= processedFilters; // Store the filter index we started on. It is needed for better remaining time calculation.
-			var realProcessedFilters = processedFilters - _startingFilterIndex.Value;
-			var remainingFilterCount = allFilters - processedFilters;
+			if (TotalCount == 0 || processedCount == 0 || processedCount > TotalCount || _stopwatch is null)
+			{
+				return;
+			}
 
+			var percent = (decimal) processedCount / TotalCount * 100;
+			var remainingCount = TotalCount - processedCount;
 			var tempPercent = (uint) Math.Round(percent);
 
-			if (tempPercent == 0 || realProcessedFilters == 0 || remainingFilterCount == 0)
+			if (tempPercent == 0)
 			{
 				return;
 			}
@@ -130,7 +151,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			Percent = tempPercent;
 			var percentText = $"{Percent}% completed";
 
-			var remainingMilliseconds = elapsedMilliseconds / realProcessedFilters * remainingFilterCount;
+			var remainingMilliseconds = (double) _stopwatch.ElapsedMilliseconds / processedCount * remainingCount;
 			var userFriendlyTime = TextHelpers.TimeSpanToFriendlyString(TimeSpan.FromMilliseconds(remainingMilliseconds));
 			var remainingTimeText = string.IsNullOrEmpty(userFriendlyTime) ? "" : $"- {userFriendlyTime} remaining";
 

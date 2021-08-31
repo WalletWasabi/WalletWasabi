@@ -1,11 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Models;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
@@ -23,7 +27,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 		}
 
 		public KeyManager KeyManager { get; }
-		public List<Coin> Coins { get; } = new();
+		public List<SmartCoin> Coins { get; } = new();
 		public IRPCClient Rpc { get; }
 		public WabiSabiHttpApiClient ApiClient { get; }
 
@@ -47,7 +51,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var rnd = new Random(seed);
 			double NextNotTooSmall() => 0.00001 + (rnd.NextDouble() * 0.99999);
 			var sampling = Enumerable
-				.Range(0, numberOfCoins-1)
+				.Range(0, numberOfCoins - 1)
 				.Select(_ => NextNotTooSmall())
 				.Prepend(0)
 				.Prepend(1)
@@ -59,16 +63,19 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 				.Select(x => x * SourceCoin.Amount.Satoshi)
 				.Select(x => Money.Satoshis((long)x));
 
-			foreach (var amount in amounts)
+			var keys = Enumerable.Range(0, amounts.Count()).Select(x => KeyManager.GetNextReceiveKey("no-label", out _)).ToImmutableList();
+			foreach (var (amount, key) in amounts.Zip(keys))
 			{
-				var key = KeyManager.GetNextReceiveKey("no-label", out _);
 				var scriptPubKey = key.P2wpkhScript;
 				var effectiveOutputValue = amount - feeRate.GetFee(scriptPubKey.EstimateOutputVsize());
 				splitTx.Outputs.Add(new TxOut(effectiveOutputValue, scriptPubKey));
 			}
 			var minerKey = KeyManager.GetSecrets("", SourceCoin.ScriptPubKey).First();
 			splitTx.Sign(minerKey.PrivateKey.GetBitcoinSecret(Rpc.Network), SourceCoin);
-			Coins.AddRange(splitTx.Outputs.AsCoins());
+			var stx = new SmartTransaction(splitTx, new Height(500_000));
+
+			var smartCoins = keys.Select((k, i) => new SmartCoin(stx, (uint)i, k));
+			Coins.AddRange(smartCoins);
 			await Rpc.SendRawTransactionAsync(splitTx).ConfigureAwait(false);
 		}
 
@@ -80,10 +87,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var kitchen = new Kitchen();
 			kitchen.Cook("");
 
-			var coinJoinClient = new CoinJoinClient(ApiClient, Coins, kitchen, KeyManager, roundStateUpdater);
+			var coinJoinClient = new CoinJoinClient(ApiClient, kitchen, KeyManager, roundStateUpdater);
 
 			// Run the coinjoin client task.
-			await coinJoinClient.StartCoinJoinAsync(cancellationToken).ConfigureAwait(false);
+			await coinJoinClient.StartCoinJoinAsync(Coins, cancellationToken).ConfigureAwait(false);
 
 			await roundStateUpdater.StopAsync(cancellationToken).ConfigureAwait(false);
 		}

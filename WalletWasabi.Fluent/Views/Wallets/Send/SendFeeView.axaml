@@ -160,6 +160,7 @@
             <Setter Property="AreaMargin" Value="10,0,10,45"/>
             <Setter Property="MinHeight" Value="170"/>
             <Setter Property="XAxisLabelAngle" Value="45" />
+            <Setter Property="XAxisLabelOffset" Value="-18,54" />
           </Style>
         </c:LineChart.Styles>
         <i:Interaction.Behaviors>
