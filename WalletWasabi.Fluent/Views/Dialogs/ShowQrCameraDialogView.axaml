@@ -16,5 +16,6 @@
       <c:ProgressRing IsIndeterminate="True" Height="100" IsVisible="{Binding QrImage,Converter={x:Static ObjectConverters.IsNull}}" />
       <Image Name="qrImage" Source="{Binding QrImage}" IsVisible="{Binding QrImage,Converter={x:Static ObjectConverters.IsNotNull}}" />
     </Panel>
+    <!-- Insert message binding & display here -->
   </c:ContentArea>
 </UserControl>
