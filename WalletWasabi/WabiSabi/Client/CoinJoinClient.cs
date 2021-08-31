@@ -74,7 +74,7 @@ namespace WalletWasabi.WabiSabi.Client
 		/// <summary>Attempt to participate in a specified dround.</summary>
 		/// <param name="roundState">Defines the round parameter and state information to use.</param>
 		/// <returns>Whether or not the round resulted in a successful transaction.</returns>
-		private async Task<bool> StartRoundAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
+		public async Task<bool> StartRoundAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 		{
 			var constructionState = roundState.Assert<ConstructionState>();
 
