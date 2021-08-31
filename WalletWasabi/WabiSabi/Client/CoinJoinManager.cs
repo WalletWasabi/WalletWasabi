@@ -51,7 +51,7 @@ namespace WalletWasabi.WabiSabi.Client
 					var coinCandidates = openedWallet.Coins.Available().Confirmed().Where(x => x.HdPubKey.AnonymitySet < ServiceConfiguration.GetMixUntilAnonymitySetValue());
 					var coinjoinTask = coinjoinClient.StartCoinJoinAsync(coinCandidates, cts.Token);
 
-					trackedWallets.Add(openedWallet.WalletName, new WalletTrackingData(openedWallet, coinjoinTask, cts));
+					trackedWallets.Add(openedWallet.WalletName, new WalletTrackingData(openedWallet, coinjoinTask, coinjoinClient, cts));
 				}
 
 				foreach (var closedWallet in closedWallets.Select(x => x.Value))
@@ -89,17 +89,37 @@ namespace WalletWasabi.WabiSabi.Client
 						Logger.LogInfo("Coinjoin client was cancelled.");
 					}
 				}
+
+				if (WalletManager.AnyCoinJoinInProgress())
+				{
+					var hashSet = new[] { Phase.ConnectionConfirmation, Phase.OutputRegistration, Phase.TransactionSigning }.ToHashSet();
+					bool inCriticalPhase = trackedWallets.Values.Any(x =>
+						x.CoinJoinClient.RoundState?.Phase is { } phase && hashSet.Contains(phase));
+
+					if (inCriticalPhase)
+					{
+						// SystemAwakeChecker.PreventShutdown();
+					}
+					else
+					{
+						// SystemAwakeChecker.PreventSleep()
+					}
+				}
+				else
+				{
+					// SystemAwakeChecker.ReleaseAllPrevention();
+				}
 			}
 		}
 
 		private ImmutableDictionary<string, Wallet> GetMixableWallets() =>
 			WalletManager.GetWallets()
 				.Where(x => x.State == WalletState.Started) // Only running wallets
-				.Where(x => x.KeyManager.AutoCoinJoin)		// configured to be mixed automatically
-				.Where(x => !x.KeyManager.IsWatchOnly)		// that are not watch-only wallets
+				.Where(x => x.KeyManager.AutoCoinJoin)      // configured to be mixed automatically
+				.Where(x => !x.KeyManager.IsWatchOnly)      // that are not watch-only wallets
 				.Where(x => x.Kitchen.HasIngredients)
 				.ToImmutableDictionary(x => x.WalletName, x => x);
 
-		private record WalletTrackingData(Wallet Wallet, Task<bool> CoinJoinTask, CancellationTokenSource CancellationTokenSource);
+		private record WalletTrackingData(Wallet Wallet, Task<bool> CoinJoinTask, CoinJoinClient CoinJoinClient, CancellationTokenSource CancellationTokenSource);
 	}
 }
