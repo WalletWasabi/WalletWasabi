@@ -87,6 +87,7 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 			catch (System.Net.Http.HttpRequestException ex)
 			{
+				coin.CoinJoinInProgress = false;
 				if (ex.InnerException is WabiSabiProtocolException wpe)
 				{
 					switch (wpe.ErrorCode)
