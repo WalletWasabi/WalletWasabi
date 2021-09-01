@@ -49,7 +49,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 				{
 					if (string.IsNullOrWhiteSpace(Message))
 					{
-						Message = $"Invalid content. Please make sure the QR code contains a correct {network.Name} address.";
+						Message = $"Invalid QR code.";
 					}
 				});
 
