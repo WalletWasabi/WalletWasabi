@@ -2,7 +2,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:WalletWasabi.Fluent"
              xmlns:models="using:WalletWasabi.Models"
-             x:Class="WalletWasabi.Fluent.App">
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
+             x:DataType="vm:ApplicationViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.App" CanShutdownProvider="{Binding .}">
   <Application.DataTemplates>
     <local:ViewLocator/>
     <DataTemplate DataType="models:ErrorDescriptor" x:DataType="models:ErrorDescriptor">
@@ -35,9 +38,4 @@
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/StatusItem.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/PrivacyContentControl.axaml" />
   </Application.Styles>
-  <NativeMenu.Menu>
-    <NativeMenu>
-      <NativeMenuItem Header="About Wasabi Wallet" Command="{Binding AboutCommand}" />
-    </NativeMenu>
-  </NativeMenu.Menu>
 </Application>

@@ -4,9 +4,11 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Data;
 using Avalonia.Markup.Xaml;
 using ReactiveUI;
 using WalletWasabi.Fluent.Behaviors;
+using WalletWasabi.Fluent.Providers;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.Views;
 
@@ -16,6 +18,12 @@ namespace WalletWasabi.Fluent
 	{
 		private Func<Task> _backendInitialiseAsync;
 
+		/// <summary>
+		/// Defines the <see cref="CanShutdownProvider"/> property.
+		/// </summary>/
+		public static readonly StyledProperty<ICanShutdownProvider?> CanShutdownProviderProperty =
+			AvaloniaProperty.Register<App, ICanShutdownProvider?>(nameof(CanShutdownProvider), null, defaultBindingMode: BindingMode.TwoWay);
+
 		public App()
 		{
 			Name = "Wasabi Wallet";
@@ -24,6 +32,12 @@ namespace WalletWasabi.Fluent
 		public App(Func<Task> backendInitialiseAsync) : this()
 		{
 			_backendInitialiseAsync = backendInitialiseAsync;
+		}
+
+		public ICanShutdownProvider? CanShutdownProvider
+		{
+			get => GetValue(CanShutdownProviderProperty);
+			set => SetValue(CanShutdownProviderProperty, value);
 		}
 
 		public override void Initialize()
@@ -41,6 +55,8 @@ namespace WalletWasabi.Fluent
 
 				if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
 				{
+					desktop.ShutdownRequested += DesktopOnShutdownRequested;
+
 					desktop.MainWindow = new MainWindow
 					{
 						DataContext = MainViewModel.Instance
@@ -57,6 +73,14 @@ namespace WalletWasabi.Fluent
 			}
 
 			base.OnFrameworkInitializationCompleted();
+		}
+
+		private void DesktopOnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
+		{
+			if (CanShutdownProvider is { } provider)
+			{
+				e.Cancel = !provider.CanShutdown();
+			}
 		}
 	}
 }
