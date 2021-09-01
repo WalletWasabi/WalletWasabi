@@ -114,11 +114,11 @@ namespace WalletWasabi.Services
 		{
 		}
 
-		public void Update(WalletManager walletManager)
+		public void Update()
 		{
-			if (walletManager.AnyCoinJoinInProgress())
+			if (WalletManager.AnyCoinJoinInProgress())
 			{
-				if (walletManager.AnyCoinJoinInCriticalPhase())
+				if (WalletManager.AnyCoinJoinInCriticalPhase())
 				{
 					PreventShutdown();
 				}

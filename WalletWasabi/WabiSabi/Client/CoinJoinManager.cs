@@ -93,7 +93,7 @@ namespace WalletWasabi.WabiSabi.Client
 					}
 				}
 
-				SystemAwakeChecker?.Update(WalletManager);
+				SystemAwakeChecker?.Update();
 			}
 		}
 
