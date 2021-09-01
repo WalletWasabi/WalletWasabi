@@ -43,7 +43,6 @@ namespace WalletWasabi.WabiSabi.Client
 		public Kitchen Kitchen { get; }
 		public KeyManager Keymanager { get; }
 		private RoundStateUpdater RoundStatusUpdater { get; }
-		public RoundState? RoundState { get; private set; }
 
 		public async Task<bool> StartCoinJoinAsync(IEnumerable<SmartCoin> coins, CancellationToken cancellationToken)
 		{
@@ -58,7 +57,6 @@ namespace WalletWasabi.WabiSabi.Client
 
 			for (var tries = 0; tries < tryLimit; tries++)
 			{
-				RoundState = currentRoundState;
 				if (await StartRoundAsync(coins, currentRoundState, cancellationToken).ConfigureAwait(false))
 				{
 					return true;
