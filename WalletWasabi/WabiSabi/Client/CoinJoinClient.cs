@@ -155,10 +155,10 @@ namespace WalletWasabi.WabiSabi.Client
 				}
 			}
 
-			var registerRequests = smartCoins.Select(RegisterInputTask).ToImmutableArray();
-			await Task.WhenAll(registerRequests).ConfigureAwait(false);
+			var aliceClients = smartCoins.Select(RegisterInputTask).ToImmutableArray();
+			await Task.WhenAll(aliceClients).ConfigureAwait(false);
 
-			return registerRequests
+			return aliceClients
 				.Where(x => x.Result is not null)
 				.Select(x => x.Result!)
 				.ToImmutableArray();
