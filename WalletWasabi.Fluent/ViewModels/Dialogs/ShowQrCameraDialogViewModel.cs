@@ -45,13 +45,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 			Observable.FromEventPattern<string>(_qrReader, nameof(_qrReader.InvalidAddressFound))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(args =>
-				{
-					if (string.IsNullOrWhiteSpace(Message))
-					{
-						Message = $"Invalid QR code.";
-					}
-				});
+				.Subscribe(args => Message = $"Invalid QR code.");
 
 			Observable.FromEventPattern<Exception>(_qrReader, nameof(_qrReader.ErrorOccured))
 				.ObserveOn(RxApp.MainThreadScheduler)

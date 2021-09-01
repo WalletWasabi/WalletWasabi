@@ -12,7 +12,7 @@
                  EnableCancel="{Binding EnableCancel}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel>
-      <TextBlock DockPanel.Dock="Bottom" Text="{Binding Message}" Height="30"></TextBlock>
+      <TextBlock DockPanel.Dock="Bottom" Text="{Binding Message}"></TextBlock>
       <!-- QR Camera -->
       <Panel Width="400" Height="300">
         <c:ProgressRing IsIndeterminate="True" Height="100" IsVisible="{Binding QrImage,Converter={x:Static ObjectConverters.IsNull}}" />
