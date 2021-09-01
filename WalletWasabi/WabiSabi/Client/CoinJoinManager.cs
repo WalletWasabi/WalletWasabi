@@ -54,7 +54,7 @@ namespace WalletWasabi.WabiSabi.Client
 					var coinCandidates = openedWallet.Coins.Available().Confirmed().Where(x => x.HdPubKey.AnonymitySet < ServiceConfiguration.GetMixUntilAnonymitySetValue());
 					var coinjoinTask = coinjoinClient.StartCoinJoinAsync(coinCandidates, cts.Token);
 
-					trackedWallets.Add(openedWallet.WalletName, new WalletTrackingData(openedWallet, coinjoinTask, coinjoinClient, cts));
+					trackedWallets.Add(openedWallet.WalletName, new WalletTrackingData(openedWallet, coinjoinTask, cts));
 				}
 
 				foreach (var closedWallet in closedWallets.Select(x => x.Value))
@@ -122,6 +122,6 @@ namespace WalletWasabi.WabiSabi.Client
 				.Where(x => x.Kitchen.HasIngredients)
 				.ToImmutableDictionary(x => x.WalletName, x => x);
 
-		private record WalletTrackingData(Wallet Wallet, Task<bool> CoinJoinTask, CoinJoinClient CoinJoinClient, CancellationTokenSource CancellationTokenSource);
+		private record WalletTrackingData(Wallet Wallet, Task<bool> CoinJoinTask, CancellationTokenSource CancellationTokenSource);
 	}
 }
