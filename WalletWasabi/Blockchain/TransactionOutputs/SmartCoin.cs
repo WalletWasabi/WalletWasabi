@@ -18,6 +18,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		private Height _height;
 		private SmartTransaction? _spenderTransaction;
 		private bool _coinJoinInProgress;
+		private bool _coinJoinInCriticalPhase;
 		private DateTimeOffset? _bannedUntilUtc;
 		private bool _spentAccordingToBackend;
 
@@ -94,7 +95,20 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public bool CoinJoinInProgress
 		{
 			get => _coinJoinInProgress;
-			set => RaiseAndSetIfChanged(ref _coinJoinInProgress, value);
+			set
+			{
+				RaiseAndSetIfChanged(ref _coinJoinInProgress, value);
+				if (value is false)
+				{
+					CoinJoinInCriticalPhase = false;
+				}
+			}
+		}
+
+		public bool CoinJoinInCriticalPhase
+		{
+			get => _coinJoinInCriticalPhase;
+			set => RaiseAndSetIfChanged(ref _coinJoinInCriticalPhase, value);
 		}
 
 		public DateTimeOffset? BannedUntilUtc

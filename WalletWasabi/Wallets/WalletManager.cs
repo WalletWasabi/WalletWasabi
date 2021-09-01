@@ -442,5 +442,13 @@ namespace WalletWasabi.Wallets
 				return Wallets.Any(w => w.Coins.Unspent().CoinJoinInProcess().Any());
 			}
 		}
+
+		public bool AnyCoinJoinInCriticalPhase()
+		{
+			lock (Lock)
+			{
+				return Wallets.Any(w => w.Coins.Unspent().CoinJoinInCritical().Any());
+			}
+		}
 	}
 }

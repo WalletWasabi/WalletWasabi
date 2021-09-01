@@ -239,6 +239,8 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		public ICoinsView CoinJoinInProcess() => AsCoinsView().CoinJoinInProcess();
 
+		public ICoinsView CoinJoinInCritical() => AsCoinsView().CoinJoinInCritical();
+
 		public ICoinsView Confirmed() => AsCoinsView().Confirmed();
 
 		public ICoinsView DescendantOf(SmartCoin coin) => AsCoinsView().DescendantOf(coin);

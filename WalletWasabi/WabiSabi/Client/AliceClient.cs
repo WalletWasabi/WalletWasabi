@@ -17,7 +17,7 @@ namespace WalletWasabi.WabiSabi.Client
 	{
 		public AliceClient(RoundState roundState, ArenaClient arenaClient, SmartCoin coin, BitcoinSecret bitcoinSecret)
 		{
-            RoundId = roundState.Id;
+			RoundId = roundState.Id;
 			ArenaClient = arenaClient;
 			SmartCoin = coin;
 			FeeRate = roundState.FeeRate;
@@ -57,9 +57,10 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			try
 			{
-				var response = await ArenaClient.RegisterInputAsync(RoundId, SmartCoin.Coin.Outpoint, BitcoinSecret.PrivateKey, cancellationToken).ConfigureAwait(false);
-                AliceId = response.Value;
+				SmartCoin.CoinJoinInCriticalPhase = false;
 				SmartCoin.CoinJoinInProgress = true;
+				var response = await ArenaClient.RegisterInputAsync(RoundId, SmartCoin.Coin.Outpoint, BitcoinSecret.PrivateKey, cancellationToken).ConfigureAwait(false);
+				AliceId = response.Value;
 
 				IssuedAmountCredentials = response.IssuedAmountCredentials;
 				IssuedVsizeCredentials = response.IssuedVsizeCredentials;
@@ -121,6 +122,8 @@ namespace WalletWasabi.WabiSabi.Client
 				}
 			}
 			while (!await TryConfirmConnectionAsync(amountsToRequest, vsizesToRequest, cancellationToken).ConfigureAwait(false));
+
+			SmartCoin.CoinJoinInCriticalPhase = true;
 		}
 
 		private async Task<bool> TryConfirmConnectionAsync(IEnumerable<long> amountsToRequest, IEnumerable<long> vsizesToRequest, CancellationToken cancellationToken)
@@ -170,6 +173,7 @@ namespace WalletWasabi.WabiSabi.Client
 							SmartCoin.CoinJoinInProgress = false;
 							Logger.LogInfo($"{SmartCoin.Coin.Outpoint} the round was not found. Nothing to unregister.");
 							break;
+
 						case WabiSabiProtocolErrorCode.WrongPhase:
 							Logger.LogInfo($"{SmartCoin.Coin.Outpoint} could not be unregistered at this phase (too late).");
 							break;

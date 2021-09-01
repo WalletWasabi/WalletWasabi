@@ -23,6 +23,8 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		public ICoinsView CoinJoinInProcess() => new CoinsView(Coins.Where(x => x.CoinJoinInProgress));
 
+		public ICoinsView CoinJoinInCritical() => new CoinsView(Coins.Where(x => x.CoinJoinInCriticalPhase));
+
 		public ICoinsView Confirmed() => new CoinsView(Coins.Where(x => x.Confirmed));
 
 		public ICoinsView Unconfirmed() => new CoinsView(Coins.Where(x => !x.Confirmed));

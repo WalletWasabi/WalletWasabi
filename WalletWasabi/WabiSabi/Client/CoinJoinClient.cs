@@ -78,58 +78,69 @@ namespace WalletWasabi.WabiSabi.Client
 		/// <returns>Whether or not the round resulted in a successful transaction.</returns>
 		public async Task<bool> StartRoundAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 		{
-			var constructionState = roundState.Assert<ConstructionState>();
-
-			var coinCandidates = SelectCoinsForRound(smartCoins, constructionState.Parameters);
-			var aliceClientsToRegister = coinCandidates.Select(x => CreateAliceClient(x, roundState)).ToImmutableArray();
-
-			// Register coins.
-			var registeredAliceClients = await RegisterAndConfirmCoinsAsync(aliceClientsToRegister, cancellationToken).ConfigureAwait(false);
-			if (!registeredAliceClients.Any())
+			try
 			{
-				throw new InvalidOperationException($"Round ({roundState.Id}): There is no available alices to participate with.");
+				var constructionState = roundState.Assert<ConstructionState>();
+
+				var coinCandidates = SelectCoinsForRound(smartCoins, constructionState.Parameters);
+				var aliceClientsToRegister = coinCandidates.Select(x => CreateAliceClient(x, roundState)).ToImmutableArray();
+
+				// Register coins.
+				var registeredAliceClients = await RegisterAndConfirmCoinsAsync(aliceClientsToRegister, cancellationToken).ConfigureAwait(false);
+				if (!registeredAliceClients.Any())
+				{
+					throw new InvalidOperationException($"Round ({roundState.Id}): There is no available alices to participate with.");
+				}
+
+				// Calculate outputs values
+				var registeredCoins = registeredAliceClients.Select(x => x.SmartCoin.Coin);
+				var availableVsize = registeredAliceClients.SelectMany(x => x.IssuedVsizeCredentials).Sum(x => x.Value);
+				var outputValues = DecomposeAmounts(registeredCoins, roundState.FeeRate, constructionState.Parameters.AllowedOutputAmounts.Min, (int)availableVsize);
+
+				// Get all locked internal keys we have and assert we have enough.
+				Keymanager.AssertLockedInternalKeysIndexed(howMany: outputValues.Count());
+				var allLockedInternalKeys = Keymanager.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked);
+				var outputTxOuts = outputValues.Zip(allLockedInternalKeys, (amount, hdPubKey) => new TxOut(amount, hdPubKey.P2wpkhScript));
+
+				DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(registeredCoins, outputTxOuts, roundState.FeeRate, roundState.MaxVsizeAllocationPerAlice);
+				DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
+
+				// Re-issuances.
+				var bobClient = CreateBobClient(roundState);
+				await scheduler.StartReissuancesAsync(registeredAliceClients, bobClient, cancellationToken).ConfigureAwait(false);
+
+				// Output registration.
+				roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
+				await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, cancellationToken).ConfigureAwait(false);
+
+				// ReadyToSign.
+				await ReadyToSignAsync(registeredAliceClients, cancellationToken).ConfigureAwait(false);
+
+				// Signing.
+				roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
+				var signingState = roundState.Assert<SigningState>();
+				var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
+
+				// Sanity check.
+				if (!SanityCheck(outputTxOuts, unsignedCoinJoin))
+				{
+					throw new InvalidOperationException($"Round ({roundState.Id}): My output is missing.");
+				}
+
+				// Send signature.
+				await SignTransactionAsync(registeredAliceClients, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
+
+				var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundState.Id && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
+
+				return finalRoundState.WasTransactionBroadcast;
 			}
-
-			// Calculate outputs values
-			var registeredCoins = registeredAliceClients.Select(x => x.SmartCoin.Coin);
-			var availableVsize = registeredAliceClients.SelectMany(x => x.IssuedVsizeCredentials).Sum(x => x.Value);
-			var outputValues = DecomposeAmounts(registeredCoins, roundState.FeeRate, constructionState.Parameters.AllowedOutputAmounts.Min, (int)availableVsize);
-
-			// Get all locked internal keys we have and assert we have enough.
-			Keymanager.AssertLockedInternalKeysIndexed(howMany: outputValues.Count());
-			var allLockedInternalKeys = Keymanager.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked);
-			var outputTxOuts = outputValues.Zip(allLockedInternalKeys, (amount, hdPubKey) => new TxOut(amount, hdPubKey.P2wpkhScript));
-
-			DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(registeredCoins, outputTxOuts, roundState.FeeRate, roundState.MaxVsizeAllocationPerAlice);
-			DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
-
-			// Re-issuances.
-			var bobClient = CreateBobClient(roundState);
-			await scheduler.StartReissuancesAsync(registeredAliceClients, bobClient, cancellationToken).ConfigureAwait(false);
-
-			// Output registration.
-			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
-			await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, cancellationToken).ConfigureAwait(false);
-
-			// ReadyToSign.
-			await ReadyToSignAsync(registeredAliceClients, cancellationToken).ConfigureAwait(false);
-
-			// Signing.
-			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
-			var signingState = roundState.Assert<SigningState>();
-			var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
-
-			// Sanity check.
-			if (!SanityCheck(outputTxOuts, unsignedCoinJoin))
+			finally
 			{
-				throw new InvalidOperationException($"Round ({roundState.Id}): My output is missing.");
+				foreach (var smartCoin in smartCoins)
+				{
+					smartCoin.CoinJoinInProgress = false;
+				}
 			}
-
-			// Send signature.
-			await SignTransactionAsync(registeredAliceClients, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
-
-			var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundState.Id && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
-			return finalRoundState.WasTransactionBroadcast;
 		}
 
 		private AliceClient CreateAliceClient(SmartCoin coin, RoundState roundState)

@@ -101,5 +101,17 @@ namespace WalletWasabi.Services
 				}
 			}
 		}
+
+		public void PreventShutdown()
+		{
+		}
+
+		public void PreventSleep()
+		{
+		}
+
+		public void ReleaseAllPrevention()
+		{
+		}
 	}
 }

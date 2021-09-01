@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -20,18 +21,20 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class CoinJoinManager : BackgroundService
 	{
-		public CoinJoinManager(WalletManager walletManager, RoundStateUpdater roundStatusUpdater, HttpClientFactory backendHttpClientFactory, ServiceConfiguration serviceConfiguration)
+		public CoinJoinManager(WalletManager walletManager, SystemAwakeChecker? systemAwakeChecker, RoundStateUpdater roundStatusUpdater, HttpClientFactory backendHttpClientFactory, ServiceConfiguration serviceConfiguration)
 		{
 			WalletManager = walletManager;
 			ArenaRequestHandler = new WabiSabiHttpApiClient(backendHttpClientFactory.NewBackendHttpClient(Mode.SingleCircuitPerLifetime));
 			RoundStatusUpdater = roundStatusUpdater;
 			ServiceConfiguration = serviceConfiguration;
+			SystemAwakeChecker = systemAwakeChecker;
 		}
 
 		public WalletManager WalletManager { get; }
 		public IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
 		public RoundStateUpdater RoundStatusUpdater { get; }
 		public ServiceConfiguration ServiceConfiguration { get; }
+		public SystemAwakeChecker? SystemAwakeChecker { get; }
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
@@ -90,24 +93,23 @@ namespace WalletWasabi.WabiSabi.Client
 					}
 				}
 
-				if (WalletManager.AnyCoinJoinInProgress())
+				if (SystemAwakeChecker is { })
 				{
-					var hashSet = new[] { Phase.ConnectionConfirmation, Phase.OutputRegistration, Phase.TransactionSigning }.ToHashSet();
-					bool inCriticalPhase = trackedWallets.Values.Any(x =>
-						x.CoinJoinClient.RoundState?.Phase is { } phase && hashSet.Contains(phase));
-
-					if (inCriticalPhase)
+					if (WalletManager.AnyCoinJoinInProgress())
 					{
-						// SystemAwakeChecker.PreventShutdown();
+						if (WalletManager.AnyCoinJoinInCriticalPhase())
+						{
+							SystemAwakeChecker.PreventShutdown();
+						}
+						else
+						{
+							SystemAwakeChecker.PreventSleep();
+						}
 					}
 					else
 					{
-						// SystemAwakeChecker.PreventSleep()
+						SystemAwakeChecker.ReleaseAllPrevention();
 					}
-				}
-				else
-				{
-					// SystemAwakeChecker.ReleaseAllPrevention();
 				}
 			}
 		}
