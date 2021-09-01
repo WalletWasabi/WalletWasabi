@@ -129,6 +129,9 @@ namespace WalletWasabi.Gui
 
 			try
 			{
+				BrewManager brew = new();
+				await brew.InstallBrewAsync();
+
 				Cache = new MemoryCache(new MemoryCacheOptions
 				{
 					SizeLimit = 1_000,
