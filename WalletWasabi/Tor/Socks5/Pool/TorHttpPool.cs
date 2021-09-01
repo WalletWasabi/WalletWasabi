@@ -89,6 +89,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		/// <para><see cref="ObtainPoolConnectionLock"/> is acquired only for <see cref="TorTcpConnection"/> selection.</para>
 		/// </summary>
 		/// <exception cref="HttpRequestException">When <paramref name="request"/> fails to be processed.</exception>
+		/// <exception cref="OperationCanceledException">When the operation was canceled.</exception>
 		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken cancellationToken = default)
 		{
 			int i = 0;
@@ -130,6 +131,13 @@ namespace WalletWasabi.Tor.Socks5.Pool
 							Logger.LogDebug($"['{connection}'] All {attemptsNo} attempts failed.");
 							throw new HttpRequestException("Failed to handle the HTTP request via Tor (write failure).", e);
 						}
+					}
+					catch (TorConnectionReadException e)
+					{
+						Logger.LogDebug($"['{connection}'] Could not get/read an HTTP response from Tor.");
+						Logger.LogTrace(e);
+
+						throw new HttpRequestException("Failed to get/read an HTTP response from Tor.", e);
 					}
 					catch (TorConnectCommandFailedException e) when (e.RepField == RepField.TtlExpired)
 					{
@@ -255,6 +263,8 @@ namespace WalletWasabi.Tor.Socks5.Pool
 			return connection;
 		}
 
+		/// <exception cref="TorConnectionWriteException">When a failure during sending our HTTP(s) request to Tor SOCKS5 occurs.</exception>
+		/// <exception cref="TorConnectionReadException">When a failure during receiving HTTP response from Tor SOCKS5 occurs.</exception>
 		internal virtual async Task<HttpResponseMessage> SendCoreAsync(TorTcpConnection connection, HttpRequestMessage request, CancellationToken token = default)
 		{
 			// https://tools.ietf.org/html/rfc7230#section-2.6
@@ -279,7 +289,14 @@ namespace WalletWasabi.Tor.Socks5.Pool
 				throw new TorConnectionWriteException("Could not use transport stream to write data.", e);
 			}
 
-			return await HttpResponseMessageExtensions.CreateNewAsync(transportStream, request.Method, token).ConfigureAwait(false);
+			try
+			{
+				return await HttpResponseMessageExtensions.CreateNewAsync(transportStream, request.Method, token).ConfigureAwait(false);
+			}
+			catch (Exception e) when (e is not OperationCanceledException)
+			{
+				throw new TorConnectionReadException("Could not read HTTP response.", e);
+			}
 		}
 
 		private static string GetRequestHost(HttpRequestMessage request)
