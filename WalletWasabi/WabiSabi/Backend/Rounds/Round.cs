@@ -28,12 +28,10 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			VsizeCredentialIssuer = new(new(RoundParameters.Random), RoundParameters.Random, MaxRegistrableVsize);
 			AmountCredentialIssuerParameters = AmountCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 			VsizeCredentialIssuerParameters = VsizeCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
-
-			Id = CalculateHash();
 		}
 
 		public MultipartyTransactionState CoinjoinState { get; set; }
-		public uint256 Id { get; }
+		public uint256 Id => CalculateHash();
 		public Network Network => RoundParameters.Network;
 		public Money MinRegistrableAmount => RoundParameters.MinRegistrableAmount;
 		public Money MaxRegistrableAmount => RoundParameters.MaxRegistrableAmount;
