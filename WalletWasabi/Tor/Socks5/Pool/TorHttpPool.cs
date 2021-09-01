@@ -123,8 +123,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 					}
 					catch (TorConnectionWriteException e)
 					{
-						Logger.LogDebug($"['{connection}'] TCP connection from the pool is probably dead as we can't write data to the connection.");
-						Logger.LogTrace(e);
+						Logger.LogTrace($"['{connection}'] TCP connection from the pool is probably dead as we can't write data to the connection.", e);
 
 						if (i == attemptsNo)
 						{
@@ -134,8 +133,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 					}
 					catch (TorConnectionReadException e)
 					{
-						Logger.LogDebug($"['{connection}'] Could not get/read an HTTP response from Tor.");
-						Logger.LogTrace(e);
+						Logger.LogTrace($"['{connection}'] Could not get/read an HTTP response from Tor.", e);
 
 						throw new HttpRequestException("Failed to get/read an HTTP response from Tor.", e);
 					}
