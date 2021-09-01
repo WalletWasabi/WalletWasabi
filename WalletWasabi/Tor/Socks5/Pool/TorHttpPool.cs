@@ -133,7 +133,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 					}
 					catch (TorConnectCommandFailedException e) when (e.RepField == RepField.TtlExpired)
 					{
-						// If we get TTL Expired error then wait and retry again, linux often does this.
+						// If we get TTL Expired error then wait and retry again, Linux often does this.
 						Logger.LogTrace($"['{connection}'] TTL exception occurred.", e);
 
 						await Task.Delay(3000, cancellationToken).ConfigureAwait(false);
@@ -146,19 +146,21 @@ namespace WalletWasabi.Tor.Socks5.Pool
 					}
 					catch (IOException e)
 					{
+						Logger.LogTrace($"['{connection}'] Failed to read/write HTTP(s) request.", e);
+
 						// NetworkStream may throw IOException.
-						TorConnectionException innerException = new($"Failed to read/write HTTP(s) request.", e);
+						TorConnectionException innerException = new("Failed to read/write HTTP(s) request.", e);
 						throw new HttpRequestException("Failed to handle the HTTP request via Tor.", innerException);
 					}
 					catch (SocketException e) when (e.ErrorCode == (int)SocketError.ConnectionRefused)
 					{
-						Logger.LogTrace(e);
+						Logger.LogTrace($"['{connection}'] Connection was refused.", e);
 						TorConnectionException innerException = new("Connection was refused.", e);
 						throw new HttpRequestException("Failed to handle the HTTP request via Tor.", innerException);
 					}
 					catch (Exception e)
 					{
-						Logger.LogTrace(e);
+						Logger.LogTrace($"['{connection}'] Exception occurred.", e);
 						throw;
 					}
 					finally
