@@ -10,25 +10,11 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class WabiSabiApiClientWithDelay : IWabiSabiApiRequestHandler
 	{
-		private int readToSignRequestCount;
-		private int outputRegisteredCount;
-		private DateTimeOffset firstOutputRegistrationTime;
-		private TaskCompletionSource allOutputsRegistered = new ();
-
-		private readonly static Task<TimeSpan> ImmediateTimeout = Task.FromResult(TimeSpan.Zero);
-
-		public static WabiSabiApiClientWithDelay CreateForInputRegistration(
-			IWabiSabiApiRequestHandler innerClient,
-			int expectedNumberOfInputs,
-			Task<TimeSpan> inputRegistrationPhaseTimeout)
-			=> new WabiSabiApiClientWithDelay(innerClient, expectedNumberOfInputs, 0, inputRegistrationPhaseTimeout, ImmediateTimeout, ImmediateTimeout);
-
-		public WabiSabiApiClientWithDelay CreateAfterInputRegistration(
-			int expectedNumberOfOutputs,
-			Task<TimeSpan> outputRegistrationPhaseTimeout,
-			Task<TimeSpan> signingPhaseTimeout)
-			=> new WabiSabiApiClientWithDelay(InnerClient, ExpectedNumberOfInputs, expectedNumberOfOutputs, InputRegistrationPhaseTimeout, outputRegistrationPhaseTimeout, signingPhaseTimeout);
-
+		private int _readToSignRequestCount;
+		private int _outputRegisteredCount;
+		private DateTimeOffset _firstOutputRegistrationTime;
+		private static readonly Task<TimeSpan> ImmediateTimeout = Task.FromResult(TimeSpan.Zero);
+		private readonly TaskCompletionSource _allOutputsRegistered = new ();
 
 		private WabiSabiApiClientWithDelay(
 			IWabiSabiApiRequestHandler innerClient,
@@ -57,6 +43,18 @@ namespace WalletWasabi.WabiSabi.Client
 		private ConcurrentStack<DateTimeOffset>? SignatureRequestsSchedule { get; set; }
 		private ConcurrentStack<DateTimeOffset>? ReadyToSignRequestsSchedule { get; set; }
 
+		public static WabiSabiApiClientWithDelay CreateForInputRegistration(
+			IWabiSabiApiRequestHandler innerClient,
+			int expectedNumberOfInputs,
+			Task<TimeSpan> inputRegistrationPhaseTimeout)
+			=> new(innerClient, expectedNumberOfInputs, 0, inputRegistrationPhaseTimeout, ImmediateTimeout, ImmediateTimeout);
+
+		public WabiSabiApiClientWithDelay CreateAfterInputRegistration(
+			int expectedNumberOfOutputs,
+			Task<TimeSpan> outputRegistrationPhaseTimeout,
+			Task<TimeSpan> signingPhaseTimeout)
+			=> new(InnerClient, ExpectedNumberOfInputs, expectedNumberOfOutputs, InputRegistrationPhaseTimeout, outputRegistrationPhaseTimeout, signingPhaseTimeout);
+
 		public async Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 		{
 			var inputRegistrationTimeout = await InputRegistrationPhaseTimeout.ConfigureAwait(false);
@@ -82,10 +80,10 @@ namespace WalletWasabi.WabiSabi.Client
 		public async Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
 		{
 			await InnerClient.RegisterOutputAsync(request, cancellationToken).ConfigureAwait(false);
-			firstOutputRegistrationTime = firstOutputRegistrationTime == default ? DateTimeOffset.Now : firstOutputRegistrationTime;
-			if (Interlocked.Increment(ref outputRegisteredCount) == ExpectedNumberOfOutputs)
+			_firstOutputRegistrationTime = _firstOutputRegistrationTime == default ? DateTimeOffset.Now : _firstOutputRegistrationTime;
+			if (Interlocked.Increment(ref _outputRegisteredCount) == ExpectedNumberOfOutputs)
 			{
-				allOutputsRegistered.SetResult();
+				_allOutputsRegistered.SetResult();
 			}
 		}
 
@@ -108,19 +106,19 @@ namespace WalletWasabi.WabiSabi.Client
 		public async Task ReadyToSign(ReadyToSignRequestRequest request, CancellationToken cancellationToken)
 		{
 			var outputRegistrationTimeout = await OutputRegistrationPhaseTimeout.ConfigureAwait(false);
-			if (Interlocked.Increment(ref readToSignRequestCount) >= ExpectedNumberOfInputs)
+			if (Interlocked.Increment(ref _readToSignRequestCount) >= ExpectedNumberOfInputs)
 			{
-				await allOutputsRegistered.Task;
+				await _allOutputsRegistered.Task;
 			}
 			else
 			{
-				if (firstOutputRegistrationTime == default)
+				if (_firstOutputRegistrationTime == default)
 				{
 					throw new Exception("No outputs registered yet.");
 				}
 
 				ReadyToSignRequestsSchedule ??= CreateSchedule(
-					firstOutputRegistrationTime,
+					_firstOutputRegistrationTime,
 					outputRegistrationTimeout,
 					ExpectedNumberOfInputs - 1);
 				await DelayAccordingToScheduleAsync(ReadyToSignRequestsSchedule, cancellationToken).ConfigureAwait(false);
