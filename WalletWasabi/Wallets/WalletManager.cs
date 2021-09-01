@@ -439,7 +439,7 @@ namespace WalletWasabi.Wallets
 		{
 			lock (Lock)
 			{
-				return Wallets.Any(w => w.Coins.CoinJoinInProcess().Any());
+				return Wallets.Any(w => w.Coins.Unspent().CoinJoinInProcess().Any());
 			}
 		}
 	}
