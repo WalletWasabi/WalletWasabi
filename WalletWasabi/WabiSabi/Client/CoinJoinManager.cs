@@ -93,24 +93,7 @@ namespace WalletWasabi.WabiSabi.Client
 					}
 				}
 
-				if (SystemAwakeChecker is { })
-				{
-					if (WalletManager.AnyCoinJoinInProgress())
-					{
-						if (WalletManager.AnyCoinJoinInCriticalPhase())
-						{
-							SystemAwakeChecker.PreventShutdown();
-						}
-						else
-						{
-							SystemAwakeChecker.PreventSleep();
-						}
-					}
-					else
-					{
-						SystemAwakeChecker.ReleaseAllPrevention();
-					}
-				}
+				SystemAwakeChecker?.Update(WalletManager);
 			}
 		}
 

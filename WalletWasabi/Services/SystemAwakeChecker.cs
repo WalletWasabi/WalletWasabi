@@ -113,5 +113,24 @@ namespace WalletWasabi.Services
 		public void ReleaseAllPrevention()
 		{
 		}
+
+		public void Update(WalletManager walletManager)
+		{
+			if (walletManager.AnyCoinJoinInProgress())
+			{
+				if (walletManager.AnyCoinJoinInCriticalPhase())
+				{
+					PreventShutdown();
+				}
+				else
+				{
+					PreventSleep();
+				}
+			}
+			else
+			{
+				ReleaseAllPrevention();
+			}
+		}
 	}
 }
