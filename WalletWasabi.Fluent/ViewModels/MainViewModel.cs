@@ -86,14 +86,6 @@ namespace WalletWasabi.Fluent.ViewModels
 					var (dialogScreenIsOpen, fullScreenIsOpen, compactDialogScreenIsOpen) = tup;
 
 					IsMainContentEnabled = !(dialogScreenIsOpen || fullScreenIsOpen || compactDialogScreenIsOpen);
-
-					if (IsMainContentEnabled)
-					{
-						if (Services.WalletManager.HasWallet() && !Services.UiConfig.Oobe)
-						{
-							IsSetup = true;
-						}
-					}
 				});
 
 			this.WhenAnyValue(
@@ -144,18 +136,13 @@ namespace WalletWasabi.Fluent.ViewModels
 				{
 					IsSetup = false;
 
-					await _dialogScreen.NavigateDialogAsync(new WelcomePageViewModel());
+					await _dialogScreen.NavigateDialogAsync(new WelcomePageViewModel(_addWalletPage));
 
 					if (Services.WalletManager.HasWallet())
 					{
 						Services.UiConfig.Oobe = false;
 						IsSetup = true;
 					}
-				}
-
-				if (!Services.WalletManager.HasWallet())
-				{
-					_dialogScreen.To(_addWalletPage, NavigationMode.Clear);
 				}
 			});
 		}

@@ -8,9 +8,19 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
 	public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 	{
-		public WelcomePageViewModel()
+		public WelcomePageViewModel(AddWalletPageViewModel addWalletPage)
 		{
-			GetStartedCommand = ReactiveCommand.Create(() => Close());
+			GetStartedCommand = ReactiveCommand.Create(() =>
+			{
+				if (!Services.WalletManager.HasWallet())
+				{
+					Navigate().To(addWalletPage);
+				}
+				else
+				{
+					Close();
+				}
+			});
 		}
 
 		public ICommand GetStartedCommand { get; }
