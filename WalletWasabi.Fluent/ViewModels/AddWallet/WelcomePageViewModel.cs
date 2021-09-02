@@ -2,10 +2,10 @@ using System.Reactive;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
+	[NavigationMetaData(Title = "Welcome")]
 	public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 	{
 		public WelcomePageViewModel(AddWalletPageViewModel addWalletPage)
@@ -24,7 +24,5 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		}
 
 		public ICommand GetStartedCommand { get; }
-
-		public override string Title { get; protected set; }
 	}
 }
