@@ -25,7 +25,7 @@ namespace WalletWasabi.Gui
 		private string? _lastSelectedWallet;
 		private string _windowState = "Normal";
 		private bool _runOnSystemStartup;
-		private bool _oobe = true;
+		private bool _oobe;
 
 		public UiConfig() : base()
 		{
@@ -52,7 +52,7 @@ namespace WalletWasabi.Gui
 				.Subscribe(_ => ToFile());
 		}
 
-		[JsonProperty(PropertyName = "Oobe")]
+		[JsonProperty(PropertyName = "Oobe", DefaultValueHandling = DefaultValueHandling.Populate)]
 		[DefaultValue(true)]
 		public bool Oobe
 		{
