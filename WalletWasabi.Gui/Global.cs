@@ -143,6 +143,11 @@ namespace WalletWasabi.Gui
 
 				SystemAwakeChecker? systemAwakeChecker = await SystemAwakeChecker.CreateAsync(WalletManager).ConfigureAwait(false);
 
+				if (systemAwakeChecker is null)
+				{
+					Logger.LogInfo("System Awake Checker is not available on this platform.");
+				}
+
 				await StartTorProcessManagerAsync(cancel).ConfigureAwait(false);
 
 				try
