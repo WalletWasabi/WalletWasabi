@@ -44,6 +44,11 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		{
 			base.OnPopped(page);
 
+			if (page is INavigatable navigatable)
+			{
+				navigatable.OnNavigatedFrom(false);
+			}
+
 			page.CurrentTarget = NavigationTarget.Default;
 		}
 
