@@ -78,6 +78,8 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			var constructionState = roundState.Assert<ConstructionState>();
 
+			var coinCandidates = SelectCoinsForRound(smartCoins, constructionState.Parameters);
+
 			// Create the API client that randomizes the remote API calls
 			// by applying uniform distributed delays scoped by a time window
 			// that begins with the signal of the phase and its duration is
@@ -86,8 +88,6 @@ namespace WalletWasabi.WabiSabi.Client
 					ArenaRequestHandler,
 					smartCoins.Count(),
 					RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.InputRegistration, cancellationToken).ThenAsync(x => x.InputRegistrationTimeout));
-
-			var coinCandidates = SelectCoinsForRound(smartCoins, constructionState.Parameters);
 
 			// Register coins.
 			var registeredAliceClients = await CreateRegisterAndConfirmCoinsAsync(coinCandidates, roundState, cancellationToken).ConfigureAwait(false);
