@@ -79,10 +79,9 @@ namespace WalletWasabi.WabiSabi.Client
 			var constructionState = roundState.Assert<ConstructionState>();
 
 			var coinCandidates = SelectCoinsForRound(smartCoins, constructionState.Parameters);
-			var aliceClientsToRegister = coinCandidates.Select(x => CreateAliceClient(x, roundState)).ToImmutableArray();
 
 			// Register coins.
-			var registeredAliceClients = await RegisterAndConfirmCoinsAsync(aliceClientsToRegister, cancellationToken).ConfigureAwait(false);
+			var registeredAliceClients = await CreateRegisterAndConfirmCoinsAsync(coinCandidates, roundState, cancellationToken).ConfigureAwait(false);
 			if (!registeredAliceClients.Any())
 			{
 				throw new InvalidOperationException($"Round ({roundState.Id}): There is no available alices to participate with.");
@@ -130,31 +129,25 @@ namespace WalletWasabi.WabiSabi.Client
 			return finalRoundState.WasTransactionBroadcast;
 		}
 
-		private AliceClient CreateAliceClient(SmartCoin coin, RoundState roundState)
+		private async Task<ImmutableArray<AliceClient>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 		{
-			var aliceArenaClient = new ArenaClient(
-				roundState.CreateAmountCredentialClient(SecureRandom),
-				roundState.CreateVsizeCredentialClient(SecureRandom),
-				ArenaRequestHandler);
-
-			var hdKey = Keymanager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey).Single();
-			var secret = hdKey.PrivateKey.GetBitcoinSecret(Keymanager.GetNetwork());
-			if (hdKey.PrivateKey.PubKey.WitHash.ScriptPubKey != coin.ScriptPubKey)
-			{
-				throw new InvalidOperationException("The key cannot generate the utxo scriptpubkey. This could happen if the wallet password is not the correct one.");
-			}
-			return new AliceClient(roundState, aliceArenaClient, coin, secret);
-		}
-
-		private async Task<ImmutableArray<AliceClient>> RegisterAndConfirmCoinsAsync(
-			IEnumerable<AliceClient> aliceClients, CancellationToken cancellationToken)
-		{
-			async Task<AliceClient?> RegisterInputTask(AliceClient aliceClient)
+			async Task<AliceClient?> RegisterInputTask(SmartCoin coin)
 			{
 				try
 				{
-					await aliceClient.RegisterAndConfirmInputAsync(RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
-					return aliceClient;
+					var aliceArenaClient = new ArenaClient(
+						roundState.CreateAmountCredentialClient(SecureRandom),
+						roundState.CreateVsizeCredentialClient(SecureRandom),
+						ArenaRequestHandler);
+
+					var hdKey = Keymanager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey).Single();
+					var secret = hdKey.PrivateKey.GetBitcoinSecret(Keymanager.GetNetwork());
+					if (hdKey.PrivateKey.PubKey.WitHash.ScriptPubKey != coin.ScriptPubKey)
+					{
+						throw new InvalidOperationException("The key cannot generate the utxo scriptpubkey. This could happen if the wallet password is not the correct one.");
+					}
+
+					return await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, secret, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
 				}
 				catch (System.Net.Http.HttpRequestException ex)
 				{
@@ -162,10 +155,10 @@ namespace WalletWasabi.WabiSabi.Client
 				}
 			}
 
-			var registerRequests = aliceClients.Select(RegisterInputTask).ToImmutableArray();
-			await Task.WhenAll(registerRequests).ConfigureAwait(false);
+			var aliceClients = smartCoins.Select(RegisterInputTask).ToImmutableArray();
+			await Task.WhenAll(aliceClients).ConfigureAwait(false);
 
-			return registerRequests
+			return aliceClients
 				.Where(x => x.Result is not null)
 				.Select(x => x.Result!)
 				.ToImmutableArray();
