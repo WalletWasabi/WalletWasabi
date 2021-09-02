@@ -11,21 +11,36 @@ using static WalletWasabi.Helpers.PowerSaving.LinuxInhibitorTask;
 
 namespace WalletWasabi.Services
 {
-	public class SystemAwakeChecker : PeriodicRunner
+	public class SystemAwakeChecker
 	{
 		private const string Reason = "CoinJoin is in progress.";
 		private static readonly TimeSpan Timeout = TimeSpan.FromMinutes(5);
 
+		private bool _canShutdown = true;
+		private object _shutDownLock = new();
+
 		private volatile IPowerSavingInhibitorTask? _powerSavingTask;
 
-		private SystemAwakeChecker(WalletManager walletManager, Func<Task<IPowerSavingInhibitorTask>>? taskFactory) : base(TimeSpan.FromMinutes(1))
+		private SystemAwakeChecker(WalletManager walletManager, Func<Task<IPowerSavingInhibitorTask>>? taskFactory)
 		{
 			WalletManager = walletManager;
 			TaskFactory = taskFactory;
 		}
 
+		public bool CanShutdown
+		{
+			get => _canShutdown;
+			private set
+			{
+				lock (_shutDownLock)
+				{
+					_canShutdown = value;
+				}
+			}
+		}
+
 		private WalletManager WalletManager { get; }
-		public Func<Task<IPowerSavingInhibitorTask>>? TaskFactory { get; }
+		private Func<Task<IPowerSavingInhibitorTask>>? TaskFactory { get; }
 
 		/// <summary>Checks whether we support awake state prolonging for the current platform.</summary>
 		public static async Task<SystemAwakeChecker?> CreateAsync(WalletManager walletManager)
@@ -63,7 +78,31 @@ namespace WalletWasabi.Services
 			return new SystemAwakeChecker(walletManager, taskFactory);
 		}
 
-		protected override async Task ActionAsync(CancellationToken cancel)
+		public async Task UpdateAsync()
+		{
+			if (WalletManager.AnyCoinJoinInProgress())
+			{
+				if (_powerSavingTask is null)
+				{
+					_powerSavingTask = await TaskFactory!().ConfigureAwait(false);
+				}
+
+				if (WalletManager.AnyCoinJoinInProgress()) // WalletManager.AnyCoinJoinInCriticalPhase() will be here
+				{
+					PreventShutdown();
+				}
+				else
+				{
+					await PreventSleepAsync().ConfigureAwait(false);
+				}
+			}
+			else
+			{
+				await ReleaseAllPreventionAsync().ConfigureAwait(false);
+			}
+		}
+
+		private async Task PreventSleepAsync()
 		{
 			IPowerSavingInhibitorTask? task = _powerSavingTask;
 
@@ -91,14 +130,20 @@ namespace WalletWasabi.Services
 					await EnvironmentHelpers.ProlongSystemAwakeAsync().ConfigureAwait(false);
 				}
 			}
-			else
+		}
+
+		private void PreventShutdown()
+		{
+			CanShutdown = false;
+		}
+
+		private async Task ReleaseAllPreventionAsync()
+		{
+			CanShutdown = true;
+			if (_powerSavingTask is not null)
 			{
-				if (task is not null)
-				{
-					Logger.LogWarning("Computer idle state is allowed again.");
-					await task.StopAsync().ConfigureAwait(false);
-					_powerSavingTask = null;
-				}
+				await _powerSavingTask.StopAsync().ConfigureAwait(false);
+				_powerSavingTask = null;
 			}
 		}
 	}
