@@ -15,20 +15,28 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class AliceClient
 	{
-		public AliceClient(RoundState roundState, ArenaClient arenaClient, SmartCoin coin, BitcoinSecret bitcoinSecret)
+		private AliceClient(
+			Guid aliceId,
+			RoundState roundState,
+			ArenaClient arenaClient,
+			SmartCoin coin,
+			BitcoinSecret bitcoinSecret,
+			IEnumerable<Credential> issuedAmountCredentials,
+			IEnumerable<Credential> issuedVsizeCredentials)
 		{
-            RoundId = roundState.Id;
+			AliceId = aliceId;
+			RoundId = roundState.Id;
 			ArenaClient = arenaClient;
 			SmartCoin = coin;
 			FeeRate = roundState.FeeRate;
 			BitcoinSecret = bitcoinSecret;
-			IssuedAmountCredentials = Array.Empty<Credential>();
-			IssuedVsizeCredentials = Array.Empty<Credential>();
+			IssuedAmountCredentials = issuedAmountCredentials;
+			IssuedVsizeCredentials = issuedVsizeCredentials;
 			MaxVsizeAllocationPerAlice = roundState.MaxVsizeAllocationPerAlice;
 			ConfirmationTimeout = roundState.ConnectionConfirmationTimeout / 2;
 		}
 
-		public Guid? AliceId { get; private set; }
+		public Guid AliceId { get; }
 		public uint256 RoundId { get; }
 		private ArenaClient ArenaClient { get; }
 		public SmartCoin SmartCoin { get; }
@@ -39,61 +47,76 @@ namespace WalletWasabi.WabiSabi.Client
 		private long MaxVsizeAllocationPerAlice { get; }
 		private TimeSpan ConfirmationTimeout { get; }
 
-		public async Task RegisterAndConfirmInputAsync(RoundStateUpdater roundStatusUpdater, CancellationToken cancellationToken)
+		public static async Task<AliceClient> CreateRegisterAndConfirmInputAsync(
+			RoundState roundState,
+			ArenaClient arenaClient,
+			SmartCoin coin,
+			BitcoinSecret bitcoinSecret,
+			RoundStateUpdater roundStatusUpdater,
+			CancellationToken cancellationToken)
 		{
+			AliceClient? aliceClient = null;
 			try
 			{
-				await RegisterInputAsync(cancellationToken).ConfigureAwait(false);
-				await ConfirmConnectionAsync(roundStatusUpdater, cancellationToken).ConfigureAwait(false);
+				aliceClient = await RegisterInputAsync(roundState, arenaClient, coin, bitcoinSecret, cancellationToken).ConfigureAwait(false);
+				await aliceClient.ConfirmConnectionAsync(roundStatusUpdater, cancellationToken).ConfigureAwait(false);
 			}
 			catch (OperationCanceledException)
 			{
-				await TryToUnregisterAlicesAsync(CancellationToken.None).ConfigureAwait(false);
+				if (aliceClient is { })
+				{
+					await aliceClient.TryToUnregisterAlicesAsync(CancellationToken.None).ConfigureAwait(false);
+				}
+
 				throw;
 			}
+
+			return aliceClient;
 		}
 
-		private async Task RegisterInputAsync(CancellationToken cancellationToken)
+		private static async Task<AliceClient> RegisterInputAsync(RoundState roundState, ArenaClient arenaClient, SmartCoin coin, BitcoinSecret bitcoinSecret, CancellationToken cancellationToken)
 		{
+			AliceClient? aliceClient;
 			try
 			{
-				var response = await ArenaClient.RegisterInputAsync(RoundId, SmartCoin.Coin.Outpoint, BitcoinSecret.PrivateKey, cancellationToken).ConfigureAwait(false);
-                AliceId = response.Value;
-				SmartCoin.CoinJoinInProgress = true;
+				coin.CoinJoinInProgress = true;
+				var response = await arenaClient.RegisterInputAsync(roundState.Id, coin.Coin.Outpoint, bitcoinSecret.PrivateKey, cancellationToken).ConfigureAwait(false);
+				aliceClient = new(response.Value, roundState, arenaClient, coin, bitcoinSecret, response.IssuedAmountCredentials, response.IssuedVsizeCredentials);
 
-				IssuedAmountCredentials = response.IssuedAmountCredentials;
-				IssuedVsizeCredentials = response.IssuedVsizeCredentials;
-				Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Registered {SmartCoin.OutPoint}.");
+				Logger.LogInfo($"Round ({roundState.Id}), Alice ({aliceClient.AliceId}): Registered {coin.OutPoint}.");
 			}
 			catch (System.Net.Http.HttpRequestException ex)
 			{
+				coin.CoinJoinInProgress = false;
 				if (ex.InnerException is WabiSabiProtocolException wpe)
 				{
 					switch (wpe.ErrorCode)
 					{
 						case WabiSabiProtocolErrorCode.InputSpent:
-							SmartCoin.SpentAccordingToBackend = true;
-							Logger.LogInfo($"{SmartCoin.Coin.Outpoint} is spent according to the backend. The wallet is not fully synchronized or corrupted.");
+							coin.SpentAccordingToBackend = true;
+							Logger.LogInfo($"{coin.Coin.Outpoint} is spent according to the backend. The wallet is not fully synchronized or corrupted.");
 							break;
 
 						case WabiSabiProtocolErrorCode.InputBanned:
-							SmartCoin.BannedUntilUtc = DateTimeOffset.UtcNow.AddDays(1);
-							SmartCoin.SetIsBanned();
-							Logger.LogInfo($"{SmartCoin.Coin.Outpoint} is banned.");
+							coin.BannedUntilUtc = DateTimeOffset.UtcNow.AddDays(1);
+							coin.SetIsBanned();
+							Logger.LogInfo($"{coin.Coin.Outpoint} is banned.");
 							break;
 
 						case WabiSabiProtocolErrorCode.InputNotWhitelisted:
-							SmartCoin.SpentAccordingToBackend = false;
-							Logger.LogWarning($"{SmartCoin.Coin.Outpoint} cannot be registered in the blame round.");
+							coin.SpentAccordingToBackend = false;
+							Logger.LogWarning($"{coin.Coin.Outpoint} cannot be registered in the blame round.");
 							break;
 
 						case WabiSabiProtocolErrorCode.AliceAlreadyRegistered:
-							Logger.LogInfo($"{SmartCoin.Coin.Outpoint} was already registered.");
+							Logger.LogInfo($"{coin.Coin.Outpoint} was already registered.");
 							break;
 					}
 				}
 				throw;
 			}
+
+			return aliceClient;
 		}
 
 		private async Task ConfirmConnectionAsync(RoundStateUpdater roundStatusUpdater, CancellationToken cancellationToken)
@@ -137,7 +160,7 @@ namespace WalletWasabi.WabiSabi.Client
 			var response = await ArenaClient
 				.ConfirmConnectionAsync(
 					RoundId,
-					(Guid)AliceId,
+					AliceId,
 					amountsToRequest,
 					vsizesToRequest,
 					IssuedAmountCredentials,
@@ -152,7 +175,7 @@ namespace WalletWasabi.WabiSabi.Client
 			return isConfirmed;
 		}
 
-		private async Task TryToUnregisterAlicesAsync(CancellationToken cancellationToken)
+		public async Task TryToUnregisterAlicesAsync(CancellationToken cancellationToken)
 		{
 			try
 			{
@@ -170,6 +193,7 @@ namespace WalletWasabi.WabiSabi.Client
 							SmartCoin.CoinJoinInProgress = false;
 							Logger.LogInfo($"{SmartCoin.Coin.Outpoint} the round was not found. Nothing to unregister.");
 							break;
+
 						case WabiSabiProtocolErrorCode.WrongPhase:
 							Logger.LogInfo($"{SmartCoin.Coin.Outpoint} could not be unregistered at this phase (too late).");
 							break;
@@ -183,7 +207,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public async Task RemoveInputAsync(CancellationToken cancellationToken)
 		{
-			await ArenaClient.RemoveInputAsync(RoundId, (Guid)AliceId, cancellationToken).ConfigureAwait(false);
+			await ArenaClient.RemoveInputAsync(RoundId, AliceId, cancellationToken).ConfigureAwait(false);
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Inputs removed.");
 		}
 
@@ -196,7 +220,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public async Task ReadyToSignAsync(CancellationToken cancellationToken)
 		{
-			await ArenaClient.ReadyToSignAsync(RoundId, (Guid)AliceId, cancellationToken).ConfigureAwait(false);
+			await ArenaClient.ReadyToSignAsync(RoundId, AliceId, cancellationToken).ConfigureAwait(false);
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Ready to sign.");
 		}
 	}
