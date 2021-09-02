@@ -32,6 +32,17 @@ namespace WalletWasabi.WabiSabi.Client
 		public IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
 		public RoundStateUpdater RoundStatusUpdater { get; }
 		public ServiceConfiguration ServiceConfiguration { get; }
+		private Dictionary<string, bool> ManuallyChoosenWallets { get; } = new ();
+
+		public void AddWallet(Wallet wallet)
+		{
+			ManuallyChoosenWallets[wallet.WalletName] = true;
+		}
+
+		public void RemoveWallet(Wallet wallet)
+		{
+			ManuallyChoosenWallets[wallet.WalletName] = false;
+		}
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
@@ -97,10 +108,19 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 		}
 
+		private bool IsWalletSelectable(Wallet wallet)
+		{
+			if (ManuallyChoosenWallets.TryGetValue(wallet.WalletName, out var enabled))
+			{
+				return enabled;
+			}
+			return wallet.KeyManager.AutoCoinJoin;
+		}
+
 		private ImmutableDictionary<string, Wallet> GetMixableWallets() =>
 			WalletManager.GetWallets()
 				.Where(x => x.State == WalletState.Started) // Only running wallets
-				.Where(x => x.KeyManager.AutoCoinJoin)		// configured to be mixed automatically
+				.Where(x => IsWalletSelectable(x)) // configured to be mixed automatically or manually
 				.Where(x => !x.KeyManager.IsWatchOnly)		// that are not watch-only wallets
 				.Where(x => x.Kitchen.HasIngredients)
 				.ToImmutableDictionary(x => x.WalletName, x => x);
