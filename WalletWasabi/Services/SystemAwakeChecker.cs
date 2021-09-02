@@ -106,29 +106,26 @@ namespace WalletWasabi.Services
 		{
 			IPowerSavingInhibitorTask? task = _powerSavingTask;
 
-			if (WalletManager.AnyCoinJoinInProgress())
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				if (task is not null)
 				{
-					if (task is not null)
+					if (!task.Prolong(Timeout.Add(TimeSpan.FromMinutes(1))))
 					{
-						if (!task.Prolong(Timeout.Add(TimeSpan.FromMinutes(1))))
-						{
-							Logger.LogTrace("Failed to prolong the power saving task.");
-							task = null;
-						}
+						Logger.LogTrace("Failed to prolong the power saving task.");
+						task = null;
 					}
+				}
 
-					if (task is null)
-					{
-						Logger.LogTrace("Create new power saving prevention task.");
-						_powerSavingTask = await TaskFactory!().ConfigureAwait(false);
-					}
-				}
-				else
+				if (task is null)
 				{
-					await EnvironmentHelpers.ProlongSystemAwakeAsync().ConfigureAwait(false);
+					Logger.LogTrace("Create new power saving prevention task.");
+					_powerSavingTask = await TaskFactory!().ConfigureAwait(false);
 				}
+			}
+			else
+			{
+				await EnvironmentHelpers.ProlongSystemAwakeAsync().ConfigureAwait(false);
 			}
 		}
 
