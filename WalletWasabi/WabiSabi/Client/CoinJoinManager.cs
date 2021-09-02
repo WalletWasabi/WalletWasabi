@@ -33,6 +33,8 @@ namespace WalletWasabi.WabiSabi.Client
 		public RoundStateUpdater RoundStatusUpdater { get; }
 		public ServiceConfiguration ServiceConfiguration { get; }
 
+		// public SystemAwakeChecker SystemAwakeChecker { get; }
+
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
 			var trackedWallets = new Dictionary<string, WalletTrackingData>();
@@ -89,14 +91,16 @@ namespace WalletWasabi.WabiSabi.Client
 						Logger.LogInfo("Coinjoin client was cancelled.");
 					}
 				}
+
+				// SystemAwakeChecker?.Update();
 			}
 		}
 
 		private ImmutableDictionary<string, Wallet> GetMixableWallets() =>
 			WalletManager.GetWallets()
 				.Where(x => x.State == WalletState.Started) // Only running wallets
-				.Where(x => x.KeyManager.AutoCoinJoin)		// configured to be mixed automatically
-				.Where(x => !x.KeyManager.IsWatchOnly)		// that are not watch-only wallets
+				.Where(x => x.KeyManager.AutoCoinJoin)      // configured to be mixed automatically
+				.Where(x => !x.KeyManager.IsWatchOnly)      // that are not watch-only wallets
 				.Where(x => x.Kitchen.HasIngredients)
 				.ToImmutableDictionary(x => x.WalletName, x => x);
 

@@ -132,6 +132,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
+		/// <summary>The rest of the work is done in ApplicationViewModel.cs and App.axaml.cs</summary>
 		private void PreventShutdown()
 		{
 			CanShutdown = false;
