@@ -60,7 +60,7 @@
         </DockPanel>
       </Panel>
     </SplitView>
-    <ExperimentalAcrylicBorder DockPanel.Dock="Left" IsHitTestVisible="False" IsVisible="{Binding !IsSetup}">
+    <ExperimentalAcrylicBorder DockPanel.Dock="Left" IsHitTestVisible="False" IsVisible="{Binding IsOobeBackgroundVisible}">
       <ExperimentalAcrylicBorder.Material>
         <ExperimentalAcrylicMaterial BackgroundSource="Digger"
                                      TintColor="{DynamicResource SystemAltHighColor}"
