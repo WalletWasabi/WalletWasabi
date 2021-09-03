@@ -16,8 +16,8 @@ namespace WalletWasabi.Services
 		private const string Reason = "CoinJoin is in progress.";
 		private static readonly TimeSpan Timeout = TimeSpan.FromMinutes(5);
 
-		private bool _canShutdown = true;
 		private readonly object _canShutDownLock = new();
+		private bool _canShutdown = true;
 
 		private volatile IPowerSavingInhibitorTask? _powerSavingTask;
 
@@ -84,7 +84,12 @@ namespace WalletWasabi.Services
 			return new SystemAwakeChecker(walletManager, taskFactory);
 		}
 
-		public async Task UpdateAsync()
+		protected async override Task ActionAsync(CancellationToken cancel)
+		{
+			await UpdateAsync().ConfigureAwait(false);
+		}
+
+		private async Task UpdateAsync()
 		{
 			if (WalletManager.AnyCoinJoinInProgress())
 			{
@@ -149,11 +154,6 @@ namespace WalletWasabi.Services
 				await _powerSavingTask.StopAsync().ConfigureAwait(false);
 				_powerSavingTask = null;
 			}
-		}
-
-		protected async override Task ActionAsync(CancellationToken cancel)
-		{
-			await UpdateAsync().ConfigureAwait(false);
 		}
 	}
 }
