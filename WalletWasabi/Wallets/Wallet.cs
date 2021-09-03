@@ -94,7 +94,7 @@ namespace WalletWasabi.Wallets
 
 		public bool IsLoggedIn { get; private set; }
 
-		public bool IsManualCoinJoinEnabled { get; set; }
+		public bool AllowManualCoinJoin { get; set; }
 
 		public Kitchen Kitchen { get; } = new();
 
