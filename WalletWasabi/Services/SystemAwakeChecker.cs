@@ -18,7 +18,7 @@ namespace WalletWasabi.Services
 
 		private volatile IPowerSavingInhibitorTask? _powerSavingTask;
 
-		private SystemAwakeChecker(WalletManager walletManager, Func<Task<IPowerSavingInhibitorTask>>? taskFactory) : base(TimeSpan.FromMinutes(1))
+		private SystemAwakeChecker(WalletManager walletManager, Func<Task<IPowerSavingInhibitorTask>>? taskFactory) : base(TimeSpan.FromSeconds(5))
 		{
 			WalletManager = walletManager;
 			TaskFactory = taskFactory;
@@ -67,6 +67,8 @@ namespace WalletWasabi.Services
 		{
 			IPowerSavingInhibitorTask? task = _powerSavingTask;
 
+			Update();
+
 			if (WalletManager.AnyCoinJoinInProgress())
 			{
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -102,15 +104,15 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public void PreventShutdown()
+		private void PreventShutdown()
 		{
 		}
 
-		public void PreventSleep()
+		private void PreventSleep()
 		{
 		}
 
-		public void ReleaseAllPrevention()
+		private void ReleaseAllPrevention()
 		{
 		}
 

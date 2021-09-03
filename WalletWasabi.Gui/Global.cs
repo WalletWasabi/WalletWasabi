@@ -173,7 +173,7 @@ namespace WalletWasabi.Gui
 				await StartLocalBitcoinNodeAsync(cancel).ConfigureAwait(false);
 
 				RegisterFeeRateProviders();
-				RegisterCoinJoinComponents(systemAwakeChecker);
+				RegisterCoinJoinComponents();
 
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
@@ -285,10 +285,10 @@ namespace WalletWasabi.Gui
 			HostedServices.Register<HybridFeeProvider>(new HybridFeeProvider(HostedServices.Get<ThirdPartyFeeProvider>(), HostedServices.GetOrDefault<RpcFeeProvider>()), "Hybrid Fee Provider");
 		}
 
-		private void RegisterCoinJoinComponents(SystemAwakeChecker? systemAwakeChecker)
+		private void RegisterCoinJoinComponents()
 		{
 			HostedServices.Register<RoundStateUpdater>(new RoundStateUpdater(TimeSpan.FromSeconds(5), new WabiSabiHttpApiClient(BackendHttpClientFactory.NewBackendHttpClient(Mode.SingleCircuitPerLifetime))), "Round infor updater");
-			HostedServices.Register<CoinJoinManager>(new CoinJoinManager(WalletManager, systemAwakeChecker, HostedServices.Get<RoundStateUpdater>(), BackendHttpClientFactory, Config.ServiceConfiguration), "CoinJoin Manager");
+			HostedServices.Register<CoinJoinManager>(new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), BackendHttpClientFactory, Config.ServiceConfiguration), "CoinJoin Manager");
 		}
 
 		private void WalletManager_OnDequeue(object? sender, DequeueResult e)

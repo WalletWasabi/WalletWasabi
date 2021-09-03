@@ -21,20 +21,18 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class CoinJoinManager : BackgroundService
 	{
-		public CoinJoinManager(WalletManager walletManager, SystemAwakeChecker? systemAwakeChecker, RoundStateUpdater roundStatusUpdater, HttpClientFactory backendHttpClientFactory, ServiceConfiguration serviceConfiguration)
+		public CoinJoinManager(WalletManager walletManager, RoundStateUpdater roundStatusUpdater, HttpClientFactory backendHttpClientFactory, ServiceConfiguration serviceConfiguration)
 		{
 			WalletManager = walletManager;
 			ArenaRequestHandler = new WabiSabiHttpApiClient(backendHttpClientFactory.NewBackendHttpClient(Mode.SingleCircuitPerLifetime));
 			RoundStatusUpdater = roundStatusUpdater;
 			ServiceConfiguration = serviceConfiguration;
-			SystemAwakeChecker = systemAwakeChecker;
 		}
 
 		public WalletManager WalletManager { get; }
 		public IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
 		public RoundStateUpdater RoundStatusUpdater { get; }
 		public ServiceConfiguration ServiceConfiguration { get; }
-		public SystemAwakeChecker? SystemAwakeChecker { get; }
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
@@ -97,8 +95,6 @@ namespace WalletWasabi.WabiSabi.Client
 						Logger.LogInfo("Coinjoin client was cancelled.");
 					}
 				}
-
-				SystemAwakeChecker?.Update();
 			}
 		}
 
