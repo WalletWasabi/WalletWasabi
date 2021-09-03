@@ -42,12 +42,15 @@ namespace System.IO
 		/// <param name="count">Number of bytes to read.</param>
 		/// <param name="cancellationToken">Cancellation token to cancel the asynchronous operation.</param>
 		/// <returns>Number of read bytes. At most <paramref name="count"/>.</returns>
+		/// <exception cref="OperationCanceledException">When operation is canceled.</exception>
 		public static async Task<int> ReadBlockAsync(this Stream stream, byte[] buffer, int count, CancellationToken cancellationToken = default)
 		{
 			int remaining = count;
 			while (remaining != 0)
 			{
 				int read = await stream.ReadAsync(buffer.AsMemory(count - remaining, remaining), cancellationToken).ConfigureAwait(false);
+
+				cancellationToken.ThrowIfCancellationRequested();
 
 				// End of stream.
 				if (read == 0)

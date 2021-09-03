@@ -432,7 +432,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 			}
 
 			var allData = new byte[(int)length];
-			var num = await stream.ReadBlockAsync(allData, (int)length, ctsToken).ConfigureAwait(false);
+			int num = await stream.ReadBlockAsync(allData, (int)length, ctsToken).ConfigureAwait(false);
 			if (num < (int)length)
 			{
 				// https://tools.ietf.org/html/rfc7230#section-3.3.3
