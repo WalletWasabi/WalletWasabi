@@ -17,7 +17,7 @@ namespace WalletWasabi.Services
 		private static readonly TimeSpan Timeout = TimeSpan.FromMinutes(5);
 
 		private bool _canShutdown = true;
-		private object _shutDownLock = new();
+		private readonly object _canShutDownLock = new();
 
 		private volatile IPowerSavingInhibitorTask? _powerSavingTask;
 
@@ -29,10 +29,16 @@ namespace WalletWasabi.Services
 
 		public bool CanShutdown
 		{
-			get => _canShutdown;
+			get
+			{
+				lock (_canShutDownLock)
+				{
+					return _canShutdown;
+				}
+			}
 			private set
 			{
-				lock (_shutDownLock)
+				lock (_canShutDownLock)
 				{
 					_canShutdown = value;
 				}
