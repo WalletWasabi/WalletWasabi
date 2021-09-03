@@ -26,6 +26,7 @@ namespace WalletWasabi.Gui
 		private string _windowState = "Normal";
 		private bool _runOnSystemStartup;
 		private bool _oobe;
+		private bool _hideOnClose;
 
 		public UiConfig() : base()
 		{
@@ -45,7 +46,8 @@ namespace WalletWasabi.Gui
 					x => x.Oobe,
 					x => x.RunOnSystemStartup,
 					x => x.PrivacyMode,
-					(_, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
+					x => x.HideOnClose,
+					(_, _, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
 				.Throttle(TimeSpan.FromMilliseconds(500))
 				.Skip(1) // Won't save on UiConfig creation.
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -167,5 +169,13 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "HistoryTabViewSortingPreference")]
 		[JsonConverter(typeof(SortingPreferenceJsonConverter))]
 		public SortingPreference HistoryTabViewSortingPreference { get; internal set; } = new SortingPreference(SortOrder.Decreasing, "Date");
+
+		[DefaultValue(false)]
+		[JsonProperty(PropertyName = "HideOnClose", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool HideOnClose
+		{
+			get => _hideOnClose;
+			set => RaiseAndSetIfChanged(ref _hideOnClose, value);
+		}
 	}
 }

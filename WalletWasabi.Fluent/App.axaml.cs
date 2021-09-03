@@ -1,5 +1,6 @@
 using System;
 using System.Reactive.Concurrency;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -79,7 +80,21 @@ namespace WalletWasabi.Fluent
 		{
 			if (CanShutdownProvider is { } provider)
 			{
-				e.Cancel = !provider.CanShutdown();
+				bool hideOnClose = Services.UiConfig.HideOnClose;
+				e.Cancel = !provider.CanShutdown() || hideOnClose;
+
+				if (hideOnClose)
+				{
+					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+					{
+						// Todo: hide the window and hide taskbar icon as well
+						MainViewModel.Instance!.WindowState = WindowState.Minimized;
+					}
+					else
+					{
+						MainViewModel.Instance!.WindowState = WindowState.Minimized;
+					}
+				}
 			}
 		}
 	}
