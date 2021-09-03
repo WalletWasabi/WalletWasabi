@@ -143,7 +143,11 @@ namespace WalletWasabi.Gui
 
 				SystemAwakeChecker? systemAwakeChecker = await SystemAwakeChecker.CreateAsync(WalletManager).ConfigureAwait(false);
 
-				if (systemAwakeChecker is null)
+				if (systemAwakeChecker is not null)
+				{
+					HostedServices.Register<SystemAwakeChecker>(systemAwakeChecker, "System Awake Checker");
+				}
+				else
 				{
 					Logger.LogInfo("System Awake Checker is not available on this platform.");
 				}
@@ -169,7 +173,7 @@ namespace WalletWasabi.Gui
 				await StartLocalBitcoinNodeAsync(cancel).ConfigureAwait(false);
 
 				RegisterFeeRateProviders();
-				RegisterCoinJoinComponents(systemAwakeChecker);
+				RegisterCoinJoinComponents();
 
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
@@ -281,11 +285,9 @@ namespace WalletWasabi.Gui
 			HostedServices.Register<HybridFeeProvider>(new HybridFeeProvider(HostedServices.Get<ThirdPartyFeeProvider>(), HostedServices.GetOrDefault<RpcFeeProvider>()), "Hybrid Fee Provider");
 		}
 
-		private void RegisterCoinJoinComponents(SystemAwakeChecker systemAwakeChecker)
+		private void RegisterCoinJoinComponents()
 		{
 			HostedServices.Register<RoundStateUpdater>(new RoundStateUpdater(TimeSpan.FromSeconds(5), new WabiSabiHttpApiClient(BackendHttpClientFactory.NewBackendHttpClient(Mode.SingleCircuitPerLifetime))), "Round infor updater");
-
-			// Send systemAwakeChecker into CoinJoinManager via ctor
 			HostedServices.Register<CoinJoinManager>(new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), BackendHttpClientFactory, Config.ServiceConfiguration), "CoinJoin Manager");
 		}
 
