@@ -33,8 +33,6 @@ namespace WalletWasabi.WabiSabi.Client
 		public RoundStateUpdater RoundStatusUpdater { get; }
 		public ServiceConfiguration ServiceConfiguration { get; }
 
-		// public SystemAwakeChecker SystemAwakeChecker { get; }
-
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
 			var trackedWallets = new Dictionary<string, WalletTrackingData>();
@@ -91,8 +89,6 @@ namespace WalletWasabi.WabiSabi.Client
 						Logger.LogInfo("Coinjoin client was cancelled.");
 					}
 				}
-
-				// SystemAwakeChecker?.Update();
 			}
 		}
 
