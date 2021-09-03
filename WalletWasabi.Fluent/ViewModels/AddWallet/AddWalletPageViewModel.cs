@@ -35,8 +35,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			NextCommand = ReactiveCommand.Create(OnNext, canExecute);
 
-			OpenCommand = ReactiveCommand.Create(async
-				() =>
+			OpenCommand = ReactiveCommand.Create(
+				async () =>
 			{
 				MainViewModel.Instance.IsOobeBackgroundVisible = true;
 
