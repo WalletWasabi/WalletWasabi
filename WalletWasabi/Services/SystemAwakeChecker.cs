@@ -86,11 +86,6 @@ namespace WalletWasabi.Services
 
 		protected async override Task ActionAsync(CancellationToken cancel)
 		{
-			await UpdateAsync().ConfigureAwait(false);
-		}
-
-		private async Task UpdateAsync()
-		{
 			if (WalletManager.AnyCoinJoinInProgress())
 			{
 				if (_powerSavingTask is null)
