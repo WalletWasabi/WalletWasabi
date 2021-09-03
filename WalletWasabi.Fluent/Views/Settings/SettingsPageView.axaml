@@ -29,10 +29,10 @@
                    HorizontalAlignment="Center"
                    Opacity="{Binding IsModified, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}"
                    DockPanel.Dock="Bottom">
-      <WrapPanel>
+      <StackPanel Orientation="Horizontal">
         <TextBlock Text="Changes will be applied after restarting the application." />
         <Button Content="Restart Wasabi" Classes="activeHyperLink plain" Margin="5 0 0 0" Command="{Binding RestartCommand}"/>
-      </WrapPanel>
+      </StackPanel>
     </c:InfoMessage>
 
     <c:ContentArea Title="{Binding Title}"
