@@ -48,7 +48,7 @@ namespace WalletWasabi.WebClients.Wasabi
 
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
-				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
+				await response.ThrowRequestExceptionFromContentAsync(cancel).ConfigureAwait(false);
 			}
 
 			using HttpContent content = response.Content;
@@ -78,7 +78,7 @@ namespace WalletWasabi.WebClients.Wasabi
 
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
-				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
+				await response.ThrowRequestExceptionFromContentAsync(cancel).ConfigureAwait(false);
 			}
 
 			using HttpContent content = response.Content;
@@ -109,7 +109,7 @@ namespace WalletWasabi.WebClients.Wasabi
 
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
-					await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
+					await response.ThrowRequestExceptionFromContentAsync(cancel).ConfigureAwait(false);
 				}
 
 				using HttpContent content = response.Content;
@@ -168,7 +168,7 @@ namespace WalletWasabi.WebClients.Wasabi
 
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
-				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
+				await response.ThrowRequestExceptionFromContentAsync(cancel).ConfigureAwait(false);
 			}
 
 			using HttpContent content = response.Content;
@@ -191,7 +191,7 @@ namespace WalletWasabi.WebClients.Wasabi
 
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
-				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
+				await response.ThrowRequestExceptionFromContentAsync(cancel).ConfigureAwait(false);
 			}
 
 			using HttpContent content = response.Content;
@@ -229,7 +229,7 @@ namespace WalletWasabi.WebClients.Wasabi
 
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
-				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
+				await response.ThrowRequestExceptionFromContentAsync(cancel).ConfigureAwait(false);
 			}
 
 			using HttpContent content = response.Content;
@@ -267,7 +267,7 @@ namespace WalletWasabi.WebClients.Wasabi
 
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
-				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
+				await response.ThrowRequestExceptionFromContentAsync(cancel).ConfigureAwait(false);
 			}
 
 			using HttpContent content = response.Content;

@@ -63,7 +63,7 @@ namespace WalletWasabi.Tor.Http.Extensions
 		{
 			var errorMessage = "";
 
-			if (me.Content is { })
+			if (me.Content is not null)
 			{
 				var contentString = await me.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 				var error = JsonConvert.DeserializeObject<Error>(contentString, new JsonSerializerSettings()
@@ -74,7 +74,7 @@ namespace WalletWasabi.Tor.Http.Extensions
 				{
 					{ Type: ProtocolConstants.ProtocolViolationType } => Enum.TryParse<WabiSabiProtocolErrorCode>(error.ErrorCode, out var code)
 						? new WabiSabiProtocolException(code, error.Description)
-						: new NotSupportedException($"Received wabisabi protocol exception with unknown '{error.ErrorCode}' error code.\n\tDescription: '{error.Description}'."),
+						: new NotSupportedException($"Received WabiSabi protocol exception with unknown '{error.ErrorCode}' error code.\n\tDescription: '{error.Description}'."),
 					{ Type: "unknown"} => new Exception(error.Description),
 					_ => null
 				};
