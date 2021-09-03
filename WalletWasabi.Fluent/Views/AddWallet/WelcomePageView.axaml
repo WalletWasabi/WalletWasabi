@@ -1,0 +1,58 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             mc:Ignorable="d" d:DesignWidth="800"
+             x:Class="WalletWasabi.Fluent.Views.AddWallet.WelcomePageView">
+  <UserControl.Styles>
+    <Style Selector="Button.action /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentButtonBackgroundPointerOver}" />
+    </Style>
+  </UserControl.Styles>
+  <controls:ContentArea
+    EnableCancel="False"
+    EnableBack="False"
+    EnableNext="False"
+    ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <DockPanel LastChildFill="True">
+      <DockPanel DockPanel.Dock="Top">
+        <StackPanel Spacing="20" DockPanel.Dock="Left">
+          <Viewbox Height="48" HorizontalAlignment="Left">
+            <ContentControl Template="{DynamicResource wasabi_logo_fixed}" />
+          </Viewbox>
+
+          <TextBlock FontWeight="600" HorizontalAlignment="Left" FontSize="28" Text="Welcome to Wasabi Wallet"
+                     TextWrapping="Wrap" />
+        </StackPanel>
+      </DockPanel>
+
+      <Button HorizontalAlignment="Center" VerticalAlignment="Bottom" Classes="action" Content="Get Started"
+              DockPanel.Dock="Bottom" Margin="0 40 0 0"
+              Command="{Binding GetStartedCommand}" />
+
+      <ScrollViewer HorizontalScrollBarVisibility="Disabled" Margin="0 15 0 0">
+
+        <StackPanel Spacing="22" TextBlock.FontSize="12" >
+          <StackPanel.Styles>
+            <Style Selector="TextBlock">
+              <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+          </StackPanel.Styles>
+          <TextBlock TextWrapping="Wrap">
+            Being put in a position to trust someone is always uncomfortable. Especially regarding personal information or your money. This is why Wasabi Wallet is trustless by design.
+          </TextBlock>
+
+          <TextBlock>
+            We do not, have not and we never will collect information from you. We live in a world where your information is being used to typecast, manipulate and surveil you. What you do with your Bitcoin is your business.
+          </TextBlock>
+
+          <TextBlock>
+            Use Wasabi Wallet to retain your individuality, regain your identity and ultimately, reclaim your privacy. We let you control what you reveal about your Bitcoin life.
+          </TextBlock>
+        </StackPanel>
+      </ScrollViewer>
+
+    </DockPanel>
+  </controls:ContentArea>
+</UserControl>

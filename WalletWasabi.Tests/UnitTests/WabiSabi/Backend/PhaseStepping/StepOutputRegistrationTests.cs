@@ -3,10 +3,12 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
+using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Models;
@@ -25,12 +27,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 				MaxInputCountByRound = 2,
 				MinInputCountByRoundMultiplier = 0.5
 			};
-			using Key key1 = new();
-			using Key key2 = new();
-			var coin1 = WabiSabiFactory.CreateCoin(key1);
-			var coin2 = WabiSabiFactory.CreateCoin(key2);
+			var (key1, coin1, key2, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
-			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1, coin2);
+			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
 			var (round, arenaClient, alices) = await CreateRoundWithTwoConfirmedConnectionsAsync(arena, key1, coin1, key2, coin2);
 			var (amountCredentials1, vsizeCredentials1) = (alices[0].IssuedAmountCredentials, alices[0].IssuedVsizeCredentials);
@@ -75,12 +74,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 				MinInputCountByRoundMultiplier = 0.5,
 				OutputRegistrationTimeout = TimeSpan.Zero
 			};
-			using Key key1 = new();
-			using Key key2 = new();
-			var coin1 = WabiSabiFactory.CreateCoin(key1);
-			var coin2 = WabiSabiFactory.CreateCoin(key2);
+			var (key1, coin1, key2, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
-			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1, coin2);
+			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
 			var (round, arenaClient, alices) = await CreateRoundWithTwoConfirmedConnectionsAsync(arena, key1, coin1, key2, coin2);
 			var (amountCredentials1, vsizeCredentials1) = (alices[0].IssuedAmountCredentials, alices[0].IssuedVsizeCredentials);
@@ -114,12 +110,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 				MinInputCountByRoundMultiplier = 0.5,
 				OutputRegistrationTimeout = TimeSpan.Zero
 			};
-			using Key key1 = new();
-			using Key key2 = new();
-			var coin1 = WabiSabiFactory.CreateCoin(key1);
-			var coin2 = WabiSabiFactory.CreateCoin(key2);
+			var (key1, coin1, key2, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
-			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1, coin2);
+			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
 			var (round, arenaClient, alices) = await CreateRoundWithTwoConfirmedConnectionsAsync(arena, key1, coin1, key2, coin2);
 			var (amountCredentials1, vsizeCredentials1) = (alices[0].IssuedAmountCredentials, alices[0].IssuedVsizeCredentials);
@@ -167,12 +160,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 				MaxInputCountByRound = 2,
 				MinInputCountByRoundMultiplier = 0.5
 			};
-			using Key key1 = new();
-			using Key key2 = new();
-			var coin1 = WabiSabiFactory.CreateCoin(key1);
-			var coin2 = WabiSabiFactory.CreateCoin(key2);
+			var (key1, coin1, key2, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
-			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1, coin2);
+			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
 			var (round, arenaClient, alices) = await CreateRoundWithTwoConfirmedConnectionsAsync(arena, key1, coin1, key2, coin2);
 			var (amountCredentials1, vsizeCredentials1) = (alices[0].IssuedAmountCredentials, alices[0].IssuedVsizeCredentials);
@@ -194,7 +184,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 		}
 
 		private async Task<(Round Round, ArenaClient ArenaClient, AliceClient[] alices)>
-			CreateRoundWithTwoConfirmedConnectionsAsync(Arena arena, Key key1, Coin coin1, Key key2, Coin coin2)
+			CreateRoundWithTwoConfirmedConnectionsAsync(Arena arena, Key key1, SmartCoin coin1, Key key2, SmartCoin coin2)
 		{
 			// Create the round.
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -202,21 +192,19 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var round = Assert.Single(arena.Rounds);
 			round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
 
-			// Register Alices.
-			var aliceClient1 = new AliceClient(RoundState.FromRound(round), arenaClient, coin1, key1.GetBitcoinSecret(round.Network));
-			var aliceClient2 = new AliceClient(RoundState.FromRound(round), arenaClient, coin2, key2.GetBitcoinSecret(round.Network));
-
 			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), new ArenaRequestHandlerAdapter(arena));
 			await roundStateUpdater.StartAsync(CancellationToken.None);
 
-			var task1 = aliceClient1.RegisterAndConfirmInputAsync(roundStateUpdater, CancellationToken.None);
-			var task2 = aliceClient2.RegisterAndConfirmInputAsync(roundStateUpdater, CancellationToken.None);
+			var task1 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin1, key1.GetBitcoinSecret(round.Network), roundStateUpdater, CancellationToken.None);
+			var task2 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin2, key2.GetBitcoinSecret(round.Network), roundStateUpdater, CancellationToken.None);
 
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
-
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+			while (Phase.ConnectionConfirmation != round.Phase)
+			{
+				await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+			}
 			await Task.WhenAll(task1, task2);
+			var aliceClient1 = task1.Result;
+			var aliceClient2 = task2.Result;
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.OutputRegistration, round.Phase);

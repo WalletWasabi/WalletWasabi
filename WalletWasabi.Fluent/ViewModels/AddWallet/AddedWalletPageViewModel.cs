@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Reactive.Disposables;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Helpers;
@@ -12,26 +13,26 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	[NavigationMetaData(Title = "Success")]
 	public partial class AddedWalletPageViewModel : RoutableViewModel
 	{
+		private readonly KeyManager _keyManager;
+
 		public AddedWalletPageViewModel(KeyManager keyManager)
 		{
-			WalletName = keyManager.WalletName;
-			WalletType = WalletHelpers.GetType(keyManager);
+			_keyManager = keyManager;
+			WalletName = _keyManager.WalletName;
+			WalletType = WalletHelpers.GetType(_keyManager);
 
 			SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
-
 			EnableBack = false;
 
-			NextCommand = ReactiveCommand.Create(() => OnNext(keyManager));
+			NextCommand = ReactiveCommand.Create(OnNext);
 		}
 
 		public WalletType WalletType { get; }
 
 		public string WalletName { get; }
 
-		private void OnNext(KeyManager keyManager)
+		private void OnNext()
 		{
-			Services.WalletManager.AddWallet(keyManager);
-
 			Navigate().Clear();
 
 			var navBar = NavigationManager.Get<NavBarViewModel>();
@@ -42,6 +43,16 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			{
 				navBar.SelectedItem = wallet;
 				wallet.OpenCommand.Execute(default);
+			}
+		}
+
+		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+		{
+			base.OnNavigatedTo(isInHistory, disposables);
+
+			if (!Services.WalletManager.WalletExists(_keyManager.MasterFingerprint))
+			{
+				Services.WalletManager.AddWallet(_keyManager);
 			}
 		}
 	}

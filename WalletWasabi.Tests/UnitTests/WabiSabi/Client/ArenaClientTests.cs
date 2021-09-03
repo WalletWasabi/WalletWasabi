@@ -153,7 +153,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				new[] { vsizeCred2, zeroVsizeCred2 },
 				CancellationToken.None);
 
-			await aliceArenaClient.ReadyToSignAsync(round.Id, aliceId, key, CancellationToken.None);
+			await aliceArenaClient.ReadyToSignAsync(round.Id, aliceId, CancellationToken.None);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
@@ -171,7 +171,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			round.SetPhase(Phase.ConnectionConfirmation);
 			var fundingTx = BitcoinFactory.CreateSmartTransaction(ownOutputCount: 1);
 			var coin = fundingTx.WalletOutputs.First().Coin;
-			var alice = new Alice(coin, new OwnershipProof(), round);
+			var alice = new Alice(coin, new OwnershipProof(), round, Guid.NewGuid());
 			round.Alices.Add(alice);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, round);
 

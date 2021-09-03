@@ -40,7 +40,7 @@
                    EnableBack="True">
       <DockPanel LastChildFill="True">
 
-        <TabControl Classes="draggable" SelectedIndex="{Binding SelectedTab, Mode=TwoWay}">
+        <TabControl SelectedIndex="{Binding SelectedTab, Mode=TwoWay}">
           <TabItem Header="General">
             <v:GeneralSettingsTabView DataContext="{Binding GeneralSettingsTab}" />
           </TabItem>

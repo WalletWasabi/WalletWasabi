@@ -7,8 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
@@ -39,7 +39,6 @@ namespace WalletWasabi.WabiSabi.Client
 		}
 
 		private SecureRandom SecureRandom { get; }
-		private Random Random { get; } = new();
 		public IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
 		public Kitchen Kitchen { get; }
 		public KeyManager Keymanager { get; }
@@ -80,18 +79,18 @@ namespace WalletWasabi.WabiSabi.Client
 			var constructionState = roundState.Assert<ConstructionState>();
 
 			var coinCandidates = SelectCoinsForRound(smartCoins, constructionState.Parameters);
-			var aliceClientsToRegister = coinCandidates.Select(x => (SmartCoin: x, AliceClient: CreateAliceClient(x.Coin, roundState))).ToImmutableArray();
 
 			// Register coins.
-			var registeredAliceClients = await RegisterAndConfirmCoinsAsync(aliceClientsToRegister, cancellationToken).ConfigureAwait(false);
+			var registeredAliceClients = await CreateRegisterAndConfirmCoinsAsync(coinCandidates, roundState, cancellationToken).ConfigureAwait(false);
 			if (!registeredAliceClients.Any())
 			{
 				throw new InvalidOperationException($"Round ({roundState.Id}): There is no available alices to participate with.");
 			}
 
 			// Calculate outputs values
-			var registeredCoins = registeredAliceClients.Select(x => x.Coin);
-			var outputValues = DecomposeAmounts(registeredCoins, roundState.FeeRate, constructionState.Parameters.AllowedOutputAmounts.Min);
+			var registeredCoins = registeredAliceClients.Select(x => x.SmartCoin.Coin);
+			var availableVsize = registeredAliceClients.SelectMany(x => x.IssuedVsizeCredentials).Sum(x => x.Value);
+			var outputValues = DecomposeAmounts(registeredCoins, roundState.FeeRate, constructionState.Parameters.AllowedOutputAmounts.Min, (int)availableVsize);
 
 			// Get all locked internal keys we have and assert we have enough.
 			Keymanager.AssertLockedInternalKeysIndexed(howMany: outputValues.Count());
@@ -130,82 +129,52 @@ namespace WalletWasabi.WabiSabi.Client
 			return finalRoundState.WasTransactionBroadcast;
 		}
 
-		private AliceClient CreateAliceClient(Coin coin, RoundState roundState)
+		private async Task<ImmutableArray<AliceClient>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 		{
-			var aliceArenaClient = new ArenaClient(
-				roundState.CreateAmountCredentialClient(SecureRandom),
-				roundState.CreateVsizeCredentialClient(SecureRandom),
-				ArenaRequestHandler);
-
-			var hdKey = Keymanager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey).Single();
-			var secret = hdKey.PrivateKey.GetBitcoinSecret(Keymanager.GetNetwork());
-			if (hdKey.PrivateKey.PubKey.WitHash.ScriptPubKey != coin.ScriptPubKey)
-			{
-				throw new InvalidOperationException("The key cannot generate the utxo scriptpubkey. This could happen if the wallet password is not the correct one.");
-			}
-			return new AliceClient(roundState, aliceArenaClient, coin, secret);
-		}
-
-		private async Task<ImmutableArray<AliceClient>> RegisterAndConfirmCoinsAsync(
-			IEnumerable<(SmartCoin SmartCoin, AliceClient AliceClient)> aliceClients, CancellationToken cancellationToken)
-		{
-			async Task<AliceClient?> RegisterInputTask(SmartCoin smartCoin, AliceClient aliceClient)
+			async Task<AliceClient?> RegisterInputTask(SmartCoin coin)
 			{
 				try
 				{
-					await aliceClient.RegisterAndConfirmInputAsync(RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
-					smartCoin.CoinJoinInProgress = true;
-					return aliceClient;
+					var aliceArenaClient = new ArenaClient(
+						roundState.CreateAmountCredentialClient(SecureRandom),
+						roundState.CreateVsizeCredentialClient(SecureRandom),
+						ArenaRequestHandler);
+
+					var hdKey = Keymanager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey).Single();
+					var secret = hdKey.PrivateKey.GetBitcoinSecret(Keymanager.GetNetwork());
+					if (hdKey.PrivateKey.PubKey.WitHash.ScriptPubKey != coin.ScriptPubKey)
+					{
+						throw new InvalidOperationException("The key cannot generate the utxo scriptpubkey. This could happen if the wallet password is not the correct one.");
+					}
+
+					return await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, secret, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
 				}
 				catch (System.Net.Http.HttpRequestException ex)
 				{
-					if (ex.InnerException is WabiSabiProtocolException wpe)
-					{
-						switch (wpe.ErrorCode)
-						{
-							case WabiSabiProtocolErrorCode.InputSpent:
-								smartCoin.SpentAccordingToBackend = true;
-								Logger.LogInfo($"{smartCoin.Coin.Outpoint} is spent according to the backend. The wallet is not fully synchronized or corrupted.");
-								break;
-
-							case WabiSabiProtocolErrorCode.InputBanned:
-								smartCoin.BannedUntilUtc = DateTimeOffset.UtcNow.AddDays(1);
-								smartCoin.SetIsBanned();
-								Logger.LogInfo($"{smartCoin.Coin.Outpoint} is banned.");
-								break;
-
-							case WabiSabiProtocolErrorCode.InputNotWhitelisted:
-								smartCoin.SpentAccordingToBackend = false;
-								Logger.LogInfo($"{smartCoin.Coin.Outpoint} cannot be registered in the blame round.");
-								break;
-
-							case WabiSabiProtocolErrorCode.AliceAlreadyRegistered:
-								Logger.LogInfo($"{smartCoin.Coin.Outpoint} was already registered.");
-								return aliceClient;
-
-							case WabiSabiProtocolErrorCode.WrongPhase:
-								return null; // The coin didn't get it and arrived too late to the party.
-						}
-					}
-					Logger.LogInfo($"{smartCoin.Coin.Outpoint} registration failed with {ex}.");
 					return null;
 				}
 			}
 
-			var registerRequests = aliceClients.Select(x => RegisterInputTask(x.SmartCoin, x.AliceClient)).ToImmutableArray();
-			await Task.WhenAll(registerRequests).ConfigureAwait(false);
+			var aliceClients = smartCoins.Select(RegisterInputTask).ToImmutableArray();
+			await Task.WhenAll(aliceClients).ConfigureAwait(false);
 
-			return registerRequests
+			return aliceClients
 				.Where(x => x.Result is not null)
 				.Select(x => x.Result!)
 				.ToImmutableArray();
 		}
 
-		private static IEnumerable<Money> DecomposeAmounts(IEnumerable<Coin> coins, FeeRate feeRate, Money minimumOutputAmount)
+		private static IEnumerable<Money> DecomposeAmounts(IEnumerable<Coin> coins, FeeRate feeRate, Money minimumOutputAmount, int availableVsize)
 		{
 			GreedyDecomposer greedyDecomposer = new(StandardDenomination.Values.Where(x => x >= minimumOutputAmount));
 			var sum = coins.Sum(c => c.EffectiveValue(feeRate));
-			return greedyDecomposer.Decompose(sum, feeRate.GetFee(31));
+			var decomposedAmounts = greedyDecomposer.Decompose(sum, feeRate.GetFee(Constants.P2WPKHOutputSizeInBytes)).ToImmutableArray();
+			var maxNumberOfComponents = availableVsize / Constants.P2WPKHOutputSizeInBytes;
+
+			var standardAmounts = decomposedAmounts.Take(maxNumberOfComponents - 1);
+			var sumOfRest = decomposedAmounts.Skip(maxNumberOfComponents - 1).Sum();
+
+			return standardAmounts.Append(sumOfRest).Where(x => x > Money.Zero).ToImmutableArray();
 		}
 
 		private BobClient CreateBobClient(RoundState roundState)
@@ -256,13 +225,25 @@ namespace WalletWasabi.WabiSabi.Client
 			await Task.WhenAll(readyRequests).ConfigureAwait(false);
 		}
 
+		// Selects coin candidates for participating in a round.
+		// The criteria is the following:
+		// * Only coin with amount in the allowed range
+		// * Only coins with allowed script types
+		// * Only one coin (the biggest one) from the same transaction (do not consolidate same transaction outputs)
+		//
+		// Then prefer:
+		// * less private coins should be the first ones
+		// * bigger coins first (this makes economical sense because mix more money paying less network fees)
+		//
+		// Note: this method works on already pre-filteres coins: those available and that didn't reached the
+		// expected anonymity set threshold.
 		private ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, MultipartyTransactionParameters parameters) =>
 			coins
-				.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount)) // Only coin with amount in the allowed range
-				.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t))) // Only coins with allowed script types
-																								   // .GroupBy(x => x.TransactionId) // Only one coin from the same transaction (do not consolidate same transaction outputs)
-																								   // .Select(x => x.OrderByDescending(y => y.Amount).First()) // In case of coins from same tx then take the biggest one
-				.OrderBy(x => x.HdPubKey.AnonymitySet) // Less private coins should be the first ones
+				.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
+				.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t)))
+				.GroupBy(x => x.TransactionId)
+				.Select(x => x.OrderByDescending(y => y.Amount).First())
+				.OrderBy(x => x.HdPubKey.AnonymitySet)
 				.ThenByDescending(x => x.Amount)
 				.Take(MaxInputsRegistrableByWallet)
 				.ToImmutableList();

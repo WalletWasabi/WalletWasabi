@@ -207,15 +207,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 
 			// invalidate serial numbers
 			issuer.HandleRequest(credentialsRequest);
-			Assert.Equal(0, issuer2.Balance);
-			Assert.Equal(credentialsRequest.Delta, issuer.Balance);
 
 			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 			var ex = await Assert.ThrowsAsync<WabiSabiCryptoException>(async () => await handler.ConfirmConnectionAsync(req, CancellationToken.None));
 			Assert.Equal(WabiSabiCryptoErrorCode.SerialNumberAlreadyUsed, ex.ErrorCode);
 			Assert.False(alice.ConfirmedConnection);
-			Assert.Equal(0, issuer2.Balance);
-			Assert.Equal(credentialsRequest.Delta, issuer.Balance);
 			await arena.StopAsync(CancellationToken.None);
 		}
 	}

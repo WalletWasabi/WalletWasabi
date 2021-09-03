@@ -11,10 +11,14 @@
   <c:ContentArea EnableNext="False"
                  EnableCancel="{Binding EnableCancel}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <!-- QR Camera -->
-    <Panel Width="400" Height="300">
-      <c:ProgressRing IsIndeterminate="True" Height="100" IsVisible="{Binding QrImage,Converter={x:Static ObjectConverters.IsNull}}" />
-      <Image Name="qrImage" Source="{Binding QrImage}" IsVisible="{Binding QrImage,Converter={x:Static ObjectConverters.IsNotNull}}" />
-    </Panel>
+    <DockPanel>
+      <TextBlock DockPanel.Dock="Bottom" Text="{Binding Message}"></TextBlock>
+      <!-- QR Camera -->
+      <Panel Width="400" Height="300">
+        <c:ProgressRing IsIndeterminate="True" Height="100" IsVisible="{Binding QrImage,Converter={x:Static ObjectConverters.IsNull}}" />
+        <Image Name="qrImage" Source="{Binding QrImage}" IsVisible="{Binding QrImage,Converter={x:Static ObjectConverters.IsNotNull}}" />
+      </Panel>
+    </DockPanel>
+    <!-- Insert message binding & display here -->
   </c:ContentArea>
 </UserControl>
