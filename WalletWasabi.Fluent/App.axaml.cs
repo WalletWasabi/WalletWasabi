@@ -74,6 +74,14 @@ namespace WalletWasabi.Fluent
 			}
 
 			base.OnFrameworkInitializationCompleted();
+
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				Services.SingleInstanceChecker.OtherInstanceStarted += (sender, args) =>
+				{
+					MainViewModel.Instance!.WindowState = WindowState.Normal; // Todo: Unhide, Show, BringToFront?
+				};
+			}
 		}
 
 		private void DesktopOnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
