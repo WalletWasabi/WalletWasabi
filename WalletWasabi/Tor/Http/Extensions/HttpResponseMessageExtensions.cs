@@ -84,7 +84,7 @@ namespace WalletWasabi.Tor.Http.Extensions
 					throw new HttpRequestException("Remote coordinator responded with an error.", innerException, me.StatusCode);
 				}
 
-				// Remove " from beginning and end to ensure backwards compatibility and it's kindof trash, too.
+				// Remove " from beginning and end to ensure backwards compatibility and it's kind of trash, too.
 				if (contentString.Count(f => f == '"') <= 2)
 				{
 					contentString = contentString.Trim('"');
