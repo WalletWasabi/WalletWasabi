@@ -1,4 +1,3 @@
-using NBitcoin;
 using NBitcoin.RPC;
 using System;
 using System.Linq;
@@ -250,6 +249,13 @@ namespace WalletWasabi.Services
 						}
 						catch (TorConnectionException ex)
 						{
+							// When stopping, we do not want to wait.
+							if (!IsRunning)
+							{
+								Logger.LogTrace(ex);
+								return;
+							}
+
 							Logger.LogError(ex);
 							try
 							{
@@ -288,9 +294,8 @@ namespace WalletWasabi.Services
 				finally
 				{
 					Interlocked.CompareExchange(ref _running, StateStopped, StateStopping); // If IsStopping, make it stopped.
+					Logger.LogTrace("< Wasabi synchronizer thread ends.");
 				}
-
-				Logger.LogTrace("< Wasabi synchronizer thread ends.");
 			});
 
 			Logger.LogTrace("<");

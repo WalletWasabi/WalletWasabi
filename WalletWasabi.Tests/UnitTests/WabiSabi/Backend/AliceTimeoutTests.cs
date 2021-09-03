@@ -37,10 +37,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 
 			// Register Alices.
 			var esk = km.GetSecrets("", smartCoin.ScriptPubKey).Single();
-			var aliceClient = new AliceClient(RoundState.FromRound(round), arenaClient, smartCoin, esk.PrivateKey.GetBitcoinSecret(round.Network));
 
 			using CancellationTokenSource cancellationTokenSource = new();
-			var task = aliceClient.RegisterAndConfirmInputAsync(roundStateUpdater, cancellationTokenSource.Token);
+			var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, smartCoin, esk.PrivateKey.GetBitcoinSecret(round.Network), roundStateUpdater, cancellationTokenSource.Token);
 
 			while (round.Alices.Count == 0)
 			{

@@ -25,6 +25,7 @@ namespace WalletWasabi.Gui
 		private string? _lastSelectedWallet;
 		private string _windowState = "Normal";
 		private bool _runOnSystemStartup;
+		private bool _oobe;
 
 		public UiConfig() : base()
 		{
@@ -41,13 +42,22 @@ namespace WalletWasabi.Gui
 					x => x.FeeDisplayFormat,
 					x => x.LastSelectedWallet,
 					x => x.WindowState,
+					x => x.Oobe,
 					x => x.RunOnSystemStartup,
 					x => x.PrivacyMode,
-					(_, _, _, _, _, _, _, _, _, _) => Unit.Default)
+					(_, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
 				.Throttle(TimeSpan.FromMilliseconds(500))
 				.Skip(1) // Won't save on UiConfig creation.
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(_ => ToFile());
+		}
+
+		[JsonProperty(PropertyName = "Oobe", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[DefaultValue(true)]
+		public bool Oobe
+		{
+			get => _oobe;
+			set => RaiseAndSetIfChanged(ref _oobe, value);
 		}
 
 		[JsonProperty(PropertyName = "WindowState")]

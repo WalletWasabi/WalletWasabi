@@ -89,6 +89,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		/// <para><see cref="ObtainPoolConnectionLock"/> is acquired only for <see cref="TorTcpConnection"/> selection.</para>
 		/// </summary>
 		/// <exception cref="HttpRequestException">When <paramref name="request"/> fails to be processed.</exception>
+		/// <exception cref="OperationCanceledException">When the operation was canceled.</exception>
 		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken cancellationToken = default)
 		{
 			int i = 0;
@@ -122,8 +123,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 					}
 					catch (TorConnectionWriteException e)
 					{
-						Logger.LogDebug($"['{connection}'] TCP connection from the pool is probably dead as we can't write data to the connection.");
-						Logger.LogTrace(e);
+						Logger.LogTrace($"['{connection}'] TCP connection from the pool is probably dead as we can't write data to the connection.", e);
 
 						if (i == attemptsNo)
 						{
@@ -131,9 +131,15 @@ namespace WalletWasabi.Tor.Socks5.Pool
 							throw new HttpRequestException("Failed to handle the HTTP request via Tor (write failure).", e);
 						}
 					}
+					catch (TorConnectionReadException e)
+					{
+						Logger.LogTrace($"['{connection}'] Could not get/read an HTTP response from Tor.", e);
+
+						throw new HttpRequestException("Failed to get/read an HTTP response from Tor.", e);
+					}
 					catch (TorConnectCommandFailedException e) when (e.RepField == RepField.TtlExpired)
 					{
-						// If we get TTL Expired error then wait and retry again, linux often does this.
+						// If we get TTL Expired error then wait and retry again, Linux often does this.
 						Logger.LogTrace($"['{connection}'] TTL exception occurred.", e);
 
 						await Task.Delay(3000, cancellationToken).ConfigureAwait(false);
@@ -146,24 +152,30 @@ namespace WalletWasabi.Tor.Socks5.Pool
 					}
 					catch (IOException e)
 					{
+						Logger.LogTrace($"['{connection}'] Failed to read/write HTTP(s) request.", e);
+
 						// NetworkStream may throw IOException.
-						TorConnectionException innerException = new($"Failed to read/write HTTP(s) request.", e);
+						TorConnectionException innerException = new("Failed to read/write HTTP(s) request.", e);
 						throw new HttpRequestException("Failed to handle the HTTP request via Tor.", innerException);
 					}
 					catch (SocketException e) when (e.ErrorCode == (int)SocketError.ConnectionRefused)
 					{
-						Logger.LogTrace(e);
+						Logger.LogTrace($"['{connection}'] Connection was refused.", e);
 						TorConnectionException innerException = new("Connection was refused.", e);
 						throw new HttpRequestException("Failed to handle the HTTP request via Tor.", innerException);
 					}
 					catch (Exception e)
 					{
-						Logger.LogTrace(e);
+						Logger.LogTrace($"['{connection}'] Exception occurred.", e);
 						throw;
 					}
 					finally
 					{
-						connectionToDispose?.Dispose();
+						if (connectionToDispose is not null)
+						{
+							Logger.LogTrace($"['{connectionToDispose}'] marked as to be disposed.");
+							connectionToDispose.MarkAsToDispose();
+						}
 					}
 				} while (i < attemptsNo);
 			}
@@ -249,6 +261,8 @@ namespace WalletWasabi.Tor.Socks5.Pool
 			return connection;
 		}
 
+		/// <exception cref="TorConnectionWriteException">When a failure during sending our HTTP(s) request to Tor SOCKS5 occurs.</exception>
+		/// <exception cref="TorConnectionReadException">When a failure during receiving HTTP response from Tor SOCKS5 occurs.</exception>
 		internal virtual async Task<HttpResponseMessage> SendCoreAsync(TorTcpConnection connection, HttpRequestMessage request, CancellationToken token = default)
 		{
 			// https://tools.ietf.org/html/rfc7230#section-2.6
@@ -273,7 +287,14 @@ namespace WalletWasabi.Tor.Socks5.Pool
 				throw new TorConnectionWriteException("Could not use transport stream to write data.", e);
 			}
 
-			return await HttpResponseMessageExtensions.CreateNewAsync(transportStream, request.Method).ConfigureAwait(false);
+			try
+			{
+				return await HttpResponseMessageExtensions.CreateNewAsync(transportStream, request.Method, token).ConfigureAwait(false);
+			}
+			catch (Exception e) when (e is not OperationCanceledException)
+			{
+				throw new TorConnectionReadException("Could not read HTTP response.", e);
+			}
 		}
 
 		private static string GetRequestHost(HttpRequestMessage request)
@@ -319,6 +340,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 					{
 						foreach (TorTcpConnection connection in list)
 						{
+							Logger.LogTrace($"Dispose connection: '{connection}'");
 							connection.Dispose();
 						}
 					}

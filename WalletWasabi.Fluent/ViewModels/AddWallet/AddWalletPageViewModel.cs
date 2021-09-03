@@ -1,10 +1,12 @@
 using ReactiveUI;
 using System;
 using System.IO;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Validation;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Models;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 
@@ -19,7 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		IconName = "add_circle_regular",
 		NavigationTarget = NavigationTarget.DialogScreen,
 		NavBarPosition = NavBarPosition.Bottom)]
-	public partial class AddWalletPageViewModel : NavBarItemViewModel
+	public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 	{
 		[AutoNotify] private string _walletName = "";
 
@@ -32,6 +34,16 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				.Select(x => !string.IsNullOrWhiteSpace(x) && !Validations.Any);
 
 			NextCommand = ReactiveCommand.Create(OnNext, canExecute);
+
+			OpenCommand = ReactiveCommand.Create(
+				async () =>
+			{
+				MainViewModel.Instance.IsOobeBackgroundVisible = true;
+
+				await NavigateDialogAsync(this, NavigationTarget.DialogScreen);
+
+				MainViewModel.Instance.IsOobeBackgroundVisible = false;
+			});
 
 			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, WalletName));
 		}
@@ -68,6 +80,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			{
 				errors.Add(ErrorSeverity.Error, "Selected Wallet is not valid. Please try a different name.");
 			}
+		}
+
+		protected override void OnNavigatedFrom(bool isInHistory)
+		{
+			base.OnNavigatedFrom(isInHistory);
 		}
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
