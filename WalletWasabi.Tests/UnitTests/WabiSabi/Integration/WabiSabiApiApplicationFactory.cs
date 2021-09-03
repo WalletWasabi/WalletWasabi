@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
+using WalletWasabi.Backend.Logging;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Tests.Helpers;
@@ -59,9 +60,11 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 			services.AddScoped<WabiSabiConfig>();
 			services.AddScoped(typeof(TimeSpan), _ => TimeSpan.FromSeconds(2));
 		});
-		builder.ConfigureLogging(o =>
+			builder.ConfigureLogging(builder =>
 		{
-			o.SetMinimumLevel(LogLevel.Warning);
+				builder.SetMinimumLevel(LogLevel.Information);
+				builder.ClearProviders();
+				builder.AddWabiSabiLogger();
 		});
 	}
 
