@@ -11,7 +11,7 @@ using static WalletWasabi.Helpers.PowerSaving.LinuxInhibitorTask;
 
 namespace WalletWasabi.Services
 {
-	public class SystemAwakeChecker
+	public class SystemAwakeChecker : PeriodicRunner
 	{
 		private const string Reason = "CoinJoin is in progress.";
 		private static readonly TimeSpan Timeout = TimeSpan.FromMinutes(5);
@@ -21,7 +21,7 @@ namespace WalletWasabi.Services
 
 		private volatile IPowerSavingInhibitorTask? _powerSavingTask;
 
-		private SystemAwakeChecker(WalletManager walletManager, Func<Task<IPowerSavingInhibitorTask>>? taskFactory)
+		private SystemAwakeChecker(WalletManager walletManager, Func<Task<IPowerSavingInhibitorTask>>? taskFactory) : base(TimeSpan.FromSeconds(2))
 		{
 			WalletManager = walletManager;
 			TaskFactory = taskFactory;
@@ -149,6 +149,11 @@ namespace WalletWasabi.Services
 				await _powerSavingTask.StopAsync().ConfigureAwait(false);
 				_powerSavingTask = null;
 			}
+		}
+
+		protected async override Task ActionAsync(CancellationToken cancel)
+		{
+			await UpdateAsync().ConfigureAwait(false);
 		}
 	}
 }
