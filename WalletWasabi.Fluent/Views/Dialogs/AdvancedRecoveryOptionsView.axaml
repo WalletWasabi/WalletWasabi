@@ -19,7 +19,7 @@
     </Style>
   </UserControl.Styles>
   <c:ContentArea Title="{Binding Title}"
-                 Caption="Type your wallet-specific recovery options and click Continue."
+                 Caption="Type your wallet-specific recovery options and click OK."
                  CancelContent="Cancel"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
