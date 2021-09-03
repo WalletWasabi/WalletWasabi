@@ -34,6 +34,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		[AutoNotify] private StatusBarViewModel _statusBar;
 		[AutoNotify] private string _title = "Wasabi Wallet";
 		[AutoNotify] private WindowState _windowState;
+		[AutoNotify] private bool _isOobeBackgroundVisible;
 
 		public MainViewModel()
 		{
@@ -127,10 +128,23 @@ namespace WalletWasabi.Fluent.ViewModels
 					}
 				});
 
-			if (!Services.WalletManager.HasWallet())
+			IsOobeBackgroundVisible = Services.UiConfig.Oobe;
+
+			RxApp.MainThreadScheduler.Schedule(async () =>
 			{
-				_dialogScreen.To(_addWalletPage, NavigationMode.Clear);
-			}
+				if (!Services.WalletManager.HasWallet() || Services.UiConfig.Oobe)
+				{
+					IsOobeBackgroundVisible = true;
+
+					await _dialogScreen.NavigateDialogAsync(new WelcomePageViewModel(_addWalletPage));
+
+					if (Services.WalletManager.HasWallet())
+					{
+						Services.UiConfig.Oobe = false;
+						IsOobeBackgroundVisible = false;
+					}
+				}
+			});
 		}
 
 		public TargettedNavigationStack MainScreen { get; }

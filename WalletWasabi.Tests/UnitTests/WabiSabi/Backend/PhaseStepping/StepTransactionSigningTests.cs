@@ -224,14 +224,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
 			// Register Alices.
-			var aliceClient1 = new AliceClient(RoundState.FromRound(round), arenaClient, coin1, key1.GetBitcoinSecret(round.Network));
-			var aliceClient2 = new AliceClient(RoundState.FromRound(round), arenaClient, coin2, key2.GetBitcoinSecret(round.Network));
-
 			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), new ArenaRequestHandlerAdapter(arena));
 			await roundStateUpdater.StartAsync(CancellationToken.None);
 
-			var task1 = aliceClient1.RegisterAndConfirmInputAsync(roundStateUpdater, CancellationToken.None);
-			var task2 = aliceClient2.RegisterAndConfirmInputAsync(roundStateUpdater, CancellationToken.None);
+			var task1 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin1, key1.GetBitcoinSecret(round.Network), roundStateUpdater, CancellationToken.None);
+			var task2 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin2, key2.GetBitcoinSecret(round.Network), roundStateUpdater, CancellationToken.None);
 
 			while (Phase.OutputRegistration != round.Phase)
 			{
@@ -239,6 +236,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			}
 
 			await Task.WhenAll(task1, task2);
+
+			var aliceClient1 = task1.Result;
+			var aliceClient2 = task2.Result;
 
 			// Register outputs.
 			var bobClient = new BobClient(round.Id, arenaClient);

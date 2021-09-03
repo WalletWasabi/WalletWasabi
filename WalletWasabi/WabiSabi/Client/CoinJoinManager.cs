@@ -38,6 +38,11 @@ namespace WalletWasabi.WabiSabi.Client
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
+			if (WalletManager.Network == Network.Main)
+			{
+				Logger.LogInfo("WabiSabi coinjoin client-side functionality is disabled temporarily on mainnet.");
+				return;
+			}
 			var trackedWallets = new Dictionary<string, WalletTrackingData>();
 
 			while (!stoppingToken.IsCancellationRequested)
