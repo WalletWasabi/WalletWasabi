@@ -1,16 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using Avalonia;
 using Avalonia.Controls;
 using ReactiveUI;
-using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Services;
 
 namespace WalletWasabi.Fluent.Behaviors
