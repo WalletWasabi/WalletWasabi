@@ -22,11 +22,12 @@ namespace WalletWasabi.Fluent
 		/// Defines the <see cref="CanShutdownProvider"/> property.
 		/// </summary>/
 		public static readonly StyledProperty<ICanShutdownProvider?> CanShutdownProviderProperty =
-			AvaloniaProperty.Register<App, ICanShutdownProvider?>(nameof(CanShutdownProvider), new ApplicationViewModel(), defaultBindingMode: BindingMode.TwoWay);
+			AvaloniaProperty.Register<App, ICanShutdownProvider?>(nameof(CanShutdownProvider), null, defaultBindingMode: BindingMode.TwoWay);
 
 		public App()
 		{
 			Name = "Wasabi Wallet";
+			DataContext = new ApplicationViewModel();
 		}
 
 		public App(Func<Task> backendInitialiseAsync) : this()

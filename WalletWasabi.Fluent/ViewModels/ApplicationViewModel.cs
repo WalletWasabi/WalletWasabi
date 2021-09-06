@@ -1,4 +1,4 @@
-﻿using WalletWasabi.Fluent.Providers;
+using WalletWasabi.Fluent.Providers;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
