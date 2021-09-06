@@ -11,17 +11,17 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Recover
 	[NavigationMetaData(Title = "Recover Wallet")]
 	public partial class WalletAlreadyExistsViewModel : RoutableViewModel
 	{
-		public WalletAlreadyExistsViewModel(WalletViewModel walletViewModel)
+		public WalletAlreadyExistsViewModel(WalletViewModelBase walletViewModelBase)
 		{
-			WalletType = WalletHelpers.GetType(walletViewModel.Wallet.KeyManager);
+			WalletType = WalletHelpers.GetType(walletViewModelBase.Wallet.KeyManager);
 
 			OpenWalletCommand = ReactiveCommand.Create(() =>
 			{
 				if (NavigationManager.Get<NavBarViewModel>() is { } navBar)
 				{
-					navBar.SelectedItem = walletViewModel;
+					navBar.SelectedItem = walletViewModelBase;
 					Navigate().Clear();
-					walletViewModel.OpenCommand.Execute(default);
+					walletViewModelBase.OpenCommand.Execute(default);
 				}
 			});
 		}

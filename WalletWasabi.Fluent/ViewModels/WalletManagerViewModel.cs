@@ -133,6 +133,16 @@ namespace WalletWasabi.Fluent.ViewModels
 			throw new Exception("Wallet not found, invalid api usage");
 		}
 
+		public WalletViewModelBase GetWalletViewModelBase(Wallet wallet)
+		{
+			if (_walletDictionary.ContainsKey(wallet))
+			{
+				return _walletDictionary[wallet] ;
+			}
+
+			throw new Exception("WalletViewModelBase not found, invalid api usage");
+		}
+
 		public async Task LoadWalletAsync(Wallet wallet)
 		{
 			if (wallet.State != WalletState.Uninitialized)

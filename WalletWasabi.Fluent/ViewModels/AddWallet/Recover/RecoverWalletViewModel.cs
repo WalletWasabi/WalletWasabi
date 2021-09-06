@@ -88,7 +88,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Recover
 					{
 						var walletList = Services.WalletManager.GetWallets(refreshWalletList: false);
 						var existingWallet = walletList.First(x => x.KeyManager.MasterFingerprint == keyManager.MasterFingerprint);
-						var existingWalletViewModel =  UiServices.WalletManager.GetWalletViewModel(existingWallet);
+						var existingWalletViewModel =  UiServices.WalletManager.GetWalletViewModelBase(existingWallet);
 
 						Navigate().To(new WalletAlreadyExistsViewModel(existingWalletViewModel));
 					}
