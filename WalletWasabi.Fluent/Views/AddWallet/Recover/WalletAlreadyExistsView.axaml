@@ -17,12 +17,12 @@
                  EnableNext="True" NextContent="Done"
                  IsBusy="{Binding IsBusy}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <StackPanel Spacing="10">
-      <Viewbox MaxHeight="150">
+    <DockPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="20 0">
+      <Button Classes="activeHyperLink plain h7" Content="Open Wallet" Command="{Binding OpenWalletCommand}" DockPanel.Dock="Bottom" HorizontalAlignment="Center"/>
+      <TextBlock Margin="0 20 0 10" Text="We noticed the wallet you want to recover already exists. Click below to open it." TextWrapping="Wrap" TextAlignment="Center" DockPanel.Dock="Bottom" HorizontalAlignment="Center"/>
+      <Viewbox MaxHeight="150" HorizontalAlignment="Center" DockPanel.Dock="Top">
         <Image Height="100" Source="{Binding WalletType, Converter={x:Static conv:WalletIconConverter.WalletTypeToImage}}" />
       </Viewbox>
-      <TextBlock Margin="0 10 0 0" Text="We noticed the wallet you want to recover is already exists. Click below to open it."/>
-      <Button Classes="activeHyperLink plain" Content="Open Wallet" Command="{Binding OpenWalletCommand}"/>
-    </StackPanel>
+    </DockPanel>
   </c:ContentArea>
 </UserControl>

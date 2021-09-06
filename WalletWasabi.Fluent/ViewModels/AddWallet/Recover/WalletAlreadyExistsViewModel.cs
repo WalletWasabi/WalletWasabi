@@ -13,7 +13,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Recover
 	{
 		public WalletAlreadyExistsViewModel(WalletViewModelBase walletViewModelBase)
 		{
+			EnableBack = true;
 			WalletType = WalletHelpers.GetType(walletViewModelBase.Wallet.KeyManager);
+			NextCommand = CancelCommand;
 
 			OpenWalletCommand = ReactiveCommand.Create(() =>
 			{
