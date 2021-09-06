@@ -15,7 +15,7 @@ namespace WalletWasabi.Tor.Http.Extensions
 {
 	public static class HttpResponseMessageExtensions
 	{
-		public static async Task<HttpResponseMessage> CreateNewAsync(Stream responseStream, HttpMethod requestMethod)
+		public static async Task<HttpResponseMessage> CreateNewAsync(Stream responseStream, HttpMethod requestMethod, CancellationToken cancellationToken = default)
 		{
 			// https://tools.ietf.org/html/rfc7230#section-3
 			// The normal procedure for parsing an HTTP message is to read the
@@ -36,18 +36,18 @@ namespace WalletWasabi.Tor.Http.Extensions
 			//					CRLF
 			//					[message - body]
 
-			string startLine = await HttpMessageHelper.ReadStartLineAsync(responseStream).ConfigureAwait(false);
+			string startLine = await HttpMessageHelper.ReadStartLineAsync(responseStream, cancellationToken).ConfigureAwait(false);
 
-			var statusLine = StatusLine.Parse(startLine);
-			var response = new HttpResponseMessage(statusLine.StatusCode);
+			StatusLine statusLine = StatusLine.Parse(startLine);
+			HttpResponseMessage response = new(statusLine.StatusCode);
 
-			string headers = await HttpMessageHelper.ReadHeadersAsync(responseStream).ConfigureAwait(false);
+			string headers = await HttpMessageHelper.ReadHeadersAsync(responseStream, cancellationToken).ConfigureAwait(false);
 
-			var headerSection = await HeaderSection.CreateNewAsync(headers).ConfigureAwait(false);
-			var headerStruct = headerSection.ToHttpResponseHeaders();
+			HeaderSection headerSection = await HeaderSection.CreateNewAsync(headers).ConfigureAwait(false);
+			HttpResponseContentHeaders headerStruct = headerSection.ToHttpResponseHeaders();
 
 			HttpMessageHelper.AssertValidHeaders(headerStruct.ResponseHeaders, headerStruct.ContentHeaders);
-			byte[]? contentBytes = await HttpMessageHelper.GetContentBytesAsync(responseStream, headerStruct, requestMethod, statusLine).ConfigureAwait(false);
+			byte[]? contentBytes = await HttpMessageHelper.GetContentBytesAsync(responseStream, headerStruct, requestMethod, statusLine, cancellationToken).ConfigureAwait(false);
 			contentBytes = HttpMessageHelper.HandleGzipCompression(headerStruct.ContentHeaders, contentBytes);
 			response.Content = contentBytes is null ? null : new ByteArrayContent(contentBytes);
 
@@ -63,7 +63,7 @@ namespace WalletWasabi.Tor.Http.Extensions
 		{
 			var errorMessage = "";
 
-			if (me.Content is { })
+			if (me.Content is not null)
 			{
 				var contentString = await me.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 				var error = JsonConvert.DeserializeObject<Error>(contentString, new JsonSerializerSettings()
@@ -74,7 +74,7 @@ namespace WalletWasabi.Tor.Http.Extensions
 				{
 					{ Type: ProtocolConstants.ProtocolViolationType } => Enum.TryParse<WabiSabiProtocolErrorCode>(error.ErrorCode, out var code)
 						? new WabiSabiProtocolException(code, error.Description)
-						: new NotSupportedException($"Received wabisabi protocol exception with unknown '{error.ErrorCode}' error code.\n\tDescription: '{error.Description}'."),
+						: new NotSupportedException($"Received WabiSabi protocol exception with unknown '{error.ErrorCode}' error code.\n\tDescription: '{error.Description}'."),
 					{ Type: "unknown"} => new Exception(error.Description),
 					_ => null
 				};
@@ -84,7 +84,7 @@ namespace WalletWasabi.Tor.Http.Extensions
 					throw new HttpRequestException("Remote coordinator responded with an error.", innerException, me.StatusCode);
 				}
 
-				// Remove " from beginning and end to ensure backwards compatibility and it's kindof trash, too.
+				// Remove " from beginning and end to ensure backwards compatibility and it's kind of trash, too.
 				if (contentString.Count(f => f == '"') <= 2)
 				{
 					contentString = contentString.Trim('"');

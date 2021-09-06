@@ -24,19 +24,23 @@
     </Style>
   </UserControl.Styles>
   <DockPanel LastChildFill="True">
-    <c:InfoMessage Content="Changes will be applied after restarting the application."
-                   Foreground="{StaticResource WarningMessageForeground}"
+    <c:InfoMessage Foreground="{StaticResource WarningMessageForeground}"
                    Margin="0,16"
                    HorizontalAlignment="Center"
                    Opacity="{Binding IsModified, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}"
-                   DockPanel.Dock="Bottom" />
+                   DockPanel.Dock="Bottom">
+      <StackPanel Orientation="Horizontal">
+        <TextBlock Text="Changes will be applied after restarting the application." />
+        <Button Content="Restart Wasabi" Classes="activeHyperLink plain" Margin="5 0 0 0" Command="{Binding RestartCommand}"/>
+      </StackPanel>
+    </c:InfoMessage>
 
     <c:ContentArea Title="{Binding Title}"
                    Caption="Manage appearance, privacy and other settings"
                    EnableBack="True">
       <DockPanel LastChildFill="True">
 
-        <TabControl Classes="draggable" SelectedIndex="{Binding SelectedTab, Mode=TwoWay}">
+        <TabControl SelectedIndex="{Binding SelectedTab, Mode=TwoWay}">
           <TabItem Header="General">
             <v:GeneralSettingsTabView DataContext="{Binding GeneralSettingsTab}" />
           </TabItem>
