@@ -103,5 +103,4 @@
     Selector="c|TagsBox:not(:readonly) c|TagControl /template/ Panel#PART_TagPanel:pointerover Button#PART_DeleteButton">
     <Setter Property="Opacity" Value="1" />
   </Style>
-
 </Styles>
