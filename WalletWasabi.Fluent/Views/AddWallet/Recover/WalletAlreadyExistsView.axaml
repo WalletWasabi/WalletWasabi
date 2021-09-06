@@ -10,7 +10,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.Recover.WalletAlreadyExistsView">
   <c:ContentArea x:Name="RecoveryPageRoot"
-                 Title="{Binding Title}" Caption="Wallet already exists"
+                 Title="{Binding Title}"
                  CancelContent="Cancel"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
