@@ -67,7 +67,9 @@ namespace System.Linq
 			}
 		}
 
-		public static void AddToValueList<TKey, TValue, TElem>(this Dictionary<TKey, TValue> myDic, TKey key, TElem elem) where TValue : List<TElem>
+		public static void AddToValueList<TKey, TValue, TElem>(this Dictionary<TKey, TValue> myDic, TKey key, TElem elem)
+			where TKey: notnull
+			where TValue : List<TElem>
 		{
 			if (myDic.ContainsKey(key))
 			{
@@ -75,7 +77,7 @@ namespace System.Linq
 			}
 			else
 			{
-				myDic.Add(key, new List<TElem>() { elem } as TValue);
+				myDic.Add(key, (TValue)new List<TElem>() { elem });
 			}
 		}
 

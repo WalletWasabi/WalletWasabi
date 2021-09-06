@@ -10,7 +10,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		public void BaseDenomGeneratorTest()
 		{
 			var denoms = StandardDenomination.Values;
-			Assert.Equal(129, denoms.Count());
+			Assert.Equal(129, denoms.Length);
 			Assert.Equal(denoms, denoms.Distinct());
 
 			// It should be ordered.

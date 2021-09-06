@@ -133,7 +133,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				x => x.Balance,
 				sampleTime,
 				sampleLimit,
-				0,
+				Money.Zero,
 				DateTime.Now);
 
 			foreach (var (timestamp, balance) in values.Reverse())

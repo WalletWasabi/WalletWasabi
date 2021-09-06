@@ -134,7 +134,7 @@ namespace WalletWasabi.Fluent.Models
 						}
 					}
 				}
-				catch (OpenCVException ex)
+				catch (OpenCVException)
 				{
 					throw new OpenCVException("Could not read frames. Please make sure no other program uses your camera.");
 				}

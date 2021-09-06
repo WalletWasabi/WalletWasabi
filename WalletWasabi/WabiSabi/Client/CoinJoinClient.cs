@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
@@ -149,7 +150,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 					return await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, secret, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
 				}
-				catch (System.Net.Http.HttpRequestException ex)
+				catch (HttpRequestException)
 				{
 					return null;
 				}
