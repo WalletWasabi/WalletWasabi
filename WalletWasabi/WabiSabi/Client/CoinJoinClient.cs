@@ -99,7 +99,9 @@ namespace WalletWasabi.WabiSabi.Client
 				{
 					throw new InvalidOperationException($"Round ({roundState.Id}): There is no available alices to participate with.");
 				}
+
 				State = CoinJoinClientState.InCriticalPhase;
+
 				// Calculate outputs values
 				var registeredCoins = registeredAliceClients.Select(x => x.SmartCoin.Coin);
 				var availableVsize = registeredAliceClients.SelectMany(x => x.IssuedVsizeCredentials).Sum(x => x.Value);
