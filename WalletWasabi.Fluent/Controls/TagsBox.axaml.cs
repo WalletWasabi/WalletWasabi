@@ -80,6 +80,9 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<bool> IsReadOnlyProperty =
 			AvaloniaProperty.Register<TagsBox, bool>(nameof(IsReadOnly));
 
+		public static readonly StyledProperty<bool> EnableCounterProperty =
+			AvaloniaProperty.Register<TagsBox, bool>(nameof(EnableCounter));
+
 		[Content]
 		public IEnumerable<string>? Items
 		{
@@ -145,6 +148,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(AllowDuplicationProperty);
 			set => SetValue(AllowDuplicationProperty, value);
+		}
+
+		public bool EnableCounter
+		{
+			get => GetValue(EnableCounterProperty);
+			set => SetValue(EnableCounterProperty, value);
 		}
 
 		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)

@@ -50,7 +50,7 @@
                 </LayoutTransformControl.Transitions>
               </LayoutTransformControl>
               <StackPanel Margin="12,6,12,6" DockPanel.Dock="Left" Spacing="5" Orientation="Horizontal">
-                <TextBlock Name="PART_Index" />
+                <TextBlock Name="PART_Index" IsVisible="{TemplateBinding EnableCounter}"/>
                 <ContentPresenter Name="PART_ContentPresenter"
                                   Content="{TemplateBinding Content}"
                                   Padding="{TemplateBinding Padding}"

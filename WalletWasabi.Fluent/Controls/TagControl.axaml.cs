@@ -1,5 +1,6 @@
 using System;
 using System.Reactive.Disposables;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
@@ -11,6 +12,15 @@ namespace WalletWasabi.Fluent.Controls
 	{
 		private IDisposable? _subscription;
 		private TagsBox? _parentTagBox;
+
+		public static readonly StyledProperty<bool> EnableCounterProperty =
+			AvaloniaProperty.Register<TagControl, bool>(nameof(EnableCounter));
+
+		public bool EnableCounter
+		{
+			get => GetValue(EnableCounterProperty);
+			set => SetValue(EnableCounterProperty, value);
+		}
 
 		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
 		{
