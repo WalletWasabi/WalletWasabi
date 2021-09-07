@@ -11,6 +11,8 @@ namespace WalletWasabi.Fluent.Behaviors
 {
 	public class HideShowBehavior : DisposingBehavior<Window>
 	{
+		private const string icon_path = "/Assets/WasabiLogo.ico";
+
 		protected override void OnAttached(CompositeDisposable disposables)
 		{
 			if (AssociatedObject is null)
@@ -50,8 +52,8 @@ namespace WalletWasabi.Fluent.Behaviors
 				{
 					if (Services.UiConfig.HideOnClose)
 					{
-						args.EventArgs.Cancel = true;
-						AssociatedObject.Hide();
+						//args.EventArgs.Cancel = true;
+						//AssociatedObject.Hide();
 					}
 				})
 				.DisposeWith(disposables);

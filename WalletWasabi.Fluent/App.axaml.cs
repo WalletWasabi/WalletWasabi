@@ -45,6 +45,10 @@ namespace WalletWasabi.Fluent
 		public override void Initialize()
 		{
 			AvaloniaXamlLoader.Load(this);
+			Services.SingleInstanceChecker.OtherInstanceStarted += (sender, args) =>
+			{
+				OnFrameworkInitializationCompleted();
+			};
 		}
 
 		public override void OnFrameworkInitializationCompleted()
@@ -58,6 +62,8 @@ namespace WalletWasabi.Fluent
 				if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
 				{
 					desktop.ShutdownRequested += DesktopOnShutdownRequested;
+
+					desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
 					desktop.MainWindow = new MainWindow
 					{
