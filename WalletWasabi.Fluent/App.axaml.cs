@@ -84,6 +84,7 @@ namespace WalletWasabi.Fluent
 		{
 			if (CanShutdownProvider is { } provider)
 			{
+				// Shutdown prevention will only work if you directly run the executable.
 				e.Cancel = !provider.CanShutdown();
 				Logger.LogDebug($"Cancellation of the shutdown set to: {e.Cancel}.");
 			}
