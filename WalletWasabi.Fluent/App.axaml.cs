@@ -1,19 +1,16 @@
 using System;
 using System.Reactive.Concurrency;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data;
-using Avalonia.Logging;
 using Avalonia.Markup.Xaml;
 using ReactiveUI;
 using WalletWasabi.Fluent.Behaviors;
 using WalletWasabi.Fluent.Providers;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.Views;
-using WalletWasabi.Logging;
 using Logger = WalletWasabi.Logging.Logger;
 
 namespace WalletWasabi.Fluent
