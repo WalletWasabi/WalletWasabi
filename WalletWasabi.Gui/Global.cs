@@ -124,6 +124,7 @@ namespace WalletWasabi.Gui
 
 		public async Task InitializeNoWalletAsync(TerminateService terminateService)
 		{
+			Logger.LogTrace("Initialization started.");
 			InitializationStarted = true;
 			var cancel = StoppingCts.Token;
 
@@ -199,6 +200,7 @@ namespace WalletWasabi.Gui
 			finally
 			{
 				InitializationCompleted.TrySetResult(true);
+				Logger.LogTrace("Initialization finished.");
 			}
 		}
 
@@ -560,6 +562,7 @@ namespace WalletWasabi.Gui
 			finally
 			{
 				StoppingCts.Dispose();
+				Logger.LogTrace("Dispose finished.");
 			}
 		}
 	}
