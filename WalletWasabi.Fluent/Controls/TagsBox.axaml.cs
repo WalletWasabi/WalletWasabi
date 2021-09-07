@@ -350,6 +350,7 @@ namespace WalletWasabi.Fluent.Controls
 
 				AddTag(tag);
 				BackspaceLogicClear();
+				autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
 				Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
 			}
 			else
