@@ -32,6 +32,7 @@
                                       Margin="-8,0,3,0">
                 <Button Name="PART_DeleteButton" VerticalAlignment="Center"
                         HorizontalAlignment="Center"
+                        IsVisible="{TemplateBinding EnableDelete}"
                         Width="12"
                         Height="12"
                         KeyboardNavigation.IsTabStop="False"

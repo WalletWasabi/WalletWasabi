@@ -78,6 +78,9 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<bool> IsReadOnlyProperty =
 			AvaloniaProperty.Register<TagsBox, bool>(nameof(IsReadOnly));
 
+		public static readonly StyledProperty<bool> EnableDeleteProperty =
+			AvaloniaProperty.Register<TagsBox, bool>(nameof(EnableDelete), true);
+
 		[Content]
 		public IEnumerable<string>? Items
 		{
@@ -143,6 +146,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(AllowDuplicationProperty);
 			set => SetValue(AllowDuplicationProperty, value);
+		}
+
+		public bool EnableDelete
+		{
+			get => GetValue(EnableDeleteProperty);
+			set => SetValue(EnableDeleteProperty, value);
 		}
 
 		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
@@ -217,7 +226,6 @@ namespace WalletWasabi.Fluent.Controls
 					Dispatcher.UIThread.Post(() => _autoCompleteBox?.ClearValue(AutoCompleteBox.TextProperty));
 				})
 				.DisposeWith(_compositeDisposable!);
-
 		}
 
 		protected override void OnGotFocus(GotFocusEventArgs e)
