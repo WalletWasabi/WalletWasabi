@@ -441,7 +441,7 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				StoppingCts?.Cancel();
+				StoppingCts.Cancel();
 
 				if (!InitializationStarted)
 				{
@@ -559,7 +559,7 @@ namespace WalletWasabi.Gui
 			}
 			finally
 			{
-				StoppingCts?.Dispose();
+				StoppingCts.Dispose();
 			}
 		}
 	}
