@@ -6,12 +6,15 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data;
+using Avalonia.Logging;
 using Avalonia.Markup.Xaml;
 using ReactiveUI;
 using WalletWasabi.Fluent.Behaviors;
 using WalletWasabi.Fluent.Providers;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.Views;
+using WalletWasabi.Logging;
+using Logger = WalletWasabi.Logging.Logger;
 
 namespace WalletWasabi.Fluent
 {
@@ -81,21 +84,8 @@ namespace WalletWasabi.Fluent
 		{
 			if (CanShutdownProvider is { } provider)
 			{
-				bool hideOnClose = Services.UiConfig.HideOnClose;
-				e.Cancel = !provider.CanShutdown() || hideOnClose;
-
-				if (hideOnClose)
-				{
-					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-					{
-						// Todo: hide the window and hide taskbar icon as well
-						MainViewModel.Instance!.WindowState = WindowState.Minimized;
-					}
-					else
-					{
-						MainViewModel.Instance!.WindowState = WindowState.Minimized;
-					}
-				}
+				e.Cancel = !provider.CanShutdown();
+				Logger.LogDebug($"Cancellation of the shutdown set to: {e.Cancel}.");
 			}
 		}
 	}
