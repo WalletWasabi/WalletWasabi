@@ -206,8 +206,7 @@ namespace WalletWasabi.Fluent.Controls
 
 					if (RestrictInputToSuggestions &&
 						Suggestions is IList<string> suggestions &&
-						!suggestions.Any(x =>
-							x.StartsWith(currentText, _stringComparison)))
+						!suggestions.Any(x => x.Equals(currentText, _stringComparison)))
 					{
 						return;
 					}
@@ -218,6 +217,7 @@ namespace WalletWasabi.Fluent.Controls
 					Dispatcher.UIThread.Post(() => _autoCompleteBox?.ClearValue(AutoCompleteBox.TextProperty));
 				})
 				.DisposeWith(_compositeDisposable!);
+
 		}
 
 		protected override void OnGotFocus(GotFocusEventArgs e)
