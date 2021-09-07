@@ -80,7 +80,6 @@ namespace WalletWasabi.Gui
 		{
 			using (BenchmarkLogger.Measure())
 			{
-				StoppingCts = new CancellationTokenSource();
 				DataDir = dataDir;
 				Config = config;
 				UiConfig = uiConfig;
@@ -121,7 +120,7 @@ namespace WalletWasabi.Gui
 
 		private bool InitializationStarted { get; set; } = false;
 
-		private CancellationTokenSource StoppingCts { get; }
+		private CancellationTokenSource StoppingCts { get; } = new();
 
 		public async Task InitializeNoWalletAsync(TerminateService terminateService)
 		{
