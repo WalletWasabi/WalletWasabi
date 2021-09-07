@@ -11,8 +11,10 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.LogicalTree;
 using Avalonia.Metadata;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
@@ -189,6 +191,24 @@ namespace WalletWasabi.Fluent.Controls
 			_autoCompleteBox
 				.AddDisposableHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel)
 				.DisposeWith(_compositeDisposable);
+
+			LayoutUpdated += (sender, args) =>
+			{
+				var containerControl = this.FindDescendantOfType<TagControl>()?.Parent?.Parent;
+
+				if (containerControl is { })
+				{
+					var tagItems = containerControl.GetVisualDescendants().OfType<TagControl>().ToArray();
+
+					for (int i = 0; i < tagItems.Length; i++)
+					{
+						if (tagItems[i].FindDescendantOfType<TextBlock>() is { } textBlock)
+						{
+							textBlock.Text = $"{i + 1}.";
+						}
+					}
+				}
+			};
 		}
 
 		private void OnAutoCompleteBoxTemplateApplied(object? sender, TemplateAppliedEventArgs e)
