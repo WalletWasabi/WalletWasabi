@@ -35,7 +35,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public ServiceConfiguration ServiceConfiguration { get; }
 		private ConcurrentDictionary<string, WalletTrackingData> TrackedWallets { get; } = new();
 
-		public CoinJoinClientState GetMostCoinJoinClientState
+		public CoinJoinClientState HighestCoinJoinClientState
 		{
 			get
 			{
