@@ -581,7 +581,7 @@ namespace WalletWasabi.Gui
 				finally
 				{
 					StoppingCts.Dispose();
-                    Logger.LogTrace("Dispose finished.");
+					Logger.LogTrace("Dispose finished.");
 				}
 			}
 		}
