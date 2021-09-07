@@ -201,23 +201,30 @@ namespace WalletWasabi.Fluent.Controls
 				.AddDisposableHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel)
 				.DisposeWith(_compositeDisposable);
 
-			LayoutUpdated += (sender, args) =>
+			LayoutUpdated += OnLayoutUpdated;
+		}
+
+		private void OnLayoutUpdated(object? sender, EventArgs e)
+		{
+			UpdateCounters();
+		}
+
+		private void UpdateCounters()
+		{
+			var containerControl = this.FindDescendantOfType<TagControl>()?.Parent?.Parent;
+
+			if (containerControl is { })
 			{
-				var containerControl = this.FindDescendantOfType<TagControl>()?.Parent?.Parent;
+				var tagItems = containerControl.GetVisualDescendants().OfType<TagControl>().ToArray();
 
-				if (containerControl is { })
+				for (var i = 0; i < tagItems.Length; i++)
 				{
-					var tagItems = containerControl.GetVisualDescendants().OfType<TagControl>().ToArray();
-
-					for (int i = 0; i < tagItems.Length; i++)
+					if (tagItems[i].FindDescendantOfType<TextBlock>() is { } textBlock)
 					{
-						if (tagItems[i].FindDescendantOfType<TextBlock>() is { } textBlock)
-						{
-							textBlock.Text = $"{i + 1}.";
-						}
+						textBlock.Text = $"{i + 1}.";
 					}
 				}
-			};
+			}
 		}
 
 		private void OnAutoCompleteBoxTemplateApplied(object? sender, TemplateAppliedEventArgs e)
