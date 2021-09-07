@@ -45,12 +45,9 @@ namespace WalletWasabi.WabiSabi.Client
 					return CoinJoinClientState.InCriticalPhase;
 				}
 
-				if (coinjoinClients.Any(wt => wt.CoinJoinClient.State is CoinJoinClientState.InProgress))
-				{
-					return CoinJoinClientState.InProgress;
-				}
-
-				return CoinJoinClientState.Idle;
+				return coinjoinClients.Any(wt => wt.CoinJoinClient.State is CoinJoinClientState.InProgress)
+					? CoinJoinClientState.InProgress
+					: CoinJoinClientState.Idle;
 			}
 		}
 
