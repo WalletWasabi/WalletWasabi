@@ -27,6 +27,7 @@ namespace WalletWasabi.Fluent
 		public App()
 		{
 			Name = "Wasabi Wallet";
+			DataContext = new ApplicationViewModel();
 		}
 
 		public App(Func<Task> backendInitialiseAsync) : this()
