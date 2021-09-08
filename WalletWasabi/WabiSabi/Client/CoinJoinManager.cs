@@ -33,7 +33,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
 		public RoundStateUpdater RoundStatusUpdater { get; }
 		public ServiceConfiguration ServiceConfiguration { get; }
-		private ConcurrentDictionary<string, WalletTrackingData> TrackedWallets { get; } = new();
+		private ImmutableDictionary<string, WalletTrackingData> TrackedWallets { get; set; } = ImmutableDictionary<string, WalletTrackingData>.Empty;
 
 		public CoinJoinClientState HighestCoinJoinClientState
 		{
@@ -58,13 +58,14 @@ namespace WalletWasabi.WabiSabi.Client
 				Logger.LogInfo("WabiSabi coinjoin client-side functionality is disabled temporarily on mainnet.");
 				return;
 			}
+			var trackedWallets = new Dictionary<string, WalletTrackingData>();
 
 			while (!stoppingToken.IsCancellationRequested)
 			{
 				await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
 				var mixableWallets = GetMixableWallets();
-				var openedWallets = mixableWallets.Where(x => !TrackedWallets.ContainsKey(x.Key));
-				var closedWallets = TrackedWallets.Where(x => !mixableWallets.ContainsKey(x.Key));
+				var openedWallets = mixableWallets.Where(x => !trackedWallets.ContainsKey(x.Key));
+				var closedWallets = trackedWallets.Where(x => !mixableWallets.ContainsKey(x.Key));
 
 				foreach (var openedWallet in openedWallets.Select(x => x.Value))
 				{
@@ -73,7 +74,7 @@ namespace WalletWasabi.WabiSabi.Client
 					var coinCandidates = openedWallet.Coins.Available().Confirmed().Where(x => x.HdPubKey.AnonymitySet < ServiceConfiguration.GetMixUntilAnonymitySetValue());
 					var coinjoinTask = coinjoinClient.StartCoinJoinAsync(coinCandidates, cts.Token);
 
-					TrackedWallets.TryAdd(openedWallet.WalletName, new WalletTrackingData(openedWallet, coinjoinClient, coinjoinTask, cts));
+					trackedWallets.Add(openedWallet.WalletName, new WalletTrackingData(openedWallet, coinjoinClient, coinjoinTask, cts));
 				}
 
 				foreach (var closedWallet in closedWallets.Select(x => x.Value))
@@ -82,14 +83,14 @@ namespace WalletWasabi.WabiSabi.Client
 					closedWallet.CancellationTokenSource.Dispose();
 				}
 
-				var finishedCoinJoins = TrackedWallets
+				var finishedCoinJoins = trackedWallets
 					.Where(x => x.Value.CoinJoinTask.IsCompleted)
 					.Select(x => x.Value)
 					.ToImmutableArray();
 
 				foreach (var finishedCoinJoin in finishedCoinJoins)
 				{
-					TrackedWallets.TryRemove(finishedCoinJoin.Wallet.WalletName, out _);
+					trackedWallets.Remove(finishedCoinJoin.Wallet.WalletName);
 					finishedCoinJoin.CancellationTokenSource.Dispose();
 
 					var finishedCoinJoinTask = finishedCoinJoin.CoinJoinTask;
@@ -111,6 +112,8 @@ namespace WalletWasabi.WabiSabi.Client
 						Logger.LogInfo("Coinjoin client was cancelled.");
 					}
 				}
+
+				TrackedWallets = trackedWallets.ToImmutableDictionary();
 			}
 		}
 
