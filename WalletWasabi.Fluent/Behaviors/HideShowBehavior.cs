@@ -22,8 +22,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
 				Observable
-					.FromEventPattern(Services.SingleInstanceChecker,
-						nameof(SingleInstanceChecker.OtherInstanceStarted))
+					.FromEventPattern(Services.SingleInstanceChecker, nameof(SingleInstanceChecker.OtherInstanceStarted))
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.Subscribe(_ =>
 					{
@@ -42,7 +41,7 @@ namespace WalletWasabi.Fluent.Behaviors
 					.DisposeWith(disposables);
 			}
 
-			//TODO: we need the close button click only, external close request should not be cancelled.
+			// TODO: we need the close button click only, external close request should not be cancelled.
 			Observable
 				.FromEventPattern<CancelEventArgs>(AssociatedObject, nameof(AssociatedObject.Closing))
 				.ObserveOn(RxApp.MainThreadScheduler)
