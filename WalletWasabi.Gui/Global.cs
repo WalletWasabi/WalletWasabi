@@ -117,6 +117,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
+		/// <remarks>Use this variable as a guard to prevent touching <see cref="StoppingCts"/> that might have already been disposed.</remarks>
 		private volatile bool _disposeRequested;
 
 		/// <summary>Lock that makes sure the application initialization and dispose methods do not run concurrently.</summary>
@@ -127,6 +128,7 @@ namespace WalletWasabi.Gui
 
 		public async Task InitializeNoWalletAsync(TerminateService terminateService)
 		{
+			// StoppingCts may be disposed at this point, so do not forward the cancellation token here.
 			using (await InitializationAsyncLock.LockAsync())
 			{
 				Logger.LogTrace("Initialization started.");
