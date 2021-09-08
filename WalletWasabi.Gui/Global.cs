@@ -41,7 +41,6 @@ namespace WalletWasabi.Gui
 {
 	public class Global
 	{
-		public CoinJoinManager CoinJoinManager { get; private set; }
 		public const string ThemeBackgroundBrushResourceKey = "ThemeBackgroundBrush";
 		public const string ApplicationAccentForegroundBrushResourceKey = "ApplicationAccentForegroundBrush";
 
@@ -77,7 +76,7 @@ namespace WalletWasabi.Gui
 
 		public JsonRpcServer? RpcServer { get; private set; }
 
-		public Global(string dataDir, Config config, UiConfig uiConfig, WalletManager walletManager, CoinJoinManager coinJoinManager)
+		public Global(string dataDir, Config config, UiConfig uiConfig, WalletManager walletManager)
 		{
 			using (BenchmarkLogger.Measure())
 			{
@@ -89,7 +88,6 @@ namespace WalletWasabi.Gui
 
 				HostedServices = new HostedServices();
 				WalletManager = walletManager;
-				CoinJoinManager = coinJoinManager;
 
 				WalletManager.OnDequeue += WalletManager_OnDequeue;
 				WalletManager.WalletRelevantTransactionProcessed += WalletManager_WalletRelevantTransactionProcessed;
@@ -144,7 +142,7 @@ namespace WalletWasabi.Gui
 				await LegalChecker.InitializeAsync(HostedServices.Get<UpdateChecker>()).ConfigureAwait(false);
 				cancel.ThrowIfCancellationRequested();
 
-				SystemAwakeChecker? systemAwakeChecker = await SystemAwakeChecker.CreateAsync(CoinJoinManager).ConfigureAwait(false);
+				SystemAwakeChecker? systemAwakeChecker = await SystemAwakeChecker.CreateAsync(HostedServices.Get<CoinJoinManager>()).ConfigureAwait(false);
 
 				if (systemAwakeChecker is not null)
 				{
