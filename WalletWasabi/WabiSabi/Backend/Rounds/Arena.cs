@@ -306,7 +306,7 @@ public partial class Arena : PeriodicRunner
 		foreach (var alice in alicesWhoDidntSign)
 		{
 			Prison.Note(alice, round.Id);
-				Logger.LogTrace("{alice} - noted}", alice);
+				Logger.LogTrace("{alice} - noted", alice);
 		}
 
 		round.Alices.RemoveAll(x => alicesWhoDidntSign.Contains(x));
