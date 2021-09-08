@@ -142,17 +142,6 @@ namespace WalletWasabi.Gui
 				await LegalChecker.InitializeAsync(HostedServices.Get<UpdateChecker>()).ConfigureAwait(false);
 				cancel.ThrowIfCancellationRequested();
 
-				SystemAwakeChecker? systemAwakeChecker = await SystemAwakeChecker.CreateAsync(HostedServices.Get<CoinJoinManager>()).ConfigureAwait(false);
-
-				if (systemAwakeChecker is not null)
-				{
-					HostedServices.Register<SystemAwakeChecker>(systemAwakeChecker, "System Awake Checker");
-				}
-				else
-				{
-					Logger.LogInfo("System Awake Checker is not available on this platform.");
-				}
-
 				await StartTorProcessManagerAsync(cancel).ConfigureAwait(false);
 
 				try
@@ -175,6 +164,17 @@ namespace WalletWasabi.Gui
 
 				RegisterFeeRateProviders();
 				RegisterCoinJoinComponents();
+
+				SystemAwakeChecker? systemAwakeChecker = await SystemAwakeChecker.CreateAsync(HostedServices.Get<CoinJoinManager>()).ConfigureAwait(false);
+
+				if (systemAwakeChecker is not null)
+				{
+					HostedServices.Register<SystemAwakeChecker>(systemAwakeChecker, "System Awake Checker");
+				}
+				else
+				{
+					Logger.LogInfo("System Awake Checker is not available on this platform.");
+				}
 
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
