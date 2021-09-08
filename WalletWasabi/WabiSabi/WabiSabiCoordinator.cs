@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Hosting;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +8,8 @@ using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Rounds.Utils;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace WalletWasabi.WabiSabi;
 
@@ -22,7 +23,7 @@ public class WabiSabiCoordinator : BackgroundService
 		ConfigWatcher = new(parameters.ConfigChangeMonitoringPeriod, Config, () => Logger.LogInfo("WabiSabi configuration has changed."));
 
 		CoinJoinTransactionArchiver transactionArchiver = new(Path.Combine(parameters.CoordinatorDataDir, "CoinJoinTransactions"));
-		Arena = new(parameters.RoundProgressSteppingPeriod, rpc.Network, Config, rpc, Warden.Prison, transactionArchiver);
+			Arena = new(parameters.RoundProgressSteppingPeriod, rpc.Network, Config, rpc, Warden.Prison, NullLogger<Arena>.Instance, transactionArchiver);
 	}
 
 	public ConfigWatcher ConfigWatcher { get; }

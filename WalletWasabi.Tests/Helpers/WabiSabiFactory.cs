@@ -108,7 +108,7 @@ public static class WabiSabiFactory
 
 	public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig cfg, IMock<IRPCClient> mockRpc, params Round[] rounds)
 	{
-		Arena arena = new(TimeSpan.FromHours(1), Network.Main, cfg, mockRpc.Object, new Prison());
+			Arena arena = new(TimeSpan.FromHours(1), Network.Main, cfg, mockRpc.Object, new Prison(), null!);
 		foreach (var round in rounds)
 		{
 			arena.Rounds.Add(round);

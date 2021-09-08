@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using NBitcoin;
 using NBitcoin.RPC;
 using System.Linq;
@@ -25,7 +26,7 @@ public class RoundCreationTests
 				FeeRate = new FeeRate(10m)
 			});
 
-		using Arena arena = new(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison());
+			using Arena arena = new(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison(), NullLogger<Arena>.Instance);
 		Assert.Empty(arena.Rounds);
 		await arena.StartAsync(CancellationToken.None);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -46,7 +47,7 @@ public class RoundCreationTests
 				FeeRate = new FeeRate(10m)
 			});
 
-		using Arena arena = new(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison());
+			using Arena arena = new(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison(), NullLogger<Arena>.Instance);
 		Assert.Empty(arena.Rounds);
 		await arena.StartAsync(CancellationToken.None);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -71,7 +72,7 @@ public class RoundCreationTests
 				FeeRate = new FeeRate(10m)
 			});
 
-		using Arena arena = new(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison());
+			using Arena arena = new(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison(), NullLogger<Arena>.Instance);
 		Assert.Empty(arena.Rounds);
 		await arena.StartAsync(CancellationToken.None);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));

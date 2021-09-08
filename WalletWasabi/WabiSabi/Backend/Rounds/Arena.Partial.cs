@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using NBitcoin;
 using Nito.AsyncEx;
 using System.Linq;
@@ -18,6 +19,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	public async Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 	{
 		var coin = await OutpointToCoinAsync(request, cancellationToken).ConfigureAwait(false);
+			Logger.LogTrace("{coin} was found and it is unspent.", coin.Outpoint);
 
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
