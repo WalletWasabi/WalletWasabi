@@ -19,7 +19,7 @@ namespace WalletWasabi.Services
 
 		private volatile IPowerSavingInhibitorTask? _powerSavingTask;
 
-		private SystemAwakeChecker(CoinJoinManager coinJoinManager, Func<Task<IPowerSavingInhibitorTask>>? taskFactory) : base(TimeSpan.FromMinutes(1))
+		private SystemAwakeChecker(CoinJoinManager coinJoinManager, Func<Task<IPowerSavingInhibitorTask>>? taskFactory) : base(TimeSpan.FromSeconds(5))
 		{
 			CoinJoinManager = coinJoinManager;
 			TaskFactory = taskFactory;
