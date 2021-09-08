@@ -79,60 +79,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			Layouts = new ObservableCollection<TileLayoutViewModel>()
 			{
 				new("Small", "330,330,330,330", "150"),
-				new("Normal", "330,330,330", "150,300"),
+				new("Normal", "330,330,330", "150,150"),
 				new("Wide", "330,330", "150,300,300")
 			};
 
 			LayoutIndex = _normalLayoutIndex;
 
-			BalanceTile = new WalletBalanceTileViewModel(wallet, balanceChanged, History.UnfilteredTransactions)
-			{
-				TilePresets = new ObservableCollection<TilePresetViewModel>()
-				{
-					new(0, 0, 1, 1, TileSize.Medium),
-					new(0, 0, 1, 1, TileSize.Medium),
-					new(0, 0, 1, 1, TileSize.Medium)
-				},
-				TilePresetIndex = LayoutIndex
-			};
-			BtcPriceTile = new BtcPriceTileViewModel(wallet)
-			{
-				TilePresets = new ObservableCollection<TilePresetViewModel>()
-				{
-					new(2, 0, 1, 1, TileSize.Medium),
-					new(1, 0, 1, 1, TileSize.Medium),
-					new(1, 0, 1, 1, TileSize.Medium)
-				},
-				TilePresetIndex = LayoutIndex
-			};
-			WalletPieChart = new WalletPieChartTileViewModel(this, balanceChanged)
-			{
-				TilePresets = new ObservableCollection<TilePresetViewModel>()
-				{
-					new(1, 0, 1, 1, TileSize.Medium),
-					new(0, 1, 1, 1, TileSize.Large),
-					new(0, 1, 2, 1, TileSize.Wide)
-				},
-				TilePresetIndex = LayoutIndex
-			};
-			BalanceChartTile = new WalletBalanceChartTileViewModel(History.UnfilteredTransactions)
-			{
-				TilePresets = new ObservableCollection<TilePresetViewModel>()
-				{
-					new(3, 0, 1, 1, TileSize.Medium),
-					new(1, 1, 2, 1, TileSize.Wide),
-					new(0, 2, 2, 1, TileSize.Wide)
-				},
-				TilePresetIndex = LayoutIndex
-			};
-
-			_tiles = new List<TileViewModel>
-			{
-				BalanceTile,
-				BtcPriceTile,
-				WalletPieChart,
-				BalanceChartTile
-			};
+			_tiles = wallet.KeyManager.IsWatchOnly
+				? GetWatchOnlyWalletTiles(wallet, balanceChanged, History.UnfilteredTransactions)
+				: GetNormalWalletTiles(wallet, balanceChanged, History.UnfilteredTransactions);
 
 			this.WhenAnyValue(x => x.LayoutIndex)
 				.Subscribe(x =>
@@ -200,15 +155,96 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		public HistoryViewModel History { get; }
 
-		public WalletBalanceTileViewModel BalanceTile { get; }
-
-		public BtcPriceTileViewModel BtcPriceTile { get; }
-
-		public WalletPieChartTileViewModel WalletPieChart { get; }
-
-		public WalletBalanceChartTileViewModel BalanceChartTile { get; }
-
 		public TileLayoutViewModel? CurrentLayout => Layouts?[LayoutIndex];
+
+		private List<TileViewModel> GetNormalWalletTiles(Wallet wallet, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModel> unfilteredTransactions)
+		{
+			return new List<TileViewModel>
+			{
+				new WalletBalanceTileViewModel(wallet, balanceChanged, unfilteredTransactions)
+				{
+					TilePresets = new ObservableCollection<TilePresetViewModel>()
+					{
+						new(0, 0, 1, 1, TileSize.Medium),
+						new(0, 0, 1, 1, TileSize.Medium),
+						new(0, 0, 1, 1, TileSize.Medium)
+					},
+					TilePresetIndex = LayoutIndex
+				},
+
+				new BtcPriceTileViewModel(wallet)
+				{
+					TilePresets = new ObservableCollection<TilePresetViewModel>()
+					{
+						new(2, 0, 1, 1, TileSize.Medium),
+						new(0, 1, 1, 1, TileSize.Medium),
+						new(1, 0, 1, 1, TileSize.Medium)
+					},
+					TilePresetIndex = LayoutIndex
+				},
+
+				new WalletPieChartTileViewModel(this, balanceChanged)
+				{
+					TilePresets = new ObservableCollection<TilePresetViewModel>()
+					{
+						new(1, 0, 1, 1, TileSize.Medium),
+						new(1, 0, 1, 2, TileSize.Large),
+						new(0, 1, 2, 1, TileSize.Wide)
+					},
+					TilePresetIndex = LayoutIndex
+				},
+
+				new WalletBalanceChartTileViewModel(unfilteredTransactions)
+				{
+					TilePresets = new ObservableCollection<TilePresetViewModel>()
+					{
+						new(3, 0, 1, 1, TileSize.Medium),
+						new(2, 0, 1, 2, TileSize.Wide),
+						new(0, 2, 2, 1, TileSize.Wide)
+					},
+					TilePresetIndex = LayoutIndex
+				},
+			};
+		}
+
+		private List<TileViewModel> GetWatchOnlyWalletTiles(Wallet wallet, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModel> unfilteredTransactions)
+		{
+			return new List<TileViewModel>
+			{
+				new WalletBalanceTileViewModel(wallet, balanceChanged, unfilteredTransactions)
+				{
+					TilePresets = new ObservableCollection<TilePresetViewModel>()
+					{
+						new(0, 0, 1, 1, TileSize.Medium),
+						new(0, 0, 1, 1, TileSize.Medium),
+						new(0, 0, 1, 1, TileSize.Medium)
+					},
+					TilePresetIndex = LayoutIndex
+				},
+
+				new BtcPriceTileViewModel(wallet)
+				{
+					TilePresets = new ObservableCollection<TilePresetViewModel>()
+					{
+						new(1, 0, 1, 1, TileSize.Medium),
+						new(0, 1, 1, 1, TileSize.Medium),
+						new(1, 0, 1, 1, TileSize.Medium)
+					},
+					TilePresetIndex = LayoutIndex
+				},
+
+				new WalletBalanceChartTileViewModel(unfilteredTransactions)
+				{
+					TilePresets = new ObservableCollection<TilePresetViewModel>()
+					{
+						new(2, 0, 1, 1, TileSize.Medium),
+						new(1, 0, 2, 2, TileSize.Wide),
+						new(0, 1, 2, 1, TileSize.Wide)
+					},
+					TilePresetIndex = LayoutIndex
+				},
+			};
+		}
 
 		private void LayoutSelector(double width, double height)
 		{
