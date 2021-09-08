@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging.Abstractions;
 using NBitcoin;
 using System.Linq;
 using System.Threading;
@@ -34,7 +35,7 @@ public class BobClientTests
 
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
-		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena);
+		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, NullLogger<WabiSabiController>.Instance);
 
 		var insecureRandom = new InsecureRandom();
 		var roundState = RoundState.FromRound(round);

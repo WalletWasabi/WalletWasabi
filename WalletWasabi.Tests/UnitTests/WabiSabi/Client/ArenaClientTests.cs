@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using NBitcoin;
 using NBitcoin.RPC;
@@ -62,7 +63,7 @@ public class ArenaClientTests
 
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
-		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena);
+		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, NullLogger<WabiSabiController>.Instance);
 
 		var insecureRandom = new InsecureRandom();
 		var roundState = RoundState.FromRound(round);
@@ -180,7 +181,7 @@ public class ArenaClientTests
 
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
-		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena);
+		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, NullLogger<WabiSabiController>.Instance);
 
 		var apiClient = new ArenaClient(null!, null!, wabiSabiApi);
 
@@ -209,7 +210,7 @@ public class ArenaClientTests
 		var mockRpc = new Mock<IRPCClient>();
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
-		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena);
+		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, NullLogger<WabiSabiController>.Instance);
 
 		var rnd = new InsecureRandom();
 		var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, rnd, 4300000000000L);
