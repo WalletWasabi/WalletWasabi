@@ -60,11 +60,11 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 			services.AddScoped<WabiSabiConfig>();
 			services.AddScoped(typeof(TimeSpan), _ => TimeSpan.FromSeconds(2));
 		});
-			builder.ConfigureLogging(builder =>
+			builder.ConfigureLogging(logging =>
 		{
-				builder.SetMinimumLevel(LogLevel.Information);
-				builder.ClearProviders();
-				builder.AddWabiSabiLogger();
+				logging.AddFilter((_, category, _) => !category.Contains("Microsoft"));
+				logging.ClearProviders();
+				logging.AddWabiSabiLogger();
 		});
 	}
 
