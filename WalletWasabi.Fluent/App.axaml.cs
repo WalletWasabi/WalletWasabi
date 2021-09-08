@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using ReactiveUI;
 using WalletWasabi.Fluent.Behaviors;
 using WalletWasabi.Fluent.Providers;
@@ -47,7 +48,18 @@ namespace WalletWasabi.Fluent
 			AvaloniaXamlLoader.Load(this);
 			Services.SingleInstanceChecker.OtherInstanceStarted += (sender, args) =>
 			{
-				OnFrameworkInitializationCompleted();
+				Dispatcher.UIThread.Post(() =>
+				{
+					if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+					{
+						desktop.MainWindow = new MainWindow
+						{
+							DataContext = MainViewModel.Instance
+						};
+
+						desktop.MainWindow.Show();
+					}
+				});
 			};
 		}
 
