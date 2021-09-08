@@ -13,6 +13,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Controllers.WabiSabi;
+using WalletWasabi.Backend.Logging;
 using WalletWasabi.Backend.Middlewares;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
@@ -67,7 +68,13 @@ public class Startup
 			c.IncludeXmlComments(xmlPath);
 		});
 
-		services.AddLogging(logging => logging.AddFilter((s, level) => level >= Microsoft.Extensions.Logging.LogLevel.Warning));
+			services.AddLogging(logging =>
+			{
+				logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Warning);
+				logging.AddFilter((_, category, _) => !category.Contains("Microsoft"));
+				logging.ClearProviders();
+				logging.AddWabiSabiLogger();
+			});
 
 		services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider());
 		services.AddSingleton<IdempotencyRequestCache>();
