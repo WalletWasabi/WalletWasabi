@@ -117,8 +117,6 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private TaskCompletionSource<bool> InitializationCompleted { get; } = new();
-
 		private volatile bool _disposeRequested;
 
 		/// <summary>Lock that makes sure the application initialization and dispose methods do not run concurrently.</summary>
@@ -211,7 +209,6 @@ namespace WalletWasabi.Gui
 				}
 				finally
 				{
-					InitializationCompleted.TrySetResult(true);
 					Logger.LogTrace("Initialization finished.");
 				}
 			}
@@ -469,18 +466,6 @@ namespace WalletWasabi.Gui
 
 				try
 				{
-					Logger.LogDebug("Waiting for initialization to complete.", nameof(Global));
-
-					try
-					{
-						using var initCompletitionWaitCts = new CancellationTokenSource(TimeSpan.FromMinutes(6));
-						await InitializationCompleted.Task.WithAwaitCancellationAsync(initCompletitionWaitCts.Token, 100).ConfigureAwait(false);
-					}
-					catch (Exception ex)
-					{
-						Logger.LogError($"Error during wait for initialization to be completed: {ex}");
-					}
-
 					try
 					{
 						using var dequeueCts = new CancellationTokenSource(TimeSpan.FromMinutes(6));
