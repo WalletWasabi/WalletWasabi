@@ -107,7 +107,6 @@ namespace WalletWasabi.Fluent.Helpers
 				new("Normal", columnDefinitions:"330,660", rowDefinitions:"150,150"),
 				new("Wide", columnDefinitions: "330,330", rowDefinitions: "150,300")
 			};
-
 		}
 
 		public static IList<TileLayoutViewModel> GetNormalWalletLayout()
