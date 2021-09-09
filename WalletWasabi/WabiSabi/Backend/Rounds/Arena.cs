@@ -21,14 +21,12 @@ public partial class Arena : PeriodicRunner
 {
 	public Arena(
 		TimeSpan period,
-		Network network,
 		WabiSabiConfig config,
 		IRPCClient rpc,
 		Prison prison,
 			ILogger<Arena> logger,
 		CoinJoinTransactionArchiver? archiver = null) : base(period)
 	{
-		Network = network;
 		Config = config;
 		Rpc = rpc;
 		Prison = prison;
@@ -40,7 +38,7 @@ public partial class Arena : PeriodicRunner
 	public HashSet<Round> Rounds { get; } = new();
 	private AsyncLock AsyncLock { get; } = new();
 		private ILogger<Arena> Logger { get; }
-	private Network Network { get; }
+		public Network Network => Rpc.Network;
 	private WabiSabiConfig Config { get; }
 	private IRPCClient Rpc { get; }
 	private Prison Prison { get; }

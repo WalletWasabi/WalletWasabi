@@ -61,6 +61,7 @@ public static class WabiSabiFactory
 	{
 		using Key key = new();
 		var mockRpc = new Mock<IRPCClient>();
+			mockRpc.SetupGet(rpc => rpc.Network).Returns(Network.Main);
 		mockRpc.Setup(rpc => rpc.GetTxOutAsync(It.IsAny<uint256>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync(new NBitcoin.RPC.GetTxOutResponse
 			{
@@ -109,7 +110,7 @@ public static class WabiSabiFactory
 
 	public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig cfg, IMock<IRPCClient> mockRpc, params Round[] rounds)
 	{
-			Arena arena = new(TimeSpan.FromHours(1), Network.Main, cfg, mockRpc.Object, new Prison(), NullLogger<Arena>.Instance);
+			Arena arena = new(TimeSpan.FromHours(1), cfg, mockRpc.Object, new Prison(), NullLogger<Arena>.Instance);
 		foreach (var round in rounds)
 		{
 			arena.Rounds.Add(round);
