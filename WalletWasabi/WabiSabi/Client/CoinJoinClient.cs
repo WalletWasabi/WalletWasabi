@@ -24,6 +24,7 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class CoinJoinClient
 	{
+		private volatile bool _inCriticalCoinJoinState;
 		private const int MaxInputsRegistrableByWallet = 7; // how many
 
 		public CoinJoinClient(
@@ -44,7 +45,12 @@ namespace WalletWasabi.WabiSabi.Client
 		public Kitchen Kitchen { get; }
 		public KeyManager Keymanager { get; }
 		private RoundStateUpdater RoundStatusUpdater { get; }
-		public bool InCriticalCoinJoinState { get; private set; }
+
+		public bool InCriticalCoinJoinState
+		{
+			get => _inCriticalCoinJoinState;
+			private set => _inCriticalCoinJoinState = value;
+		}
 
 		public async Task<bool> StartCoinJoinAsync(IEnumerable<SmartCoin> coins, CancellationToken cancellationToken)
 		{
