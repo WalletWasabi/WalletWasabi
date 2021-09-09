@@ -72,7 +72,7 @@ namespace WalletWasabi.Fluent.Desktop
 					// TODO only required due to statusbar vm... to be removed.
 					Locator.CurrentMutable.RegisterConstant(Global);
 
-					Services.Initialize(Global);
+					Services.Initialize(Global, singleInstanceChecker);
 
 					Logger.LogSoftwareStarted("Wasabi GUI");
 					BuildAvaloniaApp()

@@ -17,7 +17,8 @@
         Title="Wasabi Wallet"
         WindowState="{Binding WindowState, Mode=TwoWay}">
   <i:Interaction.Behaviors>
-    <behaviors:RegisterNotificationHostBehavior/>
+    <behaviors:RegisterNotificationHostBehavior />
+    <behaviors:HideShowBehavior />
   </i:Interaction.Behaviors>
 
   <Panel Margin="{Binding #MainWindow.OffScreenMargin}">
