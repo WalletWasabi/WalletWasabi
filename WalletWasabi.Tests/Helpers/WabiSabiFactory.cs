@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using NBitcoin;
 using NBitcoin.Crypto;
@@ -108,7 +109,7 @@ public static class WabiSabiFactory
 
 	public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig cfg, IMock<IRPCClient> mockRpc, params Round[] rounds)
 	{
-			Arena arena = new(TimeSpan.FromHours(1), Network.Main, cfg, mockRpc.Object, new Prison(), null!);
+			Arena arena = new(TimeSpan.FromHours(1), Network.Main, cfg, mockRpc.Object, new Prison(), NullLogger<Arena>.Instance);
 		foreach (var round in rounds)
 		{
 			arena.Rounds.Add(round);
