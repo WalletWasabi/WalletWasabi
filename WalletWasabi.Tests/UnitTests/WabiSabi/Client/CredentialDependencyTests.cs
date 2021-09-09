@@ -150,7 +150,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var large = edges.OrderByDescending(e => e.Value).First();
 			Assert.Equal(2L, large.Value);
 			Assert.Equal(2, g.InEdges(large.To, CredentialType.Amount).Count());
-			Assert.Equal(1, g.InEdges(large.To, CredentialType.Amount).Select(e => e.From).Distinct().Count());
+			Assert.Single(g.InEdges(large.To, CredentialType.Amount).Select(e => e.From).Distinct());
 
 			Assert.Equal(g.OutEdges(large.To, CredentialType.Amount).Select(e => e.To).ToHashSet(), g.Vertices.Skip(1).Take(2).ToHashSet());
 			Assert.Equal(g.OutEdges(large.To, CredentialType.Amount).Where(e => e.Value == 0).Select(e => e.To).ToHashSet(), g.Vertices.Skip(1).Take(2).ToHashSet());

@@ -6,6 +6,7 @@ using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.Helpers.PowerSaving;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 using static WalletWasabi.Helpers.PowerSaving.LinuxInhibitorTask;
 
@@ -21,35 +22,17 @@ namespace WalletWasabi.Services
 
 		private volatile IPowerSavingInhibitorTask? _powerSavingTask;
 
-		private SystemAwakeChecker(WalletManager walletManager, Func<Task<IPowerSavingInhibitorTask>>? taskFactory) : base(TimeSpan.FromSeconds(2))
+		private SystemAwakeChecker(CoinJoinManager coinJoinManager, Func<Task<IPowerSavingInhibitorTask>>? taskFactory) : base(TimeSpan.FromSeconds(5))
 		{
-			WalletManager = walletManager;
+			CoinJoinManager = coinJoinManager;
 			TaskFactory = taskFactory;
 		}
 
-		public bool CanShutdown
-		{
-			get
-			{
-				lock (_canShutDownLock)
-				{
-					return _canShutdown;
-				}
-			}
-			private set
-			{
-				lock (_canShutDownLock)
-				{
-					_canShutdown = value;
-				}
-			}
-		}
-
-		private WalletManager WalletManager { get; }
-		private Func<Task<IPowerSavingInhibitorTask>>? TaskFactory { get; }
+		private CoinJoinManager CoinJoinManager { get; }
+		public Func<Task<IPowerSavingInhibitorTask>>? TaskFactory { get; }
 
 		/// <summary>Checks whether we support awake state prolonging for the current platform.</summary>
-		public static async Task<SystemAwakeChecker?> CreateAsync(WalletManager walletManager)
+		public static async Task<SystemAwakeChecker?> CreateAsync(CoinJoinManager coinJoinManager)
 		{
 			Func<Task<IPowerSavingInhibitorTask>>? taskFactory = null;
 
@@ -81,7 +64,7 @@ namespace WalletWasabi.Services
 				taskFactory = () => Task.FromResult<IPowerSavingInhibitorTask>(WindowsPowerAvailabilityTask.Create(Reason));
 			}
 
-			return new SystemAwakeChecker(walletManager, taskFactory);
+			return new SystemAwakeChecker(coinJoinManager, taskFactory);
 		}
 
 		protected async override Task ActionAsync(CancellationToken cancel)
@@ -112,42 +95,49 @@ namespace WalletWasabi.Services
 		{
 			IPowerSavingInhibitorTask? task = _powerSavingTask;
 
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			switch (CoinJoinManager.HighestCoinJoinClientState)
 			{
-				if (task is not null)
-				{
-					if (!task.Prolong(Timeout.Add(TimeSpan.FromMinutes(1))))
+				case CoinJoinClientState.Idle:
+					if (task is not null)
 					{
-						Logger.LogTrace("Failed to prolong the power saving task.");
-						task = null;
+						Logger.LogWarning("Computer idle state is allowed again.");
+						await task.StopAsync().ConfigureAwait(false);
+						_powerSavingTask = null;
 					}
-				}
 
-				if (task is null)
-				{
-					Logger.LogTrace("Create new power saving prevention task.");
-					_powerSavingTask = await TaskFactory!().ConfigureAwait(false);
-				}
-			}
-			else
-			{
-				await EnvironmentHelpers.ProlongSystemAwakeAsync().ConfigureAwait(false);
-			}
-		}
+					break;
 
-		// The rest of the work is done in ApplicationViewModel.cs and App.axaml.cs
-		private void PreventShutdown()
-		{
-			CanShutdown = false;
-		}
+				case CoinJoinClientState.InProgress:
+					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+					{
+						if (task is not null)
+						{
+							if (!task.Prolong(Timeout.Add(TimeSpan.FromMinutes(1))))
+							{
+								Logger.LogTrace("Failed to prolong the power saving task.");
+								task = null;
+							}
+						}
 
-		private async Task ReleaseAllPreventionAsync()
-		{
-			CanShutdown = true;
-			if (_powerSavingTask is not null)
-			{
-				await _powerSavingTask.StopAsync().ConfigureAwait(false);
-				_powerSavingTask = null;
+						if (task is null)
+						{
+							Logger.LogTrace("Create new power saving prevention task.");
+							_powerSavingTask = await TaskFactory!().ConfigureAwait(false);
+						}
+					}
+					else
+					{
+						await EnvironmentHelpers.ProlongSystemAwakeAsync().ConfigureAwait(false);
+					}
+
+					break;
+
+				case CoinJoinClientState.InCriticalPhase:
+
+					break;
+
+				default:
+					throw new ArgumentOutOfRangeException();
 			}
 		}
 	}

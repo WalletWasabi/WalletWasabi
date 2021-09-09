@@ -1,6 +1,7 @@
 using Avalonia.Controls.Notifications;
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
+using Nito.AsyncEx;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -80,7 +81,6 @@ namespace WalletWasabi.Gui
 		{
 			using (BenchmarkLogger.Measure())
 			{
-				StoppingCts = new CancellationTokenSource();
 				DataDir = dataDir;
 				Config = config;
 				UiConfig = uiConfig;
@@ -117,89 +117,103 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private TaskCompletionSource<bool> InitializationCompleted { get; } = new();
+		/// <remarks>Use this variable as a guard to prevent touching <see cref="StoppingCts"/> that might have already been disposed.</remarks>
+		private volatile bool _disposeRequested;
 
-		private bool InitializationStarted { get; set; } = false;
+		/// <summary>Lock that makes sure the application initialization and dispose methods do not run concurrently.</summary>
+		private AsyncLock InitializationAsyncLock { get; } = new();
 
-		private CancellationTokenSource StoppingCts { get; }
+		/// <summary>Cancellation token to cancel <see cref="InitializeNoWalletAsync(TerminateService)"/> processing.</summary>
+		private CancellationTokenSource StoppingCts { get; } = new();
 
 		public async Task InitializeNoWalletAsync(TerminateService terminateService)
 		{
-			InitializationStarted = true;
-			var cancel = StoppingCts.Token;
-
-			try
+			// StoppingCts may be disposed at this point, so do not forward the cancellation token here.
+			using (await InitializationAsyncLock.LockAsync())
 			{
-				Cache = new MemoryCache(new MemoryCacheOptions
+				Logger.LogTrace("Initialization started.");
+
+				if (_disposeRequested)
 				{
-					SizeLimit = 1_000,
-					ExpirationScanFrequency = TimeSpan.FromSeconds(30)
-				});
-				var bstoreInitTask = BitcoinStore.InitializeAsync(cancel);
-
-				HostedServices.Register<UpdateChecker>(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
-
-				await LegalChecker.InitializeAsync(HostedServices.Get<UpdateChecker>()).ConfigureAwait(false);
-				cancel.ThrowIfCancellationRequested();
-
-				SystemAwakeChecker? systemAwakeChecker = await SystemAwakeChecker.CreateAsync(WalletManager).ConfigureAwait(false);
-
-				if (systemAwakeChecker is not null)
-				{
-					HostedServices.Register<SystemAwakeChecker>(systemAwakeChecker, "System Awake Checker");
-				}
-				else
-				{
-					Logger.LogInfo("System Awake Checker is not available on this platform.");
+					return;
 				}
 
-				await StartTorProcessManagerAsync(cancel).ConfigureAwait(false);
+				CancellationToken cancel = StoppingCts.Token;
 
 				try
 				{
-					await bstoreInitTask.ConfigureAwait(false);
+					Cache = new MemoryCache(new MemoryCacheOptions
+					{
+						SizeLimit = 1_000,
+						ExpirationScanFrequency = TimeSpan.FromSeconds(30)
+					});
+					var bstoreInitTask = BitcoinStore.InitializeAsync(cancel);
 
-					// Make sure that the height of the wallets will not be better than the current height of the filters.
-					WalletManager.SetMaxBestHeight(BitcoinStore.IndexStore.SmartHeaderChain.TipHeight);
+					HostedServices.Register<UpdateChecker>(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
+
+					await LegalChecker.InitializeAsync(HostedServices.Get<UpdateChecker>()).ConfigureAwait(false);
+					cancel.ThrowIfCancellationRequested();
+
+
+
+					await StartTorProcessManagerAsync(cancel).ConfigureAwait(false);
+
+					try
+					{
+						await bstoreInitTask.ConfigureAwait(false);
+
+						// Make sure that the height of the wallets will not be better than the current height of the filters.
+						WalletManager.SetMaxBestHeight(BitcoinStore.IndexStore.SmartHeaderChain.TipHeight);
+					}
+					catch (Exception ex) when (ex is not OperationCanceledException)
+					{
+						// If our internal data structures in the Bitcoin Store gets corrupted, then it's better to rescan all the wallets.
+						WalletManager.SetMaxBestHeight(SmartHeader.GetStartingHeader(Network).Height);
+						throw;
+					}
+
+					HostedServices.Register<P2pNetwork>(new P2pNetwork(Network, Config.GetBitcoinP2pEndPoint(), Config.UseTor ? TorSettings.SocksEndpoint : null, Path.Combine(DataDir, "BitcoinP2pNetwork"), BitcoinStore), "Bitcoin P2P Network");
+
+					await StartLocalBitcoinNodeAsync(cancel).ConfigureAwait(false);
+
+					RegisterFeeRateProviders();
+					RegisterCoinJoinComponents();
+
+                    SystemAwakeChecker? systemAwakeChecker = await SystemAwakeChecker.CreateAsync(HostedServices.Get<CoinJoinManager>()).ConfigureAwait(false);
+
+                    if (systemAwakeChecker is not null)
+                    {
+                        HostedServices.Register<SystemAwakeChecker>(systemAwakeChecker, "System Awake Checker");
+                    }
+                    else
+                    {
+                        Logger.LogInfo("System Awake Checker is not available on this platform.");
+                    }
+					await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
+
+					var requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
+					int maxFiltSyncCount = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
+
+					Synchronizer.Start(requestInterval, maxFiltSyncCount);
+					Logger.LogInfo("Start synchronizing filters...");
+
+					TransactionBroadcaster.Initialize(HostedServices.Get<P2pNetwork>().Nodes, BitcoinCoreNode?.RpcClient);
+					CoinJoinProcessor = new CoinJoinProcessor(Network, Synchronizer, WalletManager, BitcoinCoreNode?.RpcClient);
+
+					await StartRpcServerAsync(terminateService, cancel).ConfigureAwait(false);
+
+					var blockProvider = new CachedBlockProvider(
+						new SmartBlockProvider(
+							new P2pBlockProvider(HostedServices.Get<P2pNetwork>().Nodes, BitcoinCoreNode, BackendHttpClientFactory, Config.ServiceConfiguration, Network),
+							Cache),
+						BitcoinStore.BlockRepository);
+
+					WalletManager.RegisterServices(BitcoinStore, Synchronizer, Config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), blockProvider);
 				}
-				catch (Exception ex) when (ex is not OperationCanceledException)
+				finally
 				{
-					// If our internal data structures in the Bitcoin Store gets corrupted, then it's better to rescan all the wallets.
-					WalletManager.SetMaxBestHeight(SmartHeader.GetStartingHeader(Network).Height);
-					throw;
+					Logger.LogTrace("Initialization finished.");
 				}
-
-				HostedServices.Register<P2pNetwork>(new P2pNetwork(Network, Config.GetBitcoinP2pEndPoint(), Config.UseTor ? TorSettings.SocksEndpoint : null, Path.Combine(DataDir, "BitcoinP2pNetwork"), BitcoinStore), "Bitcoin P2P Network");
-
-				await StartLocalBitcoinNodeAsync(cancel).ConfigureAwait(false);
-
-				RegisterFeeRateProviders();
-				RegisterCoinJoinComponents();
-
-				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
-
-				var requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
-				int maxFiltSyncCount = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
-
-				Synchronizer.Start(requestInterval, maxFiltSyncCount);
-				Logger.LogInfo("Start synchronizing filters...");
-
-				TransactionBroadcaster.Initialize(HostedServices.Get<P2pNetwork>().Nodes, BitcoinCoreNode?.RpcClient);
-				CoinJoinProcessor = new CoinJoinProcessor(Network, Synchronizer, WalletManager, BitcoinCoreNode?.RpcClient);
-
-				await StartRpcServerAsync(terminateService, cancel).ConfigureAwait(false);
-
-				var blockProvider = new CachedBlockProvider(
-					new SmartBlockProvider(
-						new P2pBlockProvider(HostedServices.Get<P2pNetwork>().Nodes, BitcoinCoreNode, BackendHttpClientFactory, Config.ServiceConfiguration, Network),
-						Cache),
-					BitcoinStore.BlockRepository);
-
-				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), blockProvider);
-			}
-			finally
-			{
-				InitializationCompleted.TrySetResult(true);
 			}
 		}
 
@@ -438,129 +452,125 @@ namespace WalletWasabi.Gui
 
 		public async Task DisposeAsync()
 		{
-			Logger.LogWarning("Process is exiting.", nameof(Global));
-
-			try
+			// Dispose method may be called just once.
+			if (!_disposeRequested)
 			{
-				StoppingCts?.Cancel();
+				_disposeRequested = true;
+				StoppingCts.Cancel();
+			}
+			else
+			{
+				return;
+			}
 
-				if (!InitializationStarted)
-				{
-					return;
-				}
-
-				Logger.LogDebug($"Waiting for initialization to complete.", nameof(Global));
-
-				try
-				{
-					using var initCompletitionWaitCts = new CancellationTokenSource(TimeSpan.FromMinutes(6));
-					await InitializationCompleted.Task.WithAwaitCancellationAsync(initCompletitionWaitCts.Token, 100).ConfigureAwait(false);
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError($"Error during wait for initialization to be completed: {ex}");
-				}
+			using (await InitializationAsyncLock.LockAsync())
+			{
+				Logger.LogWarning("Process is exiting.", nameof(Global));
 
 				try
 				{
-					using var dequeueCts = new CancellationTokenSource(TimeSpan.FromMinutes(6));
-					await WalletManager.RemoveAndStopAllAsync(dequeueCts.Token).ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(WalletManager)} is stopped.", nameof(Global));
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError($"Error during {nameof(WalletManager.RemoveAndStopAllAsync)}: {ex}");
-				}
-
-				WalletManager.OnDequeue -= WalletManager_OnDequeue;
-				WalletManager.WalletRelevantTransactionProcessed -= WalletManager_WalletRelevantTransactionProcessed;
-
-				if (RpcServer is { } rpcServer)
-				{
-					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
-					await rpcServer.StopAsync(cts.Token).ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(RpcServer)} is stopped.", nameof(Global));
-				}
-
-				if (CoinJoinProcessor is { } coinJoinProcessor)
-				{
-					coinJoinProcessor.Dispose();
-					Logger.LogInfo($"{nameof(CoinJoinProcessor)} is disposed.");
-				}
-
-				if (LegalChecker is { } legalChecker)
-				{
-					legalChecker.Dispose();
-					Logger.LogInfo($"Disposed {nameof(LegalChecker)}.");
-				}
-
-				if (HostedServices is { } backgroundServices)
-				{
-					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
-					await backgroundServices.StopAllAsync(cts.Token).ConfigureAwait(false);
-					backgroundServices.Dispose();
-					Logger.LogInfo("Stopped background services.");
-				}
-
-				if (Synchronizer is { } synchronizer)
-				{
-					await synchronizer.StopAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(Synchronizer)} is stopped.");
-				}
-
-				if (ExternalHttpClientFactory is { } externalHttpClientFactory)
-				{
-					externalHttpClientFactory.Dispose();
-					Logger.LogInfo($"{nameof(ExternalHttpClientFactory)} is disposed.");
-				}
-
-				if (BackendHttpClientFactory is { } backendHttpClientFactory)
-				{
-					backendHttpClientFactory.Dispose();
-					Logger.LogInfo($"{nameof(BackendHttpClientFactory)} is disposed.");
-				}
-
-				if (BitcoinCoreNode is { } bitcoinCoreNode)
-				{
-					await bitcoinCoreNode.DisposeAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(BitcoinCoreNode)} is disposed.");
-
-					if (Config.StopLocalBitcoinCoreOnShutdown)
+					try
 					{
-						await bitcoinCoreNode.TryStopAsync().ConfigureAwait(false);
-						Logger.LogInfo($"{nameof(BitcoinCoreNode)} is stopped.");
+						using var dequeueCts = new CancellationTokenSource(TimeSpan.FromMinutes(6));
+						await WalletManager.RemoveAndStopAllAsync(dequeueCts.Token).ConfigureAwait(false);
+						Logger.LogInfo($"{nameof(WalletManager)} is stopped.", nameof(Global));
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError($"Error during {nameof(WalletManager.RemoveAndStopAllAsync)}: {ex}");
+					}
+
+					WalletManager.OnDequeue -= WalletManager_OnDequeue;
+					WalletManager.WalletRelevantTransactionProcessed -= WalletManager_WalletRelevantTransactionProcessed;
+
+					if (RpcServer is { } rpcServer)
+					{
+						using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
+						await rpcServer.StopAsync(cts.Token).ConfigureAwait(false);
+						Logger.LogInfo($"{nameof(RpcServer)} is stopped.", nameof(Global));
+					}
+
+					if (CoinJoinProcessor is { } coinJoinProcessor)
+					{
+						coinJoinProcessor.Dispose();
+						Logger.LogInfo($"{nameof(CoinJoinProcessor)} is disposed.");
+					}
+
+					if (LegalChecker is { } legalChecker)
+					{
+						legalChecker.Dispose();
+						Logger.LogInfo($"Disposed {nameof(LegalChecker)}.");
+					}
+
+					if (HostedServices is { } backgroundServices)
+					{
+						using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
+						await backgroundServices.StopAllAsync(cts.Token).ConfigureAwait(false);
+						backgroundServices.Dispose();
+						Logger.LogInfo("Stopped background services.");
+					}
+
+					if (Synchronizer is { } synchronizer)
+					{
+						await synchronizer.StopAsync().ConfigureAwait(false);
+						Logger.LogInfo($"{nameof(Synchronizer)} is stopped.");
+					}
+
+					if (ExternalHttpClientFactory is { } externalHttpClientFactory)
+					{
+						externalHttpClientFactory.Dispose();
+						Logger.LogInfo($"{nameof(ExternalHttpClientFactory)} is disposed.");
+					}
+
+					if (BackendHttpClientFactory is { } backendHttpClientFactory)
+					{
+						backendHttpClientFactory.Dispose();
+						Logger.LogInfo($"{nameof(BackendHttpClientFactory)} is disposed.");
+					}
+
+					if (BitcoinCoreNode is { } bitcoinCoreNode)
+					{
+						await bitcoinCoreNode.DisposeAsync().ConfigureAwait(false);
+						Logger.LogInfo($"{nameof(BitcoinCoreNode)} is disposed.");
+
+						if (Config.StopLocalBitcoinCoreOnShutdown)
+						{
+							await bitcoinCoreNode.TryStopAsync().ConfigureAwait(false);
+							Logger.LogInfo($"{nameof(BitcoinCoreNode)} is stopped.");
+						}
+					}
+
+					if (TorManager is { } torManager)
+					{
+						await torManager.DisposeAsync().ConfigureAwait(false);
+						Logger.LogInfo($"{nameof(TorManager)} is stopped.");
+					}
+
+					if (Cache is { } cache)
+					{
+						cache.Dispose();
+						Logger.LogInfo($"{nameof(Cache)} is disposed.");
+					}
+
+					try
+					{
+						await BitcoinStore.DisposeAsync().ConfigureAwait(false);
+						Logger.LogInfo($"{nameof(BitcoinStore)} is disposed.");
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError($"Error during the disposal of {nameof(BitcoinStore)}: {ex}");
 					}
 				}
-
-				if (TorManager is { } torManager)
-				{
-					await torManager.DisposeAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(TorManager)} is stopped.");
-				}
-
-				if (Cache is { } cache)
-				{
-					cache.Dispose();
-					Logger.LogInfo($"{nameof(Cache)} is disposed.");
-				}
-
-				try
-				{
-					await BitcoinStore.DisposeAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(BitcoinStore)} is disposed.");
-				}
 				catch (Exception ex)
 				{
-					Logger.LogError($"Error during the disposal of {nameof(BitcoinStore)}: {ex}");
+					Logger.LogWarning(ex);
 				}
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning(ex);
-			}
-			finally
-			{
-				StoppingCts?.Dispose();
+				finally
+				{
+					StoppingCts.Dispose();
+					Logger.LogTrace("Dispose finished.");
+				}
 			}
 		}
 	}
