@@ -131,6 +131,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
+		// Rest of the work is done on Avalonia's side, in App.xaml.cs and ApplicationViewModel.cs.
 		private void PreventShutdown()
 		{
 			CanShutdown = false;
