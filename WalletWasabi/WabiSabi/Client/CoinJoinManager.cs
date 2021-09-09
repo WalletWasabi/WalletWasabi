@@ -39,19 +39,16 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			get
 			{
-				var coinjoinClients = TrackedWallets.Values
-					.Where(wtd => !wtd.CoinJoinTask.IsCompleted)
-					.GroupBy(wtd => wtd.CoinJoinClient.State)
-					.ToImmutableArray();
+				var inProgress = TrackedWallets.Values.Where(wtd => !wtd.CoinJoinTask.IsCompleted).ToImmutableArray();
 
-				if (coinjoinClients.Any(grp => grp.Key is CoinJoinClientState.InCriticalPhase))
+				if (inProgress.IsEmpty)
 				{
-					return CoinJoinClientState.InCriticalPhase;
+					return CoinJoinClientState.Idle;
 				}
 
-				return coinjoinClients.Any(grp => grp.Key is CoinJoinClientState.InProgress)
-					? CoinJoinClientState.InProgress
-					: CoinJoinClientState.Idle;
+				return inProgress.Any(wtd => wtd.CoinJoinClient.InCriticalCoinJoinState)
+					? CoinJoinClientState.InCriticalPhase
+					: CoinJoinClientState.InProgress;
 			}
 		}
 
