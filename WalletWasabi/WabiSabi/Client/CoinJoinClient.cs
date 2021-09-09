@@ -24,8 +24,8 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class CoinJoinClient
 	{
-		private volatile bool _inCriticalCoinJoinState;
 		private const int MaxInputsRegistrableByWallet = 7; // how many
+		private volatile bool _inCriticalCoinJoinState;
 
 		public CoinJoinClient(
 			IWabiSabiApiRequestHandler arenaRequestHandler,
