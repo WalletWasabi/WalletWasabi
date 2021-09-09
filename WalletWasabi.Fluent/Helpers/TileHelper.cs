@@ -18,9 +18,9 @@ namespace WalletWasabi.Fluent.Helpers
 				{
 					TilePresets = new ObservableCollection<TilePresetViewModel>()
 					{
-						new(0, 0, 1, 1, TileSize.Medium),
-						new(0, 0, 1, 1, TileSize.Medium),
-						new(0, 0, 1, 1, TileSize.Medium)
+						new(column: 0, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
+						new(column: 0, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
+						new(column: 0, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium)
 					},
 					TilePresetIndex = walletViewModel.LayoutIndex
 				},
@@ -29,9 +29,9 @@ namespace WalletWasabi.Fluent.Helpers
 				{
 					TilePresets = new ObservableCollection<TilePresetViewModel>()
 					{
-						new(2, 0, 1, 1, TileSize.Medium),
-						new(0, 1, 1, 1, TileSize.Medium),
-						new(1, 0, 1, 1, TileSize.Medium)
+						new(column: 2, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
+						new(column: 0, row: 1, columnSpan: 1, rowSpan: 1, TileSize.Medium),
+						new(column: 1, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium)
 					},
 					TilePresetIndex = walletViewModel.LayoutIndex
 				},
@@ -40,9 +40,9 @@ namespace WalletWasabi.Fluent.Helpers
 				{
 					TilePresets = new ObservableCollection<TilePresetViewModel>()
 					{
-						new(1, 0, 1, 1, TileSize.Medium),
-						new(1, 0, 1, 2, TileSize.Large),
-						new(0, 1, 2, 1, TileSize.Wide)
+						new(column: 1, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
+						new(column: 1, row: 0, columnSpan: 1, rowSpan: 2, TileSize.Large),
+						new(column: 0, row: 1, columnSpan: 2, rowSpan: 1, TileSize.Wide)
 					},
 					TilePresetIndex = walletViewModel.LayoutIndex
 				},
@@ -51,9 +51,9 @@ namespace WalletWasabi.Fluent.Helpers
 				{
 					TilePresets = new ObservableCollection<TilePresetViewModel>()
 					{
-						new(3, 0, 1, 1, TileSize.Medium),
-						new(2, 0, 1, 2, TileSize.Wide),
-						new(0, 2, 2, 1, TileSize.Wide)
+						new(column: 3, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
+						new(column: 2, row: 0, columnSpan: 1, rowSpan: 2, TileSize.Wide),
+						new(column: 0, row: 2, columnSpan: 2, rowSpan: 1, TileSize.Wide)
 					},
 					TilePresetIndex = walletViewModel.LayoutIndex
 				},
@@ -68,9 +68,9 @@ namespace WalletWasabi.Fluent.Helpers
 				{
 					TilePresets = new ObservableCollection<TilePresetViewModel>()
 					{
-						new(0, 0, 1, 1, TileSize.Medium),
-						new(0, 0, 1, 1, TileSize.Medium),
-						new(0, 0, 1, 1, TileSize.Medium)
+						new(column: 0, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
+						new(column: 0, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
+						new(column: 0, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium)
 					},
 					TilePresetIndex = walletViewModel.LayoutIndex
 				},
@@ -79,9 +79,9 @@ namespace WalletWasabi.Fluent.Helpers
 				{
 					TilePresets = new ObservableCollection<TilePresetViewModel>()
 					{
-						new(1, 0, 1, 1, TileSize.Medium),
-						new(0, 1, 1, 1, TileSize.Medium),
-						new(1, 0, 1, 1, TileSize.Medium)
+						new(column: 1, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
+						new(column: 0, row: 1, columnSpan: 1, rowSpan: 1, TileSize.Medium),
+						new(column: 1, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium)
 					},
 					TilePresetIndex = walletViewModel.LayoutIndex
 				},
@@ -90,12 +90,33 @@ namespace WalletWasabi.Fluent.Helpers
 				{
 					TilePresets = new ObservableCollection<TilePresetViewModel>()
 					{
-						new(2, 0, 1, 1, TileSize.Medium),
-						new(1, 0, 2, 2, TileSize.Wide),
-						new(0, 1, 2, 1, TileSize.Wide)
+						new(column: 2, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
+						new(column: 1, row: 0, columnSpan: 1, rowSpan: 2, TileSize.Wide),
+						new(column: 0, row: 1, columnSpan: 2, rowSpan: 1, TileSize.Wide)
 					},
 					TilePresetIndex = walletViewModel.LayoutIndex
 				},
+			};
+		}
+
+		public static IList<TileLayoutViewModel> GetWatchOnlyWalletLayout()
+		{
+			return new ObservableCollection<TileLayoutViewModel>()
+			{
+				new("Small", columnDefinitions:"330,330,330", rowDefinitions:"150"),
+				new("Normal", columnDefinitions:"330,660", rowDefinitions:"150,150"),
+				new("Wide", columnDefinitions: "330,330", rowDefinitions: "150,300")
+			};
+
+		}
+
+		public static IList<TileLayoutViewModel> GetNormalWalletLayout()
+		{
+			return new ObservableCollection<TileLayoutViewModel>()
+			{
+				new("Small", columnDefinitions: "330,330,330,330", rowDefinitions: "150"),
+				new("Normal", columnDefinitions: "330,330,330", rowDefinitions: "150,150"),
+				new("Wide", columnDefinitions: "330,330", rowDefinitions: "150,300,300")
 			};
 		}
 	}

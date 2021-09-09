@@ -76,12 +76,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			_normalLayoutIndex = 1;
 			_wideLayoutIndex = 2;
 
-			Layouts = new ObservableCollection<TileLayoutViewModel>()
-			{
-				new("Small", "330,330,330,330", "150"),
-				new("Normal", "330,330,330", "150,150"),
-				new("Wide", "330,330", "150,300,300")
-			};
+			Layouts = wallet.KeyManager.IsWatchOnly
+				? TileHelper.GetWatchOnlyWalletLayout()
+				: TileHelper.GetNormalWalletLayout();
 
 			LayoutIndex = _normalLayoutIndex;
 
