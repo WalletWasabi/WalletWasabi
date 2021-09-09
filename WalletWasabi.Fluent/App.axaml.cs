@@ -11,7 +11,7 @@ using WalletWasabi.Fluent.Behaviors;
 using WalletWasabi.Fluent.Providers;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.Views;
-using Logger = WalletWasabi.Logging.Logger;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent
 {
