@@ -6,13 +6,10 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
-using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -32,6 +29,24 @@ namespace WalletWasabi.WabiSabi.Client
 		public IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
 		public RoundStateUpdater RoundStatusUpdater { get; }
 		public ServiceConfiguration ServiceConfiguration { get; }
+		private ImmutableDictionary<string, WalletTrackingData> TrackedWallets { get; set; } = ImmutableDictionary<string, WalletTrackingData>.Empty;
+
+		public CoinJoinClientState HighestCoinJoinClientState
+		{
+			get
+			{
+				var inProgress = TrackedWallets.Values.Where(wtd => !wtd.CoinJoinTask.IsCompleted).ToImmutableArray();
+
+				if (inProgress.IsEmpty)
+				{
+					return CoinJoinClientState.Idle;
+				}
+
+				return inProgress.Any(wtd => wtd.CoinJoinClient.InCriticalCoinJoinState)
+					? CoinJoinClientState.InCriticalPhase
+					: CoinJoinClientState.InProgress;
+			}
+		}
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
@@ -56,7 +71,7 @@ namespace WalletWasabi.WabiSabi.Client
 					var coinCandidates = openedWallet.Coins.Available().Confirmed().Where(x => x.HdPubKey.AnonymitySet < ServiceConfiguration.GetMixUntilAnonymitySetValue());
 					var coinjoinTask = coinjoinClient.StartCoinJoinAsync(coinCandidates, cts.Token);
 
-					trackedWallets.Add(openedWallet.WalletName, new WalletTrackingData(openedWallet, coinjoinTask, cts));
+					trackedWallets.Add(openedWallet.WalletName, new WalletTrackingData(openedWallet, coinjoinClient, coinjoinTask, cts));
 				}
 
 				foreach (var closedWallet in closedWallets.Select(x => x.Value))
@@ -94,17 +109,19 @@ namespace WalletWasabi.WabiSabi.Client
 						Logger.LogInfo("Coinjoin client was cancelled.");
 					}
 				}
+
+				TrackedWallets = trackedWallets.ToImmutableDictionary();
 			}
 		}
 
 		private ImmutableDictionary<string, Wallet> GetMixableWallets() =>
 			WalletManager.GetWallets()
 				.Where(x => x.State == WalletState.Started) // Only running wallets
-				.Where(x => x.KeyManager.AutoCoinJoin || x.AllowManualCoinJoin)		// configured to be mixed automatically or manually
-				.Where(x => !x.KeyManager.IsWatchOnly)		// that are not watch-only wallets
+				.Where(x => x.KeyManager.AutoCoinJoin || x.AllowManualCoinJoin)     // configured to be mixed automatically or manually
+				.Where(x => !x.KeyManager.IsWatchOnly)      // that are not watch-only wallets
 				.Where(x => x.Kitchen.HasIngredients)
 				.ToImmutableDictionary(x => x.WalletName, x => x);
 
-		private record WalletTrackingData(Wallet Wallet, Task<bool> CoinJoinTask, CancellationTokenSource CancellationTokenSource);
+		private record WalletTrackingData(Wallet Wallet, CoinJoinClient CoinJoinClient, Task<bool> CoinJoinTask, CancellationTokenSource CancellationTokenSource);
 	}
 }
