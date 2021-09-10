@@ -79,15 +79,14 @@ namespace WalletWasabi.WabiSabi.Client
 			AliceClient? aliceClient;
 			try
 			{
-				coin.CoinJoinInProgress = true;
 				var response = await arenaClient.RegisterInputAsync(roundState.Id, coin.Coin.Outpoint, bitcoinSecret.PrivateKey, cancellationToken).ConfigureAwait(false);
 				aliceClient = new(response.Value, roundState, arenaClient, coin, bitcoinSecret, response.IssuedAmountCredentials, response.IssuedVsizeCredentials);
+				coin.CoinJoinInProgress = true;
 
 				Logger.LogInfo($"Round ({roundState.Id}), Alice ({aliceClient.AliceId}): Registered {coin.OutPoint}.");
 			}
 			catch (System.Net.Http.HttpRequestException ex)
 			{
-				coin.CoinJoinInProgress = false;
 				if (ex.InnerException is WabiSabiProtocolException wpe)
 				{
 					switch (wpe.ErrorCode)
