@@ -58,7 +58,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.NotEqual(manager.EncryptedSecret, differentManager.EncryptedSecret);
 			Assert.NotEqual(manager.ExtPubKey, differentManager.ExtPubKey);
 
-			var manager5 = new KeyManager(manager2.EncryptedSecret, manager2.ChainCode, password: null);
+			var manager5 = new KeyManager(manager2.EncryptedSecret, manager2.ChainCode, password: null!);
 			Assert.Equal(manager2.ChainCode, manager5.ChainCode);
 			Assert.Equal(manager2.EncryptedSecret, manager5.EncryptedSecret);
 			Assert.Equal(manager2.ExtPubKey, manager5.ExtPubKey);
@@ -149,7 +149,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var random = new Random();
 
 			var k1 = manager.GenerateNewKey(SmartLabel.Empty, KeyState.Clean, true);
-			var k2 = manager.GenerateNewKey(null, KeyState.Clean, true);
+			var k2 = manager.GenerateNewKey(label: null!, KeyState.Clean, true);
 			Assert.Equal(SmartLabel.Empty, k1.Label);
 			Assert.Equal(SmartLabel.Empty, k2.Label);
 
@@ -207,7 +207,7 @@ namespace WalletWasabi.Tests.UnitTests
 				File.Delete(filePath);
 			}
 
-			if (Directory.Exists(dir))
+			if (dir is not null && Directory.Exists(dir))
 			{
 				if (Directory.GetFiles(dir).Length == 0)
 				{
