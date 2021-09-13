@@ -77,7 +77,7 @@ namespace WalletWasabi.Services
 					break;
 
 				default:
-					throw new ArgumentOutOfRangeException();
+					throw new NotSupportedException($"Unsupported {CoinJoinManager.HighestCoinJoinClientState} value.");
 			}
 		}
 
