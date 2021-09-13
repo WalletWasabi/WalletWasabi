@@ -69,6 +69,7 @@ namespace WalletWasabi.Services
 			switch (CoinJoinManager.HighestCoinJoinClientState)
 			{
 				case CoinJoinClientState.Idle:
+					Logger.LogTrace("Computer idle state is allowed again.");
 					await StopTaskAsync().ConfigureAwait(false);
 					break;
 
