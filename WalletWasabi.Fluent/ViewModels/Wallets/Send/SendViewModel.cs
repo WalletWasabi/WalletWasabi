@@ -104,6 +104,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				}
 			});
 
+			AdvancedOptionsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.CompactDialogScreen).To(new AdvancedSendOptionsViewModel()));
+
 			var nextCommandCanExecute =
 				this.WhenAnyValue(x => x.AmountBtc, x => x.To).Select(_ => Unit.Default)
 					.Merge(Observable.FromEventPattern(SuggestionLabels.Labels, nameof(SuggestionLabels.Labels.CollectionChanged)).Select(_ => Unit.Default))
@@ -132,6 +134,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public ICommand AutoPasteCommand { get; }
 
 		public ICommand QRCommand { get; }
+
+		public ICommand AdvancedOptionsCommand { get; }
 
 		private async Task OnAutoPasteAsync()
 		{
