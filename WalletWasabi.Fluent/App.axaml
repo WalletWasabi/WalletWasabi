@@ -44,7 +44,6 @@
       <TrayIcon Icon="/Assets/WasabiLogo.ico">
         <NativeMenu.Menu>
           <NativeMenu>
-            <NativeMenuItem Header="Show Wasabi Wallet" />
             <NativeMenuItem Header="Quit Wasabi Wallet" Command="{Binding QuitCommand}" />
           </NativeMenu>
         </NativeMenu.Menu>

@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
 using WalletWasabi.Fluent.Providers;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Fluent.ViewModels
@@ -12,7 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels
 	{
 		public ApplicationViewModel()
 		{
-			QuitCommand = ReactiveCommand.Create(() =>
+			QuitCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				if (CanShutdown())
 				{
@@ -20,6 +21,13 @@ namespace WalletWasabi.Fluent.ViewModels
 						desktopLifetime)
 					{
 						desktopLifetime.Shutdown();
+					}
+					else
+					{
+						await MainViewModel.Instance!.CompactDialogScreen.NavigateDialogAsync(new Dialogs.ShowErrorDialogViewModel(
+							"Wasabi is currently anonimising your wallet. Please try again in a few seconds.",
+							"Warning",
+							"Unable to close"));
 					}
 				}
 			});
@@ -29,12 +37,19 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public bool CanShutdown()
 		{
-			return Services.HostedServices.Get<CoinJoinManager>().HighestCoinJoinClientState switch
+			var cjManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
+
+			if (cjManager is { })
 			{
-				CoinJoinClientState.InCriticalPhase => false,
-				CoinJoinClientState.Idle or CoinJoinClientState.InProgress => true,
-				_ => throw new ArgumentOutOfRangeException(),
-			};
+				return cjManager.HighestCoinJoinClientState switch
+				{
+					CoinJoinClientState.InCriticalPhase => false,
+					CoinJoinClientState.Idle or CoinJoinClientState.InProgress => true,
+					_ => throw new ArgumentOutOfRangeException(),
+				};
+			}
+
+			return true;
 		}
 	}
 }
