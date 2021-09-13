@@ -69,7 +69,7 @@ namespace WalletWasabi.Services
 			switch (CoinJoinManager.HighestCoinJoinClientState)
 			{
 				case CoinJoinClientState.Idle:
-					await ReleaseAllPreventionAsync().ConfigureAwait(false);
+					await StopTaskAsync().ConfigureAwait(false);
 					break;
 
 				case CoinJoinClientState.InProgress or CoinJoinClientState.InCriticalPhase:
@@ -108,7 +108,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		private async Task ReleaseAllPreventionAsync()
+		private async Task StopTaskAsync()
 		{
 			if (_powerSavingTask is not null)
 			{
