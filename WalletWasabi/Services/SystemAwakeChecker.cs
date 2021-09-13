@@ -15,7 +15,7 @@ namespace WalletWasabi.Services
 	public class SystemAwakeChecker : PeriodicRunner
 	{
 		private const string Reason = "CoinJoin is in progress.";
-		private static readonly TimeSpan Timeout = TimeSpan.FromMinutes(5);
+		private static readonly TimeSpan Timeout = TimeSpan.FromMinutes(1);
 
 		private volatile IPowerSavingInhibitorTask? _powerSavingTask;
 
