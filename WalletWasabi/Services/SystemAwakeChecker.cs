@@ -80,7 +80,7 @@ namespace WalletWasabi.Services
 
 					break;
 
-				case CoinJoinClientState.InProgress:
+				case CoinJoinClientState.InProgress or CoinJoinClientState.InCriticalPhase:
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 					{
 						if (task is not null)
@@ -102,10 +102,6 @@ namespace WalletWasabi.Services
 					{
 						await EnvironmentHelpers.ProlongSystemAwakeAsync().ConfigureAwait(false);
 					}
-
-					break;
-
-				case CoinJoinClientState.InCriticalPhase:
 
 					break;
 
