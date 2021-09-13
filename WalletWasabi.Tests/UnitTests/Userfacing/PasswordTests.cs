@@ -93,7 +93,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.True(PasswordHelper.IsTrimmable(buggy, out buggy));
 
 			// Creating a wallet with buggy password.
-			var keyManager = KeyManager.CreateNew(out _, buggy);
+			var keyManager = KeyManager.CreateNew(out _, buggy!);
 
 			Assert.True(PasswordHelper.IsTrimmable(original, out original));
 
@@ -103,7 +103,7 @@ namespace WalletWasabi.Tests.UnitTests
 			// This should pass
 			Assert.NotNull(PasswordHelper.GetMasterExtKey(keyManager, original!, out _));
 
-			Assert.True(PasswordHelper.TryPassword(keyManager, buggy, out var compatiblePasswordNotUsed));
+			Assert.True(PasswordHelper.TryPassword(keyManager, buggy!, out var compatiblePasswordNotUsed));
 			Assert.Null(compatiblePasswordNotUsed);
 
 			Assert.True(PasswordHelper.TryPassword(keyManager, original!, out var compatiblePassword));
