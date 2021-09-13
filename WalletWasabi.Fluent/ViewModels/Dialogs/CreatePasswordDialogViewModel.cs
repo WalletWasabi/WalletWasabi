@@ -90,7 +90,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
-			SetupCancel(enableCancel: _enableCancel, enableCancelOnEscape: _enableCancel, enableCancelOnPressed: _enableCancel);
+			SetupCancel(enableCancel: _enableCancel, enableCancelOnEscape: _enableCancel, enableCancelOnPressed: false);
 		}
 	}
 }
