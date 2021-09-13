@@ -17,25 +17,30 @@ namespace WalletWasabi.Helpers.PowerSaving
 
 		private readonly POWER_REQUEST_CONTEXT _context;
 
-		/// <summary>Handle.</summary>
-		private readonly IntPtr _request;
+		private readonly IntPtr _hibernationRequest;
+		private readonly IntPtr _sleepRequest;
 
 		/// <remarks>Guarded by <see cref="StateLock"/>.</remarks>
 		private bool _isDone;
 
-		internal WindowsPowerAvailabilityTask(PowerRequestType requestType, string reason)
+		internal WindowsPowerAvailabilityTask(string reason)
 		{
-			RequestType = requestType;
-
-			// Set up the diagnostic string						
+			// Set up the diagnostic string
 			_context.Version = POWER_REQUEST_CONTEXT_VERSION;
 			_context.Flags = POWER_REQUEST_CONTEXT_SIMPLE_STRING;
 			_context.SimpleReasonString = reason;
 
-			_request = PowerCreateRequest(ref _context);
+			_hibernationRequest = PowerCreateRequest(ref _context);
+			_sleepRequest = PowerCreateRequest(ref _context);
 
-			// Set the request
-			if (!PowerSetRequest(_request, requestType))
+			// Set the requests
+			if (!PowerSetRequest(_hibernationRequest, PowerRequestType.PowerRequestExecutionRequired))
+			{
+				Logger.LogError($"Failed to set availability request (last Win32 error: {Marshal.GetLastWin32Error()}).");
+				throw new NotImplementedException("Failed to set the availability request. Bailing out.");
+			}
+
+			if (!PowerSetRequest(_sleepRequest, PowerRequestType.PowerRequestDisplayRequired))
 			{
 				Logger.LogError($"Failed to set availability request (last Win32 error: {Marshal.GetLastWin32Error()}).");
 				throw new NotImplementedException("Failed to set the availability request. Bailing out.");
@@ -63,8 +68,6 @@ namespace WalletWasabi.Helpers.PowerSaving
 
 		/// <remarks>Guards <see cref="_isDone"/>.</remarks>
 		private object StateLock { get; } = new();
-
-		public PowerRequestType RequestType { get; }
 
 		/// <inheritdoc/>
 		public bool IsDone
@@ -102,7 +105,7 @@ namespace WalletWasabi.Helpers.PowerSaving
 		/// <para>To avoid runtime interop issues, this version of POWER_REQUEST_CONTEXT only supports <c>SimpleReasonString</c>.</para>
 		/// <para>To use the detailed information, define the PowerCreateRequest function with the first parameter of type POWER_REQUEST_CONTEXT_DETAILED.</para>
 		/// </remarks>
-		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]		
+		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
 		public struct POWER_REQUEST_CONTEXT
 		{
 			public uint Version;
@@ -130,11 +133,11 @@ namespace WalletWasabi.Helpers.PowerSaving
 			public uint Flags;
 			public PowerRequestContextDetailedInformation DetailedInformation;
 		}
-	
+
 		/// <param name="reason">Your reason for changing the power settings.</param>
 		public static WindowsPowerAvailabilityTask Create(string reason)
 		{
-			WindowsPowerAvailabilityTask task = new(PowerRequestType.PowerRequestExecutionRequired, reason);
+			WindowsPowerAvailabilityTask task = new(reason);
 			return task;
 		}
 
@@ -149,7 +152,7 @@ namespace WalletWasabi.Helpers.PowerSaving
 		/// <inheritdoc/>
 		public Task StopAsync()
 		{
-			bool isDone; 
+			bool isDone;
 			lock (StateLock)
 			{
 				isDone = _isDone;
@@ -158,10 +161,18 @@ namespace WalletWasabi.Helpers.PowerSaving
 
 			if (!isDone)
 			{
-				Logger.LogTrace("Clear the power request.");
-				PowerClearRequest(_request, RequestType);
+				Logger.LogTrace("Clear the power requests.");
+				PowerClearRequest(_hibernationRequest, PowerRequestType.PowerRequestExecutionRequired);
 
-				if (CloseHandle(_request) != 0)
+				if (CloseHandle(_hibernationRequest) == 0)
+				{
+					// This should never happen.
+					Logger.LogError($"Failed to close handle (last Win32 error: {Marshal.GetLastWin32Error()}).");
+				}
+
+				PowerClearRequest(_sleepRequest, PowerRequestType.PowerRequestDisplayRequired);
+
+				if (CloseHandle(_sleepRequest) == 0)
 				{
 					// This should never happen.
 					Logger.LogError($"Failed to close handle (last Win32 error: {Marshal.GetLastWin32Error()}).");
@@ -173,6 +184,6 @@ namespace WalletWasabi.Helpers.PowerSaving
 			}
 
 			return Task.CompletedTask;
-		}		
+		}
 	}
 }
