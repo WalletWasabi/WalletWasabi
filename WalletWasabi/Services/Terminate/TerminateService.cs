@@ -88,7 +88,7 @@ namespace WalletWasabi.Services.Terminate
 		public void Terminate()
 		{
 			var prevValue = Interlocked.CompareExchange(ref _terminateStatus, TerminateStatusInProgress, TerminateStatusNotStarted);
-			Logger.LogTrace($"Terminate was called from ThreadId: {Thread.CurrentThread.ManagedThreadId}");
+			Logger.LogTrace($"Terminate was called from ThreadId: {Environment.CurrentManagedThreadId}");
 			if (prevValue != TerminateStatusNotStarted)
 			{
 				// Secondary callers will be blocked until the end of the termination.

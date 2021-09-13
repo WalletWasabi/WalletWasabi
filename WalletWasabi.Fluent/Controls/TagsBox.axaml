@@ -82,7 +82,9 @@
                                 </ItemsPresenter.ItemsPanel>
                                 <ItemsPresenter.ItemTemplate>
                                     <DataTemplate>
-                                        <c:TagControl Content="{Binding .}" EnableCounter="{Binding #PART_DockPanel.TemplatedParent.EnableCounter}" />
+                                        <c:TagControl Content="{Binding .}"
+                                                      EnableCounter="{Binding #PART_DockPanel.TemplatedParent.EnableCounter}"
+                                                      EnableDelete="{Binding #PART_DockPanel.TemplatedParent.EnableDelete}" />
                                     </DataTemplate>
                                 </ItemsPresenter.ItemTemplate>
                             </ItemsPresenter>

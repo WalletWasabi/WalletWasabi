@@ -73,6 +73,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			_searchPage.Initialise();
 
 			this.WhenAnyValue(x => x.WindowState)
+				.Where(x => x != WindowState.Minimized)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(windowState => Services.UiConfig.WindowState = windowState.ToString());
 

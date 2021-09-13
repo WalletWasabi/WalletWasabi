@@ -16,10 +16,19 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<bool> EnableCounterProperty =
 			AvaloniaProperty.Register<TagControl, bool>(nameof(EnableCounter));
 
+		public static readonly StyledProperty<bool> EnableDeleteProperty =
+			AvaloniaProperty.Register<TagControl, bool>(nameof(EnableDelete));
+		
 		public bool EnableCounter
 		{
 			get => GetValue(EnableCounterProperty);
 			set => SetValue(EnableCounterProperty, value);
+		}
+
+		public bool EnableDelete
+		{
+			get => GetValue(EnableDeleteProperty);
+			set => SetValue(EnableDeleteProperty, value);
 		}
 
 		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)

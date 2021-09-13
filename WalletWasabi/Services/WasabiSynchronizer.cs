@@ -168,7 +168,6 @@ namespace WalletWasabi.Services
 
 								response = await WasabiClient
 									.GetSynchronizeAsync(BitcoinStore.SmartHeaderChain.TipHash, maxFiltersToSyncAtInitialization, EstimateSmartFeeMode.Conservative, StopCts.Token)
-									.WithAwaitCancellationAsync(StopCts.Token, 300)
 									.ConfigureAwait(false);
 
 								// NOT GenSocksServErr
