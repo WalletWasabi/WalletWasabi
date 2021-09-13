@@ -79,7 +79,7 @@
     <x:Double x:Key="DataGridRowSelectedBackgroundOpacity">1.0</x:Double>
     <x:Double x:Key="DataGridRowSelectedUnfocusedBackgroundOpacity">1.0</x:Double>
 
-    <x:String x:Key="LabelsWatermarkText">i.e. Alice, Bob, Wasabi Inc, Exchange</x:String>
+    <x:String x:Key="LabelsWatermarkText">i.e. Alice, Bob, Pizza Inc, Exchange</x:String>
 
     <StaticResource x:Key="NotificationCardInformationBackgroundBrush" ResourceKey="SystemAccentColor" />
     <StaticResource x:Key="TextControlForeground" ResourceKey="SystemBaseHighColor" />
