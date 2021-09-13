@@ -89,7 +89,7 @@ namespace WalletWasabi.Services
 			{
 				if (task is not null)
 				{
-					if (!task.Prolong(Timeout.Add(TimeSpan.FromMinutes(1))))
+					if (!task.Prolong(Timeout))
 					{
 						Logger.LogTrace("Failed to prolong the power saving task.");
 						task = null;
