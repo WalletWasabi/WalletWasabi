@@ -66,51 +66,55 @@ namespace WalletWasabi.Services
 
 		protected override async Task ActionAsync(CancellationToken cancel)
 		{
-			IPowerSavingInhibitorTask? task = _powerSavingTask;
-
 			switch (CoinJoinManager.HighestCoinJoinClientState)
 			{
 				case CoinJoinClientState.Idle:
-					if (task is not null)
-					{
-						Logger.LogWarning("Computer idle state is allowed again.");
-						await task.StopAsync().ConfigureAwait(false);
-						_powerSavingTask = null;
-					}
-
+					await ReleaseAllPreventionAsync().ConfigureAwait(false);
 					break;
 
-				case CoinJoinClientState.InProgress:
-					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-					{
-						if (task is not null)
-						{
-							if (!task.Prolong(Timeout.Add(TimeSpan.FromMinutes(1))))
-							{
-								Logger.LogTrace("Failed to prolong the power saving task.");
-								task = null;
-							}
-						}
-
-						if (task is null)
-						{
-							Logger.LogTrace("Create new power saving prevention task.");
-							_powerSavingTask = await TaskFactory!().ConfigureAwait(false);
-						}
-					}
-					else
-					{
-						await EnvironmentHelpers.ProlongSystemAwakeAsync().ConfigureAwait(false);
-					}
-
-					break;
-
-				case CoinJoinClientState.InCriticalPhase:
-
+				case CoinJoinClientState.InProgress or CoinJoinClientState.InCriticalPhase:
+					await PreventSleepAsync().ConfigureAwait(false);
 					break;
 
 				default:
 					throw new ArgumentOutOfRangeException();
+			}
+		}
+
+		private async Task PreventSleepAsync()
+		{
+			IPowerSavingInhibitorTask? task = _powerSavingTask;
+
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				if (task is not null)
+				{
+					if (!task.Prolong(Timeout.Add(TimeSpan.FromMinutes(1))))
+					{
+						Logger.LogTrace("Failed to prolong the power saving task.");
+						task = null;
+					}
+				}
+
+				if (task is null)
+				{
+					Logger.LogTrace("Create new power saving prevention task.");
+					_powerSavingTask = await TaskFactory!().ConfigureAwait(false);
+				}
+			}
+			else
+			{
+				await EnvironmentHelpers.ProlongSystemAwakeAsync().ConfigureAwait(false);
+			}
+		}
+
+		private async Task ReleaseAllPreventionAsync()
+		{
+			Logger.LogInfo("Computer idle state is allowed again.");
+			if (_powerSavingTask is not null)
+			{
+				await _powerSavingTask.StopAsync().ConfigureAwait(false);
+				_powerSavingTask = null;
 			}
 		}
 	}
