@@ -110,7 +110,6 @@ namespace WalletWasabi.Services
 
 		private async Task ReleaseAllPreventionAsync()
 		{
-			Logger.LogInfo("Computer idle state is allowed again.");
 			if (_powerSavingTask is not null)
 			{
 				await _powerSavingTask.StopAsync().ConfigureAwait(false);
