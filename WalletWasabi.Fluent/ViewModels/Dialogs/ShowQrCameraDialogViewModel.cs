@@ -26,12 +26,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		}
 
-		protected override void OnNavigatedFrom(bool isInHistory)
-		{
-			base.OnNavigatedFrom(isInHistory);
-			RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StopScanningAsync());
-		}
-
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
@@ -72,6 +66,11 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 						"Something went wrong");
 				})
 				.DisposeWith(disposables);
+
+			disposables.Add(Disposable.Create(() =>
+			{
+				RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StopScanningAsync());
+			}));
 
 			RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StartScanningAsync());
 		}
