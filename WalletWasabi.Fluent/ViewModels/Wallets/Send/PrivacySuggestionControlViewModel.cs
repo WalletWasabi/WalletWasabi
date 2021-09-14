@@ -1,7 +1,11 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using DynamicData;
 using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
@@ -15,33 +19,44 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	{
 		[AutoNotify] private string _amount;
 		[AutoNotify] private string _amountFiat;
-		[AutoNotify] private string _caption;
-		[AutoNotify] private string[] _benefits;
+		[AutoNotify] private List<PrivacySuggestionBenefit> _benefits;
 		[AutoNotify] private PrivacyOptimisationLevel _optimisationLevel;
+		[AutoNotify] private bool _optimisationLevelGood;
 
-		public PrivacySuggestionControlViewModel(decimal originalAmount, BuildTransactionResult transactionResult, PrivacyOptimisationLevel optimisationLevel, decimal fiatExchangeRate, params string[] benefits)
+		public PrivacySuggestionControlViewModel(
+			decimal originalAmount,
+			BuildTransactionResult transactionResult,
+			PrivacyOptimisationLevel optimisationLevel,
+			decimal fiatExchangeRate,
+			params PrivacySuggestionBenefit[] benefits)
 		{
 			TransactionResult = transactionResult;
 			_optimisationLevel = optimisationLevel;
-			_benefits = benefits;
+			_benefits = benefits.ToList();
 
 			decimal total = transactionResult.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
 
 			var fiatTotal = total * fiatExchangeRate;
 
 			_amountFiat = total.GenerateFiatText(fiatExchangeRate, "USD");
+			_optimisationLevelGood = optimisationLevel == PrivacyOptimisationLevel.Better;
 
-			if (optimisationLevel == PrivacyOptimisationLevel.Better)
+			if (_optimisationLevelGood)
 			{
 				var fiatOriginal = originalAmount * fiatExchangeRate;
 				var fiatDifference = fiatTotal - fiatOriginal;
 
-				_caption = (fiatDifference > 0 ? $"{fiatDifference.GenerateFiatText("USD")} More" : $"{Math.Abs(fiatDifference).GenerateFiatText("USD")} Less")
+				var difference = (fiatDifference > 0
+						? $"{fiatDifference.GenerateFiatText("USD")} More"
+						: $"{Math.Abs(fiatDifference).GenerateFiatText("USD")} Less")
 					.Replace("(", "").Replace(")", "");
+
+				_benefits.Add(new (false, difference));
 			}
 			else
 			{
-				_caption = "As Requested";
+				// This is just to pad the control.
+				_benefits.Add(new (false, " "));
 			}
 
 			_amount = $"{total}";

@@ -68,12 +68,15 @@
     <Color x:Key="LineChartAreaGradientCursorStrokeColor">#F07FAF2E</Color>
     <Color x:Key="LineChartLineColor">#7FAF2E</Color>
 
+    <SolidColorBrush x:Key="OptimizePrivacyOptionSelectedColor">#1B273D</SolidColorBrush>
+
     <SolidColorBrush x:Key="DialogOverlayColor">#7F2E2E2E</SolidColorBrush>
 
     <BoxShadows x:Key="DialogBoxShadow">4 11 30 1 #3F000000</BoxShadows>
     <BoxShadows x:Key="InfoBoxShadow">0 1 1.5 #3F000000</BoxShadows>
     <BoxShadows x:Key="BoxShadow">0 1 4 #121212</BoxShadows>
     <BoxShadows x:Key="OptionButtonShadow">0 2 2 #121212</BoxShadows>
+    <BoxShadows x:Key="OptimizePrivacyOptionBoxShadow1">0 12 32 0 #33000000</BoxShadows>
 
   </Styles.Resources>
   <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentDark.xaml" />

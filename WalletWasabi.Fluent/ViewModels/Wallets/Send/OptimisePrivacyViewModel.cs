@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
@@ -42,6 +43,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 			EnableBack = true;
+
+			Tuple<bool, string> s = new Tuple<bool, string>(false, "");
+			var h = s.Item1;
 
 			NextCommand = ReactiveCommand.Create(
 				() => OnNext(transactionInfo),
@@ -86,12 +90,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 						smallerSuggestion = new PrivacySuggestionControlViewModel(
 							_transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), smallerTransaction,
-							PrivacyOptimisationLevel.Better, _wallet.Synchronizer.UsdExchangeRate, "Improved Privacy");
+							PrivacyOptimisationLevel.Better, _wallet.Synchronizer.UsdExchangeRate, new PrivacySuggestionBenefit(true, "Improved Privacy"));
 					}
 
 					_defaultSelection = new PrivacySuggestionControlViewModel(
 						_transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), _requestedTransaction,
-						PrivacyOptimisationLevel.Standard, _wallet.Synchronizer.UsdExchangeRate);
+						PrivacyOptimisationLevel.Standard, _wallet.Synchronizer.UsdExchangeRate, new PrivacySuggestionBenefit(false, "As Requested"));
 
 					var largerTransaction = await Task.Run(() => _wallet.BuildTransaction(
 						_wallet.Kitchen.SaltSoup(),
@@ -102,7 +106,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 					var largerSuggestion = new PrivacySuggestionControlViewModel(
 						_transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), largerTransaction,
-						PrivacyOptimisationLevel.Better, _wallet.Synchronizer.UsdExchangeRate, "Improved Privacy");
+						PrivacyOptimisationLevel.Better, _wallet.Synchronizer.UsdExchangeRate, new PrivacySuggestionBenefit(true, "Improved Privacy"));
 
 					// There are several scenarios, both the alternate suggestions are <, or >, or 1 < and 1 >.
 					// We sort them and add the suggestions accordingly.

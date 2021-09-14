@@ -12,37 +12,78 @@
              x:DataType="vm:OptimisePrivacyViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.OptimisePrivacyView">
-    <c:ContentArea Title="Send - Optimise your Privacy" Caption="Often a Bitcoin transaction will create change leaving a trace. If you’re willing to adjust your payment amount, you can improve your privacy and reduce your transaction costs."
-                   EnableBack="{Binding EnableBack}"
-                   EnableNext="True" NextContent="Continue"
-                   IsBusy="{Binding IsBusy}"
-                   ScrollViewer.VerticalScrollBarVisibility="Disabled">
-        <DockPanel>
-            <Panel DockPanel.Dock="Bottom" Height="25">
-                <c:InfoMessage Opacity="{Binding ExactAmountWarningVisible, Converter={x:Static converters:BoolOpacityConverters.BoolToOpacity}}" VerticalAlignment="Bottom" HorizontalAlignment="Center" Content="Some services only accept the exact amount that was requested." Foreground="{DynamicResource PrivacyLevelMediumBrush}" />
-            </Panel>
-            <ListBox DockPanel.Dock="Top" Background="Transparent" VerticalAlignment="Center" HorizontalAlignment="Center" Items="{Binding PrivacySuggestions}" SelectedItem="{Binding SelectedPrivacySuggestion}">
-                <ListBox.Styles>
-                    <Style Selector="ListBoxItem">
-                        <Setter Property="Cursor" Value="Hand" />
-                        <Setter Property="Padding" Value="30" />
-                    </Style>
-                    <Style Selector="ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
-                        <Setter Property="CornerRadius" Value="4" />
-                        <Setter Property="Margin" Value="5" />
-                    </Style>
-                </ListBox.Styles>
-                <ListBox.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel Orientation="Horizontal" />
-                    </ItemsPanelTemplate>
-                </ListBox.ItemsPanel>
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <local:PrivacySuggestionControl />
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-        </DockPanel>
-    </c:ContentArea>
+  <c:ContentArea Title="Send - Optimise your Privacy"
+                 Caption="Often a Bitcoin transaction will create change leaving a trace. If you’re willing to adjust your payment amount, you can improve your privacy and reduce your transaction costs."
+                 EnableBack="{Binding EnableBack}"
+                 EnableNext="True" NextContent="Continue"
+                 IsBusy="{Binding IsBusy}"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <DockPanel>
+      <Panel DockPanel.Dock="Bottom" Height="25">
+        <c:InfoMessage
+          Opacity="{Binding ExactAmountWarningVisible, Converter={x:Static converters:BoolOpacityConverters.BoolToOpacity}}"
+          VerticalAlignment="Bottom" HorizontalAlignment="Center"
+          Content="Some services only accept the exact amount that was requested."
+          Foreground="{DynamicResource PrivacyLevelMediumBrush}" />
+      </Panel>
+      <ListBox DockPanel.Dock="Top" Background="Transparent" VerticalAlignment="Center" HorizontalAlignment="Center"
+               Items="{Binding PrivacySuggestions}" SelectedItem="{Binding SelectedPrivacySuggestion}">
+        <ListBox.Styles>
+          <Style Selector="ListBoxItem">
+            <Setter Property="Cursor" Value="Hand" />
+          </Style>
+          <Style Selector="ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+          </Style>
+          <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+          </Style>
+          <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+          </Style>
+
+          <Style Selector="ListBoxItem Border#PART_MainContentBorder">
+            <Setter Property="Padding" Value="30,45,30,40" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Margin" Value="5" />
+          </Style>
+
+          <Style Selector="ListBoxItem Border#PART_DecorationBorder">
+            <Setter Property="Padding" Value="15 30 15 30" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Margin" Value="14" />
+
+            <Setter Property="BorderBrush" Value="#14FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
+            <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow1}" />
+
+            <Setter Property="Opacity" Value="0" />
+
+            <Setter Property="Transitions">
+              <Transitions>
+                <DoubleTransition Property="Opacity"
+                                  Easing="{StaticResource FluentEasing}"
+                                  Duration="0:0:0.25" />
+              </Transitions>
+            </Setter>
+          </Style>
+
+          <Style Selector="ListBoxItem:selected Border#PART_DecorationBorder" >
+            <Setter Property="Opacity" Value="1" />
+          </Style>
+        </ListBox.Styles>
+        <ListBox.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel Orientation="Horizontal" />
+          </ItemsPanelTemplate>
+        </ListBox.ItemsPanel>
+        <ListBox.ItemTemplate>
+          <DataTemplate>
+            <local:PrivacySuggestionControl />
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </DockPanel>
+  </c:ContentArea>
 </UserControl>
