@@ -102,7 +102,13 @@ namespace WalletWasabi.WabiSabi.Client
 				// Calculate outputs values
 				var registeredCoins = registeredAliceClients.Select(x => x.SmartCoin.Coin);
 				var availableVsize = registeredAliceClients.SelectMany(x => x.IssuedVsizeCredentials).Sum(x => x.Value);
-				var outputValues = DecomposeAmounts(registeredCoins, roundState.FeeRate, constructionState.Parameters.AllowedOutputAmounts.Min, (int)availableVsize);
+
+				// Calculate outputs values
+				roundState = await RoundStatusUpdater.CreateRoundAwaiter(rs => rs.Id == roundState.Id, cancellationToken).ConfigureAwait(false);
+				constructionState = roundState.Assert<ConstructionState>();
+				AmountDecomposer amountDecomposer = new(roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min, Constants.P2WPKHOutputSizeInBytes, (int)availableVsize);
+				var theirCoins = constructionState.Inputs.Except(registeredCoins);
+				var outputValues = amountDecomposer.Decompose(registeredCoins, theirCoins);
 
 				// Get all locked internal keys we have and assert we have enough.
 				Keymanager.AssertLockedInternalKeysIndexed(howMany: outputValues.Count());
@@ -180,19 +186,6 @@ namespace WalletWasabi.WabiSabi.Client
 				.Where(x => x.Result is not null)
 				.Select(x => x.Result!)
 				.ToImmutableArray();
-		}
-
-		private static IEnumerable<Money> DecomposeAmounts(IEnumerable<Coin> coins, FeeRate feeRate, Money minimumOutputAmount, int availableVsize)
-		{
-			GreedyDecomposer greedyDecomposer = new(StandardDenomination.Values.Where(x => x >= minimumOutputAmount));
-			var sum = coins.Sum(c => c.EffectiveValue(feeRate));
-			var decomposedAmounts = greedyDecomposer.Decompose(sum, feeRate.GetFee(Constants.P2WPKHOutputSizeInBytes)).ToImmutableArray();
-			var maxNumberOfComponents = availableVsize / Constants.P2WPKHOutputSizeInBytes;
-
-			var standardAmounts = decomposedAmounts.Take(maxNumberOfComponents - 1);
-			var sumOfRest = decomposedAmounts.Skip(maxNumberOfComponents - 1).Sum();
-
-			return standardAmounts.Append(sumOfRest).Where(x => x > Money.Zero).ToImmutableArray();
 		}
 
 		private BobClient CreateBobClient(RoundState roundState)
