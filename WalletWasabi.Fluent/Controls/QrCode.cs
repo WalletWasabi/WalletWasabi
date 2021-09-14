@@ -180,8 +180,10 @@ namespace WalletWasabi.Fluent.Controls
 
 		private (Size coercedSize, double gridCellFactor) GetQRCodeSize(bool[,] source, Size size)
 		{
-			var (width, height) = (source.GetUpperBound(0) + 1, source.GetUpperBound(1) + 1);
-			var minDimension = Math.Min(width, height);
+
+			var (indexW, indexH) = GetMatrixIndexSize(source);
+
+			var minDimension = Math.Min(indexW, indexH);
 			var availMax = Math.Min(size.Width, size.Height);
 
 			var gridCellFactor = Math.Floor(availMax / minDimension);
