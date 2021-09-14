@@ -74,25 +74,33 @@ namespace WalletWasabi.WabiSabi.Client
 			return outputAmounts;
 		}
 
-		private Dictionary<Money, uint> GetDenominationProbabilities(IEnumerable<Coin> allInputCoins)
+		private Dictionary<Money, long> GetDenominationProbabilities(IEnumerable<Coin> allInputCoins)
 		{
 			var secondLargestInput = allInputCoins.OrderByDescending(x => x.Amount).Skip(1).FirstOrDefault();
 			IEnumerable<Money> demonsForBreakDown = StandardDenominationsPlusFee.Where(x => secondLargestInput is null || x <= secondLargestInput.EffectiveValue(FeeRate));
 
-			Dictionary<Money, uint> denomProbabilities = new();
+			Dictionary<Money, long> denomProbabilities = new();
 
 			foreach (var input in allInputCoins)
 			{
 				foreach (var denom in BreakDown(input, demonsForBreakDown))
 				{
-					if (!denomProbabilities.TryAdd(denom, 1))
+					var weight = Weight(denom.Satoshi);
+
+					if (!denomProbabilities.TryAdd(denom, weight))
 					{
-						denomProbabilities[denom]++;
+						denomProbabilities[denom] += weight;
 					}
 				}
 			}
 
 			return denomProbabilities;
+		}
+
+		private long Weight(long val)
+		{
+			// Bias denom selection as the square of the value.
+			return val * val;
 		}
 
 		private IEnumerable<Money> BreakDown(Coin coin, IEnumerable<Money> denominations)
