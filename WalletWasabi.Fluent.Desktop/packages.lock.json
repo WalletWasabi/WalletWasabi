@@ -1010,7 +1010,7 @@
       "walletwasabi.fluent": {
         "type": "Project",
         "dependencies": {
-          "Avalonia": "0.10.999-cibuild0015640-beta",
+          "Avalonia": "0.10.999-cibuild0015644-beta",
           "Avalonia.Diagnostics": "0.10.999-cibuild0015644-beta",
           "Avalonia.ReactiveUI": "0.10.999-cibuild0015644-beta",
           "Avalonia.Xaml.Behaviors": "0.10.7",

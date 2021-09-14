@@ -4,11 +4,11 @@
     ".NETCoreApp,Version=v5.0": {
       "Avalonia": {
         "type": "Direct",
-        "requested": "[0.10.999-cibuild0015640-beta, )",
-        "resolved": "0.10.999-cibuild0015640-beta",
-        "contentHash": "8KnsuNErxannB6jV6G34oSTNiuimiBiRoC3sHe4Zp8Gr5S+n6i9ZwK3pKHqSTcxbZa5JwCoOPf1VVGfATZrvDQ==",
+        "requested": "[0.10.999-cibuild0015644-beta, )",
+        "resolved": "0.10.999-cibuild0015644-beta",
+        "contentHash": "pP+FReUVRgl+sH3I4z+L8cbOrKcysYQssxABD/s7fAs5oGhVGx/idcdH5Oal4n4Gq7ZPnTG6uDIyyiajbSaiAQ==",
         "dependencies": {
-          "Avalonia.Remote.Protocol": "0.10.999-cibuild0015640-beta",
+          "Avalonia.Remote.Protocol": "0.10.999-cibuild0015644-beta",
           "JetBrains.Annotations": "10.3.0",
           "System.ComponentModel.Annotations": "4.5.0",
           "System.Memory": "4.5.3",
