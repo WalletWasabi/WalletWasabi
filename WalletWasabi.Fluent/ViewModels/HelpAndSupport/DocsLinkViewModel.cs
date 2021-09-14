@@ -6,7 +6,7 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport
 {
 	[NavigationMetaData(
 		Title = "User Guide/Docs",
-		Caption = "",
+		Caption = "Will open a website in default browser",
 		Order = 2,
 		Category = "Help & Support",
 		Keywords = new[]
