@@ -44,28 +44,35 @@ namespace WalletWasabi.WabiSabi.Client
 			List<Money> outputAmounts = new();
 			var remainingVsize = AvailableVsize;
 
+			bool end = false;
 			foreach (var denom in denoms.Where(x => x <= remaining))
 			{
-				if (remaining < MinimumAmountPlusFee)
-				{
-					break;
-				}
-				if (remainingVsize < 2 * OutputSize)
-				{
-					break;
-				}
-
 				while (denom <= remaining)
 				{
-					outputAmounts.Add(denom);
+					if (remaining < MinimumAmountPlusFee)
+					{
+						end = true;
+						break;
+					}
+					if (remainingVsize < 2 * OutputSize)
+					{
+						end = true;
+						break;
+					}
+					outputAmounts.Add(denom - OutputFee);
 					remaining -= denom;
 					remainingVsize -= OutputSize;
+				}
+
+				if (end)
+				{
+					break;
 				}
 			}
 
 			if (remaining >= MinimumAmountPlusFee)
 			{
-				outputAmounts.Add(remaining);
+				outputAmounts.Add(remaining - OutputFee);
 			}
 
 			return outputAmounts;
