@@ -321,7 +321,8 @@
               </StackPanel>
               <!-- Pending -->
               <StackPanel IsVisible="{Binding !IsConfirmed}">
-                <PathIcon Data="{StaticResource channel_regular}"
+                <PathIcon Data="{StaticResource clock_regular}"
+                          Height="14"
                           Opacity="0.6"
                           ToolTip.Tip="Pending"/>
                 <TextBlock Classes="monoSpaced" Text="Pending">
