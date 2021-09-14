@@ -23,8 +23,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private PrivacyOptimisationLevel _optimisationLevel;
 		[AutoNotify] private bool _optimisationLevelGood;
 
-		public PrivacySuggestionControlViewModel(decimal originalAmount, BuildTransactionResult transactionResult,
-			PrivacyOptimisationLevel optimisationLevel, decimal fiatExchangeRate,
+		public PrivacySuggestionControlViewModel(
+			decimal originalAmount,
+			BuildTransactionResult transactionResult,
+			PrivacyOptimisationLevel optimisationLevel,
+			decimal fiatExchangeRate,
 			params PrivacySuggestionBenefit[] benefits)
 		{
 			TransactionResult = transactionResult;
