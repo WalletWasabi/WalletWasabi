@@ -36,8 +36,8 @@
       <c:PreviewItem Icon="{StaticResource status_regular}"
                      Text="Status">
         <Panel>
-          <TextBox Classes="selectableTextBlock" Text="Confirmed" IsVisible="{Binding IsConfirmed}" />
-          <TextBox Classes="selectableTextBlock" Text="Pending" IsVisible="{Binding !IsConfirmed}" />
+          <TextBox Classes="selectableTextBlock" TextWrapping="NoWrap" Text="Confirmed" IsVisible="{Binding IsConfirmed}" />
+          <TextBox Classes="selectableTextBlock" TextWrapping="NoWrap" Text="Pending" IsVisible="{Binding !IsConfirmed}" />
         </Panel>
       </c:PreviewItem>
 
