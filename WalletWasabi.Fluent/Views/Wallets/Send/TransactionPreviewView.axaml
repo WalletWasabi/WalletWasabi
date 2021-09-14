@@ -17,8 +17,9 @@
                    ScrollViewer.VerticalScrollBarVisibility="Auto">
         <StackPanel Spacing="20">
             <c:PreviewItem Icon="{StaticResource btc_logo}"
-                           Text="A total of"
-                           Content="{Binding AmountText, FallbackValue=0.213 BTC (≈55.34 USD)}" />
+                           Text="A total of">
+              <TextBox Classes="selectableTextBlock" Text="{Binding AmountText, FallbackValue=0.213 BTC (≈55.34 USD)}" />
+            </c:PreviewItem>
             <Separator />
             <c:PreviewItem Icon="{StaticResource entities_regular}"
                            Text="Will be sent to and / or known by">
@@ -32,8 +33,9 @@
             </c:PreviewItem>
             <Separator />
             <c:PreviewItem Icon="{StaticResource transceive_regular}"
-                           Text="via Bitcoin address"
-                           Content="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
+                           Text="via Bitcoin address">
+              <TextBox Classes="selectableTextBlock" Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
+            </c:PreviewItem>
             <Separator />
             <c:PreviewItem Icon="{StaticResource lock_shield_regular}"
                            Text="PayJoin will be used to protect your privacy"
@@ -42,12 +44,14 @@
             </c:PreviewItem>
             <Separator IsVisible="{Binding IsPayJoin}" />
             <c:PreviewItem Icon="{StaticResource timer_regular}"
-                           Text="Bitcoin miners will work hard to confirm your transaction within"
-                           Content="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
+                           Text="Bitcoin miners will work hard to confirm your transaction within">
+              <TextBox Classes="selectableTextBlock" Text="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
+            </c:PreviewItem>
             <Separator />
             <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
-                           Text="for an additional charge of"
-                           Content="{Binding FeeText, FallbackValue=235 sats (≈55.34 USD)}" />
+                           Text="for an additional charge of">
+              <TextBox Classes="selectableTextBlock" Text="{Binding FeeText, FallbackValue=235 sats (≈55.34 USD)}" />
+            </c:PreviewItem>
         </StackPanel>
     </c:ContentArea>
 </UserControl>
