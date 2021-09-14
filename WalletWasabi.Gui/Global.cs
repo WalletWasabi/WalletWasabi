@@ -185,7 +185,7 @@ namespace WalletWasabi.Gui
 					}
 					else
 					{
-						Logger.LogInfo("System Awake Checker is not available on this platform.");
+						Logger.LogInfo("Sleep Inhibitor is not available on this platform.");
 					}
 					await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
