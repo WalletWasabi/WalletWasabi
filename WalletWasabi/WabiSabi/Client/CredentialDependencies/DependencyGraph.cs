@@ -231,29 +231,59 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 			var maxCount = (fanIn ? edgeSet.RemainingInDegree(largestMagnitudeNode) : edgeSet.RemainingOutDegree(largestMagnitudeNode));
 
-			if (Math.Abs(edgeSet.Balance(largestMagnitudeNode)) > Math.Abs(smallMagnitudeNodes.Sum(x => edgeSet.Balance(x))))
+			switch (Math.Abs(edgeSet.Balance(largestMagnitudeNode)).CompareTo(Math.Abs(smallMagnitudeNodes.Sum(x => edgeSet.Balance(x)))))
 			{
-				// When we are draining a positive valued node into multiple
-				// negative nodes and we can't drain it completely, we need to
-				// leave an edge unused for the remaining amount.
-				// The corresponding condition can't actually happen for fan-in
-				// because the negative balance of the last loop iteration can't
-				// exceed the the remaining positive elements, their total sum
-				// must be positive as checked in the constructor.
-				if (maxCount > 1)
-				{
-					// when the edge capacity makes it possible, we can just
-					// ensure the largest magnitude node ends up with an unused
-					// edge by reducing maxCount
-					maxCount--;
-				}
-				else
-				{
-					// otherwise, drain the largest magnitude node into a new
-					// reissuance node which will have room for an unused edge
-					// in its out edge set.
-					(g, largestMagnitudeNode) = g.AggregateIntoReissuanceNode(new RequestNode[] { largestMagnitudeNode }, credentialType);
-				}
+				case 1:
+					// When we are draining a positive valued node into multiple
+					// negative nodes and we can't drain it completely, we need to
+					// leave an edge unused for the remaining amount.
+					// The corresponding condition can't actually happen for fan-in
+					// because the negative balance of the last loop iteration can't
+					// exceed the the remaining positive elements, their total sum
+					// must be positive as checked in the constructor.
+					if (maxCount > 1)
+					{
+						// when the edge capacity makes it possible, we can just
+						// ensure the largest magnitude node ends up with an unused
+						// edge by reducing maxCount
+						maxCount--;
+					}
+					else
+					{
+						// otherwise, drain the largest magnitude node into a new
+						// reissuance node which will have room for an unused edge
+						// in its out edge set.
+						(g, largestMagnitudeNode) = g.AggregateIntoReissuanceNode(new RequestNode[] { largestMagnitudeNode }, credentialType);
+					}
+					break;
+
+				case -1:
+					// When the total amount is less, it means the last node
+					// cannot be fully discharged, so we need to make sure its
+					// remaining degree is > 1
+					Func<RequestNode, int> smallNodeDegree = fanIn ? edgeSet.RemainingOutDegree : edgeSet.RemainingInDegree;
+
+					// Order by degree, so that the nodes with only one
+					// remaining edge slot are discharged first.
+					smallMagnitudeNodes = smallMagnitudeNodes.OrderBy(smallNodeDegree);
+
+					// If all of the nodes have degree 1 and the remaining
+					// degree of the large magnitude node can cover all of them,
+					// we must force a reissuance as well. Because the sum of
+					// the small magnitude nodes is greater.
+					if (smallMagnitudeNodes.Count() <= maxCount && smallNodeDegree(smallMagnitudeNodes.Last()) == 1)
+					{
+						// Make sure ReduceNodes will add at least one
+						// reissuance node (they are appended so the remaining
+						// degree for the last node is guaranteed to be > 1)
+						maxCount = Math.Min(smallMagnitudeNodes.Count() - 1, maxCount);
+					}
+					break;
+
+				default:
+					// the large node and small nodes are exactly equal, so no
+					// amounts will be left over.
+					break;
 			}
 
 			// Reduce the number of small magnitude nodes to the number of edges
