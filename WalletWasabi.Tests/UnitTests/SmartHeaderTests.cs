@@ -15,8 +15,8 @@ namespace WalletWasabi.Tests.UnitTests
 			new SmartHeader(uint256.Zero, uint256.One, 1, blockTime);
 			new SmartHeader(uint256.Zero, uint256.One, 1, blockTime);
 
-			Assert.Throws<ArgumentNullException>(() => new SmartHeader(null, uint256.One, 1, blockTime));
-			Assert.Throws<ArgumentNullException>(() => new SmartHeader(uint256.Zero, null, 1, blockTime));
+			Assert.Throws<ArgumentNullException>(() => new SmartHeader(blockHash: null!, uint256.One, 1, blockTime));
+			Assert.Throws<ArgumentNullException>(() => new SmartHeader(uint256.Zero, prevHash: null!, 1, blockTime));
 			Assert.Throws<InvalidOperationException>(() => new SmartHeader(uint256.Zero, uint256.Zero, 1, blockTime));
 		}
 

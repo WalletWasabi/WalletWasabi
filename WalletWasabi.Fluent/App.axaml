@@ -38,4 +38,16 @@
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/StatusItem.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/PrivacyContentControl.axaml" />
   </Application.Styles>
+
+  <TrayIcon.TrayIcons>
+    <TrayIcons>
+      <TrayIcon Icon="/Assets/WasabiLogo.ico">
+        <NativeMenu.Menu>
+          <NativeMenu>
+            <NativeMenuItem Header="Quit Wasabi Wallet" Command="{Binding QuitCommand}" />
+          </NativeMenu>
+        </NativeMenu.Menu>
+      </TrayIcon>
+    </TrayIcons>
+  </TrayIcon.TrayIcons>
 </Application>

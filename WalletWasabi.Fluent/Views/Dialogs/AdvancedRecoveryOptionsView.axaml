@@ -19,14 +19,14 @@
     </Style>
   </UserControl.Styles>
   <c:ContentArea Title="{Binding Title}"
-                 Caption="Type your wallet-specific recovery options and click Continue."
+                 Caption="Type your wallet-specific recovery options and click OK."
                  CancelContent="Cancel"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="OK">
     <StackPanel HorizontalAlignment="Center" Spacing="20" MinWidth="380" Margin="30 0 0 0">
       <StackPanel>
-        <Label Content="Type the Account Key _Derivation Path:" Target="TbKeyPath" />
+        <Label Content="Account Key _Derivation Path:" Target="TbKeyPath" />
         <TextBox Name="TbKeyPath"
                  Watermark="e.g., m/84'/0'/0'"
                  Text="{Binding AccountKeyPath}"
@@ -38,7 +38,7 @@
         </TextBox>
       </StackPanel>
       <StackPanel>
-        <Label Content="Type the Minimum _Gap Limit:" Target="TbGapLimit" />
+        <Label Content="Minimum _Gap Limit:" Target="TbGapLimit" />
         <TextBox Name="TbGapLimit" Watermark="e.g., 63"
                  Text="{Binding MinGapLimit}"
                  DockPanel.Dock="Top"

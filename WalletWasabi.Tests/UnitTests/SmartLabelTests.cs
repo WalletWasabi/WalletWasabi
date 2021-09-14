@@ -16,10 +16,10 @@ namespace WalletWasabi.Tests.UnitTests
 			label = new SmartLabel("");
 			Assert.Equal("", label);
 
-			label = new SmartLabel(null);
+			label = new SmartLabel(null!);
 			Assert.Equal("", label);
 
-			label = new SmartLabel(null, null);
+			label = new SmartLabel(null!, null!);
 			Assert.Equal("", label);
 
 			label = new SmartLabel(" ");
@@ -55,7 +55,7 @@ namespace WalletWasabi.Tests.UnitTests
 			label = new SmartLabel(new List<string>() { "   foo   ", "   bar    " });
 			Assert.Equal("bar, foo", label);
 
-			label = new SmartLabel(new List<string>() { "foo:", ":bar", null, ":buz:", ",", ": , :", "qux:quux", "corge,grault", "", "  ", " , garply, waldo,", " : ,  :  ,  fred  , : , :   plugh, : , : ," });
+			label = new SmartLabel(new List<string>() { "foo:", ":bar", null!, ":buz:", ",", ": , :", "qux:quux", "corge,grault", "", "  ", " , garply, waldo,", " : ,  :  ,  fred  , : , :   plugh, : , : ," });
 			Assert.Equal("bar, buz, corge, foo, fred, garply, grault, plugh, quux, qux, waldo", label);
 
 			label = new SmartLabel(",: foo::bar :buz:,: , :qux:quux, corge,grault  , garply, waldo, : ,  :  ,  fred  , : , :   plugh, : , : ,");
@@ -79,8 +79,8 @@ namespace WalletWasabi.Tests.UnitTests
 			var label3 = new SmartLabel("bar, buz");
 			Assert.NotEqual(label, label3);
 
-			SmartLabel label4 = null;
-			SmartLabel label5 = null;
+			SmartLabel? label4 = null;
+			SmartLabel? label5 = null;
 			Assert.Equal(label4, label5);
 			Assert.NotEqual(label, label4);
 			Assert.False(label.Equals(label4));
@@ -106,7 +106,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal("bar, buz, foo, qux", label);
 
 			label2 = new SmartLabel("Qux", "Bar");
-			label = SmartLabel.Merge(label, label2, null);
+			label = SmartLabel.Merge(label, label2, null!);
 			Assert.Equal(4, label.Labels.Count());
 			Assert.Equal("bar, buz, foo, qux", label);
 		}

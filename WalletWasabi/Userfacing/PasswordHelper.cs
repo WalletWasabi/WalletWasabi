@@ -19,7 +19,7 @@ namespace WalletWasabi.Userfacing
 		public const string MatchingMessage = "Passwords don't match, check any spelling mistakes and try again.";
 		public const string WhitespaceMessage = "Leading and trailing white spaces are not allowed!";
 
-		public static string[] GetPossiblePasswords(string originalPassword)
+		public static string[] GetPossiblePasswords(string? originalPassword)
 		{
 			if (string.IsNullOrEmpty(originalPassword))
 			{
@@ -125,7 +125,7 @@ namespace WalletWasabi.Userfacing
 					ExtKey result = keyManager.GetMasterExtKey(pw);
 
 					// Now the password is OK but if we had SecurityException before then we used a compatibility password.
-					if (resultException is { })
+					if (resultException is not null)
 					{
 						compatiblityPassword = pw;
 						Logger.LogError(CompatibilityPasswordWarnMessage);

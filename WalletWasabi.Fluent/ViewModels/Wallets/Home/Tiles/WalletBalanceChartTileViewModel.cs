@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using DynamicData.Binding;
 using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Morph;
@@ -42,6 +44,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			base.OnActivated(disposables);
 
 			_history.ToObservableChangeSet()
+				.Throttle(TimeSpan.FromMilliseconds(50))
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => UpdateSample(TimePeriodOptions.First(x => x.IsSelected)))
 				.DisposeWith(disposables);
 		}

@@ -21,6 +21,11 @@
     </DockPanel>
 
     <DockPanel>
+      <TextBlock Text="Hide Window on close" />
+      <ToggleSwitch IsChecked="{Binding HideOnClose}" />
+    </DockPanel>
+
+    <DockPanel>
       <TextBlock Text="Auto Copy/Paste Bitcoin addresses" />
       <ToggleSwitch IsChecked="{Binding AutoCopy}" />
     </DockPanel>
