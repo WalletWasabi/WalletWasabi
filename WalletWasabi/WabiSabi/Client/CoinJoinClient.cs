@@ -149,6 +149,10 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 			finally
 			{
+				foreach (var aliceClient in registeredAliceClients)
+				{
+					aliceClient.Finish();
+				}
 				InCriticalCoinJoinState = false;
 			}
 		}

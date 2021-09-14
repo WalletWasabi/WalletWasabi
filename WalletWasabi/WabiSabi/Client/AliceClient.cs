@@ -204,9 +204,15 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 		}
 
+		public void Finish()
+		{
+			SmartCoin.CoinJoinInProgress = false;
+		}
+
 		public async Task RemoveInputAsync(CancellationToken cancellationToken)
 		{
 			await ArenaClient.RemoveInputAsync(RoundId, AliceId, cancellationToken).ConfigureAwait(false);
+			SmartCoin.CoinJoinInProgress = false;
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Inputs removed.");
 		}
 
