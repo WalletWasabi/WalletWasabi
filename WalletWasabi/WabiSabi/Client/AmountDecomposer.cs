@@ -9,11 +9,12 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class AmountDecomposer
 	{
-		public AmountDecomposer(FeeRate feeRate, MoneyRange allowedOutputAmount, int outputSize)
+		public AmountDecomposer(FeeRate feeRate, Money minAllowedOutputAmount, int outputSize, int availableVsize)
 		{
 			OutputSize = outputSize;
 			FeeRate = feeRate;
-			MinimumAmountPlusFee = allowedOutputAmount.Min + OutputFee;
+			AvailableVsize = availableVsize;
+			MinimumAmountPlusFee = minAllowedOutputAmount + OutputFee;
 			StandardDenominationsPlusFee = StandardDenomination.Values
 				.Select(x => x + OutputFee)
 				.OrderByDescending(x => x)
@@ -21,7 +22,7 @@ namespace WalletWasabi.WabiSabi.Client
 		}
 
 		public FeeRate FeeRate { get; }
-
+		public int AvailableVsize { get; }
 		public Money MinimumAmountPlusFee { get; }
 		public Money OutputFee => FeeRate.GetFee(OutputSize);
 		public int OutputSize { get; }
@@ -41,10 +42,15 @@ namespace WalletWasabi.WabiSabi.Client
 				.ToArray();
 
 			List<Money> outputAmounts = new();
+			var remainingVsize = AvailableVsize;
 
 			foreach (var denom in denoms.Where(x => x <= remaining))
 			{
 				if (remaining < MinimumAmountPlusFee)
+				{
+					break;
+				}
+				if (remainingVsize < 2 * OutputSize)
 				{
 					break;
 				}
@@ -53,6 +59,7 @@ namespace WalletWasabi.WabiSabi.Client
 				{
 					outputAmounts.Add(denom);
 					remaining -= denom;
+					remainingVsize -= OutputSize;
 				}
 			}
 
@@ -61,7 +68,7 @@ namespace WalletWasabi.WabiSabi.Client
 				outputAmounts.Add(remaining);
 			}
 
-			return outputAmounts.Select(x => x - OutputFee);
+			return outputAmounts;
 		}
 
 		private Dictionary<Money, uint> GetDenominationProbabilities(IEnumerable<Coin> allInputCoins)
