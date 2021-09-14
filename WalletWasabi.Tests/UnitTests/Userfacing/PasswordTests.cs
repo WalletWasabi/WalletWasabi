@@ -72,12 +72,12 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.True(PasswordHelper.IsTrimmable(badPassword, out badPassword));
 
 			// Still too long.
-			Assert.Throws<FormatException>(() => PasswordHelper.GetMasterExtKey(keyManager, badPassword, out _));
+			Assert.Throws<FormatException>(() => PasswordHelper.GetMasterExtKey(keyManager, badPassword!, out _));
 
 			Assert.True(PasswordHelper.IsTooLong(badPassword, out badPassword));
 
 			// This should not throw format exception but pw is not correct.
-			Assert.Throws<SecurityException>(() => PasswordHelper.GetMasterExtKey(keyManager, badPassword, out _));
+			Assert.Throws<SecurityException>(() => PasswordHelper.GetMasterExtKey(keyManager, badPassword!, out _));
 
 			Logger.TurnOn();
 		}
@@ -93,7 +93,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.True(PasswordHelper.IsTrimmable(buggy, out buggy));
 
 			// Creating a wallet with buggy password.
-			var keyManager = KeyManager.CreateNew(out _, buggy);
+			var keyManager = KeyManager.CreateNew(out _, buggy!);
 
 			Assert.True(PasswordHelper.IsTrimmable(original, out original));
 
@@ -101,12 +101,12 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.False(PasswordHelper.TryPassword(keyManager, "falsepassword", out _));
 
 			// This should pass
-			Assert.NotNull(PasswordHelper.GetMasterExtKey(keyManager, original, out _));
+			Assert.NotNull(PasswordHelper.GetMasterExtKey(keyManager, original!, out _));
 
-			Assert.True(PasswordHelper.TryPassword(keyManager, buggy, out var compatiblePasswordNotUsed));
+			Assert.True(PasswordHelper.TryPassword(keyManager, buggy!, out var compatiblePasswordNotUsed));
 			Assert.Null(compatiblePasswordNotUsed);
 
-			Assert.True(PasswordHelper.TryPassword(keyManager, original, out var compatiblePassword));
+			Assert.True(PasswordHelper.TryPassword(keyManager, original!, out var compatiblePassword));
 			Assert.Equal(buggy, compatiblePassword);
 			Logger.TurnOn();
 		}

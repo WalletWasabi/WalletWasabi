@@ -32,9 +32,11 @@
                                       Margin="-8,0,3,0">
                 <Button Name="PART_DeleteButton" VerticalAlignment="Center"
                         HorizontalAlignment="Center"
+                        IsVisible="{TemplateBinding EnableDelete}"
                         Width="12"
                         Height="12"
                         KeyboardNavigation.IsTabStop="False"
+                        Focusable="{TemplateBinding Focusable}"
                         Margin="4">
                   <Button.Transitions>
                     <Transitions>
@@ -90,6 +92,7 @@
 
   <Style Selector="c|TagControl /template/ Panel#PART_TagPanel Button#PART_DeleteButton">
     <Setter Property="Opacity" Value="0" />
+    <Setter Property="Focusable" Value="False" />
   </Style>
 
   <Style

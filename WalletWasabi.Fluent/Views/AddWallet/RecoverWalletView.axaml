@@ -34,7 +34,8 @@
                    Items="{Binding Mnemonics}"
                    Suggestions="{Binding Suggestions}"
                    CompletedCommand="{Binding NextCommand}"
-                   AllowDuplication="True">
+                   AllowDuplication="True"
+                   EnableDelete="False">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
           </i:Interaction.Behaviors>

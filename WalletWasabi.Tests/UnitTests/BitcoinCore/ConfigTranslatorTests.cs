@@ -81,22 +81,28 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 
 			config.AddOrUpdate("main.whitebind=127.0.0.1:18444");
 			WhiteBind? whiteBind = translator.TryGetWhiteBind();
-			var ipEndPoint = whiteBind.EndPoint as IPEndPoint;
-			Assert.Equal(IPAddress.Loopback, ipEndPoint.Address);
+			Assert.NotNull(whiteBind);
+			var ipEndPoint = whiteBind!.EndPoint as IPEndPoint;
+			Assert.NotNull(ipEndPoint);
+			Assert.Equal(IPAddress.Loopback, ipEndPoint!.Address);
 			Assert.Equal(18444, ipEndPoint.Port);
 			Assert.Equal("", whiteBind.Permissions);
 
 			config.AddOrUpdate("whitebind=127.0.0.1:0");
 			whiteBind = translator.TryGetWhiteBind();
-			ipEndPoint = whiteBind.EndPoint as IPEndPoint;
-			Assert.Equal(IPAddress.Loopback, ipEndPoint.Address);
+			Assert.NotNull(whiteBind);
+			ipEndPoint = whiteBind!.EndPoint as IPEndPoint;
+			Assert.NotNull(ipEndPoint);
+			Assert.Equal(IPAddress.Loopback, ipEndPoint!.Address);
 			Assert.Equal(0, ipEndPoint.Port);
 			Assert.Equal("", whiteBind.Permissions);
 
 			config.AddOrUpdate("whitebind=127.0.0.1");
 			whiteBind = translator.TryGetWhiteBind();
-			ipEndPoint = whiteBind.EndPoint as IPEndPoint;
-			Assert.Equal(IPAddress.Loopback, ipEndPoint.Address);
+			Assert.NotNull(whiteBind);
+			ipEndPoint = whiteBind!.EndPoint as IPEndPoint;
+			Assert.NotNull(ipEndPoint);
+			Assert.Equal(IPAddress.Loopback, ipEndPoint!.Address);
 
 			// Default port.
 			Assert.Equal(8333, ipEndPoint.Port);
@@ -104,15 +110,19 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 
 			config.AddOrUpdate("whitebind=foo@127.0.0.1");
 			whiteBind = translator.TryGetWhiteBind();
-			ipEndPoint = whiteBind.EndPoint as IPEndPoint;
-			Assert.Equal(IPAddress.Loopback, ipEndPoint.Address);
+			Assert.NotNull(whiteBind);
+			ipEndPoint = whiteBind!.EndPoint as IPEndPoint;
+			Assert.NotNull(ipEndPoint);
+			Assert.Equal(IPAddress.Loopback, ipEndPoint!.Address);
 			Assert.Equal(8333, ipEndPoint.Port);
 			Assert.Equal("foo", whiteBind.Permissions);
 
 			config.AddOrUpdate("whitebind=foo,boo@127.0.0.1");
 			whiteBind = translator.TryGetWhiteBind();
-			ipEndPoint = whiteBind.EndPoint as IPEndPoint;
-			Assert.Equal(IPAddress.Loopback, ipEndPoint.Address);
+			Assert.NotNull(whiteBind);
+			ipEndPoint = whiteBind!.EndPoint as IPEndPoint;
+			Assert.NotNull(ipEndPoint);
+			Assert.Equal(IPAddress.Loopback, ipEndPoint!.Address);
 			Assert.Equal(8333, ipEndPoint.Port);
 			Assert.Equal("foo,boo", whiteBind.Permissions);
 

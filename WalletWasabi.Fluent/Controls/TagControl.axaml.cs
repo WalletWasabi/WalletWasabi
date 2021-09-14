@@ -1,5 +1,6 @@
 using System;
 using System.Reactive.Disposables;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
@@ -11,6 +12,15 @@ namespace WalletWasabi.Fluent.Controls
 	{
 		private IDisposable? _subscription;
 		private TagsBox? _parentTagBox;
+
+		public static readonly StyledProperty<bool> EnableDeleteProperty =
+			AvaloniaProperty.Register<TagControl, bool>(nameof(EnableDelete));
+
+		public bool EnableDelete
+		{
+			get => GetValue(EnableDeleteProperty);
+			set => SetValue(EnableDeleteProperty, value);
+		}
 
 		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
 		{

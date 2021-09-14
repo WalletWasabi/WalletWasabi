@@ -78,6 +78,9 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<bool> IsReadOnlyProperty =
 			AvaloniaProperty.Register<TagsBox, bool>(nameof(IsReadOnly));
 
+		public static readonly StyledProperty<bool> EnableDeleteProperty =
+			AvaloniaProperty.Register<TagsBox, bool>(nameof(EnableDelete), true);
+
 		[Content]
 		public IEnumerable<string>? Items
 		{
@@ -145,6 +148,12 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(AllowDuplicationProperty, value);
 		}
 
+		public bool EnableDelete
+		{
+			get => GetValue(EnableDeleteProperty);
+			set => SetValue(EnableDeleteProperty, value);
+		}
+
 		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
 		{
 			base.OnApplyTemplate(e);
@@ -206,8 +215,7 @@ namespace WalletWasabi.Fluent.Controls
 
 					if (RestrictInputToSuggestions &&
 						Suggestions is IList<string> suggestions &&
-						!suggestions.Any(x =>
-							x.StartsWith(currentText, _stringComparison)))
+						!suggestions.Any(x => x.Equals(currentText, _stringComparison)))
 					{
 						return;
 					}
@@ -350,6 +358,7 @@ namespace WalletWasabi.Fluent.Controls
 
 				AddTag(tag);
 				BackspaceLogicClear();
+				autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
 				Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
 			}
 			else
