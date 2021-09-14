@@ -36,8 +36,7 @@
     </c:InfoMessage>
 
     <c:ContentArea Title="{Binding Title}"
-                   Caption="Manage appearance, privacy and other settings"
-                   EnableBack="True">
+                   Caption="Manage appearance, privacy and other settings">
       <DockPanel LastChildFill="True">
 
         <TabControl SelectedIndex="{Binding SelectedTab, Mode=TwoWay}">
