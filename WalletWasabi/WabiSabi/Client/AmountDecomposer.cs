@@ -49,16 +49,12 @@ namespace WalletWasabi.WabiSabi.Client
 			{
 				while (denom <= remaining)
 				{
-					if (remaining < MinimumAmountPlusFee)
+					if (remaining < MinimumAmountPlusFee || remainingVsize < 2 * OutputSize)
 					{
 						end = true;
 						break;
 					}
-					if (remainingVsize < 2 * OutputSize)
-					{
-						end = true;
-						break;
-					}
+
 					outputAmounts.Add(denom - OutputFee);
 					remaining -= denom;
 					remainingVsize -= OutputSize;
