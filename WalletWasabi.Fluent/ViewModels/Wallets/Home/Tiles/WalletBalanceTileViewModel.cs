@@ -3,8 +3,10 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using DynamicData.Binding;
 using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Wallets;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
@@ -42,10 +44,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				.DisposeWith(disposables);
 
 			_history.ToObservableChangeSet()
+				.Throttle(TimeSpan.FromMilliseconds(50))
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => UpdateRecentTransaction())
 				.DisposeWith(disposables);
-
-			UpdateBalance();
 		}
 
 		private void UpdateBalance()
