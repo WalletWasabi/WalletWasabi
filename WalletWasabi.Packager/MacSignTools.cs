@@ -128,8 +128,6 @@ namespace WalletWasabi.Packager
 
 			Console.WriteLine("Signing the files in app.");
 
-			UnlockKeychain();
-
 			IoHelpers.EnsureDirectoryExists(appResPath);
 			IoHelpers.EnsureDirectoryExists(appMacOsPath);
 
@@ -259,8 +257,6 @@ namespace WalletWasabi.Packager
 			}
 
 			Console.WriteLine("Phase: signing the dmg file.");
-
-			UnlockKeychain();
 
 			SignFile($"{signArguments} --entitlements \"{entitlementsPath}\" \"{dmgFilePath}\"", dmgPath);
 
@@ -399,16 +395,6 @@ namespace WalletWasabi.Packager
 			}
 
 			IoHelpers.TryDeleteDirectoryAsync(path).GetAwaiter().GetResult();
-		}
-
-		private static void UnlockKeychain()
-		{
-			using var process = Process.Start(new ProcessStartInfo
-			{
-				FileName = "security",
-				Arguments = $"unlock-keychain -p \"mysecretpassword\" build.keychain",
-			});
-			process.WaitForExit();
 		}
 
 		private static void SignFile(string arguments, string workingDir)

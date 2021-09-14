@@ -54,8 +54,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			_balanceChanged
 				.Subscribe(_ => Update())
 				.DisposeWith(disposables);
-
-			Update();
 		}
 
 		private void Update()

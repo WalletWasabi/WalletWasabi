@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,11 +22,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 	[NavigationMetaData(Title = "Receive Address")]
 	public partial class ReceiveAddressViewModel : RoutableViewModel
 	{
+		private readonly Wallet _wallet;
+		private readonly HdPubKey _model;
+
 		public ReceiveAddressViewModel(Wallet wallet, HdPubKey model)
 		{
-			Address = model.GetP2wpkhAddress(wallet.Network).ToString();
-			Labels = model.Label;
-			IsHardwareWallet = wallet.KeyManager.IsHardwareWallet;
+			_wallet = wallet;
+			_model = model;
+			Address = _model.GetP2wpkhAddress(_wallet.Network).ToString();
+			Labels = _model.Label;
+			IsHardwareWallet = _wallet.KeyManager.IsHardwareWallet;
 			IsAutoCopyEnabled = Services.UiConfig.Autocopy;
 
 			GenerateQrCode();
@@ -35,7 +42,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 			CopyAddressCommand = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Address));
 
-			ShowOnHwWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnShowOnHwWalletAsync(model, wallet.Network, wallet.KeyManager.MasterFingerprint));
+			ShowOnHwWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnShowOnHwWalletAsync(_model, _wallet.Network, _wallet.KeyManager.MasterFingerprint));
 
 			SaveQrCodeCommand = ReactiveCommand.CreateFromTask(async () => await OnSaveQrCodeAsync());
 
@@ -45,6 +52,24 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 			NextCommand = CancelCommand;
 		}
+
+		public ReactiveCommand<string, Unit>? QrCodeCommand { get; set; }
+
+		public ICommand CopyAddressCommand { get; }
+
+		public ReactiveCommand<Unit, Unit> SaveQrCodeCommand { get; }
+
+		public ICommand ShowOnHwWalletCommand { get; }
+
+		public string Address { get; }
+
+		public SmartLabel Labels { get; }
+
+		public bool[,]? QrCode { get; set; }
+
+		public bool IsHardwareWallet { get; }
+
+		public bool IsAutoCopyEnabled { get; }
 
 		private async Task OnShowOnHwWalletAsync(HdPubKey model, Network network, HDFingerprint? masterFingerprint)
 		{
@@ -83,24 +108,22 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			}
 		}
 
-		public ReactiveCommand<string, Unit>? QrCodeCommand { get; set; }
+		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+		{
+			base.OnNavigatedTo(isInHistory, disposables);
 
-		public ICommand CopyAddressCommand { get; }
-
-		public ReactiveCommand<Unit, Unit> SaveQrCodeCommand { get; }
-
-		public ICommand ShowOnHwWalletCommand { get; }
-
-		public string Address { get; }
-
-		public SmartLabel Labels { get; }
-
-		public bool[,]? QrCode { get; set; }
-
-		public bool IsHardwareWallet { get; }
-
-		public bool IsAutoCopyEnabled { get; }
-
+			Observable
+				.FromEventPattern(_wallet.TransactionProcessor, nameof(_wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					if (_wallet.KeyManager.GetKeys(x => x == _model && x.KeyState == KeyState.Used).Any())
+					{
+						Navigate().Back();
+					}
+				})
+				.DisposeWith(disposables);
+		}
 		private void GenerateQrCode()
 		{
 			try

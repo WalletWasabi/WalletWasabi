@@ -49,9 +49,14 @@
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="Cursor" Value="Hand" />
   </Style>
-
   <Style Selector="Button.function PathIcon">
     <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+  </Style>
+  <Style Selector="Button.function:disabled PathIcon">
+    <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
+  </Style>
+  <Style Selector="Button.function:disabled /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
   </Style>
 
   <Style Selector="Button.invisible">
