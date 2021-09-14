@@ -51,13 +51,14 @@
                   </Transitions>
                 </LayoutTransformControl.Transitions>
               </LayoutTransformControl>
-              <ContentPresenter Name="PART_ContentPresenter"
-                                Content="{TemplateBinding Content}"
-                                Padding="{TemplateBinding Padding}"
-                                Margin="12,6,12,6"
-                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                DockPanel.Dock="Left" />
+              <StackPanel Margin="12,6,12,6" DockPanel.Dock="Left" Spacing="5" Orientation="Horizontal">
+                <TextBlock Name="PART_Index" IsVisible="{TemplateBinding EnableCounter}"/>
+                <ContentPresenter Name="PART_ContentPresenter"
+                                  Content="{TemplateBinding Content}"
+                                  Padding="{TemplateBinding Padding}"
+                                  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
+              </StackPanel>
             </DockPanel>
           </Panel>
         </Panel>

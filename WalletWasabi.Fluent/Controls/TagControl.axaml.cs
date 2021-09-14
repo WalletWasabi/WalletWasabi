@@ -13,8 +13,17 @@ namespace WalletWasabi.Fluent.Controls
 		private IDisposable? _subscription;
 		private TagsBox? _parentTagBox;
 
+		public static readonly StyledProperty<bool> EnableCounterProperty =
+			AvaloniaProperty.Register<TagControl, bool>(nameof(EnableCounter));
+
 		public static readonly StyledProperty<bool> EnableDeleteProperty =
 			AvaloniaProperty.Register<TagControl, bool>(nameof(EnableDelete));
+		
+		public bool EnableCounter
+		{
+			get => GetValue(EnableCounterProperty);
+			set => SetValue(EnableCounterProperty, value);
+		}
 
 		public bool EnableDelete
 		{

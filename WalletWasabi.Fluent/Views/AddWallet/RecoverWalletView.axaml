@@ -35,6 +35,7 @@
                    Suggestions="{Binding Suggestions}"
                    CompletedCommand="{Binding NextCommand}"
                    AllowDuplication="True"
+                   EnableCounter="True"
                    EnableDelete="False">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
