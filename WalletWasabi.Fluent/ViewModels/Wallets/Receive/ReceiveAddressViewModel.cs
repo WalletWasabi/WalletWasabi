@@ -119,7 +119,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 				{
 					if (_wallet.KeyManager.GetKeys(x => x == _model && x.KeyState == KeyState.Used).Any())
 					{
-						Navigate().Clear();
+						Navigate().Back();
 					}
 				})
 				.DisposeWith(disposables);
