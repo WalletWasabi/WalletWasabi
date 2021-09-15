@@ -25,7 +25,7 @@ namespace WalletWasabi.Fluent.ViewModels
 					else
 					{
 						await MainViewModel.Instance!.CompactDialogScreen.NavigateDialogAsync(new Dialogs.ShowErrorDialogViewModel(
-							"Wasabi is currently anonimising your wallet. Please try again in a few seconds.",
+							"Wasabi is currently anonymising your wallet. Please try again in a few seconds.",
 							"Warning",
 							"Unable to close"));
 					}
