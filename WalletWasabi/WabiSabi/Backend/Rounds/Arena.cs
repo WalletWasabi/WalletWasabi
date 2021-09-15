@@ -202,10 +202,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 						round.LogInfo($"Number of outputs: {coinjoin.Outputs.Count}.");
 						round.LogInfo($"Serialized Size: {coinjoin.GetSerializedSize() / 1024} KB.");
 						round.LogInfo($"VSize: {coinjoin.GetVirtualSize() / 1024} KB.");
-						foreach (var (value, count) in coinjoin.GetIndistinguishableOutputs(includeSingle: false))
+						var indistinguishableOutputs = coinjoin.GetIndistinguishableOutputs(includeSingle: true);
+						foreach (var (value, count) in indistinguishableOutputs.Where(x => x.count > 1))
 						{
-							round.LogInfo($"There are {count} occurrences of {value.ToString(true, false)} BTC output.");
+							round.LogInfo($"There are {count} occurrences of {value.ToString(true, false)} outputs.");
 						}
+						round.LogInfo($"There are {indistinguishableOutputs.Count(x => x.count == 1)} occurrences of unique outputs.");
 
 						// Broadcasting.
 						await Rpc.SendRawTransactionAsync(coinjoin).ConfigureAwait(false);
