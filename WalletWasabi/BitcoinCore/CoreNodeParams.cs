@@ -22,7 +22,8 @@ namespace WalletWasabi.BitcoinCore
 			string mempoolReplacement,
 			string userAgent,
 			Money fallbackFee,
-			IMemoryCache cache)
+			IMemoryCache cache,
+			string? startupNotify = null)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			MempoolService = Guard.NotNull(nameof(mempoolService), mempoolService);
@@ -37,6 +38,7 @@ namespace WalletWasabi.BitcoinCore
 			UserAgent = Guard.NotNullOrEmptyOrWhitespace(nameof(userAgent), userAgent, trim: true);
 			FallbackFee = fallbackFee;
 			Cache = Guard.NotNull(nameof(cache), cache);
+			StartupNotify = startupNotify;
 		}
 
 		public string DataDir { get; }
@@ -59,6 +61,7 @@ namespace WalletWasabi.BitcoinCore
 		public int? PersistMempool { get; set; }
 		public int? RpcWorkQueue { get; set; }
 		public int? RpcThreads { get; set; }
+		public string? StartupNotify { get; }
 
 		public EndPointStrategy P2pEndPointStrategy { get; }
 		public EndPointStrategy RpcEndPointStrategy { get; }

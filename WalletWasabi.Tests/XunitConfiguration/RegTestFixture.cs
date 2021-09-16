@@ -29,7 +29,9 @@ namespace WalletWasabi.Tests.XunitConfiguration
 		{
 			RuntimeParams.SetDataDir(Path.Combine(Common.DataDir, "RegTests", "Backend"));
 			RuntimeParams.LoadAsync().GetAwaiter().GetResult();
-			BackendRegTestNode = TestNodeBuilder.CreateAsync(callerFilePath: "RegTests", callerMemberName: "BitcoinCoreData").GetAwaiter().GetResult();
+
+			string startupFilePath = Path.Join(Path.GetTempPath(), Path.GetRandomFileName());
+			BackendRegTestNode = TestNodeBuilder.CreateAsync(callerFilePath: "RegTests", callerMemberName: "BitcoinCoreData", startupFilePath: startupFilePath).GetAwaiter().GetResult();
 
 			var walletName = "wallet";
 			BackendRegTestNode.RpcClient.CreateWalletAsync(walletName).GetAwaiter().GetResult();
@@ -87,6 +89,11 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			// Wait for server to initialize
 			var delayTask = Task.Delay(3000);
 			Task.WaitAny(delayTask, hostInitializationTask);
+
+			Logger.LogDebug($"Waiting for '{startupFilePath}' to be created.");
+			IoHelpers.WhenFileCreated(startupFilePath).GetAwaiter().GetResult();
+
+			Logger.LogInfo("Fixture is initialized.");
 		}
 
 		/// <summary>String representation of backend URI: <c>http://localhost:RANDOM_PORT</c>.</summary>
@@ -149,10 +156,14 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			{
 				if (disposing)
 				{
+					Logger.LogTrace("About to dispose fixture.");
+
 					BackendHost?.StopAsync().GetAwaiter().GetResult();
 					BackendHost?.Dispose();
 					BackendRegTestNode?.TryStopAsync().GetAwaiter().GetResult();
 					HttpClient.Dispose();
+
+					Logger.LogTrace("Fixture is disposed.");
 				}
 
 				_disposedValue = true;

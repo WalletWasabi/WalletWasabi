@@ -65,6 +65,8 @@ namespace WalletWasabi.BitcoinCore.Processes
 				var exceptionTracker = new LastExceptionTracker();
 
 				// Try to connect to bitcoin daemon RPC until we succeed.
+				Logger.LogTrace("Wait until RPC daemon is ready...");
+
 				while (true)
 				{
 					try

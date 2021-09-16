@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -137,6 +138,38 @@ namespace System.IO
 		public static void CreateOrOverwriteFile(string path)
 		{
 			using var _ = File.Create(path);
+		}
+
+		/// <seealso href="https://stackoverflow.com/questions/17408499/async-wait-for-file-to-be-created/17408819#17408819"/>
+		[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Watcher is disposed once the file is created.")]
+		public static Task WhenFileCreated(string filePath)
+		{
+			TaskCompletionSource<bool> tcs = new();
+			FileSystemWatcher watcher = new(Path.GetDirectoryName(filePath)!);
+
+			FileSystemEventHandler? createdHandler = null;
+			createdHandler = (s, e) =>
+			{
+				if (e.Name == Path.GetFileName(filePath))
+				{
+					tcs.TrySetResult(true);
+					watcher.Created -= createdHandler;
+					watcher.Dispose();
+				}
+			};
+
+			watcher.Created += createdHandler;
+			watcher.EnableRaisingEvents = true;
+
+			// This is to avoid race: "FileSystemWatcher is created, @filePath file is created, watcher.EnableRaisingEvents is set to true -> "
+			if (File.Exists(filePath))
+			{
+				watcher.Created -= createdHandler;
+				watcher.Dispose();
+				return Task.FromResult(true);
+			}
+
+			return tcs.Task;
 		}
 	}
 }
