@@ -82,7 +82,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		public static readonly StyledProperty<bool> EnableCounterProperty =
 			AvaloniaProperty.Register<TagsBox, bool>(nameof(EnableCounter));
-			
+
 		public static readonly StyledProperty<bool> EnableDeleteProperty =
 			AvaloniaProperty.Register<TagsBox, bool>(nameof(EnableDelete), true);
 
@@ -158,7 +158,7 @@ namespace WalletWasabi.Fluent.Controls
 			get => GetValue(EnableCounterProperty);
 			set => SetValue(EnableCounterProperty, value);
 		}
-		
+
 		public bool EnableDelete
 		{
 			get => GetValue(EnableDeleteProperty);
@@ -228,10 +228,7 @@ namespace WalletWasabi.Fluent.Controls
 
 				for (var i = 0; i < tagItems.Length; i++)
 				{
-					if (tagItems[i].FindDescendantOfType<TextBlock>() is { } textBlock)
-					{
-						textBlock.Text = $"{i + 1}.";
-					}
+					tagItems[i].OrdinalIndex = i + 1;
 				}
 			}
 		}
