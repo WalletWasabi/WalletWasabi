@@ -87,19 +87,27 @@ namespace WalletWasabi.WabiSabi.Client
 
 				foreach (var finishedCoinJoin in finishedCoinJoins)
 				{
-					trackedWallets.Remove(finishedCoinJoin.Wallet.WalletName);
+					var removed = trackedWallets.Remove(finishedCoinJoin.Wallet.WalletName);
+					if (!removed)
+					{
+						Logger.LogWarning($"Wallet: `{finishedCoinJoin.Wallet.WalletName}` was not removed from tracked wallet list. Will retry in a few seconds.");
+					}
 					finishedCoinJoin.CancellationTokenSource.Dispose();
+				}
 
+				foreach (var finishedCoinJoin in finishedCoinJoins)
+				{
+					var logPrefix = $"Wallet: `{finishedCoinJoin.Wallet.WalletName}` - Coinjoin client";
 					try
 					{
 						var success = await finishedCoinJoin.CoinJoinTask.ConfigureAwait(false);
 						if (success)
 						{
-							Logger.LogInfo("Coinjoin client finished successfully!");
+							Logger.LogInfo($"{logPrefix} finished successfully!");
 						}
 						else
 						{
-							Logger.LogInfo("Coinjoin client finished with error. Transaction not broadcasted.");
+							Logger.LogInfo($"{logPrefix} finished with error. Transaction not broadcasted.");
 						}
 					}
 					catch (InvalidOperationException ioe)
@@ -109,11 +117,11 @@ namespace WalletWasabi.WabiSabi.Client
 					}
 					catch (OperationCanceledException)
 					{
-						Logger.LogInfo("Coinjoin client was cancelled.");
+						Logger.LogInfo($"{logPrefix} was cancelled.");
 					}
 					catch (Exception e)
 					{
-						Logger.LogError(e);
+						Logger.LogError($"{logPrefix} failed with exception:", e);
 					}
 				}
 
