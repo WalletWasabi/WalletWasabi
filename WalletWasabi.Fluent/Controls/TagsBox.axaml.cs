@@ -169,8 +169,6 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			base.OnApplyTemplate(e);
 
-			_compositeDisposable?.Dispose();
-
 			_compositeDisposable = new CompositeDisposable();
 
 			var presenter = e.NameScope.Find<ItemsPresenter>("PART_ItemsPresenter");
@@ -211,6 +209,13 @@ namespace WalletWasabi.Fluent.Controls
 				.DisposeWith(_compositeDisposable);
 
 			LayoutUpdated += OnLayoutUpdated;
+		}
+
+		protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+		{
+			base.OnDetachedFromVisualTree(e);
+
+			_compositeDisposable?.Dispose();
 		}
 
 		private void OnLayoutUpdated(object? sender, EventArgs e)

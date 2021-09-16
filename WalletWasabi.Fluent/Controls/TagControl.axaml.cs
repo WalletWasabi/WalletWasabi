@@ -46,8 +46,6 @@ namespace WalletWasabi.Fluent.Controls
 
 			_parentTagBox = this.FindLogicalAncestorOfType<TagsBox>();
 
-			_subscription?.Dispose();
-
 			var deleteButton = e.NameScope.Find<Button>("PART_DeleteButton");
 
 			if (deleteButton is null)
@@ -58,6 +56,13 @@ namespace WalletWasabi.Fluent.Controls
 			deleteButton.Click += OnDeleteTagClicked;
 
 			_subscription = Disposable.Create(() => deleteButton.Click -= OnDeleteTagClicked);
+		}
+
+		protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+		{
+			base.OnDetachedFromVisualTree(e);
+
+			_subscription?.Dispose();
 		}
 
 		private void OnDeleteTagClicked(object? sender, RoutedEventArgs e)
