@@ -487,57 +487,22 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void OnKeyDown(object? sender, KeyEventArgs e)
 		{
-			if (sender is not AutoCompleteBox autoCompleteBox)
+			if (!_isInputEnabled && e.Key != Key.Back)
 			{
 				return;
 			}
 
-			var currentText = autoCompleteBox.Text ?? "";
-
-			_backspaceEmptyField2 = _backspaceEmptyField1;
-			_backspaceEmptyField1 = currentText.Length == 0;
-
-			currentText = currentText.Trim();
-
-			var canAddTag = _isInputEnabled && !string.IsNullOrEmpty(currentText);
-
-			if ((e.Key == Key.Tab || e.Key == Key.Enter) && canAddTag)
-			{
-				e.Handled = true;
-			}
+			var emptyInputField = string.IsNullOrEmpty(CurrentText);
 
 			switch (e.Key)
 			{
-				case Key.Back when _backspaceEmptyField1 && _backspaceEmptyField2:
+				case Key.Back when emptyInputField:
 					RemoveLastTag();
 					break;
 
-				case Key.Tab when canAddTag:
-				case Key.Enter when canAddTag:
-					// Reject entry of the tag when user pressed enter and
-					// the input tag is not on the suggestions list.
-					if (RestrictInputToSuggestions && Suggestions is { } &&
-						!Suggestions.Cast<string>().Any(
-							x => x.Equals(currentText, _stringComparison)))
-					{
-						break;
-					}
-
-					BackspaceLogicClear();
-					AddTag(currentText);
-					ExecuteCompletedCommand();
-
-					_internalTextBox?.ClearSelection();
-					_internalTextBox?.ClearValue(AutoCompleteBox.TextProperty);
-
-					autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
-					Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty), DispatcherPriority.Background);
+				case Key.Enter or Key.Tab when !emptyInputField:
+					RequestAdd = true;
 					e.Handled = true;
-
-					break;
-
-				case Key.Enter:
-					ExecuteCompletedCommand();
 					break;
 			}
 		}
