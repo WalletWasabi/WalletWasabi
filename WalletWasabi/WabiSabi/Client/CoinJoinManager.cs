@@ -87,26 +87,41 @@ namespace WalletWasabi.WabiSabi.Client
 
 				foreach (var finishedCoinJoin in finishedCoinJoins)
 				{
-					trackedWallets.Remove(finishedCoinJoin.Wallet.WalletName);
+					var removed = trackedWallets.Remove(finishedCoinJoin.Wallet.WalletName);
+					if (!removed)
+					{
+						Logger.LogWarning($"Wallet: `{finishedCoinJoin.Wallet.WalletName}` was not removed from tracked wallet list. Will retry in a few seconds.");
+					}
 					finishedCoinJoin.CancellationTokenSource.Dispose();
+				}
 
-					var finishedCoinJoinTask = finishedCoinJoin.CoinJoinTask;
-					if (finishedCoinJoinTask.IsCompletedSuccessfully)
+				foreach (var finishedCoinJoin in finishedCoinJoins)
+				{
+					var logPrefix = $"Wallet: `{finishedCoinJoin.Wallet.WalletName}` - Coinjoin client";
+					try
 					{
-						Logger.LogInfo("Coinjoin client finished successfully!");
-					}
-					else if (finishedCoinJoinTask.IsFaulted)
-					{
-						if (finishedCoinJoinTask.Exception?.InnerException is InvalidOperationException ioe)
+						var success = await finishedCoinJoin.CoinJoinTask.ConfigureAwait(false);
+						if (success)
 						{
-							await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken).ConfigureAwait(false);
-							continue;
+							Logger.LogInfo($"{logPrefix} finished successfully!");
 						}
-						Logger.LogError(finishedCoinJoinTask.Exception!);
+						else
+						{
+							Logger.LogInfo($"{logPrefix} finished with error. Transaction not broadcasted.");
+						}
 					}
-					else if (finishedCoinJoinTask.IsCanceled)
+					catch (InvalidOperationException ioe)
 					{
-						Logger.LogInfo("Coinjoin client was cancelled.");
+						Logger.LogError(ioe);
+						await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken).ConfigureAwait(false);
+					}
+					catch (OperationCanceledException)
+					{
+						Logger.LogInfo($"{logPrefix} was cancelled.");
+					}
+					catch (Exception e)
+					{
+						Logger.LogError($"{logPrefix} failed with exception:", e);
 					}
 				}
 
