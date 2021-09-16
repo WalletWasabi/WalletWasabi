@@ -260,6 +260,27 @@ namespace WalletWasabi.Fluent.Controls
 			_compositeDisposable?.Dispose();
 		}
 
+		private void ClearInputField()
+		{
+			_autoCompleteBox?.ClearValue(AutoCompleteBox.SelectedItemProperty);
+			Dispatcher.UIThread.Post(() => _autoCompleteBox?.ClearValue(AutoCompleteBox.TextProperty));
+		}
+
+		private IEnumerable<string> GetFinalTags(string input, char tagSeparator)
+		{
+			var tags = input.Split(tagSeparator);
+
+			foreach (string tag in tags)
+			{
+				var correctedTag = tag.ParseLabel();
+
+				if (!string.IsNullOrEmpty(correctedTag))
+				{
+					yield return correctedTag;
+				}
+			}
+		}
+
 		private void OnLayoutUpdated(object? sender, EventArgs e)
 		{
 			UpdateCounters();
