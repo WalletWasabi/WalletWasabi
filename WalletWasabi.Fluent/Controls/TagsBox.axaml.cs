@@ -490,17 +490,6 @@ namespace WalletWasabi.Fluent.Controls
 			}
 		}
 
-		private void RemoveLastTag()
-		{
-			if (Items is IList { Count: > 0 } list)
-			{
-				list.RemoveAt(list.Count - 1);
-			}
-
-			InvalidateWatermark();
-			CheckIsInputEnabled();
-		}
-
 		protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> e)
 		{
 			base.OnPropertyChanged(e);
@@ -517,38 +506,53 @@ namespace WalletWasabi.Fluent.Controls
 			}
 		}
 
-		internal void RemoveTargetTag(object? tag)
+		private void RemoveLastTag()
 		{
-			if (Items is IList list)
+			if (Items is IList { Count: > 0 } items)
 			{
-				list.Remove(tag);
+				RemoveAt(items.Count - 1);
+			}
+		}
+
+		public void RemoveAt(int index)
+		{
+			if (Items is not IList items)
+			{
+				return;
 			}
 
-			InvalidateWatermark();
+			items.RemoveAt(index);
 			CheckIsInputEnabled();
+			InvalidateWatermark();
 		}
 
 		public void AddTag(string tag)
 		{
-			if (Items is IList x)
+			if (Items is not IList items)
 			{
-				if (ItemCountLimit > 0 && x.Count + 1 > ItemCountLimit)
-				{
-					return;
-				}
-
-				var finalTag = tag.ParseLabel();
-
-				if (!AllowDuplication && x.Contains(finalTag))
-				{
-					return;
-				}
-
-				x.Add(finalTag);
+				return;
 			}
 
-			InvalidateWatermark();
+			if (ItemCountLimit > 0 && items.Count + 1 > ItemCountLimit)
+			{
+				return;
+			}
+
+			if (!AllowDuplication && items.Contains(tag))
+			{
+				return;
+			}
+
+			if (RestrictInputToSuggestions &&
+			    Suggestions is { } suggestions &&
+			    !suggestions.Any(x => x.Equals(tag, _stringComparison)))
+			{
+				return;
+			}
+
+			items.Add(tag);
 			CheckIsInputEnabled();
+			InvalidateWatermark();
 		}
 	}
 }

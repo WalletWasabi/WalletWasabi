@@ -67,7 +67,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void OnDeleteTagClicked(object? sender, RoutedEventArgs e)
 		{
-			_parentTagBox?.RemoveTargetTag(DataContext);
+			_parentTagBox?.RemoveAt(OrdinalIndex - 1);
 		}
 	}
 }
