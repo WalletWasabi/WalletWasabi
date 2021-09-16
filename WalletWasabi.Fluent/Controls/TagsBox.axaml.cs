@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
@@ -16,6 +17,7 @@ using Avalonia.Metadata;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using ReactiveUI;
+using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 
@@ -23,6 +25,24 @@ namespace WalletWasabi.Fluent.Controls
 {
 	public class TagsBox : TemplatedControl
 	{
+		private CompositeDisposable? _compositeDisposable;
+		private AutoCompleteBox? _autoCompleteBox;
+		private TextBox? _internalTextBox;
+		private TextBlock? _watermark;
+		private IControl? _containerControl;
+		private StringComparison _stringComparison;
+		private bool _backspaceEmptyField1;
+		private bool _backspaceEmptyField2;
+		private bool _isInputEnabled = true;
+		private IEnumerable? _suggestions;
+		private ICommand? _completedCommand;
+		private IEnumerable<string>? _items;
+		private IEnumerable<string>? _topItems;
+		private bool _requestAdd;
+
+		public static readonly DirectProperty<TagsBox, bool> RequestAddProperty =
+			AvaloniaProperty.RegisterDirect<TagsBox, bool>(nameof(RequestAdd), o => o.RequestAdd);
+
 		public static readonly StyledProperty<string> WatermarkProperty =
 			TextBox.WatermarkProperty.AddOwner<TagsBox>();
 
@@ -58,19 +78,6 @@ namespace WalletWasabi.Fluent.Controls
 				o => o.Suggestions,
 				(o, v) => o.Suggestions = v);
 
-		private CompositeDisposable? _compositeDisposable;
-		private AutoCompleteBox? _autoCompleteBox;
-		private TextBox? _internalTextBox;
-		private TextBlock? _watermark;
-		private StringComparison _stringComparison;
-		private bool _backspaceEmptyField1;
-		private bool _backspaceEmptyField2;
-		private bool _isInputEnabled = true;
-		private IEnumerable? _suggestions;
-		private ICommand? _completedCommand;
-		private IEnumerable<string>? _items;
-		private IEnumerable<string>? _topItems;
-
 		public static readonly DirectProperty<TagsBox, ICommand?> CompletedCommandProperty =
 			AvaloniaProperty.RegisterDirect<TagsBox, ICommand?>(
 				nameof(CompletedCommand),
@@ -91,6 +98,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => _items;
 			set => SetAndRaise(ItemsProperty, ref _items, value);
+		}
+
+		public bool RequestAdd
+		{
+			get => _requestAdd;
+			set => SetAndRaise(RequestAddProperty, ref _requestAdd, value);
 		}
 
 		public IEnumerable<string>? TopItems
@@ -165,39 +178,40 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(EnableDeleteProperty, value);
 		}
 
+		private string CurrentText => _autoCompleteBox?.Text ?? "";
+
 		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
 		{
 			base.OnApplyTemplate(e);
 
 			_compositeDisposable = new CompositeDisposable();
-
-			var presenter = e.NameScope.Find<ItemsPresenter>("PART_ItemsPresenter");
-
-			presenter.ApplyTemplate();
-
 			_watermark = e.NameScope.Find<TextBlock>("PART_Watermark");
-
-			_autoCompleteBox = (presenter.Panel as ConcatenatingWrapPanel)?.ConcatenatedChildren
-				.OfType<AutoCompleteBox>().FirstOrDefault();
+			var presenter = e.NameScope.Find<ItemsPresenter>("PART_ItemsPresenter");
+			presenter.ApplyTemplate();
+			_containerControl = presenter.Panel;
+			_autoCompleteBox = (_containerControl as ConcatenatingWrapPanel)?.ConcatenatedChildren.OfType<AutoCompleteBox>().FirstOrDefault();
 
 			if (_autoCompleteBox is null)
 			{
 				return;
 			}
 
-			_autoCompleteBox.TextChanged += OnAutoCompleteBoxTextChanged;
-			_autoCompleteBox.DropDownClosed += OnAutoCompleteBoxDropDownClosed;
-			_autoCompleteBox.TemplateApplied += OnAutoCompleteBoxTemplateApplied;
+			Observable.FromEventPattern<TemplateAppliedEventArgs>(_autoCompleteBox, nameof(TemplateApplied))
+				.Subscribe(args =>
+				{
+					_internalTextBox = args.EventArgs.NameScope.Find<TextBox>("PART_TextBox");
+					var suggestionListBox = args.EventArgs.NameScope.Find<ListBox>("PART_SelectingItemsControl");
 
-			_autoCompleteBox.FilterMode = AutoCompleteFilterMode.StartsWith;
+					_internalTextBox.WhenAnyValue(x => x.IsFocused)
+						.Where(isFocused => isFocused == false)
+						.Subscribe(_ => RequestAdd = true)
+						.DisposeWith(_compositeDisposable);
 
-			Disposable.Create(
-					() =>
-					{
-						_autoCompleteBox.TextChanged -= OnAutoCompleteBoxTextChanged;
-						_autoCompleteBox.DropDownClosed -= OnAutoCompleteBoxDropDownClosed;
-						_autoCompleteBox.TemplateApplied -= OnAutoCompleteBoxTemplateApplied;
-					})
+					Observable
+						.FromEventPattern(suggestionListBox, nameof(PointerReleased))
+						.Subscribe(_ => RequestAdd = true)
+						.DisposeWith(_compositeDisposable);
+				})
 				.DisposeWith(_compositeDisposable);
 
 			_autoCompleteBox
@@ -209,6 +223,34 @@ namespace WalletWasabi.Fluent.Controls
 				.DisposeWith(_compositeDisposable);
 
 			LayoutUpdated += OnLayoutUpdated;
+
+			_autoCompleteBox.WhenAnyValue(x => x.Text)
+				.WhereNotNull()
+				.Where(text => text.Contains(TagSeparator))
+				.Subscribe(_ => RequestAdd = true)
+				.DisposeWith(_compositeDisposable);
+
+			this.WhenAnyValue(x => x.RequestAdd)
+				.Where(x => x)
+				.Throttle(TimeSpan.FromMilliseconds(10))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Select(_ => CurrentText)
+				.Subscribe(currentText =>
+				{
+					Dispatcher.UIThread.Post(() => RequestAdd = false);
+					ClearInputField();
+
+					var tags = GetFinalTags(currentText, TagSeparator);
+
+					foreach (string tag in tags)
+					{
+						AddTag(tag);
+					}
+				});
+
+			_autoCompleteBox.WhenAnyValue(x => x.Text)
+				.Subscribe(_ => InvalidateWatermark())
+				.DisposeWith(_compositeDisposable);
 		}
 
 		protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
