@@ -165,7 +165,9 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			base.OnApplyTemplate(e);
 
+			_compositeDisposable?.Dispose();
 			_compositeDisposable = new CompositeDisposable();
+
 			_watermark = e.NameScope.Find<TextBlock>("PART_Watermark");
 			var presenter = e.NameScope.Find<ItemsPresenter>("PART_ItemsPresenter");
 			presenter.ApplyTemplate();

@@ -55,6 +55,7 @@ namespace WalletWasabi.Fluent.Controls
 
 			deleteButton.Click += OnDeleteTagClicked;
 
+			_subscription?.Dispose();
 			_subscription = Disposable.Create(() => deleteButton.Click -= OnDeleteTagClicked);
 		}
 
