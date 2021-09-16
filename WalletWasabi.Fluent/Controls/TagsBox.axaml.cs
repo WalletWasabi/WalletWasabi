@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
@@ -12,14 +11,11 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.LogicalTree;
 using Avalonia.Metadata;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using ReactiveUI;
-using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.Controls
 {
@@ -31,11 +27,8 @@ namespace WalletWasabi.Fluent.Controls
 		private TextBlock? _watermark;
 		private IControl? _containerControl;
 		private StringComparison _stringComparison;
-		private bool _backspaceEmptyField1;
-		private bool _backspaceEmptyField2;
 		private bool _isInputEnabled = true;
-		private IEnumerable? _suggestions;
-		private ICommand? _completedCommand;
+		private IEnumerable<string>? _suggestions;
 		private IEnumerable<string>? _items;
 		private IEnumerable<string>? _topItems;
 		private bool _requestAdd;
@@ -72,17 +65,11 @@ namespace WalletWasabi.Fluent.Controls
 				o => o.TopItems,
 				(o, v) => o.TopItems = v);
 
-		public static readonly DirectProperty<TagsBox, IEnumerable?> SuggestionsProperty =
-			AvaloniaProperty.RegisterDirect<TagsBox, IEnumerable?>(
+		public static readonly DirectProperty<TagsBox, IEnumerable<string>?> SuggestionsProperty =
+			AvaloniaProperty.RegisterDirect<TagsBox, IEnumerable<string>?>(
 				nameof(Suggestions),
 				o => o.Suggestions,
 				(o, v) => o.Suggestions = v);
-
-		public static readonly DirectProperty<TagsBox, ICommand?> CompletedCommandProperty =
-			AvaloniaProperty.RegisterDirect<TagsBox, ICommand?>(
-				nameof(CompletedCommand),
-				o => o.CompletedCommand,
-				(o, v) => o.CompletedCommand = v);
 
 		public static readonly StyledProperty<bool> IsReadOnlyProperty =
 			AvaloniaProperty.Register<TagsBox, bool>(nameof(IsReadOnly));
@@ -136,16 +123,10 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(TagSeparatorProperty, value);
 		}
 
-		public IEnumerable? Suggestions
+		public IEnumerable<string>? Suggestions
 		{
 			get => _suggestions;
 			set => SetAndRaise(SuggestionsProperty, ref _suggestions, value);
-		}
-
-		public ICommand? CompletedCommand
-		{
-			get => _completedCommand;
-			set => SetAndRaise(CompletedCommandProperty, ref _completedCommand, value);
 		}
 
 		public bool IsReadOnly
@@ -253,6 +234,28 @@ namespace WalletWasabi.Fluent.Controls
 				.DisposeWith(_compositeDisposable);
 		}
 
+		private void OnKeyDown(object? sender, KeyEventArgs e)
+		{
+			if (!_isInputEnabled && e.Key != Key.Back)
+			{
+				return;
+			}
+
+			var emptyInputField = string.IsNullOrEmpty(CurrentText);
+
+			switch (e.Key)
+			{
+				case Key.Back when emptyInputField:
+					RemoveLastTag();
+					break;
+
+				case Key.Enter or Key.Tab when !emptyInputField:
+					RequestAdd = true;
+					e.Handled = true;
+					break;
+			}
+		}
+
 		protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
 		{
 			base.OnDetachedFromVisualTree(e);
@@ -288,45 +291,12 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void UpdateCounters()
 		{
-			var containerControl = this.FindDescendantOfType<TagControl>()?.Parent?.Parent;
+			var tagItems = _containerControl.GetVisualDescendants().OfType<TagControl>().ToArray();
 
-			if (containerControl is { })
+			for (var i = 0; i < tagItems.Length; i++)
 			{
-				var tagItems = containerControl.GetVisualDescendants().OfType<TagControl>().ToArray();
-
-				for (var i = 0; i < tagItems.Length; i++)
-				{
-					tagItems[i].OrdinalIndex = i + 1;
-				}
+				tagItems[i].OrdinalIndex = i + 1;
 			}
-		}
-
-		private void OnAutoCompleteBoxTemplateApplied(object? sender, TemplateAppliedEventArgs e)
-		{
-			_internalTextBox = e.NameScope.Find<TextBox>("PART_TextBox");
-			_internalTextBox.WhenAnyValue(x => x.IsFocused)
-				.Subscribe(isFocused =>
-				{
-					if (isFocused || !_isInputEnabled || string.IsNullOrWhiteSpace(_internalTextBox.Text) || _autoCompleteBox is { IsDropDownOpen: true })
-					{
-						return;
-					}
-
-					var currentText = (_autoCompleteBox?.Text ?? "").Trim();
-
-					if (RestrictInputToSuggestions &&
-						Suggestions is IList<string> suggestions &&
-						!suggestions.Any(x => x.Equals(currentText, _stringComparison)))
-					{
-						return;
-					}
-
-					AddTag(currentText);
-					BackspaceLogicClear();
-					_autoCompleteBox?.ClearValue(AutoCompleteBox.SelectedItemProperty);
-					Dispatcher.UIThread.Post(() => _autoCompleteBox?.ClearValue(AutoCompleteBox.TextProperty));
-				})
-				.DisposeWith(_compositeDisposable!);
 		}
 
 		protected override void OnGotFocus(GotFocusEventArgs e)
@@ -338,24 +308,17 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void CheckIsInputEnabled()
 		{
-			if (Items is IList x && ItemCountLimit > 0)
+			if (Items is IList items && ItemCountLimit > 0)
 			{
-				_isInputEnabled = x.Count < ItemCountLimit;
+				_isInputEnabled = items.Count < ItemCountLimit;
 			}
 		}
 
 		private void InvalidateWatermark()
 		{
-			if (_watermark is { } && _autoCompleteBox is { })
+			if (_watermark is { })
 			{
-				if ((Items is null || (Items is { } && !Items.Any())) && string.IsNullOrEmpty(_autoCompleteBox?.Text))
-				{
-					_watermark.IsVisible = true;
-				}
-				else
-				{
-					_watermark.IsVisible = false;
-				}
+				_watermark.IsVisible = (Items is null || (Items is { } && !Items.Any())) && string.IsNullOrEmpty(CurrentText);
 			}
 		}
 
@@ -366,18 +329,19 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
-			if (!_isInputEnabled)
+			var typedFullText = autoCompleteBox.SearchText + e.Text;
+
+			if (!_isInputEnabled ||
+			    (typedFullText is { Length: 1 } && typedFullText.StartsWith(TagSeparator)) ||
+			    string.IsNullOrEmpty(typedFullText.ParseLabel()))
 			{
 				e.Handled = true;
 				return;
 			}
 
-			InvalidateWatermark();
-
 			if (RestrictInputToSuggestions &&
-				Suggestions is IList<string> suggestions &&
-				!suggestions.Any(x =>
-					x.StartsWith(autoCompleteBox.SearchText, _stringComparison)))
+				Suggestions is { } suggestions &&
+				!suggestions.Any(x => x.StartsWith(typedFullText, _stringComparison)))
 			{
 				e.Handled = true;
 			}
@@ -388,133 +352,6 @@ namespace WalletWasabi.Fluent.Controls
 			if (property == ItemsProperty)
 			{
 				DataValidationErrors.SetError(this, value.Error);
-			}
-		}
-
-		private void OnAutoCompleteBoxDropDownClosed(object? sender, EventArgs e)
-		{
-			if (sender is not AutoCompleteBox autoCompleteBox)
-			{
-				return;
-			}
-
-			if (_internalTextBox is null)
-			{
-				return;
-			}
-
-			var currentText = (autoCompleteBox.Text ?? "").Trim();
-
-			if (currentText.Length == 0 ||
-				autoCompleteBox.SelectedItem is not string selItem ||
-				selItem.Length == 0 ||
-				currentText != selItem)
-			{
-				return;
-			}
-
-			AddTag(currentText);
-			BackspaceLogicClear();
-			autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
-			Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
-		}
-
-		private void BackspaceLogicClear()
-		{
-			_backspaceEmptyField2 = _backspaceEmptyField1 = true;
-		}
-
-		private void OnAutoCompleteBoxTextChanged(object? sender, EventArgs e)
-		{
-			InvalidateWatermark();
-
-			if (sender is not AutoCompleteBox autoCompleteBox ||
-				string.IsNullOrEmpty(Guard.Correct(autoCompleteBox.Text)))
-			{
-				return;
-			}
-
-			var currentText = autoCompleteBox.Text ?? "";
-			var endsWithSeparator = currentText.EndsWith(TagSeparator);
-			currentText = currentText.Trim();
-
-			var splitTags = currentText.Split(TagSeparator);
-
-			if (splitTags.Length <= 1)
-			{
-				var tag = splitTags[0];
-
-				if (!_isInputEnabled ||
-					!endsWithSeparator)
-				{
-					return;
-				}
-
-				if (RestrictInputToSuggestions && Suggestions is { } &&
-					!Suggestions.Cast<string>().Any(
-						x => x.Equals(tag, _stringComparison)))
-				{
-					return;
-				}
-
-				AddTag(tag);
-				BackspaceLogicClear();
-				autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
-				Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
-			}
-			else
-			{
-				foreach (var tag in splitTags)
-				{
-					if (string.IsNullOrWhiteSpace(tag))
-					{
-						continue;
-					}
-
-					if (RestrictInputToSuggestions && Suggestions is { } &&
-						!Suggestions.Cast<string>().Any(
-							x => x.Equals(tag, _stringComparison)))
-					{
-						continue;
-					}
-
-					AddTag(tag);
-					BackspaceLogicClear();
-					Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
-				}
-			}
-		}
-
-		private void OnKeyDown(object? sender, KeyEventArgs e)
-		{
-			if (!_isInputEnabled && e.Key != Key.Back)
-			{
-				return;
-			}
-
-			var emptyInputField = string.IsNullOrEmpty(CurrentText);
-
-			switch (e.Key)
-			{
-				case Key.Back when emptyInputField:
-					RemoveLastTag();
-					break;
-
-				case Key.Enter or Key.Tab when !emptyInputField:
-					RequestAdd = true;
-					e.Handled = true;
-					break;
-			}
-		}
-
-		private void ExecuteCompletedCommand()
-		{
-			if (Items is IList x && x.Count >= ItemCountLimit)
-			{
-				if (CompletedCommand is { } && CompletedCommand.CanExecute(null))
-				{
-					CompletedCommand.Execute(null);
-				}
 			}
 		}
 
