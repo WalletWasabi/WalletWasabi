@@ -15,8 +15,17 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 		public SigningState(MultipartyTransactionParameters parameters, IEnumerable<Coin> inputs, IEnumerable<TxOut> outputs)
 			: base(parameters)
 		{
-			Inputs = inputs.ToImmutableList();
-			Outputs = outputs.ToImmutableList();
+			Inputs = inputs
+				.OrderByDescending(x => x.Amount)
+				.ThenBy(x => x.Outpoint.ToBytes(), ByteArrayComparer.Comparer)
+				.ToImmutableList();
+
+			Outputs = outputs
+				.GroupBy(x => x.ScriptPubKey)
+				.Select(x => new TxOut(x.Sum(y => y.Value), x.Key))
+				.OrderByDescending(x => x.Value)
+				.ThenBy(x => x.ScriptPubKey.ToBytes(true), ByteArrayComparer.Comparer)
+				.ToImmutableList();
 		}
 
 		public ImmutableDictionary<int, WitScript> Witnesses { get; init; } = ImmutableDictionary<int, WitScript>.Empty;
@@ -24,17 +33,13 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 		public bool IsFullySigned => Witnesses.Count == Inputs.Count;
 
 		[JsonIgnore]
-		public IEnumerable<Coin> UnsignedInputs => GetSortedInputs().Where((_, i) => !IsInputSigned(i));
+		public IEnumerable<Coin> UnsignedInputs => Inputs.Where((_, i) => !IsInputSigned(i));
 
 		public bool IsInputSigned(int index) => Witnesses.ContainsKey(index);
 
 		public bool IsInputSigned(OutPoint prevout) => IsInputSigned(GetInputIndex(prevout));
 
-		public int GetInputIndex(OutPoint prevout) =>
-			GetSortedInputs()
-			.Select((x,i) => (OutPoint: x.Outpoint, Index: i))
-			.First(x => x.OutPoint == prevout)
-			.Index; // this is inefficient but is only used in tests, see also dotnet/runtime#45366
+		public int GetInputIndex(OutPoint prevout) => Inputs.ToList().FindIndex(coin => coin.Outpoint == prevout); // this is inefficient but is only used in tests, see also dotnet/runtime#45366
 
 		public SigningState AddWitness(int index, WitScript witness)
 		{
@@ -54,7 +59,7 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 			IndexedTxIn currentIndexedInput = cjCopy.Inputs.AsIndexedInputs().Skip(index).First();
 
 			// 4. Find the corresponding registered input.
-			Coin registeredCoin = Inputs.Single(x => x.Outpoint == currentIndexedInput.PrevOut);
+			Coin registeredCoin = Inputs[index];
 
 			// 5. Verify if currentIndexedInput is correctly signed, if not, return the specific error.
 			if (!currentIndexedInput.VerifyScript(registeredCoin, out ScriptError error))
@@ -69,18 +74,14 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 		{
 			var tx = Parameters.CreateTransaction();
 
-			foreach (var coin in GetSortedInputs())
+			foreach (var coin in Inputs)
 			{
 				// implied:
 				// nSequence = FINAL
 				tx.Inputs.Add(coin.Outpoint);
 			}
 
-			foreach (var txout in Outputs
-				.GroupBy(x => x.ScriptPubKey)
-				.Select(x => new TxOut(x.Sum(y => y.Value), x.Key))
-				.OrderByDescending(x => x.Value)
-				.ThenBy(x => x.ScriptPubKey.ToBytes(true), ByteArrayComparer.Comparer))
+			foreach (var txout in Outputs)
 			{
 				tx.Outputs.Add(txout);
 			}
@@ -99,10 +100,5 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 
 			return tx;
 		}
-
-		private IEnumerable<Coin> GetSortedInputs() =>
-			Inputs
-				.OrderByDescending(x => x.Amount)
-				.ThenBy(x => x.Outpoint.ToBytes(), ByteArrayComparer.Comparer);
 	}
 }
