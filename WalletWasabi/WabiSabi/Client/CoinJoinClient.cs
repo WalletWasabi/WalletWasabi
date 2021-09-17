@@ -268,6 +268,7 @@ namespace WalletWasabi.WabiSabi.Client
 				.OrderBy(x => x.HdPubKey.AnonymitySet)
 				.ThenByDescending(x => x.Amount)
 				.Take(MaxInputsRegistrableByWallet)
+				.ToShuffled()
 				.ToImmutableList();
 	}
 }
