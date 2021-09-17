@@ -258,13 +258,6 @@ namespace WalletWasabi.Fluent.Controls
 			}
 		}
 
-		protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
-		{
-			base.OnDetachedFromVisualTree(e);
-
-			_compositeDisposable?.Dispose();
-		}
-
 		private void ClearInputField()
 		{
 			_autoCompleteBox?.ClearValue(AutoCompleteBox.SelectedItemProperty);
