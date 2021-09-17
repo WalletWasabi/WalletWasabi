@@ -2,7 +2,6 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
-using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
@@ -33,7 +32,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 			SuggestionLabels = new SuggestionLabelsViewModel(3);
 
-			NextCommand = ReactiveCommand.Create(OnNext, SuggestionLabels.WhenAnyValue(x => x.Labels.Count).Select(c => c > 0));
+			var nextCommandCanExecute =
+				SuggestionLabels
+					.WhenAnyValue(x => x.Labels.Count).Select(c => c > 0)
+					.Merge(SuggestionLabels.WhenAnyValue(x => x.IsCurrentTextValid))
+					.Select(_ => SuggestionLabels.Labels.Count > 0 || SuggestionLabels.IsCurrentTextValid);
+
+			NextCommand = ReactiveCommand.Create(OnNext, nextCommandCanExecute);
 
 			ShowExistingAddressesCommand = ReactiveCommand.Create(OnShowExistingAddresses);
 		}

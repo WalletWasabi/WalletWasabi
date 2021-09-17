@@ -10,12 +10,14 @@ using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels
 {
-	public class SuggestionLabelsViewModel : ViewModelBase
+	public partial class SuggestionLabelsViewModel : ViewModelBase
 	{
 		private readonly SourceList<SuggestionLabelViewModel> _sourceLabels;
 		private readonly ObservableCollectionExtended<string> _topSuggestions;
 		private readonly ObservableCollectionExtended<string> _suggestions;
 		private readonly ObservableCollectionExtended<string> _labels;
+
+		[AutoNotify] private bool _isCurrentTextValid;
 
 		public SuggestionLabelsViewModel(int topSuggestionsCount)
 		{
