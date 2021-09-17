@@ -165,6 +165,7 @@ namespace WalletWasabi.WabiSabi.Client
 			{
 				try
 				{
+					// Alice client requests are inherently linkable to each other, so the circuit can be reused
 					var arenaRequestHandler = new WabiSabiHttpApiClient(HttpClientFactory.NewBackendHttpClient(Mode.SingleCircuitPerLifetime));
 
 					var aliceArenaClient = new ArenaClient(
