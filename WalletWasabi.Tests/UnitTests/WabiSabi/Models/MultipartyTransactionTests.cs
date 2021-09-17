@@ -120,7 +120,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			using Key key2 = new();
 
 			var alice1Coin = CreateCoin(script: key1.PubKey.WitHash.ScriptPubKey);
-			var alice2Coin = CreateCoin(script: key1.PubKey.WitHash.ScriptPubKey);
+			var alice2Coin = CreateCoin(script: key2.PubKey.WitHash.ScriptPubKey);
 
 			var state = new ConstructionState(DefaultParameters).AddInput(alice1Coin).AddInput(alice2Coin);
 
@@ -138,20 +138,31 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			var alice2Tx = tx.Clone();
 			alice2Tx.Sign(key2.GetBitcoinSecret(Network.Main), alice2Coin);
 
+			var alice1SignedInput = alice1Tx.Inputs.Select((x, i) => (Input: x, Index: i)).Single(x => x.Input.HasWitScript());
+			var alice2SignedInput = alice2Tx.Inputs.Select((x, i) => (Input: x, Index: i)).Single(x => x.Input.HasWitScript());
+
+			var validSignatures = new[] { alice1SignedInput, alice2SignedInput };
+
+			var invalidSignatures = Enumerable.Concat(alice1Tx.Inputs, alice2Tx.Inputs)
+				.SelectMany(x => Enumerable.Range(0, 2), (input, idx) => (Input: input, Index: idx))
+				.Except(validSignatures);
+
 			// Only accept valid witnesses
-			ThrowsProtocolException(WabiSabiProtocolErrorCode.WrongCoinjoinSignature, () => noFeeTx.AddWitness(1, alice1Tx.Inputs[0].WitScript));
-			ThrowsProtocolException(WabiSabiProtocolErrorCode.WrongCoinjoinSignature, () => noFeeTx.AddWitness(1, alice1Tx.Inputs[1].WitScript));
-			ThrowsProtocolException(WabiSabiProtocolErrorCode.WrongCoinjoinSignature, () => noFeeTx.AddWitness(0, alice1Tx.Inputs[1].WitScript));
-			ThrowsProtocolException(WabiSabiProtocolErrorCode.WrongCoinjoinSignature, () => noFeeTx.AddWitness(0, alice2Tx.Inputs[0].WitScript));
-			ThrowsProtocolException(WabiSabiProtocolErrorCode.WrongCoinjoinSignature, () => noFeeTx.AddWitness(0, alice2Tx.Inputs[1].WitScript));
-			ThrowsProtocolException(WabiSabiProtocolErrorCode.WrongCoinjoinSignature, () => noFeeTx.AddWitness(1, alice2Tx.Inputs[0].WitScript));
+			foreach (var invalidSignature in invalidSignatures)
+			{
+				ThrowsProtocolException(WabiSabiProtocolErrorCode.WrongCoinjoinSignature, () => noFeeTx.AddWitness(invalidSignature.Index, invalidSignature.Input.WitScript));
+			}
 
 			// Add Alice 1's signature
-			var alice1Sig = noFeeTx.AddWitness(0, alice1Tx.Inputs[0].WitScript);
+			var alice1Sig = noFeeTx.AddWitness(alice1SignedInput.Index, alice1SignedInput.Input.WitScript);
 			Assert.False(alice1Sig.IsFullySigned);
 
+			// Add Alice 2's signature
+			var alice2Sig = alice1Sig.AddWitness(alice2SignedInput.Index, alice2SignedInput.Input.WitScript);
+			Assert.True(alice2Sig.IsFullySigned);
+
 			// Witness can only be accepted once per input
-			ThrowsProtocolException(WabiSabiProtocolErrorCode.WitnessAlreadyProvided, () => alice1Sig.AddWitness(0, alice1Tx.Inputs[0].WitScript));
+			ThrowsProtocolException(WabiSabiProtocolErrorCode.WitnessAlreadyProvided, () => alice1Sig.AddWitness(alice1SignedInput.Index, alice1SignedInput.Input.WitScript));
 		}
 
 		[Fact]
@@ -183,27 +194,25 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 
 			var tx = generousFeeTx.CreateUnsignedTransaction();
 
-			Assert.Collection(
-				tx.Inputs.Select(x => x.PrevOut),
-				outpoint => Assert.Equal(alice1Coin.Outpoint, outpoint),
-				outpoint => Assert.Equal(alice2Coin.Outpoint, outpoint));
+			Assert.Contains(alice1Coin.Outpoint, tx.Inputs.Select(x => x.PrevOut));
+			Assert.Contains(alice2Coin.Outpoint, tx.Inputs.Select(x => x.PrevOut));
 
-			Assert.Collection(
-				tx.Outputs.Select(x => x.ScriptPubKey),
-				scriptPubKey => Assert.Equal(alice1Coin.ScriptPubKey, scriptPubKey),
-				scriptPubKey => Assert.Equal(alice2Coin.ScriptPubKey, scriptPubKey));
+			Assert.Contains(alice1Coin.ScriptPubKey, tx.Outputs.Select(x => x.ScriptPubKey));
+			Assert.Contains(alice2Coin.ScriptPubKey, tx.Outputs.Select(x => x.ScriptPubKey));
 
 			var alice1Tx = tx.Clone();
 			alice1Tx.Sign(key1.GetBitcoinSecret(Network.Main), alice1Coin);
 
-			var alice1Sig = generousFeeTx.AddWitness(0, alice1Tx.Inputs[0].WitScript);
+			var alice1SignedInput = alice1Tx.Inputs.Select((x, i) => (Input: x, Index: i)).Single(x => x.Input.HasWitScript());
+			var alice1Sig = generousFeeTx.AddWitness(alice1SignedInput.Index, alice1SignedInput.Input.WitScript);
 			Assert.False(alice1Sig.IsFullySigned);
 			Assert.Equal(alice1Tx.ToString(), alice1Sig.CreateTransaction().ToString());
 
 			var alice2Tx = tx.Clone();
 			alice2Tx.Sign(key2.GetBitcoinSecret(Network.Main), alice2Coin);
 
-			var alice2Sig = alice1Sig.AddWitness(1, alice2Tx.Inputs[1].WitScript);
+			var alice2SignedInput = alice2Tx.Inputs.Select((x, i) => (Input: x, Index: i)).Single(x => x.Input.HasWitScript());
+			var alice2Sig = alice1Sig.AddWitness(alice2SignedInput.Index, alice2SignedInput.Input.WitScript);
 			Assert.True(alice2Sig.IsFullySigned);
 
 			var signed = alice2Sig.CreateTransaction();
