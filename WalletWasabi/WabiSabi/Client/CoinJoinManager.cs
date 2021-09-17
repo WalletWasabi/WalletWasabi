@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
@@ -30,6 +31,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public RoundStateUpdater RoundStatusUpdater { get; }
 		public ServiceConfiguration ServiceConfiguration { get; }
 		private ImmutableDictionary<string, WalletTrackingData> TrackedWallets { get; set; } = ImmutableDictionary<string, WalletTrackingData>.Empty;
+		private List<(SmartCoin Coin, DateTimeOffset ExpirationTime)> CoinsInQuarantine { get; } = new ();
 
 		public CoinJoinClientState HighestCoinJoinClientState
 		{
@@ -68,10 +70,10 @@ namespace WalletWasabi.WabiSabi.Client
 				{
 					var coinjoinClient = new CoinJoinClient(ArenaRequestHandler, openedWallet.Kitchen, openedWallet.KeyManager, RoundStatusUpdater);
 					var cts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
-					var coinCandidates = openedWallet.Coins.Available().Confirmed().Where(x => x.HdPubKey.AnonymitySet < ServiceConfiguration.GetMixUntilAnonymitySetValue());
+					IEnumerable<SmartCoin> coinCandidates = SelectCandidateCoins(openedWallet);
 					var coinjoinTask = coinjoinClient.StartCoinJoinAsync(coinCandidates, cts.Token);
 
-					trackedWallets.Add(openedWallet.WalletName, new WalletTrackingData(openedWallet, coinjoinClient, coinjoinTask, cts));
+					trackedWallets.Add(openedWallet.WalletName, new WalletTrackingData(openedWallet, coinjoinClient, coinjoinTask, coinCandidates.ToArray(), cts));
 				}
 
 				foreach (var closedWallet in closedWallets.Select(x => x.Value))
@@ -109,11 +111,12 @@ namespace WalletWasabi.WabiSabi.Client
 						{
 							Logger.LogInfo($"{logPrefix} finished with error. Transaction not broadcasted.");
 						}
+						QuarantineParticipantCoins(finishedCoinJoin.Coins);
 					}
 					catch (InvalidOperationException ioe)
 					{
 						Logger.LogError(ioe);
-						await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken).ConfigureAwait(false);
+						QuarantineParticipantCoins(finishedCoinJoin.Coins);
 					}
 					catch (OperationCanceledException)
 					{
@@ -126,7 +129,38 @@ namespace WalletWasabi.WabiSabi.Client
 				}
 
 				TrackedWallets = trackedWallets.ToImmutableDictionary();
+				CleanQuarantineCoins();
 			}
+		}
+
+		private IEnumerable<SmartCoin> SelectCandidateCoins(Wallet openedWallet)
+		{
+			var now = DateTimeOffset.UtcNow;
+			var coinsStillInQuarantine = CoinsInQuarantine
+				.Where(x => x.ExpirationTime > now)
+				.Select(x => x.Coin)
+				.ToHashSet();
+
+			return openedWallet.Coins
+				.Available()
+				.Confirmed()
+				.Where(x => x.HdPubKey.AnonymitySet < ServiceConfiguration.GetMixUntilAnonymitySetValue())
+				.Where(x => !coinsStillInQuarantine.Contains(x));
+		}
+
+		private void QuarantineParticipantCoins(SmartCoin[] coins)
+		{
+			var expirationDate = DateTimeOffset.UtcNow + TimeSpan.FromSeconds(90);
+
+			foreach (var coin in coins)
+			{
+				CoinsInQuarantine.Add((coin, expirationDate));
+			}
+		}
+
+		private void CleanQuarantineCoins()
+		{
+			CoinsInQuarantine.RemoveAll(x => x.ExpirationTime < DateTimeOffset.UtcNow);
 		}
 
 		private ImmutableDictionary<string, Wallet> GetMixableWallets() =>
@@ -137,6 +171,6 @@ namespace WalletWasabi.WabiSabi.Client
 				.Where(x => x.Kitchen.HasIngredients)
 				.ToImmutableDictionary(x => x.WalletName, x => x);
 
-		private record WalletTrackingData(Wallet Wallet, CoinJoinClient CoinJoinClient, Task<bool> CoinJoinTask, CancellationTokenSource CancellationTokenSource);
+		private record WalletTrackingData(Wallet Wallet, CoinJoinClient CoinJoinClient, Task<bool> CoinJoinTask, SmartCoin[] Coins, CancellationTokenSource CancellationTokenSource);
 	}
 }
