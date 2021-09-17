@@ -10,17 +10,19 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
+using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 {
 	internal class Participant
 	{
-		public Participant(IRPCClient rpc, WabiSabiHttpApiClient apiClient)
+		public Participant(IRPCClient rpc, IBackendHttpClientFactory httpClientFactory)
 		{
 			Rpc = rpc;
-			ApiClient = apiClient;
+			HttpClientFactory = httpClientFactory;
 
 			KeyManager = KeyManager.CreateNew(out var _, password: "");
 			KeyManager.AssertCleanKeysIndexed();
@@ -29,7 +31,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 		public KeyManager KeyManager { get; }
 		public List<SmartCoin> Coins { get; } = new();
 		public IRPCClient Rpc { get; }
-		public WabiSabiHttpApiClient ApiClient { get; }
+		public IBackendHttpClientFactory HttpClientFactory { get; }
 
 		private Coin? SourceCoin { get; set; }
 
@@ -81,13 +83,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 		public async Task StartParticipatingAsync(CancellationToken cancellationToken)
 		{
-			using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(3), ApiClient);
+			var apiClient = new WabiSabiHttpApiClient(HttpClientFactory.NewBackendHttpClient(Mode.DefaultCircuit));
+			using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(3), apiClient);
 			await roundStateUpdater.StartAsync(cancellationToken).ConfigureAwait(false);
 
 			var kitchen = new Kitchen();
 			kitchen.Cook("");
 
-			var coinJoinClient = new CoinJoinClient(ApiClient, kitchen, KeyManager, roundStateUpdater);
+			var coinJoinClient = new CoinJoinClient(HttpClientFactory, kitchen, KeyManager, roundStateUpdater);
 
 			// Run the coinjoin client task.
 			await coinJoinClient.StartCoinJoinAsync(Coins, cancellationToken).ConfigureAwait(false);

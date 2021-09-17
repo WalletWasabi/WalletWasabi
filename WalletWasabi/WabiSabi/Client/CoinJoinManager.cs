@@ -17,16 +17,16 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class CoinJoinManager : BackgroundService
 	{
-		public CoinJoinManager(WalletManager walletManager, RoundStateUpdater roundStatusUpdater, HttpClientFactory backendHttpClientFactory, ServiceConfiguration serviceConfiguration)
+		public CoinJoinManager(WalletManager walletManager, RoundStateUpdater roundStatusUpdater, IBackendHttpClientFactory backendHttpClientFactory, ServiceConfiguration serviceConfiguration)
 		{
 			WalletManager = walletManager;
-			ArenaRequestHandler = new WabiSabiHttpApiClient(backendHttpClientFactory.NewBackendHttpClient(Mode.SingleCircuitPerLifetime));
+			HttpClientFactory = backendHttpClientFactory;
 			RoundStatusUpdater = roundStatusUpdater;
 			ServiceConfiguration = serviceConfiguration;
 		}
 
 		public WalletManager WalletManager { get; }
-		public IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
+		public IBackendHttpClientFactory HttpClientFactory { get; }
 		public RoundStateUpdater RoundStatusUpdater { get; }
 		public ServiceConfiguration ServiceConfiguration { get; }
 		private ImmutableDictionary<string, WalletTrackingData> TrackedWallets { get; set; } = ImmutableDictionary<string, WalletTrackingData>.Empty;
@@ -66,7 +66,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 				foreach (var openedWallet in openedWallets.Select(x => x.Value))
 				{
-					var coinjoinClient = new CoinJoinClient(ArenaRequestHandler, openedWallet.Kitchen, openedWallet.KeyManager, RoundStatusUpdater);
+					var coinjoinClient = new CoinJoinClient(HttpClientFactory, openedWallet.Kitchen, openedWallet.KeyManager, RoundStatusUpdater);
 					var cts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
 					var coinCandidates = openedWallet.Coins.Available().Confirmed().Where(x => x.HdPubKey.AnonymitySet < ServiceConfiguration.GetMixUntilAnonymitySetValue());
 					var coinjoinTask = coinjoinClient.StartCoinJoinAsync(coinCandidates, cts.Token);
