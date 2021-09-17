@@ -136,9 +136,9 @@ namespace WalletWasabi.Blockchain.Keys
 
 		public BitcoinPubKeyAddress GetP2pkhAddress(Network network) => (BitcoinPubKeyAddress)PubKey.GetAddress(ScriptPubKeyType.Legacy, network);
 
-		public BitcoinWitPubKeyAddress GetP2wpkhAddress(Network network) => PubKey.GetSegwitAddress(network);
+		public BitcoinWitPubKeyAddress GetP2wpkhAddress(Network network) => (BitcoinWitPubKeyAddress)PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
 
-		public BitcoinScriptAddress GetP2shOverP2wpkhAddress(Network network) => P2wpkhScript.GetScriptAddress(network);
+		public BitcoinScriptAddress GetP2shOverP2wpkhAddress(Network network) => (BitcoinScriptAddress)PubKey.GetAddress(ScriptPubKeyType.SegwitP2SH, network);
 
 		public bool ContainsScript(Script scriptPubKey)
 		{
