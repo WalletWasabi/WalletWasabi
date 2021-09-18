@@ -1,21 +1,17 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Moq;
 using NBitcoin;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.Tor.Http;
+using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -23,6 +19,7 @@ using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Wallets;
+using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
@@ -114,15 +111,21 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 				});
 			}).CreateClient();
 
+
 			// Create the coinjoin client
 			var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
+			var mockHttpClientFactory = new Mock<IBackendHttpClientFactory>();
+			mockHttpClientFactory
+				.Setup(factory => factory.NewBackendHttpClient(It.IsAny<Mode>()))
+				.Returns(new HttpClientWrapper(httpClient));
+
 			using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(1), apiClient);
 			await roundStateUpdater.StartAsync(CancellationToken.None);
 
 			var kitchen = new Kitchen();
 			kitchen.Cook("");
 
-			var coinJoinClient = new CoinJoinClient(apiClient, kitchen, keyManager, roundStateUpdater);
+			var coinJoinClient = new CoinJoinClient(mockHttpClientFactory.Object, kitchen, keyManager, roundStateUpdater);
 
 			// Run the coinjoin client task.
 			Assert.True(await coinJoinClient.StartCoinJoinAsync(coins, cts.Token));
@@ -203,6 +206,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 			// Create the coinjoin client
 			var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
+			var mockHttpClientFactory = new Mock<IBackendHttpClientFactory>();
+			mockHttpClientFactory
+				.Setup(factory => factory.NewBackendHttpClient(It.IsAny<Mode>()))
+				.Returns(new HttpClientWrapper(httpClient));
+
 			using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(1), apiClient);
 			await roundStateUpdater.StartAsync(CancellationToken.None);
 
@@ -211,13 +219,29 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var kitchen = new Kitchen();
 			kitchen.Cook("");
 
-			var coinJoinClient = new CoinJoinClient(apiClient, kitchen, keyManager1, roundStateUpdater);
+			var coinJoinClient = new CoinJoinClient(mockHttpClientFactory.Object, kitchen, keyManager1, roundStateUpdater);
 
 			// Run the coinjoin client task.
 			var coinJoinTask = Task.Run(async () => await coinJoinClient.StartCoinJoinAsync(coins, cts.Token).ConfigureAwait(false), cts.Token);
 
-			var noSignatureApiClient = new SignatureDroppingClient(new HttpClientWrapper(httpClient));
-			var badCoinJoinClient = new CoinJoinClient(noSignatureApiClient, kitchen, keyManager2, roundStateUpdater);
+			// Creates a IBackendHttpClientFactory that creates an HttpClient that says everything is okay
+			// when a signature is sent but it doesn't really send it.
+			var nonSigningHttpClient = new Mock<HttpClientWrapper>(httpClient);
+			nonSigningHttpClient
+				.Setup(httpClient => httpClient.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
+				.CallBase();
+			nonSigningHttpClient
+				.Setup(httpClient => httpClient.SendAsync(It.Is<HttpRequestMessage>(
+					req => req.RequestUri!.AbsolutePath.Contains("transaction-signature")),
+					It.IsAny<CancellationToken>()))
+				.ThrowsAsync(new HttpRequestException("Something was wrong posting the signature."));
+
+			var mockNonSigningHttpClientFactory = new Mock<IBackendHttpClientFactory>();
+			mockNonSigningHttpClientFactory
+				.Setup(factory => factory.NewBackendHttpClient(It.IsAny<Mode>()))
+				.Returns(nonSigningHttpClient.Object);
+
+			var badCoinJoinClient = new CoinJoinClient(mockNonSigningHttpClientFactory.Object, kitchen, keyManager2, roundStateUpdater);
 			var badCoinsTask = Task.Run(async () => await badCoinJoinClient.StartRoundAsync(badCoins, roundState, cts.Token).ConfigureAwait(false), cts.Token);
 
 			await Task.WhenAll(new Task[] { badCoinsTask, coinJoinTask });
@@ -265,12 +289,17 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 					});
 				});
 
+				var mockHttpClientFactory = new Mock<IBackendHttpClientFactory>();
+				mockHttpClientFactory
+					.Setup(factory => factory.NewBackendHttpClient(It.IsAny<Mode>()))
+					.Returns(new HttpClientWrapper(app.CreateClient()));
+
 				// Total test timeout.
 				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20 * ExpectedInputNumber));
 
 				var participants = Enumerable
 					.Range(0, NumberOfParticipants)
-					.Select(_ => new Participant(rpc, _apiApplicationFactory.CreateWabiSabiHttpApiClient(app.CreateClient())))
+					.Select(_ => new Participant(rpc, mockHttpClientFactory.Object))
 					.ToArray();
 
 				foreach (var participant in participants)
@@ -398,18 +427,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 				Assert.Equal(content1, content2);
 				return result2;
-			}
-		}
-
-		private class SignatureDroppingClient : WabiSabiHttpApiClient
-		{
-			public SignatureDroppingClient(IHttpClient client) : base(client)
-			{
-			}
-
-			public override Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken)
-			{
-				return Task.CompletedTask;
 			}
 		}
 	}

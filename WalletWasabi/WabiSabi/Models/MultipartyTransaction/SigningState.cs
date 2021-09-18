@@ -1,9 +1,11 @@
 using NBitcoin;
 using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Backend.Models;
 
 namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
@@ -13,8 +15,17 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 		public SigningState(MultipartyTransactionParameters parameters, IEnumerable<Coin> inputs, IEnumerable<TxOut> outputs)
 			: base(parameters)
 		{
-			Inputs = inputs.ToImmutableList();
-			Outputs = outputs.ToImmutableList();
+			Inputs = inputs
+				.OrderByDescending(x => x.Amount)
+				.ThenBy(x => x.Outpoint.ToBytes(), ByteArrayComparer.Comparer)
+				.ToImmutableList();
+
+			Outputs = outputs
+				.GroupBy(x => x.ScriptPubKey)
+				.Select(x => new TxOut(x.Sum(y => y.Value), x.Key))
+				.OrderByDescending(x => x.Value)
+				.ThenBy(x => x.ScriptPubKey.ToBytes(true), ByteArrayComparer.Comparer)
+				.ToImmutableList();
 		}
 
 		public ImmutableDictionary<int, WitScript> Witnesses { get; init; } = ImmutableDictionary<int, WitScript>.Empty;
@@ -72,7 +83,7 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 
 			foreach (var txout in Outputs)
 			{
-				tx.Outputs.AddWithOptimize(txout.Value, txout.ScriptPubKey);
+				tx.Outputs.Add(txout);
 			}
 
 			return tx;

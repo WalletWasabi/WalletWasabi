@@ -59,13 +59,6 @@ namespace WalletWasabi.Fluent.Controls
 			_subscription = Disposable.Create(() => deleteButton.Click -= OnDeleteTagClicked);
 		}
 
-		protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
-		{
-			base.OnDetachedFromVisualTree(e);
-
-			_subscription?.Dispose();
-		}
-
 		private void OnDeleteTagClicked(object? sender, RoutedEventArgs e)
 		{
 			_parentTagBox?.RemoveAt(OrdinalIndex - 1);

@@ -70,7 +70,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockProvider);
 			wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
 
-			var scp = new Key().ScriptPubKey;
+			var scp = new Key().PubKey.GetAddress(ScriptPubKeyType.Legacy, Network.Main);
 
 			PaymentIntent validIntent = new(scp, Money.Coins(1));
 			PaymentIntent invalidIntent = new(new DestinationRequest(scp, Money.Coins(10 * 1000 * 1000)), new DestinationRequest(scp, Money.Coins(12 * 1000 * 1000)));
@@ -226,7 +226,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// Generate script
 			using var k = new Key();
-			var scp = k.ScriptPubKey;
+			var scp = k.PubKey.GetAddress(ScriptPubKeyType.Legacy, Network.Main);
 
 			// Get some money, make it confirm.
 			var key = keyManager.GetNextReceiveKey("foo label", out _);
@@ -334,7 +334,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				{
 					if (onAddress)
 					{
-						overwriteTx.Outputs.Add(new TxOut(invalidOutput.Value, new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network)));
+						overwriteTx.Outputs.Add(new TxOut(invalidOutput.Value, new Key().GetAddress(ScriptPubKeyType.Segwit, network)));
 					}
 					else
 					{

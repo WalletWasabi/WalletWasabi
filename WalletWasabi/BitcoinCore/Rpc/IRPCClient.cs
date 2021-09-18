@@ -40,7 +40,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 
 		Task<MemPoolInfo> GetMempoolInfoAsync(CancellationToken cancel = default);
 
-		Task<MempoolAcceptResult> TestMempoolAcceptAsync(Transaction transaction, bool allowHighFees = false);
+		Task<MempoolAcceptResult> TestMempoolAcceptAsync(Transaction transaction);
 
 		Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative);
 
@@ -48,7 +48,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 
 		IRPCClient PrepareBatch();
 
-		Task<uint256> SendToAddressAsync(BitcoinAddress address, Money amount, string? commentTx = null, string? commentDest = null, bool subtractFeeFromAmount = false, bool replaceable = false);
+		Task<uint256> SendToAddressAsync(BitcoinAddress address, Money amount, bool replaceable = false);
 
 		Task<uint256> GetBlockHashAsync(int height);
 

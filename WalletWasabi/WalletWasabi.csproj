@@ -28,7 +28,7 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.5" />
 		<PackageReference Include="Microsoft.Win32.SystemEvents" Version="5.0.0" />
-		<PackageReference Include="NBitcoin" Version="5.0.81" />
+		<PackageReference Include="NBitcoin" Version="6.0.8" />
 		<PackageReference Include="NBitcoin.Secp256k1" Version="1.0.10" />
 	</ItemGroup>
 

@@ -11,6 +11,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -19,6 +20,7 @@ using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.Decomposition;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Wallets;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.WabiSabi.Client
 {
@@ -28,12 +30,12 @@ namespace WalletWasabi.WabiSabi.Client
 		private volatile bool _inCriticalCoinJoinState;
 
 		public CoinJoinClient(
-			IWabiSabiApiRequestHandler arenaRequestHandler,
+			IBackendHttpClientFactory httpClientFactory,
 			Kitchen kitchen,
 			KeyManager keymanager,
 			RoundStateUpdater roundStatusUpdater)
 		{
-			ArenaRequestHandler = arenaRequestHandler;
+			HttpClientFactory = httpClientFactory;
 			Kitchen = kitchen;
 			Keymanager = keymanager;
 			RoundStatusUpdater = roundStatusUpdater;
@@ -41,7 +43,7 @@ namespace WalletWasabi.WabiSabi.Client
 		}
 
 		private SecureRandom SecureRandom { get; }
-		public IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
+		public IBackendHttpClientFactory HttpClientFactory { get; }
 		public Kitchen Kitchen { get; }
 		public KeyManager Keymanager { get; }
 		private RoundStateUpdater RoundStatusUpdater { get; }
@@ -163,10 +165,13 @@ namespace WalletWasabi.WabiSabi.Client
 			{
 				try
 				{
+					// Alice client requests are inherently linkable to each other, so the circuit can be reused
+					var arenaRequestHandler = new WabiSabiHttpApiClient(HttpClientFactory.NewBackendHttpClient(Mode.SingleCircuitPerLifetime));
+
 					var aliceArenaClient = new ArenaClient(
 						roundState.CreateAmountCredentialClient(SecureRandom),
 						roundState.CreateVsizeCredentialClient(SecureRandom),
-						ArenaRequestHandler);
+						arenaRequestHandler);
 
 					var hdKey = Keymanager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey).Single();
 					var secret = hdKey.PrivateKey.GetBitcoinSecret(Keymanager.GetNetwork());
@@ -194,12 +199,14 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private BobClient CreateBobClient(RoundState roundState)
 		{
+			var arenaRequestHandler = new WabiSabiHttpApiClient(HttpClientFactory.NewBackendHttpClient(Mode.NewCircuitPerRequest));
+
 			return new BobClient(
 				roundState.Id,
 				new(
 					roundState.CreateAmountCredentialClient(SecureRandom),
 					roundState.CreateVsizeCredentialClient(SecureRandom),
-					ArenaRequestHandler));
+					arenaRequestHandler));
 		}
 
 		private bool SanityCheck(IEnumerable<TxOut> expectedOutputs, Transaction unsignedCoinJoinTransaction)
@@ -261,6 +268,7 @@ namespace WalletWasabi.WabiSabi.Client
 				.OrderBy(x => x.HdPubKey.AnonymitySet)
 				.ThenByDescending(x => x.Amount)
 				.Take(MaxInputsRegistrableByWallet)
+				.ToShuffled()
 				.ToImmutableList();
 	}
 }

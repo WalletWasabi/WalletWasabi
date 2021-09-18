@@ -25,13 +25,11 @@ namespace WalletWasabi.Tests.UnitTests
 				{
 					new NotEnoughFundsPolicyError("Fees different than expected"),
 					new OutputPolicyError("Output value should not be less than zero", -10),
-					new CoinNotFoundPolicyError(new IndexedTxIn { TxIn = new TxIn { PrevOut = OutPoint.Zero } })
 				};
 
 			var ex = new InvalidTxException(crazyInvalidTx.Transaction, crazyInvalidTxErrors);
 			Assert.Contains(crazyInvalidTxErrors[0].ToString(), ex.Message);
 			Assert.Contains(crazyInvalidTxErrors[1].ToString(), ex.Message);
-			Assert.Contains(crazyInvalidTxErrors[2].ToString(), ex.Message);
 		}
 	}
 }

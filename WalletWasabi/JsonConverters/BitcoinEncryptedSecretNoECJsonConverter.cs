@@ -1,6 +1,7 @@
 using NBitcoin;
 using Newtonsoft.Json;
 using System;
+using System.Linq;
 
 namespace WalletWasabi.JsonConverters
 {
@@ -22,7 +23,7 @@ namespace WalletWasabi.JsonConverters
 				return null;
 			}
 
-			return new BitcoinEncryptedSecretNoEC(value);
+			return new BitcoinEncryptedSecretNoEC(value, Network.Main); // The `network` is required but the encoding doesn't depend on it.
 		}
 
 		/// <inheritdoc />
