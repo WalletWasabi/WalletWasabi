@@ -137,8 +137,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 		}
 
 		[Theory]
-		// [InlineData(new long[] { 20_000_000, 40_000_000, 60_000_000, 80_000_000 })]
-		// [InlineData(new long[] { 10_000_000, 20_000_000, 30_000_000, 40_000_000, 100_000_000 })]
+		[InlineData(new long[] { 20_000_000, 40_000_000, 60_000_000, 80_000_000 })]
+		[InlineData(new long[] { 10_000_000, 20_000_000, 30_000_000, 40_000_000, 100_000_000 })]
 		[InlineData(new long[] { 100_000_000, 10_000_000, 10_000 })]
 		public async Task CoinJoinWithBlameRoundTestAsync(long[] amounts)
 		{
@@ -226,16 +226,15 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 			// Creates a IBackendHttpClientFactory that creates an HttpClient that says everything is okay
 			// when a signature is sent but it doesn't really send it.
-			using var okResponse = new HttpResponseMessage(HttpStatusCode.OK);
 			var nonSigningHttpClient = new Mock<HttpClientWrapper>(httpClient);
 			nonSigningHttpClient
 				.Setup(httpClient => httpClient.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
 				.CallBase();
 			nonSigningHttpClient
 				.Setup(httpClient => httpClient.SendAsync(It.Is<HttpRequestMessage>(
-					req => req.RequestUri!.AbsolutePath.Contains("transaction-signature")
-					), It.IsAny<CancellationToken>()))
-				.ReturnsAsync(okResponse);
+					req => req.RequestUri!.AbsolutePath.Contains("transaction-signature")),
+					It.IsAny<CancellationToken>()))
+				.ThrowsAsync(new HttpRequestException("Something was wrong posting the signature."));
 
 			var mockNonSigningHttpClientFactory = new Mock<IBackendHttpClientFactory>();
 			mockNonSigningHttpClientFactory
