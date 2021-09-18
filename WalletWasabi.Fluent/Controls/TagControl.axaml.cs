@@ -18,7 +18,10 @@ namespace WalletWasabi.Fluent.Controls
 
 		public static readonly StyledProperty<bool> EnableDeleteProperty =
 			AvaloniaProperty.Register<TagControl, bool>(nameof(EnableDelete));
-		
+
+		public static readonly StyledProperty<int> OrdinalIndexProperty =
+			AvaloniaProperty.Register<TagControl, int>(nameof(OrdinalIndex));
+
 		public bool EnableCounter
 		{
 			get => GetValue(EnableCounterProperty);
@@ -31,13 +34,17 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(EnableDeleteProperty, value);
 		}
 
+		public int OrdinalIndex
+		{
+			get => GetValue(OrdinalIndexProperty);
+			set => SetValue(OrdinalIndexProperty, value);
+		}
+
 		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
 		{
 			base.OnApplyTemplate(e);
 
 			_parentTagBox = this.FindLogicalAncestorOfType<TagsBox>();
-
-			_subscription?.Dispose();
 
 			var deleteButton = e.NameScope.Find<Button>("PART_DeleteButton");
 
@@ -48,12 +55,13 @@ namespace WalletWasabi.Fluent.Controls
 
 			deleteButton.Click += OnDeleteTagClicked;
 
+			_subscription?.Dispose();
 			_subscription = Disposable.Create(() => deleteButton.Click -= OnDeleteTagClicked);
 		}
 
 		private void OnDeleteTagClicked(object? sender, RoutedEventArgs e)
 		{
-			_parentTagBox?.RemoveTargetTag(DataContext);
+			_parentTagBox?.RemoveAt(OrdinalIndex - 1);
 		}
 	}
 }

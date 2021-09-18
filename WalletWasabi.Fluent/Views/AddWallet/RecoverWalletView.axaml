@@ -33,7 +33,6 @@
                    RestrictInputToSuggestions="True"
                    Items="{Binding Mnemonics}"
                    Suggestions="{Binding Suggestions}"
-                   CompletedCommand="{Binding NextCommand}"
                    AllowDuplication="True"
                    EnableCounter="True"
                    EnableDelete="False">

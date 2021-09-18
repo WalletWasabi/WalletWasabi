@@ -1,6 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:WalletWasabi.Fluent.Controls">
+        xmlns:c="using:WalletWasabi.Fluent.Controls"
+        xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters">
   <Design.PreviewWith>
     <Border Padding="10">
       <c:TagControl Content="Test" />
@@ -52,7 +53,7 @@
                 </LayoutTransformControl.Transitions>
               </LayoutTransformControl>
               <StackPanel Margin="12,6,12,6" DockPanel.Dock="Left" Spacing="5" Orientation="Horizontal">
-                <TextBlock Name="PART_Index" IsVisible="{TemplateBinding EnableCounter}"/>
+                <TextBlock Text="{TemplateBinding OrdinalIndex, Converter={x:Static converters:IntConverter.ToOrdinalString}}" IsVisible="{TemplateBinding EnableCounter}"/>
                 <ContentPresenter Name="PART_ContentPresenter"
                                   Content="{TemplateBinding Content}"
                                   Padding="{TemplateBinding Padding}"
