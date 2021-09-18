@@ -132,6 +132,7 @@
     <Setter Property="MinHeight" Value="0" />
     <Setter Property="MinWidth" Value="0" />
     <Setter Property="CaretBrush" Value="Transparent" />
+    <Setter Property="TextWrapping" Value="Wrap" />
     <Setter Property="ContextMenu">
       <ContextMenu>
         <MenuItem Header="Copy" Command="{Binding $parent[TextBox].Copy}" IsEnabled="{Binding $parent[TextBox].CanCopy}" InputGesture="{x:Static TextBox.CopyGesture}"/>
