@@ -231,7 +231,7 @@ namespace WalletWasabi.BitcoinCore
 				cancel.ThrowIfCancellationRequested();
 
 				// If it isn't already running, then we run it.
-				if (await coreNode.RpcClient.TestAsync().ConfigureAwait(false) is null)
+				if (await coreNode.RpcClient.TestAsync(cancel).ConfigureAwait(false) is null)
 				{
 					Logger.LogInfo("A Bitcoin node is already running.");
 				}
