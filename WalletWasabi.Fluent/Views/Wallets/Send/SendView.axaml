@@ -78,7 +78,7 @@
                    Items="{Binding Labels}"
                    TopItems="{Binding TopSuggestions}"
                    Suggestions="{Binding Suggestions}"
-                   IsCurrentTextValid="{Binding IsCurrentTextValid, Mode=OneWayToSource}"/>
+                   IsCurrentTextValid="{Binding IsCurrentTextValid, Mode=OneWayToSource}" />
       </DockPanel>
     </DockPanel>
   </c:ContentArea>
