@@ -1,6 +1,7 @@
 using System;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -71,6 +72,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				_nextButtonText = "Confirm";
 			}
 
+			AdjustFeeCommand = ReactiveCommand.Create(() =>
+			{
+				Navigate().To(new SendFeeViewModel(wallet, info, false));
+			});
 		}
 
 		public bool PreferPsbtWorkflow => _wallet.KeyManager.PreferPsbtWorkflow;
@@ -84,6 +89,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public string? PayJoinUrl { get; }
 
 		public bool IsPayJoin { get; }
+
+		public ICommand AdjustFeeCommand { get; }
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{

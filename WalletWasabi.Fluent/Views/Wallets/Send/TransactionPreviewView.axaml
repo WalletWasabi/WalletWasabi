@@ -52,6 +52,12 @@
                            Text="for an additional charge of">
               <TextBox Classes="selectableTextBlock" Text="{Binding FeeText, FallbackValue=235 sats (≈55.34 USD)}" />
             </c:PreviewItem>
+            <Button Classes="h7 plain activeHyperLink" Margin="0 10 0 0"
+                    DockPanel.Dock="Bottom"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Command="{Binding AdjustFeeCommand}"
+                    Content="Adjust Fee / Confirmation time..."/>
         </StackPanel>
     </c:ContentArea>
 </UserControl>

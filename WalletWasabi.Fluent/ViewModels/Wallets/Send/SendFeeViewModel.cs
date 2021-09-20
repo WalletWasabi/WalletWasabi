@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -39,9 +40,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private int _sliderValue;
 		private bool _updatingCurrentValue;
 		private double _lastConfirmationTarget;
+		private bool _isSilent;
 
-		public SendFeeViewModel(Wallet wallet, TransactionInfo transactionInfo)
+		public SendFeeViewModel(Wallet wallet, TransactionInfo transactionInfo, bool isSilent)
 		{
+			_isSilent = isSilent;
 			_wallet = wallet;
 			_transactionInfo = transactionInfo;
 
@@ -116,6 +119,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			CurrentConfirmationTarget = _lastConfirmationTarget;
 
 			var feeProvider = _wallet.FeeProvider;
+
 			Observable
 				.FromEventPattern(feeProvider, nameof(feeProvider.AllFeeEstimateChanged))
 				.Select(x => (x.EventArgs as AllFeeEstimate)!.Estimations)
@@ -129,6 +133,22 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			if (feeProvider.AllFeeEstimate is { })
 			{
 				UpdateFeeEstimates(_wallet.Network == Network.TestNet ? TestNetFeeEstimates : feeProvider.AllFeeEstimate.Estimations);
+			}
+			else
+			{
+				// TODO What to do?
+			}
+
+			if (_isSilent)
+			{
+				RxApp.MainThreadScheduler.Schedule(async () =>
+				{
+					// TODO implement algorithm to intelligently select fees.
+					_lastConfirmationTarget = 1;
+					_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(_lastConfirmationTarget);
+
+					await OnNextAsync();
+				});
 			}
 		}
 
