@@ -21,7 +21,7 @@
     </c:ContentArea.CancelContent>
     <StackPanel Spacing="10" Margin="0 0 20 0">
 
-      <c:PreviewItem Icon="{StaticResource key_regular}"
+      <c:PreviewItem Icon="{StaticResource private_key_regular}"
                      Text="Extended Master Private Key"
                      Content="{Binding ExtendedMasterPrivateKey}"
                      CopyParameter="{Binding ExtendedMasterPrivateKey}"
@@ -29,7 +29,7 @@
                      PrivacyModeEnabled="{Binding !ShowSensitiveData}" />
       <Separator IsVisible="{Binding !!ExtendedMasterPrivateKey}" />
 
-      <c:PreviewItem Icon="{StaticResource key_regular}"
+      <c:PreviewItem Icon="{StaticResource private_key_regular}"
                      Text="Extended Master zprv"
                      Content="{Binding ExtendedMasterZprv}"
                      CopyParameter="{Binding ExtendedMasterZprv}"
@@ -49,7 +49,7 @@
                      CopyParameter="{Binding AccountKeyPath}" />
       <Separator />
 
-      <c:PreviewItem Icon="{StaticResource key_regular}"
+      <c:PreviewItem Icon="{StaticResource private_key_regular}"
                      Text="Extended Account Private Key xpriv"
                      Content="{Binding ExtendedAccountPrivateKey}"
                      CopyParameter="{Binding ExtendedAccountPrivateKey}"
@@ -57,7 +57,7 @@
                      PrivacyModeEnabled="{Binding !ShowSensitiveData}" />
       <Separator IsVisible="{Binding !!ExtendedAccountPrivateKey}" />
 
-      <c:PreviewItem Icon="{StaticResource key_regular}"
+      <c:PreviewItem Icon="{StaticResource private_key_regular}"
                      Text="Extended Account Private Key zprv"
                      Content="{Binding ExtendedAccountZprv}"
                      CopyParameter="{Binding ExtendedAccountZprv}"
