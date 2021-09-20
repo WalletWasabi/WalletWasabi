@@ -65,7 +65,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 		{
 			try
 			{
-				var response = await Rpc.SendCommandAsync(RPCOperations.getmempoolinfo, true, cancel).ConfigureAwait(false);
+				var response = await Rpc.SendCommandAsync(RPCOperations.getmempoolinfo, cancel, true).ConfigureAwait(false);
 				static IEnumerable<FeeRateGroup> ExtractFeeRateGroups(JToken jt) =>
 					jt switch
 					{
