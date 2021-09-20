@@ -92,7 +92,7 @@
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
           <Panel Margin="13,0,0,0" VerticalAlignment="Center">
             <ContentControl Template="{DynamicResource wasabi_logo_fixed}" IsVisible="{Binding !#NavBarUserControl.IsPointerOver}"/>
-            <Button Classes="plain" IsVisible="{Binding #NavBarUserControl.IsPointerOver}">
+            <Button Classes="plain" x:CompileBindings="False" Command="{Binding ToggleAction}" IsVisible="{Binding #NavBarUserControl.IsPointerOver}">
               <Button.Styles>
                 <Style Selector=":is(Button):pointerover /template/ ContentPresenter#PART_ContentPresenter">
                   <Setter Property="Background" Value="Transparent" />
