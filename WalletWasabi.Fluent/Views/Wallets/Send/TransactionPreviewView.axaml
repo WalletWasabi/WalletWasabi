@@ -54,10 +54,10 @@
             </c:PreviewItem>
             <Button Classes="h7 plain activeHyperLink" Margin="0 10 0 0"
                     DockPanel.Dock="Bottom"
-                    HorizontalAlignment="Center"
+                    HorizontalAlignment="Left"
                     VerticalAlignment="Bottom"
                     Command="{Binding AdjustFeeCommand}"
-                    Content="Adjust Fee / Confirmation time..."/>
+                    Content="Adjust Priority and Fees"/>
         </StackPanel>
     </c:ContentArea>
 </UserControl>
