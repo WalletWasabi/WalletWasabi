@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -31,10 +32,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			Mnemonics.ToObservableChangeSet().ToCollection()
 				.Select(x => x.Count is 12 or 15 or 18 or 21 or 24 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : default)
-				.Subscribe(x => CurrentMnemonics = x);
-
-			this.WhenAnyValue(x => x.CurrentMnemonics)
-				.Subscribe(_ => this.RaisePropertyChanged(nameof(Mnemonics)));
+				.Subscribe(x =>
+				{
+					CurrentMnemonics = x;
+					this.RaisePropertyChanged(nameof(Mnemonics));
+				});
 
 			this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
 
@@ -128,10 +130,17 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		private void ValidateMnemonics(IValidationErrors errors)
 		{
-			if (CurrentMnemonics is { } && !CurrentMnemonics.IsValidChecksum)
+			if (CurrentMnemonics is { IsValidChecksum: true })
 			{
-				errors.Add(ErrorSeverity.Error, "Recovery words are not valid.");
+				return;
 			}
+
+			if (!Mnemonics.Any())
+			{
+				return;
+			}
+
+			errors.Add(ErrorSeverity.Error, "Recovery words are not valid.");
 		}
 
 		private string GetTagsAsConcatString()
