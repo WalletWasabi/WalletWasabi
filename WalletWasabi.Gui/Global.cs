@@ -154,8 +154,6 @@ namespace WalletWasabi.Gui
 					await LegalChecker.InitializeAsync(HostedServices.Get<UpdateChecker>()).ConfigureAwait(false);
 					cancel.ThrowIfCancellationRequested();
 
-
-
 					await StartTorProcessManagerAsync(cancel).ConfigureAwait(false);
 
 					try
@@ -179,16 +177,16 @@ namespace WalletWasabi.Gui
 					RegisterFeeRateProviders();
 					RegisterCoinJoinComponents();
 
-                    SystemAwakeChecker? systemAwakeChecker = await SystemAwakeChecker.CreateAsync(HostedServices.Get<CoinJoinManager>()).ConfigureAwait(false);
+					SleepInhibitor? sleepInhibitor = await SleepInhibitor.CreateAsync(HostedServices.Get<CoinJoinManager>()).ConfigureAwait(false);
 
-                    if (systemAwakeChecker is not null)
-                    {
-                        HostedServices.Register<SystemAwakeChecker>(systemAwakeChecker, "System Awake Checker");
-                    }
-                    else
-                    {
-                        Logger.LogInfo("System Awake Checker is not available on this platform.");
-                    }
+					if (sleepInhibitor is not null)
+					{
+						HostedServices.Register<SleepInhibitor>(sleepInhibitor, "Sleep Inhibitor");
+					}
+					else
+					{
+						Logger.LogInfo("Sleep Inhibitor is not available on this platform.");
+					}
 					await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
 					var requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
