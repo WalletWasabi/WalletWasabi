@@ -64,8 +64,8 @@ namespace WalletWasabi.Crypto
 			return _proofSignature.Verify(hash, scriptPubKey);
 		}
 
-		public static OwnershipProof GenerateCoinJoinInputProof(Key key, CoinJoinInputCommitmentData coinJoinInputsCommitmentData) =>
-			Generate(key, new OwnershipIdentifier(), coinJoinInputsCommitmentData.ToBytes(), true, ScriptPubKeyType.Segwit);
+		public static OwnershipProof GenerateCoinJoinInputProof(Key key, OwnershipIdentifier ownershipIdentifier, CoinJoinInputCommitmentData coinJoinInputsCommitmentData) =>
+			Generate(key, ownershipIdentifier, coinJoinInputsCommitmentData.ToBytes(), true, ScriptPubKeyType.Segwit);
 
 		public static bool VerifyCoinJoinInputProof(OwnershipProof ownershipProofBytes, Script scriptPubKey, CoinJoinInputCommitmentData coinJoinInputsCommitmentData) =>
 			ownershipProofBytes.VerifyOwnership(scriptPubKey, coinJoinInputsCommitmentData.ToBytes(), true);

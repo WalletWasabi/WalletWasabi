@@ -37,7 +37,14 @@ namespace WalletWasabi.Tests.Helpers
 		public static OwnershipProof CreateOwnershipProof(Key key, uint256? roundHash = null)
 			=> OwnershipProof.GenerateCoinJoinInputProof(
 				key,
+				GetOwnershipIdentifier(key.PubKey.WitHash.ScriptPubKey),
 				new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundHash ?? BitcoinFactory.CreateUint256()));
+
+		public static OwnershipIdentifier GetOwnershipIdentifier(Script scriptPubKey)
+		{
+			using var identificationKey = Key.Parse("5KbdaBwc9Eit2LrmDp1WfZd815StNstwHanbRrPpGGN6wWJKyHe", Network.Main);
+			return new OwnershipIdentifier(identificationKey, scriptPubKey);
+		}
 
 		public static Round CreateRound(WabiSabiConfig cfg)
 		{
