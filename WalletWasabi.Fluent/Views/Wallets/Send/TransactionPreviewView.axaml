@@ -50,14 +50,14 @@
             <Separator />
             <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
                            Text="for an additional charge of">
-              <TextBox Classes="selectableTextBlock" Text="{Binding FeeText, FallbackValue=235 sats (≈55.34 USD)}" />
+              <DockPanel HorizontalAlignment="Stretch">
+                <Button Classes="h7 plain activeHyperLink" Margin="0 10 0 0"
+                        DockPanel.Dock="Right"
+                        Command="{Binding AdjustFeeCommand}"
+                        Content="Adjust Priority and Fees"/>
+                <TextBox Classes="selectableTextBlock" Text="{Binding FeeText, FallbackValue=235 sats (≈55.34 USD)}" />
+              </DockPanel>
             </c:PreviewItem>
-            <Button Classes="h7 plain activeHyperLink" Margin="0 10 0 0"
-                    DockPanel.Dock="Bottom"
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Bottom"
-                    Command="{Binding AdjustFeeCommand}"
-                    Content="Adjust Priority and Fees"/>
         </StackPanel>
     </c:ContentArea>
 </UserControl>
