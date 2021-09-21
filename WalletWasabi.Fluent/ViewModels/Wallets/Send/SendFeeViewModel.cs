@@ -5,6 +5,7 @@ using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using DynamicData;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
@@ -116,8 +117,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
-			CurrentConfirmationTarget = _lastConfirmationTarget;
-
 			var feeProvider = _wallet.FeeProvider;
 
 			Observable
@@ -133,6 +132,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			if (feeProvider.AllFeeEstimate is { })
 			{
 				UpdateFeeEstimates(_wallet.Network == Network.TestNet ? TestNetFeeEstimates : feeProvider.AllFeeEstimate.Estimations);
+				CurrentConfirmationTarget = InitCurrentConfirmationTarget();
 			}
 			else
 			{
@@ -150,6 +150,32 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					await OnNextAsync();
 				});
 			}
+		}
+
+		private double InitCurrentConfirmationTarget()
+		{
+			if (_transactionInfo.FeeRate is { } feeRate)
+			{
+				return GetConfirmationTarget(feeRate);
+			}
+			else
+			{
+				//TODO: Implement
+				return 1;
+			}
+		}
+
+		private double GetConfirmationTarget(FeeRate feeRate)
+		{
+			if (SatoshiPerByteValues is null || ConfirmationTargetValues is null) // Should not happen
+			{
+				return 1;
+			}
+
+			var closestValue = SatoshiPerByteValues.OrderBy(x => Math.Abs((decimal)x - feeRate.SatoshiPerByte)).First();
+			var indexOfClosestValue = SatoshiPerByteValues.IndexOf(closestValue);
+
+			return ConfirmationTargetValues[indexOfClosestValue];
 		}
 
 		private async Task BuildTransactionAsNormalAsync(TransactionInfo transactionInfo, Money totalMixedCoinsAmount)
@@ -261,16 +287,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private static readonly Dictionary<int, int> TestNetFeeEstimates = new ()
 		{
-			[1] = 185,
-			[2] = 123,
-			[3] = 123,
-			[6] = 102,
-			[18] = 97,
-			[36] = 57,
-			[72] = 22,
-			[144] = 7,
-			[432] = 4,
-			[1008] = 4
+			[1] = 17,
+			[2] = 15,
+			[3] = 11,
+			[6] = 11,
+			[18] = 9,
+			[36] = 7,
+			[72] = 5,
+			[144] = 2,
+			[432] = 1,
+			[1008] = 1
 		};
 
 		private int GetSliderValue(double x, double[] xs)
