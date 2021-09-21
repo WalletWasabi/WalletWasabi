@@ -26,46 +26,46 @@ namespace WalletWasabi.BitcoinCore.Rpc
 
 		public RPCCredentialString CredentialString => Rpc.CredentialString;
 
-		public virtual async Task<uint256> GetBestBlockHashAsync()
+		public virtual async Task<uint256> GetBestBlockHashAsync(CancellationToken cancellationToken = default)
 		{
-			return await Rpc.GetBestBlockHashAsync().ConfigureAwait(false);
+			return await Rpc.GetBestBlockHashAsync(cancellationToken).ConfigureAwait(false);
 		}
 
-		public virtual async Task<Block> GetBlockAsync(uint256 blockHash)
+		public virtual async Task<Block> GetBlockAsync(uint256 blockHash, CancellationToken cancellationToken = default)
 		{
-			return await Rpc.GetBlockAsync(blockHash).ConfigureAwait(false);
+			return await Rpc.GetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
 		}
 
-		public virtual async Task<Block> GetBlockAsync(uint blockHeight)
+		public virtual async Task<Block> GetBlockAsync(uint blockHeight, CancellationToken cancellationToken = default)
 		{
-			return await Rpc.GetBlockAsync(blockHeight).ConfigureAwait(false);
+			return await Rpc.GetBlockAsync(blockHeight, cancellationToken).ConfigureAwait(false);
 		}
 
-		public virtual async Task<BlockHeader> GetBlockHeaderAsync(uint256 blockHash)
+		public virtual async Task<BlockHeader> GetBlockHeaderAsync(uint256 blockHash, CancellationToken cancellationToken = default)
 		{
-			return await Rpc.GetBlockHeaderAsync(blockHash).ConfigureAwait(false);
+			return await Rpc.GetBlockHeaderAsync(blockHash, cancellationToken).ConfigureAwait(false);
 		}
 
-		public virtual async Task<BlockchainInfo> GetBlockchainInfoAsync()
+		public virtual async Task<BlockchainInfo> GetBlockchainInfoAsync(CancellationToken cancellationToken = default)
 		{
-			return await Rpc.GetBlockchainInfoAsync().ConfigureAwait(false);
+			return await Rpc.GetBlockchainInfoAsync(cancellationToken).ConfigureAwait(false);
 		}
 
-		public virtual async Task<PeerInfo[]> GetPeersInfoAsync()
+		public virtual async Task<PeerInfo[]> GetPeersInfoAsync(CancellationToken cancellationToken = default)
 		{
-			return await Rpc.GetPeersInfoAsync().ConfigureAwait(false);
+			return await Rpc.GetPeersInfoAsync(cancellationToken).ConfigureAwait(false);
 		}
 
-		public virtual async Task<MempoolEntry> GetMempoolEntryAsync(uint256 txid, bool throwIfNotFound = true)
+		public virtual async Task<MempoolEntry> GetMempoolEntryAsync(uint256 txid, bool throwIfNotFound = true, CancellationToken cancellationToken = default)
 		{
-			return await Rpc.GetMempoolEntryAsync(txid, throwIfNotFound).ConfigureAwait(false);
+			return await Rpc.GetMempoolEntryAsync(txid, throwIfNotFound, cancellationToken).ConfigureAwait(false);
 		}
 
 		public virtual async Task<MemPoolInfo> GetMempoolInfoAsync(CancellationToken cancel = default)
 		{
 			try
 			{
-				var response = await Rpc.SendCommandAsync(RPCOperations.getmempoolinfo, true).ConfigureAwait(false);
+				var response = await Rpc.SendCommandAsync(RPCOperations.getmempoolinfo, cancel, true).ConfigureAwait(false);
 				static IEnumerable<FeeRateGroup> ExtractFeeRateGroups(JToken jt) =>
 					jt switch
 					{
@@ -98,48 +98,48 @@ namespace WalletWasabi.BitcoinCore.Rpc
 			{
 				cancel.ThrowIfCancellationRequested();
 
-				return await Rpc.GetMemPoolAsync().ConfigureAwait(false);
+				return await Rpc.GetMemPoolAsync(cancel).ConfigureAwait(false);
 			}
 		}
 
-		public virtual async Task<uint256[]> GetRawMempoolAsync()
+		public virtual async Task<uint256[]> GetRawMempoolAsync(CancellationToken cancellationToken = default)
 		{
-			return await Rpc.GetRawMempoolAsync().ConfigureAwait(false);
+			return await Rpc.GetRawMempoolAsync(cancellationToken).ConfigureAwait(false);
 		}
 
-		public virtual async Task<GetTxOutResponse?> GetTxOutAsync(uint256 txid, int index, bool includeMempool = true)
+		public virtual async Task<GetTxOutResponse?> GetTxOutAsync(uint256 txid, int index, bool includeMempool = true, CancellationToken cancellationToken = default)
 		{
-			return await Rpc.GetTxOutAsync(txid, index, includeMempool).ConfigureAwait(false);
+			return await Rpc.GetTxOutAsync(txid, index, includeMempool, cancellationToken).ConfigureAwait(false);
 		}
 
-		public virtual async Task<MempoolAcceptResult> TestMempoolAcceptAsync(Transaction transaction)
+		public virtual async Task<MempoolAcceptResult> TestMempoolAcceptAsync(Transaction transaction, CancellationToken cancellationToken = default)
 		{
-			return await Rpc.TestMempoolAcceptAsync(transaction).ConfigureAwait(false);
+			return await Rpc.TestMempoolAcceptAsync(transaction, cancellationToken).ConfigureAwait(false);
 		}
 
-		public virtual async Task StopAsync()
+		public virtual async Task StopAsync(CancellationToken cancellationToken = default)
 		{
-			await Rpc.StopAsync().ConfigureAwait(false);
+			await Rpc.StopAsync(cancellationToken).ConfigureAwait(false);
 		}
 
-		public virtual async Task<uint256[]> GenerateAsync(int blockCount)
+		public virtual async Task<uint256[]> GenerateAsync(int blockCount, CancellationToken cancellationToken = default)
 		{
-			return await Rpc.GenerateAsync(blockCount).ConfigureAwait(false);
+			return await Rpc.GenerateAsync(blockCount, cancellationToken).ConfigureAwait(false);
 		}
 
-		public virtual async Task<TimeSpan> UptimeAsync()
+		public virtual async Task<TimeSpan> UptimeAsync(CancellationToken cancellationToken = default)
 		{
-			return await Rpc.UptimeAsync().ConfigureAwait(false);
+			return await Rpc.UptimeAsync(cancellationToken).ConfigureAwait(false);
 		}
 
-		public virtual async Task<uint256> SendRawTransactionAsync(Transaction transaction)
+		public virtual async Task<uint256> SendRawTransactionAsync(Transaction transaction, CancellationToken cancellationToken = default)
 		{
-			return await Rpc.SendRawTransactionAsync(transaction).ConfigureAwait(false);
+			return await Rpc.SendRawTransactionAsync(transaction, cancellationToken).ConfigureAwait(false);
 		}
 
-		public virtual async Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative)
+		public virtual async Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, CancellationToken cancellationToken = default)
 		{
-			return await Rpc.EstimateSmartFeeAsync(confirmationTarget, estimateMode).ConfigureAwait(false);
+			return await Rpc.EstimateSmartFeeAsync(confirmationTarget, estimateMode, cancellationToken).ConfigureAwait(false);
 		}
 
 		public virtual IRPCClient PrepareBatch()
@@ -147,48 +147,48 @@ namespace WalletWasabi.BitcoinCore.Rpc
 			return new RpcClientBase(Rpc.PrepareBatch());
 		}
 
-		public async Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId)
+		public async Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId, CancellationToken cancellationToken = default)
 		{
-			var resp = await Rpc.SendCommandAsync(RPCOperations.getblock, blockId, 3).ConfigureAwait(false);
+			var resp = await Rpc.SendCommandAsync(RPCOperations.getblock, cancellationToken, blockId, 3).ConfigureAwait(false);
 			return RpcParser.ParseVerboseBlockResponse(resp.ResultString);
 		}
 
-		public async Task<uint256[]> GenerateToAddressAsync(int nBlocks, BitcoinAddress address)
+		public async Task<uint256[]> GenerateToAddressAsync(int nBlocks, BitcoinAddress address, CancellationToken cancellationToken = default)
 		{
-			return await Rpc.GenerateToAddressAsync(nBlocks, address).ConfigureAwait(false);
+			return await Rpc.GenerateToAddressAsync(nBlocks, address, cancellationToken).ConfigureAwait(false);
 		}
 
 		#region For Testing Only
 
-		public virtual async Task<uint256> SendToAddressAsync(BitcoinAddress address, Money amount, bool replaceable = false)
+		public virtual async Task<uint256> SendToAddressAsync(BitcoinAddress address, Money amount, bool replaceable = false, CancellationToken cancellationToken = default)
 		{
 			var parameters = new SendToAddressParameters{ Replaceable = replaceable };
-			return await Rpc.SendToAddressAsync(address, amount, parameters).ConfigureAwait(false);
+			return await Rpc.SendToAddressAsync(address, amount, parameters, cancellationToken).ConfigureAwait(false);
 		}
 
-		public virtual async Task<uint256> GetBlockHashAsync(int height)
+		public virtual async Task<uint256> GetBlockHashAsync(int height, CancellationToken cancellationToken = default)
 		{
-			return await Rpc.GetBlockHashAsync(height).ConfigureAwait(false);
+			return await Rpc.GetBlockHashAsync(height, cancellationToken).ConfigureAwait(false);
 		}
 
-		public virtual async Task InvalidateBlockAsync(uint256 blockHash)
+		public virtual async Task InvalidateBlockAsync(uint256 blockHash, CancellationToken cancellationToken = default)
 		{
-			await Rpc.InvalidateBlockAsync(blockHash).ConfigureAwait(false);
+			await Rpc.InvalidateBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
 		}
 
-		public virtual async Task AbandonTransactionAsync(uint256 txid)
+		public virtual async Task AbandonTransactionAsync(uint256 txid /*, CancellationToken cancellationToken = default*/)
 		{
-			await Rpc.AbandonTransactionAsync(txid).ConfigureAwait(false);
+			await Rpc.AbandonTransactionAsync(txid /*, cancellationToken*/).ConfigureAwait(false);
 		}
 
-		public virtual async Task<BumpResponse> BumpFeeAsync(uint256 txid)
+		public virtual async Task<BumpResponse> BumpFeeAsync(uint256 txid, CancellationToken cancellationToken = default)
 		{
-			return await Rpc.BumpFeeAsync(txid).ConfigureAwait(false);
+			return await Rpc.BumpFeeAsync(txid, cancellationToken).ConfigureAwait(false);
 		}
 
-		public virtual async Task<Transaction> GetRawTransactionAsync(uint256 txid, bool throwIfNotFound = true)
+		public virtual async Task<Transaction> GetRawTransactionAsync(uint256 txid, bool throwIfNotFound = true, CancellationToken cancellationToken = default)
 		{
-			return await Rpc.GetRawTransactionAsync(txid, throwIfNotFound).ConfigureAwait(false);
+			return await Rpc.GetRawTransactionAsync(txid, throwIfNotFound, cancellationToken).ConfigureAwait(false);
 		}
 
 		public virtual async Task<IEnumerable<Transaction>> GetRawTransactionsAsync(IEnumerable<uint256> txids, CancellationToken cancel)
@@ -201,10 +201,10 @@ namespace WalletWasabi.BitcoinCore.Rpc
 				List<Task<Transaction>> tasks = new();
 				foreach (var txid in txidsChunk)
 				{
-					tasks.Add(batchingRpc.GetRawTransactionAsync(txid, throwIfNotFound: false));
+					tasks.Add(batchingRpc.GetRawTransactionAsync(txid, throwIfNotFound: false, cancel));
 				}
 
-				await batchingRpc.SendBatchAsync().ConfigureAwait(false);
+				await batchingRpc.SendBatchAsync(cancel).ConfigureAwait(false);
 
 				foreach (var tx in await Task.WhenAll(tasks).ConfigureAwait(false))
 				{
@@ -219,39 +219,39 @@ namespace WalletWasabi.BitcoinCore.Rpc
 			return acquiredTransactions;
 		}
 
-		public virtual async Task<int> GetBlockCountAsync()
+		public virtual async Task<int> GetBlockCountAsync(CancellationToken cancellationToken = default)
 		{
-			return await Rpc.GetBlockCountAsync().ConfigureAwait(false);
+			return await Rpc.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
 		}
 
-		public virtual async Task<BitcoinAddress> GetNewAddressAsync()
+		public virtual async Task<BitcoinAddress> GetNewAddressAsync(CancellationToken cancellationToken = default)
 		{
-			return await Rpc.GetNewAddressAsync().ConfigureAwait(false);
+			return await Rpc.GetNewAddressAsync(cancellationToken).ConfigureAwait(false);
 		}
 
-		public virtual async Task<SignRawTransactionResponse> SignRawTransactionWithWalletAsync(SignRawTransactionRequest request)
+		public virtual async Task<SignRawTransactionResponse> SignRawTransactionWithWalletAsync(SignRawTransactionRequest request, CancellationToken cancellationToken = default)
 		{
-			return await Rpc.SignRawTransactionWithWalletAsync(request).ConfigureAwait(false);
+			return await Rpc.SignRawTransactionWithWalletAsync(request, cancellationToken).ConfigureAwait(false);
 		}
 
-		public virtual async Task<UnspentCoin[]> ListUnspentAsync()
+		public virtual async Task<UnspentCoin[]> ListUnspentAsync(/*CancellationToken cancellationToken = default*/)
 		{
-			return await Rpc.ListUnspentAsync().ConfigureAwait(false);
+			return await Rpc.ListUnspentAsync(/*cancellationToken*/).ConfigureAwait(false);
 		}
 
-		public virtual async Task SendBatchAsync()
+		public virtual async Task SendBatchAsync(CancellationToken cancellationToken = default)
 		{
-			await Rpc.SendBatchAsync().ConfigureAwait(false);
+			await Rpc.SendBatchAsync(cancellationToken).ConfigureAwait(false);
 		}
 
-		public Task<EstimateSmartFeeResponse> TryEstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative)
+		public Task<EstimateSmartFeeResponse> TryEstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, CancellationToken cancellationToken = default)
 		{
-			return Rpc.TryEstimateSmartFeeAsync(confirmationTarget, estimateMode: estimateMode);
+			return Rpc.TryEstimateSmartFeeAsync(confirmationTarget, estimateMode: estimateMode, cancellationToken);
 		}
 
-		public Task<RPCClient> CreateWalletAsync(string walletNameOrPath, CreateWalletOptions? options = null)
+		public Task<RPCClient> CreateWalletAsync(string walletNameOrPath, CreateWalletOptions? options = null, CancellationToken cancellationToken = default)
 		{
-			return Rpc.CreateWalletAsync(walletNameOrPath, options);
+			return Rpc.CreateWalletAsync(walletNameOrPath, options, cancellationToken);
 		}
 
 		#endregion For Testing Only

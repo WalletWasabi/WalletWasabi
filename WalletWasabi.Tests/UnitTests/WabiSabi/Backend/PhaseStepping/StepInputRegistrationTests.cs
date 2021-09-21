@@ -42,7 +42,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var offendingAlice = WabiSabiFactory.CreateAlice(round); // this Alice spent the coin after registration
 
 			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient();
-			mockRpc.Setup(rpc => rpc.GetTxOutAsync(offendingAlice.Coin.Outpoint.Hash, (int)offendingAlice.Coin.Outpoint.N, true))
+			mockRpc.Setup(rpc => rpc.GetTxOutAsync(offendingAlice.Coin.Outpoint.Hash, (int)offendingAlice.Coin.Outpoint.N, true, It.IsAny<CancellationToken>()))
 				.ReturnsAsync((GetTxOutResponse?)null);
 
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc, round);
