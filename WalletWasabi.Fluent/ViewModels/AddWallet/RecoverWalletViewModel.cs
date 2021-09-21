@@ -44,7 +44,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			NextCommandCanExecute =
 				this.WhenAnyValue(x => x.CurrentMnemonics)
-					.Select(currentMnemonics => currentMnemonics is { } && !Validations.Any);
+					.Select(_ => IsMnemonicsValid);
 
 			NextCommand = ReactiveCommand.CreateFromTask(
 				async () => await OnNextAsync(walletName),
@@ -118,6 +118,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 		}
 
+		public bool IsMnemonicsValid => CurrentMnemonics is { IsValidChecksum: true };
+
 		public IObservable<bool> NextCommandCanExecute { get; }
 
 		public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
@@ -130,7 +132,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		private void ValidateMnemonics(IValidationErrors errors)
 		{
-			if (CurrentMnemonics is { IsValidChecksum: true })
+			if (IsMnemonicsValid)
 			{
 				return;
 			}
