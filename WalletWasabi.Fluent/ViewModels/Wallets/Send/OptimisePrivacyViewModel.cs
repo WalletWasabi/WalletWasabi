@@ -54,6 +54,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void OnNext(TransactionInfo transactionInfo)
 		{
+			if (_requestedTransaction == SelectedPrivacySuggestion!.TransactionResult)
+			{
+				_transactionInfo.UserDidntRequestOptimisation = true;
+			}
+
 			Navigate().To(new TransactionPreviewViewModel(_wallet, transactionInfo,
 				SelectedPrivacySuggestion!.TransactionResult));
 		}
@@ -123,6 +128,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					}
 
 					SelectedPrivacySuggestion = _defaultSelection;
+
+					if (_transactionInfo.UserDidntRequestOptimisation)
+					{
+						Navigate().To(new TransactionPreviewViewModel(_wallet, _transactionInfo,
+							SelectedPrivacySuggestion!.TransactionResult));
+					}
 
 					IsBusy = false;
 				});

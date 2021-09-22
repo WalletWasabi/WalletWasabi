@@ -26,5 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public IEnumerable<SmartCoin> Coins { get; set; } = Enumerable.Empty<SmartCoin>();
 
 		public IPayjoinClient? PayJoinClient { get; set; }
+
+		public bool UserDidntRequestOptimisation { get; set; }
 	}
 }
