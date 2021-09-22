@@ -35,7 +35,7 @@
 
       <DataGrid.Columns>
         <DataGridTemplateColumn Header="Labels"
-                                Width="*"
+                                Width="Auto"
                                 CanUserSort="True"
                                 SortMemberPath="Label">
           <DataGridTemplateColumn.CellTemplate>
@@ -45,7 +45,36 @@
                   <PathIcon Data="{StaticResource edit_regular}" Classes="addressActionIcon" />
                 </Button>
                 <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15" VerticalAlignment="Center">
-                  <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Label}" />
+                  <DockPanel LastChildFill="False">
+                    <c:TagsBox Padding="0"
+                               Margin="0"
+                               MinWidth="0"
+                               BorderThickness="0"
+                               DockPanel.Dock="Left"
+                               IsReadOnly="True"
+                               Items="{Binding Label}"
+                               HorizontalAlignment="Stretch"
+                               VerticalAlignment="Center" />
+                    <Button Classes="labelFlyout"
+                            DockPanel.Dock="Left"
+                            IsVisible="{Binding !!FilteredLabel.Count}"
+                            Content="..."
+                            Margin="0 4 0 0">
+                      <Button.Flyout>
+                        <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="TransientWithDismissOnPointerMoveAway">
+                          <c:TagsBox IsReadOnly="True"
+                                     Items="{Binding FilteredLabel}" />
+                        </Flyout>
+                      </Button.Flyout>
+                      <ToolTip.Tip>
+                        <Panel>
+                          <c:TagsBox IsReadOnly="True"
+                                     Margin="4,6,0,0"
+                                     Items="{Binding FilteredLabel}" />
+                        </Panel>
+                      </ToolTip.Tip>
+                    </Button>
+                  </DockPanel>
                 </c:PrivacyContentControl>
               </DockPanel>
             </DataTemplate>

@@ -100,30 +100,6 @@
           </Animation>
         </Style.Animations>
       </Style>
-      <Style Selector="Button.labelFlyout">
-        <Setter Property="Margin" Value="0" />
-        <Setter Property="Padding" Value="12,5,12,5" />
-        <Setter Property="VerticalAlignment" Value="Top" />
-        <Setter Property="HorizontalAlignment" Value="Left" />
-        <Setter Property="MinHeight" Value="0" />
-        <Setter Property="MinWidth" Value="38" />
-      </Style>
-      <Style Selector="Button.labelFlyout /template/ ContentPresenter">
-        <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="BorderBrush" Value="{StaticResource TagsBoxBorderBrush}" />
-        <Setter Property="Background" Value="{DynamicResource InvisibleButtonBackgroundColor}" />
-        <Setter Property="CornerRadius" Value="2" />
-      </Style>
-      <Style Selector="Button.labelFlyout:pointerover /template/ ContentPresenter">
-        <Setter Property="BorderBrush" Value="{StaticResource TagsBoxBorderBrush}" />
-      </Style>
-      <Style Selector="Button.labelFlyout:pressed /template/ ContentPresenter">
-        <Setter Property="BorderBrush" Value="{StaticResource TagsBoxBorderBrush}" />
-      </Style>
-      <Style Selector="Button.labelFlyout:disabled /template/ ContentPresenter">
-        <Setter Property="BorderBrush" Value="{StaticResource TagsBoxBorderBrush}" />
-      </Style>
       <Style Selector="TextBlock.hidden">
         <Setter Property="IsVisible" Value="False"/>
       </Style>
