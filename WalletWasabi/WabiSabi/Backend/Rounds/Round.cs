@@ -52,6 +52,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public bool IsBlameRound => RoundParameters.IsBlameRound;
 		public ISet<OutPoint> BlameWhitelist => RoundParameters.BlameWhitelist;
 
+		public TimeSpan InputRegistrationTimeout => IsBlameRound ? RoundParameters.BlameInputRegistrationTimeout : RoundParameters.StandardInputRegistrationTimeout;
 		public TimeSpan ConnectionConfirmationTimeout => RoundParameters.ConnectionConfirmationTimeout;
 		public TimeSpan OutputRegistrationTimeout => RoundParameters.OutputRegistrationTimeout;
 		public TimeSpan TransactionSigningTimeout => RoundParameters.TransactionSigningTimeout;
@@ -141,6 +142,10 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private uint256 CalculateHash()
 			=> StrobeHasher.Create(ProtocolConstants.RoundStrobeDomain)
+				.Append(ProtocolConstants.RoundInputRegistrationTimeoutStrobeLabel, InputRegistrationTimeout)
+				.Append(ProtocolConstants.RoundConnectionConfirmationTimeoutStrobeLabel, ConnectionConfirmationTimeout)
+				.Append(ProtocolConstants.RoundOutputRegistrationTimeoutStrobeLabel, OutputRegistrationTimeout)
+				.Append(ProtocolConstants.RoundTransactionSigningTimeoutStrobeLabel, TransactionSigningTimeout)
 				.Append(ProtocolConstants.RoundMinRegistrableAmountStrobeLabel, MinRegistrableAmount)
 				.Append(ProtocolConstants.RoundMaxRegistrableAmountStrobeLabel, MaxRegistrableAmount)
 				.Append(ProtocolConstants.RoundMaxRegistrableVsizeStrobeLabel, MaxRegistrableVsize)
