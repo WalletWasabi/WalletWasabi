@@ -15,7 +15,7 @@
     </DockPanel>
 
     <DockPanel IsVisible="{Binding UseTor}">
-      <TextBlock Text="Terminate Tor when Wasabi is Shutdown" />
+      <TextBlock Text="Terminate Tor when Wasabi shuts down" />
       <ToggleSwitch IsChecked="{Binding TerminateTorOnExit}" />
     </DockPanel>
   </StackPanel>
