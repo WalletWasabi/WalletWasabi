@@ -43,6 +43,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private bool _updatingCurrentValue;
 		private double _lastConfirmationTarget;
 		private bool _isSilent;
+		private int _entrySliderValue = -1;
 
 		public SendFeeViewModel(Wallet wallet, TransactionInfo transactionInfo, bool isSilent)
 		{
@@ -72,10 +73,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				_lastConfirmationTarget = CurrentConfirmationTarget;
-				_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(_lastConfirmationTarget);
+				if (SliderValue == _entrySliderValue)
+				{
+					Navigate().Back();
+				}
+				else
+				{
+					_lastConfirmationTarget = CurrentConfirmationTarget;
+					_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(_lastConfirmationTarget);
 
-				await OnNextAsync();
+					await OnNextAsync();
+				}
 			});
 		}
 
@@ -134,6 +142,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				UpdateFeeEstimates(_wallet.Network == Network.TestNet ? TestNetFeeEstimates : feeProvider.AllFeeEstimate.Estimations);
 				CurrentConfirmationTarget = InitCurrentConfirmationTarget();
+				_entrySliderValue = SliderValue;
 			}
 			else
 			{
