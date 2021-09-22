@@ -334,18 +334,10 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
-			var suggestions = Suggestions?.ToArray();
-
 			if (RestrictInputToSuggestions &&
-			    suggestions is { } &&
-			    !suggestions.Any(x => x.StartsWith(typedFullText, _stringComparison)))
+				Suggestions is { } suggestions &&
+				!suggestions.Any(x => x.StartsWith(typedFullText, _stringComparison)))
 			{
-				if (typedFullText.EndsWith(TagSeparator) &&
-				    suggestions.Contains(autoCompleteBox.SearchText))
-				{
-					return;
-				}
-
 				e.Handled = true;
 			}
 		}
