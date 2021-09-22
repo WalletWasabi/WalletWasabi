@@ -48,6 +48,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public SendFeeViewModel(Wallet wallet, TransactionInfo transactionInfo, bool isSilent)
 		{
 			_isSilent = isSilent;
+			IsBusy = isSilent;
 			_wallet = wallet;
 			_transactionInfo = transactionInfo;
 			_entryFeeRate = transactionInfo.FeeRate;
