@@ -46,7 +46,7 @@ namespace WalletWasabi.Fluent.Controls
 			AvaloniaProperty.Register<TagsBox, int>(nameof(ItemCountLimit));
 
 		public static readonly StyledProperty<int> MaxTextLengthProperty =
-			AvaloniaProperty.Register<TagsBox, int>(nameof(MaxTextLength), 25);
+			AvaloniaProperty.Register<TagsBox, int>(nameof(MaxTextLength));
 
 		public static readonly StyledProperty<char> TagSeparatorProperty =
 			AvaloniaProperty.Register<TagsBox, char>(nameof(TagSeparator), defaultValue: ' ');
