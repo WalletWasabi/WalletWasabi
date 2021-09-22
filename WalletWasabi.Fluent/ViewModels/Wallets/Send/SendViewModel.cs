@@ -106,10 +106,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			var nextCommandCanExecute =
 				this.WhenAnyValue(x => x.AmountBtc, x => x.To).Select(_ => Unit.Default)
-					.Merge(Observable.FromEventPattern(SuggestionLabels.Labels, nameof(SuggestionLabels.Labels.CollectionChanged)).Select(_ => Unit.Default))
+					.Merge(SuggestionLabels.WhenAnyValue(x => x.Labels.Count).Select(_ => Unit.Default))
+					.Merge(SuggestionLabels.WhenAnyValue(x => x.IsCurrentTextValid).Select(_ => Unit.Default))
 					.Select(_ =>
 					{
-						var allFilled = !string.IsNullOrEmpty(To) && AmountBtc > 0 && SuggestionLabels.Labels.Any();
+						var allFilled = !string.IsNullOrEmpty(To) && AmountBtc > 0 && (SuggestionLabels.Labels.Any() || SuggestionLabels.IsCurrentTextValid);
 						var hasError = Validations.Any;
 
 						return allFilled && !hasError;
