@@ -37,6 +37,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private double[]? _satoshiPerByteValues;
 		[AutoNotify] private string[]? _confirmationTargetLabels;
 		[AutoNotify] private double _currentConfirmationTarget;
+		[AutoNotify] private decimal _currentSatoshiPerByte;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMinimum;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMaximum;
 		[AutoNotify] private int _sliderValue;
@@ -247,6 +248,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				if (_confirmationTargetValues is not null)
 				{
 					SliderValue = GetSliderValue(confirmationTarget, _confirmationTargetValues);
+					CurrentSatoshiPerByte = GetSatoshiPerByte(confirmationTarget);
 				}
 
 				_updatingCurrentValue = false;
@@ -305,6 +307,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			SliderMaximum = confirmationTargetValues.Length - 1;
 			CurrentConfirmationTarget = Math.Clamp(CurrentConfirmationTarget, ConfirmationTargetValues.Min(), ConfirmationTargetValues.Max());
 			SliderValue = GetSliderValue(CurrentConfirmationTarget, ConfirmationTargetValues);
+			CurrentSatoshiPerByte = GetSatoshiPerByte(CurrentConfirmationTarget);
 
 			_updatingCurrentValue = false;
 		}

@@ -148,7 +148,7 @@
               Value="{Binding SliderValue}">
         <Slider.Styles>
           <Style Selector="Slider /template/ Thumb">
-            <Setter Property="ToolTip.Tip" Value="{Binding $parent[Slider].Value, Mode=OneWay, StringFormat='Value \{0:f\}'}" />
+            <Setter Property="ToolTip.Tip" Value="{Binding CurrentSatoshiPerByte, Mode=OneWay, StringFormat='Value \{0:f\}'}" />
             <Setter Property="ToolTip.Placement" Value="Bottom" />
             <Setter Property="ToolTip.VerticalOffset" Value="10" />
             <Setter Property="ToolTip.HorizontalOffset" Value="-30" />
