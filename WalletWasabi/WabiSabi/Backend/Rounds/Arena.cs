@@ -103,11 +103,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				var batchedRpc = Rpc.PrepareBatch();
 
 				var aliceCheckingTaskPairs = chunckOfAlices
-					.Select(x => (Alice: x, StatusTask: Rpc.GetTxOutAsync(x.Coin.Outpoint.Hash, (int)x.Coin.Outpoint.N, includeMempool: true)))
+					.Select(x => (Alice: x, StatusTask: Rpc.GetTxOutAsync(x.Coin.Outpoint.Hash, (int)x.Coin.Outpoint.N, includeMempool: true, cancellationToken)))
 					.ToList();
 
 				cancellationToken.ThrowIfCancellationRequested();
-				await batchedRpc.SendBatchAsync().ConfigureAwait(false);
+				await batchedRpc.SendBatchAsync(cancellationToken).ConfigureAwait(false);
 
 				var spendStatusCheckingTasks = aliceCheckingTaskPairs.Select(async x => (x.Alice, Status: await x.StatusTask.ConfigureAwait(false)));
 				var alices = await Task.WhenAll(spendStatusCheckingTasks).ConfigureAwait(false);
@@ -210,7 +210,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 						round.LogInfo($"There are {indistinguishableOutputs.Count(x => x.count == 1)} occurrences of unique outputs.");
 
 						// Broadcasting.
-						await Rpc.SendRawTransactionAsync(coinjoin).ConfigureAwait(false);
+						await Rpc.SendRawTransactionAsync(coinjoin, cancellationToken).ConfigureAwait(false);
 						round.WasTransactionBroadcast = true;
 						round.SetPhase(Phase.Ended);
 
@@ -257,7 +257,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private async Task CreateBlameRoundAsync(Round round, CancellationToken cancellationToken)
 		{
-			var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false)).FeeRate;
+			var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
 			RoundParameters parameters = new(Config, Network, Random, feeRate, blameOf: round, Prison);
 			Round blameRound = new(parameters);
 			Rounds.Add(blameRound);
@@ -267,7 +267,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			if (!Rounds.Any(x => !x.IsBlameRound && x.Phase == Phase.InputRegistration))
 			{
-				var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false)).FeeRate;
+				var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
 
 				RoundParameters roundParams = new(Config, Network, Random, feeRate);
 				Round r = new(roundParams);
@@ -637,7 +637,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned);
 			}
 
-			var txOutResponse = await Rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true).ConfigureAwait(false);
+			var txOutResponse = await Rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true, cancellationToken).ConfigureAwait(false);
 			if (txOutResponse is null)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputSpent);

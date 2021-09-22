@@ -102,7 +102,7 @@ namespace WalletWasabi.BitcoinCore.Mempool
 
 		private async Task<int> MirrorMempoolAsync(CancellationToken cancel)
 		{
-			var mempoolHashes = await Rpc.GetRawMempoolAsync().ConfigureAwait(false);
+			var mempoolHashes = await Rpc.GetRawMempoolAsync(cancel).ConfigureAwait(false);
 
 			IEnumerable<uint256> missing;
 			lock (MempoolLock)
