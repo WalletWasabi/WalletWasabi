@@ -343,11 +343,26 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
+			var suggestions = Suggestions?.ToArray();
+
 			if (RestrictInputToSuggestions &&
-				Suggestions is { } suggestions &&
-				!suggestions.Any(x => x.StartsWith(typedFullText, _stringComparison)))
+			    suggestions is { } &&
+			    !suggestions.Any(x => x.StartsWith(typedFullText, _stringComparison)))
 			{
+				if (!typedFullText.EndsWith(TagSeparator) ||
+				    (typedFullText.EndsWith(TagSeparator) && !suggestions.Contains(autoCompleteBox.SearchText)))
+				{
+					e.Handled = true;
+					return;
+				}
+			}
+
+			if (e.Text is { Length: 1 } && e.Text.StartsWith(TagSeparator))
+			{
+				autoCompleteBox.Text = autoCompleteBox.SearchText;
+				RequestAdd = true;
 				e.Handled = true;
+				return;
 			}
 		}
 
