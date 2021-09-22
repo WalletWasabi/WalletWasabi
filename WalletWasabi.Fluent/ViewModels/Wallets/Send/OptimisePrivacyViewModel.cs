@@ -54,10 +54,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void OnNext(TransactionInfo transactionInfo)
 		{
-			if (_requestedTransaction == SelectedPrivacySuggestion!.TransactionResult)
-			{
-				_transactionInfo.UserDidntRequestOptimisation = true;
-			}
+			_transactionInfo.UserDidntRequestOptimisation =
+				_requestedTransaction == SelectedPrivacySuggestion!.TransactionResult;
 
 			Navigate().To(new TransactionPreviewViewModel(_wallet, transactionInfo,
 				SelectedPrivacySuggestion!.TransactionResult));
