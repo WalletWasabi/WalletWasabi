@@ -1,4 +1,5 @@
 using NBitcoin;
+using NBitcoin.Scripting;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -81,6 +82,20 @@ namespace WalletWasabi.Blockchain.Keys
 			SetFilePath(filePath);
 			ToFileLock = new object();
 			ToFile();
+		}
+
+		public OutputDescriptor[] GetOutputDescriptors(string password, Network network)
+		{
+			var commonPart = $"[{MasterFingerprint}/{AccountKeyPath}]";
+			var publicDescriptor = $"{commonPart}{ExtPubKey.ToString(network)}";
+			var privateDescriptor = $"{commonPart}{GetMasterExtKey(password).ToString(network)}";
+			return new[]
+			{
+				OutputDescriptor.Parse($"wpkh({publicDescriptor}/0/*)", network),
+				OutputDescriptor.Parse($"wpkh({publicDescriptor}/1/*)", network),
+				OutputDescriptor.Parse($"wpkh({privateDescriptor}/0/*)", network),
+				OutputDescriptor.Parse($"wpkh({privateDescriptor}/1/*)", network),
+			};
 		}
 
 		[JsonProperty(Order = 1)]

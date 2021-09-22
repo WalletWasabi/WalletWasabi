@@ -47,6 +47,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced
 			ExtendedAccountZpub = wallet.KeyManager.ExtPubKey.ToZpub(network);
 			AccountKeyPath = $"m/{wallet.KeyManager.AccountKeyPath}";
 			MasterKeyFingerprint = wallet.KeyManager.MasterFingerprint.ToString();
+
+			var descriptors = wallet.KeyManager.GetOutputDescriptors(wallet.Kitchen.SaltSoup(), network);
+			PublicExternalOutputDescriptor  = descriptors[0].ToString();
+			PublicInternalOutputDescriptor  = descriptors[1].ToString();
+			PrivateExternalOutputDescriptor = descriptors[2].ToString();
+			PrivateInternalOutputDescriptor = descriptors[3].ToString();
 		}
 
 		public string ExtendedAccountPublicKey { get; }
@@ -64,6 +70,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced
 		public string? ExtendedMasterZprv { get; }
 
 		public string? ExtendedAccountZprv { get; }
+
+		public string PublicInternalOutputDescriptor  { get; }
+		public string PublicExternalOutputDescriptor  { get; }
+		public string PrivateInternalOutputDescriptor  { get; }
+		public string PrivateExternalOutputDescriptor  { get; }
 
 		public bool IsHardwareWallet { get; }
 	}
