@@ -33,6 +33,9 @@ namespace WalletWasabi.Fluent.Controls
 		private IEnumerable<string>? _topItems;
 		private bool _requestAdd;
 
+		public static readonly StyledProperty<bool> IsCurrentTextValidProperty =
+			AvaloniaProperty.Register<TagsBox, bool>(nameof(IsCurrentTextValid));
+
 		public static readonly DirectProperty<TagsBox, bool> RequestAddProperty =
 			AvaloniaProperty.RegisterDirect<TagsBox, bool>(nameof(RequestAdd), o => o.RequestAdd);
 
@@ -85,6 +88,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => _items;
 			set => SetAndRaise(ItemsProperty, ref _items, value);
+		}
+
+		public bool IsCurrentTextValid
+		{
+			get => GetValue(IsCurrentTextValidProperty);
+			private set => SetValue(IsCurrentTextValidProperty, value);
 		}
 
 		public bool RequestAdd
@@ -232,8 +241,31 @@ namespace WalletWasabi.Fluent.Controls
 				});
 
 			_autoCompleteBox.WhenAnyValue(x => x.Text)
-				.Subscribe(_ => InvalidateWatermark())
+				.Subscribe(_ =>
+				{
+					InvalidateWatermark();
+					CheckIsCurrentTextValid();
+				})
 				.DisposeWith(_compositeDisposable);
+		}
+
+		private void CheckIsCurrentTextValid()
+		{
+			var correctedInput = CurrentText.ParseLabel();
+
+			if (RestrictInputToSuggestions && Suggestions is { } suggestions )
+			{
+				IsCurrentTextValid = suggestions.Any(x => x.Equals(correctedInput, _stringComparison));
+				return;
+			}
+
+			if (!RestrictInputToSuggestions)
+			{
+				IsCurrentTextValid = !string.IsNullOrEmpty(correctedInput);
+				return;
+			}
+
+			throw new InvalidOperationException($"Invalid configuration! {nameof(Suggestions)} are not set!");
 		}
 
 		private void OnKeyDown(object? sender, KeyEventArgs e)
