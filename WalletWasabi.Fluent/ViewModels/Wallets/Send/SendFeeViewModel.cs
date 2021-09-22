@@ -33,6 +33,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private readonly Wallet _wallet;
 		private readonly TransactionInfo _transactionInfo;
 		[AutoNotify] private double[]? _confirmationTargetValues;
+		[AutoNotify] private string[]? _satoshiPerByteLabels;
 		[AutoNotify] private double[]? _satoshiPerByteValues;
 		[AutoNotify] private string[]? _confirmationTargetLabels;
 		[AutoNotify] private double _currentConfirmationTarget;
@@ -275,13 +276,27 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				.ToArray();
 
 			_updatingCurrentValue = true;
+
+			if (satoshiPerByteValues.Any())
+			{
+				var minY = satoshiPerByteValues.Min();
+				var maxY = satoshiPerByteValues.Max();
+				SatoshiPerByteLabels = new [] { minY.ToString("F0"), (maxY / 2).ToString("F0"), maxY.ToString("F0") };
+			}
+			else
+			{
+				SatoshiPerByteLabels = null;
+			}
+
 			ConfirmationTargetLabels = confirmationTargetLabels;
 			ConfirmationTargetValues = confirmationTargetValues;
 			SatoshiPerByteValues = satoshiPerByteValues;
+
 			SliderMinimum = 0;
 			SliderMaximum = confirmationTargetValues.Length - 1;
 			CurrentConfirmationTarget = Math.Clamp(CurrentConfirmationTarget, ConfirmationTargetValues.Min(), ConfirmationTargetValues.Max());
 			SliderValue = GetSliderValue(CurrentConfirmationTarget, ConfirmationTargetValues);
+
 			_updatingCurrentValue = false;
 		}
 
