@@ -43,21 +43,25 @@
                 <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png" ToolTip.Tip="{Binding PayJoinUrl}" HorizontalAlignment="Left" Margin="0 8 0 0" />
             </c:PreviewItem>
             <Separator IsVisible="{Binding IsPayJoin}" />
-            <c:PreviewItem Icon="{StaticResource timer_regular}"
-                           Text="Bitcoin miners will work hard to confirm your transaction within">
-              <TextBox Classes="selectableTextBlock" Text="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
-            </c:PreviewItem>
-            <Separator />
-            <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
-                           Text="for an additional charge of">
-              <DockPanel HorizontalAlignment="Stretch">
-                <Button Classes="h7 plain activeHyperLink" Margin="0 10 0 0"
-                        DockPanel.Dock="Right"
-                        Command="{Binding AdjustFeeCommand}"
-                        Content="Adjust Priority and Fees"/>
-                <TextBox Classes="selectableTextBlock" Text="{Binding FeeText, FallbackValue=235 sats (≈55.34 USD)}" />
-              </DockPanel>
-            </c:PreviewItem>
+
+            <Panel>
+              <StackPanel Spacing="20">
+                <c:PreviewItem Icon="{StaticResource timer_regular}"
+                               Text="Bitcoin miners will work hard to confirm your transaction within">
+                  <TextBox Classes="selectableTextBlock" Text="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
+                </c:PreviewItem>
+                <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
+                               Text="for an additional charge of">
+                  <TextBox Classes="selectableTextBlock" Text="{Binding FeeText, FallbackValue=235 sats (≈55.34 USD)}" DockPanel.Dock="Left" />
+                </c:PreviewItem>
+              </StackPanel>
+
+              <Button Classes="plain" Margin="0 0 20 0" Opacity="0.6" VerticalAlignment="Center" HorizontalAlignment="Right"
+                      ToolTip.Tip="Adjust Fees and Priority"
+                      Command="{Binding AdjustFeeCommand}">
+                <PathIcon Data="{StaticResource options_regular}" />
+              </Button>
+            </Panel>
         </StackPanel>
     </c:ContentArea>
 </UserControl>
