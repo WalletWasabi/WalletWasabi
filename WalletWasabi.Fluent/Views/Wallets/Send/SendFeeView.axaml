@@ -78,7 +78,7 @@
     </Style>
     <!-- LineChart YAxis -->
     <Style Selector="c|LineChart.yAxis">
-      <Setter Property="YAxisOffset" Value="-10,-115" />
+      <Setter Property="YAxisOffset" Value="-10,-150" />
       <Setter Property="YAxisOpacity" Value="0.5" />
       <Setter Property="YAxisStroke" Value="{DynamicResource TextForegroundColor}" />
       <Setter Property="YAxisStrokeThickness" Value="0.7" />
@@ -164,7 +164,7 @@
             <Setter Property="AreaMinViableWidth" Value="40"/>
             <Setter Property="AreaMinViableHeight" Value="20"/>
             <Setter Property="Focusable" Value="True"/>
-            <Setter Property="YAxisTitle" Value="More Expensive"/>
+            <Setter Property="YAxisTitle" Value="Increasing Cost (sats/vbyte)"/>
           </Style>
           <Style Selector="c|LineChart.narrow">
             <Setter Property="AreaMargin" Value="10,0,10,45"/>
