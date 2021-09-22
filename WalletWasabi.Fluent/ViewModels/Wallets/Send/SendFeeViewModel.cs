@@ -42,14 +42,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private int _sliderValue;
 		private bool _updatingCurrentValue;
 		private double _lastConfirmationTarget;
-		private bool _isSilent;
-		private int _entrySliderValue = -1;
+		private readonly bool _isSilent;
+		private readonly FeeRate? _entryFeeRate;
 
 		public SendFeeViewModel(Wallet wallet, TransactionInfo transactionInfo, bool isSilent)
 		{
 			_isSilent = isSilent;
 			_wallet = wallet;
 			_transactionInfo = transactionInfo;
+			_entryFeeRate = transactionInfo.FeeRate;
 
 			SetupCancel(false, true, false);
 			EnableBack = true;
@@ -73,17 +74,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				if (SliderValue == _entrySliderValue)
-				{
-					Navigate().Back();
-				}
-				else
-				{
-					_lastConfirmationTarget = CurrentConfirmationTarget;
-					_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(_lastConfirmationTarget);
+				_lastConfirmationTarget = CurrentConfirmationTarget;
+				_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(_lastConfirmationTarget);
 
-					await OnNextAsync();
-				}
+				await OnNextAsync();
 			});
 		}
 
@@ -96,6 +90,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			transactionInfo.Coins = mixedCoins;
 
 			transactionInfo.FeeRate = new FeeRate(GetSatoshiPerByte(CurrentConfirmationTarget));
+
+			if (transactionInfo.FeeRate == _entryFeeRate)
+			{
+				Navigate().Back();
+				return;
+			}
 
 			if (transactionInfo.Amount > totalMixedCoinsAmount)
 			{
@@ -142,7 +142,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				UpdateFeeEstimates(_wallet.Network == Network.TestNet ? TestNetFeeEstimates : feeProvider.AllFeeEstimate.Estimations);
 				CurrentConfirmationTarget = InitCurrentConfirmationTarget();
-				_entrySliderValue = SliderValue;
 			}
 			else
 			{
