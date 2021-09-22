@@ -264,6 +264,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					_updatingCurrentValue = true;
 					var index = _confirmationTargetValues.Length - sliderValue - 1;
 					CurrentConfirmationTarget = _confirmationTargetValues[index];
+					CurrentSatoshiPerByte = GetSatoshiPerByte(CurrentConfirmationTarget);
 					_updatingCurrentValue = false;
 				}
 			}
