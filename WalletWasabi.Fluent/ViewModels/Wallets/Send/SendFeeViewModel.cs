@@ -37,6 +37,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private double[]? _satoshiPerByteValues;
 		[AutoNotify] private string[]? _confirmationTargetLabels;
 		[AutoNotify] private double _currentConfirmationTarget;
+		[AutoNotify] private decimal _currentSatoshiPerByte;
+		[AutoNotify] private string _currentConfirmationTargetString;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMinimum;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMaximum;
 		[AutoNotify] private int _sliderValue;
@@ -239,6 +241,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return time;
 		}
 
+		private void UpdateFeeAndEstimate(double confirmationTarget)
+		{
+			CurrentSatoshiPerByte = GetSatoshiPerByte(confirmationTarget);
+			CurrentConfirmationTargetString = FeeTargetTimeConverter.Convert((int)confirmationTarget, " minutes", " hour", " hours", " day", " days");
+		}
+
 		private void SetSliderValue(double confirmationTarget)
 		{
 			if (!_updatingCurrentValue)
@@ -247,6 +255,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				if (_confirmationTargetValues is not null)
 				{
 					SliderValue = GetSliderValue(confirmationTarget, _confirmationTargetValues);
+					UpdateFeeAndEstimate(confirmationTarget);
 				}
 
 				_updatingCurrentValue = false;
@@ -262,6 +271,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					_updatingCurrentValue = true;
 					var index = _confirmationTargetValues.Length - sliderValue - 1;
 					CurrentConfirmationTarget = _confirmationTargetValues[index];
+					UpdateFeeAndEstimate(CurrentConfirmationTarget);
 					_updatingCurrentValue = false;
 				}
 			}
@@ -305,6 +315,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			SliderMaximum = confirmationTargetValues.Length - 1;
 			CurrentConfirmationTarget = Math.Clamp(CurrentConfirmationTarget, ConfirmationTargetValues.Min(), ConfirmationTargetValues.Max());
 			SliderValue = GetSliderValue(CurrentConfirmationTarget, ConfirmationTargetValues);
+			UpdateFeeAndEstimate(CurrentConfirmationTarget);
 
 			_updatingCurrentValue = false;
 		}

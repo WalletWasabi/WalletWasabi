@@ -148,7 +148,16 @@
               Value="{Binding SliderValue}">
         <Slider.Styles>
           <Style Selector="Slider /template/ Thumb">
-            <Setter Property="ToolTip.Tip" Value="{Binding $parent[Slider].Value, Mode=OneWay, StringFormat='Value \{0:f\}'}" />
+            <Setter Property="ToolTip.Tip">
+              <Template>
+                <ToolTip>
+                  <StackPanel Spacing="10" x:CompileBindings="False">
+                    <TextBlock Text="{Binding $parent[Slider].DataContext.CurrentSatoshiPerByte, Mode=OneWay, StringFormat='Fee Rate: \{0:f\} sat/vByte'}" />
+                    <TextBlock Text="{Binding $parent[Slider].DataContext.CurrentConfirmationTargetString, Mode=OneWay, StringFormat='Estimated Time: ~\{0\}'}" />
+                  </StackPanel>
+                </ToolTip>
+              </Template>
+            </Setter>
             <Setter Property="ToolTip.Placement" Value="Bottom" />
             <Setter Property="ToolTip.VerticalOffset" Value="10" />
             <Setter Property="ToolTip.HorizontalOffset" Value="-30" />
@@ -176,7 +185,7 @@
             <Setter Property="YAxisTitle" Value="Increasing Cost (sats/vbyte)"/>
           </Style>
           <Style Selector="c|LineChart.narrow">
-            <Setter Property="AreaMargin" Value="10,0,10,45"/>
+            <Setter Property="AreaMargin" Value="30,0,10,45"/>
             <Setter Property="MinHeight" Value="170"/>
             <Setter Property="XAxisLabelAngle" Value="45" />
             <Setter Property="XAxisLabelOffset" Value="-18,54" />
