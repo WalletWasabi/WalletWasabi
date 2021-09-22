@@ -65,7 +65,7 @@ namespace WalletWasabi.Blockchain.Blocks
 			}
 			else
 			{
-				bestBlockHash = await RpcClient.GetBestBlockHashAsync().ConfigureAwait(false);
+				bestBlockHash = await RpcClient.GetBestBlockHashAsync(cancel).ConfigureAwait(false);
 			}
 
 			// If there's no new block.
@@ -74,7 +74,7 @@ namespace WalletWasabi.Blockchain.Blocks
 				return;
 			}
 
-			var arrivedBlock = await RpcClient.GetBlockAsync(bestBlockHash).ConfigureAwait(false);
+			var arrivedBlock = await RpcClient.GetBlockAsync(bestBlockHash, cancel).ConfigureAwait(false);
 			var arrivedHeader = arrivedBlock.Header;
 			arrivedHeader.PrecomputeHash(false, true);
 
@@ -93,7 +93,7 @@ namespace WalletWasabi.Blockchain.Blocks
 				var currentHeader = arrivedHeader;
 				while (reorgProtection7Headers.Count < 7 && currentHeader.GetHash() != Network.GenesisHash)
 				{
-					currentHeader = await RpcClient.GetBlockHeaderAsync(currentHeader.HashPrevBlock).ConfigureAwait(false);
+					currentHeader = await RpcClient.GetBlockHeaderAsync(currentHeader.HashPrevBlock, cancel).ConfigureAwait(false);
 					reorgProtection7Headers.Add(currentHeader);
 				}
 
@@ -135,13 +135,13 @@ namespace WalletWasabi.Blockchain.Blocks
 				return;
 			}
 
-			await HandleMissedBlocksAsync(arrivedBlock).ConfigureAwait(false);
+			await HandleMissedBlocksAsync(arrivedBlock, cancel).ConfigureAwait(false);
 
 			BestBlockHash = bestBlockHash;
 			return;
 		}
 
-		private async Task HandleMissedBlocksAsync(Block arrivedBlock)
+		private async Task HandleMissedBlocksAsync(Block arrivedBlock, CancellationToken cancellationToken)
 		{
 			List<Block> missedBlocks = new()
 			{
@@ -150,7 +150,7 @@ namespace WalletWasabi.Blockchain.Blocks
 			var currentHeader = arrivedBlock.Header;
 			while (true)
 			{
-				Block missedBlock = await RpcClient.GetBlockAsync(currentHeader.HashPrevBlock).ConfigureAwait(false);
+				Block missedBlock = await RpcClient.GetBlockAsync(currentHeader.HashPrevBlock, cancellationToken).ConfigureAwait(false);
 
 				if (missedBlocks.Count > 144)
 				{

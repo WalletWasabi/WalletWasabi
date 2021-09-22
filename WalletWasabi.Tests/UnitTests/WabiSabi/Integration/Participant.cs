@@ -38,8 +38,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 		public async Task GenerateSourceCoinAsync(CancellationToken cancellationToken)
 		{
 			var minerKey = KeyManager.GetNextReceiveKey("coinbase", out _);
-			var blockIds = await Rpc.GenerateToAddressAsync(1, minerKey.GetP2wpkhAddress(Rpc.Network)).ConfigureAwait(false);
-			var block = await Rpc.GetBlockAsync(blockIds.First()).ConfigureAwait(false);
+			var blockIds = await Rpc.GenerateToAddressAsync(1, minerKey.GetP2wpkhAddress(Rpc.Network), cancellationToken).ConfigureAwait(false);
+			var block = await Rpc.GetBlockAsync(blockIds.First(), cancellationToken).ConfigureAwait(false);
 			SourceCoin = block.Transactions[0].Outputs.GetCoins(minerKey.P2wpkhScript).First();
 			minerKey.SetKeyState(KeyState.Used);
 		}
@@ -78,7 +78,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 			var smartCoins = keys.Select((k, i) => new SmartCoin(stx, (uint)i, k));
 			Coins.AddRange(smartCoins);
-			await Rpc.SendRawTransactionAsync(splitTx).ConfigureAwait(false);
+			await Rpc.SendRawTransactionAsync(splitTx, cancellationToken).ConfigureAwait(false);
 		}
 
 		public async Task StartParticipatingAsync(CancellationToken cancellationToken)

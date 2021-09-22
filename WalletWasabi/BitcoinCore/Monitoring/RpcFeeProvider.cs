@@ -33,7 +33,7 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 
 				// If Core was running for a day already && it's synchronized, then we can be pretty sure that the estimate is accurate.
 				// It could also be accurate if Core was only shut down for a few minutes, but that's hard to figure out.
-				allFeeEstimate.IsAccurate = RpcMonitor.RpcStatus.Synchronized && await RpcClient.UptimeAsync().ConfigureAwait(false) > TimeSpan.FromDays(1);
+				allFeeEstimate.IsAccurate = RpcMonitor.RpcStatus.Synchronized && await RpcClient.UptimeAsync(cancel).ConfigureAwait(false) > TimeSpan.FromDays(1);
 
 				LastAllFeeEstimate = allFeeEstimate;
 				if (allFeeEstimate?.Estimations?.Any() is true)
