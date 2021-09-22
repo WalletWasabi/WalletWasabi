@@ -34,9 +34,12 @@ namespace WalletWasabi.Crypto
 		}
 
 		public static OwnershipProof Generate(Key key, OwnershipIdentifier ownershipIdentifier, byte[] commitmentData, bool userConfirmation, ScriptPubKeyType scriptPubKeyType) =>
+			Generate(key, new[] { ownershipIdentifier }, commitmentData, userConfirmation, scriptPubKeyType);
+
+		public static OwnershipProof Generate(Key key, IEnumerable<OwnershipIdentifier> ownershipIdentifiers, byte[] commitmentData, bool userConfirmation, ScriptPubKeyType scriptPubKeyType) =>
 			scriptPubKeyType switch
 			{
-				ScriptPubKeyType.Segwit => GenerateOwnershipProofSegwit(key, commitmentData, new ProofBody(userConfirmation ? ProofBodyFlags.UserConfirmation : 0, ownershipIdentifier)),
+				ScriptPubKeyType.Segwit => GenerateOwnershipProofSegwit(key, commitmentData, new ProofBody(userConfirmation ? ProofBodyFlags.UserConfirmation : 0, ownershipIdentifiers.ToArray())),
 				_ => throw new NotImplementedException()
 			};
 
@@ -65,7 +68,10 @@ namespace WalletWasabi.Crypto
 		}
 
 		public static OwnershipProof GenerateCoinJoinInputProof(Key key, OwnershipIdentifier ownershipIdentifier, CoinJoinInputCommitmentData coinJoinInputsCommitmentData) =>
-			Generate(key, ownershipIdentifier, coinJoinInputsCommitmentData.ToBytes(), true, ScriptPubKeyType.Segwit);
+			Generate(key, new[] { ownershipIdentifier }, coinJoinInputsCommitmentData.ToBytes(), true, ScriptPubKeyType.Segwit);
+
+		public static OwnershipProof GenerateCoinJoinInputProof(Key key, IEnumerable<OwnershipIdentifier> ownershipIdentifiers, CoinJoinInputCommitmentData coinJoinInputsCommitmentData) =>
+			Generate(key, ownershipIdentifiers, coinJoinInputsCommitmentData.ToBytes(), true, ScriptPubKeyType.Segwit);
 
 		public static bool VerifyCoinJoinInputProof(OwnershipProof ownershipProofBytes, Script scriptPubKey, CoinJoinInputCommitmentData coinJoinInputsCommitmentData) =>
 			ownershipProofBytes.VerifyOwnership(scriptPubKey, coinJoinInputsCommitmentData.ToBytes(), true);
