@@ -16,27 +16,27 @@
     </DockPanel>
 
     <DockPanel>
-      <TextBlock Text="Start Wasabi with the system" />
+      <TextBlock Text="Run Wasabi when computer starts" />
       <ToggleSwitch IsChecked="{Binding RunOnSystemStartup}" Command="{Binding StartupCommand}" />
     </DockPanel>
 
     <DockPanel>
-      <TextBlock Text="Hide Window on close" />
+      <TextBlock Text="Minimize Wasabi on Close" />
       <ToggleSwitch IsChecked="{Binding HideOnClose}" />
     </DockPanel>
 
     <DockPanel>
-      <TextBlock Text="Auto Copy/Paste Bitcoin addresses" />
+      <TextBlock Text="Auto Copy/Paste Bitcoin address" />
       <ToggleSwitch IsChecked="{Binding AutoCopy}" />
     </DockPanel>
 
     <DockPanel>
-      <TextBlock Text="Manual fee entry." />
+      <TextBlock Text="Manual Fee Entry" />
       <ToggleSwitch IsChecked="{Binding CustomFee}" />
     </DockPanel>
 
     <DockPanel>
-      <TextBlock VerticalAlignment="Center" Text="Custom change address." />
+      <TextBlock VerticalAlignment="Center" Text="Custom Change Address" />
       <ToggleSwitch IsChecked="{Binding CustomChangeAddress}" />
     </DockPanel>
 
