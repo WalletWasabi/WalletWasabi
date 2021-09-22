@@ -49,6 +49,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Sort(SortExpressionComparer<HistoryItemViewModel>.Descending(x => x.OrderIndex))
 				.Bind(_unfilteredTransactions)
+				.Filter(model => !model.IsCoinJoin)
 				.Bind(_transactions)
 				.Subscribe();
 		}
