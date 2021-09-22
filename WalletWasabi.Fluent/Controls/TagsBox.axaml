@@ -76,7 +76,13 @@
                                             <c:ConcatenatingWrapPanel.ConcatenatedChildren>
                                                 <AutoCompleteBox x:Name="PART_AutoCompleteBox"
                                                                  Items="{Binding #PART_DockPanel.TemplatedParent.Suggestions}"
-                                                                 FilterMode="StartsWith"/>
+                                                                 FilterMode="StartsWith">
+                                                  <AutoCompleteBox.Styles>
+                                                    <Style Selector="AutoCompleteBox /template/ TextBox">
+                                                      <Setter Property="MaxLength" Value="{Binding #PART_DockPanel.TemplatedParent.MaxTextLength}" />
+                                                    </Style>
+                                                  </AutoCompleteBox.Styles>
+                                                </AutoCompleteBox>
                                             </c:ConcatenatingWrapPanel.ConcatenatedChildren>
                                         </c:ConcatenatingWrapPanel>
                                     </ItemsPanelTemplate>

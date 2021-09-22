@@ -45,6 +45,9 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<int> ItemCountLimitProperty =
 			AvaloniaProperty.Register<TagsBox, int>(nameof(ItemCountLimit));
 
+		public static readonly StyledProperty<int> MaxTextLengthProperty =
+			AvaloniaProperty.Register<TagsBox, int>(nameof(MaxTextLength), 25);
+
 		public static readonly StyledProperty<char> TagSeparatorProperty =
 			AvaloniaProperty.Register<TagsBox, char>(nameof(TagSeparator), defaultValue: ' ');
 
@@ -157,6 +160,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(EnableDeleteProperty);
 			set => SetValue(EnableDeleteProperty, value);
+		}
+
+		public int MaxTextLength
+		{
+			get => GetValue(MaxTextLengthProperty);
+			set => SetValue(MaxTextLengthProperty, value);
 		}
 
 		private string CurrentText => _autoCompleteBox?.Text ?? "";
