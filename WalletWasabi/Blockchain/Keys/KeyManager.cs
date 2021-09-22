@@ -84,17 +84,25 @@ namespace WalletWasabi.Blockchain.Keys
 			ToFile();
 		}
 
-		public OutputDescriptor[] GetOutputDescriptors(string password, Network network)
+		public string[] GetOutputDescriptors(string password, Network network)
 		{
-			var commonPart = $"[{MasterFingerprint}/{AccountKeyPath}]";
-			var publicDescriptor = $"{commonPart}{ExtPubKey.ToString(network)}";
-			var privateDescriptor = $"{commonPart}{GetMasterExtKey(password).ToString(network)}";
+			var accountKey = GetMasterExtKey(password).Derive(AccountKeyPath);
+			var privateDescriptor = $"[{MasterFingerprint}/{AccountKeyPath}]{accountKey.ToString(network)}";
+
+			var internalRepo = new FlatSigningRepository();
+			var externalRepo = new FlatSigningRepository();
+			var internalDescriptor = OutputDescriptor.Parse($"wpkh({privateDescriptor}/1/*)", network, false, internalRepo);
+			var externalDescriptor = OutputDescriptor.Parse($"wpkh({privateDescriptor}/0/*)", network, false, externalRepo);
+
+			externalDescriptor.TryGetPrivateString(externalRepo, out var externalPrivate);
+			internalDescriptor.TryGetPrivateString(internalRepo, out var internalPrivate);
+
 			return new[]
 			{
-				OutputDescriptor.Parse($"wpkh({publicDescriptor}/0/*)", network),
-				OutputDescriptor.Parse($"wpkh({publicDescriptor}/1/*)", network),
-				OutputDescriptor.Parse($"wpkh({privateDescriptor}/0/*)", network),
-				OutputDescriptor.Parse($"wpkh({privateDescriptor}/1/*)", network),
+				externalDescriptor.ToString(),
+				internalDescriptor.ToString(),
+				externalPrivate ?? "",
+				internalPrivate ?? "",
 			};
 		}
 

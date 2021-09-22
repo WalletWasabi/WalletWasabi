@@ -49,10 +49,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced
 			MasterKeyFingerprint = wallet.KeyManager.MasterFingerprint.ToString();
 
 			var descriptors = wallet.KeyManager.GetOutputDescriptors(wallet.Kitchen.SaltSoup(), network);
-			PublicExternalOutputDescriptor  = descriptors[0].ToString();
-			PublicInternalOutputDescriptor  = descriptors[1].ToString();
-			PrivateExternalOutputDescriptor = descriptors[2].ToString();
-			PrivateInternalOutputDescriptor = descriptors[3].ToString();
+			PublicExternalOutputDescriptor  = descriptors[0];
+			PublicInternalOutputDescriptor  = descriptors[1];
+			PrivateExternalOutputDescriptor = descriptors[2];
+			PrivateInternalOutputDescriptor = descriptors[3];
 		}
 
 		public string ExtendedAccountPublicKey { get; }
