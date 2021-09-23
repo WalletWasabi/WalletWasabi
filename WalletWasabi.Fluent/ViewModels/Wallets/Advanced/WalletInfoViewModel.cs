@@ -1,9 +1,8 @@
-using System;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Userfacing;
-using WalletWasabi.Wallets;
+using static WalletWasabi.Blockchain.Keys.WpkhOutputDescriptorHelper;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced
 {
@@ -48,11 +47,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced
 			AccountKeyPath = $"m/{wallet.KeyManager.AccountKeyPath}";
 			MasterKeyFingerprint = wallet.KeyManager.MasterFingerprint.ToString();
 
-			var descriptors = wallet.KeyManager.GetOutputDescriptors(wallet.Kitchen.SaltSoup(), network);
-			PublicExternalOutputDescriptor  = descriptors[0];
-			PublicInternalOutputDescriptor  = descriptors[1];
-			PrivateExternalOutputDescriptor = descriptors[2];
-			PrivateInternalOutputDescriptor = descriptors[3];
+			WpkhOutputDescriptors = wallet.KeyManager.GetOutputDescriptors(wallet.Kitchen.SaltSoup(), network);
 		}
 
 		public string ExtendedAccountPublicKey { get; }
@@ -71,10 +66,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced
 
 		public string? ExtendedAccountZprv { get; }
 
-		public string PublicInternalOutputDescriptor  { get; }
-		public string PublicExternalOutputDescriptor  { get; }
-		public string PrivateInternalOutputDescriptor  { get; }
-		public string PrivateExternalOutputDescriptor  { get; }
+		public WpkhDescriptors WpkhOutputDescriptors { get; }
 
 		public bool IsHardwareWallet { get; }
 	}

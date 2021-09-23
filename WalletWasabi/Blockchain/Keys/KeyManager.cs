@@ -1,5 +1,4 @@
 using NBitcoin;
-using NBitcoin.Scripting;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -15,6 +14,7 @@ using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
+using static WalletWasabi.Blockchain.Keys.WpkhOutputDescriptorHelper;
 
 namespace WalletWasabi.Blockchain.Keys
 {
@@ -84,26 +84,14 @@ namespace WalletWasabi.Blockchain.Keys
 			ToFile();
 		}
 
-		public string[] GetOutputDescriptors(string password, Network network)
+		public WpkhDescriptors GetOutputDescriptors(string password, Network network)
 		{
-			var accountKey = GetMasterExtKey(password).Derive(AccountKeyPath);
-			var privateDescriptor = $"[{MasterFingerprint}/{AccountKeyPath}]{accountKey.ToString(network)}";
+			if (!MasterFingerprint.HasValue)
+            {
+				throw new InvalidOperationException($"{nameof(MasterFingerprint)} is not defined.");
+            }
 
-			var internalRepo = new FlatSigningRepository();
-			var externalRepo = new FlatSigningRepository();
-			var internalDescriptor = OutputDescriptor.Parse($"wpkh({privateDescriptor}/1/*)", network, false, internalRepo);
-			var externalDescriptor = OutputDescriptor.Parse($"wpkh({privateDescriptor}/0/*)", network, false, externalRepo);
-
-			externalDescriptor.TryGetPrivateString(externalRepo, out var externalPrivate);
-			internalDescriptor.TryGetPrivateString(internalRepo, out var internalPrivate);
-
-			return new[]
-			{
-				externalDescriptor.ToString(),
-				internalDescriptor.ToString(),
-				externalPrivate ?? "",
-				internalPrivate ?? "",
-			};
+			return WpkhOutputDescriptorHelper.GetOutputDescriptors(network, MasterFingerprint.Value, GetMasterExtKey(password), AccountKeyPath);
 		}
 
 		[JsonProperty(Order = 1)]
