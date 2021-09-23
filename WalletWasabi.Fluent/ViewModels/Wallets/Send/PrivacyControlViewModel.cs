@@ -23,6 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private readonly Wallet _wallet;
 		private readonly SourceList<PocketViewModel> _pocketSource;
 		private readonly ReadOnlyObservableCollection<PocketViewModel> _pockets;
+		private bool _silentNavigation;
 
 		[AutoNotify] private decimal _stillNeeded;
 		[AutoNotify] private bool _enoughSelected;
@@ -104,7 +105,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			try
 			{
 				var transactionResult = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo));
-				Navigate().To(new OptimisePrivacyViewModel(_wallet, transactionInfo, transactionResult));
+				Navigate().To(new OptimisePrivacyViewModel(_wallet, transactionInfo, transactionResult), _silentNavigation ? NavigationMode.Skip : NavigationMode.Normal);
 			}
 			catch (InsufficientBalanceException)
 			{
@@ -114,7 +115,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				if (result.Result)
 				{
-					Navigate().To(new OptimisePrivacyViewModel(_wallet, transactionInfo, transactionResult));
+					Navigate().To(new OptimisePrivacyViewModel(_wallet, transactionInfo, transactionResult), _silentNavigation ? NavigationMode.Skip : NavigationMode.Normal);
 				}
 				else
 				{
@@ -129,11 +130,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				// Do not add the PayJoin client yet, it will be added before broadcasting.
 				var transactionResult = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo));
-				Navigate().To(new TransactionPreviewViewModel(_wallet, transactionInfo, transactionResult));
+				Navigate().To(new TransactionPreviewViewModel(_wallet, transactionInfo, transactionResult), _silentNavigation ? NavigationMode.Skip : NavigationMode.Normal);
 			}
 			catch (InsufficientBalanceException)
 			{
 				await ShowErrorAsync("Transaction Building", "There are not enough funds selected to cover the transaction fee.", "Wasabi was unable to create your transaction.");
+
+				Navigate().BackTo<SendViewModel>();
 			}
 		}
 
@@ -161,6 +164,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			if (_pocketSource.Count == 1)
 			{
 				_pocketSource.Items.First().IsSelected = true;
+				_silentNavigation = true;
 
 				if (isInHistory)
 				{
