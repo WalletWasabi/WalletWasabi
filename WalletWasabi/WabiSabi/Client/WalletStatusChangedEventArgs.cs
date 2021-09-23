@@ -2,5 +2,5 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.WabiSabi.Client
 {
-	public record WalletStatusChangedEventArgs(object? Sender, Wallet Wallet, bool IsCoinJoining);
+	public record WalletStatusChangedEventArgs(Wallet Wallet, bool IsCoinJoining);
 }
