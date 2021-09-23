@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -49,7 +50,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Sort(SortExpressionComparer<HistoryItemViewModel>.Descending(x => x.OrderIndex))
 				.Bind(_unfilteredTransactions)
-				.Filter(model => !model.IsCoinJoin)
 				.Bind(_transactions)
 				.Subscribe();
 		}
@@ -86,6 +86,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			{
 				var historyBuilder = new TransactionHistoryBuilder(_walletViewModel.Wallet);
 				var txRecordList = await Task.Run(historyBuilder.BuildHistorySummary);
+				var rawHistoryList = GroupConsecutiveCoinJoins(txRecordList).ToArray();
 
 				lock (_transactionListLock)
 				{
@@ -93,16 +94,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 					foreach (HistoryItemViewModel historyItemViewModel in copyList)
 					{
-						if (txRecordList.All(x => x.TransactionId != historyItemViewModel.TransactionSummary.TransactionId))
+						if (rawHistoryList.All(x => x.TransactionId != historyItemViewModel.TransactionSummary.TransactionId))
 						{
 							_transactionSourceList.Remove(historyItemViewModel);
 						}
 					}
 
 					Money balance = Money.Zero;
-					for (var i = 0; i < txRecordList.Count; i++)
+					for (var i = 0; i < rawHistoryList.Length; i++)
 					{
-						var transactionSummary = txRecordList[i];
+						var transactionSummary = rawHistoryList[i];
 						balance += transactionSummary.Amount;
 						var newItem = new HistoryItemViewModel(i, transactionSummary, _walletViewModel, balance, _updateTrigger);
 
@@ -125,6 +126,39 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			catch (Exception ex)
 			{
 				Logger.LogError(ex);
+			}
+		}
+
+		private IEnumerable<TransactionSummary> GroupConsecutiveCoinJoins(List<TransactionSummary> txRecordList)
+		{
+			for (var i = 0; i < txRecordList.Count; i++)
+			{
+				var item = txRecordList[i];
+
+				if (item.IsLikelyCoinJoinOutput)
+				{
+					item.Label = "Privacy Increasement";
+
+					for (var j = i + 1; j < txRecordList.Count; j++)
+					{
+						var nextItem = txRecordList[j];
+
+						if (nextItem.IsLikelyCoinJoinOutput)
+						{
+							item.Amount += nextItem.Amount;
+						}
+						else
+						{
+							i = j - 1;
+							yield return item;
+							break;
+						}
+					}
+				}
+				else
+				{
+					yield return item;
+				}
 			}
 		}
 	}
