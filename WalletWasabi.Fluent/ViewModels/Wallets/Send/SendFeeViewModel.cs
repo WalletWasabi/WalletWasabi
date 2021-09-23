@@ -102,7 +102,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (transactionInfo.Amount > totalMixedCoinsAmount)
 			{
-				Navigate().To(new PrivacyControlViewModel(_wallet, transactionInfo));
+				Navigate().To(new PrivacyControlViewModel(_wallet, transactionInfo), _isSilent ? NavigationMode.Skip : NavigationMode.Normal);
 				return;
 			}
 
@@ -195,7 +195,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			try
 			{
 				var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo));
-				Navigate().To(new OptimisePrivacyViewModel(_wallet, transactionInfo, txRes));
+				Navigate().To(new OptimisePrivacyViewModel(_wallet, transactionInfo, txRes), _isSilent ? NavigationMode.Skip : NavigationMode.Normal);
 			}
 			catch (InsufficientBalanceException)
 			{
@@ -208,11 +208,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				if (result.Result)
 				{
-					Navigate().To(new OptimisePrivacyViewModel(_wallet, transactionInfo, txRes));
+					Navigate().To(new OptimisePrivacyViewModel(_wallet, transactionInfo, txRes), _isSilent ? NavigationMode.Skip : NavigationMode.Normal);
 				}
 				else
 				{
-					Navigate().To(new PrivacyControlViewModel(_wallet, transactionInfo));
+					Navigate().To(new PrivacyControlViewModel(_wallet, transactionInfo), _isSilent ? NavigationMode.Skip : NavigationMode.Normal);
 				}
 			}
 		}
@@ -223,14 +223,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				// Do not add the PayJoin client yet, it will be added before broadcasting.
 				var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo));
-				Navigate().To(new TransactionPreviewViewModel(_wallet, transactionInfo, txRes));
+				Navigate().To(new TransactionPreviewViewModel(_wallet, transactionInfo, txRes), _isSilent ? NavigationMode.Skip : NavigationMode.Normal);
 			}
 			catch (InsufficientBalanceException)
 			{
 				await ShowErrorAsync("Transaction Building",
 					"There are not enough private funds to cover the transaction fee",
 					"Wasabi was unable to create your transaction.");
-				Navigate().To(new PrivacyControlViewModel(_wallet, transactionInfo));
+				Navigate().To(new PrivacyControlViewModel(_wallet, transactionInfo), _isSilent ? NavigationMode.Skip : NavigationMode.Normal);
 			}
 		}
 
