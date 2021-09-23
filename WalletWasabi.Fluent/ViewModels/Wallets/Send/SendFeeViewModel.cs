@@ -5,17 +5,14 @@ using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using DynamicData;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.MathNet;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Gui.Converters;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
@@ -32,20 +29,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	{
 		private readonly Wallet _wallet;
 		private readonly TransactionInfo _transactionInfo;
-		[AutoNotify] private double[]? _confirmationTargetValues;
-		[AutoNotify] private string[]? _satoshiPerByteLabels;
-		[AutoNotify] private double[]? _satoshiPerByteValues;
-		[AutoNotify] private string[]? _confirmationTargetLabels;
-		[AutoNotify] private double _currentConfirmationTarget;
-		[AutoNotify] private decimal _currentSatoshiPerByte;
-		[AutoNotify] private string _currentConfirmationTargetString;
-		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMinimum;
-		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMaximum;
-		[AutoNotify] private int _sliderValue;
-		private bool _updatingCurrentValue;
-		private double _lastConfirmationTarget;
 		private readonly bool _isSilent;
 		private readonly FeeRate? _entryFeeRate;
+		private double _lastConfirmationTarget;
 
 		public SendFeeViewModel(Wallet wallet, TransactionInfo transactionInfo, bool isSilent)
 		{
@@ -55,34 +41,21 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_transactionInfo = transactionInfo;
 			_entryFeeRate = transactionInfo.FeeRate;
 
+			FeeChart = new FeeChartViewModel();
+
 			SetupCancel(false, true, false);
 			EnableBack = true;
 
-			_sliderMinimum = 0;
-			_sliderMaximum = 9;
-			_currentConfirmationTarget = 36;
-			_lastConfirmationTarget = _currentConfirmationTarget;
-
-			this.WhenAnyValue(x => x.CurrentConfirmationTarget)
-				.Subscribe(x =>
-				{
-					if (x > 0)
-					{
-						SetSliderValue(x);
-					}
-				});
-
-			this.WhenAnyValue(x => x.SliderValue)
-				.Subscribe(SetXAxisCurrentValue);
-
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				_lastConfirmationTarget = CurrentConfirmationTarget;
+				_lastConfirmationTarget = FeeChart.CurrentConfirmationTarget;
 				_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(_lastConfirmationTarget);
 
 				await OnNextAsync();
 			});
 		}
+
+		public FeeChartViewModel FeeChart { get; }
 
 		private async Task OnNextAsync()
 		{
@@ -92,7 +65,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			var totalMixedCoinsAmount = Money.FromUnit(mixedCoins.Sum(coin => coin.Amount), MoneyUnit.Satoshi);
 			transactionInfo.Coins = mixedCoins;
 
-			transactionInfo.FeeRate = new FeeRate(GetSatoshiPerByte(CurrentConfirmationTarget));
+			transactionInfo.FeeRate = new FeeRate(FeeChart.GetSatoshiPerByte(FeeChart.CurrentConfirmationTarget));
 
 			if (transactionInfo.FeeRate == _entryFeeRate)
 			{
@@ -137,14 +110,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(estimations =>
 				{
-					UpdateFeeEstimates(_wallet.Network == Network.TestNet ? TestNetFeeEstimates : estimations);
+					FeeChart.UpdateFeeEstimates(_wallet.Network == Network.TestNet ? TestNetFeeEstimates : estimations);
 				})
 				.DisposeWith(disposables);
 
 			if (feeProvider.AllFeeEstimate is { })
 			{
-				UpdateFeeEstimates(_wallet.Network == Network.TestNet ? TestNetFeeEstimates : feeProvider.AllFeeEstimate.Estimations);
-				CurrentConfirmationTarget = InitCurrentConfirmationTarget();
+				FeeChart.UpdateFeeEstimates(_wallet.Network == Network.TestNet ? TestNetFeeEstimates : feeProvider.AllFeeEstimate.Estimations);
+
+				if (_transactionInfo.FeeRate is { })
+				{
+					FeeChart.InitCurrentConfirmationTarget(_transactionInfo.FeeRate);
+				}
 			}
 			else
 			{
@@ -164,32 +141,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 		}
 
-		private double InitCurrentConfirmationTarget()
-		{
-			if (_transactionInfo.FeeRate is { } feeRate)
-			{
-				return GetConfirmationTarget(feeRate);
-			}
-			else
-			{
-				//TODO: Implement
-				return 1;
-			}
-		}
-
-		private double GetConfirmationTarget(FeeRate feeRate)
-		{
-			if (SatoshiPerByteValues is null || ConfirmationTargetValues is null) // Should not happen
-			{
-				return 1;
-			}
-
-			var closestValue = SatoshiPerByteValues.OrderBy(x => Math.Abs((decimal)x - feeRate.SatoshiPerByte)).First();
-			var indexOfClosestValue = SatoshiPerByteValues.IndexOf(closestValue);
-
-			return ConfirmationTargetValues[indexOfClosestValue];
-		}
-
 		private async Task BuildTransactionAsNormalAsync(TransactionInfo transactionInfo, Money totalMixedCoinsAmount)
 		{
 			try
@@ -200,7 +151,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			catch (InsufficientBalanceException)
 			{
 				var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo.Address,
-					totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, transactionInfo.Coins,
+					totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate!, transactionInfo.Coins,
 					subtractFee: true));
 				var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Private, txRes,
 					_wallet.Synchronizer.UsdExchangeRate);
@@ -241,85 +192,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return time;
 		}
 
-		private void UpdateFeeAndEstimate(double confirmationTarget)
-		{
-			CurrentSatoshiPerByte = GetSatoshiPerByte(confirmationTarget);
-			CurrentConfirmationTargetString = FeeTargetTimeConverter.Convert((int)confirmationTarget, " minutes", " hour", " hours", " day", " days");
-		}
-
-		private void SetSliderValue(double confirmationTarget)
-		{
-			if (!_updatingCurrentValue)
-			{
-				_updatingCurrentValue = true;
-				if (_confirmationTargetValues is not null)
-				{
-					SliderValue = GetSliderValue(confirmationTarget, _confirmationTargetValues);
-					UpdateFeeAndEstimate(confirmationTarget);
-				}
-
-				_updatingCurrentValue = false;
-			}
-		}
-
-		private void SetXAxisCurrentValue(int sliderValue)
-		{
-			if (_confirmationTargetValues is not null)
-			{
-				if (!_updatingCurrentValue)
-				{
-					_updatingCurrentValue = true;
-					var index = _confirmationTargetValues.Length - sliderValue - 1;
-					CurrentConfirmationTarget = _confirmationTargetValues[index];
-					UpdateFeeAndEstimate(CurrentConfirmationTarget);
-					_updatingCurrentValue = false;
-				}
-			}
-		}
-
-		private void UpdateFeeEstimates(Dictionary<int, int> feeEstimates)
-		{
-			var xs = feeEstimates.Select(x => (double)x.Key).ToArray();
-			var ys = feeEstimates.Select(x => (double)x.Value).ToArray();
-#if true
-			GetSmoothValuesSubdivide(xs, ys, out var xts, out var yts);
-			var confirmationTargetValues = xts.ToArray();
-			var satoshiPerByteValues = yts.ToArray();
-#else
-			var confirmationTargetValues = xs.Reverse().ToArray();
-			var satoshiPerByteValues = ys.Reverse().ToArray();
-#endif
-			var confirmationTargetLabels = feeEstimates.Select(x => x.Key)
-				.Select(x => FeeTargetTimeConverter.Convert(x, "m", "h", "h", "d", "d"))
-				.Reverse()
-				.ToArray();
-
-			_updatingCurrentValue = true;
-
-			if (satoshiPerByteValues.Any())
-			{
-				var minY = satoshiPerByteValues.Min();
-				var maxY = satoshiPerByteValues.Max();
-				SatoshiPerByteLabels = new [] { minY.ToString("F0"), (maxY / 2).ToString("F0"), maxY.ToString("F0") };
-			}
-			else
-			{
-				SatoshiPerByteLabels = null;
-			}
-
-			ConfirmationTargetLabels = confirmationTargetLabels;
-			ConfirmationTargetValues = confirmationTargetValues;
-			SatoshiPerByteValues = satoshiPerByteValues;
-
-			SliderMinimum = 0;
-			SliderMaximum = confirmationTargetValues.Length - 1;
-			CurrentConfirmationTarget = Math.Clamp(CurrentConfirmationTarget, ConfirmationTargetValues.Min(), ConfirmationTargetValues.Max());
-			SliderValue = GetSliderValue(CurrentConfirmationTarget, ConfirmationTargetValues);
-			UpdateFeeAndEstimate(CurrentConfirmationTarget);
-
-			_updatingCurrentValue = false;
-		}
-
 		private static readonly Dictionary<int, int> TestNetFeeEstimates = new ()
 		{
 			[1] = 17,
@@ -333,102 +205,5 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			[432] = 1,
 			[1008] = 1
 		};
-
-		private int GetSliderValue(double x, double[] xs)
-		{
-			for (var i = 0; i < xs.Length; i++)
-			{
-				if (xs[i] <= x)
-				{
-					var index = xs.Length - i - 1;
-					return index;
-				}
-			}
-
-			return 0;
-		}
-
-		private void GetSmoothValuesSubdivide(double[] xs, double[] ys, out List<double> xts, out List<double> yts)
-		{
-			const int Divisions = 256;
-
-			xts = new List<double>();
-			yts = new List<double>();
-
-			if (xs.Length > 2)
-			{
-				var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
-
-				for (var i = 0; i < xs.Length - 1; i++)
-				{
-					var a = xs[i];
-					var b = xs[i + 1];
-					var range = b - a;
-					var step = range / Divisions;
-
-					var x0 = xs[i];
-					xts.Add(x0);
-					var yt0 = spline.Interpolate(xs[i]);
-					yts.Add(yt0);
-
-					for (var xt = a + step; xt < b; xt += step)
-					{
-						var yt = spline.Interpolate(xt);
-						xts.Add(xt);
-						yts.Add(yt);
-					}
-				}
-
-				var xn = xs[^1];
-				xts.Add(xn);
-				var yn = spline.Interpolate(xs[^1]);
-				yts.Add(yn);
-			}
-			else
-			{
-				for (var i = 0; i < xs.Length; i++)
-				{
-					xts.Add(xs[i]);
-					yts.Add(ys[i]);
-				}
-			}
-
-			xts.Reverse();
-			yts.Reverse();
-		}
-
-		private decimal GetSatoshiPerByte(double t)
-		{
-			if (_confirmationTargetValues is { } && _satoshiPerByteValues is { })
-			{
-				var xs = _confirmationTargetValues.Reverse().ToArray();
-				var ys = _satoshiPerByteValues.Reverse().ToArray();
-
-				if (xs.Length > 2)
-				{
-					var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
-					var interpolated = (decimal) spline.Interpolate(t);
-					return Math.Clamp(interpolated, (decimal) ys[^1], (decimal) ys[0]);
-				}
-
-				if (xs.Length == 2)
-				{
-					if (xs[1] - xs[0] == 0.0)
-					{
-						return (decimal) ys[0];
-					}
-					var slope = (ys[1] - ys[0]) / (xs[1] - xs[0]);
-					var interpolated = (decimal)(ys[0] + (t - xs[0]) * slope);
-					return Math.Clamp(interpolated, (decimal) ys[^1], (decimal) ys[0]);
-				}
-
-				if (xs.Length == 1)
-				{
-					return (decimal)ys[0];
-				}
-			}
-
-			return SliderMaximum;
-		}
 	}
 }

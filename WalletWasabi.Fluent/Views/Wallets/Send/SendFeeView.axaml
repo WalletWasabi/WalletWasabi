@@ -129,7 +129,7 @@
                  EnableBack="true"
                  EnableNext="True" NextContent="Continue"
                  IsBusy="{Binding IsBusy}">
-    <DockPanel MinHeight="80">
+    <DockPanel MinHeight="80" DataContext="{Binding FeeChart}">
       <DockPanel.Resources>
         <Thickness x:Key="SliderTopHeaderMargin">0,0,0,4</Thickness>
         <GridLength x:Key="SliderPreContentMargin">0</GridLength>
@@ -152,7 +152,7 @@
               <Template>
                 <ToolTip>
                   <StackPanel Spacing="10" x:CompileBindings="False">
-                    <TextBlock Text="{Binding $parent[Slider].DataContext.CurrentSatoshiPerByte, Mode=OneWay, StringFormat='Fee Rate: \{0:f\} sat/vByte'}" />
+                    <TextBlock Text="{Binding $parent[Slider].DataContext.CurrentSatoshiPerByte, Mode=OneWay, StringFormat='Fee Rate: \{0:0\} sat/vByte'}" />
                     <TextBlock Text="{Binding $parent[Slider].DataContext.CurrentConfirmationTargetString, Mode=OneWay, StringFormat='Estimated Time: ~\{0\}'}" />
                   </StackPanel>
                 </ToolTip>
