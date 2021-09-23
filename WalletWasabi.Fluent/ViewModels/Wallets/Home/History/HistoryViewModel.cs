@@ -13,6 +13,7 @@ using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
@@ -143,16 +144,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 					{
 						var nextItem = txRecordList[j];
 
-						if (nextItem.IsLikelyCoinJoinOutput)
-						{
-							item.Amount += nextItem.Amount;
-						}
-						else
+						if (!nextItem.IsLikelyCoinJoinOutput)
 						{
 							i = j - 1;
 							yield return item;
 							break;
 						}
+
+						if (!nextItem.IsConfirmed())
+						{
+							continue;
+						}
+
+						item.Amount += nextItem.Amount;
 					}
 				}
 				else

@@ -8,6 +8,7 @@ using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
 
@@ -75,8 +76,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		{
 			OrderIndex = item.OrderIndex;
 			Date = item.TransactionSummary.DateTime.ToLocalTime();
-			var confirmations = item.TransactionSummary.Height.Type == HeightType.Chain ? (int) Services.BitcoinStore.SmartHeaderChain.TipHeight - item.TransactionSummary.Height.Value + 1 : 0;
-			IsConfirmed = confirmations > 0;
+			IsConfirmed = item.TransactionSummary.IsConfirmed();
 		}
 	}
 }
