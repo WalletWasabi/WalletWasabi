@@ -77,7 +77,8 @@
                    RestrictInputToSuggestions="False"
                    Items="{Binding Labels}"
                    TopItems="{Binding TopSuggestions}"
-                   Suggestions="{Binding Suggestions}" />
+                   Suggestions="{Binding Suggestions}"
+                   IsCurrentTextValid="{Binding IsCurrentTextValid, Mode=OneWayToSource}" />
       </DockPanel>
     </DockPanel>
   </c:ContentArea>

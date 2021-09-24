@@ -34,6 +34,7 @@
                    SuggestionsAreCaseSensitive="True"
                    RestrictInputToSuggestions="False"
                    Watermark="{StaticResource LabelsWatermarkText}"
+                   IsCurrentTextValid="{Binding IsCurrentTextValid, Mode=OneWayToSource}"
                    Suggestions="{Binding Suggestions}">
           <c:TagsBox.Styles>
             <Style Selector="c|TagsBox AutoCompleteBox">
