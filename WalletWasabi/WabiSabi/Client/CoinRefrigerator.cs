@@ -31,7 +31,6 @@ namespace WalletWasabi.WabiSabi.Client
 				return false;
 			}
 
-			// Freeze for one
 			if (starTime.Add(FreezeTime) > DateTimeOffset.UtcNow)
 			{
 				return true;
