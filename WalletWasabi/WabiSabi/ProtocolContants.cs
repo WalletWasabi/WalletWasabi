@@ -11,8 +11,14 @@ namespace WalletWasabi.WabiSabi
 
 		// Round hashing labels
 		public const string RoundStrobeDomain = "round-parameters";
-		public const string RoundMinRegistrableAmountStrobeLabel = "minimum-registrable-amount";
-		public const string RoundMaxRegistrableAmountStrobeLabel = "maximum-registrable-amount";
+		public const string RoundAllowedInputAmountsStrobeLabel = "allowed-input-amounts";
+		public const string RoundAllowedOutputAmountsStrobeLabel = "allowed-output-amounts";
+		public const string RoundAllowedInputTypesStrobeLabel = "allowed-input-types";
+		public const string RoundAllowedOutputTypesStrobeLabel = "allowed-output-types";
+		public const string RoundNetworkStrobeLabel = "network";
+		public const string RoundMaxTransactionSizeStrobeLabel = "max-transaction-size";
+		public const string RoundMinRelayTxFeeStrobeLabel = "min-relay-tx-fee";
+
 		public const string RoundMaxRegistrableVsizeStrobeLabel = "maximum-registrable-vsize";
 		public const string RoundMaxVsizePerAliceStrobeLabel = "per-alice-vsize-allocation";
 		public const string RoundAmountCredentialIssuerParametersStrobeLabel = "amount-credential-issuer-parameters";

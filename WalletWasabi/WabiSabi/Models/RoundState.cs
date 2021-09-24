@@ -66,12 +66,17 @@ namespace WalletWasabi.WabiSabi.Models
 				ConnectionConfirmationTimeout,
 				OutputRegistrationTimeout,
 				TransactionSigningTimeout,
-				MinRegistrableAmount,
-				MaxRegistrableAmount,
+				CoinjoinState.Parameters.AllowedInputAmounts,
+				CoinjoinState.Parameters.AllowedInputTypes,
+				CoinjoinState.Parameters.AllowedOutputAmounts,
+				CoinjoinState.Parameters.AllowedOutputTypes,
+				CoinjoinState.Parameters.Network,
+				CoinjoinState.Parameters.FeeRate.FeePerK,
+				CoinjoinState.Parameters.MaxTransactionSize,
+				CoinjoinState.Parameters.MinRelayTxFee.FeePerK,
 				MaxRegistrableVsize,
 				MaxVsizeAllocationPerAlice,
 				AmountCredentialIssuerParameters,
-				VsizeCredentialIssuerParameters,
-				FeeRate.FeePerK);
+				VsizeCredentialIssuerParameters);
 	}
 }

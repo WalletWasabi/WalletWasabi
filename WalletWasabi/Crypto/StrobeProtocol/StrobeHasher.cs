@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using NBitcoin;
 using WalletWasabi.WabiSabi;
+using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.Crypto.StrobeProtocol
 {
@@ -28,6 +30,14 @@ namespace WalletWasabi.Crypto.StrobeProtocol
 
 		public StrobeHasher Append(string fieldName, Money money)
 			=> Append(fieldName, money.Satoshi);
+
+		public StrobeHasher Append(string fieldName, MoneyRange range)
+			=> Append(fieldName + "-min", range.Min).Append(fieldName + "-max", range.Max);
+
+		public StrobeHasher Append(string fieldName, IEnumerable<ScriptType> scriptTypes)
+			=> scriptTypes
+				.Select((scriptType, idx) => (scriptType, idx))
+				.Aggregate(this, (hasher, scriptTypeIdxPair) => hasher.Append(fieldName + "-" + scriptTypeIdxPair.idx, Enum.GetName(scriptTypeIdxPair.scriptType)));
 
 		public StrobeHasher Append(string fieldName, int num)
 			=> Append(fieldName, BitConverter.GetBytes(num));
