@@ -34,6 +34,7 @@ using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
@@ -148,7 +149,8 @@ namespace WalletWasabi.Tests.RegressionTests
 				Inputs = null,
 			};
 
-			var round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
+			var round = coordinator.GetCurrentInputRegisterableRoundOrDefault()!;
+			Assert.NotNull(round);
 			var roundId = round.RoundId;
 			inputsRequest.RoundId = roundId;
 			var registeredAddresses = Array.Empty<BitcoinAddress>();
@@ -214,7 +216,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await CreateNewAliceClientAsync(roundId, registeredAddresses, signerPubKeys, requesters, inputsRequest));
 			Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nProvided proof is invalid.", httpRequestException.Message);
 
-			round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
+			round = coordinator.GetCurrentInputRegisterableRoundOrDefault()!;
+			Assert.NotNull(round);
 			var requester = new Requester();
 			uint256 msg = new(NBitcoin.Crypto.Hashes.SHA256(network.Consensus.ConsensusFactory.CreateTransaction().ToBytes()));
 			var nonce = round.NonceProvider.GetNextNonce();
@@ -230,7 +233,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			roundConfig.Denomination = Money.Coins(0.01m); // exactly the same as our output
 			coordinator.RoundConfig.UpdateOrDefault(roundConfig, toFile: true);
 			coordinator.AbortAllRoundsInInputRegistration("");
-			round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
+			round = coordinator.GetCurrentInputRegisterableRoundOrDefault()!;
+			Assert.NotNull(round);
 			roundId = round.RoundId;
 			inputsRequest.RoundId = roundId;
 			signerPubKeys = round.MixingLevels.SignerPubKeys;
@@ -240,7 +244,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			roundConfig.Denomination = Money.Coins(0.00999999m); // one satoshi less than our output
 			coordinator.RoundConfig.UpdateOrDefault(roundConfig, toFile: true);
 			coordinator.AbortAllRoundsInInputRegistration("");
-			round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
+			round = coordinator.GetCurrentInputRegisterableRoundOrDefault()!;
+			Assert.NotNull(round);
 			roundId = round.RoundId;
 			inputsRequest.RoundId = roundId;
 			signerPubKeys = round.MixingLevels.SignerPubKeys;
@@ -251,7 +256,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			roundConfig.ConnectionConfirmationTimeout = 7;
 			coordinator.RoundConfig.UpdateOrDefault(roundConfig, toFile: true);
 			coordinator.AbortAllRoundsInInputRegistration("");
-			round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
+			round = coordinator.GetCurrentInputRegisterableRoundOrDefault()!;
+			Assert.NotNull(round);
 			roundId = round.RoundId;
 			inputsRequest.RoundId = roundId;
 			signerPubKeys = round.MixingLevels.SignerPubKeys;
@@ -297,7 +303,8 @@ namespace WalletWasabi.Tests.RegressionTests
 				await aliceClient.PostUnConfirmationAsync();
 			}
 
-			round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
+			round = coordinator.GetCurrentInputRegisterableRoundOrDefault()!;
+			Assert.NotNull(round);
 			requester = new Requester();
 			nonce = round.NonceProvider.GetNextNonce();
 			blindedData = new BlindedOutputWithNonceIndex(nonce.N, requester.BlindScript(round.MixingLevels.GetBaseLevel().SignerKey.PubKey, nonce.R, key.PubKey.ScriptPubKey));
@@ -306,7 +313,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			proof = key.SignCompact(blindedOutputScriptsHash);
 			inputsRequest.Inputs.First().Proof = proof;
 
-			var currentRound = coordinator.TryGetRound(roundId);
+			var currentRound = coordinator.TryGetRound(roundId)!;
 			Assert.NotNull(currentRound);
 			Assert.Equal(RoundPhase.InputRegistration, currentRound.Phase);
 			Assert.Equal(2, currentRound.AnonymitySet);
@@ -396,7 +403,8 @@ namespace WalletWasabi.Tests.RegressionTests
 				roundConfig.ConnectionConfirmationTimeout = 1; // One second.
 				coordinator.RoundConfig.UpdateOrDefault(roundConfig, toFile: true);
 				coordinator.AbortAllRoundsInInputRegistration("");
-				round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
+				round = coordinator.GetCurrentInputRegisterableRoundOrDefault()!;
+				Assert.NotNull(round);
 				roundId = round.RoundId;
 				inputsRequest.RoundId = roundId;
 				signerPubKeys = round.MixingLevels.SignerPubKeys;
@@ -445,7 +453,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			await rpc.GenerateAsync(1);
 			tx = await rpc.GetRawTransactionAsync(hash);
 			coin = tx.Outputs.GetCoins(witnessAddress.ScriptPubKey).Single();
-			round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
+			round = coordinator.GetCurrentInputRegisterableRoundOrDefault()!;
+			Assert.NotNull(round);
 			requester = new Requester();
 			requesters = new[] { requester };
 			var bitcoinWitPubKeyAddress = new Key().GetAddress(ScriptPubKeyType.Segwit, network);
@@ -561,7 +570,8 @@ namespace WalletWasabi.Tests.RegressionTests
 				}
 			}
 
-			round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
+			round = coordinator.GetCurrentInputRegisterableRoundOrDefault()!;
+			Assert.NotNull(round);
 			signerPubKeys = round.MixingLevels.SignerPubKeys;
 			roundId = round.RoundId;
 
@@ -715,7 +725,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			coordinator.AbortAllRoundsInInputRegistration("");
 
 			var satoshiClient = new SatoshiClient(BackendClearnetHttpClient);
-			var round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
+			var round = coordinator.GetCurrentInputRegisterableRoundOrDefault()!;
+			Assert.NotNull(round);
 			var roundId = round.RoundId;
 
 			// We have to 4 participant so, this data structure is for keeping track of
@@ -872,7 +883,8 @@ namespace WalletWasabi.Tests.RegressionTests
 				var userInputData = new List<(Key key, BitcoinAddress inputAddress, uint256 txHash, Transaction tx, OutPoint input)>();
 				var activeOutputAddress = new Key().GetAddress(ScriptPubKeyType.Segwit, network);
 				var changeOutputAddress = new Key().GetAddress(ScriptPubKeyType.Segwit, network);
-				CoordinatorRound round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
+				CoordinatorRound round = coordinator.GetCurrentInputRegisterableRoundOrDefault()!;
+				Assert.NotNull(round);
 				var requester = new Requester();
 				var nonce = round.NonceProvider.GetNextNonce();
 				BlindedOutputWithNonceIndex blinded = new(nonce.N, requester.BlindScript(round.MixingLevels.GetBaseLevel().SignerKey.PubKey, nonce.R, activeOutputAddress.ScriptPubKey));
@@ -903,7 +915,7 @@ namespace WalletWasabi.Tests.RegressionTests
 					var inputProof = new InputProofModel { Input = input, Proof = key.SignCompact(blindedOutputScriptsHash) };
 					inputProofModels.Add(inputProof);
 
-					GetTxOutResponse getTxOutResponse = await rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true);
+					GetTxOutResponse getTxOutResponse = (await rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true))!;
 					// Check if inputs are unspent.
 					Assert.NotNull(getTxOutResponse);
 
@@ -925,7 +937,8 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			var aliceClients = new List<Task<AliceClient4>>();
 
-			var currentRound = coordinator.GetCurrentInputRegisterableRoundOrDefault();
+			var currentRound = coordinator.GetCurrentInputRegisterableRoundOrDefault()!;
+			Assert.NotNull(currentRound);
 
 			foreach (var user in inputRegistrationUsers)
 			{
@@ -1049,7 +1062,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			var finalCoinjoin = await rpc.GetRawTransactionAsync(mempooltxs.First());
 			foreach (var input in finalCoinjoin.Inputs)
 			{
-				var getTxOut = await rpc.GetTxOutAsync(input.PrevOut.Hash, (int)input.PrevOut.N, includeMempool: false);
+				GetTxOutResponse getTxOut = (await rpc.GetTxOutAsync(input.PrevOut.Hash, (int)input.PrevOut.N, includeMempool: false))!;
+				Assert.NotNull(getTxOut);
 
 				coins.Add(new Coin(input.PrevOut.Hash, input.PrevOut.N, getTxOut.TxOut.Value, getTxOut.TxOut.ScriptPubKey));
 			}

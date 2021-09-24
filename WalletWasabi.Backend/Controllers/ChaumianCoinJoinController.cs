@@ -117,7 +117,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			using (await InputsLock.LockAsync())
 			{
-				CoordinatorRound round = Coordinator.TryGetRound(request.RoundId);
+				CoordinatorRound? round = Coordinator.TryGetRound(request.RoundId);
 
 				if (round is null || round.Phase != RoundPhase.InputRegistration)
 				{
@@ -429,7 +429,7 @@ namespace WalletWasabi.Backend.Controllers
 				return returnFailureResponse;
 			}
 
-			CoordinatorRound round = Coordinator.TryGetRound(roundId);
+			CoordinatorRound? round = Coordinator.TryGetRound(roundId);
 			if (round is null)
 			{
 				return Ok("Round not found.");
@@ -484,7 +484,7 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest();
 			}
 
-			CoordinatorRound round = Coordinator.TryGetRound(roundId);
+			CoordinatorRound? round = Coordinator.TryGetRound(roundId);
 			if (round is null)
 			{
 				TryLogLateRequest(roundId, RoundPhase.OutputRegistration);
@@ -765,7 +765,7 @@ namespace WalletWasabi.Backend.Controllers
 				return (null, null);
 			}
 
-			CoordinatorRound round = Coordinator.TryGetRound(roundId);
+			CoordinatorRound? round = Coordinator.TryGetRound(roundId);
 
 			if (round is null)
 			{
