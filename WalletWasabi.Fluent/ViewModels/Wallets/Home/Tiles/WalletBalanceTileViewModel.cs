@@ -9,7 +9,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Wallets;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
@@ -18,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 	{
 		private readonly Wallet _wallet;
 		private readonly IObservable<Unit> _balanceChanged;
-		private readonly ObservableCollection<HistoryItemViewModel> _history;
+		private readonly ObservableCollection<HistoryItemViewModelBase> _history;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _balanceBtc;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _balanceFiat;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _balancePrivateBtc;
@@ -28,7 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _recentTransactionStatus;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _showRecentTransaction;
 
-		public WalletBalanceTileViewModel(Wallet wallet, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModel> history)
+		public WalletBalanceTileViewModel(Wallet wallet, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModelBase> history)
 		{
 			_wallet = wallet;
 			_balanceChanged = balanceChanged;

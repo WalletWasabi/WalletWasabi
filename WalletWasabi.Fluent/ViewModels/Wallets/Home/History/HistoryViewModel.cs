@@ -14,20 +14,21 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 {
 	public partial class HistoryViewModel : ActivatableViewModel
 	{
-		private readonly SourceList<HistoryItemViewModel> _transactionSourceList;
+		private readonly SourceList<HistoryItemViewModelBase> _transactionSourceList;
 		private readonly WalletViewModel _walletViewModel;
 		private readonly IObservable<Unit> _updateTrigger;
-		private readonly ObservableCollectionExtended<HistoryItemViewModel> _transactions;
-		private readonly ObservableCollectionExtended<HistoryItemViewModel> _unfilteredTransactions;
+		private readonly ObservableCollectionExtended<HistoryItemViewModelBase> _transactions;
+		private readonly ObservableCollectionExtended<HistoryItemViewModelBase> _unfilteredTransactions;
 		private readonly object _transactionListLock = new();
 
-		[AutoNotify] private HistoryItemViewModel? _selectedItem;
+		[AutoNotify] private HistoryItemViewModelBase? _selectedItem;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isTransactionHistoryEmpty;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isInitialized;
 
@@ -35,21 +36,21 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		{
 			_walletViewModel = walletViewModel;
 			_updateTrigger = updateTrigger;
-			_transactionSourceList = new SourceList<HistoryItemViewModel>();
-			_transactions = new ObservableCollectionExtended<HistoryItemViewModel>();
-			_unfilteredTransactions = new ObservableCollectionExtended<HistoryItemViewModel>();
+			_transactionSourceList = new SourceList<HistoryItemViewModelBase>();
+			_transactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();
+			_unfilteredTransactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();
 
 			this.WhenAnyValue(x => x.UnfilteredTransactions.Count)
 				.Subscribe(x => IsTransactionHistoryEmpty = x <= 0);
 
-			var sortDescription = DataGridSortDescription.FromPath(nameof(HistoryItemViewModel.OrderIndex), ListSortDirection.Descending);
+			var sortDescription = DataGridSortDescription.FromPath(nameof(TransactionHistoryItemViewModel.OrderIndex), ListSortDirection.Descending);
 			CollectionView = new DataGridCollectionView(Transactions);
 			CollectionView.SortDescriptions.Add(sortDescription);
 
 			_transactionSourceList
 				.Connect()
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Sort(SortExpressionComparer<HistoryItemViewModel>.Descending(x => x.OrderIndex))
+				.Sort(SortExpressionComparer<HistoryItemViewModelBase>.Descending(x => x.OrderIndex))
 				.Bind(_unfilteredTransactions)
 				.Bind(_transactions)
 				.Subscribe();
@@ -57,9 +58,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 		public DataGridCollectionView CollectionView { get; }
 
-		public ObservableCollection<HistoryItemViewModel> UnfilteredTransactions => _unfilteredTransactions;
+		public ObservableCollection<HistoryItemViewModelBase> UnfilteredTransactions => _unfilteredTransactions;
 
-		public ObservableCollection<HistoryItemViewModel> Transactions => _transactions;
+		public ObservableCollection<HistoryItemViewModelBase> Transactions => _transactions;
 
 		public void SelectTransaction(uint256 txid)
 		{
@@ -87,28 +88,23 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			{
 				var historyBuilder = new TransactionHistoryBuilder(_walletViewModel.Wallet);
 				var txRecordList = await Task.Run(historyBuilder.BuildHistorySummary);
-				var rawHistoryList = GroupConsecutiveCoinJoins(txRecordList).ToArray();
+				var newTransactionsList = GetHistoryList(txRecordList).ToArray();
 
 				lock (_transactionListLock)
 				{
 					var copyList = Transactions.ToList();
 
-					foreach (HistoryItemViewModel historyItemViewModel in copyList)
+					foreach (var oldItem in copyList)
 					{
-						if (rawHistoryList.All(x => x.TransactionId != historyItemViewModel.TransactionSummary.TransactionId))
+						if (newTransactionsList.All(x => x.TransactionId != oldItem.TransactionId))
 						{
-							_transactionSourceList.Remove(historyItemViewModel);
+							_transactionSourceList.Remove(oldItem);
 						}
 					}
 
-					Money balance = Money.Zero;
-					for (var i = 0; i < rawHistoryList.Length; i++)
+					foreach (var newItem in newTransactionsList)
 					{
-						var transactionSummary = rawHistoryList[i];
-						balance += transactionSummary.Amount;
-						var newItem = new HistoryItemViewModel(i, transactionSummary, _walletViewModel, balance, _updateTrigger);
-
-						if (_transactions.FirstOrDefault(x => x.TransactionSummary.TransactionId == newItem.TransactionSummary.TransactionId) is { } item)
+						if (_transactions.FirstOrDefault(x => x.TransactionId == newItem.TransactionId) is { } item)
 						{
 							item.Update(newItem);
 						}
@@ -130,15 +126,20 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			}
 		}
 
-		private IEnumerable<TransactionSummary> GroupConsecutiveCoinJoins(List<TransactionSummary> txRecordList)
+		private IEnumerable<HistoryItemViewModelBase> GetHistoryList(List<TransactionSummary> txRecordList)
 		{
+			Money balance = Money.Zero;
+
 			for (var i = 0; i < txRecordList.Count; i++)
 			{
 				var item = txRecordList[i];
 
+				balance += item.Amount;
+
 				if (item.IsLikelyCoinJoinOutput)
 				{
 					item.Label = "Privacy Increasement";
+					DateTimeOffset lastCjDateInGroup = item.DateTime;
 
 					for (var j = i + 1; j < txRecordList.Count; j++)
 					{
@@ -147,7 +148,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 						if (!nextItem.IsLikelyCoinJoinOutput)
 						{
 							i = j - 1;
-							yield return item;
+							yield return new CoinJoinHistoryItemViewModel(i, item, _walletViewModel, balance, lastCjDateInGroup);
 							break;
 						}
 
@@ -156,12 +157,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 							continue;
 						}
 
+						balance += nextItem.Amount;
 						item.Amount += nextItem.Amount;
+						lastCjDateInGroup = nextItem.DateTime;
 					}
 				}
 				else
 				{
-					yield return item;
+					yield return new TransactionHistoryItemViewModel(i, item, _walletViewModel, balance, _updateTrigger);
 				}
 			}
 		}
