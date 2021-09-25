@@ -8,8 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Tor.Socks5.Pool.Circuits;
-using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
