@@ -91,8 +91,7 @@ namespace WalletWasabi.WabiSabi.Client
 				foreach (var finishedCoinJoin in finishedCoinJoins)
 				{
 					var walletToRemove = finishedCoinJoin.Wallet;
-					var removed = trackedWallets.Remove(walletToRemove.WalletName);
-					if (!removed)
+					if (!trackedWallets.Remove(walletToRemove.WalletName))
 					{
 						Logger.LogWarning($"Wallet: `{walletToRemove.WalletName}` was not removed from tracked wallet list. Will retry in a few seconds.");
 					}
