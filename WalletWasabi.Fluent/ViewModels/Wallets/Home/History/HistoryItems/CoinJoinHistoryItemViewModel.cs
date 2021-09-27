@@ -1,6 +1,8 @@
 using System;
 using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems
 {
@@ -17,6 +19,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems
 			LastCjDateInGroup = lastCjDateInGroup;
 			OutgoingAmount = transactionSummary.Amount * -1;
 			IsCoinJoin = true;
+
+			ShowDetailsCommand = ReactiveCommand.Create(() =>
+				RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(new CoinJoinDetailsViewModel()));
 
 			UpdateDateString();
 		}
