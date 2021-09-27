@@ -25,6 +25,8 @@ namespace WalletWasabi.WabiSabi.Client
 			ServiceConfiguration = serviceConfiguration;
 		}
 
+		public event EventHandler<WalletStatusChangedEventArgs>? WalletStatusChanged;
+
 		public WalletManager WalletManager { get; }
 		public IBackendHttpClientFactory HttpClientFactory { get; }
 		public RoundStateUpdater RoundStatusUpdater { get; }
@@ -72,6 +74,7 @@ namespace WalletWasabi.WabiSabi.Client
 					var coinjoinTask = coinjoinClient.StartCoinJoinAsync(coinCandidates, cts.Token);
 
 					trackedWallets.Add(openedWallet.WalletName, new WalletTrackingData(openedWallet, coinjoinClient, coinjoinTask, cts));
+					WalletStatusChanged?.Invoke(this, new WalletStatusChangedEventArgs(openedWallet, IsCoinJoining: true));
 				}
 
 				foreach (var closedWallet in closedWallets.Select(x => x.Value))
@@ -86,13 +89,14 @@ namespace WalletWasabi.WabiSabi.Client
 
 				foreach (var finishedCoinJoin in finishedCoinJoins)
 				{
-					var removed = trackedWallets.Remove(finishedCoinJoin.Wallet.WalletName);
-					if (!removed)
+					var walletToRemove = finishedCoinJoin.Wallet;
+					if (!trackedWallets.Remove(walletToRemove.WalletName))
 					{
-						Logger.LogWarning($"Wallet: `{finishedCoinJoin.Wallet.WalletName}` was not removed from tracked wallet list. Will retry in a few seconds.");
+						Logger.LogWarning($"Wallet: `{walletToRemove.WalletName}` was not removed from tracked wallet list. Will retry in a few seconds.");
 					}
 					else
 					{
+						WalletStatusChanged?.Invoke(this, new WalletStatusChangedEventArgs(walletToRemove, IsCoinJoining: false));
 						finishedCoinJoin.CancellationTokenSource.Dispose();
 					}
 				}
