@@ -97,9 +97,6 @@ namespace WalletWasabi.WabiSabi.Client
 					else
 					{
 						WalletStatusChanged?.Invoke(this, new WalletStatusChangedEventArgs(walletToRemove, IsCoinJoining: false));
-					}
-					else
-					{
 						finishedCoinJoin.CancellationTokenSource.Dispose();
 					}
 				}
