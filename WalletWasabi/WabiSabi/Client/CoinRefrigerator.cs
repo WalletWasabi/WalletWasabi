@@ -26,12 +26,12 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public bool IsFrozen(SmartCoin coin)
 		{
-			if (!FrozenCoins.TryGetValue(coin, out var starTime))
+			if (!FrozenCoins.TryGetValue(coin, out var startTime))
 			{
 				return false;
 			}
 
-			if (starTime.Add(FreezeTime) > DateTimeOffset.UtcNow)
+			if (startTime.Add(FreezeTime) > DateTimeOffset.UtcNow)
 			{
 				return true;
 			}
