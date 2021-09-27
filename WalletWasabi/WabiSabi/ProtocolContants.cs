@@ -19,7 +19,8 @@ namespace WalletWasabi.WabiSabi
 		public const string RoundMaxTransactionSizeStrobeLabel = "max-transaction-size";
 		public const string RoundMinRelayTxFeeStrobeLabel = "min-relay-tx-fee";
 
-		public const string RoundMaxRegistrableVsizeStrobeLabel = "maximum-registrable-vsize";
+		public const string RoundMaxAmountCredentialValueStrobeLabel = "maximum-amount-credential-value";
+		public const string RoundMaxVsizeCredentialValueStrobeLabel = "maximum-vsize-credential-value";
 		public const string RoundMaxVsizePerAliceStrobeLabel = "per-alice-vsize-allocation";
 		public const string RoundAmountCredentialIssuerParametersStrobeLabel = "amount-credential-issuer-parameters";
 		public const string RoundVsizeCredentialIssuerParametersStrobeLabel = "vsize-credential-issuer-parameters";

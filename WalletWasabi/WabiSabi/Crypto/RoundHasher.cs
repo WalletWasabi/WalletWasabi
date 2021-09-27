@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using NBitcoin;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.StrobeProtocol;
@@ -15,14 +16,15 @@ namespace WalletWasabi.WabiSabi.Crypto
 				TimeSpan outputRegistrationTimeout,
 				TimeSpan transactionSigningTimeout,
 				MoneyRange allowedInputAmounts,
-				IEnumerable<ScriptType> allowedInputTypes,
+				ImmutableSortedSet<ScriptType> allowedInputTypes,
 				MoneyRange allowedOutputAmounts,
-				IEnumerable<ScriptType> allowedOutputTypes,
+				ImmutableSortedSet<ScriptType> allowedOutputTypes,
 				Network network,
 				long feePerK,
 				int maxTransactionSize,
 				long minRelayTxFeePerK,
-				long maxRegistrableVsize,
+				long maxAmountCredentialValue,
+				long maxVsizeCredentialValue,
 				long maxVsizeAllocationPerAlice,
 				CredentialIssuerParameters amountCredentialIssuerParameters,
 				CredentialIssuerParameters vsizeCredentialIssuerParameters)
@@ -39,7 +41,8 @@ namespace WalletWasabi.WabiSabi.Crypto
 					.Append(ProtocolConstants.RoundFeeRateStrobeLabel, feePerK)
 					.Append(ProtocolConstants.RoundMaxTransactionSizeStrobeLabel, maxTransactionSize)
 					.Append(ProtocolConstants.RoundMinRelayTxFeeStrobeLabel, minRelayTxFeePerK)
-					.Append(ProtocolConstants.RoundMaxRegistrableVsizeStrobeLabel, maxRegistrableVsize)
+					.Append(ProtocolConstants.RoundMaxAmountCredentialValueStrobeLabel, maxAmountCredentialValue)
+					.Append(ProtocolConstants.RoundMaxVsizeCredentialValueStrobeLabel, maxVsizeCredentialValue)
 					.Append(ProtocolConstants.RoundMaxVsizePerAliceStrobeLabel, maxVsizeAllocationPerAlice)
 					.Append(ProtocolConstants.RoundAmountCredentialIssuerParametersStrobeLabel, amountCredentialIssuerParameters)
 					.Append(ProtocolConstants.RoundVsizeCredentialIssuerParametersStrobeLabel, vsizeCredentialIssuerParameters)

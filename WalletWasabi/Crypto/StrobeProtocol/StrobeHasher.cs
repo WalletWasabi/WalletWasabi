@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -34,10 +35,12 @@ namespace WalletWasabi.Crypto.StrobeProtocol
 		public StrobeHasher Append(string fieldName, MoneyRange range)
 			=> Append(fieldName + "-min", range.Min).Append(fieldName + "-max", range.Max);
 
-		public StrobeHasher Append(string fieldName, IEnumerable<ScriptType> scriptTypes)
-			=> scriptTypes
-				.Select((scriptType, idx) => (scriptType, idx))
-				.Aggregate(this, (hasher, scriptTypeIdxPair) => hasher.Append(fieldName + "-" + scriptTypeIdxPair.idx, Enum.GetName(scriptTypeIdxPair.scriptType)));
+		public StrobeHasher Append(string fieldName, ImmutableSortedSet<ScriptType> scriptTypes)
+		{
+			return scriptTypes
+						   .Select((scriptType, idx) => (scriptType, idx))
+						   .Aggregate(this, (hasher, scriptTypeIdxPair) => hasher.Append(fieldName + "-" + scriptTypeIdxPair.idx, Enum.GetName(scriptTypeIdxPair.scriptType)));
+		}
 
 		public StrobeHasher Append(string fieldName, int num)
 			=> Append(fieldName, BitConverter.GetBytes(num));

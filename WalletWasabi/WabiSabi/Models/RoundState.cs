@@ -19,9 +19,8 @@ namespace WalletWasabi.WabiSabi.Models
 		TimeSpan ConnectionConfirmationTimeout,
 		TimeSpan OutputRegistrationTimeout,
 		TimeSpan TransactionSigningTimeout,
-		long MinRegistrableAmount,
-		long MaxRegistrableAmount,
-		long MaxRegistrableVsize,
+		long MaxAmountCredentialValue,
+		long MaxVsizeCredentialValue,
 		long MaxVsizeAllocationPerAlice,
 		MultipartyTransactionState CoinjoinState)
 	{
@@ -41,9 +40,8 @@ namespace WalletWasabi.WabiSabi.Models
 				round.ConnectionConfirmationTimeout,
 				round.OutputRegistrationTimeout,
 				round.TransactionSigningTimeout,
-				round.MinRegistrableAmount,
-				round.MaxRegistrableAmount,
-				round.MaxRegistrableVsize,
+				round.MaxAmountCredentialValue,
+				round.MaxVsizeCredentialValue,
 				round.MaxVsizeAllocationPerAlice,
 				round.CoinjoinState);
 
@@ -55,10 +53,10 @@ namespace WalletWasabi.WabiSabi.Models
 			};
 
 		public WabiSabiClient CreateAmountCredentialClient(WasabiRandom random) =>
-			new(AmountCredentialIssuerParameters, random, MaxRegistrableAmount);
+			new(AmountCredentialIssuerParameters, random, MaxAmountCredentialValue);
 
 		public WabiSabiClient CreateVsizeCredentialClient(WasabiRandom random) =>
-			new(VsizeCredentialIssuerParameters, random, MaxRegistrableVsize);
+			new(VsizeCredentialIssuerParameters, random, MaxVsizeCredentialValue);
 
 		private uint256 CalculateHash() =>
 			RoundHasher.CalculateHash(
@@ -74,7 +72,8 @@ namespace WalletWasabi.WabiSabi.Models
 				CoinjoinState.Parameters.FeeRate.FeePerK,
 				CoinjoinState.Parameters.MaxTransactionSize,
 				CoinjoinState.Parameters.MinRelayTxFee.FeePerK,
-				MaxRegistrableVsize,
+				MaxAmountCredentialValue,
+				MaxVsizeCredentialValue,
 				MaxVsizeAllocationPerAlice,
 				AmountCredentialIssuerParameters,
 				VsizeCredentialIssuerParameters);
