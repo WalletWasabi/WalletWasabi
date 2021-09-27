@@ -152,12 +152,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 							break;
 						}
 
+						balance += nextItem.Amount;
+
 						if (!nextItem.IsConfirmed())
 						{
 							continue;
 						}
 
-						balance += nextItem.Amount;
 						item.Amount += nextItem.Amount;
 						lastCjDateInGroup = nextItem.DateTime;
 					}

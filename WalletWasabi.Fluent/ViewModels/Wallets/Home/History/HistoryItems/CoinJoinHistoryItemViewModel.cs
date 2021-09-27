@@ -6,7 +6,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems
 {
 	public class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 	{
-
 		public CoinJoinHistoryItemViewModel(
 			int orderIndex,
 			TransactionSummary transactionSummary,
