@@ -74,7 +74,7 @@ namespace WalletWasabi.WabiSabi.Client
 					var coinjoinTask = coinjoinClient.StartCoinJoinAsync(coinCandidates, cts.Token);
 
 					trackedWallets.Add(openedWallet.WalletName, new WalletTrackingData(openedWallet, coinjoinClient, coinjoinTask, cts));
-					WalletStatusChanged?.Invoke(this, new WalletStatusChangedEventArgs(openedWallet, true));
+					WalletStatusChanged?.Invoke(this, new WalletStatusChangedEventArgs(openedWallet, IsCoinJoining: true));
 				}
 
 				foreach (var closedWallet in closedWallets.Select(x => x.Value))
@@ -98,7 +98,7 @@ namespace WalletWasabi.WabiSabi.Client
 					}
 					else
 					{
-						WalletStatusChanged?.Invoke(this, new WalletStatusChangedEventArgs(walletToRemove, false));
+						WalletStatusChanged?.Invoke(this, new WalletStatusChangedEventArgs(walletToRemove, IsCoinJoining: false));
 					}
 					finishedCoinJoin.CancellationTokenSource.Dispose();
 				}
