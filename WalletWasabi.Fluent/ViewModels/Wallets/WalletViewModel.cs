@@ -18,6 +18,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
@@ -39,6 +40,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWideLayout;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWalletBalanceZero;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isEmptyWallet;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isCoinJoining;
 
 		protected WalletViewModel(Wallet wallet) : base(wallet)
 		{
@@ -220,6 +222,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			}
 
 			History.Activate(disposables);
+
+			if (Services.HostedServices.Get<CoinJoinManager>() is { } coinJoinManager)
+			{
+				Observable
+					.FromEventPattern<WalletStatusChangedEventArgs>(coinJoinManager, nameof(CoinJoinManager.WalletStatusChanged))
+					.Select(args => args.EventArgs)
+					.Where(e => e.Wallet == Wallet)
+					.Subscribe(e => IsCoinJoining = e.IsCoinJoining)
+					.DisposeWith(disposables);
+			}
 		}
 
 		public static WalletViewModel Create(Wallet wallet)
