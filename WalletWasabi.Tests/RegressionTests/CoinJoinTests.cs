@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
-using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -34,7 +33,6 @@ using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
-using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
@@ -313,9 +311,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			proof = key.SignCompact(blindedOutputScriptsHash);
 			inputsRequest.Inputs.First().Proof = proof;
 
-			var currentRound = coordinator.TryGetRound(roundId)!;
-			Assert.NotNull(currentRound);
-			Assert.Equal(RoundPhase.InputRegistration, currentRound.Phase);
+			Assert.True(coordinator.TryGetRound(roundId, out CoordinatorRound? currentRound));
+			Assert.Equal(RoundPhase.InputRegistration, currentRound!.Phase);
 			Assert.Equal(2, currentRound.AnonymitySet);
 			Assert.Equal(0, currentRound.CountAlices());
 

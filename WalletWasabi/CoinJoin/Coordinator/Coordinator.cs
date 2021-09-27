@@ -3,6 +3,7 @@ using NBitcoin.RPC;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -423,11 +424,12 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			return Rounds.FirstOrDefault(x => x.Status == CoordinatorRoundStatus.Running && x.Phase == RoundPhase.InputRegistration);
 		}
 
-		public CoordinatorRound? TryGetRound(long roundId)
+		public bool TryGetRound(long roundId, [NotNullWhen(true)] out CoordinatorRound? coordinatorRound)
 		{
 			using (RoundsListLock.Lock())
 			{
-				return Rounds.SingleOrDefault(x => x.RoundId == roundId);
+				coordinatorRound = Rounds.SingleOrDefault(x => x.RoundId == roundId);
+				return coordinatorRound is not null;
 			}
 		}
 
