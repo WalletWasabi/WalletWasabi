@@ -76,7 +76,7 @@ namespace WalletWasabi.WabiSabi.Client
 					var coinjoinTask = coinjoinClient.StartCoinJoinAsync(coinCandidates, cts.Token);
 
 					trackedWallets.Add(openedWallet.WalletName, new WalletTrackingData(openedWallet, coinjoinClient, coinjoinTask, coinCandidates, cts));
-                    WalletStatusChanged?.Invoke(this, new WalletStatusChangedEventArgs(openedWallet, IsCoinJoining: true));
+					WalletStatusChanged?.Invoke(this, new WalletStatusChangedEventArgs(openedWallet, IsCoinJoining: true));
 				}
 
 				foreach (var closedWallet in closedWallets.Select(x => x.Value))
@@ -106,13 +106,13 @@ namespace WalletWasabi.WabiSabi.Client
 				foreach (var finishedCoinJoin in finishedCoinJoins)
 				{
 					var logPrefix = $"Wallet: `{finishedCoinJoin.Wallet.WalletName}` - Coinjoin client";
-					var freezeCoins = true;
 
 					try
 					{
 						var success = await finishedCoinJoin.CoinJoinTask.ConfigureAwait(false);
 						if (success)
 						{
+							CoinRefrigerator.Freeze(finishedCoinJoin.CoinCandidates);
 							Logger.LogInfo($"{logPrefix} finished successfully!");
 						}
 						else
@@ -128,17 +128,10 @@ namespace WalletWasabi.WabiSabi.Client
 					catch (OperationCanceledException)
 					{
 						Logger.LogInfo($"{logPrefix} was cancelled.");
-						freezeCoins = false;
 					}
 					catch (Exception e)
 					{
 						Logger.LogError($"{logPrefix} failed with exception:", e);
-						freezeCoins = false;
-					}
-
-					if (freezeCoins)
-					{
-						CoinRefrigerator.Freeze(finishedCoinJoin.CoinCandidates);
 					}
 				}
 
