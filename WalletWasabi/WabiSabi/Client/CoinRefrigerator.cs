@@ -13,14 +13,7 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			foreach (var coin in coins)
 			{
-				if (!FrozenCoins.ContainsKey(coin))
-				{
-					FrozenCoins.TryAdd(coin, DateTimeOffset.UtcNow);
-				}
-				else
-				{
-					FrozenCoins[coin] = DateTimeOffset.UtcNow;
-				}
+				FrozenCoins[coin] = DateTimeOffset.UtcNow;
 			}
 		}
 
