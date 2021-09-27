@@ -342,9 +342,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 				{
 					IEnumerable<Alice> alicesDidntSign = round.GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: false);
 
-					CoordinatorRound? nextRound = GetCurrentInputRegisterableRoundOrDefault(syncLock: false);
-
-					if (nextRound is { })
+					if (TryGetCurrentInputRegisterableRound(out CoordinatorRound? nextRound, syncLock: false))
 					{
 						int nextRoundAlicesCount = nextRound.CountAlices(syncLock: false);
 						var alicesSignedCount = round.AnonymitySet - alicesDidntSign.Count();
@@ -411,17 +409,19 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			}
 		}
 
-		public CoordinatorRound? GetCurrentInputRegisterableRoundOrDefault(bool syncLock = true)
+		public bool TryGetCurrentInputRegisterableRound([NotNullWhen(true)] out CoordinatorRound? coordinatorRound, bool syncLock = true)
 		{
 			if (syncLock)
 			{
 				using (RoundsListLock.Lock())
 				{
-					return Rounds.FirstOrDefault(x => x.Status == CoordinatorRoundStatus.Running && x.Phase == RoundPhase.InputRegistration);
+					coordinatorRound = Rounds.FirstOrDefault(x => x.Status == CoordinatorRoundStatus.Running && x.Phase == RoundPhase.InputRegistration);
+					return coordinatorRound is not null;
 				}
 			}
 
-			return Rounds.FirstOrDefault(x => x.Status == CoordinatorRoundStatus.Running && x.Phase == RoundPhase.InputRegistration);
+			coordinatorRound = Rounds.FirstOrDefault(x => x.Status == CoordinatorRoundStatus.Running && x.Phase == RoundPhase.InputRegistration);
+			return coordinatorRound is not null;
 		}
 
 		public bool TryGetRound(long roundId, [NotNullWhen(true)] out CoordinatorRound? coordinatorRound)
