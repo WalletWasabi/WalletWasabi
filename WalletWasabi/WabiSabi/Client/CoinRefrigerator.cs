@@ -6,27 +6,27 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class CoinRefrigerator
 	{
-		private Dictionary<SmartCoin, DateTimeOffset> CoinsInFridge { get; } = new();
+		private Dictionary<SmartCoin, DateTimeOffset> FrozenCoins { get; } = new();
 		private TimeSpan FreezeTime { get; } = TimeSpan.FromSeconds(90);
 
 		public void Freeze(IEnumerable<SmartCoin> coins)
 		{
 			foreach (var coin in coins)
 			{
-				if (!CoinsInFridge.ContainsKey(coin))
+				if (!FrozenCoins.ContainsKey(coin))
 				{
-					CoinsInFridge.TryAdd(coin, DateTimeOffset.UtcNow);
+					FrozenCoins.TryAdd(coin, DateTimeOffset.UtcNow);
 				}
 				else
 				{
-					CoinsInFridge[coin] = DateTimeOffset.UtcNow;
+					FrozenCoins[coin] = DateTimeOffset.UtcNow;
 				}
 			}
 		}
 
 		public bool IsFrozen(SmartCoin coin)
 		{
-			if (!CoinsInFridge.TryGetValue(coin, out var starTime))
+			if (!FrozenCoins.TryGetValue(coin, out var starTime))
 			{
 				return false;
 			}
@@ -36,7 +36,7 @@ namespace WalletWasabi.WabiSabi.Client
 				return true;
 			}
 
-			CoinsInFridge.Remove(coin);
+			FrozenCoins.Remove(coin);
 			return false;
 		}
 	}
