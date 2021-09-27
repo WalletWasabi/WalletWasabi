@@ -14,6 +14,7 @@ using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
+using static WalletWasabi.Blockchain.Keys.WpkhOutputDescriptorHelper;
 
 namespace WalletWasabi.Blockchain.Keys
 {
@@ -81,6 +82,16 @@ namespace WalletWasabi.Blockchain.Keys
 			SetFilePath(filePath);
 			ToFileLock = new object();
 			ToFile();
+		}
+
+		public WpkhDescriptors GetOutputDescriptors(string password, Network network)
+		{
+			if (!MasterFingerprint.HasValue)
+            {
+				throw new InvalidOperationException($"{nameof(MasterFingerprint)} is not defined.");
+            }
+
+			return WpkhOutputDescriptorHelper.GetOutputDescriptors(network, MasterFingerprint.Value, GetMasterExtKey(password), AccountKeyPath);
 		}
 
 		[JsonProperty(Order = 1)]

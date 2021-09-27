@@ -46,9 +46,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			// means that the output is spent or simply doesn't even exist.
 			var nonExistingOutPoint = new OutPoint();
 			using var signingKey = new Key();
+			var ownershipProof = WabiSabiFactory.CreateOwnershipProof(signingKey, round.Id);
 
 			var ex = await Assert.ThrowsAsync<HttpRequestException>(async () =>
-			   await apiClient.RegisterInputAsync(round.Id, nonExistingOutPoint, signingKey, CancellationToken.None));
+			   await apiClient.RegisterInputAsync(round.Id, nonExistingOutPoint, ownershipProof, CancellationToken.None));
 
 			var wex = Assert.IsType<WabiSabiProtocolException>(ex.InnerException);
 			Assert.Equal(WabiSabiProtocolErrorCode.InputSpent, wex.ErrorCode);
@@ -370,7 +371,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var rounds = await apiClient.GetStatusAsync(CancellationToken.None);
 			var round = rounds.First(x => x.CoinjoinState is ConstructionState);
 
-			var response = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, signingKey, CancellationToken.None);
+			var ownershipProof = WabiSabiFactory.CreateOwnershipProof(signingKey, round.Id);
+			var response = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, ownershipProof, CancellationToken.None);
 
 			Assert.NotEqual(Guid.Empty, response.Value);
 		}
@@ -403,7 +405,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			RoundState[] rounds = await apiClient.GetStatusAsync(CancellationToken.None);
 			RoundState round = rounds.First(x => x.CoinjoinState is ConstructionState);
 
-			ArenaResponse<Guid> response = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, signingKey, CancellationToken.None);
+			var ownershipProof = WabiSabiFactory.CreateOwnershipProof(signingKey, round.Id);
+			ArenaResponse<Guid> response = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, ownershipProof, CancellationToken.None);
 
 			Assert.NotEqual(Guid.Empty, response.Value);
 		}

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -180,7 +181,11 @@ namespace WalletWasabi.WabiSabi.Client
 						throw new InvalidOperationException("The key cannot generate the utxo scriptpubkey. This could happen if the wallet password is not the correct one.");
 					}
 
-					return await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, secret, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
+					var masterKey = Keymanager.GetMasterExtKey(Kitchen.SaltSoup()).PrivateKey;
+					var identificationMasterKey = Slip21Node.FromSeed(masterKey.ToBytes());
+					var identificationKey = identificationMasterKey.DeriveChild("SLIP-0019").DeriveChild("Ownership identification key").Key;
+
+					return await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, secret, identificationKey, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
 				}
 				catch (HttpRequestException)
 				{
