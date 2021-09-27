@@ -77,7 +77,6 @@ namespace WalletWasabi.WabiSabi.Client
 				foreach (var closedWallet in closedWallets.Select(x => x.Value))
 				{
 					closedWallet.CancellationTokenSource.Cancel();
-					closedWallet.CancellationTokenSource.Dispose();
 				}
 
 				var finishedCoinJoins = trackedWallets
@@ -92,7 +91,10 @@ namespace WalletWasabi.WabiSabi.Client
 					{
 						Logger.LogWarning($"Wallet: `{finishedCoinJoin.Wallet.WalletName}` was not removed from tracked wallet list. Will retry in a few seconds.");
 					}
-					finishedCoinJoin.CancellationTokenSource.Dispose();
+					else
+					{
+						finishedCoinJoin.CancellationTokenSource.Dispose();
+					}
 				}
 
 				foreach (var finishedCoinJoin in finishedCoinJoins)
