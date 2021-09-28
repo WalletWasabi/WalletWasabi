@@ -41,8 +41,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds.Utils
 			TransactionInfo entry = new(unixTimeStampMs, transaction.GetHash().ToString(), txBytes);
 			string json = JsonSerializer.Serialize(entry, Options);
 
-			// Add UNIX timestamp to the file name to let the files be sorted by date by default.
-			string fileName = $"CoinJoinTransaction.{unixTimeStampMs}.{transaction.GetHash()}.json";
+			// Use a date format in the file name to let the files be sorted by date by default.
+			string fileName = $"CoinJoinTransaction.{currentDate.Value:yyyy.MM.dd-HH-mm-ss}.{transaction.GetHash()}.json";
 			string filePath = Path.Combine(DirectoryPath, fileName);
 			await File.WriteAllTextAsync(filePath, json, CancellationToken.None).ConfigureAwait(false);
 
