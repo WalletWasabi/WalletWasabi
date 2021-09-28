@@ -30,17 +30,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private BuildTransactionResult? _transaction;
 
 		[AutoNotify] private string _confirmationTimeText;
+		[AutoNotify] private string _feeText;
 		[AutoNotify] private string _nextButtonText;
 		[AutoNotify] private SmartLabel _labels;
 		[AutoNotify] private string _amountText;
-		[AutoNotify] private string _feeText;
 
 		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info)
 		{
 			_wallet = wallet;
 			_labels = SmartLabel.Empty;
 			_info = info;
+
 			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
+
 			EnableBack = true;
 			_confirmationTimeText = "";
 
@@ -52,6 +54,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			if (PreferPsbtWorkflow)
 			{
 				SkipCommand = ReactiveCommand.CreateFromTask(async () => await OnConfirmAsync(_transaction));
+
 				NextCommand = ReactiveCommand.CreateFromTask(async () =>
 				{
 					var saved = await TransactionHelpers.ExportTransactionToBinaryAsync(_transaction);
@@ -61,21 +64,28 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						Navigate().To(new SuccessViewModel("The PSBT has been successfully created."));
 					}
 				});
+
 				_nextButtonText = "Save PSBT file";
 			}
 			else
 			{
 				NextCommand = ReactiveCommand.CreateFromTask(async () => await OnConfirmAsync(_transaction));
+
 				_nextButtonText = "Confirm";
 			}
 
 			AdjustFeeCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				await NavigateDialogAsync(new SendFeeViewModel(wallet, info, false));
+				var feeRateDialogResult = await NavigateDialogAsync(new SendFeeViewModel(wallet, info, false));
 
-				// TODO update the preview.
+				if (feeRateDialogResult.Kind == DialogResultKind.Normal)
+				{
+					_info.FeeRate = feeRateDialogResult.Result;
+				}
 
-				this.RaisePropertyChanged();
+				await BuildTransactionAsync();
+
+				UpdatePreview();
 			});
 		}
 
@@ -97,11 +107,24 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			var totalMixedCoinsAmount = Money.FromUnit(mixedCoins.Sum(coin => coin.Amount), MoneyUnit.Satoshi);
 			transactionInfo.Coins = mixedCoins;
 
-			await NavigateDialogAsync(new SendFeeViewModel(_wallet, transactionInfo, true));
-
-			if (transactionInfo.Amount > totalMixedCoinsAmount)
+			if (transactionInfo.FeeRate is null)
 			{
-				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, transactionInfo));
+				var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, transactionInfo, true));
+
+				if (feeDialogResult.Kind == DialogResultKind.Normal)
+				{
+					transactionInfo.FeeRate = feeDialogResult.Result;
+				}
+			}
+
+			if (transactionInfo.Amount > totalMixedCoinsAmount && transactionInfo.Coins is null)
+			{
+				var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, transactionInfo));
+
+				if (privacyControlDialogResult.Kind == DialogResultKind.Normal && privacyControlDialogResult.Result is { })
+				{
+					transactionInfo.Coins = privacyControlDialogResult.Result;
+				}
 			}
 
 			try
@@ -119,11 +142,28 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				Logger.LogError(ex);
 
-
 				await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(),
 					"Wasabi was unable to create your transaction.");
 
 				return null;
+			}
+		}
+
+		private void UpdatePreview()
+		{
+			if (_transaction is { })
+			{
+				var destinationAmount = _transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
+				var btcAmountText = $"{destinationAmount} bitcoins ";
+				var fiatAmountText =
+					destinationAmount.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
+				AmountText = $"{btcAmountText}{fiatAmountText}";
+
+				var fee = _transaction.Fee;
+				var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} sats ";
+				var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC)
+					.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
+				FeeText = $"{btcFeeText}{fiatFeeText}";
 			}
 		}
 
@@ -141,21 +181,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					var transaction = await BuildTransactionAsync();
 
 					_transaction = transaction;
-
-					if (transaction is { })
-					{
-						var destinationAmount = transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
-						var btcAmountText = $"{destinationAmount} bitcoins ";
-						var fiatAmountText =
-							destinationAmount.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
-						AmountText = $"{btcAmountText}{fiatAmountText}";
-
-						var fee = transaction.Fee;
-						var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} sats ";
-						var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC)
-							.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
-						FeeText = $"{btcFeeText}{fiatFeeText}";
-					}
 				});
 			}
 		}

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
@@ -8,6 +9,7 @@ using DynamicData;
 using DynamicData.Aggregation;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Logging;
@@ -16,7 +18,7 @@ using WalletWasabi.Wallets;
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
 	[NavigationMetaData(Title = "Privacy Control")]
-	public partial class PrivacyControlViewModel : DialogViewModelBase<Unit>
+	public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<SmartCoin>>
 	{
 		private readonly Wallet _wallet;
 		private readonly TransactionInfo _transactionInfo;
@@ -69,9 +71,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void Complete()
 		{
-			_transactionInfo.Coins = _selectedPockets.Items.SelectMany(x => x.Coins).ToArray();
-
-			Close();
+			Close(DialogResultKind.Normal, _selectedPockets.Items.SelectMany(x => x.Coins).ToArray());
 		}
 
 		public ReadOnlyObservableCollection<PocketViewModel> Pockets => _pockets;

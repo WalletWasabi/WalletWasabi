@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using NBitcoin;
@@ -18,7 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		NavBarPosition = NavBarPosition.None,
 		Searchable = false,
 		NavigationTarget = NavigationTarget.DialogScreen)]
-	public partial class SendFeeViewModel : DialogViewModelBase<Unit>
+	public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 	{
 		private readonly Wallet _wallet;
 		private readonly TransactionInfo _transactionInfo;
@@ -55,9 +54,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			var transactionInfo = _transactionInfo;
 
-			transactionInfo.FeeRate = new FeeRate(FeeChart.GetSatoshiPerByte(FeeChart.CurrentConfirmationTarget));
-
-			Close();
+			Close(DialogResultKind.Normal, new FeeRate(FeeChart.GetSatoshiPerByte(FeeChart.CurrentConfirmationTarget)));
 		}
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -87,7 +84,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 			else
 			{
-				// TODO What to do?
+				// TODO What to do? Perhaps wait for fee provider to be updated.
 			}
 
 			if (_isSilent)
