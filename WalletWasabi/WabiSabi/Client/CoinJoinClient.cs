@@ -191,13 +191,13 @@ namespace WalletWasabi.WabiSabi.Client
 					await Task.Delay(fixedTimeToWait, cancellationToken).ConfigureAwait(false);
 					return await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, secret, identificationKey, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
 				}
-				catch (HttpRequestException e)
+				catch (HttpRequestException)
 				{
 					return null;
 				}
 			}
 
-			var remainingTimeForRegistration = roundState.InputRegistrationStart + roundState.InputRegistrationTimeout - DateTimeOffset.UtcNow;
+			var remainingTimeForRegistration = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
 			var registrationSchedule = CreateSchedule(DateTimeOffset.UtcNow, remainingTimeForRegistration, smartCoins.Count());
 			var aliceClients = smartCoins.Zip(registrationSchedule, (s, t) => (SmartCoin: s, When: t))
 				.Select(x => RegisterInputTask(x.SmartCoin, x.When))

@@ -29,6 +29,8 @@ namespace WalletWasabi.WabiSabi.Models
 
 		public uint256 Id => _id ??= CalculateHash();
 
+		public DateTimeOffset InputRegistrationEnd => InputRegistrationStart + InputRegistrationTimeout;
+
 		public static RoundState FromRound(Round round) =>
 			new(
 				round.BlameOf?.Id,
