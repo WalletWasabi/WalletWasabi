@@ -83,9 +83,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					_info.FeeRate = feeRateDialogResult.Result;
 				}
 
-				_transaction = await BuildTransactionAsync();
+				var newTransaction = await BuildTransactionAsync();
 
-				UpdatePreview();
+				if (newTransaction is { })
+				{
+					UpdateTransaction(newTransaction);
+				}
 			});
 		}
 
@@ -101,6 +104,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private async Task<BuildTransactionResult?> BuildTransactionAsync()
 		{
+			IsBusy = true;
+
 			var transactionInfo = _info;
 			var targetAnonymitySet = _wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
 			var mixedCoins = _wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
@@ -147,24 +152,27 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				return null;
 			}
+			finally
+			{
+				IsBusy = false;
+			}
 		}
 
-		private void UpdatePreview()
+		private void UpdateTransaction(BuildTransactionResult transactionResult)
 		{
-			if (_transaction is { })
-			{
-				var destinationAmount = _transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
-				var btcAmountText = $"{destinationAmount} bitcoins ";
-				var fiatAmountText =
-					destinationAmount.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
-				AmountText = $"{btcAmountText}{fiatAmountText}";
+			_transaction = transactionResult;
 
-				var fee = _transaction.Fee;
-				var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} sats ";
-				var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC)
-					.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
-				FeeText = $"{btcFeeText}{fiatFeeText}";
-			}
+			var destinationAmount = _transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
+			var btcAmountText = $"{destinationAmount} bitcoins ";
+			var fiatAmountText =
+				destinationAmount.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
+			AmountText = $"{btcAmountText}{fiatAmountText}";
+
+			var fee = _transaction.Fee;
+			var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} sats ";
+			var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC)
+				.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
+			FeeText = $"{btcFeeText}{fiatFeeText}";
 		}
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -178,11 +186,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				RxApp.MainThreadScheduler.Schedule(async () =>
 				{
-					var transaction = await BuildTransactionAsync();
+					var initialTransaction = await BuildTransactionAsync();
 
-					_transaction = transaction;
-
-					UpdatePreview();
+					if (initialTransaction is { })
+					{
+						UpdateTransaction(initialTransaction);
+					}
 				});
 			}
 		}
