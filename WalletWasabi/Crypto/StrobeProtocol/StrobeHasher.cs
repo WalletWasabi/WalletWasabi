@@ -26,6 +26,9 @@ namespace WalletWasabi.Crypto.StrobeProtocol
 		public StrobeHasher Append(string fieldName, IBitcoinSerializable serializable)
 			=> Append(fieldName, serializable.ToBytes());
 
+		public StrobeHasher Append(string fieldName, DateTimeOffset dateTime)
+			=> Append(fieldName, dateTime.ToUnixTimeMilliseconds());
+
 		public StrobeHasher Append(string fieldName, TimeSpan time)
 			=> Append(fieldName, time.Ticks);
 

@@ -15,6 +15,7 @@ namespace WalletWasabi.WabiSabi.Models
 		FeeRate FeeRate,
 		Phase Phase,
 		bool WasTransactionBroadcast,
+		DateTimeOffset InputRegistrationStart,
 		TimeSpan InputRegistrationTimeout,
 		TimeSpan ConnectionConfirmationTimeout,
 		TimeSpan OutputRegistrationTimeout,
@@ -36,6 +37,7 @@ namespace WalletWasabi.WabiSabi.Models
 				round.FeeRate,
 				round.Phase,
 				round.WasTransactionBroadcast,
+				round.InputRegistrationStart,
 				round.InputRegistrationTimeout,
 				round.ConnectionConfirmationTimeout,
 				round.OutputRegistrationTimeout,
@@ -60,6 +62,7 @@ namespace WalletWasabi.WabiSabi.Models
 
 		private uint256 CalculateHash() =>
 			RoundHasher.CalculateHash(
+				InputRegistrationStart,
 				InputRegistrationTimeout,
 				ConnectionConfirmationTimeout,
 				OutputRegistrationTimeout,
