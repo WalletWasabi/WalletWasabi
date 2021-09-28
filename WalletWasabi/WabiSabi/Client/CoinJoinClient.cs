@@ -48,6 +48,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public Kitchen Kitchen { get; }
 		public KeyManager Keymanager { get; }
 		private RoundStateUpdater RoundStatusUpdater { get; }
+		private Random Random { get; } = new Random();
 
 		public bool InCriticalCoinJoinState
 		{
@@ -162,7 +163,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private async Task<ImmutableArray<AliceClient>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 		{
-			async Task<AliceClient?> RegisterInputTask(SmartCoin coin)
+			async Task<AliceClient?> RegisterInputTask(SmartCoin coin, DateTimeOffset when)
 			{
 				try
 				{
@@ -185,15 +186,22 @@ namespace WalletWasabi.WabiSabi.Client
 					var identificationMasterKey = Slip21Node.FromSeed(masterKey.ToBytes());
 					var identificationKey = identificationMasterKey.DeriveChild("SLIP-0019").DeriveChild("Ownership identification key").Key;
 
+					var timeToWait = when - DateTimeOffset.UtcNow;
+					var fixedTimeToWait = timeToWait < TimeSpan.Zero ? TimeSpan.Zero : timeToWait;
+					await Task.Delay(fixedTimeToWait, cancellationToken).ConfigureAwait(false);
 					return await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, secret, identificationKey, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
 				}
-				catch (HttpRequestException)
+				catch (HttpRequestException e)
 				{
 					return null;
 				}
 			}
 
-			var aliceClients = smartCoins.Select(RegisterInputTask).ToImmutableArray();
+			var remainingTimeForRegistration = roundState.InputRegistrationStart + roundState.InputRegistrationTimeout - DateTimeOffset.UtcNow;
+			var registrationSchedule = CreateSchedule(DateTimeOffset.UtcNow, remainingTimeForRegistration, smartCoins.Count());
+			var aliceClients = smartCoins.Zip(registrationSchedule, (s, t) => (SmartCoin: s, When: t))
+				.Select(x => RegisterInputTask(x.SmartCoin, x.When))
+				.ToImmutableArray();
 			await Task.WhenAll(aliceClients).ConfigureAwait(false);
 
 			return aliceClients
@@ -274,6 +282,13 @@ namespace WalletWasabi.WabiSabi.Client
 				.ThenByDescending(x => x.Amount)
 				.Take(MaxInputsRegistrableByWallet)
 				.ToShuffled()
+				.ToImmutableList();
+
+		private ImmutableList<DateTimeOffset> CreateSchedule(DateTimeOffset startTime, TimeSpan timeFrame, int numberOfEvents) =>
+			Enumerable
+				.Range(0, numberOfEvents)
+				.Select(_ => startTime.Add(0.8 * Random.NextDouble() * timeFrame))
+				.OrderBy(t => t)
 				.ToImmutableList();
 	}
 }
