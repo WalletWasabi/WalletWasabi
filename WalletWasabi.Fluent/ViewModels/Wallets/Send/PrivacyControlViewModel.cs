@@ -1,29 +1,28 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using DynamicData;
 using DynamicData.Aggregation;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Models;
-using WalletWasabi.Fluent.ViewModels.Dialogs;
-using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
 	[NavigationMetaData(Title = "Privacy Control")]
-	public partial class PrivacyControlViewModel : RoutableViewModel
+	public partial class PrivacyControlViewModel : DialogViewModelBase<Unit>
 	{
 		private readonly Wallet _wallet;
+		private readonly TransactionInfo _transactionInfo;
 		private readonly SourceList<PocketViewModel> _pocketSource;
 		private readonly ReadOnlyObservableCollection<PocketViewModel> _pockets;
-		private bool _silentNavigation;
+		private readonly IObservableList<PocketViewModel> _selectedPockets;
 
 		[AutoNotify] private decimal _stillNeeded;
 		[AutoNotify] private bool _enoughSelected;
@@ -33,6 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo)
 		{
+			_transactionInfo = transactionInfo;
 			_wallet = wallet;
 
 			_pocketSource = new SourceList<PocketViewModel>();
@@ -45,12 +45,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				.AutoRefresh()
 				.Filter(x => x.IsSelected);
 
-			var selectedList = selected.AsObservableList();
+			_selectedPockets = selected.AsObservableList();
 
 			selected.Sum(x => x.TotalBtc)
 				.Subscribe(x =>
 				{
-					IsWarningOpen = selectedList.Count > 1 && selectedList.Items.Any(x => x.Labels == CoinPocketHelper.PrivateFundsText);
+					IsWarningOpen = _selectedPockets.Count > 1 && _selectedPockets.Items.Any(x => x.Labels == CoinPocketHelper.PrivateFundsText);
 
 					StillNeeded = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC) - x;
 					EnoughSelected = StillNeeded <= 0;
@@ -61,11 +61,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 			EnableBack = true;
 
-			NextCommand = ReactiveCommand.CreateFromTask(
-				async () => await OnNextAsync(transactionInfo, selectedList),
+			NextCommand = ReactiveCommand.Create(Complete,
 				this.WhenAnyValue(x => x.EnoughSelected));
 
 			EnableAutoBusyOn(NextCommand);
+		}
+
+		private void Complete()
+		{
+			_transactionInfo.Coins = _selectedPockets.Items.SelectMany(x => x.Coins).ToArray();
+
+			Close();
 		}
 
 		public ReadOnlyObservableCollection<PocketViewModel> Pockets => _pockets;
@@ -73,7 +79,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private async Task OnNextAsync(TransactionInfo transactionInfo,
 			IObservableList<PocketViewModel> selectedList)
 		{
-			transactionInfo.Coins = selectedList.Items.SelectMany(x => x.Coins).ToArray();
+			Complete();
+
+			return;
 
 			try
 			{
@@ -81,11 +89,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				if (transactionInfo.PayJoinClient is { })
 				{
-					await BuildTransactionAsPayJoinAsync(transactionInfo);
+					//await BuildTransactionAsPayJoinAsync(transactionInfo);
 				}
 				else
 				{
-					await BuildTransactionAsNormalAsync(transactionInfo);
+					//await BuildTransactionAsNormalAsync(transactionInfo);
 				}
 			}
 			catch (Exception ex)
@@ -100,7 +108,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 		}
 
-		private async Task BuildTransactionAsNormalAsync(TransactionInfo transactionInfo)
+		/*private async Task BuildTransactionAsNormalAsync(TransactionInfo transactionInfo)
 		{
 			try
 			{
@@ -138,7 +146,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				Navigate().BackTo<SendViewModel>();
 			}
-		}
+		}*/
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
@@ -164,19 +172,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			if (_pocketSource.Count == 1)
 			{
 				_pocketSource.Items.First().IsSelected = true;
-				_silentNavigation = true;
 
-				if (isInHistory)
-				{
-					Navigate().Back();
-				}
-				else
-				{
-					if (NextCommand is {} cmd && cmd.CanExecute(default))
-					{
-						cmd.Execute(default);
-					}
-				}
+				Complete();
 			}
 		}
 	}
