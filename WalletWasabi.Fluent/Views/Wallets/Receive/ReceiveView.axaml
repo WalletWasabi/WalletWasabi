@@ -34,8 +34,9 @@
                    SuggestionsAreCaseSensitive="True"
                    RestrictInputToSuggestions="False"
                    Watermark="{StaticResource LabelsWatermarkText}"
-                   IsCurrentTextValid="{Binding IsCurrentTextValid, Mode=OneWayToSource}"
-                   Suggestions="{Binding Suggestions}">
+                   Suggestions="{Binding Suggestions}"
+                   MaxTextLength="50"
+                   IsCurrentTextValid="{Binding IsCurrentTextValid, Mode=OneWayToSource}">
           <c:TagsBox.Styles>
             <Style Selector="c|TagsBox AutoCompleteBox">
               <Setter Property="MinimumPrefixLength" Value="0" />

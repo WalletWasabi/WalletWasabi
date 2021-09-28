@@ -355,11 +355,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				var id = new Guid(Random.GetBytes(16));
 				var alice = new Alice(coin, request.OwnershipProof, round, id);
 
-				if (alice.TotalInputAmount < round.MinRegistrableAmount)
+				if (alice.TotalInputAmount < round.MinAmountCredentialValue)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds);
 				}
-				if (alice.TotalInputAmount > round.MaxRegistrableAmount)
+				if (alice.TotalInputAmount > round.MaxAmountCredentialValue)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
 				}
