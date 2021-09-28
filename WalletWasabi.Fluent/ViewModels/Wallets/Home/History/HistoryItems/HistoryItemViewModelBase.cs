@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems
 {
@@ -19,15 +17,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems
 		[AutoNotify] private string? _dateString;
 		[AutoNotify] private bool _isConfirmed;
 
-		protected HistoryItemViewModelBase(int orderIndex, TransactionSummary transactionSummary, Money balance)
+		protected HistoryItemViewModelBase(int orderIndex, TransactionSummary transactionSummary)
 		{
-			TransactionSummary = transactionSummary;
-			Date = transactionSummary.DateTime.ToLocalTime();
 			OrderIndex = orderIndex;
-			Balance = balance;
-			IsConfirmed = transactionSummary.IsConfirmed();
-			Label = transactionSummary.Label.Take(1).ToList();
-			FilteredLabel = transactionSummary.Label.Skip(1).ToList();
+			Id = transactionSummary.TransactionId;
 
 			this.WhenAnyValue(x => x.IsFlashing)
 				.Where(x => x)
@@ -38,17 +31,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems
 				});
 		}
 
-		public uint256 TransactionId => TransactionSummary.TransactionId;
+		public uint256 Id { get; }
 
-		public List<string> FilteredLabel { get; protected set; }
+		public List<string>? FilteredLabel { get; protected set; }
 
-		public List<string> Label { get; protected set; }
+		public List<string>? Label { get; protected set; }
 
 		public bool IsCoinJoin { get; protected set; }
 
-		public TransactionSummary TransactionSummary { get; }
-
-		public Money Balance { get; set; }
+		public Money? Balance { get; protected set; }
 
 		public Money? OutgoingAmount { get; protected set; }
 
@@ -60,9 +51,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems
 		{
 			OrderIndex = item.OrderIndex;
 			Date = item.Date;
+			DateString = item.DateString;
 			IsConfirmed = item.IsConfirmed;
 		}
 
-		protected abstract void UpdateDateString();
+		public bool IsSimilar(HistoryItemViewModelBase item) => Id == item.Id;
 	}
 }

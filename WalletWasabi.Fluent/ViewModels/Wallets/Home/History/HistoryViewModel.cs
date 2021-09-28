@@ -64,7 +64,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 		public void SelectTransaction(uint256 txid)
 		{
-			var txnItem = Transactions.FirstOrDefault(x => x.TransactionSummary.TransactionId == txid);
+			var txnItem = Transactions.FirstOrDefault(x => x.Id == txid);
 
 			if (txnItem is { })
 			{
@@ -96,7 +96,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 					foreach (var oldItem in copyList)
 					{
-						if (newTransactionsList.All(x => x.TransactionId != oldItem.TransactionId))
+						if (newTransactionsList.All(x => x.Id != oldItem.Id))
 						{
 							_transactionSourceList.Remove(oldItem);
 						}
@@ -104,7 +104,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 					foreach (var newItem in newTransactionsList)
 					{
-						if (_transactions.FirstOrDefault(x => x.TransactionId == newItem.TransactionId) is { } item)
+						if (_transactions.FirstOrDefault(x => x.Id == newItem.Id) is { } item)
 						{
 							item.Update(newItem);
 						}
@@ -129,6 +129,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		private IEnumerable<HistoryItemViewModelBase> GetHistoryList(List<TransactionSummary> txRecordList)
 		{
 			Money balance = Money.Zero;
+			CoinJoinsHistoryItemViewModel? coinJoinGroup = default;
 
 			for (var i = 0; i < txRecordList.Count; i++)
 			{
@@ -138,33 +139,29 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 				if (item.IsLikelyCoinJoinOutput)
 				{
-					item.Label = "Privacy Increasement";
-					DateTimeOffset lastCjDateInGroup = item.DateTime;
-
-					for (var j = i + 1; j < txRecordList.Count; j++)
+					if (!item.IsConfirmed())
 					{
-						var nextItem = txRecordList[j];
+						continue;
+					}
 
-						if (!nextItem.IsLikelyCoinJoinOutput)
-						{
-							i = j - 1;
-							yield return new CoinJoinHistoryItemViewModel(i, item, _walletViewModel, balance, lastCjDateInGroup);
-							break;
-						}
-
-						balance += nextItem.Amount;
-
-						if (!nextItem.IsConfirmed())
-						{
-							continue;
-						}
-
-						item.Amount += nextItem.Amount;
-						lastCjDateInGroup = nextItem.DateTime;
+					if (coinJoinGroup is null)
+					{
+						coinJoinGroup = new CoinJoinsHistoryItemViewModel(i, item);
+					}
+					else
+					{
+						coinJoinGroup.Add(item);
 					}
 				}
 				else
 				{
+					if (coinJoinGroup is { } cjg)
+					{
+						cjg.SetBalance(balance);
+						yield return cjg;
+						coinJoinGroup = null;
+					}
+
 					yield return new TransactionHistoryItemViewModel(i, item, _walletViewModel, balance, _updateTrigger);
 				}
 			}
