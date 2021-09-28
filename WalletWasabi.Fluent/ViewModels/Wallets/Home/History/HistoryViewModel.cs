@@ -87,8 +87,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			try
 			{
 				var historyBuilder = new TransactionHistoryBuilder(_walletViewModel.Wallet);
-				var txRecordList = await Task.Run(historyBuilder.BuildHistorySummary);
-				var newTransactionsList = GetHistoryList(txRecordList).ToArray();
+				var rawHistoryList = await Task.Run(historyBuilder.BuildHistorySummary);
+				var newHistoryList = GenerateHistoryList(rawHistoryList).ToArray();
 
 				lock (_transactionListLock)
 				{
@@ -96,13 +96,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 					foreach (var oldItem in copyList)
 					{
-						if (newTransactionsList.All(x => x.Id != oldItem.Id))
+						if (newHistoryList.All(x => x.Id != oldItem.Id))
 						{
 							_transactionSourceList.Remove(oldItem);
 						}
 					}
 
-					foreach (var newItem in newTransactionsList)
+					foreach (var newItem in newHistoryList)
 					{
 						if (_transactions.FirstOrDefault(x => x.Id == newItem.Id) is { } item)
 						{
@@ -126,7 +126,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			}
 		}
 
-		private IEnumerable<HistoryItemViewModelBase> GetHistoryList(List<TransactionSummary> txRecordList)
+		private IEnumerable<HistoryItemViewModelBase> GenerateHistoryList(List<TransactionSummary> txRecordList)
 		{
 			Money balance = Money.Zero;
 			CoinJoinsHistoryItemViewModel? coinJoinGroup = default;

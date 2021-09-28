@@ -3,7 +3,6 @@ using System;
 using System.Collections;
 using System.ComponentModel;
 using WalletWasabi.Fluent.Validation;
-using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
