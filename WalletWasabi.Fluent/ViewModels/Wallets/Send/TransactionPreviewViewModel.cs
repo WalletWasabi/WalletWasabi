@@ -83,7 +83,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					_info.FeeRate = feeRateDialogResult.Result;
 				}
 
-				await BuildTransactionAsync();
+				_transaction = await BuildTransactionAsync();
 
 				UpdatePreview();
 			});
@@ -117,7 +117,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				}
 			}
 
-			if (transactionInfo.Amount > totalMixedCoinsAmount && transactionInfo.Coins is null)
+			if (transactionInfo.Amount > totalMixedCoinsAmount)
 			{
 				var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, transactionInfo));
 
@@ -181,6 +181,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					var transaction = await BuildTransactionAsync();
 
 					_transaction = transaction;
+
+					UpdatePreview();
 				});
 			}
 		}
