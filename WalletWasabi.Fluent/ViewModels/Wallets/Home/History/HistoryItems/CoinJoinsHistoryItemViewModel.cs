@@ -11,12 +11,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems
 {
 	public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 	{
-		private List<TransactionSummary> _transactions;
+		private List<TransactionSummary> _coinJoinTransactions;
 
 		public CoinJoinsHistoryItemViewModel(int orderIndex, TransactionSummary firstItem)
 			: base(orderIndex, firstItem)
 		{
-			_transactions = new List<TransactionSummary>( );
+			_coinJoinTransactions = new List<TransactionSummary>( );
 			Label = new List<string> { "Privacy Increasement" };
 			FilteredLabel = new List<string>();
 			IsCoinJoin = true;
@@ -29,10 +29,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems
 
 		public void Add(TransactionSummary item)
 		{
-			_transactions.Add(item);
+			if (!item.IsLikelyCoinJoinOutput)
+			{
+				throw new InvalidOperationException("Not a coinjoin item!");
+			}
 
-			IsConfirmed = _transactions.All(x => x.IsConfirmed());
-			Date = _transactions.Last().DateTime.ToLocalTime();
+			_coinJoinTransactions.Add(item);
+			Refresh();
+		}
+
+		private void Refresh()
+		{
+			IsConfirmed = _coinJoinTransactions.All(x => x.IsConfirmed());
+			Date = _coinJoinTransactions.Last().DateTime.ToLocalTime();
 			UpdateAmount();
 			UpdateDateString();
 		}
@@ -44,7 +53,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems
 				throw new InvalidOperationException("Not the same type!");
 			}
 
-			_transactions = coinJoinHistoryItemViewModel._transactions;
+			_coinJoinTransactions = coinJoinHistoryItemViewModel._coinJoinTransactions;
 			UpdateAmount();
 
 			base.Update(item);
@@ -52,8 +61,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems
 
 		protected void UpdateDateString()
 		{
-			var firstDate = _transactions.First().DateTime.ToLocalTime();
-			var lastDate = _transactions.Last().DateTime.ToLocalTime();
+			var firstDate = _coinJoinTransactions.First().DateTime.ToLocalTime();
+			var lastDate = _coinJoinTransactions.Last().DateTime.ToLocalTime();
 
 			DateString = firstDate.Day == lastDate.Day
 				? $"{firstDate:MM/dd/yyyy}"
@@ -62,7 +71,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems
 
 		private void UpdateAmount()
 		{
-			OutgoingAmount = _transactions.Sum(x => x.Amount) * -1;
+			OutgoingAmount = _coinJoinTransactions.Sum(x => x.Amount) * -1;
 		}
 
 		public void SetBalance(Money balance)
