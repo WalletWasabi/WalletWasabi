@@ -19,7 +19,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public Money Amount { get; set; }
 
-		public FeeRate FeeRate { get; set; }
+		public FeeRate? FeeRate { get; set; }
 
 		public TimeSpan ConfirmationTimeSpan { get; set; }
 

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -11,13 +12,14 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
 	[NavigationMetaData(Title = "Optimise your privacy")]
-	public partial class OptimisePrivacyViewModel : RoutableViewModel
+	public partial class OptimisePrivacyViewModel : DialogViewModelBase<BuildTransactionResult>
 	{
 		private readonly TransactionInfo _transactionInfo;
 		private readonly Wallet _wallet;
@@ -57,8 +59,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_transactionInfo.UserDidntRequestOptimisation =
 				_requestedTransaction == SelectedPrivacySuggestion!.TransactionResult;
 
-			Navigate().To(new TransactionPreviewViewModel(_wallet, transactionInfo,
-				SelectedPrivacySuggestion!.TransactionResult));
+			Close(DialogResultKind.Normal, SelectedPrivacySuggestion!.TransactionResult);
 		}
 
 		protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
@@ -67,13 +68,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (!inHistory)
 			{
-				if (_transactionInfo.UserDidntRequestOptimisation)
-				{
-					Navigate().To(new TransactionPreviewViewModel(_wallet, _transactionInfo, _requestedTransaction));
-
-					return;
-				}
-
 				RxApp.MainThreadScheduler.Schedule(async () =>
 				{
 					IsBusy = true;
