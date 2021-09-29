@@ -71,6 +71,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			this.ValidateProperty(x => x.AmountBtc, ValidateAmount);
 
 			this.WhenAnyValue(x => x.To)
+				.Skip(1)
 				.Subscribe(ParseToField);
 
 			this.WhenAnyValue(x => x.AmountBtc)
