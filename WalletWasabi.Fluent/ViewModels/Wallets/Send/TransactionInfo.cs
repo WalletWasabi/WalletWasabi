@@ -5,12 +5,20 @@ using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
 	public class TransactionInfo
 	{
+		private readonly int _privateCoinTreshold;
+
+		public TransactionInfo(Wallet wallet)
+		{
+			_privateCoinTreshold = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
+		}
+
 		public SmartLabel UserLabels { private get; set; }
 
 		public SmartLabel Labels => SmartLabel.Merge(UserLabels, SmartLabel.Merge(Coins.Select(coin => coin.GetLabels())));
@@ -31,6 +39,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public bool IsPayJoin => PayJoinClient is { };
 
-		public bool IsPrivatePocketUsed { get; set; }
+		public bool IsPrivatePocketUsed => Coins.All(x => x.HdPubKey.AnonymitySet >= _privateCoinTreshold);
 	}
 }

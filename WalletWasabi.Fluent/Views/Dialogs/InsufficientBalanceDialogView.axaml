@@ -8,12 +8,11 @@
              x:DataType="dialog:InsufficientBalanceDialogViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.InsufficientBalanceDialogView">
-  <c:ContentArea Title="{Binding Title}"
-                 Caption="{Binding Question}">
-    <c:QuestionControl Content="Would you like to do this instead?"
-                       YesCommand="{Binding NextCommand}"
+  <c:ContentArea Title="{Binding Title}">
+    <c:QuestionControl YesCommand="{Binding NextCommand}"
                        NoCommand="{Binding CancelCommand}"
                        HighlightButton="YesButton">
+      <TextBlock Text="{Binding Question}" TextWrapping="Wrap" TextAlignment="Center"/>
     </c:QuestionControl>
   </c:ContentArea>
 </UserControl>
