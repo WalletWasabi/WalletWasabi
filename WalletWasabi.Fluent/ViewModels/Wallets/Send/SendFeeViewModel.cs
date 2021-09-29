@@ -22,8 +22,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private readonly Wallet _wallet;
 		private readonly TransactionInfo _transactionInfo;
 		private readonly bool _isSilent;
-		private readonly FeeRate? _entryFeeRate;
-		private double _lastConfirmationTarget;
 
 		public SendFeeViewModel(Wallet wallet, TransactionInfo transactionInfo, bool isSilent)
 		{
@@ -31,7 +29,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			IsBusy = isSilent;
 			_wallet = wallet;
 			_transactionInfo = transactionInfo;
-			_entryFeeRate = transactionInfo.FeeRate;
 
 			FeeChart = new FeeChartViewModel();
 
@@ -40,8 +37,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			NextCommand = ReactiveCommand.Create( () =>
 			{
-				_lastConfirmationTarget = FeeChart.CurrentConfirmationTarget;
-				_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(_lastConfirmationTarget);
+				_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(FeeChart.CurrentConfirmationTarget);
 
 				Complete();
 			});
@@ -90,8 +86,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			if (_isSilent)
 			{
 				// TODO implement algorithm to intelligently select fees.
-				_lastConfirmationTarget = 1;
-				_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(_lastConfirmationTarget);
+				_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(1);
 
 				Complete();
 			}

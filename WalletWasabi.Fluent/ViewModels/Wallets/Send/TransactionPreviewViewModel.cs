@@ -29,11 +29,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private readonly TransactionInfo _info;
 		private BuildTransactionResult? _transaction;
 
-		[AutoNotify] private string _confirmationTimeText;
-		[AutoNotify] private string _feeText;
+		[AutoNotify] private string _confirmationTimeText = "";
+		[AutoNotify] private string _feeText = "";
 		[AutoNotify] private string _nextButtonText;
 		[AutoNotify] private SmartLabel _labels;
-		[AutoNotify] private string _amountText;
+		[AutoNotify] private string _amountText = "";
 		[AutoNotify] private bool _transactionHasChange;
 
 		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info)
@@ -43,12 +43,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_info = info;
 
 			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
-
 			EnableBack = true;
-			_confirmationTimeText = "";
 
 			AddressText = info.Address.ToString();
-
 			PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
 			IsPayJoin = PayJoinUrl is not null;
 
