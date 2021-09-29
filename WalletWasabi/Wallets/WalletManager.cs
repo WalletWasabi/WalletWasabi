@@ -18,6 +18,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
+using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Wallets
 {
@@ -73,6 +74,7 @@ namespace WalletWasabi.Wallets
 		public Network Network { get; }
 		public WalletDirectories WalletDirectories { get; }
 		private IBlockProvider BlockProvider { get; set; }
+		private CoinJoinManager CoinJoinManager { get; set; }
 		public string WorkDir { get; }
 
 		private void RefreshWalletList()
@@ -157,7 +159,7 @@ namespace WalletWasabi.Wallets
 
 			if (wallet.State == WalletState.WaitingForInit)
 			{
-				wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
+				wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider, CoinJoinManager);
 			}
 
 			using (await StartStopWalletLock.LockAsync(CancelAllInitialization.Token).ConfigureAwait(false))
@@ -398,17 +400,24 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		public void RegisterServices(BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, IBlockProvider blockProvider)
+		public void RegisterServices(
+			BitcoinStore bitcoinStore,
+			WasabiSynchronizer synchronizer,
+			ServiceConfiguration serviceConfiguration,
+			HybridFeeProvider feeProvider,
+			IBlockProvider blockProvider,
+			CoinJoinManager coinJoinManager)
 		{
 			BitcoinStore = bitcoinStore;
 			Synchronizer = synchronizer;
 			ServiceConfiguration = serviceConfiguration;
 			FeeProvider = feeProvider;
 			BlockProvider = blockProvider;
+			CoinJoinManager = coinJoinManager;
 
 			foreach (var wallet in GetWallets().Where(w => w.State == WalletState.WaitingForInit))
 			{
-				wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
+				wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider, coinJoinManager);
 			}
 
 			IsInitialized = true;

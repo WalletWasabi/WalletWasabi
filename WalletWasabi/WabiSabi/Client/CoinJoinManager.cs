@@ -52,6 +52,16 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 		}
 
+		public IEnumerable<SmartCoin> GetAvailableCoins(IEnumerable<SmartCoin> coins)
+		{
+			var coinsInCritical = TrackedWallets.Values
+				.Where(wtd => wtd.CoinJoinClient.InCriticalCoinJoinState)
+				.SelectMany(wtd => wtd.CoinCandidates)
+				.ToHashSet();
+
+			return coins.Where(c => !CoinRefrigerator.IsFrozen(c) && !coinsInCritical.Contains(c));
+		}
+
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
 			if (WalletManager.Network == Network.Main)
@@ -149,11 +159,11 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private IEnumerable<SmartCoin> SelectCandidateCoins(Wallet openedWallet)
 		{
-			return openedWallet.Coins
+			var availableCoins = new CoinsView(GetAvailableCoins(openedWallet.Coins));
+			return availableCoins
 				.Available()
 				.Confirmed()
-				.Where(x => x.HdPubKey.AnonymitySet < ServiceConfiguration.GetMixUntilAnonymitySetValue())
-				.Where(x => !CoinRefrigerator.IsFrozen(x));
+				.Where(x => x.HdPubKey.AnonymitySet < ServiceConfiguration.GetMixUntilAnonymitySetValue());
 		}
 
 		private record WalletTrackingData(Wallet Wallet, CoinJoinClient CoinJoinClient, Task<bool> CoinJoinTask, IEnumerable<SmartCoin> CoinCandidates, CancellationTokenSource CancellationTokenSource);

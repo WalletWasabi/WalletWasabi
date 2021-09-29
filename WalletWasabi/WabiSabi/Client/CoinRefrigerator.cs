@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using WalletWasabi.Blockchain.TransactionOutputs;
 
 namespace WalletWasabi.WabiSabi.Client
@@ -31,6 +33,11 @@ namespace WalletWasabi.WabiSabi.Client
 
 			FrozenCoins.Remove(coin);
 			return false;
+		}
+
+		public ImmutableArray<SmartCoin> GetFrozenCoins()
+		{
+			return FrozenCoins.Keys.Where(IsFrozen).ToImmutableArray();
 		}
 	}
 }

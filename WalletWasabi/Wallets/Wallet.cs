@@ -21,7 +21,9 @@ using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Userfacing;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WebClients.PayJoin;
+using CoinJoinClient = WalletWasabi.CoinJoin.Client.Clients.CoinJoinClient;
 
 namespace WalletWasabi.Wallets
 {
@@ -88,6 +90,7 @@ namespace WalletWasabi.Wallets
 		public TransactionProcessor TransactionProcessor { get; private set; }
 
 		public HybridFeeProvider FeeProvider { get; private set; }
+		public CoinJoinManager CoinJoinManager { get; private set; }
 		public FilterModel LastProcessedFilter { get; private set; }
 		public IBlockProvider BlockProvider { get; private set; }
 		private AsyncLock HandleFiltersLock { get; }
@@ -127,7 +130,8 @@ namespace WalletWasabi.Wallets
 			WasabiSynchronizer syncer,
 			ServiceConfiguration serviceConfiguration,
 			HybridFeeProvider feeProvider,
-			IBlockProvider blockProvider)
+			IBlockProvider blockProvider,
+			CoinJoinManager coinJoinManager)
 		{
 			if (State > WalletState.WaitingForInit)
 			{
@@ -140,6 +144,7 @@ namespace WalletWasabi.Wallets
 				Synchronizer = Guard.NotNull(nameof(syncer), syncer);
 				ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 				FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
+				CoinJoinManager = Guard.NotNull(nameof(coinJoinManager), coinJoinManager);
 
 				ChaumianClient = new CoinJoinClient(Synchronizer, Network, KeyManager, Kitchen);
 
@@ -228,7 +233,9 @@ namespace WalletWasabi.Wallets
 			IEnumerable<OutPoint>? allowedInputs = null,
 			IPayjoinClient? payjoinClient = null)
 		{
-			var builder = new TransactionFactory(Network, KeyManager, Coins, BitcoinStore.TransactionStore, password, allowUnconfirmed);
+			var usableCoins = new CoinsView(CoinJoinManager.GetAvailableCoins(Coins));
+
+			var builder = new TransactionFactory(Network, KeyManager, usableCoins, BitcoinStore.TransactionStore, password, allowUnconfirmed);
 			return builder.BuildTransaction(
 				payments,
 				feeRateFetcher: () =>
@@ -508,10 +515,25 @@ namespace WalletWasabi.Wallets
 			State = WalletState.WaitingForInit;
 		}
 
-		public static Wallet CreateAndRegisterServices(Network network, BitcoinStore bitcoinStore, KeyManager keyManager, WasabiSynchronizer synchronizer, string dataDir, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, IBlockProvider blockProvider)
+		public static Wallet CreateAndRegisterServices(
+			Network network,
+			BitcoinStore bitcoinStore,
+			KeyManager keyManager,
+			WasabiSynchronizer synchronizer,
+			string dataDir,
+			ServiceConfiguration serviceConfiguration,
+			HybridFeeProvider feeProvider,
+			IBlockProvider blockProvider,
+			CoinJoinManager coinJoinManager)
 		{
 			var wallet = new Wallet(dataDir, network, keyManager);
-			wallet.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
+			wallet.RegisterServices(
+				bitcoinStore,
+				synchronizer,
+				serviceConfiguration,
+				feeProvider,
+				blockProvider,
+				coinJoinManager);
 			return wallet;
 		}
 	}

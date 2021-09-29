@@ -11,6 +11,7 @@ using System.Net.Http;
 using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
+using Moq;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
@@ -1398,6 +1399,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			CachedBlockProvider blockProvider2 = new(
 				new P2pBlockProvider(nodes2, null, httpClientFactory, serviceConfiguration, network),
 				bitcoinStore.BlockRepository);
+
+			var mock = new Mock<ICoinJoinManager>(); // TODO: How to do this?
 
 			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockProvider);
 			wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;

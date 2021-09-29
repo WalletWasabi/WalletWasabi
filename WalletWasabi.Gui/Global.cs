@@ -177,7 +177,8 @@ namespace WalletWasabi.Gui
 					RegisterFeeRateProviders();
 					RegisterCoinJoinComponents();
 
-					SleepInhibitor? sleepInhibitor = await SleepInhibitor.CreateAsync(HostedServices.Get<CoinJoinManager>()).ConfigureAwait(false);
+					var coinJoinManager = HostedServices.Get<CoinJoinManager>();
+					SleepInhibitor? sleepInhibitor = await SleepInhibitor.CreateAsync(coinJoinManager).ConfigureAwait(false);
 
 					if (sleepInhibitor is not null)
 					{
@@ -206,7 +207,7 @@ namespace WalletWasabi.Gui
 							Cache),
 						BitcoinStore.BlockRepository);
 
-					WalletManager.RegisterServices(BitcoinStore, Synchronizer, Config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), blockProvider);
+					WalletManager.RegisterServices(BitcoinStore, Synchronizer, Config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), blockProvider, coinJoinManager);
 				}
 				finally
 				{
