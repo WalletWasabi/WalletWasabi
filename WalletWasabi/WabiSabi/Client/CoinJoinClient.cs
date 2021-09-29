@@ -48,7 +48,6 @@ namespace WalletWasabi.WabiSabi.Client
 		public Kitchen Kitchen { get; }
 		public KeyManager Keymanager { get; }
 		private RoundStateUpdater RoundStatusUpdater { get; }
-		private Random Random { get; } = new Random();
 
 		public bool InCriticalCoinJoinState
 		{
@@ -199,7 +198,7 @@ namespace WalletWasabi.WabiSabi.Client
 			var remainingTimeForRegistration = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
 			var delayTasks = CreateScheduledDelays(DateTimeOffset.UtcNow, remainingTimeForRegistration, smartCoins.Count(), cancellationToken);
 
-			var aliceClients = aliceRegistrationTasks.Zip(delayTasks, (registration, delay) => delay.Then(registration)).ToImmutableArray();
+			var aliceClients = aliceRegistrationTasks.Zip(delayTasks, (registration, delay) => delay.ThenAsync(registration)).ToImmutableArray();
 			await Task.WhenAll(aliceClients).ConfigureAwait(false);
 
 			return aliceClients
@@ -285,7 +284,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private ImmutableList<DateTimeOffset> CreateSchedule(DateTimeOffset startTime, TimeSpan timeFrame, int numberOfEvents) =>
 			Enumerable
 				.Range(0, numberOfEvents)
-				.Select(_ => startTime.Add(0.8 * Random.NextDouble() * timeFrame))
+				.Select(_ => startTime.Add(0.8 * SecureRandom.NextDouble() * timeFrame))
 				.OrderBy(t => t)
 				.ToImmutableList();
 
