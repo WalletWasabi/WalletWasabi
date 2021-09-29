@@ -67,10 +67,10 @@ namespace WalletWasabi.Blockchain.Transactions
 			}
 
 			// Get allowed coins to spend.
-			var availableCoinsView = Coins.Available();
+			var allCoinsView = Coins;
 			List<SmartCoin> allowedSmartCoinInputs = AllowUnconfirmed // Inputs that can be used to build the transaction.
-					? availableCoinsView.ToList()
-					: availableCoinsView.Confirmed().ToList();
+					? allCoinsView.ToList()
+					: allCoinsView.Confirmed().ToList();
 			if (allowedInputs is not null) // If allowedInputs are specified then select the coins from them.
 			{
 				if (!allowedInputs.Any())
@@ -87,7 +87,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				if (payments.ChangeStrategy != ChangeStrategy.AllRemainingCustom)
 				{
 					var allScripts = allowedSmartCoinInputs.Select(x => x.ScriptPubKey).ToHashSet();
-					foreach (var coin in availableCoinsView.Where(x => !allowedSmartCoinInputs.Any(y => x.TransactionId == y.TransactionId && x.Index == y.Index)))
+					foreach (var coin in allCoinsView.Where(x => !allowedSmartCoinInputs.Any(y => x.TransactionId == y.TransactionId && x.Index == y.Index)))
 					{
 						if (!(AllowUnconfirmed || coin.Confirmed))
 						{
