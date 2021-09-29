@@ -23,7 +23,7 @@ namespace WalletWasabi.Crypto.Randomness
 		public abstract int GetInt(int fromInclusive, int toExclusive);
 
 		public double NextDouble() =>
-			BitConverter.ToDouble(GetBytes(sizeof(double)), 0);
+			Math.Abs(BitConverter.ToDouble(GetBytes(sizeof(double)), 0) / double.MaxValue);
 
 		public string GetString(int length, string chars)
 		{
