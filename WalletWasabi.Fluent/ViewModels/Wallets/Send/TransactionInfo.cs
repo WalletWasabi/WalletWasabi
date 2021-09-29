@@ -28,5 +28,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public IPayjoinClient? PayJoinClient { get; set; }
 
 		public bool UserDidntRequestOptimisation { get; set; }
+
+		public bool IsPayJoin => PayJoinClient is { };
+
+		public bool IsPrivatePocketUsed { get; set; }
 	}
 }

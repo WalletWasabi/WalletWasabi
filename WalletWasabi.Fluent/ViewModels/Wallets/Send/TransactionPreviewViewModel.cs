@@ -108,7 +108,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			var targetAnonymitySet = _wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
 			var mixedCoins = _wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
 			var totalMixedCoinsAmount = Money.FromUnit(mixedCoins.Sum(coin => coin.Amount), MoneyUnit.Satoshi);
+
 			transactionInfo.Coins = mixedCoins;
+			transactionInfo.IsPrivatePocketUsed = true;
 
 			var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, transactionInfo, true));
 
@@ -126,6 +128,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				    privacyControlDialogResult.Result is { })
 				{
 					transactionInfo.Coins = privacyControlDialogResult.Result;
+					transactionInfo.IsPrivatePocketUsed = false;
 				}
 			}
 		}
@@ -136,19 +139,68 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			var transactionInfo = _info;
 
-			var targetAnonymitySet = _wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
-			var mixedCoins = _wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
-			var totalMixedCoinsAmount = Money.FromUnit(mixedCoins.Sum(coin => coin.Amount), MoneyUnit.Satoshi);
-
 			try
 			{
-				if (transactionInfo.PayJoinClient is { })
+				return await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo));
+			}
+			catch (InsufficientBalanceException)
+			{
+				if (transactionInfo.IsPayJoin)
 				{
-					return await BuildTransactionAsPayJoinAsync(transactionInfo);
+					if (_wallet.Coins.Sum(x => x.Amount) > transactionInfo.Amount)
+					{
+						var result2 = await NavigateDialogAsync(new InsufficientBalanceDialogViewModel(BalanceType.Private), NavigationTarget.DialogScreen);
+
+						if (result2.Result)
+						{
+							var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, transactionInfo));
+
+							if (privacyControlDialogResult.Kind == DialogResultKind.Normal && privacyControlDialogResult.Result is { })
+							{
+								transactionInfo.Coins = privacyControlDialogResult.Result;
+								return await BuildTransactionAsync();
+							}
+						}
+						else
+						{
+							return null;
+						}
+					}
+					else
+					{
+						//TODO: error message
+
+						Navigate().BackTo<SendViewModel>();
+						return null;
+					}
+				}
+
+				var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Private);
+				var result = await NavigateDialogAsync(dialog, NavigationTarget.DialogScreen);
+
+				if (result.Result)
+				{
+					return await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo, subtractFee: true));
 				}
 				else
 				{
-					return await BuildTransactionAsNormalAsync(transactionInfo, totalMixedCoinsAmount);
+					if (_wallet.Coins.Sum(x => x.Amount) > transactionInfo.Amount)
+					{
+						var privacyControlDialogResult =
+							await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, transactionInfo));
+
+						if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
+						    privacyControlDialogResult.Result is { })
+						{
+							transactionInfo.Coins = privacyControlDialogResult.Result;
+							return await BuildTransactionAsync();
+						}
+					}
+					else
+					{
+						Navigate().BackTo<SendViewModel>();
+						return null;
+					}
 				}
 			}
 			catch (Exception ex)
@@ -203,41 +255,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						UpdateTransaction(initialTransaction);
 					}
 				});
-			}
-		}
-
-		private async Task<BuildTransactionResult> BuildTransactionAsNormalAsync(TransactionInfo transactionInfo, Money totalMixedCoinsAmount)
-		{
-			try
-			{
-				var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo));
-
-				return txRes;
-			}
-			catch (InsufficientBalanceException)
-			{
-				return null;
-
-				// @soosr - need help here ;)
-				/*
-				var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo.Address,
-					totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate!, transactionInfo.Coins,
-					subtractFee: true));
-
-				var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Private, txRes,
-					_wallet.Synchronizer.UsdExchangeRate);
-
-				var result = await NavigateDialogAsync(dialog, NavigationTarget.DialogScreen);
-
-				if (result.Result)
-				{
-
-					await NavigateDialogAsync(new OptimisePrivacyViewModel(_wallet, transactionInfo, txRes));
-				}
-				else
-				{
-					await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, transactionInfo));
-				}*/
 			}
 		}
 
