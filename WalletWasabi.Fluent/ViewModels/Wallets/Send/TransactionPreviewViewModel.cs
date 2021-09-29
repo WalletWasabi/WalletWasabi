@@ -34,6 +34,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private string _nextButtonText;
 		[AutoNotify] private SmartLabel _labels;
 		[AutoNotify] private string _amountText;
+		[AutoNotify] private bool _transactionHasChange;
 
 		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info)
 		{
@@ -90,6 +91,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					UpdateTransaction(newTransaction);
 				}
 			});
+
+			AvoidChangeCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				var optimisePrivacyDialog =
+					await NavigateDialogAsync(new OptimisePrivacyViewModel(wallet, info, _transaction!));
+
+				if (optimisePrivacyDialog.Kind == DialogResultKind.Normal && optimisePrivacyDialog.Result is { })
+				{
+					UpdateTransaction(optimisePrivacyDialog.Result);
+				}
+			});
 		}
 
 		public bool PreferPsbtWorkflow => _wallet.KeyManager.PreferPsbtWorkflow;
@@ -101,6 +113,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public bool IsPayJoin { get; }
 
 		public ICommand AdjustFeeCommand { get; }
+
+		public ICommand AvoidChangeCommand { get; }
 
 		private async Task InitialiseTransactionAsync()
 		{
@@ -232,7 +246,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} sats ";
 			var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC)
 				.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
+
 			FeeText = $"{btcFeeText}{fiatFeeText}";
+
+			TransactionHasChange = _transaction.OuterWalletOutputs.Sum(x=>x.Amount) > fee && _transaction.InnerWalletOutputs.Sum(x=>x.Amount) > 0;
 		}
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
