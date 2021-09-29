@@ -195,6 +195,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC)
 				.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
 
+			Labels = _info.Labels;
+
 			FeeText = $"{btcFeeText}{fiatFeeText}";
 
 			TransactionHasChange = _transaction.OuterWalletOutputs.Sum(x=>x.Amount) > fee && _transaction.InnerWalletOutputs.Sum(x=>x.Amount) > 0;
@@ -205,7 +207,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			base.OnNavigatedTo(isInHistory, disposables);
 
 			ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(_info.ConfirmationTimeSpan)} ";
-			Labels = _info.Labels;
 
 			if (!isInHistory)
 			{
