@@ -102,35 +102,44 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public ICommand AdjustFeeCommand { get; }
 
-		private async Task<BuildTransactionResult?> BuildTransactionAsync()
+		private async Task InitialiseTransactionAsync()
 		{
-			IsBusy = true;
-
 			var transactionInfo = _info;
 			var targetAnonymitySet = _wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
 			var mixedCoins = _wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
 			var totalMixedCoinsAmount = Money.FromUnit(mixedCoins.Sum(coin => coin.Amount), MoneyUnit.Satoshi);
 			transactionInfo.Coins = mixedCoins;
 
-			if (transactionInfo.FeeRate is null)
-			{
-				var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, transactionInfo, true));
+			var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, transactionInfo, true));
 
-				if (feeDialogResult.Kind == DialogResultKind.Normal)
-				{
-					transactionInfo.FeeRate = feeDialogResult.Result;
-				}
+			if (feeDialogResult.Kind == DialogResultKind.Normal)
+			{
+				transactionInfo.FeeRate = feeDialogResult.Result;
 			}
 
 			if (transactionInfo.Amount > totalMixedCoinsAmount)
 			{
-				var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, transactionInfo));
+				var privacyControlDialogResult =
+					await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, transactionInfo));
 
-				if (privacyControlDialogResult.Kind == DialogResultKind.Normal && privacyControlDialogResult.Result is { })
+				if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
+				    privacyControlDialogResult.Result is { })
 				{
 					transactionInfo.Coins = privacyControlDialogResult.Result;
 				}
 			}
+		}
+
+		private async Task<BuildTransactionResult?> BuildTransactionAsync()
+		{
+			IsBusy = true;
+
+			var transactionInfo = _info;
+
+			var targetAnonymitySet = _wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
+			var mixedCoins = _wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
+			var totalMixedCoinsAmount = Money.FromUnit(mixedCoins.Sum(coin => coin.Amount), MoneyUnit.Satoshi);
+			transactionInfo.Coins = mixedCoins;
 
 			try
 			{
@@ -186,6 +195,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				RxApp.MainThreadScheduler.Schedule(async () =>
 				{
+					await InitialiseTransactionAsync();
+
 					var initialTransaction = await BuildTransactionAsync();
 
 					if (initialTransaction is { })
