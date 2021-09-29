@@ -17,12 +17,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds.Utils
 
 		public CoinJoinTransactionArchiver(string directoryPath)
 		{
-			DirectoryPath = directoryPath;
-			IoHelpers.EnsureDirectoryExists(directoryPath);
+			BaseStoragePath = directoryPath;
 		}
 
-		/// <summary>Path where to store transactions.</summary>
-		public string DirectoryPath { get; }
+		/// <summary>Base path where to store transactions.</summary>
+		private string BaseStoragePath { get; }
 
 		/// <summary>
 		/// Save CoinJoin transaction in a JSON file for later inspection.
@@ -43,7 +42,10 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds.Utils
 
 			// Use a date format in the file name to let the files be sorted by date by default.
 			string fileName = $"CoinJoinTransaction.{currentDate.Value:yyyy.MM.dd-HH-mm-ss}.{transaction.GetHash()}.json";
-			string filePath = Path.Combine(DirectoryPath, fileName);
+			string folderPath = Path.Combine(BaseStoragePath, $"{currentDate.Value:yyyy-MM}");
+			IoHelpers.EnsureDirectoryExists(folderPath);
+
+			string filePath = Path.Combine(folderPath, fileName);
 			await File.WriteAllTextAsync(filePath, json, CancellationToken.None).ConfigureAwait(false);
 
 			return filePath;
