@@ -44,6 +44,13 @@
             </c:PreviewItem>
             <Separator IsVisible="{Binding IsPayJoin}" />
 
+            <c:PreviewItem Icon="{StaticResource lock_shield_regular}"
+                           Text="You will receive change from this transaction."
+                           IsVisible="{Binding TransactionHasChange}">
+              <Button Classes="activeHyperLink" Content="Avoid Change to improve privacy." HorizontalAlignment="Left" Command="{Binding AvoidChangeCommand}"/>
+            </c:PreviewItem>
+            <Separator IsVisible="{Binding TransactionHasChange}" />
+
             <Panel>
               <StackPanel Spacing="20">
                 <c:PreviewItem Icon="{StaticResource timer_regular}"
