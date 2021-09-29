@@ -13,6 +13,7 @@ using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
@@ -72,7 +73,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private async Task OnNextAsync(TransactionInfo transactionInfo,
 			IObservableList<PocketViewModel> selectedList)
 		{
-			transactionInfo.Coins = selectedList.Items.SelectMany(x => x.Coins).ToArray();
+			var coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>()!;
+			var coins = selectedList.Items.SelectMany(x => x.Coins).ToArray();
+
+			coinJoinManager.PullOutCoinsFromCoinJoin(coins);
+			transactionInfo.Coins = coins;
 
 			try
 			{
@@ -168,7 +173,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				}
 				else
 				{
-					if (NextCommand is {} cmd && cmd.CanExecute(default))
+					if (NextCommand is { } cmd && cmd.CanExecute(default))
 					{
 						cmd.Execute(default);
 					}
