@@ -139,7 +139,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			var targetAnonymitySet = _wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
 			var mixedCoins = _wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
 			var totalMixedCoinsAmount = Money.FromUnit(mixedCoins.Sum(coin => coin.Amount), MoneyUnit.Satoshi);
-			transactionInfo.Coins = mixedCoins;
 
 			try
 			{
