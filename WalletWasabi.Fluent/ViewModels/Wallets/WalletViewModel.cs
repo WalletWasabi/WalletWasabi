@@ -68,6 +68,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				.Subscribe(_ => IsWalletBalanceZero = wallet.Coins.TotalAmount() == Money.Zero)
 				.DisposeWith(Disposables);
 
+			if (Services.HostedServices.GetOrDefault<CoinJoinManager>() is { } coinJoinManager)
+			{
+				Observable
+					.FromEventPattern<WalletStatusChangedEventArgs>(coinJoinManager, nameof(CoinJoinManager.WalletStatusChanged))
+					.Select(args => args.EventArgs)
+					.Where(e => e.Wallet == Wallet)
+					.Subscribe(e => IsCoinJoining = e.IsCoinJoining)
+					.DisposeWith(Disposables);
+			}
+
 			this.WhenAnyValue(x => x.History.IsTransactionHistoryEmpty)
 				.Subscribe(x => IsEmptyWallet = x);
 
@@ -222,16 +232,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			}
 
 			History.Activate(disposables);
-
-			if (Services.HostedServices.Get<CoinJoinManager>() is { } coinJoinManager)
-			{
-				Observable
-					.FromEventPattern<WalletStatusChangedEventArgs>(coinJoinManager, nameof(CoinJoinManager.WalletStatusChanged))
-					.Select(args => args.EventArgs)
-					.Where(e => e.Wallet == Wallet)
-					.Subscribe(e => IsCoinJoining = e.IsCoinJoining)
-					.DisposeWith(disposables);
-			}
 		}
 
 		public static WalletViewModel Create(Wallet wallet)
