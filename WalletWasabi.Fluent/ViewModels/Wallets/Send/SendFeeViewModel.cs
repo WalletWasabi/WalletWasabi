@@ -107,8 +107,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			var satPerByteThreshold = 10;
 			var blockTargetThreshold = 6;
 
-			var bestBlockTarget = estimations.FirstOrDefault(x => x.Value < satPerByteThreshold && x.Key < blockTargetThreshold);
-
+			var bestBlockTarget = estimations.FirstOrDefault(x => x.Value <= satPerByteThreshold && x.Key <= blockTargetThreshold);
 			if (bestBlockTarget.Key != default && bestBlockTarget.Value != default)
 			{
 				return bestBlockTarget.Value;
