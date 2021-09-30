@@ -180,7 +180,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (result.Result)
 			{
-				return await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo, subtractFee: true));
+				transactionInfo.SubtractFee = true;
+				return await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo));
 			}
 
 			if (wallet.Coins.TotalAmount() > transactionInfo.Amount)
@@ -342,7 +343,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				try
 				{
-					var payJoinTransaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo, subtractFee: false, isPayJoin: true));
+					var payJoinTransaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo, isPayJoin: true));
 					return payJoinTransaction.Transaction;
 				}
 				catch (Exception ex)
