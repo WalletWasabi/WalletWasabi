@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -77,9 +78,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					await Task.Delay(100);
 				}
 
-				FeeChart.UpdateFeeEstimates(_wallet.Network == Network.TestNet
-					? TestNetFeeEstimates
-					: feeProvider.AllFeeEstimate.Estimations);
+				var feeEstimations = _wallet.Network == Network.TestNet ? TestNetFeeEstimates : feeProvider.AllFeeEstimate.Estimations;
+				FeeChart.UpdateFeeEstimates(feeEstimations);
 
 				if (_transactionInfo.FeeRate is { })
 				{
@@ -88,8 +88,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				if (_isSilent)
 				{
-					// TODO implement algorithm to intelligently select fees.
-					_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(1);
+					var blockTarget = GetBestBlockTarget(feeEstimations);
+
+					FeeChart.CurrentConfirmationTarget = blockTarget;
+					_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(blockTarget);
 
 					Complete();
 				}
@@ -98,6 +100,21 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					IsBusy = false;
 				}
 			});
+		}
+
+		private int GetBestBlockTarget(Dictionary<int, int> estimations)
+		{
+			var satPerByteThreshold = 10;
+			var blockTargetThreshold = 6;
+
+			var bestBlockTarget = estimations.FirstOrDefault(x => x.Value < satPerByteThreshold && x.Key < blockTargetThreshold);
+
+			if (bestBlockTarget.Key != default && bestBlockTarget.Value != default)
+			{
+				return bestBlockTarget.Value;
+			}
+
+			return blockTargetThreshold;
 		}
 
 		private TimeSpan CalculateConfirmationTime(double targetBlock)
