@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
@@ -45,16 +47,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public FeeChartViewModel FeeChart { get; }
 
-
 		private void Complete()
 		{
-			var transactionInfo = _transactionInfo;
-
 			Close(DialogResultKind.Normal, new FeeRate(FeeChart.GetSatoshiPerByte(FeeChart.CurrentConfirmationTarget)));
 		}
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
+			IsBusy = true;
+
 			base.OnNavigatedTo(isInHistory, disposables);
 
 			var feeProvider = _wallet.FeeProvider;
@@ -69,27 +70,34 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				})
 				.DisposeWith(disposables);
 
-			if (feeProvider.AllFeeEstimate is { })
+			RxApp.MainThreadScheduler.Schedule(async () =>
 			{
-				FeeChart.UpdateFeeEstimates(_wallet.Network == Network.TestNet ? TestNetFeeEstimates : feeProvider.AllFeeEstimate.Estimations);
+				while (feeProvider.AllFeeEstimate is null)
+				{
+					await Task.Delay(100);
+				}
+
+				FeeChart.UpdateFeeEstimates(_wallet.Network == Network.TestNet
+					? TestNetFeeEstimates
+					: feeProvider.AllFeeEstimate.Estimations);
 
 				if (_transactionInfo.FeeRate is { })
 				{
 					FeeChart.InitCurrentConfirmationTarget(_transactionInfo.FeeRate);
 				}
-			}
-			else
-			{
-				// TODO What to do? Perhaps wait for fee provider to be updated.
-			}
 
-			if (_isSilent)
-			{
-				// TODO implement algorithm to intelligently select fees.
-				_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(1);
+				if (_isSilent)
+				{
+					// TODO implement algorithm to intelligently select fees.
+					_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(1);
 
-				Complete();
-			}
+					Complete();
+				}
+				else
+				{
+					IsBusy = false;
+				}
+			});
 		}
 
 		private TimeSpan CalculateConfirmationTime(double targetBlock)
