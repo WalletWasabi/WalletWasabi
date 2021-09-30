@@ -256,7 +256,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			FeeText = $"{btcFeeText}{fiatFeeText}";
 
-			TransactionHasChange = _transaction.OuterWalletOutputs.Sum(x=>x.Amount) > fee && _transaction.InnerWalletOutputs.Sum(x=>x.Amount) > 0;
+			TransactionHasChange = _transaction.OuterWalletOutputs.Sum(x => x.Amount) > fee && _transaction.InnerWalletOutputs.Sum(x => x.Amount) > 0;
 		}
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -324,7 +324,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return authDialogResult.Result;
 		}
 
-		private async Task SendTransactionAsync( SmartTransaction transaction)
+		private async Task SendTransactionAsync(SmartTransaction transaction)
 		{
 			// Dequeue any coin-joining coins.
 			await _wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
