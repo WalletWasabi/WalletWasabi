@@ -48,6 +48,9 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<int> ItemCountLimitProperty =
 			AvaloniaProperty.Register<TagsBox, int>(nameof(ItemCountLimit));
 
+		public static readonly StyledProperty<int> MaxTextLengthProperty =
+			AvaloniaProperty.Register<TagsBox, int>(nameof(MaxTextLength));
+
 		public static readonly StyledProperty<char> TagSeparatorProperty =
 			AvaloniaProperty.Register<TagsBox, char>(nameof(TagSeparator), defaultValue: ' ');
 
@@ -166,6 +169,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(EnableDeleteProperty);
 			set => SetValue(EnableDeleteProperty, value);
+		}
+
+		public int MaxTextLength
+		{
+			get => GetValue(MaxTextLengthProperty);
+			set => SetValue(MaxTextLengthProperty, value);
 		}
 
 		private string CurrentText => _autoCompleteBox?.Text ?? "";
@@ -366,11 +375,26 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
+			var suggestions = Suggestions?.ToArray();
+
 			if (RestrictInputToSuggestions &&
-				Suggestions is { } suggestions &&
-				!suggestions.Any(x => x.StartsWith(typedFullText, _stringComparison)))
+			    suggestions is { } &&
+			    !suggestions.Any(x => x.StartsWith(typedFullText, _stringComparison)))
 			{
+				if (!typedFullText.EndsWith(TagSeparator) ||
+				    (typedFullText.EndsWith(TagSeparator) && !suggestions.Contains(autoCompleteBox.SearchText)))
+				{
+					e.Handled = true;
+					return;
+				}
+			}
+
+			if (e.Text is { Length: 1 } && e.Text.StartsWith(TagSeparator))
+			{
+				autoCompleteBox.Text = autoCompleteBox.SearchText;
+				RequestAdd = true;
 				e.Handled = true;
+				return;
 			}
 		}
 
