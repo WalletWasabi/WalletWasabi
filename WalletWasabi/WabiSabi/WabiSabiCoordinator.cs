@@ -24,7 +24,7 @@ namespace WalletWasabi.WabiSabi
 			ConfigWatcher = new(parameters.ConfigChangeMonitoringPeriod, Config, () => Logger.LogInfo("WabiSabi configuration has changed."));
 
 			CoinJoinTransactionArchiver transactionArchiver = new(Path.Combine(parameters.CoordinatorDataDir, "CoinJoinTransactions"));
-			Arena = new(parameters.RoundProgressSteppingPeriod, rpc.Network, Config, rpc, Prison);
+			Arena = new(parameters.RoundProgressSteppingPeriod, rpc.Network, Config, rpc, Prison, transactionArchiver);
 
 			Postman = new(Config, Prison, Arena, Rpc);
 		}
