@@ -192,7 +192,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 			// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to be registered.
 			var remainingTimeForRegistration = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
-			var scheduledDates = CreateSchedule(DateTimeOffset.UtcNow, remainingTimeForRegistration, smartCoins.Count());
+			var scheduledDates = remainingTimeForRegistration.Sample(smartCoins.Count());
 
 			// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
 			var aliceClients = smartCoins.Zip(scheduledDates, (coin, date) => RegisterInputAsync(coin).RunAsScheduledAsync(date)).ToImmutableArray();
@@ -277,13 +277,6 @@ namespace WalletWasabi.WabiSabi.Client
 				.ThenByDescending(x => x.Amount)
 				.Take(MaxInputsRegistrableByWallet)
 				.ToShuffled()
-				.ToImmutableList();
-
-		private ImmutableList<DateTimeOffset> CreateSchedule(DateTimeOffset startTime, TimeSpan timeFrame, int numberOfEvents) =>
-			Enumerable
-				.Range(0, numberOfEvents)
-				.Select(_ => startTime.Add(0.8 * SecureRandom.NextDouble() * timeFrame))
-				.OrderBy(t => t)
 				.ToImmutableList();
 	}
 }
