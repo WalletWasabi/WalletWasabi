@@ -71,8 +71,13 @@ namespace WalletWasabi.WabiSabi.Client
 				foreach (var openedWallet in openedWallets.Select(x => x.Value))
 				{
 					var coinjoinClient = new CoinJoinClient(HttpClientFactory, openedWallet.Kitchen, openedWallet.KeyManager, RoundStatusUpdater);
-					var cts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
 					var coinCandidates = SelectCandidateCoins(openedWallet).ToArray();
+					if (coinCandidates.Length == 0)
+					{
+						continue;
+					}
+
+					var cts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
 					var coinjoinTask = coinjoinClient.StartCoinJoinAsync(coinCandidates, cts.Token);
 
 					trackedWallets.Add(openedWallet.WalletName, new WalletTrackingData(openedWallet, coinjoinClient, coinjoinTask, coinCandidates, cts));
@@ -171,7 +176,7 @@ namespace WalletWasabi.WabiSabi.Client
 				wallet.CancellationTokenSource.Cancel();
 			}
 
-			while (TrackedWallets.Values.Any(wtd => wtd.CoinCandidates.Any(coins.Contains)))
+			while (TrackedWallets.Values.Any(wtd => wtd.CoinCandidates.Any(coins.Contains)) || coins.Any(c => c.CoinJoinInProgress))
 			{
 				await Task.Delay(1000, cancel).ConfigureAwait(false);
 			}
