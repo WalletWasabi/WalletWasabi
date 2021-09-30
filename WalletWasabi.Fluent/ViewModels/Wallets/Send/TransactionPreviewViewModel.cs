@@ -112,14 +112,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public ICommand AvoidChangeCommand { get; }
 
-		private async Task InitialiseTransactionAsync()
+		private async Task<bool> InitialiseTransactionAsync()
 		{
 			var transactionInfo = _info;
 
 			var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, transactionInfo, isSilent: true));
-			if (privacyControlDialogResult.Result is { } coins)
+			if (privacyControlDialogResult.Kind == DialogResultKind.Normal && privacyControlDialogResult.Result is { } coins)
 			{
 				transactionInfo.Coins = coins;
+			}
+			else if (privacyControlDialogResult.Kind != DialogResultKind.Normal)
+			{
+				return false;
 			}
 
 			var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, transactionInfo, true));
@@ -127,6 +131,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				transactionInfo.FeeRate = feeDialogResult.Result;
 			}
+			else
+			{
+				return false;
+			}
+
+			return true;
 		}
 
 		private async Task<BuildTransactionResult?> BuildTransactionAsync()
@@ -257,13 +267,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				RxApp.MainThreadScheduler.Schedule(async () =>
 				{
-					await InitialiseTransactionAsync();
-
-					var initialTransaction = await BuildTransactionAsync();
-
-					if (initialTransaction is { })
+					if (await InitialiseTransactionAsync())
 					{
-						UpdateTransaction(initialTransaction);
+
+						var initialTransaction = await BuildTransactionAsync();
+
+						if (initialTransaction is { })
+						{
+							UpdateTransaction(initialTransaction);
+						}
+					}
+					else
+					{
+						Navigate().Back();
 					}
 				});
 			}
