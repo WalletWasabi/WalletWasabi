@@ -107,21 +107,21 @@
       <Setter Property="IsVisible" Value="False"/>
     </Style>
 
-    <StyleInclude Source="avares://DataListBoxDemo/Controls/DataListBox.axaml"/>
+    <StyleInclude Source="avares://DataListBoxDemo/Themes/Fluent.axaml"/>
 
   </UserControl.Styles>
 
-  <DataListBox Items="{Binding Transactions}"
-               SelectedItem="{Binding SelectedItem}"
-               Classes="data"
-               DockPanel.Dock="Bottom">
+  <TemplatedDataGrid Items="{Binding Transactions}"
+                     SelectedItem="{Binding SelectedItem}"
+                     Classes="data"
+                     DockPanel.Dock="Bottom">
 
-    <DataListBox.Columns>
+    <TemplatedDataGrid.Columns>
 
       <!-- Date -->
-      <DataColumn Header="Date / Time"
-                  Width="Auto">
-        <DataColumn.CellTemplate>
+      <TemplatedDataGridColumn Header="Date / Time"
+                               Width="Auto">
+        <TemplatedDataGridColumn.CellTemplate>
           <DataTemplate>
             <c:PrivacyContentControl x:DataType="history:HistoryItemViewModel"
                                      Content="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}"
@@ -130,13 +130,13 @@
                                      Margin="10 0"
                                      NumberOfPrivacyChars="15" />
           </DataTemplate>
-        </DataColumn.CellTemplate>
-      </DataColumn>
+        </TemplatedDataGridColumn.CellTemplate>
+      </TemplatedDataGridColumn>
 
       <!-- Type -->
-      <DataColumn Header="Type"
-                  Width="Auto">
-        <DataColumn.CellTemplate>
+      <TemplatedDataGridColumn Header="Type"
+                               Width="Auto">
+        <TemplatedDataGridColumn.CellTemplate>
           <DataTemplate>
             <c:PrivacyContentControl PrivacyReplacementMode="Icon">
               <c:PrivacyContentControl.Styles>
@@ -153,13 +153,13 @@
               </Panel>
             </c:PrivacyContentControl>
           </DataTemplate>
-        </DataColumn.CellTemplate>
-      </DataColumn>
+        </TemplatedDataGridColumn.CellTemplate>
+      </TemplatedDataGridColumn>
 
       <!-- Labels -->
-      <DataColumn Header="Labels"
-                  Width="Auto">
-        <DataColumn.CellTemplate>
+      <TemplatedDataGridColumn Header="Labels"
+                               Width="Auto">
+        <TemplatedDataGridColumn.CellTemplate>
           <DataTemplate>
             <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15" Classes="monoSpacedPrivacyReplacement">
               <DockPanel LastChildFill="False" x:DataType="history:HistoryItemViewModel">
@@ -194,15 +194,15 @@
               </DockPanel>
             </c:PrivacyContentControl>
           </DataTemplate>
-        </DataColumn.CellTemplate>
-      </DataColumn>
+        </TemplatedDataGridColumn.CellTemplate>
+      </TemplatedDataGridColumn>
 
       <!-- Incoming -->
-      <DataColumn Header="Incoming (BTC)"
-                  Width="*"
-                  MinWidth="160"
-                  MaxWidth="210">
-        <DataColumn.CellTemplate>
+      <TemplatedDataGridColumn Header="Incoming (BTC)"
+                               Width="*"
+                               MinWidth="160"
+                               MaxWidth="210">
+        <TemplatedDataGridColumn.CellTemplate>
           <DataTemplate>
             <Panel Name="Panel" HorizontalAlignment="Stretch">
               <StackPanel x:DataType="history:HistoryItemViewModel"
@@ -222,15 +222,15 @@
               </StackPanel>
             </Panel>
           </DataTemplate>
-        </DataColumn.CellTemplate>
-      </DataColumn>
+        </TemplatedDataGridColumn.CellTemplate>
+      </TemplatedDataGridColumn>
 
       <!-- Outgoing -->
-      <DataColumn Header="Outgoing (BTC)"
-                  Width="*"
-                  MinWidth="160"
-                  MaxWidth="210">
-        <DataColumn.CellTemplate>
+      <TemplatedDataGridColumn Header="Outgoing (BTC)"
+                               Width="*"
+                               MinWidth="160"
+                               MaxWidth="210">
+        <TemplatedDataGridColumn.CellTemplate>
           <DataTemplate>
             <Panel Name="Panel" HorizontalAlignment="Stretch">
               <StackPanel x:DataType="history:HistoryItemViewModel"
@@ -250,13 +250,13 @@
               </StackPanel>
             </Panel>
           </DataTemplate>
-        </DataColumn.CellTemplate>
-      </DataColumn>
+        </TemplatedDataGridColumn.CellTemplate>
+      </TemplatedDataGridColumn>
 
       <!-- Balance -->
-      <DataColumn Header="Balance (BTC)"
-                  Width="Auto">
-        <DataColumn.CellTemplate>
+      <TemplatedDataGridColumn Header="Balance (BTC)"
+                               Width="Auto">
+        <TemplatedDataGridColumn.CellTemplate>
           <DataTemplate>
             <c:PrivacyContentControl x:DataType="history:HistoryItemViewModel"
                                      Content="{Binding Balance, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
@@ -266,15 +266,15 @@
                                      HorizontalAlignment="Right"
                                      Margin="10 0" />
           </DataTemplate>
-        </DataColumn.CellTemplate>
-      </DataColumn>
+        </TemplatedDataGridColumn.CellTemplate>
+      </TemplatedDataGridColumn>
 
       <!-- Status -->
-      <DataColumn Header="Status"
-                  Width="*"
-                  MinWidth="120"
-                  MaxWidth="120">
-        <DataColumn.CellTemplate>
+      <TemplatedDataGridColumn Header="Status"
+                               Width="*"
+                               MinWidth="120"
+                               MaxWidth="120">
+        <TemplatedDataGridColumn.CellTemplate>
           <DataTemplate>
             <Panel x:DataType="history:HistoryItemViewModel">
               <!-- Confirmed -->
@@ -309,22 +309,22 @@
               </StackPanel>
             </Panel>
           </DataTemplate>
-        </DataColumn.CellTemplate>
-      </DataColumn>
+        </TemplatedDataGridColumn.CellTemplate>
+      </TemplatedDataGridColumn>
 
       <!-- Details -->
-      <DataColumn Width="Auto">
-        <DataColumn.CellTemplate>
+      <TemplatedDataGridColumn Width="Auto">
+        <TemplatedDataGridColumn.CellTemplate>
           <DataTemplate>
             <Button x:DataType="history:HistoryItemViewModel" Classes="plain" ToolTip.Tip="Show Details"
                     Command="{Binding ShowDetailsCommand}">
               <PathIcon Data="{StaticResource details_regular}" Height="15" Opacity="0.6" />
             </Button>
           </DataTemplate>
-        </DataColumn.CellTemplate>
-      </DataColumn>
+        </TemplatedDataGridColumn.CellTemplate>
+      </TemplatedDataGridColumn>
 
-    </DataListBox.Columns>
-  </DataListBox>
+    </TemplatedDataGrid.Columns>
+  </TemplatedDataGrid>
 
 </UserControl>
