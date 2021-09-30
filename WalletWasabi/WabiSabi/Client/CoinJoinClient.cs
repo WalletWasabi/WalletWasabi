@@ -159,7 +159,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private async Task<ImmutableArray<AliceClient>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 		{
-			async Task<AliceClient?> RegisterInputAsync(SmartCoin coin)
+			async Task<AliceClient?> RegisterInputAsync(SmartCoin coin, CancellationToken cancellationToken)
 			{
 				try
 				{
@@ -195,7 +195,7 @@ namespace WalletWasabi.WabiSabi.Client
 			var scheduledDates = remainingTimeForRegistration.Sample(smartCoins.Count());
 
 			// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
-			var aliceClients = smartCoins.Zip(scheduledDates, (coin, date) => RegisterInputAsync(coin).RunAsScheduledAsync(date)).ToImmutableArray();
+			var aliceClients = smartCoins.Zip(scheduledDates, (coin, date) => RegisterInputAsync(coin, cancellationToken).RunAsScheduledAsync(date, cancellationToken)).ToImmutableArray();
 
 			await Task.WhenAll(aliceClients).ConfigureAwait(false);
 
