@@ -216,11 +216,5 @@ namespace System.Linq
 
 		public static bool IsSuperSetOf<T>(this IEnumerable<T> me, IEnumerable<T> other) =>
 			other.All(x => me.Contains(x));
-
-		public async static Task<TResult> ThenAsync<TResult>(this Task source, Task<TResult> continuation)
-		{
-			await source.ConfigureAwait(false);
-			return await continuation.ConfigureAwait(false);
-		}
 	}
 }
