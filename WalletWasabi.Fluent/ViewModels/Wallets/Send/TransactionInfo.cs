@@ -40,5 +40,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public bool IsPayJoin => PayJoinClient is { };
 
 		public bool IsPrivatePocketUsed => Coins.All(x => x.HdPubKey.AnonymitySet >= _privateCoinTreshold);
+
+		public bool SubtractFee { get; set; }
 	}
 }
