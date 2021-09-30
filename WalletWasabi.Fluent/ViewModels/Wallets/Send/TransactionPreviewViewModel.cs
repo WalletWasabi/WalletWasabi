@@ -115,29 +115,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private async Task InitialiseTransactionAsync()
 		{
 			var transactionInfo = _info;
-			var targetAnonymitySet = _wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
-			var mixedCoins = _wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
-			var totalMixedCoinsAmount = Money.FromUnit(mixedCoins.Sum(coin => coin.Amount), MoneyUnit.Satoshi);
 
-			transactionInfo.Coins = mixedCoins;
+			var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, transactionInfo, isSilent: true));
+			if (privacyControlDialogResult.Result is { } coins)
+			{
+				transactionInfo.Coins = coins;
+			}
 
 			var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, transactionInfo, true));
-
 			if (feeDialogResult.Kind == DialogResultKind.Normal)
 			{
 				transactionInfo.FeeRate = feeDialogResult.Result;
-			}
-
-			if (transactionInfo.Amount > totalMixedCoinsAmount)
-			{
-				var privacyControlDialogResult =
-					await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, transactionInfo));
-
-				if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
-				    privacyControlDialogResult.Result is { })
-				{
-					transactionInfo.Coins = privacyControlDialogResult.Result;
-				}
 			}
 		}
 
@@ -187,7 +175,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (wallet.Coins.TotalAmount() > transactionInfo.Amount)
 			{
-				var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(wallet, transactionInfo));
+				var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(wallet, transactionInfo, isSilent: false));
 
 				if (privacyControlDialogResult.Kind == DialogResultKind.Normal && privacyControlDialogResult.Result is { })
 				{
@@ -220,7 +208,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					return txn;
 				}
 
-				var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(wallet, transactionInfo));
+				var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(wallet, transactionInfo, isSilent: false));
 				if (privacyControlDialogResult.Kind == DialogResultKind.Normal && privacyControlDialogResult.Result is { })
 				{
 					transactionInfo.Coins = privacyControlDialogResult.Result;

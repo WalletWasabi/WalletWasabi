@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Disposables;
-using System.Threading.Tasks;
 using DynamicData;
 using DynamicData.Aggregation;
 using NBitcoin;
@@ -12,7 +10,6 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
-using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
@@ -21,6 +18,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<SmartCoin>>
 	{
 		private readonly Wallet _wallet;
+		private readonly TransactionInfo _transactionInfo;
+		private readonly bool _isSilent;
 		private readonly SourceList<PocketViewModel> _pocketSource;
 		private readonly ReadOnlyObservableCollection<PocketViewModel> _pockets;
 		private readonly IObservableList<PocketViewModel> _selectedPockets;
@@ -29,9 +28,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private bool _enoughSelected;
 		[AutoNotify] private bool _isWarningOpen;
 
-		public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo)
+		public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, bool isSilent)
 		{
 			_wallet = wallet;
+			_transactionInfo = transactionInfo;
+			_isSilent = isSilent;
 
 			_pocketSource = new SourceList<PocketViewModel>();
 
@@ -91,6 +92,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				_pocketSource.Items.First().IsSelected = true;
 
+				Complete();
+			}
+			else if (_isSilent &&
+			         _pocketSource.Items.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText) is { } privatePocket &&
+			         privatePocket.Coins.TotalAmount() >= _transactionInfo.Amount)
+			{
+				privatePocket.IsSelected = true;
 				Complete();
 			}
 		}
