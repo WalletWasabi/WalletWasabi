@@ -117,7 +117,7 @@ namespace WalletWasabi.WabiSabi.Client
 						var success = await finishedCoinJoin.CoinJoinTask.ConfigureAwait(false);
 						if (success)
 						{
-							CoinRefrigerator.Freeze(finishedCoinJoin.CoinCandidates);
+							CoinRefrigerator.Freeze(finishedCoinJoin.CoinCandidates, FreezeReason.CoinJoinBroadcast);
 							Logger.LogInfo($"{logPrefix} finished successfully!");
 						}
 						else
@@ -168,7 +168,7 @@ namespace WalletWasabi.WabiSabi.Client
 			var coins = coinsToPullOutCoins.ToHashSet();
 
 			// Freeze the coins.
-			CoinRefrigerator.Freeze(coins);
+			CoinRefrigerator.Freeze(coins, FreezeReason.Sending);
 
 			var walletsToAbort = TrackedWallets.Values.Where(wtd => wtd.CoinCandidates.Any(coins.Contains));
 			foreach (var wallet in walletsToAbort)
