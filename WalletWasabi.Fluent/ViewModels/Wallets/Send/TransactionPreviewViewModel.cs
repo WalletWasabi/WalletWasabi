@@ -78,13 +78,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				if (feeRateDialogResult.Kind == DialogResultKind.Normal)
 				{
 					_info.FeeRate = feeRateDialogResult.Result;
-				}
 
-				var newTransaction = await BuildTransactionAsync();
+					var newTransaction = await BuildTransactionAsync();
 
-				if (newTransaction is { })
-				{
-					UpdateTransaction(newTransaction);
+					if (newTransaction is { })
+					{
+						UpdateTransaction(newTransaction);
+					}
 				}
 			});
 
