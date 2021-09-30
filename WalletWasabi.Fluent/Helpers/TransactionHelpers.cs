@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -58,6 +59,22 @@ namespace WalletWasabi.Fluent.Helpers
 				subtractFee,
 				isPayJoin ? transactionInfo.PayJoinClient : null);
 
+		}
+
+		public static bool TryBuildTransaction(Wallet wallet, TransactionInfo transactionInfo, [NotNullWhen(true)]out BuildTransactionResult? transaction, bool subtractFee = false, bool isPayJoin = false)
+		{
+			transaction = null;
+
+			try
+			{
+				transaction = BuildTransaction(wallet, transactionInfo, subtractFee, isPayJoin);
+			}
+			catch (Exception)
+			{
+				return false;
+			}
+
+			return true;
 		}
 
 		public static async Task<SmartTransaction> ParseTransactionAsync(string path, Network network)
