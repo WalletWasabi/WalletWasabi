@@ -158,7 +158,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private record WalletTrackingData(Wallet Wallet, CoinJoinClient CoinJoinClient, Task<bool> CoinJoinTask, IEnumerable<SmartCoin> CoinCandidates, CancellationTokenSource CancellationTokenSource);
 
-		public void PullOutCoinsFromCoinJoin(IEnumerable<SmartCoin> coinsToPullOutCoins)
+		public async Task PullOutCoinsFromCoinJoinAsync(IEnumerable<SmartCoin> coinsToPullOutCoins, CancellationToken cancel = default)
 		{
 			var coins = coinsToPullOutCoins.ToHashSet();
 
@@ -169,6 +169,11 @@ namespace WalletWasabi.WabiSabi.Client
 			foreach (var wallet in walletsToAbort)
 			{
 				wallet.CancellationTokenSource.Cancel();
+			}
+
+			while (TrackedWallets.Values.Any(wtd => wtd.CoinCandidates.Any(coins.Contains)))
+			{
+				await Task.Delay(1000, cancel).ConfigureAwait(false);
 			}
 		}
 	}

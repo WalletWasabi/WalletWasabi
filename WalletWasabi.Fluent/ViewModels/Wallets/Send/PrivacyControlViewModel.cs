@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Threading;
 using System.Threading.Tasks;
 using DynamicData;
 using DynamicData.Aggregation;
@@ -76,11 +77,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			var coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>()!;
 			var coins = selectedList.Items.SelectMany(x => x.Coins).ToArray();
 
-			coinJoinManager.PullOutCoinsFromCoinJoin(coins);
-			transactionInfo.Coins = coins;
-
 			try
 			{
+				using CancellationTokenSource cts = new(TimeSpan.FromSeconds(20));
+				await coinJoinManager.PullOutCoinsFromCoinJoinAsync(coins, cts.Token);
+				transactionInfo.Coins = coins;
+
 				_buildingTransaction = true;
 
 				if (transactionInfo.PayJoinClient is { })
