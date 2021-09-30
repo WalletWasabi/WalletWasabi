@@ -1,6 +1,5 @@
 using NBitcoin;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 
