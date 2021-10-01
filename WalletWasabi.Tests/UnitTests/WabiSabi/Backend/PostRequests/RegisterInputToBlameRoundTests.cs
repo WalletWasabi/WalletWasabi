@@ -69,9 +69,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			Round blameRound = WabiSabiFactory.CreateBlameRound(round, cfg);
 			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(alice.Coin);
 
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc, round, blameRound);
-			arena.Prison.Punish(bannedCoin, Punishment.Banned, uint256.Zero);
-			await using ArenaRequestHandler handler = new(cfg, arena.Prison, arena, mockRpc.Object);
+			Prison prison = new();
+			using Arena arena = ArenaBuilder.From(cfg, mockRpc, prison).Create(round, blameRound);
+			await arena.StartAsync(CancellationToken.None);
+			
+			prison.Punish(bannedCoin, Punishment.Banned, uint256.Zero);
+			await using ArenaRequestHandler handler = new(cfg, prison, arena, mockRpc.Object);
 
 			var req = WabiSabiFactory.CreateInputRegistrationRequest(key: key, round: blameRound, prevout: bannedCoin);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req, CancellationToken.None));
