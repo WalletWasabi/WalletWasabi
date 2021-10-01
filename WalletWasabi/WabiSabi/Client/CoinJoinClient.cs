@@ -234,7 +234,7 @@ namespace WalletWasabi.WabiSabi.Client
 				}
 				catch (Exception e)
 				{
-					Logger.LogWarning($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): {nameof(AliceClient.SignTransactionAsync)} failed, reason:'{e}'.");
+					Logger.LogWarning($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Could not sign, reason:'{e}'.");
 				}
 			}
 
