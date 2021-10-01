@@ -141,6 +141,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private uint256 CalculateHash()
 			=> RoundHasher.CalculateHash(
+					InputRegistrationStart,
 					InputRegistrationTimeout,
 					ConnectionConfirmationTimeout,
 					OutputRegistrationTimeout,
