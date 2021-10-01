@@ -12,7 +12,7 @@ namespace System
 			using var random = new SecureRandom();
 			return Enumerable
 				.Range(0, numberOfEvents)
-				.Select(_ => startTime.Add(0.8 * random.NextDouble() * timeFrame))
+				.Select(_ => startTime + (0.8 * TimeSpan.FromMilliseconds(random.GetInt(0, (int)timeFrame.TotalMilliseconds))))
 				.OrderBy(t => t)
 				.ToImmutableList();
 		}

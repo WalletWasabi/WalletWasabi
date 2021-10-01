@@ -22,9 +22,6 @@ namespace WalletWasabi.Crypto.Randomness
 
 		public abstract int GetInt(int fromInclusive, int toExclusive);
 
-		public double NextDouble() =>
-			GetInt(0, int.MaxValue) / (double)int.MaxValue;
-
 		public string GetString(int length, string chars)
 		{
 			Guard.MinimumAndNotNull(nameof(length), length, 1);
