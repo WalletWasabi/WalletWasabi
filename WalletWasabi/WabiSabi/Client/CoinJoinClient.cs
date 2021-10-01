@@ -226,21 +226,19 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private async Task SignTransactionAsync(IEnumerable<AliceClient> aliceClients, Transaction unsignedCoinJoinTransaction, CancellationToken cancellationToken)
 		{
-			async Task<AliceClient?> SignTransactionTask(AliceClient aliceClient)
+			async Task SignTransactionTask(AliceClient aliceClient)
 			{
 				try
 				{
 					await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, cancellationToken).ConfigureAwait(false);
-					return aliceClient;
 				}
 				catch (Exception e)
 				{
 					Logger.LogWarning($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): {nameof(AliceClient.SignTransactionAsync)} failed, reason:'{e}'.");
-					return default;
 				}
 			}
 
-			var signingRequests = aliceClients.Select(SignTransactionTask);
+			IEnumerable<Task> signingRequests = aliceClients.Select(SignTransactionTask);
 			await Task.WhenAll(signingRequests).ConfigureAwait(false);
 		}
 
