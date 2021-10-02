@@ -54,7 +54,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 				StepOutputRegistrationPhase();
 
-				StepConnectionConfirmationPhase();
+				await StepConnectionConfirmationPhaseAsync(cancel).ConfigureAwait(false);
 
 				await StepInputRegistrationPhaseAsync(cancel).ConfigureAwait(false);
 
@@ -85,7 +85,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 						if (offendingAlices.Any())
 						{
 							thereAreOffendingAlices = true;
-							round.Alices.RemoveAll(x => offendingAlices.Contains(x));
+							var removed = round.Alices.RemoveAll(x => offendingAlices.Contains(x));
+							round.LogInfo($"There were {removed} alices removed because they spent the registered UTXO.");
 						}
 					}
 					if (!thereAreOffendingAlices)
@@ -115,7 +116,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		private void StepConnectionConfirmationPhase()
+		private async Task StepConnectionConfirmationPhaseAsync(CancellationToken cancel)
 		{
 			foreach (var round in Rounds.Where(x => x.Phase == Phase.ConnectionConfirmation).ToArray())
 			{
@@ -140,7 +141,23 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					}
 					else
 					{
-						round.SetPhase(Phase.OutputRegistration);
+						await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false))
+						{
+							if (offendingAlices.Any())
+							{
+								var removed = round.Alices.RemoveAll(x => offendingAlices.Contains(x));
+								round.LogInfo($"There were {removed} alices removed because they spent the registered UTXO.");
+							}
+						}
+						if (round.InputCount < Config.MinInputCountByRound)
+						{
+							round.SetPhase(Phase.Ended);
+							round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.ConnectionConfirmation)} phase.");
+						}
+						else
+						{
+							round.SetPhase(Phase.OutputRegistration);
+						}
 					}
 				}
 			}
