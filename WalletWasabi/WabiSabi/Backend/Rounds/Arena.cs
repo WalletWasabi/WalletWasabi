@@ -134,12 +134,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					var removedAliceCount = round.Alices.RemoveAll(x => alicesDidntConfirm.Contains(x));
 					round.LogInfo($"{removedAliceCount} alices removed because they didn't confirm.");
 
-					if (round.InputCount < Config.MinInputCountByRound)
-					{
-						round.SetPhase(Phase.Ended);
-						round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.ConnectionConfirmation)} phase.");
-					}
-					else
+					if (round.InputCount >= Config.MinInputCountByRound)
 					{
 						await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false))
 						{
@@ -149,15 +144,15 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 								round.LogInfo($"There were {removed} alices removed because they spent the registered UTXO.");
 							}
 						}
-						if (round.InputCount < Config.MinInputCountByRound)
-						{
-							round.SetPhase(Phase.Ended);
-							round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.ConnectionConfirmation)} phase.");
-						}
-						else
-						{
-							round.SetPhase(Phase.OutputRegistration);
-						}
+					}
+					if (round.InputCount < Config.MinInputCountByRound)
+					{
+						round.SetPhase(Phase.Ended);
+						round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.ConnectionConfirmation)} phase.");
+					}
+					else
+					{
+						round.SetPhase(Phase.OutputRegistration);
 					}
 				}
 			}
