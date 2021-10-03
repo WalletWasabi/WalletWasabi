@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -77,9 +78,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					await Task.Delay(100);
 				}
 
-				FeeChart.UpdateFeeEstimates(_wallet.Network == Network.TestNet
-					? TestNetFeeEstimates
-					: feeProvider.AllFeeEstimate.Estimations);
+				var feeEstimations = _wallet.Network == Network.TestNet ? TestNetFeeEstimates : feeProvider.AllFeeEstimate.Estimations;
+				FeeChart.UpdateFeeEstimates(feeEstimations);
 
 				if (_transactionInfo.FeeRate is { })
 				{
@@ -88,8 +88,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				if (_isSilent)
 				{
-					// TODO implement algorithm to intelligently select fees.
-					_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(1);
+					var satPerByteThreshold = Services.Config.SatPerByteThreshold;
+					var blockTargetThreshold = Services.Config.BlockTargetThreshold;
+					var blockTarget = GetBestBlockTarget(feeEstimations, satPerByteThreshold, blockTargetThreshold);
+
+					FeeChart.CurrentConfirmationTarget = blockTarget;
+					_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(blockTarget);
 
 					Complete();
 				}
@@ -98,6 +102,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					IsBusy = false;
 				}
 			});
+		}
+
+		private int GetBestBlockTarget(Dictionary<int, int> estimations, int satPerByteThreshold, int blockTargetThreshold)
+		{
+			var bestBlockTarget = estimations.FirstOrDefault(x => x.Value <= satPerByteThreshold && x.Key <= blockTargetThreshold);
+			if (bestBlockTarget.Key != default && bestBlockTarget.Value != default)
+			{
+				return bestBlockTarget.Key;
+			}
+
+			return blockTargetThreshold;
 		}
 
 		private TimeSpan CalculateConfirmationTime(double targetBlock)
@@ -110,12 +125,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private static readonly Dictionary<int, int> TestNetFeeEstimates = new ()
 		{
 			[1] = 17,
-			[2] = 15,
-			[3] = 11,
-			[6] = 11,
-			[18] = 9,
-			[36] = 7,
-			[72] = 5,
+			[2] = 12,
+			[3] = 9,
+			[6] = 9,
+			[18] = 2,
+			[36] = 2,
+			[72] = 2,
 			[144] = 2,
 			[432] = 1,
 			[1008] = 1
