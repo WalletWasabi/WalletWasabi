@@ -88,7 +88,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				if (_isSilent)
 				{
-					var blockTarget = GetBestBlockTarget(feeEstimations);
+					var satPerByteThreshold = Services.Config.SatPerByteThreshold;
+					var blockTargetThreshold = Services.Config.BlockTargetThreshold;
+					var blockTarget = GetBestBlockTarget(feeEstimations, satPerByteThreshold, blockTargetThreshold);
 
 					FeeChart.CurrentConfirmationTarget = blockTarget;
 					_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(blockTarget);
@@ -102,11 +104,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			});
 		}
 
-		private int GetBestBlockTarget(Dictionary<int, int> estimations)
+		private int GetBestBlockTarget(Dictionary<int, int> estimations, int satPerByteThreshold, int blockTargetThreshold)
 		{
-			var satPerByteThreshold = 10;
-			var blockTargetThreshold = 6;
-
 			var bestBlockTarget = estimations.FirstOrDefault(x => x.Value <= satPerByteThreshold && x.Key <= blockTargetThreshold);
 			if (bestBlockTarget.Key != default && bestBlockTarget.Value != default)
 			{
@@ -126,12 +125,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private static readonly Dictionary<int, int> TestNetFeeEstimates = new ()
 		{
 			[1] = 17,
-			[2] = 15,
-			[3] = 11,
-			[6] = 11,
-			[18] = 9,
-			[36] = 7,
-			[72] = 5,
+			[2] = 12,
+			[3] = 9,
+			[6] = 9,
+			[18] = 2,
+			[36] = 2,
+			[72] = 2,
 			[144] = 2,
 			[432] = 1,
 			[1008] = 1
