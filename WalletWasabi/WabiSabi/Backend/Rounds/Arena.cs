@@ -134,6 +134,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					var removedAliceCount = round.Alices.RemoveAll(x => alicesDidntConfirm.Contains(x));
 					round.LogInfo($"{removedAliceCount} alices removed because they didn't confirm.");
 
+					// Once an input is confirmed and non-zero credentials are issued, it must be included and must provide a
+					// a signature for a valid transaction to be produced, therefore this is the last possible opportunity to
+					// remove any spent inputs.
 					if (round.InputCount >= Config.MinInputCountByRound)
 					{
 						await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false))
@@ -145,6 +148,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 							}
 						}
 					}
+
 					if (round.InputCount < Config.MinInputCountByRound)
 					{
 						round.SetPhase(Phase.Ended);
