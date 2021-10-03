@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using DynamicData;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.MathNet;
 using WalletWasabi.Gui.Converters;
 
@@ -170,7 +170,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 
 			var closestValue = SatoshiPerByteValues.OrderBy(x => Math.Abs((decimal)x - feeRate.SatoshiPerByte)).First();
-			var indexOfClosestValue = SatoshiPerByteValues.IndexOf(closestValue);
+			var indexOfClosestValue = SatoshiPerByteValues.LastIndexOf(closestValue);
 
 			return ConfirmationTargetValues[indexOfClosestValue];
 		}
