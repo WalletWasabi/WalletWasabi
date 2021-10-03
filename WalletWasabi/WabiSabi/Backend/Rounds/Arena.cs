@@ -97,25 +97,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		private async IAsyncEnumerable<Alice[]> CheckTxoSpendStatusAsync(Round round, [EnumeratorCancellation] CancellationToken cancellationToken = default)
-		{
-			foreach (var chunckOfAlices in round.Alices.ToList().ChunkBy(16))
-			{
-				var batchedRpc = Rpc.PrepareBatch();
-
-				var aliceCheckingTaskPairs = chunckOfAlices
-					.Select(x => (Alice: x, StatusTask: Rpc.GetTxOutAsync(x.Coin.Outpoint.Hash, (int)x.Coin.Outpoint.N, includeMempool: true, cancellationToken)))
-					.ToList();
-
-				cancellationToken.ThrowIfCancellationRequested();
-				await batchedRpc.SendBatchAsync(cancellationToken).ConfigureAwait(false);
-
-				var spendStatusCheckingTasks = aliceCheckingTaskPairs.Select(async x => (x.Alice, Status: await x.StatusTask.ConfigureAwait(false)));
-				var alices = await Task.WhenAll(spendStatusCheckingTasks).ConfigureAwait(false);
-				yield return alices.Where(x => x.Status is null).Select(x => x.Alice).ToArray();
-			}
-		}
-
 		private async Task StepConnectionConfirmationPhaseAsync(CancellationToken cancel)
 		{
 			foreach (var round in Rounds.Where(x => x.Phase == Phase.ConnectionConfirmation).ToArray())
@@ -242,6 +223,25 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					round.LogWarning($"Signing phase failed, reason: '{ex}'.");
 					await FailTransactionSigningPhaseAsync(round, cancellationToken).ConfigureAwait(false);
 				}
+			}
+		}
+
+		private async IAsyncEnumerable<Alice[]> CheckTxoSpendStatusAsync(Round round, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+		{
+			foreach (var chunckOfAlices in round.Alices.ToList().ChunkBy(16))
+			{
+				var batchedRpc = Rpc.PrepareBatch();
+
+				var aliceCheckingTaskPairs = chunckOfAlices
+					.Select(x => (Alice: x, StatusTask: Rpc.GetTxOutAsync(x.Coin.Outpoint.Hash, (int)x.Coin.Outpoint.N, includeMempool: true, cancellationToken)))
+					.ToList();
+
+				cancellationToken.ThrowIfCancellationRequested();
+				await batchedRpc.SendBatchAsync(cancellationToken).ConfigureAwait(false);
+
+				var spendStatusCheckingTasks = aliceCheckingTaskPairs.Select(async x => (x.Alice, Status: await x.StatusTask.ConfigureAwait(false)));
+				var alices = await Task.WhenAll(spendStatusCheckingTasks).ConfigureAwait(false);
+				yield return alices.Where(x => x.Status is null).Select(x => x.Alice).ToArray();
 			}
 		}
 
