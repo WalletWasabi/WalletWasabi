@@ -44,30 +44,29 @@
             </c:PreviewItem>
             <Separator IsVisible="{Binding IsPayJoin}" />
 
-            <c:PreviewItem Icon="{StaticResource lock_shield_regular}"
+            <c:PreviewItem Icon="{StaticResource incognito_filled}"
                            Text="You will receive change from this transaction."
                            IsVisible="{Binding TransactionHasChange}">
-              <Button Classes="activeHyperLink" Content="Avoid Change to improve privacy." HorizontalAlignment="Left" Command="{Binding AvoidChangeCommand}"/>
+              <Button Classes="activeHyperLink" Content="View suggestions to improve privacy by avoiding change." HorizontalAlignment="Left" Command="{Binding AvoidChangeCommand}"/>
             </c:PreviewItem>
             <Separator IsVisible="{Binding TransactionHasChange}" />
 
             <Panel>
-              <StackPanel Spacing="20">
-                <c:PreviewItem Icon="{StaticResource timer_regular}"
-                               Text="Bitcoin miners will work hard to confirm your transaction within">
-                  <TextBox Classes="selectableTextBlock" Text="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
-                </c:PreviewItem>
-                <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
-                               Text="for an additional charge of">
-                  <TextBox Classes="selectableTextBlock" Text="{Binding FeeText, FallbackValue=235 sats (≈55.34 USD)}" DockPanel.Dock="Left" />
+              <StackPanel Spacing="5">
+                <StackPanel Spacing="20">
+                  <c:PreviewItem Icon="{StaticResource timer_regular}"
+                                 Text="Bitcoin miners will work hard to confirm your transaction within">
+                    <TextBox Classes="selectableTextBlock" Text="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
+                  </c:PreviewItem>
+                  <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
+                                 Text="for an additional charge of">
+                    <TextBox Classes="selectableTextBlock" Text="{Binding FeeText, FallbackValue=235 sats (≈55.34 USD)}" DockPanel.Dock="Left" />
+                  </c:PreviewItem>
+                </StackPanel>
+                <c:PreviewItem>
+                  <Button Classes="activeHyperLink" Content="Change transaction fee or confirmation time." HorizontalAlignment="Left" Command="{Binding AdjustFeeCommand }"/>
                 </c:PreviewItem>
               </StackPanel>
-
-              <Button Classes="plain" Margin="0 0 20 0" Opacity="0.6" VerticalAlignment="Center" HorizontalAlignment="Right"
-                      ToolTip.Tip="Adjust Fees and Priority"
-                      Command="{Binding AdjustFeeCommand}">
-                <PathIcon Data="{StaticResource options_regular}" />
-              </Button>
             </Panel>
         </StackPanel>
     </c:ContentArea>
