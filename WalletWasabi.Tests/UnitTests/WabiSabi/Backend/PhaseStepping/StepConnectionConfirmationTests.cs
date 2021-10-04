@@ -57,8 +57,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			round.SetPhase(Phase.ConnectionConfirmation);
 
 			Prison prison = new();
-			using Arena arena = ArenaBuilder.From(cfg, prison).Create(round);
-			await arena.StartAsync(CancellationToken.None);
+			using Arena arena = await ArenaBuilder.From(cfg, prison).CreateAndStartAsync(round);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
@@ -93,8 +92,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			round.SetPhase(Phase.ConnectionConfirmation);
 
 			Prison prison = new();
-			using Arena arena = ArenaBuilder.From(cfg, prison).Create(round);
-			await arena.StartAsync(CancellationToken.None);
+			using Arena arena = await ArenaBuilder.From(cfg, prison).CreateAndStartAsync(round);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.OutputRegistration, round.Phase);
@@ -130,8 +128,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			round.SetPhase(Phase.ConnectionConfirmation);
 
 			Prison prison = new();
-			using Arena arena = ArenaBuilder.From(cfg, prison).Create(round);
-			await arena.StartAsync(CancellationToken.None);
+			using Arena arena = await ArenaBuilder.From(cfg, prison).CreateAndStartAsync(round);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.DoesNotContain(round, arena.ActiveRounds);

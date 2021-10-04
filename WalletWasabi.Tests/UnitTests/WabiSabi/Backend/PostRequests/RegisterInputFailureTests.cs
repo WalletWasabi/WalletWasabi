@@ -144,8 +144,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var round = WabiSabiFactory.CreateRound(cfg);
 
 			Prison prison = new();
-			using Arena arena = ArenaBuilder.From(cfg, prison).Create(round);
-			await arena.StartAsync(CancellationToken.None);
+			using Arena arena = await ArenaBuilder.From(cfg, prison).CreateAndStartAsync(round);
 
 			prison.Punish(outpoint, Punishment.Banned, uint256.One);
 
@@ -171,8 +170,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var round = WabiSabiFactory.CreateRound(cfg);
 
 			Prison prison = new();
-			using Arena arena = ArenaBuilder.From(cfg, prison).Create(round);
-			await arena.StartAsync(CancellationToken.None);
+			using Arena arena = await ArenaBuilder.From(cfg, prison).CreateAndStartAsync(round);
 
 			prison.Punish(outpoint, Punishment.Noted, uint256.One);
 
@@ -198,8 +196,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
 			Prison prison = new();
-			using Arena arena = ArenaBuilder.From(cfg, prison).Create(round);
-			await arena.StartAsync(CancellationToken.None);
+			using Arena arena = await ArenaBuilder.From(cfg, prison).CreateAndStartAsync(round);
 
 			prison.Punish(outpoint, Punishment.Noted, uint256.One);
 
