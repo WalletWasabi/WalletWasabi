@@ -163,9 +163,9 @@
     </Setter>
   </Style>
 
-  <Style Selector="TextBlock.monoSpaced">
-    <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
-    <Setter Property="FontSize" Value="15" />
+  <Style Selector="TextBlock.monoSpaced, TextBox.monoSpaced">
+    <Setter Property="TextBlock.FontFamily" Value="{StaticResource MonospacedFont}" />
+    <Setter Property="TextBlock.FontSize" Value="15" />
   </Style>
 
   <Style Selector="TextBox.wrap /template/ TextPresenter#PART_TextPresenter">

@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems
 		[AutoNotify] private bool _isFlashing;
 		[AutoNotify] private int _orderIndex;
 		[AutoNotify] private DateTimeOffset _date;
-		[AutoNotify] private string? _dateString;
+		[AutoNotify] private string _dateString = "";
 		[AutoNotify] private bool _isConfirmed;
 
 		protected HistoryItemViewModelBase(int orderIndex, TransactionSummary transactionSummary)
