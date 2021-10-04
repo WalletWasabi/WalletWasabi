@@ -75,7 +75,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				var feeRateDialogResult = await NavigateDialogAsync(new SendFeeViewModel(wallet, info, false));
 
-				if (feeRateDialogResult.Kind == DialogResultKind.Normal)
+				if (feeRateDialogResult.Kind == DialogResultKind.Normal && feeRateDialogResult.Result != _info.FeeRate)
 				{
 					_info.FeeRate = feeRateDialogResult.Result;
 
