@@ -135,6 +135,7 @@
 
       <!-- Type -->
       <TemplatedDataGridColumn Header="Type"
+                               MinWidth="80"
                                Width="Auto">
         <TemplatedDataGridColumn.CellTemplate>
           <DataTemplate>
