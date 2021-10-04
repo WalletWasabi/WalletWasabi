@@ -15,7 +15,6 @@ using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
-using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
@@ -34,10 +33,10 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		public HashSet<Round> Rounds { get; } = new();
 		private AsyncLock AsyncLock { get; } = new();
-		public Network Network { get; }
-		public WabiSabiConfig Config { get; }
+		private Network Network { get; }
+		private WabiSabiConfig Config { get; }
 		public IRPCClient Rpc { get; }
-		public Prison Prison { get; }
+		private Prison Prison { get; }
 		public SecureRandom Random { get; }
 
 		public IEnumerable<Round> ActiveRounds => Rounds.Where(x => x.Phase != Phase.Ended);
