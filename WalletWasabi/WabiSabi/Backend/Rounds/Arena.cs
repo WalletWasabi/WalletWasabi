@@ -236,7 +236,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					.Select(x => (Alice: x, StatusTask: Rpc.GetTxOutAsync(x.Coin.Outpoint.Hash, (int)x.Coin.Outpoint.N, includeMempool: true, cancellationToken)))
 					.ToList();
 
-				cancellationToken.ThrowIfCancellationRequested();
 				await batchedRpc.SendBatchAsync(cancellationToken).ConfigureAwait(false);
 
 				var spendStatusCheckingTasks = aliceCheckingTaskPairs.Select(async x => (x.Alice, Status: await x.StatusTask.ConfigureAwait(false)));
