@@ -141,7 +141,7 @@ namespace WalletWasabi.WabiSabi.Client
 				}
 
 				// Send signature.
-				await SignTransactionAsync(registeredAliceClients, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
+				await SignTransactionAsync(registeredAliceClients, unsignedCoinJoin, roundState, cancellationToken).ConfigureAwait(false);
 
 				var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundState.Id && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
 
@@ -224,21 +224,29 @@ namespace WalletWasabi.WabiSabi.Client
 			return coinJoinOutputs.IsSuperSetOf(expectedOutputTuples);
 		}
 
-		private async Task SignTransactionAsync(IEnumerable<AliceClient> aliceClients, Transaction unsignedCoinJoinTransaction, CancellationToken cancellationToken)
+		private async Task SignTransactionAsync(IEnumerable<AliceClient> aliceClients, Transaction unsignedCoinJoinTransaction, RoundState roundState, CancellationToken cancellationToken)
 		{
-			async Task SignTransactionTask(AliceClient aliceClient)
+			async Task<AliceClient?> SignTransactionAsync(AliceClient aliceClient, CancellationToken cancellationToken)
 			{
 				try
 				{
 					await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, cancellationToken).ConfigureAwait(false);
+					return aliceClient;
 				}
 				catch (Exception e)
 				{
 					Logger.LogWarning($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Could not sign, reason:'{e}'.");
+					return default;
 				}
 			}
 
-			IEnumerable<Task> signingRequests = aliceClients.Select(SignTransactionTask);
+			// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to sign.
+			var transactionSigningTimeFrame = roundState.TransactionSigningTimeout - RoundStatusUpdater.Period;
+			var scheduledDates = transactionSigningTimeFrame.Sample(aliceClients.Count());
+
+			// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
+			var signingRequests = aliceClients.Zip(scheduledDates, (alice, date) => SignTransactionAsync(alice, cancellationToken).RunAsScheduledAsync(date, cancellationToken)).ToImmutableArray();
+
 			await Task.WhenAll(signingRequests).ConfigureAwait(false);
 		}
 

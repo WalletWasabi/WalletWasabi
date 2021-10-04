@@ -54,7 +54,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 				StepOutputRegistrationPhase();
 
-				StepConnectionConfirmationPhase();
+				await StepConnectionConfirmationPhaseAsync(cancel).ConfigureAwait(false);
 
 				await StepInputRegistrationPhaseAsync(cancel).ConfigureAwait(false);
 
@@ -85,7 +85,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 						if (offendingAlices.Any())
 						{
 							thereAreOffendingAlices = true;
-							round.Alices.RemoveAll(x => offendingAlices.Contains(x));
+							var removed = round.Alices.RemoveAll(x => offendingAlices.Contains(x));
+							round.LogInfo($"There were {removed} alices removed because they spent the registered UTXO.");
 						}
 					}
 					if (!thereAreOffendingAlices)
@@ -96,25 +97,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		private async IAsyncEnumerable<Alice[]> CheckTxoSpendStatusAsync(Round round, [EnumeratorCancellation] CancellationToken cancellationToken = default)
-		{
-			foreach (var chunckOfAlices in round.Alices.ToList().ChunkBy(16))
-			{
-				var batchedRpc = Rpc.PrepareBatch();
-
-				var aliceCheckingTaskPairs = chunckOfAlices
-					.Select(x => (Alice: x, StatusTask: Rpc.GetTxOutAsync(x.Coin.Outpoint.Hash, (int)x.Coin.Outpoint.N, includeMempool: true, cancellationToken)))
-					.ToList();
-
-				await batchedRpc.SendBatchAsync(cancellationToken).ConfigureAwait(false);
-
-				var spendStatusCheckingTasks = aliceCheckingTaskPairs.Select(async x => (x.Alice, Status: await x.StatusTask.ConfigureAwait(false)));
-				var alices = await Task.WhenAll(spendStatusCheckingTasks).ConfigureAwait(false);
-				yield return alices.Where(x => x.Status is null).Select(x => x.Alice).ToArray();
-			}
-		}
-
-		private void StepConnectionConfirmationPhase()
+		private async Task StepConnectionConfirmationPhaseAsync(CancellationToken cancel)
 		{
 			foreach (var round in Rounds.Where(x => x.Phase == Phase.ConnectionConfirmation).ToArray())
 			{
@@ -131,6 +114,21 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					}
 					var removedAliceCount = round.Alices.RemoveAll(x => alicesDidntConfirm.Contains(x));
 					round.LogInfo($"{removedAliceCount} alices removed because they didn't confirm.");
+
+					// Once an input is confirmed and non-zero credentials are issued, it must be included and must provide a
+					// a signature for a valid transaction to be produced, therefore this is the last possible opportunity to
+					// remove any spent inputs.
+					if (round.InputCount >= Config.MinInputCountByRound)
+					{
+						await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false))
+						{
+							if (offendingAlices.Any())
+							{
+								var removed = round.Alices.RemoveAll(x => offendingAlices.Contains(x));
+								round.LogInfo($"There were {removed} alices removed because they spent the registered UTXO.");
+							}
+						}
+					}
 
 					if (round.InputCount < Config.MinInputCountByRound)
 					{
@@ -225,6 +223,24 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					round.LogWarning($"Signing phase failed, reason: '{ex}'.");
 					await FailTransactionSigningPhaseAsync(round, cancellationToken).ConfigureAwait(false);
 				}
+			}
+		}
+
+		private async IAsyncEnumerable<Alice[]> CheckTxoSpendStatusAsync(Round round, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+		{
+			foreach (var chunckOfAlices in round.Alices.ToList().ChunkBy(16))
+			{
+				var batchedRpc = Rpc.PrepareBatch();
+
+				var aliceCheckingTaskPairs = chunckOfAlices
+					.Select(x => (Alice: x, StatusTask: Rpc.GetTxOutAsync(x.Coin.Outpoint.Hash, (int)x.Coin.Outpoint.N, includeMempool: true, cancellationToken)))
+					.ToList();
+
+				await batchedRpc.SendBatchAsync(cancellationToken).ConfigureAwait(false);
+
+				var spendStatusCheckingTasks = aliceCheckingTaskPairs.Select(async x => (x.Alice, Status: await x.StatusTask.ConfigureAwait(false)));
+				var alices = await Task.WhenAll(spendStatusCheckingTasks).ConfigureAwait(false);
+				yield return alices.Where(x => x.Status is null).Select(x => x.Alice).ToArray();
 			}
 		}
 
