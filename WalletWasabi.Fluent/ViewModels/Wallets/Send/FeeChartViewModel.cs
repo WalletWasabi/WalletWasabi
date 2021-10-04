@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using DynamicData;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.MathNet;
 using WalletWasabi.Gui.Converters;
 
@@ -170,7 +171,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 
 			var closestValue = SatoshiPerByteValues.OrderBy(x => Math.Abs((decimal)x - feeRate.SatoshiPerByte)).First();
-			var indexOfClosestValue = SatoshiPerByteValues.IndexOf(closestValue);
+			var indexOfClosestValue = SatoshiPerByteValues.LastIndexOf(closestValue);
 
 			return ConfirmationTargetValues[indexOfClosestValue];
 		}
@@ -232,6 +233,33 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public void InitCurrentConfirmationTarget(FeeRate feeRate)
 		{
 			CurrentConfirmationTarget =  GetConfirmationTarget(feeRate);
+		}
+
+		public Dictionary<double, double> GetValues()
+		{
+			Dictionary<double, double> values = new();
+
+			if (ConfirmationTargetValues is null || SatoshiPerByteValues is null)
+			{
+				return values;
+			}
+
+			if (ConfirmationTargetValues.Length != SatoshiPerByteValues.Length)
+			{
+				throw new InvalidDataException("The count of X and Y values are not equal!");
+			}
+
+			var numberOfItems = ConfirmationTargetValues.Length;
+
+			for (var i = 0; i < numberOfItems; i++)
+			{
+				var blockTarget = ConfirmationTargetValues[i];
+				var satPerByte = SatoshiPerByteValues[i];
+
+				values.Add(blockTarget, satPerByte);
+			}
+
+			return values;
 		}
 	}
 }
