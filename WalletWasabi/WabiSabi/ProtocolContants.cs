@@ -11,13 +11,25 @@ namespace WalletWasabi.WabiSabi
 
 		// Round hashing labels
 		public const string RoundStrobeDomain = "round-parameters";
-		public const string RoundMinRegistrableAmountStrobeLabel = "minimum-registrable-amount";
-		public const string RoundMaxRegistrableAmountStrobeLabel = "maximum-registrable-amount";
-		public const string RoundMaxRegistrableVsizeStrobeLabel = "maximum-registrable-vsize";
+		public const string RoundAllowedInputAmountsStrobeLabel = "allowed-input-amounts";
+		public const string RoundAllowedOutputAmountsStrobeLabel = "allowed-output-amounts";
+		public const string RoundAllowedInputTypesStrobeLabel = "allowed-input-types";
+		public const string RoundAllowedOutputTypesStrobeLabel = "allowed-output-types";
+		public const string RoundNetworkStrobeLabel = "network";
+		public const string RoundMaxTransactionSizeStrobeLabel = "max-transaction-size";
+		public const string RoundMinRelayTxFeeStrobeLabel = "min-relay-tx-fee";
+
+		public const string RoundMaxAmountCredentialValueStrobeLabel = "maximum-amount-credential-value";
+		public const string RoundMaxVsizeCredentialValueStrobeLabel = "maximum-vsize-credential-value";
 		public const string RoundMaxVsizePerAliceStrobeLabel = "per-alice-vsize-allocation";
 		public const string RoundAmountCredentialIssuerParametersStrobeLabel = "amount-credential-issuer-parameters";
 		public const string RoundVsizeCredentialIssuerParametersStrobeLabel = "vsize-credential-issuer-parameters";
 		public const string RoundFeeRateStrobeLabel = "fee-rate";
+		public const string RoundInputRegistrationStartStrobeLabel = "input-registration-start";
+		public const string RoundInputRegistrationTimeoutStrobeLabel = "input-registration-timeout";
+		public const string RoundConnectionConfirmationTimeoutStrobeLabel= "connection-confirmation-timeout";
+		public const string RoundOutputRegistrationTimeoutStrobeLabel= "output-registration-timeout";
+		public const string RoundTransactionSigningTimeoutStrobeLabel= "transaction-signing-timeout";
 
 		// Alice hashing labels
 		public const string AliceStrobeDomain = "alice-parameters";

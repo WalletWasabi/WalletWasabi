@@ -12,6 +12,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 {
 	public class Round
 	{
+		private uint256 _id;
 		public Round(RoundParameters roundParameters)
 		{
 			RoundParameters = roundParameters;
@@ -21,23 +22,21 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			CoinjoinState = new ConstructionState(txParams);
 
 			InitialInputVsizeAllocation = CoinjoinState.Parameters.MaxTransactionSize - MultipartyTransactionParameters.SharedOverhead;
-			MaxRegistrableVsize = Math.Min(InitialInputVsizeAllocation / RoundParameters.MaxInputCountByRound, (int)ProtocolConstants.MaxVsizeCredentialValue);
-			MaxVsizeAllocationPerAlice = MaxRegistrableVsize;
+			MaxVsizeCredentialValue = Math.Min(InitialInputVsizeAllocation / RoundParameters.MaxInputCountByRound, (int)ProtocolConstants.MaxVsizeCredentialValue);
+			MaxVsizeAllocationPerAlice = MaxVsizeCredentialValue;
 
-			AmountCredentialIssuer = new(new(RoundParameters.Random), RoundParameters.Random, MaxRegistrableAmount);
-			VsizeCredentialIssuer = new(new(RoundParameters.Random), RoundParameters.Random, MaxRegistrableVsize);
+			AmountCredentialIssuer = new(new(RoundParameters.Random), RoundParameters.Random, MaxAmountCredentialValue);
+			VsizeCredentialIssuer = new(new(RoundParameters.Random), RoundParameters.Random, MaxVsizeCredentialValue);
 			AmountCredentialIssuerParameters = AmountCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 			VsizeCredentialIssuerParameters = VsizeCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
-
-			Id = CalculateHash();
 		}
 
+		public uint256 Id => _id ??= CalculateHash();
 		public MultipartyTransactionState CoinjoinState { get; set; }
-		public uint256 Id { get; }
 		public Network Network => RoundParameters.Network;
-		public Money MinRegistrableAmount => RoundParameters.MinRegistrableAmount;
-		public Money MaxRegistrableAmount => RoundParameters.MaxRegistrableAmount;
-		public int MaxRegistrableVsize { get; }
+		public Money MinAmountCredentialValue => RoundParameters.MinRegistrableAmount;
+		public Money MaxAmountCredentialValue => RoundParameters.MaxRegistrableAmount;
+		public int MaxVsizeCredentialValue { get; }
 		public int MaxVsizeAllocationPerAlice { get; internal set; }
 		public FeeRate FeeRate => RoundParameters.FeeRate;
 		public CredentialIssuer AmountCredentialIssuer { get; }
@@ -52,6 +51,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public bool IsBlameRound => RoundParameters.IsBlameRound;
 		public ISet<OutPoint> BlameWhitelist => RoundParameters.BlameWhitelist;
 
+		public TimeSpan InputRegistrationTimeout => IsBlameRound ? RoundParameters.BlameInputRegistrationTimeout : RoundParameters.StandardInputRegistrationTimeout;
 		public TimeSpan ConnectionConfirmationTimeout => RoundParameters.ConnectionConfirmationTimeout;
 		public TimeSpan OutputRegistrationTimeout => RoundParameters.OutputRegistrationTimeout;
 		public TimeSpan TransactionSigningTimeout => RoundParameters.TransactionSigningTimeout;
@@ -140,14 +140,24 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			=> Assert<SigningState>().AddWitness(index, witness);
 
 		private uint256 CalculateHash()
-			=> StrobeHasher.Create(ProtocolConstants.RoundStrobeDomain)
-				.Append(ProtocolConstants.RoundMinRegistrableAmountStrobeLabel, MinRegistrableAmount)
-				.Append(ProtocolConstants.RoundMaxRegistrableAmountStrobeLabel, MaxRegistrableAmount)
-				.Append(ProtocolConstants.RoundMaxRegistrableVsizeStrobeLabel, MaxRegistrableVsize)
-				.Append(ProtocolConstants.RoundMaxVsizePerAliceStrobeLabel, MaxVsizeAllocationPerAlice)
-				.Append(ProtocolConstants.RoundAmountCredentialIssuerParametersStrobeLabel, AmountCredentialIssuerParameters)
-				.Append(ProtocolConstants.RoundVsizeCredentialIssuerParametersStrobeLabel, VsizeCredentialIssuerParameters)
-				.Append(ProtocolConstants.RoundFeeRateStrobeLabel, FeeRate.FeePerK)
-				.GetHash();
+			=> RoundHasher.CalculateHash(
+					InputRegistrationStart,
+					InputRegistrationTimeout,
+					ConnectionConfirmationTimeout,
+					OutputRegistrationTimeout,
+					TransactionSigningTimeout,
+					CoinjoinState.Parameters.AllowedInputAmounts,
+					CoinjoinState.Parameters.AllowedInputTypes,
+					CoinjoinState.Parameters.AllowedOutputAmounts,
+					CoinjoinState.Parameters.AllowedOutputTypes,
+					CoinjoinState.Parameters.Network,
+					CoinjoinState.Parameters.FeeRate.FeePerK,
+					CoinjoinState.Parameters.MaxTransactionSize,
+					CoinjoinState.Parameters.MinRelayTxFee.FeePerK,
+					MaxAmountCredentialValue,
+					MaxVsizeCredentialValue,
+					MaxVsizeAllocationPerAlice,
+					AmountCredentialIssuerParameters,
+					VsizeCredentialIssuerParameters);
 	}
 }
