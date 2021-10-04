@@ -6,13 +6,16 @@ namespace System
 {
 	public static class TimeSpanExtensions
 	{
-		public static ImmutableList<DateTimeOffset> Sample(this TimeSpan timeFrame, int numberOfEvents)
+		public static ImmutableList<DateTimeOffset> SamplePoisson(this TimeSpan timeFrame, int numberOfEvents)
 		{
 			var startTime = DateTimeOffset.UtcNow;
 			using var random = new SecureRandom();
+			TimeSpan Sample(int milliseconds) =>
+				milliseconds <= 0 ? TimeSpan.Zero : TimeSpan.FromMilliseconds(random.GetInt(0, milliseconds));
+
 			return Enumerable
 				.Range(0, numberOfEvents)
-				.Select(_ => startTime + (0.8 * TimeSpan.FromMilliseconds(random.GetInt(0, (int)timeFrame.TotalMilliseconds))))
+				.Select(_ => startTime + (0.8 * Sample((int)timeFrame.TotalMilliseconds)))
 				.OrderBy(t => t)
 				.ToImmutableList();
 		}
