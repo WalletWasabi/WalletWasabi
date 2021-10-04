@@ -11,6 +11,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 	public static class RoundHasher
 	{
 		public static uint256 CalculateHash(
+				DateTimeOffset inputRegistrationStart,
 				TimeSpan inputRegistrationTimeout,
 				TimeSpan connectionConfirmationTimeout,
 				TimeSpan outputRegistrationTimeout,
@@ -29,6 +30,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 				CredentialIssuerParameters amountCredentialIssuerParameters,
 				CredentialIssuerParameters vsizeCredentialIssuerParameters)
 				=> StrobeHasher.Create(ProtocolConstants.RoundStrobeDomain)
+					.Append(ProtocolConstants.RoundInputRegistrationStartStrobeLabel, inputRegistrationStart)
 					.Append(ProtocolConstants.RoundInputRegistrationTimeoutStrobeLabel, inputRegistrationTimeout)
 					.Append(ProtocolConstants.RoundConnectionConfirmationTimeoutStrobeLabel, connectionConfirmationTimeout)
 					.Append(ProtocolConstants.RoundOutputRegistrationTimeoutStrobeLabel, outputRegistrationTimeout)
