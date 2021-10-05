@@ -135,22 +135,20 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private async Task<bool> InitialiseTransactionAsync()
 		{
-			var transactionInfo = _info;
-
-			var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, transactionInfo, isSilent: true));
+			var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, isSilent: true));
 			if (privacyControlDialogResult.Kind == DialogResultKind.Normal && privacyControlDialogResult.Result is { } coins)
 			{
-				transactionInfo.Coins = coins;
+				_info.Coins = coins;
 			}
 			else if (privacyControlDialogResult.Kind != DialogResultKind.Normal)
 			{
 				return false;
 			}
 
-			var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, transactionInfo, true));
+			var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, true));
 			if (feeDialogResult.Kind == DialogResultKind.Normal)
 			{
-				transactionInfo.FeeRate = feeDialogResult.Result;
+				_info.FeeRate = feeDialogResult.Result;
 			}
 			else
 			{
@@ -164,20 +162,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			IsBusy = true;
 
-			var transactionInfo = _info;
-
 			try
 			{
-				return await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo));
+				return await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info));
 			}
 			catch (InsufficientBalanceException)
 			{
-				if (transactionInfo.IsPayJoin)
+				if (_info.IsPayJoin)
 				{
-					return await HandleInsufficientBalanceWhenPayJoinAsync(_wallet, transactionInfo);
+					return await HandleInsufficientBalanceWhenPayJoinAsync(_wallet, _info);
 				}
 
-				return await HandleInsufficientBalanceWhenNormalAsync(_wallet, transactionInfo);
+				return await HandleInsufficientBalanceWhenNormalAsync(_wallet, _info);
 			}
 			catch (Exception ex)
 			{
