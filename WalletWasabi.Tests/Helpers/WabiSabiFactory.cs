@@ -203,12 +203,10 @@ namespace WalletWasabi.Tests.Helpers
 			var alice = round.Alices.FirstOrDefault() ?? CreateAlice(round);
 			var (realAmountCredentialRequest, _) = amClient.CreateRequest(
 				new[] { amount?.Satoshi ?? alice.CalculateRemainingAmountCredentials(round.FeeRate).Satoshi },
-				amZeroCredentials,
-				CancellationToken.None);
+				amZeroCredentials);
 			var (realVsizeCredentialRequest, _) = vsClient.CreateRequest(
 				new[] { vsize ?? alice.CalculateRemainingVsizeCredentials(round.MaxVsizeAllocationPerAlice) },
-				vsZeroCredentials,
-				CancellationToken.None);
+				vsZeroCredentials);
 
 			return (alice, realAmountCredentialRequest, realVsizeCredentialRequest);
 		}
@@ -237,13 +235,12 @@ namespace WalletWasabi.Tests.Helpers
 			var alice = round.Alices.FirstOrDefault() ?? CreateAlice(round);
 			var (amCredentialRequest, amValid) = amClient.CreateRequest(
 				new[] { alice.CalculateRemainingAmountCredentials(round.FeeRate).Satoshi },
-				amZeroCredentials, // FIXME doesn't make much sense
-				CancellationToken.None);
+				amZeroCredentials); // FIXME doesn't make much sense
+
 			long startingVsizeCredentialAmount = vsize ?? alice.CalculateRemainingVsizeCredentials(round.MaxVsizeAllocationPerAlice);
 			var (vsCredentialRequest, weValid) = vsClient.CreateRequest(
 				new[] { startingVsizeCredentialAmount },
-				vsZeroCredentials, // FIXME doesn't make much sense
-				CancellationToken.None);
+				vsZeroCredentials); // FIXME doesn't make much sense
 
 			var amResp = amIssuer.HandleRequest(amCredentialRequest);
 			var weResp = vsIssuer.HandleRequest(vsCredentialRequest);
@@ -251,13 +248,9 @@ namespace WalletWasabi.Tests.Helpers
 			var vsizeCredentials = vsClient.HandleResponse(weResp, weValid);
 
 			script ??= BitcoinFactory.CreateScript();
-			var (realAmountCredentialRequest, _) = amClient.CreateRequest(
-				amountCredentials,
-				CancellationToken.None);
+			var (realAmountCredentialRequest, _) = amClient.CreateRequest(amountCredentials);
 
-			var (realVsizeCredentialRequest, _) = vsClient.CreateRequest(
-				vsizeCredentials,
-				CancellationToken.None);
+			var (realVsizeCredentialRequest, _) = vsClient.CreateRequest(vsizeCredentials);
 
 			return new OutputRegistrationRequest(
 				round.Id,

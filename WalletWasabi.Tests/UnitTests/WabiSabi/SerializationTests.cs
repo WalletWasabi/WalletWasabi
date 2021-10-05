@@ -192,7 +192,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 			(CredentialsRequest credentialRequest, CredentialsResponseValidation validationData) = client.CreateRequestForZeroAmount();
 			var credentialResponse = issuer.HandleRequest(credentialRequest);
 			var present = client.HandleResponse(credentialResponse, validationData);
-			(credentialRequest, _) = client.CreateRequest(new[] { 1L }, present, CancellationToken.None);
+			(credentialRequest, _) = client.CreateRequest(new[] { 1L }, present);
 
 			// Registration request message.
 			var serializedRequestMessage = JsonConvert.SerializeObject(credentialRequest, converters);

@@ -76,17 +76,12 @@ namespace WalletWasabi.WabiSabi.Crypto
 					validationData));
 		}
 
-		public RealCredentialsRequestData CreateRequest(
-			IEnumerable<Credential> credentialsToPresent,
-			CancellationToken cancellationToken)
+		public RealCredentialsRequestData CreateRequest(IEnumerable<Credential> credentialsToPresent)
 		{
-			return InternalCreateRequest(Array.Empty<long>(), credentialsToPresent, cancellationToken);
+			return InternalCreateRequest(Array.Empty<long>(), credentialsToPresent);
 		}
 
-		public RealCredentialsRequestData CreateRequest(
-			IEnumerable<long> amountsToRequest,
-			IEnumerable<Credential> credentialsToPresent,
-			CancellationToken cancellationToken)
+		public RealCredentialsRequestData CreateRequest(IEnumerable<long> amountsToRequest, IEnumerable<Credential> credentialsToPresent)
 		{
 			// Make sure we request always the same number of credentials
 			var credentialAmountsToRequest = amountsToRequest.ToList();
@@ -96,7 +91,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 				credentialAmountsToRequest.Add(0);
 			}
 
-			return InternalCreateRequest(credentialAmountsToRequest, credentialsToPresent, cancellationToken);
+			return InternalCreateRequest(credentialAmountsToRequest, credentialsToPresent);
 		}
 
 		/// <summary>
@@ -105,15 +100,11 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// </summary>
 		/// <param name="amountsToRequest">List of amounts requested in credentials.</param>
 		/// <param name="credentialsToPresent">List of credentials to be presented to the coordinator.</param>
-		/// <param name="cancellationToken">The cancellation token to be used in case shut down is in progress..</param>
 		/// <returns>
 		/// A tuple containing the registration request message instance and the registration validation data
 		/// to be used to validate the coordinator response message (the issued credentials).
 		/// </returns>
-		private RealCredentialsRequestData InternalCreateRequest(
-			IEnumerable<long> amountsToRequest,
-			IEnumerable<Credential> credentialsToPresent,
-			CancellationToken cancellationToken)
+		private RealCredentialsRequestData InternalCreateRequest(IEnumerable<long> amountsToRequest, IEnumerable<Credential> credentialsToPresent)
 		{
 			// Make sure we request always the same number of credentials
 			var credentialAmountsToRequest = amountsToRequest.ToList();
