@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using NBitcoin;
 using ReactiveUI;
@@ -232,6 +233,33 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public void InitCurrentConfirmationTarget(FeeRate feeRate)
 		{
 			CurrentConfirmationTarget =  GetConfirmationTarget(feeRate);
+		}
+
+		public Dictionary<double, double> GetValues()
+		{
+			Dictionary<double, double> values = new();
+
+			if (ConfirmationTargetValues is null || SatoshiPerByteValues is null)
+			{
+				return values;
+			}
+
+			if (ConfirmationTargetValues.Length != SatoshiPerByteValues.Length)
+			{
+				throw new InvalidDataException("The count of X and Y values are not equal!");
+			}
+
+			var numberOfItems = ConfirmationTargetValues.Length;
+
+			for (var i = 0; i < numberOfItems; i++)
+			{
+				var blockTarget = ConfirmationTargetValues[i];
+				var satPerByte = SatoshiPerByteValues[i];
+
+				values.Add(blockTarget, satPerByte);
+			}
+
+			return values;
 		}
 	}
 }

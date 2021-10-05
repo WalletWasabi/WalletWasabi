@@ -90,7 +90,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					var satPerByteThreshold = Services.Config.SatPerByteThreshold;
 					var blockTargetThreshold = Services.Config.BlockTargetThreshold;
-					var blockTarget = GetBestBlockTarget(feeEstimations, satPerByteThreshold, blockTargetThreshold);
+					var estimations = FeeChart.GetValues();
+
+					var blockTarget = GetBestBlockTarget(estimations, satPerByteThreshold, blockTargetThreshold);
 
 					FeeChart.CurrentConfirmationTarget = blockTarget;
 					_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(blockTarget);
@@ -104,12 +106,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			});
 		}
 
-		private int GetBestBlockTarget(Dictionary<int, int> estimations, int satPerByteThreshold, int blockTargetThreshold)
+		private double GetBestBlockTarget(Dictionary<double, double> estimations, int satPerByteThreshold, int blockTargetThreshold)
 		{
-			var bestBlockTarget = estimations.FirstOrDefault(x => x.Value <= satPerByteThreshold && x.Key <= blockTargetThreshold);
-			if (bestBlockTarget.Key != default && bestBlockTarget.Value != default)
+			var possibleBlockTargets =
+				estimations.OrderBy(x => x.Key).Where(x => x.Value <= satPerByteThreshold && x.Key <= blockTargetThreshold).ToArray();
+
+			if (possibleBlockTargets.Any())
 			{
-				return bestBlockTarget.Key;
+				return possibleBlockTargets.First().Key;
 			}
 
 			return blockTargetThreshold;
