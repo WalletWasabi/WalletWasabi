@@ -160,10 +160,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private async Task<BuildTransactionResult?> BuildTransactionAsync()
 		{
-			IsBusy = true;
-
 			try
 			{
+				IsBusy = true;
+				
 				return await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info));
 			}
 			catch (InsufficientBalanceException)
