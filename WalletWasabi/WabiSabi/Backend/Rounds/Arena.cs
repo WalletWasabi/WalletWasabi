@@ -35,7 +35,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		private AsyncLock AsyncLock { get; } = new();
 		private Network Network { get; }
 		private WabiSabiConfig Config { get; }
-		public IRPCClient Rpc { get; }
+		private IRPCClient Rpc { get; }
 		private Prison Prison { get; }
 		public SecureRandom Random { get; }
 
