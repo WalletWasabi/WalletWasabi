@@ -37,7 +37,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		private WabiSabiConfig Config { get; }
 		private IRPCClient Rpc { get; }
 		private Prison Prison { get; }
-		public SecureRandom Random { get; }
+		private SecureRandom Random { get; }
 
 		public IEnumerable<Round> ActiveRounds => Rounds.Where(x => x.Phase != Phase.Ended);
 
