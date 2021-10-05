@@ -163,7 +163,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			try
 			{
 				IsBusy = true;
-				
+
 				return await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info));
 			}
 			catch (InsufficientBalanceException)
@@ -268,9 +268,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC)
 				.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
 
-			_info.Coins = transactionResult.SpentCoins;
-
-			Labels = _info.Labels;
+			Labels = transactionResult.Transaction.Label;
 
 			FeeText = $"{btcFeeText}{fiatFeeText}";
 
