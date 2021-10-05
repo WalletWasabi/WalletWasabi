@@ -208,10 +208,14 @@
                 <Ellipse IsVisible="{Binding IsLoggedIn, Mode=OneWay}" Width="9" Height="9" Margin="15,0,0,-13"
                          Fill="#F2994A" />
               </Panel>
-              <DockPanel Margin="55 0 15 0" VerticalAlignment="Center">
-                <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" DockPanel.Dock="Top"/>
-                <TextBlock Opacity="0.4" FontSize="11" Text="Loading" DockPanel.Dock="Bottom" IsVisible="{Binding IsLoading}"/>
-                <TextBlock Opacity="0.4" FontSize="11" Text="CoinJoining" DockPanel.Dock="Bottom" IsVisible="{Binding IsCoinJoining}" x:CompileBindings="False"/>
+
+              <DockPanel Margin="55 0 15 0">
+                <PathIcon Data="{StaticResource link_filled}" VerticalAlignment="Center" IsVisible="{Binding IsCoinJoining}" Foreground="{StaticResource SystemAccentColor}" DockPanel.Dock="Right"/>
+                <DockPanel VerticalAlignment="Center" DockPanel.Dock="Left">
+                  <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" DockPanel.Dock="Top"/>
+                  <TextBlock Opacity="0.4" FontSize="11" Text="Loading" DockPanel.Dock="Bottom" IsVisible="{Binding IsLoading}"/>
+                  <TextBlock Opacity="0.4" FontSize="11" Text="CoinJoining" DockPanel.Dock="Bottom" IsVisible="{Binding IsCoinJoining}" />
+                </DockPanel>
               </DockPanel>
             </Panel>
           </DataTemplate>
