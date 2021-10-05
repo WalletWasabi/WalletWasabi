@@ -21,7 +21,7 @@
     </DockPanel>
 
     <DockPanel>
-      <TextBlock Text="Allow Wasabi to run in the background" />
+      <TextBlock Text="Minimize Wasabi on close" />
       <ToggleSwitch IsChecked="{Binding HideOnClose}" />
     </DockPanel>
 
