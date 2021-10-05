@@ -21,7 +21,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public SmartLabel UserLabels { private get; set; }
 
-		public SmartLabel Labels => SmartLabel.Merge(UserLabels, SmartLabel.Merge(Coins.Select(coin => coin.GetLabels())));
+		public SmartLabel Labels => GetLabels(Coins);
+
+		public SmartLabel GetLabels(IEnumerable<SmartCoin> coins) =>
+			SmartLabel.Merge(UserLabels, SmartLabel.Merge(coins.Select(x => x.GetLabels())));
 
 		public BitcoinAddress Address { get; set; }
 
