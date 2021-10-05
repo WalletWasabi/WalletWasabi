@@ -42,6 +42,9 @@
       <Setter Property="Focusable" Value="{Binding IsEnabled}" x:CompileBindings="False" />
       <Setter Property="IsEnabled" Value="{Binding IsEnabled}" x:CompileBindings="False" />
     </Style>
+    <Style Selector="ListBox.narrowItemPadding > c|NavBarItem">
+      <Setter Property="Padding" Value="12 6 12 6" />
+    </Style>
     <Style Selector="ListBox.vertical > c|NavBarItem:disabled PathIcon">
       <Setter Property="Foreground" Value="{DynamicResource NavBarItemDisabledBrush}" />
     </Style>
@@ -190,12 +193,12 @@
       <c:NavBarListBox Items="{Binding Wallets}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                        Name="ItemsListBox"
-                       Classes="vertical draggable"
+                       Classes="vertical draggable narrowItemPadding"
                        RenderTransformOrigin="0%,50%"
                        VerticalAlignment="Stretch">
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">
-            <Panel>
+            <Panel Height="30">
               <Panel Width="45" Background="Transparent" HorizontalAlignment="Left" ToolTip.Tip="{Binding Title}">
                 <PathIcon HorizontalAlignment="Left">
                   <PathIcon.Data>
@@ -205,7 +208,11 @@
                 <Ellipse IsVisible="{Binding IsLoggedIn, Mode=OneWay}" Width="9" Height="9" Margin="15,0,0,-13"
                          Fill="#F2994A" />
               </Panel>
-              <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" Margin="55 0 15 0" />
+              <DockPanel Margin="55 0 15 0" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" DockPanel.Dock="Top"/>
+                <TextBlock Opacity="0.4" FontSize="11" Text="Loading" DockPanel.Dock="Bottom" IsVisible="{Binding IsLoading}"/>
+                <TextBlock Opacity="0.4" FontSize="11" Text="CoinJoining" DockPanel.Dock="Bottom" IsVisible="{Binding IsCoinJoining}" x:CompileBindings="False"/>
+              </DockPanel>
             </Panel>
           </DataTemplate>
         </c:NavBarListBox.DataTemplates>

@@ -13,7 +13,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 	public abstract partial class WalletViewModelBase : NavBarItemViewModel, IComparable<WalletViewModelBase>
 	{
 		[AutoNotify] private string _titleTip;
-		[AutoNotify] private bool _isLoading;
+		[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isLoading;
+		[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isCoinJoining;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private WalletState _walletState;
 
 		private string _title;
@@ -32,9 +33,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			OpenCommand = ReactiveCommand.Create(() => Navigate().To(this, NavigationMode.Clear));
 
 			SetIcon();
-
-			this.WhenAnyValue(x => x.WalletState)
-				.Subscribe(state => IsLoading = state is > WalletState.Uninitialized and < WalletState.Started);
 		}
 
 		public override string Title

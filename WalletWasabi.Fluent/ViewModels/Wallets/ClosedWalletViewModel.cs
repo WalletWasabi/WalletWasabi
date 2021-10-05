@@ -22,6 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			base.OnNavigatedTo(isInHistory, disposables);
 
 			Loading.Activate(disposables);
+			IsLoading = true;
 		}
 
 		private void OnOpen()

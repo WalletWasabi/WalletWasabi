@@ -1,7 +1,6 @@
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
@@ -40,7 +39,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWideLayout;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWalletBalanceZero;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isEmptyWallet;
-		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isCoinJoining;
 
 		protected WalletViewModel(Wallet wallet) : base(wallet)
 		{
