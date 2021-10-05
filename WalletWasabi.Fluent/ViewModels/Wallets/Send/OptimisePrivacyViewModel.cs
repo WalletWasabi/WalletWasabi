@@ -50,15 +50,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			var h = s.Item1;
 
 			NextCommand = ReactiveCommand.Create(
-				() => OnNext(transactionInfo),
+				Complete,
 				this.WhenAnyValue(x => x.SelectedPrivacySuggestion).Select(x => x is { }));
 		}
 
-		private void OnNext(TransactionInfo transactionInfo)
+		private void Complete()
 		{
-			_transactionInfo.UserDidntRequestOptimisation =
-				_requestedTransaction == SelectedPrivacySuggestion!.TransactionResult;
-
 			Close(DialogResultKind.Normal, SelectedPrivacySuggestion!.TransactionResult);
 		}
 
