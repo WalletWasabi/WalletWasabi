@@ -51,72 +51,24 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (PreferPsbtWorkflow)
 			{
-				SkipCommand = ReactiveCommand.CreateFromTask(async () => await OnConfirmAsync(_transaction));
+				SkipCommand = ReactiveCommand.CreateFromTask(OnConfirmAsync);
 
-				NextCommand = ReactiveCommand.CreateFromTask(async () =>
-				{
-					var saved = await TransactionHelpers.ExportTransactionToBinaryAsync(_transaction);
-
-					if (saved)
-					{
-						Navigate().To(new SuccessViewModel("The PSBT has been successfully created."));
-					}
-				});
+				NextCommand = ReactiveCommand.CreateFromTask(OnExportPsbtAsync);
 
 				_nextButtonText = "Save PSBT file";
 			}
 			else
 			{
-				NextCommand = ReactiveCommand.CreateFromTask(async () => await OnConfirmAsync(_transaction));
+				NextCommand = ReactiveCommand.CreateFromTask(OnConfirmAsync);
 
 				_nextButtonText = "Confirm";
 			}
 
-			AdjustFeeCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				var feeRateDialogResult = await NavigateDialogAsync(new SendFeeViewModel(wallet, info, false));
+			AdjustFeeCommand = ReactiveCommand.CreateFromTask(OnAdjustFeeAsync);
 
-				if (feeRateDialogResult.Kind == DialogResultKind.Normal && feeRateDialogResult.Result != _info.FeeRate)
-				{
-					_info.FeeRate = feeRateDialogResult.Result;
+			AvoidChangeCommand = ReactiveCommand.CreateFromTask(OnAvoidChangeAsync);
 
-					var newTransaction = await BuildTransactionAsync();
-
-					if (newTransaction is { })
-					{
-						UpdateTransaction(newTransaction);
-					}
-				}
-			});
-
-			AvoidChangeCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				var optimisePrivacyDialog =
-					await NavigateDialogAsync(new OptimisePrivacyViewModel(wallet, info, _transaction!));
-
-				if (optimisePrivacyDialog.Kind == DialogResultKind.Normal && optimisePrivacyDialog.Result is { })
-				{
-					UpdateTransaction(optimisePrivacyDialog.Result);
-				}
-			});
-
-			ChangePocketsCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				var selectPocketsDialog =
-					await NavigateDialogAsync(new PrivacyControlViewModel(wallet, info, false));
-
-				if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
-				{
-					_info.Coins = selectPocketsDialog.Result;
-
-					var newTransaction = await BuildTransactionAsync();
-
-					if (newTransaction is { })
-					{
-						UpdateTransaction(newTransaction);
-					}
-				}
-			});
+			ChangePocketsCommand = ReactiveCommand.CreateFromTask(OnChangePocketsAsync);
 		}
 
 		public bool PreferPsbtWorkflow => _wallet.KeyManager.PreferPsbtWorkflow;
@@ -132,6 +84,65 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public ICommand AvoidChangeCommand { get; }
 
 		public ICommand ChangePocketsCommand { get; }
+
+		private async Task OnExportPsbtAsync()
+		{
+			if (_transaction is { })
+			{
+				var saved = await TransactionHelpers.ExportTransactionToBinaryAsync(_transaction);
+
+				if (saved)
+				{
+					Navigate().To(new SuccessViewModel("The PSBT has been successfully created."));
+				}
+			}
+		}
+
+		private async Task OnAdjustFeeAsync()
+		{
+			var feeRateDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, false));
+
+			if (feeRateDialogResult.Kind == DialogResultKind.Normal && feeRateDialogResult.Result != _info.FeeRate)
+			{
+				_info.FeeRate = feeRateDialogResult.Result;
+
+				var newTransaction = await BuildTransactionAsync();
+
+				if (newTransaction is { })
+				{
+					UpdateTransaction(newTransaction);
+				}
+			}
+		}
+
+		private async Task OnAvoidChangeAsync()
+		{
+			var optimisePrivacyDialog =
+				await NavigateDialogAsync(new OptimisePrivacyViewModel(_wallet, _info, _transaction!));
+
+			if (optimisePrivacyDialog.Kind == DialogResultKind.Normal && optimisePrivacyDialog.Result is { })
+			{
+				UpdateTransaction(optimisePrivacyDialog.Result);
+			}
+		}
+
+		private async Task OnChangePocketsAsync()
+		{
+			var selectPocketsDialog =
+				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, false));
+
+			if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
+			{
+				_info.Coins = selectPocketsDialog.Result;
+
+				var newTransaction = await BuildTransactionAsync();
+
+				if (newTransaction is { })
+				{
+					UpdateTransaction(newTransaction);
+				}
+			}
+		}
 
 		private async Task<bool> InitialiseTransactionAsync()
 		{
@@ -289,7 +300,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					if (await InitialiseTransactionAsync())
 					{
-
 						var initialTransaction = await BuildTransactionAsync();
 
 						if (initialTransaction is { })
@@ -305,28 +315,35 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 		}
 
-		private async Task OnConfirmAsync(BuildTransactionResult transaction)
+		private async Task OnConfirmAsync()
 		{
-			var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
-
-			var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
-
-			if (authResult)
+			if (_transaction is { })
 			{
-				IsBusy = true;
+				var transaction = _transaction;
 
-				try
-				{
-					var finalTransaction = await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
-					await SendTransactionAsync(finalTransaction);
-					Navigate().To(new SendSuccessViewModel(_wallet, finalTransaction));
-				}
-				catch (Exception ex)
-				{
-					await ShowErrorAsync("Transaction", ex.ToUserFriendlyString(), "Wasabi was unable to send your transaction.");
-				}
+				var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
 
-				IsBusy = false;
+				var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
+
+				if (authResult)
+				{
+					IsBusy = true;
+
+					try
+					{
+						var finalTransaction =
+							await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
+						await SendTransactionAsync(finalTransaction);
+						Navigate().To(new SendSuccessViewModel(_wallet, finalTransaction));
+					}
+					catch (Exception ex)
+					{
+						await ShowErrorAsync("Transaction", ex.ToUserFriendlyString(),
+							"Wasabi was unable to send your transaction.");
+					}
+
+					IsBusy = false;
+				}
 			}
 		}
 
