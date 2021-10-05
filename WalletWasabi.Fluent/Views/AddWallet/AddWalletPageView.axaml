@@ -8,13 +8,14 @@
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="vm:AddWalletPageViewModel"
-             x:CompileBindings="True"
+             x:CompileBindings="False"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.AddWalletPageView">
   <c:ContentArea Title="{Binding Title}" Caption="Type in your wallet's name"
-                 EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
-                 IsBusy="{Binding IsBusy}"
-                 EnableNext="True" NextContent="Continue">
+                 EnableNext="True"
+                 NextContent="Continue"
+                 EnableCancel="{Binding EnableCancel}"
+                 IsBusy="{Binding IsBusy}">
     <StackPanel DockPanel.Dock="Top" Margin="0 0 0 20">
       <Label Content="Wallet _Name:" Target="walletNameTb" />
       <TextBox x:Name="walletNameTb" MaxLength="250" Text="{Binding WalletName}" Watermark="(e.g. My Wallet)">

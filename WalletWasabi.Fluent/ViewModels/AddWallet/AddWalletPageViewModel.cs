@@ -29,6 +29,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			SelectionMode = NavBarItemSelectionMode.Button;
 
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+
 			var canExecute = this.WhenAnyValue(x => x.WalletName)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(x => !string.IsNullOrWhiteSpace(x) && !Validations.Any);
