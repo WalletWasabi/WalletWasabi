@@ -34,6 +34,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private SmartLabel _labels;
 		[AutoNotify] private string _amountText = "";
 		[AutoNotify] private bool _transactionHasChange;
+		[AutoNotify] private bool _transactionHasPockets;
 
 		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info)
 		{
@@ -98,6 +99,24 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					UpdateTransaction(optimisePrivacyDialog.Result);
 				}
 			});
+
+			ChangePocketsCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				var selectPocketsDialog =
+					await NavigateDialogAsync(new PrivacyControlViewModel(wallet, info, false));
+
+				if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
+				{
+					_info.Coins = selectPocketsDialog.Result;
+
+					var newTransaction = await BuildTransactionAsync();
+
+					if (newTransaction is { })
+					{
+						UpdateTransaction(newTransaction);
+					}
+				}
+			});
 		}
 
 		public bool PreferPsbtWorkflow => _wallet.KeyManager.PreferPsbtWorkflow;
@@ -111,6 +130,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public ICommand AdjustFeeCommand { get; }
 
 		public ICommand AvoidChangeCommand { get; }
+
+		public ICommand ChangePocketsCommand { get; }
 
 		private async Task<bool> InitialiseTransactionAsync()
 		{
@@ -256,6 +277,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			FeeText = $"{btcFeeText}{fiatFeeText}";
 
 			TransactionHasChange = _transaction.OuterWalletOutputs.Sum(x => x.Amount) > fee && _transaction.InnerWalletOutputs.Sum(x => x.Amount) > 0;
+
+			TransactionHasPockets = !_info.IsPrivatePocketUsed;
 		}
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
