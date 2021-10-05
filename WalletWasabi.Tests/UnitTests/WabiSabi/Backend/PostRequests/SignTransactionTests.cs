@@ -33,7 +33,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			aliceSignedCoinJoin.Sign(key.GetBitcoinSecret(Network.Main), alice.Coin);
 
 			var req = new TransactionSignaturesRequest(round.Id, new[] { new InputWitnessPair(0, aliceSignedCoinJoin.Inputs[0].WitScript) });
-			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
+			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena);
 			await handler.SignTransactionAsync(req, CancellationToken.None);
 			Assert.True(round.Assert<SigningState>().IsFullySigned);
 			await arena.StopAsync(CancellationToken.None);
@@ -43,7 +43,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		public async Task RoundNotFoundAsync()
 		{
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync();
-			await using ArenaRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, new MockRpcClient());
+			await using ArenaRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena);
 			var req = new TransactionSignaturesRequest(uint256.Zero, null!);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.SignTransactionAsync(req, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.RoundNotFound, ex.ErrorCode);
@@ -64,7 +64,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 				if (phase != Phase.TransactionSigning)
 				{
 					round.SetPhase(phase);
-					await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
+					await using ArenaRequestHandler handler = new(cfg, new Prison(), arena);
 					var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () =>
 						await handler.SignTransactionAsync(req, CancellationToken.None));
 					Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);

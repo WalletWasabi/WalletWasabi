@@ -30,7 +30,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
-			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
+			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena);
 
 			// There's no such alice yet, so success.
 			var req = new InputsRemovalRequest(round.Id, Guid.NewGuid());
@@ -52,7 +52,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		{
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync();
 
-			await using ArenaRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, new MockRpcClient());
+			await using ArenaRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena);
 			var req = new InputsRemovalRequest(uint256.Zero, Guid.NewGuid());
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RemoveInputAsync(req, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.RoundNotFound, ex.ErrorCode);
@@ -74,7 +74,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 				if (phase != Phase.InputRegistration)
 				{
 					round.SetPhase(phase);
-					await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
+					await using ArenaRequestHandler handler = new(cfg, new Prison(), arena);
 					var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RemoveInputAsync(req, CancellationToken.None));
 					Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 				}

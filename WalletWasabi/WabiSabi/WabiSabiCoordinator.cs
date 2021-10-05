@@ -28,7 +28,7 @@ namespace WalletWasabi.WabiSabi
 
 			Arena = new(parameters.RoundProgressSteppingPeriod, rpc.Network, Config, rpc, Prison);
 
-			Postman = new(Config, Prison, Arena, Rpc);
+			Postman = new(Config, Prison, Arena);
 		}
 
 		public ConfigWatcher ConfigWatcher { get; }
