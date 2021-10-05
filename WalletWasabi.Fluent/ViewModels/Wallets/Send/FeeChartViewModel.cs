@@ -1,0 +1,265 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using NBitcoin;
+using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.MathNet;
+using WalletWasabi.Gui.Converters;
+
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
+{
+	public partial class FeeChartViewModel : ViewModelBase
+	{
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMinimum;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMaximum;
+		[AutoNotify] private int _sliderValue;
+		[AutoNotify] private string[]? _satoshiPerByteLabels;
+		[AutoNotify] private double[]? _satoshiPerByteValues;
+		[AutoNotify] private double[]? _confirmationTargetValues;
+		[AutoNotify] private string[]? _confirmationTargetLabels;
+		[AutoNotify] private double _currentConfirmationTarget;
+		[AutoNotify] private decimal _currentSatoshiPerByte;
+		[AutoNotify] private string _currentConfirmationTargetString;
+		private bool _updatingCurrentValue;
+
+		public FeeChartViewModel()
+		{
+			_sliderMinimum = 0;
+			_sliderMaximum = 9;
+			_currentConfirmationTarget = 36;
+			_currentConfirmationTargetString = "";
+
+			this.WhenAnyValue(x => x.CurrentConfirmationTarget)
+				.Subscribe(x =>
+				{
+					if (x > 0)
+					{
+						SetSliderValue(x);
+					}
+				});
+
+			this.WhenAnyValue(x => x.SliderValue)
+				.Subscribe(SetXAxisCurrentValue);
+		}
+
+		private void UpdateFeeAndEstimate(double confirmationTarget)
+		{
+			CurrentSatoshiPerByte = GetSatoshiPerByte(confirmationTarget);
+			CurrentConfirmationTargetString = FeeTargetTimeConverter.Convert((int)confirmationTarget, " minutes", " hour", " hours", " day", " days");
+		}
+
+		private void SetSliderValue(double confirmationTarget)
+		{
+			if (!_updatingCurrentValue)
+			{
+				_updatingCurrentValue = true;
+				if (_confirmationTargetValues is not null)
+				{
+					SliderValue = GetSliderValue(confirmationTarget, _confirmationTargetValues);
+					UpdateFeeAndEstimate(confirmationTarget);
+				}
+
+				_updatingCurrentValue = false;
+			}
+		}
+
+		private void SetXAxisCurrentValue(int sliderValue)
+		{
+			if (_confirmationTargetValues is not null)
+			{
+				if (!_updatingCurrentValue)
+				{
+					_updatingCurrentValue = true;
+					var index = _confirmationTargetValues.Length - sliderValue - 1;
+					CurrentConfirmationTarget = _confirmationTargetValues[index];
+					UpdateFeeAndEstimate(CurrentConfirmationTarget);
+					_updatingCurrentValue = false;
+				}
+			}
+		}
+
+		private void GetSmoothValuesSubdivide(double[] xs, double[] ys, out List<double> xts, out List<double> yts)
+		{
+			const int Divisions = 256;
+
+			xts = new List<double>();
+			yts = new List<double>();
+
+			if (xs.Length > 2)
+			{
+				var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
+
+				for (var i = 0; i < xs.Length - 1; i++)
+				{
+					var a = xs[i];
+					var b = xs[i + 1];
+					var range = b - a;
+					var step = range / Divisions;
+
+					var x0 = xs[i];
+					xts.Add(x0);
+					var yt0 = spline.Interpolate(xs[i]);
+					yts.Add(yt0);
+
+					for (var xt = a + step; xt < b; xt += step)
+					{
+						var yt = spline.Interpolate(xt);
+						xts.Add(xt);
+						yts.Add(yt);
+					}
+				}
+
+				var xn = xs[^1];
+				xts.Add(xn);
+				var yn = spline.Interpolate(xs[^1]);
+				yts.Add(yn);
+			}
+			else
+			{
+				for (var i = 0; i < xs.Length; i++)
+				{
+					xts.Add(xs[i]);
+					yts.Add(ys[i]);
+				}
+			}
+
+			xts.Reverse();
+			yts.Reverse();
+		}
+
+		public decimal GetSatoshiPerByte(double t)
+		{
+			if (_confirmationTargetValues is { } && _satoshiPerByteValues is { })
+			{
+				var xs = _confirmationTargetValues.Reverse().ToArray();
+				var ys = _satoshiPerByteValues.Reverse().ToArray();
+
+				if (xs.Length > 2)
+				{
+					var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
+					var interpolated = (decimal) spline.Interpolate(t);
+					return Math.Clamp(interpolated, (decimal) ys[^1], (decimal) ys[0]);
+				}
+
+				if (xs.Length == 2)
+				{
+					if (xs[1] - xs[0] == 0.0)
+					{
+						return (decimal) ys[0];
+					}
+					var slope = (ys[1] - ys[0]) / (xs[1] - xs[0]);
+					var interpolated = (decimal)(ys[0] + (t - xs[0]) * slope);
+					return Math.Clamp(interpolated, (decimal) ys[^1], (decimal) ys[0]);
+				}
+
+				if (xs.Length == 1)
+				{
+					return (decimal)ys[0];
+				}
+			}
+
+			return SliderMaximum;
+		}
+
+		private double GetConfirmationTarget(FeeRate feeRate)
+		{
+			if (SatoshiPerByteValues is null || ConfirmationTargetValues is null) // Should not happen
+			{
+				return 1;
+			}
+
+			var closestValue = SatoshiPerByteValues.OrderBy(x => Math.Abs((decimal)x - feeRate.SatoshiPerByte)).First();
+			var indexOfClosestValue = SatoshiPerByteValues.LastIndexOf(closestValue);
+
+			return ConfirmationTargetValues[indexOfClosestValue];
+		}
+
+		private int GetSliderValue(double x, double[] xs)
+		{
+			for (var i = 0; i < xs.Length; i++)
+			{
+				if (xs[i] <= x)
+				{
+					var index = xs.Length - i - 1;
+					return index;
+				}
+			}
+
+			return 0;
+		}
+
+		public void UpdateFeeEstimates(Dictionary<int, int> feeEstimates)
+		{
+			var xs = feeEstimates.Select(x => (double)x.Key).ToArray();
+			var ys = feeEstimates.Select(x => (double)x.Value).ToArray();
+
+			GetSmoothValuesSubdivide(xs, ys, out var xts, out var yts);
+			var confirmationTargetValues = xts.ToArray();
+			var satoshiPerByteValues = yts.ToArray();
+
+			var confirmationTargetLabels = feeEstimates.Select(x => x.Key)
+				.Select(x => FeeTargetTimeConverter.Convert(x, "m", "h", "h", "d", "d"))
+				.Reverse()
+				.ToArray();
+
+			_updatingCurrentValue = true;
+
+			if (satoshiPerByteValues.Any())
+			{
+				var minY = satoshiPerByteValues.Min();
+				var maxY = satoshiPerByteValues.Max();
+				SatoshiPerByteLabels = new [] { minY.ToString("F0"), (maxY / 2).ToString("F0"), maxY.ToString("F0") };
+			}
+			else
+			{
+				SatoshiPerByteLabels = null;
+			}
+
+			ConfirmationTargetLabels = confirmationTargetLabels;
+			ConfirmationTargetValues = confirmationTargetValues;
+			SatoshiPerByteValues = satoshiPerByteValues;
+
+			SliderMinimum = 0;
+			SliderMaximum = confirmationTargetValues.Length - 1;
+			CurrentConfirmationTarget = Math.Clamp(CurrentConfirmationTarget, ConfirmationTargetValues.Min(), ConfirmationTargetValues.Max());
+			SliderValue = GetSliderValue(CurrentConfirmationTarget, ConfirmationTargetValues);
+			UpdateFeeAndEstimate(CurrentConfirmationTarget);
+
+			_updatingCurrentValue = false;
+		}
+
+		public void InitCurrentConfirmationTarget(FeeRate feeRate)
+		{
+			CurrentConfirmationTarget =  GetConfirmationTarget(feeRate);
+		}
+
+		public Dictionary<double, double> GetValues()
+		{
+			Dictionary<double, double> values = new();
+
+			if (ConfirmationTargetValues is null || SatoshiPerByteValues is null)
+			{
+				return values;
+			}
+
+			if (ConfirmationTargetValues.Length != SatoshiPerByteValues.Length)
+			{
+				throw new InvalidDataException("The count of X and Y values are not equal!");
+			}
+
+			var numberOfItems = ConfirmationTargetValues.Length;
+
+			for (var i = 0; i < numberOfItems; i++)
+			{
+				var blockTarget = ConfirmationTargetValues[i];
+				var satPerByte = SatoshiPerByteValues[i];
+
+				values.Add(blockTarget, satPerByte);
+			}
+
+			return values;
+		}
+	}
+}
