@@ -12,11 +12,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
 	public class TransactionInfo
 	{
-		private readonly int _privateCoinTreshold;
+		private readonly int _privateCoinThreshold;
 
 		public TransactionInfo(Wallet wallet)
 		{
-			_privateCoinTreshold = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
+			_privateCoinThreshold = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
 		}
 
 		public SmartLabel UserLabels { private get; set; }
@@ -37,7 +37,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public bool IsPayJoin => PayJoinClient is { };
 
-		public bool IsPrivatePocketUsed => Coins.All(x => x.HdPubKey.AnonymitySet >= _privateCoinTreshold);
+		public bool IsPrivatePocketUsed => Coins.All(x => x.HdPubKey.AnonymitySet >= _privateCoinThreshold);
 
 		public bool SubtractFee { get; set; }
 	}
