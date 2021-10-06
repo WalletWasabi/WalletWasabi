@@ -15,7 +15,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems
 			: base(orderIndex, firstItem)
 		{
 			CoinJoinTransactions = new List<TransactionSummary>();
-			Label = new List<string> { "Privacy Increasement" };
+			Label = new List<string> { "Privacy Boost" };
 			FilteredLabel = new List<string>();
 			IsCoinJoin = true;
 
