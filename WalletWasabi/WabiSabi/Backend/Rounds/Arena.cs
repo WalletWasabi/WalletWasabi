@@ -15,7 +15,6 @@ using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
-using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
@@ -34,11 +33,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		public HashSet<Round> Rounds { get; } = new();
 		private AsyncLock AsyncLock { get; } = new();
-		public Network Network { get; }
-		public WabiSabiConfig Config { get; }
-		public IRPCClient Rpc { get; }
-		public Prison Prison { get; }
-		public SecureRandom Random { get; }
+		private Network Network { get; }
+		private WabiSabiConfig Config { get; }
+		private IRPCClient Rpc { get; }
+		private Prison Prison { get; }
+		private SecureRandom Random { get; }
 
 		public IEnumerable<Round> ActiveRounds => Rounds.Where(x => x.Phase != Phase.Ended);
 
@@ -236,7 +235,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					.Select(x => (Alice: x, StatusTask: Rpc.GetTxOutAsync(x.Coin.Outpoint.Hash, (int)x.Coin.Outpoint.N, includeMempool: true, cancellationToken)))
 					.ToList();
 
-				cancellationToken.ThrowIfCancellationRequested();
 				await batchedRpc.SendBatchAsync(cancellationToken).ConfigureAwait(false);
 
 				var spendStatusCheckingTasks = aliceCheckingTaskPairs.Select(async x => (x.Alice, Status: await x.StatusTask.ConfigureAwait(false)));

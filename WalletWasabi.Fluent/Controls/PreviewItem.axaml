@@ -11,7 +11,7 @@
                               DockPanel.Dock="Left" />
                     <DockPanel DockPanel.Dock="Right" Margin="30 0 0 0">
                         <TextBlock Name="PART_Text" Text="{TemplateBinding Text}" DockPanel.Dock="Top" Margin="0 0 0 5" Opacity="0.6" />
-                        <DockPanel HorizontalAlignment="Left" DockPanel.Dock="Bottom">
+                        <DockPanel HorizontalAlignment="Stretch" DockPanel.Dock="Bottom">
                             <Panel DockPanel.Dock="Right"
                                    Width="30">
                                 <c:AnimatedButton Command="{TemplateBinding CopyCommand}"
@@ -22,10 +22,14 @@
                                                   InitialOpacity="0.6"
                                                   IsVisible="{TemplateBinding CopyButtonVisibility}" />
                             </Panel>
-                            <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}"
-                                              ContentTemplate="{TemplateBinding ContentTemplate}"
-                                              IsVisible="{Binding !#PART_ContentReplacementTextBlock.IsVisible}" />
-                            <TextBlock Name="PART_ContentReplacementTextBlock" IsVisible="{TemplateBinding PrivacyModeEnabled}"/>
+                            <Panel>
+                              <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}"
+                                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                IsVisible="{Binding !#PART_ContentReplacementTextBlock.IsVisible}" />
+                              <TextBlock Name="PART_ContentReplacementTextBlock" IsVisible="{TemplateBinding PrivacyModeEnabled}"/>
+                            </Panel>
                         </DockPanel>
                     </DockPanel>
                 </DockPanel>

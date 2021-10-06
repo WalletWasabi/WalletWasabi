@@ -50,6 +50,15 @@
       <Setter Property="XAxisLabelFontWeight" Value="Normal" />
       <Setter Property="XAxisLabelFontSize" Value="12" />
     </Style>
+    <!-- LineChart YAxis Labels -->
+    <Style Selector="c|LineChart.yAxisLabels">
+      <Setter Property="YAxisLabelForeground" Value="{DynamicResource TextForegroundColor}" />
+      <Setter Property="YAxisLabelAngle" Value="0" />
+      <Setter Property="YAxisLabelOffset" Value="-25,0" />
+      <Setter Property="YAxisLabelAlignment" Value="Auto" />
+      <Setter Property="YAxisLabelFontSize" Value="12" />
+      <Setter Property="YAxisLabelOpacity" Value="0.8" />
+    </Style>
     <!-- LineChart Cursor -->
     <Style Selector="c|LineChart.cursor">
       <Setter Property="CursorStroke" Value="{DynamicResource SliderThumbBackground}" />
@@ -69,7 +78,7 @@
     </Style>
     <!-- LineChart YAxis -->
     <Style Selector="c|LineChart.yAxis">
-      <Setter Property="YAxisOffset" Value="-10,-115" />
+      <Setter Property="YAxisOffset" Value="-10,-150" />
       <Setter Property="YAxisOpacity" Value="0.5" />
       <Setter Property="YAxisStroke" Value="{DynamicResource TextForegroundColor}" />
       <Setter Property="YAxisStrokeThickness" Value="0.7" />
@@ -120,14 +129,14 @@
                  EnableBack="true"
                  EnableNext="True" NextContent="Continue"
                  IsBusy="{Binding IsBusy}">
-    <DockPanel MinHeight="80">
+    <DockPanel MinHeight="80" DataContext="{Binding FeeChart}">
       <DockPanel.Resources>
         <Thickness x:Key="SliderTopHeaderMargin">0,0,0,4</Thickness>
         <GridLength x:Key="SliderPreContentMargin">0</GridLength>
         <GridLength x:Key="SliderPostContentMargin">0</GridLength>
       </DockPanel.Resources>
       <Slider x:Name="CursorValue2"
-              Margin="18,0,18,0"
+              Margin="38,0,18,0"
               KeyboardNavigation.IsTabStop="False"
               DockPanel.Dock="Bottom"
               Classes="cursor"
@@ -136,11 +145,30 @@
               TickFrequency="1"
               Minimum="{Binding SliderMinimum}"
               Maximum="{Binding SliderMaximum}"
-              Value="{Binding SliderValue}" />
-      <c:LineChart Classes="cursor border xAxisLabels yAxis yAxisTitle area"
+              Value="{Binding SliderValue}">
+        <Slider.Styles>
+          <Style Selector="Slider /template/ Thumb">
+            <Setter Property="ToolTip.Tip">
+              <Template>
+                <ToolTip>
+                  <StackPanel Spacing="10" x:CompileBindings="False">
+                    <TextBlock Text="{Binding $parent[Slider].DataContext.CurrentSatoshiPerByte, Mode=OneWay, StringFormat='Fee Rate: \{0:0\} sat/vByte'}" />
+                    <TextBlock Text="{Binding $parent[Slider].DataContext.CurrentConfirmationTargetString, Mode=OneWay, StringFormat='Estimated Time: ~\{0\}'}" />
+                  </StackPanel>
+                </ToolTip>
+              </Template>
+            </Setter>
+            <Setter Property="ToolTip.Placement" Value="Bottom" />
+            <Setter Property="ToolTip.VerticalOffset" Value="10" />
+            <Setter Property="ToolTip.HorizontalOffset" Value="-30" />
+          </Style>
+        </Slider.Styles>
+      </Slider>
+      <c:LineChart Classes="cursor border xAxisLabels yAxis yAxisLabels yAxisTitle area"
                    XAxisLabels="{Binding ConfirmationTargetLabels}"
                    XAxisValues="{Binding ConfirmationTargetValues}"
                    XAxisCurrentValue="{Binding CurrentConfirmationTarget, Mode=TwoWay}"
+                   YAxisLabels="{Binding SatoshiPerByteLabels}"
                    YAxisValues="{Binding SatoshiPerByteValues}">
         <c:LineChart.Styles>
           <Style Selector="c|LineChart">
@@ -148,16 +176,16 @@
             <Setter Property="Margin" Value="18,10,18,0"/>
             <Setter Property="MinHeight" Value="150"/>
             <Setter Property="YAxisLogarithmicScale" Value="False"/>
-            <Setter Property="AreaMargin" Value="10,0,10,30"/>
+            <Setter Property="AreaMargin" Value="30,0,10,30"/>
             <Setter Property="AreaStrokeThickness" Value="2"/>
             <Setter Property="AreaStrokeLineCap" Value="Round"/>
             <Setter Property="AreaMinViableWidth" Value="40"/>
             <Setter Property="AreaMinViableHeight" Value="20"/>
             <Setter Property="Focusable" Value="True"/>
-            <Setter Property="YAxisTitle" Value="More Expensive"/>
+            <Setter Property="YAxisTitle" Value="Increasing Cost (sats/vbyte)"/>
           </Style>
           <Style Selector="c|LineChart.narrow">
-            <Setter Property="AreaMargin" Value="10,0,10,45"/>
+            <Setter Property="AreaMargin" Value="30,0,10,45"/>
             <Setter Property="MinHeight" Value="170"/>
             <Setter Property="XAxisLabelAngle" Value="45" />
             <Setter Property="XAxisLabelOffset" Value="-18,54" />

@@ -51,5 +51,32 @@ namespace WalletWasabi.Fluent.Helpers
 				currentTime -= interval;
 			}
 		}
+
+		public static int LastIndexOf<T>(this IEnumerable<T> source, T itemToFind)
+		{
+			return LastIndexOf(source, itemToFind, EqualityComparer<T>.Default);
+		}
+
+		public static int LastIndexOf<T>(this IEnumerable<T> source, T itemToFind, IEqualityComparer<T> equalityComparer)
+		{
+			if (source is null)
+			{
+				throw new ArgumentNullException(nameof(source));
+			}
+
+			var sourceArray = source.ToArray();
+
+			for (var i = sourceArray.Length - 1; i >= 0 ; i--)
+			{
+				var currentItem = sourceArray[i];
+
+				if (equalityComparer.Equals(currentItem, itemToFind))
+				{
+					return i;
+				}
+			}
+
+			return -1;
+		}
 	}
 }
