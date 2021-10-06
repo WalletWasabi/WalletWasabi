@@ -279,7 +279,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC)
 				.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
 
-			Labels = _info.GetLabels(_transaction.SpentCoins);
+			Labels = transactionResult.Labels;
 
 			FeeText = $"{btcFeeText}{fiatFeeText}";
 

@@ -2,6 +2,7 @@ using NBitcoin;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
@@ -28,6 +29,8 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 
 		public IEnumerable<SmartCoin> InnerWalletOutputs => Transaction.WalletOutputs;
 		public IEnumerable<SmartCoin> SpentCoins => Transaction.WalletInputs;
+
+		public SmartLabel Labels => SmartLabel.Merge(Transaction.Label, SmartLabel.Merge(SpentCoins.Select(x => x.HdPubKey.Label)));
 
 		public IEnumerable<Coin> OuterWalletOutputs
 		{
