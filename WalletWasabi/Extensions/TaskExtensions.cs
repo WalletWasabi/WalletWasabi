@@ -76,5 +76,14 @@ namespace System.Threading.Tasks
 
 		public static async Task WithAwaitCancellationAsync(this Task me, TimeSpan timeout)
 			=> await me.WithAwaitCancellationAsync(ThreadingHelpers.Cancelled, (int)timeout.TotalMilliseconds).ConfigureAwait(false);
+
+		public static async Task<TResult> RunAsScheduledAsync<TResult>(this Task<TResult> task, DateTimeOffset when, CancellationToken cancellationToken)
+		{
+			var timeToWait = when - DateTimeOffset.UtcNow;
+			var fixedTimeToWait = timeToWait < TimeSpan.Zero ? TimeSpan.Zero : timeToWait;
+
+			await Task.Delay(fixedTimeToWait, cancellationToken).ConfigureAwait(false);
+			return await task.ConfigureAwait(false);
+		}
 	}
 }

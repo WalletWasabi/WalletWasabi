@@ -108,7 +108,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 					// Instruct the coordinator DI container to use these two scoped
 					// services to build everything (WabiSabi controller, arena, etc)
 					services.AddScoped<IRPCClient>(s => rpc);
-					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig { MaxInputCountByRound = inputCount });
+					services.AddScoped(s => new WabiSabiConfig
+					{
+							MaxInputCountByRound = inputCount,
+							StandardInputRegistrationTimeout = TimeSpan.FromSeconds(10)
+					});
 				});
 			}).CreateClient();
 
@@ -200,6 +204,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig
 					{
 						MaxInputCountByRound = 2 * inputCount,
+						StandardInputRegistrationTimeout = TimeSpan.FromSeconds(20),
+						BlameInputRegistrationTimeout = TimeSpan.FromSeconds(20),
 						TransactionSigningTimeout = TimeSpan.FromSeconds(5 * inputCount),
 					});
 				});
@@ -284,6 +290,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 						{
 							MaxRegistrableAmount = Money.Coins(500m),
 							MaxInputCountByRound = ExpectedInputNumber,
+							StandardInputRegistrationTimeout = TimeSpan.FromSeconds(10 * ExpectedInputNumber),
 							ConnectionConfirmationTimeout = TimeSpan.FromSeconds(20 * ExpectedInputNumber),
 							OutputRegistrationTimeout = TimeSpan.FromSeconds(20 * ExpectedInputNumber),
 						});
@@ -296,7 +303,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 					.Returns(new HttpClientWrapper(app.CreateClient()));
 
 				// Total test timeout.
-				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20 * ExpectedInputNumber));
+				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(40 * ExpectedInputNumber));
 
 				var participants = Enumerable
 					.Range(0, NumberOfParticipants)

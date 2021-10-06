@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
+using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using Xunit;
 
@@ -54,12 +55,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			round.Alices.Add(a3);
 			round.Alices.Add(a4);
 			round.SetPhase(Phase.ConnectionConfirmation);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+
+			Prison prison = new();
+			using Arena arena = await ArenaBuilder.From(cfg, prison).CreateAndStartAsync(round);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
-			Assert.Equal(0, arena.Prison.CountInmates().noted);
-			Assert.Equal(0, arena.Prison.CountInmates().banned);
+			Assert.Equal(0, prison.CountInmates().noted);
+			Assert.Equal(0, prison.CountInmates().banned);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -87,13 +90,15 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			round.Alices.Add(a3);
 			round.Alices.Add(a4);
 			round.SetPhase(Phase.ConnectionConfirmation);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+
+			Prison prison = new();
+			using Arena arena = await ArenaBuilder.From(cfg, prison).CreateAndStartAsync(round);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.OutputRegistration, round.Phase);
 			Assert.Equal(2, round.Alices.Count);
-			Assert.Equal(2, arena.Prison.CountInmates().noted);
-			Assert.Equal(0, arena.Prison.CountInmates().banned);
+			Assert.Equal(2, prison.CountInmates().noted);
+			Assert.Equal(0, prison.CountInmates().banned);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -121,12 +126,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			round.Alices.Add(a3);
 			round.Alices.Add(a4);
 			round.SetPhase(Phase.ConnectionConfirmation);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+
+			Prison prison = new();
+			using Arena arena = await ArenaBuilder.From(cfg, prison).CreateAndStartAsync(round);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.DoesNotContain(round, arena.ActiveRounds);
-			Assert.Equal(3, arena.Prison.CountInmates().noted);
-			Assert.Equal(0, arena.Prison.CountInmates().banned);
+			Assert.Equal(3, prison.CountInmates().noted);
+			Assert.Equal(0, prison.CountInmates().banned);
 
 			await arena.StopAsync(CancellationToken.None);
 		}

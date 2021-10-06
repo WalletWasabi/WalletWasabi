@@ -9,31 +9,43 @@ using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 namespace WalletWasabi.WabiSabi.Models
 {
 	public record RoundState(
-		uint256 Id,
 		uint256? BlameOf,
 		CredentialIssuerParameters AmountCredentialIssuerParameters,
 		CredentialIssuerParameters VsizeCredentialIssuerParameters,
 		FeeRate FeeRate,
 		Phase Phase,
 		bool WasTransactionBroadcast,
+		DateTimeOffset InputRegistrationStart,
+		TimeSpan InputRegistrationTimeout,
 		TimeSpan ConnectionConfirmationTimeout,
-		long MaxRegistrableAmount,
-		long MaxRegistrableVsize,
+		TimeSpan OutputRegistrationTimeout,
+		TimeSpan TransactionSigningTimeout,
+		long MaxAmountCredentialValue,
+		long MaxVsizeCredentialValue,
 		long MaxVsizeAllocationPerAlice,
 		MultipartyTransactionState CoinjoinState)
 	{
+		private uint256 _id;
+
+		public uint256 Id => _id ??= CalculateHash();
+
+		public DateTimeOffset InputRegistrationEnd => InputRegistrationStart + InputRegistrationTimeout;
+
 		public static RoundState FromRound(Round round) =>
 			new(
-				round.Id,
 				round.BlameOf?.Id,
 				round.AmountCredentialIssuerParameters,
 				round.VsizeCredentialIssuerParameters,
 				round.FeeRate,
 				round.Phase,
 				round.WasTransactionBroadcast,
+				round.InputRegistrationStart,
+				round.InputRegistrationTimeout,
 				round.ConnectionConfirmationTimeout,
-				round.MaxRegistrableAmount,
-				round.MaxRegistrableVsize,
+				round.OutputRegistrationTimeout,
+				round.TransactionSigningTimeout,
+				round.MaxAmountCredentialValue,
+				round.MaxVsizeCredentialValue,
 				round.MaxVsizeAllocationPerAlice,
 				round.CoinjoinState);
 
@@ -45,9 +57,30 @@ namespace WalletWasabi.WabiSabi.Models
 			};
 
 		public WabiSabiClient CreateAmountCredentialClient(WasabiRandom random) =>
-			new(AmountCredentialIssuerParameters, random, MaxRegistrableAmount);
+			new(AmountCredentialIssuerParameters, random, MaxAmountCredentialValue);
 
 		public WabiSabiClient CreateVsizeCredentialClient(WasabiRandom random) =>
-			new(VsizeCredentialIssuerParameters, random, MaxRegistrableVsize);
+			new(VsizeCredentialIssuerParameters, random, MaxVsizeCredentialValue);
+
+		private uint256 CalculateHash() =>
+			RoundHasher.CalculateHash(
+				InputRegistrationStart,
+				InputRegistrationTimeout,
+				ConnectionConfirmationTimeout,
+				OutputRegistrationTimeout,
+				TransactionSigningTimeout,
+				CoinjoinState.Parameters.AllowedInputAmounts,
+				CoinjoinState.Parameters.AllowedInputTypes,
+				CoinjoinState.Parameters.AllowedOutputAmounts,
+				CoinjoinState.Parameters.AllowedOutputTypes,
+				CoinjoinState.Parameters.Network,
+				CoinjoinState.Parameters.FeeRate.FeePerK,
+				CoinjoinState.Parameters.MaxTransactionSize,
+				CoinjoinState.Parameters.MinRelayTxFee.FeePerK,
+				MaxAmountCredentialValue,
+				MaxVsizeCredentialValue,
+				MaxVsizeAllocationPerAlice,
+				AmountCredentialIssuerParameters,
+				VsizeCredentialIssuerParameters);
 	}
 }
