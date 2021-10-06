@@ -72,7 +72,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					var intent = new PaymentIntent(
 						_transactionInfo.Address,
 						MoneyRequest.CreateAllRemaining(subtractFee: true),
-						_transactionInfo.Labels);
+						_transactionInfo.UserLabels);
 
 					PrivacySuggestionControlViewModel? smallerSuggestion = null;
 
