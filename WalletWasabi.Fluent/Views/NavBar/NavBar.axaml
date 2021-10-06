@@ -199,24 +199,25 @@
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">
             <Panel Height="30">
+
+              <!-- Icon -->
               <Panel Width="45" Background="Transparent" HorizontalAlignment="Left" ToolTip.Tip="{Binding Title}">
-                <PathIcon HorizontalAlignment="Left">
-                  <PathIcon.Data>
-                    <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
-                  </PathIcon.Data>
-                </PathIcon>
+                <PathIcon HorizontalAlignment="Left" Data="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
                 <Ellipse IsVisible="{Binding IsLoggedIn, Mode=OneWay}" Width="9" Height="9" Margin="15,0,0,-13"
                          Fill="#F2994A" />
               </Panel>
 
               <DockPanel Margin="55 0 15 0">
                 <PathIcon Data="{StaticResource link_filled}" VerticalAlignment="Center" IsVisible="{Binding IsCoinJoining}" Foreground="{StaticResource SystemAccentColor}" DockPanel.Dock="Right"/>
+                <Viewbox DockPanel.Dock="Right" Margin="3" ClipToBounds="False" IsVisible="{Binding IsLoading}">
+                  <c:ProgressRing Height="60" IsIndeterminate="True" ClipToBounds="False" Background="Transparent"/>
+                </Viewbox>
                 <DockPanel VerticalAlignment="Center" DockPanel.Dock="Left">
                   <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" DockPanel.Dock="Top"/>
-                  <TextBlock Opacity="0.4" FontSize="11" Text="Loading" DockPanel.Dock="Bottom" IsVisible="{Binding IsLoading}"/>
-                  <TextBlock Opacity="0.4" FontSize="11" Text="CoinJoining" DockPanel.Dock="Bottom" IsVisible="{Binding IsCoinJoining}" />
+                  <TextBlock Opacity="0.4" FontSize="11" Text="{Binding StatusText}" DockPanel.Dock="Bottom" />
                 </DockPanel>
               </DockPanel>
+
             </Panel>
           </DataTemplate>
         </c:NavBarListBox.DataTemplates>
