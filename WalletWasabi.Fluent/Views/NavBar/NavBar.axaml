@@ -196,29 +196,44 @@
                        Classes="vertical draggable narrowItemPadding"
                        RenderTransformOrigin="0%,50%"
                        VerticalAlignment="Stretch">
+      <c:NavBarListBox.Styles>
+        <Style Selector="DockPanel.dockRight">
+          <Setter Property="Dock" Value="Right"/>
+        </Style>
+        <Style Selector="DockPanel.dockLeft">
+          <Setter Property="Dock" Value="Left" />
+        </Style>
+      </c:NavBarListBox.Styles>
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">
-            <Panel Height="30">
+            <DockPanel Height="30">
+
+              <!-- Loading icons -->
+              <DockPanel x:CompileBindings="False"
+                         Classes.dockRight="{Binding #NavBarUserControl.DataContext.IsOpen}"
+                         Classes.dockLeft="{Binding !#NavBarUserControl.DataContext.IsOpen}"
+                         Width="45"
+                         IsVisible="{Binding StatusText, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <PathIcon  Data="{StaticResource link_filled}" VerticalAlignment="Center" IsVisible="{Binding IsCoinJoining}" Foreground="{StaticResource SystemAccentColor}" />
+                <Viewbox Margin="3" ClipToBounds="False" IsVisible="{Binding IsLoading}">
+                  <c:ProgressRing Height="60" IsIndeterminate="True" ClipToBounds="False" Background="Transparent" />
+                </Viewbox>
+              </DockPanel>
 
               <!-- Icon -->
-              <Panel Width="45" Background="Transparent" HorizontalAlignment="Left" ToolTip.Tip="{Binding Title}">
+              <Panel DockPanel.Dock="Left" Width="45" Background="Transparent" HorizontalAlignment="Left" ToolTip.Tip="{Binding Title}">
                 <PathIcon HorizontalAlignment="Left" Data="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
                 <Ellipse IsVisible="{Binding IsLoggedIn, Mode=OneWay}" Width="9" Height="9" Margin="15,0,0,-13"
                          Fill="#F2994A" />
               </Panel>
 
-              <DockPanel Margin="55 0 15 0">
-                <PathIcon Data="{StaticResource link_filled}" VerticalAlignment="Center" IsVisible="{Binding IsCoinJoining}" Foreground="{StaticResource SystemAccentColor}" DockPanel.Dock="Right"/>
-                <Viewbox DockPanel.Dock="Right" Margin="3" ClipToBounds="False" IsVisible="{Binding IsLoading}">
-                  <c:ProgressRing Height="60" IsIndeterminate="True" ClipToBounds="False" Background="Transparent"/>
-                </Viewbox>
-                <DockPanel VerticalAlignment="Center" DockPanel.Dock="Left">
-                  <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" DockPanel.Dock="Top"/>
-                  <TextBlock Opacity="0.4" FontSize="11" Text="{Binding StatusText}" DockPanel.Dock="Bottom" />
-                </DockPanel>
+              <!-- Title & status text -->
+              <DockPanel Margin="10 0 15 0" DockPanel.Dock="Left" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" DockPanel.Dock="Top"/>
+                <TextBlock Opacity="0.4" FontSize="11" Text="{Binding StatusText}" DockPanel.Dock="Bottom" />
               </DockPanel>
 
-            </Panel>
+            </DockPanel>
           </DataTemplate>
         </c:NavBarListBox.DataTemplates>
       </c:NavBarListBox>
