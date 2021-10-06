@@ -1,20 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
-using WalletWasabi.Exceptions;
-using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.MathNet;
-using WalletWasabi.Fluent.Models;
-using WalletWasabi.Fluent.ViewModels.Dialogs;
-using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Gui.Converters;
-using WalletWasabi.Logging;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
@@ -26,154 +20,103 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		NavBarPosition = NavBarPosition.None,
 		Searchable = false,
 		NavigationTarget = NavigationTarget.DialogScreen)]
-	public partial class SendFeeViewModel : RoutableViewModel
+	public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 	{
 		private readonly Wallet _wallet;
 		private readonly TransactionInfo _transactionInfo;
-		[AutoNotify] private double[]? _confirmationTargetValues;
-		[AutoNotify] private double[]? _satoshiPerByteValues;
-		[AutoNotify] private string[]? _confirmationTargetLabels;
-		[AutoNotify] private double _currentConfirmationTarget;
-		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMinimum;
-		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMaximum;
-		[AutoNotify] private int _sliderValue;
-		private bool _updatingCurrentValue;
-		private double _lastConfirmationTarget;
+		private readonly bool _isSilent;
 
-		public SendFeeViewModel(Wallet wallet, TransactionInfo transactionInfo)
+		public SendFeeViewModel(Wallet wallet, TransactionInfo transactionInfo, bool isSilent)
 		{
+			_isSilent = isSilent;
+			IsBusy = isSilent;
 			_wallet = wallet;
 			_transactionInfo = transactionInfo;
+
+			FeeChart = new FeeChartViewModel();
 
 			SetupCancel(false, true, false);
 			EnableBack = true;
 
-			_sliderMinimum = 0;
-			_sliderMaximum = 9;
-			_currentConfirmationTarget = 36;
-			_lastConfirmationTarget = _currentConfirmationTarget;
-
-			this.WhenAnyValue(x => x.CurrentConfirmationTarget)
-				.Subscribe(x =>
-				{
-					if (x > 0)
-					{
-						SetSliderValue(x);
-					}
-				});
-
-			this.WhenAnyValue(x => x.SliderValue)
-				.Subscribe(SetXAxisCurrentValue);
-
-			NextCommand = ReactiveCommand.CreateFromTask(async () =>
+			NextCommand = ReactiveCommand.Create( () =>
 			{
-				_lastConfirmationTarget = CurrentConfirmationTarget;
-				_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(_lastConfirmationTarget);
+				_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(FeeChart.CurrentConfirmationTarget);
 
-				await OnNextAsync();
+				Complete();
 			});
 		}
 
-		private async Task OnNextAsync()
+		public FeeChartViewModel FeeChart { get; }
+
+		private void Complete()
 		{
-			var transactionInfo = _transactionInfo;
-			var targetAnonymitySet = _wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
-			var mixedCoins = _wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
-			var totalMixedCoinsAmount = Money.FromUnit(mixedCoins.Sum(coin => coin.Amount), MoneyUnit.Satoshi);
-			transactionInfo.Coins = mixedCoins;
-
-			transactionInfo.FeeRate = new FeeRate(GetSatoshiPerByte(CurrentConfirmationTarget));
-
-			if (transactionInfo.Amount > totalMixedCoinsAmount)
-			{
-				Navigate().To(new PrivacyControlViewModel(_wallet, transactionInfo));
-				return;
-			}
-
-			try
-			{
-				if (_transactionInfo.PayJoinClient is { })
-				{
-					await BuildTransactionAsPayJoinAsync(transactionInfo);
-				}
-				else
-				{
-					await BuildTransactionAsNormalAsync(transactionInfo, totalMixedCoinsAmount);
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-				await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(),
-					"Wasabi was unable to create your transaction.");
-			}
+			Close(DialogResultKind.Normal, new FeeRate(FeeChart.GetSatoshiPerByte(FeeChart.CurrentConfirmationTarget)));
 		}
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
+			IsBusy = true;
+
 			base.OnNavigatedTo(isInHistory, disposables);
 
-			CurrentConfirmationTarget = _lastConfirmationTarget;
-
 			var feeProvider = _wallet.FeeProvider;
+
 			Observable
 				.FromEventPattern(feeProvider, nameof(feeProvider.AllFeeEstimateChanged))
 				.Select(x => (x.EventArgs as AllFeeEstimate)!.Estimations)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(estimations =>
 				{
-					UpdateFeeEstimates(_wallet.Network == Network.TestNet ? TestNetFeeEstimates : estimations);
+					FeeChart.UpdateFeeEstimates(_wallet.Network == Network.TestNet ? TestNetFeeEstimates : estimations);
 				})
 				.DisposeWith(disposables);
 
-			if (feeProvider.AllFeeEstimate is { })
+			RxApp.MainThreadScheduler.Schedule(async () =>
 			{
-				UpdateFeeEstimates(_wallet.Network == Network.TestNet ? TestNetFeeEstimates : feeProvider.AllFeeEstimate.Estimations);
-			}
-		}
-
-		private async Task BuildTransactionAsNormalAsync(TransactionInfo transactionInfo, Money totalMixedCoinsAmount)
-		{
-			try
-			{
-				var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo));
-				Navigate().To(new OptimisePrivacyViewModel(_wallet, transactionInfo, txRes));
-			}
-			catch (InsufficientBalanceException)
-			{
-				var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo.Address,
-					totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, transactionInfo.Coins,
-					subtractFee: true));
-				var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Private, txRes,
-					_wallet.Synchronizer.UsdExchangeRate);
-				var result = await NavigateDialogAsync(dialog, NavigationTarget.DialogScreen);
-
-				if (result.Result)
+				while (feeProvider.AllFeeEstimate is null)
 				{
-					Navigate().To(new OptimisePrivacyViewModel(_wallet, transactionInfo, txRes));
+					await Task.Delay(100);
+				}
+
+				var feeEstimations = _wallet.Network == Network.TestNet ? TestNetFeeEstimates : feeProvider.AllFeeEstimate.Estimations;
+				FeeChart.UpdateFeeEstimates(feeEstimations);
+
+				if (_transactionInfo.FeeRate is { })
+				{
+					FeeChart.InitCurrentConfirmationTarget(_transactionInfo.FeeRate);
+				}
+
+				if (_isSilent)
+				{
+					var satPerByteThreshold = Services.Config.SatPerByteThreshold;
+					var blockTargetThreshold = Services.Config.BlockTargetThreshold;
+					var estimations = FeeChart.GetValues();
+
+					var blockTarget = GetBestBlockTarget(estimations, satPerByteThreshold, blockTargetThreshold);
+
+					FeeChart.CurrentConfirmationTarget = blockTarget;
+					_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(blockTarget);
+
+					Complete();
 				}
 				else
 				{
-					Navigate().To(new PrivacyControlViewModel(_wallet, transactionInfo));
+					IsBusy = false;
 				}
-			}
+			});
 		}
 
-		private async Task BuildTransactionAsPayJoinAsync(TransactionInfo transactionInfo)
+		private double GetBestBlockTarget(Dictionary<double, double> estimations, int satPerByteThreshold, int blockTargetThreshold)
 		{
-			try
+			var possibleBlockTargets =
+				estimations.OrderBy(x => x.Key).Where(x => x.Value <= satPerByteThreshold && x.Key <= blockTargetThreshold).ToArray();
+
+			if (possibleBlockTargets.Any())
 			{
-				// Do not add the PayJoin client yet, it will be added before broadcasting.
-				var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo));
-				Navigate().To(new TransactionPreviewViewModel(_wallet, transactionInfo, txRes));
+				return possibleBlockTargets.First().Key;
 			}
-			catch (InsufficientBalanceException)
-			{
-				await ShowErrorAsync("Transaction Building",
-					"There are not enough private funds to cover the transaction fee",
-					"Wasabi was unable to create your transaction.");
-				Navigate().To(new PrivacyControlViewModel(_wallet, transactionInfo));
-			}
+
+			return blockTargetThreshold;
 		}
 
 		private TimeSpan CalculateConfirmationTime(double targetBlock)
@@ -183,171 +126,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return time;
 		}
 
-		private void SetSliderValue(double confirmationTarget)
-		{
-			if (!_updatingCurrentValue)
-			{
-				_updatingCurrentValue = true;
-				if (_confirmationTargetValues is not null)
-				{
-					SliderValue = GetSliderValue(confirmationTarget, _confirmationTargetValues);
-				}
-
-				_updatingCurrentValue = false;
-			}
-		}
-
-		private void SetXAxisCurrentValue(int sliderValue)
-		{
-			if (_confirmationTargetValues is not null)
-			{
-				if (!_updatingCurrentValue)
-				{
-					_updatingCurrentValue = true;
-					var index = _confirmationTargetValues.Length - sliderValue - 1;
-					CurrentConfirmationTarget = _confirmationTargetValues[index];
-					_updatingCurrentValue = false;
-				}
-			}
-		}
-
-		private void UpdateFeeEstimates(Dictionary<int, int> feeEstimates)
-		{
-			var xs = feeEstimates.Select(x => (double)x.Key).ToArray();
-			var ys = feeEstimates.Select(x => (double)x.Value).ToArray();
-#if true
-			GetSmoothValuesSubdivide(xs, ys, out var xts, out var yts);
-			var confirmationTargetValues = xts.ToArray();
-			var satoshiPerByteValues = yts.ToArray();
-#else
-			var confirmationTargetValues = xs.Reverse().ToArray();
-			var satoshiPerByteValues = ys.Reverse().ToArray();
-#endif
-			var confirmationTargetLabels = feeEstimates.Select(x => x.Key)
-				.Select(x => FeeTargetTimeConverter.Convert(x, "m", "h", "h", "d", "d"))
-				.Reverse()
-				.ToArray();
-
-			_updatingCurrentValue = true;
-			ConfirmationTargetLabels = confirmationTargetLabels;
-			ConfirmationTargetValues = confirmationTargetValues;
-			SatoshiPerByteValues = satoshiPerByteValues;
-			SliderMinimum = 0;
-			SliderMaximum = confirmationTargetValues.Length - 1;
-			CurrentConfirmationTarget = Math.Clamp(CurrentConfirmationTarget, ConfirmationTargetValues.Min(), ConfirmationTargetValues.Max());
-			SliderValue = GetSliderValue(CurrentConfirmationTarget, ConfirmationTargetValues);
-			_updatingCurrentValue = false;
-		}
-
 		private static readonly Dictionary<int, int> TestNetFeeEstimates = new ()
 		{
-			[1] = 185,
-			[2] = 123,
-			[3] = 123,
-			[6] = 102,
-			[18] = 97,
-			[36] = 57,
-			[72] = 22,
-			[144] = 7,
-			[432] = 4,
-			[1008] = 4
+			[1] = 17,
+			[2] = 12,
+			[3] = 9,
+			[6] = 9,
+			[18] = 2,
+			[36] = 2,
+			[72] = 2,
+			[144] = 2,
+			[432] = 1,
+			[1008] = 1
 		};
-
-		private int GetSliderValue(double x, double[] xs)
-		{
-			for (var i = 0; i < xs.Length; i++)
-			{
-				if (xs[i] <= x)
-				{
-					var index = xs.Length - i - 1;
-					return index;
-				}
-			}
-
-			return 0;
-		}
-
-		private void GetSmoothValuesSubdivide(double[] xs, double[] ys, out List<double> xts, out List<double> yts)
-		{
-			const int Divisions = 256;
-
-			xts = new List<double>();
-			yts = new List<double>();
-
-			if (xs.Length > 2)
-			{
-				var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
-
-				for (var i = 0; i < xs.Length - 1; i++)
-				{
-					var a = xs[i];
-					var b = xs[i + 1];
-					var range = b - a;
-					var step = range / Divisions;
-
-					var x0 = xs[i];
-					xts.Add(x0);
-					var yt0 = spline.Interpolate(xs[i]);
-					yts.Add(yt0);
-
-					for (var xt = a + step; xt < b; xt += step)
-					{
-						var yt = spline.Interpolate(xt);
-						xts.Add(xt);
-						yts.Add(yt);
-					}
-				}
-
-				var xn = xs[^1];
-				xts.Add(xn);
-				var yn = spline.Interpolate(xs[^1]);
-				yts.Add(yn);
-			}
-			else
-			{
-				for (var i = 0; i < xs.Length; i++)
-				{
-					xts.Add(xs[i]);
-					yts.Add(ys[i]);
-				}
-			}
-
-			xts.Reverse();
-			yts.Reverse();
-		}
-
-		private decimal GetSatoshiPerByte(double t)
-		{
-			if (_confirmationTargetValues is { } && _satoshiPerByteValues is { })
-			{
-				var xs = _confirmationTargetValues.Reverse().ToArray();
-				var ys = _satoshiPerByteValues.Reverse().ToArray();
-
-				if (xs.Length > 2)
-				{
-					var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
-					var interpolated = (decimal) spline.Interpolate(t);
-					return Math.Clamp(interpolated, (decimal) ys[^1], (decimal) ys[0]);
-				}
-
-				if (xs.Length == 2)
-				{
-					if (xs[1] - xs[0] == 0.0)
-					{
-						return (decimal) ys[0];
-					}
-					var slope = (ys[1] - ys[0]) / (xs[1] - xs[0]);
-					var interpolated = (decimal)(ys[0] + (t - xs[0]) * slope);
-					return Math.Clamp(interpolated, (decimal) ys[^1], (decimal) ys[0]);
-				}
-
-				if (xs.Length == 1)
-				{
-					return (decimal)ys[0];
-				}
-			}
-
-			return SliderMaximum;
-		}
 	}
 }

@@ -8,23 +8,16 @@
              x:DataType="dialog:InsufficientBalanceDialogViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.InsufficientBalanceDialogView">
-  <c:ContentArea Title="{Binding Title}"
-                 Caption="{Binding Caption}">
-    <c:QuestionControl Content="Would you like to do this instead?"
-                       YesCommand="{Binding NextCommand}"
+  <c:ContentArea Title="{Binding Title}">
+    <c:QuestionControl YesCommand="{Binding NextCommand}"
                        NoCommand="{Binding CancelCommand}"
                        HighlightButton="YesButton">
       <c:QuestionControl.IconContent>
-        <StackPanel Spacing="20">
-          <c:PreviewItem Icon="{StaticResource btc_logo}"
-                         Text="Send a total of"
-                         Content="{Binding AmountText, FallbackValue=0.213 BTC (≈55.34 USD)}" />
-          <Separator />
-          <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
-                         Text="for an additional fee of"
-                         Content="{Binding FeeText, FallbackValue=235 satoshis (≈55.34 USD)}" />
-        </StackPanel>
+        <Viewbox MaxHeight="150" Margin="40">
+          <PathIcon Data="{StaticResource warning_regular}" Opacity="0.6"/>
+        </Viewbox>
       </c:QuestionControl.IconContent>
+      <TextBlock Text="{Binding Question}" TextWrapping="Wrap" TextAlignment="Center"/>
     </c:QuestionControl>
   </c:ContentArea>
 </UserControl>

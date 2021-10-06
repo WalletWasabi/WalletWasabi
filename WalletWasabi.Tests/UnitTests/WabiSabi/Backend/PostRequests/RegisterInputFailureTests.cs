@@ -48,7 +48,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var round = arena.Rounds.First();
 			using Key key = new();
 			var req = WabiSabiFactory.CreateInputRegistrationRequest(round, key: key);
-			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreatePreconfiguredRpcClient().Object);
+			await using ArenaRequestHandler handler = new(cfg, new(), arena);
 
 			foreach (Phase phase in Enum.GetValues(typeof(Phase)))
 			{
@@ -142,8 +142,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
-			arena.Prison.Punish(outpoint, Punishment.Banned, uint256.One);
+
+			Prison prison = new();
+			using Arena arena = await ArenaBuilder.From(cfg, prison).CreateAndStartAsync(round);
+
+			prison.Punish(outpoint, Punishment.Banned, uint256.One);
 
 			var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key);
 
@@ -165,8 +168,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
-			arena.Prison.Punish(outpoint, Punishment.Noted, uint256.One);
+
+			Prison prison = new();
+			using Arena arena = await ArenaBuilder.From(cfg, prison).CreateAndStartAsync(round);
+
+			prison.Punish(outpoint, Punishment.Noted, uint256.One);
 
 			var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key);
 
@@ -188,8 +194,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			WabiSabiConfig cfg = new() { AllowNotedInputRegistration = false };
 			var round = WabiSabiFactory.CreateRound(cfg);
 			var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
-			arena.Prison.Punish(outpoint, Punishment.Noted, uint256.One);
+
+			Prison prison = new();
+			using Arena arena = await ArenaBuilder.From(cfg, prison).CreateAndStartAsync(round);
+
+			prison.Punish(outpoint, Punishment.Noted, uint256.One);
 
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 

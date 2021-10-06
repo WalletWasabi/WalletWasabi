@@ -13,12 +13,9 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
-using WalletWasabi.WabiSabi.Backend.Models;
-using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
 using WalletWasabi.WabiSabi.Models;
-using WalletWasabi.WabiSabi.Models.Decomposition;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
@@ -127,7 +124,8 @@ namespace WalletWasabi.WabiSabi.Client
 
 				// Output registration.
 				roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
-				await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, cancellationToken).ConfigureAwait(false);
+ 				var remainingTimeForOutputRegistration = roundState.OutputRegistrationTimeout - RoundStatusUpdater.Period;
+ 				await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, remainingTimeForOutputRegistration, cancellationToken).ConfigureAwait(false);
 
 				// ReadyToSign.
 				await ReadyToSignAsync(registeredAliceClients, cancellationToken).ConfigureAwait(false);
@@ -144,7 +142,7 @@ namespace WalletWasabi.WabiSabi.Client
 				}
 
 				// Send signature.
-				await SignTransactionAsync(registeredAliceClients, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
+				await SignTransactionAsync(registeredAliceClients, unsignedCoinJoin, roundState, cancellationToken).ConfigureAwait(false);
 
 				var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundState.Id && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
 
@@ -162,7 +160,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private async Task<ImmutableArray<AliceClient>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 		{
-			async Task<AliceClient?> RegisterInputTask(SmartCoin coin)
+			async Task<AliceClient?> RegisterInputAsync(SmartCoin coin, CancellationToken cancellationToken)
 			{
 				try
 				{
@@ -193,7 +191,13 @@ namespace WalletWasabi.WabiSabi.Client
 				}
 			}
 
-			var aliceClients = smartCoins.Select(RegisterInputTask).ToImmutableArray();
+			// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to be registered.
+			var remainingTimeForRegistration = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
+			var scheduledDates = remainingTimeForRegistration.SamplePoisson(smartCoins.Count());
+
+			// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
+			var aliceClients = smartCoins.Zip(scheduledDates, (coin, date) => RegisterInputAsync(coin, cancellationToken).RunAsScheduledAsync(date, cancellationToken)).ToImmutableArray();
+
 			await Task.WhenAll(aliceClients).ConfigureAwait(false);
 
 			return aliceClients
@@ -221,9 +225,9 @@ namespace WalletWasabi.WabiSabi.Client
 			return coinJoinOutputs.IsSuperSetOf(expectedOutputTuples);
 		}
 
-		private async Task SignTransactionAsync(IEnumerable<AliceClient> aliceClients, Transaction unsignedCoinJoinTransaction, CancellationToken cancellationToken)
+		private async Task SignTransactionAsync(IEnumerable<AliceClient> aliceClients, Transaction unsignedCoinJoinTransaction, RoundState roundState, CancellationToken cancellationToken)
 		{
-			async Task<AliceClient?> SignTransactionTask(AliceClient aliceClient)
+			async Task<AliceClient?> SignTransactionAsync(AliceClient aliceClient, CancellationToken cancellationToken)
 			{
 				try
 				{
@@ -232,12 +236,18 @@ namespace WalletWasabi.WabiSabi.Client
 				}
 				catch (Exception e)
 				{
-					Logger.LogWarning($"Round ({aliceClient.RoundId}), Alice ({{aliceClient.AliceId}}): {nameof(AliceClient.SignTransactionAsync)} failed, reason:'{e}'.");
+					Logger.LogWarning($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Could not sign, reason:'{e}'.");
 					return default;
 				}
 			}
 
-			var signingRequests = aliceClients.Select(SignTransactionTask);
+			// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to sign.
+			var transactionSigningTimeFrame = roundState.TransactionSigningTimeout - RoundStatusUpdater.Period;
+			var scheduledDates = transactionSigningTimeFrame.SamplePoisson(aliceClients.Count());
+
+			// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
+			var signingRequests = aliceClients.Zip(scheduledDates, (alice, date) => SignTransactionAsync(alice, cancellationToken).RunAsScheduledAsync(date, cancellationToken)).ToImmutableArray();
+
 			await Task.WhenAll(signingRequests).ConfigureAwait(false);
 		}
 

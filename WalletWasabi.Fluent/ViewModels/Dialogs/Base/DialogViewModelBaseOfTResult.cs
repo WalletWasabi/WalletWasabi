@@ -25,6 +25,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base
 							  .DistinctUntilChanged()
 							  .Subscribe(OnIsDialogOpenChanged);
 
+			BackCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Back));
+
 			CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel));
 		}
 

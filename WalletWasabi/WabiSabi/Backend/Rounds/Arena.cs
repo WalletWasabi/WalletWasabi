@@ -15,30 +15,32 @@ using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
-using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+using WalletWasabi.WabiSabi.Backend.Rounds.Utils;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds
 {
 	public class Arena : PeriodicRunner
 	{
-		public Arena(TimeSpan period, Network network, WabiSabiConfig config, IRPCClient rpc, Prison prison) : base(period)
+		public Arena(TimeSpan period, Network network, WabiSabiConfig config, IRPCClient rpc, Prison prison, CoinJoinTransactionArchiver? archiver = null) : base(period)
 		{
 			Network = network;
 			Config = config;
 			Rpc = rpc;
 			Prison = prison;
+			TransactionArchiver = archiver;
 			Random = new SecureRandom();
 		}
 
 		public HashSet<Round> Rounds { get; } = new();
 		private AsyncLock AsyncLock { get; } = new();
-		public Network Network { get; }
-		public WabiSabiConfig Config { get; }
-		public IRPCClient Rpc { get; }
-		public Prison Prison { get; }
-		public SecureRandom Random { get; }
+		private Network Network { get; }
+		private WabiSabiConfig Config { get; }
+		private IRPCClient Rpc { get; }
+		private Prison Prison { get; }
+		private SecureRandom Random { get; }
+		private CoinJoinTransactionArchiver? TransactionArchiver { get; }
 
 		public IEnumerable<Round> ActiveRounds => Rounds.Where(x => x.Phase != Phase.Ended);
 
@@ -54,7 +56,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 				StepOutputRegistrationPhase();
 
-				StepConnectionConfirmationPhase();
+				await StepConnectionConfirmationPhaseAsync(cancel).ConfigureAwait(false);
 
 				await StepInputRegistrationPhaseAsync(cancel).ConfigureAwait(false);
 
@@ -85,7 +87,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 						if (offendingAlices.Any())
 						{
 							thereAreOffendingAlices = true;
-							round.Alices.RemoveAll(x => offendingAlices.Contains(x));
+							var removed = round.Alices.RemoveAll(x => offendingAlices.Contains(x));
+							round.LogInfo($"There were {removed} alices removed because they spent the registered UTXO.");
 						}
 					}
 					if (!thereAreOffendingAlices)
@@ -96,26 +99,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		private async IAsyncEnumerable<Alice[]> CheckTxoSpendStatusAsync(Round round, [EnumeratorCancellation] CancellationToken cancellationToken = default)
-		{
-			foreach (var chunckOfAlices in round.Alices.ToList().ChunkBy(16))
-			{
-				var batchedRpc = Rpc.PrepareBatch();
-
-				var aliceCheckingTaskPairs = chunckOfAlices
-					.Select(x => (Alice: x, StatusTask: Rpc.GetTxOutAsync(x.Coin.Outpoint.Hash, (int)x.Coin.Outpoint.N, includeMempool: true, cancellationToken)))
-					.ToList();
-
-				cancellationToken.ThrowIfCancellationRequested();
-				await batchedRpc.SendBatchAsync(cancellationToken).ConfigureAwait(false);
-
-				var spendStatusCheckingTasks = aliceCheckingTaskPairs.Select(async x => (x.Alice, Status: await x.StatusTask.ConfigureAwait(false)));
-				var alices = await Task.WhenAll(spendStatusCheckingTasks).ConfigureAwait(false);
-				yield return alices.Where(x => x.Status is null).Select(x => x.Alice).ToArray();
-			}
-		}
-
-		private void StepConnectionConfirmationPhase()
+		private async Task StepConnectionConfirmationPhaseAsync(CancellationToken cancel)
 		{
 			foreach (var round in Rounds.Where(x => x.Phase == Phase.ConnectionConfirmation).ToArray())
 			{
@@ -132,6 +116,21 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					}
 					var removedAliceCount = round.Alices.RemoveAll(x => alicesDidntConfirm.Contains(x));
 					round.LogInfo($"{removedAliceCount} alices removed because they didn't confirm.");
+
+					// Once an input is confirmed and non-zero credentials are issued, it must be included and must provide a
+					// a signature for a valid transaction to be produced, therefore this is the last possible opportunity to
+					// remove any spent inputs.
+					if (round.InputCount >= Config.MinInputCountByRound)
+					{
+						await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false))
+						{
+							if (offendingAlices.Any())
+							{
+								var removed = round.Alices.RemoveAll(x => offendingAlices.Contains(x));
+								round.LogInfo($"There were {removed} alices removed because they spent the registered UTXO.");
+							}
+						}
+					}
 
 					if (round.InputCount < Config.MinInputCountByRound)
 					{
@@ -188,7 +187,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				{
 					if (state.IsFullySigned)
 					{
-						var coinjoin = state.CreateTransaction();
+						Transaction coinjoin = state.CreateTransaction();
 
 						// Logging.
 						round.LogInfo("Trying to broadcast coinjoin.");
@@ -209,6 +208,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 						}
 						round.LogInfo($"There are {indistinguishableOutputs.Count(x => x.count == 1)} occurrences of unique outputs.");
 
+						// Store transaction.
+						if (TransactionArchiver is not null)
+						{
+							await TransactionArchiver.StoreJsonAsync(coinjoin).ConfigureAwait(false);
+						}
+
 						// Broadcasting.
 						await Rpc.SendRawTransactionAsync(coinjoin, cancellationToken).ConfigureAwait(false);
 						round.WasTransactionBroadcast = true;
@@ -226,6 +231,24 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					round.LogWarning($"Signing phase failed, reason: '{ex}'.");
 					await FailTransactionSigningPhaseAsync(round, cancellationToken).ConfigureAwait(false);
 				}
+			}
+		}
+
+		private async IAsyncEnumerable<Alice[]> CheckTxoSpendStatusAsync(Round round, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+		{
+			foreach (var chunckOfAlices in round.Alices.ToList().ChunkBy(16))
+			{
+				var batchedRpc = Rpc.PrepareBatch();
+
+				var aliceCheckingTaskPairs = chunckOfAlices
+					.Select(x => (Alice: x, StatusTask: Rpc.GetTxOutAsync(x.Coin.Outpoint.Hash, (int)x.Coin.Outpoint.N, includeMempool: true, cancellationToken)))
+					.ToList();
+
+				await batchedRpc.SendBatchAsync(cancellationToken).ConfigureAwait(false);
+
+				var spendStatusCheckingTasks = aliceCheckingTaskPairs.Select(async x => (x.Alice, Status: await x.StatusTask.ConfigureAwait(false)));
+				var alices = await Task.WhenAll(spendStatusCheckingTasks).ConfigureAwait(false);
+				yield return alices.Where(x => x.Status is null).Select(x => x.Alice).ToArray();
 			}
 		}
 
@@ -355,11 +378,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				var id = new Guid(Random.GetBytes(16));
 				var alice = new Alice(coin, request.OwnershipProof, round, id);
 
-				if (alice.TotalInputAmount < round.MinRegistrableAmount)
+				if (alice.TotalInputAmount < round.MinAmountCredentialValue)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds);
 				}
-				if (alice.TotalInputAmount > round.MaxRegistrableAmount)
+				if (alice.TotalInputAmount > round.MaxAmountCredentialValue)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
 				}
