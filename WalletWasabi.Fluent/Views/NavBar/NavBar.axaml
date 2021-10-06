@@ -206,12 +206,12 @@
       </c:NavBarListBox.Styles>
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">
-            <DockPanel Height="30">
+            <DockPanel Height="30" ToolTip.Tip="{Binding Title}" Background="Transparent">
 
               <!-- Loading icons -->
               <DockPanel x:CompileBindings="False"
-                         Classes.dockRight="{Binding #NavBarUserControl.DataContext.IsOpen}"
-                         Classes.dockLeft="{Binding !#NavBarUserControl.DataContext.IsOpen}"
+                         Classes.dockRight="{Binding #NavBarUserControl.DataContext.IsOpen, FallbackValue=true}"
+                         Classes.dockLeft="{Binding !#NavBarUserControl.DataContext.IsOpen, FallbackValue=false}"
                          Width="45"
                          IsVisible="{Binding StatusText, Converter={x:Static ObjectConverters.IsNotNull}}">
                 <PathIcon  Data="{StaticResource link_filled}" VerticalAlignment="Center" IsVisible="{Binding IsCoinJoining}" Foreground="{StaticResource SystemAccentColor}" />
@@ -221,7 +221,7 @@
               </DockPanel>
 
               <!-- Icon -->
-              <Panel DockPanel.Dock="Left" Width="45" Background="Transparent" HorizontalAlignment="Left" ToolTip.Tip="{Binding Title}">
+              <Panel DockPanel.Dock="Left" Width="45" Background="Transparent" HorizontalAlignment="Left">
                 <PathIcon HorizontalAlignment="Left" Data="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
                 <Ellipse IsVisible="{Binding IsLoggedIn, Mode=OneWay}" Width="9" Height="9" Margin="15,0,0,-13"
                          Fill="#F2994A" />
