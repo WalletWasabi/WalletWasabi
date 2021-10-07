@@ -149,9 +149,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			foreach (var round in Rounds.Where(x => x.Phase == Phase.OutputRegistration).ToArray())
 			{
-				long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate));
-				long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
-				var diff = aliceSum - bobSum;
 				var allReady = round.Alices.All(a => a.ReadyToSign);
 
 				if (allReady || round.OutputRegistrationTimeFrame.HasExpired)
@@ -160,6 +157,10 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 					round.LogInfo($"{coinjoin.Inputs.Count} inputs were added.");
 					round.LogInfo($"{coinjoin.Outputs.Count} outputs were added.");
+
+					long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate));
+					long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
+					var diff = aliceSum - bobSum;
 
 					// If timeout we must fill up the outputs to build a reasonable transaction.
 					// This won't be signed by the alice who failed to provide output, so we know who to ban.
