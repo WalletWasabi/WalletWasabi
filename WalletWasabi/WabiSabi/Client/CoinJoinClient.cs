@@ -124,7 +124,8 @@ namespace WalletWasabi.WabiSabi.Client
 
 				// Output registration.
 				roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
-				await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, cancellationToken).ConfigureAwait(false);
+ 				var remainingTimeForOutputRegistration = roundState.OutputRegistrationTimeout - RoundStatusUpdater.Period;
+ 				await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, remainingTimeForOutputRegistration, cancellationToken).ConfigureAwait(false);
 
 				// ReadyToSign.
 				await ReadyToSignAsync(registeredAliceClients, cancellationToken).ConfigureAwait(false);
@@ -192,7 +193,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 			// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to be registered.
 			var remainingTimeForRegistration = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
-			var scheduledDates = remainingTimeForRegistration.Sample(smartCoins.Count());
+			var scheduledDates = remainingTimeForRegistration.SamplePoisson(smartCoins.Count());
 
 			// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
 			var aliceClients = smartCoins.Zip(scheduledDates, (coin, date) => RegisterInputAsync(coin, cancellationToken).RunAsScheduledAsync(date, cancellationToken)).ToImmutableArray();
@@ -235,14 +236,14 @@ namespace WalletWasabi.WabiSabi.Client
 				}
 				catch (Exception e)
 				{
-					Logger.LogWarning($"Round ({aliceClient.RoundId}), Alice ({{aliceClient.AliceId}}): {nameof(AliceClient.SignTransactionAsync)} failed, reason:'{e}'.");
+					Logger.LogWarning($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Could not sign, reason:'{e}'.");
 					return default;
 				}
 			}
 
 			// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to sign.
 			var transactionSigningTimeFrame = roundState.TransactionSigningTimeout - RoundStatusUpdater.Period;
-			var scheduledDates = transactionSigningTimeFrame.Sample(aliceClients.Count());
+			var scheduledDates = transactionSigningTimeFrame.SamplePoisson(aliceClients.Count());
 
 			// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
 			var signingRequests = aliceClients.Zip(scheduledDates, (alice, date) => SignTransactionAsync(alice, cancellationToken).RunAsScheduledAsync(date, cancellationToken)).ToImmutableArray();

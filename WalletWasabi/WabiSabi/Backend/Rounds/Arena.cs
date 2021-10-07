@@ -15,30 +15,32 @@ using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
-using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+using WalletWasabi.WabiSabi.Backend.Rounds.Utils;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds
 {
 	public class Arena : PeriodicRunner
 	{
-		public Arena(TimeSpan period, Network network, WabiSabiConfig config, IRPCClient rpc, Prison prison) : base(period)
+		public Arena(TimeSpan period, Network network, WabiSabiConfig config, IRPCClient rpc, Prison prison, CoinJoinTransactionArchiver? archiver = null) : base(period)
 		{
 			Network = network;
 			Config = config;
 			Rpc = rpc;
 			Prison = prison;
+			TransactionArchiver = archiver;
 			Random = new SecureRandom();
 		}
 
 		public HashSet<Round> Rounds { get; } = new();
 		private AsyncLock AsyncLock { get; } = new();
-		public Network Network { get; }
-		public WabiSabiConfig Config { get; }
-		public IRPCClient Rpc { get; }
-		public Prison Prison { get; }
-		public SecureRandom Random { get; }
+		private Network Network { get; }
+		private WabiSabiConfig Config { get; }
+		private IRPCClient Rpc { get; }
+		private Prison Prison { get; }
+		private SecureRandom Random { get; }
+		private CoinJoinTransactionArchiver? TransactionArchiver { get; }
 
 		public IEnumerable<Round> ActiveRounds => Rounds.Where(x => x.Phase != Phase.Ended);
 
@@ -185,7 +187,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				{
 					if (state.IsFullySigned)
 					{
-						var coinjoin = state.CreateTransaction();
+						Transaction coinjoin = state.CreateTransaction();
 
 						// Logging.
 						round.LogInfo("Trying to broadcast coinjoin.");
@@ -205,6 +207,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 							round.LogInfo($"There are {count} occurrences of {value.ToString(true, false)} outputs.");
 						}
 						round.LogInfo($"There are {indistinguishableOutputs.Count(x => x.count == 1)} occurrences of unique outputs.");
+
+						// Store transaction.
+						if (TransactionArchiver is not null)
+						{
+							await TransactionArchiver.StoreJsonAsync(coinjoin).ConfigureAwait(false);
+						}
 
 						// Broadcasting.
 						await Rpc.SendRawTransactionAsync(coinjoin, cancellationToken).ConfigureAwait(false);
@@ -236,7 +244,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					.Select(x => (Alice: x, StatusTask: Rpc.GetTxOutAsync(x.Coin.Outpoint.Hash, (int)x.Coin.Outpoint.N, includeMempool: true, cancellationToken)))
 					.ToList();
 
-				cancellationToken.ThrowIfCancellationRequested();
 				await batchedRpc.SendBatchAsync(cancellationToken).ConfigureAwait(false);
 
 				var spendStatusCheckingTasks = aliceCheckingTaskPairs.Select(async x => (x.Alice, Status: await x.StatusTask.ConfigureAwait(false)));

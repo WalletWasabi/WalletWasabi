@@ -53,7 +53,7 @@ namespace WalletWasabi.Tor
 		/// <summary>Full path to Tor cookie file.</summary>
 		public string CookieAuthFilePath { get; }
 
-		/// <summary>Tor control endpoint.</summary>
+		/// <summary>Tor SOCKS5 endpoint.</summary>
 		public IPEndPoint SocksEndpoint { get; } = new(IPAddress.Loopback, 37150);
 
 		/// <summary>Tor control endpoint.</summary>
