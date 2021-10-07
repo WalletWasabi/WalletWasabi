@@ -71,30 +71,29 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			foreach (var round in Rounds.Where(x =>
 				x.Phase == Phase.InputRegistration
-				&& x.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.GetInputRegistrationTimeout(x)))
+				&& x.IsInputRegistrationEnded(Config.MaxInputCountByRound))
 				.ToArray())
 			{
+				await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false))
+				{
+					if (offendingAlices.Any())
+					{
+						round.Alices.RemoveAll(x => offendingAlices.Contains(x));
+					}
+				}
+
 				if (round.InputCount < Config.MinInputCountByRound)
 				{
+					if (!round.InputRegistrationTimeFrame.HasExpired)
+					{
+						continue;
+					}
 					round.SetPhase(Phase.Ended);
 					round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase.");
 				}
-				else
+				else if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
 				{
-					var thereAreOffendingAlices = false;
-					await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false))
-					{
-						if (offendingAlices.Any())
-						{
-							thereAreOffendingAlices = true;
-							var removed = round.Alices.RemoveAll(x => offendingAlices.Contains(x));
-							round.LogInfo($"There were {removed} alices removed because they spent the registered UTXO.");
-						}
-					}
-					if (!thereAreOffendingAlices)
-					{
-						round.SetPhase(Phase.ConnectionConfirmation);
-					}
+					round.SetPhase(Phase.ConnectionConfirmation);
 				}
 			}
 		}
@@ -107,7 +106,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				{
 					round.SetPhase(Phase.OutputRegistration);
 				}
-				else if (round.ConnectionConfirmationStart + round.ConnectionConfirmationTimeout < DateTimeOffset.UtcNow)
+				else if (round.ConnectionConfirmationTimeFrame.HasExpired)
 				{
 					var alicesDidntConfirm = round.Alices.Where(x => !x.ConfirmedConnection).ToArray();
 					foreach (var alice in alicesDidntConfirm)
@@ -149,17 +148,18 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			foreach (var round in Rounds.Where(x => x.Phase == Phase.OutputRegistration).ToArray())
 			{
-				long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate));
-				long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
-				var diff = aliceSum - bobSum;
 				var allReady = round.Alices.All(a => a.ReadyToSign);
 
-				if (allReady || round.OutputRegistrationStart + round.OutputRegistrationTimeout < DateTimeOffset.UtcNow)
+				if (allReady || round.OutputRegistrationTimeFrame.HasExpired)
 				{
 					var coinjoin = round.Assert<ConstructionState>();
 
 					round.LogInfo($"{coinjoin.Inputs.Count} inputs were added.");
 					round.LogInfo($"{coinjoin.Outputs.Count} outputs were added.");
+
+					long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate));
+					long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
+					var diff = aliceSum - bobSum;
 
 					// If timeout we must fill up the outputs to build a reasonable transaction.
 					// This won't be signed by the alice who failed to provide output, so we know who to ban.
@@ -221,9 +221,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 						round.LogInfo($"Successfully broadcast the CoinJoin: {coinjoin.GetHash()}.");
 					}
-					else if (round.TransactionSigningStart + round.TransactionSigningTimeout < DateTimeOffset.UtcNow)
+					else if (round.TransactionSigningTimeFrame.HasExpired)
 					{
-						throw new TimeoutException($"Round {round.Id}: Signing phase timed out after {round.TransactionSigningTimeout.TotalSeconds} seconds.");
+						throw new TimeoutException($"Round {round.Id}: Signing phase timed out after {round.TransactionSigningTimeFrame.Duration.TotalSeconds} seconds.");
 					}
 				}
 				catch (Exception ex)
@@ -311,7 +311,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private void TimeoutAlices()
 		{
-			foreach (var round in Rounds.Where(x => !x.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.GetInputRegistrationTimeout(x))).ToArray())
+			foreach (var round in Rounds.Where(x => !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)).ToArray())
 			{
 				var removedAliceCount = round.Alices.RemoveAll(x => x.Deadline < DateTimeOffset.UtcNow);
 				if (removedAliceCount > 0)
@@ -348,9 +348,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
 				}
 
-				if (round.IsInputRegistrationEnded(
-					Config.MaxInputCountByRound,
-					Config.GetInputRegistrationTimeout(round)))
+				if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
 				}
@@ -403,7 +401,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				var commitAmountCredentialResponse = await amountCredentialTask.ConfigureAwait(false);
 				var commitVsizeCredentialResponse = await vsizeCredentialTask.ConfigureAwait(false);
 
-				alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeout);
+				alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeFrame.Duration);
 				round.Alices.Add(alice);
 
 				return new(alice.Id,
@@ -512,7 +510,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 						{
 							var commitAmountZeroCredentialResponse = await amountZeroCredentialTask.ConfigureAwait(false);
 							var commitVsizeZeroCredentialResponse = await vsizeZeroCredentialTask.ConfigureAwait(false);
-							alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeout);
+							alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeFrame.Duration);
 							return new(
 								commitAmountZeroCredentialResponse,
 								commitVsizeZeroCredentialResponse);
