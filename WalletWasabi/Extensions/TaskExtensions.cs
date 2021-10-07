@@ -92,9 +92,10 @@ namespace System.Threading.Tasks
 		private static async Task WaitUntilAsync(DateTimeOffset when, CancellationToken cancellationToken)
 		{
 			var timeToWait = when - DateTimeOffset.UtcNow;
-			var fixedTimeToWait = timeToWait < TimeSpan.Zero ? TimeSpan.Zero : timeToWait;
-
-			await Task.Delay(fixedTimeToWait, cancellationToken).ConfigureAwait(false);
+			if (timeToWait > TimeSpan.Zero)
+			{
+				await Task.Delay(timeToWait, cancellationToken).ConfigureAwait(false);
+			}
 		}
 	}
 }
