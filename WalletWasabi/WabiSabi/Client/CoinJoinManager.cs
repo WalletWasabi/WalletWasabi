@@ -143,6 +143,7 @@ namespace WalletWasabi.WabiSabi.Client
 			WalletManager.GetWallets()
 				.Where(x => x.State == WalletState.Started) // Only running wallets
 				.Where(x => x.KeyManager.AutoCoinJoin || x.AllowManualCoinJoin)     // configured to be mixed automatically or manually
+				.Where(x => x.Coins.Any())
 				.Where(x => !x.KeyManager.IsWatchOnly)      // that are not watch-only wallets
 				.Where(x => x.Kitchen.HasIngredients)
 				.ToImmutableDictionary(x => x.WalletName, x => x);
