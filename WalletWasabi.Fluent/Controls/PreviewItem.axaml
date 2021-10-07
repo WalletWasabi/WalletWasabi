@@ -11,7 +11,7 @@
                               DockPanel.Dock="Left" />
                     <DockPanel DockPanel.Dock="Right" Margin="30 0 0 0">
                         <TextBlock Name="PART_Text" Text="{TemplateBinding Text}" DockPanel.Dock="Top" Margin="0 0 0 5" Opacity="0.6" />
-                        <DockPanel HorizontalAlignment="Stretch" DockPanel.Dock="Bottom">
+                        <DockPanel HorizontalAlignment="Left" DockPanel.Dock="Bottom">
                             <Panel DockPanel.Dock="Right"
                                    Width="30">
                                 <c:AnimatedButton Command="{TemplateBinding CopyCommand}"
