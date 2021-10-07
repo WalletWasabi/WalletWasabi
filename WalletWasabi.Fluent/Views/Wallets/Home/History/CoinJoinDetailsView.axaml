@@ -24,7 +24,8 @@
 
       <!-- Transaction IDs -->
       <c:PreviewItem Icon="{StaticResource transaction_id}"
-                     Text="Transaction ID">
+                     Text="Transaction ID"
+                     CopyParameter="{Binding TransactionIdString}">
         <c:PrivacyContentControl NumberOfPrivacyChars="48">
           <TextBox Classes="selectableTextBlock monoSpaced" Text="{Binding TransactionIdString}" />
         </c:PrivacyContentControl>
