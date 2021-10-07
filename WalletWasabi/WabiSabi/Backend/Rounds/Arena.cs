@@ -91,7 +91,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					round.SetPhase(Phase.Ended);
 					round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase.");
 				}
-				else
+				else if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
 				{
 					round.SetPhase(Phase.ConnectionConfirmation);
 				}
