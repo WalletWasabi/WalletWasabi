@@ -9,6 +9,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Http;
@@ -198,7 +199,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		{
 			Logger.LogTrace($"> request='{request.RequestUri}', circuit={circuit}");
 
-			string host = GetRequestHost(request);
+			string host = GetRequestHost(request.RequestUri!);
 
 			do
 			{
@@ -231,15 +232,56 @@ namespace WalletWasabi.Tor.Socks5.Pool
 			} while (true);
 		}
 
-		private async Task<TorTcpConnection?> CreateNewConnectionAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken cancellationToken)
+		/// <summary>
+		/// Makes sure there are <paramref name="count"/> connections by <paramref name="deadline"/>.
+		/// </summary>
+		/// <param name="baseUri">Host name for which to fire up a new Tor connection.</param>
+		/// <param name="count">Number of connections that should exists.</param>
+		/// <param name="deadline">Time by which to create as much connections as possible.</param>
+		/// <exception cref="OperationCanceledException">When the operation was canceled.</exception>
+		/// <returns></returns>
+		public async Task<List<TorTcpConnection>> EstablishConnectionsForFutureUseAsync(Uri baseUri, int count, DateTimeOffset deadline, CancellationToken cancellationToken = default)
+		{
+			Logger.LogTrace($"> baseUri='{baseUri}', count={count}, byWhen={deadline}");
+
+			using SecureRandom random = new();
+			List<TorTcpConnection> result = new();
+
+			for (int i = 0; i < count; i++)
+			{
+				DateTimeOffset now = DateTimeOffset.UtcNow;
+
+				if (now >= deadline)
+				{
+					break;
+				}
+
+				TimeSpan timeSpan = TimeSpan.FromMilliseconds(random.GetInt(0, (int)deadline.Subtract(now).TotalMilliseconds));
+				await Task.Delay(timeSpan, cancellationToken).ConfigureAwait(false);
+
+				OneOffCircuit circuit = new();
+				TorTcpConnection torTcpConnection = await CreateNewConnectionAsync(baseUri, circuit, cancellationToken).ConfigureAwait(false);
+				result.Add(torTcpConnection);
+			}
+
+			Logger.LogTrace("<");
+			return result;
+		}
+
+		private Task<TorTcpConnection> CreateNewConnectionAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken cancellationToken)
+		{
+			return CreateNewConnectionAsync(request.RequestUri!, circuit, cancellationToken);
+		}
+
+		private async Task<TorTcpConnection> CreateNewConnectionAsync(Uri requestUri, ICircuit circuit, CancellationToken cancellationToken)
 		{
 			TorTcpConnection? connection;
-			string host = GetRequestHost(request);
+			string host = GetRequestHost(requestUri);
 
 			try
 			{
-				connection = await TcpConnectionFactory.EstablishConnectionAsync(request.RequestUri!, circuit, cancellationToken).ConfigureAwait(false);
-				Logger.LogTrace($"[NEW {connection}]['{request.RequestUri}'] Created new Tor SOCKS5 connection.");
+				connection = await TcpConnectionFactory.EstablishConnectionAsync(requestUri, circuit, cancellationToken).ConfigureAwait(false);
+				Logger.LogTrace($"[NEW {connection}]['{requestUri}'] Created new Tor SOCKS5 connection.");
 			}
 			catch (TorException e)
 			{
@@ -297,9 +339,9 @@ namespace WalletWasabi.Tor.Socks5.Pool
 			}
 		}
 
-		private static string GetRequestHost(HttpRequestMessage request)
+		private static string GetRequestHost(Uri requestUri)
 		{
-			return Guard.NotNullOrEmptyOrWhitespace(nameof(request.RequestUri.DnsSafeHost), request.RequestUri!.DnsSafeHost, trim: true);
+			return Guard.NotNullOrEmptyOrWhitespace(nameof(requestUri.DnsSafeHost), requestUri.DnsSafeHost, trim: true);
 		}
 
 		/// <summary>Gets reserved <see cref="TorTcpConnection"/> to use, if any.</summary>

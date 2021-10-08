@@ -69,6 +69,16 @@ namespace WalletWasabi.Tor.Http
 			return TorHttpPool.SendAsync(request, circuit, token);
 		}
 
+		public Task EstablishConnectionsForFutureUseAsync(int count, DateTimeOffset byWhen)
+		{
+			if (BaseUriGetter is null)
+			{
+				throw new InvalidOperationException($"{nameof(BaseUriGetter)} is not set.");
+			}
+
+			return TorHttpPool.EstablishConnectionsForFutureUseAsync(BaseUriGetter().DnsSafeHost, count, byWhen);
+		}
+
 		public Task<bool> IsTorRunningAsync()
 		{
 			return TorHttpPool.IsTorRunningAsync();
