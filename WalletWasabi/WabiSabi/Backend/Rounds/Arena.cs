@@ -412,12 +412,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
 				var round = GetRound(request.RoundId);
-
-				if (round.Alices.Find(a => a.Id == request.AliceId) is not Alice alice)
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound, $"Round ({request.RoundId}): Alice id ({request.AliceId}).");
-				}
-
+				var alice = GetAlice(request.AliceId, round);
 				alice.ReadyToSign = true;
 			}
 		}
@@ -435,7 +430,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public async Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken)
 		{
 			Round round;
-			Alice? alice;
+			Alice alice;
 			var realAmountCredentialRequests = request.RealAmountCredentialRequests;
 			var realVsizeCredentialRequests = request.RealVsizeCredentialRequests;
 
@@ -443,11 +438,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				round = GetRound(request.RoundId, Phase.InputRegistration, Phase.ConnectionConfirmation);
 
-				alice = round.Alices.Find(x => x.Id == request.AliceId);
-				if (alice is null)
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound, $"Round ({request.RoundId}): Alice ({request.AliceId}) not found.");
-				}
+				alice = GetAlice(request.AliceId, round);
 
 				if (alice.ConfirmedConnection)
 				{
@@ -478,10 +469,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
-				if (round.Alices.Find(x => x.Id == request.AliceId) != alice)
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound, $"Round ({request.RoundId}): Alice ({request.AliceId}) not found.");
-				}
+				alice = GetAlice(request.AliceId, round);
 
 				switch (round.Phase)
 				{
@@ -647,5 +635,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		private Round GetRound(uint256 roundId, params Phase[] phases) =>
 			InPhase(GetRound(roundId), phases);
 
+		private Alice GetAlice(Guid aliceId, Round round) =>
+			round.Alices.Find(x => x.Id == aliceId)
+			?? throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound, $"Round ({round.Id}): Alice ({aliceId}) not found.");
 	}
 }
