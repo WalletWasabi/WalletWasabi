@@ -35,9 +35,9 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 			using TorTcpConnection defaultConnection = new(null!, new MemoryStream(), defaultIdentity, true);
 
 			Mock<TorTcpConnectionFactory> mockTcpConnectionFactory = new(MockBehavior.Strict, new IPEndPoint(IPAddress.Loopback, 7777));
-			_ = mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), aliceIdentity, It.IsAny<CancellationToken>())).ReturnsAsync(aliceConnection);
-			_ = mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), bobIdentity, It.IsAny<CancellationToken>())).ReturnsAsync(bobConnection);
-			_ = mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), defaultIdentity, It.IsAny<CancellationToken>())).ReturnsAsync(defaultConnection);
+			_ = mockTcpConnectionFactory.Setup(c => c.EstablishConnectionAsync(It.IsAny<Uri>(), aliceIdentity, It.IsAny<CancellationToken>())).ReturnsAsync(aliceConnection);
+			_ = mockTcpConnectionFactory.Setup(c => c.EstablishConnectionAsync(It.IsAny<Uri>(), bobIdentity, It.IsAny<CancellationToken>())).ReturnsAsync(bobConnection);
+			_ = mockTcpConnectionFactory.Setup(c => c.EstablishConnectionAsync(It.IsAny<Uri>(), defaultIdentity, It.IsAny<CancellationToken>())).ReturnsAsync(defaultConnection);
 
 			TorTcpConnectionFactory tcpConnectionFactory = mockTcpConnectionFactory.Object;
 
@@ -102,7 +102,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 			using TorTcpConnection connection = new(tcpClient: null!, transportStream.Client, circuit, allowRecycling: true);
 
 			Mock<TorTcpConnectionFactory> mockFactory = new(MockBehavior.Strict, new IPEndPoint(IPAddress.Loopback, 7777));
-			mockFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), It.IsAny<ICircuit>(), It.IsAny<CancellationToken>())).ReturnsAsync(connection);
+			mockFactory.Setup(c => c.EstablishConnectionAsync(It.IsAny<Uri>(), It.IsAny<ICircuit>(), It.IsAny<CancellationToken>())).ReturnsAsync(connection);
 
 			using StreamReader serverReader = new(transportStream.Server);
 			using StreamWriter serverWriter = new(transportStream.Server);

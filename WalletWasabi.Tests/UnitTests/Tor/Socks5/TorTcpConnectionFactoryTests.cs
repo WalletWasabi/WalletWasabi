@@ -59,7 +59,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 						TorTcpConnectionFactory factory = new(new IPEndPoint(IPAddress.Loopback, serverPort));
 
 						Logger.LogTrace($"[{nameof(AuthenticationErrorScenarioAsync)}][client] About to make connection.");
-						using TorTcpConnection torConnection = await factory.ConnectAsync(httpRequestHost, httpRequestPort, useSsl: false, DefaultCircuit.Instance, timeoutToken).ConfigureAwait(false);
+						using TorTcpConnection torConnection = await factory.EstablishConnectionAsync(httpRequestHost, httpRequestPort, useSsl: false, DefaultCircuit.Instance, timeoutToken).ConfigureAwait(false);
 						Logger.LogTrace($"[{nameof(AuthenticationErrorScenarioAsync)}][client] Connection established.");
 					},
 					timeoutToken);
@@ -132,7 +132,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 						TorTcpConnectionFactory factory = new(new IPEndPoint(IPAddress.Loopback, serverPort));
 
 						Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][client] About to make connection.");
-						using TorTcpConnection torConnection = await factory.ConnectAsync(httpRequestHost, httpRequestPort, useSsl: false, DefaultCircuit.Instance, timeoutToken);
+						using TorTcpConnection torConnection = await factory.EstablishConnectionAsync(httpRequestHost, httpRequestPort, useSsl: false, DefaultCircuit.Instance, timeoutToken);
 						Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][client] Connection established.");
 					},
 					timeoutToken);

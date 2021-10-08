@@ -238,7 +238,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 
 			try
 			{
-				connection = await TcpConnectionFactory.ConnectAsync(request.RequestUri!, circuit, cancellationToken).ConfigureAwait(false);
+				connection = await TcpConnectionFactory.EstablishConnectionAsync(request.RequestUri!, circuit, cancellationToken).ConfigureAwait(false);
 				Logger.LogTrace($"[NEW {connection}]['{request.RequestUri}'] Created new Tor SOCKS5 connection.");
 			}
 			catch (TorException e)

@@ -41,16 +41,16 @@ namespace WalletWasabi.Tor.Socks5
 		private int TorPort { get; }
 
 		/// <summary>
-		/// Creates a new connected TCP client connected to Tor SOCKS5 endpoint.
+		/// Creates a new connected TCP client connected to Tor SOCKS5 endpoint with <paramref name="requestUri"/> host in mind.
 		/// </summary>
-		/// <inheritdoc cref="ConnectAsync(string, int, bool, ICircuit, CancellationToken)"/>
-		public virtual async Task<TorTcpConnection> ConnectAsync(Uri requestUri, ICircuit circuit, CancellationToken token = default)
+		/// <inheritdoc cref="EstablishConnectionAsync(string, int, bool, ICircuit, CancellationToken)"/>
+		public virtual async Task<TorTcpConnection> EstablishConnectionAsync(Uri requestUri, ICircuit circuit, CancellationToken token = default)
 		{
 			bool useSsl = requestUri.Scheme == Uri.UriSchemeHttps;
 			string host = requestUri.DnsSafeHost;
 			int port = requestUri.Port;
 
-			return await ConnectAsync(host, port, useSsl, circuit, token).ConfigureAwait(false);
+			return await EstablishConnectionAsync(host, port, useSsl, circuit, token).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -61,9 +61,9 @@ namespace WalletWasabi.Tor.Socks5
 		/// <param name="useSsl">Whether to use SSL to send the HTTP request over Tor.</param>
 		/// <param name="circuit">Tor circuit we want to use in authentication.</param>
 		/// <param name="cancellationToken">Cancellation token to cancel the asynchronous operation.</param>
-		/// <returns>New <see cref="TorTcpConnection"/> instance.</returns>
+		/// <returns>New <see cref="TorTcpConnection"/> instance ready to accept HTTP(s) requests with given <paramref name="host"/>.</returns>
 		/// <exception cref="TorConnectionException">When <see cref="ConnectAsync(TcpClient, CancellationToken)"/> fails.</exception>
-		public async Task<TorTcpConnection> ConnectAsync(string host, int port, bool useSsl, ICircuit circuit, CancellationToken cancellationToken = default)
+		public async Task<TorTcpConnection> EstablishConnectionAsync(string host, int port, bool useSsl, ICircuit circuit, CancellationToken cancellationToken = default)
 		{
 			TcpClient? tcpClient = null;
 			Stream? transportStream = null;
