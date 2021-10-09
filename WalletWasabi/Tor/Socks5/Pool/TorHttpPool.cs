@@ -1,6 +1,7 @@
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -37,9 +38,10 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		}
 
 		/// <summary>Constructor that helps in tests.</summary>
-		internal TorHttpPool(TorTcpConnectionFactory tcpConnectionFactory)
+		internal TorHttpPool(TorTcpConnectionFactory tcpConnectionFactory, WasabiRandom? random = null)
 		{
 			TcpConnectionFactory = tcpConnectionFactory;
+			Random = random ?? new SecureRandom();
 		}
 
 		private bool _disposedValue;
@@ -52,6 +54,8 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		private AsyncLock ObtainPoolConnectionLock { get; } = new();
 
 		private TorTcpConnectionFactory TcpConnectionFactory { get; }
+
+		private WasabiRandom Random { get; }
 
 		public static DateTimeOffset? TorDoesntWorkSince { get; private set; }
 
@@ -364,18 +368,30 @@ namespace WalletWasabi.Tor.Socks5.Pool
 				tcpConnection.Dispose();
 			}
 
-			// Find the first free TCP connection, if it exists.
-			connection = hostConnections.Find(connection =>
+			// Find candidate TCP connections, if there is any.
+			IList<TorTcpConnection> candidates = hostConnections.Where(connection =>
 			{
-				// When one-off circuit is requested, we can use a DIFFERENT one-off circuit
-				// that was established upfront
-				if (requiredCircuit is OneOffCircuit && connection.Circuit is OneOffCircuit existingCircuit && existingCircuit.IsPreEstablished)
+				bool canUse = ReferenceEquals(connection.Circuit, requiredCircuit);
+
+				if (!canUse)
 				{
-					return connection.TryReserve();
+					// When one-off circuit is requested, we can use a DIFFERENT one-off circuit
+					// that was established upfront.
+					canUse = requiredCircuit is OneOffCircuit && connection.Circuit is OneOffCircuit existingCircuit && existingCircuit.IsPreEstablished;
 				}
 
-				return ReferenceEquals(connection.Circuit, requiredCircuit) && connection.TryReserve();
-			});
+				return canUse && connection.IsFreeToUse();
+			}).ToArray();
+
+			// Get random TCP connection from the candidates.
+			connection = (candidates.Count > 0)
+				? candidates[Random.GetInt(0, candidates.Count - 1)]
+				: null;
+
+			if (connection is not null)
+			{
+				Debug.Assert(connection.TryReserve());
+			}
 
 			bool canBeAdded = hostConnections.Count < MaxConnectionsPerHost;
 
@@ -395,6 +411,11 @@ namespace WalletWasabi.Tor.Socks5.Pool
 							Logger.LogTrace($"Dispose connection: '{connection}'");
 							connection.Dispose();
 						}
+					}
+
+					if (Random is IDisposable disposable)
+					{
+						disposable?.Dispose();
 					}
 				}
 				_disposedValue = true;
