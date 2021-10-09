@@ -214,7 +214,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (wallet.Coins.TotalAmount() > transactionInfo.Amount)
 			{
-				var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(wallet, transactionInfo, isSilent: false));
+				var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(wallet, transactionInfo, isSilent: false), NavigationTarget.DialogScreen);
 
 				if (privacyControlDialogResult.Kind == DialogResultKind.Normal && privacyControlDialogResult.Result is { })
 				{
@@ -236,7 +236,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					$"There are not enough {(transactionInfo.IsPrivatePocketUsed ? "private funds" : "funds selected")} to cover the transaction fee",
 					"Wasabi was unable to create your transaction.");
 
-				var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(wallet, transactionInfo, false));
+				var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(wallet, transactionInfo, false), NavigationTarget.DialogScreen);
 				if (feeDialogResult.Kind == DialogResultKind.Normal)
 				{
 					transactionInfo.FeeRate = feeDialogResult.Result;
@@ -247,7 +247,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					return txn;
 				}
 
-				var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(wallet, transactionInfo, isSilent: false));
+				var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(wallet, transactionInfo, isSilent: false), NavigationTarget.DialogScreen);
 				if (privacyControlDialogResult.Kind == DialogResultKind.Normal && privacyControlDialogResult.Result is { })
 				{
 					transactionInfo.Coins = privacyControlDialogResult.Result;
