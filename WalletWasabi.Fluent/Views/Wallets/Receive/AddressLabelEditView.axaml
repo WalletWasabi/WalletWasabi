@@ -24,7 +24,8 @@
                RestrictInputToSuggestions="False"
                VerticalAlignment="Top"
                MaxWidth="320"
-               IsCurrentTextValid="{Binding IsCurrentTextValid, Mode=OneWayToSource}">
+               IsCurrentTextValid="{Binding IsCurrentTextValid, Mode=OneWayToSource}"
+               MaxTextLength="{StaticResource MaxLabelLength}">
       <i:Interaction.Behaviors>
         <behaviors:FocusOnAttachedBehavior />
       </i:Interaction.Behaviors>
