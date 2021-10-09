@@ -65,7 +65,7 @@ namespace WalletWasabi.Tor.Http
 		/// <exception cref="OperationCanceledException">If <paramref name="token"/> is set.</exception>
 		public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
 		{
-			ICircuit circuit = Mode is Mode.NewCircuitPerRequest ? new OneOffCircuit() : PredefinedCircuit!;
+			ICircuit circuit = Mode is Mode.NewCircuitPerRequest ? new OneOffCircuit(isPreEstablished: false) : PredefinedCircuit!;
 			return TorHttpPool.SendAsync(request, circuit, token);
 		}
 
@@ -76,7 +76,7 @@ namespace WalletWasabi.Tor.Http
 				throw new InvalidOperationException($"{nameof(BaseUriGetter)} is not set.");
 			}
 
-			return TorHttpPool.EstablishConnectionsForFutureUseAsync(BaseUriGetter().DnsSafeHost, count, byWhen);
+			return TorHttpPool.EstablishConnectionsForFutureUseAsync(BaseUriGetter(), count, byWhen);
 		}
 
 		public Task<bool> IsTorRunningAsync()

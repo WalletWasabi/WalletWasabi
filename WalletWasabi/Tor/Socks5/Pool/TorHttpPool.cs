@@ -259,7 +259,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 				TimeSpan timeSpan = TimeSpan.FromMilliseconds(random.GetInt(0, (int)deadline.Subtract(now).TotalMilliseconds));
 				await Task.Delay(timeSpan, cancellationToken).ConfigureAwait(false);
 
-				OneOffCircuit circuit = new();
+				OneOffCircuit circuit = new(isPreEstablished: true);
 				TorTcpConnection torTcpConnection = await CreateNewConnectionAsync(baseUri, circuit, cancellationToken).ConfigureAwait(false);
 				result.Add(torTcpConnection);
 			}
@@ -346,9 +346,9 @@ namespace WalletWasabi.Tor.Socks5.Pool
 
 		/// <summary>Gets reserved <see cref="TorTcpConnection"/> to use, if any.</summary>
 		/// <param name="host">URI's host value.</param>
-		/// <param name="circuit">Tor circuit for which to get a TCP connection.</param>
+		/// <param name="requiredCircuit">Tor circuit for which to get a TCP connection.</param>
 		/// <returns>Whether a connection can be added to <see cref="ConnectionPerHost"/> and reserved connection to use, if any.</returns>
-		private bool GetPoolConnectionNoLock(string host, ICircuit circuit, out TorTcpConnection? connection)
+		private bool GetPoolConnectionNoLock(string host, ICircuit requiredCircuit, out TorTcpConnection? connection)
 		{
 			if (!ConnectionPerHost.ContainsKey(host))
 			{
@@ -365,7 +365,17 @@ namespace WalletWasabi.Tor.Socks5.Pool
 			}
 
 			// Find the first free TCP connection, if it exists.
-			connection = hostConnections.Find(connection => (connection.Circuit == circuit) && connection.TryReserve());
+			connection = hostConnections.Find(connection =>
+			{
+				// When one-off circuit is requested, we can use a DIFFERENT one-off circuit
+				// that was established upfront
+				if (requiredCircuit is OneOffCircuit && connection.Circuit is OneOffCircuit existingCircuit && existingCircuit.IsPreEstablished)
+				{
+					return connection.TryReserve();
+				}
+
+				return ReferenceEquals(connection.Circuit, requiredCircuit) && connection.TryReserve();
+			});
 
 			bool canBeAdded = hostConnections.Count < MaxConnectionsPerHost;
 
