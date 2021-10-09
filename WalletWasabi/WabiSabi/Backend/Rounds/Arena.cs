@@ -281,14 +281,19 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		private async Task CreateBlameRoundAsync(Round round, CancellationToken cancellationToken)
 		{
 			var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
-			RoundParameters parameters = new(Config, Network, Random, feeRate, blameOf: round, Prison);
-			Round blameRound = new(parameters);
+			RoundParameters parameters = new(Config, Network, Random, feeRate);
+			var blameWhitelist = round.Alices
+				.Select(x => x.Coin.Outpoint)
+				.Where(x => !Prison.IsBanned(x))
+				.ToHashSet();
+
+			BlameRound blameRound = new(parameters, round, blameWhitelist);
 			Rounds.Add(blameRound);
 		}
 
 		private async Task CreateRoundsAsync(CancellationToken cancellationToken)
 		{
-			if (!Rounds.Any(x => !x.IsBlameRound && x.Phase == Phase.InputRegistration))
+			if (!Rounds.Any(x => x is not BlameRound && x.Phase == Phase.InputRegistration))
 			{
 				var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
 
@@ -353,7 +358,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
 				}
 
-				if (round.IsBlameRound && !round.BlameWhitelist.Contains(coin.Outpoint))
+				if (round is BlameRound blameRound && !blameRound.BlameWhitelist.Contains(coin.Outpoint))
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputNotWhitelisted);
 				}
