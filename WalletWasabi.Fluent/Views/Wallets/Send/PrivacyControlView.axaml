@@ -59,28 +59,28 @@
         </TemplatedDataGrid.Resources>
         <TemplatedDataGrid.Columns>
           <TemplatedDataGridColumn>
-            <DataGridTemplateColumn.CellTemplate>
+            <TemplatedDataGridColumn.CellTemplate>
               <DataTemplate x:DataType="vm:PocketViewModel">
                 <CheckBox HorizontalAlignment="Center" IsChecked="{Binding IsSelected}" Focusable="False" />
               </DataTemplate>
-            </DataGridTemplateColumn.CellTemplate>
+            </TemplatedDataGridColumn.CellTemplate>
           </TemplatedDataGridColumn>
 
           <TemplatedDataGridColumn x:DataType="vm:PocketViewModel"
                                    Header="Total (BTC)">
-            <DataGridTemplateColumn.CellTemplate>
+            <TemplatedDataGridColumn.CellTemplate>
               <DataTemplate x:DataType="vm:PocketViewModel">
                 <TextBlock Text="{Binding TotalBtc}" />
               </DataTemplate>
-            </DataGridTemplateColumn.CellTemplate>
+            </TemplatedDataGridColumn.CellTemplate>
           </TemplatedDataGridColumn>
 
           <TemplatedDataGridColumn Width="*" Header="Labels">
-            <DataGridTemplateColumn.CellTemplate>
+            <TemplatedDataGridColumn.CellTemplate>
               <DataTemplate x:DataType="vm:PocketViewModel">
                 <c:TagsBox Items="{Binding Labels}" IsReadOnly="True" HorizontalAlignment="Left" />
               </DataTemplate>
-            </DataGridTemplateColumn.CellTemplate>
+            </TemplatedDataGridColumn.CellTemplate>
           </TemplatedDataGridColumn>
         </TemplatedDataGrid.Columns>
       </TemplatedDataGrid>
