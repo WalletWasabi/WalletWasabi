@@ -244,29 +244,30 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		/// <param name="deadline">Time by which to create as much connections as possible.</param>
 		/// <exception cref="OperationCanceledException">When the operation was canceled.</exception>
 		/// <returns></returns>
-		public async Task<List<TorTcpConnection>> EstablishConnectionsForFutureUseAsync(Uri baseUri, int count, DateTimeOffset deadline, CancellationToken cancellationToken = default)
+		public async Task<TorTcpConnection[]> EstablishConnectionsForFutureUseAsync(Uri baseUri, int count, DateTimeOffset deadline, CancellationToken cancellationToken = default)
 		{
 			Logger.LogTrace($"> baseUri='{baseUri}', count={count}, byWhen={deadline}");
 
 			using SecureRandom random = new();
-			List<TorTcpConnection> result = new();
+			List<Task<TorTcpConnection>> tasks = new();
+			int timeBudgetMs = (int)deadline.Subtract(DateTimeOffset.UtcNow).TotalMilliseconds;
 
 			for (int i = 0; i < count; i++)
 			{
-				DateTimeOffset now = DateTimeOffset.UtcNow;
+				Task<TorTcpConnection> connectionTask = Task.Run(async () =>
+				{					
+					int randomDelayMs = random.GetInt(0, timeBudgetMs);
+					await Task.Delay(TimeSpan.FromMilliseconds(randomDelayMs), cancellationToken).ConfigureAwait(false);
 
-				if (now >= deadline)
-				{
-					break;
-				}
+					OneOffCircuit circuit = new(isPreEstablished: true);
+					TorTcpConnection torTcpConnection = await CreateNewConnectionAsync(baseUri, circuit, cancellationToken).ConfigureAwait(false);
+					return torTcpConnection;
+				});
 
-				TimeSpan timeSpan = TimeSpan.FromMilliseconds(random.GetInt(0, (int)deadline.Subtract(now).TotalMilliseconds));
-				await Task.Delay(timeSpan, cancellationToken).ConfigureAwait(false);
-
-				OneOffCircuit circuit = new(isPreEstablished: true);
-				TorTcpConnection torTcpConnection = await CreateNewConnectionAsync(baseUri, circuit, cancellationToken).ConfigureAwait(false);
-				result.Add(torTcpConnection);
+				tasks.Add(connectionTask);
 			}
+
+			TorTcpConnection[] result = await Task.WhenAll(tasks).ConfigureAwait(false);
 
 			Logger.LogTrace("<");
 			return result;
