@@ -50,37 +50,40 @@
       </StackPanel>
 
       <!-- List -->
-      <DataGrid AutoGenerateColumns="False"
-                Items="{Binding Pockets}">
-        <DataGrid.Resources>
+      <TemplatedDataGrid Items="{Binding Pockets}">
+        <TemplatedDataGrid.Resources>
           <SolidColorBrush x:Key="DataGridRowIndicatorBrush" Color="Transparent" />
           <SolidColorBrush x:Key="DataGridRowSelectedBackgroundColor" Color="Transparent" />
           <StaticResource x:Key="DataGridRowSelectedUnfocusedBackgroundColor"
                           ResourceKey="DataGridRowSelectedBackgroundColor" />
-        </DataGrid.Resources>
-        <DataGrid.Columns>
-          <DataGridTemplateColumn CanUserSort="False" CanUserResize="False" CanUserReorder="False">
+        </TemplatedDataGrid.Resources>
+        <TemplatedDataGrid.Columns>
+          <TemplatedDataGridColumn CanUserSort="False" CanUserResize="False" CanUserReorder="False">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:PocketViewModel">
                 <CheckBox HorizontalAlignment="Center" IsChecked="{Binding IsSelected}" Focusable="False" />
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
-          </DataGridTemplateColumn>
+          </TemplatedDataGridColumn>
 
-          <DataGridTextColumn x:DataType="vm:PocketViewModel"
-                              CanUserSort="False"
-                              Header="Total (BTC)"
-                              Binding="{Binding TotalBtc}" />
+          <TemplatedDataGridColumn x:DataType="vm:PocketViewModel"
+                                   Header="Total (BTC)">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:PocketViewModel">
+                <TextBlock Text="{Binding TotalBtc}" />
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </TemplatedDataGridColumn>
 
-          <DataGridTemplateColumn CanUserSort="False" Width="*" Header="Labels">
+          <TemplatedDataGridColumn Width="*" Header="Labels">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:PocketViewModel">
                 <c:TagsBox Items="{Binding Labels}" IsReadOnly="True" HorizontalAlignment="Left" />
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
-          </DataGridTemplateColumn>
-        </DataGrid.Columns>
-      </DataGrid>
+          </TemplatedDataGridColumn>
+        </TemplatedDataGrid.Columns>
+      </TemplatedDataGrid>
     </DockPanel>
   </c:ContentArea>
 </UserControl>
