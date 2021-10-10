@@ -998,12 +998,10 @@
           "System.Security.Principal.Windows": "4.7.0"
         }
       },
-      "datalistboxdemo": {
+      "datalistbox": {
         "type": "Project",
         "dependencies": {
-          "Avalonia": "0.10.7",
-          "Avalonia.Desktop": "0.10.7",
-          "Avalonia.Diagnostics": "0.10.7"
+          "Avalonia": "0.10.7"
         }
       },
       "walletwasabi": {
@@ -1022,7 +1020,7 @@
           "Avalonia.Diagnostics": "0.10.999-cibuild0015644-beta",
           "Avalonia.ReactiveUI": "0.10.999-cibuild0015644-beta",
           "Avalonia.Xaml.Behaviors": "0.10.7",
-          "DataListBoxDemo": "1.0.0",
+          "DataListBox": "1.0.0",
           "OpenCvSharp4": "4.5.2.20210404",
           "OpenCvSharp4.runtime.win": "4.5.2.20210404",
           "WalletWasabi": "1.0.0",

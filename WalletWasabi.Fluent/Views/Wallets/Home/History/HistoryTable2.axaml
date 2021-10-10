@@ -107,7 +107,7 @@
       <Setter Property="IsVisible" Value="False"/>
     </Style>
 
-    <StyleInclude Source="avares://DataListBoxDemo/Themes/Fluent.axaml"/>
+    <StyleInclude Source="avares://DataListBox/Themes/Fluent.axaml"/>
 
   </UserControl.Styles>
 

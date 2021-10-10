@@ -24,7 +24,7 @@
 		<PackageReference Include="OpenCvSharp4.runtime.win" Version="4.5.2.20210404" />
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\..\CellPanelDemo\DataListBoxDemo\DataListBoxDemo.csproj" />
+		<ProjectReference Include="..\..\DataListBox\DataListBox\DataListBox.csproj" />
 		<ProjectReference Include="..\WalletWasabi.Gui\WalletWasabi.Gui.csproj" />
 		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
 		<ProjectReference Include="..\WalletWasabi.Fluent.Generators\WalletWasabi.Fluent.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />

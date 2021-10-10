@@ -1001,12 +1001,19 @@
           "System.Security.Principal.Windows": "4.7.0"
         }
       },
+      "datalistbox": {
+        "type": "Project",
+        "dependencies": {
+          "Avalonia": "0.10.7"
+        }
+      },
       "datalistboxdemo": {
         "type": "Project",
         "dependencies": {
           "Avalonia": "0.10.7",
           "Avalonia.Desktop": "0.10.7",
-          "Avalonia.Diagnostics": "0.10.7"
+          "Avalonia.Diagnostics": "0.10.7",
+          "DataListBox": "1.0.0"
         }
       },
       "walletwasabi": {
