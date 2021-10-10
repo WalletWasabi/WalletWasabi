@@ -34,7 +34,7 @@
 
       <TemplatedDataGrid.Columns>
         <TemplatedDataGridColumn Header="Labels"
-                                         Width="Auto">
+                                 Width="Auto">
           <TemplatedDataGridColumn.CellTemplate>
             <DataTemplate>
               <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
