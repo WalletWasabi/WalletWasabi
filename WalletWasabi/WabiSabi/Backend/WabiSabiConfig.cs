@@ -84,7 +84,7 @@ namespace WalletWasabi.WabiSabi.Backend
 		[JsonProperty(PropertyName = "MinInputCountByRoundMultiplier", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public double MinInputCountByRoundMultiplier { get; set; } = 0.5;
 
-		public int MinInputCountByRound => (int)(MaxInputCountByRound * MinInputCountByRoundMultiplier);
+		public int MinInputCountByRound => Math.Max(1, (int)(MaxInputCountByRound * MinInputCountByRoundMultiplier));
 
 		/// <summary>
 		/// If money comes to the blame script, then either an attacker lost money or there's a client bug.
