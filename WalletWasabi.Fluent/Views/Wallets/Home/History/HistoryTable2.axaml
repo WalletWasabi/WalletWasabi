@@ -106,9 +106,6 @@
     <Style Selector="PathIcon.hidden">
       <Setter Property="IsVisible" Value="False"/>
     </Style>
-
-    <StyleInclude Source="avares://DataListBox/Themes/Fluent.axaml"/>
-
   </UserControl.Styles>
 
   <TemplatedDataGrid Items="{Binding Transactions}"
