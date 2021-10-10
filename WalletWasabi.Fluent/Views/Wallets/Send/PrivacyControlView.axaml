@@ -58,7 +58,7 @@
                           ResourceKey="DataGridRowSelectedBackgroundColor" />
         </TemplatedDataGrid.Resources>
         <TemplatedDataGrid.Columns>
-          <TemplatedDataGridColumn CanUserSort="False" CanUserResize="False" CanUserReorder="False">
+          <TemplatedDataGridColumn>
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:PocketViewModel">
                 <CheckBox HorizontalAlignment="Center" IsChecked="{Binding IsSelected}" Focusable="False" />
