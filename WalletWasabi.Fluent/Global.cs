@@ -23,6 +23,7 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Extensions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Rpc;
