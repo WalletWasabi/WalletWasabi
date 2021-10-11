@@ -192,14 +192,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public void UpdateFeeEstimates(Dictionary<int, int> feeEstimates)
 		{
-			var xs = feeEstimates.Select(x => (double)x.Key).ToArray();
-			var ys = feeEstimates.Select(x => (double)x.Value).ToArray();
+			var correctedFeeEstimates = DistinctByValues(feeEstimates);
+
+			var xs = correctedFeeEstimates.Select(x => (double)x.Key).ToArray();
+			var ys = correctedFeeEstimates.Select(x => (double)x.Value).ToArray();
 
 			GetSmoothValuesSubdivide(xs, ys, out var xts, out var yts);
 			var confirmationTargetValues = xts.ToArray();
 			var satoshiPerByteValues = yts.ToArray();
 
-			var confirmationTargetLabels = feeEstimates.Select(x => x.Key)
+			var confirmationTargetLabels = correctedFeeEstimates.Select(x => x.Key)
 				.Select(x => FeeTargetTimeConverter.Convert(x, "m", "h", "h", "d", "d"))
 				.Reverse()
 				.ToArray();
@@ -260,6 +262,24 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 
 			return values;
+		}
+
+		private Dictionary<int, int> DistinctByValues(Dictionary<int, int> feeEstimates)
+		{
+			Dictionary<int, int> valuesToReturn = new();
+
+			foreach (var estimate in feeEstimates)
+			{
+				var similarBlockTargets = feeEstimates.Where(x => x.Value == estimate.Value);
+				var fasterSimilarBlockTarget = similarBlockTargets.First();
+
+				if (fasterSimilarBlockTarget.Key == estimate.Key)
+				{
+					valuesToReturn.Add(estimate.Key, estimate.Value);
+				}
+			}
+
+			return valuesToReturn;
 		}
 	}
 }
