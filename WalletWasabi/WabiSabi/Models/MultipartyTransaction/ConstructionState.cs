@@ -61,7 +61,7 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NonUniqueInputs);
 			}
 
-			return this with { Inputs = Inputs.Add(coin) };
+			return this with { Inputs = Inputs.Add(coin), PreviousState = this, Order = Order + 1 };
 		}
 
 		public ConstructionState AddOutput(TxOut output)
@@ -94,7 +94,7 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.ScriptNotAllowed);
 			}
 
-			return this with { Outputs = Outputs.Add(output) };
+			return this with { Outputs = Outputs.Add(output), PreviousState = this, Order = Order + 1 };
 		}
 
 		public SigningState Finalize()

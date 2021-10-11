@@ -31,7 +31,7 @@ namespace WalletWasabi.WabiSabi.Models
 
 		public DateTimeOffset InputRegistrationEnd => InputRegistrationStart + InputRegistrationTimeout;
 
-		public static RoundState FromRound(Round round) =>
+		public static RoundState FromRound(Round round, long order = -1) =>
 			new(
 				round is BlameRound blameRound ? blameRound.BlameOf.Id : uint256.Zero,
 				round.AmountCredentialIssuerParameters,
@@ -47,7 +47,7 @@ namespace WalletWasabi.WabiSabi.Models
 				round.MaxAmountCredentialValue,
 				round.MaxVsizeCredentialValue,
 				round.MaxVsizeAllocationPerAlice,
-				round.CoinjoinState);
+				round.CoinjoinState.GetConstructionStateSince(order));
 
 		public TState Assert<TState>() where TState : MultipartyTransactionState =>
 			CoinjoinState switch
