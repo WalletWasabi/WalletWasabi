@@ -5,6 +5,8 @@ using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 
 namespace WalletWasabi.Fluent.Behaviors
@@ -22,7 +24,7 @@ namespace WalletWasabi.Fluent.Behaviors
 
 		protected override void OnAttached(CompositeDisposable disposables)
 		{
-			if (AssociatedObject is null)
+			if (AssociatedObject is null || Slider is null)
 			{
 				return;
 			}
@@ -41,13 +43,42 @@ namespace WalletWasabi.Fluent.Behaviors
 				.FromEventPattern(AssociatedObject, nameof(AssociatedObject.PointerCaptureLost))
 				.Subscribe(_ => SetSliderTooTipIsOpen(false))
 				.DisposeWith(disposables);
+
+			Slider.AddHandler(InputElement.PointerPressedEvent, PointerPressed, RoutingStrategies.Tunnel);
+			Slider.AddHandler(InputElement.PointerReleasedEvent, PointerReleased, RoutingStrategies.Tunnel);
+			Slider.AddHandler(InputElement.PointerCaptureLostEvent, PointerCaptureLost, RoutingStrategies.Tunnel);
 		}
 
 		protected override void OnDetaching()
 		{
 			SetSliderTooTipIsOpen(false);
 
+			Slider?.RemoveHandler(InputElement.PointerPressedEvent, PointerPressed);
+			Slider?.RemoveHandler(InputElement.PointerReleasedEvent, PointerReleased);
+			Slider?.RemoveHandler(InputElement.PointerCaptureLostEvent, PointerCaptureLost);
+
 			base.OnDetaching();
+		}
+
+		private void PointerPressed(object? sender, PointerPressedEventArgs e)
+		{
+			if (sender is not Thumb)
+			{
+				SetSliderTooTipIsOpen(true);
+			}
+		}
+
+		private void PointerReleased(object? sender, PointerReleasedEventArgs e)
+		{
+			if (sender is not Thumb)
+			{
+				SetSliderTooTipIsOpen(false);
+			}
+		}
+
+		private void PointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
+		{
+			SetSliderTooTipIsOpen(false);
 		}
 
 		private void SetSliderTooTipIsOpen(bool isOpen)
