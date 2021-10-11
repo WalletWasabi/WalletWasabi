@@ -43,7 +43,7 @@
 
       <!-- CJ fee  -->
       <c:PreviewItem Icon="{StaticResource btc_logo}"
-                     Text="Amount"
+                     Text="Mining fee paid"
                      CopyParameter="{Binding CoinJoinFee}">
         <TextBox Classes="selectableTextBlock" Text="{Binding CoinJoinFee, StringFormat={}{0} BTC}" />
       </c:PreviewItem>
