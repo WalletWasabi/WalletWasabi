@@ -40,7 +40,7 @@
     <StyleInclude Source="avares://DataListBox/Themes/Fluent.axaml"/>
   </Application.Styles>
 
-  <TrayIcon.TrayIcons>
+  <TrayIcon.Icons>
     <TrayIcons>
       <TrayIcon Icon="/Assets/WasabiLogo.ico">
         <NativeMenu.Menu>
@@ -50,5 +50,5 @@
         </NativeMenu.Menu>
       </TrayIcon>
     </TrayIcons>
-  </TrayIcon.TrayIcons>
+  </TrayIcon.Icons>
 </Application>
