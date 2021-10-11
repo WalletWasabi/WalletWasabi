@@ -57,6 +57,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems
 			UpdateAmount();
 
 			base.Update(item);
+
+			this.RaisePropertyChanged();
 		}
 
 		protected void UpdateDateString()
