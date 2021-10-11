@@ -29,6 +29,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			VsizeCredentialIssuer = new(new(RoundParameters.Random), RoundParameters.Random, MaxVsizeCredentialValue);
 			AmountCredentialIssuerParameters = AmountCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 			VsizeCredentialIssuerParameters = VsizeCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
+
+			InputRegistrationTimeFrame = TimeFrame.Create(IsBlameRound ? RoundParameters.BlameInputRegistrationTimeout : RoundParameters.StandardInputRegistrationTimeout).StartNow();
+			ConnectionConfirmationTimeFrame = TimeFrame.Create(RoundParameters.ConnectionConfirmationTimeout);
+			OutputRegistrationTimeFrame = TimeFrame.Create(RoundParameters.OutputRegistrationTimeout);
+			TransactionSigningTimeFrame = TimeFrame.Create(RoundParameters.TransactionSigningTimeout);
 		}
 
 		public uint256 Id => _id ??= CalculateHash();
@@ -51,16 +56,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public bool IsBlameRound => RoundParameters.IsBlameRound;
 		public ISet<OutPoint> BlameWhitelist => RoundParameters.BlameWhitelist;
 
-		public TimeSpan InputRegistrationTimeout => IsBlameRound ? RoundParameters.BlameInputRegistrationTimeout : RoundParameters.StandardInputRegistrationTimeout;
-		public TimeSpan ConnectionConfirmationTimeout => RoundParameters.ConnectionConfirmationTimeout;
-		public TimeSpan OutputRegistrationTimeout => RoundParameters.OutputRegistrationTimeout;
-		public TimeSpan TransactionSigningTimeout => RoundParameters.TransactionSigningTimeout;
-
 		public Phase Phase { get; private set; } = Phase.InputRegistration;
-		public DateTimeOffset InputRegistrationStart { get; } = DateTimeOffset.UtcNow;
-		public DateTimeOffset ConnectionConfirmationStart { get; private set; }
-		public DateTimeOffset OutputRegistrationStart { get; private set; }
-		public DateTimeOffset TransactionSigningStart { get; private set; }
+		public TimeFrame InputRegistrationTimeFrame { get; internal set; }
+		public TimeFrame ConnectionConfirmationTimeFrame { get; private set; }
+		public TimeFrame OutputRegistrationTimeFrame { get; private set; }
+		public TimeFrame TransactionSigningTimeFrame { get; private set; }
 		public DateTimeOffset End { get; private set; }
 		public bool WasTransactionBroadcast { get; set; }
 		public int InitialInputVsizeAllocation { get; internal set; }
@@ -87,15 +87,15 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 			if (phase == Phase.ConnectionConfirmation)
 			{
-				ConnectionConfirmationStart = DateTimeOffset.UtcNow;
+				ConnectionConfirmationTimeFrame = ConnectionConfirmationTimeFrame.StartNow();
 			}
 			else if (phase == Phase.OutputRegistration)
 			{
-				OutputRegistrationStart = DateTimeOffset.UtcNow;
+				OutputRegistrationTimeFrame = OutputRegistrationTimeFrame.StartNow();
 			}
 			else if (phase == Phase.TransactionSigning)
 			{
-				TransactionSigningStart = DateTimeOffset.UtcNow;
+				TransactionSigningTimeFrame = TransactionSigningTimeFrame.StartNow();
 			}
 			else if (phase == Phase.Ended)
 			{
@@ -103,7 +103,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		public bool IsInputRegistrationEnded(int maxInputCount, TimeSpan inputRegistrationTimeout)
+		public bool IsInputRegistrationEnded(int maxInputCount)
 		{
 			if (Phase > Phase.InputRegistration)
 			{
@@ -122,12 +122,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				return true;
 			}
 
-			if (InputRegistrationStart + inputRegistrationTimeout < DateTimeOffset.UtcNow)
-			{
-				return true;
-			}
-
-			return false;
+			return InputRegistrationTimeFrame.HasExpired;
 		}
 
 		public ConstructionState AddInput(Coin coin)
@@ -141,11 +136,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private uint256 CalculateHash()
 			=> RoundHasher.CalculateHash(
-					InputRegistrationStart,
-					InputRegistrationTimeout,
-					ConnectionConfirmationTimeout,
-					OutputRegistrationTimeout,
-					TransactionSigningTimeout,
+					InputRegistrationTimeFrame.StartTime,
+					InputRegistrationTimeFrame.Duration,
+					ConnectionConfirmationTimeFrame.Duration,
+					OutputRegistrationTimeFrame.Duration,
+					TransactionSigningTimeFrame.Duration,
 					CoinjoinState.Parameters.AllowedInputAmounts,
 					CoinjoinState.Parameters.AllowedInputTypes,
 					CoinjoinState.Parameters.AllowedOutputAmounts,

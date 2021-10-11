@@ -39,7 +39,7 @@
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/PrivacyContentControl.axaml" />
   </Application.Styles>
 
-  <TrayIcon.TrayIcons>
+  <TrayIcon.Icons>
     <TrayIcons>
       <TrayIcon Icon="/Assets/WasabiLogo.ico">
         <NativeMenu.Menu>
@@ -49,5 +49,5 @@
         </NativeMenu.Menu>
       </TrayIcon>
     </TrayIcons>
-  </TrayIcon.TrayIcons>
+  </TrayIcon.Icons>
 </Application>
