@@ -47,8 +47,8 @@
         <TextBlock Text="Wallet Privacy Status" DockPanel.Dock="Top" />
         <DockPanel LastChildFill="True" TextBlock.FontSize="12"
                    VerticalAlignment="Stretch">
-            <ItemsRepeater DockPanel.Dock="Bottom" Margin="0,0,0,-8" Items="{Binding TestDataPointsLegend}">
-                <ItemsRepeater.ItemTemplate>
+            <ItemsControl DockPanel.Dock="Bottom" Margin="0,0,0,-8" Items="{Binding TestDataPointsLegend}">
+                <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="wallets:DataLegend">
                         <Grid ColumnDefinitions="*,*">
                             <DockPanel Margin="0,8">
@@ -67,11 +67,13 @@
                             </DockPanel>
                         </Grid>
                     </DataTemplate>
-                </ItemsRepeater.ItemTemplate>
-                <ItemsRepeater.Layout>
-                    <StackLayout />
-                </ItemsRepeater.Layout>
-            </ItemsRepeater>
+                </ItemsControl.ItemTemplate>
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
             <Separator DockPanel.Dock="Bottom" Margin="-16 5" HorizontalAlignment="Stretch" />
             <controls:PrivacyContentControl PrivacyReplacementMode="Icon">
               <Panel Margin="8" VerticalAlignment="Center" HorizontalAlignment="Center">
