@@ -9,10 +9,10 @@ using Avalonia.VisualTree;
 
 namespace WalletWasabi.Fluent.Behaviors
 {
-	public class ShowFeeSliderToolTipBehavior : DisposingBehavior<Control>
+	public class ShowSliderThumbToolTipBehavior : DisposingBehavior<Control>
 	{
 		public static readonly StyledProperty<Slider?> SliderProperty =
-			AvaloniaProperty.Register<ShowFeeSliderToolTipBehavior, Slider?>(nameof(Slider));
+			AvaloniaProperty.Register<ShowSliderThumbToolTipBehavior, Slider?>(nameof(Slider));
 
 		public Slider? Slider
 		{

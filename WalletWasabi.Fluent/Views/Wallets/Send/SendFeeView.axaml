@@ -193,7 +193,7 @@
           </Style>
         </c:LineChart.Styles>
         <i:Interaction.Behaviors>
-          <behaviors:ShowFeeSliderToolTipBehavior Slider="{Binding #CursorValue2}"/>
+          <behaviors:ShowSliderThumbToolTipBehavior Slider="{Binding #CursorValue2}"/>
           <ir:AdaptiveBehavior>
             <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="550" ClassName="narrow"/>
           </ir:AdaptiveBehavior>
