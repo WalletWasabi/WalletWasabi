@@ -7,7 +7,8 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="history:CoinJoinDetailsViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.CoinJoinDetailsView">
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.CoinJoinDetailsView"
+             Name="CoinJoinDetails">
   <c:ContentArea Title="{Binding Title}"
                  NextContent="Done" EnableNext="True"
                  EnableCancel="{Binding EnableCancel}">
@@ -26,9 +27,33 @@
       <c:PreviewItem Icon="{StaticResource transaction_id}"
                      Text="Transaction ID"
                      CopyParameter="{Binding TransactionIdString}">
-        <c:PrivacyContentControl NumberOfPrivacyChars="48">
-          <TextBox Classes="selectableTextBlock monoSpaced" Text="{Binding TransactionIdString}" />
-        </c:PrivacyContentControl>
+          <ItemsRepeater Items="{Binding TransactionIds}">
+            <ItemsRepeater.ItemTemplate>
+              <DataTemplate>
+                <c:AdorningContentControl ClipToBounds="False" HorizontalAlignment="Left">
+                  <c:AdorningContentControl.Adornment>
+                    <c:AnimatedButton ToolTip.Tip="Copy"
+                                      x:CompileBindings="False"
+                                      Command="{Binding #CoinJoinDetails.DataContext.CopyCommand}"
+                                      CommandParameter="{Binding .}"
+                                      NormalIcon="{StaticResource copy_regular}"
+                                      ClickIcon="{StaticResource copy_confirmed}"
+                                      InitialOpacity="0.6"
+                                      HorizontalAlignment="Right"
+                                      Margin="0 0 -30 0" />
+                  </c:AdorningContentControl.Adornment>
+
+                  <c:PrivacyContentControl NumberOfPrivacyChars="48">
+                    <TextBox Classes="selectableTextBlock monoSpaced" Text="{Binding .}" />
+                  </c:PrivacyContentControl>
+
+                </c:AdorningContentControl>
+              </DataTemplate>
+            </ItemsRepeater.ItemTemplate>
+            <ItemsRepeater.Layout>
+              <StackLayout />
+            </ItemsRepeater.Layout>
+          </ItemsRepeater>
       </c:PreviewItem>
 
       <Separator />
