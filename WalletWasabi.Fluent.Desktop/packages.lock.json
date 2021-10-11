@@ -1020,6 +1020,7 @@
           "Avalonia.Diagnostics": "0.10.8",
           "Avalonia.ReactiveUI": "0.10.8",
           "Avalonia.Xaml.Behaviors": "0.10.8",
+          "DataListBox": "1.0.0",
           "OpenCvSharp4": "4.5.2.20210404",
           "OpenCvSharp4.runtime.win": "4.5.2.20210404",
           "WalletWasabi": "1.0.0",
