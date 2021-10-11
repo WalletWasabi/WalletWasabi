@@ -99,17 +99,17 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// <param name="registrationRequest">The request containing the credentials presentations, credential requests and the proofs.</param>
 		/// <returns>The <see cref="CredentialsResponse">registration response</see> containing the issued credentials and the proofs.</returns>
 		/// <exception cref="WabiSabiCryptoException">Error code: <see cref="WabiSabiCryptoErrorCode">WabiSabiErrorCode</see></exception>
-		public CredentialsResponse HandleRequest(CredentialsRequest registrationRequest)
-			=> PrepareResponse(registrationRequest).Commit();
+		public Task<CredentialsResponse> HandleRequestAsync(CredentialsRequest registrationRequest, CancellationToken cancel)
+			=> Task.Run(() => HandleRequest(registrationRequest), cancel);
 
 		/// <summary>
-		/// Validate the <see cref="CredentialsRequest">credentials registration requests</see> and
-		/// prepare to mark the serial numbers as used and issue the credentials.
+		/// Process the <see cref="CredentialsRequest">credentials registration requests</see> and
+		/// issues the credentials.
 		/// </summary>
 		/// <param name="registrationRequest">The request containing the credentials presentations, credential requests and the proofs.</param>
-		/// <returns>The <see cref="ICommitableCredentialsResponse">The response ready to be committed to</see> which returns the <see cref="ICommitableCredentialsResponse">response</see> with the issued credentials and the proofs.</returns>
+		/// <returns>The <see cref="CredentialsResponse">registration response</see> containing the issued credentials and the proofs.</returns>
 		/// <exception cref="WabiSabiCryptoException">Error code: <see cref="WabiSabiCryptoErrorCode">WabiSabiErrorCode</see></exception>
-		public ICommitableCredentialsResponse PrepareResponse(CredentialsRequest registrationRequest)
+		public CredentialsResponse HandleRequest(CredentialsRequest registrationRequest)
 		{
 			Guard.NotNull(nameof(registrationRequest), registrationRequest);
 
@@ -255,31 +255,19 @@ namespace WalletWasabi.WabiSabi.Crypto
 			// double spend attempt, and there is no point in allowing those
 			// serial numbers to be reused and the round to proceed.
 
-			// Issue the credentials, but they won't actually be returned until
-			// Commit() is called.
-			var credentials = requested.Select(x => IssueCredential(x.Ma, RandomNumberGenerator.GetScalar())).ToImmutableArray();
-
-			// Construct response.
-			var proofs = ProofSystem.Prove(transcript, credentials.Select(x => x.Knowledge), RandomNumberGenerator);
-			var macs = credentials.Select(x => x.Mac);
-			var response = new CredentialsResponse(macs, proofs);
-
-			return new PreparedCredentialsResponse(this, response, registrationRequest.Delta);
-		}
-
-		private CredentialsResponse Commit(CredentialsResponse response, long delta)
-		{
-			if (Interlocked.Add(ref _balance, delta) < 0)
+			if (Interlocked.Add(ref _balance, registrationRequest.Delta) < 0)
 			{
 				throw new InvalidOperationException("Negative balance");
 			}
 
+			// Issue the credentials and construct the response.
+			var credentials = requested.Select(x => IssueCredential(x.Ma, RandomNumberGenerator.GetScalar())).ToImmutableArray();
+			var proofs = ProofSystem.Prove(transcript, credentials.Select(x => x.Knowledge), RandomNumberGenerator);
+			var macs = credentials.Select(x => x.Mac);
+
 			// Although there are no side effects, eagerly evaluate enumerables
 			// to ensure the expensive computations are not repeated.
-			return new(
-				response.IssuedCredentials.ToImmutableArray(),
-				response.Proofs.ToImmutableArray()
-			);
+			return new CredentialsResponse(macs.ToImmutableArray(), proofs.ToImmutableArray());
 		}
 
 		private (MAC Mac, Knowledge Knowledge) IssueCredential(GroupElement ma, Scalar t)
@@ -295,37 +283,6 @@ namespace WalletWasabi.WabiSabi.Crypto
 			var label = $"UnifiedRegistration/{NumberOfCredentials}/{isNullRequest}";
 			var encodedLabel = Encoding.UTF8.GetBytes(label);
 			return new Transcript(encodedLabel);
-		}
-
-		public Task<ICommitableCredentialsResponse> PrepareResponse(CredentialsRequest registrationRequest, CancellationToken cancel)
-		{
-			return Task.Run(() => PrepareResponse(registrationRequest), cancel);
-		}
-
-		private class PreparedCredentialsResponse : ICommitableCredentialsResponse
-		{
-			private readonly CredentialIssuer _issuer;
-			private readonly CredentialsResponse _response;
-			private readonly long _delta;
-			private bool _committed;
-
-			public PreparedCredentialsResponse(CredentialIssuer issuer, CredentialsResponse response, long delta)
-			{
-				_issuer = issuer;
-				_response = response;
-				_delta = delta;
-				_committed = false;
-			}
-
-			public CredentialsResponse Commit()
-			{
-				if (_committed)
-				{
-					throw new InvalidOperationException("The instance was already committed.");
-				}
-				_committed = true;
-				return _issuer.Commit(_response, _delta);
-			}
 		}
 	}
 }

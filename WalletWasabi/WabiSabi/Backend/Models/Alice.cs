@@ -8,17 +8,17 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 {
 	public class Alice
 	{
-		public Alice(Coin coin, OwnershipProof ownershipProof, Round round)
+		public Alice(Coin coin, OwnershipProof ownershipProof, Round round, Guid id)
 		{
 			// TODO init syntax?
 			Round = round;
 			Coin = coin;
 			OwnershipProof = ownershipProof;
-			Id = CalculateHash();
+			Id = id;
 		}
 
 		public Round Round { get; }
-		public uint256 Id { get; }
+		public Guid Id { get; }
 		public DateTimeOffset Deadline { get; set; } = DateTimeOffset.UtcNow;
 		public Coin Coin { get; }
 		public OwnershipProof OwnershipProof { get; }
@@ -37,14 +37,5 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 			// Have alice timeouts a bit sooner than the timeout of connection confirmation phase.
 			Deadline = DateTimeOffset.UtcNow + (connectionConfirmationTimeout * 0.9);
 		}
-
-		private uint256 CalculateHash() => CalculateHash(Coin, OwnershipProof);
-
-		public static uint256 CalculateHash(Coin coin, OwnershipProof ownershipProof)
-			=> StrobeHasher.Create(ProtocolConstants.AliceStrobeDomain)
-				.Append(ProtocolConstants.AliceCoinTxOutStrobeLabel, coin.TxOut)
-				.Append(ProtocolConstants.AliceCoinOutpointStrobeLabel, coin.Outpoint)
-				.Append(ProtocolConstants.AliceOwnershipProofStrobeLabel, ownershipProof)
-				.GetHash();
 	}
 }

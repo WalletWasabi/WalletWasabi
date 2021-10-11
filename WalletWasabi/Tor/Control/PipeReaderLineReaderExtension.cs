@@ -93,7 +93,7 @@ namespace WalletWasabi.Tor.Control
 				}
 			}
 
-			throw new InvalidDataException("This should never happen.");
+			throw new InvalidDataException("No more data.");
 		}
 
 		/// <summary>Finds the first newline (<c>\r\n</c>) in the buffer.</summary>

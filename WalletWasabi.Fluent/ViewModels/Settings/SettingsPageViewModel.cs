@@ -1,4 +1,7 @@
 using System.Reactive.Disposables;
+using System.Windows.Input;
+using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Gui;
@@ -11,7 +14,9 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		Order = 1,
 		Category = "General",
 		Keywords = new[] { "Settings", "General", "User", "Interface", "Privacy", "Advanced" },
-		IconName = "settings_regular")]
+		IconName = "settings_regular",
+		Searchable = false,
+		NavBarPosition = NavBarPosition.Bottom)]
 	public partial class SettingsPageViewModel : NavBarItemViewModel
 	{
 		[AutoNotify] private bool _isModified;
@@ -25,7 +30,11 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			PrivacySettingsTab = new PrivacySettingsTabViewModel();
 			NetworkSettingsTab = new NetworkSettingsTabViewModel();
 			BitcoinTabSettings = new BitcoinTabSettingsViewModel();
+
+			RestartCommand = ReactiveCommand.Create(AppLifetimeHelper.Restart);
 		}
+
+		public ICommand RestartCommand { get; }
 
 		public GeneralSettingsTabViewModel GeneralSettingsTab { get; }
 		public PrivacySettingsTabViewModel PrivacySettingsTab { get; }

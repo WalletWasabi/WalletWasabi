@@ -325,7 +325,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 			this.WhenAnyValue(x => x.UpdateStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(async x =>
+				.Subscribe(x =>
 				{
 					if (x.BackendCompatible)
 					{

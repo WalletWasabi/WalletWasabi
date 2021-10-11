@@ -866,7 +866,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				var originalConfirmationTarget = AdjustedConfirmationTarget;
 
 				// Note that only dependents matter, spenders do not matter much or at all, they just allow this transaction to be confirmed faster.
-				var dependents = await RpcClient.GetAllDependentsAsync(transactionHashes, includingProvided: true, likelyProvidedManyConfirmedOnes: true).ConfigureAwait(false);
+				var dependents = await RpcClient.GetAllDependentsAsync(transactionHashes, includingProvided: true, likelyProvidedManyConfirmedOnes: true, CancellationToken.None).ConfigureAwait(false);
 				AdjustedConfirmationTarget = AdjustConfirmationTarget(dependents.Count, ConfiguredConfirmationTarget, ConfiguredConfirmationTargetReductionRate);
 
 				if (originalConfirmationTarget != AdjustedConfirmationTarget)
@@ -1350,7 +1350,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			// Add the change outputs.
 			outputCount += Alices.Count;
 
-			return await RpcClient.TestMempoolAcceptAsync(coinsToTest, fakeOutputCount: outputCount, FeePerInputs, FeePerOutputs).ConfigureAwait(false);
+			return await RpcClient.TestMempoolAcceptAsync(coinsToTest, fakeOutputCount: outputCount, FeePerInputs, FeePerOutputs, CancellationToken.None).ConfigureAwait(false);
 		}
 
 		public int RemoveAlicesBy(params Guid[] ids)

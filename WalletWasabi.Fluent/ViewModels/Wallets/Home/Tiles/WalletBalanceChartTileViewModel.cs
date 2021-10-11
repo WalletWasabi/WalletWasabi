@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using DynamicData.Binding;
 using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.Morph;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
@@ -14,17 +17,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 	public partial class WalletBalanceChartTileViewModel : TileViewModel
 	{
 		private readonly ObservableCollection<HistoryItemViewModel> _history;
-		[AutoNotify] private ObservableCollection<double> _yValues;
-		[AutoNotify] private ObservableCollection<double> _xValues;
-		[AutoNotify] private double? _xMinimum;
-		[AutoNotify] private List<string>? _yLabels;
-		[AutoNotify] private List<string>? _xLabels;
 
 		public WalletBalanceChartTileViewModel(ObservableCollection<HistoryItemViewModel> history)
 		{
 			_history = history;
-			_yValues = new ObservableCollection<double>();
-			_xValues = new ObservableCollection<double>();
+
+			Animator = new LineChartAnimatorViewModel();
+
 			TimePeriodOptions = new ObservableCollection<TimePeriodOptionViewModel>();
 
 			foreach (var item in (TimePeriodOption[]) Enum.GetValues(typeof(TimePeriodOption)))
@@ -36,6 +35,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			}
 		}
 
+		public LineChartAnimatorViewModel Animator { get; }
+
 		public ObservableCollection<TimePeriodOptionViewModel> TimePeriodOptions { get; }
 
 		protected override void OnActivated(CompositeDisposable disposables)
@@ -43,6 +44,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			base.OnActivated(disposables);
 
 			_history.ToObservableChangeSet()
+				.Throttle(TimeSpan.FromMilliseconds(50))
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => UpdateSample(TimePeriodOptions.First(x => x.IsSelected)))
 				.DisposeWith(disposables);
 		}
@@ -96,77 +99,96 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 		private void UpdateSample(TimeSpan sampleTime, TimeSpan sampleBackFor)
 		{
+			Animator.StopTimer();
+
 			var sampleLimit = DateTimeOffset.Now - sampleBackFor;
 
-			XMinimum = sampleLimit.ToUnixTimeMilliseconds();
+			Animator.XMinimum = sampleLimit.ToUnixTimeMilliseconds();
+
+			var sourceXValues = Animator.XValues;
+			var sourceYValues = Animator.YValues;
+
+			if (Animator.AnimationFrames is { })
+			{
+				if (Animator.CurrentAnimationFrame < Animator.TotalAnimationFrames)
+				{
+					sourceXValues = Animator.AnimationFrames[Animator.TotalAnimationFrames - 1].XValues;
+					sourceYValues = Animator.AnimationFrames[Animator.TotalAnimationFrames - 1].YValues;
+				}
+			}
+
+			Animator.Source = new PolyLine()
+			{
+				XValues = new ObservableCollection<double>(sourceXValues),
+				YValues = new ObservableCollection<double>(sourceYValues)
+			};
+
+			Animator.Target = new PolyLine()
+			{
+				XValues = new ObservableCollection<double>(),
+				YValues = new ObservableCollection<double>()
+			};
+
+			Animator.XValues.Clear();
+			Animator.YValues.Clear();
 
 			var values = _history.SelectTimeSampleBackwards(
 				x => x.Date,
 				x => x.Balance,
 				sampleTime,
 				sampleLimit,
+				Money.Zero,
 				DateTime.Now);
-
-			XValues.Clear();
-			YValues.Clear();
 
 			foreach (var (timestamp, balance) in values.Reverse())
 			{
-				YValues.Add((double)balance.ToDecimal(MoneyUnit.BTC));
-				XValues.Add(timestamp.ToUnixTimeMilliseconds());
+				Animator.Target.YValues.Add((double)balance.ToDecimal(MoneyUnit.BTC));
+				Animator.Target.XValues.Add(timestamp.ToUnixTimeMilliseconds());
 			}
 
-			if (YValues.Any())
+			if (Animator.Target.YValues.Any())
 			{
-				var maxY = YValues.Max();
-				YLabels = new List<string> { "0", (maxY / 2).ToString("F2"), maxY.ToString("F2") };
+				var maxY = Animator.Target.YValues.Max();
+				Animator.YLabels = new List<string> { "0", (maxY / 2).ToString("F2"), maxY.ToString("F2") };
 			}
 			else
 			{
-				YLabels = null;
+				Animator.YLabels = null;
 			}
 
-			if (XValues.Any())
+			if (Animator.Target.XValues.Any())
 			{
-				var minX = XValues.Min();
-				var maxX = XValues.Max();
+				var minX = Animator.Target.XValues.Min();
+				var maxX = Animator.Target.XValues.Max();
 				var halfX = minX + ((maxX - minX) / 2);
 
 				var range = DateTimeOffset.FromUnixTimeMilliseconds((long)maxX) -
 							DateTimeOffset.FromUnixTimeMilliseconds((long)minX);
 
+				var stringFormatOption = "MMM-d";
+
 				if (range <= TimeSpan.FromDays(1))
 				{
-					XLabels = new List<string>
-					{
-						DateTimeOffset.FromUnixTimeMilliseconds((long) minX).DateTime.ToString("t"),
-						DateTimeOffset.FromUnixTimeMilliseconds((long) halfX).DateTime.ToString("t"),
-						DateTimeOffset.FromUnixTimeMilliseconds((long) maxX).DateTime.ToString("t"),
-					};
+					stringFormatOption = "t";
 				}
 				else if (range <= TimeSpan.FromDays(7))
 				{
-					XLabels = new List<string>
-					{
-						DateTimeOffset.FromUnixTimeMilliseconds((long) minX).DateTime.ToString("ddd MMM-d"),
-						DateTimeOffset.FromUnixTimeMilliseconds((long) halfX).DateTime.ToString("ddd MMM-d"),
-						DateTimeOffset.FromUnixTimeMilliseconds((long) maxX).DateTime.ToString("ddd MMM-d"),
-					};
+					stringFormatOption = "ddd MMM-d";
 				}
-				else
+
+				Animator.XLabels = new List<string>
 				{
-					XLabels = new List<string>
-					{
-						DateTimeOffset.FromUnixTimeMilliseconds((long) minX).DateTime.ToString("MMM-d"),
-						DateTimeOffset.FromUnixTimeMilliseconds((long) halfX).DateTime.ToString("MMM-d"),
-						DateTimeOffset.FromUnixTimeMilliseconds((long) maxX).DateTime.ToString("MMM-d"),
-					};
-				}
+					DateTimeOffset.FromUnixTimeMilliseconds((long)minX).ToLocalTime().ToString(stringFormatOption),
+					DateTimeOffset.FromUnixTimeMilliseconds((long)halfX).ToLocalTime().ToString(stringFormatOption),
+					DateTimeOffset.FromUnixTimeMilliseconds((long)maxX).ToLocalTime().ToString(stringFormatOption),
+				};
 			}
 			else
 			{
-				XLabels = null;
+				Animator.XLabels = null;
 			}
+
+			Animator.UpdateValues();
 		}
 	}
 }

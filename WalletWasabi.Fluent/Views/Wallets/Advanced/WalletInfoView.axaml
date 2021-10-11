@@ -21,7 +21,7 @@
     </c:ContentArea.CancelContent>
     <StackPanel Spacing="10" Margin="0 0 20 0">
 
-      <c:PreviewItem Icon="{StaticResource key_regular}"
+      <c:PreviewItem Icon="{StaticResource private_key_regular}"
                      Text="Extended Master Private Key"
                      Content="{Binding ExtendedMasterPrivateKey}"
                      CopyParameter="{Binding ExtendedMasterPrivateKey}"
@@ -29,7 +29,7 @@
                      PrivacyModeEnabled="{Binding !ShowSensitiveData}" />
       <Separator IsVisible="{Binding !!ExtendedMasterPrivateKey}" />
 
-      <c:PreviewItem Icon="{StaticResource key_regular}"
+      <c:PreviewItem Icon="{StaticResource private_key_regular}"
                      Text="Extended Master zprv"
                      Content="{Binding ExtendedMasterZprv}"
                      CopyParameter="{Binding ExtendedMasterZprv}"
@@ -49,7 +49,7 @@
                      CopyParameter="{Binding AccountKeyPath}" />
       <Separator />
 
-      <c:PreviewItem Icon="{StaticResource key_regular}"
+      <c:PreviewItem Icon="{StaticResource private_key_regular}"
                      Text="Extended Account Private Key xpriv"
                      Content="{Binding ExtendedAccountPrivateKey}"
                      CopyParameter="{Binding ExtendedAccountPrivateKey}"
@@ -57,7 +57,7 @@
                      PrivacyModeEnabled="{Binding !ShowSensitiveData}" />
       <Separator IsVisible="{Binding !!ExtendedAccountPrivateKey}" />
 
-      <c:PreviewItem Icon="{StaticResource key_regular}"
+      <c:PreviewItem Icon="{StaticResource private_key_regular}"
                      Text="Extended Account Private Key zprv"
                      Content="{Binding ExtendedAccountZprv}"
                      CopyParameter="{Binding ExtendedAccountZprv}"
@@ -66,10 +66,33 @@
       <Separator IsVisible="{Binding !!ExtendedAccountZprv}" />
 
       <c:PreviewItem Icon="{StaticResource key_regular}"
+                     Text="Public External Output descriptor"
+                     CopyParameter="{Binding WpkhOutputDescriptors.PublicExternal}">
+        <c:PrivacyContentControl Content="{Binding WpkhOutputDescriptors.PublicExternal}" NumberOfPrivacyChars="38" />
+      </c:PreviewItem>
+      <c:PreviewItem Icon="{StaticResource key_regular}"
+                     Text="Public Internal Output descriptor"
+                     CopyParameter="{Binding WpkhOutputDescriptors.PublicInternal}">
+        <c:PrivacyContentControl Content="{Binding WpkhOutputDescriptors.PublicInternal}" NumberOfPrivacyChars="38" />
+      </c:PreviewItem>
+
+      <c:PreviewItem Icon="{StaticResource key_regular}"
+                     Text="Private External Output descriptor"
+                     CopyParameter="{Binding WpkhOutputDescriptors.PrivateExternal}">
+        <c:PrivacyContentControl Content="{Binding WpkhOutputDescriptors.PrivateExternal}" ForceShow="{Binding ShowSensitiveData}" NumberOfPrivacyChars="38" />
+      </c:PreviewItem>
+      <c:PreviewItem Icon="{StaticResource key_regular}"
+                     Text="Private Internal Output descriptor"
+                     CopyParameter="{Binding WpkhOutputDescriptors.PrivateInternal}">
+        <c:PrivacyContentControl Content="{Binding WpkhOutputDescriptors.PrivateInternal}" ForceShow="{Binding ShowSensitiveData}" NumberOfPrivacyChars="38" />
+      </c:PreviewItem>
+
+      <c:PreviewItem Icon="{StaticResource key_regular}"
                      Text="Extended Account Public Key"
                      CopyParameter="{Binding ExtendedAccountPublicKey}">
         <c:PrivacyContentControl Content="{Binding ExtendedAccountPublicKey}" ForceShow="{Binding ShowSensitiveData}" NumberOfPrivacyChars="38" />
       </c:PreviewItem>
+
         <Separator />
 
       <c:PreviewItem Icon="{StaticResource key_regular}"

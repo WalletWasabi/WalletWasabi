@@ -26,7 +26,7 @@
                             IsVisible="False"
                             Margin="{DynamicResource TextBoxTopHeaderMargin}" />
 
-          <DataValidationErrors DockPanel.Dock="Bottom" Margin="0 10 0 0" />
+          <DataValidationErrors DockPanel.Dock="Bottom" Margin="0 5 0 0" />
 
           <DockPanel>
             <PathIcon Classes="checkMark checkMarkDataValidation" Margin="15  0" VerticalAlignment="Center" DockPanel.Dock="Right">
@@ -104,7 +104,7 @@
 
   <!-- TODO: temporary fix to prevent layout issue when error occurs  -->
   <Style Selector="TextBox /template/ DataValidationErrors">
-    <Setter Property="MinHeight" Value="20" />
+    <Setter Property="MinHeight" Value="21" />
   </Style>
 
   <Style Selector="TextBox:not(.hasCheckMark) /template/ PathIcon.checkMark.checkMarkDataValidation">
@@ -132,6 +132,7 @@
     <Setter Property="MinHeight" Value="0" />
     <Setter Property="MinWidth" Value="0" />
     <Setter Property="CaretBrush" Value="Transparent" />
+    <Setter Property="TextWrapping" Value="Wrap" />
     <Setter Property="ContextMenu">
       <ContextMenu>
         <MenuItem Header="Copy" Command="{Binding $parent[TextBox].Copy}" IsEnabled="{Binding $parent[TextBox].CanCopy}" InputGesture="{x:Static TextBox.CopyGesture}"/>
@@ -165,5 +166,13 @@
   <Style Selector="TextBlock.monoSpaced">
     <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
     <Setter Property="FontSize" Value="15" />
+  </Style>
+
+  <Style Selector="TextBox.wrap /template/ TextPresenter#PART_TextPresenter">
+    <Setter Property="TextBlock.TextWrapping" Value="Wrap" />
+  </Style>
+
+  <Style Selector="TextBox.wrap /template/ ScrollViewer">
+    <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
   </Style>
 </Styles>

@@ -100,7 +100,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			catch (Exception ex) when (ex is not OperationCanceledException)
 			{
 				// We found a corrupted entry. Stop here.
-				// Delete the currupted file.
+				// Delete the corrupted file.
 				// Do not try to autocorrect, because the internal data structures are throwing events that may confuse the consumers of those events.
 				Logger.LogError($"{TransactionsFileManager.FileNameWithoutExtension} file got corrupted. Deleting it...");
 				TransactionsFileManager.DeleteMe();

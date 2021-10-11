@@ -262,7 +262,7 @@ namespace WalletWasabi.WebClients.PayJoin
 
 		internal static Uri ApplyOptionalParameters(Uri endpoint, PayjoinClientParameters clientParameters)
 		{
-			var parameters = new Dictionary<string, string>
+			Dictionary<string, string?> parameters = new()
 			{
 				{ "v", clientParameters.Version.ToString() }
 			};

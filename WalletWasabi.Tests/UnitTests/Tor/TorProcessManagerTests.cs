@@ -42,7 +42,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor
 				.Returns((CancellationToken cancellationToken, bool killOnCancel) => Task.Delay(torProcessCrashPeriod, cancellationToken));
 			mockProcess.Setup(p => p.Dispose());
 
-			// Set up Tor process manager.			
+			// Set up Tor process manager.
 			Mock<TorTcpConnectionFactory> mockTcpConnectionFactory = new(MockBehavior.Strict, DummyTorControlEndpoint);
 			mockTcpConnectionFactory.Setup(c => c.IsTorRunningAsync())
 				.ReturnsAsync(false);
@@ -60,14 +60,13 @@ namespace WalletWasabi.Tests.UnitTests.Tor
 			await using (TorProcessManager manager = mockTorProcessManager.Object)
 			{
 				// No exception is expected here.
-				CancellationToken ct1 = await manager.StartAsync(timeoutCts.Token);
+				(CancellationToken ct1, TorControlClient client1) = await manager.StartAsync(timeoutCts.Token);
 
 				// Wait for the Tor process crash (see (1)).
 				await ct1.WhenCanceled().WithAwaitCancellationAsync(timeoutCts.Token);
 
 				// Wait until TorProcessManager is stopped (see (2)).
-				CancellationToken ct2 = await manager.WaitForNextAttemptAsync(timeoutCts.Token);
-				await ct2.WhenCanceled().WithAwaitCancellationAsync(timeoutCts.Token);
+				await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await manager.WaitForNextAttemptAsync(timeoutCts.Token).ConfigureAwait(false));
 			}
 
 			mockTorProcessManager.Verify(c => c.StartProcess(It.IsAny<string>()), Times.Exactly(2));

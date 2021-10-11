@@ -16,12 +16,12 @@
 		<AvaloniaResource Include="Assets\**" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Avalonia" Version="0.10.999-cibuild0014678-beta" />
-		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0014678-beta" />
-		<PackageReference Include="Avalonia.Diagnostics" Version="0.10.999-cibuild0014678-beta" />
+		<PackageReference Include="Avalonia" Version="0.10.8" />
+		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.8" />
+		<PackageReference Include="Avalonia.Diagnostics" Version="0.10.8" />
+		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.8" />
 		<PackageReference Include="OpenCvSharp4" Version="4.5.2.20210404" />
 		<PackageReference Include="OpenCvSharp4.runtime.win" Version="4.5.2.20210404" />
-		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.6.10" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi.Gui\WalletWasabi.Gui.csproj" />

@@ -9,8 +9,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private bool _isSelected;
 		[AutoNotify] private decimal _totalBtc;
 		[AutoNotify] private SmartLabel _labels;
-		[AutoNotify] private bool _isWarningOpen;
-		[AutoNotify] private string? _warningMessage;
 
 		public PocketViewModel((SmartLabel labels, ICoinsView coins) pocket)
 		{

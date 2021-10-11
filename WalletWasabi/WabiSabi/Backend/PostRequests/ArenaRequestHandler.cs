@@ -1,8 +1,6 @@
-using NBitcoin;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Nito.AsyncEx;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -12,13 +10,11 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 {
 	public class ArenaRequestHandler : IAsyncDisposable
 	{
-		public ArenaRequestHandler(WabiSabiConfig config, Prison prison, Arena arena, IRPCClient rpc)
+		public ArenaRequestHandler(WabiSabiConfig config, Prison prison, Arena arena)
 		{
 			Config = config;
 			Prison = prison;
 			Arena = arena;
-			Rpc = rpc;
-			Network = rpc.Network;
 		}
 
 		private bool DisposeStarted { get; set; } = false;
@@ -27,8 +23,6 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 		public WabiSabiConfig Config { get; }
 		public Prison Prison { get; }
 		public Arena Arena { get; }
-		public IRPCClient Rpc { get; }
-		public Network Network { get; }
 
 		public async Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 		{

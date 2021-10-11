@@ -2,13 +2,12 @@ using System;
 using WalletWasabi.Tor.Control.Exceptions;
 using WalletWasabi.Tor.Control.Messages;
 using WalletWasabi.Tor.Control.Messages.Events;
+using WalletWasabi.Tor.Control.Messages.Events.OrEvents;
 using WalletWasabi.Tor.Control.Messages.Events.StatusEvents;
 
 namespace WalletWasabi.Tor.Control.Utils
 {
-	/// <summary>
-	/// Parses an incoming Tor control event based on its name.
-	/// </summary>
+	/// <summary>Parses an incoming Tor control event based on its name.</summary>
 	public static class AsyncEventParser
 	{
 		/// <exception cref="TorControlReplyParseException"/>
@@ -23,8 +22,10 @@ namespace WalletWasabi.Tor.Control.Utils
 
 			return value switch
 			{
-				"STATUS_CLIENT" or "STATUS_SERVER" or "STATUS_GENERAL" => StatusEvent.FromReply(reply),
-				"CIRC" => CircEvent.FromReply(reply),
+				StatusEvent.EventNameStatusClient or StatusEvent.EventNameStatusServer or StatusEvent.EventNameStatusGeneral => StatusEvent.FromReply(reply),
+				CircEvent.EventName => CircEvent.FromReply(reply),
+				NetworkLivenessEvent.EventName => NetworkLivenessEvent.FromReply(reply),
+				OrConnEvent.EventName => OrConnEvent.FromReply(reply),
 				_ => throw new NotSupportedException("This should never happen."),
 			};
 		}

@@ -20,7 +20,7 @@ namespace WalletWasabi.Tests.Helpers
 			=> arena.ConfirmConnectionAsync(request, cancellationToken);
 
 		public Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken)
-			=> throw new NotImplementedException();
+			=> arena.GetStatusAsync(cancellationToken);
 
 		public Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 			=> arena.RegisterInputAsync(request, cancellationToken);

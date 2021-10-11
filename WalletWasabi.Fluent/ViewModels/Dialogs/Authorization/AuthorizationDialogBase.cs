@@ -8,8 +8,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 	{
 		protected AuthorizationDialogBase()
 		{
-			BackCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Back));
-			CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel));
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				var result = await Authorize();

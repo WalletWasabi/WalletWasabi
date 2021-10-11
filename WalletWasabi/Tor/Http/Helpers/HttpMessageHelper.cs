@@ -81,7 +81,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 					firstRead = false;
 				}
 
-				builder.Append(header + CRLF); // CRLF is part of the headerstring
+				builder.Append(header + CRLF); // CRLF is part of the header string
 			}
 
 			headers = builder.ToString();
@@ -281,7 +281,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 				var chunkData = await ReadBytesTillLengthAsync(stream, chunkSize, ctsToken).ConfigureAwait(false);
 				string crlfLine = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken).ConfigureAwait(false);
 
-				// If more than a CRLF was read, then it's not an empty estring.
+				// If more than a CRLF was read, then it's not an empty string.
 				if (crlfLine.Length != 0)
 				{
 					throw new FormatException("Chunk does not end with CRLF.");
@@ -432,7 +432,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 			}
 
 			var allData = new byte[(int)length];
-			var num = await stream.ReadBlockAsync(allData, (int)length, ctsToken).ConfigureAwait(false);
+			int num = await stream.ReadBlockAsync(allData, (int)length, ctsToken).ConfigureAwait(false);
 			if (num < (int)length)
 			{
 				// https://tools.ietf.org/html/rfc7230#section-3.3.3

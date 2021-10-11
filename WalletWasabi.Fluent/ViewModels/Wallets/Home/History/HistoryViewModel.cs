@@ -3,7 +3,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive;
-using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -28,6 +27,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 		[AutoNotify] private HistoryItemViewModel? _selectedItem;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isTransactionHistoryEmpty;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isInitialized;
 
 		public HistoryViewModel(WalletViewModel walletViewModel, IObservable<Unit> updateTrigger)
 		{
@@ -113,6 +113,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 						{
 							_transactionSourceList.Add(newItem);
 						}
+					}
+
+					if (!IsInitialized)
+					{
+						IsInitialized = true;
 					}
 				}
 			}

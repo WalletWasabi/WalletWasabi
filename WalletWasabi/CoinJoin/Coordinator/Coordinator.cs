@@ -3,6 +3,7 @@ using NBitcoin.RPC;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -278,7 +279,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 		{
 			try
 			{
-				var round = sender as CoordinatorRound;
+				CoordinatorRound round = (CoordinatorRound)sender!;
 
 				// If success save the coinjoin.
 				if (status == CoordinatorRoundStatus.Succeded)
@@ -341,9 +342,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 				{
 					IEnumerable<Alice> alicesDidntSign = round.GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: false);
 
-					CoordinatorRound nextRound = GetCurrentInputRegisterableRoundOrDefault(syncLock: false);
-
-					if (nextRound is { })
+					if (TryGetCurrentInputRegisterableRound(out CoordinatorRound? nextRound, syncLock: false))
 					{
 						int nextRoundAlicesCount = nextRound.CountAlices(syncLock: false);
 						var alicesSignedCount = round.AnonymitySet - alicesDidntSign.Count();
@@ -355,7 +354,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 						// But it cannot be larger than the current anonset of that round.
 						newAnonymitySet = Math.Min(newAnonymitySet, nextRound.AnonymitySet);
 
-						// Only change the anonymity set of the next round if new anonset does not equal and newanonset is larger than 1.
+						// Only change the anonymity set of the next round if new anonset does not equal and new anonset is larger than 1.
 						if (nextRound.AnonymitySet != newAnonymitySet && newAnonymitySet > 1)
 						{
 							nextRound.UpdateAnonymitySet(newAnonymitySet, syncLock: false);
@@ -410,24 +409,27 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			}
 		}
 
-		public CoordinatorRound GetCurrentInputRegisterableRoundOrDefault(bool syncLock = true)
+		public bool TryGetCurrentInputRegisterableRound([NotNullWhen(true)] out CoordinatorRound? coordinatorRound, bool syncLock = true)
 		{
 			if (syncLock)
 			{
 				using (RoundsListLock.Lock())
 				{
-					return Rounds.FirstOrDefault(x => x.Status == CoordinatorRoundStatus.Running && x.Phase == RoundPhase.InputRegistration);
+					coordinatorRound = Rounds.FirstOrDefault(x => x.Status == CoordinatorRoundStatus.Running && x.Phase == RoundPhase.InputRegistration);
+					return coordinatorRound is not null;
 				}
 			}
 
-			return Rounds.FirstOrDefault(x => x.Status == CoordinatorRoundStatus.Running && x.Phase == RoundPhase.InputRegistration);
+			coordinatorRound = Rounds.FirstOrDefault(x => x.Status == CoordinatorRoundStatus.Running && x.Phase == RoundPhase.InputRegistration);
+			return coordinatorRound is not null;
 		}
 
-		public CoordinatorRound TryGetRound(long roundId)
+		public bool TryGetRound(long roundId, [NotNullWhen(true)] out CoordinatorRound? coordinatorRound)
 		{
 			using (RoundsListLock.Lock())
 			{
-				return Rounds.SingleOrDefault(x => x.RoundId == roundId);
+				coordinatorRound = Rounds.SingleOrDefault(x => x.RoundId == roundId);
+				return coordinatorRound is not null;
 			}
 		}
 

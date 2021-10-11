@@ -67,7 +67,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			}
 
 			// Get allowed coins to spend.
-			var availableCoinsView = Coins.Available();
+			var availableCoinsView = Coins.Unspent();
 			List<SmartCoin> allowedSmartCoinInputs = AllowUnconfirmed // Inputs that can be used to build the transaction.
 					? availableCoinsView.ToList()
 					: availableCoinsView.Confirmed().ToList();

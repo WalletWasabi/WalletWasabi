@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
@@ -36,7 +37,14 @@ namespace WalletWasabi.Tests.Helpers
 		public static OwnershipProof CreateOwnershipProof(Key key, uint256? roundHash = null)
 			=> OwnershipProof.GenerateCoinJoinInputProof(
 				key,
+				GetOwnershipIdentifier(key.PubKey.WitHash.ScriptPubKey),
 				new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundHash ?? BitcoinFactory.CreateUint256()));
+
+		public static OwnershipIdentifier GetOwnershipIdentifier(Script scriptPubKey)
+		{
+			using var identificationKey = Key.Parse("5KbdaBwc9Eit2LrmDp1WfZd815StNstwHanbRrPpGGN6wWJKyHe", Network.Main);
+			return new OwnershipIdentifier(identificationKey, scriptPubKey);
+		}
 
 		public static Round CreateRound(WabiSabiConfig cfg)
 		{
@@ -44,7 +52,7 @@ namespace WalletWasabi.Tests.Helpers
 				cfg,
 				Network.Main,
 				new InsecureRandom(),
-				new(100m)));
+				new FeeRate(100m)));
 			round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
 			return round;
 		}
@@ -53,7 +61,7 @@ namespace WalletWasabi.Tests.Helpers
 		{
 			using Key key = new();
 			var mockRpc = new Mock<IRPCClient>();
-			mockRpc.Setup(rpc => rpc.GetTxOutAsync(It.IsAny<uint256>(), It.IsAny<int>(), It.IsAny<bool>()))
+			mockRpc.Setup(rpc => rpc.GetTxOutAsync(It.IsAny<uint256>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync(new NBitcoin.RPC.GetTxOutResponse
 				{
 					IsCoinBase = false,
@@ -63,7 +71,7 @@ namespace WalletWasabi.Tests.Helpers
 				});
 			foreach (var coin in coins)
 			{
-				mockRpc.Setup(rpc => rpc.GetTxOutAsync(coin.Outpoint.Hash, (int)coin.Outpoint.N, true))
+				mockRpc.Setup(rpc => rpc.GetTxOutAsync(coin.Outpoint.Hash, (int)coin.Outpoint.N, true, It.IsAny<CancellationToken>()))
 					.ReturnsAsync(new NBitcoin.RPC.GetTxOutResponse
 					{
 						IsCoinBase = false,
@@ -72,7 +80,7 @@ namespace WalletWasabi.Tests.Helpers
 						TxOut = coin.TxOut,
 					});
 			}
-			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), It.IsAny<EstimateSmartFeeMode>()))
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), It.IsAny<EstimateSmartFeeMode>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync(new EstimateSmartFeeResponse
 				{
 					Blocks = 1000,
@@ -84,7 +92,7 @@ namespace WalletWasabi.Tests.Helpers
 					MinRelayTxFee = 1
 				});
 			mockRpc.Setup(rpc => rpc.PrepareBatch()).Returns(mockRpc.Object);
-			mockRpc.Setup(rpc => rpc.SendBatchAsync()).Returns(Task.CompletedTask);
+			mockRpc.Setup(rpc => rpc.SendBatchAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 			return mockRpc;
 		}
 
@@ -111,7 +119,7 @@ namespace WalletWasabi.Tests.Helpers
 		}
 
 		public static Alice CreateAlice(Coin coin, OwnershipProof ownershipProof, Round round)
-			=> new(coin, ownershipProof, round) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
+			=> new(coin, ownershipProof, round, Guid.NewGuid()) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
 
 		public static Alice CreateAlice(Key key, Money amount, Round round)
 			=> CreateAlice(CreateCoin(key, amount), CreateOwnershipProof(key), round);
@@ -260,5 +268,15 @@ namespace WalletWasabi.Tests.Helpers
 
 		public static Round CreateBlameRound(Round round, WabiSabiConfig cfg)
 			=> new(new(cfg, round.Network, new InsecureRandom(), round.FeeRate, blameOf: round));
+
+		public static (Key, SmartCoin, Key, SmartCoin) CreateCoinKeyPairs()
+		{
+			var km = ServiceFactory.CreateKeyManager("");
+			var smartCoin1 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m));
+			var smartCoin2 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(2m));
+			var sk1 = km.GetSecrets("", smartCoin1.ScriptPubKey).Single();
+			var sk2 = km.GetSecrets("", smartCoin2.ScriptPubKey).Single();
+			return (sk1.PrivateKey, smartCoin1, sk2.PrivateKey, smartCoin2);
+		}
 	}
 }

@@ -10,35 +10,23 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 	[NavigationMetaData(Title = "Insufficient Balance")]
 	public partial class InsufficientBalanceDialogViewModel : DialogViewModelBase<bool>
 	{
-		public InsufficientBalanceDialogViewModel(BalanceType type, BuildTransactionResult transaction, decimal usdExchangeRate)
+		public InsufficientBalanceDialogViewModel(BalanceType type)
 		{
-			var destinationAmount = transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
-			var btcAmountText = $"{destinationAmount} bitcoins ";
-			var fiatAmountText = destinationAmount.GenerateFiatText(usdExchangeRate, "USD");
-			AmountText = $"{btcAmountText}{fiatAmountText}";
-
-			var fee = transaction.Fee;
-			var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} sats ";
-			var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC).GenerateFiatText(usdExchangeRate, "USD");
-			FeeText = $"{btcFeeText}{fiatFeeText}";
-
-			Caption = type switch
+			Question = type switch
 			{
-				BalanceType.Private => $"There are not enough private funds to cover the transaction fee. Alternatively you could:",
-				BalanceType.Pocket => $"There are not enough funds selected to cover the transaction fee. Alternatively you could:",
-				_ => $"There are not enough funds available to cover the transaction fee. Alternatively you could:",
+				BalanceType.Private => $"There are not enough private funds to cover the transaction fee. Instead of an extra cost, Wasabi can subtract the transaction fee from the amount.",
+				BalanceType.Pocket => $"There are not enough funds selected to cover the transaction fee. Instead of an extra cost, Wasabi can subtract the transaction fee from the amount.",
+				_ => $"There are not enough funds available to cover the transaction fee. Instead of an extra cost, Wasabi can subtract the transaction fee from the amount.",
 			};
+
+			Question += "\n\nWould you like to do this instead?";
 
 			NextCommand = ReactiveCommand.Create(() => Close(result: true));
 			CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel));
 
-			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
+			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		}
 
-		public string AmountText { get; set; }
-
-		public string FeeText { get; set; }
-
-		public string Caption { get; }
+		public string Question { get; }
 	}
 }

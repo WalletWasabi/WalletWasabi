@@ -1,13 +1,17 @@
 using NBitcoin;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Models;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
@@ -20,23 +24,39 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			// Alice times out when its deadline is reached.
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Key key = new();
-			var coin = WabiSabiFactory.CreateCoin(key);
-			var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);
+			var km = ServiceFactory.CreateKeyManager("");
+			var key = BitcoinFactory.CreateHdPubKey(km);
+			var smartCoin = BitcoinFactory.CreateSmartCoin(key, 10m);
+			var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(smartCoin.Coin);
 
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, rpc, round);
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
+			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), new ArenaRequestHandlerAdapter(arena));
+			await roundStateUpdater.StartAsync(CancellationToken.None);
+
 			// Register Alices.
-			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
-			var aliceClient = new AliceClient(round.Id, arenaClient, coin, round.FeeRate, key.GetBitcoinSecret(round.Network));
-			await aliceClient.RegisterInputAsync(CancellationToken.None);
+			using var identificationKey = new Key();
+			var esk = km.GetSecrets("", smartCoin.ScriptPubKey).Single();
+
+			using CancellationTokenSource cancellationTokenSource = new();
+			var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, smartCoin, esk.PrivateKey.GetBitcoinSecret(round.Network), identificationKey, roundStateUpdater, cancellationTokenSource.Token);
+
+			while (round.Alices.Count == 0)
+			{
+				await Task.Delay(10);
+			}
 
 			var alice = Assert.Single(round.Alices);
 			alice.Deadline = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(1);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+
 			Assert.Empty(round.Alices);
 
+			cancellationTokenSource.Cancel();
+			await Assert.ThrowsAsync<OperationCanceledException>(async () => await task);
+
+			await roundStateUpdater.StopAsync(CancellationToken.None);
 			await arena.StopAsync(CancellationToken.None);
 		}
 
@@ -53,7 +73,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
-			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
+			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena);
 
 			Assert.Single(round.Alices);
 			DateTimeOffset preDeadline = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(1);
@@ -77,7 +97,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
-			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
+			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena);
 
 			Assert.Single(round.Alices);
 			DateTimeOffset preDeadline = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(1);
@@ -103,7 +123,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
-			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
+			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena);
 
 			Assert.Equal(3, round.Alices.Count);
 			DateTimeOffset preDeadline = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(1);
@@ -126,7 +146,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
-			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
+			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena);
 
 			Assert.Single(round.Alices);
 			DateTimeOffset preDeadline = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(1);

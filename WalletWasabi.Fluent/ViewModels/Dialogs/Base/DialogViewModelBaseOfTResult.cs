@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base
 	public abstract class DialogViewModelBase<TResult> : DialogViewModelBase
 	{
 		private readonly IDisposable _disposable;
-		private readonly TaskCompletionSource<DialogResult<TResult>> _currentTaskCompletionSource;
+		private TaskCompletionSource<DialogResult<TResult>>? _currentTaskCompletionSource;
 
 		protected DialogViewModelBase()
 		{
@@ -24,6 +24,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base
 							  .Skip(1) // Skip the initial value change (which is false).
 							  .DistinctUntilChanged()
 							  .Subscribe(OnIsDialogOpenChanged);
+
+			BackCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Back));
 
 			CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel));
 		}
@@ -54,7 +56,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base
 		/// <param name="result">The return value of the dialog</param>
 		protected void Close(DialogResultKind kind = DialogResultKind.Normal, TResult result = default)
 		{
-			if (_currentTaskCompletionSource.Task.IsCompleted)
+			if (_currentTaskCompletionSource!.Task.IsCompleted)
 			{
 				return;
 			}
@@ -62,6 +64,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base
 			_currentTaskCompletionSource.SetResult(new DialogResult<TResult>(result, kind));
 
 			_disposable.Dispose();
+
+			_currentTaskCompletionSource = new TaskCompletionSource<DialogResult<TResult>>();
 
 			IsDialogOpen = false;
 
@@ -76,7 +80,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base
 		{
 			IsDialogOpen = true;
 
-			return _currentTaskCompletionSource.Task;
+			return _currentTaskCompletionSource!.Task;
 		}
 
 		/// <summary>

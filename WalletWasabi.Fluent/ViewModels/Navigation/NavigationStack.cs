@@ -87,6 +87,11 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			{
 				foreach (var item in oldItems)
 				{
+					if (item is INavigatable navigatable)
+					{
+						navigatable.OnNavigatedFrom(false);
+					}
+
 					OnPopped(item);
 				}
 

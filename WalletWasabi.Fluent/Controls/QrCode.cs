@@ -9,6 +9,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Metadata;
+using Avalonia.Platform;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Controls
@@ -16,6 +17,7 @@ namespace WalletWasabi.Fluent.Controls
 	public class QrCode : Control
 	{
 		private const int MatrixPadding = 2;
+		private const int MinimumBitmapSizePixelWH = 512;
 
 		public static readonly DirectProperty<QrCode, ReactiveCommand<string, Unit>> SaveCommandProperty =
 			AvaloniaProperty.RegisterDirect<QrCode, ReactiveCommand<string, Unit>>(
@@ -37,8 +39,6 @@ namespace WalletWasabi.Fluent.Controls
 
 		public QrCode()
 		{
-			CoercedSize = new Size();
-
 			this.WhenAnyValue(x => x.Matrix)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(matrix =>
@@ -60,8 +60,6 @@ namespace WalletWasabi.Fluent.Controls
 				});
 		}
 
-		private Size CoercedSize { get; set; }
-		private double GridCellFactor { get; set; }
 		private bool[,]? FinalMatrix { get; set; }
 
 		public ReactiveCommand<string, Unit> SaveCommand
@@ -88,7 +86,8 @@ namespace WalletWasabi.Fluent.Controls
 			sfd.Title = "Save QR Code...";
 			sfd.InitialFileName = $"{address}.png";
 			sfd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
-			sfd.Filters.Add(new FileDialogFilter() { Name = "Portable Network Graphics (PNG) Image file", Extensions = { "png" } });
+			sfd.Filters.Add(new FileDialogFilter()
+				{ Name = "Portable Network Graphics (PNG) Image file", Extensions = { "png" } });
 
 			var visualRoot = (ClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime;
 			var path = await sfd.ShowAsync(visualRoot.MainWindow);
@@ -102,33 +101,69 @@ namespace WalletWasabi.Fluent.Controls
 					path = $"{path}.png";
 				}
 
-				var pixSize = PixelSize.FromSize(CoercedSize, 1);
-				using var rtb = new RenderTargetBitmap(pixSize);
+				var qrCodeSize = GetQRCodeSize(FinalMatrix, Bounds.Size);
 
-				rtb.Render(this);
+				var pixSize = PixelSize.FromSize(qrCodeSize.coercedSize, 1);
+
+				if (pixSize.Width < MinimumBitmapSizePixelWH || pixSize.Height < MinimumBitmapSizePixelWH)
+				{
+					pixSize = new PixelSize(MinimumBitmapSizePixelWH, MinimumBitmapSizePixelWH);
+				}
+
+				using var rtb = new RenderTargetBitmap(pixSize);
+				using (var rtbCtx = rtb.CreateDrawingContext(null))
+				{
+					DrawQRCodeImage(rtbCtx, FinalMatrix, pixSize.ToSize(1));
+				}
 				rtb.Save(path);
 			}
 
 			return Unit.Default;
 		}
 
-		private static bool[,] AddPaddingToMatrix(bool[,] matrix)
+		private bool[,] AddPaddingToMatrix(bool[,] source)
 		{
-			var (width, height) = GetMatrixDimensions(matrix);
-			var nW = width + (MatrixPadding * 2);
-			var nH = height + (MatrixPadding * 2);
+			var (indexW, indexH) = GetMatrixIndexSize(source);
+			var nW = indexW + MatrixPadding * 2;
+			var nH = indexH + MatrixPadding * 2;
 
 			var paddedMatrix = new bool[nH, nW];
 
-			for (var i = 0; i < height; i++)
+			for (var i = 0; i < indexH; i++)
 			{
-				for (var j = 0; j < width; j++)
+				for (var j = 0; j < indexW; j++)
 				{
-					paddedMatrix[i + MatrixPadding, j + MatrixPadding] = matrix[i, j];
+					paddedMatrix[i + MatrixPadding, j + MatrixPadding] = source[i, j];
 				}
 			}
 
 			return paddedMatrix;
+		}
+
+		private (int indexW, int indexH) GetMatrixIndexSize(bool[,]? source) =>
+			(source.GetUpperBound(0) + 1, source.GetUpperBound(1) + 1);
+
+		private void DrawQRCodeImage(IDrawingContextImpl ctx, bool[,]? source, Size size)
+		{
+			var qrCodeSize = GetQRCodeSize(source, size);
+			var (indexW, indexH) = GetMatrixIndexSize(source);
+			var gcf = qrCodeSize.gridCellFactor;
+
+			var canvasSize = new Rect(0, 0, gcf * indexW,
+				gcf * indexH);
+
+			ctx.DrawRectangle(Brushes.White, null, canvasSize);
+
+			for (var i = 0; i < indexH; i++)
+			{
+				for (var j = 0; j < indexW; j++)
+				{
+					var cellValue = source[i, j];
+					var rect = new Rect(i * gcf, j * gcf, gcf + 1, gcf + 1);
+					var color = cellValue ? Brushes.Black : Brushes.White;
+					ctx.DrawRectangle(color, null, rect);
+				}
+			}
 		}
 
 		public override void Render(DrawingContext context)
@@ -140,25 +175,23 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
-			var (width, height) = GetMatrixDimensions(source);
-
-			context.FillRectangle(Brushes.White, new Rect(0, 0, GridCellFactor * width, GridCellFactor * height));
-
-			for (var i = 0; i < height; i++)
-			{
-				for (var j = 0; j < width; j++)
-				{
-					var cellValue = source[i, j];
-					var rect = new Rect(i * GridCellFactor, j * GridCellFactor, GridCellFactor + 1, GridCellFactor + 1);
-					var color = cellValue ? Brushes.Black : Brushes.White;
-					context.FillRectangle(color, rect);
-				}
-			}
+			DrawQRCodeImage(context.PlatformImpl, source, Bounds.Size);
 		}
 
-		private static (int w, int h) GetMatrixDimensions(bool[,] source)
+		private (Size coercedSize, double gridCellFactor) GetQRCodeSize(bool[,] source, Size size)
 		{
-			return (source.GetUpperBound(0) + 1, source.GetUpperBound(1) + 1);
+			var (indexW, indexH) = GetMatrixIndexSize(source);
+
+			var minDimension = Math.Min(indexW, indexH);
+			var availMax = Math.Min(size.Width, size.Height);
+
+			var gridCellFactor = Math.Floor(availMax / minDimension);
+
+			var maxF = Math.Min(availMax, gridCellFactor * minDimension);
+
+			var coercedSize = new Size(maxF, maxF);
+
+			return (coercedSize, gridCellFactor);
 		}
 
 		protected override Size MeasureOverride(Size availableSize)
@@ -170,17 +203,7 @@ namespace WalletWasabi.Fluent.Controls
 				return new Size();
 			}
 
-			var (width, height) = GetMatrixDimensions(source);
-			var minDimension = Math.Min(width, height);
-			var availMax = Math.Min(availableSize.Width, availableSize.Height);
-
-			GridCellFactor = Math.Floor(availMax / minDimension);
-
-			var maxF = Math.Min(availMax, GridCellFactor * minDimension);
-
-			CoercedSize = new Size(maxF, maxF);
-
-			return CoercedSize;
+			return GetQRCodeSize(source, availableSize).coercedSize;
 		}
 	}
 }

@@ -4,36 +4,71 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             xmlns:models="clr-namespace:WalletWasabi.Fluent.Models"
              mc:Ignorable="d"
              x:DataType="vm:PrivacySuggestionControlViewModel"
              x:CompileBindings="True"
+             ClipToBounds="False"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacySuggestionControl">
-    <StackPanel Spacing="20">
+  <Panel>
+    <Border Name="PART_DecorationBorder" />
+    <Border Name="PART_MainContentBorder">
+      <StackPanel Spacing="20">
         <Panel MinHeight="150" MinWidth="150">
-            <StackPanel Spacing="10" VerticalAlignment="Top">
+          <StackPanel Spacing="10" VerticalAlignment="Top">
+            <Panel>
+              <Ellipse Stroke="{DynamicResource TextForegroundColor}" StrokeThickness="4" Height="115" Width="115" />
+              <Ellipse Stroke="{DynamicResource TextForegroundColor}" StrokeThickness="3" StrokeDashArray="2.0, 1.5"
+                       Height="100" Width="100" />
+              <PathIcon Data="{StaticResource btc_logo}" Height="50" Width="50"
+                        Foreground="{DynamicResource TextForegroundColor}" />
+
+              <Viewbox IsVisible="{Binding OptimisationLevelGood}" Height="48" Width="48" Margin="0 0  10 2"
+                       HorizontalAlignment="Right" VerticalAlignment="Bottom">
                 <Panel>
-                    <Ellipse Stroke="{DynamicResource TextForegroundColor}" StrokeThickness="4" Height="115" Width="115" />
-                    <Ellipse Stroke="{DynamicResource TextForegroundColor}" StrokeThickness="3" StrokeDashArray="2.0, 1.5" Height="100" Width="100" />
-                    <PathIcon Data="{StaticResource btc_logo}" Height="50" Width="50" Foreground="{DynamicResource TextForegroundColor}" />
+                  <Path
+                    Data="m 64.9375 11.75 c -9.9878 0 -19.7174 -3.53804 -29.25 -10.6875 -1 -0.75 -2.375 -0.75 -3.375 0 C 22.7799 8.21196 13.0503 11.75 3.0625 11.75 1.5092 11.75 0.25 13.0092 0.25 14.5625 V 34.25 c 0 18.7545 11.0909 32.534 32.7192 41.0543 0.6624 0.2609 1.3992 0.2609 2.0616 0 C 56.6591 66.784 67.75 53.0045 67.75 34.25 V 14.5625 c 0 -1.5533 -1.2592 -2.8125 -2.8125 -2.8125 z">
+                    <Path.Fill>
+                      <LinearGradientBrush StartPoint="0%,1%" EndPoint="100%,100%">
+                        <LinearGradientBrush.GradientStops>
+                          <GradientStop Color="#97D234" />
+                          <GradientStop Color="#7FAF2F" Offset="1" />
+                        </LinearGradientBrush.GradientStops>
+                      </LinearGradientBrush>
+                    </Path.Fill>
+                  </Path>
                 </Panel>
-                <TextBlock Text="{Binding Amount}" FontSize="20" HorizontalAlignment="Center" />
-                <TextBlock Text="{Binding AmountFiat}" HorizontalAlignment="Center" Opacity="0.6" />
-                <TextBlock Text="{Binding Caption}" HorizontalAlignment="Center" Opacity="0.6" />
-            </StackPanel>
+              </Viewbox>
+            </Panel>
+
+            <TextBlock Text="{Binding Amount}" FontSize="20" HorizontalAlignment="Center" />
+            <TextBlock Text="{Binding AmountFiat}" FontSize="12" HorizontalAlignment="Center" Opacity="0.6" />
+          </StackPanel>
         </Panel>
-        <Separator Height="1" Background="{DynamicResource SeparatorBackgroundBrush}" Opacity="0.2"   />
+        <Separator Height="1" Background="{DynamicResource SeparatorBackgroundBrush}" Opacity="0.2" />
         <ItemsControl HorizontalAlignment="Center" Items="{Binding Benefits}">
-            <ItemsControl.Styles>
-                <Style Selector="TextBlock">
-                    <Setter Property="Opacity" Value="0.6" />
-                    <Setter Property="TextWrapping" Value="Wrap" />
-                </Style>
-            </ItemsControl.Styles>
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <StackPanel Spacing="30" />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
+          <ItemsControl.Styles>
+            <Style Selector="TextBlock">
+              <Setter Property="Opacity" Value="0.6" />
+              <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+          </ItemsControl.Styles>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="models:PrivacySuggestionBenefit">
+              <Panel HorizontalAlignment="Center">
+                <TextBlock IsVisible="{Binding !Highlight}" Text="{Binding Message}" />
+                <TextBlock IsVisible="{Binding Highlight}" Foreground="{DynamicResource SystemAccentColor}"
+                           Text="{Binding Message}" />
+              </Panel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Spacing="5" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
         </ItemsControl>
-    </StackPanel>
+      </StackPanel>
+    </Border>
+  </Panel>
 </UserControl>

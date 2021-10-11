@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -10,13 +11,15 @@ using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
 	[NavigationMetaData(Title = "Optimise your privacy")]
-	public partial class OptimisePrivacyViewModel : RoutableViewModel
+	public partial class OptimisePrivacyViewModel : DialogViewModelBase<BuildTransactionResult>
 	{
 		private readonly TransactionInfo _transactionInfo;
 		private readonly Wallet _wallet;
@@ -43,15 +46,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 			EnableBack = true;
 
+			Tuple<bool, string> s = new Tuple<bool, string>(false, "");
+			var h = s.Item1;
+
 			NextCommand = ReactiveCommand.Create(
-				() => OnNext(transactionInfo),
+				Complete,
 				this.WhenAnyValue(x => x.SelectedPrivacySuggestion).Select(x => x is { }));
 		}
 
-		private void OnNext(TransactionInfo transactionInfo)
+		private void Complete()
 		{
-			Navigate().To(new TransactionPreviewViewModel(_wallet, transactionInfo,
-				SelectedPrivacySuggestion!.TransactionResult));
+			Close(DialogResultKind.Normal, SelectedPrivacySuggestion!.TransactionResult);
 		}
 
 		protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
@@ -67,7 +72,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					var intent = new PaymentIntent(
 						_transactionInfo.Address,
 						MoneyRequest.CreateAllRemaining(subtractFee: true),
-						_transactionInfo.Labels);
+						_transactionInfo.UserLabels);
 
 					PrivacySuggestionControlViewModel? smallerSuggestion = null;
 
@@ -86,12 +91,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 						smallerSuggestion = new PrivacySuggestionControlViewModel(
 							_transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), smallerTransaction,
-							PrivacyOptimisationLevel.Better, _wallet.Synchronizer.UsdExchangeRate, "Improved Privacy");
+							PrivacyOptimisationLevel.Better, _wallet.Synchronizer.UsdExchangeRate, new PrivacySuggestionBenefit(true, "Improved Privacy"));
 					}
 
 					_defaultSelection = new PrivacySuggestionControlViewModel(
 						_transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), _requestedTransaction,
-						PrivacyOptimisationLevel.Standard, _wallet.Synchronizer.UsdExchangeRate);
+						PrivacyOptimisationLevel.Standard, _wallet.Synchronizer.UsdExchangeRate, new PrivacySuggestionBenefit(false, "As Requested"));
 
 					var largerTransaction = await Task.Run(() => _wallet.BuildTransaction(
 						_wallet.Kitchen.SaltSoup(),
@@ -102,7 +107,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 					var largerSuggestion = new PrivacySuggestionControlViewModel(
 						_transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), largerTransaction,
-						PrivacyOptimisationLevel.Better, _wallet.Synchronizer.UsdExchangeRate, "Improved Privacy");
+						PrivacyOptimisationLevel.Better, _wallet.Synchronizer.UsdExchangeRate, new PrivacySuggestionBenefit(true, "Improved Privacy"));
 
 					// There are several scenarios, both the alternate suggestions are <, or >, or 1 < and 1 >.
 					// We sort them and add the suggestions accordingly.

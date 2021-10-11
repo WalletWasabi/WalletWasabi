@@ -91,6 +91,16 @@ namespace WalletWasabi.Tor.Socks5
 			}
 		}
 
+		/// <remarks>Connection transporting an HTTP request that was canceled or otherwise failed must be torn down.</remarks>
+		public void MarkAsToDispose()
+		{
+			lock (StateLock)
+			{
+				Debug.Assert(State == TcpConnectionState.InUse, $"Unexpected state: '{State}'.");
+				State = TcpConnectionState.ToDispose;
+			}
+		}
+
 		/// <inheritdoc/>
 		public override string ToString()
 		{

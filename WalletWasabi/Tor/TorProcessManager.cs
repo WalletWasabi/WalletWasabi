@@ -18,7 +18,7 @@ namespace WalletWasabi.Tor
 	public class TorProcessManager : IAsyncDisposable
 	{
 		/// <summary>Task completion source returning a cancellation token which is canceled when Tor process is terminated.</summary>
-		private volatile TaskCompletionSource<CancellationToken> _tcs = new();
+		private volatile TaskCompletionSource<(CancellationToken, TorControlClient)> _tcs = new();
 
 		public TorProcessManager(TorSettings settings) :
 			this(settings, new(settings.SocksEndpoint))
@@ -57,7 +57,7 @@ namespace WalletWasabi.Tor
 		/// <returns>Cancellation token which is canceled once Tor process terminates (either forcefully or gracefully).</returns>
 		/// <remarks>This method must be called exactly once.</remarks>		
 		/// <exception cref="OperationCanceledException"/>
-		public async Task<CancellationToken> StartAsync(CancellationToken cancellationToken = default)
+		public async Task<(CancellationToken, TorControlClient)> StartAsync(CancellationToken cancellationToken = default)
 		{
 			LoopTask = RestartingLoopAsync(cancellationToken);
 
@@ -65,9 +65,9 @@ namespace WalletWasabi.Tor
 		}
 
 		/// <summary>Waits until Tor process is fully started or until it is stopped for some reason.</summary>
-		/// <returns>Cancellation token which is canceled once Tor process terminates.</returns>
+		/// <returns>Cancellation token which is canceled once Tor process terminates or once <paramref name="cancellationToken"/> is canceled.</returns>
 		/// <remarks>This is useful to set up Tor control monitors that need to be restarted once Tor process is started again.</remarks>
-		public Task<CancellationToken> WaitForNextAttemptAsync(CancellationToken cancellationToken = default)
+		public Task<(CancellationToken, TorControlClient)> WaitForNextAttemptAsync(CancellationToken cancellationToken = default)
 		{
 			return _tcs.Task.WithAwaitCancellationAsync(cancellationToken);
 		}
@@ -119,16 +119,19 @@ namespace WalletWasabi.Tor
 					}
 
 					Logger.LogInfo("Tor is running.");
-					_tcs.SetResult(cts.Token);
 
 					// Only now we know that Tor process is fully started.
 					lock (StateLock)
 					{
 						TorProcess = process;
 						TorControlClient = controlClient;
+
+						_tcs.SetResult((cts.Token, controlClient));
 					}
 
 					await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+
+					Logger.LogDebug("Tor process exited.");
 				}
 				catch (OperationCanceledException)
 				{
@@ -144,17 +147,17 @@ namespace WalletWasabi.Tor
 				}
 				finally
 				{
-					TaskCompletionSource<CancellationToken> originalTcs = _tcs;
+					TaskCompletionSource<(CancellationToken, TorControlClient)> originalTcs = _tcs;
 
 					if (setNewTcs)
 					{
 						// (1) and (2) must be in this order. Otherwise, there is a race condition risk of getting invalid CT by clients.
-						TaskCompletionSource<CancellationToken> newTcs = new();
+						TaskCompletionSource<(CancellationToken, TorControlClient)> newTcs = new();
 						originalTcs = Interlocked.Exchange(ref _tcs, newTcs); // (1)
 					}
 
 					cts.Cancel(); // (2)
-					originalTcs.TrySetResult(cts.Token);
+					originalTcs.TrySetCanceled(globalCancellationToken);
 					cts.Dispose();
 
 					if (controlClient is not null)
@@ -291,7 +294,7 @@ namespace WalletWasabi.Tor
 				torControlClient = TorControlClient;
 			}
 
-			if (torControlClient is TorControlClient)
+			if (torControlClient is not null)
 			{
 				// Even though terminating the TCP connection with Tor would shut down Tor,
 				// the spec is quite clear:

@@ -30,10 +30,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
-			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
+			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena);
 
 			// There's no such alice yet, so success.
-			var req = new InputsRemovalRequest(round.Id, BitcoinFactory.CreateUint256());
+			var req = new InputsRemovalRequest(round.Id, Guid.NewGuid());
 			await handler.RemoveInputAsync(req, CancellationToken.None);
 
 			// There was the alice we want to remove so success.
@@ -52,8 +52,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		{
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync();
 
-			await using ArenaRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, new MockRpcClient());
-			var req = new InputsRemovalRequest(uint256.Zero, BitcoinFactory.CreateUint256());
+			await using ArenaRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena);
+			var req = new InputsRemovalRequest(uint256.Zero, Guid.NewGuid());
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RemoveInputAsync(req, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.RoundNotFound, ex.ErrorCode);
 
@@ -68,13 +68,13 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			var round = arena.Rounds.First();
 
-			var req = new InputsRemovalRequest(round.Id, BitcoinFactory.CreateUint256());
+			var req = new InputsRemovalRequest(round.Id, Guid.NewGuid());
 			foreach (Phase phase in Enum.GetValues(typeof(Phase)))
 			{
 				if (phase != Phase.InputRegistration)
 				{
 					round.SetPhase(phase);
-					await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
+					await using ArenaRequestHandler handler = new(cfg, new Prison(), arena);
 					var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RemoveInputAsync(req, CancellationToken.None));
 					Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 				}

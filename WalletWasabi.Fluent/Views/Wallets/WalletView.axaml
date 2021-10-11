@@ -5,6 +5,7 @@
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:home="using:WalletWasabi.Fluent.Views.Wallets.Home"
              xmlns:history="using:WalletWasabi.Fluent.Views.Wallets.Home.History"
@@ -13,7 +14,7 @@
              x:CompileBindings="True"
              ClipToBounds="False"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletView">
-  <c:ContentArea ScrollViewer.VerticalScrollBarVisibility="Disabled" ClipToBounds="False" HeaderBackground="{DynamicResource HeaderRegionColor}">
+  <c:ContentArea ScrollViewer.VerticalScrollBarVisibility="Disabled" ClipToBounds="False" HeaderBackground="{DynamicResource HeaderRegionColor}" IsBusy="{Binding !History.IsInitialized}">
     <c:ContentArea.Title>
       <StackPanel>
         <DockPanel>
@@ -23,7 +24,7 @@
               <Button.IsVisible>
                 <MultiBinding Converter="{x:Static BoolConverters.And}">
                   <Binding Path="PreferPsbtWorkflow"/>
-                  <Binding Path="IsWalletBalanceZero"/>
+                  <Binding Path="IsWalletBalanceZero" Converter="{x:Static BoolConverters.Not}"/>
                 </MultiBinding>
               </Button.IsVisible>
               <StackPanel Orientation="Horizontal" Spacing="15">

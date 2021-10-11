@@ -27,7 +27,7 @@ namespace WalletWasabi.Wallets
 {
 	public class Wallet : BackgroundService
 	{
-		private WalletState _state;
+		private volatile WalletState _state;
 
 		public Wallet(string dataDir, Network network, string filePath) : this(dataDir, network, KeyManager.FromFile(filePath))
 		{
@@ -93,6 +93,8 @@ namespace WalletWasabi.Wallets
 		private AsyncLock HandleFiltersLock { get; }
 
 		public bool IsLoggedIn { get; private set; }
+
+		public bool AllowManualCoinJoin { get; set; }
 
 		public Kitchen Kitchen { get; } = new();
 
@@ -261,18 +263,21 @@ namespace WalletWasabi.Wallets
 				var prevState = State;
 				State = WalletState.Stopping;
 
-				await base.StopAsync(cancel).ConfigureAwait(false);
-
-				if (prevState >= WalletState.Initialized)
+				if (prevState < WalletState.Stopping)
 				{
-					BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
-					BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
-					BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
-					TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessedAsync;
-					ChaumianClient.OnDequeue -= ChaumianClient_OnDequeue;
+					await base.StopAsync(cancel).ConfigureAwait(false);
 
-					await ChaumianClient.StopAsync(cancel).ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.");
+					if (prevState >= WalletState.Initialized)
+					{
+						BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
+						BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
+						BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
+						TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessedAsync;
+						ChaumianClient.OnDequeue -= ChaumianClient_OnDequeue;
+
+						await ChaumianClient.StopAsync(cancel).ConfigureAwait(false);
+						Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.");
+					}
 				}
 			}
 			finally

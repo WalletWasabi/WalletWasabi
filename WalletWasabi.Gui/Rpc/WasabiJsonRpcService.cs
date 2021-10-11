@@ -231,29 +231,6 @@ namespace WalletWasabi.Gui.Rpc
 			}).ToArray();
 		}
 
-		[JsonRpcMethod("enqueue")]
-		public async Task EnqueueForCoinJoinAsync(OutPoint[] coins, string? password = null)
-		{
-			Guard.NotNull(nameof(coins), coins);
-			password = Guard.Correct(password);
-			var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
-
-			AssertWalletIsLoaded();
-			var coinsToMix = activeWallet.Coins.Where(x => coins.Any(y => y == x.OutPoint));
-			await activeWallet.ChaumianClient.QueueCoinsToMixAsync(password, coinsToMix.ToArray()).ConfigureAwait(false);
-		}
-
-		[JsonRpcMethod("dequeue")]
-		public async Task DequeueForCoinJoinAsync(OutPoint[] coins)
-		{
-			Guard.NotNull(nameof(coins), coins);
-			var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
-
-			AssertWalletIsLoaded();
-			var coinsToDequeue = activeWallet.Coins.Where(x => coins.Any(y => y == x.OutPoint));
-			await activeWallet.ChaumianClient.DequeueCoinsFromMixAsync(coinsToDequeue, DequeueReason.UserRequested).ConfigureAwait(false);
-		}
-
 		[JsonRpcMethod("selectwallet")]
 		public void SelectWallet(string walletName)
 		{

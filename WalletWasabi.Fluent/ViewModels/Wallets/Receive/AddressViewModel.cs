@@ -1,9 +1,10 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Reactive;
 using System.Windows.Input;
 using Avalonia;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Wallets;
 
@@ -11,13 +12,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 {
 	public partial class AddressViewModel : ViewModelBase
 	{
-		[AutoNotify] private SmartLabel _label;
 		[AutoNotify] private string _address;
 
 		public AddressViewModel(ReceiveAddressesViewModel parent, Wallet wallet, HdPubKey model, Network network)
 		{
 			_address = model.GetP2wpkhAddress(network).ToString();
-			_label = model.Label;
+
+			Label = model.Label.Take(1).ToList();
+			FilteredLabel = model.Label.Skip(1).ToList();
 
 			CopyAddressCommand =
 				ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Address));
@@ -39,5 +41,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 		public ICommand EditLabelCommand { get; }
 
 		public ReactiveCommand<Unit, Unit> NavigateCommand { get; }
+
+		public List<string> FilteredLabel { get; }
+
+		public List<string> Label { get; }
 	}
 }

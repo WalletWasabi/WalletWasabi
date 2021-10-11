@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using System.Windows.Input;
-using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
@@ -60,6 +60,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 			History = new HistoryViewModel(this, balanceChanged);
 
+			Settings = new WalletSettingsViewModel(this);
+
 			balanceChanged
 				.Subscribe(_ => IsWalletBalanceZero = wallet.Coins.TotalAmount() == Money.Zero)
 				.DisposeWith(Disposables);
@@ -74,74 +76,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			_normalLayoutIndex = 1;
 			_wideLayoutIndex = 2;
 
-			Layouts = new ObservableCollection<TileLayoutViewModel>()
-			{
-				new("Small", "330,330,330,330,330", "150"),
-				new("Normal", "330,330,330", "150,300"),
-				new("Wide", "330,330", "150,300,300")
-			};
+			Layouts = wallet.KeyManager.IsWatchOnly
+				? TileHelper.GetWatchOnlyWalletLayout()
+				: TileHelper.GetNormalWalletLayout();
 
 			LayoutIndex = _normalLayoutIndex;
 
-			BalanceTile = new WalletBalanceTileViewModel(wallet, balanceChanged, History.UnfilteredTransactions)
-			{
-				TilePresets = new ObservableCollection<TilePresetViewModel>()
-				{
-					new(0, 0, 1, 1, TileSize.Medium),
-					new(0, 0, 1, 1, TileSize.Medium),
-					new(0, 0, 1, 1, TileSize.Medium)
-				},
-				TilePresetIndex = LayoutIndex
-			};
-			RoundStatusTile = new RoundStatusTileViewModel(wallet)
-			{
-				TilePresets = new ObservableCollection<TilePresetViewModel>()
-				{
-					new(1, 0, 1, 1, TileSize.Medium),
-					new(1, 0, 1, 1, TileSize.Medium),
-					new(1, 0, 1, 1, TileSize.Medium)
-				},
-				TilePresetIndex = LayoutIndex
-			};
-			BtcPriceTile = new BtcPriceTileViewModel(wallet)
-			{
-				TilePresets = new ObservableCollection<TilePresetViewModel>()
-				{
-					new(2, 0, 1, 1, TileSize.Medium),
-					new(2, 0, 1, 1, TileSize.Medium),
-					new(0, 1, 1, 1, TileSize.Large)
-				},
-				TilePresetIndex = LayoutIndex
-			};
-			WalletPieChart = new WalletPieChartTileViewModel(wallet, balanceChanged)
-			{
-				TilePresets = new ObservableCollection<TilePresetViewModel>()
-				{
-					new(3, 0, 1, 1, TileSize.Medium),
-					new(0, 1, 1, 1, TileSize.Large),
-					new(1, 1, 1, 1, TileSize.Large)
-				},
-				TilePresetIndex = LayoutIndex
-			};
-			BalanceChartTile = new WalletBalanceChartTileViewModel(History.UnfilteredTransactions)
-			{
-				TilePresets = new ObservableCollection<TilePresetViewModel>()
-				{
-					new(4, 0, 1, 1, TileSize.Medium),
-					new(1, 1, 2, 1, TileSize.Wide),
-					new(0, 2, 2, 1, TileSize.Wide)
-				},
-				TilePresetIndex = LayoutIndex
-			};
-
-			_tiles = new List<TileViewModel>
-			{
-				BalanceTile,
-				RoundStatusTile,
-				BtcPriceTile,
-				WalletPieChart,
-				BalanceChartTile
-			};
+			_tiles = wallet.KeyManager.IsWatchOnly
+				? TileHelper.GetWatchOnlyWalletTiles(this, balanceChanged)
+				: TileHelper.GetNormalWalletTiles(this, balanceChanged);
 
 			this.WhenAnyValue(x => x.LayoutIndex)
 				.Subscribe(x =>
@@ -190,12 +133,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				Navigate(NavigationTarget.DialogScreen).To(new WalletInfoViewModel(this));
 			});
 
-			WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletSettingsViewModel(this)));
+			WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(Settings));
 		}
+
+		public WalletSettingsViewModel Settings { get; }
 
 		public ICommand SendCommand { get; }
 
-		public ICommand BroadcastPsbtCommand { get; set; }
+		public ICommand? BroadcastPsbtCommand { get; set; }
 
 		public ICommand ReceiveCommand { get; }
 
@@ -206,16 +151,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		private CompositeDisposable Disposables { get; set; }
 
 		public HistoryViewModel History { get; }
-
-		public WalletBalanceTileViewModel BalanceTile { get; }
-
-		public RoundStatusTileViewModel RoundStatusTile { get; }
-
-		public BtcPriceTileViewModel BtcPriceTile { get; }
-
-		public WalletPieChartTileViewModel WalletPieChart { get; }
-
-		public WalletBalanceChartTileViewModel BalanceChartTile { get; }
 
 		public TileLayoutViewModel? CurrentLayout => Layouts?[LayoutIndex];
 

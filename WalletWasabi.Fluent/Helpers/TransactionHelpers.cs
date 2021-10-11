@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -41,9 +42,9 @@ namespace WalletWasabi.Fluent.Helpers
 			return txRes;
 		}
 
-		public static BuildTransactionResult BuildTransaction(Wallet wallet, TransactionInfo transactionInfo, bool subtractFee = false, bool isPayJoin = false)
+		public static BuildTransactionResult BuildTransaction(Wallet wallet, TransactionInfo transactionInfo, bool isPayJoin = false)
 		{
-			if (isPayJoin && subtractFee)
+			if (isPayJoin && transactionInfo.SubtractFee)
 			{
 				throw new InvalidOperationException("Not possible to subtract the fee.");
 			}
@@ -52,12 +53,28 @@ namespace WalletWasabi.Fluent.Helpers
 				wallet,
 				transactionInfo.Address,
 				transactionInfo.Amount,
-				transactionInfo.Labels,
+				transactionInfo.UserLabels,
 				transactionInfo.FeeRate,
 				transactionInfo.Coins,
-				subtractFee,
+				transactionInfo.SubtractFee,
 				isPayJoin ? transactionInfo.PayJoinClient : null);
 
+		}
+
+		public static bool TryBuildTransaction(Wallet wallet, TransactionInfo transactionInfo, [NotNullWhen(true)]out BuildTransactionResult? transaction, bool isPayJoin = false)
+		{
+			transaction = null;
+
+			try
+			{
+				transaction = BuildTransaction(wallet, transactionInfo, isPayJoin);
+			}
+			catch (Exception)
+			{
+				return false;
+			}
+
+			return true;
 		}
 
 		public static async Task<SmartTransaction> ParseTransactionAsync(string path, Network network)

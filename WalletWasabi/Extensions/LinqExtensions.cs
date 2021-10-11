@@ -53,7 +53,7 @@ namespace System.Linq
 			return current;
 		}
 
-		public static void Shuffle<T>(this IList<T> list)
+		public static IList<T> Shuffle<T>(this IList<T> list)
 		{
 			var rng = new Random();
 			int n = list.Count;
@@ -65,9 +65,15 @@ namespace System.Linq
 				list[k] = list[n];
 				list[n] = value;
 			}
+			return list;
 		}
 
-		public static void AddToValueList<TKey, TValue, TElem>(this Dictionary<TKey, TValue> myDic, TKey key, TElem elem) where TValue : List<TElem>
+		public static IList<T> ToShuffled<T>(this IEnumerable<T> list)
+		{
+			return list.ToList().Shuffle();
+		}
+
+		public static void AddToValueList<TKey, TElem>(this Dictionary<TKey, List<TElem>> myDic, TKey key, TElem elem) where TKey : notnull
 		{
 			if (myDic.ContainsKey(key))
 			{
@@ -75,7 +81,7 @@ namespace System.Linq
 			}
 			else
 			{
-				myDic.Add(key, new List<TElem>() { elem } as TValue);
+				myDic.Add(key, new List<TElem>() { elem });
 			}
 		}
 

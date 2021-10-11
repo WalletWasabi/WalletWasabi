@@ -28,7 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		[AutoNotify] private DateTimeOffset _date;
 		[AutoNotify] private string? _amount;
 		[AutoNotify] private SmartLabel? _labels;
-		[AutoNotify] private uint256? _transactionId;
+		[AutoNotify] private string? _transactionId;
 
 		public TransactionDetailsViewModel(TransactionSummary transactionSummary, Wallet wallet, IObservable<Unit> updateTrigger)
 		{
@@ -52,13 +52,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				return;
 			}
 
-			await Application.Current.Clipboard.SetTextAsync(TransactionId.ToString());
+			await Application.Current.Clipboard.SetTextAsync(TransactionId);
 		}
 
 		private void UpdateValues(TransactionSummary transactionSummary)
 		{
 			Date = transactionSummary.DateTime.ToLocalTime();
-			TransactionId = transactionSummary.TransactionId;
+			TransactionId = transactionSummary.TransactionId.ToString();
 			Labels = transactionSummary.Label;
 			BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
 			Confirmations = transactionSummary.Height.Type == HeightType.Chain ? (int)_wallet.BitcoinStore.SmartHeaderChain.TipHeight - transactionSummary.Height.Value + 1 : 0;
@@ -85,7 +85,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			var historyBuilder = new TransactionHistoryBuilder(_wallet);
 			var txRecordList = await Task.Run(historyBuilder.BuildHistorySummary);
 
-			var currentTransaction = txRecordList.FirstOrDefault(x => x.TransactionId == TransactionId);
+			var currentTransaction = txRecordList.FirstOrDefault(x => x.TransactionId.ToString() == TransactionId);
 
 			if (currentTransaction is { })
 			{

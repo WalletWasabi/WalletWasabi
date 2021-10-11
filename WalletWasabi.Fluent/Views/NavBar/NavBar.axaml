@@ -9,7 +9,8 @@
              x:DataType="vm:NavBarViewModel"
              x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="280" d:DesignHeight="459"
-             x:Class="WalletWasabi.Fluent.Views.NavBar.NavBar" UseLayoutRounding="False">
+             x:Class="WalletWasabi.Fluent.Views.NavBar.NavBar" UseLayoutRounding="False"
+             Name="NavBarUserControl">
   <UserControl.Styles>
     <Style Selector="PathIcon">
       <Setter Property="Margin" Value="13 0 0 0" />
@@ -85,11 +86,36 @@
     </Style>
   </UserControl.Styles>
   <DockPanel Margin="0 0 0 4">
-    <StackPanel DockPanel.Dock="Top" Spacing="5">
+    <StackPanel DockPanel.Dock="Top" Spacing="5" Background="Transparent">
       <Panel Height="30" />
       <Border Padding="12 12 12 5" Margin="0,-3 ,0,4">
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-          <ContentControl Template="{DynamicResource wasabi_logo_fixed}" Margin="13,0,0,0" VerticalAlignment="Center" />
+          <Panel Margin="13,0,0,0" VerticalAlignment="Center">
+            <Panel.Styles>
+              <Style Selector="ContentControl,Button">
+                <Setter Property="Transitions">
+                  <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.3" Easing="{StaticResource FluentEasing}" />
+                  </Transitions>
+                </Setter>
+              </Style>
+              <Style Selector="ContentControl[IsVisible=True], Button[IsVisible=True]">
+                <Setter Property="Opacity" Value="1" />
+              </Style>
+              <Style Selector="ContentControl[IsVisible=False], Button[IsVisible=False]">
+                <Setter Property="Opacity" Value="0" />
+              </Style>
+            </Panel.Styles>
+            <ContentControl Template="{DynamicResource wasabi_logo_fixed}" IsVisible="{Binding !#NavBarUserControl.IsPointerOver}"/>
+            <Button Classes="plain" x:CompileBindings="False" Command="{Binding ToggleAction}" IsVisible="{Binding #NavBarUserControl.IsPointerOver}">
+              <Button.Styles>
+                <Style Selector=":is(Button):pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                  <Setter Property="Background" Value="Transparent" />
+                </Style>
+              </Button.Styles>
+              <PathIcon Margin="0 0 3 0" Height="16" Data="{StaticResource navigation_regular}"/>
+            </Button>
+          </Panel>
           <ContentControl Template="{DynamicResource wasabi_logo_text_fixed}" Margin="22,0,0,0"
                           VerticalAlignment="Center" ClipToBounds="False" />
         </StackPanel>
@@ -116,7 +142,7 @@
       </c:NavBarListBox>
       <Separator />
     </StackPanel>
-    <StackPanel DockPanel.Dock="Bottom">
+    <StackPanel DockPanel.Dock="Bottom" Background="Transparent">
       <Separator />
       <!-- BottomItems List -->
       <c:NavBarListBox Items="{Binding BottomItems}"
@@ -159,8 +185,8 @@
       </c:NavBarListBox>
     </StackPanel>
     <!-- Items List -->
-    <DockPanel>
-      <TextBlock Classes="headerText" DockPanel.Dock="Top" Text="Wallets" IsVisible="{Binding IsOpen}" />
+    <DockPanel Background="Transparent">
+      <TextBlock Classes="headerText" DockPanel.Dock="Top" Text="Wallets" IsVisible="{Binding IsOpen}"  />
       <c:NavBarListBox Items="{Binding Wallets}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                        Name="ItemsListBox"

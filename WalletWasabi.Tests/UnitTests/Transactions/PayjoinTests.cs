@@ -93,7 +93,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var amount = Money.Coins(0.001m);
 			using Key key = new();
-			PaymentIntent payment = new(key.ScriptPubKey, amount);
+			PaymentIntent payment = new(key.PubKey, amount);
 
 			var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), allowedCoins.Select(x => x.OutPoint), payjoinClient);
 

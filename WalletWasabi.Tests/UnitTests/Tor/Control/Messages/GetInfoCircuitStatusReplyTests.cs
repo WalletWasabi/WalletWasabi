@@ -120,8 +120,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 				Assert.Equal(BuildFlag.IS_INTERNAL, circuitInfo.BuildFlags[0]);
 				Assert.Equal(BuildFlag.NEED_CAPACITY, circuitInfo.BuildFlags[1]);
 
-				// HS_CLIENT_HSDIR is not known.
-				Assert.Equal(Purpose.UNKNOWN, circuitInfo.Purpose);
+				Assert.Equal(Purpose.HS_CLIENT_HSDIR, circuitInfo.Purpose);
 				Assert.Equal(HsState.HSCI_CONNECTING, circuitInfo.HsState);
 				Assert.Equal("2021-05-15T14:04:19.353271", circuitInfo.TimeCreated);
 

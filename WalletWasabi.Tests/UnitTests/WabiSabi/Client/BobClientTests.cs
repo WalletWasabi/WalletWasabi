@@ -33,7 +33,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, mockRpc, round);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 
-			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
+			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena);
 			var insecureRandom = new InsecureRandom();
 			var wabiSabiApi = new WabiSabiController(coordinator);
 			var roundState = RoundState.FromRound(round);
@@ -49,20 +49,19 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			var bitcoinSecret = km.GetSecrets("", coin1.ScriptPubKey).Single().PrivateKey.GetBitcoinSecret(Network.Main);
 
-			var aliceClient = new AliceClient(round.Id, aliceArenaClient, coin1.Coin, round.FeeRate, bitcoinSecret);
-			await aliceClient.RegisterInputAsync(CancellationToken.None);
-
 			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), wabiSabiApi);
-			Task confirmationTask = aliceClient.ConfirmConnectionAsync(
-				TimeSpan.FromSeconds(1),
-				new long[] { coin1.EffectiveValue(round.FeeRate) },
-				new long[] { roundState.MaxVsizeAllocationPerAlice - coin1.ScriptPubKey.EstimateInputVsize() },
-				roundStateUpdater,
-				CancellationToken.None);
+			await roundStateUpdater.StartAsync(CancellationToken.None);
 
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
-			await confirmationTask;
-			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
+			using var identificationKey = new Key();
+			var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), aliceArenaClient, coin1, bitcoinSecret, identificationKey, roundStateUpdater, CancellationToken.None);
+
+			do
+			{
+				await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
+			}
+			while (round.Phase != Phase.ConnectionConfirmation);
+
+			var aliceClient = await task;
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 			Assert.Equal(Phase.OutputRegistration, round.Phase);

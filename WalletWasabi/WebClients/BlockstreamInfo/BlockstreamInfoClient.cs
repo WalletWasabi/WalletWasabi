@@ -44,7 +44,7 @@ namespace WalletWasabi.WebClients.BlockstreamInfo
 
 			if (!response.IsSuccessStatusCode)
 			{
-				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
+				await response.ThrowRequestExceptionFromContentAsync(cancel).ConfigureAwait(false);
 			}
 
 			var responseString = await response.Content.ReadAsStringAsync(cancel).ConfigureAwait(false);

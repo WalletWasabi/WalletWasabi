@@ -31,6 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		[AutoNotify] private bool _customChangeAddress;
 		[AutoNotify] private FeeDisplayFormat _selectedFeeDisplayFormat;
 		[AutoNotify] private bool _runOnSystemStartup;
+		[AutoNotify] private bool _hideOnClose;
 
 		public GeneralSettingsTabViewModel()
 		{
@@ -39,6 +40,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			_customFee = Services.UiConfig.IsCustomFee;
 			_customChangeAddress = Services.UiConfig.IsCustomChangeAddress;
 			_runOnSystemStartup = Services.UiConfig.RunOnSystemStartup;
+			_hideOnClose = Services.UiConfig.HideOnClose;
 			_selectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), Services.UiConfig.FeeDisplayFormat)
 				? (FeeDisplayFormat)Services.UiConfig.FeeDisplayFormat
 				: FeeDisplayFormat.SatoshiPerByte;
@@ -86,6 +88,11 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Skip(1)
 				.Subscribe(x => Services.UiConfig.FeeDisplayFormat = (int)x);
+
+			this.WhenAnyValue(x => x.HideOnClose)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Skip(1)
+				.Subscribe(x => Services.UiConfig.HideOnClose = x);
 		}
 
 		public ICommand StartupCommand { get; }

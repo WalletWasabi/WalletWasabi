@@ -25,7 +25,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			using Key key = new();
 			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient();
 
-			await using ArenaRequestHandler handler = new(cfg, new(), arena, mockRpc.Object);
+			await using ArenaRequestHandler handler = new(cfg, new(), arena);
 			var req = WabiSabiFactory.CreateInputRegistrationRequest(round: blameRound);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.InputNotWhitelisted, ex.ErrorCode);
@@ -43,7 +43,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			Round blameRound = WabiSabiFactory.CreateBlameRound(round, cfg);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round, blameRound);
 
-			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreatePreconfiguredRpcClient().Object);
+			await using ArenaRequestHandler handler = new(cfg, new(), arena);
 			var req = WabiSabiFactory.CreateInputRegistrationRequest(prevout: alice.Coin.Outpoint, round: blameRound);
 
 			var ex = await Assert.ThrowsAnyAsync<Exception>(async () => await handler.RegisterInputAsync(req, CancellationToken.None));
@@ -69,9 +69,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			Round blameRound = WabiSabiFactory.CreateBlameRound(round, cfg);
 			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(alice.Coin);
 
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc, round, blameRound);
-			arena.Prison.Punish(bannedCoin, Punishment.Banned, uint256.Zero);
-			await using ArenaRequestHandler handler = new(cfg, arena.Prison, arena, mockRpc.Object);
+			Prison prison = new();
+			using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync(round, blameRound);
+			
+			prison.Punish(bannedCoin, Punishment.Banned, uint256.Zero);
+			await using ArenaRequestHandler handler = new(cfg, prison, arena);
 
 			var req = WabiSabiFactory.CreateInputRegistrationRequest(key: key, round: blameRound, prevout: bannedCoin);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req, CancellationToken.None));

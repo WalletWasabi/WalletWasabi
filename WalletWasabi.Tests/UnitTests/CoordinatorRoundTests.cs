@@ -36,7 +36,7 @@ namespace WalletWasabi.Tests.UnitTests
 			tx.Inputs.Add(GetRandomOutPoint(), new Script(OpcodeType.OP_0, OpcodeType.OP_0), sequence: Sequence.Final);
 			tx.Inputs.Add(GetRandomOutPoint(), new Script(OpcodeType.OP_0, OpcodeType.OP_0), sequence: Sequence.Final);
 			using var key = new Key();
-			tx.Outputs.Add(Money.Coins(1.9995m), key.ScriptPubKey);
+			tx.Outputs.Add(Money.Coins(1.9995m), key.PubKey.ScriptPubKey);
 
 			// Under normal circunstances
 			{
@@ -46,7 +46,7 @@ namespace WalletWasabi.Tests.UnitTests
 				});
 
 				var tx0 = tx.Clone();
-				var spentCoins = tx0.Inputs.Select(x => new Coin(x.PrevOut, new TxOut(Money.Coins(1), new Key().ScriptPubKey)));
+				var spentCoins = tx0.Inputs.Select(x => new Coin(x.PrevOut, new TxOut(Money.Coins(1), new Key().PubKey.ScriptPubKey)));
 				var txFeeBeforeOptimization = tx0.GetFee(spentCoins.ToArray());
 				await round.TryOptimizeFeesAsync(tx0, spentCoins);
 				var txFeeAfterOptimization = tx0.GetFee(spentCoins.ToArray());
@@ -61,7 +61,7 @@ namespace WalletWasabi.Tests.UnitTests
 				});
 
 				var tx1 = tx.Clone();
-				var spentCoins = tx1.Inputs.Select(x => new Coin(x.PrevOut, new TxOut(Money.Coins(1), new Key().ScriptPubKey)));
+				var spentCoins = tx1.Inputs.Select(x => new Coin(x.PrevOut, new TxOut(Money.Coins(1), new Key().PubKey.ScriptPubKey)));
 				var txFeeBeforeOptimization = tx1.GetFee(spentCoins.ToArray());
 				await round.TryOptimizeFeesAsync(tx1, spentCoins);
 				var txFeeAfterOptimization = tx1.GetFee(spentCoins.ToArray());
