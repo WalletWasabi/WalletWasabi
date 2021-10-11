@@ -123,7 +123,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var round = arena.Rounds.First();
 			var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
-			cfg.StandardInputRegistrationTimeout = TimeSpan.Zero;
+			round.InputRegistrationTimeFrame = round.InputRegistrationTimeFrame with { Duration = TimeSpan.Zero };
 
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(

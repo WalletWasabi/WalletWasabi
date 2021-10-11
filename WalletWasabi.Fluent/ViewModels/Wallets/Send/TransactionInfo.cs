@@ -19,12 +19,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_privateCoinThreshold = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
 		}
 
-		public SmartLabel UserLabels { private get; set; }
-
-		public SmartLabel Labels => GetLabels(Coins);
-
-		public SmartLabel GetLabels(IEnumerable<SmartCoin> coins) =>
-			SmartLabel.Merge(UserLabels, SmartLabel.Merge(coins.Select(x => x.GetLabels())));
+		public SmartLabel UserLabels { get; set; }
 
 		public BitcoinAddress Address { get; set; }
 

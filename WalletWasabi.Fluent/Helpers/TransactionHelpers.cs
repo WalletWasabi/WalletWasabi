@@ -53,7 +53,7 @@ namespace WalletWasabi.Fluent.Helpers
 				wallet,
 				transactionInfo.Address,
 				transactionInfo.Amount,
-				transactionInfo.Labels,
+				transactionInfo.UserLabels,
 				transactionInfo.FeeRate,
 				transactionInfo.Coins,
 				transactionInfo.SubtractFee,

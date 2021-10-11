@@ -10,7 +10,6 @@ using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Helpers;
