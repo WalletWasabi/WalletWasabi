@@ -35,7 +35,7 @@
                    RestrictInputToSuggestions="False"
                    Watermark="{StaticResource LabelsWatermarkText}"
                    Suggestions="{Binding Suggestions}"
-                   MaxTextLength="50"
+                   MaxTextLength="{StaticResource MaxLabelLength}"
                    IsCurrentTextValid="{Binding IsCurrentTextValid, Mode=OneWayToSource}">
           <c:TagsBox.Styles>
             <Style Selector="c|TagsBox AutoCompleteBox">
