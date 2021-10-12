@@ -31,11 +31,7 @@ namespace WalletWasabi.Fluent.Behaviors
 							AssociatedObject.WindowState = (WindowState)Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
 						}
 
-						// Fixes: https://github.com/zkSNACKs/WalletWasabi/issues/6309
-						var temp = AssociatedObject.WindowState;
 						AssociatedObject.Show();
-						AssociatedObject.WindowState = temp;
-
 						AssociatedObject.BringIntoView();
 					})
 					.DisposeWith(disposables);
