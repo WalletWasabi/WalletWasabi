@@ -34,6 +34,7 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 		// of the transaction also pays at the nominal feerate so this will have
 		// to do for now, but in the future EstimatedVsize should be used
 		// including the shared overhead
+		[JsonIgnore]
 		public FeeRate EffectiveFeeRate => new(Balance, EstimatedInputsVsize + OutputsVsize);
 
 		public MultipartyTransactionState GetConstructionStateSince(long order)
@@ -63,6 +64,14 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 				Outputs = Outputs.AddRange(diff.Outputs),
 				PreviousState = diff.PreviousState,
 				Order = diff.Order
+			};
+		}
+
+		public MultipartyTransactionState MergeBack(MultipartyTransactionState origin)
+		{
+			return this with {
+				Inputs = origin.Inputs.AddRange(Inputs),
+				Outputs = origin.Outputs.AddRange(Outputs),
 			};
 		}
 	}

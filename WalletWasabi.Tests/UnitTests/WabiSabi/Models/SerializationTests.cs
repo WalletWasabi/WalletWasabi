@@ -144,7 +144,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			AssertSerialization(RoundState.FromRound(round));
 
 			var state = round.Assert<ConstructionState>();
-			round.CoinjoinState = new SigningState(state.Parameters, state.Inputs, state.Outputs);
+			round.CoinjoinState = new SigningState(state.Parameters, state.Inputs, state.Outputs, 0);
 			AssertSerialization(RoundState.FromRound(round));
 		}
 

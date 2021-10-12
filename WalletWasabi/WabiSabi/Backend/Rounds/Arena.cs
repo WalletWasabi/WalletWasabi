@@ -326,11 +326,14 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		public async Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken)
+		public async Task<RoundState[]> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
 		{
 			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
-				return Rounds.Select(x => RoundState.FromRound(x)).ToArray();
+				return Rounds.Select(x => {
+					var checkPoint = request.RoundCheckpoints.FirstOrDefault(y => y.RoundId == x.Id);
+					return RoundState.FromRound(x, checkPoint == default ? -1 : checkPoint.EventId);
+				}).ToArray();
 			}
 		}
 

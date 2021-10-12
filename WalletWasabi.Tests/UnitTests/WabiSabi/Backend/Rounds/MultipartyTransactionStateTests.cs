@@ -58,6 +58,18 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var merged13 = state1.Merge(diffd31);
 			Assert.Equal(state3.Order, merged13.Order);
 			Assert.True(merged13.Inputs.SequenceEqual(state3.Inputs));
+
+			//---------------------
+			var diff00 = state0.GetConstructionStateSince(0);
+			var diff10 = state1.GetConstructionStateSince(0);
+			var diff21 = state2.GetConstructionStateSince(1);
+			var diff32 = state3.GetConstructionStateSince(2);
+
+			var clientState1 = state1;
+			var clientState3 = state3.GetConstructionStateSince(clientState1.Order).MergeBack(clientState1);
+
+			Assert.Equal(state3.Order, clientState3.Order);
+			Assert.True(clientState3.Inputs.SequenceEqual(state3.Inputs));
 		}
 	}
 }

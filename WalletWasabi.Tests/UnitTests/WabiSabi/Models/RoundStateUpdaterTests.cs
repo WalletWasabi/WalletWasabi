@@ -27,7 +27,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			// The coordinator creates two rounds.
 			// Each line represents a response for each request.
 			var mockApiClient = new Mock<IWabiSabiApiRequestHandler>();
-			mockApiClient.SetupSequence(apiClient => apiClient.GetStatusAsync(It.IsAny<CancellationToken>()))
+			mockApiClient.SetupSequence(apiClient => apiClient.GetStatusAsync(It.IsAny<RoundStateRequest>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync(() => new[] { roundState1 with { Phase = Phase.InputRegistration } })
 				.ReturnsAsync(() => new[] { roundState1 with { Phase = Phase.OutputRegistration } })
 				.ReturnsAsync(() => new[] { roundState1 with { Phase = Phase.OutputRegistration }, roundState2 with { Phase = Phase.InputRegistration } })

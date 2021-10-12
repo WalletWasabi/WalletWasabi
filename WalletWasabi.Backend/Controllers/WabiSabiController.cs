@@ -21,10 +21,10 @@ namespace WalletWasabi.Backend.Controllers
 
 		private ArenaRequestHandler RequestHandler { get; }
 
-		[HttpGet("status")]
-		public Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken)
+		[HttpPost("status")]
+		public Task<RoundState[]> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
 		{
-			return RequestHandler.GetStatusAsync(cancellationToken);
+			return RequestHandler.GetStatusAsync(request, cancellationToken);
 		}
 
 		[HttpPost("connection-confirmation")]

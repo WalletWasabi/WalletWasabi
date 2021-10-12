@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -39,7 +40,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var httpClient = _apiApplicationFactory.CreateClient();
 
 			var apiClient = await _apiApplicationFactory.CreateArenaClientAsync(httpClient);
-			var rounds = await apiClient.GetStatusAsync(CancellationToken.None);
+			var rounds = await apiClient.GetStatusAsync(RoundStateRequest.Empty, CancellationToken.None);
 			var round = rounds.First(x => x.CoinjoinState is ConstructionState);
 
 			// If an output is not in the utxo dataset then it is not unspent, this
@@ -375,7 +376,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			}).CreateClient();
 
 			var apiClient = await _apiApplicationFactory.CreateArenaClientAsync(httpClient);
-			var rounds = await apiClient.GetStatusAsync(CancellationToken.None);
+			var rounds = await apiClient.GetStatusAsync(RoundStateRequest.Empty, CancellationToken.None);
 			var round = rounds.First(x => x.CoinjoinState is ConstructionState);
 
 			var ownershipProof = WabiSabiFactory.CreateOwnershipProof(signingKey, round.Id);
@@ -409,7 +410,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			}).CreateClient();
 
 			ArenaClient apiClient = await _apiApplicationFactory.CreateArenaClientAsync(new StuttererHttpClient(httpClient));
-			RoundState[] rounds = await apiClient.GetStatusAsync(CancellationToken.None);
+			RoundState[] rounds = await apiClient.GetStatusAsync(RoundStateRequest.Empty, CancellationToken.None);
 			RoundState round = rounds.First(x => x.CoinjoinState is ConstructionState);
 
 			var ownershipProof = WabiSabiFactory.CreateOwnershipProof(signingKey, round.Id);

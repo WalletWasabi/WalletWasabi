@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -52,17 +53,8 @@ namespace WalletWasabi.WabiSabi.Client
 		public virtual Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken) =>
 			SendAndReceiveAsync<TransactionSignaturesRequest>(RemoteAction.SignTransaction, request, cancellationToken);
 
-		public async Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken)
-		{
-			using var response = await _client.SendAsync(HttpMethod.Get, GetUriEndPoint(RemoteAction.GetStatus), cancel: cancellationToken).ConfigureAwait(false);
-
-			if (!response.IsSuccessStatusCode)
-			{
-				await response.ThrowRequestExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
-			}
-			var jsonString = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-			return Deserialize<RoundState[]>(jsonString);
-		}
+		public Task<RoundState[]> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken) =>
+			SendAndReceiveAsync<RoundStateRequest, RoundState[]>(RemoteAction.GetStatus, request, cancellationToken);
 
 		public Task ReadyToSign(ReadyToSignRequestRequest request, CancellationToken cancellationToken) =>
 			SendAndReceiveAsync<ReadyToSignRequestRequest>(RemoteAction.ReadyToSign, request, cancellationToken);

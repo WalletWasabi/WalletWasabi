@@ -1,6 +1,7 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,8 +26,20 @@ namespace WalletWasabi.WabiSabi.Client
 
 		protected override async Task ActionAsync(CancellationToken cancellationToken)
 		{
-			RoundState[] statusResponse = await ArenaRequestHandler.GetStatusAsync(cancellationToken).ConfigureAwait(false);
-			RoundStates = statusResponse.ToDictionary(round => round.Id);
+			var request = new RoundStateRequest(RoundStates.Select(x => (x.Key, x.Value.CoinjoinState.Order)).ToImmutableList());
+			RoundState[] statusResponse = await ArenaRequestHandler.GetStatusAsync(request, cancellationToken).ConfigureAwait(false);
+
+			var updatedRoundStates = statusResponse
+				.Where(rs => RoundStates.ContainsKey(rs.Id))
+				.Select(rs => (Update: rs, CurrentRoundState: RoundStates[rs.Id]))
+				.Select(x => x.Update with {
+					CoinjoinState = x.Update.CoinjoinState.MergeBack(x.CurrentRoundState.CoinjoinState)
+					}).ToList();
+
+			var newRoundStates = statusResponse
+				.Where(rs => !RoundStates.ContainsKey(rs.Id));
+
+			RoundStates = newRoundStates.Concat(updatedRoundStates).ToDictionary(x => x.Id, x => x);
 
 			lock (AwaitersLock)
 			{

@@ -87,12 +87,12 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			}
 		}
 
-		public async Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken)
+		public async Task<RoundState[]> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
 		{
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
-				return await Arena.GetStatusAsync(cancellationToken).ConfigureAwait(false);
+				return await Arena.GetStatusAsync(request, cancellationToken).ConfigureAwait(false);
 			}
 		}
 

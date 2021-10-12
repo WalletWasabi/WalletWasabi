@@ -18,7 +18,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 
 		Task<ReissueCredentialResponse> ReissueCredentialAsync(ReissueCredentialRequest request, CancellationToken cancellationToken);
 
-		Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken);
+		Task<RoundState[]> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken);
 
 		Task ReadyToSign(ReadyToSignRequestRequest request, CancellationToken cancellationToken);
 	}

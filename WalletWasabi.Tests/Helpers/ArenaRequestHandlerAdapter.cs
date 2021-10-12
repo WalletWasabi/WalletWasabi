@@ -19,8 +19,8 @@ namespace WalletWasabi.Tests.Helpers
 		public Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken)
 			=> arena.ConfirmConnectionAsync(request, cancellationToken);
 
-		public Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken)
-			=> arena.GetStatusAsync(cancellationToken);
+		public Task<RoundState[]> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
+			=> arena.GetStatusAsync(request, cancellationToken);
 
 		public Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 			=> arena.RegisterInputAsync(request, cancellationToken);
