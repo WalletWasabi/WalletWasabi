@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -192,6 +193,7 @@
           </Style>
         </c:LineChart.Styles>
         <i:Interaction.Behaviors>
+          <behaviors:ShowSliderThumbToolTipBehavior Slider="{Binding #CursorValue2}"/>
           <ir:AdaptiveBehavior>
             <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="550" ClassName="narrow"/>
           </ir:AdaptiveBehavior>

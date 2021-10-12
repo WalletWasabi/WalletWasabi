@@ -51,9 +51,9 @@
                                      HorizontalAlignment="Center" DataPoints="{Binding TestDataPoints}" />
         </controls:PrivacyContentControl>
 
-        <ItemsRepeater Grid.Column="1" VerticalAlignment="Center" Margin="0,0, 0, -16"
-                       Items="{Binding TestDataPointsLegend}">
-          <ItemsRepeater.ItemTemplate>
+        <ItemsControl Grid.Column="1" VerticalAlignment="Center" Margin="0,0, 0, -16"
+                      Items="{Binding TestDataPointsLegend}">
+          <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="wallets:DataLegend">
               <Grid ColumnDefinitions="*,*" RowDefinitions="*,*" HorizontalAlignment="Left"
                     Margin="0,0,0, 16">
@@ -72,11 +72,13 @@
                 </StackPanel>
               </Grid>
             </DataTemplate>
-          </ItemsRepeater.ItemTemplate>
-          <ItemsRepeater.Layout>
-            <StackLayout />
-          </ItemsRepeater.Layout>
-        </ItemsRepeater>
+          </ItemsControl.ItemTemplate>
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+        </ItemsControl>
       </Grid>
     </DockPanel>
   </Panel>
