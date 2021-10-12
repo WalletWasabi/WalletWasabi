@@ -106,6 +106,12 @@
     <Style Selector="PathIcon.hidden">
       <Setter Property="IsVisible" Value="False"/>
     </Style>
+
+    <!-- TODO: Use DataGrid.axaml styles -->
+    <Style Selector="TemplatedDataGridColumnHeader">
+      <Setter Property="Padding" Value="6"/>
+    </Style>
+
   </UserControl.Styles>
 
   <TemplatedDataGrid Items="{Binding Transactions}"
