@@ -1001,7 +1001,7 @@
       "datalistbox": {
         "type": "Project",
         "dependencies": {
-          "Avalonia": "0.10.7"
+          "Avalonia": "0.10.8"
         }
       },
       "walletwasabi": {
