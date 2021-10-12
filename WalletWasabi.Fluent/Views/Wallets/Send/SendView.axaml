@@ -78,7 +78,7 @@
                    Items="{Binding Labels}"
                    TopItems="{Binding TopSuggestions}"
                    Suggestions="{Binding Suggestions}"
-                   MaxTextLength="50"
+                   MaxTextLength="{StaticResource MaxLabelLength}"
                    IsCurrentTextValid="{Binding IsCurrentTextValid, Mode=OneWayToSource}" />
       </DockPanel>
     </DockPanel>
