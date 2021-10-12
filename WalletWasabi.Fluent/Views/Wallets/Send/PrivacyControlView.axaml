@@ -58,30 +58,30 @@
                           ResourceKey="DataGridRowSelectedBackgroundColor" />
         </TemplatedDataGrid.Resources>
         <TemplatedDataGrid.Columns>
-          <TemplatedDataGridColumn>
-            <TemplatedDataGridColumn.CellTemplate>
+          <TemplatedDataGridTemplateColumn>
+            <TemplatedDataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:PocketViewModel">
                 <CheckBox HorizontalAlignment="Center" IsChecked="{Binding IsSelected}" Focusable="False" />
               </DataTemplate>
-            </TemplatedDataGridColumn.CellTemplate>
-          </TemplatedDataGridColumn>
+            </TemplatedDataGridTemplateColumn.CellTemplate>
+          </TemplatedDataGridTemplateColumn>
 
-          <TemplatedDataGridColumn x:DataType="vm:PocketViewModel"
-                                   Header="Total (BTC)">
-            <TemplatedDataGridColumn.CellTemplate>
+          <TemplatedDataGridTemplateColumn x:DataType="vm:PocketViewModel"
+                                           Header="Total (BTC)">
+            <TemplatedDataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:PocketViewModel">
                 <TextBlock Text="{Binding TotalBtc}" />
               </DataTemplate>
-            </TemplatedDataGridColumn.CellTemplate>
-          </TemplatedDataGridColumn>
+            </TemplatedDataGridTemplateColumn.CellTemplate>
+          </TemplatedDataGridTemplateColumn>
 
-          <TemplatedDataGridColumn Width="*" Header="Labels">
-            <TemplatedDataGridColumn.CellTemplate>
+          <TemplatedDataGridTemplateColumn Width="*" Header="Labels">
+            <TemplatedDataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:PocketViewModel">
                 <c:TagsBox Items="{Binding Labels}" IsReadOnly="True" HorizontalAlignment="Left" />
               </DataTemplate>
-            </TemplatedDataGridColumn.CellTemplate>
-          </TemplatedDataGridColumn>
+            </TemplatedDataGridTemplateColumn.CellTemplate>
+          </TemplatedDataGridTemplateColumn>
         </TemplatedDataGrid.Columns>
       </TemplatedDataGrid>
     </DockPanel>

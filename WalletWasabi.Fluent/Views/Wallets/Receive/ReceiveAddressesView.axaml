@@ -33,9 +33,9 @@
       </TemplatedDataGrid.Styles>
 
       <TemplatedDataGrid.Columns>
-        <TemplatedDataGridColumn Header="Labels"
-                                 Width="Auto">
-          <TemplatedDataGridColumn.CellTemplate>
+        <TemplatedDataGridTemplateColumn Header="Labels"
+                                         Width="Auto">
+          <TemplatedDataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
                 <Button Classes="plain addressActionButton" ToolTip.Tip="Edit" DockPanel.Dock="Right" Command="{Binding EditLabelCommand}">
@@ -75,12 +75,12 @@
                 </c:PrivacyContentControl>
               </DockPanel>
             </DataTemplate>
-          </TemplatedDataGridColumn.CellTemplate>
-        </TemplatedDataGridColumn>
+          </TemplatedDataGridTemplateColumn.CellTemplate>
+        </TemplatedDataGridTemplateColumn>
 
-        <TemplatedDataGridColumn Header="Address"
-                                 Width="2*">
-          <TemplatedDataGridColumn.CellTemplate>
+        <TemplatedDataGridTemplateColumn Header="Address"
+                                         Width="2*">
+          <TemplatedDataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
                 <Button Classes="plain addressActionButton" Command="{Binding HideAddressCommand}"
@@ -102,8 +102,8 @@
                 <c:PrivacyContentControl Content="{Binding Address}" VerticalAlignment="Center" NumberOfPrivacyChars="38" />
               </DockPanel>
             </DataTemplate>
-          </TemplatedDataGridColumn.CellTemplate>
-        </TemplatedDataGridColumn>
+          </TemplatedDataGridTemplateColumn.CellTemplate>
+        </TemplatedDataGridTemplateColumn>
       </TemplatedDataGrid.Columns>
     </TemplatedDataGrid>
   </c:ContentArea>
