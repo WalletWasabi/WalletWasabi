@@ -109,7 +109,9 @@
 
     <!-- TODO: Use DataGrid.axaml styles -->
     <Style Selector="TemplatedDataGridColumnHeader">
-      <Setter Property="Padding" Value="6"/>
+      <Setter Property="TextBlock.FontSize" Value="{StaticResource FontSizeH7}" />
+      <Setter Property="TextBlock.FontWeight" Value="Bold" />
+      <Setter Property="Padding" Value="12 10 10 10" />
     </Style>
 
   </UserControl.Styles>
@@ -259,7 +261,7 @@
 
       <!-- Balance -->
       <TemplatedDataGridTemplateColumn Header="Balance (BTC)"
-                                       MinWidth="110"
+                                       MinWidth="125"
                                        Width="Auto">
         <TemplatedDataGridTemplateColumn.CellTemplate>
           <DataTemplate>
