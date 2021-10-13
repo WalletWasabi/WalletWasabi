@@ -20,25 +20,21 @@ namespace WalletWasabi.Fluent.Behaviors
 				return;
 			}
 
-			// On macOs the Hide/Show is a natural feature.
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-			{
-				Observable.Merge(
-						Observable.FromEventPattern(Services.SingleInstanceChecker, nameof(SingleInstanceChecker.OtherInstanceStarted)),
-						Observable.FromEventPattern(((App)Application.Current!), nameof(App.ShowRequested)))
-					.ObserveOn(RxApp.MainThreadScheduler)
-					.Subscribe(_ =>
+			Observable.Merge(
+					Observable.FromEventPattern(Services.SingleInstanceChecker, nameof(SingleInstanceChecker.OtherInstanceStarted)),
+					Observable.FromEventPattern(((App)Application.Current!), nameof(App.ShowRequested)))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					if (AssociatedObject.WindowState == WindowState.Minimized)
 					{
-						if (AssociatedObject.WindowState == WindowState.Minimized)
-						{
-							AssociatedObject.WindowState = (WindowState)Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
-						}
+						AssociatedObject.WindowState = (WindowState)Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
+					}
 
-						AssociatedObject.Show();
-						AssociatedObject.BringIntoView();
-					})
-					.DisposeWith(disposables);
-			}
+					AssociatedObject.Show();
+					AssociatedObject.BringIntoView();
+				})
+				.DisposeWith(disposables);
 
 			// TODO: we need the close button click only, external close request should not be cancelled.
 			Observable
