@@ -67,7 +67,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(estimations =>
 				{
-					FeeChart.UpdateFeeEstimates(_wallet.Network == Network.TestNet ? TestNetFeeEstimates : estimations);
+					FeeChart.UpdateFeeEstimates(_wallet.Network == Network.TestNet ? TestNetFeeEstimates : estimations, _transactionInfo.MaximumPossibleFeeRate);
 				})
 				.DisposeWith(disposables);
 
@@ -79,7 +79,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				}
 
 				var feeEstimations = _wallet.Network == Network.TestNet ? TestNetFeeEstimates : feeProvider.AllFeeEstimate.Estimations;
-				FeeChart.UpdateFeeEstimates(feeEstimations);
+				FeeChart.UpdateFeeEstimates(feeEstimations, _transactionInfo.MaximumPossibleFeeRate);
 
 				if (_transactionInfo.FeeRate is { })
 				{

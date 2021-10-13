@@ -190,7 +190,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return 0;
 		}
 
-		public void UpdateFeeEstimates(Dictionary<int, int> feeEstimates)
+		public void UpdateFeeEstimates(Dictionary<int, int> feeEstimates, FeeRate? maxFee = null)
 		{
 			var correctedFeeEstimates = DistinctByValues(feeEstimates);
 
@@ -198,13 +198,40 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			var ys = correctedFeeEstimates.Select(x => (double)x.Value).ToArray();
 
 			GetSmoothValuesSubdivide(xs, ys, out var xts, out var yts);
+
+			if (maxFee is { })
+			{
+				for (var i = yts.Count - 1; i >= 0; i--)
+				{
+					if (yts[i] > (double)maxFee.SatoshiPerByte)
+					{
+						yts.RemoveAt(i);
+						xts.RemoveAt(i);
+					}
+					else
+					{
+						break;
+					}
+				}
+
+				foreach (var item in correctedFeeEstimates.ToList())
+				{
+					if (item.Value > maxFee.SatoshiPerByte)
+					{
+						correctedFeeEstimates.Remove(item.Key);
+					}
+				}
+			}
+
 			var confirmationTargetValues = xts.ToArray();
 			var satoshiPerByteValues = yts.ToArray();
 
-			var confirmationTargetLabels = correctedFeeEstimates.Select(x => x.Key)
-				.Select(x => FeeTargetTimeConverter.Convert(x, "m", "h", "h", "d", "d"))
-				.Reverse()
-				.ToArray();
+			List<string> confirmationTargetLabels = new();
+			for (int i = 0; i < xts.Count; i += (xts.Count / 5))
+			{
+				var label = FeeTargetTimeConverter.Convert((int)xts[i], "m", "h", "h", "d", "d");
+				confirmationTargetLabels.Add(label);
+			}
 
 			_updatingCurrentValue = true;
 
@@ -219,7 +246,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				SatoshiPerByteLabels = null;
 			}
 
-			ConfirmationTargetLabels = confirmationTargetLabels;
+			ConfirmationTargetLabels = confirmationTargetLabels.ToArray();
 			ConfirmationTargetValues = confirmationTargetValues;
 			SatoshiPerByteValues = satoshiPerByteValues;
 

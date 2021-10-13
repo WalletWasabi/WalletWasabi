@@ -210,14 +210,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private void SetMaximumPossibleFee(decimal percentageOfOverpayment, Wallet wallet, TransactionInfo transactionInfo)
 		{
 			var currentFeeRate = transactionInfo.FeeRate;
-			var lowestPossibleFeeRateInSatoshiPerByte = (currentFeeRate.SatoshiPerByte / percentageOfOverpayment) * 100;
-			var lowestPossibleFeeRate = new FeeRate(lowestPossibleFeeRateInSatoshiPerByte);
-			transactionInfo.FeeRate = lowestPossibleFeeRate;
+			var maxPossibleFeeRateInSatoshiPerByte = (currentFeeRate.SatoshiPerByte / percentageOfOverpayment) * 100;
+			var maxPossibleFeeRate = new FeeRate(maxPossibleFeeRateInSatoshiPerByte);
+			transactionInfo.FeeRate = maxPossibleFeeRate;
+			transactionInfo.MaximumPossibleFeeRate = maxPossibleFeeRate;
 
 			var feeChartViewModel = new FeeChartViewModel();
 			var feeEstimations = wallet.Network == Network.Main ? wallet.FeeProvider.AllFeeEstimate.Estimations : SendFeeViewModel.TestNetFeeEstimates;
 			feeChartViewModel.UpdateFeeEstimates(feeEstimations);
-			var blockTarget = feeChartViewModel.GetConfirmationTarget(lowestPossibleFeeRate);
+			var blockTarget = feeChartViewModel.GetConfirmationTarget(maxPossibleFeeRate);
 			transactionInfo.ConfirmationTimeSpan = SendFeeViewModel.CalculateConfirmationTime(blockTarget);
 		}
 

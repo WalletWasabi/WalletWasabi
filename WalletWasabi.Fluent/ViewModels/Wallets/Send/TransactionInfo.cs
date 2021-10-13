@@ -27,6 +27,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public FeeRate? FeeRate { get; set; }
 
+		public FeeRate? MaximumPossibleFeeRate { get; set; }
+
 		public TimeSpan ConfirmationTimeSpan { get; set; }
 
 		public IEnumerable<SmartCoin> Coins { get; set; } = Enumerable.Empty<SmartCoin>();
