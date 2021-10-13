@@ -177,6 +177,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				return await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info));
 			}
+			catch (TransactionFeeOverpaymentException ex)
+			{
+				SetMaximumPossibleFee(ex.PercentageOfOverpayment, _wallet, _info);
+
+				return await BuildTransactionAsync();
+			}
 			catch (InsufficientBalanceException)
 			{
 				if (_info.IsPayJoin)
@@ -199,6 +205,20 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				IsBusy = false;
 			}
+		}
+
+		private void SetMaximumPossibleFee(decimal percentageOfOverpayment, Wallet wallet, TransactionInfo transactionInfo)
+		{
+			var currentFeeRate = transactionInfo.FeeRate;
+			var lowestPossibleFeeRateInSatoshiPerByte = (currentFeeRate.SatoshiPerByte / percentageOfOverpayment) * 100;
+			var lowestPossibleFeeRate = new FeeRate(lowestPossibleFeeRateInSatoshiPerByte);
+			transactionInfo.FeeRate = lowestPossibleFeeRate;
+
+			var feeChartViewModel = new FeeChartViewModel();
+			var feeEstimations = wallet.Network == Network.Main ? wallet.FeeProvider.AllFeeEstimate.Estimations : SendFeeViewModel.TestNetFeeEstimates;
+			feeChartViewModel.UpdateFeeEstimates(feeEstimations);
+			var blockTarget = feeChartViewModel.GetConfirmationTarget(lowestPossibleFeeRate);
+			transactionInfo.ConfirmationTimeSpan = SendFeeViewModel.CalculateConfirmationTime(blockTarget);
 		}
 
 		private async Task<BuildTransactionResult?> HandleInsufficientBalanceWhenNormalAsync(Wallet wallet, TransactionInfo transactionInfo)
@@ -286,13 +306,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			TransactionHasChange = _transaction.OuterWalletOutputs.Sum(x => x.Amount) > fee && _transaction.InnerWalletOutputs.Sum(x => x.Amount) > 0;
 
 			TransactionHasPockets = !_info.IsPrivatePocketUsed;
+
+			ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(_info.ConfirmationTimeSpan)} ";
 		}
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
-
-			ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(_info.ConfirmationTimeSpan)} ";
 
 			if (!isInHistory)
 			{

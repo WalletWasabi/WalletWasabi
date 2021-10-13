@@ -119,14 +119,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return blockTargetThreshold;
 		}
 
-		private TimeSpan CalculateConfirmationTime(double targetBlock)
+		public static TimeSpan CalculateConfirmationTime(double targetBlock)
 		{
 			var timeInMinutes = Math.Ceiling(targetBlock) * 10;
 			var time = TimeSpan.FromMinutes(timeInMinutes);
 			return time;
 		}
 
-		private static readonly Dictionary<int, int> TestNetFeeEstimates = new ()
+		public static readonly Dictionary<int, int> TestNetFeeEstimates = new ()
 		{
 			[1] = 17,
 			[2] = 12,
