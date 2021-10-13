@@ -146,24 +146,30 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private async Task<bool> InitialiseTransactionAsync()
 		{
-			var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, isSilent: true));
-			if (privacyControlDialogResult.Kind == DialogResultKind.Normal && privacyControlDialogResult.Result is { } coins)
+			if (!_info.Coins.Any())
 			{
-				_info.Coins = coins;
-			}
-			else if (privacyControlDialogResult.Kind != DialogResultKind.Normal)
-			{
-				return false;
+				var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, isSilent: true));
+				if (privacyControlDialogResult.Kind == DialogResultKind.Normal && privacyControlDialogResult.Result is { } coins)
+				{
+					_info.Coins = coins;
+				}
+				else if (privacyControlDialogResult.Kind != DialogResultKind.Normal)
+				{
+					return false;
+				}
 			}
 
-			var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, true));
-			if (feeDialogResult.Kind == DialogResultKind.Normal)
+			if (_info.FeeRate is null)
 			{
-				_info.FeeRate = feeDialogResult.Result;
-			}
-			else
-			{
-				return false;
+				var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, true));
+				if (feeDialogResult.Kind == DialogResultKind.Normal)
+				{
+					_info.FeeRate = feeDialogResult.Result;
+				}
+				else
+				{
+					return false;
+				}
 			}
 
 			return true;
@@ -211,14 +217,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			var currentFeeRate = transactionInfo.FeeRate;
 			var maxPossibleFeeRateInSatoshiPerByte = (currentFeeRate.SatoshiPerByte / percentageOfOverpayment) * 100;
-			var maxPossibleFeeRate = new FeeRate(maxPossibleFeeRateInSatoshiPerByte);
-			transactionInfo.FeeRate = maxPossibleFeeRate;
-			transactionInfo.MaximumPossibleFeeRate = maxPossibleFeeRate;
+			transactionInfo.MaximumPossibleFeeRate = new FeeRate(maxPossibleFeeRateInSatoshiPerByte);
 
 			var feeChartViewModel = new FeeChartViewModel();
 			var feeEstimations = wallet.Network == Network.Main ? wallet.FeeProvider.AllFeeEstimate.Estimations : SendFeeViewModel.TestNetFeeEstimates;
 			feeChartViewModel.UpdateFeeEstimates(feeEstimations);
-			var blockTarget = feeChartViewModel.GetConfirmationTarget(maxPossibleFeeRate);
+
+			var blockTarget = feeChartViewModel.GetConfirmationTarget(transactionInfo.MaximumPossibleFeeRate);
+			transactionInfo.FeeRate = new FeeRate(feeChartViewModel.GetSatoshiPerByte(blockTarget));
 			transactionInfo.ConfirmationTimeSpan = SendFeeViewModel.CalculateConfirmationTime(blockTarget);
 		}
 

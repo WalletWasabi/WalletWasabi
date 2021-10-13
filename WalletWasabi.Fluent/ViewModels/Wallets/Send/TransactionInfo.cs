@@ -45,6 +45,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			SubtractFee = default;
 			MaximumPossibleFeeRate = default;
+			Coins = Enumerable.Empty<SmartCoin>();
+			FeeRate = default;
 		}
 	}
 }
