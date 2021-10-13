@@ -9,6 +9,7 @@ namespace WalletWasabi.Fluent.Views
 		public MainWindow()
 		{
 			InitializeComponent();
+			Renderer.DrawFps = true;
 		}
 
 		private void InitializeComponent()
