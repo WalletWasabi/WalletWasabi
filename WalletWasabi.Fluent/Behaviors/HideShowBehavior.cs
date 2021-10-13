@@ -7,6 +7,7 @@ using Avalonia;
 using Avalonia.Controls;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels;
+using WalletWasabi.Logging;
 using WalletWasabi.Services;
 
 namespace WalletWasabi.Fluent.Behaviors
@@ -33,6 +34,7 @@ namespace WalletWasabi.Fluent.Behaviors
 
 					AssociatedObject.Show();
 					AssociatedObject.BringIntoView();
+					Logger.LogDebug($"Application Window showed.");
 				})
 				.DisposeWith(disposables);
 
@@ -47,6 +49,7 @@ namespace WalletWasabi.Fluent.Behaviors
 						args.EventArgs.Cancel = true;
 						AssociatedObject.Hide();
 					}
+					Logger.LogDebug($"Closing event, cancellation of the close is set to: '{args.EventArgs.Cancel}'.");
 				})
 				.DisposeWith(disposables);
 		}
