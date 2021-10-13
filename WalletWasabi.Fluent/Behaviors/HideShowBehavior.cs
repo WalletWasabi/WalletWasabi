@@ -45,14 +45,8 @@ namespace WalletWasabi.Fluent.Behaviors
 				{
 					if (Services.UiConfig.HideOnClose)
 					{
-						if (AssociatedObject.WindowState is not WindowState.Minimized)
-						{
-							args.EventArgs.Cancel = true;
-						}
-
-						// AssociatedObject.Hide() and show Tray icon.
-						// Temporary solution is to Minimize
-						AssociatedObject.WindowState = WindowState.Minimized;
+						args.EventArgs.Cancel = true;
+						AssociatedObject.Hide();
 					}
 				})
 				.DisposeWith(disposables);
