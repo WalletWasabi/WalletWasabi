@@ -31,9 +31,17 @@ namespace WalletWasabi.Fluent.ViewModels
 					}
 				}
 			});
+
+			ShowCommand = ReactiveCommand.Create(() =>
+			{
+				ShowRequested?.Invoke(this, EventArgs.Empty);
+			});
 		}
 
+		public event EventHandler? ShowRequested;
+
 		public ICommand QuitCommand { get; }
+		public ICommand ShowCommand { get; }
 
 		public bool CanShutdown()
 		{

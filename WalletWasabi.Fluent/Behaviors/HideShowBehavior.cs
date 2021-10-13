@@ -3,8 +3,10 @@ using System.ComponentModel;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
+using Avalonia;
 using Avalonia.Controls;
 using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Services;
 
 namespace WalletWasabi.Fluent.Behaviors
@@ -21,8 +23,9 @@ namespace WalletWasabi.Fluent.Behaviors
 			// On macOs the Hide/Show is a natural feature.
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				Observable
-					.FromEventPattern(Services.SingleInstanceChecker, nameof(SingleInstanceChecker.OtherInstanceStarted))
+				Observable.Merge(
+						Observable.FromEventPattern(Services.SingleInstanceChecker, nameof(SingleInstanceChecker.OtherInstanceStarted)),
+						Observable.FromEventPattern(((ApplicationViewModel)Application.Current.DataContext!), nameof(ApplicationViewModel.ShowRequested)))
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.Subscribe(_ =>
 					{
