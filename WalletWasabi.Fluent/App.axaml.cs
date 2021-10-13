@@ -28,13 +28,17 @@ namespace WalletWasabi.Fluent
 		public App()
 		{
 			Name = "Wasabi Wallet";
-			DataContext = new ApplicationViewModel();
+			ApplicationViewModel applicationViewModel = new();
+			DataContext = applicationViewModel;
+			applicationViewModel.ShowRequested += (sender, args) => ShowRequested?.Invoke(sender, args);
 		}
 
 		public App(Func<Task> backendInitialiseAsync) : this()
 		{
 			_backendInitialiseAsync = backendInitialiseAsync;
 		}
+
+		public event EventHandler? ShowRequested;
 
 		public ICanShutdownProvider? CanShutdownProvider
 		{
@@ -85,6 +89,11 @@ namespace WalletWasabi.Fluent
 				e.Cancel = !provider.CanShutdown();
 				Logger.LogDebug($"Cancellation of the shutdown set to: {e.Cancel}.");
 			}
+		}
+
+		private void TrayIcon_OnClicked(object? sender, EventArgs e)
+		{
+			ShowRequested?.Invoke(this, EventArgs.Empty);
 		}
 	}
 }
