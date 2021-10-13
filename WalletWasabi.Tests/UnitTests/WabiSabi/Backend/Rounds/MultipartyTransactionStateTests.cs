@@ -42,7 +42,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 
 			// two events are missing
 			var diffd31 = state3.GetConstructionStateSince(state1.Order);
-			Assert.Collection(diffd31.Inputs,
+			Assert.Collection(
+				diffd31.Inputs,
 				x => Assert.Equal(coin2.Outpoint, x.Outpoint),
 				x => Assert.Equal(coin3.Outpoint, x.Outpoint));
 

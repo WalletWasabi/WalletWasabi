@@ -32,9 +32,8 @@ namespace WalletWasabi.WabiSabi.Client
 			var updatedRoundStates = statusResponse
 				.Where(rs => RoundStates.ContainsKey(rs.Id))
 				.Select(rs => (Update: rs, CurrentRoundState: RoundStates[rs.Id]))
-				.Select(x => x.Update with {
-					CoinjoinState = x.Update.CoinjoinState.MergeBack(x.CurrentRoundState.CoinjoinState)
-					}).ToList();
+				.Select(x => x.Update with { CoinjoinState = x.Update.CoinjoinState.MergeBack(x.CurrentRoundState.CoinjoinState) })
+				.ToList();
 
 			var newRoundStates = statusResponse
 				.Where(rs => !RoundStates.ContainsKey(rs.Id));
