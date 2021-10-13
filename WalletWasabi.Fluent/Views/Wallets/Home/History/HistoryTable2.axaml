@@ -164,6 +164,7 @@
 
       <!-- Labels -->
       <TemplatedDataGridTemplateColumn Header="Labels"
+                                       MinWidth="75"
                                        Width="Auto">
         <TemplatedDataGridTemplateColumn.CellTemplate>
           <DataTemplate>
