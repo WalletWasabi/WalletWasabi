@@ -40,5 +40,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public bool IsPrivatePocketUsed => Coins.All(x => x.HdPubKey.AnonymitySet >= _privateCoinThreshold);
 
 		public bool SubtractFee { get; set; }
+
+		public void ResetAmountSpecificOptions()
+		{
+			SubtractFee = default;
+			MaximumPossibleFeeRate = default;
+		}
 	}
 }

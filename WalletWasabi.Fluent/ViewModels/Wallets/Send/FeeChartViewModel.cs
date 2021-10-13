@@ -213,21 +213,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						break;
 					}
 				}
-
-				foreach (var item in correctedFeeEstimates.ToList())
-				{
-					if (item.Value > maxFee.SatoshiPerByte)
-					{
-						correctedFeeEstimates.Remove(item.Key);
-					}
-				}
 			}
 
 			var confirmationTargetValues = xts.ToArray();
 			var satoshiPerByteValues = yts.ToArray();
 
 			List<string> confirmationTargetLabels = new();
-			for (int i = 0; i < xts.Count; i += (xts.Count / 5))
+			var numberOfLabels = 5;
+			for (int i = 0; i < xts.Count; i += xts.Count / numberOfLabels)
 			{
 				var label = FeeTargetTimeConverter.Convert((int)xts[i], "m", "h", "h", "d", "d");
 				confirmationTargetLabels.Add(label);
