@@ -185,7 +185,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 			catch (TransactionFeeOverpaymentException ex)
 			{
-				SetMaximumPossibleFee(ex.PercentageOfOverpayment, _wallet, _info);
+				var result = TrySetMaximumPossibleFee(ex.PercentageOfOverpayment, _wallet, _info);
+
+				if (!result)
+				{
+					await ShowErrorAsync("Transaction Building", "Due to the high transaction fees, it is not possible to send this transaction at the moment.",
+						"Wasabi was unable to create your transaction.");
+
+					return null;
+				}
 
 				return await BuildTransactionAsync();
 			}
@@ -213,7 +221,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 		}
 
-		private void SetMaximumPossibleFee(decimal percentageOfOverpayment, Wallet wallet, TransactionInfo transactionInfo)
+		private bool TrySetMaximumPossibleFee(decimal percentageOfOverpayment, Wallet wallet, TransactionInfo transactionInfo)
 		{
 			var currentFeeRate = transactionInfo.FeeRate;
 			var maxPossibleFeeRateInSatoshiPerByte = (currentFeeRate.SatoshiPerByte / percentageOfOverpayment) * 100;
@@ -225,7 +233,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			var blockTarget = feeChartViewModel.GetConfirmationTarget(transactionInfo.MaximumPossibleFeeRate);
 			transactionInfo.FeeRate = new FeeRate(feeChartViewModel.GetSatoshiPerByte(blockTarget));
+
+			if (transactionInfo.FeeRate > transactionInfo.MaximumPossibleFeeRate)
+			{
+				return false;
+			}
+
 			transactionInfo.ConfirmationTimeSpan = SendFeeViewModel.CalculateConfirmationTime(blockTarget);
+			return true;
 		}
 
 		private async Task<BuildTransactionResult?> HandleInsufficientBalanceWhenNormalAsync(Wallet wallet, TransactionInfo transactionInfo)
