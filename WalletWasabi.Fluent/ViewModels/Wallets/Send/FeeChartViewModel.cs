@@ -219,17 +219,20 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			var satoshiPerByteValues = yts.ToArray();
 
 			List<string> confirmationTargetLabels = new();
-			var numberOfLabels = 5;
-			for (int i = 0; i < xts.Count; i += xts.Count / numberOfLabels)
+			var interval = xts.Count >= 5 ? xts.Count / 5 : 1;
+			for (int i = 0; i < xts.Count; i +=  interval)
 			{
 				var label = FeeTargetTimeConverter.Convert((int)Math.Ceiling(xts[i]), "m", "h", "h", "d", "d");
-				confirmationTargetLabels.Add(label);
+
+				if (i + interval <= xts.Count)
+				{
+					confirmationTargetLabels.Add(label);
+				}
 			}
 
-			if ((double)xts.Count % numberOfLabels == 0)
+			if (interval != 1)
 			{
-				var label = FeeTargetTimeConverter.Convert((int)Math.Ceiling(xts.Last()), "m", "h", "h", "d", "d");
-				confirmationTargetLabels.Add(label);
+				confirmationTargetLabels.Add(FeeTargetTimeConverter.Convert((int)Math.Ceiling(xts.Last()), "m", "h", "h", "d", "d"));
 			}
 
 			_updatingCurrentValue = true;
