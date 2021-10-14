@@ -220,11 +220,11 @@
                           IsVisible="{Binding !!IncomingAmount}"
                           HorizontalAlignment="Right">
                 <PathIcon Data="{StaticResource arrow_down_right_regular}" Opacity="0.6">
-                  <i:Interaction.Behaviors>
+                  <!--<i:Interaction.Behaviors>
                     <ir:AdaptiveBehavior SourceControl="{Binding #Panel}" x:CompileBindings="False">
                       <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="120" ClassName="hidden"/>
                     </ir:AdaptiveBehavior>
-                  </i:Interaction.Behaviors>
+                  </i:Interaction.Behaviors>-->
                 </PathIcon>
                 <c:PrivacyContentControl Content="{Binding IncomingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
                                        Classes="monoSpaced"
@@ -248,11 +248,11 @@
                           IsVisible="{Binding !!OutgoingAmount}"
                           HorizontalAlignment="Right">
                 <PathIcon Data="{StaticResource arrow_up_right_regular}" Opacity="0.6">
-                  <i:Interaction.Behaviors>
+                  <!--<i:Interaction.Behaviors>
                     <ir:AdaptiveBehavior SourceControl="{Binding #Panel}" x:CompileBindings="False">
                       <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="120" ClassName="hidden"/>
                     </ir:AdaptiveBehavior>
-                  </i:Interaction.Behaviors>
+                  </i:Interaction.Behaviors>-->
                 </PathIcon>
                 <c:PrivacyContentControl Content="{Binding OutgoingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
                                        Classes="monoSpaced"
