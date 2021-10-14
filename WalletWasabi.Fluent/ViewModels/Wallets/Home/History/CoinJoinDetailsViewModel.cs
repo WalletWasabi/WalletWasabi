@@ -20,7 +20,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		[AutoNotify] private string _date = "";
 		[AutoNotify] private string _status = "";
 		[AutoNotify] private Money? _coinJoinFee;
-		[AutoNotify] private string _transactionIdString = "";
 		[AutoNotify] private ObservableCollection<uint256>? _transactionIds;
 
 		public CoinJoinDetailsViewModel(CoinJoinsHistoryItemViewModel coinJoinGroup)
@@ -30,13 +29,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 			NextCommand = CancelCommand;
 
-			CopyCommand = ReactiveCommand.CreateFromTask<object>(async obj =>
-			{
-				if (obj.ToString() is { } text)
-				{
-					await Application.Current.Clipboard.SetTextAsync(text);
-				}
-			});
+			CopyCommand = ReactiveCommand.CreateFromTask<uint256>(async txid =>
+				await Application.Current.Clipboard.SetTextAsync(txid.ToString()));
 
 			Update();
 		}

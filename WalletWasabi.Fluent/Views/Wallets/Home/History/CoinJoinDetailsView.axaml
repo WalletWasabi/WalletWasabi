@@ -25,8 +25,7 @@
 
       <!-- Transaction IDs -->
       <c:PreviewItem Icon="{StaticResource transaction_id}"
-                     Text="Transaction ID"
-                     CopyParameter="{Binding TransactionIdString}">
+                     Text="Transaction ID">
           <ItemsRepeater Items="{Binding TransactionIds}">
             <ItemsRepeater.ItemTemplate>
               <DataTemplate>
