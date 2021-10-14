@@ -141,7 +141,7 @@ namespace WalletWasabi.Io
 		{
 			if (string.IsNullOrEmpty(text))
 			{
-				return;
+				throw new ArgumentNullException(nameof(text), "Parameter cannot be null or empty.");
 			}
 
 			IoHelpers.EnsureContainingDirectoryExists(NewFilePath);
