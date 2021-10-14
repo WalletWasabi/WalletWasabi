@@ -201,39 +201,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (maxFee is { })
 			{
-				for (var i = yts.Count - 1; i >= 0; i--)
-				{
-					if (yts[i] > (double)maxFee.SatoshiPerByte)
-					{
-						yts.RemoveAt(i);
-						xts.RemoveAt(i);
-					}
-					else
-					{
-						break;
-					}
-				}
+				RemoveOverpaymentValues(xts, yts, (double)maxFee.SatoshiPerByte);
 			}
 
 			var confirmationTargetValues = xts.ToArray();
 			var satoshiPerByteValues = yts.ToArray();
 
-			List<string> confirmationTargetLabels = new();
-			var interval = xts.Count >= 5 ? xts.Count / 5 : 1;
-			for (int i = 0; i < xts.Count; i +=  interval)
-			{
-				var label = FeeTargetTimeConverter.Convert((int)Math.Ceiling(xts[i]), "m", "h", "h", "d", "d");
-
-				if (i + interval <= xts.Count)
-				{
-					confirmationTargetLabels.Add(label);
-				}
-			}
-
-			if (interval != 1)
-			{
-				confirmationTargetLabels.Add(FeeTargetTimeConverter.Convert((int)Math.Ceiling(xts.Last()), "m", "h", "h", "d", "d"));
-			}
+			var confirmationTargetLabels = GetConfirmationTargetLabels(xts);
 
 			_updatingCurrentValue = true;
 
@@ -259,6 +233,42 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			UpdateFeeAndEstimate(CurrentConfirmationTarget);
 
 			_updatingCurrentValue = false;
+		}
+
+		private void RemoveOverpaymentValues(List<double> xts, List<double> yts, double maxFeeSatoshiPerByte)
+		{
+			for (var i = yts.Count - 1; i >= 0; i--)
+			{
+				if (yts[i] > maxFeeSatoshiPerByte)
+				{
+					yts.RemoveAt(i);
+					xts.RemoveAt(i);
+				}
+				else
+				{
+					break;
+				}
+			}
+		}
+
+		private IEnumerable<string> GetConfirmationTargetLabels(List<double> confirmationTargets)
+		{
+			var interval = confirmationTargets.Count >= 5 ? confirmationTargets.Count / 5 : 1;
+
+			for (int i = 0; i < confirmationTargets.Count; i += interval)
+			{
+				var label = FeeTargetTimeConverter.Convert((int)Math.Ceiling(confirmationTargets[i]), "m", "h", "h", "d", "d");
+
+				if (i + interval <= confirmationTargets.Count)
+				{
+					yield return label;
+				}
+			}
+
+			if (interval != 1)
+			{
+				yield return FeeTargetTimeConverter.Convert((int)Math.Ceiling(confirmationTargets.Last()), "m", "h", "h", "d", "d");
+			}
 		}
 
 		public void InitCurrentConfirmationTarget(FeeRate feeRate)
