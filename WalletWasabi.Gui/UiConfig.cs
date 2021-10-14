@@ -170,7 +170,7 @@ namespace WalletWasabi.Gui
 		[JsonConverter(typeof(SortingPreferenceJsonConverter))]
 		public SortingPreference HistoryTabViewSortingPreference { get; internal set; } = new SortingPreference(SortOrder.Decreasing, "Date");
 
-		[DefaultValue(false)]
+		[DefaultValue(true)]
 		[JsonProperty(PropertyName = "HideOnClose", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public bool HideOnClose
 		{
