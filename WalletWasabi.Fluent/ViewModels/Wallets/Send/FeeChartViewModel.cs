@@ -47,7 +47,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private void UpdateFeeAndEstimate(double confirmationTarget)
 		{
 			CurrentSatoshiPerByte = GetSatoshiPerByte(confirmationTarget);
-			CurrentConfirmationTargetString = FeeTargetTimeConverter.Convert((int)confirmationTarget, " minutes", " hour", " hours", " day", " days");
+			CurrentConfirmationTargetString = FeeTargetTimeConverter.Convert((int)Math.Ceiling(confirmationTarget), " minutes", " hour", " hours", " day", " days");
 		}
 
 		private void SetSliderValue(double confirmationTarget)
@@ -222,7 +222,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			var numberOfLabels = 5;
 			for (int i = 0; i < xts.Count; i += xts.Count / numberOfLabels)
 			{
-				var label = FeeTargetTimeConverter.Convert((int)xts[i], "m", "h", "h", "d", "d");
+				var label = FeeTargetTimeConverter.Convert((int)Math.Ceiling(xts[i]), "m", "h", "h", "d", "d");
+				confirmationTargetLabels.Add(label);
+			}
+
+			if ((double)xts.Count % numberOfLabels == 0)
+			{
+				var label = FeeTargetTimeConverter.Convert((int)Math.Ceiling(xts.Last()), "m", "h", "h", "d", "d");
 				confirmationTargetLabels.Add(label);
 			}
 
