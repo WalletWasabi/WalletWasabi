@@ -39,6 +39,10 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 
 		public MultipartyTransactionState GetConstructionStateSince(long order)
 		{
+			if (this.Order < order)
+			{
+				return null;
+			}
 			var visitedState = this;
 			while (visitedState is not null && visitedState.Order != order)
 			{
