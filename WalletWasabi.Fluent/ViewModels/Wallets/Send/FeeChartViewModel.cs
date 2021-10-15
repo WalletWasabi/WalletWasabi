@@ -205,9 +205,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 
 			var confirmationTargetValues = xts.ToArray();
+			var confirmationTargetLabels = GetConfirmationTargetLabels(xts).ToArray();
 			var satoshiPerByteValues = yts.ToArray();
-
-			var confirmationTargetLabels = GetConfirmationTargetLabels(xts);
 
 			_updatingCurrentValue = true;
 
@@ -222,7 +221,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				SatoshiPerByteLabels = null;
 			}
 
-			ConfirmationTargetLabels = confirmationTargetLabels.ToArray();
+			ConfirmationTargetLabels = confirmationTargetLabels;
 			ConfirmationTargetValues = confirmationTargetValues;
 			SatoshiPerByteValues = satoshiPerByteValues;
 
@@ -253,13 +252,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private IEnumerable<string> GetConfirmationTargetLabels(List<double> confirmationTargets)
 		{
-			var interval = confirmationTargets.Count >= 5 ? confirmationTargets.Count / 5 : 1;
+			var blockTargetCount = confirmationTargets.Count;
+			var interval = blockTargetCount >= 5 ? blockTargetCount / 5 : 1;
 
-			for (int i = 0; i < confirmationTargets.Count; i += interval)
+			for (int i = 0; i < blockTargetCount; i += interval)
 			{
 				var label = FeeTargetTimeConverter.Convert((int)Math.Ceiling(confirmationTargets[i]), "m", "h", "h", "d", "d");
 
-				if (i + interval <= confirmationTargets.Count)
+				if (i + interval <= blockTargetCount)
 				{
 					yield return label;
 				}
