@@ -649,6 +649,7 @@
         "type": "Project",
         "dependencies": {
           "Avalonia": "0.10.8",
+          "Avalonia.Controls.DataGrid": "0.10.8",
           "Avalonia.Diagnostics": "0.10.8",
           "Avalonia.ReactiveUI": "0.10.8",
           "Avalonia.Xaml.Behaviors": "0.10.8",
