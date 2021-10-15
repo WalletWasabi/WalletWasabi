@@ -110,8 +110,8 @@
 
     <!-- TODO: Use DataGrid.axaml styles -->
     <Style Selector="TemplatedDataGridColumnHeader">
-      <Setter Property="TextBlock.FontSize" Value="{StaticResource FontSizeH7}" />
-      <Setter Property="TextBlock.FontWeight" Value="Bold" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeH7}" />
+      <Setter Property="FontWeight" Value="Bold" />
       <Setter Property="Padding" Value="12 10 10 10" />
     </Style>
 
