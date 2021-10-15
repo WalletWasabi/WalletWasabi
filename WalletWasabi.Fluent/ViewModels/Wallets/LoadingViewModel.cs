@@ -19,7 +19,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		[AutoNotify] private string? _statusText;
 
 		private Stopwatch? _stopwatch;
-		private bool _isLoading;
+		private volatile bool _isLoading;
 		private uint _filtersToDownloadCount;
 		private uint _filtersToProcessCount;
 		private uint _filterProcessStartingHeight;
@@ -29,6 +29,21 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			_wallet = wallet;
 			_statusText = "";
 			_percent = 0;
+
+			Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
+				.Where(status => status == BackendStatus.Connected)
+				.Subscribe(async _ => await LoadWalletAsync(isBackendAvailable: true).ConfigureAwait(false));
+
+			Observable.FromEventPattern<bool>(Services.Synchronizer, nameof(Services.Synchronizer.ResponseArrivedIsGenSocksServFail))
+				.Subscribe(async _ =>
+				{
+					if (Services.Synchronizer.BackendStatus == BackendStatus.Connected)
+					{
+						return;
+					}
+
+					await LoadWalletAsync(isBackendAvailable: false).ConfigureAwait(false);
+				});
 		}
 
 		private uint TotalCount => _filtersToProcessCount + _filtersToDownloadCount;
@@ -51,26 +66,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					UpdateStatus(processedCount);
 				})
 				.DisposeWith(disposables);
-
-			if (!_isLoading)
-			{
-				Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
-					.Where(status => status == BackendStatus.Connected)
-					.Subscribe(async _ => await LoadWalletAsync(isBackendAvailable: true).ConfigureAwait(false))
-					.DisposeWith(disposables);
-
-				Observable.FromEventPattern<bool>(Services.Synchronizer, nameof(Services.Synchronizer.ResponseArrivedIsGenSocksServFail))
-					.Subscribe(async _ =>
-					{
-						if (Services.Synchronizer.BackendStatus == BackendStatus.Connected)
-						{
-							return;
-						}
-
-						await LoadWalletAsync(isBackendAvailable: false).ConfigureAwait(false);
-					})
-					.DisposeWith(disposables);
-			}
 		}
 
 		private uint GetCurrentProcessedCount()

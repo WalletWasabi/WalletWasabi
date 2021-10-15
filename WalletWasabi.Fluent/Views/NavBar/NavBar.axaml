@@ -45,6 +45,9 @@
       <Setter Property="Focusable" Value="{Binding IsEnabled}" x:CompileBindings="False" />
       <Setter Property="IsEnabled" Value="{Binding IsEnabled}" x:CompileBindings="False" />
     </Style>
+    <Style Selector="ListBox.narrowItemPadding > c|NavBarItem">
+      <Setter Property="Padding" Value="12 6 12 6" />
+    </Style>
     <Style Selector="ListBox.vertical > c|NavBarItem:disabled PathIcon">
       <Setter Property="Foreground" Value="{DynamicResource NavBarItemDisabledBrush}" />
     </Style>
@@ -202,22 +205,60 @@
       <c:NavBarListBox Items="{Binding Wallets}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                        Name="ItemsListBox"
-                       Classes="vertical draggable"
+                       Classes="vertical draggable narrowItemPadding"
                        RenderTransformOrigin="0%,50%"
                        VerticalAlignment="Stretch">
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">
-            <Panel>
-              <Panel Width="45" Background="Transparent" HorizontalAlignment="Left" ToolTip.Tip="{Binding Title}">
-                <PathIcon HorizontalAlignment="Left">
-                  <PathIcon.Data>
-                    <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
-                  </PathIcon.Data>
-                </PathIcon>
-                <Ellipse IsVisible="{Binding IsLoggedIn, Mode=OneWay}" Width="9" Height="9" Margin="15,0,0,-13"
-                         Fill="#F2994A" />
+
+            <Panel Height="30" ToolTip.Tip="{Binding Title}" Background="Transparent">
+
+              <!-- NavBar collapsed state -->
+              <Panel Width="45" Background="Transparent" IsVisible="{Binding !#NavBarUserControl.DataContext.IsOpen, FallbackValue=false}" x:CompileBindings="False">
+                <!-- Wallet Icon -->
+                <PathIcon HorizontalAlignment="Left" Data="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
+                <!-- Logged in indicator -->
+                <Ellipse Fill="#F2994A" Width="9" Height="9" Margin="15,0,0,-13">
+                  <Ellipse.IsVisible>
+                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                      <Binding Path="IsLoggedIn" />
+                      <Binding Path="IsCoinJoining" Converter="{x:Static BoolConverters.Not}" />
+                      <Binding Path="IsLoading" Converter="{x:Static BoolConverters.Not}" />
+                    </MultiBinding>
+                  </Ellipse.IsVisible>
+                </Ellipse>
+                <!-- CJ indicator -->
+                <PathIcon Data="{StaticResource link_filled}" HorizontalAlignment="Left" Margin="20 0 0 -12" Height="8" VerticalAlignment="Center" IsVisible="{Binding IsCoinJoining}" Foreground="{StaticResource NavBarAccentColor}" />
+                <!-- Loading Indicator -->
+                <Viewbox HorizontalAlignment="Left" Height="12" VerticalAlignment="Center" Margin="25 0 0 -14" ClipToBounds="False" IsVisible="{Binding IsLoading}">
+                  <c:ProgressRing Height="40" IsIndeterminate="True" ClipToBounds="False" Background="Transparent" Foreground="{StaticResource NavBarAccentColor}"/>
+                </Viewbox>
               </Panel>
-              <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" Margin="55 0 15 0" />
+
+              <!-- NavBar opened state -->
+              <DockPanel IsVisible="{Binding #NavBarUserControl.DataContext.IsOpen, FallbackValue=true}" x:CompileBindings="False">
+
+                <!-- Big status indicators -->
+                <DockPanel DockPanel.Dock="Right" HorizontalAlignment="Right">
+                  <PathIcon Data="{StaticResource link_filled}" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding IsCoinJoining}" Foreground="{StaticResource NavBarAccentColor}" />
+                  <Viewbox HorizontalAlignment="Center" VerticalAlignment="Center" Margin="3" ClipToBounds="False" IsVisible="{Binding IsLoading}">
+                    <c:ProgressRing Height="60" IsIndeterminate="True" ClipToBounds="False" Background="Transparent" Foreground="{StaticResource NavBarAccentColor}"/>
+                  </Viewbox>
+                </DockPanel>
+
+                <!-- Wallet Icon and small status indicators -->
+                <Panel DockPanel.Dock="Left" Width="45" Background="Transparent" HorizontalAlignment="Left">
+                  <PathIcon HorizontalAlignment="Left" Data="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
+                  <Ellipse Fill="#F2994A" Width="9" Height="9" Margin="15,0,0,-13" IsVisible="{Binding IsLoggedIn}"/>
+                </Panel>
+
+                <!-- Title & status text -->
+                <DockPanel Margin="10 0 15 0" DockPanel.Dock="Left" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" DockPanel.Dock="Top"/>
+                  <TextBlock Opacity="0.4" FontSize="11" Text="{Binding StatusText}" DockPanel.Dock="Bottom" />
+                </DockPanel>
+              </DockPanel>
+
             </Panel>
           </DataTemplate>
         </c:NavBarListBox.DataTemplates>
