@@ -15,14 +15,14 @@
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource NavBarItemForegroundBrush}" />
   </Style>
 
-  <Style Selector="c|NavBarItem:vertical">
+  <Style Selector="c|NavBarItem">
     <Setter Property="Padding" Value="{StaticResource ListBoxItemPadding}" />
     <Setter Property="Template">
       <ControlTemplate>
         <Panel>
           <Border CornerRadius="3" x:Name="Indicator_Backdrop" Margin="4 0">
-            <Border Width="3" x:Name="Indicator" CornerRadius="6" VerticalAlignment="Stretch"
-                    HorizontalAlignment="Left">
+            <Border x:Name="Indicator"
+                    CornerRadius="6">
               <Border.Transitions>
                 <Transitions>
                   <DoubleTransition Property="Opacity" Duration="0:0:0.175" />
@@ -47,36 +47,18 @@
     </Setter>
   </Style>
 
-  <Style Selector="c|NavBarItem:horizontal">
-    <Setter Property="Padding" Value="{StaticResource ListBoxItemPadding}" />
-    <Setter Property="Template">
-      <ControlTemplate>
-        <Panel>
-          <Border CornerRadius="3" x:Name="Indicator_Backdrop" Margin="4 0">
-            <Border Height="3" x:Name="Indicator" CornerRadius="6" VerticalAlignment="Bottom"
-                    HorizontalAlignment="Stretch">
-              <Border.Transitions>
-                <Transitions>
-                  <DoubleTransition Property="Opacity" Duration="0:0:0.175" />
-                  <TransformOperationsTransition Property="RenderTransform" Duration="0:0:.135"
-                                                 Easing="QuadraticEaseIn" />
-                </Transitions>
-              </Border.Transitions>
-            </Border>
-          </Border>
+  <Style Selector="c|NavBarItem:vertical /template/ Border#Indicator">
+    <Setter Property="VerticalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="Width" Value="3" />
+    <Setter Property="Height" Value="NaN" />
+  </Style>
 
-          <ContentPresenter Name="PART_ContentPresenter"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            ContentTemplate="{TemplateBinding ContentTemplate}"
-                            Content="{TemplateBinding Content}"
-                            Padding="{TemplateBinding Padding}"
-                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
-        </Panel>
-      </ControlTemplate>
-    </Setter>
+  <Style Selector="c|NavBarItem:horizontal /template/ Border#Indicator">
+    <Setter Property="VerticalAlignment" Value="Bottom" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="Width" Value="NaN" />
+    <Setter Property="Height" Value="3" />
   </Style>
 
   <Style Selector="c|NavBarItem /template/ Border#Indicator">

@@ -83,7 +83,7 @@
                             Height="14" Width="14" Foreground="{DynamicResource SystemAccentColor}" />
                 </Viewbox>
                 <TextBlock
-                  Text="{Binding RecentTransactionDate, StringFormat='{}{0:MM/dd/yyyy HH:mm}', FallbackValue='7/12/2020'}"
+                  Text="{Binding RecentTransactionDate, FallbackValue='7/12/2020'}"
                   Opacity="0.8" FontSize="12" Margin="10,0,0,0" />
               </DockPanel>
               <!-- Recent transaction status -->

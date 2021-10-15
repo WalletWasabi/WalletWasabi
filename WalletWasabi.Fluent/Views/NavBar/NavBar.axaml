@@ -2,6 +2,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
+             xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.NavBar"
@@ -147,9 +150,18 @@
       <!-- BottomItems List -->
       <c:NavBarListBox Items="{Binding BottomItems}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                       Name="BottomListBox"
-                       Classes.horizontal="{Binding IsOpen}"
-                       Classes.vertical="{Binding !IsOpen}">
+                       Classes="horizontal"
+                       Name="BottomListBox">
+        <i:Interaction.Behaviors>
+          <ia:DataTriggerBehavior Binding="{Binding IsOpen}" ComparisonCondition="Equal" Value="True">
+            <iac:AddClassAction StyledElement="{Binding #BottomListBox}" ClassName="horizontal" RemoveIfExists="True"/>
+            <iac:RemoveClassAction StyledElement="{Binding #BottomListBox}" ClassName="vertical"/>
+          </ia:DataTriggerBehavior>
+          <ia:DataTriggerBehavior Binding="{Binding IsOpen}" ComparisonCondition="Equal" Value="False">
+            <iac:AddClassAction StyledElement="{Binding #BottomListBox}" ClassName="vertical" RemoveIfExists="True"/>
+            <iac:RemoveClassAction StyledElement="{Binding #BottomListBox}" ClassName="horizontal"/>
+          </ia:DataTriggerBehavior>
+        </i:Interaction.Behaviors>
         <c:NavBarListBox.Styles>
           <Style Selector=":is(ListBox).vertical /template/ #PART_ItemsPresenter > ReversibleStackPanel">
             <Setter Property="Orientation" Value="Vertical" />
@@ -173,7 +185,7 @@
         </c:NavBarListBox.Styles>
         <c:NavBarListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:NavBarItemViewModel">
-            <Panel Width="45" Background="Transparent" HorizontalAlignment="Center" ToolTip.Tip="{Binding Title}">
+            <Panel Width="45" Background="Transparent" HorizontalAlignment="Center" ToolTip.Tip="{Binding Title}" ToolTip.VerticalOffset="-17" ToolTip.Placement="Top">
               <PathIcon HorizontalAlignment="Left">
                 <PathIcon.Data>
                   <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
