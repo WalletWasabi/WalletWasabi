@@ -384,10 +384,19 @@ namespace WalletWasabi.Tor.Socks5.Pool
 				return canUse && connection.IsFreeToUse();
 			}).ToArray();
 
-			// Get random TCP connection from the candidates.
-			connection = (candidates.Count > 0)
-				? candidates[Random.GetInt(0, candidates.Count - 1)]
-				: null;
+			connection = null;
+
+			// Get random TCP connection from the candidates, if we have more than one.
+			if (candidates.Count == 1)
+			{
+				connection = candidates[0];
+			}
+			else if (candidates.Count > 1)
+			{
+				connection = (candidates.Count > 0)
+					? candidates[Random.GetInt(fromInclusive: 0, toExclusive: candidates.Count)]
+					: null;
+			}
 
 			if (connection is not null)
 			{
