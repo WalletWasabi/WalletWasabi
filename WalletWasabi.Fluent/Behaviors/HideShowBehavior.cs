@@ -23,7 +23,7 @@ namespace WalletWasabi.Fluent.Behaviors
 
 			Observable.Merge(
 					Observable.FromEventPattern(Services.SingleInstanceChecker, nameof(SingleInstanceChecker.OtherInstanceStarted)),
-					Observable.FromEventPattern(((App)Application.Current!), nameof(App.ShowRequested)))
+					Observable.FromEventPattern((App)Application.Current!, nameof(App.ShowRequested)))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
