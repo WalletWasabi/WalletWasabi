@@ -267,7 +267,7 @@
 
       <!-- Balance -->
       <TemplatedDataGridTemplateColumn Header="Balance (BTC)"
-                                       MinWidth="125"
+                                       MinWidth="160"
                                        Width="Auto">
         <TemplatedDataGridTemplateColumn.CellTemplate>
           <DataTemplate>
