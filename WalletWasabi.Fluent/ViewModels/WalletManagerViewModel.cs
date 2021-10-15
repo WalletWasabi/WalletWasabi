@@ -94,7 +94,10 @@ namespace WalletWasabi.Fluent.ViewModels
 				{
 					var (sender, e) = arg;
 
-					if (Services.UiConfig.PrivacyMode || !e.IsNews || sender is not Wallet { IsLoggedIn: true, State: WalletState.Started } wallet)
+					if (Services.UiConfig.PrivacyMode ||
+					    !e.IsNews ||
+					    sender is not Wallet { IsLoggedIn: true, State: WalletState.Started } wallet ||
+					    e.IsLikelyOwnCoinJoin)
 					{
 						return;
 					}

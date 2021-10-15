@@ -185,7 +185,7 @@
         </c:NavBarListBox.Styles>
         <c:NavBarListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:NavBarItemViewModel">
-            <Panel Width="45" Background="Transparent" HorizontalAlignment="Center" ToolTip.Tip="{Binding Title}">
+            <Panel Width="45" Background="Transparent" HorizontalAlignment="Center" ToolTip.Tip="{Binding Title}" ToolTip.VerticalOffset="-17" ToolTip.Placement="Top">
               <PathIcon HorizontalAlignment="Left">
                 <PathIcon.Data>
                   <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
