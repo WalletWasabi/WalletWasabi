@@ -139,19 +139,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				if (xs.Length > 2)
 				{
 					var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
-					var interpolated = (decimal) spline.Interpolate(t);
-					return Math.Clamp(interpolated, (decimal) ys[^1], (decimal) ys[0]);
+					var interpolated = (decimal)spline.Interpolate(t);
+					return Math.Clamp(interpolated, (decimal)ys[^1], (decimal)ys[0]);
 				}
 
 				if (xs.Length == 2)
 				{
 					if (xs[1] - xs[0] == 0.0)
 					{
-						return (decimal) ys[0];
+						return (decimal)ys[0];
 					}
 					var slope = (ys[1] - ys[0]) / (xs[1] - xs[0]);
 					var interpolated = (decimal)(ys[0] + (t - xs[0]) * slope);
-					return Math.Clamp(interpolated, (decimal) ys[^1], (decimal) ys[0]);
+					return Math.Clamp(interpolated, (decimal)ys[^1], (decimal)ys[0]);
 				}
 
 				if (xs.Length == 1)
@@ -212,7 +212,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				var minY = satoshiPerByteValues.Min();
 				var maxY = satoshiPerByteValues.Max();
-				SatoshiPerByteLabels = new [] { minY.ToString("F0"), (maxY / 2).ToString("F0"), maxY.ToString("F0") };
+				SatoshiPerByteLabels = new[] { minY.ToString("F0"), (maxY / 2).ToString("F0"), maxY.ToString("F0") };
 			}
 			else
 			{
@@ -234,7 +234,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public void InitCurrentConfirmationTarget(FeeRate feeRate)
 		{
-			CurrentConfirmationTarget =  GetConfirmationTarget(feeRate);
+			CurrentConfirmationTarget = GetConfirmationTarget(feeRate);
 		}
 
 		public Dictionary<double, double> GetValues()

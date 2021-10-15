@@ -88,9 +88,9 @@ namespace WalletWasabi.Blockchain.Keys
 		public WpkhDescriptors GetOutputDescriptors(string password, Network network)
 		{
 			if (!MasterFingerprint.HasValue)
-            {
+			{
 				throw new InvalidOperationException($"{nameof(MasterFingerprint)} is not defined.");
-            }
+			}
 
 			return WpkhOutputDescriptorHelper.GetOutputDescriptors(network, MasterFingerprint.Value, GetMasterExtKey(password), AccountKeyPath);
 		}

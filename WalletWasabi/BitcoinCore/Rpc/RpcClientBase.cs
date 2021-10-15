@@ -162,7 +162,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 
 		public virtual async Task<uint256> SendToAddressAsync(BitcoinAddress address, Money amount, bool replaceable = false, CancellationToken cancellationToken = default)
 		{
-			var parameters = new SendToAddressParameters{ Replaceable = replaceable };
+			var parameters = new SendToAddressParameters { Replaceable = replaceable };
 			return await Rpc.SendToAddressAsync(address, amount, parameters, cancellationToken).ConfigureAwait(false);
 		}
 

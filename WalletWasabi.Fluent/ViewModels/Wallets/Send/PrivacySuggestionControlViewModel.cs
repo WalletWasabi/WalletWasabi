@@ -51,12 +51,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						: $"{Math.Abs(fiatDifference).GenerateFiatText("USD")} Less")
 					.Replace("(", "").Replace(")", "");
 
-				_benefits.Add(new (false, difference));
+				_benefits.Add(new(false, difference));
 			}
 			else
 			{
 				// This is just to pad the control.
-				_benefits.Add(new (false, " "));
+				_benefits.Add(new(false, " "));
 			}
 
 			_amount = $"{total}";

@@ -62,7 +62,7 @@ namespace WalletWasabi.Fluent.ViewModels.StatusBar
 
 		public ICommand AskMeLaterCommand { get; }
 
-		private CompositeDisposable Disposables { get; } = new ();
+		private CompositeDisposable Disposables { get; } = new();
 
 		private bool UseTor { get; }
 
