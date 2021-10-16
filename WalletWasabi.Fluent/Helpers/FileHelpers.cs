@@ -3,11 +3,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.Gui.Helpers
+namespace WalletWasabi.Fluent.Helpers
 {
 	public static class FileHelpers
 	{
