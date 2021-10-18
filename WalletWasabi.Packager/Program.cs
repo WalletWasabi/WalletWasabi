@@ -549,7 +549,18 @@ namespace WalletWasabi.Packager
 
 			if (process.ExitCode is not 0)
 			{
-				throw new InvalidOperationException($"Process exited with code '{process.ExitCode}'.{ (redirectStandardOutput ? output : "") }");
+				Console.WriteLine($"Process failed:");
+				Console.WriteLine($"* Command: '{command} {arguments}'");
+				Console.WriteLine($"* Working directory: '{workingDirectory}'");
+				Console.WriteLine($"* Exit code: '{process.ExitCode}'");
+
+				if (redirectStandardOutput)
+				{
+					string prettyPrint = string.Join(Environment.NewLine, (output ?? "").Split(Environment.NewLine).Select(line => $"  > {line}"));
+					Console.WriteLine($"* Output:\n{prettyPrint}");
+				}
+
+				throw new InvalidOperationException("Process exited with unexpected exit code");
 			}
 
 			return output;
