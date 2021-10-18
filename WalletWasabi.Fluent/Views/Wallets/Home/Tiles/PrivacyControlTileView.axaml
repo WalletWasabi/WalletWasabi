@@ -1,0 +1,29 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:tiles="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:CompileBindings="True" x:DataType="tiles:PrivacyControlTileViewModel"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyControlTileView">
+  <controls:TileControl TileSize="Large">
+    <Panel>
+      <Panel.Styles>
+        <Style Selector="Button">
+          <Setter Property="HorizontalAlignment" Value="Center" />
+          <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+      </Panel.Styles>
+      <Button IsVisible="{Binding BoostButtonVisible}" Command="{Binding BoostPrivacyCommand}" Content="Boost Privacy" />
+      <Button IsVisible="{Binding IsBoosting}" Content="Cancel Privacy Boost" Command="{Binding CancelPrivacyBoostCommand}" />
+
+      <controls:ProgressRing IsIndeterminate="True" IsVisible="{Binding IsBoosting}" />
+      <controls:RingChartControl
+                                 Margin="16,0,0,0"
+                                 VerticalAlignment="Center"
+                                 HorizontalAlignment="Center"
+                                 DataPoints="{Binding TestDataPoints}" />
+    </Panel>
+  </controls:TileControl>
+</UserControl>

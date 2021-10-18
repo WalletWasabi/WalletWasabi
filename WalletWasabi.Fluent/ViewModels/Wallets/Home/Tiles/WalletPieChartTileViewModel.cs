@@ -6,6 +6,7 @@ using System.Reactive.Disposables;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
@@ -49,17 +50,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			this.WhenAnyValue(x => x.IsAutoCoinJoinEnabled)
 				.Subscribe(x => walletVm.Settings.AutoCoinJoin = x);
-
-
-			BoostPrivacyCommand = ReactiveCommand.Create(() =>
-			{
-				_wallet.AllowManualCoinJoin = true;
-				IsBoosting = true;
-			});
-
 		}
 
-		public ICommand BoostPrivacyCommand { get; }
+
 
 		protected override void OnActivated(CompositeDisposable disposables)
 		{
@@ -68,6 +61,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			_balanceChanged
 				.Subscribe(_ => Update())
 				.DisposeWith(disposables);
+
+			Update();
 		}
 
 		private void Update()

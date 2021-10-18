@@ -23,7 +23,7 @@
       <Grid Margin="20 10 20 20" RowDefinitions="*,Auto">
         <Panel Margin="8" VerticalAlignment="Center" HorizontalAlignment="Center">
           <controls:RingChartControl DataPoints="{Binding TestDataPoints}" />
-          <Button Content="Boost Privacy" HorizontalAlignment="Center" VerticalAlignment="Center" Classes="hyperlink" Command="{Binding BoostPrivacyCommand}" />
+          <Button Content="Boost Privacy" HorizontalAlignment="Center" VerticalAlignment="Center" Classes="hyperlink" />
         </Panel>
         <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="5">
           <TextBlock Classes="h6" FontWeight="Bold"  TextAlignment="Center" Text="Warning!" />

@@ -10,22 +10,22 @@ namespace WalletWasabi.Fluent.Controls
 	{
 		private ContentPresenter? _contentPresenter;
 
-		public static readonly StyledProperty<object> LargeSizeContentProperty =
-			AvaloniaProperty.Register<TileControl, object>(nameof(LargeSizeContent));
+		public static readonly StyledProperty<object?> LargeSizeContentProperty =
+			AvaloniaProperty.Register<TileControl, object?>(nameof(LargeSizeContent));
 
-		public static readonly StyledProperty<object> WideSizeContentProperty =
-			AvaloniaProperty.Register<TileControl, object>(nameof(WideSizeContent));
+		public static readonly StyledProperty<object?> WideSizeContentProperty =
+			AvaloniaProperty.Register<TileControl, object?>(nameof(WideSizeContent));
 
 		public static readonly StyledProperty<TileSize> TileSizeProperty =
 			AvaloniaProperty.Register<TileControl, TileSize>(nameof(TileSize));
 
-		public object LargeSizeContent
+		public object? LargeSizeContent
 		{
 			get => GetValue(LargeSizeContentProperty);
 			set => SetValue(LargeSizeContentProperty, value);
 		}
 
-		public object WideSizeContent
+		public object? WideSizeContent
 		{
 			get => GetValue(WideSizeContentProperty);
 			set => SetValue(WideSizeContentProperty, value);
@@ -41,20 +41,26 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			if (_contentPresenter is { })
 			{
+				object? content = null;
+
 				switch (TileSize)
 				{
-					case TileSize.Medium:
-						_contentPresenter.Content = Content;
-						break;
-
 					case TileSize.Large:
-						_contentPresenter.Content = LargeSizeContent;
+						if (LargeSizeContent is { })
+						{
+							content = LargeSizeContent;
+						}
 						break;
 
 					case TileSize.Wide:
-						_contentPresenter.Content = WideSizeContent;
+						if (WideSizeContent is { })
+						{
+							content = WideSizeContent;
+						}
 						break;
 				}
+
+				_contentPresenter.Content = content ?? Content;
 			}
 		}
 
