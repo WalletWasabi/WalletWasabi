@@ -10,15 +10,15 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Morph;
-using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 {
 	public partial class WalletBalanceChartTileViewModel : TileViewModel
 	{
-		private readonly ObservableCollection<HistoryItemViewModel> _history;
+		private readonly ObservableCollection<HistoryItemViewModelBase> _history;
 
-		public WalletBalanceChartTileViewModel(ObservableCollection<HistoryItemViewModel> history)
+		public WalletBalanceChartTileViewModel(ObservableCollection<HistoryItemViewModelBase> history)
 		{
 			_history = history;
 

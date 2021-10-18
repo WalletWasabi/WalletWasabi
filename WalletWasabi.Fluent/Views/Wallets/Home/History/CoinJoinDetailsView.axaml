@@ -1,0 +1,77 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:history="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="history:CoinJoinDetailsViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.CoinJoinDetailsView"
+             Name="CoinJoinDetails">
+  <c:ContentArea Title="{Binding Title}"
+                 NextContent="Done" EnableNext="True"
+                 EnableCancel="{Binding EnableCancel}">
+    <StackPanel Spacing="15">
+
+      <!-- Date -->
+      <c:PreviewItem Icon="{StaticResource timer_regular}"
+                     Text="Date"
+                     CopyParameter="{Binding Date}">
+        <TextBox Classes="selectableTextBlock" Text="{Binding Date}" />
+      </c:PreviewItem>
+
+      <Separator />
+
+      <!-- Transaction IDs -->
+      <c:PreviewItem Icon="{StaticResource transaction_id}"
+                     Text="Transaction ID">
+          <ItemsRepeater Items="{Binding TransactionIds}">
+            <ItemsRepeater.ItemTemplate>
+              <DataTemplate>
+                <c:AdorningContentControl ClipToBounds="False" HorizontalAlignment="Left">
+                  <c:AdorningContentControl.Adornment>
+                    <c:AnimatedButton ToolTip.Tip="Copy"
+                                      x:CompileBindings="False"
+                                      Command="{Binding #CoinJoinDetails.DataContext.CopyCommand}"
+                                      CommandParameter="{Binding .}"
+                                      NormalIcon="{StaticResource copy_regular}"
+                                      ClickIcon="{StaticResource copy_confirmed}"
+                                      InitialOpacity="0.6"
+                                      HorizontalAlignment="Right"
+                                      Margin="0 0 -30 0" />
+                  </c:AdorningContentControl.Adornment>
+
+                  <c:PrivacyContentControl NumberOfPrivacyChars="48">
+                    <TextBox Classes="selectableTextBlock monoSpaced" Text="{Binding .}" />
+                  </c:PrivacyContentControl>
+
+                </c:AdorningContentControl>
+              </DataTemplate>
+            </ItemsRepeater.ItemTemplate>
+            <ItemsRepeater.Layout>
+              <StackLayout />
+            </ItemsRepeater.Layout>
+          </ItemsRepeater>
+      </c:PreviewItem>
+
+      <Separator />
+
+      <!-- Status -->
+      <c:PreviewItem Icon="{StaticResource status_regular}"
+                     Text="Status">
+        <TextBox Classes="selectableTextBlock" Text="{Binding Status}" />
+      </c:PreviewItem>
+
+      <Separator />
+
+      <!-- CJ fee  -->
+      <c:PreviewItem Icon="{StaticResource btc_logo}"
+                     Text="Mining fee paid"
+                     CopyParameter="{Binding CoinJoinFee}">
+        <TextBox Classes="selectableTextBlock" Text="{Binding CoinJoinFee, StringFormat={}{0} BTC}" />
+      </c:PreviewItem>
+
+    </StackPanel>
+  </c:ContentArea>
+</UserControl>
