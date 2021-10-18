@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,7 +6,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.MathNet;
-using WalletWasabi.Gui.Converters;
+using WalletWasabi.Fluent.Converters;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
@@ -139,19 +139,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				if (xs.Length > 2)
 				{
 					var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
-					var interpolated = (decimal) spline.Interpolate(t);
-					return Math.Clamp(interpolated, (decimal) ys[^1], (decimal) ys[0]);
+					var interpolated = (decimal)spline.Interpolate(t);
+					return Math.Clamp(interpolated, (decimal)ys[^1], (decimal)ys[0]);
 				}
 
 				if (xs.Length == 2)
 				{
 					if (xs[1] - xs[0] == 0.0)
 					{
-						return (decimal) ys[0];
+						return (decimal)ys[0];
 					}
 					var slope = (ys[1] - ys[0]) / (xs[1] - xs[0]);
 					var interpolated = (decimal)(ys[0] + (t - xs[0]) * slope);
-					return Math.Clamp(interpolated, (decimal) ys[^1], (decimal) ys[0]);
+					return Math.Clamp(interpolated, (decimal)ys[^1], (decimal)ys[0]);
 				}
 
 				if (xs.Length == 1)
@@ -192,14 +192,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public void UpdateFeeEstimates(Dictionary<int, int> feeEstimates)
 		{
-			var xs = feeEstimates.Select(x => (double)x.Key).ToArray();
-			var ys = feeEstimates.Select(x => (double)x.Value).ToArray();
+			var correctedFeeEstimates = DistinctByValues(feeEstimates);
+
+			var xs = correctedFeeEstimates.Select(x => (double)x.Key).ToArray();
+			var ys = correctedFeeEstimates.Select(x => (double)x.Value).ToArray();
 
 			GetSmoothValuesSubdivide(xs, ys, out var xts, out var yts);
 			var confirmationTargetValues = xts.ToArray();
 			var satoshiPerByteValues = yts.ToArray();
 
-			var confirmationTargetLabels = feeEstimates.Select(x => x.Key)
+			var confirmationTargetLabels = correctedFeeEstimates.Select(x => x.Key)
 				.Select(x => FeeTargetTimeConverter.Convert(x, "m", "h", "h", "d", "d"))
 				.Reverse()
 				.ToArray();
@@ -210,7 +212,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				var minY = satoshiPerByteValues.Min();
 				var maxY = satoshiPerByteValues.Max();
-				SatoshiPerByteLabels = new [] { minY.ToString("F0"), (maxY / 2).ToString("F0"), maxY.ToString("F0") };
+				SatoshiPerByteLabels = new[] { minY.ToString("F0"), (maxY / 2).ToString("F0"), maxY.ToString("F0") };
 			}
 			else
 			{
@@ -232,7 +234,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public void InitCurrentConfirmationTarget(FeeRate feeRate)
 		{
-			CurrentConfirmationTarget =  GetConfirmationTarget(feeRate);
+			CurrentConfirmationTarget = GetConfirmationTarget(feeRate);
 		}
 
 		public Dictionary<double, double> GetValues()
@@ -260,6 +262,24 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 
 			return values;
+		}
+
+		private Dictionary<int, int> DistinctByValues(Dictionary<int, int> feeEstimates)
+		{
+			Dictionary<int, int> valuesToReturn = new();
+
+			foreach (var estimate in feeEstimates)
+			{
+				var similarBlockTargets = feeEstimates.Where(x => x.Value == estimate.Value);
+				var fasterSimilarBlockTarget = similarBlockTargets.First();
+
+				if (fasterSimilarBlockTarget.Key == estimate.Key)
+				{
+					valuesToReturn.Add(estimate.Key, estimate.Value);
+				}
+			}
+
+			return valuesToReturn;
 		}
 	}
 }

@@ -9,7 +9,7 @@ using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 namespace WalletWasabi.WabiSabi.Models
 {
 	public record RoundState(
-		uint256? BlameOf,
+		uint256 BlameOf,
 		CredentialIssuerParameters AmountCredentialIssuerParameters,
 		CredentialIssuerParameters VsizeCredentialIssuerParameters,
 		FeeRate FeeRate,
@@ -33,7 +33,7 @@ namespace WalletWasabi.WabiSabi.Models
 
 		public static RoundState FromRound(Round round) =>
 			new(
-				round.BlameOf?.Id,
+				round is BlameRound blameRound ? blameRound.BlameOf.Id : uint256.Zero,
 				round.AmountCredentialIssuerParameters,
 				round.VsizeCredentialIssuerParameters,
 				round.FeeRate,

@@ -10,6 +10,7 @@ using System.Security;
 using System.Text;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Helpers;
+using WalletWasabi.Io;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -87,9 +88,9 @@ namespace WalletWasabi.Blockchain.Keys
 		public WpkhDescriptors GetOutputDescriptors(string password, Network network)
 		{
 			if (!MasterFingerprint.HasValue)
-            {
+			{
 				throw new InvalidOperationException($"{nameof(MasterFingerprint)} is not defined.");
-            }
+			}
 
 			return WpkhOutputDescriptorHelper.GetOutputDescriptors(network, MasterFingerprint.Value, GetMasterExtKey(password), AccountKeyPath);
 		}
@@ -114,7 +115,7 @@ namespace WalletWasabi.Blockchain.Keys
 		public bool? PasswordVerified { get; private set; }
 
 		[JsonProperty(Order = 6)]
-		public int? MinGapLimit { get; private set; }
+		public int MinGapLimit { get; private set; }
 
 		[JsonProperty(Order = 7)]
 		[JsonConverter(typeof(KeyPathJsonConverter))]
@@ -205,7 +206,9 @@ namespace WalletWasabi.Blockchain.Keys
 				throw new FileNotFoundException($"Wallet file not found at: `{filePath}`.");
 			}
 
-			string jsonString = File.ReadAllText(filePath, Encoding.UTF8);
+			SafeIoManager safeIoManager = new(filePath);
+			string jsonString = safeIoManager.ReadAllText(Encoding.UTF8);
+
 			var km = JsonConvert.DeserializeObject<KeyManager>(jsonString);
 
 			km.SetFilePath(filePath);
@@ -340,7 +343,7 @@ namespace WalletWasabi.Blockchain.Keys
 			// If not found, generate a new.
 			if (newKey is null)
 			{
-				SetMinGapLimit(MinGapLimit.Value + 1);
+				SetMinGapLimit(MinGapLimit + 1);
 				newKey = AssertCleanKeysIndexed(isInternal: false).First();
 
 				// If the new is over the MinGapLimit, set minGapLimitIncreased to true.
@@ -598,7 +601,9 @@ namespace WalletWasabi.Blockchain.Keys
 			BlockchainState.Height = new Height(matureHeight);
 
 			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
-			File.WriteAllText(filePath, jsonString, Encoding.UTF8);
+
+			SafeIoManager safeIoManager = new(filePath);
+			safeIoManager.WriteAllText(jsonString, Encoding.UTF8);
 
 			// Re-add removed items for further operations.
 			BlockchainState.Height = prevHeight;

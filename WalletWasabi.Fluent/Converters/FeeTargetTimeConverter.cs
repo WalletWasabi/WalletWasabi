@@ -2,10 +2,10 @@ using Avalonia.Data.Converters;
 using System;
 using System.Globalization;
 using WalletWasabi.Helpers;
-using WalletWasabi.Gui.Models;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Exceptions;
 
-namespace WalletWasabi.Gui.Converters
+namespace WalletWasabi.Fluent.Converters
 {
 	public class FeeTargetTimeConverter : IValueConverter
 	{

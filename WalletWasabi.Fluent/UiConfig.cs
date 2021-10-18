@@ -1,15 +1,14 @@
 using System;
-using Avalonia.Controls;
 using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Reactive;
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Bases;
-using WalletWasabi.Gui.Converters;
-using WalletWasabi.Gui.Models.Sorting;
+using WalletWasabi.Fluent.Converters;
+using WalletWasabi.Fluent.Models.Sorting;
 
-namespace WalletWasabi.Gui
+namespace WalletWasabi.Fluent
 {
 	[JsonObject(MemberSerialization.OptIn)]
 	public class UiConfig : ConfigBase
@@ -170,7 +169,7 @@ namespace WalletWasabi.Gui
 		[JsonConverter(typeof(SortingPreferenceJsonConverter))]
 		public SortingPreference HistoryTabViewSortingPreference { get; internal set; } = new SortingPreference(SortOrder.Decreasing, "Date");
 
-		[DefaultValue(false)]
+		[DefaultValue(true)]
 		[JsonProperty(PropertyName = "HideOnClose", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public bool HideOnClose
 		{

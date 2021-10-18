@@ -14,6 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 	{
 		[AutoNotify] private ObservableCollection<string> _labels;
 		[AutoNotify] private SmartLabel? _finalLabel;
+		[AutoNotify] private bool _isCurrentTextValid;
 
 		public AddressLabelEditViewModel(ReceiveAddressesViewModel owner, HdPubKey hdPubKey, KeyManager keyManager, HashSet<string> suggestions)
 		{
@@ -27,7 +28,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => FinalLabel = new SmartLabel(Labels));
 
-			var canExecute = this.WhenAnyValue(x => x.FinalLabel).Select(x => x is { IsEmpty: false });
+			var canExecute =
+				this.WhenAnyValue(x => x.FinalLabel, x => x.IsCurrentTextValid)
+					.Select(tup =>
+					{
+						var (finalLabel, isCurrentTextValid) = tup;
+						return finalLabel is { IsEmpty: false } || isCurrentTextValid;
+					});
 
 			NextCommand = ReactiveCommand.Create(
 				() =>

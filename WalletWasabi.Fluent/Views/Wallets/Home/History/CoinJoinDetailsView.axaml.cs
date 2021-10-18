@@ -1,12 +1,11 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views
+namespace WalletWasabi.Fluent.Views.Wallets.Home.History
 {
-	public class MainWindow : Window
+	public class CoinJoinDetailsView : UserControl
 	{
-		public MainWindow()
+		public CoinJoinDetailsView()
 		{
 			InitializeComponent();
 		}
@@ -14,9 +13,6 @@ namespace WalletWasabi.Fluent.Views
 		private void InitializeComponent()
 		{
 			AvaloniaXamlLoader.Load(this);
-#if DEBUG
-			this.AttachDevTools();
-#endif
 		}
 	}
 }

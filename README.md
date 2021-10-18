@@ -86,13 +86,13 @@ Clone & Restore & Build
 
 ```sh
 git clone https://github.com/zkSNACKs/WalletWasabi.git
-cd WalletWasabi/WalletWasabi.Gui
+cd WalletWasabi/WalletWasabi.Fluent.Desktop
 dotnet build
 ```
 
 ### Run Wasabi
 
-Run Wasabi with `dotnet run` from the `WalletWasabi.Gui` folder.
+Run Wasabi with `dotnet run` from the `WalletWasabi.Fluent.Desktop` folder.
 
 ### Update Wasabi
 

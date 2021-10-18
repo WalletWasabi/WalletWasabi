@@ -9,8 +9,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Wallets;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
-using WalletWasabi.Models;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 {
@@ -18,17 +17,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 	{
 		private readonly Wallet _wallet;
 		private readonly IObservable<Unit> _balanceChanged;
-		private readonly ObservableCollection<HistoryItemViewModel> _history;
+		private readonly ObservableCollection<HistoryItemViewModelBase> _history;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _balanceBtc;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _balanceFiat;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _balancePrivateBtc;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _balanceNonPrivateBtc;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _recentTransactionName;
-		[AutoNotify(SetterModifier = AccessModifier.Private)] private DateTimeOffset? _recentTransactionDate;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _recentTransactionDate;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _recentTransactionStatus;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _showRecentTransaction;
 
-		public WalletBalanceTileViewModel(Wallet wallet, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModel> history)
+		public WalletBalanceTileViewModel(Wallet wallet, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModelBase> history)
 		{
 			_wallet = wallet;
 			_balanceChanged = balanceChanged;
@@ -73,25 +72,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			var recent = _history.FirstOrDefault();
 			if (recent is { })
 			{
-				var transactionSummary = recent.TransactionSummary;
-				var confirmations = transactionSummary.Height.Type == HeightType.Chain ?
-					(int)_wallet.BitcoinStore.SmartHeaderChain.TipHeight - transactionSummary.Height.Value + 1
-					: 0;
-				var isConfirmed = confirmations > 0;
-				var isIncoming = true;
-				var amount = transactionSummary.Amount;
-				if (amount < Money.Zero)
-				{
-					amount *= -1;
-					isIncoming = false;
-				}
+
+				var isIncoming = recent.IncomingAmount is { };
 
 				RecentTransactionName = isIncoming ? "Incoming" : "Outgoing";
-
-				RecentTransactionDate = transactionSummary.DateTime.ToLocalTime();
-
-				RecentTransactionStatus = $"{(amount.ToDecimal(MoneyUnit.BTC).FormattedBtc() + " BTC")}" +
-				                          $"  -  {(isConfirmed ? "Confirmed" : "Pending")}";
+				RecentTransactionDate = recent.DateString;
+				RecentTransactionStatus = $"{(isIncoming ? recent.IncomingAmount : recent.OutgoingAmount)} BTC - {(recent.IsConfirmed ? "Confirmed" : "Pending")}";
 
 				ShowRecentTransaction = true;
 			}

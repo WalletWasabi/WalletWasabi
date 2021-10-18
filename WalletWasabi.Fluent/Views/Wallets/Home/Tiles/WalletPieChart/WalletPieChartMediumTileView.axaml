@@ -44,9 +44,9 @@
     <DockPanel LastChildFill="True" IsVisible="{Binding IsAutoCoinJoinEnabled}">
       <TextBlock Text="Wallet Privacy Status" DockPanel.Dock="Top" />
       <Grid ColumnDefinitions="*,*">
-        <ItemsRepeater Grid.ColumnSpan="2" VerticalAlignment="Center" Margin="0,0,0,-4"
-                       Items="{Binding TestDataPointsLegend}">
-          <ItemsRepeater.ItemTemplate>
+        <ItemsControl Grid.ColumnSpan="2" VerticalAlignment="Center" Margin="0,0,0,-4"
+                      Items="{Binding TestDataPointsLegend}">
+          <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="wallets:DataLegend">
               <DockPanel Margin="0,0,0,4">
                 <Ellipse DockPanel.Dock="Left" Margin="0,0,8,0" HorizontalAlignment="Left" Width="10"
@@ -59,11 +59,13 @@
                            Text="{Binding PercentShare, StringFormat=\{0:P1\}}" />
               </DockPanel>
             </DataTemplate>
-          </ItemsRepeater.ItemTemplate>
-          <ItemsRepeater.Layout>
-            <StackLayout />
-          </ItemsRepeater.Layout>
-        </ItemsRepeater>
+          </ItemsControl.ItemTemplate>
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+        </ItemsControl>
         <controls:PrivacyContentControl Grid.Column="1" Margin="16,0,0,0" PrivacyReplacementMode="Icon">
           <controls:RingChartControl Grid.Column="1"
                                      Margin="16,0,0,0"

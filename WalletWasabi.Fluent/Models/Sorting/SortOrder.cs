@@ -1,4 +1,4 @@
-namespace WalletWasabi.Gui.Models.Sorting
+namespace WalletWasabi.Fluent.Models.Sorting
 {
 	public enum SortOrder
 	{

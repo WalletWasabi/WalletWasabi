@@ -314,7 +314,6 @@ namespace WalletWasabi.Packager
 
 					// Delete unused executables.
 					File.Delete(Path.Combine(currentBinDistDirectory, "WalletWasabi.Fluent.exe"));
-					File.Delete(Path.Combine(currentBinDistDirectory, "WalletWasabi.Gui.exe"));
 				}
 				else // Linux & OSX
 				{
@@ -323,7 +322,6 @@ namespace WalletWasabi.Packager
 
 					// Delete unused executables.
 					File.Delete(Path.Combine(currentBinDistDirectory, "WalletWasabi.Fluent"));
-					File.Delete(Path.Combine(currentBinDistDirectory, "WalletWasabi.Gui"));
 				}
 				File.Move(oldExecutablePath, newExecutablePath);
 
