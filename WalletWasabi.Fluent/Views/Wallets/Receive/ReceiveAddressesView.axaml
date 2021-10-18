@@ -12,8 +12,8 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <TemplatedDataGrid Items="{Binding Addresses}">
-      <TemplatedDataGrid.Styles>
+    <DataBox Items="{Binding Addresses}">
+      <DataBox.Styles>
         <Style Selector="c|AnimatedButton.addressActionButton">
           <Setter Property="DockPanel.Dock" Value="Right"/>
           <Setter Property="Margin" Value="5 0 0 0"/>
@@ -30,12 +30,12 @@
           <Setter Property="Height" Value="15"/>
           <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}"/>
         </Style>
-      </TemplatedDataGrid.Styles>
+      </DataBox.Styles>
 
-      <TemplatedDataGrid.Columns>
-        <TemplatedDataGridTemplateColumn Header="Labels"
+      <DataBox.Columns>
+        <DataBoxTemplateColumn Header="Labels"
                                          Width="Auto">
-          <TemplatedDataGridTemplateColumn.CellTemplate>
+          <DataBoxTemplateColumn.CellTemplate>
             <DataTemplate>
               <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
                 <Button Classes="plain addressActionButton" ToolTip.Tip="Edit" DockPanel.Dock="Right" Command="{Binding EditLabelCommand}">
@@ -75,12 +75,12 @@
                 </c:PrivacyContentControl>
               </DockPanel>
             </DataTemplate>
-          </TemplatedDataGridTemplateColumn.CellTemplate>
-        </TemplatedDataGridTemplateColumn>
+          </DataBoxTemplateColumn.CellTemplate>
+        </DataBoxTemplateColumn>
 
-        <TemplatedDataGridTemplateColumn Header="Address"
+        <DataBoxTemplateColumn Header="Address"
                                          Width="2*">
-          <TemplatedDataGridTemplateColumn.CellTemplate>
+          <DataBoxTemplateColumn.CellTemplate>
             <DataTemplate>
               <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
                 <Button Classes="plain addressActionButton" Command="{Binding HideAddressCommand}"
@@ -102,9 +102,9 @@
                 <c:PrivacyContentControl Content="{Binding Address}" VerticalAlignment="Center" NumberOfPrivacyChars="38" />
               </DockPanel>
             </DataTemplate>
-          </TemplatedDataGridTemplateColumn.CellTemplate>
-        </TemplatedDataGridTemplateColumn>
-      </TemplatedDataGrid.Columns>
-    </TemplatedDataGrid>
+          </DataBoxTemplateColumn.CellTemplate>
+        </DataBoxTemplateColumn>
+      </DataBox.Columns>
+    </DataBox>
   </c:ContentArea>
 </UserControl>
