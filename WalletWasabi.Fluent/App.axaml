@@ -7,7 +7,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.App" CanShutdownProvider="{Binding .}">
   <Application.DataTemplates>
-    <local:ViewLocator/>
+    <local:ViewLocator />
     <DataTemplate DataType="models:ErrorDescriptor" x:DataType="models:ErrorDescriptor">
       <TextBlock x:CompileBindings="True" Text="{Binding Message}" Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}" TextWrapping="Wrap" />
     </DataTemplate>
@@ -41,10 +41,12 @@
 
   <TrayIcon.Icons>
     <TrayIcons>
-      <TrayIcon Icon="/Assets/WasabiLogo.ico">
+      <TrayIcon Icon="/Assets/WasabiLogo.ico" Clicked="TrayIcon_OnClicked">
         <NativeMenu.Menu>
           <NativeMenu>
-            <NativeMenuItem Header="Quit Wasabi Wallet" Command="{Binding QuitCommand}" />
+            <NativeMenuItem Header="Show" Command="{Binding ShowCommand} " />
+            <NativeMenuItemSeparator />
+            <NativeMenuItem Header="Quit" Command="{Binding QuitCommand}" />
           </NativeMenu>
         </NativeMenu.Menu>
       </TrayIcon>
