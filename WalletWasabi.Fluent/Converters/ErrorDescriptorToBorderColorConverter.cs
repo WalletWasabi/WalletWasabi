@@ -6,7 +6,7 @@ using System.Globalization;
 using System.Linq;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Gui.Converters
+namespace WalletWasabi.Fluent.Converters
 {
 	public class ErrorDescriptorToBorderColorConverter : IValueConverter
 	{
