@@ -38,8 +38,8 @@
           </Button>
           <Button Classes="plain" Cursor="Hand" Command="{Binding BoostPrivacyCommand}"
                   IsVisible="{Binding IsBoosting}"
-                  ToolTip.Tip="Cancel Privacy Boost">
-            <PathIcon Data="{StaticResource dismiss_light}" />
+                  ToolTip.Tip="Stop Privacy Boost">
+            <PathIcon Data="{StaticResource stop_regular}" />
           </Button>
           <Button Classes="plain" Cursor="Hand" IsVisible="{Binding  IsAutoCoinJoinEnabled}"
                   ToolTip.Tip="Pause Automatic CoinJoins">
