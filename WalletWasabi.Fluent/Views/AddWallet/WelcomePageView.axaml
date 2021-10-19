@@ -35,14 +35,14 @@
               <Setter Property="Opacity" Value="1" />
             </Style>
             <Style Selector="Ellipse">
-              <Setter Property="Fill" Value="{DynamicResource SystemChromeAltLowColor}"  />
-              <Setter Property="Width" Value="9"  />
-              <Setter Property="Height" Value="9"  />
+              <Setter Property="Fill" Value="{DynamicResource SystemChromeAltLowColor}" />
+              <Setter Property="Width" Value="9" />
+              <Setter Property="Height" Value="9" />
             </Style>
           </ListBox.Styles>
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
-              <StackPanel Orientation="Horizontal" Spacing="5"/>
+              <StackPanel Orientation="Horizontal" Spacing="5" />
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
           <Ellipse />
@@ -53,12 +53,38 @@
         </ListBox>
 
         <!-- Carousel nav buttons -->
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-          <Button Command="{Binding PrevCommand}" >
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="5">
+          <StackPanel.Styles>
+            <Style Selector="Button">
+              <Setter Property="Width" Value="30" />
+              <Setter Property="Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
+              <Setter Property="Background" Value="{DynamicResource WelcomeScreenButtonBackground}" />
+              <Setter Property="Height" Value="30" />
+              <Setter Property="HorizontalContentAlignment" Value="Center" />
+              <Setter Property="VerticalContentAlignment" Value="Center" />
+              <Setter Property="Padding" Value="0" />
+              <Setter Property="BorderThickness" Value="0" />
+            </Style>
+            <Style Selector="Button:disabled">
+              <Setter Property="Opacity" Value="0.2" />
+            </Style>
+            <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+              <Setter Property="Background" Value="{DynamicResource WelcomeScreenButtonBackgroundPointerOver}" />
+              <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
+            </Style>
+            <Style Selector="Button:pressed  /template/ ContentPresenter#PART_ContentPresenter">
+              <Setter Property="Background" Value="{DynamicResource WelcomeScreenButtonBackgroundPressed}" />
+              <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
+            </Style>
+            <Style Selector="Button > PathIcon">
+              <Setter Property="Width" Value="5" />
+            </Style>
+          </StackPanel.Styles>
+          <Button Command="{Binding PrevCommand}">
             <PathIcon Data="{StaticResource chevron_left}" />
           </Button>
           <Button Command="{Binding NextCommand}">
-            <PathIcon Data="{StaticResource chevron_right}"/>
+            <PathIcon Data="{StaticResource chevron_right}" />
           </Button>
         </StackPanel>
       </Panel>
@@ -69,11 +95,11 @@
                 Margin="0 10">
         <Carousel.Styles>
           <Style Selector="TextBlock.text">
-            <Setter Property="DockPanel.Dock" Value="Bottom"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="Opacity" Value="0.5"/>
-            <Setter Property="LineHeight" Value="22"/>
-            <Setter Property="FontWeight" Value="Light"/>
+            <Setter Property="DockPanel.Dock" Value="Bottom" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Opacity" Value="0.5" />
+            <Setter Property="LineHeight" Value="22" />
+            <Setter Property="FontWeight" Value="Light" />
           </Style>
 
           <Style Selector="TextBlock.title">
@@ -92,7 +118,7 @@
           </Style>
         </Carousel.Styles>
         <Carousel.PageTransition>
-          <PageSlide Duration="0.3" Orientation="Horizontal"/>
+          <PageSlide Duration="0.3" Orientation="Horizontal" />
         </Carousel.PageTransition>
 
         <!-- Welcome to Wasabi -->
@@ -100,7 +126,7 @@
           <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
             <TextBlock Classes="text" Text="Use Wasabi Wallet to retain your individuality, regain your identity and ultimately, reclaim your privacy. We let you control what you reveal about your Bitcoin life. Welcome to Wasabi Wallet sovereign individual." />
             <TextBlock Text="Welcome to Wasabi Wallet"
-                       Classes="title"/>
+                       Classes="title" />
             <Viewbox Classes="icon">
               <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
             </Viewbox>
@@ -117,7 +143,7 @@
             <TextBlock Text="Trustless by design"
                        Classes="title" />
             <Viewbox Classes="icon">
-              <PathIcon Data="{StaticResource shield_regular}" Foreground="{DynamicResource SliderTrackValueFill}"/>
+              <PathIcon Data="{StaticResource shield_regular}" Foreground="{DynamicResource SliderTrackValueFill}" />
             </Viewbox>
           </DockPanel>
           <Viewbox Grid.Column="1" VerticalAlignment="Center">
@@ -165,7 +191,7 @@
                      Text="There’s more to discover but it’s better to leave that &#x0a;on you. Without further ado, let’s begin!"
                      Opacity="0.6"
                      FontWeight="Light"
-                     LineHeight="22"/>
+                     LineHeight="22" />
           <Button HorizontalAlignment="Center"
                   Classes="action"
                   Content="Get Started"
