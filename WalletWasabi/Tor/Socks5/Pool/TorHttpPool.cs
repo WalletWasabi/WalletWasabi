@@ -20,6 +20,18 @@ using WalletWasabi.Tor.Socks5.Pool.Circuits;
 
 namespace WalletWasabi.Tor.Socks5.Pool
 {
+	public enum TcpConnectionState
+	{
+		/// <summary><see cref="TorTcpConnection"/> is in use currently.</summary>
+		InUse,
+
+		/// <summary><see cref="TorTcpConnection"/> can be used for a new HTTP request.</summary>
+		FreeToUse,
+
+		/// <summary><see cref="TorTcpConnection"/> is to be disposed.</summary>
+		ToDispose
+	}
+
 	/// <summary>
 	/// The pool represents a set of multiple TCP connections to Tor SOCKS5 endpoint that are
 	/// stored in <see cref="TorTcpConnection"/>s.
@@ -29,6 +41,8 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		/// <summary>Maximum number of <see cref="TorTcpConnection"/>s per URI host.</summary>
 		/// <remarks>This parameter affects maximum parallelization for given URI host.</remarks>
 		public const int MaxConnectionsPerHost = 10;
+
+		private bool _disposedValue;
 
 		public TorHttpPool(EndPoint endpoint)
 			: this(new TorTcpConnectionFactory(endpoint))
@@ -40,8 +54,6 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		{
 			TcpConnectionFactory = tcpConnectionFactory;
 		}
-
-		private bool _disposedValue;
 
 		/// <summary>Key is always a URI host. Value is a list of pool connections that can connect to the URI host.</summary>
 		/// <remarks>All access to this object must be guarded by <see cref="ObtainPoolConnectionLock"/>.</remarks>
@@ -177,7 +189,8 @@ namespace WalletWasabi.Tor.Socks5.Pool
 							connectionToDispose.MarkAsToDispose();
 						}
 					}
-				} while (i < attemptsNo);
+				}
+				while (i < attemptsNo);
 			}
 			catch (OperationCanceledException)
 			{
@@ -228,7 +241,8 @@ namespace WalletWasabi.Tor.Socks5.Pool
 
 				Logger.LogTrace("Wait 1s for a free pool connection.");
 				await Task.Delay(1000, token).ConfigureAwait(false);
-			} while (true);
+			}
+			while (true);
 		}
 
 		private async Task<TorTcpConnection?> CreateNewConnectionAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken cancellationToken)
@@ -354,17 +368,5 @@ namespace WalletWasabi.Tor.Socks5.Pool
 			// Dispose of unmanaged resources.
 			Dispose(true);
 		}
-	}
-
-	public enum TcpConnectionState
-	{
-		/// <summary><see cref="TorTcpConnection"/> is in use currently.</summary>
-		InUse,
-
-		/// <summary><see cref="TorTcpConnection"/> can be used for a new HTTP request.</summary>
-		FreeToUse,
-
-		/// <summary><see cref="TorTcpConnection"/> is to be disposed.</summary>
-		ToDispose
 	}
 }
