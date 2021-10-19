@@ -29,6 +29,8 @@
         </Style>
       </DockPanel.Styles>
 
+      <TextBlock Text="Privacy Level" DockPanel.Dock="Top" />
+
       <DockPanel DockPanel.Dock="Bottom">
         <StackPanel Spacing="10" DockPanel.Dock="Left" Orientation="Horizontal">
           <Button Classes="plain" Cursor="Hand" Command="{Binding BoostPrivacyCommand}"
