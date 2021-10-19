@@ -73,7 +73,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			var normalDecimalAmount = normalAmount.ToDecimal(MoneyUnit.BTC);
 			var totalDecimalAmount = privateDecimalAmount + normalDecimalAmount;
 
-			var pcPrivate = 0.6; //totalDecimalAmount == 0M ? 0d : (double)(privateDecimalAmount / totalDecimalAmount);
+			var pcPrivate = totalDecimalAmount == 0M ? 0d : (double)(privateDecimalAmount / totalDecimalAmount);
 			var pcNormal = 1 - pcPrivate;
 
 			PercentText = $"{pcPrivate * 100} %";
