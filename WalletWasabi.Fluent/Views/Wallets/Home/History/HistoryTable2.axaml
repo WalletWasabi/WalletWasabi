@@ -145,7 +145,7 @@
 
       <!-- Type -->
       <DataBoxTemplateColumn Header="Type"
-                                       MinWidth="80"
+                                       MinWidth="90"
                                        Width="Auto">
         <DataBoxTemplateColumn.CellTemplate>
           <DataTemplate>
