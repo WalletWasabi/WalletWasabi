@@ -4,12 +4,13 @@ namespace WalletWasabi.Models
 {
 	public class UpdateStatus : IEquatable<UpdateStatus>
 	{
-		public UpdateStatus(bool backendCompatible, bool clientUpToDate, Version legalDocumentsVersion, ushort currentBackendMajorVersion)
+		public UpdateStatus(bool backendCompatible, bool clientUpToDate, Version legalDocumentsVersion, ushort currentBackendMajorVersion, Version clientVersion)
 		{
 			BackendCompatible = backendCompatible;
 			ClientUpToDate = clientUpToDate;
 			LegalDocumentsVersion = legalDocumentsVersion;
 			CurrentBackendMajorVersion = currentBackendMajorVersion;
+			ClientVersion = clientVersion;
 		}
 
 		public bool ClientUpToDate { get; }
@@ -17,6 +18,8 @@ namespace WalletWasabi.Models
 
 		public Version LegalDocumentsVersion { get; }
 		public ushort CurrentBackendMajorVersion { get; }
+
+		public Version ClientVersion { get; }
 
 		#region EqualityAndComparison
 
