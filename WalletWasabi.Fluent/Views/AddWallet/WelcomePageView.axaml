@@ -118,7 +118,10 @@
           </Style>
         </Carousel.Styles>
         <Carousel.PageTransition>
-          <PageSlide Duration="0.3" Orientation="Horizontal" />
+          <PageSlide Duration="0.3"
+                     Orientation="Horizontal"
+                     SlideInEasing="{StaticResource FluentEasing}"
+                     SlideOutEasing="{StaticResource FluentEasing}" />
         </Carousel.PageTransition>
 
         <!-- Welcome to Wasabi -->
