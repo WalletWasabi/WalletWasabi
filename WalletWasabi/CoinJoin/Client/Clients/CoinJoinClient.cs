@@ -94,7 +94,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		public Network Network { get; private set; }
 		public KeyManager KeyManager { get; }
 		public KeyManager DestinationKeyManager { get; set; }
-		public bool IsQuitPending { get; set; }
 
 		private ClientRoundRegistration DelayedRoundRegistration { get; set; }
 
@@ -741,7 +740,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		public async Task<IEnumerable<SmartCoin>> QueueCoinsToMixAsync(string password, IEnumerable<SmartCoin> coins)
 		{
-			if (coins is null || !coins.Any() || IsQuitPending)
+			if (coins is null || !coins.Any())
 			{
 				return Enumerable.Empty<SmartCoin>();
 			}
