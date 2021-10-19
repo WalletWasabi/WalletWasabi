@@ -4,12 +4,13 @@ namespace WalletWasabi.Models
 {
 	public class UpdateStatus : IEquatable<UpdateStatus>
 	{
-		public UpdateStatus(bool backendCompatible, bool clientUpToDate, Version legalDocumentsVersion, ushort currentBackendMajorVersion)
+		public UpdateStatus(bool backendCompatible, bool clientUpToDate, Version legalDocumentsVersion, ushort currentBackendMajorVersion, Version clientVersion)
 		{
 			BackendCompatible = backendCompatible;
 			ClientUpToDate = clientUpToDate;
 			LegalDocumentsVersion = legalDocumentsVersion;
 			CurrentBackendMajorVersion = currentBackendMajorVersion;
+			ClientVersion = clientVersion;
 		}
 
 		public bool ClientUpToDate { get; }
@@ -18,10 +19,12 @@ namespace WalletWasabi.Models
 		public Version LegalDocumentsVersion { get; }
 		public ushort CurrentBackendMajorVersion { get; }
 
+		public Version ClientVersion { get; }
+
 		#region EqualityAndComparison
 
 		public static bool operator ==(UpdateStatus? x, UpdateStatus? y)
-			=> (x?.ClientUpToDate, x?.BackendCompatible, x?.LegalDocumentsVersion, x?.CurrentBackendMajorVersion) == (y?.ClientUpToDate, y?.BackendCompatible, y?.LegalDocumentsVersion, y?.CurrentBackendMajorVersion);
+			=> (x?.ClientUpToDate, x?.BackendCompatible, x?.LegalDocumentsVersion, x?.CurrentBackendMajorVersion, x?.ClientVersion) == (y?.ClientUpToDate, y?.BackendCompatible, y?.LegalDocumentsVersion, y?.CurrentBackendMajorVersion, y?.ClientVersion);
 
 		public static bool operator !=(UpdateStatus? x, UpdateStatus? y) => !(x == y);
 
@@ -29,7 +32,7 @@ namespace WalletWasabi.Models
 
 		public bool Equals(UpdateStatus? other) => this == other;
 
-		public override int GetHashCode() => (ClientUpToDate, BackendCompatible, LegalDocumentsVersion, CurrentBackendMajorVersion).GetHashCode();
+		public override int GetHashCode() => (ClientUpToDate, BackendCompatible, LegalDocumentsVersion, CurrentBackendMajorVersion, ClientVersion).GetHashCode();
 
 		#endregion EqualityAndComparison
 	}
