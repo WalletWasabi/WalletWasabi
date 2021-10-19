@@ -71,7 +71,7 @@
             </Viewbox>
           </DockPanel>
           <Viewbox Grid.Column="1" VerticalAlignment="Center">
-            <Image Source="/Assets/WelcomeScreen/welcome_to_wasabi.png" />
+            <Image Source="{Binding WelcomeImage}" />
           </Viewbox>
         </Grid>
 
@@ -86,7 +86,7 @@
             </Viewbox>
           </DockPanel>
           <Viewbox Grid.Column="1" VerticalAlignment="Center">
-            <Image Source="/Assets/WelcomeScreen/trustless.png" />
+            <Image Source="{Binding TrustlessImage}" />
           </Viewbox>
         </Grid>
 
@@ -101,7 +101,7 @@
             </Viewbox>
           </DockPanel>
           <Viewbox Grid.Column="1" VerticalAlignment="Center">
-            <Image Source="/Assets/WelcomeScreen/anonymous.png" />
+            <Image Source="{Binding AnonymousImage}" />
           </Viewbox>
         </Grid>
 
@@ -116,7 +116,7 @@
             </Viewbox>
           </DockPanel>
           <Viewbox Grid.Column="1" VerticalAlignment="Center">
-            <Image Source="/Assets/WelcomeScreen/opensource.png" />
+            <Image Source="{Binding OpensourceImage}" />
           </Viewbox>
         </Grid>
 
