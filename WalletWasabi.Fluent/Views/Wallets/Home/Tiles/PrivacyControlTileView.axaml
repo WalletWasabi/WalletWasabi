@@ -31,11 +31,13 @@
 
       <DockPanel DockPanel.Dock="Bottom">
         <StackPanel Spacing="10" DockPanel.Dock="Left" Orientation="Horizontal">
-          <Button Classes="plain" Cursor="Hand" Command="{Binding BoostPrivacyCommand}" IsVisible="{Binding BoostButtonVisible}"
+          <Button Classes="plain" Cursor="Hand" Command="{Binding BoostPrivacyCommand}"
+                  IsVisible="{Binding BoostButtonVisible}"
                   ToolTip.Tip="Boost Privacy">
             <PathIcon Data="{StaticResource rocket_regular}" />
           </Button>
-          <Button Classes="plain" Cursor="Hand" Command="{Binding BoostPrivacyCommand}" IsVisible="{Binding IsBoosting}"
+          <Button Classes="plain" Cursor="Hand" Command="{Binding BoostPrivacyCommand}"
+                  IsVisible="{Binding IsBoosting}"
                   ToolTip.Tip="Cancel Privacy Boost">
             <PathIcon Data="{StaticResource dismiss_light}" />
           </Button>
@@ -69,21 +71,13 @@
 
       <Separator DockPanel.Dock="Bottom" Margin="0 10" />
 
-      <Button BorderThickness="0" Classes="plain" Command="{Binding BoostPrivacyCommand}" Cursor="Hand"
-              Background="{x:Null}" HorizontalAlignment="Center">
-        <Panel>
-          <controls:RingChartControl DataPoints="{Binding TestDataPoints}" Classes.visible="{Binding !IsBoosting}"
-                                     HorizontalAlignment="Center" VerticalAlignment="Center" />
-          <controls:ProgressRing IsIndeterminate="True" Classes.visible="{Binding IsBoosting}" />
+      <Panel>
+        <controls:RingChartControl DataPoints="{Binding TestDataPoints}" Classes.visible="{Binding !IsBoosting}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+        <controls:ProgressRing IsIndeterminate="True" Classes.visible="{Binding IsBoosting}" />
 
-          <PathIcon Data="{StaticResource rocket_regular}"
-                    ToolTip.Tip="Boost Privacy"
-                    Height="50" Width="50"
-                    IsVisible="{Binding BoostButtonVisible}" />
-
-          <TextBlock Text="{Binding PercentText}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="36" />
-        </Panel>
-      </Button>
+        <TextBlock Text="{Binding PercentText}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="36" />
+      </Panel>
 
     </DockPanel>
   </controls:TileControl>
