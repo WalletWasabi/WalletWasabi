@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
@@ -18,11 +20,14 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 	[AutoNotify] private bool _boostButtonVisible;
 	[AutoNotify] private IList<(string color, double percentShare)>? _testDataPoints;
 	[AutoNotify] private IList<DataLegend>? _testDataPointsLegend;
+	[AutoNotify] private string _chartText;
 
-	public PrivacyControlTileViewModel(Wallet wallet, IObservable<Unit> balanceChanged)
+	public PrivacyControlTileViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
 	{
-		_wallet = wallet;
+		_wallet = walletVm.Wallet;
 		_balanceChanged = balanceChanged;
+
+		walletVm.Settings.WhenAnyValue(x => x.AutoCoinJoin).Subscribe(x => IsAutoCoinJoinEnabled = x);
 
 		this.WhenAnyValue(x => x.IsAutoCoinJoinEnabled, x => x.IsBoosting)
 			.Subscribe(x =>
@@ -30,18 +35,13 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 				var (autoCjEnabled, isBoosting) = x;
 
 				BoostButtonVisible = !autoCjEnabled && !isBoosting;
+
+				ChartText = isBoosting ? "Boosting" : "";
 			});
 
 		BoostPrivacyCommand = ReactiveCommand.Create(() =>
 		{
-			wallet.AllowManualCoinJoin = true;
-			IsBoosting = true;
-		});
-
-		CancelPrivacyBoostCommand = ReactiveCommand.Create(() =>
-		{
-			wallet.AllowManualCoinJoin = false;
-			IsBoosting = false;
+			IsBoosting = _wallet.AllowManualCoinJoin = !IsBoosting;
 		});
 	}
 
@@ -52,6 +52,19 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 		_balanceChanged
 			.Subscribe(_ => Update())
 			.DisposeWith(disposables);
+
+		if (Services.HostedServices.GetOrDefault<CoinJoinManager>() is { } coinJoinManager)
+		{
+			Observable
+				.FromEventPattern<WalletStatusChangedEventArgs>(coinJoinManager, nameof(CoinJoinManager.WalletStatusChanged))
+				.Select(args => args.EventArgs)
+				.Where(e => e.Wallet == _wallet)
+				.Subscribe(x =>
+				{
+
+				})
+				.DisposeWith(disposables);
+		}
 	}
 
 	private void Update()
@@ -65,7 +78,7 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 		var normalDecimalAmount = normalAmount.ToDecimal(MoneyUnit.BTC);
 		var totalDecimalAmount = privateDecimalAmount + normalDecimalAmount;
 
-		var pcPrivate = totalDecimalAmount == 0M ? 0d : (double)(privateDecimalAmount / totalDecimalAmount);
+		var pcPrivate = 0.6;//totalDecimalAmount == 0M ? 0d : (double)(privateDecimalAmount / totalDecimalAmount);
 		var pcNormal = 1 - pcPrivate;
 
 		TestDataPoints = new List<(string, double)>
@@ -82,8 +95,6 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 	}
 
 	public ICommand BoostPrivacyCommand { get; }
-
-	public ICommand CancelPrivacyBoostCommand { get; }
 
 
 }

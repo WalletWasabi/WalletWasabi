@@ -4,26 +4,84 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:tiles="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:CompileBindings="True" x:DataType="tiles:PrivacyControlTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyControlTileView">
   <controls:TileControl TileSize="Large">
-    <Panel>
-      <Panel.Styles>
+    <DockPanel>
+      <DockPanel.Styles>
         <Style Selector="Button">
           <Setter Property="HorizontalAlignment" Value="Center" />
           <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
-      </Panel.Styles>
-      <Button IsVisible="{Binding BoostButtonVisible}" Command="{Binding BoostPrivacyCommand}" Content="Boost Privacy" />
-      <Button IsVisible="{Binding IsBoosting}" Content="Cancel Privacy Boost" Command="{Binding CancelPrivacyBoostCommand}" />
 
-      <controls:ProgressRing IsIndeterminate="True" IsVisible="{Binding IsBoosting}" />
-      <controls:RingChartControl
-                                 Margin="16,0,0,0"
-                                 VerticalAlignment="Center"
-                                 HorizontalAlignment="Center"
-                                 DataPoints="{Binding TestDataPoints}" />
-    </Panel>
+        <Style Selector="controls|ProgressRing.visible, controls|RingChartControl.visible">
+          <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="controls|ProgressRing, controls|RingChartControl">
+          <Setter Property="Opacity" Value="0" />
+          <Setter Property="Transitions">
+            <Transitions>
+              <DoubleTransition Property="Opacity" Duration="0:0:0.5" />
+            </Transitions>
+          </Setter>
+        </Style>
+      </DockPanel.Styles>
+
+      <DockPanel DockPanel.Dock="Bottom">
+        <StackPanel Spacing="10" DockPanel.Dock="Left" Orientation="Horizontal">
+          <Button Classes="plain" Cursor="Hand" Command="{Binding BoostPrivacyCommand}" IsVisible="{Binding !IsBoosting}">
+            <PathIcon Data="{StaticResource rocket_regular}" />
+          </Button>
+          <Button Classes="plain" Cursor="Hand" Command="{Binding BoostPrivacyCommand}" IsVisible="{Binding IsBoosting}">
+            <PathIcon Data="{StaticResource dismiss_light}" />
+          </Button>
+          <Button Classes="plain" Cursor="Hand" Command="{Binding BoostPrivacyCommand}" IsVisible="{Binding  IsAutoCoinJoinEnabled}">
+            <PathIcon Data="{StaticResource pause_regular}" />
+          </Button>
+        </StackPanel>
+        <ItemsControl DockPanel.Dock="Bottom" Items="{Binding TestDataPointsLegend}" HorizontalAlignment="Right">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="tiles:DataLegend">
+              <StackPanel Orientation="Horizontal" Spacing="10" TextBlock.FontFamily="{StaticResource MonospacedFont}">
+                <Ellipse Margin="0,0,8,0" HorizontalAlignment="Left" Width="10"
+                         Height="10"
+                         Fill="{Binding HexColor, Converter={x:Static converters:ColorStringConverters.HexColorToBrush}}" />
+
+                <controls:PrivacyContentControl NumberOfPrivacyChars="9" Margin="0 0 8 0"
+                                                Content="{Binding Amount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
+
+                <controls:PrivacyContentControl DockPanel.Dock="Right" Margin="8,0,0,0"
+                                                HorizontalAlignment="Right"
+                                                Content="{Binding PercentShare, StringFormat=\{0:P1\}}" />
+                <TextBlock DockPanel.Dock="Right" HorizontalAlignment="Right" Text="{Binding Label}" Margin="0 0 8 0" />
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+        </ItemsControl>
+      </DockPanel>
+
+      <Separator DockPanel.Dock="Bottom" Margin="0 10" />
+
+      <Button BorderThickness="0" Classes="plain" Command="{Binding BoostPrivacyCommand}" Cursor="Hand"
+              Background="{x:Null}" HorizontalAlignment="Center">
+        <Panel>
+          <controls:RingChartControl DataPoints="{Binding TestDataPoints}" Classes.visible="{Binding !IsBoosting}"
+                                     HorizontalAlignment="Center" VerticalAlignment="Center" />
+          <controls:ProgressRing IsIndeterminate="True" Classes.visible="{Binding IsBoosting}" />
+
+          <PathIcon Data="{StaticResource rocket_regular}" Height="50" Width="50" IsVisible="{Binding !IsBoosting}" />
+
+          <TextBlock Text="{Binding ChartText}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="36" />
+        </Panel>
+      </Button>
+
+    </DockPanel>
   </controls:TileControl>
 </UserControl>

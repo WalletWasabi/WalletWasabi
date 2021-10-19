@@ -36,7 +36,7 @@ namespace WalletWasabi.Fluent.Helpers
 					TilePresetIndex = walletViewModel.LayoutIndex
 				},
 
-				new PrivacyControlTileViewModel(walletViewModel.Wallet, balanceChanged)
+				new PrivacyControlTileViewModel(walletViewModel, balanceChanged)
 				{
 					TilePresets = new ObservableCollection<TilePresetViewModel>()
 					{
