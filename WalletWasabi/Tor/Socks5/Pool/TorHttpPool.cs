@@ -206,7 +206,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 				{
 					bool canBeAdded = GetPoolConnectionNoLock(host, circuit, out TorTcpConnection? connection);
 
-					if (connection is { })
+					if (connection is not null)
 					{
 						Logger.LogTrace($"[OLD {connection}]['{request.RequestUri}'] Re-use existing Tor SOCKS5 connection.");
 						return connection;
@@ -214,10 +214,12 @@ namespace WalletWasabi.Tor.Socks5.Pool
 
 					if (canBeAdded)
 					{
-						connection = await CreateNewConnectionNoLockAsync(request, circuit, token).ConfigureAwait(false);
+						connection = await CreateNewConnectionAsync(request, circuit, token).ConfigureAwait(false);
 
-						if (connection is { })
+						if (connection is not null)
 						{
+							ConnectionPerHost[host].Add(connection);
+
 							Logger.LogTrace($"[NEW {connection}]['{request.RequestUri}'] Using new Tor SOCKS5 connection.");
 							return connection;
 						}
@@ -229,17 +231,15 @@ namespace WalletWasabi.Tor.Socks5.Pool
 			} while (true);
 		}
 
-		/// <remarks>Caller is responsible for acquiring <see cref="ObtainPoolConnectionLock"/>.</remarks>
-		private async Task<TorTcpConnection?> CreateNewConnectionNoLockAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken token)
+		private async Task<TorTcpConnection?> CreateNewConnectionAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken cancellationToken)
 		{
 			TorTcpConnection? connection;
 			string host = GetRequestHost(request);
 
 			try
 			{
-				connection = await TcpConnectionFactory.ConnectAsync(request.RequestUri!, circuit, token).ConfigureAwait(false);
+				connection = await TcpConnectionFactory.ConnectAsync(request.RequestUri!, circuit, cancellationToken).ConfigureAwait(false);
 				Logger.LogTrace($"[NEW {connection}]['{request.RequestUri}'] Created new Tor SOCKS5 connection.");
-				ConnectionPerHost[host].Add(connection);
 			}
 			catch (TorException e)
 			{
