@@ -20,7 +20,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		[AutoNotify] private bool _boostButtonVisible;
 		[AutoNotify] private IList<(string color, double percentShare)>? _testDataPoints;
 		[AutoNotify] private IList<DataLegend>? _testDataPointsLegend;
-		[AutoNotify] private string _chartText;
 		[AutoNotify] private string _percentText;
 
 		public PrivacyControlTileViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
@@ -37,7 +36,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 					BoostButtonVisible = !autoCjEnabled && !isBoosting;
 
-					ChartText = isBoosting ? "Boosting" : "";
+					if (autoCjEnabled && isBoosting)
+					{
+						IsBoosting = false;
+					}
 				});
 
 			BoostPrivacyCommand = ReactiveCommand.Create(() => { IsBoosting = _wallet.AllowManualCoinJoin = !IsBoosting; });
