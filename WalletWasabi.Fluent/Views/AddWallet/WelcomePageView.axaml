@@ -6,15 +6,51 @@
              xmlns:addWallet="clr-namespace:WalletWasabi.Fluent.ViewModels.AddWallet"
              mc:Ignorable="d" d:DesignWidth="800"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.WelcomePageView"
-             x:DataType="addWallet:WelcomePageViewModel">
+             x:DataType="addWallet:WelcomePageViewModel"
+             x:CompileBindings="True">
   <controls:ContentArea EnableCancel="{Binding EnableCancel}"
                         EnableBack="{Binding EnableBack}"
                         EnableNext="False"
                         ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <DockPanel LastChildFill="True">
+    <DockPanel LastChildFill="True" x:DataType="addWallet:WelcomePageViewModel">
 
       <!-- Indicator & Buttons -->
       <Panel DockPanel.Dock="Bottom">
+
+        <ListBox HorizontalAlignment="Center"
+                 SelectedIndex="{Binding SelectedIndex}"
+                 Background="Transparent"
+                 IsHitTestVisible="False">
+          <ListBox.Styles>
+            <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+              <Setter Property="Background" Value="Transparent" />
+            </Style>
+            <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+              <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
+            </Style>
+            <Style Selector="ListBoxItem">
+              <Setter Property="Opacity" Value="0.3" />
+            </Style>
+            <Style Selector="ListBoxItem:selected">
+              <Setter Property="Opacity" Value="1" />
+            </Style>
+            <Style Selector="Ellipse">
+              <Setter Property="Fill" Value="{DynamicResource SystemChromeAltLowColor}"  />
+              <Setter Property="Width" Value="9"  />
+              <Setter Property="Height" Value="9"  />
+            </Style>
+          </ListBox.Styles>
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Horizontal" Spacing="5"/>
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <Ellipse />
+          <Ellipse />
+          <Ellipse />
+          <Ellipse />
+          <Ellipse />
+        </ListBox>
 
         <!-- Carousel nav buttons -->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
@@ -30,8 +66,7 @@
       <!-- Pages -->
       <Carousel SelectedIndex="{Binding SelectedIndex}"
                 DockPanel.Dock="Top"
-                Margin="0 10"
-                >
+                Margin="0 10">
         <Carousel.Styles>
           <Style Selector="TextBlock.text">
             <Setter Property="DockPanel.Dock" Value="Bottom"/>
@@ -57,7 +92,7 @@
           </Style>
         </Carousel.Styles>
         <Carousel.PageTransition>
-          <CrossFade Duration="0.25" />
+          <PageSlide Duration="0.3" Orientation="Horizontal"/>
         </Carousel.PageTransition>
 
         <!-- Welcome to Wasabi -->
