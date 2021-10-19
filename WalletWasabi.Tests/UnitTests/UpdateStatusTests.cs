@@ -34,7 +34,7 @@ namespace WalletWasabi.Tests.UnitTests
 			y = new UpdateStatus(backendCompatible, clientUpToDate, legalVersion, 2, clientVersion);
 			Assert.NotEqual(x, y);
 			Assert.NotEqual(x.GetHashCode(), y.GetHashCode());
-			y = new UpdateStatus(backendCompatible, clientUpToDate, legalVersion, 2, new Version(3,3));
+			y = new UpdateStatus(backendCompatible, clientUpToDate, legalVersion, 2, new Version(3, 3));
 			Assert.NotEqual(x, y);
 			Assert.NotEqual(x.GetHashCode(), y.GetHashCode());
 
