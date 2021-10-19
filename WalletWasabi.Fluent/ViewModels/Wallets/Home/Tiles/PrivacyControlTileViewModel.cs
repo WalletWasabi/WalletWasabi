@@ -76,7 +76,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			var pcPrivate = totalDecimalAmount == 0M ? 0d : (double)(privateDecimalAmount / totalDecimalAmount);
 			var pcNormal = 1 - pcPrivate;
 
-			PercentText = $"{pcPrivate * 100:P}";
+			PercentText = $"{pcPrivate:P}";
 
 			TestDataPoints = new List<(string, double)>
 			{
