@@ -31,13 +31,16 @@
 
       <DockPanel DockPanel.Dock="Bottom">
         <StackPanel Spacing="10" DockPanel.Dock="Left" Orientation="Horizontal">
-          <Button Classes="plain" Cursor="Hand" Command="{Binding BoostPrivacyCommand}" IsVisible="{Binding !IsBoosting}">
+          <Button Classes="plain" Cursor="Hand" Command="{Binding BoostPrivacyCommand}" IsVisible="{Binding BoostButtonVisible}"
+                  ToolTip.Tip="Boost Privacy">
             <PathIcon Data="{StaticResource rocket_regular}" />
           </Button>
-          <Button Classes="plain" Cursor="Hand" Command="{Binding BoostPrivacyCommand}" IsVisible="{Binding IsBoosting}">
+          <Button Classes="plain" Cursor="Hand" Command="{Binding BoostPrivacyCommand}" IsVisible="{Binding IsBoosting}"
+                  ToolTip.Tip="Cancel Privacy Boost">
             <PathIcon Data="{StaticResource dismiss_light}" />
           </Button>
-          <Button Classes="plain" Cursor="Hand" Command="{Binding BoostPrivacyCommand}" IsVisible="{Binding  IsAutoCoinJoinEnabled}">
+          <Button Classes="plain" Cursor="Hand" IsVisible="{Binding  IsAutoCoinJoinEnabled}"
+                  ToolTip.Tip="Pause Automatic CoinJoins">
             <PathIcon Data="{StaticResource pause_regular}" />
           </Button>
         </StackPanel>
@@ -52,9 +55,6 @@
                 <controls:PrivacyContentControl NumberOfPrivacyChars="9" Margin="0 0 8 0"
                                                 Content="{Binding Amount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
 
-                <controls:PrivacyContentControl DockPanel.Dock="Right" Margin="8,0,0,0"
-                                                HorizontalAlignment="Right"
-                                                Content="{Binding PercentShare, StringFormat=\{0:P1\}}" />
                 <TextBlock DockPanel.Dock="Right" HorizontalAlignment="Right" Text="{Binding Label}" Margin="0 0 8 0" />
               </StackPanel>
             </DataTemplate>
@@ -76,9 +76,12 @@
                                      HorizontalAlignment="Center" VerticalAlignment="Center" />
           <controls:ProgressRing IsIndeterminate="True" Classes.visible="{Binding IsBoosting}" />
 
-          <PathIcon Data="{StaticResource rocket_regular}" Height="50" Width="50" IsVisible="{Binding !IsBoosting}" />
+          <PathIcon Data="{StaticResource rocket_regular}"
+                    ToolTip.Tip="Boost Privacy"
+                    Height="50" Width="50"
+                    IsVisible="{Binding BoostButtonVisible}" />
 
-          <TextBlock Text="{Binding ChartText}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="36" />
+          <TextBlock Text="{Binding PercentText}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="36" />
         </Panel>
       </Button>
 

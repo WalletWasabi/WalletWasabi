@@ -21,6 +21,7 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 	[AutoNotify] private IList<(string color, double percentShare)>? _testDataPoints;
 	[AutoNotify] private IList<DataLegend>? _testDataPointsLegend;
 	[AutoNotify] private string _chartText;
+	[AutoNotify] private string _percentText;
 
 	public PrivacyControlTileViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
 	{
@@ -80,6 +81,8 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 
 		var pcPrivate = 0.6;//totalDecimalAmount == 0M ? 0d : (double)(privateDecimalAmount / totalDecimalAmount);
 		var pcNormal = 1 - pcPrivate;
+
+		PercentText = $"{pcPrivate * 100} %";
 
 		TestDataPoints = new List<(string, double)>
 		{
