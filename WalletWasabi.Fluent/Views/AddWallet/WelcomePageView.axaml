@@ -134,7 +134,7 @@
         </Carousel.PageTransition>
 
         <!-- Welcome to Wasabi -->
-        <Grid ColumnDefinitions="2*,3*">
+        <Grid ColumnDefinitions="*,*">
           <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
             <TextBlock Classes="text" Text="Use Wasabi Wallet to retain your individuality, regain your identity and ultimately, reclaim your privacy. We let you control what you reveal about your Bitcoin life. Welcome to Wasabi Wallet sovereign individual." />
             <TextBlock Text="Welcome to Wasabi Wallet"
@@ -149,7 +149,7 @@
         </Grid>
 
         <!-- Trustless by design -->
-        <Grid ColumnDefinitions="2*,3*">
+        <Grid ColumnDefinitions="*,*">
           <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
             <TextBlock Classes="text" Text="Being put in a position to trust someone is always uncomfortable. Especially regarding personal information or your money. This is why Wasabi Wallet is verifiably trustless by design. Don't trust, verify." />
             <TextBlock Text="Trustless by design"
@@ -164,7 +164,7 @@
         </Grid>
 
         <!-- Anonymous -->
-        <Grid ColumnDefinitions="2*,3*">
+        <Grid ColumnDefinitions="*,*">
           <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
             <TextBlock Classes="text" Text="We architecturally ensure that we cannot collect information from you, even if we wanted to. We live in a world where your information is being used to typecast, manipulate and surveil you. What you do with your Bitcoin is your business." />
             <TextBlock Text="Anonymous"
@@ -179,7 +179,7 @@
         </Grid>
 
         <!-- Free and Open Source -->
-        <Grid ColumnDefinitions="2*,3*">
+        <Grid ColumnDefinitions="*,*">
           <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
             <TextBlock Classes="text" Text="Wasabi follows Bitcoin's philosophy by making the software open-source and by publishing it under MIT license. Bitcoin users prefer open-source software to proprietary software for a number of reasons including: control, security, training &amp; stability." />
             <TextBlock Text="Free and Open Source"
@@ -194,22 +194,26 @@
         </Grid>
 
         <!-- Get started -->
-        <StackPanel Spacing="15" HorizontalAlignment="Center" VerticalAlignment="Center">
-          <Viewbox MaxHeight="60" HorizontalAlignment="Center">
-            <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
-          </Viewbox>
-          <TextBlock Text="Start using Wasabi Wallet" FontSize="30" HorizontalAlignment="Center" />
-          <TextBlock TextAlignment="Center"
-                     Text="There’s more to discover but it’s better to leave that &#x0a;on you. Without further ado, let’s begin!"
-                     Opacity="0.6"
-                     FontWeight="Light"
-                     LineHeight="22" />
+        <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
           <Button HorizontalAlignment="Center"
                   Classes="action"
                   Content="Get Started"
                   Command="{Binding GetStartedCommand}"
-                  IsDefault="{Binding IsActive}" />
-        </StackPanel>
+                  IsDefault="{Binding IsActive}"
+                  DockPanel.Dock="Bottom" />
+          <TextBlock TextAlignment="Center"
+                     Text="There’s more to discover but it’s better to leave that &#x0a;on you. Without further ado, let’s begin!"
+                     Opacity="0.6"
+                     FontWeight="Light"
+                     LineHeight="22"
+                     DockPanel.Dock="Bottom"
+                     Margin="0 15"/>
+          <TextBlock Text="Start using Wasabi Wallet" FontSize="30" HorizontalAlignment="Center"
+                     DockPanel.Dock="Bottom" />
+          <Viewbox MaxHeight="60" HorizontalAlignment="Center" DockPanel.Dock="Bottom" Margin="0 0 0 15">
+            <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
+          </Viewbox>
+        </DockPanel>
 
       </Carousel>
     </DockPanel>
