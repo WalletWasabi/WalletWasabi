@@ -111,7 +111,7 @@
                                      IsVisible="{Binding IsEmptyWallet}"/>
       </Panel>
       <Panel>
-        <history:HistoryTable2 Name="HistoryTable"
+        <history:HistoryTable Name="HistoryTable"
                               DataContext="{Binding History}"
                               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                               IsVisible="{Binding !IsTransactionHistoryEmpty}"/>

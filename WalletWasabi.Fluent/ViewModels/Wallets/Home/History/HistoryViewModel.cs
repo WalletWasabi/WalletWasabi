@@ -43,9 +43,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			this.WhenAnyValue(x => x.UnfilteredTransactions.Count)
 				.Subscribe(x => IsTransactionHistoryEmpty = x <= 0);
 
-			var sortDescription = DataGridSortDescription.FromPath(nameof(TransactionHistoryItemViewModel.OrderIndex), ListSortDirection.Descending);
-			CollectionView = new DataGridCollectionView(Transactions);
-			CollectionView.SortDescriptions.Add(sortDescription);
+			// TODO:
+			// var sortDescription = DataGridSortDescription.FromPath(nameof(TransactionHistoryItemViewModel.OrderIndex), ListSortDirection.Descending);
+			// CollectionView = new DataGridCollectionView(Transactions);
+			// CollectionView.SortDescriptions.Add(sortDescription);
 
 			_transactionSourceList
 				.Connect()
@@ -56,7 +57,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				.Subscribe();
 		}
 
-		public DataGridCollectionView CollectionView { get; }
+		// TODO:
+		// public DataGridCollectionView CollectionView { get; }
 
 		public ObservableCollection<HistoryItemViewModelBase> UnfilteredTransactions => _unfilteredTransactions;
 
@@ -69,7 +71,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			if (txnItem is { })
 			{
 				SelectedItem = txnItem;
-				SelectedItem.IsFlashing = true;
+				if (SelectedItem is { })
+				{
+					SelectedItem.IsFlashing = true;
+				}
 			}
 		}
 
