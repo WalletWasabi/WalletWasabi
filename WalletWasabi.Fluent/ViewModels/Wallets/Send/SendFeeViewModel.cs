@@ -38,12 +38,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			SetupCancel(false, true, false);
 			EnableBack = true;
 
-			NextCommand = ReactiveCommand.Create( () =>
-			{
-				_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(FeeChart.CurrentConfirmationTarget);
+			NextCommand = ReactiveCommand.Create(() =>
+		   {
+			   _transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(FeeChart.CurrentConfirmationTarget);
 
-				Complete();
-			});
+			   Complete();
+		   });
 		}
 
 		public FeeChartViewModel FeeChart { get; }
@@ -126,7 +126,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return time;
 		}
 
-		private static readonly Dictionary<int, int> TestNetFeeEstimates = new ()
+		private static readonly Dictionary<int, int> TestNetFeeEstimates = new()
 		{
 			[1] = 17,
 			[2] = 12,

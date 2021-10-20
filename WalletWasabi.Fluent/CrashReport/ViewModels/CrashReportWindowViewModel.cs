@@ -25,7 +25,7 @@ namespace WalletWasabi.Fluent.CrashReport.ViewModels
 
 			CopyTraceCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				 await Application.Current.Clipboard.SetTextAsync(Trace);
+				await Application.Current.Clipboard.SetTextAsync(Trace);
 			});
 		}
 
@@ -42,7 +42,7 @@ namespace WalletWasabi.Fluent.CrashReport.ViewModels
 		public string Caption => $"A problem has occurred and Wasabi is unable to continue.";
 
 		public string Trace => $"{SerializedException.Message}{Environment.NewLine}" +
-		                       $"{Environment.NewLine}{SerializedException.StackTrace}";
+							   $"{Environment.NewLine}{SerializedException.StackTrace}";
 
 		public string Title => "Wasabi has crashed";
 	}

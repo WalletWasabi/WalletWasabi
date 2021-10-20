@@ -262,7 +262,7 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			var correctedInput = CurrentText.ParseLabel();
 
-			if (RestrictInputToSuggestions && Suggestions is { } suggestions )
+			if (RestrictInputToSuggestions && Suggestions is { } suggestions)
 			{
 				IsCurrentTextValid = suggestions.Any(x => x.Equals(correctedInput, _stringComparison));
 				return;
@@ -368,8 +368,8 @@ namespace WalletWasabi.Fluent.Controls
 			var typedFullText = autoCompleteBox.SearchText + e.Text;
 
 			if (!_isInputEnabled ||
-			    (typedFullText is { Length: 1 } && typedFullText.StartsWith(TagSeparator)) ||
-			    string.IsNullOrEmpty(typedFullText.ParseLabel()))
+				(typedFullText is { Length: 1 } && typedFullText.StartsWith(TagSeparator)) ||
+				string.IsNullOrEmpty(typedFullText.ParseLabel()))
 			{
 				e.Handled = true;
 				return;
@@ -378,11 +378,11 @@ namespace WalletWasabi.Fluent.Controls
 			var suggestions = Suggestions?.ToArray();
 
 			if (RestrictInputToSuggestions &&
-			    suggestions is { } &&
-			    !suggestions.Any(x => x.StartsWith(typedFullText, _stringComparison)))
+				suggestions is { } &&
+				!suggestions.Any(x => x.StartsWith(typedFullText, _stringComparison)))
 			{
 				if (!typedFullText.EndsWith(TagSeparator) ||
-				    (typedFullText.EndsWith(TagSeparator) && !suggestions.Contains(autoCompleteBox.SearchText)))
+					(typedFullText.EndsWith(TagSeparator) && !suggestions.Contains(autoCompleteBox.SearchText)))
 				{
 					e.Handled = true;
 					return;
@@ -460,8 +460,8 @@ namespace WalletWasabi.Fluent.Controls
 			}
 
 			if (RestrictInputToSuggestions &&
-			    Suggestions is { } suggestions &&
-			    !suggestions.Any(x => x.Equals(tag, _stringComparison)))
+				Suggestions is { } suggestions &&
+				!suggestions.Any(x => x.Equals(tag, _stringComparison)))
 			{
 				return;
 			}

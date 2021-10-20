@@ -23,9 +23,9 @@ namespace WalletWasabi.Fluent.Behaviors
 				.Subscribe(_ =>
 				{
 					if (AssociatedObject is { } &&
-					    !DataValidationErrors.GetHasErrors(AssociatedObject) &&
-					    !string.IsNullOrEmpty(AssociatedObject.Text) &&
-					    KeyboardNavigationHandler.GetNext(AssociatedObject, NavigationDirection.Next) is { } nextFocus)
+						!DataValidationErrors.GetHasErrors(AssociatedObject) &&
+						!string.IsNullOrEmpty(AssociatedObject.Text) &&
+						KeyboardNavigationHandler.GetNext(AssociatedObject, NavigationDirection.Next) is { } nextFocus)
 					{
 						nextFocus.Focus();
 					}

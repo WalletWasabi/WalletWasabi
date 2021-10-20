@@ -27,7 +27,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 
 			EnableBack = false;
 
-			NextCommand = ReactiveCommand.CreateFromTask( async () => await OnNextAsync(transaction));
+			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(transaction));
 
 			EnableAutoBusyOn(NextCommand);
 

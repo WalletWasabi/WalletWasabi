@@ -11,7 +11,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		}
 
 		public static TimeFrame Create(TimeSpan duration) =>
-			new (DateTimeOffset.MinValue, duration);
+			new(DateTimeOffset.MinValue, duration);
 
 		private DateTimeOffset EndTime => StartTime + Duration;
 		public DateTimeOffset StartTime { get; init; }

@@ -456,7 +456,7 @@ namespace WalletWasabi.Tor.Control
 			ReaderCts.Cancel();
 
 			try
-			{ 
+			{
 				// Wait until the reader loop stops.
 				await ReaderLoopTask.ConfigureAwait(false);
 			}
