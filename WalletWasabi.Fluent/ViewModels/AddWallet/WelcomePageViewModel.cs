@@ -36,7 +36,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			NextCommand = ReactiveCommand.Create(() => SelectedIndex++, this.WhenAnyValue(x => x.SelectedIndex).Select(c => c < NumberOfPages - 1));
 			PrevCommand = ReactiveCommand.Create(() => SelectedIndex--, this.WhenAnyValue(x => x.SelectedIndex).Select(c => c > 0));
-
 		}
 
 		public Bitmap WelcomeImage { get; } = AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WelcomeScreen/{ThemeHelper.CurrentTheme}/welcome.png");
