@@ -367,9 +367,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private async Task SendTransactionAsync(SmartTransaction transaction)
 		{
-			// Dequeue any coin-joining coins.
-			await _wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
-
 			await Services.TransactionBroadcaster.SendTransactionAsync(transaction);
 		}
 

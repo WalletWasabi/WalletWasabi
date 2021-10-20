@@ -162,15 +162,6 @@ namespace WalletWasabi.Fluent.Rpc
 			var txHex = BuildTransaction(payments, coins, feeTarget, password);
 			var smartTx = new SmartTransaction(Transaction.Parse(txHex, Global.Network), Height.Mempool);
 
-			// dequeue the coins we are going to spend
-			var toDequeue = activeWallet.Coins
-				.Where(x => x.CoinJoinInProgress && coins.Contains(x.OutPoint))
-				.ToArray();
-			if (toDequeue.Any())
-			{
-				await activeWallet.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue, DequeueReason.TransactionBuilding).ConfigureAwait(false);
-			}
-
 			await Global.TransactionBroadcaster.SendTransactionAsync(smartTx).ConfigureAwait(false);
 			return new
 			{
