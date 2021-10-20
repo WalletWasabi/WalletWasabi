@@ -34,7 +34,8 @@
 
       <DataBox.Columns>
         <DataBoxTemplateColumn Header="Labels"
-                                         Width="Auto">
+                               Width="Auto"
+                               CanUserSort="True">
           <DataBoxTemplateColumn.CellTemplate>
             <DataTemplate>
               <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
@@ -79,7 +80,8 @@
         </DataBoxTemplateColumn>
 
         <DataBoxTemplateColumn Header="Address"
-                                         Width="2*">
+                               Width="2*"
+                               CanUserSort="True">
           <DataBoxTemplateColumn.CellTemplate>
             <DataTemplate>
               <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
