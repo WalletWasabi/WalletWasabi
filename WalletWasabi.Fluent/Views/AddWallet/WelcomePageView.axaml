@@ -4,10 +4,19 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:addWallet="clr-namespace:WalletWasabi.Fluent.ViewModels.AddWallet"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.WelcomePageView"
              x:DataType="addWallet:WelcomePageViewModel"
              x:CompileBindings="True">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Right" Command="{Binding NextCommand}" />
+    <KeyBinding Gesture="Left" Command="{Binding PrevCommand}" />
+  </UserControl.KeyBindings>
+  <i:Interaction.Behaviors>
+    <behaviors:FocusOnAttachedBehavior />
+  </i:Interaction.Behaviors>
   <controls:ContentArea EnableCancel="{Binding EnableCancel}"
                         EnableBack="{Binding EnableBack}"
                         EnableNext="False"
@@ -198,7 +207,8 @@
           <Button HorizontalAlignment="Center"
                   Classes="action"
                   Content="Get Started"
-                  Command="{Binding GetStartedCommand}" />
+                  Command="{Binding GetStartedCommand}"
+                  IsDefault="{Binding IsActive}" />
         </StackPanel>
 
       </Carousel>
