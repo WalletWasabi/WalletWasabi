@@ -66,14 +66,10 @@
             </DataBoxTemplateColumn.CellTemplate>
           </DataBoxTemplateColumn>
 
-          <DataBoxTemplateColumn x:DataType="vm:PocketViewModel"
-                                           Header="Total (BTC)">
-            <DataBoxTemplateColumn.CellTemplate>
-              <DataTemplate x:DataType="vm:PocketViewModel">
-                <TextBlock Text="{Binding TotalBtc}" />
-              </DataTemplate>
-            </DataBoxTemplateColumn.CellTemplate>
-          </DataBoxTemplateColumn>
+          <DataBoxTextColumn x:DataType="vm:PocketViewModel"
+                             CanUserSort="False"
+                             Header="Total (BTC)"
+                             Binding="{Binding TotalBtc}" />
 
           <DataBoxTemplateColumn CanUserSort="False" Width="*" Header="Labels">
             <DataBoxTemplateColumn.CellTemplate>
