@@ -187,6 +187,26 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				return await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info));
 			}
+			catch (TransactionFeeOverpaymentException ex)
+			{
+				if (_info.MaximumPossibleFeeRate != FeeRate.Zero) // Overpayment happens again after the silent adjustment, now show an error.
+				{
+					await ShowErrorAsync("Transaction Building", "The transaction fee can't be higher than the amount. Due to overpayment, Wasabi will set the transaction fee to the maximum possible one.",
+						"Transaction fee has been adjusted");
+				}
+
+				var result = TrySetMaximumPossibleFee(ex.PercentageOfOverpayment, _wallet, _info);
+
+				if (!result)
+				{
+					await ShowErrorAsync("Transaction Building", "Due to the high transaction fees, it is not possible to send this transaction at the moment.",
+						"Wasabi was unable to create your transaction.");
+
+					return null;
+				}
+
+				return await BuildTransactionAsync();
+			}
 			catch (InsufficientBalanceException)
 			{
 				if (_info.IsPayJoin)
@@ -209,6 +229,27 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				IsBusy = false;
 			}
+		}
+
+		private bool TrySetMaximumPossibleFee(decimal percentageOfOverpayment, Wallet wallet, TransactionInfo transactionInfo)
+		{
+			var currentFeeRate = transactionInfo.FeeRate;
+			var maxPossibleFeeRateInSatoshiPerByte = (currentFeeRate.SatoshiPerByte / percentageOfOverpayment) * 100;
+			transactionInfo.MaximumPossibleFeeRate = new FeeRate(maxPossibleFeeRateInSatoshiPerByte);
+
+			var feeChartViewModel = new FeeChartViewModel();
+			feeChartViewModel.UpdateFeeEstimates(TransactionFeeHelper.GetFeeEstimates(wallet));
+
+			var blockTarget = feeChartViewModel.GetConfirmationTarget(transactionInfo.MaximumPossibleFeeRate);
+			transactionInfo.FeeRate = new FeeRate(feeChartViewModel.GetSatoshiPerByte(blockTarget));
+
+			if (transactionInfo.FeeRate > transactionInfo.MaximumPossibleFeeRate)
+			{
+				return false;
+			}
+
+			transactionInfo.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(blockTarget);
+			return true;
 		}
 
 		private async Task<BuildTransactionResult?> HandleInsufficientBalanceWhenNormalAsync(Wallet wallet, TransactionInfo transactionInfo)

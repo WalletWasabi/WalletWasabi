@@ -163,7 +163,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return SliderMaximum;
 		}
 
-		private double GetConfirmationTarget(FeeRate feeRate)
+		public double GetConfirmationTarget(FeeRate feeRate)
 		{
 			if (SatoshiPerByteValues is null || ConfirmationTargetValues is null) // Should not happen
 			{
