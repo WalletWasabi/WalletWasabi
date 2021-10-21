@@ -8,16 +8,6 @@ namespace WalletWasabi.Fluent.Helpers
 {
 	public static class TransactionFeeHelper
 	{
-		public static Dictionary<int, int> GetFeeEstimates(Wallet wallet)
-		{
-			if (wallet.FeeProvider.AllFeeEstimate is null)
-			{
-				throw new InvalidOperationException($"Not possible to get the fee estimates. {nameof(wallet.FeeProvider.AllFeeEstimate)} is null.");
-			}
-
-			return wallet.Network == Network.TestNet ? TestNetFeeEstimates : wallet.FeeProvider.AllFeeEstimate.Estimations;
-		}
-
 		private static readonly Dictionary<int, int> TestNetFeeEstimates = new()
 		{
 			[1] = 17,
@@ -31,6 +21,16 @@ namespace WalletWasabi.Fluent.Helpers
 			[432] = 1,
 			[1008] = 1
 		};
+
+		public static Dictionary<int, int> GetFeeEstimates(Wallet wallet)
+		{
+			if (wallet.FeeProvider.AllFeeEstimate is null)
+			{
+				throw new InvalidOperationException($"Not possible to get the fee estimates. {nameof(wallet.FeeProvider.AllFeeEstimate)} is null.");
+			}
+
+			return wallet.Network == Network.TestNet ? TestNetFeeEstimates : wallet.FeeProvider.AllFeeEstimate.Estimations;
+		}
 
 		public static bool AreTransactionFeesLow(Wallet wallet)
 		{
