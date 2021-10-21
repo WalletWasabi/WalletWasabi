@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
@@ -49,6 +50,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			AddressText = info.Address.ToString();
 			PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
 			IsPayJoin = PayJoinUrl is not null;
+			AdjustFeeAvailable = TransactionFeeHelper.AreTransactionFeesLow(_wallet);
 
 			if (PreferPsbtWorkflow)
 			{
@@ -70,7 +72,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			AvoidChangeCommand = ReactiveCommand.CreateFromTask(OnAvoidChangeAsync);
 
 			ChangePocketsCommand = ReactiveCommand.CreateFromTask(OnChangePocketsAsync);
-
 		}
 
 		public bool PreferPsbtWorkflow => _wallet.KeyManager.PreferPsbtWorkflow;
@@ -295,6 +296,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			base.OnNavigatedTo(isInHistory, disposables);
 
 			ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(_info.ConfirmationTimeSpan)} ";
+
+			Observable
+				.FromEventPattern(_wallet.FeeProvider, nameof(_wallet.FeeProvider.AllFeeEstimateChanged))
+				.Subscribe(_ => AdjustFeeAvailable = TransactionFeeHelper.AreTransactionFeesLow(_wallet))
+				.DisposeWith(disposables);
 
 			if (!isInHistory)
 			{

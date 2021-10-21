@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NBitcoin;
 using WalletWasabi.Wallets;
 
@@ -30,5 +31,15 @@ namespace WalletWasabi.Fluent.Helpers
 			[432] = 1,
 			[1008] = 1
 		};
+
+		public static bool AreTransactionFeesLow(Wallet wallet)
+		{
+			var feeEstimates = GetFeeEstimates(wallet);
+
+			var first = feeEstimates.First();
+			var last = feeEstimates.Last();
+
+			return first.Value != last.Value;
+		}
 	}
 }
