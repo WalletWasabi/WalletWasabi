@@ -53,7 +53,7 @@ namespace WalletWasabi.Blockchain.Keys
 
 			BlockchainState = blockchainState ?? new BlockchainState();
 
-			AccountKeyPath = SetAccountKeyPath(accountKeyPath);
+			AccountKeyPath = accountKeyPath ?? GetKeyPathByNetwork();
 
 			SetFilePath(filePath);
 			ToFileLock = new object();
@@ -80,7 +80,7 @@ namespace WalletWasabi.Blockchain.Keys
 			var extKey = new ExtKey(encryptedSecret.GetKey(password), chainCode);
 
 			MasterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
-			AccountKeyPath = SetAccountKeyPath(accountKeyPath);
+			AccountKeyPath = accountKeyPath ?? GetKeyPathByNetwork();
 			ExtPubKey = extKey.Derive(AccountKeyPath).Neuter();
 
 			SetFilePath(filePath);
@@ -110,13 +110,9 @@ namespace WalletWasabi.Blockchain.Keys
 			return WpkhOutputDescriptorHelper.GetOutputDescriptors(network, MasterFingerprint.Value, GetMasterExtKey(password), AccountKeyPath);
 		}
 
-		private KeyPath? SetAccountKeyPath(KeyPath? keyPath)
+		private KeyPath? GetKeyPathByNetwork()
 		{
-			if (keyPath is not null)
-			{
-				return keyPath;
-			}
-			else if (GetNetwork() == Network.TestNet)
+			if (GetNetwork() == Network.TestNet)
 			{
 				return TestNetAccountKeyPath;
 			}
