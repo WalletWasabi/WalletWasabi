@@ -7,6 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Blockchain.BlockFilters;
+using WalletWasabi.CoinJoin.Client.Clients;
+using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Tor;
@@ -59,6 +61,17 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 			Assert.NotNull(filtersResponse);
 			Assert.True(filtersResponse!.Filters.Count() == 2);
+		}
+
+		[Theory]
+		[MemberData(nameof(GetNetworks))]
+		public async Task GetAllRoundStatesAsync(Network network)
+		{
+			TorHttpClient torHttpClient = MakeTorHttpClient(network);
+			SatoshiClient client = new(torHttpClient);
+			var states = await client.GetAllRoundStatesAsync();
+			Assert.True(states.NotNullAndNotEmpty());
+			Assert.True(states.Any());
 		}
 
 		[Theory]
