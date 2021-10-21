@@ -146,24 +146,31 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private async Task<bool> InitialiseTransactionAsync()
 		{
-			var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, isSilent: true));
-			if (privacyControlDialogResult.Kind == DialogResultKind.Normal && privacyControlDialogResult.Result is { } coins)
+			if (!_info.Coins.Any())
 			{
-				_info.Coins = coins;
-			}
-			else if (privacyControlDialogResult.Kind != DialogResultKind.Normal)
-			{
-				return false;
+				var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, isSilent: true));
+				if (privacyControlDialogResult.Kind == DialogResultKind.Normal && privacyControlDialogResult.Result is { } coins)
+				{
+					_info.Coins = coins;
+				}
+				else if (privacyControlDialogResult.Kind != DialogResultKind.Normal)
+				{
+					return false;
+				}
 			}
 
-			var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, true));
-			if (feeDialogResult.Kind == DialogResultKind.Normal)
+			if (_info.FeeRate is null)
 			{
-				_info.FeeRate = feeDialogResult.Result;
-			}
-			else
-			{
-				return false;
+				var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, true));
+				if (feeDialogResult.Kind == DialogResultKind.Normal)
+				{
+					_info.FeeRate = feeDialogResult.Result;
+				}
+				else
+				{
+					return false;
+				}
+
 			}
 
 			return true;
