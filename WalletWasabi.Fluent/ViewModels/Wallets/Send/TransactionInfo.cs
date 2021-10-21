@@ -24,7 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				.Subscribe(_ => OnAmountChanged());
 		}
 
-		public SmartLabel UserLabels { get; set; }
+		public SmartLabel UserLabels { get; set; } = SmartLabel.Empty;
 
 		public BitcoinAddress Address { get; set; }
 
