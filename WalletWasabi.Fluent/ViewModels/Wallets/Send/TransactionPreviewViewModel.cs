@@ -296,13 +296,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			TransactionHasChange = _transaction.OuterWalletOutputs.Sum(x => x.Amount) > fee && _transaction.InnerWalletOutputs.Sum(x => x.Amount) > 0;
 
 			TransactionHasPockets = !_info.IsPrivatePocketUsed;
+
+			ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(_info.ConfirmationTimeSpan)} ";
 		}
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
-
-			ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(_info.ConfirmationTimeSpan)} ";
 
 			Observable
 				.FromEventPattern(_wallet.FeeProvider, nameof(_wallet.FeeProvider.AllFeeEstimateChanged))
