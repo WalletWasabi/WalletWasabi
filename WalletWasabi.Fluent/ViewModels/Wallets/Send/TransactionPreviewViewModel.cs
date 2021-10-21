@@ -313,14 +313,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				RxApp.MainThreadScheduler.Schedule(async () =>
 				{
-					if (await InitialiseTransactionAsync())
+					if (await InitialiseTransactionAsync() && await BuildTransactionAsync() is { } initialTransaction)
 					{
-						var initialTransaction = await BuildTransactionAsync();
-
-						if (initialTransaction is { })
-						{
-							UpdateTransaction(initialTransaction);
-						}
+						UpdateTransaction(initialTransaction);
 					}
 					else
 					{
