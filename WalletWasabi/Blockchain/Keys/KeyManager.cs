@@ -88,6 +88,18 @@ namespace WalletWasabi.Blockchain.Keys
 			ToFile();
 		}
 
+		public static KeyPath GetCorrectAccountKeyPath(Network network)
+		{
+			if (network == Network.TestNet)
+			{
+				return TestNetAccountKeyPath;
+			}
+			else
+			{
+				return DefaultAccountKeyPath;
+			}
+		}
+
 		public WpkhDescriptors GetOutputDescriptors(string password, Network network)
 		{
 			if (!MasterFingerprint.HasValue)
@@ -194,9 +206,9 @@ namespace WalletWasabi.Blockchain.Keys
 			return new KeyManager(null, null, null, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(), filePath);
 		}
 
-		public static KeyManager CreateNewHardwareWalletWatchOnly(HDFingerprint masterFingerprint, ExtPubKey extPubKey, string? filePath = null)
+		public static KeyManager CreateNewHardwareWalletWatchOnly(HDFingerprint masterFingerprint, ExtPubKey extPubKey, Network network, string? filePath = null)
 		{
-			return new KeyManager(null, null, masterFingerprint, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(), filePath);
+			return new KeyManager(null, null, masterFingerprint, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(network), filePath);
 		}
 
 		public static KeyManager Recover(Mnemonic mnemonic, string password, string? filePath = null, KeyPath? accountKeyPath = null, int minGapLimit = AbsoluteMinGapLimit)

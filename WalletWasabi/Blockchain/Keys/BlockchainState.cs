@@ -15,6 +15,12 @@ namespace WalletWasabi.Blockchain.Keys
 			Height = height;
 		}
 
+		public BlockchainState(Network network)
+		{
+			Network = network;
+			Height = 0;
+		}
+
 		public BlockchainState()
 		{
 			Network = Network.Main;
