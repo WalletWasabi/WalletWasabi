@@ -6,6 +6,7 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
