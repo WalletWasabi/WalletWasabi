@@ -28,7 +28,6 @@
 		<PackageReference Include="DataBox" Version="0.10.8-beta1" />
 	</ItemGroup>
 	<ItemGroup>
-<!--		<ProjectReference Include="..\..\DataBox\src\DataBox\DataBox.csproj" />-->
 		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
 		<ProjectReference Include="..\WalletWasabi.Fluent.Generators\WalletWasabi.Fluent.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
