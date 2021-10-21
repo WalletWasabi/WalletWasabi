@@ -636,7 +636,7 @@
           "System.Security.Principal.Windows": "4.7.0"
         }
       },
-      "datalistbox": {
+      "databox": {
         "type": "Project",
         "dependencies": {
           "Avalonia": "0.10.8"
@@ -659,7 +659,7 @@
           "Avalonia.Diagnostics": "0.10.8",
           "Avalonia.ReactiveUI": "0.10.8",
           "Avalonia.Xaml.Behaviors": "0.10.8",
-          "DataListBox": "1.0.0",
+          "DataBox": "0.10.8-beta1",
           "OpenCvSharp4": "4.5.2.20210404",
           "OpenCvSharp4.runtime.win": "4.5.2.20210404",
           "System.Reactive": "5.0.0",
