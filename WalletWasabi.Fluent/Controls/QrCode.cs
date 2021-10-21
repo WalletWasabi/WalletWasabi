@@ -87,7 +87,7 @@ namespace WalletWasabi.Fluent.Controls
 			sfd.InitialFileName = $"{address}.png";
 			sfd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
 			sfd.Filters.Add(new FileDialogFilter()
-				{ Name = "Portable Network Graphics (PNG) Image file", Extensions = { "png" } });
+			{ Name = "Portable Network Graphics (PNG) Image file", Extensions = { "png" } });
 
 			var visualRoot = (ClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime;
 			var path = await sfd.ShowAsync(visualRoot.MainWindow);

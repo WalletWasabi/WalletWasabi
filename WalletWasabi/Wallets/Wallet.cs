@@ -75,7 +75,6 @@ namespace WalletWasabi.Wallets
 		public BitcoinStore BitcoinStore { get; private set; }
 		public KeyManager KeyManager { get; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
-		public CoinJoinClient ChaumianClient { get; private set; }
 		public ServiceConfiguration ServiceConfiguration { get; private set; }
 		public string WalletName => KeyManager.WalletName;
 
@@ -141,14 +140,10 @@ namespace WalletWasabi.Wallets
 				ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 				FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
 
-				ChaumianClient = new CoinJoinClient(Synchronizer, Network, KeyManager, Kitchen);
-
 				TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, ServiceConfiguration.PrivacyLevelStrong);
 				Coins = TransactionProcessor.Coins;
 
 				TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessedAsync;
-				ChaumianClient.OnDequeue += ChaumianClient_OnDequeue;
-
 				BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
 				BitcoinStore.IndexStore.Reorged += IndexDownloader_ReorgedAsync;
 				BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
@@ -187,8 +182,6 @@ namespace WalletWasabi.Wallets
 				using (BenchmarkLogger.Measure())
 				{
 					await RuntimeParams.LoadAsync().ConfigureAwait(false);
-
-					ChaumianClient.Start();
 
 					using (await HandleFiltersLock.LockAsync(cancel).ConfigureAwait(false))
 					{
@@ -273,10 +266,6 @@ namespace WalletWasabi.Wallets
 						BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
 						BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
 						TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessedAsync;
-						ChaumianClient.OnDequeue -= ChaumianClient_OnDequeue;
-
-						await ChaumianClient.StopAsync(cancel).ConfigureAwait(false);
-						Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.");
 					}
 				}
 			}
@@ -290,49 +279,12 @@ namespace WalletWasabi.Wallets
 		{
 			try
 			{
-				foreach (var coin in e.NewlySpentCoins.Concat(e.ReplacedCoins).Concat(e.SuccessfullyDoubleSpentCoins).Distinct())
-				{
-					ChaumianClient.ExposedLinks.TryRemove(coin.OutPoint, out _);
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-			}
-
-			try
-			{
-				IEnumerable<SmartCoin> newCoins = e.NewlyReceivedCoins.Concat(e.RestoredCoins).Distinct();
-				if (newCoins.Any())
-				{
-					if (ChaumianClient.State.Contains(e.Transaction.Transaction.Inputs.Select(x => x.PrevOut)))
-					{
-						var coinsToQueue = new HashSet<SmartCoin>();
-						foreach (var newCoin in newCoins)
-						{
-							// If it's being mixed and anonset is not sufficient, then queue it.
-							if (!newCoin.IsSpent() && Kitchen.HasIngredients
-								&& newCoin.HdPubKey.AnonymitySet < ServiceConfiguration.GetMixUntilAnonymitySetValue())
-							{
-								coinsToQueue.Add(newCoin);
-							}
-						}
-
-						await ChaumianClient.QueueCoinsToMixAsync(coinsToQueue).ConfigureAwait(false);
-					}
-				}
-
 				WalletRelevantTransactionProcessed?.Invoke(this, e);
 			}
 			catch (Exception ex)
 			{
 				Logger.LogError(ex);
 			}
-		}
-
-		private void ChaumianClient_OnDequeue(object? sender, DequeueResult e)
-		{
-			OnDequeue?.Invoke(this, e);
 		}
 
 		private void Mempool_TransactionReceived(object? sender, SmartTransaction tx)
