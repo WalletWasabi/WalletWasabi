@@ -30,6 +30,8 @@ namespace WalletWasabi.Blockchain.Keys
 		// https://github.com/bitcoin/bips/blob/master/bip-0084.mediawiki
 		public static readonly KeyPath DefaultAccountKeyPath = new("m/84h/0h/0h");
 
+		public static readonly KeyPath TestNetAccountKeyPath = new("m/84h/1h/0h");
+
 		[JsonConstructor]
 		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, bool? passwordVerified, int? minGapLimit, BlockchainState blockchainState, string? filePath = null, KeyPath? accountKeyPath = null)
 		{
@@ -50,7 +52,8 @@ namespace WalletWasabi.Blockchain.Keys
 			SetMinGapLimit(minGapLimit);
 
 			BlockchainState = blockchainState ?? new BlockchainState();
-			AccountKeyPath = accountKeyPath ?? DefaultAccountKeyPath;
+
+			AccountKeyPath = SetAccountKeyPath(accountKeyPath);
 
 			SetFilePath(filePath);
 			ToFileLock = new object();
@@ -77,7 +80,7 @@ namespace WalletWasabi.Blockchain.Keys
 			var extKey = new ExtKey(encryptedSecret.GetKey(password), chainCode);
 
 			MasterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
-			AccountKeyPath = accountKeyPath ?? DefaultAccountKeyPath;
+			AccountKeyPath = SetAccountKeyPath(accountKeyPath);
 			ExtPubKey = extKey.Derive(AccountKeyPath).Neuter();
 
 			SetFilePath(filePath);
@@ -93,6 +96,20 @@ namespace WalletWasabi.Blockchain.Keys
 			}
 
 			return WpkhOutputDescriptorHelper.GetOutputDescriptors(network, MasterFingerprint.Value, GetMasterExtKey(password), AccountKeyPath);
+		}
+
+		private KeyPath? SetAccountKeyPath(KeyPath? keyPath)
+		{
+			if (keyPath is not null)
+			{
+				return keyPath;
+			}
+			else if (GetNetwork() == Network.TestNet)
+			{
+				return TestNetAccountKeyPath;
+			}
+
+			return DefaultAccountKeyPath;
 		}
 
 		[JsonProperty(Order = 1)]
