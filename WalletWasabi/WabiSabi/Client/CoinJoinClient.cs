@@ -69,17 +69,20 @@ namespace WalletWasabi.WabiSabi.Client
 				{
 					return true;
 				}
-				else
-				{
-					var blameRoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.BlameOf == currentRoundState.Id, cancellationToken).ConfigureAwait(false);
-					currentRoundState = blameRoundState;
-				}
+
+				using CancellationTokenSource waitForBlameRound = new(TimeSpan.FromMinutes(5));
+				using CancellationTokenSource linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(waitForBlameRound.Token, cancellationToken);
+
+				var blameRoundState = await RoundStatusUpdater
+					.CreateRoundAwaiter(roundState => roundState.BlameOf == currentRoundState.Id && roundState.Phase == Phase.InputRegistration, linkedTokenSource.Token)
+					.ConfigureAwait(false);
+				currentRoundState = blameRoundState;
 			}
 
 			return false;
 		}
 
-		/// <summary>Attempt to participate in a specified dround.</summary>
+		/// <summary>Attempt to participate in a specified round.</summary>
 		/// <param name="roundState">Defines the round parameter and state information to use.</param>
 		/// <returns>Whether or not the round resulted in a successful transaction.</returns>
 		public async Task<bool> StartRoundAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
