@@ -94,10 +94,8 @@ namespace WalletWasabi.Blockchain.Keys
 			{
 				return TestNetAccountKeyPath;
 			}
-			else
-			{
-				return DefaultAccountKeyPath;
-			}
+
+			return DefaultAccountKeyPath;
 		}
 
 		public WpkhDescriptors GetOutputDescriptors(string password, Network network)
