@@ -102,7 +102,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			var feeRateDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, false));
 
-			if (feeRateDialogResult.Kind == DialogResultKind.Normal && feeRateDialogResult.Result != _info.FeeRate)
+			if (feeRateDialogResult.Kind == DialogResultKind.Normal && feeRateDialogResult.Result is { } newFeeRate && newFeeRate != _info.FeeRate)
 			{
 				_info.FeeRate = feeRateDialogResult.Result;
 
@@ -159,12 +159,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				}
 			}
 
-			if (_info.FeeRate is null)
+			if (_info.FeeRate == FeeRate.Zero)
 			{
 				var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, true));
-				if (feeDialogResult.Kind == DialogResultKind.Normal)
+				if (feeDialogResult.Kind == DialogResultKind.Normal && feeDialogResult.Result is { } newFeeRate)
 				{
-					_info.FeeRate = feeDialogResult.Result;
+					_info.FeeRate = newFeeRate;
 				}
 				else
 				{
@@ -244,9 +244,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					"Wasabi was unable to create your transaction.");
 
 				var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(wallet, transactionInfo, false), NavigationTarget.DialogScreen);
-				if (feeDialogResult.Kind == DialogResultKind.Normal)
+				if (feeDialogResult.Kind == DialogResultKind.Normal && feeDialogResult.Result is { } newFeeRate)
 				{
-					transactionInfo.FeeRate = feeDialogResult.Result;
+					transactionInfo.FeeRate = newFeeRate;
 				}
 
 				if (TransactionHelpers.TryBuildTransaction(wallet, transactionInfo, out var txn))

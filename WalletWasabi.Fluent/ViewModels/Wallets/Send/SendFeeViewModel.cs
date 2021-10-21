@@ -81,7 +81,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				var feeEstimations = _wallet.Network == Network.TestNet ? TestNetFeeEstimates : feeProvider.AllFeeEstimate.Estimations;
 				FeeChart.UpdateFeeEstimates(feeEstimations);
 
-				if (_transactionInfo.FeeRate is { })
+				if (_transactionInfo.FeeRate != FeeRate.Zero)
 				{
 					FeeChart.InitCurrentConfirmationTarget(_transactionInfo.FeeRate);
 				}

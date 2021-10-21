@@ -28,7 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public BitcoinAddress Address { get; set; }
 
-		public FeeRate? FeeRate { get; set; }
+		public FeeRate FeeRate { get; set; } = FeeRate.Zero;
 
 		public TimeSpan ConfirmationTimeSpan { get; set; }
 
@@ -45,7 +45,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private void OnAmountChanged()
 		{
 			SubtractFee = default;
-			FeeRate = default;
+			FeeRate = FeeRate.Zero;
 
 			if (Coins.Sum(x => x.Amount) < Amount) // Reset coins if the selected cluster is not enough for the new amount
 			{
