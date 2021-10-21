@@ -28,7 +28,7 @@ namespace WalletWasabi.Helpers
 			var extPubKey = await client.GetXpubAsync(
 				device.Model,
 				device.Path,
-				KeyManager.GetCorrectAccountKeyPath(network),
+				KeyManager.GetAccountKeyPath(network),
 				genCts.Token).ConfigureAwait(false);
 
 			return KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, extPubKey, network, walletFilePath);

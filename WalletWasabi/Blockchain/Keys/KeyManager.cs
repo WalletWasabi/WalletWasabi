@@ -53,7 +53,7 @@ namespace WalletWasabi.Blockchain.Keys
 
 			BlockchainState = blockchainState ?? new BlockchainState();
 
-			AccountKeyPath = accountKeyPath ?? GetKeyPathByNetwork();
+			AccountKeyPath = accountKeyPath ?? GetAccountKeyPath(BlockchainState.Network);
 
 			SetFilePath(filePath);
 			ToFileLock = new object();
@@ -80,7 +80,7 @@ namespace WalletWasabi.Blockchain.Keys
 			var extKey = new ExtKey(encryptedSecret.GetKey(password), chainCode);
 
 			MasterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
-			AccountKeyPath = accountKeyPath ?? GetKeyPathByNetwork();
+			AccountKeyPath = accountKeyPath ?? GetAccountKeyPath(BlockchainState.Network);
 			ExtPubKey = extKey.Derive(AccountKeyPath).Neuter();
 
 			SetFilePath(filePath);
@@ -88,15 +88,8 @@ namespace WalletWasabi.Blockchain.Keys
 			ToFile();
 		}
 
-		public static KeyPath GetCorrectAccountKeyPath(Network? network)
-		{
-			if (network == Network.TestNet)
-			{
-				return TestNetAccountKeyPath;
-			}
-
-			return DefaultAccountKeyPath;
-		}
+		public static KeyPath GetAccountKeyPath(Network network) =>
+			network == Network.TestNet ? TestNetAccountKeyPath : DefaultAccountKeyPath;
 
 		public WpkhDescriptors GetOutputDescriptors(string password, Network network)
 		{
@@ -106,16 +99,6 @@ namespace WalletWasabi.Blockchain.Keys
 			}
 
 			return WpkhOutputDescriptorHelper.GetOutputDescriptors(network, MasterFingerprint.Value, GetMasterExtKey(password), AccountKeyPath);
-		}
-
-		private KeyPath? GetKeyPathByNetwork()
-		{
-			if (GetNetwork() == Network.TestNet)
-			{
-				return TestNetAccountKeyPath;
-			}
-
-			return DefaultAccountKeyPath;
 		}
 
 		[JsonProperty(Order = 1)]
@@ -191,7 +174,7 @@ namespace WalletWasabi.Blockchain.Keys
 
 			HDFingerprint masterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
 			BlockchainState blockchainState = network is null ? new BlockchainState() : new BlockchainState(network);
-			KeyPath keyPath = GetCorrectAccountKeyPath(network);
+			KeyPath keyPath = GetAccountKeyPath(network);
 			ExtPubKey extPubKey = extKey.Derive(keyPath).Neuter();
 			return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, false, AbsoluteMinGapLimit, blockchainState, filePath, keyPath);
 		}
