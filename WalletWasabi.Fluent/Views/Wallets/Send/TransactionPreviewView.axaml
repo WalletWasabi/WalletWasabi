@@ -15,7 +15,7 @@
                    EnableSkip="{Binding PreferPsbtWorkflow}" SkipContent="Send Now"
                    IsBusy="{Binding IsBusy}"
                    ScrollViewer.VerticalScrollBarVisibility="Auto">
-        <StackPanel Spacing="10">
+        <StackPanel Spacing="15">
             <c:PreviewItem Icon="{StaticResource btc_logo}"
                            Text="A total of">
               <TextBox Classes="selectableTextBlock" Text="{Binding AmountText, FallbackValue=0.213 BTC (≈55.34 USD)}" />
