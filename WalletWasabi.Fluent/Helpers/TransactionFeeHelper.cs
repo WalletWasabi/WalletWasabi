@@ -39,7 +39,7 @@ namespace WalletWasabi.Fluent.Helpers
 			var first = feeEstimates.First();
 			var last = feeEstimates.Last();
 
-			return first.Value != last.Value;
+			return first.Value == last.Value;
 		}
 	}
 }
