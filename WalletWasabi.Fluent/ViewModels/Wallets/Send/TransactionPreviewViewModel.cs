@@ -35,6 +35,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private string _amountText = "";
 		[AutoNotify] private bool _transactionHasChange;
 		[AutoNotify] private bool _transactionHasPockets;
+		[AutoNotify] private bool _adjustFeeAvailable;
 
 		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info)
 		{
@@ -69,6 +70,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			AvoidChangeCommand = ReactiveCommand.CreateFromTask(OnAvoidChangeAsync);
 
 			ChangePocketsCommand = ReactiveCommand.CreateFromTask(OnChangePocketsAsync);
+
 		}
 
 		public bool PreferPsbtWorkflow => _wallet.KeyManager.PreferPsbtWorkflow;
