@@ -55,7 +55,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			_to = "";
 			_wallet = wallet;
-			_transactionInfo = new TransactionInfo(_wallet);
+			_transactionInfo = new TransactionInfo();
 
 			SuggestionLabels = new SuggestionLabelsViewModel(3);
 

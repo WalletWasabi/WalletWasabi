@@ -16,9 +16,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		[AutoNotify] private Money _amount = Money.Zero;
 
-		public TransactionInfo(Wallet wallet)
+		public TransactionInfo()
 		{
-			_privateCoinThreshold = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
+			_privateCoinThreshold = Services.Config.MixUntilAnonymitySetValue;
 
 			this.WhenAnyValue(x => x.Amount)
 				.Subscribe(_ => OnAmountChanged());
