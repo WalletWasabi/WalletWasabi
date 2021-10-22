@@ -7,9 +7,10 @@
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:LoadingViewModel"
+             x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.LoadingControl">
   <DockPanel>
-    <StackPanel MaxWidth="800" Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Center">
+    <StackPanel MaxWidth="800" Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Center" IsVisible="{Binding IsDownloading}">
       <TextBlock Text="Wasabi is downloading blockchain data" TextAlignment="Center" FontSize="22"
                  DockPanel.Dock="Bottom" />
 
