@@ -189,7 +189,7 @@ namespace WalletWasabi.Blockchain.Keys
 			return new KeyManager(null, null, masterFingerprint, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(network), filePath);
 		}
 
-		public static KeyManager Recover(Mnemonic mnemonic, string password, string? filePath = null, KeyPath? accountKeyPath = null, int minGapLimit = AbsoluteMinGapLimit)
+		public static KeyManager Recover(Mnemonic mnemonic, string password, Network network, KeyPath accountKeyPath, string? filePath = null, int minGapLimit = AbsoluteMinGapLimit)
 		{
 			Guard.NotNull(nameof(mnemonic), mnemonic);
 			password ??= "";
@@ -201,7 +201,7 @@ namespace WalletWasabi.Blockchain.Keys
 
 			KeyPath keyPath = accountKeyPath ?? DefaultAccountKeyPath;
 			ExtPubKey extPubKey = extKey.Derive(keyPath).Neuter();
-			return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, true, minGapLimit, new BlockchainState(), filePath, keyPath);
+			return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, true, minGapLimit, new BlockchainState(network), filePath, keyPath);
 		}
 
 		public static KeyManager FromFile(string filePath)

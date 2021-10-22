@@ -68,14 +68,14 @@ namespace WalletWasabi.Tests.UnitTests
 		public void CanRecover()
 		{
 			string password = "password";
-			var manager = KeyManager.CreateNew(out Mnemonic mnemonic, password);
-			var sameManager = KeyManager.Recover(mnemonic, password);
+			var manager = KeyManager.CreateNew(out Mnemonic mnemonic, password, null, Network.Main);
+			var sameManager = KeyManager.Recover(mnemonic, password, Network.Main, KeyManager.GetAccountKeyPath(Network.Main), null);
 
 			Assert.Equal(manager.ChainCode, sameManager.ChainCode);
 			Assert.Equal(manager.EncryptedSecret, sameManager.EncryptedSecret);
 			Assert.Equal(manager.ExtPubKey, sameManager.ExtPubKey);
 
-			var differentManager = KeyManager.Recover(mnemonic, "differentPassword", null, KeyPath.Parse("m/999'/999'/999'"), 55);
+			var differentManager = KeyManager.Recover(mnemonic, "differentPassword", Network.Main, KeyPath.Parse("m/999'/999'/999'"), null, 55);
 			Assert.NotEqual(manager.ChainCode, differentManager.ChainCode);
 			Assert.NotEqual(manager.EncryptedSecret, differentManager.EncryptedSecret);
 			Assert.NotEqual(manager.ExtPubKey, differentManager.ExtPubKey);
