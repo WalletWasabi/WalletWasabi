@@ -34,14 +34,14 @@ namespace WalletWasabi.Fluent.Behaviors
 							AssociatedObject.SetValue(Control.OpacityProperty, 0, BindingPriority.Style);
 						});
 
-						await Task.Delay(TimeSpan.FromSeconds(_randomSource.Next(1,3)));
+						await Task.Delay(TimeSpan.FromSeconds(_randomSource.Next(1,10)));
 
 						Dispatcher.UIThread.Post(() =>
 						{
 							AssociatedObject.SetValue(Control.OpacityProperty, 1, BindingPriority.Style);
 						});
 
-						await Task.Delay(TimeSpan.FromSeconds(_randomSource.Next(1,3)));
+						await Task.Delay(TimeSpan.FromSeconds(_randomSource.Next(1,10)));
 					}
 				});
 			}

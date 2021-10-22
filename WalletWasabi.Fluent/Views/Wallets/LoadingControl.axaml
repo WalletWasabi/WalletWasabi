@@ -23,7 +23,7 @@
           <Style Selector="Panel.Beacon">
             <Setter Property="Transitions">
               <Transitions>
-                <DoubleTransition Property="Opacity" Duration="0:0:0.75" Easing="{StaticResource FluentEasing}"></DoubleTransition>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.75" Easing="{StaticResource FluentEasing}"/>
               </Transitions>
             </Setter>
           </Style>
