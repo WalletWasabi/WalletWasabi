@@ -72,11 +72,6 @@ namespace WalletWasabi.WabiSabi.Client
 
 				foreach (var openedWallet in openedWallets.Select(x => x.Value))
 				{
-					if (!RoundStatusUpdater.AnyRound)
-					{
-						break;
-					}
-
 					var coinCandidates = SelectCandidateCoins(openedWallet).ToArray();
 					if (coinCandidates.Length == 0)
 					{
