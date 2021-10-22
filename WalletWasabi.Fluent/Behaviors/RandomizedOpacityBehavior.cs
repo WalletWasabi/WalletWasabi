@@ -35,7 +35,8 @@ namespace WalletWasabi.Fluent.Behaviors
 										  .Where(x => targetIndices.Remove(x))
 										  .ToArray()
 										  .Select(x => Animate(TargetControls[x]))
-										  .ToArray(), Cts.Token);
+										  .ToArray(),
+							Cts.Token);
 				}
 
 				Cts.Dispose();
