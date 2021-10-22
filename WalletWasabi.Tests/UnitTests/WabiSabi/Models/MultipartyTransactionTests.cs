@@ -105,7 +105,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			var state = new ConstructionState(DefaultParameters).AddInput(coin);
 
 			var script = BitcoinFactory.CreateScript();
-			var bob = new TxOut(coin.Amount/2, script);
+			var bob = new TxOut(coin.Amount / 2, script);
 			var withOutput = state.AddOutput(bob);
 			var duplicateOutputNoFee = withOutput.AddOutput(bob).Finalize();
 
@@ -271,7 +271,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 
 			// requires 1k sats per input in sat/vKB
 			var inputVsize = alice1Coin.ScriptPubKey.EstimateInputVsize();
-			var feeRate = new FeeRate(new Money((1_000_000L + inputVsize-1) / inputVsize));
+			var feeRate = new FeeRate(new Money((1_000_000L + inputVsize - 1) / inputVsize));
 			Assert.Equal(new Money(1000L), feeRate.GetFee(alice1Coin.ScriptPubKey.EstimateInputVsize()));
 
 			var state = new ConstructionState(DefaultParameters with { FeeRate = feeRate });

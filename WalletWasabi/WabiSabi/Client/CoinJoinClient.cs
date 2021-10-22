@@ -124,8 +124,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 				// Output registration.
 				roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
- 				var remainingTimeForOutputRegistration = roundState.OutputRegistrationTimeout - RoundStatusUpdater.Period;
- 				await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, remainingTimeForOutputRegistration, cancellationToken).ConfigureAwait(false);
+ 				await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, cancellationToken).ConfigureAwait(false);
 
 				// ReadyToSign.
 				await ReadyToSignAsync(registeredAliceClients, cancellationToken).ConfigureAwait(false);

@@ -110,8 +110,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 					services.AddScoped<IRPCClient>(s => rpc);
 					services.AddScoped(s => new WabiSabiConfig
 					{
-							MaxInputCountByRound = inputCount,
-							StandardInputRegistrationTimeout = TimeSpan.FromSeconds(10)
+						MaxInputCountByRound = inputCount,
+						StandardInputRegistrationTimeout = TimeSpan.FromSeconds(10)
 					});
 				});
 			}).CreateClient();

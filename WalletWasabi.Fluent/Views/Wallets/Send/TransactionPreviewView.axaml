@@ -15,15 +15,27 @@
                    EnableSkip="{Binding PreferPsbtWorkflow}" SkipContent="Send Now"
                    IsBusy="{Binding IsBusy}"
                    ScrollViewer.VerticalScrollBarVisibility="Auto">
-        <StackPanel Spacing="10">
+        <StackPanel Spacing="15">
             <c:PreviewItem Icon="{StaticResource btc_logo}"
                            Text="A total of">
               <TextBox Classes="selectableTextBlock" Text="{Binding AmountText, FallbackValue=0.213 BTC (≈55.34 USD)}" />
             </c:PreviewItem>
             <Separator />
-            <c:PreviewItem Icon="{StaticResource entities_regular}"
-                           Text="Will be sent to and / or known by">
-              <StackPanel Spacing="10">
+
+            <DockPanel>
+              <Button Classes="plain"
+                      Command="{Binding ChangePocketsCommand}"
+                      IsVisible="{Binding TransactionHasPockets}"
+                      ToolTip.Tip="Change who could know about this transaction"
+                      DockPanel.Dock="Right"
+                      Margin="10 0">
+                <Viewbox Height="20">
+                  <PathIcon Data="{StaticResource entities_edit_regular}" Foreground="{DynamicResource SystemAccentColor}"/>
+                </Viewbox>
+              </Button>
+
+              <c:PreviewItem Icon="{StaticResource entities_regular}"
+                             Text="Will be sent to and / or known by">
                 <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Labels}">
                   <c:TagsBox.Styles>
                     <Style Selector="c|TagsBox:readonly WrapPanel">
@@ -31,9 +43,9 @@
                     </Style>
                   </c:TagsBox.Styles>
                 </c:TagsBox>
-                <Button Classes="activeHyperLink" Content="Change who could know about this transaction." HorizontalAlignment="Left" Command="{Binding ChangePocketsCommand}" IsVisible="{Binding TransactionHasPockets}"/>
-              </StackPanel>
-            </c:PreviewItem>
+              </c:PreviewItem>
+            </DockPanel>
+
             <Separator />
             <c:PreviewItem Icon="{StaticResource transceive_regular}"
                            Text="via Bitcoin address">
@@ -54,23 +66,30 @@
             </c:PreviewItem>
             <Separator IsVisible="{Binding TransactionHasChange}" />
 
-            <Panel>
-              <StackPanel Spacing="5">
-                <StackPanel Spacing="10">
-                  <c:PreviewItem Icon="{StaticResource timer_regular}"
-                                 Text="Bitcoin miners will work hard to confirm your transaction within">
-                    <TextBox Classes="selectableTextBlock" Text="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
-                  </c:PreviewItem>
-                  <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
-                                 Text="for an additional charge of">
-                    <TextBox Classes="selectableTextBlock" Text="{Binding FeeText, FallbackValue=235 sats (≈55.34 USD)}" DockPanel.Dock="Left" />
-                  </c:PreviewItem>
-                </StackPanel>
-                <c:PreviewItem>
-                  <Button Classes="activeHyperLink" Content="Change transaction fee or confirmation time." HorizontalAlignment="Left" Command="{Binding AdjustFeeCommand }"/>
+            <DockPanel>
+              <Button Classes="plain"
+                      Command="{Binding AdjustFeeCommand}"
+                      IsVisible="{Binding AdjustFeeAvailable}"
+                      ToolTip.Tip="Change transaction fee or confirmation time"
+                      DockPanel.Dock="Right"
+                      Margin="10 0">
+                <Viewbox Height="20">
+                  <PathIcon Data="{StaticResource adjust_fee_regular}" Foreground="{DynamicResource SystemAccentColor}" />
+                </Viewbox>
+              </Button>
+
+              <StackPanel Spacing="10">
+                <c:PreviewItem Icon="{StaticResource timer_regular}"
+                               Text="Bitcoin miners will work hard to confirm your transaction within">
+                  <TextBox Classes="selectableTextBlock" Text="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
+                </c:PreviewItem>
+                <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
+                               Text="for an additional charge of">
+                  <TextBox Classes="selectableTextBlock" Text="{Binding FeeText, FallbackValue=235 sats (≈55.34 USD)}" DockPanel.Dock="Left" />
                 </c:PreviewItem>
               </StackPanel>
-            </Panel>
+            </DockPanel>
+
         </StackPanel>
     </c:ContentArea>
 </UserControl>

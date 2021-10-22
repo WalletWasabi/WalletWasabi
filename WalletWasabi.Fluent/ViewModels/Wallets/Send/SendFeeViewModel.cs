@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Wallets;
 
@@ -38,12 +39,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			SetupCancel(false, true, false);
 			EnableBack = true;
 
-			NextCommand = ReactiveCommand.Create( () =>
-			{
-				_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(FeeChart.CurrentConfirmationTarget);
+			NextCommand = ReactiveCommand.Create(() =>
+		   {
+			   _transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(FeeChart.CurrentConfirmationTarget);
 
-				Complete();
-			});
+			   Complete();
+		   });
 		}
 
 		public FeeChartViewModel FeeChart { get; }
@@ -67,7 +68,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(estimations =>
 				{
-					FeeChart.UpdateFeeEstimates(_wallet.Network == Network.TestNet ? TestNetFeeEstimates : estimations);
+					FeeChart.UpdateFeeEstimates(TransactionFeeHelper.GetFeeEstimates(_wallet));
 				})
 				.DisposeWith(disposables);
 
@@ -78,10 +79,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					await Task.Delay(100);
 				}
 
-				var feeEstimations = _wallet.Network == Network.TestNet ? TestNetFeeEstimates : feeProvider.AllFeeEstimate.Estimations;
-				FeeChart.UpdateFeeEstimates(feeEstimations);
+				FeeChart.UpdateFeeEstimates(TransactionFeeHelper.GetFeeEstimates(_wallet));
 
-				if (_transactionInfo.FeeRate is { })
+				if (_transactionInfo.FeeRate != FeeRate.Zero)
 				{
 					FeeChart.InitCurrentConfirmationTarget(_transactionInfo.FeeRate);
 				}
@@ -125,19 +125,5 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			var time = TimeSpan.FromMinutes(timeInMinutes);
 			return time;
 		}
-
-		private static readonly Dictionary<int, int> TestNetFeeEstimates = new ()
-		{
-			[1] = 17,
-			[2] = 12,
-			[3] = 9,
-			[6] = 9,
-			[18] = 2,
-			[36] = 2,
-			[72] = 2,
-			[144] = 2,
-			[432] = 1,
-			[1008] = 1
-		};
 	}
 }

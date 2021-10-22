@@ -251,7 +251,7 @@ namespace WalletWasabi.WebClients.Wasabi
 				ApiVersion = currentBackendMajorVersion;
 			}
 
-			return new UpdateStatus(backendCompatible, clientUpToDate, legalDocumentsVersion, currentBackendMajorVersion);
+			return new UpdateStatus(backendCompatible, clientUpToDate, legalDocumentsVersion, currentBackendMajorVersion, clientVersion);
 		}
 
 		#endregion software

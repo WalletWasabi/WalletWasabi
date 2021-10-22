@@ -48,7 +48,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		private uint TotalCount => _filtersToProcessCount + _filtersToDownloadCount;
 
-		private uint RemainingFiltersToDownload => (uint) Services.BitcoinStore.SmartHeaderChain.HashesLeft;
+		private uint RemainingFiltersToDownload => (uint)Services.BitcoinStore.SmartHeaderChain.HashesLeft;
 
 		protected override void OnActivated(CompositeDisposable disposables)
 		{
@@ -113,14 +113,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				await Task.Delay(500).ConfigureAwait(false);
 			}
 
-			_filtersToDownloadCount = (uint) Services.BitcoinStore.SmartHeaderChain.HashesLeft;
+			_filtersToDownloadCount = (uint)Services.BitcoinStore.SmartHeaderChain.HashesLeft;
 
 			if (Services.BitcoinStore.SmartHeaderChain.ServerTipHeight is { } serverTipHeight &&
-			    Services.BitcoinStore.SmartHeaderChain.TipHeight is { } clientTipHeight)
+				Services.BitcoinStore.SmartHeaderChain.TipHeight is { } clientTipHeight)
 			{
 				var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
 				var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network).Height;
-				var bestHeight = (uint) _wallet.KeyManager.GetBestHeight().Value;
+				var bestHeight = (uint)_wallet.KeyManager.GetBestHeight().Value;
 				_filterProcessStartingHeight = bestHeight < startingHeight ? startingHeight : bestHeight;
 
 				_filtersToProcessCount = tipHeight - _filterProcessStartingHeight;
@@ -134,9 +134,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				return;
 			}
 
-			var percent = (decimal) processedCount / TotalCount * 100;
+			var percent = (decimal)processedCount / TotalCount * 100;
 			var remainingCount = TotalCount - processedCount;
-			var tempPercent = (uint) Math.Round(percent);
+			var tempPercent = (uint)Math.Round(percent);
 
 			if (tempPercent == 0)
 			{
@@ -146,7 +146,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			Percent = tempPercent;
 			var percentText = $"{Percent}% completed";
 
-			var remainingMilliseconds = (double) _stopwatch.ElapsedMilliseconds / processedCount * remainingCount;
+			var remainingMilliseconds = (double)_stopwatch.ElapsedMilliseconds / processedCount * remainingCount;
 			var userFriendlyTime = TextHelpers.TimeSpanToFriendlyString(TimeSpan.FromMilliseconds(remainingMilliseconds));
 			var remainingTimeText = string.IsNullOrEmpty(userFriendlyTime) ? "" : $"- {userFriendlyTime} remaining";
 

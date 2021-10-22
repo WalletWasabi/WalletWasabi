@@ -98,17 +98,6 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		public void SignalQuitPending(bool isQuitPending)
-		{
-			lock (Lock)
-			{
-				foreach (var client in Wallets.Where(x => x.ChaumianClient is { }).Select(x => x.ChaumianClient))
-				{
-					client.IsQuitPending = isQuitPending;
-				}
-			}
-		}
-
 		public IEnumerable<Wallet> GetWallets(bool refreshWalletList = true)
 		{
 			if (refreshWalletList)
@@ -264,16 +253,6 @@ namespace WalletWasabi.Wallets
 			wallet.StateChanged += Wallet_StateChanged;
 
 			WalletAdded?.Invoke(this, wallet);
-		}
-
-		public async Task DequeueAllCoinsGracefullyAsync(DequeueReason reason, CancellationToken token)
-		{
-			IEnumerable<Task> tasks;
-			lock (Lock)
-			{
-				tasks = Wallets.Where(x => x.ChaumianClient is { }).Select(x => x.ChaumianClient.DequeueAllCoinsFromMixGracefullyAsync(reason, token)).ToArray();
-			}
-			await Task.WhenAll(tasks).ConfigureAwait(false);
 		}
 
 		public bool WalletExists(HDFingerprint? fingerprint) => GetWallets().Any(x => fingerprint is { } && x.KeyManager.MasterFingerprint == fingerprint);
@@ -432,14 +411,6 @@ namespace WalletWasabi.Wallets
 			lock (Lock)
 			{
 				return Wallets.Single(x => x.KeyManager.WalletName == walletName);
-			}
-		}
-
-		public bool AnyCoinJoinInProgress()
-		{
-			lock (Lock)
-			{
-				return Wallets.Any(x => x.ChaumianClient?.State.AnyCoinsQueued() is true);
 			}
 		}
 	}

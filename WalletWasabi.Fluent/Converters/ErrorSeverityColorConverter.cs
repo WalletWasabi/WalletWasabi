@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Gui.Converters
+namespace WalletWasabi.Fluent.Converters
 {
 	public class ErrorSeverityColorConverter : IValueConverter
 	{

@@ -61,7 +61,7 @@ namespace WalletWasabi.Fluent.Helpers
 
 		}
 
-		public static bool TryBuildTransaction(Wallet wallet, TransactionInfo transactionInfo, [NotNullWhen(true)]out BuildTransactionResult? transaction, bool isPayJoin = false)
+		public static bool TryBuildTransaction(Wallet wallet, TransactionInfo transactionInfo, [NotNullWhen(true)] out BuildTransactionResult? transaction, bool isPayJoin = false)
 		{
 			transaction = null;
 
@@ -113,19 +113,19 @@ namespace WalletWasabi.Fluent.Helpers
 			var psbtExtension = "psbt";
 			var filePath = await FileDialogHelper.ShowSaveFileDialogAsync("Export transaction", psbtExtension);
 
-            if (!string.IsNullOrWhiteSpace(filePath))
-            {
-            	var ext = Path.GetExtension(filePath);
-            	if (string.IsNullOrWhiteSpace(ext))
-            	{
-	                filePath = $"{filePath}.{psbtExtension}";
-            	}
-            	await File.WriteAllBytesAsync(filePath, transaction.Psbt.ToBytes());
+			if (!string.IsNullOrWhiteSpace(filePath))
+			{
+				var ext = Path.GetExtension(filePath);
+				if (string.IsNullOrWhiteSpace(ext))
+				{
+					filePath = $"{filePath}.{psbtExtension}";
+				}
+				await File.WriteAllBytesAsync(filePath, transaction.Psbt.ToBytes());
 
-                return true;
-            }
+				return true;
+			}
 
-            return false;
+			return false;
 		}
 	}
 }

@@ -88,9 +88,9 @@ namespace WalletWasabi.Blockchain.Keys
 		public WpkhDescriptors GetOutputDescriptors(string password, Network network)
 		{
 			if (!MasterFingerprint.HasValue)
-            {
+			{
 				throw new InvalidOperationException($"{nameof(MasterFingerprint)} is not defined.");
-            }
+			}
 
 			return WpkhOutputDescriptorHelper.GetOutputDescriptors(network, MasterFingerprint.Value, GetMasterExtKey(password), AccountKeyPath);
 		}
@@ -115,7 +115,7 @@ namespace WalletWasabi.Blockchain.Keys
 		public bool? PasswordVerified { get; private set; }
 
 		[JsonProperty(Order = 6)]
-		public int? MinGapLimit { get; private set; }
+		public int MinGapLimit { get; private set; }
 
 		[JsonProperty(Order = 7)]
 		[JsonConverter(typeof(KeyPathJsonConverter))]
@@ -343,7 +343,7 @@ namespace WalletWasabi.Blockchain.Keys
 			// If not found, generate a new.
 			if (newKey is null)
 			{
-				SetMinGapLimit(MinGapLimit.Value + 1);
+				SetMinGapLimit(MinGapLimit + 1);
 				newKey = AssertCleanKeysIndexed(isInternal: false).First();
 
 				// If the new is over the MinGapLimit, set minGapLimitIncreased to true.

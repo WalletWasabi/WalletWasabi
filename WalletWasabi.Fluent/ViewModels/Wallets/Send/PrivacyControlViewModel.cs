@@ -95,8 +95,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				Complete();
 			}
 			else if (_isSilent &&
-			         _pocketSource.Items.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText) is { } privatePocket &&
-			         privatePocket.Coins.TotalAmount() >= _transactionInfo.Amount)
+					 _pocketSource.Items.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText) is { } privatePocket &&
+					 privatePocket.Coins.TotalAmount() >= _transactionInfo.Amount)
 			{
 				privatePocket.IsSelected = true;
 				Complete();

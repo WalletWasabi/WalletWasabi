@@ -71,7 +71,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 
 			Prison prison = new();
 			using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync(round, blameRound);
-			
+
 			prison.Punish(bannedCoin, Punishment.Banned, uint256.Zero);
 			await using ArenaRequestHandler handler = new(cfg, prison, arena);
 

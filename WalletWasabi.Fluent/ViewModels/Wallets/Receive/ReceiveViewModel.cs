@@ -54,7 +54,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 			if (minGapLimitIncreased)
 			{
-				int minGapLimit = _wallet.KeyManager.MinGapLimit.Value;
+				int minGapLimit = _wallet.KeyManager.MinGapLimit;
 				int prevMinGapLimit = minGapLimit - 1;
 				var minGapLimitMessage = $"Minimum gap limit increased from {prevMinGapLimit} to {minGapLimit}.";
 

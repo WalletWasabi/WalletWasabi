@@ -143,17 +143,14 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 		}
 
-		public async Task StartOutputRegistrationsAsync(IEnumerable<TxOut> txOuts, BobClient bobClient, TimeSpan remainingTimeForOutputRegistration, CancellationToken cancellationToken)
+		public async Task StartOutputRegistrationsAsync(IEnumerable<TxOut> txOuts, BobClient bobClient, CancellationToken cancellationToken)
 		{
 			List<Task> outputTasks = new();
 
 			using CancellationTokenSource ctsOnError = new();
 			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctsOnError.Token);
 
-			// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to be registered.
-			var scheduledDates = remainingTimeForOutputRegistration.SamplePoisson(txOuts.Count());
-
-			foreach (var (node, txOut, when) in Graph.Outputs.Zip(txOuts, scheduledDates))
+			foreach (var (node, txOut) in Enumerable.Zip(Graph.Outputs, txOuts))
 			{
 				var amountCredsToPresentTasks = Graph.InEdges(node, CredentialType.Amount).Select(edge => DependencyTasks[edge].Task);
 				var vsizeCredsToPresentTasks = Graph.InEdges(node, CredentialType.Vsize).Select(edge => DependencyTasks[edge].Task);
@@ -175,7 +172,7 @@ namespace WalletWasabi.WabiSabi.Client
 							throw exception;
 						}
 					}, linkedCts.Token);
-				outputTasks.Add(task.RunAsScheduledAsync(when, cancellationToken));
+				outputTasks.Add(task);
 			}
 
 			await Task.WhenAll(outputTasks).ConfigureAwait(false);

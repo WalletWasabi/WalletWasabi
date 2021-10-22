@@ -24,9 +24,8 @@ using WalletWasabi.CoinJoin.Client;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Gui.Helpers;
-using WalletWasabi.Gui.Models;
-using WalletWasabi.Gui.Rpc;
+using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.Rpc;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
@@ -39,7 +38,7 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
 
-namespace WalletWasabi.Gui
+namespace WalletWasabi.Fluent
 {
 	public class Global
 	{

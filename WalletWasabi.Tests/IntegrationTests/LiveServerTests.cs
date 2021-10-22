@@ -7,8 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Blockchain.BlockFilters;
-using WalletWasabi.CoinJoin.Client.Clients;
-using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Tor;
@@ -61,17 +59,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 			Assert.NotNull(filtersResponse);
 			Assert.True(filtersResponse!.Filters.Count() == 2);
-		}
-
-		[Theory]
-		[MemberData(nameof(GetNetworks))]
-		public async Task GetAllRoundStatesAsync(Network network)
-		{
-			TorHttpClient torHttpClient = MakeTorHttpClient(network);
-			SatoshiClient client = new(torHttpClient);
-			var states = await client.GetAllRoundStatesAsync();
-			Assert.True(states.NotNullAndNotEmpty());
-			Assert.True(states.Any());
 		}
 
 		[Theory]
@@ -138,8 +125,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 			var updateStatus = await client.CheckUpdatesAsync(CancellationToken.None);
 
 			Version expectedVersion = new(2, 0);
+			Version expectedClientVersion = new(1, 1, 12, 9);
 			ushort backendVersion = 4;
-			Assert.Equal(new(true, true, expectedVersion, backendVersion), updateStatus);
+			Assert.Equal(new(true, true, expectedVersion, backendVersion, expectedClientVersion), updateStatus);
 			Assert.True(updateStatus.BackendCompatible);
 			Assert.True(updateStatus.ClientUpToDate);
 			Assert.Equal(expectedVersion, updateStatus.LegalDocumentsVersion);

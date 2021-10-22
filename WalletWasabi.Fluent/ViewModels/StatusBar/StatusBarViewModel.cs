@@ -62,7 +62,7 @@ namespace WalletWasabi.Fluent.ViewModels.StatusBar
 
 		public ICommand AskMeLaterCommand { get; }
 
-		private CompositeDisposable Disposables { get; } = new ();
+		private CompositeDisposable Disposables { get; } = new();
 
 		private bool UseTor { get; }
 
@@ -153,11 +153,9 @@ namespace WalletWasabi.Fluent.ViewModels.StatusBar
 
 			Observable.FromEventPattern<UpdateStatus>(updateChecker, nameof(updateChecker.UpdateStatusChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(async e =>
+				.Subscribe(e =>
 				{
 					var updateStatus = e.EventArgs;
-					var cancelToken = new CancellationTokenSource(TimeSpan.FromMinutes(1));
-					var (clientVersion, _, _) = await updateChecker.WasabiClient.GetVersionsAsync(cancelToken.Token);
 
 					UpdateAvailable = !updateStatus.ClientUpToDate;
 					CriticalUpdateAvailable = !updateStatus.BackendCompatible;
@@ -168,7 +166,7 @@ namespace WalletWasabi.Fluent.ViewModels.StatusBar
 					}
 					else if (UpdateAvailable)
 					{
-						VersionText = $"Version {clientVersion} is now available";
+						VersionText = $"Version {updateStatus.ClientVersion} is now available";
 					}
 				})
 				.DisposeWith(Disposables);
