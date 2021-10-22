@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -13,9 +12,9 @@ namespace WalletWasabi.Fluent.Behaviors
 {
 	public class RandomizedOpacityBehavior : Behavior<Control>
 	{
-		private static readonly List<Control> _targetControls = new();
-		private static readonly Random _randomSource = new();
-		private static CancellationTokenSource _cts = new();
+		private static readonly List<Control> TargetControls = new();
+		private static readonly Random RandomSource = new();
+		private static CancellationTokenSource Cts = new();
 
 		private static void RunAnimation()
 		{
@@ -23,21 +22,23 @@ namespace WalletWasabi.Fluent.Behaviors
 			{
 				var targetIndices = new List<int>();
 
-				while (!_cts.IsCancellationRequested)
+				while (!Cts.IsCancellationRequested)
 				{
 					if (targetIndices.Count == 0)
 					{
-						targetIndices.AddRange(Enumerable.Range(0, _targetControls.Count));
+						targetIndices.AddRange(Enumerable.Range(0, TargetControls.Count));
 					}
 
 					Task.WaitAll(
-						targetIndices.OrderBy(_ => _randomSource.Next(0, targetIndices.Count))
+						targetIndices.OrderBy(_ => RandomSource.NextDouble())
 										  .Take(4)
 										  .Where(x => targetIndices.Remove(x))
 										  .ToArray()
-										  .Select(x => Animate(_targetControls[x]))
-										  .ToArray());
+										  .Select(x => Animate(TargetControls[x]))
+										  .ToArray(), Cts.Token);
 				}
+
+				Cts.Dispose();
 			});
 		}
 
@@ -60,11 +61,11 @@ namespace WalletWasabi.Fluent.Behaviors
 
 		protected override void OnDetaching()
 		{
-			_targetControls.Remove(AssociatedObject);
+			TargetControls.Remove(AssociatedObject);
 
-			if (_targetControls.Count == 0)
+			if (TargetControls.Count == 0)
 			{
-				_cts.Dispose();
+				Cts.Cancel();
 			}
 
 			base.OnDetaching();
@@ -79,9 +80,9 @@ namespace WalletWasabi.Fluent.Behaviors
 				return;
 			}
 
-			var wasEmpty = _targetControls.Count == 0;
+			var wasEmpty = TargetControls.Count == 0;
 
-			_targetControls.Add(AssociatedObject);
+			TargetControls.Add(AssociatedObject);
 
 			Dispatcher.UIThread.InvokeAsync(() =>
 			{
@@ -93,7 +94,7 @@ namespace WalletWasabi.Fluent.Behaviors
 				return;
 			}
 
-			_cts = new CancellationTokenSource();
+			Cts = new CancellationTokenSource();
 			RunAnimation();
 		}
 	}
