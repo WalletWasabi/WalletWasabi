@@ -12,7 +12,8 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <DataBox Items="{Binding Addresses}">
+    <DataBox Items="{Binding Addresses}"
+             CanUserSortColumns="True">
       <DataBox.Styles>
         <Style Selector="c|AnimatedButton.addressActionButton">
           <Setter Property="DockPanel.Dock" Value="Right"/>
