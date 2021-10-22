@@ -127,7 +127,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 				// Output registration.
 				roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
- 				await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, cancellationToken).ConfigureAwait(false);
+				await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, cancellationToken).ConfigureAwait(false);
 
 				// ReadyToSign.
 				await ReadyToSignAsync(registeredAliceClients, cancellationToken).ConfigureAwait(false);
@@ -193,12 +193,7 @@ namespace WalletWasabi.WabiSabi.Client
 				}
 			}
 
-			// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to be registered.
-			var remainingTimeForRegistration = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
-			var scheduledDates = remainingTimeForRegistration.SamplePoisson(smartCoins.Count());
-
-			// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
-			var aliceClients = smartCoins.Zip(scheduledDates, (coin, date) => RegisterInputAsync(coin, cancellationToken).RunAsScheduledAsync(date, cancellationToken)).ToImmutableArray();
+			var aliceClients = smartCoins.Select(coin => RegisterInputAsync(coin, cancellationToken)).ToImmutableArray();
 
 			await Task.WhenAll(aliceClients).ConfigureAwait(false);
 

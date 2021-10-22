@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -62,6 +63,12 @@ namespace WalletWasabi.WabiSabi.Client
 			while (!stoppingToken.IsCancellationRequested)
 			{
 				await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
+
+				if (!RoundStatusUpdater.AnyRound)
+				{
+					continue;
+				}
+
 				var mixableWallets = GetMixableWallets();
 				var openedWallets = mixableWallets.Where(x => !trackedWallets.ContainsKey(x.Key));
 				var closedWallets = trackedWallets.Where(x => !mixableWallets.ContainsKey(x.Key));
@@ -135,6 +142,11 @@ namespace WalletWasabi.WabiSabi.Client
 					catch (Exception e)
 					{
 						Logger.LogError($"{logPrefix} failed with exception:", e);
+					}
+
+					foreach (var coins in finishedCoinJoin.CoinCandidates)
+					{
+						coins.CoinJoinInProgress = false;
 					}
 				}
 
