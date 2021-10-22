@@ -16,7 +16,7 @@ namespace WalletWasabi.Fluent.Behaviors
 		protected override void OnDetaching()
 		{
 			base.OnDetaching();
-			_cts?.Dispose();
+			_cts.Dispose();
 		}
 
 		protected override void OnAttached()
@@ -29,19 +29,19 @@ namespace WalletWasabi.Fluent.Behaviors
 				{
 					while (!_cts.IsCancellationRequested)
 					{
-						Dispatcher.UIThread.Post(() =>
+						await Dispatcher.UIThread.InvokeAsync(() =>
 						{
 							AssociatedObject.SetValue(Control.OpacityProperty, 0, BindingPriority.Style);
 						});
 
 						await Task.Delay(TimeSpan.FromSeconds(_randomSource.Next(1,10)));
 
-						Dispatcher.UIThread.Post(() =>
+						await Dispatcher.UIThread.InvokeAsync(() =>
 						{
 							AssociatedObject.SetValue(Control.OpacityProperty, 1, BindingPriority.Style);
 						});
 
-						await Task.Delay(TimeSpan.FromSeconds(_randomSource.Next(1,10)));
+						await Task.Delay(TimeSpan.FromSeconds(_randomSource.Next(1,3)));
 					}
 				});
 			}
