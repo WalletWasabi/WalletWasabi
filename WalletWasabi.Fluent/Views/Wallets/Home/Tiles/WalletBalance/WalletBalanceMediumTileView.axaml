@@ -4,13 +4,40 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:models="clr-namespace:WalletWasabi.Fluent.Models"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="330" d:DesignHeight="150"
              x:CompileBindings="True" x:DataType="vm:WalletBalanceTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalance.WalletBalanceMediumTileView">
   <DockPanel>
     <TextBlock Text="Balance" DockPanel.Dock="Top" />
+    <StackPanel DockPanel.Dock="Bottom" Spacing="10" Margin="0 5 0 0">
+      <Separator  />
+      <ItemsControl DockPanel.Dock="Bottom" VerticalAlignment="Center" HorizontalAlignment="Right" Items="{Binding TestDataPointsLegend}" >
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="models:DataLegend">
+            <StackPanel Orientation="Horizontal" Spacing="10" TextBlock.FontFamily="{StaticResource MonospacedFont}">
+              <Ellipse Margin="0,0,8,0" HorizontalAlignment="Left" Width="10"
+                       Height="10"
+                       Fill="{Binding HexColor, Converter={x:Static converters:ColorStringConverters.HexColorToBrush}}" />
+
+              <controls:PrivacyContentControl NumberOfPrivacyChars="9" Margin="0 0 8 0"
+                                              Content="{Binding Amount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
+
+              <TextBlock DockPanel.Dock="Right" HorizontalAlignment="Right" Text="{Binding Label}" Margin="0 0 8 0" />
+            </StackPanel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+      </ItemsControl>
+    </StackPanel>
+
     <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Spacing="16">
-      <Viewbox Height="47" Width="47" DockPanel.Dock="Left">
+      <Viewbox Height="40" Width="40" DockPanel.Dock="Left">
         <Panel>
           <Ellipse Stroke="{DynamicResource SystemAccentColor}" StrokeThickness="4"
                    Height="115" Width="115" />

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
@@ -9,6 +10,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Wallets;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
@@ -26,6 +28,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _recentTransactionDate;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _recentTransactionStatus;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _showRecentTransaction;
+		[AutoNotify] private IList<(string color, double percentShare)>? _testDataPoints;
+		[AutoNotify] private IList<DataLegend>? _testDataPointsLegend;
 
 		public WalletBalanceTileViewModel(Wallet wallet, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModelBase> history)
 		{
@@ -60,11 +64,26 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			var privateCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold);
 			var normalCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold);
 
-			BalancePrivateBtc = privateCoins.TotalAmount().ToDecimal(MoneyUnit.BTC)
+			var privateDecimalAmount = privateCoins.TotalAmount();
+			var totalDecimalAmount = _wallet.Coins.TotalAmount();
+
+			BalancePrivateBtc = privateDecimalAmount
 				.FormattedBtc() + " BTC";
 
 			BalanceNonPrivateBtc = normalCoins.TotalAmount().ToDecimal(MoneyUnit.BTC)
 				.FormattedBtc() + " BTC";
+
+			var pcPrivate = _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC) == 0M ? 0d : (double)(privateDecimalAmount.ToDecimal(MoneyUnit.BTC) / totalDecimalAmount.ToDecimal(MoneyUnit.BTC));
+
+			TestDataPoints = new List<(string, double)>
+			{
+				("#78A827", pcPrivate)
+			};
+
+			TestDataPointsLegend = new List<DataLegend>
+			{
+				new(privateDecimalAmount, "Private", "#78A827", pcPrivate)
+			};
 		}
 
 		private void UpdateRecentTransaction()
