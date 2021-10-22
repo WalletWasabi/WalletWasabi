@@ -94,7 +94,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 			using var nodes = new NodesGroup(network, connectionParameters, requirements: Constants.NodeRequirements);
 
-			KeyManager keyManager = KeyManager.CreateNew(out _, "password");
+			KeyManager keyManager = KeyManager.CreateNew(out _, "password", network);
 			using HttpClientFactory httpClientFactory = new(Common.TorSocks5Endpoint, backendUriGetter: () => new Uri("http://localhost:12345"));
 			WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
 			var feeProvider = new HybridFeeProvider(synchronizer, null);

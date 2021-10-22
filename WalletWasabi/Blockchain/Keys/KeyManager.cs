@@ -164,7 +164,7 @@ namespace WalletWasabi.Blockchain.Keys
 		private object ToFileLock { get; }
 		public string WalletName => string.IsNullOrWhiteSpace(FilePath) ? "" : Path.GetFileNameWithoutExtension(FilePath);
 
-		public static KeyManager CreateNew(out Mnemonic mnemonic, string password, string? filePath = null, Network? network = null)
+		public static KeyManager CreateNew(out Mnemonic mnemonic, string password, Network? network = null, string? filePath = null)
 		{
 			password ??= "";
 
