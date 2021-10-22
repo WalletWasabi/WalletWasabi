@@ -63,7 +63,10 @@ namespace WalletWasabi.WabiSabi.Client
 			while (!stoppingToken.IsCancellationRequested)
 			{
 				await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
-				var mixableWallets = GetMixableWallets();
+
+				var mixableWallets = RoundStatusUpdater.AnyRound
+					? GetMixableWallets()
+					: ImmutableDictionary<string, Wallet>.Empty;
 				var openedWallets = mixableWallets.Where(x => !trackedWallets.ContainsKey(x.Key));
 				var closedWallets = trackedWallets.Where(x => !mixableWallets.ContainsKey(x.Key));
 
