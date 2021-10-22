@@ -136,6 +136,15 @@ pgrep -ilfa tor
 sudo killall tor
 ```
 
+### Update Tor
+
+```sh
+sudo apt update
+apt list --upgradable | grep tor
+sudo apt install --only-upgrade tor
+```
+
+
 Create torrc:
 
 ```sh
