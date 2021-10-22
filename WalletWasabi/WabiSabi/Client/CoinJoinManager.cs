@@ -63,18 +63,17 @@ namespace WalletWasabi.WabiSabi.Client
 			while (!stoppingToken.IsCancellationRequested)
 			{
 				await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
-
-				if (!RoundStatusUpdater.AnyRound)
-				{
-					continue;
-				}
-
 				var mixableWallets = GetMixableWallets();
 				var openedWallets = mixableWallets.Where(x => !trackedWallets.ContainsKey(x.Key));
 				var closedWallets = trackedWallets.Where(x => !mixableWallets.ContainsKey(x.Key));
 
 				foreach (var openedWallet in openedWallets.Select(x => x.Value))
 				{
+					if (!RoundStatusUpdater.AnyRound)
+					{
+						break;
+					}
+
 					var coinCandidates = SelectCandidateCoins(openedWallet).ToArray();
 					if (coinCandidates.Length == 0)
 					{
