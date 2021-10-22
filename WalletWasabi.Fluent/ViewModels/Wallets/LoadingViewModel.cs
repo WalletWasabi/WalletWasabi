@@ -30,6 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			_wallet = wallet;
 			_statusText = "";
 			_percent = 0;
+			_isDownloading = true;
 
 			Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
 				.Where(status => status == BackendStatus.Connected)

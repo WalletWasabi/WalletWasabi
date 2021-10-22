@@ -18,7 +18,7 @@
         Text="This is done over an untraceable network making your activity appear from random locations throughout the world."
         TextAlignment="Center" TextWrapping="Wrap" Opacity="0.6"  />
 
-      <ProgressBar Value="{Binding Percent}" IsIndeterminate="{Binding !$self.Value}" />
+      <ProgressBar Value="{Binding Percent}" IsIndeterminate="{Binding !Percent}" />
       <TextBlock Text="{Binding StatusText}" TextAlignment="Center" Opacity="0.6"  />
 
       <TextBlock
