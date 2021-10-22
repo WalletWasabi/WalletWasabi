@@ -46,6 +46,10 @@
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
 
+    <Color x:Key="WelcomeScreenButtonBackground">#DADFE7</Color>
+    <Color x:Key="WelcomeScreenButtonBackgroundPressed">#C1CBD7</Color>
+    <Color x:Key="WelcomeScreenButtonBackgroundPointerOver">#CDD5DF</Color>
+
     <SolidColorBrush x:Key="TextControlBorderBrush" Color="#CED7E2" />
     <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#A9B2BC" />
     <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#0B2545" />

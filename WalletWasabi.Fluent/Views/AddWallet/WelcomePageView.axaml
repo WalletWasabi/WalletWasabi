@@ -3,56 +3,218 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:addWallet="clr-namespace:WalletWasabi.Fluent.ViewModels.AddWallet"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800"
-             x:Class="WalletWasabi.Fluent.Views.AddWallet.WelcomePageView">
-  <UserControl.Styles>
-    <Style Selector="Button.action /template/ ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource AccentButtonBackgroundPointerOver}" />
-    </Style>
-  </UserControl.Styles>
-  <controls:ContentArea
-    EnableCancel="False"
-    EnableBack="False"
-    EnableNext="False"
-    ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <DockPanel LastChildFill="True">
-      <DockPanel DockPanel.Dock="Top">
-        <StackPanel Spacing="20" DockPanel.Dock="Left">
-          <Viewbox Height="48" HorizontalAlignment="Left">
-            <ContentControl Template="{DynamicResource wasabi_logo_fixed}" />
-          </Viewbox>
+             x:Class="WalletWasabi.Fluent.Views.AddWallet.WelcomePageView"
+             x:DataType="addWallet:WelcomePageViewModel"
+             x:CompileBindings="True">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Right" Command="{Binding NextCommand}" />
+    <KeyBinding Gesture="Left" Command="{Binding PrevCommand}" />
+  </UserControl.KeyBindings>
+  <i:Interaction.Behaviors>
+    <behaviors:FocusOnAttachedBehavior />
+  </i:Interaction.Behaviors>
+  <controls:ContentArea EnableCancel="{Binding EnableCancel}"
+                        EnableBack="{Binding EnableBack}"
+                        EnableNext="False"
+                        ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <DockPanel LastChildFill="True" x:DataType="addWallet:WelcomePageViewModel">
 
-          <TextBlock FontWeight="600" HorizontalAlignment="Left" FontSize="28" Text="Welcome to Wasabi Wallet"
-                     TextWrapping="Wrap" />
-        </StackPanel>
-      </DockPanel>
+      <!-- Indicator & Buttons -->
+      <Panel DockPanel.Dock="Bottom">
 
-      <Button HorizontalAlignment="Center" VerticalAlignment="Bottom" Classes="action" Content="Get Started"
-              DockPanel.Dock="Bottom" Margin="0 40 0 0"
-              Command="{Binding GetStartedCommand}" />
+        <ListBox HorizontalAlignment="Center"
+                 SelectedIndex="{Binding SelectedIndex}"
+                 Background="Transparent"
+                 IsHitTestVisible="False">
+          <ListBox.Styles>
+            <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+              <Setter Property="Background" Value="Transparent" />
+            </Style>
+            <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+              <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
+            </Style>
+            <Style Selector="ListBoxItem">
+              <Setter Property="Opacity" Value="0.3" />
+            </Style>
+            <Style Selector="ListBoxItem:selected">
+              <Setter Property="Opacity" Value="1" />
+            </Style>
+            <Style Selector="Ellipse">
+              <Setter Property="Fill" Value="{DynamicResource SystemChromeAltLowColor}" />
+              <Setter Property="Width" Value="9" />
+              <Setter Property="Height" Value="9" />
+            </Style>
+          </ListBox.Styles>
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Horizontal" Spacing="5" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <Ellipse />
+          <Ellipse />
+          <Ellipse />
+          <Ellipse />
+          <Ellipse />
+        </ListBox>
 
-      <ScrollViewer HorizontalScrollBarVisibility="Disabled" Margin="0 15 0 0">
-
-        <StackPanel Spacing="22" TextBlock.FontSize="12" >
+        <!-- Carousel nav buttons -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="5">
           <StackPanel.Styles>
-            <Style Selector="TextBlock">
-              <Setter Property="TextWrapping" Value="Wrap" />
+            <Style Selector="Button">
+              <Setter Property="Width" Value="30" />
+              <Setter Property="Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
+              <Setter Property="Background" Value="{DynamicResource WelcomeScreenButtonBackground}" />
+              <Setter Property="Height" Value="30" />
+              <Setter Property="HorizontalContentAlignment" Value="Center" />
+              <Setter Property="VerticalContentAlignment" Value="Center" />
+              <Setter Property="Padding" Value="0" />
+              <Setter Property="BorderThickness" Value="0" />
+            </Style>
+            <Style Selector="Button:disabled">
+              <Setter Property="Opacity" Value="0.2" />
+            </Style>
+            <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+              <Setter Property="Background" Value="{DynamicResource WelcomeScreenButtonBackgroundPointerOver}" />
+              <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
+            </Style>
+            <Style Selector="Button:pressed  /template/ ContentPresenter#PART_ContentPresenter">
+              <Setter Property="Background" Value="{DynamicResource WelcomeScreenButtonBackgroundPressed}" />
+              <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
+            </Style>
+            <Style Selector="Button > PathIcon">
+              <Setter Property="Width" Value="5" />
             </Style>
           </StackPanel.Styles>
-          <TextBlock TextWrapping="Wrap">
-            Being put in a position to trust someone is always uncomfortable. Especially regarding personal information or your money. This is why Wasabi Wallet is verifiably trustless by design. Don't trust, verify
-          </TextBlock>
-
-          <TextBlock>
-            We architecturally ensure that we cannot collect information from you, even if we wanted to. We live in a world where your information is being used to typecast, manipulate and surveil you. What you do with your Bitcoin is your business
-          </TextBlock>
-
-          <TextBlock>
-            Use Wasabi Wallet to retain your individuality, regain your identity and ultimately, reclaim your privacy. We let you control what you reveal about your Bitcoin life. Welcome to Wasabi Wallet sovereign individual
-          </TextBlock>
+          <Button Command="{Binding PrevCommand}">
+            <PathIcon Data="{StaticResource chevron_left}" />
+          </Button>
+          <Button Command="{Binding NextCommand}">
+            <PathIcon Data="{StaticResource chevron_right}" />
+          </Button>
         </StackPanel>
-      </ScrollViewer>
+      </Panel>
 
+      <!-- Pages -->
+      <Carousel SelectedIndex="{Binding SelectedIndex}"
+                DockPanel.Dock="Top"
+                Margin="0 10">
+        <Carousel.Styles>
+          <Style Selector="TextBlock.text">
+            <Setter Property="DockPanel.Dock" Value="Bottom" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Opacity" Value="0.5" />
+            <Setter Property="LineHeight" Value="22" />
+            <Setter Property="FontWeight" Value="Light" />
+          </Style>
+
+          <Style Selector="TextBlock.title">
+            <Setter Property="DockPanel.Dock" Value="Bottom" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="TextAlignment" Value="Left" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="FontSize" Value="31" />
+            <Setter Property="Margin" Value="0 10" />
+          </Style>
+
+          <Style Selector="Viewbox.icon">
+            <Setter Property="MaxHeight" Value="50" />
+            <Setter Property="DockPanel.Dock" Value="Bottom" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+          </Style>
+        </Carousel.Styles>
+        <Carousel.PageTransition>
+          <CrossFade Duration="0.6"
+                     FadeInEasing="{StaticResource FluentEasing}"
+                     FadeOutEasing="{StaticResource FluentEasing}"/>
+        </Carousel.PageTransition>
+
+        <!-- Welcome to Wasabi -->
+        <Grid ColumnDefinitions="*,*">
+          <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
+            <TextBlock Classes="text" Text="Use Wasabi Wallet to retain your individuality, regain your identity and ultimately, reclaim your privacy. We let you control what you reveal about your Bitcoin life. Welcome to Wasabi Wallet sovereign individual." />
+            <TextBlock Text="Welcome to Wasabi Wallet"
+                       Classes="title" />
+            <Viewbox Classes="icon">
+              <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
+            </Viewbox>
+          </DockPanel>
+          <Viewbox Grid.Column="1" VerticalAlignment="Center">
+            <Image Source="{Binding WelcomeImage}" />
+          </Viewbox>
+        </Grid>
+
+        <!-- Trustless by design -->
+        <Grid ColumnDefinitions="*,*">
+          <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
+            <TextBlock Classes="text" Text="Being put in a position to trust someone is always uncomfortable. Especially regarding personal information or your money. This is why Wasabi Wallet is verifiably trustless by design. Don't trust, verify." />
+            <TextBlock Text="Trustless by design"
+                       Classes="title" />
+            <Viewbox Classes="icon">
+              <PathIcon Data="{StaticResource shield_regular}" Foreground="{DynamicResource SliderTrackValueFill}" />
+            </Viewbox>
+          </DockPanel>
+          <Viewbox Grid.Column="1" VerticalAlignment="Center">
+            <Image Source="{Binding TrustlessImage}" />
+          </Viewbox>
+        </Grid>
+
+        <!-- Anonymous -->
+        <Grid ColumnDefinitions="*,*">
+          <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
+            <TextBlock Classes="text" Text="We architecturally ensure that we cannot collect information from you, even if we wanted to. We live in a world where your information is being used to typecast, manipulate and surveil you. What you do with your Bitcoin is your business." />
+            <TextBlock Text="Anonymous"
+                       Classes="title" />
+            <Viewbox Classes="icon">
+              <PathIcon Data="{StaticResource incognito_regular}" Foreground="{DynamicResource SliderTrackValueFill}" />
+            </Viewbox>
+          </DockPanel>
+          <Viewbox Grid.Column="1" VerticalAlignment="Center">
+            <Image Source="{Binding AnonymousImage}" />
+          </Viewbox>
+        </Grid>
+
+        <!-- Free and Open Source -->
+        <Grid ColumnDefinitions="*,*">
+          <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
+            <TextBlock Classes="text" Text="Wasabi follows Bitcoin's philosophy by making the software open-source and by publishing it under MIT license. Bitcoin users prefer open-source software to proprietary software for a number of reasons including: control, security, training &amp; stability." />
+            <TextBlock Text="Free and Open Source"
+                       Classes="title" />
+            <Viewbox Classes="icon">
+              <PathIcon Data="{StaticResource heart_regular}" Foreground="{DynamicResource SliderTrackValueFill}" />
+            </Viewbox>
+          </DockPanel>
+          <Viewbox Grid.Column="1" VerticalAlignment="Center">
+            <Image Source="{Binding OpensourceImage}" />
+          </Viewbox>
+        </Grid>
+
+        <!-- Get started -->
+        <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+          <Button HorizontalAlignment="Center"
+                  Classes="action"
+                  Content="Get Started"
+                  Command="{Binding GetStartedCommand}"
+                  IsDefault="{Binding IsActive}"
+                  DockPanel.Dock="Bottom" />
+          <TextBlock TextAlignment="Center"
+                     Text="There’s more to discover but it’s better to leave that &#x0a;on you. Without further ado, let’s begin!"
+                     Opacity="0.6"
+                     FontWeight="Light"
+                     LineHeight="22"
+                     DockPanel.Dock="Bottom"
+                     Margin="0 15"/>
+          <TextBlock Text="Start using Wasabi Wallet" FontSize="30" HorizontalAlignment="Center"
+                     DockPanel.Dock="Bottom" />
+          <Viewbox MaxHeight="60" HorizontalAlignment="Center" DockPanel.Dock="Bottom" Margin="0 0 0 15">
+            <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
+          </Viewbox>
+        </DockPanel>
+
+      </Carousel>
     </DockPanel>
   </controls:ContentArea>
 </UserControl>
