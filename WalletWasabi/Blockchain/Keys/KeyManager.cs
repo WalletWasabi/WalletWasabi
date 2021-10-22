@@ -60,7 +60,7 @@ namespace WalletWasabi.Blockchain.Keys
 			ToFile();
 		}
 
-		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, string password, int minGapLimit = AbsoluteMinGapLimit, string? filePath = null, KeyPath? accountKeyPath = null)
+		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, string password, Network network, int minGapLimit = AbsoluteMinGapLimit, string? filePath = null, KeyPath? accountKeyPath = null)
 		{
 			HdPubKeys = new List<HdPubKey>();
 			HdPubKeyScriptBytes = new List<byte[]>();
@@ -68,7 +68,7 @@ namespace WalletWasabi.Blockchain.Keys
 			HdPubKeysLock = new object();
 			HdPubKeyScriptBytesLock = new object();
 			ScriptHdPubKeyMapLock = new object();
-			BlockchainState = new BlockchainState();
+			BlockchainState = new BlockchainState(network);
 			BlockchainStateLock = new object();
 
 			password ??= "";

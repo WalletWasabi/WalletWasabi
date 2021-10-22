@@ -38,10 +38,10 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.NotNull(manager3.EncryptedSecret);
 			Assert.NotNull(manager3.ExtPubKey);
 
-			var sameManager = new KeyManager(manager.EncryptedSecret, manager.ChainCode, manager.MasterFingerprint, manager.ExtPubKey, true, null, new BlockchainState());
-			var sameManager2 = new KeyManager(manager.EncryptedSecret, manager.ChainCode, password);
+			var sameManager = new KeyManager(manager.EncryptedSecret, manager.ChainCode, manager.MasterFingerprint, manager.ExtPubKey, true, null, new BlockchainState(Network.Main));
+			var sameManager2 = new KeyManager(manager.EncryptedSecret, manager.ChainCode, password, Network.Main);
 			Logger.TurnOff();
-			Assert.Throws<SecurityException>(() => new KeyManager(manager.EncryptedSecret, manager.ChainCode, "differentPassword"));
+			Assert.Throws<SecurityException>(() => new KeyManager(manager.EncryptedSecret, manager.ChainCode, "differentPassword", Network.Main));
 			Logger.TurnOn();
 
 			Assert.Equal(manager.ChainCode, sameManager.ChainCode);
@@ -58,7 +58,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.NotEqual(manager.EncryptedSecret, differentManager.EncryptedSecret);
 			Assert.NotEqual(manager.ExtPubKey, differentManager.ExtPubKey);
 
-			var manager5 = new KeyManager(manager2.EncryptedSecret, manager2.ChainCode, password: null!);
+			var manager5 = new KeyManager(manager2.EncryptedSecret, manager2.ChainCode, password: null!, Network.Main);
 			Assert.Equal(manager2.ChainCode, manager5.ChainCode);
 			Assert.Equal(manager2.EncryptedSecret, manager5.EncryptedSecret);
 			Assert.Equal(manager2.ExtPubKey, manager5.ExtPubKey);
