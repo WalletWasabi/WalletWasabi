@@ -43,7 +43,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken) =>
 			SendAndReceiveAsync<OutputRegistrationRequest>(RemoteAction.RegisterOutput, request, cancellationToken);
 
-		public Task<ReissueCredentialResponse> ReissueCredentialAsync(ReissueCredentialRequest request, CancellationToken cancellationToken) =>
+		public Task<ReissueCredentialResponse> ReissuanceAsync(ReissueCredentialRequest request, CancellationToken cancellationToken) =>
 			SendAndReceiveAsync<ReissueCredentialRequest, ReissueCredentialResponse>(RemoteAction.ReissueCredential, request, cancellationToken);
 
 		public Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellationToken) =>
@@ -64,7 +64,7 @@ namespace WalletWasabi.WabiSabi.Client
 			return Deserialize<RoundState[]>(jsonString);
 		}
 
-		public Task ReadyToSign(ReadyToSignRequestRequest request, CancellationToken cancellationToken) =>
+		public Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken) =>
 			SendAndReceiveAsync<ReadyToSignRequestRequest>(RemoteAction.ReadyToSign, request, cancellationToken);
 
 		private async Task<string> SendAsync<TRequest>(RemoteAction action, TRequest request, CancellationToken cancellationToken) where TRequest : class
