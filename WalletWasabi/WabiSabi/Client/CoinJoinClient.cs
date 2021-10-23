@@ -198,11 +198,13 @@ namespace WalletWasabi.WabiSabi.Client
 			var scheduledDates = remainingTimeForRegistration.SamplePoisson(smartCoins.Count());
 
 			// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
-			var aliceClients = smartCoins.Zip(scheduledDates, async (coin, date) =>
-			{
-				await Task.Delay(date - DateTimeOffset.UtcNow, cancellationToken).ConfigureAwait(false);
-				return await RegisterInputAsync(coin, cancellationToken).ConfigureAwait(false);
-			}).ToImmutableArray();
+			var aliceClients = smartCoins.Zip(
+				scheduledDates,
+				async (coin, date) =>
+				{
+					await Task.Delay(date - DateTimeOffset.UtcNow, cancellationToken).ConfigureAwait(false);
+					return await RegisterInputAsync(coin, cancellationToken).ConfigureAwait(false);
+				}).ToImmutableArray();
 
 			await Task.WhenAll(aliceClients).ConfigureAwait(false);
 
@@ -252,11 +254,13 @@ namespace WalletWasabi.WabiSabi.Client
 			var scheduledDates = transactionSigningTimeFrame.SamplePoisson(aliceClients.Count());
 
 			// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
-			var signingRequests = aliceClients.Zip(scheduledDates, async (alice, date) =>
-			{
-				await Task.Delay(date - DateTimeOffset.UtcNow, cancellationToken).ConfigureAwait(false);
-				return await SignTransactionAsync(alice, cancellationToken).ConfigureAwait(false);
-			}).ToImmutableArray();
+			var signingRequests = aliceClients.Zip(
+				scheduledDates,
+				async (alice, date) =>
+				{
+					await Task.Delay(date - DateTimeOffset.UtcNow, cancellationToken).ConfigureAwait(false);
+					return await SignTransactionAsync(alice, cancellationToken).ConfigureAwait(false);
+				}).ToImmutableArray();
 
 			await Task.WhenAll(signingRequests).ConfigureAwait(false);
 		}
