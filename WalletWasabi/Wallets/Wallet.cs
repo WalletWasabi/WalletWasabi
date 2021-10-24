@@ -13,7 +13,6 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -171,8 +170,6 @@ namespace WalletWasabi.Wallets
 			{
 				State = WalletState.Starting;
 				InitializingChanged?.Invoke(this, true);
-
-				KeyManager.SetLastAccessTimeForNow();
 
 				if (!Synchronizer.IsRunning)
 				{
