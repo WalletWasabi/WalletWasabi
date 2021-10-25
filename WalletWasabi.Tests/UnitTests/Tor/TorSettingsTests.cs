@@ -1,5 +1,4 @@
 using System.IO;
-using System.Net;
 using WalletWasabi.Tor;
 using Xunit;
 
@@ -29,6 +28,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor
 				$"--DataDirectory \"{Path.Combine("temp", "tempDataDir", "tordata2")}\"",
 				$"--GeoIPFile \"{Path.Combine("tempDistributionDir", "Tor", "Geoip", "geoip")}\"",
 				$"--GeoIPv6File \"{Path.Combine("tempDistributionDir", "Tor", "Geoip", "geoip6")}\"",
+				$"--SafeLogging 1",
 				$"--Log \"notice file {Path.Combine("temp", "tempDataDir", "TorLogs.txt")}\"",
 				$"__OwningControllerProcess 7");
 
