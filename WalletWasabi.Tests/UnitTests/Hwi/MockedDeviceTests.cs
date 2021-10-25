@@ -61,8 +61,8 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			Assert.Equal("The PIN has already been sent to this device", sendpin.Message);
 			Assert.Equal(HwiErrorCode.DeviceAlreadyUnlocked, sendpin.ErrorCode);
 
-			KeyPath keyPath1 = KeyManager.DefaultAccountKeyPath;
-			KeyPath keyPath2 = KeyManager.DefaultAccountKeyPath.Derive(1);
+			KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network);
+			KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive(1);
 			ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 			ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
 			var expecteXpub1 = NBitcoinHelpers.BetterParseExtPubKey("xpub6DHjDx4gzLV37gJWMxYJAqyKRGN46MT61RHVizdU62cbVUYu9L95cXKzX62yJ2hPbN11EeprS8sSn8kj47skQBrmycCMzFEYBQSntVKFQ5M");
@@ -135,8 +135,8 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			Assert.Equal("The PIN has already been sent to this device", sendpin.Message);
 			Assert.Equal(HwiErrorCode.DeviceAlreadyUnlocked, sendpin.ErrorCode);
 
-			KeyPath keyPath1 = KeyManager.DefaultAccountKeyPath;
-			KeyPath keyPath2 = KeyManager.DefaultAccountKeyPath.Derive(1);
+			KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network);
+			KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive(1);
 			ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 			ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
 			var expecteXpub1 = NBitcoinHelpers.BetterParseExtPubKey("xpub6DHjDx4gzLV37gJWMxYJAqyKRGN46MT61RHVizdU62cbVUYu9L95cXKzX62yJ2hPbN11EeprS8sSn8kj47skQBrmycCMzFEYBQSntVKFQ5M");
@@ -221,8 +221,8 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			Assert.Equal("The Coldcard does not need a PIN sent from the host", sendpin.Message);
 			Assert.Equal(HwiErrorCode.UnavailableAction, sendpin.ErrorCode);
 
-			KeyPath keyPath1 = KeyManager.DefaultAccountKeyPath;
-			KeyPath keyPath2 = KeyManager.DefaultAccountKeyPath.Derive(1);
+			KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network);
+			KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive(1);
 			ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 			ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
 			var expecteXpub1 = NBitcoinHelpers.BetterParseExtPubKey("xpub6DHjDx4gzLV37gJWMxYJAqyKRGN46MT61RHVizdU62cbVUYu9L95cXKzX62yJ2hPbN11EeprS8sSn8kj47skQBrmycCMzFEYBQSntVKFQ5M");
@@ -301,8 +301,8 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			Assert.Equal("The Ledger Nano S does not need a PIN sent from the host", sendpin.Message);
 			Assert.Equal(HwiErrorCode.UnavailableAction, sendpin.ErrorCode);
 
-			KeyPath keyPath1 = KeyManager.DefaultAccountKeyPath;
-			KeyPath keyPath2 = KeyManager.DefaultAccountKeyPath.Derive(1);
+			KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network);
+			KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive(1);
 			ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 			ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
 			var expecteXpub1 = NBitcoinHelpers.BetterParseExtPubKey("xpub6DHjDx4gzLV37gJWMxYJAqyKRGN46MT61RHVizdU62cbVUYu9L95cXKzX62yJ2hPbN11EeprS8sSn8kj47skQBrmycCMzFEYBQSntVKFQ5M");
@@ -381,8 +381,8 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			Assert.Equal("The Ledger Nano X does not need a PIN sent from the host", sendpin.Message);
 			Assert.Equal(HwiErrorCode.UnavailableAction, sendpin.ErrorCode);
 
-			KeyPath keyPath1 = KeyManager.DefaultAccountKeyPath;
-			KeyPath keyPath2 = KeyManager.DefaultAccountKeyPath.Derive(1);
+			KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network);
+			KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive(1);
 			ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 			ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
 			var expecteXpub1 = NBitcoinHelpers.BetterParseExtPubKey("xpub6DHjDx4gzLV37gJWMxYJAqyKRGN46MT61RHVizdU62cbVUYu9L95cXKzX62yJ2hPbN11EeprS8sSn8kj47skQBrmycCMzFEYBQSntVKFQ5M");

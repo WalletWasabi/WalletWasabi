@@ -70,7 +70,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			{
 				var accountKeyPath = keyPath.GetAccountKeyPath();
 				if (keyPath.Length != accountKeyPath.Length ||
-					accountKeyPath.Length != KeyManager.DefaultAccountKeyPath.Length)
+					accountKeyPath.Length != KeyManager.GetAccountKeyPath(Network.Main).Length)
 				{
 					errors.Add(ErrorSeverity.Error, "Path is not a compatible account derivation path.");
 				}

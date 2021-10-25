@@ -144,7 +144,8 @@ namespace WalletWasabi.Tests.UnitTests
 		public void CanGenerateKeys()
 		{
 			string password = "password";
-			var manager = KeyManager.CreateNew(out _, password, Network.Main);
+			var network = Network.Main;
+			var manager = KeyManager.CreateNew(out _, password, network);
 
 			var random = new Random();
 
@@ -163,7 +164,7 @@ namespace WalletWasabi.Tests.UnitTests
 				Assert.Equal(isInternal, generatedKey.IsInternal);
 				Assert.Equal(label, generatedKey.Label);
 				Assert.Equal(keyState, generatedKey.KeyState);
-				Assert.StartsWith(KeyManager.DefaultAccountKeyPath.ToString(), generatedKey.FullKeyPath.ToString());
+				Assert.StartsWith(KeyManager.GetAccountKeyPath(network).ToString(), generatedKey.FullKeyPath.ToString());
 			}
 		}
 

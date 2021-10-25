@@ -28,9 +28,9 @@ namespace WalletWasabi.Blockchain.Keys
 		// BIP84-ish derivation scheme
 		// m / purpose' / coin_type' / account' / change / address_index
 		// https://github.com/bitcoin/bips/blob/master/bip-0084.mediawiki
-		public static readonly KeyPath DefaultAccountKeyPath = new("m/84h/0h/0h");
+		private static readonly KeyPath DefaultAccountKeyPath = new("m/84h/0h/0h");
 
-		public static readonly KeyPath TestNetAccountKeyPath = new("m/84h/1h/0h");
+		private static readonly KeyPath TestNetAccountKeyPath = new("m/84h/1h/0h");
 
 		[JsonConstructor]
 		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, bool? passwordVerified, int? minGapLimit, BlockchainState blockchainState, string? filePath = null, KeyPath? accountKeyPath = null)
