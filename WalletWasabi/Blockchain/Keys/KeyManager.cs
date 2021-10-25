@@ -173,7 +173,7 @@ namespace WalletWasabi.Blockchain.Keys
 			var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
 
 			HDFingerprint masterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
-			BlockchainState blockchainState = new BlockchainState(network);
+			BlockchainState blockchainState = new(network);
 			KeyPath keyPath = GetAccountKeyPath(network);
 			ExtPubKey extPubKey = extKey.Derive(keyPath).Neuter();
 			return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, false, AbsoluteMinGapLimit, blockchainState, filePath, keyPath);
