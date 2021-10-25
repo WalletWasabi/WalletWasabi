@@ -146,7 +146,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			{
 				KeyManager.AssertCleanKeysIndexed(isInternal: true);
 				KeyManager.AssertLockedInternalKeysIndexed(14);
-				changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).RandomElement();
+				changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).FirstOrDefault();
 
 				builder.SetChange(changeHdPubKey.P2wpkhScript);
 			}
