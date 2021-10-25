@@ -60,7 +60,7 @@ namespace WalletWasabi.Blockchain.Keys
 			ToFile();
 		}
 
-		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, string password, Network network, int minGapLimit = AbsoluteMinGapLimit, string? filePath = null, KeyPath? accountKeyPath = null)
+		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, string password, Network network)
 		{
 			HdPubKeys = new List<HdPubKey>();
 			HdPubKeyScriptBytes = new List<byte[]>();
@@ -73,17 +73,17 @@ namespace WalletWasabi.Blockchain.Keys
 
 			password ??= "";
 
-			SetMinGapLimit(minGapLimit);
+			SetMinGapLimit(AbsoluteMinGapLimit);
 
 			EncryptedSecret = Guard.NotNull(nameof(encryptedSecret), encryptedSecret);
 			ChainCode = Guard.NotNull(nameof(chainCode), chainCode);
 			var extKey = new ExtKey(encryptedSecret.GetKey(password), chainCode);
 
 			MasterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
-			AccountKeyPath = accountKeyPath ?? GetAccountKeyPath(BlockchainState.Network);
+			AccountKeyPath = GetAccountKeyPath(BlockchainState.Network);
 			ExtPubKey = extKey.Derive(AccountKeyPath).Neuter();
 
-			SetFilePath(filePath);
+			SetFilePath(null);
 			ToFileLock = new object();
 			ToFile();
 		}
