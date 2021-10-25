@@ -314,6 +314,7 @@
 
       <!-- Details -->
       <DataBoxTemplateColumn Width="Auto"
+                             MinWidth="55"
                              CanUserSort="False">
         <DataBoxTemplateColumn.CellTemplate>
           <DataTemplate>
