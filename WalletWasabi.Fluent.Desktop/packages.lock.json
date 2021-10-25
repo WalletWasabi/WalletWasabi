@@ -152,8 +152,8 @@
       },
       "DataBox": {
         "type": "Transitive",
-        "resolved": "0.10.8-beta3",
-        "contentHash": "IeSrbUqm4V9CMfKiFNQVy/7CVYadbIPZh7FBHIm7VrnKZ7CFqj9dlqk7npdf/cbFGdrIh8KaP2SrUE0+VOlo7A==",
+        "resolved": "0.10.8-beta4",
+        "contentHash": "eA1UCzRDvW4qJ3r2brKTAUA3VKGLIGr1aKuvOxh7NB6AQvt5GG952qGJneIf6UOeEObWVk6azN7HPzNTIklKHA==",
         "dependencies": {
           "Avalonia": "0.10.8"
         }
@@ -661,7 +661,7 @@
           "Avalonia.Diagnostics": "0.10.8",
           "Avalonia.ReactiveUI": "0.10.8",
           "Avalonia.Xaml.Behaviors": "0.10.8",
-          "DataBox": "0.10.8-beta3",
+          "DataBox": "0.10.8-beta4",
           "OpenCvSharp4": "4.5.2.20210404",
           "OpenCvSharp4.runtime.win": "4.5.2.20210404",
           "System.Reactive": "5.0.0",
