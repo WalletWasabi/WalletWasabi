@@ -65,9 +65,9 @@
       },
       "DataBox": {
         "type": "Direct",
-        "requested": "[0.10.8-beta2, )",
-        "resolved": "0.10.8-beta2",
-        "contentHash": "tLPxKxVSYgZx7ZomGOLbLmJACVGeEePabTU6MkpUdUlsVDvKDOVRCoAt8tazAlOtTk8k/5aselX31U+dhs4Vmw==",
+        "requested": "[0.10.8-beta3, )",
+        "resolved": "0.10.8-beta3",
+        "contentHash": "IeSrbUqm4V9CMfKiFNQVy/7CVYadbIPZh7FBHIm7VrnKZ7CFqj9dlqk7npdf/cbFGdrIh8KaP2SrUE0+VOlo7A==",
         "dependencies": {
           "Avalonia": "0.10.8"
         }
