@@ -49,7 +49,7 @@
             </c:PreviewItem>
             <Separator />
             <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
-                           Text="for an additional transaction fee of">
+                           Text="There will be an additional transaction fee of">
               <TextBox Classes="selectableTextBlock" Text="{Binding FeeText, FallbackValue=235 sats (≈55.34 USD)}" />
             </c:PreviewItem>
         </StackPanel>
