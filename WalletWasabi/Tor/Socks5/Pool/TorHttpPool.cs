@@ -40,7 +40,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 	{
 		/// <summary>Maximum number of <see cref="TorTcpConnection"/>s per URI host.</summary>
 		/// <remarks>This parameter affects maximum parallelization for given URI host.</remarks>
-		public const int MaxConnectionsPerHost = 10;
+		public const int MaxConnectionsPerHost = 100;
 
 		private bool _disposedValue;
 
