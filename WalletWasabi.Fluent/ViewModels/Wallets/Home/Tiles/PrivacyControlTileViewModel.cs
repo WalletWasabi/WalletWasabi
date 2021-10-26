@@ -46,6 +46,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			walletVm.Settings.WhenAnyValue(x => x.AutoCoinJoin).Subscribe(x => IsAutoCoinJoinEnabled = x);
 
+			this.WhenAnyValue(x => x.IsAutoCoinJoinEnabled)
+				.Subscribe(x =>
+				{
+					if (x)
+					{
+						StartBoostAnimation();
+					}
+					else
+					{
+						StopBoostAnimation();
+					}
+				});
+
 			this.WhenAnyValue(x => x.IsAutoCoinJoinEnabled, x => x.IsBoosting)
 				.Subscribe(x =>
 				{
@@ -63,11 +76,29 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			{
 				var isBoosting = IsBoosting = _wallet.AllowManualCoinJoin = !IsBoosting;
 
-				ShowBoostingAnimation = isBoosting;
+				if (isBoosting)
+				{
+					StartBoostAnimation();
+				}
+				else
+				{
+					StopBoostAnimation();
+				}
 
-				_animationTimer.Interval = TimeSpan.FromSeconds(5);
-				_animationTimer.IsEnabled = isBoosting;
 			});
+		}
+
+		private void StartBoostAnimation()
+		{
+			ShowBoostingAnimation = true;
+			_animationTimer.Interval = TimeSpan.FromSeconds(5);
+			_animationTimer.IsEnabled = true;
+		}
+
+		private void StopBoostAnimation()
+		{
+			ShowBoostingAnimation = false;
+			_animationTimer.IsEnabled = false;
 		}
 
 		protected override void OnActivated(CompositeDisposable disposables)
