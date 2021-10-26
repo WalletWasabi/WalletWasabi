@@ -273,8 +273,12 @@ namespace WalletWasabi.TorSocks5
 											// Check if it changed in the meantime...
 											if (TorHttpClient.LatestTorException is TorSocks5FailureResponseException torEx2 && torEx2.RepField == RepField.HostUnreachable)
 											{
-												// Fallback here...
-												RequestFallbackAddressUsage = true;
+												if (!RequestFallbackAddressUsage)
+												{
+													// Fallback here...
+													RequestFallbackAddressUsage = true;
+													Logger.LogInfo($"Backend onion unreachable - using fallback mechanism.");
+												}
 											}
 										}
 									}
