@@ -1,5 +1,4 @@
 using System.IO;
-using System.Net;
 using WalletWasabi.Tor;
 using Xunit;
 
