@@ -4,6 +4,7 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
+using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models;
@@ -18,16 +19,30 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		private readonly Wallet _wallet;
 		[AutoNotify] private bool _isAutoCoinJoinEnabled;
 		[AutoNotify] private bool _isBoosting;
+		[AutoNotify] private bool _showBoostingAnimation;
 		[AutoNotify] private bool _boostButtonVisible;
 		[AutoNotify] private IList<(string color, double percentShare)>? _testDataPoints;
 		[AutoNotify] private IList<DataLegend>? _testDataPointsLegend;
 		[AutoNotify] private string _percentText;
 		[AutoNotify] private double _percent;
+		private readonly DispatcherTimer _animationTimer;
 
 		public PrivacyControlTileViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
 		{
 			_wallet = walletVm.Wallet;
 			_balanceChanged = balanceChanged;
+
+			_animationTimer = new DispatcherTimer
+			{
+				Interval = TimeSpan.FromSeconds(30)
+			};
+
+			_animationTimer.Tick += (sender, args) =>
+			{
+				ShowBoostingAnimation = !ShowBoostingAnimation;
+
+				_animationTimer.Interval = ShowBoostingAnimation ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
+			};
 
 			walletVm.Settings.WhenAnyValue(x => x.AutoCoinJoin).Subscribe(x => IsAutoCoinJoinEnabled = x);
 
@@ -44,7 +59,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 					}
 				});
 
-			BoostPrivacyCommand = ReactiveCommand.Create(() => { IsBoosting = _wallet.AllowManualCoinJoin = !IsBoosting; });
+			BoostPrivacyCommand = ReactiveCommand.Create(() =>
+			{
+				var isBoosting = IsBoosting = _wallet.AllowManualCoinJoin = !IsBoosting;
+
+				ShowBoostingAnimation = isBoosting;
+
+				_animationTimer.Interval = TimeSpan.FromSeconds(5);
+				_animationTimer.IsEnabled = isBoosting;
+			});
 		}
 
 		protected override void OnActivated(CompositeDisposable disposables)

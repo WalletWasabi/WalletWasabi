@@ -54,9 +54,9 @@
       <Separator DockPanel.Dock="Bottom" Margin="0 10" IsVisible="{Binding !IsAutoCoinJoinEnabled}" />
 
       <Panel>
-        <controls:RingChartControl DataPoints="{Binding TestDataPoints}" Classes.visible="{Binding !IsBoosting}"
+        <controls:RingChartControl DataPoints="{Binding TestDataPoints}" Classes.visible="{Binding !ShowBoostingAnimation}"
                                    HorizontalAlignment="Center" VerticalAlignment="Center" />
-        <controls:ProgressRing IsIndeterminate="True" Classes.visible="{Binding IsBoosting}" />
+        <controls:ProgressRing IsIndeterminate="True" Classes.visible="{Binding ShowBoostingAnimation}" />
 
         <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding PercentText}" FontSize="36" />
       </Panel>
@@ -104,7 +104,7 @@
         </Button>-->
       </StackPanel>
 
-      <ProgressBar IsIndeterminate="{Binding IsBoosting}" Value="{Binding Percent}" DockPanel.Dock="Bottom" Margin="0 10" />
+      <ProgressBar IsIndeterminate="{Binding ShowBoostingAnimation}" Value="{Binding Percent}" DockPanel.Dock="Bottom" Margin="0 10" />
 
       <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding PercentText}" FontSize="36" />
     </DockPanel>
