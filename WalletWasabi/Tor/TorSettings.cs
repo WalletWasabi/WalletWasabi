@@ -73,6 +73,7 @@ namespace WalletWasabi.Tor
 
 		public string GetCmdArguments()
 		{
+			// `--SafeLogging 0` is useful for debugging to avoid "[scrubbed]" redactions in Tor log.
 			List<string> arguments = new()
 			{
 				$"--SOCKSPort {SocksEndpoint}",
@@ -82,7 +83,6 @@ namespace WalletWasabi.Tor
 				$"--DataDirectory \"{TorDataDir}\"",
 				$"--GeoIPFile \"{GeoIpPath}\"",
 				$"--GeoIPv6File \"{GeoIp6Path}\"",
-				$"--SafeLogging 1",
 				$"--Log \"notice file {LogFilePath}\""
 			};
 
