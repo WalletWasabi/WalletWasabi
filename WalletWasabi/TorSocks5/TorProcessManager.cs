@@ -277,7 +277,7 @@ namespace WalletWasabi.TorSocks5
 												{
 													// Fallback here...
 													RequestFallbackAddressUsage = true;
-													Logger.LogInfo($"Tor did not work properly - using fallback mechanism.");
+													Logger.LogInfo($"Backend onion unreachable - using fallback mechanism.");
 												}
 											}
 										}
