@@ -131,7 +131,7 @@ namespace WalletWasabi.Http.Models
 			message.Content.Headers.ContentLength = null;
 			foreach (var field in Fields)
 			{
-				if (field.Name.StartsWith("Content-", StringComparison.Ordinal))
+				if (field.Name.StartsWith("Content-", StringComparison.OrdinalIgnoreCase))
 				{
 					message.Content.Headers.TryAddWithoutValidation(field.Name, field.Value);
 				}
@@ -157,7 +157,7 @@ namespace WalletWasabi.Http.Models
 			message.Content.Headers.ContentLength = null;
 			foreach (var field in Fields)
 			{
-				if (field.Name.StartsWith("Content-", StringComparison.Ordinal))
+				if (field.Name.StartsWith("Content-", StringComparison.OrdinalIgnoreCase))
 				{
 					message.Content.Headers.TryAddWithoutValidation(field.Name, field.Value);
 				}
