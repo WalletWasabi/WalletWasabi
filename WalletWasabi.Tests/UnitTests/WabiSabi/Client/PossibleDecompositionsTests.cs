@@ -11,37 +11,33 @@ namespace WalletWasabi.Tests.WabiSabi.Client
 		[Fact]
 		public void TestPrune()
 		{
-			Assert.Equal(new Decomposition[] { }, PossibleDecompositions.Prune(new Decomposition[] { }, 0, 0));
-			Assert.Equal(new Decomposition[] { new() }, PossibleDecompositions.Prune(new Decomposition[] { new() }, 0, 0));
-			Assert.Equal(new Decomposition[] { new(), new() }, PossibleDecompositions.Prune(new Decomposition[] { new(), new() }, 0, 0));
-			Assert.Equal(new Decomposition[] { }, PossibleDecompositions.Prune(new Decomposition[] { new(1) }, 0, 0));
-			Assert.Equal(new Decomposition[] { new(1) }, PossibleDecompositions.Prune(new Decomposition[] { new(1) }, 2L, 0));
-			Assert.Equal(new Decomposition[] { new(1) }, PossibleDecompositions.Prune(new Decomposition[] { new(1) }, 2L, 1L));
-			Assert.Equal(new Decomposition[] { }, PossibleDecompositions.Prune(new Decomposition[] { new(1) }, 2L, 2L));
-			Assert.Equal(new Decomposition[] { new(1) }, PossibleDecompositions.Prune(new Decomposition[] { new(1) }, 1L, 0));
-			Assert.Equal(new Decomposition[] { new(1) }, PossibleDecompositions.Prune(new Decomposition[] { new(1) }, 1L, 1L));
-			Assert.Equal(new Decomposition[] { new(2) }, PossibleDecompositions.Prune(new Decomposition[] { new(2) }, 2L, 2L));
+			Assert.Equal(new Decomposition[] { }, DecompositionsOfASize.PruneByEffectiveCost(new Decomposition[] { }, 0, 0).ToArray());
+			Assert.Equal(new Decomposition[] { new() }, DecompositionsOfASize.PruneByEffectiveCost(new Decomposition[] { new() }, 0, 0).ToArray());
+			Assert.Equal(new Decomposition[] { new(), new() }, DecompositionsOfASize.PruneByEffectiveCost(new Decomposition[] { new(), new() }, 0, 0).ToArray());
+			Assert.Equal(new Decomposition[] { }, DecompositionsOfASize.PruneByEffectiveCost(new Decomposition[] { new(1) }, 0, 0).ToArray());
+			Assert.Equal(new Decomposition[] { new(1) }, DecompositionsOfASize.PruneByEffectiveCost(new Decomposition[] { new(1) }, 2L, 0).ToArray());
+			Assert.Equal(new Decomposition[] { new(1) }, DecompositionsOfASize.PruneByEffectiveCost(new Decomposition[] { new(1) }, 2L, 1L).ToArray());
+			Assert.Equal(new Decomposition[] { }, DecompositionsOfASize.PruneByEffectiveCost(new Decomposition[] { new(1) }, 2L, 2L).ToArray());
+			Assert.Equal(new Decomposition[] { new(1) }, DecompositionsOfASize.PruneByEffectiveCost(new Decomposition[] { new(1) }, 1L, 0).ToArray());
+			Assert.Equal(new Decomposition[] { new(1) }, DecompositionsOfASize.PruneByEffectiveCost(new Decomposition[] { new(1) }, 1L, 1L).ToArray());
+			Assert.Equal(new Decomposition[] { new(2) }, DecompositionsOfASize.PruneByEffectiveCost(new Decomposition[] { new(2) }, 2L, 2L).ToArray());
 
 			var combs = new Decomposition[] { new(2, 2), new(2, 1), new(2), new(1, 1), new(1), new() };
-			Assert.Equal(new Decomposition[] { new(2), new(1, 1) }, PossibleDecompositions.Prune(combs, 2L, 2L));
-			Assert.Equal(new Decomposition[] { new(2, 1), new(2), new(1, 1), new(1) }, PossibleDecompositions.Prune(combs, 3L, 1L));
+			Assert.Equal(new Decomposition[] { new(2), new(1, 1) }, DecompositionsOfASize.PruneByEffectiveCost(combs, 2L, 2L).ToArray());
+			Assert.Equal(new Decomposition[] { new(2, 1), new(2), new(1, 1), new(1) }, DecompositionsOfASize.PruneByEffectiveCost(combs, 3L, 1L).ToArray());
 
-			Assert.Equal(new Decomposition[] { new(4), new(3) }, PossibleDecompositions.Prune(new Decomposition[] { new(6), new(4), new(3), new(1) }, 4L, 3L));
-			Assert.Equal(new Decomposition[] { new(4), new(4), new(3), new(3) }, PossibleDecompositions.Prune(new Decomposition[] { new(4), new(4), new(3), new(3), new(1) }, 4L, 3L));
-			Assert.Equal(new Decomposition[] { new(4), new(4), new(3), new(3) }, PossibleDecompositions.Prune(new Decomposition[] { new(6), new(4), new(4), new(3), new(3), new(1) }, 4L, 3L));
-			Assert.Equal(new Decomposition[] { new(4), new(3) }, PossibleDecompositions.Prune(new Decomposition[] { new(6), new(4), new(3), new(1) }, 4L, 2L));
-			Assert.Equal(new Decomposition[] { new(4), new(3) }, PossibleDecompositions.Prune(new Decomposition[] { new(6), new(4), new(3), new(1) }, 5L, 3L));
-			Assert.Equal(new Decomposition[] { new(4), new(3), new(3) }, PossibleDecompositions.Prune(new Decomposition[] { new(6), new(4), new(3), new(3), new(1) }, 5L, 3L));
-			Assert.Equal(new Decomposition[] { new(4), new(4), new(3), new(3) }, PossibleDecompositions.Prune(new Decomposition[] { new(6), new(4), new(4), new(3), new(3), new(1) }, 5L, 3L));
+			Assert.Equal(new Decomposition[] { new(4), new(3) }, DecompositionsOfASize.PruneByEffectiveCost(new Decomposition[] { new(6), new(4), new(3), new(1) }, 4L, 3L).ToArray());
+			Assert.Equal(new Decomposition[] { new(4), new(4), new(3), new(3) }, DecompositionsOfASize.PruneByEffectiveCost(new Decomposition[] { new(4), new(4), new(3), new(3), new(1) }, 4L, 3L).ToArray());
+			Assert.Equal(new Decomposition[] { new(4), new(4), new(3), new(3) }, DecompositionsOfASize.PruneByEffectiveCost(new Decomposition[] { new(6), new(4), new(4), new(3), new(3), new(1) }, 4L, 3L).ToArray());
+			Assert.Equal(new Decomposition[] { new(4), new(3) }, DecompositionsOfASize.PruneByEffectiveCost(new Decomposition[] { new(6), new(4), new(3), new(1) }, 4L, 2L).ToArray());
+			Assert.Equal(new Decomposition[] { new(4), new(3) }, DecompositionsOfASize.PruneByEffectiveCost(new Decomposition[] { new(6), new(4), new(3), new(1) }, 5L, 3L).ToArray());
+			Assert.Equal(new Decomposition[] { new(4), new(3), new(3) }, DecompositionsOfASize.PruneByEffectiveCost(new Decomposition[] { new(6), new(4), new(3), new(3), new(1) }, 5L, 3L).ToArray());
+			Assert.Equal(new Decomposition[] { new(4), new(4), new(3), new(3) }, DecompositionsOfASize.PruneByEffectiveCost(new Decomposition[] { new(6), new(4), new(4), new(3), new(3), new(1) }, 5L, 3L).ToArray());
 		}
 
 		[Fact]
 		public void TestCombinations()
 		{
-			Assert.Equal(
-				new Decomposition[] { },
-				PossibleDecompositions.Generate(new Money[] { 1L }, 1L, 0, 0).ByEffectiveCost());
-
 			Assert.Equal(
 				new Decomposition[] { },
 				PossibleDecompositions.Generate(new Money[] { 1L }, 0, 0, 1).ByEffectiveCost());
@@ -177,8 +173,8 @@ namespace WalletWasabi.Tests.WabiSabi.Client
 				PossibleDecompositions.Generate(Enumerable.Range(0, 63).Select(x => new Money(1L << x)), 1L << 30, 1L << 30, 5).ByEffectiveCost());
 
 			Assert.Equal(
-				StandardDenomination.Values.Select(v => new Decomposition(ImmutableArray.Create<long>(v))).OrderBy(x => x),
-				PossibleDecompositions.Generate(StandardDenomination.Values, StandardDenomination.Values.Max()!, 0, 1).ByEffectiveCost());
+				StandardDenomination.Values.Select(v => new Decomposition(v)).OrderBy(x => x),
+				PossibleDecompositions.Generate(StandardDenomination.Values, StandardDenomination.Values.Max()!, 0L, 1).ByEffectiveCost());
 
 			Assert.Equal(
 				new Decomposition[] { new(1) },
@@ -228,7 +224,8 @@ namespace WalletWasabi.Tests.WabiSabi.Client
 				PossibleDecompositions.Generate(StandardDenomination.Values, (1_000_000L + (1L << 20)), (1_000_000L + (1L << 20)), 4).ByEffectiveCost());
 
 			// This is a bit like a regression test, in that it should become
-			// annoyingly slow if pruning doesn't work
+			// annoyingly slow if pruning doesn't work. Increase the
+			// precomputation to maxOutputs = 6 for a stronger effect.
 			Assert.Equal(
 				new Decomposition[]
 				{

@@ -8,43 +8,48 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Models.Decomposition
 {
+	// TODO use Money instead of long.
+	// Unfortunately this can consume a significant amount of memory, so in
+	// order to provide the nicer Money based API, DecompositionsOfASize should
+	// first be modified to no longer use this type internally. For now, this
+	// class uses a long of the effective cost and only that to represent self
+	// spend outputs, which is less convenient but does reduce memory
+	// consumption somewhat.
 	public sealed record Decomposition : IComparable<Decomposition>, IEquatable<Decomposition>
 	{
-		public static Decomposition Empty = new(ImmutableArray<long>.Empty);
-
+		// Useful for prettifying test assertions, or alternatively as a debug
+		// display attribute:
 		// public override string ToString()
 		// 	=> $"[ {EffectiveCost} = { string.Join(' ', Outputs) } ]";
 
-		// Convenience constructor for tests
-		public Decomposition(params int[] Outputs)
+		// Construct a singleton
+		public Decomposition(long EffectiveCost)
 		{
-			this.Outputs = Outputs.Select(x => (long)x).ToImmutableArray();
-			EffectiveCost = this.Outputs.Sum();
-		}
-
-		public Decomposition(ImmutableArray<long> Outputs)
-		{
-			this.Outputs = Outputs;
-			EffectiveCost = Outputs.Sum();
-		}
-
-		// Fake decomposition, only used for EffectiveCostComparer
-		internal Decomposition(long EffectiveCost)
-		{
-			this.Outputs = ImmutableArray<long>.Empty;
+			this.Outputs = ImmutableArray.Create<long>(EffectiveCost);
 			this.EffectiveCost = EffectiveCost;
 		}
 
-		// This could also be ImmutableArray<Money>, but using longs consumes
-		// significantly less memory.
+		// Convenience constructor for tests
+		internal Decomposition(params int[] Outputs)
+		{
+			this.Outputs = Outputs.OrderByDescending(x => x).Select(x => (long)x).ToImmutableArray();
+			EffectiveCost = this.Outputs.Sum();
+		}
+
 		public ImmutableArray<long> Outputs { get; private init; }
 
 		public long EffectiveCost { get; private init; }
 
-		public Decomposition Extend(long output) => this with {
-			Outputs = Outputs.Add(output),
-			EffectiveCost = this.EffectiveCost + output,
-		};
+		public Decomposition Extend(long output)
+			=> (output <= Outputs.Last()) switch
+			{
+				true => this with
+				{
+					Outputs = Outputs.Add(output),
+					EffectiveCost = EffectiveCost + output,
+				},
+				_ => throw new InvalidOperationException("Generated decompositions must be monotonically decreasing"),
+			};
 
 		// Natural order is descending
 		public int CompareTo(Decomposition other)
