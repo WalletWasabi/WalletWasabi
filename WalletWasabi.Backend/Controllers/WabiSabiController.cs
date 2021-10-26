@@ -50,7 +50,7 @@ namespace WalletWasabi.Backend.Controllers
 
 		[HttpPost("credential-issuance")]
 		[Idempotent]
-		public Task<ReissueCredentialResponse> ReissueCredentialAsync(ReissueCredentialRequest request, CancellationToken cancellableToken)
+		public Task<ReissueCredentialResponse> ReissuanceAsync(ReissueCredentialRequest request, CancellationToken cancellableToken)
 		{
 			return RequestHandler.ReissueCredentialAsync(request, cancellableToken);
 		}
@@ -68,7 +68,7 @@ namespace WalletWasabi.Backend.Controllers
 		}
 
 		[HttpPost("ready-to-sign")]
-		public Task ReadyToSign(ReadyToSignRequestRequest request, CancellationToken cancellableToken)
+		public Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellableToken)
 		{
 			return RequestHandler.ReadyToSignAsync(request, cancellableToken);
 		}
