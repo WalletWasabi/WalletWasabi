@@ -40,6 +40,7 @@ namespace WalletWasabi.TorSocks5
 		public string LogFile { get; }
 
 		public static bool RequestFallbackAddressUsage { get; private set; } = false;
+		private DateTimeOffset? RequestFallbackSince { get; set; } = null;
 
 		public Process TorProcess { get; private set; }
 
@@ -271,14 +272,14 @@ namespace WalletWasabi.TorSocks5
 											}
 
 											// Check if it changed in the meantime...
-											if (TorHttpClient.LatestTorException is TorSocks5FailureResponseException torEx2 && torEx2.RepField == RepField.HostUnreachable)
+											if (TorHttpClient.LatestTorException is TorSocks5FailureResponseException torEx2
+												&& torEx2.RepField == RepField.HostUnreachable
+												&& !RequestFallbackAddressUsage)
 											{
-												if (!RequestFallbackAddressUsage)
-												{
-													// Fallback here...
-													RequestFallbackAddressUsage = true;
-													Logger.LogInfo($"Backend onion unreachable - using fallback mechanism.");
-												}
+												// Fallback here...
+												RequestFallbackAddressUsage = true;
+												RequestFallbackSince = DateTimeOffset.UtcNow;
+												Logger.LogInfo($"Backend onion unreachable - using fallback mechanism.");
 											}
 										}
 									}
@@ -288,6 +289,17 @@ namespace WalletWasabi.TorSocks5
 										Start(true, dataDirToStartWith); // Try starting Tor, if it does not work it'll be another issue.
 										await Task.Delay(14000, Stop.Token).ConfigureAwait(false);
 									}
+								}
+							}
+							else
+							{
+								if (RequestFallbackAddressUsage
+									&& RequestFallbackSince is not null
+									&& DateTimeOffset.UtcNow - RequestFallbackSince > TimeSpan.FromMinutes(6))
+								{
+									Logger.LogInfo($"Trying to reach backend's onion.");
+									RequestFallbackAddressUsage = false;
+									RequestFallbackSince = null;
 								}
 							}
 						}
