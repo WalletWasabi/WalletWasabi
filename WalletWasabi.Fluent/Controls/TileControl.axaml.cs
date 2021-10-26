@@ -41,27 +41,40 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			if (_contentPresenter is { })
 			{
-				object? content = null;
+				_contentPresenter.Content = GetClosestSizedContent();
+			}
+		}
 
-				switch (TileSize)
+		private object GetClosestSizedContent()
+		{
+			int currentSize = (int)TileSize;
+
+			while (currentSize > 0)
+			{
+				var tileSize = (TileSize) currentSize;
+
+				switch (tileSize)
 				{
-					case TileSize.Large:
-						if (LargeSizeContent is { })
-						{
-							content = LargeSizeContent;
-						}
-						break;
-
 					case TileSize.Wide:
 						if (WideSizeContent is { })
 						{
-							content = WideSizeContent;
+							return WideSizeContent;
 						}
 						break;
+
+					case TileSize.Large:
+						if (LargeSizeContent is { })
+						{
+							return LargeSizeContent;
+						}
+						break;
+
 				}
 
-				_contentPresenter.Content = content ?? Content;
+				currentSize--;
 			}
+
+			return Content;
 		}
 
 		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
