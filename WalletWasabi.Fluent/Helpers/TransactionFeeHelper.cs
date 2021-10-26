@@ -32,7 +32,7 @@ namespace WalletWasabi.Fluent.Helpers
 			return wallet.Network == Network.TestNet ? TestNetFeeEstimates : wallet.FeeProvider.AllFeeEstimate.Estimations;
 		}
 
-		public static bool AreTransactionFeesLow(Wallet wallet)
+		public static bool AreTransactionFeesEqual(Wallet wallet)
 		{
 			var feeEstimates = GetFeeEstimates(wallet);
 
