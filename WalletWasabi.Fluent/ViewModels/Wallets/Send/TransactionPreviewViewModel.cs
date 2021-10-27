@@ -199,7 +199,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				if (!result)
 				{
-					await ShowErrorAsync("Transaction Building", "Due to the high transaction fees, it is not possible to send this transaction at the moment.",
+					await ShowErrorAsync("Transaction Building", "At the moment, it is not possible to select a transaction fee that is less than the amount. The transaction cannot be sent.",
 						"Wasabi was unable to create your transaction.");
 
 					return null;
