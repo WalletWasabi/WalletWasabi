@@ -6,6 +6,10 @@
              x:DataType="vm:ApplicationViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.App" CanShutdownProvider="{Binding .}">
+  <Application.DataContext>
+    <vm:ApplicationViewModel />
+  </Application.DataContext>
+
   <Application.DataTemplates>
     <local:ViewLocator />
     <DataTemplate DataType="models:ErrorDescriptor" x:DataType="models:ErrorDescriptor">
@@ -41,7 +45,7 @@
 
   <TrayIcon.Icons>
     <TrayIcons>
-      <TrayIcon Icon="/Assets/WasabiLogo.ico" Clicked="TrayIcon_OnClicked">
+      <TrayIcon Icon="/Assets/WasabiLogo.ico" Command="{Binding ShowCommand}">
         <NativeMenu.Menu>
           <NativeMenu>
             <NativeMenuItem Header="Show" Command="{Binding ShowCommand} " />
