@@ -9,21 +9,21 @@
              x:DataType="vm:LoadingViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.LoadingControl">
-  <DockPanel>
+  <DockPanel Margin="0 0 0 30">
     <StackPanel MaxWidth="800" Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Center">
-      <TextBlock Text="Wasabi is downloading blockchain data" TextAlignment="Center" FontSize="22"
-                 DockPanel.Dock="Bottom" />
 
+      <TextBlock Text="Downloading and processing blockchain data" TextAlignment="Center" FontSize="22"
+                 DockPanel.Dock="Bottom" />
       <TextBlock
         Text="This is done over an untraceable network making your activity appear from random locations throughout the world."
         TextAlignment="Center" TextWrapping="Wrap" Opacity="0.6" />
 
-      <ProgressBar Value="{Binding Percent}" IsIndeterminate="{Binding !Percent}" />
-      <TextBlock Text="{Binding StatusText}" TextAlignment="Center" Opacity="0.6" />
-
       <TextBlock
         Text="This process may take some time depending on the size of your wallet. Grab a coffee or watch a movie."
         TextAlignment="Center" TextWrapping="Wrap" Opacity="0.6" />
+
+      <ProgressBar Value="{Binding Percent}" IsIndeterminate="{Binding !Percent}" Margin="0 20 0 0" />
+      <TextBlock Text="{Binding StatusText}" TextAlignment="Center" Opacity="0.6" />
     </StackPanel>
 
     <Panel Margin="80 40">
