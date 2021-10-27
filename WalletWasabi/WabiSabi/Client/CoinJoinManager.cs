@@ -73,7 +73,7 @@ namespace WalletWasabi.WabiSabi.Client
 				foreach (var openedWallet in openedWallets.Select(x => x.Value))
 				{
 					var coinCandidates = SelectCandidateCoins(openedWallet).ToArray();
-					if (coinCandidates.Length == 0)
+					if (coinCandidates.Length == 0 || openedWallet.Synchronizer.BackendStatus == BackendStatus.NotConnected)
 					{
 						continue;
 					}
