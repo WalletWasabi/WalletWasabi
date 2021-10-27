@@ -193,7 +193,22 @@ namespace WalletWasabi.WabiSabi.Client
 				}
 			}
 
-			var aliceClients = smartCoins.Select(coin => RegisterInputAsync(coin, cancellationToken)).ToImmutableArray();
+			// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to be registered.
+			var remainingTimeForRegistration = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
+			var scheduledDates = remainingTimeForRegistration.SamplePoisson(smartCoins.Count());
+
+			// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
+			var aliceClients = smartCoins.Zip(
+				scheduledDates,
+				async (coin, date) =>
+				{
+					var delay = date - DateTimeOffset.UtcNow;
+					if (delay > TimeSpan.Zero)
+					{
+						await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+					}
+					return await RegisterInputAsync(coin, cancellationToken).ConfigureAwait(false);
+				}).ToImmutableArray();
 
 			await Task.WhenAll(aliceClients).ConfigureAwait(false);
 
@@ -243,7 +258,17 @@ namespace WalletWasabi.WabiSabi.Client
 			var scheduledDates = transactionSigningTimeFrame.SamplePoisson(aliceClients.Count());
 
 			// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
-			var signingRequests = aliceClients.Zip(scheduledDates, (alice, date) => SignTransactionAsync(alice, cancellationToken).RunAsScheduledAsync(date, cancellationToken)).ToImmutableArray();
+			var signingRequests = aliceClients.Zip(
+				scheduledDates,
+				async (alice, date) =>
+				{
+					var delay = date - DateTimeOffset.UtcNow;
+					if (delay > TimeSpan.Zero)
+					{
+						await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+					}
+					return await SignTransactionAsync(alice, cancellationToken).ConfigureAwait(false);
+				}).ToImmutableArray();
 
 			await Task.WhenAll(signingRequests).ConfigureAwait(false);
 		}
@@ -256,6 +281,7 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 
 			var readyRequests = aliceClients.Select(ReadyToSignTask);
+
 			await Task.WhenAll(readyRequests).ConfigureAwait(false);
 		}
 
