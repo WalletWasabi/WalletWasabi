@@ -96,7 +96,7 @@ namespace WalletWasabi.Fluent.Behaviors
 								cities.Select(x => AnimateCityMarkerAsync(x.control, x.point, cancellationToken)).ToArray(),
 								cancellationToken);
 						}
-						catch (Exception ex)
+						catch (Exception ex) when (ex is not OperationCanceledException)
 						{
 							Logger.LogWarning(
 								$"There was a problem while animating in {nameof(RandomizedWorldPointsBehavior)}: '{ex}'.");
