@@ -8,14 +8,15 @@ using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.Behaviors
 {
 	public class RandomizedWorldPointsBehavior : Behavior<Canvas>
 	{
-		private static readonly Random RandomSource = new();
-		private CancellationTokenSource Cts = new();
-		private List<IControl> TargetControls = new();
+		private static readonly Random _randomSource = new();
+		private CancellationTokenSource _cts = new();
+		private List<IControl> _targetControls = new();
 
 		// ReSharper disable ArrangeObjectCreationWhenTypeNotEvident
 		private static readonly List<Point> WorldLocations = new()
@@ -76,52 +77,66 @@ namespace WalletWasabi.Fluent.Behaviors
 			new(57, 143)
 		};
 
-		private void RunAnimation()
+		private void RunAnimation(CancellationToken cancellationToken)
 		{
 			Task.Run(() =>
 			{
-				while (!Cts.IsCancellationRequested)
+				while (!cancellationToken.IsCancellationRequested)
 				{
-					var locations = WorldLocations
-						.OrderBy(_ => RandomSource.NextDouble())
-						.Take(TargetControls.Count);
+					try
+					{
+						var locations = WorldLocations
+							.OrderBy(_ => _randomSource.NextDouble())
+							.Take(_targetControls.Count);
 
-					var cities = TargetControls.Zip(locations, (control, point) => (control, point));
+						var cities = _targetControls.Zip(locations, (control, point) => (control, point));
 
-					Task.WaitAll(cities.Select(x => Animate(x.control, x.point)).ToArray(), Cts.Token);
+						Task.WaitAll(
+							cities.Select(x => AnimateCityMarkerAsync(x.control, x.point, cancellationToken)).ToArray(),
+							cancellationToken);
+					}
+					catch (Exception ex)
+					{
+						Logger.LogWarning(
+							$"There was a problem while animating in {nameof(RandomizedWorldPointsBehavior)}: '{ex}'.");
+					}
 				}
-
-				Cts.Dispose();
-			});
+			}, cancellationToken);
 		}
 
-		private static async Task Animate(IControl target, Point point)
+		private async Task AnimateCityMarkerAsync(IControl target, Point point, CancellationToken cancellationToken)
 		{
+			if (cancellationToken.IsCancellationRequested)
+			{
+				return;
+			}
+
 			await Dispatcher.UIThread.InvokeAsync(() =>
 			{
-				target.SetValue(Control.OpacityProperty, 0, BindingPriority.Style);
+				target.SetValue(Control.OpacityProperty, 0, BindingPriority.StyleTrigger);
 			});
 
-			await Task.Delay(TimeSpan.FromSeconds(1));
+			await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
 
 			await Dispatcher.UIThread.InvokeAsync(() =>
 			{
-				target.SetValue(Canvas.LeftProperty, point.X, BindingPriority.Style);
-				target.SetValue(Canvas.TopProperty, point.Y, BindingPriority.Style);
-				target.SetValue(Control.OpacityProperty, 1, BindingPriority.Style);
+				target.SetValue(Canvas.LeftProperty, point.X, BindingPriority.StyleTrigger);
+				target.SetValue(Canvas.TopProperty, point.Y, BindingPriority.StyleTrigger);
+				target.SetValue(Control.OpacityProperty, 1, BindingPriority.StyleTrigger);
 			});
 
-			await Task.Delay(TimeSpan.FromSeconds(2));
+			await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
 
 			await Dispatcher.UIThread.InvokeAsync(() =>
 			{
-				target.SetValue(Control.OpacityProperty, 0, BindingPriority.Style);
+				target.SetValue(Control.OpacityProperty, 0, BindingPriority.StyleTrigger);
 			});
 		}
 
 		protected override void OnDetaching()
 		{
-			Cts.Cancel();
+			_cts.Cancel();
+			_cts.Dispose();
 			base.OnDetaching();
 		}
 
@@ -138,18 +153,19 @@ namespace WalletWasabi.Fluent.Behaviors
 				() =>
 				{
 					var targets = AssociatedObject.Children
-						.Where(x => x.Classes.Contains("Beacon")).ToList();
+						.Where(x => x.Classes.Contains("City"))
+						.ToList();
 
 					if (targets.Count <= 0)
 					{
 						return;
 					}
 
-					TargetControls = targets;
+					_targetControls = targets;
+					_cts?.Dispose();
+					_cts = new CancellationTokenSource();
 
-					Cts = new CancellationTokenSource();
-
-					RunAnimation();
+					RunAnimation(_cts.Token);
 				},
 				DispatcherPriority.Loaded);
 		}
