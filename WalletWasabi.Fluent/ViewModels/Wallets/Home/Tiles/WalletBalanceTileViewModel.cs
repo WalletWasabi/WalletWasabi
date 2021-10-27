@@ -73,7 +73,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			BalanceNonPrivateBtc = normalCoins.TotalAmount().ToDecimal(MoneyUnit.BTC)
 				.FormattedBtc() + " BTC";
 
-			var pcPrivate = _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC) == 0M ? 0d : (double)(privateDecimalAmount.ToDecimal(MoneyUnit.BTC) / totalDecimalAmount.ToDecimal(MoneyUnit.BTC));
+			var pcPrivate = totalDecimalAmount.ToDecimal(MoneyUnit.BTC) == 0M ? 0d : (double)(privateDecimalAmount.ToDecimal(MoneyUnit.BTC) / totalDecimalAmount.ToDecimal(MoneyUnit.BTC));
 
 			TestDataPoints = new List<(string, double)>
 			{
