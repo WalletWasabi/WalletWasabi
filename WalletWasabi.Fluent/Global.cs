@@ -405,7 +405,7 @@ namespace WalletWasabi.Fluent
 					}
 					else if (incoming < Money.Zero)
 					{
-						NotifyAndLog($"{amountString} BTC", "Sent", NotificationType.Information, e, sender);
+						NotifyAndLog($"{amountString} BTC", "Spent", NotificationType.Information, e, sender);
 					}
 				}
 				else if (isConfirmedReceive || isConfirmedSpent)
