@@ -65,10 +65,20 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive(1);
 			ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 			ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
-			var expecteXpub1 = NBitcoinHelpers.BetterParseExtPubKey("xpub6DHjDx4gzLV37gJWMxYJAqyKRGN46MT61RHVizdU62cbVUYu9L95cXKzX62yJ2hPbN11EeprS8sSn8kj47skQBrmycCMzFEYBQSntVKFQ5M");
-			var expecteXpub2 = NBitcoinHelpers.BetterParseExtPubKey("xpub6FJS1ne3STcKdQ9JLXNzZXidmCNZ9dxLiy7WVvsRkcmxjJsrDKJKEAXq4MGyEBM3vHEw2buqXezfNK5SNBrkwK7Fxjz1TW6xzRr2pUyMWFu");
-			Assert.Equal(expecteXpub1, xpub1);
-			Assert.Equal(expecteXpub2, xpub2);
+			ExtPubKey expectedXpub1;
+			ExtPubKey expectedXpub2;
+			if (network == Network.TestNet)
+			{
+				expectedXpub1 = NBitcoinHelpers.BetterParseExtPubKey("xpub6CaGC5LjEw1YWw8br7AURnB6ioJY2bEVApXh8NMsPQ9mdDbzN51iwVrnmGSof3MfjjRrntnE8mbYeTW5ywgvCXdjqF8meQEwnhPDQV2TW7c");
+				expectedXpub2 = NBitcoinHelpers.BetterParseExtPubKey("xpub6E7pup6CRRS5jM1r3HVYQhHwQHpddJALjRDbsVDtsnQJozHrfE8Pua2X5JhtkWCxdcmGhPXWxV7DoJtSgZSUvUy6cvDchVQt2RGEd4mD4FA");
+			}
+			else
+			{
+				expectedXpub1 = NBitcoinHelpers.BetterParseExtPubKey("xpub6DHjDx4gzLV37gJWMxYJAqyKRGN46MT61RHVizdU62cbVUYu9L95cXKzX62yJ2hPbN11EeprS8sSn8kj47skQBrmycCMzFEYBQSntVKFQ5M");
+				expectedXpub2 = NBitcoinHelpers.BetterParseExtPubKey("xpub6FJS1ne3STcKdQ9JLXNzZXidmCNZ9dxLiy7WVvsRkcmxjJsrDKJKEAXq4MGyEBM3vHEw2buqXezfNK5SNBrkwK7Fxjz1TW6xzRr2pUyMWFu");
+			}
+			Assert.Equal(expectedXpub1, xpub1);
+			Assert.Equal(expectedXpub2, xpub2);
 
 			BitcoinWitPubKeyAddress address1 = await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token);
 			BitcoinWitPubKeyAddress address2 = await client.DisplayAddressAsync(deviceType, devicePath, keyPath2, cts.Token);
@@ -139,10 +149,20 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive(1);
 			ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 			ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
-			var expecteXpub1 = NBitcoinHelpers.BetterParseExtPubKey("xpub6DHjDx4gzLV37gJWMxYJAqyKRGN46MT61RHVizdU62cbVUYu9L95cXKzX62yJ2hPbN11EeprS8sSn8kj47skQBrmycCMzFEYBQSntVKFQ5M");
-			var expecteXpub2 = NBitcoinHelpers.BetterParseExtPubKey("xpub6FJS1ne3STcKdQ9JLXNzZXidmCNZ9dxLiy7WVvsRkcmxjJsrDKJKEAXq4MGyEBM3vHEw2buqXezfNK5SNBrkwK7Fxjz1TW6xzRr2pUyMWFu");
-			Assert.Equal(expecteXpub1, xpub1);
-			Assert.Equal(expecteXpub2, xpub2);
+			ExtPubKey expectedXpub1;
+			ExtPubKey expectedXpub2;
+			if (network == Network.TestNet)
+			{
+				expectedXpub1 = NBitcoinHelpers.BetterParseExtPubKey("xpub6CaGC5LjEw1YWw8br7AURnB6ioJY2bEVApXh8NMsPQ9mdDbzN51iwVrnmGSof3MfjjRrntnE8mbYeTW5ywgvCXdjqF8meQEwnhPDQV2TW7c");
+				expectedXpub2 = NBitcoinHelpers.BetterParseExtPubKey("xpub6E7pup6CRRS5jM1r3HVYQhHwQHpddJALjRDbsVDtsnQJozHrfE8Pua2X5JhtkWCxdcmGhPXWxV7DoJtSgZSUvUy6cvDchVQt2RGEd4mD4FA");
+			}
+			else
+			{
+				expectedXpub1 = NBitcoinHelpers.BetterParseExtPubKey("xpub6DHjDx4gzLV37gJWMxYJAqyKRGN46MT61RHVizdU62cbVUYu9L95cXKzX62yJ2hPbN11EeprS8sSn8kj47skQBrmycCMzFEYBQSntVKFQ5M");
+				expectedXpub2 = NBitcoinHelpers.BetterParseExtPubKey("xpub6FJS1ne3STcKdQ9JLXNzZXidmCNZ9dxLiy7WVvsRkcmxjJsrDKJKEAXq4MGyEBM3vHEw2buqXezfNK5SNBrkwK7Fxjz1TW6xzRr2pUyMWFu");
+			}
+			Assert.Equal(expectedXpub1, xpub1);
+			Assert.Equal(expectedXpub2, xpub2);
 
 			BitcoinWitPubKeyAddress address1 = await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token);
 			BitcoinWitPubKeyAddress address2 = await client.DisplayAddressAsync(deviceType, devicePath, keyPath2, cts.Token);
@@ -225,10 +245,20 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive(1);
 			ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 			ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
-			var expecteXpub1 = NBitcoinHelpers.BetterParseExtPubKey("xpub6DHjDx4gzLV37gJWMxYJAqyKRGN46MT61RHVizdU62cbVUYu9L95cXKzX62yJ2hPbN11EeprS8sSn8kj47skQBrmycCMzFEYBQSntVKFQ5M");
-			var expecteXpub2 = NBitcoinHelpers.BetterParseExtPubKey("xpub6FJS1ne3STcKdQ9JLXNzZXidmCNZ9dxLiy7WVvsRkcmxjJsrDKJKEAXq4MGyEBM3vHEw2buqXezfNK5SNBrkwK7Fxjz1TW6xzRr2pUyMWFu");
-			Assert.Equal(expecteXpub1, xpub1);
-			Assert.Equal(expecteXpub2, xpub2);
+			ExtPubKey expectedXpub1;
+			ExtPubKey expectedXpub2;
+			if (network == Network.TestNet)
+			{
+				expectedXpub1 = NBitcoinHelpers.BetterParseExtPubKey("xpub6CaGC5LjEw1YWw8br7AURnB6ioJY2bEVApXh8NMsPQ9mdDbzN51iwVrnmGSof3MfjjRrntnE8mbYeTW5ywgvCXdjqF8meQEwnhPDQV2TW7c");
+				expectedXpub2 = NBitcoinHelpers.BetterParseExtPubKey("xpub6E7pup6CRRS5jM1r3HVYQhHwQHpddJALjRDbsVDtsnQJozHrfE8Pua2X5JhtkWCxdcmGhPXWxV7DoJtSgZSUvUy6cvDchVQt2RGEd4mD4FA");
+			}
+			else
+			{
+				expectedXpub1 = NBitcoinHelpers.BetterParseExtPubKey("xpub6DHjDx4gzLV37gJWMxYJAqyKRGN46MT61RHVizdU62cbVUYu9L95cXKzX62yJ2hPbN11EeprS8sSn8kj47skQBrmycCMzFEYBQSntVKFQ5M");
+				expectedXpub2 = NBitcoinHelpers.BetterParseExtPubKey("xpub6FJS1ne3STcKdQ9JLXNzZXidmCNZ9dxLiy7WVvsRkcmxjJsrDKJKEAXq4MGyEBM3vHEw2buqXezfNK5SNBrkwK7Fxjz1TW6xzRr2pUyMWFu");
+			}
+			Assert.Equal(expectedXpub1, xpub1);
+			Assert.Equal(expectedXpub2, xpub2);
 
 			BitcoinWitPubKeyAddress address1 = await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token);
 			BitcoinWitPubKeyAddress address2 = await client.DisplayAddressAsync(deviceType, devicePath, keyPath2, cts.Token);
@@ -305,10 +335,20 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive(1);
 			ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 			ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
-			var expecteXpub1 = NBitcoinHelpers.BetterParseExtPubKey("xpub6DHjDx4gzLV37gJWMxYJAqyKRGN46MT61RHVizdU62cbVUYu9L95cXKzX62yJ2hPbN11EeprS8sSn8kj47skQBrmycCMzFEYBQSntVKFQ5M");
-			var expecteXpub2 = NBitcoinHelpers.BetterParseExtPubKey("xpub6FJS1ne3STcKdQ9JLXNzZXidmCNZ9dxLiy7WVvsRkcmxjJsrDKJKEAXq4MGyEBM3vHEw2buqXezfNK5SNBrkwK7Fxjz1TW6xzRr2pUyMWFu");
-			Assert.Equal(expecteXpub1, xpub1);
-			Assert.Equal(expecteXpub2, xpub2);
+			ExtPubKey expectedXpub1;
+			ExtPubKey expectedXpub2;
+			if (network == Network.TestNet)
+			{
+				expectedXpub1 = NBitcoinHelpers.BetterParseExtPubKey("xpub6CaGC5LjEw1YWw8br7AURnB6ioJY2bEVApXh8NMsPQ9mdDbzN51iwVrnmGSof3MfjjRrntnE8mbYeTW5ywgvCXdjqF8meQEwnhPDQV2TW7c");
+				expectedXpub2 = NBitcoinHelpers.BetterParseExtPubKey("xpub6E7pup6CRRS5jM1r3HVYQhHwQHpddJALjRDbsVDtsnQJozHrfE8Pua2X5JhtkWCxdcmGhPXWxV7DoJtSgZSUvUy6cvDchVQt2RGEd4mD4FA");
+			}
+			else
+			{
+				expectedXpub1 = NBitcoinHelpers.BetterParseExtPubKey("xpub6DHjDx4gzLV37gJWMxYJAqyKRGN46MT61RHVizdU62cbVUYu9L95cXKzX62yJ2hPbN11EeprS8sSn8kj47skQBrmycCMzFEYBQSntVKFQ5M");
+				expectedXpub2 = NBitcoinHelpers.BetterParseExtPubKey("xpub6FJS1ne3STcKdQ9JLXNzZXidmCNZ9dxLiy7WVvsRkcmxjJsrDKJKEAXq4MGyEBM3vHEw2buqXezfNK5SNBrkwK7Fxjz1TW6xzRr2pUyMWFu");
+			}
+			Assert.Equal(expectedXpub1, xpub1);
+			Assert.Equal(expectedXpub2, xpub2);
 
 			BitcoinWitPubKeyAddress address1 = await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token);
 			BitcoinWitPubKeyAddress address2 = await client.DisplayAddressAsync(deviceType, devicePath, keyPath2, cts.Token);
@@ -385,10 +425,20 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive(1);
 			ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 			ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
-			var expecteXpub1 = NBitcoinHelpers.BetterParseExtPubKey("xpub6DHjDx4gzLV37gJWMxYJAqyKRGN46MT61RHVizdU62cbVUYu9L95cXKzX62yJ2hPbN11EeprS8sSn8kj47skQBrmycCMzFEYBQSntVKFQ5M");
-			var expecteXpub2 = NBitcoinHelpers.BetterParseExtPubKey("xpub6FJS1ne3STcKdQ9JLXNzZXidmCNZ9dxLiy7WVvsRkcmxjJsrDKJKEAXq4MGyEBM3vHEw2buqXezfNK5SNBrkwK7Fxjz1TW6xzRr2pUyMWFu");
-			Assert.Equal(expecteXpub1, xpub1);
-			Assert.Equal(expecteXpub2, xpub2);
+			ExtPubKey expectedXpub1;
+			ExtPubKey expectedXpub2;
+			if (network == Network.TestNet)
+			{
+				expectedXpub1 = NBitcoinHelpers.BetterParseExtPubKey("xpub6CaGC5LjEw1YWw8br7AURnB6ioJY2bEVApXh8NMsPQ9mdDbzN51iwVrnmGSof3MfjjRrntnE8mbYeTW5ywgvCXdjqF8meQEwnhPDQV2TW7c");
+				expectedXpub2 = NBitcoinHelpers.BetterParseExtPubKey("xpub6E7pup6CRRS5jM1r3HVYQhHwQHpddJALjRDbsVDtsnQJozHrfE8Pua2X5JhtkWCxdcmGhPXWxV7DoJtSgZSUvUy6cvDchVQt2RGEd4mD4FA");
+			}
+			else
+			{
+				expectedXpub1 = NBitcoinHelpers.BetterParseExtPubKey("xpub6DHjDx4gzLV37gJWMxYJAqyKRGN46MT61RHVizdU62cbVUYu9L95cXKzX62yJ2hPbN11EeprS8sSn8kj47skQBrmycCMzFEYBQSntVKFQ5M");
+				expectedXpub2 = NBitcoinHelpers.BetterParseExtPubKey("xpub6FJS1ne3STcKdQ9JLXNzZXidmCNZ9dxLiy7WVvsRkcmxjJsrDKJKEAXq4MGyEBM3vHEw2buqXezfNK5SNBrkwK7Fxjz1TW6xzRr2pUyMWFu");
+			}
+			Assert.Equal(expectedXpub1, xpub1);
+			Assert.Equal(expectedXpub2, xpub2);
 
 			BitcoinWitPubKeyAddress address1 = await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token);
 			BitcoinWitPubKeyAddress address2 = await client.DisplayAddressAsync(deviceType, devicePath, keyPath2, cts.Token);
