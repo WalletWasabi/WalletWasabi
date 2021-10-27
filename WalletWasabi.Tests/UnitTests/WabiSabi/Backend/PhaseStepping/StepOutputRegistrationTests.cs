@@ -192,7 +192,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var round = Assert.Single(arena.Rounds);
 			round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
 
-			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), new ArenaRequestHandlerAdapter(arena));
+			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), arena);
 			await roundStateUpdater.StartAsync(CancellationToken.None);
 			var identificationKey = new Key();
 			var task1 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin1, key1.GetBitcoinSecret(round.Network), identificationKey, roundStateUpdater, CancellationToken.None);

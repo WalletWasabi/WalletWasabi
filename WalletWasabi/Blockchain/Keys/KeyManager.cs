@@ -609,31 +609,6 @@ namespace WalletWasabi.Blockchain.Keys
 			BlockchainState.Height = prevHeight;
 		}
 
-		public void SetLastAccessTimeForNow()
-		{
-			if (FilePath is { })
-			{
-				// Set the LastAccessTime.
-				new FileInfo(FilePath)
-				{
-					LastAccessTimeUtc = DateTime.UtcNow
-				};
-			}
-		}
-
-		public DateTime GetLastAccessTime()
-		{
-			if (FilePath is { })
-			{
-				// Set the LastAccessTime.
-				return new FileInfo(FilePath).LastAccessTimeUtc;
-			}
-			else
-			{
-				return DateTime.UtcNow;
-			}
-		}
-
 		#region BlockchainState
 
 		public Height GetBestHeight()
