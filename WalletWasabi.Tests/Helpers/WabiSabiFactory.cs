@@ -140,7 +140,7 @@ namespace WalletWasabi.Tests.Helpers
 			return new ArenaClient(
 				roundState.CreateAmountCredentialClient(random),
 				roundState.CreateVsizeCredentialClient(random),
-				new ArenaRequestHandlerAdapter(arena));
+				arena);
 		}
 
 		public static InputRegistrationRequest CreateInputRegistrationRequest(Round round, Key? key = null, OutPoint? prevout = null)

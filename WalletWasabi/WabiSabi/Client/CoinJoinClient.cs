@@ -69,17 +69,20 @@ namespace WalletWasabi.WabiSabi.Client
 				{
 					return true;
 				}
-				else
-				{
-					var blameRoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.BlameOf == currentRoundState.Id, cancellationToken).ConfigureAwait(false);
-					currentRoundState = blameRoundState;
-				}
+
+				using CancellationTokenSource waitForBlameRound = new(TimeSpan.FromMinutes(5));
+				using CancellationTokenSource linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(waitForBlameRound.Token, cancellationToken);
+
+				var blameRoundState = await RoundStatusUpdater
+					.CreateRoundAwaiter(roundState => roundState.BlameOf == currentRoundState.Id && roundState.Phase == Phase.InputRegistration, linkedTokenSource.Token)
+					.ConfigureAwait(false);
+				currentRoundState = blameRoundState;
 			}
 
 			return false;
 		}
 
-		/// <summary>Attempt to participate in a specified dround.</summary>
+		/// <summary>Attempt to participate in a specified round.</summary>
 		/// <param name="roundState">Defines the round parameter and state information to use.</param>
 		/// <returns>Whether or not the round resulted in a successful transaction.</returns>
 		public async Task<bool> StartRoundAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
@@ -124,7 +127,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 				// Output registration.
 				roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
- 				await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, cancellationToken).ConfigureAwait(false);
+				await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, cancellationToken).ConfigureAwait(false);
 
 				// ReadyToSign.
 				await ReadyToSignAsync(registeredAliceClients, cancellationToken).ConfigureAwait(false);
@@ -195,7 +198,17 @@ namespace WalletWasabi.WabiSabi.Client
 			var scheduledDates = remainingTimeForRegistration.SamplePoisson(smartCoins.Count());
 
 			// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
-			var aliceClients = smartCoins.Zip(scheduledDates, (coin, date) => RegisterInputAsync(coin, cancellationToken).RunAsScheduledAsync(date, cancellationToken)).ToImmutableArray();
+			var aliceClients = smartCoins.Zip(
+				scheduledDates,
+				async (coin, date) =>
+				{
+					var delay = date - DateTimeOffset.UtcNow;
+					if (delay > TimeSpan.Zero)
+					{
+						await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+					}
+					return await RegisterInputAsync(coin, cancellationToken).ConfigureAwait(false);
+				}).ToImmutableArray();
 
 			await Task.WhenAll(aliceClients).ConfigureAwait(false);
 
@@ -245,7 +258,17 @@ namespace WalletWasabi.WabiSabi.Client
 			var scheduledDates = transactionSigningTimeFrame.SamplePoisson(aliceClients.Count());
 
 			// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
-			var signingRequests = aliceClients.Zip(scheduledDates, (alice, date) => SignTransactionAsync(alice, cancellationToken).RunAsScheduledAsync(date, cancellationToken)).ToImmutableArray();
+			var signingRequests = aliceClients.Zip(
+				scheduledDates,
+				async (alice, date) =>
+				{
+					var delay = date - DateTimeOffset.UtcNow;
+					if (delay > TimeSpan.Zero)
+					{
+						await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+					}
+					return await SignTransactionAsync(alice, cancellationToken).ConfigureAwait(false);
+				}).ToImmutableArray();
 
 			await Task.WhenAll(signingRequests).ConfigureAwait(false);
 		}
@@ -258,6 +281,7 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 
 			var readyRequests = aliceClients.Select(ReadyToSignTask);
+
 			await Task.WhenAll(readyRequests).ConfigureAwait(false);
 		}
 
