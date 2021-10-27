@@ -295,9 +295,9 @@ namespace WalletWasabi.TorSocks5
 							{
 								if (RequestFallbackAddressUsage
 									&& RequestFallbackSince is not null
-									&& DateTimeOffset.UtcNow - RequestFallbackSince > TimeSpan.FromMinutes(6))
+									&& DateTimeOffset.UtcNow - RequestFallbackSince > TimeSpan.FromHours(12))
 								{
-									Logger.LogInfo($"Trying to reach backend's onion.");
+									Logger.LogInfo($"Disabling fallback mechanism, using backend's onion address.");
 									RequestFallbackAddressUsage = false;
 									RequestFallbackSince = null;
 								}
