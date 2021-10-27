@@ -202,7 +202,11 @@ namespace WalletWasabi.WabiSabi.Client
 				scheduledDates,
 				async (coin, date) =>
 				{
-					await Task.Delay(date - DateTimeOffset.UtcNow, cancellationToken).ConfigureAwait(false);
+					var delay = date - DateTimeOffset.UtcNow;
+					if (delay > TimeSpan.Zero)
+					{
+						await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+					}
 					return await RegisterInputAsync(coin, cancellationToken).ConfigureAwait(false);
 				}).ToImmutableArray();
 
@@ -258,7 +262,11 @@ namespace WalletWasabi.WabiSabi.Client
 				scheduledDates,
 				async (alice, date) =>
 				{
-					await Task.Delay(date - DateTimeOffset.UtcNow, cancellationToken).ConfigureAwait(false);
+					var delay = date - DateTimeOffset.UtcNow;
+					if (delay > TimeSpan.Zero)
+					{
+						await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+					}
 					return await SignTransactionAsync(alice, cancellationToken).ConfigureAwait(false);
 				}).ToImmutableArray();
 
