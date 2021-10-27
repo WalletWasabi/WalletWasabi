@@ -32,7 +32,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, rpc, round);
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
-			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), new ArenaRequestHandlerAdapter(arena));
+			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), arena);
 			await roundStateUpdater.StartAsync(CancellationToken.None);
 
 			// Register Alices.

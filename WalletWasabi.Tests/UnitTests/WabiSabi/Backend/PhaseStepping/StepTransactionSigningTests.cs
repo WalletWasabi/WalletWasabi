@@ -232,7 +232,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
 			// Register Alices.
-			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), new ArenaRequestHandlerAdapter(arena));
+			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), arena);
 			await roundStateUpdater.StartAsync(CancellationToken.None);
 
 			using var identificationKey = new Key();

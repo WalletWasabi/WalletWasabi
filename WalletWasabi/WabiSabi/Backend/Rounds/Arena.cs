@@ -21,7 +21,7 @@ using WalletWasabi.WabiSabi.Backend.Rounds.Utils;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds
 {
-	public class Arena : PeriodicRunner
+	public class Arena : PeriodicRunner, IWabiSabiApiRequestHandler
 	{
 		public Arena(TimeSpan period, Network network, WabiSabiConfig config, IRPCClient rpc, Prison prison, CoinJoinTransactionArchiver? archiver = null) : base(period)
 		{
