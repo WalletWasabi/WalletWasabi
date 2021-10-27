@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.Behaviors
 {
 	public class RandomizedWorldPointsBehavior : Behavior<Canvas>
 	{
-		private static readonly Random _randomSource = new();
+		private static readonly Random RandomSource = new();
 		private CancellationTokenSource _cts = new();
 		private List<IControl> _targetControls = new();
 
@@ -79,29 +79,31 @@ namespace WalletWasabi.Fluent.Behaviors
 
 		private void RunAnimation(CancellationToken cancellationToken)
 		{
-			Task.Run(() =>
-			{
-				while (!cancellationToken.IsCancellationRequested)
+			Task.Run(
+				() =>
 				{
-					try
+					while (!cancellationToken.IsCancellationRequested)
 					{
-						var locations = WorldLocations
-							.OrderBy(_ => _randomSource.NextDouble())
-							.Take(_targetControls.Count);
+						try
+						{
+							var locations = WorldLocations
+								.OrderBy(_ => RandomSource.NextDouble())
+								.Take(_targetControls.Count);
 
-						var cities = _targetControls.Zip(locations, (control, point) => (control, point));
+							var cities = _targetControls.Zip(locations, (control, point) => (control, point));
 
-						Task.WaitAll(
-							cities.Select(x => AnimateCityMarkerAsync(x.control, x.point, cancellationToken)).ToArray(),
-							cancellationToken);
+							Task.WaitAll(
+								cities.Select(x => AnimateCityMarkerAsync(x.control, x.point, cancellationToken)).ToArray(),
+								cancellationToken);
+						}
+						catch (Exception ex)
+						{
+							Logger.LogWarning(
+								$"There was a problem while animating in {nameof(RandomizedWorldPointsBehavior)}: '{ex}'.");
+						}
 					}
-					catch (Exception ex)
-					{
-						Logger.LogWarning(
-							$"There was a problem while animating in {nameof(RandomizedWorldPointsBehavior)}: '{ex}'.");
-					}
-				}
-			}, cancellationToken);
+				},
+				cancellationToken);
 		}
 
 		private async Task AnimateCityMarkerAsync(IControl target, Point point, CancellationToken cancellationToken)
