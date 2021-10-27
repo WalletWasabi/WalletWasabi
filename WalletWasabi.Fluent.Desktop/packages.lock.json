@@ -125,29 +125,29 @@
       },
       "Avalonia.Xaml.Behaviors": {
         "type": "Transitive",
-        "resolved": "0.10.8",
-        "contentHash": "3nkh36Qp9fK8/Fh/nxqaVMlAzj8iuH5RUcs2rTrcyqn1WPJTslwQrxk+HDMYneuBE9+Oi31ZWiZImEM9kEQN7w==",
+        "resolved": "0.10.10",
+        "contentHash": "rHDkieWZDTjG+PVGQzronzknmH24r2VDtzbNfC3O8FLZGqREsBoCRDrqW4R4bmtD6CqpDPBey5soBYnnDE1m3Q==",
         "dependencies": {
-          "Avalonia": "0.10.8",
-          "Avalonia.Xaml.Interactions": "0.10.8",
-          "Avalonia.Xaml.Interactivity": "0.10.8"
+          "Avalonia": "0.10.10",
+          "Avalonia.Xaml.Interactions": "0.10.10",
+          "Avalonia.Xaml.Interactivity": "0.10.10"
         }
       },
       "Avalonia.Xaml.Interactions": {
         "type": "Transitive",
-        "resolved": "0.10.8",
-        "contentHash": "3pXshQ1pNr+ul7Q2Sn6jjWMHOgRM2uKsUCh95QD2O2wpjgxpRpqiNEy1xPv2+bX2FMWTQIaOdQ8eNM8EunAWMg==",
+        "resolved": "0.10.10",
+        "contentHash": "bOJvciyk6kUjPx+mg6n+bwHQqRqgNiTDzTBkpokfkcWl9pMAlKvqqUe6YXWVCpKIDBjbzvkAbYa29S0ajqwFxw==",
         "dependencies": {
-          "Avalonia": "0.10.8",
-          "Avalonia.Xaml.Interactivity": "0.10.8"
+          "Avalonia": "0.10.10",
+          "Avalonia.Xaml.Interactivity": "0.10.10"
         }
       },
       "Avalonia.Xaml.Interactivity": {
         "type": "Transitive",
-        "resolved": "0.10.8",
-        "contentHash": "ObL26GjME53R3KRkGB97dIB3jwGzyNS/7Www8fZjCEbK4AnjXVgzyw7gkHNsHD9DEZArovvURQI0qvvz3tb24g==",
+        "resolved": "0.10.10",
+        "contentHash": "xxWrpi0HsySczpU3Zl6c2ugbkTOs9qwqbvClfi/AKncoVbWpXv7W6J3kfQcfRlnKFwkTPjLyTYKVERIkb7kNCQ==",
         "dependencies": {
-          "Avalonia": "0.10.8"
+          "Avalonia": "0.10.10"
         }
       },
       "DynamicData": {
@@ -652,7 +652,7 @@
           "Avalonia.Controls.DataGrid": "0.10.10",
           "Avalonia.Diagnostics": "0.10.10",
           "Avalonia.ReactiveUI": "0.10.10",
-          "Avalonia.Xaml.Behaviors": "0.10.8",
+          "Avalonia.Xaml.Behaviors": "0.10.10",
           "OpenCvSharp4": "4.5.2.20210404",
           "OpenCvSharp4.runtime.win": "4.5.2.20210404",
           "System.Reactive": "5.0.0",
