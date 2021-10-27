@@ -28,8 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _recentTransactionDate;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _recentTransactionStatus;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _showRecentTransaction;
-		[AutoNotify] private IList<(string color, double percentShare)>? _testDataPoints;
-		[AutoNotify] private IList<DataLegend>? _testDataPointsLegend;
+		[AutoNotify] private double _percentPrivate;
 
 		public WalletBalanceTileViewModel(Wallet wallet, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModelBase> history)
 		{
@@ -73,17 +72,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			BalanceNonPrivateBtc = normalCoins.TotalAmount().ToDecimal(MoneyUnit.BTC)
 				.FormattedBtc() + " BTC";
 
-			var pcPrivate = totalDecimalAmount.ToDecimal(MoneyUnit.BTC) == 0M ? 0d : (double)(privateDecimalAmount.ToDecimal(MoneyUnit.BTC) / totalDecimalAmount.ToDecimal(MoneyUnit.BTC));
-
-			TestDataPoints = new List<(string, double)>
-			{
-				("#78A827", pcPrivate)
-			};
-
-			TestDataPointsLegend = new List<DataLegend>
-			{
-				new(privateDecimalAmount, "Private", "#78A827", pcPrivate)
-			};
+			PercentPrivate = totalDecimalAmount.ToDecimal(MoneyUnit.BTC) == 0M ? 0d : (double)(privateDecimalAmount.ToDecimal(MoneyUnit.BTC) / totalDecimalAmount.ToDecimal(MoneyUnit.BTC));
 		}
 
 		private void UpdateRecentTransaction()
