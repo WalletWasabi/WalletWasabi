@@ -108,16 +108,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			_balanceChanged
 				.Subscribe(_ => Update())
 				.DisposeWith(disposables);
-
-			if (Services.HostedServices.GetOrDefault<CoinJoinManager>() is { } coinJoinManager)
-			{
-				Observable
-					.FromEventPattern<WalletStatusChangedEventArgs>(coinJoinManager, nameof(CoinJoinManager.WalletStatusChanged))
-					.Select(args => args.EventArgs)
-					.Where(e => e.Wallet == _wallet)
-					.Subscribe(x => { })
-					.DisposeWith(disposables);
-			}
 		}
 
 		private void Update()
