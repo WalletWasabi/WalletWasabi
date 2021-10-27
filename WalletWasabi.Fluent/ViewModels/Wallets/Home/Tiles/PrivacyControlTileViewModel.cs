@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -46,7 +47,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			walletVm.Settings.WhenAnyValue(x => x.AutoCoinJoin).Subscribe(x => IsAutoCoinJoinEnabled = x);
 
-			this.WhenAnyValue(x => x.IsAutoCoinJoinEnabled)
+			walletVm.WhenAnyValue(x => x.IsCoinJoining)
 				.Subscribe(x =>
 				{
 					if (x)
@@ -64,7 +65,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				{
 					var (autoCjEnabled, isBoosting) = x;
 
-					BoostButtonVisible = !autoCjEnabled && !isBoosting;
+					BoostButtonVisible = !autoCjEnabled && !isBoosting && CanCoinJoin();
 
 					if (autoCjEnabled && isBoosting)
 					{
@@ -86,6 +87,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				}
 
 			});
+		}
+
+		private bool CanCoinJoin()
+		{
+			var privateThreshold = _wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
+
+			return _wallet.Coins.Any(x => x.HdPubKey.AnonymitySet < privateThreshold);
 		}
 
 		private void StartBoostAnimation()
