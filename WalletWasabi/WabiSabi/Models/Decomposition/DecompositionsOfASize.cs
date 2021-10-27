@@ -39,8 +39,10 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 	// range (e.g. for coin selection).
 	internal record DecompositionsOfASize
 	{
-		public DecompositionsOfASize(IEnumerable<long> denominations, long Max, long Min)
-			: this(denominations.OrderByDescending(x => x).ToImmutableArray(), Max, Min) {}
+		public DecompositionsOfASize(IEnumerable<long> denominations, long max, long min)
+			: this(denominations.OrderByDescending(x => x).ToImmutableArray(), max, min)
+		{
+		}
 
 		private DecompositionsOfASize(ImmutableArray<long> denominations, long maximumEffectiveCost, long minimumEffectiveCost)
 		{
@@ -93,7 +95,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 				// .WithMergeOptions(ParallelMergeOptions.NotBuffered)
 				// .WithDegreeOfParallelism(Denominations.Length)
 				.Select(x => Extend(x, maximumEffectiveCost, minimumEffectiveCost))
-				.Aggregate(ImmutableArray<Decomposition>.Empty as IEnumerable<Decomposition>, PossibleDecompositions.Merge)
+				.Aggregate(PossibleDecompositions.Merge)
 				.ToImmutableArray(),
 			};
 
@@ -123,7 +125,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 		// High level pruning of the set of decompositions, both
 		// lexicographically and by the total effective value.
 		internal IEnumerable<Decomposition> Prune(long maximumEffectiveCost, long minimumEffectiveCost, long largestOutputLowerBound)
-			=> MemoryMarshal.ToEnumerable<Decomposition>(
+			=> MemoryMarshal.ToEnumerable(
 				PruneLexicographically(
 					PruneByEffectiveCost(ByEffectiveCost.AsMemory(), maximumEffectiveCost, minimumEffectiveCost),
 					largestOutputLowerBound));
@@ -131,7 +133,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 		// High level pruning of the set of decompositions, only
 		// by the total effective value.
 		internal IEnumerable<Decomposition> Prune(long maximumEffectiveCost, long minimumEffectiveCost)
-			=> MemoryMarshal.ToEnumerable<Decomposition>(
+			=> MemoryMarshal.ToEnumerable(
 				PruneByEffectiveCost(ByEffectiveCost.AsMemory(), MaximumEffectiveCost, minimumEffectiveCost));
 
 		// Prune an array of decompositions, ensuring that the largest output in
@@ -154,15 +156,15 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 		{
 			if (orderedDecompositions.Length == 0)
 			{
-				return new Index(0);
+				return 0;
 			}
 			else if (targetEffectiveCost >= orderedDecompositions[0].EffectiveCost)
 			{
-				return new Index(0);
+				return 0;
 			}
 			else if (targetEffectiveCost < orderedDecompositions[^1].EffectiveCost)
 			{
-				return new Index(0, true);
+				return ^0;
 			}
 			else
 			{
@@ -177,7 +179,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 
 			if (i < 0)
 			{
-				return new Index(~i);
+				return ~i;
 			}
 			else
 			{
@@ -188,7 +190,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 					i--;
 				}
 
-				return new Index(i);
+				return i;
 			}
 		}
 
@@ -197,8 +199,14 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 			// Compare only using the effective cost, ignoring the individual
 			// outputs, used in FindIndex. Note that the order is always descending,
 			// so the arguments are reversed.
-			public override int Compare(Decomposition x, Decomposition y)
-				=> y.EffectiveCost.CompareTo(x.EffectiveCost);
+			public override int Compare(Decomposition? x, Decomposition? y)
+				=> (x, y) switch
+				{
+					(null, null) => 0,
+					(null, _) => 1,
+					(_, null) => -1,
+					({} right, {} left) =>	left.EffectiveCost.CompareTo(right.EffectiveCost)
+				};
 		}
 
 		private class LexicographicalComparer : Comparer<Decomposition>

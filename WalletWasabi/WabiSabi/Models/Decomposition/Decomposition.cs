@@ -1,10 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
+using System.Collections.Immutable;
 using NBitcoin;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Models.Decomposition
 {
@@ -23,16 +20,16 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 		// 	=> $"[ {EffectiveCost} = { string.Join(' ', Outputs) } ]";
 
 		// Construct a singleton
-		public Decomposition(long EffectiveCost)
+		public Decomposition(long effectiveCost)
 		{
-			this.Outputs = ImmutableArray.Create<long>(EffectiveCost);
-			this.EffectiveCost = EffectiveCost;
+			Outputs = ImmutableArray.Create<long>(effectiveCost);
+			this.EffectiveCost = effectiveCost;
 		}
 
 		// Convenience constructor for tests
-		internal Decomposition(params int[] Outputs)
+		internal Decomposition(params int[] outputs)
 		{
-			this.Outputs = Outputs.OrderByDescending(x => x).Select(x => (long)x).ToImmutableArray();
+			Outputs = outputs.OrderByDescending(x => x).Select(x => (long)x).ToImmutableArray();
 			EffectiveCost = this.Outputs.Sum();
 		}
 
@@ -40,41 +37,54 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 
 		public long EffectiveCost { get; private init; }
 
-		public Decomposition Extend(long output)
-			=> (output <= Outputs.Last()) switch
-			{
-				true => this with
-				{
-					Outputs = Outputs.Add(output),
-					EffectiveCost = EffectiveCost + output,
-				},
-				_ => throw new InvalidOperationException("Generated decompositions must be monotonically decreasing"),
+		public Decomposition Extend(long output) =>
+			this with {
+				Outputs = (output <= Outputs.Last())
+					? Outputs.Add(output)
+					: throw new InvalidOperationException("Generated decompositions must be monotonically decreasing")
 			};
 
 		// Natural order is descending
-		public int CompareTo(Decomposition other)
+		public int CompareTo(Decomposition? other)
 		{
-			// Total effective value descending
-			var x = other.EffectiveCost.CompareTo(this.EffectiveCost);
-			if (x != 0) // FIXME is there a cleaner way to short circuit?
+			static int InternalCompare(Decomposition left, Decomposition right)
 			{
-				return x;
+				// Total effective value descending
+				var cmp = right.EffectiveCost.CompareTo(left.EffectiveCost);
+				if (cmp != 0) // FIXME is there a cleaner way to short circuit?
+				{
+					return cmp;
+				}
+
+				// Lexicographically descending
+				cmp = left.Outputs.Length.CompareTo(right.Outputs.Length);
+				if (cmp != 0)
+				{
+					return cmp;
+				}
+
+				// Note x & y are reversed in per element comparison
+				return Enumerable.Zip(left.Outputs, right.Outputs, (x, y) => y.CompareTo(x)).FirstOrDefault(x => x != 0);
 			}
 
-			// Lexicographically descending
-			x = this.Outputs.Length.CompareTo(other.Outputs.Length);
-			if (x != 0)
+			return (this, other) switch
 			{
-				return x;
-			}
-
-			// Note x & y are reversed in per element comparison
-			return Enumerable.Zip(this.Outputs, other.Outputs, (x, y) => y.CompareTo(x)).FirstOrDefault(x => x != 0);
+				(null, null) => 0,
+				(null,    _) => 1,
+				(_   , null) => -1,
+				({} left, {} right) => InternalCompare(left, right)
+			};
 		}
 
-		public bool Equals(Decomposition other)
-			=> EffectiveCost == other.EffectiveCost && Outputs.SequenceEqual(other.Outputs);
+		public bool Equals(Decomposition? other)
+			=> (other, this) switch
+			{
+				({}, {}) => Outputs.SequenceEqual(other.Outputs),
+				(null, null) => true,
+				_ => false
+			};
 
-		public override int GetHashCode() => Outputs.GetHashCode();
+		public override int GetHashCode()
+			=> Outputs.GetHashCode();
 	}
 }
