@@ -17,7 +17,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		[AutoNotify] private double _percent;
 		[AutoNotify] private string? _statusText;
-		[AutoNotify] private bool _isDownloading;
 
 		private Stopwatch? _stopwatch;
 		private volatile bool _isLoading;
@@ -30,7 +29,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			_wallet = wallet;
 			_statusText = "";
 			_percent = 0;
-			_isDownloading = true;
 
 			Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
 				.Where(status => status == BackendStatus.Connected)
@@ -83,8 +81,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			{
 				processedFilters = lastProcessedFilterHeight - _filterProcessStartingHeight - 1;
 			}
-
-			IsDownloading = RemainingFiltersToDownload == 0;
 
 			var processedCount = downloadedFilters + processedFilters;
 

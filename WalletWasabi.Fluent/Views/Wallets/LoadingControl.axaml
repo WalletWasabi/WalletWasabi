@@ -10,8 +10,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.LoadingControl">
   <DockPanel>
-    <StackPanel MaxWidth="800" Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Center"
-                IsVisible="{Binding IsDownloading}">
+    <StackPanel MaxWidth="800" Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Center">
       <TextBlock Text="Wasabi is downloading blockchain data" TextAlignment="Center" FontSize="22"
                  DockPanel.Dock="Bottom" />
 
@@ -30,7 +29,8 @@
     <Panel Margin="80 40">
       <Viewbox>
         <Viewbox.Styles>
-          <Style Selector=":is(Control).Beacon">
+          <Style Selector=":is(Control).City">
+            <Setter Property="Opacity" Value="0"></Setter>
             <Setter Property="Transitions">
               <Transitions>
                 <DoubleTransition Property="Opacity" Duration="0:0:0.75" Easing="{StaticResource FluentEasing}" />
@@ -43,11 +43,11 @@
             <behaviors:RandomizedWorldPointsBehavior />
           </i:Interaction.Behaviors>
           <Image Source="{StaticResource loading_control_world_map}"/>
-          <Image Source="{StaticResource loading_control_city_marker}" Classes="Beacon"/>
-          <Image Source="{StaticResource loading_control_city_marker}" Classes="Beacon"/>
-          <Image Source="{StaticResource loading_control_city_marker}" Classes="Beacon"/>
-          <Image Source="{StaticResource loading_control_city_marker}" Classes="Beacon"/>
-        </Canvas>
+          <Image Source="{StaticResource loading_control_city_marker}" Classes="City"/>
+          <Image Source="{StaticResource loading_control_city_marker}" Classes="City"/>
+          <Image Source="{StaticResource loading_control_city_marker}" Classes="City"/>
+          <Image Source="{StaticResource loading_control_city_marker}" Classes="City"/>
+         </Canvas>
       </Viewbox>
     </Panel>
   </DockPanel>
