@@ -72,6 +72,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					.FromEventPattern<WalletStatusChangedEventArgs>(coinJoinManager, nameof(CoinJoinManager.WalletStatusChanged))
 					.Select(args => args.EventArgs)
 					.Where(e => e.Wallet == Wallet)
+					.ObserveOn(RxApp.MainThreadScheduler)
 					.Subscribe(e => IsCoinJoining = e.IsCoinJoining)
 					.DisposeWith(Disposables);
 			}
