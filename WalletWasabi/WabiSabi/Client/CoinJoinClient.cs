@@ -123,17 +123,24 @@ namespace WalletWasabi.WabiSabi.Client
 
 				// Re-issuances.
 				var bobClient = CreateBobClient(roundState);
+				Logger.LogInfo($"Round ({roundState.Id}), Starting reissuances.");
 				await scheduler.StartReissuancesAsync(registeredAliceClients, bobClient, cancellationToken).ConfigureAwait(false);
 
 				// Output registration.
 				roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
+				Logger.LogDebug($"Round ({roundState.Id}): Output registration phase started.");
+
 				await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, cancellationToken).ConfigureAwait(false);
+				Logger.LogDebug($"Round ({roundState.Id}): Outputs({outputTxOuts.Count()}) successfully registered.");
 
 				// ReadyToSign.
 				await ReadyToSignAsync(registeredAliceClients, cancellationToken).ConfigureAwait(false);
+				Logger.LogDebug($"Round ({roundState.Id}): Alices({registeredAliceClients.Length}) successfully signalled ready to sign.");
 
 				// Signing.
 				roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
+				Logger.LogDebug($"Round ({roundState.Id}): Transaction signing phase started.");
+
 				var signingState = roundState.Assert<SigningState>();
 				var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
 
@@ -145,8 +152,10 @@ namespace WalletWasabi.WabiSabi.Client
 
 				// Send signature.
 				await SignTransactionAsync(registeredAliceClients, unsignedCoinJoin, roundState, cancellationToken).ConfigureAwait(false);
+				Logger.LogDebug($"Round ({roundState.Id}): Alices({registeredAliceClients.Length}) successfully signed the CoinJoin tx.");
 
 				var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundState.Id && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
+				Logger.LogDebug($"Round ({roundState.Id}): Round Ended - WasTransactionBroadcast: '{finalRoundState.WasTransactionBroadcast}'.");
 
 				return finalRoundState.WasTransactionBroadcast;
 			}
@@ -193,7 +202,25 @@ namespace WalletWasabi.WabiSabi.Client
 				}
 			}
 
-			var aliceClients = smartCoins.Select(coin => RegisterInputAsync(coin, cancellationToken)).ToImmutableArray();
+			// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to be registered.
+			var remainingTimeForRegistration = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
+
+			Logger.LogDebug($"Round ({roundState.Id}): Input registration started, it will end in {remainingTimeForRegistration.TotalMinutes} minutes.");
+
+			var scheduledDates = remainingTimeForRegistration.SamplePoisson(smartCoins.Count());
+
+			// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
+			var aliceClients = smartCoins.Zip(
+				scheduledDates,
+				async (coin, date) =>
+				{
+					var delay = date - DateTimeOffset.UtcNow;
+					if (delay > TimeSpan.Zero)
+					{
+						await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+					}
+					return await RegisterInputAsync(coin, cancellationToken).ConfigureAwait(false);
+				}).ToImmutableArray();
 
 			await Task.WhenAll(aliceClients).ConfigureAwait(false);
 
@@ -240,10 +267,22 @@ namespace WalletWasabi.WabiSabi.Client
 
 			// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to sign.
 			var transactionSigningTimeFrame = roundState.TransactionSigningTimeout - RoundStatusUpdater.Period;
+			Logger.LogDebug($"Round ({roundState.Id}): Signing phase started, it will end in {transactionSigningTimeFrame.TotalMinutes} minutes.");
+
 			var scheduledDates = transactionSigningTimeFrame.SamplePoisson(aliceClients.Count());
 
 			// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
-			var signingRequests = aliceClients.Zip(scheduledDates, (alice, date) => SignTransactionAsync(alice, cancellationToken).RunAsScheduledAsync(date, cancellationToken)).ToImmutableArray();
+			var signingRequests = aliceClients.Zip(
+				scheduledDates,
+				async (alice, date) =>
+				{
+					var delay = date - DateTimeOffset.UtcNow;
+					if (delay > TimeSpan.Zero)
+					{
+						await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+					}
+					return await SignTransactionAsync(alice, cancellationToken).ConfigureAwait(false);
+				}).ToImmutableArray();
 
 			await Task.WhenAll(signingRequests).ConfigureAwait(false);
 		}
@@ -256,6 +295,7 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 
 			var readyRequests = aliceClients.Select(ReadyToSignTask);
+
 			await Task.WhenAll(readyRequests).ConfigureAwait(false);
 		}
 
