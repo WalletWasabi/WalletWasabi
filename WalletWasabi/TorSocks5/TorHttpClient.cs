@@ -189,7 +189,7 @@ namespace WalletWasabi.TorSocks5
 					||
 					(requestScheme == "http" && TorSocks5Client.Stream is SslStream)
 					||
-					(requestScheme == "https" && TorSocks5Client.Stream is not SslStream);
+					(requestScheme == "https" && !(TorSocks5Client.Stream is SslStream));
 
 				if (toDispose)
 				{
