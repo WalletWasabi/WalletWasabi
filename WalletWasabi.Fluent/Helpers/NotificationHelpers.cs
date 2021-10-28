@@ -17,7 +17,6 @@ namespace WalletWasabi.Fluent.Helpers
 {
 	public static class NotificationHelpers
 	{
-		private const int MaxTitleLength = 50;
 		private const int DefaultNotificationTimeout = 10;
 		private static WindowNotificationManager? NotificationManager;
 
