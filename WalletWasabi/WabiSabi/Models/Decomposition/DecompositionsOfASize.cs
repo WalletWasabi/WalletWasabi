@@ -95,7 +95,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 				// .WithMergeOptions(ParallelMergeOptions.NotBuffered)
 				// .WithDegreeOfParallelism(Denominations.Length)
 				.Select(x => Extend(x, maximumEffectiveCost, minimumEffectiveCost))
-				.Aggregate(PossibleDecompositions.Merge)
+				.Aggregate(PossibleDecompositions.MergeDescending)
 				.ToImmutableArray(),
 			};
 

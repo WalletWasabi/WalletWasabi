@@ -173,7 +173,7 @@ namespace WalletWasabi.Tests.WabiSabi.Client
 				PossibleDecompositions.Generate(Enumerable.Range(0, 63).Select(x => new Money(1L << x)), 1L << 30, 1L << 30, 5).ByEffectiveCost());
 
 			Assert.Equal(
-				StandardDenomination.Values.Select(v => new Decomposition(v)).OrderBy(x => x),
+				StandardDenomination.Values.Select(v => new Decomposition(v)).OrderByDescending(x => x),
 				PossibleDecompositions.Generate(StandardDenomination.Values, StandardDenomination.Values.Max()!, 0L, 1).ByEffectiveCost());
 
 			Assert.Equal(

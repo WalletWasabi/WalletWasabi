@@ -39,32 +39,33 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 
 		public Decomposition Extend(long output) =>
 			this with {
-				Outputs = (output <= Outputs.Last())
+				Outputs = (output <= Outputs[^1])
 					? Outputs.Add(output)
-					: throw new InvalidOperationException("Generated decompositions must be monotonically decreasing")
+					: throw new InvalidOperationException("Generated decompositions must be monotonically decreasing"),
+				EffectiveCost = EffectiveCost + output
 			};
 
-		// Natural order is descending
 		public int CompareTo(Decomposition? other)
 		{
 			static int InternalCompare(Decomposition left, Decomposition right)
 			{
-				// Total effective value descending
-				var cmp = right.EffectiveCost.CompareTo(left.EffectiveCost);
+				// Total effective value
+				var cmp = left.EffectiveCost.CompareTo(right.EffectiveCost);
 				if (cmp != 0) // FIXME is there a cleaner way to short circuit?
 				{
 					return cmp;
 				}
 
-				// Lexicographically descending
-				cmp = left.Outputs.Length.CompareTo(right.Outputs.Length);
+				// If the effective value is the same, the shorter one must
+				// contain larger values
+				cmp = right.Outputs.Length.CompareTo(left.Outputs.Length);
 				if (cmp != 0)
 				{
 					return cmp;
 				}
 
-				// Note x & y are reversed in per element comparison
-				return Enumerable.Zip(left.Outputs, right.Outputs, (x, y) => y.CompareTo(x)).FirstOrDefault(x => x != 0);
+				// If they are the same length, compare lexicographically
+				return Enumerable.Zip(left.Outputs, right.Outputs, (x, y) => x.CompareTo(y)).FirstOrDefault(x => x != 0);
 			}
 
 			return (this, other) switch

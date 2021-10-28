@@ -52,11 +52,11 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 				// decompositions are not yet complete.
 				while (bySize.Capacity - bySize.Count > 1)
 				{
-					bySize.Add(bySize.Last().Extend(maximumEffectiveCost, 0));
+					bySize.Add(bySize[^1].Extend(maximumEffectiveCost, 0));
 				}
 
 				// The final extension can make use of the minimum value bound.
-				bySize.Add(bySize.Last().Extend(maximumEffectiveCost, minimumEffectiveCost));
+				bySize.Add(bySize[^1].Extend(maximumEffectiveCost, minimumEffectiveCost));
 
 				StratifiedDecompositions = bySize.MoveToImmutable();
 			}
@@ -129,12 +129,12 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 				.Take(maxOutputs)
 				.Select(decompositions => decompositions.Prune(Math.Min(maximumEffectiveCost, MaximumEffectiveCost),
 															   Math.Max(minimumEffectiveCost, MinimumEffectiveCost)))
-				.Aggregate(ImmutableArray<Decomposition>.Empty as IEnumerable<Decomposition>, Merge)
+				.Aggregate(ImmutableArray<Decomposition>.Empty as IEnumerable<Decomposition>, MergeDescending)
 				.Take(maxDecompositions);
 		}
 
 		// Merge two ordered enumerables (could be generic in T where T : IComparable)
-		internal static IEnumerable<Decomposition> Merge(IEnumerable<Decomposition> a, IEnumerable<Decomposition> b)
+		internal static IEnumerable<Decomposition> MergeDescending(IEnumerable<Decomposition> a, IEnumerable<Decomposition> b)
 		{
 			if (!a.Any())
 			{
@@ -161,7 +161,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 
 					// When order is reversed, swap the two enumerators, so that we
 					// always output from the 'large' enumerator
-					if (cmp > 0)
+					if (cmp < 0)
 					{
 						(large, small) = (small, large);
 					}
