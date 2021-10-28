@@ -117,7 +117,7 @@ namespace WalletWasabi.Http.Models
 				{
 					throw new InvalidDataException("Invalid Content-Length.");
 				}
-				hs.Fields.RemoveAll(x => x.Name.Equals("Content-Length"));
+				hs.Fields.RemoveAll(x => x.Name.Equals("Content-Length", StringComparison.OrdinalIgnoreCase));
 				hs.Fields.Add(new HeaderField("Content-Length", allParts.First()));
 			}
 		}
