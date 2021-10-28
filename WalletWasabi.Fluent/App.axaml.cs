@@ -6,7 +6,6 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data;
 using Avalonia.Markup.Xaml;
-using Avalonia.Threading;
 using ReactiveUI;
 using WalletWasabi.Fluent.Behaviors;
 using WalletWasabi.Fluent.Providers;
