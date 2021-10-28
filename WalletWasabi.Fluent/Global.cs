@@ -83,9 +83,6 @@ namespace WalletWasabi.Fluent
 				HostedServices = new HostedServices();
 				WalletManager = walletManager;
 
-				WalletManager.OnDequeue += WalletManager_OnDequeue;
-				WalletManager.WalletRelevantTransactionProcessed += WalletManager_WalletRelevantTransactionProcessed;
-
 				var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
 				var transactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
 				var indexStore = new IndexStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, new SmartHeaderChain());
@@ -330,9 +327,6 @@ namespace WalletWasabi.Fluent
 					{
 						Logger.LogError($"Error during {nameof(WalletManager.RemoveAndStopAllAsync)}: {ex}");
 					}
-
-					WalletManager.OnDequeue -= WalletManager_OnDequeue;
-					WalletManager.WalletRelevantTransactionProcessed -= WalletManager_WalletRelevantTransactionProcessed;
 
 					if (RpcServer is { } rpcServer)
 					{
