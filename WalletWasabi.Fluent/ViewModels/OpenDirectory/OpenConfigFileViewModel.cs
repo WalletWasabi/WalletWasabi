@@ -28,7 +28,6 @@ namespace WalletWasabi.Fluent.ViewModels.OpenDirectory
 				{
 					await ShowErrorAsync("Open", ex.Message, "Wasabi was unable to open the file");
 				}
-
 			});
 	}
 }
