@@ -6,6 +6,10 @@
              x:DataType="vm:ApplicationViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.App" CanShutdownProvider="{Binding .}">
+  <Application.DataContext>
+    <vm:ApplicationViewModel />
+  </Application.DataContext>
+
   <Application.DataTemplates>
     <local:ViewLocator />
     <DataTemplate DataType="models:ErrorDescriptor" x:DataType="models:ErrorDescriptor">

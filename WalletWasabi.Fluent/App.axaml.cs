@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using ReactiveUI;
 using WalletWasabi.Fluent.Behaviors;
 using WalletWasabi.Fluent.Providers;
@@ -28,17 +29,12 @@ namespace WalletWasabi.Fluent
 		public App()
 		{
 			Name = "Wasabi Wallet";
-			ApplicationViewModel applicationViewModel = new();
-			DataContext = applicationViewModel;
-			applicationViewModel.ShowRequested += (sender, args) => ShowRequested?.Invoke(sender, args);
 		}
 
 		public App(Func<Task> backendInitialiseAsync) : this()
 		{
 			_backendInitialiseAsync = backendInitialiseAsync;
 		}
-
-		public event EventHandler? ShowRequested;
 
 		public ICanShutdownProvider? CanShutdownProvider
 		{
@@ -55,18 +51,22 @@ namespace WalletWasabi.Fluent
 		{
 			AutoBringIntoViewExtension.Initialise();
 
+			Services.SingleInstanceChecker.OtherInstanceStarted += SingleInstanceCheckerOnOtherInstanceStarted;
+
 			if (!Design.IsDesignMode)
 			{
 				MainViewModel.Instance = new MainViewModel();
 
-				if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+				if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
 				{
-					desktop.ShutdownRequested += DesktopOnShutdownRequested;
+					desktopLifetime.ShutdownMode = Services.UiConfig.HideOnClose ? ShutdownMode.OnExplicitShutdown : ShutdownMode.OnMainWindowClose;
 
-					desktop.MainWindow = new MainWindow
+					desktopLifetime.MainWindow = new MainWindow
 					{
 						DataContext = MainViewModel.Instance
 					};
+
+					desktopLifetime.ShutdownRequested += DesktopOnShutdownRequested;
 
 					RxApp.MainThreadScheduler.Schedule(
 						async () =>
@@ -79,6 +79,31 @@ namespace WalletWasabi.Fluent
 			}
 
 			base.OnFrameworkInitializationCompleted();
+		}
+
+		private void ShowMainWindow()
+		{
+			if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+			{
+				if (Services.UiConfig.HideOnClose && desktopLifetime.MainWindow is null)
+				{
+					desktopLifetime.MainWindow = new MainWindow
+					{
+						DataContext = MainViewModel.Instance
+					};
+
+					desktopLifetime.MainWindow.Show();
+				}
+				else if (!Services.UiConfig.HideOnClose && desktopLifetime.MainWindow is { } && desktopLifetime.MainWindow.WindowState == WindowState.Minimized)
+				{
+					if (desktopLifetime.MainWindow.WindowState == WindowState.Minimized)
+					{
+						desktopLifetime.MainWindow.WindowState = (WindowState)Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
+					}
+
+					desktopLifetime.MainWindow.BringIntoView();
+				}
+			}
 		}
 
 		private void DesktopOnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
@@ -95,7 +120,12 @@ namespace WalletWasabi.Fluent
 		// https://github.com/AvaloniaUI/Avalonia/blob/99d983499f5412febf07aafe2bf03872319b412b/src/Avalonia.Controls/TrayIcon.cs#L66
 		private void TrayIcon_OnClicked(object? sender, EventArgs e)
 		{
-			ShowRequested?.Invoke(this, EventArgs.Empty);
+			ShowMainWindow();
+		}
+
+		private void SingleInstanceCheckerOnOtherInstanceStarted(object? sender, EventArgs e)
+		{
+			ShowMainWindow();
 		}
 	}
 }

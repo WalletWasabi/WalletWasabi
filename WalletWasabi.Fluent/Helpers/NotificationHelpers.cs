@@ -33,6 +33,11 @@ namespace WalletWasabi.Fluent.Helpers
 			NotificationManager = notificationManager;
 		}
 
+		public static void ClearNotificationManager()
+		{
+			NotificationManager = null;
+		}
+
 		public static void Notify(string message, string title, NotificationType type, Action? onClick = null, object? sender = null)
 		{
 			List<string> titles = new();
