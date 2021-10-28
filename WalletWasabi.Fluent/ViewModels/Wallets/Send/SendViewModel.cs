@@ -102,7 +102,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				}
 			});
 
-			AdvancedOptionsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.CompactDialogScreen).To(new AdvancedSendOptionsViewModel()));
+			AdvancedOptionsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.CompactDialogScreen).To(new AdvancedSendOptionsViewModel(_transactionInfo)));
 
 			var nextCommandCanExecute =
 				this.WhenAnyValue(x => x.AmountBtc, x => x.To).Select(_ => Unit.Default)

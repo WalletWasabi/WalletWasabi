@@ -30,6 +30,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public FeeRate FeeRate { get; set; } = FeeRate.Zero;
 
+		public FeeRate CustomFeeRate { get; set; } = FeeRate.Zero;
+
 		public TimeSpan ConfirmationTimeSpan { get; set; }
 
 		public IEnumerable<SmartCoin> Coins { get; set; } = Enumerable.Empty<SmartCoin>();
