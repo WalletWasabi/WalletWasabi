@@ -82,10 +82,6 @@ namespace WalletWasabi.Blockchain.Keys
 			MasterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
 			AccountKeyPath = GetAccountKeyPath(BlockchainState.Network);
 			ExtPubKey = extKey.Derive(AccountKeyPath).Neuter();
-
-			SetFilePath(null);
-			ToFileLock = new object();
-			ToFile();
 		}
 
 		public static KeyPath GetAccountKeyPath(Network network) =>
