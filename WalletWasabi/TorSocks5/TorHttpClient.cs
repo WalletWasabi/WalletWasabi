@@ -181,10 +181,21 @@ namespace WalletWasabi.TorSocks5
 			// in forwarded messages.
 			request.Version = HttpProtocol.HTTP11.Version;
 
-			if (TorSocks5Client != null && !TorSocks5Client.IsConnected)
+			string requestScheme = request.RequestUri.Scheme;
+			if (TorSocks5Client != null)
 			{
-				TorSocks5Client?.Dispose();
-				TorSocks5Client = null;
+				bool toDispose =
+					!TorSocks5Client.IsConnected
+					||
+					(requestScheme == "http" && TorSocks5Client.Stream is SslStream)
+					||
+					(requestScheme == "https" && !(TorSocks5Client.Stream is SslStream));
+
+				if (toDispose)
+				{
+					TorSocks5Client?.Dispose();
+					TorSocks5Client = null;
+				}
 			}
 
 			if (TorSocks5Client is null || !TorSocks5Client.IsConnected)
@@ -195,7 +206,7 @@ namespace WalletWasabi.TorSocks5
 				await TorSocks5Client.ConnectToDestinationAsync(host, request.RequestUri.Port).ConfigureAwait(false);
 
 				Stream stream = TorSocks5Client.TcpClient.GetStream();
-				if (request.RequestUri.Scheme == "https")
+				if (requestScheme == "https")
 				{
 					SslStream sslStream = new SslStream(stream, leaveInnerStreamOpen: true);
 
