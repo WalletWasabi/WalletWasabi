@@ -10,7 +10,7 @@ namespace WalletWasabi.Fluent.Morph
 	{
 		public static List<PolyLine> ToCache(PolyLine source, PolyLine target, double speed, IEasing easing, bool interpolateXAxis = true)
 		{
-			int steps = (int) (1 / speed);
+			int steps = (int)(1 / speed);
 			double p = speed;
 			var cache = new List<PolyLine>(steps);
 

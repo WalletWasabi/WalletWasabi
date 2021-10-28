@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
@@ -136,6 +138,19 @@ namespace WalletWasabi.Io
 			SafeMoveNewToOriginal();
 		}
 
+		public void WriteAllText(string text, Encoding encoding)
+		{
+			if (string.IsNullOrEmpty(text))
+			{
+				throw new ArgumentNullException(nameof(text), "Parameter cannot be null or empty.");
+			}
+
+			IoHelpers.EnsureContainingDirectoryExists(NewFilePath);
+
+			File.WriteAllText(NewFilePath, text, encoding);
+			SafeMoveNewToOriginal();
+		}
+
 		public new async Task<string[]> ReadAllLinesAsync(CancellationToken cancellationToken = default)
 		{
 			var filePath = FilePath;
@@ -144,6 +159,17 @@ namespace WalletWasabi.Io
 				filePath = safestFilePath;
 			}
 			return await ReadAllLinesAsync(filePath, cancellationToken).ConfigureAwait(false);
+		}
+
+		public string ReadAllText(Encoding encoding)
+		{
+			var filePath = FilePath;
+			if (TryGetSafestFileVersion(out string? safestFilePath))
+			{
+				filePath = safestFilePath;
+			}
+
+			return File.ReadAllText(filePath, encoding);
 		}
 
 		/// <summary>

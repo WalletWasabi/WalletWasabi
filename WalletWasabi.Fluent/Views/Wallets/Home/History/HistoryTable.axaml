@@ -7,6 +7,7 @@
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:history="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="history:HistoryViewModel"
              x:CompileBindings="True"
@@ -100,30 +101,6 @@
           </Animation>
         </Style.Animations>
       </Style>
-      <Style Selector="Button.labelFlyout">
-        <Setter Property="Margin" Value="0" />
-        <Setter Property="Padding" Value="12,5,12,5" />
-        <Setter Property="VerticalAlignment" Value="Top" />
-        <Setter Property="HorizontalAlignment" Value="Left" />
-        <Setter Property="MinHeight" Value="0" />
-        <Setter Property="MinWidth" Value="38" />
-      </Style>
-      <Style Selector="Button.labelFlyout /template/ ContentPresenter">
-        <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="BorderBrush" Value="{StaticResource TagsBoxBorderBrush}" />
-        <Setter Property="Background" Value="{DynamicResource InvisibleButtonBackgroundColor}" />
-        <Setter Property="CornerRadius" Value="2" />
-      </Style>
-      <Style Selector="Button.labelFlyout:pointerover /template/ ContentPresenter">
-        <Setter Property="BorderBrush" Value="{StaticResource TagsBoxBorderBrush}" />
-      </Style>
-      <Style Selector="Button.labelFlyout:pressed /template/ ContentPresenter">
-        <Setter Property="BorderBrush" Value="{StaticResource TagsBoxBorderBrush}" />
-      </Style>
-      <Style Selector="Button.labelFlyout:disabled /template/ ContentPresenter">
-        <Setter Property="BorderBrush" Value="{StaticResource TagsBoxBorderBrush}" />
-      </Style>
       <Style Selector="TextBlock.hidden">
         <Setter Property="IsVisible" Value="False"/>
       </Style>
@@ -143,8 +120,8 @@
                               SortMemberPath="OrderIndex">
         <DataGridTemplateColumn.CellTemplate>
           <DataTemplate>
-            <c:PrivacyContentControl x:DataType="history:HistoryItemViewModel"
-                                     Content="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}"
+            <c:PrivacyContentControl x:DataType="historyItems:HistoryItemViewModelBase"
+                                     Content="{Binding DateString}"
                                      Classes="monoSpaced"
                                      FontSize="15"
                                      Margin="10 0"
@@ -166,7 +143,7 @@
                   <Setter Property="Margin" Value="0" />
                 </Style>
               </c:PrivacyContentControl.Styles>
-              <Panel x:DataType="history:HistoryItemViewModel">
+              <Panel x:DataType="historyItems:HistoryItemViewModelBase">
                 <PathIcon ToolTip.Tip="Transaction" Data="{StaticResource normal_transaction}" Opacity="0.6"
                           IsVisible="{Binding !IsCoinJoin}" />
                 <PathIcon ToolTip.Tip="CoinJoin" Data="{StaticResource shield_regular}" Height="15" Opacity="0.6"
@@ -185,7 +162,7 @@
         <DataGridTemplateColumn.CellTemplate>
           <DataTemplate>
             <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15" Classes="monoSpacedPrivacyReplacement">
-              <DockPanel LastChildFill="False" x:DataType="history:HistoryItemViewModel">
+              <DockPanel LastChildFill="False" x:DataType="historyItems:HistoryItemViewModelBase">
                 <c:TagsBox Padding="0"
                           Margin="0"
                           MinWidth="0"
@@ -229,7 +206,7 @@
         <DataGridTemplateColumn.CellTemplate>
           <DataTemplate>
             <Panel Name="Panel" HorizontalAlignment="Stretch">
-              <StackPanel x:DataType="history:HistoryItemViewModel"
+              <StackPanel x:DataType="historyItems:HistoryItemViewModelBase"
                           IsVisible="{Binding !!IncomingAmount}"
                           HorizontalAlignment="Right">
                 <PathIcon Data="{StaticResource arrow_down_right_regular}" Opacity="0.6">
@@ -258,7 +235,7 @@
         <DataGridTemplateColumn.CellTemplate>
           <DataTemplate>
             <Panel Name="Panel" HorizontalAlignment="Stretch">
-              <StackPanel x:DataType="history:HistoryItemViewModel"
+              <StackPanel x:DataType="historyItems:HistoryItemViewModelBase"
                           IsVisible="{Binding !!OutgoingAmount}"
                           HorizontalAlignment="Right">
                 <PathIcon Data="{StaticResource arrow_up_right_regular}" Opacity="0.6">
@@ -284,7 +261,7 @@
                               SortMemberPath="Balance">
         <DataGridTemplateColumn.CellTemplate>
           <DataTemplate>
-            <c:PrivacyContentControl x:DataType="history:HistoryItemViewModel"
+            <c:PrivacyContentControl x:DataType="historyItems:HistoryItemViewModelBase"
                                      Content="{Binding Balance, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
                                      Classes="monoSpaced"
                                      FontSize="15"
@@ -303,7 +280,7 @@
                               SortMemberPath="IsConfirmed">
         <DataGridTemplateColumn.CellTemplate>
           <DataTemplate>
-            <Panel x:DataType="history:HistoryItemViewModel">
+            <Panel x:DataType="historyItems:HistoryItemViewModelBase">
               <!-- Confirmed -->
               <StackPanel IsVisible="{Binding IsConfirmed}">
                 <PathIcon Data="{StaticResource checkmark_filled}"
@@ -321,7 +298,8 @@
               </StackPanel>
               <!-- Pending -->
               <StackPanel IsVisible="{Binding !IsConfirmed}">
-                <PathIcon Data="{StaticResource channel_regular}"
+                <PathIcon Data="{StaticResource clock_regular}"
+                          Height="14"
                           Opacity="0.6"
                           ToolTip.Tip="Pending"/>
                 <TextBlock Classes="monoSpaced" Text="Pending">
@@ -343,7 +321,7 @@
                               CanUserSort="False">
         <DataGridTemplateColumn.CellTemplate>
           <DataTemplate>
-            <Button x:DataType="history:HistoryItemViewModel" Classes="plain" ToolTip.Tip="Show Details"
+            <Button x:DataType="historyItems:HistoryItemViewModelBase" Classes="plain" ToolTip.Tip="Show Details"
                     Command="{Binding ShowDetailsCommand}">
               <PathIcon Data="{StaticResource details_regular}" Height="15" Opacity="0.6" />
             </Button>

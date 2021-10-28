@@ -11,17 +11,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		protected ClosedWalletViewModel(Wallet wallet)
 			: base(wallet)
 		{
-			Loading = new LoadingViewModel(wallet);
 			OpenCommand = ReactiveCommand.Create(OnOpen);
 		}
 
-		public LoadingViewModel Loading { get; }
+		public LoadingViewModel? Loading { get; private set; }
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
+			Loading ??= new LoadingViewModel(Wallet);
 			Loading.Activate(disposables);
+
+			IsLoading = true;
 		}
 
 		private void OnOpen()

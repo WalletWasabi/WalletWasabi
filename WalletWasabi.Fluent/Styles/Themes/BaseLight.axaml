@@ -46,6 +46,10 @@
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
 
+    <Color x:Key="WelcomeScreenButtonBackground">#DADFE7</Color>
+    <Color x:Key="WelcomeScreenButtonBackgroundPressed">#C1CBD7</Color>
+    <Color x:Key="WelcomeScreenButtonBackgroundPointerOver">#CDD5DF</Color>
+
     <SolidColorBrush x:Key="TextControlBorderBrush" Color="#CED7E2" />
     <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#A9B2BC" />
     <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#0B2545" />
@@ -67,12 +71,15 @@
     <Color x:Key="LineChartAreaGradientCursorStrokeColor">#F078A827</Color>
     <Color x:Key="LineChartLineColor">#78A827</Color>
 
+    <SolidColorBrush x:Key="OptimizePrivacyOptionSelectedColor">#FFFFFF</SolidColorBrush>
+
     <SolidColorBrush x:Key="DialogOverlayColor">#7F7A7A7A</SolidColorBrush>
 
     <BoxShadows x:Key="DialogBoxShadow">4 11 30 1 #3F000000</BoxShadows>
     <BoxShadows x:Key="InfoBoxShadow">0 1 1.5 #3F000000</BoxShadows>
     <BoxShadows x:Key="BoxShadow">0 1 4 #D1D1D1</BoxShadows>
     <BoxShadows x:Key="OptionButtonShadow">0 2 2 #D1D1D1</BoxShadows>
+    <BoxShadows x:Key="OptimizePrivacyOptionBoxShadow1">0 12 32 0 #49556726</BoxShadows>
 
   </Styles.Resources>
   <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentLight.xaml" />

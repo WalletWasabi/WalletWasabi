@@ -29,7 +29,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// We try to spend 100btc but we only have 0.03
 			var amount = Money.Coins(100m);
 			using Key key = new();
-			var payment = new PaymentIntent(key.ScriptPubKey, amount);
+			var payment = new PaymentIntent(key, amount);
 
 			var ex = Assert.Throws<InsufficientBalanceException>(() => transactionFactory.BuildTransaction(payment, new FeeRate(2m)));
 
@@ -46,7 +46,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			});
 
 			using Key key = new();
-			var payment = new PaymentIntent(key.ScriptPubKey, MoneyRequest.CreateAllRemaining(subtractFee: true));
+			var payment = new PaymentIntent(key, MoneyRequest.CreateAllRemaining(subtractFee: true));
 
 			var result = transactionFactory.BuildTransaction(payment, new FeeRate(44.25m));
 			var output = Assert.Single(result.OuterWalletOutputs);
@@ -68,7 +68,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// There is a 0.08 coin with AS=50. However it selects the most private one with AS= 200
 			using Key key = new();
-			var destination = key.ScriptPubKey;
+			var destination = key;
 			var payment = new PaymentIntent(destination, Money.Coins(0.07m), label: "Sophie");
 			var feeRate = new FeeRate(2m);
 			var result = transactionFactory.BuildTransaction(payment, feeRate);
@@ -97,7 +97,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// There is a 0.8 coin with AS=50. However it selects the most private one with AS= 200
 			using Key key = new();
-			var payment = new PaymentIntent(key.ScriptPubKey, Money.Coins(0.07m), label: "Sophie");
+			var payment = new PaymentIntent(key, Money.Coins(0.07m), label: "Sophie");
 			var feeRate = new FeeRate(2m);
 			var result = transactionFactory.BuildTransaction(payment, feeRate);
 
@@ -128,7 +128,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// It has to select the most private coins regardless of the amounts
 			using Key key = new();
-			var payment = new PaymentIntent(key.ScriptPubKey, Money.Coins(0.17m));
+			var payment = new PaymentIntent(key, Money.Coins(0.17m));
 			var feeRate = new FeeRate(2m);
 			var result = transactionFactory.BuildTransaction(payment, feeRate);
 
@@ -159,7 +159,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// Selecting 0.08 + 0.04 should be enough but it has to select 0.02 too because it is the same address
 			using Key key = new();
-			var payment = new PaymentIntent(key.ScriptPubKey, Money.Coins(0.1m), label: "Sophie");
+			var payment = new PaymentIntent(key, Money.Coins(0.1m), label: "Sophie");
 			var feeRate = new FeeRate(2m);
 			var result = transactionFactory.BuildTransaction(payment, feeRate);
 
@@ -224,7 +224,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// Two 0.9btc coins are enough
 			using Key key1 = new();
-			var payment = new PaymentIntent(key1.ScriptPubKey, Money.Coins(1.75m), label: "Sophie");
+			var payment = new PaymentIntent(key1, Money.Coins(1.75m), label: "Sophie");
 			var feeRate = new FeeRate(2m);
 			var result = transactionFactory.BuildTransaction(payment, feeRate);
 
@@ -235,7 +235,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// Three 0.9btc coins are enough
 			using Key key2 = new();
-			payment = new PaymentIntent(key2.ScriptPubKey, Money.Coins(1.85m), label: "Sophie");
+			payment = new PaymentIntent(key2, Money.Coins(1.85m), label: "Sophie");
 			feeRate = new FeeRate(2m);
 			result = transactionFactory.BuildTransaction(payment, feeRate);
 
@@ -248,7 +248,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// Four 0.9btc coins are enough but this time the more private cluster is NOT enough
 			// That's why it has to use the coins in the cluster number 1
 			using Key key3 = new();
-			payment = new PaymentIntent(key3.ScriptPubKey, Money.Coins(3.5m), label: "Sophie");
+			payment = new PaymentIntent(key3, Money.Coins(3.5m), label: "Sophie");
 			feeRate = new FeeRate(2m);
 			result = transactionFactory.BuildTransaction(payment, feeRate);
 
@@ -262,7 +262,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// Nine 0.9btc coins are enough but there is no cluster big enough
 			// That's why it has to use the coins from both the clusters
 			using Key key = new();
-			payment = new PaymentIntent(key.ScriptPubKey, Money.Coins(7.4m), label: "Sophie");
+			payment = new PaymentIntent(key, Money.Coins(7.4m), label: "Sophie");
 			feeRate = new FeeRate(2m);
 			result = transactionFactory.BuildTransaction(payment, feeRate);
 
@@ -282,8 +282,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var payment = new PaymentIntent(new[]
 			{
-				new DestinationRequest(key.ScriptPubKey, Money.Coins(0.1m)),
-				new DestinationRequest(changeKey.ScriptPubKey, MoneyRequest.CreateChange(subtractFee: true))
+				new DestinationRequest(key.PubKey, Money.Coins(0.1m)),
+				new DestinationRequest(changeKey.PubKey, MoneyRequest.CreateChange(subtractFee: true))
 			});
 			var feeRate = new FeeRate(2m);
 			var result = transactionFactory.BuildTransaction(payment, feeRate);
@@ -295,7 +295,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var tx = result.Transaction.Transaction;
 			Assert.Equal(2, tx.Outputs.Count);
 
-			var changeOutput = Assert.Single<TxOut>(tx.Outputs, x => x.ScriptPubKey == changeKey.ScriptPubKey);
+			var changeOutput = Assert.Single<TxOut>(tx.Outputs, x => x.ScriptPubKey == changeKey.PubKey.ScriptPubKey);
 			Assert.False(transactionFactory.KeyManager.TryGetKeyForScriptPubKey(changeOutput.ScriptPubKey, out _));
 			Assert.Equal(Money.Coins(0.9m), changeOutput.Value + result.Fee);
 		}
@@ -314,9 +314,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var payment = new PaymentIntent(new[]
 			{
-				new DestinationRequest(key1.ScriptPubKey, Money.Coins(0.3m)),
-				new DestinationRequest(key2.ScriptPubKey, Money.Coins(0.3m), subtractFee: true),
-				new DestinationRequest(key3.ScriptPubKey, Money.Coins(0.3m))
+				new DestinationRequest(key1, Money.Coins(0.3m)),
+				new DestinationRequest(key2, Money.Coins(0.3m), subtractFee: true),
+				new DestinationRequest(key3, Money.Coins(0.3m))
 			});
 			var feeRate = new FeeRate(2m);
 			var result = transactionFactory.BuildTransaction(payment, feeRate);
@@ -328,7 +328,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var tx = result.Transaction.Transaction;
 			Assert.Equal(4, tx.Outputs.Count);
 
-			var destination2Output = Assert.Single<TxOut>(tx.Outputs, x => x.ScriptPubKey == key2.ScriptPubKey);
+			var destination2Output = Assert.Single<TxOut>(tx.Outputs, x => x.ScriptPubKey == key2.GetScriptPubKey(ScriptPubKeyType.Legacy));
 			Assert.Equal(Money.Coins(0.3m), destination2Output.Value + result.Fee);
 
 			var changeOutput = Assert.Single(tx.Outputs, x => transactionFactory.KeyManager.TryGetKeyForScriptPubKey(x.ScriptPubKey, out _));
@@ -349,9 +349,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var payment = new PaymentIntent(new[]
 			{
-				new DestinationRequest(key1.ScriptPubKey, Money.Coins(0.3m)),
-				new DestinationRequest(key2.ScriptPubKey, Money.Coins(0.00001m), subtractFee: true),
-				new DestinationRequest(key3.ScriptPubKey, Money.Coins(0.3m))
+				new DestinationRequest(key1, Money.Coins(0.3m)),
+				new DestinationRequest(key2, Money.Coins(0.00001m), subtractFee: true),
+				new DestinationRequest(key3, Money.Coins(0.3m))
 			});
 			var feeRate = new FeeRate(20m);
 			var ex = Assert.Throws<NotEnoughFundsException>(() => transactionFactory.BuildTransaction(payment, feeRate));
@@ -368,7 +368,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			});
 
 			using Key key = new();
-			var destination = key.ScriptPubKey;
+			var destination = key.PubKey;
 			var payment = new PaymentIntent(new[]
 			{
 				new DestinationRequest(destination, Money.Coins(0.3m)),
@@ -386,7 +386,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Equal(2, tx.Outputs.Count); // consolidates same address payment
 
 			var destinationOutput = Assert.Single(result.OuterWalletOutputs);
-			Assert.Equal(destination, destinationOutput.ScriptPubKey);
+			Assert.Equal(destination.ScriptPubKey, destinationOutput.ScriptPubKey);
 			Assert.Equal(Money.Coins(0.9m), destinationOutput.Amount + result.Fee);
 
 			var changeOutput = Assert.Single(result.InnerWalletOutputs);
@@ -405,7 +405,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			});
 
 			using Key key = new();
-			var destination = key.ScriptPubKey;
+			var destination = key;
 			var payment = new PaymentIntent(new[]
 			{
 				new DestinationRequest(destination, MoneyRequest.CreateAllRemaining(subtractFee: true))
@@ -432,7 +432,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			});
 
 			using Key key = new();
-			var payment = new PaymentIntent(key.ScriptPubKey, Money.Coins(0.095m));
+			var payment = new PaymentIntent(key, Money.Coins(0.095m));
 			var feeRate = new FeeRate(2m);
 			var coins = transactionFactory.Coins;
 			var allowedCoins = new[]
@@ -461,7 +461,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			});
 
 			using Key key = new();
-			var destination = key.ScriptPubKey;
+			var destination = key.PubKey;
 			var payment = new PaymentIntent(destination, MoneyRequest.CreateAllRemaining(subtractFee: true));
 			var feeRate = new FeeRate(2m);
 			var coins = transactionFactory.Coins;
@@ -482,7 +482,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var tx = result.Transaction.Transaction;
 			Assert.Single(tx.Outputs);
 
-			var destinationutput = Assert.Single(tx.Outputs, x => x.ScriptPubKey == destination);
+			var destinationutput = Assert.Single(tx.Outputs, x => x.ScriptPubKey == destination.ScriptPubKey);
 			Assert.Equal(Money.Coins(0.13m), destinationutput.Value + result.Fee);
 		}
 
@@ -502,7 +502,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var amount = Money.Coins(0.5m); // it is not enough
 			using Key key = new();
-			var payment = new PaymentIntent(key.ScriptPubKey, amount);
+			var payment = new PaymentIntent(key, amount);
 
 			var ex = Assert.Throws<InsufficientBalanceException>(() =>
 				transactionFactory.BuildTransaction(payment, new FeeRate(2m), allowedCoins.Select(x => x.OutPoint)));
@@ -524,7 +524,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// Selecting 0.08 + 0.02 should be enough but it has to select 0.02 too because it is the same address
 			using Key key = new();
-			var payment = new PaymentIntent(key.ScriptPubKey, Money.Coins(0.095m));
+			var payment = new PaymentIntent(key, Money.Coins(0.095m));
 			var feeRate = new FeeRate(2m);
 			var coins = transactionFactory.Coins;
 
@@ -556,7 +556,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				watchOnly: true);
 
 			using Key key = new();
-			var payment = new PaymentIntent(key.ScriptPubKey, MoneyRequest.CreateAllRemaining(subtractFee: true));
+			var payment = new PaymentIntent(key, MoneyRequest.CreateAllRemaining(subtractFee: true));
 
 			var result = transactionFactory.BuildTransaction(payment, new FeeRate(44.25m));
 			Assert.Single(result.OuterWalletOutputs);

@@ -106,7 +106,7 @@ namespace WalletWasabi.Tests.RegressionTests
 					}
 				}
 
-				var scp = new Key().ScriptPubKey;
+				var scp = new Key().PubKey.ScriptPubKey;
 				var res2 = wallet.BuildTransaction(password, new PaymentIntent(scp, Money.Coins(0.05m), label: "foo"), FeeStrategy.CreateFromConfirmationTarget(5), allowUnconfirmed: false);
 
 				Assert.NotNull(res2.Transaction);
@@ -470,8 +470,8 @@ namespace WalletWasabi.Tests.RegressionTests
 						new DestinationRequest(k2, Money.Coins(0.0003m), label: "outgoing")),
 					FeeStrategy.TwentyMinutesConfirmationTargetStrategy);
 
-				Assert.Contains(k1.ScriptPubKey, res.OuterWalletOutputs.Select(x => x.ScriptPubKey));
-				Assert.Contains(k2.ScriptPubKey, res.OuterWalletOutputs.Select(x => x.ScriptPubKey));
+				Assert.Contains(k1.PubKey.ScriptPubKey, res.OuterWalletOutputs.Select(x => x.ScriptPubKey));
+				Assert.Contains(k2.PubKey.ScriptPubKey, res.OuterWalletOutputs.Select(x => x.ScriptPubKey));
 
 				#endregion CustomChange
 
@@ -579,7 +579,12 @@ namespace WalletWasabi.Tests.RegressionTests
 				TransactionBroadcaster broadcaster = new(network, bitcoinStore, httpClientFactory, walletManager);
 				broadcaster.Initialize(nodes, rpc);
 
-				PaymentIntent operations = new(new DestinationRequest(key.P2wpkhScript, Money.Coins(0.01m)), new DestinationRequest(new Key().ScriptPubKey, Money.Coins(0.01m)), new DestinationRequest(new Key().ScriptPubKey, Money.Coins(0.01m)));
+				var destination1 = key.PubKey.GetAddress(ScriptPubKeyType.Segwit, Network.Main);
+				var destination2 = new Key().PubKey.GetAddress(ScriptPubKeyType.Legacy, Network.Main);
+				var destination3 = new Key().PubKey.GetAddress(ScriptPubKeyType.Legacy, Network.Main);
+
+				PaymentIntent operations = new(new DestinationRequest(destination1, Money.Coins(0.01m)), new DestinationRequest(destination2, Money.Coins(0.01m)), new DestinationRequest(destination3, Money.Coins(0.01m)));
+
 				var tx1Res = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
 				Assert.Equal(2, tx1Res.InnerWalletOutputs.Count());
 				Assert.Equal(2, tx1Res.OuterWalletOutputs.Count());

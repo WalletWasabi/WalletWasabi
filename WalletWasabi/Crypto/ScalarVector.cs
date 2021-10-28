@@ -34,7 +34,7 @@ namespace WalletWasabi.Crypto
 			Guard.True(nameof(groupElements.Count), groupElements.Count == scalars.Count);
 
 			var gej = ECMultContext.Instance.MultBatch(scalars.ToArray(), groupElements.Select(x => x.Ge).ToArray());
-			return new GroupElement( gej );
+			return new GroupElement(gej);
 		}
 
 		public static ScalarVector operator *(Scalar scalar, ScalarVector scalars)

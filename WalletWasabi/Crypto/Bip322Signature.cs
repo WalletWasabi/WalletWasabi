@@ -1,5 +1,6 @@
 using System;
 using NBitcoin;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace WalletWasabi.Crypto
 {
@@ -17,8 +18,10 @@ namespace WalletWasabi.Crypto
 		{
 		}
 
+		[ValidateNever]
 		public Script ScriptSig => _scriptSig;
 
+		[ValidateNever]
 		public WitScript Witness { get; private set; } = WitScript.Empty;
 
 		public void ReadWrite(BitcoinStream bitcoinStream)
@@ -50,7 +53,7 @@ namespace WalletWasabi.Crypto
 				ScriptPubKeyType.Segwit => new Bip322Signature(
 					Script.Empty,
 					PayToWitPubKeyHashTemplate.Instance.GenerateWitScript(
-						key.Sign(hash, SigHash.All, false),
+						key.Sign(hash, new SigningOptions(SigHash.All, useLowR: false)),
 						key.PubKey)),
 				_ => throw new NotImplementedException("Only P2WPKH scripts are supported.")
 			};
@@ -62,17 +65,24 @@ namespace WalletWasabi.Crypto
 				return false;
 			}
 
-			if (PayToWitPubKeyHashTemplate.Instance.ExtractWitScriptParameters(Witness) is not { } witnessParameters)
+			try
+			{
+				if (PayToWitPubKeyHashTemplate.Instance.ExtractWitScriptParameters(Witness) is not { } witnessParameters)
+				{
+					return false;
+				}
+
+				if (witnessParameters.PublicKey.GetScriptPubKey(ScriptPubKeyType.Segwit) != scriptPubKey)
+				{
+					return false;
+				}
+
+				return witnessParameters.PublicKey.Verify(hash, witnessParameters.TransactionSignature.Signature);
+			}
+			catch (FormatException)
 			{
 				return false;
 			}
-
-			if (witnessParameters.PublicKey.GetScriptPubKey(ScriptPubKeyType.Segwit) != scriptPubKey)
-			{
-				return false;
-			}
-
-			return witnessParameters.PublicKey.Verify(hash, witnessParameters.TransactionSignature.Signature);
 		}
 	}
 }

@@ -25,6 +25,11 @@ namespace System.Linq
 		public static long ToLong(this Scalar scalar) =>
 			checked((long)scalar.ToUlong());
 
+		public static IEnumerable<(TFirst, TSecond, TThird)> Zip<TFirst, TSecond, TThird>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second, IEnumerable<TThird> third)
+		{
+			return first.Zip(second, third, (fst, snd, trd) => (fst, snd, trd));
+		}
+
 		public static IEnumerable<TResult> Zip<TFirst, TSecond, TThird, TResult>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second, IEnumerable<TThird> third, Func<TFirst, TSecond, TThird, TResult> resultSelector)
 		{
 			Guard.NotNull(nameof(first), first);

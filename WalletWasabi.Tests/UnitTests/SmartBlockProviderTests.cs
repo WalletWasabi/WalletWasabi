@@ -18,8 +18,8 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			var blocks = new Dictionary<uint256, Block>
 			{
-				[uint256.Zero] = Block.CreateBlock(Network.Main),
-				[uint256.One] = Block.CreateBlock(Network.Main)
+				[uint256.Zero] = Network.Main.Consensus.ConsensusFactory.CreateBlock(),
+				[uint256.One] = Network.Main.Consensus.ConsensusFactory.CreateBlock(),
 			};
 
 			var blockProvider = new TestBlockProvider(blocks);

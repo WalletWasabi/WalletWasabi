@@ -18,7 +18,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			_strobe = new Strobe128(ProtocolConstants.WabiSabiProtocolIdentifier);
 
 			var metadata = Enumerable.Concat(
-				Encoding.UTF8.GetBytes(ProtocolConstants.DomainStrobeSeparator), 
+				Encoding.UTF8.GetBytes(ProtocolConstants.DomainStrobeSeparator),
 				BitConverter.GetBytes(label.Length)).ToArray();
 			_strobe.AddAssociatedMetaData(metadata, false);
 			_strobe.AddAssociatedData(label, false);

@@ -24,6 +24,11 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			_qrReader = new(network);
 
 			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+		}
+
+		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+		{
+			base.OnNavigatedTo(isInHistory, disposables);
 
 			Observable.FromEventPattern<WriteableBitmap>(_qrReader, nameof(_qrReader.NewImageArrived))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -37,15 +42,18 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 					{
 						ShowQrCameraDialogView.QrImage?.InvalidateVisual();
 					}
-				});
+				})
+				.DisposeWith(disposables);
 
 			Observable.FromEventPattern<string>(_qrReader, nameof(_qrReader.CorrectAddressFound))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(args => Close(DialogResultKind.Normal, args.EventArgs));
+				.Subscribe(args => Close(DialogResultKind.Normal, args.EventArgs))
+				.DisposeWith(disposables);
 
 			Observable.FromEventPattern<string>(_qrReader, nameof(_qrReader.InvalidAddressFound))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(args => Message = $"Invalid QR code.");
+				.Subscribe(args => Message = $"Invalid QR code.")
+				.DisposeWith(disposables);
 
 			Observable.FromEventPattern<Exception>(_qrReader, nameof(_qrReader.ErrorOccured))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -56,18 +64,14 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 						Title,
 						args.EventArgs.Message,
 						"Something went wrong");
-				});
-		}
+				})
+				.DisposeWith(disposables);
 
-		protected override void OnNavigatedFrom(bool isInHistory)
-		{
-			base.OnNavigatedFrom(isInHistory);
-			RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StopScanningAsync());
-		}
+			disposables.Add(Disposable.Create(() =>
+			{
+				RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StopScanningAsync());
+			}));
 
-		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-		{
-			base.OnNavigatedTo(isInHistory, disposables);
 			RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StartScanningAsync());
 		}
 	}

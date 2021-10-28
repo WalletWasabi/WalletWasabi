@@ -40,7 +40,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
 			var enableCancel = Services.WalletManager.HasWallet();
-			SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
+			SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
 
 			base.OnNavigatedTo(isInHistory, disposables);
 		}

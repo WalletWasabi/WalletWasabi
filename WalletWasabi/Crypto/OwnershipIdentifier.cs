@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using NBitcoin;
+using NBitcoin.Crypto;
 
 namespace WalletWasabi.Crypto
 {
@@ -8,6 +9,11 @@ namespace WalletWasabi.Crypto
 	{
 		public const int OwnershipIdLength = 32;
 		private byte[] _bytes;
+
+		public OwnershipIdentifier(Key identificationKey, Script scriptPubKey)
+			: this(Hashes.HMACSHA256(identificationKey.ToBytes(), scriptPubKey.ToBytes()))
+		{
+		}
 
 		public OwnershipIdentifier(byte[] bytes)
 		{

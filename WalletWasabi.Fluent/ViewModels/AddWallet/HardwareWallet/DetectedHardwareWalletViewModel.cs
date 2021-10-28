@@ -79,6 +79,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
+			var enableCancel = Services.WalletManager.HasWallet();
+			SetupCancel(enableCancel: false, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
+
 			Disposable.Create(() =>
 				{
 					CancelCts.Cancel();

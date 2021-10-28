@@ -27,7 +27,7 @@ namespace WalletWasabi.Helpers.PowerSaving
 		{
 			RequestType = requestType;
 
-			// Set up the diagnostic string						
+			// Set up the diagnostic string
 			_context.Version = POWER_REQUEST_CONTEXT_VERSION;
 			_context.Flags = POWER_REQUEST_CONTEXT_SIMPLE_STRING;
 			_context.SimpleReasonString = reason;
@@ -102,7 +102,7 @@ namespace WalletWasabi.Helpers.PowerSaving
 		/// <para>To avoid runtime interop issues, this version of POWER_REQUEST_CONTEXT only supports <c>SimpleReasonString</c>.</para>
 		/// <para>To use the detailed information, define the PowerCreateRequest function with the first parameter of type POWER_REQUEST_CONTEXT_DETAILED.</para>
 		/// </remarks>
-		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]		
+		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
 		public struct POWER_REQUEST_CONTEXT
 		{
 			public uint Version;
@@ -130,7 +130,7 @@ namespace WalletWasabi.Helpers.PowerSaving
 			public uint Flags;
 			public PowerRequestContextDetailedInformation DetailedInformation;
 		}
-	
+
 		/// <param name="reason">Your reason for changing the power settings.</param>
 		public static WindowsPowerAvailabilityTask Create(string reason)
 		{
@@ -149,7 +149,7 @@ namespace WalletWasabi.Helpers.PowerSaving
 		/// <inheritdoc/>
 		public Task StopAsync()
 		{
-			bool isDone; 
+			bool isDone;
 			lock (StateLock)
 			{
 				isDone = _isDone;
@@ -161,7 +161,7 @@ namespace WalletWasabi.Helpers.PowerSaving
 				Logger.LogTrace("Clear the power request.");
 				PowerClearRequest(_request, RequestType);
 
-				if (CloseHandle(_request) != 0)
+				if (CloseHandle(_request) == 0)
 				{
 					// This should never happen.
 					Logger.LogError($"Failed to close handle (last Win32 error: {Marshal.GetLastWin32Error()}).");
@@ -173,6 +173,6 @@ namespace WalletWasabi.Helpers.PowerSaving
 			}
 
 			return Task.CompletedTask;
-		}		
+		}
 	}
 }

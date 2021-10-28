@@ -33,13 +33,9 @@ namespace WalletWasabi.WabiSabi.Client
 		public async Task<ArenaResponse<Guid>> RegisterInputAsync(
 			uint256 roundId,
 			OutPoint outPoint,
-			Key key,
+			OwnershipProof ownershipProof,
 			CancellationToken cancellationToken)
 		{
-			var ownershipProof = OwnershipProof.GenerateCoinJoinInputProof(
-				key,
-				new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundId));
-
 			var zeroAmountCredentialRequestData = AmountCredentialClient.CreateRequestForZeroAmount();
 			var zeroVsizeCredentialRequestData = VsizeCredentialClient.CreateRequestForZeroAmount();
 
@@ -122,7 +118,7 @@ namespace WalletWasabi.WabiSabi.Client
 			var zeroAmountCredentialRequestData = AmountCredentialClient.CreateRequestForZeroAmount();
 			var zeroVsizeCredentialRequestData = VsizeCredentialClient.CreateRequestForZeroAmount();
 
-			var reissuanceResponse = await RequestHandler.ReissueCredentialAsync(
+			var reissuanceResponse = await RequestHandler.ReissuanceAsync(
 				new ReissueCredentialRequest(
 					roundId,
 					realAmountCredentialRequest,
@@ -228,7 +224,7 @@ namespace WalletWasabi.WabiSabi.Client
 			Guid aliceId,
 			CancellationToken cancellationToken)
 		{
-			await RequestHandler.ReadyToSign(
+			await RequestHandler.ReadyToSignAsync(
 				new ReadyToSignRequestRequest(
 					roundId,
 					aliceId),

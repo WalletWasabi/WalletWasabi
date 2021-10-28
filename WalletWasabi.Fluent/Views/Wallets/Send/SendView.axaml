@@ -77,7 +77,9 @@
                    RestrictInputToSuggestions="False"
                    Items="{Binding Labels}"
                    TopItems="{Binding TopSuggestions}"
-                   Suggestions="{Binding Suggestions}" />
+                   Suggestions="{Binding Suggestions}"
+                   MaxTextLength="{StaticResource MaxLabelLength}"
+                   IsCurrentTextValid="{Binding IsCurrentTextValid, Mode=OneWayToSource}" />
       </DockPanel>
       <!-- Advanced -->
       <Button Classes="h7 plain activeHyperLink" Margin="0 10 0 0"

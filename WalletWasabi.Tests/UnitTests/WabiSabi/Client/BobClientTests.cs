@@ -33,7 +33,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, mockRpc, round);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 
-			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
+			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena);
 			var insecureRandom = new InsecureRandom();
 			var wabiSabiApi = new WabiSabiController(coordinator);
 			var roundState = RoundState.FromRound(round);
@@ -52,7 +52,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), wabiSabiApi);
 			await roundStateUpdater.StartAsync(CancellationToken.None);
 
-			var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), aliceArenaClient, coin1, bitcoinSecret, roundStateUpdater, CancellationToken.None);
+			using var identificationKey = new Key();
+			var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), aliceArenaClient, coin1, bitcoinSecret, identificationKey, roundStateUpdater, CancellationToken.None);
 
 			do
 			{

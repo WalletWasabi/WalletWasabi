@@ -33,7 +33,7 @@ sudo service nginx start
 rm -rf WalletWasabi/WalletWasabi.Backend/bin && dotnet publish ~/WalletWasabi/WalletWasabi.Backend --configuration Release --self-contained false
 sudo systemctl start walletwasabi.service
 echo -n 'Tor: '; systemctl is-active tor; echo -n 'Wasabi: '; systemctl is-active walletwasabi; echo -n 'Bitcoind: '; ps -C bitcoind >/dev/null && echo "active" || echo "incative";
-tail -200 ~/.walletwasabi/backend/Logs.txt
+tail -200 /home/user/.walletwasabi/backend/Logs.txt
 
 # Advanced status checks
 systemctl status nginx
@@ -135,6 +135,15 @@ sudo apt-get install tor
 pgrep -ilfa tor
 sudo killall tor
 ```
+
+### Update Tor
+
+```sh
+sudo apt update
+apt list --upgradable | grep tor
+sudo apt install --only-upgrade tor
+```
+
 
 Create torrc:
 

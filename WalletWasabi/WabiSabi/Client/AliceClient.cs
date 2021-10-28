@@ -52,14 +52,17 @@ namespace WalletWasabi.WabiSabi.Client
 			ArenaClient arenaClient,
 			SmartCoin coin,
 			BitcoinSecret bitcoinSecret,
+			Key identificationKey,
 			RoundStateUpdater roundStatusUpdater,
 			CancellationToken cancellationToken)
 		{
 			AliceClient? aliceClient = null;
 			try
 			{
-				aliceClient = await RegisterInputAsync(roundState, arenaClient, coin, bitcoinSecret, cancellationToken).ConfigureAwait(false);
+				aliceClient = await RegisterInputAsync(roundState, arenaClient, coin, bitcoinSecret, identificationKey, cancellationToken).ConfigureAwait(false);
 				await aliceClient.ConfirmConnectionAsync(roundStatusUpdater, cancellationToken).ConfigureAwait(false);
+
+				Logger.LogInfo($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Connection successfully confirmed.");
 			}
 			catch (OperationCanceledException)
 			{
@@ -74,12 +77,18 @@ namespace WalletWasabi.WabiSabi.Client
 			return aliceClient;
 		}
 
-		private static async Task<AliceClient> RegisterInputAsync(RoundState roundState, ArenaClient arenaClient, SmartCoin coin, BitcoinSecret bitcoinSecret, CancellationToken cancellationToken)
+		private static async Task<AliceClient> RegisterInputAsync(RoundState roundState, ArenaClient arenaClient, SmartCoin coin, BitcoinSecret bitcoinSecret, Key identificationKey, CancellationToken cancellationToken)
 		{
 			AliceClient? aliceClient;
 			try
 			{
-				var response = await arenaClient.RegisterInputAsync(roundState.Id, coin.Coin.Outpoint, bitcoinSecret.PrivateKey, cancellationToken).ConfigureAwait(false);
+				var signingKey = bitcoinSecret.PrivateKey;
+				var ownershipProof = OwnershipProof.GenerateCoinJoinInputProof(
+					signingKey,
+					new OwnershipIdentifier(identificationKey, signingKey.PubKey.WitHash.ScriptPubKey),
+					new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundState.Id));
+
+				var response = await arenaClient.RegisterInputAsync(roundState.Id, coin.Coin.Outpoint, ownershipProof, cancellationToken).ConfigureAwait(false);
 				aliceClient = new(response.Value, roundState, arenaClient, coin, bitcoinSecret, response.IssuedAmountCredentials, response.IssuedVsizeCredentials);
 				coin.CoinJoinInProgress = true;
 
@@ -171,6 +180,8 @@ namespace WalletWasabi.WabiSabi.Client
 			IssuedVsizeCredentials = response.IssuedVsizeCredentials;
 
 			var isConfirmed = response.Value;
+
+			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Connection confirmed.");
 			return isConfirmed;
 		}
 
@@ -204,9 +215,15 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 		}
 
+		public void Finish()
+		{
+			SmartCoin.CoinJoinInProgress = false;
+		}
+
 		public async Task RemoveInputAsync(CancellationToken cancellationToken)
 		{
 			await ArenaClient.RemoveInputAsync(RoundId, AliceId, cancellationToken).ConfigureAwait(false);
+			SmartCoin.CoinJoinInProgress = false;
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Inputs removed.");
 		}
 

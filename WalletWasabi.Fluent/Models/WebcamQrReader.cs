@@ -17,6 +17,9 @@ namespace WalletWasabi.Fluent.Models
 	{
 		private const byte DefaultCameraId = 0;
 
+		/// <summary>Whether user requested to stop webcamera to scan for QR codes.</summary>
+		private volatile bool _requestEnd;
+
 		public WebcamQrReader(Network network)
 		{
 			Network = network;
@@ -31,7 +34,6 @@ namespace WalletWasabi.Fluent.Models
 		public event EventHandler<Exception>? ErrorOccured;
 
 		private AsyncLock ScanningTaskLock { get; } = new();
-		private bool RequestEnd { get; set; }
 		private Network Network { get; }
 		private Task? ScanningTask { get; set; }
 		public static bool IsOsPlatformSupported => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
@@ -44,7 +46,7 @@ namespace WalletWasabi.Fluent.Models
 				{
 					return;
 				}
-				RequestEnd = false;
+				_requestEnd = false;
 				ScanningTask = Task.Run(() =>
 				{
 					VideoCapture? camera = null;
@@ -84,7 +86,7 @@ namespace WalletWasabi.Fluent.Models
 			{
 				if (ScanningTask is { } task)
 				{
-					RequestEnd = true;
+					_requestEnd = true;
 					await task;
 
 					ScanningTask = null;
@@ -102,7 +104,7 @@ namespace WalletWasabi.Fluent.Models
 			int[] helperArray = new int[dataSize];
 			using QRCodeDetector qRCodeDetector = new();
 			using Mat frame = new();
-			while (!RequestEnd)
+			while (!_requestEnd)
 			{
 				try
 				{

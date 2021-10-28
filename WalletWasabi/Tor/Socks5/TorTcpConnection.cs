@@ -36,14 +36,23 @@ namespace WalletWasabi.Tor.Socks5
 		private object StateLock { get; } = new();
 
 		/// <remarks>All access to this property must be guarded by <see cref="StateLock"/>.</remarks>
-		public TcpConnectionState State { get; private set; }
+		private TcpConnectionState State { get; set; }
 
 		/// <summary>Gets whether this pool item can be potentially re-used.</summary>
 		private bool AllowRecycling { get; }
 
 		/// <summary>Gets whether internal <see cref="TcpClient"/> can be re-used for a new HTTP(s) request.</summary>
 		/// <returns><c>true</c> when <see cref="TorTcpConnection"/> must be disposed, <c>false</c> otherwise.</returns>
-		public bool NeedDisposal => State == TcpConnectionState.ToDispose;
+		public bool NeedDisposal
+		{
+			get
+			{
+				lock (StateLock)
+				{
+					return State == TcpConnectionState.ToDispose;
+				}
+			}
+		}
 
 		/// <summary>Unique identifier of the pool item for logging purposes.</summary>
 		private long Id { get; }
@@ -67,13 +76,16 @@ namespace WalletWasabi.Tor.Socks5
 		/// <summary>Reserve the pool item for an HTTP(s) request so no other consumer can use this pool item.</summary>
 		public bool TryReserve()
 		{
-			if (State == TcpConnectionState.FreeToUse)
+			lock (StateLock)
 			{
-				State = TcpConnectionState.InUse;
-				return true;
-			}
+				if (State == TcpConnectionState.FreeToUse)
+				{
+					State = TcpConnectionState.InUse;
+					return true;
+				}
 
-			return false;
+				return false;
+			}
 		}
 
 		/// <summary>

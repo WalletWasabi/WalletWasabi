@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Search
@@ -24,7 +25,12 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 			owner.IsBusy = true;
 			var view = await NavigationManager.MaterialiseViewModelAsync(metaData);
 
-			if (view is { })
+
+			if (view is NavBarItemViewModel navBarItem && navBarItem.OpenCommand.CanExecute(default))
+			{
+				navBarItem.OpenCommand.Execute(default);
+			}
+			else if (view is { })
 			{
 				Navigate(view.DefaultTarget).To(view);
 			}

@@ -24,7 +24,7 @@ namespace WalletWasabi.WebClients.BlockstreamInfo
 			{
 				uriString = network == Network.TestNet
 					? "http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion/testnet"
-					: "http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion";				
+					: "http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion";
 			}
 			else
 			{
