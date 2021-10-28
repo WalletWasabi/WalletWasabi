@@ -9,8 +9,22 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalance.WalletBalanceMediumTileView">
   <DockPanel>
     <TextBlock Text="Balance" DockPanel.Dock="Top" />
+    <StackPanel DockPanel.Dock="Bottom" Spacing="10" Margin="0 5 0 0">
+      <Separator  />
+      <StackPanel Orientation="Horizontal" Spacing="10" TextBlock.FontFamily="{StaticResource MonospacedFont}">
+        <Ellipse Margin="0,0,8,0" HorizontalAlignment="Left" Width="10"
+                 Height="10"
+                 Fill="#78A827" />
+
+        <controls:PrivacyContentControl NumberOfPrivacyChars="9" Margin="0 0 8 0"
+                                        Content="{Binding BalancePrivateBtc}" />
+
+        <TextBlock DockPanel.Dock="Right" HorizontalAlignment="Right" Text="Private" Margin="0 0 8 0" />
+      </StackPanel>
+    </StackPanel>
+
     <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Spacing="16">
-      <Viewbox Height="47" Width="47" DockPanel.Dock="Left">
+      <Viewbox Height="40" Width="40" DockPanel.Dock="Left">
         <Panel>
           <Ellipse Stroke="{DynamicResource SystemAccentColor}" StrokeThickness="4"
                    Height="115" Width="115" />

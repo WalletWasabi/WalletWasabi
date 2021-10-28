@@ -1,0 +1,112 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:tiles="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:CompileBindings="True" x:DataType="tiles:PrivacyControlTileViewModel"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyControlTileView">
+  <controls:TileControl TileSize="{Binding CurrentTileSize}">
+    <controls:TileControl.LargeSizeContent>
+      <DockPanel>
+      <DockPanel.Styles>
+        <Style Selector="Button">
+          <Setter Property="HorizontalAlignment" Value="Center" />
+          <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <Style Selector="controls|ProgressRing.visible, controls|RingChartControl.visible">
+          <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="controls|ProgressRing, controls|RingChartControl">
+          <Setter Property="Opacity" Value="0" />
+          <Setter Property="Transitions">
+            <Transitions>
+              <DoubleTransition Property="Opacity" Duration="0:0:0.5" />
+            </Transitions>
+          </Setter>
+        </Style>
+      </DockPanel.Styles>
+
+      <TextBlock Text="Privacy Level" DockPanel.Dock="Top" />
+
+      <StackPanel Spacing="10" DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center">
+        <Button Classes="plain" Cursor="Hand" Command="{Binding BoostPrivacyCommand}"
+                IsVisible="{Binding BoostButtonVisible}"
+                ToolTip.Tip="Boost Privacy">
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <PathIcon Data="{StaticResource rocket_regular}" />
+            <TextBlock Text="Boost Privacy" />
+          </StackPanel>
+        </Button>
+        <Button Classes="plain" Cursor="Hand" Command="{Binding BoostPrivacyCommand}"
+                IsVisible="{Binding IsBoosting}"
+                ToolTip.Tip="Stop Privacy Boost">
+          <PathIcon Data="{StaticResource stop_regular}" />
+        </Button>
+        <!--<Button Classes="plain" Cursor="Hand" IsVisible="{Binding  IsAutoCoinJoinEnabled}"
+                ToolTip.Tip="Pause Automatic CoinJoins">
+          <PathIcon Data="{StaticResource pause_regular}" />
+        </Button>-->
+      </StackPanel>
+
+      <Separator DockPanel.Dock="Bottom" Margin="0 10" IsVisible="{Binding !IsAutoCoinJoinEnabled}" />
+
+      <Panel>
+        <controls:RingChartControl DataPoints="{Binding TestDataPoints}" Classes.visible="{Binding !ShowBoostingAnimation}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+        <controls:ProgressRing IsIndeterminate="True" Classes.visible="{Binding ShowBoostingAnimation}" />
+
+        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding PercentText}" FontSize="36" />
+      </Panel>
+    </DockPanel>
+    </controls:TileControl.LargeSizeContent>
+    <DockPanel>
+      <DockPanel.Styles>
+        <Style Selector="Button">
+          <Setter Property="HorizontalAlignment" Value="Center" />
+          <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <Style Selector="controls|ProgressRing.visible, controls|RingChartControl.visible">
+          <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="controls|ProgressRing, controls|RingChartControl">
+          <Setter Property="Opacity" Value="0" />
+          <Setter Property="Transitions">
+            <Transitions>
+              <DoubleTransition Property="Opacity" Duration="0:0:0.5" />
+            </Transitions>
+          </Setter>
+        </Style>
+      </DockPanel.Styles>
+
+      <TextBlock Text="Privacy Level" DockPanel.Dock="Top" />
+
+      <StackPanel Spacing="10" DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center">
+        <Button Classes="plain" Cursor="Hand" Command="{Binding BoostPrivacyCommand}"
+                IsVisible="{Binding BoostButtonVisible}"
+                ToolTip.Tip="Boost Privacy">
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <PathIcon Data="{StaticResource rocket_regular}" />
+            <TextBlock Text="Boost Privacy" />
+          </StackPanel>
+        </Button>
+        <Button Classes="plain" Cursor="Hand" Command="{Binding BoostPrivacyCommand}"
+                IsVisible="{Binding IsBoosting}"
+                ToolTip.Tip="Stop Privacy Boost">
+          <PathIcon Data="{StaticResource stop_regular}" />
+        </Button>
+        <!--<Button Classes="plain" Cursor="Hand" IsVisible="{Binding  IsAutoCoinJoinEnabled}"
+                ToolTip.Tip="Pause Automatic CoinJoins">
+          <PathIcon Data="{StaticResource pause_regular}" />
+        </Button>-->
+      </StackPanel>
+
+      <ProgressBar IsIndeterminate="{Binding ShowBoostingAnimation}" Value="{Binding Percent}" DockPanel.Dock="Bottom" Margin="0 10" />
+
+      <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding PercentText}" FontSize="36" />
+    </DockPanel>
+  </controls:TileControl>
+</UserControl>

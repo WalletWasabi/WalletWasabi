@@ -1,6 +1,6 @@
 ## Daily routine
 
-1. Ask you team leader about tasks.
+1. Check with your team leader about tasks.
 2. Check [open code review requests waiting for you](https://github.com/zkSNACKs/WalletWasabi/pulls/review-requested/@me).
 3. Check [open priority issues and PRs](https://github.com/zkSNACKs/WalletWasabi/labels/priority). Take it or set Assignees and Labels if you can.
 4. Check your [open PRs](https://github.com/zkSNACKs/WalletWasabi/pulls/@me) and answer if necessary.
@@ -13,8 +13,8 @@
 
 ## Weekly routine
 
-- Team Meeting. Team members talk about their last week.
-- Company meeting. Team leaders reports about the progress of their team. 
+- Team Meeting. Team members talk about their work during the last week.
+- Company meeting. Team leaders report about the progress of their team.
 - On-demand pair programming sessions.
 
 ## Monthly routine
