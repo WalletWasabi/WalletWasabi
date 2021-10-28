@@ -18,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels.OpenDirectory
 	public partial class OpenConfigFileViewModel : TriggerCommandViewModel
 	{
 		public override ICommand TargetCommand =>
-			ReactiveCommand.Create(async () =>
+			ReactiveCommand.CreateFromTask(async () =>
 			{
 				try
 				{
