@@ -2,7 +2,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Nito.AsyncEx;
-using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
 
@@ -10,18 +9,14 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 {
 	public class ArenaRequestHandler : IAsyncDisposable
 	{
-		public ArenaRequestHandler(WabiSabiConfig config, Prison prison, Arena arena)
+		public ArenaRequestHandler(Arena arena)
 		{
-			Config = config;
-			Prison = prison;
 			Arena = arena;
 		}
 
 		private bool DisposeStarted { get; set; } = false;
 		private object DisposeStartedLock { get; } = new();
 		private AbandonedTasks RunningRequests { get; } = new();
-		public WabiSabiConfig Config { get; }
-		public Prison Prison { get; }
 		public Arena Arena { get; }
 
 		public async Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
