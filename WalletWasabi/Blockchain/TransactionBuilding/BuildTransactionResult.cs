@@ -10,13 +10,14 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 {
 	public class BuildTransactionResult
 	{
-		public BuildTransactionResult(SmartTransaction transaction, PSBT psbt, bool signed, Money fee, decimal feePercentOfSent)
+		public BuildTransactionResult(SmartTransaction transaction, PSBT psbt, bool signed, Money fee, decimal feePercentOfSent, bool hasChange)
 		{
 			Transaction = transaction;
 			Psbt = psbt;
 			Signed = signed;
 			Fee = fee;
 			FeePercentOfSent = feePercentOfSent;
+			HasChange = hasChange;
 		}
 
 		public SmartTransaction Transaction { get; }
@@ -24,6 +25,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 		public bool Signed { get; }
 		public Money Fee { get; }
 		public decimal FeePercentOfSent { get; }
+		public bool HasChange { get; }
 		public bool SpendsUnconfirmed => Transaction.WalletInputs.Any(c => !c.Confirmed);
 
 		public IEnumerable<SmartCoin> InnerWalletOutputs => Transaction.WalletOutputs;
