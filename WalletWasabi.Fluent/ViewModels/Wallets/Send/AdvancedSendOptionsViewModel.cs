@@ -58,9 +58,26 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				return;
 			}
 
-			if (!decimal.TryParse(customFeeString, out var value) || value == decimal.Zero)
+			if (!decimal.TryParse(customFeeString, out var value))
 			{
-				errors.Add(ErrorSeverity.Error, "The entered fee is not valid");
+				errors.Add(ErrorSeverity.Error, "The entered fee is not valid.");
+				return;
+			}
+
+			if (value == decimal.Zero)
+			{
+				errors.Add(ErrorSeverity.Error, "Cannot be 0.");
+				return;
+			}
+
+			try
+			{
+				_ = new FeeRate(value);
+			}
+			catch(OverflowException)
+			{
+				errors.Add(ErrorSeverity.Error, "The entered fee is too high.");
+				return;
 			}
 		}
 	}
