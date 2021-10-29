@@ -17,7 +17,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 		private bool DisposeStarted { get; set; } = false;
 		private object DisposeStartedLock { get; } = new();
 		private AbandonedTasks RunningRequests { get; } = new();
-		public Arena Arena { get; }
+		private Arena Arena { get; }
 
 		public async Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 		{
