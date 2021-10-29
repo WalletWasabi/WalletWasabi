@@ -162,7 +162,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				}
 			}
 
-			if (_info.FeeRate == FeeRate.Zero)
+			if (!_info.IsCustomFeeUsed && _info.FeeRate == FeeRate.Zero)
 			{
 				var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, true));
 				if (feeDialogResult.Kind == DialogResultKind.Normal && feeDialogResult.Result is { } newFeeRate)
