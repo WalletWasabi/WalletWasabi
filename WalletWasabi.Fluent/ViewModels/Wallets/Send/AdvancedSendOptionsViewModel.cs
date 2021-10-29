@@ -1,3 +1,5 @@
+using System;
+using System.Globalization;
 using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
@@ -12,11 +14,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	{
 		private readonly TransactionInfo _transactionInfo;
 
-		[AutoNotify] private string _customFee = "";
+		[AutoNotify] private string _customFee;
 
 		public AdvancedSendOptionsViewModel(TransactionInfo transactionInfo)
 		{
 			_transactionInfo = transactionInfo;
+
+			_customFee = transactionInfo.CustomFeeRate != FeeRate.Zero
+				? transactionInfo.CustomFeeRate.SatoshiPerByte.ToString(CultureInfo.InvariantCulture)
+				: "";
+
 			EnableBack = false;
 			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -37,10 +44,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void OnNext()
 		{
-			if (decimal.TryParse(CustomFee, out var customFee))
-			{
-				_transactionInfo.CustomFeeRate = new FeeRate(customFee);
-			}
+			_transactionInfo.CustomFeeRate = decimal.TryParse(CustomFee, out var customFee) ? new FeeRate(customFee) : FeeRate.Zero;
 
 			Navigate().Back();
 		}
@@ -49,7 +53,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			var customFeeString = CustomFee;
 
-			if (!decimal.TryParse(customFeeString, out _))
+			if (customFeeString is null or "")
+			{
+				return;
+			}
+
+			if (!decimal.TryParse(customFeeString, out var value) || value == decimal.Zero)
 			{
 				errors.Add(ErrorSeverity.Error, "The entered fee is not valid");
 			}
