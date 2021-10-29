@@ -82,6 +82,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public bool IsPayJoin { get; }
 
+		public bool IsCustomFeeUsed => _info.IsCustomFeeUsed;
+
 		public ICommand AdjustFeeCommand { get; }
 
 		public ICommand AvoidChangeCommand { get; }
