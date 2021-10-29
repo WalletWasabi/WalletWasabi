@@ -56,9 +56,9 @@ namespace WalletWasabi.Helpers
 
 		public const long MaxSatoshisSupply = 2_100_000_000_000_000L;
 
-		public static readonly Version ClientVersion = new Version(1, 1, 12, 9);
+		public static readonly Version ClientVersion = new Version(1, 1, 13, 0);
 		public static readonly Version HwiVersion = new Version("2.0.2");
-		public static readonly Version BitcoinCoreVersion = new Version("0.21.0");
+		public static readonly Version BitcoinCoreVersion = new Version("0.21.1");
 		public static readonly Version LegalDocumentsVersion = new Version(2, 0);
 
 		public static readonly NodeRequirement NodeRequirements = new NodeRequirement
