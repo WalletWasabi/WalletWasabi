@@ -306,7 +306,8 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			Logger.LogInfo($"Transaction is successfully built: {tx.GetHash()}.");
 			var sign = !KeyManager.IsWatchOnly;
-			return new BuildTransactionResult(smartTransaction, psbt, sign, fee, feePc);
+			var hasChange = changeHdPubKey is { } && tx.Outputs.Count > 1 && tx.Outputs.Any(x => x.ScriptPubKey == changeHdPubKey.P2wpkhScript);
+			return new BuildTransactionResult(smartTransaction, psbt, sign, fee, feePc, hasChange);
 		}
 
 		private PSBT TryNegotiatePayjoin(IPayjoinClient payjoinClient, TransactionBuilder builder, PSBT psbt, HdPubKey changeHdPubKey)
