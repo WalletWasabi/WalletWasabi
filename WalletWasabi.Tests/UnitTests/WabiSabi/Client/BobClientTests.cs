@@ -9,7 +9,6 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
@@ -33,7 +32,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, mockRpc, round);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 
-			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena);
+			await using var coordinator = new ArenaRequestHandler(arena);
 			var insecureRandom = new InsecureRandom();
 			var wabiSabiApi = new WabiSabiController(coordinator);
 			var roundState = RoundState.FromRound(round);

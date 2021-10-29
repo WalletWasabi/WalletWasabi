@@ -2,8 +2,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using Xunit;
@@ -16,7 +14,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		public async Task DisposeGuardAsync()
 		{
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync();
-			ArenaRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena);
+			ArenaRequestHandler handler = new(arena);
 			await handler.DisposeAsync();
 			await Assert.ThrowsAsync<ObjectDisposedException>(async () => await handler.RegisterInputAsync(null!, CancellationToken.None));
 

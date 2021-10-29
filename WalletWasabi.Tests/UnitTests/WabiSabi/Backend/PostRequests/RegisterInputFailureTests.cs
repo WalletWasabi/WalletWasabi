@@ -48,7 +48,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var round = arena.Rounds.First();
 			using Key key = new();
 			var req = WabiSabiFactory.CreateInputRegistrationRequest(round, key: key);
-			await using ArenaRequestHandler handler = new(cfg, new(), arena);
+			await using ArenaRequestHandler handler = new(arena);
 
 			foreach (Phase phase in Enum.GetValues(typeof(Phase)))
 			{
