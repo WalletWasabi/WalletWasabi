@@ -17,32 +17,32 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 		// Useful for prettifying test assertions, or alternatively as a debug
 		// display attribute:
 		// public override string ToString()
-		// 	=> $"[ {EffectiveCost} = { string.Join(' ', Outputs) } ]";
+		// 	=> $"[ {TotalValue} = { string.Join(' ', Outputs) } ]";
 
 		// Construct a singleton
-		public Decomposition(long effectiveCost)
+		public Decomposition(long value)
 		{
-			Outputs = ImmutableArray.Create<long>(effectiveCost);
-			this.EffectiveCost = effectiveCost;
+			Outputs = ImmutableArray.Create<long>(value);
+			this.TotalValue = value;
 		}
 
 		// Convenience constructor for tests
 		internal Decomposition(params int[] outputs)
 		{
 			Outputs = outputs.OrderByDescending(x => x).Select(x => (long)x).ToImmutableArray();
-			EffectiveCost = this.Outputs.Sum();
+			TotalValue = this.Outputs.Sum();
 		}
 
 		public ImmutableArray<long> Outputs { get; private init; }
 
-		public long EffectiveCost { get; private init; }
+		public long TotalValue { get; private init; }
 
 		public Decomposition Extend(long output) =>
 			this with {
 				Outputs = (output <= Outputs[^1])
 					? Outputs.Add(output)
 					: throw new InvalidOperationException("Generated decompositions must be monotonically decreasing"),
-				EffectiveCost = EffectiveCost + output
+				TotalValue = TotalValue + output
 			};
 
 		public int CompareTo(Decomposition? other)
@@ -50,7 +50,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 			static int InternalCompare(Decomposition left, Decomposition right)
 			{
 				// Total effective value
-				var cmp = left.EffectiveCost.CompareTo(right.EffectiveCost);
+				var cmp = left.TotalValue.CompareTo(right.TotalValue);
 				if (cmp != 0) // FIXME is there a cleaner way to short circuit?
 				{
 					return cmp;

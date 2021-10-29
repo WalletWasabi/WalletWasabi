@@ -11,9 +11,9 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 	public class PossibleDecompositions
 	{
 		private PossibleDecompositions(
-			IEnumerable<long> effectiveCosts,
-			long maximumEffectiveCost,
-			long minimumEffectiveCost,
+			IEnumerable<long> nominalValues,
+			long maximumValue,
+			long minimumValue,
 			int maxOutputs)
 		{
 			Debug.Assert(maxOutputs > 0);
@@ -23,10 +23,10 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 			// values can just be shifted by the cost per output multiplied by
 			// the size. This allows computations to be shared between rounds
 			// even with different feerates.
-			var orderedDenoms = effectiveCosts.Where(x => x <= maximumEffectiveCost).OrderByDescending(x => x).ToImmutableArray();
+			var orderedDenoms = nominalValues.Where(x => x <= maximumValue).OrderByDescending(x => x).ToImmutableArray();
 
-			MaximumEffectiveCost = maximumEffectiveCost;
-			MinimumEffectiveCost = minimumEffectiveCost;
+			MaximumTotalValue = maximumValue;
+			MinimumTotalValue = minimumValue;
 
 			// TODO support different effective cost prune ranges for different
 			// sized combinations, using a higher max value and 0 minimum for up
@@ -35,7 +35,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 			// optimizing decomposition, to improve efficiency.
 			if (maxOutputs == 1)
 			{
-				var prunedSingletons = new DecompositionsOfASize(orderedDenoms, maximumEffectiveCost, minimumEffectiveCost);
+				var prunedSingletons = new DecompositionsOfASize(orderedDenoms, maximumValue, minimumValue);
 				StratifiedDecompositions = ImmutableArray.Create<DecompositionsOfASize>(prunedSingletons);
 			}
 			else
@@ -44,7 +44,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 
 				// Generate the base decompositions, one for each possible value,
 				// without pruning by minimum effective cost.
-				var unprunedSingletons = new DecompositionsOfASize(orderedDenoms, maximumEffectiveCost, 0);
+				var unprunedSingletons = new DecompositionsOfASize(orderedDenoms, maximumValue, 0);
 				bySize.Add(unprunedSingletons);
 
 				// Extend to create combinations smaller than maxOutputs.
@@ -52,46 +52,35 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 				// decompositions are not yet complete.
 				while (bySize.Capacity - bySize.Count > 1)
 				{
-					bySize.Add(bySize[^1].Extend(maximumEffectiveCost, 0));
+					bySize.Add(bySize[^1].Extend(maximumTotalValue, 0));
 				}
 
 				// The final extension can make use of the minimum value bound.
-				bySize.Add(bySize[^1].Extend(maximumEffectiveCost, minimumEffectiveCost));
+				bySize.Add(bySize[^1].Extend(maximumTotalValue, minimumTotalValue));
 
 				StratifiedDecompositions = bySize.MoveToImmutable();
 			}
 		}
 
-		// Decompositions are kept separated by the size of the combination, and
-		// then by effective cost. Stratifying by size ensures that the
-		// individual arrays are ordered both by total effective cost and
-		// lexicographically, which is required to generate them efficiently.
+		// Decompositions are kept separated by the size of the combination.
+		// Stratifying by size ensures that we can simultaneously keep them
+		// ordered by total value.
 		private ImmutableArray<DecompositionsOfASize> StratifiedDecompositions { get; }
 
-		private long MaximumEffectiveCost;
+		private long MaximumTotalValue { get; }
 
-		private long MinimumEffectiveCost;
+		private long MinimumTotalValue { get; }
 
 		private long MaxOutputs => StratifiedDecompositions.Length;
 
 		public static PossibleDecompositions Generate(
 			IEnumerable<Money> nominalValues,
-			long maximumEffectiveCost,
-			long minimumEffectiveCost,
-			int maxOutputs,
-			FeeRate? feeRate = null,
-			int vsizePerOutput = Constants.P2WPKHOutputSizeInBytes)
-			=> Generate(nominalValues, maximumEffectiveCost, minimumEffectiveCost, maxOutputs, (feeRate ?? FeeRate.Zero).GetFee(vsizePerOutput));
-
-		public static PossibleDecompositions Generate(
-			IEnumerable<Money> nominalValues,
-			long maximumEffectiveCost,
-			long minimumEffectiveCost,
-			int maxOutputs,
-			Money costPerOutput)
-			=> new PossibleDecompositions(nominalValues.Select(x => (x + costPerOutput).Satoshi),
-										  maximumEffectiveCost,
-										  minimumEffectiveCost,
+			long maximumValue,
+			long minimumValue,
+			int maxOutputs)
+			=> new PossibleDecompositions(nominalValues.Select(x => x.Satoshi),
+										  maximumValue,
+										  minimumValue,
 										  maxOutputs);
 
 		// The final public API should only allow 2, later 3 access patterns
@@ -114,21 +103,30 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 		// - When evaluating input combinations, we need to query potentially
 		//   very large number of different balances, looking for small
 		//   decompositions with minimal losses (tight bounds). maxcount = 4? 5?
-		public IEnumerable<Decomposition> ByEffectiveCost(long maximumEffectiveCost = long.MaxValue,
-														  long minimumEffectiveCost = long.MinValue,
-														  int maxOutputs = int.MaxValue,
-														  int maxDecompositions = 1000)
+		public IEnumerable<Decomposition> GetByTotalValue(
+			long maximumEffectiveCost = long.MaxValue,
+			long minimumTotalValue = 0,
+			long minimumValue = 0, // dust threshold
+			int maxOutputs = int.MaxValue,
+			int maxDecompositions = 1000,
+			FeeRate? feeRate = null,
+			int vsizePerOutput = Constants.P2WPKHOutputSizeInBytes)
 		{
+			long costPerOutput = (feeRate ?? FeeRate.Zero).GetFee(vsizePerOutput).Satoshi;
+			var maxDecompositionCost = StratifiedDecompositions.Length * costPerOutput;
+
 			// FIXME better way to handle this? the values need to be in range,
-			// but they should be optional. overloads? nullable?
-			Debug.Assert(maximumEffectiveCost <= MaximumEffectiveCost || maximumEffectiveCost == long.MaxValue);
-			Debug.Assert(minimumEffectiveCost >= MinimumEffectiveCost || minimumEffectiveCost == long.MinValue);
+			// but they should be optional. overloads? nullable? maxvalue will overflow when added to p.TotalCost
 			Debug.Assert(maxOutputs <= StratifiedDecompositions.Length || maxOutputs == int.MaxValue);
+			Debug.Assert(maximumEffectiveCost - maxDecompositionCost <= MaximumTotalValue || maximumEffectiveCost == long.MaxValue);
+			Debug.Assert(minimumTotalValue >= MinimumTotalValue || minimumTotalValue == 0);
 
 			return StratifiedDecompositions
-				.Take(maxOutputs)
-				.Select(decompositions => decompositions.Prune(Math.Min(maximumEffectiveCost, MaximumEffectiveCost),
-															   Math.Max(minimumEffectiveCost, MinimumEffectiveCost)))
+				.Take(maxOutputs).Select((x, i) => (Decompositions: x, TotalCost: (i+1)*costPerOutput))
+				.Select(p => p.Decompositions.Prune(Math.Min(maximumEffectiveCost - p.TotalCost, MaximumTotalValue),
+													Math.Max(minimumTotalValue, MinimumTotalValue),
+													minimumValue)
+						.Where(d => d.Outputs[^1] >= minimumValue))
 				.Aggregate(ImmutableArray<Decomposition>.Empty as IEnumerable<Decomposition>, MergeDescending)
 				.Take(maxDecompositions);
 		}
