@@ -293,7 +293,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			FeeText = $"{btcFeeText}{fiatFeeText}";
 
-			TransactionHasChange = _transaction.OuterWalletOutputs.Sum(x => x.Amount) > fee && _transaction.InnerWalletOutputs.Sum(x => x.Amount) > 0;
+			TransactionHasChange = transactionResult.HasChange;
 
 			TransactionHasPockets = !_info.IsPrivatePocketUsed;
 		}
