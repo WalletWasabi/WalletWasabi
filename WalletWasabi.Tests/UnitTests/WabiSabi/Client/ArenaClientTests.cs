@@ -14,7 +14,6 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -61,7 +60,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, mockRpc, round);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 
-			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena);
+			await using var coordinator = new ArenaRequestHandler(arena);
 			var wabiSabiApi = new WabiSabiController(coordinator);
 			var insecureRandom = new InsecureRandom();
 			var roundState = RoundState.FromRound(round);
@@ -177,7 +176,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			using Arena arena = await ArenaBuilder.From(config).CreateAndStartAsync(round);
 
-			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena);
+			await using var coordinator = new ArenaRequestHandler(arena);
 			var wabiSabiApi = new WabiSabiController(coordinator);
 			var apiClient = new ArenaClient(null!, null!, wabiSabiApi);
 
@@ -204,7 +203,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, round);
 
 			var mockRpc = new Mock<IRPCClient>();
-			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena);
+			await using var coordinator = new ArenaRequestHandler(arena);
 			var wabiSabiApi = new WabiSabiController(coordinator);
 
 			var rnd = new InsecureRandom();
