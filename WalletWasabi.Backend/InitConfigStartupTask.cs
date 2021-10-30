@@ -64,7 +64,7 @@ namespace WalletWasabi.Backend
 
 		private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
 		{
-			if (e?.Exception is Exception ex)
+			if (e.Exception is Exception ex)
 			{
 				Logger.LogWarning(ex);
 			}
@@ -72,7 +72,7 @@ namespace WalletWasabi.Backend
 
 		private static void CurrentDomain_UnhandledException(object? sender, UnhandledExceptionEventArgs e)
 		{
-			if (e?.ExceptionObject is Exception ex)
+			if (e.ExceptionObject is Exception ex)
 			{
 				Logger.LogWarning(ex);
 			}
