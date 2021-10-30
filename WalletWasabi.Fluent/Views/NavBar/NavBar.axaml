@@ -112,14 +112,14 @@
                 <Setter Property="Opacity" Value="0" />
               </Style>
             </Panel.Styles>
-            <ContentControl Template="{DynamicResource wasabi_logo_fixed}" IsVisible="{Binding !#NavBarUserControl.IsPointerOver}"/>
+            <ContentControl Template="{DynamicResource wasabi_logo_fixed}" IsVisible="{Binding !#NavBarUserControl.IsPointerOver}" />
             <Button Classes="plain" x:CompileBindings="False" Command="{Binding ToggleAction}" IsVisible="{Binding #NavBarUserControl.IsPointerOver}">
               <Button.Styles>
                 <Style Selector=":is(Button):pointerover /template/ ContentPresenter#PART_ContentPresenter">
                   <Setter Property="Background" Value="Transparent" />
                 </Style>
               </Button.Styles>
-              <PathIcon Margin="0 0 3 0" Height="16" Data="{StaticResource navigation_regular}"/>
+              <PathIcon Margin="0 0 3 0" Height="16" Data="{StaticResource navigation_regular}" />
             </Button>
           </Panel>
           <ContentControl Template="{DynamicResource wasabi_logo_text_fixed}" Margin="22,0,0,0"
@@ -157,12 +157,12 @@
                        Name="BottomListBox">
         <i:Interaction.Behaviors>
           <ia:DataTriggerBehavior Binding="{Binding IsOpen}" ComparisonCondition="Equal" Value="True">
-            <iac:AddClassAction StyledElement="{Binding #BottomListBox}" ClassName="horizontal" RemoveIfExists="True"/>
-            <iac:RemoveClassAction StyledElement="{Binding #BottomListBox}" ClassName="vertical"/>
+            <iac:AddClassAction StyledElement="{Binding #BottomListBox}" ClassName="horizontal" RemoveIfExists="True" />
+            <iac:RemoveClassAction StyledElement="{Binding #BottomListBox}" ClassName="vertical" />
           </ia:DataTriggerBehavior>
           <ia:DataTriggerBehavior Binding="{Binding IsOpen}" ComparisonCondition="Equal" Value="False">
-            <iac:AddClassAction StyledElement="{Binding #BottomListBox}" ClassName="vertical" RemoveIfExists="True"/>
-            <iac:RemoveClassAction StyledElement="{Binding #BottomListBox}" ClassName="horizontal"/>
+            <iac:AddClassAction StyledElement="{Binding #BottomListBox}" ClassName="vertical" RemoveIfExists="True" />
+            <iac:RemoveClassAction StyledElement="{Binding #BottomListBox}" ClassName="horizontal" />
           </ia:DataTriggerBehavior>
         </i:Interaction.Behaviors>
         <c:NavBarListBox.Styles>
@@ -201,7 +201,7 @@
     </StackPanel>
     <!-- Items List -->
     <DockPanel Background="Transparent">
-      <TextBlock Classes="headerText" DockPanel.Dock="Top" Text="Wallets" IsVisible="{Binding IsOpen}"  />
+      <TextBlock Classes="headerText" DockPanel.Dock="Top" Text="Wallets" IsVisible="{Binding IsOpen}" />
       <c:NavBarListBox Items="{Binding Wallets}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                        Name="ItemsListBox"
@@ -218,7 +218,7 @@
                 <!-- Wallet Icon -->
                 <PathIcon HorizontalAlignment="Left" Data="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
                 <!-- Logged in indicator -->
-                <Ellipse Fill="#F2994A" Width="9" Height="9" Margin="15,0,0,-13">
+                <Ellipse Fill="{StaticResource OrangeCoinColor}" Width="9" Height="9" Margin="15,0,0,-13">
                   <Ellipse.IsVisible>
                     <MultiBinding Converter="{x:Static BoolConverters.And}">
                       <Binding Path="IsLoggedIn" />
@@ -231,7 +231,7 @@
                 <PathIcon Data="{StaticResource link_filled}" HorizontalAlignment="Left" Margin="20 0 0 -12" Height="8" VerticalAlignment="Center" IsVisible="{Binding IsCoinJoining}" Foreground="{StaticResource NavBarAccentColor}" />
                 <!-- Loading Indicator -->
                 <Viewbox HorizontalAlignment="Left" Height="12" VerticalAlignment="Center" Margin="25 0 0 -14" ClipToBounds="False" IsVisible="{Binding IsLoading}">
-                  <c:ProgressRing Height="40" IsIndeterminate="True" ClipToBounds="False" Background="Transparent" Foreground="{StaticResource NavBarAccentColor}"/>
+                  <c:ProgressRing Height="40" IsIndeterminate="True" ClipToBounds="False" Background="Transparent" Foreground="{StaticResource NavBarAccentColor}" />
                 </Viewbox>
               </Panel>
 
@@ -242,23 +242,22 @@
                 <DockPanel DockPanel.Dock="Right" HorizontalAlignment="Right">
                   <PathIcon Data="{StaticResource link_filled}" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding IsCoinJoining}" Foreground="{StaticResource NavBarAccentColor}" />
                   <Viewbox HorizontalAlignment="Center" VerticalAlignment="Center" Margin="3" ClipToBounds="False" IsVisible="{Binding IsLoading}">
-                    <c:ProgressRing Height="60" IsIndeterminate="True" ClipToBounds="False" Background="Transparent" Foreground="{StaticResource NavBarAccentColor}"/>
+                    <c:ProgressRing Height="60" IsIndeterminate="True" ClipToBounds="False" Background="Transparent" Foreground="{StaticResource NavBarAccentColor}" />
                   </Viewbox>
                 </DockPanel>
 
                 <!-- Wallet Icon and small status indicators -->
                 <Panel DockPanel.Dock="Left" Width="45" Background="Transparent" HorizontalAlignment="Left">
                   <PathIcon HorizontalAlignment="Left" Data="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
-                  <Ellipse Fill="#F2994A" Width="9" Height="9" Margin="15,0,0,-13" IsVisible="{Binding IsLoggedIn}"/>
+                  <Ellipse Fill="{StaticResource OrangeCoinColor}" Width="9" Height="9" Margin="15,0,0,-13" IsVisible="{Binding IsLoggedIn}" />
                 </Panel>
 
                 <!-- Title & status text -->
                 <DockPanel Margin="10 0 15 0" DockPanel.Dock="Left" VerticalAlignment="Center">
-                  <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" DockPanel.Dock="Top"/>
+                  <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" DockPanel.Dock="Top" />
                   <TextBlock Opacity="0.4" FontSize="11" Text="{Binding StatusText}" DockPanel.Dock="Bottom" />
                 </DockPanel>
               </DockPanel>
-
             </Panel>
           </DataTemplate>
         </c:NavBarListBox.DataTemplates>
