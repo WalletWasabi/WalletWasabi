@@ -18,13 +18,12 @@ namespace WalletWasabi.WabiSabi
 		public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc)
 		{
 			Parameters = parameters;
-			Rpc = rpc;
 
 			Warden = new(parameters.UtxoWardenPeriod, parameters.PrisonFilePath, Config);
 			ConfigWatcher = new(parameters.ConfigChangeMonitoringPeriod, Config, () => Logger.LogInfo("WabiSabi configuration has changed."));
 
 			CoinJoinTransactionArchiver transactionArchiver = new(Path.Combine(parameters.CoordinatorDataDir, "CoinJoinTransactions"));
-			Arena = new(parameters.RoundProgressSteppingPeriod, rpc.Network, Config, rpc, Prison, transactionArchiver);
+			Arena = new(parameters.RoundProgressSteppingPeriod, rpc.Network, Config, rpc, Warden.Prison, transactionArchiver);
 
 			Postman = new(Arena);
 		}
@@ -33,12 +32,9 @@ namespace WalletWasabi.WabiSabi
 		public Warden Warden { get; }
 
 		public CoordinatorParameters Parameters { get; }
-		public IRPCClient Rpc { get; }
 		public ArenaRequestHandler Postman { get; }
 		public Arena Arena { get; }
 
-		public string WorkDir => Parameters.CoordinatorDataDir;
-		public Prison Prison => Warden.Prison;
 		public WabiSabiConfig Config => Parameters.RuntimeCoordinatorConfig;
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
