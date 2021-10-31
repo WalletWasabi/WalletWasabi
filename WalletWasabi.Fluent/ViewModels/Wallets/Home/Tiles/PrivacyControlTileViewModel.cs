@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
@@ -9,7 +9,6 @@ using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models;
-using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
@@ -18,6 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 	{
 		private readonly IObservable<Unit> _balanceChanged;
 		private readonly Wallet _wallet;
+		private readonly DispatcherTimer _animationTimer;
 		[AutoNotify] private bool _isAutoCoinJoinEnabled;
 		[AutoNotify] private bool _isBoosting;
 		[AutoNotify] private bool _showBoostingAnimation;
@@ -26,7 +26,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		[AutoNotify] private IList<DataLegend>? _testDataPointsLegend;
 		[AutoNotify] private string _percentText;
 		[AutoNotify] private double _percent;
-		private readonly DispatcherTimer _animationTimer;
 
 		public PrivacyControlTileViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
 		{
@@ -85,9 +84,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				{
 					StopBoostAnimation();
 				}
-
 			});
 		}
+
+		public ICommand BoostPrivacyCommand { get; }
 
 		private bool CanCoinJoin()
 		{
@@ -148,7 +148,5 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				new(normalAmount, "Not Private", "#D8DED7", pcNormal)
 			};
 		}
-
-		public ICommand BoostPrivacyCommand { get; }
 	}
 }
