@@ -178,10 +178,7 @@ namespace WalletWasabi.Fluent.Desktop
 
 		private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
 		{
-			if (e.Exception is Exception ex)
-			{
-				Logger.LogWarning(ex);
-			}
+			Logger.LogWarning(e.Exception);
 		}
 
 		private static void CurrentDomain_UnhandledException(object? sender, UnhandledExceptionEventArgs e)
