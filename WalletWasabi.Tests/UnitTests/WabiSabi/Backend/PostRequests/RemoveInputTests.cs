@@ -27,15 +27,13 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
-			await using ArenaRequestHandler handler = new(arena);
-
 			// There's no such alice yet, so success.
 			var req = new InputsRemovalRequest(round.Id, Guid.NewGuid());
-			await handler.RemoveInputAsync(req, CancellationToken.None);
+			await arena.RemoveInputAsync(req, CancellationToken.None);
 
 			// There was the alice we want to remove so success.
 			req = new InputsRemovalRequest(round.Id, alice.Id);
-			await handler.RemoveInputAsync(req, CancellationToken.None);
+			await arena.RemoveInputAsync(req, CancellationToken.None);
 
 			// Ensure that removing an alice freed up the input vsize
 			// allocation from the round
@@ -49,9 +47,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		{
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync();
 
-			await using ArenaRequestHandler handler = new(arena);
 			var req = new InputsRemovalRequest(uint256.Zero, Guid.NewGuid());
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RemoveInputAsync(req, CancellationToken.None));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.RemoveInputAsync(req, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.RoundNotFound, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -71,8 +68,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 				if (phase != Phase.InputRegistration)
 				{
 					round.SetPhase(phase);
-					await using ArenaRequestHandler handler = new(arena);
-					var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RemoveInputAsync(req, CancellationToken.None));
+					var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.RemoveInputAsync(req, CancellationToken.None));
 					Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 				}
 			}

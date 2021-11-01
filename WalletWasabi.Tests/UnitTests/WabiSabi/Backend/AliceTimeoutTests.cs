@@ -70,7 +70,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
-			await using ArenaRequestHandler handler = new(arena);
 
 			Assert.Single(round.Alices);
 			DateTimeOffset preDeadline = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(1);
@@ -94,7 +93,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
-			await using ArenaRequestHandler handler = new(arena);
 
 			Assert.Single(round.Alices);
 			DateTimeOffset preDeadline = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(1);
@@ -120,7 +118,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
-			await using ArenaRequestHandler handler = new(arena);
 
 			Assert.Equal(3, round.Alices.Count);
 			DateTimeOffset preDeadline = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(1);
@@ -143,12 +140,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
-			await using ArenaRequestHandler handler = new(arena);
 
 			Assert.Single(round.Alices);
 			DateTimeOffset preDeadline = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(1);
 			alice.Deadline = preDeadline;
-			await handler.ConfirmConnectionAsync(req, CancellationToken.None);
+			await arena.ConfirmConnectionAsync(req, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Single(round.Alices);
 			Assert.NotEqual(preDeadline, alice.Deadline);

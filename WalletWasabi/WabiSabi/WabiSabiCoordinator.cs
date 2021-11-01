@@ -7,7 +7,6 @@ using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
-using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Rounds.Utils;
 
@@ -24,15 +23,12 @@ namespace WalletWasabi.WabiSabi
 
 			CoinJoinTransactionArchiver transactionArchiver = new(Path.Combine(parameters.CoordinatorDataDir, "CoinJoinTransactions"));
 			Arena = new(parameters.RoundProgressSteppingPeriod, rpc.Network, Config, rpc, Warden.Prison, transactionArchiver);
-
-			Postman = new(Arena);
 		}
 
 		public ConfigWatcher ConfigWatcher { get; }
 		public Warden Warden { get; }
 
 		public CoordinatorParameters Parameters { get; }
-		public ArenaRequestHandler Postman { get; }
 		public Arena Arena { get; }
 
 		public WabiSabiConfig Config => Parameters.RuntimeCoordinatorConfig;
@@ -46,8 +42,6 @@ namespace WalletWasabi.WabiSabi
 
 		public override async Task StopAsync(CancellationToken cancellationToken)
 		{
-			await Postman.DisposeAsync().ConfigureAwait(false);
-
 			await base.StopAsync(cancellationToken).ConfigureAwait(false);
 
 			await Arena.StopAsync(cancellationToken).ConfigureAwait(false);
