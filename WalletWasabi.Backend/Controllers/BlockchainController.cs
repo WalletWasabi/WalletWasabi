@@ -103,7 +103,7 @@ namespace WalletWasabi.Backend.Controllers
 			}
 			else
 			{
-				IEnumerable<string> compacts = fulls.Select(x => x.Substring(0, compactness));
+				IEnumerable<string> compacts = fulls.Select(x => x[..compactness]);
 				return Ok(compacts);
 			}
 		}
