@@ -9,7 +9,6 @@ using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
-using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
@@ -18,7 +17,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 {
 	public class RegisterInputFailureTests
 	{
-		private static async Task RegisterAndAssertWrongPhaseAsync(InputRegistrationRequest req, ArenaRequestHandler handler)
+		private static async Task RegisterAndAssertWrongPhaseAsync(InputRegistrationRequest req, Arena handler)
 		{
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
@@ -48,14 +47,13 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var round = arena.Rounds.First();
 			using Key key = new();
 			var req = WabiSabiFactory.CreateInputRegistrationRequest(round, key: key);
-			await using ArenaRequestHandler handler = new(cfg, new(), arena);
 
 			foreach (Phase phase in Enum.GetValues(typeof(Phase)))
 			{
 				if (phase != Phase.InputRegistration)
 				{
 					round.SetPhase(phase);
-					await RegisterAndAssertWrongPhaseAsync(req, handler);
+					await RegisterAndAssertWrongPhaseAsync(req, arena);
 				}
 			}
 

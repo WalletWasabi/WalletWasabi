@@ -1,12 +1,11 @@
-using Avalonia;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets.Home.Tiles
 {
-	public class WalletPieChartTileView : UserControl
+	public class PrivacyControlTileView : UserControl
 	{
-		public WalletPieChartTileView()
+		public PrivacyControlTileView()
 		{
 			InitializeComponent();
 		}

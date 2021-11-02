@@ -6,7 +6,6 @@ using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Bases;
 using WalletWasabi.Fluent.Converters;
-using WalletWasabi.Fluent.Models.Sorting;
 
 namespace WalletWasabi.Fluent
 {
@@ -14,8 +13,6 @@ namespace WalletWasabi.Fluent
 	public class UiConfig : ConfigBase
 	{
 		private bool _privacyMode;
-		private bool _lockScreenActive;
-		private string _lockScreenPinHash = "";
 		private bool _isCustomChangeAddress;
 		private bool _autocopy;
 		private int _feeDisplayFormat;
@@ -33,7 +30,6 @@ namespace WalletWasabi.Fluent
 		public UiConfig(string filePath) : base(filePath)
 		{
 			this.WhenAnyValue(
-					x => x.LockScreenPinHash,
 					x => x.Autocopy,
 					x => x.IsCustomChangeAddress,
 					x => x.DarkModeEnabled,
@@ -79,10 +75,6 @@ namespace WalletWasabi.Fluent
 			set => RaiseAndSetIfChanged(ref _feeDisplayFormat, value);
 		}
 
-		[DefaultValue("")]
-		[JsonProperty(PropertyName = "LastActiveTab", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public string LastActiveTab { get; internal set; } = "";
-
 		[DefaultValue(true)]
 		[JsonProperty(PropertyName = "Autocopy", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public bool Autocopy
@@ -105,22 +97,6 @@ namespace WalletWasabi.Fluent
 		{
 			get => _privacyMode;
 			set => RaiseAndSetIfChanged(ref _privacyMode, value);
-		}
-
-		[DefaultValue(false)]
-		[JsonProperty(PropertyName = "LockScreenActive", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public bool LockScreenActive
-		{
-			get => _lockScreenActive;
-			set => RaiseAndSetIfChanged(ref _lockScreenActive, value);
-		}
-
-		[DefaultValue("")]
-		[JsonProperty(PropertyName = "LockScreenPinHash", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public string LockScreenPinHash
-		{
-			get => _lockScreenPinHash;
-			set => RaiseAndSetIfChanged(ref _lockScreenPinHash, value);
 		}
 
 		[DefaultValue(true)]
@@ -146,18 +122,6 @@ namespace WalletWasabi.Fluent
 			get => _runOnSystemStartup;
 			set => RaiseAndSetIfChanged(ref _runOnSystemStartup, value);
 		}
-
-		[JsonProperty(PropertyName = "CoinListViewSortingPreference")]
-		[JsonConverter(typeof(SortingPreferenceJsonConverter))]
-		public SortingPreference CoinListViewSortingPreference { get; internal set; } = new SortingPreference(SortOrder.Increasing, "Amount");
-
-		[JsonProperty(PropertyName = "CoinJoinTabSortingPreference")]
-		[JsonConverter(typeof(SortingPreferenceJsonConverter))]
-		public SortingPreference CoinJoinTabSortingPreference { get; internal set; } = new SortingPreference(SortOrder.Increasing, "Amount");
-
-		[JsonProperty(PropertyName = "HistoryTabViewSortingPreference")]
-		[JsonConverter(typeof(SortingPreferenceJsonConverter))]
-		public SortingPreference HistoryTabViewSortingPreference { get; internal set; } = new SortingPreference(SortOrder.Decreasing, "Date");
 
 		[DefaultValue(true)]
 		[JsonProperty(PropertyName = "HideOnClose", DefaultValueHandling = DefaultValueHandling.Populate)]
