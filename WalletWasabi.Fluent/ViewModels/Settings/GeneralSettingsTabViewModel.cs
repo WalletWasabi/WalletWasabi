@@ -26,7 +26,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 	{
 		[AutoNotify] private bool _darkModeEnabled;
 		[AutoNotify] private bool _autoCopy;
-		[AutoNotify] private bool _customFee;
 		[AutoNotify] private bool _customChangeAddress;
 		[AutoNotify] private FeeDisplayFormat _selectedFeeDisplayFormat;
 		[AutoNotify] private bool _runOnSystemStartup;
@@ -36,7 +35,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		{
 			_darkModeEnabled = Services.UiConfig.DarkModeEnabled;
 			_autoCopy = Services.UiConfig.Autocopy;
-			_customFee = Services.UiConfig.IsCustomFee;
 			_customChangeAddress = Services.UiConfig.IsCustomChangeAddress;
 			_runOnSystemStartup = Services.UiConfig.RunOnSystemStartup;
 			_hideOnClose = Services.UiConfig.HideOnClose;
@@ -72,11 +70,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 					await ShowErrorAsync(Title, "Couldn't save your change, please see the logs for further information.", "Error occurred.");
 				}
 			});
-
-			this.WhenAnyValue(x => x.CustomFee)
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Skip(1)
-				.Subscribe(x => Services.UiConfig.IsCustomFee = x);
 
 			this.WhenAnyValue(x => x.CustomChangeAddress)
 				.ObserveOn(RxApp.TaskpoolScheduler)

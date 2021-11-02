@@ -31,11 +31,6 @@
     </DockPanel>
 
     <DockPanel>
-      <TextBlock Text="Manual fee entry." />
-      <ToggleSwitch IsChecked="{Binding CustomFee}" />
-    </DockPanel>
-
-    <DockPanel>
       <TextBlock VerticalAlignment="Center" Text="Custom change address." />
       <ToggleSwitch IsChecked="{Binding CustomChangeAddress}" />
     </DockPanel>
