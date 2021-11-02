@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.Helpers
 		{
 			if (!File.Exists(filePath))
 			{
-				throw new FileNotFoundException("File not found.");
+				throw new FileNotFoundException($"The {Path.GetFileName(filePath)} file is not found.");
 			}
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
