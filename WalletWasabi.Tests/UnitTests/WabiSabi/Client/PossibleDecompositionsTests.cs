@@ -40,33 +40,33 @@ namespace WalletWasabi.Tests.WabiSabi.Client
 		{
 			Assert.Equal(
 				new Decomposition[] { },
-				PossibleDecompositions.Generate(new Money[] { 1L }, 0, 0, 1).GetByTotalValue());
+				new PossibleDecompositions(new Money[] { 1L }, 0, 0, 1).GetByTotalValue());
 
 			Assert.Equal(
 				new Decomposition[] { new(1) },
-				PossibleDecompositions.Generate(new Money[] { 1L }, 1L, 0, 1).GetByTotalValue());
+				new PossibleDecompositions(new Money[] { 1L }, 1L, 0, 1).GetByTotalValue());
 
 			Assert.Equal(
 				new Decomposition[] { new(1) },
-				PossibleDecompositions.Generate(new Money[] { 1L }, 1L, 0, 2).GetByTotalValue());
+				new PossibleDecompositions(new Money[] { 1L }, 1L, 0, 2).GetByTotalValue());
 
 			Assert.Equal(
 				new Decomposition[] { new(1, 1), new(1) },
-				PossibleDecompositions.Generate(new Money[] { 1L }, 2L, 0, 2).GetByTotalValue());
+				new PossibleDecompositions(new Money[] { 1L }, 2L, 0, 2).GetByTotalValue());
 
 			var denominations = new Money[] { 1L, 2L, 4L };
 
 			Assert.Equal(
 				new Decomposition[] { new(1) },
-				PossibleDecompositions.Generate(denominations, 1L, 0, 3).GetByTotalValue());
+				new PossibleDecompositions(denominations, 1L, 0, 3).GetByTotalValue());
 
 			Assert.Equal(
 				new Decomposition[] { new(2), new(1, 1), new(1) },
-				PossibleDecompositions.Generate(denominations, 2L, 0, 3).GetByTotalValue());
+				new PossibleDecompositions(denominations, 2L, 0, 3).GetByTotalValue());
 
 			Assert.Equal(
 				new Decomposition[] { new(2, 1), new(1, 1, 1), new(2), new(1, 1) },
-				PossibleDecompositions.Generate(denominations, 3L, 2L, 3).GetByTotalValue());
+				new PossibleDecompositions(denominations, 3L, 2L, 3).GetByTotalValue());
 
 			Assert.Equal(
 				new Decomposition[]
@@ -91,7 +91,7 @@ namespace WalletWasabi.Tests.WabiSabi.Client
 					new(1, 1),
 					new(1),
 				},
-				PossibleDecompositions.Generate(denominations, 12L, 0L, 3).GetByTotalValue());
+				new PossibleDecompositions(denominations, 12L, 0L, 3).GetByTotalValue());
 		}
 
 		[Fact]
@@ -106,7 +106,7 @@ namespace WalletWasabi.Tests.WabiSabi.Client
 					new(4, 4),
 					new(4, 2, 2),
 				},
-				PossibleDecompositions.Generate(denominations, 12L, 0L, 3).GetByTotalValue(
+				new PossibleDecompositions(denominations, 12L, 0L, 3).GetByTotalValue(
 					maximumEffectiveCost: 12,
 					minimumTotalValue: 8,
 					feeRate: new FeeRate(1m),
@@ -164,7 +164,7 @@ namespace WalletWasabi.Tests.WabiSabi.Client
 					new(1, 1),
 					new(1),
 				},
-				PossibleDecompositions.Generate(Enumerable.Range(0, 8).Select(x => new Money(1L << x)), 9L, 0, 8).GetByTotalValue());
+				new PossibleDecompositions(Enumerable.Range(0, 8).Select(x => new Money(1L << x)), 9L, 0, 8).GetByTotalValue());
 		}
 
 		[Fact]
@@ -172,7 +172,7 @@ namespace WalletWasabi.Tests.WabiSabi.Client
 		{
 			Assert.Equal(
 				new Decomposition[] { new(128, 64, 32, 16, 8, 4, 2, 1) },
-				PossibleDecompositions.Generate(Enumerable.Range(0, 8).Select(x => new Money(1L << x)), 255L, 255L, 8).GetByTotalValue());
+				new PossibleDecompositions(Enumerable.Range(0, 8).Select(x => new Money(1L << x)), 255L, 255L, 8).GetByTotalValue());
 
 			Assert.Equal(
 				new Decomposition[]
@@ -186,47 +186,47 @@ namespace WalletWasabi.Tests.WabiSabi.Client
 					new(1<<29, 1<<27, 1<<27, 1<<27, 1<<27),
 					new(1<<28, 1<<28, 1<<28, 1<<27, 1<<27),
 				},
-				PossibleDecompositions.Generate(Enumerable.Range(0, 63).Select(x => new Money(1L << x)), 1L << 30, 1L << 30, 5).GetByTotalValue());
+				new PossibleDecompositions(Enumerable.Range(0, 63).Select(x => new Money(1L << x)), 1L << 30, 1L << 30, 5).GetByTotalValue());
 
 			Assert.Equal(
 				StandardDenomination.Values.Select(v => new Decomposition(v)).OrderByDescending(x => x),
-				PossibleDecompositions.Generate(StandardDenomination.Values, StandardDenomination.Values.Max()!, 0L, 1).GetByTotalValue());
+				new PossibleDecompositions(StandardDenomination.Values, StandardDenomination.Values.Max()!, 0L, 1).GetByTotalValue());
 
 			Assert.Equal(
 				new Decomposition[] { new(1) },
-				PossibleDecompositions.Generate(StandardDenomination.Values, 1L, 1L, 1).GetByTotalValue());
+				new PossibleDecompositions(StandardDenomination.Values, 1L, 1L, 1).GetByTotalValue());
 
 			Assert.Equal(
 				new Decomposition[] { new(2) },
-				PossibleDecompositions.Generate(StandardDenomination.Values, 2L, 2L, 1).GetByTotalValue());
+				new PossibleDecompositions(StandardDenomination.Values, 2L, 2L, 1).GetByTotalValue());
 
 			Assert.Equal(
 				new Decomposition[] { new(2), new(1, 1) },
-				PossibleDecompositions.Generate(StandardDenomination.Values, 2L, 2L, 2).GetByTotalValue());
+				new PossibleDecompositions(StandardDenomination.Values, 2L, 2L, 2).GetByTotalValue());
 
 			Assert.Equal(
 				new Decomposition[] { new(5) },
-				PossibleDecompositions.Generate(StandardDenomination.Values, 5L, 5L, 1).GetByTotalValue());
+				new PossibleDecompositions(StandardDenomination.Values, 5L, 5L, 1).GetByTotalValue());
 
 			Assert.Equal(
 				new Decomposition[] { },
-				PossibleDecompositions.Generate(StandardDenomination.Values, 7L, 7L, 1).GetByTotalValue());
+				new PossibleDecompositions(StandardDenomination.Values, 7L, 7L, 1).GetByTotalValue());
 
 			Assert.Equal(
 				new Decomposition[] { new(5), new(4, 1), new(3, 2) },
-				PossibleDecompositions.Generate(StandardDenomination.Values, 5L, 5L, 2).GetByTotalValue());
+				new PossibleDecompositions(StandardDenomination.Values, 5L, 5L, 2).GetByTotalValue());
 
 			Assert.Equal(
 				new Decomposition[] { new(6, 1), new(5, 2), new(4, 3) },
-				PossibleDecompositions.Generate(StandardDenomination.Values, 7L, 7L, 2).GetByTotalValue());
+				new PossibleDecompositions(StandardDenomination.Values, 7L, 7L, 2).GetByTotalValue());
 
 			Assert.Equal(
 				new Decomposition[] { new(10), new(9, 1), new(8, 2), new(6, 4), new(5, 5) },
-				PossibleDecompositions.Generate(StandardDenomination.Values, 10L, 10L, 2).GetByTotalValue());
+				new PossibleDecompositions(StandardDenomination.Values, 10L, 10L, 2).GetByTotalValue());
 
 			Assert.Equal(
 				new Decomposition[] { new(1 << 20, 1_000_000) },
-				PossibleDecompositions.Generate(StandardDenomination.Values, (1_000_000L + (1L << 20)), (1_000_000L + (1L << 20)), 2).GetByTotalValue());
+				new PossibleDecompositions(StandardDenomination.Values, (1_000_000L + (1L << 20)), (1_000_000L + (1L << 20)), 2).GetByTotalValue());
 
 			Assert.Equal(
 				new Decomposition[]
@@ -237,7 +237,7 @@ namespace WalletWasabi.Tests.WabiSabi.Client
 					new(1_000_000, 1<<19, 1<<18, 1<<18),
 					new(1<<19, 1<<19, 500_000, 500_000),
 				},
-				PossibleDecompositions.Generate(StandardDenomination.Values, (1_000_000L + (1L << 20)), (1_000_000L + (1L << 20)), 4).GetByTotalValue());
+				new PossibleDecompositions(StandardDenomination.Values, (1_000_000L + (1L << 20)), (1_000_000L + (1L << 20)), 4).GetByTotalValue());
 
 			// This is a bit like a regression test, in that it should become
 			// annoyingly slow if pruning doesn't work. Increase the
@@ -251,7 +251,7 @@ namespace WalletWasabi.Tests.WabiSabi.Client
 					new(1_000_000, 1<<19, 1<<18, 1<<18),
 					new(1<<19, 1<<19, 500_000, 500_000),
 				},
-				PossibleDecompositions.Generate(StandardDenomination.Values, (1_000_000L + (1L << 20)), (1_000_000L + (1L << 20)), 5).GetByTotalValue(maxOutputs: 4));
+				new PossibleDecompositions(StandardDenomination.Values, (1_000_000L + (1L << 20)), (1_000_000L + (1L << 20)), 5).GetByTotalValue(maxOutputs: 4));
 		}
 	}
 }

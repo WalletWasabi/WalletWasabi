@@ -2,16 +2,10 @@ using System;
 using System.Linq;
 using System.Collections.Immutable;
 using NBitcoin;
+using System.Collections.Generic;
 
 namespace WalletWasabi.WabiSabi.Models.Decomposition
 {
-	// TODO use Money instead of long.
-	// Unfortunately this can consume a significant amount of memory, so in
-	// order to provide the nicer Money based API, DecompositionsOfASize should
-	// first be modified to no longer use this type internally. For now, this
-	// class uses a long of the effective cost and only that to represent self
-	// spend outputs, which is less convenient but does reduce memory
-	// consumption somewhat.
 	public sealed record Decomposition : IComparable<Decomposition>, IEquatable<Decomposition>
 	{
 		// Useful for prettifying test assertions, or alternatively as a debug
@@ -19,17 +13,22 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 		// public override string ToString()
 		// 	=> $"[ {TotalValue} = { string.Join(' ', Outputs) } ]";
 
-		internal Decomposition(params long[] outputs)
+		internal Decomposition(params long[] outputValues)
+			: this(outputValues.Select(Money.Satoshis))
 		{
-			Outputs = outputs.OrderByDescending(x => x).Select(x => (long)x).ToImmutableArray();
+		}
+
+		internal Decomposition(IEnumerable<Money> outputValues)
+		{
+			Outputs = outputValues.OrderByDescending(x => x).ToImmutableArray();
 			TotalValue = this.Outputs.Sum();
 		}
 
-		public ImmutableArray<long> Outputs { get; private init; }
+		public ImmutableArray<Money> Outputs { get; private init; }
 
-		public long TotalValue { get; private init; }
+		public Money TotalValue { get; private init; }
 
-		public Decomposition Extend(long output) =>
+		public Decomposition Extend(Money output) =>
 			this with {
 				Outputs = (output <= Outputs[^1])
 					? Outputs.Add(output)

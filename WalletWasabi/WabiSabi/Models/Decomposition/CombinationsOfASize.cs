@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.InteropServices;
+using NBitcoin;
 
 namespace WalletWasabi.WabiSabi.Models.Decomposition
 {
@@ -12,7 +13,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 	// extending to the next size up.
 	internal record CombinationsOfASize
 	{
-		public CombinationsOfASize(ImmutableArray<long> values, long maximumTotalValue, long minimumTotalValue)
+		public CombinationsOfASize(ImmutableArray<Money> values, Money maximumTotalValue, Money minimumTotalValue)
 		{
 			Values = values.OrderByDescending(x => x).ToImmutableArray();
 
@@ -27,15 +28,15 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 
 		public ImmutableArray<Decomposition> ByTotalValue { get; private init; }
 
-		public ImmutableArray<long> Values { get; }
+		public ImmutableArray<Money> Values { get; }
 
 		public int Count => ByTotalValue.Length;
 
 		public int Size => ByTotalValue[0].Outputs.Length;
 
-		public long MaximumTotalValue { get; private init; }
+		public Money MaximumTotalValue { get; private init; }
 
-		public long MinimumTotalValue { get; private init; }
+		public Money MinimumTotalValue { get; private init; }
 
 		// Returns the set of decompositions of the next size up by extending
 		// the decompositions of the current set with each of the base
@@ -44,7 +45,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 		// This is done by generating one set for each base value, which retains
 		// the order, and merging the resulting sets to preserve the global
 		// ordering.
-		internal CombinationsOfASize Extend(long maximumTotalValue, long minimumTotalValue)
+		internal CombinationsOfASize Extend(Money maximumTotalValue, Money minimumTotalValue)
 			=> this with
 			{
 				MaximumTotalValue = Math.Min(MaximumTotalValue, maximumTotalValue),
@@ -85,14 +86,14 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 		// Finally we filter, leaving only decompositions which terminate in
 		// a larger value. We can't prune because the last This ensures that
 		// all decompositions are unique.
-		private IEnumerable<Decomposition> Extend(long additionalOutput, long maximumTotalValue, long minimumTotalValue)
+		private IEnumerable<Decomposition> Extend(Money additionalOutput, Money maximumTotalValue, Money minimumTotalValue)
 			=> Prune(maximumTotalValue - additionalOutput, minimumTotalValue - additionalOutput, additionalOutput) // FindIndex can handle negative values
 			.Where(x => additionalOutput <= x.Outputs.Last())
 			.Select(x => x.Extend(additionalOutput));
 
 		// High level pruning of the set of decompositions, both
 		// lexicographically and by the total value.
-		internal IEnumerable<Decomposition> Prune(long maximumTotalValue, long minimumTotalValue, long largestOutputLowerBound)
+		internal IEnumerable<Decomposition> Prune(Money maximumTotalValue, Money minimumTotalValue, Money largestOutputLowerBound)
 			=> MemoryMarshal.ToEnumerable(
 				PruneLexicographically(
 					PruneByTotalValue(ByTotalValue.AsMemory(), maximumTotalValue, minimumTotalValue),
@@ -100,7 +101,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 
 		// Prune an array of decompositions, ensuring that the largest output in
 		// the remaining range is greater than LargestOutput.
-		private static ReadOnlyMemory<Decomposition> PruneLexicographically(ReadOnlyMemory<Decomposition> orderedDecompositions, long largetstOutputLowerBound)
+		private static ReadOnlyMemory<Decomposition> PruneLexicographically(ReadOnlyMemory<Decomposition> orderedDecompositions, Money largetstOutputLowerBound)
 			=> orderedDecompositions[Range.EndAt(FindIndex(orderedDecompositions.Span,
 														   new Decomposition(largetstOutputLowerBound - 1),
 														   new ReverseLexicographicalComparer()))];
@@ -108,13 +109,13 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 		// Prune an array of decompositions, restricting to a range of total
 		// values.
 		// This is a private method, made internal so that it has unit tests.
-		internal static ReadOnlyMemory<Decomposition> PruneByTotalValue(ReadOnlyMemory<Decomposition> byTotalValue, long maximum, long minimum)
+		internal static ReadOnlyMemory<Decomposition> PruneByTotalValue(ReadOnlyMemory<Decomposition> byTotalValue, Money maximum, Money minimum)
 			=> byTotalValue[new Range(FindIndex(byTotalValue.Span, maximum),
 										 FindIndex(byTotalValue.Span, minimum - 1))];
 
 		// Find an index for a given total value, or the insert where
 		// it would be inserted.
-		private static Index FindIndex(ReadOnlySpan<Decomposition> orderedDecompositions, long target)
+		private static Index FindIndex(ReadOnlySpan<Decomposition> orderedDecompositions, Money target)
 		{
 			if (orderedDecompositions.Length == 0)
 			{

@@ -9,10 +9,10 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 {
 	public class PossibleDecompositions
 	{
-		private PossibleDecompositions(
-			IEnumerable<long> nominalValues,
-			long maximumTotalValue,
-			long minimumTotalValue,
+		public PossibleDecompositions(
+			IEnumerable<Money> nominalValues,
+			Money maximumTotalValue,
+			Money minimumTotalValue,
 			int maxOutputs)
 		{
 			// 8 is more than enough to be unreasonable in practically any
@@ -63,22 +63,11 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 		// ordered by total value.
 		private ImmutableArray<CombinationsOfASize> StratifiedDecompositions { get; }
 
-		private long MaximumTotalValue { get; }
+		private Money MaximumTotalValue { get; }
 
-		private long MinimumTotalValue { get; }
+		private Money MinimumTotalValue { get; }
 
-		private long MaxOutputs => StratifiedDecompositions.Length;
-
-		public static PossibleDecompositions Generate(
-			IEnumerable<Money> nominalValues,
-			long maximumValue,
-			long minimumValue,
-			int maxOutputs)
-			=> new PossibleDecompositions(
-				nominalValues.Select(x => x.Satoshi),
-				maximumValue,
-				minimumValue,
-				maxOutputs);
+		private int MaxOutputs => StratifiedDecompositions.Length;
 
 		// The final public API should only allow 2, later 3 access patterns
 		// efficiently:
@@ -101,26 +90,46 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 		//   very large number of different balances, looking for small
 		//   decompositions with minimal losses (tight bounds). maxcount = 4? 5?
 		public IEnumerable<Decomposition> GetByTotalValue(
-			long maximumEffectiveCost = long.MaxValue,
-			long minimumTotalValue = 0,
-			long minimumValue = 0, // dust threshold
+			Money? maximumEffectiveCost = null,
+			Money? minimumTotalValue = null,
+			Money? minimumValue = null, // dust threshold
 			int maxOutputs = int.MaxValue,
 			int maxDecompositions = 1000,
 			FeeRate? feeRate = null,
 			int vsizePerOutput = Constants.P2WPKHOutputSizeInBytes)
 		{
-			long costPerOutput = (feeRate ?? FeeRate.Zero).GetFee(vsizePerOutput).Satoshi;
+			Money costPerOutput = (feeRate ?? FeeRate.Zero).GetFee(vsizePerOutput).Satoshi;
 			var maxDecompositionCost = StratifiedDecompositions.Length * costPerOutput;
 
 			Guard.True(nameof(maxOutputs), maxOutputs <= StratifiedDecompositions.Length || maxOutputs == int.MaxValue, "must not exceed limit from precomputation.");
-			Guard.True(nameof(maximumEffectiveCost), maximumEffectiveCost - maxDecompositionCost <= MaximumTotalValue || maximumEffectiveCost == long.MaxValue, "must not exceed limit from precomputation.");
-			Guard.True(nameof(minimumTotalValue), minimumTotalValue >= MinimumTotalValue || minimumTotalValue == 0, "must not be lower than limit from precomputation.");
+
+			if (maximumEffectiveCost is null)
+			{
+				maximumEffectiveCost = new Money(long.MaxValue);
+			}
+			else
+			{
+				Guard.True(nameof(maximumEffectiveCost), maximumEffectiveCost - maxDecompositionCost <= MaximumTotalValue, "must not exceed limit from precomputation.");
+			}
+
+			if (minimumTotalValue is null)
+			{
+				minimumTotalValue = Money.Zero;
+			}
+			else {
+				Guard.True(nameof(minimumTotalValue), MinimumTotalValue <= minimumTotalValue && minimumTotalValue <= MaximumTotalValue, "must not be lower than limit from precomputation.");
+			}
+
+			if (minimumValue is null)
+			{
+				minimumValue = Money.Zero;
+			}
 
 			return StratifiedDecompositions
 				.Take(maxOutputs).Select((x, i) => (Decompositions: x, TotalCost: (i + 1) * costPerOutput))
 				.Select(p => p.Decompositions.Prune(
-							Math.Min(maximumEffectiveCost - p.TotalCost, MaximumTotalValue),
-							Math.Max(minimumTotalValue, MinimumTotalValue),
+							Money.Min(maximumEffectiveCost - p.TotalCost, MaximumTotalValue),
+							Money.Max(minimumTotalValue, MinimumTotalValue),
 							minimumValue)
 						.Where(d => d.Outputs[^1] >= minimumValue))
 				.Aggregate(ImmutableArray<Decomposition>.Empty as IEnumerable<Decomposition>, MergeDescending)
