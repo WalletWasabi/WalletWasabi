@@ -88,12 +88,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				if (_isSilent)
 				{
-					var satPerByteThreshold = Services.Config.SatPerByteThreshold;
-					var blockTargetThreshold = Services.Config.BlockTargetThreshold;
-					var estimations = FeeChart.GetValues();
-
-					var blockTarget = GetBestBlockTarget(estimations, satPerByteThreshold, blockTargetThreshold);
-
+					var blockTarget = 1;
 					FeeChart.CurrentConfirmationTarget = blockTarget;
 					_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(blockTarget);
 
