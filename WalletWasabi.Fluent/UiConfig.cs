@@ -40,7 +40,7 @@ namespace WalletWasabi.Fluent
 					x => x.RunOnSystemStartup,
 					x => x.PrivacyMode,
 					x => x.HideOnClose,
-					(_, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
+					(_, _, _, _, _, _, _, _, _, _) => Unit.Default)
 				.Throttle(TimeSpan.FromMilliseconds(500))
 				.Skip(1) // Won't save on UiConfig creation.
 				.ObserveOn(RxApp.TaskpoolScheduler)
