@@ -1,7 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls;assembly=WalletWasabi.Fluent"
-        xmlns:converters="using:WalletWasabi.Fluent.Converters">
+        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls;assembly=WalletWasabi.Fluent">
   <Design.PreviewWith>
     <c:CurrencyEntryBox IsReadOnly="True" AmountBtc="1" ConversionCurrencyCode="USD" />
   </Design.PreviewWith>
@@ -9,8 +8,6 @@
     <Thickness x:Key="TextControlBorderThemeThickness">0,0,0,2</Thickness>
     <Thickness x:Key="TextControlBorderThemeThicknessFocused">0,0,0,2</Thickness>
     <Thickness x:Key="TextControlThemePadding">15,10,15,8</Thickness>
-    <converters:ErrorSeverityColorConverter x:Key="ErrorSeverityColorConverter" />
-    <converters:ErrorDescriptorToBorderColorConverter x:Key="ErrorDescriptorToBorderColorConverter" />
   </Styles.Resources>
 
   <Style Selector="c|CurrencyEntryBox">
