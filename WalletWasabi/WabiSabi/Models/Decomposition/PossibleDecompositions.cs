@@ -74,10 +74,11 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 			long maximumValue,
 			long minimumValue,
 			int maxOutputs)
-			=> new PossibleDecompositions(nominalValues.Select(x => x.Satoshi),
-										  maximumValue,
-										  minimumValue,
-										  maxOutputs);
+			=> new PossibleDecompositions(
+				nominalValues.Select(x => x.Satoshi),
+				maximumValue,
+				minimumValue,
+				maxOutputs);
 
 		// The final public API should only allow 2, later 3 access patterns
 		// efficiently:
@@ -116,10 +117,11 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 			Guard.True(nameof(minimumTotalValue), minimumTotalValue >= MinimumTotalValue || minimumTotalValue == 0, "must not be lower than limit from precomputation.");
 
 			return StratifiedDecompositions
-				.Take(maxOutputs).Select((x, i) => (Decompositions: x, TotalCost: (i+1)*costPerOutput))
-				.Select(p => p.Decompositions.Prune(Math.Min(maximumEffectiveCost - p.TotalCost, MaximumTotalValue),
-													Math.Max(minimumTotalValue, MinimumTotalValue),
-													minimumValue)
+				.Take(maxOutputs).Select((x, i) => (Decompositions: x, TotalCost: (i + 1) * costPerOutput))
+				.Select(p => p.Decompositions.Prune(
+							Math.Min(maximumEffectiveCost - p.TotalCost, MaximumTotalValue),
+							Math.Max(minimumTotalValue, MinimumTotalValue),
+							minimumValue)
 						.Where(d => d.Outputs[^1] >= minimumValue))
 				.Aggregate(ImmutableArray<Decomposition>.Empty as IEnumerable<Decomposition>, MergeDescending)
 				.Take(maxDecompositions);

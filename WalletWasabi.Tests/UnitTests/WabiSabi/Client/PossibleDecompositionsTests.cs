@@ -50,11 +50,9 @@ namespace WalletWasabi.Tests.WabiSabi.Client
 				new Decomposition[] { new(1) },
 				PossibleDecompositions.Generate(new Money[] { 1L }, 1L, 0, 2).GetByTotalValue());
 
-
 			Assert.Equal(
 				new Decomposition[] { new(1, 1), new(1) },
 				PossibleDecompositions.Generate(new Money[] { 1L }, 2L, 0, 2).GetByTotalValue());
-
 
 			var denominations = new Money[] { 1L, 2L, 4L };
 
@@ -168,7 +166,6 @@ namespace WalletWasabi.Tests.WabiSabi.Client
 				},
 				PossibleDecompositions.Generate(Enumerable.Range(0, 8).Select(x => new Money(1L << x)), 9L, 0, 8).GetByTotalValue());
 		}
-
 
 		[Fact]
 		public void TestComplexDecompositions()
