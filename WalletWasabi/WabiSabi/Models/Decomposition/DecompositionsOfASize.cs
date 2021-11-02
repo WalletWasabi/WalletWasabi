@@ -12,14 +12,9 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 	// extending to the next size up.
 	internal record DecompositionsOfASize
 	{
-		public DecompositionsOfASize(IEnumerable<long> values, long max, long min)
-			: this(values.OrderByDescending(x => x).ToImmutableArray(), max, min)
+		public DecompositionsOfASize(ImmutableArray<long> values, long maximumTotalValue, long minimumTotalValue)
 		{
-		}
-
-		private DecompositionsOfASize(ImmutableArray<long> values, long maximumTotalValue, long minimumTotalValue)
-		{
-			Values = values;
+			Values = values.OrderByDescending(x => x).ToImmutableArray();
 
 			ByTotalValue = Values
 				.Select(x => new Decomposition(x))

@@ -19,15 +19,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 		// public override string ToString()
 		// 	=> $"[ {TotalValue} = { string.Join(' ', Outputs) } ]";
 
-		// Construct a singleton
-		public Decomposition(long value)
-		{
-			Outputs = ImmutableArray.Create<long>(value);
-			this.TotalValue = value;
-		}
-
-		// Convenience constructor for tests
-		internal Decomposition(params int[] outputs)
+		internal Decomposition(params long[] outputs)
 		{
 			Outputs = outputs.OrderByDescending(x => x).Select(x => (long)x).ToImmutableArray();
 			TotalValue = this.Outputs.Sum();
@@ -51,7 +43,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 			{
 				// Total effective value
 				var cmp = left.TotalValue.CompareTo(right.TotalValue);
-				if (cmp != 0) // FIXME is there a cleaner way to short circuit?
+				if (cmp != 0)
 				{
 					return cmp;
 				}
@@ -73,7 +65,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 				(null, null) => 0,
 				(null,    _) => 1,
 				(_   , null) => -1,
-				({} left, {} right) => InternalCompare(left, right)
+				_ => InternalCompare(this, other),
 			};
 		}
 

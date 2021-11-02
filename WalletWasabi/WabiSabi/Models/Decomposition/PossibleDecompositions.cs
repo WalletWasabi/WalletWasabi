@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Helpers;
@@ -12,21 +11,18 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 	{
 		private PossibleDecompositions(
 			IEnumerable<long> nominalValues,
-			long maximumValue,
-			long minimumValue,
+			long maximumTotalValue,
+			long minimumTotalValue,
 			int maxOutputs)
 		{
-			Debug.Assert(maxOutputs > 0);
+			// 8 is more than enough to be unreasonable in practically any
+			// situation.
+			Guard.InRangeAndNotNull(nameof(maxOutputs), maxOutputs, 1, 8);
 
-			// TODO Instead of effective costs, use nominal values internally.
-			// Since decompositions are segregated by size their total effective
-			// values can just be shifted by the cost per output multiplied by
-			// the size. This allows computations to be shared between rounds
-			// even with different feerates.
-			var orderedDenoms = nominalValues.Where(x => x <= maximumValue).OrderByDescending(x => x).ToImmutableArray();
+			var orderedDenoms = nominalValues.Where(x => x <= maximumTotalValue).OrderByDescending(x => x).ToImmutableArray();
 
-			MaximumTotalValue = maximumValue;
-			MinimumTotalValue = minimumValue;
+			MaximumTotalValue = maximumTotalValue;
+			MinimumTotalValue = minimumTotalValue;
 
 			// TODO support different effective cost prune ranges for different
 			// sized combinations, using a higher max value and 0 minimum for up
@@ -35,7 +31,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 			// optimizing decomposition, to improve efficiency.
 			if (maxOutputs == 1)
 			{
-				var prunedSingletons = new DecompositionsOfASize(orderedDenoms, maximumValue, minimumValue);
+				var prunedSingletons = new DecompositionsOfASize(orderedDenoms, maximumTotalValue, minimumTotalValue);
 				StratifiedDecompositions = ImmutableArray.Create<DecompositionsOfASize>(prunedSingletons);
 			}
 			else
@@ -43,8 +39,8 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 				var bySize = ImmutableArray.CreateBuilder<DecompositionsOfASize>(maxOutputs);
 
 				// Generate the base decompositions, one for each possible value,
-				// without pruning by minimum effective cost.
-				var unprunedSingletons = new DecompositionsOfASize(orderedDenoms, maximumValue, 0);
+				// without pruning by minimum total value.
+				var unprunedSingletons = new DecompositionsOfASize(orderedDenoms, maximumTotalValue, 0);
 				bySize.Add(unprunedSingletons);
 
 				// Extend to create combinations smaller than maxOutputs.
@@ -115,11 +111,9 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 			long costPerOutput = (feeRate ?? FeeRate.Zero).GetFee(vsizePerOutput).Satoshi;
 			var maxDecompositionCost = StratifiedDecompositions.Length * costPerOutput;
 
-			// FIXME better way to handle this? the values need to be in range,
-			// but they should be optional. overloads? nullable? maxvalue will overflow when added to p.TotalCost
-			Debug.Assert(maxOutputs <= StratifiedDecompositions.Length || maxOutputs == int.MaxValue);
-			Debug.Assert(maximumEffectiveCost - maxDecompositionCost <= MaximumTotalValue || maximumEffectiveCost == long.MaxValue);
-			Debug.Assert(minimumTotalValue >= MinimumTotalValue || minimumTotalValue == 0);
+			Guard.True(nameof(maxOutputs), maxOutputs <= StratifiedDecompositions.Length || maxOutputs == int.MaxValue, "must not exceed limit from precomputation.");
+			Guard.True(nameof(maximumEffectiveCost), maximumEffectiveCost - maxDecompositionCost <= MaximumTotalValue || maximumEffectiveCost == long.MaxValue, "must not exceed limit from precomputation.");
+			Guard.True(nameof(minimumTotalValue), minimumTotalValue >= MinimumTotalValue || minimumTotalValue == 0, "must not be lower than limit from precomputation.");
 
 			return StratifiedDecompositions
 				.Take(maxOutputs).Select((x, i) => (Decompositions: x, TotalCost: (i+1)*costPerOutput))
