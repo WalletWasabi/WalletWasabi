@@ -24,7 +24,7 @@ namespace WalletWasabi.Fluent
 		public const int DefaultPrivacyLevelStrong = 50;
 		public const int DefaultJsonRpcServerPort = 37128;
 		public const int DefaultBlockTargetThreshold = 6;
-		public const int DefaultSatPerByteThreshold = 10;
+		public const int TransactionFeeWarningUsdThreshold = 10;
 		public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);
 
 		private Uri _backendUri = null;
@@ -199,9 +199,9 @@ namespace WalletWasabi.Fluent
 		[JsonProperty(PropertyName = nameof(BlockTargetThreshold), DefaultValueHandling = DefaultValueHandling.Populate)]
 		public int BlockTargetThreshold { get; private set; }
 
-		[DefaultValue(DefaultSatPerByteThreshold)]
-		[JsonProperty(PropertyName = nameof(SatPerByteThreshold), DefaultValueHandling = DefaultValueHandling.Populate)]
-		public int SatPerByteThreshold { get; private set; }
+		[DefaultValue(TransactionFeeWarningUsdThreshold)]
+		[JsonProperty(PropertyName = nameof(TransactionFeeUsdThreshold), DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int TransactionFeeUsdThreshold { get; private set; }
 
 		public ServiceConfiguration ServiceConfiguration { get; private set; }
 

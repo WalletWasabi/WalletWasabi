@@ -37,6 +37,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private bool _transactionHasChange;
 		[AutoNotify] private bool _transactionHasPockets;
 		[AutoNotify] private bool _adjustFeeAvailable;
+		[AutoNotify] private bool _showTransactionFeeWarning;
 
 		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info)
 		{
@@ -277,23 +278,24 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private void UpdateTransaction(BuildTransactionResult transactionResult)
 		{
 			_transaction = transactionResult;
+			var usdRate = _wallet.Synchronizer.UsdExchangeRate;
 
 			var destinationAmount = _transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
 			var btcAmountText = $"{destinationAmount} bitcoins ";
-			var fiatAmountText =
-				destinationAmount.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
+			var fiatAmountText = destinationAmount.GenerateFiatText(usdRate, "USD");
 			AmountText = $"{btcAmountText}{fiatAmountText}";
 
 			var fee = _transaction.Fee;
 			var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} sats ";
-			var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC)
-				.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
+			var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC).GenerateFiatText(usdRate, "USD");
 
 			Labels = SmartLabel.Merge(_info.UserLabels, SmartLabel.Merge(transactionResult.SpentCoins.Select(x => x.GetLabels())));
 
 			FeeText = $"{btcFeeText}{fiatFeeText}";
 
 			TransactionHasChange = _transaction.OuterWalletOutputs.Sum(x => x.Amount) > fee && _transaction.InnerWalletOutputs.Sum(x => x.Amount) > 0;
+
+			ShowTransactionFeeWarning = destinationAmount * usdRate > Services.Config.TransactionFeeUsdThreshold;
 
 			TransactionHasPockets = !_info.IsPrivatePocketUsed;
 		}
