@@ -10,9 +10,9 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 	// values) with a specific number of outputs, and support for efficient
 	// range queries based on some constraints used to efficiently allow
 	// extending to the next size up.
-	internal record DecompositionsOfASize
+	internal record CombinationsOfASize
 	{
-		public DecompositionsOfASize(ImmutableArray<long> values, long maximumTotalValue, long minimumTotalValue)
+		public CombinationsOfASize(ImmutableArray<long> values, long maximumTotalValue, long minimumTotalValue)
 		{
 			Values = values.OrderByDescending(x => x).ToImmutableArray();
 
@@ -44,7 +44,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 		// This is done by generating one set for each base value, which retains
 		// the order, and merging the resulting sets to preserve the global
 		// ordering.
-		internal DecompositionsOfASize Extend(long maximumTotalValue, long minimumTotalValue)
+		internal CombinationsOfASize Extend(long maximumTotalValue, long minimumTotalValue)
 			=> this with
 			{
 				MaximumTotalValue = Math.Min(MaximumTotalValue, maximumTotalValue),

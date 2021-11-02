@@ -11,28 +11,28 @@ namespace WalletWasabi.Tests.WabiSabi.Client
 		[Fact]
 		public void TestPrune()
 		{
-			Assert.Equal(new Decomposition[] { }, DecompositionsOfASize.PruneByTotalValue(new Decomposition[] { }, 0, 0).ToArray());
-			Assert.Equal(new Decomposition[] { new() }, DecompositionsOfASize.PruneByTotalValue(new Decomposition[] { new() }, 0, 0).ToArray());
-			Assert.Equal(new Decomposition[] { new(), new() }, DecompositionsOfASize.PruneByTotalValue(new Decomposition[] { new(), new() }, 0, 0).ToArray());
-			Assert.Equal(new Decomposition[] { }, DecompositionsOfASize.PruneByTotalValue(new Decomposition[] { new(1) }, 0, 0).ToArray());
-			Assert.Equal(new Decomposition[] { new(1) }, DecompositionsOfASize.PruneByTotalValue(new Decomposition[] { new(1) }, 2L, 0).ToArray());
-			Assert.Equal(new Decomposition[] { new(1) }, DecompositionsOfASize.PruneByTotalValue(new Decomposition[] { new(1) }, 2L, 1L).ToArray());
-			Assert.Equal(new Decomposition[] { }, DecompositionsOfASize.PruneByTotalValue(new Decomposition[] { new(1) }, 2L, 2L).ToArray());
-			Assert.Equal(new Decomposition[] { new(1) }, DecompositionsOfASize.PruneByTotalValue(new Decomposition[] { new(1) }, 1L, 0).ToArray());
-			Assert.Equal(new Decomposition[] { new(1) }, DecompositionsOfASize.PruneByTotalValue(new Decomposition[] { new(1) }, 1L, 1L).ToArray());
-			Assert.Equal(new Decomposition[] { new(2) }, DecompositionsOfASize.PruneByTotalValue(new Decomposition[] { new(2) }, 2L, 2L).ToArray());
+			Assert.Equal(new Decomposition[] { }, CombinationsOfASize.PruneByTotalValue(new Decomposition[] { }, 0, 0).ToArray());
+			Assert.Equal(new Decomposition[] { new() }, CombinationsOfASize.PruneByTotalValue(new Decomposition[] { new() }, 0, 0).ToArray());
+			Assert.Equal(new Decomposition[] { new(), new() }, CombinationsOfASize.PruneByTotalValue(new Decomposition[] { new(), new() }, 0, 0).ToArray());
+			Assert.Equal(new Decomposition[] { }, CombinationsOfASize.PruneByTotalValue(new Decomposition[] { new(1) }, 0, 0).ToArray());
+			Assert.Equal(new Decomposition[] { new(1) }, CombinationsOfASize.PruneByTotalValue(new Decomposition[] { new(1) }, 2L, 0).ToArray());
+			Assert.Equal(new Decomposition[] { new(1) }, CombinationsOfASize.PruneByTotalValue(new Decomposition[] { new(1) }, 2L, 1L).ToArray());
+			Assert.Equal(new Decomposition[] { }, CombinationsOfASize.PruneByTotalValue(new Decomposition[] { new(1) }, 2L, 2L).ToArray());
+			Assert.Equal(new Decomposition[] { new(1) }, CombinationsOfASize.PruneByTotalValue(new Decomposition[] { new(1) }, 1L, 0).ToArray());
+			Assert.Equal(new Decomposition[] { new(1) }, CombinationsOfASize.PruneByTotalValue(new Decomposition[] { new(1) }, 1L, 1L).ToArray());
+			Assert.Equal(new Decomposition[] { new(2) }, CombinationsOfASize.PruneByTotalValue(new Decomposition[] { new(2) }, 2L, 2L).ToArray());
 
 			var combs = new Decomposition[] { new(2, 2), new(2, 1), new(2), new(1, 1), new(1), new() };
-			Assert.Equal(new Decomposition[] { new(2), new(1, 1) }, DecompositionsOfASize.PruneByTotalValue(combs, 2L, 2L).ToArray());
-			Assert.Equal(new Decomposition[] { new(2, 1), new(2), new(1, 1), new(1) }, DecompositionsOfASize.PruneByTotalValue(combs, 3L, 1L).ToArray());
+			Assert.Equal(new Decomposition[] { new(2), new(1, 1) }, CombinationsOfASize.PruneByTotalValue(combs, 2L, 2L).ToArray());
+			Assert.Equal(new Decomposition[] { new(2, 1), new(2), new(1, 1), new(1) }, CombinationsOfASize.PruneByTotalValue(combs, 3L, 1L).ToArray());
 
-			Assert.Equal(new Decomposition[] { new(4), new(3) }, DecompositionsOfASize.PruneByTotalValue(new Decomposition[] { new(6), new(4), new(3), new(1) }, 4L, 3L).ToArray());
-			Assert.Equal(new Decomposition[] { new(4), new(4), new(3), new(3) }, DecompositionsOfASize.PruneByTotalValue(new Decomposition[] { new(4), new(4), new(3), new(3), new(1) }, 4L, 3L).ToArray());
-			Assert.Equal(new Decomposition[] { new(4), new(4), new(3), new(3) }, DecompositionsOfASize.PruneByTotalValue(new Decomposition[] { new(6), new(4), new(4), new(3), new(3), new(1) }, 4L, 3L).ToArray());
-			Assert.Equal(new Decomposition[] { new(4), new(3) }, DecompositionsOfASize.PruneByTotalValue(new Decomposition[] { new(6), new(4), new(3), new(1) }, 4L, 2L).ToArray());
-			Assert.Equal(new Decomposition[] { new(4), new(3) }, DecompositionsOfASize.PruneByTotalValue(new Decomposition[] { new(6), new(4), new(3), new(1) }, 5L, 3L).ToArray());
-			Assert.Equal(new Decomposition[] { new(4), new(3), new(3) }, DecompositionsOfASize.PruneByTotalValue(new Decomposition[] { new(6), new(4), new(3), new(3), new(1) }, 5L, 3L).ToArray());
-			Assert.Equal(new Decomposition[] { new(4), new(4), new(3), new(3) }, DecompositionsOfASize.PruneByTotalValue(new Decomposition[] { new(6), new(4), new(4), new(3), new(3), new(1) }, 5L, 3L).ToArray());
+			Assert.Equal(new Decomposition[] { new(4), new(3) }, CombinationsOfASize.PruneByTotalValue(new Decomposition[] { new(6), new(4), new(3), new(1) }, 4L, 3L).ToArray());
+			Assert.Equal(new Decomposition[] { new(4), new(4), new(3), new(3) }, CombinationsOfASize.PruneByTotalValue(new Decomposition[] { new(4), new(4), new(3), new(3), new(1) }, 4L, 3L).ToArray());
+			Assert.Equal(new Decomposition[] { new(4), new(4), new(3), new(3) }, CombinationsOfASize.PruneByTotalValue(new Decomposition[] { new(6), new(4), new(4), new(3), new(3), new(1) }, 4L, 3L).ToArray());
+			Assert.Equal(new Decomposition[] { new(4), new(3) }, CombinationsOfASize.PruneByTotalValue(new Decomposition[] { new(6), new(4), new(3), new(1) }, 4L, 2L).ToArray());
+			Assert.Equal(new Decomposition[] { new(4), new(3) }, CombinationsOfASize.PruneByTotalValue(new Decomposition[] { new(6), new(4), new(3), new(1) }, 5L, 3L).ToArray());
+			Assert.Equal(new Decomposition[] { new(4), new(3), new(3) }, CombinationsOfASize.PruneByTotalValue(new Decomposition[] { new(6), new(4), new(3), new(3), new(1) }, 5L, 3L).ToArray());
+			Assert.Equal(new Decomposition[] { new(4), new(4), new(3), new(3) }, CombinationsOfASize.PruneByTotalValue(new Decomposition[] { new(6), new(4), new(4), new(3), new(3), new(1) }, 5L, 3L).ToArray());
 		}
 
 		[Fact]

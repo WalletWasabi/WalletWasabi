@@ -31,16 +31,16 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 			// optimizing decomposition, to improve efficiency.
 			if (maxOutputs == 1)
 			{
-				var prunedSingletons = new DecompositionsOfASize(orderedDenoms, maximumTotalValue, minimumTotalValue);
-				StratifiedDecompositions = ImmutableArray.Create<DecompositionsOfASize>(prunedSingletons);
+				var prunedSingletons = new CombinationsOfASize(orderedDenoms, maximumTotalValue, minimumTotalValue);
+				StratifiedDecompositions = ImmutableArray.Create<CombinationsOfASize>(prunedSingletons);
 			}
 			else
 			{
-				var bySize = ImmutableArray.CreateBuilder<DecompositionsOfASize>(maxOutputs);
+				var bySize = ImmutableArray.CreateBuilder<CombinationsOfASize>(maxOutputs);
 
 				// Generate the base decompositions, one for each possible value,
 				// without pruning by minimum total value.
-				var unprunedSingletons = new DecompositionsOfASize(orderedDenoms, maximumTotalValue, 0);
+				var unprunedSingletons = new CombinationsOfASize(orderedDenoms, maximumTotalValue, 0);
 				bySize.Add(unprunedSingletons);
 
 				// Extend to create combinations smaller than maxOutputs.
@@ -61,7 +61,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 		// Decompositions are kept separated by the size of the combination.
 		// Stratifying by size ensures that we can simultaneously keep them
 		// ordered by total value.
-		private ImmutableArray<DecompositionsOfASize> StratifiedDecompositions { get; }
+		private ImmutableArray<CombinationsOfASize> StratifiedDecompositions { get; }
 
 		private long MaximumTotalValue { get; }
 
