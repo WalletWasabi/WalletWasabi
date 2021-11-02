@@ -101,19 +101,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			});
 		}
 
-		private double GetBestBlockTarget(Dictionary<double, double> estimations, int satPerByteThreshold, int blockTargetThreshold)
-		{
-			var possibleBlockTargets =
-				estimations.OrderBy(x => x.Key).Where(x => x.Value <= satPerByteThreshold && x.Key <= blockTargetThreshold).ToArray();
-
-			if (possibleBlockTargets.Any())
-			{
-				return possibleBlockTargets.First().Key;
-			}
-
-			return blockTargetThreshold;
-		}
-
 		private TimeSpan CalculateConfirmationTime(double targetBlock)
 		{
 			var timeInMinutes = Math.Ceiling(targetBlock) * 10;

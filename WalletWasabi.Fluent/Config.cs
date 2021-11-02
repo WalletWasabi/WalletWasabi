@@ -23,7 +23,6 @@ namespace WalletWasabi.Fluent
 		public const int DefaultPrivacyLevelFine = 21;
 		public const int DefaultPrivacyLevelStrong = 50;
 		public const int DefaultJsonRpcServerPort = 37128;
-		public const int DefaultBlockTargetThreshold = 6;
 		public const int TransactionFeeWarningUsdThreshold = 10;
 		public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);
 
@@ -194,10 +193,6 @@ namespace WalletWasabi.Fluent
 		[JsonProperty(PropertyName = "DustThreshold")]
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
 		public Money DustThreshold { get; internal set; } = DefaultDustThreshold;
-
-		[DefaultValue(DefaultBlockTargetThreshold)]
-		[JsonProperty(PropertyName = nameof(BlockTargetThreshold), DefaultValueHandling = DefaultValueHandling.Populate)]
-		public int BlockTargetThreshold { get; private set; }
 
 		[DefaultValue(TransactionFeeWarningUsdThreshold)]
 		[JsonProperty(PropertyName = nameof(TransactionFeeUsdThreshold), DefaultValueHandling = DefaultValueHandling.Populate)]
