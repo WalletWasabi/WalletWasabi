@@ -85,7 +85,10 @@
                 </c:PreviewItem>
                 <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
                                Text="for an additional charge of">
-                  <TextBox Classes="selectableTextBlock" Text="{Binding FeeText, FallbackValue=235 sats (≈55.34 USD)}" DockPanel.Dock="Left" />
+                  <StackPanel Orientation="Horizontal" Spacing="5">
+                    <TextBox Classes="selectableTextBlock" Text="{Binding FeeText, FallbackValue=235 sats (≈55.34 USD)}" DockPanel.Dock="Left" />
+                    <PathIcon IsVisible="{Binding ShowTransactionFeeWarning}" ToolTip.Tip="Consider adjusting the transaction fee on your preference" Data="{StaticResource warning_filled}" Foreground="{DynamicResource WarningMessageForeground}" />
+                  </StackPanel>
                 </c:PreviewItem>
               </StackPanel>
             </DockPanel>
