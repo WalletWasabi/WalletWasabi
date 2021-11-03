@@ -150,7 +150,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 				return a;
 			}
 
-			IEnumerable<Decomposition> generator()
+			IEnumerable<Decomposition> Generator()
 			{
 				var (large, small) = (a.GetEnumerator(), b.GetEnumerator());
 
@@ -188,7 +188,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 				}
 			}
 
-			return generator();
+			return Generator();
 		}
 	}
 }

@@ -21,7 +21,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 		internal Decomposition(IEnumerable<Money> outputValues)
 		{
 			Outputs = outputValues.OrderByDescending(x => x).ToImmutableArray();
-			TotalValue = this.Outputs.Sum();
+			TotalValue = Outputs.Sum();
 		}
 
 		public ImmutableArray<Money> Outputs { get; private init; }
@@ -29,7 +29,8 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 		public Money TotalValue { get; private init; }
 
 		public Decomposition Extend(Money output) =>
-			this with {
+			this with
+			{
 				Outputs = (output <= Outputs[^1])
 					? Outputs.Add(output)
 					: throw new InvalidOperationException("Generated decompositions must be monotonically decreasing"),
@@ -62,8 +63,8 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 			return (this, other) switch
 			{
 				(null, null) => 0,
-				(null,    _) => 1,
-				(_   , null) => -1,
+				(null, _) => 1,
+				(_, null) => -1,
 				_ => InternalCompare(this, other),
 			};
 		}
@@ -71,7 +72,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 		public bool Equals(Decomposition? other)
 			=> (other, this) switch
 			{
-				({}, {}) => Outputs.SequenceEqual(other.Outputs),
+				({ }, { }) => Outputs.SequenceEqual(other.Outputs),
 				(null, null) => true,
 				_ => false
 			};
