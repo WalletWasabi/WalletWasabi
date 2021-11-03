@@ -44,7 +44,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void OnNext()
 		{
-			_transactionInfo.CustomFeeRate = decimal.TryParse(CustomFee, out var customFee) ? new FeeRate(customFee) : FeeRate.Zero;
+			_transactionInfo.CustomFeeRate =
+				decimal.TryParse(CustomFee, NumberStyles.AllowDecimalPoint, new CultureInfo("en-US"), out var customFee)
+					? new FeeRate(customFee)
+					: FeeRate.Zero;
 
 			Navigate().Back();
 		}
@@ -58,7 +61,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				return;
 			}
 
-			if (!decimal.TryParse(customFeeString, out var value))
+			if (!decimal.TryParse(customFeeString, NumberStyles.AllowDecimalPoint, new CultureInfo("en-US"), out var value))
 			{
 				errors.Add(ErrorSeverity.Error, "The entered fee is not valid.");
 				return;
