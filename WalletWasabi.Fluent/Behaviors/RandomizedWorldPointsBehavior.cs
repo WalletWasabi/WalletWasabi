@@ -149,7 +149,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			Dispatcher.UIThread.Post(
 				() =>
 				{
-					if (AssociatedObject?.Children is null || AssociatedObject?.Children?.Count == 0)
+					if (AssociatedObject?.Children is null || AssociatedObject.Children.Count == 0)
 					{
 						return;
 					}
