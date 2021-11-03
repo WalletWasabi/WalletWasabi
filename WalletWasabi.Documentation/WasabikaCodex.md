@@ -1,19 +1,6 @@
 ## Daily routine
 
-1. Check [Valhalla board](https://github.com/orgs/zkSNACKs/projects/4) that contains issues and priorities.
-
-    | Developer | Assigned |
-    | :-------: | :-------: |
-    | molnard | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Amolnard) |
-    | jmacato | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Ajmacato) |
-    | danwalmsley | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Adanwalmsley) |
-    | kiminuo | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Akiminuo) |
-    | lontivero | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Alontivero) |
-    | MaxHillebrand | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3AMaxHillebrand) |
-    | nopara73 | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Anopara73) |
-    | yahiheb | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Ayahiheb) |
-    | soosr | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Asoosr) |
-
+1. Check with your team leader about tasks.
 2. Check [open code review requests waiting for you](https://github.com/zkSNACKs/WalletWasabi/pulls/review-requested/@me).
 3. Check [open priority issues and PRs](https://github.com/zkSNACKs/WalletWasabi/labels/priority). Take it or set Assignees and Labels if you can.
 4. Check your [open PRs](https://github.com/zkSNACKs/WalletWasabi/pulls/@me) and answer if necessary.
@@ -26,10 +13,9 @@
 
 ## Weekly routine
 
-- Monday 18:00 UTC: [Research Club Conversations](https://github.com/zkSNACKs/WasabiResearchClub)
-- Wednesday 13:00 UTC: Team Meetings
-- Wednesday 14:00 UTC: Vision Meeting
-- Pair programming hour.
+- Team Meeting. Team members talk about their work during the last week.
+- Company meeting. Team leaders report about the progress of their team.
+- On-demand pair programming sessions.
 
 ## Monthly routine
 

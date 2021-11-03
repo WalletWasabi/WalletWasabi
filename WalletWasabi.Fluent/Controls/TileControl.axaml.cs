@@ -10,22 +10,22 @@ namespace WalletWasabi.Fluent.Controls
 	{
 		private ContentPresenter? _contentPresenter;
 
-		public static readonly StyledProperty<object> LargeSizeContentProperty =
-			AvaloniaProperty.Register<TileControl, object>(nameof(LargeSizeContent));
+		public static readonly StyledProperty<object?> LargeSizeContentProperty =
+			AvaloniaProperty.Register<TileControl, object?>(nameof(LargeSizeContent));
 
-		public static readonly StyledProperty<object> WideSizeContentProperty =
-			AvaloniaProperty.Register<TileControl, object>(nameof(WideSizeContent));
+		public static readonly StyledProperty<object?> WideSizeContentProperty =
+			AvaloniaProperty.Register<TileControl, object?>(nameof(WideSizeContent));
 
 		public static readonly StyledProperty<TileSize> TileSizeProperty =
 			AvaloniaProperty.Register<TileControl, TileSize>(nameof(TileSize));
 
-		public object LargeSizeContent
+		public object? LargeSizeContent
 		{
 			get => GetValue(LargeSizeContentProperty);
 			set => SetValue(LargeSizeContentProperty, value);
 		}
 
-		public object WideSizeContent
+		public object? WideSizeContent
 		{
 			get => GetValue(WideSizeContentProperty);
 			set => SetValue(WideSizeContentProperty, value);
@@ -41,21 +41,40 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			if (_contentPresenter is { })
 			{
-				switch (TileSize)
+				_contentPresenter.Content = GetClosestSizedContent();
+			}
+		}
+
+		private object GetClosestSizedContent()
+		{
+			int currentSize = (int)TileSize;
+
+			while (currentSize > 0)
+			{
+				var tileSize = (TileSize) currentSize;
+
+				switch (tileSize)
 				{
-					case TileSize.Medium:
-						_contentPresenter.Content = Content;
+					case TileSize.Wide:
+						if (WideSizeContent is { })
+						{
+							return WideSizeContent;
+						}
 						break;
 
 					case TileSize.Large:
-						_contentPresenter.Content = LargeSizeContent;
+						if (LargeSizeContent is { })
+						{
+							return LargeSizeContent;
+						}
 						break;
 
-					case TileSize.Wide:
-						_contentPresenter.Content = WideSizeContent;
-						break;
 				}
+
+				currentSize--;
 			}
+
+			return Content;
 		}
 
 		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)

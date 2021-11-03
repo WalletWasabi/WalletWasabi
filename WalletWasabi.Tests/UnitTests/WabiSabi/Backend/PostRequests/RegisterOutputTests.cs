@@ -5,9 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
-using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
@@ -24,10 +22,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			round.SetPhase(Phase.OutputRegistration);
 			round.Alices.Add(WabiSabiFactory.CreateAlice(round));
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
-			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena);
 
 			var req = WabiSabiFactory.CreateOutputRegistrationRequest(round);
-			await handler.RegisterOutputAsync(req, CancellationToken.None);
+			await arena.RegisterOutputAsync(req, CancellationToken.None);
 			Assert.NotEmpty(round.Bobs);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -39,9 +36,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var cfg = new WabiSabiConfig();
 			var nonExistingRound = WabiSabiFactory.CreateRound(cfg);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync();
-			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena);
 			var req = WabiSabiFactory.CreateOutputRegistrationRequest(nonExistingRound);
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterOutputAsync(req, CancellationToken.None));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.RegisterOutputAsync(req, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.RoundNotFound, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -61,8 +57,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			round.Alices.Add(WabiSabiFactory.CreateAlice(Money.Coins(1), round));
 
 			var req = WabiSabiFactory.CreateOutputRegistrationRequest(round, key.PubKey.GetAddress(ScriptPubKeyType.Legacy, Network.Main).ScriptPubKey);
-			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena);
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterOutputAsync(req, CancellationToken.None));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.RegisterOutputAsync(req, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.ScriptNotAllowed, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -81,8 +76,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 
 			var sha256Bounty = Script.FromHex("aa20000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f87");
 			var req = WabiSabiFactory.CreateOutputRegistrationRequest(round, sha256Bounty);
-			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena);
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterOutputAsync(req, CancellationToken.None));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.RegisterOutputAsync(req, CancellationToken.None));
 
 			// The following assertion requires standardness to be checked before allowed script types
 			Assert.Equal(WabiSabiProtocolErrorCode.NonStandardOutput, ex.ErrorCode);
@@ -98,11 +92,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			round.SetPhase(Phase.OutputRegistration);
 			round.Alices.Add(WabiSabiFactory.CreateAlice(Money.Coins(1), round));
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
-			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena);
 
 			var req = WabiSabiFactory.CreateOutputRegistrationRequest(round);
 
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterOutputAsync(req, CancellationToken.None));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.RegisterOutputAsync(req, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.NotEnoughFunds, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -116,11 +109,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			round.SetPhase(Phase.OutputRegistration);
 			round.Alices.Add(WabiSabiFactory.CreateAlice(Money.Coins(2), round));
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
-			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena);
 
 			var req = WabiSabiFactory.CreateOutputRegistrationRequest(round);
 
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterOutputAsync(req, CancellationToken.None));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.RegisterOutputAsync(req, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.TooMuchFunds, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -134,11 +126,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			round.SetPhase(Phase.OutputRegistration);
 			round.Alices.Add(WabiSabiFactory.CreateAlice(round));
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
-			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena);
 
 			var req = WabiSabiFactory.CreateOutputRegistrationRequest(round, vsize: 30);
 
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterOutputAsync(req, CancellationToken.None));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.RegisterOutputAsync(req, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.IncorrectRequestedVsizeCredentials, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -149,7 +140,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		{
 			WabiSabiConfig cfg = new();
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg);
-			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			var round = arena.Rounds.First();
 			round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
@@ -162,7 +152,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 				{
 					var req = WabiSabiFactory.CreateOutputRegistrationRequest(round);
 					round.SetPhase(phase);
-					var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterOutputAsync(req, CancellationToken.None));
+					var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.RegisterOutputAsync(req, CancellationToken.None));
 					Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 				}
 			}
