@@ -107,7 +107,7 @@ namespace WalletWasabi.Backend
 			app.UseEndpoints(endpoints => endpoints.MapControllers());
 
 			var applicationLifetime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
-			applicationLifetime.ApplicationStopping.Register(() => OnShutdown(global)); // Don't register async, that won't hold up the shutdown
+			applicationLifetime.ApplicationStopped.Register(() => OnShutdown(global)); // Don't register async, that won't hold up the shutdown
 		}
 
 		private void OnShutdown(Global global)
