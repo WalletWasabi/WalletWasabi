@@ -52,17 +52,6 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 				MinimumTotalValue = Math.Max(MinimumTotalValue, minimumTotalValue),
 
 				ByTotalValue = Values
-				// FIXME
-				// AsParallel() has no apparent effect, parallelism only seems to make
-				// things unbearably slow if the inner `Extend` is also made
-				// AsParallel(), otherwise it seems to be stuck in a sequential
-				// execution mode. In addition to the below, also tried a
-				// partitioner.
-				// .AsParallel()
-				// .AsUnordered()
-				// .WithExecutionMode(ParallelExecutionMode.ForceParallelism)
-				// .WithMergeOptions(ParallelMergeOptions.NotBuffered)
-				// .WithDegreeOfParallelism(Denominations.Length)
 				.Select(x => Extend(x, maximumTotalValue, minimumTotalValue))
 				.Aggregate(PossibleDecompositions.MergeDescending)
 				.ToImmutableArray(),
@@ -102,16 +91,19 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 		// Prune an array of decompositions, ensuring that the largest output in
 		// the remaining range is greater than LargestOutput.
 		private static ReadOnlyMemory<Decomposition> PruneLexicographically(ReadOnlyMemory<Decomposition> orderedDecompositions, Money largetstOutputLowerBound)
-			=> orderedDecompositions[Range.EndAt(FindIndex(orderedDecompositions.Span,
-														   new Decomposition(largetstOutputLowerBound - 1),
-														   new ReverseLexicographicalComparer()))];
+			=> orderedDecompositions[Range.EndAt(
+				FindIndex(
+					orderedDecompositions.Span,
+					new Decomposition(largetstOutputLowerBound - 1L),
+					new ReverseLexicographicalComparer()))];
 
 		// Prune an array of decompositions, restricting to a range of total
 		// values.
 		// This is a private method, made internal so that it has unit tests.
 		internal static ReadOnlyMemory<Decomposition> PruneByTotalValue(ReadOnlyMemory<Decomposition> byTotalValue, Money maximum, Money minimum)
-			=> byTotalValue[new Range(FindIndex(byTotalValue.Span, maximum),
-										 FindIndex(byTotalValue.Span, minimum - 1))];
+			=> byTotalValue[new Range(
+				FindIndex(byTotalValue.Span, maximum),
+				FindIndex(byTotalValue.Span, minimum - 1L))];
 
 		// Find an index for a given total value, or the insert where
 		// it would be inserted.
@@ -148,7 +140,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 			{
 				// BinarySearch doesn't necessarily return the first entry, so
 				// do an additional backwards linear scan to find it.
-				while (i > 0 && comparer.Compare(orderedDecompositions[i-1], orderedDecompositions[i]) == 0)
+				while (i > 0 && comparer.Compare(orderedDecompositions[i - 1], orderedDecompositions[i]) == 0)
 				{
 					i--;
 				}
