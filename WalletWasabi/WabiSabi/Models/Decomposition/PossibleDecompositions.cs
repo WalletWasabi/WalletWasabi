@@ -116,7 +116,8 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 			{
 				minimumTotalValue = Money.Zero;
 			}
-			else {
+			else
+			{
 				Guard.True(nameof(minimumTotalValue), MinimumTotalValue <= minimumTotalValue && minimumTotalValue <= MaximumTotalValue, "must not be lower than limit from precomputation.");
 			}
 
@@ -158,7 +159,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 				large.MoveNext();
 				small.MoveNext();
 
-				for (;;)
+				for (; ; )
 				{
 					var cmp = large.Current.CompareTo(small.Current);
 
