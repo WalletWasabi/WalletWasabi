@@ -56,8 +56,7 @@ __Fact__: code review is one of the few scientifically proven code improvement t
 
 #### Git Bash approach
 - Get and Setup Git Bash on your local computer
-- Copy the link
-- ![Image of Copy icon](https://docs.github.com/assets/images/help/repository/https-url-clone-cli.png)
+- Copy the link ![Image of Copy icon](https://docs.github.com/assets/images/help/repository/https-url-clone-cli.png)
 - Open Git Bash.
 - Change the current working directory to the location where you want the cloned directory.
 - Type git clone, and then paste the URL you copied earlier. Example: "git clone https://github.com/zkSNACKs/WalletWasabi.git"
