@@ -540,3 +540,9 @@ For example, if your website is `https://www.wasabiwallet.co`, type `wasabiwalle
 4. Wait some hours (max 24) while your registrar updates your nameservers and the DNS propagates
 You will receive an email when your site is active on Cloudflare
 
+## DEBUG
+
+- Find PID `ps aufx | grep 'WalletWasabi.Backend`
+- Creating a core dump: `dotnet dump collect -p 21600`
+- Cound threads for dotnet process `pstree -tpl 21600 | wc -l` usually around 109
+
