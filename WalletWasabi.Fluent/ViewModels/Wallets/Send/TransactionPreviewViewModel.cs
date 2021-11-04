@@ -287,16 +287,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			var fee = _transaction.Fee;
 			var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} sats ";
-			var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC).GenerateFiatText(usdRate, "USD");
+			var feeBtc = fee.ToDecimal(MoneyUnit.BTC);
+			var fiatFeeText = feeBtc.GenerateFiatText(usdRate, "USD");
+			FeeText = $"{btcFeeText}{fiatFeeText}";
+			ShowTransactionFeeWarning = feeBtc * usdRate > Services.Config.TransactionFeeUsdThreshold;
 
 			Labels = SmartLabel.Merge(_info.UserLabels, SmartLabel.Merge(transactionResult.SpentCoins.Select(x => x.GetLabels())));
 
-			FeeText = $"{btcFeeText}{fiatFeeText}";
-
 			TransactionHasChange = _transaction.OuterWalletOutputs.Sum(x => x.Amount) > fee && _transaction.InnerWalletOutputs.Sum(x => x.Amount) > 0;
-
-			ShowTransactionFeeWarning = destinationAmount * usdRate > Services.Config.TransactionFeeUsdThreshold;
-
 			TransactionHasPockets = !_info.IsPrivatePocketUsed;
 		}
 
