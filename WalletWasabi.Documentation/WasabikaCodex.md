@@ -78,7 +78,7 @@ __Fact__: code review is one of the few scientifically proven code improvement t
 - Clone the forked repo (See above)
 - Make a new branch from master by "git switch -c newbranch" (Replace newbranch with your own comprehensive names.)
 - Make changes 
-- Add necessary files ("git add -A" will add every changed file, this is the most commonly used, but you can add the changes one-by-one "git add <filename>")
+- Add necessary files ("git add ." will add every changed file, this is the most commonly used, but you can add the changes one-by-one "git add <filename>")
 - Commit your changes: git commit -m "A simple commit message"
 - Push your changes: git push
 - Raise a PR on github ![Image of Compare&CreatePR](https://miro.medium.com/max/2400/0*-FdwVO7MztrbYh4U.png)
