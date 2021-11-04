@@ -16,7 +16,7 @@
                  IsBusy="{Binding IsBusy}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel>
-      <c:InfoMessage Content="Consider adjusting the transaction fee on your preference"
+      <c:InfoMessage Content="Consider adjusting the transaction fee on your preference."
                      DockPanel.Dock="Bottom"
                      HorizontalAlignment="Center"
                      Margin="0 10 0 0"
@@ -81,7 +81,7 @@
                     IsVisible="{Binding AdjustFeeAvailable}"
                     ToolTip.Tip="Change transaction fee or confirmation time"
                     DockPanel.Dock="Right"
-                    Margin="2 0">
+                    Margin="10 0">
               <Viewbox Height="20">
                 <PathIcon Data="{StaticResource adjust_fee_regular}" Foreground="{DynamicResource SystemAccentColor}" />
               </Viewbox>
@@ -93,13 +93,10 @@
                              Text="Bitcoin miners will work hard to confirm your transaction within">
                 <TextBox Classes="selectableTextBlock" Text="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
               </c:PreviewItem>
-              <StackPanel Orientation="Horizontal">
-                <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
-                               Text="for an additional charge of">
-                  <TextBox Classes="selectableTextBlock" Text="{Binding FeeText, FallbackValue=235 sats (≈55.34 USD)}" DockPanel.Dock="Left" />
-                </c:PreviewItem>
-
-              </StackPanel>
+              <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
+                             Text="for an additional charge of">
+                <TextBox Classes="selectableTextBlock" Text="{Binding FeeText, FallbackValue=235 sats (≈55.34 USD)}" DockPanel.Dock="Left" />
+              </c:PreviewItem>
             </StackPanel>
           </DockPanel>
 
