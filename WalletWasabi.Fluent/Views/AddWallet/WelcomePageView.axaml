@@ -136,7 +136,7 @@
         <Grid ColumnDefinitions="*,*">
           <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
             <TextBlock Classes="text" Text="Use Wasabi Wallet to retain your individuality, regain your identity and ultimately, reclaim your privacy. We let you control what you reveal about your Bitcoin life. Welcome to Wasabi Wallet sovereign individual." />
-            <TextBlock Text="Welcome to Wasabi Wallet, a Bitcoin Wallet for the Citadels."
+            <TextBlock Text="Wasabi Wallet, a Bitcoin Wallet for the Citadels."
                        Classes="title" />
             <Viewbox Classes="icon">
               <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
