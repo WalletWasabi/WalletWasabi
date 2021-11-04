@@ -76,7 +76,7 @@ __Fact__: code review is one of the few scientifically proven code improvement t
 ## Creating Pull Request
 - Fork the repo (See above)
 - Clone the forked repo (See above)
-- Make a new branch from master by "git checkout -b newbranch" (Replace newbranch with your own comprehensive names.)
+- Make a new branch from master by "git switch -c newbranch" (Replace newbranch with your own comprehensive names.)
 - Make changes 
 - Add necessary files ("git add -A" will add every changed file, this is the most commonly used, but you can add the changes one-by-one "git add <filename>")
 - Commit your changes: git commit -m "A simple commit message"
