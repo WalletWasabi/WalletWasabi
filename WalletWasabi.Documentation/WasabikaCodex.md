@@ -47,16 +47,16 @@ __Fact__: code review is one of the few scientifically proven code improvement t
 
 ## How to fork a repository
 - On Github navigate to the desired repository.
-- In the top-right corner of the page, click Fork. ![Image of Fork Icon](https://docs.github.com/assets/images/help/repository/fork_button.jpg)
+- In the top-right corner of the page, click Fork.
 
 ### Cloning your forked repository
 - On GitHub.com, navigate to your fork. For Example: https://github.com/adampetho/WalletWasabi
-- Above the list of files, click the Code button with the arrow pointing down. ![Image of Code Button](https://docs.github.com/assets/images/help/repository/code-button.png)
+- Above the list of files, click the Code button with the arrow pointing down.
 - Use one of the 3 options to get your repository into your local machine. (See below)
 
 #### Git Bash approach
 - Get and Setup Git Bash on your local computer
-- Copy the link ![Image of Copy icon](https://docs.github.com/assets/images/help/repository/https-url-clone-cli.png)
+- Copy the link
 - Open Git Bash.
 - Change the current working directory to the location where you want the cloned directory.
 - Type git clone, and then paste the URL you copied earlier. Example: "git clone https://github.com/zkSNACKs/WalletWasabi.git"
@@ -80,7 +80,7 @@ __Fact__: code review is one of the few scientifically proven code improvement t
 - Add necessary files ("git add ." will add every changed file, this is the most commonly used, but you can add the changes one-by-one "git add <filename>")
 - Commit your changes: git commit -m "A simple commit message"
 - Push your changes: git push
-- Raise a PR on github ![Image of Compare&CreatePR](https://miro.medium.com/max/2400/0*-FdwVO7MztrbYh4U.png)
+- Raise a PR on github
 - Fill the title.
 - Fill the description.
   - If it fixes issues [add keyword](https://help.github.com/en/articles/closing-issues-using-keywords).
