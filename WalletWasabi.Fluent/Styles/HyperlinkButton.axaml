@@ -7,7 +7,7 @@
     <Setter Property="Background" Value="Transparent" />
   </Style>
 
-  <Style Selector="Button.activeHyperLink TextBlock">
+  <Style Selector="Button.activeHyperLink AccessText">
     <Setter Property="TextDecorations" Value="Underline" />
   </Style>
 
