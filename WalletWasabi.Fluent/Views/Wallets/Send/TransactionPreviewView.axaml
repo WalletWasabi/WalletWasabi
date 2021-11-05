@@ -24,10 +24,12 @@
                      IsVisible="{Binding ShowTransactionFeeWarning}" />
       <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Spacing="15">
+
           <c:PreviewItem Icon="{StaticResource btc_logo}"
                          Text="A total of">
             <TextBox Classes="selectableTextBlock" Text="{Binding AmountText, FallbackValue=0.213 BTC (≈55.34 USD)}" />
           </c:PreviewItem>
+
           <Separator />
 
           <DockPanel>
@@ -41,7 +43,6 @@
                 <PathIcon Data="{StaticResource entities_edit_regular}" Foreground="{DynamicResource SystemAccentColor}" />
               </Viewbox>
             </Button>
-
             <c:PreviewItem Icon="{StaticResource entities_regular}"
                            Text="Will be sent to and / or known by">
               <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Labels}">
@@ -55,16 +56,20 @@
           </DockPanel>
 
           <Separator />
+
           <c:PreviewItem Icon="{StaticResource transceive_regular}"
                          Text="via Bitcoin address">
             <TextBox Classes="selectableTextBlock" Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
           </c:PreviewItem>
+
           <Separator />
+
           <c:PreviewItem Icon="{StaticResource lock_shield_regular}"
                          Text="PayJoin will be used to protect your privacy"
                          IsVisible="{Binding IsPayJoin}">
             <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png" ToolTip.Tip="{Binding PayJoinUrl}" HorizontalAlignment="Left" Margin="0 8 0 0" />
           </c:PreviewItem>
+
           <Separator IsVisible="{Binding IsPayJoin}" />
 
           <DockPanel Name="avoidChangeRow">
@@ -89,6 +94,7 @@
                            IsVisible="{Binding TransactionHasChange}"
                            Content="View suggestions to improve privacy by avoiding change" />
           </DockPanel>
+
           <Separator IsVisible="{Binding #avoidChangeRow.IsVisible}" />
 
           <DockPanel>
@@ -102,8 +108,6 @@
                 <PathIcon Data="{StaticResource adjust_fee_regular}" Foreground="{DynamicResource SystemAccentColor}" />
               </Viewbox>
             </Button>
-
-
             <StackPanel Spacing="10" Margin="0 0 10 0">
               <c:PreviewItem Icon="{StaticResource timer_regular}"
                              Text="Bitcoin miners will work hard to confirm your transaction within">
