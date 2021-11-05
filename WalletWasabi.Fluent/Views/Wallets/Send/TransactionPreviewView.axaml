@@ -16,7 +16,7 @@
                  IsBusy="{Binding IsBusy}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel>
-      <c:InfoMessage Content="Consider adjusting the transaction fee on your preference."
+      <c:InfoMessage Content="The transaction fee seems to be high, consider adjusting it."
                      DockPanel.Dock="Bottom"
                      HorizontalAlignment="Center"
                      Margin="0 10 0 0"
