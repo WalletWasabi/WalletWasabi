@@ -59,7 +59,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			HybridFeeProvider feeProvider = new(synchronizer, null);
 
 			// 4. Create key manager service.
-			var keyManager = KeyManager.CreateNew(out _, password);
+			var keyManager = KeyManager.CreateNew(out _, password, network);
 
 			// 5. Create wallet service.
 			var workDir = Helpers.Common.GetWorkDir();
@@ -212,7 +212,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			HybridFeeProvider feeProvider = new(synchronizer, null);
 
 			// 4. Create key manager service.
-			var keyManager = KeyManager.CreateNew(out _, password);
+			var keyManager = KeyManager.CreateNew(out _, password, network);
 
 			// 5. Create wallet service.
 			var workDir = Helpers.Common.GetWorkDir();

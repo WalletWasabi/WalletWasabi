@@ -50,7 +50,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			AddressText = info.Address.ToString();
 			PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
 			IsPayJoin = PayJoinUrl is not null;
-			AdjustFeeAvailable = TransactionFeeHelper.AreTransactionFeesLow(_wallet);
+			AdjustFeeAvailable = !TransactionFeeHelper.AreTransactionFeesEqual(_wallet);
 
 			if (PreferPsbtWorkflow)
 			{
@@ -173,7 +173,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					return false;
 				}
-
 			}
 
 			return true;
@@ -306,7 +305,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			Observable
 				.FromEventPattern(_wallet.FeeProvider, nameof(_wallet.FeeProvider.AllFeeEstimateChanged))
-				.Subscribe(_ => AdjustFeeAvailable = TransactionFeeHelper.AreTransactionFeesLow(_wallet))
+				.Subscribe(_ => AdjustFeeAvailable = !TransactionFeeHelper.AreTransactionFeesEqual(_wallet))
 				.DisposeWith(disposables);
 
 			if (!isInHistory)

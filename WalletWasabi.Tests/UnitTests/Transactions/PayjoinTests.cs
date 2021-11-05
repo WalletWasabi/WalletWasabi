@@ -227,6 +227,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var walletCoins = new[] { ("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1) };
 			var amountToPay = Money.Coins(0.001m);
 			var payment = new PaymentIntent(BitcoinFactory.CreateScript(), amountToPay);
+			var network = Network.Main;
 
 			// This tests the scenario where the payjoin server does not clean GloablXPubs.
 			var mockHttpClient = new Mock<IHttpClient>();
@@ -234,7 +235,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOkAsync(req, psbt =>
 				{
 					var extPubkey = new ExtKey().Neuter().GetWif(Network.Main);
-					psbt.GlobalXPubs.Add(extPubkey, new RootedKeyPath(extPubkey.GetPublicKey().GetHDFingerPrint(), KeyManager.DefaultAccountKeyPath));
+					psbt.GlobalXPubs.Add(extPubkey, new RootedKeyPath(extPubkey.GetPublicKey().GetHDFingerPrint(), KeyManager.GetAccountKeyPath(network)));
 					return psbt;
 				}));
 
@@ -248,7 +249,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOkAsync(req, psbt =>
 				{
 					var extPubkey = new ExtKey().Neuter().GetWif(Network.Main);
-					psbt.Inputs[0].AddKeyPath(new Key().PubKey, new RootedKeyPath(extPubkey.GetPublicKey().GetHDFingerPrint(), KeyManager.DefaultAccountKeyPath));
+					psbt.Inputs[0].AddKeyPath(new Key().PubKey, new RootedKeyPath(extPubkey.GetPublicKey().GetHDFingerPrint(), KeyManager.GetAccountKeyPath(network)));
 					return psbt;
 				}));
 
@@ -301,7 +302,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOkAsync(req, psbt =>
 				{
 					var extPubkey = new ExtKey().Neuter().GetWif(Network.Main);
-					psbt.Outputs[0].AddKeyPath(new Key().PubKey, new RootedKeyPath(extPubkey.GetPublicKey().GetHDFingerPrint(), KeyManager.DefaultAccountKeyPath));
+					psbt.Outputs[0].AddKeyPath(new Key().PubKey, new RootedKeyPath(extPubkey.GetPublicKey().GetHDFingerPrint(), KeyManager.GetAccountKeyPath(network)));
 					return psbt;
 				}));
 

@@ -146,14 +146,14 @@ namespace WalletWasabi.Fluent.Behaviors
 		{
 			base.OnAttached();
 
-			if (AssociatedObject is null)
-			{
-				return;
-			}
-
 			Dispatcher.UIThread.Post(
 				() =>
 				{
+					if (AssociatedObject?.Children is null || AssociatedObject.Children.Count == 0)
+					{
+						return;
+					}
+
 					var targets = AssociatedObject.Children
 						.Where(x => x.Classes.Contains("City"))
 						.ToList();

@@ -24,7 +24,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			Rpc = rpc;
 			HttpClientFactory = httpClientFactory;
 
-			KeyManager = KeyManager.CreateNew(out var _, password: "");
+			KeyManager = KeyManager.CreateNew(out var _, password: "", Network.Main);
 			KeyManager.AssertCleanKeysIndexed();
 		}
 
