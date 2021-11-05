@@ -85,7 +85,7 @@ namespace WalletWasabi.Helpers
 
 			ExtPubKey extPubKey = NBitcoinHelpers.BetterParseExtPubKey(xpubString);
 
-			return KeyManager.CreateNewHardwareWalletWatchOnly(mfp, extPubKey, walletFullPath);
+			return KeyManager.CreateNewHardwareWalletWatchOnly(mfp, extPubKey, manager.Network, walletFullPath);
 		}
 	}
 }

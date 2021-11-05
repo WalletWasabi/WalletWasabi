@@ -318,7 +318,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				psbt = payjoinClient.RequestPayjoin(
 					psbt,
 					KeyManager.ExtPubKey,
-					new RootedKeyPath(KeyManager.MasterFingerprint.Value, KeyManager.DefaultAccountKeyPath),
+					new RootedKeyPath(KeyManager.MasterFingerprint.Value, KeyManager.AccountKeyPath),
 					changeHdPubKey,
 					CancellationToken.None).GetAwaiter().GetResult(); // WTF??!
 				builder.SignPSBT(psbt);
