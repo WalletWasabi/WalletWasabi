@@ -6,14 +6,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using WalletWasabi.Logging;
-using WalletWasabi.Fluent.Models;
+using WalletWasabi.Models;
 using WalletWasabi.Services.Terminate;
 
-namespace WalletWasabi.Fluent.Rpc
+namespace WalletWasabi.Rpc
 {
 	public class JsonRpcServer : BackgroundService
 	{
-		public JsonRpcServer(Global global, JsonRpcServerConfiguration config, TerminateService terminateService)
+		public JsonRpcServer(IJsonRpcServerConfiguration config, TerminateService terminateService, WasabiJsonRpcService service)
 		{
 			Config = config;
 			Listener = new HttpListener();
@@ -22,12 +22,12 @@ namespace WalletWasabi.Fluent.Rpc
 			{
 				Listener.Prefixes.Add(prefix);
 			}
-			Service = new WasabiJsonRpcService(global, terminateService);
+			Service = service;
 		}
 
 		private HttpListener Listener { get; }
 		private WasabiJsonRpcService Service { get; }
-		private JsonRpcServerConfiguration Config { get; }
+		private IJsonRpcServerConfiguration Config { get; }
 
 		public override async Task StartAsync(CancellationToken cancellationToken)
 		{
@@ -58,8 +58,8 @@ namespace WalletWasabi.Fluent.Rpc
 						using var reader = new StreamReader(request.InputStream);
 						string body = await reader.ReadToEndAsync().ConfigureAwait(false);
 
-						var identity = (HttpListenerBasicIdentity)context.User?.Identity;
-						if (!Config.RequiresCredentials || CheckValidCredentials(identity))
+						var identity = (HttpListenerBasicIdentity?)context.User?.Identity;
+						if (!Config.RequiresCredentials || identity is not null && CheckValidCredentials(identity))
 						{
 							var result = await handler.HandleAsync(body, stoppingToken).ConfigureAwait(false);
 

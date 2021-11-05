@@ -19,7 +19,7 @@ using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client;
 using WalletWasabi.Fluent.Models;
-using WalletWasabi.Fluent.Rpc;
+using WalletWasabi.Rpc;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
@@ -211,7 +211,16 @@ namespace WalletWasabi.Fluent
 			var jsonRpcServerConfig = new JsonRpcServerConfiguration(Config);
 			if (jsonRpcServerConfig.IsEnabled)
 			{
-				RpcServer = new JsonRpcServer(this, jsonRpcServerConfig, terminateService);
+				RpcServer = new JsonRpcServer(jsonRpcServerConfig, terminateService,
+					new WasabiJsonRpcService(terminateService)
+					{
+						BitcoinStore = BitcoinStore,
+						HostedServices = HostedServices,
+						Network = Network,
+						Synchronizer = Synchronizer,
+						TransactionBroadcaster = TransactionBroadcaster,
+						WalletManager = WalletManager
+					});
 				try
 				{
 					await RpcServer.StartAsync(cancel).ConfigureAwait(false);

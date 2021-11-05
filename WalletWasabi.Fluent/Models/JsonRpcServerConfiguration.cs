@@ -1,6 +1,8 @@
+using WalletWasabi.Models;
+
 namespace WalletWasabi.Fluent.Models
 {
-	public class JsonRpcServerConfiguration
+	public class JsonRpcServerConfiguration : IJsonRpcServerConfiguration
 	{
 		private Config _config;
 
