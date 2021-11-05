@@ -67,15 +67,31 @@
           </c:PreviewItem>
           <Separator IsVisible="{Binding IsPayJoin}" />
 
-          <c:PreviewItem Icon="{StaticResource incognito_filled}"
-                         Text="You will receive change from this transaction."
-                         IsVisible="{Binding TransactionHasChange}">
-            <Button Classes="activeHyperLink" Content="View suggestions to improve privacy by avoiding change." HorizontalAlignment="Left" Command="{Binding AvoidChangeCommand}" />
-          </c:PreviewItem>
-          <Separator IsVisible="{Binding TransactionHasChange}" />
+          <DockPanel Name="avoidChangeRow">
+            <DockPanel.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="TransactionHasChange" />
+                <Binding Path="IsPayJoin" Converter="{x:Static BoolConverters.Not}" />
+              </MultiBinding>
+            </DockPanel.IsVisible>
+            <Button Classes="plain"
+                    Command="{Binding AvoidChangeCommand}"
+                    ToolTip.Tip="View suggestions"
+                    DockPanel.Dock="Right"
+                    Margin="10 0">
+              <Viewbox Height="20">
+                <PathIcon Data="{StaticResource edit_arrow_back_regular}" Foreground="{DynamicResource SystemAccentColor}" />
+              </Viewbox>
+            </Button>
+
+            <c:PreviewItem Icon="{StaticResource incognito_filled}"
+                           Text="You will receive change from this transaction"
+                           IsVisible="{Binding TransactionHasChange}"
+                           Content="View suggestions to improve privacy by avoiding change" />
+          </DockPanel>
+          <Separator IsVisible="{Binding #avoidChangeRow.IsVisible}" />
 
           <DockPanel>
-
             <Button Classes="plain"
                     Command="{Binding AdjustFeeCommand}"
                     IsVisible="{Binding AdjustFeeAvailable}"

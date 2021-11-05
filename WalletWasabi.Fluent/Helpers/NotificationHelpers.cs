@@ -130,7 +130,7 @@ namespace WalletWasabi.Fluent.Helpers
 					}
 					else if (incoming < Money.Zero)
 					{
-						title = "Transaction Sent";
+						title = "Transaction Spent";
 					}
 				}
 				else if (isConfirmedReceive || isConfirmedSpent)
