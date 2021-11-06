@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using WalletWasabi.Logging;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
@@ -67,15 +69,52 @@ namespace WalletWasabi.WabiSabi.Client
 		public Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken) =>
 			SendAndReceiveAsync<ReadyToSignRequestRequest>(RemoteAction.ReadyToSign, request, cancellationToken);
 
+		private async Task<HttpResponseMessage> SendWithRetriesAsync(RemoteAction action, string jsonString, CancellationToken cancellationToken, int maxAttempts = 3)
+		{
+			var errors = new List<Exception>();
+
+			var start = DateTime.Now;
+
+			for (var attempt = 0; attempt < maxAttempts; attempt++)
+			{
+				try
+				{
+					using StringContent content = new (jsonString, Encoding.UTF8, "application/json");
+
+					// Any transport layer errors will throw an exception here.
+					var response = await _client.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, cancellationToken).ConfigureAwait(false);
+
+					var totalTime = DateTime.Now - start;
+
+					if (errors.Any())
+					{
+						Logger.LogDebug($"Received a response for {action} in {totalTime.TotalSeconds:0.##s} after {attempt} failed attempts: {new AggregateException(errors)}.");
+					}
+					else
+					{
+						Logger.LogDebug($"Received a response for {action} in {totalTime.TotalSeconds:0.##s}.");
+					}
+
+					return response;
+				}
+				catch (Exception e)
+				{
+					errors.Add(e);
+				}
+			}
+
+			throw new AggregateException(errors);
+		}
+
 		private async Task<string> SendAsync<TRequest>(RemoteAction action, TRequest request, CancellationToken cancellationToken) where TRequest : class
 		{
-			using var content = Serialize(request);
-			using var response = await _client.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, cancellationToken).ConfigureAwait(false);
+			using var response = await SendWithRetriesAsync(action, Serialize(request), cancellationToken);
 
 			if (!response.IsSuccessStatusCode)
 			{
 				await response.ThrowRequestExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
 			}
+
 			return await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 		}
 
@@ -90,11 +129,8 @@ namespace WalletWasabi.WabiSabi.Client
 			return Deserialize<TResponse>(jsonString);
 		}
 
-		private static StringContent Serialize<T>(T obj)
-		{
-			string jsonString = JsonConvert.SerializeObject(obj, JsonSerializationOptions.Default.Settings);
-			return new StringContent(jsonString, Encoding.UTF8, "application/json");
-		}
+		private static string Serialize<T>(T obj)
+			=> JsonConvert.SerializeObject(obj, JsonSerializationOptions.Default.Settings);
 
 		private static TResponse Deserialize<TResponse>(string jsonString)
 		{
