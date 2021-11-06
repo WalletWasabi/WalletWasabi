@@ -65,6 +65,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 			}
 			catch (OperationCanceledException)
 			{
+				Logger.LogTrace("Operation was canceled.");
 			}
 		}
 
