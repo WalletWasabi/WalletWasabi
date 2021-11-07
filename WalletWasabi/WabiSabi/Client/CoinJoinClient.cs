@@ -91,6 +91,9 @@ namespace WalletWasabi.WabiSabi.Client
 
 			var coinCandidates = SelectCoinsForRound(smartCoins, constructionState.Parameters);
 
+			var maxAvailableVsize = roundState.MaxVsizeAllocationPerAlice * coinCandidates.Count;
+			var amountDecomposerTask = Task.Run(() => new AmountDecomposer(coinCandidates, roundState, (int)maxAvailableVsize));
+
 			// Register coins.
 			var registeredAliceClients = await CreateRegisterAndConfirmCoinsAsync(coinCandidates, roundState, cancellationToken).ConfigureAwait(false);
 			if (!registeredAliceClients.Any())
@@ -106,12 +109,13 @@ namespace WalletWasabi.WabiSabi.Client
 				var registeredCoins = registeredAliceClients.Select(x => x.SmartCoin.Coin);
 				var availableVsize = registeredAliceClients.SelectMany(x => x.IssuedVsizeCredentials).Sum(x => x.Value);
 
-				// Calculate outputs values
+				var amountDecomposer = await amountDecomposerTask;
+
 				roundState = await RoundStatusUpdater.CreateRoundAwaiter(rs => rs.Id == roundState.Id, cancellationToken).ConfigureAwait(false);
 				constructionState = roundState.Assert<ConstructionState>();
-				AmountDecomposer amountDecomposer = new(roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min, Constants.P2WPKHOutputSizeInBytes, (int)availableVsize);
+
 				var theirCoins = constructionState.Inputs.Except(registeredCoins);
-				var outputValues = amountDecomposer.Decompose(registeredCoins, theirCoins);
+				var outputValues = amountDecomposer.Decompose(registeredCoins, theirCoins, (int)availableVsize);
 
 				// Get all locked internal keys we have and assert we have enough.
 				Keymanager.AssertLockedInternalKeysIndexed(howMany: outputValues.Count());

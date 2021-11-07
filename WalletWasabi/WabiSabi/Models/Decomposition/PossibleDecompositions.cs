@@ -101,7 +101,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 			Money costPerOutput = (feeRate ?? FeeRate.Zero).GetFee(vsizePerOutput).Satoshi;
 			var maxDecompositionCost = StratifiedDecompositions.Length * costPerOutput;
 
-			Guard.True(nameof(maxOutputs), maxOutputs <= StratifiedDecompositions.Length || maxOutputs == int.MaxValue, "must not exceed limit from precomputation.");
+			maxOutputs = Math.Max(maxOutputs, StratifiedDecompositions.Length);
 
 			if (maximumEffectiveCost is null)
 			{
