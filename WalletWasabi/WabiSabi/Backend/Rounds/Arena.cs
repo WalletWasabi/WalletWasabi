@@ -461,6 +461,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				}
 			}
 
+			if (round.Phase == Phase.InputRegistration)
+			{
+				Task.WaitAny(
+					Task.Delay(round.ConnectionConfirmationTimeFrame.Duration / 2),
+					round.InputRegistrationCompletionSource.Task);
+			}
+
 			var amountZeroCredentialTask = round.AmountCredentialIssuer.HandleRequestAsync(request.ZeroAmountCredentialRequests, cancellationToken);
 			var vsizeZeroCredentialTask = round.VsizeCredentialIssuer.HandleRequestAsync(request.ZeroVsizeCredentialRequests, cancellationToken);
 			Task<CredentialsResponse>? amountRealCredentialTask = null;

@@ -1,6 +1,7 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using WalletWasabi.Crypto;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Crypto;
@@ -33,6 +34,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			ConnectionConfirmationTimeFrame = TimeFrame.Create(RoundParameters.ConnectionConfirmationTimeout);
 			OutputRegistrationTimeFrame = TimeFrame.Create(RoundParameters.OutputRegistrationTimeout);
 			TransactionSigningTimeFrame = TimeFrame.Create(RoundParameters.TransactionSigningTimeout);
+
+			InputRegistrationCompletionSource = new();
 		}
 
 		public uint256 Id => _id ??= CalculateHash();
@@ -63,6 +66,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		protected RoundParameters RoundParameters { get; }
 
+		internal TaskCompletionSource InputRegistrationCompletionSource { get; }
+
 		public TState Assert<TState>() where TState : MultipartyTransactionState =>
 			CoinjoinState switch
 			{
@@ -78,6 +83,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 
 			this.LogInfo($"Phase changed: {Phase} -> {phase}");
+			var previousPhase = Phase;
 			Phase = phase;
 
 			if (phase == Phase.ConnectionConfirmation)
@@ -95,6 +101,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			else if (phase == Phase.Ended)
 			{
 				End = DateTimeOffset.UtcNow;
+			}
+
+			if (previousPhase == Phase.InputRegistration)
+			{
+				InputRegistrationCompletionSource.TrySetResult();
 			}
 		}
 
