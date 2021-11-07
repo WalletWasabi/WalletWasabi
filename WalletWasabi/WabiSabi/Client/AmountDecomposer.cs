@@ -85,22 +85,14 @@ namespace WalletWasabi.WabiSabi.Client
 			{
 				foreach (var denom in BreakDown(input, demonsForBreakDown))
 				{
-					var weight = Weight(denom.Satoshi);
-
-					if (!denomProbabilities.TryAdd(denom, weight))
+					if (!denomProbabilities.TryAdd(denom, 1))
 					{
-						denomProbabilities[denom] += weight;
+						denomProbabilities[denom] += 1;
 					}
 				}
 			}
 
 			return denomProbabilities;
-		}
-
-		private long Weight(long val)
-		{
-			// Bias denom selection as the square of the value.
-			return val * val;
 		}
 
 		private IEnumerable<Money> BreakDown(Coin coin, IEnumerable<Money> denominations)
