@@ -10,8 +10,8 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 	{
 		// Useful for prettifying test assertions, or alternatively as a debug
 		// display attribute:
-		// public override string ToString()
-		// 	=> $"[ {TotalValue} = { string.Join(' ', Outputs) } ]";
+		public override string ToString()
+			=> $"[ {TotalValue} = { string.Join(' ', Outputs) } ]";
 
 		internal Decomposition(params long[] outputValues)
 			: this(outputValues.Select(Money.Satoshis))
