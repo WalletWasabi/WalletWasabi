@@ -26,34 +26,16 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var smartCoin = BitcoinFactory.CreateSmartCoin(key, 10m);
 			var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(smartCoin.Coin);
 
+			var alice = WabiSabiFactory.CreateAlice(round);
+			round.Alices.Add(alice);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, rpc, round);
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
-			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), arena);
-			await roundStateUpdater.StartAsync(CancellationToken.None);
-
-			// Register Alices.
-			using var identificationKey = new Key();
-			var esk = km.GetSecrets("", smartCoin.ScriptPubKey).Single();
-
-			using CancellationTokenSource cancellationTokenSource = new();
-			var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, smartCoin, esk.PrivateKey.GetBitcoinSecret(round.Network), identificationKey, roundStateUpdater, cancellationTokenSource.Token);
-
-			while (round.Alices.Count == 0)
-			{
-				await Task.Delay(10);
-			}
-
-			var alice = Assert.Single(round.Alices);
 			alice.Deadline = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(1);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 
 			Assert.Empty(round.Alices);
 
-			cancellationTokenSource.Cancel();
-			await Assert.ThrowsAsync<OperationCanceledException>(async () => await task);
-
-			await roundStateUpdater.StopAsync(CancellationToken.None);
 			await arena.StopAsync(CancellationToken.None);
 		}
 

@@ -33,7 +33,6 @@ namespace WalletWasabi.WabiSabi.Client
 			IssuedAmountCredentials = issuedAmountCredentials;
 			IssuedVsizeCredentials = issuedVsizeCredentials;
 			MaxVsizeAllocationPerAlice = roundState.MaxVsizeAllocationPerAlice;
-			ConfirmationTimeout = roundState.ConnectionConfirmationTimeout / 2;
 		}
 
 		public Guid AliceId { get; }
@@ -45,7 +44,6 @@ namespace WalletWasabi.WabiSabi.Client
 		public IEnumerable<Credential> IssuedAmountCredentials { get; private set; }
 		public IEnumerable<Credential> IssuedVsizeCredentials { get; private set; }
 		private long MaxVsizeAllocationPerAlice { get; }
-		private TimeSpan ConfirmationTimeout { get; }
 
 		public static async Task<AliceClient> CreateRegisterAndConfirmInputAsync(
 			RoundState roundState,
@@ -132,26 +130,9 @@ namespace WalletWasabi.WabiSabi.Client
 			long[] amountsToRequest = { SmartCoin.EffectiveValue(FeeRate).Satoshi };
 			long[] vsizesToRequest = { MaxVsizeAllocationPerAlice - SmartCoin.ScriptPubKey.EstimateInputVsize() };
 
-			do
+			while (!await TryConfirmConnectionAsync(amountsToRequest, vsizesToRequest, cancellationToken).ConfigureAwait(false))
 			{
-				using CancellationTokenSource timeout = new(ConfirmationTimeout);
-				using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
-
-				try
-				{
-					await roundStatusUpdater
-						.CreateRoundAwaiter(
-							RoundId,
-							roundState => roundState.Phase == Phase.ConnectionConfirmation,
-							cts.Token)
-						.ConfigureAwait(false);
-				}
-				catch (OperationCanceledException)
-				{
-					cancellationToken.ThrowIfCancellationRequested();
-				}
 			}
-			while (!await TryConfirmConnectionAsync(amountsToRequest, vsizesToRequest, cancellationToken).ConfigureAwait(false));
 		}
 
 		private async Task<bool> TryConfirmConnectionAsync(IEnumerable<long> amountsToRequest, IEnumerable<long> vsizesToRequest, CancellationToken cancellationToken)
