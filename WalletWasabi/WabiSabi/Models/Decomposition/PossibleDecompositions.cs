@@ -133,7 +133,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 							Money.Max(minimumTotalValue, MinimumTotalValue),
 							minimumValue)
 						.Where(d => d.Outputs[^1] >= minimumValue))
-				.Aggregate(ImmutableArray<Decomposition>.Empty as IEnumerable<Decomposition>, MergeDescending)
+				.Aggregate(MergeDescending)
 				.Take(maxDecompositions);
 		}
 

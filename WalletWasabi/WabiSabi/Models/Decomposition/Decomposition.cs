@@ -33,7 +33,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 			{
 				Outputs = (output <= Outputs[^1])
 					? Outputs.Add(output)
-					: throw new InvalidOperationException("Generated decompositions must be monotonically decreasing"),
+					: throw new InvalidOperationException("Generated decompositions must be monotonically decreasing."),
 				TotalValue = TotalValue + output
 			};
 
