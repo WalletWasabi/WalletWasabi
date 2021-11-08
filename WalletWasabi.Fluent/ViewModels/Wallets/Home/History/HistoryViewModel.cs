@@ -71,10 +71,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			if (txnItem is { })
 			{
 				SelectedItem = txnItem;
-				if (SelectedItem is { })
-				{
-					SelectedItem.IsFlashing = true;
-				}
+				SelectedItem.IsFlashing = true;
 			}
 		}
 
