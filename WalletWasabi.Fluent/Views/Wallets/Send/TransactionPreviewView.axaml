@@ -91,9 +91,9 @@
                 DockPanel.Dock="Right"
                 Margin="10 0">
           <Button.IsVisible>
-            <MultiBinding Converter="{x:Static BoolConverters.And}">
+            <MultiBinding Converter="{x:Static BoolConverters.Or}">
               <Binding Path="AdjustFeeAvailable" />
-              <Binding Path="IsCustomFeeUsed" Converter="{x:Static BoolConverters.Not}" />
+              <Binding Path="IsCustomFeeUsed" />
             </MultiBinding>
           </Button.IsVisible>
           <Viewbox Height="20">

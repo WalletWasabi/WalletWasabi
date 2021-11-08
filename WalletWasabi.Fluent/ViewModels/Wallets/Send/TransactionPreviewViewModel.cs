@@ -37,6 +37,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private bool _transactionHasChange;
 		[AutoNotify] private bool _transactionHasPockets;
 		[AutoNotify] private bool _adjustFeeAvailable;
+		[AutoNotify] private bool _isCustomFeeUsed;
 
 		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info)
 		{
@@ -67,7 +68,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				_nextButtonText = "Confirm";
 			}
 
-			AdjustFeeCommand = ReactiveCommand.CreateFromTask(OnAdjustFeeAsync);
+			AdjustFeeCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				if (_info.IsCustomFeeUsed)
+				{
+					await ShowAdvancedDialogAsync();
+				}
+				else
+				{
+					await OnAdjustFeeAsync();
+				}
+			});
 
 			AvoidChangeCommand = ReactiveCommand.CreateFromTask(OnAvoidChangeAsync);
 
@@ -82,13 +93,21 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public bool IsPayJoin { get; }
 
-		public bool IsCustomFeeUsed => _info.IsCustomFeeUsed;
-
 		public ICommand AdjustFeeCommand { get; }
 
 		public ICommand AvoidChangeCommand { get; }
 
 		public ICommand ChangePocketsCommand { get; }
+
+		private async Task ShowAdvancedDialogAsync()
+		{
+			var result = await NavigateDialogAsync(new AdvancedSendOptionsViewModel(_info), NavigationTarget.CompactDialogScreen);
+
+			if (result.Kind == DialogResultKind.Normal)
+			{
+				await BuildAndUpdateAsync();
+			}
+		}
 
 		private async Task OnExportPsbtAsync()
 		{
@@ -111,12 +130,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				_info.FeeRate = feeRateDialogResult.Result;
 
-				var newTransaction = await BuildTransactionAsync();
+				await BuildAndUpdateAsync();
+			}
+		}
 
-				if (newTransaction is { })
-				{
-					UpdateTransaction(newTransaction);
-				}
+		private async Task BuildAndUpdateAsync()
+		{
+			var newTransaction = await BuildTransactionAsync();
+
+			if (newTransaction is { })
+			{
+				UpdateTransaction(newTransaction);
 			}
 		}
 
@@ -140,12 +164,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				_info.Coins = selectPocketsDialog.Result;
 
-				var newTransaction = await BuildTransactionAsync();
-
-				if (newTransaction is { })
-				{
-					UpdateTransaction(newTransaction);
-				}
+				await BuildAndUpdateAsync();
 			}
 		}
 
@@ -298,6 +317,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			TransactionHasChange = _transaction.OuterWalletOutputs.Sum(x => x.Amount) > fee && _transaction.InnerWalletOutputs.Sum(x => x.Amount) > 0;
 
 			TransactionHasPockets = !_info.IsPrivatePocketUsed;
+
+			IsCustomFeeUsed = _info.IsCustomFeeUsed;
 		}
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
