@@ -65,11 +65,11 @@
       },
       "DataBox": {
         "type": "Direct",
-        "requested": "[0.10.8-beta4, )",
-        "resolved": "0.10.8-beta4",
-        "contentHash": "eA1UCzRDvW4qJ3r2brKTAUA3VKGLIGr1aKuvOxh7NB6AQvt5GG952qGJneIf6UOeEObWVk6azN7HPzNTIklKHA==",
+        "requested": "[0.10.10-beta5, )",
+        "resolved": "0.10.10-beta5",
+        "contentHash": "W+cCvu7bqMVWGs1u0KbQKVbZb3c60Ic74tYR8ptX5qwa20KhjDiToGkMGVDDBhe+o7RVwsS0bud0KheNwMr6kg==",
         "dependencies": {
-          "Avalonia": "0.10.8"
+          "Avalonia": "0.10.10"
         }
       },
       "OpenCvSharp4": {

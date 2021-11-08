@@ -25,7 +25,7 @@
 		<PackageReference Include="OpenCvSharp4.runtime.win" Version="4.5.2.20210404" />
 		<PackageReference Include="System.Reactive" Version="5.0.0" />
 		<PackageReference Include="System.Runtime" Version="4.3.1" />
-		<PackageReference Include="DataBox" Version="0.10.8-beta4" />
+		<PackageReference Include="DataBox" Version="0.10.10-beta5" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
