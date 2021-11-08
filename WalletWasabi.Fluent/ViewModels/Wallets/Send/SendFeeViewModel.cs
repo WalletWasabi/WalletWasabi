@@ -51,7 +51,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void Complete()
 		{
-			Close(DialogResultKind.Normal, new FeeRate(FeeChart.GetSatoshiPerByte(FeeChart.CurrentConfirmationTarget)));
+			var blockTarget = FeeChart.CurrentConfirmationTarget;
+
+			Services.UiConfig.FeeTarget = (int) blockTarget;
+			Close(DialogResultKind.Normal, new FeeRate(FeeChart.GetSatoshiPerByte(blockTarget)));
 		}
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -88,10 +91,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				if (_isSilent)
 				{
-					var blockTarget = 1;
-					FeeChart.CurrentConfirmationTarget = blockTarget;
-					_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(blockTarget);
-
+					_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(FeeChart.CurrentConfirmationTarget);
 					Complete();
 				}
 				else
