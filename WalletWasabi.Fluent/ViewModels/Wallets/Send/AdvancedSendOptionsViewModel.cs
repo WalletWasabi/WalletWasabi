@@ -1,16 +1,17 @@
 using System;
 using System.Globalization;
+using System.Reactive;
 using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Validation;
-using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
 	[NavigationMetaData(Title = "Advanced")]
-	public partial class AdvancedSendOptionsViewModel : RoutableViewModel
+	public partial class AdvancedSendOptionsViewModel : DialogViewModelBase<Unit>
 	{
 		private readonly TransactionInfo _transactionInfo;
 
@@ -49,7 +50,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					? new FeeRate(customFee)
 					: FeeRate.Zero;
 
-			Navigate().Back();
+			Close(DialogResultKind.Normal, Unit.Default);
 		}
 
 		private void ValidateCustomFee(IValidationErrors errors)
