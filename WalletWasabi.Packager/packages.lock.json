@@ -1,7 +1,7 @@
 {
   "version": 1,
   "dependencies": {
-    ".NETCoreApp,Version=v5.0": {
+    "net6.0": {
       "Microsoft.AspNetCore.JsonPatch": {
         "type": "Transitive",
         "resolved": "5.0.5",
@@ -283,7 +283,7 @@
         }
       }
     },
-    ".NETCoreApp,Version=v5.0/linux-x64": {
+    "net6.0/linux-x64": {
       "Microsoft.Win32.SystemEvents": {
         "type": "Transitive",
         "resolved": "5.0.0",
@@ -575,7 +575,7 @@
         }
       }
     },
-    ".NETCoreApp,Version=v5.0/osx-x64": {
+    "net6.0/osx-x64": {
       "Microsoft.Win32.SystemEvents": {
         "type": "Transitive",
         "resolved": "5.0.0",
@@ -867,7 +867,7 @@
         }
       }
     },
-    ".NETCoreApp,Version=v5.0/win7-x64": {
+    "net6.0/win7-x64": {
       "Microsoft.Win32.SystemEvents": {
         "type": "Transitive",
         "resolved": "5.0.0",

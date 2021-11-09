@@ -2,7 +2,8 @@
 
 	<PropertyGroup>
 		<PlatformTarget>x64</PlatformTarget>
-		<TargetFramework>net5.0</TargetFramework>
+		<TargetFramework>net6.0</TargetFramework>
+		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
 		<AnalysisLevel>latest</AnalysisLevel>
 		<IsPackable>false</IsPackable>
 		<LangVersion>latest</LangVersion>
