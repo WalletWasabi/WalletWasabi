@@ -106,7 +106,7 @@ namespace WalletWasabi.Tests.RegressionTests
 					}
 				}
 
-				var scp = new Key().PubKey.ScriptPubKey;
+				var scp = new Key().GetScriptPubKey(ScriptPubKeyType.Segwit);
 				var res2 = wallet.BuildTransaction(password, new PaymentIntent(scp, Money.Coins(0.05m), label: "foo"), FeeStrategy.CreateFromConfirmationTarget(5), allowUnconfirmed: false);
 
 				Assert.NotNull(res2.Transaction);
@@ -461,8 +461,8 @@ namespace WalletWasabi.Tests.RegressionTests
 				// covers:
 				// customchange
 				// feePc > 1
-				var k1 = new Key();
-				var k2 = new Key();
+				var k1 = new Key().GetScriptPubKey(ScriptPubKeyType.Segwit);
+				var k2 = new Key().GetScriptPubKey(ScriptPubKeyType.Segwit);
 				res = wallet.BuildTransaction(
 					password,
 					new PaymentIntent(
@@ -470,8 +470,8 @@ namespace WalletWasabi.Tests.RegressionTests
 						new DestinationRequest(k2, Money.Coins(0.0003m), label: "outgoing")),
 					FeeStrategy.TwentyMinutesConfirmationTargetStrategy);
 
-				Assert.Contains(k1.PubKey.ScriptPubKey, res.OuterWalletOutputs.Select(x => x.ScriptPubKey));
-				Assert.Contains(k2.PubKey.ScriptPubKey, res.OuterWalletOutputs.Select(x => x.ScriptPubKey));
+				Assert.Contains(k1, res.OuterWalletOutputs.Select(x => x.ScriptPubKey));
+				Assert.Contains(k2, res.OuterWalletOutputs.Select(x => x.ScriptPubKey));
 
 				#endregion CustomChange
 
