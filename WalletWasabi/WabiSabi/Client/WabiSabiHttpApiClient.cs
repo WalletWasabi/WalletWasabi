@@ -17,6 +17,8 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 	{
+		private const int MaxRetries = 3;
+
 		private IHttpClient _client;
 
 		public WabiSabiHttpApiClient(IHttpClient client)
@@ -69,17 +71,17 @@ namespace WalletWasabi.WabiSabi.Client
 		public Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken) =>
 			SendAndReceiveAsync<ReadyToSignRequestRequest>(RemoteAction.ReadyToSign, request, cancellationToken);
 
-		private async Task<HttpResponseMessage> SendWithRetriesAsync(RemoteAction action, string jsonString, CancellationToken cancellationToken, int maxAttempts = 3)
+		private async Task<HttpResponseMessage> SendWithRetriesAsync(RemoteAction action, string jsonString, CancellationToken cancellationToken)
 		{
 			var errors = new List<Exception>();
 
 			var start = DateTime.Now;
 
-			for (var attempt = 0; attempt < maxAttempts; attempt++)
+			for (var attempt = 0; attempt < MaxRetries; attempt++)
 			{
 				try
 				{
-					using StringContent content = new (jsonString, Encoding.UTF8, "application/json");
+					using StringContent content = new(jsonString, Encoding.UTF8, "application/json");
 
 					// Any transport layer errors will throw an exception here.
 					var response = await _client.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, cancellationToken).ConfigureAwait(false);
