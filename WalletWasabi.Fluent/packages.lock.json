@@ -1,7 +1,7 @@
 {
   "version": 1,
   "dependencies": {
-    ".NETCoreApp,Version=v5.0": {
+    "net6.0": {
       "Avalonia": {
         "type": "Direct",
         "requested": "[0.10.10, )",
@@ -529,7 +529,7 @@
         }
       }
     },
-    ".NETCoreApp,Version=v5.0/linux-x64": {
+    "net6.0/linux-x64": {
       "OpenCvSharp4.runtime.win": {
         "type": "Direct",
         "requested": "[4.5.2.20210404, )",
@@ -903,7 +903,7 @@
         }
       }
     },
-    ".NETCoreApp,Version=v5.0/osx-x64": {
+    "net6.0/osx-x64": {
       "OpenCvSharp4.runtime.win": {
         "type": "Direct",
         "requested": "[4.5.2.20210404, )",
@@ -1277,7 +1277,7 @@
         }
       }
     },
-    ".NETCoreApp,Version=v5.0/win7-x64": {
+    "net6.0/win7-x64": {
       "OpenCvSharp4.runtime.win": {
         "type": "Direct",
         "requested": "[4.5.2.20210404, )",
