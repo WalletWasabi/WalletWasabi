@@ -461,17 +461,17 @@ namespace WalletWasabi.Tests.RegressionTests
 				// covers:
 				// customchange
 				// feePc > 1
-				var k1 = new Key().GetScriptPubKey(ScriptPubKeyType.Segwit);
-				var k2 = new Key().GetScriptPubKey(ScriptPubKeyType.Segwit);
+				var scp1 = new Key().GetScriptPubKey(ScriptPubKeyType.Segwit);
+				var scp2 = new Key().GetScriptPubKey(ScriptPubKeyType.Segwit);
 				res = wallet.BuildTransaction(
 					password,
 					new PaymentIntent(
-						new DestinationRequest(k1, MoneyRequest.CreateChange()),
-						new DestinationRequest(k2, Money.Coins(0.0003m), label: "outgoing")),
+						new DestinationRequest(scp1, MoneyRequest.CreateChange()),
+						new DestinationRequest(scp2, Money.Coins(0.0003m), label: "outgoing")),
 					FeeStrategy.TwentyMinutesConfirmationTargetStrategy);
 
-				Assert.Contains(k1, res.OuterWalletOutputs.Select(x => x.ScriptPubKey));
-				Assert.Contains(k2, res.OuterWalletOutputs.Select(x => x.ScriptPubKey));
+				Assert.Contains(scp1, res.OuterWalletOutputs.Select(x => x.ScriptPubKey));
+				Assert.Contains(scp2, res.OuterWalletOutputs.Select(x => x.ScriptPubKey));
 
 				#endregion CustomChange
 
