@@ -27,7 +27,7 @@ using Moq;
 namespace WalletWasabi.Tests.RegressionTests
 {
 	[Collection("RegTest collection")]
-	public class RpcServerTests : IDisposable
+	public class RpcServerTests
 	{
 		private RegTestFixture RegTestFixture { get; }
 		private JsonRpcServer RpcServer { get; set; }
@@ -90,11 +90,6 @@ namespace WalletWasabi.Tests.RegressionTests
 					TransactionBroadcaster = broadcaster,
 					WalletManager = walletManager
 				});
-		}
-
-		public void Dispose()
-		{
-			throw new NotImplementedException();
 		}
 
 		//private async Task StartRpcServerAsync(TerminateService terminateService, CancellationToken cancel)
