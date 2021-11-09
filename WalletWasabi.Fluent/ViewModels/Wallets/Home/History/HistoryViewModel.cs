@@ -165,6 +165,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 					yield return new TransactionHistoryItemViewModel(i, item, _walletViewModel, balance, _updateTrigger);
 				}
 			}
+
+			if (coinJoinGroup is { })
+			{
+				coinJoinGroup.SetBalance(balance);
+				yield return coinJoinGroup;
+			}
 		}
 	}
 }
