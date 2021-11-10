@@ -29,7 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		private readonly int _smallLayoutIndex;
 		private readonly int _normalLayoutIndex;
 		private readonly int _wideLayoutIndex;
-		[AutoNotify] private IList<TileViewModel>? _tiles;
+		[AutoNotify] private IList<TileViewModel> _tiles;
 		[AutoNotify] private IList<TileLayoutViewModel>? _layouts;
 		[AutoNotify] private int _layoutIndex;
 		[AutoNotify] private double _widthSource;
@@ -72,6 +72,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					.FromEventPattern<WalletStatusChangedEventArgs>(coinJoinManager, nameof(CoinJoinManager.WalletStatusChanged))
 					.Select(args => args.EventArgs)
 					.Where(e => e.Wallet == Wallet)
+					.ObserveOn(RxApp.MainThreadScheduler)
 					.Subscribe(e => IsCoinJoining = e.IsCoinJoining)
 					.DisposeWith(Disposables);
 			}
