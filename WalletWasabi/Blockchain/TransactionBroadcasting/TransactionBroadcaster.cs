@@ -106,7 +106,10 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 					OutPoint input = transaction.Transaction.Inputs.First().PrevOut;
 					foreach (var coin in WalletManager.CoinsByOutPoint(input))
 					{
-						coin.SpentAccordingToBackend = true;
+						if (coin is { })
+						{
+							coin.SpentAccordingToBackend = true;
+						}
 					}
 				}
 
