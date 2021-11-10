@@ -73,7 +73,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private async Task<HttpResponseMessage> SendWithRetriesAsync(RemoteAction action, string jsonString, CancellationToken cancellationToken)
 		{
-			var errors = new List<Exception>();
+			var exceptions = new List<Exception>();
 
 			var start = DateTime.Now;
 
@@ -88,9 +88,9 @@ namespace WalletWasabi.WabiSabi.Client
 
 					var totalTime = DateTime.Now - start;
 
-					if (errors.Any())
+					if (exceptions.Any())
 					{
-						Logger.LogDebug($"Received a response for {action} in {totalTime.TotalSeconds:0.##s} after {attempt} failed attempts: {new AggregateException(errors)}.");
+						Logger.LogDebug($"Received a response for {action} in {totalTime.TotalSeconds:0.##s} after {attempt} failed attempts: {new AggregateException(exceptions)}.");
 					}
 					else
 					{
@@ -99,18 +99,30 @@ namespace WalletWasabi.WabiSabi.Client
 
 					return response;
 				}
+				catch (HttpRequestException e)
+				{
+					exceptions.Add(e);
+				}
 				catch (Exception e)
 				{
-					errors.Add(e);
+					if (exceptions.Any())
+					{
+						exceptions.Add(e);
+						throw new AggregateException(exceptions);
+					}
+					else
+					{
+						throw;
+					}
 				}
 			}
 
-			throw new AggregateException(errors);
+			throw new AggregateException(exceptions);
 		}
 
-		private async Task<string> SendAsync<TRequest>(RemoteAction action, TRequest request, CancellationToken cancellationToken) where TRequest : class
+		private async Task<string> SendWithRetriesAsync<TRequest>(RemoteAction action, TRequest request, CancellationToken cancellationToken) where TRequest : class
 		{
-			using var response = await SendWithRetriesAsync(action, Serialize(request), cancellationToken);
+			using var response = await SendWithRetriesAsync(action, Serialize(request), cancellationToken).ConfigureAwait(false);
 
 			if (!response.IsSuccessStatusCode)
 			{
@@ -122,12 +134,12 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private async Task SendAndReceiveAsync<TRequest>(RemoteAction action, TRequest request, CancellationToken cancellationToken) where TRequest : class
 		{
-			await SendAsync(action, request, cancellationToken).ConfigureAwait(false);
+			await SendWithRetriesAsync(action, request, cancellationToken).ConfigureAwait(false);
 		}
 
 		private async Task<TResponse> SendAndReceiveAsync<TRequest, TResponse>(RemoteAction action, TRequest request, CancellationToken cancellationToken) where TRequest : class
 		{
-			var jsonString = await SendAsync(action, request, cancellationToken).ConfigureAwait(false);
+			var jsonString = await SendWithRetriesAsync(action, request, cancellationToken).ConfigureAwait(false);
 			return Deserialize<TResponse>(jsonString);
 		}
 
