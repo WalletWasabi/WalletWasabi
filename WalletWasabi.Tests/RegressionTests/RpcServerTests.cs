@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 using Moq;
 using NBitcoin;
 using NBitcoin.Protocol;
+using Newtonsoft.Json;
 using Shouldly;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
@@ -92,24 +94,27 @@ namespace WalletWasabi.Tests.RegressionTests
 			configMock.Setup(a => a.IsEnabled).Returns(true);
 			configMock.Setup(a => a.Prefixes).Returns(new[] { "http://localhost:53851/" });
 
-			RpcServer = new JsonRpcServer(config, terminateService,
-				new WasabiJsonRpcService(terminateService)
-				{
-					BitcoinStore = bitcoinStore,
-					HostedServices = hostedServices,
-					Network = network,
-					Synchronizer = synchronizer,
-					TransactionBroadcaster = broadcaster,
-					WalletManager = walletManager
-				});
+			hostedServices.Register<P2pNetwork>(new P2pNetwork(network, new IPEndPoint(IPAddress.Loopback, Constants.DefaultRegTestBitcoinP2pPort), null, workDir, bitcoinStore), "P2pnetworks");
+
+			var rpcService = new WasabiJsonRpcService(terminateService)
+			{
+				BitcoinStore = bitcoinStore,
+				HostedServices = hostedServices,
+				Network = network,
+				Synchronizer = synchronizer,
+				TransactionBroadcaster = broadcaster,
+				WalletManager = walletManager
+			};
+
+			RpcServer = new JsonRpcServer(config, terminateService, rpcService);
 
 			await RpcServer.StartAsync(CancellationToken.None).ConfigureAwait(false);
 
-			// TODO: http client
 			using var client = new HttpClient();
 			var response = await client.PostAsync(config.Prefixes.First(), new StringContent("{\"jsonrpc\":\"2.0\",\"id\":\"1\",\"method\":\"getstatus\"}"));
 			response.StatusCode.ShouldBe(HttpStatusCode.OK);
 			var responseString = await response.Content.ReadAsStringAsync();
+			var responseObject = JsonConvert.DeserializeObject<JsonRpcResponse>(responseString);
 		}
 	}
 }
