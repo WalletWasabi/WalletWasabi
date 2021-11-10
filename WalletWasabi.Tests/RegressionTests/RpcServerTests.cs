@@ -1,28 +1,27 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Moq;
 using NBitcoin;
-using WalletWasabi.BitcoinCore;
+using NBitcoin.Protocol;
+using Shouldly;
 using WalletWasabi.BitcoinCore.Rpc;
-using WalletWasabi.CoinJoin.Coordinator;
-using WalletWasabi.Fluent.Models;
-using WalletWasabi.Rpc;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionBroadcasting;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.Rpc;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
+using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
-using NBitcoin.Protocol;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
-using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Wallets;
-using WalletWasabi.Blockchain.TransactionBroadcasting;
-using WalletWasabi.Helpers;
-using Moq;
 
 namespace WalletWasabi.Tests.RegressionTests
 {
@@ -71,14 +70,27 @@ namespace WalletWasabi.Tests.RegressionTests
 			WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir));
 			walletManager.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
 
+			Interlocked.Exchange(ref Common.FiltersProcessedByWalletCount, 0);
+			nodes.Connect(); // Start connection service.
+			node.VersionHandshake(); // Start mempool service.
+			synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), 10000); // Start wasabi synchronizer service.
+			await feeProvider.StartAsync(CancellationToken.None);
+
+			// Wait until the filter our previous transaction is present.
+			var blockCount = await rpc.GetBlockCountAsync();
+			await Common.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
 			var wallet = await walletManager.AddAndStartWalletAsync(keyManager);
 
 			TransactionBroadcaster broadcaster = new(network, bitcoinStore, httpClientFactory, walletManager);
+			broadcaster.Initialize(nodes, rpc);
 
 			var terminateService = new TerminateService(async () => { });
 			var hostedServices = new HostedServices();
 			var configMock = new Mock<IJsonRpcServerConfiguration>();
 			var config = configMock.Object;
+
+			configMock.Setup(a => a.IsEnabled).Returns(true);
+			configMock.Setup(a => a.Prefixes).Returns(new[] { "http://localhost:53851/" });
 
 			RpcServer = new JsonRpcServer(config, terminateService,
 				new WasabiJsonRpcService(terminateService)
@@ -90,40 +102,14 @@ namespace WalletWasabi.Tests.RegressionTests
 					TransactionBroadcaster = broadcaster,
 					WalletManager = walletManager
 				});
+
+			await RpcServer.StartAsync(CancellationToken.None).ConfigureAwait(false);
+
+			// TODO: http client
+			using var client = new HttpClient();
+			var response = await client.PostAsync(config.Prefixes.First(), new StringContent("{\"jsonrpc\":\"2.0\",\"id\":\"1\",\"method\":\"getstatus\"}"));
+			response.StatusCode.ShouldBe(HttpStatusCode.OK);
+			var responseString = await response.Content.ReadAsStringAsync();
 		}
-
-		//private async Task StartRpcServerAsync(TerminateService terminateService, CancellationToken cancel)
-		//{
-		//	(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
-
-		//	using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-		//	WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
-
-		//	try
-		//	{
-		//		synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), 1000);
-		//		var jsonRpcServerConfig = new JsonRpcServerConfiguration(Config);
-		//		if (jsonRpcServerConfig.IsEnabled)
-		//		{
-		//			RpcServer = new JsonRpcServer(global, jsonRpcServerConfig, terminateService);
-		//			//try
-		//			//{
-		//			await RpcServer.StartAsync(cancel).ConfigureAwait(false);
-		//			//}
-		//			//catch (HttpListenerException e)
-		//			//{
-		//			//	Logger.LogWarning($"Failed to start {nameof(JsonRpcServer)} with error: {e.Message}.");
-		//			//	RpcServer = null;
-		//			//}
-		//		}
-		//	}
-		//	finally
-		//	{
-		//		if (synchronizer is { })
-		//		{
-		//			await synchronizer.StopAsync();
-		//		}
-		//	}
-		//}
 	}
 }
