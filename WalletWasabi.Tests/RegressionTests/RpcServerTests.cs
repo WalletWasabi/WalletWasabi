@@ -115,6 +115,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			response.StatusCode.ShouldBe(HttpStatusCode.OK);
 			var responseString = await response.Content.ReadAsStringAsync();
 			var responseObject = JsonConvert.DeserializeObject<JsonRpcResponse>(responseString);
+			responseObject.Error.ShouldBeNull();
+			responseObject.Id.ShouldBe("1");
 		}
 	}
 }
