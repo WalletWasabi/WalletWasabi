@@ -3,6 +3,7 @@ using NBitcoin.RPC;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -16,6 +17,7 @@ using WalletWasabi.CoinJoin.Coordinator.Participants;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.CoinJoin.Coordinator
 {
@@ -31,7 +33,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			RpcClient = Guard.NotNull(nameof(rpc), rpc);
 			RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
 
-			Rounds = new List<CoordinatorRound>();
+			Rounds = ImmutableList<CoordinatorRound>.Empty;
 			RoundsListLock = new AsyncLock();
 
 			LastSuccessfulCoinJoinTime = DateTimeOffset.UtcNow;
@@ -132,7 +134,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 
 		public DateTimeOffset LastSuccessfulCoinJoinTime { get; private set; }
 
-		private List<CoordinatorRound> Rounds { get; }
+		private ImmutableList<CoordinatorRound> Rounds { get; set; }
 		private AsyncLock RoundsListLock { get; }
 
 		private List<uint256> CoinJoins { get; } = new List<uint256>();
@@ -227,7 +229,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 					round.StatusChanged += Round_StatusChangedAsync;
 					round.PhaseChanged += Round_PhaseChangedAsync;
 					await round.ExecuteNextPhaseAsync(RoundPhase.InputRegistration).ConfigureAwait(false);
-					Rounds.Add(round);
+					Rounds = Rounds.Add(round);
 				}
 			}
 		}
@@ -342,7 +344,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 				{
 					IEnumerable<Alice> alicesDidntSign = round.GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: false);
 
-					if (TryGetCurrentInputRegisterableRound(out CoordinatorRound? nextRound, syncLock: false))
+					if (TryGetCurrentInputRegisterableRound(out CoordinatorRound? nextRound))
 					{
 						int nextRoundAlicesCount = nextRound.CountAlices(syncLock: false);
 						var alicesSignedCount = round.AnonymitySet - alicesDidntSign.Count();
@@ -392,64 +394,43 @@ namespace WalletWasabi.CoinJoin.Coordinator
 
 		public void AbortAllRoundsInInputRegistration(string reason, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
 		{
-			using (RoundsListLock.Lock())
+			foreach (var r in Rounds.Where(x => x.Status == CoordinatorRoundStatus.Running && x.Phase == RoundPhase.InputRegistration))
 			{
-				foreach (var r in Rounds.Where(x => x.Status == CoordinatorRoundStatus.Running && x.Phase == RoundPhase.InputRegistration))
-				{
-					r.Abort(reason, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
-				}
+				r.Abort(reason, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 			}
 		}
 
 		public IEnumerable<CoordinatorRound> GetRunningRounds()
 		{
-			using (RoundsListLock.Lock())
-			{
-				return Rounds.Where(x => x.Status == CoordinatorRoundStatus.Running).OrderBy(x => x.RemainingInputRegistrationTime).ToArray();
-			}
+			return Rounds.Where(x => x.Status == CoordinatorRoundStatus.Running).OrderBy(x => x.RemainingInputRegistrationTime).ToArray();
 		}
 
-		public bool TryGetCurrentInputRegisterableRound([NotNullWhen(true)] out CoordinatorRound? coordinatorRound, bool syncLock = true)
+		public bool TryGetCurrentInputRegisterableRound([NotNullWhen(true)] out CoordinatorRound? coordinatorRound)
 		{
-			if (syncLock)
-			{
-				using (RoundsListLock.Lock())
-				{
-					coordinatorRound = Rounds.FirstOrDefault(x => x.Status == CoordinatorRoundStatus.Running && x.Phase == RoundPhase.InputRegistration);
-					return coordinatorRound is not null;
-				}
-			}
-
 			coordinatorRound = Rounds.FirstOrDefault(x => x.Status == CoordinatorRoundStatus.Running && x.Phase == RoundPhase.InputRegistration);
 			return coordinatorRound is not null;
 		}
 
 		public bool TryGetRound(long roundId, [NotNullWhen(true)] out CoordinatorRound? coordinatorRound)
 		{
-			using (RoundsListLock.Lock())
-			{
-				coordinatorRound = Rounds.SingleOrDefault(x => x.RoundId == roundId);
-				return coordinatorRound is not null;
-			}
+			coordinatorRound = Rounds.SingleOrDefault(x => x.RoundId == roundId);
+			return coordinatorRound is not null;
 		}
 
 		public bool AnyRunningRoundContainsInput(OutPoint input, out List<Alice> alices)
 		{
-			using (RoundsListLock.Lock())
+			alices = new List<Alice>();
+			foreach (var round in Rounds.Where(x => x.Status == CoordinatorRoundStatus.Running))
 			{
-				alices = new List<Alice>();
-				foreach (var round in Rounds.Where(x => x.Status == CoordinatorRoundStatus.Running))
+				if (round.ContainsInput(input, out List<Alice> roundAlices))
 				{
-					if (round.ContainsInput(input, out List<Alice> roundAlices))
+					foreach (var alice in roundAlices)
 					{
-						foreach (var alice in roundAlices)
-						{
-							alices.Add(alice);
-						}
+						alices.Add(alice);
 					}
 				}
-				return alices.Count > 0;
 			}
+			return alices.Count > 0;
 		}
 
 		public int GetCoinJoinCount()
@@ -473,31 +454,28 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			{
 				if (disposing)
 				{
-					using (RoundsListLock.Lock())
+					if (BlockNotifier is { })
 					{
-						if (BlockNotifier is { })
-						{
-							BlockNotifier.OnBlock -= BlockNotifier_OnBlockAsync;
-						}
+						BlockNotifier.OnBlock -= BlockNotifier_OnBlockAsync;
+					}
 
-						foreach (CoordinatorRound round in Rounds)
-						{
-							round.StatusChanged -= Round_StatusChangedAsync;
-							round.PhaseChanged -= Round_PhaseChangedAsync;
-							round.CoinJoinBroadcasted -= Round_CoinJoinBroadcasted;
-						}
+					foreach (CoordinatorRound round in Rounds)
+					{
+						round.StatusChanged -= Round_StatusChangedAsync;
+						round.PhaseChanged -= Round_PhaseChangedAsync;
+						round.CoinJoinBroadcasted -= Round_CoinJoinBroadcasted;
+					}
 
-						try
-						{
-							string roundCountFilePath = Path.Combine(FolderPath, "RoundCount.txt");
+					try
+					{
+						string roundCountFilePath = Path.Combine(FolderPath, "RoundCount.txt");
 
-							IoHelpers.EnsureContainingDirectoryExists(roundCountFilePath);
-							File.WriteAllText(roundCountFilePath, CoordinatorRound.RoundCount.ToString());
-						}
-						catch (Exception ex)
-						{
-							Logger.LogDebug(ex);
-						}
+						IoHelpers.EnsureContainingDirectoryExists(roundCountFilePath);
+						File.WriteAllText(roundCountFilePath, CoordinatorRound.RoundCount.ToString());
+					}
+					catch (Exception ex)
+					{
+						Logger.LogDebug(ex);
 					}
 				}
 
