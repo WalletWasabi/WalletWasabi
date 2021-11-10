@@ -106,14 +106,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 					{
 						if (_transactions.FirstOrDefault(x => x.Id == newItem.Id) is { } item)
 						{
-							if (newItem is CoinJoinsHistoryItemViewModel model)
-							{
-								item.Update(model);
-							}
-							else
-							{
-								item.Update(newItem);
-							}
+							item.Update(newItem);
 						}
 						else
 						{
