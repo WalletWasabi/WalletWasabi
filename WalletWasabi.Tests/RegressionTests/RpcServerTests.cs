@@ -50,7 +50,6 @@ namespace WalletWasabi.Tests.RegressionTests
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync());
 
 			// 2. Create mempool service.
-
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync();
 			node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
