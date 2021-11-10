@@ -75,7 +75,7 @@ namespace WalletWasabi.Blockchain.Transactions
 							Label = spenderTransaction.Label,
 							TransactionId = spenderTxId,
 							BlockIndex = spenderTransaction.BlockIndex,
-							IsLikelyCoinJoinOutput = containingTransaction.Transaction.IsLikelyCoinjoin()
+							IsLikelyCoinJoinOutput = spenderTransaction.Transaction.IsLikelyCoinjoin()
 						});
 					}
 				}
