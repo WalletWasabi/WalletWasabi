@@ -135,10 +135,12 @@ h2 {
     font-size: 28px;
     font-weight: bold;
     text-transform: uppercase;
+}
+.squared {
     position: relative;
     padding-left: 40px;
 }
-h2:before {
+.squared:before {
     content: '';
     width: 18px;
     height: 18px;
@@ -743,6 +745,13 @@ body:not(:hover) .exitpopup {
     font-size: 14px;
     color: var(--green);
 }
+.coinjoin-line a {
+    width: calc(100% - 30px);
+    display: inline-block;
+    vertical-align: middle;
+    overflow: hidden;
+    padding-top: 5px;
+}
 .coinjoin-line:before {
     content: '';
     background: url('../img/icon-external.svg') center center no-repeat;
@@ -757,36 +766,40 @@ body:not(:hover) .exitpopup {
 .coinjoin-line:last-child {
     border: none;
 }
-
 .example-coinjoin svg #signal-1, .example-coinjoin svg #signal-2 {
     -webkit-animation: blink 1s linear infinite;
-    animation:blink 1s linear infinite
+    animation: blink 1s linear infinite
 }
-
 .example-coinjoin svg #signal-1 {
     -webkit-animation-delay: .2s;
-    animation-delay:.2s
+    animation-delay: .2s
 }
-
 .example-coinjoin svg #signal-2 {
     -webkit-animation-delay: .4s;
-    animation-delay:.4s
+    animation-delay: .4s
 }
-
 @-webkit-keyframes blink {
     0%, 100% {
-        opacity:0
+        opacity: 0
     }
-
     50% {
-        opacity:1
+        opacity: 1
     }
+}
+.btn {
+    padding-top: 10px;
 }
 .btn-primary {
-    background-color:var(--green);
+    background-color: var(--green);
     border-color: var(--green);
 }
-#download-mac, #download-windows, #download-linux, #download-other{
+.donwload-icons svg {
+    fill: #fff;
+}
+.donwload-icons svg:hover {
+    fill: var(--green);
+}
+#download-mac, #download-windows, #download-linux, #download-other {
     padding: 20px;
 }
 #download-mac {
