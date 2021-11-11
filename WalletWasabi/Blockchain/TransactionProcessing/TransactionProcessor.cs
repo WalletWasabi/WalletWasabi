@@ -247,8 +247,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					{
 						if (newCoin.Height != Height.Mempool) // Update the height of this old coin we already had.
 						{
-							SmartCoin oldCoin = Coins.AsAllCoinsView().GetByOutPoint(new OutPoint(txId, i));
-							if (oldCoin is { }) // Just to be sure, it is a concurrent collection.
+							if (Coins.AsAllCoinsView().TryGetByOutPoint(new OutPoint(txId, i), out var oldCoin)) // Just to be sure, it is a concurrent collection.
 							{
 								result.NewlyConfirmedReceivedCoins.Add(newCoin);
 								oldCoin.Height = newCoin.Height;
