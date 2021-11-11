@@ -70,7 +70,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			return new CoinsView(smartCoins);
 		}
 
-		public SmartCoin GetByOutPoint(OutPoint outpoint) => Coins.FirstOrDefault(x => x.OutPoint == outpoint);
+		public SmartCoin GetByOutPoint(OutPoint outpoint) => Coins.First(x => x.OutPoint == outpoint);
 
 		public Money TotalAmount() => Coins.Sum(x => x.Amount);
 
