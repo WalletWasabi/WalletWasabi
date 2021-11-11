@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using WalletWasabi.Logging;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
@@ -15,6 +17,8 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 	{
+		private const int MaxRetries = 3;
+
 		private IHttpClient _client;
 
 		public WabiSabiHttpApiClient(IHttpClient client)
@@ -67,34 +71,80 @@ namespace WalletWasabi.WabiSabi.Client
 		public Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken) =>
 			SendAndReceiveAsync<ReadyToSignRequestRequest>(RemoteAction.ReadyToSign, request, cancellationToken);
 
-		private async Task<string> SendAsync<TRequest>(RemoteAction action, TRequest request, CancellationToken cancellationToken) where TRequest : class
+		private async Task<HttpResponseMessage> SendWithRetriesAsync(RemoteAction action, string jsonString, CancellationToken cancellationToken)
 		{
-			using var content = Serialize(request);
-			using var response = await _client.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, cancellationToken).ConfigureAwait(false);
+			var exceptions = new List<Exception>();
+
+			var start = DateTime.Now;
+
+			for (var attempt = 0; attempt < MaxRetries; attempt++)
+			{
+				try
+				{
+					using StringContent content = new(jsonString, Encoding.UTF8, "application/json");
+
+					// Any transport layer errors will throw an exception here.
+					var response = await _client.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, cancellationToken).ConfigureAwait(false);
+
+					var totalTime = DateTime.Now - start;
+
+					if (exceptions.Any())
+					{
+						Logger.LogDebug($"Received a response for {action} in {totalTime.TotalSeconds:0.##s} after {attempt} failed attempts: {new AggregateException(exceptions)}.");
+					}
+					else
+					{
+						Logger.LogDebug($"Received a response for {action} in {totalTime.TotalSeconds:0.##s}.");
+					}
+
+					return response;
+				}
+				catch (HttpRequestException e)
+				{
+					exceptions.Add(e);
+				}
+				catch (Exception e)
+				{
+					if (exceptions.Any())
+					{
+						exceptions.Add(e);
+						throw new AggregateException(exceptions);
+					}
+					else
+					{
+						throw;
+					}
+				}
+			}
+
+			throw new AggregateException(exceptions);
+		}
+
+		private async Task<string> SendWithRetriesAsync<TRequest>(RemoteAction action, TRequest request, CancellationToken cancellationToken) where TRequest : class
+		{
+			using var response = await SendWithRetriesAsync(action, Serialize(request), cancellationToken).ConfigureAwait(false);
 
 			if (!response.IsSuccessStatusCode)
 			{
 				await response.ThrowRequestExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
 			}
+
 			return await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 		}
 
 		private async Task SendAndReceiveAsync<TRequest>(RemoteAction action, TRequest request, CancellationToken cancellationToken) where TRequest : class
 		{
-			await SendAsync(action, request, cancellationToken).ConfigureAwait(false);
+			await SendWithRetriesAsync(action, request, cancellationToken).ConfigureAwait(false);
 		}
 
 		private async Task<TResponse> SendAndReceiveAsync<TRequest, TResponse>(RemoteAction action, TRequest request, CancellationToken cancellationToken) where TRequest : class
 		{
-			var jsonString = await SendAsync(action, request, cancellationToken).ConfigureAwait(false);
+			var jsonString = await SendWithRetriesAsync(action, request, cancellationToken).ConfigureAwait(false);
 			return Deserialize<TResponse>(jsonString);
 		}
 
-		private static StringContent Serialize<T>(T obj)
-		{
-			string jsonString = JsonConvert.SerializeObject(obj, JsonSerializationOptions.Default.Settings);
-			return new StringContent(jsonString, Encoding.UTF8, "application/json");
-		}
+		private static string Serialize<T>(T obj)
+			=> JsonConvert.SerializeObject(obj, JsonSerializationOptions.Default.Settings);
 
 		private static TResponse Deserialize<TResponse>(string jsonString)
 		{
