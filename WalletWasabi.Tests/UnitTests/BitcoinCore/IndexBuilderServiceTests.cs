@@ -137,8 +137,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				BlockHashFromHeight(height + 1),
 				DateTimeOffset.UtcNow.AddMinutes(height * 10),
 				height,
-				Enumerable.Empty<VerboseTransactionInfo>()
-			);
+				Enumerable.Empty<VerboseTransactionInfo>());
 
 		private static uint256 BlockHashFromHeight(ulong height)
 			=> height == 0 ? uint256.Zero : Hashes.DoubleSHA256(BitConverter.GetBytes(height));
