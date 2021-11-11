@@ -256,7 +256,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 			{
 				foreach (var input in tx.Inputs)
 				{
-					if (input.PrevOutput is { PubkeyType: RpcPubkeyType.TxWitnessV0Keyhash or RpcPubkeyType.TxWitnessV1Taproot })
+					if (input.PrevOutput is { PubkeyType: RpcPubkeyType.TxWitnessV0Keyhash })
 					{
 						scripts.Add(input.PrevOutput.ScriptPubKey);
 					}
@@ -264,7 +264,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 
 				foreach (var output in tx.Outputs)
 				{
-					if (output is { PubkeyType: RpcPubkeyType.TxWitnessV0Keyhash or RpcPubkeyType.TxWitnessV1Taproot })
+					if (output is { PubkeyType: RpcPubkeyType.TxWitnessV0Keyhash })
 					{
 						scripts.Add(output.ScriptPubKey);
 					}
