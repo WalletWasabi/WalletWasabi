@@ -178,7 +178,7 @@
                 <div class="row">
                     <div class="col-md-12">
                         <div class="faq-box">
-                            <h2 class="mb-5">WHAT IS A “COINJOIN?</h2>
+                            <h2 class="squared mb-5">WHAT IS A “COINJOIN?</h2>
                             <p>A mechanism by which multiple participants combine their coins (or UTXOs, to be more precise) into one large transaction with multiple inputs and multiple outputs. An observer cannot determine which output belongs to which input, and neither can the participants themselves. This makes it difficult for outside parties to trace where a particular coin originated from and where it was sent to (as opposed to regular bitcoin transactions, where there is usually one sender and one receiver).</p>
 
                             <p>This can be done with non-custodial software like Wasabi that eliminates the risk of funds disappearing or being stolen. Each of the signatures are created on the participants’ computers, so anyone trying to connect the signatures is unable to alter the transaction or redirect the funds. The funds will always be in a Bitcoin address that you control. </p>
@@ -191,25 +191,25 @@
                         </div>
 
                         <div class="faq-box">
-                            <h2 class="mb-5">DO I NEED TO TRUST WASABI WITH MY COINS?</h2>
+                            <h2 class="squared mb-5">DO I NEED TO TRUST WASABI WITH MY COINS?</h2>
                             <p>No, Wasabi’s coinjoin implementation is trustless by design. The participants do not need to trust each other or any third party. Both the sending address (the coinjoin input) and the receiving address (the coinjoin output) are controlled by your own private keys. Wasabi merely coordinates the process of combining the inputs of the participants into one single transaction, but the wallet can neither steal your coins, nor figure out which outputs belong to which inputs.</p>
 
                         </div>
                         <div class="faq-box">
-                            <h2 class="mb-5">DO I NEED TO RUN TOR?</h2>
+                            <h2 class="squared mb-5">DO I NEED TO RUN TOR?</h2>
                             <p>All Wasabi network traffic goes via Tor by default - no need to set up Tor yourself. If you do already have Tor, and it is running, then Wasabi will try to use that first. </p>
                             <p> You can turn off Tor in the Settings. Note that in this case you are still private, except when you coinjoin and when you broadcast a transaction. In the first case, the coordinator would know the links between your inputs and outputs based on your IP address. In the second case, if you happen to broadcast a transaction of yours to a full node that is spying on you, it will know the link between your transaction and your IP address.</p>
 
                         </div>
                         <div class="faq-box">
-                            <h2 class="mb-5">MY WALLET CANNOT SEND TO BECH32 ADDRESSES - WHAT WALLETS CAN I USE INSTEAD?</h2>
+                            <h2 class="squared mb-5">MY WALLET CANNOT SEND TO BECH32 ADDRESSES - WHAT WALLETS CAN I USE INSTEAD?</h2>
                             <p>Wasabi generates Bech32 addresses only, also known as native SegWit addresses or bc1 addresses, because these addresses start with the characters bc1… Some wallets/exchanges do not yet support this type of address and may give an error message (e.g. “unknown bitcoin address”). The hack is to manage your funds with a wallet which does support Bech32. To check Bech32 adoption and exchange/wallet support you can follow <a href="#" target="_blank">Bitcoin.it Wiki</a> and <a href="#" target="_blank">When Segwit? website</a>.</p>
 
                             <p>Be careful, if you send all your coins from an old wallet to a new wallet (from the table above) in one transaction then you will merge all your coins which is bad for privacy - instead, send the coins individually or if possible import the seed in the new wallet.</p>
 
                         </div>
                         <div class="faq-box">
-                            <h2 class="mb-5">WHAT ARE THE FEES FOR COINJOINS?</h2>
+                            <h2 class="squared mb-5">WHAT ARE THE FEES FOR COINJOINS?</h2>
                             <p>You currently pay a fee of 0.003% * anonymity set. If the anonymity set of a coin is 50 then you pay 0.003% * 50 (=0.15%). If you set the target anonymity set to 53 then Wasabi will continue mixing until this is reached, so you may end up with an anonymity set of say 60, and you will pay 0.003% * 60 (=0.18%). </p>
 
                             <p>There are also edge cases where you do not pay the full fee or where you pay more. For example if you’re the smallest registrant to a round, you will never pay a fee. Also when you are remixing and you cannot pay the full fee with your input, then you only pay as much as you have, but if the change amount leftover would be too small, then that is also added to the fee. Currently the minimum change amount to be paid out is 0.7% of the base denomination (~0.1BTC.)</p>
@@ -218,7 +218,7 @@
 
                         </div>
                         <div class="faq-box">
-                            <h2 class="mb-5">WHAT IS AN “ANONYMITY SET?</h2>
+                            <h2 class="squared mb-5">WHAT IS AN “ANONYMITY SET?</h2>
                             <p>The anonymity set is effectively the size of the group you are hiding in. </p>
 
                             <p>If 3 people take part in a CoinJoin (with equal size inputs) and there are 3 outputs then each of those output coins has an anonymity set of 3.</p>
