@@ -398,8 +398,10 @@ namespace WalletWasabi.Wallets
 				var res = new List<SmartCoin>();
 				foreach (var wallet in Wallets.Where(x => x.Key.State == WalletState.Started))
 				{
-					SmartCoin coin = wallet.Key.Coins.GetByOutPoint(input);
-					res.Add(coin);
+					if (wallet.Key.Coins.TryGetByOutPoint(input, out var coin))
+					{
+						res.Add(coin);
+					}
 				}
 
 				return res;
