@@ -33,7 +33,7 @@
 
 </head>
 
-<body class="fixed-heading">
+<body>
 
     <header>
         <div class="container">
@@ -64,7 +64,7 @@
                             <a href="https://www.facebook.com/Wasabi-Wallet-1297238207086828/" target="_blank">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30">
                                     <path d="M155.963,247.306v11.548a9.226,9.226,0,0,1-9.226,9.226h-3.844V257.62h3.61l.52-4.22h-4.04v-3a1.794,1.794,0,0,1,.44-1.14,1.675,1.675,0,0,1,1.1-.43h2.64v-3.84h-3.88a4.385,4.385,0,0,0-3.17,1.32,5.47,5.47,0,0,0-1.48,3.45v3.71h-3.61v4.2h3.61v10.41h-3.444a9.225,9.225,0,0,1-9.226-9.226V247.306a9.226,9.226,0,0,1,9.226-9.226h11.548A9.226,9.226,0,0,1,155.963,247.306Z" transform="translate(-125.963 -238.08)" />
-                                    </svg>
+                                </svg>
                             </a>
                         </li>
                         <li>
@@ -139,37 +139,104 @@
         </ul>
     </nav>
 
-    <div class="fixed-img">
-        <img src="img/03_press_kit.png">
-    </div>
+    <div class="content">
+        <section class="video-homepage">
+            <video autoplay loop muted playsinline class="d-none d-md-block">
+                <source src="img/homepage_anim.mp4" type="video/mp4" poster="img/video_bg.png">
+            </video>
+            <img class="mobile_video_bg d-block d-md-none" src="img/video_bg.png">
 
-    <div class="content subpage">
-        <section class="p-100">
+            <div class="download-btn-area">
+                <div class="home-text-area">
+                    <h1>No data. <div class="green-text">Just privacy.</div></h1>
+                    <p>An open-source, non-custodial, privacy-focused <strong>Bitcoin wallet</strong> for Desktop, that implements trustless CoinJoin.</p>
+                </div>
+                <div class="download-btn">
+                    <div>WASABI 1.0
+                        <span>Stable version</span>
+                    </div>
+                    <ul>
+                        <li>
+                            <a title="Download for Mac" href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.12.9/Wasabi-1.1.12.9.dmg"><img src="img/icon_mac.svg">Download for Mac</a>
+                        </li>
+                        <li>
+                            <a title="Download for Windows" href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.12.9/Wasabi-1.1.12.9.msi"><img src="img/icon_windows.svg">Download for Windows</a>
+                        </li>
+                        <li>
+                            <a title="Download for Linux" href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.12.9/Wasabi-1.1.12.9.deb"><img src="img/icon_linux.svg">Download for Linux</a>
+                        </li>
+                        <li>
+                            <a title="Download for Ubuntu" href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.12.9/Wasabi-1.1.12.9.tar.gz"><img src="img/icon_ubuntu.svg">Download for Ubuntu</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="download-btn">
+                    <div>WASABI 2.0
+                        <span>TEST WALLET</span>
+                    </div>
+                    <ul>
+                        <li>
+                            <a href="#"><img src="img/icon_mac.svg">Download for Mac</a>
+                        </li>
+                        <li>
+                            <a href="#"><img src="img/icon_windows.svg">Download for Windows</a>
+                        </li>
+                        <li>
+                            <a href="#"><img src="img/icon_linux.svg">Download for Linux</a>
+                        </li>
+                        <li>
+                            <a href="#"><img src="img/icon_ubuntu.svg">Download for Ubuntu</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        <section class="privacy">
             <div class="container">
-                <div class="row">
-                    <div class="col-md-8">
-                        <h1>Presskit</h1>
-                        <p>Wasabi is an open-source, non-custodial,
-                            <br> privacy-focused Bitcoin wallet for Desktop,
-                            <br> that implements trustless CoinJoin magic.</p>
-
+                <div class="privacy-title title">No data. <span class="green-text">Just privacy.</span>
+                </div>
+                <div class="privacy-desc">An open-source, non-custodial, privacy-focused Bitcoin wallet for Desktop, that implements trustless CoinJoin</div>
+            </div>
+        </section>
+        <section>
+            <div class="service-line">
+                <div class="service service-wallet">
+                    <div class="service-link-holder">
+                        <a href="thewallet.html" class="stretched-link">The Wallet</a>
+                    </div>
+                </div>
+                <div class="service service-about">
+                    <div class="service-link-holder">
+                        <a href="about.html" class="stretched-link">About us</a>
+                    </div>
+                </div>
+            </div>
+            <div class="service-line">
+                <div class="service service-blog">
+                    <div class="service-link-holder">
+                        <a href="" class="stretched-link">Blog</a>
+                    </div>
+                </div>
+                <div class="service service-contribution">
+                    <div class="service-link-holder">
+                        <a href="" class="stretched-link">Contribution</a>
+                    </div>
+                </div>
+            </div>
+            <div class="service-line">
+                <div class="service service-presskit">
+                    <div class="service-link-holder">
+                        <a href="presskit.html" class="stretched-link">Presskit</a>
+                    </div>
+                </div>
+                <div class="service service-support">
+                    <div class="service-link-holder">
+                        <a href="faq.html" class="stretched-link">Support</a>
                     </div>
                 </div>
             </div>
         </section>
-        <section class="p-100">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-4">
-                        <h2>Corporate Culture</h2>
-                    </div>
-                    <div class="col-md-6">
-                        <p>Our product is all about privacy, yet our company is all about transparency. As hypocritical as this sounds, it makes perfect sense to us. From the open-source software that we produce to the way major decisions are made at the company, everything is disclosed to all, discussed and then deliberated upon until consensus is reached. To learn more about this topic, check out rellz’s blogpost: Working at Wasabi Wallet.</p>
 
-                    </div>
-                </div>
-            </div>
-        </section>
     </div>
 
     <footer>
