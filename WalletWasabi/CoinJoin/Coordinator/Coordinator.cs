@@ -34,7 +34,6 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
 
 			Rounds = ImmutableList<CoordinatorRound>.Empty;
-			RoundsListLock = new AsyncLock();
 
 			LastSuccessfulCoinJoinTime = DateTimeOffset.UtcNow;
 
@@ -135,7 +134,6 @@ namespace WalletWasabi.CoinJoin.Coordinator
 		public DateTimeOffset LastSuccessfulCoinJoinTime { get; private set; }
 
 		private ImmutableList<CoordinatorRound> Rounds { get; set; }
-		private AsyncLock RoundsListLock { get; }
 
 		private List<uint256> CoinJoins { get; } = new List<uint256>();
 		public string CoinJoinsFilePath => Path.Combine(FolderPath, $"CoinJoins{Network}.txt");
@@ -219,24 +217,15 @@ namespace WalletWasabi.CoinJoin.Coordinator
 
 		public async Task MakeSureInputregistrableRoundRunningAsync()
 		{
-			using (await RoundsListLock.LockAsync().ConfigureAwait(false))
+			if (!Rounds.Any(x => x.Status == CoordinatorRoundStatus.Running && x.Phase == RoundPhase.InputRegistration))
 			{
-				if (!Rounds.Any(x => x.Status == CoordinatorRoundStatus.Running && x.Phase == RoundPhase.InputRegistration))
-				{
-					int confirmationTarget = await AdjustConfirmationTargetAsync(lockCoinJoins: true).ConfigureAwait(false);
-					var round = new CoordinatorRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget, RoundConfig.ConfirmationTargetReductionRate, TimeSpan.FromSeconds(RoundConfig.InputRegistrationTimeout));
-					round.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
-					round.StatusChanged += Round_StatusChangedAsync;
-					round.PhaseChanged += Round_PhaseChangedAsync;
-					await round.ExecuteNextPhaseAsync(RoundPhase.InputRegistration).ConfigureAwait(false);
-					Rounds = Rounds.Add(round);
-				}
+				int confirmationTarget = await AdjustConfirmationTargetAsync(lockCoinJoins: true).ConfigureAwait(false);
+				var round = new CoordinatorRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget, RoundConfig.ConfirmationTargetReductionRate, TimeSpan.FromSeconds(RoundConfig.InputRegistrationTimeout));
+				round.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
+				round.StatusChanged += Round_StatusChangedAsync;
+				await round.ExecuteNextPhaseAsync(RoundPhase.InputRegistration).ConfigureAwait(false);
+				Rounds = Rounds.Add(round);
 			}
-		}
-
-		private async void Round_PhaseChangedAsync(object? sender, RoundPhase e)
-		{
-			await MakeSureInputregistrableRoundRunningAsync().ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -381,9 +370,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 				if (status is CoordinatorRoundStatus.Aborted or CoordinatorRoundStatus.Succeded)
 				{
 					round.StatusChanged -= Round_StatusChangedAsync;
-					round.PhaseChanged -= Round_PhaseChangedAsync;
 					round.CoinJoinBroadcasted -= Round_CoinJoinBroadcasted;
-					await MakeSureInputregistrableRoundRunningAsync().ConfigureAwait(false);
 				}
 			}
 			catch (Exception ex)
@@ -462,7 +449,6 @@ namespace WalletWasabi.CoinJoin.Coordinator
 					foreach (CoordinatorRound round in Rounds)
 					{
 						round.StatusChanged -= Round_StatusChangedAsync;
-						round.PhaseChanged -= Round_PhaseChangedAsync;
 						round.CoinJoinBroadcasted -= Round_CoinJoinBroadcasted;
 					}
 
