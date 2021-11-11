@@ -171,12 +171,12 @@ h2:before {
 }
 .video-homepage {
     position: relative;
-    height: 90vh;
+    height: 100vh;
     width: 100%;
 }
 .video-homepage video, .video-homepage .mobile_video_bg {
     width: 100%;
-    height: 90vh;
+    height: 100%;
     object-fit: cover;
 }
 video::-webkit-media-controls-panel {
@@ -198,7 +198,7 @@ video::-webkit-media-controls {
 .download-btn-area {
     position: absolute;
     left: calc((100% - var(--breakpoint)) / 2);
-    bottom: 20%;
+    bottom: 10%;
 }
 .download-btn:before {
     content: '';
@@ -308,7 +308,7 @@ video::-webkit-media-controls {
     visibility: visible;
 }
 .privacy {
-    height: 80vh;
+    height: 100vh;
     position: relative;
     background: rgb(73, 88, 107);
     background: linear-gradient(143deg, rgba(73, 88, 107, 1) 0%, rgba(0, 16, 31, 1) 55%);
@@ -460,7 +460,7 @@ footer .white-text {
     color: #fff;
 }
 .fixed-heading {
-    padding-top: 25vh;
+    padding-top: 35vh;
 }
 .fixed-img {
     position: fixed;
