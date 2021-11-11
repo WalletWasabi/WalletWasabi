@@ -111,6 +111,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var roundConfig = RegTestFixture.CreateRoundConfig(denomination, 2, 0.7, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50, 2, 24, false, 11);
 			coordinator.RoundConfig.UpdateOrDefault(roundConfig, toFile: true);
 			coordinator.AbortAllRoundsInInputRegistration("");
+			await Task.Delay(200).ConfigureAwait(false);
 
 			IHttpClient httpClient = RegTestFixture.BackendHttpClient;
 			var satoshiClient = new SatoshiClient(BackendClearnetHttpClient);
@@ -121,6 +122,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			// POST INPUTS and GET STATES tests
 			// <-------------------------->
 
+			await Task.Delay(200).ConfigureAwait(false);
 			var states = await satoshiClient.GetAllRoundStatesAsync();
 			Assert.Single(states);
 			foreach (var rs in states)
@@ -230,6 +232,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			roundConfig.Denomination = Money.Coins(0.01m); // exactly the same as our output
 			coordinator.RoundConfig.UpdateOrDefault(roundConfig, toFile: true);
 			coordinator.AbortAllRoundsInInputRegistration("");
+			await Task.Delay(200).ConfigureAwait(false);
 			Assert.True(coordinator.TryGetCurrentInputRegisterableRound(out round));
 			roundId = round.RoundId;
 			inputsRequest.RoundId = roundId;
@@ -240,6 +243,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			roundConfig.Denomination = Money.Coins(0.00999999m); // one satoshi less than our output
 			coordinator.RoundConfig.UpdateOrDefault(roundConfig, toFile: true);
 			coordinator.AbortAllRoundsInInputRegistration("");
+			await Task.Delay(200).ConfigureAwait(false);
 			Assert.True(coordinator.TryGetCurrentInputRegisterableRound(out round));
 			roundId = round!.RoundId;
 			inputsRequest.RoundId = roundId;
@@ -251,6 +255,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			roundConfig.ConnectionConfirmationTimeout = 7;
 			coordinator.RoundConfig.UpdateOrDefault(roundConfig, toFile: true);
 			coordinator.AbortAllRoundsInInputRegistration("");
+			await Task.Delay(200).ConfigureAwait(false);
 			Assert.True(coordinator.TryGetCurrentInputRegisterableRound(out round));
 			roundId = round!.RoundId;
 			inputsRequest.RoundId = roundId;
@@ -389,12 +394,14 @@ namespace WalletWasabi.Tests.RegressionTests
 				var roundState = await satoshiClient.GetRoundStateAsync(aliceClient.RoundId);
 				Assert.Equal(RoundPhase.ConnectionConfirmation, roundState.Phase);
 				Assert.Equal(2, roundState.RegisteredPeerCount);
-				var inputRegistrableRoundState = await satoshiClient.GetRegistrableRoundStateAsync();
-				Assert.Equal(0, inputRegistrableRoundState.RegisteredPeerCount);
+				await Task.Delay(200).ConfigureAwait(false);
+				var inputRegistrableRoundState = await satoshiClient.TryGetRegistrableRoundStateAsync();
+				Assert.Equal(0, inputRegistrableRoundState?.RegisteredPeerCount);
 
 				roundConfig.ConnectionConfirmationTimeout = 1; // One second.
 				coordinator.RoundConfig.UpdateOrDefault(roundConfig, toFile: true);
 				coordinator.AbortAllRoundsInInputRegistration("");
+				await Task.Delay(200).ConfigureAwait(false);
 				Assert.True(coordinator.TryGetCurrentInputRegisterableRound(out round));
 				roundId = round!.RoundId;
 				inputsRequest.RoundId = roundId;
@@ -495,6 +502,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				roundConfig.ConnectionConfirmationTimeout = 60;
 				coordinator.RoundConfig.UpdateOrDefault(roundConfig, toFile: true);
 				coordinator.AbortAllRoundsInInputRegistration("");
+				await Task.Delay(200).ConfigureAwait(false);
 				Assert.True(coordinator.TryGetCurrentInputRegisterableRound(out round));
 				roundId = round!.RoundId;
 				inputsRequest.RoundId = roundId;
@@ -712,6 +720,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var roundConfig = RegTestFixture.CreateRoundConfig(denomination, 2, 0.7, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50, 2, 24, false, 11);
 			coordinator.RoundConfig.UpdateOrDefault(roundConfig, toFile: true);
 			coordinator.AbortAllRoundsInInputRegistration("");
+			await Task.Delay(200).ConfigureAwait(false);
 
 			var satoshiClient = new SatoshiClient(BackendClearnetHttpClient);
 			Assert.True(coordinator.TryGetCurrentInputRegisterableRound(out CoordinatorRound? round));
@@ -860,6 +869,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var roundConfig = RegTestFixture.CreateRoundConfig(denomination, WalletWasabi.Helpers.Constants.OneDayConfirmationTarget, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
 			coordinator.RoundConfig.UpdateOrDefault(roundConfig, toFile: true);
 			coordinator.AbortAllRoundsInInputRegistration("");
+			await Task.Delay(200).ConfigureAwait(false);
 			await rpc.GenerateAsync(100); // So to make sure we have enough money.
 
 			Uri baseUri = new(RegTestFixture.BackendEndPoint);
@@ -1087,6 +1097,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var roundConfig = RegTestFixture.CreateRoundConfig(denomination, 140, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
 			coordinator.RoundConfig.UpdateOrDefault(roundConfig, toFile: true);
 			coordinator.AbortAllRoundsInInputRegistration("");
+			await Task.Delay(200).ConfigureAwait(false);
 
 			var participants = new List<(SmartCoin, CoinJoinClient)>();
 
@@ -1193,6 +1204,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var roundConfig = RegTestFixture.CreateRoundConfig(denomination, 140, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
 			coordinator.RoundConfig.UpdateOrDefault(roundConfig, toFile: true);
 			coordinator.AbortAllRoundsInInputRegistration("");
+			await Task.Delay(200).ConfigureAwait(false);
 			await rpc.GenerateAsync(3); // So to make sure we have enough money.
 			var keyManager = KeyManager.CreateNew(out _, password, network);
 			var key1 = keyManager.GenerateNewKey("foo", KeyState.Clean, false);
@@ -1309,6 +1321,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				roundConfig = RegTestFixture.CreateRoundConfig(denomination, 140, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
 				coordinator.RoundConfig.UpdateOrDefault(roundConfig, toFile: true);
 				coordinator.AbortAllRoundsInInputRegistration("");
+				await Task.Delay(200).ConfigureAwait(false);
 				Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
 				await chaumianClient1.DequeueAllCoinsFromMixAsync(DequeueReason.UserRequested);
 				Assert.Empty(chaumianClient1.State.GetAllQueuedCoins());
