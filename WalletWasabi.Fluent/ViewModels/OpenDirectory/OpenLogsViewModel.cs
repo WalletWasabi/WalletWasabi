@@ -1,6 +1,3 @@
-using System.Windows.Input;
-using ReactiveUI;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.OpenDirectory
@@ -15,9 +12,8 @@ namespace WalletWasabi.Fluent.ViewModels.OpenDirectory
 			"Browse", "Open", "Logs"
 		},
 		IconName = "document_regular")]
-	public partial class OpenLogsViewModel : TriggerCommandViewModel
+	public partial class OpenLogsViewModel : OpenFileViewModel
 	{
-		public override ICommand TargetCommand =>
-			ReactiveCommand.Create(() => FileHelpers.OpenFileInTextEditorAsync(Logger.FilePath));
+		public override string FilePath => Logger.FilePath;
 	}
 }

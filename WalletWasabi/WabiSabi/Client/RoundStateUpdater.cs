@@ -23,18 +23,27 @@ namespace WalletWasabi.WabiSabi.Client
 		private List<RoundStateAwaiter> Awaiters { get; } = new();
 		private object AwaitersLock { get; } = new();
 
+		public bool AnyRound => RoundStates.Any();
+
 		protected override async Task ActionAsync(CancellationToken cancellationToken)
 		{
-			RoundState[] statusResponse = await ArenaRequestHandler.GetStatusAsync(cancellationToken).ConfigureAwait(false);
-			RoundStates = statusResponse.ToDictionary(round => round.Id);
-
-			lock (AwaitersLock)
+			RoundState[] statusResponse = Array.Empty<RoundState>();
+			try
 			{
-				foreach (var awaiter in Awaiters.Where(awaiter => awaiter.IsCompleted(RoundStates)).ToArray())
+				statusResponse = await ArenaRequestHandler.GetStatusAsync(cancellationToken).ConfigureAwait(false);
+			}
+			finally
+			{
+				RoundStates = statusResponse.ToDictionary(round => round.Id);
+
+				lock (AwaitersLock)
 				{
-					// The predicate was fulfilled.
-					Awaiters.Remove(awaiter);
-					break;
+					foreach (var awaiter in Awaiters.Where(awaiter => awaiter.IsCompleted(RoundStates)).ToArray())
+					{
+						// The predicate was fulfilled.
+						Awaiters.Remove(awaiter);
+						break;
+					}
 				}
 			}
 		}

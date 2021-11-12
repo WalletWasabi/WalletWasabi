@@ -61,6 +61,8 @@ namespace WalletWasabi.WabiSabi.Client
 			{
 				aliceClient = await RegisterInputAsync(roundState, arenaClient, coin, bitcoinSecret, identificationKey, cancellationToken).ConfigureAwait(false);
 				await aliceClient.ConfirmConnectionAsync(roundStatusUpdater, cancellationToken).ConfigureAwait(false);
+
+				Logger.LogInfo($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Connection successfully confirmed.");
 			}
 			catch (OperationCanceledException)
 			{
@@ -178,6 +180,8 @@ namespace WalletWasabi.WabiSabi.Client
 			IssuedVsizeCredentials = response.IssuedVsizeCredentials;
 
 			var isConfirmed = response.Value;
+
+			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Connection confirmed.");
 			return isConfirmed;
 		}
 

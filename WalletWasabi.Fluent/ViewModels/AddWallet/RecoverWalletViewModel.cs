@@ -75,8 +75,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 							var result = KeyManager.Recover(
 								CurrentMnemonics!,
 								password!,
-								walletFilePath,
+								Services.WalletManager.Network,
 								AccountKeyPath,
+								walletFilePath,
 								MinGapLimit);
 
 							result.SetNetwork(Services.WalletManager.Network);
@@ -124,7 +125,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
 
-		private KeyPath AccountKeyPath { get; set; } = KeyPath.Parse("m/84'/0'/0'");
+		private KeyPath AccountKeyPath { get; set; } = KeyManager.GetAccountKeyPath(Services.WalletManager.Network);
 
 		private int MinGapLimit { get; set; } = 63;
 

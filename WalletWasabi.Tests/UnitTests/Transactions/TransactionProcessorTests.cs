@@ -1373,7 +1373,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 		private TransactionProcessor CreateTransactionProcessor(AllTransactionStore transactionStore, int privacyLevelThreshold = 100)
 		{
-			var keyManager = KeyManager.CreateNew(out _, "password");
+			var keyManager = KeyManager.CreateNew(out _, "password", Network.Main);
 			keyManager.AssertCleanKeysIndexed();
 
 			return new TransactionProcessor(
