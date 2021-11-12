@@ -74,7 +74,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public bool TryGetByOutPoint(OutPoint outpoint, [NotNullWhen(true)] out SmartCoin? coin)
 		{
 			coin = Coins.FirstOrDefault(x => x.OutPoint == outpoint);
-			return coin is { };
+			return coin is not null;
 		}
 
 		public Money TotalAmount() => Coins.Sum(x => x.Amount);
