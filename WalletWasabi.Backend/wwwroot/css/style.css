@@ -833,8 +833,17 @@ body:not(:hover) .exitpopup {
     padding: 0;
     padding-left: 20px;
 }
-.list li {
+ol {
+    line-height: 1.7em;
+    margin: 20px 0;
+    padding: 0;
+    padding-left: 20px;
+}
+.list li, ol li {
     margin: 15px 0;
+}
+ol li::marker {
+    color: var(--green);
 }
 .list li:before {
     content: "\25A0";
