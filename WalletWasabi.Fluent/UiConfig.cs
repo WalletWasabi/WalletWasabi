@@ -1,22 +1,18 @@
 using System;
-using Avalonia.Controls;
 using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Reactive;
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Bases;
-using WalletWasabi.Gui.Converters;
-using WalletWasabi.Gui.Models.Sorting;
+using WalletWasabi.Fluent.Converters;
 
-namespace WalletWasabi.Gui
+namespace WalletWasabi.Fluent
 {
 	[JsonObject(MemberSerialization.OptIn)]
 	public class UiConfig : ConfigBase
 	{
 		private bool _privacyMode;
-		private bool _lockScreenActive;
-		private string _lockScreenPinHash = "";
 		private bool _isCustomFee;
 		private bool _isCustomChangeAddress;
 		private bool _autocopy;
@@ -35,7 +31,6 @@ namespace WalletWasabi.Gui
 		public UiConfig(string filePath) : base(filePath)
 		{
 			this.WhenAnyValue(
-					x => x.LockScreenPinHash,
 					x => x.Autocopy,
 					x => x.IsCustomFee,
 					x => x.IsCustomChangeAddress,
@@ -47,7 +42,7 @@ namespace WalletWasabi.Gui
 					x => x.RunOnSystemStartup,
 					x => x.PrivacyMode,
 					x => x.HideOnClose,
-					(_, _, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
+					(_, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
 				.Throttle(TimeSpan.FromMilliseconds(500))
 				.Skip(1) // Won't save on UiConfig creation.
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -82,10 +77,6 @@ namespace WalletWasabi.Gui
 			set => RaiseAndSetIfChanged(ref _feeDisplayFormat, value);
 		}
 
-		[DefaultValue("")]
-		[JsonProperty(PropertyName = "LastActiveTab", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public string LastActiveTab { get; internal set; } = "";
-
 		[DefaultValue(true)]
 		[JsonProperty(PropertyName = "Autocopy", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public bool Autocopy
@@ -118,22 +109,6 @@ namespace WalletWasabi.Gui
 			set => RaiseAndSetIfChanged(ref _privacyMode, value);
 		}
 
-		[DefaultValue(false)]
-		[JsonProperty(PropertyName = "LockScreenActive", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public bool LockScreenActive
-		{
-			get => _lockScreenActive;
-			set => RaiseAndSetIfChanged(ref _lockScreenActive, value);
-		}
-
-		[DefaultValue("")]
-		[JsonProperty(PropertyName = "LockScreenPinHash", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public string LockScreenPinHash
-		{
-			get => _lockScreenPinHash;
-			set => RaiseAndSetIfChanged(ref _lockScreenPinHash, value);
-		}
-
 		[DefaultValue(true)]
 		[JsonProperty(PropertyName = "DarkModeEnabled", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public bool DarkModeEnabled
@@ -158,19 +133,7 @@ namespace WalletWasabi.Gui
 			set => RaiseAndSetIfChanged(ref _runOnSystemStartup, value);
 		}
 
-		[JsonProperty(PropertyName = "CoinListViewSortingPreference")]
-		[JsonConverter(typeof(SortingPreferenceJsonConverter))]
-		public SortingPreference CoinListViewSortingPreference { get; internal set; } = new SortingPreference(SortOrder.Increasing, "Amount");
-
-		[JsonProperty(PropertyName = "CoinJoinTabSortingPreference")]
-		[JsonConverter(typeof(SortingPreferenceJsonConverter))]
-		public SortingPreference CoinJoinTabSortingPreference { get; internal set; } = new SortingPreference(SortOrder.Increasing, "Amount");
-
-		[JsonProperty(PropertyName = "HistoryTabViewSortingPreference")]
-		[JsonConverter(typeof(SortingPreferenceJsonConverter))]
-		public SortingPreference HistoryTabViewSortingPreference { get; internal set; } = new SortingPreference(SortOrder.Decreasing, "Date");
-
-		[DefaultValue(false)]
+		[DefaultValue(true)]
 		[JsonProperty(PropertyName = "HideOnClose", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public bool HideOnClose
 		{

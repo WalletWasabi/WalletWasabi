@@ -18,9 +18,9 @@ namespace WalletWasabi.Tests.UnitTests
 		public void CanCreateNew()
 		{
 			string password = "password";
-			var manager = KeyManager.CreateNew(out Mnemonic mnemonic, password);
-			var manager2 = KeyManager.CreateNew(out Mnemonic mnemonic2, "");
-			var manager3 = KeyManager.CreateNew(out _, "P@ssw0rdé");
+			var manager = KeyManager.CreateNew(out Mnemonic mnemonic, password, Network.Main);
+			var manager2 = KeyManager.CreateNew(out Mnemonic mnemonic2, "", Network.Main);
+			var manager3 = KeyManager.CreateNew(out _, "P@ssw0rdé", Network.Main);
 
 			Assert.Equal(12, mnemonic.ToString().Split(' ').Length);
 			Assert.Equal(12, mnemonic2.ToString().Split(' ').Length);
@@ -38,10 +38,10 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.NotNull(manager3.EncryptedSecret);
 			Assert.NotNull(manager3.ExtPubKey);
 
-			var sameManager = new KeyManager(manager.EncryptedSecret, manager.ChainCode, manager.MasterFingerprint, manager.ExtPubKey, true, null, new BlockchainState());
-			var sameManager2 = new KeyManager(manager.EncryptedSecret, manager.ChainCode, password);
+			var sameManager = new KeyManager(manager.EncryptedSecret, manager.ChainCode, manager.MasterFingerprint, manager.ExtPubKey, true, null, new BlockchainState(Network.Main));
+			var sameManager2 = new KeyManager(manager.EncryptedSecret, manager.ChainCode, password, Network.Main);
 			Logger.TurnOff();
-			Assert.Throws<SecurityException>(() => new KeyManager(manager.EncryptedSecret, manager.ChainCode, "differentPassword"));
+			Assert.Throws<SecurityException>(() => new KeyManager(manager.EncryptedSecret, manager.ChainCode, "differentPassword", Network.Main));
 			Logger.TurnOn();
 
 			Assert.Equal(manager.ChainCode, sameManager.ChainCode);
@@ -52,13 +52,13 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal(manager.EncryptedSecret, sameManager2.EncryptedSecret);
 			Assert.Equal(manager.ExtPubKey, sameManager2.ExtPubKey);
 
-			var differentManager = KeyManager.CreateNew(out Mnemonic mnemonic4, password);
+			var differentManager = KeyManager.CreateNew(out Mnemonic mnemonic4, password, Network.Main);
 			Assert.NotEqual(mnemonic, mnemonic4);
 			Assert.NotEqual(manager.ChainCode, differentManager.ChainCode);
 			Assert.NotEqual(manager.EncryptedSecret, differentManager.EncryptedSecret);
 			Assert.NotEqual(manager.ExtPubKey, differentManager.ExtPubKey);
 
-			var manager5 = new KeyManager(manager2.EncryptedSecret, manager2.ChainCode, password: null!);
+			var manager5 = new KeyManager(manager2.EncryptedSecret, manager2.ChainCode, password: null!, Network.Main);
 			Assert.Equal(manager2.ChainCode, manager5.ChainCode);
 			Assert.Equal(manager2.EncryptedSecret, manager5.EncryptedSecret);
 			Assert.Equal(manager2.ExtPubKey, manager5.ExtPubKey);
@@ -68,14 +68,14 @@ namespace WalletWasabi.Tests.UnitTests
 		public void CanRecover()
 		{
 			string password = "password";
-			var manager = KeyManager.CreateNew(out Mnemonic mnemonic, password);
-			var sameManager = KeyManager.Recover(mnemonic, password);
+			var manager = KeyManager.CreateNew(out Mnemonic mnemonic, password, Network.Main);
+			var sameManager = KeyManager.Recover(mnemonic, password, Network.Main, KeyManager.GetAccountKeyPath(Network.Main));
 
 			Assert.Equal(manager.ChainCode, sameManager.ChainCode);
 			Assert.Equal(manager.EncryptedSecret, sameManager.EncryptedSecret);
 			Assert.Equal(manager.ExtPubKey, sameManager.ExtPubKey);
 
-			var differentManager = KeyManager.Recover(mnemonic, "differentPassword", null, KeyPath.Parse("m/999'/999'/999'"), 55);
+			var differentManager = KeyManager.Recover(mnemonic, "differentPassword", Network.Main, KeyPath.Parse("m/999'/999'/999'"), null, 55);
 			Assert.NotEqual(manager.ChainCode, differentManager.ChainCode);
 			Assert.NotEqual(manager.EncryptedSecret, differentManager.EncryptedSecret);
 			Assert.NotEqual(manager.ExtPubKey, differentManager.ExtPubKey);
@@ -90,7 +90,7 @@ namespace WalletWasabi.Tests.UnitTests
 		public void CanHandleGap()
 		{
 			string password = "password";
-			var manager = KeyManager.CreateNew(out _, password);
+			var manager = KeyManager.CreateNew(out _, password, Network.Main);
 
 			manager.AssertCleanKeysIndexed();
 			var lastKey = manager.GetKeys(KeyState.Clean, isInternal: false).Last();
@@ -111,7 +111,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Throws<FileNotFoundException>(() => KeyManager.FromFile(filePath));
 			Logger.TurnOn();
 
-			var manager = KeyManager.CreateNew(out _, password, filePath);
+			var manager = KeyManager.CreateNew(out _, password, Network.Main, filePath);
 			KeyManager.FromFile(filePath);
 
 			manager.ToFile();
@@ -144,7 +144,8 @@ namespace WalletWasabi.Tests.UnitTests
 		public void CanGenerateKeys()
 		{
 			string password = "password";
-			var manager = KeyManager.CreateNew(out _, password);
+			var network = Network.Main;
+			var manager = KeyManager.CreateNew(out _, password, network);
 
 			var random = new Random();
 
@@ -163,14 +164,14 @@ namespace WalletWasabi.Tests.UnitTests
 				Assert.Equal(isInternal, generatedKey.IsInternal);
 				Assert.Equal(label, generatedKey.Label);
 				Assert.Equal(keyState, generatedKey.KeyState);
-				Assert.StartsWith(KeyManager.DefaultAccountKeyPath.ToString(), generatedKey.FullKeyPath.ToString());
+				Assert.StartsWith(KeyManager.GetAccountKeyPath(network).ToString(), generatedKey.FullKeyPath.ToString());
 			}
 		}
 
 		[Fact]
 		public void GapCountingTests()
 		{
-			var km = KeyManager.CreateNew(out _, "");
+			var km = KeyManager.CreateNew(out _, "", Network.Main);
 			Assert.Equal(0, km.CountConsecutiveUnusedKeys(true));
 			Assert.Equal(0, km.CountConsecutiveUnusedKeys(false));
 

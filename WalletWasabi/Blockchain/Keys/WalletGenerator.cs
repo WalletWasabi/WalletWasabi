@@ -42,7 +42,7 @@ namespace WalletWasabi.Blockchain.Keys
 			// Here we are not letting anything that will be autocorrected later. We need to generate the wallet exactly with the entered password because of compatibility.
 			PasswordHelper.Guard(password);
 
-			var km = KeyManager.CreateNew(out Mnemonic mnemonic, password);
+			var km = KeyManager.CreateNew(out Mnemonic mnemonic, password, Network);
 			km.SetNetwork(Network);
 			km.SetBestHeight(new Height(TipHeight));
 			km.SetFilePath(walletFilePath);

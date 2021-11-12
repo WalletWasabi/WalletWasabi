@@ -53,7 +53,7 @@ namespace WalletWasabi.Fluent.Helpers
 
 		private static async Task<string?> GetDialogResultAsync(SaveFileDialog sfd)
 		{
-			var window = ((IClassicDesktopStyleApplicationLifetime) Application.Current.ApplicationLifetime).MainWindow;
+			var window = ((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).MainWindow;
 			var selected = await sfd.ShowAsync(window);
 
 			return selected;

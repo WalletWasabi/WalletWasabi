@@ -37,10 +37,10 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			return states.Single(x => x.RoundId == roundId);
 		}
 
-		public async Task<RoundStateResponseBase> GetRegistrableRoundStateAsync()
+		public async Task<RoundStateResponseBase?> TryGetRegistrableRoundStateAsync()
 		{
 			IEnumerable<RoundStateResponseBase> states = await GetAllRoundStatesAsync().ConfigureAwait(false);
-			return states.First(x => x.Phase == RoundPhase.InputRegistration);
+			return states.FirstOrDefault(x => x.Phase == RoundPhase.InputRegistration);
 		}
 	}
 }

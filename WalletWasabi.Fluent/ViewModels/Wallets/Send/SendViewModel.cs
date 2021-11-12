@@ -55,7 +55,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			_to = "";
 			_wallet = wallet;
-			_transactionInfo = new TransactionInfo(_wallet);
+			_transactionInfo = new TransactionInfo();
 
 			SuggestionLabels = new SuggestionLabelsViewModel(3);
 
@@ -116,14 +116,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			NextCommand = ReactiveCommand.Create(() =>
 			{
-				var amount = new Money(AmountBtc, MoneyUnit.BTC);
-
-				if (_transactionInfo.Amount != amount)
-				{
-					_transactionInfo.ResetAmountSpecificOptions();
-				}
-
-				_transactionInfo.Amount = amount;
+				_transactionInfo.Amount = new Money(AmountBtc, MoneyUnit.BTC);
 
 				Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo));
 			}, nextCommandCanExecute);

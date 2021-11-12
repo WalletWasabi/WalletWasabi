@@ -34,7 +34,7 @@ namespace WalletWasabi.Fluent.Controls
 			base.OnPropertyChanged(change);
 
 			if (change.Property == ColumnDefinitionsSourceProperty
-			    || change.Property == RowDefinitionsSourceProperty)
+				|| change.Property == RowDefinitionsSourceProperty)
 			{
 				InvalidateDefinitions();
 			}

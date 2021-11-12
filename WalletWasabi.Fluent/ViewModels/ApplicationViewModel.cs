@@ -22,18 +22,26 @@ namespace WalletWasabi.Fluent.ViewModels
 					{
 						desktopLifetime.Shutdown();
 					}
-					else
-					{
-						await MainViewModel.Instance!.CompactDialogScreen.NavigateDialogAsync(new Dialogs.ShowErrorDialogViewModel(
-							"Wasabi is currently anonymising your wallet. Please try again in a few seconds.",
-							"Warning",
-							"Unable to close"));
-					}
+				}
+				else
+				{
+					// Show the window if it was hidden.
+					ShowRequested?.Invoke(this, EventArgs.Empty);
+
+					await MainViewModel.Instance!.CompactDialogScreen.NavigateDialogAsync(new Dialogs.ShowErrorDialogViewModel(
+						"Wasabi is currently anonymising your wallet. Please try again in a few seconds.",
+						"Warning",
+						"Unable to close"));
 				}
 			});
+
+			ShowCommand = ReactiveCommand.Create(() => ShowRequested?.Invoke(this, EventArgs.Empty));
 		}
 
+		public event EventHandler? ShowRequested;
+
 		public ICommand QuitCommand { get; }
+		public ICommand ShowCommand { get; }
 
 		public bool CanShutdown()
 		{

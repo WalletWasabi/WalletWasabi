@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace WalletWasabi.Gui.Rpc
+namespace WalletWasabi.Fluent.Rpc
 {
 	public class JsonRpcResponse
 	{

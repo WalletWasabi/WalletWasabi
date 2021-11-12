@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using WalletWasabi.Fluent.CrashReport;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels;
-using WalletWasabi.Gui;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -177,17 +176,14 @@ namespace WalletWasabi.Fluent.Desktop
 			}
 		}
 
-		private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs? e)
+		private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
 		{
-			if (e?.Exception is Exception ex)
-			{
-				Logger.LogWarning(ex);
-			}
+			Logger.LogWarning(e.Exception);
 		}
 
-		private static void CurrentDomain_UnhandledException(object? sender, UnhandledExceptionEventArgs? e)
+		private static void CurrentDomain_UnhandledException(object? sender, UnhandledExceptionEventArgs e)
 		{
-			if (e?.ExceptionObject is Exception ex)
+			if (e.ExceptionObject is Exception ex)
 			{
 				Logger.LogWarning(ex);
 			}

@@ -174,8 +174,8 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			// ColdCard doesn't support it.
 			await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
 
-			KeyPath keyPath1 = KeyManager.DefaultAccountKeyPath;
-			KeyPath keyPath2 = KeyManager.DefaultAccountKeyPath.Derive(1);
+			KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network);
+			KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive(1);
 			ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 			ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
 			Assert.NotNull(xpub1);
@@ -254,8 +254,8 @@ namespace WalletWasabi.Tests.AcceptanceTests
 
 			await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
 
-			KeyPath keyPath1 = KeyManager.DefaultAccountKeyPath;
-			KeyPath keyPath2 = KeyManager.DefaultAccountKeyPath.Derive(1);
+			KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network);
+			KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive(1);
 			ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 			ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
 			Assert.NotNull(xpub1);
@@ -337,8 +337,8 @@ namespace WalletWasabi.Tests.AcceptanceTests
 
 			await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
 
-			KeyPath keyPath1 = KeyManager.DefaultAccountKeyPath;
-			KeyPath keyPath2 = KeyManager.DefaultAccountKeyPath.Derive(1);
+			KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network);
+			KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive(1);
 			ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 			ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
 			Assert.NotNull(xpub1);

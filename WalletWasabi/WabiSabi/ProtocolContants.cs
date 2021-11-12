@@ -27,9 +27,9 @@ namespace WalletWasabi.WabiSabi
 		public const string RoundFeeRateStrobeLabel = "fee-rate";
 		public const string RoundInputRegistrationStartStrobeLabel = "input-registration-start";
 		public const string RoundInputRegistrationTimeoutStrobeLabel = "input-registration-timeout";
-		public const string RoundConnectionConfirmationTimeoutStrobeLabel= "connection-confirmation-timeout";
-		public const string RoundOutputRegistrationTimeoutStrobeLabel= "output-registration-timeout";
-		public const string RoundTransactionSigningTimeoutStrobeLabel= "transaction-signing-timeout";
+		public const string RoundConnectionConfirmationTimeoutStrobeLabel = "connection-confirmation-timeout";
+		public const string RoundOutputRegistrationTimeoutStrobeLabel = "output-registration-timeout";
+		public const string RoundTransactionSigningTimeoutStrobeLabel = "transaction-signing-timeout";
 
 		// Alice hashing labels
 		public const string AliceStrobeDomain = "alice-parameters";

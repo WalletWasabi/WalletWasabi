@@ -26,7 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			TimePeriodOptions = new ObservableCollection<TimePeriodOptionViewModel>();
 
-			foreach (var item in (TimePeriodOption[]) Enum.GetValues(typeof(TimePeriodOption)))
+			foreach (var item in (TimePeriodOption[])Enum.GetValues(typeof(TimePeriodOption)))
 			{
 				TimePeriodOptions.Add(new TimePeriodOptionViewModel(item, UpdateSample)
 				{

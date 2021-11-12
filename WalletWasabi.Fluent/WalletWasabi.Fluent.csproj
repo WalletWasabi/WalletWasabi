@@ -16,15 +16,16 @@
 		<AvaloniaResource Include="Assets\**" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Avalonia" Version="0.10.8" />
-		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.8" />
-		<PackageReference Include="Avalonia.Controls.DataGrid" Version="0.10.8" />
-		<PackageReference Include="Avalonia.Diagnostics" Version="0.10.8" Condition="'$(Configuration)' == 'Debug'" />
-		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.8" />
+		<PackageReference Include="Avalonia" Version="0.10.10" />
+		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.10" />
+		<PackageReference Include="Avalonia.Controls.DataGrid" Version="0.10.10" />
+		<PackageReference Include="Avalonia.Diagnostics" Version="0.10.10" Condition="'$(Configuration)' == 'Debug'" />
+		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.10" />
 		<PackageReference Include="OpenCvSharp4" Version="4.5.2.20210404" />
 		<PackageReference Include="OpenCvSharp4.runtime.win" Version="4.5.2.20210404" />
 		<PackageReference Include="System.Reactive" Version="5.0.0" />
 		<PackageReference Include="System.Runtime" Version="4.3.1" />
+		<PackageReference Include="DataBox" Version="0.10.10-beta5" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />

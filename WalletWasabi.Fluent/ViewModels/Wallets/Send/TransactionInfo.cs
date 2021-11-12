@@ -2,30 +2,33 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
-	public class TransactionInfo
+	public partial class TransactionInfo
 	{
 		private readonly int _privateCoinThreshold;
 
-		public TransactionInfo(Wallet wallet)
+		[AutoNotify] private Money _amount = Money.Zero;
+
+		public TransactionInfo()
 		{
-			_privateCoinThreshold = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
+			_privateCoinThreshold = Services.Config.MixUntilAnonymitySetValue;
+
+			this.WhenAnyValue(x => x.Amount)
+				.Subscribe(_ => OnAmountChanged());
 		}
 
-		public SmartLabel UserLabels { get; set; }
+		public SmartLabel UserLabels { get; set; } = SmartLabel.Empty;
 
 		public BitcoinAddress Address { get; set; }
 
-		public Money Amount { get; set; }
-
-		public FeeRate? FeeRate { get; set; }
+		public FeeRate FeeRate { get; set; } = FeeRate.Zero;
 
 		public FeeRate? MaximumPossibleFeeRate { get; set; }
 
@@ -41,12 +44,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public bool SubtractFee { get; set; }
 
-		public void ResetAmountSpecificOptions()
+		private void OnAmountChanged()
 		{
 			SubtractFee = default;
-			MaximumPossibleFeeRate = default;
-			Coins = Enumerable.Empty<SmartCoin>();
-			FeeRate = default;
+			FeeRate = FeeRate.Zero;
+			MaximumPossibleFeeRate = FeeRate.Zero;
+
+			if (Coins.Sum(x => x.Amount) < Amount) // Reset coins if the selected cluster is not enough for the new amount
+			{
+				Coins = Enumerable.Empty<SmartCoin>();
+			}
 		}
 	}
 }

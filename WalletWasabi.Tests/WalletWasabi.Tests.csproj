@@ -22,7 +22,10 @@
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="5.0.8" />
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />		<PackageReference Include="Moq" Version="4.16.1" />
+		<PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.9.0" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.9.0" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
+		<PackageReference Include="Moq" Version="4.16.1" />
 		<PackageReference Include="xunit" Version="2.4.1" />
 		<PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
 			<PrivateAssets>all</PrivateAssets>
@@ -34,6 +37,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi.Backend\WalletWasabi.Backend.csproj" />
+		<ProjectReference Include="..\WalletWasabi.Fluent.Generators\WalletWasabi.Fluent.Generators.csproj" />
 		<ProjectReference Include="..\WalletWasabi.Fluent\WalletWasabi.Fluent.csproj" />
 		<ProjectReference Include="..\WalletWasabi.Packager\WalletWasabi.Packager.csproj" />
 		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />

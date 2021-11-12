@@ -28,7 +28,9 @@ namespace WalletWasabi.Blockchain.Keys
 		// BIP84-ish derivation scheme
 		// m / purpose' / coin_type' / account' / change / address_index
 		// https://github.com/bitcoin/bips/blob/master/bip-0084.mediawiki
-		public static readonly KeyPath DefaultAccountKeyPath = new("m/84h/0h/0h");
+		private static readonly KeyPath DefaultAccountKeyPath = new("m/84h/0h/0h");
+
+		private static readonly KeyPath TestNetAccountKeyPath = new("m/84h/1h/0h");
 
 		[JsonConstructor]
 		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, bool? passwordVerified, int? minGapLimit, BlockchainState blockchainState, string? filePath = null, KeyPath? accountKeyPath = null)
@@ -49,15 +51,16 @@ namespace WalletWasabi.Blockchain.Keys
 			PasswordVerified = passwordVerified;
 			SetMinGapLimit(minGapLimit);
 
-			BlockchainState = blockchainState ?? new BlockchainState();
-			AccountKeyPath = accountKeyPath ?? DefaultAccountKeyPath;
+			BlockchainState = blockchainState;
+
+			AccountKeyPath = accountKeyPath ?? GetAccountKeyPath(BlockchainState.Network);
 
 			SetFilePath(filePath);
 			ToFileLock = new object();
 			ToFile();
 		}
 
-		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, string password, int minGapLimit = AbsoluteMinGapLimit, string? filePath = null, KeyPath? accountKeyPath = null)
+		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, string password, Network network)
 		{
 			HdPubKeys = new List<HdPubKey>();
 			HdPubKeyScriptBytes = new List<byte[]>();
@@ -65,32 +68,31 @@ namespace WalletWasabi.Blockchain.Keys
 			HdPubKeysLock = new object();
 			HdPubKeyScriptBytesLock = new object();
 			ScriptHdPubKeyMapLock = new object();
-			BlockchainState = new BlockchainState();
+			BlockchainState = new BlockchainState(network);
 			BlockchainStateLock = new object();
 
 			password ??= "";
 
-			SetMinGapLimit(minGapLimit);
+			SetMinGapLimit(AbsoluteMinGapLimit);
 
 			EncryptedSecret = Guard.NotNull(nameof(encryptedSecret), encryptedSecret);
 			ChainCode = Guard.NotNull(nameof(chainCode), chainCode);
 			var extKey = new ExtKey(encryptedSecret.GetKey(password), chainCode);
 
 			MasterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
-			AccountKeyPath = accountKeyPath ?? DefaultAccountKeyPath;
+			AccountKeyPath = GetAccountKeyPath(BlockchainState.Network);
 			ExtPubKey = extKey.Derive(AccountKeyPath).Neuter();
-
-			SetFilePath(filePath);
-			ToFileLock = new object();
-			ToFile();
 		}
+
+		public static KeyPath GetAccountKeyPath(Network network) =>
+			network == Network.TestNet ? TestNetAccountKeyPath : DefaultAccountKeyPath;
 
 		public WpkhDescriptors GetOutputDescriptors(string password, Network network)
 		{
 			if (!MasterFingerprint.HasValue)
-            {
+			{
 				throw new InvalidOperationException($"{nameof(MasterFingerprint)} is not defined.");
-            }
+			}
 
 			return WpkhOutputDescriptorHelper.GetOutputDescriptors(network, MasterFingerprint.Value, GetMasterExtKey(password), AccountKeyPath);
 		}
@@ -115,7 +117,7 @@ namespace WalletWasabi.Blockchain.Keys
 		public bool? PasswordVerified { get; private set; }
 
 		[JsonProperty(Order = 6)]
-		public int? MinGapLimit { get; private set; }
+		public int MinGapLimit { get; private set; }
 
 		[JsonProperty(Order = 7)]
 		[JsonConverter(typeof(KeyPathJsonConverter))]
@@ -158,7 +160,7 @@ namespace WalletWasabi.Blockchain.Keys
 		private object ToFileLock { get; }
 		public string WalletName => string.IsNullOrWhiteSpace(FilePath) ? "" : Path.GetFileNameWithoutExtension(FilePath);
 
-		public static KeyManager CreateNew(out Mnemonic mnemonic, string password, string? filePath = null)
+		public static KeyManager CreateNew(out Mnemonic mnemonic, string password, Network network, string? filePath = null)
 		{
 			password ??= "";
 
@@ -167,9 +169,10 @@ namespace WalletWasabi.Blockchain.Keys
 			var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
 
 			HDFingerprint masterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
-			KeyPath keyPath = DefaultAccountKeyPath;
+			BlockchainState blockchainState = new(network);
+			KeyPath keyPath = GetAccountKeyPath(network);
 			ExtPubKey extPubKey = extKey.Derive(keyPath).Neuter();
-			return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, false, AbsoluteMinGapLimit, new BlockchainState(), filePath, keyPath);
+			return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, false, AbsoluteMinGapLimit, blockchainState, filePath, keyPath);
 		}
 
 		public static KeyManager CreateNewWatchOnly(ExtPubKey extPubKey, string? filePath = null)
@@ -177,12 +180,12 @@ namespace WalletWasabi.Blockchain.Keys
 			return new KeyManager(null, null, null, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(), filePath);
 		}
 
-		public static KeyManager CreateNewHardwareWalletWatchOnly(HDFingerprint masterFingerprint, ExtPubKey extPubKey, string? filePath = null)
+		public static KeyManager CreateNewHardwareWalletWatchOnly(HDFingerprint masterFingerprint, ExtPubKey extPubKey, Network network, string? filePath = null)
 		{
-			return new KeyManager(null, null, masterFingerprint, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(), filePath);
+			return new KeyManager(null, null, masterFingerprint, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(network), filePath);
 		}
 
-		public static KeyManager Recover(Mnemonic mnemonic, string password, string? filePath = null, KeyPath? accountKeyPath = null, int minGapLimit = AbsoluteMinGapLimit)
+		public static KeyManager Recover(Mnemonic mnemonic, string password, Network network, KeyPath accountKeyPath, string? filePath = null, int minGapLimit = AbsoluteMinGapLimit)
 		{
 			Guard.NotNull(nameof(mnemonic), mnemonic);
 			password ??= "";
@@ -194,7 +197,7 @@ namespace WalletWasabi.Blockchain.Keys
 
 			KeyPath keyPath = accountKeyPath ?? DefaultAccountKeyPath;
 			ExtPubKey extPubKey = extKey.Derive(keyPath).Neuter();
-			return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, true, minGapLimit, new BlockchainState(), filePath, keyPath);
+			return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, true, minGapLimit, new BlockchainState(network), filePath, keyPath);
 		}
 
 		public static KeyManager FromFile(string filePath)
@@ -343,7 +346,7 @@ namespace WalletWasabi.Blockchain.Keys
 			// If not found, generate a new.
 			if (newKey is null)
 			{
-				SetMinGapLimit(MinGapLimit.Value + 1);
+				SetMinGapLimit(MinGapLimit + 1);
 				newKey = AssertCleanKeysIndexed(isInternal: false).First();
 
 				// If the new is over the MinGapLimit, set minGapLimitIncreased to true.
@@ -607,31 +610,6 @@ namespace WalletWasabi.Blockchain.Keys
 
 			// Re-add removed items for further operations.
 			BlockchainState.Height = prevHeight;
-		}
-
-		public void SetLastAccessTimeForNow()
-		{
-			if (FilePath is { })
-			{
-				// Set the LastAccessTime.
-				new FileInfo(FilePath)
-				{
-					LastAccessTimeUtc = DateTime.UtcNow
-				};
-			}
-		}
-
-		public DateTime GetLastAccessTime()
-		{
-			if (FilePath is { })
-			{
-				// Set the LastAccessTime.
-				return new FileInfo(FilePath).LastAccessTimeUtc;
-			}
-			else
-			{
-				return DateTime.UtcNow;
-			}
 		}
 
 		#region BlockchainState

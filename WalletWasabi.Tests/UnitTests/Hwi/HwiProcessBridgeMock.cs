@@ -159,6 +159,20 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 						: "{\"address\": \"bc1qmaveee425a5xjkjcv7m6d4gth45jvtnj23fzyf\"}\r\n";
 				}
 			}
+			else if (CompareArguments(out bool _, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84h/1h/0h --addr-type wit", false))
+			{
+				if (Model is HardwareWalletModels.Trezor_T or HardwareWalletModels.Coldcard or HardwareWalletModels.Trezor_1 or HardwareWalletModels.Ledger_Nano_S or HardwareWalletModels.Ledger_Nano_X)
+				{
+					response = "{\"address\": \"tb1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7rtzlxy\"}\r\n";
+				}
+			}
+			else if (CompareArguments(out bool _, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84h/1h/0h/1 --addr-type wit", false))
+			{
+				if (Model is HardwareWalletModels.Trezor_T or HardwareWalletModels.Coldcard or HardwareWalletModels.Trezor_1 or HardwareWalletModels.Ledger_Nano_S or HardwareWalletModels.Ledger_Nano_X)
+				{
+					response = "{\"address\": \"tb1qmaveee425a5xjkjcv7m6d4gth45jvtnjqhj3l6\"}\r\n";
+				}
+			}
 
 			return response is null
 				? throw new NotImplementedException($"Mocking is not implemented for '{arguments}'.")
@@ -220,6 +234,14 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				else if (keyPath == "m/84h/0h/0h/1")
 				{
 					extPubKey = "xpub6FJS1ne3STcKdQ9JLXNzZXidmCNZ9dxLiy7WVvsRkcmxjJsrDKJKEAXq4MGyEBM3vHEw2buqXezfNK5SNBrkwK7Fxjz1TW6xzRr2pUyMWFu";
+				}
+				else if (keyPath == "m/84h/1h/0h")
+				{
+					extPubKey = "xpub6CaGC5LjEw1YWw8br7AURnB6ioJY2bEVApXh8NMsPQ9mdDbzN51iwVrnmGSof3MfjjRrntnE8mbYeTW5ywgvCXdjqF8meQEwnhPDQV2TW7c";
+				}
+				else if (keyPath == "m/84h/1h/0h/1")
+				{
+					extPubKey = "xpub6E7pup6CRRS5jM1r3HVYQhHwQHpddJALjRDbsVDtsnQJozHrfE8Pua2X5JhtkWCxdcmGhPXWxV7DoJtSgZSUvUy6cvDchVQt2RGEd4mD4FA";
 				}
 			}
 

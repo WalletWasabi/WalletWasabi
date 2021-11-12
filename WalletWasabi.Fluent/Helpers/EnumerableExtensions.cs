@@ -66,7 +66,7 @@ namespace WalletWasabi.Fluent.Helpers
 
 			var sourceArray = source.ToArray();
 
-			for (var i = sourceArray.Length - 1; i >= 0 ; i--)
+			for (var i = sourceArray.Length - 1; i >= 0; i--)
 			{
 				var currentItem = sourceArray[i];
 
