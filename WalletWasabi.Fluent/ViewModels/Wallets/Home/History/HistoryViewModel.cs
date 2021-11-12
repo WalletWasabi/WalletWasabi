@@ -155,21 +155,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				}
 				else
 				{
-					if (coinJoinGroup is { } cjg)
-					{
-						cjg.SetBalance(balance);
-						yield return cjg;
-						coinJoinGroup = null;
-					}
-
 					yield return new TransactionHistoryItemViewModel(i, item, _walletViewModel, balance, _updateTrigger);
 				}
-			}
 
-			if (coinJoinGroup is { })
-			{
-				coinJoinGroup.SetBalance(balance);
-				yield return coinJoinGroup;
+				if (coinJoinGroup is { } cjg &&
+				    (i + 1 < txRecordList.Count && !txRecordList[i + 1].IsLikelyCoinJoinOutput || // The next item is not CJ so add the group.
+				     i == txRecordList.Count - 1)) // There is no following item in the list so add the group.
+				{
+					cjg.SetBalance(balance);
+					yield return cjg;
+					coinJoinGroup = null;
+				}
 			}
 		}
 	}
