@@ -103,6 +103,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 
 			// The coordinator creates two rounds.
 			// Each line represents a response for each request.
+			// Exceptions, Problems, Errors everywhere!!!
 			var mockApiClient = new Mock<IWabiSabiApiRequestHandler>();
 			mockApiClient.SetupSequence(apiClient => apiClient.GetStatusAsync(It.IsAny<CancellationToken>()))
 				.ReturnsAsync(() => new[] { roundState with { Phase = Phase.InputRegistration } })
@@ -130,6 +131,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			Assert.Equal(TaskStatus.WaitingForActivation, roundORTask.Status);
 
 			// Force the RoundStatusUpdater to run again just to make it trigger the events.
+			// Lots of exceptions in the meanwhile
 			roundStatusUpdater.TriggerRound();
 			roundStatusUpdater.TriggerRound();
 			roundStatusUpdater.TriggerRound();
@@ -137,7 +139,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			roundStatusUpdater.TriggerRound();
 			await Task.Delay(TimeSpan.FromSeconds(1));
 
-			// Wait for round1 in input registration.
+			// But in the end everything is alright.
 			round = await roundORTask;
 			Assert.Equal(Phase.OutputRegistration, round.Phase);
 		}

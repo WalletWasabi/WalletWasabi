@@ -27,28 +27,16 @@ namespace WalletWasabi.WabiSabi.Client
 
 		protected override async Task ActionAsync(CancellationToken cancellationToken)
 		{
-			var success = false;
-			RoundState[] statusResponse = Array.Empty<RoundState>();
-			try
-			{
-				statusResponse = await ArenaRequestHandler.GetStatusAsync(cancellationToken).ConfigureAwait(false);
-				success = true;
-			}
-			finally
-			{
-				if (success)
-				{
-					RoundStates = statusResponse.ToDictionary(round => round.Id);
+			var statusResponse = await ArenaRequestHandler.GetStatusAsync(cancellationToken).ConfigureAwait(false);
+			RoundStates = statusResponse.ToDictionary(round => round.Id);
 
-					lock (AwaitersLock)
-					{
-						foreach (var awaiter in Awaiters.Where(awaiter => awaiter.IsCompleted(RoundStates)).ToArray())
-						{
-							// The predicate was fulfilled.
-							Awaiters.Remove(awaiter);
-							break;
-						}
-					}
+			lock (AwaitersLock)
+			{
+				foreach (var awaiter in Awaiters.Where(awaiter => awaiter.IsCompleted(RoundStates)).ToArray())
+				{
+					// The predicate was fulfilled.
+					Awaiters.Remove(awaiter);
+					break;
 				}
 			}
 		}
