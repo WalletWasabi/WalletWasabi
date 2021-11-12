@@ -18,6 +18,8 @@
     --green: #77C600;
     --gray: #9DA8AB;
     --blue: #002647;
+    --light-blue: #00BBC4;
+    --border-radius: 15px;
 }
 body {
     color: #fff;
@@ -38,7 +40,7 @@ p {
     font-weight: medium;
     line-height: 1.7em;
 }
-p a {
+p a, .list a {
     color: var(--green);
 }
 header {
@@ -496,7 +498,8 @@ footer .white-text {
 }
 .fixed-img img {
     width: 100%;
-    object-fit: contain;
+    height: 100vh;
+    object-fit: cover;
 }
 .content {
     position: relative;
@@ -533,7 +536,7 @@ footer .white-text {
 .support-box {
     background: rgb(226, 226, 226);
     background: linear-gradient(58deg, rgba(226, 226, 226, 1) 0%, rgba(232, 232, 232, 1) 19%, rgba(249, 249, 249, 1) 66%, rgba(255, 255, 255, 1) 100%);
-    border-radius: 15px;
+    border-radius: var(--border-radius);
     text-align: center;
     text-transform: uppercase;
     padding: 20px;
@@ -567,6 +570,7 @@ footer .white-text {
     position: absolute;
     background: url('../img/01_About_us.png') fixed no-repeat #fff;
     background-size: cover;
+    background-position: center center;
 }
 .about-cubes .cube:first-child {
     width: 13px;
@@ -614,6 +618,7 @@ footer .white-text {
     position: absolute;
     background: url('../img/05_wallet.png') fixed no-repeat #fff;
     background-size: cover;
+    background-position: center center;
 }
 .wallet-cubes .cube:first-child {
     width: 33px;
@@ -699,7 +704,7 @@ footer .white-text {
     width: 320px;
     height: 320px;
     padding: 40px 0;
-    border-radius: 15px;
+    border-radius: var(--border-radius);
     z-index: 1000;
     color: var(--black);
     text-align: center;
@@ -725,7 +730,7 @@ body:not(:hover) .exitpopup {
 .example-coinjoin {
     background: var(--black);
     color: #fff;
-    border-radius: 15px;
+    border-radius: var(--border-radius);
     padding: 20px;
     width: 100%;
     overflow-x: hidden;
@@ -793,6 +798,10 @@ body:not(:hover) .exitpopup {
     background-color: var(--green);
     border-color: var(--green);
 }
+.btn-primary:hover {
+    background-color: var(--light-blue);
+    border-color: var(--light-blue);
+}
 .donwload-icons svg {
     fill: #fff;
 }
@@ -802,21 +811,58 @@ body:not(:hover) .exitpopup {
 #download-mac, #download-windows, #download-linux, #download-other {
     padding: 20px;
 }
+.download-box {
+    -webkit-transition: all 0.5s ease-in-out;
+    -moz-transition: all 0.5s ease-in-out;
+    -ms-transition: all 0.5s ease-in-out;
+    -o-transition: all 0.5s ease-in-out;
+    transition: all 0.5s ease-in-out;
+}
+.download-box svg {
+    height: 40px;
+    width: 40px;
+    margin: 40px auto;
+}
+.download-box:hover {
+    background-color: rgb(73, 88, 107, 0.2);
+}
+.list {
+    line-height: 1.7em;
+    list-style: none;
+    margin: 20px 0;
+    padding: 0;
+    padding-left: 20px;
+}
+.list li {
+    margin: 15px 0;
+}
+.list li:before {
+    content: "\25A0";
+    color: var(--green);
+    font-weight: bold;
+    display: inline-block;
+    width: 1em;
+    margin-left: -1em;
+}
 #download-mac {
     border-bottom: 1px solid rgb(73, 88, 107);
     border-right: 1px solid rgb(73, 88, 107);
+    border-radius: var(--border-radius) 0 0 0;
 }
 #download-windows {
     border-bottom: 1px solid rgb(73, 88, 107);
     border-left: 1px solid rgb(73, 88, 107);
+    border-radius: 0 var(--border-radius) 0 0;
 }
 #download-linux {
     border-top: 1px solid rgb(73, 88, 107);
     border-right: 1px solid rgb(73, 88, 107);
+    border-radius: 0 0 0 var(--border-radius);
 }
 #download-other {
     border-top: 1px solid rgb(73, 88, 107);
     border-left: 1px solid rgb(73, 88, 107);
+    border-radius: 0 0 var(--border-radius) 0;
 }
 @media (min-width: 576px) {
     body {
