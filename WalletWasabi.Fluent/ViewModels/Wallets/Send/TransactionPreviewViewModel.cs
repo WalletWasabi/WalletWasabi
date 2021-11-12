@@ -190,8 +190,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				if (_info.MaximumPossibleFeeRate != FeeRate.Zero) // Overpayment happens again after the silent adjustment, now show an error.
 				{
-					await ShowErrorAsync("Transaction Building", "The transaction fee can't be higher than the payment amount. Wasabi will set the transaction fee to the highest possible.",
-						"Transaction fee has been adjusted");
+					await ShowErrorAsync("Warning!", "The transaction fee can not be higher than the payment amount. Wasabi has set the transaction fee to the highest possible.",
+						"The transaction fee has been adjusted");
 				}
 
 				var result = TrySetMaximumPossibleFee(ex.PercentageOfOverpayment, _wallet, _info);
