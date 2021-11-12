@@ -63,6 +63,15 @@
           "Avalonia.Xaml.Interactivity": "0.10.10"
         }
       },
+      "DataBox": {
+        "type": "Direct",
+        "requested": "[0.10.10-beta5, )",
+        "resolved": "0.10.10-beta5",
+        "contentHash": "W+cCvu7bqMVWGs1u0KbQKVbZb3c60Ic74tYR8ptX5qwa20KhjDiToGkMGVDDBhe+o7RVwsS0bud0KheNwMr6kg==",
+        "dependencies": {
+          "Avalonia": "0.10.10"
+        }
+      },
       "OpenCvSharp4": {
         "type": "Direct",
         "requested": "[4.5.2.20210404, )",
