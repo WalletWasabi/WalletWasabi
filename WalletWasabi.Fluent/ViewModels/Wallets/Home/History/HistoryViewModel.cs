@@ -137,13 +137,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 				balance += item.Amount;
 
-				if (item.IsLikelyCoinJoinOutput)
+				if (!item.IsLikelyCoinJoinOutput)
 				{
-					if (!item.IsConfirmed())
-					{
-						continue;
-					}
+					yield return new TransactionHistoryItemViewModel(i, item, _walletViewModel, balance, _updateTrigger);
+				}
 
+				if (item.IsLikelyCoinJoinOutput && item.IsConfirmed())
+				{
 					if (coinJoinGroup is null)
 					{
 						coinJoinGroup = new CoinJoinsHistoryItemViewModel(i, item);
@@ -152,10 +152,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 					{
 						coinJoinGroup.Add(item);
 					}
-				}
-				else
-				{
-					yield return new TransactionHistoryItemViewModel(i, item, _walletViewModel, balance, _updateTrigger);
 				}
 
 				if (coinJoinGroup is { } cjg &&
