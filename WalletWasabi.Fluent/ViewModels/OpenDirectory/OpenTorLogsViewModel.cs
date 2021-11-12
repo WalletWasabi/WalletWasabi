@@ -1,7 +1,3 @@
-using System.Windows.Input;
-using ReactiveUI;
-using WalletWasabi.Fluent.Helpers;
-
 namespace WalletWasabi.Fluent.ViewModels.OpenDirectory
 {
 	[NavigationMetaData(
@@ -14,9 +10,8 @@ namespace WalletWasabi.Fluent.ViewModels.OpenDirectory
 			"Browse", "Open", "Tor", "Logs"
 		},
 		IconName = "document_regular")]
-	public partial class OpenTorLogsViewModel : TriggerCommandViewModel
+	public partial class OpenTorLogsViewModel : OpenFileViewModel
 	{
-		public override ICommand TargetCommand =>
-			ReactiveCommand.Create(() => FileHelpers.OpenFileInTextEditorAsync(Services.TorSettings.LogFilePath));
+		public override string FilePath => Services.TorSettings.LogFilePath;
 	}
 }
