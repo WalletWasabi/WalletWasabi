@@ -48,7 +48,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			SubtractFee = default;
 			FeeRate = FeeRate.Zero;
-			MaximumPossibleFeeRate = FeeRate.Zero;
+			MaximumPossibleFeeRate = null;
 
 			if (Coins.Sum(x => x.Amount) < Amount) // Reset coins if the selected cluster is not enough for the new amount
 			{

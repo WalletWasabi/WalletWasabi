@@ -41,7 +41,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			NextCommand = ReactiveCommand.Create(() =>
 		   {
-			   _transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(FeeChart.CurrentConfirmationTarget);
+			   _transactionInfo.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(FeeChart.CurrentConfirmationTarget);
 
 			   Complete();
 		   });
@@ -95,7 +95,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					var blockTarget = GetBestBlockTarget(estimations, satPerByteThreshold, blockTargetThreshold);
 
 					FeeChart.CurrentConfirmationTarget = blockTarget;
-					_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(blockTarget);
+					_transactionInfo.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(blockTarget);
 
 					Complete();
 				}
@@ -117,13 +117,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 
 			return blockTargetThreshold;
-		}
-
-		public static TimeSpan CalculateConfirmationTime(double targetBlock)
-		{
-			var timeInMinutes = Math.Ceiling(targetBlock) * 10;
-			var time = TimeSpan.FromMinutes(timeInMinutes);
-			return time;
 		}
 	}
 }
