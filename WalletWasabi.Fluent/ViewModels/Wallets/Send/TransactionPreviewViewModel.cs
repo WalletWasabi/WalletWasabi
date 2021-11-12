@@ -234,20 +234,23 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			var currentFeeRate = transactionInfo.FeeRate;
 			var maxPossibleFeeRateInSatoshiPerByte = (currentFeeRate.SatoshiPerByte / percentageOfOverpayment) * 100;
-			transactionInfo.MaximumPossibleFeeRate = new FeeRate(maxPossibleFeeRateInSatoshiPerByte);
+			var maximumPossibleFeeRate = new FeeRate(maxPossibleFeeRateInSatoshiPerByte);
 
 			var feeChartViewModel = new FeeChartViewModel();
 			feeChartViewModel.UpdateFeeEstimates(TransactionFeeHelper.GetFeeEstimates(wallet));
 
-			var blockTarget = feeChartViewModel.GetConfirmationTarget(transactionInfo.MaximumPossibleFeeRate);
-			transactionInfo.FeeRate = new FeeRate(feeChartViewModel.GetSatoshiPerByte(blockTarget));
+			var blockTarget = feeChartViewModel.GetConfirmationTarget(maximumPossibleFeeRate);
+			var newFeeRate = new FeeRate(feeChartViewModel.GetSatoshiPerByte(blockTarget));
 
-			if (transactionInfo.FeeRate > transactionInfo.MaximumPossibleFeeRate)
+			if (newFeeRate > maximumPossibleFeeRate)
 			{
 				return false;
 			}
 
 			transactionInfo.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(blockTarget);
+			transactionInfo.FeeRate = newFeeRate;
+			transactionInfo.MaximumPossibleFeeRate = maximumPossibleFeeRate;
+
 			return true;
 		}
 
