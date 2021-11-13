@@ -91,68 +91,21 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 		private async Task BroadcastTransactionToBackendAsync(SmartTransaction transaction)
 		{
 			Logger.LogInfo("Broadcasting with backend...");
-
-			if (Synchronizer is null)
-			{
-				Logger.LogInfo($"{nameof(Synchronizer)} is null, suspect found.");
-			}
-			else if (Synchronizer.WasabiClient is null)
-			{
-				Logger.LogInfo($"{nameof(Synchronizer.WasabiClient)} is null, suspect found.");
-			}
-			else if (Synchronizer.WasabiClient.TorClient is null)
-			{
-				Logger.LogInfo($"{nameof(Synchronizer.WasabiClient.TorClient)} is null, suspect found.");
-			}
-
 			using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
 			{
 				try
 				{
-					if (client is null)
-					{
-						Logger.LogInfo($"{nameof(client)} is null, suspect found.");
-					}
-
 					await client.BroadcastAsync(transaction).ConfigureAwait(false);
-				}
-				catch (HttpRequestException ex2) when (ex2.Message is null)
-				{
-					Logger.LogInfo($"{nameof(ex2.Message)} is null, suspect found.");
 				}
 				catch (HttpRequestException ex2) when (ex2.Message.Contains("bad-txns-inputs-missingorspent", StringComparison.InvariantCultureIgnoreCase)
 					|| ex2.Message.Contains("missing-inputs", StringComparison.InvariantCultureIgnoreCase)
 					|| ex2.Message.Contains("txn-mempool-conflict", StringComparison.InvariantCultureIgnoreCase))
 				{
-					if (transaction is null)
-					{
-						Logger.LogInfo($"{nameof(transaction)} is null, suspect found.");
-					}
-					else if (transaction.Transaction is null)
-					{
-						Logger.LogInfo($"{nameof(transaction.Transaction)} is null, suspect found.");
-					}
-					else if (transaction.Transaction.Inputs is null)
-					{
-						Logger.LogInfo($"{nameof(transaction.Transaction.Inputs)} is null, suspect found.");
-					}
-
 					if (transaction.Transaction.Inputs.Count == 1) // If we tried to only spend one coin, then we can mark it as spent. If there were more coins, then we do not know.
 					{
 						OutPoint input = transaction.Transaction.Inputs.First().PrevOut;
-
-						if (WalletManager is null)
-						{
-							Logger.LogInfo($"{nameof(WalletManager)} is null, suspect found.");
-						}
-
 						foreach (var coin in WalletManager.CoinsByOutPoint(input))
 						{
-							if (coin is null)
-							{
-								Logger.LogInfo($"{nameof(coin)} is null, suspect found.");
-							}
-
 							coin.SpentAccordingToBackend = true;
 						}
 					}

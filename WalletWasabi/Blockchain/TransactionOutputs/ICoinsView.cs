@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using NBitcoin;
 using WalletWasabi.Models;
 
@@ -37,6 +38,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		ICoinsView Unspent();
 
-		SmartCoin GetByOutPoint(OutPoint outpoint);
+		bool TryGetByOutPoint(OutPoint outpoint, [NotNullWhen(true)] out SmartCoin? coin);
 	}
 }
