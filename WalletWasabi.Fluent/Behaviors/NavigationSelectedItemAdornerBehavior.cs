@@ -1,22 +1,17 @@
 using System;
-using System.Linq;
 using System.Reactive.Disposables;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using Avalonia.Threading;
-using Avalonia.VisualTree;
-using Avalonia.Xaml.Interactions.Draggable;
-using Microsoft.AspNetCore.Components.Forms;
-using NBitcoin.OpenAsset;
-using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
 public class NavBarSelectedIndicatorParentBehavior : AttachedToVisualTreeBehavior<Control>
 {
+	public readonly CompositeDisposable disposables = new();
+
 	public static readonly AttachedProperty<NavBarSelectedIndicatorState>
 		ParentStateProperty =
 			AvaloniaProperty.RegisterAttached<Control, Control, NavBarSelectedIndicatorState>("ParentState",
@@ -35,18 +30,24 @@ public class NavBarSelectedIndicatorParentBehavior : AttachedToVisualTreeBehavio
 	protected override void OnAttachedToVisualTree()
 	{
 		var k = new NavBarSelectedIndicatorState();
+
 		SetParentState(AssociatedObject, k);
-		var z = new TestAdorner(AssociatedObject);
+
+		var z = new NavBarSelectionIndicatorAdorner(AssociatedObject);
 		Dispatcher.UIThread.Post(z.InvalidateVisual, DispatcherPriority.Loaded);
+		disposables.Add(k);
+		disposables.Add(z);
+
+		AssociatedObject.DetachedFromVisualTree += delegate { disposables.Dispose(); };
 	}
 }
 
-public class TestAdorner : Control, IDisposable
+public class NavBarSelectionIndicatorAdorner : Control, IDisposable
 {
 	private readonly AdornerLayer _layer;
 	private readonly Control _target;
 
-	public TestAdorner(Control element)
+	public NavBarSelectionIndicatorAdorner(Control element)
 	{
 		_target = element;
 		_layer = AdornerLayer.GetAdornerLayer(_target);
@@ -64,7 +65,6 @@ public class TestAdorner : Control, IDisposable
 
 	public override void Render(DrawingContext context)
 	{
-
 		Rect adornedElementRect = _target.Bounds;
 
 		var renderBrush = new SolidColorBrush(Colors.Green)
@@ -75,7 +75,6 @@ public class TestAdorner : Control, IDisposable
 		var renderRadius = 5.0;
 
 		context.DrawRectangle(renderBrush, renderPen, adornedElementRect);
-
 	}
 
 	public void Dispose()
