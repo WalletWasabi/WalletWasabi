@@ -9,11 +9,15 @@
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.NavBar"
              xmlns:vmw="using:WalletWasabi.Fluent.ViewModels.Wallets"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              x:DataType="vm:NavBarViewModel"
              x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="280" d:DesignHeight="459"
              x:Class="WalletWasabi.Fluent.Views.NavBar.NavBar" UseLayoutRounding="False"
              Name="NavBarUserControl">
+  <i:Interaction.Behaviors>
+    <behaviors:NavBarSelectedIndicatorParentBehavior/>
+  </i:Interaction.Behaviors>
   <UserControl.Styles>
     <Style Selector="PathIcon">
       <Setter Property="Margin" Value="13 0 0 0" />
