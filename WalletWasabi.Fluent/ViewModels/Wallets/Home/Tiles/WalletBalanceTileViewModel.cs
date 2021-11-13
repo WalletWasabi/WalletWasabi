@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
@@ -9,6 +10,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Wallets;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
@@ -26,6 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _recentTransactionDate;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _recentTransactionStatus;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _showRecentTransaction;
+		[AutoNotify] private double _percentPrivate;
 
 		public WalletBalanceTileViewModel(Wallet wallet, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModelBase> history)
 		{
@@ -60,11 +63,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			var privateCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold);
 			var normalCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold);
 
-			BalancePrivateBtc = privateCoins.TotalAmount().ToDecimal(MoneyUnit.BTC)
+			var privateDecimalAmount = privateCoins.TotalAmount();
+			var totalDecimalAmount = _wallet.Coins.TotalAmount();
+
+			BalancePrivateBtc = privateDecimalAmount
 				.FormattedBtc() + " BTC";
 
 			BalanceNonPrivateBtc = normalCoins.TotalAmount().ToDecimal(MoneyUnit.BTC)
 				.FormattedBtc() + " BTC";
+
+			PercentPrivate = totalDecimalAmount.ToDecimal(MoneyUnit.BTC) == 0M ? 0d : (double)(privateDecimalAmount.ToDecimal(MoneyUnit.BTC) / totalDecimalAmount.ToDecimal(MoneyUnit.BTC));
 		}
 
 		private void UpdateRecentTransaction()

@@ -33,7 +33,7 @@ sudo service nginx start
 rm -rf WalletWasabi/WalletWasabi.Backend/bin && dotnet publish ~/WalletWasabi/WalletWasabi.Backend --configuration Release --self-contained false
 sudo systemctl start walletwasabi.service
 echo -n 'Tor: '; systemctl is-active tor; echo -n 'Wasabi: '; systemctl is-active walletwasabi; echo -n 'Bitcoind: '; ps -C bitcoind >/dev/null && echo "active" || echo "incative";
-tail -200 ~/.walletwasabi/backend/Logs.txt
+tail -200 /home/user/.walletwasabi/backend/Logs.txt
 
 # Advanced status checks
 systemctl status nginx
@@ -539,4 +539,10 @@ For example, if your website is `https://www.wasabiwallet.co`, type `wasabiwalle
 3. Replace the current/default nameserver records in your registrar account with the information you copied from Cloudflare
 4. Wait some hours (max 24) while your registrar updates your nameservers and the DNS propagates
 You will receive an email when your site is active on Cloudflare
+
+## DEBUG
+
+- Find PID `ps aufx | grep 'WalletWasabi.Backend`
+- Creating a core dump: `dotnet dump collect -p 21600`
+- Cound threads for dotnet process `pstree -tpl 21600 | wc -l` usually around 109
 

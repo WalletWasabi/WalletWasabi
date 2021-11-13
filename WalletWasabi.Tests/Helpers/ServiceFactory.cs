@@ -46,7 +46,7 @@ namespace WalletWasabi.Tests.Helpers
 		}
 
 		public static KeyManager CreateKeyManager(string password = "blahblahblah")
-			=> KeyManager.CreateNew(out var _, password);
+			=> KeyManager.CreateNew(out var _, password, Network.Main);
 
 		public static KeyManager CreateWatchOnlyKeyManager()
 			=> KeyManager.CreateNewWatchOnly(new Mnemonic(Wordlist.English, WordCount.Twelve).DeriveExtKey().Neuter());

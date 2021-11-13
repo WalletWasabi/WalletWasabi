@@ -28,10 +28,10 @@ namespace WalletWasabi.Helpers
 			var extPubKey = await client.GetXpubAsync(
 				device.Model,
 				device.Path,
-				KeyManager.DefaultAccountKeyPath,
+				KeyManager.GetAccountKeyPath(network),
 				genCts.Token).ConfigureAwait(false);
 
-			return KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, extPubKey, walletFilePath);
+			return KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, extPubKey, network, walletFilePath);
 		}
 
 		public static async Task InitHardwareWalletAsync(HwiEnumerateEntry device, Network network, CancellationToken cancelToken)

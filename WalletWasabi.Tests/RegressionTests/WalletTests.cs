@@ -120,7 +120,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		{
 			(string password, IRPCClient rpc, Network network, _, _, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
-			var keyManager = KeyManager.CreateNew(out _, password);
+			var keyManager = KeyManager.CreateNew(out _, password, network);
 
 			// Mine some coins, make a few bech32 transactions then make it confirm.
 			await rpc.GenerateAsync(1);
@@ -243,7 +243,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			HybridFeeProvider feeProvider = new(synchronizer, null);
 
 			// 3. Create key manager service.
-			var keyManager = KeyManager.CreateNew(out _, password);
+			var keyManager = KeyManager.CreateNew(out _, password, network);
 
 			// 4. Create wallet service.
 			var workDir = Helpers.Common.GetWorkDir();

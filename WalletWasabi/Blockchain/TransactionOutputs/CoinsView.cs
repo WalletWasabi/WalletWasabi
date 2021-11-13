@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Helpers;
@@ -70,7 +71,18 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			return new CoinsView(smartCoins);
 		}
 
-		public SmartCoin GetByOutPoint(OutPoint outpoint) => Coins.FirstOrDefault(x => x.OutPoint == outpoint);
+		public bool TryGetByOutPoint(OutPoint outpoint, [NotNullWhen(true)] out SmartCoin? coin)
+		{
+			coin = Coins.FirstOrDefault(x => x.OutPoint == outpoint);
+			if (coin is null)
+			{
+				return false;
+			}
+			else
+			{
+				return true;
+			}
+		}
 
 		public Money TotalAmount() => Coins.Sum(x => x.Amount);
 

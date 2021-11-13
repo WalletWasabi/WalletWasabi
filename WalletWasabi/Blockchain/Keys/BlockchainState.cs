@@ -21,6 +21,10 @@ namespace WalletWasabi.Blockchain.Keys
 			Height = 0;
 		}
 
+		public BlockchainState(Network network) : this(network, 0)
+		{
+		}
+
 		[JsonProperty]
 		[JsonConverter(typeof(NetworkJsonConverter))]
 		public Network Network { get; set; }
