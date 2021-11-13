@@ -134,7 +134,7 @@ namespace WalletWasabi.Fluent.Controls
 				var lastAngle = StartAngle;
 				var lastData = 0d;
 
-				foreach (var dataPoint in DataPoints.OrderBy(x => x.PercentShare))
+				foreach (var dataPoint in DataPoints)
 				{
 					var brush = new ImmutableSolidColorBrush(Color.Parse(dataPoint.ColorHex));
 
