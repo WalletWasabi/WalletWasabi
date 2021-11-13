@@ -37,9 +37,20 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				Interval = TimeSpan.FromSeconds(30)
 			};
 
+			DispatcherTimer.Run(() =>
+			{
+				Update();
+				return true;
+			}, TimeSpan.FromSeconds(1));
+
 			_animationTimer.Tick += (sender, args) =>
 			{
 				ShowBoostingAnimation = !ShowBoostingAnimation;
+
+				if (!ShowBoostingAnimation)
+				{
+					Update();
+				}
 
 				_animationTimer.Interval = ShowBoostingAnimation ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
 			};
@@ -125,12 +136,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			var privateAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
 			var normalAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold).TotalAmount();
 
+			var queued = _wallet.Coins.FilterBy(x => x.CoinJoinInProgress).TotalAmount().ToDecimal(MoneyUnit.BTC);
+
 			var privateDecimalAmount = privateAmount.ToDecimal(MoneyUnit.BTC);
 			var normalDecimalAmount = normalAmount.ToDecimal(MoneyUnit.BTC);
 			var totalDecimalAmount = privateDecimalAmount + normalDecimalAmount;
 
 			var pcPrivate = totalDecimalAmount == 0M ? 0d : (double)(privateDecimalAmount / totalDecimalAmount);
-			var pcNormal = 1 - pcPrivate;
+			var pcQueued = totalDecimalAmount == 0M ? 0d : (double)(queued / totalDecimalAmount);
+			var pcNormal = 1 - pcPrivate - pcQueued;
 
 			PercentText = $"{pcPrivate:P}";
 
@@ -139,6 +153,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			TestDataPoints = new List<(string, double)>
 			{
 				("#78A827", pcPrivate),
+				("#DDA73E", pcQueued),
 				("#D8DED7", pcNormal)
 			};
 
