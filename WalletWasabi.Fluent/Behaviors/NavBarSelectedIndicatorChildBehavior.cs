@@ -34,12 +34,12 @@ namespace WalletWasabi.Fluent.Behaviors
 
 		public static Control GetNavBarItemParent(Control element)
 		{
-			return element.GetValue(NavBarItemParentProperty);
+			return element?.GetValue(NavBarItemParentProperty) ?? null;
 		}
 
 		public static void SetNavBarItemParent(Control element, Control value)
 		{
-			element.SetValue(NavBarItemParentProperty, value);
+			element?.SetValue(NavBarItemParentProperty, value);
 		}
 
 

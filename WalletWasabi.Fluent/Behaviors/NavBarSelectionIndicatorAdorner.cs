@@ -80,6 +80,11 @@ namespace WalletWasabi.Fluent.Behaviors
 			var prevVector = previousIndicator.TranslatePoint(new Point(), this) ?? new Point();
 			var nextVector = nextIndicator.TranslatePoint(new Point(), this) ?? new Point();
 
+
+			newRect.IsVisible = true;
+			nextIndicator.Opacity = 0;
+			previousIndicator.Opacity = 0;
+
 			newRect.Width = previousIndicator.Bounds.Width;
 			newRect.Height = previousIndicator.Bounds.Height;
 			newRect.Fill = previousIndicator.Fill;
@@ -187,6 +192,12 @@ namespace WalletWasabi.Fluent.Behaviors
 			catch (OperationCanceledException)
 			{
 			}
+
+
+
+			newRect.IsVisible = false;
+			nextIndicator.Opacity = 1;
+			previousIndicator.Opacity = 0;
 
 			SetLeft(newRect, nextVector.X);
 			SetTop(newRect, nextVector.Y);
