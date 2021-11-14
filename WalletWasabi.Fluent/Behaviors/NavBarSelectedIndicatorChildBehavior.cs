@@ -3,6 +3,7 @@ using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
+using Avalonia.Threading;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.Behaviors;
@@ -69,23 +70,28 @@ public class NavBarSelectedIndicatorChildBehavior : AttachedToVisualTreeBehavior
 			return;
 		}
 
-		if (parent.Classes.Contains(":selected"))
+		Dispatcher.UIThread.Post(() =>
 		{
-			GetSharedState.PreviousIndicator = AssociatedObject;
-		}
-
-		AssociatedObject.GetPropertyChangedObservable(IsSelectedProperty)
-			.DistinctUntilChanged()
-			.Subscribe(x =>
+			if (parent.Classes.Contains(":selected"))
 			{
-				var parent = GetNavBarItemParent(AssociatedObject);
+				GetSharedState.PreviousIndicator = AssociatedObject;
+				GetSharedState.AdornerControl.InitialFix(AssociatedObject);
+			}
 
-				if ((bool)x.NewValue && (GetNavBarItemParent(AssociatedObject)?.Classes.Contains(":selected") ?? false))
+			AssociatedObject.GetPropertyChangedObservable(IsSelectedProperty)
+				.DistinctUntilChanged()
+				.Subscribe(x =>
 				{
-					GetSharedState.Animate(AssociatedObject);
-				}
-			});
+					var parent = GetNavBarItemParent(AssociatedObject);
 
-		AssociatedObject.Opacity = 0;
+					if ((bool)x.NewValue &&
+					    (GetNavBarItemParent(AssociatedObject)?.Classes.Contains(":selected") ?? false))
+					{
+						GetSharedState.Animate(AssociatedObject);
+					}
+				});
+
+			AssociatedObject.Opacity = 0;
+		}, DispatcherPriority.Loaded);
 	}
 }

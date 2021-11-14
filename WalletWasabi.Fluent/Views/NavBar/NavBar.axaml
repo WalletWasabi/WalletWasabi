@@ -203,9 +203,6 @@
     </StackPanel>
     <!-- Items List -->
     <DockPanel Background="Transparent">
-      <i:Interaction.Behaviors>
-        <behaviors:NavBarSelectedIndicatorParentBehavior/>
-      </i:Interaction.Behaviors>
 
       <TextBlock Classes="headerText" DockPanel.Dock="Top" Text="Wallets" IsVisible="{Binding IsOpen}" />
       <c:NavBarListBox Items="{Binding Wallets}"
@@ -214,6 +211,10 @@
                        Classes="vertical draggable narrowItemPadding"
                        RenderTransformOrigin="0%,50%"
                        VerticalAlignment="Stretch">
+
+        <i:Interaction.Behaviors>
+          <behaviors:NavBarSelectedIndicatorParentBehavior/>
+        </i:Interaction.Behaviors>
 
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">

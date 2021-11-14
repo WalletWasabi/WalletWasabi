@@ -48,11 +48,8 @@ public class NavBarSelectedIndicatorState : IDisposable
 
 		var root = PreviousIndicator.GetVisualAncestors().OfType<VisualLayerManager>().FirstOrDefault();
 
-		var prevVector = PreviousIndicator.TranslatePoint(new Point(), root) ?? new Point();
-		var nextVector = NextIndicator.TranslatePoint(new Point(), root) ?? new Point();
-
 		_currentAnimationCts?.Cancel();
-		AdornerControl.AnimateIndicators(PreviousIndicator, prevVector, NextIndicator, nextVector,
+		AdornerControl.AnimateIndicators(PreviousIndicator, NextIndicator,
 			_currentAnimationCts.Token, NavItemsOrientation);
 		_currentAnimationCts = new();
 
