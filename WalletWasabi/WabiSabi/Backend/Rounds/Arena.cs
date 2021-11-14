@@ -19,7 +19,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 {
 	public partial class Arena : PeriodicRunner
 	{
-		public Arena(TimeSpan period, Network network, WabiSabiConfig config, IRPCClient rpc, Prison prison, CoinJoinTransactionArchiver? archiver = null) : base(period)
+		public Arena(
+			TimeSpan period,
+			Network network,
+			WabiSabiConfig config,
+			IRPCClient rpc,
+			Prison prison,
+			CoinJoinTransactionArchiver? archiver = null) : base(period)
 		{
 			Network = network;
 			Config = config;
@@ -37,8 +43,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		private Prison Prison { get; }
 		private SecureRandom Random { get; }
 		private CoinJoinTransactionArchiver? TransactionArchiver { get; }
-
-		public IEnumerable<Round> ActiveRounds => Rounds.Where(x => x.Phase != Phase.Ended);
 
 		protected override async Task ActionAsync(CancellationToken cancel)
 		{
