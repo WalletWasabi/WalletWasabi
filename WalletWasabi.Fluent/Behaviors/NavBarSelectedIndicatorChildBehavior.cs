@@ -80,12 +80,17 @@ public class NavBarSelectedIndicatorChildBehavior : AttachedToVisualTreeBehavior
 
 			AssociatedObject.GetPropertyChangedObservable(IsSelectedProperty)
 				.DistinctUntilChanged()
+				.Select(x => (bool)x.NewValue)
 				.Subscribe(x =>
 				{
 					var parent = GetNavBarItemParent(AssociatedObject);
 
-					if ((bool)x.NewValue &&
-					    (GetNavBarItemParent(AssociatedObject)?.Classes.Contains(":selected") ?? false))
+					if (parent is null)
+					{
+						return;
+					}
+
+					if (x && parent.Classes.Contains(":selected"))
 					{
 						GetSharedState.Animate(AssociatedObject);
 					}
