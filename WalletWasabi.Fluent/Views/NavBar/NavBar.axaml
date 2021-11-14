@@ -15,9 +15,6 @@
              mc:Ignorable="d" d:DesignWidth="280" d:DesignHeight="459"
              x:Class="WalletWasabi.Fluent.Views.NavBar.NavBar" UseLayoutRounding="False"
              Name="NavBarUserControl">
-  <i:Interaction.Behaviors>
-    <behaviors:NavBarSelectedIndicatorParentBehavior/>
-  </i:Interaction.Behaviors>
   <UserControl.Styles>
     <Style Selector="PathIcon">
       <Setter Property="Margin" Value="13 0 0 0" />
@@ -134,7 +131,7 @@
       <c:NavBarListBox Items="{Binding TopItems}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                        Name="TopListBox"
-                       Classes="vertical">
+                       Classes="vertical">z
         <c:NavBarListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:NavBarItemViewModel" x:CompileBindings="False">
             <Panel>
@@ -159,6 +156,7 @@
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                        Classes="horizontal"
                        Name="BottomListBox">
+
         <i:Interaction.Behaviors>
           <ia:DataTriggerBehavior Binding="{Binding IsOpen}" ComparisonCondition="Equal" Value="True">
             <iac:AddClassAction StyledElement="{Binding #BottomListBox}" ClassName="horizontal" RemoveIfExists="True" />
@@ -205,6 +203,10 @@
     </StackPanel>
     <!-- Items List -->
     <DockPanel Background="Transparent">
+      <i:Interaction.Behaviors>
+        <behaviors:NavBarSelectedIndicatorParentBehavior/>
+      </i:Interaction.Behaviors>
+
       <TextBlock Classes="headerText" DockPanel.Dock="Top" Text="Wallets" IsVisible="{Binding IsOpen}" />
       <c:NavBarListBox Items="{Binding Wallets}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
@@ -212,6 +214,7 @@
                        Classes="vertical draggable narrowItemPadding"
                        RenderTransformOrigin="0%,50%"
                        VerticalAlignment="Stretch">
+
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">
 
@@ -255,6 +258,8 @@
                   <PathIcon HorizontalAlignment="Left" Data="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
                   <Ellipse Fill="{StaticResource OrangeCoinColor}" Width="9" Height="9" Margin="15,0,0,-13" IsVisible="{Binding IsLoggedIn}" />
                 </Panel>
+
+
 
                 <!-- Title & status text -->
                 <DockPanel Margin="10 0 15 0" DockPanel.Dock="Left" VerticalAlignment="Center">
