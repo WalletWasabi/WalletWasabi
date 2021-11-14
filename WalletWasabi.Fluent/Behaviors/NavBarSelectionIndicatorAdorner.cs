@@ -179,7 +179,14 @@ namespace WalletWasabi.Fluent.Behaviors
 				}
 			};
 
-			await Task.WhenAll(z.RunAsync(newRect, null), g.RunAsync(newRect, null)).WithAwaitCancellationAsync(token);
+			try
+			{
+				await Task.WhenAll(z.RunAsync(newRect, null), g.RunAsync(newRect, null))
+					.WithAwaitCancellationAsync(token);
+			}
+			catch (OperationCanceledException)
+			{
+			}
 
 			SetLeft(newRect, nextVector.X);
 			SetTop(newRect, nextVector.Y);
