@@ -1,6 +1,7 @@
 using System;
 using System.Reactive.Disposables;
 using System.Threading;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
@@ -8,12 +9,13 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Layout;
+using Avalonia.Media;
+using Avalonia.Styling;
 using Avalonia.Threading;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Behaviors
 {
-
 	public class NavBarSelectionIndicatorAdorner : Canvas, IDisposable
 	{
 		private CompositeDisposable disposables = new();
@@ -37,8 +39,6 @@ namespace WalletWasabi.Fluent.Behaviors
 				return;
 			}
 
-			Dispatcher.UIThread.Post(InvalidateVisual, DispatcherPriority.Loaded);
-
 			_sharedState.AdornerControl = this;
 
 			_layer.Children.Add(this);
@@ -58,22 +58,6 @@ namespace WalletWasabi.Fluent.Behaviors
 					Margin = new Thickness(prevVector.X, prevVector.Y, 0, 0);
 				})
 				.DisposeWith(disposables);
-
-			newRect.Transitions = new()
-			{
-				new DoubleTransition
-				{
-					Property = Canvas.LeftProperty,
-					Duration = TimeSpan.FromSeconds(1),
-					Easing = new SplineEasing(0.1, 0.9, 0.2, 1)
-				},
-				new DoubleTransition
-				{
-					Property = Canvas.TopProperty,
-					Duration = TimeSpan.FromSeconds(1),
-					Easing = new SplineEasing(0.1, 0.9, 0.2, 1)
-				}
-			};
 		}
 
 		private Rect bounds;
@@ -84,7 +68,8 @@ namespace WalletWasabi.Fluent.Behaviors
 			_layer?.Children.Remove(this);
 		}
 
-		public void AnimateIndicators(Rectangle previousIndicator, Rectangle nextIndicator, CancellationToken token,
+		public async void AnimateIndicators(Rectangle previousIndicator, Rectangle nextIndicator,
+			CancellationToken token,
 			Orientation navItemsOrientation)
 		{
 			if (_isDispose)
@@ -92,10 +77,110 @@ namespace WalletWasabi.Fluent.Behaviors
 				return;
 			}
 
+			var prevVector = previousIndicator.TranslatePoint(new Point(), this) ?? new Point();
 			var nextVector = nextIndicator.TranslatePoint(new Point(), this) ?? new Point();
+
 			newRect.Width = previousIndicator.Bounds.Width;
 			newRect.Height = previousIndicator.Bounds.Height;
 			newRect.Fill = previousIndicator.Fill;
+
+			var timebase = TimeSpan.FromSeconds(1.2);
+			var fromTopToBottom = prevVector.Y > nextVector.Y;
+
+			var fwdEasing = new SplineEasing(0.1, 0.9, 0.2, 1);
+			var bckEasing = new SplineEasing(0.1, 0.9, 0.2, 1);
+
+			var curEasing = fromTopToBottom ? fwdEasing : bckEasing;
+
+			RelativePoint initRO, endRO;
+
+			double totalNewHeight, maxScale;
+
+			if (fromTopToBottom)
+			{
+				initRO = RelativePoint.Parse("50%, 0%");
+				endRO = RelativePoint.Parse("50%, 100%");
+
+				totalNewHeight = Math.Abs(nextVector.Y - prevVector.Y);
+			}
+			else
+			{
+				initRO = RelativePoint.Parse("50%, 100%");
+				endRO = RelativePoint.Parse("50%, 0%");
+
+				totalNewHeight = Math.Abs(prevVector.Y - nextVector.Y);
+			}
+
+			// totalNewHeight += nextIndicator.Bounds.Height;
+
+			maxScale = totalNewHeight / nextIndicator.Bounds.Height;
+
+			var g = new Animation()
+			{
+				Easing = curEasing,
+				Duration = timebase,
+				Children =
+				{
+					new KeyFrame
+					{
+						Cue = new Cue(0d),
+						Setters =
+						{
+							// new Setter(RotateTransform.AngleProperty, fromTopToBottom ? 0 : 180),
+							new Setter(RenderTransformOriginProperty, initRO),
+							new Setter(ScaleTransform.ScaleYProperty, 1d),
+						}
+					},
+					new KeyFrame
+					{
+						Cue = new Cue(0.33d),
+						Setters =
+						{
+							new Setter(ScaleTransform.ScaleYProperty, maxScale),
+						}
+					},
+					new KeyFrame
+					{
+						Cue = new Cue(1d),
+						Setters =
+						{
+							// new Setter(RotateTransform.AngleProperty, fromTopToBottom ? 0 : 180),
+							new Setter(RenderTransformOriginProperty, endRO),
+							new Setter(ScaleTransform.ScaleYProperty, 1d),
+						}
+					}
+				}
+			};
+
+			var z = new Animation()
+			{
+				Easing = curEasing,
+				Duration = timebase,
+				Children =
+				{
+					new KeyFrame
+					{
+						Cue = new Cue(0d),
+						Setters =
+						{
+							new Setter(LeftProperty, prevVector.X),
+							new Setter(TopProperty, prevVector.Y),
+						}
+					},
+					new KeyFrame
+					{
+						Cue = new Cue(1d),
+						Setters =
+						{
+							new Setter(LeftProperty, nextVector.X),
+							new Setter(TopProperty, nextVector.Y),
+						}
+					}
+				}
+			};
+
+			await Task.WhenAll(z.RunAsync(newRect, null), g.RunAsync(newRect, null)).WithAwaitCancellationAsync(token);
+
 			SetLeft(newRect, nextVector.X);
 			SetTop(newRect, nextVector.Y);
 		}

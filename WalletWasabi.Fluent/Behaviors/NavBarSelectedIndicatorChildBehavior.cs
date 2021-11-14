@@ -82,6 +82,7 @@ namespace WalletWasabi.Fluent.Behaviors
 				AssociatedObject.GetPropertyChangedObservable(IsSelectedProperty)
 					.DistinctUntilChanged()
 					.Select(x => (bool)x.NewValue)
+					.ObserveOn(AvaloniaScheduler.Instance)
 					.Subscribe(x =>
 					{
 						var parent = GetNavBarItemParent(AssociatedObject);

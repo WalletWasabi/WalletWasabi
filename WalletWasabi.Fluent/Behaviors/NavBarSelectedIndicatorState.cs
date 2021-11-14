@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Layout;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 
 namespace WalletWasabi.Fluent.Behaviors
@@ -42,12 +43,11 @@ namespace WalletWasabi.Fluent.Behaviors
 				return;
 			}
 
-			var root = PreviousIndicator.GetVisualAncestors().OfType<VisualLayerManager>().FirstOrDefault();
-
 			_currentAnimationCts?.Cancel();
+			_currentAnimationCts = new();
+
 			AdornerControl.AnimateIndicators(PreviousIndicator, NextIndicator,
 				_currentAnimationCts.Token, NavItemsOrientation);
-			_currentAnimationCts = new();
 
 			PreviousIndicator = NextIndicator;
 		}
