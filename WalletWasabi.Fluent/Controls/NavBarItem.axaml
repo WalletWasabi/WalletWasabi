@@ -47,7 +47,7 @@
         </id:BehaviorCollection>
       </id:BehaviorCollectionTemplate>
     </Setter>
-    <Setter Property="(behaviors:NavBarSelectedIndicatorChildBehavior.IsSelected)" Value="False"/>
+    <Setter Property="Opacity" Value="0"/>
     <Setter Property="(behaviors:NavBarSelectedIndicatorChildBehavior.NavBarItemParent)" Value="{Binding $parent[c:NavBarItem], Mode=OneWay}"/>
   </Style>
 
@@ -66,10 +66,8 @@
   </Style>
 
   <Style Selector="c|NavBarItem /template/ Rectangle#SelectionIndicator">
+    <Setter Property="Opacity" Value="0"/>
     <Setter Property="Fill" Value="{DynamicResource NavBarAccentColor}" />
-    <Setter Property="Opacity" Value="0" />
-    <Setter Property="RenderTransformOrigin" Value="50%,0%" />
-    <Setter Property="RenderTransform" Value="scaleY(0)" />
   </Style>
 
   <Style Selector="c|NavBarItem /template/ ContentPresenter#PART_ContentPresenter">
@@ -89,6 +87,7 @@
 
   <!-- Pressed State -->
   <Style Selector="c|NavBarItem:pressed /template/ Rectangle#SelectionIndicator">
+    <Setter Property="Opacity" Value="1"/>
     <Setter Property="Fill" Value="{DynamicResource NavBarItemPressedAccentColor}" />
   </Style>
   <Style Selector="c|NavBarItem:pressed /template/ ContentPresenter#PART_ContentPresenter">
@@ -100,9 +99,7 @@
 
   <!-- Selected State -->
   <Style Selector="c|NavBarItem:selected /template/ Rectangle#SelectionIndicator">
-    <Setter Property="Opacity" Value="1" />
-    <Setter Property="RenderTransformOrigin" Value="50%,100%" />
-    <Setter Property="RenderTransform" Value="scaleY(1)" />
+    <Setter Property="Opacity" Value="1"/>
     <Setter Property="(behaviors:NavBarSelectedIndicatorChildBehavior.IsSelected)" Value="True"/>
   </Style>
   <Style Selector="c|NavBarItem:selected /template/ ContentPresenter#PART_ContentPresenter">
