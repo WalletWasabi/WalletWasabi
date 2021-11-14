@@ -6,97 +6,99 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Threading;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.Fluent.Behaviors;
-
-public class NavBarSelectedIndicatorChildBehavior : AttachedToVisualTreeBehavior<Rectangle>
+namespace WalletWasabi.Fluent.Behaviors
 {
-	public static readonly AttachedProperty<bool>
-		IsSelectedProperty =
-			AvaloniaProperty.RegisterAttached<NavBarSelectedIndicatorChildBehavior, Rectangle, bool>("IsSelected",
-				inherits: true);
 
-	public static bool GetIsSelected(Control element)
+	public class NavBarSelectedIndicatorChildBehavior : AttachedToVisualTreeBehavior<Rectangle>
 	{
-		return element.GetValue(IsSelectedProperty);
-	}
+		public static readonly AttachedProperty<bool>
+			IsSelectedProperty =
+				AvaloniaProperty.RegisterAttached<NavBarSelectedIndicatorChildBehavior, Rectangle, bool>("IsSelected",
+					inherits: true);
 
-	public static void SetIsSelected(Control element, bool value)
-	{
-		element.SetValue(IsSelectedProperty, value);
-	}
-
-
-	public static readonly AttachedProperty<Control>
-		NavBarItemParentProperty =
-			AvaloniaProperty.RegisterAttached<NavBarSelectedIndicatorChildBehavior, Control, Control>(
-				"NavBarItemParent");
-
-	public static Control GetNavBarItemParent(Control element)
-	{
-		return element.GetValue(NavBarItemParentProperty);
-	}
-
-	public static void SetNavBarItemParent(Control element, Control value)
-	{
-		element.SetValue(NavBarItemParentProperty, value);
-	}
-
-
-	private NavBarSelectedIndicatorState GetSharedState =>
-		NavBarSelectedIndicatorParentBehavior.GetParentState(AssociatedObject);
-
-
-	protected override void OnAttachedToVisualTree()
-	{
-		if (GetSharedState is null)
+		public static bool GetIsSelected(Control element)
 		{
-			Detach();
-			return;
+			return element.GetValue(IsSelectedProperty);
 		}
 
-		GetSharedState.AddChild(AssociatedObject);
-
-		AssociatedObject.DetachedFromVisualTree += delegate
+		public static void SetIsSelected(Control element, bool value)
 		{
-			GetSharedState.ScopeChildren.TryRemove(AssociatedObject.GetHashCode(), out _);
-		};
-
-		var parent = GetNavBarItemParent(AssociatedObject);
-
-		if (parent is null)
-		{
-			Logger.LogError(
-				$"NavBarItem Selection Indicator's parent is null, cannot continue with indicator animations.");
-			return;
+			element.SetValue(IsSelectedProperty, value);
 		}
 
-		Dispatcher.UIThread.Post(() =>
+
+		public static readonly AttachedProperty<Control>
+			NavBarItemParentProperty =
+				AvaloniaProperty.RegisterAttached<NavBarSelectedIndicatorChildBehavior, Control, Control>(
+					"NavBarItemParent");
+
+		public static Control GetNavBarItemParent(Control element)
 		{
-			if (parent.Classes.Contains(":selected"))
+			return element.GetValue(NavBarItemParentProperty);
+		}
+
+		public static void SetNavBarItemParent(Control element, Control value)
+		{
+			element.SetValue(NavBarItemParentProperty, value);
+		}
+
+
+		private NavBarSelectedIndicatorState GetSharedState =>
+			NavBarSelectedIndicatorParentBehavior.GetParentState(AssociatedObject);
+
+
+		protected override void OnAttachedToVisualTree()
+		{
+			if (GetSharedState is null)
 			{
-				GetSharedState.PreviousIndicator = AssociatedObject;
-				GetSharedState.AdornerControl.InitialFix(AssociatedObject);
+				Detach();
+				return;
 			}
 
-			AssociatedObject.GetPropertyChangedObservable(IsSelectedProperty)
-				.DistinctUntilChanged()
-				.Select(x => (bool)x.NewValue)
-				.Subscribe(x =>
+			GetSharedState.AddChild(AssociatedObject);
+
+			AssociatedObject.DetachedFromVisualTree += delegate
+			{
+				GetSharedState.ScopeChildren.TryRemove(AssociatedObject.GetHashCode(), out _);
+			};
+
+			var parent = GetNavBarItemParent(AssociatedObject);
+
+			if (parent is null)
+			{
+				Logger.LogError(
+					$"NavBarItem Selection Indicator's parent is null, cannot continue with indicator animations.");
+				return;
+			}
+
+			Dispatcher.UIThread.Post(() =>
+			{
+				if (parent.Classes.Contains(":selected"))
 				{
-					var parent = GetNavBarItemParent(AssociatedObject);
+					GetSharedState.PreviousIndicator = AssociatedObject;
+					GetSharedState.AdornerControl.InitialFix(AssociatedObject);
+				}
 
-					if (parent is null)
+				AssociatedObject.GetPropertyChangedObservable(IsSelectedProperty)
+					.DistinctUntilChanged()
+					.Select(x => (bool)x.NewValue)
+					.Subscribe(x =>
 					{
-						return;
-					}
+						var parent = GetNavBarItemParent(AssociatedObject);
 
-					if (x && parent.Classes.Contains(":selected"))
-					{
-						GetSharedState.Animate(AssociatedObject);
-					}
-				});
+						if (parent is null)
+						{
+							return;
+						}
 
-			AssociatedObject.Opacity = 0;
-		}, DispatcherPriority.Loaded);
+						if (x && parent.Classes.Contains(":selected"))
+						{
+							GetSharedState.Animate(AssociatedObject);
+						}
+					});
+
+				AssociatedObject.Opacity = 0;
+			}, DispatcherPriority.Loaded);
+		}
 	}
 }

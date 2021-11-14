@@ -1,44 +1,41 @@
-using System.Linq;
 using System.Reactive.Disposables;
-using System.Threading.Tasks;
-using System.Threading.Tasks.Sources;
 using Avalonia;
 using Avalonia.Controls;
-using ReactiveUI;
 
-namespace WalletWasabi.Fluent.Behaviors;
-
-public class NavBarSelectedIndicatorParentBehavior : AttachedToVisualTreeBehavior<Control>
+namespace WalletWasabi.Fluent.Behaviors
 {
-	public readonly CompositeDisposable disposables = new();
-
-	public static readonly AttachedProperty<NavBarSelectedIndicatorState>
-		ParentStateProperty =
-			AvaloniaProperty
-				.RegisterAttached<NavBarSelectedIndicatorParentBehavior, Control, NavBarSelectedIndicatorState>(
-					"ParentState",
-					inherits: true);
-
-	public static NavBarSelectedIndicatorState GetParentState(Control element)
+	public class NavBarSelectedIndicatorParentBehavior : AttachedToVisualTreeBehavior<Control>
 	{
-		return element.GetValue(ParentStateProperty);
-	}
+		public readonly CompositeDisposable disposables = new();
 
-	public static void SetParentState(Control element, NavBarSelectedIndicatorState value)
-	{
-		element.SetValue(ParentStateProperty, value);
-	}
+		public static readonly AttachedProperty<NavBarSelectedIndicatorState>
+			ParentStateProperty =
+				AvaloniaProperty
+					.RegisterAttached<NavBarSelectedIndicatorParentBehavior, Control, NavBarSelectedIndicatorState>(
+						"ParentState",
+						inherits: true);
 
-	protected override void OnAttachedToVisualTree()
-	{
-		var k = new NavBarSelectedIndicatorState();
+		public static NavBarSelectedIndicatorState GetParentState(Control element)
+		{
+			return element.GetValue(ParentStateProperty);
+		}
 
-		SetParentState(AssociatedObject, k);
-		var z = new NavBarSelectionIndicatorAdorner(AssociatedObject, k);
+		public static void SetParentState(Control element, NavBarSelectedIndicatorState value)
+		{
+			element.SetValue(ParentStateProperty, value);
+		}
 
-		disposables.Add(k);
-		disposables.Add(z);
+		protected override void OnAttachedToVisualTree()
+		{
+			var k = new NavBarSelectedIndicatorState();
 
-		AssociatedObject.DetachedFromVisualTree += delegate { disposables.Dispose(); };
+			SetParentState(AssociatedObject, k);
+			var z = new NavBarSelectionIndicatorAdorner(AssociatedObject, k);
+
+			disposables.Add(k);
+			disposables.Add(z);
+
+			AssociatedObject.DetachedFromVisualTree += delegate { disposables.Dispose(); };
+		}
 	}
 }

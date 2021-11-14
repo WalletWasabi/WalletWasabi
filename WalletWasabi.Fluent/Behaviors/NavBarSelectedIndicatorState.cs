@@ -2,59 +2,56 @@ using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Layout;
 using Avalonia.VisualTree;
-using JetBrains.Annotations;
-using WalletWasabi.Logging;
 
-namespace WalletWasabi.Fluent.Behaviors;
-
-public class NavBarSelectedIndicatorState : IDisposable
+namespace WalletWasabi.Fluent.Behaviors
 {
-	public readonly ConcurrentDictionary<int, Control> ScopeChildren = new();
-	public Rectangle? PreviousIndicator { get; set; }
-	public NavBarSelectionIndicatorAdorner AdornerControl { get; set; }
-
-	public Orientation NavItemsOrientation { get; set; } = Orientation.Vertical;
-
-	public void Dispose()
+	public class NavBarSelectedIndicatorState : IDisposable
 	{
-		ScopeChildren?.Clear();
-	}
+		public readonly ConcurrentDictionary<int, Control> ScopeChildren = new();
+		public Rectangle? PreviousIndicator { get; set; }
+		public NavBarSelectionIndicatorAdorner AdornerControl { get; set; }
 
-	public void AddChild(Control associatedObject)
-	{
-		if (ScopeChildren.ContainsKey(associatedObject.GetHashCode()))
+		public Orientation NavItemsOrientation { get; set; } = Orientation.Vertical;
+
+		public void Dispose()
 		{
-			return;
+			ScopeChildren?.Clear();
 		}
 
-		ScopeChildren.TryAdd(associatedObject.GetHashCode(),
-			associatedObject);
-	}
-
-	public void Animate(Rectangle NextIndicator)
-	{
-		// For Debouncing.
-		if (PreviousIndicator == NextIndicator)
+		public void AddChild(Control associatedObject)
 		{
-			return;
+			if (ScopeChildren.ContainsKey(associatedObject.GetHashCode()))
+			{
+				return;
+			}
+
+			ScopeChildren.TryAdd(associatedObject.GetHashCode(),
+				associatedObject);
 		}
 
-		var root = PreviousIndicator.GetVisualAncestors().OfType<VisualLayerManager>().FirstOrDefault();
+		public void Animate(Rectangle NextIndicator)
+		{
+			// For Debouncing.
+			if (PreviousIndicator == NextIndicator)
+			{
+				return;
+			}
 
-		_currentAnimationCts?.Cancel();
-		AdornerControl.AnimateIndicators(PreviousIndicator, NextIndicator,
-			_currentAnimationCts.Token, NavItemsOrientation);
-		_currentAnimationCts = new();
+			var root = PreviousIndicator.GetVisualAncestors().OfType<VisualLayerManager>().FirstOrDefault();
 
-		PreviousIndicator = NextIndicator;
+			_currentAnimationCts?.Cancel();
+			AdornerControl.AnimateIndicators(PreviousIndicator, NextIndicator,
+				_currentAnimationCts.Token, NavItemsOrientation);
+			_currentAnimationCts = new();
+
+			PreviousIndicator = NextIndicator;
+		}
+
+		private CancellationTokenSource _currentAnimationCts = new();
 	}
-
-	private CancellationTokenSource _currentAnimationCts = new();
 }
