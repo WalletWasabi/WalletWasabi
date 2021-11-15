@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Behaviors
@@ -42,10 +44,6 @@ namespace WalletWasabi.Fluent.Behaviors
 			_sharedState.AdornerControl = this;
 
 			_layer.Children.Add(this);
-			Children.Add(newRect);
-
-			newRect.VerticalAlignment = VerticalAlignment.Top;
-			newRect.HorizontalAlignment = HorizontalAlignment.Left;
 			VerticalAlignment = VerticalAlignment.Top;
 			HorizontalAlignment = HorizontalAlignment.Left;
 
@@ -68,52 +66,43 @@ namespace WalletWasabi.Fluent.Behaviors
 			_layer?.Children.Remove(this);
 		}
 
+		TimeSpan timebase = TimeSpan.FromSeconds(0.8);
+		Easing fwdEasing = new SplineEasing(0.1, 0.9, 0.2, 1);
+		Easing bckEasing = new SplineEasing(0.2, 1, 0.1, 0.9);
+
 		public async void AnimateIndicators(Rectangle previousIndicator, Rectangle nextIndicator,
 			CancellationToken token,
 			Orientation navItemsOrientation)
 		{
-			if (_isDispose)
+			if (_isDispose || previousIndicator is null || nextIndicator is null)
 			{
 				return;
 			}
 
-			var prevVector = previousIndicator.TranslatePoint(new Point(), this) ?? new Point();
-			var nextVector = nextIndicator.TranslatePoint(new Point(), this) ?? new Point();
-
-
-			newRect.IsVisible = true;
+			previousIndicator.Opacity = 1;
 			nextIndicator.Opacity = 0;
-			previousIndicator.Opacity = 0;
 
-			newRect.Width = previousIndicator.Bounds.Width;
-			newRect.Height = previousIndicator.Bounds.Height;
-			newRect.Fill = previousIndicator.Fill;
+			var u = previousIndicator.GetVisualAncestors().OfType<StackPanel>().FirstOrDefault();
 
-			var timebase = TimeSpan.FromSeconds(0.8);
+			var prevVector = previousIndicator.TranslatePoint(new Point(), u) ?? new Point();
+			var nextVector = nextIndicator.TranslatePoint(new Point(), u) ?? new Point();
+
 			var fromTopToBottom = prevVector.Y > nextVector.Y;
-
-			var fwdEasing = new SplineEasing(0.1, 0.9, 0.2, 1);
-			var bckEasing = new SplineEasing(0.2, 1,0.1, 0.9);
 
 			var curEasing = fromTopToBottom ? fwdEasing : bckEasing;
 
-			double newDim, maxScale;
+			double direction = (fromTopToBottom ? -1d : 1d);
+			double newDim, maxScale, targetY;
 
-			if (fromTopToBottom)
-			{
-				newDim = Math.Abs(nextVector.Y - prevVector.Y);
-			}
-			else
-			{
-				newDim = Math.Abs(prevVector.Y - nextVector.Y);
-			}
+			newDim = Math.Abs(nextVector.Y - prevVector.Y);
+			targetY = direction * newDim;
 
 			maxScale = newDim / nextIndicator.Bounds.Height;
 
-			var g = new Animation()
+			Animation scalingAnimation = new()
 			{
 				Easing = curEasing,
-				Duration = timebase ,
+				Duration = timebase,
 				Children =
 				{
 					new KeyFrame
@@ -143,7 +132,7 @@ namespace WalletWasabi.Fluent.Behaviors
 				}
 			};
 
-			var z = new Animation()
+			Animation translationAnimation = new()
 			{
 				Easing = curEasing,
 				Duration = timebase,
@@ -154,8 +143,8 @@ namespace WalletWasabi.Fluent.Behaviors
 						Cue = new Cue(0d),
 						Setters =
 						{
-							new Setter(LeftProperty, prevVector.X),
-							new Setter(TopProperty, prevVector.Y),
+							new Setter(TranslateTransform.XProperty, 0d),
+							new Setter(TranslateTransform.YProperty, 0d),
 						}
 					},
 					new KeyFrame
@@ -163,37 +152,118 @@ namespace WalletWasabi.Fluent.Behaviors
 						Cue = new Cue(1d),
 						Setters =
 						{
-							new Setter(LeftProperty, nextVector.X),
-							new Setter(TopProperty, nextVector.Y),
+							new Setter(TranslateTransform.XProperty, 0d),
+							new Setter(TranslateTransform.YProperty, targetY),
 						}
 					}
 				}
 			};
 
-			try
-			{
-				await Task.WhenAll(z.RunAsync(newRect, null, token), g.RunAsync(newRect, null, token));
-			}
-			catch (OperationCanceledException)
-			{
-			}
 
-			newRect.IsVisible = false;
-			nextIndicator.Opacity = 1;
+			Animation fadeOut = new()
+			{
+				Easing = new CubicEaseIn(),
+				Duration = timebase / 4,
+				Children =
+				{
+					new KeyFrame
+					{
+						Cue = new Cue(0.99d),
+						Setters =
+						{
+							new Setter(OpacityProperty, 1d),
+						}
+					},
+					new KeyFrame
+					{
+						Cue = new Cue(1d),
+						Setters =
+						{
+							new Setter(OpacityProperty, 0d),
+						}
+					}
+				}
+			};
+
+
+			Animation fadeIn = new()
+			{
+				Easing = new CubicEaseIn(),
+				Duration = timebase,
+				Children =
+				{
+					new KeyFrame
+					{
+						Cue = new Cue(0.99d),
+						Setters =
+						{
+							new Setter(OpacityProperty, 0d),
+						}
+					},
+					new KeyFrame
+					{
+						Cue = new Cue(1d),
+						Setters =
+						{
+							new Setter(OpacityProperty, 1d),
+						}
+					}
+				}
+			};
+
+			await Task.WhenAll(translationAnimation.RunAsync(previousIndicator, null, token),
+				scalingAnimation.RunAsync(previousIndicator, null, token),
+				fadeIn.RunAsync(nextIndicator, null, token),
+				fadeOut.RunAsync(previousIndicator, null, token)
+			);
+
 			previousIndicator.Opacity = 0;
-
-			SetLeft(newRect, nextVector.X);
-			SetTop(newRect, nextVector.Y);
+			nextIndicator.Opacity = 1;
 		}
 
-		public void InitialFix(Rectangle initial)
+
+		public async void InitialFix(Rectangle initial, Orientation orientation)
 		{
-			var initialVector = initial.TranslatePoint(new Point(), this) ?? new Point();
-			newRect.Width = initial.Bounds.Width;
-			newRect.Height = initial.Bounds.Height;
-			newRect.Fill = initial.Fill;
-			SetLeft(newRect, initialVector.X);
-			SetTop(newRect, initialVector.Y);
+			Animation fadeIn = new()
+			{
+				FillMode = FillMode.Both,
+				Easing = fwdEasing,
+				Delay = TimeSpan.FromSeconds(0.150),
+				Duration = timebase / 2,
+				Children =
+				{
+					new KeyFrame
+					{
+						Cue = new Cue(0d),
+						Setters =
+						{
+							new Setter(RenderTransformOriginProperty, RelativePoint.Parse("50%,100%")),
+							new Setter(ScaleTransform.ScaleYProperty, 0d),
+							new Setter(OpacityProperty, 0d),
+						}
+					},
+					new KeyFrame
+					{
+						Cue = new Cue(0.9999d),
+						Setters =
+						{
+							new Setter(RenderTransformOriginProperty, RelativePoint.Parse("50%,100%")),
+						}
+					},
+					new KeyFrame
+					{
+						Cue = new Cue(1d),
+						Setters =
+						{
+							new Setter(RenderTransformOriginProperty, RelativePoint.Center),
+							new Setter(ScaleTransform.ScaleYProperty, 1d),
+							new Setter(OpacityProperty, 1d),
+						}
+					}
+				}
+			};
+
+			await fadeIn.RunAsync(initial, null);
 		}
 	}
 }
