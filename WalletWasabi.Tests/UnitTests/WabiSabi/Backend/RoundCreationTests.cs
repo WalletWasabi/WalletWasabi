@@ -1,15 +1,14 @@
 using NBitcoin;
 using NBitcoin.RPC;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Models.EventSourcing;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
@@ -28,7 +27,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 					FeeRate = new FeeRate(10m)
 				});
 
-			using Arena arena = new(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison());
+			using Arena arena = new(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison(), new RoundsAggregate());
 			Assert.Empty(arena.Rounds);
 			await arena.StartAsync(CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -49,7 +48,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 					FeeRate = new FeeRate(10m)
 				});
 
-			using Arena arena = new(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison());
+			using Arena arena = new(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison(), new RoundsAggregate());
 			Assert.Empty(arena.Rounds);
 			await arena.StartAsync(CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -74,7 +73,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 					FeeRate = new FeeRate(10m)
 				});
 
-			using Arena arena = new(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison());
+			RoundsAggregate roundsAggregate = new ();
+			using Arena arena = new(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison(), roundsAggregate);
 			Assert.Empty(arena.Rounds);
 			await arena.StartAsync(CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -84,7 +84,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			round.Alices.Add(WabiSabiFactory.CreateAlice(round));
 			Round blameRound = WabiSabiFactory.CreateBlameRound(round, cfg);
 			Assert.Equal(Phase.InputRegistration, blameRound.Phase);
-			arena.Rounds.Add(blameRound);
+			roundsAggregate.Apply(new RoundCreated(blameRound));
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(3, arena.Rounds.Count);
 			Assert.Equal(2, arena.Rounds.Where(x => x.Phase == Phase.InputRegistration).Count());

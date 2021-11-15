@@ -16,10 +16,9 @@ using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
-using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
-using WalletWasabi.WabiSabi.Crypto;
+using WalletWasabi.WabiSabi.Models.EventSourcing;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
@@ -56,6 +55,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			{
 				services.AddHostedService<BackgroundServiceStarter<Arena>>();
 				services.AddSingleton<Arena>();
+				services.AddSingleton<RoundsAggregate>();
 				services.AddScoped<Network>(_ => Network.Main);
 				services.AddScoped<IRPCClient>(_ => BitcoinFactory.GetMockMinimalRpc());
 				services.AddScoped<Prison>();

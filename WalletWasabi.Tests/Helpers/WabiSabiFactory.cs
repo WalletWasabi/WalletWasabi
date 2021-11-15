@@ -20,6 +20,7 @@ using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Models.EventSourcing;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.Tests.Helpers
@@ -109,10 +110,11 @@ namespace WalletWasabi.Tests.Helpers
 
 		public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig cfg, IMock<IRPCClient> mockRpc, params Round[] rounds)
 		{
-			Arena arena = new(TimeSpan.FromHours(1), Network.Main, cfg, mockRpc.Object, new Prison());
+			RoundsAggregate roundsAggregate = new ();
+			Arena arena = new(TimeSpan.FromHours(1), Network.Main, cfg, mockRpc.Object, new Prison(), roundsAggregate);
 			foreach (var round in rounds)
 			{
-				arena.Rounds.Add(round);
+				roundsAggregate.Apply(new RoundCreated(round));
 			}
 			await arena.StartAsync(CancellationToken.None).ConfigureAwait(false);
 			return arena;

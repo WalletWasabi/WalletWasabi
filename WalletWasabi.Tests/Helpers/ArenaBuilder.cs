@@ -7,6 +7,7 @@ using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Models.EventSourcing;
 
 namespace WalletWasabi.Tests.Helpers
 {
@@ -30,11 +31,12 @@ namespace WalletWasabi.Tests.Helpers
 			IRPCClient rpc = Rpc ?? WabiSabiFactory.CreatePreconfiguredRpcClient().Object;
 			Network network = Network ?? Network.Main;
 
-			Arena arena = new(period, network, config, rpc, prison);
+			RoundsAggregate roundsAggregate = new ();
+			Arena arena = new(period, network, config, rpc, prison, roundsAggregate);
 
 			foreach (var round in rounds)
 			{
-				arena.Rounds.Add(round);
+				roundsAggregate.Apply(new RoundCreated(round));
 			}
 
 			return arena;

@@ -11,6 +11,7 @@ using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Models.EventSourcing;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
@@ -97,7 +98,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 
-			arena.Rounds.Add(round);
+			arena.RoundsAggregate.Apply(new RoundCreated(round));
 
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
