@@ -89,7 +89,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			newRect.Height = previousIndicator.Bounds.Height;
 			newRect.Fill = previousIndicator.Fill;
 
-			var timebase = TimeSpan.FromSeconds(1.2);
+			var timebase = TimeSpan.FromSeconds(0.8);
 			var fromTopToBottom = prevVector.Y > nextVector.Y;
 
 			var fwdEasing = new SplineEasing(0.1, 0.9, 0.2, 1);
@@ -97,33 +97,23 @@ namespace WalletWasabi.Fluent.Behaviors
 
 			var curEasing = fromTopToBottom ? fwdEasing : bckEasing;
 
-			RelativePoint initRO, endRO;
-
-			double totalNewHeight, maxScale;
+			double newDim, maxScale;
 
 			if (fromTopToBottom)
 			{
-				initRO = RelativePoint.Parse("50%, 0%");
-				endRO = RelativePoint.Parse("50%, 100%");
-
-				totalNewHeight = Math.Abs(nextVector.Y - prevVector.Y);
+				newDim = Math.Abs(nextVector.Y - prevVector.Y);
 			}
 			else
 			{
-				initRO = RelativePoint.Parse("50%, 100%");
-				endRO = RelativePoint.Parse("50%, 0%");
-
-				totalNewHeight = Math.Abs(prevVector.Y - nextVector.Y);
+				newDim = Math.Abs(prevVector.Y - nextVector.Y);
 			}
 
-			// totalNewHeight += nextIndicator.Bounds.Height;
-
-			maxScale = totalNewHeight / nextIndicator.Bounds.Height;
+			maxScale = newDim / nextIndicator.Bounds.Height;
 
 			var g = new Animation()
 			{
 				Easing = curEasing,
-				Duration = timebase,
+				Duration = timebase ,
 				Children =
 				{
 					new KeyFrame
@@ -131,8 +121,6 @@ namespace WalletWasabi.Fluent.Behaviors
 						Cue = new Cue(0d),
 						Setters =
 						{
-							// new Setter(RotateTransform.AngleProperty, fromTopToBottom ? 0 : 180),
-							new Setter(RenderTransformOriginProperty, initRO),
 							new Setter(ScaleTransform.ScaleYProperty, 1d),
 						}
 					},
@@ -149,8 +137,6 @@ namespace WalletWasabi.Fluent.Behaviors
 						Cue = new Cue(1d),
 						Setters =
 						{
-							// new Setter(RotateTransform.AngleProperty, fromTopToBottom ? 0 : 180),
-							new Setter(RenderTransformOriginProperty, endRO),
 							new Setter(ScaleTransform.ScaleYProperty, 1d),
 						}
 					}
@@ -186,14 +172,11 @@ namespace WalletWasabi.Fluent.Behaviors
 
 			try
 			{
-				await Task.WhenAll(z.RunAsync(newRect, null), g.RunAsync(newRect, null))
-					.WithAwaitCancellationAsync(token);
+				await Task.WhenAll(z.RunAsync(newRect, null, token), g.RunAsync(newRect, null, token));
 			}
 			catch (OperationCanceledException)
 			{
 			}
-
-
 
 			newRect.IsVisible = false;
 			nextIndicator.Opacity = 1;
@@ -205,12 +188,12 @@ namespace WalletWasabi.Fluent.Behaviors
 
 		public void InitialFix(Rectangle initial)
 		{
-			var prevVector = initial.TranslatePoint(new Point(), this) ?? new Point();
+			var initialVector = initial.TranslatePoint(new Point(), this) ?? new Point();
 			newRect.Width = initial.Bounds.Width;
 			newRect.Height = initial.Bounds.Height;
 			newRect.Fill = initial.Fill;
-			SetLeft(newRect, prevVector.X);
-			SetTop(newRect, prevVector.Y);
+			SetLeft(newRect, initialVector.X);
+			SetTop(newRect, initialVector.Y);
 		}
 	}
 }
