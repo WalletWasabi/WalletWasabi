@@ -101,7 +101,7 @@
     </Style>
 
     <Style Selector="c|ContentArea /template/ ScrollViewer#PART_ScrollViewer">
-        <Setter Property="Margin" Value="31 31 31 21" />
+        <Setter Property="Margin" Value="31 11 31 21" />
     </Style>
 
     <Style Selector="c|ContentArea /template/ Panel#PART_ButtonArea">
