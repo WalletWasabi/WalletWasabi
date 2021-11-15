@@ -68,40 +68,22 @@ namespace WalletWasabi.Fluent.Behaviors
 				associatedObject);
 		}
 
-		/// <summary>Gets a transform from an ancestor to a descendent.</summary>
-		/// <param name="ancestor">The ancestor visual.</param>
-		/// <param name="visual">The visual.</param>
-		/// <returns>The transform.</returns>
 		private static Matrix GetOffsetFrom(IVisual ancestor, IVisual visual)
 		{
 			Matrix identity = Matrix.Identity;
 			while (visual != ancestor)
 			{
-				ITransform renderTransform = visual.RenderTransform;
+				var num = 0;
+				var bounds = visual.Bounds;
+				var topLeft = bounds.TopLeft;
 
-				int num = 0;
-
-				Rect bounds;
-
-				if (num != 0)
-				{
-					RelativePoint renderTransformOrigin = visual.RenderTransformOrigin;
-					ref RelativePoint local = ref renderTransformOrigin;
-					bounds = visual.Bounds;
-					Size size = bounds.Size;
-					Matrix translation = Matrix.CreateTranslation(local.ToPixels(size));
-					Matrix matrix = -translation * visual.RenderTransform.Value * translation;
-					identity *= matrix;
-				}
-
-				bounds = visual.Bounds;
-				Point topLeft = bounds.TopLeft;
 				if (topLeft != new Point())
 				{
 					identity *= Matrix.CreateTranslation(topLeft);
 				}
 
 				visual = visual.VisualParent;
+
 				if (visual == null)
 				{
 					throw new ArgumentException("'visual' is not a descendant of 'ancestor'.");
@@ -119,7 +101,7 @@ namespace WalletWasabi.Fluent.Behaviors
 				return;
 			}
 
-			// Use the prior indicator's parent as a reference point.
+			// Get the common ancestor as a reference point.
 			var commonAncestor = previousIndicator.FindCommonVisualAncestor(nextIndicator);
 
 			// Ignore the RenderTransforms so we can get the actual positions
@@ -135,7 +117,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			var newDim = Math.Abs(NavItemsOrientation == Orientation.Vertical ? targetVector.Y : targetVector.X);
 			var maxScale = newDim / (NavItemsOrientation == Orientation.Vertical
 				? nextIndicator.Bounds.Height
-				: nextIndicator.Bounds.Width);
+				: nextIndicator.Bounds.Width) + 1;
 
 
 			nextIndicator.Opacity = 0;
@@ -162,7 +144,7 @@ namespace WalletWasabi.Fluent.Behaviors
 					},
 					new KeyFrame
 					{
-						Cue = new Cue(0.38d),
+						Cue = new Cue(0.40d),
 						Setters =
 						{
 							new Setter(ScaleTransform.ScaleYProperty, maxScale)
