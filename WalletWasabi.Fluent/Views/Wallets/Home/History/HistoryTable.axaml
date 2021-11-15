@@ -178,7 +178,7 @@
       <!-- Labels -->
       <DataBoxTemplateColumn Header="Labels"
                              MinWidth="75"
-                             Width="Auto"
+                             Width="*"
                              CanUserSort="False">
         <DataBoxTemplateColumn.CellTemplate>
           <DataTemplate>
@@ -220,27 +220,20 @@
 
       <!-- Incoming -->
       <DataBoxTemplateColumn Header="Incoming (BTC)"
-                             Width="*"
+                             Width="Auto"
                              MinWidth="120"
-                             MaxWidth="210">
+                             MaxWidth="150">
         <DataBoxTemplateColumn.CellTemplate>
           <DataTemplate>
             <Panel Name="Panel" HorizontalAlignment="Stretch">
-              <StackPanel x:DataType="historyItems:HistoryItemViewModelBase"
-                          IsVisible="{Binding !!IncomingAmount}"
-                          HorizontalAlignment="Right">
-                <PathIcon Data="{StaticResource arrow_down_right_regular}" Opacity="0.6">
-                  <i:Interaction.Behaviors>
-                    <ir:AdaptiveBehavior SourceControl="{Binding #Panel}" x:CompileBindings="False">
-                      <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="120" ClassName="hidden"/>
-                    </ir:AdaptiveBehavior>
-                  </i:Interaction.Behaviors>
-                </PathIcon>
-                <c:PrivacyContentControl Content="{Binding IncomingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
-                                       Classes="monoSpaced"
-                                       FontSize="15"
-                                       NumberOfPrivacyChars="9" />
-              </StackPanel>
+                <c:PrivacyContentControl
+                  x:DataType="historyItems:HistoryItemViewModelBase"
+                  IsVisible="{Binding !!IncomingAmount}"
+                  HorizontalAlignment="Center"
+                  Content="{Binding IncomingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
+                   Classes="monoSpaced"
+                   FontSize="15"
+                   NumberOfPrivacyChars="9" />
             </Panel>
           </DataTemplate>
         </DataBoxTemplateColumn.CellTemplate>
@@ -248,27 +241,20 @@
 
       <!-- Outgoing -->
       <DataBoxTemplateColumn Header="Outgoing (BTC)"
-                             Width="*"
+                             Width="Auto"
                              MinWidth="120"
-                             MaxWidth="210">
+                             MaxWidth="150">
         <DataBoxTemplateColumn.CellTemplate>
           <DataTemplate>
             <Panel Name="Panel" HorizontalAlignment="Stretch">
-              <StackPanel x:DataType="historyItems:HistoryItemViewModelBase"
-                          IsVisible="{Binding !!OutgoingAmount}"
-                          HorizontalAlignment="Right">
-                <PathIcon Data="{StaticResource arrow_up_right_regular}" Opacity="0.6">
-                  <i:Interaction.Behaviors>
-                    <ir:AdaptiveBehavior SourceControl="{Binding #Panel}" x:CompileBindings="False">
-                      <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="120" ClassName="hidden"/>
-                    </ir:AdaptiveBehavior>
-                  </i:Interaction.Behaviors>
-                </PathIcon>
-                <c:PrivacyContentControl Content="{Binding OutgoingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
-                                       Classes="monoSpaced"
-                                       FontSize="15"
-                                       NumberOfPrivacyChars="9" />
-              </StackPanel>
+              <c:PrivacyContentControl
+                  HorizontalAlignment="Center"
+                  x:DataType="historyItems:HistoryItemViewModelBase"
+                  IsVisible="{Binding !!OutgoingAmount}"
+                  Content="{Binding OutgoingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
+                 Classes="monoSpaced"
+                 FontSize="15"
+                 NumberOfPrivacyChars="9" />
             </Panel>
           </DataTemplate>
         </DataBoxTemplateColumn.CellTemplate>
@@ -276,8 +262,9 @@
 
       <!-- Balance -->
       <DataBoxTemplateColumn Header="Balance (BTC)"
+                             Width="Auto"
                              MinWidth="120"
-                             Width="Auto">
+                             MaxWidth="150">
         <DataBoxTemplateColumn.CellTemplate>
           <DataTemplate>
             <c:PrivacyContentControl x:DataType="historyItems:HistoryItemViewModelBase"
@@ -285,7 +272,7 @@
                                      Classes="monoSpaced"
                                      FontSize="15"
                                      NumberOfPrivacyChars="9"
-                                     HorizontalAlignment="Right"
+                                     HorizontalAlignment="Center"
                                      Margin="10 0" />
           </DataTemplate>
         </DataBoxTemplateColumn.CellTemplate>
