@@ -77,6 +77,7 @@ namespace WalletWasabi.Fluent.Behaviors
 					.ObserveOn(AvaloniaScheduler.Instance)
 					.Subscribe(_ => { SharedState.Animate(AssociatedObject); });
 
+				AssociatedObject.Opacity = 0;
 
 				if (parent.Classes.Contains(":selected"))
 				{

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
@@ -10,6 +11,8 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Styling;
+using Avalonia.VisualTree;
+using VisualExtensions = Avalonia.VisualExtensions;
 
 namespace WalletWasabi.Fluent.Behaviors
 {
@@ -17,9 +20,16 @@ namespace WalletWasabi.Fluent.Behaviors
 	{
 		private class DiscreteEasing : Easing
 		{
+			private readonly double _triggerPoint;
+
+			public DiscreteEasing(double TriggerPoint)
+			{
+				_triggerPoint = TriggerPoint;
+			}
+
 			public override double Ease(double progress)
 			{
-				return (Math.Abs(progress - 1) < double.Epsilon) ? 1 : 0;
+				return (Math.Abs(progress - _triggerPoint) < double.Epsilon) ? 1 : 0;
 			}
 		}
 
@@ -58,6 +68,49 @@ namespace WalletWasabi.Fluent.Behaviors
 				associatedObject);
 		}
 
+		/// <summary>Gets a transform from an ancestor to a descendent.</summary>
+		/// <param name="ancestor">The ancestor visual.</param>
+		/// <param name="visual">The visual.</param>
+		/// <returns>The transform.</returns>
+		private static Matrix GetOffsetFrom(IVisual ancestor, IVisual visual)
+		{
+			Matrix identity = Matrix.Identity;
+			while (visual != ancestor)
+			{
+				ITransform renderTransform = visual.RenderTransform;
+
+				int num = 0;
+
+				Rect bounds;
+
+				if (num != 0)
+				{
+					RelativePoint renderTransformOrigin = visual.RenderTransformOrigin;
+					ref RelativePoint local = ref renderTransformOrigin;
+					bounds = visual.Bounds;
+					Size size = bounds.Size;
+					Matrix translation = Matrix.CreateTranslation(local.ToPixels(size));
+					Matrix matrix = -translation * visual.RenderTransform.Value * translation;
+					identity *= matrix;
+				}
+
+				bounds = visual.Bounds;
+				Point topLeft = bounds.TopLeft;
+				if (topLeft != new Point())
+				{
+					identity *= Matrix.CreateTranslation(topLeft);
+				}
+
+				visual = visual.VisualParent;
+				if (visual == null)
+				{
+					throw new ArgumentException("'visual' is not a descendant of 'ancestor'.");
+				}
+			}
+
+			return identity;
+		}
+
 		private async void AnimateIndicators(Rectangle previousIndicator, Rectangle nextIndicator,
 			CancellationToken token)
 		{
@@ -67,9 +120,14 @@ namespace WalletWasabi.Fluent.Behaviors
 			}
 
 			// Use the prior indicator's parent as a reference point.
-			var itemsContainer = previousIndicator.Parent;
-			var prevVector = previousIndicator.TranslatePoint(new Point(), itemsContainer) ?? new Point();
-			var nextVector = nextIndicator.TranslatePoint(new Point(), itemsContainer) ?? new Point();
+			var commonAncestor = previousIndicator.FindCommonVisualAncestor(nextIndicator);
+
+			// Ignore the RenderTransforms so we can get the actual positions
+			var prevMatrix = GetOffsetFrom(commonAncestor, previousIndicator);
+			var nextMatrix = GetOffsetFrom(commonAncestor, nextIndicator);
+
+			var prevVector = new Point().Transform(prevMatrix);
+			var nextVector = new Point().Transform(nextMatrix);
 
 			var targetVector = nextVector - prevVector;
 			var fromTopToBottom = targetVector.Y > 0;
@@ -79,8 +137,15 @@ namespace WalletWasabi.Fluent.Behaviors
 				? nextIndicator.Bounds.Height
 				: nextIndicator.Bounds.Width);
 
-			Animation scalingAnimation = new()
+
+			nextIndicator.Opacity = 0;
+			previousIndicator.Opacity = 1;
+
+			var speedRatio = 1;
+
+			Animation translationAnimation = new()
 			{
+				SpeedRatio = speedRatio,
 				Easing = curEasing,
 				Duration = timebase,
 				Children =
@@ -90,12 +155,14 @@ namespace WalletWasabi.Fluent.Behaviors
 						Cue = new Cue(0d),
 						Setters =
 						{
-							new Setter(ScaleTransform.ScaleYProperty, 1d)
+							new Setter(ScaleTransform.ScaleYProperty, 1d),
+							new Setter(TranslateTransform.XProperty, 0d),
+							new Setter(TranslateTransform.YProperty, 0d)
 						}
 					},
 					new KeyFrame
 					{
-						Cue = new Cue(0.33d),
+						Cue = new Cue(0.38d),
 						Setters =
 						{
 							new Setter(ScaleTransform.ScaleYProperty, maxScale)
@@ -106,32 +173,7 @@ namespace WalletWasabi.Fluent.Behaviors
 						Cue = new Cue(1d),
 						Setters =
 						{
-							new Setter(ScaleTransform.ScaleYProperty, 1d)
-						}
-					}
-				}
-			};
-
-			Animation translationAnimation = new()
-			{
-				Easing = curEasing,
-				Duration = timebase,
-				Children =
-				{
-					new KeyFrame
-					{
-						Cue = new Cue(0d),
-						Setters =
-						{
-							new Setter(TranslateTransform.XProperty, 0d),
-							new Setter(TranslateTransform.YProperty, 0d)
-						}
-					},
-					new KeyFrame
-					{
-						Cue = new Cue(1d),
-						Setters =
-						{
+							new Setter(ScaleTransform.ScaleYProperty, 1d),
 							new Setter(TranslateTransform.XProperty, targetVector.X),
 							new Setter(TranslateTransform.YProperty, targetVector.Y)
 						}
@@ -139,68 +181,13 @@ namespace WalletWasabi.Fluent.Behaviors
 				}
 			};
 
-			Animation fadeOut = new()
-			{
-				FillMode = FillMode.Both,
-				Easing = new DiscreteEasing(),
-				Duration = timebase,
-				Children =
-				{
-					new KeyFrame
-					{
-						Cue = new Cue(0.99d),
-						Setters =
-						{
-							new Setter(Visual.OpacityProperty, 1d)
-						}
-					},
-					new KeyFrame
-					{
-						Cue = new Cue(1d),
-						Setters =
-						{
-							new Setter(Visual.OpacityProperty, 0d)
-						}
-					}
-				}
-			};
+			await translationAnimation.RunAsync(previousIndicator, null, token);
 
-
-			Animation fadeIn = new()
-			{
-				FillMode = FillMode.Both,
-				Easing = new DiscreteEasing(),
-				Duration = timebase,
-				Children =
-				{
-					new KeyFrame
-					{
-						Cue = new Cue(0.99d),
-						Setters =
-						{
-							new Setter(Visual.OpacityProperty, 0d)
-						}
-					},
-					new KeyFrame
-					{
-						Cue = new Cue(1d),
-						Setters =
-						{
-							new Setter(Visual.OpacityProperty, 1d)
-						}
-					}
-				}
-			};
-
-			await Task.WhenAll(
-				translationAnimation.RunAsync(previousIndicator, null, token),
-				scalingAnimation.RunAsync(previousIndicator, null, token),
-				fadeIn.RunAsync(nextIndicator, null, token),
-				fadeOut.RunAsync(previousIndicator, null, token)
-			);
+			nextIndicator.Opacity = 1;
+			previousIndicator.Opacity = 0;
 		}
 
-		public async void InitialFix(Rectangle initial)
+		public void InitialFix(Rectangle initial)
 		{
 			if (_initialFixDone)
 			{
