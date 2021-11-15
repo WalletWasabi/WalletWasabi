@@ -18,7 +18,7 @@ namespace WalletWasabi.Fluent.Behaviors
 		public readonly ConcurrentDictionary<int, Control> ScopeChildren = new();
 		private readonly Easing bckEasing = new SplineEasing(0.2, 1, 0.1, 0.9);
 		private readonly Easing fwdEasing = new SplineEasing(0.1, 0.9, 0.2);
-		private readonly TimeSpan timebase = TimeSpan.FromSeconds(0.8);
+		private readonly TimeSpan timebase = TimeSpan.FromSeconds(0.6);
 
 		private bool _isDisposed;
 		private bool _initialFixDone;
