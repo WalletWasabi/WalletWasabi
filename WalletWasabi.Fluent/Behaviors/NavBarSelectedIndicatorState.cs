@@ -15,6 +15,14 @@ namespace WalletWasabi.Fluent.Behaviors
 {
 	public class NavBarSelectedIndicatorState : IDisposable
 	{
+		private class DiscreteEasing : Easing
+		{
+			public override double Ease(double progress)
+			{
+				return (Math.Abs(progress - 1) < double.Epsilon) ? 1 : 0;
+			}
+		}
+
 		public readonly ConcurrentDictionary<int, Control> ScopeChildren = new();
 		private readonly Easing bckEasing = new SplineEasing(0.2, 1, 0.1, 0.9);
 		private readonly Easing fwdEasing = new SplineEasing(0.1, 0.9, 0.2);
@@ -58,9 +66,6 @@ namespace WalletWasabi.Fluent.Behaviors
 				return;
 			}
 
-			previousIndicator.Opacity = 1;
-			nextIndicator.Opacity = 0;
-
 			// Use the prior indicator's parent as a reference point.
 			var itemsContainer = previousIndicator.Parent;
 			var prevVector = previousIndicator.TranslatePoint(new Point(), itemsContainer) ?? new Point();
@@ -69,8 +74,10 @@ namespace WalletWasabi.Fluent.Behaviors
 			var targetVector = nextVector - prevVector;
 			var fromTopToBottom = targetVector.Y > 0;
 			var curEasing = fromTopToBottom ? fwdEasing : bckEasing;
- 			var newDim = Math.Abs(NavItemsOrientation == Orientation.Vertical ? targetVector.Y : targetVector.X);
-			var maxScale = newDim / (NavItemsOrientation == Orientation.Vertical ? nextIndicator.Bounds.Height : nextIndicator.Bounds.Width);
+			var newDim = Math.Abs(NavItemsOrientation == Orientation.Vertical ? targetVector.Y : targetVector.X);
+			var maxScale = newDim / (NavItemsOrientation == Orientation.Vertical
+				? nextIndicator.Bounds.Height
+				: nextIndicator.Bounds.Width);
 
 			Animation scalingAnimation = new()
 			{
@@ -134,8 +141,9 @@ namespace WalletWasabi.Fluent.Behaviors
 
 			Animation fadeOut = new()
 			{
-				Easing = new CubicEaseIn(),
-				Duration = timebase / 4,
+				FillMode = FillMode.Both,
+				Easing = new DiscreteEasing(),
+				Duration = timebase,
 				Children =
 				{
 					new KeyFrame
@@ -160,7 +168,8 @@ namespace WalletWasabi.Fluent.Behaviors
 
 			Animation fadeIn = new()
 			{
-				Easing = new CubicEaseIn(),
+				FillMode = FillMode.Both,
+				Easing = new DiscreteEasing(),
 				Duration = timebase,
 				Children =
 				{
@@ -183,16 +192,13 @@ namespace WalletWasabi.Fluent.Behaviors
 				}
 			};
 
-			await Task.WhenAll(translationAnimation.RunAsync(previousIndicator, null, token),
+			await Task.WhenAll(
+				translationAnimation.RunAsync(previousIndicator, null, token),
 				scalingAnimation.RunAsync(previousIndicator, null, token),
 				fadeIn.RunAsync(nextIndicator, null, token),
 				fadeOut.RunAsync(previousIndicator, null, token)
 			);
-
-			previousIndicator.Opacity = 0;
-			nextIndicator.Opacity = 1;
 		}
-
 
 		public async void InitialFix(Rectangle initial)
 		{
