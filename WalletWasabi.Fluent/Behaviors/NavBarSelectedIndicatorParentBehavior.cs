@@ -27,14 +27,9 @@ namespace WalletWasabi.Fluent.Behaviors
 
 		protected override void OnAttachedToVisualTree()
 		{
-			var k = new NavBarSelectedIndicatorState();
-
-			SetParentState(AssociatedObject, k);
-			var z = new NavBarSelectionIndicatorAdorner(AssociatedObject, k);
-
-			disposables.Add(k);
-			disposables.Add(z);
-
+			var sharedState = new NavBarSelectedIndicatorState();
+			SetParentState(AssociatedObject, sharedState);
+			disposables.Add(sharedState);
 			AssociatedObject.DetachedFromVisualTree += delegate { disposables.Dispose(); };
 		}
 	}

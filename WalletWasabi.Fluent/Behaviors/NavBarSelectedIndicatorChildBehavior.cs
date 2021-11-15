@@ -71,12 +71,12 @@ namespace WalletWasabi.Fluent.Behaviors
 				return;
 			}
 
-			Dispatcher.UIThread.Post(() =>
+			Dispatcher.UIThread.Post(async () =>
 			{
 				if (parent.Classes.Contains(":selected"))
 				{
 					GetSharedState.PreviousIndicator = AssociatedObject;
-					GetSharedState.AdornerControl.InitialFix(AssociatedObject, GetSharedState.NavItemsOrientation);
+					GetSharedState.InitialFix(AssociatedObject);
 				}
 
 				AssociatedObject.GetPropertyChangedObservable(IsSelectedProperty)
