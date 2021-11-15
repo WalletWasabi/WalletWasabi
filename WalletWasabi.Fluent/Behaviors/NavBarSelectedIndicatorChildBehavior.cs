@@ -1,6 +1,11 @@
 using System;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Reactive;
 using System.Reactive.Linq;
+using System.Threading;
 using Avalonia;
+using Avalonia.Animation;
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
 using Avalonia.Threading;
@@ -8,7 +13,6 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.Behaviors
 {
-
 	public class NavBarSelectedIndicatorChildBehavior : AttachedToVisualTreeBehavior<Rectangle>
 	{
 		public static readonly AttachedProperty<bool>
@@ -26,7 +30,6 @@ namespace WalletWasabi.Fluent.Behaviors
 			element.SetValue(IsSelectedProperty, value);
 		}
 
-
 		public static readonly AttachedProperty<Control>
 			NavBarItemParentProperty =
 				AvaloniaProperty.RegisterAttached<NavBarSelectedIndicatorChildBehavior, Control, Control>(
@@ -42,64 +45,47 @@ namespace WalletWasabi.Fluent.Behaviors
 			element?.SetValue(NavBarItemParentProperty, value);
 		}
 
-
-		private NavBarSelectedIndicatorState GetSharedState =>
+		private NavBarSelectedIndicatorState SharedState =>
 			NavBarSelectedIndicatorParentBehavior.GetParentState(AssociatedObject);
-
 
 		protected override void OnAttachedToVisualTree()
 		{
-			if (GetSharedState is null)
-			{
-				Detach();
-				return;
-			}
-
-			GetSharedState.AddChild(AssociatedObject);
-
-			AssociatedObject.DetachedFromVisualTree += delegate
-			{
-				GetSharedState.ScopeChildren.TryRemove(AssociatedObject.GetHashCode(), out _);
-			};
-
-			var parent = GetNavBarItemParent(AssociatedObject);
-
-			if (parent is null)
-			{
-				Logger.LogError(
-					$"NavBarItem Selection Indicator's parent is null, cannot continue with indicator animations.");
-				return;
-			}
-
 			Dispatcher.UIThread.Post(async () =>
 			{
-				if (parent.Classes.Contains(":selected"))
+				if (SharedState is null)
 				{
-					GetSharedState.PreviousIndicator = AssociatedObject;
-					GetSharedState.InitialFix(AssociatedObject);
+					Detach();
+					return;
 				}
 
-				AssociatedObject.GetPropertyChangedObservable(IsSelectedProperty)
+				SharedState.AddChild(AssociatedObject);
+
+				var parent = GetNavBarItemParent(AssociatedObject);
+
+				if (parent is null)
+				{
+					Logger.LogError(
+						$"NavBarItem Selection Indicator's parent is null, cannot continue with indicator animations.");
+					return;
+				}
+
+				Observable.FromEventPattern<NotifyCollectionChangedEventArgs>(parent.Classes, "CollectionChanged")
+					.Select(x => x.EventArgs.NewItems)
+					.Select(x => (parent.Classes?.Contains(":selected") ?? false) && !(parent.Classes.Contains(":pressed")))
 					.DistinctUntilChanged()
-					.Select(x => (bool)x.NewValue)
+					.Where(x => x)
 					.ObserveOn(AvaloniaScheduler.Instance)
-					.Subscribe(x =>
-					{
-						var parent = GetNavBarItemParent(AssociatedObject);
+					.Subscribe(_ => { SharedState.Animate(AssociatedObject); });
 
-						if (parent is null)
-						{
-							return;
-						}
 
-						if (x && parent.Classes.Contains(":selected"))
-						{
-							GetSharedState.Animate(AssociatedObject);
-						}
-					});
-
-				AssociatedObject.Opacity = 0;
+				if (parent.Classes.Contains(":selected"))
+				{
+					SharedState.InitialFix(AssociatedObject);
+				}
 			}, DispatcherPriority.Loaded);
 		}
+
+
+
 	}
 }

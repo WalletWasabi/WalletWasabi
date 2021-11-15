@@ -209,45 +209,8 @@ namespace WalletWasabi.Fluent.Behaviors
 
 			_initialFixDone = true;
 
-			Animation fadeIn = new()
-			{
-				FillMode = FillMode.Both,
-				Easing = fwdEasing,
-				Duration = timebase / 2,
-				Children =
-				{
-					new KeyFrame
-					{
-						Cue = new Cue(0d),
-						Setters =
-						{
-							new Setter(Visual.RenderTransformOriginProperty, RelativePoint.Parse("50%,100%")),
-							new Setter(ScaleTransform.ScaleYProperty, 0d),
-							new Setter(Visual.OpacityProperty, 0d)
-						}
-					},
-					new KeyFrame
-					{
-						Cue = new Cue(0.9999d),
-						Setters =
-						{
-							new Setter(Visual.RenderTransformOriginProperty, RelativePoint.Parse("50%,100%"))
-						}
-					},
-					new KeyFrame
-					{
-						Cue = new Cue(1d),
-						Setters =
-						{
-							new Setter(Visual.RenderTransformOriginProperty, RelativePoint.Center),
-							new Setter(ScaleTransform.ScaleYProperty, 1d),
-							new Setter(Visual.OpacityProperty, 1d)
-						}
-					}
-				}
-			};
-
-			await fadeIn.RunAsync(initial, null);
+			initial.Opacity = 1;
+			PreviousIndicator = initial;
 		}
 
 
