@@ -52,7 +52,7 @@ namespace WalletWasabi.Fluent.Behaviors
 				associatedObject);
 		}
 
-		public async void AnimateIndicators(Rectangle previousIndicator, Rectangle nextIndicator,
+		private async void AnimateIndicators(Rectangle previousIndicator, Rectangle nextIndicator,
 			CancellationToken token)
 		{
 			if (_isDisposed || previousIndicator is null || nextIndicator is null)
@@ -66,11 +66,11 @@ namespace WalletWasabi.Fluent.Behaviors
 			// This selected indicator animation system assumes
 			// that the item container is not virtualizing
 			// and that it is a StackPanel.
-
 			// If you wish to reuse this system do take note of this
 			// and make adjustments as necessary as you see it.
-
 			var itemsContainer = previousIndicator.GetVisualAncestors().OfType<StackPanel>().FirstOrDefault();
+
+
 			var prevVector = previousIndicator.TranslatePoint(new Point(), itemsContainer) ?? new Point();
 			var nextVector = nextIndicator.TranslatePoint(new Point(), itemsContainer) ?? new Point();
 			var targetVector = nextVector - prevVector;
