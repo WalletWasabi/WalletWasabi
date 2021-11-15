@@ -10,12 +10,6 @@ namespace WalletWasabi.Fluent.Controls
 {
 	public class RingChartControl : Control
 	{
-		static RingChartControl()
-		{
-			AffectsRender<RingChartControl>(DataPointsProperty, ThicknessProperty, StartAngleProperty, EndAngleProperty);
-			AffectsMeasure<RingChartControl>(DataPointsProperty, ThicknessProperty, StartAngleProperty, EndAngleProperty);
-		}
-
 		public static readonly StyledProperty<IList<(string ColorHex, double PercentShare)>> DataPointsProperty =
 			AvaloniaProperty.Register<RingChartControl, IList<(string ColorHex, double PercentShare)>>("DataPoints");
 
@@ -27,6 +21,12 @@ namespace WalletWasabi.Fluent.Controls
 
 		public static readonly StyledProperty<double> ThicknessProperty =
 			AvaloniaProperty.Register<RingChartControl, double>("Thickness", 6);
+
+		static RingChartControl()
+		{
+			AffectsRender<RingChartControl>(DataPointsProperty, ThicknessProperty, StartAngleProperty, EndAngleProperty);
+			AffectsMeasure<RingChartControl>(DataPointsProperty, ThicknessProperty, StartAngleProperty, EndAngleProperty);
+		}
 
 		public IList<(string ColorHex, double PercentShare)> DataPoints
 		{
