@@ -93,7 +93,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			var fromTopToBottom = prevVector.Y > nextVector.Y;
 
 			var fwdEasing = new SplineEasing(0.1, 0.9, 0.2, 1);
-			var bckEasing = new SplineEasing(0.1, 0.9, 0.2, 1);
+			var bckEasing = new SplineEasing(0.2, 1,0.1, 0.9);
 
 			var curEasing = fromTopToBottom ? fwdEasing : bckEasing;
 
