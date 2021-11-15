@@ -45,13 +45,12 @@ namespace WalletWasabi.Fluent.Behaviors
 			element?.SetValue(NavBarItemParentProperty, value);
 		}
 
-		private NavBarSelectedIndicatorState SharedState =>
-			NavBarSelectedIndicatorParentBehavior.GetParentState(AssociatedObject);
-
 		protected override void OnAttachedToVisualTree()
 		{
 			Dispatcher.UIThread.Post(async () =>
 			{
+				var SharedState = NavBarSelectedIndicatorParentBehavior.GetParentState(AssociatedObject);
+
 				if (SharedState is null)
 				{
 					Detach();
@@ -71,11 +70,16 @@ namespace WalletWasabi.Fluent.Behaviors
 
 				Observable.FromEventPattern<NotifyCollectionChangedEventArgs>(parent.Classes, "CollectionChanged")
 					.Select(x => x.EventArgs.NewItems)
-					.Select(x => (parent.Classes?.Contains(":selected") ?? false) && !(parent.Classes.Contains(":pressed")))
+					.Where(x => parent is not null)
+					.Select(x => (parent.Classes?.Contains(":selected") ?? false)
+					             && !parent.Classes.Contains(":pressed")
+					             && !parent.Classes.Contains(":dragging"))
 					.DistinctUntilChanged()
 					.Where(x => x)
 					.ObserveOn(AvaloniaScheduler.Instance)
 					.Subscribe(_ => { SharedState.Animate(AssociatedObject); });
+
+
 
 				AssociatedObject.Opacity = 0;
 
@@ -85,8 +89,5 @@ namespace WalletWasabi.Fluent.Behaviors
 				}
 			}, DispatcherPriority.Loaded);
 		}
-
-
-
 	}
 }

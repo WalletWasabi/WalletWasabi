@@ -11,6 +11,7 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Styling;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using VisualExtensions = Avalonia.VisualExtensions;
 
@@ -93,19 +94,31 @@ namespace WalletWasabi.Fluent.Behaviors
 			return identity;
 		}
 
-		private async void AnimateIndicators(Rectangle previousIndicator, Rectangle nextIndicator,
+		private async void AnimateIndicators(Rectangle nextIndicator,
 			CancellationToken token)
 		{
-			if (_isDisposed || previousIndicator is null || nextIndicator is null)
+			if (_isDisposed || PreviousIndicator is null || nextIndicator is null || PreviousIndicator == nextIndicator)
 			{
 				return;
 			}
 
 			// Get the common ancestor as a reference point.
-			var commonAncestor = previousIndicator.FindCommonVisualAncestor(nextIndicator);
+			var commonAncestor = PreviousIndicator.FindCommonVisualAncestor(nextIndicator);
+
+			if (commonAncestor is null)
+			{
+				// likely being dragged
+
+				PreviousIndicator.Opacity = 1;
+				nextIndicator.Opacity = 0;
+
+				PreviousIndicator = nextIndicator;
+
+				return;
+			}
 
 			// Ignore the RenderTransforms so we can get the actual positions
-			var prevMatrix = GetOffsetFrom(commonAncestor, previousIndicator);
+			var prevMatrix = GetOffsetFrom(commonAncestor, PreviousIndicator);
 			var nextMatrix = GetOffsetFrom(commonAncestor, nextIndicator);
 
 			var prevVector = new Point().Transform(prevMatrix);
@@ -121,7 +134,7 @@ namespace WalletWasabi.Fluent.Behaviors
 
 
 			nextIndicator.Opacity = 0;
-			previousIndicator.Opacity = 1;
+			PreviousIndicator.Opacity = 1;
 
 			var speedRatio = 1;
 
@@ -163,20 +176,20 @@ namespace WalletWasabi.Fluent.Behaviors
 				}
 			};
 
-			await translationAnimation.RunAsync(previousIndicator, null, token);
+			await translationAnimation.RunAsync(PreviousIndicator, null, token);
 
 			nextIndicator.Opacity = 1;
-			previousIndicator.Opacity = 0;
+			PreviousIndicator.Opacity = 0;
+
+			PreviousIndicator = nextIndicator;
 		}
 
 		public void InitialFix(Rectangle initial)
 		{
-			if (_initialFixDone)
+			if(PreviousIndicator is not null)
 			{
-				return;
+				PreviousIndicator.Opacity = 0;
 			}
-
-			_initialFixDone = true;
 
 			initial.Opacity = 1;
 			PreviousIndicator = initial;
@@ -194,10 +207,8 @@ namespace WalletWasabi.Fluent.Behaviors
 			_currentAnimationCts?.Cancel();
 			_currentAnimationCts = new CancellationTokenSource();
 
-			AnimateIndicators(PreviousIndicator, NextIndicator,
+			AnimateIndicators(NextIndicator,
 				_currentAnimationCts.Token);
-
-			PreviousIndicator = NextIndicator;
 		}
 	}
 }
