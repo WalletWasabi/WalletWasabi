@@ -270,43 +270,23 @@
       </DataBoxTemplateColumn>
 
       <!-- Status -->
-      <DataBoxTemplateColumn Header="Status"
-                             Width="*"
-                             MinWidth="120"
-                             MaxWidth="120">
+      <DataBoxTemplateColumn Width="Auto"
+                             MinWidth="55">
         <DataBoxTemplateColumn.CellTemplate>
           <DataTemplate>
             <Panel x:DataType="historyItems:HistoryItemViewModelBase">
               <!-- Confirmed -->
-              <StackPanel IsVisible="{Binding IsConfirmed}">
-                <PathIcon Data="{StaticResource checkmark_filled}"
-                          Foreground="{DynamicResource SystemAccentColor}"
-                          Height="11"
-                          ToolTip.Tip="Confirmed"/>
-                <TextBlock Classes="monoSpaced" Text="Confirmed">
-                  <!--<i:Interaction.Behaviors>
-                    <ir:AdaptiveBehavior SourceControl="{Binding $parent[DataGrid]}" x:CompileBindings="False">
-                      <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="940" ClassName="hidden"/>
-                      <ir:AdaptiveClassSetter MinWidth="940" MaxWidth="Infinity" ClassName="visible"/>
-                    </ir:AdaptiveBehavior>
-                  </i:Interaction.Behaviors>-->
-                </TextBlock>
-              </StackPanel>
+              <PathIcon IsVisible="{Binding IsConfirmed}"
+                        Data="{StaticResource checkmark_filled}"
+                        Foreground="{DynamicResource SystemAccentColor}"
+                        Height="11"
+                        ToolTip.Tip="Confirmed"/>
               <!-- Pending -->
-              <StackPanel IsVisible="{Binding !IsConfirmed}">
-                <PathIcon Data="{StaticResource clock_regular}"
-                          Height="14"
-                          Opacity="0.6"
-                          ToolTip.Tip="Pending"/>
-                <TextBlock Classes="monoSpaced" Text="Pending">
-                  <!--<i:Interaction.Behaviors>
-                    <ir:AdaptiveBehavior SourceControl="{Binding $parent[DataGrid]}" x:CompileBindings="False">
-                      <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="940" ClassName="hidden"/>
-                      <ir:AdaptiveClassSetter MinWidth="940" MaxWidth="Infinity" ClassName="visible"/>
-                    </ir:AdaptiveBehavior>
-                  </i:Interaction.Behaviors>-->
-                </TextBlock>
-              </StackPanel>
+              <PathIcon IsVisible="{Binding !IsConfirmed}"
+                        Data="{StaticResource clock_regular}"
+                        Height="14"
+                        Opacity="0.6"
+                        ToolTip.Tip="Pending"/>
             </Panel>
           </DataTemplate>
         </DataBoxTemplateColumn.CellTemplate>
