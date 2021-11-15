@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Concurrent;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
@@ -11,7 +10,6 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Styling;
-using Avalonia.VisualTree;
 
 namespace WalletWasabi.Fluent.Behaviors
 {
@@ -63,16 +61,11 @@ namespace WalletWasabi.Fluent.Behaviors
 			previousIndicator.Opacity = 1;
 			nextIndicator.Opacity = 0;
 
-			// This selected indicator animation system assumes
-			// that the item container is not virtualizing
-			// and that it is a StackPanel.
-			// If you wish to reuse this system do take note of this
-			// and make adjustments as necessary as you see it.
-			var itemsContainer = previousIndicator.GetVisualAncestors().OfType<StackPanel>().FirstOrDefault();
-
-
+			// Use the prior indicator's parent as a reference point.
+			var itemsContainer = previousIndicator.Parent;
 			var prevVector = previousIndicator.TranslatePoint(new Point(), itemsContainer) ?? new Point();
 			var nextVector = nextIndicator.TranslatePoint(new Point(), itemsContainer) ?? new Point();
+
 			var targetVector = nextVector - prevVector;
 			var fromTopToBottom = targetVector.Y > 0;
 			var curEasing = fromTopToBottom ? fwdEasing : bckEasing;
