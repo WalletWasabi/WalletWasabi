@@ -18,20 +18,26 @@ namespace WalletWasabi.Fluent.Behaviors
 	public class NavBarSelectedIndicatorState : IDisposable
 	{
 		public readonly ConcurrentDictionary<int, Control> ScopeChildren = new();
-		private CancellationTokenSource _currentAnimationCts = new();
-		private bool _isDispose;
-		private bool _initialFixDone;
 		private readonly Easing bckEasing = new SplineEasing(0.2, 1, 0.1, 0.9);
 		private readonly Easing fwdEasing = new SplineEasing(0.1, 0.9, 0.2);
-
-
 		private readonly TimeSpan timebase = TimeSpan.FromSeconds(0.8);
+
+		private bool _isDisposed;
+		private bool _initialFixDone;
+		private CancellationTokenSource _currentAnimationCts = new();
+
+		/// <summary>
+		/// The last animated indicator
+		/// </summary>
 		public Rectangle? PreviousIndicator { get; set; }
+
+		// This will be used in the future for horizontal selection indicators.
+		// ReSharper disable once UnusedMember.Global
 		public Orientation NavItemsOrientation { get; set; } = Orientation.Vertical;
 
 		public void Dispose()
 		{
-			_isDispose = true;
+			_isDisposed = true;
 			ScopeChildren.Clear();
 		}
 
@@ -47,10 +53,9 @@ namespace WalletWasabi.Fluent.Behaviors
 		}
 
 		public async void AnimateIndicators(Rectangle previousIndicator, Rectangle nextIndicator,
-			CancellationToken token,
-			Orientation navItemsOrientation)
+			CancellationToken token)
 		{
-			if (_isDispose || previousIndicator is null || nextIndicator is null)
+			if (_isDisposed || previousIndicator is null || nextIndicator is null)
 			{
 				return;
 			}
@@ -58,18 +63,21 @@ namespace WalletWasabi.Fluent.Behaviors
 			previousIndicator.Opacity = 1;
 			nextIndicator.Opacity = 0;
 
-			var u = previousIndicator.GetVisualAncestors().OfType<StackPanel>().FirstOrDefault();
+			// This selected indicator animation system assumes
+			// that the item container is not virtualizing
+			// and that it is a StackPanel.
 
-			var prevVector = previousIndicator.TranslatePoint(new Point(), u) ?? new Point();
-			var nextVector = nextIndicator.TranslatePoint(new Point(), u) ?? new Point();
+			// If you wish to reuse this system do take note of this
+			// and make adjustments as necessary as you see it.
 
-			var fromTopToBottom = prevVector.Y > nextVector.Y;
-
+			var itemsContainer = previousIndicator.GetVisualAncestors().OfType<StackPanel>().FirstOrDefault();
+			var prevVector = previousIndicator.TranslatePoint(new Point(), itemsContainer) ?? new Point();
+			var nextVector = nextIndicator.TranslatePoint(new Point(), itemsContainer) ?? new Point();
+			var targetVector = nextVector - prevVector;
+			var fromTopToBottom = targetVector.Y > 0;
 			var curEasing = fromTopToBottom ? fwdEasing : bckEasing;
-			var direction = fromTopToBottom ? -1d : 1d;
-			var newDim = Math.Abs(nextVector.Y - prevVector.Y);
-			var targetY = direction * newDim;
-			var maxScale = newDim / nextIndicator.Bounds.Height;
+ 			var newDim = Math.Abs(NavItemsOrientation == Orientation.Vertical ? targetVector.Y : targetVector.X);
+			var maxScale = newDim / (NavItemsOrientation == Orientation.Vertical ? nextIndicator.Bounds.Height : nextIndicator.Bounds.Width);
 
 			Animation scalingAnimation = new()
 			{
@@ -124,13 +132,12 @@ namespace WalletWasabi.Fluent.Behaviors
 						Cue = new Cue(1d),
 						Setters =
 						{
-							new Setter(TranslateTransform.XProperty, 0d),
-							new Setter(TranslateTransform.YProperty, targetY)
+							new Setter(TranslateTransform.XProperty, targetVector.X),
+							new Setter(TranslateTransform.YProperty, targetVector.Y)
 						}
 					}
 				}
 			};
-
 
 			Animation fadeOut = new()
 			{
@@ -196,12 +203,13 @@ namespace WalletWasabi.Fluent.Behaviors
 
 		public async void InitialFix(Rectangle initial)
 		{
-			if(_initialFixDone)
+			if (_initialFixDone)
 			{
 				return;
 			}
 
 			_initialFixDone = true;
+
 			Animation fadeIn = new()
 			{
 				FillMode = FillMode.Both,
@@ -256,7 +264,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			_currentAnimationCts = new CancellationTokenSource();
 
 			AnimateIndicators(PreviousIndicator, NextIndicator,
-				_currentAnimationCts.Token, NavItemsOrientation);
+				_currentAnimationCts.Token);
 
 			PreviousIndicator = NextIndicator;
 		}
