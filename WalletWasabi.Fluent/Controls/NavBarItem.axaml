@@ -1,9 +1,13 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:WalletWasabi.Fluent.Controls">
+        xmlns:c="using:WalletWasabi.Fluent.Controls"
+        xmlns:id="using:Avalonia.Xaml.Interactivity"
+        xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors">
   <Design.PreviewWith>
     <Border Padding="0">
-      <c:NavBarItem />
+      <c:NavBarItem>
+        Test Header
+      </c:NavBarItem>
     </Border>
   </Design.PreviewWith>
   <Styles.Resources>
@@ -16,23 +20,12 @@
   </Style>
 
   <Style Selector="c|NavBarItem">
+    <Setter Property="ClipToBounds" Value="False" />
     <Setter Property="Padding" Value="{StaticResource ListBoxItemPadding}" />
     <Setter Property="Template">
       <ControlTemplate>
-        <Panel>
-          <Border CornerRadius="3" x:Name="Indicator_Backdrop" Margin="4 0">
-            <Border x:Name="Indicator"
-                    CornerRadius="6">
-              <Border.Transitions>
-                <Transitions>
-                  <DoubleTransition Property="Opacity" Duration="0:0:0.175" />
-                  <TransformOperationsTransition Property="RenderTransform" Duration="0:0:.135"
-                                                 Easing="QuadraticEaseIn" />
-                </Transitions>
-              </Border.Transitions>
-            </Border>
-          </Border>
-
+        <Panel ClipToBounds="False">
+          <Rectangle Name="SelectionIndicator" />
           <ContentPresenter Name="PART_ContentPresenter"
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
@@ -47,25 +40,35 @@
     </Setter>
   </Style>
 
-  <Style Selector="c|NavBarItem:vertical /template/ Border#Indicator">
+  <Style Selector="c|NavBarItem /template/ Rectangle#SelectionIndicator" x:DataType="Rectangle" x:CompileBindings="True">
+    <Setter Property="(id:Interaction.Behaviors)">
+      <id:BehaviorCollectionTemplate>
+        <id:BehaviorCollection>
+          <behaviors:NavBarSelectedIndicatorChildBehavior />
+        </id:BehaviorCollection>
+      </id:BehaviorCollectionTemplate>
+    </Setter>
+    <Setter Property="Opacity" Value="0"/>
+    <Setter Property="(behaviors:NavBarSelectedIndicatorChildBehavior.NavBarItemParent)" Value="{Binding $parent[c:NavBarItem], Mode=OneWay}"/>
+  </Style>
+
+  <Style Selector="c|NavBarItem:vertical /template/ Rectangle#SelectionIndicator">
     <Setter Property="VerticalAlignment" Value="Stretch" />
     <Setter Property="HorizontalAlignment" Value="Left" />
     <Setter Property="Width" Value="3" />
     <Setter Property="Height" Value="NaN" />
   </Style>
 
-  <Style Selector="c|NavBarItem:horizontal /template/ Border#Indicator">
+  <Style Selector="c|NavBarItem:horizontal /template/ Rectangle#SelectionIndicator">
     <Setter Property="VerticalAlignment" Value="Bottom" />
     <Setter Property="HorizontalAlignment" Value="Stretch" />
     <Setter Property="Width" Value="NaN" />
     <Setter Property="Height" Value="3" />
   </Style>
 
-  <Style Selector="c|NavBarItem /template/ Border#Indicator">
-    <Setter Property="Background" Value="{DynamicResource NavBarAccentColor}" />
-    <Setter Property="Opacity" Value="0" />
-    <Setter Property="RenderTransformOrigin" Value="50%,0%" />
-    <Setter Property="RenderTransform" Value="scaleY(0)" />
+  <Style Selector="c|NavBarItem /template/ Rectangle#SelectionIndicator">
+    <Setter Property="Opacity" Value="0"/>
+    <Setter Property="Fill" Value="{DynamicResource NavBarAccentColor}" />
   </Style>
 
   <Style Selector="c|NavBarItem /template/ ContentPresenter#PART_ContentPresenter">
@@ -82,13 +85,10 @@
   <Style Selector="c|NavBarItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource NavBarItemPointerOverBrush}" />
   </Style>
-  <Style Selector="c|NavBarItem:pointerover /template/ Border#Indicator_Backdrop">
-    <Setter Property="Background" Value="{DynamicResource NavBarItemPointerOverBackgroundBrush}" />
-  </Style>
 
   <!-- Pressed State -->
-  <Style Selector="c|NavBarItem:pressed /template/ Border#Indicator">
-    <Setter Property="Background" Value="{DynamicResource NavBarItemPressedAccentColor}" />
+  <Style Selector="c|NavBarItem:pressed /template/ Rectangle#SelectionIndicator">
+    <Setter Property="Fill" Value="{DynamicResource NavBarItemPressedAccentColor}" />
   </Style>
   <Style Selector="c|NavBarItem:pressed /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource NavBarItemPressedBrush}" />
@@ -98,10 +98,9 @@
   </Style>
 
   <!-- Selected State -->
-  <Style Selector="c|NavBarItem:selected /template/ Border#Indicator">
-    <Setter Property="Opacity" Value="1" />
-    <Setter Property="RenderTransformOrigin" Value="50%,100%" />
-    <Setter Property="RenderTransform" Value="scaleY(1)" />
+  <Style Selector="c|NavBarItem:selected /template/ Rectangle#SelectionIndicator">
+    <Setter Property="Opacity" Value="1"/>
+    <Setter Property="(behaviors:NavBarSelectedIndicatorChildBehavior.IsSelected)" Value="True"/>
   </Style>
   <Style Selector="c|NavBarItem:selected /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource NavBarItemSelectedBrush}" />
