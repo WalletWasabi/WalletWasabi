@@ -110,7 +110,7 @@ namespace WalletWasabi.Tests.Helpers
 
 		public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig cfg, IMock<IRPCClient> mockRpc, params Round[] rounds)
 		{
-			RoundsAggregate roundsAggregate = new ();
+			ActiveRoundsAggregate roundsAggregate = new ();
 			Arena arena = new(TimeSpan.FromHours(1), Network.Main, cfg, mockRpc.Object, new Prison(), roundsAggregate);
 			foreach (var round in rounds)
 			{

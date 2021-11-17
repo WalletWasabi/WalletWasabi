@@ -31,7 +31,7 @@ namespace WalletWasabi.Tests.Helpers
 			IRPCClient rpc = Rpc ?? WabiSabiFactory.CreatePreconfiguredRpcClient().Object;
 			Network network = Network ?? Network.Main;
 
-			RoundsAggregate roundsAggregate = new ();
+			ActiveRoundsAggregate roundsAggregate = new ();
 			Arena arena = new(period, network, config, rpc, prison, roundsAggregate);
 
 			foreach (var round in rounds)

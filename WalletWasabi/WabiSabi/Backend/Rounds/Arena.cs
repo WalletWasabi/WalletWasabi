@@ -26,7 +26,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			WabiSabiConfig config,
 			IRPCClient rpc,
 			Prison prison,
-			RoundsAggregate roundsAggregate,
+			ActiveRoundsAggregate activeRoundsAggregate,
 			CoinJoinTransactionArchiver? archiver = null) : base(period)
 		{
 			Network = network;
@@ -35,11 +35,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			Prison = prison;
 			TransactionArchiver = archiver;
 			Random = new SecureRandom();
-			RoundsAggregate = roundsAggregate;
+			ActiveRoundsAggregate = activeRoundsAggregate;
 		}
 
-		public RoundsAggregate RoundsAggregate { get; }
-		public HashSet<Round> Rounds => RoundsAggregate.State.Rounds.ToHashSet();
+		public ActiveRoundsAggregate ActiveRoundsAggregate { get; }
+		public HashSet<Round> Rounds => ActiveRoundsAggregate.State.Rounds.ToHashSet();
 		private AsyncLock AsyncLock { get; } = new();
 		private Network Network { get; }
 		private WabiSabiConfig Config { get; }
@@ -74,7 +74,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private async Task StepInputRegistrationPhaseAsync(CancellationToken cancel)
 		{
-			foreach (var round in RoundsAggregate.State.InInputRegistration.Where(x => x.IsInputRegistrationEnded(Config.MaxInputCountByRound)))
+			foreach (var round in ActiveRoundsAggregate.State.InPhase(Phase.InputRegistration).Where(x => x.IsInputRegistrationEnded(Config.MaxInputCountByRound)))
 			{
 				await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false))
 				{
@@ -102,7 +102,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private async Task StepConnectionConfirmationPhaseAsync(CancellationToken cancel)
 		{
-			foreach (var round in RoundsAggregate.State.InConnectionConfirmation)
+			foreach (var round in ActiveRoundsAggregate.State.InPhase(Phase.ConnectionConfirmation))
 			{
 				if (round.Alices.All(x => x.ConfirmedConnection))
 				{
@@ -148,7 +148,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private void StepOutputRegistrationPhase()
 		{
-			foreach (var round in RoundsAggregate.State.InOutputRegistration)
+			foreach (var round in ActiveRoundsAggregate.State.InPhase(Phase.OutputRegistration))
 			{
 				var allReady = round.Alices.All(a => a.ReadyToSign);
 
@@ -181,7 +181,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private async Task StepTransactionSigningPhaseAsync(CancellationToken cancellationToken)
 		{
-			foreach (var round in RoundsAggregate.State.InTransactionSigning)
+			foreach (var round in ActiveRoundsAggregate.State.InPhase(Phase.TransactionSigning))
 			{
 				var state = round.Assert<SigningState>();
 
@@ -290,7 +290,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				.ToHashSet();
 
 			BlameRound blameRound = new(parameters, round, blameWhitelist);
-			RoundsAggregate.Apply(new RoundCreated(blameRound));
+			ActiveRoundsAggregate.Apply(new RoundCreated(blameRound));
 		}
 
 		private async Task CreateRoundsAsync(CancellationToken cancellationToken)
@@ -300,7 +300,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
 
 				RoundParameters roundParams = new(Config, Network, Random, feeRate);
-				RoundsAggregate.Apply(new RoundCreated(new Round(roundParams)));
+				ActiveRoundsAggregate.Apply(new RoundCreated(new Round(roundParams)));
 			}
 		}
 

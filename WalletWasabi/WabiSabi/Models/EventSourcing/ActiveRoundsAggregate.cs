@@ -1,8 +1,8 @@
 namespace WalletWasabi.WabiSabi.Models.EventSourcing
 {
-	public class RoundsAggregate : Aggregate
+	public class ActiveRoundsAggregate : Aggregate
 	{
-		public RoundsState State { get; private set; } = new ();
+		public ActiveRoundsState State { get; private set; } = new ();
 
 		public override void Apply(RoundCreated roundCreatedEvent)
 		{

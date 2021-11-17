@@ -98,7 +98,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 
-			arena.RoundsAggregate.Apply(new RoundCreated(round));
+			arena.ActiveRoundsAggregate.Apply(new RoundCreated(round));
 
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
