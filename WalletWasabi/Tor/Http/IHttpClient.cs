@@ -16,8 +16,10 @@ namespace WalletWasabi.Tor.Http
 		/// <summary>Sends an HTTP(s) request.</summary>
 		/// <param name="request">HTTP request message to send.</param>
 		/// <param name="token">Cancellation token to cancel the asynchronous operation.</param>
+		/// <exception cref="HttpRequestException"/>
 		Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default);
 
+		/// <exception cref="HttpRequestException"/>
 		/// <exception cref="InvalidOperationException"/>
 		async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken cancel = default)
 		{
