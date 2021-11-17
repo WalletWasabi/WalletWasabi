@@ -69,7 +69,7 @@ https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubunt
 Putty (Copypaste with Ctrl+Insert and Shift+Insert)
 https://www.digitalocean.com/community/tutorials/how-to-use-ssh-keys-with-putty-on-digitalocean-droplets-windows-users
 
-Make sure the new user's SSH pubkey added to ~/.ssh/authorized_keys on the server as well. 
+Make sure the new user's SSH pubkey added to ~/.ssh/authorized_keys on the server as well.
 
 ### Create a New User and Grant Administrative Privileges
 
@@ -258,8 +258,8 @@ sudo pico /etc/systemd/system/walletwasabi.service
 Description=WalletWasabi Backend API
 
 [Service]
-WorkingDirectory=/home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/net5.0/publish
-ExecStart=/usr/bin/dotnet /home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/net5.0/publish/WalletWasabi.Backend.dll
+WorkingDirectory=/home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/net6.0/publish
+ExecStart=/usr/bin/dotnet /home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/net6.0/publish/WalletWasabi.Backend.dll
 Restart=always
 RestartSec=10  # Restart service after 10 seconds if dotnet service crashes
 SyslogIdentifier=walletwasabi-backend

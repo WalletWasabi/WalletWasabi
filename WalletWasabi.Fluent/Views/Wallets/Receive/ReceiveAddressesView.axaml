@@ -12,9 +12,9 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <DataGrid Items="{Binding Addresses}"
-              CanUserSortColumns="True">
-      <DataGrid.Styles>
+    <DataBox Items="{Binding Addresses}"
+             CanUserSortColumns="True">
+      <DataBox.Styles>
         <Style Selector="c|AnimatedButton.addressActionButton">
           <Setter Property="DockPanel.Dock" Value="Right"/>
           <Setter Property="Margin" Value="5 0 0 0"/>
@@ -31,14 +31,13 @@
           <Setter Property="Height" Value="15"/>
           <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}"/>
         </Style>
-      </DataGrid.Styles>
+      </DataBox.Styles>
 
-      <DataGrid.Columns>
-        <DataGridTemplateColumn Header="Labels"
-                                Width="Auto"
-                                CanUserSort="True"
-                                SortMemberPath="Label">
-          <DataGridTemplateColumn.CellTemplate>
+      <DataBox.Columns>
+        <DataBoxTemplateColumn Header="Labels"
+                               Width="Auto"
+                               CanUserSort="True">
+          <DataBoxTemplateColumn.CellTemplate>
             <DataTemplate>
               <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
                 <Button Classes="plain addressActionButton" ToolTip.Tip="Edit" DockPanel.Dock="Right" Command="{Binding EditLabelCommand}">
@@ -78,14 +77,13 @@
                 </c:PrivacyContentControl>
               </DockPanel>
             </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-        </DataGridTemplateColumn>
+          </DataBoxTemplateColumn.CellTemplate>
+        </DataBoxTemplateColumn>
 
-        <DataGridTemplateColumn Header="Address"
-                                Width="2*"
-                                CanUserSort="True"
-                                SortMemberPath="Address">
-          <DataGridTemplateColumn.CellTemplate>
+        <DataBoxTemplateColumn Header="Address"
+                               Width="2*"
+                               CanUserSort="True">
+          <DataBoxTemplateColumn.CellTemplate>
             <DataTemplate>
               <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
                 <Button Classes="plain addressActionButton" Command="{Binding HideAddressCommand}"
@@ -107,9 +105,9 @@
                 <c:PrivacyContentControl Content="{Binding Address}" VerticalAlignment="Center" NumberOfPrivacyChars="38" />
               </DockPanel>
             </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-        </DataGridTemplateColumn>
-      </DataGrid.Columns>
-    </DataGrid>
+          </DataBoxTemplateColumn.CellTemplate>
+        </DataBoxTemplateColumn>
+      </DataBox.Columns>
+    </DataBox>
   </c:ContentArea>
 </UserControl>

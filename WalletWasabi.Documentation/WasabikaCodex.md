@@ -45,8 +45,42 @@ __Tips__: if the PR is too big ask for breakdown.
 
 __Fact__: code review is one of the few scientifically proven code improvement tools.
 
-## Creating Pull Request
+## How to fork a repository
+- On Github navigate to the desired repository.
+- In the top-right corner of the page, click Fork.
 
+### Cloning your forked repository
+- On GitHub.com, navigate to your fork. For Example: https://github.com/adampetho/WalletWasabi
+- Above the list of files, click the Code button with the arrow pointing down.
+- Use one of the 3 options to get your repository into your local machine. (See below)
+
+#### Git Bash approach
+- Get and Setup Git Bash on your local computer
+- Copy the link
+- Open Git Bash.
+- Change the current working directory to the location where you want the cloned directory.
+- Type git clone, and then paste the URL you copied earlier. Example: "git clone https://github.com/zkSNACKs/WalletWasabi.git"
+- Press Enter. Your local clone will be created.
+- Further reading about this approach or if you get stuck, please read this https://docs.github.com/en/get-started/quickstart/fork-a-repo (or ask the devs)
+
+#### Zip approach
+- Self-explanatory: Download -> Unzip -> Ready to go
+
+#### GitHub Desktop approach
+- Install GitHub Desktop and Login
+- Choose the Open with GitHub Desktop option
+- Choose where to clone
+- Click OK
+
+## Creating Pull Request
+- Fork the repo (See above)
+- Clone the forked repo (See above)
+- Make a new branch from master by "git switch -c newbranch" (Replace newbranch with your own comprehensive names.)
+- Make changes 
+- Add necessary files ("git add ." will add every changed file, this is the most commonly used, but you can add the changes one-by-one "git add <filename>")
+- Commit your changes: git commit -m "A simple commit message"
+- Push your changes: git push
+- Raise a PR on github
 - Fill the title.
 - Fill the description.
   - If it fixes issues [add keyword](https://help.github.com/en/articles/closing-issues-using-keywords).

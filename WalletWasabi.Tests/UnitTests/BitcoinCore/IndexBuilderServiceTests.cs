@@ -129,27 +129,6 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			Assert.Equal(9, result.filters.Count());
 		}
 
-		[Fact]
-		public void IncludeTaprootScriptInFilters()
-		{
-			var getBlockRpcRawResponse = File.ReadAllText("./UnitTests/Data/VerboseBlock.json");
-
-			var block = RpcParser.ParseVerboseBlockResponse(getBlockRpcRawResponse);
-			var filter = IndexBuilderService.BuildFilterForBlock(block);
-
-			var txOutputs = block.Transactions.SelectMany(x => x.Outputs);
-			var prevTxOutputs = block.Transactions.SelectMany(x => x.Inputs.Where(y => y.PrevOutput is { }).Select(y => y.PrevOutput));
-			var allOutputs = txOutputs.Concat(prevTxOutputs);
-
-			var indexableOutputs = allOutputs.Where(x => x?.PubkeyType is RpcPubkeyType.TxWitnessV0Keyhash or RpcPubkeyType.TxWitnessV1Taproot);
-			var nonIndexableOutputs = allOutputs.Except(indexableOutputs);
-
-			static byte[] ComputeKey(uint256 blockId) => blockId.ToBytes()[0..16];
-
-			Assert.All(indexableOutputs, x => Assert.True(filter.Match(x?.ScriptPubKey.ToCompressedBytes(), ComputeKey(block.Hash))));
-			Assert.All(nonIndexableOutputs, x => Assert.False(filter.Match(x?.ScriptPubKey.ToCompressedBytes(), ComputeKey(block.Hash))));
-		}
-
 		private IEnumerable<VerboseBlockInfo> GenerateBlockchain() =>
 			from height in Enumerable.Range(0, int.MaxValue).Select(x => (ulong)x)
 			select new VerboseBlockInfo(
@@ -158,8 +137,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				BlockHashFromHeight(height + 1),
 				DateTimeOffset.UtcNow.AddMinutes(height * 10),
 				height,
-				Enumerable.Empty<VerboseTransactionInfo>()
-			);
+				Enumerable.Empty<VerboseTransactionInfo>());
 
 		private static uint256 BlockHashFromHeight(ulong height)
 			=> height == 0 ? uint256.Zero : Hashes.DoubleSHA256(BitConverter.GetBytes(height));

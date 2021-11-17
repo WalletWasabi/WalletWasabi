@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive.Concurrency;
@@ -9,15 +8,12 @@ using Avalonia.Controls.Notifications;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionProcessing;
-using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Logging;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Helpers
 {
 	public static class NotificationHelpers
 	{
-		private const int MaxTitleLength = 50;
 		private const int DefaultNotificationTimeout = 10;
 		private static WindowNotificationManager? NotificationManager;
 
@@ -31,50 +27,6 @@ namespace WalletWasabi.Fluent.Helpers
 			};
 
 			NotificationManager = notificationManager;
-		}
-
-		public static void Notify(string message, string title, NotificationType type, Action? onClick = null, object? sender = null)
-		{
-			List<string> titles = new();
-
-			if (!string.IsNullOrEmpty(title))
-			{
-				titles.Add(title);
-			}
-
-			string walletName = sender switch
-			{
-				Wallet wallet => wallet.WalletName,
-				WalletViewModelBase walletViewModelBase => walletViewModelBase.WalletName,
-				_ => ""
-			};
-
-			if (!string.IsNullOrEmpty(walletName))
-			{
-				titles.Add(walletName);
-			}
-
-			var fullTitle = string.Join(" - ", titles);
-
-			fullTitle = fullTitle.Substring(0, Math.Min(fullTitle.Length, MaxTitleLength));
-
-			RxApp.MainThreadScheduler
-				.Schedule(() => NotificationManager?.Show(new Notification(fullTitle, message, type, TimeSpan.FromSeconds(DefaultNotificationTimeout), onClick)));
-		}
-
-		public static void Information(string message, string title = "Info", object? sender = null)
-		{
-			Notify(message, title, NotificationType.Information, sender: sender);
-		}
-
-		public static void Warning(string message, string title = "Warning!", object? sender = null)
-		{
-			Notify(message, title, NotificationType.Warning, sender: sender);
-		}
-
-		public static void Error(string message, string title = "Error!", object? sender = null)
-		{
-			Notify(message, title, NotificationType.Error, sender: sender);
 		}
 
 		public static void Show(string title, string message, Action? onClick = null)

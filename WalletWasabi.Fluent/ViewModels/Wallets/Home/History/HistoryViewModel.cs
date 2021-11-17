@@ -43,10 +43,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			this.WhenAnyValue(x => x.UnfilteredTransactions.Count)
 				.Subscribe(x => IsTransactionHistoryEmpty = x <= 0);
 
-			var sortDescription = DataGridSortDescription.FromPath(nameof(TransactionHistoryItemViewModel.OrderIndex), ListSortDirection.Descending);
-			CollectionView = new DataGridCollectionView(Transactions);
-			CollectionView.SortDescriptions.Add(sortDescription);
-
 			_transactionSourceList
 				.Connect()
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -55,8 +51,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				.Bind(_transactions)
 				.Subscribe();
 		}
-
-		public DataGridCollectionView CollectionView { get; }
 
 		public ObservableCollection<HistoryItemViewModelBase> UnfilteredTransactions => _unfilteredTransactions;
 

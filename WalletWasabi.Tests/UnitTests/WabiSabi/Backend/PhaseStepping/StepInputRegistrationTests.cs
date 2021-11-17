@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
@@ -159,7 +160,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			round.Alices.Add(WabiSabiFactory.CreateAlice(round));
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.Ended, round.Phase);
-			Assert.DoesNotContain(round, arena.ActiveRounds);
+			Assert.DoesNotContain(round, arena.GetActiveRounds());
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -188,7 +189,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, blameRound);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.Ended, blameRound.Phase);
-			Assert.DoesNotContain(blameRound, arena.ActiveRounds);
+			Assert.DoesNotContain(blameRound, arena.GetActiveRounds());
 
 			await arena.StopAsync(CancellationToken.None);
 		}

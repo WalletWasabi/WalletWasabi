@@ -88,7 +88,7 @@ Linux: "/home/{your username}/.walletwasabi/backend"
 
 Todo:
 
-1. Go to `WalletWasabi\WalletWasabi.Gui` folder.
+1. Go to `WalletWasabi\WalletWasabi.Fluent.Desktop` folder.
 2. Open the command line and run the Wasabi Client with:
 `dotnet run --no-build`
 3. Go to Tools/Settings and set the network to RegTest

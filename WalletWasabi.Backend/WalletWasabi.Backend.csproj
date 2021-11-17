@@ -2,7 +2,8 @@
 
 	<PropertyGroup>
 		<PlatformTarget>x64</PlatformTarget>
-		<TargetFramework>net5.0</TargetFramework>
+		<TargetFramework>net6.0</TargetFramework>
+		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
 		<AnalysisLevel>latest</AnalysisLevel>
 		<LangVersion>latest</LangVersion>
 		<NoWarn>1701;1702;1705;1591;1573;CA1031;CA1822</NoWarn>
@@ -12,6 +13,7 @@
 		<RepositoryType>Git</RepositoryType>
 		<RepositoryUrl>https://github.com/zkSNACKs/WalletWasabi/</RepositoryUrl>
 		<Nullable>enable</Nullable>
+		<InvariantGlobalization>true</InvariantGlobalization>
 		<RuntimeIdentifiers>win7-x64;linux-x64;osx-x64</RuntimeIdentifiers>
 		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Backend</PathMap>
 	</PropertyGroup>
@@ -25,12 +27,12 @@
 	</ItemGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<DocumentationFile>bin\Debug\net5.0\WalletWasabi.Backend.xml</DocumentationFile>
+		<DocumentationFile>bin\Debug\net6.0\WalletWasabi.Backend.xml</DocumentationFile>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 		<!-- Needed for Swagger! -->
-		<DocumentationFile>bin\Release\net5.0\WalletWasabi.Backend.xml</DocumentationFile>
+		<DocumentationFile>bin\Release\net6.0\WalletWasabi.Backend.xml</DocumentationFile>
 		<DebugType>none</DebugType>
 		<DebugSymbols>false</DebugSymbols>
 		<ErrorReport>none</ErrorReport>
