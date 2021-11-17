@@ -69,10 +69,10 @@ namespace WalletWasabi.Tor.Http.Models
 			foreach (var f in hs.Fields)
 			{
 				// if we find host
-				if (f.Name == "Host")
+				if (f.Name.Equals("Host", StringComparison.OrdinalIgnoreCase))
 				{
 					// if host is not first
-					if (hs.Fields.First().Name != "Host")
+					if (!hs.Fields.First().Name.Equals("Host", StringComparison.OrdinalIgnoreCase))
 					{
 						// then correct host
 						hostToCorrect = f;
@@ -102,7 +102,7 @@ namespace WalletWasabi.Tor.Http.Models
 			var allParts = new HashSet<string>();
 			foreach (var field in hs.Fields)
 			{
-				if (field.Name == "Content-Length")
+				if (field.Name.Equals("Content-Length", StringComparison.OrdinalIgnoreCase))
 				{
 					var parts = field.Value.Trim().Split(',');
 					foreach (var part in parts)
@@ -117,7 +117,7 @@ namespace WalletWasabi.Tor.Http.Models
 				{
 					throw new InvalidDataException("Invalid Content-Length.");
 				}
-				hs.Fields.RemoveAll(x => x.Name == "Content-Length");
+				hs.Fields.RemoveAll(x => x.Name.Equals("Content-Length", StringComparison.OrdinalIgnoreCase));
 				hs.Fields.Add(new HeaderField("Content-Length", allParts.First()));
 			}
 		}
@@ -131,7 +131,7 @@ namespace WalletWasabi.Tor.Http.Models
 			message.Content.Headers.ContentLength = null;
 			foreach (var field in Fields)
 			{
-				if (field.Name.StartsWith("Content-", StringComparison.Ordinal))
+				if (field.Name.StartsWith("Content-", StringComparison.OrdinalIgnoreCase))
 				{
 					message.Content.Headers.TryAddWithoutValidation(field.Name, field.Value);
 				}
@@ -157,7 +157,7 @@ namespace WalletWasabi.Tor.Http.Models
 			message.Content.Headers.ContentLength = null;
 			foreach (var field in Fields)
 			{
-				if (field.Name.StartsWith("Content-", StringComparison.Ordinal))
+				if (field.Name.StartsWith("Content-", StringComparison.OrdinalIgnoreCase))
 				{
 					message.Content.Headers.TryAddWithoutValidation(field.Name, field.Value);
 				}
@@ -189,7 +189,7 @@ namespace WalletWasabi.Tor.Http.Models
 			// - And I explicitly expand the "headers" variable
 			if (headers is HttpContentHeaders contentHeaders && contentHeaders.ContentLength is { } contentLength)
 			{
-				if (hs.Fields.All(x => x.Name != "Content-Length"))
+				if (hs.Fields.All(x => !string.Equals(x.Name, "Content-Length", StringComparison.OrdinalIgnoreCase)))
 				{
 					hs.Fields.Add(new HeaderField("Content-Length", contentLength.ToString()));
 				}

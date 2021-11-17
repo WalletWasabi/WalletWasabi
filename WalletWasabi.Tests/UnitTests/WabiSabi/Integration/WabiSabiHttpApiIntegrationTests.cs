@@ -71,7 +71,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
 
 			// Create a key manager and use it to create fake coins.
-			var keyManager = KeyManager.CreateNew(out var _, password: "");
+			var keyManager = KeyManager.CreateNew(out var _, password: "", Network.Main);
 			keyManager.AssertCleanKeysIndexed();
 			var coins = keyManager.GetKeys()
 				.Take(inputCount)
@@ -115,7 +115,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 				});
 			}).CreateClient();
 
-
 			// Create the coinjoin client
 			var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
 			var mockHttpClientFactory = new Mock<IBackendHttpClientFactory>();
@@ -155,10 +154,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
 			cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
 
-			var keyManager1 = KeyManager.CreateNew(out var _, password: "");
+			var keyManager1 = KeyManager.CreateNew(out var _, password: "", Network.Main);
 			keyManager1.AssertCleanKeysIndexed();
 
-			var keyManager2 = KeyManager.CreateNew(out var _, password: "");
+			var keyManager2 = KeyManager.CreateNew(out var _, password: "", Network.Main);
 			keyManager2.AssertCleanKeysIndexed();
 
 			var coins = keyManager1.GetKeys()
