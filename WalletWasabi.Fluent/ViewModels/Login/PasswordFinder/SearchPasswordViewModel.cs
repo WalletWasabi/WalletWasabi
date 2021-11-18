@@ -2,6 +2,7 @@ using System;
 using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Logging;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets.PasswordFinder;
@@ -65,6 +66,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 			}
 			catch (OperationCanceledException)
 			{
+				Logger.LogTrace("Operation was canceled.");
 			}
 		}
 

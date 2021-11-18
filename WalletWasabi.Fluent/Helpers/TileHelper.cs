@@ -31,18 +31,18 @@ namespace WalletWasabi.Fluent.Helpers
 					{
 						new(column: 2, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
 						new(column: 0, row: 1, columnSpan: 1, rowSpan: 1, TileSize.Medium),
-						new(column: 1, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium)
+						new(column: 0, row: 1, columnSpan: 1, rowSpan: 1, TileSize.Medium)
 					},
 					TilePresetIndex = walletViewModel.LayoutIndex
 				},
 
-				new WalletPieChartTileViewModel(walletViewModel, balanceChanged)
+				new PrivacyControlTileViewModel(walletViewModel, balanceChanged)
 				{
 					TilePresets = new ObservableCollection<TilePresetViewModel>()
 					{
 						new(column: 1, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
 						new(column: 1, row: 0, columnSpan: 1, rowSpan: 2, TileSize.Large),
-						new(column: 0, row: 1, columnSpan: 2, rowSpan: 1, TileSize.Wide)
+						new(column: 1, row: 0, columnSpan: 1, rowSpan: 2, TileSize.Large)
 					},
 					TilePresetIndex = walletViewModel.LayoutIndex
 				},
@@ -115,7 +115,7 @@ namespace WalletWasabi.Fluent.Helpers
 			{
 				new("Small", columnDefinitions: "330,330,330,330", rowDefinitions: "150"),
 				new("Normal", columnDefinitions: "330,330,330", rowDefinitions: "150,150"),
-				new("Wide", columnDefinitions: "330,330", rowDefinitions: "150,300,300")
+				new("Wide", columnDefinitions: "330,330", rowDefinitions: "150,150,300")
 			};
 		}
 	}

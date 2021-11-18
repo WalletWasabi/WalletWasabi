@@ -56,7 +56,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			{
 				services.AddHostedService<BackgroundServiceStarter<Arena>>();
 				services.AddSingleton<Arena>();
-				services.AddSingleton<ArenaRequestHandler>();
 				services.AddScoped<Network>(_ => Network.Main);
 				services.AddScoped<IRPCClient>(_ => BitcoinFactory.GetMockMinimalRpc());
 				services.AddScoped<Prison>();

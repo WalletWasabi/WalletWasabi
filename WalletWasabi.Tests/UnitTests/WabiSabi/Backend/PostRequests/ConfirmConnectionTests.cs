@@ -5,9 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
-using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
@@ -30,8 +28,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
-			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena);
-			var resp = await handler.ConfirmConnectionAsync(req, CancellationToken.None);
+
+			var resp = await arena.ConfirmConnectionAsync(req, CancellationToken.None);
 			Assert.NotNull(resp);
 			Assert.NotNull(resp.ZeroAmountCredentials);
 			Assert.NotNull(resp.ZeroVsizeCredentials);
@@ -57,8 +55,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
-			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena);
-			var resp = await handler.ConfirmConnectionAsync(req, CancellationToken.None);
+
+			var resp = await arena.ConfirmConnectionAsync(req, CancellationToken.None);
 			Assert.NotNull(resp);
 			Assert.NotNull(resp.ZeroAmountCredentials);
 			Assert.NotNull(resp.ZeroVsizeCredentials);
@@ -76,11 +74,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var cfg = new WabiSabiConfig();
 			var nonExistingRound = WabiSabiFactory.CreateRound(cfg);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync();
-			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena);
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(nonExistingRound);
 
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
-				async () => await handler.ConfirmConnectionAsync(req, CancellationToken.None));
+				async () => await arena.ConfirmConnectionAsync(req, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.RoundNotFound, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -98,14 +95,13 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
-			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena);
 			foreach (Phase phase in Enum.GetValues(typeof(Phase)))
 			{
 				if (phase != Phase.InputRegistration && phase != Phase.ConnectionConfirmation)
 				{
 					round.SetPhase(phase);
 					var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
-						async () => await handler.ConfirmConnectionAsync(req, CancellationToken.None));
+						async () => await arena.ConfirmConnectionAsync(req, CancellationToken.None));
 
 					Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 				}
@@ -124,8 +120,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
-			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena);
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.ConfirmConnectionAsync(req, CancellationToken.None));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.ConfirmConnectionAsync(req, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.AliceNotFound, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -145,8 +140,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var incorrectVsizeCredentials = WabiSabiFactory.CreateRealCredentialRequests(round, null, 234).vsizeRequest;
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round) with { RealVsizeCredentialRequests = incorrectVsizeCredentials };
 
-			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena);
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.ConfirmConnectionAsync(req, CancellationToken.None));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.ConfirmConnectionAsync(req, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.IncorrectRequestedVsizeCredentials, ex.ErrorCode);
 			Assert.False(alice.ConfirmedConnection);
 
@@ -166,8 +160,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var incorrectAmountCredentials = WabiSabiFactory.CreateRealCredentialRequests(round, Money.Coins(3), null).amountRequest;
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round) with { RealAmountCredentialRequests = incorrectAmountCredentials };
 
-			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena);
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.ConfirmConnectionAsync(req, CancellationToken.None));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.ConfirmConnectionAsync(req, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.IncorrectRequestedAmountCredentials, ex.ErrorCode);
 			Assert.False(alice.ConfirmedConnection);
 
@@ -208,8 +201,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			// invalidate serial numbers
 			issuer.HandleRequest(credentialsRequest);
 
-			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena);
-			var ex = await Assert.ThrowsAsync<WabiSabiCryptoException>(async () => await handler.ConfirmConnectionAsync(req, CancellationToken.None));
+			var ex = await Assert.ThrowsAsync<WabiSabiCryptoException>(async () => await arena.ConfirmConnectionAsync(req, CancellationToken.None));
 			Assert.Equal(WabiSabiCryptoErrorCode.SerialNumberAlreadyUsed, ex.ErrorCode);
 			Assert.False(alice.ConfirmedConnection);
 			await arena.StopAsync(CancellationToken.None);

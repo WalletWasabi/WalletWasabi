@@ -82,19 +82,18 @@ namespace WalletWasabi.Backend
 					"Config Watcher");
 			}
 
-			await HostedServices.StartAllAsync(cancel);
-
 			// Initialize index building
 			var indexBuilderServiceDir = Path.Combine(DataDir, "IndexBuilderService");
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
 			var blockNotifier = HostedServices.Get<BlockNotifier>();
-			IndexBuilderService = new(RpcClient, blockNotifier, indexFilePath);
 			Coordinator = new(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig);
+			HostedServices.Register<RoundBootstrapper>(new RoundBootstrapper(TimeSpan.FromMilliseconds(100), Coordinator), "Round Bootstrapper");
+
+			await HostedServices.StartAllAsync(cancel);
+
+			IndexBuilderService = new(RpcClient, blockNotifier, indexFilePath);
 			IndexBuilderService.Synchronize();
 			Logger.LogInfo($"{nameof(IndexBuilderService)} is successfully initialized and started synchronization.");
-
-			await Coordinator.MakeSureInputregistrableRoundRunningAsync();
-			Logger.LogInfo($"Chaumian CoinJoin Coordinator is successfully initialized and started '{Coordinator.GetRunningRounds().Count()}' new round(s).");
 		}
 
 		private async Task InitializeP2pAsync(Network network, EndPoint endPoint, CancellationToken cancel)

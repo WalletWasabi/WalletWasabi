@@ -8,9 +8,6 @@ namespace WalletWasabi.Helpers
 {
 	public static class BitcoinInput
 	{
-		private const decimal MinRelayTxFeeRate = 1m;
-		private const decimal AbsurdlyHighFeeRate = ((decimal)Constants.MaximumNumberOfSatoshis) / 1000;
-
 		public static bool TryCorrectAmount(in string? original, [NotNullWhen(true)] out string? best)
 		{
 			var corrected = Guard.Correct(original);
@@ -96,11 +93,5 @@ namespace WalletWasabi.Helpers
 				return false;
 			}
 		}
-
-		public static bool TryParseSatoshiFeeText(string feeText, out decimal userFee)
-			=> decimal.TryParse(feeText?.Trim(), NumberStyles.AllowDecimalPoint, new CultureInfo("en-US"), out userFee)
-			&& userFee >= MinRelayTxFeeRate
-			&& userFee < AbsurdlyHighFeeRate
-			&& new FeeRate(userFee) is var _;
 	}
 }

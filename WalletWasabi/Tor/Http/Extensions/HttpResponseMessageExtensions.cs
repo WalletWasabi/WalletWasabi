@@ -75,7 +75,7 @@ namespace WalletWasabi.Tor.Http.Extensions
 					{ Type: ProtocolConstants.ProtocolViolationType } => Enum.TryParse<WabiSabiProtocolErrorCode>(error.ErrorCode, out var code)
 						? new WabiSabiProtocolException(code, error.Description)
 						: new NotSupportedException($"Received WabiSabi protocol exception with unknown '{error.ErrorCode}' error code.\n\tDescription: '{error.Description}'."),
-					{ Type: "unknown"} => new Exception(error.Description),
+					{ Type: "unknown" } => new Exception(error.Description),
 					_ => null
 				};
 

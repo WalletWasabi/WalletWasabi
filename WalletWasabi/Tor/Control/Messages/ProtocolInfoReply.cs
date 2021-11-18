@@ -65,7 +65,7 @@ namespace WalletWasabi.Tor.Control.Messages
 					if (optCookieFileRemainder.StartsWith("COOKIEFILE=", StringComparison.Ordinal))
 					{
 						(cookieFilePath, _) = Tokenizer.ReadKeyQuotedValueAssignment(key: "COOKIEFILE", optCookieFileRemainder);
-					}					
+					}
 				}
 			}
 
