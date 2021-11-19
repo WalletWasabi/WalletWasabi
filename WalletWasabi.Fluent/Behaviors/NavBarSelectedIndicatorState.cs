@@ -129,7 +129,7 @@ namespace WalletWasabi.Fluent.Behaviors
 					},
 					new KeyFrame
 					{
-						Cue = new Cue(0.40d),
+						Cue = new Cue(0.33333d),
 						Setters =
 						{
 							new Setter(ScaleTransform.ScaleYProperty, maxScale)
