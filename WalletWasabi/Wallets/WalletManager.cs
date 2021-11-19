@@ -133,7 +133,10 @@ namespace WalletWasabi.Wallets
 			lock (Lock)
 			{
 				// Throw an exception if the wallet was not added to the WalletManager.
-				Wallets.Single(x => x == wallet);
+				if (!Wallets.Contains(wallet))
+				{
+					throw new OperationCanceledException();
+				}
 			}
 
 			wallet.SetWaitingForInitState();
