@@ -23,6 +23,18 @@
         <Style Selector="DockPanel > Label">
           <Setter Property="MinWidth" Value="80" />
         </Style>
+        <Style Selector="c|AnimatedButton.flash">
+          <Style.Animations>
+            <Animation Duration="0.25" IterationCount="8" PlaybackDirection="AlternateReverse" Easing="{StaticResource FluentEasing}">
+              <KeyFrame KeyTime="0:0:0.0">
+                <Setter Property="Opacity" Value="0.1" />
+              </KeyFrame>
+              <KeyFrame KeyTime="0:0:0.25">
+                <Setter Property="Opacity" Value="1" />
+              </KeyFrame>
+            </Animation>
+          </Style.Animations>
+        </Style>
       </DockPanel.Styles>
       <!-- To -->
       <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
@@ -31,7 +43,7 @@
                  Watermark="(e.g. Bitcoin address or PayJoin URL)">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
-            <behaviors:ExecuteCommandOnActivated Command="{Binding AutoPasteCommand}" />
+            <!-- <behaviors:ExecuteCommandOnActivated Command="{Binding AutoPasteCommand}" /> -->
             <behaviors:FocusNextWhenValid />
           </i:Interaction.Behaviors>
           <TextBox.InnerRightContent>
@@ -41,7 +53,11 @@
                                 Command="{Binding PasteCommand}"
                                 ToolTip.Tip="Paste"
                                 NormalIcon="{StaticResource paste_regular}"
-                                ClickIcon="{StaticResource copy_confirmed}" />
+                                ClickIcon="{StaticResource copy_confirmed}">
+                <i:Interaction.Behaviors>
+                  <behaviors:PasteButtonFlashBehavior FlashAnimation="flash" />
+                </i:Interaction.Behaviors>
+              </c:AnimatedButton>
               <c:AnimatedButton IsVisible="{Binding IsQrButtonVisible}"
                                 KeyboardNavigation.IsTabStop="False"
                                 Focusable="False"
