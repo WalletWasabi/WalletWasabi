@@ -25,7 +25,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			element?.SetValue(NavBarItemParentProperty, value);
 		}
 
-		private async void OnLoaded()
+		private void OnLoaded()
 		{
 			var SharedState = NavBarSelectedIndicatorParentBehavior.GetParentState(AssociatedObject);
 
