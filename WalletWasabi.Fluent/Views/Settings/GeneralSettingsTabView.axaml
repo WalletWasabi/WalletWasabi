@@ -26,12 +26,12 @@
     </DockPanel>
 
     <DockPanel>
-      <TextBlock Text="Auto Copy receive addresses" />
+      <TextBlock Text="Auto copy addresses" />
       <ToggleSwitch IsChecked="{Binding AutoCopy}" />
     </DockPanel>
 
     <DockPanel>
-      <TextBlock Text="Auto Paste send addresses" />
+      <TextBlock Text="Auto paste addresses" />
       <ToggleSwitch IsChecked="{Binding AutoPaste}" />
     </DockPanel>
 
