@@ -21,7 +21,9 @@ namespace WalletWasabi.Fluent.Controls
 		}
 
 		/// <inheritdoc/>
-		public override IObservable<ITransform> DoTransition(IObservable<double> progress, ITransform oldValue,
+		public override IObservable<ITransform> DoTransition(
+			IObservable<double> progress,
+			ITransform oldValue,
 			ITransform newValue)
 		{
 			return progress.Select(p =>
