@@ -77,16 +77,16 @@ namespace WalletWasabi.Fluent.Behaviors
 					.DistinctUntilChanged()
 					.Where(x => x)
 					.ObserveOn(AvaloniaScheduler.Instance)
-					.Subscribe(_ => { SharedState.Animate(AssociatedObject); });
-
+					.Subscribe(_ => { SharedState.AnimateIndicator(AssociatedObject); });
 
 
 				AssociatedObject.Opacity = 0;
 
 				if (parent.Classes.Contains(":selected"))
 				{
-					SharedState.InitialFix(AssociatedObject);
+					SharedState.SetActive(AssociatedObject);
 				}
+
 			}, DispatcherPriority.Loaded);
 		}
 	}

@@ -13,65 +13,52 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using WalletWasabi.Logging;
 using VisualExtensions = Avalonia.VisualExtensions;
+
+#nullable enable
 
 namespace WalletWasabi.Fluent.Behaviors
 {
 	public class NavBarSelectedIndicatorState : IDisposable
 	{
-		private class DiscreteEasing : Easing
-		{
-			private readonly double _triggerPoint;
+		private readonly ConcurrentDictionary<int, Control> _scopeChildren = new();
+		private readonly Easing _bckEasing = new SplineEasing(0.2, 1, 0.1, 0.9);
+		private readonly Easing _fwdEasing = new SplineEasing(0.1, 0.9, 0.2);
+		private readonly TimeSpan _totalDuration = TimeSpan.FromSeconds(0.6);
 
-			public DiscreteEasing(double TriggerPoint)
-			{
-				_triggerPoint = TriggerPoint;
-			}
-
-			public override double Ease(double progress)
-			{
-				return (Math.Abs(progress - _triggerPoint) < double.Epsilon) ? 1 : 0;
-			}
-		}
-
-		public readonly ConcurrentDictionary<int, Control> ScopeChildren = new();
-		private readonly Easing bckEasing = new SplineEasing(0.2, 1, 0.1, 0.9);
-		private readonly Easing fwdEasing = new SplineEasing(0.1, 0.9, 0.2);
-		private readonly TimeSpan timebase = TimeSpan.FromSeconds(0.6);
+		private CancellationTokenSource _currentAnimationCts = new();
+		private Rectangle _activeIndicator;
 
 		private bool _isDisposed;
 		private bool _initialFixDone;
-		private CancellationTokenSource _currentAnimationCts = new();
-
-		/// <summary>
-		/// The last animated indicator
-		/// </summary>
-		public Rectangle? PreviousIndicator { get; set; }
+		private bool _previousAnimationOngoing;
 
 		// This will be used in the future for horizontal selection indicators.
 		// ReSharper disable once UnusedMember.Global
+		// ReSharper disable once MemberCanBePrivate.Global
 		public Orientation NavItemsOrientation { get; set; } = Orientation.Vertical;
 
 		public void Dispose()
 		{
 			_isDisposed = true;
-			ScopeChildren.Clear();
+			_scopeChildren.Clear();
 		}
 
 		public void AddChild(Control associatedObject)
 		{
-			if (ScopeChildren.ContainsKey(associatedObject.GetHashCode()))
+			if (_scopeChildren.ContainsKey(associatedObject.GetHashCode()))
 			{
 				return;
 			}
 
-			ScopeChildren.TryAdd(associatedObject.GetHashCode(),
+			_scopeChildren.TryAdd(associatedObject.GetHashCode(),
 				associatedObject);
 		}
 
 		private static Matrix GetOffsetFrom(IVisual ancestor, IVisual visual)
 		{
-			Matrix identity = Matrix.Identity;
+			var identity = Matrix.Identity;
 			while (visual != ancestor)
 			{
 				var num = 0;
@@ -94,31 +81,45 @@ namespace WalletWasabi.Fluent.Behaviors
 			return identity;
 		}
 
-		private async void AnimateIndicators(Rectangle nextIndicator,
-			CancellationToken token)
+		public async void AnimateIndicator(Rectangle next)
 		{
-			if (_isDisposed || PreviousIndicator is null || nextIndicator is null || PreviousIndicator == nextIndicator)
+			if (_isDisposed)
+			{
+				return;
+			}
+
+			var haveValidAnimation = false;
+			var prevIndicator = _activeIndicator;
+			var nextIndicator = next;
+
+			// user clicked twice
+			if (prevIndicator == nextIndicator)
 			{
 				return;
 			}
 
 			// Get the common ancestor as a reference point.
-			var commonAncestor = PreviousIndicator.FindCommonVisualAncestor(nextIndicator);
+			var commonAncestor = prevIndicator.FindCommonVisualAncestor(nextIndicator);
 
+			// likely being dragged
 			if (commonAncestor is null)
 			{
-				// likely being dragged
-
-				PreviousIndicator.Opacity = 1;
-				nextIndicator.Opacity = 0;
-
-				PreviousIndicator = nextIndicator;
-
 				return;
 			}
 
+			_activeIndicator = next;
+
+			if (_previousAnimationOngoing)
+			{
+				_currentAnimationCts.Cancel();
+				_currentAnimationCts = new CancellationTokenSource();
+			}
+
+			prevIndicator.Opacity = 1;
+			nextIndicator.Opacity = 0;
+
 			// Ignore the RenderTransforms so we can get the actual positions
-			var prevMatrix = GetOffsetFrom(commonAncestor, PreviousIndicator);
+			var prevMatrix = GetOffsetFrom(commonAncestor, prevIndicator);
 			var nextMatrix = GetOffsetFrom(commonAncestor, nextIndicator);
 
 			var prevVector = new Point().Transform(prevMatrix);
@@ -126,23 +127,16 @@ namespace WalletWasabi.Fluent.Behaviors
 
 			var targetVector = nextVector - prevVector;
 			var fromTopToBottom = targetVector.Y > 0;
-			var curEasing = fromTopToBottom ? fwdEasing : bckEasing;
+			var curEasing = fromTopToBottom ? _fwdEasing : _bckEasing;
 			var newDim = Math.Abs(NavItemsOrientation == Orientation.Vertical ? targetVector.Y : targetVector.X);
 			var maxScale = newDim / (NavItemsOrientation == Orientation.Vertical
 				? nextIndicator.Bounds.Height
 				: nextIndicator.Bounds.Width) + 1;
 
-
-			nextIndicator.Opacity = 0;
-			PreviousIndicator.Opacity = 1;
-
-			var speedRatio = 1;
-
 			Animation translationAnimation = new()
 			{
-				SpeedRatio = speedRatio,
 				Easing = curEasing,
-				Duration = timebase,
+				Duration = _totalDuration,
 				Children =
 				{
 					new KeyFrame
@@ -176,39 +170,24 @@ namespace WalletWasabi.Fluent.Behaviors
 				}
 			};
 
-			await translationAnimation.RunAsync(PreviousIndicator, null, token);
+			_previousAnimationOngoing = true;
+			await translationAnimation.RunAsync(prevIndicator, null, _currentAnimationCts.Token);
+			_previousAnimationOngoing = false;
 
+			prevIndicator.Opacity = 0;
 			nextIndicator.Opacity = 1;
-			PreviousIndicator.Opacity = 0;
-
-			PreviousIndicator = nextIndicator;
 		}
 
-		public void InitialFix(Rectangle initial)
+		public void SetActive(Rectangle initial)
 		{
-			if(PreviousIndicator is not null)
+			if (_activeIndicator is not null)
 			{
-				PreviousIndicator.Opacity = 0;
+				_activeIndicator.Opacity = 0;
 			}
+
+			_activeIndicator = initial;
 
 			initial.Opacity = 1;
-			PreviousIndicator = initial;
-		}
-
-
-		public void Animate(Rectangle NextIndicator)
-		{
-			// For Debouncing.
-			if (PreviousIndicator == NextIndicator)
-			{
-				return;
-			}
-
-			_currentAnimationCts?.Cancel();
-			_currentAnimationCts = new CancellationTokenSource();
-
-			AnimateIndicators(NextIndicator,
-				_currentAnimationCts.Token);
 		}
 	}
 }
