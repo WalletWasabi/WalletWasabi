@@ -16,8 +16,8 @@
       <!-- Date -->
       <c:PreviewItem Icon="{StaticResource timer_regular}"
                      Text="Date / Time"
-                     CopyParameter="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}">
-        <TextBox Classes="selectableTextBlock" Text="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}" />
+                     CopyParameter="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}' Mode=OneWay}">
+        <TextBox Classes="selectableTextBlock" Text="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}', Mode=OneWay}" />
       </c:PreviewItem>
       <Separator />
 
@@ -47,7 +47,7 @@
       <c:PreviewItem Icon="{StaticResource btc_logo}"
                      Text="Amount"
                      CopyParameter="{Binding Amount}">
-        <TextBox Classes="selectableTextBlock" Text="{Binding Amount, StringFormat={}{0} BTC}" />
+        <TextBox Classes="selectableTextBlock" Text="{Binding Amount, StringFormat={}{0} BTC, Mode=OneWay}" />
       </c:PreviewItem>
 
       <Separator />
