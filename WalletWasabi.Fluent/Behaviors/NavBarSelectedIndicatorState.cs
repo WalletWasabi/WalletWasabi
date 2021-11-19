@@ -22,8 +22,7 @@ namespace WalletWasabi.Fluent.Behaviors
 {
 	public class NavBarSelectedIndicatorState : IDisposable
 	{
-		private readonly ConcurrentDictionary<int, Control> _scopeChildren = new();
-		private readonly Easing _bckEasing = new SplineEasing(0.2, 1, 0.1, 0.9);
+ 		private readonly Easing _bckEasing = new SplineEasing(0.2, 1, 0.1, 0.9);
 		private readonly Easing _fwdEasing = new SplineEasing(0.1, 0.9, 0.2);
 		private readonly TimeSpan _totalDuration = TimeSpan.FromSeconds(0.6);
 
@@ -42,19 +41,7 @@ namespace WalletWasabi.Fluent.Behaviors
 		public void Dispose()
 		{
 			_isDisposed = true;
-			_scopeChildren.Clear();
-		}
-
-		public void AddChild(Control associatedObject)
-		{
-			if (_scopeChildren.ContainsKey(associatedObject.GetHashCode()))
-			{
-				return;
-			}
-
-			_scopeChildren.TryAdd(associatedObject.GetHashCode(),
-				associatedObject);
-		}
+ 		}
 
 		private static Matrix GetOffsetFrom(IVisual ancestor, IVisual visual)
 		{
