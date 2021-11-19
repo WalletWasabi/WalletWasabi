@@ -45,6 +45,11 @@ namespace WalletWasabi.Fluent.Behaviors
 
 		private async Task CheckClipboardForValidAddressAsync()
 		{
+			if (Services.UiConfig.AutoPaste)
+			{
+				return;
+			}
+
 			var textToPaste = await Application.Current.Clipboard.GetTextAsync();
 
 			if (AddressStringParser.TryParse(textToPaste, Services.WalletManager.Network, out _))
