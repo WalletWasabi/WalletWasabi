@@ -36,6 +36,7 @@
       <ControlTemplate>
         <Panel ClipToBounds="False">
           <Rectangle Name="SelectionIndicator" />
+          <Border Name="SelectionBackground" />
           <ContentPresenter Name="PART_ContentPresenter"
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
@@ -81,6 +82,17 @@
     <Setter Property="Fill" Value="{DynamicResource NavBarAccentColor}" />
   </Style>
 
+  <Style Selector="c|NavBarItem /template/ Border#SelectionBackground">
+    <Setter Property="Opacity" Value="0"/>
+    <Setter Property="Background" Value="{DynamicResource NavBarItemSelectedBrush}" />
+    <Setter Property="CornerRadius" Value="2" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <DoubleTransition Property="Opacity" Duration="0:0:0.4" Easing="{StaticResource FluentEasing}" />
+      </Transitions>
+    </Setter>
+  </Style>
+
   <Style Selector="c|NavBarItem /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="TextBlock.FontWeight" Value="Normal" />
     <Setter Property="TextBlock.FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
@@ -110,6 +122,9 @@
   <!-- Selected State -->
   <Style Selector="c|NavBarItem:selected /template/ Rectangle#SelectionIndicator">
     <Setter Property="Opacity" Value="1"/>
+  </Style>
+  <Style Selector="c|NavBarItem:selected /template/ Border#SelectionBackground">
+    <Setter Property="Opacity" Value="0.1"/>
   </Style>
   <Style Selector="c|NavBarItem:selected /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource NavBarItemSelectedBrush}" />
