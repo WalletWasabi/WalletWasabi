@@ -56,7 +56,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void Complete()
 		{
-			Close(DialogResultKind.Normal, SelectedPrivacySuggestion!.TransactionResult);
+			var selectedTxn = SelectedPrivacySuggestion!.TransactionResult;
+
+			if (selectedTxn != _requestedTransaction)
+			{
+				_transactionInfo.ChangelessCoins = selectedTxn.SpentCoins;
+			}
+
+			Close(DialogResultKind.Normal, selectedTxn);
 		}
 
 		protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
