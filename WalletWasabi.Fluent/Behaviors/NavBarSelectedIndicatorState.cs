@@ -1,22 +1,13 @@
 using System;
-using System.Collections.Concurrent;
-using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
-using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Styling;
-using Avalonia.Threading;
 using Avalonia.VisualTree;
-using WalletWasabi.Logging;
-using VisualExtensions = Avalonia.VisualExtensions;
-
-#nullable enable
 
 namespace WalletWasabi.Fluent.Behaviors
 {
