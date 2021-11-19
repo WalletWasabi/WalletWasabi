@@ -110,7 +110,6 @@
   <!-- Selected State -->
   <Style Selector="c|NavBarItem:selected /template/ Rectangle#SelectionIndicator">
     <Setter Property="Opacity" Value="1"/>
-    <Setter Property="(behaviors:NavBarSelectedIndicatorChildBehavior.IsSelected)" Value="True"/>
   </Style>
   <Style Selector="c|NavBarItem:selected /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource NavBarItemSelectedBrush}" />

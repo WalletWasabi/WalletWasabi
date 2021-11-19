@@ -11,23 +11,9 @@ namespace WalletWasabi.Fluent.Behaviors
 {
 	public class NavBarSelectedIndicatorChildBehavior : AttachedToVisualTreeBehavior<Rectangle>
 	{
-		public static readonly AttachedProperty<bool> IsSelectedProperty =
-			AvaloniaProperty.RegisterAttached<NavBarSelectedIndicatorChildBehavior, Rectangle, bool>("IsSelected",
-				inherits: true);
-
 		public static readonly AttachedProperty<Control> NavBarItemParentProperty =
 			AvaloniaProperty.RegisterAttached<NavBarSelectedIndicatorChildBehavior, Control, Control>(
 				"NavBarItemParent");
-
-		public static bool GetIsSelected(Control element)
-		{
-			return element.GetValue(IsSelectedProperty);
-		}
-
-		public static void SetIsSelected(Control element, bool value)
-		{
-			element.SetValue(IsSelectedProperty, value);
-		}
 
 		public static Control GetNavBarItemParent(Control element)
 		{
