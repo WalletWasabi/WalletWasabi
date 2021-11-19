@@ -61,6 +61,16 @@ namespace WalletWasabi.Fluent.Helpers
 
 		public static BuildTransactionResult BuildTransaction(Wallet wallet, TransactionInfo transactionInfo, bool isPayJoin = false)
 		{
+			if (transactionInfo.IsOptimized)
+			{
+				return BuildChangelessTransaction(
+					wallet,
+					transactionInfo.Address,
+					transactionInfo.UserLabels,
+					transactionInfo.FeeRate,
+					transactionInfo.ChangelessCoins);
+			}
+
 			if (isPayJoin && transactionInfo.SubtractFee)
 			{
 				throw new InvalidOperationException("Not possible to subtract the fee.");
@@ -75,7 +85,6 @@ namespace WalletWasabi.Fluent.Helpers
 				transactionInfo.Coins,
 				transactionInfo.SubtractFee,
 				isPayJoin ? transactionInfo.PayJoinClient : null);
-
 		}
 
 		public static bool TryBuildTransaction(Wallet wallet, TransactionInfo transactionInfo, [NotNullWhen(true)] out BuildTransactionResult? transaction, bool isPayJoin = false)
