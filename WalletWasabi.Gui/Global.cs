@@ -452,6 +452,24 @@ namespace WalletWasabi.Gui
 					AddressManager = new AddressManager();
 					Logger.LogInfo($"{nameof(AddressManager)} autocorrection is successful.");
 				}
+				catch (ArgumentException ex)
+				{
+					// https://www.reddit.com/r/WasabiWallet/comments/qt0mgz/crashing_on_open/
+					Logger.LogInfo($"{nameof(AddressManager)} has thrown `{nameof(ArgumentException)}`. Attempting to autocorrect.");
+					File.Delete(AddressManagerFilePath);
+					Logger.LogTrace(ex);
+					AddressManager = new AddressManager();
+					Logger.LogInfo($"{nameof(AddressManager)} autocorrection is successful.");
+				}
+				catch (EndOfStreamException ex)
+				{
+					// https://github.com/zkSNACKs/WalletWasabi/issues/5255
+					Logger.LogInfo($"{nameof(AddressManager)} has thrown `{nameof(EndOfStreamException)}`. Attempting to autocorrect.");
+					File.Delete(AddressManagerFilePath);
+					Logger.LogTrace(ex);
+					AddressManager = new AddressManager();
+					Logger.LogInfo($"{nameof(AddressManager)} autocorrection is successful.");
+				}
 			}
 
 			var addressManagerBehavior = new AddressManagerBehavior(AddressManager)
