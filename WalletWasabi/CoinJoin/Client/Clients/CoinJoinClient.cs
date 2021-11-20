@@ -218,9 +218,12 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					// First, if there's delayed round registration update based on the state.
 					if (DelayedRoundRegistration is { })
 					{
-						ClientRound roundRegistered = State.GetSingleOrDefaultRound(DelayedRoundRegistration.AliceClient.RoundId);
-						roundRegistered.Registration = DelayedRoundRegistration;
-						DelayedRoundRegistration = null; // Do not dispose.
+						ClientRound? roundRegistered = State.GetSingleOrDefaultRound(DelayedRoundRegistration.AliceClient.RoundId);
+						if (roundRegistered is { })
+						{
+							roundRegistered.Registration = DelayedRoundRegistration;
+							DelayedRoundRegistration = null; // Do not dispose.
+						}
 					}
 
 					await DequeueSpentCoinsFromMixNoLockAsync().ConfigureAwait(false);
@@ -578,7 +581,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 				var registration = new ClientRoundRegistration(aliceClient, coinsRegistered, outputAddresses.change.GetP2wpkhAddress(Network));
 
-				ClientRound roundRegistered = State.GetSingleOrDefaultRound(aliceClient.RoundId);
+				ClientRound? roundRegistered = State.GetSingleOrDefaultRound(aliceClient.RoundId);
 				if (roundRegistered is null)
 				{
 					// If our SatoshiClient does not yet know about the round, because of delay, then delay the round registration.
