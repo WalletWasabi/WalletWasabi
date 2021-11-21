@@ -10,6 +10,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Interfaces.EventSourcing;
 using WalletWasabi.Tests.UnitTests.EventSourcing.TestDomain;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace WalletWasabi.Tests.UnitTests.EventSourcing
 {
@@ -17,7 +18,17 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 	{
 		private const string TestRoundAggregate = "TestRoundAggregate";
 
-		private IEventRepository EventRepository { get; } = new InMemoryEventRepository();
+		private IEventRepository EventRepository { get; init; }
+		private TestInMemoryEventRepository TestEventRepository { get; init; }
+
+		private ITestOutputHelper Output { get; init; }
+
+		public InMemoryEventRepositoryTests(ITestOutputHelper output)
+		{
+			Output = output;
+			TestEventRepository = new TestInMemoryEventRepository(output);
+			EventRepository = TestEventRepository;
+		}
 
 		[Fact]
 		public async Task AppendEvents_Zero_Async()
@@ -209,18 +220,40 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 		}
 
 		[Fact]
-		public void ConcurrentStackOrQueue()
+		public async Task AppendEvents_AppendInParallelForManualThreadedDebug_Async()
 		{
-			var stack = new ConcurrentStack<int>();
-			var queue = new ConcurrentQueue<int>();
-			stack.Push(1);
-			stack.Push(2);
-			queue.Enqueue(1);
-			queue.Enqueue(2);
-			var stackList = stack.ToList();
-			var queueList = queue.ToList();
-			Assert.True(queueList.SequenceEqual(new[] { 1, 2 }));
-			Assert.True(stackList.SequenceEqual(new[] { 2, 1 }));
+			// Arrange
+			var events_1 = new[] { new TestWrappedEvent(1, "a"), new TestWrappedEvent(2, "a") };
+			var events_2 = new[] { new TestWrappedEvent(2, "b"), new TestWrappedEvent(3, "b") };
+			TestEventRepository.AppendedSemaphoreToWait.Release(2);
+			TestEventRepository.UnlockedSemaphoreToWait.Release(2);
+
+			// Act
+			async Task Action1()
+			{
+				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events_1!);
+			}
+			async Task Action2()
+			{
+				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events_2!);
+			}
+
+			// Assert
+			await Assert.ThrowsAsync<OptimisticConcurrencyException>(() =>
+			{
+				var task1 = Task.Run(Action1);
+				var task2 = Task.Run(async () =>
+				{
+					// wait until task1 enters critical section so we have a conflict
+					await TestEventRepository.LockedSemaphoreToRelease.WaitAsync();
+					await Action2();
+				});
+				return Task.WhenAll(task1, task2);
+			});
+			Assert.True((await EventRepository.ListEventsAsync(nameof(TestRoundAggregate), "1"))
+				.Cast<TestWrappedEvent>().SequenceEqual(events_1));
+			Assert.True((await EventRepository.ListAggregateIdsAsync(nameof(TestRoundAggregate)))
+				.SequenceEqual(new[] { "1" }));
 		}
 	}
 }
