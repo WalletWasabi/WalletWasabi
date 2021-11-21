@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -77,7 +78,9 @@ namespace WalletWasabi.EventSourcing
 			}
 			try
 			{
+				Locked();
 				eventsBatches.Enqueue(wrappedEventsList);
+				Appended();
 			}
 			finally
 			{
@@ -88,6 +91,7 @@ namespace WalletWasabi.EventSourcing
 					// TODO: convert into Debug.Assert ???
 					throw new ApplicationException("unexpected failure 89#");
 				}
+				Unlocked();
 			}
 
 			// if it is a first event for given aggregate
@@ -166,6 +170,23 @@ namespace WalletWasabi.EventSourcing
 				// TODO: convert into Debug.Assert ???
 				throw new ApplicationException("unexpected failure #167");
 			}
+		}
+
+		// for parallel critical section testing
+		[Conditional("DEBUG")]
+		protected virtual void Locked()
+		{
+		}
+
+		// for parallel critical section testing
+		[Conditional("DEBUG")]
+		protected virtual void Appended()
+		{
+		}
+
+		[Conditional("DEBUG")]
+		protected virtual void Unlocked()
+		{
 		}
 	}
 }
