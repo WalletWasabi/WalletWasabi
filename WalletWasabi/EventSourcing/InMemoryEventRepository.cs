@@ -21,19 +21,19 @@ namespace WalletWasabi.EventSourcing
 
 		private readonly ConcurrentDictionary<
 			string /*aggregateType*/,
-			(long LastIndex,
-			ConcurrentDictionary<
-				long, /*index*/
-				string /*id*/> Ids)>
-					_aggregatesIds = new();
-
-		private readonly ConcurrentDictionary<
-			string /*aggregateType*/,
 			ConcurrentDictionary<string /*id*/,
 				(long LastSequenceId,
 				bool Locked,
 					ConcurrentQueue<IReadOnlyList<WrappedEvent>> EventsBatches) /* sequence of atomically appended event batches */>>
 						_aggregatesEventsBatches = new();
+
+		private readonly ConcurrentDictionary<
+			string /*aggregateType*/,
+			(long LastIndex,
+			ConcurrentDictionary<
+				long, /*index*/
+				string /*id*/> Ids)>
+					_aggregatesIds = new();
 
 		public Task AppendEventsAsync(
 			string aggregateType,
@@ -98,6 +98,25 @@ namespace WalletWasabi.EventSourcing
 			return Task.CompletedTask;
 		}
 
+		public Task<IReadOnlyList<WrappedEvent>> ListEventsAsync(string aggregateType, string id, long fromSequenceId = 0, int? limit = null)
+		{
+			if (_aggregatesEventsBatches.TryGetValue(aggregateType, out var aggregateEventsBatches) &&
+				aggregateEventsBatches.TryGetValue(id, out var value))
+			{
+				var result = value.EventsBatches.SelectMany(a => a);
+				if (0 < fromSequenceId)
+				{
+					result = result.Where(a => fromSequenceId <= a.SequenceId);
+				}
+				if (limit.HasValue)
+				{
+					result = result.Take(limit.Value);
+				}
+				return Task.FromResult((IReadOnlyList<WrappedEvent>)result.ToList().AsReadOnly());
+			}
+			return Task.FromResult(EmptyResult);
+		}
+
 		public Task<IReadOnlyList<string>> ListAggregateIdsAsync(string aggregateType, string? fromId = null, int? limit = null)
 		{
 			if (fromId != null)
@@ -126,25 +145,6 @@ namespace WalletWasabi.EventSourcing
 				return Task.FromResult((IReadOnlyList<string>)result.AsReadOnly());
 			}
 			return Task.FromResult(EmptyIds);
-		}
-
-		public Task<IReadOnlyList<WrappedEvent>> ListEventsAsync(string aggregateType, string id, long fromSequenceId = 0, int? limit = null)
-		{
-			if (_aggregatesEventsBatches.TryGetValue(aggregateType, out var aggregateEventsBatches) &&
-				aggregateEventsBatches.TryGetValue(id, out var value))
-			{
-				var result = value.EventsBatches.SelectMany(a => a);
-				if (0 < fromSequenceId)
-				{
-					result = result.Where(a => fromSequenceId <= a.SequenceId);
-				}
-				if (limit.HasValue)
-				{
-					result = result.Take(limit.Value);
-				}
-				return Task.FromResult((IReadOnlyList<WrappedEvent>)result.ToList().AsReadOnly());
-			}
-			return Task.FromResult(EmptyResult);
 		}
 
 		private void IndexNewAggregateId(string aggregateType, string id)
