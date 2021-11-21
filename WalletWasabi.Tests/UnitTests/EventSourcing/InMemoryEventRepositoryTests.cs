@@ -17,6 +17,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 	public class InMemoryEventRepositoryTests
 	{
 		private const string TestRoundAggregate = "TestRoundAggregate";
+		private readonly TimeSpan _semaphoreWaitTimeout = TimeSpan.FromSeconds(1);
 
 		private IEventRepository EventRepository { get; init; }
 		private TestInMemoryEventRepository TestEventRepository { get; init; }
@@ -219,39 +220,159 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 				.SequenceEqual(new[] { "1" }));
 		}
 
-		[Fact]
-		public async Task AppendEvents_AppendInParallelForManualThreadedDebug_Async()
+		[Theory]
+		[InlineData(nameof(TestInMemoryEventRepository.LockedSemaphore))]
+		[InlineData(nameof(TestInMemoryEventRepository.AppendedSemaphore))]
+		[InlineData(nameof(TestInMemoryEventRepository.UnlockedSemaphore))]
+		public async Task AppendEvents_CriticalSectionConflicts_Async(string conflictAfter)
+
 		{
 			// Arrange
 			var events_1 = new[] { new TestWrappedEvent(1, "a"), new TestWrappedEvent(2, "a") };
 			var events_2 = new[] { new TestWrappedEvent(2, "b"), new TestWrappedEvent(3, "b") };
-			TestEventRepository.AppendedSemaphoreToWait.Release(2);
-			TestEventRepository.UnlockedSemaphoreToWait.Release(2);
 
 			// Act
-			async Task Action1()
+			async Task Append1()
 			{
 				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events_1!);
 			}
-			async Task Action2()
+			async Task Append2()
 			{
+				switch (conflictAfter)
+				{
+					case nameof(TestInMemoryEventRepository.LockedSemaphore):
+						Assert.True(TestEventRepository.LockedSemaphore.Wait(_semaphoreWaitTimeout));
+						break;
+
+					case nameof(TestInMemoryEventRepository.AppendedSemaphore):
+						Assert.True(TestEventRepository.AppendedSemaphore.Wait(_semaphoreWaitTimeout));
+						break;
+
+					case nameof(TestInMemoryEventRepository.UnlockedSemaphore):
+						Assert.True(TestEventRepository.UnlockedSemaphore.Wait(_semaphoreWaitTimeout));
+						break;
+
+					default:
+						throw new ApplicationException($"unexpected value conflictAfter: '{conflictAfter}'");
+				}
 				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events_2!);
+			}
+			async Task AppendInParallel()
+			{
+				var task1 = Task.Run(Append1);
+				var task2 = Task.Run(Append2);
+				await Task.WhenAll(task1, task2);
+			}
+			void WaitForConflict()
+			{
+				Assert.True(TestEventRepository.ConflictedSemaphore.Wait(_semaphoreWaitTimeout));
+			}
+			switch (conflictAfter)
+			{
+				case nameof(TestInMemoryEventRepository.LockedSemaphore):
+					TestEventRepository.LockedCallback = WaitForConflict;
+					break;
+
+				case nameof(TestInMemoryEventRepository.AppendedSemaphore):
+					TestEventRepository.AppendedCallback = WaitForConflict;
+					break;
+
+				case nameof(TestInMemoryEventRepository.UnlockedSemaphore):
+					TestEventRepository.UnlockedCallback = WaitForConflict;
+					break;
+
+				default:
+					throw new ApplicationException($"unexpected value conflictAfter: '{conflictAfter}'");
 			}
 
 			// Assert
-			await Assert.ThrowsAsync<OptimisticConcurrencyException>(() =>
-			{
-				var task1 = Task.Run(Action1);
-				var task2 = Task.Run(async () =>
-				{
-					// wait until task1 enters critical section so we have a conflict
-					await TestEventRepository.LockedSemaphoreToRelease.WaitAsync();
-					await Action2();
-				});
-				return Task.WhenAll(task1, task2);
-			});
+			await Assert.ThrowsAsync<OptimisticConcurrencyException>(AppendInParallel);
 			Assert.True((await EventRepository.ListEventsAsync(nameof(TestRoundAggregate), "1"))
-				.Cast<TestWrappedEvent>().SequenceEqual(events_1));
+						.Cast<TestWrappedEvent>().SequenceEqual(events_1));
+			Assert.True((await EventRepository.ListAggregateIdsAsync(nameof(TestRoundAggregate)))
+				.SequenceEqual(new[] { "1" }));
+		}
+
+		[Theory]
+		[InlineData(nameof(TestInMemoryEventRepository.LockedSemaphore))]
+		[InlineData(nameof(TestInMemoryEventRepository.AppendedSemaphore))]
+		[InlineData(nameof(TestInMemoryEventRepository.UnlockedSemaphore))]
+		public async Task AppendEvents_CriticalAppendConflicts_Async(string conflictAfter)
+		{
+			// Arrange
+			var events_1 = new[] { new TestWrappedEvent(1, "a"), new TestWrappedEvent(2, "a") };
+			var events_2 = new[] { new TestWrappedEvent(3, "b"), new TestWrappedEvent(4, "b") };
+
+			// Act
+			async Task Append1()
+			{
+				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events_1!);
+			}
+			async Task Append2()
+			{
+				switch (conflictAfter)
+				{
+					case nameof(TestInMemoryEventRepository.LockedSemaphore):
+						Assert.True(TestEventRepository.LockedSemaphore.Wait(_semaphoreWaitTimeout));
+						break;
+
+					case nameof(TestInMemoryEventRepository.AppendedSemaphore):
+						Assert.True(TestEventRepository.AppendedSemaphore.Wait(_semaphoreWaitTimeout));
+						break;
+
+					case nameof(TestInMemoryEventRepository.UnlockedSemaphore):
+						Assert.True(TestEventRepository.UnlockedSemaphore.Wait(_semaphoreWaitTimeout));
+						break;
+
+					default:
+						throw new ApplicationException($"unexpected value conflictAfter: '{conflictAfter}'");
+				}
+				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events_2!);
+			}
+			async Task AppendInParallel()
+			{
+				var task1 = Task.Run(Append1);
+				var task2 = Task.Run(Append2);
+				await Task.WhenAll(task1, task2);
+			}
+			void WaitForConflict()
+			{
+				Assert.True(TestEventRepository.ConflictedSemaphore.Wait(_semaphoreWaitTimeout));
+			}
+			switch (conflictAfter)
+			{
+				case nameof(TestInMemoryEventRepository.LockedSemaphore):
+					TestEventRepository.LockedCallback = WaitForConflict;
+					break;
+
+				case nameof(TestInMemoryEventRepository.AppendedSemaphore):
+					TestEventRepository.AppendedCallback = WaitForConflict;
+					break;
+
+				case nameof(TestInMemoryEventRepository.UnlockedSemaphore):
+					// do nothing
+					break;
+
+				default:
+					throw new ApplicationException($"unexpected value conflictAfter: '{conflictAfter}'");
+			}
+
+			// Assert
+			if (conflictAfter == nameof(TestInMemoryEventRepository.UnlockedSemaphore))
+			{ // no conflict
+				await AppendInParallel();
+			}
+			else
+			{ // conflict
+				await Assert.ThrowsAsync<OptimisticConcurrencyException>(AppendInParallel);
+				// retry after optimistic concurrency conflict
+				TestEventRepository.LockedCallback = null;
+				TestEventRepository.AppendedCallback = null;
+				TestEventRepository.UnlockedCallback = null;
+				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events_2!);
+			}
+			Assert.True((await EventRepository.ListEventsAsync(nameof(TestRoundAggregate), "1"))
+						.Cast<TestWrappedEvent>().SequenceEqual(events_1.Concat(events_2)));
 			Assert.True((await EventRepository.ListAggregateIdsAsync(nameof(TestRoundAggregate)))
 				.SequenceEqual(new[] { "1" }));
 		}
