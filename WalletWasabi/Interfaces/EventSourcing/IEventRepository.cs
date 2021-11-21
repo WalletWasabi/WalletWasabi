@@ -14,12 +14,13 @@ namespace WalletWasabi.Interfaces.EventSourcing
 		/// Atomically persistently appends ordered list of events for given aggregate.
 		/// In case of duplicate of <seealso cref="WrappedEvent.SequenceId"/>
 		/// <seealso cref="OptimisticConcurrencyException"/> is thrown indicating that
-		/// command should be retried with freshly loaded events.
+		/// command should be retried with freshly loaded events from <see cref="ListEventsAsync"/>.
 		/// </summary>
 		/// <param name="aggregateType">type of aggregate</param>
 		/// <param name="aggregateId">id of aggregate</param>
 		/// <param name="wrappedEvents">ordered list of events to be persisted</param>
 		/// <exception cref="OptimisticConcurrencyException">if there is concurrency conflict ; retry command</exception>
+		/// <exception cref="TransientException">transient infrastracture failure</exception>
 		/// <exception cref="ArgumentException">invalid input</exception>
 		public Task AppendEventsAsync(
 			string aggregateType,
@@ -27,32 +28,34 @@ namespace WalletWasabi.Interfaces.EventSourcing
 			IEnumerable<WrappedEvent> wrappedEvents);
 
 		/// <summary>
-		/// List events for given aggregate. This the primary source of truth.
+		/// List strongly ordered events of given aggregate. This is the primary source of truth.
 		/// Events are used to reconstruct aggregate state before processing command.
 		/// </summary>
 		/// <param name="aggregateType">type of aggregate</param>
 		/// <param name="aggregateId">id of aggregate</param>
-		/// <param name="fromSequenceId">starts with event with given <seealso cref="WrappedEvent.SequenceId"/>
+		/// <param name="afterSequenceId">starts with event after given <seealso cref="WrappedEvent.SequenceId"/>
 		/// and lists all following events</param>
 		/// <param name="limit">limits the number of returned events</param>
 		/// <returns>ordered list of events</returns>
+		/// <exception cref="TransientException">transient infrastracture failure</exception>
 		public Task<IReadOnlyList<WrappedEvent>> ListEventsAsync(
 			string aggregateType,
 			string aggregateId,
-			long fromSequenceId = 0,
-			int? limit = null);
+			long afterSequenceId = 0);
 
 		/// <summary>
-		/// Supplementary method to enumerating all aggregate ids in this event repository.
-		/// Order of ids is not defined can be any artificial.
+		/// Supplementary method for enumerating all ids for <paramref name="aggregateType"/>
+		/// in this event repository. Order of ids is not defined can be any artificial.
 		/// </summary>
 		/// <param name="aggregateType">type of aggregate</param>
-		/// <param name="fromId">starts with given id and lists following in any artificial order</param>
+		/// <param name="afterId">starts with id right after given id and lists all following ids
+		/// in any artificial order</param>
 		/// <param name="limit">limits the number of returned events</param>
 		/// <returns>unordered list of ids</returns>
+		/// <exception cref="TransientException">transient infrastracture failure</exception>
 		public Task<IReadOnlyList<string>> ListAggregateIdsAsync(
 			string aggregateType,
-			string? fromId = null,
+			string? afterId = null,
 			int? limit = null);
 	}
 }
