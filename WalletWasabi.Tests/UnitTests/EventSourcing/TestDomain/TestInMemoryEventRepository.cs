@@ -13,41 +13,61 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing.TestDomain
 	{
 		protected ITestOutputHelper Output { get; init; }
 
-		public SemaphoreSlim LockedSemaphoreToRelease { get; } = new SemaphoreSlim(0);
-		public SemaphoreSlim AppendedSemaphoreToRelease { get; } = new SemaphoreSlim(0);
-		public SemaphoreSlim UnlockedSemaphoreToRelease { get; } = new SemaphoreSlim(0);
+		public SemaphoreSlim ValidatedSemaphore { get; } = new SemaphoreSlim(0);
+		public SemaphoreSlim ConflictedSemaphore { get; } = new SemaphoreSlim(0);
+		public SemaphoreSlim LockedSemaphore { get; } = new SemaphoreSlim(0);
+		public SemaphoreSlim AppendedSemaphore { get; } = new SemaphoreSlim(0);
+		public SemaphoreSlim UnlockedSemaphore { get; } = new SemaphoreSlim(0);
 
-		public SemaphoreSlim LockedSemaphoreToWait { get; } = new SemaphoreSlim(0);
-		public SemaphoreSlim AppendedSemaphoreToWait { get; } = new SemaphoreSlim(0);
-		public SemaphoreSlim UnlockedSemaphoreToWait { get; } = new SemaphoreSlim(0);
+		public Action? ValidatedCallback { get; set; }
+		public Action? ConflictedCallback { get; set; }
+		public Action? LockedCallback { get; set; }
+		public Action? AppendedCallback { get; set; }
+		public Action? UnlockedCallback { get; set; }
 
 		public TestInMemoryEventRepository(ITestOutputHelper output)
 		{
 			Output = output;
 		}
 
+		protected override void Validated()
+		{
+			base.Validated();
+			Output.WriteLine(nameof(Validated));
+			ValidatedSemaphore.Release();
+			ValidatedCallback?.Invoke();
+		}
+
+		protected override void Conflicted()
+		{
+			base.Conflicted();
+			Output.WriteLine(nameof(Conflicted));
+			ConflictedSemaphore.Release();
+			ConflictedCallback?.Invoke();
+		}
+
 		protected override void Locked()
 		{
 			base.Locked();
-			Output.WriteLine("Locked");
-			LockedSemaphoreToRelease.Release();
-			LockedSemaphoreToWait.Wait();
+			Output.WriteLine(nameof(Locked));
+			LockedSemaphore.Release();
+			LockedCallback?.Invoke();
 		}
 
 		protected override void Appended()
 		{
 			base.Appended();
-			Output.WriteLine("Appended");
-			AppendedSemaphoreToRelease.Release();
-			AppendedSemaphoreToWait.Wait();
+			Output.WriteLine(nameof(Appended));
+			AppendedSemaphore.Release();
+			AppendedCallback?.Invoke();
 		}
 
 		protected override void Unlocked()
 		{
 			base.Unlocked();
-			Output.WriteLine("Unlocked");
-			UnlockedSemaphoreToRelease.Release();
-			UnlockedSemaphoreToWait.Wait();
+			Output.WriteLine(nameof(Unlocked));
+			UnlockedSemaphore.Release();
+			UnlockedCallback?.Invoke();
 		}
 	}
 }

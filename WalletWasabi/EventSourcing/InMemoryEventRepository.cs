@@ -71,16 +71,18 @@ namespace WalletWasabi.EventSourcing
 			{
 				throw new ArgumentException($"invalid firstSequenceId (gap in sequence ids) expected: '{concurrentSequenceId + 1}' given: '{firstSequenceId}'", nameof(wrappedEvents));
 			}
+			Validated(); // no action
 			// atomically detect conflict and replace lastSequenceId and lock to ensure strong order in eventsBatches
 			if (!aggregateEventsBatches.TryUpdate(id, (lastSequenceId, true, eventsBatches), (firstSequenceId - 1, false, eventsBatches)))
 			{
+				Conflicted(); // no action
 				throw new OptimisticConcurrencyException($"Conflict while commiting events. Retry command. aggregate: '{aggregateType}' id: '{id}'");
 			}
 			try
 			{
-				Locked();
+				Locked(); // no action
 				eventsBatches.Enqueue(wrappedEventsList);
-				Appended();
+				Appended(); // no action
 			}
 			finally
 			{
@@ -91,7 +93,7 @@ namespace WalletWasabi.EventSourcing
 					// TODO: convert into Debug.Assert ???
 					throw new ApplicationException("unexpected failure 89#");
 				}
-				Unlocked();
+				Unlocked(); // no action
 			}
 
 			// if it is a first event for given aggregate
@@ -170,6 +172,18 @@ namespace WalletWasabi.EventSourcing
 				// TODO: convert into Debug.Assert ???
 				throw new ApplicationException("unexpected failure #167");
 			}
+		}
+
+		// for parallel critical section testing
+		[Conditional("DEBUG")]
+		protected virtual void Validated()
+		{
+		}
+
+		// for parallel critical section testing
+		[Conditional("DEBUG")]
+		protected virtual void Conflicted()
+		{
 		}
 
 		// for parallel critical section testing
