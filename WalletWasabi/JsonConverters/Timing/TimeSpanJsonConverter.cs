@@ -14,7 +14,7 @@ namespace WalletWasabi.JsonConverters.Timing
 		}
 
 		/// <inheritdoc />
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+		public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
 		{
 			var stringValue = reader.Value as string;
 			return Parse(stringValue);
@@ -41,7 +41,7 @@ namespace WalletWasabi.JsonConverters.Timing
 		}
 
 		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+		public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
 		{
 			var ts = (TimeSpan)value;
 			writer.WriteValue($"{ts.Days}d {ts.Hours}h {ts.Minutes}m {ts.Seconds}s");

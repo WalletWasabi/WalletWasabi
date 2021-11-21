@@ -13,17 +13,17 @@ namespace WalletWasabi.JsonConverters
 		}
 
 		/// <inheritdoc />
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+		public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
 		{
-			var txHex = reader.Value.ToString();
+			var txHex = reader.Value?.ToString();
 			var tx = Transaction.Parse(txHex, Network.Main);
 			return tx;
 		}
 
 		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+		public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
 		{
-			writer.WriteValue(((Transaction)value).ToHex());
+			writer.WriteValue(((Transaction?)value)?.ToHex());
 		}
 	}
 }
