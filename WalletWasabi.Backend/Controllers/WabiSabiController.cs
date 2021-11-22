@@ -42,7 +42,7 @@ namespace WalletWasabi.Backend.Controllers
 		}
 
 		[HttpPost("output-registration")]
-		public Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellableToken)
+		public Task<EmptyResponse> RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellableToken)
 		{
 			// TODO: Add idempotent.
 			return Arena.RegisterOutputAsync(request, cancellableToken);

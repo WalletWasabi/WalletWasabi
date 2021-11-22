@@ -195,7 +195,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		public async Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
+		public async Task<EmptyResponse> RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
 		{
 			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
@@ -224,6 +224,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				round.Bobs.Add(bob);
 				round.CoinjoinState = newState;
 			}
+
+			return EmptyResponse.Instance;
 		}
 
 		public async Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken)
