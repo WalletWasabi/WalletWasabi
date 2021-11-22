@@ -1,4 +1,4 @@
 namespace WalletWasabi.EventSourcing
 {
-	public record WrappedEvent(long SequenceId);
+	public record WrappedEvent(long SequenceId, object DomainEvent);
 }
