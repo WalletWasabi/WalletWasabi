@@ -37,11 +37,12 @@ namespace WalletWasabi.Fluent.Helpers
 			}
 		}
 
-		public static void Show(ProcessedResult result, Action onClick)
+		public static void Show(string walletName, ProcessedResult result, Action onClick)
 		{
 			if (TryGetNotificationInputs(result, out var title, out var message))
 			{
-				Show(title, message, onClick);
+				var notificationTitle = $"{walletName} - {title}";
+				Show(notificationTitle, message, onClick);
 			}
 		}
 
