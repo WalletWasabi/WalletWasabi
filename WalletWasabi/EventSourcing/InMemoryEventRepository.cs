@@ -127,7 +127,7 @@ namespace WalletWasabi.EventSourcing
 		}
 
 		public Task<IReadOnlyList<WrappedEvent>> ListEventsAsync(string aggregateType,
-			string aggregateId, long afterSequenceId = -1)
+			string aggregateId, long afterSequenceId = -1, int? limit = null)
 		{
 			if (_aggregatesEventsBatches.TryGetValue(aggregateType, out var aggregateEventsBatches) &&
 				aggregateEventsBatches.TryGetValue(aggregateId, out var value))
@@ -136,6 +136,10 @@ namespace WalletWasabi.EventSourcing
 				if (-1 < afterSequenceId)
 				{
 					result = result.Where(a => afterSequenceId < a.SequenceId);
+				}
+				if (limit.HasValue)
+				{
+					result = result.Take(limit.Value);
 				}
 				return Task.FromResult((IReadOnlyList<WrappedEvent>)result.ToList().AsReadOnly());
 			}
@@ -155,10 +159,10 @@ namespace WalletWasabi.EventSourcing
 			}
 			if (_aggregatesIds.TryGetValue(aggregateType, out var tuple))
 			{
-				var lastIndex = tuple.TailIndex;
+				var tailIndex = tuple.TailIndex;
 				var ids = tuple.Ids;
 				var result = new List<string>();
-				for (var i = 1L; i <= lastIndex; i++)
+				for (var i = 1L; i <= tailIndex; i++)
 				{
 					if (!ids.TryGetValue(i, out var id))
 					{
@@ -175,7 +179,7 @@ namespace WalletWasabi.EventSourcing
 
 		private void IndexNewAggregateId(string aggregateType, string id)
 		{
-			var lastIndex = 0L;
+			var tailIndex = 0L;
 			ConcurrentDictionary<long, string> aggregateIds;
 			var liveLockLimit = 10000;
 			do
@@ -184,14 +188,14 @@ namespace WalletWasabi.EventSourcing
 				{
 					throw new ApplicationException("live lock detected");
 				}
-				(lastIndex, aggregateIds) = _aggregatesIds.GetOrAdd(aggregateType,
+				(tailIndex, aggregateIds) = _aggregatesIds.GetOrAdd(aggregateType,
 					_ => new(0, new()));
 			}
 			while (!_aggregatesIds.TryUpdate(
 				key: aggregateType,
-				newValue: (lastIndex + 1, aggregateIds),
-				comparisonValue: (lastIndex, aggregateIds)));
-			if (!aggregateIds.TryAdd(lastIndex + 1, id))
+				newValue: (tailIndex + 1, aggregateIds),
+				comparisonValue: (tailIndex, aggregateIds)));
+			if (!aggregateIds.TryAdd(tailIndex + 1, id))
 			{
 #warning
 				// TODO: convert into Debug.Assert ???
