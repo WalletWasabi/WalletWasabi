@@ -6,5 +6,5 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.EventSourcing
 {
-	public record WrappedEvent(long SequenceId, object DomainEvent);
+	public record WrappedEvent(long SequenceId, object DomainEvent, Guid SourceId);
 }
