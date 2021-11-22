@@ -461,5 +461,21 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			Assert.True(result.Count <= limit);
 			Assert.True(result.All(a => afterSequenceId < a.SequenceId));
 		}
+
+		[Fact]
+		public async Task ListAggregateIdsAsync_Async()
+		{
+			// Arrange
+			var events = new[] { new TestWrappedEvent(1, "a"), new TestWrappedEvent(2, "a"),
+				new TestWrappedEvent(3, "b"), new TestWrappedEvent(4, "b") };
+			await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events);
+			await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "2", events);
+
+			// Act
+			var result = await EventRepository.ListAggregateIdsAsync(nameof(TestRoundAggregate));
+
+			// Assert
+			Assert.True(result.SequenceEqual(new[] { "1", "2" }));
+		}
 	}
 }
