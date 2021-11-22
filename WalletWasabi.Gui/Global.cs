@@ -434,37 +434,13 @@ namespace WalletWasabi.Gui
 					Logger.LogTrace(ex);
 					AddressManager = new AddressManager();
 				}
-				catch (OverflowException ex)
+				catch (Exception ex) when (ex is OverflowException or FormatException or ArgumentException or EndOfStreamException)
 				{
 					// https://github.com/zkSNACKs/WalletWasabi/issues/712
-					Logger.LogInfo($"{nameof(AddressManager)} has thrown `{nameof(OverflowException)}`. Attempting to autocorrect.");
-					File.Delete(AddressManagerFilePath);
-					Logger.LogTrace(ex);
-					AddressManager = new AddressManager();
-					Logger.LogInfo($"{nameof(AddressManager)} autocorrection is successful.");
-				}
-				catch (FormatException ex)
-				{
 					// https://github.com/zkSNACKs/WalletWasabi/issues/880
-					Logger.LogInfo($"{nameof(AddressManager)} has thrown `{nameof(FormatException)}`. Attempting to autocorrect.");
-					File.Delete(AddressManagerFilePath);
-					Logger.LogTrace(ex);
-					AddressManager = new AddressManager();
-					Logger.LogInfo($"{nameof(AddressManager)} autocorrection is successful.");
-				}
-				catch (ArgumentException ex)
-				{
 					// https://www.reddit.com/r/WasabiWallet/comments/qt0mgz/crashing_on_open/
-					Logger.LogInfo($"{nameof(AddressManager)} has thrown `{nameof(ArgumentException)}`. Attempting to autocorrect.");
-					File.Delete(AddressManagerFilePath);
-					Logger.LogTrace(ex);
-					AddressManager = new AddressManager();
-					Logger.LogInfo($"{nameof(AddressManager)} autocorrection is successful.");
-				}
-				catch (EndOfStreamException ex)
-				{
 					// https://github.com/zkSNACKs/WalletWasabi/issues/5255
-					Logger.LogInfo($"{nameof(AddressManager)} has thrown `{nameof(EndOfStreamException)}`. Attempting to autocorrect.");
+					Logger.LogInfo($"{nameof(AddressManager)} has thrown `{ex.GetType().Name}`. Attempting to autocorrect.");
 					File.Delete(AddressManagerFilePath);
 					Logger.LogTrace(ex);
 					AddressManager = new AddressManager();
