@@ -49,14 +49,14 @@ namespace WalletWasabi.Interfaces.EventSourcing
 		/// in this event repository. Order of ids is not defined can be any artificial.
 		/// </summary>
 		/// <param name="aggregateType">type of aggregate</param>
-		/// <param name="afterId">starts with id right after given id and lists all following ids
+		/// <param name="afterAggregateId">starts with id right after given id and lists all following ids
 		/// in any artificial order</param>
 		/// <param name="limit">limits the number of returned events</param>
 		/// <returns>unordered list of ids</returns>
 		/// <exception cref="TransientException">transient infrastracture failure</exception>
 		public Task<IReadOnlyList<string>> ListAggregateIdsAsync(
 			string aggregateType,
-			string? afterId = null,
+			string? afterAggregateId = null,
 			int? limit = null);
 	}
 }

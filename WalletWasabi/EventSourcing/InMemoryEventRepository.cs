@@ -147,22 +147,19 @@ namespace WalletWasabi.EventSourcing
 		}
 
 		public Task<IReadOnlyList<string>> ListAggregateIdsAsync(string aggregateType,
-			string? afterId = null, int? limit = null)
+			string? afterAggregateId = null, int? limit = null)
 		{
-			if (afterId != null)
+			if (afterAggregateId != null)
 			{
 				throw new NotImplementedException();
 			}
-			if (limit != null)
-			{
-				throw new NotImplementedException();
-			}
+			limit ??= int.MaxValue;
 			if (_aggregatesIds.TryGetValue(aggregateType, out var tuple))
 			{
 				var tailIndex = tuple.TailIndex;
 				var ids = tuple.Ids;
 				var result = new List<string>();
-				for (var i = 1L; i <= tailIndex; i++)
+				for (var i = 1L; i <= tailIndex && result.Count < limit; i++)
 				{
 					if (!ids.TryGetValue(i, out var id))
 					{
