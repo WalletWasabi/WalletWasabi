@@ -41,7 +41,8 @@ namespace WalletWasabi.Interfaces.EventSourcing
 		public Task<IReadOnlyList<WrappedEvent>> ListEventsAsync(
 			string aggregateType,
 			string aggregateId,
-			long afterSequenceId = 0);
+			long afterSequenceId = 0,
+			int? limit = null);
 
 		/// <summary>
 		/// Supplementary method for enumerating all ids for <paramref name="aggregateType"/>
