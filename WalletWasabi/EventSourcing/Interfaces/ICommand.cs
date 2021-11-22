@@ -4,7 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WalletWasabi.EventSourcing
+namespace WalletWasabi.EventSourcing.Interfaces
 {
-	public record WrappedEvent(long SequenceId, object DomainEvent);
+	public interface ICommand
+	{
+	}
 }
