@@ -8,5 +8,6 @@ namespace WalletWasabi.EventSourcing.Interfaces
 {
 	public interface ICommand
 	{
+		Guid IdempotenceId { get; }
 	}
 }

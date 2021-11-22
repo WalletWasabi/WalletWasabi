@@ -33,7 +33,15 @@ namespace WalletWasabi.EventSourcing
 				{
 					IReadOnlyList<WrappedEvent> events =
 						await EventRepository.ListEventsAsync(aggregateType, aggregateId).ConfigureAwait(false);
+
 					var aggregate = new RoundAggregate(); // TODO
+
+					bool commandAlreadyProcessed = events.Any(ev => ev.SourceId == command.IdempotenceId);
+					if (commandAlreadyProcessed)
+					{
+						return;
+					}
+
 					foreach (var wrappedEvent in events)
 					{
 						aggregate.Apply((RoundStartedEvent)wrappedEvent.DomainEvent); //TODO
@@ -47,7 +55,7 @@ namespace WalletWasabi.EventSourcing
 					List<WrappedEvent> wrappedEvents = new();
 					foreach (var newEvent in newEvents)
 					{
-						wrappedEvents.Add(new WrappedEvent(sequenceId, newEvent));
+						wrappedEvents.Add(new WrappedEvent(sequenceId, newEvent, command.IdempotenceId));
 						sequenceId++;
 					}
 
