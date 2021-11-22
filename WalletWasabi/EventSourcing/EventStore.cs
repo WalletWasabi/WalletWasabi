@@ -48,7 +48,7 @@ namespace WalletWasabi.EventSourcing
 					}
 
 					RoundCommandProcessor processor = new();
-					var newEvents = processor.Process((StartRound)command, aggregate);
+					var newEvents = processor.Process((StartRoundCommand)command, aggregate);
 
 					var lastEvent = events.Any() ? events[^1] : null;
 					var sequenceId = lastEvent == null ? 1 : lastEvent.SequenceId + 1;

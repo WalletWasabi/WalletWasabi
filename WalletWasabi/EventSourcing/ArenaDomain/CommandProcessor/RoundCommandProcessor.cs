@@ -12,7 +12,7 @@ namespace WalletWasabi.EventSourcing.ArenaDomain.CommandProcessor
 {
 	public class RoundCommandProcessor
 	{
-		public IEnumerable<IEvent> Process(StartRound command, RoundAggregate aggregate) //TODO
+		public IEnumerable<IEvent> Process(StartRoundCommand command, RoundAggregate aggregate) //TODO
 		{
 			return new[] { new RoundStartedEvent(command.RoundParameters) };
 		}
