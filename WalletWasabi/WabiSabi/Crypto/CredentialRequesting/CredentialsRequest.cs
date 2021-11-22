@@ -1,9 +1,10 @@
-using System.Linq;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.ZeroKnowledge;
-using Newtonsoft.Json;
-using System.ComponentModel.DataAnnotations;
 
 namespace WalletWasabi.WabiSabi.Crypto.CredentialRequesting
 {
@@ -15,7 +16,7 @@ namespace WalletWasabi.WabiSabi.Crypto.CredentialRequesting
 	/// inputs registration and outputs registration and it is designed to support
 	/// credentials reissuance.
 	/// </remarks>
-	public abstract class CredentialsRequest
+	public abstract class CredentialsRequest : IEquatable<CredentialsRequest>
 	{
 		[JsonConstructor]
 		internal CredentialsRequest(
@@ -78,5 +79,51 @@ namespace WalletWasabi.WabiSabi.Crypto.CredentialRequesting
 		/// </summary>
 		[JsonIgnore]
 		internal bool AreThereDuplicatedSerialNumbers => SerialNumbers.Distinct().Count() < SerialNumbers.Count();
+
+		public override int GetHashCode()
+		{
+			int hc = 0;
+
+			foreach (var element in Presented)
+			{
+				hc ^= element.GetHashCode();
+				hc = (hc << 7) | (hc >> (32 - 7));
+			}
+
+			foreach (var element in Requested)
+			{
+				hc ^= element.GetHashCode();
+				hc = (hc << 7) | (hc >> (32 - 7));
+			}
+
+			foreach (var element in Proofs)
+			{
+				hc ^= element.GetHashCode();
+				hc = (hc << 7) | (hc >> (32 - 7));
+			}
+
+			return HashCode.Combine(Delta.GetHashCode(), hc);
+		}
+
+		public static bool operator ==(CredentialsRequest? x, CredentialsRequest? y) => x?.Equals(y) ?? false;
+
+		public static bool operator !=(CredentialsRequest? x, CredentialsRequest? y) => !(x == y);
+
+		public override bool Equals(object? other) => Equals(other as CredentialsRequest);
+
+		public bool Equals(CredentialsRequest? other)
+		{
+			if (other is null)
+			{
+				return false;
+			}
+
+			bool isEqual = Delta == other.Delta 
+				&& Presented.SequenceEqual(other.Presented)
+				&& Requested.SequenceEqual(other.Requested)
+				&& Proofs.SequenceEqual(other.Proofs);
+
+			return isEqual;
+		}
 	}
 }
