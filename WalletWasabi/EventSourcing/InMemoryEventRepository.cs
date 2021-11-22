@@ -127,13 +127,13 @@ namespace WalletWasabi.EventSourcing
 		}
 
 		public Task<IReadOnlyList<WrappedEvent>> ListEventsAsync(string aggregateType,
-			string aggregateId, long afterSequenceId = -1, int? limit = null)
+			string aggregateId, long afterSequenceId = 0, int? limit = null)
 		{
 			if (_aggregatesEventsBatches.TryGetValue(aggregateType, out var aggregateEventsBatches) &&
 				aggregateEventsBatches.TryGetValue(aggregateId, out var value))
 			{
 				var result = value.EventsBatches.SelectMany(a => a);
-				if (-1 < afterSequenceId)
+				if (0 < afterSequenceId)
 				{
 					result = result.Where(a => afterSequenceId < a.SequenceId);
 				}

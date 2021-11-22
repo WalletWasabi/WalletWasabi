@@ -376,5 +376,58 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			Assert.True((await EventRepository.ListAggregateIdsAsync(nameof(TestRoundAggregate)))
 				.SequenceEqual(new[] { "1" }));
 		}
+
+		[Theory]
+		[InlineData(nameof(TestInMemoryEventRepository.ValidatedCallback))]
+		[InlineData(nameof(TestInMemoryEventRepository.LockedCallback))]
+		[InlineData(nameof(TestInMemoryEventRepository.AppendedCallback))]
+		[InlineData(nameof(TestInMemoryEventRepository.UnlockedCallback))]
+		public async Task ListEventsAsync_ConflictWithAppending_Async(string listOnCallback)
+		{
+			// Arrange
+			var events_1 = new[] { new TestWrappedEvent(1, "a"), new TestWrappedEvent(2, "a") };
+			var events_2 = new[] { new TestWrappedEvent(3, "b"), new TestWrappedEvent(4, "b") };
+			await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events_1);
+
+			// Act
+			IReadOnlyList<WrappedEvent> result = Array.Empty<WrappedEvent>().ToList().AsReadOnly();
+			void ListCallback()
+			{
+				result = EventRepository.ListEventsAsync(nameof(TestRoundAggregate), "1").Result;
+			}
+			switch (listOnCallback)
+			{
+				case nameof(TestInMemoryEventRepository.ValidatedCallback):
+					TestEventRepository.ValidatedCallback = ListCallback;
+					break;
+
+				case nameof(TestInMemoryEventRepository.LockedCallback):
+					TestEventRepository.LockedCallback = ListCallback;
+					break;
+
+				case nameof(TestInMemoryEventRepository.AppendedCallback):
+					TestEventRepository.AppendedCallback = ListCallback;
+					break;
+
+				case nameof(TestInMemoryEventRepository.UnlockedCallback):
+					TestEventRepository.UnlockedCallback = ListCallback;
+					break;
+
+				default:
+					throw new ApplicationException($"unexpected value listOnCallback: '{listOnCallback}'");
+			}
+			await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events_2);
+
+			// Assert
+			var expected = events_1.AsEnumerable();
+			switch (listOnCallback)
+			{
+				case nameof(TestInMemoryEventRepository.AppendedCallback):
+				case nameof(TestInMemoryEventRepository.UnlockedCallback):
+					expected = expected.Concat(events_2);
+					break;
+			}
+			Assert.True(result.SequenceEqual(expected));
+		}
 	}
 }
