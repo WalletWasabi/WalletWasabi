@@ -28,40 +28,14 @@
                 <Panel>
                     <Panel IsHitTestVisible="False" Background="{TemplateBinding Background}" />
                     <c:ProgressRing Name="LoadingRing" IsIndeterminate="True" IsVisible="{TemplateBinding IsBusy}" />
-                    <DockPanel Name="MainDockPanel" IsVisible="{Binding !#LoadingRing.IsVisible}">
+                    <Grid Name="MainGridPanel" IsVisible="{Binding !#LoadingRing.IsVisible}">
+                      <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                      </Grid.RowDefinitions>
 
-                        <Panel DockPanel.Dock="Bottom" x:Name="PART_ButtonArea">
-                            <Button Name="PART_CancelButton"
-                                    Classes="invisible"
-                                    IsVisible="{TemplateBinding EnableCancel}"
-                                    Content="{TemplateBinding CancelContent}"
-                                    HorizontalAlignment="Left" Command="{Binding CancelCommand}">
-                                <i:Interaction.Behaviors>
-                                    <behaviors:FocusOnAttachedBehavior
-                                        IsEnabled="{Binding FocusCancel, RelativeSource={RelativeSource TemplatedParent}}" />
-                                </i:Interaction.Behaviors>
-                            </Button>
-                            <StackPanel Orientation="Horizontal" Spacing="30" Margin="0 10" HorizontalAlignment="Right">
-                                <Button Name="PART_SkipButton"
-                                        IsVisible="{TemplateBinding EnableSkip}"
-                                        Content="{TemplateBinding SkipContent}"
-                                        Command="{Binding SkipCommand}"
-                                        Classes="activeHyperLink skip"
-                                        VerticalAlignment="Center" />
-                                <Button Name="PART_NextButton" Classes="action"
-                                        IsVisible="{TemplateBinding EnableNext}"
-                                        Content="{TemplateBinding NextContent}"
-                                        Command="{Binding NextCommand}"
-                                        IsDefault="{Binding IsActive}">
-                                    <i:Interaction.Behaviors>
-                                        <behaviors:FocusOnAttachedBehavior
-                                            IsEnabled="{Binding FocusNext, RelativeSource={RelativeSource TemplatedParent}}" />
-                                    </i:Interaction.Behaviors>
-                                </Button>
-                            </StackPanel>
-                        </Panel>
-
-                        <Panel DockPanel.Dock="Top">
+                        <Panel x:Name="PART_HeaderArea">
                             <Panel IsHitTestVisible="False" Background="{TemplateBinding HeaderBackground}" />
                             <StackPanel Name="PART_Header" Spacing="10">
                                 <DockPanel>
@@ -79,8 +53,8 @@
                         </Panel>
 
                         <ScrollViewer x:Name="PART_ScrollViewer"
-                            HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
-                            VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
+                                      HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
+                                      VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
                             <ContentControl Name="PART_ContentPresenter"
                                             BorderBrush="{TemplateBinding BorderBrush}"
                                             BorderThickness="{TemplateBinding BorderThickness}"
@@ -90,10 +64,61 @@
                                             VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
                                             HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
                         </ScrollViewer>
-                    </DockPanel>
+
+                        <Panel x:Name="PART_ButtonArea">
+                              <Button Name="PART_CancelButton"
+                                      Classes="invisible"
+                                      IsVisible="{TemplateBinding EnableCancel}"
+                                      Content="{TemplateBinding CancelContent}"
+                                      HorizontalAlignment="Left" Command="{Binding CancelCommand}">
+                                  <i:Interaction.Behaviors>
+                                      <behaviors:FocusOnAttachedBehavior
+                                          IsEnabled="{Binding FocusCancel, RelativeSource={RelativeSource TemplatedParent}}" />
+                                  </i:Interaction.Behaviors>
+                              </Button>
+                              <StackPanel Orientation="Horizontal" Spacing="30" Margin="0 10" HorizontalAlignment="Right">
+                                  <Button Name="PART_SkipButton"
+                                          IsVisible="{TemplateBinding EnableSkip}"
+                                          Content="{TemplateBinding SkipContent}"
+                                          Command="{Binding SkipCommand}"
+                                          Classes="activeHyperLink skip"
+                                          VerticalAlignment="Center" />
+                                  <Button Name="PART_NextButton" Classes="action"
+                                          IsVisible="{TemplateBinding EnableNext}"
+                                          Content="{TemplateBinding NextContent}"
+                                          Command="{Binding NextCommand}"
+                                          IsDefault="{Binding IsActive}">
+                                      <i:Interaction.Behaviors>
+                                          <behaviors:FocusOnAttachedBehavior
+                                              IsEnabled="{Binding FocusNext, RelativeSource={RelativeSource TemplatedParent}}" />
+                                      </i:Interaction.Behaviors>
+                                  </Button>
+                              </StackPanel>
+                          </Panel>
+
+                    </Grid>
                 </Panel>
             </ControlTemplate>
         </Setter>
+    </Style>
+
+    <Style Selector="c|ContentArea /template/ Panel#PART_ButtonArea">
+      <Setter Property="(Grid.Row)" Value="2" />
+    </Style>
+
+    <Style Selector="c|ContentArea[ButtonAreaOverlayEnabled=True] /template/ Panel#PART_ButtonArea">
+      <Setter Property="(Grid.Row)" Value="1" />
+      <Setter Property="VerticalAlignment" Value="Bottom" />
+      <!-- TODO: Use converter to set left/right margin using ScrollBarSize. Default is 16. -->
+      <Setter Property="Margin" Value="31,1,47,10" />
+    </Style>
+
+    <Style Selector="c|ContentArea /template/ Panel#PART_HeaderArea">
+      <Setter Property="(Grid.Row)" Value="0" />
+    </Style>
+
+    <Style Selector="c|ContentArea /template/ ScrollViewer#PART_ScrollViewer">
+      <Setter Property="(Grid.Row)" Value="1" />
     </Style>
 
     <Style Selector="c|ContentArea /template/ StackPanel#PART_Header">

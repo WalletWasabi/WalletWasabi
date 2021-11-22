@@ -24,7 +24,7 @@
                           ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                           ScrollViewer.VerticalScrollBarVisibility="Disabled">
       <controls:ContentArea.Styles>
-        <Style Selector="controls|ContentArea /template/ DockPanel#MainDockPanel">
+        <Style Selector="controls|ContentArea /template/ Grid#MainGridPanel">
           <Setter Property="Margin" Value="0 36 0 0" />
         </Style>
       </controls:ContentArea.Styles>

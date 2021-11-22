@@ -1,7 +1,9 @@
+using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Media;
+using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Controls
 {
@@ -46,8 +48,21 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<IBrush> HeaderBackgroundProperty =
 			AvaloniaProperty.Register<ContentArea, IBrush>(nameof(HeaderBackground));
 
+		public static readonly StyledProperty<bool> ButtonAreaOverlayEnabledProperty =
+			AvaloniaProperty.Register<ContentArea, bool>(nameof(ButtonAreaOverlayEnabled));
+
 		private IContentPresenter? _titlePresenter;
 		private IContentPresenter? _captionPresenter;
+
+		public ContentArea()
+		{
+			this.WhenAnyValue(x => x.Bounds)
+				.Subscribe(bounds =>
+				{
+					var height = bounds.Height;
+					ButtonAreaOverlayEnabled = height < 580;
+				});
+		}
 
 		public object Title
 		{
@@ -125,6 +140,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(HeaderBackgroundProperty);
 			set => SetValue(HeaderBackgroundProperty, value);
+		}
+
+		private bool ButtonAreaOverlayEnabled
+		{
+			get => GetValue(ButtonAreaOverlayEnabledProperty);
+			set => SetValue(ButtonAreaOverlayEnabledProperty, value);
 		}
 
 		protected override bool RegisterContentPresenter(IContentPresenter presenter)
