@@ -18,6 +18,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 	/// </summary>
 	public class ConnectionConfirmationRequestTests
 	{
+		/// <summary>Implementation of equality rules is important for idempotent request cache.</summary>
 		[Fact]
 		public void EqualityTest()
 		{
