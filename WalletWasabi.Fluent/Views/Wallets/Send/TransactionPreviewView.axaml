@@ -49,7 +49,7 @@
 
       <Separator />
       <c:PreviewItem Icon="{StaticResource transceive_regular}"
-                     Text="via Bitcoin address">
+                     Text="To Bitcoin address">
         <TextBox Classes="selectableTextBlock" Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
       </c:PreviewItem>
       <Separator />
