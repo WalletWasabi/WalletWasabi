@@ -24,12 +24,10 @@ namespace WalletWasabi.Backend.Controllers
 		{
 			IdempotencyRequestCache = idempotencyRequestCache;
 			Arena = arena;
-			EventRepository = eventRepository;
 		}
 
 		private IdempotencyRequestCache IdempotencyRequestCache { get; }
 		private Arena Arena { get; }
-		public IEventRepository EventRepository { get; }
 
 		[HttpGet("status")]
 		public Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken)
@@ -80,10 +78,9 @@ namespace WalletWasabi.Backend.Controllers
 		}
 
 		[HttpGet("round-events")]
-		public async Task<IEnumerable<WrappedEvent>> GetRoundEvents(uint256 roundId, long afterSequenceId, CancellationToken cancellationToken)
+		public Task<IEnumerable<WrappedEvent>> GetRoundEvents(uint256 roundId, long afterSequenceId, CancellationToken cancellationToken)
 		{
-			var events = await EventRepository.ListEventsAsync(nameof(RoundAggregate), roundId.ToString(), afterSequenceId).ConfigureAwait(false);
-			return events.Where(ev => ev.DomainEvent is IRoundClientEvent);
+			return Arena.GetRoundEvents(roundId, afterSequenceId, cancellationToken);
 		}
 	}
 }

@@ -24,6 +24,7 @@ namespace WalletWasabi.WabiSabi.Models.Serialization
 				new Uint256JsonConverter(),
 				new MultipartyTransactionStateJsonConverter()
 			}
+			
 		};
 		public static readonly JsonSerializationOptions Default = new();
 

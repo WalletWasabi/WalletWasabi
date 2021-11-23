@@ -26,6 +26,6 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 
 		Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken);
 
-		Task<IEnumerable<WrappedEvent>> GetRoundEvents(uint256 roundId, long afterSequenceId, CancellationToken cancellationToken);
+		Task<IEnumerable<WrappedEvent>> GetRoundEvents(string roundId, long afterSequenceId, CancellationToken cancellationToken);
 	}
 }

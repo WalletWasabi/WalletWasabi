@@ -39,7 +39,7 @@ namespace WalletWasabi.WabiSabi.Client
 			{
 				RoundLastSequenceIds.TryAdd(roundId, 0);
 				var lastSequenceId = RoundLastSequenceIds[roundId];
-				var newEvents = await ArenaRequestHandler.GetRoundEvents(roundId, lastSequenceId, cancellationToken).ConfigureAwait(false);
+				var newEvents = await ArenaRequestHandler.GetRoundEvents(roundId.ToString(), lastSequenceId, cancellationToken).ConfigureAwait(false);
 
 				if (newEvents.LastOrDefault() is { SequenceId: var sequenceId })
 				{

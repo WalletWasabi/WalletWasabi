@@ -74,9 +74,10 @@ namespace WalletWasabi.WabiSabi.Client
 		public Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken) =>
 			SendAndReceiveAsync<ReadyToSignRequestRequest>(RemoteAction.ReadyToSign, request, cancellationToken);
 
-		public async Task<IEnumerable<WrappedEvent>> GetRoundEvents(uint256 roundId, long afterSequenceId, CancellationToken cancellationToken)
+		public async Task<IEnumerable<WrappedEvent>> GetRoundEvents(string roundId, long afterSequenceId, CancellationToken cancellationToken)
 		{
-			using var response = await _client.SendAsync(HttpMethod.Get, GetUriEndPoint(RemoteAction.GetRoundEvents), cancel: cancellationToken).ConfigureAwait(false);
+			var uri = $"{GetUriEndPoint(RemoteAction.GetRoundEvents)}?roundId={roundId}&afterSequenceId={afterSequenceId}";
+			using var response = await _client.SendAsync(HttpMethod.Get, uri, cancel: cancellationToken).ConfigureAwait(false);
 
 			if (!response.IsSuccessStatusCode)
 			{

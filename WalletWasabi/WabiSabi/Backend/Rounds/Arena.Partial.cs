@@ -108,7 +108,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		public async Task<IEnumerable<WrappedEvent>> GetRoundEvents(uint256 roundId, long afterSequenceId, CancellationToken cancellationToken)
+		public async Task<IEnumerable<WrappedEvent>> GetRoundEvents(string roundId, long afterSequenceId, CancellationToken cancellationToken)
 		{
 			var events = await EventRepository.ListEventsAsync(nameof(RoundAggregate), roundId.ToString(), afterSequenceId).ConfigureAwait(false);
 			return events.Where(ev => ev.DomainEvent is IRoundClientEvent);
