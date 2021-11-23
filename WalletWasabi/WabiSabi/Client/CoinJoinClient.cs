@@ -160,9 +160,9 @@ namespace WalletWasabi.WabiSabi.Client
 				Logger.LogDebug($"Round ({roundState.Id}): Alices({registeredAliceClients.Length}) successfully signed the CoinJoin tx.");
 
 				var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundState.Id && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
-				Logger.LogDebug($"Round ({roundState.Id}): Round Ended - WasTransactionBroadcast: '{finalRoundState.WasTransactionBroadcast}'.");
+				Logger.LogDebug($"Round ({roundState.Id}): Round Ended - WasTransactionBroadcast: '{finalRoundState.Succeeded}'.");
 
-				return finalRoundState.WasTransactionBroadcast;
+				return finalRoundState.Succeeded;
 			}
 			finally
 			{

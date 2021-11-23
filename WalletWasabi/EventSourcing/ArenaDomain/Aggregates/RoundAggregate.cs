@@ -97,6 +97,11 @@ namespace WalletWasabi.EventSourcing.ArenaDomain
 			State = State with { Phase = Phase.Ended };
 		}
 
+		private void Apply(RoundSucceedEvent _)
+		{
+			State = State with { Succeeded = true };
+		}
+
 		public void Apply(IEvent ev)
 		{
 			switch (ev)
@@ -142,6 +147,10 @@ namespace WalletWasabi.EventSourcing.ArenaDomain
 					break;
 
 				case RoundEndedEvent eve:
+					Apply(eve);
+					break;
+
+				case RoundSucceedEvent eve:
 					Apply(eve);
 					break;
 

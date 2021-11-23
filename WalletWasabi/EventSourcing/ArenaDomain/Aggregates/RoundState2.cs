@@ -19,6 +19,7 @@ namespace WalletWasabi.EventSourcing.ArenaDomain.Aggregates
 		public ImmutableList<OutputState> Outputs { get; init; } = ImmutableList<OutputState>.Empty;
 		public Phase Phase { get; init; } = Phase.InputRegistration;
 		public uint256 Id => RoundParameters.Id;
+		public bool Succeeded { get; init; } = false;
 	}
 
 	public record InputState(
