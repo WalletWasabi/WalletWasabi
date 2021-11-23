@@ -13,7 +13,7 @@ namespace WalletWasabi.EventSourcing.ArenaDomain
 {
 	public class RoundAggregate : IAggregate
 	{
-		public RoundState2 State { get; private set; }
+		public RoundState2 State { get; private set; } = new();
 
 		IState IAggregate.State => State;
 

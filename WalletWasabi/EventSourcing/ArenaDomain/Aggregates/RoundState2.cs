@@ -13,12 +13,13 @@ using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.EventSourcing.ArenaDomain.Aggregates
 {
-	public record RoundState2(RoundParameters2 RoundParameters) : IState
+	public record RoundState2() : IState
 	{
+		public RoundParameters2? RoundParameters { get; init; } = default;
 		public ImmutableList<InputState> Inputs { get; init; } = ImmutableList<InputState>.Empty;
 		public ImmutableList<OutputState> Outputs { get; init; } = ImmutableList<OutputState>.Empty;
 		public Phase Phase { get; init; } = Phase.InputRegistration;
-		public uint256 Id => RoundParameters.Id;
+		public uint256 Id => RoundParameters?.Id ?? uint256.Zero;
 		public bool Succeeded { get; init; } = false;
 	}
 
