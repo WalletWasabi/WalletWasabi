@@ -39,16 +39,14 @@ namespace WalletWasabi.Fluent.Helpers
 
 		public static void Show(string walletName, ProcessedResult result, Action onClick)
 		{
-			if (TryGetNotificationInputs(result, out var title, out var message))
+			if (TryGetNotificationInputs(result, out var message))
 			{
-				var notificationTitle = $"{walletName} - {title}";
-				Show(notificationTitle, message, onClick);
+				Show(walletName, message, onClick);
 			}
 		}
 
-		private static bool TryGetNotificationInputs(ProcessedResult result, [NotNullWhen(true)] out string? title, [NotNullWhen(true)] out string? message)
+		private static bool TryGetNotificationInputs(ProcessedResult result, [NotNullWhen(true)] out string? message)
 		{
-			title = null;
 			message = null;
 
 			try
@@ -66,24 +64,23 @@ namespace WalletWasabi.Fluent.Helpers
 					Money incoming = receivedSum - spentSum;
 					Money receiveSpentDiff = incoming.Abs();
 					string amountString = receiveSpentDiff.ToFormattedString();
-					message = $"{amountString} BTC";
 
 					if (result.Transaction.Transaction.IsCoinBase)
 					{
-						title = "Coinbase reward";
+						message = $"{amountString} BTC has been received as Coinbase reward";
 					}
 					else if (isSpent && receiveSpentDiff == miningFee)
 					{
-						title = "Self Spend";
-						message = $"Mining Fee: {amountString} BTC";
+						message = $"Self transfer. Fee: {amountString} BTC";
 					}
 					else if (incoming > Money.Zero)
 					{
-						title = "Transaction Received";
+						message = $"{amountString} BTC has been received";
+
 					}
 					else if (incoming < Money.Zero)
 					{
-						title = "Transaction Spent";
+						message = $"{amountString} BTC has been sent";
 					}
 				}
 				else if (isConfirmedReceive || isConfirmedSpent)
@@ -93,20 +90,18 @@ namespace WalletWasabi.Fluent.Helpers
 					Money incoming = receivedSum - spentSum;
 					Money receiveSpentDiff = incoming.Abs();
 					string amountString = receiveSpentDiff.ToFormattedString();
-					message = $"{amountString} BTC";
 
 					if (isConfirmedSpent && receiveSpentDiff == miningFee)
 					{
-						title = "Self Spend Confirmed";
-						message = $"Mining Fee: {amountString} BTC";
+						message = $"Self transfer confirmed. Fee: {amountString} BTC";
 					}
 					else if (incoming > Money.Zero)
 					{
-						title = "Receive Confirmed";
+						message = $"Receiving {amountString} BTC has been confirmed";
 					}
 					else if (incoming < Money.Zero)
 					{
-						title = "Send Confirmed";
+						message = $"Sending {amountString} BTC has been confirmed";
 					}
 				}
 			}
@@ -115,7 +110,7 @@ namespace WalletWasabi.Fluent.Helpers
 				Logger.LogWarning(ex);
 			}
 
-			return title is { } && message is { };
+			return message is { };
 		}
 	}
 }
