@@ -67,7 +67,7 @@ namespace WalletWasabi.Fluent.Helpers
 
 					if (result.Transaction.Transaction.IsCoinBase)
 					{
-						message = $"{amountString} BTC has been received as Coinbase reward";
+						message = $"{amountString} BTC received as Coinbase reward";
 					}
 					else if (isSpent && receiveSpentDiff == miningFee)
 					{
