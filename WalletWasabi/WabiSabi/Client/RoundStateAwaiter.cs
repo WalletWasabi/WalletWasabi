@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.EventSourcing.ArenaDomain.Aggregates;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client
@@ -11,7 +12,7 @@ namespace WalletWasabi.WabiSabi.Client
 	public record RoundStateAwaiter
 	{
 		public RoundStateAwaiter(
-			Predicate<RoundState> predicate,
+			Predicate<RoundState2> predicate,
 			uint256? roundId,
 			CancellationToken cancellationToken)
 		{
@@ -21,13 +22,13 @@ namespace WalletWasabi.WabiSabi.Client
 			cancellationToken.Register(() => Cancel());
 		}
 
-		private TaskCompletionSource<RoundState> TaskCompletionSource { get; }
-		private Predicate<RoundState> Predicate { get; }
+		private TaskCompletionSource<RoundState2> TaskCompletionSource { get; }
+		private Predicate<RoundState2> Predicate { get; }
 		private uint256? RoundId { get; }
 
-		public Task<RoundState> Task => TaskCompletionSource.Task;
+		public Task<RoundState2> Task => TaskCompletionSource.Task;
 
-		public bool IsCompleted(Dictionary<uint256, RoundState> allRoundStates)
+		public bool IsCompleted(Dictionary<uint256, RoundState2> allRoundStates)
 		{
 			if (Task.IsCompleted)
 			{

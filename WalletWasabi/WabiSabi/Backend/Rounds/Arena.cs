@@ -11,8 +11,10 @@ using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.EventSourcing.ArenaDomain;
+using WalletWasabi.EventSourcing.ArenaDomain.Aggregates;
 using WalletWasabi.EventSourcing.ArenaDomain.Command;
 using WalletWasabi.EventSourcing.Interfaces;
+using WalletWasabi.Interfaces.EventSourcing;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
@@ -29,6 +31,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			IRPCClient rpc,
 			Prison prison,
 			IEventStore eventStore,
+			IEventRepository eventRepository,
 			CoinJoinTransactionArchiver? archiver = null) : base(period)
 		{
 			Network = network;
@@ -38,6 +41,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			TransactionArchiver = archiver;
 			Random = new SecureRandom();
 			EventStore = eventStore;
+			EventRepository = eventRepository;
 		}
 
 		public HashSet<Round> Rounds { get; } = new();
@@ -49,6 +53,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		private SecureRandom Random { get; }
 		private CoinJoinTransactionArchiver? TransactionArchiver { get; }
 		private IEventStore EventStore { get; }
+		public IEventRepository EventRepository { get; }
 
 		protected override async Task ActionAsync(CancellationToken cancel)
 		{
@@ -306,7 +311,21 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				RoundParameters roundParams = new(Config, Network, Random, feeRate);
 				Round r = new(roundParams);
 				Rounds.Add(r);
-				await EventStore.ProcessCommandAsync(new StartRoundCommand(roundParams, Guid.NewGuid()),
+
+				var r2 = new RoundParameters2(
+					r.FeeRate,
+					r.AmountCredentialIssuerParameters,
+					r.VsizeCredentialIssuerParameters,
+					r.InputRegistrationTimeFrame.StartTime,
+					roundParams.StandardInputRegistrationTimeout,
+					roundParams.ConnectionConfirmationTimeout,
+					roundParams.OutputRegistrationTimeout,
+					roundParams.TransactionSigningTimeout,
+					r.MaxAmountCredentialValue,
+					r.MaxVsizeCredentialValue,
+					r.MaxVsizeAllocationPerAlice);
+
+				await EventStore.ProcessCommandAsync(new StartRoundCommand(r2, Guid.NewGuid()),
 					nameof(RoundAggregate), r.Id.ToString()).ConfigureAwait(false);
 			}
 		}

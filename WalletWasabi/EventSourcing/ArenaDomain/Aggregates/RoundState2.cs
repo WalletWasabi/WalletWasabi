@@ -11,7 +11,7 @@ using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.EventSourcing.ArenaDomain.Aggregates
 {
-	public record RoundState2(RoundParameters RoundParameters) : IState
+	public record RoundState2(RoundParameters2 RoundParameters) : IState
 	{
 		public ImmutableList<InputState> Inputs { get; init; } = ImmutableList<InputState>.Empty;
 		public ImmutableList<OutputState> Outputs { get; init; } = ImmutableList<OutputState>.Empty;
@@ -27,4 +27,21 @@ namespace WalletWasabi.EventSourcing.ArenaDomain.Aggregates
 		WitScript? WitScript = null);
 
 	public record OutputState(Script Script, long CredentialAmount);
+
+	public record RoundParameters2(
+		FeeRate FeeRate,
+		CredentialIssuerParameters AmountCredentialIssuerParameters,
+		CredentialIssuerParameters VsizeCredentialIssuerParameters,
+		DateTimeOffset InputRegistrationStart,
+		TimeSpan InputRegistrationTimeout,
+		TimeSpan ConnectionConfirmationTimeout,
+		TimeSpan OutputRegistrationTimeout,
+		TimeSpan TransactionSigningTimeout,
+		long MaxAmountCredentialValue,
+		long MaxVsizeCredentialValue,
+		long MaxVsizeAllocationPerAlice
+	)
+	{
+		public uint256 BlameOf { get; init; } = uint256.Zero;
+	}
 }

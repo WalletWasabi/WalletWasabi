@@ -71,7 +71,7 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 		}
 
-		public Task<RoundState> CreateRoundAwaiter(uint256? roundId, Predicate<RoundState> predicate, CancellationToken cancellationToken)
+		public Task<RoundState2> CreateRoundAwaiter(uint256? roundId, Predicate<RoundState2> predicate, CancellationToken cancellationToken)
 		{
 			RoundStateAwaiter? roundStateAwaiter = null;
 
@@ -92,7 +92,7 @@ namespace WalletWasabi.WabiSabi.Client
 			return roundStateAwaiter.Task;
 		}
 
-		public Task<RoundState> CreateRoundAwaiter(Predicate<RoundState> predicate, CancellationToken cancellationToken)
+		public Task<RoundState2> CreateRoundAwaiter(Predicate<RoundState2> predicate, CancellationToken cancellationToken)
 		{
 			return CreateRoundAwaiter(null, predicate, cancellationToken);
 		}

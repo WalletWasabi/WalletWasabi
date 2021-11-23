@@ -10,6 +10,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.EventSourcing.ArenaDomain.Aggregates;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
@@ -85,7 +86,7 @@ namespace WalletWasabi.WabiSabi.Client
 		/// <summary>Attempt to participate in a specified round.</summary>
 		/// <param name="roundState">Defines the round parameter and state information to use.</param>
 		/// <returns>Whether or not the round resulted in a successful transaction.</returns>
-		public async Task<bool> StartRoundAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
+		public async Task<bool> StartRoundAsync(IEnumerable<SmartCoin> smartCoins, RoundState2 roundState, CancellationToken cancellationToken)
 		{
 			var constructionState = roundState.Assert<ConstructionState>();
 
@@ -203,7 +204,7 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 
 			// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to be registered.
-			var remainingTimeForRegistration = ( roundState.InputRegistrationEnd - DateTimeOffset.UtcNow ) - TimeSpan.FromSeconds(15);
+			var remainingTimeForRegistration = (roundState.InputRegistrationEnd - DateTimeOffset.UtcNow) - TimeSpan.FromSeconds(15);
 
 			Logger.LogDebug($"Round ({roundState.Id}): Input registration started, it will end in {remainingTimeForRegistration.TotalMinutes} minutes.");
 
