@@ -52,6 +52,12 @@ namespace WalletWasabi.EventSourcing
 			)
 		> _aggregatesIds = new();
 
+		protected enum WriteLockEnum
+		{
+			Unlocked,
+			WritingLocked,
+		}
+
 		public Task AppendEventsAsync(
 			string aggregateType,
 			string aggregateId,
@@ -90,6 +96,7 @@ namespace WalletWasabi.EventSourcing
 
 			// no action
 			Validated();
+
 			// Atomically detect conflict and replace lastSequenceId and lock to ensure strong order in eventsBatches.
 			if (!aggregateEventsBatches.TryUpdate(
 				key: aggregateId,
@@ -126,14 +133,17 @@ namespace WalletWasabi.EventSourcing
 			return Task.CompletedTask;
 		}
 
-		public Task<IReadOnlyList<WrappedEvent>> ListEventsAsync(string aggregateType,
-			string aggregateId, long afterSequenceId = 0, int? limit = null)
+		public Task<IReadOnlyList<WrappedEvent>> ListEventsAsync(
+			string aggregateType,
+			string aggregateId,
+			long afterSequenceId = 0,
+			int? limit = null)
 		{
 			if (_aggregatesEventsBatches.TryGetValue(aggregateType, out var aggregateEventsBatches) &&
 				aggregateEventsBatches.TryGetValue(aggregateId, out var value))
 			{
 				var result = value.EventsBatches.SelectMany(a => a);
-				if (0 < afterSequenceId)
+				if (afterSequenceId > 0)
 				{
 					result = result.Where(a => afterSequenceId < a.SequenceId);
 				}
@@ -146,8 +156,10 @@ namespace WalletWasabi.EventSourcing
 			return Task.FromResult(EmptyResult);
 		}
 
-		public Task<IReadOnlyList<string>> ListAggregateIdsAsync(string aggregateType,
-			string? afterAggregateId = null, int? limit = null)
+		public Task<IReadOnlyList<string>> ListAggregateIdsAsync(
+			string aggregateType,
+			string? afterAggregateId = null,
+			int? limit = null)
 		{
 			if (afterAggregateId != null)
 			{
@@ -224,12 +236,6 @@ namespace WalletWasabi.EventSourcing
 		[Conditional("DEBUG")]
 		protected virtual void Unlocked()
 		{
-		}
-
-		protected enum WriteLockEnum
-		{
-			Unlocked,
-			WritingLocked,
 		}
 	}
 }
