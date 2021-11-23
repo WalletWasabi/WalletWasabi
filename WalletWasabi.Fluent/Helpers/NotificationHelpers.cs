@@ -75,7 +75,7 @@ namespace WalletWasabi.Fluent.Helpers
 					}
 					else if (incoming > Money.Zero)
 					{
-						message = $"{amountString} BTC has been received";
+						message = $"{amountString} BTC received";
 
 					}
 					else if (incoming < Money.Zero)
