@@ -49,6 +49,7 @@ namespace WalletWasabi.Backend
 			services.AddControllers().AddNewtonsoftJson(x =>
 			{
 				x.SerializerSettings.Converters = JsonSerializationOptions.Default.Settings.Converters;
+				x.SerializerSettings.TypeNameHandling = JsonSerializationOptions.Default.Settings.TypeNameHandling;
 			});
 
 			// Register the Swagger generator, defining one or more Swagger documents
