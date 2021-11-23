@@ -49,6 +49,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private bool _isFixedAmount;
 		[AutoNotify] private bool _isPayJoin;
 		[AutoNotify] private string? _payJoinEndPoint;
+		[AutoNotify] private bool _isValidAddress;
 		private bool _parsingUrl;
 
 		public SendViewModel(Wallet wallet)
@@ -283,6 +284,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				PayJoinEndPoint = null;
 			}
 
+			IsValidAddress = result;
 			return result;
 		}
 

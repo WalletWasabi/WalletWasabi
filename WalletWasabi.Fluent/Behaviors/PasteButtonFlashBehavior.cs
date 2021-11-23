@@ -19,10 +19,19 @@ namespace WalletWasabi.Fluent.Behaviors
 		public static readonly StyledProperty<string> FlashAnimationProperty =
 			AvaloniaProperty.Register<PasteButtonFlashBehavior, string>(nameof(FlashAnimation));
 
+		public static readonly StyledProperty<bool> IsDisabledProperty =
+			AvaloniaProperty.Register<PasteButtonFlashBehavior, bool>(nameof(IsDisabled));
+
 		public string FlashAnimation
 		{
 			get => GetValue(FlashAnimationProperty);
 			set => SetValue(FlashAnimationProperty, value);
+		}
+
+		public bool IsDisabled
+		{
+			get => GetValue(IsDisabledProperty);
+			set => SetValue(IsDisabledProperty, value);
 		}
 
 		protected override void OnAttached(CompositeDisposable disposables)
@@ -55,7 +64,7 @@ namespace WalletWasabi.Fluent.Behaviors
 
 		private async Task CheckClipboardForValidAddressAsync()
 		{
-			if (Services.UiConfig.AutoPaste)
+			if (IsDisabled || Services.UiConfig.AutoPaste)
 			{
 				return;
 			}
