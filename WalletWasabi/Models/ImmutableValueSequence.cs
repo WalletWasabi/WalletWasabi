@@ -11,7 +11,7 @@ namespace WalletWasabi.Models
 	/// it can be compared with other sequences and the equality of two sequences is based on the
 	/// equality of the elements.
 	/// </summary>
-	public class ImmutableValueSequence<T> : IEnumerable<T>, IEquatable<IEnumerable<T>> where T : IEquatable<T>
+	public class ImmutableValueSequence<T> : IEnumerable<T>, IEquatable<ImmutableValueSequence<T>> where T : IEquatable<T>
 	{
 		private readonly ImmutableArray<T> _elements;
 
@@ -32,10 +32,10 @@ namespace WalletWasabi.Models
 			return hash.ToHashCode();
 		}
 
-		public bool Equals(IEnumerable<T>? other)
+		public bool Equals(ImmutableValueSequence<T>? other)
 			=> this.SequenceEqual(other ?? Enumerable.Empty<T>());
 
-		public override bool Equals(object? obj) => Equals(obj as IEnumerable<T>);
+		public override bool Equals(object? obj) => Equals(obj as ImmutableValueSequence<T>);
 
 		IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)_elements).GetEnumerator();
 	}
