@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.EventSourcing.Interfaces
 {
-	public interface ICommandProcessor
+	public interface IState
 	{
-		public IEnumerable<IEvent> Process(ICommand command, IState aggregate);
 	}
 }

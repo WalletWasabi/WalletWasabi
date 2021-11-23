@@ -15,6 +15,8 @@ namespace WalletWasabi.EventSourcing.ArenaDomain
 	{
 		public RoundState2 State { get; private set; }
 
+		IState IAggregate.State => State;
+
 		private void Apply(RoundStartedEvent ev)
 		{
 			State = State with { RoundParameters = ev.RoundParameters, Phase = Phase.InputRegistration };
@@ -43,7 +45,14 @@ namespace WalletWasabi.EventSourcing.ArenaDomain
 				return;
 			}
 
-			State = State with { Inputs = State.Inputs.SetItem(index, State.Inputs[index] with { ConnectionConfirmed = true }) };
+			var newState = State.Inputs[index] with
+			{
+				Coin = ev.Coin,
+				OwnershipProof = ev.OwnershipProof,
+				ConnectionConfirmed = true
+			};
+
+			State = State with { Inputs = State.Inputs.SetItem(index, newState) };
 		}
 
 		private void Apply(OutputRegistrationStartedEvent _)

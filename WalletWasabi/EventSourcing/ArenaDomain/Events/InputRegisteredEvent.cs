@@ -10,5 +10,5 @@ using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.EventSourcing.ArenaDomain.Events
 {
-	public record InputRegisteredEvent(Coin Coin, OwnershipProof OwnershipProof, Guid AliceId) : IEvent;
+	public record InputRegisteredEvent(Guid AliceId, Coin Coin, OwnershipProof OwnershipProof) : IEvent;
 }

@@ -7,7 +7,7 @@ using NBitcoin;
 using WalletWasabi.Crypto;
 using WalletWasabi.EventSourcing.Interfaces;
 
-namespace WalletWasabi.EventSourcing.ArenaDomain.Events
+namespace WalletWasabi.EventSourcing.ArenaDomain.Command
 {
-	public record InputConnectionConfirmedEvent(Guid AliceId, Coin Coin, OwnershipProof OwnershipProof) : IEvent, IRoundClientEvent;
+	public record InputRegisterCommand(Coin Coin, OwnershipProof OwnershipProof, Guid AliceId, Guid IdempotenceId) : ICommand;
 }

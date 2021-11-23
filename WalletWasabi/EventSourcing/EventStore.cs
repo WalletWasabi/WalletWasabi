@@ -56,7 +56,7 @@ namespace WalletWasabi.EventSourcing
 					}
 
 					ICommandProcessor processor = commandProcessorFactory.Invoke();
-					var newEvents = processor.Process(command, aggregate);
+					var newEvents = processor.Process(command, aggregate.State);
 
 					var lastEvent = events.Any() ? events[^1] : null;
 					var sequenceId = lastEvent == null ? 1 : lastEvent.SequenceId + 1;
