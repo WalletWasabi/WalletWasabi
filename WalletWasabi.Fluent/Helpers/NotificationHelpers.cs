@@ -103,7 +103,7 @@ namespace WalletWasabi.Fluent.Helpers
 					else if (incoming < Money.Zero)
 					{
 						var sentAmount = receiveSpentDiff - miningFee;
-						message = $"Sending {sentAmount.ToFormattedString()} BTC has been confirmed";
+						message = $"{sentAmount.ToFormattedString()} BTC sent got confirmed";
 					}
 				}
 			}
