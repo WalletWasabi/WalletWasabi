@@ -11,6 +11,11 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing.TestDomain
 {
 	public class TestInMemoryEventRepository : InMemoryEventRepository
 	{
+		public TestInMemoryEventRepository(ITestOutputHelper output)
+		{
+			Output = output;
+		}
+
 		protected ITestOutputHelper Output { get; init; }
 
 		public SemaphoreSlim ValidatedSemaphore { get; } = new SemaphoreSlim(0);
@@ -24,11 +29,6 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing.TestDomain
 		public Action? LockedCallback { get; set; }
 		public Action? AppendedCallback { get; set; }
 		public Action? UnlockedCallback { get; set; }
-
-		public TestInMemoryEventRepository(ITestOutputHelper output)
-		{
-			Output = output;
-		}
 
 		protected override void Validated()
 		{
