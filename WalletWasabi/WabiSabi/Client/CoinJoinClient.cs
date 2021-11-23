@@ -16,6 +16,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
+using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Wallets;
@@ -75,7 +76,7 @@ namespace WalletWasabi.WabiSabi.Client
 				using CancellationTokenSource linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(waitForBlameRound.Token, cancellationToken);
 
 				var blameRoundState = await RoundStatusUpdater
-					.CreateRoundAwaiter(roundState => roundState.BlameOf == currentRoundState.Id && roundState.Phase == Phase.InputRegistration, linkedTokenSource.Token)
+					.CreateRoundAwaiter(roundState => roundState.RoundParameters.BlameOf == currentRoundState.RoundParameters.Id && roundState.Phase == Phase.InputRegistration, linkedTokenSource.Token)
 					.ConfigureAwait(false);
 				currentRoundState = blameRoundState;
 			}
@@ -88,12 +89,11 @@ namespace WalletWasabi.WabiSabi.Client
 		/// <returns>Whether or not the round resulted in a successful transaction.</returns>
 		public async Task<bool> StartRoundAsync(IEnumerable<SmartCoin> smartCoins, RoundState2 roundState, CancellationToken cancellationToken)
 		{
-			var constructionState = roundState.Assert<ConstructionState>();
-
-			var coinCandidates = SelectCoinsForRound(smartCoins, constructionState.Parameters);
+			var roundParameters = roundState.RoundParameters;
+			var coinCandidates = SelectCoinsForRound(smartCoins, roundParameters.MultipartyTransactionParameters);
 
 			// Register coins.
-			var registeredAliceClients = await CreateRegisterAndConfirmCoinsAsync(coinCandidates, roundState, cancellationToken).ConfigureAwait(false);
+			var registeredAliceClients = await CreateRegisterAndConfirmCoinsAsync(coinCandidates, roundParameters, cancellationToken).ConfigureAwait(false);
 			if (!registeredAliceClients.Any())
 			{
 				throw new InvalidOperationException($"Round ({roundState.Id}): There is no available alices to participate with.");
@@ -109,9 +109,9 @@ namespace WalletWasabi.WabiSabi.Client
 
 				// Calculate outputs values
 				roundState = await RoundStatusUpdater.CreateRoundAwaiter(rs => rs.Id == roundState.Id, cancellationToken).ConfigureAwait(false);
-				constructionState = roundState.Assert<ConstructionState>();
-				AmountDecomposer amountDecomposer = new(roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min, Constants.P2WPKHOutputSizeInBytes, (int)availableVsize);
-				var theirCoins = constructionState.Inputs.Except(registeredCoins);
+
+				AmountDecomposer amountDecomposer = new(roundParameters.FeeRate, roundParameters.MultipartyTransactionParameters.AllowedOutputAmounts.Min, Constants.P2WPKHOutputSizeInBytes, (int)availableVsize);
+				var theirCoins = roundState.Inputs.Select(input => input.Coin).Except(registeredCoins);
 				var outputValues = amountDecomposer.Decompose(registeredCoins, theirCoins);
 
 				// Get all locked internal keys we have and assert we have enough.
@@ -119,7 +119,12 @@ namespace WalletWasabi.WabiSabi.Client
 				var allLockedInternalKeys = Keymanager.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked);
 				var outputTxOuts = outputValues.Zip(allLockedInternalKeys, (amount, hdPubKey) => new TxOut(amount, hdPubKey.P2wpkhScript));
 
-				DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(registeredCoins, outputTxOuts, roundState.FeeRate, roundState.MaxVsizeAllocationPerAlice);
+				DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(
+					registeredCoins,
+					outputTxOuts,
+					roundParameters.FeeRate,
+					roundParameters.MaxVsizeAllocationPerAlice);
+
 				DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
 
 				// Re-issuances.
@@ -142,8 +147,7 @@ namespace WalletWasabi.WabiSabi.Client
 				roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
 				Logger.LogDebug($"Round ({roundState.Id}): Transaction signing phase started.");
 
-				var signingState = roundState.Assert<SigningState>();
-				var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
+				var unsignedCoinJoin = CreateUnsignedCoinJoin(roundState);
 
 				// Sanity check.
 				if (!SanityCheck(outputTxOuts, unsignedCoinJoin))
@@ -170,7 +174,7 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 		}
 
-		private async Task<ImmutableArray<AliceClient>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
+		private async Task<ImmutableArray<AliceClient>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundParameters2 roundParameters, CancellationToken cancellationToken)
 		{
 			async Task<AliceClient?> RegisterInputAsync(SmartCoin coin, CancellationToken cancellationToken)
 			{
@@ -179,9 +183,19 @@ namespace WalletWasabi.WabiSabi.Client
 					// Alice client requests are inherently linkable to each other, so the circuit can be reused
 					var arenaRequestHandler = new WabiSabiHttpApiClient(HttpClientFactory.NewBackendHttpClient(Mode.SingleCircuitPerLifetime));
 
+					WabiSabiClient amountCredentialClient = new(
+						roundParameters.AmountCredentialIssuerParameters,
+						SecureRandom,
+						roundParameters.MaxAmountCredentialValue);
+
+					WabiSabiClient vsizeCredentialClient = new(
+						roundParameters.VsizeCredentialIssuerParameters,
+						SecureRandom,
+						roundParameters.MaxVsizeCredentialValue);
+
 					var aliceArenaClient = new ArenaClient(
-						roundState.CreateAmountCredentialClient(SecureRandom),
-						roundState.CreateVsizeCredentialClient(SecureRandom),
+						amountCredentialClient,
+						vsizeCredentialClient,
 						arenaRequestHandler);
 
 					var hdKey = Keymanager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey).Single();
@@ -195,7 +209,7 @@ namespace WalletWasabi.WabiSabi.Client
 					var identificationMasterKey = Slip21Node.FromSeed(masterKey.ToBytes());
 					var identificationKey = identificationMasterKey.DeriveChild("SLIP-0019").DeriveChild("Ownership identification key").Key;
 
-					return await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, secret, identificationKey, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
+					return await AliceClient.CreateRegisterAndConfirmInputAsync(roundParameters, aliceArenaClient, coin, secret, identificationKey, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
 				}
 				catch (HttpRequestException)
 				{
@@ -204,9 +218,9 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 
 			// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to be registered.
-			var remainingTimeForRegistration = (roundState.InputRegistrationEnd - DateTimeOffset.UtcNow) - TimeSpan.FromSeconds(15);
+			var remainingTimeForRegistration = (roundParameters.InputRegistrationEnd - DateTimeOffset.UtcNow) - TimeSpan.FromSeconds(15);
 
-			Logger.LogDebug($"Round ({roundState.Id}): Input registration started, it will end in {remainingTimeForRegistration.TotalMinutes} minutes.");
+			Logger.LogDebug($"Round ({roundParameters.Id}): Input registration started, it will end in {remainingTimeForRegistration.TotalMinutes} minutes.");
 
 			var scheduledDates = remainingTimeForRegistration.SamplePoisson(smartCoins.Count());
 
@@ -231,15 +245,25 @@ namespace WalletWasabi.WabiSabi.Client
 				.ToImmutableArray();
 		}
 
-		private BobClient CreateBobClient(RoundState roundState)
+		private BobClient CreateBobClient(RoundState2 roundState)
 		{
 			var arenaRequestHandler = new WabiSabiHttpApiClient(HttpClientFactory.NewBackendHttpClient(Mode.NewCircuitPerRequest));
+
+			WabiSabiClient amountCredentialClient = new(
+				roundState.RoundParameters.AmountCredentialIssuerParameters,
+				SecureRandom,
+				roundState.RoundParameters.MaxAmountCredentialValue);
+
+			WabiSabiClient vsizeCredentialClient = new(
+				roundState.RoundParameters.VsizeCredentialIssuerParameters,
+				SecureRandom,
+				roundState.RoundParameters.MaxVsizeCredentialValue);
 
 			return new BobClient(
 				roundState.Id,
 				new(
-					roundState.CreateAmountCredentialClient(SecureRandom),
-					roundState.CreateVsizeCredentialClient(SecureRandom),
+					amountCredentialClient,
+					vsizeCredentialClient,
 					arenaRequestHandler));
 		}
 
@@ -250,7 +274,7 @@ namespace WalletWasabi.WabiSabi.Client
 			return coinJoinOutputs.IsSuperSetOf(expectedOutputTuples);
 		}
 
-		private async Task SignTransactionAsync(IEnumerable<AliceClient> aliceClients, Transaction unsignedCoinJoinTransaction, RoundState roundState, CancellationToken cancellationToken)
+		private async Task SignTransactionAsync(IEnumerable<AliceClient> aliceClients, Transaction unsignedCoinJoinTransaction, RoundState2 roundState, CancellationToken cancellationToken)
 		{
 			async Task<AliceClient?> SignTransactionAsync(AliceClient aliceClient, CancellationToken cancellationToken)
 			{
@@ -267,7 +291,7 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 
 			// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to sign.
-			var transactionSigningTimeFrame = roundState.TransactionSigningTimeout - RoundStatusUpdater.Period;
+			var transactionSigningTimeFrame = roundState.RoundParameters.TransactionSigningTimeout - RoundStatusUpdater.Period;
 			Logger.LogDebug($"Round ({roundState.Id}): Signing phase started, it will end in {transactionSigningTimeFrame.TotalMinutes} minutes.");
 
 			var scheduledDates = transactionSigningTimeFrame.SamplePoisson(aliceClients.Count());
@@ -298,6 +322,25 @@ namespace WalletWasabi.WabiSabi.Client
 			var readyRequests = aliceClients.Select(ReadyToSignTask);
 
 			await Task.WhenAll(readyRequests).ConfigureAwait(false);
+		}
+
+		private Transaction CreateUnsignedCoinJoin(RoundState2 roundState)
+		{
+			var tx = Transaction.Create(Keymanager.GetNetwork());
+
+			foreach (var input in roundState.Inputs)
+			{
+				// implied:
+				// nSequence = FINAL
+				tx.Inputs.Add(input.Coin.Outpoint);
+			}
+
+			foreach (var output in roundState.Outputs)
+			{
+				tx.Outputs.Add(new TxOut(Money.Satoshis(output.CredentialAmount), output.Script));
+			}
+
+			return tx;
 		}
 
 		// Selects coin candidates for participating in a round.

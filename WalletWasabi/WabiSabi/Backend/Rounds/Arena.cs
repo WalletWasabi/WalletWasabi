@@ -323,7 +323,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					roundParams.TransactionSigningTimeout,
 					r.MaxAmountCredentialValue,
 					r.MaxVsizeCredentialValue,
-					r.MaxVsizeAllocationPerAlice);
+					r.MaxVsizeAllocationPerAlice,
+					r.CoinjoinState.Parameters);
 
 				await EventStore.ProcessCommandAsync(new StartRoundCommand(r2, Guid.NewGuid()),
 					nameof(RoundAggregate), r.Id.ToString()).ConfigureAwait(false);
