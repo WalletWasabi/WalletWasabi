@@ -80,7 +80,8 @@ namespace WalletWasabi.Fluent.Helpers
 					}
 					else if (incoming < Money.Zero)
 					{
-						message = $"{amountString} BTC has been sent";
+						var sentAmount = receiveSpentDiff - miningFee;
+						message = $"{sentAmount.ToFormattedString()} BTC has been sent";
 					}
 				}
 				else if (isConfirmedReceive || isConfirmedSpent)
@@ -101,7 +102,8 @@ namespace WalletWasabi.Fluent.Helpers
 					}
 					else if (incoming < Money.Zero)
 					{
-						message = $"Sending {amountString} BTC has been confirmed";
+						var sentAmount = receiveSpentDiff - miningFee;
+						message = $"Sending {sentAmount.ToFormattedString()} BTC has been confirmed";
 					}
 				}
 			}
