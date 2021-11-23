@@ -3,10 +3,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Exceptions;
-using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces.EventSourcing;
 
@@ -21,17 +19,19 @@ namespace WalletWasabi.EventSourcing
 		protected static readonly IReadOnlyList<string> EmptyIds = Array.Empty<string>().ToList().AsReadOnly();
 
 		private readonly ConcurrentDictionary<
-			string /*aggregateType*/,
+			// aggregateType
+			string,
 			ConcurrentDictionary<
-				string /*aggregateId*/,
+				// aggregateId
+				string,
 				(
 					// SequenceId of the last event of this aggregate
 					long TailSequenceId,
 
-					// locked flag for appending into EventsBatches of this aggregate
-					bool Locked,
+					// Locked flag for appending into EventsBatches of this aggregate
+					WriteLockEnum LockState,
 
-					// list of lists of events for atomic insertion of multiple events
+					// List of lists of events for atomic insertion of multiple events
 					// in one "database transaction"
 					ConcurrentQueue<IReadOnlyList<WrappedEvent>> EventsBatches
 				)
@@ -39,14 +39,16 @@ namespace WalletWasabi.EventSourcing
 		> _aggregatesEventsBatches = new();
 
 		private readonly ConcurrentDictionary<
-			string /*aggregateType*/,
+			// aggregateType
+			string,
 			(
-				// index of the last aggregateId in this aggregateType
+				// Index of the last aggregateId in this aggregateType
 				long TailIndex,
 				ConcurrentDictionary<
-					// index of aggregateId in this aggregateType
+					// Index of aggregateId in this aggregateType
 					long,
-					string /*aggregateId*/> Ids
+					// aggregateId
+					string> Ids
 			)
 		> _aggregatesIds = new();
 
@@ -67,32 +69,32 @@ namespace WalletWasabi.EventSourcing
 			var lastSequenceId = wrappedEventsList[^1].SequenceId;
 			if (firstSequenceId <= 0)
 			{
-				throw new ArgumentException("first event sequenceId is not natural number", nameof(wrappedEvents));
+				throw new ArgumentException("First event sequenceId is not natural number.", nameof(wrappedEvents));
 			}
 			if (lastSequenceId <= 0)
 			{
-				throw new ArgumentException("last event sequenceId is not natural number", nameof(wrappedEvents));
+				throw new ArgumentException("Last event sequenceId is not natural number.", nameof(wrappedEvents));
 			}
 			if (lastSequenceId - firstSequenceId + 1 != wrappedEventsList.Count)
 			{
-				throw new ArgumentException("event sequence ids are out of whack", nameof(wrappedEvents));
+				throw new ArgumentException("Event sequence ids are out of whack.", nameof(wrappedEvents));
 			}
 
 			var aggregateEventsBatches = _aggregatesEventsBatches.GetOrAdd(aggregateType, _ => new());
-			var (tailSequenceId, locked, eventsBatches) = aggregateEventsBatches.GetOrAdd(aggregateId, _ => (0, false, new()));
+			var (tailSequenceId, locked, eventsBatches) = aggregateEventsBatches.GetOrAdd(aggregateId, _ => (0, WriteLockEnum.Unlocked, new()));
 
 			if (tailSequenceId + 1 < firstSequenceId)
 			{
-				throw new ArgumentException($"invalid firstSequenceId (gap in sequence ids) expected: '{tailSequenceId + 1}' given: '{firstSequenceId}'", nameof(wrappedEvents));
+				throw new ArgumentException($"Invalid firstSequenceId (gap in sequence ids) expected: '{tailSequenceId + 1}' given: '{firstSequenceId}'.", nameof(wrappedEvents));
 			}
 
 			// no action
 			Validated();
-			// atomically detect conflict and replace lastSequenceId and lock to ensure strong order in eventsBatches
+			// Atomically detect conflict and replace lastSequenceId and lock to ensure strong order in eventsBatches.
 			if (!aggregateEventsBatches.TryUpdate(
 				key: aggregateId,
-				newValue: (lastSequenceId, true, eventsBatches),
-				comparisonValue: (firstSequenceId - 1, false, eventsBatches)))
+				newValue: (lastSequenceId, WriteLockEnum.WritingLocked, eventsBatches),
+				comparisonValue: (firstSequenceId - 1, WriteLockEnum.Unlocked, eventsBatches)))
 			{
 				Conflicted(); // no action
 				throw new OptimisticConcurrencyException($"Conflict while commiting events. Retry command. aggregate: '{aggregateType}' id: '{aggregateId}'");
@@ -105,22 +107,20 @@ namespace WalletWasabi.EventSourcing
 			}
 			finally
 			{
-				// unlock
+				// Unlock.
 				if (!aggregateEventsBatches.TryUpdate(
 					key: aggregateId,
-					newValue: (lastSequenceId, false, eventsBatches),
-					comparisonValue: (lastSequenceId, true, eventsBatches)))
+					newValue: (lastSequenceId, WriteLockEnum.Unlocked, eventsBatches),
+					comparisonValue: (lastSequenceId, WriteLockEnum.WritingLocked, eventsBatches)))
 				{
-#warning
-					// TODO: convert into Debug.Assert ???
-					throw new ApplicationException("unexpected failure 89#");
+					throw new AssertionFailedException("Unexpected failure to unlock.");
 				}
 				Unlocked(); // no action
 			}
 
-			// if it is a first event for given aggregate
+			// If it is a first event for given aggregate.
 			if (tailSequenceId == 0)
-			{ // add index of aggregate id into the dictionary
+			{ // Add index of aggregate id into the dictionary.
 				IndexNewAggregateId(aggregateType, aggregateId);
 			}
 			return Task.CompletedTask;
@@ -163,9 +163,7 @@ namespace WalletWasabi.EventSourcing
 				{
 					if (!ids.TryGetValue(i, out var id))
 					{
-#warning
-						// TODO: convert into Debug.Assert ???
-						throw new ApplicationException("unexpected failure #123");
+						throw new AssertionFailedException($"Unexpected failure to get aggregate id. aggregate type: '{aggregateType}' index: '{i}'");
 					}
 					result.Add(id);
 				}
@@ -183,7 +181,7 @@ namespace WalletWasabi.EventSourcing
 			{
 				if (liveLockLimit-- <= 0)
 				{
-					throw new ApplicationException("live lock detected");
+					throw new ApplicationException("Live lock detected.");
 				}
 				(tailIndex, aggregateIds) = _aggregatesIds.GetOrAdd(aggregateType,
 					_ => new(0, new()));
@@ -194,40 +192,44 @@ namespace WalletWasabi.EventSourcing
 				comparisonValue: (tailIndex, aggregateIds)));
 			if (!aggregateIds.TryAdd(tailIndex + 1, id))
 			{
-#warning
-				// TODO: convert into Debug.Assert ???
-				throw new ApplicationException("unexpected failure #167");
+				throw new AssertionFailedException("Unexpected failure to add aggregate id to index.");
 			}
 		}
 
-		// helper for parallel critical section testing in DEBUG build only
+		// Helper for parallel critical section testing in DEBUG build only.
 		[Conditional("DEBUG")]
 		protected virtual void Validated()
 		{
 		}
 
-		// helper for parallel critical section testing in DEBUG build only
+		// Helper for parallel critical section testing in DEBUG build only.
 		[Conditional("DEBUG")]
 		protected virtual void Conflicted()
 		{
 		}
 
-		// helper for parallel critical section testing in DEBUG build only
+		// Helper for parallel critical section testing in DEBUG build only.
 		[Conditional("DEBUG")]
 		protected virtual void Locked()
 		{
 		}
 
-		// helper for parallel critical section testing in DEBUG build only
+		// helper for parallel critical section testing in DEBUG build only.
 		[Conditional("DEBUG")]
 		protected virtual void Appended()
 		{
 		}
 
-		// helper for parallel critical section testing in DEBUG build only
+		// Helper for parallel critical section testing in DEBUG build only.
 		[Conditional("DEBUG")]
 		protected virtual void Unlocked()
 		{
+		}
+
+		protected enum WriteLockEnum
+		{
+			Unlocked,
+			WritingLocked,
 		}
 	}
 }
