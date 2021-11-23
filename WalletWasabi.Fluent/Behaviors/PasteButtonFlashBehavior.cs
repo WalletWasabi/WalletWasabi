@@ -1,19 +1,17 @@
 using System;
 using System.Reactive.Concurrency;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Threading;
 using ReactiveUI;
 using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.Behaviors
 {
-	public class PasteButtonFlashBehavior : DisposingBehavior<AnimatedButton>
+	public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedButton>
 	{
 		private CancellationTokenSource? _cts;
 
@@ -35,32 +33,31 @@ namespace WalletWasabi.Fluent.Behaviors
 			set => SetValue(IsEnabledProperty, value);
 		}
 
-		protected override void OnAttached(CompositeDisposable disposables)
+		protected override void OnAttachedToVisualTree()
 		{
 			if (AssociatedObject is null)
 			{
 				return;
 			}
 
-			Dispatcher.UIThread.Post(async () => await CheckClipboardForValidAddressAsync(), DispatcherPriority.Loaded);
+			RxApp.MainThreadScheduler.Schedule(async () => await CheckClipboardForValidAddressAsync());
 
 			var mainWindow = ((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).MainWindow;
 			Observable
 				.FromEventPattern(mainWindow, nameof(mainWindow.Activated))
-				.Subscribe(async _ => await CheckClipboardForValidAddressAsync())
-				.DisposeWith(disposables);
+				.Subscribe(async _ => await CheckClipboardForValidAddressAsync());
 
 			AssociatedObject.WhenAnyValue(x => x.AnimateIcon)
 				.Where(x => x)
-				.Subscribe(_ => AssociatedObject.Classes.Remove(FlashAnimation))
-				.DisposeWith(disposables);
+				.Subscribe(_ => AssociatedObject.Classes.Remove(FlashAnimation));
+		}
 
-			Disposable.Create(() =>
-				{
-					_cts?.Cancel();
-					_cts?.Dispose();
-				})
-				.DisposeWith(disposables);
+		protected override void OnDetaching()
+		{
+			base.OnDetaching();
+
+			_cts?.Cancel();
+			_cts?.Dispose();
 		}
 
 		private async Task CheckClipboardForValidAddressAsync()
