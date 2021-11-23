@@ -2,6 +2,7 @@ using System;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -13,6 +14,8 @@ namespace WalletWasabi.Fluent.Behaviors
 {
 	public class PasteButtonFlashBehavior : DisposingBehavior<AnimatedButton>
 	{
+		private CancellationTokenSource? _cts;
+
 		public static readonly StyledProperty<string> FlashAnimationProperty =
 			AvaloniaProperty.Register<PasteButtonFlashBehavior, string>(nameof(FlashAnimation));
 
@@ -39,7 +42,14 @@ namespace WalletWasabi.Fluent.Behaviors
 
 			AssociatedObject.WhenAnyValue(x => x.AnimateIcon)
 				.Where(x => x)
-				.Subscribe(_ => CancelAnimation())
+				.Subscribe(_ => AssociatedObject.Classes.Remove(FlashAnimation))
+				.DisposeWith(disposables);
+
+			Disposable.Create(() =>
+				{
+					_cts?.Cancel();
+					_cts?.Dispose();
+				})
 				.DisposeWith(disposables);
 		}
 
@@ -54,33 +64,34 @@ namespace WalletWasabi.Fluent.Behaviors
 
 			if (AddressStringParser.TryParse(textToPaste, Services.WalletManager.Network, out _))
 			{
-				ExecuteAnimation();
+				await ExecuteAnimationAsync();
 			}
 		}
 
-		private void CancelAnimation()
+		private async Task ExecuteAnimationAsync()
 		{
 			if (AssociatedObject is null)
 			{
 				return;
 			}
 
-			if (AssociatedObject.Classes.Contains(FlashAnimation))
+			_cts?.Cancel();
+			_cts?.Dispose();
+			_cts = new CancellationTokenSource();
+
+			try
+			{
+				AssociatedObject.Classes.Add(FlashAnimation);
+				await Task.Delay(2000, _cts.Token);
+			}
+			catch (OperationCanceledException)
+			{
+				// ignored
+			}
+			finally
 			{
 				AssociatedObject.Classes.Remove(FlashAnimation);
 			}
-		}
-
-		private void ExecuteAnimation()
-		{
-			if (AssociatedObject is null)
-			{
-				return;
-			}
-
-			CancelAnimation();
-
-			AssociatedObject.Classes.Add(FlashAnimation);
 		}
 	}
 }
