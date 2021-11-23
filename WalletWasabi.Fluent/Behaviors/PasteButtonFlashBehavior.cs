@@ -92,7 +92,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			try
 			{
 				AssociatedObject.Classes.Add(FlashAnimation);
-				await Task.Delay(2000, _cts.Token);
+				await Task.Delay(1850, _cts.Token);
 			}
 			catch (OperationCanceledException)
 			{
