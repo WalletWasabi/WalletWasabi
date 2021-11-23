@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Threading;
 using ReactiveUI;
 using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Userfacing;
@@ -19,8 +20,8 @@ namespace WalletWasabi.Fluent.Behaviors
 		public static readonly StyledProperty<string> FlashAnimationProperty =
 			AvaloniaProperty.Register<PasteButtonFlashBehavior, string>(nameof(FlashAnimation));
 
-		public static readonly StyledProperty<bool> IsDisabledProperty =
-			AvaloniaProperty.Register<PasteButtonFlashBehavior, bool>(nameof(IsDisabled));
+		public static readonly StyledProperty<bool> IsEnabledProperty =
+			AvaloniaProperty.Register<PasteButtonFlashBehavior, bool>(nameof(IsEnabled));
 
 		public string FlashAnimation
 		{
@@ -28,10 +29,10 @@ namespace WalletWasabi.Fluent.Behaviors
 			set => SetValue(FlashAnimationProperty, value);
 		}
 
-		public bool IsDisabled
+		public bool IsEnabled
 		{
-			get => GetValue(IsDisabledProperty);
-			set => SetValue(IsDisabledProperty, value);
+			get => GetValue(IsEnabledProperty);
+			set => SetValue(IsEnabledProperty, value);
 		}
 
 		protected override void OnAttached(CompositeDisposable disposables)
@@ -41,7 +42,7 @@ namespace WalletWasabi.Fluent.Behaviors
 				return;
 			}
 
-			RxApp.MainThreadScheduler.Schedule(async () => await CheckClipboardForValidAddressAsync());
+			Dispatcher.UIThread.Post(async () => await CheckClipboardForValidAddressAsync(), DispatcherPriority.Loaded);
 
 			var mainWindow = ((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).MainWindow;
 			Observable
@@ -64,7 +65,7 @@ namespace WalletWasabi.Fluent.Behaviors
 
 		private async Task CheckClipboardForValidAddressAsync()
 		{
-			if (IsDisabled || Services.UiConfig.AutoPaste)
+			if (!IsEnabled)
 			{
 				return;
 			}
