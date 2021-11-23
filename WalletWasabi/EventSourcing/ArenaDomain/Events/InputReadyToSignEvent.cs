@@ -7,5 +7,5 @@ using WalletWasabi.EventSourcing.Interfaces;
 
 namespace WalletWasabi.EventSourcing.ArenaDomain.Events
 {
-	public record InputConnectionConfirmedEvent(Guid AliceId) : IEvent, IRoundClientEvent;
+	public record InputReadyToSignEvent(Guid AliceId) : IEvent;
 }

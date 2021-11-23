@@ -22,7 +22,7 @@ namespace WalletWasabi.EventSourcing.ArenaDomain
 
 		private void Apply(InputRegisteredEvent ev)
 		{
-			State = State with { Inputs = State.Inputs.Add(new InputState(ev.Coin, ev.OwnershipProof, ev.AliceId)) };
+			State = State with { Inputs = State.Inputs.Add(new InputState(ev.AliceId, ev.Coin, ev.OwnershipProof)) };
 		}
 
 		private void Apply(InputUnregistered ev)
@@ -51,6 +51,43 @@ namespace WalletWasabi.EventSourcing.ArenaDomain
 			State = State with { Phase = Phase.OutputRegistration };
 		}
 
+		private void Apply(OutputRegisteredEvent ev)
+		{
+			State = State with { Outputs = State.Outputs.Add(new OutputState(ev.Script, ev.CredentialAmount)) };
+		}
+
+		private void Apply(InputReadyToSignEvent ev)
+		{
+			var index = State.Inputs.FindIndex(input => input.AliceId == ev.AliceId);
+			if (index < 0)
+			{
+				return;
+			}
+
+			State = State with { Inputs = State.Inputs.SetItem(index, State.Inputs[index] with { ReadyToSign = true }) };
+		}
+
+		private void Apply(SigningStartedEvent _)
+		{
+			State = State with { Phase = Phase.TransactionSigning };
+		}
+
+		private void Apply(SignatureAddedEvent ev)
+		{
+			var index = State.Inputs.FindIndex(input => input.AliceId == ev.AliceId);
+			if (index < 0)
+			{
+				return;
+			}
+
+			State = State with { Inputs = State.Inputs.SetItem(index, State.Inputs[index] with { WitScript = ev.WitScript }) };
+		}
+
+		private void Apply(RoundEndedEvent _)
+		{
+			State = State with { Phase = Phase.Ended };
+		}
+
 		public void Apply(IEvent ev)
 		{
 			switch (ev)
@@ -76,6 +113,26 @@ namespace WalletWasabi.EventSourcing.ArenaDomain
 					break;
 
 				case OutputRegistrationStartedEvent eve:
+					Apply(eve);
+					break;
+
+				case OutputRegisteredEvent eve:
+					Apply(eve);
+					break;
+
+				case InputReadyToSignEvent eve:
+					Apply(eve);
+					break;
+
+				case SigningStartedEvent eve:
+					Apply(eve);
+					break;
+
+				case SignatureAddedEvent eve:
+					Apply(eve);
+					break;
+
+				case RoundEndedEvent eve:
 					Apply(eve);
 					break;
 

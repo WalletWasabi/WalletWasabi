@@ -9,5 +9,5 @@ using WalletWasabi.EventSourcing.Interfaces;
 
 namespace WalletWasabi.EventSourcing.ArenaDomain.Events
 {
-	public record InputsConnectionConfirmationStartedEvent() : IEvent;
+	public record InputsConnectionConfirmationStartedEvent() : IEvent, IRoundClientEvent;
 }

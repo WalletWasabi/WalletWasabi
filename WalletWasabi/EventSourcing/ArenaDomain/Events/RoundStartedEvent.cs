@@ -8,5 +8,5 @@ using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.EventSourcing.ArenaDomain.Events
 {
-	public record RoundStartedEvent(RoundParameters RoundParameters) : IEvent;
+	public record RoundStartedEvent(RoundParameters RoundParameters) : IEvent, IRoundClientEvent;
 }

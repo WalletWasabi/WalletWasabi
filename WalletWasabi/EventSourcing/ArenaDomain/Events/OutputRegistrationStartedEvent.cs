@@ -7,5 +7,5 @@ using WalletWasabi.EventSourcing.Interfaces;
 
 namespace WalletWasabi.EventSourcing.ArenaDomain.Events
 {
-	public record OutputRegistrationStartedEvent() : IEvent;
+	public record OutputRegistrationStartedEvent() : IEvent, IRoundClientEvent;
 }
