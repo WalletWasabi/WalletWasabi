@@ -434,7 +434,7 @@ namespace WalletWasabi.Gui
 					Logger.LogTrace(ex);
 					AddressManager = new AddressManager();
 				}
-				catch (Exception ex) when (ex is OverflowException or FormatException or ArgumentException or EndOfStreamException)
+				catch (Exception ex) when (ex is OverflowException || ex is FormatException || ex is ArgumentException || ex is EndOfStreamException)
 				{
 					// https://github.com/zkSNACKs/WalletWasabi/issues/712
 					// https://github.com/zkSNACKs/WalletWasabi/issues/880
