@@ -118,8 +118,9 @@ namespace WalletWasabi.EventSourcing
 				var result = value.Events;
 				if (afterSequenceId > 0)
 				{
+					var dummyEvent = new WrappedEvent(afterSequenceId, null!, Guid.Empty);
 					var foundIndex = result.BinarySearch(
-						new WrappedEvent(afterSequenceId),
+						dummyEvent,
 						Comparer<WrappedEvent>.Create((a, b) => a.SequenceId.CompareTo(b.SequenceId)));
 					if (foundIndex < 0)
 					{
