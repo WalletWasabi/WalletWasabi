@@ -45,7 +45,7 @@ namespace WalletWasabi.EventSourcing
 				// List of aggregate Ids in this aggregateType
 				ImmutableSortedSet<string> Ids
 			)
-		> _aggregatesIds = new();
+			> _aggregatesIds = new();
 
 		public Task AppendEventsAsync(
 			string aggregateType,
@@ -187,8 +187,7 @@ namespace WalletWasabi.EventSourcing
 				{
 					throw new ApplicationException("Live lock detected.");
 				}
-				(tailIndex, aggregateIds) = _aggregatesIds.GetOrAdd(aggregateType,
-					_ => new(0, ImmutableSortedSet<string>.Empty));
+				(tailIndex, aggregateIds) = _aggregatesIds.GetOrAdd(aggregateType, _ => new(0, ImmutableSortedSet<string>.Empty));
 				newAggregateIds = aggregateIds.Add(id);
 			}
 			while (!_aggregatesIds.TryUpdate(
