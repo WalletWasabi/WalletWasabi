@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,8 +16,8 @@ namespace WalletWasabi.EventSourcing
 	/// </summary>
 	public class InMemoryEventRepository : IEventRepository
 	{
-		protected static readonly IReadOnlyList<WrappedEvent> EmptyResult = Array.Empty<WrappedEvent>().ToList().AsReadOnly();
-		protected static readonly IReadOnlyList<string> EmptyIds = Array.Empty<string>().ToList().AsReadOnly();
+		protected static readonly IReadOnlyList<WrappedEvent> EmptyResult = ImmutableList<WrappedEvent>.Empty;
+		protected static readonly IReadOnlyList<string> EmptyIds = ImmutableList<string>.Empty;
 
 		private readonly ConcurrentDictionary<
 			// aggregateType
@@ -28,12 +29,8 @@ namespace WalletWasabi.EventSourcing
 					// SequenceId of the last event of this aggregate
 					long TailSequenceId,
 
-					// Locked flag for appending into EventsBatches of this aggregate
-					WriteLockEnum LockState,
-
-					// List of lists of events for atomic insertion of multiple events
-					// in one "database transaction"
-					ConcurrentQueue<IReadOnlyList<WrappedEvent>> EventsBatches
+					// Ordered list of events
+					ImmutableList<WrappedEvent> Events
 				)
 			>
 		> _aggregatesEventsBatches = new();
@@ -44,19 +41,11 @@ namespace WalletWasabi.EventSourcing
 			(
 				// Index of the last aggregateId in this aggregateType
 				long TailIndex,
-				ConcurrentDictionary<
-					// Index of aggregateId in this aggregateType
-					long,
-					// aggregateId
-					string> Ids
+
+				// List of aggregate Ids in this aggregateType
+				ImmutableSortedSet<string> Ids
 			)
 		> _aggregatesIds = new();
-
-		protected enum WriteLockEnum
-		{
-			Unlocked,
-			WritingLocked,
-		}
 
 		public Task AppendEventsAsync(
 			string aggregateType,
@@ -87,7 +76,7 @@ namespace WalletWasabi.EventSourcing
 			}
 
 			var aggregateEventsBatches = _aggregatesEventsBatches.GetOrAdd(aggregateType, _ => new());
-			var (tailSequenceId, locked, eventsBatches) = aggregateEventsBatches.GetOrAdd(aggregateId, _ => (0, WriteLockEnum.Unlocked, new()));
+			var (tailSequenceId, events) = aggregateEventsBatches.GetOrAdd(aggregateId, _ => (0, ImmutableList<WrappedEvent>.Empty));
 
 			if (tailSequenceId + 1 < firstSequenceId)
 			{
@@ -97,33 +86,18 @@ namespace WalletWasabi.EventSourcing
 			// no action
 			Validated();
 
+			var newEvents = events.AddRange(wrappedEventsList);
+
 			// Atomically detect conflict and replace lastSequenceId and lock to ensure strong order in eventsBatches.
 			if (!aggregateEventsBatches.TryUpdate(
 				key: aggregateId,
-				newValue: (lastSequenceId, WriteLockEnum.WritingLocked, eventsBatches),
-				comparisonValue: (firstSequenceId - 1, WriteLockEnum.Unlocked, eventsBatches)))
+				newValue: (lastSequenceId, newEvents),
+				comparisonValue: (firstSequenceId - 1, events)))
 			{
 				Conflicted(); // no action
 				throw new OptimisticConcurrencyException($"Conflict while commiting events. Retry command. aggregate: '{aggregateType}' id: '{aggregateId}'");
 			}
-			try
-			{
-				Locked(); // no action
-				eventsBatches.Enqueue(wrappedEventsList);
-				Appended(); // no action
-			}
-			finally
-			{
-				// Unlock.
-				if (!aggregateEventsBatches.TryUpdate(
-					key: aggregateId,
-					newValue: (lastSequenceId, WriteLockEnum.Unlocked, eventsBatches),
-					comparisonValue: (lastSequenceId, WriteLockEnum.WritingLocked, eventsBatches)))
-				{
-					throw new AssertionFailedException("Unexpected failure to unlock.");
-				}
-				Unlocked(); // no action
-			}
+			Appended(); // no action
 
 			// If it is a first event for given aggregate.
 			if (tailSequenceId == 0)
@@ -142,16 +116,27 @@ namespace WalletWasabi.EventSourcing
 			if (_aggregatesEventsBatches.TryGetValue(aggregateType, out var aggregateEventsBatches) &&
 				aggregateEventsBatches.TryGetValue(aggregateId, out var value))
 			{
-				var result = value.EventsBatches.SelectMany(a => a);
+				var result = value.Events;
 				if (afterSequenceId > 0)
 				{
-					result = result.Where(a => afterSequenceId < a.SequenceId);
+					var foundIndex = result.BinarySearch(
+						new WrappedEvent(afterSequenceId),
+						Comparer<WrappedEvent>.Create((a, b) => a.SequenceId.CompareTo(b.SequenceId)));
+					if (foundIndex < 0)
+					{
+						foundIndex = ~foundIndex;
+					}
+					else
+					{
+						foundIndex++;
+					}
+					result = result.RemoveRange(0, foundIndex);
 				}
-				if (limit.HasValue)
+				if (limit.HasValue && limit.Value < result.Count)
 				{
-					result = result.Take(limit.Value);
+					result = result.RemoveRange(limit.Value, result.Count - limit.Value);
 				}
-				return Task.FromResult((IReadOnlyList<WrappedEvent>)result.ToList().AsReadOnly());
+				return Task.FromResult((IReadOnlyList<WrappedEvent>)result);
 			}
 			return Task.FromResult(EmptyResult);
 		}
@@ -161,23 +146,29 @@ namespace WalletWasabi.EventSourcing
 			string? afterAggregateId = null,
 			int? limit = null)
 		{
-			if (afterAggregateId != null)
-			{
-				throw new NotImplementedException();
-			}
-			limit ??= int.MaxValue;
 			if (_aggregatesIds.TryGetValue(aggregateType, out var tuple))
 			{
-				var tailIndex = tuple.TailIndex;
 				var ids = tuple.Ids;
-				var result = new List<string>();
-				for (var i = 1L; i <= tailIndex && result.Count < limit; i++)
+				var foundIndex = 0;
+				if (afterAggregateId != null)
 				{
-					if (!ids.TryGetValue(i, out var id))
+					foundIndex = ids.IndexOf(afterAggregateId);
+					if (foundIndex < 0)
 					{
-						throw new AssertionFailedException($"Unexpected failure to get aggregate id. aggregate type: '{aggregateType}' index: '{i}'");
+						foundIndex = ~foundIndex;
 					}
-					result.Add(id);
+					else
+					{
+						foundIndex++;
+					}
+				}
+				var result = new List<string>();
+				var afterLastIndex = limit.HasValue ?
+					Math.Min(foundIndex + limit.Value, ids.Count) :
+					ids.Count;
+				for (var i = foundIndex; i < afterLastIndex; i++)
+				{
+					result.Add(ids[i]);
 				}
 				return Task.FromResult((IReadOnlyList<string>)result.AsReadOnly());
 			}
@@ -187,7 +178,8 @@ namespace WalletWasabi.EventSourcing
 		private void IndexNewAggregateId(string aggregateType, string id)
 		{
 			var tailIndex = 0L;
-			ConcurrentDictionary<long, string> aggregateIds;
+			ImmutableSortedSet<string> aggregateIds;
+			ImmutableSortedSet<string> newAggregateIds;
 			var liveLockLimit = 10000;
 			do
 			{
@@ -196,16 +188,13 @@ namespace WalletWasabi.EventSourcing
 					throw new ApplicationException("Live lock detected.");
 				}
 				(tailIndex, aggregateIds) = _aggregatesIds.GetOrAdd(aggregateType,
-					_ => new(0, new()));
+					_ => new(0, ImmutableSortedSet<string>.Empty));
+				newAggregateIds = aggregateIds.Add(id);
 			}
 			while (!_aggregatesIds.TryUpdate(
 				key: aggregateType,
-				newValue: (tailIndex + 1, aggregateIds),
+				newValue: (tailIndex + 1, newAggregateIds),
 				comparisonValue: (tailIndex, aggregateIds)));
-			if (!aggregateIds.TryAdd(tailIndex + 1, id))
-			{
-				throw new AssertionFailedException("Unexpected failure to add aggregate id to index.");
-			}
 		}
 
 		// Helper for parallel critical section testing in DEBUG build only.
@@ -220,21 +209,9 @@ namespace WalletWasabi.EventSourcing
 		{
 		}
 
-		// Helper for parallel critical section testing in DEBUG build only.
-		[Conditional("DEBUG")]
-		protected virtual void Locked()
-		{
-		}
-
 		// helper for parallel critical section testing in DEBUG build only.
 		[Conditional("DEBUG")]
 		protected virtual void Appended()
-		{
-		}
-
-		// Helper for parallel critical section testing in DEBUG build only.
-		[Conditional("DEBUG")]
-		protected virtual void Unlocked()
 		{
 		}
 	}
