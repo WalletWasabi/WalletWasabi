@@ -20,6 +20,8 @@ namespace WalletWasabi.Models
 			_elements = sequence.ToImmutableArray();
 		}
 
+		public static ImmutableValueSequence<T> Empty { get; } = new (Enumerable.Empty<T>());
+
 		public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)_elements).GetEnumerator();
 
 		public override int GetHashCode()
