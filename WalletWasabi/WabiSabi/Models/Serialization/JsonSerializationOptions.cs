@@ -21,6 +21,7 @@ namespace WalletWasabi.WabiSabi.Models.Serialization
 				new NetworkJsonConverter(),
 				new FeeRateJsonConverter(),
 				new MoneySatoshiJsonConverter(),
+				new EmptyResponseJsonConverter(),
 				new Uint256JsonConverter(),
 				new MultipartyTransactionStateJsonConverter()
 			}
