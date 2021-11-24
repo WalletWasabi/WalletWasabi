@@ -19,21 +19,19 @@ namespace WalletWasabi.EventSourcing
 		protected static readonly IReadOnlyList<WrappedEvent> EmptyResult = ImmutableList<WrappedEvent>.Empty;
 		protected static readonly IReadOnlyList<string> EmptyIds = ImmutableList<string>.Empty;
 
-		private readonly ConcurrentDictionary<
+		private readonly ConcurrentDictionary
 			// aggregateType
-			string,
-			ConcurrentDictionary<
-				// aggregateId
-				string,
-				(
-					// SequenceId of the last event of this aggregate
-					long TailSequenceId,
+			<string,
+			ConcurrentDictionary
+			// aggregateId
+			<string,
+			(
+				// SequenceId of the last event of this aggregate
+				long TailSequenceId,
 
-					// Ordered list of events
-					ImmutableList<WrappedEvent> Events
-				)
-			>
-		> _aggregatesEventsBatches = new();
+				// Ordered list of events
+				ImmutableList<WrappedEvent> Events
+			)>> _aggregatesEventsBatches = new();
 
 		private readonly ConcurrentDictionary
 			// aggregateType
