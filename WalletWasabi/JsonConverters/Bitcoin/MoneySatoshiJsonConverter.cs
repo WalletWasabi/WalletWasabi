@@ -11,14 +11,7 @@ namespace WalletWasabi.JsonConverters.Bitcoin
 		{
 			var serialized = (long?)reader.Value;
 
-			if (serialized is null)
-			{
-				return null;
-			}
-			else
-			{
-				return new Money(serialized.Value);
-			}
+			return serialized is null ? null : new Money(serialized.Value);
 		}
 
 		/// <inheritdoc />
