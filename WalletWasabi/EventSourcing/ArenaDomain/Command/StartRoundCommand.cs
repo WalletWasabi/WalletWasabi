@@ -8,8 +8,5 @@ using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.EventSourcing.ArenaDomain.Command
 {
-	public record StartRoundCommand(RoundParameters RoundParameters) : ICommand
-	{
-		public Guid IdempotenceId { get; }
-	}
+	public record StartRoundCommand(RoundParameters RoundParameters, Guid IdempotenceId) : ICommand;
 }
