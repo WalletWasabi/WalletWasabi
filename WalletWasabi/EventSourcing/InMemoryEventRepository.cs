@@ -23,15 +23,15 @@ namespace WalletWasabi.EventSourcing
 			// aggregateType
 			<string,
 			ConcurrentDictionary
-			// aggregateId
-			<string,
-			(
-				// SequenceId of the last event of this aggregate
-				long TailSequenceId,
+				// aggregateId
+				<string,
+				(
+					// SequenceId of the last event of this aggregate
+					long TailSequenceId,
 
-				// Ordered list of events
-				ImmutableList<WrappedEvent> Events
-			)>> _aggregatesEventsBatches = new();
+					// Ordered list of events
+					ImmutableList<WrappedEvent> Events
+				)>> _aggregatesEventsBatches = new();
 
 		private readonly ConcurrentDictionary
 			// aggregateType
@@ -73,7 +73,9 @@ namespace WalletWasabi.EventSourcing
 			}
 
 			var aggregateEventsBatches = _aggregatesEventsBatches.GetOrAdd(aggregateType, _ => new());
-			var (tailSequenceId, events) = aggregateEventsBatches.GetOrAdd(aggregateId, _ => (0, ImmutableList<WrappedEvent>.Empty));
+			var (tailSequenceId, events) = aggregateEventsBatches.GetOrAdd(
+				aggregateId,
+				_ => (0, ImmutableList<WrappedEvent>.Empty));
 
 			if (tailSequenceId + 1 < firstSequenceId)
 			{
