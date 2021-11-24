@@ -1,9 +1,10 @@
-using System.Linq;
+using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Linq;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.ZeroKnowledge;
-using Newtonsoft.Json;
-using System.ComponentModel.DataAnnotations;
+using WalletWasabi.Extensions;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.WabiSabi.Crypto.CredentialRequesting
 {
@@ -15,7 +16,7 @@ namespace WalletWasabi.WabiSabi.Crypto.CredentialRequesting
 	/// inputs registration and outputs registration and it is designed to support
 	/// credentials reissuance.
 	/// </remarks>
-	public abstract class CredentialsRequest
+	public abstract record CredentialsRequest
 	{
 		[JsonConstructor]
 		internal CredentialsRequest(
@@ -25,9 +26,9 @@ namespace WalletWasabi.WabiSabi.Crypto.CredentialRequesting
 			IEnumerable<Proof> proofs)
 		{
 			Delta = delta;
-			Presented = presented;
-			Requested = requested;
-			Proofs = proofs;
+			Presented = presented.ToImmutableValueSequence();
+			Requested = requested.ToImmutableValueSequence();
+			Proofs = proofs.ToImmutableValueSequence();
 		}
 
 		/// <summary>
@@ -43,17 +44,17 @@ namespace WalletWasabi.WabiSabi.Crypto.CredentialRequesting
 		/// <summary>
 		/// Randomized credentials presented for output registration or reissuance.
 		/// </summary>
-		public IEnumerable<CredentialPresentation> Presented { get; }
+		public ImmutableValueSequence<CredentialPresentation> Presented { get; }
 
 		/// <summary>
 		/// Credential isssuance requests.
 		/// </summary>
-		public IEnumerable<IssuanceRequest> Requested { get; }
+		public ImmutableValueSequence<IssuanceRequest> Requested { get; }
 
 		/// <summary>
 		/// Accompanying range and sum proofs to the coordinator.
 		/// </summary>
-		public IEnumerable<Proof> Proofs { get; }
+		public ImmutableValueSequence<Proof> Proofs { get; }
 
 		/// <summary>
 		/// Is request for zero-value credentials only.
