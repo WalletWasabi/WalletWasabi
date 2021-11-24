@@ -51,7 +51,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 				int serverPort = ((IPEndPoint)listener.LocalEndpoint).Port;
 
 				Logger.LogTrace($"[{nameof(AuthenticationErrorScenarioAsync)}][server] Waiting for a TCP client on port {serverPort}.");
-				Task<TcpClient> acceptTask = listener.AcceptTcpClientAsync().WithAwaitCancellationAsync(timeoutToken);
+				ValueTask<TcpClient> acceptTask = listener.AcceptTcpClientAsync(timeoutToken);
 
 				Task clientTask = Task.Run(
 					async () =>
@@ -124,7 +124,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 				int serverPort = ((IPEndPoint)listener.LocalEndpoint).Port;
 
 				Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][server] Wait for TCP client on port {serverPort}.");
-				Task<TcpClient> acceptTask = listener.AcceptTcpClientAsync().WithAwaitCancellationAsync(timeoutToken);
+				ValueTask<TcpClient> acceptTask = listener.AcceptTcpClientAsync(timeoutToken);
 
 				Task clientTask = Task.Run(
 					async () =>
