@@ -41,25 +41,13 @@ namespace WalletWasabi.EventSourcing
 			{
 				try
 				{
-					IReadOnlyList<WrappedEvent> events =
-						await EventRepository.ListEventsAsync(aggregateType, aggregateId).ConfigureAwait(false);
-
-					if (!AggregateFactory.TryGetValue(aggregateType, out var aggregateFactory))
-					{
-						throw new InvalidOperationException($"AggregateFactory is missing for aggregate type '{aggregateType}'.");
-					}
-
-					var aggregate = aggregateFactory.Invoke();
+					var events = await GetEventsAsync(aggregateType, aggregateId).ConfigureAwait(false);
+					var aggregate = ApplyEvents(aggregateType, events);
 
 					bool commandAlreadyProcessed = events.Any(ev => ev.SourceId == command.IdempotenceId);
 					if (commandAlreadyProcessed)
 					{
 						return;
-					}
-
-					foreach (var wrappedEvent in events)
-					{
-						aggregate.Apply(wrappedEvent.DomainEvent); //TODO
 					}
 
 					if (!CommandProcessorFactory.TryGetValue(aggregateType, out var commandProcessorFactory))
@@ -68,7 +56,7 @@ namespace WalletWasabi.EventSourcing
 					}
 
 					ICommandProcessor processor = commandProcessorFactory.Invoke();
-					var newEvents = processor.Process(command, aggregate);
+					var newEvents = processor.Process(command, aggregate.State);
 
 					var lastEvent = events.Any() ? events[^1] : null;
 					var sequenceId = lastEvent == null ? 1 : lastEvent.SequenceId + 1;
@@ -93,6 +81,37 @@ namespace WalletWasabi.EventSourcing
 					tries--;
 				}
 			} while (!success);
+		}
+
+		public async Task<IAggregate> GetAggregateAsync(string aggregateType, string aggregateId)
+		{
+			var events = await GetEventsAsync(aggregateType, aggregateId).ConfigureAwait(false);
+
+			return ApplyEvents(aggregateType, events);
+		}
+
+		private IAggregate ApplyEvents(string aggregateType, IReadOnlyList<WrappedEvent> events)
+		{
+			if (!AggregateFactory.TryGetValue(aggregateType, out var aggregateFactory))
+			{
+				throw new InvalidOperationException($"AggregateFactory is missing for aggregate type '{aggregateType}'.");
+			}
+
+			var aggregate = aggregateFactory.Invoke();
+
+			foreach (var wrappedEvent in events)
+			{
+				aggregate.Apply(wrappedEvent.DomainEvent);
+			}
+
+			return aggregate;
+		}
+
+		private async Task<IReadOnlyList<WrappedEvent>> GetEventsAsync(string aggregateType, string aggregateId)
+		{
+			IReadOnlyList<WrappedEvent> events =
+				await EventRepository.ListEventsAsync(aggregateType, aggregateId).ConfigureAwait(false);
+			return events;
 		}
 	}
 }

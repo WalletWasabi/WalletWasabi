@@ -8,6 +8,8 @@ namespace WalletWasabi.EventSourcing.Interfaces
 {
 	public interface IAggregate
 	{
+		IState State { get; }
+
 		void Apply(IEvent ev);
 	}
 }
