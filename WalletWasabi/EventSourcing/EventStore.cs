@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,7 @@ using WalletWasabi.EventSourcing.ArenaDomain;
 using WalletWasabi.EventSourcing.ArenaDomain.Command;
 using WalletWasabi.EventSourcing.ArenaDomain.CommandProcessor;
 using WalletWasabi.EventSourcing.ArenaDomain.Events;
+using WalletWasabi.EventSourcing.Exceptions;
 using WalletWasabi.EventSourcing.Interfaces;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Interfaces.EventSourcing;
@@ -16,6 +18,8 @@ namespace WalletWasabi.EventSourcing
 {
 	public class EventStore : IEventStore
 	{
+		public const int OptimisticRetryLimit = 10;
+
 		private IEventRepository EventRepository { get; }
 
 		private Dictionary<string, Func<IAggregate>> AggregateFactory { get; } = new()
@@ -33,43 +37,62 @@ namespace WalletWasabi.EventSourcing
 			EventRepository = eventRepository;
 		}
 
-		public async Task ProcessCommandAsync(ICommand command, string aggregateType, string aggregateId)
+		public async Task<WrappedResult> ProcessCommandAsync(ICommand command, string aggregateType, string aggregateId)
 		{
-			int tries = 3;
-			bool success = false;
+			int tries = OptimisticRetryLimit + 1;
+			bool optimisticConflict = false;
 			do
 			{
+				tries--;
+				optimisticConflict = false;
 				try
 				{
 					var events = await GetEventsAsync(aggregateType, aggregateId).ConfigureAwait(false);
 					var aggregate = ApplyEvents(aggregateType, events);
+					var lastEvent = events.Count > 0 ? events[^1] : null;
+					var sequenceId = lastEvent == null ? 0 : lastEvent.SequenceId;
 
 					bool commandAlreadyProcessed = events.Any(ev => ev.SourceId == command.IdempotenceId);
 					if (commandAlreadyProcessed)
 					{
-						return;
+						return new WrappedResult(
+							sequenceId,
+							ImmutableList<WrappedEvent>.Empty,
+							aggregate.State,
+							IdempotenceIdDuplicate: true);
 					}
 
 					if (!CommandProcessorFactory.TryGetValue(aggregateType, out var commandProcessorFactory))
 					{
-						throw new InvalidOperationException($"CommandProcessor is missing for aggregate type '{aggregateType}'.");
+						throw new AssertionFailedException($"CommandProcessor is missing for aggregate type '{aggregateType}'.");
 					}
 
-					ICommandProcessor processor = commandProcessorFactory.Invoke();
-					var newEvents = processor.Process(command, aggregate.State);
+					var processor = commandProcessorFactory.Invoke();
+					var result = processor.Process(command, aggregate.State);
 
-					var lastEvent = events.Any() ? events[^1] : null;
-					var sequenceId = lastEvent == null ? 1 : lastEvent.SequenceId + 1;
-					List<WrappedEvent> wrappedEvents = new();
-					foreach (var newEvent in newEvents)
+					if (result.Success)
 					{
-						wrappedEvents.Add(new WrappedEvent(sequenceId, newEvent, command.IdempotenceId));
-						sequenceId++;
-					}
+						List<WrappedEvent> wrappedEvents = new();
+						foreach (var newEvent in result.Events)
+						{
+							sequenceId++;
+							wrappedEvents.Add(new WrappedEvent(sequenceId, newEvent, command.IdempotenceId));
+							aggregate.Apply(newEvent);
+						}
 
-					await EventRepository.AppendEventsAsync(aggregateType, aggregateId, wrappedEvents)
-						.ConfigureAwait(false);
-					success = true;
+						await EventRepository.AppendEventsAsync(aggregateType, aggregateId, wrappedEvents)
+							.ConfigureAwait(false);
+
+						return new WrappedResult(sequenceId, wrappedEvents.AsReadOnly(), aggregate.State);
+					}
+					else
+					{
+						throw new CommandFailedException(
+							result.Errors,
+							sequenceId,
+							aggregate.State,
+							$"Command '{command.GetType().Name}' has failed on aggregate version: '{aggregateType}/{aggregateId}/{sequenceId}'");
+					}
 				}
 				catch (OptimisticConcurrencyException)
 				{
@@ -77,10 +100,10 @@ namespace WalletWasabi.EventSourcing
 					{
 						throw;
 					}
-
-					tries--;
+					optimisticConflict = true;
 				}
-			} while (!success);
+			} while (optimisticConflict && tries > 0);
+			throw new AssertionFailedException($"Unexpected code reached in {nameof(ProcessCommandAsync)}");
 		}
 
 		public async Task<IAggregate> GetAggregateAsync(string aggregateType, string aggregateId)
