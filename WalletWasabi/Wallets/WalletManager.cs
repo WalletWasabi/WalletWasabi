@@ -113,11 +113,6 @@ namespace WalletWasabi.Wallets
 
 		public bool HasWallet() => AnyWallet(_ => true);
 
-		public bool AnyWallet()
-		{
-			return AnyWallet(x => x.State >= WalletState.Starting);
-		}
-
 		public bool AnyWallet(Func<Wallet, bool> predicate)
 		{
 			lock (Lock)
@@ -167,17 +162,6 @@ namespace WalletWasabi.Wallets
 					throw;
 				}
 			}
-		}
-
-		public Task<Wallet> StartWalletAsync(KeyManager keyManagerToFindByReference)
-		{
-			Wallet wallet;
-			lock (Lock)
-			{
-				wallet = Wallets.Single(x => x.KeyManager == keyManagerToFindByReference);
-			}
-
-			return StartWalletAsync(wallet);
 		}
 
 		public Task<Wallet> AddAndStartWalletAsync(KeyManager keyManager)

@@ -1,12 +1,12 @@
+using NBitcoin;
+using NBitcoin.Crypto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NBitcoin;
-using NBitcoin.Crypto;
 
 namespace WalletWasabi.Crypto
 {
-	public class ProofBody : IBitcoinSerializable
+	public class ProofBody : IBitcoinSerializable, IEquatable<ProofBody>
 	{
 		private static readonly byte[] VersionMagic = { 0x53, 0x4c, 0x00, 0x19 };
 		private List<OwnershipIdentifier> _ownershipIdentifiers = new();
@@ -52,5 +52,34 @@ namespace WalletWasabi.Crypto
 
 		private static IEnumerable<byte> ProofFooter(Script scriptPubKey, byte[] commitmentData) =>
 			scriptPubKey.ToBytes().Concat(commitmentData);
+
+		public override int GetHashCode()
+		{
+			int hc = 0;
+
+			foreach (var element in _ownershipIdentifiers)
+			{
+				hc ^= element.GetHashCode();
+				hc = (hc << 7) | (hc >> (32 - 7));
+			}
+
+			return HashCode.Combine(_flags.GetHashCode(), hc);
+		}
+
+		public static bool operator ==(ProofBody? x, ProofBody? y) => x?.Equals(y) ?? false;
+
+		public static bool operator !=(ProofBody? x, ProofBody? y) => !(x == y);
+
+		public override bool Equals(object? other) => Equals(other as ProofBody);
+
+		public bool Equals(ProofBody? other)
+		{
+			if (other is null)
+			{
+				return false;
+			}
+
+			return Flags == other.Flags && OwnershipIdentifiers.SequenceEqual(other.OwnershipIdentifiers);
+		}
 	}
 }
