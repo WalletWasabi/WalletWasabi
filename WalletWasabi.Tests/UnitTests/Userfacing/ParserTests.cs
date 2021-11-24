@@ -93,7 +93,7 @@ namespace WalletWasabi.Tests.UnitTests
 				foreach (var defaultPort in validPorts)
 				{
 					var success = EndPointParser.TryParse(inputString, defaultPort, out EndPoint? ep);
-					AssertEndPointParserOutputs(success, ep, host, defaultPort);
+					AssertEndPointParserOutputs(success, ep!, host, defaultPort);
 				}
 			}
 
@@ -101,13 +101,13 @@ namespace WalletWasabi.Tests.UnitTests
 			foreach (var inputString in inputsWithPorts)
 			{
 				var success = EndPointParser.TryParse(inputString, 12345, out EndPoint? ep);
-				AssertEndPointParserOutputs(success, ep, host, 5000);
+				AssertEndPointParserOutputs(success, ep!, host, 5000);
 			}
 
 			// Default port is invalid, string port is not provided.
 			foreach (var inputString in inputsWithoutPorts)
 			{
-				Assert.False(EndPointParser.TryParse(inputString, -1, out EndPoint? ep));
+				Assert.False(EndPointParser.TryParse(inputString, -1, out _));
 			}
 
 			// Defaultport doesn't correct invalid port input.
@@ -115,14 +115,14 @@ namespace WalletWasabi.Tests.UnitTests
 			{
 				foreach (var defaultPort in validPorts)
 				{
-					Assert.False(EndPointParser.TryParse(inputString, defaultPort, out EndPoint? ep));
+					Assert.False(EndPointParser.TryParse(inputString, defaultPort, out _));
 				}
 			}
 
 			// Both default and string ports are invalid.
 			foreach (var inputString in inputsWithInvalidPorts)
 			{
-				Assert.False(EndPointParser.TryParse(inputString, -1, out EndPoint? ep));
+				Assert.False(EndPointParser.TryParse(inputString, -1, out _));
 			}
 		}
 
