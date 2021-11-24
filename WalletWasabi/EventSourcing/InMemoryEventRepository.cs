@@ -35,17 +35,16 @@ namespace WalletWasabi.EventSourcing
 			>
 		> _aggregatesEventsBatches = new();
 
-		private readonly ConcurrentDictionary<
+		private readonly ConcurrentDictionary
 			// aggregateType
-			string,
+			<string,
 			(
 				// Index of the last aggregateId in this aggregateType
 				long TailIndex,
 
 				// List of aggregate Ids in this aggregateType
 				ImmutableSortedSet<string> Ids
-			)
-			> _aggregatesIds = new();
+			)> _aggregatesIds = new();
 
 		public Task AppendEventsAsync(
 			string aggregateType,
