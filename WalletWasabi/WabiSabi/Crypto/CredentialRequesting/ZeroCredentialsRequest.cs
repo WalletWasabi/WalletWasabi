@@ -1,20 +1,29 @@
 using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 using WalletWasabi.Crypto.ZeroKnowledge;
+using WalletWasabi.Extensions;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.WabiSabi.Crypto.CredentialRequesting
 {
-	public record ZeroCredentialsRequest : CredentialsRequest
+	public record ZeroCredentialsRequest : ICredentialsRequest
 	{
+		[JsonConstructor]
 		public ZeroCredentialsRequest(
 			IEnumerable<IssuanceRequest> requested,
 			IEnumerable<Proof> proofs)
-			: base(0, Array.Empty<CredentialPresentation>(), requested, proofs)
 		{
-			if (!IsNullRequest)
-			{
-				throw new InvalidOperationException($"{nameof(ZeroCredentialsRequest)} must be null request.");
-			}
+			Requested = requested.ToImmutableValueSequence();
+			Proofs = proofs.ToImmutableValueSequence();
 		}
+
+		public long Delta => 0;
+
+		public ImmutableValueSequence<CredentialPresentation> Presented => ImmutableValueSequence<CredentialPresentation>.Empty;
+
+		public ImmutableValueSequence<IssuanceRequest> Requested { get; }
+
+		public ImmutableValueSequence<Proof> Proofs { get; }
 	}
 }
