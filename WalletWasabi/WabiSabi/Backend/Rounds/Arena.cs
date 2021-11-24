@@ -10,8 +10,6 @@ using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.EventSourcing.ArenaDomain;
-using WalletWasabi.EventSourcing.ArenaDomain.Command;
 using WalletWasabi.EventSourcing.Interfaces;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -28,7 +26,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			WabiSabiConfig config,
 			IRPCClient rpc,
 			Prison prison,
-			IEventStore eventStore,
 			CoinJoinTransactionArchiver? archiver = null) : base(period)
 		{
 			Network = network;
@@ -37,7 +34,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			Prison = prison;
 			TransactionArchiver = archiver;
 			Random = new SecureRandom();
-			EventStore = eventStore;
 		}
 
 		public HashSet<Round> Rounds { get; } = new();
@@ -48,7 +44,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		private Prison Prison { get; }
 		private SecureRandom Random { get; }
 		private CoinJoinTransactionArchiver? TransactionArchiver { get; }
-		private IEventStore EventStore { get; }
 
 		protected override async Task ActionAsync(CancellationToken cancel)
 		{
@@ -306,8 +301,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				RoundParameters roundParams = new(Config, Network, Random, feeRate);
 				Round r = new(roundParams);
 				Rounds.Add(r);
-				await EventStore.ProcessCommandAsync(new StartRoundCommand(roundParams, Guid.NewGuid()),
-					nameof(RoundAggregate), r.Id.ToString()).ConfigureAwait(false);
 			}
 		}
 
