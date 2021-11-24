@@ -79,7 +79,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			var lastResponse = Synchronizer.LastResponse;
 			if (lastResponse is { })
 			{
-				AbandonedTasks.AddAndClearCompleted(TryProcessStatusAsync(Synchronizer.LastResponse.CcjRoundStates));
+				AbandonedTasks.AddAndClearCompleted(TryProcessStatusAsync(lastResponse.CcjRoundStates));
 			}
 		}
 
@@ -95,7 +95,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		public KeyManager KeyManager { get; }
 		public KeyManager DestinationKeyManager { get; set; }
 
-		private ClientRoundRegistration DelayedRoundRegistration { get; set; }
+		private ClientRoundRegistration? DelayedRoundRegistration { get; set; }
 
 		public Func<Uri> CcjHostUriAction { get; private set; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
@@ -118,7 +118,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		private async void Synchronizer_ResponseArrivedAsync(object? sender, SynchronizeResponse e)
 		{
-			await TryProcessStatusAsync(e?.CcjRoundStates).ConfigureAwait(false);
+			await TryProcessStatusAsync(e.CcjRoundStates).ConfigureAwait(false);
 		}
 
 		public void Start()
@@ -218,9 +218,12 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					// First, if there's delayed round registration update based on the state.
 					if (DelayedRoundRegistration is { })
 					{
-						ClientRound roundRegistered = State.GetSingleOrDefaultRound(DelayedRoundRegistration.AliceClient.RoundId);
-						roundRegistered.Registration = DelayedRoundRegistration;
-						DelayedRoundRegistration = null; // Do not dispose.
+						ClientRound? roundRegistered = State.GetSingleOrDefaultRound(DelayedRoundRegistration.AliceClient.RoundId);
+						if (roundRegistered is { })
+						{
+							roundRegistered.Registration = DelayedRoundRegistration;
+							DelayedRoundRegistration = null; // Do not dispose.
+						}
 					}
 
 					await DequeueSpentCoinsFromMixNoLockAsync().ConfigureAwait(false);
@@ -578,14 +581,16 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 				var registration = new ClientRoundRegistration(aliceClient, coinsRegistered, outputAddresses.change.GetP2wpkhAddress(Network));
 
-				ClientRound roundRegistered = State.GetSingleOrDefaultRound(aliceClient.RoundId);
+				ClientRound? roundRegistered = State.GetSingleOrDefaultRound(aliceClient.RoundId);
 				if (roundRegistered is null)
 				{
 					// If our SatoshiClient does not yet know about the round, because of delay, then delay the round registration.
 					DelayedRoundRegistration = registration;
 				}
-
-				roundRegistered.Registration = registration;
+				else
+				{
+					roundRegistered.Registration = registration;
+				}
 			}
 			catch (Exception ex)
 			{
