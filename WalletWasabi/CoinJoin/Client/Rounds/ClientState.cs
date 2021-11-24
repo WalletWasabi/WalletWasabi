@@ -349,7 +349,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 			}
 		}
 
-		public ClientRound GetSingleOrDefaultRound(long roundId)
+		public ClientRound? GetSingleOrDefaultRound(long roundId)
 		{
 			lock (StateLock)
 			{
