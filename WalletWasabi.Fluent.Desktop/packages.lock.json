@@ -125,27 +125,27 @@
       },
       "Avalonia.Xaml.Behaviors": {
         "type": "Transitive",
-        "resolved": "0.10.10",
-        "contentHash": "rHDkieWZDTjG+PVGQzronzknmH24r2VDtzbNfC3O8FLZGqREsBoCRDrqW4R4bmtD6CqpDPBey5soBYnnDE1m3Q==",
+        "resolved": "0.10.10.4",
+        "contentHash": "iSVOObfXch8vFzhYFvwGntRt4l4kg+dxXYc4C4RDhnoyPh60BCMUzdk2gYUYySv9UVSGAhqH4dQPWZ0l9USmYA==",
         "dependencies": {
           "Avalonia": "0.10.10",
-          "Avalonia.Xaml.Interactions": "0.10.10",
-          "Avalonia.Xaml.Interactivity": "0.10.10"
+          "Avalonia.Xaml.Interactions": "0.10.10.4",
+          "Avalonia.Xaml.Interactivity": "0.10.10.4"
         }
       },
       "Avalonia.Xaml.Interactions": {
         "type": "Transitive",
-        "resolved": "0.10.10",
-        "contentHash": "bOJvciyk6kUjPx+mg6n+bwHQqRqgNiTDzTBkpokfkcWl9pMAlKvqqUe6YXWVCpKIDBjbzvkAbYa29S0ajqwFxw==",
+        "resolved": "0.10.10.4",
+        "contentHash": "OAwrl0tzsz+iX2z3T5wdsEG/JkbnlylfXUjCfbgQlQqODUBO0kk02RpCHJMnV86apkVXjeLV+S5+yA1yX+DT6g==",
         "dependencies": {
           "Avalonia": "0.10.10",
-          "Avalonia.Xaml.Interactivity": "0.10.10"
+          "Avalonia.Xaml.Interactivity": "0.10.10.4"
         }
       },
       "Avalonia.Xaml.Interactivity": {
         "type": "Transitive",
-        "resolved": "0.10.10",
-        "contentHash": "xxWrpi0HsySczpU3Zl6c2ugbkTOs9qwqbvClfi/AKncoVbWpXv7W6J3kfQcfRlnKFwkTPjLyTYKVERIkb7kNCQ==",
+        "resolved": "0.10.10.4",
+        "contentHash": "RH33/HboQikon64SCfu1qFpuy4+mox2SEGYbXrrw9mnw3Ogw8PeYTJLtZw8/mNYs6dZAU3NusRBaLIG+0PGisw==",
         "dependencies": {
           "Avalonia": "0.10.10"
         }
@@ -293,8 +293,8 @@
       },
       "NBitcoin": {
         "type": "Transitive",
-        "resolved": "6.0.8",
-        "contentHash": "s9NPG+BWuylHXi6AkQILTPYP9613PoHWTZzBxfBrhnooJuUt9hT+bAs8EPNyzZAZ33SjW80nQgNtBM8gxLxVoQ==",
+        "resolved": "6.0.18",
+        "contentHash": "79J/dUtsvkR4oiu12JJKx/+2uBfUiAcOKAPhDScIfsJr8SgDYZdFb6ejLhYhDBDXuumb3IyoZPYavXD9Bt/QNQ==",
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "1.0.0",
           "Newtonsoft.Json": "11.0.2"
@@ -320,8 +320,8 @@
       },
       "OpenCvSharp4": {
         "type": "Transitive",
-        "resolved": "4.5.2.20210404",
-        "contentHash": "NWoTTxAi5qmtI14DnXpw8Xq3bJWoIFLrMC3bbV9GVeWwfRMIWgv1i11ns2Aus0sve9pHREyzgVQm6nAL3S1/rw==",
+        "resolved": "4.5.3.20210817",
+        "contentHash": "LeTZ9634aGRTWhJxz75Xciq05aS2HxC25ECEQXNd0T7FROCI8GDDp5xAQ4XPmW5mwLWjRqd9h05XmN8bqju06A==",
         "dependencies": {
           "System.Drawing.Common": "5.0.2",
           "System.Memory": "4.5.4",
@@ -330,8 +330,8 @@
       },
       "OpenCvSharp4.runtime.win": {
         "type": "Transitive",
-        "resolved": "4.5.2.20210404",
-        "contentHash": "44JNeD/dKlbdQEgwxLx+i2WL3DhIVvXjhsRLdBHe0c+2ZNWG/3FJ24Pp1IK7GIrB7KaE1vQk42tCNHJWAvJRRg=="
+        "resolved": "4.5.3.20210817",
+        "contentHash": "q2PknNPPAJHjVEsrgdHtWVHzZsNlANnkj2SCw4DC/x8qeAX+Skp93KPLVoELNyU415P7RyjDHn7CGLSpNpltyQ=="
       },
       "ReactiveUI": {
         "type": "Transitive",
@@ -646,7 +646,7 @@
         "dependencies": {
           "Microsoft.AspNetCore.Mvc.NewtonsoftJson": "6.0.0",
           "Microsoft.Win32.SystemEvents": "6.0.0",
-          "NBitcoin": "6.0.8",
+          "NBitcoin": "6.0.18",
           "NBitcoin.Secp256k1": "1.0.10"
         }
       },
@@ -657,10 +657,10 @@
           "Avalonia.Controls.DataGrid": "0.10.10",
           "Avalonia.Diagnostics": "0.10.10",
           "Avalonia.ReactiveUI": "0.10.10",
-          "Avalonia.Xaml.Behaviors": "0.10.10",
+          "Avalonia.Xaml.Behaviors": "0.10.10.4",
           "DataBox": "0.10.10-beta5",
-          "OpenCvSharp4": "4.5.2.20210404",
-          "OpenCvSharp4.runtime.win": "4.5.2.20210404",
+          "OpenCvSharp4": "4.5.3.20210817",
+          "OpenCvSharp4.runtime.win": "4.5.3.20210817",
           "System.Reactive": "5.0.0",
           "System.Runtime": "4.3.1",
           "WalletWasabi": "1.0.0"
@@ -704,8 +704,8 @@
       },
       "OpenCvSharp4.runtime.win": {
         "type": "Transitive",
-        "resolved": "4.5.2.20210404",
-        "contentHash": "44JNeD/dKlbdQEgwxLx+i2WL3DhIVvXjhsRLdBHe0c+2ZNWG/3FJ24Pp1IK7GIrB7KaE1vQk42tCNHJWAvJRRg=="
+        "resolved": "4.5.3.20210817",
+        "contentHash": "q2PknNPPAJHjVEsrgdHtWVHzZsNlANnkj2SCw4DC/x8qeAX+Skp93KPLVoELNyU415P7RyjDHn7CGLSpNpltyQ=="
       },
       "runtime.any.System.Collections": {
         "type": "Transitive",
@@ -1123,8 +1123,8 @@
       },
       "OpenCvSharp4.runtime.win": {
         "type": "Transitive",
-        "resolved": "4.5.2.20210404",
-        "contentHash": "44JNeD/dKlbdQEgwxLx+i2WL3DhIVvXjhsRLdBHe0c+2ZNWG/3FJ24Pp1IK7GIrB7KaE1vQk42tCNHJWAvJRRg=="
+        "resolved": "4.5.3.20210817",
+        "contentHash": "q2PknNPPAJHjVEsrgdHtWVHzZsNlANnkj2SCw4DC/x8qeAX+Skp93KPLVoELNyU415P7RyjDHn7CGLSpNpltyQ=="
       },
       "runtime.any.System.Collections": {
         "type": "Transitive",
@@ -1542,8 +1542,8 @@
       },
       "OpenCvSharp4.runtime.win": {
         "type": "Transitive",
-        "resolved": "4.5.2.20210404",
-        "contentHash": "44JNeD/dKlbdQEgwxLx+i2WL3DhIVvXjhsRLdBHe0c+2ZNWG/3FJ24Pp1IK7GIrB7KaE1vQk42tCNHJWAvJRRg=="
+        "resolved": "4.5.3.20210817",
+        "contentHash": "q2PknNPPAJHjVEsrgdHtWVHzZsNlANnkj2SCw4DC/x8qeAX+Skp93KPLVoELNyU415P7RyjDHn7CGLSpNpltyQ=="
       },
       "runtime.any.System.Collections": {
         "type": "Transitive",
