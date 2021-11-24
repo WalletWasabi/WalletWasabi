@@ -24,7 +24,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private TaskCompletionSource<RoundState2> TaskCompletionSource { get; }
 		private Predicate<RoundState2> Predicate { get; }
-		private uint256? RoundId { get; }
+		public uint256? RoundId { get; }
 
 		public Task<RoundState2> Task => TaskCompletionSource.Task;
 

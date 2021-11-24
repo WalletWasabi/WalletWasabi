@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using WalletWasabi.Backend.Controllers.WabiSabi;
 using WalletWasabi.Backend.Filters;
 using WalletWasabi.EventSourcing;
 using WalletWasabi.EventSourcing.ArenaDomain;
@@ -78,7 +79,7 @@ namespace WalletWasabi.Backend.Controllers
 		}
 
 		[HttpGet("round-events")]
-		public Task<IEnumerable<WrappedEvent>> GetRoundEvents(uint256 roundId, long afterSequenceId, CancellationToken cancellationToken)
+		public Task<IEnumerable<WrappedEvent>> GetRoundEvents(string roundId, long afterSequenceId, CancellationToken cancellationToken)
 		{
 			return Arena.GetRoundEvents(roundId, afterSequenceId, cancellationToken);
 		}

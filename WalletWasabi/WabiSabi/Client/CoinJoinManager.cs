@@ -64,9 +64,7 @@ namespace WalletWasabi.WabiSabi.Client
 			{
 				await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
 
-				var mixableWallets = RoundStatusUpdater.AnyRound
-					? GetMixableWallets()
-					: ImmutableDictionary<string, Wallet>.Empty;
+				var mixableWallets = GetMixableWallets();
 				var openedWallets = mixableWallets.Where(x => !trackedWallets.ContainsKey(x.Key));
 				var closedWallets = trackedWallets.Where(x => !mixableWallets.ContainsKey(x.Key));
 

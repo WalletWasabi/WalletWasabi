@@ -31,7 +31,8 @@ namespace WalletWasabi.Tests.Helpers
 			IRPCClient rpc = Rpc ?? WabiSabiFactory.CreatePreconfiguredRpcClient().Object;
 			Network network = Network ?? Network.Main;
 
-			Arena arena = new(period, network, config, rpc, prison, new EventStore(new InMemoryEventRepository()));
+			var repo = new InMemoryEventRepository();
+			Arena arena = new(period, network, config, rpc, prison, new EventStore(repo), repo);
 
 			foreach (var round in rounds)
 			{

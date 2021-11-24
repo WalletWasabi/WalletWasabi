@@ -8,61 +8,89 @@ using WalletWasabi.Bases;
 using WalletWasabi.EventSourcing;
 using WalletWasabi.EventSourcing.ArenaDomain;
 using WalletWasabi.EventSourcing.ArenaDomain.Aggregates;
+using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.WabiSabi.Client
 {
 	public class RoundStateUpdater : PeriodicRunner
 	{
-		public RoundStateUpdater(TimeSpan requestInterval, IWabiSabiApiRequestHandler arenaRequestHandler) : base(requestInterval)
+		public RoundStateUpdater(TimeSpan requestInterval, IBackendHttpClientFactory backendHttpClientFactory) : base(requestInterval)
 		{
-			ArenaRequestHandler = arenaRequestHandler;
+
+			ArenaRequestHandler = new WabiSabiHttpApiClient(backendHttpClientFactory.NewBackendHttpClient(Mode.SingleCircuitPerLifetime));
+			BackendHttpClientFactory = backendHttpClientFactory;
 		}
 
 		private IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
-		private Dictionary<uint256, RoundState2> RoundStates { get; set; } = new();
-		private Dictionary<uint256, long> RoundLastSequenceIds { get; set; } = new();
-		private Dictionary<uint256, RoundAggregate> RoundAggregates { get; set; } = new();
+		private Dictionary<uint256,(long LastSequenceId,RoundState2 State,RoundAggregate Aggregate,IWabiSabiApiRequestHandler ApiRequestHandler)> ActiveRounds { get; set; } = new();
 
 		private List<RoundStateAwaiter> Awaiters { get; } = new();
 		private object AwaitersLock { get; } = new();
 
-		public bool AnyRound => RoundStates.Any();
+		public IBackendHttpClientFactory BackendHttpClientFactory { get; }
 
 		protected override async Task ActionAsync(CancellationToken cancellationToken)
 		{
-			var statusResponse = await ArenaRequestHandler.GetStatusAsync(cancellationToken).ConfigureAwait(false);
-			var roundIds = statusResponse.Select(s => s.Id);
 
-			foreach (var roundId in roundIds)
+			List<uint256> interestingRoundIds = new ();
+
+			if (Awaiters.Any(a => a.RoundId is null))
 			{
-				RoundLastSequenceIds.TryAdd(roundId, 0);
-				var lastSequenceId = RoundLastSequenceIds[roundId];
-				var newEvents = await ArenaRequestHandler.GetRoundEvents(roundId.ToString(), lastSequenceId, cancellationToken).ConfigureAwait(false);
-
-				if (newEvents.LastOrDefault() is { SequenceId: var sequenceId })
+				// We are interested about every round.
+				var statusResponse = await ArenaRequestHandler.GetStatusAsync(cancellationToken).ConfigureAwait(false);
+				interestingRoundIds.AddRange(statusResponse.Select(s => s.Id));
+			}
+			else
+			{
+				IEnumerable<uint256> roundIds = Awaiters.Select(a => a.RoundId).OfType<uint256>();
+				if (roundIds.Any())
 				{
-					if (!RoundAggregates.TryGetValue(roundId, out var roundAggregate))
-					{
-						roundAggregate = new RoundAggregate();
-						RoundAggregates.Add(roundId, roundAggregate);
-					}
+					interestingRoundIds.AddRange(roundIds);
+				}
+				
+			}
 
+			var interestingRoundIdsHashSet = interestingRoundIds.ToHashSet();
+			var notInterestingRoundIds = ActiveRounds.Select(r => r.Key).Where(id => !interestingRoundIdsHashSet.Contains(id));
+			foreach (var id in notInterestingRoundIds)
+			{
+				ActiveRounds.Remove(id);
+			}
+
+			if (!interestingRoundIds.Any())
+			{
+				return;
+			}
+
+			foreach (var roundId in interestingRoundIds)
+			{
+				if (!ActiveRounds.ContainsKey(roundId))
+				{
+					ActiveRounds.Add(roundId, (0, new RoundState2(),new RoundAggregate(), new WabiSabiHttpApiClient(BackendHttpClientFactory.NewBackendHttpClient(Mode.SingleCircuitPerLifetime))));
+				}
+
+				var arenaRequestHandler = ActiveRounds[roundId].ApiRequestHandler;
+				var lastSequenceId = ActiveRounds[roundId].LastSequenceId;
+				var newEvents = await arenaRequestHandler.GetRoundEvents(roundId.ToString(),lastSequenceId,cancellationToken).ConfigureAwait(false);
+
+				if (newEvents.LastOrDefault() is { SequenceId: var newSequenceId })
+				{
+					var roundAggregate = ActiveRounds[roundId].Aggregate;
 					foreach (var wrappedEvent in newEvents)
 					{
 						roundAggregate.Apply(wrappedEvent.DomainEvent);
 					}
 
-					RoundLastSequenceIds[roundId] = sequenceId;
-
-					RoundStates[roundId] = roundAggregate.State;
+					ActiveRounds[roundId] = (newSequenceId,roundAggregate.State, roundAggregate, arenaRequestHandler);
 				}
 			}
 
 			lock (AwaitersLock)
 			{
-				foreach (var awaiter in Awaiters.Where(awaiter => awaiter.IsCompleted(RoundStates)).ToArray())
+				foreach (var awaiter in Awaiters.Where(awaiter => awaiter.IsCompleted(ActiveRounds.ToDictionary(r => r.Key,r => r.Value.State))).ToArray())
 				{
 					// The predicate was fulfilled.
 					Awaiters.Remove(awaiter);
