@@ -18,6 +18,16 @@ namespace WalletWasabi.EventSourcing
 	{
 		private IEventRepository EventRepository { get; }
 
+		private Dictionary<string, Func<IAggregate>> AggregateFactory { get; } = new()
+		{
+			[nameof(RoundAggregate)] = () => new RoundAggregate(),
+		};
+
+		private Dictionary<string, Func<ICommandProcessor>> CommandProcessorFactory { get; } = new()
+		{
+			[nameof(RoundAggregate)] = () => new RoundCommandProcessor(),
+		};
+
 		public EventStore(IEventRepository eventRepository)
 		{
 			EventRepository = eventRepository;
@@ -34,7 +44,12 @@ namespace WalletWasabi.EventSourcing
 					IReadOnlyList<WrappedEvent> events =
 						await EventRepository.ListEventsAsync(aggregateType, aggregateId).ConfigureAwait(false);
 
-					var aggregate = new RoundAggregate(); // TODO
+					if (!AggregateFactory.TryGetValue(aggregateType, out var aggregateFactory))
+					{
+						throw new InvalidOperationException($"AggregateFactory is missing for aggregate type '{aggregateType}'.");
+					}
+
+					var aggregate = aggregateFactory.Invoke();
 
 					bool commandAlreadyProcessed = events.Any(ev => ev.SourceId == command.IdempotenceId);
 					if (commandAlreadyProcessed)
@@ -44,11 +59,16 @@ namespace WalletWasabi.EventSourcing
 
 					foreach (var wrappedEvent in events)
 					{
-						aggregate.Apply((RoundStartedEvent)wrappedEvent.DomainEvent); //TODO
+						aggregate.Apply(wrappedEvent.DomainEvent); //TODO
 					}
 
-					RoundCommandProcessor processor = new();
-					var newEvents = processor.Process((StartRoundCommand)command, aggregate);
+					if (!CommandProcessorFactory.TryGetValue(aggregateType, out var commandProcessorFactory))
+					{
+						throw new InvalidOperationException($"CommandProcessor is missing for aggregate type '{aggregateType}'.");
+					}
+
+					ICommandProcessor processor = commandProcessorFactory.Invoke();
+					var newEvents = processor.Process(command, aggregate);
 
 					var lastEvent = events.Any() ? events[^1] : null;
 					var sequenceId = lastEvent == null ? 1 : lastEvent.SequenceId + 1;
