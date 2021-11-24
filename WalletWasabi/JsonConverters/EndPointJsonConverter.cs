@@ -40,9 +40,9 @@ namespace WalletWasabi.JsonConverters
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, EndPoint? value, JsonSerializer serializer)
 		{
-			if (value is EndPoint endPoint)
+			if (value is { })
 			{
-				var endPointString = endPoint.ToString(DefaultPort);
+				var endPointString = value.ToString(DefaultPort);
 				writer.WriteValue(endPointString);
 			}
 			else
