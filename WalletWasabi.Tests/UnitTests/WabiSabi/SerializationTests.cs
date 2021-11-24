@@ -62,7 +62,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 			var serializedGroupElements = JsonConvert.SerializeObject(new[] { Generators.Gx0, Generators.Gx1 }, converters);
 			Assert.Equal("[\"02E33C9F3CBE6388A2D3C3ECB12153DB73499928541905D86AAA4FFC01F2763B54\",\"0246253CC926AAB789BAA278AB9A54EDEF455CA2014038E9F84DE312C05A8121CC\"]", serializedGroupElements);
 
-			var deserializedGroupElements = JsonConvert.DeserializeObject<GroupElement[]>("[\"02E33C9F3CBE6388A2D3C3ECB12153DB73499928541905D86AAA4FFC01F2763B54\",\"0246253CC926AAB789BAA278AB9A54EDEF455CA2014038E9F84DE312C05A8121CC\"]", converters);
+			var deserializedGroupElements = JsonConvert.DeserializeObject<GroupElement[]>("[\"02E33C9F3CBE6388A2D3C3ECB12153DB73499928541905D86AAA4FFC01F2763B54\",\"0246253CC926AAB789BAA278AB9A54EDEF455CA2014038E9F84DE312C05A8121CC\"]", converters)!;
 			Assert.Equal(Generators.Gx0, deserializedGroupElements[0]);
 			Assert.Equal(Generators.Gx1, deserializedGroupElements[1]);
 
@@ -82,7 +82,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 			var issuanceRequest = new IssuanceRequest(Generators.G, Enumerable.Range(0, 5).Select(i => Generators.FromText($"G{i}")));
 			var serializedIssuanceRequest = JsonConvert.SerializeObject(issuanceRequest, converters);
 
-			var deserializedIssuanceRequest = JsonConvert.DeserializeObject<IssuanceRequest>(serializedIssuanceRequest, converters);
+			var deserializedIssuanceRequest = JsonConvert.DeserializeObject<IssuanceRequest>(serializedIssuanceRequest, converters)!;
 			Assert.Equal(issuanceRequest.Ma, deserializedIssuanceRequest.Ma);
 			Assert.Equal(issuanceRequest.BitCommitments, deserializedIssuanceRequest.BitCommitments);
 		}
@@ -135,7 +135,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 			var serializedScalars = JsonConvert.SerializeObject(new[] { one, two }, converters);
 			Assert.Equal("[\"0000000000000000000000000000000000000000000000000000000000000001\",\"0000000000000000000000000000000000000000000000000000000000000002\"]", serializedScalars);
 
-			var deserializedScalars = JsonConvert.DeserializeObject<Scalar[]>("[\"000000000000000000000000000000014551231950B75FC4402DA1732FC9BEC2\",\"0000000000000000000000000000000000000000000000000000000000000003\"]", converters);
+			var deserializedScalars = JsonConvert.DeserializeObject<Scalar[]>("[\"000000000000000000000000000000014551231950B75FC4402DA1732FC9BEC2\",\"0000000000000000000000000000000000000000000000000000000000000003\"]", converters)!;
 			Assert.Equal(other, deserializedScalars[0]);
 			Assert.Equal(three, deserializedScalars[1]);
 
@@ -168,7 +168,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 			Assert.Throws<InvalidCastException>(() => JsonConvert.DeserializeObject<Money>("-90000000000000000000000000", converters));
 
 			// Invalid values.
-			Assert.Throws<ArgumentNullException>(() => JsonConvert.DeserializeObject<Money>(null, converters));
+			Assert.Throws<ArgumentNullException>(() => JsonConvert.DeserializeObject<Money>(null!, converters));
 			Assert.Throws<InvalidCastException>(() => JsonConvert.DeserializeObject<Money>("0.1", converters));
 			Assert.Throws<InvalidCastException>(() => JsonConvert.DeserializeObject<Money>("1e6", converters));
 			Assert.Throws<JsonReaderException>(() => JsonConvert.DeserializeObject<Money>("Satoshi", converters));
@@ -189,14 +189,16 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 
 			var issuer = new CredentialIssuer(sk, rnd, 4300000000000);
 			var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000);
-			(CredentialsRequest credentialRequest, CredentialsResponseValidation validationData) = client.CreateRequestForZeroAmount();
+			(ICredentialsRequest credentialRequest, CredentialsResponseValidation validationData) = client.CreateRequestForZeroAmount();
 			var credentialResponse = issuer.HandleRequest(credentialRequest);
 			var present = client.HandleResponse(credentialResponse, validationData);
 			(credentialRequest, _) = client.CreateRequest(new[] { 1L }, present, CancellationToken.None);
 
 			// Registration request message.
 			var serializedRequestMessage = JsonConvert.SerializeObject(credentialRequest, converters);
-			Assert.Throws<NotSupportedException>(() => JsonConvert.DeserializeObject<ZeroCredentialsRequest>(serializedRequestMessage, converters));
+			ZeroCredentialsRequest deserializedCredentialsRequest = JsonConvert.DeserializeObject<ZeroCredentialsRequest>(serializedRequestMessage, converters)!;
+			Assert.NotSame(credentialRequest, deserializedCredentialsRequest);
+
 			var deserializedRequestMessage = JsonConvert.DeserializeObject<RealCredentialsRequest>(serializedRequestMessage, converters);
 			var reserializedRequestMessage = JsonConvert.SerializeObject(deserializedRequestMessage, converters);
 			Assert.Equal(serializedRequestMessage, reserializedRequestMessage);

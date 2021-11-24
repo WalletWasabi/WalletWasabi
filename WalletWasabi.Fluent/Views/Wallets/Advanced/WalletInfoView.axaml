@@ -68,12 +68,12 @@
       <c:PreviewItem Icon="{StaticResource key_regular}"
                      Text="Public External Output descriptor"
                      CopyParameter="{Binding WpkhOutputDescriptors.PublicExternal}">
-        <c:PrivacyContentControl Content="{Binding WpkhOutputDescriptors.PublicExternal}" NumberOfPrivacyChars="38" />
+        <c:PrivacyContentControl Content="{Binding WpkhOutputDescriptors.PublicExternal}" ForceShow="{Binding ShowSensitiveData}" NumberOfPrivacyChars="38" />
       </c:PreviewItem>
       <c:PreviewItem Icon="{StaticResource key_regular}"
                      Text="Public Internal Output descriptor"
                      CopyParameter="{Binding WpkhOutputDescriptors.PublicInternal}">
-        <c:PrivacyContentControl Content="{Binding WpkhOutputDescriptors.PublicInternal}" NumberOfPrivacyChars="38" />
+        <c:PrivacyContentControl Content="{Binding WpkhOutputDescriptors.PublicInternal}" ForceShow="{Binding ShowSensitiveData}" NumberOfPrivacyChars="38" />
       </c:PreviewItem>
 
       <c:PreviewItem Icon="{StaticResource key_regular}"
