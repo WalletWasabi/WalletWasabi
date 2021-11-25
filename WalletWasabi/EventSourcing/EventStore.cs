@@ -1,14 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.Tracing;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using WalletWasabi.EventSourcing.ArenaDomain;
-using WalletWasabi.EventSourcing.ArenaDomain.Command;
-using WalletWasabi.EventSourcing.ArenaDomain.CommandProcessor;
-using WalletWasabi.EventSourcing.ArenaDomain.Events;
 using WalletWasabi.EventSourcing.Exceptions;
 using WalletWasabi.EventSourcing.Interfaces;
 using WalletWasabi.Exceptions;
@@ -22,19 +16,17 @@ namespace WalletWasabi.EventSourcing
 
 		private IEventRepository EventRepository { get; }
 
-		private Dictionary<string, Func<IAggregate>> AggregateFactory { get; } = new()
-		{
-			[nameof(RoundAggregate)] = () => new RoundAggregate(),
-		};
+		private IAggregateFactory AggregateFactory { get; init; }
+		private ICommandProcessorFactory CommandProcessorFactory { get; init; }
 
-		private Dictionary<string, Func<ICommandProcessor>> CommandProcessorFactory { get; } = new()
-		{
-			[nameof(RoundAggregate)] = () => new RoundCommandProcessor(),
-		};
-
-		public EventStore(IEventRepository eventRepository)
+		public EventStore(
+			IEventRepository eventRepository,
+			IAggregateFactory aggregateFactory,
+			ICommandProcessorFactory commandProcessorFactory)
 		{
 			EventRepository = eventRepository;
+			AggregateFactory = aggregateFactory;
+			CommandProcessorFactory = commandProcessorFactory;
 		}
 
 		public async Task<WrappedResult> ProcessCommandAsync(ICommand command, string aggregateType, string aggregateId)
@@ -62,12 +54,11 @@ namespace WalletWasabi.EventSourcing
 							IdempotenceIdDuplicate: true);
 					}
 
-					if (!CommandProcessorFactory.TryGetValue(aggregateType, out var commandProcessorFactory))
+					if (!CommandProcessorFactory.TryCreate(aggregateType, out var processor))
 					{
 						throw new AssertionFailedException($"CommandProcessor is missing for aggregate type '{aggregateType}'.");
 					}
 
-					var processor = commandProcessorFactory.Invoke();
 					var result = processor.Process(command, aggregate.State);
 
 					if (result.Success)
@@ -115,12 +106,10 @@ namespace WalletWasabi.EventSourcing
 
 		private IAggregate ApplyEvents(string aggregateType, IReadOnlyList<WrappedEvent> events)
 		{
-			if (!AggregateFactory.TryGetValue(aggregateType, out var aggregateFactory))
+			if (!AggregateFactory.TryCreate(aggregateType, out var aggregate))
 			{
 				throw new InvalidOperationException($"AggregateFactory is missing for aggregate type '{aggregateType}'.");
 			}
-
-			var aggregate = aggregateFactory.Invoke();
 
 			foreach (var wrappedEvent in events)
 			{

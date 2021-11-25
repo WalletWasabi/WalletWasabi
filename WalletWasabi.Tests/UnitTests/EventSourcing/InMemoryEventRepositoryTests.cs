@@ -12,7 +12,6 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 {
 	public class InMemoryEventRepositoryTests : IDisposable
 	{
-		private const string TestRoundAggregate = "TestRoundAggregate";
 		private readonly TimeSpan _semaphoreWaitTimeout = TimeSpan.FromSeconds(20);
 
 		public InMemoryEventRepositoryTests(ITestOutputHelper output)
