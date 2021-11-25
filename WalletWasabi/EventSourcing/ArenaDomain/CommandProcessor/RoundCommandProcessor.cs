@@ -14,6 +14,7 @@ namespace WalletWasabi.EventSourcing.ArenaDomain.CommandProcessor
 {
 	public class RoundCommandProcessor : ICommandProcessor
 	{
+
 		public Result Process(StartRoundCommand command, RoundState2 state)
 		{
 			var errors = PrepareErrors();
@@ -40,7 +41,57 @@ namespace WalletWasabi.EventSourcing.ArenaDomain.CommandProcessor
 					new[] { new InputRegisteredEvent(command.AliceId, command.Coin, command.OwnershipProof) });
 		}
 
-		public Result Process(ICommand command, IState aggregateState)
+		public Result Process(EndRoundCommand command, RoundState2 state)
+		{
+			return new[] { new RoundEndedEvent() };
+		}
+
+		public Result Process(InputConnectionConfirmedCommand command, RoundState2 state)
+		{
+			return new[] { new InputConnectionConfirmedEvent(command.AliceId, command.Coin, command.OwnershipProof) };
+		}
+
+		public Result Process(RemoveInputCommand command, RoundState2 state)
+		{
+			return new[] { new InputUnregistered(command.AliceId) };
+		}
+
+		public Result Process(RegisterOutputCommand command, RoundState2 state)
+		{
+			return new[] { new OutputRegisteredEvent(command.Script, command.Value) };
+		}
+
+		public Result Process(StartOutputRegistrationCommand command, RoundState2 state)
+		{
+			return new[] { new OutputRegistrationStartedEvent() };
+		}
+
+		public Result Process(StartConnectionConfirmationCommand command, RoundState2 state)
+		{
+			return new[] { new InputsConnectionConfirmationStartedEvent() };
+		}
+
+		public Result Process(StartTransactionSigningCommand command, RoundState2 state)
+		{
+			return new[] { new SigningStartedEvent() };
+		}
+
+		public IEnumerable<IEvent> Process(SucceedRoundCommand command, RoundState2 state)
+		{
+			return new IEvent[] { new RoundSucceedEvent(), new RoundEndedEvent() };
+		}
+
+		public IEnumerable<IEvent> Process(InputReadyToSignCommand command, RoundState2 state)
+		{
+			return new[] { new InputReadyToSignEvent(command.AliceId) };
+		}
+
+		public IEnumerable<IEvent> Process(AddSignatureEvent command, RoundState2 state)
+		{
+			return new[] { new SignatureAddedEvent(command.AliceId, command.WitScript) };
+		}
+
+		public IEnumerable<IEvent> Process(ICommand command, IState state)
 		{
 			if (aggregateState is not RoundState2 roundState)
 			{
@@ -51,6 +102,17 @@ namespace WalletWasabi.EventSourcing.ArenaDomain.CommandProcessor
 			{
 				StartRoundCommand cmd => Process(cmd, roundState),
 				InputRegisterCommand cmd => Process(cmd, roundState),
+				EndRoundCommand cmd => Process(cmd, roundState),
+				InputConnectionConfirmedCommand cmd => Process(cmd, roundState),
+				RemoveInputCommand cmd => Process(cmd, roundState),
+				RegisterOutputCommand cmd => Process(cmd, roundState),
+				StartOutputRegistrationCommand cmd => Process(cmd, roundState),
+				StartConnectionConfirmationCommand cmd => Process(cmd, roundState),
+				StartTransactionSigningCommand cmd => Process(cmd, roundState),
+				SucceedRoundCommand cmd => Process(cmd, roundState),
+				InputReadyToSignCommand cmd => Process(cmd, roundState),
+				AddSignatureEvent cmd => Process(cmd, roundState),
+
 				_ => throw new InvalidOperationException()
 			};
 		}
