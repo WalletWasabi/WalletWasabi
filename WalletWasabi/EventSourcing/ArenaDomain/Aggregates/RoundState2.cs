@@ -33,7 +33,7 @@ namespace WalletWasabi.EventSourcing.ArenaDomain.Aggregates
 
 	public record OutputState(
 		Script Script,
-		long CredentialAmount);
+		long Value);
 
 	public record RoundParameters2(
 		FeeRate FeeRate,

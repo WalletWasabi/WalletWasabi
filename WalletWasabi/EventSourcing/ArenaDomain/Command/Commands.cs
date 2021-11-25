@@ -15,7 +15,7 @@ namespace WalletWasabi.EventSourcing.ArenaDomain.Command
 	public record InputConnectionConfirmedCommand(Coin Coin, OwnershipProof OwnershipProof, Guid AliceId, Guid IdempotenceId) : ICommand;
 	public record RemoveInputCommand(Guid AliceId, Guid IdempotenceId) : ICommand;
 
-	public record RegisterOutputCommand(Script Script, long CredentialAmount, Guid IdempotenceId) : ICommand;
+	public record RegisterOutputCommand(Script Script, long Value, Guid IdempotenceId) : ICommand;
 
 	public record StartOutputRegistrationCommand(Guid IdempotenceId) : ICommand;
 

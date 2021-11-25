@@ -326,21 +326,21 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private Transaction CreateUnsignedCoinJoin(RoundState2 roundState)
 		{
-			var tx = Transaction.Create(Keymanager.GetNetwork());
+			var c = new ConstructionState(roundState.RoundParameters.MultipartyTransactionParameters);
 
 			foreach (var input in roundState.Inputs)
 			{
 				// implied:
 				// nSequence = FINAL
-				tx.Inputs.Add(input.Coin.Outpoint);
+				c = c.AddInput(input.Coin);
 			}
 
 			foreach (var output in roundState.Outputs)
 			{
-				tx.Outputs.Add(new TxOut(Money.Satoshis(output.CredentialAmount), output.Script));
+				c = c.AddOutput(new TxOut(Money.Satoshis(output.Value), output.Script));
 			}
 
-			return tx;
+			return c.Finalize().CreateUnsignedTransaction();
 		}
 
 		// Selects coin candidates for participating in a round.

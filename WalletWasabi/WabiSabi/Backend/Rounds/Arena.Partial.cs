@@ -256,7 +256,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				foreach (var inputWitnessPair in request.InputWitnessPairs)
 				{
 					state = state.AddWitness((int)inputWitnessPair.InputIndex, inputWitnessPair.Witness);
-					var alice = round.Alices.ElementAt((int)inputWitnessPair.InputIndex);
+					var alice = round.Alices.Single(a => state.Inputs[(int)inputWitnessPair.InputIndex].Outpoint == a.Coin.Outpoint);
 
 					await EventStore.ProcessCommandAsync(new AddSignatureEvent(alice.Id, inputWitnessPair.Witness, Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
 				}

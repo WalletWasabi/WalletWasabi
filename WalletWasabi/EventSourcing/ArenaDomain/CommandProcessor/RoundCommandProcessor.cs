@@ -40,7 +40,7 @@ namespace WalletWasabi.EventSourcing.ArenaDomain.CommandProcessor
 
 		public IEnumerable<IEvent> Process(RegisterOutputCommand command, RoundState2 aggregate)
 		{
-			return new[] { new OutputRegisteredEvent(command.Script, command.CredentialAmount) };
+			return new[] { new OutputRegisteredEvent(command.Script, command.Value) };
 		}
 
 		public IEnumerable<IEvent> Process(StartOutputRegistrationCommand command, RoundState2 aggregate)
