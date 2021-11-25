@@ -64,23 +64,19 @@ namespace WalletWasabi.Fluent.Behaviors
 				.Subscribe(_ => AssociatedObject.Classes.Remove(FlashAnimation))
 				.DisposeWith(disposables);
 
-			OwnerTextBox?.WhenAnyValue(x => x.IsFocused)
-				.Subscribe(async _ =>
-				{
-					await CheckClipboardForValidAddressAsync();
-				})
+			OwnerTextBox?.WhenAnyValue(x => x.Text)
+				.Subscribe(async _ => await CheckClipboardForValidAddressAsync())
 				.DisposeWith(disposables);
 		}
 
 		private async Task CheckClipboardForValidAddressAsync()
 		{
-			var tbFocussed = OwnerTextBox?.IsFocused ?? true;
-
 			AssociatedObject?.Classes.Remove(FlashAnimation);
 
-			if (tbFocussed)
+			var textToPaste = await Application.Current.Clipboard.GetTextAsync();
+
+			if (textToPaste != OwnerTextBox?.Text)
 			{
-				var textToPaste = await Application.Current.Clipboard.GetTextAsync();
 				if (AddressStringParser.TryParse(textToPaste, Services.WalletManager.Network, out _) &&
 				    textToPaste != CurrentAddress)
 				{
