@@ -251,7 +251,7 @@ namespace WalletWasabi.Tests.WabiSabi.Client
 					new(1_000_000, 1<<19, 1<<18, 1<<18),
 					new(1<<19, 1<<19, 500_000, 500_000),
 				},
-				new PossibleDecompositions(StandardDenomination.Values, (1_000_000L + (1L << 20)), (1_000_000L + (1L << 20)), 5).GetByTotalValue(maxOutputs: 4));
+				new PossibleDecompositions(StandardDenomination.Values, (1_000_000L + (1L << 20)), (1_000_000L + (1L << 20)), 5).GetByTotalValue(maxOutputs: 4, maxDecompositions: 5));
 		}
 	}
 }
