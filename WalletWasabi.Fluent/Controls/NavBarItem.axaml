@@ -88,7 +88,7 @@
     <Setter Property="CornerRadius" Value="2" />
     <Setter Property="Transitions">
       <Transitions>
-        <DoubleTransition Property="Opacity" Duration="0:0:0.4" Easing="{StaticResource FluentEasing}" />
+        <DoubleTransition Property="Opacity" Duration="0:0:0.275" Easing="{StaticResource FluentEasing}" />
       </Transitions>
     </Setter>
   </Style>
@@ -106,6 +106,9 @@
   <!-- PointerOver State -->
   <Style Selector="c|NavBarItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource NavBarItemPointerOverBrush}" />
+  </Style>
+  <Style Selector="c|NavBarItem:pointerover /template/ Border#SelectionBackground">
+    <Setter Property="Opacity" Value="0.05"/>
   </Style>
 
   <!-- Pressed State -->
