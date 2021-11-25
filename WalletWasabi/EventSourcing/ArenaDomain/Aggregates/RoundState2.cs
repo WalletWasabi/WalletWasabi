@@ -18,7 +18,7 @@ namespace WalletWasabi.EventSourcing.ArenaDomain.Aggregates
 		public RoundParameters2? RoundParameters { get; init; } = default;
 		public ImmutableList<InputState> Inputs { get; init; } = ImmutableList<InputState>.Empty;
 		public ImmutableList<OutputState> Outputs { get; init; } = ImmutableList<OutputState>.Empty;
-		public Phase Phase { get; init; } = Phase.InputRegistration;
+		public Phase Phase { get; init; } = Phase.New;
 		public uint256 Id => RoundParameters?.Id ?? uint256.Zero;
 		public bool Succeeded { get; init; } = false;
 	}

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,16 +14,30 @@ namespace WalletWasabi.EventSourcing.ArenaDomain.CommandProcessor
 {
 	public class RoundCommandProcessor : ICommandProcessor
 	{
-		public Result Process(StartRoundCommand command, RoundState2 aggregate)
+		public Result Process(StartRoundCommand command, RoundState2 state)
 		{
-			return Result.Succeed(
-				new[] { new RoundStartedEvent(command.RoundParameters) });
+			var errors = PrepareErrors();
+			if (!IsStateValid(Phase.New, state, command.GetType().Name, out var errorResult))
+			{
+				return errorResult;
+			}
+			return errors.Count > 0 ?
+				Result.Fail(errors) :
+				Result.Succeed(
+					new[] { new RoundStartedEvent(command.RoundParameters) });
 		}
 
-		public Result Process(InputRegisterCommand command, RoundState2 aggregate)
+		public Result Process(InputRegisterCommand command, RoundState2 state)
 		{
-			return Result.Succeed(
-				new[] { new InputRegisteredEvent(command.AliceId, command.Coin, command.OwnershipProof) });
+			var errors = PrepareErrors();
+			if (!IsStateValid(Phase.InputRegistration, state, command.GetType().Name, out var errorResult))
+			{
+				return errorResult;
+			}
+			return errors.Count > 0 ?
+				Result.Fail(errors) :
+				Result.Succeed(
+					new[] { new InputRegisteredEvent(command.AliceId, command.Coin, command.OwnershipProof) });
 		}
 
 		public Result Process(ICommand command, IState aggregateState)
@@ -38,6 +53,24 @@ namespace WalletWasabi.EventSourcing.ArenaDomain.CommandProcessor
 				InputRegisterCommand cmd => Process(cmd, roundState),
 				_ => throw new InvalidOperationException()
 			};
+		}
+
+		private static ImmutableArray<IError>.Builder PrepareErrors()
+		{
+			return ImmutableArray.CreateBuilder<IError>();
+		}
+
+		private bool IsStateValid(Phase expected, RoundState2 state, string commandName, out Result errorResult)
+		{
+			var isStateValid = expected == state.Phase;
+			errorResult = null!;
+			if (!isStateValid)
+			{
+				errorResult = Result.Fail(
+					new Error(
+						$"Unexpected State for '{commandName}'. expected: '{expected}', actual: '{state.Phase}'"));
+			}
+			return isStateValid;
 		}
 	}
 }
