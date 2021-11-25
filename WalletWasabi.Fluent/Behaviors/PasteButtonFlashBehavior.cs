@@ -20,16 +20,6 @@ namespace WalletWasabi.Fluent.Behaviors
 		public static readonly StyledProperty<string> CurrentAddressProperty =
 			AvaloniaProperty.Register<PasteButtonFlashBehavior, string>(nameof(FlashAnimation));
 
-		public static readonly StyledProperty<TextBox?> OwnerTextBoxProperty =
-			AvaloniaProperty.Register<CheckMarkVisibilityBehavior, TextBox?>(nameof(OwnerTextBox));
-
-		[ResolveByName]
-		public TextBox? OwnerTextBox
-		{
-			get => GetValue(OwnerTextBoxProperty);
-			set => SetValue(OwnerTextBoxProperty, value);
-		}
-
 		public string FlashAnimation
 		{
 			get => GetValue(FlashAnimationProperty);
@@ -64,7 +54,7 @@ namespace WalletWasabi.Fluent.Behaviors
 				.Subscribe(_ => AssociatedObject.Classes.Remove(FlashAnimation))
 				.DisposeWith(disposables);
 
-			OwnerTextBox?.WhenAnyValue(x => x.Text)
+			this.WhenAnyValue(x => x.CurrentAddress)
 				.Subscribe(async _ => await CheckClipboardForValidAddressAsync())
 				.DisposeWith(disposables);
 		}
@@ -75,10 +65,9 @@ namespace WalletWasabi.Fluent.Behaviors
 
 			var textToPaste = await Application.Current.Clipboard.GetTextAsync();
 
-			if (textToPaste != OwnerTextBox?.Text)
+			if (textToPaste != CurrentAddress)
 			{
-				if (AddressStringParser.TryParse(textToPaste, Services.WalletManager.Network, out _) &&
-				    textToPaste != CurrentAddress)
+				if (AddressStringParser.TryParse(textToPaste, Services.WalletManager.Network, out _))
 				{
 					AssociatedObject?.Classes.Add(FlashAnimation);
 				}

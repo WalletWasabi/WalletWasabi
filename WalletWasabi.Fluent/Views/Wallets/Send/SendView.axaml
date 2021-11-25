@@ -60,7 +60,7 @@
                                 NormalIcon="{StaticResource paste_regular}"
                                 ClickIcon="{StaticResource copy_confirmed}">
                 <i:Interaction.Behaviors>
-                  <behaviors:PasteButtonFlashBehavior OwnerTextBox="toTb" FlashAnimation="flash" CurrentAddress="{Binding To}"/>
+                  <behaviors:PasteButtonFlashBehavior FlashAnimation="flash" CurrentAddress="{Binding To}"/>
                 </i:Interaction.Behaviors>
               </c:AnimatedButton>
               <c:AnimatedButton IsVisible="{Binding IsQrButtonVisible}"
