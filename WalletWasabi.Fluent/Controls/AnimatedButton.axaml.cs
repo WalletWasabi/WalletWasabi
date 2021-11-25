@@ -10,6 +10,11 @@ namespace WalletWasabi.Fluent.Controls
 {
 	public class AnimatedButton : TemplatedControl
 	{
+		static AnimatedButton()
+		{
+			AffectsRender<AnimatedButton>(InitialOpacityProperty);
+		}
+
 		public static readonly StyledProperty<ICommand> CommandProperty =
 			AvaloniaProperty.Register<AnimatedButton, ICommand>(nameof(Command));
 
@@ -23,10 +28,10 @@ namespace WalletWasabi.Fluent.Controls
 			AvaloniaProperty.Register<AnimatedButton, object>(nameof(CommandParameter));
 
 		public static readonly StyledProperty<double> InitialOpacityProperty =
-			AvaloniaProperty.Register<AnimatedButton, double>(nameof(InitialOpacity), 0.5);
+			AvaloniaProperty.Register<AnimatedButton, double>(nameof(InitialOpacity), 0.6);
 
 		public static readonly StyledProperty<double> PointerOverOpacityProperty =
-			AvaloniaProperty.Register<AnimatedButton, double>(nameof(PointerOverOpacity), 0.75);
+			AvaloniaProperty.Register<AnimatedButton, double>(nameof(PointerOverOpacity), 1);
 
 		public static readonly StyledProperty<bool> AnimateIconProperty =
 			AvaloniaProperty.Register<AnimatedButton, bool>(nameof(AnimateIcon));

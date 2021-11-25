@@ -22,12 +22,14 @@
         <Style Selector="DockPanel > Label">
           <Setter Property="MinWidth" Value="80" />
         </Style>
+        <Style Selector="c|AnimatedButton.flash">
+          <Setter Property="InitialOpacity" Value="0.8" />
+        </Style>
         <Style Selector="c|AnimatedButton.flash /template/ PathIcon#PART_IconNormal">
           <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
-          <Setter Property="Opacity" Value="1" />
           <Style.Animations>
             <Animation Duration="0.25" IterationCount="6"
-                       PlaybackDirection="Alternate"
+                       PlaybackDirection="AlternateReverse"
                        Easing="{StaticResource FluentEasing}">
               <KeyFrame KeyTime="0:0:0.0">
                 <Setter Property="Opacity" Value="0.1" />
