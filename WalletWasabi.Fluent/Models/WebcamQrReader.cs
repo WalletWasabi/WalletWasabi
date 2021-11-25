@@ -66,6 +66,11 @@ namespace WalletWasabi.Fluent.Models
 						}
 						KeepScanning(camera);
 					}
+					catch (OpenCVException ex)
+					{
+						Logger.LogError("Could not open camera. Reason: " + ex);
+						ErrorOccured?.Invoke(this, new NotSupportedException("Could not open camera."));
+					}
 					catch (Exception ex)
 					{
 						Logger.LogError("QR scanning stopped. Reason:", ex);

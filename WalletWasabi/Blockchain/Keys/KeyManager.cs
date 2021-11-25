@@ -123,7 +123,7 @@ namespace WalletWasabi.Blockchain.Keys
 		[JsonConverter(typeof(KeyPathJsonConverter))]
 		public KeyPath AccountKeyPath { get; private set; }
 
-		public string FilePath { get; private set; }
+		public string? FilePath { get; private set; }
 
 		[MemberNotNullWhen(returnValue: false, nameof(EncryptedSecret))]
 		public bool IsWatchOnly => EncryptedSecret is null;
@@ -234,7 +234,7 @@ namespace WalletWasabi.Blockchain.Keys
 			return km;
 		}
 
-		public void SetFilePath(string filePath)
+		public void SetFilePath(string? filePath)
 		{
 			FilePath = string.IsNullOrWhiteSpace(filePath) ? null : filePath;
 			if (FilePath is null)
