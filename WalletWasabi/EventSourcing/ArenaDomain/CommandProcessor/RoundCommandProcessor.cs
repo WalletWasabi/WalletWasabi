@@ -23,6 +23,11 @@ namespace WalletWasabi.EventSourcing.ArenaDomain.CommandProcessor
 			return new[] { new InputRegisteredEvent(command.AliceId, command.Coin, command.OwnershipProof) };
 		}
 
+		public IEnumerable<IEvent> Process(EndRoundCommand command, RoundState2 aggregate)
+		{
+			return new[] { new RoundEndedEvent() };
+		}
+
 		public IEnumerable<IEvent> Process(ICommand command, IState state)
 		{
 			if (state is not RoundState2 roundState)
@@ -34,6 +39,7 @@ namespace WalletWasabi.EventSourcing.ArenaDomain.CommandProcessor
 			{
 				StartRoundCommand cmd => Process(cmd, roundState),
 				InputRegisterCommand cmd => Process(cmd, roundState),
+				EndRoundCommand cmd => Process(cmd, roundState),
 				_ => throw new InvalidOperationException()
 			};
 		}
