@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.EventSourcing.Exceptions;
@@ -39,7 +40,7 @@ namespace WalletWasabi.EventSourcing
 				optimisticConflict = false;
 				try
 				{
-					var events = await GetEventsAsync(aggregateType, aggregateId).ConfigureAwait(false);
+					var events = await ListEventsAsync(aggregateType, aggregateId).ConfigureAwait(false);
 					var aggregate = ApplyEvents(aggregateType, events);
 					var lastEvent = events.Count > 0 ? events[^1] : null;
 					var sequenceId = lastEvent == null ? 0 : lastEvent.SequenceId;
@@ -71,22 +72,32 @@ namespace WalletWasabi.EventSourcing
 							aggregate.Apply(newEvent);
 						}
 
+						// No ation
+						Prepared();
+
 						await EventRepository.AppendEventsAsync(aggregateType, aggregateId, wrappedEvents)
 							.ConfigureAwait(false);
+
+						// No action
+						Appended();
 
 						return new WrappedResult(sequenceId, wrappedEvents.AsReadOnly(), aggregate.State);
 					}
 					else
 					{
 						throw new CommandFailedException(
-							result.Errors,
+							aggregateType,
+							aggregateId,
 							sequenceId,
 							aggregate.State,
-							$"Command '{command.GetType().Name}' has failed on aggregate version: '{aggregateType}/{aggregateId}/{sequenceId}'");
+							command,
+							result.Errors);
 					}
 				}
 				catch (OptimisticConcurrencyException)
 				{
+					// No action
+					Conflicted();
 					if (tries <= 0)
 					{
 						throw;
@@ -99,7 +110,7 @@ namespace WalletWasabi.EventSourcing
 
 		public async Task<IAggregate> GetAggregateAsync(string aggregateType, string aggregateId)
 		{
-			var events = await GetEventsAsync(aggregateType, aggregateId).ConfigureAwait(false);
+			var events = await ListEventsAsync(aggregateType, aggregateId).ConfigureAwait(false);
 
 			return ApplyEvents(aggregateType, events);
 		}
@@ -119,11 +130,29 @@ namespace WalletWasabi.EventSourcing
 			return aggregate;
 		}
 
-		private async Task<IReadOnlyList<WrappedEvent>> GetEventsAsync(string aggregateType, string aggregateId)
+		private async Task<IReadOnlyList<WrappedEvent>> ListEventsAsync(string aggregateType, string aggregateId)
 		{
 			IReadOnlyList<WrappedEvent> events =
 				await EventRepository.ListEventsAsync(aggregateType, aggregateId).ConfigureAwait(false);
 			return events;
+		}
+
+		// Hook for parallel critical section testing in DEBUG build only.
+		[Conditional("DEBUG")]
+		protected virtual void Prepared()
+		{
+		}
+
+		// Hook for parallel critical section testing in DEBUG build only.
+		[Conditional("DEBUG")]
+		protected virtual void Conflicted()
+		{
+		}
+
+		// Hook for parallel critical section testing in DEBUG build only.
+		[Conditional("DEBUG")]
+		protected virtual void Appended()
+		{
 		}
 	}
 }

@@ -114,7 +114,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing.TestDomain
 			{
 				errorResult = Result.Fail(
 					new Error(
-						$"unexpected State for '{commandName}'. expected: '{expected}', actual: '{state.Status}'"));
+						$"unexpected State for '{commandName}' command. expected: '{expected}', actual: '{state.Status}'"));
 			}
 			return isStateValid;
 		}

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -13,44 +14,78 @@ namespace WalletWasabi.EventSourcing.Exceptions
 		public long LastSequenceId { get; init; }
 		public IState State { get; init; }
 		public IReadOnlyList<IError> Errors { get; init; }
+		public ICommand Command { get; init; }
+		public string AggregateType { get; init; }
+		public string AggregateId { get; init; }
 
 		public CommandFailedException(
-			IReadOnlyList<IError> errors,
+			string aggregateType,
+			string aggregateId,
 			long lastSequenceId,
-			IState state)
+			IState state,
+			ICommand command,
+			IReadOnlyList<IError> errors)
+		: base(
+				AppendErrors(aggregateType, aggregateId, lastSequenceId, command, errors))
 		{
-			Errors = errors;
+			AggregateType = aggregateType;
+			AggregateId = aggregateId;
 			LastSequenceId = lastSequenceId;
 			State = state;
+			Command = command;
+			Errors = errors;
 		}
 
 		public CommandFailedException(
-			IReadOnlyList<IError> errors,
+			string aggregateType,
+			string aggregateId,
 			long lastSequenceId,
 			IState state,
-			string? message) : base(AppendErrors(message, lastSequenceId, errors))
+			ICommand command,
+			IReadOnlyList<IError> errors,
+			string? message)
+		: base(
+				AppendErrors(aggregateType, aggregateId, lastSequenceId, command, errors, message))
 		{
-			Errors = errors;
+			AggregateType = aggregateType;
+			AggregateId = aggregateId;
 			LastSequenceId = lastSequenceId;
 			State = state;
+			Command = command;
+			Errors = errors;
 		}
 
 		public CommandFailedException(
-			IReadOnlyList<IError> errors,
+			string aggregateType,
+			string aggregateId,
 			long lastSequenceId,
 			IState state,
+			ICommand command,
+			IReadOnlyList<IError> errors,
 			string? message,
-			Exception? innerException) : base(AppendErrors(message, lastSequenceId, errors), innerException)
+			Exception? innerException)
+		: base(
+				AppendErrors(aggregateType, aggregateId, lastSequenceId, command, errors, message),
+				innerException)
 		{
-			Errors = errors;
+			AggregateType = aggregateType;
+			AggregateId = aggregateId;
 			LastSequenceId = lastSequenceId;
 			State = state;
+			Command = command;
+			Errors = errors;
 		}
 
-		public static string AppendErrors(string? message, long lastSequenceId, IReadOnlyList<IError> errors)
+		public static string AppendErrors(string aggregateType, string aggregateId, long lastSequenceId, ICommand command, IReadOnlyList<IError> errors, string? message = null)
 		{
-			var builder = new StringBuilder(message ?? "");
-			builder.AppendLine();
+			var builder = new StringBuilder();
+			if (!string.IsNullOrEmpty(message))
+			{
+				builder.AppendLine(message);
+				builder.AppendLine();
+				builder.AppendLine();
+			}
+			builder.AppendLine($"Command '{command.GetType().Name}' has failed on aggregate version: '{aggregateType}/{aggregateId}/{lastSequenceId}'");
 			builder.AppendLine();
 			builder.AppendLine($"Last event SequenceId: {lastSequenceId}");
 			builder.AppendLine();
@@ -61,5 +96,13 @@ namespace WalletWasabi.EventSourcing.Exceptions
 			}
 			return builder.ToString();
 		}
+
+		public override IDictionary Data => new Dictionary<string, object>
+		{
+			[nameof(LastSequenceId)] = LastSequenceId,
+			[nameof(State)] = State,
+			[nameof(Errors)] = Errors,
+			[nameof(Command)] = Command,
+		};
 	}
 }
