@@ -134,7 +134,6 @@
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                        Name="TopListBox"
                        Classes="vertical">
-        z
         <c:NavBarListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:NavBarItemViewModel" x:CompileBindings="False">
             <Panel>
