@@ -5,11 +5,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
+using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.EventSourcing;
 using WalletWasabi.EventSourcing.ArenaDomain;
 using WalletWasabi.EventSourcing.ArenaDomain.Aggregates;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -52,10 +54,6 @@ namespace WalletWasabi.WabiSabi.Client
 
 			var interestingRoundIdsHashSet = interestingRoundIds.ToHashSet();
 			var notInterestingRoundIds = ActiveRounds.Select(r => r.Key).Where(id => !interestingRoundIdsHashSet.Contains(id));
-			foreach (var id in notInterestingRoundIds)
-			{
-				ActiveRounds.Remove(id);
-			}
 
 			if (!interestingRoundIds.Any())
 			{
@@ -94,6 +92,11 @@ namespace WalletWasabi.WabiSabi.Client
 					break;
 				}
 			}
+		}
+
+		public Task<RoundState2> CreateRoundAwaiter(uint256 roundId, Phase phase, CancellationToken cancellationToken)
+		{
+			return CreateRoundAwaiter(roundId, round => round.Phase == phase, cancellationToken);
 		}
 
 		public Task<RoundState2> CreateRoundAwaiter(uint256? roundId, Predicate<RoundState2> predicate, CancellationToken cancellationToken)

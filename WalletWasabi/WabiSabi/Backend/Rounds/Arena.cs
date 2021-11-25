@@ -123,7 +123,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				if (round.Alices.All(x => x.ConfirmedConnection))
 				{
 					round.SetPhase(Phase.OutputRegistration);
-					await EventStore.ProcessCommandAsync(new EndRoundCommand(Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
+					await EventStore.ProcessCommandAsync(new StartOutputRegistrationCommand(Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
 				}
 				else if (round.ConnectionConfirmationTimeFrame.HasExpired)
 				{
@@ -389,7 +389,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			foreach (var round in Rounds.Where(x => !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)).ToArray())
 			{
-				var alicesToRemove = round.Alices.Where(x => x.Deadline < DateTimeOffset.UtcNow);
+				var alicesToRemove = round.Alices.Where(x => x.Deadline < DateTimeOffset.UtcNow).ToArray();
 				foreach (var alice in alicesToRemove)
 				{
 					round.Alices.Remove(alice);
@@ -398,7 +398,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 				if (alicesToRemove.Any())
 				{
-					round.LogInfo($"{alicesToRemove.Count()} alices timed out and removed.");
+					round.LogInfo($"{alicesToRemove.Length} alices timed out and removed.");
 				}
 			}
 		}

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.EventSourcing.ArenaDomain.Aggregates;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client
@@ -25,6 +26,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private TaskCompletionSource<RoundState2> TaskCompletionSource { get; }
 		private Predicate<RoundState2> Predicate { get; }
 		public uint256? RoundId { get; }
+		public Phase? Phase { get; }
 
 		public Task<RoundState2> Task => TaskCompletionSource.Task;
 
@@ -48,6 +50,15 @@ namespace WalletWasabi.WabiSabi.Client
 				if (Predicate(roundState))
 				{
 					TaskCompletionSource.SetResult(roundState);
+					return true;
+				}
+
+				if (Phase is { } phase)
+				{
+					if (roundState.Phase > Phase)
+					{
+						TaskCompletionSource.SetException(new InvalidOperationException($"Expected phase would be '{Phase}' but got '{roundState.Phase}'."));
+					}
 					return true;
 				}
 			}
