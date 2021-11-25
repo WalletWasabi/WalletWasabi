@@ -42,6 +42,8 @@ namespace WalletWasabi.EventSourcing.ArenaDomain
 			var index = State.Inputs.FindIndex(input => input.AliceId == ev.AliceId);
 			if (index < 0)
 			{
+				// On client side we have to add the input here because InputRegisteredEvent not sent to clients.
+				State = State with { Inputs = State.Inputs.Add(new InputState(ev.AliceId, ev.Coin, ev.OwnershipProof, true)) };
 				return;
 			}
 

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Crypto;
 using WalletWasabi.EventSourcing;
 using WalletWasabi.EventSourcing.ArenaDomain;
+using WalletWasabi.EventSourcing.ArenaDomain.Command;
 using WalletWasabi.EventSourcing.ArenaDomain.Events;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -90,7 +91,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				var commitVsizeCredentialResponse = await vsizeCredentialTask.ConfigureAwait(false);
 
 				alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeFrame.Duration);
+
 				round.Alices.Add(alice);
+				await EventStore.ProcessCommandAsync(new InputRegisterCommand(alice.Coin, alice.OwnershipProof, alice.Id, Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
 
 				return new(alice.Id,
 					commitAmountCredentialResponse,
@@ -105,6 +108,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				var round = GetRound(request.RoundId);
 				var alice = GetAlice(request.AliceId, round);
 				alice.ReadyToSign = true;
+				await EventStore.ProcessCommandAsync(new InputReadyToSignCommand(alice.Id, Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
 			}
 		}
 
@@ -119,8 +123,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
 				var round = GetRound(request.RoundId, Phase.InputRegistration);
-
 				round.Alices.RemoveAll(x => x.Id == request.AliceId);
+
+				await EventStore.ProcessCommandAsync(new RemoveInputCommand(request.AliceId, Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
 			}
 		}
 
@@ -195,6 +200,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 							// Update the CoinJoin state, adding the confirmed input.
 							round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice.Coin);
 							alice.ConfirmedConnection = true;
+							await EventStore.ProcessCommandAsync(new InputConnectionConfirmedCommand(alice.Coin, alice.OwnershipProof, alice.Id, Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
 
 							return response;
 						}
@@ -232,6 +238,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 				// Update round state.
 				round.Bobs.Add(bob);
+				await EventStore.ProcessCommandAsync(new RegisterOutputCommand(bob.Script, outputValue.Satoshi, Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
+
 				round.CoinjoinState = newState;
 			}
 
@@ -248,6 +256,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				foreach (var inputWitnessPair in request.InputWitnessPairs)
 				{
 					state = state.AddWitness((int)inputWitnessPair.InputIndex, inputWitnessPair.Witness);
+					var alice = round.Alices.Single(a => state.Inputs[(int)inputWitnessPair.InputIndex].Outpoint == a.Coin.Outpoint);
+
+					await EventStore.ProcessCommandAsync(new AddSignatureEvent(alice.Id, inputWitnessPair.Witness, Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
 				}
 
 				// at this point all of the witnesses have been verified and the state can be updated

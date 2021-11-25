@@ -59,13 +59,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
 			{
-				TimeoutRounds();
+				await TimeoutRoundsAsync().ConfigureAwait(false);
 
-				TimeoutAlices();
+				await TimeoutAlicesAsync().ConfigureAwait(false);
 
 				await StepTransactionSigningPhaseAsync(cancel).ConfigureAwait(false);
 
-				StepOutputRegistrationPhase();
+				await StepOutputRegistrationPhaseAsync().ConfigureAwait(false);
 
 				await StepConnectionConfirmationPhaseAsync(cancel).ConfigureAwait(false);
 
@@ -90,6 +90,10 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					if (offendingAlices.Any())
 					{
 						round.Alices.RemoveAll(x => offendingAlices.Contains(x));
+						foreach (var alice in offendingAlices)
+						{
+							await EventStore.ProcessCommandAsync(new RemoveInputCommand(alice.Id, Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
+						}
 					}
 				}
 
@@ -100,11 +104,14 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 						continue;
 					}
 					round.SetPhase(Phase.Ended);
+					await EventStore.ProcessCommandAsync(new EndRoundCommand(Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
+
 					round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase.");
 				}
 				else if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
 				{
 					round.SetPhase(Phase.ConnectionConfirmation);
+					await EventStore.ProcessCommandAsync(new StartConnectionConfirmationCommand(Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
 				}
 			}
 		}
@@ -116,6 +123,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				if (round.Alices.All(x => x.ConfirmedConnection))
 				{
 					round.SetPhase(Phase.OutputRegistration);
+					await EventStore.ProcessCommandAsync(new StartOutputRegistrationCommand(Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
 				}
 				else if (round.ConnectionConfirmationTimeFrame.HasExpired)
 				{
@@ -125,6 +133,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 						Prison.Note(alice, round.Id);
 					}
 					var removedAliceCount = round.Alices.RemoveAll(x => alicesDidntConfirm.Contains(x));
+					foreach (var alice in alicesDidntConfirm)
+					{
+						await EventStore.ProcessCommandAsync(new RemoveInputCommand(alice.Id, Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
+					}
+
 					round.LogInfo($"{removedAliceCount} alices removed because they didn't confirm.");
 
 					// Once an input is confirmed and non-zero credentials are issued, it must be included and must provide a
@@ -137,6 +150,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 							if (offendingAlices.Any())
 							{
 								var removed = round.Alices.RemoveAll(x => offendingAlices.Contains(x));
+								foreach (var alice in offendingAlices)
+								{
+									await EventStore.ProcessCommandAsync(new RemoveInputCommand(alice.Id, Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
+								}
+
 								round.LogInfo($"There were {removed} alices removed because they spent the registered UTXO.");
 							}
 						}
@@ -145,17 +163,20 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					if (round.InputCount < Config.MinInputCountByRound)
 					{
 						round.SetPhase(Phase.Ended);
+						await EventStore.ProcessCommandAsync(new EndRoundCommand(Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
+
 						round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.ConnectionConfirmation)} phase.");
 					}
 					else
 					{
 						round.SetPhase(Phase.OutputRegistration);
+						await EventStore.ProcessCommandAsync(new StartOutputRegistrationCommand(Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
 					}
 				}
 			}
 		}
 
-		private void StepOutputRegistrationPhase()
+		private async Task StepOutputRegistrationPhaseAsync()
 		{
 			foreach (var round in Rounds.Where(x => x.Phase == Phase.OutputRegistration).ToArray())
 			{
@@ -178,12 +199,14 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					if (!allReady && diffMoney > coinjoin.Parameters.AllowedOutputAmounts.Min)
 					{
 						coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, Config.BlameScript));
+						await EventStore.ProcessCommandAsync(new RegisterOutputCommand(Config.BlameScript, diffMoney, Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
 						round.LogInfo("Filled up the outputs to build a reasonable transaction because some alice failed to provide its output.");
 					}
 
 					round.CoinjoinState = coinjoin.Finalize();
 
 					round.SetPhase(Phase.TransactionSigning);
+					await EventStore.ProcessCommandAsync(new StartTransactionSigningCommand(Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
 				}
 			}
 		}
@@ -228,7 +251,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 						// Broadcasting.
 						await Rpc.SendRawTransactionAsync(coinjoin, cancellationToken).ConfigureAwait(false);
 						round.WasTransactionBroadcast = true;
+
 						round.SetPhase(Phase.Ended);
+						await EventStore.ProcessCommandAsync(new SucceedRoundCommand(Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
 
 						round.LogInfo($"Successfully broadcast the CoinJoin: {coinjoin.GetHash()}.");
 					}
@@ -282,6 +307,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 			round.Alices.RemoveAll(x => alicesWhoDidntSign.Contains(x));
 			round.SetPhase(Phase.Ended);
+			await EventStore.ProcessCommandAsync(new EndRoundCommand(Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
 
 			if (round.InputCount >= Config.MinInputCountByRound)
 			{
@@ -300,6 +326,22 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 			BlameRound blameRound = new(parameters, round, blameWhitelist);
 			Rounds.Add(blameRound);
+
+			var r2 = new RoundParameters2(
+				blameRound.FeeRate,
+				blameRound.AmountCredentialIssuerParameters,
+				blameRound.VsizeCredentialIssuerParameters,
+				blameRound.InputRegistrationTimeFrame.StartTime,
+				parameters.StandardInputRegistrationTimeout,
+				parameters.ConnectionConfirmationTimeout,
+				parameters.OutputRegistrationTimeout,
+				parameters.TransactionSigningTimeout,
+				blameRound.MaxAmountCredentialValue,
+				blameRound.MaxVsizeCredentialValue,
+				blameRound.MaxVsizeAllocationPerAlice,
+				blameRound.CoinjoinState.Parameters);
+
+			await EventStore.ProcessCommandAsync(new StartRoundCommand(r2, Guid.NewGuid()), nameof(RoundAggregate), blameRound.Id.ToString()).ConfigureAwait(false);
 		}
 
 		private async Task CreateRoundsAsync(CancellationToken cancellationToken)
@@ -331,7 +373,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		private void TimeoutRounds()
+		private async Task TimeoutRoundsAsync()
 		{
 			foreach (var expiredRound in Rounds.Where(
 				x =>
@@ -339,17 +381,24 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				&& x.End + Config.RoundExpiryTimeout < DateTimeOffset.UtcNow).ToArray())
 			{
 				Rounds.Remove(expiredRound);
+				await EventStore.ProcessCommandAsync(new EndRoundCommand(Guid.NewGuid()), nameof(RoundAggregate), expiredRound.Id.ToString()).ConfigureAwait(false);
 			}
 		}
 
-		private void TimeoutAlices()
+		private async Task TimeoutAlicesAsync()
 		{
 			foreach (var round in Rounds.Where(x => !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)).ToArray())
 			{
-				var removedAliceCount = round.Alices.RemoveAll(x => x.Deadline < DateTimeOffset.UtcNow);
-				if (removedAliceCount > 0)
+				var alicesToRemove = round.Alices.Where(x => x.Deadline < DateTimeOffset.UtcNow).ToArray();
+				foreach (var alice in alicesToRemove)
 				{
-					round.LogInfo($"{removedAliceCount} alices timed out and removed.");
+					round.Alices.Remove(alice);
+					await EventStore.ProcessCommandAsync(new RemoveInputCommand(alice.Id, Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
+				}
+
+				if (alicesToRemove.Any())
+				{
+					round.LogInfo($"{alicesToRemove.Length} alices timed out and removed.");
 				}
 			}
 		}
