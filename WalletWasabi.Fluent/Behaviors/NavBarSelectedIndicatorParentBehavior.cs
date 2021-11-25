@@ -9,7 +9,7 @@ namespace WalletWasabi.Fluent.Behaviors
 		public static readonly AttachedProperty<NavBarSelectedIndicatorState> ParentStateProperty =
 			AvaloniaProperty.RegisterAttached<NavBarSelectedIndicatorParentBehavior, Control, NavBarSelectedIndicatorState>("ParentState", inherits: true);
 
-		private readonly CompositeDisposable disposables = new();
+		private readonly CompositeDisposable _disposables = new();
 
 		public static NavBarSelectedIndicatorState GetParentState(Control element)
 		{
@@ -25,8 +25,8 @@ namespace WalletWasabi.Fluent.Behaviors
 		{
 			var sharedState = new NavBarSelectedIndicatorState();
 			SetParentState(AssociatedObject, sharedState);
-			disposables.Add(sharedState);
-			AssociatedObject.DetachedFromVisualTree += delegate { disposables.Dispose(); };
+			_disposables.Add(sharedState);
+			AssociatedObject.DetachedFromVisualTree += delegate { _disposables.Dispose(); };
 		}
 	}
 }

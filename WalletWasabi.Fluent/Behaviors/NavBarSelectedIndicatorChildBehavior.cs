@@ -15,21 +15,26 @@ namespace WalletWasabi.Fluent.Behaviors
 			AvaloniaProperty.RegisterAttached<NavBarSelectedIndicatorChildBehavior, Control, Control>(
 				"NavBarItemParent");
 
-		public static Control GetNavBarItemParent(Control element)
+		public static Control? GetNavBarItemParent(Control? element)
 		{
 			return element?.GetValue(NavBarItemParentProperty) ?? null;
 		}
 
-		public static void SetNavBarItemParent(Control element, Control value)
+		public static void SetNavBarItemParent(Control? element, Control value)
 		{
 			element?.SetValue(NavBarItemParentProperty, value);
 		}
 
 		private void OnLoaded()
 		{
-			var SharedState = NavBarSelectedIndicatorParentBehavior.GetParentState(AssociatedObject);
+			if (AssociatedObject is null)
+			{
+				return;
+			}
 
-			if (SharedState is null)
+			var sharedState = NavBarSelectedIndicatorParentBehavior.GetParentState(AssociatedObject);
+
+			if (sharedState is null)
 			{
 				Detach();
 				return;
@@ -52,13 +57,13 @@ namespace WalletWasabi.Fluent.Behaviors
 				.DistinctUntilChanged()
 				.Where(x => x)
 				.ObserveOn(AvaloniaScheduler.Instance)
-				.Subscribe(_ => { SharedState.AnimateIndicator(AssociatedObject); });
+				.Subscribe(_ => { sharedState.AnimateIndicatorAsync(AssociatedObject); });
 
 			AssociatedObject.Opacity = 0;
 
 			if (parent.Classes.Contains(":selected"))
 			{
-				SharedState.SetActive(AssociatedObject);
+				sharedState.SetActive(AssociatedObject);
 			}
 		}
 

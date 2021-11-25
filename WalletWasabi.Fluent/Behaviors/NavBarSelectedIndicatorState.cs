@@ -13,15 +13,14 @@ namespace WalletWasabi.Fluent.Behaviors
 {
 	public class NavBarSelectedIndicatorState : IDisposable
 	{
- 		private readonly Easing _bckEasing = new SplineEasing(0.2, 1, 0.1, 0.9);
+		private readonly Easing _bckEasing = new SplineEasing(0.2, 1, 0.1, 0.9);
 		private readonly Easing _fwdEasing = new SplineEasing(0.1, 0.9, 0.2);
-		private readonly TimeSpan _totalDuration = TimeSpan.FromSeconds(0.6);
+		private readonly TimeSpan _totalDuration = TimeSpan.FromSeconds(0.4);
 
 		private CancellationTokenSource _currentAnimationCts = new();
 		private Rectangle _activeIndicator;
 
 		private bool _isDisposed;
-		private bool _initialFixDone;
 		private bool _previousAnimationOngoing;
 
 		// This will be used in the future for horizontal selection indicators.
@@ -32,14 +31,13 @@ namespace WalletWasabi.Fluent.Behaviors
 		public void Dispose()
 		{
 			_isDisposed = true;
- 		}
+		}
 
 		private static Matrix GetOffsetFrom(IVisual ancestor, IVisual visual)
 		{
 			var identity = Matrix.Identity;
 			while (visual != ancestor)
 			{
-				var num = 0;
 				var bounds = visual.Bounds;
 				var topLeft = bounds.TopLeft;
 
@@ -59,19 +57,18 @@ namespace WalletWasabi.Fluent.Behaviors
 			return identity;
 		}
 
-		public async void AnimateIndicator(Rectangle next)
+		public async void AnimateIndicatorAsync(Rectangle next)
 		{
 			if (_isDisposed)
 			{
 				return;
 			}
 
-			var haveValidAnimation = false;
 			var prevIndicator = _activeIndicator;
 			var nextIndicator = next;
 
 			// user clicked twice
-			if (prevIndicator == nextIndicator)
+			if (prevIndicator.Equals(nextIndicator))
 			{
 				return;
 			}
@@ -132,7 +129,7 @@ namespace WalletWasabi.Fluent.Behaviors
 						Cue = new Cue(0.33333d),
 						Setters =
 						{
-							new Setter(ScaleTransform.ScaleYProperty, maxScale)
+							new Setter(ScaleTransform.ScaleYProperty, maxScale * 0.5d)
 						}
 					},
 					new KeyFrame
