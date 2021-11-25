@@ -32,29 +32,29 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 			if (maxOutputs == 1)
 			{
 				var prunedSingletons = new CombinationsOfASize(orderedDenoms, maximumTotalValue, minimumTotalValue);
-				StratifiedDecompositions = ImmutableArray.Create<CombinationsOfASize>(prunedSingletons);
+				StratifiedDecompositions = ImmutableArray.Create(prunedSingletons);
 			}
 			else
 			{
-				var bySize = ImmutableArray.CreateBuilder<CombinationsOfASize>(maxOutputs);
+				var combinationsBySize = ImmutableArray.CreateBuilder<CombinationsOfASize>(maxOutputs);
 
 				// Generate the base decompositions, one for each possible value,
 				// without pruning by minimum total value.
-				var unprunedSingletons = new CombinationsOfASize(orderedDenoms, maximumTotalValue, 0);
-				bySize.Add(unprunedSingletons);
+				var unprunedSingletons = new CombinationsOfASize(orderedDenoms, maximumTotalValue, Money.Zero);
+				combinationsBySize.Add(unprunedSingletons);
 
 				// Extend to create combinations smaller than maxOutputs.
 				// There is still no pruning by minimum value as these
 				// decompositions are not yet complete.
-				while (bySize.Capacity - bySize.Count > 1)
+				while (maxOutputs - combinationsBySize.Count > 1)
 				{
-					bySize.Add(bySize[^1].Extend(maximumTotalValue, 0));
+					combinationsBySize.Add(combinationsBySize[^1].Extend(maximumTotalValue, Money.Zero));
 				}
 
 				// The final extension can make use of the minimum value bound.
-				bySize.Add(bySize[^1].Extend(maximumTotalValue, minimumTotalValue));
+				combinationsBySize.Add(combinationsBySize[^1].Extend(maximumTotalValue, minimumTotalValue));
 
-				StratifiedDecompositions = bySize.MoveToImmutable();
+				StratifiedDecompositions = combinationsBySize.MoveToImmutable();
 			}
 		}
 
@@ -66,8 +66,6 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 		private Money MaximumTotalValue { get; }
 
 		private Money MinimumTotalValue { get; }
-
-		private int MaxOutputs => StratifiedDecompositions.Length;
 
 		// The final public API should only allow 2, later 3 access patterns
 		// efficiently:
