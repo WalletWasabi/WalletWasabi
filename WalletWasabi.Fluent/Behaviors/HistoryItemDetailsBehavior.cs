@@ -42,8 +42,6 @@ namespace WalletWasabi.Fluent.Behaviors
 			_historyItemDetailsAdorner = new HistoryItemDetailsAdorner
 			{
 				[AdornerLayer.AdornedElementProperty] = dataBoxRow,
-				IsHitTestVisible = true,
-				ClipToBounds = false,
 				Row = dataBoxRow
 			};
 

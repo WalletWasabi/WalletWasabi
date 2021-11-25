@@ -130,6 +130,10 @@
       </Style>
 
       <Style Selector="behaviors|HistoryItemDetailsAdorner">
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+        <Setter Property="ClipToBounds" Value="False" />
+        <Setter Property="IsHitTestVisible" Value="True" />
         <Setter Property="Template">
           <ControlTemplate>
             <Button x:DataType="historyItems:HistoryItemViewModelBase" Classes="plain" ToolTip.Tip="Show Details"
