@@ -63,6 +63,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			_historyItemDetailsAdorner = new HistoryItemDetailsAdorner
 			{
 				[AdornerLayer.AdornedElementProperty] = dataBoxRow,
+				[AdornerLayer.IsClipEnabledProperty] = false,
 				Row = dataBoxRow
 			};
 
