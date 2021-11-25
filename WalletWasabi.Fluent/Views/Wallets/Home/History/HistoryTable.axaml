@@ -3,11 +3,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:history="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="history:HistoryViewModel"
              x:CompileBindings="True"
@@ -16,7 +16,7 @@
   <DataBox Items="{Binding Transactions}"
            SelectedItem="{Binding SelectedItem}"
            CanUserResizeColumns="False"
-           Margin="-40 0 0 0"
+           Margin="0 0 0 0"
            DockPanel.Dock="Bottom">
     <DataBox.Styles>
       <Style Selector="PathIcon">
@@ -118,6 +118,28 @@
       <Style Selector="PathIcon.hidden">
         <Setter Property="IsVisible" Value="False"/>
       </Style>
+
+      <Style Selector="DataBoxRow">
+        <Setter Property="(i:Interaction.Behaviors)">
+          <i:BehaviorCollectionTemplate>
+            <i:BehaviorCollection>
+              <behaviors:HistoryItemDetailsBehavior />
+            </i:BehaviorCollection>
+          </i:BehaviorCollectionTemplate>
+        </Setter>
+      </Style>
+
+      <Style Selector="behaviors|HistoryItemDetailsAdorner">
+        <Setter Property="Template">
+          <ControlTemplate>
+            <Button x:DataType="historyItems:HistoryItemViewModelBase" Classes="plain" ToolTip.Tip="Show Details"
+                    Command="{Binding ShowDetailsCommand}">
+              <PathIcon Data="{StaticResource details_regular}" Height="15" Opacity="0.6" />
+            </Button>
+          </ControlTemplate>
+        </Setter>
+      </Style>
+
     </DataBox.Styles>
 
     <DataBox.Columns>
@@ -128,10 +150,12 @@
         <DataBoxTemplateColumn.CellTemplate>
           <DataTemplate>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+              <!--
               <Button x:DataType="historyItems:HistoryItemViewModelBase" Classes="plain historyDetails" ToolTip.Tip="Show Details"
                       Command="{Binding ShowDetailsCommand}">
                 <PathIcon Data="{StaticResource details_regular}" Height="15" Opacity="0.6" />
               </Button>
+              -->
               <Panel x:DataType="historyItems:HistoryItemViewModelBase">
                 <!-- Confirmed -->
                 <PathIcon IsVisible="{Binding IsConfirmed}"
