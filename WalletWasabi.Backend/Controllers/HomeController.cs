@@ -9,7 +9,7 @@ namespace WalletWasabi.Backend.Controllers
 		[HttpGet("")]
 		public IActionResult Index()
 		{
-			string host = HttpContext?.Request?.Host.Host;
+			string host = HttpContext.Request.Host.Host;
 
 			VirtualFileResult response = !string.IsNullOrWhiteSpace(host) && host.TrimEnd('/').EndsWith(".onion", StringComparison.OrdinalIgnoreCase)
 				? File("onion-index.html", "text/html")

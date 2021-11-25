@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Caching.Memory;
 using Moq;
 using NBitcoin;
 using NBitcoin.RPC;
@@ -6,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Controllers;
+using WalletWasabi.Backend.Controllers.WabiSabi;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
@@ -15,7 +17,6 @@ using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Models;
-using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Crypto;
@@ -60,7 +61,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, mockRpc, round);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 
-			var wabiSabiApi = new WabiSabiController(arena);
+			using var memoryCache = new MemoryCache(new MemoryCacheOptions());
+			var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
+			var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena);
+
 			var insecureRandom = new InsecureRandom();
 			var roundState = RoundState.FromRound(round);
 			var aliceArenaClient = new ArenaClient(
@@ -175,7 +179,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			using Arena arena = await ArenaBuilder.From(config).CreateAndStartAsync(round);
 
-			var wabiSabiApi = new WabiSabiController(arena);
+			using var memoryCache = new MemoryCache(new MemoryCacheOptions());
+			var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
+			var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena);
+
 			var apiClient = new ArenaClient(null!, null!, wabiSabiApi);
 
 			round.SetPhase(Phase.InputRegistration);
@@ -201,7 +208,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, round);
 
 			var mockRpc = new Mock<IRPCClient>();
-			var wabiSabiApi = new WabiSabiController(arena);
+			using var memoryCache = new MemoryCache(new MemoryCacheOptions());
+			var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
+			var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena);
 
 			var rnd = new InsecureRandom();
 			var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, rnd, 4300000000000L);
