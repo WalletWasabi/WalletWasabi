@@ -19,7 +19,8 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing.TestDomain
 		{
 			State = State with
 			{
-				MinInputSats = @event.MinInputSats
+				Status = TestRoundStatusEnum.Started,
+				MinInputSats = @event.MinInputSats,				
 			};
 		}
 

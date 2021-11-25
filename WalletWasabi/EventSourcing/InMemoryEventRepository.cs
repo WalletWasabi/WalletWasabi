@@ -209,19 +209,19 @@ namespace WalletWasabi.EventSourcing
 				comparisonValue: new AggregateTypeIds(tailIndex, aggregateIds)));
 		}
 
-		// Helper for parallel critical section testing in DEBUG build only.
+		// Hook for parallel critical section testing in DEBUG build only.
 		protected virtual void Validated()
 		{
 			// Keep empty. To be overriden in tests.
 		}
 
-		// Helper for parallel critical section testing in DEBUG build only.
+		// Hook for parallel critical section testing in DEBUG build only.
 		protected virtual void Conflicted()
 		{
 			// Keep empty. To be overriden in tests.
 		}
 
-		// Helper for parallel critical section testing in DEBUG build only.
+		// Hook for parallel critical section testing in DEBUG build only.
 		protected virtual void Appended()
 		{
 			// Keep empty. To be overriden in tests.
