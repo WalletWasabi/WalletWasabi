@@ -13,62 +13,62 @@ namespace WalletWasabi.EventSourcing.ArenaDomain.CommandProcessor
 {
 	public class RoundCommandProcessor : ICommandProcessor
 	{
-		public IEnumerable<IEvent> Process(StartRoundCommand command, RoundState2 aggregate)
+		public IEnumerable<IEvent> Process(StartRoundCommand command, RoundState2 state)
 		{
 			return new[] { new RoundStartedEvent(command.RoundParameters) };
 		}
 
-		public IEnumerable<IEvent> Process(InputRegisterCommand command, RoundState2 aggregate)
+		public IEnumerable<IEvent> Process(InputRegisterCommand command, RoundState2 state)
 		{
 			return new[] { new InputRegisteredEvent(command.AliceId, command.Coin, command.OwnershipProof) };
 		}
 
-		public IEnumerable<IEvent> Process(EndRoundCommand command, RoundState2 aggregate)
+		public IEnumerable<IEvent> Process(EndRoundCommand command, RoundState2 state)
 		{
 			return new[] { new RoundEndedEvent() };
 		}
 
-		public IEnumerable<IEvent> Process(InputConnectionConfirmedCommand command, RoundState2 aggregate)
+		public IEnumerable<IEvent> Process(InputConnectionConfirmedCommand command, RoundState2 state)
 		{
 			return new[] { new InputConnectionConfirmedEvent(command.AliceId, command.Coin, command.OwnershipProof) };
 		}
 
-		public IEnumerable<IEvent> Process(RemoveInputCommand command, RoundState2 aggregate)
+		public IEnumerable<IEvent> Process(RemoveInputCommand command, RoundState2 state)
 		{
 			return new[] { new InputUnregistered(command.AliceId) };
 		}
 
-		public IEnumerable<IEvent> Process(RegisterOutputCommand command, RoundState2 aggregate)
+		public IEnumerable<IEvent> Process(RegisterOutputCommand command, RoundState2 state)
 		{
 			return new[] { new OutputRegisteredEvent(command.Script, command.Value) };
 		}
 
-		public IEnumerable<IEvent> Process(StartOutputRegistrationCommand command, RoundState2 aggregate)
+		public IEnumerable<IEvent> Process(StartOutputRegistrationCommand command, RoundState2 state)
 		{
 			return new[] { new OutputRegistrationStartedEvent() };
 		}
 
-		public IEnumerable<IEvent> Process(StartConnectionConfirmationCommand command, RoundState2 aggregate)
+		public IEnumerable<IEvent> Process(StartConnectionConfirmationCommand command, RoundState2 state)
 		{
 			return new[] { new InputsConnectionConfirmationStartedEvent() };
 		}
 
-		public IEnumerable<IEvent> Process(StartTransactionSigningCommand command, RoundState2 aggregate)
+		public IEnumerable<IEvent> Process(StartTransactionSigningCommand command, RoundState2 state)
 		{
 			return new[] { new SigningStartedEvent() };
 		}
 
-		public IEnumerable<IEvent> Process(SucceedRoundCommand command, RoundState2 aggregate)
+		public IEnumerable<IEvent> Process(SucceedRoundCommand command, RoundState2 state)
 		{
-			return new[] { new RoundSucceedEvent() };
+			return new IEvent[] { new RoundSucceedEvent(), new RoundEndedEvent() };
 		}
 
-		public IEnumerable<IEvent> Process(InputReadyToSignCommand command, RoundState2 aggregate)
+		public IEnumerable<IEvent> Process(InputReadyToSignCommand command, RoundState2 state)
 		{
 			return new[] { new InputReadyToSignEvent(command.AliceId) };
 		}
 
-		public IEnumerable<IEvent> Process(AddSignatureEvent command, RoundState2 aggregate)
+		public IEnumerable<IEvent> Process(AddSignatureEvent command, RoundState2 state)
 		{
 			return new[] { new SignatureAddedEvent(command.AliceId, command.WitScript) };
 		}

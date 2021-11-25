@@ -92,6 +92,11 @@ namespace WalletWasabi.WabiSabi.Client
 					break;
 				}
 			}
+
+			foreach (var round in ActiveRounds.Where(r => r.Value.State.Phase == Phase.Ended).Select(r => r.Key).ToArray())
+			{
+				ActiveRounds.Remove(round);
+			}
 		}
 
 		public Task<RoundState2> CreateRoundAwaiter(uint256 roundId, Phase phase, CancellationToken cancellationToken)

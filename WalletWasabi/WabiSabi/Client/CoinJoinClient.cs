@@ -108,7 +108,7 @@ namespace WalletWasabi.WabiSabi.Client
 				var availableVsize = registeredAliceClients.SelectMany(x => x.IssuedVsizeCredentials).Sum(x => x.Value);
 
 				// Calculate outputs values
-				roundState = await RoundStatusUpdater.CreateRoundAwaiter(rs => rs.Id == roundState.Id, cancellationToken).ConfigureAwait(false);
+				roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => true, cancellationToken).ConfigureAwait(false);
 
 				AmountDecomposer amountDecomposer = new(roundParameters.FeeRate, roundParameters.MultipartyTransactionParameters.AllowedOutputAmounts.Min, Constants.P2WPKHOutputSizeInBytes, (int)availableVsize);
 				var theirCoins = roundState.Inputs.Select(input => input.Coin).Except(registeredCoins);
@@ -133,7 +133,7 @@ namespace WalletWasabi.WabiSabi.Client
 				await scheduler.StartReissuancesAsync(registeredAliceClients, bobClient, cancellationToken).ConfigureAwait(false);
 
 				// Output registration.
-				roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
+				roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
 				Logger.LogDebug($"Round ({roundState.Id}): Output registration phase started.");
 
 				await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, cancellationToken).ConfigureAwait(false);
@@ -144,7 +144,7 @@ namespace WalletWasabi.WabiSabi.Client
 				Logger.LogDebug($"Round ({roundState.Id}): Alices({registeredAliceClients.Length}) successfully signalled ready to sign.");
 
 				// Signing.
-				roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
+				roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
 				Logger.LogDebug($"Round ({roundState.Id}): Transaction signing phase started.");
 
 				var unsignedCoinJoin = CreateUnsignedCoinJoin(roundState);
@@ -159,7 +159,7 @@ namespace WalletWasabi.WabiSabi.Client
 				await SignTransactionAsync(registeredAliceClients, unsignedCoinJoin, roundState, cancellationToken).ConfigureAwait(false);
 				Logger.LogDebug($"Round ({roundState.Id}): Alices({registeredAliceClients.Length}) successfully signed the CoinJoin tx.");
 
-				var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundState.Id && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
+				var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, Phase.Ended, cancellationToken).ConfigureAwait(false);
 				Logger.LogDebug($"Round ({roundState.Id}): Round Ended - WasTransactionBroadcast: '{finalRoundState.Succeeded}'.");
 
 				return finalRoundState.Succeeded;
