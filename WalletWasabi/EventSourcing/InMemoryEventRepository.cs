@@ -19,33 +19,30 @@ namespace WalletWasabi.EventSourcing
 		protected static readonly IReadOnlyList<WrappedEvent> EmptyResult = ImmutableList<WrappedEvent>.Empty;
 		protected static readonly IReadOnlyList<string> EmptyIds = ImmutableList<string>.Empty;
 
-		private readonly ConcurrentDictionary<
+		private readonly ConcurrentDictionary
 			// aggregateType
-			string,
-			ConcurrentDictionary<
+			<string,
+			ConcurrentDictionary
 				// aggregateId
-				string,
+				<string,
 				(
 					// SequenceId of the last event of this aggregate
 					long TailSequenceId,
 
 					// Ordered list of events
 					ImmutableList<WrappedEvent> Events
-				)
-			>
-		> _aggregatesEventsBatches = new();
+				)>> _aggregatesEventsBatches = new();
 
-		private readonly ConcurrentDictionary<
+		private readonly ConcurrentDictionary
 			// aggregateType
-			string,
+			<string,
 			(
 				// Index of the last aggregateId in this aggregateType
 				long TailIndex,
 
 				// List of aggregate Ids in this aggregateType
 				ImmutableSortedSet<string> Ids
-			)
-		> _aggregatesIds = new();
+			)> _aggregatesIds = new();
 
 		public Task AppendEventsAsync(
 			string aggregateType,
@@ -76,7 +73,9 @@ namespace WalletWasabi.EventSourcing
 			}
 
 			var aggregateEventsBatches = _aggregatesEventsBatches.GetOrAdd(aggregateType, _ => new());
-			var (tailSequenceId, events) = aggregateEventsBatches.GetOrAdd(aggregateId, _ => (0, ImmutableList<WrappedEvent>.Empty));
+			var (tailSequenceId, events) = aggregateEventsBatches.GetOrAdd(
+				aggregateId,
+				_ => (0, ImmutableList<WrappedEvent>.Empty));
 
 			if (tailSequenceId + 1 < firstSequenceId)
 			{
@@ -87,6 +86,7 @@ namespace WalletWasabi.EventSourcing
 			Validated();
 
 			var newEvents = events.AddRange(wrappedEventsList);
+
 			// Atomically detect conflict and replace lastSequenceId and lock to ensure strong order in eventsBatches.
 			if (!aggregateEventsBatches.TryUpdate(
 				key: aggregateId,
@@ -187,8 +187,10 @@ namespace WalletWasabi.EventSourcing
 				{
 					throw new ApplicationException("Live lock detected.");
 				}
-				(tailIndex, aggregateIds) = _aggregatesIds.GetOrAdd(aggregateType,
+				(tailIndex, aggregateIds) = _aggregatesIds.GetOrAdd(
+					aggregateType,
 					_ => new(0, ImmutableSortedSet<string>.Empty));
+
 				newAggregateIds = aggregateIds.Add(id);
 			}
 			while (!_aggregatesIds.TryUpdate(
