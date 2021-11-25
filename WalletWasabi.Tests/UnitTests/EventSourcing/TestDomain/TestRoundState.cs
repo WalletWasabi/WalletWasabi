@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using WalletWasabi.EventSourcing.Interfaces;
 
 namespace WalletWasabi.Tests.UnitTests.EventSourcing.TestDomain
@@ -6,7 +7,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing.TestDomain
 	public record TestRoundState(
 		ulong MinInputSats,
 		TestRoundStatusEnum Status,
-		IReadOnlyList<TestRoundInputState> Inputs,
+		ImmutableList<TestRoundInputState> Inputs,
 		string? TxId,
 		string? FailureReason) : IState;
 

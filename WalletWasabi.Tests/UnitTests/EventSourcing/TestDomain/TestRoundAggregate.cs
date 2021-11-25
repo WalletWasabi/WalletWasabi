@@ -1,17 +1,14 @@
-using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WalletWasabi.EventSourcing.Interfaces;
-using WalletWasabi.Interfaces.EventSourcing;
 
 namespace WalletWasabi.Tests.UnitTests.EventSourcing.TestDomain
 {
 	internal class TestRoundAggregate : IAggregate
 	{
 		public TestRoundState State { get; private set; } =
-			new(0, TestRoundStatusEnum.New, Array.Empty<TestRoundInputState>(), null, null);
+			new(0, TestRoundStatusEnum.New, ImmutableList<TestRoundInputState>.Empty, null, null);
 
 		IState IAggregate.State => State;
 
@@ -20,7 +17,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing.TestDomain
 			State = State with
 			{
 				Status = TestRoundStatusEnum.Started,
-				MinInputSats = @event.MinInputSats,				
+				MinInputSats = @event.MinInputSats,
 			};
 		}
 
@@ -28,10 +25,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing.TestDomain
 		{
 			State = State with
 			{
-				Inputs = new List<TestRoundInputState>
-				{
-					new(@event.InputId, @event.Sats)
-				}.AsReadOnly()
+				Inputs = State.Inputs.Add(new(@event.InputId, @event.Sats))
 			};
 		}
 
@@ -39,7 +33,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing.TestDomain
 		{
 			State = State with
 			{
-				Inputs = State.Inputs.Where(a => a.InputId != @event.InputId).ToList().AsReadOnly(),
+				Inputs = State.Inputs.RemoveAll(a => a.InputId == @event.InputId),
 			};
 		}
 
