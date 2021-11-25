@@ -18,7 +18,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			AvaloniaProperty.Register<PasteButtonFlashBehavior, string>(nameof(FlashAnimation));
 
 		public static readonly StyledProperty<string> CurrentAddressProperty =
-			AvaloniaProperty.Register<PasteButtonFlashBehavior, string>(nameof(FlashAnimation));
+			AvaloniaProperty.Register<PasteButtonFlashBehavior, string>(nameof(CurrentAddress));
 
 		public string FlashAnimation
 		{
@@ -52,10 +52,6 @@ namespace WalletWasabi.Fluent.Behaviors
 			AssociatedObject?.WhenAnyValue(x => x.AnimateIcon)
 				.Where(x => x)
 				.Subscribe(_ => AssociatedObject.Classes.Remove(FlashAnimation))
-				.DisposeWith(disposables);
-
-			this.WhenAnyValue(x => x.CurrentAddress)
-				.Subscribe(async _ => await CheckClipboardForValidAddressAsync())
 				.DisposeWith(disposables);
 		}
 
