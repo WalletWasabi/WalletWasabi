@@ -77,8 +77,6 @@ namespace WalletWasabi.Fluent.Behaviors
 
 		protected override void OnAttached(CompositeDisposable disposables)
 		{
-			base.OnAttached();
-
 			if (AssociatedObject is not null)
 			{
 				disposables.Add(
