@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Threading;
 using ReactiveUI;
 using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Userfacing;
@@ -14,6 +15,8 @@ namespace WalletWasabi.Fluent.Behaviors
 {
 	public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedButton>
 	{
+		private string? _lastFlashedOn;
+
 		public static readonly StyledProperty<string> FlashAnimationProperty =
 			AvaloniaProperty.Register<PasteButtonFlashBehavior, string>(nameof(FlashAnimation));
 
@@ -34,7 +37,7 @@ namespace WalletWasabi.Fluent.Behaviors
 
 		protected override void OnAttachedToVisualTree(CompositeDisposable disposables)
 		{
-			RxApp.MainThreadScheduler.Schedule(async () => await CheckClipboardForValidAddressAsync());
+			Dispatcher.UIThread.Post(async () => await CheckClipboardForValidAddressAsync(), DispatcherPriority.Loaded);
 
 			if (Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
 			{
@@ -45,7 +48,7 @@ namespace WalletWasabi.Fluent.Behaviors
 					.Merge(this.WhenAnyValue(x => x.CurrentAddress).Select(_ => Unit.Default))
 					.Throttle(TimeSpan.FromMilliseconds(100))
 					.ObserveOn(RxApp.MainThreadScheduler)
-					.Subscribe(async _ => await CheckClipboardForValidAddressAsync())
+					.Subscribe(async _ => await CheckClipboardForValidAddressAsync(false))
 					.DisposeWith(disposables);
 			}
 
@@ -55,21 +58,39 @@ namespace WalletWasabi.Fluent.Behaviors
 				.DisposeWith(disposables);
 		}
 
-		private async Task CheckClipboardForValidAddressAsync()
+		private async Task CheckClipboardForValidAddressAsync(bool schedule = true)
 		{
-			AssociatedObject?.Classes.Remove(FlashAnimation);
+			if (AssociatedObject is null)
+			{
+				return;
+			}
 
 			var textToPaste = await Application.Current.Clipboard.GetTextAsync();
 
-			if (textToPaste != CurrentAddress && AddressStringParser.TryParse(textToPaste, Services.WalletManager.Network, out _))
+			if (_lastFlashedOn != textToPaste)
 			{
-				AssociatedObject?.Classes.Add(FlashAnimation);
+				AssociatedObject?.Classes.Remove(FlashAnimation);
 
-				ToolTip.SetTip(AssociatedObject!, $"Paste BTC Address:\r\n{textToPaste}");
+				if (textToPaste != CurrentAddress &&
+				    AddressStringParser.TryParse(textToPaste, Services.WalletManager.Network, out _))
+				{
+					AssociatedObject?.Classes.Add(FlashAnimation);
+
+					ToolTip.SetTip(AssociatedObject!, $"Paste BTC Address:\r\n{textToPaste}");
+				}
+				else
+				{
+					ToolTip.SetTip(AssociatedObject!, "Paste");
+				}
+
+				_lastFlashedOn = textToPaste;
 			}
-			else
+
+			if (schedule)
 			{
-				ToolTip.SetTip(AssociatedObject!, "Paste");
+				await Task.Delay(500);
+
+				RxApp.MainThreadScheduler.Schedule(async ()=> await CheckClipboardForValidAddressAsync());
 			}
 		}
 	}
