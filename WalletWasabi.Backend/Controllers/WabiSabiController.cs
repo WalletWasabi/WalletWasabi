@@ -43,9 +43,9 @@ namespace WalletWasabi.Backend.Controllers
 		}
 
 		[HttpPost("output-registration")]
-		public Task<EmptyResponse> RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
+		public Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
 		{
-			return IdempotencyRequestCache.GetCachedResponseAsync(request, action: (request, token) => Arena.RegisterOutputAsync(request, token), cancellationToken);
+			return IdempotencyRequestCache.GetCachedResponseAsync(request, action: (request, token) => Arena.RegisterOutputCoreAsync(request, token), cancellationToken);
 		}
 
 		[HttpPost("credential-issuance")]
