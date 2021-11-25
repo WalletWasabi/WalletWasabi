@@ -40,6 +40,10 @@ namespace WalletWasabi.EventSourcing
 
 		public Result(IEnumerable<IError> errors) : this(CreateImmutableArray(errors)) { }
 
+		public Result(params IEvent[] events) : this(CreateImmutableArray(events.AsEnumerable())) { }
+
+		public Result(params IError[] errors) : this(CreateImmutableArray(errors.AsEnumerable())) { }
+
 		public Result(IEvent @event) : this(CreateImmutableArray(@event)) { }
 
 		public Result(IError error) : this(CreateImmutableArray(error)) { }
@@ -55,6 +59,11 @@ namespace WalletWasabi.EventSourcing
 		}
 
 		public static Result Succeed(IEnumerable<IEvent> events)
+		{
+			return new Result(events);
+		}
+
+		public static Result Succeed(params IEvent[] events)
 		{
 			return new Result(events);
 		}
@@ -75,6 +84,11 @@ namespace WalletWasabi.EventSourcing
 		}
 
 		public static Result Fail(IEnumerable<IError> errors)
+		{
+			return new Result(errors);
+		}
+
+		public static Result Fail(IError[] errors)
 		{
 			return new Result(errors);
 		}
