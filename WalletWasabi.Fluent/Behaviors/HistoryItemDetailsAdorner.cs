@@ -52,7 +52,7 @@ namespace WalletWasabi.Fluent.Behaviors
 
 			finalSize.WithHeight(bounds.Height);
 
-			var rect = new Rect(-26, 0, finalSize.Width, bounds.Height);
+			var rect = new Rect(0, 0, finalSize.Width, bounds.Height);
 
 			var result = finalSize;
 

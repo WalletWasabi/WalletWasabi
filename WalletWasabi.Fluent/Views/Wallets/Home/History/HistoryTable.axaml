@@ -130,6 +130,7 @@
       </Style>
 
       <Style Selector="behaviors|HistoryItemDetailsAdorner">
+        <Setter Property="Margin" Value="-31,0,0,0" />
         <Setter Property="HorizontalAlignment" Value="Left" />
         <Setter Property="VerticalAlignment" Value="Top" />
         <Setter Property="ClipToBounds" Value="False" />
