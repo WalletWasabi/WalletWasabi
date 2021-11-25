@@ -16,7 +16,6 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 {
 	public class InMemoryEventRepositoryTests
 	{
-		private const string TestRoundAggregate = "TestRoundAggregate";
 		private readonly TimeSpan _semaphoreWaitTimeout = TimeSpan.FromSeconds(1);
 
 		public InMemoryEventRepositoryTests(ITestOutputHelper output)
@@ -220,9 +219,8 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 				.SequenceEqual(new[] { "1" }));
 		}
 
-		[Theory]
-		[InlineData(nameof(TestInMemoryEventRepository.AppendedSemaphore))]
-		public async Task AppendEvents_CriticalSectionConflicts_Async(string conflictAfter)
+		[Fact]
+		public async Task AppendEvents_CriticalSectionConflicts_Async()
 		{
 			// Arrange
 			var events_1 = new[] { new TestWrappedEvent(1, "a"), new TestWrappedEvent(2, "a") };
@@ -235,15 +233,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			}
 			async Task Append2()
 			{
-				switch (conflictAfter)
-				{
-					case nameof(TestInMemoryEventRepository.AppendedSemaphore):
-						Assert.True(TestEventRepository.AppendedSemaphore.Wait(_semaphoreWaitTimeout));
-						break;
-
-					default:
-						throw new ApplicationException($"unexpected value conflictAfter: '{conflictAfter}'");
-				}
+				Assert.True(TestEventRepository.AppendedSemaphore.Wait(_semaphoreWaitTimeout));
 				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events_2!);
 			}
 			async Task AppendInParallel()
@@ -256,11 +246,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			{
 				Assert.True(TestEventRepository.ConflictedSemaphore.Wait(_semaphoreWaitTimeout));
 			}
-			TestEventRepository.AppendedCallback = conflictAfter switch
-			{
-				nameof(TestInMemoryEventRepository.AppendedSemaphore) => WaitForConflict,
-				_ => throw new ApplicationException($"unexpected value conflictAfter: '{conflictAfter}'"),
-			};
+			TestEventRepository.AppendedCallback = WaitForConflict;
 
 			// Assert
 			await Assert.ThrowsAsync<OptimisticConcurrencyException>(AppendInParallel);
@@ -270,9 +256,8 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 				.SequenceEqual(new[] { "1" }));
 		}
 
-		[Theory]
-		[InlineData(nameof(TestInMemoryEventRepository.AppendedSemaphore))]
-		public async Task AppendEvents_CriticalAppendConflicts_Async(string conflictAfter)
+		[Fact]
+		public async Task AppendEvents_CriticalAppendConflicts_Async()
 		{
 			// Arrange
 			var events_1 = new[] { new TestWrappedEvent(1, "a"), new TestWrappedEvent(2, "a") };
@@ -285,15 +270,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			}
 			async Task Append2()
 			{
-				switch (conflictAfter)
-				{
-					case nameof(TestInMemoryEventRepository.AppendedSemaphore):
-						Assert.True(TestEventRepository.AppendedSemaphore.Wait(_semaphoreWaitTimeout));
-						break;
-
-					default:
-						throw new ApplicationException($"unexpected value conflictAfter: '{conflictAfter}'");
-				}
+				Assert.True(TestEventRepository.AppendedSemaphore.Wait(_semaphoreWaitTimeout));
 				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events_2!);
 			}
 			async Task AppendInParallel()
@@ -306,11 +283,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			{
 				Assert.False(TestEventRepository.ConflictedSemaphore.Wait(_semaphoreWaitTimeout));
 			}
-			TestEventRepository.AppendedCallback = conflictAfter switch
-			{
-				nameof(TestInMemoryEventRepository.AppendedSemaphore) => WaitForNoConflict,
-				_ => throw new ApplicationException($"unexpected value conflictAfter: '{conflictAfter}'"),
-			};
+			TestEventRepository.AppendedCallback = WaitForNoConflict;
 
 			// no conflict
 			await AppendInParallel();

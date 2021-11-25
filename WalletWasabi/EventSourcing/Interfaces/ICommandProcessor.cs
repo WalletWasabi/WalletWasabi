@@ -4,6 +4,6 @@ namespace WalletWasabi.EventSourcing.Interfaces
 {
 	public interface ICommandProcessor
 	{
-		public Result Process(ICommand command, IState aggregate);
+		public Result Process(ICommand command, IState aggregateState);
 	}
 }
