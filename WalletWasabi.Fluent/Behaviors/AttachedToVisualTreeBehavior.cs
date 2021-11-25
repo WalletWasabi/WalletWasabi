@@ -1,23 +1,26 @@
+using System.Reactive.Disposables;
 using Avalonia;
 using Avalonia.Xaml.Interactivity;
 
 namespace WalletWasabi.Fluent.Behaviors
 {
-	public abstract class AttachedToVisualTreeBehavior<T> : Behavior<T> where T : Visual
+	public abstract class AttachedToVisualTreeBehavior<T> : DisposingBehavior<T> where T : Visual
 	{
-		protected override void OnAttached()
+		private CompositeDisposable? _disposables;
+
+		protected override void OnAttached(CompositeDisposable disposables)
 		{
-			base.OnAttached();
+			_disposables = disposables;
 
 			AssociatedObject!.AttachedToVisualTree += AssociatedObjectOnAttachedToVisualTree;
 		}
 
 		private void AssociatedObjectOnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
 		{
-			OnAttachedToVisualTree();
+			OnAttachedToVisualTree(_disposables!);
 		}
 
-		protected abstract void OnAttachedToVisualTree();
+		protected abstract void OnAttachedToVisualTree(CompositeDisposable disposable);
 
 		protected override void OnDetaching()
 		{
