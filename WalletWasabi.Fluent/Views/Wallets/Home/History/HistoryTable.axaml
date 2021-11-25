@@ -11,10 +11,12 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="history:HistoryViewModel"
              x:CompileBindings="True"
+             ClipToBounds="False"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.HistoryTable">
   <DataBox Items="{Binding Transactions}"
            SelectedItem="{Binding SelectedItem}"
            CanUserResizeColumns="False"
+           Margin="-40 0 0 0"
            DockPanel.Dock="Bottom">
     <DataBox.Styles>
       <Style Selector="PathIcon">
@@ -29,6 +31,12 @@
         <Setter Property="Orientation" Value="Horizontal" />
         <Setter Property="Spacing" Value="10" />
         <Setter Property="Margin" Value="10 0" />
+      </Style>
+      <Style Selector="DataBoxRow Button.historyDetails">
+        <Setter Property="Opacity" Value="0"></Setter>
+      </Style>
+      <Style Selector="DataBoxRow:pointerover Button.historyDetails">
+        <Setter Property="Opacity" Value="1"></Setter>
       </Style>
       <Style Selector="DataBoxRow">
         <Setter Property="Focusable" Value="False" />
@@ -115,12 +123,12 @@
     <DataBox.Columns>
       <!-- Indicators -->
       <DataBoxTemplateColumn Width="Auto"
-                             MinWidth="120"
+                             MinWidth="80"
                              CanUserSort="False">
         <DataBoxTemplateColumn.CellTemplate>
           <DataTemplate>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-              <Button x:DataType="historyItems:HistoryItemViewModelBase" Classes="plain" ToolTip.Tip="Show Details"
+              <Button x:DataType="historyItems:HistoryItemViewModelBase" Classes="plain historyDetails" ToolTip.Tip="Show Details"
                       Command="{Binding ShowDetailsCommand}">
                 <PathIcon Data="{StaticResource details_regular}" Height="15" Opacity="0.6" />
               </Button>
