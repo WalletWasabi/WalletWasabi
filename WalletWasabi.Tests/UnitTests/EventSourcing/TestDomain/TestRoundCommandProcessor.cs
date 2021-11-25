@@ -108,7 +108,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing.TestDomain
 
 		private bool IsStateValid(TestRoundStatusEnum expected, TestRoundState state, string commandName, out Result errorResult)
 		{
-			var isStateValid = expected != state.Status;
+			var isStateValid = expected == state.Status;
 			errorResult = null!;
 			if (!isStateValid)
 			{
