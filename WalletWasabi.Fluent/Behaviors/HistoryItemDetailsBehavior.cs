@@ -26,7 +26,28 @@ namespace WalletWasabi.Fluent.Behaviors
 							}
 							else
 							{
-								RemoveAdorner(AssociatedObject);
+								if (!AssociatedObject.IsSelected)
+								{
+									RemoveAdorner(AssociatedObject);
+								}
+							}
+						}));
+
+				disposables.Add(
+					AssociatedObject
+						.GetObservable(ListBoxItem.IsSelectedProperty)
+						.Subscribe(x =>
+						{
+							if (x)
+							{
+								AddAdorner(AssociatedObject);
+							}
+							else
+							{
+								if (!AssociatedObject.IsPointerOver)
+								{
+									RemoveAdorner(AssociatedObject);
+								}
 							}
 						}));
 			}
