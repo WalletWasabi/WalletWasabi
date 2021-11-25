@@ -1,5 +1,9 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
+using WalletWasabi.EventSourcing;
+using WalletWasabi.EventSourcing.Interfaces;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Backend.PostRequests
@@ -21,5 +25,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 		Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken);
 
 		Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken);
+
+		Task<IEnumerable<WrappedEvent>> GetRoundEvents(string roundId, long afterSequenceId, CancellationToken cancellationToken);
 	}
 }

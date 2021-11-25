@@ -118,8 +118,9 @@ namespace WalletWasabi.EventSourcing
 				var result = value.Events;
 				if (afterSequenceId > 0)
 				{
+					var dummyEvent = new WrappedEvent(afterSequenceId, null!, Guid.Empty);
 					var foundIndex = result.BinarySearch(
-						new WrappedEvent(afterSequenceId),
+						dummyEvent,
 						Comparer<WrappedEvent>.Create((a, b) => a.SequenceId.CompareTo(b.SequenceId)));
 					if (foundIndex < 0)
 					{
@@ -187,6 +188,9 @@ namespace WalletWasabi.EventSourcing
 					throw new ApplicationException("Live lock detected.");
 				}
 				(tailIndex, aggregateIds) = _aggregatesIds.GetOrAdd(aggregateType, _ => new(0, ImmutableSortedSet<string>.Empty));
+				(tailIndex, aggregateIds) = _aggregatesIds.GetOrAdd(
+          aggregateType,
+					_ => new(0, ImmutableSortedSet<string>.Empty));
 				newAggregateIds = aggregateIds.Add(id);
 			}
 			while (!_aggregatesIds.TryUpdate(

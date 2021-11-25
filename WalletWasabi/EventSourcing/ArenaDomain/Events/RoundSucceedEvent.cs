@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NBitcoin;
 using WalletWasabi.EventSourcing.Interfaces;
 
-namespace WalletWasabi.EventSourcing
+namespace WalletWasabi.EventSourcing.ArenaDomain.Events
 {
-	public record WrappedEvent(long SequenceId, IEvent DomainEvent, Guid SourceId);
+	public record RoundSucceedEvent() : IEvent, IRoundClientEvent;
 }

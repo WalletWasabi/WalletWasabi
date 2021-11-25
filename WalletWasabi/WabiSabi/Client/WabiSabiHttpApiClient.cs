@@ -5,7 +5,9 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
 using Newtonsoft.Json;
+using WalletWasabi.EventSourcing;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
@@ -35,7 +37,8 @@ namespace WalletWasabi.WabiSabi.Client
 			ReissueCredential,
 			SignTransaction,
 			GetStatus,
-			ReadyToSign
+			ReadyToSign,
+			GetRoundEvents
 		}
 
 		public Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken) =>
@@ -70,6 +73,19 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken) =>
 			SendAndReceiveAsync<ReadyToSignRequestRequest>(RemoteAction.ReadyToSign, request, cancellationToken);
+
+		public async Task<IEnumerable<WrappedEvent>> GetRoundEvents(string roundId, long afterSequenceId, CancellationToken cancellationToken)
+		{
+			var uri = $"{GetUriEndPoint(RemoteAction.GetRoundEvents)}?roundId={roundId}&afterSequenceId={afterSequenceId}";
+			using var response = await _client.SendAsync(HttpMethod.Get, uri, cancel: cancellationToken).ConfigureAwait(false);
+
+			if (!response.IsSuccessStatusCode)
+			{
+				await response.ThrowRequestExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
+			}
+			var jsonString = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+			return Deserialize<IEnumerable<WrappedEvent>>(jsonString);
+		}
 
 		private async Task<HttpResponseMessage> SendWithRetriesAsync(RemoteAction action, string jsonString, CancellationToken cancellationToken)
 		{
@@ -163,6 +179,7 @@ namespace WalletWasabi.WabiSabi.Client
 				RemoteAction.SignTransaction => "transaction-signature",
 				RemoteAction.GetStatus => "status",
 				RemoteAction.ReadyToSign => "ready-to-sign",
+				RemoteAction.GetRoundEvents => "round-events",
 				_ => throw new NotSupportedException($"Action '{action}' is unknown and has no endpoint associated.")
 			};
 	}

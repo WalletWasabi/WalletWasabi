@@ -1,10 +1,14 @@
 using NBitcoin;
 using Nito.AsyncEx;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
+using WalletWasabi.EventSourcing;
+using WalletWasabi.EventSourcing.ArenaDomain;
+using WalletWasabi.EventSourcing.ArenaDomain.Events;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
@@ -102,6 +106,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				var alice = GetAlice(request.AliceId, round);
 				alice.ReadyToSign = true;
 			}
+		}
+
+		public async Task<IEnumerable<WrappedEvent>> GetRoundEvents(string roundId, long afterSequenceId, CancellationToken cancellationToken)
+		{
+			var events = await EventRepository.ListEventsAsync(nameof(RoundAggregate), roundId.ToString(), afterSequenceId).ConfigureAwait(false);
+			return events.Where(ev => ev.DomainEvent is IRoundClientEvent);
 		}
 
 		public async Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellationToken)

@@ -23,7 +23,8 @@ namespace WalletWasabi.WabiSabi.Models.Serialization
 				new MoneySatoshiJsonConverter(),
 				new Uint256JsonConverter(),
 				new MultipartyTransactionStateJsonConverter()
-			}
+			},
+			TypeNameHandling = TypeNameHandling.Auto
 		};
 		public static readonly JsonSerializationOptions Default = new();
 

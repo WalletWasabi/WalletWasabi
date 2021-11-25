@@ -53,7 +53,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			// Arrange
 			var events = new[]
 			{
-				new WrappedEvent(1),
+				new TestWrappedEvent(1),
 			};
 
 			// Act
@@ -72,8 +72,8 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			// Arrange
 			var events = new[]
 			{
-				new WrappedEvent(1),
-				new WrappedEvent(2),
+				new TestWrappedEvent(1),
+				new TestWrappedEvent(2),
 			};
 
 			// Act
@@ -92,7 +92,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			// Arrange
 			var events = new[]
 			{
-				new WrappedEvent(-1)
+				new TestWrappedEvent(-1)
 			};
 
 			// Act
@@ -112,7 +112,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			// Arrange
 			var events = new[]
 			{
-				new WrappedEvent(2)
+				new TestWrappedEvent(2)
 			};
 
 			// Act
@@ -132,7 +132,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			// Arrange
 			var events = new[]
 			{
-				new WrappedEvent(1)
+				new TestWrappedEvent(1)
 			};
 			await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events);
 
@@ -151,10 +151,10 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 		public async Task AppendEventsAsync_Interleaving_Async()
 		{
 			// Arrange
-			var events_a_0 = new[] { new WrappedEvent(1) };
-			var events_b_0 = new[] { new WrappedEvent(1) };
-			var events_a_1 = new[] { new WrappedEvent(2) };
-			var events_b_1 = new[] { new WrappedEvent(2) };
+			var events_a_0 = new[] { new TestWrappedEvent(1) };
+			var events_b_0 = new[] { new TestWrappedEvent(1) };
+			var events_a_1 = new[] { new TestWrappedEvent(2) };
+			var events_b_1 = new[] { new TestWrappedEvent(2) };
 
 			// Act
 			await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "a", events_a_0);
@@ -175,9 +175,9 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 		public async Task AppendEventsAsync_InterleavingConflict_Async()
 		{
 			// Arrange
-			var events_a_0 = new[] { new WrappedEvent(1) };
-			var events_b_0 = new[] { new WrappedEvent(1) };
-			var events_a_1 = new[] { new WrappedEvent(2) };
+			var events_a_0 = new[] { new TestWrappedEvent(1) };
+			var events_b_0 = new[] { new TestWrappedEvent(1) };
+			var events_a_1 = new[] { new TestWrappedEvent(2) };
 
 			// Act
 			async Task Action()
