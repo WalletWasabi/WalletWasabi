@@ -64,6 +64,12 @@ namespace WalletWasabi.Fluent.Behaviors
 			if (textToPaste != CurrentAddress && AddressStringParser.TryParse(textToPaste, Services.WalletManager.Network, out _))
 			{
 				AssociatedObject?.Classes.Add(FlashAnimation);
+
+				ToolTip.SetTip(AssociatedObject!, $"Paste BTC Address:\r\n{textToPaste}");
+			}
+			else
+			{
+				ToolTip.SetTip(AssociatedObject!, "Paste");
 			}
 		}
 	}
