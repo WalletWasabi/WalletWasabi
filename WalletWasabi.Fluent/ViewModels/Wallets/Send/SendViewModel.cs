@@ -49,7 +49,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private bool _isFixedAmount;
 		[AutoNotify] private bool _isPayJoin;
 		[AutoNotify] private string? _payJoinEndPoint;
-		[AutoNotify] private bool _pasteButtonFlashEnabled;
 		private bool _parsingUrl;
 
 		public SendViewModel(Wallet wallet)
@@ -74,12 +73,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			this.WhenAnyValue(x => x.To)
 				.Skip(1)
 				.Subscribe(ParseToField);
-
-			this.WhenAnyValue(x => x.To)
-				.Subscribe(to =>
-				{
-					PasteButtonFlashEnabled = !Services.UiConfig.AutoPaste && !AddressStringParser.TryParse(to, _wallet.Network, out _);
-				});
 
 			this.WhenAnyValue(x => x.PayJoinEndPoint)
 				.Subscribe(endPoint =>

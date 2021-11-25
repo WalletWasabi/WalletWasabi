@@ -1,7 +1,7 @@
 using System;
+using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -13,13 +13,11 @@ namespace WalletWasabi.Fluent.Behaviors
 {
 	public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedButton>
 	{
-		private CancellationTokenSource? _cts;
-
 		public static readonly StyledProperty<string> FlashAnimationProperty =
 			AvaloniaProperty.Register<PasteButtonFlashBehavior, string>(nameof(FlashAnimation));
 
-		public static readonly StyledProperty<bool> IsEnabledProperty =
-			AvaloniaProperty.Register<PasteButtonFlashBehavior, bool>(nameof(IsEnabled));
+		public static readonly StyledProperty<string> CurrentAddressProperty =
+			AvaloniaProperty.Register<PasteButtonFlashBehavior, string>(nameof(FlashAnimation));
 
 		public string FlashAnimation
 		{
@@ -27,77 +25,37 @@ namespace WalletWasabi.Fluent.Behaviors
 			set => SetValue(FlashAnimationProperty, value);
 		}
 
-		public bool IsEnabled
+		public string CurrentAddress
 		{
-			get => GetValue(IsEnabledProperty);
-			set => SetValue(IsEnabledProperty, value);
+			get => GetValue(CurrentAddressProperty);
+			set => SetValue(CurrentAddressProperty, value);
 		}
 
 		protected override void OnAttachedToVisualTree()
 		{
-			if (AssociatedObject is null)
-			{
-				return;
-			}
-
 			RxApp.MainThreadScheduler.Schedule(async () => await CheckClipboardForValidAddressAsync());
 
 			var mainWindow = ((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).MainWindow;
 			Observable
-				.FromEventPattern(mainWindow, nameof(mainWindow.Activated))
+				.FromEventPattern(mainWindow, nameof(mainWindow.Activated)).Select(_ => Unit.Default)
+				.Merge(this.WhenAnyValue(x => x.CurrentAddress).Select(_ => Unit.Default))
+				.Throttle(TimeSpan.FromMilliseconds(100))
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(async _ => await CheckClipboardForValidAddressAsync());
 
-			AssociatedObject.WhenAnyValue(x => x.AnimateIcon)
+			AssociatedObject?.WhenAnyValue(x => x.AnimateIcon)
 				.Where(x => x)
 				.Subscribe(_ => AssociatedObject.Classes.Remove(FlashAnimation));
 		}
 
-		protected override void OnDetaching()
-		{
-			base.OnDetaching();
-
-			_cts?.Cancel();
-			_cts?.Dispose();
-		}
-
 		private async Task CheckClipboardForValidAddressAsync()
 		{
-			if (!IsEnabled)
-			{
-				return;
-			}
+			AssociatedObject?.Classes.Remove(FlashAnimation);
 
 			var textToPaste = await Application.Current.Clipboard.GetTextAsync();
-
-			if (AddressStringParser.TryParse(textToPaste, Services.WalletManager.Network, out _))
+			if (AddressStringParser.TryParse(textToPaste, Services.WalletManager.Network, out _) && textToPaste != CurrentAddress)
 			{
-				await ExecuteAnimationAsync();
-			}
-		}
-
-		private async Task ExecuteAnimationAsync()
-		{
-			if (AssociatedObject is null)
-			{
-				return;
-			}
-
-			_cts?.Cancel();
-			_cts?.Dispose();
-			_cts = new CancellationTokenSource();
-
-			try
-			{
-				AssociatedObject.Classes.Add(FlashAnimation);
-				await Task.Delay(1850, _cts.Token);
-			}
-			catch (OperationCanceledException)
-			{
-				// ignored
-			}
-			finally
-			{
-				AssociatedObject.Classes.Remove(FlashAnimation);
+				AssociatedObject?.Classes.Add(FlashAnimation);
 			}
 		}
 	}
