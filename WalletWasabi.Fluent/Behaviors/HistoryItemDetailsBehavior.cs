@@ -52,6 +52,17 @@ namespace WalletWasabi.Fluent.Behaviors
 						}));
 			}
 		}
+
+		protected override void OnDetaching()
+		{
+			base.OnDetaching();
+
+			if (AssociatedObject is not null)
+			{
+				RemoveAdorner(AssociatedObject);
+			}
+		}
+
 		private void AddAdorner(DataBoxRow dataBoxRow)
 		{
 			var layer = AdornerLayer.GetAdornerLayer(dataBoxRow);
