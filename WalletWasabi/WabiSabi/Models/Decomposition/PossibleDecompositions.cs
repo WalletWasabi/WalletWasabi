@@ -100,29 +100,13 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 			var maxDecompositionCost = StratifiedDecompositions.Length * costPerOutput;
 
 			maxOutputs = Math.Max(maxOutputs, StratifiedDecompositions.Length);
+			maximumEffectiveCost ??= new Money(MaximumTotalValue);
+			Guard.True(nameof(maximumEffectiveCost), maximumEffectiveCost - maxDecompositionCost <= MaximumTotalValue, "must not exceed limit from precomputation.");
 
-			if (maximumEffectiveCost is null)
-			{
-				maximumEffectiveCost = new Money(long.MaxValue);
-			}
-			else
-			{
-				Guard.True(nameof(maximumEffectiveCost), maximumEffectiveCost - maxDecompositionCost <= MaximumTotalValue, "must not exceed limit from precomputation.");
-			}
+			minimumTotalValue ??= MinimumTotalValue;
+			Guard.True(nameof(minimumTotalValue), MinimumTotalValue <= minimumTotalValue && minimumTotalValue <= MaximumTotalValue, "must not be lower than limit from precomputation.");
 
-			if (minimumTotalValue is null)
-			{
-				minimumTotalValue = Money.Zero;
-			}
-			else
-			{
-				Guard.True(nameof(minimumTotalValue), MinimumTotalValue <= minimumTotalValue && minimumTotalValue <= MaximumTotalValue, "must not be lower than limit from precomputation.");
-			}
-
-			if (minimumValue is null)
-			{
-				minimumValue = Money.Zero;
-			}
+			minimumValue ??= Money.Zero;
 
 			return StratifiedDecompositions
 				.Take(maxOutputs).Select((x, i) => (Decompositions: x, TotalCost: (i + 1) * costPerOutput))
