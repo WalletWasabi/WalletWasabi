@@ -19,13 +19,12 @@ namespace WalletWasabi.WabiSabi.Client
 	{
 		public RoundStateUpdater(TimeSpan requestInterval, IBackendHttpClientFactory backendHttpClientFactory) : base(requestInterval)
 		{
-
 			ArenaRequestHandler = new WabiSabiHttpApiClient(backendHttpClientFactory.NewBackendHttpClient(Mode.SingleCircuitPerLifetime));
 			BackendHttpClientFactory = backendHttpClientFactory;
 		}
 
 		private IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
-		private Dictionary<uint256,(long LastSequenceId,RoundState2 State,RoundAggregate Aggregate,IWabiSabiApiRequestHandler ApiRequestHandler)> ActiveRounds { get; set; } = new();
+		private Dictionary<uint256, (long LastSequenceId, RoundState2 State, RoundAggregate Aggregate, IWabiSabiApiRequestHandler ApiRequestHandler)> ActiveRounds { get; set; } = new();
 
 		private List<RoundStateAwaiter> Awaiters { get; } = new();
 		private object AwaitersLock { get; } = new();
@@ -34,8 +33,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		protected override async Task ActionAsync(CancellationToken cancellationToken)
 		{
-
-			List<uint256> interestingRoundIds = new ();
+			List<uint256> interestingRoundIds = new();
 
 			if (Awaiters.Any(a => a.RoundId is null))
 			{
@@ -50,7 +48,6 @@ namespace WalletWasabi.WabiSabi.Client
 				{
 					interestingRoundIds.AddRange(roundIds);
 				}
-				
 			}
 
 			var interestingRoundIdsHashSet = interestingRoundIds.ToHashSet();
@@ -69,12 +66,12 @@ namespace WalletWasabi.WabiSabi.Client
 			{
 				if (!ActiveRounds.ContainsKey(roundId))
 				{
-					ActiveRounds.Add(roundId, (0, new RoundState2(),new RoundAggregate(), new WabiSabiHttpApiClient(BackendHttpClientFactory.NewBackendHttpClient(Mode.SingleCircuitPerLifetime))));
+					ActiveRounds.Add(roundId, (0, new RoundState2(), new RoundAggregate(), new WabiSabiHttpApiClient(BackendHttpClientFactory.NewBackendHttpClient(Mode.SingleCircuitPerLifetime))));
 				}
 
 				var arenaRequestHandler = ActiveRounds[roundId].ApiRequestHandler;
 				var lastSequenceId = ActiveRounds[roundId].LastSequenceId;
-				var newEvents = await arenaRequestHandler.GetRoundEvents(roundId.ToString(),lastSequenceId,cancellationToken).ConfigureAwait(false);
+				var newEvents = await arenaRequestHandler.GetRoundEvents(roundId.ToString(), lastSequenceId, cancellationToken).ConfigureAwait(false);
 
 				if (newEvents.LastOrDefault() is { SequenceId: var newSequenceId })
 				{
@@ -84,13 +81,13 @@ namespace WalletWasabi.WabiSabi.Client
 						roundAggregate.Apply(wrappedEvent.DomainEvent);
 					}
 
-					ActiveRounds[roundId] = (newSequenceId,roundAggregate.State, roundAggregate, arenaRequestHandler);
+					ActiveRounds[roundId] = (newSequenceId, roundAggregate.State, roundAggregate, arenaRequestHandler);
 				}
 			}
 
 			lock (AwaitersLock)
 			{
-				foreach (var awaiter in Awaiters.Where(awaiter => awaiter.IsCompleted(ActiveRounds.ToDictionary(r => r.Key,r => r.Value.State))).ToArray())
+				foreach (var awaiter in Awaiters.Where(awaiter => awaiter.IsCompleted(ActiveRounds.ToDictionary(r => r.Key, r => r.Value.State))).ToArray())
 				{
 					// The predicate was fulfilled.
 					Awaiters.Remove(awaiter);
