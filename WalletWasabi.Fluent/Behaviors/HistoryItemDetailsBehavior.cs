@@ -34,7 +34,7 @@ namespace WalletWasabi.Fluent.Behaviors
 		private void AddAdorner(DataBoxRow dataBoxRow)
 		{
 			var layer = AdornerLayer.GetAdornerLayer(dataBoxRow);
-			if (layer is null)
+			if (layer is null || _historyItemDetailsAdorner is not null)
 			{
 				return;
 			}
