@@ -1,8 +1,14 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using WalletWasabi.Backend.Controllers.WabiSabi;
 using WalletWasabi.Backend.Filters;
+using WalletWasabi.EventSourcing;
+using WalletWasabi.EventSourcing.ArenaDomain;
+using WalletWasabi.EventSourcing.ArenaDomain.Events;
+using WalletWasabi.Interfaces.EventSourcing;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
@@ -15,7 +21,7 @@ namespace WalletWasabi.Backend.Controllers
 	[Produces("application/json")]
 	public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 	{
-		public WabiSabiController(IdempotencyRequestCache idempotencyRequestCache, Arena arena)
+		public WabiSabiController(IdempotencyRequestCache idempotencyRequestCache, Arena arena, IEventRepository eventRepository)
 		{
 			IdempotencyRequestCache = idempotencyRequestCache;
 			Arena = arena;
@@ -70,6 +76,12 @@ namespace WalletWasabi.Backend.Controllers
 		public Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellableToken)
 		{
 			return Arena.ReadyToSignAsync(request, cancellableToken);
+		}
+
+		[HttpGet("round-events")]
+		public Task<IEnumerable<WrappedEvent>> GetRoundEvents(string roundId, long afterSequenceId, CancellationToken cancellationToken)
+		{
+			return Arena.GetRoundEvents(roundId, afterSequenceId, cancellationToken);
 		}
 	}
 }

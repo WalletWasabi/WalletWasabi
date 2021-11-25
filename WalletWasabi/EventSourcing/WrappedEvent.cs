@@ -1,5 +1,6 @@
 using System;
 using WalletWasabi.EventSourcing.Interfaces;
+using WalletWasabi.EventSourcing.Interfaces;
 
 namespace WalletWasabi.EventSourcing
 {

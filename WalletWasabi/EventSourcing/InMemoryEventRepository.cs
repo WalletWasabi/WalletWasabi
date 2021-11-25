@@ -187,7 +187,10 @@ namespace WalletWasabi.EventSourcing
 				{
 					throw new ApplicationException("Live lock detected.");
 				}
-				(tailIndex, aggregateIds) = _aggregatesIds.GetOrAdd(aggregateType, _ => new(0, ImmutableSortedSet<string>.Empty));
+				(tailIndex, aggregateIds) = _aggregatesIds.GetOrAdd(
+					aggregateType,
+					_ => new(0, ImmutableSortedSet<string>.Empty));
+
 				newAggregateIds = aggregateIds.Add(id);
 			}
 			while (!_aggregatesIds.TryUpdate(

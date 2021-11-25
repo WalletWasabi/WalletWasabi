@@ -29,7 +29,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 					FeeRate = new FeeRate(10m)
 				});
 
-			using Arena arena = new(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison());
+			using Arena arena = new(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison(), new EventStore(new InMemoryEventRepository()));
 			Assert.Empty(arena.Rounds);
 			await arena.StartAsync(CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -50,7 +50,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 					FeeRate = new FeeRate(10m)
 				});
 
-			using Arena arena = new(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison());
+			using Arena arena = new(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison(), new EventStore(new InMemoryEventRepository()));
 			Assert.Empty(arena.Rounds);
 			await arena.StartAsync(CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -75,7 +75,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 					FeeRate = new FeeRate(10m)
 				});
 
-			using Arena arena = new(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison());
+			using Arena arena = new(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison(), new EventStore(new InMemoryEventRepository()));
 			Assert.Empty(arena.Rounds);
 			await arena.StartAsync(CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));

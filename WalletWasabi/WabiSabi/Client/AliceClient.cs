@@ -10,6 +10,7 @@ using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.EventSourcing.ArenaDomain.Aggregates;
 
 namespace WalletWasabi.WabiSabi.Client
 {
@@ -17,7 +18,7 @@ namespace WalletWasabi.WabiSabi.Client
 	{
 		private AliceClient(
 			Guid aliceId,
-			RoundState roundState,
+			RoundParameters2 roundParameters,
 			ArenaClient arenaClient,
 			SmartCoin coin,
 			BitcoinSecret bitcoinSecret,
@@ -25,15 +26,15 @@ namespace WalletWasabi.WabiSabi.Client
 			IEnumerable<Credential> issuedVsizeCredentials)
 		{
 			AliceId = aliceId;
-			RoundId = roundState.Id;
+			RoundId = roundParameters.Id;
 			ArenaClient = arenaClient;
 			SmartCoin = coin;
-			FeeRate = roundState.FeeRate;
+			FeeRate = roundParameters.FeeRate;
 			BitcoinSecret = bitcoinSecret;
 			IssuedAmountCredentials = issuedAmountCredentials;
 			IssuedVsizeCredentials = issuedVsizeCredentials;
-			MaxVsizeAllocationPerAlice = roundState.MaxVsizeAllocationPerAlice;
-			ConfirmationTimeout = roundState.ConnectionConfirmationTimeout / 2;
+			MaxVsizeAllocationPerAlice = roundParameters.MaxVsizeAllocationPerAlice;
+			ConfirmationTimeout = roundParameters.ConnectionConfirmationTimeout / 2;
 		}
 
 		public Guid AliceId { get; }
@@ -48,7 +49,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private TimeSpan ConfirmationTimeout { get; }
 
 		public static async Task<AliceClient> CreateRegisterAndConfirmInputAsync(
-			RoundState roundState,
+			RoundParameters2 roundParameters,
 			ArenaClient arenaClient,
 			SmartCoin coin,
 			BitcoinSecret bitcoinSecret,
@@ -59,7 +60,7 @@ namespace WalletWasabi.WabiSabi.Client
 			AliceClient? aliceClient = null;
 			try
 			{
-				aliceClient = await RegisterInputAsync(roundState, arenaClient, coin, bitcoinSecret, identificationKey, cancellationToken).ConfigureAwait(false);
+				aliceClient = await RegisterInputAsync(roundParameters, arenaClient, coin, bitcoinSecret, identificationKey, cancellationToken).ConfigureAwait(false);
 				await aliceClient.ConfirmConnectionAsync(roundStatusUpdater, cancellationToken).ConfigureAwait(false);
 
 				Logger.LogInfo($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Connection successfully confirmed.");
@@ -77,7 +78,7 @@ namespace WalletWasabi.WabiSabi.Client
 			return aliceClient;
 		}
 
-		private static async Task<AliceClient> RegisterInputAsync(RoundState roundState, ArenaClient arenaClient, SmartCoin coin, BitcoinSecret bitcoinSecret, Key identificationKey, CancellationToken cancellationToken)
+		private static async Task<AliceClient> RegisterInputAsync(RoundParameters2 roundParameters, ArenaClient arenaClient, SmartCoin coin, BitcoinSecret bitcoinSecret, Key identificationKey, CancellationToken cancellationToken)
 		{
 			AliceClient? aliceClient;
 			try
@@ -86,13 +87,13 @@ namespace WalletWasabi.WabiSabi.Client
 				var ownershipProof = OwnershipProof.GenerateCoinJoinInputProof(
 					signingKey,
 					new OwnershipIdentifier(identificationKey, signingKey.PubKey.WitHash.ScriptPubKey),
-					new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundState.Id));
+					new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundParameters.Id));
 
-				var response = await arenaClient.RegisterInputAsync(roundState.Id, coin.Coin.Outpoint, ownershipProof, cancellationToken).ConfigureAwait(false);
-				aliceClient = new(response.Value, roundState, arenaClient, coin, bitcoinSecret, response.IssuedAmountCredentials, response.IssuedVsizeCredentials);
+				var response = await arenaClient.RegisterInputAsync(roundParameters.Id, coin.Coin.Outpoint, ownershipProof, cancellationToken).ConfigureAwait(false);
+				aliceClient = new(response.Value, roundParameters, arenaClient, coin, bitcoinSecret, response.IssuedAmountCredentials, response.IssuedVsizeCredentials);
 				coin.CoinJoinInProgress = true;
 
-				Logger.LogInfo($"Round ({roundState.Id}), Alice ({aliceClient.AliceId}): Registered {coin.OutPoint}.");
+				Logger.LogInfo($"Round ({roundParameters.Id}), Alice ({aliceClient.AliceId}): Registered {coin.OutPoint}.");
 			}
 			catch (System.Net.Http.HttpRequestException ex)
 			{
