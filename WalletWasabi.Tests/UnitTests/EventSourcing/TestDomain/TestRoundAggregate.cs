@@ -68,9 +68,14 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing.TestDomain
 			};
 		}
 
-		public void Apply(IEvent ev)
+		void IAggregate.Apply(IEvent ev)
 		{
-			throw new NotImplementedException();
+			ApplyDynamic(ev);
+		}
+
+		public void ApplyDynamic(dynamic ev)
+		{
+			Apply(ev);
 		}
 	}
 }
