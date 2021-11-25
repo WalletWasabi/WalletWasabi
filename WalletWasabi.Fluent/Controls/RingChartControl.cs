@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
 
@@ -11,14 +10,6 @@ namespace WalletWasabi.Fluent.Controls
 {
 	public class RingChartControl : Control
 	{
-		static RingChartControl()
-		{
-			AffectsRender<RingChartControl>(DataPointsProperty, ThicknessProperty, StartAngleProperty,
-				EndAngleProperty);
-			AffectsMeasure<RingChartControl>(DataPointsProperty, ThicknessProperty, StartAngleProperty,
-				EndAngleProperty);
-		}
-
 		public static readonly StyledProperty<IList<(string ColorHex, double PercentShare)>> DataPointsProperty =
 			AvaloniaProperty.Register<RingChartControl, IList<(string ColorHex, double PercentShare)>>("DataPoints");
 
@@ -31,10 +22,36 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<double> ThicknessProperty =
 			AvaloniaProperty.Register<RingChartControl, double>("Thickness", 6);
 
+		static RingChartControl()
+		{
+			AffectsRender<RingChartControl>(DataPointsProperty, ThicknessProperty, StartAngleProperty, EndAngleProperty);
+			AffectsMeasure<RingChartControl>(DataPointsProperty, ThicknessProperty, StartAngleProperty, EndAngleProperty);
+		}
+
 		public IList<(string ColorHex, double PercentShare)> DataPoints
 		{
 			get => GetValue(DataPointsProperty);
 			set => SetValue(DataPointsProperty, value);
+		}
+
+		private double Radius { get; set; }
+
+		public double StartAngle
+		{
+			get => GetValue(StartAngleProperty);
+			set => SetValue(StartAngleProperty, value);
+		}
+
+		public double EndAngle
+		{
+			get => GetValue(EndAngleProperty);
+			set => SetValue(EndAngleProperty, value);
+		}
+
+		public double Thickness
+		{
+			get => GetValue(ThicknessProperty);
+			set => SetValue(ThicknessProperty, value);
 		}
 
 		public double Map(double value, double from1, double to1, double from2, double to2)
@@ -100,26 +117,6 @@ namespace WalletWasabi.Fluent.Controls
 			return (Math.PI / 180d) * angle;
 		}
 
-		private double Radius { get; set; }
-
-		public double StartAngle
-		{
-			get => GetValue(StartAngleProperty);
-			set => SetValue(StartAngleProperty, value);
-		}
-
-		public double EndAngle
-		{
-			get => GetValue(EndAngleProperty);
-			set => SetValue(EndAngleProperty, value);
-		}
-
-		public double Thickness
-		{
-			get => GetValue(ThicknessProperty);
-			set => SetValue(ThicknessProperty, value);
-		}
-
 		public override void Render(DrawingContext context)
 		{
 			if (DataPoints is null)
@@ -141,8 +138,10 @@ namespace WalletWasabi.Fluent.Controls
 					lastData += dataPoint.PercentShare;
 					var curValue = Map((dataPoint.PercentShare == 1.0 ? 0.99 : lastData), 0, 1, StartAngle, EndAngle);
 
-					context.DrawGeometry(null, new ImmutablePen(brush, Thickness),
-						GetArcGeometry(lastAngle, curValue, (dataPoint.PercentShare == 1.0d)));
+					context.DrawGeometry(
+						null,
+						new ImmutablePen(brush, Thickness),
+						GetArcGeometry(lastAngle, curValue, dataPoint.PercentShare == 1.0d));
 
 					lastAngle = curValue;
 				}

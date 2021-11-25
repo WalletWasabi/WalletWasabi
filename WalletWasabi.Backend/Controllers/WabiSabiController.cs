@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using WalletWasabi.Backend.Controllers.WabiSabi;
 using WalletWasabi.Backend.Filters;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -14,11 +15,13 @@ namespace WalletWasabi.Backend.Controllers
 	[Produces("application/json")]
 	public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 	{
-		public WabiSabiController(Arena arena)
+		public WabiSabiController(IdempotencyRequestCache idempotencyRequestCache, Arena arena)
 		{
+			IdempotencyRequestCache = idempotencyRequestCache;
 			Arena = arena;
 		}
 
+		private IdempotencyRequestCache IdempotencyRequestCache { get; }
 		private Arena Arena { get; }
 
 		[HttpGet("status")]
@@ -28,31 +31,27 @@ namespace WalletWasabi.Backend.Controllers
 		}
 
 		[HttpPost("connection-confirmation")]
-		[Idempotent]
-		public Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellableToken)
+		public Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken)
 		{
-			return Arena.ConfirmConnectionAsync(request, cancellableToken);
+			return IdempotencyRequestCache.GetCachedResponseAsync(request, action: (request, token) => Arena.ConfirmConnectionAsync(request, token), cancellationToken);
 		}
 
 		[HttpPost("input-registration")]
-		[Idempotent]
-		public Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellableToken)
+		public Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 		{
-			return Arena.RegisterInputAsync(request, cancellableToken);
+			return IdempotencyRequestCache.GetCachedResponseAsync(request, action: (request, token) => Arena.RegisterInputAsync(request, token), cancellationToken);
 		}
 
 		[HttpPost("output-registration")]
-		[Idempotent]
-		public Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellableToken)
+		public Task<EmptyResponse> RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
 		{
-			return Arena.RegisterOutputAsync(request, cancellableToken);
+			return IdempotencyRequestCache.GetCachedResponseAsync(request, action: (request, token) => Arena.RegisterOutputAsync(request, token), cancellationToken);
 		}
 
 		[HttpPost("credential-issuance")]
-		[Idempotent]
-		public Task<ReissueCredentialResponse> ReissuanceAsync(ReissueCredentialRequest request, CancellationToken cancellableToken)
+		public Task<ReissueCredentialResponse> ReissuanceAsync(ReissueCredentialRequest request, CancellationToken cancellationToken)
 		{
-			return Arena.ReissuanceAsync(request, cancellableToken);
+			return IdempotencyRequestCache.GetCachedResponseAsync(request, action: (request, token) => Arena.ReissuanceAsync(request, token), cancellationToken);
 		}
 
 		[HttpPost("input-unregistration")]
