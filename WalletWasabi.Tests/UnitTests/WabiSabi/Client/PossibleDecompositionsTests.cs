@@ -1,8 +1,9 @@
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.WabiSabi.Models.Decomposition;
-using WalletWasabi.Helpers;
 using Xunit;
+
+#pragma warning disable CA1825 // Avoid zero-length array allocations.
 
 namespace WalletWasabi.Tests.WabiSabi.Client
 {
