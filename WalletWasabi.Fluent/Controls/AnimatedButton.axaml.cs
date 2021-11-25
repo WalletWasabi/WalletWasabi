@@ -10,11 +10,6 @@ namespace WalletWasabi.Fluent.Controls
 {
 	public class AnimatedButton : TemplatedControl
 	{
-		static AnimatedButton()
-		{
-			AffectsRender<AnimatedButton>(InitialOpacityProperty);
-		}
-
 		public static readonly StyledProperty<ICommand> CommandProperty =
 			AvaloniaProperty.Register<AnimatedButton, ICommand>(nameof(Command));
 
@@ -38,6 +33,11 @@ namespace WalletWasabi.Fluent.Controls
 
 		public static readonly StyledProperty<bool> ExecuteOnOpenProperty =
 			AvaloniaProperty.Register<AnimatedButton, bool>(nameof(ExecuteOnOpen));
+
+		static AnimatedButton()
+		{
+			AffectsRender<AnimatedButton>(InitialOpacityProperty);
+		}
 
 		public ICommand Command
 		{
