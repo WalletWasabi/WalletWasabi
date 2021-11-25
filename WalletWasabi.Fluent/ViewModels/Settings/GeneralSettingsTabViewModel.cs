@@ -31,6 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		[AutoNotify] private FeeDisplayFormat _selectedFeeDisplayFormat;
 		[AutoNotify] private bool _runOnSystemStartup;
 		[AutoNotify] private bool _hideOnClose;
+		[AutoNotify] private bool _hideQRScan;
 
 		public GeneralSettingsTabViewModel()
 		{
@@ -92,6 +93,11 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Skip(1)
 				.Subscribe(x => Services.UiConfig.HideOnClose = x);
+
+			this.WhenAnyValue(x => x.HideQRScan)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Skip(1)
+				.Subscribe(x => Services.UiConfig.HideQRScan = x);
 		}
 
 		public ICommand StartupCommand { get; }

@@ -59,7 +59,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			SuggestionLabels = new SuggestionLabelsViewModel(3);
 
-			IsQrButtonVisible = WebcamQrReader.IsOsPlatformSupported;
+			if (Services.UiConfig.HideQRScan is false)
+			{
+				IsQrButtonVisible = WebcamQrReader.IsOsPlatformSupported;
+			}
 
 			ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 

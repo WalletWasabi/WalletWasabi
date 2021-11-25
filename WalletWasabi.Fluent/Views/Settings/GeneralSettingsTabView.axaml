@@ -40,6 +40,11 @@
       <ToggleSwitch IsChecked="{Binding CustomChangeAddress}" />
     </DockPanel>
 
+    <DockPanel>
+      <TextBlock VerticalAlignment="Center" Text="Hide QR scanner" />
+      <ToggleSwitch IsChecked="{Binding HideQRScan}" />
+    </DockPanel>
+
     <StackPanel Spacing="10">
       <TextBlock Text="Fee Display Format" />
       <ComboBox HorizontalAlignment="Stretch" Items="{Binding FeeDisplayFormats}" SelectedItem="{Binding SelectedFeeDisplayFormat}">

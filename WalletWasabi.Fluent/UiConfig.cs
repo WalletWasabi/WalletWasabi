@@ -23,6 +23,7 @@ namespace WalletWasabi.Fluent
 		private bool _runOnSystemStartup;
 		private bool _oobe;
 		private bool _hideOnClose;
+		private bool _hideQRScan;
 
 		public UiConfig() : base()
 		{
@@ -139,6 +140,14 @@ namespace WalletWasabi.Fluent
 		{
 			get => _hideOnClose;
 			set => RaiseAndSetIfChanged(ref _hideOnClose, value);
+		}
+
+		[DefaultValue(true)]
+		[JsonProperty(PropertyName = "HideQRScan", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool HideQRScan
+		{
+			get => _hideQRScan;
+			set => RaiseAndSetIfChanged(ref _hideQRScan, value);
 		}
 	}
 }
