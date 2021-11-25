@@ -65,12 +65,9 @@ namespace WalletWasabi.Fluent.Behaviors
 
 			var textToPaste = await Application.Current.Clipboard.GetTextAsync();
 
-			if (textToPaste != CurrentAddress)
+			if (textToPaste != CurrentAddress && AddressStringParser.TryParse(textToPaste, Services.WalletManager.Network, out _))
 			{
-				if (AddressStringParser.TryParse(textToPaste, Services.WalletManager.Network, out _))
-				{
-					AssociatedObject?.Classes.Add(FlashAnimation);
-				}
+				AssociatedObject?.Classes.Add(FlashAnimation);
 			}
 		}
 	}
