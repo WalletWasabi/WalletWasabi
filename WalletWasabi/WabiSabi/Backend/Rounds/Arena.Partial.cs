@@ -238,7 +238,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 				// Update round state.
 				round.Bobs.Add(bob);
-				await EventStore.ProcessCommandAsync(new RegisterOutputCommand(bob.Script, bob.CredentialAmount, Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
+				await EventStore.ProcessCommandAsync(new RegisterOutputCommand(bob.Script, outputValue.Satoshi, Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
 
 				round.CoinjoinState = newState;
 			}
