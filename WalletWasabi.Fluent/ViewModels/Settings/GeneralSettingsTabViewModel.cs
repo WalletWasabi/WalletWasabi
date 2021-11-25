@@ -41,6 +41,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			_customChangeAddress = Services.UiConfig.IsCustomChangeAddress;
 			_runOnSystemStartup = Services.UiConfig.RunOnSystemStartup;
 			_hideOnClose = Services.UiConfig.HideOnClose;
+			_hideQRScan = Services.UiConfig.HideQRScan;
 			_selectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), Services.UiConfig.FeeDisplayFormat)
 				? (FeeDisplayFormat)Services.UiConfig.FeeDisplayFormat
 				: FeeDisplayFormat.SatoshiPerByte;
