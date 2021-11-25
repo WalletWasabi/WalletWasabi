@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.EventSourcing;
+using WalletWasabi.EventSourcing.ArenaDomain;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Backend;
@@ -24,7 +25,7 @@ namespace WalletWasabi.WabiSabi
 
 			CoinJoinTransactionArchiver transactionArchiver = new(Path.Combine(parameters.CoordinatorDataDir, "CoinJoinTransactions"));
 			var eventRepository = new InMemoryEventRepository();
-			Arena = new(parameters.RoundProgressSteppingPeriod, rpc.Network, Config, rpc, Warden.Prison, new EventStore(eventRepository), eventRepository, transactionArchiver);
+			Arena = new(parameters.RoundProgressSteppingPeriod, rpc.Network, Config, rpc, Warden.Prison, new EventStore(eventRepository, new AggregateFactory(), new CommandProcessorFactory()), eventRepository, transactionArchiver);
 		}
 
 		public ConfigWatcher ConfigWatcher { get; }

@@ -13,21 +13,23 @@ namespace WalletWasabi.EventSourcing.ArenaDomain.CommandProcessor
 {
 	public class RoundCommandProcessor : ICommandProcessor
 	{
-		public IEnumerable<IEvent> Process(StartRoundCommand command, RoundState2 aggregate)
+		public Result Process(StartRoundCommand command, RoundState2 aggregate)
 		{
-			return new[] { new RoundStartedEvent(command.RoundParameters) };
+			return Result.Succeed(
+				new[] { new RoundStartedEvent(command.RoundParameters) });
 		}
 
-		public IEnumerable<IEvent> Process(InputRegisterCommand command, RoundState2 aggregate)
+		public Result Process(InputRegisterCommand command, RoundState2 aggregate)
 		{
-			return new[] { new InputRegisteredEvent(command.AliceId, command.Coin, command.OwnershipProof) };
+			return Result.Succeed(
+				new[] { new InputRegisteredEvent(command.AliceId, command.Coin, command.OwnershipProof) });
 		}
 
-		public IEnumerable<IEvent> Process(ICommand command, IState state)
+		public Result Process(ICommand command, IState aggregateState)
 		{
-			if (state is not RoundState2 roundState)
+			if (aggregateState is not RoundState2 roundState)
 			{
-				throw new ArgumentException($"State should be type of {nameof(RoundState2)}.", nameof(state));
+				throw new ArgumentException($"State should be type of {nameof(RoundState2)}.", nameof(aggregateState));
 			}
 
 			return command switch
