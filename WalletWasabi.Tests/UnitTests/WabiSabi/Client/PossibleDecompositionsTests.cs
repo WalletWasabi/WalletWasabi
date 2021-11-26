@@ -109,7 +109,7 @@ namespace WalletWasabi.Tests.WabiSabi.Client
 				},
 				new PossibleDecompositions(denominations, 12L, 0L, 3).GetByTotalValue(
 					maximumEffectiveCost: 12,
-					minimumTotalValue: 8,
+					minimumEffectiveCost: 8,
 					feeRate: new FeeRate(1m),
 					vsizePerOutput: 1));
 		}

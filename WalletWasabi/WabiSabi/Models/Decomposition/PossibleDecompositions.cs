@@ -89,7 +89,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 		//   decompositions with minimal losses (tight bounds). maxcount = 4? 5?
 		public IEnumerable<Decomposition> GetByTotalValue(
 			Money? maximumEffectiveCost = null,
-			Money? minimumTotalValue = null,
+			Money? minimumEffectiveCost = null,
 			Money? minimumValue = null, // dust threshold
 			int maxOutputs = int.MaxValue,
 			int maxDecompositions = 1000,
@@ -103,8 +103,8 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 			maximumEffectiveCost ??= new Money(MaximumTotalValue);
 			Guard.True(nameof(maximumEffectiveCost), maximumEffectiveCost - maxDecompositionCost <= MaximumTotalValue, "must not exceed limit from precomputation.");
 
-			minimumTotalValue ??= MinimumTotalValue;
-			Guard.True(nameof(minimumTotalValue), MinimumTotalValue <= minimumTotalValue && minimumTotalValue <= MaximumTotalValue, "must not be lower than limit from precomputation.");
+			minimumEffectiveCost ??= MinimumTotalValue;
+			Guard.True(nameof(minimumEffectiveCost), MinimumTotalValue <= minimumEffectiveCost && minimumEffectiveCost <= MaximumTotalValue, "must not be lower than limit from precomputation.");
 
 			minimumValue ??= Money.Zero;
 
@@ -112,7 +112,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 				.Take(maxOutputs).Select((x, i) => (Decompositions: x, TotalCost: (i + 1) * costPerOutput))
 				.Select(p => p.Decompositions.Prune(
 							Money.Min(maximumEffectiveCost - p.TotalCost, MaximumTotalValue),
-							Money.Max(minimumTotalValue, MinimumTotalValue),
+							Money.Max(minimumEffectiveCost - p.TotalCost, MinimumTotalValue),
 							minimumValue)
 						.Where(d => d.Outputs[^1] >= minimumValue))
 				.Aggregate(MergeDescending)

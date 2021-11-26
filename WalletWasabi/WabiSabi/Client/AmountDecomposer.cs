@@ -42,15 +42,15 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public IEnumerable<Money> Decompose(IEnumerable<Coin> myInputCoins, IEnumerable<Coin> allInputCoins, int availableVsize)
 		{
-			var totalEffectiveValue = myInputCoins.Select(x => x.EffectiveValue(RoundState.FeeRate)).Sum();
-			var minimumTotalValue = Money.Min(totalEffectiveValue.Percentage(99.99m), totalEffectiveValue - 5000L);
+			var maximumEffectiveCost = myInputCoins.Select(x => x.EffectiveValue(RoundState.FeeRate)).Sum();
+			var minimumEffectiveCost = Money.Min(maximumEffectiveCost.Percentage(99.99m), maximumEffectiveCost - 5000L);
 
-			Logger.LogDebug($"Choosing decomposition between {minimumTotalValue} and {totalEffectiveValue} with {availableVsize} vbytes max at feerate {RoundState.FeeRate}.");
+			Logger.LogDebug($"Choosing decomposition between {minimumEffectiveCost} and {maximumEffectiveCost} with {availableVsize} vbytes max at feerate {RoundState.FeeRate}.");
 
 			var chosen = PossibleDecompositions.GetByTotalValue(
 				maxDecompositions: 100,
-				maximumEffectiveCost: totalEffectiveValue,
-				minimumTotalValue: minimumTotalValue,
+				maximumEffectiveCost: maximumEffectiveCost,
+				minimumEffectiveCost: minimumEffectiveCost,
 				feeRate: RoundState.FeeRate,
 				maxOutputs: availableVsize/31)
 				.RandomElement();
@@ -60,7 +60,7 @@ namespace WalletWasabi.WabiSabi.Client
 				throw new InvalidOperationException("no decompositions were possible");
 			}
 
-			Logger.LogDebug($"Decomposing as {string.Join(' ', chosen.Outputs)} = {chosen.TotalValue} ({totalEffectiveValue - chosen.TotalValue} cost)");
+			Logger.LogDebug($"Decomposing as {string.Join(' ', chosen.Outputs)} = {chosen.TotalValue} ({maximumEffectiveCost - chosen.TotalValue} cost)");
 			return chosen.Outputs;
 		}
 	}
