@@ -26,8 +26,13 @@
     </DockPanel>
 
     <DockPanel>
-      <TextBlock Text="Auto Copy/Paste Bitcoin addresses" />
+      <TextBlock Text="Auto copy addresses" />
       <ToggleSwitch IsChecked="{Binding AutoCopy}" />
+    </DockPanel>
+
+    <DockPanel>
+      <TextBlock Text="Auto paste addresses" />
+      <ToggleSwitch IsChecked="{Binding AutoPaste}" />
     </DockPanel>
 
     <DockPanel>
