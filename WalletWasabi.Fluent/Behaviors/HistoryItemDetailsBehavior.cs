@@ -22,7 +22,8 @@ namespace WalletWasabi.Fluent.Behaviors
 					.Subscribe(x =>
 					{
 						Remove();
-					});
+					})
+					.DisposeWith(disposables);
 
 				AssociatedObject
 					.GetObservable(InputElement.IsPointerOverProperty)
