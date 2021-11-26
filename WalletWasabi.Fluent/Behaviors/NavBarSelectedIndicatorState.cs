@@ -28,6 +28,14 @@ namespace WalletWasabi.Fluent.Behaviors
 		public void Dispose()
 		{
 			_isDisposed = true;
+			CancelPriorAnimation();
+		}
+
+		private void CancelPriorAnimation()
+		{
+			_currentAnimationCts.Cancel();
+			_currentAnimationCts.Dispose();
+			_currentAnimationCts = new CancellationTokenSource();
 		}
 
 		private static Matrix GetOffsetFrom(IVisual ancestor, IVisual visual)
@@ -83,8 +91,7 @@ namespace WalletWasabi.Fluent.Behaviors
 
 			if (_previousAnimationOngoing)
 			{
-				_currentAnimationCts.Cancel();
-				_currentAnimationCts = new CancellationTokenSource();
+				CancelPriorAnimation();
 			}
 
 			prevIndicator.Opacity = 1;
