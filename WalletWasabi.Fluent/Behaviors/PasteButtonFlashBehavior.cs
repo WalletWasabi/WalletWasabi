@@ -69,18 +69,18 @@ namespace WalletWasabi.Fluent.Behaviors
 
 			if (_lastFlashedOn != textToPaste)
 			{
-				AssociatedObject?.Classes.Remove(FlashAnimation);
+				AssociatedObject.Classes.Remove(FlashAnimation);
 
 				if (textToPaste != CurrentAddress &&
 				    AddressStringParser.TryParse(textToPaste, Services.WalletManager.Network, out _))
 				{
-					AssociatedObject?.Classes.Add(FlashAnimation);
+					AssociatedObject.Classes.Add(FlashAnimation);
 
-					ToolTip.SetTip(AssociatedObject!, $"Paste BTC Address:\r\n{textToPaste}");
+					ToolTip.SetTip(AssociatedObject, $"Paste BTC Address:\r\n{textToPaste}");
 				}
 				else
 				{
-					ToolTip.SetTip(AssociatedObject!, "Paste");
+					ToolTip.SetTip(AssociatedObject, "Paste");
 				}
 
 				_lastFlashedOn = textToPaste;
