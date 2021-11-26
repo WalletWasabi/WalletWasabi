@@ -7,9 +7,9 @@ namespace WalletWasabi.Fluent.Behaviors
 	public class NavBarSelectedIndicatorParentBehavior : AttachedToVisualTreeBehavior<Control>
 	{
 		public static readonly AttachedProperty<NavBarSelectedIndicatorState> ParentStateProperty =
-			AvaloniaProperty.RegisterAttached<NavBarSelectedIndicatorParentBehavior, Control, NavBarSelectedIndicatorState>("ParentState", inherits: true);
-
-		private readonly CompositeDisposable _disposables = new();
+			AvaloniaProperty
+				.RegisterAttached<NavBarSelectedIndicatorParentBehavior, Control, NavBarSelectedIndicatorState>(
+					"ParentState", inherits: true);
 
 		public static NavBarSelectedIndicatorState GetParentState(Control element)
 		{
@@ -21,7 +21,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			element.SetValue(ParentStateProperty, value);
 		}
 
-		protected override void OnAttachedToVisualTree()
+		protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 		{
 			if (AssociatedObject is null)
 			{
@@ -30,8 +30,7 @@ namespace WalletWasabi.Fluent.Behaviors
 
 			var sharedState = new NavBarSelectedIndicatorState();
 			SetParentState(AssociatedObject, sharedState);
-			_disposables.Add(sharedState);
-			AssociatedObject.DetachedFromVisualTree += delegate { _disposables.Dispose(); };
+			disposable.Add(sharedState);
 		}
 	}
 }
