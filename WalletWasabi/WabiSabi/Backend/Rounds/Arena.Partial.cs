@@ -195,7 +195,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		public async Task<EmptyResponse> RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
+		public Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
+		{
+			return RegisterOutputCoreAsync(request, cancellationToken);
+		}
+
+		public async Task<EmptyResponse> RegisterOutputCoreAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
 		{
 			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
