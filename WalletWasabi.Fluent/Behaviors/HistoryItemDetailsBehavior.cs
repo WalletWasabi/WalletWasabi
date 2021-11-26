@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
+using Avalonia.Threading;
 using DataBox;
 
 namespace WalletWasabi.Fluent.Behaviors
@@ -10,6 +11,7 @@ namespace WalletWasabi.Fluent.Behaviors
 	public class HistoryItemDetailsBehavior : DisposingBehavior<DataBoxRow>
 	{
 		private HistoryItemDetailsAdorner? _historyItemDetailsAdorner;
+		private IDisposable? _currentAdornerEvents;
 
 		protected override void OnAttached(CompositeDisposable disposables)
 		{
@@ -20,16 +22,13 @@ namespace WalletWasabi.Fluent.Behaviors
 						.GetObservable(InputElement.IsPointerOverProperty)
 						.Subscribe(x =>
 						{
-							if (x)
+							if (AssociatedObject.IsPointerOver)
 							{
 								AddAdorner(AssociatedObject);
 							}
 							else
 							{
-								if (!AssociatedObject.IsSelected)
-								{
-									RemoveAdorner(AssociatedObject);
-								}
+								CheckIfShouldRemove();
 							}
 						}));
 
@@ -38,19 +37,28 @@ namespace WalletWasabi.Fluent.Behaviors
 						.GetObservable(ListBoxItem.IsSelectedProperty)
 						.Subscribe(x =>
 						{
-							if (x)
+							if (AssociatedObject.IsSelected)
 							{
 								AddAdorner(AssociatedObject);
 							}
 							else
 							{
-								if (!AssociatedObject.IsPointerOver)
-								{
-									RemoveAdorner(AssociatedObject);
-								}
+								CheckIfShouldRemove();
 							}
 						}));
 			}
+		}
+
+		private void CheckIfShouldRemove()
+		{
+			Dispatcher.UIThread.Post(() =>
+			{
+				if (_historyItemDetailsAdorner != null && !AssociatedObject.IsPointerOver &&
+				    !_historyItemDetailsAdorner.IsPointerOver)
+				{
+					RemoveAdorner(AssociatedObject);
+				}
+			});
 		}
 
 		protected override void OnDetaching()
@@ -61,10 +69,16 @@ namespace WalletWasabi.Fluent.Behaviors
 			{
 				RemoveAdorner(AssociatedObject);
 			}
+
+			_currentAdornerEvents?.Dispose();
+			_currentAdornerEvents = null;
 		}
 
 		private void AddAdorner(DataBoxRow dataBoxRow)
 		{
+			_currentAdornerEvents?.Dispose();
+			_currentAdornerEvents = null;
+
 			var layer = AdornerLayer.GetAdornerLayer(dataBoxRow);
 			if (layer is null || _historyItemDetailsAdorner is not null)
 			{
@@ -78,12 +92,18 @@ namespace WalletWasabi.Fluent.Behaviors
 				Row = dataBoxRow
 			};
 
+			_currentAdornerEvents = _historyItemDetailsAdorner.GetObservable(InputElement.IsPointerOverProperty)
+				.Subscribe(_ => CheckIfShouldRemove());
+
 			((ISetLogicalParent)_historyItemDetailsAdorner).SetParent(dataBoxRow);
 			layer.Children.Add(_historyItemDetailsAdorner);
 		}
 
 		private void RemoveAdorner(DataBoxRow dataBoxRow)
 		{
+			_currentAdornerEvents?.Dispose();
+			_currentAdornerEvents = null;
+
 			var layer = AdornerLayer.GetAdornerLayer(dataBoxRow);
 			if (layer is null || _historyItemDetailsAdorner is null)
 			{
