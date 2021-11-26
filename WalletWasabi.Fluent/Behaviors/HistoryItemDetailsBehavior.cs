@@ -6,6 +6,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Threading;
 using DataBox;
+using WalletWasabi.Fluent.Controls;
 
 namespace WalletWasabi.Fluent.Behaviors
 {
@@ -76,7 +77,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			_currentAdornerEvents?.Dispose();
 			_currentAdornerEvents = null;
 
-			var layer = AdornerLayer.GetAdornerLayer(dataBoxRow);
+			var layer = AdornerCanvas.GetAdornerLayer(dataBoxRow);
 			if (layer is null || _historyItemDetailsAdorner is not null)
 			{
 				return;
@@ -84,8 +85,8 @@ namespace WalletWasabi.Fluent.Behaviors
 
 			_historyItemDetailsAdorner = new HistoryItemDetailsAdorner
 			{
-				[AdornerLayer.AdornedElementProperty] = dataBoxRow,
-				[AdornerLayer.IsClipEnabledProperty] = false,
+				[AdornerCanvas.AdornedElementProperty] = dataBoxRow,
+				[AdornerCanvas.IsClipEnabledProperty] = false,
 				Row = dataBoxRow
 			};
 
@@ -101,7 +102,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			_currentAdornerEvents?.Dispose();
 			_currentAdornerEvents = null;
 
-			var layer = AdornerLayer.GetAdornerLayer(dataBoxRow);
+			var layer = AdornerCanvas.GetAdornerLayer(dataBoxRow);
 			if (layer is null || _historyItemDetailsAdorner is null)
 			{
 				return;
