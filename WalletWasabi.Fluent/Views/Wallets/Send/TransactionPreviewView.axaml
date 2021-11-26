@@ -17,7 +17,7 @@
                  ScrollViewer.VerticalScrollBarVisibility="Auto">
     <StackPanel Spacing="15">
       <c:PreviewItem Icon="{StaticResource btc_logo}"
-                     Text="A total of">
+                     Text="a total of">
         <TextBox Classes="selectableTextBlock" Text="{Binding AmountText, FallbackValue=0.213 BTC (≈55.34 USD)}" />
       </c:PreviewItem>
 
@@ -36,7 +36,7 @@
         </Button>
 
         <c:PreviewItem Icon="{StaticResource entities_regular}"
-                       Text="Will be sent to and / or known by">
+                       Text="will be sent to and may be known by">
           <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Labels}">
             <c:TagsBox.Styles>
               <Style Selector="c|TagsBox:readonly WrapPanel">
@@ -49,7 +49,7 @@
 
       <Separator />
       <c:PreviewItem Icon="{StaticResource transceive_regular}"
-                     Text="via Bitcoin address">
+                     Text="to the Bitcoin address">
         <TextBox Classes="selectableTextBlock" Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
       </c:PreviewItem>
       <Separator />
@@ -78,7 +78,7 @@
         </Button>
 
         <c:PreviewItem Icon="{StaticResource incognito_filled}"
-                       Text="You will receive change from this transaction"
+                       Text="you will receive change from this transaction"
                        IsVisible="{Binding TransactionHasChange}"
                        Content="View suggestions to improve privacy by avoiding change"/>
       </DockPanel>
@@ -103,8 +103,8 @@
 
         <StackPanel Spacing="10">
           <c:PreviewItem Icon="{StaticResource timer_regular}"
-                          Text="Bitcoin miners will work hard to confirm your transaction within"
-                          IsVisible="{Binding !IsCustomFeeUsed}">
+                         Text="miners will work hard to confirm your transaction within"
+                         IsVisible="{Binding !IsCustomFeeUsed}">
             <TextBox Classes="selectableTextBlock" Text="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
           </c:PreviewItem>
           <c:PreviewItem Icon="{StaticResource paper_cash_regular}"

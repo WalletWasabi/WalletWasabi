@@ -26,6 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 	{
 		[AutoNotify] private bool _darkModeEnabled;
 		[AutoNotify] private bool _autoCopy;
+		[AutoNotify] private bool _autoPaste;
 		[AutoNotify] private bool _customChangeAddress;
 		[AutoNotify] private FeeDisplayFormat _selectedFeeDisplayFormat;
 		[AutoNotify] private bool _runOnSystemStartup;
@@ -35,6 +36,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		{
 			_darkModeEnabled = Services.UiConfig.DarkModeEnabled;
 			_autoCopy = Services.UiConfig.Autocopy;
+			_autoPaste = Services.UiConfig.AutoPaste;
 			_customChangeAddress = Services.UiConfig.IsCustomChangeAddress;
 			_runOnSystemStartup = Services.UiConfig.RunOnSystemStartup;
 			_hideOnClose = Services.UiConfig.HideOnClose;
@@ -55,6 +57,11 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Skip(1)
 				.Subscribe(x => Services.UiConfig.Autocopy = x);
+
+			this.WhenAnyValue(x => x.AutoPaste)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Skip(1)
+				.Subscribe(x => Services.UiConfig.AutoPaste = x);
 
 			StartupCommand = ReactiveCommand.Create(async () =>
 			{

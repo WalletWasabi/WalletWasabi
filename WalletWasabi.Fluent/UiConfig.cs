@@ -22,6 +22,7 @@ namespace WalletWasabi.Fluent
 		private bool _runOnSystemStartup;
 		private bool _oobe;
 		private bool _hideOnClose;
+		private bool _autoPaste;
 
 		public UiConfig() : base()
 		{
@@ -31,6 +32,7 @@ namespace WalletWasabi.Fluent
 		{
 			this.WhenAnyValue(
 					x => x.Autocopy,
+					x => x.AutoPaste,
 					x => x.IsCustomChangeAddress,
 					x => x.DarkModeEnabled,
 					x => x.FeeDisplayFormat,
@@ -40,7 +42,7 @@ namespace WalletWasabi.Fluent
 					x => x.RunOnSystemStartup,
 					x => x.PrivacyMode,
 					x => x.HideOnClose,
-					(_, _, _, _, _, _, _, _, _, _) => Unit.Default)
+					(_, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
 				.Throttle(TimeSpan.FromMilliseconds(500))
 				.Skip(1) // Won't save on UiConfig creation.
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -81,6 +83,14 @@ namespace WalletWasabi.Fluent
 		{
 			get => _autocopy;
 			set => RaiseAndSetIfChanged(ref _autocopy, value);
+		}
+
+		[DefaultValue(false)]
+		[JsonProperty(PropertyName = nameof(AutoPaste), DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool AutoPaste
+		{
+			get => _autoPaste;
+			set => RaiseAndSetIfChanged(ref _autoPaste, value);
 		}
 
 		[DefaultValue(false)]
