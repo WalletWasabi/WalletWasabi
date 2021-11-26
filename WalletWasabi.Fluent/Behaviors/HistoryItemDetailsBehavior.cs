@@ -1,4 +1,5 @@
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -17,35 +18,26 @@ namespace WalletWasabi.Fluent.Behaviors
 		{
 			if (AssociatedObject is not null)
 			{
-				disposables.Add(
-					AssociatedObject
-						.GetObservable(InputElement.IsPointerOverProperty)
-						.Subscribe(x =>
-						{
-							if (AssociatedObject.IsPointerOver)
-							{
-								AddAdorner(AssociatedObject);
-							}
-							else
-							{
-								CheckIfShouldRemove();
-							}
-						}));
+				Observable.FromEventPattern(AssociatedObject, nameof(AssociatedObject.DetachedFromVisualTree))
+					.Subscribe(x =>
+					{
+						Remove();
+					});
 
-				disposables.Add(
-					AssociatedObject
-						.GetObservable(ListBoxItem.IsSelectedProperty)
-						.Subscribe(x =>
+				AssociatedObject
+					.GetObservable(InputElement.IsPointerOverProperty)
+					.Subscribe(x =>
+					{
+						if (AssociatedObject.IsPointerOver)
 						{
-							if (AssociatedObject.IsSelected)
-							{
-								AddAdorner(AssociatedObject);
-							}
-							else
-							{
-								CheckIfShouldRemove();
-							}
-						}));
+							AddAdorner(AssociatedObject);
+						}
+						else
+						{
+							CheckIfShouldRemove();
+						}
+					})
+					.DisposeWith(disposables);
 			}
 		}
 
@@ -61,10 +53,8 @@ namespace WalletWasabi.Fluent.Behaviors
 			});
 		}
 
-		protected override void OnDetaching()
+		private void Remove()
 		{
-			base.OnDetaching();
-
 			if (AssociatedObject is not null)
 			{
 				RemoveAdorner(AssociatedObject);
@@ -72,6 +62,13 @@ namespace WalletWasabi.Fluent.Behaviors
 
 			_currentAdornerEvents?.Dispose();
 			_currentAdornerEvents = null;
+		}
+
+		protected override void OnDetaching()
+		{
+			Remove();
+
+			base.OnDetaching();
 		}
 
 		private void AddAdorner(DataBoxRow dataBoxRow)
