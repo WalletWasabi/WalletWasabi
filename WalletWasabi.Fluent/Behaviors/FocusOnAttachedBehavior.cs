@@ -1,3 +1,4 @@
+using System.Reactive.Disposables;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
@@ -15,7 +16,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			set => SetValue(IsEnabledProperty, value);
 		}
 
-		protected override void OnAttachedToVisualTree()
+		protected override void OnAttachedToVisualTree(CompositeDisposable disposables)
 		{
 			if (IsEnabled)
 			{
