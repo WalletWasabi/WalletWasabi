@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using Avalonia;
 using Avalonia.Animation;
@@ -18,14 +17,12 @@ namespace WalletWasabi.Fluent.Behaviors
 		private readonly TimeSpan _totalDuration = TimeSpan.FromSeconds(0.4);
 
 		private CancellationTokenSource _currentAnimationCts = new();
-		private Rectangle _activeIndicator;
+		private Rectangle? _activeIndicator;
 
 		private bool _isDisposed;
 		private bool _previousAnimationOngoing;
 
 		// This will be used in the future for horizontal selection indicators.
-		// ReSharper disable once UnusedMember.Global
-		// ReSharper disable once MemberCanBePrivate.Global
 		public Orientation NavItemsOrientation { get; set; } = Orientation.Vertical;
 
 		public void Dispose()
@@ -46,12 +43,12 @@ namespace WalletWasabi.Fluent.Behaviors
 					identity *= Matrix.CreateTranslation(topLeft);
 				}
 
-				visual = visual.VisualParent;
-
-				if (visual == null)
+				if (visual.VisualParent is null)
 				{
-					throw new ArgumentException("'visual' is not a descendant of 'ancestor'.");
+					return Matrix.Identity;
 				}
+
+				visual = visual.VisualParent;
 			}
 
 			return identity;
@@ -68,7 +65,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			var nextIndicator = next;
 
 			// user clicked twice
-			if (prevIndicator.Equals(nextIndicator))
+			if (prevIndicator is null || prevIndicator.Equals(nextIndicator))
 			{
 				return;
 			}
@@ -161,8 +158,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			}
 
 			_activeIndicator = initial;
-
-			initial.Opacity = 1;
+			_activeIndicator.Opacity = 1;
 		}
 	}
 }

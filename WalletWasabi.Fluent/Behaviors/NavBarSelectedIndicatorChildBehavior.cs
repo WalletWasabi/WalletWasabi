@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Specialized;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -11,18 +12,20 @@ namespace WalletWasabi.Fluent.Behaviors
 {
 	public class NavBarSelectedIndicatorChildBehavior : AttachedToVisualTreeBehavior<Rectangle>
 	{
+		private readonly CompositeDisposable _disposables = new();
+
 		public static readonly AttachedProperty<Control> NavBarItemParentProperty =
 			AvaloniaProperty.RegisterAttached<NavBarSelectedIndicatorChildBehavior, Control, Control>(
 				"NavBarItemParent");
 
-		public static Control? GetNavBarItemParent(Control? element)
+		public static Control GetNavBarItemParent(Control element)
 		{
-			return element?.GetValue(NavBarItemParentProperty) ?? null;
+			return element.GetValue(NavBarItemParentProperty);
 		}
 
-		public static void SetNavBarItemParent(Control? element, Control value)
+		public static void SetNavBarItemParent(Control element, Control value)
 		{
-			element?.SetValue(NavBarItemParentProperty, value);
+			element.SetValue(NavBarItemParentProperty, value);
 		}
 
 		private void OnLoaded()
@@ -34,30 +37,17 @@ namespace WalletWasabi.Fluent.Behaviors
 
 			var sharedState = NavBarSelectedIndicatorParentBehavior.GetParentState(AssociatedObject);
 
-			if (sharedState is null)
-			{
-				Detach();
-				return;
-			}
-
-			var parent = GetNavBarItemParent(AssociatedObject);
-
-			if (parent is null)
-			{
-				Logger.LogError("NavBarItem Selection Indicator's parent is null, " +
-				                "cannot continue with indicator animations.");
-				return;
-			}
+			var parent = GetNavBarItemParent(AssociatedObject)!;
 
 			Observable.FromEventPattern<NotifyCollectionChangedEventArgs>(parent.Classes, "CollectionChanged")
-				.Select(x => x.EventArgs.NewItems)
-				.Select(x => parent.Classes.Contains(":selected")
-				             && !parent.Classes.Contains(":pressed")
-				             && !parent.Classes.Contains(":dragging"))
+				.Select(x => parent.Classes)
+				.Select(x => x.Contains(":selected")
+				             && !x.Contains(":pressed")
+				             && !x.Contains(":dragging"))
 				.DistinctUntilChanged()
 				.Where(x => x)
 				.ObserveOn(AvaloniaScheduler.Instance)
-				.Subscribe(_ => { sharedState.AnimateIndicatorAsync(AssociatedObject); });
+				.Subscribe(_ => sharedState.AnimateIndicatorAsync(AssociatedObject));
 
 			AssociatedObject.Opacity = 0;
 
@@ -65,6 +55,12 @@ namespace WalletWasabi.Fluent.Behaviors
 			{
 				sharedState.SetActive(AssociatedObject);
 			}
+		}
+
+		protected override void OnDetaching()
+		{
+			_disposables.Dispose();
+			base.OnDetaching();
 		}
 
 		protected override void OnAttachedToVisualTree()
