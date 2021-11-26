@@ -114,7 +114,7 @@ namespace WalletWasabi.WabiSabi.Client
 				roundState = await RoundStatusUpdater.CreateRoundAwaiter(rs => rs.Id == roundState.Id, cancellationToken).ConfigureAwait(false);
 				constructionState = roundState.Assert<ConstructionState>();
 
-				var theirCoins = constructionState.Inputs.Except(registeredCoins);
+				var theirCoins = constructionState.Inputs.Where(x => !registeredCoins.Any(y => y.Outpoint == x.Outpoint));
 				var outputValues = amountDecomposer.Decompose(registeredCoins, theirCoins, (int)availableVsize);
 
 				// Get all locked internal keys we have and assert we have enough.
