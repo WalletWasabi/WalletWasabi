@@ -98,7 +98,7 @@
 
         <StackPanel Spacing="10">
           <c:PreviewItem Icon="{StaticResource timer_regular}"
-                         Text="miners will work hard to confirm your transaction within">
+                         Text="your transaction should be confirmed within">
             <TextBox Classes="selectableTextBlock" Text="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
           </c:PreviewItem>
           <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
