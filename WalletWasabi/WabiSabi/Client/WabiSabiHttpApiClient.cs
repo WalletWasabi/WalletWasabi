@@ -44,8 +44,8 @@ namespace WalletWasabi.WabiSabi.Client
 		public Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken) =>
 			SendAndReceiveAsync<ConnectionConfirmationRequest, ConnectionConfirmationResponse>(RemoteAction.ConfirmConnection, request, cancellationToken);
 
-		public Task<EmptyResponse> RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken) =>
-			SendAndReceiveAsync<OutputRegistrationRequest, EmptyResponse>(RemoteAction.RegisterOutput, request, cancellationToken);
+		public Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken) =>
+			SendAndReceiveAsync<OutputRegistrationRequest>(RemoteAction.RegisterOutput, request, cancellationToken);
 
 		public Task<ReissueCredentialResponse> ReissuanceAsync(ReissueCredentialRequest request, CancellationToken cancellationToken) =>
 			SendAndReceiveAsync<ReissueCredentialRequest, ReissueCredentialResponse>(RemoteAction.ReissueCredential, request, cancellationToken);
@@ -148,8 +148,16 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private static TResponse Deserialize<TResponse>(string jsonString)
 		{
-			return JsonConvert.DeserializeObject<TResponse>(jsonString, JsonSerializationOptions.Default.Settings)
-				?? throw new InvalidOperationException("Deserialization error");
+			try
+			{
+				return JsonConvert.DeserializeObject<TResponse>(jsonString, JsonSerializationOptions.Default.Settings)
+					?? throw new InvalidOperationException("Deserialization error");
+			}
+			catch
+			{
+				Logger.LogDebug($"Failed to deserialize {typeof(TResponse)} from JSON '{jsonString}'");
+				throw;
+			}
 		}
 
 		private static string GetUriEndPoint(RemoteAction action) =>
