@@ -3,6 +3,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              mc:Ignorable="d"
              x:DataType="vm:AdvancedSendOptionsViewModel"
@@ -26,7 +28,11 @@
       <!-- Custom Fee -->
       <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
         <Label DockPanel.Dock="Left" Content="_Transaction Fee:" Target="transactionFeeTb" />
-        <TextBox x:Name="transactionFeeTb" MaxLength="250" Text="{Binding CustomFee}" Watermark="Enter a custom sat/vByte amount" VerticalAlignment="Top" />
+        <TextBox x:Name="transactionFeeTb" MaxLength="250" Text="{Binding CustomFee}" Watermark="Enter a custom sat/vByte amount" VerticalAlignment="Top">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+          </i:Interaction.Behaviors>
+        </TextBox>
       </DockPanel>
 
     </DockPanel>
