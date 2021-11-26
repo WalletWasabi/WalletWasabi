@@ -22,6 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		[AutoNotify] private bool _isBoosting;
 		[AutoNotify] private bool _showBoostingAnimation;
 		[AutoNotify] private bool _boostButtonVisible;
+		[AutoNotify] private bool _fullyMixed;
 		[AutoNotify] private IList<(string color, double percentShare)>? _testDataPoints;
 		[AutoNotify] private IList<DataLegend>? _testDataPointsLegend;
 		[AutoNotify] private string _percentText;
@@ -129,12 +130,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			var normalDecimalAmount = normalAmount.ToDecimal(MoneyUnit.BTC);
 			var totalDecimalAmount = privateDecimalAmount + normalDecimalAmount;
 
-			var pcPrivate = totalDecimalAmount == 0M ? 0d : (double)(privateDecimalAmount / totalDecimalAmount);
+			var pcPrivate = totalDecimalAmount == 0M ? 1d : (double)(privateDecimalAmount / totalDecimalAmount);
 			var pcNormal = 1 - pcPrivate;
 
 			PercentText = $"{pcPrivate:P}";
 
 			Percent = pcPrivate * 100;
+
+			FullyMixed = pcPrivate >= 1d;
 
 			TestDataPoints = new List<(string, double)>
 			{

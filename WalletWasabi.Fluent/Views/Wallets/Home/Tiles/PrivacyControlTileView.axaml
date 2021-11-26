@@ -40,6 +40,8 @@
             <TextBlock Text="Boost Privacy" />
           </StackPanel>
         </Button>
+        <TextBlock Text="Your Privacy is protected"
+                   IsVisible="{Binding FullyMixed}" />
         <Button Classes="plain" Cursor="Hand" Command="{Binding BoostPrivacyCommand}"
                 IsVisible="{Binding IsBoosting}"
                 ToolTip.Tip="Stop Privacy Boost">
@@ -93,6 +95,8 @@
             <TextBlock Text="Boost Privacy" />
           </StackPanel>
         </Button>
+        <TextBlock Text="Your Privacy is protected"
+                IsVisible="{Binding FullyMixed}" />
         <Button Classes="plain" Cursor="Hand" Command="{Binding BoostPrivacyCommand}"
                 IsVisible="{Binding IsBoosting}"
                 ToolTip.Tip="Stop Privacy Boost">
