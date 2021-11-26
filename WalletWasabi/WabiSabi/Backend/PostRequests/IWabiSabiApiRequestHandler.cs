@@ -10,7 +10,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 
 		Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken);
 
-		Task<EmptyResponse> RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken);
+		Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken);
 
 		Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellationToken);
 
