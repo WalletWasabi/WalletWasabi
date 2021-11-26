@@ -21,8 +21,7 @@
         <TextBlock Text="Send - Preview Transaction" />
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center">
             <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
-                   ToolTip.Tip="{Binding PayJoinUrl}" />
-
+                   ToolTip.Tip="Your privacy is being protected with PayJoin." IsVisible="{Binding IsPayJoin}" />
             <Button Classes="plain"
                     Cursor="Hand"
                     ToolTip.Tip="Privacy can be improved by avoiding change. Click to resolve."
@@ -79,13 +78,6 @@
       </c:PreviewItem>
 
       <Separator />
-
-      <DockPanel Name="avoidChangeRow">
-        <c:PreviewItem Icon="{StaticResource incognito_filled}"
-                       Text="you will receive change from this transaction"
-                       IsVisible="{Binding TransactionHasChange}" />
-      </DockPanel>
-      <Separator IsVisible="{Binding #avoidChangeRow.IsVisible}" />
 
       <DockPanel>
         <Button Classes="plain"
