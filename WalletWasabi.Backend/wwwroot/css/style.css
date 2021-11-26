@@ -20,6 +20,7 @@
     --blue: #002647;
     --light-blue: #00BBC4;
     --border-radius: 15px;
+    --light-gray: rgb(73, 88, 107);
 }
 body {
     color: #fff;
@@ -159,11 +160,10 @@ h2 {
     z-index: 900;
 }
 .social-icons li {
-    width: auto;
     list-style: none;
     margin: 0 5px;
-    width: 30px;
-    height: 30px;
+    width: 20px;
+    height: 20px;
 }
 .social-icons svg {
     width: 100%;
@@ -326,13 +326,13 @@ video::-webkit-media-controls {
     visibility: visible;
 }
 .home {
-    background: rgb(73, 88, 107);
+    background: var(--light-gray);
     background: linear-gradient(143deg, rgba(73, 88, 107, 1) 0%, rgba(0, 16, 31, 1) 55%);
 }
 .privacy {
     height: 100vh;
     position: relative;
-    background: rgb(73, 88, 107);
+    background: var(--light-gray);
     background: linear-gradient(143deg, rgba(73, 88, 107, 1) 0%, rgba(0, 16, 31, 1) 55%);
 }
 .privacy .title {
@@ -370,11 +370,11 @@ video::-webkit-media-controls {
     font-weight: bold;
     font-size: 36px;
     text-align: center;
-    border-bottom: 1px solid var(--green);
+    border-bottom: 1px solid var(--light-gray);
     text-transform: uppercase;
 }
 .service-line:first-child {
-    border-top: 1px solid var(--green);
+    border-top: 1px solid var(--light-gray);
 }
 .service-line:nth-child(odd) {
     direction: rtl;
@@ -808,7 +808,7 @@ body:not(:hover) .exitpopup {
 .donwload-icons svg:hover {
     fill: var(--green);
 }
-#download-mac, #download-windows, #download-linux, #download-other {
+.download-mac, .download-windows, .download-linux, .download-other {
     padding: 20px;
 }
 .download-box {
@@ -817,6 +817,10 @@ body:not(:hover) .exitpopup {
     -ms-transition: all 0.5s ease-in-out;
     -o-transition: all 0.5s ease-in-out;
     transition: all 0.5s ease-in-out;
+    border-right: 1px solid var(--light-gray);
+}
+.download-box:last-child {
+    border-right: 0;
 }
 .download-box svg {
     height: 40px;
@@ -852,26 +856,6 @@ ol li::marker {
     display: inline-block;
     width: 1em;
     margin-left: -1em;
-}
-#download-mac {
-    border-bottom: 1px solid rgb(73, 88, 107);
-    border-right: 1px solid rgb(73, 88, 107);
-    border-radius: var(--border-radius) 0 0 0;
-}
-#download-windows {
-    border-bottom: 1px solid rgb(73, 88, 107);
-    border-left: 1px solid rgb(73, 88, 107);
-    border-radius: 0 var(--border-radius) 0 0;
-}
-#download-linux {
-    border-top: 1px solid rgb(73, 88, 107);
-    border-right: 1px solid rgb(73, 88, 107);
-    border-radius: 0 0 0 var(--border-radius);
-}
-#download-other {
-    border-top: 1px solid rgb(73, 88, 107);
-    border-left: 1px solid rgb(73, 88, 107);
-    border-radius: 0 0 var(--border-radius) 0;
 }
 @media (min-width: 576px) {
     body {
@@ -915,10 +899,6 @@ ol li::marker {
     }
     .logo img {
         width: 120px;
-    }
-    .social-icons li {
-        width: 22px;
-        height: 22px;
     }
     .video-homepage video, .video-homepage .mobile_video_bg {
         height: 100vh;
@@ -984,6 +964,29 @@ ol li::marker {
         object-fit: cover;
         height: 60vh;
     }
+    .download-box {
+        border: none;
+    }
+    .download-mac {
+        border-bottom: 1px solid var(--light-gray);
+        border-right: 1px solid var(--light-gray);
+        border-radius: var(--border-radius) 0 0 0;
+    }
+    .download-windows {
+        border-bottom: 1px solid var(--light-gray);
+        border-left: 1px solid var(--light-gray);
+        border-radius: 0 var(--border-radius) 0 0;
+    }
+    .download-linux {
+        border-top: 1px solid var(--light-gray);
+        border-right: 1px solid var(--light-gray);
+        border-radius: 0 0 0 var(--border-radius);
+    }
+    .download-other {
+        border-top: 1px solid var(--light-gray);
+        border-left: 1px solid var(--light-gray);
+        border-radius: 0 0 var(--border-radius) 0;
+    }
 }
 @media only screen and (max-width: 600px) {
     .download-btn-area {
@@ -992,22 +995,55 @@ ol li::marker {
     .home-text-area, .download-btn-area {
         left: 20px;
     }
-}
-@media only screen and (max-width: 400px) {
-    .social-icons li {
-        width: 18px;
-        height: 18px;
+    .title {
+        font-size: 40px;
     }
 }
-@media only screen and (max-width: 320px) {
+@media only screen and (max-width: 400px) {} @media only screen and (max-width: 320px) {
     .logo img {
         width: 80px;
-    }
-    .social-icons li {
-        width: 16px;
-        height: 16px;
     }
     .download-btn-area {
         transform: scale(0.5) translateX(-50%) translateY(-50%);
     }
+}
+.versions input, .versions .v-text {
+    position: absolute;
+    top: 0;
+}
+.versions label {
+    display: block;
+}
+.versions .v-text {
+    font-weight: bold;
+    cursor: pointer;
+}
+.versions label:first-child input {
+    left: calc(50% - 200px);
+}
+.versions label:first-child .v-text {
+    left: calc(50% - 180px);
+}
+.versions label:nth-child(2) input {
+    left: calc(50% + 20px);
+}
+.versions label:nth-child(2) .v-text {
+    left: calc(50% + 40px);
+}
+.version-content {
+    display: none;
+    left: 0;
+    top: 50px;
+    border-top: 1px dashed var(--light-gray);
+    padding-top: 40px;
+}
+.version-select:checked + .version-content {
+    display: block;
+}
+.versions {
+    position: relative;
+    padding-top: 50px;
+}
+.small-text {
+    font-size: 12px;
 }
