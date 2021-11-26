@@ -22,6 +22,9 @@
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center">
             <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
                    ToolTip.Tip="Your privacy is being protected with PayJoin." IsVisible="{Binding IsPayJoin}" />
+            <Viewbox Height="20" IsVisible="{Binding MaxPrivacy}" ToolTip.Tip="Your privacy is fully protected in this transaction.">
+              <PathIcon Data="{StaticResource shield_regular}" Foreground="{DynamicResource PrivacyLevelStrongBrush}" />
+            </Viewbox>
             <Button Classes="plain"
                     Cursor="Hand"
                     ToolTip.Tip="Privacy can be improved by avoiding change. Click to resolve."
@@ -33,7 +36,7 @@
                 </MultiBinding>
               </Button.IsVisible>
               <Viewbox Height="20">
-                <PathIcon Data="{StaticResource warning_filled}" Foreground="{DynamicResource WarningMessageForeground}" />
+                <PathIcon Data="{StaticResource shield_regular}" Foreground="{DynamicResource WarningMessageForeground}" />
               </Viewbox>
             </Button>
           </StackPanel>

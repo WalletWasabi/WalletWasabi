@@ -37,6 +37,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private bool _transactionHasChange;
 		[AutoNotify] private bool _transactionHasPockets;
 		[AutoNotify] private bool _adjustFeeAvailable;
+		[AutoNotify] private bool _maxPrivacy;
+		[AutoNotify] private bool _issuesTooltip;
 
 		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info)
 		{
@@ -51,6 +53,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
 			IsPayJoin = PayJoinUrl is not null;
 			AdjustFeeAvailable = !TransactionFeeHelper.AreTransactionFeesEqual(_wallet);
+
+			this.WhenAnyValue(x => x.TransactionHasChange, x => x.TransactionHasPockets)
+				.Subscribe(_ =>
+				{
+					MaxPrivacy = !TransactionHasPockets && !TransactionHasChange;
+				});
 
 			if (PreferPsbtWorkflow)
 			{
