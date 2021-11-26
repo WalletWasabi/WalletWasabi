@@ -18,7 +18,7 @@
                  ScrollViewer.VerticalScrollBarVisibility="Auto">
     <c:ContentArea.Title>
       <DockPanel>
-        <TextBlock Text="Send - Preview Transaction" />
+        <TextBlock Text="Preview Transaction" />
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center">
             <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
                    ToolTip.Tip="Your privacy is being protected with PayJoin." IsVisible="{Binding IsPayJoin}" />
