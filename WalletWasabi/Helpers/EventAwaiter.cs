@@ -1,5 +1,4 @@
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace System
@@ -17,11 +16,5 @@ namespace System
 
 		public new async Task<TEventArgs> WaitAsync(TimeSpan timeout)
 			=> await Task.WithAwaitCancellationAsync(timeout).ConfigureAwait(false);
-
-		public new async Task<TEventArgs> WaitAsync(int millisecondsTimeout)
-			=> await Task.WithAwaitCancellationAsync(millisecondsTimeout).ConfigureAwait(false);
-
-		public new async Task<TEventArgs> WaitAsync(CancellationToken cancel, int waitForGracefulTerminationMilliseconds = 0)
-			=> await Task.WithAwaitCancellationAsync(cancel, waitForGracefulTerminationMilliseconds).ConfigureAwait(false);
 	}
 }

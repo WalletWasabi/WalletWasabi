@@ -293,7 +293,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			Labels = SmartLabel.Merge(_info.UserLabels, SmartLabel.Merge(transactionResult.SpentCoins.Select(x => x.GetLabels())));
 
-			TransactionHasChange = _transaction.OuterWalletOutputs.Sum(x => x.Amount) > fee && _transaction.InnerWalletOutputs.Sum(x => x.Amount) > 0;
+			TransactionHasChange = _transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != _info.Address.ScriptPubKey);
+
 			TransactionHasPockets = !_info.IsPrivatePocketUsed;
 		}
 

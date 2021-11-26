@@ -501,6 +501,8 @@ Check all of the certificates that you’ve obtained and tries to renew any that
 
 `sudo certbot renew`
 
+!Be aware that after 5 failures you will be suspended for an hour - for debugging use `certbot renew --dry-run`.
+
 Detailed instuctions about configuration [here](https://certbot.eff.org/lets-encrypt/ubuntubionic-nginx).
 
 ## Accessing Software Logs
