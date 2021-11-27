@@ -274,7 +274,6 @@
                            IsVisible="{Binding IsLoggedIn}" />
                 </Panel>
 
-
                 <!-- Title & status text -->
                 <DockPanel Margin="10 0 15 0" DockPanel.Dock="Left" VerticalAlignment="Center">
                   <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" DockPanel.Dock="Top" />

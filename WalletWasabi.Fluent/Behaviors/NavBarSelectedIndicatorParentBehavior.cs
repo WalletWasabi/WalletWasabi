@@ -11,7 +11,7 @@ namespace WalletWasabi.Fluent.Behaviors
 				.RegisterAttached<NavBarSelectedIndicatorParentBehavior, Control, NavBarSelectedIndicatorState>(
 					"ParentState", inherits: true);
 
-		public static NavBarSelectedIndicatorState GetParentState(Control element)
+		public static NavBarSelectedIndicatorState? GetParentState(Control element)
 		{
 			return element.GetValue(ParentStateProperty);
 		}
