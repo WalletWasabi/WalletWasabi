@@ -13,6 +13,7 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.EventSourcing;
+using WalletWasabi.EventSourcing.ArenaDomain;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -110,7 +111,8 @@ namespace WalletWasabi.Tests.Helpers
 
 		public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig cfg, IMock<IRPCClient> mockRpc, params Round[] rounds)
 		{
-			Arena arena = new(TimeSpan.FromHours(1), Network.Main, cfg, mockRpc.Object, new Prison(), new EventStore(new InMemoryEventRepository()));
+			var repository = new InMemoryEventRepository();
+			Arena arena = new(TimeSpan.FromHours(1), Network.Main, cfg, mockRpc.Object, new Prison(), new EventStore(repository, new AggregateFactory(), new CommandProcessorFactory()), repository);
 			foreach (var round in rounds)
 			{
 				arena.Rounds.Add(round);
@@ -224,7 +226,7 @@ namespace WalletWasabi.Tests.Helpers
 
 			return new ConnectionConfirmationRequest(
 				round.Id,
-				alice.Id,
+				alice.Secret,
 				zeroAmountCredentialRequest,
 				realAmountCredentialRequest,
 				zeroVsizeCredentialRequest,

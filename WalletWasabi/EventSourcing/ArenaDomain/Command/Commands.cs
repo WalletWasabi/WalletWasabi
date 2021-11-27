@@ -11,9 +11,9 @@ using WalletWasabi.EventSourcing.Interfaces;
 namespace WalletWasabi.EventSourcing.ArenaDomain.Command
 {
 	public record StartRoundCommand(RoundParameters2 RoundParameters, Guid IdempotenceId) : ICommand;
-	public record InputRegisterCommand(Coin Coin, OwnershipProof OwnershipProof, Guid AliceId, Guid IdempotenceId) : ICommand;
-	public record InputConnectionConfirmedCommand(Coin Coin, OwnershipProof OwnershipProof, Guid AliceId, Guid IdempotenceId) : ICommand;
-	public record RemoveInputCommand(Guid AliceId, Guid IdempotenceId) : ICommand;
+	public record InputRegisterCommand(Coin Coin, OwnershipProof OwnershipProof, Guid AliceSecret, Guid IdempotenceId) : ICommand;
+	public record InputConnectionConfirmedCommand(Coin Coin, OwnershipProof OwnershipProof, Guid IdempotenceId) : ICommand;
+	public record RemoveInputCommand(OutPoint AliceOutPoint, Guid IdempotenceId) : ICommand;
 
 	public record RegisterOutputCommand(Script Script, long Value, Guid IdempotenceId) : ICommand;
 
@@ -25,9 +25,9 @@ namespace WalletWasabi.EventSourcing.ArenaDomain.Command
 
 	public record SucceedRoundCommand(Guid IdempotenceId) : ICommand;
 
-	public record InputReadyToSignCommand(Guid AliceId, Guid IdempotenceId) : ICommand;
+	public record InputReadyToSignCommand(OutPoint AliceOutPoint, Guid IdempotenceId) : ICommand;
 
-	public record AddSignatureEvent(Guid AliceId, WitScript WitScript, Guid IdempotenceId) : ICommand;
+	public record AddSignatureEvent(OutPoint AliceOutPoint, WitScript WitScript, Guid IdempotenceId) : ICommand;
 
 	public record EndRoundCommand(Guid IdempotenceId) : ICommand;
 }

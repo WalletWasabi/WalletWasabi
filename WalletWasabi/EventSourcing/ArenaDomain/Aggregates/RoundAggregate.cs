@@ -24,12 +24,12 @@ namespace WalletWasabi.EventSourcing.ArenaDomain
 
 		private void Apply(InputRegisteredEvent ev)
 		{
-			State = State with { Inputs = State.Inputs.Add(new InputState(ev.AliceId, ev.Coin, ev.OwnershipProof)) };
+			State = State with { Inputs = State.Inputs.Add(new InputState(ev.Coin, ev.OwnershipProof, ev.AliceSecret)) };
 		}
 
 		private void Apply(InputUnregistered ev)
 		{
-			State = State with { Inputs = State.Inputs.RemoveAll(input => input.AliceId == ev.AliceId) };
+			State = State with { Inputs = State.Inputs.RemoveAll(input => input.Coin.Outpoint == ev.AliceOutPoint) };
 		}
 
 		private void Apply(InputsConnectionConfirmationStartedEvent _)
@@ -39,11 +39,11 @@ namespace WalletWasabi.EventSourcing.ArenaDomain
 
 		private void Apply(InputConnectionConfirmedEvent ev)
 		{
-			var index = State.Inputs.FindIndex(input => input.AliceId == ev.AliceId);
+			var index = State.Inputs.FindIndex(input => input.Coin.Outpoint == ev.Coin.Outpoint);
 			if (index < 0)
 			{
 				// On client side we have to add the input here because InputRegisteredEvent not sent to clients.
-				State = State with { Inputs = State.Inputs.Add(new InputState(ev.AliceId, ev.Coin, ev.OwnershipProof, true)) };
+				State = State with { Inputs = State.Inputs.Add(new InputState(ev.Coin, ev.OwnershipProof, ConnectionConfirmed: true)) };
 				return;
 			}
 
@@ -69,7 +69,7 @@ namespace WalletWasabi.EventSourcing.ArenaDomain
 
 		private void Apply(InputReadyToSignEvent ev)
 		{
-			var index = State.Inputs.FindIndex(input => input.AliceId == ev.AliceId);
+			var index = State.Inputs.FindIndex(input => input.Coin.Outpoint == ev.AliceOutPoint);
 			if (index < 0)
 			{
 				return;
@@ -85,7 +85,7 @@ namespace WalletWasabi.EventSourcing.ArenaDomain
 
 		private void Apply(SignatureAddedEvent ev)
 		{
-			var index = State.Inputs.FindIndex(input => input.AliceId == ev.AliceId);
+			var index = State.Inputs.FindIndex(input => input.Coin.Outpoint == ev.AliceOutPoint);
 			if (index < 0)
 			{
 				return;

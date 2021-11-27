@@ -24,9 +24,9 @@ namespace WalletWasabi.EventSourcing.ArenaDomain.Aggregates
 	}
 
 	public record InputState(
-		Guid AliceId,
 		Coin Coin,
 		OwnershipProof OwnershipProof,
+		Guid AliceSecret = default,
 		bool ConnectionConfirmed = false,
 		bool ReadyToSign = false,
 		WitScript? WitScript = null);

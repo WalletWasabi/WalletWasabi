@@ -9,5 +9,5 @@ using WalletWasabi.EventSourcing.Interfaces;
 
 namespace WalletWasabi.EventSourcing.ArenaDomain.Events
 {
-	public record InputConnectionConfirmedEvent(Guid AliceId, Coin Coin, OwnershipProof OwnershipProof) : IEvent, IRoundClientEvent;
+	public record InputConnectionConfirmedEvent(Coin Coin, OwnershipProof OwnershipProof) : IEvent, IRoundClientEvent;
 }

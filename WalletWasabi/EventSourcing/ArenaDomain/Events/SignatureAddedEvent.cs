@@ -8,5 +8,5 @@ using WalletWasabi.EventSourcing.Interfaces;
 
 namespace WalletWasabi.EventSourcing.ArenaDomain.Events
 {
-	public record SignatureAddedEvent(Guid AliceId, WitScript WitScript) : IEvent, IRoundClientEvent;
+	public record SignatureAddedEvent(OutPoint AliceOutPoint, WitScript WitScript) : IEvent, IRoundClientEvent;
 }
