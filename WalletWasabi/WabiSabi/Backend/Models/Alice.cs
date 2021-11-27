@@ -8,17 +8,17 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 {
 	public class Alice
 	{
-		public Alice(Coin coin, OwnershipProof ownershipProof, Round round, Guid id)
+		public Alice(Coin coin, OwnershipProof ownershipProof, Round round, Guid secret)
 		{
 			// TODO init syntax?
 			Round = round;
 			Coin = coin;
 			OwnershipProof = ownershipProof;
-			Id = id;
+			Secret = secret;
 		}
 
 		public Round Round { get; }
-		public Guid Id { get; }
+		public Guid Secret { get; }
 		public DateTimeOffset Deadline { get; set; } = DateTimeOffset.UtcNow;
 		public Coin Coin { get; }
 		public OwnershipProof OwnershipProof { get; }

@@ -74,7 +74,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
 			var inputRegistrationResponse = await aliceArenaClient.RegisterInputAsync(round.Id, outpoint, ownershipProof, CancellationToken.None);
-			var aliceId = inputRegistrationResponse.Value;
+			var aliceSecret = inputRegistrationResponse.Value;
 
 			var inputVsize = Constants.P2wpkhInputVirtualSize;
 			var amountsToRequest = new[]
@@ -94,7 +94,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			var connectionConfirmationResponse1 = await aliceArenaClient.ConfirmConnectionAsync(
 				round.Id,
-				aliceId,
+				aliceSecret,
 				amountsToRequest,
 				vsizesToRequest,
 				inputRegistrationResponse.IssuedAmountCredentials,
@@ -107,7 +107,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			// Phase: Connection Confirmation
 			var connectionConfirmationResponse2 = await aliceArenaClient.ConfirmConnectionAsync(
 				round.Id,
-				aliceId,
+				aliceSecret,
 				amountsToRequest,
 				vsizesToRequest,
 				connectionConfirmationResponse1.IssuedAmountCredentials,
@@ -156,7 +156,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				new[] { vsizeCred2, zeroVsizeCred2 },
 				CancellationToken.None);
 
-			await aliceArenaClient.ReadyToSignAsync(round.Id, aliceId, CancellationToken.None);
+			await aliceArenaClient.ReadyToSignAsync(round.Id, aliceSecret, CancellationToken.None);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
@@ -187,7 +187,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			round.SetPhase(Phase.InputRegistration);
 
-			await apiClient.RemoveInputAsync(round.Id, alice.Id, CancellationToken.None);
+			await apiClient.RemoveInputAsync(round.Id, alice.Secret, CancellationToken.None);
 			Assert.Empty(round.Alices);
 		}
 

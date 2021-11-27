@@ -203,7 +203,7 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 
 			// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to be registered.
-			var remainingTimeForRegistration = ( roundState.InputRegistrationEnd - DateTimeOffset.UtcNow ) - TimeSpan.FromSeconds(15);
+			var remainingTimeForRegistration = (roundState.InputRegistrationEnd - DateTimeOffset.UtcNow) - TimeSpan.FromSeconds(15);
 
 			Logger.LogDebug($"Round ({roundState.Id}): Input registration started, it will end in {remainingTimeForRegistration.TotalMinutes} minutes.");
 
@@ -260,7 +260,7 @@ namespace WalletWasabi.WabiSabi.Client
 				}
 				catch (Exception e)
 				{
-					Logger.LogWarning($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Could not sign, reason:'{e}'.");
+					Logger.LogWarning($"Round ({aliceClient.RoundId}), Alice ({aliceClient.Secret}): Could not sign, reason:'{e}'.");
 					return default;
 				}
 			}

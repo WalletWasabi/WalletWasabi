@@ -223,7 +223,7 @@ namespace WalletWasabi.Tests.Helpers
 
 			return new ConnectionConfirmationRequest(
 				round.Id,
-				alice.Id,
+				alice.Secret,
 				zeroAmountCredentialRequest,
 				realAmountCredentialRequest,
 				zeroVsizeCredentialRequest,

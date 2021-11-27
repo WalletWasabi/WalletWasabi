@@ -5,7 +5,7 @@ using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 namespace WalletWasabi.WabiSabi.Models
 {
 	public record InputRegistrationResponse(
-		Guid AliceId,
+		Guid AliceSecret,
 		CredentialsResponse AmountCredentials,
 		CredentialsResponse VsizeCredentials
 	);

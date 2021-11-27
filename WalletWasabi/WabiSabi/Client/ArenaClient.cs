@@ -51,12 +51,12 @@ namespace WalletWasabi.WabiSabi.Client
 			var realAmountCredentials = AmountCredentialClient.HandleResponse(inputRegistrationResponse.AmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
 			var realVsizeCredentials = VsizeCredentialClient.HandleResponse(inputRegistrationResponse.VsizeCredentials, zeroVsizeCredentialRequestData.CredentialsResponseValidation);
 
-			return new(inputRegistrationResponse.AliceId, realAmountCredentials, realVsizeCredentials);
+			return new(inputRegistrationResponse.AliceSecret, realAmountCredentials, realVsizeCredentials);
 		}
 
-		public async Task RemoveInputAsync(uint256 roundId, Guid aliceId, CancellationToken cancellationToken)
+		public async Task RemoveInputAsync(uint256 roundId, Guid aliceSecret, CancellationToken cancellationToken)
 		{
-			await RequestHandler.RemoveInputAsync(new InputsRemovalRequest(roundId, aliceId), cancellationToken).ConfigureAwait(false);
+			await RequestHandler.RemoveInputAsync(new InputsRemovalRequest(roundId, aliceSecret), cancellationToken).ConfigureAwait(false);
 		}
 
 		public async Task RegisterOutputAsync(

@@ -16,7 +16,7 @@ namespace WalletWasabi.WabiSabi.Client
 	public class AliceClient
 	{
 		private AliceClient(
-			Guid aliceId,
+			Guid secret,
 			RoundState roundState,
 			ArenaClient arenaClient,
 			SmartCoin coin,
@@ -24,7 +24,7 @@ namespace WalletWasabi.WabiSabi.Client
 			IEnumerable<Credential> issuedAmountCredentials,
 			IEnumerable<Credential> issuedVsizeCredentials)
 		{
-			AliceId = aliceId;
+			Secret = secret;
 			RoundId = roundState.Id;
 			ArenaClient = arenaClient;
 			SmartCoin = coin;
@@ -36,7 +36,7 @@ namespace WalletWasabi.WabiSabi.Client
 			ConfirmationTimeout = roundState.ConnectionConfirmationTimeout / 2;
 		}
 
-		public Guid AliceId { get; }
+		public Guid Secret { get; }
 		public uint256 RoundId { get; }
 		private ArenaClient ArenaClient { get; }
 		public SmartCoin SmartCoin { get; }
@@ -62,7 +62,7 @@ namespace WalletWasabi.WabiSabi.Client
 				aliceClient = await RegisterInputAsync(roundState, arenaClient, coin, bitcoinSecret, identificationKey, cancellationToken).ConfigureAwait(false);
 				await aliceClient.ConfirmConnectionAsync(roundStatusUpdater, cancellationToken).ConfigureAwait(false);
 
-				Logger.LogInfo($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Connection successfully confirmed.");
+				Logger.LogInfo($"Round ({aliceClient.RoundId}), Alice ({aliceClient.Secret}): Connection successfully confirmed.");
 			}
 			catch (OperationCanceledException)
 			{
@@ -92,7 +92,7 @@ namespace WalletWasabi.WabiSabi.Client
 				aliceClient = new(response.Value, roundState, arenaClient, coin, bitcoinSecret, response.IssuedAmountCredentials, response.IssuedVsizeCredentials);
 				coin.CoinJoinInProgress = true;
 
-				Logger.LogInfo($"Round ({roundState.Id}), Alice ({aliceClient.AliceId}): Registered {coin.OutPoint}.");
+				Logger.LogInfo($"Round ({roundState.Id}), Alice ({aliceClient.Secret}): Registered {coin.OutPoint}.");
 			}
 			catch (System.Net.Http.HttpRequestException ex)
 			{
@@ -162,13 +162,13 @@ namespace WalletWasabi.WabiSabi.Client
 
 			if (effectiveAmount <= Money.Zero)
 			{
-				throw new InvalidOperationException($"Round({ RoundId }), Alice({ AliceId}): Adding this input is uneconomical.");
+				throw new InvalidOperationException($"Round({ RoundId }), Alice({ Secret}): Adding this input is uneconomical.");
 			}
 
 			var response = await ArenaClient
 				.ConfirmConnectionAsync(
 					RoundId,
-					AliceId,
+					Secret,
 					amountsToRequest,
 					vsizesToRequest,
 					IssuedAmountCredentials,
@@ -181,7 +181,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 			var isConfirmed = response.Value;
 
-			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Connection confirmed.");
+			Logger.LogInfo($"Round ({RoundId}), Alice ({Secret}): Connection confirmed.");
 			return isConfirmed;
 		}
 
@@ -191,7 +191,7 @@ namespace WalletWasabi.WabiSabi.Client
 			{
 				await RemoveInputAsync(cancellationToken).ConfigureAwait(false);
 				SmartCoin.CoinJoinInProgress = false;
-				Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Unregistered {SmartCoin.OutPoint}.");
+				Logger.LogInfo($"Round ({RoundId}), Alice ({Secret}): Unregistered {SmartCoin.OutPoint}.");
 			}
 			catch (System.Net.Http.HttpRequestException ex)
 			{
@@ -222,22 +222,22 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public async Task RemoveInputAsync(CancellationToken cancellationToken)
 		{
-			await ArenaClient.RemoveInputAsync(RoundId, AliceId, cancellationToken).ConfigureAwait(false);
+			await ArenaClient.RemoveInputAsync(RoundId, Secret, cancellationToken).ConfigureAwait(false);
 			SmartCoin.CoinJoinInProgress = false;
-			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Inputs removed.");
+			Logger.LogInfo($"Round ({RoundId}), Alice ({Secret}): Inputs removed.");
 		}
 
 		public async Task SignTransactionAsync(Transaction unsignedCoinJoin, CancellationToken cancellationToken)
 		{
 			await ArenaClient.SignTransactionAsync(RoundId, SmartCoin.Coin, BitcoinSecret, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
 
-			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Posted a signature.");
+			Logger.LogInfo($"Round ({RoundId}), Alice ({Secret}): Posted a signature.");
 		}
 
 		public async Task ReadyToSignAsync(CancellationToken cancellationToken)
 		{
-			await ArenaClient.ReadyToSignAsync(RoundId, AliceId, cancellationToken).ConfigureAwait(false);
-			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Ready to sign.");
+			await ArenaClient.ReadyToSignAsync(RoundId, Secret, cancellationToken).ConfigureAwait(false);
+			Logger.LogInfo($"Round ({RoundId}), Alice ({Secret}): Ready to sign.");
 		}
 	}
 }
