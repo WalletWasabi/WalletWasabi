@@ -30,8 +30,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public FeeRate FeeRate { get; set; } = FeeRate.Zero;
 
-		public FeeRate CustomFeeRate { get; set; } = FeeRate.Zero;
-
 		public TimeSpan ConfirmationTimeSpan { get; set; }
 
 		public IEnumerable<SmartCoin> Coins { get; set; } = Enumerable.Empty<SmartCoin>();
@@ -42,14 +40,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public bool IsPrivatePocketUsed => Coins.All(x => x.HdPubKey.AnonymitySet >= _privateCoinThreshold);
 
-		public bool IsCustomFeeUsed => CustomFeeRate != FeeRate.Zero;
+		public bool IsCustomFeeUsed { get; set; }
 
 		public bool SubtractFee { get; set; }
 
 		private void OnAmountChanged()
 		{
 			SubtractFee = default;
-			FeeRate = FeeRate.Zero;
+
+			if (!IsCustomFeeUsed)
+			{
+				FeeRate = FeeRate.Zero;
+			}
 
 			if (Coins.Sum(x => x.Amount) < Amount) // Reset coins if the selected cluster is not enough for the new amount
 			{

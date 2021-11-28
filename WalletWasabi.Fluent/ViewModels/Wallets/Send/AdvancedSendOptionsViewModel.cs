@@ -21,8 +21,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			_transactionInfo = transactionInfo;
 
-			_customFee = transactionInfo.CustomFeeRate != FeeRate.Zero
-				? transactionInfo.CustomFeeRate.SatoshiPerByte.ToString(CultureInfo.InvariantCulture)
+			_customFee = transactionInfo.IsCustomFeeUsed
+				? transactionInfo.FeeRate.SatoshiPerByte.ToString(CultureInfo.InvariantCulture)
 				: "";
 
 			EnableBack = false;
@@ -45,10 +45,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void OnNext()
 		{
-			_transactionInfo.CustomFeeRate =
-				decimal.TryParse(CustomFee, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var customFee)
-					? new FeeRate(customFee)
-					: FeeRate.Zero;
+			if (decimal.TryParse(CustomFee, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var feeRate))
+			{
+				_transactionInfo.FeeRate = new FeeRate(feeRate);
+				_transactionInfo.IsCustomFeeUsed = true;
+			}
+			else
+			{
+				_transactionInfo.FeeRate = FeeRate.Zero;
+				_transactionInfo.IsCustomFeeUsed = false;
+			}
 
 			Close(DialogResultKind.Normal, Unit.Default);
 		}

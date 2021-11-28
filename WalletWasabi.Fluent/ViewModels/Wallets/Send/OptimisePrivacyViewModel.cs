@@ -81,7 +81,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						var smallerTransaction = await Task.Run(() => _wallet.BuildTransaction(
 							_wallet.Kitchen.SaltSoup(),
 							intent,
-							FeeStrategy.CreateFromFeeRate(_transactionInfo.IsCustomFeeUsed ? _transactionInfo.CustomFeeRate : _transactionInfo.FeeRate),
+							FeeStrategy.CreateFromFeeRate(_transactionInfo.FeeRate),
 							allowUnconfirmed: true,
 							_requestedTransaction
 								.SpentCoins
@@ -101,7 +101,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					var largerTransaction = await Task.Run(() => _wallet.BuildTransaction(
 						_wallet.Kitchen.SaltSoup(),
 						intent,
-						FeeStrategy.CreateFromFeeRate(_transactionInfo.IsCustomFeeUsed ? _transactionInfo.CustomFeeRate : _transactionInfo.FeeRate),
+						FeeStrategy.CreateFromFeeRate(_transactionInfo.FeeRate),
 						true,
 						_requestedTransaction.SpentCoins.Select(x => x.OutPoint)));
 
