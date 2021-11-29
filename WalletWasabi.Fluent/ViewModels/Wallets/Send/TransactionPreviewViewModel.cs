@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
@@ -22,6 +24,171 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
+	public class SuggestionViewModel : ViewModelBase
+	{
+		public string Suggestion { get; set; }
+
+		public BuildTransactionResult TransactionResult { get; protected set; }
+	}
+
+	public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
+	{
+		[AutoNotify] private string _amount;
+		[AutoNotify] private string _amountFiat;
+		[AutoNotify] private List<PrivacySuggestionBenefit> _benefits;
+		[AutoNotify] private PrivacyOptimisationLevel _optimisationLevel;
+		[AutoNotify] private bool _optimisationLevelGood;
+
+		public ChangeAvoidanceSuggestionViewModel(decimal originalAmount,
+			BuildTransactionResult transactionResult,
+			PrivacyOptimisationLevel optimisationLevel,
+			decimal fiatExchangeRate,
+			params PrivacySuggestionBenefit[] benefits)
+		{
+			TransactionResult = transactionResult;
+			_optimisationLevel = optimisationLevel;
+			_benefits = benefits.ToList();
+
+			decimal total = transactionResult.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
+
+			var fiatTotal = total * fiatExchangeRate;
+
+			_amountFiat = total.GenerateFiatText(fiatExchangeRate, "USD");
+			_optimisationLevelGood = optimisationLevel == PrivacyOptimisationLevel.Better;
+
+			if (_optimisationLevelGood)
+			{
+				var fiatOriginal = originalAmount * fiatExchangeRate;
+				var fiatDifference = fiatTotal - fiatOriginal;
+
+				var difference = (fiatDifference > 0
+						? $"{fiatDifference.GenerateFiatText("USD")} More"
+						: $"{Math.Abs(fiatDifference).GenerateFiatText("USD")} Less")
+					.Replace("(", "").Replace(")", "");
+
+				_benefits.Add(new(false, difference));
+			}
+			else
+			{
+				// This is just to pad the control.
+				_benefits.Add(new(false, " "));
+			}
+
+			_amount = $"{total}";
+		}
+
+
+
+		private static IEnumerable<ChangeAvoidanceSuggestionViewModel> NormalizeSuggestions(
+			IEnumerable<ChangeAvoidanceSuggestionViewModel> suggestions, ChangeAvoidanceSuggestionViewModel defaultSuggestion)
+		{
+			var normalized = suggestions
+				.OrderBy(x => x.TransactionResult.CalculateDestinationAmount())
+				.ToList();
+
+			if (normalized.Count == 3)
+			{
+				var index = normalized.IndexOf(defaultSuggestion);
+
+				switch (index)
+				{
+					case 1:
+						break;
+
+					case 0:
+						normalized = normalized.Take(2).ToList();
+						break;
+
+					case 2:
+						normalized = normalized.Skip(1).ToList();
+						break;
+				}
+			}
+
+			return normalized;
+		}
+
+		public static async Task<(ChangeAvoidanceSuggestionViewModel preSelected, IEnumerable<ChangeAvoidanceSuggestionViewModel> items)> GenerateSuggestions(
+			TransactionInfo transactionInfo, Wallet wallet, BuildTransactionResult requestedTransaction)
+		{
+			var intent = new PaymentIntent(
+				transactionInfo.Address,
+				MoneyRequest.CreateAllRemaining(subtractFee: true),
+				transactionInfo.UserLabels);
+
+			ChangeAvoidanceSuggestionViewModel? smallerSuggestion = null;
+
+			if (requestedTransaction.SpentCoins.Count() > 1)
+			{
+				var smallerTransaction = await Task.Run(() => wallet.BuildTransaction(
+					wallet.Kitchen.SaltSoup(),
+					intent,
+					FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
+					allowUnconfirmed: true,
+					requestedTransaction
+						.SpentCoins
+						.OrderBy(x => x.Amount)
+						.Skip(1)
+						.Select(x => x.OutPoint)));
+
+				smallerSuggestion = new ChangeAvoidanceSuggestionViewModel(
+					transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), smallerTransaction,
+					PrivacyOptimisationLevel.Better, wallet.Synchronizer.UsdExchangeRate,
+					new PrivacySuggestionBenefit(true, "Improved Privacy"));
+			}
+
+			var defaultSelection = new ChangeAvoidanceSuggestionViewModel(
+				transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), requestedTransaction,
+				PrivacyOptimisationLevel.Standard, wallet.Synchronizer.UsdExchangeRate,
+				new PrivacySuggestionBenefit(false, "As Requested"));
+
+			var largerTransaction = await Task.Run(() => wallet.BuildTransaction(
+				wallet.Kitchen.SaltSoup(),
+				intent,
+				FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
+				true,
+				requestedTransaction.SpentCoins.Select(x => x.OutPoint)));
+
+			var largerSuggestion = new ChangeAvoidanceSuggestionViewModel(
+				transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), largerTransaction,
+				PrivacyOptimisationLevel.Better, wallet.Synchronizer.UsdExchangeRate,
+				new PrivacySuggestionBenefit(true, "Improved Privacy"));
+
+			// There are several scenarios, both the alternate suggestions are <, or >, or 1 < and 1 >.
+			// We sort them and add the suggestions accordingly.
+			var suggestions = new List<ChangeAvoidanceSuggestionViewModel> {defaultSelection, largerSuggestion};
+
+			if (smallerSuggestion is { })
+			{
+				suggestions.Add(smallerSuggestion);
+			}
+
+			var results = new List<ChangeAvoidanceSuggestionViewModel>();
+
+			foreach (var suggestion in NormalizeSuggestions(suggestions, defaultSelection))
+			{
+				results.Add(suggestion);
+			}
+
+			return (defaultSelection, results);
+		}
+	}
+
+	public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
+	{
+		[AutoNotify] private SuggestionViewModel? _previewSuggestion;
+		[AutoNotify] private SuggestionViewModel? _selectedSuggestion;
+		[AutoNotify] private bool _isOpen;
+
+		public PrivacySuggestionsFlyoutViewModel()
+		{
+			Suggestions = new ObservableCollection<SuggestionViewModel>();
+		}
+
+		public ObservableCollection<SuggestionViewModel> Suggestions { get; }
+
+	}
+
 	[NavigationMetaData(Title = "Transaction Preview")]
 	public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
@@ -39,13 +206,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private bool _adjustFeeAvailable;
 		[AutoNotify] private bool _maxPrivacy;
 		[AutoNotify] private bool _issuesTooltip;
-		[AutoNotify] private OptimisePrivacyViewModel? _changeAvoidance;
 
 		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info)
 		{
 			_wallet = wallet;
 			_labels = SmartLabel.Empty;
 			_info = info;
+
+			PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel();
 
 			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
 			EnableBack = true;
@@ -82,6 +250,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			ChangePocketsCommand = ReactiveCommand.CreateFromTask(OnChangePocketsAsync);
 		}
+
+		public PrivacySuggestionsFlyoutViewModel PrivacySuggestions { get; }
 
 		public bool PreferPsbtWorkflow => _wallet.KeyManager.PreferPsbtWorkflow;
 
@@ -305,9 +475,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (TransactionHasChange)
 			{
-				ChangeAvoidance = new OptimisePrivacyViewModel(_wallet, _info, _transaction!);
+				RxApp.MainThreadScheduler.Schedule(async () =>
+				{
+					var (selected, suggestions) = await ChangeAvoidanceSuggestionViewModel.GenerateSuggestions(_info, _wallet, _transaction);
 
-				ChangeAvoidance.OnNavigatedTo(false);
+					foreach (var suggestion in suggestions)
+					{
+						PrivacySuggestions.Suggestions.Add(suggestion);
+					}
+
+					PrivacySuggestions.SelectedSuggestion = selected;
+				});
 			}
 
 			TransactionHasPockets = !_info.IsPrivatePocketUsed;

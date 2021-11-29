@@ -34,10 +34,72 @@
             </Interaction.Behaviors>
             <FlyoutBase.AttachedFlyout>
               <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway">
-                <DockPanel>
-                  <TextBlock Text="Some optional suggestions to improve your privacy even more" DockPanel.Dock="Top" />
-                  <send:OptimisePrivacyView DataContext="{Binding ChangeAvoidance}" />
-                </DockPanel>
+                <Panel DataContext="{Binding PrivacySuggestions}">
+                  <DockPanel>
+                    <TextBlock Text="Suggestions to improve your privacy!" DockPanel.Dock="Top" />
+
+                    <ListBox DockPanel.Dock="Top" Background="Transparent" VerticalAlignment="Center"
+                             HorizontalAlignment="Center"
+                             Items="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion}">
+                      <ListBox.Styles>
+                        <Style Selector="ListBoxItem">
+                          <Setter Property="Cursor" Value="Hand" />
+                        </Style>
+                        <Style Selector="ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
+                          <Setter Property="Background" Value="Transparent" />
+                        </Style>
+                        <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                          <Setter Property="Background" Value="Transparent" />
+                        </Style>
+                        <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+                          <Setter Property="Background" Value="Transparent" />
+                        </Style>
+
+                        <Style Selector="ListBoxItem Border#PART_MainContentBorder">
+                          <Setter Property="Padding" Value="30,45,30,40" />
+                          <Setter Property="CornerRadius" Value="4" />
+                          <Setter Property="Margin" Value="5" />
+                        </Style>
+
+                        <Style Selector="ListBoxItem Border#PART_DecorationBorder">
+                          <Setter Property="Padding" Value="15 30 15 30" />
+                          <Setter Property="CornerRadius" Value="4" />
+                          <Setter Property="Margin" Value="14" />
+
+                          <Setter Property="BorderBrush" Value="#14FFFFFF" />
+                          <Setter Property="BorderThickness" Value="1" />
+                          <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
+                          <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow1}" />
+
+                          <Setter Property="Opacity" Value="0" />
+
+                          <Setter Property="Transitions">
+                            <Transitions>
+                              <DoubleTransition Property="Opacity"
+                                                Easing="{StaticResource FluentEasing}"
+                                                Duration="0:0:0.25" />
+                            </Transitions>
+                          </Setter>
+                        </Style>
+
+                        <Style Selector="ListBoxItem:selected Border#PART_DecorationBorder">
+                          <Setter Property="Opacity" Value="1" />
+                        </Style>
+                      </ListBox.Styles>
+                      <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <WrapPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                      </ListBox.ItemsPanel>
+                      <ListBox.DataTemplates>
+                        <DataTemplate DataType="vm:ChangeAvoidanceSuggestionViewModel">
+                          <send:PrivacySuggestionControl />
+                        </DataTemplate>
+                      </ListBox.DataTemplates>
+                    </ListBox>
+                  </DockPanel>
+                </Panel>
+
               </Flyout>
             </FlyoutBase.AttachedFlyout>
             <Panel.IsVisible>
