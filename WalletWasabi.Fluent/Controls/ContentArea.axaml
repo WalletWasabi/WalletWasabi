@@ -5,14 +5,20 @@
         xmlns:i="using:Avalonia.Xaml.Interactivity">
     <Design.PreviewWith>
         <Panel Background="{DynamicResource RegionColor}">
-            <c:ContentArea Width="500" Height="300"
-                           IsBusy="False"
-                           Title="Add a Wallet"
-                           EnableBack="True"
-                           EnableCancel="True" CancelContent="Cancel" FocusCancel="False"
-                           EnableNext="True" NextContent="Continue" FocusNext="True"
-                           Caption="Type in your Wallet's name and select an option below:">
-                This is the content.
+          <c:ContentArea Width="500" Height="300"
+                         IsBusy="False"
+                         Title="Add a Wallet"
+                         EnableBack="True"
+                         EnableCancel="True" CancelContent="Cancel" FocusCancel="False"
+                         EnableNext="True" NextContent="Continue" FocusNext="True"
+                         Caption="Type in your Wallet's name and select an option below:"
+                         HeaderBackground="Blue">
+            <c:ContentArea.Styles>
+              <Style Selector="c|ContentArea /template/ Grid#MainGridPanel">
+                <Setter Property="ShowGridLines" Value="True" />
+              </Style>
+            </c:ContentArea.Styles>
+            This is the content.
             </c:ContentArea>
         </Panel>
     </Design.PreviewWith>
@@ -28,29 +34,49 @@
                 <Panel>
                     <Panel IsHitTestVisible="False" Background="{TemplateBinding Background}" />
                     <c:ProgressRing Name="LoadingRing" IsIndeterminate="True" IsVisible="{TemplateBinding IsBusy}" />
+
                     <Grid Name="MainGridPanel" IsVisible="{Binding !#LoadingRing.IsVisible}">
+
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="31" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="31" />
+                      </Grid.ColumnDefinitions>
                       <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                       </Grid.RowDefinitions>
 
-                        <Panel x:Name="PART_HeaderArea">
-                            <Panel IsHitTestVisible="False" Background="{TemplateBinding HeaderBackground}" />
-                            <StackPanel Name="PART_Header" Spacing="10">
-                                <DockPanel>
-                                    <Button Name="PART_BackButton"
-                                            Margin="-31,0,0,0"
-                                            Classes="plain"
-                                            Command="{Binding BackCommand}"
-                                            IsVisible="{TemplateBinding EnableBack}">
-                                        <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
-                                    </Button>
-                                    <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
-                                </DockPanel>
-                                <ContentPresenter Name="PART_CaptionPresenter" Content="{TemplateBinding Caption}" />
-                            </StackPanel>
-                        </Panel>
+                      <Panel Name="PART_LeftTitleArea"
+                             Background="{TemplateBinding HeaderBackground}" >
+                        <Button Name="PART_BackButton"
+                                Classes="plain"
+                                Command="{Binding BackCommand}"
+                                IsVisible="{TemplateBinding EnableBack}">
+                          <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
+                        </Button>
+                      </Panel>
+
+                      <Panel Name="PART_TitleArea"
+                             Background="{TemplateBinding HeaderBackground}" >
+                        <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
+                      </Panel>
+
+                      <Panel Name="PART_RightTitleArea"
+                             Background="{TemplateBinding HeaderBackground}" />
+
+                      <Panel Name="PART_LeftCaptionArea"
+                             Background="{TemplateBinding HeaderBackground}" />
+
+                      <Panel Name="PART_CaptionArea"
+                             Background="{TemplateBinding HeaderBackground}" >
+                          <ContentPresenter Name="PART_CaptionPresenter" Content="{TemplateBinding Caption}" />
+                      </Panel>
+
+                      <Panel Name="PART_RightCaptionArea"
+                             Background="{TemplateBinding HeaderBackground}" />
 
                         <ScrollViewer x:Name="PART_ScrollViewer"
                                       HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
@@ -102,34 +128,71 @@
         </Setter>
     </Style>
 
+  <Style Selector="c|ContentArea /template/ Panel#PART_LeftTitleArea">
+    <Setter Property="(Grid.Column)" Value="0" />
+    <Setter Property="(Grid.Row)" Value="0" />
+  </Style>
+
+  <Style Selector="c|ContentArea /template/ Panel#PART_TitleArea">
+    <Setter Property="(Grid.Column)" Value="1" />
+    <Setter Property="(Grid.Row)" Value="0" />
+  </Style>
+
+  <Style Selector="c|ContentArea /template/ ContentPresenter#PART_TitlePresenter">
+    <Setter Property="Margin" Value="0,10,0,10" />
+  </Style>
+
+  <Style Selector="c|ContentArea /template/ Panel#PART_RightTitleArea">
+    <Setter Property="(Grid.Column)" Value="2" />
+    <Setter Property="(Grid.Row)" Value="0" />
+  </Style>
+
+  <Style Selector="c|ContentArea /template/ Button#PART_BackButton">
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Margin" Value="0,10,0,10" />
+  </Style>
+
+  <Style Selector="c|ContentArea /template/ Panel#PART_LeftCaptionArea">
+    <Setter Property="(Grid.Column)" Value="0" />
+    <Setter Property="(Grid.Row)" Value="1" />
+  </Style>
+
+  <Style Selector="c|ContentArea /template/ Panel#PART_CaptionArea">
+    <Setter Property="(Grid.Column)" Value="1" />
+    <Setter Property="(Grid.Row)" Value="1" />
+  </Style>
+
+  <Style Selector="c|ContentArea /template/ ContentPresenter#PART_CaptionPresenter">
+    <Setter Property="Margin" Value="0,0,0,10" />
+  </Style>
+
+  <Style Selector="c|ContentArea /template/ Panel#PART_RightCaptionArea">
+    <Setter Property="(Grid.Column)" Value="2" />
+    <Setter Property="(Grid.Row)" Value="1" />
+  </Style>
+
     <Style Selector="c|ContentArea /template/ Panel#PART_ButtonArea">
-      <Setter Property="(Grid.Row)" Value="2" />
+      <Setter Property="(Grid.Column)" Value="1" />
+      <Setter Property="(Grid.Row)" Value="3" />
     </Style>
 
     <Style Selector="c|ContentArea[ButtonAreaOverlayEnabled=True] /template/ Panel#PART_ButtonArea">
-      <Setter Property="(Grid.Row)" Value="1" />
+      <Setter Property="(Grid.Column)" Value="1" />
+      <Setter Property="(Grid.Row)" Value="2" />
       <Setter Property="VerticalAlignment" Value="Bottom" />
-      <Setter Property="Margin" Value="31,1,47,10" />
-    </Style>
-
-    <Style Selector="c|ContentArea /template/ Panel#PART_HeaderArea">
-      <Setter Property="(Grid.Row)" Value="0" />
+      <Setter Property="Margin" Value="0,1,16,10" />
     </Style>
 
     <Style Selector="c|ContentArea /template/ ScrollViewer#PART_ScrollViewer">
-      <Setter Property="(Grid.Row)" Value="1" />
-    </Style>
-
-    <Style Selector="c|ContentArea /template/ StackPanel#PART_Header">
-        <Setter Property="Margin" Value="31 0 31 0" />
-    </Style>
-
-    <Style Selector="c|ContentArea /template/ ScrollViewer#PART_ScrollViewer">
-        <Setter Property="Margin" Value="31 31 31 21" />
+      <Setter Property="(Grid.Column)" Value="1" />
+      <Setter Property="(Grid.Row)" Value="2" />
+      <Setter Property="Margin" Value="0 31 0 21" />
     </Style>
 
     <Style Selector="c|ContentArea /template/ Panel#PART_ButtonArea">
-        <Setter Property="Margin" Value="31,10" />
+      <Setter Property="(Grid.Column)" Value="1" />
+        <Setter Property="Margin" Value="0,10" />
     </Style>
 
     <Style Selector="c|ContentArea /template/ ContentPresenter#PART_TitlePresenter">
