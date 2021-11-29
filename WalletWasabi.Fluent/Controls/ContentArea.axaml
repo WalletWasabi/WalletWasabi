@@ -109,7 +109,6 @@
     <Style Selector="c|ContentArea[ButtonAreaOverlayEnabled=True] /template/ Panel#PART_ButtonArea">
       <Setter Property="(Grid.Row)" Value="1" />
       <Setter Property="VerticalAlignment" Value="Bottom" />
-      <!-- TODO: Use converter to set left/right margin using ScrollBarSize. Default is 16. -->
       <Setter Property="Margin" Value="31,1,47,10" />
     </Style>
 
