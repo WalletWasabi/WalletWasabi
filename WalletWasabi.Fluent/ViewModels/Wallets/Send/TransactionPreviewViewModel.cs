@@ -105,6 +105,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (result.Kind == DialogResultKind.Normal)
 			{
+				await InitialiseTransactionAsync();
 				await BuildAndUpdateAsync();
 			}
 		}
