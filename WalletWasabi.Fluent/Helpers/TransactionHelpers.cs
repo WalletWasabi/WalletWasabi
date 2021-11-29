@@ -54,7 +54,7 @@ namespace WalletWasabi.Fluent.Helpers
 				transactionInfo.Address,
 				transactionInfo.Amount,
 				transactionInfo.UserLabels,
-				transactionInfo.IsCustomFeeUsed ? transactionInfo.CustomFeeRate : transactionInfo.FeeRate,
+				transactionInfo.FeeRate,
 				transactionInfo.Coins,
 				transactionInfo.SubtractFee,
 				isPayJoin ? transactionInfo.PayJoinClient : null);
