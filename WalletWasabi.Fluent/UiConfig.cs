@@ -24,6 +24,7 @@ namespace WalletWasabi.Fluent
 		private bool _oobe;
 		private bool _hideOnClose;
 		private bool _autoPaste;
+		private int _feeTarget;
 
 		public UiConfig() : base()
 		{
@@ -31,20 +32,26 @@ namespace WalletWasabi.Fluent
 
 		public UiConfig(string filePath) : base(filePath)
 		{
-			this.WhenAnyValue(
-					x => x.Autocopy,
-					x => x.AutoPaste,
-					x => x.IsCustomFee,
-					x => x.IsCustomChangeAddress,
-					x => x.DarkModeEnabled,
-					x => x.FeeDisplayFormat,
-					x => x.LastSelectedWallet,
-					x => x.WindowState,
-					x => x.Oobe,
-					x => x.RunOnSystemStartup,
-					x => x.PrivacyMode,
-					x => x.HideOnClose,
-					(_, _, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
+			var saveTrigger1 = this.WhenAnyValue(
+				x => x.Autocopy,
+				x => x.AutoPaste,
+				x => x.IsCustomFee,
+				x => x.IsCustomChangeAddress,
+				x => x.DarkModeEnabled,
+				x => x.FeeDisplayFormat,
+				x => x.LastSelectedWallet,
+				x => x.WindowState,
+				x => x.Oobe,
+				x => x.RunOnSystemStartup,
+				x => x.PrivacyMode,
+				x => x.HideOnClose,
+				(_, _, _, _, _, _, _, _, _, _, _, _) => Unit.Default);
+
+			// WhenAnyValue can only handle 12 properties at a time, this is a new start.
+			var saveTrigger2 = this.WhenAnyValue(x => x.FeeTarget).Select(_ => Unit.Default);
+
+			Observable
+				.Merge(saveTrigger1, saveTrigger2)
 				.Throttle(TimeSpan.FromMilliseconds(500))
 				.Skip(1) // Won't save on UiConfig creation.
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -69,7 +76,11 @@ namespace WalletWasabi.Fluent
 
 		[DefaultValue(2)]
 		[JsonProperty(PropertyName = "FeeTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public int FeeTarget { get; internal set; }
+		public int FeeTarget
+		{
+			get => _feeTarget;
+			internal set => RaiseAndSetIfChanged(ref _feeTarget, value);
+		}
 
 		[DefaultValue(0)]
 		[JsonProperty(PropertyName = "FeeDisplayFormat", DefaultValueHandling = DefaultValueHandling.Populate)]
