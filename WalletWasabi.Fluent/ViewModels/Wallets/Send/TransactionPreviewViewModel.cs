@@ -105,7 +105,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (result.Kind == DialogResultKind.Normal)
 			{
-				await InitialiseTransactionAsync();
 				await BuildAndUpdateAsync();
 			}
 		}
@@ -202,6 +201,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private async Task<BuildTransactionResult?> BuildTransactionAsync()
 		{
+			if (!await InitialiseTransactionAsync())
+			{
+				return null;
+			}
+
 			try
 			{
 				IsBusy = true;
@@ -336,14 +340,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				RxApp.MainThreadScheduler.Schedule(async () =>
 				{
-					if (await InitialiseTransactionAsync())
+					if (await BuildTransactionAsync() is { } initialTransaction)
 					{
-						var initialTransaction = await BuildTransactionAsync();
-
-						if (initialTransaction is { })
-						{
-							UpdateTransaction(initialTransaction);
-						}
+						UpdateTransaction(initialTransaction);
 					}
 					else
 					{
