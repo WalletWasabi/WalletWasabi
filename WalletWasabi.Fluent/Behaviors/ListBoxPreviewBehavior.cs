@@ -48,13 +48,15 @@ namespace WalletWasabi.Fluent.Behaviors
 				{
 					var visual = AssociatedObject.GetVisualAt(x.EventArgs.GetPosition(AssociatedObject));
 
-					if (visual is IControl control && control.TemplatedParent is ListBoxItem item)
+					var listBoxItem = visual.FindAncestorOfType<ListBoxItem>();
+
+					if (listBoxItem is { })
 					{
-						if (control.DataContext != PreviewItem)
+						if (listBoxItem.DataContext != PreviewItem)
 						{
 							ClearPsuedoClasses();
-							_previewControl = item;
-							PreviewItem = control.DataContext;
+							_previewControl = listBoxItem;
+							PreviewItem = listBoxItem.DataContext;
 
 							SetPsuedoClasses();
 						}

@@ -53,7 +53,8 @@
                           <Setter Property="Background" Value="Transparent" />
                         </Style>
 
-                        <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBoxItem:previewitem /template/ ContentPresenter#PART_ContentPresenter">
+                        <Style
+                          Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBoxItem:previewitem /template/ ContentPresenter#PART_ContentPresenter">
                           <Setter Property="Background" Value="Transparent" />
                         </Style>
 
@@ -101,7 +102,6 @@
                     </ListBox>
                   </DockPanel>
                 </Panel>
-
               </Flyout>
             </FlyoutBase.AttachedFlyout>
             <Panel.IsVisible>
