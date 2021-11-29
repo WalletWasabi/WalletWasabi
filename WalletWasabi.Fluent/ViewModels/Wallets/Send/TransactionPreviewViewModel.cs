@@ -220,7 +220,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					if (x is { })
 					{
-						Console.WriteLine(x.TransactionResult.CalculateDestinationAmount());
+						UpdateTransaction(x.TransactionResult);
 					}
 				});
 
@@ -487,6 +487,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				RxApp.MainThreadScheduler.Schedule(async () =>
 				{
 					var (selected, suggestions) = await ChangeAvoidanceSuggestionViewModel.GenerateSuggestions(_info, _wallet, _transaction);
+
+					PrivacySuggestions.Suggestions.Clear();
 
 					foreach (var suggestion in suggestions)
 					{
