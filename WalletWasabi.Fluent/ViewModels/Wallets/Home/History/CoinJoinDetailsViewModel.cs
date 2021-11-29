@@ -51,7 +51,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		private void Update()
 		{
 			Date = _coinJoinGroup.DateString;
-			Status = _coinJoinGroup.IsConfirmed ? "Confirmed" : "Pending";
+			Status = _coinJoinGroup.IsConfirmed ? "Confirmed\u0020" : "Pending\u0020";
 			CoinJoinFee = _coinJoinGroup.OutgoingAmount;
 			TransactionIds = new ObservableCollection<uint256>(_coinJoinGroup.CoinJoinTransactions.Select(x => x.TransactionId));
 		}
