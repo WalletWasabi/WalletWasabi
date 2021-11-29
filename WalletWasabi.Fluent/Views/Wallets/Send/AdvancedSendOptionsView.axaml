@@ -19,16 +19,11 @@
                  Height="300" Width="550"
                  ScrollViewer.VerticalScrollBarVisibility="Auto">
     <DockPanel>
-      <DockPanel.Styles>
-        <Style Selector="DockPanel > Label">
-          <Setter Property="MinWidth" Value="130" />
-        </Style>
-      </DockPanel.Styles>
 
       <!-- Custom Fee -->
-      <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
-        <Label DockPanel.Dock="Left" Content="_Transaction fee rate:" Target="transactionFeeTb" />
-        <TextBox x:Name="transactionFeeTb" MaxLength="250" Text="{Binding CustomFee}" Watermark="Enter a custom sat/vByte amount" VerticalAlignment="Top">
+      <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10" VerticalAlignment="Top">
+        <Label DockPanel.Dock="Top" Content="_Transaction fee rate:" Target="transactionFeeTb" />
+        <TextBox x:Name="transactionFeeTb" MaxLength="250" Text="{Binding CustomFee}" Watermark="Enter a custom sat/vByte amount">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
           </i:Interaction.Behaviors>
