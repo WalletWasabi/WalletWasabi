@@ -139,7 +139,7 @@
   </Style>
 
   <Style Selector="c|ContentArea /template/ ContentPresenter#PART_TitlePresenter">
-    <Setter Property="Margin" Value="0,10,0,10" />
+    <Setter Property="Margin" Value="0,0,0,0" />
   </Style>
 
   <Style Selector="c|ContentArea /template/ Panel#PART_RightTitleArea">
@@ -150,7 +150,7 @@
   <Style Selector="c|ContentArea /template/ Button#PART_BackButton">
     <Setter Property="VerticalAlignment" Value="Center" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
-    <Setter Property="Margin" Value="0,10,0,10" />
+    <Setter Property="Margin" Value="0,0,0,0" />
   </Style>
 
   <Style Selector="c|ContentArea /template/ Panel#PART_LeftCaptionArea">
@@ -164,7 +164,7 @@
   </Style>
 
   <Style Selector="c|ContentArea /template/ ContentPresenter#PART_CaptionPresenter">
-    <Setter Property="Margin" Value="0,0,0,10" />
+    <Setter Property="Margin" Value="0,10,0,0" />
   </Style>
 
   <Style Selector="c|ContentArea /template/ Panel#PART_RightCaptionArea">

@@ -50,9 +50,18 @@
                 <Setter Property="IsVisible" Value="False" />
               </Style>
 
-              <Style Selector="c|ContentArea /template/ StackPanel#PART_Header">
-                <Setter Property="Margin" Value="31 36 31 0" />
+              <Style Selector="c|ContentArea /template/ Panel#PART_LeftTitleArea">
+                <Setter Property="Margin" Value="0 36 0 0" />
               </Style>
+
+              <Style Selector="c|ContentArea /template/ Panel#PART_TitleArea">
+                <Setter Property="Margin" Value="0 36 0 0" />
+              </Style>
+
+              <Style Selector="c|ContentArea /template/ Panel#PART_RightTitleArea">
+                <Setter Property="Margin" Value="0 36 0 0" />
+              </Style>
+
             </Panel.Styles>
             <Border Background="{DynamicResource RegionColor}" IsHitTestVisible="False" />
             <ContentControl ClipToBounds="False" Content="{Binding MainScreen.CurrentPage}" />
