@@ -3,25 +3,27 @@
         xmlns:c="using:WalletWasabi.Fluent.Controls"
         xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
         xmlns:i="using:Avalonia.Xaml.Interactivity">
-    <Design.PreviewWith>
-        <Panel Background="{DynamicResource RegionColor}">
-          <c:ContentArea Width="500" Height="300"
-                         IsBusy="False"
-                         Title="Add a Wallet"
-                         EnableBack="True"
-                         EnableCancel="True" CancelContent="Cancel" FocusCancel="False"
-                         EnableNext="True" NextContent="Continue" FocusNext="True"
-                         Caption="Type in your Wallet's name and select an option below:"
-                         HeaderBackground="Blue">
-            <c:ContentArea.Styles>
-              <Style Selector="c|ContentArea /template/ Grid#MainGridPanel">
-                <Setter Property="ShowGridLines" Value="True" />
-              </Style>
-            </c:ContentArea.Styles>
-            This is the content.
-            </c:ContentArea>
-        </Panel>
-    </Design.PreviewWith>
+  <Design.PreviewWith>
+      <Panel Background="{DynamicResource RegionColor}">
+        <c:ContentArea Width="500" Height="600"
+                       IsBusy="False"
+                       Title="Add a Wallet"
+                       EnableBack="True"
+                       EnableCancel="True" CancelContent="Cancel" FocusCancel="False"
+                       EnableNext="True" NextContent="Continue" FocusNext="True"
+                       Caption="Type in your Wallet's name and select an option below:"
+                       HeaderBackground="Blue">
+          <c:ContentArea.Styles>
+            <Style Selector="c|ContentArea /template/ Grid#MainGridPanel">
+              <Setter Property="ShowGridLines" Value="True" />
+            </Style>
+          </c:ContentArea.Styles>
+          <Panel Background="Green">
+            <TextBlock Text="This is the content."/>
+          </Panel>
+          </c:ContentArea>
+      </Panel>
+  </Design.PreviewWith>
     <Styles.Resources>
     </Styles.Resources>
     <Style Selector="c|ContentArea">
@@ -78,49 +80,49 @@
                       <Panel Name="PART_RightCaptionArea"
                              Background="{TemplateBinding HeaderBackground}" />
 
-                        <ScrollViewer x:Name="PART_ScrollViewer"
-                                      HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
-                                      VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
-                            <ContentControl Name="PART_ContentPresenter"
-                                            BorderBrush="{TemplateBinding BorderBrush}"
-                                            BorderThickness="{TemplateBinding BorderThickness}"
-                                            ContentTemplate="{TemplateBinding ContentTemplate}"
-                                            Content="{TemplateBinding Content}"
-                                            Padding="{TemplateBinding Padding}"
-                                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
-                        </ScrollViewer>
+                      <ScrollViewer x:Name="PART_ScrollViewer"
+                                    HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
+                                    VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
+                          <ContentControl Name="PART_ContentPresenter"
+                                          BorderBrush="{TemplateBinding BorderBrush}"
+                                          BorderThickness="{TemplateBinding BorderThickness}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Content="{TemplateBinding Content}"
+                                          Padding="{TemplateBinding Padding}"
+                                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
+                      </ScrollViewer>
 
-                        <Panel x:Name="PART_ButtonArea">
-                              <Button Name="PART_CancelButton"
-                                      Classes="invisible"
-                                      IsVisible="{TemplateBinding EnableCancel}"
-                                      Content="{TemplateBinding CancelContent}"
-                                      HorizontalAlignment="Left" Command="{Binding CancelCommand}">
-                                  <i:Interaction.Behaviors>
-                                      <behaviors:FocusOnAttachedBehavior
-                                          IsEnabled="{Binding FocusCancel, RelativeSource={RelativeSource TemplatedParent}}" />
-                                  </i:Interaction.Behaviors>
-                              </Button>
-                              <StackPanel Orientation="Horizontal" Spacing="30" Margin="0 10" HorizontalAlignment="Right">
-                                  <Button Name="PART_SkipButton"
-                                          IsVisible="{TemplateBinding EnableSkip}"
-                                          Content="{TemplateBinding SkipContent}"
-                                          Command="{Binding SkipCommand}"
-                                          Classes="activeHyperLink skip"
-                                          VerticalAlignment="Center" />
-                                  <Button Name="PART_NextButton" Classes="action"
-                                          IsVisible="{TemplateBinding EnableNext}"
-                                          Content="{TemplateBinding NextContent}"
-                                          Command="{Binding NextCommand}"
-                                          IsDefault="{Binding IsActive}">
-                                      <i:Interaction.Behaviors>
-                                          <behaviors:FocusOnAttachedBehavior
-                                              IsEnabled="{Binding FocusNext, RelativeSource={RelativeSource TemplatedParent}}" />
-                                      </i:Interaction.Behaviors>
-                                  </Button>
-                              </StackPanel>
-                          </Panel>
+                      <Panel x:Name="PART_ButtonArea">
+                        <Button Name="PART_CancelButton"
+                                Classes="invisible"
+                                IsVisible="{TemplateBinding EnableCancel}"
+                                Content="{TemplateBinding CancelContent}"
+                                HorizontalAlignment="Left" Command="{Binding CancelCommand}">
+                            <i:Interaction.Behaviors>
+                                <behaviors:FocusOnAttachedBehavior
+                                    IsEnabled="{Binding FocusCancel, RelativeSource={RelativeSource TemplatedParent}}" />
+                            </i:Interaction.Behaviors>
+                        </Button>
+                        <StackPanel Orientation="Horizontal" Spacing="30" Margin="0 10" HorizontalAlignment="Right">
+                            <Button Name="PART_SkipButton"
+                                    IsVisible="{TemplateBinding EnableSkip}"
+                                    Content="{TemplateBinding SkipContent}"
+                                    Command="{Binding SkipCommand}"
+                                    Classes="activeHyperLink skip"
+                                    VerticalAlignment="Center" />
+                            <Button Name="PART_NextButton" Classes="action"
+                                    IsVisible="{TemplateBinding EnableNext}"
+                                    Content="{TemplateBinding NextContent}"
+                                    Command="{Binding NextCommand}"
+                                    IsDefault="{Binding IsActive}">
+                                <i:Interaction.Behaviors>
+                                    <behaviors:FocusOnAttachedBehavior
+                                        IsEnabled="{Binding FocusNext, RelativeSource={RelativeSource TemplatedParent}}" />
+                                </i:Interaction.Behaviors>
+                            </Button>
+                        </StackPanel>
+                      </Panel>
 
                     </Grid>
                 </Panel>
