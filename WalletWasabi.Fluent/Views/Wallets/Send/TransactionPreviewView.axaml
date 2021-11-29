@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:send="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Send"
@@ -41,6 +42,9 @@
                     <ListBox DockPanel.Dock="Top" Background="Transparent" VerticalAlignment="Center"
                              HorizontalAlignment="Center"
                              Items="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion}">
+                      <i:Interaction.Behaviors>
+                        <behaviors:ListBoxPreviewBehavior PreviewItem="{Binding PreviewSuggestion}" />
+                      </i:Interaction.Behaviors>
                       <ListBox.Styles>
                         <Style Selector="ListBoxItem">
                           <Setter Property="Cursor" Value="Hand" />

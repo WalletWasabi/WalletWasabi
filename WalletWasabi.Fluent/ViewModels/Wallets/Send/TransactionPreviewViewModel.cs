@@ -215,6 +215,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel();
 
+			PrivacySuggestions.WhenAnyValue(x => x.PreviewSuggestion)
+				.Subscribe(x =>
+				{
+					Console.WriteLine(x.TransactionResult.CalculateDestinationAmount());
+				});
+
 			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
 			EnableBack = true;
 
