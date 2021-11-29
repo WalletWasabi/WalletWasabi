@@ -48,8 +48,17 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<IBrush> HeaderBackgroundProperty =
 			AvaloniaProperty.Register<ContentArea, IBrush>(nameof(HeaderBackground));
 
-		public static readonly StyledProperty<bool> ButtonAreaOverlayEnabledProperty =
-			AvaloniaProperty.Register<ContentArea, bool>(nameof(ButtonAreaOverlayEnabled));
+		public static readonly StyledProperty<bool> EnabledAdaptiveButtonAreaProperty =
+			AvaloniaProperty.Register<ContentArea, bool>(nameof(EnabledAdaptiveButtonArea));
+
+		public static readonly StyledProperty<ButtonAreaPlacement> AdaptiveButtonAreaPlacementProperty =
+			AvaloniaProperty.Register<ContentArea, ButtonAreaPlacement>(nameof(AdaptiveButtonAreaPlacement), ButtonAreaPlacement.Overlay);
+
+		public static readonly StyledProperty<double> AdaptiveButtonAreaHeightTriggerProperty =
+			AvaloniaProperty.Register<ContentArea, double>(nameof(AdaptiveButtonAreaHeightTrigger), 580);
+
+		public static readonly StyledProperty<ButtonAreaPlacement> ButtonAreaPlacementProperty =
+			AvaloniaProperty.Register<ContentArea, ButtonAreaPlacement>(nameof(ButtonAreaPlacement));
 
 		private IContentPresenter? _titlePresenter;
 		private IContentPresenter? _captionPresenter;
@@ -57,11 +66,7 @@ namespace WalletWasabi.Fluent.Controls
 		public ContentArea()
 		{
 			this.WhenAnyValue(x => x.Bounds)
-				.Subscribe(bounds =>
-				{
-					var height = bounds.Height;
-					ButtonAreaOverlayEnabled = height < 580;
-				});
+				.Subscribe(AdaptButtonArea);
 		}
 
 		public object Title
@@ -142,10 +147,28 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(HeaderBackgroundProperty, value);
 		}
 
-		private bool ButtonAreaOverlayEnabled
+		public bool EnabledAdaptiveButtonArea
 		{
-			get => GetValue(ButtonAreaOverlayEnabledProperty);
-			set => SetValue(ButtonAreaOverlayEnabledProperty, value);
+			get => GetValue(EnabledAdaptiveButtonAreaProperty);
+			set => SetValue(EnabledAdaptiveButtonAreaProperty, value);
+		}
+
+		public ButtonAreaPlacement AdaptiveButtonAreaPlacement
+		{
+			get => GetValue(AdaptiveButtonAreaPlacementProperty);
+			set => SetValue(AdaptiveButtonAreaPlacementProperty, value);
+		}
+
+		public double AdaptiveButtonAreaHeightTrigger
+		{
+			get => GetValue(AdaptiveButtonAreaHeightTriggerProperty);
+			set => SetValue(AdaptiveButtonAreaHeightTriggerProperty, value);
+		}
+
+		public ButtonAreaPlacement ButtonAreaPlacement
+		{
+			get => GetValue(ButtonAreaPlacementProperty);
+			set => SetValue(ButtonAreaPlacementProperty, value);
 		}
 
 		protected override bool RegisterContentPresenter(IContentPresenter presenter)
@@ -201,6 +224,16 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				_captionPresenter.IsVisible = e.NewValue is not null;
 			}
+		}
+
+		private void AdaptButtonArea(Rect bounds)
+		{
+			var isEnabled = EnabledAdaptiveButtonArea
+			                && bounds.Height < AdaptiveButtonAreaHeightTrigger;
+
+			ButtonAreaPlacement = isEnabled
+				? AdaptiveButtonAreaPlacement
+				: ButtonAreaPlacement.Default;
 		}
 	}
 }

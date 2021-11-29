@@ -5,20 +5,23 @@
         xmlns:i="using:Avalonia.Xaml.Interactivity">
   <Design.PreviewWith>
       <Panel Background="{DynamicResource RegionColor}">
-        <c:ContentArea Width="500" Height="600"
+        <c:ContentArea Width="500" Height="300"
                        IsBusy="False"
                        Title="Add a Wallet"
                        EnableBack="True"
                        EnableCancel="True" CancelContent="Cancel" FocusCancel="False"
                        EnableNext="True" NextContent="Continue" FocusNext="True"
                        Caption="Type in your Wallet's name and select an option below:"
-                       HeaderBackground="Blue">
+                       HeaderBackground="Blue"
+                       EnabledAdaptiveButtonArea="True"
+                       AdaptiveButtonAreaPlacement="Overlay"
+                       AdaptiveButtonAreaHeightTrigger="400">
           <c:ContentArea.Styles>
             <Style Selector="c|ContentArea /template/ Grid#MainGridPanel">
               <Setter Property="ShowGridLines" Value="True" />
             </Style>
           </c:ContentArea.Styles>
-          <Panel Background="Green">
+          <Panel Background="gray">
             <TextBlock Text="This is the content."/>
           </Panel>
           </c:ContentArea>
@@ -42,6 +45,7 @@
                       <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="31" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="31" />
                       </Grid.ColumnDefinitions>
                       <Grid.RowDefinitions>
@@ -137,6 +141,7 @@
 
   <Style Selector="c|ContentArea /template/ Panel#PART_TitleArea">
     <Setter Property="(Grid.Column)" Value="1" />
+    <Setter Property="(Grid.ColumnSpan)" Value="2" />
     <Setter Property="(Grid.Row)" Value="0" />
   </Style>
 
@@ -145,7 +150,7 @@
   </Style>
 
   <Style Selector="c|ContentArea /template/ Panel#PART_RightTitleArea">
-    <Setter Property="(Grid.Column)" Value="2" />
+    <Setter Property="(Grid.Column)" Value="3" />
     <Setter Property="(Grid.Row)" Value="0" />
   </Style>
 
@@ -162,6 +167,7 @@
 
   <Style Selector="c|ContentArea /template/ Panel#PART_CaptionArea">
     <Setter Property="(Grid.Column)" Value="1" />
+    <Setter Property="(Grid.ColumnSpan)" Value="2" />
     <Setter Property="(Grid.Row)" Value="1" />
   </Style>
 
@@ -170,30 +176,42 @@
   </Style>
 
   <Style Selector="c|ContentArea /template/ Panel#PART_RightCaptionArea">
-    <Setter Property="(Grid.Column)" Value="2" />
+    <Setter Property="(Grid.Column)" Value="3" />
     <Setter Property="(Grid.Row)" Value="1" />
   </Style>
 
     <Style Selector="c|ContentArea /template/ Panel#PART_ButtonArea">
       <Setter Property="(Grid.Column)" Value="1" />
+      <Setter Property="(Grid.ColumnSpan)" Value="2" />
       <Setter Property="(Grid.Row)" Value="3" />
     </Style>
 
-    <Style Selector="c|ContentArea[ButtonAreaOverlayEnabled=True] /template/ Panel#PART_ButtonArea">
+    <Style Selector="c|ContentArea[ButtonAreaPlacement=Overlay] /template/ Panel#PART_ButtonArea">
       <Setter Property="(Grid.Column)" Value="1" />
+      <Setter Property="(Grid.ColumnSpan)" Value="2" />
       <Setter Property="(Grid.Row)" Value="2" />
+      <Setter Property="VerticalAlignment" Value="Bottom" />
+      <Setter Property="Margin" Value="0,1,16,10" />
+    </Style>
+
+    <Style Selector="c|ContentArea[ButtonAreaPlacement=Title] /template/ Panel#PART_ButtonArea">
+      <Setter Property="(Grid.Column)" Value="2" />
+      <Setter Property="(Grid.ColumnSpan)" Value="1" />
+      <Setter Property="(Grid.Row)" Value="0" />
       <Setter Property="VerticalAlignment" Value="Bottom" />
       <Setter Property="Margin" Value="0,1,16,10" />
     </Style>
 
     <Style Selector="c|ContentArea /template/ ScrollViewer#PART_ScrollViewer">
       <Setter Property="(Grid.Column)" Value="1" />
+      <Setter Property="(Grid.ColumnSpan)" Value="2" />
       <Setter Property="(Grid.Row)" Value="2" />
       <Setter Property="Margin" Value="0 31 0 21" />
     </Style>
 
     <Style Selector="c|ContentArea /template/ Panel#PART_ButtonArea">
       <Setter Property="(Grid.Column)" Value="1" />
+      <Setter Property="(Grid.ColumnSpan)" Value="2" />
         <Setter Property="Margin" Value="0,10" />
     </Style>
 
