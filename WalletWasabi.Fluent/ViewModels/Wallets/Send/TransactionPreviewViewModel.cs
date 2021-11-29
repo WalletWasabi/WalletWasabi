@@ -220,7 +220,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					if (x is { })
 					{
-						UpdateTransaction(x.TransactionResult);
+						UpdateTransaction(x.TransactionResult, true);
 					}
 				});
 
@@ -461,7 +461,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return null;
 		}
 
-		private void UpdateTransaction(BuildTransactionResult transactionResult)
+		private void UpdateTransaction(BuildTransactionResult transactionResult, bool preview = false)
 		{
 			_transaction = transactionResult;
 
@@ -482,7 +482,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			TransactionHasChange = _transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != _info.Address.ScriptPubKey);
 
-			if (TransactionHasChange)
+			if (TransactionHasChange && !preview)
 			{
 				RxApp.MainThreadScheduler.Schedule(async () =>
 				{
