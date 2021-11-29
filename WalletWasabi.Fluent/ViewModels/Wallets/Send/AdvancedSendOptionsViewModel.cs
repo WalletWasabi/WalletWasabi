@@ -68,9 +68,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				return;
 			}
 
-			if (value == decimal.Zero)
+			if (value < decimal.One)
 			{
-				errors.Add(ErrorSeverity.Error, "Cannot be 0.");
+				errors.Add(ErrorSeverity.Error, "Cannot be less than 1 sat/vByte.");
 				return;
 			}
 
