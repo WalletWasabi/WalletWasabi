@@ -11,6 +11,7 @@ namespace WalletWasabi.Fluent.Behaviors
 	public class ListBoxPreviewBehavior : DisposingBehavior<ListBox>
 	{
 		private object? _previewItem;
+		private ListBoxItem? _previewControl;
 
 		/// <summary>
 		/// Defines the <see cref="SelectedItem"/> property.
@@ -24,6 +25,22 @@ namespace WalletWasabi.Fluent.Behaviors
 			set => SetValue(PreviewItemProperty, value);
 		}
 
+		private void ClearPsuedoClasses()
+		{
+			if (_previewControl is StyledElement se && se.Classes is IPseudoClasses pc)
+			{
+				pc.Remove(":previewitem");
+			}
+		}
+
+		private void SetPsuedoClasses()
+		{
+			if (_previewControl is StyledElement se && se.Classes is IPseudoClasses pc)
+			{
+				pc.Add(":previewitem");
+			}
+		}
+
 		protected override void OnAttached(CompositeDisposable disposables)
 		{
 			Observable.FromEventPattern<PointerEventArgs>(AssociatedObject, nameof(AssociatedObject.PointerMoved))
@@ -31,15 +48,21 @@ namespace WalletWasabi.Fluent.Behaviors
 				{
 					var visual = AssociatedObject.GetVisualAt(x.EventArgs.GetPosition(AssociatedObject));
 
-					if (visual is IControl control)
+					if (visual is IControl control && control.TemplatedParent is ListBoxItem item)
 					{
 						if (control.DataContext != PreviewItem)
 						{
+							ClearPsuedoClasses();
+							_previewControl = item;
 							PreviewItem = control.DataContext;
+
+							SetPsuedoClasses();
 						}
 					}
 					else
 					{
+						ClearPsuedoClasses();
+						_previewControl = null;
 						PreviewItem = null;
 					}
 				})

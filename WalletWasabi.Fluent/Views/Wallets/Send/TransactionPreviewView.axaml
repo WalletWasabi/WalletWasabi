@@ -43,7 +43,7 @@
                              HorizontalAlignment="Center"
                              Items="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion}">
                       <i:Interaction.Behaviors>
-                        <behaviors:ListBoxPreviewBehavior PreviewItem="{Binding PreviewSuggestion}" />
+                        <behaviors:ListBoxPreviewBehavior PreviewItem="{Binding PreviewSuggestion, Mode=TwoWay}" />
                       </i:Interaction.Behaviors>
                       <ListBox.Styles>
                         <Style Selector="ListBoxItem">
@@ -55,7 +55,7 @@
                         <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
                           <Setter Property="Background" Value="Transparent" />
                         </Style>
-                        <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+                        <Style Selector="ListBoxItem:previewitem /template/ ContentPresenter#PART_ContentPresenter">
                           <Setter Property="Background" Value="Transparent" />
                         </Style>
 
@@ -86,7 +86,7 @@
                           </Setter>
                         </Style>
 
-                        <Style Selector="ListBoxItem:selected Border#PART_DecorationBorder">
+                        <Style Selector="ListBoxItem:previewitem Border#PART_DecorationBorder">
                           <Setter Property="Opacity" Value="1" />
                         </Style>
                       </ListBox.Styles>
