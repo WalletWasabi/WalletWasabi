@@ -50,7 +50,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				_transactionInfo.FeeRate = new FeeRate(feeRate);
 				_transactionInfo.IsCustomFeeUsed = true;
 			}
-			else
+			else if (_transactionInfo.IsCustomFeeUsed)
 			{
 				_transactionInfo.FeeRate = FeeRate.Zero;
 				_transactionInfo.IsCustomFeeUsed = false;
