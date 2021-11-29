@@ -54,7 +54,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 		private void UpdateBalance()
 		{
-			BalanceBtc = $"{_wallet.Coins.TotalAmount().ToFormattedString()} BTC";
+			BalanceBtc = $"{_wallet.Coins.TotalAmount().ToFormattedString()} ₿";
 
 			BalanceFiat = _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC)
 				.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
