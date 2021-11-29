@@ -92,7 +92,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 						round.Alices.RemoveAll(x => offendingAlices.Contains(x));
 						foreach (var alice in offendingAlices)
 						{
-							await EventStore.ProcessCommandAsync(new RemoveInputCommand(alice.Id, Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
+							await EventStore.ProcessCommandAsync(new RemoveInputCommand(alice.Coin.Outpoint, Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
 						}
 					}
 				}
@@ -135,7 +135,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					var removedAliceCount = round.Alices.RemoveAll(x => alicesDidntConfirm.Contains(x));
 					foreach (var alice in alicesDidntConfirm)
 					{
-						await EventStore.ProcessCommandAsync(new RemoveInputCommand(alice.Id, Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
+						await EventStore.ProcessCommandAsync(new RemoveInputCommand(alice.Coin.Outpoint, Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
 					}
 
 					round.LogInfo($"{removedAliceCount} alices removed because they didn't confirm.");
@@ -152,7 +152,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 								var removed = round.Alices.RemoveAll(x => offendingAlices.Contains(x));
 								foreach (var alice in offendingAlices)
 								{
-									await EventStore.ProcessCommandAsync(new RemoveInputCommand(alice.Id, Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
+									await EventStore.ProcessCommandAsync(new RemoveInputCommand(alice.Coin.Outpoint, Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
 								}
 
 								round.LogInfo($"There were {removed} alices removed because they spent the registered UTXO.");
@@ -393,7 +393,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				foreach (var alice in alicesToRemove)
 				{
 					round.Alices.Remove(alice);
-					await EventStore.ProcessCommandAsync(new RemoveInputCommand(alice.Id, Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
+					await EventStore.ProcessCommandAsync(new RemoveInputCommand(alice.Coin.Outpoint, Guid.NewGuid()), nameof(RoundAggregate), round.Id.ToString()).ConfigureAwait(false);
 				}
 
 				if (alicesToRemove.Any())

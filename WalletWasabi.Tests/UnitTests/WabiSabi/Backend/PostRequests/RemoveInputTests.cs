@@ -32,7 +32,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			await arena.RemoveInputAsync(req, CancellationToken.None);
 
 			// There was the alice we want to remove so success.
-			req = new InputsRemovalRequest(round.Id, alice.Id);
+			req = new InputsRemovalRequest(round.Id, alice.Secret);
 			await arena.RemoveInputAsync(req, CancellationToken.None);
 
 			// Ensure that removing an alice freed up the input vsize

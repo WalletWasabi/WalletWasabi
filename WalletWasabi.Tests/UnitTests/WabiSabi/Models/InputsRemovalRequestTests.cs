@@ -18,15 +18,15 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			Guid guid = Guid.NewGuid();
 
 			// Request #1.
-			InputsRemovalRequest request1 = new(RoundId: roundId, AliceId: guid);
+			InputsRemovalRequest request1 = new(RoundId: roundId, AliceSecret: guid);
 
 			// Request #2.
-			InputsRemovalRequest request2 = new(RoundId: roundId, AliceId: guid);
+			InputsRemovalRequest request2 = new(RoundId: roundId, AliceSecret: guid);
 
 			Assert.Equal(request1, request2);
 
 			// Request #3.
-			InputsRemovalRequest request3 = new(RoundId: BitcoinFactory.CreateUint256(), AliceId: guid);
+			InputsRemovalRequest request3 = new(RoundId: BitcoinFactory.CreateUint256(), AliceSecret: guid);
 
 			Assert.NotEqual(request1, request3);
 		}

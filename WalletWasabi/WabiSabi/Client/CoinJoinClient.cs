@@ -285,7 +285,7 @@ namespace WalletWasabi.WabiSabi.Client
 				}
 				catch (Exception e)
 				{
-					Logger.LogWarning($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Could not sign, reason:'{e}'.");
+					Logger.LogWarning($"Round ({aliceClient.RoundId}), Alice ({aliceClient.SmartCoin.OutPoint}): Could not sign, reason:'{e}'.");
 					return default;
 				}
 			}

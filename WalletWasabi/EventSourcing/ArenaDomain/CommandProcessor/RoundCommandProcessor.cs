@@ -37,7 +37,7 @@ namespace WalletWasabi.EventSourcing.ArenaDomain.CommandProcessor
 			return errors.Count > 0 ?
 				Result.Fail(errors) :
 				Result.Succeed(
-					new[] { new InputRegisteredEvent(command.AliceId, command.Coin, command.OwnershipProof) });
+					new[] { new InputRegisteredEvent(command.AliceSecret, command.Coin, command.OwnershipProof) });
 		}
 
 		public Result Process(EndRoundCommand command, RoundState2 state)
@@ -47,12 +47,12 @@ namespace WalletWasabi.EventSourcing.ArenaDomain.CommandProcessor
 
 		public Result Process(InputConnectionConfirmedCommand command, RoundState2 state)
 		{
-			return Result.Succeed(new InputConnectionConfirmedEvent(command.AliceId, command.Coin, command.OwnershipProof));
+			return Result.Succeed(new InputConnectionConfirmedEvent(command.Coin, command.OwnershipProof));
 		}
 
 		public Result Process(RemoveInputCommand command, RoundState2 state)
 		{
-			return Result.Succeed(new InputUnregistered(command.AliceId));
+			return Result.Succeed(new InputUnregistered(command.AliceOutPoint));
 		}
 
 		public Result Process(RegisterOutputCommand command, RoundState2 state)
@@ -82,12 +82,12 @@ namespace WalletWasabi.EventSourcing.ArenaDomain.CommandProcessor
 
 		public Result Process(InputReadyToSignCommand command, RoundState2 state)
 		{
-			return Result.Succeed(new InputReadyToSignEvent(command.AliceId));
+			return Result.Succeed(new InputReadyToSignEvent(command.AliceOutPoint));
 		}
 
 		public Result Process(AddSignatureEvent command, RoundState2 state)
 		{
-			return Result.Succeed(new SignatureAddedEvent(command.AliceId, command.WitScript));
+			return Result.Succeed(new SignatureAddedEvent(command.AliceOutPoint, command.WitScript));
 		}
 
 		public Result Process(ICommand command, IState state)
