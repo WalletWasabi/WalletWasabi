@@ -4,6 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:send="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Send"
              mc:Ignorable="d"
              x:DataType="vm:TransactionPreviewViewModel"
              x:CompileBindings="True"
@@ -20,26 +22,35 @@
       <DockPanel>
         <TextBlock Text="Preview Transaction" />
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center">
-            <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
-                   ToolTip.Tip="Your privacy is being protected with PayJoin." IsVisible="{Binding IsPayJoin}" />
-            <Viewbox Height="20" IsVisible="{Binding MaxPrivacy}" ToolTip.Tip="Your privacy is fully protected in this transaction.">
-              <PathIcon Data="{StaticResource shield_regular}" Foreground="{DynamicResource PrivacyLevelStrongBrush}" />
+          <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
+                 ToolTip.Tip="Your privacy is being protected with PayJoin." IsVisible="{Binding IsPayJoin}" />
+          <Viewbox Height="20" IsVisible="{Binding MaxPrivacy}"
+                   ToolTip.Tip="Your privacy is fully protected in this transaction.">
+            <PathIcon Data="{StaticResource shield_regular}" Foreground="{DynamicResource PrivacyLevelStrongBrush}" />
+          </Viewbox>
+          <Panel Cursor="Hand" Margin="10">
+            <Interaction.Behaviors>
+              <behaviors:ShowFlyoutOnPointerOverBehavior />
+            </Interaction.Behaviors>
+            <FlyoutBase.AttachedFlyout>
+              <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway">
+                <DockPanel>
+                  <TextBlock Text="Some optional suggestions to improve your privacy even more" DockPanel.Dock="Top" />
+                  <send:OptimisePrivacyView DataContext="{Binding ChangeAvoidance}" />
+                </DockPanel>
+              </Flyout>
+            </FlyoutBase.AttachedFlyout>
+            <Panel.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="TransactionHasChange" />
+                <Binding Path="IsPayJoin" Converter="{x:Static BoolConverters.Not}" />
+              </MultiBinding>
+            </Panel.IsVisible>
+            <Viewbox Height="20">
+              <PathIcon Data="{StaticResource shield_regular}" Foreground="{DynamicResource WarningMessageForeground}" />
             </Viewbox>
-            <Button Classes="plain"
-                    Cursor="Hand"
-                    ToolTip.Tip="Privacy can be improved by avoiding change. Click to resolve."
-                    Command="{Binding AvoidChangeCommand}">
-              <Button.IsVisible>
-                <MultiBinding Converter="{x:Static BoolConverters.And}">
-                  <Binding Path="TransactionHasChange" />
-                  <Binding Path="IsPayJoin" Converter="{x:Static BoolConverters.Not}" />
-                </MultiBinding>
-              </Button.IsVisible>
-              <Viewbox Height="20">
-                <PathIcon Data="{StaticResource shield_regular}" Foreground="{DynamicResource WarningMessageForeground}" />
-              </Viewbox>
-            </Button>
-          </StackPanel>
+          </Panel>
+        </StackPanel>
       </DockPanel>
     </c:ContentArea.Title>
     <StackPanel Spacing="15">

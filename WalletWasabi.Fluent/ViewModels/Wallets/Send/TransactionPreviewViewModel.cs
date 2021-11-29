@@ -39,6 +39,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private bool _adjustFeeAvailable;
 		[AutoNotify] private bool _maxPrivacy;
 		[AutoNotify] private bool _issuesTooltip;
+		[AutoNotify] private OptimisePrivacyViewModel? _changeAvoidance;
 
 		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info)
 		{
@@ -301,6 +302,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			FeeText = $"{btcFeeText}{fiatFeeText}";
 
 			TransactionHasChange = _transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != _info.Address.ScriptPubKey);
+
+			if (TransactionHasChange)
+			{
+				ChangeAvoidance = new OptimisePrivacyViewModel(_wallet, _info, _transaction!);
+
+				ChangeAvoidance.OnNavigatedTo(false);
+			}
 
 			TransactionHasPockets = !_info.IsPrivatePocketUsed;
 		}
