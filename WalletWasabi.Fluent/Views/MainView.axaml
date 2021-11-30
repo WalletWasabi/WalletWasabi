@@ -73,6 +73,7 @@
       </Viewbox>
 
     </ExperimentalAcrylicBorder>
+    <c:AdornerCanvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
     <c:Dialog x:CompileBindings="False"
               DataContext="{Binding FullScreen}"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
