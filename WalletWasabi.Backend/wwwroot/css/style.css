@@ -793,6 +793,8 @@ body:not(:hover) .exitpopup {
 }
 .btn {
     padding-top: 10px;
+    font-weight: bold;
+    font-size: 14px;
 }
 .btn-primary {
     background-color: var(--green);
@@ -856,6 +858,55 @@ ol li::marker {
     display: inline-block;
     width: 1em;
     margin-left: -1em;
+}
+.versions input, .versions .v-text {
+    position: absolute;
+    top: 0;
+}
+.versions label {
+    display: block;
+}
+.versions .v-text {
+    cursor: pointer;
+}
+.versions .v-text img {
+    height: 28px;
+    margin-right: 10px;
+    display: inline-block;
+    vertical-align: middle;
+    float: left;
+}
+.versions label:first-child input {
+    left: calc(50% - 220px);
+}
+.versions label:first-child .v-text {
+    left: calc(50% - 200px);
+}
+.versions label:nth-child(2) input {
+    left: calc(50% + 40px);
+}
+.versions label:nth-child(2) .v-text {
+    left: calc(50% + 60px);
+}
+.version-content {
+    display: none;
+    left: 0;
+    top: 50px;
+    border-top: 1px dashed var(--light-gray);
+    padding-top: 40px;
+}
+.version-select:checked + .version-content {
+    display: block;
+}
+.versions {
+    position: relative;
+    padding-top: 70px;
+}
+.small-text {
+    font-size: 12px;
+}
+.muted-text {
+    opacity: 0.5;
 }
 @media (min-width: 576px) {
     body {
@@ -996,7 +1047,40 @@ ol li::marker {
         left: 20px;
     }
     .title {
-        font-size: 40px;
+        font-size: 24px;
+    }
+    .versions .v-text {
+        text-align: center;
+    }
+    .versions .v-text img {
+        float: none;
+        display: block;
+        margin: 0 auto;
+    }
+    .version-content {
+        margin-top: 20px;
+    }
+    .versions label:first-child .v-text {
+        left: 25%;
+        transform: translateX(-50%);
+        width: 50%;
+    }
+    .versions label:first-child input {
+        left: 50%;
+        transform: translateX(-80%);
+        width: 50%;
+        top: 7px;
+    }
+    .versions label:nth-child(2) .v-text {
+        left: 75%;
+        transform: translateX(-50%);
+        width: 50%;
+    }
+    .versions label:nth-child(2) input {
+        left: 75%;
+        transform: translateX(-25%);
+        width: 50%;
+        top: 7px;
     }
 }
 @media only screen and (max-width: 400px) {} @media only screen and (max-width: 320px) {
@@ -1006,50 +1090,4 @@ ol li::marker {
     .download-btn-area {
         transform: scale(0.5) translateX(-50%) translateY(-50%);
     }
-}
-.versions input, .versions .v-text {
-    position: absolute;
-    top: 0;
-}
-.versions label {
-    display: block;
-}
-.versions .v-text {
-    cursor: pointer;
-}
-.versions .v-text img {
-   height: 28px;
-   margin-right: 10px;
-   display: inline-block;
-   vertical-align: middle;
-   float: left;
-}
-.versions label:first-child input {
-    left: calc(50% - 220px);
-}
-.versions label:first-child .v-text {
-    left: calc(50% - 200px);
-}
-.versions label:nth-child(2) input {
-    left: calc(50% + 40px);
-}
-.versions label:nth-child(2) .v-text {
-    left: calc(50% + 60px);
-}
-.version-content {
-    display: none;
-    left: 0;
-    top: 50px;
-    border-top: 1px dashed var(--light-gray);
-    padding-top: 40px;
-}
-.version-select:checked + .version-content {
-    display: block;
-}
-.versions {
-    position: relative;
-    padding-top: 70px;
-}
-.small-text {
-    font-size: 12px;
 }
