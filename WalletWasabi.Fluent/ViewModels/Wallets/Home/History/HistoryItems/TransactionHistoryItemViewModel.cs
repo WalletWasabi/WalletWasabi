@@ -39,7 +39,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems
 				RoutableViewModel.Navigate(NavigationTarget.CompactDialogScreen).To(
 					new TransactionDetailsViewModel(transactionSummary, walletViewModel.Wallet, updateTrigger)));
 
-			DateString = $"{Date.ToLocalTime():MM/dd/yyyy HH:mm}";
+			DateString = $"{Date.ToLocalTime():MM/dd/yy HH:mm}";
 		}
 	}
 }
