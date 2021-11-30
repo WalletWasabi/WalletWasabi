@@ -128,7 +128,8 @@
     <Setter Property="MinHeight" Value="0" />
     <Setter Property="MinWidth" Value="0" />
     <Setter Property="CaretBrush" Value="Transparent" />
-    <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="TextWrapping" Value="WrapWithOverflow" />
+    <Setter Property="AcceptsReturn" Value="True"></Setter>
     <Setter Property="ContextMenu">
       <ContextMenu>
         <MenuItem Header="Copy" Command="{Binding $parent[TextBox].Copy}" IsEnabled="{Binding $parent[TextBox].CanCopy}" InputGesture="{x:Static TextBox.CopyGesture}" />
@@ -138,7 +139,6 @@
       <ControlTemplate>
         <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
                       VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
-          <Panel>
             <TextPresenter Name="PART_TextPresenter"
                            Text="{TemplateBinding Text, Mode=TwoWay}"
                            CaretIndex="{TemplateBinding CaretIndex}"
@@ -153,7 +153,6 @@
                            CaretBrush="{TemplateBinding CaretBrush}"
                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-          </Panel>
         </ScrollViewer>
       </ControlTemplate>
     </Setter>
@@ -161,7 +160,6 @@
 
   <Style Selector="TextBlock.monoSpaced, TextBox.monoSpaced">
     <Setter Property="TextBlock.FontFamily" Value="{StaticResource MonospacedFont}" />
-    <Setter Property="TextBlock.FontSize" Value="15" />
   </Style>
 
   <Style Selector="TextBox.wrap /template/ TextPresenter#PART_TextPresenter">
