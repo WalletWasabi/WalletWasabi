@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
         xmlns:i="using:Avalonia.Xaml.Interactivity"
+        xmlns:c="using:WalletWasabi.Fluent.Controls"
         xmlns:validation="clr-namespace:WalletWasabi.Fluent.Validation"
         xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters">
   <Styles.Resources>
@@ -158,8 +159,8 @@
     </Setter>
   </Style>
 
-  <Style Selector="TextBlock.monoSpaced">
-    <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
+  <Style Selector="TextBlock.monoSpaced, c|PrivacyContentControl.monoSpaced">
+    <Setter Property="(TextBlock.FontFamily)" Value="{StaticResource MonospacedFont}" />
   </Style>
 
   <Style Selector="TextBox.monoSpaced /template/ TextPresenter#PART_TextPresenter">

@@ -31,7 +31,7 @@
                               ExecuteOnOpen="{Binding IsAutoCopyEnabled}" />
           </StackPanel>
           <c:PrivacyContentControl FontSize="{StaticResource FontSizeH5}" NumberOfPrivacyChars="38">
-            <TextBlock Text="{Binding Address}" />
+            <TextBlock Classes="monoSpaced" Text="{Binding Address}" />
           </c:PrivacyContentControl>
         </DockPanel>
         <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15" HorizontalAlignment="Center">
