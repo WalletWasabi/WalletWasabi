@@ -84,17 +84,23 @@
                       <Panel Name="PART_RightCaptionArea"
                              Background="{TemplateBinding HeaderBackground}" />
 
-                      <ScrollViewer x:Name="PART_ScrollViewer"
+                      <ScrollViewer x:Name="PART_ScrollViewer" ClipToBounds="{TemplateBinding ClipToBounds}"
                                     HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
                                     VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
-                          <ContentControl Name="PART_ContentPresenter"
-                                          BorderBrush="{TemplateBinding BorderBrush}"
-                                          BorderThickness="{TemplateBinding BorderThickness}"
-                                          ContentTemplate="{TemplateBinding ContentTemplate}"
-                                          Content="{TemplateBinding Content}"
-                                          Padding="{TemplateBinding Padding}"
-                                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
+                        <ScrollViewer.Styles>
+                          <Style Selector="ScrollViewer /template/ ScrollContentPresenter">
+                            <Setter Property="ClipToBounds" Value="{Binding $parent[ScrollViewer].ClipToBounds}" />
+                          </Style>
+                        </ScrollViewer.Styles>
+                        <ContentControl Name="PART_ContentPresenter"
+                                        ClipToBounds="{TemplateBinding ClipToBounds}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        ContentTemplate="{TemplateBinding ContentTemplate}"
+                                        Content="{TemplateBinding Content}"
+                                        Padding="{TemplateBinding Padding}"
+                                        VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                        HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
                       </ScrollViewer>
 
                       <Panel x:Name="PART_ButtonArea">
