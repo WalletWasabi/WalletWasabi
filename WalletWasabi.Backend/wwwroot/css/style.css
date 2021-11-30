@@ -1015,20 +1015,26 @@ ol li::marker {
     display: block;
 }
 .versions .v-text {
-    font-weight: bold;
     cursor: pointer;
 }
+.versions .v-text img {
+   height: 28px;
+   margin-right: 10px;
+   display: inline-block;
+   vertical-align: middle;
+   float: left;
+}
 .versions label:first-child input {
-    left: calc(50% - 200px);
+    left: calc(50% - 220px);
 }
 .versions label:first-child .v-text {
-    left: calc(50% - 180px);
+    left: calc(50% - 200px);
 }
 .versions label:nth-child(2) input {
-    left: calc(50% + 20px);
+    left: calc(50% + 40px);
 }
 .versions label:nth-child(2) .v-text {
-    left: calc(50% + 40px);
+    left: calc(50% + 60px);
 }
 .version-content {
     display: none;
@@ -1042,7 +1048,7 @@ ol li::marker {
 }
 .versions {
     position: relative;
-    padding-top: 50px;
+    padding-top: 70px;
 }
 .small-text {
     font-size: 12px;
