@@ -19,14 +19,13 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class RoundStateUpdater : PeriodicRunner
 	{
-		public RoundStateUpdater(TimeSpan requestInterval, IBackendHttpClientFactory backendHttpClientFactory) : base(requestInterval)
+		public RoundStateUpdater(TimeSpan requestInterval, IWabiSabiApiRequestHandler arenaRequestHandler) : base(requestInterval)
 		{
-			ArenaRequestHandler = new WabiSabiHttpApiClient(backendHttpClientFactory.NewBackendHttpClient(Mode.SingleCircuitPerLifetime));
-			BackendHttpClientFactory = backendHttpClientFactory;
+			ArenaRequestHandler = arenaRequestHandler;
 		}
 
 		private IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
-		private Dictionary<uint256, (long LastSequenceId, RoundState2 State, RoundAggregate Aggregate, IWabiSabiApiRequestHandler ApiRequestHandler)> ActiveRounds { get; set; } = new();
+		private Dictionary<uint256, (long LastSequenceId, RoundState2 State, RoundAggregate Aggregate)> ActiveRounds { get; set; } = new();
 
 		private List<RoundStateAwaiter> Awaiters { get; } = new();
 		private object AwaitersLock { get; } = new();
@@ -64,12 +63,11 @@ namespace WalletWasabi.WabiSabi.Client
 			{
 				if (!ActiveRounds.ContainsKey(roundId))
 				{
-					ActiveRounds.Add(roundId, (0, new RoundState2(), new RoundAggregate(), new WabiSabiHttpApiClient(BackendHttpClientFactory.NewBackendHttpClient(Mode.SingleCircuitPerLifetime))));
+					ActiveRounds.Add(roundId, (0, new RoundState2(), new RoundAggregate()));
 				}
 
-				var arenaRequestHandler = ActiveRounds[roundId].ApiRequestHandler;
 				var lastSequenceId = ActiveRounds[roundId].LastSequenceId;
-				var newEvents = await arenaRequestHandler.GetRoundEvents(roundId.ToString(), lastSequenceId, cancellationToken).ConfigureAwait(false);
+				var newEvents = await ArenaRequestHandler.GetRoundEvents(roundId.ToString(), lastSequenceId, cancellationToken).ConfigureAwait(false);
 
 				if (newEvents.LastOrDefault() is { SequenceId: var newSequenceId })
 				{
@@ -79,7 +77,7 @@ namespace WalletWasabi.WabiSabi.Client
 						roundAggregate.Apply(wrappedEvent.DomainEvent);
 					}
 
-					ActiveRounds[roundId] = (newSequenceId, roundAggregate.State, roundAggregate, arenaRequestHandler);
+					ActiveRounds[roundId] = (newSequenceId, roundAggregate.State, roundAggregate);
 				}
 			}
 
