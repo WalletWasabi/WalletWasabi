@@ -80,22 +80,16 @@ namespace WalletWasabi.Fluent.Controls
 					var increasedWidthThreshold = IncreasedWidthThreshold;
 					var increasedHeightThreshold = IncreasedHeightThreshold;
 					var fullScreenHeightThreshold = FullScreenHeightThreshold;
-
-					var increasedWidthEnabled = !double.IsNaN(increasedWidthThreshold)
+					var canIncreasedWidth = !double.IsNaN(increasedWidthThreshold)
 					                        && width < increasedWidthThreshold;
-
-					var increasedHeightEnabled = !double.IsNaN(increasedHeightThreshold)
-					                            && height < increasedHeightThreshold;
-
-					IncreasedWidthEnabled = increasedWidthEnabled && !increasedHeightEnabled;
-
-					IncreasedHeightEnabled = !increasedWidthEnabled && increasedHeightEnabled;
-
-					IncreasedSizeEnabled = increasedWidthEnabled && increasedHeightEnabled;
-
-					FullScreenEnabled = increasedWidthEnabled
-					                    && !double.IsNaN(fullScreenHeightThreshold)
-					                    && height < fullScreenHeightThreshold;
+					var canIncreasedHeight = !double.IsNaN(increasedHeightThreshold)
+					                         && height < increasedHeightThreshold;
+					var canGoToFullScreen = !double.IsNaN(fullScreenHeightThreshold)
+					                        && height < fullScreenHeightThreshold;
+					IncreasedWidthEnabled = canIncreasedWidth && !canIncreasedHeight;
+					IncreasedHeightEnabled = !canIncreasedWidth && canIncreasedHeight;
+					IncreasedSizeEnabled = canIncreasedWidth && canIncreasedHeight;
+					FullScreenEnabled = canIncreasedWidth && canGoToFullScreen;
 				});
 		}
 
