@@ -15,14 +15,15 @@ namespace WalletWasabi.Tests.UnitTests.BranchAndBoundTests
 		[Fact]
 		public void CanSelectCoinsWithBranchAndBoundTest()
 		{
-			var availableCoins = new List<ulong> { Money.Satoshis(500), Money.Satoshis(900), Money.Satoshis(700), Money.Satoshis(1000) };
-			var expectedCoins = new List<ulong>() { Money.Satoshis(900), Money.Satoshis(500) };
-			ulong target = 1400;
+			var availableCoins = new List<ulong> { Money.Satoshis(12), Money.Satoshis(10), Money.Satoshis(1), Money.Satoshis(8), Money.Satoshis(11), Money.Satoshis(6), Money.Satoshis(10), Money.Satoshis(5), Money.Satoshis(4), Money.Satoshis(8), Money.Satoshis(15), Money.Satoshis(24), Money.Satoshis(1), Money.Satoshis(1) };
+			var expectedCoins = new List<ulong>() { Money.Satoshis(12), Money.Satoshis(5) };
+
+			ulong target = (ulong)new Random().Next(0, 130);
 			ulong tolerance = 0;
 
 			SendCoinSelector bab = new();
 			Assert.True(bab.TryBranchAndBound(availableCoins, target, tolerance, out List<ulong> selectedCoins));
-			Assert.Equal(expectedCoins, selectedCoins);
+			Assert.Equal(target, bab.CalculateSum(selectedCoins));
 		}
 	}
 }
