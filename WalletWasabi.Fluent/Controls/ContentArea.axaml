@@ -104,17 +104,7 @@
                                         HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
                       </ScrollViewer>
 
-                      <Panel Name="PART_ButtonArea">
-                        <Button Name="PART_CancelButton"
-                                Classes="invisible"
-                                IsVisible="{TemplateBinding EnableCancel}"
-                                Content="{TemplateBinding CancelContent}"
-                                Command="{Binding CancelCommand}">
-                            <i:Interaction.Behaviors>
-                                <behaviors:FocusOnAttachedBehavior
-                                    IsEnabled="{Binding FocusCancel, RelativeSource={RelativeSource TemplatedParent}}" />
-                            </i:Interaction.Behaviors>
-                        </Button>
+                      <DockPanel Name="PART_ButtonArea">
                         <StackPanel Name="PART_NextStackPanel">
                             <Button Name="PART_SkipButton"
                                     IsVisible="{TemplateBinding EnableSkip}"
@@ -133,7 +123,17 @@
                                 </i:Interaction.Behaviors>
                             </Button>
                         </StackPanel>
-                      </Panel>
+                        <Button Name="PART_CancelButton"
+                                Classes="invisible"
+                                IsVisible="{TemplateBinding EnableCancel}"
+                                Content="{TemplateBinding CancelContent}"
+                                Command="{Binding CancelCommand}">
+                          <i:Interaction.Behaviors>
+                            <behaviors:FocusOnAttachedBehavior
+                              IsEnabled="{Binding FocusCancel, RelativeSource={RelativeSource TemplatedParent}}" />
+                          </i:Interaction.Behaviors>
+                        </Button>
+                      </DockPanel>
 
                     </Grid>
                 </Panel>
@@ -195,14 +195,14 @@
 
   <!-- Button Area -->
 
-    <Style Selector="c|ContentArea /template/ Panel#PART_ButtonArea">
+    <Style Selector="c|ContentArea /template/ DockPanel#PART_ButtonArea">
       <Setter Property="(Grid.Column)" Value="1" />
       <Setter Property="(Grid.ColumnSpan)" Value="2" />
       <Setter Property="(Grid.Row)" Value="3" />
       <Setter Property="Margin" Value="0,10" />
     </Style>
 
-    <Style Selector="c|ContentArea[ButtonAreaPlacement=Overlay] /template/ Panel#PART_ButtonArea">
+    <Style Selector="c|ContentArea[ButtonAreaPlacement=Overlay] /template/ DockPanel#PART_ButtonArea">
       <Setter Property="(Grid.Column)" Value="1" />
       <Setter Property="(Grid.ColumnSpan)" Value="2" />
       <Setter Property="(Grid.Row)" Value="2" />
@@ -210,10 +210,11 @@
       <Setter Property="Margin" Value="0,1,16,10" />
     </Style>
 
-    <Style Selector="c|ContentArea[ButtonAreaPlacement=Title] /template/ Panel#PART_ButtonArea">
+    <Style Selector="c|ContentArea[ButtonAreaPlacement=Title] /template/ DockPanel#PART_ButtonArea">
       <Setter Property="(Grid.Column)" Value="2" />
       <Setter Property="(Grid.ColumnSpan)" Value="1" />
       <Setter Property="(Grid.Row)" Value="0" />
+      <Setter Property="HorizontalAlignment" Value="Right" />
       <Setter Property="VerticalAlignment" Value="Bottom" />
       <Setter Property="Margin" Value="0,1,0,0" />
     </Style>
@@ -221,24 +222,24 @@
     <!-- Cancel Button -->
 
     <Style Selector="c|ContentArea /template/ Button#PART_CancelButton">
-      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="(DockPanel.Dock)" Value="Left" />
     </Style>
 
     <Style Selector="c|ContentArea[ButtonAreaPlacement=Title] /template/ Button#PART_CancelButton">
-      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="(DockPanel.Dock)" Value="Right" />
     </Style>
 
-    <!-- Next StackPanel -->
+    <!-- Next/Skip button StackPanel -->
 
     <Style Selector="c|ContentArea /template/ StackPanel#PART_NextStackPanel">
       <Setter Property="Orientation" Value="Horizontal" />
       <Setter Property="Spacing" Value="30" />
       <Setter Property="Margin" Value="0 10" />
-      <Setter Property="HorizontalAlignment" Value="Right" />
+      <Setter Property="(DockPanel.Dock)" Value="Right" />
     </Style>
 
     <Style Selector="c|ContentArea[ButtonAreaPlacement=Title] /template/ StackPanel#PART_NextStackPanel">
-      <Setter Property="HorizontalAlignment" Value="Right" />
+      <Setter Property="(DockPanel.Dock)" Value="Right" />
     </Style>
 
     <Style Selector="c|ContentArea /template/ ScrollViewer#PART_ScrollViewer">
