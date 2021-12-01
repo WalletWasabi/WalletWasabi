@@ -113,12 +113,6 @@
               HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
               MaxContentWidth="800" MaxContentHeight="700"
               IncreasedWidthThreshold="740" IncreasedHeightThreshold="580" FullScreenHeightThreshold="580">
-      <c:Dialog.Styles>
-        <Style Selector="c|Dialog[FullScreenEnabled=True]">
-          <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-          <Setter Property="VerticalContentAlignment" Value="Stretch" />
-        </Style>
-      </c:Dialog.Styles>
       <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
     <c:Dialog x:CompileBindings="False"
