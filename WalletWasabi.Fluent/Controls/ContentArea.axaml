@@ -44,8 +44,8 @@
 
                       <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="31" />
-                        <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="31" />
                       </Grid.ColumnDefinitions>
                       <Grid.RowDefinitions>
@@ -55,8 +55,14 @@
                         <RowDefinition Height="Auto" />
                       </Grid.RowDefinitions>
 
-                      <Panel Name="PART_LeftTitleArea"
-                             Background="{TemplateBinding HeaderBackground}" >
+                      <Panel Grid.Row="0"
+                             Grid.RowSpan="2"
+                             Grid.Column="0"
+                             Grid.ColumnSpan="4"
+                             IsHitTestVisible="False"
+                             Background="{TemplateBinding HeaderBackground}"/>
+
+                      <Panel Name="PART_LeftTitleArea">
                         <Button Name="PART_BackButton"
                                 Classes="plain"
                                 Command="{Binding BackCommand}"
@@ -65,24 +71,19 @@
                         </Button>
                       </Panel>
 
-                      <Panel Name="PART_TitleArea"
-                             Background="{TemplateBinding HeaderBackground}" >
+                      <Panel Name="PART_TitleArea">
                         <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
                       </Panel>
 
-                      <Panel Name="PART_RightTitleArea"
-                             Background="{TemplateBinding HeaderBackground}" />
+                      <Panel Name="PART_RightTitleArea"/>
 
-                      <Panel Name="PART_LeftCaptionArea"
-                             Background="{TemplateBinding HeaderBackground}" />
+                      <Panel Name="PART_LeftCaptionArea"/>
 
-                      <Panel Name="PART_CaptionArea"
-                             Background="{TemplateBinding HeaderBackground}" >
+                      <Panel Name="PART_CaptionArea">
                           <ContentPresenter Name="PART_CaptionPresenter" Content="{TemplateBinding Caption}" />
                       </Panel>
 
-                      <Panel Name="PART_RightCaptionArea"
-                             Background="{TemplateBinding HeaderBackground}" />
+                      <Panel Name="PART_RightCaptionArea"/>
 
                       <ScrollViewer Name="PART_ScrollViewer" ClipToBounds="{TemplateBinding ClipToBounds}"
                                     HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
