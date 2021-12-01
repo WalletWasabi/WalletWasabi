@@ -22,7 +22,6 @@ namespace WalletWasabi.BranchNBound
 			Stack<ulong> pool = new Stack<ulong>(coinsDescending);
 			var currentCoins = new List<ulong>();
 			var depth = 0;
-			var bnbTries = 10000;
 			try
 			{
 				finalCoins = SolveX(currentCoins, target, pool, depth);
