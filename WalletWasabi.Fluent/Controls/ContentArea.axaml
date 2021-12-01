@@ -14,7 +14,7 @@
                        Caption="Type in your Wallet's name and select an option below:"
                        HeaderBackground="Blue"
                        EnabledAdaptiveButtonArea="True"
-                       AdaptiveButtonAreaPlacement="Overlay"
+                       AdaptiveButtonAreaPlacement="Title"
                        AdaptiveButtonAreaHeightTrigger="400">
           <c:ContentArea.Styles>
             <Style Selector="c|ContentArea /template/ Grid#MainGridPanel">
@@ -109,17 +109,13 @@
                                 Classes="invisible"
                                 IsVisible="{TemplateBinding EnableCancel}"
                                 Content="{TemplateBinding CancelContent}"
-                                HorizontalAlignment="Left"
                                 Command="{Binding CancelCommand}">
                             <i:Interaction.Behaviors>
                                 <behaviors:FocusOnAttachedBehavior
                                     IsEnabled="{Binding FocusCancel, RelativeSource={RelativeSource TemplatedParent}}" />
                             </i:Interaction.Behaviors>
                         </Button>
-                        <StackPanel Orientation="Horizontal"
-                                    Spacing="30"
-                                    Margin="0 10"
-                                    HorizontalAlignment="Right">
+                        <StackPanel Name="PART_NextStackPanel">
                             <Button Name="PART_SkipButton"
                                     IsVisible="{TemplateBinding EnableSkip}"
                                     Content="{TemplateBinding SkipContent}"
@@ -145,6 +141,8 @@
         </Setter>
     </Style>
 
+  <!-- Title -->
+
   <Style Selector="c|ContentArea /template/ Panel#PART_LeftTitleArea">
     <Setter Property="(Grid.Column)" Value="0" />
     <Setter Property="(Grid.Row)" Value="0" />
@@ -165,11 +163,15 @@
     <Setter Property="(Grid.Row)" Value="0" />
   </Style>
 
+  <!-- Back Button -->
+
   <Style Selector="c|ContentArea /template/ Button#PART_BackButton">
     <Setter Property="VerticalAlignment" Value="Center" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
     <Setter Property="Margin" Value="0,0,0,0" />
   </Style>
+
+  <!-- Caption Area -->
 
   <Style Selector="c|ContentArea /template/ Panel#PART_LeftCaptionArea">
     <Setter Property="(Grid.Column)" Value="0" />
@@ -190,6 +192,8 @@
     <Setter Property="(Grid.Column)" Value="3" />
     <Setter Property="(Grid.Row)" Value="1" />
   </Style>
+
+  <!-- Button Area -->
 
     <Style Selector="c|ContentArea /template/ Panel#PART_ButtonArea">
       <Setter Property="(Grid.Column)" Value="1" />
@@ -212,6 +216,29 @@
       <Setter Property="(Grid.Row)" Value="0" />
       <Setter Property="VerticalAlignment" Value="Bottom" />
       <Setter Property="Margin" Value="0,1,0,0" />
+    </Style>
+
+    <!-- Cancel Button -->
+
+    <Style Selector="c|ContentArea /template/ Button#PART_CancelButton">
+      <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+
+    <Style Selector="c|ContentArea[ButtonAreaPlacement=Title] /template/ Button#PART_CancelButton">
+      <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+
+    <!-- Next StackPanel -->
+
+    <Style Selector="c|ContentArea /template/ StackPanel#PART_NextStackPanel">
+      <Setter Property="Orientation" Value="Horizontal" />
+      <Setter Property="Spacing" Value="30" />
+      <Setter Property="Margin" Value="0 10" />
+      <Setter Property="HorizontalAlignment" Value="Right" />
+    </Style>
+
+    <Style Selector="c|ContentArea[ButtonAreaPlacement=Title] /template/ StackPanel#PART_NextStackPanel">
+      <Setter Property="HorizontalAlignment" Value="Right" />
     </Style>
 
     <Style Selector="c|ContentArea /template/ ScrollViewer#PART_ScrollViewer">
