@@ -11,10 +11,12 @@ namespace WalletWasabi.BranchNBound
 {
 	public class SendCoinSelector
 	{
+		private int _depth;
+
 		public bool TryBranchAndBound(List<ulong> coins, ulong target, ulong tolerance, out List<ulong> selectedCoins)
 		{
+			_depth = 0;
 			selectedCoins = new List<ulong>();
-			var bnbTries = 10000;
 			try
 			{
 				selectedCoins = SolveX(coins, target, tolerance);
@@ -29,7 +31,9 @@ namespace WalletWasabi.BranchNBound
 
 		private List<ulong> SolveX(List<ulong> coins, ulong target, ulong tolerance)
 		{
-			var coinsDesc = new Stack<ulong>(coins.OrderBy(x => x));
+			var orderedCoins = coins.OrderBy(x => x).ToList();
+			orderedCoins.RemoveAt(_depth);
+			var coinsDesc = new Stack<ulong>(orderedCoins);
 			var selection = new Queue<ulong>();
 
 			while (true)
