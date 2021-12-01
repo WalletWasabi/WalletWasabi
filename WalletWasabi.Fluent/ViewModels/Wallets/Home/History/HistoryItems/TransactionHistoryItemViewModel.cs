@@ -36,7 +36,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems
 			}
 
 			ShowDetailsCommand = ReactiveCommand.Create(() =>
-				RoutableViewModel.Navigate(NavigationTarget.CompactDialogScreen).To(
+				RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(
 					new TransactionDetailsViewModel(transactionSummary, walletViewModel.Wallet, updateTrigger)));
 
 			DateString = $"{Date.ToLocalTime():MM/dd/yy HH:mm}";
