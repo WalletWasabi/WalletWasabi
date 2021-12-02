@@ -43,8 +43,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			//// Request #4.
 			TransactionSignaturesRequest request4 = new(
 				RoundId: roundId,
-				InputIndex: 999,
-				Witness: new WitScript(Op.GetPushOp(key1.PubKey.ToBytes()))); // Intentionally changed.
+				InputIndex: 999, // Intentionally changed.
+				Witness: new WitScript(Op.GetPushOp(key1.PubKey.ToBytes())));
 
 			Assert.NotEqual(request1, request4);
 
