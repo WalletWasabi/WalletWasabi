@@ -24,9 +24,15 @@
         <TextBlock Text="Preview Transaction" />
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center">
           <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
-                 ToolTip.Tip="Your privacy is being protected with PayJoin." IsVisible="{Binding CurrentTransactionSummary.IsPayJoin}" />
-          <Viewbox Height="20" IsVisible="{Binding CurrentTransactionSummary.MaxPrivacy}"
-                   ToolTip.Tip="Your privacy is fully protected in this transaction.">
+                 ToolTip.Tip="Your privacy is being protected with PayJoin."
+                 IsVisible="{Binding CurrentTransactionSummary.IsPayJoin}" />
+          <Viewbox Cursor="Hand" Height="20" IsVisible="{Binding CurrentTransactionSummary.MaxPrivacy}">
+            <ToolTip.Tip>
+              <DockPanel>
+                <TextBlock Text="Your privacy is well protected in this transaction" DockPanel.Dock="Top" />
+                <Image Margin="0 20" Source="{StaticResource privacy_indicator_good}" Height="100" Width="100" />
+              </DockPanel>
+            </ToolTip.Tip>
             <PathIcon Data="{StaticResource shield_regular}" Foreground="{DynamicResource PrivacyLevelStrongBrush}" />
           </Viewbox>
           <Panel Cursor="Hand" Margin="10">
@@ -34,7 +40,8 @@
               <behaviors:BindableFlyoutOpenBehavior IsOpen="{Binding PrivacySuggestions.IsOpen}" />
             </Interaction.Behaviors>
             <FlyoutBase.AttachedFlyout>
-              <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway" IsOpen="{Binding PrivacySuggestions.IsOpen, Mode=OneWayToSource}">
+              <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway"
+                      IsOpen="{Binding PrivacySuggestions.IsOpen, Mode=OneWayToSource}">
                 <Panel DataContext="{Binding PrivacySuggestions}">
                   <DockPanel>
                     <TextBlock Text="Suggestions to improve your privacy!" DockPanel.Dock="Top" />
