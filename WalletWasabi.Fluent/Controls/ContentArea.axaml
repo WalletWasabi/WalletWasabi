@@ -11,6 +11,7 @@
                        EnableBack="True"
                        EnableCancel="True" CancelContent="Cancel" FocusCancel="False"
                        EnableNext="True" NextContent="Continue" FocusNext="True"
+                       EnableSkip="True"
                        Caption="Type in your Wallet's name and select an option below:"
                        HeaderBackground="Blue"
                        EnabledAdaptiveButtonArea="True"
