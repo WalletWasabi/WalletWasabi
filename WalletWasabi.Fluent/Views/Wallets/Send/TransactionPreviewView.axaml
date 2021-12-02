@@ -120,7 +120,7 @@
     <Carousel Items="{Binding TransactionSummaries}"
               SelectedItem="{Binding DisplayedTransactionSummary}">
       <Carousel.PageTransition>
-        <CrossFade Duration="0.25" />
+        <CrossFade Duration="0.75" />
       </Carousel.PageTransition>
       <Carousel.ItemTemplate>
         <DataTemplate>

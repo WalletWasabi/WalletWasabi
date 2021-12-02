@@ -24,6 +24,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
 	public class SuggestionViewModel : ViewModelBase
 	{
+		public bool IsOriginal { get; protected set; }
+
 		public string Suggestion { get; set; }
 
 		public BuildTransactionResult TransactionResult { get; protected set; }
@@ -41,8 +43,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			BuildTransactionResult transactionResult,
 			PrivacyOptimisationLevel optimisationLevel,
 			decimal fiatExchangeRate,
+			bool isOriginal,
 			params PrivacySuggestionBenefit[] benefits)
 		{
+			IsOriginal = isOriginal;
 			TransactionResult = transactionResult;
 			_optimisationLevel = optimisationLevel;
 			_benefits = benefits.ToList();
@@ -74,7 +78,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			_amount = $"{total}";
 		}
-
 
 		private static IEnumerable<ChangeAvoidanceSuggestionViewModel> NormalizeSuggestions(
 			IEnumerable<ChangeAvoidanceSuggestionViewModel> suggestions,
@@ -133,13 +136,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				smallerSuggestion = new ChangeAvoidanceSuggestionViewModel(
 					transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), smallerTransaction,
-					PrivacyOptimisationLevel.Better, wallet.Synchronizer.UsdExchangeRate,
+					PrivacyOptimisationLevel.Better, wallet.Synchronizer.UsdExchangeRate, false,
 					new PrivacySuggestionBenefit(true, "Improved Privacy"));
 			}
 
 			var defaultSelection = new ChangeAvoidanceSuggestionViewModel(
 				transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), requestedTransaction,
-				PrivacyOptimisationLevel.Standard, wallet.Synchronizer.UsdExchangeRate,
+				PrivacyOptimisationLevel.Standard, wallet.Synchronizer.UsdExchangeRate, true,
 				new PrivacySuggestionBenefit(false, "As Requested"));
 
 			var largerTransaction = await Task.Run(() => wallet.BuildTransaction(
@@ -151,7 +154,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			var largerSuggestion = new ChangeAvoidanceSuggestionViewModel(
 				transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), largerTransaction,
-				PrivacyOptimisationLevel.Better, wallet.Synchronizer.UsdExchangeRate,
+				PrivacyOptimisationLevel.Better, wallet.Synchronizer.UsdExchangeRate, false,
 				new PrivacySuggestionBenefit(true, "Improved Privacy"));
 
 			// There are several scenarios, both the alternate suggestions are <, or >, or 1 < and 1 >.
@@ -284,7 +287,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					if (x is { })
 					{
-						UpdateTransaction(PreviewTransactionSummary, x.TransactionResult);
+						UpdateTransaction(x.IsOriginal ? CurrentTransactionSummary : PreviewTransactionSummary,
+							x.TransactionResult);
 					}
 				});
 
@@ -360,24 +364,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_transaction = transaction;
 
 			summary.UpdateTransaction(transaction);
-
-			if (summary == CurrentTransactionSummary)
-			{
-				RxApp.MainThreadScheduler.Schedule(async () =>
-				{
-					var (selected, suggestions) =
-						await ChangeAvoidanceSuggestionViewModel.GenerateSuggestions(_info, _wallet, _transaction);
-
-					PrivacySuggestions.Suggestions.Clear();
-
-					foreach (var suggestion in suggestions)
-					{
-						PrivacySuggestions.Suggestions.Add(suggestion);
-					}
-
-					PrivacySuggestions.SelectedSuggestion = selected;
-				});
-			}
 
 			DisplayedTransactionSummary = summary;
 		}
@@ -589,6 +575,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						if (initialTransaction is { })
 						{
 							UpdateTransaction(CurrentTransactionSummary, initialTransaction);
+
+							var (selected, suggestions) =
+								await ChangeAvoidanceSuggestionViewModel.GenerateSuggestions(_info, _wallet, _transaction);
+
+							PrivacySuggestions.Suggestions.Clear();
+
+							foreach (var suggestion in suggestions)
+							{
+								PrivacySuggestions.Suggestions.Add(suggestion);
+							}
+
+							PrivacySuggestions.SelectedSuggestion = selected;
 						}
 					}
 					else
