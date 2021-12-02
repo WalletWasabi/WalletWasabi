@@ -31,6 +31,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public BuildTransactionResult TransactionResult { get; protected set; }
 	}
 
+	public enum PrivacyOptimisationLevel
+	{
+		Standard,
+		Better
+	}
+
 	public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 	{
 		[AutoNotify] private string _amount;
@@ -351,8 +357,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			AdjustFeeCommand = ReactiveCommand.CreateFromTask(OnAdjustFeeAsync);
 
-			AvoidChangeCommand = ReactiveCommand.CreateFromTask(OnAvoidChangeAsync);
-
 			ChangePocketsCommand = ReactiveCommand.CreateFromTask(OnChangePocketsAsync);
 		}
 
@@ -367,8 +371,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public bool PreferPsbtWorkflow => _wallet.KeyManager.PreferPsbtWorkflow;
 
 		public ICommand AdjustFeeCommand { get; }
-
-		public ICommand AvoidChangeCommand { get; }
 
 		public ICommand ChangePocketsCommand { get; }
 
@@ -409,17 +411,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					UpdateTransaction(CurrentTransactionSummary, newTransaction);
 				}
-			}
-		}
-
-		private async Task OnAvoidChangeAsync()
-		{
-			var optimisePrivacyDialog =
-				await NavigateDialogAsync(new OptimisePrivacyViewModel(_wallet, _info, _transaction!));
-
-			if (optimisePrivacyDialog.Kind == DialogResultKind.Normal && optimisePrivacyDialog.Result is { })
-			{
-				UpdateTransaction(CurrentTransactionSummary, optimisePrivacyDialog.Result);
 			}
 		}
 
