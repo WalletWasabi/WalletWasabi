@@ -24,8 +24,8 @@
         <TextBlock Text="Preview Transaction" />
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center">
           <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
-                 ToolTip.Tip="Your privacy is being protected with PayJoin." IsVisible="{Binding IsPayJoin}" />
-          <Viewbox Height="20" IsVisible="{Binding MaxPrivacy}"
+                 ToolTip.Tip="Your privacy is being protected with PayJoin." IsVisible="{Binding CurrentTransactionSummary.IsPayJoin}" />
+          <Viewbox Height="20" IsVisible="{Binding CurrentTransactionSummary.MaxPrivacy}"
                    ToolTip.Tip="Your privacy is fully protected in this transaction.">
             <PathIcon Data="{StaticResource shield_regular}" Foreground="{DynamicResource PrivacyLevelStrongBrush}" />
           </Viewbox>
@@ -106,8 +106,8 @@
             </FlyoutBase.AttachedFlyout>
             <Panel.IsVisible>
               <MultiBinding Converter="{x:Static BoolConverters.And}">
-                <Binding Path="TransactionHasChange" />
-                <Binding Path="IsPayJoin" Converter="{x:Static BoolConverters.Not}" />
+                <Binding Path="CurrentTransactionSummary.TransactionHasChange" />
+                <Binding Path="CurrentTransactionSummary.IsPayJoin" Converter="{x:Static BoolConverters.Not}" />
               </MultiBinding>
             </Panel.IsVisible>
             <Viewbox Height="20">
@@ -117,71 +117,16 @@
         </StackPanel>
       </DockPanel>
     </c:ContentArea.Title>
-    <StackPanel Spacing="15">
-      <c:PreviewItem Icon="{StaticResource btc_logo}"
-                     Text="a total of">
-        <TextBox Classes="selectableTextBlock" Text="{Binding AmountText, FallbackValue=0.213 BTC (≈55.34 USD)}" />
-      </c:PreviewItem>
-
-      <Separator />
-
-      <DockPanel>
-        <Button Classes="plain"
-                Command="{Binding ChangePocketsCommand}"
-                IsVisible="{Binding TransactionHasPockets}"
-                ToolTip.Tip="Change who could know about this transaction"
-                DockPanel.Dock="Right"
-                Margin="10 0">
-          <Viewbox Height="20">
-            <PathIcon Data="{StaticResource entities_edit_regular}" Foreground="{DynamicResource SystemAccentColor}" />
-          </Viewbox>
-        </Button>
-
-        <c:PreviewItem Icon="{StaticResource entities_regular}"
-                       Text="will be sent to and may be known by">
-          <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Labels}">
-            <c:TagsBox.Styles>
-              <Style Selector="c|TagsBox:readonly WrapPanel">
-                <Setter Property="Margin" Value="0" />
-              </Style>
-            </c:TagsBox.Styles>
-          </c:TagsBox>
-        </c:PreviewItem>
-      </DockPanel>
-
-      <Separator />
-      <c:PreviewItem Icon="{StaticResource transceive_regular}"
-                     Text="to the Bitcoin address">
-        <TextBox Classes="selectableTextBlock" Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
-      </c:PreviewItem>
-
-      <Separator />
-
-      <DockPanel>
-        <Button Classes="plain"
-                Command="{Binding AdjustFeeCommand}"
-                IsVisible="{Binding AdjustFeeAvailable}"
-                ToolTip.Tip="Change transaction fee or confirmation time"
-                DockPanel.Dock="Right"
-                Margin="10 0">
-          <Viewbox Height="20">
-            <PathIcon Data="{StaticResource adjust_fee_regular}" Foreground="{DynamicResource SystemAccentColor}" />
-          </Viewbox>
-        </Button>
-
-        <StackPanel Spacing="10">
-          <c:PreviewItem Icon="{StaticResource timer_regular}"
-                         Text="miners will work hard to confirm your transaction within">
-            <TextBox Classes="selectableTextBlock" Text="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
-          </c:PreviewItem>
-          <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
-                         Text="for an additional charge of">
-            <TextBox Classes="selectableTextBlock" Text="{Binding FeeText, FallbackValue=235 sats (≈55.34 USD)}"
-                     DockPanel.Dock="Left" />
-          </c:PreviewItem>
-        </StackPanel>
-      </DockPanel>
-
-    </StackPanel>
+    <Carousel Items="{Binding TransactionSummaries}"
+              SelectedItem="{Binding DisplayedTransactionSummary}">
+      <Carousel.PageTransition>
+        <CrossFade Duration="0.25" />
+      </Carousel.PageTransition>
+      <Carousel.ItemTemplate>
+        <DataTemplate>
+          <send:TransactionSummary />
+        </DataTemplate>
+      </Carousel.ItemTemplate>
+    </Carousel>
   </c:ContentArea>
 </UserControl>

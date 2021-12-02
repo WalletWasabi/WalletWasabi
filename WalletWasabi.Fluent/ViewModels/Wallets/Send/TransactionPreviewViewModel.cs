@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -12,7 +11,6 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
@@ -78,9 +76,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		}
 
 
-
 		private static IEnumerable<ChangeAvoidanceSuggestionViewModel> NormalizeSuggestions(
-			IEnumerable<ChangeAvoidanceSuggestionViewModel> suggestions, ChangeAvoidanceSuggestionViewModel defaultSuggestion)
+			IEnumerable<ChangeAvoidanceSuggestionViewModel> suggestions,
+			ChangeAvoidanceSuggestionViewModel defaultSuggestion)
 		{
 			var normalized = suggestions
 				.OrderBy(x => x.TransactionResult.CalculateDestinationAmount())
@@ -108,8 +106,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return normalized;
 		}
 
-		public static async Task<(ChangeAvoidanceSuggestionViewModel preSelected, IEnumerable<ChangeAvoidanceSuggestionViewModel> items)> GenerateSuggestions(
-			TransactionInfo transactionInfo, Wallet wallet, BuildTransactionResult requestedTransaction)
+		public static async
+			Task<(ChangeAvoidanceSuggestionViewModel preSelected, IEnumerable<ChangeAvoidanceSuggestionViewModel> items
+				)> GenerateSuggestions(
+				TransactionInfo transactionInfo, Wallet wallet, BuildTransactionResult requestedTransaction)
 		{
 			var intent = new PaymentIntent(
 				transactionInfo.Address,
@@ -186,7 +186,69 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		}
 
 		public ObservableCollection<SuggestionViewModel> Suggestions { get; }
+	}
 
+	public partial class TransactionSummaryViewModel : ViewModelBase
+	{
+		private readonly Wallet _wallet;
+		private readonly TransactionInfo _info;
+		private BuildTransactionResult? _transaction;
+		[AutoNotify] private SmartLabel _labels;
+		[AutoNotify] private string _amountText = "";
+		[AutoNotify] private bool _transactionHasChange;
+		[AutoNotify] private bool _transactionHasPockets;
+		[AutoNotify] private string _confirmationTimeText = "";
+		[AutoNotify] private string _feeText = "";
+		[AutoNotify] private bool _maxPrivacy;
+
+		public TransactionSummaryViewModel(Wallet wallet, TransactionInfo info)
+		{
+			_wallet = wallet;
+			_info = info;
+
+			_labels = SmartLabel.Empty;
+
+			this.WhenAnyValue(x => x.TransactionHasChange, x => x.TransactionHasPockets)
+				.Subscribe(_ => { MaxPrivacy = !TransactionHasPockets && !TransactionHasChange; });
+
+			AddressText = info.Address.ToString();
+			PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
+			IsPayJoin = PayJoinUrl is not null;
+		}
+
+		public string AddressText { get; }
+
+		public string? PayJoinUrl { get; }
+
+		public bool IsPayJoin { get; }
+
+		public void UpdateTransaction(BuildTransactionResult transactionResult)
+		{
+			_transaction = transactionResult;
+
+			ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(_info.ConfirmationTimeSpan)} ";
+
+			var destinationAmount = _transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
+			var btcAmountText = $"{destinationAmount} bitcoins ";
+			var fiatAmountText =
+				destinationAmount.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
+			AmountText = $"{btcAmountText}{fiatAmountText}";
+
+			var fee = _transaction.Fee;
+			var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} sats ";
+			var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC)
+				.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
+
+			Labels = SmartLabel.Merge(_info.UserLabels,
+				SmartLabel.Merge(transactionResult.SpentCoins.Select(x => x.GetLabels())));
+
+			FeeText = $"{btcFeeText}{fiatFeeText}";
+
+			TransactionHasChange =
+				_transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != _info.Address.ScriptPubKey);
+
+			TransactionHasPockets = !_info.IsPrivatePocketUsed;
+		}
 	}
 
 	[NavigationMetaData(Title = "Transaction Preview")]
@@ -195,48 +257,52 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private readonly Wallet _wallet;
 		private readonly TransactionInfo _info;
 		private BuildTransactionResult? _transaction;
-
-		[AutoNotify] private string _confirmationTimeText = "";
-		[AutoNotify] private string _feeText = "";
 		[AutoNotify] private string _nextButtonText;
-		[AutoNotify] private SmartLabel _labels;
-		[AutoNotify] private string _amountText = "";
-		[AutoNotify] private bool _transactionHasChange;
-		[AutoNotify] private bool _transactionHasPockets;
 		[AutoNotify] private bool _adjustFeeAvailable;
-		[AutoNotify] private bool _maxPrivacy;
 		[AutoNotify] private bool _issuesTooltip;
+		[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
 
 		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info)
 		{
 			_wallet = wallet;
-			_labels = SmartLabel.Empty;
 			_info = info;
 
 			PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel();
+			CurrentTransactionSummary = new TransactionSummaryViewModel(_wallet, _info);
+			PreviewTransactionSummary = new TransactionSummaryViewModel(_wallet, _info);
+
+			TransactionSummaries = new List<TransactionSummaryViewModel>
+			{
+				CurrentTransactionSummary,
+				PreviewTransactionSummary
+			};
+
+			DisplayedTransactionSummary = CurrentTransactionSummary;
 
 			PrivacySuggestions.WhenAnyValue(x => x.PreviewSuggestion)
 				.Subscribe(x =>
 				{
 					if (x is { })
 					{
-						UpdateTransaction(x.TransactionResult, true);
+						UpdateTransaction(PreviewTransactionSummary, x.TransactionResult);
+					}
+				});
+
+			PrivacySuggestions.WhenAnyValue(x => x.IsOpen)
+				.Subscribe(x =>
+				{
+					if (!x && PrivacySuggestions.SelectedSuggestion is { })
+					{
+						DisplayedTransactionSummary = CurrentTransactionSummary;
 					}
 				});
 
 			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
 			EnableBack = true;
 
-			AddressText = info.Address.ToString();
-			PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
-			IsPayJoin = PayJoinUrl is not null;
+
 			AdjustFeeAvailable = !TransactionFeeHelper.AreTransactionFeesEqual(_wallet);
 
-			this.WhenAnyValue(x => x.TransactionHasChange, x => x.TransactionHasPockets)
-				.Subscribe(_ =>
-				{
-					MaxPrivacy = !TransactionHasPockets && !TransactionHasChange;
-				});
 
 			if (PreferPsbtWorkflow)
 			{
@@ -260,15 +326,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			ChangePocketsCommand = ReactiveCommand.CreateFromTask(OnChangePocketsAsync);
 		}
 
+		public TransactionSummaryViewModel CurrentTransactionSummary { get; }
+
+		public TransactionSummaryViewModel PreviewTransactionSummary { get; }
+
+		public List<TransactionSummaryViewModel> TransactionSummaries { get; }
+
 		public PrivacySuggestionsFlyoutViewModel PrivacySuggestions { get; }
 
 		public bool PreferPsbtWorkflow => _wallet.KeyManager.PreferPsbtWorkflow;
-
-		public string AddressText { get; }
-
-		public string? PayJoinUrl { get; }
-
-		public bool IsPayJoin { get; }
 
 		public ICommand AdjustFeeCommand { get; }
 
@@ -289,11 +355,39 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 		}
 
+		private void UpdateTransaction(TransactionSummaryViewModel summary, BuildTransactionResult transaction)
+		{
+			_transaction = transaction;
+
+			summary.UpdateTransaction(transaction);
+
+			if (summary == CurrentTransactionSummary)
+			{
+				RxApp.MainThreadScheduler.Schedule(async () =>
+				{
+					var (selected, suggestions) =
+						await ChangeAvoidanceSuggestionViewModel.GenerateSuggestions(_info, _wallet, _transaction);
+
+					PrivacySuggestions.Suggestions.Clear();
+
+					foreach (var suggestion in suggestions)
+					{
+						PrivacySuggestions.Suggestions.Add(suggestion);
+					}
+
+					PrivacySuggestions.SelectedSuggestion = selected;
+				});
+			}
+
+			DisplayedTransactionSummary = summary;
+		}
+
 		private async Task OnAdjustFeeAsync()
 		{
 			var feeRateDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, false));
 
-			if (feeRateDialogResult.Kind == DialogResultKind.Normal && feeRateDialogResult.Result is { } newFeeRate && newFeeRate != _info.FeeRate)
+			if (feeRateDialogResult.Kind == DialogResultKind.Normal && feeRateDialogResult.Result is { } newFeeRate &&
+			    newFeeRate != _info.FeeRate)
 			{
 				_info.FeeRate = feeRateDialogResult.Result;
 
@@ -301,7 +395,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				if (newTransaction is { })
 				{
-					UpdateTransaction(newTransaction);
+					UpdateTransaction(CurrentTransactionSummary, newTransaction);
 				}
 			}
 		}
@@ -313,7 +407,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (optimisePrivacyDialog.Kind == DialogResultKind.Normal && optimisePrivacyDialog.Result is { })
 			{
-				UpdateTransaction(optimisePrivacyDialog.Result);
+				UpdateTransaction(CurrentTransactionSummary, optimisePrivacyDialog.Result);
 			}
 		}
 
@@ -330,7 +424,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				if (newTransaction is { })
 				{
-					UpdateTransaction(newTransaction);
+					UpdateTransaction(CurrentTransactionSummary, newTransaction);
 				}
 			}
 		}
@@ -339,8 +433,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			if (!_info.Coins.Any())
 			{
-				var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, isSilent: true));
-				if (privacyControlDialogResult.Kind == DialogResultKind.Normal && privacyControlDialogResult.Result is { } coins)
+				var privacyControlDialogResult =
+					await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, isSilent: true));
+				if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
+				    privacyControlDialogResult.Result is { } coins)
 				{
 					_info.Coins = coins;
 				}
@@ -398,9 +494,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 		}
 
-		private async Task<BuildTransactionResult?> HandleInsufficientBalanceWhenNormalAsync(Wallet wallet, TransactionInfo transactionInfo)
+		private async Task<BuildTransactionResult?> HandleInsufficientBalanceWhenNormalAsync(Wallet wallet,
+			TransactionInfo transactionInfo)
 		{
-			var dialog = new InsufficientBalanceDialogViewModel(transactionInfo.IsPrivatePocketUsed ? BalanceType.Private : BalanceType.Pocket);
+			var dialog = new InsufficientBalanceDialogViewModel(transactionInfo.IsPrivatePocketUsed
+				? BalanceType.Private
+				: BalanceType.Pocket);
+
 			var result = await NavigateDialogAsync(dialog, NavigationTarget.DialogScreen);
 
 			if (result.Result)
@@ -411,9 +511,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (wallet.Coins.TotalAmount() > transactionInfo.Amount)
 			{
-				var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(wallet, transactionInfo, isSilent: false), NavigationTarget.DialogScreen);
+				var privacyControlDialogResult = await NavigateDialogAsync(
+					new PrivacyControlViewModel(wallet, transactionInfo, isSilent: false),
+					NavigationTarget.DialogScreen);
 
-				if (privacyControlDialogResult.Kind == DialogResultKind.Normal && privacyControlDialogResult.Result is { })
+				if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
+				    privacyControlDialogResult.Result is { })
 				{
 					transactionInfo.Coins = privacyControlDialogResult.Result;
 				}
@@ -425,7 +528,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return null;
 		}
 
-		private async Task<BuildTransactionResult?> HandleInsufficientBalanceWhenPayJoinAsync(Wallet wallet, TransactionInfo transactionInfo)
+		private async Task<BuildTransactionResult?> HandleInsufficientBalanceWhenPayJoinAsync(Wallet wallet,
+			TransactionInfo transactionInfo)
 		{
 			if (wallet.Coins.TotalAmount() > transactionInfo.Amount)
 			{
@@ -433,7 +537,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					$"There are not enough {(transactionInfo.IsPrivatePocketUsed ? "private funds" : "funds selected")} to cover the transaction fee",
 					"Wasabi was unable to create your transaction.");
 
-				var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(wallet, transactionInfo, false), NavigationTarget.DialogScreen);
+				var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(wallet, transactionInfo, false),
+					NavigationTarget.DialogScreen);
 				if (feeDialogResult.Kind == DialogResultKind.Normal && feeDialogResult.Result is { } newFeeRate)
 				{
 					transactionInfo.FeeRate = newFeeRate;
@@ -444,8 +549,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					return txn;
 				}
 
-				var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(wallet, transactionInfo, isSilent: false), NavigationTarget.DialogScreen);
-				if (privacyControlDialogResult.Kind == DialogResultKind.Normal && privacyControlDialogResult.Result is { })
+				var privacyControlDialogResult = await NavigateDialogAsync(
+					new PrivacyControlViewModel(wallet, transactionInfo, isSilent: false),
+					NavigationTarget.DialogScreen);
+				if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
+				    privacyControlDialogResult.Result is { })
 				{
 					transactionInfo.Coins = privacyControlDialogResult.Result;
 				}
@@ -461,52 +569,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return null;
 		}
 
-		private void UpdateTransaction(BuildTransactionResult transactionResult, bool preview = false)
-		{
-			_transaction = transactionResult;
-
-			var destinationAmount = _transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
-			var btcAmountText = $"{destinationAmount} bitcoins ";
-			var fiatAmountText =
-				destinationAmount.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
-			AmountText = $"{btcAmountText}{fiatAmountText}";
-
-			var fee = _transaction.Fee;
-			var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} sats ";
-			var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC)
-				.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
-
-			Labels = SmartLabel.Merge(_info.UserLabels, SmartLabel.Merge(transactionResult.SpentCoins.Select(x => x.GetLabels())));
-
-			FeeText = $"{btcFeeText}{fiatFeeText}";
-
-			TransactionHasChange = _transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != _info.Address.ScriptPubKey);
-
-			if (TransactionHasChange && !preview)
-			{
-				RxApp.MainThreadScheduler.Schedule(async () =>
-				{
-					var (selected, suggestions) = await ChangeAvoidanceSuggestionViewModel.GenerateSuggestions(_info, _wallet, _transaction);
-
-					PrivacySuggestions.Suggestions.Clear();
-
-					foreach (var suggestion in suggestions)
-					{
-						PrivacySuggestions.Suggestions.Add(suggestion);
-					}
-
-					PrivacySuggestions.SelectedSuggestion = selected;
-				});
-			}
-
-			TransactionHasPockets = !_info.IsPrivatePocketUsed;
-		}
-
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
-
-			ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(_info.ConfirmationTimeSpan)} ";
 
 			Observable
 				.FromEventPattern(_wallet.FeeProvider, nameof(_wallet.FeeProvider.AllFeeEstimateChanged))
@@ -523,7 +588,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 						if (initialTransaction is { })
 						{
-							UpdateTransaction(initialTransaction);
+							UpdateTransaction(CurrentTransactionSummary, initialTransaction);
 						}
 					}
 					else
@@ -532,6 +597,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					}
 				});
 			}
+		}
+
+		protected override void OnNavigatedFrom(bool isInHistory)
+		{
+			base.OnNavigatedFrom(isInHistory);
+
+			DisplayedTransactionSummary = null;
 		}
 
 		private async Task OnConfirmAsync()
@@ -568,7 +640,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private async Task<bool> AuthorizeAsync(TransactionAuthorizationInfo transactionAuthorizationInfo)
 		{
-			if (!_wallet.KeyManager.IsHardwareWallet && string.IsNullOrEmpty(_wallet.Kitchen.SaltSoup())) // Do not show auth dialog when password is empty
+			if (!_wallet.KeyManager.IsHardwareWallet &&
+			    string.IsNullOrEmpty(_wallet.Kitchen.SaltSoup())) // Do not show auth dialog when password is empty
 			{
 				return true;
 			}
@@ -589,13 +662,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			await Services.TransactionBroadcaster.SendTransactionAsync(transaction);
 		}
 
-		private async Task<SmartTransaction> GetFinalTransactionAsync(SmartTransaction transaction, TransactionInfo transactionInfo)
+		private async Task<SmartTransaction> GetFinalTransactionAsync(SmartTransaction transaction,
+			TransactionInfo transactionInfo)
 		{
 			if (transactionInfo.PayJoinClient is { })
 			{
 				try
 				{
-					var payJoinTransaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo, isPayJoin: true));
+					var payJoinTransaction = await Task.Run(() =>
+						TransactionHelpers.BuildTransaction(_wallet, transactionInfo, isPayJoin: true));
 					return payJoinTransaction.Transaction;
 				}
 				catch (Exception ex)
