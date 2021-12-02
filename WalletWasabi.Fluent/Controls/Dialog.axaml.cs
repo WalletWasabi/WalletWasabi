@@ -47,11 +47,26 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<double> MaxContentWidthProperty =
 			AvaloniaProperty.Register<Dialog, double>(nameof(MaxContentWidth), double.PositiveInfinity);
 
+		public static readonly StyledProperty<double> IncreasedWidthThresholdProperty =
+			AvaloniaProperty.Register<Dialog, double>(nameof(IncreasedWidthThreshold), double.NaN);
+
+		public static readonly StyledProperty<double> IncreasedHeightThresholdProperty =
+			AvaloniaProperty.Register<Dialog, double>(nameof(IncreasedHeightThreshold), double.NaN);
+
+		public static readonly StyledProperty<double> FullScreenHeightThresholdProperty =
+			AvaloniaProperty.Register<Dialog, double>(nameof(FullScreenHeightThreshold), double.NaN);
+
 		public static readonly StyledProperty<bool> FullScreenEnabledProperty =
 			AvaloniaProperty.Register<Dialog, bool>(nameof(FullScreenEnabled));
 
 		public static readonly StyledProperty<bool> IncreasedWidthEnabledProperty =
 			AvaloniaProperty.Register<Dialog, bool>(nameof(IncreasedWidthEnabled));
+
+		public static readonly StyledProperty<bool> IncreasedHeightEnabledProperty =
+			AvaloniaProperty.Register<Dialog, bool>(nameof(IncreasedHeightEnabled));
+
+		public static readonly StyledProperty<bool> IncreasedSizeEnabledProperty =
+			AvaloniaProperty.Register<Dialog, bool>(nameof(IncreasedSizeEnabled));
 
 		public Dialog()
 		{
@@ -62,8 +77,19 @@ namespace WalletWasabi.Fluent.Controls
 				{
 					var width = bounds.Width;
 					var height = bounds.Height;
-					IncreasedWidthEnabled = width < 740;
-					FullScreenEnabled = IncreasedWidthEnabled && height < 580;
+					var increasedWidthThreshold = IncreasedWidthThreshold;
+					var increasedHeightThreshold = IncreasedHeightThreshold;
+					var fullScreenHeightThreshold = FullScreenHeightThreshold;
+					var canIncreasedWidth = !double.IsNaN(increasedWidthThreshold)
+					                        && width < increasedWidthThreshold;
+					var canIncreasedHeight = !double.IsNaN(increasedHeightThreshold)
+					                         && height < increasedHeightThreshold;
+					var canGoToFullScreen = !double.IsNaN(fullScreenHeightThreshold)
+					                        && height < fullScreenHeightThreshold;
+					IncreasedWidthEnabled = canIncreasedWidth && !canIncreasedHeight;
+					IncreasedHeightEnabled = !canIncreasedWidth && canIncreasedHeight;
+					IncreasedSizeEnabled = canIncreasedWidth && canIncreasedHeight;
+					FullScreenEnabled = canIncreasedWidth && canGoToFullScreen;
 				});
 		}
 
@@ -121,6 +147,24 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(MaxContentWidthProperty, value);
 		}
 
+		public double IncreasedWidthThreshold
+		{
+			get => GetValue(IncreasedWidthThresholdProperty);
+			set => SetValue(IncreasedWidthThresholdProperty, value);
+		}
+
+		public double IncreasedHeightThreshold
+		{
+			get => GetValue(IncreasedHeightThresholdProperty);
+			set => SetValue(IncreasedHeightThresholdProperty, value);
+		}
+
+		public double FullScreenHeightThreshold
+		{
+			get => GetValue(FullScreenHeightThresholdProperty);
+			set => SetValue(FullScreenHeightThresholdProperty, value);
+		}
+
 		private bool FullScreenEnabled
 		{
 			get => GetValue(FullScreenEnabledProperty);
@@ -131,6 +175,18 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(IncreasedWidthEnabledProperty);
 			set => SetValue(IncreasedWidthEnabledProperty, value);
+		}
+
+		private bool IncreasedHeightEnabled
+		{
+			get => GetValue(IncreasedHeightEnabledProperty);
+			set => SetValue(IncreasedHeightEnabledProperty, value);
+		}
+
+		private bool IncreasedSizeEnabled
+		{
+			get => GetValue(IncreasedSizeEnabledProperty);
+			set => SetValue(IncreasedSizeEnabledProperty, value);
 		}
 
 		private CancellationTokenSource? CancelPointerPressedDelay { get; set; }
