@@ -281,6 +281,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private bool _adjustFeeAvailable;
 		[AutoNotify] private bool _issuesTooltip;
 		[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
+		[AutoNotify] public bool _isLoading;
 
 		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info)
 		{
@@ -593,8 +594,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						{
 							UpdateTransaction(CurrentTransactionSummary, initialTransaction);
 
+							IsLoading = true;
 							var (selected, suggestions) =
 								await ChangeAvoidanceSuggestionViewModel.GenerateSuggestions(_info, _wallet, _transaction);
+
+							IsLoading = false;
 
 							PrivacySuggestions.Suggestions.Clear();
 

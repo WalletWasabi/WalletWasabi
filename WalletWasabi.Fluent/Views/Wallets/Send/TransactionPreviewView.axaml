@@ -26,6 +26,9 @@
           <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
                  ToolTip.Tip="Your privacy is being protected with PayJoin."
                  IsVisible="{Binding CurrentTransactionSummary.IsPayJoin}" />
+
+          <c:ProgressRing Height="25" Width="25" IsIndeterminate="True" IsVisible="{Binding IsLoading}" />
+
           <Viewbox Cursor="Hand" Height="20" IsVisible="{Binding CurrentTransactionSummary.MaxPrivacy}">
             <Interaction.Behaviors>
               <behaviors:ShowFlyoutOnPointerOverBehavior />
@@ -119,6 +122,7 @@
             </FlyoutBase.AttachedFlyout>
             <Panel.IsVisible>
               <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="IsLoading" Converter="{x:Static BoolConverters.Not}"/>
                 <Binding Path="CurrentTransactionSummary.TransactionHasChange" />
                 <Binding Path="CurrentTransactionSummary.IsPayJoin" Converter="{x:Static BoolConverters.Not}" />
               </MultiBinding>

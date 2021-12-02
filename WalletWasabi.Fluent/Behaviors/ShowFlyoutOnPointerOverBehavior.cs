@@ -4,14 +4,17 @@ using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Threading;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Behaviors
 {
-	public class BindableFlyoutOpenBehavior : DisposingBehavior<Control>
+	public class BindableFlyoutOpenBehavior : ShowFlyoutOnPointerOverBehavior
 	{
 		public static readonly StyledProperty<bool> IsOpenProperty =
 			AvaloniaProperty.Register<BindableFlyoutOpenBehavior, bool>( nameof(IsOpen));
+
+		private IDisposable? _pointerEnterDisposable;
 
 		public bool IsOpen
 		{
@@ -19,13 +22,30 @@ namespace WalletWasabi.Fluent.Behaviors
 			set => SetValue(IsOpenProperty, value);
 		}
 
+		private IDisposable SubscribePointerOver()
+		{
+			_pointerEnterDisposable?.Dispose();
+
+			return _pointerEnterDisposable = Observable
+				.FromEventPattern(AssociatedObject, nameof(AssociatedObject.PointerEnter))
+				.Subscribe(_ =>
+				{
+					_pointerEnterDisposable?.Dispose();
+					_pointerEnterDisposable = null;
+					FlyoutBase.ShowAttachedFlyout(AssociatedObject);
+				});
+		}
+
 		protected override void OnAttached(CompositeDisposable disposable)
 		{
 			Observable.FromEventPattern(AssociatedObject!, nameof(AssociatedObject.PointerPressed))
 				.Subscribe(x =>
 				{
-					FlyoutBase.ShowAttachedFlyout(AssociatedObject!);
+					//FlyoutBase.ShowAttachedFlyout(AssociatedObject!);
 				}).DisposeWith(disposable);
+
+			SubscribePointerOver()
+				.DisposeWith(disposable);
 
 			this.WhenAnyValue(x => x.IsOpen)
 				.Subscribe(x =>
@@ -37,6 +57,12 @@ namespace WalletWasabi.Fluent.Behaviors
 					else if(Flyout.GetAttachedFlyout(AssociatedObject) is FlyoutBase flyout)
 					{
 						Flyout.GetAttachedFlyout(AssociatedObject!)?.Hide();
+
+						Dispatcher.UIThread.Post(() =>
+						{
+							SubscribePointerOver()
+								.DisposeWith(disposable);
+						});
 					}
 				});
 		}
