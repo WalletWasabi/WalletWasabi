@@ -27,12 +27,18 @@
                  ToolTip.Tip="Your privacy is being protected with PayJoin."
                  IsVisible="{Binding CurrentTransactionSummary.IsPayJoin}" />
           <Viewbox Cursor="Hand" Height="20" IsVisible="{Binding CurrentTransactionSummary.MaxPrivacy}">
-            <ToolTip.Tip>
-              <DockPanel>
-                <TextBlock Text="Your privacy is well protected in this transaction" DockPanel.Dock="Top" />
-                <Image Margin="0 20" Source="{StaticResource privacy_indicator_good}" Height="100" Width="100" />
-              </DockPanel>
-            </ToolTip.Tip>
+            <Interaction.Behaviors>
+              <behaviors:ShowFlyoutOnPointerOverBehavior />
+            </Interaction.Behaviors>
+            <FlyoutBase.AttachedFlyout>
+              <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway">
+                <DockPanel>
+                  <TextBlock Text="Your privacy is well protected in this transaction" DockPanel.Dock="Top" />
+                  <Image Margin="0 20" Source="{StaticResource privacy_indicator_good}" Height="100" Width="100" />
+                </DockPanel>
+              </Flyout>
+            </FlyoutBase.AttachedFlyout>
+
             <PathIcon Data="{StaticResource shield_regular}" Foreground="{DynamicResource PrivacyLevelStrongBrush}" />
           </Viewbox>
           <Panel Cursor="Hand" Margin="10">
