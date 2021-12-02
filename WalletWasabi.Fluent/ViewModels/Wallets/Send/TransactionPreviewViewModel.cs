@@ -586,6 +586,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 								PrivacySuggestions.Suggestions.Add(suggestion);
 							}
 
+							PrivacySuggestions.PreviewSuggestion = selected;
 							PrivacySuggestions.SelectedSuggestion = selected;
 						}
 					}
