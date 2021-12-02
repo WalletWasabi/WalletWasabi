@@ -88,18 +88,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				pocket.IsSelected = false;
 			}
 
-			if (_pocketSource.Count == 1)
+			if (_isSilent)
 			{
-				_pocketSource.Items.First().IsSelected = true;
-
-				Complete();
-			}
-			else if (_isSilent &&
-					 _pocketSource.Items.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText) is { } privatePocket &&
-					 privatePocket.Coins.TotalAmount() >= _transactionInfo.Amount)
-			{
-				privatePocket.IsSelected = true;
-				Complete();
+				if (_pocketSource.Count == 1)
+				{
+					_pocketSource.Items.First().IsSelected = true;
+					Complete();
+				}
+				else if (_pocketSource.Items.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText) is { } privatePocket &&
+				         privatePocket.Coins.TotalAmount() >= _transactionInfo.Amount)
+				{
+					privatePocket.IsSelected = true;
+					Complete();
+				}
 			}
 		}
 	}
