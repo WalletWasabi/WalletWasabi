@@ -5,7 +5,7 @@
         xmlns:i="using:Avalonia.Xaml.Interactivity">
   <Design.PreviewWith>
       <Panel Background="{DynamicResource RegionColor}">
-        <c:ContentArea Width="500" Height="300"
+        <c:ContentArea Width="500" Height="480"
                        IsBusy="False"
                        Title="Add a Wallet"
                        EnableBack="True"
@@ -22,7 +22,7 @@
               <Setter Property="ShowGridLines" Value="True" />
             </Style>
           </c:ContentArea.Styles>
-          <Panel Background="gray">
+          <Panel Background="LightGray">
             <TextBlock Text="This is the content."/>
           </Panel>
           </c:ContentArea>
