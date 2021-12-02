@@ -137,7 +137,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				smallerSuggestion = new ChangeAvoidanceSuggestionViewModel(
 					transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), smallerTransaction,
 					PrivacyOptimisationLevel.Better, wallet.Synchronizer.UsdExchangeRate, false,
-					new PrivacySuggestionBenefit(true, "Improved Privacy"));
+					new PrivacySuggestionBenefit(true, "Improved Privacy"),
+					new PrivacySuggestionBenefit(false, "No change, less trace"));
 			}
 
 			var defaultSelection = new ChangeAvoidanceSuggestionViewModel(
@@ -155,7 +156,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			var largerSuggestion = new ChangeAvoidanceSuggestionViewModel(
 				transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), largerTransaction,
 				PrivacyOptimisationLevel.Better, wallet.Synchronizer.UsdExchangeRate, false,
-				new PrivacySuggestionBenefit(true, "Improved Privacy"));
+				new PrivacySuggestionBenefit(true, "Improved Privacy"),
+				new PrivacySuggestionBenefit(false, "No change, less trace"));
 
 			// There are several scenarios, both the alternate suggestions are <, or >, or 1 < and 1 >.
 			// We sort them and add the suggestions accordingly.
@@ -186,6 +188,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public PrivacySuggestionsFlyoutViewModel()
 		{
 			Suggestions = new ObservableCollection<SuggestionViewModel>();
+
+			this.WhenAnyValue(x => x.IsOpen)
+				.Subscribe(x =>
+				{
+					if (!x)
+					{
+						PreviewSuggestion = null;
+					}
+				});
 		}
 
 		public ObservableCollection<SuggestionViewModel> Suggestions { get; }
@@ -289,6 +300,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					{
 						UpdateTransaction(x.IsOriginal ? CurrentTransactionSummary : PreviewTransactionSummary,
 							x.TransactionResult);
+					}
+					else
+					{
+						DisplayedTransactionSummary = CurrentTransactionSummary;
 					}
 				});
 
@@ -592,7 +607,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 							PrivacySuggestions.Suggestions.Clear();
 
-							foreach (var suggestion in suggestions)
+							foreach (var suggestion in suggestions.Where(x=>!x.IsOriginal))
 							{
 								PrivacySuggestions.Suggestions.Add(suggestion);
 							}

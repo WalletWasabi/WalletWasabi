@@ -43,6 +43,14 @@ namespace WalletWasabi.Fluent.Behaviors
 
 		protected override void OnAttached(CompositeDisposable disposables)
 		{
+			Observable.FromEventPattern(AssociatedObject, nameof(AssociatedObject.PointerLeave))
+				.Subscribe(x =>
+				{
+					ClearPsuedoClasses();
+					_previewControl = null;
+					PreviewItem = null;
+				}).DisposeWith(disposables);
+
 			Observable.FromEventPattern<PointerEventArgs>(AssociatedObject, nameof(AssociatedObject.PointerMoved))
 				.Subscribe(x =>
 				{
