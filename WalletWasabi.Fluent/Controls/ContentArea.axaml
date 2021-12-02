@@ -159,6 +159,10 @@
     <Setter Property="Margin" Value="0,0,0,0" />
   </Style>
 
+  <Style Selector="c|ContentArea[ButtonAreaPlacement=Title] /template/ ContentPresenter#PART_TitlePresenter">
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
   <Style Selector="c|ContentArea /template/ Panel#PART_RightTitleArea">
     <Setter Property="(Grid.Column)" Value="3" />
     <Setter Property="(Grid.Row)" Value="0" />
