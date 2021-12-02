@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
@@ -8,7 +7,6 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
@@ -22,255 +20,6 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
-	public class SuggestionViewModel : ViewModelBase
-	{
-		public bool IsOriginal { get; protected set; }
-
-		public string Suggestion { get; set; }
-
-		public BuildTransactionResult TransactionResult { get; protected set; }
-	}
-
-	public enum PrivacyOptimisationLevel
-	{
-		Standard,
-		Better
-	}
-
-	public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
-	{
-		[AutoNotify] private string _amount;
-		[AutoNotify] private string _amountFiat;
-		[AutoNotify] private List<PrivacySuggestionBenefit> _benefits;
-		[AutoNotify] private PrivacyOptimisationLevel _optimisationLevel;
-		[AutoNotify] private bool _optimisationLevelGood;
-
-		public ChangeAvoidanceSuggestionViewModel(decimal originalAmount,
-			BuildTransactionResult transactionResult,
-			PrivacyOptimisationLevel optimisationLevel,
-			decimal fiatExchangeRate,
-			bool isOriginal,
-			params PrivacySuggestionBenefit[] benefits)
-		{
-			IsOriginal = isOriginal;
-			TransactionResult = transactionResult;
-			_optimisationLevel = optimisationLevel;
-			_benefits = benefits.ToList();
-
-			decimal total = transactionResult.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
-
-			var fiatTotal = total * fiatExchangeRate;
-
-			_amountFiat = total.GenerateFiatText(fiatExchangeRate, "USD");
-			_optimisationLevelGood = optimisationLevel == PrivacyOptimisationLevel.Better;
-
-			if (_optimisationLevelGood)
-			{
-				var fiatOriginal = originalAmount * fiatExchangeRate;
-				var fiatDifference = fiatTotal - fiatOriginal;
-
-				var difference = (fiatDifference > 0
-						? $"{fiatDifference.GenerateFiatText("USD")} More"
-						: $"{Math.Abs(fiatDifference).GenerateFiatText("USD")} Less")
-					.Replace("(", "").Replace(")", "");
-
-				_benefits.Add(new(false, difference));
-			}
-			else
-			{
-				// This is just to pad the control.
-				_benefits.Add(new(false, " "));
-			}
-
-			_amount = $"{total}";
-		}
-
-		private static IEnumerable<ChangeAvoidanceSuggestionViewModel> NormalizeSuggestions(
-			IEnumerable<ChangeAvoidanceSuggestionViewModel> suggestions,
-			ChangeAvoidanceSuggestionViewModel defaultSuggestion)
-		{
-			var normalized = suggestions
-				.OrderBy(x => x.TransactionResult.CalculateDestinationAmount())
-				.ToList();
-
-			if (normalized.Count == 3)
-			{
-				var index = normalized.IndexOf(defaultSuggestion);
-
-				switch (index)
-				{
-					case 1:
-						break;
-
-					case 0:
-						normalized = normalized.Take(2).ToList();
-						break;
-
-					case 2:
-						normalized = normalized.Skip(1).ToList();
-						break;
-				}
-			}
-
-			return normalized;
-		}
-
-		public static async
-			Task<(ChangeAvoidanceSuggestionViewModel preSelected, IEnumerable<ChangeAvoidanceSuggestionViewModel> items
-				)> GenerateSuggestions(
-				TransactionInfo transactionInfo, Wallet wallet, BuildTransactionResult requestedTransaction)
-		{
-			var intent = new PaymentIntent(
-				transactionInfo.Address,
-				MoneyRequest.CreateAllRemaining(subtractFee: true),
-				transactionInfo.UserLabels);
-
-			ChangeAvoidanceSuggestionViewModel? smallerSuggestion = null;
-
-			if (requestedTransaction.SpentCoins.Count() > 1)
-			{
-				var smallerTransaction = await Task.Run(() => wallet.BuildTransaction(
-					wallet.Kitchen.SaltSoup(),
-					intent,
-					FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
-					allowUnconfirmed: true,
-					requestedTransaction
-						.SpentCoins
-						.OrderBy(x => x.Amount)
-						.Skip(1)
-						.Select(x => x.OutPoint)));
-
-				smallerSuggestion = new ChangeAvoidanceSuggestionViewModel(
-					transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), smallerTransaction,
-					PrivacyOptimisationLevel.Better, wallet.Synchronizer.UsdExchangeRate, false,
-					new PrivacySuggestionBenefit(true, "Improved Privacy"),
-					new PrivacySuggestionBenefit(false, "No change, less trace"));
-			}
-
-			var defaultSelection = new ChangeAvoidanceSuggestionViewModel(
-				transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), requestedTransaction,
-				PrivacyOptimisationLevel.Standard, wallet.Synchronizer.UsdExchangeRate, true,
-				new PrivacySuggestionBenefit(false, "As Requested"));
-
-			var largerTransaction = await Task.Run(() => wallet.BuildTransaction(
-				wallet.Kitchen.SaltSoup(),
-				intent,
-				FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
-				true,
-				requestedTransaction.SpentCoins.Select(x => x.OutPoint)));
-
-			var largerSuggestion = new ChangeAvoidanceSuggestionViewModel(
-				transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), largerTransaction,
-				PrivacyOptimisationLevel.Better, wallet.Synchronizer.UsdExchangeRate, false,
-				new PrivacySuggestionBenefit(true, "Improved Privacy"),
-				new PrivacySuggestionBenefit(false, "No change, less trace"));
-
-			// There are several scenarios, both the alternate suggestions are <, or >, or 1 < and 1 >.
-			// We sort them and add the suggestions accordingly.
-			var suggestions = new List<ChangeAvoidanceSuggestionViewModel> {defaultSelection, largerSuggestion};
-
-			if (smallerSuggestion is { })
-			{
-				suggestions.Add(smallerSuggestion);
-			}
-
-			var results = new List<ChangeAvoidanceSuggestionViewModel>();
-
-			foreach (var suggestion in NormalizeSuggestions(suggestions, defaultSelection))
-			{
-				results.Add(suggestion);
-			}
-
-			return (defaultSelection, results);
-		}
-	}
-
-	public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
-	{
-		[AutoNotify] private SuggestionViewModel? _previewSuggestion;
-		[AutoNotify] private SuggestionViewModel? _selectedSuggestion;
-		[AutoNotify] private bool _isOpen;
-
-		public PrivacySuggestionsFlyoutViewModel()
-		{
-			Suggestions = new ObservableCollection<SuggestionViewModel>();
-
-			this.WhenAnyValue(x => x.IsOpen)
-				.Subscribe(x =>
-				{
-					if (!x)
-					{
-						PreviewSuggestion = null;
-					}
-				});
-		}
-
-		public ObservableCollection<SuggestionViewModel> Suggestions { get; }
-	}
-
-	public partial class TransactionSummaryViewModel : ViewModelBase
-	{
-		private readonly Wallet _wallet;
-		private readonly TransactionInfo _info;
-		private BuildTransactionResult? _transaction;
-		[AutoNotify] private SmartLabel _labels;
-		[AutoNotify] private string _amountText = "";
-		[AutoNotify] private bool _transactionHasChange;
-		[AutoNotify] private bool _transactionHasPockets;
-		[AutoNotify] private string _confirmationTimeText = "";
-		[AutoNotify] private string _feeText = "";
-		[AutoNotify] private bool _maxPrivacy;
-
-		public TransactionSummaryViewModel(Wallet wallet, TransactionInfo info)
-		{
-			_wallet = wallet;
-			_info = info;
-
-			_labels = SmartLabel.Empty;
-
-			this.WhenAnyValue(x => x.TransactionHasChange, x => x.TransactionHasPockets)
-				.Subscribe(_ => { MaxPrivacy = !TransactionHasPockets && !TransactionHasChange; });
-
-			AddressText = info.Address.ToString();
-			PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
-			IsPayJoin = PayJoinUrl is not null;
-		}
-
-		public string AddressText { get; }
-
-		public string? PayJoinUrl { get; }
-
-		public bool IsPayJoin { get; }
-
-		public void UpdateTransaction(BuildTransactionResult transactionResult)
-		{
-			_transaction = transactionResult;
-
-			ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(_info.ConfirmationTimeSpan)} ";
-
-			var destinationAmount = _transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
-			var btcAmountText = $"{destinationAmount} bitcoins ";
-			var fiatAmountText =
-				destinationAmount.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
-			AmountText = $"{btcAmountText}{fiatAmountText}";
-
-			var fee = _transaction.Fee;
-			var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} sats ";
-			var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC)
-				.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
-
-			Labels = SmartLabel.Merge(_info.UserLabels,
-				SmartLabel.Merge(transactionResult.SpentCoins.Select(x => x.GetLabels())));
-
-			FeeText = $"{btcFeeText}{fiatFeeText}";
-
-			TransactionHasChange =
-				_transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != _info.Address.ScriptPubKey);
-
-			TransactionHasPockets = !_info.IsPrivatePocketUsed;
-		}
-	}
-
 	[NavigationMetaData(Title = "Transaction Preview")]
 	public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
@@ -596,13 +345,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 							IsLoading = true;
 							var (selected, suggestions) =
-								await ChangeAvoidanceSuggestionViewModel.GenerateSuggestions(_info, _wallet, _transaction);
+								await ChangeAvoidanceSuggestionViewModel.GenerateSuggestions(_info, _wallet,
+									_transaction);
 
 							IsLoading = false;
 
 							PrivacySuggestions.Suggestions.Clear();
 
-							foreach (var suggestion in suggestions.Where(x=>!x.IsOriginal))
+							foreach (var suggestion in suggestions.Where(x => !x.IsOriginal))
 							{
 								PrivacySuggestions.Suggestions.Add(suggestion);
 							}
