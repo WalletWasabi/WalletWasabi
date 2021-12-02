@@ -34,7 +34,7 @@
               <behaviors:ShowFlyoutOnPointerOverBehavior />
             </Interaction.Behaviors>
             <FlyoutBase.AttachedFlyout>
-              <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway">
+              <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway" IsOpen="{Binding PrivacySuggestions.IsOpen, Mode=OneWayToSource}">
                 <Panel DataContext="{Binding PrivacySuggestions}">
                   <DockPanel>
                     <TextBlock Text="Suggestions to improve your privacy!" DockPanel.Dock="Top" />
