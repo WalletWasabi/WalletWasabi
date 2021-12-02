@@ -292,10 +292,21 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					}
 				});
 
+			PrivacySuggestions.WhenAnyValue(x => x.SelectedSuggestion)
+				.Subscribe(x =>
+				{
+					PrivacySuggestions.IsOpen = false;
+
+					if (x is { })
+					{
+						UpdateTransaction(CurrentTransactionSummary, x.TransactionResult);
+					}
+				});
+
 			PrivacySuggestions.WhenAnyValue(x => x.IsOpen)
 				.Subscribe(x =>
 				{
-					if (!x && PrivacySuggestions.SelectedSuggestion is { })
+					if (!x)
 					{
 						DisplayedTransactionSummary = CurrentTransactionSummary;
 					}
@@ -587,7 +598,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 							}
 
 							PrivacySuggestions.PreviewSuggestion = selected;
-							PrivacySuggestions.SelectedSuggestion = selected;
 						}
 					}
 					else

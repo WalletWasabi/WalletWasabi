@@ -31,7 +31,7 @@
           </Viewbox>
           <Panel Cursor="Hand" Margin="10">
             <Interaction.Behaviors>
-              <behaviors:ShowFlyoutOnPointerOverBehavior />
+              <behaviors:BindableFlyoutOpenBehavior IsOpen="{Binding PrivacySuggestions.IsOpen}" />
             </Interaction.Behaviors>
             <FlyoutBase.AttachedFlyout>
               <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway" IsOpen="{Binding PrivacySuggestions.IsOpen, Mode=OneWayToSource}">
