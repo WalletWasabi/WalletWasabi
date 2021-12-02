@@ -96,6 +96,11 @@
               HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
       <c:Dialog.Styles>
+        <Style Selector="c|ContentArea">
+          <Setter Property="EnabledAdaptiveButtonArea" Value="False" />
+          <Setter Property="AdaptiveButtonAreaPlacement" Value="Title" />
+          <Setter Property="AdaptiveButtonAreaHeightTrigger" Value="500" />
+        </Style>
         <Style Selector="c|Dialog /template/ Panel#PART_Overlay">
           <Setter Property="Background" Value="{DynamicResource RegionColor}" />
         </Style>
@@ -120,6 +125,13 @@
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
               HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
               MaxContentWidth="800" MaxContentHeight="700">
+      <c:Dialog.Styles>
+        <Style Selector="c|ContentArea">
+          <Setter Property="EnabledAdaptiveButtonArea" Value="False" />
+          <Setter Property="AdaptiveButtonAreaPlacement" Value="Title" />
+          <Setter Property="AdaptiveButtonAreaHeightTrigger" Value="500" />
+        </Style>
+      </c:Dialog.Styles>
       <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
     <c:Dialog x:CompileBindings="False"
@@ -134,6 +146,11 @@
               IsEnabled="{Binding $parent.DataContext.IsDialogScreenEnabled}"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
       <c:Dialog.Styles>
+        <Style Selector="c|ContentArea">
+          <Setter Property="EnabledAdaptiveButtonArea" Value="False" />
+          <Setter Property="AdaptiveButtonAreaPlacement" Value="Title" />
+          <Setter Property="AdaptiveButtonAreaHeightTrigger" Value="500" />
+        </Style>
         <Style Selector="c|Dialog[FullScreenEnabled=True]">
           <Setter Property="HorizontalContentAlignment" Value="Stretch" />
           <Setter Property="VerticalContentAlignment" Value="Stretch" />
