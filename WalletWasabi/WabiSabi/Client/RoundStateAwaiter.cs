@@ -46,7 +46,7 @@ namespace WalletWasabi.WabiSabi.Client
 			{
 				if (Predicate(roundState))
 				{
-					TaskCompletionSource.TrySetResult(roundState);
+					TaskCompletionSource.SetResult(roundState);
 					return true;
 				}
 			}
