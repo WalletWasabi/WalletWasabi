@@ -228,6 +228,22 @@
 
     <Style Selector="c|ContentArea[ButtonAreaPlacement=Title] /template/ Button#PART_CancelButton">
       <Setter Property="(DockPanel.Dock)" Value="Right" />
+      <Setter Property="Margin" Value="0,0,0,0" />
+      <Setter Property="Padding" Value="12,0,12,0" />
+    </Style>
+
+    <!-- Skip Button -->
+
+    <Style Selector="c|ContentArea[ButtonAreaPlacement=Title] /template/ Button#PART_SkipButton">
+      <Setter Property="Margin" Value="0,0,0,0" />
+      <Setter Property="Padding" Value="12,0,12,0" />
+    </Style>
+
+    <!-- Next Button -->
+
+    <Style Selector="c|ContentArea[ButtonAreaPlacement=Title] /template/ Button#PART_NextButton">
+      <Setter Property="Margin" Value="0,0,0,0" />
+      <Setter Property="Padding" Value="0,0,0,0" />
     </Style>
 
     <!-- Next/Skip button StackPanel -->
@@ -241,6 +257,7 @@
 
     <Style Selector="c|ContentArea[ButtonAreaPlacement=Title] /template/ StackPanel#PART_NextStackPanel">
       <Setter Property="(DockPanel.Dock)" Value="Right" />
+      <Setter Property="Margin" Value="0 0" />
     </Style>
 
     <Style Selector="c|ContentArea /template/ ScrollViewer#PART_ScrollViewer">
