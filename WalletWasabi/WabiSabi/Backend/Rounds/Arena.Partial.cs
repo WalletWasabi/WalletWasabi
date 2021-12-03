@@ -99,7 +99,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
 				var round = GetRound(request.RoundId);
-				var alice = GetAlice(request.AliceSecret, round);
+				var alice = GetAlice(request.AliceSecretId, round);
 				alice.ReadyToSign = true;
 			}
 		}
@@ -110,7 +110,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				var round = GetRound(request.RoundId, Phase.InputRegistration);
 
-				round.Alices.RemoveAll(x => x.Secret == request.AliceSecret);
+				round.Alices.RemoveAll(x => x.Secret == request.AliceSecretId);
 			}
 		}
 
@@ -125,12 +125,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				round = GetRound(request.RoundId, Phase.InputRegistration, Phase.ConnectionConfirmation);
 
-				alice = GetAlice(request.AliceSecret, round);
+				alice = GetAlice(request.AliceSecretId, round);
 
 				if (alice.ConfirmedConnection)
 				{
 					Prison.Ban(alice, round.Id);
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyConfirmedConnection, $"Round ({request.RoundId}): Alice ({request.AliceSecret}) already confirmed connection.");
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyConfirmedConnection, $"Round ({request.RoundId}): Alice ({request.AliceSecretId}) already confirmed connection.");
 				}
 
 				if (realVsizeCredentialRequests.Delta != alice.CalculateRemainingVsizeCredentials(round.MaxVsizeAllocationPerAlice))
@@ -156,7 +156,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
-				alice = GetAlice(request.AliceSecret, round);
+				alice = GetAlice(request.AliceSecretId, round);
 
 				switch (round.Phase)
 				{
@@ -326,8 +326,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		private Round GetRound(uint256 roundId, params Phase[] phases) =>
 			InPhase(GetRound(roundId), phases);
 
-		private Alice GetAlice(Guid aliceSecret, Round round) =>
-			round.Alices.Find(x => x.Secret == aliceSecret)
-			?? throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound, $"Round ({round.Id}): Alice ({aliceSecret}) not found.");
+		private Alice GetAlice(Guid aliceSecretId, Round round) =>
+			round.Alices.Find(x => x.Secret == aliceSecretId)
+			?? throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound, $"Round ({round.Id}): Alice ({aliceSecretId}) not found.");
 	}
 }

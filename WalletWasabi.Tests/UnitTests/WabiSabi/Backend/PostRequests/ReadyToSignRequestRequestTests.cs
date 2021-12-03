@@ -18,15 +18,15 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			Guid guid = Guid.NewGuid();
 
 			// Request #1.
-			ReadyToSignRequestRequest request1 = new(RoundId: roundId, AliceSecret: guid);
+			ReadyToSignRequestRequest request1 = new(RoundId: roundId, AliceSecretId: guid);
 
 			// Request #2.
-			ReadyToSignRequestRequest request2 = new(RoundId: roundId, AliceSecret: guid);
+			ReadyToSignRequestRequest request2 = new(RoundId: roundId, AliceSecretId: guid);
 
 			Assert.Equal(request1, request2);
 
 			// Request #3.
-			ReadyToSignRequestRequest request3 = new(RoundId: BitcoinFactory.CreateUint256(), AliceSecret: guid);
+			ReadyToSignRequestRequest request3 = new(RoundId: BitcoinFactory.CreateUint256(), AliceSecretId: guid);
 
 			Assert.NotEqual(request1, request3);
 		}

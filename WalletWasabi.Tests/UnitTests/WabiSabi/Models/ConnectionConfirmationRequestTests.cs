@@ -28,7 +28,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			// Request #1.
 			ConnectionConfirmationRequest request1 = new(
 				RoundId: roundId,
-				AliceSecret: guid,
+				AliceSecretId: guid,
 				ZeroAmountCredentialRequests: NewZeroCredentialsRequest(modifier: 1),
 				RealAmountCredentialRequests: NewRealCredentialsRequest(modifier: 1),
 				ZeroVsizeCredentialRequests: NewZeroCredentialsRequest(modifier: 2),
@@ -38,7 +38,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			//// Request #2.
 			ConnectionConfirmationRequest request2 = new(
 				RoundId: roundId,
-				AliceSecret: guid,
+				AliceSecretId: guid,
 				ZeroAmountCredentialRequests: NewZeroCredentialsRequest(modifier: 1),
 				RealAmountCredentialRequests: NewRealCredentialsRequest(modifier: 1),
 				ZeroVsizeCredentialRequests: NewZeroCredentialsRequest(modifier: 2),
@@ -50,7 +50,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			//// Request #3.
 			ConnectionConfirmationRequest request3 = new(
 				RoundId: BitcoinFactory.CreateUint256(), // Intentionally changed.
-				AliceSecret: guid,
+				AliceSecretId: guid,
 				ZeroAmountCredentialRequests: NewZeroCredentialsRequest(modifier: 1),
 				RealAmountCredentialRequests: NewRealCredentialsRequest(modifier: 1),
 				ZeroVsizeCredentialRequests: NewZeroCredentialsRequest(modifier: 2),
@@ -62,7 +62,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			//// Request #4.
 			ConnectionConfirmationRequest request4 = new(
 				RoundId: roundId,
-				AliceSecret: Guid.NewGuid(), // Intentionally changed.
+				AliceSecretId: Guid.NewGuid(), // Intentionally changed.
 				ZeroAmountCredentialRequests: NewZeroCredentialsRequest(modifier: 1),
 				RealAmountCredentialRequests: NewRealCredentialsRequest(modifier: 1),
 				ZeroVsizeCredentialRequests: NewZeroCredentialsRequest(modifier: 2),
@@ -74,7 +74,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			//// Request #5.
 			ConnectionConfirmationRequest request5 = new(
 				RoundId: roundId,
-				AliceSecret: guid,
+				AliceSecretId: guid,
 				ZeroAmountCredentialRequests: NewZeroCredentialsRequest(modifier: 1337), // Intentionally changed.
 				RealAmountCredentialRequests: NewRealCredentialsRequest(modifier: 1),
 				ZeroVsizeCredentialRequests: NewZeroCredentialsRequest(modifier: 2),
@@ -86,7 +86,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			//// Request #6.
 			ConnectionConfirmationRequest request6 = new(
 				RoundId: roundId,
-				AliceSecret: guid,
+				AliceSecretId: guid,
 				ZeroAmountCredentialRequests: NewZeroCredentialsRequest(modifier: 1),
 				RealAmountCredentialRequests: NewRealCredentialsRequest(modifier: 1337), // Intentionally changed.
 				ZeroVsizeCredentialRequests: NewZeroCredentialsRequest(modifier: 2),
@@ -98,7 +98,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			//// Request #7.
 			ConnectionConfirmationRequest request7 = new(
 				RoundId: roundId,
-				AliceSecret: guid,
+				AliceSecretId: guid,
 				ZeroAmountCredentialRequests: NewZeroCredentialsRequest(modifier: 1),
 				RealAmountCredentialRequests: NewRealCredentialsRequest(modifier: 1),
 				ZeroVsizeCredentialRequests: NewZeroCredentialsRequest(modifier: 1337), // Intentionally changed.
@@ -110,7 +110,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			// Request #8.
 			ConnectionConfirmationRequest request8 = new(
 				RoundId: roundId,
-				AliceSecret: guid,
+				AliceSecretId: guid,
 				ZeroAmountCredentialRequests: NewZeroCredentialsRequest(modifier: 1),
 				RealAmountCredentialRequests: NewRealCredentialsRequest(modifier: 1),
 				ZeroVsizeCredentialRequests: NewZeroCredentialsRequest(modifier: 2),
