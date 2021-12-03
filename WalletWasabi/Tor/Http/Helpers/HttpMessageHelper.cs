@@ -340,51 +340,51 @@ namespace WalletWasabi.Tor.Http.Helpers
 			// https://tools.ietf.org/html/rfc7230#section-4.1.2
 			// A sender MUST NOT generate a trailer that contains a field necessary
 			// for message framing (e.g., Transfer-Encoding and Content-Length),
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Transfer-Encoding");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Content-Length");
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Transfer-Encoding"));
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Content-Length"));
 			// routing (e.g., Host)
 			// request modifiers(e.g., controls and
 			// https://tools.ietf.org/html/rfc7231#section-5.1
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Cache-Control");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Expect");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Host");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Max-Forwards");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Pragma");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Range");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "TE");
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Cache-Control"));
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Expect"));
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Host"));
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Max-Forwards"));
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Pragma"));
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Range"));
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("TE"));
 			// conditionals in Section 5 of[RFC7231]),
 			// https://tools.ietf.org/html/rfc7231#section-5.2
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "If-Match");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "If-None-Match");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "If-Modified-Since");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "If-Unmodified-Since");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "If-Range");
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("If-Match"));
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("If-None-Match"));
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("If-Modified-Since"));
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("If-Unmodified-Since"));
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("If-Range"));
 			// authentication(e.g., see [RFC7235]
 			// https://tools.ietf.org/html/rfc7235#section-5.3
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Authorization");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Proxy-Authenticate");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Proxy-Authorization");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "WWW-Authenticate");
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Authorization"));
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Proxy-Authenticate"));
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Proxy-Authorization"));
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("WWW-Authenticate"));
 			// and[RFC6265]),
 			// https://tools.ietf.org/html/rfc6265
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Set-Cookie");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Cookie");
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Set-Cookie"));
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Cookie"));
 			// response control data(e.g., see Section 7.1 of[RFC7231]),
 			// https://tools.ietf.org/html/rfc7231#section-7.1
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Age");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Cache-Control");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Expires");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Date");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Location");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Retry-After");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Vary");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Warning");
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Age"));
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Cache-Control"));
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Expires"));
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Date"));
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Location"));
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Retry-After"));
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Vary"));
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Warning"));
 			// or determining how to process the payload(e.g.,
 			// Content - Encoding, Content - Type, Content - Range, and Trailer).
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Content-Encoding");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Content-Type");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Content-Range");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Trailer");
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Content-Encoding"));
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Content-Type"));
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Content-Range"));
+			trailerHeaderSection.Fields.RemoveAll(x => x.IsNameEqual("Trailer"));
 		}
 
 		public static void ParseFirstChunkLine(string firstChunkLine, out long chunkSize, out IEnumerable<string> chunkExtensions)

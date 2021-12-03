@@ -98,7 +98,8 @@ namespace WalletWasabi.WabiSabi.Client
 			var registeredAliceClients = await CreateRegisterAndConfirmCoinsAsync(coinCandidates, roundState, cancellationToken).ConfigureAwait(false);
 			if (!registeredAliceClients.Any())
 			{
-				throw new InvalidOperationException($"Round ({roundState.Id}): There is no available alices to participate with.");
+				Logger.LogInfo($"Round ({roundState.Id}): There is no available alices to participate with.");
+				return true;
 			}
 
 			try

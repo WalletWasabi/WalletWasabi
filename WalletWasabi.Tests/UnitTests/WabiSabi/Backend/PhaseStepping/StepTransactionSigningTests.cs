@@ -45,7 +45,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await aliceClient1.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await aliceClient2.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.DoesNotContain(round, arena.ActiveRounds);
+			Assert.DoesNotContain(round, arena.GetActiveRounds());
 			Assert.Equal(Phase.Ended, round.Phase);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -81,7 +81,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await aliceClient1.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await aliceClient2.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.DoesNotContain(round, arena.ActiveRounds);
+			Assert.DoesNotContain(round, arena.Rounds.Where(x => x.Phase != Phase.Ended));
 			Assert.Equal(Phase.Ended, round.Phase);
 			Assert.False(round.WasTransactionBroadcast);
 			Assert.Empty(prison.GetInmates());
@@ -120,7 +120,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await aliceClient1.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await aliceClient2.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.DoesNotContain(round, arena.ActiveRounds);
+			Assert.DoesNotContain(round, arena.Rounds.Where(x => x.Phase != Phase.Ended));
 			Assert.Equal(Phase.Ended, round.Phase);
 			Assert.False(round.WasTransactionBroadcast);
 
@@ -161,7 +161,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var signedCoinJoin = round.Assert<SigningState>().CreateTransaction();
 			await aliceClient1.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.DoesNotContain(round, arena.ActiveRounds);
+			Assert.DoesNotContain(round, arena.Rounds.Where(x => x.Phase != Phase.Ended));
 			Assert.Equal(Phase.Ended, round.Phase);
 			Assert.False(round.WasTransactionBroadcast);
 			Assert.Empty(arena.Rounds.Where(x => x is BlameRound));
@@ -203,7 +203,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await aliceClient1.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await aliceClient2.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.DoesNotContain(round, arena.ActiveRounds);
+			Assert.DoesNotContain(round, arena.Rounds.Where(x => x.Phase != Phase.Ended));
 			Assert.Single(arena.Rounds.Where(x => x is BlameRound));
 			var badOutpoint = alice3.Coin.Outpoint;
 			Assert.Contains(badOutpoint, prison.GetInmates().Select(x => x.Utxo));

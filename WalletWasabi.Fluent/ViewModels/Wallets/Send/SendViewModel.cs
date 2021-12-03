@@ -136,7 +136,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private async Task OnAutoPasteAsync()
 		{
-			var isAutoPasteEnabled = Services.UiConfig.Autocopy;
+			var isAutoPasteEnabled = Services.UiConfig.AutoPaste;
 
 			if (string.IsNullOrEmpty(To) && isAutoPasteEnabled)
 			{
