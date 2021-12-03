@@ -25,7 +25,7 @@ namespace WalletWasabi.WabiSabi.Client
 			// TODO allow more than 5 outputs after compact representation, because until then the memory consumption is unreasonable
 			var maxOutputs = Math.Min(maxAvailableVsize / Constants.P2WPKHOutputSizeInBytes, 5);
 
-			Logger.LogDebug($"Computing possible decompositions up to {maxOutputs} outputs ({maxAvailableVsize} vbytes available) for {maxEffectiveValue}");
+			Logger.LogDebug($"Computing possible decompositions up to {maxOutputs} outputs ({maxAvailableVsize} vbytes available) for {maxEffectiveValue}.");
 
 			PossibleDecompositions = new PossibleDecompositions(
 				allowedStandardValues,
@@ -57,7 +57,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 			if (chosen is null)
 			{
-				throw new InvalidOperationException("no decompositions were possible");
+				throw new InvalidOperationException("No decompositions were possible.");
 			}
 
 			Logger.LogDebug($"Decomposing as {string.Join(' ', chosen.Outputs)} = {chosen.TotalValue} ({maximumEffectiveCost - chosen.TotalValue} cost)");

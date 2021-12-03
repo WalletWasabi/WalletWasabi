@@ -110,7 +110,7 @@ namespace WalletWasabi.WabiSabi.Client
 				var registeredCoins = registeredAliceClients.Select(x => x.SmartCoin.Coin);
 				var availableVsize = registeredAliceClients.SelectMany(x => x.IssuedVsizeCredentials).Sum(x => x.Value);
 
-				var amountDecomposer = await amountDecomposerTask;
+				var amountDecomposer = await amountDecomposerTask.ConfigureAwait(false);
 
 				roundState = await RoundStatusUpdater.CreateRoundAwaiter(rs => rs.Id == roundState.Id, cancellationToken).ConfigureAwait(false);
 				constructionState = roundState.Assert<ConstructionState>();
