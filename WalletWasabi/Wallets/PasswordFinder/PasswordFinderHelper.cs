@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Security;
 using System.Threading;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Wallets.PasswordFinder
 {
@@ -43,8 +44,9 @@ namespace WalletWasabi.Wallets.PasswordFinder
 					foundPassword = pwd;
 					return true;
 				}
-				catch (SecurityException)
+				catch (SecurityException e)
 				{
+					Logger.LogCritical($"Security exception: '{e}'");
 				}
 
 				attempts++;
