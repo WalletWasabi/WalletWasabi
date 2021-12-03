@@ -33,7 +33,7 @@ namespace WalletWasabi.WabiSabi.Client
 				Money.Zero,
 				maxOutputs);
 
-			Logger.LogDebug($"At {FeeRate.Zero}, best decomposition is {string.Join(' ', PossibleDecompositions.GetByTotalValue().First().Outputs)}");
+			Logger.LogDebug($"At {roundState.FeeRate}, best decomposition is {string.Join(' ', PossibleDecompositions.GetByTotalValue(feeRate: roundState.FeeRate).First().Outputs)}");
 		}
 
 		public RoundState RoundState { get; }
