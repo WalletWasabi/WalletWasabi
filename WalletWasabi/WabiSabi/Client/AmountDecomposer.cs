@@ -22,8 +22,8 @@ namespace WalletWasabi.WabiSabi.Client
 
 			var allowedStandardValues = StandardDenomination.Values.Where(x => roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Contains(x));
 
-			// TODO allow more than 6 outputs... but when?
-			var maxOutputs = Math.Min(maxAvailableVsize / Constants.P2WPKHOutputSizeInBytes, 6);
+			// TODO allow more than 5 outputs after compact representation, because until then the memory consumption is unreasonable
+			var maxOutputs = Math.Min(maxAvailableVsize / Constants.P2WPKHOutputSizeInBytes, 5);
 
 			Logger.LogDebug($"Computing possible decompositions up to {maxOutputs} outputs ({maxAvailableVsize} vbytes available) for {maxEffectiveValue}");
 
@@ -52,7 +52,7 @@ namespace WalletWasabi.WabiSabi.Client
 				maximumEffectiveCost: maximumEffectiveCost,
 				minimumEffectiveCost: minimumEffectiveCost,
 				feeRate: RoundState.FeeRate,
-				maxOutputs: availableVsize/31)
+				maxOutputs: availableVsize / 31)
 				.RandomElement();
 
 			if (chosen is null)
