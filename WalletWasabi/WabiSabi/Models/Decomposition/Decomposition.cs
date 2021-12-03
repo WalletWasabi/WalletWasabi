@@ -78,6 +78,13 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 			};
 
 		public override int GetHashCode()
-			=> Outputs.GetHashCode();
+		{
+			var hash = new HashCode();
+			foreach (var value in Outputs)
+			{
+				hash.Add(value);
+			}
+			return hash.ToHashCode();
+		}
 	}
 }

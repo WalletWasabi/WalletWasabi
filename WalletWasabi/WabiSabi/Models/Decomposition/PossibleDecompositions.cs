@@ -141,7 +141,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 				large.MoveNext();
 				small.MoveNext();
 
-				for (; ; )
+				while (true)
 				{
 					var cmp = large.Current.CompareTo(small.Current);
 
