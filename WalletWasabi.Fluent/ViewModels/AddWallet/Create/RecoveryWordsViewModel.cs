@@ -19,7 +19,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 				MnemonicWords.Add(new RecoveryWordViewModel(i + 1, mnemonic.Words[i]));
 			}
 
-			EnableBack = true;
+			EnableBack = false;
 
 			NextCommand = ReactiveCommand.Create(() => OnNext(keyManager));
 
