@@ -33,7 +33,7 @@ namespace WalletWasabi.WabiSabi.Client
 				Money.Zero,
 				maxOutputs);
 
-			Logger.LogDebug($"At {roundState.FeeRate}, best decomposition is {string.Join(' ', PossibleDecompositions.GetByTotalValue(feeRate: roundState.FeeRate).First().Outputs)}");
+			Logger.LogDebug($"At {roundState.FeeRate}, best decomposition is {string.Join(' ', PossibleDecompositions.GetByTotalValue(feeRate: roundState.FeeRate).First().Outputs)}.");
 		}
 
 		public RoundState RoundState { get; }
@@ -60,7 +60,7 @@ namespace WalletWasabi.WabiSabi.Client
 				throw new InvalidOperationException("No decompositions were possible.");
 			}
 
-			Logger.LogDebug($"Decomposing as {string.Join(' ', chosen.Outputs)} = {chosen.TotalValue} ({maximumEffectiveCost - chosen.TotalValue} cost)");
+			Logger.LogDebug($"Decomposing as {string.Join(' ', chosen.Outputs)} = {chosen.TotalValue} ({maximumEffectiveCost - chosen.TotalValue} cost).");
 			return chosen.Outputs;
 		}
 	}
