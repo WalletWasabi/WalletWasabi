@@ -9,15 +9,17 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 {
 	public class PossibleDecompositions
 	{
+		// 8 is more than enough to be unreasonable in practically any
+		// situation, so this is a hard limit.
+		private const int MaxPossibleDecompositions = 8;
+
 		public PossibleDecompositions(
 			IEnumerable<Money> nominalValues,
 			Money maximumTotalValue,
 			Money minimumTotalValue,
 			int maxOutputs)
 		{
-			// 8 is more than enough to be unreasonable in practically any
-			// situation.
-			Guard.InRangeAndNotNull(nameof(maxOutputs), maxOutputs, 1, 8);
+			Guard.InRangeAndNotNull(nameof(maxOutputs), maxOutputs, 1, MaxPossibleDecompositions);
 
 			var orderedDenoms = nominalValues.Where(x => x <= maximumTotalValue).OrderByDescending(x => x).ToImmutableArray();
 
