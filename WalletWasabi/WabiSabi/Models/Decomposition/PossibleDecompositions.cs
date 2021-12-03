@@ -109,10 +109,10 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 			minimumValue ??= Money.Zero;
 
 			return StratifiedDecompositions
-				.Take(maxOutputs).Select((x, i) => (Decompositions: x, TotalCost: (i + 1) * costPerOutput))
-				.Select(p => p.Decompositions.Prune(
-							Money.Min(maximumEffectiveCost - p.TotalCost, MaximumTotalValue),
-							Money.Max(minimumEffectiveCost - p.TotalCost, MinimumTotalValue),
+				.Take(maxOutputs).Select((x, i) => (DecompositionsOfASize: x, MiningFees: (i + 1) * costPerOutput))
+				.Select(p => p.DecompositionsOfASize.Prune(
+							Money.Min(maximumEffectiveCost - p.MiningFees, MaximumTotalValue),
+							Money.Max(minimumEffectiveCost - p.MiningFees, MinimumTotalValue),
 							minimumValue)
 						.Where(d => d.Outputs[^1] >= minimumValue))
 				.Aggregate(MergeDescending)
@@ -141,7 +141,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 				large.MoveNext();
 				small.MoveNext();
 
-				for (;;)
+				for (; ; )
 				{
 					var cmp = large.Current.CompareTo(small.Current);
 
