@@ -135,5 +135,6 @@
       </c:Dialog.Styles>
       <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
+    <c:AdornerCanvas Name="DialogAdornerCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
   </Panel>
 </UserControl>

@@ -22,7 +22,7 @@
           <Setter Property="(Interaction.Behaviors)">
             <BehaviorCollectionTemplate>
               <BehaviorCollection>
-                <behaviors:HistoryItemDetailsBehavior />
+                <behaviors:UnusedAddressItemDetailsBehavior />
               </BehaviorCollection>
             </BehaviorCollectionTemplate>
           </Setter>
@@ -44,8 +44,8 @@
           <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
         </Style>
 
-        <Style Selector="behaviors|HistoryItemDetailsAdorner">
-          <Setter Property="Margin" Value="0,0,0,0" />
+        <Style Selector="behaviors|DataBoxItemDetailsAdorner">
+          <Setter Property="Margin" Value="-32,0,0,0" />
           <Setter Property="HorizontalAlignment" Value="Left" />
           <Setter Property="VerticalAlignment" Value="Top" />
           <Setter Property="ClipToBounds" Value="False" />
@@ -59,14 +59,6 @@
                                   NormalIcon="{StaticResource copy_regular}"
                                   ClickIcon="{StaticResource copy_confirmed}"
                                   InitialOpacity="1.0" />
-
-
-                <Button Classes="plain addressActionButton" Command="{Binding NavigateCommand}"
-                        DockPanel.Dock="Right"
-                        ToolTip.Tip="QR Code">
-                  <PathIcon Data="{StaticResource qr_code_regular}" Classes=" addressActionIcon" />
-                </Button>
-
               </Panel>
             </ControlTemplate>
           </Setter>
@@ -74,7 +66,6 @@
       </DataBox.Styles>
 
       <DataBox.Columns>
-
         <DataBoxTemplateColumn Width="70"
                                CanUserSort="True">
           <DataBoxTemplateColumn.CellTemplate>
@@ -158,8 +149,6 @@
             </DataTemplate>
           </DataBoxTemplateColumn.CellTemplate>
         </DataBoxTemplateColumn>
-
-
       </DataBox.Columns>
     </DataBox>
   </c:ContentArea>

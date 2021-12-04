@@ -12,7 +12,7 @@ namespace WalletWasabi.Fluent.Behaviors
 {
 	public class HistoryItemDetailsBehavior : DisposingBehavior<DataBoxRow>
 	{
-		private HistoryItemDetailsAdorner? _historyItemDetailsAdorner;
+		private DataBoxItemDetailsAdorner? _historyItemDetailsAdorner;
 		private IDisposable? _currentAdornerEvents;
 
 		protected override void OnAttached(CompositeDisposable disposables)
@@ -83,7 +83,7 @@ namespace WalletWasabi.Fluent.Behaviors
 				return;
 			}
 
-			_historyItemDetailsAdorner = new HistoryItemDetailsAdorner
+			_historyItemDetailsAdorner = new DataBoxItemDetailsAdorner
 			{
 				[AdornerCanvas.AdornedElementProperty] = dataBoxRow,
 				[AdornerCanvas.IsClipEnabledProperty] = false,
