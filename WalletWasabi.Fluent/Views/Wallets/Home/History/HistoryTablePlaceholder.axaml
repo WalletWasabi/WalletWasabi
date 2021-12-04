@@ -21,20 +21,15 @@
              HorizontalContentAlignment="Center"
              HorizontalAlignment="Center"
              VerticalAlignment="Center"
-             DockPanel.Dock="Bottom"/>
+             DockPanel.Dock="Bottom" />
       <Label Content="Nothing to show here yet."
              Classes="bold center wrap h5"
              MaxWidth="400"
              Margin="0,24,0,0"
              HorizontalAlignment="Center"
              VerticalAlignment="Center"
-             DockPanel.Dock="Bottom"/>
+             DockPanel.Dock="Bottom" />
       <Viewbox MaxHeight="234" Margin="24,24,24,0">
-        <Image HorizontalAlignment="Center" VerticalAlignment="Center">
-          <Image.Source>
-            <DrawingImage Drawing="{StaticResource history_table_empty_wallet}"/>
-          </Image.Source>
-        </Image>
       </Viewbox>
     </DockPanel>
   </Border>
