@@ -4,6 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="receive:ReceiveAddressesViewModel"
              x:CompileBindings="True"
@@ -15,35 +17,99 @@
     <DataBox Items="{Binding Addresses}"
              CanUserSortColumns="True">
       <DataBox.Styles>
+
+        <Style Selector="DataBoxRow">
+          <Setter Property="(Interaction.Behaviors)">
+            <BehaviorCollectionTemplate>
+              <BehaviorCollection>
+                <behaviors:HistoryItemDetailsBehavior />
+              </BehaviorCollection>
+            </BehaviorCollectionTemplate>
+          </Setter>
+        </Style>
         <Style Selector="c|AnimatedButton.addressActionButton">
-          <Setter Property="DockPanel.Dock" Value="Right"/>
-          <Setter Property="Margin" Value="5 0 0 0"/>
+          <Setter Property="DockPanel.Dock" Value="Right" />
+          <Setter Property="Margin" Value="5 0 0 0" />
         </Style>
         <Style Selector="c|AnimatedButton /template/ PathIcon">
-          <Setter Property="Height" Value="15"/>
-          <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}"/>
+          <Setter Property="Height" Value="15" />
+          <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
         </Style>
         <Style Selector="Button.addressActionButton">
-          <Setter Property="DockPanel.Dock" Value="Right"/>
-          <Setter Property="Margin" Value="5 0 0 0"/>
+          <Setter Property="DockPanel.Dock" Value="Right" />
+          <Setter Property="Margin" Value="5 0 0 0" />
         </Style>
         <Style Selector="PathIcon.addressActionIcon">
-          <Setter Property="Height" Value="15"/>
-          <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}"/>
+          <Setter Property="Height" Value="15" />
+          <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+        </Style>
+
+        <Style Selector="behaviors|HistoryItemDetailsAdorner">
+          <Setter Property="Margin" Value="0,0,0,0" />
+          <Setter Property="HorizontalAlignment" Value="Left" />
+          <Setter Property="VerticalAlignment" Value="Top" />
+          <Setter Property="ClipToBounds" Value="False" />
+          <Setter Property="IsHitTestVisible" Value="True" />
+          <Setter Property="Template">
+            <ControlTemplate>
+              <Panel Background="Transparent" x:DataType="receive:AddressViewModel">
+                <c:AnimatedButton Classes="addressActionButton" DockPanel.Dock="Right"
+                                  ToolTip.Tip="Copy"
+                                  Command="{Binding CopyAddressCommand}"
+                                  NormalIcon="{StaticResource copy_regular}"
+                                  ClickIcon="{StaticResource copy_confirmed}"
+                                  InitialOpacity="1.0" />
+
+
+                <Button Classes="plain addressActionButton" Command="{Binding NavigateCommand}"
+                        DockPanel.Dock="Right"
+                        ToolTip.Tip="QR Code">
+                  <PathIcon Data="{StaticResource qr_code_regular}" Classes=" addressActionIcon" />
+                </Button>
+
+              </Panel>
+            </ControlTemplate>
+          </Setter>
         </Style>
       </DataBox.Styles>
 
       <DataBox.Columns>
+
+        <DataBoxTemplateColumn Width="70"
+                               CanUserSort="True">
+          <DataBoxTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
+
+                <Button Classes="plain addressActionButton" Command="{Binding NavigateCommand}"
+                        DockPanel.Dock="Right"
+                        ToolTip.Tip="QR Code">
+                  <PathIcon Data="{StaticResource qr_code_regular}" Classes=" addressActionIcon" />
+                </Button>
+
+                <Button Classes="plain addressActionButton" Command="{Binding HideAddressCommand}"
+                        DockPanel.Dock="Right"
+                        ToolTip.Tip="Hide address">
+                  <PathIcon Data="{StaticResource dismiss_light}" Classes=" addressActionIcon" />
+                </Button>
+
+              </DockPanel>
+            </DataTemplate>
+          </DataBoxTemplateColumn.CellTemplate>
+        </DataBoxTemplateColumn>
+
         <DataBoxTemplateColumn Header="Labels"
                                Width="Auto"
                                CanUserSort="True">
           <DataBoxTemplateColumn.CellTemplate>
             <DataTemplate>
               <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
-                <Button Classes="plain addressActionButton" ToolTip.Tip="Edit" DockPanel.Dock="Right" Command="{Binding EditLabelCommand}">
+                <Button Classes="plain addressActionButton" ToolTip.Tip="Edit" DockPanel.Dock="Right"
+                        Command="{Binding EditLabelCommand}">
                   <PathIcon Data="{StaticResource edit_regular}" Classes="addressActionIcon" />
                 </Button>
-                <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15" VerticalAlignment="Center">
+                <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15"
+                                         VerticalAlignment="Center">
                   <DockPanel LastChildFill="False">
                     <c:TagsBox Padding="0"
                                Margin="0"
@@ -86,27 +152,14 @@
           <DataBoxTemplateColumn.CellTemplate>
             <DataTemplate>
               <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
-                <Button Classes="plain addressActionButton" Command="{Binding HideAddressCommand}"
-                        DockPanel.Dock="Right"
-                        ToolTip.Tip="Hide address">
-                  <PathIcon Data="{StaticResource dismiss_light}" Classes=" addressActionIcon"/>
-                </Button>
-                <c:AnimatedButton Classes="addressActionButton" DockPanel.Dock="Right"
-                                  ToolTip.Tip="Copy"
-                                  Command="{Binding CopyAddressCommand}"
-                                  NormalIcon="{StaticResource copy_regular}"
-                                  ClickIcon="{StaticResource copy_confirmed}"
-                                  InitialOpacity="1.0"/>
-                <Button Classes="plain addressActionButton" Command="{Binding NavigateCommand}"
-                        DockPanel.Dock="Right"
-                        ToolTip.Tip="QR Code">
-                  <PathIcon Data="{StaticResource qr_code_regular}" Classes=" addressActionIcon"/>
-                </Button>
-                <c:PrivacyContentControl Content="{Binding Address}" VerticalAlignment="Center" NumberOfPrivacyChars="38" />
+                <c:PrivacyContentControl Content="{Binding Address}" VerticalAlignment="Center"
+                                         NumberOfPrivacyChars="38" />
               </DockPanel>
             </DataTemplate>
           </DataBoxTemplateColumn.CellTemplate>
         </DataBoxTemplateColumn>
+
+
       </DataBox.Columns>
     </DataBox>
   </c:ContentArea>
