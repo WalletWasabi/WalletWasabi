@@ -13,7 +13,7 @@ namespace WalletWasabi.JsonConverters
 
 			if (string.IsNullOrWhiteSpace(value))
 			{
-				return default;
+				return DateTimeOffset.Now;
 			}
 
 			string time = value.Trim();
