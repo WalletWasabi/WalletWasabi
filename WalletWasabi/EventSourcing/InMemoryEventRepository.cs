@@ -114,7 +114,8 @@ namespace WalletWasabi.EventSourcing
 
 			// If it is a first event for given aggregate.
 			if (tailSequenceId == 0)
-			{ // Add index of aggregate id into the dictionary.
+			{
+				// Add index of aggregate id into the dictionary.
 				IndexNewAggregateId(aggregateType, aggregateId);
 			}
 			return Task.CompletedTask;
