@@ -15,13 +15,13 @@ namespace WalletWasabi.EventSourcing
 	/// </summary>
 	public class InMemoryEventRepository : IEventRepository
 	{
-		protected static readonly IReadOnlyList<WrappedEvent> EmptyResult
+		private static readonly IReadOnlyList<WrappedEvent> EmptyResult
 			= ImmutableList<WrappedEvent>.Empty;
 
-		protected static readonly IReadOnlyList<string> EmptyIds
+		private static readonly IReadOnlyList<string> EmptyIds
 			= ImmutableList<string>.Empty;
 
-		protected static readonly IComparer<WrappedEvent> WrappedEventSequenceIdComparer
+		private static readonly IComparer<WrappedEvent> WrappedEventSequenceIdComparer
 			= Comparer<WrappedEvent>.Create((a, b) => a.SequenceId.CompareTo(b.SequenceId));
 
 		private ConcurrentDictionary
