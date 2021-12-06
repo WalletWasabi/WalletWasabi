@@ -99,6 +99,7 @@
       </c:Dialog.Styles>
       <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
+    <c:AdornerCanvas Name="DialogAdornerCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
     <c:Dialog x:CompileBindings="False"
               DataContext="{Binding DialogScreen}"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
@@ -135,6 +136,5 @@
       </c:Dialog.Styles>
       <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
-    <c:AdornerCanvas Name="DialogAdornerCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
   </Panel>
 </UserControl>
