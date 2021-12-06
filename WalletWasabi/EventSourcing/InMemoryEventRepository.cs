@@ -74,7 +74,7 @@ namespace WalletWasabi.EventSourcing
 			}
 			if (lastSequenceId - firstSequenceId + 1 != wrappedEventsList.Count)
 			{
-				throw new ArgumentException("Event sequence ids are out of whack.", nameof(wrappedEvents));
+				throw new ArgumentException("Event sequence ids are inconsistent.", nameof(wrappedEvents));
 			}
 
 			var aggregateEventsBatches = _aggregatesEventsBatches.GetOrAdd(aggregateType, _ => new());
