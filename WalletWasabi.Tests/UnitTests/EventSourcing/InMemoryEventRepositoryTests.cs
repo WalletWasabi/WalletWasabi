@@ -17,15 +17,12 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 
 		public InMemoryEventRepositoryTests(ITestOutputHelper output)
 		{
-			Output = output;
 			TestEventRepository = new TestInMemoryEventRepository(output);
 			EventRepository = TestEventRepository;
 		}
 
 		private IEventRepository EventRepository { get; init; }
 		private TestInMemoryEventRepository TestEventRepository { get; init; }
-
-		private ITestOutputHelper Output { get; init; }
 
 		[Fact]
 		public async Task AppendEvents_Zero_Async()
