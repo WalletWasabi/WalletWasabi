@@ -51,6 +51,7 @@ namespace WalletWasabi.EventSourcing
 			)> AggregatesIds
 		{ get; } = new();
 
+		/// <inheritdoc/>
 		public Task AppendEventsAsync(
 			string aggregateType,
 			string aggregateId,
@@ -119,6 +120,7 @@ namespace WalletWasabi.EventSourcing
 			return Task.CompletedTask;
 		}
 
+		/// <inheritdoc/>
 		public Task<IReadOnlyList<WrappedEvent>> ListEventsAsync(
 			string aggregateType,
 			string aggregateId,
@@ -155,6 +157,7 @@ namespace WalletWasabi.EventSourcing
 			return Task.FromResult(EmptyResult);
 		}
 
+		/// <inheritdoc/>
 		public Task<IReadOnlyList<string>> ListAggregateIdsAsync(
 			string aggregateType,
 			string? afterAggregateId = null,
