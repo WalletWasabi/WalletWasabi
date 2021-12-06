@@ -121,7 +121,7 @@ namespace WalletWasabi.Packager
 
 		private static void RestoreProgramCs()
 		{
-			StartProcessAndWaitForExit("cmd", PackagerProjectDirectory, "git checkout -- Program.cs && exit");
+			StartProcessAndWaitForExit("git", PackagerProjectDirectory, arguments: "checkout -- Program.cs");
 		}
 
 		private static async Task SignAsync()
@@ -187,7 +187,7 @@ namespace WalletWasabi.Packager
 				Console.WriteLine($"Deleted {BinDistDirectory}");
 			}
 
-			StartProcessAndWaitForExit("cmd", DesktopProjectDirectory, "dotnet clean --configuration Release && exit");
+			StartProcessAndWaitForExit("dotnet", DesktopProjectDirectory, arguments: "clean --configuration Release");
 
 			var desktopBinReleaseDirectory = Path.GetFullPath(Path.Combine(DesktopProjectDirectory, "bin", "Release"));
 			var libraryBinReleaseDirectory = Path.GetFullPath(Path.Combine(LibraryProjectDirectory, "bin", "Release"));
@@ -208,6 +208,10 @@ namespace WalletWasabi.Packager
 			IoHelpers.EnsureDirectoryExists(deliveryPath);
 			Console.WriteLine($"Binaries will be delivered here: {deliveryPath}");
 
+			string[] buildInfoLines = GetBuildInfoData();
+
+			CheckUncommittedGitChanges();
+
 			foreach (string target in Targets)
 			{
 				string publishedFolder = Path.Combine(BinDistDirectory, target);
@@ -222,6 +226,9 @@ namespace WalletWasabi.Packager
 					Directory.CreateDirectory(currentBinDistDirectory);
 					Console.WriteLine($"Created {currentBinDistDirectory}");
 				}
+
+				string buildInfoPath = Path.Combine(currentBinDistDirectory, "BUILDINFO.txt");
+				File.WriteAllLines(buildInfoPath, buildInfoLines);
 
 				StartProcessAndWaitForExit("dotnet", DesktopProjectDirectory, arguments: "clean");
 
@@ -513,6 +520,61 @@ namespace WalletWasabi.Packager
 					Console.WriteLine($"Deleted {publishedFolder}");
 				}
 			}
+		}
+
+		/// <summary>Checks whether there are uncommitted changes.</summary>
+		/// <remarks>This is important to really release a build that corresponds with a git hash.</remarks>
+		private static void CheckUncommittedGitChanges()
+		{
+			string? gitStatus = StartProcessAndWaitForExit("git", workingDirectory: DesktopProjectDirectory, arguments: "status --porcelain", redirectStandardOutput: true)?.Trim();
+
+			if (!string.IsNullOrEmpty(gitStatus))
+			{
+				Console.WriteLine("BEWARE: There are uncommitted changes in the repository. Do you want to continue? (Y/N)");
+				int i = Console.Read();
+				char ch = Convert.ToChar(i);
+
+				if (ch != 'y' && ch != 'Y')
+				{
+					Console.WriteLine("\nExiting.");
+					Environment.Exit(1);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Gets information about .NET SDK and .NET runtime so that deterministic build is easier to reproduce.
+		/// </summary>
+		/// <returns>Array of lines to write to a <c>BUILDINFO.txt</c> file.</returns>
+		private static string[] GetBuildInfoData()
+		{
+			// .NET runtime version. We rely on the fact that this version is the same as if we run "dotnet" command. This should be a safe assumption.
+			Version runtimeVersion = Environment.Version;
+
+			// Get .NET SDK version.
+			string? sdkVersion = StartProcessAndWaitForExit("dotnet", workingDirectory: DesktopProjectDirectory, arguments: "--version", redirectStandardOutput: true)?.Trim();
+
+			if (sdkVersion is null)
+			{
+				throw new InvalidOperationException($"Failed to get .NET SDK version.");
+			}
+
+			// Get git commit ID.
+			string? gitCommitId = StartProcessAndWaitForExit("git", workingDirectory: DesktopProjectDirectory, arguments: "rev-parse HEAD", redirectStandardOutput: true)?.Trim();
+
+			if (gitCommitId is null)
+			{
+				throw new InvalidOperationException($"Failed to get git commit ID.");
+			}
+
+			string[] lines = new string[]
+			{
+				$".NET runtime:    {runtimeVersion}",
+				$".NET SDK:        {sdkVersion}",
+				$"Git commit hash: {gitCommitId}",
+			};
+
+			return lines;
 		}
 
 		private static string? StartProcessAndWaitForExit(string command, string workingDirectory, string? writeToStandardInput = null, string? arguments = null, bool redirectStandardOutput = false)
