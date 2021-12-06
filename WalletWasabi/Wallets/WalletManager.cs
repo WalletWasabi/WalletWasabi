@@ -132,6 +132,11 @@ namespace WalletWasabi.Wallets
 
 			lock (Lock)
 			{
+				if (CancelAllInitialization.IsCancellationRequested || CancelAllInitialization.Token.IsCancellationRequested)
+				{
+					throw new OperationCanceledException($"Stopped loading {wallet}, because cancelling was requested.");
+				}
+
 				// Throw an exception if the wallet was not added to the WalletManager.
 				Wallets.Single(x => x == wallet);
 			}
