@@ -30,7 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private bool _adjustFeeAvailable;
 		[AutoNotify] private bool _issuesTooltip;
 		[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
-		[AutoNotify] public bool _isLoading;
+		[AutoNotify] private bool _isLoading;
 
 		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info)
 		{
