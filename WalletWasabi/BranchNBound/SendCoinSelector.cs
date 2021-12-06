@@ -14,17 +14,25 @@ namespace WalletWasabi.BranchNBound
 		private List<ulong> FinalCoins { get; set; }
 		private bool _optimizedCoinsFound = false;
 
-		public bool TryBranchAndBound(List<ulong> coins, ulong target, ulong tolerance, out List<ulong> finalCoins)
+		public bool TryBranchAndBound(List<ulong> coins, ulong target, ulong maxTolerance, ulong toleranceIncrement, out ulong tolerance, out List<ulong> finalCoins)
 		{
 			var coinsDescending = coins.OrderBy(x => x);
 			finalCoins = new List<ulong>();
-
-			Stack<ulong> pool = new Stack<ulong>(coinsDescending);
+			tolerance = 0;
 			var currentCoins = new List<ulong>();
 			var depth = 0;
 			try
 			{
-				finalCoins = SolveX(currentCoins, target, pool, depth);
+				while (tolerance <= maxTolerance)
+				{
+					Stack<ulong> pool = new Stack<ulong>(coinsDescending);
+					finalCoins = SolveX(currentCoins, target, tolerance, pool, depth);
+					if (finalCoins.Any())
+					{
+						break;
+					}
+					tolerance += toleranceIncrement;
+				}
 			}
 			catch (IndexOutOfRangeException exc)
 			{
@@ -34,11 +42,12 @@ namespace WalletWasabi.BranchNBound
 			return finalCoins.Any();
 		}
 
-		private List<ulong> SolveX(List<ulong> currentCoins, ulong target, Stack<ulong> pool, int depth)
+		private List<ulong> SolveX(List<ulong> currentCoins, ulong target, ulong tolerance, Stack<ulong> pool, int depth)
 		{
-			// currentCoins : List of coins that have been choosen from the pool for optimal value  || []
-			// pool : All coins available															|| 12,10,10,5,4
-			// target : ulong, the value that the sum of currentCoins needs to match with			|| 20
+			// currentCoins : List of coins that have been choosen from the pool for optimal value
+			// pool : All coins available
+			// target : ulong, the value that the sum of currentCoins needs to match with
+			// tolerance : the maximum difference we allow for a match
 			// sum : Overall value of the coins
 			Stack<ulong> tmpPool;
 			while (!_optimizedCoinsFound)
@@ -46,32 +55,83 @@ namespace WalletWasabi.BranchNBound
 				// Add the top coin of the pool to the selection and calculate SUM
 				if (pool.Count <= 0)
 				{
-					currentCoins.RemoveLast();
+					if (currentCoins.Count > 0)
+					{
+						currentCoins.RemoveLast();
+					}
 					return currentCoins;
 				}
 				currentCoins.Add(pool.Pop());
 				var sum = CalculateSum(currentCoins);
 
 				// If its a match, we are happy
-				if (sum == target)
+				if ((sum >= target) && (sum <= target + tolerance))
 				{
 					_optimizedCoinsFound = true;
 					FinalCoins = currentCoins;
 				}
 				// If the SUM is less that the target, we go forward to add coins
-				else if (sum < target)
+				else if (sum < target + tolerance)
 				{
+					depth++;
 					tmpPool = new Stack<ulong>(pool.Reverse());
-					SolveX(currentCoins, target, tmpPool, depth);
+					SolveX(currentCoins, target, tolerance, tmpPool, depth);
 				}
 				// If the SUM is bigger than the target, we remove the last added element and go forward
-				if (sum > target)
+				if (sum > target + tolerance)
 				{
 					currentCoins.RemoveLast();
-					return SolveX(currentCoins, target, pool, depth);
+					return SolveX(currentCoins, target, tolerance, pool, depth);
 				}
 			}
 			return FinalCoins;
+		}
+
+		internal bool TryTreeLogic(List<ulong> availableCoins, ulong target, out List<ulong> selectedCoins)
+		{
+			var coinArray = availableCoins.ToArray();
+			var state = new TreeNode[1] { new TreeNode() };
+			var depth = 0;
+			List<TreeNode> tmp;
+
+			while (true)
+			{
+				tmp = new();
+				foreach (var currentNode in state)
+				{
+					List<ulong> currentCoins = currentNode.Coins;
+
+					TreeNode ommit = new(currentCoins);
+					if (!TryAddOrReturn(ommit, target, tmp))
+					{
+						selectedCoins = ommit.Coins;
+						return true;
+					}
+
+					TreeNode include = new(currentCoins, coinArray[depth]);
+					if (!TryAddOrReturn(include, target, tmp))
+					{
+						selectedCoins = include.Coins;
+						return true;
+					}
+				}
+				state = tmp.ToArray();
+				depth++;
+			}
+			return true;
+		}
+
+		private bool TryAddOrReturn(TreeNode node, ulong target, List<TreeNode> tmp)
+		{
+			if (node.Value == target)
+			{
+				return false;
+			}
+			else if (node.Value < target)
+			{
+				tmp.Add(node);
+			}
+			return true;
 		}
 
 		public ulong CalculateSum(IEnumerable<ulong> coins)
