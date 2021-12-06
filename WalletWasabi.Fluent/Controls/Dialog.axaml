@@ -91,6 +91,16 @@
     <Setter Property="Margin" Value="0 40" />
   </Style>
 
+  <!-- Dialog Increased height State -->
+  <Style Selector="c|Dialog[IncreasedHeightEnabled=True] /template/ Border#PART_Border">
+    <Setter Property="Margin" Value="40 0" />
+  </Style>
+
+  <!-- Dialog Increased size State -->
+  <Style Selector="c|Dialog[IncreasedSizeEnabled=True] /template/ Border#PART_Border">
+    <Setter Property="Margin" Value="0 0" />
+  </Style>
+
   <!-- Dialog Fullscreen State -->
   <Style Selector="c|Dialog[FullScreenEnabled=True] /template/ Border#PART_Border">
     <Setter Property="Margin" Value="0 30 0 0" />
