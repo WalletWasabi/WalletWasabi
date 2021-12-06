@@ -52,7 +52,6 @@ namespace WalletWasabi.Fluent.Validation
 			}
 		}
 
-
 		public void ValidateProperty(string propertyName, bool clear = false)
 		{
 			if (ValidationMethods.TryGetValue(propertyName, out ValidateMethod? validationMethod))
