@@ -15,8 +15,14 @@ namespace WalletWasabi.EventSourcing
 	/// </summary>
 	public class InMemoryEventRepository : IEventRepository
 	{
-		protected static readonly IReadOnlyList<WrappedEvent> EmptyResult = ImmutableList<WrappedEvent>.Empty;
-		protected static readonly IReadOnlyList<string> EmptyIds = ImmutableList<string>.Empty;
+		protected static readonly IReadOnlyList<WrappedEvent> EmptyResult
+			= ImmutableList<WrappedEvent>.Empty;
+
+		protected static readonly IReadOnlyList<string> EmptyIds
+			= ImmutableList<string>.Empty;
+
+		protected static readonly IComparer<WrappedEvent> WrappedEventSequenceIdComparer
+			= Comparer<WrappedEvent>.Create((a, b) => a.SequenceId.CompareTo(b.SequenceId));
 
 		private readonly ConcurrentDictionary
 			// aggregateType
@@ -119,7 +125,7 @@ namespace WalletWasabi.EventSourcing
 				{
 					var foundIndex = result.BinarySearch(
 						new WrappedEvent(afterSequenceId),
-						Comparer<WrappedEvent>.Create((a, b) => a.SequenceId.CompareTo(b.SequenceId)));
+						WrappedEventSequenceIdComparer);
 					if (foundIndex < 0)
 					{
 						foundIndex = ~foundIndex;
