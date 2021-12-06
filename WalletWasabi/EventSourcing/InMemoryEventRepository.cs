@@ -59,6 +59,7 @@ namespace WalletWasabi.EventSourcing
 			Guard.NotNullOrEmpty(nameof(aggregateType), aggregateType);
 			Guard.NotNullOrEmpty(nameof(aggregateId), aggregateId);
 			Guard.NotNull(nameof(wrappedEvents), wrappedEvents);
+
 			var wrappedEventsList = wrappedEvents.ToList().AsReadOnly();
 
 			if (wrappedEventsList.Count == 0)
