@@ -152,9 +152,9 @@ namespace WalletWasabi.EventSourcing
 			string? afterAggregateId = null,
 			int? maxCount = null)
 		{
-			if (AggregatesIds.TryGetValue(aggregateType, out var tuple))
+			if (AggregatesIds.TryGetValue(aggregateType, out var aggregateIds))
 			{
-				var ids = tuple.Ids;
+				var ids = aggregateIds.Ids;
 				var foundIndex = 0;
 				if (afterAggregateId != null)
 				{
