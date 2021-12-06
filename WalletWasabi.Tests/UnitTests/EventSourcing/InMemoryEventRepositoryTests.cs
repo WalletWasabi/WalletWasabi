@@ -116,7 +116,8 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 
 			// Assert
 			var ex = await Assert.ThrowsAsync<ArgumentException>(ActionAsync);
-			Assert.Contains("Invalid firstSequenceId (gap in sequence ids) expected: '1' given: '2'",
+			Assert.Contains(
+				"Invalid firstSequenceId (gap in sequence ids) expected: '1' given: '2'",
 				ex.Message);
 		}
 
