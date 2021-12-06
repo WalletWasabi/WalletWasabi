@@ -138,7 +138,7 @@ namespace WalletWasabi.EventSourcing
 					}
 					result = result.RemoveRange(0, foundIndex);
 				}
-				if (maxCount.HasValue && maxCount.Value < result.Count)
+				if (maxCount < result.Count)
 				{
 					result = result.RemoveRange(maxCount.Value, result.Count - maxCount.Value);
 				}
