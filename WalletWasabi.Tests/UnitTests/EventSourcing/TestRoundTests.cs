@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.EventSourcing;
@@ -13,7 +10,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.EventSourcing
 {
-	public class TestRoundTests
+	public class TestRoundTests : IDisposable
 	{
 #warning decrease to 1 sec
 
@@ -187,6 +184,11 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			Assert.NotNull(result2?.State);
 			Assert.IsType<TestRoundState>(result2?.State);
 			Assert.Equal(1, (result2?.State as TestRoundState)?.Inputs.Count);
+		}
+
+		public void Dispose()
+		{
+			TestEventStore.Dispose();
 		}
 	}
 }
