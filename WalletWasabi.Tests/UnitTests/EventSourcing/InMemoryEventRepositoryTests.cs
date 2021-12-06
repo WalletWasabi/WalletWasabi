@@ -10,7 +10,7 @@ using Xunit.Abstractions;
 
 namespace WalletWasabi.Tests.UnitTests.EventSourcing
 {
-	public class InMemoryEventRepositoryTests
+	public class InMemoryEventRepositoryTests : IDisposable
 	{
 		private const string TestRoundAggregate = "TestRoundAggregate";
 		private readonly TimeSpan _semaphoreWaitTimeout = TimeSpan.FromSeconds(1);
@@ -428,6 +428,11 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			// Assert
 			Assert.True(result.Count <= limit);
 			Assert.True(result.All(a => afterAggregateId.CompareTo(a) <= 0));
+		}
+
+		public void Dispose()
+		{
+			TestEventRepository.Dispose();
 		}
 	}
 }

@@ -1,15 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.EventSourcing;
 using Xunit.Abstractions;
 
 namespace WalletWasabi.Tests.UnitTests.EventSourcing.TestDomain
 {
-	public class TestInMemoryEventRepository : InMemoryEventRepository
+	public class TestInMemoryEventRepository : InMemoryEventRepository, IDisposable
 	{
 		public TestInMemoryEventRepository(ITestOutputHelper output)
 		{
@@ -48,6 +43,13 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing.TestDomain
 			Output.WriteLine(nameof(Appended));
 			AppendedSemaphore.Release();
 			AppendedCallback?.Invoke();
+		}
+
+		public void Dispose()
+		{
+			ValidatedSemaphore.Dispose();
+			ConflictedSemaphore.Dispose();
+			AppendedSemaphore.Dispose();
 		}
 	}
 }
