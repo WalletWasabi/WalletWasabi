@@ -113,15 +113,15 @@ namespace WalletWasabi.Fluent.Validation
 
 		private void OnErrorsChanged(string propertyName, List<ErrorSeverity> categoriesToNotify)
 		{
-			var propertiesToNotify = categoriesToNotify.Select(
-				x => x switch
-				{
-					ErrorSeverity.Info => nameof(AnyInfos),
-					ErrorSeverity.Warning => nameof(AnyWarnings),
-					ErrorSeverity.Error => nameof(AnyErrors),
-					_ => throw new NotImplementedException(),
-				})
-				.ToList();
+			Func<ErrorSeverity, string> selector = x => x switch
+			{
+				ErrorSeverity.Info => nameof(AnyInfos),
+				ErrorSeverity.Warning => nameof(AnyWarnings),
+				ErrorSeverity.Error => nameof(AnyErrors),
+				_ => throw new NotImplementedException(),
+			};
+
+			var propertiesToNotify = categoriesToNotify.Select(selector).ToList();
 
 			if (propertiesToNotify.Any())
 			{
