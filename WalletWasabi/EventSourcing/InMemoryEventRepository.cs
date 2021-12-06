@@ -140,6 +140,13 @@ namespace WalletWasabi.EventSourcing
 						WrappedEventSequenceIdComparer);
 					if (foundIndex < 0)
 					{
+						// Note: this is because of BinarySearch() documented implementation
+						// returns "bitwise complement"
+						// see: https://docs.microsoft.com/en-us/dotnet/api/system.collections.immutable.immutablelist-1.binarysearch
+						// The zero-based index of item in the sorted List, if item is found;
+						// otherwise, a negative number that is the bitwise complement
+						// of the index of the next element that is larger than item or,
+						// if there is no larger element, the bitwise complement of Count.
 						foundIndex = ~foundIndex;
 					}
 					else
