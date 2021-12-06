@@ -1,13 +1,8 @@
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.EventSourcing;
 using WalletWasabi.Exceptions;
-using WalletWasabi.Extensions;
 using WalletWasabi.Interfaces.EventSourcing;
 using WalletWasabi.Tests.UnitTests.EventSourcing.TestDomain;
 using Xunit;
@@ -203,20 +198,20 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 		public async Task AppendEvents_AppendIsAtomic_Async()
 		{
 			// Arrange
-			var events_1 = new[] { new TestWrappedEvent(1, "a"), new TestWrappedEvent(2, "a") };
-			var events_2 = new[] { new TestWrappedEvent(2, "b"), new TestWrappedEvent(3, "b") };
+			var events1 = new[] { new TestWrappedEvent(1, "a"), new TestWrappedEvent(2, "a") };
+			var events2 = new[] { new TestWrappedEvent(2, "b"), new TestWrappedEvent(3, "b") };
 
 			// Act
 			async Task Action()
 			{
-				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events_1!);
-				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events_2!);
+				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events1!);
+				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events2!);
 			}
 
 			// Assert
 			await Assert.ThrowsAsync<OptimisticConcurrencyException>(Action);
 			Assert.True((await EventRepository.ListEventsAsync(nameof(TestRoundAggregate), "1"))
-				.Cast<TestWrappedEvent>().SequenceEqual(events_1));
+				.Cast<TestWrappedEvent>().SequenceEqual(events1));
 			Assert.True((await EventRepository.ListAggregateIdsAsync(nameof(TestRoundAggregate)))
 				.SequenceEqual(new[] { "1" }));
 		}
@@ -228,13 +223,13 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 		public async Task AppendEvents_CriticalSectionConflicts_Async(string conflictAfter)
 		{
 			// Arrange
-			var events_1 = new[] { new TestWrappedEvent(1, "a"), new TestWrappedEvent(2, "a") };
-			var events_2 = new[] { new TestWrappedEvent(2, "b"), new TestWrappedEvent(3, "b") };
+			var events1 = new[] { new TestWrappedEvent(1, "a"), new TestWrappedEvent(2, "a") };
+			var events2 = new[] { new TestWrappedEvent(2, "b"), new TestWrappedEvent(3, "b") };
 
 			// Act
 			async Task Append1()
 			{
-				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events_1!);
+				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events1!);
 			}
 			async Task Append2()
 			{
@@ -247,7 +242,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 					default:
 						throw new ApplicationException($"unexpected value conflictAfter: '{conflictAfter}'");
 				}
-				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events_2!);
+				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events2!);
 			}
 			async Task AppendInParallel()
 			{
@@ -268,7 +263,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			// Assert
 			await Assert.ThrowsAsync<OptimisticConcurrencyException>(AppendInParallel);
 			Assert.True((await EventRepository.ListEventsAsync(nameof(TestRoundAggregate), "1"))
-						.Cast<TestWrappedEvent>().SequenceEqual(events_1));
+						.Cast<TestWrappedEvent>().SequenceEqual(events1));
 			Assert.True((await EventRepository.ListAggregateIdsAsync(nameof(TestRoundAggregate)))
 				.SequenceEqual(new[] { "1" }));
 		}
@@ -282,13 +277,13 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 		public async Task AppendEvents_CriticalAppendConflicts_Async(string conflictAfter)
 		{
 			// Arrange
-			var events_1 = new[] { new TestWrappedEvent(1, "a"), new TestWrappedEvent(2, "a") };
-			var events_2 = new[] { new TestWrappedEvent(3, "b"), new TestWrappedEvent(4, "b") };
+			var events1 = new[] { new TestWrappedEvent(1, "a"), new TestWrappedEvent(2, "a") };
+			var events2 = new[] { new TestWrappedEvent(3, "b"), new TestWrappedEvent(4, "b") };
 
 			// Act
 			async Task Append1()
 			{
-				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events_1!);
+				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events1!);
 			}
 			async Task Append2()
 			{
@@ -301,7 +296,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 					default:
 						throw new ApplicationException($"unexpected value conflictAfter: '{conflictAfter}'");
 				}
-				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events_2!);
+				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events2!);
 			}
 			async Task AppendInParallel()
 			{
@@ -323,7 +318,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			await AppendInParallel();
 
 			Assert.True((await EventRepository.ListEventsAsync(nameof(TestRoundAggregate), "1"))
-						.Cast<TestWrappedEvent>().SequenceEqual(events_1.Concat(events_2)));
+						.Cast<TestWrappedEvent>().SequenceEqual(events1.Concat(events2)));
 			Assert.True((await EventRepository.ListAggregateIdsAsync(nameof(TestRoundAggregate)))
 				.SequenceEqual(new[] { "1" }));
 		}
@@ -338,9 +333,9 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 		public async Task ListEventsAsync_ConflictWithAppending_Async(string listOnCallback)
 		{
 			// Arrange
-			var events_1 = new[] { new TestWrappedEvent(1, "a"), new TestWrappedEvent(2, "a") };
-			var events_2 = new[] { new TestWrappedEvent(3, "b"), new TestWrappedEvent(4, "b") };
-			await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events_1);
+			var events1 = new[] { new TestWrappedEvent(1, "a"), new TestWrappedEvent(2, "a") };
+			var events2 = new[] { new TestWrappedEvent(3, "b"), new TestWrappedEvent(4, "b") };
+			await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events1);
 
 			// Act
 			IReadOnlyList<WrappedEvent> result = Array.Empty<WrappedEvent>().ToList().AsReadOnly();
@@ -361,14 +356,14 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 				default:
 					throw new ApplicationException($"unexpected value listOnCallback: '{listOnCallback}'");
 			}
-			await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events_2);
+			await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events2);
 
 			// Assert
-			var expected = events_1.AsEnumerable();
+			var expected = events1.AsEnumerable();
 			switch (listOnCallback)
 			{
 				case nameof(TestInMemoryEventRepository.AppendedCallback):
-					expected = expected.Concat(events_2);
+					expected = expected.Concat(events2);
 					break;
 			}
 			Assert.True(result.SequenceEqual(expected));
