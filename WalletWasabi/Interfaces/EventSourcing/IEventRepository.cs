@@ -32,14 +32,14 @@ namespace WalletWasabi.Interfaces.EventSourcing
 		/// <param name="aggregateId">Id of aggregate</param>
 		/// <param name="afterSequenceId">Starts with event after given <seealso cref="WrappedEvent.SequenceId"/>
 		/// and lists all following events</param>
-		/// <param name="limit">Limits the number of returned events</param>
+		/// <param name="maxCount">Limits the number of returned events</param>
 		/// <returns>Ordered list of events</returns>
 		/// <exception cref="TransientException">Transient infrastracture failure</exception>
 		public Task<IReadOnlyList<WrappedEvent>> ListEventsAsync(
 			string aggregateType,
 			string aggregateId,
 			long afterSequenceId = 0,
-			int? limit = null);
+			int? maxCount = null);
 
 		/// <summary>
 		/// Supplementary method for enumerating all ids for <paramref name="aggregateType"/>
@@ -48,12 +48,12 @@ namespace WalletWasabi.Interfaces.EventSourcing
 		/// <param name="aggregateType">Type of aggregate</param>
 		/// <param name="afterAggregateId">Starts with id right after given id and lists all following ids
 		/// in any artificial order</param>
-		/// <param name="limit">Limits the number of returned events</param>
+		/// <param name="maxCount">Limits the number of returned events</param>
 		/// <returns>Unordered list of ids</returns>
 		/// <exception cref="TransientException">Transient infrastracture failure</exception>
 		public Task<IReadOnlyList<string>> ListAggregateIdsAsync(
 			string aggregateType,
 			string? afterAggregateId = null,
-			int? limit = null);
+			int? maxCount = null);
 	}
 }

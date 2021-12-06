@@ -109,7 +109,7 @@ namespace WalletWasabi.EventSourcing
 			string aggregateType,
 			string aggregateId,
 			long afterSequenceId = 0,
-			int? limit = null)
+			int? maxCount = null)
 		{
 			if (_aggregatesEventsBatches.TryGetValue(aggregateType, out var aggregateEventsBatches) &&
 				aggregateEventsBatches.TryGetValue(aggregateId, out var value))
@@ -130,9 +130,9 @@ namespace WalletWasabi.EventSourcing
 					}
 					result = result.RemoveRange(0, foundIndex);
 				}
-				if (limit.HasValue && limit.Value < result.Count)
+				if (maxCount.HasValue && maxCount.Value < result.Count)
 				{
-					result = result.RemoveRange(limit.Value, result.Count - limit.Value);
+					result = result.RemoveRange(maxCount.Value, result.Count - maxCount.Value);
 				}
 				return Task.FromResult((IReadOnlyList<WrappedEvent>)result);
 			}
@@ -142,7 +142,7 @@ namespace WalletWasabi.EventSourcing
 		public Task<IReadOnlyList<string>> ListAggregateIdsAsync(
 			string aggregateType,
 			string? afterAggregateId = null,
-			int? limit = null)
+			int? maxCount = null)
 		{
 			if (_aggregatesIds.TryGetValue(aggregateType, out var tuple))
 			{
@@ -161,8 +161,8 @@ namespace WalletWasabi.EventSourcing
 					}
 				}
 				var result = new List<string>();
-				var afterLastIndex = limit.HasValue ?
-					Math.Min(foundIndex + limit.Value, ids.Count) :
+				var afterLastIndex = maxCount.HasValue ?
+					Math.Min(foundIndex + maxCount.Value, ids.Count) :
 					ids.Count;
 				for (var i = foundIndex; i < afterLastIndex; i++)
 				{
