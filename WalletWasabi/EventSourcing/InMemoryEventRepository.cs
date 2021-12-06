@@ -60,20 +60,24 @@ namespace WalletWasabi.EventSourcing
 			Guard.NotNullOrEmpty(nameof(aggregateId), aggregateId);
 			Guard.NotNull(nameof(wrappedEvents), wrappedEvents);
 			var wrappedEventsList = wrappedEvents.ToList().AsReadOnly();
+
 			if (wrappedEventsList.Count == 0)
 			{
 				return Task.CompletedTask;
 			}
 			var firstSequenceId = wrappedEventsList[0].SequenceId;
 			var lastSequenceId = wrappedEventsList[^1].SequenceId;
+
 			if (firstSequenceId <= 0)
 			{
 				throw new ArgumentException("First event sequenceId is not natural number.", nameof(wrappedEvents));
 			}
+
 			if (lastSequenceId <= 0)
 			{
 				throw new ArgumentException("Last event sequenceId is not natural number.", nameof(wrappedEvents));
 			}
+
 			if (lastSequenceId - firstSequenceId + 1 != wrappedEventsList.Count)
 			{
 				throw new ArgumentException("Event sequence ids are inconsistent.", nameof(wrappedEvents));
@@ -124,6 +128,7 @@ namespace WalletWasabi.EventSourcing
 				aggregateEventsBatches.TryGetValue(aggregateId, out var value))
 			{
 				var result = value.Events;
+
 				if (afterSequenceId > 0)
 				{
 					var foundIndex = result.BinarySearch(
@@ -139,6 +144,7 @@ namespace WalletWasabi.EventSourcing
 					}
 					result = result.RemoveRange(0, foundIndex);
 				}
+
 				if (maxCount < result.Count)
 				{
 					result = result.RemoveRange(maxCount.Value, result.Count - maxCount.Value);
