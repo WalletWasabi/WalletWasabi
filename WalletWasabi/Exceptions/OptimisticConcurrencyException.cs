@@ -1,14 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace WalletWasabi.Exceptions
 {
 	/// <summary>
-	/// Conflict occured while commiting database transaction.
+	/// Conflict occurred while committing database transaction.
 	/// Transaction needs to be retried.
 	/// </summary>
 	public class OptimisticConcurrencyException : TransientException
