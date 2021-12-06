@@ -17,7 +17,7 @@ namespace WalletWasabi.Interfaces.EventSourcing
 		/// <param name="aggregateId">Id of aggregate</param>
 		/// <param name="wrappedEvents">Ordered list of events to be persisted</param>
 		/// <exception cref="OptimisticConcurrencyException">If there is concurrency conflict ; retry command</exception>
-		/// <exception cref="TransientException">Transient infrastracture failure</exception>
+		/// <exception cref="TransientException">Transient infrastructure failure</exception>
 		/// <exception cref="ArgumentException">Invalid input</exception>
 		public Task AppendEventsAsync(
 			string aggregateType,
