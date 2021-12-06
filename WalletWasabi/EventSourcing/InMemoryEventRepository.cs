@@ -101,7 +101,8 @@ namespace WalletWasabi.EventSourcing
 				comparisonValue: (firstSequenceId - 1, events)))
 			{
 				Conflicted(); // no action
-				throw new OptimisticConcurrencyException($"Conflict while commiting events. Retry command. aggregate: '{aggregateType}' id: '{aggregateId}'");
+				throw new OptimisticConcurrencyException(
+					$"Conflict while committing events. Retry command. aggregate: '{aggregateType}' id: '{aggregateId}'");
 			}
 			Appended(); // no action
 
