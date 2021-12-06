@@ -215,7 +215,7 @@ namespace WalletWasabi.EventSourcing
 		{
 		}
 
-		// helper for parallel critical section testing in DEBUG build only.
+		// Helper for parallel critical section testing in DEBUG build only.
 		[Conditional("DEBUG")]
 		protected virtual void Appended()
 		{
