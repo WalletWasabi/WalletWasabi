@@ -187,10 +187,11 @@ namespace WalletWasabi.EventSourcing
 			var liveLockLimit = 10000;
 			do
 			{
-				if (liveLockLimit-- <= 0)
+				if (liveLockLimit <= 0)
 				{
 					throw new ApplicationException("Live lock detected.");
 				}
+				liveLockLimit--;
 				(tailIndex, aggregateIds) = _aggregatesIds.GetOrAdd(aggregateType, _ => new(0, ImmutableSortedSet<string>.Empty));
 				newAggregateIds = aggregateIds.Add(id);
 			}
