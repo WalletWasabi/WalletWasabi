@@ -95,8 +95,8 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			}
 
 			// Assert
-			(await Assert.ThrowsAsync<ArgumentException>(Action))
-				.Message.Contains("first event sequenceId is not natural number");
+			var ex = await Assert.ThrowsAsync<ArgumentException>(Action);
+			Assert.Contains("First event sequenceId is not natural number", ex.Message);
 		}
 
 		[Fact]
@@ -115,8 +115,9 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			}
 
 			// Assert
-			(await Assert.ThrowsAsync<ArgumentException>(Action))
-				.Message.Contains("invalid firstSequenceId (gap in sequence ids) expected: '1' given: '2'");
+			var ex = await Assert.ThrowsAsync<ArgumentException>(Action);
+			Assert.Contains("Invalid firstSequenceId (gap in sequence ids) expected: '1' given: '2'",
+				ex.Message);
 		}
 
 		[Fact]
@@ -136,8 +137,8 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			}
 
 			// Assert
-			(await Assert.ThrowsAsync<OptimisticConcurrencyException>(Action))
-				.Message.Contains("Conflict");
+			var ex = await Assert.ThrowsAsync<OptimisticConcurrencyException>(Action);
+			Assert.Contains("Conflict", ex.Message);
 		}
 
 		[Fact]
