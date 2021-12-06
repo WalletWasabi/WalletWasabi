@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
@@ -10,7 +9,6 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;

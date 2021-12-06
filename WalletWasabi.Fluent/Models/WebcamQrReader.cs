@@ -1,5 +1,4 @@
 using Avalonia.Media.Imaging;
-using System;
 using System.Threading.Tasks;
 using OpenCvSharp;
 using Avalonia;

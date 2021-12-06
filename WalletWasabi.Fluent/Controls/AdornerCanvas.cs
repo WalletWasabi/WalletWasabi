@@ -1,7 +1,6 @@
 ﻿using System.Collections.Specialized;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using Avalonia.Rendering;
 using Avalonia.VisualTree;
@@ -10,14 +9,14 @@ using Avalonia.VisualTree;
 
 namespace WalletWasabi.Fluent.Controls
 {
-    /// <summary>
-    /// Represents a surface for showing adorners.
-    /// Adorners are always on top of the adorned element and are positioned to stay relative to the adorned element.
-    /// </summary>
-    /// <remarks>
-    /// TODO: Need to track position of adorned elements and move the adorner if they move.
-    /// </remarks>
-    public class AdornerCanvas : Canvas, ICustomSimpleHitTest
+	/// <summary>
+	/// Represents a surface for showing adorners.
+	/// Adorners are always on top of the adorned element and are positioned to stay relative to the adorned element.
+	/// </summary>
+	/// <remarks>
+	/// TODO: Need to track position of adorned elements and move the adorner if they move.
+	/// </remarks>
+	public class AdornerCanvas : Canvas, ICustomSimpleHitTest
     {
         /// <summary>
         /// Allows for getting and setting of the adorned element.

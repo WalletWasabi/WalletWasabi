@@ -1,6 +1,5 @@
 using Avalonia.Controls;
 using Newtonsoft.Json;
-using System;
 
 namespace WalletWasabi.Fluent.Converters
 {

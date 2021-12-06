@@ -1,5 +1,4 @@
 using NBitcoin;
-using System;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Models;
 

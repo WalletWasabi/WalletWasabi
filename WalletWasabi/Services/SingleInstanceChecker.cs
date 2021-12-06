@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
-using System;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;

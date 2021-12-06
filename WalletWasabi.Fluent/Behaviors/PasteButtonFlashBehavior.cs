@@ -1,4 +1,3 @@
-using System;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
@@ -7,7 +6,6 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Threading;
 using ReactiveUI;
 using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Userfacing;

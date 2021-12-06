@@ -1,7 +1,6 @@
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
-using System;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;

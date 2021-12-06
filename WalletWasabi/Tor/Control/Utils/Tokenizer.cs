@@ -1,4 +1,3 @@
-using System;
 using WalletWasabi.Tor.Control.Exceptions;
 
 namespace WalletWasabi.Tor.Control.Utils

@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using NBitcoin;
 using NBitcoin.RPC;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;

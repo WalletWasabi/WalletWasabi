@@ -1,4 +1,3 @@
-using System;
 using System.Reactive.Concurrency;
 using NBitcoin;
 using ReactiveUI;

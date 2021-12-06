@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -9,7 +8,6 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 

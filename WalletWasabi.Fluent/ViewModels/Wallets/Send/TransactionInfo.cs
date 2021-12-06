@@ -1,11 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send

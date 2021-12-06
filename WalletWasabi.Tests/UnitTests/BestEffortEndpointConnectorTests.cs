@@ -1,4 +1,3 @@
-using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -6,7 +5,6 @@ using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
-using NBitcoin.Protocol.Connectors;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests

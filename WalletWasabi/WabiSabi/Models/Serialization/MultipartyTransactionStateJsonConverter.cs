@@ -1,4 +1,3 @@
-using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;

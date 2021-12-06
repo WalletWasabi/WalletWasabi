@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -11,7 +10,6 @@ using NBitcoin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Helpers;
 using WalletWasabi.Tor.Http;
 
 namespace WalletWasabi.WebClients.PayJoin

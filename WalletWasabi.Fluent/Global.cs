@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using Nito.AsyncEx;
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net;
