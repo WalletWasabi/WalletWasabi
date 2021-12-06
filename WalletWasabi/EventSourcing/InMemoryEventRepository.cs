@@ -153,12 +153,12 @@ namespace WalletWasabi.EventSourcing
 					{
 						foundIndex++;
 					}
-					result = result.RemoveRange(0, foundIndex);
+					result = result.GetRange(foundIndex, result.Count - foundIndex);
 				}
 
 				if (maxCount < result.Count)
 				{
-					result = result.RemoveRange(maxCount.Value, result.Count - maxCount.Value);
+					result = result.GetRange(0, maxCount.Value);
 				}
 				return Task.FromResult((IReadOnlyList<WrappedEvent>)result);
 			}
