@@ -75,7 +75,7 @@ namespace WalletWasabi.EventSourcing
 
 			if (lastSequenceId <= 0)
 			{
-				throw new ArgumentException("Last event sequenceId is not natural number.", nameof(wrappedEvents));
+				throw new ArgumentException("Last event sequenceId is not a positive integer.", nameof(wrappedEvents));
 			}
 
 			if (lastSequenceId - firstSequenceId + 1 != wrappedEventsList.Count)
