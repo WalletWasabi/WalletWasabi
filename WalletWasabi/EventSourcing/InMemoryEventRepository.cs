@@ -24,7 +24,7 @@ namespace WalletWasabi.EventSourcing
 		protected static readonly IComparer<WrappedEvent> WrappedEventSequenceIdComparer
 			= Comparer<WrappedEvent>.Create((a, b) => a.SequenceId.CompareTo(b.SequenceId));
 
-		private readonly ConcurrentDictionary
+		private ConcurrentDictionary
 			// aggregateType
 			<string,
 			ConcurrentDictionary
@@ -36,9 +36,10 @@ namespace WalletWasabi.EventSourcing
 
 					// Ordered list of events
 					ImmutableList<WrappedEvent> Events
-				)>> _aggregatesEventsBatches = new();
+				)>> AggregatesEventsBatches
+		{ get; } = new();
 
-		private readonly ConcurrentDictionary
+		private ConcurrentDictionary
 			// aggregateType
 			<string,
 			(
@@ -47,7 +48,8 @@ namespace WalletWasabi.EventSourcing
 
 				// List of aggregate Ids in this aggregateType
 				ImmutableSortedSet<string> Ids
-			)> _aggregatesIds = new();
+			)> AggregatesIds
+		{ get; } = new();
 
 		public Task AppendEventsAsync(
 			string aggregateType,
