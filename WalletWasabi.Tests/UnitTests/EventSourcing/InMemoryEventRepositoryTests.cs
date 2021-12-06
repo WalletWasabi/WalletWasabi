@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -220,6 +221,8 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 				.SequenceEqual(new[] { "1" }));
 		}
 
+#if DEBUG
+
 		[Theory]
 		[InlineData(nameof(TestInMemoryEventRepository.AppendedSemaphore))]
 		public async Task AppendEvents_CriticalSectionConflicts_Async(string conflictAfter)
@@ -269,6 +272,10 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			Assert.True((await EventRepository.ListAggregateIdsAsync(nameof(TestRoundAggregate)))
 				.SequenceEqual(new[] { "1" }));
 		}
+
+#endif
+
+#if DEBUG
 
 		[Theory]
 		[InlineData(nameof(TestInMemoryEventRepository.AppendedSemaphore))]
@@ -321,6 +328,10 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 				.SequenceEqual(new[] { "1" }));
 		}
 
+#endif
+
+#if DEBUG
+
 		[Theory]
 		[InlineData(nameof(TestInMemoryEventRepository.ValidatedCallback))]
 		[InlineData(nameof(TestInMemoryEventRepository.AppendedCallback))]
@@ -362,6 +373,8 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			}
 			Assert.True(result.SequenceEqual(expected));
 		}
+
+#endif
 
 		[Theory]
 		[InlineData(0, 1)]
