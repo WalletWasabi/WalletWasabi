@@ -176,7 +176,7 @@ namespace WalletWasabi.EventSourcing
 						foundIndex++;
 					}
 				}
-				var result = new List<string>();
+				List<string> result = new();
 				var afterLastIndex = maxCount.HasValue
 					? Math.Min(foundIndex + maxCount.Value, ids.Count)
 					: ids.Count;
