@@ -91,7 +91,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			// Act
 			async Task ActionAsync()
 			{
-				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events!);
+				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events);
 			}
 
 			// Assert
@@ -111,7 +111,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			// Act
 			async Task ActionAsync()
 			{
-				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events!);
+				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events);
 			}
 
 			// Assert
@@ -133,7 +133,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			// Act
 			async Task ActionAsync()
 			{
-				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events!);
+				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events);
 			}
 
 			// Assert
@@ -202,8 +202,8 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			// Act
 			async Task ActionAsync()
 			{
-				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events1!);
-				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events2!);
+				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events1);
+				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events2);
 			}
 
 			// Assert
@@ -227,7 +227,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			// Act
 			async Task Append1Async()
 			{
-				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events1!);
+				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events1);
 			}
 			async Task Append2Async()
 			{
@@ -281,7 +281,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			// Act
 			async Task Append1Async()
 			{
-				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events1!);
+				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events1);
 			}
 			async Task Append2Async()
 			{
