@@ -103,7 +103,7 @@
           </c:PreviewItem>
           <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
                          Text="for an additional charge of">
-            <TextBlock Text="{Binding FeeText, FallbackValue=235 sats (≈55.34 USD)}" DockPanel.Dock="Left" />
+            <TextBlock Text="{Binding FeeText, FallbackValue=0.00000235 bitcoins (≈55.34 USD)}" DockPanel.Dock="Left" />
           </c:PreviewItem>
         </StackPanel>
       </DockPanel>
