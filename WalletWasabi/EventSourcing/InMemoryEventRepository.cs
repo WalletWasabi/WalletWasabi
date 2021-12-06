@@ -79,7 +79,7 @@ namespace WalletWasabi.EventSourcing
 				throw new ArgumentException("Event sequence ids are inconsistent.", nameof(wrappedEvents));
 			}
 
-			var aggregateEventsBatches = _aggregatesEventsBatches.GetOrAdd(aggregateType, _ => new());
+			var aggregateEventsBatches = AggregatesEventsBatches.GetOrAdd(aggregateType, _ => new());
 			var (tailSequenceId, events) = aggregateEventsBatches.GetOrAdd(
 				aggregateId,
 				_ => (0, ImmutableList<WrappedEvent>.Empty));
@@ -119,7 +119,7 @@ namespace WalletWasabi.EventSourcing
 			long afterSequenceId = 0,
 			int? maxCount = null)
 		{
-			if (_aggregatesEventsBatches.TryGetValue(aggregateType, out var aggregateEventsBatches) &&
+			if (AggregatesEventsBatches.TryGetValue(aggregateType, out var aggregateEventsBatches) &&
 				aggregateEventsBatches.TryGetValue(aggregateId, out var value))
 			{
 				var result = value.Events;
@@ -152,7 +152,7 @@ namespace WalletWasabi.EventSourcing
 			string? afterAggregateId = null,
 			int? maxCount = null)
 		{
-			if (_aggregatesIds.TryGetValue(aggregateType, out var tuple))
+			if (AggregatesIds.TryGetValue(aggregateType, out var tuple))
 			{
 				var ids = tuple.Ids;
 				var foundIndex = 0;
@@ -194,10 +194,10 @@ namespace WalletWasabi.EventSourcing
 					throw new ApplicationException("Live lock detected.");
 				}
 				liveLockLimit--;
-				(tailIndex, aggregateIds) = _aggregatesIds.GetOrAdd(aggregateType, _ => new(0, ImmutableSortedSet<string>.Empty));
+				(tailIndex, aggregateIds) = AggregatesIds.GetOrAdd(aggregateType, _ => new(0, ImmutableSortedSet<string>.Empty));
 				newAggregateIds = aggregateIds.Add(id);
 			}
-			while (!_aggregatesIds.TryUpdate(
+			while (!AggregatesIds.TryUpdate(
 				key: aggregateType,
 				newValue: (tailIndex + 1, newAggregateIds),
 				comparisonValue: (tailIndex, aggregateIds)));
