@@ -23,13 +23,13 @@
       <DockPanel>
         <TextBlock Text="Preview Transaction" />
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center">
-          <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
+          <Image Width="120" Margin="10 0 10 10" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
                  ToolTip.Tip="Your privacy is being protected with PayJoin."
                  IsVisible="{Binding CurrentTransactionSummary.IsPayJoin}" />
 
-          <c:ProgressRing Height="25" Width="25" IsIndeterminate="True" IsVisible="{Binding IsLoading}" />
+          <c:ProgressRing Margin="10 0 10 10" Height="25" Width="25" IsIndeterminate="True" IsVisible="{Binding IsLoading}" />
 
-          <Viewbox Cursor="Hand" Height="20" IsVisible="{Binding CurrentTransactionSummary.MaxPrivacy}">
+          <Border Padding="10 0 10 10" Cursor="Hand" IsVisible="{Binding CurrentTransactionSummary.MaxPrivacy}">
             <Interaction.Behaviors>
               <behaviors:ShowFlyoutOnPointerOverBehavior />
             </Interaction.Behaviors>
@@ -41,10 +41,12 @@
                 </DockPanel>
               </Flyout>
             </FlyoutBase.AttachedFlyout>
+            <Viewbox Height="20">
+              <PathIcon Data="{StaticResource shield_regular}" Foreground="{DynamicResource PrivacyLevelStrongBrush}" />
+            </Viewbox>
+          </Border>
 
-            <PathIcon Data="{StaticResource shield_regular}" Foreground="{DynamicResource PrivacyLevelStrongBrush}" />
-          </Viewbox>
-          <Panel Cursor="Hand" Margin="10">
+          <Border Cursor="Hand" Padding="10 0 10 10">
             <Interaction.Behaviors>
               <behaviors:BindableFlyoutOpenBehavior IsOpen="{Binding PrivacySuggestions.IsOpen}" />
             </Interaction.Behaviors>
@@ -130,7 +132,7 @@
             <Viewbox Height="20">
               <PathIcon Data="{StaticResource shield_regular}" Foreground="{DynamicResource WarningMessageForeground}" />
             </Viewbox>
-          </Panel>
+          </Border>
         </StackPanel>
       </DockPanel>
     </c:ContentArea.Title>
