@@ -104,16 +104,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				var labelDialog = new LabelEntryDialogViewModel(_wallet, _transactionInfo);
-
-				var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
-
-				if (result.Result is null)
-				{
-					return;
-				}
-
-				_transactionInfo.UserLabels = result.Result;
 				_transactionInfo.Amount = new Money(AmountBtc, MoneyUnit.BTC);
 
 				Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo));

@@ -331,33 +331,35 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private async Task OnConfirmAsync()
 		{
-			if (_transaction is { })
+			var labelDialog = new LabelEntryDialogViewModel(_wallet, _info);
+			var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
+			if (result.Result is null)
 			{
-				var transaction = _transaction;
+				return;
+			}
+			_info.UserLabels = result.Result;
 
-				var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
+			var transaction = TransactionHelpers.BuildTransaction(_wallet, _info);
+			var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
+			var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
+			if (authResult)
+			{
+				IsBusy = true;
 
-				var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
-
-				if (authResult)
+				try
 				{
-					IsBusy = true;
-
-					try
-					{
-						var finalTransaction =
-							await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
-						await SendTransactionAsync(finalTransaction);
-						Navigate().To(new SendSuccessViewModel(_wallet, finalTransaction));
-					}
-					catch (Exception ex)
-					{
-						await ShowErrorAsync("Transaction", ex.ToUserFriendlyString(),
-							"Wasabi was unable to send your transaction.");
-					}
-
-					IsBusy = false;
+					var finalTransaction =
+						await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
+					await SendTransactionAsync(finalTransaction);
+					Navigate().To(new SendSuccessViewModel(_wallet, finalTransaction));
 				}
+				catch (Exception ex)
+				{
+					await ShowErrorAsync("Transaction", ex.ToUserFriendlyString(),
+						"Wasabi was unable to send your transaction.");
+				}
+
+				IsBusy = false;
 			}
 		}
 
