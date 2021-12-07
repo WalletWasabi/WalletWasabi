@@ -158,6 +158,7 @@ namespace WalletWasabi.EventSourcing
 				{
 					result = result.GetRange(0, maxCount.Value);
 				}
+
 				return Task.FromResult((IReadOnlyList<WrappedEvent>)result);
 			}
 			return Task.FromResult(EmptyResult);
