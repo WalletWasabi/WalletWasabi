@@ -328,14 +328,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				var initialTransaction = await BuildTransactionAsync();
 
-				if (initialTransaction is { } && _transaction is { })
+				if (initialTransaction is { })
 				{
 					UpdateTransaction(CurrentTransactionSummary, initialTransaction);
 
 					IsLoading = true;
 					var (selected, suggestions) =
 						await ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(_info, _wallet,
-							_transaction);
+							_transaction!);
 
 					IsLoading = false;
 
