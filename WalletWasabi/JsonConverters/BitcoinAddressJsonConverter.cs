@@ -5,16 +5,10 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.JsonConverters
 {
-	public class BitcoinAddressJsonConverter : JsonConverter
+	public class BitcoinAddressJsonConverter : JsonConverter<BitcoinAddress>
 	{
 		/// <inheritdoc />
-		public override bool CanConvert(Type objectType)
-		{
-			return objectType == typeof(BitcoinAddress);
-		}
-
-		/// <inheritdoc />
-		public override object? ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+		public override BitcoinAddress? ReadJson(JsonReader reader, Type objectType, BitcoinAddress? existingValue, bool hasExistingValue, JsonSerializer serializer)
 		{
 			var bitcoinAddressString = reader.Value as string;
 			if (string.IsNullOrWhiteSpace(bitcoinAddressString))
@@ -28,11 +22,16 @@ namespace WalletWasabi.JsonConverters
 		}
 
 		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+		public override void WriteJson(JsonWriter writer, BitcoinAddress? value, JsonSerializer serializer)
 		{
-			var bitcoinAddress = value as BitcoinAddress;
-
-			writer.WriteValue(bitcoinAddress.ToString());
+			if (value is null)
+			{
+				writer.WriteNull();
+			}
+			else
+			{
+				writer.WriteValue(value.ToString());
+			}
 		}
 	}
 }
