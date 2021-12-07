@@ -138,11 +138,11 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		public async Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog)
 			=> await NavigateDialogAsync(dialog, CurrentTarget);
 
-		public async Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target)
+		public async Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target, NavigationMode navigationMode = NavigationMode.Normal)
 		{
 			var dialogTask = dialog.GetDialogResultAsync();
 
-			Navigate(target).To(dialog);
+			Navigate(target).To(dialog, navigationMode);
 
 			var result = await dialogTask;
 

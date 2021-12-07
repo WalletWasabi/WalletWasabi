@@ -332,11 +332,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private async Task OnConfirmAsync()
 		{
 			var labelDialog = new LabelEntryDialogViewModel(_wallet, _info);
+
+			Navigate(NavigationTarget.CompactDialogScreen).To(labelDialog);
+
+			await labelDialog.GetDialogResultAsync();
+
 			var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
 			if (result.Result is null)
 			{
+				Navigate(NavigationTarget.CompactDialogScreen).Back();
 				return;
 			}
+
 			_info.UserLabels = result.Result;
 
 			var transaction = TransactionHelpers.BuildTransaction(_wallet, _info);
@@ -371,7 +378,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 
 			var authDialog = AuthorizationHelpers.GetAuthorizationDialog(_wallet, transactionAuthorizationInfo);
-			var authDialogResult = await NavigateDialogAsync(authDialog, authDialog.DefaultTarget);
+			var authDialogResult = await NavigateDialogAsync(authDialog, authDialog.DefaultTarget, NavigationMode.Clear);
 
 			if (!authDialogResult.Result && authDialogResult.Kind == DialogResultKind.Normal)
 			{
