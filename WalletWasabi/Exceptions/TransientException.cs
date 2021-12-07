@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace WalletWasabi.Exceptions
 {
 	/// <summary>
-	/// Infrastructure or optimistic conflict exception that will be fixed when retried
+	/// Infrastructure or optimistic conflict exception that will be fixed when retried.
 	/// </summary>
 	public class TransientException : Exception
 	{

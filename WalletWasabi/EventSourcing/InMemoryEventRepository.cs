@@ -29,14 +29,7 @@ namespace WalletWasabi.EventSourcing
 			<string,
 			ConcurrentDictionary
 				// aggregateId
-				<string,
-				(
-					// SequenceId of the last event of this aggregate
-					long TailSequenceId,
-
-					// Ordered list of events
-					ImmutableList<WrappedEvent> Events
-				)>> AggregatesEventsBatches
+				<string, AggregateEvents>> AggregatesEventsBatches
 		{ get; } = new();
 
 		private ConcurrentDictionary
@@ -88,7 +81,7 @@ namespace WalletWasabi.EventSourcing
 			var aggregateEventsBatches = AggregatesEventsBatches.GetOrAdd(aggregateType, _ => new());
 			var (tailSequenceId, events) = aggregateEventsBatches.GetOrAdd(
 				aggregateId,
-				_ => (0, ImmutableList<WrappedEvent>.Empty));
+				_ => new AggregateEvents(0, ImmutableList<WrappedEvent>.Empty));
 
 			if (tailSequenceId + 1 < firstSequenceId)
 			{
@@ -103,8 +96,8 @@ namespace WalletWasabi.EventSourcing
 			// Atomically detect conflict and replace lastSequenceId and lock to ensure strong order in eventsBatches.
 			if (!aggregateEventsBatches.TryUpdate(
 				key: aggregateId,
-				newValue: (lastSequenceId, newEvents),
-				comparisonValue: (firstSequenceId - 1, events)))
+				newValue: new AggregateEvents(lastSequenceId, newEvents),
+				comparisonValue: new AggregateEvents(firstSequenceId - 1, events)))
 			{
 				Conflicted(); // no action
 				throw new OptimisticConcurrencyException(
