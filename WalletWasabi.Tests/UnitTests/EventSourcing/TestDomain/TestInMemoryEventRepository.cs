@@ -13,9 +13,9 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing.TestDomain
 
 		protected ITestOutputHelper Output { get; init; }
 
-		public SemaphoreSlim ValidatedSemaphore { get; } = new SemaphoreSlim(0);
-		public SemaphoreSlim ConflictedSemaphore { get; } = new SemaphoreSlim(0);
-		public SemaphoreSlim AppendedSemaphore { get; } = new SemaphoreSlim(0);
+		public SemaphoreSlim ValidatedSemaphore { get; } = new(0);
+		public SemaphoreSlim ConflictedSemaphore { get; } = new(0);
+		public SemaphoreSlim AppendedSemaphore { get; } = new(0);
 
 		public Action? ValidatedCallback { get; set; }
 		public Action? ConflictedCallback { get; set; }
