@@ -91,7 +91,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			// Act
 			async Task ActionAsync()
 			{
-				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events);
+				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "1", events).ConfigureAwait(false);
 			}
 
 			// Assert
