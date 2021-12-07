@@ -34,9 +34,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public IEnumerable<SmartCoin> Coins { get; set; } = Enumerable.Empty<SmartCoin>();
 
+		public IEnumerable<SmartCoin> ChangelessCoins { get; set; } = Enumerable.Empty<SmartCoin>();
+
 		public IPayjoinClient? PayJoinClient { get; set; }
 
 		public bool IsPayJoin => PayJoinClient is { };
+
+		public bool IsOptimized => ChangelessCoins.Any();
 
 		public bool IsPrivatePocketUsed => Coins.All(x => x.HdPubKey.AnonymitySet >= _privateCoinThreshold);
 
@@ -46,6 +50,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			SubtractFee = default;
 			FeeRate = FeeRate.Zero;
+			ChangelessCoins = Enumerable.Empty<SmartCoin>();
 
 			if (Coins.Sum(x => x.Amount) < Amount) // Reset coins if the selected cluster is not enough for the new amount
 			{

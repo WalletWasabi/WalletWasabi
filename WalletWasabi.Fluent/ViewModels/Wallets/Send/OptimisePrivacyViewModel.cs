@@ -56,7 +56,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void Complete()
 		{
-			Close(DialogResultKind.Normal, SelectedPrivacySuggestion!.TransactionResult);
+			var selectedTxn = SelectedPrivacySuggestion!.TransactionResult;
+
+			if (selectedTxn != _requestedTransaction)
+			{
+				_transactionInfo.ChangelessCoins = selectedTxn.SpentCoins;
+			}
+
+			Close(DialogResultKind.Normal, selectedTxn);
 		}
 
 		protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
@@ -69,25 +76,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					IsBusy = true;
 
-					var intent = new PaymentIntent(
-						_transactionInfo.Address,
-						MoneyRequest.CreateAllRemaining(subtractFee: true),
-						_transactionInfo.UserLabels);
-
 					PrivacySuggestionControlViewModel? smallerSuggestion = null;
 
 					if (_requestedTransaction.SpentCoins.Count() > 1)
 					{
-						var smallerTransaction = await Task.Run(() => _wallet.BuildTransaction(
-							_wallet.Kitchen.SaltSoup(),
-							intent,
-							FeeStrategy.CreateFromFeeRate(_transactionInfo.FeeRate),
-							allowUnconfirmed: true,
-							_requestedTransaction
+						var smallerTransaction = await Task.Run(() =>
+						{
+							var coins = _requestedTransaction
 								.SpentCoins
 								.OrderBy(x => x.Amount)
-								.Skip(1)
-								.Select(x => x.OutPoint)));
+								.Skip(1);
+
+							return TransactionHelpers.BuildChangelessTransaction(_wallet, _transactionInfo.Address, _transactionInfo.UserLabels, _transactionInfo.FeeRate, coins);
+						});
 
 						smallerSuggestion = new PrivacySuggestionControlViewModel(
 							_transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), smallerTransaction,
@@ -98,12 +99,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						_transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), _requestedTransaction,
 						PrivacyOptimisationLevel.Standard, _wallet.Synchronizer.UsdExchangeRate, new PrivacySuggestionBenefit(false, "As Requested"));
 
-					var largerTransaction = await Task.Run(() => _wallet.BuildTransaction(
-						_wallet.Kitchen.SaltSoup(),
-						intent,
-						FeeStrategy.CreateFromFeeRate(_transactionInfo.FeeRate),
-						true,
-						_requestedTransaction.SpentCoins.Select(x => x.OutPoint)));
+					var largerTransaction = await Task.Run(() =>
+					{
+						var coins = _requestedTransaction.SpentCoins;
+
+						return TransactionHelpers.BuildChangelessTransaction(_wallet, _transactionInfo.Address, _transactionInfo.UserLabels, _transactionInfo.FeeRate, coins);
+					});
 
 					var largerSuggestion = new PrivacySuggestionControlViewModel(
 						_transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), largerTransaction,
