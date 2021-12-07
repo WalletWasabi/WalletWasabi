@@ -58,9 +58,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 
 			// Select random words to confirm.
 			confirmationWordsSourceList.AddRange(
-				mnemonicWords
-						.OrderBy(_ => new Random()
-						.NextDouble()).Take(verificationWordsCount));
+				mnemonicWords.Take(verificationWordsCount));
 		}
 
 		public ReadOnlyObservableCollection<RecoveryWordViewModel> ConfirmationWords => _confirmationWords;
