@@ -215,8 +215,6 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 				.SequenceEqual(new[] { "1" }));
 		}
 
-#if DEBUG
-
 		[Fact]
 		public async Task AppendEvents_CriticalSectionConflicts_Async()
 		{
@@ -253,10 +251,6 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			Assert.True((await EventRepository.ListAggregateIdsAsync(nameof(TestRoundAggregate)))
 				.SequenceEqual(new[] { "1" }));
 		}
-
-#endif
-
-#if DEBUG
 
 		[Fact]
 		public async Task AppendEvents_CriticalAppendConflicts_Async()
@@ -295,10 +289,6 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			Assert.True((await EventRepository.ListAggregateIdsAsync(nameof(TestRoundAggregate)))
 				.SequenceEqual(new[] { "1" }));
 		}
-
-#endif
-
-#if DEBUG
 
 		[Theory]
 		[InlineData(nameof(TestInMemoryEventRepository.ValidatedCallback))]
@@ -341,8 +331,6 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			}
 			Assert.True(result.SequenceEqual(expected));
 		}
-
-#endif
 
 		[Theory]
 		[InlineData(0, 1)]
