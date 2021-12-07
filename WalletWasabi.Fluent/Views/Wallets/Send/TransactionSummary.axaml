@@ -11,7 +11,7 @@
   <StackPanel Spacing="15">
       <c:PreviewItem Icon="{StaticResource btc_logo}"
                      Text="a total of">
-        <TextBox Classes="selectableTextBlock" Text="{Binding AmountText, FallbackValue=0.213 BTC (≈55.34 USD)}" />
+        <TextBlock Text="{Binding AmountText, FallbackValue=0.213 BTC (≈55.34 USD)}" />
       </c:PreviewItem>
 
       <Separator />
@@ -43,7 +43,7 @@
       <Separator />
       <c:PreviewItem Icon="{StaticResource transceive_regular}"
                      Text="to the Bitcoin address">
-        <TextBox Classes="selectableTextBlock" Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
+        <TextBox Classes="monoSpaced" Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
       </c:PreviewItem>
 
       <Separator />
@@ -63,11 +63,11 @@
         <StackPanel Spacing="10">
           <c:PreviewItem Icon="{StaticResource timer_regular}"
                          Text="miners will work hard to confirm your transaction within">
-            <TextBox Classes="selectableTextBlock" Text="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
+            <TextBox Text="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
           </c:PreviewItem>
           <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
                          Text="for an additional charge of">
-            <TextBox Classes="selectableTextBlock" Text="{Binding FeeText, FallbackValue=235 sats (≈55.34 USD)}"
+            <TextBlock Text="{Binding FeeText, FallbackValue=235 sats (≈55.34 USD)}"
                      DockPanel.Dock="Left" />
           </c:PreviewItem>
         </StackPanel>
