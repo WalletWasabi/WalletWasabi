@@ -322,6 +322,39 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return null;
 		}
 
+		private async Task InitialseViewModelAsync()
+		{
+			if (await InitialiseTransactionAsync())
+			{
+				var initialTransaction = await BuildTransactionAsync();
+
+				if (initialTransaction is { } && _transaction is { })
+				{
+					UpdateTransaction(CurrentTransactionSummary, initialTransaction);
+
+					IsLoading = true;
+					var (selected, suggestions) =
+						await ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(_info, _wallet,
+							_transaction);
+
+					IsLoading = false;
+
+					PrivacySuggestions.Suggestions.Clear();
+
+					foreach (var suggestion in suggestions.Where(x => !x.IsOriginal))
+					{
+						PrivacySuggestions.Suggestions.Add(suggestion);
+					}
+
+					PrivacySuggestions.PreviewSuggestion = selected;
+				}
+			}
+			else
+			{
+				Navigate().Back();
+			}
+		}
+
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
@@ -333,38 +366,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (!isInHistory)
 			{
-				RxApp.MainThreadScheduler.Schedule(async () =>
-				{
-					if (await InitialiseTransactionAsync())
-					{
-						var initialTransaction = await BuildTransactionAsync();
-
-						if (initialTransaction is { })
-						{
-							UpdateTransaction(CurrentTransactionSummary, initialTransaction);
-
-							IsLoading = true;
-							var (selected, suggestions) =
-								await ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(_info, _wallet,
-									_transaction);
-
-							IsLoading = false;
-
-							PrivacySuggestions.Suggestions.Clear();
-
-							foreach (var suggestion in suggestions.Where(x => !x.IsOriginal))
-							{
-								PrivacySuggestions.Suggestions.Add(suggestion);
-							}
-
-							PrivacySuggestions.PreviewSuggestion = selected;
-						}
-					}
-					else
-					{
-						Navigate().Back();
-					}
-				});
+				RxApp.MainThreadScheduler.Schedule(async ()=> await InitialseViewModelAsync());
 			}
 		}
 
