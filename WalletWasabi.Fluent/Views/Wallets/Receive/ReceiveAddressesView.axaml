@@ -144,6 +144,7 @@
             <DataTemplate>
               <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
                 <c:PrivacyContentControl Content="{Binding Address}" VerticalAlignment="Center"
+                                         Classes="monoSpaced"
                                          NumberOfPrivacyChars="38" />
               </DockPanel>
             </DataTemplate>
