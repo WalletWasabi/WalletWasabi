@@ -50,15 +50,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 				.Bind(out _confirmationWords)
 				.Subscribe();
 
-#if DEBUG
-			var verificationWordsCount = 3;
-#else
-			var verificationWordsCount = 12;
-#endif
 
 			// Select random words to confirm.
-			confirmationWordsSourceList.AddRange(
-				mnemonicWords.Take(verificationWordsCount));
+			confirmationWordsSourceList.AddRange(mnemonicWords.Take(12));
 		}
 
 		public ReadOnlyObservableCollection<RecoveryWordViewModel> ConfirmationWords => _confirmationWords;
