@@ -200,7 +200,7 @@ namespace WalletWasabi.EventSourcing
 			return Task.FromResult(EmptyIds);
 		}
 
-		private void IndexNewAggregateId(string aggregateType, string id)
+		private void IndexNewAggregateId(string aggregateType, string aggregateId)
 		{
 			var tailIndex = 0L;
 			ImmutableSortedSet<string> aggregateIds;
@@ -214,7 +214,7 @@ namespace WalletWasabi.EventSourcing
 				}
 				liveLockLimit--;
 				(tailIndex, aggregateIds) = AggregatesIds.GetOrAdd(aggregateType, _ => new(0, ImmutableSortedSet<string>.Empty));
-				newAggregateIds = aggregateIds.Add(id);
+				newAggregateIds = aggregateIds.Add(aggregateId);
 			}
 			while (!AggregatesIds.TryUpdate(
 				key: aggregateType,
