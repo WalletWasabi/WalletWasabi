@@ -30,6 +30,7 @@ namespace WalletWasabi.EventSourcing
 			CommandProcessorFactory = commandProcessorFactory;
 		}
 
+		/// <inheritdoc />
 		public async Task<WrappedResult> ProcessCommandAsync(ICommand command, string aggregateType, string aggregateId)
 		{
 			int tries = OptimisticRetryLimit + 1;
@@ -108,6 +109,7 @@ namespace WalletWasabi.EventSourcing
 			throw new AssertionFailedException($"Unexpected code reached in {nameof(ProcessCommandAsync)}");
 		}
 
+		/// <inheritdoc />
 		public async Task<IAggregate> GetAggregateAsync(string aggregateType, string aggregateId)
 		{
 			var events = await ListEventsAsync(aggregateType, aggregateId).ConfigureAwait(false);
