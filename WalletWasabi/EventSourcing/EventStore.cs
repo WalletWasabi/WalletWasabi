@@ -138,21 +138,21 @@ namespace WalletWasabi.EventSourcing
 		}
 
 		// Hook for parallel critical section testing in DEBUG build only.
-		[Conditional("DEBUG")]
 		protected virtual void Prepared()
 		{
+			// Keep empty. To be overriden in tests.
 		}
 
 		// Hook for parallel critical section testing in DEBUG build only.
-		[Conditional("DEBUG")]
 		protected virtual void Conflicted()
 		{
+			// Keep empty. To be overriden in tests.
 		}
 
 		// Hook for parallel critical section testing in DEBUG build only.
-		[Conditional("DEBUG")]
 		protected virtual void Appended()
 		{
+			// Keep empty. To be overriden in tests.
 		}
 	}
 }

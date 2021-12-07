@@ -7,14 +7,17 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing.TestDomain
 {
 	public class TestEventStore : EventStore, IDisposable
 	{
-		public TestEventStore(IEventRepository eventRepository, IAggregateFactory aggregateFactory, ICommandProcessorFactory commandProcessorFactory)
+		public TestEventStore(
+			IEventRepository eventRepository,
+			IAggregateFactory aggregateFactory,
+			ICommandProcessorFactory commandProcessorFactory)
 			: base(eventRepository, aggregateFactory, commandProcessorFactory)
 		{
 		}
 
-		public SemaphoreSlim PreparedSemaphore { get; } = new SemaphoreSlim(0);
-		public SemaphoreSlim ConflictedSemaphore { get; } = new SemaphoreSlim(0);
-		public SemaphoreSlim AppendedSemaphore { get; } = new SemaphoreSlim(0);
+		public SemaphoreSlim PreparedSemaphore { get; } = new(0);
+		public SemaphoreSlim ConflictedSemaphore { get; } = new(0);
+		public SemaphoreSlim AppendedSemaphore { get; } = new(0);
 
 		public Action? PreparedCallback { get; set; }
 		public Action? ConflictedCallback { get; set; }
