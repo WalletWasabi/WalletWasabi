@@ -12,10 +12,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 {
 	public class TestRoundTests : IDisposable
 	{
-#warning decrease to 1 sec
-
-		// TODO: decrease to 1 sec
-		private readonly TimeSpan _semaphoreWaitTimeout = TimeSpan.FromSeconds(1000);
+		private readonly TimeSpan _semaphoreWaitTimeout = TimeSpan.FromSeconds(5);
 
 		protected IEventRepository EventRepository { get; init; }
 		protected TestEventStore TestEventStore { get; init; }

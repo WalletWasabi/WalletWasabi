@@ -12,7 +12,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 {
 	public class InMemoryEventRepositoryTests : IDisposable
 	{
-		private readonly TimeSpan _semaphoreWaitTimeout = TimeSpan.FromSeconds(20);
+		private readonly TimeSpan _semaphoreWaitTimeout = TimeSpan.FromSeconds(5);
 
 		public InMemoryEventRepositoryTests(ITestOutputHelper output)
 		{
