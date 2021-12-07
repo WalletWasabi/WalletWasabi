@@ -25,7 +25,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			set => SetValue(PreviewItemProperty, value);
 		}
 
-		private void ClearPsuedoClasses()
+		private void ClearPseudoClasses()
 		{
 			if (_previewControl is StyledElement se && se.Classes is IPseudoClasses pc)
 			{
@@ -33,7 +33,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			}
 		}
 
-		private void SetPsuedoClasses()
+		private void SetPseudoClasses()
 		{
 			if (_previewControl is StyledElement se && se.Classes is IPseudoClasses pc)
 			{
@@ -46,7 +46,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			Observable.FromEventPattern(AssociatedObject, nameof(AssociatedObject.PointerLeave))
 				.Subscribe(x =>
 				{
-					ClearPsuedoClasses();
+					ClearPseudoClasses();
 					_previewControl = null;
 					PreviewItem = null;
 				}).DisposeWith(disposables);
@@ -62,16 +62,16 @@ namespace WalletWasabi.Fluent.Behaviors
 					{
 						if (listBoxItem.DataContext != PreviewItem)
 						{
-							ClearPsuedoClasses();
+							ClearPseudoClasses();
 							_previewControl = listBoxItem;
 							PreviewItem = listBoxItem.DataContext;
 
-							SetPsuedoClasses();
+							SetPseudoClasses();
 						}
 					}
 					else
 					{
-						ClearPsuedoClasses();
+						ClearPseudoClasses();
 						_previewControl = null;
 						PreviewItem = null;
 					}
