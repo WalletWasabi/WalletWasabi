@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using WalletWasabi.EventSourcing.Exceptions;
 using WalletWasabi.EventSourcing.Interfaces;
 using WalletWasabi.Exceptions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces.EventSourcing;
 
 namespace WalletWasabi.EventSourcing
@@ -33,67 +34,16 @@ namespace WalletWasabi.EventSourcing
 		/// <inheritdoc />
 		public async Task<WrappedResult> ProcessCommandAsync(ICommand command, string aggregateType, string aggregateId)
 		{
-			int tries = OptimisticRetryLimit + 1;
-			bool optimisticConflict = false;
+			Guard.NotNull(nameof(command), command);
+			var tries = OptimisticRetryLimit + 1;
+			var optimisticConflict = false;
 			do
 			{
 				tries--;
 				optimisticConflict = false;
 				try
 				{
-					var events = await ListEventsAsync(aggregateType, aggregateId).ConfigureAwait(false);
-					var aggregate = ApplyEvents(aggregateType, events);
-					var lastEvent = events.Count > 0 ? events[^1] : null;
-					var sequenceId = lastEvent == null ? 0 : lastEvent.SequenceId;
-
-					bool commandAlreadyProcessed = events.Any(ev => ev.SourceId == command.IdempotenceId);
-					if (commandAlreadyProcessed)
-					{
-						return new WrappedResult(
-							sequenceId,
-							ImmutableList<WrappedEvent>.Empty,
-							aggregate.State,
-							IdempotenceIdDuplicate: true);
-					}
-
-					if (!CommandProcessorFactory.TryCreate(aggregateType, out var processor))
-					{
-						throw new AssertionFailedException($"CommandProcessor is missing for aggregate type '{aggregateType}'.");
-					}
-
-					var result = processor.Process(command, aggregate.State);
-
-					if (result.Success)
-					{
-						List<WrappedEvent> wrappedEvents = new();
-						foreach (var newEvent in result.Events)
-						{
-							sequenceId++;
-							wrappedEvents.Add(new WrappedEvent(sequenceId, newEvent, command.IdempotenceId));
-							aggregate.Apply(newEvent);
-						}
-
-						// No ation
-						Prepared();
-
-						await EventRepository.AppendEventsAsync(aggregateType, aggregateId, wrappedEvents)
-							.ConfigureAwait(false);
-
-						// No action
-						Appended();
-
-						return new WrappedResult(sequenceId, wrappedEvents.AsReadOnly(), aggregate.State);
-					}
-					else
-					{
-						throw new CommandFailedException(
-							aggregateType,
-							aggregateId,
-							sequenceId,
-							aggregate.State,
-							command,
-							result.Errors);
-					}
+					return await DoProcessCommandAsync(command, aggregateType, aggregateId).ConfigureAwait(false);
 				}
 				catch (OptimisticConcurrencyException)
 				{
@@ -115,6 +65,63 @@ namespace WalletWasabi.EventSourcing
 			var events = await ListEventsAsync(aggregateType, aggregateId).ConfigureAwait(false);
 
 			return ApplyEvents(aggregateType, events);
+		}
+
+		private async Task<WrappedResult> DoProcessCommandAsync(ICommand command, string aggregateType, string aggregateId)
+		{
+			var events = await ListEventsAsync(aggregateType, aggregateId).ConfigureAwait(false);
+			var aggregate = ApplyEvents(aggregateType, events);
+			var lastEvent = events.Count > 0 ? events[^1] : null;
+			var sequenceId = lastEvent == null ? 0 : lastEvent.SequenceId;
+
+			bool commandAlreadyProcessed = events.Any(ev => ev.SourceId == command.IdempotenceId);
+			if (commandAlreadyProcessed)
+			{
+				return new WrappedResult(
+					sequenceId,
+					ImmutableList<WrappedEvent>.Empty,
+					aggregate.State,
+					IdempotenceIdDuplicate: true);
+			}
+
+			if (!CommandProcessorFactory.TryCreate(aggregateType, out var processor))
+			{
+				throw new AssertionFailedException($"CommandProcessor is missing for aggregate type '{aggregateType}'.");
+			}
+
+			var result = processor.Process(command, aggregate.State);
+
+			if (result.Success)
+			{
+				List<WrappedEvent> wrappedEvents = new();
+				foreach (var newEvent in result.Events)
+				{
+					sequenceId++;
+					wrappedEvents.Add(new WrappedEvent(sequenceId, newEvent, command.IdempotenceId));
+					aggregate.Apply(newEvent);
+				}
+
+				// No ation
+				Prepared();
+
+				await EventRepository.AppendEventsAsync(aggregateType, aggregateId, wrappedEvents)
+					.ConfigureAwait(false);
+
+				// No action
+				Appended();
+
+				return new WrappedResult(sequenceId, wrappedEvents.AsReadOnly(), aggregate.State);
+			}
+			else
+			{
+				throw new CommandFailedException(
+					aggregateType,
+					aggregateId,
+					sequenceId,
+					aggregate.State,
+					command,
+					result.Errors);
+			}
 		}
 
 		private IAggregate ApplyEvents(string aggregateType, IReadOnlyList<WrappedEvent> events)

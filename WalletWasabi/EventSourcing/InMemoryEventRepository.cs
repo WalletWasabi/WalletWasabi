@@ -115,6 +115,8 @@ namespace WalletWasabi.EventSourcing
 			long afterSequenceId = 0,
 			int? maxCount = null)
 		{
+			Guard.NotNull(nameof(aggregateType), aggregateType);
+			Guard.NotNull(nameof(aggregateId), aggregateId);
 			if (AggregatesEventsBatches.TryGetValue(aggregateType, out var aggregateEventsBatches) &&
 				aggregateEventsBatches.TryGetValue(aggregateId, out var value))
 			{
