@@ -134,17 +134,23 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			var privateThreshold = _wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
 
 			var privateAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
-			var normalAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold).TotalAmount();
+			var unmixed = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet == 0).TotalAmount();
+			var partialyMixed = _wallet.Coins.FilterBy(x =>
+				x.HdPubKey.AnonymitySet > 0 && x.HdPubKey.AnonymitySet < privateThreshold).TotalAmount();
 
 			var queued = _wallet.Coins.FilterBy(x => x.CoinJoinInProgress).TotalAmount().ToDecimal(MoneyUnit.BTC);
 
 			var privateDecimalAmount = privateAmount.ToDecimal(MoneyUnit.BTC);
-			var normalDecimalAmount = normalAmount.ToDecimal(MoneyUnit.BTC);
-			var totalDecimalAmount = privateDecimalAmount + normalDecimalAmount;
+			var partiallyPrivate = partialyMixed.ToDecimal(MoneyUnit.BTC);
+			var normalDecimalAmount = unmixed.ToDecimal(MoneyUnit.BTC);
+			var totalDecimalAmount = _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC);
 
-			var pcPrivate = totalDecimalAmount == 0M ? 0d : (double)(privateDecimalAmount / totalDecimalAmount);
 			var pcQueued = totalDecimalAmount == 0M ? 0d : (double)(queued / totalDecimalAmount);
-			var pcNormal = 1 - pcPrivate - pcQueued;
+			var pcPrivate = totalDecimalAmount == 0M ? 0d : (double)(privateDecimalAmount / totalDecimalAmount);
+			var pcNormal = totalDecimalAmount == 0M ? 0d : (double)(normalDecimalAmount / totalDecimalAmount);
+			var pcPartial = totalDecimalAmount == 0M ? 0d : (double)((partiallyPrivate - queued) / totalDecimalAmount);
+
+			Console.WriteLine($"queued: {pcQueued}, private: {pcPrivate}, normal: {pcNormal}, partial: {pcPartial}");
 
 			PercentText = $"{pcPrivate:P}";
 
@@ -153,14 +159,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			TestDataPoints = new List<(string, double)>
 			{
 				("#78A827", pcPrivate),
-				("#DDA73E", pcQueued),
-				("#D8DED7", pcNormal)
+				("#7F00A2E8", pcQueued),
+				("#3FDDA73E", pcPartial)
 			};
 
 			TestDataPointsLegend = new List<DataLegend>
 			{
 				new(privateAmount, "Private", "#78A827", pcPrivate),
-				new(normalAmount, "Not Private", "#D8DED7", pcNormal)
+				new(unmixed, "Not Private", "#D8DED7", pcNormal)
 			};
 		}
 	}
