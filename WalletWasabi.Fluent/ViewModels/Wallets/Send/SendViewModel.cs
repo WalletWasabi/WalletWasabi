@@ -1,7 +1,4 @@
 using System;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -9,8 +6,6 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Threading;
-using DynamicData;
-using DynamicData.Binding;
 using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
@@ -18,7 +13,6 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Tor.Http;
@@ -27,7 +21,6 @@ using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
@@ -56,8 +49,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_to = "";
 			_wallet = wallet;
 			_transactionInfo = new TransactionInfo();
-
-			SuggestionLabels = new SuggestionLabelsViewModel(3);
 
 			IsQrButtonVisible = WebcamQrReader.IsOsPlatformSupported;
 
@@ -88,8 +79,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					}
 				});
 
-			SuggestionLabels.Labels.ToObservableChangeSet().Subscribe(x => _transactionInfo.UserLabels = new SmartLabel(SuggestionLabels.Labels.ToArray()));
-
 			PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
 			AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
 			QRCommand = ReactiveCommand.Create(async () =>
@@ -103,28 +92,33 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			});
 
 			var nextCommandCanExecute =
-				this.WhenAnyValue(x => x.AmountBtc, x => x.To).Select(_ => Unit.Default)
-					.Merge(SuggestionLabels.WhenAnyValue(x => x.Labels.Count).Select(_ => Unit.Default))
-					.Merge(SuggestionLabels.WhenAnyValue(x => x.IsCurrentTextValid).Select(_ => Unit.Default))
-					.Select(_ =>
+				this.WhenAnyValue(x => x.AmountBtc, x => x.To)
+					.Select(tup =>
 					{
-						var allFilled = !string.IsNullOrEmpty(To) && AmountBtc > 0 && (SuggestionLabels.Labels.Any() || SuggestionLabels.IsCurrentTextValid);
+						var (amountBtc, to) = tup;
+						var allFilled = !string.IsNullOrEmpty(to) && amountBtc > 0;
 						var hasError = Validations.Any;
 
 						return allFilled && !hasError;
 					});
 
-			NextCommand = ReactiveCommand.Create(() =>
+			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
+				var labelDialog = new LabelEntryDialogViewModel(_wallet, _transactionInfo);
+
+				var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
+
+				if (result.Result is null)
+				{
+					return;
+				}
+
+				_transactionInfo.UserLabels = result.Result;
 				_transactionInfo.Amount = new Money(AmountBtc, MoneyUnit.BTC);
 
 				Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo));
 			}, nextCommandCanExecute);
-
-			EnableAutoBusyOn(NextCommand);
 		}
-
-		public SuggestionLabelsViewModel SuggestionLabels { get; }
 
 		public bool IsQrButtonVisible { get; }
 
@@ -244,12 +238,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				if (!label.IsEmpty)
 				{
-					SuggestionLabels.Labels.Clear();
-
-					foreach (var labelString in label.Labels)
-					{
-						SuggestionLabels.Labels.Add(labelString);
-					}
+					_transactionInfo.UserLabels = new SmartLabel(label.Labels);
 				}
 
 				if (url.UnknowParameters.TryGetValue("pj", out var endPoint))
@@ -292,19 +281,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				To = "";
 				AmountBtc = 0;
-				SuggestionLabels.Labels.Clear();
 				ClearValidations();
 			}
 
 			_wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => ExchangeRate = x)
-				.DisposeWith(disposables);
-
-			_wallet.TransactionProcessor.WhenAnyValue(x => x.Coins)
-				.Select(_ => Unit.Default)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => SuggestionLabels.UpdateLabels())
 				.DisposeWith(disposables);
 
 			RxApp.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
