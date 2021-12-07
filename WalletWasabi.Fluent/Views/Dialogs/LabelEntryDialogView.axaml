@@ -10,14 +10,13 @@
              x:DataType="dialogs:LabelEntryDialogViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.LabelEntryDialogView">
-  <c:ContentArea Width="500" Height="450"
-                 Caption="Confirm transaction:"
+  <c:ContentArea Width="500" Height="300"
+                 Title="{Binding Title}"
+                 Caption="Enter the name of the person or the company whom you are sending to"
                  CancelContent="Cancel"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="Continue">
-    <StackPanel>
-    <Label Target="LabelTagBox" Content="Enter the name of the person or company who will receive the transaction:" />
       <c:TagsBox x:Name="LabelTagBox"
                  DataContext="{Binding SuggestionLabels}"
                  VerticalAlignment="Top"
@@ -34,6 +33,5 @@
           <behaviors:FocusOnAttachedBehavior />
         </i:Interaction.Behaviors>
       </c:TagsBox>
-    </StackPanel>
   </c:ContentArea>
 </UserControl>
