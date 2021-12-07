@@ -35,13 +35,7 @@ namespace WalletWasabi.EventSourcing
 		private ConcurrentDictionary
 			// aggregateType
 			<string,
-			(
-				// Index of the last aggregateId in this aggregateType
-				long TailIndex,
-
-				// List of aggregate Ids in this aggregateType
-				ImmutableSortedSet<string> Ids
-			)> AggregatesIds
+			AggregateTypeIds> AggregatesIds
 		{ get; } = new();
 
 		/// <inheritdoc/>
@@ -210,8 +204,8 @@ namespace WalletWasabi.EventSourcing
 			}
 			while (!AggregatesIds.TryUpdate(
 				key: aggregateType,
-				newValue: (tailIndex + 1, newAggregateIds),
-				comparisonValue: (tailIndex, aggregateIds)));
+				newValue: new AggregateTypeIds(tailIndex + 1, newAggregateIds),
+				comparisonValue: new AggregateTypeIds(tailIndex, aggregateIds)));
 		}
 
 		// Helper for parallel critical section testing in DEBUG build only.
