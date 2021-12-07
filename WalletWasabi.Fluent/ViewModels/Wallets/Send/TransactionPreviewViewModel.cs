@@ -345,7 +345,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 							IsLoading = true;
 							var (selected, suggestions) =
-								await ChangeAvoidanceSuggestionViewModel.GenerateSuggestions(_info, _wallet,
+								await ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(_info, _wallet,
 									_transaction);
 
 							IsLoading = false;

@@ -22,10 +22,8 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		PrivacyOptimisationLevel optimisationLevel,
 		decimal fiatExchangeRate,
 		bool isOriginal,
-		params PrivacySuggestionBenefit[] benefits)
+		params PrivacySuggestionBenefit[] benefits) : base(transactionResult, isOriginal)
 	{
-		IsOriginal = isOriginal;
-		TransactionResult = transactionResult;
 		_optimisationLevel = optimisationLevel;
 		_benefits = benefits.ToList();
 
@@ -88,8 +86,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 	}
 
 	public static async
-		Task<(ChangeAvoidanceSuggestionViewModel preSelected, IEnumerable<ChangeAvoidanceSuggestionViewModel> items
-			)> GenerateSuggestions(
+		Task<(ChangeAvoidanceSuggestionViewModel preSelected, IEnumerable<ChangeAvoidanceSuggestionViewModel> items)> GenerateSuggestionsAsync(
 			TransactionInfo transactionInfo, Wallet wallet, BuildTransactionResult requestedTransaction)
 	{
 		var intent = new PaymentIntent(
