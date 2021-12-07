@@ -12,7 +12,7 @@
              x:Class="WalletWasabi.Fluent.Views.Dialogs.LabelEntryDialogView">
   <c:ContentArea Width="500" Height="300"
                  Title="{Binding Title}"
-                 Caption="Enter the name or the company who will you send to"
+                 Caption="Enter the name of the person or the company whom you are sending to"
                  CancelContent="Cancel"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
