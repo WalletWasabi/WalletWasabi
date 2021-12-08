@@ -134,23 +134,22 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			var privateThreshold = _wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
 
 			var privateAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
-			var unmixed = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet == 0).TotalAmount();
-			var partialyMixed = _wallet.Coins.FilterBy(x =>
+			var notPrivateAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet == 0).TotalAmount();
+			var partiallyPrivateAmount = _wallet.Coins.FilterBy(x =>
 				x.HdPubKey.AnonymitySet > 0 && x.HdPubKey.AnonymitySet < privateThreshold).TotalAmount();
 
-			var queued = _wallet.Coins.FilterBy(x => x.CoinJoinInProgress).TotalAmount().ToDecimal(MoneyUnit.BTC);
-
+			var queuedDecimalAmount = _wallet.Coins.FilterBy(x => x.CoinJoinInProgress).TotalAmount().ToDecimal(MoneyUnit.BTC);
 			var privateDecimalAmount = privateAmount.ToDecimal(MoneyUnit.BTC);
-			var partiallyPrivate = partialyMixed.ToDecimal(MoneyUnit.BTC);
-			var normalDecimalAmount = unmixed.ToDecimal(MoneyUnit.BTC);
+			var partiallyPrivateDecimalAmount = partiallyPrivateAmount.ToDecimal(MoneyUnit.BTC);
+			var notPrivateDecimalAmount = notPrivateAmount.ToDecimal(MoneyUnit.BTC);
 			var totalDecimalAmount = _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC);
 
-			var pcQueued = totalDecimalAmount == 0M ? 0d : (double)(queued / totalDecimalAmount);
+			var pcQueued = totalDecimalAmount == 0M ? 0d : (double)(queuedDecimalAmount / totalDecimalAmount);
 			var pcPrivate = totalDecimalAmount == 0M ? 0d : (double)(privateDecimalAmount / totalDecimalAmount);
-			var pcNormal = totalDecimalAmount == 0M ? 0d : (double)(normalDecimalAmount / totalDecimalAmount);
-			var pcPartial = totalDecimalAmount == 0M ? 0d : (double)((partiallyPrivate - queued) / totalDecimalAmount);
+			var pcNotPrivate = totalDecimalAmount == 0M ? 0d : (double)(notPrivateDecimalAmount / totalDecimalAmount);
+			var pcPartial = totalDecimalAmount == 0M ? 0d : (double)((partiallyPrivateDecimalAmount - queuedDecimalAmount) / totalDecimalAmount);
 
-			Console.WriteLine($"queued: {pcQueued}, private: {pcPrivate}, normal: {pcNormal}, partial: {pcPartial}");
+			Console.WriteLine($"queued: {pcQueued}, private: {pcPrivate}, normal: {pcNotPrivate}, partial: {pcPartial}");
 
 			PercentText = $"{pcPrivate:P}";
 
@@ -166,7 +165,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			TestDataPointsLegend = new List<DataLegend>
 			{
 				new(privateAmount, "Private", "#78A827", pcPrivate),
-				new(unmixed, "Not Private", "#D8DED7", pcNormal)
+				new(notPrivateAmount, "Not Private", "#D8DED7", pcNotPrivate)
 			};
 		}
 	}
