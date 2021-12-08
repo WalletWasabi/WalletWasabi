@@ -279,3 +279,6 @@ lcov.info
 
 # This file is created by an F# VS Code plugin
 .ionide/symbolCache.db
+
+# Folder reserved for dotnet format tool
+.report/

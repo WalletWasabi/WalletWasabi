@@ -1,0 +1,79 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <!-- Assembly attributes -->
+  <PropertyGroup>
+    <Company>Trezor Company s.r.o.</Company>
+    <Product>WabiSabiClientLibrary</Product>
+    <Description>WabiSabi Client Library</Description>
+    <Copyright>MIT</Copyright>
+    <Version>0</Version>
+  </PropertyGroup>
+
+  <!-- Build options -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net7.0</TargetFramework>
+    <NoWarn>1591;1573</NoWarn>
+    <DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
+    <Nullable>enable</Nullable>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>true</AppendRuntimeIdentifierToOutputPath>
+  </PropertyGroup>
+
+  <!-- Publish options -->
+  <PropertyGroup>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimmerRemoveSymbols>true</TrimmerRemoveSymbols>
+    <AutoreleasePoolSupport>false</AutoreleasePoolSupport>
+    <DebuggerSupport>false</DebuggerSupport>
+    <EnableUnsafeBinaryFormatterSerialization>false</EnableUnsafeBinaryFormatterSerialization>
+    <EnableUnsafeUTF7Encoding>false</EnableUnsafeUTF7Encoding>
+    <EventSourceSupport>false</EventSourceSupport>
+    <HttpActivityPropagationSupport>false</HttpActivityPropagationSupport>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <MetadataUpdaterSupport>false</MetadataUpdaterSupport>
+    <UseSystemResourceKeys>true</UseSystemResourceKeys>
+  </PropertyGroup>
+
+  <!-- Project references -->
+  <ItemGroup>
+    <ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
+     <InternalsVisibleTo Include="WalletWasabi.WabiSabiClientLibrary.Tests" />
+  </ItemGroup>
+
+  <!-- Package references -->
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <PackageReference Include="Swashbuckle.AspNetCore" />
+  </ItemGroup>
+
+  <Target Name="BeforeBuildTarget" BeforeTargets="PrepareForBuild">
+     <!-- Get hash commit -->
+    <Exec Command="git rev-parse HEAD" StandardOutputImportance="Low" ConsoleToMSBuild="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="CommitHash" />
+    </Exec>
+
+    <!-- Custom release assembly attributes -->
+    <ItemGroup Condition="'$(Configuration)' == 'Release'">
+      <AssemblyMetadata Include="Version" Value="$(Version)" />
+      <AssemblyMetadata Include="CommitHash" Value="$(CommitHash)" />
+      <AssemblyMetadata Include="Debug" Value="false" />
+    </ItemGroup>
+
+    <!-- Custom debug assembly attributes -->
+    <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+      <AssemblyMetadata Include="Version" Value="0" />
+      <AssemblyMetadata Include="CommitHash" Value="$(CommitHash)" />
+      <AssemblyMetadata Include="Debug" Value="true" />
+    </ItemGroup>
+
+    <!-- Embed documentation -->
+    <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+      <EmbeddedResource Include="@(DocFileItem)">
+        <LogicalName>documentation.xml</LogicalName>
+      </EmbeddedResource>
+    </ItemGroup>
+  </Target>
+</Project>
