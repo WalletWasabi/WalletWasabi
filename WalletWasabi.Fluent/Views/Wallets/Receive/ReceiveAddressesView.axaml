@@ -72,6 +72,21 @@
           </DataBoxTemplateColumn.CellTemplate>
         </DataBoxTemplateColumn>
 
+        <DataBoxTemplateColumn Header="Address"
+                               Width="2*"
+                               CanUserSort="True">
+          <DataBoxTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
+                <c:PrivacyContentControl Content="{Binding Address}" VerticalAlignment="Center"
+                                         Classes="monoSpaced"
+                                         NumberOfPrivacyChars="38" />
+              </DockPanel>
+            </DataTemplate>
+          </DataBoxTemplateColumn.CellTemplate>
+        </DataBoxTemplateColumn>
+
+
         <DataBoxTemplateColumn Header="Labels"
                                Width="Auto"
                                CanUserSort="True">
@@ -120,19 +135,6 @@
           </DataBoxTemplateColumn.CellTemplate>
         </DataBoxTemplateColumn>
 
-        <DataBoxTemplateColumn Header="Address"
-                               Width="2*"
-                               CanUserSort="True">
-          <DataBoxTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
-                <c:PrivacyContentControl Content="{Binding Address}" VerticalAlignment="Center"
-                                         Classes="monoSpaced"
-                                         NumberOfPrivacyChars="38" />
-              </DockPanel>
-            </DataTemplate>
-          </DataBoxTemplateColumn.CellTemplate>
-        </DataBoxTemplateColumn>
       </DataBox.Columns>
     </DataBox>
   </c:ContentArea>
