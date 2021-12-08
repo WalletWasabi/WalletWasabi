@@ -43,6 +43,14 @@
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
                             Margin="-5 0 0 0" Spacing="5" Orientation="Horizontal"
                             x:DataType="receive:AddressViewModel">
+                  <Button Classes="plain addressActionButton"
+                          Margin="0"
+                          Command="{Binding HideAddressCommand}"
+                          DockPanel.Dock="Right"
+                          ToolTip.Tip="Hide address">
+                    <PathIcon Data="{StaticResource dismiss_light}" Classes=" addressActionIcon" />
+                  </Button>
+
                   <c:AnimatedButton Classes="addressActionButton" DockPanel.Dock="Right"
                                     Margin="0"
                                     ToolTip.Tip="Copy"
@@ -57,14 +65,6 @@
                           DockPanel.Dock="Right"
                           ToolTip.Tip="QR Code">
                     <PathIcon Data="{StaticResource qr_code_regular}" Classes=" addressActionIcon" />
-                  </Button>
-
-                  <Button Classes="plain addressActionButton"
-                          Margin="0"
-                          Command="{Binding HideAddressCommand}"
-                          DockPanel.Dock="Right"
-                          ToolTip.Tip="Hide address">
-                    <PathIcon Data="{StaticResource dismiss_light}" Classes=" addressActionIcon" />
                   </Button>
                 </StackPanel>
               </Panel>
