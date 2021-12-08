@@ -13,11 +13,11 @@ namespace WalletWasabi.Tests.UnitTests.BranchAndBoundTests
 	public class BranchAndBoundSelectionTests
 	{
 		private static Random Random = new Random();
-		private static List<ulong> AvailableCoins = GenList();
+		private static List<Money> AvailableCoins = GenList();
 
-		private static List<ulong> GenList()
+		private static List<Money> GenList()
 		{
-			List<ulong> availableCoins = new List<ulong>();
+			List<Money> availableCoins = new List<Money>();
 			for (int i = 0; i < 1000; i++)
 			{
 				availableCoins.Add((ulong)Random.Next((int)Money.Satoshis(1000), (int)Money.Satoshis(99999999)));
@@ -26,72 +26,80 @@ namespace WalletWasabi.Tests.UnitTests.BranchAndBoundTests
 		}
 
 		[Fact]
-		public void CanSelectCoinsWithNewLogicTest()
+		public void CanSelectCoinsWithNewLogicRandomTest()
 		{
-			ulong target = 1000000000;
+			ulong target = Money.Satoshis(100000000);
 			ulong maxTolerance = 500;
 			ulong toleranceIncrement = 100;
 
-			SendCoinSelector bab = new();
-			Assert.True(bab.TryBranchAndBound(AvailableCoins, target, maxTolerance, toleranceIncrement, out var tolerance, out List<ulong> selectedCoins));
-			Assert.True(target + tolerance <= bab.CalculateSum(selectedCoins));
+			SendCoinSelector selector = new();
+			Assert.True(selector.TryBranchAndBound(AvailableCoins, target, maxTolerance, toleranceIncrement, out var tolerance, out List<Money> selectedCoins));
+			Assert.True((target + tolerance) <= selector.CalculateSum(selectedCoins));
 		}
 
 		[Fact]
-		public void CanSelectCoinsWithBranchNodesLogic()
+		public void NewLogicSimpleTest()
 		{
-			ulong target = 1000000000;
-
-			SendCoinSelector bab = new();
-			Assert.True(bab.TryTreeLogic(AvailableCoins, target, out List<ulong> selectedCoins));
-			Assert.Equal(target, bab.CalculateSum(selectedCoins));
-		}
-
-		[Fact]
-		public void BranchLogicWillNotRunIntoStackOverflowExceptionTest()
-		{
-			ulong target = 1000000000;
-
-			SendCoinSelector bab = new();
-			Assert.True(bab.TryTreeLogic(AvailableCoins, target, out List<ulong> selectedCoins));
-			Assert.Equal(target, bab.CalculateSum(selectedCoins));
-		}
-
-		[Fact]
-		public void BnBSimpleTest()
-		{
-			var bnb = new SendCoinSelector();
 			var utxos = new List<Money> { Money.Satoshis(12), Money.Satoshis(10), Money.Satoshis(10), Money.Satoshis(5), Money.Satoshis(4) };
 			var expectedCoins = new List<Money> { Money.Satoshis(10), Money.Satoshis(5), Money.Satoshis(4) };
-			Money target = Money.Satoshis(19);
+			ulong maxTolerance = 500;
+			ulong toleranceIncrement = 100;
+			ulong target = Money.Satoshis(19);
 
-			var wasSuccessful = bnb.TryGetExactMatch(target, utxos, out List<Money> selectedCoins);
+			SendCoinSelector selector = new();
+			Assert.True(selector.TryBranchAndBound(utxos, target, maxTolerance, toleranceIncrement, out var tolerance, out List<Money> selectedCoins));
+			Assert.Equal(expectedCoins, selectedCoins);
+		}
 
-			Assert.True(wasSuccessful);
+		// This takes too much time and eats a lot of memory
+
+		//[Fact]
+		//public void CanSelectCoinsWithNodesLogicRandomTest()
+		//{
+		//	ulong target = Money.Satoshis(100000000);
+
+		//	SendCoinSelector selector = new();
+		//	Assert.True(selector.TryTreeLogic(AvailableCoins, target, out List<Money> selectedCoins));
+		//	Assert.Equal(target, selector.CalculateSum(selectedCoins));
+		//}
+
+		[Fact]
+		public void NodesLogicSimpleTest()
+		{
+			var utxos = new List<Money> { Money.Satoshis(12), Money.Satoshis(10), Money.Satoshis(10), Money.Satoshis(5), Money.Satoshis(4) };
+			var expectedCoins = new List<Money> { Money.Satoshis(10), Money.Satoshis(5), Money.Satoshis(4) };
+
+			ulong target = Money.Satoshis(19);
+
+			SendCoinSelector selector = new();
+			Assert.True(selector.TryTreeLogic(utxos, target, out List<Money> selectedCoins));
 			Assert.Equal(expectedCoins, selectedCoins);
 		}
 
 		[Fact]
-		public void BnBRandomTest()
+		public void CanSelectCoinsWithOriginalRandomTest()
 		{
-			var bnb = new SendCoinSelector();
-			var utxos = GenerateRandomCoinList();
-			Money target = Money.Satoshis(100000);
+			var selector = new SendCoinSelector();
+			ulong target = Money.Satoshis(100000000);
 
-			var successful = bnb.TryGetExactMatch(target, utxos, out List<Money> selectedCoins);
+			var successful = selector.TryGetExactMatch(target, AvailableCoins, out List<Money> selectedCoins);
 
 			Assert.True(successful);
+			Assert.Equal(target, selector.CalculateSum(selectedCoins));
 		}
 
-		private List<Money> GenerateRandomCoinList()
+		[Fact]
+		public void OriginalSimpleTest()
 		{
-			Random random = new();
-			List<Money> availableCoins = new();
-			for (int i = 0; i < 100; i++)
-			{
-				availableCoins.Add(random.Next((int)Money.Satoshis(250), (int)Money.Satoshis(100001)));
-			}
-			return availableCoins;
+			var selector = new SendCoinSelector();
+			var utxos = new List<Money> { Money.Satoshis(12), Money.Satoshis(10), Money.Satoshis(10), Money.Satoshis(5), Money.Satoshis(4) };
+			var expectedCoins = new List<Money> { Money.Satoshis(10), Money.Satoshis(5), Money.Satoshis(4) };
+			Money target = Money.Satoshis(19);
+
+			var wasSuccessful = selector.TryGetExactMatch(target, utxos, out List<Money> selectedCoins);
+
+			Assert.True(wasSuccessful);
+			Assert.Equal(expectedCoins, selectedCoins);
 		}
 	}
 }

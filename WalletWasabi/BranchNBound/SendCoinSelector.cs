@@ -11,7 +11,7 @@ namespace WalletWasabi.BranchNBound
 {
 	public class SendCoinSelector
 	{
-		private List<ulong>? FinalCoins { get; set; }
+		private List<Money>? FinalCoins { get; set; }
 		private bool _optimizedCoinsFound = false;
 
 		private Money _costOfHeader = Money.Satoshis(0);
@@ -20,18 +20,18 @@ namespace WalletWasabi.BranchNBound
 		private Random _random = new();
 		private Money[]? UtxoSorted { get; set; }
 
-		public bool TryBranchAndBound(List<ulong> coins, ulong target, ulong maxTolerance, ulong toleranceIncrement, out ulong tolerance, out List<ulong> finalCoins)
+		public bool TryBranchAndBound(List<Money> coins, Money target, ulong maxTolerance, ulong toleranceIncrement, out ulong tolerance, out List<Money> finalCoins)
 		{
 			var coinsDescending = coins.OrderBy(x => x);
-			finalCoins = new List<ulong>();
+			finalCoins = new List<Money>();
 			tolerance = 0;
-			var currentCoins = new List<ulong>();
+			var currentCoins = new List<Money>();
 			var depth = 0;
 			try
 			{
 				while (tolerance <= maxTolerance)
 				{
-					Stack<ulong> pool = new Stack<ulong>(coinsDescending);
+					Stack<Money> pool = new Stack<Money>(coinsDescending);
 					finalCoins = SolveX(currentCoins, target, tolerance, pool, depth);
 					if (finalCoins.Any())
 					{
@@ -48,7 +48,7 @@ namespace WalletWasabi.BranchNBound
 			return finalCoins.Any();
 		}
 
-		private List<ulong> SolveX(List<ulong> currentCoins, ulong target, ulong tolerance, Stack<ulong> pool, int depth)
+		private List<Money> SolveX(List<Money> currentCoins, Money target, ulong tolerance, Stack<Money> pool, int depth)
 		{
 			// currentCoins : List of coins that have been choosen from the pool for optimal value
 			// pool : All coins available
@@ -80,7 +80,7 @@ namespace WalletWasabi.BranchNBound
 				else if (sum < target + tolerance)
 				{
 					depth++;
-					SolveX(currentCoins, target, tolerance, new Stack<ulong>(pool.Reverse()), depth);
+					SolveX(currentCoins, target, tolerance, new Stack<Money>(pool.Reverse()), depth);
 				}
 				// If the SUM is bigger than the target, we remove the last added element and go forward
 				if (sum > target + tolerance)
@@ -92,7 +92,7 @@ namespace WalletWasabi.BranchNBound
 			return FinalCoins;
 		}
 
-		internal bool TryTreeLogic(List<ulong> availableCoins, ulong target, out List<ulong> selectedCoins)
+		internal bool TryTreeLogic(List<Money> availableCoins, Money target, out List<Money> selectedCoins)
 		{
 			var coinArray = availableCoins.ToArray();
 			var state = new TreeNode[1] { new TreeNode() };
@@ -104,7 +104,7 @@ namespace WalletWasabi.BranchNBound
 				tmp = new();
 				foreach (var currentNode in state)
 				{
-					List<ulong> currentCoins = currentNode.Coins;
+					List<Money> currentCoins = currentNode.Coins;
 
 					TreeNode ommit = new(currentCoins);
 					if (!TryAddOrReturn(ommit, target, tmp))
@@ -126,7 +126,7 @@ namespace WalletWasabi.BranchNBound
 			return true;
 		}
 
-		private bool TryAddOrReturn(TreeNode node, ulong target, List<TreeNode> tmp)
+		private bool TryAddOrReturn(TreeNode node, Money target, List<TreeNode> tmp)
 		{
 			if (node.Value == target)
 			{
@@ -239,7 +239,7 @@ namespace WalletWasabi.BranchNBound
 			return sum;
 		}
 
-		public ulong CalculateSum(IEnumerable<ulong> coins)
+		public ulong CalculateSum(IEnumerable<Money> coins)
 		{
 			ulong sum = 0;
 			foreach (var coin in coins)

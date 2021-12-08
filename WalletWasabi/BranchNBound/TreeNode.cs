@@ -1,3 +1,4 @@
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,17 +11,17 @@ namespace WalletWasabi.BranchNBound
 	{
 		public TreeNode()
 		{
-			Coins = new List<ulong>();
+			Coins = new List<Money>();
 			Value = 0;
 		}
 
-		public TreeNode(IEnumerable<ulong> coins)
+		public TreeNode(IEnumerable<Money> coins)
 		{
 			Coins = coins.ToList();
 			Value = Sum(Coins);
 		}
 
-		public TreeNode(IEnumerable<ulong> coins, ulong coin)
+		public TreeNode(IEnumerable<Money> coins, ulong coin)
 		{
 			Coins = coins.ToList();
 			Coins.Add(coin);
@@ -28,9 +29,9 @@ namespace WalletWasabi.BranchNBound
 		}
 
 		public ulong Value { get; set; }
-		public List<ulong> Coins { get; set; }
+		public List<Money> Coins { get; set; }
 
-		internal ulong Sum(IEnumerable<ulong> coins)
+		internal ulong Sum(IEnumerable<Money> coins)
 		{
 			ulong sum = 0;
 			foreach (var coin in coins)
