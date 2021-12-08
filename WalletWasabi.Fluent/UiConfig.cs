@@ -13,7 +13,6 @@ namespace WalletWasabi.Fluent
 	public class UiConfig : ConfigBase
 	{
 		private bool _privacyMode;
-		private bool _isCustomFee;
 		private bool _isCustomChangeAddress;
 		private bool _autocopy;
 		private int _feeDisplayFormat;
@@ -34,7 +33,6 @@ namespace WalletWasabi.Fluent
 			this.WhenAnyValue(
 					x => x.Autocopy,
 					x => x.AutoPaste,
-					x => x.IsCustomFee,
 					x => x.IsCustomChangeAddress,
 					x => x.DarkModeEnabled,
 					x => x.FeeDisplayFormat,
@@ -44,7 +42,7 @@ namespace WalletWasabi.Fluent
 					x => x.RunOnSystemStartup,
 					x => x.PrivacyMode,
 					x => x.HideOnClose,
-					(_, _, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
+					(_, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
 				.Throttle(TimeSpan.FromMilliseconds(500))
 				.Skip(1) // Won't save on UiConfig creation.
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -93,14 +91,6 @@ namespace WalletWasabi.Fluent
 		{
 			get => _autoPaste;
 			set => RaiseAndSetIfChanged(ref _autoPaste, value);
-		}
-
-		[DefaultValue(false)]
-		[JsonProperty(PropertyName = "IsCustomFee", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public bool IsCustomFee
-		{
-			get => _isCustomFee;
-			set => RaiseAndSetIfChanged(ref _isCustomFee, value);
 		}
 
 		[DefaultValue(false)]

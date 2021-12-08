@@ -87,10 +87,15 @@
       <DockPanel>
         <Button Classes="plain"
                 Command="{Binding AdjustFeeCommand}"
-                IsVisible="{Binding AdjustFeeAvailable}"
                 ToolTip.Tip="Change transaction fee or confirmation time"
                 DockPanel.Dock="Right"
                 Margin="10 0">
+          <Button.IsVisible>
+            <MultiBinding Converter="{x:Static BoolConverters.Or}">
+              <Binding Path="AdjustFeeAvailable" />
+              <Binding Path="IsCustomFeeUsed" />
+            </MultiBinding>
+          </Button.IsVisible>
           <Viewbox Height="20">
             <PathIcon Data="{StaticResource adjust_fee_regular}" Foreground="{DynamicResource SystemAccentColor}" />
           </Viewbox>
@@ -98,16 +103,16 @@
 
         <StackPanel Spacing="10">
           <c:PreviewItem Icon="{StaticResource timer_regular}"
-                         Text="miners will work hard to confirm your transaction within">
+                         Text="miners will work hard to confirm your transaction within"
+                         IsVisible="{Binding !IsCustomFeeUsed}">
             <TextBlock Text="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
           </c:PreviewItem>
           <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
                          Text="for an additional charge of">
-            <TextBlock Text="{Binding FeeText, FallbackValue=235 sats (≈55.34 USD)}" DockPanel.Dock="Left" />
+            <TextBlock Text="{Binding FeeText, FallbackValue=235 sats (≈55.34 USD)}" />
           </c:PreviewItem>
         </StackPanel>
       </DockPanel>
-
     </StackPanel>
   </c:ContentArea>
 </UserControl>
