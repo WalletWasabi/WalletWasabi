@@ -73,6 +73,7 @@
       </Viewbox>
 
     </ExperimentalAcrylicBorder>
+    <c:AdornerCanvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
     <c:Dialog x:CompileBindings="False"
               DataContext="{Binding FullScreen}"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
@@ -84,7 +85,8 @@
               EnableCancelOnEscape="{Binding CurrentPage.EnableCancelOnEscape, FallbackValue=True}"
               IsEnabled="{Binding $parent.DataContext.IsFullScreenEnabled}"
               HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
-              HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+              IncreasedWidthThreshold="740" IncreasedHeightThreshold="580" FullScreenHeightThreshold="580">
       <c:Dialog.Styles>
         <Style Selector="c|Dialog /template/ Panel#PART_Overlay">
           <Setter Property="Background" Value="{DynamicResource RegionColor}" />
@@ -109,7 +111,8 @@
               IsEnabled="{Binding $parent.DataContext.IsDialogScreenEnabled}"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
               HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
-              MaxContentWidth="800" MaxContentHeight="700">
+              MaxContentWidth="800" MaxContentHeight="700"
+              IncreasedWidthThreshold="740" IncreasedHeightThreshold="580" FullScreenHeightThreshold="580">
       <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
     <c:Dialog x:CompileBindings="False"
@@ -122,7 +125,8 @@
               EnableCancelOnPressed="{Binding CurrentPage.EnableCancelOnPressed, FallbackValue=True}"
               EnableCancelOnEscape="{Binding CurrentPage.EnableCancelOnEscape, FallbackValue=True}"
               IsEnabled="{Binding $parent.DataContext.IsDialogScreenEnabled}"
-              HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+              IncreasedWidthThreshold="740" IncreasedHeightThreshold="580" FullScreenHeightThreshold="580">
       <c:Dialog.Styles>
         <Style Selector="c|Dialog[FullScreenEnabled=True]">
           <Setter Property="HorizontalContentAlignment" Value="Stretch" />

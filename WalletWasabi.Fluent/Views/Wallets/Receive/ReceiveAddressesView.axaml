@@ -102,7 +102,7 @@
                         ToolTip.Tip="QR Code">
                   <PathIcon Data="{StaticResource qr_code_regular}" Classes=" addressActionIcon"/>
                 </Button>
-                <c:PrivacyContentControl Content="{Binding Address}" VerticalAlignment="Center" NumberOfPrivacyChars="38" />
+                <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding Address}" VerticalAlignment="Center" NumberOfPrivacyChars="38" />
               </DockPanel>
             </DataTemplate>
           </DataBoxTemplateColumn.CellTemplate>

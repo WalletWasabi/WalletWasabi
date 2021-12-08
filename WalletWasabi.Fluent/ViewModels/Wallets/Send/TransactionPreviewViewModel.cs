@@ -37,6 +37,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private bool _transactionHasChange;
 		[AutoNotify] private bool _transactionHasPockets;
 		[AutoNotify] private bool _adjustFeeAvailable;
+		[AutoNotify] private bool _isCustomFeeUsed;
 
 		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info)
 		{
@@ -67,7 +68,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				_nextButtonText = "Confirm";
 			}
 
-			AdjustFeeCommand = ReactiveCommand.CreateFromTask(OnAdjustFeeAsync);
+			AdjustFeeCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				if (_info.IsCustomFeeUsed)
+				{
+					await ShowAdvancedDialogAsync();
+				}
+				else
+				{
+					await OnAdjustFeeAsync();
+				}
+			});
 
 			AvoidChangeCommand = ReactiveCommand.CreateFromTask(OnAvoidChangeAsync);
 
@@ -87,6 +98,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public ICommand AvoidChangeCommand { get; }
 
 		public ICommand ChangePocketsCommand { get; }
+
+		private async Task ShowAdvancedDialogAsync()
+		{
+			var result = await NavigateDialogAsync(new AdvancedSendOptionsViewModel(_info), NavigationTarget.CompactDialogScreen);
+
+			if (result.Kind == DialogResultKind.Normal)
+			{
+				await BuildAndUpdateAsync();
+			}
+		}
 
 		private async Task OnExportPsbtAsync()
 		{
@@ -109,12 +130,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				_info.FeeRate = feeRateDialogResult.Result;
 
-				var newTransaction = await BuildTransactionAsync();
+				await BuildAndUpdateAsync();
+			}
+		}
 
-				if (newTransaction is { })
-				{
-					UpdateTransaction(newTransaction);
-				}
+		private async Task BuildAndUpdateAsync()
+		{
+			var newTransaction = await BuildTransactionAsync();
+
+			if (newTransaction is { })
+			{
+				UpdateTransaction(newTransaction);
 			}
 		}
 
@@ -138,12 +164,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				_info.Coins = selectPocketsDialog.Result;
 
-				var newTransaction = await BuildTransactionAsync();
-
-				if (newTransaction is { })
-				{
-					UpdateTransaction(newTransaction);
-				}
+				await BuildAndUpdateAsync();
 			}
 		}
 
@@ -180,6 +201,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private async Task<BuildTransactionResult?> BuildTransactionAsync()
 		{
+			if (!await InitialiseTransactionAsync())
+			{
+				return null;
+			}
+
 			try
 			{
 				IsBusy = true;
@@ -295,6 +321,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			TransactionHasChange = _transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != _info.Address.ScriptPubKey);
 
 			TransactionHasPockets = !_info.IsPrivatePocketUsed;
+
+			IsCustomFeeUsed = _info.IsCustomFeeUsed;
 		}
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -312,14 +340,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				RxApp.MainThreadScheduler.Schedule(async () =>
 				{
-					if (await InitialiseTransactionAsync())
+					if (await BuildTransactionAsync() is { } initialTransaction)
 					{
-						var initialTransaction = await BuildTransactionAsync();
-
-						if (initialTransaction is { })
-						{
-							UpdateTransaction(initialTransaction);
-						}
+						UpdateTransaction(initialTransaction);
 					}
 					else
 					{
