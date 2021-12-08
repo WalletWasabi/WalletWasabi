@@ -17,16 +17,6 @@
     <DataBox Items="{Binding Addresses}"
              CanUserSortColumns="True">
       <DataBox.Styles>
-
-        <Style Selector="DataBoxRow">
-          <Setter Property="(Interaction.Behaviors)">
-            <BehaviorCollectionTemplate>
-              <BehaviorCollection>
-                <behaviors:UnusedAddressItemDetailsBehavior />
-              </BehaviorCollection>
-            </BehaviorCollectionTemplate>
-          </Setter>
-        </Style>
         <Style Selector="c|AnimatedButton.addressActionButton">
           <Setter Property="DockPanel.Dock" Value="Right" />
           <Setter Property="Margin" Value="5 0 0 0" />
@@ -43,34 +33,20 @@
           <Setter Property="Height" Value="15" />
           <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
         </Style>
-
-        <Style Selector="behaviors|DataBoxItemDetailsAdorner">
-          <Setter Property="Margin" Value="-32,0,0,0" />
-          <Setter Property="HorizontalAlignment" Value="Left" />
-          <Setter Property="VerticalAlignment" Value="Top" />
-          <Setter Property="ClipToBounds" Value="False" />
-          <Setter Property="IsHitTestVisible" Value="True" />
-          <Setter Property="Template">
-            <ControlTemplate>
-              <Panel Background="Transparent" x:DataType="receive:AddressViewModel">
-                <c:AnimatedButton Classes="addressActionButton" DockPanel.Dock="Right"
-                                  ToolTip.Tip="Copy"
-                                  Command="{Binding CopyAddressCommand}"
-                                  NormalIcon="{StaticResource copy_regular}"
-                                  ClickIcon="{StaticResource copy_confirmed}"
-                                  InitialOpacity="1.0" />
-              </Panel>
-            </ControlTemplate>
-          </Setter>
-        </Style>
       </DataBox.Styles>
-
       <DataBox.Columns>
         <DataBoxTemplateColumn Width="70"
                                CanUserSort="True">
           <DataBoxTemplateColumn.CellTemplate>
             <DataTemplate>
               <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
+
+                <c:AnimatedButton Classes="addressActionButton" DockPanel.Dock="Right"
+                                  ToolTip.Tip="Copy"
+                                  Command="{Binding CopyAddressCommand}"
+                                  NormalIcon="{StaticResource copy_regular}"
+                                  ClickIcon="{StaticResource copy_confirmed}"
+                                  InitialOpacity="1.0" />
 
                 <Button Classes="plain addressActionButton" Command="{Binding NavigateCommand}"
                         DockPanel.Dock="Right"
