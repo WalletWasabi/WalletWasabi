@@ -23,6 +23,7 @@ namespace WalletWasabi.Fluent
 		private bool _oobe;
 		private bool _hideOnClose;
 		private bool _autoPaste;
+		private int _feeTarget;
 
 		public UiConfig() : base()
 		{
@@ -42,7 +43,8 @@ namespace WalletWasabi.Fluent
 					x => x.RunOnSystemStartup,
 					x => x.PrivacyMode,
 					x => x.HideOnClose,
-					(_, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
+					x => x.FeeTarget,
+					(_, _, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
 				.Throttle(TimeSpan.FromMilliseconds(500))
 				.Skip(1) // Won't save on UiConfig creation.
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -67,7 +69,11 @@ namespace WalletWasabi.Fluent
 
 		[DefaultValue(2)]
 		[JsonProperty(PropertyName = "FeeTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public int FeeTarget { get; internal set; }
+		public int FeeTarget
+		{
+			get => _feeTarget;
+			internal set => RaiseAndSetIfChanged(ref _feeTarget, value);
+		}
 
 		[DefaultValue(0)]
 		[JsonProperty(PropertyName = "FeeDisplayFormat", DefaultValueHandling = DefaultValueHandling.Populate)]

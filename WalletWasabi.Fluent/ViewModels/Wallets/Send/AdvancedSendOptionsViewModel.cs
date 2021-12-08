@@ -84,7 +84,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				_ = new FeeRate(value);
 			}
-			catch(OverflowException)
+			catch (OverflowException)
 			{
 				errors.Add(ErrorSeverity.Error, "The entered fee is too high.");
 				return;

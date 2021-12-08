@@ -28,7 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			_sliderMinimum = 0;
 			_sliderMaximum = 9;
-			_currentConfirmationTarget = 36;
+			_currentConfirmationTarget = Services.UiConfig.FeeTarget;
 			_currentConfirmationTargetString = "";
 
 			this.WhenAnyValue(x => x.CurrentConfirmationTarget)
