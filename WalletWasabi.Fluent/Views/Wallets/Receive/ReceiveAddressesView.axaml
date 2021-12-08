@@ -35,32 +35,39 @@
         </Style>
       </DataBox.Styles>
       <DataBox.Columns>
-        <DataBoxTemplateColumn Width="70"
-                               CanUserSort="True">
+        <DataBoxTemplateColumn Width="90"
+                               CanUserSort="False">
           <DataBoxTemplateColumn.CellTemplate>
             <DataTemplate>
-              <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
+              <Panel>
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Margin="-5 0 0 0" Spacing="5" Orientation="Horizontal"
+                            x:DataType="receive:AddressViewModel">
+                  <c:AnimatedButton Classes="addressActionButton" DockPanel.Dock="Right"
+                                    Margin="0"
+                                    ToolTip.Tip="Copy"
+                                    Command="{Binding CopyAddressCommand}"
+                                    NormalIcon="{StaticResource copy_regular}"
+                                    ClickIcon="{StaticResource copy_confirmed}"
+                                    InitialOpacity="1.0" />
 
-                <c:AnimatedButton Classes="addressActionButton" DockPanel.Dock="Right"
-                                  ToolTip.Tip="Copy"
-                                  Command="{Binding CopyAddressCommand}"
-                                  NormalIcon="{StaticResource copy_regular}"
-                                  ClickIcon="{StaticResource copy_confirmed}"
-                                  InitialOpacity="1.0" />
+                  <Button Classes="plain addressActionButton"
+                          Margin="0"
+                          Command="{Binding NavigateCommand}"
+                          DockPanel.Dock="Right"
+                          ToolTip.Tip="QR Code">
+                    <PathIcon Data="{StaticResource qr_code_regular}" Classes=" addressActionIcon" />
+                  </Button>
 
-                <Button Classes="plain addressActionButton" Command="{Binding NavigateCommand}"
-                        DockPanel.Dock="Right"
-                        ToolTip.Tip="QR Code">
-                  <PathIcon Data="{StaticResource qr_code_regular}" Classes=" addressActionIcon" />
-                </Button>
-
-                <Button Classes="plain addressActionButton" Command="{Binding HideAddressCommand}"
-                        DockPanel.Dock="Right"
-                        ToolTip.Tip="Hide address">
-                  <PathIcon Data="{StaticResource dismiss_light}" Classes=" addressActionIcon" />
-                </Button>
-
-              </DockPanel>
+                  <Button Classes="plain addressActionButton"
+                          Margin="0"
+                          Command="{Binding HideAddressCommand}"
+                          DockPanel.Dock="Right"
+                          ToolTip.Tip="Hide address">
+                    <PathIcon Data="{StaticResource dismiss_light}" Classes=" addressActionIcon" />
+                  </Button>
+                </StackPanel>
+              </Panel>
             </DataTemplate>
           </DataBoxTemplateColumn.CellTemplate>
         </DataBoxTemplateColumn>
