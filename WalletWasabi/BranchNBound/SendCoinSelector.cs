@@ -11,8 +11,14 @@ namespace WalletWasabi.BranchNBound
 {
 	public class SendCoinSelector
 	{
-		private List<ulong> FinalCoins { get; set; }
+		private List<ulong>? FinalCoins { get; set; }
 		private bool _optimizedCoinsFound = false;
+
+		private Money _costOfHeader = Money.Satoshis(0);
+		private Money _costPerOutput = Money.Satoshis(0);
+		private int _bnbTryLimit = 5;
+		private Random _random = new();
+		private Money[]? UtxoSorted { get; set; }
 
 		public bool TryBranchAndBound(List<ulong> coins, ulong target, ulong maxTolerance, ulong toleranceIncrement, out ulong tolerance, out List<ulong> finalCoins)
 		{
@@ -74,8 +80,7 @@ namespace WalletWasabi.BranchNBound
 				else if (sum < target + tolerance)
 				{
 					depth++;
-					tmpPool = new Stack<ulong>(pool.Reverse());
-					SolveX(currentCoins, target, tolerance, tmpPool, depth);
+					SolveX(currentCoins, target, tolerance, new Stack<ulong>(pool.Reverse()), depth);
 				}
 				// If the SUM is bigger than the target, we remove the last added element and go forward
 				if (sum > target + tolerance)
@@ -132,6 +137,106 @@ namespace WalletWasabi.BranchNBound
 				tmp.Add(node);
 			}
 			return true;
+		}
+
+		public bool TryGetExactMatch(Money target, List<Money> availableCoins, out List<Money> selectedCoins)
+		{
+			selectedCoins = new List<Money>();
+			UtxoSorted = availableCoins.OrderByDescending(x => x.Satoshi).ToArray();
+			try
+			{
+				for (int i = 0; i < _bnbTryLimit; i++)
+				{
+					selectedCoins = RecursiveSearch(depth: 0, currentSelection: new List<Money>(), effValue: 0, target: target);
+					if (CalcEffectiveValue(selectedCoins) == target + _costOfHeader + _costPerOutput)
+					{
+						return true;
+					}
+				}
+
+				return false;
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError("Couldn't find the right pair. " + ex);
+				return false;
+			}
+		}
+
+		private List<Money>? RecursiveSearch(int depth, List<Money> currentSelection, Money effValue, Money target)
+		{
+			var targetForMatch = target + _costOfHeader + _costPerOutput;
+			var matchRange = _costOfHeader + _costPerOutput;
+
+			if (effValue > targetForMatch + matchRange)
+			{
+				return null;        // Excessive funds, cut the branch!
+			}
+			else if (effValue >= targetForMatch)
+			{
+				return currentSelection;        // Match found!
+			}
+			else if (depth >= UtxoSorted.Length)
+			{
+				return null;        // Leaf reached, no match
+			}
+			else
+			{
+				if (_random.Next(0, 2) == 1)
+				{
+					var clonedSelection = currentSelection.ToList();
+					clonedSelection.Add(UtxoSorted[depth]);
+
+					var withThis = RecursiveSearch(depth + 1, clonedSelection, effValue + UtxoSorted[depth], target);
+					if (withThis != null)
+					{
+						return withThis;
+					}
+					else
+					{
+						var withoutThis = RecursiveSearch(depth + 1, currentSelection, effValue, target);
+						if (withoutThis != null)
+						{
+							return withoutThis;
+						}
+
+						return null;
+					}
+				}
+				else
+				{
+					var withoutThis = RecursiveSearch(depth + 1, currentSelection, effValue, target);
+					if (withoutThis != null)
+					{
+						return withoutThis;
+					}
+					else
+					{
+						var clonedSelection = currentSelection.ToList();
+						clonedSelection.Add(UtxoSorted[depth]);
+
+						var withThis = RecursiveSearch(depth + 1, clonedSelection, effValue + UtxoSorted[depth], target);
+						if (withThis != null)
+						{
+							return withThis;
+						}
+
+						return null;
+					}
+				}
+			}
+		}
+
+		private Money CalcEffectiveValue(List<Money> list)
+		{
+			Money sum = Money.Satoshis(0);
+
+			foreach (var item in list)
+			{
+				sum += item.Satoshi;        // TODO: effectiveValue = utxo.value − feePerByte × bytesPerInput
+			}
+
+			return sum;
 		}
 
 		public ulong CalculateSum(IEnumerable<ulong> coins)
