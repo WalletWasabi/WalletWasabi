@@ -26,13 +26,13 @@ namespace WalletWasabi.BranchNBound
 			finalCoins = new List<Money>();
 			tolerance = 0;
 			var currentCoins = new List<Money>();
-			var depth = 0;
+
 			try
 			{
 				while (tolerance <= maxTolerance)
 				{
 					Stack<Money> pool = new Stack<Money>(coinsDescending);
-					finalCoins = SolveX(currentCoins, target, tolerance, pool, depth);
+					finalCoins = SearchForCoins(currentCoins, target, tolerance, pool);
 					if (finalCoins.Any())
 					{
 						break;
@@ -48,7 +48,7 @@ namespace WalletWasabi.BranchNBound
 			return finalCoins.Any();
 		}
 
-		private List<Money> SolveX(List<Money> currentCoins, Money target, ulong tolerance, Stack<Money> pool, int depth)
+		private List<Money> SearchForCoins(List<Money> currentCoins, Money target, ulong tolerance, Stack<Money> pool)
 		{
 			// currentCoins : List of coins that have been choosen from the pool for optimal value
 			// pool : All coins available
@@ -80,14 +80,13 @@ namespace WalletWasabi.BranchNBound
 				else if (sum < target + tolerance)
 				{
 					// If the SUM is less that the target, we go forward to add coins
-					depth++;
-					SolveX(currentCoins, target, tolerance, new Stack<Money>(pool.Reverse()), depth);
+					SearchForCoins(currentCoins, target, tolerance, new Stack<Money>(pool.Reverse()));
 				}
 				if (sum > target + tolerance)
 				{
 					// If the SUM is bigger than the target, we remove the last added element and go forward
 					currentCoins.RemoveLast();
-					return SolveX(currentCoins, target, tolerance, pool, depth);
+					return SearchForCoins(currentCoins, target, tolerance, pool);
 				}
 			}
 			return FinalCoins;
