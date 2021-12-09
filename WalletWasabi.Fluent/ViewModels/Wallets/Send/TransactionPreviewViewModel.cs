@@ -30,7 +30,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private bool _adjustFeeAvailable;
 		[AutoNotify] private bool _issuesTooltip;
 		[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
-		[AutoNotify] private bool _isLoading;
 
 		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info)
 		{
@@ -188,28 +187,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				UpdateTransaction(CurrentTransactionSummary, newTransaction);
 
-				await BuildPrivacySuggestionsAsync();
+				await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, newTransaction);
 			}
-		}
-
-		private async Task BuildPrivacySuggestionsAsync()
-		{
-			IsLoading = true;
-			var (selected, suggestions) =
-				await ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(_info, _wallet,
-					_transaction!);
-
-			IsLoading = false;
-
-			PrivacySuggestions.Suggestions.Clear();
-			PrivacySuggestions.SelectedSuggestion = null;
-
-			foreach (var suggestion in suggestions.Where(x => !x.IsOriginal))
-			{
-				PrivacySuggestions.Suggestions.Add(suggestion);
-			}
-
-			PrivacySuggestions.PreviewSuggestion = selected;
 		}
 
 		private async Task OnChangePocketsAsync()
@@ -376,7 +355,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				UpdateTransaction(CurrentTransactionSummary, initialTransaction);
 
-				await BuildPrivacySuggestionsAsync();
+				await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, initialTransaction);
 			}
 			else
 			{

@@ -27,7 +27,7 @@
                  ToolTip.Tip="Your privacy is being protected with PayJoin."
                  IsVisible="{Binding CurrentTransactionSummary.IsPayJoin}" />
 
-          <c:ProgressRing Margin="10 0 10 5" Height="25" Width="25" IsIndeterminate="True" IsVisible="{Binding IsLoading}" />
+          <c:ProgressRing Margin="10 0 10 5" Height="25" Width="25" IsIndeterminate="True" IsVisible="{Binding PrivacySuggestions.IsLoading}" />
 
           <Border Padding="10 0 10 10" Cursor="Hand" IsVisible="{Binding CurrentTransactionSummary.MaxPrivacy}">
             <Interaction.Behaviors>
@@ -124,7 +124,7 @@
             </FlyoutBase.AttachedFlyout>
             <Panel.IsVisible>
               <MultiBinding Converter="{x:Static BoolConverters.And}">
-                <Binding Path="IsLoading" Converter="{x:Static BoolConverters.Not}"/>
+                <Binding Path="PrivacySuggestions.IsLoading" Converter="{x:Static BoolConverters.Not}"/>
                 <Binding Path="CurrentTransactionSummary.TransactionHasChange" />
                 <Binding Path="CurrentTransactionSummary.IsPayJoin" Converter="{x:Static BoolConverters.Not}" />
               </MultiBinding>
