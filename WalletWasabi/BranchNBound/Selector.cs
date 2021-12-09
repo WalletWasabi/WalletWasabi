@@ -1,0 +1,24 @@
+using NBitcoin;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace WalletWasabi.BranchNBound
+{
+	internal class Selector
+	{
+		public Money CalcEffectiveValue(List<Money> list)
+		{
+			Money sum = Money.Satoshis(0);
+
+			foreach (var item in list)
+			{
+				sum += item.Satoshi;        // TODO: effectiveValue = utxo.value − feePerByte × bytesPerInput
+			}
+
+			return sum;
+		}
+	}
+}

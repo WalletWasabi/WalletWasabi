@@ -59,7 +59,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			ulong target = Money.Satoshis(19);
 
-			RecursiveCoinSelector selector = new();
+			TreeBranchCoinSelector selector = new();
 			Assert.True(selector.TryTreeLogic(utxos, target, out List<Money> selectedCoins));
 			Assert.Equal(expectedCoins, selectedCoins);
 		}
@@ -67,7 +67,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void CanSelectCoinsWithOriginalRandomTest()
 		{
-			var selector = new RecursiveCoinSelector();
+			var selector = new BranchAndBound();
 			ulong target = Money.Satoshis(100000000);
 
 			var successful = selector.TryGetExactMatch(target, AvailableCoins, out List<Money> selectedCoins);
@@ -79,7 +79,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void OriginalSimpleTest()
 		{
-			var selector = new RecursiveCoinSelector();
+			var selector = new BranchAndBound();
 			var utxos = new List<Money> { Money.Satoshis(12), Money.Satoshis(10), Money.Satoshis(10), Money.Satoshis(5), Money.Satoshis(4) };
 			var expectedCoins = new List<Money> { Money.Satoshis(10), Money.Satoshis(5), Money.Satoshis(4) };
 			Money target = Money.Satoshis(19);
