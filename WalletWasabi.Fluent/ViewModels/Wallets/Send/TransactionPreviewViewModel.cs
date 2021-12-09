@@ -28,7 +28,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private BuildTransactionResult? _transaction;
 		[AutoNotify] private string _nextButtonText;
 		[AutoNotify] private bool _adjustFeeAvailable;
-		[AutoNotify] private bool _issuesTooltip;
 		[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
 
 		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info)
