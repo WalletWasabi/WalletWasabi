@@ -22,10 +22,12 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private bool _maxPrivacy;
 	[AutoNotify] private bool _isCustomFeeUsed;
 
-	public TransactionSummaryViewModel(Wallet wallet, TransactionInfo info)
+	public TransactionSummaryViewModel(TransactionPreviewViewModel parent, Wallet wallet, TransactionInfo info, bool isPreview = false)
 	{
+		Parent = parent;
 		_wallet = wallet;
 		_info = info;
+		IsPreview = isPreview;
 
 		_labels = SmartLabel.Empty;
 
@@ -36,6 +38,10 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
 		IsPayJoin = PayJoinUrl is not null;
 	}
+
+	public TransactionPreviewViewModel Parent { get; }
+
+	public bool IsPreview { get; }
 
 	public string AddressText { get; }
 

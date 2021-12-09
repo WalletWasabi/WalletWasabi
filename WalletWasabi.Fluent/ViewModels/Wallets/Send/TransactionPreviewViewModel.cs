@@ -38,8 +38,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_info = info;
 
 			PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel();
-			CurrentTransactionSummary = new TransactionSummaryViewModel(_wallet, _info);
-			PreviewTransactionSummary = new TransactionSummaryViewModel(_wallet, _info);
+			CurrentTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info);
+			PreviewTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info, true);
 
 			TransactionSummaries = new List<TransactionSummaryViewModel>
 			{
