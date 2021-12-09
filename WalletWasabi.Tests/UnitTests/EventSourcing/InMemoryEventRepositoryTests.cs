@@ -12,8 +12,15 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 {
 	public class InMemoryEventRepositoryTests : IDisposable
 	{
-		private const string TestRoundAggregate = "TestRoundAggregate";
-		private readonly TimeSpan _semaphoreWaitTimeout = TimeSpan.FromSeconds(20);
+		private const string AggregateType = nameof(InMemoryEventRepositoryTests);
+
+		/// <summary>Aggregate ID number one.</summary>
+		private const string Id1 = "MY_ID_1";
+
+		/// <summary>Aggregate ID number two.</summary>
+		private const string Id2 = "MY_ID_2";
+
+		private static readonly TimeSpan SemaphoreWaitTimeout = TimeSpan.FromSeconds(20);
 
 		public InMemoryEventRepositoryTests(ITestOutputHelper output)
 		{
@@ -27,309 +34,304 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 		[Fact]
 		public async Task AppendEvents_Zero_Async()
 		{
-			// Arrange
-			var events = Array.Empty<WrappedEvent>();
+			WrappedEvent[] noEvents = Array.Empty<WrappedEvent>();
 
-			// Act
-			await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "MY_ID_1", events);
+			await EventRepository.AppendEventsAsync(AggregateType, Id1, noEvents);
 
-			// Assert
-			Assert.True((await EventRepository.ListEventsAsync(nameof(TestRoundAggregate), "MY_ID_1"))
-				.SequenceEqual(events));
-			Assert.True((await EventRepository.ListAggregateIdsAsync(nameof(TestRoundAggregate)))
-				.SequenceEqual(Array.Empty<string>()));
+			IReadOnlyList<WrappedEvent> actualEvents = await EventRepository.GetEventsAsync(AggregateType, Id1);
+			Assert.Empty(actualEvents);
+
+			IReadOnlyList<string> actualAggregateIds = await EventRepository.GetAggregateIdsAsync(AggregateType);
+			Assert.Empty(actualAggregateIds);
 		}
 
 		[Fact]
 		public async Task AppendEvents_One_Async()
 		{
-			// Arrange
-			var events = new[]
+			WrappedEvent[] events = new[]
 			{
-				new WrappedEvent(1),
+				new WrappedEvent(SequenceId: 1),
 			};
 
-			// Act
-			await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "MY_ID_1", events);
+			await EventRepository.AppendEventsAsync(AggregateType, Id1, events);
 
-			// Assert
-			Assert.True((await EventRepository.ListEventsAsync(nameof(TestRoundAggregate), "MY_ID_1"))
-				.SequenceEqual(events));
-			Assert.True((await EventRepository.ListAggregateIdsAsync(nameof(TestRoundAggregate)))
-				.SequenceEqual(new[] { "MY_ID_1" }));
+			IReadOnlyList<WrappedEvent> actualEvents = await EventRepository.GetEventsAsync(AggregateType, Id1);
+			Assert.Equal(events, actualEvents);
+
+			IReadOnlyList<string> actualAggregateIds = await EventRepository.GetAggregateIdsAsync(AggregateType);
+			Assert.Equal(new string[] { Id1 }, actualAggregateIds);
 		}
 
 		[Fact]
 		public async Task AppendEvents_Two_Async()
 		{
-			// Arrange
-			var events = new[]
+			WrappedEvent[] events = new[]
 			{
-				new WrappedEvent(1),
-				new WrappedEvent(2),
+				new WrappedEvent(SequenceId: 1),
+				new WrappedEvent(SequenceId: 2),
 			};
 
-			// Act
-			await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "MY_ID_1", events);
+			await EventRepository.AppendEventsAsync(AggregateType, Id1, events);
 
-			// Assert
-			Assert.True((await EventRepository.ListEventsAsync(nameof(TestRoundAggregate), "MY_ID_1"))
-				.SequenceEqual(events));
-			Assert.True((await EventRepository.ListAggregateIdsAsync(nameof(TestRoundAggregate)))
-				.SequenceEqual(new[] { "MY_ID_1" }));
+			IReadOnlyList<WrappedEvent> actualEvents = await EventRepository.GetEventsAsync(AggregateType, Id1);
+			Assert.Equal(events, actualEvents);
+
+			IReadOnlyList<string> aggregateIds = await EventRepository.GetAggregateIdsAsync(AggregateType);
+			Assert.Equal(new string[] { Id1 }, aggregateIds);
 		}
 
 		[Fact]
 		public async Task AppendEvents_NegativeSequenceId_Async()
 		{
-			// Arrange
-			var events = new[]
+			WrappedEvent[] events = new[]
 			{
-				new WrappedEvent(-1)
+				new WrappedEvent(SequenceId: -1)
 			};
 
-			// Act
 			async Task ActionAsync()
 			{
-				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "MY_ID_1", events).ConfigureAwait(false);
+				await EventRepository.AppendEventsAsync(AggregateType, Id1, events).ConfigureAwait(false);
 			}
 
-			// Assert
-			var ex = await Assert.ThrowsAsync<ArgumentException>(ActionAsync);
-			Assert.Contains("First event sequenceId is not natural number", ex.Message);
+			ArgumentException ex = await Assert.ThrowsAsync<ArgumentException>(ActionAsync);
+			Assert.Contains("First event sequenceId is not a positive number.", ex.Message);
 		}
 
 		[Fact]
 		public async Task AppendEvents_SkippedSequenceId_Async()
 		{
-			// Arrange
-			var events = new[]
+			WrappedEvent[] events = new[]
 			{
 				new WrappedEvent(2)
 			};
 
-			// Act
 			async Task ActionAsync()
 			{
-				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "MY_ID_1", events);
+				await EventRepository.AppendEventsAsync(AggregateType, Id1, events).ConfigureAwait(false);
 			}
 
-			// Assert
-			var ex = await Assert.ThrowsAsync<ArgumentException>(ActionAsync);
-			Assert.Contains(
-				"Invalid firstSequenceId (gap in sequence ids) expected: '1' given: '2'",
-				ex.Message);
+			ArgumentException ex = await Assert.ThrowsAsync<ArgumentException>(ActionAsync);
+			Assert.Contains("Invalid firstSequenceId (gap in sequence IDs) expected: '1' given: '2'", ex.Message);
 		}
 
 		[Fact]
 		public async Task AppendEvents_OptimisticConcurrency_Async()
 		{
-			// Arrange
-			var events = new[]
+			WrappedEvent[] events = new[]
 			{
 				new WrappedEvent(1)
 			};
-			await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "MY_ID_1", events);
 
-			// Act
+			await EventRepository.AppendEventsAsync(AggregateType, Id1, events);
+
 			async Task ActionAsync()
 			{
-				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "MY_ID_1", events);
+				await EventRepository.AppendEventsAsync(AggregateType, Id1, events).ConfigureAwait(false);
 			}
 
-			// Assert
-			var ex = await Assert.ThrowsAsync<OptimisticConcurrencyException>(ActionAsync);
+			OptimisticConcurrencyException ex = await Assert.ThrowsAsync<OptimisticConcurrencyException>(ActionAsync);
 			Assert.Contains("Conflict", ex.Message);
 		}
 
 		[Fact]
 		public async Task AppendEventsAsync_Interleaving_Async()
 		{
-			// Arrange
-			var events_a_0 = new[] { new WrappedEvent(1) };
-			var events_b_0 = new[] { new WrappedEvent(1) };
-			var events_a_1 = new[] { new WrappedEvent(2) };
-			var events_b_1 = new[] { new WrappedEvent(2) };
+			WrappedEvent[] events_a_0 = new[] { new WrappedEvent(1) };
+			WrappedEvent[] events_b_0 = new[] { new WrappedEvent(1) };
+			WrappedEvent[] events_a_1 = new[] { new WrappedEvent(2) };
+			WrappedEvent[] events_b_1 = new[] { new WrappedEvent(2) };
 
-			// Act
-			await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "a", events_a_0);
-			await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "b", events_b_0);
-			await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "a", events_a_1);
-			await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "b", events_b_1);
+			await EventRepository.AppendEventsAsync(AggregateType, "a", events_a_0);
+			await EventRepository.AppendEventsAsync(AggregateType, "b", events_b_0);
+			await EventRepository.AppendEventsAsync(AggregateType, "a", events_a_1);
+			await EventRepository.AppendEventsAsync(AggregateType, "b", events_b_1);
 
-			// Assert
-			Assert.True((await EventRepository.ListEventsAsync(nameof(TestRoundAggregate), "a"))
-				.SequenceEqual(events_a_0.Concat(events_a_1)));
-			Assert.True((await EventRepository.ListEventsAsync(nameof(TestRoundAggregate), "b"))
-				.SequenceEqual(events_b_0.Concat(events_b_1)));
-			Assert.True((await EventRepository.ListAggregateIdsAsync(nameof(TestRoundAggregate)))
-				.SequenceEqual(new[] { "a", "b" }));
+			IReadOnlyList<WrappedEvent> actualEventsA = await EventRepository.GetEventsAsync(AggregateType, "a");
+			Assert.Equal(events_a_0.Concat(events_a_1), actualEventsA);
+
+			IReadOnlyList<WrappedEvent> actualEventsB = await EventRepository.GetEventsAsync(AggregateType, "b");
+			Assert.Equal(events_b_0.Concat(events_b_1), actualEventsB);
+
+			IReadOnlyList<string> actualAggregateIds = await EventRepository.GetAggregateIdsAsync(AggregateType);
+			Assert.Equal(new string[] { "a", "b" }, actualAggregateIds);
 		}
 
 		[Fact]
 		public async Task AppendEventsAsync_InterleavingConflict_Async()
 		{
-			// Arrange
-			var events_a_0 = new[] { new WrappedEvent(1) };
-			var events_b_0 = new[] { new WrappedEvent(1) };
-			var events_a_1 = new[] { new WrappedEvent(2) };
+			WrappedEvent[] events_a_0 = new[] { new WrappedEvent(1) };
+			WrappedEvent[] events_b_0 = new[] { new WrappedEvent(1) };
+			WrappedEvent[] events_a_1 = new[] { new WrappedEvent(2) };
 
-			// Act
 			async Task ActionAsync()
 			{
-				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "a", events_a_0);
-				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "b", events_b_0);
-				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "a", events_a_1);
-				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "a", events_a_1);
+				await EventRepository.AppendEventsAsync(AggregateType, "a", events_a_0).ConfigureAwait(false);
+				await EventRepository.AppendEventsAsync(AggregateType, "b", events_b_0).ConfigureAwait(false);
+				await EventRepository.AppendEventsAsync(AggregateType, "a", events_a_1).ConfigureAwait(false);
+				await EventRepository.AppendEventsAsync(AggregateType, "a", events_a_1).ConfigureAwait(false);
 			}
 
-			// Assert
 			await Assert.ThrowsAsync<OptimisticConcurrencyException>(ActionAsync);
-			Assert.True((await EventRepository.ListEventsAsync(nameof(TestRoundAggregate), "a"))
-				.SequenceEqual(events_a_0.Concat(events_a_1)));
-			Assert.True((await EventRepository.ListEventsAsync(nameof(TestRoundAggregate), "b"))
-				.SequenceEqual(events_b_0));
-			Assert.True((await EventRepository.ListAggregateIdsAsync(nameof(TestRoundAggregate)))
-				.SequenceEqual(new[] { "a", "b" }));
+
+			IReadOnlyList<WrappedEvent> actualEventsA = await EventRepository.GetEventsAsync(AggregateType, "a");
+			Assert.Equal(events_a_0.Concat(events_a_1), actualEventsA);
+
+			IReadOnlyList<WrappedEvent> actualEventsB = await EventRepository.GetEventsAsync(AggregateType, "b");
+			Assert.Equal(events_b_0, actualEventsB);
+
+			IReadOnlyList<string> actualAggregateIds = await EventRepository.GetAggregateIdsAsync(AggregateType);
+			Assert.Equal(new string[] { "a", "b" }, actualAggregateIds);
 		}
 
 		[Fact]
 		public async Task AppendEvents_AppendIsAtomic_Async()
 		{
-			// Arrange
-			var events1 = new[] { new TestWrappedEvent(1, "a"), new TestWrappedEvent(2, "a") };
-			var events2 = new[] { new TestWrappedEvent(2, "b"), new TestWrappedEvent(3, "b") };
+			WrappedEvent[] events1 = new[] { new TestWrappedEvent(1, "a"), new TestWrappedEvent(2, "a") };
+			WrappedEvent[] events2 = new[] { new TestWrappedEvent(2, "b"), new TestWrappedEvent(3, "b") };
 
-			// Act
 			async Task ActionAsync()
 			{
-				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "MY_ID_1", events1);
-				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "MY_ID_1", events2);
+				await EventRepository.AppendEventsAsync(AggregateType, Id1, events1).ConfigureAwait(false);
+				await EventRepository.AppendEventsAsync(AggregateType, Id1, events2).ConfigureAwait(false);
 			}
 
-			// Assert
 			await Assert.ThrowsAsync<OptimisticConcurrencyException>(ActionAsync);
-			Assert.True((await EventRepository.ListEventsAsync(nameof(TestRoundAggregate), "MY_ID_1"))
-				.Cast<TestWrappedEvent>().SequenceEqual(events1));
-			Assert.True((await EventRepository.ListAggregateIdsAsync(nameof(TestRoundAggregate)))
-				.SequenceEqual(new[] { "MY_ID_1" }));
+
+			IReadOnlyList<WrappedEvent> wrappedEvents = await EventRepository.GetEventsAsync(AggregateType, Id1);
+			Assert.Equal(events1, wrappedEvents);
+
+			IReadOnlyList<string> actualAggregateIds = await EventRepository.GetAggregateIdsAsync(AggregateType);
+			Assert.Equal(new string[] { Id1 }, actualAggregateIds);
 		}
 
 		[Fact]
 		public async Task AppendEvents_CriticalSectionConflicts_Async()
 		{
-			// Arrange
-			var events1 = new[] { new TestWrappedEvent(1, "a"), new TestWrappedEvent(2, "a") };
-			var events2 = new[] { new TestWrappedEvent(2, "b"), new TestWrappedEvent(3, "b") };
+			WrappedEvent[] events1 = new[] { new TestWrappedEvent(1, "a"), new TestWrappedEvent(2, "a") };
+			WrappedEvent[] events2 = new[] { new TestWrappedEvent(2, "b"), new TestWrappedEvent(3, "b") };
 
-			// Act
 			async Task Append1Async()
 			{
-				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "MY_ID_1", events1);
+				await EventRepository.AppendEventsAsync(AggregateType, Id1, events1);
 			}
+
 			async Task Append2Async()
 			{
-				Assert.True(TestEventRepository.AppendedSemaphore.Wait(_semaphoreWaitTimeout));
-				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "MY_ID_1", events2!);
+				bool entered = await TestEventRepository.AppendedSemaphore.WaitAsync(SemaphoreWaitTimeout).ConfigureAwait(false);
+				Assert.True(entered, "Lock failed to be entered.");
+
+				await EventRepository.AppendEventsAsync(AggregateType, Id1, events2);
 			}
+
 			async Task AppendInParallelAsync()
 			{
-				var task1 = Task.Run(Append1Async);
-				var task2 = Task.Run(Append2Async);
+				Task task1 = Task.Run(Append1Async);
+				Task task2 = Task.Run(Append2Async);
 				await Task.WhenAll(task1, task2);
 			}
-			void WaitForConflict()
-			{
-				Assert.True(TestEventRepository.ConflictedSemaphore.Wait(_semaphoreWaitTimeout));
-			}
-			TestEventRepository.AppendedCallback = WaitForConflict;
 
-			// Assert
+			async Task WaitForConflictAsync()
+			{
+				bool entered = await TestEventRepository.ConflictedSemaphore.WaitAsync(SemaphoreWaitTimeout).ConfigureAwait(false);
+				Assert.True(entered, "Lock failed to be entered.");
+			}
+
+			TestEventRepository.AppendedCallbackAsync = WaitForConflictAsync;
+
 			await Assert.ThrowsAsync<OptimisticConcurrencyException>(AppendInParallelAsync);
-			Assert.True((await EventRepository.ListEventsAsync(nameof(TestRoundAggregate), "MY_ID_1"))
-						.Cast<TestWrappedEvent>().SequenceEqual(events1));
-			Assert.True((await EventRepository.ListAggregateIdsAsync(nameof(TestRoundAggregate)))
-				.SequenceEqual(new[] { "MY_ID_1" }));
+			IReadOnlyList<WrappedEvent> enumerable = await EventRepository.GetEventsAsync(AggregateType, Id1);
+			Assert.Equal(events1, enumerable);
+
+			IReadOnlyList<string> actualAggregateIds = await EventRepository.GetAggregateIdsAsync(AggregateType);
+			Assert.Equal(new string[] { Id1 }, actualAggregateIds);
 		}
 
 		[Fact]
 		public async Task AppendEvents_CriticalAppendConflicts_Async()
 		{
-			// Arrange
-			var events1 = new[] { new TestWrappedEvent(1, "a"), new TestWrappedEvent(2, "a") };
-			var events2 = new[] { new TestWrappedEvent(3, "b"), new TestWrappedEvent(4, "b") };
+			WrappedEvent[] events1 = new[] { new TestWrappedEvent(1, "a"), new TestWrappedEvent(2, "a") };
+			WrappedEvent[] events2 = new[] { new TestWrappedEvent(3, "b"), new TestWrappedEvent(4, "b") };
 
-			// Act
 			async Task Append1Async()
 			{
-				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "MY_ID_1", events1);
+				await EventRepository.AppendEventsAsync(AggregateType, Id1, events1).ConfigureAwait(false);
 			}
+
 			async Task Append2Async()
 			{
-				Assert.True(TestEventRepository.AppendedSemaphore.Wait(_semaphoreWaitTimeout));
-				await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "MY_ID_1", events2!);
+				bool entered = await TestEventRepository.AppendedSemaphore.WaitAsync(SemaphoreWaitTimeout).ConfigureAwait(false);
+				Assert.True(entered, "Lock failed to be entered.");
+
+				await EventRepository.AppendEventsAsync(AggregateType, Id1, events2).ConfigureAwait(false);
 			}
+
 			async Task AppendInParallelAsync()
 			{
-				var task1 = Task.Run(Append1Async);
-				var task2 = Task.Run(Append2Async);
-				await Task.WhenAll(task1, task2);
+				await Task.WhenAll(Append1Async(), Append2Async()).ConfigureAwait(false);
 			}
-			void WaitForNoConflict()
-			{
-				Assert.False(TestEventRepository.ConflictedSemaphore.Wait(_semaphoreWaitTimeout));
-			}
-			TestEventRepository.AppendedCallback = WaitForNoConflict;
 
-			// no conflict
+			async Task WaitForNoConflictAsync()
+			{
+				bool entered = await TestEventRepository.ConflictedSemaphore.WaitAsync(SemaphoreWaitTimeout).ConfigureAwait(false);
+				Assert.False(entered, "Lock failed to be entered.");
+			}
+
+			TestEventRepository.AppendedCallbackAsync = WaitForNoConflictAsync;
+
+			// No conflict.
 			await AppendInParallelAsync();
 
-			Assert.True((await EventRepository.ListEventsAsync(nameof(TestRoundAggregate), "MY_ID_1"))
-						.Cast<TestWrappedEvent>().SequenceEqual(events1.Concat(events2)));
-			Assert.True((await EventRepository.ListAggregateIdsAsync(nameof(TestRoundAggregate)))
-				.SequenceEqual(new[] { "MY_ID_1" }));
+			IReadOnlyList<WrappedEvent> actualEvents = await EventRepository.GetEventsAsync(AggregateType, Id1);
+			Assert.Equal(events1.Concat(events2), actualEvents);
+
+			IReadOnlyList<string> actualAggregateIds = await EventRepository.GetAggregateIdsAsync(AggregateType);
+			Assert.Equal(new string[] { Id1 }, actualAggregateIds);
 		}
 
 		[Theory]
-		[InlineData(nameof(TestInMemoryEventRepository.ValidatedCallback))]
-		[InlineData(nameof(TestInMemoryEventRepository.AppendedCallback))]
+		[InlineData(nameof(TestInMemoryEventRepository.ValidatedCallbackAsync))]
+		[InlineData(nameof(TestInMemoryEventRepository.AppendedCallbackAsync))]
 		public async Task ListEventsAsync_ConflictWithAppending_Async(string listOnCallback)
 		{
-			// Arrange
-			var events1 = new[] { new TestWrappedEvent(1, "a"), new TestWrappedEvent(2, "a") };
-			var events2 = new[] { new TestWrappedEvent(3, "b"), new TestWrappedEvent(4, "b") };
-			await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "MY_ID_1", events1);
+			TestWrappedEvent[] events1 = new[] { new TestWrappedEvent(1, "a"), new TestWrappedEvent(2, "a") };
+			TestWrappedEvent[] events2 = new[] { new TestWrappedEvent(3, "b"), new TestWrappedEvent(4, "b") };
 
-			// Act
+			await EventRepository.AppendEventsAsync(AggregateType, Id1, events1);
+
 			IReadOnlyList<WrappedEvent> result = Array.Empty<WrappedEvent>().ToList().AsReadOnly();
-			void ListCallback()
+
+			Task ListCallbackAsync()
 			{
-				result = EventRepository.ListEventsAsync(nameof(TestRoundAggregate), "MY_ID_1").Result;
+				result = EventRepository.GetEventsAsync(AggregateType, Id1).Result;
+				return Task.CompletedTask;
 			}
+
 			switch (listOnCallback)
 			{
-				case nameof(TestInMemoryEventRepository.ValidatedCallback):
-					TestEventRepository.ValidatedCallback = ListCallback;
+				case nameof(TestInMemoryEventRepository.ValidatedCallbackAsync):
+					TestEventRepository.ValidatedCallbackAsync = ListCallbackAsync;
 					break;
 
-				case nameof(TestInMemoryEventRepository.AppendedCallback):
-					TestEventRepository.AppendedCallback = ListCallback;
+				case nameof(TestInMemoryEventRepository.AppendedCallbackAsync):
+					TestEventRepository.AppendedCallbackAsync = ListCallbackAsync;
 					break;
 
 				default:
 					throw new ApplicationException($"unexpected value listOnCallback: '{listOnCallback}'");
 			}
-			await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "MY_ID_1", events2);
 
-			// Assert
-			var expected = events1.AsEnumerable();
+			await EventRepository.AppendEventsAsync(AggregateType, Id1, events2);
+
+			IEnumerable<TestWrappedEvent> expected = events1.AsEnumerable();
+
 			switch (listOnCallback)
 			{
-				case nameof(TestInMemoryEventRepository.AppendedCallback):
+				case nameof(TestInMemoryEventRepository.AppendedCallbackAsync):
 					expected = expected.Concat(events2);
 					break;
 			}
-			Assert.True(result.SequenceEqual(expected));
+
+			Assert.Equal(expected, result);
 		}
 
 		[Theory]
@@ -350,19 +352,17 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 		[InlineData(4, 1)]
 		public async Task ListEventsAsync_OptionalArguments_Async(long afterSequenceId, int limit)
 		{
-			// Arrange
-			var events = new[]
+			WrappedEvent[] events = new[]
 			{
 				new TestWrappedEvent(1, "a"), new TestWrappedEvent(2, "a"),
 				new TestWrappedEvent(3, "b"), new TestWrappedEvent(4, "b")
 			};
-			await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "MY_ID_1", events);
 
-			// Act
-			var result = await EventRepository.ListEventsAsync(
-				nameof(TestRoundAggregate), "MY_ID_1", afterSequenceId, limit);
+			await EventRepository.AppendEventsAsync(AggregateType, Id1, events);
 
-			// Assert
+			var result = await EventRepository.GetEventsAsync(
+				AggregateType, Id1, afterSequenceId, limit);
+
 			Assert.True(result.Count <= limit);
 			Assert.True(result.All(a => afterSequenceId < a.SequenceId));
 		}
@@ -370,20 +370,17 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 		[Fact]
 		public async Task ListAggregateIdsAsync_Async()
 		{
-			// Arrange
-			var events = new[]
+			WrappedEvent[] events = new[]
 			{
 				new TestWrappedEvent(1, "a"), new TestWrappedEvent(2, "a"),
 				new TestWrappedEvent(3, "b"), new TestWrappedEvent(4, "b")
 			};
-			await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "MY_ID_1", events);
-			await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "MY_ID_2", events);
 
-			// Act
-			var result = await EventRepository.ListAggregateIdsAsync(nameof(TestRoundAggregate));
+			await EventRepository.AppendEventsAsync(AggregateType, Id1, events);
+			await EventRepository.AppendEventsAsync(AggregateType, "MY_ID_2", events);
 
-			// Assert
-			Assert.True(result.SequenceEqual(new[] { "MY_ID_1", "MY_ID_2" }));
+			IReadOnlyList<string> actualAggregateIds = await EventRepository.GetAggregateIdsAsync(AggregateType);
+			Assert.Equal(new string[] { Id1, "MY_ID_2" }, actualAggregateIds);
 		}
 
 		[Theory]
@@ -391,29 +388,26 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 		[InlineData("0", 1)]
 		[InlineData("0", 2)]
 		[InlineData("0", 3)]
-		[InlineData("MY_ID_1", 0)]
-		[InlineData("MY_ID_1", 1)]
-		[InlineData("MY_ID_1", 2)]
+		[InlineData(Id1, 0)]
+		[InlineData(Id1, 1)]
+		[InlineData(Id1, 2)]
 		[InlineData("MY_ID_2", 0)]
 		[InlineData("MY_ID_2", 1)]
 		[InlineData("3", 0)]
 		[InlineData("3", 1)]
 		public async Task ListAggregateIdsAsync_OptionalArguments_Async(string afterAggregateId, int limit)
 		{
-			// Arrange
-			var events = new[]
+			WrappedEvent[] events = new[]
 			{
 				new TestWrappedEvent(1, "a"), new TestWrappedEvent(2, "a"),
 				new TestWrappedEvent(3, "b"), new TestWrappedEvent(4, "b")
 			};
-			await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "MY_ID_1", events);
-			await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "MY_ID_2", events);
 
-			// Act
-			var result = await EventRepository.ListAggregateIdsAsync(
-				nameof(TestRoundAggregate), afterAggregateId, limit);
+			await EventRepository.AppendEventsAsync(AggregateType, Id1, events);
+			await EventRepository.AppendEventsAsync(AggregateType, Id2, events);
 
-			// Assert
+			IReadOnlyList<string> result = await EventRepository.GetAggregateIdsAsync(AggregateType, afterAggregateId, limit);
+
 			Assert.True(result.Count <= limit);
 			Assert.True(result.All(a => afterAggregateId.CompareTo(a) <= 0));
 		}
