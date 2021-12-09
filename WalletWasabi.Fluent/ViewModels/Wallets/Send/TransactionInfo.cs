@@ -2,29 +2,61 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
-	public class TransactionInfo
+	public partial class TransactionInfo
 	{
-		public SmartLabel UserLabels { private get; set; }
+		private readonly int _privateCoinThreshold;
 
-		public SmartLabel Labels => SmartLabel.Merge(UserLabels, SmartLabel.Merge(Coins.Select(coin => coin.GetLabels())));
+		[AutoNotify] private Money _amount = Money.Zero;
+
+		public TransactionInfo()
+		{
+			_privateCoinThreshold = Services.Config.MixUntilAnonymitySetValue;
+
+			this.WhenAnyValue(x => x.Amount)
+				.Subscribe(_ => OnAmountChanged());
+		}
+
+		public SmartLabel UserLabels { get; set; } = SmartLabel.Empty;
 
 		public BitcoinAddress Address { get; set; }
 
-		public Money Amount { get; set; }
-
-		public FeeRate FeeRate { get; set; }
+		public FeeRate FeeRate { get; set; } = FeeRate.Zero;
 
 		public TimeSpan ConfirmationTimeSpan { get; set; }
 
 		public IEnumerable<SmartCoin> Coins { get; set; } = Enumerable.Empty<SmartCoin>();
 
 		public IPayjoinClient? PayJoinClient { get; set; }
+
+		public bool IsPayJoin => PayJoinClient is { };
+
+		public bool IsPrivatePocketUsed => Coins.All(x => x.HdPubKey.AnonymitySet >= _privateCoinThreshold);
+
+		public bool IsCustomFeeUsed { get; set; }
+
+		public bool SubtractFee { get; set; }
+
+		private void OnAmountChanged()
+		{
+			SubtractFee = default;
+
+			if (!IsCustomFeeUsed)
+			{
+				FeeRate = FeeRate.Zero;
+			}
+
+			if (Coins.Sum(x => x.Amount) < Amount) // Reset coins if the selected cluster is not enough for the new amount
+			{
+				Coins = Enumerable.Empty<SmartCoin>();
+			}
+		}
 	}
 }

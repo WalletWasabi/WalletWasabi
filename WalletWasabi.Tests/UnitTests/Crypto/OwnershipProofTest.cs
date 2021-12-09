@@ -14,8 +14,12 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		{
 			// Trezor test vector
 			// [all all all all all all all all all all all all]/84'/0'/0'/1/0
+			var allMnemonic = new Mnemonic("all all all all all all all all all all all all");
+			var identificationMasterKey = Slip21Node.FromSeed(allMnemonic.DeriveSeed());
+			var identificationKey = identificationMasterKey.DeriveChild("SLIP-0019").DeriveChild("Ownership identification key").Key;
 			using var key = new Key(Encoders.Hex.DecodeData("3460814214450E864EC722FF1F84F96C41746CD6BBE2F1C09B33972761032E9F"));
-			var ownershipIdentifier = new OwnershipIdentifier(Encoders.Hex.DecodeData("A122407EFC198211C81AF4450F40B235D54775EFD934D16B9E31C6CE9BAD5707"));
+
+			var ownershipIdentifier = new OwnershipIdentifier(identificationKey, key.PubKey.WitHash.ScriptPubKey);
 			var commitmentData = Array.Empty<byte>();
 			var ownershipProof = OwnershipProof.Generate(key, ownershipIdentifier, commitmentData, false, ScriptPubKeyType.Segwit);
 			var scriptPubKey = PayToWitPubKeyHashTemplate.Instance.GenerateScriptPubKey(key.PubKey);

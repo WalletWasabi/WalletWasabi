@@ -13,12 +13,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Backend.Controllers.WabiSabi;
 using WalletWasabi.Backend.Middlewares;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi;
-using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Models.Serialization;
 using WalletWasabi.WebClients;
 
@@ -71,12 +71,13 @@ namespace WalletWasabi.Backend
 			services.AddLogging(logging => logging.AddFilter((s, level) => level >= Microsoft.Extensions.Logging.LogLevel.Warning));
 
 			services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider());
+			services.AddSingleton<IdempotencyRequestCache>();
 			services.AddSingleton(new Global(Configuration["datadir"]));
-			services.AddSingleton<ArenaRequestHandler>(serviceProvider =>
+			services.AddSingleton(serviceProvider =>
 			{
 				var global = serviceProvider.GetRequiredService<Global>();
 				var coordinator = global.HostedServices.Get<WabiSabiCoordinator>();
-				return coordinator.Postman;
+				return coordinator.Arena;
 			});
 			services.AddStartupTask<InitConfigStartupTask>();
 
@@ -106,7 +107,7 @@ namespace WalletWasabi.Backend
 			app.UseEndpoints(endpoints => endpoints.MapControllers());
 
 			var applicationLifetime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
-			applicationLifetime.ApplicationStopping.Register(() => OnShutdown(global)); // Don't register async, that won't hold up the shutdown
+			applicationLifetime.ApplicationStopped.Register(() => OnShutdown(global)); // Don't register async, that won't hold up the shutdown
 		}
 
 		private void OnShutdown(Global global)

@@ -15,7 +15,7 @@ namespace WalletWasabi.Tests.Helpers
 			_httpClient = httpClient;
 		}
 
-		public Func<Uri>? BaseUriGetter => ()=> _httpClient.BaseAddress;
+		public Func<Uri>? BaseUriGetter => () => _httpClient.BaseAddress;
 
 		public virtual Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
 		{

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Caching.Memory;
 using Moq;
 using NBitcoin;
 using NBitcoin.RPC;
@@ -6,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Controllers;
+using WalletWasabi.Backend.Controllers.WabiSabi;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
@@ -14,9 +16,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
-using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Crypto;
@@ -37,14 +37,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			using var key = new Key();
 			var outpoint = BitcoinFactory.CreateOutPoint();
 			var mockRpc = new Mock<IRPCClient>();
-			mockRpc.Setup(rpc => rpc.GetTxOutAsync(outpoint.Hash, (int)outpoint.N, true))
+			mockRpc.Setup(rpc => rpc.GetTxOutAsync(outpoint.Hash, (int)outpoint.N, true, It.IsAny<CancellationToken>()))
 				.ReturnsAsync(new NBitcoin.RPC.GetTxOutResponse
 				{
 					IsCoinBase = false,
 					Confirmations = 200,
 					TxOut = new TxOut(Money.Coins(1m), key.PubKey.WitHash.GetAddress(Network.Main)),
 				});
-			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), It.IsAny<EstimateSmartFeeMode>()))
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), It.IsAny<EstimateSmartFeeMode>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync(new EstimateSmartFeeResponse
 				{
 					Blocks = 1000,
@@ -56,21 +56,24 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 					MinRelayTxFee = 1
 				});
 			mockRpc.Setup(rpc => rpc.PrepareBatch()).Returns(mockRpc.Object);
-			mockRpc.Setup(rpc => rpc.SendBatchAsync()).Returns(Task.CompletedTask);
+			mockRpc.Setup(rpc => rpc.SendBatchAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, mockRpc, round);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 
-			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
-			var wabiSabiApi = new WabiSabiController(coordinator);
+			using var memoryCache = new MemoryCache(new MemoryCacheOptions());
+			var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
+			var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena);
+
 			var insecureRandom = new InsecureRandom();
 			var roundState = RoundState.FromRound(round);
 			var aliceArenaClient = new ArenaClient(
 				roundState.CreateAmountCredentialClient(insecureRandom),
 				roundState.CreateVsizeCredentialClient(insecureRandom),
 				wabiSabiApi);
+			var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
-			var inputRegistrationResponse = await aliceArenaClient.RegisterInputAsync(round.Id, outpoint, key, CancellationToken.None);
+			var inputRegistrationResponse = await aliceArenaClient.RegisterInputAsync(round.Id, outpoint, ownershipProof, CancellationToken.None);
 			var aliceId = inputRegistrationResponse.Value;
 
 			var inputVsize = Constants.P2wpkhInputVirtualSize;
@@ -84,7 +87,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			using var destinationKey2 = new Key();
 			var p2wpkhScriptSize = (long)destinationKey1.PubKey.WitHash.ScriptPubKey.EstimateOutputVsize();
 
-			var vsizesToRequest = new[] { roundState.MaxVsizeAllocationPerAlice - ( inputVsize + 2 * p2wpkhScriptSize ), 2 * p2wpkhScriptSize };
+			var vsizesToRequest = new[] { roundState.MaxVsizeAllocationPerAlice - (inputVsize + 2 * p2wpkhScriptSize), 2 * p2wpkhScriptSize };
 
 			// Phase: Input Registration
 			Assert.Equal(Phase.InputRegistration, round.Phase);
@@ -173,10 +176,13 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var coin = fundingTx.WalletOutputs.First().Coin;
 			var alice = new Alice(coin, new OwnershipProof(), round, Guid.NewGuid());
 			round.Alices.Add(alice);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, round);
 
-			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, arena.Rpc);
-			var wabiSabiApi = new WabiSabiController(coordinator);
+			using Arena arena = await ArenaBuilder.From(config).CreateAndStartAsync(round);
+
+			using var memoryCache = new MemoryCache(new MemoryCacheOptions());
+			var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
+			var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena);
+
 			var apiClient = new ArenaClient(null!, null!, wabiSabiApi);
 
 			round.SetPhase(Phase.InputRegistration);
@@ -202,8 +208,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, round);
 
 			var mockRpc = new Mock<IRPCClient>();
-			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
-			var wabiSabiApi = new WabiSabiController(coordinator);
+			using var memoryCache = new MemoryCache(new MemoryCacheOptions());
+			var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
+			var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena);
 
 			var rnd = new InsecureRandom();
 			var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, rnd, 4300000000000L);

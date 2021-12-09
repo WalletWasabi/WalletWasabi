@@ -13,7 +13,7 @@ namespace WalletWasabi.Services
 		public UpdateChecker(TimeSpan period, WasabiSynchronizer synchronizer) : base(period)
 		{
 			Synchronizer = synchronizer;
-			UpdateStatus = new UpdateStatus(true, true, new Version(), 0);
+			UpdateStatus = new UpdateStatus(true, true, new Version(), 0, new Version());
 			WasabiClient = Synchronizer.HttpClientFactory.SharedWasabiClient;
 			Synchronizer.PropertyChanged += Synchronizer_PropertyChanged;
 		}

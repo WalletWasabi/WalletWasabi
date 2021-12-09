@@ -69,7 +69,7 @@ namespace WalletWasabi.BitcoinCore.Processes
 				{
 					try
 					{
-						TimeSpan timeSpan = await RpcClient.UptimeAsync().ConfigureAwait(false);
+						TimeSpan timeSpan = await RpcClient.UptimeAsync(cancel).ConfigureAwait(false);
 
 						Logger.LogInfo("RPC connection is successfully established.");
 						Logger.LogDebug($"RPC uptime is: {timeSpan}.");

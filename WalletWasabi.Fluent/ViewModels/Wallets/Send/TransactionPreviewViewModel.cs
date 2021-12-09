@@ -1,17 +1,22 @@
 using System;
+using System.Linq;
+using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
@@ -22,99 +27,360 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	{
 		private readonly Wallet _wallet;
 		private readonly TransactionInfo _info;
+		private BuildTransactionResult? _transaction;
 
-		[AutoNotify] private string _confirmationTimeText;
+		[AutoNotify] private string _confirmationTimeText = "";
+		[AutoNotify] private string _feeText = "";
 		[AutoNotify] private string _nextButtonText;
 		[AutoNotify] private SmartLabel _labels;
+		[AutoNotify] private string _amountText = "";
+		[AutoNotify] private bool _transactionHasChange;
+		[AutoNotify] private bool _transactionHasPockets;
+		[AutoNotify] private bool _adjustFeeAvailable;
+		[AutoNotify] private bool _isCustomFeeUsed;
 
-		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, BuildTransactionResult transaction)
+		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info)
 		{
 			_wallet = wallet;
 			_labels = SmartLabel.Empty;
 			_info = info;
+
 			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
 			EnableBack = true;
-			_confirmationTimeText = "";
-
-			var destinationAmount = transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
-			var btcAmountText = $"{destinationAmount} bitcoins ";
-			var fiatAmountText = destinationAmount.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
-			AmountText = $"{btcAmountText}{fiatAmountText}";
 
 			AddressText = info.Address.ToString();
-
-			var fee = transaction.Fee;
-			var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} sats ";
-			var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC).GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
-			FeeText = $"{btcFeeText}{fiatFeeText}";
-
 			PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
 			IsPayJoin = PayJoinUrl is not null;
+			AdjustFeeAvailable = !TransactionFeeHelper.AreTransactionFeesEqual(_wallet);
 
 			if (PreferPsbtWorkflow)
 			{
-				SkipCommand = ReactiveCommand.CreateFromTask(async () => await OnConfirmAsync(transaction));
-				NextCommand = ReactiveCommand.CreateFromTask(async () =>
-				{
-					var saved = await TransactionHelpers.ExportTransactionToBinaryAsync(transaction);
+				SkipCommand = ReactiveCommand.CreateFromTask(OnConfirmAsync);
 
-					if (saved)
-					{
-						Navigate().To(new SuccessViewModel("The PSBT has been successfully created."));
-					}
-				});
+				NextCommand = ReactiveCommand.CreateFromTask(OnExportPsbtAsync);
+
 				_nextButtonText = "Save PSBT file";
 			}
 			else
 			{
-				NextCommand = ReactiveCommand.CreateFromTask(async () => await OnConfirmAsync(transaction));
+				NextCommand = ReactiveCommand.CreateFromTask(OnConfirmAsync);
+
 				_nextButtonText = "Confirm";
 			}
 
+			AdjustFeeCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				if (_info.IsCustomFeeUsed)
+				{
+					await ShowAdvancedDialogAsync();
+				}
+				else
+				{
+					await OnAdjustFeeAsync();
+				}
+			});
+
+			AvoidChangeCommand = ReactiveCommand.CreateFromTask(OnAvoidChangeAsync);
+
+			ChangePocketsCommand = ReactiveCommand.CreateFromTask(OnChangePocketsAsync);
 		}
 
 		public bool PreferPsbtWorkflow => _wallet.KeyManager.PreferPsbtWorkflow;
 
-		public string AmountText { get; }
-
 		public string AddressText { get; }
-
-		public string FeeText { get; }
 
 		public string? PayJoinUrl { get; }
 
 		public bool IsPayJoin { get; }
+
+		public ICommand AdjustFeeCommand { get; }
+
+		public ICommand AvoidChangeCommand { get; }
+
+		public ICommand ChangePocketsCommand { get; }
+
+		private async Task ShowAdvancedDialogAsync()
+		{
+			var result = await NavigateDialogAsync(new AdvancedSendOptionsViewModel(_info), NavigationTarget.CompactDialogScreen);
+
+			if (result.Kind == DialogResultKind.Normal)
+			{
+				await BuildAndUpdateAsync();
+			}
+		}
+
+		private async Task OnExportPsbtAsync()
+		{
+			if (_transaction is { })
+			{
+				var saved = await TransactionHelpers.ExportTransactionToBinaryAsync(_transaction);
+
+				if (saved)
+				{
+					Navigate().To(new SuccessViewModel("The PSBT has been successfully created."));
+				}
+			}
+		}
+
+		private async Task OnAdjustFeeAsync()
+		{
+			var feeRateDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, false));
+
+			if (feeRateDialogResult.Kind == DialogResultKind.Normal && feeRateDialogResult.Result is { } newFeeRate && newFeeRate != _info.FeeRate)
+			{
+				_info.FeeRate = feeRateDialogResult.Result;
+
+				await BuildAndUpdateAsync();
+			}
+		}
+
+		private async Task BuildAndUpdateAsync()
+		{
+			var newTransaction = await BuildTransactionAsync();
+
+			if (newTransaction is { })
+			{
+				UpdateTransaction(newTransaction);
+			}
+		}
+
+		private async Task OnAvoidChangeAsync()
+		{
+			var optimisePrivacyDialog =
+				await NavigateDialogAsync(new OptimisePrivacyViewModel(_wallet, _info, _transaction!));
+
+			if (optimisePrivacyDialog.Kind == DialogResultKind.Normal && optimisePrivacyDialog.Result is { })
+			{
+				UpdateTransaction(optimisePrivacyDialog.Result);
+			}
+		}
+
+		private async Task OnChangePocketsAsync()
+		{
+			var selectPocketsDialog =
+				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, false));
+
+			if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
+			{
+				_info.Coins = selectPocketsDialog.Result;
+
+				await BuildAndUpdateAsync();
+			}
+		}
+
+		private async Task<bool> InitialiseTransactionAsync()
+		{
+			if (!_info.Coins.Any())
+			{
+				var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, isSilent: true));
+				if (privacyControlDialogResult.Kind == DialogResultKind.Normal && privacyControlDialogResult.Result is { } coins)
+				{
+					_info.Coins = coins;
+				}
+				else if (privacyControlDialogResult.Kind != DialogResultKind.Normal)
+				{
+					return false;
+				}
+			}
+
+			if (_info.FeeRate == FeeRate.Zero)
+			{
+				var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, true));
+				if (feeDialogResult.Kind == DialogResultKind.Normal && feeDialogResult.Result is { } newFeeRate)
+				{
+					_info.FeeRate = newFeeRate;
+				}
+				else
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		private async Task<BuildTransactionResult?> BuildTransactionAsync()
+		{
+			if (!await InitialiseTransactionAsync())
+			{
+				return null;
+			}
+
+			try
+			{
+				IsBusy = true;
+
+				return await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info));
+			}
+			catch (InsufficientBalanceException)
+			{
+				if (_info.IsPayJoin)
+				{
+					return await HandleInsufficientBalanceWhenPayJoinAsync(_wallet, _info);
+				}
+
+				return await HandleInsufficientBalanceWhenNormalAsync(_wallet, _info);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+
+				await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(),
+					"Wasabi was unable to create your transaction.");
+
+				return null;
+			}
+			finally
+			{
+				IsBusy = false;
+			}
+		}
+
+		private async Task<BuildTransactionResult?> HandleInsufficientBalanceWhenNormalAsync(Wallet wallet, TransactionInfo transactionInfo)
+		{
+			var dialog = new InsufficientBalanceDialogViewModel(transactionInfo.IsPrivatePocketUsed ? BalanceType.Private : BalanceType.Pocket);
+			var result = await NavigateDialogAsync(dialog, NavigationTarget.DialogScreen);
+
+			if (result.Result)
+			{
+				transactionInfo.SubtractFee = true;
+				return await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo));
+			}
+
+			if (wallet.Coins.TotalAmount() > transactionInfo.Amount)
+			{
+				var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(wallet, transactionInfo, isSilent: false), NavigationTarget.DialogScreen);
+
+				if (privacyControlDialogResult.Kind == DialogResultKind.Normal && privacyControlDialogResult.Result is { })
+				{
+					transactionInfo.Coins = privacyControlDialogResult.Result;
+				}
+
+				return await BuildTransactionAsync();
+			}
+
+			Navigate().BackTo<SendViewModel>();
+			return null;
+		}
+
+		private async Task<BuildTransactionResult?> HandleInsufficientBalanceWhenPayJoinAsync(Wallet wallet, TransactionInfo transactionInfo)
+		{
+			if (wallet.Coins.TotalAmount() > transactionInfo.Amount)
+			{
+				await ShowErrorAsync("Transaction Building",
+					$"There are not enough {(transactionInfo.IsPrivatePocketUsed ? "private funds" : "funds selected")} to cover the transaction fee",
+					"Wasabi was unable to create your transaction.");
+
+				var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(wallet, transactionInfo, false), NavigationTarget.DialogScreen);
+				if (feeDialogResult.Kind == DialogResultKind.Normal && feeDialogResult.Result is { } newFeeRate)
+				{
+					transactionInfo.FeeRate = newFeeRate;
+				}
+
+				if (TransactionHelpers.TryBuildTransaction(wallet, transactionInfo, out var txn))
+				{
+					return txn;
+				}
+
+				var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(wallet, transactionInfo, isSilent: false), NavigationTarget.DialogScreen);
+				if (privacyControlDialogResult.Kind == DialogResultKind.Normal && privacyControlDialogResult.Result is { })
+				{
+					transactionInfo.Coins = privacyControlDialogResult.Result;
+				}
+
+				return await BuildTransactionAsync();
+			}
+
+			await ShowErrorAsync("Transaction Building",
+				"There are not enough funds to cover the transaction fee",
+				"Wasabi was unable to create your transaction.");
+
+			Navigate().BackTo<SendViewModel>();
+			return null;
+		}
+
+		private void UpdateTransaction(BuildTransactionResult transactionResult)
+		{
+			_transaction = transactionResult;
+
+			var destinationAmount = _transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
+			var btcAmountText = $"{destinationAmount} bitcoins ";
+			var fiatAmountText =
+				destinationAmount.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
+			AmountText = $"{btcAmountText}{fiatAmountText}";
+
+			var fee = _transaction.Fee;
+			var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} sats ";
+			var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC)
+				.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
+
+			Labels = SmartLabel.Merge(_info.UserLabels, SmartLabel.Merge(transactionResult.SpentCoins.Select(x => x.GetLabels())));
+
+			FeeText = $"{btcFeeText}{fiatFeeText}";
+
+			TransactionHasChange = _transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != _info.Address.ScriptPubKey);
+
+			TransactionHasPockets = !_info.IsPrivatePocketUsed;
+
+			IsCustomFeeUsed = _info.IsCustomFeeUsed;
+		}
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
 			ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(_info.ConfirmationTimeSpan)} ";
-			Labels = _info.Labels;
+
+			Observable
+				.FromEventPattern(_wallet.FeeProvider, nameof(_wallet.FeeProvider.AllFeeEstimateChanged))
+				.Subscribe(_ => AdjustFeeAvailable = !TransactionFeeHelper.AreTransactionFeesEqual(_wallet))
+				.DisposeWith(disposables);
+
+			if (!isInHistory)
+			{
+				RxApp.MainThreadScheduler.Schedule(async () =>
+				{
+					if (await BuildTransactionAsync() is { } initialTransaction)
+					{
+						UpdateTransaction(initialTransaction);
+					}
+					else
+					{
+						Navigate().Back();
+					}
+				});
+			}
 		}
 
-		private async Task OnConfirmAsync(BuildTransactionResult transaction)
+		private async Task OnConfirmAsync()
 		{
-			var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
-
-			var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
-
-			if (authResult)
+			if (_transaction is { })
 			{
-				IsBusy = true;
+				var transaction = _transaction;
 
-				try
-				{
-					var finalTransaction = await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
-					await SendTransactionAsync(finalTransaction);
-					Navigate().To(new SendSuccessViewModel(_wallet, finalTransaction));
-				}
-				catch (Exception ex)
-				{
-					await ShowErrorAsync("Transaction", ex.ToUserFriendlyString(), "Wasabi was unable to send your transaction.");
-				}
+				var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
 
-				IsBusy = false;
+				var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
+
+				if (authResult)
+				{
+					IsBusy = true;
+
+					try
+					{
+						var finalTransaction =
+							await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
+						await SendTransactionAsync(finalTransaction);
+						Navigate().To(new SendSuccessViewModel(_wallet, finalTransaction));
+					}
+					catch (Exception ex)
+					{
+						await ShowErrorAsync("Transaction", ex.ToUserFriendlyString(),
+							"Wasabi was unable to send your transaction.");
+					}
+
+					IsBusy = false;
+				}
 			}
 		}
 
@@ -136,11 +402,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return authDialogResult.Result;
 		}
 
-		private async Task SendTransactionAsync( SmartTransaction transaction)
+		private async Task SendTransactionAsync(SmartTransaction transaction)
 		{
-			// Dequeue any coin-joining coins.
-			await _wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
-
 			await Services.TransactionBroadcaster.SendTransactionAsync(transaction);
 		}
 
@@ -150,7 +413,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				try
 				{
-					var payJoinTransaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo, subtractFee: false, isPayJoin: true));
+					var payJoinTransaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo, isPayJoin: true));
 					return payJoinTransaction.Transaction;
 				}
 				catch (Exception ex)

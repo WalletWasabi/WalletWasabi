@@ -72,9 +72,9 @@ namespace WalletWasabi.Tests.RegressionTests
 				List<(Key key, BitcoinAddress inputAddress, uint256 txHash, Transaction tx, OutPoint input)> userInputData = new();
 				var activeOutputAddress = new Key().GetAddress(ScriptPubKeyType.Segwit, network);
 				var changeOutputAddress = new Key().GetAddress(ScriptPubKeyType.Segwit, network);
-				round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
+				Assert.True(coordinator.TryGetCurrentInputRegisterableRound(out round));
 				Requester requester = new();
-				var nonce = round.NonceProvider.GetNextNonce();
+				var nonce = round!.NonceProvider.GetNextNonce();
 
 				BlindedOutputWithNonceIndex blinded = new(nonce.N, requester.BlindScript(round.MixingLevels.GetBaseLevel().SignerKey.PubKey, nonce.R, activeOutputAddress.ScriptPubKey));
 				uint256 blindedOutputScriptsHash = new(Hashes.SHA256(blinded.BlindedOutput.ToBytes()));
@@ -103,7 +103,7 @@ namespace WalletWasabi.Tests.RegressionTests
 					var inputProof = new InputProofModel { Input = input, Proof = key.SignCompact(blindedOutputScriptsHash) };
 					inputProofModels.Add(inputProof);
 
-					GetTxOutResponse getTxOutResponse = await rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true);
+					GetTxOutResponse? getTxOutResponse = await rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true);
 
 					// Check if inputs are unspent.
 					Assert.NotNull(getTxOutResponse);
@@ -147,7 +147,7 @@ namespace WalletWasabi.Tests.RegressionTests
 					Assert.Equal(roundId, aliceClient.RoundId);
 				}
 
-				// Because it's valuetuple.
+				// Because it's a value tuple.
 				users.Add((user.requester, user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, aliceClient, null));
 			}
 
@@ -195,10 +195,10 @@ namespace WalletWasabi.Tests.RegressionTests
 			Assert.Equal(0, bannedCount);
 
 			aliceClients.Clear();
-			round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
+			Assert.True(coordinator.TryGetCurrentInputRegisterableRound(out round));
 			foreach (var user in inputRegistrationUsers)
 			{
-				aliceClients.Add(AliceClientBase.CreateNewAsync(round.RoundId, new[] { user.activeOutputAddress }, new[] { round.MixingLevels.GetBaseLevel().SignerKey.PubKey }, new[] { user.requester }, network, user.changeOutputAddress, new[] { user.blinded }, user.inputProofModels, BackendHttpClient));
+				aliceClients.Add(AliceClientBase.CreateNewAsync(round!.RoundId, new[] { user.activeOutputAddress }, new[] { round.MixingLevels.GetBaseLevel().SignerKey.PubKey }, new[] { user.requester }, network, user.changeOutputAddress, new[] { user.blinded }, user.inputProofModels, BackendHttpClient));
 			}
 
 			roundId = 0;
@@ -218,7 +218,7 @@ namespace WalletWasabi.Tests.RegressionTests
 					Assert.Equal(roundId, aliceClient.RoundId);
 				}
 
-				// Because it's valuetuple.
+				// Because it's a value tuple.
 				users.Add((user.requester, user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, aliceClient, null));
 			}
 
@@ -271,7 +271,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			List<(BitcoinAddress changeOutputAddress, BlindedOutputWithNonceIndex blindedData, InputProofModel[] inputsProofs)> registerRequests = new();
 			AliceClient4? aliceClientBackup = null;
-			CoordinatorRound round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
+			Assert.True(coordinator.TryGetCurrentInputRegisterableRound(out CoordinatorRound? round));
 			for (int i = 0; i < roundConfig.AnonymitySet; i++)
 			{
 				var activeOutputAddress = new Key().GetAddress(ScriptPubKeyType.Segwit, network);
@@ -280,7 +280,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				var inputAddress = inputKey.PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
 
 				Requester requester = new();
-				var nonce = round.NonceProvider.GetNextNonce();
+				var nonce = round!.NonceProvider.GetNextNonce();
 
 				BlindedOutputWithNonceIndex blinded = new(nonce.N, requester.BlindScript(round.MixingLevels.GetBaseLevel().SignerKey.PubKey, nonce.R, activeOutputAddress.ScriptPubKey));
 				uint256 blindedOutputScriptsHash = new(Hashes.SHA256(blinded.BlindedOutput.ToBytes()));
@@ -303,12 +303,11 @@ namespace WalletWasabi.Tests.RegressionTests
 			Assert.Equal(0, bannedCount);
 			int notedCount = coordinator.UtxoReferee.CountBanned(true);
 			Assert.Equal(anonymitySet, notedCount);
-
-			round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
+			Assert.True(coordinator.TryGetCurrentInputRegisterableRound(out round));
 
 			foreach (var registerRequest in registerRequests)
 			{
-				await AliceClientBase.CreateNewAsync(round.RoundId, aliceClientBackup.RegisteredAddresses, round.MixingLevels.GetAllLevels().Select(x => x.SignerKey.PubKey), aliceClientBackup.Requesters, network, registerRequest.changeOutputAddress, new[] { registerRequest.blindedData }, registerRequest.inputsProofs, BackendHttpClient);
+				await AliceClientBase.CreateNewAsync(round!.RoundId, aliceClientBackup.RegisteredAddresses, round.MixingLevels.GetAllLevels().Select(x => x.SignerKey.PubKey), aliceClientBackup.Requesters, network, registerRequest.changeOutputAddress, new[] { registerRequest.blindedData }, registerRequest.inputsProofs, BackendHttpClient);
 			}
 
 			await WaitForTimeoutAsync();

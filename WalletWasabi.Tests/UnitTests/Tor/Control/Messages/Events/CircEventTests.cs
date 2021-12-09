@@ -15,7 +15,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control.Messages.Events
 	/// <see cref="GetInfoCircuitStatusReply"/> message is parsed with a similar parser.
 	/// </remarks>
 	public class CircEventTests
-	{		
+	{
 		[Fact]
 		public async Task ParseCircEvent1Async()
 		{
@@ -40,7 +40,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control.Messages.Events
 			Assert.Equal("AXNH6A3AVT9863JK4VNWD", info.UserName);
 			Assert.Equal("AXNH6A3AVT9863JK4VNWD", info.UserPassword);
 		}
-		
+
 		[Fact]
 		public async Task ParseCircEvent2Async()
 		{

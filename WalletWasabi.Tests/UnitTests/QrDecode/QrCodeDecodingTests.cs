@@ -31,7 +31,7 @@ namespace WalletWasabi.Tests.UnitTests.QrDecode
 			string address = decoder.Decode(qrImage, points);
 			Assert.Equal(expectedAddress, address);
 
-			//Second Test
+			// Second Test
 			string otherPath = Path.Combine(CommonPartialPath, "AddressTest2.png");
 			using var secondQrImage = new Mat(otherPath);
 			qrFound = decoder.Detect(secondQrImage, out var otherPoints);

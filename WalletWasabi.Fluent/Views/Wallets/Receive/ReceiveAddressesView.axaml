@@ -12,9 +12,9 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <DataGrid Items="{Binding Addresses}"
-              CanUserSortColumns="True">
-      <DataGrid.Styles>
+    <DataBox Items="{Binding Addresses}"
+             CanUserSortColumns="True">
+      <DataBox.Styles>
         <Style Selector="c|AnimatedButton.addressActionButton">
           <Setter Property="DockPanel.Dock" Value="Right"/>
           <Setter Property="Margin" Value="5 0 0 0"/>
@@ -31,32 +31,59 @@
           <Setter Property="Height" Value="15"/>
           <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}"/>
         </Style>
-      </DataGrid.Styles>
+      </DataBox.Styles>
 
-      <DataGrid.Columns>
-        <DataGridTemplateColumn Header="Labels"
-                                Width="*"
-                                CanUserSort="True"
-                                SortMemberPath="Label">
-          <DataGridTemplateColumn.CellTemplate>
+      <DataBox.Columns>
+        <DataBoxTemplateColumn Header="Labels"
+                               Width="Auto"
+                               CanUserSort="True">
+          <DataBoxTemplateColumn.CellTemplate>
             <DataTemplate>
               <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
                 <Button Classes="plain addressActionButton" ToolTip.Tip="Edit" DockPanel.Dock="Right" Command="{Binding EditLabelCommand}">
                   <PathIcon Data="{StaticResource edit_regular}" Classes="addressActionIcon" />
                 </Button>
                 <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15" VerticalAlignment="Center">
-                  <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Label}" />
+                  <DockPanel LastChildFill="False">
+                    <c:TagsBox Padding="0"
+                               Margin="0"
+                               MinWidth="0"
+                               BorderThickness="0"
+                               DockPanel.Dock="Left"
+                               IsReadOnly="True"
+                               Items="{Binding Label}"
+                               HorizontalAlignment="Stretch"
+                               VerticalAlignment="Center" />
+                    <Button Classes="labelFlyout"
+                            DockPanel.Dock="Left"
+                            IsVisible="{Binding !!FilteredLabel.Count}"
+                            Content="..."
+                            Margin="0 4 0 0">
+                      <Button.Flyout>
+                        <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="TransientWithDismissOnPointerMoveAway">
+                          <c:TagsBox IsReadOnly="True"
+                                     Items="{Binding FilteredLabel}" />
+                        </Flyout>
+                      </Button.Flyout>
+                      <ToolTip.Tip>
+                        <Panel>
+                          <c:TagsBox IsReadOnly="True"
+                                     Margin="4,6,0,0"
+                                     Items="{Binding FilteredLabel}" />
+                        </Panel>
+                      </ToolTip.Tip>
+                    </Button>
+                  </DockPanel>
                 </c:PrivacyContentControl>
               </DockPanel>
             </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-        </DataGridTemplateColumn>
+          </DataBoxTemplateColumn.CellTemplate>
+        </DataBoxTemplateColumn>
 
-        <DataGridTemplateColumn Header="Address"
-                                Width="2*"
-                                CanUserSort="True"
-                                SortMemberPath="Address">
-          <DataGridTemplateColumn.CellTemplate>
+        <DataBoxTemplateColumn Header="Address"
+                               Width="2*"
+                               CanUserSort="True">
+          <DataBoxTemplateColumn.CellTemplate>
             <DataTemplate>
               <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
                 <Button Classes="plain addressActionButton" Command="{Binding HideAddressCommand}"
@@ -75,12 +102,12 @@
                         ToolTip.Tip="QR Code">
                   <PathIcon Data="{StaticResource qr_code_regular}" Classes=" addressActionIcon"/>
                 </Button>
-                <c:PrivacyContentControl Content="{Binding Address}" VerticalAlignment="Center" NumberOfPrivacyChars="38" />
+                <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding Address}" VerticalAlignment="Center" NumberOfPrivacyChars="38" />
               </DockPanel>
             </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-        </DataGridTemplateColumn>
-      </DataGrid.Columns>
-    </DataGrid>
+          </DataBoxTemplateColumn.CellTemplate>
+        </DataBoxTemplateColumn>
+      </DataBox.Columns>
+    </DataBox>
   </c:ContentArea>
 </UserControl>

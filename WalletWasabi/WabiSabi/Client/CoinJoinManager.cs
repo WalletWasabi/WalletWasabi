@@ -6,10 +6,10 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Tor.Socks5.Pool.Circuits;
-using WalletWasabi.WabiSabi.Backend.PostRequests;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -25,11 +25,14 @@ namespace WalletWasabi.WabiSabi.Client
 			ServiceConfiguration = serviceConfiguration;
 		}
 
+		public event EventHandler<WalletStatusChangedEventArgs>? WalletStatusChanged;
+
 		public WalletManager WalletManager { get; }
 		public IBackendHttpClientFactory HttpClientFactory { get; }
 		public RoundStateUpdater RoundStatusUpdater { get; }
 		public ServiceConfiguration ServiceConfiguration { get; }
 		private ImmutableDictionary<string, WalletTrackingData> TrackedWallets { get; set; } = ImmutableDictionary<string, WalletTrackingData>.Empty;
+		private CoinRefrigerator CoinRefrigerator { get; } = new();
 
 		public CoinJoinClientState HighestCoinJoinClientState
 		{
@@ -60,24 +63,32 @@ namespace WalletWasabi.WabiSabi.Client
 			while (!stoppingToken.IsCancellationRequested)
 			{
 				await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
-				var mixableWallets = GetMixableWallets();
+
+				var mixableWallets = RoundStatusUpdater.AnyRound
+					? GetMixableWallets()
+					: ImmutableDictionary<string, Wallet>.Empty;
 				var openedWallets = mixableWallets.Where(x => !trackedWallets.ContainsKey(x.Key));
 				var closedWallets = trackedWallets.Where(x => !mixableWallets.ContainsKey(x.Key));
 
 				foreach (var openedWallet in openedWallets.Select(x => x.Value))
 				{
+					var coinCandidates = SelectCandidateCoins(openedWallet).ToArray();
+					if (coinCandidates.Length == 0)
+					{
+						continue;
+					}
+
 					var coinjoinClient = new CoinJoinClient(HttpClientFactory, openedWallet.Kitchen, openedWallet.KeyManager, RoundStatusUpdater);
 					var cts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
-					var coinCandidates = openedWallet.Coins.Available().Confirmed().Where(x => x.HdPubKey.AnonymitySet < ServiceConfiguration.GetMixUntilAnonymitySetValue());
 					var coinjoinTask = coinjoinClient.StartCoinJoinAsync(coinCandidates, cts.Token);
 
-					trackedWallets.Add(openedWallet.WalletName, new WalletTrackingData(openedWallet, coinjoinClient, coinjoinTask, cts));
+					trackedWallets.Add(openedWallet.WalletName, new WalletTrackingData(openedWallet, coinjoinClient, coinjoinTask, coinCandidates, cts));
+					WalletStatusChanged?.Invoke(this, new WalletStatusChangedEventArgs(openedWallet, IsCoinJoining: true));
 				}
 
 				foreach (var closedWallet in closedWallets.Select(x => x.Value))
 				{
 					closedWallet.CancellationTokenSource.Cancel();
-					closedWallet.CancellationTokenSource.Dispose();
 				}
 
 				var finishedCoinJoins = trackedWallets
@@ -87,22 +98,28 @@ namespace WalletWasabi.WabiSabi.Client
 
 				foreach (var finishedCoinJoin in finishedCoinJoins)
 				{
-					var removed = trackedWallets.Remove(finishedCoinJoin.Wallet.WalletName);
-					if (!removed)
+					var walletToRemove = finishedCoinJoin.Wallet;
+					if (!trackedWallets.Remove(walletToRemove.WalletName))
 					{
-						Logger.LogWarning($"Wallet: `{finishedCoinJoin.Wallet.WalletName}` was not removed from tracked wallet list. Will retry in a few seconds.");
+						Logger.LogWarning($"Wallet: `{walletToRemove.WalletName}` was not removed from tracked wallet list. Will retry in a few seconds.");
 					}
-					finishedCoinJoin.CancellationTokenSource.Dispose();
+					else
+					{
+						WalletStatusChanged?.Invoke(this, new WalletStatusChangedEventArgs(walletToRemove, IsCoinJoining: false));
+						finishedCoinJoin.CancellationTokenSource.Dispose();
+					}
 				}
 
 				foreach (var finishedCoinJoin in finishedCoinJoins)
 				{
 					var logPrefix = $"Wallet: `{finishedCoinJoin.Wallet.WalletName}` - Coinjoin client";
+
 					try
 					{
 						var success = await finishedCoinJoin.CoinJoinTask.ConfigureAwait(false);
 						if (success)
 						{
+							CoinRefrigerator.Freeze(finishedCoinJoin.CoinCandidates);
 							Logger.LogInfo($"{logPrefix} finished successfully!");
 						}
 						else
@@ -123,6 +140,11 @@ namespace WalletWasabi.WabiSabi.Client
 					{
 						Logger.LogError($"{logPrefix} failed with exception:", e);
 					}
+
+					foreach (var coins in finishedCoinJoin.CoinCandidates)
+					{
+						coins.CoinJoinInProgress = false;
+					}
 				}
 
 				TrackedWallets = trackedWallets.ToImmutableDictionary();
@@ -137,6 +159,15 @@ namespace WalletWasabi.WabiSabi.Client
 				.Where(x => x.Kitchen.HasIngredients)
 				.ToImmutableDictionary(x => x.WalletName, x => x);
 
-		private record WalletTrackingData(Wallet Wallet, CoinJoinClient CoinJoinClient, Task<bool> CoinJoinTask, CancellationTokenSource CancellationTokenSource);
+		private IEnumerable<SmartCoin> SelectCandidateCoins(Wallet openedWallet)
+		{
+			return openedWallet.Coins
+				.Available()
+				.Confirmed()
+				.Where(x => x.HdPubKey.AnonymitySet < ServiceConfiguration.GetMixUntilAnonymitySetValue())
+				.Where(x => !CoinRefrigerator.IsFrozen(x));
+		}
+
+		private record WalletTrackingData(Wallet Wallet, CoinJoinClient CoinJoinClient, Task<bool> CoinJoinTask, IEnumerable<SmartCoin> CoinCandidates, CancellationTokenSource CancellationTokenSource);
 	}
 }

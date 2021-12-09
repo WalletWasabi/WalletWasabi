@@ -227,6 +227,7 @@
         <Setter Property="Margin" Value="0" />
         <Setter Property="Focusable" Value="True" />
         <Setter Property="KeyboardNavigation.IsTabStop" Value="True" />
+        <Setter Property="MaxLength" Value="{Binding Path=MaxTextLength, RelativeSource={RelativeSource AncestorType={x:Type c:TagsBox}}}" />
     </Style>
 
     <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox">

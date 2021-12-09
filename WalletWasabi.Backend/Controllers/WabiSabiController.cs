@@ -1,9 +1,10 @@
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using WalletWasabi.Backend.Controllers.WabiSabi;
 using WalletWasabi.Backend.Filters;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.Backend.Controllers
@@ -14,63 +15,61 @@ namespace WalletWasabi.Backend.Controllers
 	[Produces("application/json")]
 	public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 	{
-		public WabiSabiController(ArenaRequestHandler handler)
+		public WabiSabiController(IdempotencyRequestCache idempotencyRequestCache, Arena arena)
 		{
-			RequestHandler = handler;
+			IdempotencyRequestCache = idempotencyRequestCache;
+			Arena = arena;
 		}
 
-		private ArenaRequestHandler RequestHandler { get; }
+		private IdempotencyRequestCache IdempotencyRequestCache { get; }
+		private Arena Arena { get; }
 
 		[HttpGet("status")]
 		public Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken)
 		{
-			return RequestHandler.GetStatusAsync(cancellationToken);
+			return Arena.GetStatusAsync(cancellationToken);
 		}
 
 		[HttpPost("connection-confirmation")]
-		[Idempotent]
-		public Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellableToken)
+		public Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken)
 		{
-			return RequestHandler.ConfirmConnectionAsync(request, cancellableToken);
+			return IdempotencyRequestCache.GetCachedResponseAsync(request, action: (request, token) => Arena.ConfirmConnectionAsync(request, token), cancellationToken);
 		}
 
 		[HttpPost("input-registration")]
-		[Idempotent]
-		public Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellableToken)
+		public Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 		{
-			return RequestHandler.RegisterInputAsync(request, cancellableToken);
+			return IdempotencyRequestCache.GetCachedResponseAsync(request, action: (request, token) => Arena.RegisterInputAsync(request, token), cancellationToken);
 		}
 
 		[HttpPost("output-registration")]
-		[Idempotent]
-		public Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellableToken)
+		public Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
 		{
-			return RequestHandler.RegisterOutputAsync(request, cancellableToken);
+			return IdempotencyRequestCache.GetCachedResponseAsync(request, action: (request, token) => Arena.RegisterOutputCoreAsync(request, token), cancellationToken);
 		}
 
 		[HttpPost("credential-issuance")]
-		[Idempotent]
-		public Task<ReissueCredentialResponse> ReissueCredentialAsync(ReissueCredentialRequest request, CancellationToken cancellableToken)
+		public Task<ReissueCredentialResponse> ReissuanceAsync(ReissueCredentialRequest request, CancellationToken cancellationToken)
 		{
-			return RequestHandler.ReissueCredentialAsync(request, cancellableToken);
+			return IdempotencyRequestCache.GetCachedResponseAsync(request, action: (request, token) => Arena.ReissuanceAsync(request, token), cancellationToken);
 		}
 
 		[HttpPost("input-unregistration")]
 		public Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellableToken)
 		{
-			return RequestHandler.RemoveInputAsync(request, cancellableToken);
+			return Arena.RemoveInputAsync(request, cancellableToken);
 		}
 
 		[HttpPost("transaction-signature")]
 		public Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellableToken)
 		{
-			return RequestHandler.SignTransactionAsync(request, cancellableToken);
+			return Arena.SignTransactionAsync(request, cancellableToken);
 		}
 
 		[HttpPost("ready-to-sign")]
-		public Task ReadyToSign(ReadyToSignRequestRequest request, CancellationToken cancellableToken)
+		public Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellableToken)
 		{
-			return RequestHandler.ReadyToSignAsync(request, cancellableToken);
+			return Arena.ReadyToSignAsync(request, cancellableToken);
 		}
 	}
 }

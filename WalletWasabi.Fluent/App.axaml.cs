@@ -28,13 +28,17 @@ namespace WalletWasabi.Fluent
 		public App()
 		{
 			Name = "Wasabi Wallet";
-			DataContext = new ApplicationViewModel();
+			ApplicationViewModel applicationViewModel = new();
+			DataContext = applicationViewModel;
+			applicationViewModel.ShowRequested += (sender, args) => ShowRequested?.Invoke(sender, args);
 		}
 
 		public App(Func<Task> backendInitialiseAsync) : this()
 		{
 			_backendInitialiseAsync = backendInitialiseAsync;
 		}
+
+		public event EventHandler? ShowRequested;
 
 		public ICanShutdownProvider? CanShutdownProvider
 		{
@@ -85,6 +89,13 @@ namespace WalletWasabi.Fluent
 				e.Cancel = !provider.CanShutdown();
 				Logger.LogDebug($"Cancellation of the shutdown set to: {e.Cancel}.");
 			}
+		}
+
+		// Note, this is only supported on Win32 and some Linux DEs
+		// https://github.com/AvaloniaUI/Avalonia/blob/99d983499f5412febf07aafe2bf03872319b412b/src/Avalonia.Controls/TrayIcon.cs#L66
+		private void TrayIcon_OnClicked(object? sender, EventArgs e)
+		{
+			ShowRequested?.Invoke(this, EventArgs.Empty);
 		}
 	}
 }

@@ -1,8 +1,7 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Gui.Rpc;
+using WalletWasabi.Fluent.Rpc;
 
 namespace WalletWasabi.Tests
 {

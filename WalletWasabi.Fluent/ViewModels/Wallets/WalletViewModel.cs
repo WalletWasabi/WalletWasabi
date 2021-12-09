@@ -1,7 +1,6 @@
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
@@ -18,6 +17,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
@@ -29,7 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		private readonly int _smallLayoutIndex;
 		private readonly int _normalLayoutIndex;
 		private readonly int _wideLayoutIndex;
-		[AutoNotify] private IList<TileViewModel>? _tiles;
+		[AutoNotify] private IList<TileViewModel> _tiles;
 		[AutoNotify] private IList<TileLayoutViewModel>? _layouts;
 		[AutoNotify] private int _layoutIndex;
 		[AutoNotify] private double _widthSource;
@@ -65,6 +65,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			balanceChanged
 				.Subscribe(_ => IsWalletBalanceZero = wallet.Coins.TotalAmount() == Money.Zero)
 				.DisposeWith(Disposables);
+
+			if (Services.HostedServices.GetOrDefault<CoinJoinManager>() is { } coinJoinManager)
+			{
+				Observable
+					.FromEventPattern<WalletStatusChangedEventArgs>(coinJoinManager, nameof(CoinJoinManager.WalletStatusChanged))
+					.Select(args => args.EventArgs)
+					.Where(e => e.Wallet == Wallet)
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Subscribe(e => IsCoinJoining = e.IsCoinJoining)
+					.DisposeWith(Disposables);
+			}
 
 			this.WhenAnyValue(x => x.History.IsTransactionHistoryEmpty)
 				.Subscribe(x => IsEmptyWallet = x);

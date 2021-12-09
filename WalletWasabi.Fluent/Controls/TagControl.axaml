@@ -27,7 +27,6 @@
                     BorderThickness="{TemplateBinding BorderThickness}"
                     CornerRadius="2" />
             <DockPanel Name="PART_DummyPanel"
-                       MaxWidth="260"
                        VerticalAlignment="Top" LastChildFill="True">
               <LayoutTransformControl DockPanel.Dock="Right" Name="PART_DeleteButtonLayoutTransformer"
                                       Margin="-8,0,3,0">
@@ -52,14 +51,15 @@
                   </Transitions>
                 </LayoutTransformControl.Transitions>
               </LayoutTransformControl>
-              <StackPanel Margin="12,6,12,6" DockPanel.Dock="Left" Spacing="5" Orientation="Horizontal">
-                <TextBlock Text="{TemplateBinding OrdinalIndex, Converter={x:Static converters:IntConverter.ToOrdinalString}}" IsVisible="{TemplateBinding EnableCounter}"/>
+              <DockPanel Margin="12,6,12,6" DockPanel.Dock="Left" MaxWidth="260">
+                <TextBlock DockPanel.Dock="Left" Margin="0 0 5 0" Text="{TemplateBinding OrdinalIndex, Converter={x:Static converters:IntConverter.ToOrdinalString}}" IsVisible="{TemplateBinding EnableCounter}"/>
                 <ContentPresenter Name="PART_ContentPresenter"
+                                  DockPanel.Dock="Left"
                                   Content="{TemplateBinding Content}"
                                   Padding="{TemplateBinding Padding}"
                                   VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
                                   HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
-              </StackPanel>
+              </DockPanel>
             </DockPanel>
           </Panel>
         </Panel>

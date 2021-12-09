@@ -15,7 +15,7 @@ namespace WalletWasabi.Fluent.Converters
 
 		object? IValueConverter.Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			return (StatusBarState) value == (StatusBarState) parameter;
+			return (StatusBarState)value == (StatusBarState)parameter;
 		}
 
 		object IValueConverter.ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

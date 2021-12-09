@@ -26,13 +26,13 @@
     </DockPanel>
 
     <DockPanel>
-      <TextBlock Text="Auto copy/paste Bitcoin address" />
+      <TextBlock Text="Auto copy addresses" />
       <ToggleSwitch IsChecked="{Binding AutoCopy}" />
     </DockPanel>
 
     <DockPanel>
-      <TextBlock Text="Manual fee entry" />
-      <ToggleSwitch IsChecked="{Binding CustomFee}" />
+      <TextBlock Text="Auto paste addresses" />
+      <ToggleSwitch IsChecked="{Binding AutoPaste}" />
     </DockPanel>
 
     <DockPanel>

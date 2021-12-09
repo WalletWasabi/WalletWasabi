@@ -13,7 +13,7 @@ namespace NBitcoin.RPC
 {
 	public static class RPCClientExtensions
 	{
-		public static async Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(this IRPCClient rpc, int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false)
+		public static async Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(this IRPCClient rpc, int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, CancellationToken cancellationToken = default)
 		{
 			EstimateSmartFeeResponse result;
 			if (simulateIfRegTest && rpc.Network == Network.RegTest)
@@ -22,9 +22,9 @@ namespace NBitcoin.RPC
 			}
 			else
 			{
-				result = await rpc.EstimateSmartFeeAsync(confirmationTarget, estimateMode).ConfigureAwait(false);
+				result = await rpc.EstimateSmartFeeAsync(confirmationTarget, estimateMode, cancellationToken).ConfigureAwait(false);
 
-				var mempoolInfo = await rpc.GetMempoolInfoAsync().ConfigureAwait(false);
+				var mempoolInfo = await rpc.GetMempoolInfoAsync(cancellationToken).ConfigureAwait(false);
 				result.FeeRate = FeeRate.Max(mempoolInfo.GetSanityFeeRate(), result.FeeRate);
 			}
 
@@ -51,11 +51,11 @@ namespace NBitcoin.RPC
 		/// <summary>
 		/// If null is returned, no exception is thrown, so the test was successful.
 		/// </summary>
-		public static async Task<Exception?> TestAsync(this IRPCClient rpc)
+		public static async Task<Exception?> TestAsync(this IRPCClient rpc, CancellationToken cancellationToken = default)
 		{
 			try
 			{
-				await rpc.UptimeAsync().ConfigureAwait(false);
+				await rpc.UptimeAsync(cancellationToken).ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -108,7 +108,7 @@ namespace NBitcoin.RPC
 				.Select(target => batchClient.EstimateSmartFeeAsync(target, estimateMode))
 				.ToList();
 
-			await batchClient.SendBatchAsync().ConfigureAwait(false);
+			await batchClient.SendBatchAsync(cancel).ConfigureAwait(false);
 			cancel.ThrowIfCancellationRequested();
 
 			try
@@ -196,9 +196,8 @@ namespace NBitcoin.RPC
 		{
 			try
 			{
-				var bci = await rpc.GetBlockchainInfoAsync().ConfigureAwait(false);
-				cancel.ThrowIfCancellationRequested();
-				var pi = await rpc.GetPeersInfoAsync().ConfigureAwait(false);
+				var bci = await rpc.GetBlockchainInfoAsync(cancel).ConfigureAwait(false);
+				var pi = await rpc.GetPeersInfoAsync(cancel).ConfigureAwait(false);
 
 				return RpcStatus.Responsive(bci.Headers, bci.Blocks, pi.Length);
 			}
@@ -209,7 +208,7 @@ namespace NBitcoin.RPC
 			}
 		}
 
-		public static async Task<(bool accept, string rejectReason)> TestMempoolAcceptAsync(this IRPCClient rpc, IEnumerable<Coin> coins, int fakeOutputCount, Money feePerInputs, Money feePerOutputs)
+		public static async Task<(bool accept, string rejectReason)> TestMempoolAcceptAsync(this IRPCClient rpc, IEnumerable<Coin> coins, int fakeOutputCount, Money feePerInputs, Money feePerOutputs, CancellationToken cancellationToken)
 		{
 			// Check if mempool would accept a fake transaction created with the registered inputs.
 			// This will catch ascendant/descendant count and size limits for example.
@@ -229,7 +228,7 @@ namespace NBitcoin.RPC
 				var fakeOutputValue = totalFakeOutputsValue / fakeOutputCount;
 				fakeTransaction.Outputs.Add(fakeOutputValue, new Key());
 			}
-			MempoolAcceptResult testMempoolAcceptResult = await rpc.TestMempoolAcceptAsync(fakeTransaction).ConfigureAwait(false);
+			MempoolAcceptResult testMempoolAcceptResult = await rpc.TestMempoolAcceptAsync(fakeTransaction, cancellationToken).ConfigureAwait(false);
 
 			if (!testMempoolAcceptResult.IsAllowed)
 			{
@@ -248,9 +247,9 @@ namespace NBitcoin.RPC
 		/// Gets the transactions that are unconfirmed using getrawmempool.
 		/// This is efficient when many transaction ids are provided.
 		/// </summary>
-		public static async Task<IEnumerable<uint256>> GetUnconfirmedAsync(this IRPCClient rpc, IEnumerable<uint256> transactionHashes)
+		public static async Task<IEnumerable<uint256>> GetUnconfirmedAsync(this IRPCClient rpc, IEnumerable<uint256> transactionHashes, CancellationToken cancellationToken)
 		{
-			uint256[] unconfirmedTransactionHashes = await rpc.GetRawMempoolAsync().ConfigureAwait(false);
+			uint256[] unconfirmedTransactionHashes = await rpc.GetRawMempoolAsync(cancellationToken).ConfigureAwait(false);
 
 			// If there are common elements, then there's unconfirmed.
 			return transactionHashes.Intersect(unconfirmedTransactionHashes);
@@ -263,17 +262,17 @@ namespace NBitcoin.RPC
 		/// <param name="includingProvided">Should it include in the result the unconfirmed ones from the provided transactionHashes.</param>
 		/// <param name="likelyProvidedManyConfirmedOnes">If many provided transactionHashes are not confirmed then it optimizes by doing a check in the beginning of which ones are unconfirmed.</param>
 		/// <returns>All the dependents of the provided transactionHashes.</returns>
-		public static async Task<ISet<uint256>> GetAllDependentsAsync(this IRPCClient rpc, IEnumerable<uint256> transactionHashes, bool includingProvided, bool likelyProvidedManyConfirmedOnes)
+		public static async Task<ISet<uint256>> GetAllDependentsAsync(this IRPCClient rpc, IEnumerable<uint256> transactionHashes, bool includingProvided, bool likelyProvidedManyConfirmedOnes, CancellationToken cancellationToken)
 		{
 			IEnumerable<uint256> workingTxHashes = likelyProvidedManyConfirmedOnes // If confirmed txIds are provided, then do a big check first.
-				? await rpc.GetUnconfirmedAsync(transactionHashes).ConfigureAwait(false)
+				? await rpc.GetUnconfirmedAsync(transactionHashes, cancellationToken).ConfigureAwait(false)
 				: transactionHashes;
 
 			var hashSet = new HashSet<uint256>();
 			foreach (var txId in workingTxHashes)
 			{
 				// Go through all the txIds provided and getmempoolentry to get the dependents and the confirmation status.
-				var entry = await rpc.GetMempoolEntryAsync(txId, throwIfNotFound: false).ConfigureAwait(false);
+				var entry = await rpc.GetMempoolEntryAsync(txId, throwIfNotFound: false, cancellationToken).ConfigureAwait(false);
 				if (entry is { })
 				{
 					// If we asked to include the provided transaction hashes into the result then check which ones are confirmed and do so.
@@ -284,7 +283,7 @@ namespace NBitcoin.RPC
 
 					// Get all the dependents of all the dependents except the ones we already know of.
 					var except = entry.Depends.Except(hashSet);
-					var dependentsOfDependents = await rpc.GetAllDependentsAsync(except, includingProvided: true, likelyProvidedManyConfirmedOnes: false).ConfigureAwait(false);
+					var dependentsOfDependents = await rpc.GetAllDependentsAsync(except, includingProvided: true, likelyProvidedManyConfirmedOnes: false, cancellationToken).ConfigureAwait(false);
 
 					// Add them to the hashset.
 					hashSet.UnionWith(dependentsOfDependents);

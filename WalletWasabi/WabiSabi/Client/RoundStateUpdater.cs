@@ -23,9 +23,11 @@ namespace WalletWasabi.WabiSabi.Client
 		private List<RoundStateAwaiter> Awaiters { get; } = new();
 		private object AwaitersLock { get; } = new();
 
+		public bool AnyRound => RoundStates.Any();
+
 		protected override async Task ActionAsync(CancellationToken cancellationToken)
 		{
-			RoundState[] statusResponse = await ArenaRequestHandler.GetStatusAsync(cancellationToken).ConfigureAwait(false);
+			var statusResponse = await ArenaRequestHandler.GetStatusAsync(cancellationToken).ConfigureAwait(false);
 			RoundStates = statusResponse.ToDictionary(round => round.Id);
 
 			lock (AwaitersLock)

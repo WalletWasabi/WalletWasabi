@@ -16,8 +16,8 @@
       <!-- Date -->
       <c:PreviewItem Icon="{StaticResource timer_regular}"
                      Text="Date / Time"
-                     CopyParameter="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}">
-        <TextBox Classes="selectableTextBlock" Text="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}" />
+                     CopyParameter="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}' Mode=OneWay}">
+        <TextBlock Text="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}', Mode=OneWay}"  Classes="monoSpaced"/>
       </c:PreviewItem>
       <Separator />
 
@@ -26,7 +26,7 @@
                      Text="Transaction ID"
                      CopyParameter="{Binding TransactionId}">
         <c:PrivacyContentControl NumberOfPrivacyChars="48">
-          <TextBox Classes="selectableTextBlock" Text="{Binding TransactionId}" />
+          <TextBlock Text="{Binding TransactionId}" Classes="monoSpaced"/>
         </c:PrivacyContentControl>
       </c:PreviewItem>
 
@@ -36,8 +36,8 @@
       <c:PreviewItem Icon="{StaticResource status_regular}"
                      Text="Status">
         <Panel>
-          <TextBox Classes="selectableTextBlock" TextWrapping="NoWrap" Text="Confirmed" IsVisible="{Binding IsConfirmed}" />
-          <TextBox Classes="selectableTextBlock" TextWrapping="NoWrap" Text="Pending" IsVisible="{Binding !IsConfirmed}" />
+          <TextBlock Text="Confirmed" IsVisible="{Binding IsConfirmed}" />
+          <TextBlock Text="Pending" IsVisible="{Binding !IsConfirmed}" />
         </Panel>
       </c:PreviewItem>
 
@@ -47,7 +47,7 @@
       <c:PreviewItem Icon="{StaticResource btc_logo}"
                      Text="Amount"
                      CopyParameter="{Binding Amount}">
-        <TextBox Classes="selectableTextBlock" Text="{Binding Amount, StringFormat={}{0} BTC}" />
+        <TextBlock Text="{Binding Amount, StringFormat={}{0} BTC, Mode=OneWay}" Classes="monoSpaced" />
       </c:PreviewItem>
 
       <Separator />
@@ -57,7 +57,7 @@
                      Text="Block height"
                      CopyParameter="{Binding BlockHeight}"
                      IsVisible="{Binding IsConfirmed}">
-        <TextBox Classes="selectableTextBlock" Text="{Binding BlockHeight}" />
+        <TextBlock Text="{Binding BlockHeight}" />
       </c:PreviewItem>
       <Separator IsVisible="{Binding IsConfirmed}" />
 
@@ -65,7 +65,7 @@
       <c:PreviewItem Icon="{StaticResource copy_confirmed}"
                      Text="Confirmations"
                      CopyParameter="{Binding Confirmations}">
-        <TextBox Classes="selectableTextBlock" Text="{Binding Confirmations}" />
+        <TextBlock Text="{Binding Confirmations}" />
       </c:PreviewItem>
 
       <Separator />

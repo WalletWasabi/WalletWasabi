@@ -130,7 +130,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			var rpcMock = new Mock<IRPCClient>();
 			rpcMock.SetupGet(rpc => rpc.Network).Returns(Network.Main);
-			rpcMock.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), It.IsAny<EstimateSmartFeeMode>()))
+			rpcMock.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), It.IsAny<EstimateSmartFeeMode>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync(new EstimateSmartFeeResponse { FeeRate = new FeeRate(10m) });
 			rpcMock.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>()))
 				.ReturnsAsync(new MemPoolInfo { MemPoolMinFee = 0.00001000 });

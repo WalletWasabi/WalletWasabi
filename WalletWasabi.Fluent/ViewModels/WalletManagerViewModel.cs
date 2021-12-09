@@ -94,14 +94,17 @@ namespace WalletWasabi.Fluent.ViewModels
 				{
 					var (sender, e) = arg;
 
-					if (Services.UiConfig.PrivacyMode || !e.IsNews || sender is not Wallet { IsLoggedIn: true, State: WalletState.Started } wallet)
+					if (Services.UiConfig.PrivacyMode ||
+						!e.IsNews ||
+						sender is not Wallet { IsLoggedIn: true, State: WalletState.Started } wallet ||
+						e.IsLikelyOwnCoinJoin)
 					{
 						return;
 					}
 
 					if (_walletDictionary.TryGetValue(wallet, out var walletViewModel) && walletViewModel is WalletViewModel wvm)
 					{
-						NotificationHelpers.Show(e, onClick: () => wvm.NavigateAndHighlight(e.Transaction.GetHash()));
+						NotificationHelpers.Show(wallet.WalletName, e, onClick: () => wvm.NavigateAndHighlight(e.Transaction.GetHash()));
 
 						if (wvm.IsSelected && (e.NewlyReceivedCoins.Any() || e.NewlyConfirmedReceivedCoins.Any()))
 						{

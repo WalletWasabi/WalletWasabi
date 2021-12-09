@@ -98,17 +98,6 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		public void SignalQuitPending(bool isQuitPending)
-		{
-			lock (Lock)
-			{
-				foreach (var client in Wallets.Where(x => x.ChaumianClient is { }).Select(x => x.ChaumianClient))
-				{
-					client.IsQuitPending = isQuitPending;
-				}
-			}
-		}
-
 		public IEnumerable<Wallet> GetWallets(bool refreshWalletList = true)
 		{
 			if (refreshWalletList)
@@ -123,11 +112,6 @@ namespace WalletWasabi.Wallets
 		}
 
 		public bool HasWallet() => AnyWallet(_ => true);
-
-		public bool AnyWallet()
-		{
-			return AnyWallet(x => x.State >= WalletState.Starting);
-		}
 
 		public bool AnyWallet(Func<Wallet, bool> predicate)
 		{
@@ -178,17 +162,6 @@ namespace WalletWasabi.Wallets
 					throw;
 				}
 			}
-		}
-
-		public Task<Wallet> StartWalletAsync(KeyManager keyManagerToFindByReference)
-		{
-			Wallet wallet;
-			lock (Lock)
-			{
-				wallet = Wallets.Single(x => x.KeyManager == keyManagerToFindByReference);
-			}
-
-			return StartWalletAsync(wallet);
 		}
 
 		public Task<Wallet> AddAndStartWalletAsync(KeyManager keyManager)
@@ -264,16 +237,6 @@ namespace WalletWasabi.Wallets
 			wallet.StateChanged += Wallet_StateChanged;
 
 			WalletAdded?.Invoke(this, wallet);
-		}
-
-		public async Task DequeueAllCoinsGracefullyAsync(DequeueReason reason, CancellationToken token)
-		{
-			IEnumerable<Task> tasks;
-			lock (Lock)
-			{
-				tasks = Wallets.Where(x => x.ChaumianClient is { }).Select(x => x.ChaumianClient.DequeueAllCoinsFromMixGracefullyAsync(reason, token)).ToArray();
-			}
-			await Task.WhenAll(tasks).ConfigureAwait(false);
 		}
 
 		public bool WalletExists(HDFingerprint? fingerprint) => GetWallets().Any(x => fingerprint is { } && x.KeyManager.MasterFingerprint == fingerprint);
@@ -373,8 +336,10 @@ namespace WalletWasabi.Wallets
 				var res = new List<SmartCoin>();
 				foreach (var wallet in Wallets.Where(x => x.State == WalletState.Started))
 				{
-					SmartCoin coin = wallet.Coins.GetByOutPoint(input);
-					res.Add(coin);
+					if (wallet.Coins.TryGetByOutPoint(input, out var coin))
+					{
+						res.Add(coin);
+					}
 				}
 
 				return res;
@@ -432,14 +397,6 @@ namespace WalletWasabi.Wallets
 			lock (Lock)
 			{
 				return Wallets.Single(x => x.KeyManager.WalletName == walletName);
-			}
-		}
-
-		public bool AnyCoinJoinInProgress()
-		{
-			lock (Lock)
-			{
-				return Wallets.Any(x => x.ChaumianClient?.State.AnyCoinsQueued() is true);
 			}
 		}
 	}

@@ -67,7 +67,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			}
 
 			// Get allowed coins to spend.
-			var availableCoinsView = Coins.Available();
+			var availableCoinsView = Coins.Unspent();
 			List<SmartCoin> allowedSmartCoinInputs = AllowUnconfirmed // Inputs that can be used to build the transaction.
 					? availableCoinsView.ToList()
 					: availableCoinsView.Confirmed().ToList();
@@ -207,7 +207,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			}
 			if (feePc > 100)
 			{
-				throw new InvalidOperationException($"The transaction fee is more than twice the sent amount: {feePc:0.#}%.");
+				throw new InvalidOperationException($"The transaction fee is more than the sent amount: {feePc:0.#}%.");
 			}
 
 			if (spentCoins.Any(u => !u.Confirmed))
@@ -318,7 +318,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				psbt = payjoinClient.RequestPayjoin(
 					psbt,
 					KeyManager.ExtPubKey,
-					new RootedKeyPath(KeyManager.MasterFingerprint.Value, KeyManager.DefaultAccountKeyPath),
+					new RootedKeyPath(KeyManager.MasterFingerprint.Value, KeyManager.AccountKeyPath),
 					changeHdPubKey,
 					CancellationToken.None).GetAwaiter().GetResult(); // WTF??!
 				builder.SignPSBT(psbt);

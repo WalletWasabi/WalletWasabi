@@ -11,7 +11,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.RecoverWalletView">
   <c:ContentArea x:Name="RecoveryPageRoot"
-                 Title="{Binding Title}" Caption="Type in your 12 recovery words and click Finish."
+                 Title="{Binding Title}" Caption="Type in your recovery words and click Finish."
                  CancelContent="Cancel"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"

@@ -71,6 +71,10 @@ namespace WalletWasabi.Tor.Socks5
 			try
 			{
 				tcpClient = new(TorSocks5EndPoint.AddressFamily);
+				tcpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true );
+				tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, 30);
+				tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, 5);
+				tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, 5);
 
 				transportStream = await ConnectAsync(tcpClient, cancellationToken).ConfigureAwait(false);
 				await HandshakeAsync(tcpClient, circuit, cancellationToken).ConfigureAwait(false);
@@ -209,7 +213,7 @@ namespace WalletWasabi.Tor.Socks5
 		private static async Task<SslStream> UpgradeToSslAsync(TcpClient tcpClient, string host)
 		{
 			SslStream sslStream = new(tcpClient.GetStream(), leaveInnerStreamOpen: true);
-			await sslStream.AuthenticateAsClientAsync(host, new(), true).ConfigureAwait(false);
+			await sslStream.AuthenticateAsClientAsync(host, clientCertificates: new(), checkCertificateRevocation: true).ConfigureAwait(false);
 			return sslStream;
 		}
 

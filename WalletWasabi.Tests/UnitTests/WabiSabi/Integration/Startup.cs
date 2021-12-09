@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using WalletWasabi.Backend.Controllers.WabiSabi;
 using WalletWasabi.WabiSabi.Models.Serialization;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
@@ -28,6 +29,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 		public void ConfigureServices(IServiceCollection services)
 		{
 			var backendAssembly = typeof(WalletWasabi.Backend.Controllers.WabiSabiController).Assembly;
+			services.AddSingleton<IdempotencyRequestCache>();
 			services.AddMvc()
 				.AddApplicationPart(backendAssembly)
 				.AddControllersAsServices()

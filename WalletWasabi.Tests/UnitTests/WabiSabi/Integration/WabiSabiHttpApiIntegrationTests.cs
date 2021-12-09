@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,9 +45,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			// means that the output is spent or simply doesn't even exist.
 			var nonExistingOutPoint = new OutPoint();
 			using var signingKey = new Key();
+			var ownershipProof = WabiSabiFactory.CreateOwnershipProof(signingKey, round.Id);
 
 			var ex = await Assert.ThrowsAsync<HttpRequestException>(async () =>
-			   await apiClient.RegisterInputAsync(round.Id, nonExistingOutPoint, signingKey, CancellationToken.None));
+			   await apiClient.RegisterInputAsync(round.Id, nonExistingOutPoint, ownershipProof, CancellationToken.None));
 
 			var wex = Assert.IsType<WabiSabiProtocolException>(ex.InnerException);
 			Assert.Equal(WabiSabiProtocolErrorCode.InputSpent, wex.ErrorCode);
@@ -71,7 +71,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
 
 			// Create a key manager and use it to create fake coins.
-			var keyManager = KeyManager.CreateNew(out var _, password: "");
+			var keyManager = KeyManager.CreateNew(out var _, password: "", Network.Main);
 			keyManager.AssertCleanKeysIndexed();
 			var coins = keyManager.GetKeys()
 				.Take(inputCount)
@@ -107,10 +107,13 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 					// Instruct the coordinator DI container to use these two scoped
 					// services to build everything (WabiSabi controller, arena, etc)
 					services.AddScoped<IRPCClient>(s => rpc);
-					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig { MaxInputCountByRound = inputCount });
+					services.AddScoped(s => new WabiSabiConfig
+					{
+						MaxInputCountByRound = inputCount,
+						StandardInputRegistrationTimeout = TimeSpan.FromSeconds(10)
+					});
 				});
 			}).CreateClient();
-
 
 			// Create the coinjoin client
 			var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
@@ -151,10 +154,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
 			cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
 
-			var keyManager1 = KeyManager.CreateNew(out var _, password: "");
+			var keyManager1 = KeyManager.CreateNew(out var _, password: "", Network.Main);
 			keyManager1.AssertCleanKeysIndexed();
 
-			var keyManager2 = KeyManager.CreateNew(out var _, password: "");
+			var keyManager2 = KeyManager.CreateNew(out var _, password: "", Network.Main);
 			keyManager2.AssertCleanKeysIndexed();
 
 			var coins = keyManager1.GetKeys()
@@ -199,6 +202,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig
 					{
 						MaxInputCountByRound = 2 * inputCount,
+						StandardInputRegistrationTimeout = TimeSpan.FromSeconds(20),
+						BlameInputRegistrationTimeout = TimeSpan.FromSeconds(20),
 						TransactionSigningTimeout = TimeSpan.FromSeconds(5 * inputCount),
 					});
 				});
@@ -283,6 +288,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 						{
 							MaxRegistrableAmount = Money.Coins(500m),
 							MaxInputCountByRound = ExpectedInputNumber,
+							StandardInputRegistrationTimeout = TimeSpan.FromSeconds(10 * ExpectedInputNumber),
 							ConnectionConfirmationTimeout = TimeSpan.FromSeconds(20 * ExpectedInputNumber),
 							OutputRegistrationTimeout = TimeSpan.FromSeconds(20 * ExpectedInputNumber),
 						});
@@ -295,7 +301,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 					.Returns(new HttpClientWrapper(app.CreateClient()));
 
 				// Total test timeout.
-				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20 * ExpectedInputNumber));
+				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(40 * ExpectedInputNumber));
 
 				var participants = Enumerable
 					.Range(0, NumberOfParticipants)
@@ -370,7 +376,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var rounds = await apiClient.GetStatusAsync(CancellationToken.None);
 			var round = rounds.First(x => x.CoinjoinState is ConstructionState);
 
-			var response = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, signingKey, CancellationToken.None);
+			var ownershipProof = WabiSabiFactory.CreateOwnershipProof(signingKey, round.Id);
+			var response = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, ownershipProof, CancellationToken.None);
 
 			Assert.NotEqual(Guid.Empty, response.Value);
 		}
@@ -403,7 +410,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			RoundState[] rounds = await apiClient.GetStatusAsync(CancellationToken.None);
 			RoundState round = rounds.First(x => x.CoinjoinState is ConstructionState);
 
-			ArenaResponse<Guid> response = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, signingKey, CancellationToken.None);
+			var ownershipProof = WabiSabiFactory.CreateOwnershipProof(signingKey, round.Id);
+			ArenaResponse<Guid> response = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, ownershipProof, CancellationToken.None);
 
 			Assert.NotEqual(Guid.Empty, response.Value);
 		}

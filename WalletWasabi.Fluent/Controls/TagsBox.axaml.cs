@@ -33,6 +33,9 @@ namespace WalletWasabi.Fluent.Controls
 		private IEnumerable<string>? _topItems;
 		private bool _requestAdd;
 
+		public static readonly StyledProperty<bool> IsCurrentTextValidProperty =
+			AvaloniaProperty.Register<TagsBox, bool>(nameof(IsCurrentTextValid));
+
 		public static readonly DirectProperty<TagsBox, bool> RequestAddProperty =
 			AvaloniaProperty.RegisterDirect<TagsBox, bool>(nameof(RequestAdd), o => o.RequestAdd);
 
@@ -44,6 +47,9 @@ namespace WalletWasabi.Fluent.Controls
 
 		public static readonly StyledProperty<int> ItemCountLimitProperty =
 			AvaloniaProperty.Register<TagsBox, int>(nameof(ItemCountLimit));
+
+		public static readonly StyledProperty<int> MaxTextLengthProperty =
+			AvaloniaProperty.Register<TagsBox, int>(nameof(MaxTextLength));
 
 		public static readonly StyledProperty<char> TagSeparatorProperty =
 			AvaloniaProperty.Register<TagsBox, char>(nameof(TagSeparator), defaultValue: ' ');
@@ -85,6 +91,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => _items;
 			set => SetAndRaise(ItemsProperty, ref _items, value);
+		}
+
+		public bool IsCurrentTextValid
+		{
+			get => GetValue(IsCurrentTextValidProperty);
+			private set => SetValue(IsCurrentTextValidProperty, value);
 		}
 
 		public bool RequestAdd
@@ -157,6 +169,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(EnableDeleteProperty);
 			set => SetValue(EnableDeleteProperty, value);
+		}
+
+		public int MaxTextLength
+		{
+			get => GetValue(MaxTextLengthProperty);
+			set => SetValue(MaxTextLengthProperty, value);
 		}
 
 		private string CurrentText => _autoCompleteBox?.Text ?? "";
@@ -232,8 +250,31 @@ namespace WalletWasabi.Fluent.Controls
 				});
 
 			_autoCompleteBox.WhenAnyValue(x => x.Text)
-				.Subscribe(_ => InvalidateWatermark())
+				.Subscribe(_ =>
+				{
+					InvalidateWatermark();
+					CheckIsCurrentTextValid();
+				})
 				.DisposeWith(_compositeDisposable);
+		}
+
+		private void CheckIsCurrentTextValid()
+		{
+			var correctedInput = CurrentText.ParseLabel();
+
+			if (RestrictInputToSuggestions && Suggestions is { } suggestions)
+			{
+				IsCurrentTextValid = suggestions.Any(x => x.Equals(correctedInput, _stringComparison));
+				return;
+			}
+
+			if (!RestrictInputToSuggestions)
+			{
+				IsCurrentTextValid = !string.IsNullOrEmpty(correctedInput);
+				return;
+			}
+
+			throw new InvalidOperationException($"Invalid configuration! {nameof(Suggestions)} are not set!");
 		}
 
 		private void OnKeyDown(object? sender, KeyEventArgs e)
@@ -327,18 +368,33 @@ namespace WalletWasabi.Fluent.Controls
 			var typedFullText = autoCompleteBox.SearchText + e.Text;
 
 			if (!_isInputEnabled ||
-			    (typedFullText is { Length: 1 } && typedFullText.StartsWith(TagSeparator)) ||
-			    string.IsNullOrEmpty(typedFullText.ParseLabel()))
+				(typedFullText is { Length: 1 } && typedFullText.StartsWith(TagSeparator)) ||
+				string.IsNullOrEmpty(typedFullText.ParseLabel()))
 			{
 				e.Handled = true;
 				return;
 			}
 
+			var suggestions = Suggestions?.ToArray();
+
 			if (RestrictInputToSuggestions &&
-				Suggestions is { } suggestions &&
+				suggestions is { } &&
 				!suggestions.Any(x => x.StartsWith(typedFullText, _stringComparison)))
 			{
+				if (!typedFullText.EndsWith(TagSeparator) ||
+					(typedFullText.EndsWith(TagSeparator) && !suggestions.Contains(autoCompleteBox.SearchText)))
+				{
+					e.Handled = true;
+					return;
+				}
+			}
+
+			if (e.Text is { Length: 1 } && e.Text.StartsWith(TagSeparator))
+			{
+				autoCompleteBox.Text = autoCompleteBox.SearchText;
+				RequestAdd = true;
 				e.Handled = true;
+				return;
 			}
 		}
 
@@ -404,8 +460,8 @@ namespace WalletWasabi.Fluent.Controls
 			}
 
 			if (RestrictInputToSuggestions &&
-			    Suggestions is { } suggestions &&
-			    !suggestions.Any(x => x.Equals(tag, _stringComparison)))
+				Suggestions is { } suggestions &&
+				!suggestions.Any(x => x.Equals(tag, _stringComparison)))
 			{
 				return;
 			}

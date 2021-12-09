@@ -1,9 +1,6 @@
 using NBitcoin;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.WabiSabi.Backend.Banning;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds
 {
@@ -13,9 +10,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			WabiSabiConfig wabiSabiConfig,
 			Network network,
 			WasabiRandom random,
-			FeeRate feeRate,
-			Round? blameOf = null,
-			Prison? prison = null)
+			FeeRate feeRate)
 		{
 			Network = network;
 			Random = random;
@@ -32,15 +27,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			OutputRegistrationTimeout = wabiSabiConfig.OutputRegistrationTimeout;
 			TransactionSigningTimeout = wabiSabiConfig.TransactionSigningTimeout;
 			BlameInputRegistrationTimeout = wabiSabiConfig.BlameInputRegistrationTimeout;
-
-			BlameOf = blameOf;
-			IsBlameRound = BlameOf is not null;
-			BlameWhitelist = BlameOf
-				?.Alices
-				.Select(x => x.Coin.Outpoint)
-				.Where(x => prison is null || !prison.IsBanned(x))
-				.ToHashSet()
-			?? new HashSet<OutPoint>();
 		}
 
 		public WasabiRandom Random { get; }
@@ -50,9 +36,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public int MaxInputCountByRound { get; }
 		public Money MinRegistrableAmount { get; }
 		public Money MaxRegistrableAmount { get; }
-		public Round? BlameOf { get; }
-		public bool IsBlameRound { get; }
-		public ISet<OutPoint> BlameWhitelist { get; }
 		public TimeSpan StandardInputRegistrationTimeout { get; }
 		public TimeSpan ConnectionConfirmationTimeout { get; }
 		public TimeSpan OutputRegistrationTimeout { get; }

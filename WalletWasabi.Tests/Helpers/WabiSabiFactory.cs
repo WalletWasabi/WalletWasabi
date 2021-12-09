@@ -37,7 +37,14 @@ namespace WalletWasabi.Tests.Helpers
 		public static OwnershipProof CreateOwnershipProof(Key key, uint256? roundHash = null)
 			=> OwnershipProof.GenerateCoinJoinInputProof(
 				key,
+				GetOwnershipIdentifier(key.PubKey.WitHash.ScriptPubKey),
 				new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundHash ?? BitcoinFactory.CreateUint256()));
+
+		public static OwnershipIdentifier GetOwnershipIdentifier(Script scriptPubKey)
+		{
+			using var identificationKey = Key.Parse("5KbdaBwc9Eit2LrmDp1WfZd815StNstwHanbRrPpGGN6wWJKyHe", Network.Main);
+			return new OwnershipIdentifier(identificationKey, scriptPubKey);
+		}
 
 		public static Round CreateRound(WabiSabiConfig cfg)
 		{
@@ -45,7 +52,7 @@ namespace WalletWasabi.Tests.Helpers
 				cfg,
 				Network.Main,
 				new InsecureRandom(),
-				new(100m)));
+				new FeeRate(100m)));
 			round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
 			return round;
 		}
@@ -54,7 +61,7 @@ namespace WalletWasabi.Tests.Helpers
 		{
 			using Key key = new();
 			var mockRpc = new Mock<IRPCClient>();
-			mockRpc.Setup(rpc => rpc.GetTxOutAsync(It.IsAny<uint256>(), It.IsAny<int>(), It.IsAny<bool>()))
+			mockRpc.Setup(rpc => rpc.GetTxOutAsync(It.IsAny<uint256>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync(new NBitcoin.RPC.GetTxOutResponse
 				{
 					IsCoinBase = false,
@@ -64,7 +71,7 @@ namespace WalletWasabi.Tests.Helpers
 				});
 			foreach (var coin in coins)
 			{
-				mockRpc.Setup(rpc => rpc.GetTxOutAsync(coin.Outpoint.Hash, (int)coin.Outpoint.N, true))
+				mockRpc.Setup(rpc => rpc.GetTxOutAsync(coin.Outpoint.Hash, (int)coin.Outpoint.N, true, It.IsAny<CancellationToken>()))
 					.ReturnsAsync(new NBitcoin.RPC.GetTxOutResponse
 					{
 						IsCoinBase = false,
@@ -73,7 +80,7 @@ namespace WalletWasabi.Tests.Helpers
 						TxOut = coin.TxOut,
 					});
 			}
-			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), It.IsAny<EstimateSmartFeeMode>()))
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), It.IsAny<EstimateSmartFeeMode>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync(new EstimateSmartFeeResponse
 				{
 					Blocks = 1000,
@@ -85,7 +92,7 @@ namespace WalletWasabi.Tests.Helpers
 					MinRelayTxFee = 1
 				});
 			mockRpc.Setup(rpc => rpc.PrepareBatch()).Returns(mockRpc.Object);
-			mockRpc.Setup(rpc => rpc.SendBatchAsync()).Returns(Task.CompletedTask);
+			mockRpc.Setup(rpc => rpc.SendBatchAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 			return mockRpc;
 		}
 
@@ -133,7 +140,7 @@ namespace WalletWasabi.Tests.Helpers
 			return new ArenaClient(
 				roundState.CreateAmountCredentialClient(random),
 				roundState.CreateVsizeCredentialClient(random),
-				new ArenaRequestHandlerAdapter(arena));
+				arena);
 		}
 
 		public static InputRegistrationRequest CreateInputRegistrationRequest(Round round, Key? key = null, OutPoint? prevout = null)
@@ -259,8 +266,8 @@ namespace WalletWasabi.Tests.Helpers
 				realVsizeCredentialRequest);
 		}
 
-		public static Round CreateBlameRound(Round round, WabiSabiConfig cfg)
-			=> new(new(cfg, round.Network, new InsecureRandom(), round.FeeRate, blameOf: round));
+		public static BlameRound CreateBlameRound(Round round, WabiSabiConfig cfg)
+			=> new(new(cfg, round.Network, new InsecureRandom(), round.FeeRate), round, round.Alices.Select(x => x.Coin.Outpoint).ToHashSet());
 
 		public static (Key, SmartCoin, Key, SmartCoin) CreateCoinKeyPairs()
 		{

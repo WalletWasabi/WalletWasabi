@@ -1,19 +1,6 @@
 ## Daily routine
 
-1. Check [Valhalla board](https://github.com/orgs/zkSNACKs/projects/4) that contains issues and priorities.
-
-    | Developer | Assigned |
-    | :-------: | :-------: |
-    | molnard | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Amolnard) |
-    | jmacato | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Ajmacato) |
-    | danwalmsley | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Adanwalmsley) |
-    | kiminuo | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Akiminuo) |
-    | lontivero | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Alontivero) |
-    | MaxHillebrand | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3AMaxHillebrand) |
-    | nopara73 | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Anopara73) |
-    | yahiheb | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Ayahiheb) |
-    | soosr | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Asoosr) |
-
+1. Check with your team leader about tasks.
 2. Check [open code review requests waiting for you](https://github.com/zkSNACKs/WalletWasabi/pulls/review-requested/@me).
 3. Check [open priority issues and PRs](https://github.com/zkSNACKs/WalletWasabi/labels/priority). Take it or set Assignees and Labels if you can.
 4. Check your [open PRs](https://github.com/zkSNACKs/WalletWasabi/pulls/@me) and answer if necessary.
@@ -26,10 +13,9 @@
 
 ## Weekly routine
 
-- Monday 18:00 UTC: [Research Club Conversations](https://github.com/zkSNACKs/WasabiResearchClub)
-- Wednesday 13:00 UTC: Team Meetings
-- Wednesday 14:00 UTC: Vision Meeting
-- Pair programming hour.
+- Team Meeting. Team members talk about their work during the last week.
+- Company meeting. Team leaders report about the progress of their team.
+- On-demand pair programming sessions.
 
 ## Monthly routine
 
@@ -59,8 +45,42 @@ __Tips__: if the PR is too big ask for breakdown.
 
 __Fact__: code review is one of the few scientifically proven code improvement tools.
 
-## Creating Pull Request
+## How to fork a repository
+- On Github navigate to the desired repository.
+- In the top-right corner of the page, click Fork.
 
+### Cloning your forked repository
+- On GitHub.com, navigate to your fork. For Example: https://github.com/adampetho/WalletWasabi
+- Above the list of files, click the Code button with the arrow pointing down.
+- Use one of the 3 options to get your repository into your local machine. (See below)
+
+#### Git Bash approach
+- Get and Setup Git Bash on your local computer
+- Copy the link
+- Open Git Bash.
+- Change the current working directory to the location where you want the cloned directory.
+- Type git clone, and then paste the URL you copied earlier. Example: "git clone https://github.com/zkSNACKs/WalletWasabi.git"
+- Press Enter. Your local clone will be created.
+- Further reading about this approach or if you get stuck, please read this https://docs.github.com/en/get-started/quickstart/fork-a-repo (or ask the devs)
+
+#### Zip approach
+- Self-explanatory: Download -> Unzip -> Ready to go
+
+#### GitHub Desktop approach
+- Install GitHub Desktop and Login
+- Choose the Open with GitHub Desktop option
+- Choose where to clone
+- Click OK
+
+## Creating Pull Request
+- Fork the repo (See above)
+- Clone the forked repo (See above)
+- Make a new branch from master by "git switch -c newbranch" (Replace newbranch with your own comprehensive names.)
+- Make changes 
+- Add necessary files ("git add ." will add every changed file, this is the most commonly used, but you can add the changes one-by-one "git add <filename>")
+- Commit your changes: git commit -m "A simple commit message"
+- Push your changes: git push
+- Raise a PR on github
 - Fill the title.
 - Fill the description.
   - If it fixes issues [add keyword](https://help.github.com/en/articles/closing-issues-using-keywords).

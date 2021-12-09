@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
@@ -42,7 +43,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var offendingAlice = WabiSabiFactory.CreateAlice(round); // this Alice spent the coin after registration
 
 			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient();
-			mockRpc.Setup(rpc => rpc.GetTxOutAsync(offendingAlice.Coin.Outpoint.Hash, (int)offendingAlice.Coin.Outpoint.N, true))
+			mockRpc.Setup(rpc => rpc.GetTxOutAsync(offendingAlice.Coin.Outpoint.Hash, (int)offendingAlice.Coin.Outpoint.N, true, It.IsAny<CancellationToken>()))
 				.ReturnsAsync((GetTxOutResponse?)null);
 
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc, round);
@@ -159,7 +160,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			round.Alices.Add(WabiSabiFactory.CreateAlice(round));
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.Ended, round.Phase);
-			Assert.DoesNotContain(round, arena.ActiveRounds);
+			Assert.DoesNotContain(round, arena.GetActiveRounds());
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -188,7 +189,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, blameRound);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.Ended, blameRound.Phase);
-			Assert.DoesNotContain(blameRound, arena.ActiveRounds);
+			Assert.DoesNotContain(blameRound, arena.GetActiveRounds());
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -210,7 +211,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.InputRegistration, round.Phase);
 
-			cfg.StandardInputRegistrationTimeout = TimeSpan.Zero;
+			round.InputRegistrationTimeFrame = round.InputRegistrationTimeFrame with { Duration = TimeSpan.Zero };
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);

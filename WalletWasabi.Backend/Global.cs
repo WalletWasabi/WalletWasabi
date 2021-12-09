@@ -10,7 +10,6 @@ using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Helpers;
@@ -51,7 +50,7 @@ namespace WalletWasabi.Backend
 			RpcClient = Guard.NotNull(nameof(rpc), rpc);
 
 			// Make sure RPC works.
-			await AssertRpcNodeFullyInitializedAsync();
+			await AssertRpcNodeFullyInitializedAsync(cancel);
 
 			// Make sure P2P works.
 			await InitializeP2pAsync(config.Network, config.GetBitcoinP2pEndPoint(), cancel);
@@ -83,19 +82,18 @@ namespace WalletWasabi.Backend
 					"Config Watcher");
 			}
 
-			await HostedServices.StartAllAsync(cancel);
-
 			// Initialize index building
 			var indexBuilderServiceDir = Path.Combine(DataDir, "IndexBuilderService");
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
 			var blockNotifier = HostedServices.Get<BlockNotifier>();
-			IndexBuilderService = new(RpcClient, blockNotifier, indexFilePath);
 			Coordinator = new(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig);
+			HostedServices.Register<RoundBootstrapper>(new RoundBootstrapper(TimeSpan.FromMilliseconds(100), Coordinator), "Round Bootstrapper");
+
+			await HostedServices.StartAllAsync(cancel);
+
+			IndexBuilderService = new(RpcClient, blockNotifier, indexFilePath);
 			IndexBuilderService.Synchronize();
 			Logger.LogInfo($"{nameof(IndexBuilderService)} is successfully initialized and started synchronization.");
-
-			await Coordinator.MakeSureInputregistrableRoundRunningAsync();
-			Logger.LogInfo($"Chaumian CoinJoin Coordinator is successfully initialized and started '{Coordinator.GetRunningRounds().Count()}' new round(s).");
 		}
 
 		private async Task InitializeP2pAsync(Network network, EndPoint endPoint, CancellationToken cancel)
@@ -109,11 +107,11 @@ namespace WalletWasabi.Backend
 			HostedServices.Register<BlockNotifier>(new BlockNotifier(TimeSpan.FromSeconds(7), RpcClient, P2pNode), "Block Notifier");
 		}
 
-		private async Task AssertRpcNodeFullyInitializedAsync()
+		private async Task AssertRpcNodeFullyInitializedAsync(CancellationToken cancellationToken)
 		{
 			try
 			{
-				var blockchainInfo = await RpcClient.GetBlockchainInfoAsync();
+				var blockchainInfo = await RpcClient.GetBlockchainInfoAsync(cancellationToken);
 
 				var blocks = blockchainInfo.Blocks;
 				if (blocks == 0 && Config.Network != Network.RegTest)
@@ -138,13 +136,13 @@ namespace WalletWasabi.Backend
 				{
 					if (blocks < 101)
 					{
-						var generateBlocksResponse = await RpcClient.GenerateAsync(101);
+						var generateBlocksResponse = await RpcClient.GenerateAsync(101, cancellationToken);
 						if (generateBlocksResponse is null)
 						{
 							throw new NotSupportedException($"{Constants.BuiltinBitcoinNodeName} cannot generate blocks on the {Network.RegTest}.");
 						}
 
-						blockchainInfo = await RpcClient.GetBlockchainInfoAsync();
+						blockchainInfo = await RpcClient.GetBlockchainInfoAsync(cancellationToken);
 						blocks = blockchainInfo.Blocks;
 						if (blocks == 0)
 						{

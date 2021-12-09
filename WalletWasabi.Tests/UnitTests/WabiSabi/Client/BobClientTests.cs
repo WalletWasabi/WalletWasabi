@@ -1,15 +1,16 @@
+using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Controllers;
+using WalletWasabi.Backend.Controllers.WabiSabi;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
@@ -33,9 +34,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, mockRpc, round);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 
-			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
+			using var memoryCache = new MemoryCache(new MemoryCacheOptions());
+			var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
+			var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena);
+
 			var insecureRandom = new InsecureRandom();
-			var wabiSabiApi = new WabiSabiController(coordinator);
 			var roundState = RoundState.FromRound(round);
 			var aliceArenaClient = new ArenaClient(
 				roundState.CreateAmountCredentialClient(insecureRandom),
@@ -52,7 +55,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), wabiSabiApi);
 			await roundStateUpdater.StartAsync(CancellationToken.None);
 
-			var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), aliceArenaClient, coin1, bitcoinSecret, roundStateUpdater, CancellationToken.None);
+			using var identificationKey = new Key();
+			var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), aliceArenaClient, coin1, bitcoinSecret, identificationKey, roundStateUpdater, CancellationToken.None);
 
 			do
 			{

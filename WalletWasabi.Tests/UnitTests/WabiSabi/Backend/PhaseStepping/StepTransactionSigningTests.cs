@@ -3,13 +3,13 @@ using NBitcoin;
 using NBitcoin.RPC;
 using System;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
+using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Models;
@@ -45,7 +45,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await aliceClient1.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await aliceClient2.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.DoesNotContain(round, arena.ActiveRounds);
+			Assert.DoesNotContain(round, arena.GetActiveRounds());
 			Assert.Equal(Phase.Ended, round.Phase);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -62,10 +62,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var (key1, coin1, key2, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
 			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
-			mockRpc.Setup(rpc => rpc.SendRawTransactionAsync(It.IsAny<Transaction>()))
+			mockRpc.Setup(rpc => rpc.SendRawTransactionAsync(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
 				.ThrowsAsync(new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null));
 
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
+			Prison prison = new();
+			using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
+
 			var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, key1, coin1, key2, coin2);
 
 			await aliceClient1.ReadyToSignAsync(CancellationToken.None);
@@ -79,10 +81,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await aliceClient1.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await aliceClient2.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.DoesNotContain(round, arena.ActiveRounds);
+			Assert.DoesNotContain(round, arena.Rounds.Where(x => x.Phase != Phase.Ended));
 			Assert.Equal(Phase.Ended, round.Phase);
 			Assert.False(round.WasTransactionBroadcast);
-			Assert.Empty(arena.Prison.GetInmates());
+			Assert.Empty(prison.GetInmates());
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -99,10 +101,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var (key1, coin1, key2, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
 			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
-			mockRpc.Setup(rpc => rpc.SendRawTransactionAsync(It.IsAny<Transaction>()))
+			mockRpc.Setup(rpc => rpc.SendRawTransactionAsync(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
 				.ThrowsAsync(new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null));
 
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
+			Prison prison = new();
+			using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
+
 			var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, key1, coin1, key2, coin2);
 
 			await aliceClient1.ReadyToSignAsync(CancellationToken.None);
@@ -116,14 +120,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await aliceClient1.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await aliceClient2.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.DoesNotContain(round, arena.ActiveRounds);
+			Assert.DoesNotContain(round, arena.Rounds.Where(x => x.Phase != Phase.Ended));
 			Assert.Equal(Phase.Ended, round.Phase);
 			Assert.False(round.WasTransactionBroadcast);
 
 			// There should be no inmate, because we aren't punishing spenders with banning
 			// as there's no reason to ban already spent UTXOs,
 			// the cost of spending the UTXO is the punishment instead.
-			Assert.Empty(arena.Prison.GetInmates());
+			Assert.Empty(prison.GetInmates());
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -140,10 +144,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var (key1, coin1, key2, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
 			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
-			mockRpc.Setup(rpc => rpc.SendRawTransactionAsync(It.IsAny<Transaction>()))
+			mockRpc.Setup(rpc => rpc.SendRawTransactionAsync(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
 				.ThrowsAsync(new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null));
 
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
+			Prison prison = new();
+			using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
+
 			var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, key1, coin1, key2, coin2);
 
 			await aliceClient1.ReadyToSignAsync(CancellationToken.None);
@@ -155,11 +161,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var signedCoinJoin = round.Assert<SigningState>().CreateTransaction();
 			await aliceClient1.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.DoesNotContain(round, arena.ActiveRounds);
+			Assert.DoesNotContain(round, arena.Rounds.Where(x => x.Phase != Phase.Ended));
 			Assert.Equal(Phase.Ended, round.Phase);
 			Assert.False(round.WasTransactionBroadcast);
-			Assert.Empty(arena.Rounds.Where(x => x.IsBlameRound));
-			Assert.Contains(aliceClient2.SmartCoin.OutPoint, arena.Prison.GetInmates().Select(x => x.Utxo));
+			Assert.Empty(arena.Rounds.Where(x => x is BlameRound));
+			Assert.Contains(aliceClient2.SmartCoin.OutPoint, prison.GetInmates().Select(x => x.Utxo));
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -177,10 +183,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var (key1, coin1, key2, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
 			var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
-			mockRpc.Setup(rpc => rpc.SendRawTransactionAsync(It.IsAny<Transaction>()))
+			mockRpc.Setup(rpc => rpc.SendRawTransactionAsync(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
 				.ThrowsAsync(new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null));
 
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
+			Prison prison = new();
+			using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
+
 			var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, key1, coin1, key2, coin2);
 
 			// Make sure not all alices signed.
@@ -195,15 +203,15 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await aliceClient1.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await aliceClient2.SignTransactionAsync(signedCoinJoin, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.DoesNotContain(round, arena.ActiveRounds);
-			Assert.Single(arena.Rounds.Where(x => x.IsBlameRound));
+			Assert.DoesNotContain(round, arena.Rounds.Where(x => x.Phase != Phase.Ended));
+			Assert.Single(arena.Rounds.Where(x => x is BlameRound));
 			var badOutpoint = alice3.Coin.Outpoint;
-			Assert.Contains(badOutpoint, arena.Prison.GetInmates().Select(x => x.Utxo));
+			Assert.Contains(badOutpoint, prison.GetInmates().Select(x => x.Utxo));
 
-			var blameRound = arena.Rounds.Single(x => x.IsBlameRound);
-			Assert.True(blameRound.IsBlameRound);
+			var onlyRound = arena.Rounds.Single(x => x is BlameRound);
+			var blameRound = Assert.IsType<BlameRound>(onlyRound);
 			Assert.NotNull(blameRound.BlameOf);
-			Assert.Equal(round.Id, blameRound.BlameOf?.Id);
+			Assert.Equal(round.Id, blameRound.BlameOf.Id);
 
 			var whitelist = blameRound.BlameWhitelist;
 			Assert.Contains(aliceClient1.SmartCoin.OutPoint, whitelist);
@@ -224,11 +232,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
 			// Register Alices.
-			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), new ArenaRequestHandlerAdapter(arena));
+			using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), arena);
 			await roundStateUpdater.StartAsync(CancellationToken.None);
 
-			var task1 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin1, key1.GetBitcoinSecret(round.Network), roundStateUpdater, CancellationToken.None);
-			var task2 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin2, key2.GetBitcoinSecret(round.Network), roundStateUpdater, CancellationToken.None);
+			using var identificationKey = new Key();
+			var task1 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin1, key1.GetBitcoinSecret(round.Network), identificationKey, roundStateUpdater, CancellationToken.None);
+			var task2 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin2, key2.GetBitcoinSecret(round.Network), identificationKey, roundStateUpdater, CancellationToken.None);
 
 			while (Phase.OutputRegistration != round.Phase)
 			{

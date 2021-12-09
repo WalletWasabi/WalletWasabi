@@ -98,7 +98,7 @@ namespace WalletWasabi.Fluent.Controls
 				})
 				.DisposeWith(_disposable);
 
-			PrivacyText = new string(Enumerable.Repeat(PrivacyChar, (int) NumberOfPrivacyChars).ToArray());
+			PrivacyText = new string(Enumerable.Repeat(PrivacyChar, (int)NumberOfPrivacyChars).ToArray());
 		}
 
 		protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
