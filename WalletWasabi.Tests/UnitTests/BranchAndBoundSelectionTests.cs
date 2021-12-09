@@ -34,7 +34,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			RecursiveCoinSelector selector = new();
 			Assert.True(selector.TryBranchAndBound(AvailableCoins, target, maxTolerance, toleranceIncrement, out var tolerance, out List<Money> selectedCoins));
-			Assert.True(target + tolerance <= selector.CalculateSum(selectedCoins));
+			Assert.True(target + tolerance <= selector.CalcEffectiveValue(selectedCoins));
 		}
 
 		[Fact]
@@ -73,7 +73,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var successful = selector.TryGetExactMatch(target, AvailableCoins, out List<Money> selectedCoins);
 
 			Assert.True(successful);
-			Assert.Equal(target, selector.CalculateSum(selectedCoins));
+			Assert.Equal(target, (ulong)selector.CalcEffectiveValue(selectedCoins));
 		}
 
 		[Fact]

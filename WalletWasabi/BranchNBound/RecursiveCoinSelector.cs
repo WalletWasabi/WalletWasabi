@@ -69,7 +69,7 @@ namespace WalletWasabi.BranchNBound
 					return currentCoins;
 				}
 				currentCoins.Add(pool.Pop());
-				var sum = CalculateSum(currentCoins);
+				var sum = CalcEffectiveValue(currentCoins);
 
 				if ((sum >= target) && (sum <= target + tolerance))
 				{
@@ -231,24 +231,13 @@ namespace WalletWasabi.BranchNBound
 			}
 		}
 
-		private Money CalcEffectiveValue(List<Money> list)
+		public Money CalcEffectiveValue(List<Money> list)
 		{
 			Money sum = Money.Satoshis(0);
 
 			foreach (var item in list)
 			{
 				sum += item.Satoshi;        // TODO: effectiveValue = utxo.value − feePerByte × bytesPerInput
-			}
-
-			return sum;
-		}
-
-		public ulong CalculateSum(IEnumerable<Money> coins)
-		{
-			ulong sum = 0;
-			foreach (var coin in coins)
-			{
-				sum += coin;
 			}
 
 			return sum;
