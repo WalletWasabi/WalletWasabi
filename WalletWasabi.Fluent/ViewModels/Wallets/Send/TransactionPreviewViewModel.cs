@@ -105,7 +105,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				_nextButtonText = "Confirm";
 			}
 
-			AdjustFeeCommand = ReactiveCommand.CreateFromTask(OnAdjustFeeAsync);
+			AdjustFeeCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				if (_info.IsCustomFeeUsed)
+				{
+					await ShowAdvancedDialogAsync();
+				}
+				else
+				{
+					await OnAdjustFeeAsync();
+				}
+			});
 
 			ChangePocketsCommand = ReactiveCommand.CreateFromTask(OnChangePocketsAsync);
 		}
@@ -123,6 +133,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public ICommand AdjustFeeCommand { get; }
 
 		public ICommand ChangePocketsCommand { get; }
+
+		private async Task ShowAdvancedDialogAsync()
+		{
+			var result = await NavigateDialogAsync(new AdvancedSendOptionsViewModel(_info), NavigationTarget.CompactDialogScreen);
+
+			if (result.Kind == DialogResultKind.Normal)
+			{
+				await BuildAndUpdateAsync();
+			}
+		}
 
 		private async Task OnExportPsbtAsync()
 		{
@@ -155,12 +175,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				_info.FeeRate = feeRateDialogResult.Result;
 
-				var newTransaction = await BuildTransactionAsync();
+				await BuildAndUpdateAsync();
+			}
+		}
 
-				if (newTransaction is { })
-				{
-					UpdateTransaction(CurrentTransactionSummary, newTransaction);
-				}
+		private async Task BuildAndUpdateAsync()
+		{
+			var newTransaction = await BuildTransactionAsync();
+
+			if (newTransaction is { })
+			{
+				UpdateTransaction(CurrentTransactionSummary, newTransaction);
 			}
 		}
 
@@ -173,12 +198,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				_info.Coins = selectPocketsDialog.Result;
 
-				var newTransaction = await BuildTransactionAsync();
-
-				if (newTransaction is { })
-				{
-					UpdateTransaction(CurrentTransactionSummary, newTransaction);
-				}
+				await BuildAndUpdateAsync();
 			}
 		}
 
@@ -217,6 +237,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private async Task<BuildTransactionResult?> BuildTransactionAsync()
 		{
+			if (!await InitialiseTransactionAsync())
+			{
+				return null;
+			}
+
 			try
 			{
 				IsBusy = true;
@@ -324,30 +349,25 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private async Task InitialseViewModelAsync()
 		{
-			if (await InitialiseTransactionAsync())
+			if (await BuildTransactionAsync() is { } initialTransaction)
 			{
-				var initialTransaction = await BuildTransactionAsync();
+				UpdateTransaction(CurrentTransactionSummary, initialTransaction);
 
-				if (initialTransaction is { })
+				IsLoading = true;
+				var (selected, suggestions) =
+					await ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(_info, _wallet,
+						_transaction!);
+
+				IsLoading = false;
+
+				PrivacySuggestions.Suggestions.Clear();
+
+				foreach (var suggestion in suggestions.Where(x => !x.IsOriginal))
 				{
-					UpdateTransaction(CurrentTransactionSummary, initialTransaction);
-
-					IsLoading = true;
-					var (selected, suggestions) =
-						await ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(_info, _wallet,
-							_transaction!);
-
-					IsLoading = false;
-
-					PrivacySuggestions.Suggestions.Clear();
-
-					foreach (var suggestion in suggestions.Where(x => !x.IsOriginal))
-					{
-						PrivacySuggestions.Suggestions.Add(suggestion);
-					}
-
-					PrivacySuggestions.PreviewSuggestion = selected;
+					PrivacySuggestions.Suggestions.Add(suggestion);
 				}
+
+				PrivacySuggestions.PreviewSuggestion = selected;
 			}
 			else
 			{

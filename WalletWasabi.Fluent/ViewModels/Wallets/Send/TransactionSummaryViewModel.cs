@@ -20,6 +20,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private string _confirmationTimeText = "";
 	[AutoNotify] private string _feeText = "";
 	[AutoNotify] private bool _maxPrivacy;
+	[AutoNotify] private bool _isCustomFeeUsed;
 
 	public TransactionSummaryViewModel(Wallet wallet, TransactionInfo info)
 	{
@@ -68,5 +69,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 			_transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != _info.Address.ScriptPubKey);
 
 		TransactionHasPockets = !_info.IsPrivatePocketUsed;
+
+		IsCustomFeeUsed = _info.IsCustomFeeUsed;
 	}
 }
