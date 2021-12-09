@@ -51,18 +51,6 @@ namespace WalletWasabi.Tests.UnitTests.BranchAndBoundTests
 			Assert.Equal(expectedCoins, selectedCoins);
 		}
 
-		// This takes too much time and eats a lot of memory
-
-		//[Fact]
-		//public void CanSelectCoinsWithNodesLogicRandomTest()
-		//{
-		//	ulong target = Money.Satoshis(100000000);
-
-		//	SendCoinSelector selector = new();
-		//	Assert.True(selector.TryTreeLogic(AvailableCoins, target, out List<Money> selectedCoins));
-		//	Assert.Equal(target, selector.CalculateSum(selectedCoins));
-		//}
-
 		[Fact]
 		public void NodesLogicSimpleTest()
 		{

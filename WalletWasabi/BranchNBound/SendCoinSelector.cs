@@ -11,13 +11,13 @@ namespace WalletWasabi.BranchNBound
 {
 	public class SendCoinSelector
 	{
-		private List<Money>? FinalCoins { get; set; }
 		private bool _optimizedCoinsFound = false;
 
 		private Money _costOfHeader = Money.Satoshis(0);
 		private Money _costPerOutput = Money.Satoshis(0);
 		private int _bnbTryLimit = 5;
 		private Random _random = new();
+		private List<Money>? FinalCoins { get; set; }
 		private Money[]? UtxoSorted { get; set; }
 
 		public bool TryBranchAndBound(List<Money> coins, Money target, ulong maxTolerance, ulong toleranceIncrement, out ulong tolerance, out List<Money> finalCoins)
@@ -55,6 +55,7 @@ namespace WalletWasabi.BranchNBound
 			// target : ulong, the value that the sum of currentCoins needs to match with
 			// tolerance : the maximum difference we allow for a match
 			// sum : Overall value of the coins
+
 			Stack<ulong> tmpPool;
 			while (!_optimizedCoinsFound)
 			{
@@ -70,21 +71,21 @@ namespace WalletWasabi.BranchNBound
 				currentCoins.Add(pool.Pop());
 				var sum = CalculateSum(currentCoins);
 
-				// If its a match, we are happy
 				if ((sum >= target) && (sum <= target + tolerance))
 				{
+					// If its a match, we are happy
 					_optimizedCoinsFound = true;
 					FinalCoins = currentCoins;
 				}
-				// If the SUM is less that the target, we go forward to add coins
 				else if (sum < target + tolerance)
 				{
+					// If the SUM is less that the target, we go forward to add coins
 					depth++;
 					SolveX(currentCoins, target, tolerance, new Stack<Money>(pool.Reverse()), depth);
 				}
-				// If the SUM is bigger than the target, we remove the last added element and go forward
 				if (sum > target + tolerance)
 				{
+					// If the SUM is bigger than the target, we remove the last added element and go forward
 					currentCoins.RemoveLast();
 					return SolveX(currentCoins, target, tolerance, pool, depth);
 				}
