@@ -66,12 +66,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 				.Select(x => Money.Satoshis((long)x));
 
 			var keys = Enumerable.Range(0, amounts.Count()).Select(x => KeyManager.GetNextReceiveKey("no-label", out _)).ToImmutableList();
-			foreach (var (amount, key) in amounts.Zip(keys))
+			Parallel.ForEach(amounts.Zip(keys), (amount, key) =>
 			{
 				var scriptPubKey = key.P2wpkhScript;
 				var effectiveOutputValue = amount - feeRate.GetFee(scriptPubKey.EstimateOutputVsize());
 				splitTx.Outputs.Add(new TxOut(effectiveOutputValue, scriptPubKey));
-			}
+			});
 			var minerKey = KeyManager.GetSecrets("", SourceCoin.ScriptPubKey).First();
 			splitTx.Sign(minerKey.PrivateKey.GetBitcoinSecret(Rpc.Network), SourceCoin);
 			var stx = new SmartTransaction(splitTx, new Height(500_000));
