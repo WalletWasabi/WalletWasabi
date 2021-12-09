@@ -160,7 +160,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			_transaction = transaction;
 
-			summary.UpdateTransaction(transaction);
+			summary.UpdateTransaction(_transaction);
 
 			DisplayedTransactionSummary = summary;
 		}
