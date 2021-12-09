@@ -33,8 +33,8 @@ namespace WalletWasabi.Tests.UnitTests
 			ulong toleranceIncrement = 100;
 
 			RecursiveCoinSelector selector = new();
-			Assert.True(selector.TryBranchAndBound(AvailableCoins, target, maxTolerance, toleranceIncrement, out var tolerance, out List<Money> selectedCoins));
-			Assert.True(target + tolerance <= selector.CalcEffectiveValue(selectedCoins));
+			Assert.True(selector.TryBranchAndBound(AvailableCoins, target, maxTolerance, toleranceIncrement, out List<Money> selectedCoins));
+			Assert.True(target + selector.Tolerance <= selector.CalcEffectiveValue(selectedCoins));
 		}
 
 		[Fact]
@@ -47,7 +47,7 @@ namespace WalletWasabi.Tests.UnitTests
 			ulong target = Money.Satoshis(19);
 
 			RecursiveCoinSelector selector = new();
-			Assert.True(selector.TryBranchAndBound(utxos, target, maxTolerance, toleranceIncrement, out var tolerance, out List<Money> selectedCoins));
+			Assert.True(selector.TryBranchAndBound(utxos, target, maxTolerance, toleranceIncrement, out List<Money> selectedCoins));
 			Assert.Equal(expectedCoins, selectedCoins);
 		}
 

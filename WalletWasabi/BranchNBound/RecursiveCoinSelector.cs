@@ -11,28 +11,30 @@ namespace WalletWasabi.BranchNBound
 {
 	public class RecursiveCoinSelector : Selector
 	{
+		public Money Tolerance { get; private set; } = 0UL;
+
 		private bool _optimizedCoinsFound = false;
 
 		private List<Money>? FinalCoins { get; set; }
 
-		public bool TryBranchAndBound(List<Money> coins, Money target, ulong maxTolerance, ulong toleranceIncrement, out ulong tolerance, out List<Money> finalCoins)
+		public bool TryBranchAndBound(List<Money> coins, Money target, ulong maxTolerance, ulong toleranceIncrement, out List<Money> finalCoins)
 		{
 			var coinsDescending = coins.OrderBy(x => x);
 			finalCoins = new List<Money>();
-			tolerance = 0;
+			Tolerance = 0UL;
 			var currentCoins = new List<Money>();
 
 			try
 			{
-				while (tolerance <= maxTolerance)
+				while (Tolerance <= maxTolerance)
 				{
 					Stack<Money> pool = new Stack<Money>(coinsDescending);
-					finalCoins = SearchForCoins(currentCoins, target, tolerance, pool);
+					finalCoins = SearchForCoins(currentCoins, target, Tolerance, pool);
 					if (finalCoins.Any())
 					{
 						break;
 					}
-					tolerance += toleranceIncrement;
+					Tolerance += toleranceIncrement;
 				}
 			}
 			catch (IndexOutOfRangeException exc)
