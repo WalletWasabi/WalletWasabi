@@ -23,6 +23,9 @@ namespace WalletWasabi.Wallets
 {
 	public class WalletManager
 	{
+		/// <remarks>All access must be guarded by <see cref="Lock"/> object.</remarks>
+		private volatile bool _disposedValue = false;
+
 		public WalletManager(Network network, string workDir, WalletDirectories walletDirectories)
 		{
 			using (BenchmarkLogger.Measure())
@@ -132,9 +135,14 @@ namespace WalletWasabi.Wallets
 
 			lock (Lock)
 			{
-				if (CancelAllInitialization.IsCancellationRequested || CancelAllInitialization.Token.IsCancellationRequested)
+				if (_disposedValue)
 				{
-					throw new OperationCanceledException($"Stopped loading {wallet}, because cancelling was requested.");
+					throw new OperationCanceledException($"Object was already disposed.");
+				}
+
+				if (CancelAllInitialization.IsCancellationRequested)
+				{
+					throw new OperationCanceledException($"Stopped loading {wallet}, because cancel was requested.");
 				}
 
 				// Throw an exception if the wallet was not added to the WalletManager.
@@ -279,6 +287,17 @@ namespace WalletWasabi.Wallets
 
 		public async Task RemoveAndStopAllAsync(CancellationToken cancel)
 		{
+			lock (Lock)
+			{
+				// Already disposed.
+				if (_disposedValue)
+				{
+					return;
+				}
+
+				_disposedValue = true;
+			}
+
 			try
 			{
 				CancelAllInitialization?.Cancel();
