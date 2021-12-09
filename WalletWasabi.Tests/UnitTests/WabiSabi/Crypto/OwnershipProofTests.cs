@@ -38,7 +38,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Crypto
 		public static OwnershipProof CreateOwnershipProof(Key key, uint256 roundHash)
 			=> OwnershipProof.GenerateCoinJoinInputProof(
 				key,
-				new OwnershipIdentifier(Key.Parse("5KbdaBwc9Eit2LrmDp1WfZd815StNstwHanbRrPpGGN6wWJKyHe", Network.Main), key.PubKey.WitHash.ScriptPubKey),
+				new OwnershipIdentifier(key, key.PubKey.WitHash.ScriptPubKey),
 				new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundHash));
 	}
 }
