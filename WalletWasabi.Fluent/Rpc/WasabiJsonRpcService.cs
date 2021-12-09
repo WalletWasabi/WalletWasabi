@@ -55,7 +55,11 @@ namespace WalletWasabi.Fluent.Rpc
 			walletGenerator.TipHeight = Global.BitcoinStore.SmartHeaderChain.TipHeight;
 			var (keyManager, mnemonic) = walletGenerator.GenerateWallet(walletName, password);
 			Global.WalletManager.AddWallet(keyManager);
-			return mnemonic.ToString();
+			return new
+			{
+				mnemonic = mnemonic.ToString(),
+				walletname = walletName
+			};
 		}
 
 		[JsonRpcMethod("getwalletinfo")]
