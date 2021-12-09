@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using DynamicData;
 using NBitcoin;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -8,6 +9,8 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
+using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services.Terminate;
@@ -46,6 +49,19 @@ namespace WalletWasabi.Fluent.Rpc
 				keyPath = x.HdPubKey.FullKeyPath.ToString(),
 				address = x.HdPubKey.GetP2wpkhAddress(Global.Network).ToString()
 			}).ToArray();
+		}
+
+		[JsonRpcMethod("listpockets")]
+		public object[] GetPockets()
+		{
+			var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+			SourceList<PocketViewModel> pocketS = new();
+
+			AssertWalletIsLoaded();
+
+			pocketS.AddRange(activeWallet.Coins.GetPockets(0).Select(x => new PocketViewModel(x)));
+
+			return pocketS.Items.ToArray();
 		}
 
 		[JsonRpcMethod("createwallet")]
