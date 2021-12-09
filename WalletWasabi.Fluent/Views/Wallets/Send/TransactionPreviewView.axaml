@@ -72,7 +72,7 @@
                         </Style>
 
                         <Style
-                          Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBoxItem:previewitem /template/ ContentPresenter#PART_ContentPresenter">
+                          Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
                           <Setter Property="Background" Value="Transparent" />
                         </Style>
 
@@ -103,7 +103,7 @@
                           </Setter>
                         </Style>
 
-                        <Style Selector="ListBoxItem:previewitem Border#PART_DecorationBorder">
+                        <Style Selector="ListBoxItem:pointerover Border#PART_DecorationBorder">
                           <Setter Property="Opacity" Value="1" />
                         </Style>
                       </ListBox.Styles>
