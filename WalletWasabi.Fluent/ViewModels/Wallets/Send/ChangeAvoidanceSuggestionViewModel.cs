@@ -29,13 +29,12 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 		decimal total = transactionResult.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
 
-		var fiatTotal = total * fiatExchangeRate;
-
 		_amountFiat = total.GenerateFiatText(fiatExchangeRate, "USD");
 		_optimisationLevelGood = optimisationLevel == PrivacyOptimisationLevel.Better;
 
 		if (_optimisationLevelGood)
 		{
+			var fiatTotal = total * fiatExchangeRate;
 			var fiatOriginal = originalAmount * fiatExchangeRate;
 			var fiatDifference = fiatTotal - fiatOriginal;
 
