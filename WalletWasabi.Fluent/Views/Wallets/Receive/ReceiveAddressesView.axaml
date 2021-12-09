@@ -35,7 +35,7 @@
         </Style>
       </DataBox.Styles>
       <DataBox.Columns>
-        <DataBoxTemplateColumn Width="90"
+        <DataBoxTemplateColumn Width="60"
                                CanUserSort="False">
           <DataBoxTemplateColumn.CellTemplate>
             <DataTemplate>
@@ -43,14 +43,6 @@
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
                             Margin="-5 0 0 0" Spacing="5" Orientation="Horizontal"
                             x:DataType="receive:AddressViewModel">
-                  <Button Classes="plain addressActionButton"
-                          Margin="0"
-                          Command="{Binding HideAddressCommand}"
-                          DockPanel.Dock="Right"
-                          ToolTip.Tip="Hide address">
-                    <PathIcon Data="{StaticResource dismiss_light}" Classes=" addressActionIcon" />
-                  </Button>
-
                   <c:AnimatedButton Classes="addressActionButton" DockPanel.Dock="Right"
                                     Margin="0"
                                     ToolTip.Tip="Copy"
@@ -92,11 +84,7 @@
                                CanUserSort="True">
           <DataBoxTemplateColumn.CellTemplate>
             <DataTemplate>
-              <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
-                <Button Classes="plain addressActionButton" ToolTip.Tip="Edit" DockPanel.Dock="Right"
-                        Command="{Binding EditLabelCommand}">
-                  <PathIcon Data="{StaticResource edit_regular}" Classes="addressActionIcon" />
-                </Button>
+              <DockPanel LastChildFill="True" Margin="10 0 30 0" x:DataType="receive:AddressViewModel">
                 <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15"
                                          VerticalAlignment="Center">
                   <DockPanel LastChildFill="False">
@@ -113,7 +101,7 @@
                             DockPanel.Dock="Left"
                             IsVisible="{Binding !!FilteredLabel.Count}"
                             Content="..."
-                            Margin="0 4 0 0">
+                            Margin="0 4 5 0">
                       <Button.Flyout>
                         <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="TransientWithDismissOnPointerMoveAway">
                           <c:TagsBox IsReadOnly="True"
@@ -128,13 +116,27 @@
                         </Panel>
                       </ToolTip.Tip>
                     </Button>
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                                Margin="-5 0 0 0" Spacing="5" Orientation="Horizontal"
+                                x:DataType="receive:AddressViewModel"
+                                DockPanel.Dock="Right">
+                      <Button Classes="plain addressActionButton" ToolTip.Tip="Edit"
+                              Command="{Binding EditLabelCommand}">
+                        <PathIcon Data="{StaticResource edit_regular}" Classes="addressActionIcon" />
+                      </Button>
+                      <Button Classes="plain addressActionButton"
+                              Margin="0"
+                              Command="{Binding HideAddressCommand}"
+                              ToolTip.Tip="Hide address">
+                        <PathIcon Data="{StaticResource dismiss_light}" Classes=" addressActionIcon" />
+                      </Button>
+                    </StackPanel>
                   </DockPanel>
                 </c:PrivacyContentControl>
               </DockPanel>
             </DataTemplate>
           </DataBoxTemplateColumn.CellTemplate>
         </DataBoxTemplateColumn>
-
       </DataBox.Columns>
     </DataBox>
   </c:ContentArea>
