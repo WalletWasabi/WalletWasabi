@@ -47,7 +47,7 @@ namespace WalletWasabi.Fluent.Behaviors
 		{
 			Dispatcher.UIThread.Post(() =>
 			{
-				if (AssociatedObject is not null && _itemDetailsAdorner != null && !AssociatedObject.IsPointerOver && !_itemDetailsAdorner.IsPointerOver)
+				if (AssociatedObject is not null && _itemDetailsAdorner is not null && !AssociatedObject.IsPointerOver && !_itemDetailsAdorner.IsPointerOver)
 				{
 					RemoveAdorner(AssociatedObject);
 				}
