@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.BranchNBound
 {
-	internal class Selector
+	public class Selector
 	{
 		public Money CalcEffectiveValue(List<Money> list)
 		{
