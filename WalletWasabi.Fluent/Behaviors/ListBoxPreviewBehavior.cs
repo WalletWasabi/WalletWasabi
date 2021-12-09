@@ -2,7 +2,6 @@
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.VisualTree;
 
@@ -10,11 +9,10 @@ namespace WalletWasabi.Fluent.Behaviors
 {
 	public class ListBoxPreviewBehavior : DisposingBehavior<ListBox>
 	{
-		private object? _previewItem;
 		private ListBoxItem? _previewControl;
 
 		/// <summary>
-		/// Defines the <see cref="SelectedItem"/> property.
+		/// Defines the <see cref="PreviewItem"/> property.
 		/// </summary>
 		public static readonly StyledProperty<object?> PreviewItemProperty =
 			AvaloniaProperty.Register<ListBoxPreviewBehavior, object?>(nameof(PreviewItem));
@@ -25,17 +23,17 @@ namespace WalletWasabi.Fluent.Behaviors
 			set => SetValue(PreviewItemProperty, value);
 		}
 
-		private void ClearPseudoClasses()
+		private void ClearPreviewPseudoClass(ListBoxItem? listBoxItem)
 		{
-			if (_previewControl is StyledElement se && se.Classes is IPseudoClasses pc)
+			if (listBoxItem?.Classes is IPseudoClasses pc)
 			{
 				pc.Remove(":previewitem");
 			}
 		}
 
-		private void SetPseudoClasses()
+		private void AddPreviewPseudoClass(ListBoxItem listBoxItem)
 		{
-			if (_previewControl is StyledElement se && se.Classes is IPseudoClasses pc)
+			if (listBoxItem.Classes is IPseudoClasses pc)
 			{
 				pc.Add(":previewitem");
 			}
@@ -47,14 +45,10 @@ namespace WalletWasabi.Fluent.Behaviors
 			{
 				return;
 			}
-			
+
 			Observable.FromEventPattern(AssociatedObject, nameof(AssociatedObject.PointerLeave))
-				.Subscribe(x =>
-				{
-					ClearPseudoClasses();
-					_previewControl = null;
-					PreviewItem = null;
-				}).DisposeWith(disposables);
+				.Subscribe(_ => ClearPreviewItem())
+				.DisposeWith(disposables);
 
 			Observable.FromEventPattern<PointerEventArgs>(AssociatedObject, nameof(AssociatedObject.PointerMoved))
 				.Subscribe(x =>
@@ -67,21 +61,30 @@ namespace WalletWasabi.Fluent.Behaviors
 					{
 						if (listBoxItem.DataContext != PreviewItem)
 						{
-							ClearPseudoClasses();
-							_previewControl = listBoxItem;
-							PreviewItem = listBoxItem.DataContext;
-
-							SetPseudoClasses();
+							SetPreviewItem(listBoxItem);
 						}
 					}
 					else
 					{
-						ClearPseudoClasses();
-						_previewControl = null;
-						PreviewItem = null;
+						ClearPreviewItem();
 					}
 				})
 				.DisposeWith(disposables);
+		}
+
+		private void SetPreviewItem(ListBoxItem listBoxItem)
+		{
+			ClearPreviewPseudoClass(_previewControl);
+			_previewControl = listBoxItem;
+			PreviewItem = listBoxItem.DataContext;
+			AddPreviewPseudoClass(_previewControl);
+		}
+
+		private void ClearPreviewItem()
+		{
+			ClearPreviewPseudoClass(_previewControl);
+			_previewControl = null;
+			PreviewItem = null;
 		}
 	}
 }
