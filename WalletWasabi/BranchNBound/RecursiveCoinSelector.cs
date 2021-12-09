@@ -96,6 +96,7 @@ namespace WalletWasabi.BranchNBound
 		{
 			var coinArray = availableCoins.ToArray();
 			var state = new TreeNode[1] { new TreeNode() };
+			selectedCoins = new List<Money>();
 			var depth = 0;
 			List<TreeNode> tmp;
 
@@ -122,8 +123,11 @@ namespace WalletWasabi.BranchNBound
 				}
 				state = tmp.ToArray();
 				depth++;
+				if (depth >= coinArray.Length)
+				{
+					return false;
+				}
 			}
-			return true;
 		}
 
 		private bool TryAddOrReturn(TreeNode node, Money target, List<TreeNode> tmp)
