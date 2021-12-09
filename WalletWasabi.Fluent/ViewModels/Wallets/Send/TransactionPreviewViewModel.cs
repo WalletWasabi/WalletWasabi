@@ -53,8 +53,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					if (x is { })
 					{
-						UpdateTransaction(x.IsOriginal ? CurrentTransactionSummary : PreviewTransactionSummary,
-							x.TransactionResult);
+						UpdateTransaction(PreviewTransactionSummary, x.TransactionResult);
 					}
 					else
 					{

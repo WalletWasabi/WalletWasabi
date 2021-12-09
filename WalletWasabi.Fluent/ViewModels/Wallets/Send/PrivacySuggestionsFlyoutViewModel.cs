@@ -34,19 +34,16 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	{
 		IsLoading = true;
 
-		var (selected, suggestions) =
+		var suggestions =
 			await ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, wallet, transaction);
-
 
 		Suggestions.Clear();
 		SelectedSuggestion = null;
 
-		foreach (var suggestion in suggestions.Where(x => !x.IsOriginal))
+		foreach (var suggestion in suggestions)
 		{
 			Suggestions.Add(suggestion);
 		}
-
-		PreviewSuggestion = selected;
 
 		IsLoading = false;
 	}

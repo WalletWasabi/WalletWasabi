@@ -85,8 +85,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		return normalized;
 	}
 
-	public static async
-		Task<(ChangeAvoidanceSuggestionViewModel preSelected, IEnumerable<ChangeAvoidanceSuggestionViewModel> items)> GenerateSuggestionsAsync(
+	public static async Task<IEnumerable<ChangeAvoidanceSuggestionViewModel>> GenerateSuggestionsAsync(
 			TransactionInfo transactionInfo, Wallet wallet, BuildTransactionResult requestedTransaction)
 	{
 		var intent = new PaymentIntent(
@@ -145,11 +144,11 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 		var results = new List<ChangeAvoidanceSuggestionViewModel>();
 
-		foreach (var suggestion in NormalizeSuggestions(suggestions, defaultSelection))
+		foreach (var suggestion in NormalizeSuggestions(suggestions, defaultSelection).Where(x => x != defaultSelection))
 		{
 			results.Add(suggestion);
 		}
 
-		return (defaultSelection, results);
+		return results;
 	}
 }
