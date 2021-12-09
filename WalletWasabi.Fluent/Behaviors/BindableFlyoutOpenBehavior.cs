@@ -33,6 +33,11 @@ public class BindableFlyoutOpenBehavior : DisposingBehavior<Control>
 		this.WhenAnyValue(x => x.IsOpen)
 			.Subscribe(isOpen =>
 			{
+				if (AssociatedObject is null)
+				{
+					return;
+				}
+
 				if (isOpen)
 				{
 					FlyoutBase.ShowAttachedFlyout(AssociatedObject);
