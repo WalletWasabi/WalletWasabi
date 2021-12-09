@@ -67,6 +67,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				.Subscribe(x =>
 				{
 					PrivacySuggestions.IsOpen = false;
+					PrivacySuggestions.SelectedSuggestion = null;
 
 					if (x is { })
 					{
@@ -186,7 +187,29 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			if (newTransaction is { })
 			{
 				UpdateTransaction(CurrentTransactionSummary, newTransaction);
+
+				await BuildPrivacySuggestionsAsync();
 			}
+		}
+
+		private async Task BuildPrivacySuggestionsAsync()
+		{
+			IsLoading = true;
+			var (selected, suggestions) =
+				await ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(_info, _wallet,
+					_transaction!);
+
+			IsLoading = false;
+
+			PrivacySuggestions.Suggestions.Clear();
+			PrivacySuggestions.SelectedSuggestion = null;
+
+			foreach (var suggestion in suggestions.Where(x => !x.IsOriginal))
+			{
+				PrivacySuggestions.Suggestions.Add(suggestion);
+			}
+
+			PrivacySuggestions.PreviewSuggestion = selected;
 		}
 
 		private async Task OnChangePocketsAsync()
@@ -353,21 +376,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				UpdateTransaction(CurrentTransactionSummary, initialTransaction);
 
-				IsLoading = true;
-				var (selected, suggestions) =
-					await ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(_info, _wallet,
-						_transaction!);
-
-				IsLoading = false;
-
-				PrivacySuggestions.Suggestions.Clear();
-
-				foreach (var suggestion in suggestions.Where(x => !x.IsOriginal))
-				{
-					PrivacySuggestions.Suggestions.Add(suggestion);
-				}
-
-				PrivacySuggestions.PreviewSuggestion = selected;
+				await BuildPrivacySuggestionsAsync();
 			}
 			else
 			{
