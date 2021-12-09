@@ -8,7 +8,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.BranchNBound;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.BranchAndBoundTests
+namespace WalletWasabi.Tests.UnitTests
 {
 	public class BranchAndBoundSelectionTests
 	{
@@ -32,9 +32,9 @@ namespace WalletWasabi.Tests.UnitTests.BranchAndBoundTests
 			ulong maxTolerance = 500;
 			ulong toleranceIncrement = 100;
 
-			SendCoinSelector selector = new();
+			RecursiveCoinSelector selector = new();
 			Assert.True(selector.TryBranchAndBound(AvailableCoins, target, maxTolerance, toleranceIncrement, out var tolerance, out List<Money> selectedCoins));
-			Assert.True((target + tolerance) <= selector.CalculateSum(selectedCoins));
+			Assert.True(target + tolerance <= selector.CalculateSum(selectedCoins));
 		}
 
 		[Fact]
@@ -46,7 +46,7 @@ namespace WalletWasabi.Tests.UnitTests.BranchAndBoundTests
 			ulong toleranceIncrement = 100;
 			ulong target = Money.Satoshis(19);
 
-			SendCoinSelector selector = new();
+			RecursiveCoinSelector selector = new();
 			Assert.True(selector.TryBranchAndBound(utxos, target, maxTolerance, toleranceIncrement, out var tolerance, out List<Money> selectedCoins));
 			Assert.Equal(expectedCoins, selectedCoins);
 		}
@@ -59,7 +59,7 @@ namespace WalletWasabi.Tests.UnitTests.BranchAndBoundTests
 
 			ulong target = Money.Satoshis(19);
 
-			SendCoinSelector selector = new();
+			RecursiveCoinSelector selector = new();
 			Assert.True(selector.TryTreeLogic(utxos, target, out List<Money> selectedCoins));
 			Assert.Equal(expectedCoins, selectedCoins);
 		}
@@ -67,7 +67,7 @@ namespace WalletWasabi.Tests.UnitTests.BranchAndBoundTests
 		[Fact]
 		public void CanSelectCoinsWithOriginalRandomTest()
 		{
-			var selector = new SendCoinSelector();
+			var selector = new RecursiveCoinSelector();
 			ulong target = Money.Satoshis(100000000);
 
 			var successful = selector.TryGetExactMatch(target, AvailableCoins, out List<Money> selectedCoins);
@@ -79,7 +79,7 @@ namespace WalletWasabi.Tests.UnitTests.BranchAndBoundTests
 		[Fact]
 		public void OriginalSimpleTest()
 		{
-			var selector = new SendCoinSelector();
+			var selector = new RecursiveCoinSelector();
 			var utxos = new List<Money> { Money.Satoshis(12), Money.Satoshis(10), Money.Satoshis(10), Money.Satoshis(5), Money.Satoshis(4) };
 			var expectedCoins = new List<Money> { Money.Satoshis(10), Money.Satoshis(5), Money.Satoshis(4) };
 			Money target = Money.Satoshis(19);

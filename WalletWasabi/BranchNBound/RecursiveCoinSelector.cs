@@ -9,7 +9,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.BranchNBound
 {
-	public class SendCoinSelector
+	public class RecursiveCoinSelector
 	{
 		private bool _optimizedCoinsFound = false;
 
