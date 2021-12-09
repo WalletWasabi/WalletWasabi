@@ -19,12 +19,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Crypto.CredentialRequesting
 			// Request #1.
 			RealCredentialsRequest request1 = NewRealCredentialsRequest(1);
 
-			//// Request #2.
+			// Request #2.
 			RealCredentialsRequest request2 = NewRealCredentialsRequest(1);
 
 			Assert.Equal(request1, request2);
 
-			//// Request #3.
+			// Request #3.
 			RealCredentialsRequest request3 = NewRealCredentialsRequest(2);
 			Assert.NotEqual(request1, request3);
 		}

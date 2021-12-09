@@ -1,6 +1,5 @@
 using NBitcoin;
 using NBitcoin.Crypto;
-using System;
 using System.Linq;
 namespace WalletWasabi.Crypto
 {
