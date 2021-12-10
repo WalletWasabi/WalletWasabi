@@ -47,22 +47,22 @@
       },
       "Avalonia.Controls.DataGrid": {
         "type": "Transitive",
-        "resolved": "0.10.11-rc.1",
-        "contentHash": "h09dhswzwI7NsDeOOe1Iljb6Hopf5tkIiNFKEm0IkC0p6L7S15zJi5hmpkSgp8e/PK7bRKo6gGvHk1Rt/Q/MQw==",
+        "resolved": "0.10.11-rc.2",
+        "contentHash": "VoSkahKHwTEESfBKxfVyfkaoSX3syQjiTV2Cw8KMrZwjMwhr1wgz9azy0fSSchyMMh7WFORrfrjdmPXnbUoqoQ==",
         "dependencies": {
-          "Avalonia": "0.10.11-rc.1",
-          "Avalonia.Remote.Protocol": "0.10.11-rc.1",
+          "Avalonia": "0.10.11-rc.2",
+          "Avalonia.Remote.Protocol": "0.10.11-rc.2",
           "JetBrains.Annotations": "10.3.0",
           "System.Reactive": "5.0.0"
         }
       },
       "Avalonia.Diagnostics": {
         "type": "Transitive",
-        "resolved": "0.10.11-rc.1",
-        "contentHash": "geXpaJohldE6dPEYBVTUSTU8Gg3XAnjOe9x9MwFvzq9JjlAbehWkL1UYT9YtyGjOnQrmVJNa1RkmMdFGaDwTTg==",
+        "resolved": "0.10.11-rc.2",
+        "contentHash": "FxwCKidUJ0V8379CHUOPDs390FevFdiJzVAAOrFWPzCz2YoRjqhh7+e/9JJiGWLP8gCfFVsTwuvLETyUhzJXpQ==",
         "dependencies": {
-          "Avalonia": "0.10.11-rc.1",
-          "Avalonia.Controls.DataGrid": "0.10.11-rc.1",
+          "Avalonia": "0.10.11-rc.2",
+          "Avalonia.Controls.DataGrid": "0.10.11-rc.2",
           "Microsoft.CodeAnalysis.CSharp.Scripting": "3.4.0",
           "System.Reactive": "5.0.0"
         }
@@ -688,17 +688,17 @@
       "walletwasabi.fluent": {
         "type": "Project",
         "dependencies": {
-          "Avalonia": "0.10.11-rc.1",
-          "Avalonia.Controls.DataGrid": "0.10.11-rc.1",
-          "Avalonia.Diagnostics": "0.10.11-rc.1",
-          "Avalonia.ReactiveUI": "0.10.11-rc.1",
+          "Avalonia": "0.10.11-rc.2",
+          "Avalonia.Controls.DataGrid": "0.10.11-rc.2",
+          "Avalonia.Diagnostics": "0.10.11-rc.2",
+          "Avalonia.ReactiveUI": "0.10.11-rc.2",
           "Avalonia.Xaml.Behaviors": "0.10.11-rc.1",
           "DataBox": "0.10.10-beta5",
           "OpenCvSharp4": "4.5.2.20210404",
           "OpenCvSharp4.runtime.win": "4.5.2.20210404",
           "System.Reactive": "5.0.0",
           "System.Runtime": "4.3.1",
-          "WalletWasabi": "1.1.13"
+          "WalletWasabi": "1.0.0"
         }
       }
     },
