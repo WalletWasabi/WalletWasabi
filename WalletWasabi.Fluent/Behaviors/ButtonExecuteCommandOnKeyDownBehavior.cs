@@ -11,10 +11,19 @@ namespace WalletWasabi.Fluent.Behaviors
 		public static readonly StyledProperty<Key?> KeyProperty =
 			AvaloniaProperty.Register<ButtonExecuteCommandOnKeyDownBehavior, Key?>(nameof(Key));
 
+		public static readonly StyledProperty<bool> IsEnabledProperty =
+			AvaloniaProperty.Register<ButtonExecuteCommandOnKeyDownBehavior, bool>(nameof(IsEnabled));
+
 		public Key? Key
 		{
 			get => GetValue(KeyProperty);
 			set => SetValue(KeyProperty, value);
+		}
+
+		public bool IsEnabled
+		{
+			get => GetValue(IsEnabledProperty);
+			set => SetValue(IsEnabledProperty, value);
 		}
 
 		protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
@@ -44,7 +53,7 @@ namespace WalletWasabi.Fluent.Behaviors
 				return;
 			}
 
-			if (Key is { } && e.Key == Key && button.IsVisible && button.IsEnabled)
+			if (Key is { } && e.Key == Key && button.IsVisible && button.IsEnabled && IsEnabled)
 			{
 				if (!e.Handled && button.Command?.CanExecute(button.CommandParameter) == true)
 				{
