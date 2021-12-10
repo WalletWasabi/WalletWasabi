@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using WalletWasabi.Helpers;
 using WalletWasabi.Crypto.Groups;
-using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
-using WalletWasabi.Crypto;
 using NBitcoin.Secp256k1;
 using NBitcoin;
 

@@ -1,4 +1,3 @@
-using System;
 using NBitcoin;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;

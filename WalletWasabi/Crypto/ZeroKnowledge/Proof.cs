@@ -1,5 +1,4 @@
 using Newtonsoft.Json;
-using System;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge

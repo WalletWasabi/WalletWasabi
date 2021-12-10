@@ -1,6 +1,5 @@
 using NBitcoin;
 using NBitcoin.DataEncoders;
-using System;
 using System.Text;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;

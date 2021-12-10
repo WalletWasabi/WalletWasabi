@@ -1,12 +1,9 @@
-using System;
 using System.ComponentModel;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using ReactiveUI;
-using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 

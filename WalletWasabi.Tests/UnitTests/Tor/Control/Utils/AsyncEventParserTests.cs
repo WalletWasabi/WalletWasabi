@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using WalletWasabi.Tor.Control.Messages;
 using WalletWasabi.Tor.Control.Messages.Events;

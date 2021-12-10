@@ -1,5 +1,3 @@
-using System;
-
 namespace WalletWasabi.Tor.Control.Exceptions
 {
 	public class TorControlException : Exception

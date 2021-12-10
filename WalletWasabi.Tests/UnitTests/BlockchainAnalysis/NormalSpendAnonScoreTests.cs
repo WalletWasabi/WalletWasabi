@@ -1,8 +1,3 @@
-using NBitcoin;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 

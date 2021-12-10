@@ -1,5 +1,4 @@
 using NBitcoin;
-using System;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -15,7 +14,6 @@ using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
-using WalletWasabi.Tor.Http;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
