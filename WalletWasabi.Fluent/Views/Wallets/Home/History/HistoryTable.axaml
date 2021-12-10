@@ -81,7 +81,7 @@
         </Setter>
       </Style>
       <Style Selector="DataBoxRow /template/ Rectangle#BackgroundRectangle.selectAnimation">
-        <Setter Property="Fill" Value="{DynamicResource SystemAccentColor}"/>
+        <Setter Property="Fill" Value="{DynamicResource SystemAccentColor}" />
         <Setter Property="Opacity" Value="0" />
         <Style.Animations>
           <Animation Duration="1.5">
@@ -110,13 +110,13 @@
         </Style.Animations>
       </Style>
       <Style Selector="TextBlock.hidden">
-        <Setter Property="IsVisible" Value="False"/>
+        <Setter Property="IsVisible" Value="False" />
       </Style>
       <Style Selector="TextBlock.visible">
-        <Setter Property="IsVisible" Value="True"/>
+        <Setter Property="IsVisible" Value="True" />
       </Style>
       <Style Selector="PathIcon.hidden">
-        <Setter Property="IsVisible" Value="False"/>
+        <Setter Property="IsVisible" Value="False" />
       </Style>
 
       <Style Selector="DataBoxRow">
@@ -129,7 +129,7 @@
         </Setter>
       </Style>
 
-      <Style Selector="behaviors|HistoryItemDetailsAdorner">
+      <Style Selector="behaviors|DataBoxItemDetailsAdorner">
         <Setter Property="Margin" Value="-31,0,0,0" />
         <Setter Property="HorizontalAlignment" Value="Left" />
         <Setter Property="VerticalAlignment" Value="Top" />
@@ -169,13 +169,13 @@
                           Data="{StaticResource checkmark_filled}"
                           Foreground="{DynamicResource SystemAccentColor}"
                           Height="11"
-                          ToolTip.Tip="Confirmed"/>
+                          ToolTip.Tip="Confirmed" />
                 <!-- Pending -->
                 <PathIcon IsVisible="{Binding !IsConfirmed}"
                           Data="{StaticResource clock_regular}"
                           Height="14"
                           Opacity="0.6"
-                          ToolTip.Tip="Pending"/>
+                          ToolTip.Tip="Pending" />
               </Panel>
 
               <!-- Type -->
@@ -221,17 +221,18 @@
                              CanUserSort="False">
         <DataBoxTemplateColumn.CellTemplate>
           <DataTemplate>
-            <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15" Classes="monoSpacedPrivacyReplacement">
+            <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15"
+                                     Classes="monoSpacedPrivacyReplacement">
               <DockPanel LastChildFill="False" x:DataType="historyItems:HistoryItemViewModelBase">
                 <c:TagsBox Padding="0"
-                          Margin="0"
-                          MinWidth="0"
-                          BorderThickness="0"
-                          DockPanel.Dock="Left"
-                          IsReadOnly="True"
-                          Items="{Binding Label}"
-                          HorizontalAlignment="Stretch"
-                          VerticalAlignment="Center" />
+                           Margin="0"
+                           MinWidth="0"
+                           BorderThickness="0"
+                           DockPanel.Dock="Left"
+                           IsReadOnly="True"
+                           Items="{Binding Label}"
+                           HorizontalAlignment="Stretch"
+                           VerticalAlignment="Center" />
                 <Button Classes="labelFlyout"
                         DockPanel.Dock="Left"
                         IsVisible="{Binding !!FilteredLabel.Count}"
@@ -240,14 +241,14 @@
                   <Button.Flyout>
                     <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="TransientWithDismissOnPointerMoveAway">
                       <c:TagsBox IsReadOnly="True"
-                                Items="{Binding FilteredLabel}" />
+                                 Items="{Binding FilteredLabel}" />
                     </Flyout>
                   </Button.Flyout>
                   <ToolTip.Tip>
                     <Panel>
                       <c:TagsBox IsReadOnly="True"
-                                Margin="4,6,0,0"
-                                Items="{Binding FilteredLabel}" />
+                                 Margin="4,6,0,0"
+                                 Items="{Binding FilteredLabel}" />
                     </Panel>
                   </ToolTip.Tip>
                 </Button>
@@ -265,14 +266,14 @@
         <DataBoxTemplateColumn.CellTemplate>
           <DataTemplate>
             <Panel Name="Panel" HorizontalAlignment="Stretch">
-                <c:PrivacyContentControl
-                  x:DataType="historyItems:HistoryItemViewModelBase"
-                  IsVisible="{Binding !!IncomingAmount}"
-                  HorizontalAlignment="Center"
-                  Content="{Binding IncomingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
-                   Classes="monoSpaced"
-                   FontSize="15"
-                   NumberOfPrivacyChars="9" />
+              <c:PrivacyContentControl
+                x:DataType="historyItems:HistoryItemViewModelBase"
+                IsVisible="{Binding !!IncomingAmount}"
+                HorizontalAlignment="Center"
+                Content="{Binding IncomingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
+                Classes="monoSpaced"
+                FontSize="15"
+                NumberOfPrivacyChars="9" />
             </Panel>
           </DataTemplate>
         </DataBoxTemplateColumn.CellTemplate>
@@ -287,13 +288,13 @@
           <DataTemplate>
             <Panel Name="Panel" HorizontalAlignment="Stretch">
               <c:PrivacyContentControl
-                  HorizontalAlignment="Center"
-                  x:DataType="historyItems:HistoryItemViewModelBase"
-                  IsVisible="{Binding !!OutgoingAmount}"
-                  Content="{Binding OutgoingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
-                 Classes="monoSpaced"
-                 FontSize="15"
-                 NumberOfPrivacyChars="9" />
+                HorizontalAlignment="Center"
+                x:DataType="historyItems:HistoryItemViewModelBase"
+                IsVisible="{Binding !!OutgoingAmount}"
+                Content="{Binding OutgoingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
+                Classes="monoSpaced"
+                FontSize="15"
+                NumberOfPrivacyChars="9" />
             </Panel>
           </DataTemplate>
         </DataBoxTemplateColumn.CellTemplate>
@@ -312,7 +313,7 @@
                                      FontSize="15"
                                      NumberOfPrivacyChars="9"
                                      HorizontalAlignment="Center"
-                                     Margin="10 0" />
+                                     Margin="10, 0, 30, 0" />
           </DataTemplate>
         </DataBoxTemplateColumn.CellTemplate>
       </DataBoxTemplateColumn>
