@@ -1,7 +1,6 @@
 using NBitcoin.Secp256k1;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Helpers;
 

@@ -1,7 +1,5 @@
 using NBitcoin;
-using System;
 using WalletWasabi.Crypto;
-using WalletWasabi.Crypto.StrobeProtocol;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.WabiSabi.Backend.Models

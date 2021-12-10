@@ -2,7 +2,6 @@ using Avalonia.Controls;
 using Avalonia.Controls.Generators;
 using Avalonia.Controls.Primitives;
 using Avalonia.Styling;
-using System;
 
 namespace WalletWasabi.Fluent.Controls
 {

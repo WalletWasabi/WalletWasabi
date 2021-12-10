@@ -3,7 +3,6 @@ using NBitcoin;
 using WalletWasabi.BitcoinCore.Endpointing;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Helpers;
-using WalletWasabi.Services;
 
 namespace WalletWasabi.BitcoinCore
 {

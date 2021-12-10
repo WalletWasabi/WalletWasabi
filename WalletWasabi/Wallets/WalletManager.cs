@@ -1,7 +1,5 @@
 using NBitcoin;
-using NBitcoin.Protocol;
 using Nito.AsyncEx;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;

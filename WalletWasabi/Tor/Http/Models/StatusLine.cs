@@ -1,4 +1,3 @@
-using System;
 using System.Net;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Http.Extensions;

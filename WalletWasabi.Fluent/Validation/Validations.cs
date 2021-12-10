@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -52,7 +51,6 @@ namespace WalletWasabi.Fluent.Validation
 				ValidateProperty(propertyName);
 			}
 		}
-
 
 		public void ValidateProperty(string propertyName, bool clear = false)
 		{
@@ -115,13 +113,15 @@ namespace WalletWasabi.Fluent.Validation
 
 		private void OnErrorsChanged(string propertyName, List<ErrorSeverity> categoriesToNotify)
 		{
-			var propertiesToNotify = categoriesToNotify.Select(x => x switch
+			Func<ErrorSeverity, string> selector = x => x switch
 			{
 				ErrorSeverity.Info => nameof(AnyInfos),
 				ErrorSeverity.Warning => nameof(AnyWarnings),
 				ErrorSeverity.Error => nameof(AnyErrors),
 				_ => throw new NotImplementedException(),
-			}).ToList();
+			};
+
+			var propertiesToNotify = categoriesToNotify.Select(selector).ToList();
 
 			if (propertiesToNotify.Any())
 			{

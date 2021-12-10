@@ -1,5 +1,3 @@
-using System;
-
 namespace WalletWasabi.Models
 {
 	public class UpdateStatus : IEquatable<UpdateStatus>

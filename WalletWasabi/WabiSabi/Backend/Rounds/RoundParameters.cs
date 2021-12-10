@@ -1,5 +1,4 @@
 using NBitcoin;
-using System;
 using WalletWasabi.Crypto.Randomness;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds

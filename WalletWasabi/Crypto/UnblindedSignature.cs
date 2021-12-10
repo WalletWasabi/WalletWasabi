@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using NBitcoin.DataEncoders;
 using NBitcoin.Secp256k1;

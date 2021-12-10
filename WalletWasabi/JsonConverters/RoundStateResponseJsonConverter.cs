@@ -1,6 +1,5 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
 using WalletWasabi.CoinJoin.Common.Models;
 
 namespace WalletWasabi.JsonConverters

@@ -1,7 +1,5 @@
 // Copyright (c) 2009-2013 Math.NET Taken from http://github.com/mathnet/mathnet-numerics and modified for Wasabi Wallet
 
-using System;
-
 namespace WalletWasabi.Fluent.MathNet
 {
 	public static partial class Precision

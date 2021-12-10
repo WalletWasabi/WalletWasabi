@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tor.Socks5.Models.Bases;

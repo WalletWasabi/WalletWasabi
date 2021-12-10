@@ -1,5 +1,4 @@
 using Newtonsoft.Json;
-using System;
 using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.CoinJoin.Common.Models

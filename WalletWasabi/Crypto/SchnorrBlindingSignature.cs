@@ -1,5 +1,3 @@
-using System;
-using System.Diagnostics.CodeAnalysis;
 using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.Secp256k1;

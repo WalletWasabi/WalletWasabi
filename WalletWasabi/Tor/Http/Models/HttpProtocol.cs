@@ -1,5 +1,3 @@
-using System;
-
 // https://tools.ietf.org/html/rfc7230#section-2.6
 namespace WalletWasabi.Tor.Http.Models
 {

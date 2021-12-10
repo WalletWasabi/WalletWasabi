@@ -1,10 +1,7 @@
-using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.RPC;
-using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.CoinJoin.Coordinator.Banning;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using Xunit;
