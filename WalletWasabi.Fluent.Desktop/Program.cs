@@ -3,7 +3,6 @@ using Avalonia.Controls;
 using Avalonia.Dialogs;
 using Avalonia.ReactiveUI;
 using Splat;
-using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;

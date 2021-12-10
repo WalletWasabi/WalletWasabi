@@ -1,16 +1,10 @@
-using Microsoft.Extensions.Hosting;
 using Nito.AsyncEx;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
-using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Logging;
-using WalletWasabi.Nito.AsyncEx;
-using WalletWasabi.Services;
 using WalletWasabi.Stores;
 
 namespace WalletWasabi.Blockchain.BlockFilters

@@ -1,4 +1,3 @@
-using System;
 using System.Reactive.Concurrency;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models;

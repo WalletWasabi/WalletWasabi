@@ -1,5 +1,4 @@
 using NBitcoin;
-using System;
 using WalletWasabi.CoinJoin.Coordinator.Banning;
 using Xunit;
 

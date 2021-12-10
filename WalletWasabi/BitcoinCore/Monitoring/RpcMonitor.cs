@@ -1,10 +1,8 @@
 using NBitcoin.RPC;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore.Rpc;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.BitcoinCore.Monitoring
 {

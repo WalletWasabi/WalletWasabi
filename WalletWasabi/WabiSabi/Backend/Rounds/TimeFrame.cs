@@ -1,5 +1,3 @@
-using System;
-
 namespace WalletWasabi.WabiSabi.Backend.Rounds
 {
 	public record TimeFrame

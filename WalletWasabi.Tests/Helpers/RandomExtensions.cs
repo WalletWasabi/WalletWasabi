@@ -1,5 +1,3 @@
-using System;
-
 namespace WalletWasabi.Tests.Helpers
 {
 	public static class RandomExtensions

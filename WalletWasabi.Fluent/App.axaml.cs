@@ -1,4 +1,3 @@
-using System;
 using System.Reactive.Concurrency;
 using System.Threading.Tasks;
 using Avalonia;
