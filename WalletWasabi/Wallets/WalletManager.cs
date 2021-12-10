@@ -138,7 +138,7 @@ namespace WalletWasabi.Wallets
 				if (_disposedValue)
 				{
 					Logger.LogError("Object was already disposed.");
-					throw new OperationCanceledException($"Object was already disposed.");
+					throw new OperationCanceledException("Object was already disposed.");
 				}
 
 				if (CancelAllInitialization.IsCancellationRequested)
