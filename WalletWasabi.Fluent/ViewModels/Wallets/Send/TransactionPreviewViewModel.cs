@@ -400,7 +400,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			_info.UserLabels = result.Result;
 
-			var transaction = TransactionHelpers.BuildTransaction(_wallet, _info);
+			var transaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info));
 			var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
 			var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
 			if (authResult)
