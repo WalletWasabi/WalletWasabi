@@ -1,4 +1,3 @@
-using System.Reactive.Concurrency;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;

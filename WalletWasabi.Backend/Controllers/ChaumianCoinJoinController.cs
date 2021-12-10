@@ -5,7 +5,6 @@ using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.RPC;
 using Nito.AsyncEx;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;

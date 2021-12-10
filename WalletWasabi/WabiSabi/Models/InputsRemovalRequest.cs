@@ -1,4 +1,3 @@
-using System;
 using NBitcoin;
 
 namespace WalletWasabi.WabiSabi.Models

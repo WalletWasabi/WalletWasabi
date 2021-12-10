@@ -3,7 +3,6 @@ using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using NBitcoin.Protocol.Connectors;
 using NBitcoin.Socks;
-using System;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;

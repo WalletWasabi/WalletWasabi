@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -8,7 +6,6 @@ using NBitcoin.RPC;
 using Newtonsoft.Json;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.BitcoinCore.Rpc;
-using Newtonsoft.Json.Linq;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using Xunit;

@@ -1,4 +1,3 @@
-using System;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.Randomness

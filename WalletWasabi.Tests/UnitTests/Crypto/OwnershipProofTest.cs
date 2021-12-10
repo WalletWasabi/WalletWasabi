@@ -1,6 +1,5 @@
 using NBitcoin;
 using NBitcoin.DataEncoders;
-using System;
 using System.Linq;
 using WalletWasabi.Crypto;
 using Xunit;

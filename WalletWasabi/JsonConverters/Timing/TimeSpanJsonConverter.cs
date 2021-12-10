@@ -1,6 +1,3 @@
-using System;
-using System.ComponentModel;
-using System.Text;
 using Newtonsoft.Json;
 
 namespace WalletWasabi.JsonConverters.Timing

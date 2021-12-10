@@ -1,16 +1,13 @@
 using NBitcoin;
-using System;
 using System.Threading.Tasks;
 using System.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
-using WalletWasabi.Tests.UnitTests.Clients;
 using WalletWasabi.WebClients.PayJoin;
 using Xunit;
 using System.Net.Http;
 using System.Net;
 using System.Text;
-using System.Collections.Specialized;
 using WalletWasabi.Tests.Helpers;
 using Moq;
 using WalletWasabi.Tor.Http;

@@ -1,5 +1,3 @@
-using System;
-
 namespace WalletWasabi.Tor.Socks5.Exceptions
 {
 	/// <summary>

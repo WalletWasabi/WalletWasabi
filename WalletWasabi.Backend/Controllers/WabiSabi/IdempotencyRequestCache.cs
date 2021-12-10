@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Caching.Memory;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.WabiSabi.Backend.Models;
