@@ -86,14 +86,14 @@
           <Style Selector="Panel.smallLayout">
             <Setter Property="HorizontalAlignment" Value="Left"/>
             <Setter Property="VerticalAlignment" Value="Top"/>
-            <Setter Property="Margin" Value="0,0,0,11"/>
-            <Setter Property="(DockPanel.Dock)" Value="Top"/>
+            <Setter Property="Margin" Value="0,11,0,0"/>
+            <Setter Property="(DockPanel.Dock)" Value="Bottom"/>
           </Style>
           <Style Selector="Panel.normalLayout">
             <Setter Property="HorizontalAlignment" Value="Left"/>
             <Setter Property="VerticalAlignment" Value="Top"/>
-            <Setter Property="Margin" Value="0,0,0,11"/>
-            <Setter Property="(DockPanel.Dock)" Value="Top"/>
+            <Setter Property="Margin" Value="0,11,0,0"/>
+            <Setter Property="(DockPanel.Dock)" Value="Bottom"/>
           </Style>
           <Style Selector="Panel.wideLayout">
             <Setter Property="HorizontalAlignment" Value="Left"/>
