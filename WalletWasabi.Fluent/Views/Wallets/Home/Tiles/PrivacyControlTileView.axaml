@@ -104,9 +104,15 @@
         </Button>-->
       </StackPanel>
 
-      <ProgressBar IsIndeterminate="{Binding ShowBoostingAnimation}" Value="{Binding Percent}" DockPanel.Dock="Bottom" Margin="0 10" />
+      <Separator DockPanel.Dock="Bottom" Margin="0 10" IsVisible="{Binding !IsAutoCoinJoinEnabled}" />
 
-      <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding PercentText}" FontSize="36" />
+      <Panel>
+        <controls:RingChartControl DataPoints="{Binding TestDataPoints}" Classes.visible="{Binding !ShowBoostingAnimation}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+        <controls:ProgressRing IsIndeterminate="True" Classes.visible="{Binding ShowBoostingAnimation}" />
+
+        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding PercentText}" FontSize="16" />
+      </Panel>
     </DockPanel>
   </controls:TileControl>
 </UserControl>
