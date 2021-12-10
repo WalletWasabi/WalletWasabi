@@ -1,11 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
-using WalletWasabi.WabiSabi.Crypto;
-using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Backend.Models
 {

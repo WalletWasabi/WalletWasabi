@@ -1,7 +1,5 @@
 using NBitcoin;
 using Newtonsoft.Json;
-using System;
-using System.Linq;
 
 namespace WalletWasabi.JsonConverters
 {

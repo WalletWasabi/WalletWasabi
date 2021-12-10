@@ -1,9 +1,7 @@
-using System;
 using System.Linq;
 using WalletWasabi.Extensions;
 using WalletWasabi.Models;
 using Xunit;
-using Xunit.Sdk;
 
 namespace WalletWasabi.Tests.UnitTests
 {

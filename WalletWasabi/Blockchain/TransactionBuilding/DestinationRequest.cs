@@ -1,6 +1,5 @@
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding
 {

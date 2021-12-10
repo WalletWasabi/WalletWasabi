@@ -1,7 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.LogicalTree;
 using Avalonia.Xaml.Interactivity;
-using System;
 
 namespace WalletWasabi.Fluent.Behaviors
 {

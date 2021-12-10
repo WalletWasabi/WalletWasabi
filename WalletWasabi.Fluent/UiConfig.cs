@@ -1,4 +1,3 @@
-using System;
 using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Reactive;
