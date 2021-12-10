@@ -84,7 +84,14 @@
                               ConversionRate="{Binding ExchangeRate}" ConversionCurrencyCode="USD" />
         </DockPanel>
       </DockPanel>
-
+     
+      <!-- Advanced -->
+      <Button Classes="h8 plain activeHyperLink" Margin="0 10 0 0"
+              Command="{Binding AdvancedOptionsCommand}"
+              DockPanel.Dock="Bottom"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Bottom"
+              Content="Advanced options" />
     </DockPanel>
   </c:ContentArea>
 </UserControl>
