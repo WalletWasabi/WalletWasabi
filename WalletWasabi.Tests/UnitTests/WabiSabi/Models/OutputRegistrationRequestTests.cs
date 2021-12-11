@@ -37,7 +37,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 				VsizeCredentialRequests: NewRealCredentialsRequest(modifier: 2)
 			);
 
-			//// Request #2.
+			// Request #2.
 			OutputRegistrationRequest request2 = new(
 				RoundId: roundId,
 				Script: script,
@@ -47,7 +47,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 
 			Assert.Equal(request1, request2);
 
-			//// Request #3.
+			// Request #3.
 			OutputRegistrationRequest request3 = new(
 				RoundId: BitcoinFactory.CreateUint256(), // Intentionally changed.
 				Script: script,
@@ -57,7 +57,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 
 			Assert.NotEqual(request1, request3);
 
-			//// Request #4.
+			// Request #4.
 			OutputRegistrationRequest request4 = new(
 				RoundId: roundId,
 				Script: Script.FromHex($"{script.ToHex()[..^8]}8d000000"), // Intentionally changed; lock time: 140 -> 141.
@@ -67,7 +67,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 
 			Assert.NotEqual(request1, request4);
 
-			//// Request #5.
+			// Request #5.
 			OutputRegistrationRequest request5 = new(
 				RoundId: roundId,
 				Script: script,
@@ -77,7 +77,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 
 			Assert.NotEqual(request1, request5);
 
-			//// Request #6.
+			// Request #6.
 			OutputRegistrationRequest request6 = new(
 				RoundId: roundId,
 				Script: script,

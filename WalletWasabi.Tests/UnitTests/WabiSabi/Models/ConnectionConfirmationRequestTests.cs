@@ -34,7 +34,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 				RealVsizeCredentialRequests: NewRealCredentialsRequest(modifier: 2)
 			);
 
-			//// Request #2.
+			// Request #2.
 			ConnectionConfirmationRequest request2 = new(
 				RoundId: roundId,
 				AliceId: guid,
@@ -46,7 +46,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 
 			Assert.Equal(request1, request2);
 
-			//// Request #3.
+			// Request #3.
 			ConnectionConfirmationRequest request3 = new(
 				RoundId: BitcoinFactory.CreateUint256(), // Intentionally changed.
 				AliceId: guid,
@@ -58,7 +58,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 
 			Assert.NotEqual(request1, request3);
 
-			//// Request #4.
+			// Request #4.
 			ConnectionConfirmationRequest request4 = new(
 				RoundId: roundId,
 				AliceId: Guid.NewGuid(), // Intentionally changed.
@@ -70,7 +70,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 
 			Assert.NotEqual(request1, request4);
 
-			//// Request #5.
+			// Request #5.
 			ConnectionConfirmationRequest request5 = new(
 				RoundId: roundId,
 				AliceId: guid,
@@ -82,7 +82,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 
 			Assert.NotEqual(request1, request5);
 
-			//// Request #6.
+			// Request #6.
 			ConnectionConfirmationRequest request6 = new(
 				RoundId: roundId,
 				AliceId: guid,
@@ -94,7 +94,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 
 			Assert.NotEqual(request1, request6);
 
-			//// Request #7.
+			// Request #7.
 			ConnectionConfirmationRequest request7 = new(
 				RoundId: roundId,
 				AliceId: guid,
