@@ -129,7 +129,7 @@
         </Setter>
       </Style>
 
-      <Style Selector="behaviors|HistoryItemDetailsAdorner">
+      <Style Selector="behaviors|DataBoxItemDetailsAdorner">
         <Setter Property="Margin" Value="-31,0,0,0" />
         <Setter Property="HorizontalAlignment" Value="Left" />
         <Setter Property="VerticalAlignment" Value="Top" />

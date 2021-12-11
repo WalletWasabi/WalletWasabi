@@ -1,5 +1,3 @@
-using System;
-
 namespace WalletWasabi.Crypto.Randomness
 {
 	public class InsecureRandom : WasabiRandom

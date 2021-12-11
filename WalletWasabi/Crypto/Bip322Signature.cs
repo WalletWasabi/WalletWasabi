@@ -1,4 +1,3 @@
-using System;
 using NBitcoin;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 

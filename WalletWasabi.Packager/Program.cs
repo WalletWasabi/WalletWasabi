@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -13,7 +12,6 @@ namespace WalletWasabi.Packager
 {
 	public static class Program
 	{
-#pragma warning disable CS0162 // Unreachable code detected
 		// 0. Dump Client version (or else wrong .msi will be created) - Helpers.Constants.ClientVersion
 		// 1. Publish with Packager.
 		// 2. Build WIX project with Release and x64 configuration.
@@ -75,16 +73,17 @@ namespace WalletWasabi.Packager
 
 			if (DoPublish || OnlyBinaries)
 			{
-				Publish();
+				await PublishAsync().ConfigureAwait(false);
 
 				IoHelpers.OpenFolderInFileExplorer(BinDistDirectory);
 			}
 
+#pragma warning disable CS0162 // Unreachable code detected
 			if (!OnlyBinaries)
 			{
 				if (DoSign)
 				{
-					Sign();
+					await SignAsync().ConfigureAwait(false);
 				}
 
 				if (DoRestoreProgramCs)
@@ -92,6 +91,7 @@ namespace WalletWasabi.Packager
 					RestoreProgramCs();
 				}
 			}
+#pragma warning restore CS0162 // Unreachable code detected
 		}
 
 		private static void ReportStatus()
@@ -124,7 +124,7 @@ namespace WalletWasabi.Packager
 			StartProcessAndWaitForExit("cmd", PackagerProjectDirectory, "git checkout -- Program.cs && exit");
 		}
 
-		private static void Sign()
+		private static async Task SignAsync()
 		{
 			foreach (string target in Targets)
 			{
@@ -148,7 +148,7 @@ namespace WalletWasabi.Packager
 					// Sign code with digicert.
 					StartProcessAndWaitForExit("cmd", BinDistDirectory, $"signtool sign /d \"Wasabi Wallet\" /f \"{PfxPath}\" /p {pfxPassword} /t http://timestamp.digicert.com /a \"{newMsiPath}\" && exit");
 
-					IoHelpers.TryDeleteDirectoryAsync(publishedFolder).GetAwaiter().GetResult();
+					await IoHelpers.TryDeleteDirectoryAsync(publishedFolder).ConfigureAwait(false);
 					Console.WriteLine($"Deleted {publishedFolder}");
 				}
 				else if (target.StartsWith("osx", StringComparison.OrdinalIgnoreCase))
@@ -179,11 +179,11 @@ namespace WalletWasabi.Packager
 			IoHelpers.OpenFolderInFileExplorer(BinDistDirectory);
 		}
 
-		private static void Publish()
+		private static async Task PublishAsync()
 		{
 			if (Directory.Exists(BinDistDirectory))
 			{
-				IoHelpers.TryDeleteDirectoryAsync(BinDistDirectory).GetAwaiter().GetResult();
+				await IoHelpers.TryDeleteDirectoryAsync(BinDistDirectory).ConfigureAwait(false);
 				Console.WriteLine($"Deleted {BinDistDirectory}");
 			}
 
@@ -193,12 +193,12 @@ namespace WalletWasabi.Packager
 			var libraryBinReleaseDirectory = Path.GetFullPath(Path.Combine(LibraryProjectDirectory, "bin", "Release"));
 			if (Directory.Exists(desktopBinReleaseDirectory))
 			{
-				IoHelpers.TryDeleteDirectoryAsync(desktopBinReleaseDirectory).GetAwaiter().GetResult();
+				await IoHelpers.TryDeleteDirectoryAsync(desktopBinReleaseDirectory).ConfigureAwait(false);
 				Console.WriteLine($"Deleted {desktopBinReleaseDirectory}");
 			}
 			if (Directory.Exists(libraryBinReleaseDirectory))
 			{
-				IoHelpers.TryDeleteDirectoryAsync(libraryBinReleaseDirectory).GetAwaiter().GetResult();
+				await IoHelpers.TryDeleteDirectoryAsync(libraryBinReleaseDirectory).ConfigureAwait(false);
 				Console.WriteLine($"Deleted {libraryBinReleaseDirectory}");
 			}
 
@@ -300,7 +300,7 @@ namespace WalletWasabi.Packager
 				{
 					if (!dir.Name.Contains(toNotRemove, StringComparison.OrdinalIgnoreCase))
 					{
-						IoHelpers.TryDeleteDirectoryAsync(dir.FullName).GetAwaiter().GetResult();
+						await IoHelpers.TryDeleteDirectoryAsync(dir.FullName).ConfigureAwait(false);
 					}
 				}
 
@@ -359,7 +359,7 @@ namespace WalletWasabi.Packager
 
 					ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(BinDistDirectory, $"Wasabi-osx-{VersionPrefix}.zip"));
 
-					IoHelpers.TryDeleteDirectoryAsync(currentBinDistDirectory).GetAwaiter().GetResult();
+					await IoHelpers.TryDeleteDirectoryAsync(currentBinDistDirectory).ConfigureAwait(false);
 					Console.WriteLine($"Deleted {currentBinDistDirectory}");
 				}
 				else if (target.StartsWith("linux"))
@@ -503,13 +503,13 @@ namespace WalletWasabi.Packager
 
 					StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
 
-					IoHelpers.TryDeleteDirectoryAsync(debFolderPath).GetAwaiter().GetResult();
+					await IoHelpers.TryDeleteDirectoryAsync(debFolderPath).ConfigureAwait(false);
 
 					string oldDeb = Path.Combine(BinDistDirectory, $"{ExecutableName}_{VersionPrefix}_amd64.deb");
 					string newDeb = Path.Combine(BinDistDirectory, $"Wasabi-{VersionPrefix}.deb");
 					File.Move(oldDeb, newDeb);
 
-					IoHelpers.TryDeleteDirectoryAsync(publishedFolder).GetAwaiter().GetResult();
+					await IoHelpers.TryDeleteDirectoryAsync(publishedFolder).ConfigureAwait(false);
 					Console.WriteLine($"Deleted {publishedFolder}");
 				}
 			}
@@ -565,7 +565,5 @@ namespace WalletWasabi.Packager
 
 			return output;
 		}
-
-#pragma warning restore CS0162 // Unreachable code detected
 	}
 }

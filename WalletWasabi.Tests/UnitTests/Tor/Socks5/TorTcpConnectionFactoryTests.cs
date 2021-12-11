@@ -1,10 +1,8 @@
-using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
-using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;

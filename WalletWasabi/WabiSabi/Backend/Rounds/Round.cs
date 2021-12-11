@@ -1,5 +1,4 @@
 using NBitcoin;
-using System;
 using System.Collections.Generic;
 using WalletWasabi.Crypto;
 using WalletWasabi.WabiSabi.Backend.Models;

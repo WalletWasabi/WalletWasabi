@@ -1,5 +1,4 @@
 using Avalonia.Data.Converters;
-using System;
 using System.Globalization;
 using WalletWasabi.Helpers;
 using WalletWasabi.Fluent.Models;

@@ -1,10 +1,8 @@
-using System;
 using System.Linq;
 using NBitcoin;
 using NBitcoin.Policy;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Exceptions;
-using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 

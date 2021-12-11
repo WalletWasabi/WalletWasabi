@@ -1,7 +1,4 @@
-using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.TransactionBuilding;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 

@@ -1,5 +1,4 @@
 using ReactiveUI;
-using System;
 using System.Collections;
 using System.ComponentModel;
 using WalletWasabi.Fluent.Validation;

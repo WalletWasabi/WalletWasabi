@@ -5,10 +5,10 @@ using DataBox;
 
 namespace WalletWasabi.Fluent.Behaviors
 {
-	public class HistoryItemDetailsAdorner : TemplatedControl
+	public class DataBoxItemDetailsAdorner : TemplatedControl
 	{
 		public static readonly StyledProperty<DataBoxRow?> RowProperty =
-			AvaloniaProperty.Register<HistoryItemDetailsAdorner, DataBoxRow?>(nameof(Row));
+			AvaloniaProperty.Register<DataBoxItemDetailsAdorner, DataBoxRow?>(nameof(Row));
 
 		public DataBoxRow? Row
 		{
