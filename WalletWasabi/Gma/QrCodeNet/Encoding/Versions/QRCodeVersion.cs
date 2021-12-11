@@ -11,6 +11,14 @@ namespace Gma.QrCodeNet.Encoding.Versions
 			DimensionForVersion = 17 + (versionNum * 4);
 		}
 
+		internal int VersionNum { get; private set; }
+
+		internal int TotalCodewords { get; private set; }
+
+		internal int DimensionForVersion { get; private set; }
+
+		private ErrorCorrectionBlocks[] ECBlocks { get; }
+
 		internal ErrorCorrectionBlocks GetECBlocksByLevel(ErrorCorrectionLevel eCLevel)
 		{
 			return eCLevel switch
@@ -22,13 +30,5 @@ namespace Gma.QrCodeNet.Encoding.Versions
 				_ => throw new ArgumentOutOfRangeException(nameof(eCLevel))
 			};
 		}
-
-		internal int VersionNum { get; private set; }
-
-		internal int TotalCodewords { get; private set; }
-
-		internal int DimensionForVersion { get; private set; }
-
-		private ErrorCorrectionBlocks[] ECBlocks { get; }
 	}
 }
