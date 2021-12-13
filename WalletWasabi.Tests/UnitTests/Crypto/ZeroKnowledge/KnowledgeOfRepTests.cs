@@ -1,11 +1,9 @@
 using Moq;
 using NBitcoin.Secp256k1;
-using System;
 using System.Linq;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
 using WalletWasabi.Tests.Helpers;
 using Xunit;

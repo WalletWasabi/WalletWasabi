@@ -1,15 +1,10 @@
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 using WalletWasabi.Nito.AsyncEx;
-using WalletWasabi.Services;
 
 namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 {

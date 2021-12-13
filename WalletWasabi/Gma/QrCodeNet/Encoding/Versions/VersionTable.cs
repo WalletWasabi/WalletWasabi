@@ -1,5 +1,3 @@
-using System;
-
 namespace Gma.QrCodeNet.Encoding.Versions
 {
 	public static class VersionTable

@@ -1,4 +1,3 @@
-using System;
 using NBitcoin.Secp256k1;
 using Newtonsoft.Json;
 using WalletWasabi.Crypto.Groups;

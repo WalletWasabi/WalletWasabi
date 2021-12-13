@@ -1,5 +1,4 @@
 using Avalonia.Markup.Xaml;
-using System;
 using System.Runtime.InteropServices;
 
 namespace WalletWasabi.Fluent.Helpers

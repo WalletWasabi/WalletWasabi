@@ -1,6 +1,5 @@
 using NBitcoin;
 using NBitcoin.Protocol;
-using System;
 
 namespace WalletWasabi.Helpers
 {

@@ -1,4 +1,3 @@
-using System;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Extensions;

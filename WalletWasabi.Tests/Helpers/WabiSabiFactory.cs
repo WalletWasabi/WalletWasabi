@@ -2,7 +2,6 @@ using Moq;
 using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.RPC;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;

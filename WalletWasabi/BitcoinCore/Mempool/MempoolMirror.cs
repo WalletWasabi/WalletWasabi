@@ -1,12 +1,7 @@
-using Microsoft.Extensions.Hosting;
 using NBitcoin;
-using NBitcoin.Protocol;
-using NBitcoin.RPC;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;

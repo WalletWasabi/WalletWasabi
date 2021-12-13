@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace Gma.QrCodeNet.Encoding
 {
 	public class QrEncoder

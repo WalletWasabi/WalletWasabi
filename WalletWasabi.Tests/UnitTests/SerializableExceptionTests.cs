@@ -1,4 +1,3 @@
-using System;
 using WalletWasabi.Models;
 using Xunit;
 

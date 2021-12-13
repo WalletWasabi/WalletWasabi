@@ -1,6 +1,5 @@
 using NBitcoin;
 using NBitcoin.RPC;
-using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.Json;
