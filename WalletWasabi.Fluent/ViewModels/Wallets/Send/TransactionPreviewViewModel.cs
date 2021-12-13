@@ -347,7 +347,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return null;
 		}
 
-		private async Task InitialseViewModelAsync()
+		private async Task InitialiseViewModelAsync()
 		{
 			if (await BuildTransactionAsync() is { } initialTransaction)
 			{
@@ -372,7 +372,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (!isInHistory)
 			{
-				RxApp.MainThreadScheduler.Schedule(async ()=> await InitialseViewModelAsync());
+				RxApp.MainThreadScheduler.Schedule(async ()=> await InitialiseViewModelAsync());
 			}
 		}
 
