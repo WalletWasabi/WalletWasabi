@@ -8,7 +8,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto
 {
-	public class ScalarVector : IEnumerable<Scalar>
+	public class ScalarVector : IEnumerable<Scalar>, IEquatable<ScalarVector>
 	{
 		[JsonConstructor]
 		internal ScalarVector(IEnumerable<Scalar> scalars)
@@ -55,5 +55,35 @@ namespace WalletWasabi.Crypto
 
 		IEnumerator IEnumerable.GetEnumerator() =>
 			GetEnumerator();
+
+		public static bool operator ==(ScalarVector? x, ScalarVector? y) => x?.Equals(y) ?? false;
+
+		public static bool operator !=(ScalarVector? x, ScalarVector? y) => !(x == y);
+
+		public override int GetHashCode()
+		{
+			int hc = 0;
+
+			foreach (var element in Scalars)
+			{
+				hc ^= element.GetHashCode();
+				hc = (hc << 7) | (hc >> (32 - 7));
+			}
+
+			return hc;
+		}
+
+		public override bool Equals(object? other) => Equals(other as ScalarVector);
+
+		// TODO: Define GetHashCode.
+		public bool Equals(ScalarVector? other)
+		{
+			if (other is null)
+			{
+				return false;
+			}
+
+			return Scalars.SequenceEqual(other.Scalars);
+		}
 	}
 }

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Nito.AsyncEx;
@@ -46,7 +42,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.False(waitAllTask.IsCompleted);
 
 			// Try to await but it should not finish before the cancellation so we will get OperationCanceledException.
-			await Assert.ThrowsAsync<OperationCanceledException>(async () => await waitAllTask.WithAwaitCancellationAsync(50));
+			await Assert.ThrowsAsync<OperationCanceledException>(async () => await waitAllTask.WithAwaitCancellationAsync(TimeSpan.FromMilliseconds(50)));
 
 			// Ok now cancel the last Task.
 			cts2.Cancel();

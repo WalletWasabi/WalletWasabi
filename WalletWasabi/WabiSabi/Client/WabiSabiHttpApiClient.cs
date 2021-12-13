@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -148,8 +147,16 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private static TResponse Deserialize<TResponse>(string jsonString)
 		{
-			return JsonConvert.DeserializeObject<TResponse>(jsonString, JsonSerializationOptions.Default.Settings)
-				?? throw new InvalidOperationException("Deserialization error");
+			try
+			{
+				return JsonConvert.DeserializeObject<TResponse>(jsonString, JsonSerializationOptions.Default.Settings)
+					?? throw new InvalidOperationException("Deserialization error");
+			}
+			catch
+			{
+				Logger.LogDebug($"Failed to deserialize {typeof(TResponse)} from JSON '{jsonString}'");
+				throw;
+			}
 		}
 
 		private static string GetUriEndPoint(RemoteAction action) =>

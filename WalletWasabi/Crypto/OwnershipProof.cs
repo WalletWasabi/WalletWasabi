@@ -1,13 +1,10 @@
-using System;
+using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using NBitcoin;
-using NBitcoin.Crypto;
 
 namespace WalletWasabi.Crypto
 {
-	public class OwnershipProof : IBitcoinSerializable
+	public record OwnershipProof : IBitcoinSerializable
 	{
 		private ProofBody _proofBody;
 		private Bip322Signature _proofSignature;

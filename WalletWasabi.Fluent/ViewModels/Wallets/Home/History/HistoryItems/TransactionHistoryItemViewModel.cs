@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Reactive;
 using NBitcoin;
@@ -39,7 +38,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems
 				RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(
 					new TransactionDetailsViewModel(transactionSummary, walletViewModel.Wallet, updateTrigger)));
 
-			DateString = $"{Date.ToLocalTime():MM/dd/yyyy HH:mm}";
+			DateString = $"{Date.ToLocalTime():MM/dd/yy HH:mm}";
 		}
 	}
 }

@@ -1,5 +1,4 @@
 using NBitcoin;
-using System;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 

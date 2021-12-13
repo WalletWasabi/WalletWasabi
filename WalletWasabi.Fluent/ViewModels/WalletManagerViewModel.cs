@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -104,7 +103,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 					if (_walletDictionary.TryGetValue(wallet, out var walletViewModel) && walletViewModel is WalletViewModel wvm)
 					{
-						NotificationHelpers.Show(e, onClick: () => wvm.NavigateAndHighlight(e.Transaction.GetHash()));
+						NotificationHelpers.Show(wallet.WalletName, e, onClick: () => wvm.NavigateAndHighlight(e.Transaction.GetHash()));
 
 						if (wvm.IsSelected && (e.NewlyReceivedCoins.Any() || e.NewlyConfirmedReceivedCoins.Any()))
 						{

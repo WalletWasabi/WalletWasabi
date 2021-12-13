@@ -1,9 +1,6 @@
-using System.Reactive.Disposables;
 using System.Windows.Input;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Interactivity;
 using Avalonia.Media;
 
 namespace WalletWasabi.Fluent.Controls
@@ -23,16 +20,21 @@ namespace WalletWasabi.Fluent.Controls
 			AvaloniaProperty.Register<AnimatedButton, object>(nameof(CommandParameter));
 
 		public static readonly StyledProperty<double> InitialOpacityProperty =
-			AvaloniaProperty.Register<AnimatedButton, double>(nameof(InitialOpacity), 0.5);
+			AvaloniaProperty.Register<AnimatedButton, double>(nameof(InitialOpacity), 0.6);
 
 		public static readonly StyledProperty<double> PointerOverOpacityProperty =
-			AvaloniaProperty.Register<AnimatedButton, double>(nameof(PointerOverOpacity), 0.75);
+			AvaloniaProperty.Register<AnimatedButton, double>(nameof(PointerOverOpacity), 1);
 
 		public static readonly StyledProperty<bool> AnimateIconProperty =
 			AvaloniaProperty.Register<AnimatedButton, bool>(nameof(AnimateIcon));
 
 		public static readonly StyledProperty<bool> ExecuteOnOpenProperty =
 			AvaloniaProperty.Register<AnimatedButton, bool>(nameof(ExecuteOnOpen));
+
+		static AnimatedButton()
+		{
+			AffectsRender<AnimatedButton>(InitialOpacityProperty);
+		}
 
 		public ICommand Command
 		{

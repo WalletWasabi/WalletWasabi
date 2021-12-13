@@ -1,5 +1,3 @@
-using System;
-
 namespace WalletWasabi.Fluent.Rpc
 {
 	/// <summary>

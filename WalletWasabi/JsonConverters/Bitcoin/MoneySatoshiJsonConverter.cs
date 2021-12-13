@@ -1,23 +1,29 @@
 using NBitcoin;
 using Newtonsoft.Json;
-using System;
 
 namespace WalletWasabi.JsonConverters.Bitcoin
 {
 	public class MoneySatoshiJsonConverter : JsonConverter<Money>
 	{
 		/// <inheritdoc />
-		public override Money ReadJson(JsonReader reader, Type objectType, Money existingValue, bool hasExistingValue, JsonSerializer serializer)
+		public override Money? ReadJson(JsonReader reader, Type objectType, Money? existingValue, bool hasExistingValue, JsonSerializer serializer)
 		{
-			var serialized = (long)reader.Value;
+			var serialized = (long?)reader.Value;
 
-			return new Money(serialized);
+			return serialized is null ? null : new Money(serialized.Value);
 		}
 
 		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, Money value, JsonSerializer serializer)
+		public override void WriteJson(JsonWriter writer, Money? value, JsonSerializer serializer)
 		{
-			writer.WriteValue(value.Satoshi);
+			if (value is null)
+			{
+				writer.WriteNull();
+			}
+			else
+			{
+				writer.WriteValue(value.Satoshi);
+			}
 		}
 	}
 }

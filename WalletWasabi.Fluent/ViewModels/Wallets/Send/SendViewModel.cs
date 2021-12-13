@@ -1,5 +1,3 @@
-using System;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Concurrency;
@@ -27,7 +25,6 @@ using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
@@ -102,6 +99,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				}
 			});
 
+			AdvancedOptionsCommand = ReactiveCommand.CreateFromTask(async () =>
+				await NavigateDialogAsync(new AdvancedSendOptionsViewModel(_transactionInfo), NavigationTarget.CompactDialogScreen));
+
 			var nextCommandCanExecute =
 				this.WhenAnyValue(x => x.AmountBtc, x => x.To).Select(_ => Unit.Default)
 					.Merge(SuggestionLabels.WhenAnyValue(x => x.Labels.Count).Select(_ => Unit.Default))
@@ -134,9 +134,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public ICommand QRCommand { get; }
 
+		public ICommand AdvancedOptionsCommand { get; }
+
 		private async Task OnAutoPasteAsync()
 		{
-			var isAutoPasteEnabled = Services.UiConfig.Autocopy;
+			var isAutoPasteEnabled = Services.UiConfig.AutoPaste;
 
 			if (string.IsNullOrEmpty(To) && isAutoPasteEnabled)
 			{

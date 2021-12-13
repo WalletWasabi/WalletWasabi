@@ -1,5 +1,4 @@
 using NBitcoin;
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -349,7 +348,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 			}
 		}
 
-		public ClientRound GetSingleOrDefaultRound(long roundId)
+		public ClientRound? GetSingleOrDefaultRound(long roundId)
 		{
 			lock (StateLock)
 			{

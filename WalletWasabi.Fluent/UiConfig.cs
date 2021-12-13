@@ -1,4 +1,3 @@
-using System;
 using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Reactive;
@@ -13,7 +12,6 @@ namespace WalletWasabi.Fluent
 	public class UiConfig : ConfigBase
 	{
 		private bool _privacyMode;
-		private bool _isCustomFee;
 		private bool _isCustomChangeAddress;
 		private bool _autocopy;
 		private int _feeDisplayFormat;
@@ -23,6 +21,8 @@ namespace WalletWasabi.Fluent
 		private bool _runOnSystemStartup;
 		private bool _oobe;
 		private bool _hideOnClose;
+		private bool _autoPaste;
+		private int _feeTarget;
 
 		public UiConfig() : base()
 		{
@@ -32,7 +32,7 @@ namespace WalletWasabi.Fluent
 		{
 			this.WhenAnyValue(
 					x => x.Autocopy,
-					x => x.IsCustomFee,
+					x => x.AutoPaste,
 					x => x.IsCustomChangeAddress,
 					x => x.DarkModeEnabled,
 					x => x.FeeDisplayFormat,
@@ -42,7 +42,8 @@ namespace WalletWasabi.Fluent
 					x => x.RunOnSystemStartup,
 					x => x.PrivacyMode,
 					x => x.HideOnClose,
-					(_, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
+					x => x.FeeTarget,
+					(_, _, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
 				.Throttle(TimeSpan.FromMilliseconds(500))
 				.Skip(1) // Won't save on UiConfig creation.
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -67,7 +68,11 @@ namespace WalletWasabi.Fluent
 
 		[DefaultValue(2)]
 		[JsonProperty(PropertyName = "FeeTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public int FeeTarget { get; internal set; }
+		public int FeeTarget
+		{
+			get => _feeTarget;
+			internal set => RaiseAndSetIfChanged(ref _feeTarget, value);
+		}
 
 		[DefaultValue(0)]
 		[JsonProperty(PropertyName = "FeeDisplayFormat", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -86,11 +91,11 @@ namespace WalletWasabi.Fluent
 		}
 
 		[DefaultValue(false)]
-		[JsonProperty(PropertyName = "IsCustomFee", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public bool IsCustomFee
+		[JsonProperty(PropertyName = nameof(AutoPaste), DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool AutoPaste
 		{
-			get => _isCustomFee;
-			set => RaiseAndSetIfChanged(ref _isCustomFee, value);
+			get => _autoPaste;
+			set => RaiseAndSetIfChanged(ref _autoPaste, value);
 		}
 
 		[DefaultValue(false)]

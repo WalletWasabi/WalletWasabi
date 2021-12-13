@@ -1,7 +1,5 @@
 using NBitcoin;
-using NBitcoin.Protocol;
 using Nito.AsyncEx;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -23,6 +21,9 @@ namespace WalletWasabi.Wallets
 {
 	public class WalletManager
 	{
+		/// <remarks>All access must be guarded by <see cref="Lock"/> object.</remarks>
+		private volatile bool _disposedValue = false;
+
 		public WalletManager(Network network, string workDir, WalletDirectories walletDirectories)
 		{
 			using (BenchmarkLogger.Measure())
@@ -113,11 +114,6 @@ namespace WalletWasabi.Wallets
 
 		public bool HasWallet() => AnyWallet(_ => true);
 
-		public bool AnyWallet()
-		{
-			return AnyWallet(x => x.State >= WalletState.Starting);
-		}
-
 		public bool AnyWallet(Func<Wallet, bool> predicate)
 		{
 			lock (Lock)
@@ -132,6 +128,17 @@ namespace WalletWasabi.Wallets
 
 			lock (Lock)
 			{
+				if (_disposedValue)
+				{
+					Logger.LogError("Object was already disposed.");
+					throw new OperationCanceledException("Object was already disposed.");
+				}
+
+				if (CancelAllInitialization.IsCancellationRequested)
+				{
+					throw new OperationCanceledException($"Stopped loading {wallet}, because cancel was requested.");
+				}
+
 				// Throw an exception if the wallet was not added to the WalletManager.
 				Wallets.Single(x => x == wallet);
 			}
@@ -167,17 +174,6 @@ namespace WalletWasabi.Wallets
 					throw;
 				}
 			}
-		}
-
-		public Task<Wallet> StartWalletAsync(KeyManager keyManagerToFindByReference)
-		{
-			Wallet wallet;
-			lock (Lock)
-			{
-				wallet = Wallets.Single(x => x.KeyManager == keyManagerToFindByReference);
-			}
-
-			return StartWalletAsync(wallet);
 		}
 
 		public Task<Wallet> AddAndStartWalletAsync(KeyManager keyManager)
@@ -274,6 +270,17 @@ namespace WalletWasabi.Wallets
 
 		public async Task RemoveAndStopAllAsync(CancellationToken cancel)
 		{
+			lock (Lock)
+			{
+				// Already disposed.
+				if (_disposedValue)
+				{
+					return;
+				}
+
+				_disposedValue = true;
+			}
+
 			try
 			{
 				CancelAllInitialization?.Cancel();

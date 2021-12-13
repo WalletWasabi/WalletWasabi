@@ -8,18 +8,16 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using NBitcoin;
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Backend.Controllers.WabiSabi;
 using WalletWasabi.Backend.Middlewares;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi;
-using WalletWasabi.WabiSabi.Backend.PostRequests;
-using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models.Serialization;
 using WalletWasabi.WebClients;
 
@@ -72,6 +70,7 @@ namespace WalletWasabi.Backend
 			services.AddLogging(logging => logging.AddFilter((s, level) => level >= Microsoft.Extensions.Logging.LogLevel.Warning));
 
 			services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider());
+			services.AddSingleton<IdempotencyRequestCache>();
 			services.AddSingleton(new Global(Configuration["datadir"]));
 			services.AddSingleton(serviceProvider =>
 			{

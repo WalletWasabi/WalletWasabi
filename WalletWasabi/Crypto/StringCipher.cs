@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -19,7 +18,7 @@ namespace WalletWasabi.Crypto
 
 		public static string Encrypt(string plainText, string passPhrase)
 		{
-			// Salt is randomly generated each time, but is preprended to encrypted cipher text
+			// Salt is randomly generated each time, but is prepended to encrypted cipher text
 			// so that the same Salt value can be used when decrypting.
 			byte[] salt = Generate128BitsOfRandomEntropy();
 			byte[] iv;
@@ -108,14 +107,13 @@ namespace WalletWasabi.Crypto
 			return Encoding.UTF8.GetString(plainTextBytes, 0, decryptedByteCount);
 		}
 
-		private static AesManaged CreateAES()
+		private static Aes CreateAES()
 		{
-			var aes = new AesManaged
-			{
-				BlockSize = 128,
-				Mode = CipherMode.CBC,
-				Padding = PaddingMode.PKCS7
-			};
+			Aes aes = Aes.Create();
+			aes.BlockSize = 128;
+			aes.Mode = CipherMode.CBC;
+			aes.Padding = PaddingMode.PKCS7;
+
 			return aes;
 		}
 

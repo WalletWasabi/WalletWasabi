@@ -70,7 +70,10 @@
                                             Classes="plain"
                                             Command="{Binding BackCommand}"
                                             IsVisible="{TemplateBinding EnableBack}">
-                                        <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
+                                      <i:Interaction.Behaviors>
+                                        <behaviors:ButtonExecuteCommandOnKeyDownBehavior IsEnabled="{Binding IsActive}" Key="Back"/>
+                                      </i:Interaction.Behaviors>
+                                      <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
                                     </Button>
                                     <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
                                 </DockPanel>
@@ -78,17 +81,23 @@
                             </StackPanel>
                         </Panel>
 
-                        <ScrollViewer x:Name="PART_ScrollViewer"
+                        <ScrollViewer x:Name="PART_ScrollViewer" ClipToBounds="{TemplateBinding ClipToBounds}"
                             HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
                             VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
-                            <ContentControl Name="PART_ContentPresenter"
-                                            BorderBrush="{TemplateBinding BorderBrush}"
-                                            BorderThickness="{TemplateBinding BorderThickness}"
-                                            ContentTemplate="{TemplateBinding ContentTemplate}"
-                                            Content="{TemplateBinding Content}"
-                                            Padding="{TemplateBinding Padding}"
-                                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
+                          <ScrollViewer.Styles>
+                            <Style Selector="ScrollViewer /template/ ScrollContentPresenter">
+                              <Setter Property="ClipToBounds" Value="{Binding $parent[ScrollViewer].ClipToBounds}" />
+                            </Style>
+                          </ScrollViewer.Styles>
+                          <ContentControl Name="PART_ContentPresenter"
+                                          ClipToBounds="{TemplateBinding ClipToBounds}"
+                                          BorderBrush="{TemplateBinding BorderBrush}"
+                                          BorderThickness="{TemplateBinding BorderThickness}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Content="{TemplateBinding Content}"
+                                          Padding="{TemplateBinding Padding}"
+                                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
                         </ScrollViewer>
                     </DockPanel>
                 </Panel>
@@ -101,7 +110,7 @@
     </Style>
 
     <Style Selector="c|ContentArea /template/ ScrollViewer#PART_ScrollViewer">
-        <Setter Property="Margin" Value="31 31 31 21" />
+        <Setter Property="Margin" Value="31 11 31 21" />
     </Style>
 
     <Style Selector="c|ContentArea /template/ Panel#PART_ButtonArea">

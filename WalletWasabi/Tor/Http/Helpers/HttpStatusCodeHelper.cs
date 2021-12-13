@@ -1,4 +1,3 @@
-using System;
 using System.Net;
 
 namespace WalletWasabi.Tor.Http.Helpers
@@ -10,7 +9,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 		/// </summary>
 		public static bool IsInformational(HttpStatusCode status)
 		{
-			return ((int)status).ToString()[0] == '1';
+			return (int)status >= 100 && (int)status <= 199;
 		}
 
 		/// <summary>
@@ -18,7 +17,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 		/// </summary>
 		public static bool IsSuccessful(HttpStatusCode status)
 		{
-			return ((int)status).ToString()[0] == '2';
+			return (int)status >= 200 && (int)status <= 299;
 		}
 
 		public static bool IsValidCode(int codeToValidate)

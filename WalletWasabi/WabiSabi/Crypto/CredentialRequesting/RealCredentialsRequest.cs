@@ -1,27 +1,32 @@
-using NBitcoin;
-using NBitcoin.Secp256k1;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Newtonsoft.Json;
 using WalletWasabi.Crypto.ZeroKnowledge;
+using WalletWasabi.Extensions;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.WabiSabi.Crypto.CredentialRequesting
 {
-	public class RealCredentialsRequest : CredentialsRequest
+	public record RealCredentialsRequest : ICredentialsRequest
 	{
+		[JsonConstructor]
 		public RealCredentialsRequest(
 			long delta,
 			IEnumerable<CredentialPresentation> presented,
 			IEnumerable<IssuanceRequest> requested,
 			IEnumerable<Proof> proofs)
-			: base(delta, presented, requested, proofs)
 		{
-			if (IsNullRequest)
-			{
-				throw new InvalidOperationException($"{nameof(RealCredentialsRequest)} must not be null request.");
-			}
+			Delta = delta;
+			Presented = presented.ToImmutableValueSequence();
+			Requested = requested.ToImmutableValueSequence();
+			Proofs = proofs.ToImmutableValueSequence();
 		}
+
+		public long Delta { get; }
+
+		public ImmutableValueSequence<CredentialPresentation> Presented { get; }
+
+		public ImmutableValueSequence<IssuanceRequest> Requested { get; }
+
+		public ImmutableValueSequence<Proof> Proofs { get; }
 	}
 }

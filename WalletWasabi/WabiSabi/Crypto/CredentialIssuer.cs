@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -23,7 +22,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 	/// <remarks>
 	/// CredentialIssuer is the coordinator's component used to issue anonymous credentials
 	/// requested by a WabiSabi client. This means this component abstracts receives
-	/// <see cref="CredentialsRequest">RegistrationRequests</see>, validates the requested
+	/// <see cref="ICredentialsRequest">RegistrationRequests</see>, validates the requested
 	/// amounts are in the valid range, serial numbers are not duplicated nor reused,
 	/// and finally issues the credentials using the coordinator's secret key (and also
 	/// proving to the WabiSabi client that the credentials were issued with the right
@@ -37,7 +36,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 	/// this means that the same instance has to be used for a given round (the
 	/// coordinator needs to maintain only one instance of this class per round)
 	///
-	/// About replay requests: a replay request is a <see cref="CredentialsRequest">request</see>
+	/// About replay requests: a replay request is a <see cref="ICredentialsRequest">request</see>
 	/// that has already been seen before. These kind of requests can be the result of misbehaving
 	/// clients or simply clients using a retry communication mechanism.
 	/// Reply requests are not handled by this component and they have to be handled by a different
@@ -93,31 +92,32 @@ namespace WalletWasabi.WabiSabi.Crypto
 		public int NumberOfCredentials => ProtocolConstants.CredentialNumber;
 
 		/// <summary>
-		/// Process the <see cref="CredentialsRequest">credentials registration requests</see> and
+		/// Process the <see cref="ICredentialsRequest">credentials registration requests</see> and
 		/// issues the credentials.
 		/// </summary>
 		/// <param name="registrationRequest">The request containing the credentials presentations, credential requests and the proofs.</param>
 		/// <returns>The <see cref="CredentialsResponse">registration response</see> containing the issued credentials and the proofs.</returns>
 		/// <exception cref="WabiSabiCryptoException">Error code: <see cref="WabiSabiCryptoErrorCode">WabiSabiErrorCode</see></exception>
-		public Task<CredentialsResponse> HandleRequestAsync(CredentialsRequest registrationRequest, CancellationToken cancel)
+		public Task<CredentialsResponse> HandleRequestAsync(ICredentialsRequest registrationRequest, CancellationToken cancel)
 			=> Task.Run(() => HandleRequest(registrationRequest), cancel);
 
 		/// <summary>
-		/// Process the <see cref="CredentialsRequest">credentials registration requests</see> and
+		/// Process the <see cref="ICredentialsRequest">credentials registration requests</see> and
 		/// issues the credentials.
 		/// </summary>
 		/// <param name="registrationRequest">The request containing the credentials presentations, credential requests and the proofs.</param>
 		/// <returns>The <see cref="CredentialsResponse">registration response</see> containing the issued credentials and the proofs.</returns>
 		/// <exception cref="WabiSabiCryptoException">Error code: <see cref="WabiSabiCryptoErrorCode">WabiSabiErrorCode</see></exception>
-		public CredentialsResponse HandleRequest(CredentialsRequest registrationRequest)
+		public CredentialsResponse HandleRequest(ICredentialsRequest registrationRequest)
 		{
 			Guard.NotNull(nameof(registrationRequest), registrationRequest);
 
+			var isNullRequest = registrationRequest.IsNullRequest();
 			var requested = registrationRequest.Requested ?? Enumerable.Empty<IssuanceRequest>();
 			var presented = registrationRequest.Presented ?? Enumerable.Empty<CredentialPresentation>();
 
 			var requestedCount = requested.Count();
-			var requiredNumberOfRequested = registrationRequest.IsPresentationOnlyRequest ? 0 : NumberOfCredentials;
+			var requiredNumberOfRequested = registrationRequest.IsPresentationOnlyRequest() ? 0 : NumberOfCredentials;
 			if (requestedCount != requiredNumberOfRequested)
 			{
 				throw new WabiSabiCryptoException(
@@ -126,7 +126,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			}
 
 			var presentedCount = presented.Count();
-			var requiredNumberOfPresentations = registrationRequest.IsNullRequest ? 0 : NumberOfCredentials;
+			var requiredNumberOfPresentations = isNullRequest ? 0 : NumberOfCredentials;
 			if (presentedCount != requiredNumberOfPresentations)
 			{
 				throw new WabiSabiCryptoException(
@@ -142,7 +142,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			}
 
 			// Check that the range proofs are of the appropriate bitwidth
-			var rangeProofWidth = registrationRequest.IsNullRequest ? 0 : RangeProofWidth;
+			var rangeProofWidth = isNullRequest ? 0 : RangeProofWidth;
 			var allRangeProofsAreCorrectSize = requested.All(x => x.BitCommitments.Count() == rangeProofWidth);
 			if (!allRangeProofsAreCorrectSize)
 			{
@@ -152,7 +152,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			// Check all the serial numbers are unique. Note that this is checked separately from
 			// ensuring that they haven't been used before, because even presenting a previously
 			// unused credential more than once in the same request is still a double spend.
-			if (registrationRequest.AreThereDuplicatedSerialNumbers)
+			if (registrationRequest.AreThereDuplicatedSerialNumbers())
 			{
 				throw new WabiSabiCryptoException(WabiSabiCryptoErrorCode.SerialNumberDuplicated);
 			}
@@ -191,13 +191,13 @@ namespace WalletWasabi.WabiSabi.Crypto
 
 			foreach (var credentialRequest in requested)
 			{
-				statements.Add(registrationRequest.IsNullRequest
+				statements.Add(isNullRequest
 					? ProofSystem.ZeroProofStatement(credentialRequest.Ma)
 					: ProofSystem.RangeProofStatement(credentialRequest.Ma, credentialRequest.BitCommitments, rangeProofWidth));
 			}
 
 			// Balance proof
-			if (!registrationRequest.IsNullRequest)
+			if (!isNullRequest)
 			{
 				var sumCa = presented.Select(x => x.Ca).Sum();
 				var sumMa = requested.Select(x => x.Ma).Sum();
@@ -213,7 +213,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 				statements.Add(ProofSystem.BalanceProofStatement(balanceTweak + sumCa - sumMa));
 			}
 
-			var transcript = BuildTranscript(registrationRequest.IsNullRequest);
+			var transcript = BuildTranscript(isNullRequest);
 
 			bool areProofsValid = false;
 

@@ -1,11 +1,9 @@
 using NBitcoin;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
-using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
@@ -200,8 +198,6 @@ namespace WalletWasabi.WabiSabi.Client
 				throw new InvalidOperationException($"Missing input.");
 			}
 
-			List<InputWitnessPair> signatures = new();
-
 			signedCoinJoin.Sign(bitcoinSecret, coin);
 
 			if (!txInput.VerifyScript(coin, out var error))
@@ -209,9 +205,7 @@ namespace WalletWasabi.WabiSabi.Client
 				throw new InvalidOperationException($"Witness is missing. Reason {nameof(ScriptError)} code: {error}.");
 			}
 
-			signatures.Add(new InputWitnessPair(txInput.Index, txInput.WitScript));
-
-			await RequestHandler.SignTransactionAsync(new TransactionSignaturesRequest(roundId, signatures), cancellationToken).ConfigureAwait(false);
+			await RequestHandler.SignTransactionAsync(new TransactionSignaturesRequest(roundId, txInput.Index, txInput.WitScript), cancellationToken).ConfigureAwait(false);
 		}
 
 		public async Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken)

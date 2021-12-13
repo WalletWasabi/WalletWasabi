@@ -1,5 +1,4 @@
 using NBitcoin;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -46,7 +45,7 @@ namespace WalletWasabi.WabiSabi.Client
 			{
 				if (Predicate(roundState))
 				{
-					TaskCompletionSource.TrySetResult(roundState);
+					TaskCompletionSource.SetResult(roundState);
 					return true;
 				}
 			}

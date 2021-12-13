@@ -1,8 +1,4 @@
-using System;
 using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Data;
-using Avalonia.VisualTree;
 
 namespace WalletWasabi.Fluent.Validation
 {

@@ -1,5 +1,3 @@
-using System;
-
 namespace Gma.QrCodeNet.Encoding.Masking
 {
 	internal class Pattern4 : Pattern

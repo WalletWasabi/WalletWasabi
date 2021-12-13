@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
@@ -67,7 +66,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems
 			var lastDate = CoinJoinTransactions.Last().DateTime.ToLocalTime();
 
 			DateString = firstDate.Day == lastDate.Day
-				? $"{firstDate:MM/dd/yyyy}"
+				? $"{firstDate:MM/dd/yy}"
 				: $"{firstDate:MM/dd/yy} - {lastDate:MM/dd/yy}";
 		}
 

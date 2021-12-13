@@ -1,5 +1,4 @@
 using NBitcoin;
-using System;
 using WalletWasabi.Blockchain.Keys;
 using Xunit;
 using static WalletWasabi.Blockchain.Keys.WpkhOutputDescriptorHelper;

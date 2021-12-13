@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,12 +6,12 @@ using WalletWasabi.Logging;
 namespace WalletWasabi.Nito.AsyncEx
 {
 	/// <summary>
-	/// To remember tasks those were fired to forget and so wait for them during dispose.
+	/// To remember tasks that were fired to forget and so wait for them during dispose.
 	/// </summary>
 	public class AbandonedTasks
 	{
-		private HashSet<Task> Tasks { get; } = new HashSet<Task>();
-		private object Lock { get; } = new object();
+		private HashSet<Task> Tasks { get; } = new();
+		private object Lock { get; } = new();
 
 		/// <summary>
 		/// Adds tasks and clears completed ones atomically.

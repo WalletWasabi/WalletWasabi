@@ -1,4 +1,3 @@
-using System;
 using WalletWasabi.Tor.Control.Exceptions;
 using WalletWasabi.Tor.Control.Messages;
 using WalletWasabi.Tor.Control.Messages.Events;

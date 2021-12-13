@@ -1,5 +1,4 @@
 using Avalonia;
-using System;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using WalletWasabi.Fluent.Helpers;

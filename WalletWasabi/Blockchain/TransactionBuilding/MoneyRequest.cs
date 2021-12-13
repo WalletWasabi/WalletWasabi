@@ -1,5 +1,4 @@
 using NBitcoin;
-using System;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding
 {

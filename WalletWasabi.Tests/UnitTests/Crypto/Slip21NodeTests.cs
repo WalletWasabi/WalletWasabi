@@ -1,5 +1,4 @@
 using NBitcoin;
-using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto;
 using Xunit;
 

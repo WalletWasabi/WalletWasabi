@@ -1,5 +1,3 @@
-using System;
-
 namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 {
 	internal class TimingPattern : PatternStencilBase

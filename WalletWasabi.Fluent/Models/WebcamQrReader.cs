@@ -1,5 +1,4 @@
 using Avalonia.Media.Imaging;
-using System;
 using System.Threading.Tasks;
 using OpenCvSharp;
 using Avalonia;
@@ -65,6 +64,11 @@ namespace WalletWasabi.Fluent.Models
 							throw new InvalidOperationException("Could not open webcamera.");
 						}
 						KeepScanning(camera);
+					}
+					catch (OpenCVException ex)
+					{
+						Logger.LogError("Could not open camera. Reason: " + ex);
+						ErrorOccured?.Invoke(this, new NotSupportedException("Could not open camera."));
 					}
 					catch (Exception ex)
 					{

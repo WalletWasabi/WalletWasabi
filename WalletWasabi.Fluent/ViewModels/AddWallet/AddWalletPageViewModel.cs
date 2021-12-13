@@ -1,5 +1,4 @@
 using ReactiveUI;
-using System;
 using System.IO;
 using System.Reactive;
 using System.Reactive.Disposables;

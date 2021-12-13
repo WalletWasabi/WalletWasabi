@@ -1,6 +1,5 @@
 using NBitcoin;
 using Nito.AsyncEx;
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -53,7 +52,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
 				}
 
-				// Generate a new Guid with the secure random source, to be sure
+				// Generate a new GUID with the secure random source, to be sure
 				// that it is not guessable (Guid.NewGuid() documentation does
 				// not say anything about GUID version or randomness source,
 				// only that the probability of duplicates is very low).
@@ -195,7 +194,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		public async Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
+		public Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
+		{
+			return RegisterOutputCoreAsync(request, cancellationToken);
+		}
+
+		public async Task<EmptyResponse> RegisterOutputCoreAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
 		{
 			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
@@ -224,6 +228,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				round.Bobs.Add(bob);
 				round.CoinjoinState = newState;
 			}
+
+			return EmptyResponse.Instance;
 		}
 
 		public async Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken)
@@ -232,11 +238,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				var round = GetRound(request.RoundId, Phase.TransactionSigning);
 
-				var state = round.Assert<SigningState>();
-				foreach (var inputWitnessPair in request.InputWitnessPairs)
-				{
-					state = state.AddWitness((int)inputWitnessPair.InputIndex, inputWitnessPair.Witness);
-				}
+				var state = round.Assert<SigningState>().AddWitness((int)request.InputIndex, request.Witness);
 
 				// at this point all of the witnesses have been verified and the state can be updated
 				round.CoinjoinState = state;

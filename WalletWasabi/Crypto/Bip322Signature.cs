@@ -1,10 +1,9 @@
-using System;
 using NBitcoin;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace WalletWasabi.Crypto
 {
-	public class Bip322Signature : IBitcoinSerializable
+	public record Bip322Signature : IBitcoinSerializable
 	{
 		private Script _scriptSig = Script.Empty;
 

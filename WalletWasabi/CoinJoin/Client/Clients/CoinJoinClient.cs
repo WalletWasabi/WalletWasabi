@@ -1,11 +1,9 @@
 using NBitcoin;
 using Nito.AsyncEx;
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,8 +15,6 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.CoinJoin.Client.Rounds;
 using WalletWasabi.CoinJoin.Common.Models;
-using WalletWasabi.Crypto;
-using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -79,7 +75,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			var lastResponse = Synchronizer.LastResponse;
 			if (lastResponse is { })
 			{
-				AbandonedTasks.AddAndClearCompleted(TryProcessStatusAsync(Synchronizer.LastResponse.CcjRoundStates));
+				AbandonedTasks.AddAndClearCompleted(TryProcessStatusAsync(lastResponse.CcjRoundStates));
 			}
 		}
 
@@ -94,9 +90,8 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		public Network Network { get; private set; }
 		public KeyManager KeyManager { get; }
 		public KeyManager DestinationKeyManager { get; set; }
-		public bool IsQuitPending { get; set; }
 
-		private ClientRoundRegistration DelayedRoundRegistration { get; set; }
+		private ClientRoundRegistration? DelayedRoundRegistration { get; set; }
 
 		public Func<Uri> CcjHostUriAction { get; private set; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
@@ -119,7 +114,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		private async void Synchronizer_ResponseArrivedAsync(object? sender, SynchronizeResponse e)
 		{
-			await TryProcessStatusAsync(e?.CcjRoundStates).ConfigureAwait(false);
+			await TryProcessStatusAsync(e.CcjRoundStates).ConfigureAwait(false);
 		}
 
 		public void Start()
@@ -219,9 +214,12 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					// First, if there's delayed round registration update based on the state.
 					if (DelayedRoundRegistration is { })
 					{
-						ClientRound roundRegistered = State.GetSingleOrDefaultRound(DelayedRoundRegistration.AliceClient.RoundId);
-						roundRegistered.Registration = DelayedRoundRegistration;
-						DelayedRoundRegistration = null; // Do not dispose.
+						ClientRound? roundRegistered = State.GetSingleOrDefaultRound(DelayedRoundRegistration.AliceClient.RoundId);
+						if (roundRegistered is { })
+						{
+							roundRegistered.Registration = DelayedRoundRegistration;
+							DelayedRoundRegistration = null; // Do not dispose.
+						}
 					}
 
 					await DequeueSpentCoinsFromMixNoLockAsync().ConfigureAwait(false);
@@ -579,14 +577,16 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 				var registration = new ClientRoundRegistration(aliceClient, coinsRegistered, outputAddresses.change.GetP2wpkhAddress(Network));
 
-				ClientRound roundRegistered = State.GetSingleOrDefaultRound(aliceClient.RoundId);
+				ClientRound? roundRegistered = State.GetSingleOrDefaultRound(aliceClient.RoundId);
 				if (roundRegistered is null)
 				{
 					// If our SatoshiClient does not yet know about the round, because of delay, then delay the round registration.
 					DelayedRoundRegistration = registration;
 				}
-
-				roundRegistered.Registration = registration;
+				else
+				{
+					roundRegistered.Registration = registration;
+				}
 			}
 			catch (Exception ex)
 			{
@@ -741,7 +741,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		public async Task<IEnumerable<SmartCoin>> QueueCoinsToMixAsync(string password, IEnumerable<SmartCoin> coins)
 		{
-			if (coins is null || !coins.Any() || IsQuitPending)
+			if (coins is null || !coins.Any())
 			{
 				return Enumerable.Empty<SmartCoin>();
 			}

@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
@@ -16,8 +15,16 @@ namespace WalletWasabi.Tor.Http.Models
 			Value = value;
 		}
 
+		/// <remarks>Note that comparison of header names must be case-insensitive. <see cref="IsNameEqual(string)"/>.</remarks>
 		public string Name { get; private set; }
 		public string Value { get; private set; }
+
+		/// <summary>Compares correctly two header names.</summary>
+		/// <remarks>Header names are case-insensitive. Note that in HTTP/2, lower-case names are preferred.</remarks>
+		public bool IsNameEqual(string name)
+		{
+			return Name.Equals(name, StringComparison.OrdinalIgnoreCase);
+		}
 
 		public static string CorrectObsFolding(string text)
 		{

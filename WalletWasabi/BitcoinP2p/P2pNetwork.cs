@@ -2,13 +2,10 @@ using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
@@ -68,19 +65,13 @@ namespace WalletWasabi.BitcoinP2p
 					Logger.LogTrace(ex);
 					AddressManager = new AddressManager();
 				}
-				catch (OverflowException ex)
+				catch (Exception ex) when (ex is OverflowException || ex is FormatException || ex is ArgumentException || ex is EndOfStreamException)
 				{
 					// https://github.com/zkSNACKs/WalletWasabi/issues/712
-					Logger.LogInfo($"{nameof(AddressManager)} has thrown `{nameof(OverflowException)}`. Attempting to autocorrect.");
-					File.Delete(AddressManagerFilePath);
-					Logger.LogTrace(ex);
-					AddressManager = new AddressManager();
-					Logger.LogInfo($"{nameof(AddressManager)} autocorrection is successful.");
-				}
-				catch (FormatException ex)
-				{
 					// https://github.com/zkSNACKs/WalletWasabi/issues/880
-					Logger.LogInfo($"{nameof(AddressManager)} has thrown `{nameof(FormatException)}`. Attempting to autocorrect.");
+					// https://www.reddit.com/r/WasabiWallet/comments/qt0mgz/crashing_on_open/
+					// https://github.com/zkSNACKs/WalletWasabi/issues/5255
+					Logger.LogInfo($"{nameof(AddressManager)} has thrown `{ex.GetType().Name}`. Attempting to autocorrect.");
 					File.Delete(AddressManagerFilePath);
 					Logger.LogTrace(ex);
 					AddressManager = new AddressManager();
