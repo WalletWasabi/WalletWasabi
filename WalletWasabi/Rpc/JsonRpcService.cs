@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
-namespace WalletWasabi.Fluent.Rpc
+namespace WalletWasabi.Rpc
 {
 	/// <summary>
 	/// Base class for service classes.

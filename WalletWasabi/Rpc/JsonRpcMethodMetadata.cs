@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace WalletWasabi.Fluent.Rpc
+namespace WalletWasabi.Rpc
 {
 	/// <summary>
 	/// Represents the collection of metadata needed to execute the remote procedure.

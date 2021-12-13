@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace WalletWasabi.Fluent.Rpc
+namespace WalletWasabi.Rpc
 {
 	public class JsonRpcResponse
 	{
@@ -15,7 +15,7 @@ namespace WalletWasabi.Fluent.Rpc
 			[JsonRpcErrorCodes.InternalError] = "Internal error",
 		};
 
-		private JsonRpcResponse(string id, object result, object error)
+		public JsonRpcResponse(string id, object result, object error)
 		{
 			Id = id;
 			Result = result;

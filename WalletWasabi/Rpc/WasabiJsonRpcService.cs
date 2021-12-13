@@ -4,18 +4,32 @@ using NBitcoin;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
+using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.Rpc
+namespace WalletWasabi.Rpc
 {
 	public partial class WasabiJsonRpcService
 	{
-		public WasabiJsonRpcService(Global global, TerminateService terminateService)
+		#region Dependencies
+
+		public WalletManager WalletManager { get; set; }
+		public BitcoinStore BitcoinStore { get; set; }
+		public Network Network { get; set; }
+		public WasabiSynchronizer Synchronizer { get; set; }
+		public TransactionBroadcaster TransactionBroadcaster { get; set; }
+		public HostedServices HostedServices { get; set; }
+
+		#endregion Dependencies
+
+		public WasabiJsonRpcService(TerminateService terminateService)
 		{
 			Global = global;
 			TerminateService = terminateService;
@@ -42,17 +56,17 @@ namespace WalletWasabi.Fluent.Rpc
 				confirmations = x.Confirmed ? serverTipHeight - (uint)x.Height.Value + 1 : 0,
 				label = x.HdPubKey.Label.ToString(),
 				keyPath = x.HdPubKey.FullKeyPath.ToString(),
-				address = x.HdPubKey.GetP2wpkhAddress(Global.Network).ToString()
+				address = x.HdPubKey.GetP2wpkhAddress(Network).ToString()
 			}).ToArray();
 		}
 
 		[JsonRpcMethod("createwallet")]
 		public object CreateWallet(string walletName, string password)
 		{
-			var walletGenerator = new WalletGenerator(Global.WalletManager.WalletDirectories.WalletsDir, Global.Network);
-			walletGenerator.TipHeight = Global.BitcoinStore.SmartHeaderChain.TipHeight;
+			var walletGenerator = new WalletGenerator(WalletManager.WalletDirectories.WalletsDir, Network);
+			walletGenerator.TipHeight = BitcoinStore.SmartHeaderChain.TipHeight;
 			var (keyManager, mnemonic) = walletGenerator.GenerateWallet(walletName, password);
-			Global.WalletManager.AddWallet(keyManager);
+			WalletManager.AddWallet(keyManager);
 			return mnemonic.ToString();
 		}
 
@@ -68,8 +82,8 @@ namespace WalletWasabi.Fluent.Rpc
 				walletName = activeWallet.WalletName,
 				walletFile = km.FilePath,
 				State = activeWallet.State.ToString(),
-				extendedAccountPublicKey = km.ExtPubKey.ToString(Global.Network),
-				extendedAccountZpub = km.ExtPubKey.ToZpub(Global.Network),
+				extendedAccountPublicKey = km.ExtPubKey.ToString(Network),
+				extendedAccountZpub = km.ExtPubKey.ToZpub(Network),
 				accountKeyPath = $"m/{km.AccountKeyPath}",
 				masterKeyFingerprint = km.MasterFingerprint?.ToString() ?? "",
 				balance = activeWallet.Coins
@@ -89,7 +103,7 @@ namespace WalletWasabi.Fluent.Rpc
 				.GenerateNewKey(new SmartLabel(label), KeyState.Clean, isInternal: false);
 			return new
 			{
-				address = hdkey.GetP2wpkhAddress(Global.Network).ToString(),
+				address = hdkey.GetP2wpkhAddress(Network).ToString(),
 				keyPath = hdkey.FullKeyPath.ToString(),
 				label = hdkey.Label,
 				publicKey = hdkey.PubKey.ToHex(),
@@ -100,7 +114,7 @@ namespace WalletWasabi.Fluent.Rpc
 		[JsonRpcMethod("getstatus")]
 		public object GetStatus()
 		{
-			var sync = Global.Synchronizer;
+			var sync = Synchronizer;
 
 			return new
 			{
@@ -115,9 +129,9 @@ namespace WalletWasabi.Fluent.Rpc
 				bestBlockchainHash = sync.BitcoinStore.SmartHeaderChain.TipHash?.ToString() ?? "",
 				filtersCount = sync.BitcoinStore.SmartHeaderChain.HashCount,
 				filtersLeft = sync.BitcoinStore.SmartHeaderChain.HashesLeft,
-				network = Global.Network.Name,
+				network = Network.Name,
 				exchangeRate = sync.UsdExchangeRate,
-				peers = Global.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes.Select(x => new
+				peers = HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes.Select(x => new
 				{
 					isConnected = x.IsConnected,
 					lastSeen = x.LastSeen,
@@ -137,7 +151,7 @@ namespace WalletWasabi.Fluent.Rpc
 			var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
 			AssertWalletIsLoaded();
-			var sync = Global.Synchronizer;
+			var sync = Synchronizer;
 			var payment = new PaymentIntent(payments.Select(p =>
 				new DestinationRequest(p.Sendto.ScriptPubKey, MoneyRequest.Create(p.Amount, p.SubtractFee), new SmartLabel(p.Label))));
 			var feeStrategy = FeeStrategy.CreateFromConfirmationTarget(feeTarget);
@@ -158,9 +172,9 @@ namespace WalletWasabi.Fluent.Rpc
 			password = Guard.Correct(password);
 			var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 			var txHex = BuildTransaction(payments, coins, feeTarget, password);
-			var smartTx = new SmartTransaction(Transaction.Parse(txHex, Global.Network), Height.Mempool);
+			var smartTx = new SmartTransaction(Transaction.Parse(txHex, Network), Height.Mempool);
 
-			await Global.TransactionBroadcaster.SendTransactionAsync(smartTx).ConfigureAwait(false);
+			await TransactionBroadcaster.SendTransactionAsync(smartTx).ConfigureAwait(false);
 			return new
 			{
 				txid = smartTx.Transaction.GetHash(),
@@ -172,9 +186,9 @@ namespace WalletWasabi.Fluent.Rpc
 		public async Task<object> SendRawTransactionAsync(string txHex)
 		{
 			txHex = Guard.Correct(txHex);
-			var smartTx = new SmartTransaction(Transaction.Parse(txHex, Global.Network), Height.Mempool);
+			var smartTx = new SmartTransaction(Transaction.Parse(txHex, Network), Height.Mempool);
 
-			await Global.TransactionBroadcaster.SendTransactionAsync(smartTx).ConfigureAwait(false);
+			await TransactionBroadcaster.SendTransactionAsync(smartTx).ConfigureAwait(false);
 			return new
 			{
 				txid = smartTx.Transaction.GetHash()
@@ -216,7 +230,7 @@ namespace WalletWasabi.Fluent.Rpc
 				p2wpkhScript = x.P2wpkhScript.ToString(),
 				pubkey = x.PubKey.ToString(),
 				pubKeyHash = x.PubKeyHash.ToString(),
-				address = x.GetP2wpkhAddress(Global.Network).ToString()
+				address = x.GetP2wpkhAddress(Network).ToString()
 			}).ToArray();
 		}
 
@@ -226,12 +240,12 @@ namespace WalletWasabi.Fluent.Rpc
 			walletName = Guard.NotNullOrEmptyOrWhitespace(nameof(walletName), walletName);
 			try
 			{
-				var wallet = Global.WalletManager.GetWalletByName(walletName);
+				var wallet = WalletManager.GetWalletByName(walletName);
 
 				ActiveWallet = wallet;
 				if (wallet.State == WalletState.Uninitialized)
 				{
-					Global.WalletManager.StartWalletAsync(wallet).ConfigureAwait(false);
+					WalletManager.StartWalletAsync(wallet).ConfigureAwait(false);
 				}
 			}
 			catch (InvalidOperationException) // wallet not found
