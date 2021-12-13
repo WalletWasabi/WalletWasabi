@@ -5,15 +5,15 @@ namespace WalletWasabi.Packager
 	public class BuildInfo
 	{
 		[JsonConstructor]
-		public BuildInfo(string netRuntime, string netSdkVersion, string gitCommitHash)
+		public BuildInfo(string netRuntimeVersion, string netSdkVersion, string gitCommitHash)
 		{
-			NetRuntime = netRuntime;
+			NetRuntimeVersion = netRuntimeVersion;
 			NetSdkVersion = netSdkVersion;
 			GitCommitHash = gitCommitHash;
 		}
 
 		[JsonPropertyName("NetRuntimeVersion")]
-		public string NetRuntime { get; }
+		public string NetRuntimeVersion { get; }
 
 		[JsonPropertyName("NetSdkVersion")]
 		public string NetSdkVersion { get; }
