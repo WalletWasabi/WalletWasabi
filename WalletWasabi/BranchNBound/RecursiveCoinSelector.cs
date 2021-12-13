@@ -53,7 +53,6 @@ namespace WalletWasabi.BranchNBound
 			// tolerance : the maximum difference we allow for a match
 			// sum : Overall value of the coins
 
-			Stack<ulong> tmpPool;
 			while (!_optimizedCoinsFound)
 			{
 				// Add the top coin of the pool to the selection and calculate SUM
