@@ -67,10 +67,10 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void CanSelectCoinsWithOriginalRandomTest()
 		{
-			var selector = new BranchAndBound();
+			var selector = new BranchAndBound(AvailableCoins);
 			ulong target = Money.Satoshis(100000000);
 
-			var successful = selector.TryGetExactMatch(target, AvailableCoins, out List<Money> selectedCoins);
+			var successful = selector.TryGetExactMatch(target, out List<Money> selectedCoins);
 
 			Assert.True(successful);
 			Assert.Equal(target, (ulong)selector.CalcEffectiveValue(selectedCoins));
@@ -79,12 +79,12 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void OriginalSimpleTest()
 		{
-			var selector = new BranchAndBound();
 			var utxos = new List<Money> { Money.Satoshis(12), Money.Satoshis(10), Money.Satoshis(10), Money.Satoshis(5), Money.Satoshis(4) };
+			var selector = new BranchAndBound(utxos);
 			var expectedCoins = new List<Money> { Money.Satoshis(10), Money.Satoshis(5), Money.Satoshis(4) };
 			Money target = Money.Satoshis(19);
 
-			var wasSuccessful = selector.TryGetExactMatch(target, utxos, out List<Money> selectedCoins);
+			var wasSuccessful = selector.TryGetExactMatch(target, out List<Money> selectedCoins);
 
 			Assert.True(wasSuccessful);
 			Assert.Equal(expectedCoins, selectedCoins);

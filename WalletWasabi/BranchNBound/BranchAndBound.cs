@@ -15,12 +15,16 @@ namespace WalletWasabi.BranchNBound
 		private int _bnbTryLimit = 5;
 		private Random _random = new();
 
-		private Money[]? UtxoSorted { get; set; }
+		private Money[] UtxoSorted { get; set; }
 
-		public bool TryGetExactMatch(Money target, List<Money> availableCoins, out List<Money> selectedCoins)
+		public BranchAndBound(List<Money> utxos)
+		{
+			UtxoSorted = utxos.OrderByDescending(x => x.Satoshi).ToArray();
+		}
+
+		public bool TryGetExactMatch(Money target, out List<Money> selectedCoins)
 		{
 			selectedCoins = new List<Money>();
-			UtxoSorted = availableCoins.OrderByDescending(x => x.Satoshi).ToArray();
 			try
 			{
 				for (int i = 0; i < _bnbTryLimit; i++)
