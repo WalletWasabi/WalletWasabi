@@ -84,11 +84,12 @@
 
       <TextBlock Text="Privacy Level" DockPanel.Dock="Top" />
 
-      <StackPanel Spacing="10" DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center">
+      <StackPanel Spacing="10" DockPanel.Dock="Right" Orientation="Horizontal"
+                  HorizontalAlignment="Center" VerticalAlignment="Center">
         <Button Classes="plain" Cursor="Hand" Command="{Binding BoostPrivacyCommand}"
                 IsVisible="{Binding BoostButtonVisible}"
                 ToolTip.Tip="Boost Privacy">
-          <StackPanel Orientation="Horizontal" Spacing="10">
+          <StackPanel Orientation="Vertical" Spacing="10">
             <PathIcon Data="{StaticResource rocket_regular}" />
             <TextBlock Text="Boost Privacy" />
           </StackPanel>
@@ -104,15 +105,23 @@
         </Button>-->
       </StackPanel>
 
-      <Separator DockPanel.Dock="Bottom" Margin="0 10" IsVisible="{Binding !IsAutoCoinJoinEnabled}" />
+      <Separator DockPanel.Dock="Right"
+                 Classes="vertical"
+                 Margin="10 0"
+                 IsVisible="{Binding !IsAutoCoinJoinEnabled}" />
 
-      <Panel>
-        <controls:RingChartControl DataPoints="{Binding TestDataPoints}" Classes.visible="{Binding !ShowBoostingAnimation}"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
-        <controls:ProgressRing IsIndeterminate="True" Classes.visible="{Binding ShowBoostingAnimation}" />
+      <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Panel>
+          <controls:RingChartControl DataPoints="{Binding TestDataPoints}"
+                                     Classes.visible="{Binding !ShowBoostingAnimation}"
+                                     HorizontalAlignment="Center" VerticalAlignment="Center" />
+          <controls:ProgressRing IsIndeterminate="True" Classes.visible="{Binding ShowBoostingAnimation}" />
+        </Panel>
+        <TextBlock HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Text="{Binding PercentText}" FontSize="24" />
+      </StackPanel>
 
-        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding PercentText}" FontSize="16" />
-      </Panel>
     </DockPanel>
   </controls:TileControl>
 </UserControl>
