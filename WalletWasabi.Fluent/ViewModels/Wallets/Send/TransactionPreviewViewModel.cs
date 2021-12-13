@@ -422,33 +422,41 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private async Task OnConfirmAsync()
 		{
-			if (_transaction is { })
+			var labelDialog = new LabelEntryDialogViewModel(_wallet, _info);
+
+			Navigate(NavigationTarget.CompactDialogScreen).To(labelDialog);
+
+			var result = await labelDialog.GetDialogResultAsync();
+
+			if (result.Result is null)
 			{
-				var transaction = _transaction;
+				Navigate(NavigationTarget.CompactDialogScreen).Back();
+				return;
+			}
 
-				var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
+			_info.UserLabels = result.Result;
 
-				var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
+			var transaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info));
+			var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
+			var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
+			if (authResult)
+			{
+				IsBusy = true;
 
-				if (authResult)
+				try
 				{
-					IsBusy = true;
-
-					try
-					{
-						var finalTransaction =
-							await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
-						await SendTransactionAsync(finalTransaction);
-						Navigate().To(new SendSuccessViewModel(_wallet, finalTransaction));
-					}
-					catch (Exception ex)
-					{
-						await ShowErrorAsync("Transaction", ex.ToUserFriendlyString(),
-							"Wasabi was unable to send your transaction.");
-					}
-
-					IsBusy = false;
+					var finalTransaction =
+						await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
+					await SendTransactionAsync(finalTransaction);
+					Navigate().To(new SendSuccessViewModel(_wallet, finalTransaction));
 				}
+				catch (Exception ex)
+				{
+					await ShowErrorAsync("Transaction", ex.ToUserFriendlyString(),
+						"Wasabi was unable to send your transaction.");
+				}
+
+				IsBusy = false;
 			}
 		}
 
@@ -461,7 +469,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 
 			var authDialog = AuthorizationHelpers.GetAuthorizationDialog(_wallet, transactionAuthorizationInfo);
-			var authDialogResult = await NavigateDialogAsync(authDialog, authDialog.DefaultTarget);
+			var authDialogResult = await NavigateDialogAsync(authDialog, authDialog.DefaultTarget, NavigationMode.Clear);
 
 			if (!authDialogResult.Result && authDialogResult.Kind == DialogResultKind.Normal)
 			{
