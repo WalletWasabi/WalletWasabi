@@ -4,6 +4,8 @@ using System.IO.Compression;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Userfacing;
@@ -208,7 +210,7 @@ namespace WalletWasabi.Packager
 			IoHelpers.EnsureDirectoryExists(deliveryPath);
 			Console.WriteLine($"Binaries will be delivered here: {deliveryPath}");
 
-			string[] buildInfoLines = GetBuildInfoData();
+			string buildInfoJson = GetBuildInfoData();
 
 			CheckUncommittedGitChanges();
 
@@ -227,8 +229,8 @@ namespace WalletWasabi.Packager
 					Console.WriteLine($"Created {currentBinDistDirectory}");
 				}
 
-				string buildInfoPath = Path.Combine(currentBinDistDirectory, "BUILDINFO.txt");
-				File.WriteAllLines(buildInfoPath, buildInfoLines);
+				string buildInfoPath = Path.Combine(currentBinDistDirectory, "BUILDINFO.json");
+				File.WriteAllText(buildInfoPath, buildInfoJson);
 
 				StartProcessAndWaitForExit("dotnet", DesktopProjectDirectory, arguments: "clean");
 
@@ -545,8 +547,8 @@ namespace WalletWasabi.Packager
 		/// <summary>
 		/// Gets information about .NET SDK and .NET runtime so that deterministic build is easier to reproduce.
 		/// </summary>
-		/// <returns>Array of lines to write to a <c>BUILDINFO.txt</c> file.</returns>
-		private static string[] GetBuildInfoData()
+		/// <returns>JSON string to write to a <c>BUILDINFO.json</c> file.</returns>
+		private static string GetBuildInfoData()
 		{
 			// .NET runtime version. We rely on the fact that this version is the same as if we run "dotnet" command. This should be a safe assumption.
 			Version runtimeVersion = Environment.Version;
@@ -567,14 +569,7 @@ namespace WalletWasabi.Packager
 				throw new InvalidOperationException($"Failed to get git commit ID.");
 			}
 
-			string[] lines = new string[]
-			{
-				$".NET runtime:    {runtimeVersion}",
-				$".NET SDK:        {sdkVersion}",
-				$"Git commit hash: {gitCommitId}",
-			};
-
-			return lines;
+			return JsonSerializer.Serialize(new BuildInfo(runtimeVersion.ToString(), sdkVersion, gitCommitId), new JsonSerializerOptions() { WriteIndented = true });
 		}
 
 		private static string? StartProcessAndWaitForExit(string command, string workingDirectory, string? writeToStandardInput = null, string? arguments = null, bool redirectStandardOutput = false)
