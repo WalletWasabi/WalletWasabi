@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Rpc;
 using WalletWasabi.Fluent.Rpc;
 
 namespace WalletWasabi.Tests
