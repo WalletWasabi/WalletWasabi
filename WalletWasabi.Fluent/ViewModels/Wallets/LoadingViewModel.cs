@@ -7,6 +7,7 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
+using WalletWasabi.BitcoinP2p;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
@@ -94,10 +95,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			}
 
 			_isLoading = true;
+			int nodeCount = Services.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes.Count;
 
 			await SetInitValuesAsync(isBackendAvailable).ConfigureAwait(false);
 
-			while (isBackendAvailable && RemainingFiltersToDownload > 0)
+			while (isBackendAvailable && RemainingFiltersToDownload > 0 && nodeCount > 0)
 			{
 				await Task.Delay(1000).ConfigureAwait(false);
 			}
