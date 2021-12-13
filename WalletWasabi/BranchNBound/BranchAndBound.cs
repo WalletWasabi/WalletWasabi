@@ -29,7 +29,7 @@ namespace WalletWasabi.BranchNBound
 			{
 				for (int i = 0; i < _bnbTryLimit; i++)
 				{
-					selectedCoins = RecursiveSearch(depth: 0, currentSelection: new List<Money>(), effValue: 0, target: target);
+					selectedCoins = RecursiveSearch(depth: 0, currentSelection: new List<Money>(), effValue: 0L, target: target);
 					if (CalcEffectiveValue(selectedCoins) == target + _costOfHeader + _costPerOutput)
 					{
 						return true;
