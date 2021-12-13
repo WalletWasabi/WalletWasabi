@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using WalletWasabi.Helpers;
 using static WalletWasabi.Tor.Http.Constants;

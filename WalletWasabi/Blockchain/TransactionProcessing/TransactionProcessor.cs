@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
@@ -8,7 +7,6 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.TransactionProcessing
@@ -229,6 +227,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					SmartCoin newCoin = new(tx, i, foundKey);
 
 					result.ReceivedCoins.Add(newCoin);
+
 					// If we did not have it.
 					if (Coins.TryAdd(newCoin))
 					{

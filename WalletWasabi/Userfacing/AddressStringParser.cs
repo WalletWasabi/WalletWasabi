@@ -1,6 +1,5 @@
 using NBitcoin;
 using NBitcoin.Payment;
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 

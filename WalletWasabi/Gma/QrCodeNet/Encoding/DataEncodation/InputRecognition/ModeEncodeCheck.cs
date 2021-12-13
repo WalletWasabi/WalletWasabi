@@ -1,5 +1,3 @@
-using System;
-
 namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 {
 	public static class ModeEncodeCheck

@@ -1,4 +1,3 @@
-using System;
 using Avalonia.Data.Converters;
 using Avalonia.Media.Imaging;
 using WalletWasabi.Fluent.Helpers;

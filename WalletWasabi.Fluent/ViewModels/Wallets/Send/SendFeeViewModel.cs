@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Concurrency;
@@ -51,7 +50,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void Complete()
 		{
-			Close(DialogResultKind.Normal, new FeeRate(FeeChart.GetSatoshiPerByte(FeeChart.CurrentConfirmationTarget)));
+			var blockTarget = FeeChart.CurrentConfirmationTarget;
+
+			Services.UiConfig.FeeTarget = (int)blockTarget;
+			Close(DialogResultKind.Normal, new FeeRate(FeeChart.GetSatoshiPerByte(blockTarget)));
 		}
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -88,14 +90,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				if (_isSilent)
 				{
-					var satPerByteThreshold = Services.Config.SatPerByteThreshold;
-					var blockTargetThreshold = Services.Config.BlockTargetThreshold;
-					var estimations = FeeChart.GetValues();
-
-					var blockTarget = GetBestBlockTarget(estimations, satPerByteThreshold, blockTargetThreshold);
-
-					FeeChart.CurrentConfirmationTarget = blockTarget;
-					_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(blockTarget);
+					_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(FeeChart.CurrentConfirmationTarget);
 
 					Complete();
 				}
@@ -104,19 +99,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					IsBusy = false;
 				}
 			});
-		}
-
-		private double GetBestBlockTarget(Dictionary<double, double> estimations, int satPerByteThreshold, int blockTargetThreshold)
-		{
-			var possibleBlockTargets =
-				estimations.OrderBy(x => x.Key).Where(x => x.Value <= satPerByteThreshold && x.Key <= blockTargetThreshold).ToArray();
-
-			if (possibleBlockTargets.Any())
-			{
-				return possibleBlockTargets.First().Key;
-			}
-
-			return blockTargetThreshold;
 		}
 
 		private TimeSpan CalculateConfirmationTime(double targetBlock)

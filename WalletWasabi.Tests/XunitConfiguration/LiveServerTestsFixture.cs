@@ -1,5 +1,4 @@
 using NBitcoin;
-using System;
 using System.Collections.Generic;
 
 namespace WalletWasabi.Tests.XunitConfiguration

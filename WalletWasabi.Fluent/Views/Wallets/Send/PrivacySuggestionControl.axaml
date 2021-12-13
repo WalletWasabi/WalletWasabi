@@ -6,7 +6,7 @@
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              xmlns:models="clr-namespace:WalletWasabi.Fluent.Models"
              mc:Ignorable="d"
-             x:DataType="vm:PrivacySuggestionControlViewModel"
+             x:DataType="vm:ChangeAvoidanceSuggestionViewModel"
              x:CompileBindings="True"
              ClipToBounds="False"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacySuggestionControl">
@@ -14,16 +14,13 @@
     <Border Name="PART_DecorationBorder" />
     <Border Name="PART_MainContentBorder">
       <StackPanel Spacing="20">
-        <Panel MinHeight="150" MinWidth="150">
+        <Panel MinHeight="80" MinWidth="100">
           <StackPanel Spacing="10" VerticalAlignment="Top">
             <Panel>
-              <Ellipse Stroke="{DynamicResource TextForegroundColor}" StrokeThickness="4" Height="115" Width="115" />
-              <Ellipse Stroke="{DynamicResource TextForegroundColor}" StrokeThickness="3" StrokeDashArray="2.0, 1.5"
-                       Height="100" Width="100" />
-              <PathIcon Data="{StaticResource btc_logo}" Height="50" Width="50"
+              <PathIcon Data="{StaticResource btc_logo}" Height="25" Width="25"
                         Foreground="{DynamicResource TextForegroundColor}" />
 
-              <Viewbox IsVisible="{Binding OptimisationLevelGood}" Height="48" Width="48" Margin="0 0  10 2"
+              <Viewbox IsVisible="{Binding OptimisationLevelGood}" Height="24" Width="24" Margin="0 0  10 2"
                        HorizontalAlignment="Right" VerticalAlignment="Bottom">
                 <Panel>
                   <Path

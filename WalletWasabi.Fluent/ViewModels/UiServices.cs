@@ -1,5 +1,3 @@
-using WalletWasabi.Helpers;
-
 namespace WalletWasabi.Fluent.ViewModels
 {
 	public static class UiServices

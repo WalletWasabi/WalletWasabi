@@ -120,9 +120,6 @@
       <Setter Property="AreaStroke" Value="{DynamicResource LineChartLineColor}" />
     </Style>
   </UserControl.Styles>
-  <UserControl.KeyBindings>
-    <KeyBinding Gesture="Enter" Command="{Binding NextCommand}" />
-  </UserControl.KeyBindings>
   <c:ContentArea Title="{Binding Title}"
                  Caption="Use the slider to choose your preference for how fast the transaction will be processed"
                  CancelContent="Cancel"

@@ -8,7 +8,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using NBitcoin;
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;

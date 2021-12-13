@@ -1,6 +1,5 @@
 using Moq;
 using NBitcoin;
-using System;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;

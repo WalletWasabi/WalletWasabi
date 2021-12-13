@@ -1,7 +1,6 @@
 using NBitcoin;
 using NBitcoin.RPC;
 using Nito.AsyncEx;
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -17,7 +16,6 @@ using WalletWasabi.CoinJoin.Coordinator.Participants;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.CoinJoin.Coordinator
 {
