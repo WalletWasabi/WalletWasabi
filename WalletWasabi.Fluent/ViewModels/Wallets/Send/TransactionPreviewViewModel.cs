@@ -389,9 +389,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			Navigate(NavigationTarget.CompactDialogScreen).To(labelDialog);
 
-			await labelDialog.GetDialogResultAsync();
+			var result = await labelDialog.GetDialogResultAsync();
 
-			var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
 			if (result.Result is null)
 			{
 				Navigate(NavigationTarget.CompactDialogScreen).Back();
