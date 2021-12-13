@@ -12,6 +12,10 @@ namespace WalletWasabi.BranchNBound
 		public Money CalcEffectiveValue(List<Money> list)
 		{
 			Money sum = Money.Satoshis(0);
+			if (list is not { })
+			{
+				return sum;
+			}
 
 			foreach (var item in list)
 			{
