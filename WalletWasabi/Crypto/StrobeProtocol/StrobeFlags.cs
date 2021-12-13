@@ -1,5 +1,3 @@
-using System;
-
 namespace WalletWasabi.Crypto.StrobeProtocol
 {
 	/// <summary>

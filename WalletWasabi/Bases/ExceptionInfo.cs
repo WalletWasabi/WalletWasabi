@@ -1,5 +1,3 @@
-using System;
-
 namespace WalletWasabi.Bases
 {
 	public class ExceptionInfo

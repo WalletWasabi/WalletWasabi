@@ -1,5 +1,4 @@
 using NBitcoin.Secp256k1;
-using System;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.Groups

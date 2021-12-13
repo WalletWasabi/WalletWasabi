@@ -1,5 +1,4 @@
 using NBitcoin.Secp256k1;
-using System;
 using System.Collections.Generic;
 using WalletWasabi.Crypto.Groups;
 using Xunit;

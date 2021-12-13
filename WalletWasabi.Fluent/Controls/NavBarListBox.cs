@@ -1,7 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Generators;
 using Avalonia.Styling;
-using System;
 using Avalonia;
 using Avalonia.Input;
 

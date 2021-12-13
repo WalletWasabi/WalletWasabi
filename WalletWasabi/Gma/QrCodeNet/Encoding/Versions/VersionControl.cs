@@ -1,5 +1,4 @@
 using Gma.QrCodeNet.Encoding.DataEncodation;
-using System;
 
 namespace Gma.QrCodeNet.Encoding.Versions
 {

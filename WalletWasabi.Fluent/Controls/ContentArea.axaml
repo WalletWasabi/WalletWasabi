@@ -70,7 +70,10 @@
                                             Classes="plain"
                                             Command="{Binding BackCommand}"
                                             IsVisible="{TemplateBinding EnableBack}">
-                                        <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
+                                      <i:Interaction.Behaviors>
+                                        <behaviors:ButtonExecuteCommandOnKeyDownBehavior IsEnabled="{Binding IsActive}" Key="Back"/>
+                                      </i:Interaction.Behaviors>
+                                      <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
                                     </Button>
                                     <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
                                 </DockPanel>

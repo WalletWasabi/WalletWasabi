@@ -1,5 +1,3 @@
-using System;
-
 namespace WalletWasabi.WebClients.PayJoin
 {
 	public class PayjoinException : Exception

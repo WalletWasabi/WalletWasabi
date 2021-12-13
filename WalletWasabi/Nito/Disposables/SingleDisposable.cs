@@ -1,5 +1,4 @@
 using Nito.Disposables.Internals;
-using System;
 using System.Threading;
 
 namespace Nito.Disposables

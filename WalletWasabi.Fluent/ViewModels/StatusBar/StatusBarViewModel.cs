@@ -1,9 +1,7 @@
-using System;
 using System.IO;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Threading;
 using System.Windows.Input;
 using NBitcoin.Protocol;
 using ReactiveUI;

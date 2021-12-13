@@ -1,5 +1,4 @@
 using Microsoft.Win32;
-using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;

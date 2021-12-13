@@ -1,4 +1,3 @@
-using System;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tor.Socks5.Models.Bases;
 using WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields;

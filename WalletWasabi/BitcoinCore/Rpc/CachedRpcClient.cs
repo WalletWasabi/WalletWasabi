@@ -2,7 +2,6 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
 using NBitcoin;
 using NBitcoin.RPC;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 

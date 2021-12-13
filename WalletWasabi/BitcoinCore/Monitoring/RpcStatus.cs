@@ -1,5 +1,3 @@
-using System;
-
 namespace WalletWasabi.BitcoinCore.Monitoring
 {
 	public class RpcStatus : IEquatable<RpcStatus>
