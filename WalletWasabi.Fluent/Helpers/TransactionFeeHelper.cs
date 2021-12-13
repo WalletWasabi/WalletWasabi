@@ -40,5 +40,12 @@ namespace WalletWasabi.Fluent.Helpers
 
 			return first.Value == last.Value;
 		}
+
+		public static TimeSpan CalculateConfirmationTime(double targetBlock)
+		{
+			var timeInMinutes = Math.Ceiling(targetBlock) * 10;
+			var time = TimeSpan.FromMinutes(timeInMinutes);
+			return time;
+		}
 	}
 }

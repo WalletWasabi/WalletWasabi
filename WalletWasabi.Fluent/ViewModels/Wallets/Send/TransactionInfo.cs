@@ -28,6 +28,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public FeeRate FeeRate { get; set; } = FeeRate.Zero;
 
+		public FeeRate? MaximumPossibleFeeRate { get; set; }
+
 		public TimeSpan ConfirmationTimeSpan { get; set; }
 
 		public IEnumerable<SmartCoin> Coins { get; set; } = Enumerable.Empty<SmartCoin>();
@@ -45,6 +47,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private void OnAmountChanged()
 		{
 			SubtractFee = default;
+			MaximumPossibleFeeRate = null;
 
 			if (!IsCustomFeeUsed)
 			{
