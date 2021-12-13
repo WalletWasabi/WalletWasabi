@@ -9,9 +9,6 @@
              x:DataType="authorization:HardwareWalletAuthDialogViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.Authorization.HardwareWalletAuthDialogView">
-  <UserControl.KeyBindings>
-    <KeyBinding Gesture="Enter" Command="{Binding NextCommand}" />
-  </UserControl.KeyBindings>
   <c:ContentArea Title="{Binding Title}"
                  Caption="Connect your hardware wallet, then press Continue to sign your transaction."
                  CancelContent="Cancel"

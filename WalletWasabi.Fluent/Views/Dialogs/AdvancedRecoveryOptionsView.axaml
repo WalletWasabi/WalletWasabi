@@ -10,9 +10,6 @@
              x:DataType="dialogs:AdvancedRecoveryOptionsViewModel"
              x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371">
-  <UserControl.KeyBindings>
-    <KeyBinding Gesture="Enter" Command="{Binding NextCommand}" />
-  </UserControl.KeyBindings>
   <UserControl.Styles>
     <Style Selector="TextBox /template/ DataValidationErrors">
       <Setter Property="MinHeight" Value="25" />
