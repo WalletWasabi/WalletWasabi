@@ -40,7 +40,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			NextCommand = ReactiveCommand.Create(() =>
 		   {
-			   _transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(FeeChart.CurrentConfirmationTarget);
+			   _transactionInfo.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(FeeChart.CurrentConfirmationTarget);
 
 			   Complete();
 		   });
@@ -70,7 +70,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(estimations =>
 				{
-					FeeChart.UpdateFeeEstimates(TransactionFeeHelper.GetFeeEstimates(_wallet));
+					FeeChart.UpdateFeeEstimates(TransactionFeeHelper.GetFeeEstimates(_wallet), _transactionInfo.MaximumPossibleFeeRate);
 				})
 				.DisposeWith(disposables);
 
@@ -81,7 +81,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					await Task.Delay(100);
 				}
 
-				FeeChart.UpdateFeeEstimates(TransactionFeeHelper.GetFeeEstimates(_wallet));
+				FeeChart.UpdateFeeEstimates(TransactionFeeHelper.GetFeeEstimates(_wallet), _transactionInfo.MaximumPossibleFeeRate);
 
 				if (_transactionInfo.FeeRate != FeeRate.Zero)
 				{
@@ -90,7 +90,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				if (_isSilent)
 				{
-					_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(FeeChart.CurrentConfirmationTarget);
+					_transactionInfo.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(FeeChart.CurrentConfirmationTarget);
 
 					Complete();
 				}
@@ -99,13 +99,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					IsBusy = false;
 				}
 			});
-		}
-
-		private TimeSpan CalculateConfirmationTime(double targetBlock)
-		{
-			var timeInMinutes = Math.Ceiling(targetBlock) * 10;
-			var time = TimeSpan.FromMinutes(timeInMinutes);
-			return time;
 		}
 	}
 }
