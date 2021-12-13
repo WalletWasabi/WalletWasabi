@@ -89,10 +89,7 @@
         <Button Classes="plain" Cursor="Hand" Command="{Binding BoostPrivacyCommand}"
                 IsVisible="{Binding BoostButtonVisible}"
                 ToolTip.Tip="Boost Privacy">
-          <StackPanel Orientation="Vertical" Spacing="10">
-            <PathIcon Data="{StaticResource rocket_regular}" />
-            <TextBlock Text="Boost Privacy" />
-          </StackPanel>
+          <PathIcon Data="{StaticResource rocket_regular}" />
         </Button>
         <Button Classes="plain" Cursor="Hand" Command="{Binding BoostPrivacyCommand}"
                 IsVisible="{Binding IsBoosting}"
