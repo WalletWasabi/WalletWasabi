@@ -1,6 +1,3 @@
-using System;
-using System.Diagnostics.CodeAnalysis;
-
 namespace Gma.QrCodeNet.Encoding
 {
 	public class TriStateMatrix : BitMatrixBase

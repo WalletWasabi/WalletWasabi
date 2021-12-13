@@ -1,9 +1,6 @@
-using System.Reactive.Disposables;
 using System.Windows.Input;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Interactivity;
 using Avalonia.Media;
 
 namespace WalletWasabi.Fluent.Controls

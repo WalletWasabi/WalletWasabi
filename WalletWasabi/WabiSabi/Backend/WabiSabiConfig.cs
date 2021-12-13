@@ -1,11 +1,9 @@
 using NBitcoin;
 using Newtonsoft.Json;
-using System;
 using System.ComponentModel;
 using WalletWasabi.Bases;
 using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.JsonConverters.Timing;
-using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.WabiSabi.Backend
 {

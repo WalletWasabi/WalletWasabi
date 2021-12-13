@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using NBitcoin;
-using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.Decomposition;
 
 namespace WalletWasabi.WabiSabi.Client

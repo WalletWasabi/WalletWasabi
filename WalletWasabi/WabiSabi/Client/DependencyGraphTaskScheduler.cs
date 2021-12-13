@@ -1,14 +1,10 @@
 using NBitcoin;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
-using WalletWasabi.WabiSabi.Crypto;
-using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client
 {

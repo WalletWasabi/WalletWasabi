@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 
 namespace WalletWasabi.WabiSabi.Client.CredentialDependencies

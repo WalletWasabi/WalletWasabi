@@ -1,11 +1,9 @@
-using System;
 using System.Linq;
 using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
-using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Crypto
 {

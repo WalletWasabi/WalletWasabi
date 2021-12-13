@@ -1,7 +1,5 @@
-using System;
 using System.Collections.ObjectModel;
 using ReactiveUI;
-using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles

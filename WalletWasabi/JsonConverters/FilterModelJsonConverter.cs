@@ -1,5 +1,4 @@
 using Newtonsoft.Json;
-using System;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Helpers;
 

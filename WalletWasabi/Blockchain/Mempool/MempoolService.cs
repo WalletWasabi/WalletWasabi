@@ -1,9 +1,7 @@
 using NBitcoin;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
