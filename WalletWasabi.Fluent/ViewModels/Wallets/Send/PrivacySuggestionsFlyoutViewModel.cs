@@ -2,7 +2,9 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -39,6 +41,11 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 		Suggestions.Clear();
 		SelectedSuggestion = null;
+
+		if (!info.IsPrivate)
+		{
+			Suggestions.Add(new PocketSuggestionViewModel(SmartLabel.Merge(transaction.SpentCoins.Select(x => CoinHelpers.GetLabels(x)))));
+		}
 
 		foreach (var suggestion in suggestions)
 		{

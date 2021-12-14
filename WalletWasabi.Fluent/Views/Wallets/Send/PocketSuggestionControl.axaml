@@ -1,0 +1,56 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:send="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="450"
+             x:CompileBindings="True"
+             x:DataType="send:PocketSuggestionViewModel"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PocketSuggestionControl">
+  <Panel>
+    <Border Name="PART_DecorationBorder" />
+    <Border Name="PART_MainContentBorder">
+      <StackPanel Spacing="20">
+        <PathIcon DockPanel.Dock="Top" Data="{StaticResource incognito_filled}" Height="25" Width="25"
+                  Foreground="{DynamicResource TextForegroundColor}" />
+
+        <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap" Text="Various people or companies could become aware of this transaction including..." />
+
+        <DockPanel LastChildFill="False" HorizontalAlignment="Center">
+          <c:TagsBox Padding="0"
+                     Margin="0"
+                     MinWidth="0"
+                     BorderThickness="0"
+                     DockPanel.Dock="Left"
+                     IsReadOnly="True"
+                     Items="{Binding Labels}"
+                     HorizontalAlignment="Stretch"
+                     VerticalAlignment="Center" />
+          <Button Classes="labelFlyout"
+                  DockPanel.Dock="Left"
+                  IsVisible="{Binding !!FilteredLabels.Count}"
+                  Content="..."
+                  Margin="0 4 0 0">
+            <Button.Flyout>
+              <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="TransientWithDismissOnPointerMoveAway">
+                <c:TagsBox IsReadOnly="True"
+                           Items="{Binding FilteredLabels}" />
+              </Flyout>
+            </Button.Flyout>
+            <ToolTip.Tip>
+              <Panel>
+                <c:TagsBox IsReadOnly="True"
+                           Margin="4,6,0,0"
+                           Items="{Binding FilteredLabels}" />
+              </Panel>
+            </ToolTip.Tip>
+          </Button>
+        </DockPanel>
+
+        <TextBlock Text="Customize this?." TextWrapping="Wrap" HorizontalAlignment="Center" />
+
+      </StackPanel>
+    </Border>
+  </Panel>
+</UserControl>

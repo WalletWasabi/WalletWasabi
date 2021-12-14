@@ -77,15 +77,16 @@
                         </Style>
 
                         <Style Selector="ListBoxItem Border#PART_MainContentBorder">
-                          <Setter Property="Padding" Value="30,45,30,40" />
+                          <Setter Property="Padding" Value="15,25,15,25" />
                           <Setter Property="CornerRadius" Value="4" />
-                          <Setter Property="Margin" Value="5" />
+                          <Setter Property="MaxWidth" Value="250" />
+                          <Setter Property="MaxHeight" Value="300" />
                         </Style>
 
                         <Style Selector="ListBoxItem Border#PART_DecorationBorder">
-                          <Setter Property="Padding" Value="15 30 15 30" />
+                          <Setter Property="Padding" Value="15 25 15 25" />
                           <Setter Property="CornerRadius" Value="4" />
-                          <Setter Property="Margin" Value="14" />
+                          <Setter Property="Margin" Value="5" />
 
                           <Setter Property="BorderBrush" Value="#14FFFFFF" />
                           <Setter Property="BorderThickness" Value="1" />
@@ -114,7 +115,10 @@
                       </ListBox.ItemsPanel>
                       <ListBox.DataTemplates>
                         <DataTemplate DataType="vm:ChangeAvoidanceSuggestionViewModel">
-                          <send:PrivacySuggestionControl />
+                          <send:ChangeAvoidanceSuggestionControl />
+                        </DataTemplate>
+                        <DataTemplate DataType="vm:PocketSuggestionViewModel">
+                          <send:PocketSuggestionControl />
                         </DataTemplate>
                       </ListBox.DataTemplates>
                     </ListBox>

@@ -9,7 +9,7 @@
              x:DataType="vm:ChangeAvoidanceSuggestionViewModel"
              x:CompileBindings="True"
              ClipToBounds="False"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacySuggestionControl">
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.ChangeAvoidanceSuggestionControl">
   <Panel>
     <Border Name="PART_DecorationBorder" />
     <Border Name="PART_MainContentBorder">

@@ -61,14 +61,21 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				});
 
 			PrivacySuggestions.WhenAnyValue(x => x.SelectedSuggestion)
-				.Subscribe(x =>
+				.Subscribe(async x =>
 				{
 					PrivacySuggestions.IsOpen = false;
 					PrivacySuggestions.SelectedSuggestion = null;
 
-					if (x is { })
+					if (x is ChangeAvoidanceSuggestionViewModel changeAvoidance)
 					{
-						UpdateTransaction(CurrentTransactionSummary, x.TransactionResult);
+						if (x.TransactionResult is { })
+						{
+							UpdateTransaction(CurrentTransactionSummary, x.TransactionResult);
+						}
+					}
+					else if (x is PocketSuggestionViewModel)
+					{
+						await OnChangePocketsAsync();
 					}
 				});
 
@@ -114,8 +121,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					await OnAdjustFeeAsync();
 				}
 			});
-
-			ChangePocketsCommand = ReactiveCommand.CreateFromTask(OnChangePocketsAsync);
 		}
 
 		public TransactionSummaryViewModel CurrentTransactionSummary { get; }
@@ -129,8 +134,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public bool PreferPsbtWorkflow => _wallet.KeyManager.PreferPsbtWorkflow;
 
 		public ICommand AdjustFeeCommand { get; }
-
-		public ICommand ChangePocketsCommand { get; }
 
 		private async Task ShowAdvancedDialogAsync()
 		{
@@ -312,7 +315,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private async Task<BuildTransactionResult?> HandleInsufficientBalanceWhenNormalAsync(Wallet wallet, TransactionInfo transactionInfo)
 		{
-			var dialog = new InsufficientBalanceDialogViewModel(transactionInfo.IsPrivatePocketUsed
+			var dialog = new InsufficientBalanceDialogViewModel(transactionInfo.IsPrivate
 				? BalanceType.Private
 				: BalanceType.Pocket);
 
@@ -349,7 +352,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			if (wallet.Coins.TotalAmount() > transactionInfo.Amount)
 			{
 				await ShowErrorAsync("Transaction Building",
-					$"There are not enough {(transactionInfo.IsPrivatePocketUsed ? "private funds" : "funds selected")} to cover the transaction fee",
+					$"There are not enough {(transactionInfo.IsPrivate ? "private funds" : "funds selected")} to cover the transaction fee",
 					"Wasabi was unable to create your transaction.");
 
 				var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(wallet, transactionInfo, false),
