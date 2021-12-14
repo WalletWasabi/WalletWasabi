@@ -55,7 +55,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 		public void SelectTransaction(uint256 txid)
 		{
-			var txnItem = Transactions.FirstOrDefault(x => x.Id == txid);
+			var txnItem = Transactions.FirstOrDefault(item =>
+			{
+				if (item is CoinJoinsHistoryItemViewModel cjGroup)
+				{
+					return cjGroup.CoinJoinTransactions.Any(x => x.TransactionId == txid);
+				}
+
+				return item.Id == txid;
+			});
 
 			if (txnItem is { })
 			{
