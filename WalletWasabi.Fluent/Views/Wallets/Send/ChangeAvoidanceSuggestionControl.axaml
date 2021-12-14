@@ -5,10 +5,11 @@
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              xmlns:models="clr-namespace:WalletWasabi.Fluent.Models"
-             mc:Ignorable="d"
+             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="450"
              x:DataType="vm:ChangeAvoidanceSuggestionViewModel"
              x:CompileBindings="True"
              ClipToBounds="False"
+
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.ChangeAvoidanceSuggestionControl">
   <Panel>
     <Border Name="PART_DecorationBorder" />
@@ -17,7 +18,7 @@
         <Panel MinHeight="80" MinWidth="100">
           <StackPanel Spacing="10" VerticalAlignment="Top">
             <Panel>
-              <PathIcon Data="{StaticResource btc_logo}" Height="25" Width="25"
+              <PathIcon Data="{StaticResource paper_cash_regular}" Height="25" Width="25"
                         Foreground="{DynamicResource TextForegroundColor}" />
 
               <Viewbox IsVisible="{Binding OptimisationLevelGood}" Height="24" Width="24" Margin="0 0  10 2"
@@ -38,6 +39,9 @@
               </Viewbox>
             </Panel>
 
+            <TextBlock TextWrapping="Wrap" Text="This transaction creates change on the blockchain. Avoiding this improves your privacy. Instead you can:" />
+
+            <TextBlock Text="Send:" FontSize="12" Opacity="0.8" />
             <TextBlock Text="{Binding Amount}" FontSize="20" HorizontalAlignment="Center" />
             <TextBlock Text="{Binding AmountFiat}" FontSize="12" HorizontalAlignment="Center" Opacity="0.6" />
           </StackPanel>

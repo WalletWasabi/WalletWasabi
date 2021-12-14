@@ -110,9 +110,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 			smallerSuggestion = new ChangeAvoidanceSuggestionViewModel(
 				transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), smallerTransaction,
-				PrivacyOptimisationLevel.Better, wallet.Synchronizer.UsdExchangeRate, false,
-				new PrivacySuggestionBenefit(true, "Improved Privacy"),
-				new PrivacySuggestionBenefit(false, "No change, less trace"));
+				PrivacyOptimisationLevel.Better, wallet.Synchronizer.UsdExchangeRate, false);
 		}
 
 		var defaultSelection = new ChangeAvoidanceSuggestionViewModel(
@@ -129,9 +127,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 		var largerSuggestion = new ChangeAvoidanceSuggestionViewModel(
 			transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), largerTransaction,
-			PrivacyOptimisationLevel.Better, wallet.Synchronizer.UsdExchangeRate, false,
-			new PrivacySuggestionBenefit(true, "Improved Privacy"),
-			new PrivacySuggestionBenefit(false, "No change, less trace"));
+			PrivacyOptimisationLevel.Better, wallet.Synchronizer.UsdExchangeRate, false);
 
 		// There are several scenarios, both the alternate suggestions are <, or >, or 1 < and 1 >.
 		// We sort them and add the suggestions accordingly.
