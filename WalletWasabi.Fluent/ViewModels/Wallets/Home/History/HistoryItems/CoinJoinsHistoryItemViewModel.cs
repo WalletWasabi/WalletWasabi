@@ -33,14 +33,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems
 				throw new InvalidOperationException("Not a coinjoin item!");
 			}
 
-			CoinJoinTransactions.Add(item);
+			CoinJoinTransactions.Insert(0,item);
 			Refresh();
 		}
 
 		private void Refresh()
 		{
 			IsConfirmed = CoinJoinTransactions.All(x => x.IsConfirmed());
-			Date = CoinJoinTransactions.Last().DateTime.ToLocalTime();
+			Date = CoinJoinTransactions.First().DateTime.ToLocalTime();
 			UpdateAmount();
 			UpdateDateString();
 		}
