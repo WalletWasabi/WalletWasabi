@@ -35,8 +35,8 @@ namespace WalletWasabi.WabiSabi.Client
 			var remaining = inputs.Sum();
 
 			var denoms = histogram
-				.OrderByDescending(x => x.Key)
 				.Where(x => x.Value > 1)
+				.OrderByDescending(x => x.Key)
 				.Select(x => x.Key)
 				.ToArray();
 
