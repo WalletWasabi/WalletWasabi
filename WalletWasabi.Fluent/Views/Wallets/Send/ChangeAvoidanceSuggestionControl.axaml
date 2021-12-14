@@ -39,7 +39,7 @@
               </Viewbox>
             </Panel>
 
-            <TextBlock TextWrapping="Wrap" Text="This transaction creates change on the blockchain. Avoiding this improves your privacy. Instead you can:" />
+            <TextBlock TextWrapping="Wrap" Text="Your transaction will create change on the blockchain. Avoiding this improves your privacy. Instead you could..." />
 
             <TextBlock Text="Send:" FontSize="12" Opacity="0.8" />
             <TextBlock Text="{Binding Amount}" FontSize="20" HorizontalAlignment="Center" />

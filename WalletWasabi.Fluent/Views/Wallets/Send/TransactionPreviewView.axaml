@@ -47,6 +47,11 @@
           </Border>
 
           <Border Cursor="Hand" Padding="10 0 10 10">
+            <Border.Styles>
+              <Style Selector="FlyoutPresenter">
+                <Setter Property="MaxWidth" Value="1000" />
+              </Style>
+            </Border.Styles>
             <Interaction.Behaviors>
               <behaviors:BindableFlyoutOpenBehavior IsOpen="{Binding PrivacySuggestions.IsOpen}" />
             </Interaction.Behaviors>

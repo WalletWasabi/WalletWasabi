@@ -50,7 +50,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			PrivacySuggestions.WhenAnyValue(x => x.PreviewSuggestion)
 				.Subscribe(x =>
 				{
-					if (x is { })
+					if (x is { } && x.TransactionResult is { })
 					{
 						UpdateTransaction(PreviewTransactionSummary, x.TransactionResult);
 					}
