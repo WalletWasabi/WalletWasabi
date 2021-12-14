@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using NBitcoin;
+using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Models.Decomposition;
 
 namespace WalletWasabi.WabiSabi.Client
@@ -75,12 +76,18 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private Dictionary<Money, long> GetDenominationFrequency(IEnumerable<Coin> allInputCoins)
 		{
-			var secondLargestInput = allInputCoins.OrderByDescending(x => x.Amount).Skip(1).FirstOrDefault();
-			IEnumerable<Money> demonsForBreakDown = StandardDenominationsPlusFee.Where(x => secondLargestInput is null || x <= secondLargestInput.EffectiveValue(FeeRate));
+			IEnumerable<Money> fakeUsersAmounts = allInputCoins
+				.Select(x => x.EffectiveValue(FeeRate))
+				.CombinationsWithoutRepetition(1, 4)
+				.Select(x => x.Sum())
+				.Where(x => x < Constants.MaximumNumberOfSatoshis)
+				.ToImmutableArray();
+			var secondLargestInput = fakeUsersAmounts.OrderByDescending(x => x).Skip(1).FirstOrDefault();
+			IEnumerable<Money> demonsForBreakDown = StandardDenominationsPlusFee.Where(x => secondLargestInput is null || x <= secondLargestInput);
 
 			Dictionary<Money, long> denomProbabilities = new();
 
-			foreach (var input in allInputCoins)
+			foreach (var input in fakeUsersAmounts)
 			{
 				foreach (var denom in BreakDown(input, demonsForBreakDown))
 				{
@@ -94,9 +101,9 @@ namespace WalletWasabi.WabiSabi.Client
 			return denomProbabilities;
 		}
 
-		private IEnumerable<Money> BreakDown(Coin coin, IEnumerable<Money> denominations)
+		private IEnumerable<Money> BreakDown(long amount, IEnumerable<Money> denominations)
 		{
-			var remaining = coin.EffectiveValue(FeeRate);
+			var remaining = amount;
 
 			foreach (var denomPlusFee in denominations)
 			{
