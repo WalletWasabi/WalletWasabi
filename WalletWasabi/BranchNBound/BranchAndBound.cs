@@ -1,6 +1,7 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,7 +23,7 @@ namespace WalletWasabi.BranchNBound
 			UtxoSorted = utxos.OrderByDescending(x => x.Satoshi).ToArray();
 		}
 
-		public bool TryGetExactMatch(Money target, out List<Money> selectedCoins)
+		public bool TryGetExactMatch(Money target, [NotNullWhen(true)] out List<Money> selectedCoins)
 		{
 			selectedCoins = new List<Money>();
 			try
