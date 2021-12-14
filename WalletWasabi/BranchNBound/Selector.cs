@@ -9,7 +9,7 @@ namespace WalletWasabi.BranchNBound
 {
 	public class Selector
 	{
-		public Money CalcEffectiveValue(List<Money> list)
+		public Money CalcEffectiveValue(List<Money>? list)
 		{
 			Money sum = Money.Satoshis(0);
 			if (list is not { })
