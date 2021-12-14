@@ -1,10 +1,5 @@
 using NBitcoin;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.BranchNBound;
 using Xunit;
 
@@ -48,19 +43,6 @@ namespace WalletWasabi.Tests.UnitTests
 
 			RecursiveCoinSelector selector = new();
 			Assert.True(selector.TryBranchAndBound(utxos, target, maxTolerance, toleranceIncrement, out List<Money> selectedCoins));
-			Assert.Equal(expectedCoins, selectedCoins);
-		}
-
-		[Fact]
-		public void NodesLogicSimpleTest()
-		{
-			var utxos = new List<Money> { Money.Satoshis(12), Money.Satoshis(10), Money.Satoshis(10), Money.Satoshis(5), Money.Satoshis(4) };
-			var expectedCoins = new List<Money> { Money.Satoshis(10), Money.Satoshis(5), Money.Satoshis(4) };
-
-			ulong target = Money.Satoshis(19);
-
-			TreeBranchCoinSelector selector = new();
-			Assert.True(selector.TryTreeLogic(utxos, target, out List<Money> selectedCoins));
 			Assert.Equal(expectedCoins, selectedCoins);
 		}
 
