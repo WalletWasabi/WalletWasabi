@@ -7,7 +7,7 @@ namespace WalletWasabi.Tests.UnitTests
 {
 	public class BranchAndBoundSelectionTests
 	{
-		private static Random Random = new Random();
+		private static Random Random { get; } = new();
 		private static List<Money> AvailableCoins = GenList();
 
 		private static List<Money> GenList()
