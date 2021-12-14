@@ -40,7 +40,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems
 		private void Refresh()
 		{
 			IsConfirmed = CoinJoinTransactions.All(x => x.IsConfirmed());
-			Date = CoinJoinTransactions.First().DateTime.ToLocalTime();
+			Date = CoinJoinTransactions.Select(tx => tx.DateTime).Max().ToLocalTime();
 			UpdateAmount();
 			UpdateDateString();
 		}
