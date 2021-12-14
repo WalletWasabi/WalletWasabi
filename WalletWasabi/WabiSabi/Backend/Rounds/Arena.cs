@@ -73,26 +73,34 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				&& x.IsInputRegistrationEnded(Config.MaxInputCountByRound))
 				.ToArray())
 			{
-				await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false))
+				try
 				{
-					if (offendingAlices.Any())
+					await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false))
 					{
-						round.Alices.RemoveAll(x => offendingAlices.Contains(x));
+						if (offendingAlices.Any())
+						{
+							round.Alices.RemoveAll(x => offendingAlices.Contains(x));
+						}
 					}
-				}
 
-				if (round.InputCount < Config.MinInputCountByRound)
-				{
-					if (!round.InputRegistrationTimeFrame.HasExpired)
+					if (round.InputCount < Config.MinInputCountByRound)
 					{
-						continue;
+						if (!round.InputRegistrationTimeFrame.HasExpired)
+						{
+							continue;
+						}
+						round.SetPhase(Phase.Ended);
+						round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase.");
 					}
-					round.SetPhase(Phase.Ended);
-					round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase.");
+					else if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
+					{
+						round.SetPhase(Phase.ConnectionConfirmation);
+					}
 				}
-				else if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
+				catch (Exception ex)
 				{
-					round.SetPhase(Phase.ConnectionConfirmation);
+					round.SetPhase(Phase.Ended);
+					round.LogError(ex.Message);
 				}
 			}
 		}
