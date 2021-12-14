@@ -101,44 +101,52 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			foreach (var round in Rounds.Where(x => x.Phase == Phase.ConnectionConfirmation).ToArray())
 			{
-				if (round.Alices.All(x => x.ConfirmedConnection))
+				try
 				{
-					round.SetPhase(Phase.OutputRegistration);
-				}
-				else if (round.ConnectionConfirmationTimeFrame.HasExpired)
-				{
-					var alicesDidntConfirm = round.Alices.Where(x => !x.ConfirmedConnection).ToArray();
-					foreach (var alice in alicesDidntConfirm)
-					{
-						Prison.Note(alice, round.Id);
-					}
-					var removedAliceCount = round.Alices.RemoveAll(x => alicesDidntConfirm.Contains(x));
-					round.LogInfo($"{removedAliceCount} alices removed because they didn't confirm.");
-
-					// Once an input is confirmed and non-zero credentials are issued, it must be included and must provide a
-					// a signature for a valid transaction to be produced, therefore this is the last possible opportunity to
-					// remove any spent inputs.
-					if (round.InputCount >= Config.MinInputCountByRound)
-					{
-						await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false))
-						{
-							if (offendingAlices.Any())
-							{
-								var removed = round.Alices.RemoveAll(x => offendingAlices.Contains(x));
-								round.LogInfo($"There were {removed} alices removed because they spent the registered UTXO.");
-							}
-						}
-					}
-
-					if (round.InputCount < Config.MinInputCountByRound)
-					{
-						round.SetPhase(Phase.Ended);
-						round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.ConnectionConfirmation)} phase.");
-					}
-					else
+					if (round.Alices.All(x => x.ConfirmedConnection))
 					{
 						round.SetPhase(Phase.OutputRegistration);
 					}
+					else if (round.ConnectionConfirmationTimeFrame.HasExpired)
+					{
+						var alicesDidntConfirm = round.Alices.Where(x => !x.ConfirmedConnection).ToArray();
+						foreach (var alice in alicesDidntConfirm)
+						{
+							Prison.Note(alice, round.Id);
+						}
+						var removedAliceCount = round.Alices.RemoveAll(x => alicesDidntConfirm.Contains(x));
+						round.LogInfo($"{removedAliceCount} alices removed because they didn't confirm.");
+
+						// Once an input is confirmed and non-zero credentials are issued, it must be included and must provide a
+						// a signature for a valid transaction to be produced, therefore this is the last possible opportunity to
+						// remove any spent inputs.
+						if (round.InputCount >= Config.MinInputCountByRound)
+						{
+							await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false))
+							{
+								if (offendingAlices.Any())
+								{
+									var removed = round.Alices.RemoveAll(x => offendingAlices.Contains(x));
+									round.LogInfo($"There were {removed} alices removed because they spent the registered UTXO.");
+								}
+							}
+						}
+
+						if (round.InputCount < Config.MinInputCountByRound)
+						{
+							round.SetPhase(Phase.Ended);
+							round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.ConnectionConfirmation)} phase.");
+						}
+						else
+						{
+							round.SetPhase(Phase.OutputRegistration);
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					round.SetPhase(Phase.Ended);
+					round.LogError(ex.Message);
 				}
 			}
 		}
@@ -147,31 +155,39 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			foreach (var round in Rounds.Where(x => x.Phase == Phase.OutputRegistration).ToArray())
 			{
-				var allReady = round.Alices.All(a => a.ReadyToSign);
-
-				if (allReady || round.OutputRegistrationTimeFrame.HasExpired)
+				try
 				{
-					var coinjoin = round.Assert<ConstructionState>();
+					var allReady = round.Alices.All(a => a.ReadyToSign);
 
-					round.LogInfo($"{coinjoin.Inputs.Count} inputs were added.");
-					round.LogInfo($"{coinjoin.Outputs.Count} outputs were added.");
-
-					long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate));
-					long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
-					var diff = aliceSum - bobSum;
-
-					// If timeout we must fill up the outputs to build a reasonable transaction.
-					// This won't be signed by the alice who failed to provide output, so we know who to ban.
-					var diffMoney = Money.Satoshis(diff) - coinjoin.Parameters.FeeRate.GetFee(Config.BlameScript.EstimateOutputVsize());
-					if (!allReady && diffMoney > coinjoin.Parameters.AllowedOutputAmounts.Min)
+					if (allReady || round.OutputRegistrationTimeFrame.HasExpired)
 					{
-						coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, Config.BlameScript));
-						round.LogInfo("Filled up the outputs to build a reasonable transaction because some alice failed to provide its output.");
+						var coinjoin = round.Assert<ConstructionState>();
+
+						round.LogInfo($"{coinjoin.Inputs.Count} inputs were added.");
+						round.LogInfo($"{coinjoin.Outputs.Count} outputs were added.");
+
+						long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate));
+						long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
+						var diff = aliceSum - bobSum;
+
+						// If timeout we must fill up the outputs to build a reasonable transaction.
+						// This won't be signed by the alice who failed to provide output, so we know who to ban.
+						var diffMoney = Money.Satoshis(diff) - coinjoin.Parameters.FeeRate.GetFee(Config.BlameScript.EstimateOutputVsize());
+						if (!allReady && diffMoney > coinjoin.Parameters.AllowedOutputAmounts.Min)
+						{
+							coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, Config.BlameScript));
+							round.LogInfo("Filled up the outputs to build a reasonable transaction because some alice failed to provide its output.");
+						}
+
+						round.CoinjoinState = coinjoin.Finalize();
+
+						round.SetPhase(Phase.TransactionSigning);
 					}
-
-					round.CoinjoinState = coinjoin.Finalize();
-
-					round.SetPhase(Phase.TransactionSigning);
+				}
+				catch (Exception ex)
+				{
+					round.SetPhase(Phase.Ended);
+					round.LogError(ex.Message);
 				}
 			}
 		}
