@@ -19,7 +19,7 @@ namespace WalletWasabi.BranchNBound
 
 		public bool TryBranchAndBound(List<Money> coins, Money target, ulong maxTolerance, ulong toleranceIncrement, out List<Money> finalCoins)
 		{
-			var coinsDescending = coins.OrderBy(x => x);
+			var coinsAscending = coins.OrderBy(x => x);
 			finalCoins = new List<Money>();
 			Tolerance = 0UL;
 			var currentCoins = new List<Money>();
@@ -28,7 +28,7 @@ namespace WalletWasabi.BranchNBound
 			{
 				while (Tolerance <= maxTolerance)
 				{
-					Stack<Money> pool = new Stack<Money>(coinsDescending);
+					Stack<Money> pool = new Stack<Money>(coinsAscending);
 					finalCoins = SearchForCoins(currentCoins, target, Tolerance, pool);
 					if (finalCoins.Any())
 					{
