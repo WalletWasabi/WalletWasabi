@@ -60,7 +60,7 @@
                       IsOpen="{Binding PrivacySuggestions.IsOpen, Mode=OneWayToSource}">
                 <Panel DataContext="{Binding PrivacySuggestions}">
                   <DockPanel>
-                    <TextBlock Text="Suggestions to improve your privacy!" HorizontalAlignment="Center" DockPanel.Dock="Top" />
+                    <TextBlock Text="Suggestions to improve your privacy" HorizontalAlignment="Center" DockPanel.Dock="Top" />
 
                     <ListBox DockPanel.Dock="Top" Background="Transparent" VerticalAlignment="Center"
                              HorizontalAlignment="Center"
