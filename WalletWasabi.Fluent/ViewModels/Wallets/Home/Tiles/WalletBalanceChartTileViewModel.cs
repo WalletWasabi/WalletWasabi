@@ -27,6 +27,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			Animator = new LineChartAnimatorViewModel();
 
+			Placeholder = new LineChartPlaceholderViewModel();
+
 			TimePeriodOptions = new ObservableCollection<TimePeriodOptionViewModel>();
 
 			foreach (var item in (TimePeriodOption[])Enum.GetValues(typeof(TimePeriodOption)))
@@ -42,6 +44,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		}
 
 		public LineChartAnimatorViewModel Animator { get; }
+
+		public LineChartPlaceholderViewModel Placeholder { get; }
 
 		public ObservableCollection<TimePeriodOptionViewModel> TimePeriodOptions { get; }
 
