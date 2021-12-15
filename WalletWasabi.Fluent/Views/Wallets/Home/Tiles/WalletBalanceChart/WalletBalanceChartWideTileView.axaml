@@ -54,6 +54,11 @@
                      XAxisValues="{Binding Placeholder.XValues}"
                      YAxisValues="{Binding Placeholder.YValues}"
                      IsVisible="{Binding IsEmptyWallet}" />
+        <TextBlock Classes="h6 bold"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Center"
+                   IsVisible="{Binding IsEmptyWallet}"
+                   Text="Nothing to see here yet." />
       </Panel>
     </c:PrivacyContentControl>
   </DockPanel>
