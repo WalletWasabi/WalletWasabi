@@ -11,27 +11,43 @@ namespace WalletWasabi.BranchNBound
 {
 	public class BranchAndBound : Selector
 	{
-		private Money _costOfHeader = Money.Satoshis(0);
-		private Money _costPerOutput = Money.Satoshis(0);
-		private int _bnbTryLimit = 5;
-		private Random _random = new();
-
-		private Money[] UtxoSorted { get; set; }
-
-		public BranchAndBound(List<Money> utxos)
+		private enum NextAction
 		{
-			UtxoSorted = utxos.OrderByDescending(x => x.Satoshi).ToArray();
+			AandB,
+			BandA,
+			A,
+			B,
+			Backtrack
 		}
 
-		public bool TryGetExactMatch(Money target, [NotNullWhen(true)] out List<Money> selectedCoins)
+		private readonly Random _random = new();
+
+		private long[] SortedUTXOs { get; }
+		private int Count { get; }
+
+		public BranchAndBound(List<Money> availableCoins)
 		{
+			Count = availableCoins.Count;
+			SortedUTXOs = availableCoins.OrderByDescending(x => x.Satoshi).Select(c => c.Satoshi).ToArray();
+		}
+
+		public bool TryGetExactMatch(Money target, [NotNullWhen(true)] out List<Money>? selectedCoins)
+		{
+			if (SortedUTXOs.Sum() < target)
+			{
+				selectedCoins = null;
+				return false;
+			}
+
 			selectedCoins = new List<Money>();
+
 			try
 			{
-				for (int i = 0; i < _bnbTryLimit; i++)
+				if (RecursiveSearch(target.Satoshi, out long[]? solution))
 				{
-					selectedCoins = RecursiveSearch(depth: 0, currentSelection: new List<Money>(), effValue: 0L, target: target);
-					if (CalcEffectiveValue(selectedCoins) == target + _costOfHeader + _costPerOutput)
+					selectedCoins = solution.Where(c => c > 0).Select(c => Money.Satoshis(c)).ToList();
+
+					if (CalcEffectiveValue(selectedCoins) == target)
 					{
 						return true;
 					}
@@ -46,68 +62,94 @@ namespace WalletWasabi.BranchNBound
 			}
 		}
 
-		private List<Money>? RecursiveSearch(int depth, List<Money> currentSelection, Money effValue, Money target)
+		private bool RecursiveSearch(long target, [NotNullWhen(true)] out long[]? solution)
 		{
-			var targetForMatch = target + _costOfHeader + _costPerOutput;
-			var matchRange = _costOfHeader + _costPerOutput;
+			// Current effective value.
+			long effValue = 0L;
 
-			if (effValue > targetForMatch + matchRange)
+			// Current depth.
+			int depth = 0;
+
+			solution = new long[Count];
+			NextAction[] actions = new NextAction[Count];
+			actions[0] = GetRandomNextAction();
+
+			do
 			{
-				return null;        // Excessive funds, cut the branch!
-			}
-			else if (effValue >= targetForMatch)
-			{
-				return currentSelection;        // Match found!
-			}
-			else if (depth >= UtxoSorted.Length)
-			{
-				return null;        // Leaf reached, no match
-			}
-			else
-			{
-				if (_random.Next(0, 2) == 1)
+				NextAction step = actions[depth];
+
+				// Branch WITH the UTXO included.
+				if ((step == NextAction.AandB) || (step == NextAction.A))
 				{
-					var clonedSelection = currentSelection.ToList();
-					clonedSelection.Add(UtxoSorted[depth]);
+					actions[depth] = GetNextStep(step);
 
-					var withThis = RecursiveSearch(depth + 1, clonedSelection, effValue + UtxoSorted[depth], target);
-					if (withThis != null)
-					{
-						return withThis;
-					}
-					else
-					{
-						var withoutThis = RecursiveSearch(depth + 1, currentSelection, effValue, target);
-						if (withoutThis != null)
-						{
-							return withoutThis;
-						}
+					solution[depth] = SortedUTXOs[depth];
+					effValue += SortedUTXOs[depth];
 
-						return null;
+					if (effValue > target)
+					{
+						// Excessive funds, cut the branch!
+						continue;
 					}
+					else if (effValue == target)
+					{
+						// Match found!
+						return true;
+					}
+					else if (depth + 1 == Count)
+					{
+						// Leaf reached, no match
+						continue;
+					}
+
+					depth++;
+					actions[depth] = GetRandomNextAction();
+				}
+				else if ((step == NextAction.BandA) || (step == NextAction.B))
+				{
+					actions[depth] = GetNextStep(step);
+
+					// Branch WITHOUT the UTXO included.
+					effValue -= solution[depth];
+					solution[depth] = 0L;
+
+					if (depth + 1 == Count)
+					{
+						// Leaf reached, no match
+						continue;
+					}
+
+					depth++;
+					actions[depth] = GetRandomNextAction();
 				}
 				else
 				{
-					var withoutThis = RecursiveSearch(depth + 1, currentSelection, effValue, target);
-					if (withoutThis != null)
-					{
-						return withoutThis;
-					}
-					else
-					{
-						var clonedSelection = currentSelection.ToList();
-						clonedSelection.Add(UtxoSorted[depth]);
-
-						var withThis = RecursiveSearch(depth + 1, clonedSelection, effValue + UtxoSorted[depth], target);
-						if (withThis != null)
-						{
-							return withThis;
-						}
-
-						return null;
-					}
+					effValue -= solution[depth];
+					solution[depth] = 0;
+					depth--;
 				}
 			}
+			while (depth >= 0);
+
+			return false;
+		}
+
+		private NextAction GetRandomNextAction()
+		{
+			return _random.Next(0, 2) == 1 ? NextAction.AandB : NextAction.BandA;
+		}
+
+		private NextAction GetNextStep(NextAction step)
+		{
+			return step switch
+			{
+				NextAction.AandB => NextAction.B,
+				NextAction.BandA => NextAction.A,
+				NextAction.A => NextAction.Backtrack,
+				NextAction.B => NextAction.Backtrack,
+				NextAction.Backtrack => throw new InvalidOperationException("This should never happen."),
+				_ => throw new InvalidOperationException("No other values are valid.")
+			};
 		}
 	}
 }
