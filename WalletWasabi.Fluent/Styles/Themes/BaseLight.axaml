@@ -79,7 +79,9 @@
     <BoxShadows x:Key="InfoBoxShadow">0 1 1.5 #3F000000</BoxShadows>
     <BoxShadows x:Key="BoxShadow">0 1 4 #D1D1D1</BoxShadows>
     <BoxShadows x:Key="OptionButtonShadow">0 2 2 #D1D1D1</BoxShadows>
-    <BoxShadows x:Key="OptimizePrivacyOptionBoxShadow1">0 12 32 0 #49556726</BoxShadows>
+
+    <BoxShadows x:Key="OptimizePrivacyOptionBoxShadow1">0 6 16 0 #23556726</BoxShadows>
+    <BoxShadows x:Key="OptimizePrivacyOptionBoxShadow2">0 12 32 0 #49556726</BoxShadows>
 
   </Styles.Resources>
   <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentLight.xaml" />

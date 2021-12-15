@@ -89,7 +89,7 @@
                           <Setter Property="MaxHeight" Value="300" />
                         </Style>
 
-                        <Style Selector="ListBoxItem Border#PART_DecorationBorder">
+                        <Style Selector="ListBoxItem Border#PART_DecorationBorderUnselected">
                           <Setter Property="Padding" Value="15 25 15 25" />
                           <Setter Property="CornerRadius" Value="4" />
                           <Setter Property="Margin" Value="5" />
@@ -98,21 +98,27 @@
                           <Setter Property="BorderThickness" Value="1" />
                           <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
                           <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow1}" />
+                        </Style>
+
+
+                        <Style Selector="ListBoxItem Border#PART_DecorationBorderHover">
+                          <Setter Property="Padding" Value="15 25 15 25" />
+                          <Setter Property="CornerRadius" Value="4" />
+                          <Setter Property="Margin" Value="5" />
+
+                          <Setter Property="BorderBrush" Value="#2AFFFFFF" />
+                          <Setter Property="BorderThickness" Value="1" />
+                          <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
+                          <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow2}" />
 
                           <Setter Property="Opacity" Value="0" />
 
-                          <Setter Property="Transitions">
-                            <Transitions>
-                              <DoubleTransition Property="Opacity"
-                                                Easing="{StaticResource FluentEasing}"
-                                                Duration="0:0:0.25" />
-                            </Transitions>
-                          </Setter>
                         </Style>
 
-                        <Style Selector="ListBoxItem:pointerover Border#PART_DecorationBorder">
+                        <Style Selector="ListBoxItem:pointerover Border#PART_DecorationBorderHover">
                           <Setter Property="Opacity" Value="1" />
                         </Style>
+
                       </ListBox.Styles>
                       <ListBox.ItemsPanel>
                         <ItemsPanelTemplate>

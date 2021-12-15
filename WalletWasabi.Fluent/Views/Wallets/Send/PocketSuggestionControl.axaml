@@ -9,7 +9,25 @@
              x:DataType="send:PocketSuggestionViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PocketSuggestionControl">
   <Panel>
-    <Border Name="PART_DecorationBorder" />
+
+    <Border Name="PART_DecorationBorderUnselected" >
+      <Border.Transitions>
+        <Transitions>
+          <DoubleTransition Property="Opacity"
+                            Easing="{StaticResource FluentEasing}"
+                            Duration="0:0:0.25" />
+        </Transitions>
+      </Border.Transitions>
+    </Border>
+    <Border Name="PART_DecorationBorderHover" >
+      <Border.Transitions>
+        <Transitions>
+          <DoubleTransition Property="Opacity"
+                            Easing="{StaticResource FluentEasing}"
+                            Duration="0:0:0.25" />
+        </Transitions>
+      </Border.Transitions>
+    </Border>
     <Border Name="PART_MainContentBorder">
       <StackPanel Spacing="20">
         <PathIcon DockPanel.Dock="Top" Data="{StaticResource incognito_filled}" Height="25" Width="25"
