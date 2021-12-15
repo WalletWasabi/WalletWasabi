@@ -4,7 +4,9 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Providers;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Fluent.ViewModels
@@ -38,8 +40,8 @@ namespace WalletWasabi.Fluent.ViewModels
 			ShowCommand = ReactiveCommand.Create(() => ShowRequested?.Invoke(this, EventArgs.Empty));
 
 			TrayIcon = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-				? new WindowIcon("avares://WalletWasabi.Fluent/Assets/WasabiLogo_white.ico")
-				: new WindowIcon("avares://WalletWasabi.Fluent/Assets/WasabiLogo.ico");
+				? new WindowIcon(AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo_white.ico"))
+				: new WindowIcon(AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo.ico"));
 		}
 
 		public WindowIcon TrayIcon { get; }
