@@ -11,17 +11,7 @@ namespace WalletWasabi.BranchNBound
 {
 	public class BranchAndBound : Selector
 	{
-		private enum NextAction
-		{
-			AandB,
-			BandA,
-			A,
-			B,
-			Backtrack
-		}
-
 		private readonly Random _random = new();
-
 		private long[] SortedUTXOs { get; }
 		private int Count { get; }
 
@@ -150,6 +140,15 @@ namespace WalletWasabi.BranchNBound
 				NextAction.Backtrack => throw new InvalidOperationException("This should never happen."),
 				_ => throw new InvalidOperationException("No other values are valid.")
 			};
+		}
+
+		private enum NextAction
+		{
+			AandB,
+			BandA,
+			A,
+			B,
+			Backtrack
 		}
 	}
 }
