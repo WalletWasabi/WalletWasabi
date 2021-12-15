@@ -36,9 +36,6 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	{
 		IsLoading = true;
 
-		var suggestions =
-			await ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, wallet, transaction);
-
 		Suggestions.Clear();
 		SelectedSuggestion = null;
 
@@ -47,9 +44,17 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 			Suggestions.Add(new PocketSuggestionViewModel(SmartLabel.Merge(transaction.SpentCoins.Select(x => CoinHelpers.GetLabels(x)))));
 		}
 
-		foreach (var suggestion in suggestions)
+		var suggestions =
+			await ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, wallet, transaction);
+
+		var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != info.Address.ScriptPubKey);
+
+		if (hasChange)
 		{
-			Suggestions.Add(suggestion);
+			foreach (var suggestion in suggestions.Where(x=>x.TransactionResult != transaction))
+			{
+				Suggestions.Add(suggestion);
+			}
 		}
 
 		IsLoading = false;

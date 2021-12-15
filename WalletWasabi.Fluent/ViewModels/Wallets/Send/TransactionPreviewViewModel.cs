@@ -66,11 +66,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					PrivacySuggestions.IsOpen = false;
 					PrivacySuggestions.SelectedSuggestion = null;
 
-					if (x is ChangeAvoidanceSuggestionViewModel changeAvoidance)
+					if (x is ChangeAvoidanceSuggestionViewModel)
 					{
 						if (x.TransactionResult is { })
 						{
 							UpdateTransaction(CurrentTransactionSummary, x.TransactionResult);
+
+							await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, x.TransactionResult);
 						}
 					}
 					else if (x is PocketSuggestionViewModel)
