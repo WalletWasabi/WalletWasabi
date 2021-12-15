@@ -107,8 +107,8 @@
                  Margin="10 0"
                  IsVisible="{Binding !IsAutoCoinJoinEnabled}" />
 
-      <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <Panel>
+      <DockPanel>
+        <Panel DockPanel.Dock="Left" Margin="5 8 0 -8">
           <controls:RingChartControl DataPoints="{Binding TestDataPoints}"
                                      Classes.visible="{Binding !ShowBoostingAnimation}"
                                      HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -116,9 +116,8 @@
         </Panel>
         <TextBlock HorizontalAlignment="Center"
                    VerticalAlignment="Center"
-                   Text="{Binding PercentText}" FontSize="24" />
-      </StackPanel>
-
+                   Text="{Binding PercentText}" FontSize="24" Opacity="0.8" />
+      </DockPanel>
     </DockPanel>
   </controls:TileControl>
 </UserControl>
