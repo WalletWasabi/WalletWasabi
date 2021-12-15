@@ -9,7 +9,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.BranchNBound
 {
-	public class BranchAndBound : Selector
+	public class BranchAndBound
 	{
 		private readonly Random _random = new();
 		private long[] SortedUTXOs { get; }
@@ -50,6 +50,22 @@ namespace WalletWasabi.BranchNBound
 				Logger.LogError("Couldn't find the right pair. " + ex);
 				return false;
 			}
+		}
+
+		public Money CalcEffectiveValue(List<Money>? list)
+		{
+			Money sum = Money.Satoshis(0);
+			if (list is not { })
+			{
+				return sum;
+			}
+
+			foreach (var item in list)
+			{
+				sum += item.Satoshi;        // TODO: effectiveValue = utxo.value − feePerByte × bytesPerInput
+			}
+
+			return sum;
 		}
 
 		private bool RecursiveSearch(long target, [NotNullWhen(true)] out long[]? solution)
