@@ -7,23 +7,13 @@ namespace WalletWasabi.Tests.UnitTests
 {
 	public class BranchAndBoundSelectionTests
 	{
-		private static List<Money> AvailableCoins = GenList();
-		private static Random Random { get; } = new();
-
-		private static List<Money> GenList()
-		{
-			List<Money> availableCoins = new List<Money>();
-			for (int i = 0; i < 1000; i++)
-			{
-				availableCoins.Add((ulong)Random.Next((int)Money.Satoshis(1000), (int)Money.Satoshis(99999999)));
-			}
-			return availableCoins;
-		}
+		private Random Random { get; } = new();
 
 		[Fact]
 		public void RandomizedTest()
 		{
-			var selector = new BranchAndBound(AvailableCoins);
+			var utxos = GenList();
+			var selector = new BranchAndBound(utxos);
 			ulong target = Money.Satoshis(100000000);
 
 			var successful = selector.TryGetExactMatch(target, out List<Money> selectedCoins);
@@ -46,6 +36,16 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.True(wasSuccessful);
 			Assert.NotNull(selectedCoins);
 			Assert.Equal(expectedCoins, selectedCoins);
+		}
+
+		private List<Money> GenList()
+		{
+			List<Money> availableCoins = new();
+			for (int i = 0; i < 1000; i++)
+			{
+				availableCoins.Add((ulong)Random.Next((int)Money.Satoshis(1000), (int)Money.Satoshis(99999999)));
+			}
+			return availableCoins;
 		}
 	}
 }
