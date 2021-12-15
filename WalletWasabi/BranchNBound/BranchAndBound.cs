@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.BranchNBound
@@ -52,13 +53,11 @@ namespace WalletWasabi.BranchNBound
 			}
 		}
 
-		public Money CalcEffectiveValue(List<Money>? list)
+		public Money CalcEffectiveValue(List<Money> list)
 		{
+			Guard.NotNull(nameof(list), list);
+
 			Money sum = Money.Satoshis(0);
-			if (list is not { })
-			{
-				return sum;
-			}
 
 			foreach (var item in list)
 			{
