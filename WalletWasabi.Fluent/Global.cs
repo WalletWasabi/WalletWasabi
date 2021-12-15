@@ -92,13 +92,13 @@ namespace WalletWasabi.Fluent
 
 				if (Config.UseTor)
 				{
-					BackendHttpClientFactory = new HttpClientFactory(TorSettings.SocksEndpoint, backendUriGetter: () => Config.GetCurrentBackendUri());
-					ExternalHttpClientFactory = new HttpClientFactory(TorSettings.SocksEndpoint, backendUriGetter: null);
+					BackendHttpClientFactory = new HttpClientFactory(TorSettings.SocksEndpoint, backendUriGetter: () => Config.GetCurrentBackendUri(), instanceName: "TorBackend");
+					ExternalHttpClientFactory = new HttpClientFactory(TorSettings.SocksEndpoint, backendUriGetter: null, instanceName: "TorExternal");
 				}
 				else
 				{
-					BackendHttpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => Config.GetFallbackBackendUri());
-					ExternalHttpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: null);
+					BackendHttpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => Config.GetFallbackBackendUri(), instanceName: "ClearnetBackend");
+					ExternalHttpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: null, instanceName: "ClearnetExternal");
 				}
 
 				Synchronizer = new WasabiSynchronizer(BitcoinStore, BackendHttpClientFactory);

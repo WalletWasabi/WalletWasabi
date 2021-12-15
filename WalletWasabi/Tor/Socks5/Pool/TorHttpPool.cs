@@ -16,7 +16,6 @@ using WalletWasabi.Tor.Http.Models;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
-
 namespace WalletWasabi.Tor.Socks5.Pool
 {
 	public enum TcpConnectionState
@@ -43,15 +42,17 @@ namespace WalletWasabi.Tor.Socks5.Pool
 
 		private bool _disposedValue;
 
-		public TorHttpPool(EndPoint endpoint)
-			: this(new TorTcpConnectionFactory(endpoint))
+		public TorHttpPool(EndPoint endpoint, string instanceName = "Pool")
+			: this(new TorTcpConnectionFactory(endpoint), instanceName)
 		{
 		}
 
 		/// <summary>Constructor that helps in tests.</summary>
-		internal TorHttpPool(TorTcpConnectionFactory tcpConnectionFactory)
+		/// <param name="instanceName">Name of this pool for logging purposes.</param>
+		internal TorHttpPool(TorTcpConnectionFactory tcpConnectionFactory, string instanceName = "")
 		{
 			TcpConnectionFactory = tcpConnectionFactory;
+			Name = instanceName;
 		}
 
 		/// <summary>Key is always a URI host. Value is a list of pool connections that can connect to the URI host.</summary>
@@ -62,6 +63,9 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		private AsyncLock ObtainPoolConnectionLock { get; } = new();
 
 		private TorTcpConnectionFactory TcpConnectionFactory { get; }
+
+		/// <summary>Name of this pool for the logging purposes.</summary>
+		private string Name { get; }
 
 		public static DateTimeOffset? TorDoesntWorkSince { get; private set; }
 
@@ -79,6 +83,8 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		/// <param name="e">Tor exception.</param>
 		private void OnTorRequestFailed(Exception e)
 		{
+			Logger.LogTrace($"Tor request failed! Exception: {e}");
+
 			if (TorDoesntWorkSince is null)
 			{
 				TorDoesntWorkSince = DateTimeOffset.UtcNow;
@@ -103,6 +109,8 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		/// <exception cref="OperationCanceledException">When the operation was canceled.</exception>
 		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken cancellationToken = default)
 		{
+			Logger.LogTrace($"[{Name}] > request='{request.RequestUri}', circuit='{circuit}'");
+
 			int i = 0;
 			int attemptsNo = 3;
 			TorTcpConnection? connection = null;
@@ -117,7 +125,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 
 					try
 					{
-						Logger.LogTrace($"['{connection}'][Attempt #{i}] About to send request.");
+						Logger.LogTrace($"[{Name}]['{connection}'][Attempt #{i}] About to send request.");
 						HttpResponseMessage response = await SendCoreAsync(connection, request, cancellationToken).ConfigureAwait(false);
 
 						// Client works OK, no need to dispose.
@@ -125,45 +133,46 @@ namespace WalletWasabi.Tor.Socks5.Pool
 
 						// Let others use the client.
 						TcpConnectionState state = connection.Unreserve();
-						Logger.LogTrace($"['{connection}'][Attempt #{i}] Unreserve. State is: '{state}'.");
+						Logger.LogTrace($"[{Name}]['{connection}'][Attempt #{i}] Unreserve. State is: '{state}'.");
 
 						TorDoesntWorkSince = null;
 						LatestTorException = null;
 
+						Logger.LogTrace($"[{Name}] <");
 						return response;
 					}
 					catch (TorConnectionWriteException e)
 					{
-						Logger.LogTrace($"['{connection}'] TCP connection from the pool is probably dead as we can't write data to the connection.", e);
+						Logger.LogTrace($"[{Name}]['{connection}'] TCP connection from the pool is probably dead as we can't write data to the connection.", e);
 
 						if (i == attemptsNo)
 						{
-							Logger.LogDebug($"['{connection}'] All {attemptsNo} attempts failed.");
+							Logger.LogDebug($"[{Name}]['{connection}'] All {attemptsNo} attempts failed.");
 							throw new HttpRequestException("Failed to handle the HTTP request via Tor (write failure).", e);
 						}
 					}
 					catch (TorConnectionReadException e)
 					{
-						Logger.LogTrace($"['{connection}'] Could not get/read an HTTP response from Tor.", e);
+						Logger.LogTrace($"[{Name}]['{connection}'] Could not get/read an HTTP response from Tor.", e);
 
 						throw new HttpRequestException("Failed to get/read an HTTP response from Tor.", e);
 					}
 					catch (TorConnectCommandFailedException e) when (e.RepField == RepField.TtlExpired)
 					{
 						// If we get TTL Expired error then wait and retry again, Linux often does this.
-						Logger.LogTrace($"['{connection}'] TTL exception occurred.", e);
+						Logger.LogTrace($"[{Name}]['{connection}'] TTL exception occurred.", e);
 
 						await Task.Delay(3000, cancellationToken).ConfigureAwait(false);
 
 						if (i == attemptsNo)
 						{
-							Logger.LogDebug($"['{connection}'] All {attemptsNo} attempts failed.");
+							Logger.LogDebug($"[{Name}]['{connection}'] All {attemptsNo} attempts failed.");
 							throw new HttpRequestException("Failed to handle the HTTP request via Tor.", e);
 						}
 					}
 					catch (IOException e)
 					{
-						Logger.LogTrace($"['{connection}'] Failed to read/write HTTP(s) request.", e);
+						Logger.LogTrace($"[{Name}]['{connection}'] Failed to read/write HTTP(s) request.", e);
 
 						// NetworkStream may throw IOException.
 						TorConnectionException innerException = new("Failed to read/write HTTP(s) request.", e);
@@ -171,20 +180,20 @@ namespace WalletWasabi.Tor.Socks5.Pool
 					}
 					catch (SocketException e) when (e.ErrorCode == (int)SocketError.ConnectionRefused)
 					{
-						Logger.LogTrace($"['{connection}'] Connection was refused.", e);
+						Logger.LogTrace($"[{Name}]['{connection}'] Connection was refused.", e);
 						TorConnectionException innerException = new("Connection was refused.", e);
 						throw new HttpRequestException("Failed to handle the HTTP request via Tor.", innerException);
 					}
 					catch (Exception e)
 					{
-						Logger.LogTrace($"['{connection}'] Exception occurred.", e);
+						Logger.LogTrace($"[{Name}]['{connection}'] Exception occurred.", e);
 						throw;
 					}
 					finally
 					{
 						if (connectionToDispose is not null)
 						{
-							Logger.LogTrace($"['{connectionToDispose}'] marked as to be disposed.");
+							Logger.LogTrace($"[{Name}]['{connectionToDispose}'] marked as to be disposed.");
 							connectionToDispose.MarkAsToDispose();
 						}
 					}
@@ -193,12 +202,12 @@ namespace WalletWasabi.Tor.Socks5.Pool
 			}
 			catch (OperationCanceledException)
 			{
-				Logger.LogTrace($"[{connection}] Request was canceled: '{request.RequestUri}'.");
+				Logger.LogTrace($"[{Name}][{connection}] Request was canceled: '{request.RequestUri}'.");
 				throw;
 			}
 			catch (Exception e)
 			{
-				Logger.LogTrace($"[{connection}] Request failed with exception", e);
+				Logger.LogTrace($"[{Name}][{connection}] Request failed with exception", e);
 				OnTorRequestFailed(e);
 				throw;
 			}
@@ -208,7 +217,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 
 		private async Task<TorTcpConnection> ObtainFreeConnectionAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken token)
 		{
-			Logger.LogTrace($"> request='{request.RequestUri}', circuit={circuit}");
+			Logger.LogTrace($"[{Name}] > request='{request.RequestUri}', circuit={circuit}");
 
 			string host = GetRequestHost(request);
 
@@ -220,7 +229,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 
 					if (connection is not null)
 					{
-						Logger.LogTrace($"[OLD {connection}]['{request.RequestUri}'] Re-use existing Tor SOCKS5 connection.");
+						Logger.LogTrace($"[{Name}][OLD {connection}]['{request.RequestUri}'] Re-use existing Tor SOCKS5 connection.");
 						return connection;
 					}
 
@@ -232,13 +241,13 @@ namespace WalletWasabi.Tor.Socks5.Pool
 						{
 							ConnectionPerHost[host].Add(connection);
 
-							Logger.LogTrace($"[NEW {connection}]['{request.RequestUri}'] Using new Tor SOCKS5 connection.");
+							Logger.LogTrace($"[{Name}][NEW {connection}]['{request.RequestUri}'] Using new Tor SOCKS5 connection.");
 							return connection;
 						}
 					}
 				}
 
-				Logger.LogTrace("Wait 1s for a free pool connection.");
+				Logger.LogTrace($"[{Name}] Wait 1s for a free pool connection.");
 				await Task.Delay(1000, token).ConfigureAwait(false);
 			}
 			while (true);
@@ -252,25 +261,25 @@ namespace WalletWasabi.Tor.Socks5.Pool
 			try
 			{
 				connection = await TcpConnectionFactory.ConnectAsync(request.RequestUri!, circuit, cancellationToken).ConfigureAwait(false);
-				Logger.LogTrace($"[NEW {connection}]['{request.RequestUri}'] Created new Tor SOCKS5 connection.");
+				Logger.LogTrace($"[{Name}][NEW {connection}]['{request.RequestUri}'] Created new Tor SOCKS5 connection.");
 			}
 			catch (TorException e)
 			{
-				Logger.LogDebug($"['{host}'][ERROR] Failed to create a new pool connection.", e);
+				Logger.LogDebug($"[{Name}]['{host}'][ERROR] Failed to create a new pool connection.", e);
 				throw;
 			}
 			catch (OperationCanceledException)
 			{
-				Logger.LogTrace($"['{host}'] Operation was canceled.");
+				Logger.LogTrace($"[{Name}]['{host}'] Operation was canceled.");
 				throw;
 			}
 			catch (Exception e)
 			{
-				Logger.LogTrace($"['{host}'][EXCEPTION] {e}");
+				Logger.LogTrace($"[{Name}]['{host}'][EXCEPTION] {e}");
 				throw;
 			}
 
-			Logger.LogTrace($"< connection='{connection}'");
+			Logger.LogTrace($"[{Name}] < connection='{connection}'");
 			return connection;
 		}
 
@@ -353,7 +362,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 					{
 						foreach (TorTcpConnection connection in list)
 						{
-							Logger.LogTrace($"Dispose connection: '{connection}'");
+							Logger.LogTrace($"[{Name}] Dispose connection: '{connection}'");
 							connection.Dispose();
 						}
 					}

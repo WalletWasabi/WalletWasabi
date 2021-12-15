@@ -41,7 +41,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 			TorTcpConnectionFactory tcpConnectionFactory = mockTcpConnectionFactory.Object;
 
 			// Use implementation of TorHttpPool and only replace SendCoreAsync behavior.
-			Mock<TorHttpPool> mockTorHttpPool = new(MockBehavior.Loose, tcpConnectionFactory) { CallBase = true };
+			Mock<TorHttpPool> mockTorHttpPool = new(MockBehavior.Loose, tcpConnectionFactory, null!) { CallBase = true };
 			mockTorHttpPool.Setup(x => x.SendCoreAsync(It.IsAny<TorTcpConnection>(), It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
 				.Returns((TorTcpConnection tcpConnection, HttpRequestMessage request, CancellationToken cancellationToken) =>
 				{

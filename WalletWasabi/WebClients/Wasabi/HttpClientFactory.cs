@@ -21,7 +21,8 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// Creates a new instance of the object.
 		/// </summary>
 		/// <param name="torEndPoint">If <c>null</c> then clearnet (not over Tor) is used, otherwise HTTP requests are routed through provided Tor endpoint.</param>
-		public HttpClientFactory(EndPoint? torEndPoint, Func<Uri>? backendUriGetter)
+		/// <param name="instanceName">Name of the factory for logging purposes.</param>
+		public HttpClientFactory(EndPoint? torEndPoint, Func<Uri>? backendUriGetter, string instanceName = "Pool")
 		{
 			SocketHandler = new()
 			{
@@ -38,7 +39,7 @@ namespace WalletWasabi.WebClients.Wasabi
 			// Connecting to loopback's URIs cannot be done via Tor.
 			if (TorEndpoint is { } && (BackendUriGetter is null || !BackendUriGetter().IsLoopback))
 			{
-				TorHttpPool = new(TorEndpoint);
+				TorHttpPool = new(TorEndpoint, instanceName);
 				BackendHttpClient = new TorHttpClient(BackendUriGetter, TorHttpPool, Mode.DefaultCircuit);
 			}
 			else
