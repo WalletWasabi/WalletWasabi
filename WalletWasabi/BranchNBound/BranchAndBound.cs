@@ -34,7 +34,7 @@ namespace WalletWasabi.BranchNBound
 
 			try
 			{
-				if (RecursiveSearch(target.Satoshi, out long[]? solution))
+				if (Search(target.Satoshi, out long[]? solution))
 				{
 					selectedCoins = solution.Where(c => c > 0).Select(c => Money.Satoshis(c)).ToList();
 
@@ -67,7 +67,7 @@ namespace WalletWasabi.BranchNBound
 			return sum;
 		}
 
-		private bool RecursiveSearch(long target, [NotNullWhen(true)] out long[]? solution)
+		private bool Search(long target, [NotNullWhen(true)] out long[]? solution)
 		{
 			// Current effective value.
 			long effValue = 0L;

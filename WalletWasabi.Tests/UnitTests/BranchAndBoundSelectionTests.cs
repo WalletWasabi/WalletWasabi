@@ -21,7 +21,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public void CanSelectCoinsWithOriginalRandomTest()
+		public void RandomizedTest()
 		{
 			var selector = new BranchAndBound(AvailableCoins);
 			ulong target = Money.Satoshis(100000000);
@@ -34,7 +34,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public void OriginalSimpleTest()
+		public void SimpleSelectorTest()
 		{
 			var utxos = new List<Money> { Money.Satoshis(12), Money.Satoshis(10), Money.Satoshis(10), Money.Satoshis(5), Money.Satoshis(4) };
 			var selector = new BranchAndBound(utxos);
