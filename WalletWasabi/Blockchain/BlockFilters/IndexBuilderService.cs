@@ -86,9 +86,6 @@ namespace WalletWasabi.Blockchain.BlockFilters
 
 		public void Synchronize()
 		{
-			// Check permissions.
-			using var _ = File.Open(IndexFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-
 			Task.Run(async () =>
 			{
 				try
