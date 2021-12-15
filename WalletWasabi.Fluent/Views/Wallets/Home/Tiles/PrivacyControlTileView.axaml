@@ -119,11 +119,13 @@
                                      HorizontalAlignment="Center" VerticalAlignment="Center" />
           <controls:ProgressRing IsIndeterminate="True" Classes.visible="{Binding ShowBoostingAnimation}" />
         </Panel>
-        <TextBlock IsVisible="{Binding !FullyMixed}"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   Text="{Binding PercentText}" FontSize="24" Opacity="0.8" />
-        <Image Height="75" Width="75" IsVisible="{Binding FullyMixed}" Source="{StaticResource privacy_indicator_good}" />
+        <Panel>
+          <TextBlock IsVisible="{Binding !FullyMixed}"
+                     TextAlignment="Center"
+                     VerticalAlignment="Center"
+                     Text="{Binding PercentText}" FontSize="24" Opacity="0.8" />
+          <Image Height="75" Width="75" IsVisible="{Binding FullyMixed}" Source="{StaticResource privacy_indicator_good}" />
+        </Panel>
       </DockPanel>
     </DockPanel>
   </controls:TileControl>
