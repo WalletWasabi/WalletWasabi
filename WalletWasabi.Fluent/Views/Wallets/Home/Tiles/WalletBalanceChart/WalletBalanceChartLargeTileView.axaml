@@ -17,7 +17,7 @@
       <ItemsControl DockPanel.Dock="Right"
                     HorizontalAlignment="Right"
                     Items="{Binding TimePeriodOptions}"
-                    IsVisible="{Binding !!IsEmptyWallet}">
+                    IsVisible="{Binding !IsEmptyWallet}">
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
             <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 0 0 -3" />
@@ -46,7 +46,7 @@
                      XAxisLabels="{Binding Animator.XLabels}"
                      YAxisValues="{Binding Animator.YValues}"
                      YAxisLabels="{Binding Animator.YLabels}"
-                     IsVisible="{Binding !!IsEmptyWallet}" />
+                     IsVisible="{Binding !IsEmptyWallet}" />
         <c:LineChart x:CompileBindings="True"
                      Classes="area border xAxis yAxis"
                      Margin="30 10 15 30"
