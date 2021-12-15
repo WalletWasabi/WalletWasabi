@@ -22,9 +22,9 @@ public class PlaceholderRowsCalculatorBehavior : DisposingBehavior<DataBox.DataB
 			.DisposeWith(disposables);
 	}
 
-	private void CalculateRows(double Height)
+	private void CalculateRows(double height)
 	{
-		var totalRows = (int) Math.Floor(Math.Max(3, (Height / 42) ));
+		var totalRows = (int) Math.Floor(Math.Max(3, (height / 42) ));
 		var opacityList = new List<double>();
 		var deltaOpacity = 1d / totalRows;
 
