@@ -26,10 +26,10 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void SimpleSelectionTest()
 		{
-			var utxos = new List<Money> { Money.Satoshis(12), Money.Satoshis(10), Money.Satoshis(10), Money.Satoshis(5), Money.Satoshis(4) };
+			var utxos = new List<Money> { Money.Satoshis(120000), Money.Satoshis(100000), Money.Satoshis(100000), Money.Satoshis(50000), Money.Satoshis(40000) };
 			var selector = new BranchAndBound(utxos);
-			var expectedCoins = new List<Money> { Money.Satoshis(10), Money.Satoshis(5), Money.Satoshis(4) };
-			Money target = Money.Satoshis(19);
+			var expectedCoins = new List<Money> { Money.Satoshis(100000), Money.Satoshis(50000), Money.Satoshis(40000) };
+			Money target = Money.Satoshis(190000);
 
 			var wasSuccessful = selector.TryGetExactMatch(target, out List<Money> selectedCoins);
 
