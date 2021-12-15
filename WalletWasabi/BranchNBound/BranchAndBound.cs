@@ -12,6 +12,14 @@ namespace WalletWasabi.BranchNBound
 {
 	public class BranchAndBound
 	{
+		private readonly Random _random = new();
+
+		public BranchAndBound(List<Money> availableCoins)
+		{
+			Count = availableCoins.Count;
+			SortedUTXOs = availableCoins.OrderByDescending(x => x.Satoshi).Select(c => c.Satoshi).ToArray();
+		}
+
 		private enum NextAction
 		{
 			AandB,
@@ -19,14 +27,6 @@ namespace WalletWasabi.BranchNBound
 			A,
 			B,
 			Backtrack
-		}
-
-		private readonly Random _random = new();
-
-		public BranchAndBound(List<Money> availableCoins)
-		{
-			Count = availableCoins.Count;
-			SortedUTXOs = availableCoins.OrderByDescending(x => x.Satoshi).Select(c => c.Satoshi).ToArray();
 		}
 
 		private long[] SortedUTXOs { get; }
