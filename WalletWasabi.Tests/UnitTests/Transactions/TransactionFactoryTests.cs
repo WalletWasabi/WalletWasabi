@@ -591,21 +591,19 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void FeesDifferentThanExpected()
 		{
-			var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
+			TransactionFactory transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
 			{
-				("Pablo", 0, 0.00011409m, confirmed: true, anonymitySet: 1)
+				(Label: "Pablo", KeyIndex: 0, Amount: 0.00011409m, Confirmed: true, AnonymitySet: 1)
 			});
 
 			using Key key = new();
-			var payment = new PaymentIntent(key, MoneyRequest.Create(Money.Coins(0.00010000m)));
+			PaymentIntent payment = new(key, MoneyRequest.Create(Money.Coins(0.00010000m)));
 
-			TransactionPolicyError[] crazyInvalidTxErrors =
-				{
-					new NotEnoughFundsPolicyError("Fees different than expected"),
-				};
+			InvalidTxException ex = Assert.Throws<InvalidTxException>(() => transactionFactory.BuildTransaction(payment, new FeeRate(9.78m)));
 
-			var ex = Assert.Throws<InvalidTxException>(() => transactionFactory.BuildTransaction(payment, new FeeRate(9.78m)));
-			Assert.Contains(crazyInvalidTxErrors[0].ToString(), ex.Message);
+			NotEnoughFundsPolicyError expectedPolicyError = new("Fees different than expected");
+			TransactionPolicyError actualTransactionPolicyError = Assert.Single(ex.Errors);
+			Assert.Equal(expectedPolicyError.ToString(), actualTransactionPolicyError.ToString());
 		}
 	}
 }
