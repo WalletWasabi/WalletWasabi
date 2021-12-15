@@ -324,18 +324,9 @@
         Focusable="False"
         IsHitTestVisible="False"
         DockPanel.Dock="Bottom">
-        <DataBox.Items>
-          <generic:List x:TypeArguments="sys:Double">
-            <sys:Double>1</sys:Double>
-            <sys:Double>0.875</sys:Double>
-            <sys:Double>0.75</sys:Double>
-            <sys:Double>0.625</sys:Double>
-            <sys:Double>0.5</sys:Double>
-            <sys:Double>0.375</sys:Double>
-            <sys:Double>0.25</sys:Double>
-            <sys:Double>0.125</sys:Double>
-          </generic:List>
-        </DataBox.Items>
+        <i:Interaction.Behaviors>
+          <behaviors:PlaceholderRowsCalculatorBehavior />
+        </i:Interaction.Behaviors>
         <DataBox.Styles>
           <Style Selector="DataBoxRow">
             <Setter Property="Focusable" Value="False" />
