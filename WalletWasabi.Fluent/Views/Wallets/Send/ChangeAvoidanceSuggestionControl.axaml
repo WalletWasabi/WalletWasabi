@@ -36,7 +36,7 @@
                         Foreground="{DynamicResource SystemAccentColor}" />
             </Panel>
 
-            <TextBlock TextWrapping="Wrap" Text="Avoid change on the Blockchain by:" TextAlignment="Center" />
+            <TextBlock TextWrapping="Wrap" Text="Avoid Blockchain change by:" TextAlignment="Center" />
             <Separator Margin="0 10" />
             <StackPanel Spacing="10">
               <TextBlock Text="Sending" FontSize="12" Opacity="0.8" TextAlignment="Center" />
