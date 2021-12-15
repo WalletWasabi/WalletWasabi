@@ -1,5 +1,6 @@
 using Moq;
 using NBitcoin;
+using NBitcoin.Policy;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
@@ -585,6 +586,26 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var rest = dict.Where(x => x.Key < 0).Select(x => x.Value);
 			Assert.DoesNotContain(rest, x => x > samplingSize * 0.001);
+		}
+
+		[Fact]
+		public void FeesDifferentThanExpected()
+		{
+			var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
+			{
+				("Pablo", 0, 0.00011409m, confirmed: true, anonymitySet: 1)
+			});
+
+			using Key key = new();
+			var payment = new PaymentIntent(key, MoneyRequest.Create(Money.Coins(0.00010000m)));
+
+			TransactionPolicyError[] crazyInvalidTxErrors =
+				{
+					new NotEnoughFundsPolicyError("Fees different than expected"),
+				};
+
+			var ex = Assert.Throws<InvalidTxException>(() => transactionFactory.BuildTransaction(payment, new FeeRate(9.78m)));
+			Assert.Contains(crazyInvalidTxErrors[0].ToString(), ex.Message);
 		}
 	}
 }
