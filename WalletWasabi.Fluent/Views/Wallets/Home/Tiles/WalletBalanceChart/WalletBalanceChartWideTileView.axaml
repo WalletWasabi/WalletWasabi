@@ -32,16 +32,26 @@
     <Separator DockPanel.Dock="Top" Margin="-16 15" />
 
     <c:PrivacyContentControl DockPanel.Dock="Bottom" PrivacyReplacementMode="Icon">
-      <c:LineChart x:CompileBindings="True"
-                   DataContext="{Binding Animator}"
-                   Classes="area border xAxis xAxisLabels yAxis yAxisLabels"
-                   Margin="30 5 15 30"
-                   SmoothCurve="True"
-                   XAxisMinimum="{Binding XMinimum}"
-                   XAxisValues="{Binding XValues}"
-                   XAxisLabels="{Binding XLabels}"
-                   YAxisValues="{Binding YValues}"
-                   YAxisLabels="{Binding YLabels}" />
+      <Panel>
+        <c:LineChart x:CompileBindings="True"
+                     Classes="area border xAxis xAxisLabels yAxis yAxisLabels"
+                     Margin="30 5 15 30"
+                     SmoothCurve="True"
+                     XAxisMinimum="{Binding Animator.XMinimum}"
+                     XAxisValues="{Binding Animator.XValues}"
+                     XAxisLabels="{Binding Animator.XLabels}"
+                     YAxisValues="{Binding Animator.YValues}"
+                     YAxisLabels="{Binding Animator.YLabels}"
+                     IsVisible="{Binding !!IsEmptyWallet}" />
+        <c:LineChart x:CompileBindings="True"
+                     Classes="area border xAxis yAxis"
+                     Margin="30 10 15 30"
+                     SmoothCurve="True"
+                     XAxisMinimum="{Binding Placeholder.XMinimum}"
+                     XAxisValues="{Binding Placeholder.XValues}"
+                     YAxisValues="{Binding Placeholder.YValues}"
+                     IsVisible="{Binding IsEmptyWallet}" />
+      </Panel>
     </c:PrivacyContentControl>
   </DockPanel>
 </UserControl>
