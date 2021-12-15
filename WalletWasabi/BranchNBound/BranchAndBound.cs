@@ -12,15 +12,25 @@ namespace WalletWasabi.BranchNBound
 {
 	public class BranchAndBound
 	{
+		private enum NextAction
+		{
+			AandB,
+			BandA,
+			A,
+			B,
+			Backtrack
+		}
+
 		private readonly Random _random = new();
-		private long[] SortedUTXOs { get; }
-		private int Count { get; }
 
 		public BranchAndBound(List<Money> availableCoins)
 		{
 			Count = availableCoins.Count;
 			SortedUTXOs = availableCoins.OrderByDescending(x => x.Satoshi).Select(c => c.Satoshi).ToArray();
 		}
+
+		private long[] SortedUTXOs { get; }
+		private int Count { get; }
 
 		public bool TryGetExactMatch(Money target, [NotNullWhen(true)] out List<Money> selectedCoins)
 		{
@@ -154,15 +164,6 @@ namespace WalletWasabi.BranchNBound
 				NextAction.Backtrack => throw new InvalidOperationException("This should never happen."),
 				_ => throw new InvalidOperationException("No other values are valid.")
 			};
-		}
-
-		private enum NextAction
-		{
-			AandB,
-			BandA,
-			A,
-			B,
-			Backtrack
 		}
 	}
 }
