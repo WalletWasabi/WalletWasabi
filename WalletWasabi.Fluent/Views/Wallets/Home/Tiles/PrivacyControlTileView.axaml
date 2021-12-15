@@ -87,14 +87,12 @@
 
       <TextBlock Text="Privacy Level" DockPanel.Dock="Top" />
 
-      <StackPanel Spacing="10" DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center">
+      <StackPanel Spacing="10" DockPanel.Dock="Right" Orientation="Horizontal"
+                  HorizontalAlignment="Center" VerticalAlignment="Center">
         <Button Classes="plain" Cursor="Hand" Command="{Binding BoostPrivacyCommand}"
                 IsVisible="{Binding BoostButtonVisible}"
                 ToolTip.Tip="Boost Privacy">
-          <StackPanel Orientation="Horizontal" Spacing="10">
-            <PathIcon Data="{StaticResource rocket_regular}" />
-            <TextBlock Text="Boost Privacy" />
-          </StackPanel>
+          <PathIcon Data="{StaticResource rocket_regular}" />
         </Button>
         <TextBlock Text="Your Privacy is protected"
                 IsVisible="{Binding FullyMixed}" />
@@ -109,9 +107,22 @@
         </Button>-->
       </StackPanel>
 
-      <ProgressBar IsIndeterminate="{Binding ShowBoostingAnimation}" Value="{Binding Percent}" DockPanel.Dock="Bottom" Margin="0 10" />
+      <Separator DockPanel.Dock="Right"
+                 Classes="vertical"
+                 Margin="10 0"
+                 IsVisible="{Binding !IsAutoCoinJoinEnabled}" />
 
-      <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding PercentText}" FontSize="36" />
+      <DockPanel>
+        <Panel DockPanel.Dock="Left" Margin="5 8 0 -8">
+          <controls:RingChartControl DataPoints="{Binding TestDataPoints}"
+                                     Classes.visible="{Binding !ShowBoostingAnimation}"
+                                     HorizontalAlignment="Center" VerticalAlignment="Center" />
+          <controls:ProgressRing IsIndeterminate="True" Classes.visible="{Binding ShowBoostingAnimation}" />
+        </Panel>
+        <TextBlock HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Text="{Binding PercentText}" FontSize="24" Opacity="0.8" />
+      </DockPanel>
     </DockPanel>
   </controls:TileControl>
 </UserControl>
