@@ -2,18 +2,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using Avalonia.Threading;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
-public class PlaceholderRowsCalculatorBehavior : DisposingBehavior<DataBox.DataBox>
+public class PlaceholderRowsCalculatorBehavior : AttachedToVisualTreeBehavior<DataBox.DataBox>
 {
-	protected override void OnAttached(CompositeDisposable disposables)
+	protected override void OnAttachedToVisualTree(CompositeDisposable disposables)
 	{
 		if (AssociatedObject is null)
 		{
 			return;
 		}
+
+		Dispatcher.UIThread.Post(() =>
+		{
+			CalculateRows(AssociatedObject.Bounds.Height);
+		}, DispatcherPriority.Loaded);
 
 		AssociatedObject.WhenAnyValue(x => x.Bounds)
 			.Select(x => x.Height)
