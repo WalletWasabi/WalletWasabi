@@ -60,7 +60,8 @@
                                    HorizontalAlignment="Center" VerticalAlignment="Center" />
         <controls:ProgressRing IsIndeterminate="True" Classes.visible="{Binding ShowBoostingAnimation}" />
 
-        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding PercentText}" FontSize="36" />
+        <TextBlock IsVisible="{Binding !FullyMixed}" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding PercentText}" FontSize="36" />
+        <Image Height="125" Width="125" IsVisible="{Binding FullyMixed}" Source="{StaticResource privacy_indicator_good}" />
       </Panel>
     </DockPanel>
     </controls:TileControl.LargeSizeContent>
