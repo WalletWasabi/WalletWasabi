@@ -16,18 +16,13 @@
 
       <Separator />
 
-      <DockPanel>
+      <DockPanel IsVisible="{Binding TransactionHasPockets}">
         <Button Classes="plain"
                 Command="{Binding Parent.ChangePocketsCommand}"
                 ToolTip.Tip="Change who could know about this transaction"
                 DockPanel.Dock="Right"
-                Margin="10 0">
-          <Button.IsVisible>
-            <MultiBinding Converter="{x:Static BoolConverters.And}">
-              <Binding Path="TransactionHasPockets" />
-              <Binding Path="!IsPreview" />
-            </MultiBinding>
-          </Button.IsVisible>
+                Margin="10 0"
+                IsVisible="{Binding !IsPreview}">
           <Viewbox Height="20">
             <PathIcon Data="{StaticResource entities_edit_regular}" Foreground="{DynamicResource SystemAccentColor}" />
           </Viewbox>
@@ -44,8 +39,8 @@
           </c:TagsBox>
         </c:PreviewItem>
       </DockPanel>
+      <Separator IsVisible="{Binding TransactionHasPockets}"/>
 
-      <Separator />
       <c:PreviewItem Icon="{StaticResource transceive_regular}"
                      Text="to the Bitcoin address">
         <TextBlock Classes="monoSpaced" Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />

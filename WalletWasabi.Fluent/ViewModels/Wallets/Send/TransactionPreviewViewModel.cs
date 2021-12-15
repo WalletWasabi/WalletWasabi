@@ -248,6 +248,20 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				return await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info));
 			}
+			catch (TransactionFeeOverpaymentException ex)
+			{
+				var result = TrySetMaximumPossibleFee(ex.PercentageOfOverpayment, _wallet, _info);
+
+				if (!result)
+				{
+					await ShowErrorAsync("Transaction Building", "At the moment, it is not possible to select a transaction fee that is less than the payment amount. The transaction cannot be sent.",
+						"Wasabi was unable to create your transaction.");
+
+					return null;
+				}
+
+				return await BuildTransactionAsync();
+			}
 			catch (InsufficientBalanceException)
 			{
 				if (_info.IsPayJoin)
@@ -272,8 +286,31 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 		}
 
-		private async Task<BuildTransactionResult?> HandleInsufficientBalanceWhenNormalAsync(Wallet wallet,
-			TransactionInfo transactionInfo)
+		private bool TrySetMaximumPossibleFee(decimal percentageOfOverpayment, Wallet wallet, TransactionInfo transactionInfo)
+		{
+			var currentFeeRate = transactionInfo.FeeRate;
+			var maxPossibleFeeRateInSatoshiPerByte = (currentFeeRate.SatoshiPerByte / percentageOfOverpayment) * 100;
+			var maximumPossibleFeeRate = new FeeRate(maxPossibleFeeRateInSatoshiPerByte);
+
+			var feeChartViewModel = new FeeChartViewModel();
+			feeChartViewModel.UpdateFeeEstimates(TransactionFeeHelper.GetFeeEstimates(wallet));
+
+			var blockTarget = feeChartViewModel.GetConfirmationTarget(maximumPossibleFeeRate);
+			var newFeeRate = new FeeRate(feeChartViewModel.GetSatoshiPerByte(blockTarget));
+
+			if (newFeeRate > maximumPossibleFeeRate)
+			{
+				return false;
+			}
+
+			transactionInfo.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(blockTarget);
+			transactionInfo.FeeRate = newFeeRate;
+			transactionInfo.MaximumPossibleFeeRate = maximumPossibleFeeRate;
+
+			return true;
+		}
+
+		private async Task<BuildTransactionResult?> HandleInsufficientBalanceWhenNormalAsync(Wallet wallet, TransactionInfo transactionInfo)
 		{
 			var dialog = new InsufficientBalanceDialogViewModel(transactionInfo.IsPrivatePocketUsed
 				? BalanceType.Private
@@ -385,33 +422,41 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private async Task OnConfirmAsync()
 		{
-			if (_transaction is { })
+			var labelDialog = new LabelEntryDialogViewModel(_wallet, _info);
+
+			Navigate(NavigationTarget.CompactDialogScreen).To(labelDialog);
+
+			var result = await labelDialog.GetDialogResultAsync();
+
+			if (result.Result is null)
 			{
-				var transaction = _transaction;
+				Navigate(NavigationTarget.CompactDialogScreen).Back();
+				return;
+			}
 
-				var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
+			_info.UserLabels = result.Result;
 
-				var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
+			var transaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info));
+			var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
+			var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
+			if (authResult)
+			{
+				IsBusy = true;
 
-				if (authResult)
+				try
 				{
-					IsBusy = true;
-
-					try
-					{
-						var finalTransaction =
-							await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
-						await SendTransactionAsync(finalTransaction);
-						Navigate().To(new SendSuccessViewModel(_wallet, finalTransaction));
-					}
-					catch (Exception ex)
-					{
-						await ShowErrorAsync("Transaction", ex.ToUserFriendlyString(),
-							"Wasabi was unable to send your transaction.");
-					}
-
-					IsBusy = false;
+					var finalTransaction =
+						await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
+					await SendTransactionAsync(finalTransaction);
+					Navigate().To(new SendSuccessViewModel(_wallet, finalTransaction));
 				}
+				catch (Exception ex)
+				{
+					await ShowErrorAsync("Transaction", ex.ToUserFriendlyString(),
+						"Wasabi was unable to send your transaction.");
+				}
+
+				IsBusy = false;
 			}
 		}
 
@@ -424,7 +469,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 
 			var authDialog = AuthorizationHelpers.GetAuthorizationDialog(_wallet, transactionAuthorizationInfo);
-			var authDialogResult = await NavigateDialogAsync(authDialog, authDialog.DefaultTarget);
+			var authDialogResult = await NavigateDialogAsync(authDialog, authDialog.DefaultTarget, NavigationMode.Clear);
 
 			if (!authDialogResult.Result && authDialogResult.Kind == DialogResultKind.Normal)
 			{
