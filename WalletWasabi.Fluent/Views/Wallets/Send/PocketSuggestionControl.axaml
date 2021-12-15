@@ -13,7 +13,7 @@
     <Border Name="PART_MainContentBorder">
       <StackPanel Spacing="20">
         <PathIcon DockPanel.Dock="Top" Data="{StaticResource incognito_filled}" Height="25" Width="25"
-                  Foreground="{DynamicResource TextForegroundColor}" />
+                  Foreground="{DynamicResource SystemAccentColor}" />
 
         <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap" Text="Various people or companies could become aware of this transaction including..." />
 

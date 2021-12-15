@@ -50,6 +50,7 @@
             <Border.Styles>
               <Style Selector="FlyoutPresenter">
                 <Setter Property="MaxWidth" Value="1000" />
+                <Setter Property="Background" Value="White" />
               </Style>
             </Border.Styles>
             <Interaction.Behaviors>
