@@ -317,7 +317,7 @@
         </DataBoxTemplateColumn>
       </DataBox.Columns>
     </DataBox>
-    <Panel>
+    <Panel IsVisible="{Binding IsTransactionHistoryEmpty}">
       <DataBox
         CanUserResizeColumns="False"
         Margin="0 0 0 0"
