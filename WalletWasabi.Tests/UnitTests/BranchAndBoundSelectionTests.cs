@@ -21,32 +21,6 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public void CanSelectCoinsWithNewLogicRandomTest()
-		{
-			ulong target = Money.Satoshis(100000000);
-			ulong maxTolerance = 500;
-			ulong toleranceIncrement = 100;
-
-			RecursiveCoinSelector selector = new();
-			Assert.True(selector.TryBranchAndBound(AvailableCoins, target, maxTolerance, toleranceIncrement, out List<Money> selectedCoins));
-			Assert.True(target + selector.Tolerance <= selector.CalcEffectiveValue(selectedCoins));
-		}
-
-		[Fact]
-		public void NewLogicSimpleTest()
-		{
-			var utxos = new List<Money> { Money.Satoshis(12), Money.Satoshis(10), Money.Satoshis(10), Money.Satoshis(5), Money.Satoshis(4) };
-			var expectedCoins = new List<Money> { Money.Satoshis(10), Money.Satoshis(5), Money.Satoshis(4) };
-			ulong maxTolerance = 500;
-			ulong toleranceIncrement = 100;
-			ulong target = Money.Satoshis(19);
-
-			RecursiveCoinSelector selector = new();
-			Assert.True(selector.TryBranchAndBound(utxos, target, maxTolerance, toleranceIncrement, out List<Money> selectedCoins));
-			Assert.Equal(expectedCoins, selectedCoins);
-		}
-
-		[Fact]
 		public void CanSelectCoinsWithOriginalRandomTest()
 		{
 			var selector = new BranchAndBound(AvailableCoins);
