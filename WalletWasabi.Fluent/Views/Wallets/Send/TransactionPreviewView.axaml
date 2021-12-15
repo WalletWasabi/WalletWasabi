@@ -50,7 +50,6 @@
             <Border.Styles>
               <Style Selector="FlyoutPresenter">
                 <Setter Property="MaxWidth" Value="1000" />
-                <Setter Property="Background" Value="White" />
               </Style>
             </Border.Styles>
             <Interaction.Behaviors>
@@ -141,7 +140,10 @@
             <Panel.IsVisible>
               <MultiBinding Converter="{x:Static BoolConverters.And}">
                 <Binding Path="PrivacySuggestions.IsLoading" Converter="{x:Static BoolConverters.Not}"/>
-                <Binding Path="CurrentTransactionSummary.TransactionHasChange" />
+                <MultiBinding Converter="{x:Static BoolConverters.Or}">
+                  <Binding Path="CurrentTransactionSummary.TransactionHasChange" />
+                  <Binding Path="CurrentTransactionSummary.TransactionHasPockets" />
+                </MultiBinding>
                 <Binding Path="CurrentTransactionSummary.IsPayJoin" Converter="{x:Static BoolConverters.Not}" />
               </MultiBinding>
             </Panel.IsVisible>
