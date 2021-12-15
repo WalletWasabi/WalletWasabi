@@ -22,19 +22,18 @@ namespace WalletWasabi.BranchNBound
 			SortedUTXOs = availableCoins.OrderByDescending(x => x.Satoshi).Select(c => c.Satoshi).ToArray();
 		}
 
-		public bool TryGetExactMatch(Money target, [NotNullWhen(true)] out List<Money>? selectedCoins)
+		public bool TryGetExactMatch(Money target, [NotNullWhen(true)] out List<Money> selectedCoins)
 		{
+			selectedCoins = new List<Money>();
+
 			if (SortedUTXOs.Sum() < target)
 			{
-				selectedCoins = null;
 				return false;
 			}
 
-			selectedCoins = new List<Money>();
-
 			try
 			{
-				if (Search(target.Satoshi, out long[]? solution))
+				if (Search(target.Satoshi, out long[] solution))
 				{
 					selectedCoins = solution.Where(c => c > 0).Select(c => Money.Satoshis(c)).ToList();
 
@@ -67,7 +66,7 @@ namespace WalletWasabi.BranchNBound
 			return sum;
 		}
 
-		private bool Search(long target, [NotNullWhen(true)] out long[]? solution)
+		private bool Search(long target, [NotNullWhen(true)] out long[] solution)
 		{
 			// Current effective value.
 			long effValue = 0L;
