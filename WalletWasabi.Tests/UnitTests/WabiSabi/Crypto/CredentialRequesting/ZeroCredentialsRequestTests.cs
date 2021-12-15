@@ -20,12 +20,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Crypto.CredentialRequesting
 			// Request #1.
 			ZeroCredentialsRequest request1 = GetZeroCredentialsRequest(1);
 
-			//// Request #2.
+			// Request #2.
 			ZeroCredentialsRequest request2 = GetZeroCredentialsRequest(1);
 
 			Assert.Equal(request1, request2);
 
-			//// Request #3.
+			// Request #3.
 			ZeroCredentialsRequest request3 = GetZeroCredentialsRequest(2);
 			Assert.NotEqual(request1, request3);
 		}

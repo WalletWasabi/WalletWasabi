@@ -28,13 +28,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public FeeRate FeeRate { get; set; } = FeeRate.Zero;
 
+		public FeeRate? MaximumPossibleFeeRate { get; set; }
+
 		public TimeSpan ConfirmationTimeSpan { get; set; }
 
 		public IEnumerable<SmartCoin> Coins { get; set; } = Enumerable.Empty<SmartCoin>();
 
+		public IEnumerable<SmartCoin> ChangelessCoins { get; set; } = Enumerable.Empty<SmartCoin>();
+
 		public IPayjoinClient? PayJoinClient { get; set; }
 
 		public bool IsPayJoin => PayJoinClient is { };
+
+		public bool IsOptimized => ChangelessCoins.Any();
 
 		public bool IsPrivatePocketUsed => Coins.All(x => x.HdPubKey.AnonymitySet >= _privateCoinThreshold);
 
@@ -45,6 +51,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private void OnAmountChanged()
 		{
 			SubtractFee = default;
+			ChangelessCoins = Enumerable.Empty<SmartCoin>();
+			MaximumPossibleFeeRate = null;
 
 			if (!IsCustomFeeUsed)
 			{

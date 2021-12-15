@@ -46,7 +46,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private void UpdateFeeAndEstimate(double confirmationTarget)
 		{
 			CurrentSatoshiPerByte = GetSatoshiPerByte(confirmationTarget);
-			CurrentConfirmationTargetString = FeeTargetTimeConverter.Convert((int)confirmationTarget, " minutes", " hour", " hours", " day", " days");
+			CurrentConfirmationTargetString = FeeTargetTimeConverter.Convert((int)Math.Ceiling(confirmationTarget), " minutes", " hour", " hours", " day", " days");
 		}
 
 		private void SetSliderValue(double confirmationTarget)
@@ -162,7 +162,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return SliderMaximum;
 		}
 
-		private double GetConfirmationTarget(FeeRate feeRate)
+		public double GetConfirmationTarget(FeeRate feeRate)
 		{
 			if (SatoshiPerByteValues is null || ConfirmationTargetValues is null) // Should not happen
 			{
@@ -189,7 +189,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return 0;
 		}
 
-		public void UpdateFeeEstimates(Dictionary<int, int> feeEstimates)
+		public void UpdateFeeEstimates(Dictionary<int, int> feeEstimates, FeeRate? maxFee = null)
 		{
 			var correctedFeeEstimates = DistinctByValues(feeEstimates);
 
@@ -197,13 +197,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			var ys = correctedFeeEstimates.Select(x => (double)x.Value).ToArray();
 
 			GetSmoothValuesSubdivide(xs, ys, out var xts, out var yts);
-			var confirmationTargetValues = xts.ToArray();
-			var satoshiPerByteValues = yts.ToArray();
 
-			var confirmationTargetLabels = correctedFeeEstimates.Select(x => x.Key)
-				.Select(x => FeeTargetTimeConverter.Convert(x, "m", "h", "h", "d", "d"))
-				.Reverse()
-				.ToArray();
+			if (maxFee is { })
+			{
+				RemoveOverpaymentValues(xts, yts, (double)maxFee.SatoshiPerByte);
+			}
+
+			var confirmationTargetValues = xts.ToArray();
+			var confirmationTargetLabels = GetConfirmationTargetLabels(xts).ToArray();
+			var satoshiPerByteValues = yts.ToArray();
 
 			_updatingCurrentValue = true;
 
@@ -229,6 +231,43 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			UpdateFeeAndEstimate(CurrentConfirmationTarget);
 
 			_updatingCurrentValue = false;
+		}
+
+		private void RemoveOverpaymentValues(List<double> xts, List<double> yts, double maxFeeSatoshiPerByte)
+		{
+			for (var i = yts.Count - 1; i >= 0; i--)
+			{
+				if (yts[i] > maxFeeSatoshiPerByte)
+				{
+					yts.RemoveAt(i);
+					xts.RemoveAt(i);
+				}
+				else
+				{
+					break;
+				}
+			}
+		}
+
+		private IEnumerable<string> GetConfirmationTargetLabels(List<double> confirmationTargets)
+		{
+			var blockTargetCount = confirmationTargets.Count;
+			var interval = blockTargetCount >= 5 ? blockTargetCount / 5 : 1;
+
+			for (int i = 0; i < blockTargetCount; i += interval)
+			{
+				var label = FeeTargetTimeConverter.Convert((int)Math.Ceiling(confirmationTargets[i]), "m", "h", "h", "d", "d");
+
+				if (i + interval <= blockTargetCount)
+				{
+					yield return label;
+				}
+			}
+
+			if (interval != 1)
+			{
+				yield return FeeTargetTimeConverter.Convert((int)Math.Ceiling(confirmationTargets.Last()), "m", "h", "h", "d", "d");
+			}
 		}
 
 		public void InitCurrentConfirmationTarget(FeeRate feeRate)

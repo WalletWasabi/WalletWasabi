@@ -227,6 +227,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					SmartCoin newCoin = new(tx, i, foundKey);
 
 					result.ReceivedCoins.Add(newCoin);
+
 					// If we did not have it.
 					if (Coins.TryAdd(newCoin))
 					{
