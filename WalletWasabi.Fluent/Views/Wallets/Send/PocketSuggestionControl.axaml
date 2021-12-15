@@ -6,6 +6,7 @@
              xmlns:send="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="450"
              x:CompileBindings="True"
+             ClipToBounds="False"
              x:DataType="send:PocketSuggestionViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PocketSuggestionControl">
   <Panel>
