@@ -47,7 +47,7 @@
                      YAxisLabels="{Binding Animator.YLabels}"
                      IsVisible="{Binding !IsEmptyWallet}" />
         <c:LineChart x:CompileBindings="True"
-                     Classes="area border xAxis yAxis"
+                     Classes="area placeholder border xAxis yAxis"
                      Margin="30 10 15 30"
                      SmoothCurve="True"
                      XAxisMinimum="{Binding Placeholder.XMinimum}"
