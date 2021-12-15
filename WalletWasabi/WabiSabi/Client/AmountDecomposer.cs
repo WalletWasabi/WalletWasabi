@@ -31,18 +31,17 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			var histogram = GetDenominationFrequency(allInputCoins);
 
-			var inputs = myInputCoins.Select(x => x.EffectiveValue(FeeRate));
-			var remaining = inputs.Sum();
-
 			var denoms = histogram
 				.Where(x => x.Value > 1)
 				.OrderByDescending(x => x.Key)
 				.Select(x => x.Key)
 				.ToArray();
 
-			List<Money> outputAmounts = new();
+			var inputs = myInputCoins.Select(x => x.EffectiveValue(FeeRate));
+			var remaining = inputs.Sum();
 			var remainingVsize = AvailableVsize;
 
+			List<Money> outputAmounts = new();
 			bool end = false;
 			foreach (var denom in denoms.Where(x => x <= remaining))
 			{
@@ -70,7 +69,46 @@ namespace WalletWasabi.WabiSabi.Client
 				outputAmounts.Add(remaining - OutputFee);
 			}
 
-			return outputAmounts;
+			var bestSet = outputAmounts;
+			for (int i = 0; i < 10_000; i++)
+			{
+				remaining = inputs.Sum();
+				var currSet = new List<Money>();
+				do
+				{
+					var selectableDenomPlusFees = denoms.Where(x => x <= remaining).ToList();
+					var denomPlusFees = selectableDenomPlusFees.Skip(selectableDenomPlusFees.Count / 3).ToList();
+					var denom = denomPlusFees.RandomElement();
+					if (denom is null || remaining < MinimumAmountPlusFee )
+					{
+						break;
+					}
+
+					if (denom <= remaining)
+					{
+						currSet.Add(denom - OutputFee);
+						remaining -= denom;
+					}
+				}
+				while (currSet.Count < bestSet.Count);
+
+				if (currSet.Count >= bestSet.Count)
+				{
+					continue;
+				}
+
+				if (remaining >= MinimumAmountPlusFee)
+				{
+					currSet.Add(remaining - OutputFee);
+				}
+
+				if (currSet.Count < bestSet.Count)
+				{
+					bestSet = currSet;
+				}
+			}
+
+			return bestSet;
 		}
 
 		private Dictionary<Money, long> GetDenominationFrequency(IEnumerable<Coin> allInputCoins)
@@ -82,11 +120,11 @@ namespace WalletWasabi.WabiSabi.Client
 
 			foreach (var input in allInputCoins)
 			{
-				foreach (var denom in BreakDown(input, demonsForBreakDown))
+				foreach (var denom in BreakDown(input.Amount, demonsForBreakDown))
 				{
 					if (!denomProbabilities.TryAdd(denom, 1))
 					{
-						denomProbabilities[denom] += 1;
+						denomProbabilities[denom]++;
 					}
 				}
 			}
@@ -94,9 +132,9 @@ namespace WalletWasabi.WabiSabi.Client
 			return denomProbabilities;
 		}
 
-		private IEnumerable<Money> BreakDown(Coin coin, IEnumerable<Money> denominations)
+		private IEnumerable<Money> BreakDown(long amount, IEnumerable<Money> denominations)
 		{
-			var remaining = coin.EffectiveValue(FeeRate);
+			var remaining = amount;
 
 			foreach (var denomPlusFee in denominations)
 			{
