@@ -446,7 +446,7 @@
 
       <Panel Background="{DynamicResource RegionColor}" Opacity="0.4" />
 
-      <TextBlock Classes="h5 bold" VerticalAlignment="Center" HorizontalAlignment="Center">This space will show your prior transactions.</TextBlock>
+      <TextBlock Classes="h5 bold" VerticalAlignment="Center" HorizontalAlignment="Center">Nothing to see here yet.</TextBlock>
 
     </Panel>
   </Panel>

@@ -114,11 +114,5 @@
         <GradientStop Offset="1" Color="#FF7FAF2F" />
       </LinearGradientBrush.GradientStops>
     </LinearGradientBrush>
-    <LinearGradientBrush x:Key="PrivacyIndicatorShieldGradientBrush1" StartPoint="42.4998,0" EndPoint="0,40.7721">
-      <LinearGradientBrush.GradientStops>
-        <GradientStop Offset="0" Color="#FF97D234" />
-        <GradientStop Offset="1" Color="#FF7FAF2F" />
-      </LinearGradientBrush.GradientStops>
-    </LinearGradientBrush>
   </Styles.Resources>
 </Styles>
