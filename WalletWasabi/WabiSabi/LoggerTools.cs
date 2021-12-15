@@ -20,5 +20,10 @@ namespace WalletWasabi.WabiSabi
 		{
 			Log(round, LogLevel.Warning, logMessage, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 		}
+
+		public static void LogError(this Round round, string logMessage, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
+		{
+			Log(round, LogLevel.Error, logMessage, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
+		}
 	}
 }
