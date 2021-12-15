@@ -1,11 +1,10 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Exceptions;
-using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces.EventSourcing;
 
 namespace WalletWasabi.EventSourcing
@@ -15,11 +14,9 @@ namespace WalletWasabi.EventSourcing
 	/// </summary>
 	public class InMemoryEventRepository : IEventRepository
 	{
-		private static readonly IReadOnlyList<WrappedEvent> EmptyResult
-			= ImmutableList<WrappedEvent>.Empty;
+		private static readonly IReadOnlyList<WrappedEvent> EmptyResult = ImmutableList<WrappedEvent>.Empty;
 
-		private static readonly IReadOnlyList<string> EmptyIds
-			= ImmutableList<string>.Empty;
+		private static readonly IReadOnlyList<string> EmptyIds = ImmutableList<string>.Empty;
 
 		private static readonly IComparer<WrappedEvent> WrappedEventSequenceIdComparer
 			= Comparer<WrappedEvent>.Create((a, b) => a.SequenceId.CompareTo(b.SequenceId));
@@ -39,27 +36,21 @@ namespace WalletWasabi.EventSourcing
 		{ get; } = new();
 
 		/// <inheritdoc/>
-		public Task AppendEventsAsync(
-			string aggregateType,
-			string aggregateId,
-			IEnumerable<WrappedEvent> wrappedEvents)
+		public async Task AppendEventsAsync(string aggregateType, string aggregateId, IEnumerable<WrappedEvent> wrappedEvents)
 		{
-			Guard.NotNullOrEmpty(nameof(aggregateType), aggregateType);
-			Guard.NotNullOrEmpty(nameof(aggregateId), aggregateId);
-			Guard.NotNull(nameof(wrappedEvents), wrappedEvents);
-
-			var wrappedEventsList = wrappedEvents.ToList().AsReadOnly();
+			ReadOnlyCollection<WrappedEvent> wrappedEventsList = wrappedEvents.ToList().AsReadOnly();
 
 			if (wrappedEventsList.Count == 0)
 			{
-				return Task.CompletedTask;
+				return;
 			}
-			var firstSequenceId = wrappedEventsList[0].SequenceId;
-			var lastSequenceId = wrappedEventsList[^1].SequenceId;
+
+			long firstSequenceId = wrappedEventsList[0].SequenceId;
+			long lastSequenceId = wrappedEventsList[^1].SequenceId;
 
 			if (firstSequenceId <= 0)
 			{
-				throw new ArgumentException("First event sequenceId is not natural number.", nameof(wrappedEvents));
+				throw new ArgumentException("First event sequenceId is not a positive number.", nameof(wrappedEvents));
 			}
 
 			if (lastSequenceId <= 0)
@@ -69,7 +60,7 @@ namespace WalletWasabi.EventSourcing
 
 			if (lastSequenceId - firstSequenceId + 1 != wrappedEventsList.Count)
 			{
-				throw new ArgumentException("Event sequence ids are inconsistent.", nameof(wrappedEvents));
+				throw new ArgumentException("Event sequence IDs are inconsistent.", nameof(wrappedEvents));
 			}
 
 			var aggregateEventsBatches = AggregatesEventsBatches.GetOrAdd(aggregateType, _ => new());
@@ -79,13 +70,13 @@ namespace WalletWasabi.EventSourcing
 
 			if (tailSequenceId + 1 < firstSequenceId)
 			{
-				throw new ArgumentException($"Invalid firstSequenceId (gap in sequence ids) expected: '{tailSequenceId + 1}' given: '{firstSequenceId}'.", nameof(wrappedEvents));
+				throw new ArgumentException($"Invalid firstSequenceId (gap in sequence IDs) expected: '{tailSequenceId + 1}' given: '{firstSequenceId}'.", nameof(wrappedEvents));
 			}
 
-			// no action
-			Validated();
+			// No action.
+			await ValidatedAsync().ConfigureAwait(false);
 
-			var newEvents = events.AddRange(wrappedEventsList);
+			ImmutableList<WrappedEvent> newEvents = events.AddRange(wrappedEventsList);
 
 			// Atomically detect conflict and replace lastSequenceId and lock to ensure strong order in eventsBatches.
 			if (!aggregateEventsBatches.TryUpdate(
@@ -93,11 +84,12 @@ namespace WalletWasabi.EventSourcing
 				newValue: new AggregateEvents(lastSequenceId, newEvents),
 				comparisonValue: new AggregateEvents(firstSequenceId - 1, events)))
 			{
-				Conflicted(); // no action
-				throw new OptimisticConcurrencyException(
-					$"Conflict while committing events. Retry command. aggregate: '{aggregateType}' id: '{aggregateId}'");
+				await ConflictedAsync().ConfigureAwait(false);
+
+				throw new OptimisticConcurrencyException($"Conflict while committing events. Retry command. aggregate: '{aggregateType}' ID: '{aggregateId}'");
 			}
-			Appended(); // no action
+
+			await AppendedAsync().ConfigureAwait(false);
 
 			// If it is a first event for given aggregate.
 			if (tailSequenceId == 0)
@@ -105,39 +97,33 @@ namespace WalletWasabi.EventSourcing
 				// Add index of aggregate id into the dictionary.
 				IndexNewAggregateId(aggregateType, aggregateId);
 			}
-			return Task.CompletedTask;
 		}
 
+		/// <remarks>
+		/// Working with <see cref="ImmutableList{T}.BinarySearch(int, int, T, IComparer{T}?)"/> is explained here
+		/// https://docs.microsoft.com/en-us/dotnet/api/system.collections.immutable.immutablelist-1.binarysearch.
+		/// </remarks>
 		/// <inheritdoc/>
-		public Task<IReadOnlyList<WrappedEvent>> ListEventsAsync(
-			string aggregateType,
-			string aggregateId,
-			long afterSequenceId = 0,
-			int? maxCount = null)
+		public Task<IReadOnlyList<WrappedEvent>> GetEventsAsync( string aggregateType, string aggregateId, long afterSequenceId = 0, int? maxCount = null)
 		{
-			if (AggregatesEventsBatches.TryGetValue(aggregateType, out var aggregateEventsBatches) &&
-				aggregateEventsBatches.TryGetValue(aggregateId, out var value))
+			if (AggregatesEventsBatches.TryGetValue(aggregateType, out ConcurrentDictionary<string, AggregateEvents>? aggregateEventsBatches) &&
+				aggregateEventsBatches.TryGetValue(aggregateId, out AggregateEvents? value))
 			{
-				var result = value.Events;
+				ImmutableList<WrappedEvent> result = value.Events;
 
 				if (afterSequenceId > 0)
 				{
-					var foundIndex = result.BinarySearch(new WrappedEvent(afterSequenceId), WrappedEventSequenceIdComparer);
+					int foundIndex = result.BinarySearch(new WrappedEvent(afterSequenceId), WrappedEventSequenceIdComparer);
+
 					if (foundIndex < 0)
 					{
-						// Note: this is because of BinarySearch() documented implementation
-						// returns "bitwise complement"
-						// see: https://docs.microsoft.com/en-us/dotnet/api/system.collections.immutable.immutablelist-1.binarysearch
-						// The zero-based index of item in the sorted List, if item is found;
-						// otherwise, a negative number that is the bitwise complement
-						// of the index of the next element that is larger than item or,
-						// if there is no larger element, the bitwise complement of Count.
 						foundIndex = ~foundIndex;
 					}
 					else
 					{
 						foundIndex++;
 					}
+
 					result = result.GetRange(foundIndex, result.Count - foundIndex);
 				}
 
@@ -148,19 +134,18 @@ namespace WalletWasabi.EventSourcing
 
 				return Task.FromResult((IReadOnlyList<WrappedEvent>)result);
 			}
+
 			return Task.FromResult(EmptyResult);
 		}
 
 		/// <inheritdoc/>
-		public Task<IReadOnlyList<string>> ListAggregateIdsAsync(
-			string aggregateType,
-			string? afterAggregateId = null,
-			int? maxCount = null)
+		public Task<IReadOnlyList<string>> GetAggregateIdsAsync( string aggregateType, string? afterAggregateId = null, int? maxCount = null)
 		{
 			if (AggregatesIds.TryGetValue(aggregateType, out var aggregateIds))
 			{
-				var ids = aggregateIds.Ids;
-				var foundIndex = 0;
+				ImmutableSortedSet<string> ids = aggregateIds.Ids;
+				int foundIndex = 0;
+
 				if (afterAggregateId != null)
 				{
 					foundIndex = ids.IndexOf(afterAggregateId);
@@ -173,31 +158,38 @@ namespace WalletWasabi.EventSourcing
 						foundIndex++;
 					}
 				}
+
 				List<string> result = new();
-				var afterLastIndex = maxCount.HasValue
+				int afterLastIndex = maxCount.HasValue
 					? Math.Min(foundIndex + maxCount.Value, ids.Count)
 					: ids.Count;
-				for (var i = foundIndex; i < afterLastIndex; i++)
+
+				for (int i = foundIndex; i < afterLastIndex; i++)
 				{
 					result.Add(ids[i]);
 				}
+
 				return Task.FromResult((IReadOnlyList<string>)result.AsReadOnly());
 			}
+
 			return Task.FromResult(EmptyIds);
 		}
 
 		private void IndexNewAggregateId(string aggregateType, string aggregateId)
 		{
-			var tailIndex = 0L;
 			ImmutableSortedSet<string> aggregateIds;
 			ImmutableSortedSet<string> newAggregateIds;
-			var liveLockLimit = 10000;
+
+			long tailIndex = 0L;
+			int liveLockLimit = 10000;
+
 			do
 			{
 				if (liveLockLimit <= 0)
 				{
 					throw new ApplicationException("Live lock detected.");
 				}
+
 				liveLockLimit--;
 				(tailIndex, aggregateIds) = AggregatesIds.GetOrAdd(aggregateType, _ => new(0, ImmutableSortedSet<string>.Empty));
 				newAggregateIds = aggregateIds.Add(aggregateId);
@@ -208,22 +200,25 @@ namespace WalletWasabi.EventSourcing
 				comparisonValue: new AggregateTypeIds(tailIndex, aggregateIds)));
 		}
 
-		// Helper for parallel critical section testing in DEBUG build only.
-		protected virtual void Validated()
+		/// <summary>Helper method for verifying invariants in tests.</summary>
+		/// <remarks>Do not add any code to this method.</remarks>
+		protected virtual Task ValidatedAsync()
 		{
-			// Keep empty. To be overriden in tests.
+			return Task.CompletedTask;
 		}
 
-		// Helper for parallel critical section testing in DEBUG build only.
-		protected virtual void Conflicted()
+		/// <summary>Helper method for verifying invariants in tests.</summary>
+		/// <remarks>Do not add any code to this method.</remarks>
+		protected virtual Task ConflictedAsync()
 		{
-			// Keep empty. To be overriden in tests.
+			return Task.CompletedTask;
 		}
 
-		// Helper for parallel critical section testing in DEBUG build only.
-		protected virtual void Appended()
+		/// <summary>Helper method for verifying invariants in tests.</summary>
+		/// <remarks>Do not add any code to this method.</remarks>
+		protected virtual Task AppendedAsync()
 		{
-			// Keep empty. To be overriden in tests.
+			return Task.CompletedTask;
 		}
 	}
 }

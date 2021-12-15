@@ -1,4 +1,5 @@
 using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.EventSourcing;
 using Xunit.Abstractions;
 
@@ -6,43 +7,61 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing.TestDomain
 {
 	public class TestInMemoryEventRepository : InMemoryEventRepository, IDisposable
 	{
-		public TestInMemoryEventRepository(ITestOutputHelper output)
+		public TestInMemoryEventRepository(ITestOutputHelper testOutput)
 		{
-			Output = output;
+			TestOutput = testOutput;
 		}
 
-		protected ITestOutputHelper Output { get; init; }
+		protected ITestOutputHelper TestOutput { get; }
 
 		public SemaphoreSlim ValidatedSemaphore { get; } = new(0);
 		public SemaphoreSlim ConflictedSemaphore { get; } = new(0);
 		public SemaphoreSlim AppendedSemaphore { get; } = new(0);
 
-		public Action? ValidatedCallback { get; set; }
-		public Action? ConflictedCallback { get; set; }
-		public Action? AppendedCallback { get; set; }
+		public Func<Task>? ValidatedCallbackAsync { get; set; }
+		public Func<Task>? ConflictedCallbackAsync { get; set; }
+		public Func<Task>? AppendedCallbackAsync { get; set; }
 
-		protected override void Validated()
+		/// <summary>Helper method for verifying invariants in tests.</summary>
+		protected override async Task ValidatedAsync()
 		{
-			base.Validated();
-			Output.WriteLine(nameof(Validated));
+			await base.ValidatedAsync().ConfigureAwait(false);
+
+			TestOutput.WriteLine(nameof(ValidatedAsync));
 			ValidatedSemaphore.Release();
-			ValidatedCallback?.Invoke();
+
+			if (ValidatedCallbackAsync is not null)
+			{
+				await ValidatedCallbackAsync().ConfigureAwait(false);
+			}
 		}
 
-		protected override void Conflicted()
+		/// <summary>Helper method for verifying invariants in tests.</summary>
+		protected override async Task ConflictedAsync()
 		{
-			base.Conflicted();
-			Output.WriteLine(nameof(Conflicted));
-			ConflictedSemaphore.Release();
-			ConflictedCallback?.Invoke();
+			await base.ConflictedAsync().ConfigureAwait(false);
+
+			TestOutput.WriteLine(nameof(ConflictedAsync));
+			ConflictedSemaphore.Release();			
+
+			if (ConflictedCallbackAsync is not null)
+			{
+				await ConflictedCallbackAsync().ConfigureAwait(false);
+			}
 		}
 
-		protected override void Appended()
+		/// <summary>Helper method for verifying invariants in tests.</summary>
+		protected override async Task AppendedAsync()
 		{
-			base.Appended();
-			Output.WriteLine(nameof(Appended));
+			await base.AppendedAsync().ConfigureAwait(false);
+
+			TestOutput.WriteLine(nameof(AppendedAsync));
 			AppendedSemaphore.Release();
-			AppendedCallback?.Invoke();
+
+			if (AppendedCallbackAsync is not null)
+			{
+				await AppendedCallbackAsync().ConfigureAwait(false);
+			}
 		}
 
 		public void Dispose()
