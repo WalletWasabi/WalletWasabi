@@ -113,15 +113,17 @@
                  IsVisible="{Binding !IsAutoCoinJoinEnabled}" />
 
       <DockPanel>
-        <Panel DockPanel.Dock="Left" Margin="5 8 0 -8">
+        <Panel IsVisible="{Binding !FullyMixed}" DockPanel.Dock="Left" Margin="5 8 0 -8">
           <controls:RingChartControl DataPoints="{Binding TestDataPoints}"
                                      Classes.visible="{Binding !ShowBoostingAnimation}"
                                      HorizontalAlignment="Center" VerticalAlignment="Center" />
           <controls:ProgressRing IsIndeterminate="True" Classes.visible="{Binding ShowBoostingAnimation}" />
         </Panel>
-        <TextBlock HorizontalAlignment="Center"
+        <TextBlock IsVisible="{Binding !FullyMixed}"
+                   HorizontalAlignment="Center"
                    VerticalAlignment="Center"
                    Text="{Binding PercentText}" FontSize="24" Opacity="0.8" />
+        <Image Height="75" Width="75" IsVisible="{Binding FullyMixed}" Source="{StaticResource privacy_indicator_good}" />
       </DockPanel>
     </DockPanel>
   </controls:TileControl>
