@@ -14,7 +14,11 @@
   <DockPanel>
     <DockPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch">
       <TextBlock Text="Balance over time" DockPanel.Dock="Left" />
-      <Button Classes="plain" DockPanel.Dock="Right" HorizontalAlignment="Right" Margin="0 0 0 -3">
+      <Button Classes="plain"
+              DockPanel.Dock="Right"
+              HorizontalAlignment="Right"
+              Margin="0 0 0 -3"
+              IsVisible="{Binding !!IsEmptyWallet}">
         <Button.Flyout>
           <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway">
             <ItemsControl Items="{Binding TimePeriodOptions}">
