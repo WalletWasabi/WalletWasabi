@@ -17,6 +17,20 @@
     </Setter>
     <Setter Property="AreaStroke" Value="{DynamicResource LineChartLineColor}" />
   </Style>
+  <!-- LineChart Area placeholder -->
+  <Style Selector="c|LineChart.placeholder">
+    <Setter Property="AreaFill">
+      <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%" Opacity="0.1">
+        <LinearGradientBrush.GradientStops>
+          <GradientStop Offset="0.0" Color="{DynamicResource LineChartAreaGradientStartStopColor}" />
+          <GradientStop Offset="1.0" Color="{DynamicResource LineChartAreaGradientEndStopColor}" />
+        </LinearGradientBrush.GradientStops>
+      </LinearGradientBrush>
+    </Setter>
+    <Setter Property="AreaStroke">
+      <SolidColorBrush Color="{DynamicResource LineChartLineColor}" Opacity="0.1"/>
+    </Setter>
+  </Style>
   <!-- LineChart Border -->
   <Style Selector="c|LineChart.border">
     <Setter Property="BorderThickness" Value="1" />

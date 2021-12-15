@@ -13,7 +13,7 @@ public partial class LineChartPlaceholderViewModel : ViewModelBase
 		_xMinimum = 0.0;
 		_yValues = new ObservableCollection<double>()
 		{
-			0, 1, 0, 1
+			0, 0.8, 0, 1
 		};
 		_xValues = new ObservableCollection<double>()
 		{
