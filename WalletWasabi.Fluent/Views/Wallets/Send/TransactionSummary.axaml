@@ -45,12 +45,12 @@
 
         <StackPanel Spacing="10">
           <c:PreviewItem Icon="{StaticResource timer_regular}"
-                         Text="miners will work hard to confirm your transaction within"
+                         Text="your transaction should be confirmed within"
                          IsVisible="{Binding !IsCustomFeeUsed}">
             <TextBlock Text="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
           </c:PreviewItem>
           <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
-                         Text="for an additional charge of">
+                         Text="there will be an additional transaction fee of">
             <TextBlock Text="{Binding FeeText, FallbackValue=235 sats (≈55.34 USD)}" />
           </c:PreviewItem>
         </StackPanel>
