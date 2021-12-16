@@ -17,10 +17,9 @@ namespace WalletWasabi.Tests.UnitTests
 			Money target = Money.Satoshis(100000000);
 
 			bool successful = selector.TryGetExactMatch(target, out List<Money>? selectedCoins);
-
 			Assert.True(successful);
 			Assert.NotNull(selectedCoins);
-			Assert.Equal(target.Satoshi, CalcEffectiveValue(selectedCoins!).Satoshi);
+			Assert.Equal(target.Satoshi, selectedCoins.Sum().Satoshi);
 		}
 
 		[Fact]
@@ -74,18 +73,6 @@ namespace WalletWasabi.Tests.UnitTests
 				availableCoins.Add((ulong)Random.Next((int)Money.Satoshis(1000), (int)Money.Satoshis(99999999)));
 			}
 			return availableCoins;
-		}
-
-		private Money CalcEffectiveValue(List<Money> list)
-		{
-			Money sum = Money.Satoshis(0);
-
-			foreach (var item in list)
-			{
-				sum += item.Satoshi;
-			}
-
-			return sum;
 		}
 	}
 }

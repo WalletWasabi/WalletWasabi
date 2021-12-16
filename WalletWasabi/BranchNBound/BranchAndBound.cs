@@ -22,10 +22,19 @@ namespace WalletWasabi.BranchNBound
 
 		private enum NextAction
 		{
+			/// <summary>First try to include a coin and then try not to include the coin in the selection.</summary>
 			AandB,
+
+			/// <summary>First try NOT to include a coin and then try to include the coin in the selection.</summary>
 			BandA,
+
+			/// <summary>Include coin.</summary>
 			A,
+
+			/// <summary>Omit coin.</summary>
 			B,
+
+			/// <summary>Current selection is wrong, rolling back and trying different combination.</summary>
 			Backtrack
 		}
 
