@@ -29,59 +29,44 @@ namespace WalletWasabi.BranchNBound
 			Backtrack
 		}
 
+		/// <remarks>Sorted in desceding order.</remarks>
 		private long[] SortedUTXOs { get; }
+
 		private int Count { get; }
 
-		public bool TryGetExactMatch(Money target, [NotNullWhen(true)] out List<Money> selectedCoins)
+		public bool TryGetExactMatch(Money target, [NotNullWhen(true)] out List<Money>? selectedCoins)
 		{
-			selectedCoins = new List<Money>();
-
 			if (SortedUTXOs.Sum() < target)
 			{
+				selectedCoins = null;
 				return false;
 			}
 
+			selectedCoins = new List<Money>();
+
 			try
 			{
-				if (Search(target.Satoshi, out long[] solution))
+				if (Search(target.Satoshi, out long[]? solution))
 				{
 					selectedCoins = solution.Where(c => c > 0).Select(c => Money.Satoshis(c)).ToList();
-
-					if (CalcEffectiveValue(selectedCoins) == target)
-					{
-						return true;
-					}
+					return true;
 				}
 
 				return false;
 			}
 			catch (Exception ex)
 			{
-				Logger.LogError("Couldn't find the right pair. " + ex);
+				Logger.LogError("Couldn't find the right pair. ", ex);
 				return false;
 			}
 		}
 
-		public Money CalcEffectiveValue(List<Money> list)
-		{
-			Guard.NotNull(nameof(list), list);
-
-			Money sum = Money.Satoshis(0);
-
-			foreach (var item in list)
-			{
-				sum += item.Satoshi;
-			}
-
-			return sum;
-		}
-
-		private bool Search(long target, [NotNullWhen(true)] out long[] solution)
+		private bool Search(long target, [NotNullWhen(true)] out long[]? solution)
 		{
 			// Current effective value.
 			long effValue = 0L;
 
-			// Current depth.
+			// Current depth (think of the depth in the recursive algorithm sense).
 			int depth = 0;
 
 			solution = new long[Count];
@@ -90,12 +75,12 @@ namespace WalletWasabi.BranchNBound
 
 			do
 			{
-				NextAction step = actions[depth];
+				NextAction action = actions[depth];
 
 				// Branch WITH the UTXO included.
-				if ((step == NextAction.AandB) || (step == NextAction.A))
+				if ((action == NextAction.AandB) || (action == NextAction.A))
 				{
-					actions[depth] = GetNextStep(step);
+					actions[depth] = GetNextStep(action);
 
 					solution[depth] = SortedUTXOs[depth];
 					effValue += SortedUTXOs[depth];
@@ -119,9 +104,9 @@ namespace WalletWasabi.BranchNBound
 					depth++;
 					actions[depth] = GetRandomNextAction();
 				}
-				else if ((step == NextAction.BandA) || (step == NextAction.B))
+				else if ((action == NextAction.BandA) || (action == NextAction.B))
 				{
-					actions[depth] = GetNextStep(step);
+					actions[depth] = GetNextStep(action);
 
 					// Branch WITHOUT the UTXO included.
 					effValue -= solution[depth];
@@ -153,9 +138,9 @@ namespace WalletWasabi.BranchNBound
 			return _random.Next(0, 2) == 1 ? NextAction.AandB : NextAction.BandA;
 		}
 
-		private NextAction GetNextStep(NextAction step)
+		private NextAction GetNextStep(NextAction action)
 		{
-			return step switch
+			return action switch
 			{
 				NextAction.AandB => NextAction.B,
 				NextAction.BandA => NextAction.A,

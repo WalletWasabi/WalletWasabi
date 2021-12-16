@@ -5,7 +5,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests
 {
-	public class BranchAndBoundSelectionTests
+	public class BranchAndBoundTests
 	{
 		private Random Random { get; } = new();
 
@@ -14,13 +14,13 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			List<Money> utxos = GenList();
 			BranchAndBound selector = new(utxos);
-			ulong target = Money.Satoshis(100000000);
+			Money target = Money.Satoshis(100000000);
 
-			bool successful = selector.TryGetExactMatch(target, out List<Money> selectedCoins);
+			bool successful = selector.TryGetExactMatch(target, out List<Money>? selectedCoins);
 
 			Assert.True(successful);
 			Assert.NotNull(selectedCoins);
-			Assert.Equal(target, (ulong)selector.CalcEffectiveValue(selectedCoins));
+			Assert.Equal(target.Satoshi, CalcEffectiveValue(selectedCoins!).Satoshi);
 		}
 
 		[Fact]
@@ -31,7 +31,7 @@ namespace WalletWasabi.Tests.UnitTests
 			List<Money> expectedCoins = new() { Money.Satoshis(100000), Money.Satoshis(50000), Money.Satoshis(40000) };
 			Money target = Money.Satoshis(190000);
 
-			bool wasSuccessful = selector.TryGetExactMatch(target, out List<Money> selectedCoins);
+			bool wasSuccessful = selector.TryGetExactMatch(target, out List<Money>? selectedCoins);
 
 			Assert.True(wasSuccessful);
 			Assert.NotNull(selectedCoins);
@@ -46,6 +46,18 @@ namespace WalletWasabi.Tests.UnitTests
 				availableCoins.Add((ulong)Random.Next((int)Money.Satoshis(1000), (int)Money.Satoshis(99999999)));
 			}
 			return availableCoins;
+		}
+
+		private Money CalcEffectiveValue(List<Money> list)
+		{
+			Money sum = Money.Satoshis(0);
+
+			foreach (var item in list)
+			{
+				sum += item.Satoshi;
+			}
+
+			return sum;
 		}
 	}
 }
