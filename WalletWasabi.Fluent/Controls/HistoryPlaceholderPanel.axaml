@@ -1,0 +1,32 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:WalletWasabi.Fluent.Controls"
+        xmlns:system="clr-namespace:System;assembly=System.Runtime">
+
+  <Style Selector="c|HistoryPlaceholderPanel">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Panel>
+          <ItemsControl x:Name="PART_DummyRows" x:CompileBindings="False">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Orientation="Vertical" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Panel Height="{StaticResource HistoryTableRowHeight}">
+                  <Border Opacity="{Binding .}"
+                          Background="{DynamicResource  SystemChromeGrayColor}"
+                          Height="10"
+                          CornerRadius="5" Margin="5 0" />
+                </Panel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </Panel>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+
+</Styles>

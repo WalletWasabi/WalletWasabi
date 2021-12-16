@@ -1,5 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:system="clr-namespace:System;assembly=System.Runtime">
   <Styles.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
@@ -114,5 +115,9 @@
         <GradientStop Offset="1" Color="#FF7FAF2F" />
       </LinearGradientBrush.GradientStops>
     </LinearGradientBrush>
+
+    <system:Double x:Key="HistoryTableRowHeight">36.5</system:Double>
+    <Thickness x:Key="HistoryTablePlaceholderPanelMargin">0 42 0 0</Thickness>
+
   </Styles.Resources>
 </Styles>
