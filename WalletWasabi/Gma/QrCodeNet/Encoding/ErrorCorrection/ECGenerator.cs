@@ -1,5 +1,4 @@
 using Gma.QrCodeNet.Encoding.ReedSolomon;
-using System;
 using System.Collections.Generic;
 
 namespace Gma.QrCodeNet.Encoding.ErrorCorrection

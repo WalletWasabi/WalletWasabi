@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.RPC;
-using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;

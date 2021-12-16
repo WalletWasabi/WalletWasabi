@@ -1,5 +1,3 @@
-using System;
-using NBitcoin;
 using Newtonsoft.Json;
 using WalletWasabi.Crypto.Groups;
 

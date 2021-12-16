@@ -1,13 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Avalonia.Collections;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
@@ -58,7 +55,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 		public void SelectTransaction(uint256 txid)
 		{
-			var txnItem = Transactions.FirstOrDefault(x => x.Id == txid);
+			var txnItem = Transactions.FirstOrDefault(item =>
+			{
+				if (item is CoinJoinsHistoryItemViewModel cjGroup)
+				{
+					return cjGroup.CoinJoinTransactions.Any(x => x.TransactionId == txid);
+				}
+
+				return item.Id == txid;
+			});
 
 			if (txnItem is { })
 			{
@@ -136,7 +141,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 					yield return new TransactionHistoryItemViewModel(i, item, _walletViewModel, balance, _updateTrigger);
 				}
 
-				if (item.IsLikelyCoinJoinOutput && item.IsConfirmed())
+				if (item.IsLikelyCoinJoinOutput)
 				{
 					if (coinJoinGroup is null)
 					{
@@ -149,8 +154,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				}
 
 				if (coinJoinGroup is { } cjg &&
-				    (i + 1 < txRecordList.Count && !txRecordList[i + 1].IsLikelyCoinJoinOutput || // The next item is not CJ so add the group.
-				     i == txRecordList.Count - 1)) // There is no following item in the list so add the group.
+					(i + 1 < txRecordList.Count && !txRecordList[i + 1].IsLikelyCoinJoinOutput || // The next item is not CJ so add the group.
+					 i == txRecordList.Count - 1)) // There is no following item in the list so add the group.
 				{
 					cjg.SetBalance(balance);
 					yield return cjg;

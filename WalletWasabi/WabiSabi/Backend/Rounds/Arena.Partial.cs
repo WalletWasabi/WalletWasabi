@@ -1,6 +1,5 @@
 using NBitcoin;
 using Nito.AsyncEx;
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -239,11 +238,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				var round = GetRound(request.RoundId, Phase.TransactionSigning);
 
-				var state = round.Assert<SigningState>();
-				foreach (var inputWitnessPair in request.InputWitnessPairs)
-				{
-					state = state.AddWitness((int)inputWitnessPair.InputIndex, inputWitnessPair.Witness);
-				}
+				var state = round.Assert<SigningState>().AddWitness((int)request.InputIndex, request.Witness);
 
 				// at this point all of the witnesses have been verified and the state can be updated
 				round.CoinjoinState = state;

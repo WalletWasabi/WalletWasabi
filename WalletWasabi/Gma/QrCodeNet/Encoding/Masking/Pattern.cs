@@ -1,5 +1,3 @@
-using System;
-
 namespace Gma.QrCodeNet.Encoding.Masking
 {
 	public abstract class Pattern : BitMatrix

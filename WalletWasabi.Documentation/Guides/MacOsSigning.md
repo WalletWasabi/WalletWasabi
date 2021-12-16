@@ -42,3 +42,7 @@
 - https://developer.apple.com/developer-id/
 
 (The altool and stapler command-line tools (included within Xcode) allow you to upload your software to the Apple notary service, and to staple the resulting ticket to your executable. altool is located at /Applications/Xcode.app/Contents/Developer/usr/bin/altool.). Unfortunately it is not enough to intall Command Line Tool for XCode. 
+
+## Changing the icon
+
+- https://github.com/zkSNACKs/WalletWasabi/issues/2951

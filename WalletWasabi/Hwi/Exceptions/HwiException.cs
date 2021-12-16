@@ -1,5 +1,3 @@
-using System;
-
 namespace WalletWasabi.Hwi.Exceptions
 {
 	public class HwiException : Exception

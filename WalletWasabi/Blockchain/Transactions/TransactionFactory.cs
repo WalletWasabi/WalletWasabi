@@ -1,6 +1,5 @@
 using NBitcoin;
 using NBitcoin.Policy;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -207,7 +206,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			}
 			if (feePc > 100)
 			{
-				throw new InvalidOperationException($"The transaction fee is more than the sent amount: {feePc:0.#}%.");
+				throw new TransactionFeeOverpaymentException(feePc);
 			}
 
 			if (spentCoins.Any(u => !u.Confirmed))

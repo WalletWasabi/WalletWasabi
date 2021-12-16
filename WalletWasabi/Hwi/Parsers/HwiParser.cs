@@ -1,7 +1,6 @@
 using NBitcoin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -162,7 +161,7 @@ namespace WalletWasabi.Hwi.Parsers
 			if (JsonHelpers.TryParseJToken(json, out JToken? token))
 			{
 				var extPubKeyString = token["xpub"]?.ToString().Trim();
-				var extPubKey = string.IsNullOrEmpty(extPubKeyString) ? null : NBitcoinHelpers.BetterParseExtPubKey(extPubKeyString);
+				var extPubKey = string.IsNullOrWhiteSpace(extPubKeyString) ? null : NBitcoinHelpers.BetterParseExtPubKey(extPubKeyString);
 				return extPubKey;
 			}
 			else
@@ -242,13 +241,13 @@ namespace WalletWasabi.Hwi.Parsers
 			}
 
 			bool? needsPinSent = null;
-			if (!string.IsNullOrEmpty(needsPinSentString))
+			if (!string.IsNullOrWhiteSpace(needsPinSentString))
 			{
 				needsPinSent = bool.Parse(needsPinSentString);
 			}
 
 			bool? needsPassphraseSent = null;
-			if (!string.IsNullOrEmpty(needsPassphraseSentString))
+			if (!string.IsNullOrWhiteSpace(needsPassphraseSentString))
 			{
 				needsPassphraseSent = bool.Parse(needsPassphraseSentString);
 			}

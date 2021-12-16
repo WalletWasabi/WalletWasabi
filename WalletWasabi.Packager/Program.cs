@@ -1,10 +1,11 @@
-using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Userfacing;
@@ -13,7 +14,6 @@ namespace WalletWasabi.Packager
 {
 	public static class Program
 	{
-#pragma warning disable CS0162 // Unreachable code detected
 		// 0. Dump Client version (or else wrong .msi will be created) - Helpers.Constants.ClientVersion
 		// 1. Publish with Packager.
 		// 2. Build WIX project with Release and x64 configuration.
@@ -75,16 +75,17 @@ namespace WalletWasabi.Packager
 
 			if (DoPublish || OnlyBinaries)
 			{
-				Publish();
+				await PublishAsync().ConfigureAwait(false);
 
 				IoHelpers.OpenFolderInFileExplorer(BinDistDirectory);
 			}
 
+#pragma warning disable CS0162 // Unreachable code detected
 			if (!OnlyBinaries)
 			{
 				if (DoSign)
 				{
-					Sign();
+					await SignAsync().ConfigureAwait(false);
 				}
 
 				if (DoRestoreProgramCs)
@@ -92,6 +93,7 @@ namespace WalletWasabi.Packager
 					RestoreProgramCs();
 				}
 			}
+#pragma warning restore CS0162 // Unreachable code detected
 		}
 
 		private static void ReportStatus()
@@ -121,10 +123,10 @@ namespace WalletWasabi.Packager
 
 		private static void RestoreProgramCs()
 		{
-			StartProcessAndWaitForExit("cmd", PackagerProjectDirectory, "git checkout -- Program.cs && exit");
+			StartProcessAndWaitForExit("git", PackagerProjectDirectory, arguments: "checkout -- Program.cs");
 		}
 
-		private static void Sign()
+		private static async Task SignAsync()
 		{
 			foreach (string target in Targets)
 			{
@@ -148,7 +150,7 @@ namespace WalletWasabi.Packager
 					// Sign code with digicert.
 					StartProcessAndWaitForExit("cmd", BinDistDirectory, $"signtool sign /d \"Wasabi Wallet\" /f \"{PfxPath}\" /p {pfxPassword} /t http://timestamp.digicert.com /a \"{newMsiPath}\" && exit");
 
-					IoHelpers.TryDeleteDirectoryAsync(publishedFolder).GetAwaiter().GetResult();
+					await IoHelpers.TryDeleteDirectoryAsync(publishedFolder).ConfigureAwait(false);
 					Console.WriteLine($"Deleted {publishedFolder}");
 				}
 				else if (target.StartsWith("osx", StringComparison.OrdinalIgnoreCase))
@@ -179,26 +181,26 @@ namespace WalletWasabi.Packager
 			IoHelpers.OpenFolderInFileExplorer(BinDistDirectory);
 		}
 
-		private static void Publish()
+		private static async Task PublishAsync()
 		{
 			if (Directory.Exists(BinDistDirectory))
 			{
-				IoHelpers.TryDeleteDirectoryAsync(BinDistDirectory).GetAwaiter().GetResult();
+				await IoHelpers.TryDeleteDirectoryAsync(BinDistDirectory).ConfigureAwait(false);
 				Console.WriteLine($"Deleted {BinDistDirectory}");
 			}
 
-			StartProcessAndWaitForExit("cmd", DesktopProjectDirectory, "dotnet clean --configuration Release && exit");
+			StartProcessAndWaitForExit("dotnet", DesktopProjectDirectory, arguments: "clean --configuration Release");
 
 			var desktopBinReleaseDirectory = Path.GetFullPath(Path.Combine(DesktopProjectDirectory, "bin", "Release"));
 			var libraryBinReleaseDirectory = Path.GetFullPath(Path.Combine(LibraryProjectDirectory, "bin", "Release"));
 			if (Directory.Exists(desktopBinReleaseDirectory))
 			{
-				IoHelpers.TryDeleteDirectoryAsync(desktopBinReleaseDirectory).GetAwaiter().GetResult();
+				await IoHelpers.TryDeleteDirectoryAsync(desktopBinReleaseDirectory).ConfigureAwait(false);
 				Console.WriteLine($"Deleted {desktopBinReleaseDirectory}");
 			}
 			if (Directory.Exists(libraryBinReleaseDirectory))
 			{
-				IoHelpers.TryDeleteDirectoryAsync(libraryBinReleaseDirectory).GetAwaiter().GetResult();
+				await IoHelpers.TryDeleteDirectoryAsync(libraryBinReleaseDirectory).ConfigureAwait(false);
 				Console.WriteLine($"Deleted {libraryBinReleaseDirectory}");
 			}
 
@@ -207,6 +209,10 @@ namespace WalletWasabi.Packager
 
 			IoHelpers.EnsureDirectoryExists(deliveryPath);
 			Console.WriteLine($"Binaries will be delivered here: {deliveryPath}");
+
+			string buildInfoJson = GetBuildInfoData();
+
+			CheckUncommittedGitChanges();
 
 			foreach (string target in Targets)
 			{
@@ -222,6 +228,9 @@ namespace WalletWasabi.Packager
 					Directory.CreateDirectory(currentBinDistDirectory);
 					Console.WriteLine($"Created {currentBinDistDirectory}");
 				}
+
+				string buildInfoPath = Path.Combine(currentBinDistDirectory, "BUILDINFO.json");
+				File.WriteAllText(buildInfoPath, buildInfoJson);
 
 				StartProcessAndWaitForExit("dotnet", DesktopProjectDirectory, arguments: "clean");
 
@@ -300,7 +309,7 @@ namespace WalletWasabi.Packager
 				{
 					if (!dir.Name.Contains(toNotRemove, StringComparison.OrdinalIgnoreCase))
 					{
-						IoHelpers.TryDeleteDirectoryAsync(dir.FullName).GetAwaiter().GetResult();
+						await IoHelpers.TryDeleteDirectoryAsync(dir.FullName).ConfigureAwait(false);
 					}
 				}
 
@@ -359,7 +368,7 @@ namespace WalletWasabi.Packager
 
 					ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(BinDistDirectory, $"Wasabi-osx-{VersionPrefix}.zip"));
 
-					IoHelpers.TryDeleteDirectoryAsync(currentBinDistDirectory).GetAwaiter().GetResult();
+					await IoHelpers.TryDeleteDirectoryAsync(currentBinDistDirectory).ConfigureAwait(false);
 					Console.WriteLine($"Deleted {currentBinDistDirectory}");
 				}
 				else if (target.StartsWith("linux"))
@@ -503,16 +512,64 @@ namespace WalletWasabi.Packager
 
 					StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
 
-					IoHelpers.TryDeleteDirectoryAsync(debFolderPath).GetAwaiter().GetResult();
+					await IoHelpers.TryDeleteDirectoryAsync(debFolderPath).ConfigureAwait(false);
 
 					string oldDeb = Path.Combine(BinDistDirectory, $"{ExecutableName}_{VersionPrefix}_amd64.deb");
 					string newDeb = Path.Combine(BinDistDirectory, $"Wasabi-{VersionPrefix}.deb");
 					File.Move(oldDeb, newDeb);
 
-					IoHelpers.TryDeleteDirectoryAsync(publishedFolder).GetAwaiter().GetResult();
+					await IoHelpers.TryDeleteDirectoryAsync(publishedFolder).ConfigureAwait(false);
 					Console.WriteLine($"Deleted {publishedFolder}");
 				}
 			}
+		}
+
+		/// <summary>Checks whether there are uncommitted changes.</summary>
+		/// <remarks>This is important to really release a build that corresponds with a git hash.</remarks>
+		private static void CheckUncommittedGitChanges()
+		{
+			string? gitStatus = StartProcessAndWaitForExit("git", workingDirectory: DesktopProjectDirectory, arguments: "status --porcelain", redirectStandardOutput: true)?.Trim();
+
+			if (!string.IsNullOrEmpty(gitStatus))
+			{
+				Console.WriteLine("BEWARE: There are uncommitted changes in the repository. Do you want to continue? (Y/N)");
+				int i = Console.Read();
+				char ch = Convert.ToChar(i);
+
+				if (ch != 'y' && ch != 'Y')
+				{
+					Console.WriteLine("\nExiting.");
+					Environment.Exit(1);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Gets information about .NET SDK and .NET runtime so that deterministic build is easier to reproduce.
+		/// </summary>
+		/// <returns>JSON string to write to a <c>BUILDINFO.json</c> file.</returns>
+		private static string GetBuildInfoData()
+		{
+			// .NET runtime version. We rely on the fact that this version is the same as if we run "dotnet" command. This should be a safe assumption.
+			Version runtimeVersion = Environment.Version;
+
+			// Get .NET SDK version.
+			string? sdkVersion = StartProcessAndWaitForExit("dotnet", workingDirectory: DesktopProjectDirectory, arguments: "--version", redirectStandardOutput: true)?.Trim();
+
+			if (sdkVersion is null)
+			{
+				throw new InvalidOperationException($"Failed to get .NET SDK version.");
+			}
+
+			// Get git commit ID.
+			string? gitCommitId = StartProcessAndWaitForExit("git", workingDirectory: DesktopProjectDirectory, arguments: "rev-parse HEAD", redirectStandardOutput: true)?.Trim();
+
+			if (gitCommitId is null)
+			{
+				throw new InvalidOperationException($"Failed to get git commit ID.");
+			}
+
+			return JsonSerializer.Serialize(new BuildInfo(runtimeVersion.ToString(), sdkVersion, gitCommitId), new JsonSerializerOptions() { WriteIndented = true });
 		}
 
 		private static string? StartProcessAndWaitForExit(string command, string workingDirectory, string? writeToStandardInput = null, string? arguments = null, bool redirectStandardOutput = false)
@@ -565,7 +622,5 @@ namespace WalletWasabi.Packager
 
 			return output;
 		}
-
-#pragma warning restore CS0162 // Unreachable code detected
 	}
 }

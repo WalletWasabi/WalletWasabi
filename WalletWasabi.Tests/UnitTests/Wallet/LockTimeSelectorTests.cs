@@ -1,5 +1,4 @@
 using NBitcoin;
-using System;
 using WalletWasabi.Wallets;
 using Xunit;
 

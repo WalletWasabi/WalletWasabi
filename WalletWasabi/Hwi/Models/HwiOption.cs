@@ -1,5 +1,4 @@
 using NBitcoin;
-using System;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Parsers;
 

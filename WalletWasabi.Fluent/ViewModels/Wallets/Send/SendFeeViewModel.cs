@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Concurrency;
@@ -41,7 +40,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			NextCommand = ReactiveCommand.Create(() =>
 		   {
-			   _transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(FeeChart.CurrentConfirmationTarget);
+			   _transactionInfo.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(FeeChart.CurrentConfirmationTarget);
 
 			   Complete();
 		   });
@@ -51,7 +50,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void Complete()
 		{
-			Close(DialogResultKind.Normal, new FeeRate(FeeChart.GetSatoshiPerByte(FeeChart.CurrentConfirmationTarget)));
+			var blockTarget = FeeChart.CurrentConfirmationTarget;
+
+			Services.UiConfig.FeeTarget = (int)blockTarget;
+			Close(DialogResultKind.Normal, new FeeRate(FeeChart.GetSatoshiPerByte(blockTarget)));
 		}
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -68,7 +70,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(estimations =>
 				{
-					FeeChart.UpdateFeeEstimates(TransactionFeeHelper.GetFeeEstimates(_wallet));
+					FeeChart.UpdateFeeEstimates(TransactionFeeHelper.GetFeeEstimates(_wallet), _transactionInfo.MaximumPossibleFeeRate);
 				})
 				.DisposeWith(disposables);
 
@@ -79,7 +81,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					await Task.Delay(100);
 				}
 
-				FeeChart.UpdateFeeEstimates(TransactionFeeHelper.GetFeeEstimates(_wallet));
+				FeeChart.UpdateFeeEstimates(TransactionFeeHelper.GetFeeEstimates(_wallet), _transactionInfo.MaximumPossibleFeeRate);
 
 				if (_transactionInfo.FeeRate != FeeRate.Zero)
 				{
@@ -88,14 +90,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				if (_isSilent)
 				{
-					var satPerByteThreshold = Services.Config.SatPerByteThreshold;
-					var blockTargetThreshold = Services.Config.BlockTargetThreshold;
-					var estimations = FeeChart.GetValues();
-
-					var blockTarget = GetBestBlockTarget(estimations, satPerByteThreshold, blockTargetThreshold);
-
-					FeeChart.CurrentConfirmationTarget = blockTarget;
-					_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(blockTarget);
+					_transactionInfo.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(FeeChart.CurrentConfirmationTarget);
 
 					Complete();
 				}
@@ -104,26 +99,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					IsBusy = false;
 				}
 			});
-		}
-
-		private double GetBestBlockTarget(Dictionary<double, double> estimations, int satPerByteThreshold, int blockTargetThreshold)
-		{
-			var possibleBlockTargets =
-				estimations.OrderBy(x => x.Key).Where(x => x.Value <= satPerByteThreshold && x.Key <= blockTargetThreshold).ToArray();
-
-			if (possibleBlockTargets.Any())
-			{
-				return possibleBlockTargets.First().Key;
-			}
-
-			return blockTargetThreshold;
-		}
-
-		private TimeSpan CalculateConfirmationTime(double targetBlock)
-		{
-			var timeInMinutes = Math.Ceiling(targetBlock) * 10;
-			var time = TimeSpan.FromMinutes(timeInMinutes);
-			return time;
 		}
 	}
 }

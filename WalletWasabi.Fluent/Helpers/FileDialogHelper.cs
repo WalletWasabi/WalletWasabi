@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -48,7 +47,7 @@ namespace WalletWasabi.Fluent.Helpers
 			var window = ((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).MainWindow;
 			var selected = await ofd.ShowAsync(window);
 
-			return selected.FirstOrDefault();
+			return selected?.FirstOrDefault();
 		}
 
 		private static async Task<string?> GetDialogResultAsync(SaveFileDialog sfd)

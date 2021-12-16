@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
@@ -126,13 +125,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		{
 			using var key1 = new Key();
 			using var key2 = new Key();
-			var message = new TransactionSignaturesRequest(
-				BitcoinFactory.CreateUint256(),
-				new[]
-				{
-					new InputWitnessPair(1, new WitScript(Op.GetPushOp(key1.PubKey.ToBytes())) ),
-					new InputWitnessPair(17, new WitScript(Op.GetPushOp(key2.PubKey.ToBytes())) )
-				});
+			var message = new TransactionSignaturesRequest(BitcoinFactory.CreateUint256(), 1, new WitScript(Op.GetPushOp(key1.PubKey.ToBytes())));
 
 			AssertSerialization(message);
 		}

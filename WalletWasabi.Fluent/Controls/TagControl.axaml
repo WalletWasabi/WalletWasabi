@@ -71,6 +71,7 @@
     <Setter Property="ContentTemplate">
       <DataTemplate DataType="x:String">
         <TextBlock Text="{Binding .}"
+                   MaxWidth="120"
                    TextTrimming="CharacterEllipsis" />
       </DataTemplate>
     </Setter>

@@ -1,7 +1,6 @@
 using NBitcoin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
 using System.ComponentModel;
 using System.Net;
 using WalletWasabi.Bases;
@@ -23,8 +22,6 @@ namespace WalletWasabi.Fluent
 		public const int DefaultPrivacyLevelFine = 21;
 		public const int DefaultPrivacyLevelStrong = 50;
 		public const int DefaultJsonRpcServerPort = 37128;
-		public const int DefaultBlockTargetThreshold = 6;
-		public const int DefaultSatPerByteThreshold = 10;
 		public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);
 
 		private Uri _backendUri = null;
@@ -194,14 +191,6 @@ namespace WalletWasabi.Fluent
 		[JsonProperty(PropertyName = "DustThreshold")]
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
 		public Money DustThreshold { get; internal set; } = DefaultDustThreshold;
-
-		[DefaultValue(DefaultBlockTargetThreshold)]
-		[JsonProperty(PropertyName = nameof(BlockTargetThreshold), DefaultValueHandling = DefaultValueHandling.Populate)]
-		public int BlockTargetThreshold { get; private set; }
-
-		[DefaultValue(DefaultSatPerByteThreshold)]
-		[JsonProperty(PropertyName = nameof(SatPerByteThreshold), DefaultValueHandling = DefaultValueHandling.Populate)]
-		public int SatPerByteThreshold { get; private set; }
 
 		public ServiceConfiguration ServiceConfiguration { get; private set; }
 

@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
@@ -10,7 +8,6 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Wallets;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
@@ -54,7 +51,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 		private void UpdateBalance()
 		{
-			BalanceBtc = $"{_wallet.Coins.TotalAmount().ToFormattedString()} BTC";
+			BalanceBtc = $"{_wallet.Coins.TotalAmount().ToFormattedString()} ₿";
 
 			BalanceFiat = _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC)
 				.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");

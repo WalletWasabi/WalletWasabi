@@ -1,5 +1,3 @@
-using System;
-
 namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 {
 	internal abstract class PatternStencilBase : BitMatrix

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
@@ -34,14 +33,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems
 				throw new InvalidOperationException("Not a coinjoin item!");
 			}
 
-			CoinJoinTransactions.Add(item);
+			CoinJoinTransactions.Insert(0, item);
 			Refresh();
 		}
 
 		private void Refresh()
 		{
 			IsConfirmed = CoinJoinTransactions.All(x => x.IsConfirmed());
-			Date = CoinJoinTransactions.Last().DateTime.ToLocalTime();
+			Date = CoinJoinTransactions.Select(tx => tx.DateTime).Max().ToLocalTime();
 			UpdateAmount();
 			UpdateDateString();
 		}
@@ -63,11 +62,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems
 
 		protected void UpdateDateString()
 		{
-			var firstDate = CoinJoinTransactions.First().DateTime.ToLocalTime();
-			var lastDate = CoinJoinTransactions.Last().DateTime.ToLocalTime();
+			var dates = CoinJoinTransactions.Select(tx => tx.DateTime);
+			var firstDate = dates.Min().ToLocalTime();
+			var lastDate = dates.Max().ToLocalTime();
 
 			DateString = firstDate.Day == lastDate.Day
-				? $"{firstDate:MM/dd/yyyy}"
+				? $"{firstDate:MM/dd/yy}"
 				: $"{firstDate:MM/dd/yy} - {lastDate:MM/dd/yy}";
 		}
 

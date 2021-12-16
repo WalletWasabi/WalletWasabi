@@ -1,5 +1,4 @@
 using NBitcoin;
-using System;
 using WalletWasabi.Hwi.Exceptions;
 
 namespace WalletWasabi.Hwi.Models
