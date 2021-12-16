@@ -56,7 +56,7 @@
 5. Copy the following two files under wasabidmg Logo_with_text_small.png and WasabiLogo.icns
 6. Open terminal at wasabidmg
 7. Set the version number in the following command and run it
-9. `create-dmg --volname "WasabiWallet Installer" --volicon "WasabiLogo.icns" --background "Logo_with_text_small.png" --window-pos 200 120 --window-size 600 440 --icon "wassabee" 110 150 --app-drop-link 500 150 --hdiutil-verbose "Wasabi.dmg" "osx-x64/"`
+9. `create-dmg --volname "Wasabi Wallet" --volicon "WasabiLogo.icns" --background "Logo_with_text_small.png" --window-pos 200 120 --window-size 600 440 --icon "Wasabi Wallet.app" 110 150 --app-drop-link 500 150 --hdiutil-verbose "Wasabi.dmg" "osx-x64/"`
 11. Dmg file is created under wasabidmg
 12. Copy the dmg to windows computer, extract(7zip) DS_Store file and copy it to `WalletWasabi\WalletWasabi.Packager\Content\Osx\Dmg\DS_Store.dat` - add the extension .dat to prevent macOs overwriting the file. 
 13. Now you can run the packager procedure
