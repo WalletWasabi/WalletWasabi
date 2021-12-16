@@ -144,6 +144,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			});
 
 			WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(Settings));
+
+			WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this)));
 		}
 
 		public WalletSettingsViewModel Settings { get; }
@@ -157,6 +159,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		public ICommand WalletInfoCommand { get; }
 
 		public ICommand WalletSettingsCommand { get; }
+
+		public ICommand WalletCoinsCommand { get; }
 
 		private CompositeDisposable Disposables { get; set; }
 
