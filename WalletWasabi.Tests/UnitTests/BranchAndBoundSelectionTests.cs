@@ -12,11 +12,11 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void RandomizedTest()
 		{
-			var utxos = GenList();
-			var selector = new BranchAndBound(utxos);
+			List<Money> utxos = GenList();
+			BranchAndBound selector = new(utxos);
 			ulong target = Money.Satoshis(100000000);
 
-			var successful = selector.TryGetExactMatch(target, out List<Money> selectedCoins);
+			bool successful = selector.TryGetExactMatch(target, out List<Money> selectedCoins);
 
 			Assert.True(successful);
 			Assert.NotNull(selectedCoins);
@@ -26,12 +26,12 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void SimpleSelectionTest()
 		{
-			var utxos = new List<Money> { Money.Satoshis(120000), Money.Satoshis(100000), Money.Satoshis(100000), Money.Satoshis(50000), Money.Satoshis(40000) };
-			var selector = new BranchAndBound(utxos);
-			var expectedCoins = new List<Money> { Money.Satoshis(100000), Money.Satoshis(50000), Money.Satoshis(40000) };
+			List<Money> utxos = new() { Money.Satoshis(120000), Money.Satoshis(100000), Money.Satoshis(100000), Money.Satoshis(50000), Money.Satoshis(40000) };
+			BranchAndBound selector = new(utxos);
+			List<Money> expectedCoins = new() { Money.Satoshis(100000), Money.Satoshis(50000), Money.Satoshis(40000) };
 			Money target = Money.Satoshis(190000);
 
-			var wasSuccessful = selector.TryGetExactMatch(target, out List<Money> selectedCoins);
+			bool wasSuccessful = selector.TryGetExactMatch(target, out List<Money> selectedCoins);
 
 			Assert.True(wasSuccessful);
 			Assert.NotNull(selectedCoins);

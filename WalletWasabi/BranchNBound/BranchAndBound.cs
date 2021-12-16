@@ -70,7 +70,7 @@ namespace WalletWasabi.BranchNBound
 
 			foreach (var item in list)
 			{
-				sum += item.Satoshi;        // TODO: effectiveValue = utxo.value − feePerByte × bytesPerInput
+				sum += item.Satoshi;
 			}
 
 			return sum;
