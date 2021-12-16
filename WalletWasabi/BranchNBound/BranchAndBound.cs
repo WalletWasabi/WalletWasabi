@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
@@ -14,10 +15,10 @@ namespace WalletWasabi.BranchNBound
 	{
 		private readonly Random _random = new();
 
-		public BranchAndBound(List<Money> availableCoins)
+		public BranchAndBound(List<SmartCoin> availableCoins)
 		{
 			Count = availableCoins.Count;
-			SortedUTXOs = availableCoins.OrderByDescending(x => x.Satoshi).Select(c => c.Satoshi).ToArray();
+			SortedUTXOs = availableCoins.OrderByDescending(x => x.Amount).ToArray();
 		}
 
 		private enum NextAction
@@ -39,25 +40,25 @@ namespace WalletWasabi.BranchNBound
 		}
 
 		/// <remarks>Sorted in desceding order.</remarks>
-		private long[] SortedUTXOs { get; }
+		private SmartCoin[] SortedUTXOs { get; }
 
 		private int Count { get; }
 
-		public bool TryGetExactMatch(Money target, [NotNullWhen(true)] out List<Money>? selectedCoins)
+		public bool TryGetExactMatch(Money target, [NotNullWhen(true)] out List<SmartCoin>? selectedCoins)
 		{
-			if (SortedUTXOs.Sum() < target)
+			if (Summ(SortedUTXOs) < target)
 			{
 				selectedCoins = null;
 				return false;
 			}
 
-			selectedCoins = new List<Money>();
+			selectedCoins = new List<SmartCoin>();
 
 			try
 			{
-				if (Search(target.Satoshi, out long[]? solution))
+				if (Search(target.Satoshi, out SmartCoin[]? solution))
 				{
-					selectedCoins = solution.Where(c => c > 0).Select(c => Money.Satoshis(c)).ToList();
+					selectedCoins = solution.Where(x => x is not null).ToList();
 					return true;
 				}
 				selectedCoins = null;
@@ -70,7 +71,7 @@ namespace WalletWasabi.BranchNBound
 			}
 		}
 
-		private bool Search(long target, [NotNullWhen(true)] out long[]? solution)
+		private bool Search(long target, [NotNullWhen(true)] out SmartCoin[]? solution)
 		{
 			// Current effective value.
 			long effValue = 0L;
@@ -78,9 +79,16 @@ namespace WalletWasabi.BranchNBound
 			// Current depth (think of the depth in the recursive algorithm sense).
 			int depth = 0;
 
-			solution = new long[Count];
+			solution = new SmartCoin[Count];
 			NextAction[] actions = new NextAction[Count];
 			actions[0] = GetRandomNextAction();
+
+			long[] solutionAmountDesc = new long[Count];
+
+			for (int i = 0; i < Count; i++)
+			{
+				solutionAmountDesc[i] = SortedUTXOs[i].Amount;
+			}
 
 			do
 			{
@@ -92,7 +100,7 @@ namespace WalletWasabi.BranchNBound
 					actions[depth] = GetNextStep(action);
 
 					solution[depth] = SortedUTXOs[depth];
-					effValue += SortedUTXOs[depth];
+					effValue = (long)Summ(solution);
 
 					if (effValue > target)
 					{
@@ -118,8 +126,8 @@ namespace WalletWasabi.BranchNBound
 					actions[depth] = GetNextStep(action);
 
 					// Branch WITHOUT the UTXO included.
-					effValue -= solution[depth];
-					solution[depth] = 0L;
+					solution[depth] = null;
+					effValue = (long)Summ(solution);
 
 					if (depth + 1 == Count)
 					{
@@ -132,8 +140,8 @@ namespace WalletWasabi.BranchNBound
 				}
 				else
 				{
-					effValue -= solution[depth];
-					solution[depth] = 0;
+					solution[depth] = null;
+					effValue = (long)Summ(solution);
 					depth--;
 				}
 			}
@@ -158,6 +166,21 @@ namespace WalletWasabi.BranchNBound
 				NextAction.Backtrack => throw new InvalidOperationException("This should never happen."),
 				_ => throw new InvalidOperationException("No other values are valid.")
 			};
+		}
+
+		private ulong Summ(SmartCoin[] coins)
+		{
+			ulong sum = 0;
+			foreach (SmartCoin coin in coins)
+			{
+				if (coin is null)
+				{
+					continue;
+				}
+				sum += coin.Amount;
+			}
+
+			return sum;
 		}
 	}
 }

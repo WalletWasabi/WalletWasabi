@@ -3,6 +3,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.BranchNBound;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Wallets;
@@ -114,6 +116,33 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 				new PrivacySuggestionBenefit(false, "No change, less trace"));
 		}
 
+		ChangeAvoidanceSuggestionViewModel? bnbSuggestion = null;
+
+		BranchAndBound bnb = new(wallet.Coins.Confirmed().ToList());
+
+		bool canBuildWithoutChangeWithBnb = bnb.TryGetExactMatch(transactionInfo.Amount, out List<SmartCoin>? bnbResult);
+
+		if (canBuildWithoutChangeWithBnb && bnbResult is not null)
+		{
+			var bnbTransaction = await Task.Run(() => wallet.BuildTransaction(
+				wallet.Kitchen.SaltSoup(),
+				intent,
+				FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
+				false,
+				bnbResult
+				.Select(x => x.OutPoint)));
+
+			bnbSuggestion = new ChangeAvoidanceSuggestionViewModel(
+				transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
+				bnbTransaction,
+				PrivacyOptimisationLevel.Better,
+				wallet.Synchronizer.UsdExchangeRate,
+				false,
+				new PrivacySuggestionBenefit(true, "Branch and Bound"),
+				new PrivacySuggestionBenefit(false, "No change, less trace")
+				);
+		}
+
 		var defaultSelection = new ChangeAvoidanceSuggestionViewModel(
 			transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), requestedTransaction,
 			PrivacyOptimisationLevel.Standard, wallet.Synchronizer.UsdExchangeRate, true,
@@ -134,11 +163,16 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 		// There are several scenarios, both the alternate suggestions are <, or >, or 1 < and 1 >.
 		// We sort them and add the suggestions accordingly.
-		var suggestions = new List<ChangeAvoidanceSuggestionViewModel> {defaultSelection, largerSuggestion};
+		var suggestions = new List<ChangeAvoidanceSuggestionViewModel> { defaultSelection, largerSuggestion };
 
 		if (smallerSuggestion is { })
 		{
 			suggestions.Add(smallerSuggestion);
+		}
+
+		if (bnbSuggestion is { })
+		{
+			suggestions.Add(bnbSuggestion);
 		}
 
 		var results = new List<ChangeAvoidanceSuggestionViewModel>();
