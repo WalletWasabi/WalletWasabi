@@ -36,10 +36,13 @@ public static class Program
 	// For 32 bit Windows there needs to be a lot of WIX configuration to be done.
 	private static string[] Targets = new[]
 	{
-			"win7-x64",
-			"linux-x64",
-			"osx-x64"
-		};
+		"win7-x64",
+		"linux-x64",
+		"osx-x64"
+
+		// TODO: Add support.
+		// "osx-arm64"
+	};
 
 	private static string VersionPrefix = Constants.ClientVersion.Revision == 0 ? Constants.ClientVersion.ToString(3) : Constants.ClientVersion.ToString();
 
@@ -63,6 +66,7 @@ public static class Program
 		// For now this is enough. If you run it on macOS you want to sign.
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 		{
+			// TODO: Fix for "osx-arm64".
 			MacSignTools.Sign();
 			return;
 		}
@@ -406,14 +410,15 @@ public static class Program
 
 				var commands = new[]
 				{
-						"cd ~",
-						$"sudo umount /mnt/{driveLetterLower}",
-						$"sudo mount -t drvfs {driveLetterUpper}: /mnt/{driveLetterLower} -o metadata",
-						$"cd {linuxPath}",
-						$"sudo find ./{newFolderName} -type f -exec chmod 644 {{}} \\;",
-						$"sudo find ./{newFolderName} {chmodExecutablesArgs}",
-						$"tar -pczvf {newFolderName}.tar.gz {newFolderName}"
-					};
+					"cd ~",
+					$"sudo umount /mnt/{driveLetterLower}",
+					$"sudo mount -t drvfs {driveLetterUpper}: /mnt/{driveLetterLower} -o metadata",
+					$"cd {linuxPath}",
+					$"sudo find ./{newFolderName} -type f -exec chmod 644 {{}} \\;",
+					$"sudo find ./{newFolderName} {chmodExecutablesArgs}",
+					$"tar -pczvf {newFolderName}.tar.gz {newFolderName}"
+				};
+
 				string arguments = string.Join(" && ", commands);
 
 				StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
@@ -499,16 +504,17 @@ public static class Program
 
 				commands = new[]
 				{
-						"cd ~",
-						"sudo umount /mnt/c",
-						"sudo mount -t drvfs C: /mnt/c -o metadata",
-						$"cd {linuxPath}",
-						$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f -exec chmod 644 {{}} \\;",
-						$"sudo find {Tools.LinuxPath(newFolderRelativePath)} {chmodExecutablesArgs}",
-						$"sudo chmod -R 0775 {Tools.LinuxPath(debianFolderRelativePath)}",
-						$"sudo chmod -R 0644 {debDestopFileLinuxPath}",
-						$"dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)"
-					};
+					"cd ~",
+					"sudo umount /mnt/c",
+					"sudo mount -t drvfs C: /mnt/c -o metadata",
+					$"cd {linuxPath}",
+					$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f -exec chmod 644 {{}} \\;",
+					$"sudo find {Tools.LinuxPath(newFolderRelativePath)} {chmodExecutablesArgs}",
+					$"sudo chmod -R 0775 {Tools.LinuxPath(debianFolderRelativePath)}",
+					$"sudo chmod -R 0644 {debDestopFileLinuxPath}",
+					$"dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)"
+				};
+
 				arguments = string.Join(" && ", commands);
 
 				StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);

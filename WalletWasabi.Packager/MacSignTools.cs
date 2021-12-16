@@ -26,7 +26,7 @@ public static class MacSignTools
 		var files = Directory.GetFiles(desktopPath, srcZipFileNamePattern); // Example: Wasabi-osx-1.1.10.2.zip
 		if (files.Length != 1)
 		{
-			throw new InvalidDataException($"{srcZipFileNamePattern} file missing or there are more on Desktop! There must be exactly one!");
+			throw new InvalidDataException($"{srcZipFileNamePattern} file pattern produced {files.Length} files! There must be exactly one!");
 		}
 		var zipPath = files[0];
 		var versionPrefix = zipPath.Split('-')[^1].TrimEnd(".zip", StringComparison.InvariantCultureIgnoreCase); // Example: "/Users/user/Desktop/Wasabi-unsigned-1.1.10.2.zip".
