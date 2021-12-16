@@ -84,9 +84,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
 			EnableBack = true;
 
-
 			AdjustFeeAvailable = !TransactionFeeHelper.AreTransactionFeesEqual(_wallet);
-
 
 			if (PreferPsbtWorkflow)
 			{
