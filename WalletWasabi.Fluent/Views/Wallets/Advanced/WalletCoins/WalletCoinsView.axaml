@@ -17,25 +17,33 @@
              CanUserSortColumns="True">
       <DataBox.Columns>
 
-        <DataBoxTemplateColumn Width="Auto"
+        <DataBoxTemplateColumn Width="70"
                                CanUserSort="False"
                                Header="">
           <DataBoxTemplateColumn.CellTemplate>
             <DataTemplate>
-              <Panel VerticalAlignment="Center" x:DataType="walletcoins:WalletCoinViewModel">
-                <!-- Confirmed -->
-                <PathIcon IsVisible="{Binding Confirmed}"
-                          Data="{StaticResource checkmark_filled}"
+              <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Spacing="5" x:DataType="walletcoins:WalletCoinViewModel">
+                <Panel>
+                  <!-- Confirmed -->
+                  <PathIcon IsVisible="{Binding Confirmed}"
+                            Data="{StaticResource checkmark_filled}"
+                            Foreground="{DynamicResource SystemAccentColor}"
+                            Height="11"
+                            ToolTip.Tip="Confirmed" />
+                  <!-- Pending -->
+                  <PathIcon IsVisible="{Binding !Confirmed}"
+                            Data="{StaticResource clock_regular}"
+                            Height="14"
+                            Opacity="0.6"
+                            ToolTip.Tip="Pending" />
+                </Panel>
+
+                <PathIcon IsVisible="{Binding CoinJoinInProgress}"
+                          Data="{StaticResource link_filled}"
                           Foreground="{DynamicResource SystemAccentColor}"
-                          Height="11"
-                          ToolTip.Tip="Confirmed" />
-                <!-- Pending -->
-                <PathIcon IsVisible="{Binding !Confirmed}"
-                          Data="{StaticResource clock_regular}"
-                          Height="14"
-                          Opacity="0.6"
-                          ToolTip.Tip="Pending" />
-              </Panel>
+                          Height="8"
+                          ToolTip.Tip="CoinJoining" />
+              </StackPanel>
             </DataTemplate>
           </DataBoxTemplateColumn.CellTemplate>
         </DataBoxTemplateColumn>
@@ -55,7 +63,7 @@
                                Header="Anon">
           <DataBoxTemplateColumn.CellTemplate>
             <DataTemplate>
-              <TextBlock Text="{Binding AnonymitySet}" Margin="5 0" VerticalAlignment="Center" x:DataType="walletcoins:WalletCoinViewModel"></TextBlock>
+              <TextBlock Text="{Binding AnonymitySet}" Margin="5 0" VerticalAlignment="Center" HorizontalAlignment="Center" x:DataType="walletcoins:WalletCoinViewModel"></TextBlock>
             </DataTemplate>
           </DataBoxTemplateColumn.CellTemplate>
         </DataBoxTemplateColumn>

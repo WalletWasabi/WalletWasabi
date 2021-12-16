@@ -1,4 +1,5 @@
 using NBitcoin;
+using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,13 +16,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins
 		[AutoNotify] private int _anonymitySet;
 		[AutoNotify] private SmartLabel _smartLabel;
 		[AutoNotify] private bool _confirmed;
+		[AutoNotify] private bool _coinJoinInProgress;
 
 		public WalletCoinViewModel(SmartCoin coin)
 		{
 			Amount = coin.Amount;
-			AnonymitySet = coin.HdPubKey.AnonymitySet;
-			SmartLabel = coin.HdPubKey.Cluster.Labels;
-			Confirmed = coin.Confirmed;
+
+			coin.WhenAnyValue(c => c.Confirmed).Subscribe(x => Confirmed = x);
+			coin.WhenAnyValue(c => c.HdPubKey.Cluster.Labels).Subscribe(x => SmartLabel = x);
+			coin.WhenAnyValue(c => c.HdPubKey.AnonymitySet).Subscribe(x => AnonymitySet = x);
+			coin.WhenAnyValue(c => c.CoinJoinInProgress).Subscribe(x => CoinJoinInProgress = x);
 		}
 	}
 }
