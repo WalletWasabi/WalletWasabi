@@ -18,6 +18,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
+using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
@@ -145,7 +146,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 			WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(Settings));
 
-			WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this)));
+			WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this, balanceChanged)));
 		}
 
 		public WalletSettingsViewModel Settings { get; }
