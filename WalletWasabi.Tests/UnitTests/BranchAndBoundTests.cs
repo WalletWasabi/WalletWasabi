@@ -10,14 +10,14 @@ namespace WalletWasabi.Tests.UnitTests
 {
 	public class BranchAndBoundTests
 	{
-		private Random Random { get; } = new();
-		public HdPubKey HdPubKey { get; }
-
 		public BranchAndBoundTests()
 		{
 			KeyManager keyManager = ServiceFactory.CreateKeyManager();
 			HdPubKey = BitcoinFactory.CreateHdPubKey(keyManager);
 		}
+
+		private Random Random { get; } = new();
+		public HdPubKey HdPubKey { get; }
 
 		[Fact]
 		public void RandomizedTest()
