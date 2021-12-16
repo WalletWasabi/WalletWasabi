@@ -60,7 +60,7 @@ namespace WalletWasabi.BranchNBound
 					selectedCoins = solution.Where(c => c > 0).Select(c => Money.Satoshis(c)).ToList();
 					return true;
 				}
-
+				selectedCoins = null;
 				return false;
 			}
 			catch (Exception ex)

@@ -28,7 +28,7 @@ namespace WalletWasabi.Tests.UnitTests
 			List<Money> utxos = new() { Money.Satoshis(120000), Money.Satoshis(100000), Money.Satoshis(100000), Money.Satoshis(50000), Money.Satoshis(40000) };
 			BranchAndBound selector = new(utxos);
 			List<Money> expectedCoins = new() { Money.Satoshis(100000), Money.Satoshis(50000), Money.Satoshis(40000) };
-			Money target = Money.Satoshis(190000);
+			Money target = Money.Satoshis(300000);
 
 			bool wasSuccessful = selector.TryGetExactMatch(target, out List<Money>? selectedCoins);
 
@@ -43,7 +43,7 @@ namespace WalletWasabi.Tests.UnitTests
 			List<Money> utxos = new() { Money.Satoshis(120000), Money.Satoshis(100000), Money.Satoshis(100000) };
 			BranchAndBound selector = new(utxos);
 			List<Money> expectedCoins = new() { Money.Satoshis(120000), Money.Satoshis(100000), Money.Satoshis(100000) };
-			Money target = Money.Satoshis(320000);
+			Money target = Money.Satoshis(190000);
 
 			bool wasSuccessful = selector.TryGetExactMatch(target, out List<Money>? selectedCoins);
 
@@ -58,6 +58,19 @@ namespace WalletWasabi.Tests.UnitTests
 			List<Money> utxos = GenList();
 			BranchAndBound selector = new(utxos);
 			Money target = Money.Satoshis(11111111111111111);
+
+			bool wasSuccessful = selector.TryGetExactMatch(target, out List<Money>? selectedCoins);
+
+			Assert.False(wasSuccessful);
+			Assert.Null(selectedCoins);
+		}
+
+		[Fact]
+		public void ReturnNullIfNoExactMatchFoundTest()
+		{
+			List<Money> utxos = new() { Money.Satoshis(120000), Money.Satoshis(100000), Money.Satoshis(100000), Money.Satoshis(50000), Money.Satoshis(40000) };
+			BranchAndBound selector = new(utxos);
+			Money target = Money.Satoshis(300000);
 
 			bool wasSuccessful = selector.TryGetExactMatch(target, out List<Money>? selectedCoins);
 
