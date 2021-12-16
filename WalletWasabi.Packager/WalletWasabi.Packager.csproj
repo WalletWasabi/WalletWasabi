@@ -32,8 +32,4 @@
 		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Content Include="Content\Osx\Dmg\.DS_Store" />
-	</ItemGroup>
-
 </Project>
