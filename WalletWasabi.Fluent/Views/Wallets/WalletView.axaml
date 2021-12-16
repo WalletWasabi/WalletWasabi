@@ -41,7 +41,6 @@
               </StackPanel>
             </Button>
             <Button Classes="function"
-                    IsVisible="{Binding !IsEmptyWallet}"
                     Command="{Binding ReceiveCommand}">
               <StackPanel Orientation="Horizontal" Spacing="15">
                 <PathIcon Data="{StaticResource wallet_action_receive}" />
@@ -106,19 +105,12 @@
             <Setter Property="VerticalAlignment" Value="Stretch"/>
           </Style>
         </Panel.Styles>
-        <home:WalletTiles IsVisible="{Binding !IsEmptyWallet}"/>
-        <home:WalletTilesPlaceholder HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                                     IsVisible="{Binding IsEmptyWallet}"/>
+        <home:WalletTiles />
       </Panel>
       <Panel>
         <history:HistoryTable Name="HistoryTable"
                               DataContext="{Binding History}"
-                              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                              IsVisible="{Binding !IsTransactionHistoryEmpty}"/>
-        <history:HistoryTablePlaceholder Name="HistoryTablePlaceholder"
-                                         DataContext="{Binding History}"
-                                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                                         IsVisible="{Binding IsTransactionHistoryEmpty}"/>
+                              HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
       </Panel>
     </DockPanel>
   </c:ContentArea>
