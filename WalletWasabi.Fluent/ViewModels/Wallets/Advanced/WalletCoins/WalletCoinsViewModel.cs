@@ -48,8 +48,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins
 				.Subscribe(_ =>
 				{
 					Update();
-				}
-				);
+				});
 
 			disposables.Add(_confirmationWordsSourceList);
 		}
