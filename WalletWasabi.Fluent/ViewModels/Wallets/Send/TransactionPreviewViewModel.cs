@@ -430,7 +430,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (result.Result is null)
 			{
-				Navigate(NavigationTarget.CompactDialogScreen).Back();
+				Navigate(NavigationTarget.CompactDialogScreen).Back(); // manually close the LabelEntryDialog when user cancels it. TODO: refactor.
 				return;
 			}
 
@@ -441,6 +441,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
 			if (authResult)
 			{
+				Navigate(NavigationTarget.CompactDialogScreen).Back(); // manually close the LabelEntryDialog when the authorization dialog never popped (empty password case). TODO: refactor.
+
 				IsBusy = true;
 
 				try
