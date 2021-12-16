@@ -7,6 +7,15 @@
     <Setter Property="Template">
       <ControlTemplate>
         <Panel>
+          <Panel.Styles>
+            <Style Selector="Border.dummyLine">
+              <Setter Property="Opacity" Value="{Binding .}"/>
+              <Setter Property="Background" Value="{DynamicResource SystemChromeGrayColor}"/>
+              <Setter Property="Height" Value="10"/>
+              <Setter Property="CornerRadius" Value="5"/>
+              <Setter Property="Margin" Value="5 0"/>
+            </Style>
+          </Panel.Styles>
           <ItemsControl x:Name="PART_DummyRows" x:CompileBindings="False">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
@@ -15,12 +24,17 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate>
-                <Panel Height="{StaticResource HistoryTableRowHeight}">
-                  <Border Opacity="{Binding .}"
-                          Background="{DynamicResource  SystemChromeGrayColor}"
-                          Height="10"
-                          CornerRadius="5" Margin="5 0" />
-                </Panel>
+                <Grid
+                  ColumnDefinitions="80,150,*,120,120,120"
+                  Height="{StaticResource HistoryTableRowHeight}">
+
+                  <Border Grid.Column="0" Grid.ColumnSpan="1" Classes="dummyLine"/>
+                  <Border Grid.Column="1" Grid.ColumnSpan="1" Classes="dummyLine"/>
+                  <Border Grid.Column="2" Grid.ColumnSpan="1" Classes="dummyLine"/>
+                  <Border Grid.Column="3" Grid.ColumnSpan="1" Classes="dummyLine"/>
+                  <Border Grid.Column="4" Grid.ColumnSpan="1" Classes="dummyLine"/>
+                  <Border Grid.Column="5" Grid.ColumnSpan="1" Classes="dummyLine"/>
+                </Grid>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
