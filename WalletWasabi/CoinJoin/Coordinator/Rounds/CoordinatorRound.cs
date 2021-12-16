@@ -1,7 +1,6 @@
 using NBitcoin;
 using NBitcoin.RPC;
 using Nito.AsyncEx;
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;

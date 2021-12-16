@@ -1,5 +1,3 @@
-using System;
-
 namespace WalletWasabi.Models
 {
 	public struct ErrorDescriptor : IEquatable<ErrorDescriptor>

@@ -1,4 +1,3 @@
-using System;
 using WalletWasabi.Helpers;
 
 namespace Gma.QrCodeNet.Encoding.ReedSolomon

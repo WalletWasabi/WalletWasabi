@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto;

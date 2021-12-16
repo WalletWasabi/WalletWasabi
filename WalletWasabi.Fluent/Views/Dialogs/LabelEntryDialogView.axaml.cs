@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Wallets.Send
+namespace WalletWasabi.Fluent.Views.Dialogs
 {
-	public class OptimisePrivacyView : UserControl
+	public class LabelEntryDialogView : UserControl
 	{
-		public OptimisePrivacyView()
+		public LabelEntryDialogView()
 		{
 			InitializeComponent();
 		}

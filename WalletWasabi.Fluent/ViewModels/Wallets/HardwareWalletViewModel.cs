@@ -1,5 +1,3 @@
-using System;
-using System.Reactive.Disposables;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;

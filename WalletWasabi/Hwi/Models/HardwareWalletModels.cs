@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Hwi.Models

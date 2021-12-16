@@ -1,7 +1,6 @@
 using Avalonia.Media.Imaging;
 using NBitcoin;
 using ReactiveUI;
-using System;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;

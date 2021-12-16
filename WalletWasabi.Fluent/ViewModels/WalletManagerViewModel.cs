@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -96,15 +95,17 @@ namespace WalletWasabi.Fluent.ViewModels
 
 					if (Services.UiConfig.PrivacyMode ||
 						!e.IsNews ||
-						sender is not Wallet { IsLoggedIn: true, State: WalletState.Started } wallet ||
-						e.IsLikelyOwnCoinJoin)
+						sender is not Wallet { IsLoggedIn: true, State: WalletState.Started } wallet)
 					{
 						return;
 					}
 
 					if (_walletDictionary.TryGetValue(wallet, out var walletViewModel) && walletViewModel is WalletViewModel wvm)
 					{
-						NotificationHelpers.Show(wallet.WalletName, e, onClick: () => wvm.NavigateAndHighlight(e.Transaction.GetHash()));
+						if (!e.IsLikelyOwnCoinJoin)
+						{
+							NotificationHelpers.Show(wallet.WalletName, e, onClick: () => wvm.NavigateAndHighlight(e.Transaction.GetHash()));
+						}
 
 						if (wvm.IsSelected && (e.NewlyReceivedCoins.Any() || e.NewlyConfirmedReceivedCoins.Any()))
 						{

@@ -1,6 +1,3 @@
-using System;
-using System.Text;
-using WalletWasabi.Helpers;
 using WalletWasabi.Tor.Socks5.Models.Interfaces;
 
 namespace WalletWasabi.Tor.Socks5.Models.Bases
