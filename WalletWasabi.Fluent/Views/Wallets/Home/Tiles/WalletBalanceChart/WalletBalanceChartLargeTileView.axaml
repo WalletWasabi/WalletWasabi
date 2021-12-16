@@ -58,6 +58,7 @@
         <TextBlock Classes="h6 bold"
                    VerticalAlignment="Center"
                    HorizontalAlignment="Center"
+                   Opacity="{StaticResource HistoryTablePlaceholderTextOpacity}"
                    IsVisible="{Binding IsEmptyWallet}"
                    Text="Nothing to see here yet." />
       </Panel>

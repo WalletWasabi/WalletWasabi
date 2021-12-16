@@ -58,6 +58,7 @@
                    VerticalAlignment="Center"
                    HorizontalAlignment="Center"
                    IsVisible="{Binding IsEmptyWallet}"
+                   Opacity="{StaticResource HistoryTablePlaceholderTextOpacity}"
                    Text="Nothing to see here yet." />
       </Panel>
     </c:PrivacyContentControl>
