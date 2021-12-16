@@ -43,6 +43,12 @@ namespace WalletWasabi.Blockchain.BlockFilters
 			_serviceStatus = NotStarted;
 
 			IoHelpers.EnsureContainingDirectoryExists(IndexFilePath);
+
+			// Testing permissions.
+			using (var _ = File.Open(IndexFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+			{
+			}
+
 			if (File.Exists(IndexFilePath))
 			{
 				if (RpcClient.Network == Network.RegTest)
@@ -86,9 +92,6 @@ namespace WalletWasabi.Blockchain.BlockFilters
 
 		public void Synchronize()
 		{
-			// Check permissions.
-			using var _ = File.Open(IndexFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-
 			Task.Run(async () =>
 			{
 				try
