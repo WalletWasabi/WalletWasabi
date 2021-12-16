@@ -49,8 +49,6 @@
 
 ## Changing the background of dmg installer
 
-# Creating dmg file for mac users
-
 1. Get a Mac
 2. Install create-dmg https://github.com/andreyvit/create-dmg 
 3. Create a folder called somewhere called wasabidmg
