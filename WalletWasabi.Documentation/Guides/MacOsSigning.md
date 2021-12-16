@@ -46,3 +46,18 @@
 ## Changing the icon
 
 - https://github.com/zkSNACKs/WalletWasabi/issues/2951
+
+## Changing the background of dmg installer
+
+# Creating dmg file for mac users
+
+1. Get a Mac
+2. Install create-dmg https://github.com/andreyvit/create-dmg 
+3. Create a folder called somewhere called wasabidmg
+4. Run packager in onlybinary mode and copy WalletWasabi\WalletWasabi.Fluent.Desktop\bin\dist\osx-x64 to wasabidmg/osx-x64
+5. Copy the following two files under wasabidmg Logo_with_text_small.png and WasabiLogo.icns
+6. Open terminal at wasabidmg
+7. Set the version number in the following command and run it:  ```create-dmg --volname "WasabiWallet Installer" --volicon "WasabiLogo.icns" --background "Logo_with_text_small.png" --window-pos 200 120 --window-size 600 440 --icon "wassabee" 110 150 --app-drop-link 500 150 --hdiutil-verbose "Wasabi.dmg" "wasabi/"```
+8. Dmg file is created under wasabidmg
+9. Upload the file to the web
+11. 
