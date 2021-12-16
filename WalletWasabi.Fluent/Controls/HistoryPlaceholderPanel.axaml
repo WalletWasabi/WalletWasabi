@@ -24,10 +24,8 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate>
-                <Grid
-                  ColumnDefinitions="80,150,*,120,120,120"
-                  Height="{StaticResource HistoryTableRowHeight}">
-
+                <Grid ColumnDefinitions="80,150,*,120,120,120"
+                      Height="{StaticResource HistoryTableRowHeight}">
                   <Border Grid.Column="0" Grid.ColumnSpan="1" Classes="dummyLine"/>
                   <Border Grid.Column="1" Grid.ColumnSpan="1" Classes="dummyLine"/>
                   <Border Grid.Column="2" Grid.ColumnSpan="1" Classes="dummyLine"/>
