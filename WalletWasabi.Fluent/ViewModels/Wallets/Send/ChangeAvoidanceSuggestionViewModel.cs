@@ -124,13 +124,13 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 		if (canBuildWithoutChangeWithBnb && bnbResult is not null)
 		{
-			var bnbTransaction = await Task.Run(() => wallet.BuildTransaction(
-				wallet.Kitchen.SaltSoup(),
-				intent,
-				FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
-				false,
+			var bnbTransaction = await Task.Run(() => TransactionHelpers.BuildChangelessTransaction(
+				wallet,
+				transactionInfo.Address,
+				transactionInfo.UserLabels,
+				transactionInfo.FeeRate,
 				bnbResult
-				.Select(x => x.OutPoint)));
+				));
 
 			bnbSuggestion = new ChangeAvoidanceSuggestionViewModel(
 				transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
