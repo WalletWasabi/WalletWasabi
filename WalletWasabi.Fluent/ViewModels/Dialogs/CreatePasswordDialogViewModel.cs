@@ -8,7 +8,7 @@ using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
-	[NavigationMetaData(Title = "Enter a password")]
+	[NavigationMetaData(Title = "Password")]
 	public partial class CreatePasswordDialogViewModel : DialogViewModelBase<string?>
 	{
 		private readonly bool _enableCancel;
@@ -28,7 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			this.ValidateProperty(x => x.Password, ValidatePassword);
 			this.ValidateProperty(x => x.ConfirmPassword, ValidateConfirmPassword);
 
-			EnableBack = true;
+			EnableBack = false;
 
 			var backCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
 
@@ -43,10 +43,10 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 						this.RaisePropertyChanged(nameof(ConfirmPassword));
 
 						return IsDialogOpen &&
-							   ((enableEmpty && string.IsNullOrEmpty(Password) &&
-								 string.IsNullOrEmpty(ConfirmPassword)) ||
-								(!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword) &&
-								 !Validations.Any));
+						       ((enableEmpty && string.IsNullOrEmpty(Password) &&
+						         string.IsNullOrEmpty(ConfirmPassword)) ||
+						        (!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword) &&
+						         !Validations.Any));
 					})
 				.ObserveOn(RxApp.MainThreadScheduler);
 
