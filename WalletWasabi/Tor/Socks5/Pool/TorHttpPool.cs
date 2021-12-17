@@ -331,6 +331,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 			// Find TCP connections to dispose.
 			foreach (TorTcpConnection tcpConnection in hostConnections.FindAll(c => c.NeedDisposal).ToList())
 			{
+				Logger.LogDebug($"['{tcpConnection}'] Connection is to be disposed.");
 				hostConnections.Remove(tcpConnection);
 				tcpConnection.Dispose();
 			}
@@ -339,6 +340,11 @@ namespace WalletWasabi.Tor.Socks5.Pool
 			connection = hostConnections.Find(connection => (connection.Circuit == circuit) && connection.TryReserve());
 
 			bool canBeAdded = hostConnections.Count < MaxConnectionsPerHost;
+
+			if (!canBeAdded)
+			{
+				Logger.LogTrace($"Beware! Too many active connections: '{string.Join(", ", hostConnections.Select(c => c.ToString()))}'.");
+			}
 
 			return canBeAdded;
 		}
