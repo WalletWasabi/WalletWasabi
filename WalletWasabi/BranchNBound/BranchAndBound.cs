@@ -46,7 +46,7 @@ namespace WalletWasabi.BranchNBound
 
 		public bool TryGetExactMatch(Money target, [NotNullWhen(true)] out List<SmartCoin>? selectedCoins)
 		{
-			if (Summ(SortedUTXOs) < target)
+			if (CalculateSum(SortedUTXOs) < target)
 			{
 				selectedCoins = null;
 				return false;
@@ -83,13 +83,6 @@ namespace WalletWasabi.BranchNBound
 			NextAction[] actions = new NextAction[Count];
 			actions[0] = GetRandomNextAction();
 
-			long[] solutionAmountDesc = new long[Count];
-
-			for (int i = 0; i < Count; i++)
-			{
-				solutionAmountDesc[i] = SortedUTXOs[i].Amount;
-			}
-
 			do
 			{
 				NextAction action = actions[depth];
@@ -100,7 +93,7 @@ namespace WalletWasabi.BranchNBound
 					actions[depth] = GetNextStep(action);
 
 					solution[depth] = SortedUTXOs[depth];
-					effValue = (long)Summ(solution);
+					effValue = (long)CalculateSum(solution);
 
 					if (effValue > target)
 					{
@@ -127,7 +120,7 @@ namespace WalletWasabi.BranchNBound
 
 					// Branch WITHOUT the UTXO included.
 					solution[depth] = null;
-					effValue = (long)Summ(solution);
+					effValue = (long)CalculateSum(solution);
 
 					if (depth + 1 == Count)
 					{
@@ -141,7 +134,7 @@ namespace WalletWasabi.BranchNBound
 				else
 				{
 					solution[depth] = null;
-					effValue = (long)Summ(solution);
+					effValue = (long)CalculateSum(solution);
 					depth--;
 				}
 			}
@@ -168,7 +161,7 @@ namespace WalletWasabi.BranchNBound
 			};
 		}
 
-		private ulong Summ(SmartCoin[] coins)
+		private ulong CalculateSum(SmartCoin[] coins)
 		{
 			ulong sum = 0;
 			foreach (SmartCoin coin in coins)
