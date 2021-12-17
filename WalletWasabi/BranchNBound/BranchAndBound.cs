@@ -56,9 +56,15 @@ namespace WalletWasabi.BranchNBound
 
 			try
 			{
-				if (Search(target.Satoshi, out SmartCoin[]? solution))
+				if (Search(target.Satoshi, out long[]? solution))
 				{
-					selectedCoins = solution.Where(x => x is not null).ToList();
+					for (int i = 0; i < Count; i++)
+					{
+						if (solution[i] > 0)
+						{
+							selectedCoins.Add(SortedUTXOs[i]);
+						}
+					}
 					return true;
 				}
 				selectedCoins = null;
@@ -71,7 +77,7 @@ namespace WalletWasabi.BranchNBound
 			}
 		}
 
-		private bool Search(long target, [NotNullWhen(true)] out SmartCoin[]? solution)
+		private bool Search(long target, [NotNullWhen(true)] out long[]? solution)
 		{
 			// Current effective value.
 			long effValue = 0L;
@@ -79,7 +85,7 @@ namespace WalletWasabi.BranchNBound
 			// Current depth (think of the depth in the recursive algorithm sense).
 			int depth = 0;
 
-			solution = new SmartCoin[Count];
+			solution = new long[Count];
 			NextAction[] actions = new NextAction[Count];
 			actions[0] = GetRandomNextAction();
 
@@ -92,8 +98,8 @@ namespace WalletWasabi.BranchNBound
 				{
 					actions[depth] = GetNextStep(action);
 
-					solution[depth] = SortedUTXOs[depth];
-					effValue = (long)CalculateSum(solution);
+					solution[depth] = SortedUTXOs[depth].Amount;
+					effValue += solution[depth];
 
 					if (effValue > target)
 					{
@@ -119,8 +125,8 @@ namespace WalletWasabi.BranchNBound
 					actions[depth] = GetNextStep(action);
 
 					// Branch WITHOUT the UTXO included.
-					solution[depth] = null;
-					effValue = (long)CalculateSum(solution);
+					effValue -= solution[depth];
+					solution[depth] = 0;
 
 					if (depth + 1 == Count)
 					{
@@ -133,8 +139,8 @@ namespace WalletWasabi.BranchNBound
 				}
 				else
 				{
-					solution[depth] = null;
-					effValue = (long)CalculateSum(solution);
+					effValue -= solution[depth];
+					solution[depth] = 0;
 					depth--;
 				}
 			}
@@ -161,9 +167,9 @@ namespace WalletWasabi.BranchNBound
 			};
 		}
 
-		private ulong CalculateSum(SmartCoin[] coins)
+		private long CalculateSum(SmartCoin[] coins)
 		{
-			ulong sum = 0;
+			long sum = 0;
 			foreach (SmartCoin coin in coins)
 			{
 				if (coin is null)
