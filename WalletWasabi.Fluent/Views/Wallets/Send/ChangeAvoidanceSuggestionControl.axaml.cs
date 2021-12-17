@@ -3,9 +3,9 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets.Send
 {
-	public class PrivacySuggestionControl : UserControl
+	public class ChangeAvoidanceSuggestionControl : UserControl
 	{
-		public PrivacySuggestionControl()
+		public ChangeAvoidanceSuggestionControl()
 		{
 			InitializeComponent();
 		}
