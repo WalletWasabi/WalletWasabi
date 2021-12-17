@@ -85,19 +85,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 						});
 
 					Navigate().To(new AddedWalletPageViewModel(keyManager));
-
-					return;
 				}
 				catch (Exception ex)
 				{
 					// TODO navigate to error dialog.
 					Logger.LogError(ex);
 				}
-			}
-
-			if (dialogResult.Kind == DialogResultKind.Cancel)
-			{
-				Navigate().Clear();
 			}
 		}
 

@@ -11,14 +11,11 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 	[NavigationMetaData(Title = "Password")]
 	public partial class CreatePasswordDialogViewModel : DialogViewModelBase<string?>
 	{
-		private readonly bool _enableCancel;
-
 		[AutoNotify] private string? _confirmPassword;
 		[AutoNotify] private string? _password;
 
-		public CreatePasswordDialogViewModel(string caption, bool enableEmpty = true, bool enableCancel = true)
+		public CreatePasswordDialogViewModel(string caption, bool enableEmpty = true)
 		{
-			_enableCancel = enableCancel;
 			Caption = caption;
 
 			// This means pressing continue will make the password empty string.
@@ -28,6 +25,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			this.ValidateProperty(x => x.Password, ValidatePassword);
 			this.ValidateProperty(x => x.ConfirmPassword, ValidateConfirmPassword);
 
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 			EnableBack = false;
 
 			var backCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
@@ -84,13 +82,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			{
 				errors.Add(ErrorSeverity.Error, PasswordHelper.PasswordTooLongMessage);
 			}
-		}
-
-		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-		{
-			base.OnNavigatedTo(isInHistory, disposables);
-
-			SetupCancel(enableCancel: _enableCancel, enableCancelOnEscape: _enableCancel, enableCancelOnPressed: false);
 		}
 	}
 }
