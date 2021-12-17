@@ -46,7 +46,7 @@ namespace WalletWasabi.Logging
 		/// Gets or sets the maximum log file size in KB.
 		/// </summary>
 		/// <remarks>Default value is approximately 10 MB.</remarks>
-		private static long MaximumLogFileSize { get; set; } = 10_000;
+		private static long MaximumLogFileSize { get; set; } = MinimumLevel == LogLevel.Trace ? 50_000 : 10_000;
 
 		#endregion PropertiesAndMembers
 
