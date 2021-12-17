@@ -51,7 +51,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 		if (hasChange)
 		{
-			foreach (var suggestion in suggestions.Where(x=>x.TransactionResult != transaction))
+			foreach (var suggestion in suggestions)
 			{
 				Suggestions.Add(suggestion);
 			}
