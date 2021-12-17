@@ -46,34 +46,39 @@ namespace WalletWasabi.BranchNBound
 
 		public bool TryGetExactMatch(Money target, [NotNullWhen(true)] out List<SmartCoin>? selectedCoins)
 		{
-			if (CalculateSum(SortedUTXOs) < target)
+			using (BenchmarkLogger.Measure())
 			{
-				selectedCoins = null;
-				return false;
-			}
-
-			selectedCoins = new List<SmartCoin>();
-
-			try
-			{
-				if (Search(target.Satoshi, out long[]? solution))
+				if (CalculateSum(SortedUTXOs) < target)
 				{
-					for (int i = 0; i < Count; i++)
-					{
-						if (solution[i] > 0)
-						{
-							selectedCoins.Add(SortedUTXOs[i]);
-						}
-					}
-					return true;
+					selectedCoins = null;
+					return false;
 				}
-				selectedCoins = null;
-				return false;
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError("Couldn't find the right pair. ", ex);
-				return false;
+
+				selectedCoins = new List<SmartCoin>();
+
+				try
+				{
+					if (Search(target.Satoshi, out long[]? solution))
+					{
+						for (int i = 0; i < Count; i++)
+						{
+							if (solution[i] > 0)
+							{
+								selectedCoins.Add(SortedUTXOs[i]);
+							}
+						}
+						Logger.LogInfo($"{Count} coins were involved in 'Branch and Bound' selection.");
+
+						return true;
+					}
+					selectedCoins = null;
+					return false;
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError("Couldn't find the right pair. ", ex);
+					return false;
+				}
 			}
 		}
 
