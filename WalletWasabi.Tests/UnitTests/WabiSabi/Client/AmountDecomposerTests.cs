@@ -56,7 +56,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var theirCoins = usersCoins.SelectMany(x => x);
 			var usersDecompositions = usersCoins.Select(coins => amountDecomposer.Decompose(coins, theirCoins)).ToArray();
 
-			Assert.All(usersDecompositions, d => Assert.Equal(8, d.Count()));
+			Assert.All(usersDecompositions,	d => Assert.True(8 >= d.Count()));
 		}
 
 		private static IEnumerable<Coin> GenerateRandomCoins()

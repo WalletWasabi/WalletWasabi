@@ -30,6 +30,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public IEnumerable<Money> Decompose(IEnumerable<Coin> myInputCoins, IEnumerable<Coin> allInputCoins)
 		{
 			var histogram = GetDenominationFrequency(allInputCoins);
+			var setCandidates = new Dictionary<int, IEnumerable<Money>>();
 
 			var denoms = histogram
 				.Where(x => x.Value > 1)
@@ -37,11 +38,11 @@ namespace WalletWasabi.WabiSabi.Client
 				.Select(x => x.Key)
 				.ToArray();
 
-			var inputs = myInputCoins.Select(x => x.EffectiveValue(FeeRate));
+			var inputs = myInputCoins.Select(x => x.EffectiveValue(FeeRate)).ToImmutableArray();
 			var remaining = inputs.Sum();
 			var remainingVsize = AvailableVsize;
 
-			List<Money> outputAmounts = new();
+			List<Money> naiveSet = new();
 			bool end = false;
 			foreach (var denom in denoms.Where(x => x <= remaining))
 			{
@@ -53,7 +54,7 @@ namespace WalletWasabi.WabiSabi.Client
 						break;
 					}
 
-					outputAmounts.Add(denom - OutputFee);
+					naiveSet.Add(denom - OutputFee);
 					remaining -= denom;
 					remainingVsize -= OutputSize;
 				}
@@ -66,49 +67,47 @@ namespace WalletWasabi.WabiSabi.Client
 
 			if (remaining >= MinimumAmountPlusFee)
 			{
-				outputAmounts.Add(remaining - OutputFee);
+				naiveSet.Add(remaining - OutputFee);
 			}
 
-			var bestSet = outputAmounts;
-			for (int i = 0; i < 10_000; i++)
+			setCandidates.Add(naiveSet.Count, naiveSet);
+			var before = DateTimeOffset.UtcNow;
+			do
 			{
 				remaining = inputs.Sum();
+				remainingVsize = AvailableVsize;
 				var currSet = new List<Money>();
 				do
 				{
-					var selectableDenomPlusFees = denoms.Where(x => x <= remaining).ToList();
-					var denomPlusFees = selectableDenomPlusFees.Skip(selectableDenomPlusFees.Count / 3).ToList();
-					var denom = denomPlusFees.RandomElement();
-					if (denom is null || remaining < MinimumAmountPlusFee )
+					var denomPlusFees = denoms.Where(x => x <= remaining && x >= (remaining / 3)).ToList();
+					var denomPlusFee = denomPlusFees.RandomElement();
+					if (denomPlusFee is null || remaining < MinimumAmountPlusFee || remainingVsize < 2 * OutputSize)
 					{
 						break;
 					}
 
-					if (denom <= remaining)
+					if (denomPlusFee <= remaining)
 					{
-						currSet.Add(denom - OutputFee);
-						remaining -= denom;
+						currSet.Add(denomPlusFee - OutputFee);
+						remaining -= denomPlusFee;
+						remainingVsize -= OutputSize;
 					}
 				}
-				while (currSet.Count < bestSet.Count);
+				while (currSet.Count <= naiveSet.Count || currSet.Count <= 3);
 
-				if (currSet.Count >= bestSet.Count)
+				if (currSet.Count <= naiveSet.Count || currSet.Count <= 3)
 				{
-					continue;
-				}
+					if (remaining >= MinimumAmountPlusFee)
+					{
+						currSet.Add(remaining);
+					}
 
-				if (remaining >= MinimumAmountPlusFee)
-				{
-					currSet.Add(remaining - OutputFee);
-				}
-
-				if (currSet.Count < bestSet.Count)
-				{
-					bestSet = currSet;
+					setCandidates.TryAdd(currSet.Count, currSet);
 				}
 			}
+			while((DateTimeOffset.UtcNow - before).TotalMilliseconds <= 30);
 
-			return bestSet;
+			return setCandidates.RandomElement().Value;
 		}
 
 		private Dictionary<Money, long> GetDenominationFrequency(IEnumerable<Coin> allInputCoins)
