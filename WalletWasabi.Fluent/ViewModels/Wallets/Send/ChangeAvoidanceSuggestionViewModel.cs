@@ -35,7 +35,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 				.Replace("(", "").Replace(")", "");
 		}
 
-		_amount = $"{total}";
+		_amount = $"{total} BTC";
 	}
 
 	private static IEnumerable<ChangeAvoidanceSuggestionViewModel> NormalizeSuggestions(

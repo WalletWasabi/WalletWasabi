@@ -34,7 +34,7 @@
         <PathIcon DockPanel.Dock="Top" Data="{StaticResource incognito_filled}" Height="25" Width="25"
                   Foreground="{DynamicResource SystemAccentColor}" />
 
-        <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap" Text="Various people or companies could become aware of this transaction including..." />
+        <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap" Text="Some people or companies could know about this:" />
 
         <DockPanel LastChildFill="False" HorizontalAlignment="Center">
           <c:TagsBox Padding="0"
@@ -67,7 +67,7 @@
           </Button>
         </DockPanel>
 
-        <TextBlock Text="Customize this?." TextWrapping="Wrap" HorizontalAlignment="Center" />
+        <TextBlock Text="Customize this?" TextWrapping="Wrap" HorizontalAlignment="Center" />
 
       </StackPanel>
     </Border>
