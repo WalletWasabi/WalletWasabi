@@ -331,7 +331,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 			// Find TCP connections to dispose.
 			foreach (TorTcpConnection tcpConnection in hostConnections.FindAll(c => c.NeedDisposal).ToList())
 			{
-				Logger.LogDebug($"['{tcpConnection}'] Is to be disposed.");
+				Logger.LogDebug($"['{tcpConnection}'] Connection is to be disposed.");
 				hostConnections.Remove(tcpConnection);
 				tcpConnection.Dispose();
 			}
