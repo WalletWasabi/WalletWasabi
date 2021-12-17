@@ -171,20 +171,5 @@ namespace WalletWasabi.BranchNBound
 				_ => throw new InvalidOperationException("No other values are valid.")
 			};
 		}
-
-		private long CalculateSum(SmartCoin[] coins)
-		{
-			long sum = 0;
-			foreach (SmartCoin coin in coins)
-			{
-				if (coin is null)
-				{
-					continue;
-				}
-				sum += coin.Amount;
-			}
-
-			return sum;
-		}
 	}
 }

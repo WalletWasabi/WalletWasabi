@@ -4,6 +4,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.BranchNBound;
 using WalletWasabi.Tests.Helpers;
+using System.Linq;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests
@@ -27,9 +28,10 @@ namespace WalletWasabi.Tests.UnitTests
 			Money target = Money.Satoshis(100000000);
 
 			bool successful = selector.TryGetExactMatch(target, out List<SmartCoin>? selectedCoins);
+
 			Assert.True(successful);
 			Assert.NotNull(selectedCoins);
-			Assert.Equal(target, CalculateSum(selectedCoins!));
+			Assert.Equal(target, selectedCoins!.Select(x => x.Amount).Sum());
 		}
 
 		[Fact]
@@ -99,17 +101,6 @@ namespace WalletWasabi.Tests.UnitTests
 				availableCoins.Add(BitcoinFactory.CreateSmartCoin(hdPubKey, (ulong)Random.Next((int)Money.Satoshis(1000), (int)Money.Satoshis(99999999))));
 			}
 			return availableCoins;
-		}
-
-		private Money CalculateSum(List<SmartCoin> coins)
-		{
-			Money sum = Money.Zero;
-			foreach (SmartCoin coin in coins)
-			{
-				sum += coin.Amount;
-			}
-
-			return sum;
 		}
 	}
 }
