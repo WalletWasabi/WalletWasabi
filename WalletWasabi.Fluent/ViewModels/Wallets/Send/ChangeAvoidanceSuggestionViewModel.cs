@@ -121,11 +121,8 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 			bnbSuggestion = new ChangeAvoidanceSuggestionViewModel(
 				transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
 				bnbTransaction,
-				PrivacyOptimisationLevel.Better,
 				wallet.Synchronizer.UsdExchangeRate,
-				false,
-				new PrivacySuggestionBenefit(true, "Branch and Bound"),
-				new PrivacySuggestionBenefit(false, "No change, less trace")
+				false
 				);
 		}
 
@@ -161,7 +158,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		var results = new List<ChangeAvoidanceSuggestionViewModel>();
 
 		foreach (var suggestion in NormalizeSuggestions(suggestions, defaultSelection)
-			         .Where(x => x != defaultSelection))
+					 .Where(x => x != defaultSelection))
 		{
 			results.Add(suggestion);
 		}
