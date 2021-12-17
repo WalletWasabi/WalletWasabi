@@ -50,9 +50,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			PrivacySuggestions.WhenAnyValue(x => x.PreviewSuggestion)
 				.Subscribe(x =>
 				{
-					if (x is { } && x.TransactionResult is { })
+					if (x is ChangeAvoidanceSuggestionViewModel ca)
 					{
-						UpdateTransaction(PreviewTransactionSummary, x.TransactionResult);
+						UpdateTransaction(PreviewTransactionSummary, ca.TransactionResult);
 					}
 					else
 					{
@@ -66,14 +66,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					PrivacySuggestions.IsOpen = false;
 					PrivacySuggestions.SelectedSuggestion = null;
 
-					if (x is ChangeAvoidanceSuggestionViewModel)
+					if (x is ChangeAvoidanceSuggestionViewModel ca)
 					{
-						if (x.TransactionResult is { })
-						{
-							UpdateTransaction(CurrentTransactionSummary, x.TransactionResult);
+						UpdateTransaction(CurrentTransactionSummary, ca.TransactionResult);
 
-							await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, x.TransactionResult);
-						}
+						await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, ca.TransactionResult);
 					}
 					else if (x is PocketSuggestionViewModel)
 					{

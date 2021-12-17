@@ -12,18 +12,20 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 {
 	[AutoNotify] private string _amount;
 	[AutoNotify] private string _amountFiat;
-	[AutoNotify] private string _differenceFiat;
+	[AutoNotify] private string? _differenceFiat;
 
 	public ChangeAvoidanceSuggestionViewModel(decimal originalAmount,
 		BuildTransactionResult transactionResult,
 		decimal fiatExchangeRate,
-		bool isOriginal) : base(transactionResult, isOriginal)
+		bool isOriginal)
 	{
+		TransactionResult = transactionResult;
+
 		decimal total = transactionResult.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
 
 		_amountFiat = total.GenerateFiatText(fiatExchangeRate, "USD");
 
-		if(!isOriginal)
+		if (!isOriginal)
 		{
 			var fiatTotal = total * fiatExchangeRate;
 			var fiatOriginal = originalAmount * fiatExchangeRate;
@@ -37,6 +39,8 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 		_amount = $"{total} BTC";
 	}
+
+	public BuildTransactionResult TransactionResult { get; }
 
 	private static IEnumerable<ChangeAvoidanceSuggestionViewModel> NormalizeSuggestions(
 		IEnumerable<ChangeAvoidanceSuggestionViewModel> suggestions,
@@ -69,7 +73,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 	}
 
 	public static async Task<IEnumerable<ChangeAvoidanceSuggestionViewModel>> GenerateSuggestionsAsync(
-			TransactionInfo transactionInfo, Wallet wallet, BuildTransactionResult requestedTransaction)
+		TransactionInfo transactionInfo, Wallet wallet, BuildTransactionResult requestedTransaction)
 	{
 		var intent = new PaymentIntent(
 			transactionInfo.Address,
@@ -113,7 +117,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 		// There are several scenarios, both the alternate suggestions are <, or >, or 1 < and 1 >.
 		// We sort them and add the suggestions accordingly.
-		var suggestions = new List<ChangeAvoidanceSuggestionViewModel> {defaultSelection, largerSuggestion};
+		var suggestions = new List<ChangeAvoidanceSuggestionViewModel> { defaultSelection, largerSuggestion };
 
 		if (smallerSuggestion is { })
 		{
@@ -122,7 +126,8 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 		var results = new List<ChangeAvoidanceSuggestionViewModel>();
 
-		foreach (var suggestion in NormalizeSuggestions(suggestions, defaultSelection).Where(x => x != defaultSelection))
+		foreach (var suggestion in NormalizeSuggestions(suggestions, defaultSelection)
+			         .Where(x => x != defaultSelection))
 		{
 			results.Add(suggestion);
 		}

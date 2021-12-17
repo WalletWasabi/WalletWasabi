@@ -82,7 +82,7 @@
                         </Style>
 
                         <Style Selector="ListBoxItem Border#PART_MainContentBorder">
-                          <Setter Property="Padding" Value="15,25,15,25" />
+                          <Setter Property="Padding" Value="30,25,30,25" />
                           <Setter Property="CornerRadius" Value="4" />
                           <Setter Property="MaxWidth" Value="250" />
                           <Setter Property="MaxHeight" Value="300" />

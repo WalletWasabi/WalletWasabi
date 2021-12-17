@@ -10,7 +10,6 @@
              x:DataType="send:PocketSuggestionViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PocketSuggestionControl">
   <Panel>
-
     <Border Name="PART_DecorationBorderUnselected" >
       <Border.Transitions>
         <Transitions>
