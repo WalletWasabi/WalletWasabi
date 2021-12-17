@@ -25,7 +25,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		[AutoNotify] private IList<(string color, double percentShare)>? _testDataPoints;
 		[AutoNotify] private IList<DataLegend>? _testDataPointsLegend;
 		[AutoNotify] private string _percentText;
-		[AutoNotify] private double _percent;
 
 		public PrivacyControlTileViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
 		{
@@ -131,8 +130,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			var pcPrivate = totalDecimalAmount == 0M ? 1d : (double)(privateDecimalAmount / totalDecimalAmount);
 			var pcNormal = 1 - pcPrivate;
-
-			Percent = pcPrivate * 100;
 
 			PercentText = $"{pcPrivate:P}";
 
