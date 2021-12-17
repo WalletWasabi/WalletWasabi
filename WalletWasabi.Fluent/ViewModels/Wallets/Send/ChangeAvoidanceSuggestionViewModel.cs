@@ -6,7 +6,6 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.BranchNBound;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -15,46 +14,35 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 {
 	[AutoNotify] private string _amount;
 	[AutoNotify] private string _amountFiat;
-	[AutoNotify] private List<PrivacySuggestionBenefit> _benefits;
-	[AutoNotify] private PrivacyOptimisationLevel _optimisationLevel;
-	[AutoNotify] private bool _optimisationLevelGood;
+	[AutoNotify] private string? _differenceFiat;
 
 	public ChangeAvoidanceSuggestionViewModel(decimal originalAmount,
 		BuildTransactionResult transactionResult,
-		PrivacyOptimisationLevel optimisationLevel,
 		decimal fiatExchangeRate,
-		bool isOriginal,
-		params PrivacySuggestionBenefit[] benefits) : base(transactionResult, isOriginal)
+		bool isOriginal)
 	{
-		_optimisationLevel = optimisationLevel;
-		_benefits = benefits.ToList();
+		TransactionResult = transactionResult;
 
 		decimal total = transactionResult.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
 
 		_amountFiat = total.GenerateFiatText(fiatExchangeRate, "USD");
-		_optimisationLevelGood = optimisationLevel == PrivacyOptimisationLevel.Better;
 
-		if (_optimisationLevelGood)
+		if (!isOriginal)
 		{
 			var fiatTotal = total * fiatExchangeRate;
 			var fiatOriginal = originalAmount * fiatExchangeRate;
 			var fiatDifference = fiatTotal - fiatOriginal;
 
-			var difference = (fiatDifference > 0
+			_differenceFiat = (fiatDifference > 0
 					? $"{fiatDifference.GenerateFiatText("USD")} More"
 					: $"{Math.Abs(fiatDifference).GenerateFiatText("USD")} Less")
 				.Replace("(", "").Replace(")", "");
-
-			_benefits.Add(new PrivacySuggestionBenefit(false, difference));
-		}
-		else
-		{
-			// This is just to pad the control.
-			_benefits.Add(new PrivacySuggestionBenefit(false, " "));
 		}
 
-		_amount = $"{total}";
+		_amount = $"{total} BTC";
 	}
+
+	public BuildTransactionResult TransactionResult { get; }
 
 	private static IEnumerable<ChangeAvoidanceSuggestionViewModel> NormalizeSuggestions(
 		IEnumerable<ChangeAvoidanceSuggestionViewModel> suggestions,
@@ -87,7 +75,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 	}
 
 	public static async Task<IEnumerable<ChangeAvoidanceSuggestionViewModel>> GenerateSuggestionsAsync(
-			TransactionInfo transactionInfo, Wallet wallet, BuildTransactionResult requestedTransaction)
+		TransactionInfo transactionInfo, Wallet wallet, BuildTransactionResult requestedTransaction)
 	{
 		var intent = new PaymentIntent(
 			transactionInfo.Address,
@@ -111,9 +99,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 			smallerSuggestion = new ChangeAvoidanceSuggestionViewModel(
 				transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), smallerTransaction,
-				PrivacyOptimisationLevel.Better, wallet.Synchronizer.UsdExchangeRate, false,
-				new PrivacySuggestionBenefit(true, "Improved Privacy"),
-				new PrivacySuggestionBenefit(false, "No change, less trace"));
+				wallet.Synchronizer.UsdExchangeRate, false);
 		}
 
 		ChangeAvoidanceSuggestionViewModel? bnbSuggestion = null;
@@ -145,8 +131,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 		var defaultSelection = new ChangeAvoidanceSuggestionViewModel(
 			transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), requestedTransaction,
-			PrivacyOptimisationLevel.Standard, wallet.Synchronizer.UsdExchangeRate, true,
-			new PrivacySuggestionBenefit(false, "As Requested"));
+			wallet.Synchronizer.UsdExchangeRate, true);
 
 		var largerTransaction = await Task.Run(() => wallet.BuildTransaction(
 			wallet.Kitchen.SaltSoup(),
@@ -157,9 +142,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 		var largerSuggestion = new ChangeAvoidanceSuggestionViewModel(
 			transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), largerTransaction,
-			PrivacyOptimisationLevel.Better, wallet.Synchronizer.UsdExchangeRate, false,
-			new PrivacySuggestionBenefit(true, "Improved Privacy"),
-			new PrivacySuggestionBenefit(false, "No change, less trace"));
+			wallet.Synchronizer.UsdExchangeRate, false);
 
 		// There are several scenarios, both the alternate suggestions are <, or >, or 1 < and 1 >.
 		// We sort them and add the suggestions accordingly.
@@ -177,7 +160,8 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 		var results = new List<ChangeAvoidanceSuggestionViewModel>();
 
-		foreach (var suggestion in NormalizeSuggestions(suggestions, defaultSelection).Where(x => x != defaultSelection))
+		foreach (var suggestion in NormalizeSuggestions(suggestions, defaultSelection)
+			         .Where(x => x != defaultSelection))
 		{
 			results.Add(suggestion);
 		}

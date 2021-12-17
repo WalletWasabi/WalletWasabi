@@ -137,10 +137,10 @@ namespace WalletWasabi.Logging
 				}
 
 				message = Guard.Correct(message);
-				var category = string.IsNullOrWhiteSpace(callerFilePath) ? "" : $"{EnvironmentHelpers.ExtractFileName(callerFilePath)}:{callerMemberName} ({callerLineNumber})";
+				var category = string.IsNullOrWhiteSpace(callerFilePath) ? "" : $"{EnvironmentHelpers.ExtractFileName(callerFilePath)}.{callerMemberName} ({callerLineNumber})";
 
 				var messageBuilder = new StringBuilder();
-				messageBuilder.Append($"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss.fff} [{Thread.CurrentThread.ManagedThreadId}] {level.ToString().ToUpperInvariant()}\t");
+				messageBuilder.Append($"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss.fff} [{Environment.CurrentManagedThreadId}] {level.ToString().ToUpperInvariant()}\t");
 
 				if (message.Length == 0)
 				{
