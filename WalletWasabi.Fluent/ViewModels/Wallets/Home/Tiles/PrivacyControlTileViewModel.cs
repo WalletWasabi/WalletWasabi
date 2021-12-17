@@ -130,11 +130,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			var totalDecimalAmount = privateDecimalAmount + normalDecimalAmount;
 
 			var pcPrivate = totalDecimalAmount == 0M ? 1d : (double)(privateDecimalAmount / totalDecimalAmount);
-			var pcNormal = Math.Clamp(1 - pcPrivate, 0d, 1d);
+			var pcNormal = 1 - pcPrivate;
 
 			Percent = pcPrivate * 100;
 
-			PercentText = $"{Percent:.##} %";
+			PercentText = $"{pcPrivate:P}";
 
 			FullyMixed = pcPrivate >= 1d;
 
