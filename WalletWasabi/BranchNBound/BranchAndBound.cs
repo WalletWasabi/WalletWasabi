@@ -48,7 +48,7 @@ namespace WalletWasabi.BranchNBound
 		{
 			using (BenchmarkLogger.Measure())
 			{
-				if (CalculateSum(SortedUTXOs) < target)
+				if (SortedUTXOs.Select(c => c.Amount).Sum() < target)
 				{
 					selectedCoins = null;
 					return false;
