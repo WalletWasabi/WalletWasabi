@@ -105,7 +105,7 @@ namespace WalletWasabi.WabiSabi.Client
 					setCandidates.TryAdd(currSet.Count, currSet);
 				}
 			}
-			while((DateTimeOffset.UtcNow - before).TotalMilliseconds <= 30);
+			while ((DateTimeOffset.UtcNow - before).TotalMilliseconds <= 30);
 
 			return setCandidates.RandomElement().Value;
 		}

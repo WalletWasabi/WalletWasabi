@@ -51,12 +51,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var feePerOutput = feeRate.GetFee(Constants.P2WPKHOutputSizeInBytes);
 			var amountDecomposer = new AmountDecomposer(feeRate, 0L, Constants.P2WPKHOutputSizeInBytes, 255);
 
-			var numberOfInputsPerUser = new[]{ 1, 2, 3, 7 };
+			var numberOfInputsPerUser = new[] { 1, 2, 3, 7 };
 			var usersCoins = numberOfInputsPerUser.Select(n => GenerateRandomCoins().Take(n).ToArray()).ToArray();
 			var theirCoins = usersCoins.SelectMany(x => x);
 			var usersDecompositions = usersCoins.Select(coins => amountDecomposer.Decompose(coins, theirCoins)).ToArray();
 
-			Assert.All(usersDecompositions,	d => Assert.True(8 >= d.Count()));
+			Assert.All(usersDecompositions,	d => Assert.True(d.Count() <= 8));
 		}
 
 		private static IEnumerable<Coin> GenerateRandomCoins()
