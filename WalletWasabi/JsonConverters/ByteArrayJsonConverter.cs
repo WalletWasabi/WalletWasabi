@@ -26,7 +26,7 @@ namespace WalletWasabi.JsonConverters
 		{
 			if (value is null)
 			{
-				writer.WriteNull();
+				throw new ArgumentNullException(nameof(value));
 			}
 			else
 			{
