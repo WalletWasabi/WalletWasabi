@@ -1,18 +1,17 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Settings
-{
-	public class GeneralSettingsTabView : UserControl
-	{
-		public GeneralSettingsTabView()
-		{
-			InitializeComponent();
-		}
+namespace WalletWasabi.Fluent.Views.Settings;
 
-		private void InitializeComponent()
-		{
-			AvaloniaXamlLoader.Load(this);
-		}
+public class GeneralSettingsTabView : UserControl
+{
+	public GeneralSettingsTabView()
+	{
+		InitializeComponent();
+	}
+
+	private void InitializeComponent()
+	{
+		AvaloniaXamlLoader.Load(this);
 	}
 }

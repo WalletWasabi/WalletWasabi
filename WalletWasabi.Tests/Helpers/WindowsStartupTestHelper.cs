@@ -2,23 +2,22 @@ using Microsoft.Win32;
 using System.Linq;
 using System.Runtime.InteropServices;
 
-namespace WalletWasabi.Tests.Helpers
+namespace WalletWasabi.Tests.Helpers;
+
+public class WindowsStartupTestHelper
 {
-	public class WindowsStartupTestHelper
+	private const string PathToRegistyKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
+
+	public bool RegistryKeyExists()
 	{
-		private const string PathToRegistyKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
+		bool result = false;
 
-		public bool RegistryKeyExists()
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
-			bool result = false;
-
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-			{
-				RegistryKey? registryKey = Registry.CurrentUser.OpenSubKey(PathToRegistyKey, false) ?? throw new InvalidOperationException("Registry operation failed.");
-				result = registryKey.GetValueNames().Contains(nameof(WalletWasabi));
-			}
-
-			return result;
+			RegistryKey? registryKey = Registry.CurrentUser.OpenSubKey(PathToRegistyKey, false) ?? throw new InvalidOperationException("Registry operation failed.");
+			result = registryKey.GetValueNames().Contains(nameof(WalletWasabi));
 		}
+
+		return result;
 	}
 }

@@ -1,7 +1,6 @@
-namespace WalletWasabi.Tor.Socks5.Pool.Circuits
+namespace WalletWasabi.Tor.Socks5.Pool.Circuits;
+
+public interface ICircuit
 {
-	public interface ICircuit
-	{
-		string Name { get; }
-	}
+	string Name { get; }
 }

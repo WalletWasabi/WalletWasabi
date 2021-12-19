@@ -1,36 +1,35 @@
 using NBitcoin;
 using Newtonsoft.Json;
 
-namespace WalletWasabi.JsonConverters
+namespace WalletWasabi.JsonConverters;
+
+public class KeyPathJsonConverter : JsonConverter
 {
-	public class KeyPathJsonConverter : JsonConverter
+	/// <inheritdoc />
+	public override bool CanConvert(Type objectType)
 	{
-		/// <inheritdoc />
-		public override bool CanConvert(Type objectType)
+		return objectType == typeof(KeyPath);
+	}
+
+	/// <inheritdoc />
+	public override object? ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+	{
+		var s = (string)reader.Value;
+		if (string.IsNullOrWhiteSpace(s))
 		{
-			return objectType == typeof(KeyPath);
+			return null;
 		}
+		var kp = KeyPath.Parse(s.Trim());
 
-		/// <inheritdoc />
-		public override object? ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-		{
-			var s = (string)reader.Value;
-			if (string.IsNullOrWhiteSpace(s))
-			{
-				return null;
-			}
-			var kp = KeyPath.Parse(s.Trim());
+		return kp;
+	}
 
-			return kp;
-		}
+	/// <inheritdoc />
+	public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+	{
+		var kp = (KeyPath)value;
 
-		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-		{
-			var kp = (KeyPath)value;
-
-			var s = kp.ToString();
-			writer.WriteValue(s);
-		}
+		var s = kp.ToString();
+		writer.WriteValue(s);
 	}
 }

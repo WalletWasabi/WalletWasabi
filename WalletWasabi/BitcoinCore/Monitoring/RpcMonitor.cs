@@ -4,38 +4,37 @@ using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore.Rpc;
 
-namespace WalletWasabi.BitcoinCore.Monitoring
+namespace WalletWasabi.BitcoinCore.Monitoring;
+
+public class RpcMonitor : PeriodicRunner
 {
-	public class RpcMonitor : PeriodicRunner
+	private RpcStatus _rpcStatus;
+
+	public RpcMonitor(TimeSpan period, IRPCClient rpcClient) : base(period)
 	{
-		private RpcStatus _rpcStatus;
+		_rpcStatus = RpcStatus.Unresponsive;
+		RpcClient = rpcClient;
+	}
 
-		public RpcMonitor(TimeSpan period, IRPCClient rpcClient) : base(period)
+	public event EventHandler<RpcStatus>? RpcStatusChanged;
+
+	public IRPCClient RpcClient { get; set; }
+
+	public RpcStatus RpcStatus
+	{
+		get => _rpcStatus;
+		private set
 		{
-			_rpcStatus = RpcStatus.Unresponsive;
-			RpcClient = rpcClient;
-		}
-
-		public event EventHandler<RpcStatus>? RpcStatusChanged;
-
-		public IRPCClient RpcClient { get; set; }
-
-		public RpcStatus RpcStatus
-		{
-			get => _rpcStatus;
-			private set
+			if (value != _rpcStatus)
 			{
-				if (value != _rpcStatus)
-				{
-					_rpcStatus = value;
-					RpcStatusChanged?.Invoke(this, value);
-				}
+				_rpcStatus = value;
+				RpcStatusChanged?.Invoke(this, value);
 			}
 		}
+	}
 
-		protected override async Task ActionAsync(CancellationToken cancel)
-		{
-			RpcStatus = await RpcClient.GetRpcStatusAsync(cancel).ConfigureAwait(false);
-		}
+	protected override async Task ActionAsync(CancellationToken cancel)
+	{
+		RpcStatus = await RpcClient.GetRpcStatusAsync(cancel).ConfigureAwait(false);
 	}
 }

@@ -17,145 +17,144 @@ using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Fluent.ViewModels.AddWallet
+namespace WalletWasabi.Fluent.ViewModels.AddWallet;
+
+[NavigationMetaData(Title = "Enter recovery words")]
+public partial class RecoverWalletViewModel : RoutableViewModel
 {
-	[NavigationMetaData(Title = "Enter recovery words")]
-	public partial class RecoverWalletViewModel : RoutableViewModel
+	[AutoNotify] private IEnumerable<string>? _suggestions;
+	[AutoNotify] private Mnemonic? _currentMnemonics;
+
+	public RecoverWalletViewModel(string walletName)
 	{
-		[AutoNotify] private IEnumerable<string>? _suggestions;
-		[AutoNotify] private Mnemonic? _currentMnemonics;
+		Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
-		public RecoverWalletViewModel(string walletName)
-		{
-			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
-
-			Mnemonics.ToObservableChangeSet().ToCollection()
-				.Select(x => x.Count is 12 or 15 or 18 or 21 or 24 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : default)
-				.Subscribe(x =>
-				{
-					CurrentMnemonics = x;
-					this.RaisePropertyChanged(nameof(Mnemonics));
-				});
-
-			this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
-
-			EnableBack = true;
-
-			NextCommandCanExecute =
-				this.WhenAnyValue(x => x.CurrentMnemonics)
-					.Select(_ => IsMnemonicsValid);
-
-			NextCommand = ReactiveCommand.CreateFromTask(
-				async () => await OnNextAsync(walletName),
-				NextCommandCanExecute);
-
-			AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
-				async () => await OnAdvancedRecoveryOptionsDialogAsync());
-
-			EnableAutoBusyOn(NextCommand);
-		}
-
-		private async Task OnNextAsync(string? walletName)
-		{
-			var dialogResult = await NavigateDialogAsync(
-				new CreatePasswordDialogViewModel(
-					"Type the password of the wallet to be able to recover and click Continue."));
-
-			if (dialogResult.Result is { } password)
+		Mnemonics.ToObservableChangeSet().ToCollection()
+			.Select(x => x.Count is 12 or 15 or 18 or 21 or 24 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : default)
+			.Subscribe(x =>
 			{
-				try
-				{
-					var keyManager = await Task.Run(
-						() =>
-						{
-							var walletFilePath = Services.WalletManager.WalletDirectories.GetWalletFilePaths(walletName!)
-								.walletFilePath;
+				CurrentMnemonics = x;
+				this.RaisePropertyChanged(nameof(Mnemonics));
+			});
 
-							var result = KeyManager.Recover(
-								CurrentMnemonics!,
-								password!,
-								Services.WalletManager.Network,
-								AccountKeyPath,
-								walletFilePath,
-								MinGapLimit);
+		this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
 
-							result.SetNetwork(Services.WalletManager.Network);
+		EnableBack = true;
 
-							return result;
-						});
+		NextCommandCanExecute =
+			this.WhenAnyValue(x => x.CurrentMnemonics)
+				.Select(_ => IsMnemonicsValid);
 
-					Navigate().To(new AddedWalletPageViewModel(keyManager));
+		NextCommand = ReactiveCommand.CreateFromTask(
+			async () => await OnNextAsync(walletName),
+			NextCommandCanExecute);
 
-					return;
-				}
-				catch (Exception ex)
-				{
-					// TODO navigate to error dialog.
-					Logger.LogError(ex);
-				}
-			}
+		AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
+			async () => await OnAdvancedRecoveryOptionsDialogAsync());
 
-			if (dialogResult.Kind == DialogResultKind.Cancel)
-			{
-				Navigate().Clear();
-			}
-		}
+		EnableAutoBusyOn(NextCommand);
+	}
 
-		private async Task OnAdvancedRecoveryOptionsDialogAsync()
+	private async Task OnNextAsync(string? walletName)
+	{
+		var dialogResult = await NavigateDialogAsync(
+			new CreatePasswordDialogViewModel(
+				"Type the password of the wallet to be able to recover and click Continue."));
+
+		if (dialogResult.Result is { } password)
 		{
-			var result = await NavigateDialogAsync(new AdvancedRecoveryOptionsViewModel((AccountKeyPath, MinGapLimit)),
-				NavigationTarget.CompactDialogScreen);
-
-			if (result.Kind == DialogResultKind.Normal)
+			try
 			{
-				var (accountKeyPathIn, minGapLimitIn) = result.Result;
+				var keyManager = await Task.Run(
+					() =>
+					{
+						var walletFilePath = Services.WalletManager.WalletDirectories.GetWalletFilePaths(walletName!)
+							.walletFilePath;
 
-				if (accountKeyPathIn is { } && minGapLimitIn is { })
-				{
-					AccountKeyPath = accountKeyPathIn;
-					MinGapLimit = (int)minGapLimitIn;
-				}
-			}
-		}
+						var result = KeyManager.Recover(
+							CurrentMnemonics!,
+							password!,
+							Services.WalletManager.Network,
+							AccountKeyPath,
+							walletFilePath,
+							MinGapLimit);
 
-		public bool IsMnemonicsValid => CurrentMnemonics is { IsValidChecksum: true };
+						result.SetNetwork(Services.WalletManager.Network);
 
-		public IObservable<bool> NextCommandCanExecute { get; }
+						return result;
+					});
 
-		public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
+				Navigate().To(new AddedWalletPageViewModel(keyManager));
 
-		private KeyPath AccountKeyPath { get; set; } = KeyManager.GetAccountKeyPath(Services.WalletManager.Network);
-
-		private int MinGapLimit { get; set; } = 63;
-
-		public ObservableCollection<string> Mnemonics { get; } = new();
-
-		private void ValidateMnemonics(IValidationErrors errors)
-		{
-			if (IsMnemonicsValid)
-			{
 				return;
 			}
-
-			if (!Mnemonics.Any())
+			catch (Exception ex)
 			{
-				return;
+				// TODO navigate to error dialog.
+				Logger.LogError(ex);
 			}
-
-			errors.Add(ErrorSeverity.Error, "Recovery words are not valid.");
 		}
 
-		private string GetTagsAsConcatString()
+		if (dialogResult.Kind == DialogResultKind.Cancel)
 		{
-			return string.Join(' ', Mnemonics);
+			Navigate().Clear();
 		}
+	}
 
-		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	private async Task OnAdvancedRecoveryOptionsDialogAsync()
+	{
+		var result = await NavigateDialogAsync(new AdvancedRecoveryOptionsViewModel((AccountKeyPath, MinGapLimit)),
+			NavigationTarget.CompactDialogScreen);
+
+		if (result.Kind == DialogResultKind.Normal)
 		{
-			base.OnNavigatedTo(isInHistory, disposables);
+			var (accountKeyPathIn, minGapLimitIn) = result.Result;
 
-			var enableCancel = Services.WalletManager.HasWallet();
-			SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
+			if (accountKeyPathIn is { } && minGapLimitIn is { })
+			{
+				AccountKeyPath = accountKeyPathIn;
+				MinGapLimit = (int)minGapLimitIn;
+			}
 		}
+	}
+
+	public bool IsMnemonicsValid => CurrentMnemonics is { IsValidChecksum: true };
+
+	public IObservable<bool> NextCommandCanExecute { get; }
+
+	public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
+
+	private KeyPath AccountKeyPath { get; set; } = KeyManager.GetAccountKeyPath(Services.WalletManager.Network);
+
+	private int MinGapLimit { get; set; } = 63;
+
+	public ObservableCollection<string> Mnemonics { get; } = new();
+
+	private void ValidateMnemonics(IValidationErrors errors)
+	{
+		if (IsMnemonicsValid)
+		{
+			return;
+		}
+
+		if (!Mnemonics.Any())
+		{
+			return;
+		}
+
+		errors.Add(ErrorSeverity.Error, "Recovery words are not valid.");
+	}
+
+	private string GetTagsAsConcatString()
+	{
+		return string.Join(' ', Mnemonics);
+	}
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
+
+		var enableCancel = Services.WalletManager.HasWallet();
+		SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
 	}
 }

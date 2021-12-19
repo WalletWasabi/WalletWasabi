@@ -1,8 +1,7 @@
-namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
+namespace WalletWasabi.WabiSabi.Client.CredentialDependencies;
+
+public enum CredentialType
 {
-	public enum CredentialType
-	{
-		Amount,
-		Vsize
-	}
+	Amount,
+	Vsize
 }
