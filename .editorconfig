@@ -104,6 +104,7 @@ csharp_prefer_simple_default_expression = true:error
 
 csharp_indent_case_contents = true:warning
 csharp_indent_switch_labels = true:warning
+csharp_style_namespace_declarations = file_scoped:warning
 
 # prefer 'is null' for reference equality checks
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true:error
