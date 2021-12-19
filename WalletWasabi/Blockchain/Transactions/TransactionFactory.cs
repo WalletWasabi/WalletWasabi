@@ -241,11 +241,6 @@ namespace WalletWasabi.Blockchain.Transactions
 
 				psbt.Finalize();
 				tx = psbt.ExtractTransaction();
-
-				if (!psbt.TryGetEstimatedFeeRate(out _))
-				{
-					throw new InvalidOperationException("Impossible to get the fee rate of the PSBT, this should never happen.");
-				}
 			}
 
 			var smartTransaction = new SmartTransaction(tx, Height.Unknown, label: SmartLabel.Merge(payments.Requests.Select(x => x.Label)));
