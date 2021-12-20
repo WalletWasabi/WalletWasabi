@@ -42,7 +42,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 		private static async Task<HttpResponseMessage> PayjoinServerOkAsync(HttpRequestMessage request, Func<PSBT, PSBT> transformPsbt, HttpStatusCode statusCode = HttpStatusCode.OK)
 		{
-			var body = await request.Content.ReadAsStringAsync().ConfigureAwait(false);
+			var body = await request.Content!.ReadAsStringAsync().ConfigureAwait(false);
 			var psbt = PSBT.Parse(body, Network.Main);
 			var newPsbt = transformPsbt(psbt);
 			var message = new HttpResponseMessage(statusCode);
@@ -50,12 +50,12 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			return message;
 		}
 
-		private static async Task<HttpResponseMessage> PayjoinServerErrorAsync(HttpStatusCode statusCode, string errorCode, string description = "") =>
-			new HttpResponseMessage(statusCode)
+		private static Task<HttpResponseMessage> PayjoinServerErrorAsync(HttpStatusCode statusCode, string errorCode, string description = "") =>
+			Task.FromResult(new HttpResponseMessage(statusCode)
 			{
 				ReasonPhrase = "",
 				Content = new StringContent("{ \"errorCode\": \"" + errorCode + "\", \"message\": \"" + description + "\"}")
-			};
+			});
 
 		[Fact]
 		public void ApplyOptionalParametersTest()
