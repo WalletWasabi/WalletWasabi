@@ -676,6 +676,12 @@
           "System.Security.Principal.Windows": "4.7.0"
         }
       },
+      "avalonia.controls.treedatagrid": {
+        "type": "Project",
+        "dependencies": {
+          "Avalonia": "0.10.10"
+        }
+      },
       "walletwasabi": {
         "type": "Project",
         "dependencies": {
@@ -690,6 +696,7 @@
         "dependencies": {
           "Avalonia": "0.10.11-rc.2",
           "Avalonia.Controls.DataGrid": "0.10.11-rc.2",
+          "Avalonia.Controls.TreeDataGrid": "1.0.0",
           "Avalonia.Diagnostics": "0.10.11-rc.2",
           "Avalonia.ReactiveUI": "0.10.11-rc.2",
           "Avalonia.Xaml.Behaviors": "0.10.11-rc.1",
