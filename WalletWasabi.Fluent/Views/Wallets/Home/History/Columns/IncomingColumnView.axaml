@@ -1,0 +1,20 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Columns.IncomingColumnView">
+  <Panel Name="Panel" HorizontalAlignment="Stretch">
+    <c:PrivacyContentControl
+      x:DataType="historyItems:HistoryItemViewModelBase"
+      IsVisible="{Binding !!IncomingAmount}"
+      HorizontalAlignment="Center"
+      Content="{Binding IncomingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
+      Classes="monoSpaced"
+      FontSize="15"
+      NumberOfPrivacyChars="9" />
+  </Panel>
+</UserControl>
