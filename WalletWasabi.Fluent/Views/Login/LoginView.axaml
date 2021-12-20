@@ -70,7 +70,7 @@
           </DockPanel>
 
           <!-- Hardware & Watch only wallet -->
-          <Button Content="Login" IsVisible="{Binding !IsPasswordNeeded}" HorizontalAlignment="Center" Classes="action" Command="{Binding NextCommand}" />
+          <Button Content="Open" IsVisible="{Binding !IsPasswordNeeded}" HorizontalAlignment="Center" Classes="action" Command="{Binding NextCommand}" />
         </DockPanel>
 
         <!-- Incorrect password -->
