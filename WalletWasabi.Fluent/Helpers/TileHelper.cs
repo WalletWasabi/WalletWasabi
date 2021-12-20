@@ -46,7 +46,7 @@ namespace WalletWasabi.Fluent.Helpers
 					TilePresetIndex = walletViewModel.LayoutIndex
 				},
 
-				new WalletBalanceChartTileViewModel(walletViewModel.History.UnfilteredTransactions)
+				new WalletBalanceChartTileViewModel(walletViewModel.History)
 				{
 					TilePresets = new ObservableCollection<TilePresetViewModel>()
 					{
@@ -85,7 +85,7 @@ namespace WalletWasabi.Fluent.Helpers
 					TilePresetIndex = walletViewModel.LayoutIndex
 				},
 
-				new WalletBalanceChartTileViewModel(walletViewModel.History.UnfilteredTransactions)
+				new WalletBalanceChartTileViewModel(walletViewModel.History)
 				{
 					TilePresets = new ObservableCollection<TilePresetViewModel>()
 					{
@@ -113,8 +113,8 @@ namespace WalletWasabi.Fluent.Helpers
 			return new ObservableCollection<TileLayoutViewModel>()
 			{
 				new("Small", columnDefinitions: "330,330,330,330", rowDefinitions: "150"),
-				new("Normal", columnDefinitions: "330,330,330", rowDefinitions: "150,150"),
-				new("Wide", columnDefinitions: "330,330", rowDefinitions: "150,150,300")
+				new("Normal", columnDefinitions: "330,330,*", rowDefinitions: "150,150"),
+				new("Wide", columnDefinitions: "330,330", rowDefinitions: "150,150,*")
 			};
 		}
 	}

@@ -50,9 +50,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			PrivacySuggestions.WhenAnyValue(x => x.PreviewSuggestion)
 				.Subscribe(x =>
 				{
-					if (x is { })
+					if (x is ChangeAvoidanceSuggestionViewModel ca)
 					{
-						UpdateTransaction(PreviewTransactionSummary, x.TransactionResult);
+						UpdateTransaction(PreviewTransactionSummary, ca.TransactionResult);
 					}
 					else
 					{
@@ -61,14 +61,20 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				});
 
 			PrivacySuggestions.WhenAnyValue(x => x.SelectedSuggestion)
-				.Subscribe(x =>
+				.Subscribe(async x =>
 				{
 					PrivacySuggestions.IsOpen = false;
 					PrivacySuggestions.SelectedSuggestion = null;
 
-					if (x is { })
+					if (x is ChangeAvoidanceSuggestionViewModel ca)
 					{
-						UpdateTransaction(CurrentTransactionSummary, x.TransactionResult);
+						UpdateTransaction(CurrentTransactionSummary, ca.TransactionResult);
+
+						await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, ca.TransactionResult);
+					}
+					else if (x is PocketSuggestionViewModel)
+					{
+						await OnChangePocketsAsync();
 					}
 				});
 
@@ -84,9 +90,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
 			EnableBack = true;
 
-
 			AdjustFeeAvailable = !TransactionFeeHelper.AreTransactionFeesEqual(_wallet);
-
 
 			if (PreferPsbtWorkflow)
 			{
@@ -114,8 +118,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					await OnAdjustFeeAsync();
 				}
 			});
-
-			ChangePocketsCommand = ReactiveCommand.CreateFromTask(OnChangePocketsAsync);
 		}
 
 		public TransactionSummaryViewModel CurrentTransactionSummary { get; }
@@ -129,8 +131,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public bool PreferPsbtWorkflow => _wallet.KeyManager.PreferPsbtWorkflow;
 
 		public ICommand AdjustFeeCommand { get; }
-
-		public ICommand ChangePocketsCommand { get; }
 
 		private async Task ShowAdvancedDialogAsync()
 		{
@@ -248,6 +248,20 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				return await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info));
 			}
+			catch (TransactionFeeOverpaymentException ex)
+			{
+				var result = TrySetMaximumPossibleFee(ex.PercentageOfOverpayment, _wallet, _info);
+
+				if (!result)
+				{
+					await ShowErrorAsync("Transaction Building", "At the moment, it is not possible to select a transaction fee that is less than the payment amount. The transaction cannot be sent.",
+						"Wasabi was unable to create your transaction.");
+
+					return null;
+				}
+
+				return await BuildTransactionAsync();
+			}
 			catch (InsufficientBalanceException)
 			{
 				if (_info.IsPayJoin)
@@ -272,10 +286,33 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 		}
 
-		private async Task<BuildTransactionResult?> HandleInsufficientBalanceWhenNormalAsync(Wallet wallet,
-			TransactionInfo transactionInfo)
+		private bool TrySetMaximumPossibleFee(decimal percentageOfOverpayment, Wallet wallet, TransactionInfo transactionInfo)
 		{
-			var dialog = new InsufficientBalanceDialogViewModel(transactionInfo.IsPrivatePocketUsed
+			var currentFeeRate = transactionInfo.FeeRate;
+			var maxPossibleFeeRateInSatoshiPerByte = (currentFeeRate.SatoshiPerByte / percentageOfOverpayment) * 100;
+			var maximumPossibleFeeRate = new FeeRate(maxPossibleFeeRateInSatoshiPerByte);
+
+			var feeChartViewModel = new FeeChartViewModel();
+			feeChartViewModel.UpdateFeeEstimates(TransactionFeeHelper.GetFeeEstimates(wallet));
+
+			var blockTarget = feeChartViewModel.GetConfirmationTarget(maximumPossibleFeeRate);
+			var newFeeRate = new FeeRate(feeChartViewModel.GetSatoshiPerByte(blockTarget));
+
+			if (newFeeRate > maximumPossibleFeeRate)
+			{
+				return false;
+			}
+
+			transactionInfo.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(blockTarget);
+			transactionInfo.FeeRate = newFeeRate;
+			transactionInfo.MaximumPossibleFeeRate = maximumPossibleFeeRate;
+
+			return true;
+		}
+
+		private async Task<BuildTransactionResult?> HandleInsufficientBalanceWhenNormalAsync(Wallet wallet, TransactionInfo transactionInfo)
+		{
+			var dialog = new InsufficientBalanceDialogViewModel(transactionInfo.IsPrivate
 				? BalanceType.Private
 				: BalanceType.Pocket);
 
@@ -312,7 +349,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			if (wallet.Coins.TotalAmount() > transactionInfo.Amount)
 			{
 				await ShowErrorAsync("Transaction Building",
-					$"There are not enough {(transactionInfo.IsPrivatePocketUsed ? "private funds" : "funds selected")} to cover the transaction fee",
+					$"There are not enough {(transactionInfo.IsPrivate ? "private funds" : "funds selected")} to cover the transaction fee",
 					"Wasabi was unable to create your transaction.");
 
 				var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(wallet, transactionInfo, false),
@@ -347,7 +384,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return null;
 		}
 
-		private async Task InitialseViewModelAsync()
+		private async Task InitialiseViewModelAsync()
 		{
 			if (await BuildTransactionAsync() is { } initialTransaction)
 			{
@@ -372,7 +409,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (!isInHistory)
 			{
-				RxApp.MainThreadScheduler.Schedule(async ()=> await InitialseViewModelAsync());
+				RxApp.MainThreadScheduler.Schedule(async ()=> await InitialiseViewModelAsync());
 			}
 		}
 
@@ -385,33 +422,43 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private async Task OnConfirmAsync()
 		{
-			if (_transaction is { })
+			var labelDialog = new LabelEntryDialogViewModel(_wallet, _info);
+
+			Navigate(NavigationTarget.CompactDialogScreen).To(labelDialog);
+
+			var result = await labelDialog.GetDialogResultAsync();
+
+			if (result.Result is null)
 			{
-				var transaction = _transaction;
+				Navigate(NavigationTarget.CompactDialogScreen).Back(); // manually close the LabelEntryDialog when user cancels it. TODO: refactor.
+				return;
+			}
 
-				var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
+			_info.UserLabels = result.Result;
 
-				var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
+			var transaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info));
+			var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
+			var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
+			if (authResult)
+			{
+				Navigate(NavigationTarget.CompactDialogScreen).Back(); // manually close the LabelEntryDialog when the authorization dialog never popped (empty password case). TODO: refactor.
 
-				if (authResult)
+				IsBusy = true;
+
+				try
 				{
-					IsBusy = true;
-
-					try
-					{
-						var finalTransaction =
-							await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
-						await SendTransactionAsync(finalTransaction);
-						Navigate().To(new SendSuccessViewModel(_wallet, finalTransaction));
-					}
-					catch (Exception ex)
-					{
-						await ShowErrorAsync("Transaction", ex.ToUserFriendlyString(),
-							"Wasabi was unable to send your transaction.");
-					}
-
-					IsBusy = false;
+					var finalTransaction =
+						await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
+					await SendTransactionAsync(finalTransaction);
+					Navigate().To(new SendSuccessViewModel(_wallet, finalTransaction));
 				}
+				catch (Exception ex)
+				{
+					await ShowErrorAsync("Transaction", ex.ToUserFriendlyString(),
+						"Wasabi was unable to send your transaction.");
+				}
+
+				IsBusy = false;
 			}
 		}
 
@@ -424,7 +471,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 
 			var authDialog = AuthorizationHelpers.GetAuthorizationDialog(_wallet, transactionAuthorizationInfo);
-			var authDialogResult = await NavigateDialogAsync(authDialog, authDialog.DefaultTarget);
+			var authDialogResult = await NavigateDialogAsync(authDialog, authDialog.DefaultTarget, NavigationMode.Clear);
 
 			if (!authDialogResult.Result && authDialogResult.Kind == DialogResultKind.Normal)
 			{

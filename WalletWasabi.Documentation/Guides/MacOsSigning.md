@@ -42,3 +42,21 @@
 - https://developer.apple.com/developer-id/
 
 (The altool and stapler command-line tools (included within Xcode) allow you to upload your software to the Apple notary service, and to staple the resulting ticket to your executable. altool is located at /Applications/Xcode.app/Contents/Developer/usr/bin/altool.). Unfortunately it is not enough to intall Command Line Tool for XCode. 
+
+## Changing the icon
+
+- https://github.com/zkSNACKs/WalletWasabi/issues/2951
+
+## Changing the background of dmg installer
+
+1. Get a Mac
+2. Install create-dmg https://github.com/andreyvit/create-dmg 
+3. Create a folder called somewhere called wasabidmg
+4. Get `Wasabi Wallet.app` for example you can download the latest release and extract it from dmg(7zip). Then copy it under wasabidmg.
+5. Copy the following two files under wasabidmg Logo_with_text_small.png and WasabiLogo.icns
+6. Open terminal at wasabidmg
+7. Set the version number in the following command and run it
+9. `create-dmg --volname "Wasabi Wallet" --volicon "WasabiLogo.icns" --background "Logo_with_text_small.png" --window-pos 200 120 --window-size 600 440 --icon "Wasabi Wallet.app" 110 150 --app-drop-link 500 150 --hdiutil-verbose "Wasabi.dmg" "Wasabi Wallet.app/"`
+11. Dmg file is created under wasabidmg
+12. Copy the dmg to windows computer, extract(7zip) DS_Store file and copy it to `WalletWasabi\WalletWasabi.Packager\Content\Osx\Dmg\DS_Store.dat` - add the extension .dat to prevent macOs overwriting the file. 
+13. Now you can run the packager procedure
