@@ -241,6 +241,12 @@ namespace WalletWasabi.Blockchain.Transactions
 
 				psbt.Finalize();
 				tx = psbt.ExtractTransaction();
+
+				var checkResults = builder.Check(tx).ToList();
+				if (checkResults.Count > 0)
+				{
+					throw new InvalidTxException(tx, checkResults);
+				}
 			}
 
 			var smartTransaction = new SmartTransaction(tx, Height.Unknown, label: SmartLabel.Merge(payments.Requests.Select(x => x.Label)));
