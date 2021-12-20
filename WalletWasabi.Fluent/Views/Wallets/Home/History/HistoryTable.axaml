@@ -5,10 +5,9 @@
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:history="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History"
-             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
-             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+             xmlns:columns="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Home.History.Columns"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="history:HistoryViewModel"
              x:CompileBindings="True"
@@ -159,38 +158,7 @@
                                CanUserSort="False">
           <DataBoxTemplateColumn.CellTemplate>
             <DataTemplate>
-              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <Panel x:DataType="historyItems:HistoryItemViewModelBase">
-                  <!-- Confirmed -->
-                  <PathIcon IsVisible="{Binding IsConfirmed}"
-                            Data="{StaticResource checkmark_filled}"
-                            Foreground="{DynamicResource SystemAccentColor}"
-                            Height="11"
-                            ToolTip.Tip="Confirmed" />
-                  <!-- Pending -->
-                  <PathIcon IsVisible="{Binding !IsConfirmed}"
-                            Data="{StaticResource clock_regular}"
-                            Height="14"
-                            Opacity="0.6"
-                            ToolTip.Tip="Pending" />
-                </Panel>
-
-                <!-- Type -->
-                <c:PrivacyContentControl PrivacyReplacementMode="Icon">
-                  <c:PrivacyContentControl.Styles>
-                    <Style Selector="c|PrivacyContentControl /template/ Viewbox#PART_Icon">
-                      <Setter Property="Height" Value="18" />
-                      <Setter Property="Margin" Value="0" />
-                    </Style>
-                  </c:PrivacyContentControl.Styles>
-                  <Panel x:DataType="historyItems:HistoryItemViewModelBase">
-                    <PathIcon ToolTip.Tip="Transaction" Data="{StaticResource normal_transaction}" Opacity="0.6"
-                              IsVisible="{Binding !IsCoinJoin}" />
-                    <PathIcon ToolTip.Tip="CoinJoin" Data="{StaticResource shield_regular}" Height="15" Opacity="0.6"
-                              IsVisible="{Binding IsCoinJoin}" />
-                  </Panel>
-                </c:PrivacyContentControl>
-              </StackPanel>
+              <columns:IndicatorsColumnView />
             </DataTemplate>
           </DataBoxTemplateColumn.CellTemplate>
         </DataBoxTemplateColumn>
@@ -201,12 +169,7 @@
                                MinWidth="150">
           <DataBoxTemplateColumn.CellTemplate>
             <DataTemplate>
-              <c:PrivacyContentControl x:DataType="historyItems:HistoryItemViewModelBase"
-                                       Content="{Binding DateString}"
-                                       Classes="monoSpaced"
-                                       FontSize="15"
-                                       Margin="10 0"
-                                       NumberOfPrivacyChars="15" />
+              <columns:DateColumnView />
             </DataTemplate>
           </DataBoxTemplateColumn.CellTemplate>
         </DataBoxTemplateColumn>
@@ -218,39 +181,7 @@
                                CanUserSort="False">
           <DataBoxTemplateColumn.CellTemplate>
             <DataTemplate>
-              <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15"
-                                       Classes="monoSpacedPrivacyReplacement">
-                <DockPanel LastChildFill="False" x:DataType="historyItems:HistoryItemViewModelBase">
-                  <c:TagsBox Padding="0"
-                             Margin="0"
-                             MinWidth="0"
-                             BorderThickness="0"
-                             DockPanel.Dock="Left"
-                             IsReadOnly="True"
-                             Items="{Binding Label}"
-                             HorizontalAlignment="Stretch"
-                             VerticalAlignment="Center" />
-                  <Button Classes="labelFlyout"
-                          DockPanel.Dock="Left"
-                          IsVisible="{Binding !!FilteredLabel.Count}"
-                          Content="..."
-                          Margin="0 4 0 0">
-                    <Button.Flyout>
-                      <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="TransientWithDismissOnPointerMoveAway">
-                        <c:TagsBox IsReadOnly="True"
-                                   Items="{Binding FilteredLabel}" />
-                      </Flyout>
-                    </Button.Flyout>
-                    <ToolTip.Tip>
-                      <Panel>
-                        <c:TagsBox IsReadOnly="True"
-                                   Margin="4,6,0,0"
-                                   Items="{Binding FilteredLabel}" />
-                      </Panel>
-                    </ToolTip.Tip>
-                  </Button>
-                </DockPanel>
-              </c:PrivacyContentControl>
+              <columns:LabelsColumnView />
             </DataTemplate>
           </DataBoxTemplateColumn.CellTemplate>
         </DataBoxTemplateColumn>
@@ -262,16 +193,7 @@
                                MaxWidth="150">
           <DataBoxTemplateColumn.CellTemplate>
             <DataTemplate>
-              <Panel Name="Panel" HorizontalAlignment="Stretch">
-                <c:PrivacyContentControl
-                  x:DataType="historyItems:HistoryItemViewModelBase"
-                  IsVisible="{Binding !!IncomingAmount}"
-                  HorizontalAlignment="Center"
-                  Content="{Binding IncomingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
-                  Classes="monoSpaced"
-                  FontSize="15"
-                  NumberOfPrivacyChars="9" />
-              </Panel>
+              <columns:IncomingColumnView />
             </DataTemplate>
           </DataBoxTemplateColumn.CellTemplate>
         </DataBoxTemplateColumn>
@@ -283,16 +205,7 @@
                                MaxWidth="150">
           <DataBoxTemplateColumn.CellTemplate>
             <DataTemplate>
-              <Panel Name="Panel" HorizontalAlignment="Stretch">
-                <c:PrivacyContentControl
-                  HorizontalAlignment="Center"
-                  x:DataType="historyItems:HistoryItemViewModelBase"
-                  IsVisible="{Binding !!OutgoingAmount}"
-                  Content="{Binding OutgoingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
-                  Classes="monoSpaced"
-                  FontSize="15"
-                  NumberOfPrivacyChars="9" />
-              </Panel>
+              <columns:OutgoingColumnView />
             </DataTemplate>
           </DataBoxTemplateColumn.CellTemplate>
         </DataBoxTemplateColumn>
@@ -304,13 +217,7 @@
                                MaxWidth="150">
           <DataBoxTemplateColumn.CellTemplate>
             <DataTemplate>
-              <c:PrivacyContentControl x:DataType="historyItems:HistoryItemViewModelBase"
-                                       Content="{Binding Balance, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
-                                       Classes="monoSpaced"
-                                       FontSize="15"
-                                       NumberOfPrivacyChars="9"
-                                       HorizontalAlignment="Center"
-                                       Margin="10, 0, 30, 0" />
+              <columns:BalanceColumnView />
             </DataTemplate>
           </DataBoxTemplateColumn.CellTemplate>
         </DataBoxTemplateColumn>
