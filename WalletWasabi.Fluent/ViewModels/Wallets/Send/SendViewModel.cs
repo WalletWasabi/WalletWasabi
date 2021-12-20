@@ -107,7 +107,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						return allFilled && !hasError;
 					});
 
-			NextCommand = ReactiveCommand.CreateFromTask(async () =>
+			NextCommand = ReactiveCommand.Create(() =>
 			{
 				_transactionInfo.Amount = new Money(AmountBtc, MoneyUnit.BTC);
 

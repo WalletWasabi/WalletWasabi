@@ -141,7 +141,7 @@ namespace WalletWasabi.Wallets
 				TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, ServiceConfiguration.PrivacyLevelStrong);
 				Coins = TransactionProcessor.Coins;
 
-				TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessedAsync;
+				TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
 				BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
 				BitcoinStore.IndexStore.Reorged += IndexDownloader_ReorgedAsync;
 				BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
@@ -261,7 +261,7 @@ namespace WalletWasabi.Wallets
 						BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
 						BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
 						BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
-						TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessedAsync;
+						TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
 					}
 				}
 			}
@@ -271,7 +271,7 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		private async void TransactionProcessor_WalletRelevantTransactionProcessedAsync(object? sender, ProcessedResult e)
+		private void TransactionProcessor_WalletRelevantTransactionProcessed(object? sender, ProcessedResult e)
 		{
 			try
 			{

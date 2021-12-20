@@ -255,10 +255,10 @@ namespace WalletWasabi.Fluent.Controls
 
 		protected override void OnKeyDown(KeyEventArgs e)
 		{
-			DoPasteCheckAsync(e);
+			DoPasteCheck(e);
 		}
 
-		private async void DoPasteCheckAsync(KeyEventArgs e)
+		private void DoPasteCheck(KeyEventArgs e)
 		{
 			var keymap = AvaloniaLocator.Current.GetService<PlatformHotkeyConfiguration>();
 
