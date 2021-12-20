@@ -40,6 +40,8 @@
             <TextBlock Text="Boost Privacy" />
           </StackPanel>
         </Button>
+        <TextBlock Text="Your Privacy is protected"
+                   IsVisible="{Binding FullyMixed}" />
         <Button Classes="plain" Cursor="Hand" Command="{Binding BoostPrivacyCommand}"
                 IsVisible="{Binding IsBoosting}"
                 ToolTip.Tip="Stop Privacy Boost">
@@ -54,11 +56,14 @@
       <Separator DockPanel.Dock="Bottom" Margin="0 10" IsVisible="{Binding !IsAutoCoinJoinEnabled}" />
 
       <Panel>
-        <controls:RingChartControl DataPoints="{Binding TestDataPoints}" Classes.visible="{Binding !ShowBoostingAnimation}"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
-        <controls:ProgressRing IsIndeterminate="True" Classes.visible="{Binding ShowBoostingAnimation}" />
+        <Panel IsVisible="{Binding !FullyMixed}">
+          <controls:RingChartControl DataPoints="{Binding TestDataPoints}" Classes.visible="{Binding !ShowBoostingAnimation}"
+                                     HorizontalAlignment="Center" VerticalAlignment="Center" />
+          <controls:ProgressRing IsIndeterminate="True" Classes.visible="{Binding ShowBoostingAnimation}" />
+        </Panel>
 
-        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding PercentText}" FontSize="36" />
+        <TextBlock IsVisible="{Binding !FullyMixed}" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding PercentText}" FontSize="36" />
+        <Image Height="160" Width="160" IsVisible="{Binding FullyMixed}" Source="{StaticResource privacy_indicator_good}" />
       </Panel>
     </DockPanel>
     </controls:TileControl.LargeSizeContent>
@@ -91,6 +96,8 @@
                 ToolTip.Tip="Boost Privacy">
           <PathIcon Data="{StaticResource rocket_regular}" />
         </Button>
+        <TextBlock Text="Your Privacy is protected"
+                IsVisible="{Binding FullyMixed}" />
         <Button Classes="plain" Cursor="Hand" Command="{Binding BoostPrivacyCommand}"
                 IsVisible="{Binding IsBoosting}"
                 ToolTip.Tip="Stop Privacy Boost">
@@ -108,15 +115,19 @@
                  IsVisible="{Binding !IsAutoCoinJoinEnabled}" />
 
       <DockPanel>
-        <Panel DockPanel.Dock="Left" Margin="5 8 0 -8">
+        <Panel IsVisible="{Binding !FullyMixed}" DockPanel.Dock="Left" Margin="5 8 0 -8">
           <controls:RingChartControl DataPoints="{Binding TestDataPoints}"
                                      Classes.visible="{Binding !ShowBoostingAnimation}"
                                      HorizontalAlignment="Center" VerticalAlignment="Center" />
           <controls:ProgressRing IsIndeterminate="True" Classes.visible="{Binding ShowBoostingAnimation}" />
         </Panel>
-        <TextBlock HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   Text="{Binding PercentText}" FontSize="24" Opacity="0.8" />
+        <Panel>
+          <TextBlock IsVisible="{Binding !FullyMixed}"
+                     TextAlignment="Center"
+                     VerticalAlignment="Center"
+                     Text="{Binding PercentText}" FontSize="24" Opacity="0.8" />
+          <Image Height="75" Width="75" IsVisible="{Binding FullyMixed}" Source="{StaticResource privacy_indicator_good}" />
+        </Panel>
       </DockPanel>
     </DockPanel>
   </controls:TileControl>

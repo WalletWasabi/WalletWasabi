@@ -42,7 +42,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public bool IsOptimized => ChangelessCoins.Any();
 
-		public bool IsPrivatePocketUsed => Coins.All(x => x.HdPubKey.AnonymitySet >= _privateCoinThreshold);
+		public bool IsPrivate => Coins.All(x => x.HdPubKey.AnonymitySet >= _privateCoinThreshold);
 
 		public bool IsCustomFeeUsed { get; set; }
 

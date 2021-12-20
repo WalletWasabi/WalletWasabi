@@ -46,7 +46,7 @@ namespace WalletWasabi.Fluent.Helpers
 					TilePresetIndex = walletViewModel.LayoutIndex
 				},
 
-				new WalletBalanceChartTileViewModel(walletViewModel.History.UnfilteredTransactions)
+				new WalletBalanceChartTileViewModel(walletViewModel.History)
 				{
 					TilePresets = new ObservableCollection<TilePresetViewModel>()
 					{
@@ -85,7 +85,7 @@ namespace WalletWasabi.Fluent.Helpers
 					TilePresetIndex = walletViewModel.LayoutIndex
 				},
 
-				new WalletBalanceChartTileViewModel(walletViewModel.History.UnfilteredTransactions)
+				new WalletBalanceChartTileViewModel(walletViewModel.History)
 				{
 					TilePresets = new ObservableCollection<TilePresetViewModel>()
 					{

@@ -9,19 +9,25 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Morph;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 {
 	public partial class WalletBalanceChartTileViewModel : TileViewModel
 	{
-		private readonly ObservableCollection<HistoryItemViewModelBase> _history;
+		private readonly HistoryViewModel _history;
+		private readonly ObservableCollection<HistoryItemViewModelBase> _unfilteredTransactions;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isEmptyWallet;
 
-		public WalletBalanceChartTileViewModel(ObservableCollection<HistoryItemViewModelBase> history)
+		public WalletBalanceChartTileViewModel(HistoryViewModel history)
 		{
 			_history = history;
+			_unfilteredTransactions = history.UnfilteredTransactions;
 
 			Animator = new LineChartAnimatorViewModel();
+
+			Placeholder = new LineChartPlaceholderViewModel();
 
 			TimePeriodOptions = new ObservableCollection<TimePeriodOptionViewModel>();
 
@@ -32,9 +38,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 					IsSelected = item == TimePeriodOption.ThreeMonths
 				});
 			}
+
+			_history.WhenAnyValue(x => x.IsTransactionHistoryEmpty)
+				.Subscribe(x => IsEmptyWallet = x);
 		}
 
 		public LineChartAnimatorViewModel Animator { get; }
+
+		public LineChartPlaceholderViewModel Placeholder { get; }
 
 		public ObservableCollection<TimePeriodOptionViewModel> TimePeriodOptions { get; }
 
@@ -42,7 +53,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		{
 			base.OnActivated(disposables);
 
-			_history.ToObservableChangeSet()
+			_unfilteredTransactions.ToObservableChangeSet()
 				.Throttle(TimeSpan.FromMilliseconds(50))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => UpdateSample(TimePeriodOptions.First(x => x.IsSelected)))
@@ -61,9 +72,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			switch (timePeriod)
 			{
 				case TimePeriodOption.All:
-					if (_history.Any())
+					if (_unfilteredTransactions.Any())
 					{
-						var oldest = _history.Last().Date;
+						var oldest = _unfilteredTransactions.Last().Date;
 
 						UpdateSample((DateTimeOffset.Now - oldest) / 125, DateTimeOffset.Now - oldest);
 					}
@@ -131,7 +142,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			Animator.XValues.Clear();
 			Animator.YValues.Clear();
 
-			var values = _history.SelectTimeSampleBackwards(
+			var values = _unfilteredTransactions.SelectTimeSampleBackwards(
 				x => x.Date,
 				x => x.Balance,
 				sampleTime,
