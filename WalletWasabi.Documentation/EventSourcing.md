@@ -38,7 +38,7 @@ Event sourcing is an architectural pattern in which entities do not track their 
 
 * Recording of an atomic action that has already happened in the past
 * Strongly ordered sequence of events is the single source of truth. State of all entities is fully defined just by the sequence of events.
-* naming:
+* naming conventions:
   * e.g.: InputAdded
   * Name ends with past tense verb
   * "Created", "Updated", "Deleted" are banned as names of events to prevent thinking in the CRUD mind-frame.
