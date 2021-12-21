@@ -4,9 +4,10 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using WalletWasabi.Exceptions;
+using WalletWasabi.EventSourcing.Exceptions;
+using WalletWasabi.EventSourcing.Interfaces;
+using WalletWasabi.EventSourcing.Records;
 using WalletWasabi.Helpers;
-using WalletWasabi.Interfaces.EventSourcing;
 
 namespace WalletWasabi.EventSourcing
 {
@@ -115,6 +116,8 @@ namespace WalletWasabi.EventSourcing
 			long afterSequenceId = 0,
 			int? maxCount = null)
 		{
+			Guard.NotNull(nameof(aggregateType), aggregateType);
+			Guard.NotNull(nameof(aggregateId), aggregateId);
 			if (AggregatesEventsBatches.TryGetValue(aggregateType, out var aggregateEventsBatches) &&
 				aggregateEventsBatches.TryGetValue(aggregateId, out var value))
 			{
@@ -122,7 +125,8 @@ namespace WalletWasabi.EventSourcing
 
 				if (afterSequenceId > 0)
 				{
-					var foundIndex = result.BinarySearch(new WrappedEvent(afterSequenceId), WrappedEventSequenceIdComparer);
+					var dummyEvent = new WrappedEvent(afterSequenceId, null!, Guid.Empty);
+					var foundIndex = result.BinarySearch(dummyEvent, WrappedEventSequenceIdComparer);
 					if (foundIndex < 0)
 					{
 						// Note: this is because of BinarySearch() documented implementation
@@ -208,19 +212,22 @@ namespace WalletWasabi.EventSourcing
 				comparisonValue: new AggregateTypeIds(tailIndex, aggregateIds)));
 		}
 
-		// Helper for parallel critical section testing in DEBUG build only.
+		// Hook for parallel critical section testing in DEBUG build only.
+		[Conditional("DEBUG")]
 		protected virtual void Validated()
 		{
 			// Keep empty. To be overriden in tests.
 		}
 
-		// Helper for parallel critical section testing in DEBUG build only.
+		// Hook for parallel critical section testing in DEBUG build only.
+		[Conditional("DEBUG")]
 		protected virtual void Conflicted()
 		{
 			// Keep empty. To be overriden in tests.
 		}
 
-		// Helper for parallel critical section testing in DEBUG build only.
+		// Hook for parallel critical section testing in DEBUG build only.
+		[Conditional("DEBUG")]
 		protected virtual void Appended()
 		{
 			// Keep empty. To be overriden in tests.

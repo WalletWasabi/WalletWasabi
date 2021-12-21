@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WalletWasabi.Exceptions
+namespace WalletWasabi.EventSourcing.Exceptions
 {
 	/// <summary>
 	/// Infrastructure or optimistic conflict exception that will be fixed when retried.

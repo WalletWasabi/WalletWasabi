@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using WalletWasabi.EventSourcing;
-using WalletWasabi.Exceptions;
-using WalletWasabi.Interfaces.EventSourcing;
+using WalletWasabi.EventSourcing.Exceptions;
+using WalletWasabi.EventSourcing.Interfaces;
+using WalletWasabi.EventSourcing.Records;
 using WalletWasabi.Tests.UnitTests.EventSourcing.TestDomain;
 using Xunit;
 using Xunit.Abstractions;
@@ -12,8 +12,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 {
 	public class InMemoryEventRepositoryTests : IDisposable
 	{
-		private const string TestRoundAggregate = "TestRoundAggregate";
-		private readonly TimeSpan _semaphoreWaitTimeout = TimeSpan.FromSeconds(20);
+		private readonly TimeSpan _semaphoreWaitTimeout = TimeSpan.FromSeconds(5);
 
 		public InMemoryEventRepositoryTests(ITestOutputHelper output)
 		{
@@ -46,7 +45,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			// Arrange
 			var events = new[]
 			{
-				new WrappedEvent(1),
+				new TestWrappedEvent(1),
 			};
 
 			// Act
@@ -65,8 +64,8 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			// Arrange
 			var events = new[]
 			{
-				new WrappedEvent(1),
-				new WrappedEvent(2),
+				new TestWrappedEvent(1),
+				new TestWrappedEvent(2),
 			};
 
 			// Act
@@ -85,7 +84,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			// Arrange
 			var events = new[]
 			{
-				new WrappedEvent(-1)
+				new TestWrappedEvent(-1)
 			};
 
 			// Act
@@ -105,7 +104,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			// Arrange
 			var events = new[]
 			{
-				new WrappedEvent(2)
+				new TestWrappedEvent(2)
 			};
 
 			// Act
@@ -127,7 +126,7 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			// Arrange
 			var events = new[]
 			{
-				new WrappedEvent(1)
+				new TestWrappedEvent(1)
 			};
 			await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "MY_ID_1", events);
 
@@ -146,10 +145,10 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 		public async Task AppendEventsAsync_Interleaving_Async()
 		{
 			// Arrange
-			var events_a_0 = new[] { new WrappedEvent(1) };
-			var events_b_0 = new[] { new WrappedEvent(1) };
-			var events_a_1 = new[] { new WrappedEvent(2) };
-			var events_b_1 = new[] { new WrappedEvent(2) };
+			var events_a_0 = new[] { new TestWrappedEvent(1) };
+			var events_b_0 = new[] { new TestWrappedEvent(1) };
+			var events_a_1 = new[] { new TestWrappedEvent(2) };
+			var events_b_1 = new[] { new TestWrappedEvent(2) };
 
 			// Act
 			await EventRepository.AppendEventsAsync(nameof(TestRoundAggregate), "a", events_a_0);
@@ -170,9 +169,9 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 		public async Task AppendEventsAsync_InterleavingConflict_Async()
 		{
 			// Arrange
-			var events_a_0 = new[] { new WrappedEvent(1) };
-			var events_b_0 = new[] { new WrappedEvent(1) };
-			var events_a_1 = new[] { new WrappedEvent(2) };
+			var events_a_0 = new[] { new TestWrappedEvent(1) };
+			var events_b_0 = new[] { new TestWrappedEvent(1) };
+			var events_a_1 = new[] { new TestWrappedEvent(2) };
 
 			// Act
 			async Task ActionAsync()
@@ -214,6 +213,8 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			Assert.True((await EventRepository.ListAggregateIdsAsync(nameof(TestRoundAggregate)))
 				.SequenceEqual(new[] { "MY_ID_1" }));
 		}
+
+#if DEBUG
 
 		[Fact]
 		public async Task AppendEvents_CriticalSectionConflicts_Async()
@@ -331,6 +332,8 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			}
 			Assert.True(result.SequenceEqual(expected));
 		}
+
+#endif
 
 		[Theory]
 		[InlineData(0, 1)]

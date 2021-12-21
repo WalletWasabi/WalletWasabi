@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using WalletWasabi.EventSourcing;
-using WalletWasabi.Exceptions;
+using WalletWasabi.EventSourcing.Exceptions;
+using WalletWasabi.EventSourcing.Records;
 
-namespace WalletWasabi.Interfaces.EventSourcing
+namespace WalletWasabi.EventSourcing.Interfaces
 {
 	public interface IEventRepository
 	{

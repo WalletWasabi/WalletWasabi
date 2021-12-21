@@ -1,6 +1,6 @@
 using System.Runtime.Serialization;
 
-namespace WalletWasabi.Exceptions
+namespace WalletWasabi.EventSourcing.Exceptions
 {
 	/// <summary>
 	/// Conflict occurred while committing database transaction.

@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
 
-namespace WalletWasabi.EventSourcing
+namespace WalletWasabi.EventSourcing.Records
 {
 	public record AggregateEvents(long TailSequenceId, ImmutableList<WrappedEvent> Events)
 	{
