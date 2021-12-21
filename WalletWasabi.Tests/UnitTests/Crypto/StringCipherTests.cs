@@ -8,34 +8,18 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 {
 	public class StringCipherTests
 	{
-		[Fact]
-		public void CipherTests()
+		[Theory]
+		[InlineData("hellohellohellohellohello", "password")]
+		[InlineData("01234567890123456789012345678901234567890123456789012345678901234567890123456789", "password")]
+		[InlineData("foo@éóüö", "")]
+		[InlineData("foo@éóüöhellohellohellohellohello", "passwordpassword3232")]
+		public void CipherTests(string toEncrypt, string password)
 		{
-			var toEncrypt = "hello";
-			var password = "password";
 			var encypted = StringCipher.Encrypt(toEncrypt, password);
 			Assert.NotEqual(toEncrypt, encypted);
 			var decrypted = StringCipher.Decrypt(encypted, password);
 			Assert.Equal(toEncrypt, decrypted);
 
-			var builder = new StringBuilder();
-			for (int i = 0; i < 1000000; i++) // check 10MB
-			{
-				builder.Append("0123456789");
-			}
-
-			toEncrypt = builder.ToString();
-			encypted = StringCipher.Encrypt(toEncrypt, password);
-			Assert.NotEqual(toEncrypt, encypted);
-			decrypted = StringCipher.Decrypt(encypted, password);
-			Assert.Equal(toEncrypt, decrypted);
-
-			toEncrypt = "foo@éóüö";
-			password = "";
-			encypted = StringCipher.Encrypt(toEncrypt, password);
-			Assert.NotEqual(toEncrypt, encypted);
-			decrypted = StringCipher.Decrypt(encypted, password);
-			Assert.Equal(toEncrypt, decrypted);
 			Logger.TurnOff();
 			Assert.Throws<CryptographicException>(() => StringCipher.Decrypt(encypted, "wrongpassword"));
 			Logger.TurnOn();
