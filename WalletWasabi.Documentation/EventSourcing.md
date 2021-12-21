@@ -59,7 +59,7 @@ Event sourcing is an architectural pattern in which entities do not track their 
 * All aggregate's events have guaranteed strong sequential consistency and all operations (commands) are atomic in the scope of an aggregate.
 * next:
   * Above aggregate concept there is [Bounded Context](https://martinfowler.com/bliki/BoundedContext.html) which allows independed aggregates in the same bounded context to have strong sequential consistency and atomic operations across aggregate boundaries. Aggregates in different bounded contexts can have only [Eventual Consistency](#eventual-consistency) across.
-  * For eventually consistent sequence of operations accross bounded contexts there is a concept of [Saga](#saga)
+  * For eventually consistent sequence of operations across bounded contexts there is a concept of [Saga](#saga)
 
 ### Command
 
