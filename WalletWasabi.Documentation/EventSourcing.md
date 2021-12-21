@@ -43,9 +43,9 @@ Event sourcing is an architectural pattern in which entities do not track their 
   * Name ends with past tense verb
   * "Created", "Updated", "Deleted" are banned as names of events to prevent thinking in the CRUD mind-frame.
   * Names should be understandable and shared with business, marketing, users, developers to create common language and improve communication.
-* Events have properties which carry state of the entity. Event's properties are equivalent to SQL Table's columns or object's fields in OOP.
+* Events have properties which carry state of the [Aggregate](#aggregate). Event's properties are equivalent to SQL Table's columns or object's fields in OOP.
 * Event needs to be defined as an immutable serializable value object.
-* next:
+* follow-up reading:
   * Process of defining and naming events by across team participation in a playful way with colorful sticky notes is called [Event Storming](#event-storming).
   * After event is persisted into its primary [Event Store](#event-store) it is published into [PubSub Bus](#pubsub-bus) so e.g. interested [Read-Model](#read-model) can eventually update itself to a new state.
 
@@ -57,7 +57,7 @@ Event sourcing is an architectural pattern in which entities do not track their 
 * In code aggregate implements computation of its internal state from ordered sequence of events in `Apply(event)` method.
 * Aggregates can create a hierarchy where one aggregate ownes a list of other aggregates. In such case id of a sub-aggregate consists of both its container aggregate-id and its own discriminating sub-aggregate id.
 * All aggregate's events have guaranteed strong sequential consistency and all operations (commands) are atomic in the scope of an aggregate.
-* next:
+* follow-up reading:
   * Above aggregate concept there is [Bounded Context](https://martinfowler.com/bliki/BoundedContext.html) which allows independed aggregates in the same bounded context to have strong sequential consistency and atomic operations across aggregate boundaries. Aggregates in different bounded contexts can have only [Eventual Consistency](#eventual-consistency) across.
   * For eventually consistent sequence of operations across bounded contexts there is a concept of [Saga](#saga)
 
@@ -86,7 +86,7 @@ Event sourcing is an architectural pattern in which entities do not track their 
 * Read-model is [Eventually consistent](#eventual-consistency). That means its state might be transitionally slightly out of date when compared to [Event Store](#event-store).
 * Read-model has an internal copy of all the data. All queries are directly resolved from internal read-model state without touching the [Event Store](#event-store).
 * Read-model's internal state is updated by [Events](#events) received from [PubSub Bus](#pubsub-bus)
-* Read-model implementation must use at-least-once workaround of The Two Generals' Problem to guarantee no event is skipped.
+* Read-model implementation must use at-least-once delivery guarantee workaround of The Two Generals' Problem to ensure no event is skipped.
 * In general all queries should be `O(m*log(n))` at the worst where `n` is the size of the dataset and `m` is the response size. To achieve that any denormalization or redundancy of data is allowed.
 
 ### Eventual Consistency
