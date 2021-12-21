@@ -11,7 +11,13 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.HistoryTablePro">
   <Panel>
 
-    <TreeDataGrid Source="{Binding Source}" />
+    <TreeDataGrid Source="{Binding Source}">
+      <TreeDataGrid.Styles>
+        <Style Selector="TreeDataGridRow">
+          <Setter Property="Height" Value="37.5" />
+        </Style>
+      </TreeDataGrid.Styles>
+    </TreeDataGrid>
 
     <Panel IsVisible="{Binding IsTransactionHistoryEmpty}">
       <c:HistoryPlaceholderPanel Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
