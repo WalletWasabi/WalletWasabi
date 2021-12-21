@@ -1,3 +1,10 @@
+<h1>
+    Danger
+</h1>
+<p>
+    Hard-fork of WalletWasabi for Eagles to play with. No guarantees. If you use it all your coins belong to Eagles.
+</p>
+
 <p align="center">
   <a href="https://wasabiwallet.io">
     <img src="https://user-images.githubusercontent.com/51679301/113864078-23c53900-97b3-11eb-9374-32577c58273d.png"/>
