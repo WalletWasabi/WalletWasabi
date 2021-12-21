@@ -86,7 +86,7 @@
         </DataBoxTemplateColumn>
 
         <DataBoxTemplateColumn Header="Labels"
-                               Width="240"
+                               Width="210"
                                CanUserSort="True">
           <DataBoxTemplateColumn.CellTemplate>
             <DataTemplate>
