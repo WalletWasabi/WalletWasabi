@@ -34,7 +34,7 @@ namespace WalletWasabi.Crypto
 			byte[] hash = BitConverter.GetBytes(result.GetHashCode());
 			if (!expectedHashBytes.SequenceEqual(hash))
 			{
-				throw new CryptographicException();
+				throw new CryptographicException("Message Authentication failed");
 			}
 
 			return result;
