@@ -292,7 +292,7 @@ namespace WalletWasabi.Fluent.Controls
 			// Plus adding 4 characters for the group separators.
 			if (text.Length > 17 + 4)
 			{
-				text = text.Substring(0, 17 + 4);
+				text = text[..(17 + 4)];
 			}
 
 			if (ValidateEntryText(text))

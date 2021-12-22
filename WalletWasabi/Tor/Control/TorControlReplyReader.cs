@@ -46,7 +46,7 @@ namespace WalletWasabi.Tor.Control
 
 			if (!int.TryParse(line.AsSpan(0, 3), out int code))
 			{
-				throw new TorControlReplyParseException($"Unknown status code: '{line.Substring(0, 3)}'.");
+				throw new TorControlReplyParseException($"Unknown status code: '{line[..3]}'.");
 			}
 
 			line = line[3..];

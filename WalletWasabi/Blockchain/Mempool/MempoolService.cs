@@ -108,7 +108,7 @@ namespace WalletWasabi.Blockchain.Mempool
 
 					lock (ProcessedLock)
 					{
-						int removedTxCount = ProcessedTransactionHashes.RemoveWhere(x => !allMempoolHashes.Contains(x.ToString().Substring(0, compactness)));
+						int removedTxCount = ProcessedTransactionHashes.RemoveWhere(x => !allMempoolHashes.Contains(x.ToString()[..compactness]));
 
 						Logger.LogInfo($"{removedTxCount} transactions were cleaned from mempool.");
 					}
