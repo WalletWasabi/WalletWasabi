@@ -1,5 +1,6 @@
 using Moq;
 using NBitcoin;
+using NBitcoin.Policy;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
@@ -585,6 +586,62 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var rest = dict.Where(x => x.Key < 0).Select(x => x.Value);
 			Assert.DoesNotContain(rest, x => x > samplingSize * 0.001);
+		}
+
+		[Fact]
+		public void HowFeeRateAffectsFeeAndNumberOfOutputs()
+		{
+			// Fee rate: 5.0 sat/vb.
+			{
+				BuildTransactionResult txResult = ComputeTxResult(new FeeRate(5.0m));
+				Assert.Equal(2, txResult.Transaction.Transaction.Outputs.Count);
+				Assert.Equal(7.2m, txResult.FeePercentOfSent);
+				Assert.Equal(Money.Satoshis(720), txResult.Fee);
+			}
+
+			// Fee rate: 6.0 sat/vb.
+			{
+				BuildTransactionResult txResult = ComputeTxResult(new FeeRate(6.0m));
+				Assert.Equal(2, txResult.Transaction.Transaction.Outputs.Count);
+				Assert.Equal(8.64m, txResult.FeePercentOfSent);
+				Assert.Equal(Money.Satoshis(864), txResult.Fee);
+			}
+
+			// Fee rate: 7.0 sat/vb.
+			{
+				BuildTransactionResult txResult = ComputeTxResult(new FeeRate(7.0m));
+				Assert.Equal(2, txResult.Transaction.Transaction.Outputs.Count);
+				Assert.Equal(10.08m, txResult.FeePercentOfSent);
+				Assert.Equal(Money.Satoshis(1008), txResult.Fee);
+			}
+
+			// Fee rate: 7.74 sat/vb.
+			{
+				BuildTransactionResult txResult = ComputeTxResult(new FeeRate(7.74m));
+				Assert.Equal(2, txResult.Transaction.Transaction.Outputs.Count);
+				Assert.Equal(11.14m, txResult.FeePercentOfSent);
+				Assert.Equal(Money.Satoshis(1114), txResult.Fee);
+			}
+
+			// Fee rate: 7.75 sat/vb.
+			{
+				InvalidTxException ex = Assert.Throws<InvalidTxException>(() => ComputeTxResult(new FeeRate(7.75m)));
+				NotEnoughFundsPolicyError expectedPolicyError = new("Fees different than expected");
+				TransactionPolicyError actualTransactionPolicyError = Assert.Single(ex.Errors);
+				Assert.Equal(expectedPolicyError.ToString(), actualTransactionPolicyError.ToString());
+			}
+
+			static BuildTransactionResult ComputeTxResult(FeeRate feeRate)
+			{
+				TransactionFactory transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
+				{
+					(Label: "Pablo", KeyIndex: 0, Amount: 0.00011409m, Confirmed: true, AnonymitySet: 1)
+				});
+
+				using Key key = new();
+				PaymentIntent payment = new(key, MoneyRequest.Create(Money.Coins(0.00010000m)));
+				return transactionFactory.BuildTransaction(payment, feeRate);
+			}
 		}
 	}
 }

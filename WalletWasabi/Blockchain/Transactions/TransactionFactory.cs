@@ -254,17 +254,20 @@ namespace WalletWasabi.Blockchain.Transactions
 
 				if (!isPayjoin)
 				{
-					// Manually check the feerate, because some inaccuracy is possible.
+					// Manually check the fee rate, because some inaccuracy is possible.
 					var sb1 = feeRate.SatoshiPerByte;
 					var sb2 = actualFeeRate.SatoshiPerByte;
+
 					if (Math.Abs(sb1 - sb2) > 2) // 2s/b inaccuracy ok.
 					{
-						// So it'll generate a transactionpolicy error thrown below.
+						// So it'll generate a transaction policy error thrown below.
 						checkResults.Add(new NotEnoughFundsPolicyError("Fees different than expected"));
 					}
 				}
+
 				if (checkResults.Count > 0)
 				{
+					Logger.LogDebug($"Found policy error(s)! First error: '{checkResults[0]}'.");
 					throw new InvalidTxException(tx, checkResults);
 				}
 			}
@@ -322,13 +325,13 @@ namespace WalletWasabi.Blockchain.Transactions
 					CancellationToken.None).GetAwaiter().GetResult(); // WTF??!
 				builder.SignPSBT(psbt);
 
-				Logger.LogInfo($"Payjoin payment was negotiated successfully.");
+				Logger.LogInfo("Payjoin payment was negotiated successfully.");
 			}
 			catch (HttpRequestException ex) when (ex.InnerException is TorConnectCommandFailedException innerEx)
 			{
 				if (innerEx.Message.Contains("HostUnreachable"))
 				{
-					Logger.LogWarning($"Payjoin server is not reachable. Ignoring...");
+					Logger.LogWarning("Payjoin server is not reachable. Ignoring...");
 				}
 
 				// Ignore.
