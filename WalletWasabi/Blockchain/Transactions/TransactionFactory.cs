@@ -245,6 +245,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				var checkResults = builder.Check(tx).ToList();
 				if (checkResults.Count > 0)
 				{
+					Logger.LogDebug($"Found policy error(s)! First error: '{checkResults[0]}'.");
 					throw new InvalidTxException(tx, checkResults);
 				}
 			}
@@ -302,13 +303,13 @@ namespace WalletWasabi.Blockchain.Transactions
 					CancellationToken.None).GetAwaiter().GetResult(); // WTF??!
 				builder.SignPSBT(psbt);
 
-				Logger.LogInfo($"Payjoin payment was negotiated successfully.");
+				Logger.LogInfo("Payjoin payment was negotiated successfully.");
 			}
 			catch (HttpRequestException ex) when (ex.InnerException is TorConnectCommandFailedException innerEx)
 			{
 				if (innerEx.Message.Contains("HostUnreachable"))
 				{
-					Logger.LogWarning($"Payjoin server is not reachable. Ignoring...");
+					Logger.LogWarning("Payjoin server is not reachable. Ignoring...");
 				}
 
 				// Ignore.
