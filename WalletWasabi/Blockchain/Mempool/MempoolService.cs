@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -159,14 +160,7 @@ namespace WalletWasabi.Blockchain.Mempool
 			{
 				if (ProcessedTransactionHashes.Add(tx.GetHash()))
 				{
-					if (TryGetFromBroadcastStore(tx.GetHash(), out var entry))
-					{
-						txAdded = entry.Transaction;
-					}
-					else
-					{
-						txAdded = new SmartTransaction(tx, Height.Mempool);
-					}
+					txAdded = new SmartTransaction(tx, Height.Mempool, label: TryGetLabel(tx.GetHash()));
 				}
 				else
 				{
@@ -179,6 +173,17 @@ namespace WalletWasabi.Blockchain.Mempool
 			{
 				TransactionReceived?.Invoke(this, txAdded);
 			}
+		}
+
+		public SmartLabel TryGetLabel(uint256 txid)
+		{
+			var label = SmartLabel.Empty;
+			if (TryGetFromBroadcastStore(txid, out var entry))
+			{
+				label = entry.Transaction.Label;
+			}
+
+			return label;
 		}
 	}
 }
