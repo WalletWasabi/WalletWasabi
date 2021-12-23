@@ -52,24 +52,6 @@ namespace WalletWasabi.Blockchain.Mempool
 			}
 		}
 
-		public bool TryRemoveFromBroadcastStore(uint256 transactionHash)
-		{
-			lock (BroadcastStoreLock)
-			{
-				var found = BroadcastStore.FirstOrDefault(x => x.TransactionId == transactionHash);
-
-				if (found is null)
-				{
-					return false;
-				}
-				else
-				{
-					BroadcastStore.RemoveAll(x => x.TransactionId == transactionHash);
-					return true;
-				}
-			}
-		}
-
 		public bool TryGetFromBroadcastStore(uint256 transactionHash, [NotNullWhen(true)] out TransactionBroadcastEntry? entry)
 		{
 			lock (BroadcastStoreLock)
@@ -77,6 +59,17 @@ namespace WalletWasabi.Blockchain.Mempool
 				entry = BroadcastStore.FirstOrDefault(x => x.TransactionId == transactionHash);
 				return entry is not null;
 			}
+		}
+
+		public SmartLabel TryGetLabel(uint256 txid)
+		{
+			var label = SmartLabel.Empty;
+			if (TryGetFromBroadcastStore(txid, out var entry))
+			{
+				label = entry.Transaction.Label;
+			}
+
+			return label;
 		}
 
 		private int _cleanupInProcess;
@@ -173,17 +166,6 @@ namespace WalletWasabi.Blockchain.Mempool
 			{
 				TransactionReceived?.Invoke(this, txAdded);
 			}
-		}
-
-		public SmartLabel TryGetLabel(uint256 txid)
-		{
-			var label = SmartLabel.Empty;
-			if (TryGetFromBroadcastStore(txid, out var entry))
-			{
-				label = entry.Transaction.Label;
-			}
-
-			return label;
 		}
 	}
 }

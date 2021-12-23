@@ -193,10 +193,6 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 					await BroadcastTransactionToBackendAsync(transaction).ConfigureAwait(false);
 				}
 			}
-			finally
-			{
-				BitcoinStore.MempoolService.TryRemoveFromBroadcastStore(transaction.GetHash()); // Remove it just to be sure. Probably has been removed previously.
-			}
 		}
 
 		private async Task BroadcastTransactionWithRpcAsync(SmartTransaction transaction)
