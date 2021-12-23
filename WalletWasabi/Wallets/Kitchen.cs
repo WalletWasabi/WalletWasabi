@@ -37,7 +37,7 @@ namespace WalletWasabi.Wallets
 			{
 				ingredients ??= "";
 
-				Salt = RandomString.AlphaNumeric(ingredients.Length, secureRandom: true);
+				Salt = RandomString.AlphaNumeric(21, secureRandom: true);
 
 				Soup = StringCipher.Encrypt(ingredients, Salt);
 			}
