@@ -97,7 +97,7 @@ namespace WalletWasabi.BitcoinP2p
 
 					try
 					{
-						var txPayload = new TxPayload(entry.Transaction);
+						var txPayload = new TxPayload(entry.Transaction.Transaction);
 						if (!node.IsConnected)
 						{
 							Logger.LogInfo($"Could not serve transaction. Node ({node.RemoteSocketEndpoint}) is not connected anymore: {entry.TransactionId}.");

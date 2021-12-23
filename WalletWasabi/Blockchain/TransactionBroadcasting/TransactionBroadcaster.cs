@@ -43,7 +43,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 		private async Task BroadcastTransactionToNetworkNodeAsync(SmartTransaction transaction, Node node)
 		{
 			Logger.LogInfo($"Trying to broadcast transaction with random node ({node.RemoteSocketAddress}):{transaction.GetHash()}.");
-			if (!BitcoinStore.MempoolService.TryAddToBroadcastStore(transaction.Transaction, node.RemoteSocketEndpoint.ToString())) // So we'll reply to INV with this transaction.
+			if (!BitcoinStore.MempoolService.TryAddToBroadcastStore(transaction, node.RemoteSocketEndpoint.ToString())) // So we'll reply to INV with this transaction.
 			{
 				Logger.LogWarning($"Transaction {transaction.GetHash()} was already present in the broadcast store.");
 			}

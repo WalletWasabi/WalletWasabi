@@ -34,7 +34,7 @@ namespace WalletWasabi.Blockchain.Mempool
 		private object BroadcastStoreLock { get; }
 		public bool TrustedNodeMode { get; set; }
 
-		public bool TryAddToBroadcastStore(Transaction transaction, string nodeRemoteSocketEndpoint)
+		public bool TryAddToBroadcastStore(SmartTransaction transaction, string nodeRemoteSocketEndpoint)
 		{
 			lock (BroadcastStoreLock)
 			{
@@ -159,7 +159,14 @@ namespace WalletWasabi.Blockchain.Mempool
 			{
 				if (ProcessedTransactionHashes.Add(tx.GetHash()))
 				{
-					txAdded = new SmartTransaction(tx, Height.Mempool);
+					if (TryGetFromBroadcastStore(tx.GetHash(), out var entry))
+					{
+						txAdded = entry.Transaction;
+					}
+					else
+					{
+						txAdded = new SmartTransaction(tx, Height.Mempool);
+					}
 				}
 				else
 				{
