@@ -113,7 +113,7 @@ namespace WalletWasabi.WabiSabi.Client
 			var totalOutput = finalCandidate.Sum(x => x + OutputFee);
 			if (totalOutput + MinimumAmountPlusFee < totalInput)
 			{
-				throw new InvalidOperationException("The decomposer is loosing money. Aborting.");
+				throw new InvalidOperationException("The decomposer is losing money. Aborting.");
 			}
 			return finalCandidate;
 		}
