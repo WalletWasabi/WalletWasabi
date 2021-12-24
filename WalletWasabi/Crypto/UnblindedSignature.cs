@@ -23,7 +23,7 @@ namespace WalletWasabi.Crypto
 				return false;
 			}
 
-			var c = new Scalar(in64[..32], out int overflow);
+			var c = new Scalar(in64.Slice(0, 32), out int overflow);
 			if (c.IsZero || overflow != 0)
 			{
 				return false;
@@ -89,7 +89,7 @@ namespace WalletWasabi.Crypto
 				throw new ArgumentException(paramName: nameof(out64), message: "out64 must be 64 bytes");
 			}
 
-			C.WriteToSpan(out64[..32]);
+			C.WriteToSpan(out64.Slice(0, 32));
 			S.WriteToSpan(out64.Slice(32, 32));
 		}
 
