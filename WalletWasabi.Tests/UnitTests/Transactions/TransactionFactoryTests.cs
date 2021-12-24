@@ -595,6 +595,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			{
 				BuildTransactionResult txResult = ComputeTxResult(new FeeRate(5.0m));
 				Assert.Equal(2, txResult.Transaction.Transaction.Outputs.Count);
+				AssertOutputValues(mainValue: Money.Satoshis(10000m), changeValue: Money.Satoshis(689m), txResult.Transaction.Transaction.Outputs);
 				Assert.Equal(7.2m, txResult.FeePercentOfSent);
 				Assert.Equal(Money.Satoshis(720), txResult.Fee);
 			}
@@ -603,6 +604,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			{
 				BuildTransactionResult txResult = ComputeTxResult(new FeeRate(6.0m));
 				Assert.Equal(2, txResult.Transaction.Transaction.Outputs.Count);
+				AssertOutputValues(mainValue: Money.Satoshis(10000m), changeValue: Money.Satoshis(545m), txResult.Transaction.Transaction.Outputs);
 				Assert.Equal(8.64m, txResult.FeePercentOfSent);
 				Assert.Equal(Money.Satoshis(864), txResult.Fee);
 			}
@@ -611,6 +613,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			{
 				BuildTransactionResult txResult = ComputeTxResult(new FeeRate(7.0m));
 				Assert.Equal(2, txResult.Transaction.Transaction.Outputs.Count);
+				AssertOutputValues(mainValue: Money.Satoshis(10000m), changeValue: Money.Satoshis(401m), txResult.Transaction.Transaction.Outputs);
 				Assert.Equal(10.08m, txResult.FeePercentOfSent);
 				Assert.Equal(Money.Satoshis(1008), txResult.Fee);
 			}
@@ -619,16 +622,18 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			{
 				BuildTransactionResult txResult = ComputeTxResult(new FeeRate(7.74m));
 				Assert.Equal(2, txResult.Transaction.Transaction.Outputs.Count);
+				AssertOutputValues(mainValue: Money.Satoshis(10000m), changeValue: Money.Satoshis(295m), txResult.Transaction.Transaction.Outputs);
 				Assert.Equal(11.14m, txResult.FeePercentOfSent);
 				Assert.Equal(Money.Satoshis(1114), txResult.Fee);
 			}
 
-			// Fee rate: 7.75 sat/vb.
+			// Fee rate: 7.75 sat/vb. There is only ONE output now!
 			{
-				InvalidTxException ex = Assert.Throws<InvalidTxException>(() => ComputeTxResult(new FeeRate(7.75m)));
-				NotEnoughFundsPolicyError expectedPolicyError = new("Fees different than expected");
-				TransactionPolicyError actualTransactionPolicyError = Assert.Single(ex.Errors);
-				Assert.Equal(expectedPolicyError.ToString(), actualTransactionPolicyError.ToString());
+				BuildTransactionResult txResult = ComputeTxResult(new FeeRate(7.75m));
+				Assert.Single(txResult.Transaction.Transaction.Outputs);
+				Assert.Equal(Money.Satoshis(10000m), txResult.Transaction.Transaction.Outputs[0].Value);
+				Assert.Equal(14.09m, txResult.FeePercentOfSent);
+				Assert.Equal(Money.Satoshis(1409), txResult.Fee);
 			}
 
 			static BuildTransactionResult ComputeTxResult(FeeRate feeRate)
@@ -641,6 +646,22 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				using Key key = new();
 				PaymentIntent payment = new(key, MoneyRequest.Create(Money.Coins(0.00010000m)));
 				return transactionFactory.BuildTransaction(payment, feeRate);
+			}
+
+			static void AssertOutputValues(Money mainValue, Money changeValue, TxOutList txOuts)
+			{
+				if (mainValue == txOuts[0].Value)
+				{
+					Assert.Equal(changeValue, txOuts[1].Value);
+				}
+				else if (mainValue == txOuts[1].Value)
+				{
+					Assert.Equal(changeValue, txOuts[0].Value);
+				}
+				else
+				{
+					Assert.True(false, "Main value is not correct.");
+				}
 			}
 		}
 	}

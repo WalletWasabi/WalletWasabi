@@ -153,8 +153,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			builder.OptInRBF = true;
 
-			FeeRate feeRate = feeRateFetcher();
-			builder.SendEstimatedFees(feeRate);
+			builder.SendEstimatedFees(feeRateFetcher());
 
 			var psbt = builder.BuildPSBT(false);
 
@@ -232,13 +231,10 @@ namespace WalletWasabi.Blockchain.Transactions
 				builder = builder.AddKeys(signingKeys.ToArray());
 				builder.SignPSBT(psbt);
 
-				var isPayjoin = false;
-
 				// Try to pay using payjoin
 				if (payjoinClient is not null)
 				{
 					psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt, changeHdPubKey);
-					isPayjoin = true;
 					psbt.AddKeyPaths(KeyManager);
 					psbt.AddPrevTxs(TransactionStore);
 				}
@@ -247,24 +243,6 @@ namespace WalletWasabi.Blockchain.Transactions
 				tx = psbt.ExtractTransaction();
 
 				var checkResults = builder.Check(tx).ToList();
-				if (!psbt.TryGetEstimatedFeeRate(out var actualFeeRate))
-				{
-					throw new InvalidOperationException("Impossible to get the fee rate of the PSBT, this should never happen.");
-				}
-
-				if (!isPayjoin)
-				{
-					// Manually check the fee rate, because some inaccuracy is possible.
-					var sb1 = feeRate.SatoshiPerByte;
-					var sb2 = actualFeeRate.SatoshiPerByte;
-
-					if (Math.Abs(sb1 - sb2) > 2) // 2s/b inaccuracy ok.
-					{
-						// So it'll generate a transaction policy error thrown below.
-						checkResults.Add(new NotEnoughFundsPolicyError("Fees different than expected"));
-					}
-				}
-
 				if (checkResults.Count > 0)
 				{
 					Logger.LogDebug($"Found policy error(s)! First error: '{checkResults[0]}'.");
