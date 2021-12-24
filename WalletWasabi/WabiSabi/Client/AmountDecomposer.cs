@@ -30,7 +30,6 @@ namespace WalletWasabi.WabiSabi.Client
 		public IEnumerable<Money> Decompose(IEnumerable<Coin> myInputCoins, IEnumerable<Coin> allInputCoins)
 		{
 			var histogram = GetDenominationFrequency(allInputCoins);
-			var setCandidates = new Dictionary<int, IEnumerable<Money>>();
 
 			var denoms = histogram
 				.Where(x => x.Value > 1)
@@ -39,7 +38,8 @@ namespace WalletWasabi.WabiSabi.Client
 				.ToArray();
 
 			var inputs = myInputCoins.Select(x => x.EffectiveValue(FeeRate)).ToImmutableArray();
-			var remaining = inputs.Sum();
+			var totalInput = inputs.Sum();
+			var remaining = totalInput;
 			var remainingVsize = AvailableVsize;
 
 			List<Money> naiveSet = new();
@@ -70,6 +70,7 @@ namespace WalletWasabi.WabiSabi.Client
 				naiveSet.Add(remaining - OutputFee);
 			}
 
+			var setCandidates = new Dictionary<int, IEnumerable<Money>>();
 			setCandidates.Add(naiveSet.Count, naiveSet);
 			var before = DateTimeOffset.UtcNow;
 			do
@@ -105,9 +106,16 @@ namespace WalletWasabi.WabiSabi.Client
 					setCandidates.TryAdd(currSet.Count, currSet);
 				}
 			}
-			while ((DateTimeOffset.UtcNow - before).TotalMilliseconds <= 30);
+			while ((DateTimeOffset.UtcNow - before).TotalMilliseconds <= 100);
 
-			return setCandidates.RandomElement().Value;
+			var finalCandidate = setCandidates.RandomElement().Value;
+
+			var totalOutput = finalCandidate.Sum(x => x + OutputFee);
+			if (totalOutput + MinimumAmountPlusFee < totalInput)
+			{
+				throw new InvalidOperationException("The decomposer is loosing money. Aborting.");
+			}
+			return finalCandidate;
 		}
 
 		private Dictionary<Money, long> GetDenominationFrequency(IEnumerable<Coin> allInputCoins)
