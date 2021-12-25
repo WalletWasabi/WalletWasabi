@@ -1,127 +1,141 @@
-using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using WalletWasabi.Crypto.Randomness;
 
 namespace WalletWasabi.Crypto
 {
-	// https://stackoverflow.com/a/10177020/2061103
+	/// <remarks>Based on https://tomrucki.com/posts/aes-encryption-in-csharp/.</remarks>
 	public static class StringCipher
 	{
-		// This constant is used to determine the keysize of the encryption algorithm in bits.
-		// We divide this by 8 within the code below to get the equivalent number of bytes.
-		private const int KeySize = 128;
+		private const int AesBlockByteSize = 128 / 8;
 
-		// This constant determines the number of iterations for the password bytes generation function.
-		private const int DerivationIterations = 1000;
+		private const int PasswordSaltByteSize = 128 / 8;
+		private const int PasswordByteSize = 256 / 8;
+		private const int PasswordIterationCount = 100_000;
 
-		public static string Encrypt(string plainText, string passPhrase)
+		private const int SignatureByteSize = 256 / 8;
+
+		private const int MinimumEncryptedMessageByteSize =
+			PasswordSaltByteSize + // Auth salt
+			PasswordSaltByteSize + // Key salt
+			AesBlockByteSize + // IV
+			AesBlockByteSize + // Cipher text min length
+			SignatureByteSize; // Signature tag
+
+		private static readonly Encoding StringEncoding = Encoding.UTF8;
+		private static readonly RandomNumberGenerator Random = RandomNumberGenerator.Create();
+
+		public static string Encrypt(string toEncrypt, string password)
 		{
-			// Salt is randomly generated each time, but is prepended to encrypted cipher text
-			// so that the same Salt value can be used when decrypting.
-			byte[] salt = Generate128BitsOfRandomEntropy();
-			byte[] iv;
-			byte[] cipherTextBytes;
-			byte[] key;
-			var plainTextBytes = Encoding.UTF8.GetBytes(plainText);
+			byte[] keySalt = GenerateRandomBytes(PasswordSaltByteSize);
+			byte[] key = GetKey(password, keySalt);
+			byte[] iv = GenerateRandomBytes(AesBlockByteSize);
 
-			using (var password = new Rfc2898DeriveBytes(passPhrase, salt, DerivationIterations))
+			byte[] cipherText;
+			using (Aes aes = CreateAes())
+			using (ICryptoTransform encryptor = aes.CreateEncryptor(key, iv))
 			{
-				key = password.GetBytes(KeySize / 8);
-				using var aes = CreateAES();
-				aes.GenerateIV();
-				iv = aes.IV;
-				using var encryptor = aes.CreateEncryptor(key, iv);
-				using var memoryStream = new MemoryStream();
-				using (var cryptoStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write))
-				{
-					cryptoStream.Write(plainTextBytes, 0, plainTextBytes.Length);
-					cryptoStream.FlushFinalBlock();
-					cryptoStream.Close();
-				}
-				cipherTextBytes = memoryStream.ToArray();
+				byte[] plainText = StringEncoding.GetBytes(toEncrypt);
+				cipherText = encryptor.TransformFinalBlock(plainText, 0, plainText.Length);
 			}
 
-			using (var memoryStream = new MemoryStream())
-			{
-				using (var writer = new BinaryWriter(memoryStream))
-				{
-					writer.Write(salt);
-					writer.Write(iv);
-					using (var hmac = new HMACSHA256(key))
-					{
-						var authenticationCode = hmac.ComputeHash(iv.Concat(cipherTextBytes).ToArray());
-						writer.Write(authenticationCode);
-					}
-					writer.Write(cipherTextBytes);
-					writer.Flush();
-				}
+			// Sign.
+			byte[] authKeySalt = GenerateRandomBytes(PasswordSaltByteSize);
+			byte[] authKey = GetKey(password, authKeySalt);
+			byte[] result = MergeArrays(additionalCapacity: SignatureByteSize, authKeySalt, keySalt, iv, cipherText);
 
-				var cipherTextWithAuthBytes = memoryStream.ToArray();
-				memoryStream.Close();
-				return Convert.ToBase64String(cipherTextWithAuthBytes);
+			using (HMACSHA256 hmac = new(authKey))
+			{
+				int payloadToSignLength = result.Length - SignatureByteSize;
+				byte[] signatureTag = hmac.ComputeHash(result, 0, payloadToSignLength);
+				signatureTag.CopyTo(result, payloadToSignLength);
 			}
+
+			return Convert.ToBase64String(result);
 		}
 
-		public static string Decrypt(string cipherText, string passPhrase)
+		public static string Decrypt(string encryptedString, string password)
 		{
-			var cipherTextBytesWithSaltAndIv = Convert.FromBase64String(cipherText);
-			byte[] key;
-			byte[] iv;
+			byte[] encryptedData = Convert.FromBase64String(encryptedString);
 
-			using var memoryStream = new MemoryStream(cipherTextBytesWithSaltAndIv);
-			var cipherLength = 0;
-			using (var reader = new BinaryReader(memoryStream, Encoding.UTF8, true))
+			if (encryptedData is null || encryptedData.Length < MinimumEncryptedMessageByteSize)
 			{
-				var salt = reader.ReadBytes(KeySize / 8);
-				iv = reader.ReadBytes(KeySize / 8);
-				var authenticationCode = reader.ReadBytes(32);
-				cipherLength = (int)(memoryStream.Length - memoryStream.Position);
-				var cipher = reader.ReadBytes(cipherLength);
+				throw new ArgumentException("Invalid length of encrypted data");
+			}
 
-				using (var password = new Rfc2898DeriveBytes(passPhrase, salt, DerivationIterations))
+			byte[] authKeySalt = encryptedData.AsSpan(0, PasswordSaltByteSize).ToArray();
+			byte[] keySalt = encryptedData.AsSpan(PasswordSaltByteSize, PasswordSaltByteSize).ToArray();
+			byte[] iv = encryptedData.AsSpan(2 * PasswordSaltByteSize, AesBlockByteSize).ToArray();
+			byte[] signatureTag = encryptedData.AsSpan(encryptedData.Length - SignatureByteSize, SignatureByteSize).ToArray();
+
+			int cipherTextIndex = authKeySalt.Length + keySalt.Length + iv.Length;
+			int cipherTextLength = encryptedData.Length - cipherTextIndex - signatureTag.Length;
+
+			byte[] authKey = GetKey(password, authKeySalt);
+			byte[] key = GetKey(password, keySalt);
+
+			// Verify signature.
+			using (HMACSHA256 hmac = new(authKey))
+			{
+				int payloadToSignLength = encryptedData.Length - SignatureByteSize;
+				byte[] signatureTagExpected = hmac.ComputeHash(encryptedData, 0, payloadToSignLength);
+
+				// Constant time checking to prevent timing attacks.
+				int signatureVerificationResult = 0;
+
+				for (int i = 0; i < signatureTag.Length; i++)
 				{
-					key = password.GetBytes(KeySize / 8);
+					signatureVerificationResult |= signatureTag[i] ^ signatureTagExpected[i];
 				}
 
-				using var hmac = new HMACSHA256(key);
-				var calculatedAuthenticationCode = hmac.ComputeHash(iv.Concat(cipher).ToArray());
-				for (var i = 0; i < calculatedAuthenticationCode.Length; i++)
+				if (signatureVerificationResult != 0)
 				{
-					if (calculatedAuthenticationCode[i] != authenticationCode[i])
-					{
-						throw new CryptographicException("Message Authentication failed. Message has been modified or wrong password");
-					}
+					throw new CryptographicException("Invalid signature");
 				}
 			}
 
-			using var aes = CreateAES();
-			using var decryptor = aes.CreateDecryptor(key, iv);
-			memoryStream.Seek(-cipherLength, SeekOrigin.End);
-			using var cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read);
-			var plainTextBytes = new byte[cipherLength];
-			var decryptedByteCount = cryptoStream.Read(plainTextBytes, 0, plainTextBytes.Length);
-			memoryStream.Close();
-			cryptoStream.Close();
-			return Encoding.UTF8.GetString(plainTextBytes, 0, decryptedByteCount);
+			// Decrypt.
+			using Aes aes = CreateAes();
+			using ICryptoTransform encryptor = aes.CreateDecryptor(key, iv);
+			byte[] decryptedBytes = encryptor
+				.TransformFinalBlock(encryptedData, cipherTextIndex, cipherTextLength);
+			return StringEncoding.GetString(decryptedBytes);
 		}
 
-		private static Aes CreateAES()
+		private static Aes CreateAes()
 		{
 			Aes aes = Aes.Create();
-			aes.BlockSize = 128;
 			aes.Mode = CipherMode.CBC;
 			aes.Padding = PaddingMode.PKCS7;
-
 			return aes;
 		}
 
-		private static byte[] Generate128BitsOfRandomEntropy()
+		private static byte[] GetKey(string password, byte[] passwordSalt)
 		{
-			using var secureRandom = new SecureRandom();
-			var randomBytes = secureRandom.GetBytes(16); // 16 Bytes will give us 128 bits.
+			byte[] keyBytes = StringEncoding.GetBytes(password);
+			using Rfc2898DeriveBytes derivator = new( keyBytes, passwordSalt, PasswordIterationCount, HashAlgorithmName.SHA256);
+			return derivator.GetBytes(PasswordByteSize);
+		}
+
+		private static byte[] GenerateRandomBytes(int numberOfBytes)
+		{
+			byte[] randomBytes = new byte[numberOfBytes];
+			Random.GetBytes(randomBytes);
 			return randomBytes;
+		}
+
+		private static byte[] MergeArrays(int additionalCapacity = 0, params byte[][] arrays)
+		{
+			byte[] merged = new byte[arrays.Sum(a => a.Length) + additionalCapacity];
+			int mergeIndex = 0;
+
+			for (int i = 0; i < arrays.GetLength(0); i++)
+			{
+				arrays[i].CopyTo(merged, mergeIndex);
+				mergeIndex += arrays[i].Length;
+			}
+
+			return merged;
 		}
 	}
 }
