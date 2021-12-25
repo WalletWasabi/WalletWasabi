@@ -2,11 +2,14 @@ using System.Collections.Generic;
 using System.Net;
 using System.Reactive.Linq;
 using NBitcoin;
+using NBitcoin.Protocol;
 using ReactiveUI;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
+using WalletWasabi.Logging;
+using System.Threading.Tasks;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
@@ -54,7 +57,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.Subscribe(_ => Save());
 		}
 
-		public Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;
+		public Task<string> BitcoinKnotsVersion => GetNodeVersionAsync();
 
 		public IEnumerable<Network> Networks { get; } = new[] { Network.Main, Network.TestNet, Network.RegTest };
 
@@ -114,6 +117,23 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				config.Network = Network;
 				BitcoinP2PEndPoint = config.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
 			}
+		}
+
+		public static async Task<string> GetNodeVersionAsync()
+		{
+			var version = "";
+			try
+			{
+				using var node = await Node.ConnectAsync(Services.Config.Network, Services.Config.GetBitcoinP2pEndPoint());
+				node.VersionHandshake();
+				version = node.PeerVersion.UserAgent;
+				Logger.LogDebug($"Full Node Version: {version} ");
+			}
+			catch (Exception ex)
+			{
+				Logger.LogDebug(ex);
+			}
+			return version;
 		}
 	}
 }

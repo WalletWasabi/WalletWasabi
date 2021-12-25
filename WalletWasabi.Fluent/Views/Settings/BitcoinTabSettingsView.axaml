@@ -13,7 +13,7 @@
       <TextBlock Text="Network" />
       <ComboBox HorizontalAlignment="Stretch"
                 Items="{Binding Networks}"
-                SelectedItem="{Binding Network}"/>
+                SelectedItem="{Binding Network}" />
     </StackPanel>
 
     <DockPanel>
@@ -27,8 +27,8 @@
     </StackPanel>
 
     <DockPanel>
-      <TextBlock VerticalAlignment="Center" Text= "Local Bitcoin Core/Knots version" />
-      <Label Content="{Binding BitcoinCoreVersion}" />
+      <TextBlock VerticalAlignment="Center" Text= "Local Bitcoin Full Node " />
+      <Label Content="{Binding BitcoinKnotsVersion^}" />
     </DockPanel>
 
     <DockPanel IsVisible="{Binding StartLocalBitcoinCoreOnStartup}">
@@ -46,6 +46,5 @@
       <TextBlock ToolTip.Tip="Coins under the dust threshold won't appear in the coin lists." Text= "Dust Threshold (BTC)" />
       <TextBox Text="{Binding DustThreshold}" />
     </StackPanel>
-
   </StackPanel>
 </UserControl>
