@@ -21,14 +21,7 @@ namespace WalletWasabi.JsonConverters
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, BitcoinEncryptedSecretNoEC? value, JsonSerializer serializer)
 		{
-			if (value is null)
-			{
-				throw new NullReferenceException();
-			}
-			else
-			{
-				writer.WriteValue(value.ToWif());
-			}
+			writer.WriteValue(value.ToWif());
 		}
 	}
 }

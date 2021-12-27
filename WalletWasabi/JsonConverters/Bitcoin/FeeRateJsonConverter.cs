@@ -15,14 +15,7 @@ namespace WalletWasabi.JsonConverters.Bitcoin
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, FeeRate? value, JsonSerializer serializer)
 		{
-			if (value is null)
-			{
-				throw new NullReferenceException();
-			}
-			else
-			{
-				writer.WriteValue(value.FeePerK.Satoshi);
-			}
+			writer.WriteValue(value.FeePerK.Satoshi);
 		}
 	}
 }
