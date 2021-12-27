@@ -101,10 +101,15 @@ namespace WalletWasabi.Crypto
 			memoryStream.Seek(-cipherLength, SeekOrigin.End);
 			using var cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read);
 			var plainTextBytes = new byte[cipherLength];
-			var decryptedByteCount = cryptoStream.Read(plainTextBytes, 0, plainTextBytes.Length);
+			var read = 0;
+			var totalRead = 0;
+			while ( (read = cryptoStream.Read(plainTextBytes, totalRead, cipherLength - totalRead)) > 0)
+			{
+				totalRead += read;
+			}
 			memoryStream.Close();
 			cryptoStream.Close();
-			return Encoding.UTF8.GetString(plainTextBytes, 0, decryptedByteCount);
+			return Encoding.UTF8.GetString(plainTextBytes, 0, totalRead);
 		}
 
 		private static Aes CreateAES()
