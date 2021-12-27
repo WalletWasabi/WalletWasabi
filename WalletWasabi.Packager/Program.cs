@@ -277,6 +277,7 @@ namespace WalletWasabi.Packager
 					$"/p:ErrorReport=none",
 					$"/p:DocumentationFile=\"\"",
 					$"/p:Deterministic=true",
+					$"/p:NuGetLockFilePath=\"release.packages.lock.json\"",
 					$"/p:RestoreLockedMode=true");
 
 				StartProcessAndWaitForExit(
