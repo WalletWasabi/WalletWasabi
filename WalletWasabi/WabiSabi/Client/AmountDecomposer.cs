@@ -100,7 +100,7 @@ namespace WalletWasabi.WabiSabi.Client
 				{
 					if (remaining >= MinimumAmountPlusFee && remainingVsize >= OutputSize)
 					{
-						currSet.Add(remaining);
+						currSet.Add(remaining - OutputFee);
 					}
 
 					setCandidates.TryAdd(currSet.Count, currSet);
@@ -111,6 +111,10 @@ namespace WalletWasabi.WabiSabi.Client
 			var finalCandidate = setCandidates.RandomElement().Value;
 
 			var totalOutput = finalCandidate.Sum(x => x + OutputFee);
+			if (totalOutput > totalInput)
+			{
+				throw new InvalidOperationException("The decomposer is creating money. Aborting.");
+			}
 			if (totalOutput + MinimumAmountPlusFee < totalInput)
 			{
 				throw new InvalidOperationException("The decomposer is losing money. Aborting.");

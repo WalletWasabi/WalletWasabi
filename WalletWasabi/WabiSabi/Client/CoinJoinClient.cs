@@ -110,8 +110,8 @@ namespace WalletWasabi.WabiSabi.Client
 				roundState = await RoundStatusUpdater.CreateRoundAwaiter(rs => rs.Id == roundState.Id, cancellationToken).ConfigureAwait(false);
 				constructionState = roundState.Assert<ConstructionState>();
 				AmountDecomposer amountDecomposer = new(roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min, Constants.P2WPKHOutputSizeInBytes, (int)availableVsize);
-				var theirCoins = constructionState.Inputs.Except(registeredCoins);
-				var outputValues = amountDecomposer.Decompose(registeredCoins, theirCoins);
+				var allCoins = constructionState.Inputs.Except(registeredCoins);
+				var outputValues = amountDecomposer.Decompose(registeredCoins, allCoins);
 
 				// Get all locked internal keys we have and assert we have enough.
 				Keymanager.AssertLockedInternalKeysIndexed(howMany: outputValues.Count());

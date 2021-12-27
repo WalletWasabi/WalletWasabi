@@ -87,8 +87,9 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 			foreach (var credentialType in CredentialTypes)
 			{
 				long CredentialTypeValue(IEnumerable<long> x) => x.ElementAt((int)credentialType);
-
-				if (inputValues.Sum(CredentialTypeValue) < outputValues.Sum(CredentialTypeValue))
+				var inputValuesSum = inputValues.Sum(CredentialTypeValue);
+				var outputValuesSum = outputValues.Sum(CredentialTypeValue);
+				if (inputValuesSum < outputValuesSum)
 				{
 					throw new ArgumentException("Overall balance must not be negative.");
 				}
