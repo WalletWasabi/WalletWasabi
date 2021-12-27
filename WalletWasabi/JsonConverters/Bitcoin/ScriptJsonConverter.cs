@@ -22,7 +22,7 @@ namespace WalletWasabi.JsonConverters.Bitcoin
 		{
 			if (value is null)
 			{
-				writer.WriteNull();
+				throw new NullReferenceException();
 			}
 			else
 			{
