@@ -16,7 +16,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			RoundParameters = roundParameters;
 
 			var allowedAmounts = new MoneyRange(roundParameters.MinRegistrableAmount, RoundParameters.MaxRegistrableAmount);
-			var txParams = new MultipartyTransactionParameters(roundParameters.FeeRate, allowedAmounts, allowedAmounts, roundParameters.Network);
+			var txParams = new MultipartyTransactionParameters(roundParameters.FeeRate, roundParameters.CoordinationFeeRate, allowedAmounts, allowedAmounts, roundParameters.Network);
 			CoinjoinState = new ConstructionState(txParams);
 
 			InitialInputVsizeAllocation = CoinjoinState.Parameters.MaxTransactionSize - MultipartyTransactionParameters.SharedOverhead;
@@ -42,6 +42,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public int MaxVsizeCredentialValue { get; }
 		public int MaxVsizeAllocationPerAlice { get; internal set; }
 		public FeeRate FeeRate => RoundParameters.FeeRate;
+		public CoordinationFeeRate CoordinationFeeRate => RoundParameters.CoordinationFeeRate;
 		public CredentialIssuer AmountCredentialIssuer { get; }
 		public CredentialIssuer VsizeCredentialIssuer { get; }
 		public CredentialIssuerParameters AmountCredentialIssuerParameters { get; }
@@ -134,6 +135,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					CoinjoinState.Parameters.AllowedOutputTypes,
 					CoinjoinState.Parameters.Network,
 					CoinjoinState.Parameters.FeeRate.FeePerK,
+					CoinjoinState.Parameters.CoordinationFeeRate.Rate,
 					CoinjoinState.Parameters.MaxTransactionSize,
 					CoinjoinState.Parameters.MinRelayTxFee.FeePerK,
 					MaxAmountCredentialValue,

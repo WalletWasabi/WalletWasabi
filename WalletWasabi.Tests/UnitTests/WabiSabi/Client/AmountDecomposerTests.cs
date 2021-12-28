@@ -5,6 +5,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Models;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
@@ -30,14 +31,15 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		{
 			var availableVsize = maxAvailableOutputs * Constants.P2WPKHOutputSizeInBytes;
 			var feeRate = new FeeRate(feeRateDecimal);
+			var coordinationFeeRate = new CoordinationFeeRate(0.01m);
 			var feePerOutput = feeRate.GetFee(Constants.P2WPKHOutputSizeInBytes);
 			var registeredCoins = GenerateRandomCoins().Take(3).ToList();
 			var theirCoins = GenerateRandomCoins().Take(30).ToList();
 
-			var amountDecomposer = new AmountDecomposer(feeRate, minOutputAmount, Constants.P2WPKHOutputSizeInBytes, availableVsize);
+			var amountDecomposer = new AmountDecomposer(feeRate, coordinationFeeRate, minOutputAmount, Constants.P2WPKHOutputSizeInBytes, availableVsize);
 			var outputValues = amountDecomposer.Decompose(registeredCoins, theirCoins);
 
-			var totalEffectiveValue = registeredCoins.Sum(x => x.EffectiveValue(feeRate));
+			var totalEffectiveValue = registeredCoins.Sum(x => x.EffectiveValue(feeRate, coordinationFeeRate));
 			var totalEffectiveCost = outputValues.Count() * feePerOutput;
 
 			Assert.InRange(outputValues.Count(), 1, maxAvailableOutputs);

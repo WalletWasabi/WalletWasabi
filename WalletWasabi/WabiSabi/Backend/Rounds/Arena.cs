@@ -174,7 +174,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 						round.LogInfo($"{coinjoin.Inputs.Count} inputs were added.");
 						round.LogInfo($"{coinjoin.Outputs.Count} outputs were added.");
 
-						long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate));
+						long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate));
 						long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
 						var diff = aliceSum - bobSum;
 
@@ -185,6 +185,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 						{
 							coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, Config.BlameScript));
 							round.LogInfo("Filled up the outputs to build a reasonable transaction because some alice failed to provide its output.");
+						}
+						else
+						{
+							var coordinatorScriptPubKey = Config.GetNextCleanCoordinatorScript();
+							var coordinationFee = round.Alices.Sum(x => round.CoordinationFeeRate.GetFee(x.Coin.Amount));
+							coordinationFee -= round.FeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize());
+							coinjoin = round.AddOutput(new TxOut(coordinationFee, coordinatorScriptPubKey));
 						}
 
 						round.CoinjoinState = coinjoin.Finalize();
@@ -240,6 +247,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 						// Broadcasting.
 						await Rpc.SendRawTransactionAsync(coinjoin, cancellationToken).ConfigureAwait(false);
 						round.WasTransactionBroadcast = true;
+
+						var coordinatorScriptPubKey = Config.GetNextCleanCoordinatorScript();
+						if (coinjoin.Outputs.Any(x => x.ScriptPubKey == coordinatorScriptPubKey))
+						{
+							Config.MakeNextCoordinatorScriptDirty();
+						}
 						round.SetPhase(Phase.Ended);
 
 						round.LogInfo($"Successfully broadcast the CoinJoin: {coinjoin.GetHash()}.");
@@ -304,7 +317,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		private async Task CreateBlameRoundAsync(Round round, CancellationToken cancellationToken)
 		{
 			var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
-			RoundParameters parameters = new(Config, Network, Random, feeRate);
+			RoundParameters parameters = new(Config, Network, Random, feeRate, round.CoordinationFeeRate);
 			var blameWhitelist = round.Alices
 				.Select(x => x.Coin.Outpoint)
 				.Where(x => !Prison.IsBanned(x))
@@ -320,7 +333,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
 
-				RoundParameters roundParams = new(Config, Network, Random, feeRate);
+				RoundParameters roundParams = new(Config, Network, Random, feeRate, Config.CoordinationFeeRate);
 				Round r = new(roundParams);
 				Rounds.Add(r);
 			}

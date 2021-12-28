@@ -29,6 +29,9 @@ namespace WalletWasabi.Crypto.StrobeProtocol
 		public StrobeHasher Append(string fieldName, TimeSpan time)
 			=> Append(fieldName, time.Ticks);
 
+		public StrobeHasher Append(string fieldName, decimal value)
+			=> Append(fieldName, (long)(value * Money.COIN));
+
 		public StrobeHasher Append(string fieldName, Money money)
 			=> Append(fieldName, money.Satoshi);
 

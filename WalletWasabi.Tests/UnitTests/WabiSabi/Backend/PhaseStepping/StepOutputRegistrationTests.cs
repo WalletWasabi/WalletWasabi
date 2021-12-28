@@ -23,7 +23,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			WabiSabiConfig cfg = new()
 			{
 				MaxInputCountByRound = 2,
-				MinInputCountByRoundMultiplier = 0.5
+				MinInputCountByRoundMultiplier = 0.5,
 			};
 			var (key1, coin1, key2, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
@@ -58,7 +58,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
 			var tx = round.Assert<SigningState>().CreateTransaction();
 			Assert.Equal(2, tx.Inputs.Count);
-			Assert.Equal(2, tx.Outputs.Count);
+			Assert.Equal(2 +1, tx.Outputs.Count); // +1 for the coordinator fee
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -106,7 +106,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			{
 				MaxInputCountByRound = 2,
 				MinInputCountByRoundMultiplier = 0.5,
-				OutputRegistrationTimeout = TimeSpan.Zero
+				OutputRegistrationTimeout = TimeSpan.Zero,
 			};
 			var (key1, coin1, key2, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
@@ -144,7 +144,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
 			var tx = round.Assert<SigningState>().CreateTransaction();
 			Assert.Equal(3, tx.Inputs.Count);
-			Assert.Equal(2, tx.Outputs.Count);
+			Assert.Equal(2 +1, tx.Outputs.Count); // +1 for the coordinator fee
 			Assert.DoesNotContain(cfg.BlameScript, tx.Outputs.Select(x => x.ScriptPubKey));
 
 			await arena.StopAsync(CancellationToken.None);

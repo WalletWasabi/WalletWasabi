@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 {
@@ -49,10 +50,10 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 		/// and may contain additional nodes if reissuance requests are
 		/// required.</remarks>
 		///
-		public static DependencyGraph ResolveCredentialDependencies(IEnumerable<Coin> inputs, IEnumerable<TxOut> outputs, FeeRate feerate, long vsizeAllocationPerInput)
+		public static DependencyGraph ResolveCredentialDependencies(IEnumerable<Coin> inputs, IEnumerable<TxOut> outputs, FeeRate feerate, CoordinationFeeRate coordinationFeeRate, long vsizeAllocationPerInput)
 		{
 			var inputSizes = inputs.Select(x => x.ScriptPubKey.EstimateInputVsize());
-			var effectiveValues = Enumerable.Zip(inputs, inputSizes, (coin, size) => coin.EffectiveValue(feerate));
+			var effectiveValues = Enumerable.Zip(inputs, inputSizes, (coin, size) => coin.EffectiveValue(feerate, coordinationFeeRate));
 
 			if (effectiveValues.Any(x => x <= Money.Zero))
 			{

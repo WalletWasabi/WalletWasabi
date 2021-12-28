@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using NBitcoin;
+using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client
 {
@@ -14,10 +15,11 @@ namespace WalletWasabi.WabiSabi.Client
 		/// <param name="minAllowedOutputAmount">Minimum output amount that's allowed to be registered.</param>
 		/// <param name="outputSize">Size of an output.</param>
 		/// <param name="availableVsize">Available virtual size for outputs.</param>
-		public AmountDecomposer(FeeRate feeRate, Money minAllowedOutputAmount, int outputSize, int availableVsize)
+		public AmountDecomposer(FeeRate feeRate, CoordinationFeeRate coordinationFeeRate, Money minAllowedOutputAmount, int outputSize, int availableVsize)
 		{
 			FeeRate = feeRate;
 			OutputSize = outputSize;
+			CoordinationFeeRate = coordinationFeeRate;
 			AvailableVsize = availableVsize;
 
 			MinAllowedOutputAmountPlusFee = minAllowedOutputAmount + OutputFee;
@@ -27,6 +29,7 @@ namespace WalletWasabi.WabiSabi.Client
 		}
 
 		public FeeRate FeeRate { get; }
+		public CoordinationFeeRate CoordinationFeeRate { get; }
 		public int AvailableVsize { get; }
 		public Money MinAllowedOutputAmountPlusFee { get; }
 		public Money OutputFee => FeeRate.GetFee(OutputSize);
@@ -161,7 +164,7 @@ namespace WalletWasabi.WabiSabi.Client
 				.Select(x => x.Key)
 				.ToArray();
 
-			var myInputs = myInputCoins.Select(x => x.EffectiveValue(FeeRate)).ToArray();
+			var myInputs = myInputCoins.Select(x => x.EffectiveValue(FeeRate, CoordinationFeeRate)).ToArray();
 			var myInputSum = myInputs.Sum();
 			var remaining = myInputSum;
 			var remainingVsize = AvailableVsize;
@@ -339,7 +342,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private Dictionary<ulong, long> GetDenominationFrequencies(IEnumerable<Coin> inputs)
 		{
 			var secondLargestInput = inputs.OrderByDescending(x => x.Amount).Skip(1).First();
-			IEnumerable<ulong> demonsForBreakDown = DenominationsPlusFees.Where(x => x <= (ulong)secondLargestInput.EffectiveValue(FeeRate).Satoshi);
+			IEnumerable<ulong> demonsForBreakDown = DenominationsPlusFees.Where(x => x <= (ulong)secondLargestInput.EffectiveValue(FeeRate, CoordinationFeeRate).Satoshi);
 
 			Dictionary<ulong, long> denomFrequencies = new();
 			foreach (var input in inputs)
@@ -361,7 +364,7 @@ namespace WalletWasabi.WabiSabi.Client
 		/// </summary>
 		private IEnumerable<ulong> BreakDown(Coin coin, IEnumerable<ulong> denominations)
 		{
-			var remaining = coin.EffectiveValue(FeeRate);
+			var remaining = coin.EffectiveValue(FeeRate, CoordinationFeeRate);
 
 			foreach (var denomPlusFee in denominations)
 			{

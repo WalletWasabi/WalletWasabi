@@ -20,6 +20,7 @@ namespace WalletWasabi.WabiSabi.Models.Serialization
 				new OwnershipProofJsonConverter(),
 				new NetworkJsonConverter(),
 				new FeeRateJsonConverter(),
+				new CoordinationFeeRateJsonConverter(),
 				new MoneySatoshiJsonConverter(),
 				new Uint256JsonConverter(),
 				new MultipartyTransactionStateJsonConverter()

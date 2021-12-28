@@ -78,7 +78,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var inputVsize = Constants.P2wpkhInputVirtualSize;
 			var amountsToRequest = new[]
 			{
-				Money.Coins(.75m) - round.FeeRate.GetFee(inputVsize),
+				Money.Coins(.75m) - round.FeeRate.GetFee(inputVsize) - round.CoordinationFeeRate.GetFee(Money.Coins(1m)),
 				Money.Coins(.25m),
 			}.Select(x => x.Satoshi).ToArray();
 
@@ -162,7 +162,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			var tx = round.Assert<SigningState>().CreateTransaction();
 			Assert.Single(tx.Inputs);
-			Assert.Equal(2, tx.Outputs.Count);
+			Assert.Equal(2 + 1, tx.Outputs.Count); // +1 because it pays coordination fees
 		}
 
 		[Fact]

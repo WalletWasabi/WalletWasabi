@@ -109,7 +109,7 @@ namespace WalletWasabi.WabiSabi.Client
 				// Calculate outputs values
 				roundState = await RoundStatusUpdater.CreateRoundAwaiter(rs => rs.Id == roundState.Id, cancellationToken).ConfigureAwait(false);
 				constructionState = roundState.Assert<ConstructionState>();
-				AmountDecomposer amountDecomposer = new(roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min, Constants.P2WPKHOutputSizeInBytes, (int)availableVsize);
+				AmountDecomposer amountDecomposer = new(roundState.FeeRate, roundState.CoordinationFeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min, Constants.P2WPKHOutputSizeInBytes, (int)availableVsize);
 				var theirCoins = constructionState.Inputs.Except(registeredCoins);
 				var outputValues = amountDecomposer.Decompose(registeredCoins, theirCoins);
 
@@ -118,7 +118,7 @@ namespace WalletWasabi.WabiSabi.Client
 				var allLockedInternalKeys = Keymanager.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked);
 				var outputTxOuts = outputValues.Zip(allLockedInternalKeys, (amount, hdPubKey) => new TxOut(amount, hdPubKey.P2wpkhScript));
 
-				DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(registeredCoins, outputTxOuts, roundState.FeeRate, roundState.MaxVsizeAllocationPerAlice);
+				DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(registeredCoins, outputTxOuts, roundState.FeeRate, roundState.CoordinationFeeRate, roundState.MaxVsizeAllocationPerAlice);
 				DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
 
 				// Re-issuances.

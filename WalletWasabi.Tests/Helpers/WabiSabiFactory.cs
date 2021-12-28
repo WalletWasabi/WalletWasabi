@@ -51,7 +51,8 @@ namespace WalletWasabi.Tests.Helpers
 				cfg,
 				Network.Main,
 				new InsecureRandom(),
-				new FeeRate(100m)));
+				new FeeRate(100m),
+				new CoordinationFeeRate(0.001m)));
 			round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
 			return round;
 		}
@@ -208,7 +209,7 @@ namespace WalletWasabi.Tests.Helpers
 
 			var alice = round.Alices.FirstOrDefault() ?? CreateAlice(round);
 			var (realAmountCredentialRequest, _) = amClient.CreateRequest(
-				new[] { amount?.Satoshi ?? alice.CalculateRemainingAmountCredentials(round.FeeRate).Satoshi },
+				new[] { amount?.Satoshi ?? alice.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate).Satoshi },
 				amZeroCredentials,
 				CancellationToken.None);
 			var (realVsizeCredentialRequest, _) = vsClient.CreateRequest(
@@ -242,7 +243,7 @@ namespace WalletWasabi.Tests.Helpers
 
 			var alice = round.Alices.FirstOrDefault() ?? CreateAlice(round);
 			var (amCredentialRequest, amValid) = amClient.CreateRequest(
-				new[] { alice.CalculateRemainingAmountCredentials(round.FeeRate).Satoshi },
+				new[] { alice.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate).Satoshi },
 				amZeroCredentials, // FIXME doesn't make much sense
 				CancellationToken.None);
 			long startingVsizeCredentialAmount = vsize ?? alice.CalculateRemainingVsizeCredentials(round.MaxVsizeAllocationPerAlice);
@@ -273,7 +274,7 @@ namespace WalletWasabi.Tests.Helpers
 		}
 
 		public static BlameRound CreateBlameRound(Round round, WabiSabiConfig cfg)
-			=> new(new(cfg, round.Network, new InsecureRandom(), round.FeeRate), round, round.Alices.Select(x => x.Coin.Outpoint).ToHashSet());
+			=> new(new(cfg, round.Network, new InsecureRandom(), round.FeeRate, round.CoordinationFeeRate), round, round.Alices.Select(x => x.Coin.Outpoint).ToHashSet());
 
 		public static (Key, SmartCoin, Key, SmartCoin) CreateCoinKeyPairs()
 		{

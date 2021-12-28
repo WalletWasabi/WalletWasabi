@@ -2,8 +2,11 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System.ComponentModel;
 using WalletWasabi.Bases;
+using WalletWasabi.Helpers;
+using WalletWasabi.JsonConverters;
 using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.JsonConverters.Timing;
+using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Backend
 {
@@ -91,5 +94,28 @@ namespace WalletWasabi.WabiSabi.Backend
 		[JsonProperty(PropertyName = "BlameScript", DefaultValueHandling = DefaultValueHandling.Populate)]
 		[JsonConverter(typeof(ScriptJsonConverter))]
 		public Script BlameScript { get; set; } = new Script("0 1251dec2e6a6694a789f0cca6c2a9cfb4c74fb4e");
+
+		[DefaultValueCoordinationFeeRate(0.001)]
+		[JsonProperty(PropertyName = "CoordinationFeeRate", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonConverter(typeof(CoordinationFeeRateJsonConverter))]
+		public CoordinationFeeRate CoordinationFeeRate { get; set; } = new CoordinationFeeRate(0.001m);
+
+		[JsonProperty(PropertyName = "CoordinatorExtPubKey")]
+		[JsonConverter(typeof(ExtPubKeyJsonConverter))]
+		public ExtPubKey CoordinatorExtPubKey { get; } = Constants.WabiSabiFallBackCoordinatorExtPubKey;
+
+		[DefaultValue(0)]
+		[JsonProperty(PropertyName = "CoordinatorExtPubKeyCurrentDepth", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int CoordinatorExtPubKeyCurrentDepth { get; private set; }
+
+		public Script GetNextCleanCoordinatorScript() => DeriveCoordinatorScript(CoordinatorExtPubKeyCurrentDepth);
+
+		public Script DeriveCoordinatorScript(int index) => CoordinatorExtPubKey.Derive(0, false).Derive(index, false).PubKey.WitHash.ScriptPubKey;
+
+		public void MakeNextCoordinatorScriptDirty()
+		{
+			CoordinatorExtPubKeyCurrentDepth++;
+			ToFile();
+		}
 	}
 }

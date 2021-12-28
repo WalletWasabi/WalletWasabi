@@ -1,6 +1,7 @@
 using NBitcoin;
 using WalletWasabi.Crypto;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Backend.Models
 {
@@ -28,7 +29,7 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 
 		public long CalculateRemainingVsizeCredentials(int maxRegistrableSize) => maxRegistrableSize - TotalInputVsize;
 
-		public Money CalculateRemainingAmountCredentials(FeeRate feeRate) => Coin.EffectiveValue(feeRate);
+		public Money CalculateRemainingAmountCredentials(FeeRate feeRate, CoordinationFeeRate coordinationFeeRate) => Coin.EffectiveValue(feeRate, coordinationFeeRate);
 
 		public void SetDeadlineRelativeTo(TimeSpan connectionConfirmationTimeout)
 		{

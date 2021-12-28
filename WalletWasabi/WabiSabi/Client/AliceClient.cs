@@ -28,6 +28,7 @@ namespace WalletWasabi.WabiSabi.Client
 			ArenaClient = arenaClient;
 			SmartCoin = coin;
 			FeeRate = roundState.FeeRate;
+			CoordinationFeeRate = roundState.CoordinationFeeRate;
 			BitcoinSecret = bitcoinSecret;
 			IssuedAmountCredentials = issuedAmountCredentials;
 			IssuedVsizeCredentials = issuedVsizeCredentials;
@@ -40,6 +41,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private ArenaClient ArenaClient { get; }
 		public SmartCoin SmartCoin { get; }
 		private FeeRate FeeRate { get; }
+		private CoordinationFeeRate CoordinationFeeRate { get; }
 		private BitcoinSecret BitcoinSecret { get; }
 		public IEnumerable<Credential> IssuedAmountCredentials { get; private set; }
 		public IEnumerable<Credential> IssuedVsizeCredentials { get; private set; }
@@ -128,7 +130,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private async Task ConfirmConnectionAsync(RoundStateUpdater roundStatusUpdater, CancellationToken cancellationToken)
 		{
-			long[] amountsToRequest = { SmartCoin.EffectiveValue(FeeRate).Satoshi };
+			long[] amountsToRequest = { SmartCoin.EffectiveValue(FeeRate, CoordinationFeeRate).Satoshi };
 			long[] vsizesToRequest = { MaxVsizeAllocationPerAlice - SmartCoin.ScriptPubKey.EstimateInputVsize() };
 
 			do

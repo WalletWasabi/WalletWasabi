@@ -12,6 +12,7 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.WabiSabi.Models;
 
 namespace NBitcoin
 {
@@ -466,11 +467,11 @@ namespace NBitcoin
 		public static Money EffectiveCost(this TxOut output, FeeRate feeRate) =>
 			output.Value + feeRate.GetFee(output.ScriptPubKey.EstimateOutputVsize());
 
-		public static Money EffectiveValue(this Coin coin, FeeRate feeRate) =>
-			coin.Amount - feeRate.GetFee(coin.ScriptPubKey.EstimateInputVsize());
+		public static Money EffectiveValue(this Coin coin, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate) =>
+			coin.Amount - feeRate.GetFee(coin.ScriptPubKey.EstimateInputVsize()) - coordinationFeeRate.GetFee(coin.Amount);
 
-		public static Money EffectiveValue(this SmartCoin coin, FeeRate feeRate) =>
-			EffectiveValue(coin.Coin, feeRate);
+		public static Money EffectiveValue(this SmartCoin coin, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate) =>
+			EffectiveValue(coin.Coin, feeRate, coordinationFeeRate);
 
 		public static T FromBytes<T>(byte[] input) where T : IBitcoinSerializable, new()
 		{
