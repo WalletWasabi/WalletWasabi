@@ -41,7 +41,7 @@ namespace WalletWasabi.Crypto
 
 		public static UnblindedSignature Parse(ReadOnlySpan<byte> in64)
 		{
-			if (TryParse(in64, out var unblindedSignature) && unblindedSignature is UnblindedSignature)
+			if (TryParse(in64, out var unblindedSignature))
 			{
 				return unblindedSignature;
 			}
@@ -51,7 +51,7 @@ namespace WalletWasabi.Crypto
 
 		public static UnblindedSignature Parse(string str)
 		{
-			if (TryParse(str, out var unblindedSignature) && unblindedSignature is UnblindedSignature)
+			if (TryParse(str, out var unblindedSignature))
 			{
 				return unblindedSignature;
 			}

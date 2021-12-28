@@ -157,7 +157,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		public bool IsReplaceable() => Transaction.IsRBF;
 
-		public override string ToString() => $"{TransactionId.ToString().Substring(0, 7)}.. - {Index}, {ScriptPubKey.ToString().Substring(0, 7)}.. - {Amount} BTC";
+		public override string ToString() => $"{TransactionId.ToString()[..7]}.. - {Index}, {ScriptPubKey.ToString()[..7]}.. - {Amount} BTC";
 
 		#region EqualityAndComparison
 

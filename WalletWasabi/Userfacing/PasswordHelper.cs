@@ -43,7 +43,7 @@ namespace WalletWasabi.Userfacing
 			// The size was mistakenly taken from the size of the original string which is not correct because of the UTF8 encoding.
 			byte[] bytes = Encoding.UTF8.GetBytes(text);
 			var myString = Encoding.UTF8.GetString(bytes[..text.Length]);
-			return text.Substring(0, myString.Length);
+			return text[..myString.Length];
 		}
 
 		public static bool IsTooLong(string? password, out string? limitedPassword)
@@ -56,7 +56,7 @@ namespace WalletWasabi.Userfacing
 
 			if (IsTooLong(password.Length))
 			{
-				limitedPassword = password.Substring(0, MaxPasswordLength);
+				limitedPassword = password[..MaxPasswordLength];
 				return true;
 			}
 

@@ -40,7 +40,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 			var subtractFeeCount = requests.Count(x => x.Amount.SubtractFee);
 			if (subtractFeeCount > 1)
 			{
-				// Note: It'd be possible tod implement that the fees to be subtracted equally from more outputs, but I guess nobody would use it.
+				// Note: It'd be possible to implement that the fees to be subtracted equally from more outputs, but I guess nobody would use it.
 				throw new ArgumentException($"Only one request can specify fee subtraction.");
 			}
 
@@ -55,7 +55,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 			{
 				if (subtractFeeCount != 1)
 				{
-					throw new ArgumentException($"You must specifiy fee subtraction strategy if custom change is specified.");
+					throw new ArgumentException("You must specify fee subtraction strategy if custom change is specified.");
 				}
 
 				if (allRemainingCount == 1)
@@ -73,7 +73,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 			}
 			else
 			{
-				throw new ArgumentException($"Only one request can contain an all remaining money or change request.");
+				throw new ArgumentException("Only one request can contain an all remaining money or change request.");
 			}
 
 			Requests = requests;

@@ -40,7 +40,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds.Utils
 			string json = JsonSerializer.Serialize(entry, Options);
 
 			// Use a date format in the file name to let the files be sorted by date by default.
-			string fileName = $"tx.{currentDate.Value:yyyy.MM.dd-HH-mm-ss}.{transaction.GetHash().ToString().Substring(0, 5)}.json";
+			string fileName = $"tx.{currentDate.Value:yyyy.MM.dd-HH-mm-ss}.{transaction.GetHash().ToString()[..5]}.json";
 			string folderPath = Path.Combine(BaseStoragePath, $"{currentDate.Value:yyyy-MM}");
 			IoHelpers.EnsureDirectoryExists(folderPath);
 
