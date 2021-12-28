@@ -69,12 +69,14 @@ namespace WalletWasabi.Crypto
 			byte[] iv;
 
 			using var memoryStream = new MemoryStream(cipherTextBytesWithSaltAndIv);
-			var cipherLength = 0;
+			int cipherLength;
+			int cipherStartIndex;
 			using (var reader = new BinaryReader(memoryStream, Encoding.UTF8, true))
 			{
 				var salt = reader.ReadBytes(KeySize / 8);
 				iv = reader.ReadBytes(KeySize / 8);
 				var authenticationCode = reader.ReadBytes(32);
+				cipherStartIndex = (int)memoryStream.Position;
 				cipherLength = (int)(memoryStream.Length - memoryStream.Position);
 				var cipher = reader.ReadBytes(cipherLength);
 
@@ -96,16 +98,9 @@ namespace WalletWasabi.Crypto
 
 			using var aes = CreateAES();
 			using var decryptor = aes.CreateDecryptor(key, iv);
-			memoryStream.Seek(-cipherLength, SeekOrigin.End);
-			using var cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read);
-			var plainTextBytes = new byte[cipherLength];
-			var read = 0;
-			var totalRead = 0;
-			while ( (read = cryptoStream.Read(plainTextBytes, totalRead, cipherLength - totalRead)) > 0)
-			{
-				totalRead += read;
-			}
-			return Encoding.UTF8.GetString(plainTextBytes, 0, totalRead);
+			byte[] plainTextBytes = decryptor.TransformFinalBlock(cipherTextBytesWithSaltAndIv, cipherStartIndex, cipherLength);
+
+			return Encoding.UTF8.GetString(plainTextBytes);
 		}
 
 		private static Aes CreateAES()
