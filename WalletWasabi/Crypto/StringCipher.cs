@@ -38,7 +38,6 @@ namespace WalletWasabi.Crypto
 				{
 					cryptoStream.Write(plainTextBytes, 0, plainTextBytes.Length);
 					cryptoStream.FlushFinalBlock();
-					cryptoStream.Close();
 				}
 				cipherTextBytes = memoryStream.ToArray();
 			}
@@ -59,7 +58,6 @@ namespace WalletWasabi.Crypto
 				}
 
 				var cipherTextWithAuthBytes = memoryStream.ToArray();
-				memoryStream.Close();
 				return Convert.ToBase64String(cipherTextWithAuthBytes);
 			}
 		}
@@ -107,8 +105,6 @@ namespace WalletWasabi.Crypto
 			{
 				totalRead += read;
 			}
-			memoryStream.Close();
-			cryptoStream.Close();
 			return Encoding.UTF8.GetString(plainTextBytes, 0, totalRead);
 		}
 
