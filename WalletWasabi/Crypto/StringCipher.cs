@@ -21,45 +21,34 @@ namespace WalletWasabi.Crypto
 			// Salt is randomly generated each time, but is prepended to encrypted cipher text
 			// so that the same Salt value can be used when decrypting.
 			byte[] salt = Generate128BitsOfRandomEntropy();
-			byte[] iv;
 			byte[] cipherTextBytes;
-			byte[] key;
 			var plainTextBytes = Encoding.UTF8.GetBytes(plainText);
 
-			using (var password = new Rfc2898DeriveBytes(passPhrase, salt, DerivationIterations))
+			byte[] key = DerivateKey(passPhrase, salt);
+			using var aes = CreateAES();
+			aes.GenerateIV();
+			byte[] iv = aes.IV;
+			using var encryptor = aes.CreateEncryptor(key, iv);
+			using var memoryStreamEncryptor = new MemoryStream();
+			using (var cryptoStream = new CryptoStream(memoryStreamEncryptor, encryptor, CryptoStreamMode.Write))
 			{
-				key = password.GetBytes(KeySize / 8);
-				using var aes = CreateAES();
-				aes.GenerateIV();
-				iv = aes.IV;
-				using var encryptor = aes.CreateEncryptor(key, iv);
-				using var memoryStream = new MemoryStream();
-				using (var cryptoStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write))
-				{
-					cryptoStream.Write(plainTextBytes, 0, plainTextBytes.Length);
-					cryptoStream.FlushFinalBlock();
-				}
-				cipherTextBytes = memoryStream.ToArray();
+				cryptoStream.Write(plainTextBytes, 0, plainTextBytes.Length);
+				cryptoStream.FlushFinalBlock();
 			}
+			cipherTextBytes = memoryStreamEncryptor.ToArray();
 
-			using (var memoryStream = new MemoryStream())
-			{
-				using (var writer = new BinaryWriter(memoryStream))
-				{
-					writer.Write(salt);
-					writer.Write(iv);
-					using (var hmac = new HMACSHA256(key))
-					{
-						var authenticationCode = hmac.ComputeHash(iv.Concat(cipherTextBytes).ToArray());
-						writer.Write(authenticationCode);
-					}
-					writer.Write(cipherTextBytes);
-					writer.Flush();
-				}
+			using var memoryStream = new MemoryStream();
+			using var writer = new BinaryWriter(memoryStream);
+			writer.Write(salt);
+			writer.Write(iv);
+			using var hmac = new HMACSHA256(key);
+			var authenticationCode = hmac.ComputeHash(iv.Concat(cipherTextBytes).ToArray());
+			writer.Write(authenticationCode);
+			writer.Write(cipherTextBytes);
+			writer.Flush();
 
-				var cipherTextWithAuthBytes = memoryStream.ToArray();
-				return Convert.ToBase64String(cipherTextWithAuthBytes);
-			}
+			var cipherTextWithAuthBytes = memoryStream.ToArray();
+			return Convert.ToBase64String(cipherTextWithAuthBytes);
 		}
 
 		public static string Decrypt(string cipherText, string passPhrase)
@@ -79,11 +68,7 @@ namespace WalletWasabi.Crypto
 				cipherStartIndex = (int)memoryStream.Position;
 				cipherLength = (int)(memoryStream.Length - memoryStream.Position);
 				var cipher = reader.ReadBytes(cipherLength);
-
-				using (var password = new Rfc2898DeriveBytes(passPhrase, salt, DerivationIterations))
-				{
-					key = password.GetBytes(KeySize / 8);
-				}
+				key = DerivateKey(passPhrase, salt);
 
 				using var hmac = new HMACSHA256(key);
 				var calculatedAuthenticationCode = hmac.ComputeHash(iv.Concat(cipher).ToArray());
@@ -101,6 +86,12 @@ namespace WalletWasabi.Crypto
 			byte[] plainTextBytes = decryptor.TransformFinalBlock(cipherTextBytesWithSaltAndIv, cipherStartIndex, cipherLength);
 
 			return Encoding.UTF8.GetString(plainTextBytes);
+		}
+
+		private static byte[] DerivateKey(string passPhrase, byte[] salt)
+		{
+			using var password = new Rfc2898DeriveBytes(passPhrase, salt, DerivationIterations);
+			return password.GetBytes(KeySize / 8);
 		}
 
 		private static Aes CreateAES()
