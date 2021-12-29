@@ -177,7 +177,7 @@ namespace WalletWasabi.WabiSabi.Client
 				try
 				{
 					// Alice client requests are inherently linkable to each other, so the circuit can be reused
-					using PersonCircuit personCircuit = new();
+					PersonCircuit personCircuit = new();
 					var arenaRequestHandler = new WabiSabiHttpApiClient(HttpClientFactory.NewBackendHttpClient(Mode.SingleCircuitPerLifetime, personCircuit));
 
 					var aliceArenaClient = new ArenaClient(
@@ -196,7 +196,7 @@ namespace WalletWasabi.WabiSabi.Client
 					var identificationMasterKey = Slip21Node.FromSeed(masterKey.ToBytes());
 					var identificationKey = identificationMasterKey.DeriveChild("SLIP-0019").DeriveChild("Ownership identification key").Key;
 
-					return await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, secret, identificationKey, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
+					return await AliceClient.CreateRegisterAndConfirmInputAsync(personCircuit, roundState, aliceArenaClient, coin, secret, identificationKey, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
 				}
 				catch (HttpRequestException)
 				{
