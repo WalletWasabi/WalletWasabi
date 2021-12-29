@@ -71,7 +71,7 @@ namespace WalletWasabi.Tor.Http
 		{
 			if (Mode is Mode.NewCircuitPerRequest)
 			{
-				using OneOffCircuit circuit = new();
+				using PersonCircuit circuit = new();
 				return await TorHttpPool.SendAsync(request, circuit, token).ConfigureAwait(false);
 			}
 			else
