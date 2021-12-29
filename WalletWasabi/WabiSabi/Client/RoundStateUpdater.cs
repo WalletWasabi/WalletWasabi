@@ -20,7 +20,7 @@ namespace WalletWasabi.WabiSabi.Client
 			ArenaRequestHandler = arenaRequestHandler;
 		}
 
-		public RoundStateUpdater(TimeSpan requestInterval, IBackendHttpClientFactory backendHttpClientFactory) : base(requestInterval)
+		public RoundStateUpdater(TimeSpan requestInterval, IWasabiHttpClientFactory backendHttpClientFactory) : base(requestInterval)
 		{
 			_personCircuit = new PersonCircuit();			
 			ArenaRequestHandler = new WabiSabiHttpApiClient(backendHttpClientFactory.NewBackendHttpClient(Mode.SingleCircuitPerLifetime, _personCircuit));

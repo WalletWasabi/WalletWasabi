@@ -116,7 +116,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 			// Create the coinjoin client
 			var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
-			var mockHttpClientFactory = new Mock<IBackendHttpClientFactory>();
+			var mockHttpClientFactory = new Mock<IWasabiHttpClientFactory>();
 			mockHttpClientFactory
 				.Setup(factory => factory.NewBackendHttpClient(It.IsAny<Mode>(), It.IsAny<ICircuit>()))
 				.Returns(new HttpClientWrapper(httpClient));
@@ -210,7 +210,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 			// Create the coinjoin client
 			var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
-			var mockHttpClientFactory = new Mock<IBackendHttpClientFactory>();
+			var mockHttpClientFactory = new Mock<IWasabiHttpClientFactory>();
 			mockHttpClientFactory
 				.Setup(factory => factory.NewBackendHttpClient(It.IsAny<Mode>(), It.IsAny<ICircuit>()))
 				.Returns(new HttpClientWrapper(httpClient));
@@ -240,7 +240,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 					It.IsAny<CancellationToken>()))
 				.ThrowsAsync(new HttpRequestException("Something was wrong posting the signature."));
 
-			var mockNonSigningHttpClientFactory = new Mock<IBackendHttpClientFactory>();
+			var mockNonSigningHttpClientFactory = new Mock<IWasabiHttpClientFactory>();
 			mockNonSigningHttpClientFactory
 				.Setup(factory => factory.NewBackendHttpClient(It.IsAny<Mode>(), It.IsAny<ICircuit>()))
 				.Returns(nonSigningHttpClient.Object);
@@ -294,7 +294,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 					});
 				});
 
-				var mockHttpClientFactory = new Mock<IBackendHttpClientFactory>();
+				var mockHttpClientFactory = new Mock<IWasabiHttpClientFactory>();
 				mockHttpClientFactory
 					.Setup(factory => factory.NewBackendHttpClient(It.IsAny<Mode>(), It.IsAny<ICircuit>()))
 					.Returns(new HttpClientWrapper(app.CreateClient()));

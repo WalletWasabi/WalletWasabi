@@ -18,7 +18,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 {
 	internal class Participant
 	{
-		public Participant(IRPCClient rpc, IBackendHttpClientFactory httpClientFactory)
+		public Participant(IRPCClient rpc, IWasabiHttpClientFactory httpClientFactory)
 		{
 			Rpc = rpc;
 			HttpClientFactory = httpClientFactory;
@@ -30,7 +30,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 		public KeyManager KeyManager { get; }
 		public List<SmartCoin> Coins { get; } = new();
 		public IRPCClient Rpc { get; }
-		public IBackendHttpClientFactory HttpClientFactory { get; }
+		public IWasabiHttpClientFactory HttpClientFactory { get; }
 
 		private Coin? SourceCoin { get; set; }
 

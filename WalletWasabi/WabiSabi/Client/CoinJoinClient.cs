@@ -28,7 +28,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private volatile bool _inCriticalCoinJoinState;
 
 		public CoinJoinClient(
-			IBackendHttpClientFactory httpClientFactory,
+			IWasabiHttpClientFactory httpClientFactory,
 			Kitchen kitchen,
 			KeyManager keymanager,
 			RoundStateUpdater roundStatusUpdater)
@@ -41,7 +41,7 @@ namespace WalletWasabi.WabiSabi.Client
 		}
 
 		private SecureRandom SecureRandom { get; }
-		public IBackendHttpClientFactory HttpClientFactory { get; }
+		public IWasabiHttpClientFactory HttpClientFactory { get; }
 		public Kitchen Kitchen { get; }
 		public KeyManager Keymanager { get; }
 		private RoundStateUpdater RoundStatusUpdater { get; }

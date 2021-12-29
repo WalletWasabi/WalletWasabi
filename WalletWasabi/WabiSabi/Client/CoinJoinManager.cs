@@ -15,7 +15,7 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class CoinJoinManager : BackgroundService
 	{
-		public CoinJoinManager(WalletManager walletManager, RoundStateUpdater roundStatusUpdater, IBackendHttpClientFactory backendHttpClientFactory, ServiceConfiguration serviceConfiguration)
+		public CoinJoinManager(WalletManager walletManager, RoundStateUpdater roundStatusUpdater, IWasabiHttpClientFactory backendHttpClientFactory, ServiceConfiguration serviceConfiguration)
 		{
 			WalletManager = walletManager;
 			HttpClientFactory = backendHttpClientFactory;
@@ -26,7 +26,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public event EventHandler<WalletStatusChangedEventArgs>? WalletStatusChanged;
 
 		public WalletManager WalletManager { get; }
-		public IBackendHttpClientFactory HttpClientFactory { get; }
+		public IWasabiHttpClientFactory HttpClientFactory { get; }
 		public RoundStateUpdater RoundStatusUpdater { get; }
 		public ServiceConfiguration ServiceConfiguration { get; }
 		private ImmutableDictionary<string, WalletTrackingData> TrackedWallets { get; set; } = ImmutableDictionary<string, WalletTrackingData>.Empty;
