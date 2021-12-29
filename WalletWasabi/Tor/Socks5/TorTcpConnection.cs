@@ -50,7 +50,7 @@ namespace WalletWasabi.Tor.Socks5
 			{
 				lock (StateLock)
 				{
-					return State == TcpConnectionState.ToDispose;
+					return State == TcpConnectionState.ToDispose || !Circuit.IsActive;
 				}
 			}
 		}

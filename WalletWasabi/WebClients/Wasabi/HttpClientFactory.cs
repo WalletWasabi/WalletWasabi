@@ -77,12 +77,12 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// <summary>
 		/// Creates new <see cref="TorHttpClient"/> or <see cref="ClearnetHttpClient"/> based on user settings.
 		/// </summary>
-		public IHttpClient NewHttpClient(Func<Uri>? baseUriFn, Mode mode)
+		public IHttpClient NewHttpClient(Func<Uri>? baseUriFn, Mode mode, ICircuit? circuit = null)
 		{
 			// Connecting to loopback's URIs cannot be done via Tor.
 			if (TorHttpPool is { } && (BackendUriGetter is null || !BackendUriGetter().IsLoopback))
 			{
-				return new TorHttpClient(baseUriFn, TorHttpPool, mode);
+				return new TorHttpClient(baseUriFn, TorHttpPool, mode, circuit);
 			}
 			else
 			{
@@ -91,24 +91,24 @@ namespace WalletWasabi.WebClients.Wasabi
 		}
 
 		/// <summary>Creates new <see cref="TorHttpClient"/>.</summary>
-		/// <remarks>Do not use this function unless <see cref="NewHttpClient(Func{Uri}, Mode)"/> is not sufficient for your use case.</remarks>
+		/// <remarks>Do not use this function unless <see cref="NewHttpClient(Func{Uri}, Mode, ICircuit?)"/> is not sufficient for your use case.</remarks>
 		/// <exception cref="InvalidOperationException"/>
-		public TorHttpClient NewTorHttpClient(Mode mode, Func<Uri>? baseUriFn = null)
+		public TorHttpClient NewTorHttpClient(Mode mode, Func<Uri>? baseUriFn = null, ICircuit? circuit = null)
 		{
 			if (TorEndpoint is null)
 			{
 				throw new InvalidOperationException("Tor is not enabled in the user settings.");
 			}
 
-			return (TorHttpClient)NewHttpClient(baseUriFn, mode);
+			return (TorHttpClient)NewHttpClient(baseUriFn, mode, circuit);
 		}
 
 		/// <summary>
 		/// Creates a new <see cref="IHttpClient"/> with the base URI is set to Wasabi Backend.
 		/// </summary>
-		public IHttpClient NewBackendHttpClient(Mode mode)
+		public IHttpClient NewBackendHttpClient(Mode mode, ICircuit? circuit = null)
 		{
-			return NewHttpClient(BackendUriGetter, mode);
+			return NewHttpClient(BackendUriGetter, mode, circuit);
 		}
 
 		// Protected implementation of Dispose pattern.

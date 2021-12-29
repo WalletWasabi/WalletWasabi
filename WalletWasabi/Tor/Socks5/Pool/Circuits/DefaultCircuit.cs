@@ -17,7 +17,11 @@ namespace WalletWasabi.Tor.Socks5.Pool.Circuits
 		{
 		}
 
+		/// <inheritdoc/>
 		public string Name => RandomName;
+
+		/// <inheritdoc/>
+		public bool IsActive => true;
 
 		/// <inheritdoc/>
 		public override string ToString()

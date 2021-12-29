@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Moq;
 using System.Diagnostics;
 using System.IO;
@@ -7,12 +8,16 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tor.Socks5;
+using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Pool;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
+namespace WalletWasabi.Tests.UnitTests.Tor.Socks5.Pool
 {
+	/// <summary>
+	/// Tests for <see cref="TorHttpPool"/> class.
+	/// </summary>
 	/// <seealso cref="XunitConfiguration.SerialCollectionDefinition"/>
 	[Collection("Serial unit tests collection")]
 	public class TorHttpPoolTests
@@ -26,8 +31,8 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 			using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(1));
 
 			ICircuit defaultIdentity = DefaultCircuit.Instance;
-			ICircuit aliceIdentity = new PersonCircuit();
-			ICircuit bobIdentity = new PersonCircuit();
+			using PersonCircuit aliceIdentity = new();
+			using PersonCircuit bobIdentity = new();
 
 			using TorTcpConnection aliceConnection = new(null!, new MemoryStream(), aliceIdentity, true);
 			using TorTcpConnection bobConnection = new(null!, new MemoryStream(), bobIdentity, true);
@@ -156,6 +161,48 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 			Debug.WriteLine("[server] Wait for the sendTask to finish.");
 			await sendTask;
 			Debug.WriteLine("[server] Send task finished.");
+		}
+
+		/// <summary>
+		/// Tests that once <see cref="PersonCircuit"/> is disposed, it cannot be used to send a new HTTP(s) request.
+		/// </summary>
+		[Fact]
+		public async Task PersonCircuitLifetimeAsync()
+		{
+			using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(1));
+
+			PersonCircuit aliceCircuit = new();
+			using TorTcpConnection aliceConnection = new(null!, new MemoryStream(), aliceCircuit, true);
+
+			Mock<TorTcpConnectionFactory> mockTcpConnectionFactory = new(MockBehavior.Strict, new IPEndPoint(IPAddress.Loopback, 7777));
+			_ = mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), aliceCircuit, It.IsAny<CancellationToken>())).ReturnsAsync(aliceConnection);
+
+			Mock<TorHttpPool> mockTorHttpPool = new(MockBehavior.Loose, mockTcpConnectionFactory.Object) { CallBase = true };
+			mockTorHttpPool.Setup(x => x.SendCoreAsync(It.IsAny<TorTcpConnection>(), It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
+				.Returns((TorTcpConnection tcpConnection, HttpRequestMessage request, CancellationToken cancellationToken) =>
+				{				
+					if (tcpConnection == aliceConnection)
+					{
+						return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+					}
+
+					throw new NotSupportedException();
+				});
+
+			using TorHttpPool pool = mockTorHttpPool.Object;
+			using HttpRequestMessage request = new(HttpMethod.Get, "http://wasabi.backend");
+
+			// Alice circuit is NOT yet disposed.
+			using HttpResponseMessage aliceResponse = await pool.SendAsync(request, aliceCircuit);
+			Assert.True(aliceResponse.IsSuccessStatusCode);
+
+			// Dispose Alice circuit.
+			aliceCircuit.Dispose();
+
+			// Alice circuit is already disposed and thus it cannot be used.
+			await Assert.ThrowsAsync<TorCircuitExpiredException>(async () => await pool.SendAsync(request, aliceCircuit).ConfigureAwait(false));
+
+			mockTcpConnectionFactory.VerifyAll();
 		}
 
 		/// <summary>

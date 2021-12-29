@@ -16,16 +16,21 @@ namespace WalletWasabi.Tor.Http
 		}
 
 		/// <summary>Use this constructor when you want to issue relative or absolute HTTP requests.</summary>
-		public TorHttpClient(Func<Uri>? baseUriGetter, TorHttpPool torHttpPool, Mode mode = Mode.DefaultCircuit)
+		public TorHttpClient(Func<Uri>? baseUriGetter, TorHttpPool torHttpPool, Mode mode = Mode.DefaultCircuit, ICircuit? circuit = null)
 		{
 			BaseUriGetter = baseUriGetter;
 			TorHttpPool = torHttpPool;
 			Mode = mode;
 
+			if (mode == Mode.SingleCircuitPerLifetime && circuit is null)
+			{
+				throw new NotSupportedException("Circuit is required in this case.");
+			}
+
 			PredefinedCircuit = mode switch
 			{
 				Mode.DefaultCircuit => DefaultCircuit.Instance,
-				Mode.SingleCircuitPerLifetime => new PersonCircuit(),
+				Mode.SingleCircuitPerLifetime => circuit,
 				Mode.NewCircuitPerRequest => null,
 				_ => throw new NotSupportedException(),
 			};
@@ -62,10 +67,17 @@ namespace WalletWasabi.Tor.Http
 		}
 
 		/// <exception cref="OperationCanceledException">If <paramref name="token"/> is set.</exception>
-		public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
+		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
 		{
-			ICircuit circuit = Mode is Mode.NewCircuitPerRequest ? new OneOffCircuit() : PredefinedCircuit!;
-			return TorHttpPool.SendAsync(request, circuit, token);
+			if (Mode is Mode.NewCircuitPerRequest)
+			{
+				using OneOffCircuit circuit = new();
+				return await TorHttpPool.SendAsync(request, circuit, token).ConfigureAwait(false);
+			}
+			else
+			{
+				return await TorHttpPool.SendAsync(request, PredefinedCircuit!, token).ConfigureAwait(false);
+			}
 		}
 
 		public Task<bool> IsTorRunningAsync()

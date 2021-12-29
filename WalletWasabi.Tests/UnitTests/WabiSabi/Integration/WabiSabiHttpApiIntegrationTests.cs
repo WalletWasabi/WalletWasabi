@@ -118,7 +118,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
 			var mockHttpClientFactory = new Mock<IBackendHttpClientFactory>();
 			mockHttpClientFactory
-				.Setup(factory => factory.NewBackendHttpClient(It.IsAny<Mode>()))
+				.Setup(factory => factory.NewBackendHttpClient(It.IsAny<Mode>(), It.IsAny<ICircuit>()))
 				.Returns(new HttpClientWrapper(httpClient));
 
 			using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(1), apiClient);
@@ -212,7 +212,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
 			var mockHttpClientFactory = new Mock<IBackendHttpClientFactory>();
 			mockHttpClientFactory
-				.Setup(factory => factory.NewBackendHttpClient(It.IsAny<Mode>()))
+				.Setup(factory => factory.NewBackendHttpClient(It.IsAny<Mode>(), It.IsAny<ICircuit>()))
 				.Returns(new HttpClientWrapper(httpClient));
 
 			using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(1), apiClient);
@@ -242,7 +242,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 			var mockNonSigningHttpClientFactory = new Mock<IBackendHttpClientFactory>();
 			mockNonSigningHttpClientFactory
-				.Setup(factory => factory.NewBackendHttpClient(It.IsAny<Mode>()))
+				.Setup(factory => factory.NewBackendHttpClient(It.IsAny<Mode>(), It.IsAny<ICircuit>()))
 				.Returns(nonSigningHttpClient.Object);
 
 			var badCoinJoinClient = new CoinJoinClient(mockNonSigningHttpClientFactory.Object, kitchen, keyManager2, roundStateUpdater);
@@ -296,7 +296,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 				var mockHttpClientFactory = new Mock<IBackendHttpClientFactory>();
 				mockHttpClientFactory
-					.Setup(factory => factory.NewBackendHttpClient(It.IsAny<Mode>()))
+					.Setup(factory => factory.NewBackendHttpClient(It.IsAny<Mode>(), It.IsAny<ICircuit>()))
 					.Returns(new HttpClientWrapper(app.CreateClient()));
 
 				// Total test timeout.

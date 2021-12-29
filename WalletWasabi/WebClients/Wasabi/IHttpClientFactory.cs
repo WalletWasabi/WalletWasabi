@@ -5,6 +5,6 @@ namespace WalletWasabi.WebClients.Wasabi
 {
 	public interface IBackendHttpClientFactory
 	{
-		IHttpClient NewBackendHttpClient(Mode mode);
+		IHttpClient NewBackendHttpClient(Mode mode, ICircuit? circuit = null);
 	}
 }
