@@ -82,7 +82,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 		public async Task StartParticipatingAsync(CancellationToken cancellationToken)
 		{
-			var apiClient = new WabiSabiHttpApiClient(HttpClientFactory.NewBackendHttpClient(Mode.DefaultCircuit));
+			var apiClient = new WabiSabiHttpApiClient(HttpClientFactory.NewHttpClient(Mode.DefaultCircuit));
 			using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(3), apiClient);
 			await roundStateUpdater.StartAsync(cancellationToken).ConfigureAwait(false);
 

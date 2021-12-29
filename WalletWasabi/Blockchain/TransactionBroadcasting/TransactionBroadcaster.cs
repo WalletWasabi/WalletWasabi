@@ -90,7 +90,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 		private async Task BroadcastTransactionToBackendAsync(SmartTransaction transaction)
 		{
 			Logger.LogInfo("Broadcasting with backend...");
-			IHttpClient httpClient = HttpClientFactory.NewBackendHttpClient(Mode.NewCircuitPerRequest);
+			IHttpClient httpClient = HttpClientFactory.NewHttpClient(Mode.NewCircuitPerRequest);
 
 			WasabiClient client = new(httpClient);
 

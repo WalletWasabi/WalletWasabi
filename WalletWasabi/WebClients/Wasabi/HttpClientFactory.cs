@@ -106,7 +106,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// <summary>
 		/// Creates a new <see cref="IHttpClient"/> with the base URI is set to Wasabi Backend.
 		/// </summary>
-		public IHttpClient NewBackendHttpClient(Mode mode, ICircuit? circuit = null)
+		public IHttpClient NewHttpClient(Mode mode, ICircuit? circuit = null)
 		{
 			return NewHttpClient(BackendUriGetter, mode, circuit);
 		}

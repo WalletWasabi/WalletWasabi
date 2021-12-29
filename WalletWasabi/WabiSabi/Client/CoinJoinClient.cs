@@ -178,7 +178,7 @@ namespace WalletWasabi.WabiSabi.Client
 				{
 					// Alice client requests are inherently linkable to each other, so the circuit can be reused
 					PersonCircuit personCircuit = new();
-					var arenaRequestHandler = new WabiSabiHttpApiClient(HttpClientFactory.NewBackendHttpClient(Mode.SingleCircuitPerLifetime, personCircuit));
+					var arenaRequestHandler = new WabiSabiHttpApiClient(HttpClientFactory.NewHttpClient(Mode.SingleCircuitPerLifetime, personCircuit));
 
 					var aliceArenaClient = new ArenaClient(
 						roundState.CreateAmountCredentialClient(SecureRandom),
@@ -234,7 +234,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private BobClient CreateBobClient(RoundState roundState)
 		{
-			var arenaRequestHandler = new WabiSabiHttpApiClient(HttpClientFactory.NewBackendHttpClient(Mode.NewCircuitPerRequest));
+			var arenaRequestHandler = new WabiSabiHttpApiClient(HttpClientFactory.NewHttpClient(Mode.NewCircuitPerRequest));
 
 			return new BobClient(
 				roundState.Id,
