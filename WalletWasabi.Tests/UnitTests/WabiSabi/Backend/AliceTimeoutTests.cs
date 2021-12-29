@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
@@ -34,8 +35,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			using var identificationKey = new Key();
 			var esk = km.GetSecrets("", smartCoin.ScriptPubKey).Single();
 
+			using PersonCircuit personCircuit = new();
 			using CancellationTokenSource cancellationTokenSource = new();
-			var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, smartCoin, esk.PrivateKey.GetBitcoinSecret(round.Network), identificationKey, roundStateUpdater, cancellationTokenSource.Token);
+			var task = AliceClient.CreateRegisterAndConfirmInputAsync(personCircuit, RoundState.FromRound(round), arenaClient, smartCoin, esk.PrivateKey.GetBitcoinSecret(round.Network), identificationKey, roundStateUpdater, cancellationTokenSource.Token);
 
 			while (round.Alices.Count == 0)
 			{
