@@ -22,6 +22,7 @@ namespace WalletWasabi.WebClients.Wasabi
 			return NewHttpClient(Mode.NewCircuitPerRequest);
 		}
 
+		/// <remarks>This is a low-level method. Unless necessary, use a preceding convenience method.</remarks>
 		IHttpClient NewHttpClient(Mode mode, ICircuit? circuit = null);
 	}
 }

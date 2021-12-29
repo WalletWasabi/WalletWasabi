@@ -9,9 +9,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
@@ -177,8 +175,8 @@ namespace WalletWasabi.WabiSabi.Client
 				try
 				{
 					// Alice client requests are inherently linkable to each other, so the circuit can be reused
-					PersonCircuit personCircuit = new();
-					var arenaRequestHandler = new WabiSabiHttpApiClient(HttpClientFactory.NewHttpClient(Mode.SingleCircuitPerLifetime, personCircuit));
+					PersonCircuit personCircuit = HttpClientFactory.NewHttpClientWithPersonCircuit(out Tor.Http.IHttpClient httpClient);
+					var arenaRequestHandler = new WabiSabiHttpApiClient(httpClient);
 
 					var aliceArenaClient = new ArenaClient(
 						roundState.CreateAmountCredentialClient(SecureRandom),
@@ -234,7 +232,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private BobClient CreateBobClient(RoundState roundState)
 		{
-			var arenaRequestHandler = new WabiSabiHttpApiClient(HttpClientFactory.NewHttpClient(Mode.NewCircuitPerRequest));
+			var arenaRequestHandler = new WabiSabiHttpApiClient(HttpClientFactory.NewHttpClientWithCircuitPerRequest());
 
 			return new BobClient(
 				roundState.Id,

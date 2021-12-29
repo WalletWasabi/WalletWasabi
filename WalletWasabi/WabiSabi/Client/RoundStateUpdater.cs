@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
+using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Models;
@@ -22,8 +23,8 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public RoundStateUpdater(TimeSpan requestInterval, IWasabiHttpClientFactory backendHttpClientFactory) : base(requestInterval)
 		{
-			_personCircuit = new PersonCircuit();			
-			ArenaRequestHandler = new WabiSabiHttpApiClient(backendHttpClientFactory.NewHttpClient(Mode.SingleCircuitPerLifetime, _personCircuit));
+			_personCircuit = backendHttpClientFactory.NewHttpClientWithPersonCircuit(out IHttpClient httpClient);
+			ArenaRequestHandler = new WabiSabiHttpApiClient(httpClient);
 		}
 
 		private IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
