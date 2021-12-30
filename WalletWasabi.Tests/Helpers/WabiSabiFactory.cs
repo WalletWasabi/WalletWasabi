@@ -21,6 +21,7 @@ using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Tests.Helpers;
 
@@ -258,13 +259,13 @@ public static class WabiSabiFactory
 	public static BlameRound CreateBlameRound(Round round, WabiSabiConfig cfg)
 		=> new(new(cfg, round.Network, new InsecureRandom(), round.FeeRate, round.CoordinationFeeRate), round, round.Alices.Select(x => x.Coin.Outpoint).ToHashSet());
 
-	public static (Key, SmartCoin, Key, SmartCoin) CreateCoinKeyPairs()
+	public static (IKeyChain, SmartCoin, SmartCoin) CreateCoinKeyPairs()
 	{
 		var km = ServiceFactory.CreateKeyManager("");
+		var keyChain = new KeyChain(km);
+
 		var smartCoin1 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m));
 		var smartCoin2 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(2m));
-		var sk1 = km.GetSecrets("", smartCoin1.ScriptPubKey).Single();
-		var sk2 = km.GetSecrets("", smartCoin2.ScriptPubKey).Single();
-		return (sk1.PrivateKey, smartCoin1, sk2.PrivateKey, smartCoin2);
+		return (keyChain, smartCoin1, smartCoin2);
 	}
 }
