@@ -221,15 +221,13 @@
               <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15"
                                        Classes="monoSpacedPrivacyReplacement">
                 <DockPanel LastChildFill="False" x:DataType="historyItems:HistoryItemViewModelBase">
-                  <c:TagsBox Padding="0"
-                             Margin="0"
-                             MinWidth="0"
-                             BorderThickness="0"
-                             DockPanel.Dock="Left"
-                             IsReadOnly="True"
-                             Items="{Binding Label}"
-                             HorizontalAlignment="Stretch"
-                             VerticalAlignment="Center" />
+                  <Button Classes="labelFlyout"
+                          DockPanel.Dock="Left"
+                          Content="{Binding Label[0], FallbackValue=''}"
+                          IsVisible="{Binding !!Label.Count}"
+                          IsHitTestVisible="False"
+                          Margin="0 4 4 0">
+                  </Button>
                   <Button Classes="labelFlyout"
                           DockPanel.Dock="Left"
                           IsVisible="{Binding !!FilteredLabel.Count}"
