@@ -90,6 +90,8 @@
                     <Button Classes="labelFlyout"
                             DockPanel.Dock="Left"
                             Content="{Binding Label[0], FallbackValue=''}"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Center"
                             IsVisible="{Binding !!Label.Count}"
                             IsHitTestVisible="False"
                             Margin="0 4 4 0">
