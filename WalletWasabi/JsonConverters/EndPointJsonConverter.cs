@@ -41,7 +41,7 @@ namespace WalletWasabi.JsonConverters
 		{
 			if (value is null)
 			{
-				writer.WriteNull();
+				throw new NotSupportedException($"{nameof(EndPointJsonConverter)} can only convert {nameof(EndPoint)}.");
 			}
 			else
 			{
