@@ -1,4 +1,4 @@
-using System.ComponentModel;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.Models
 {
@@ -7,7 +7,7 @@ namespace WalletWasabi.Fluent.Models
 		USD,
 		BTC,
 
-		[Description("sat/vByte")]
+		[FriendlyName("sat/vByte")]
 		SatoshiPerByte,
 
 		Percentage
