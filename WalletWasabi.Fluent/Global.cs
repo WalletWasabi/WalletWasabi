@@ -17,13 +17,12 @@ using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client;
-using WalletWasabi.Fluent.Models;
-using WalletWasabi.Fluent.Rpc;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
+using WalletWasabi.Rpc;
 using WalletWasabi.Tor;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi.Client;
@@ -207,10 +206,11 @@ namespace WalletWasabi.Fluent
 
 		private async Task StartRpcServerAsync(TerminateService terminateService, CancellationToken cancel)
 		{
-			var jsonRpcServerConfig = new JsonRpcServerConfiguration(Config);
+			var jsonRpcServerConfig = new JsonRpcServerConfiguration(Config.JsonRpcServerEnabled, Config.JsonRpcUser, Config.JsonRpcPassword, Config.JsonRpcServerPrefixes);
 			if (jsonRpcServerConfig.IsEnabled)
 			{
-				RpcServer = new JsonRpcServer(this, jsonRpcServerConfig, terminateService);
+				var wasabiJsonRpcService = new Rpc.WasabiJsonRpcService(this, terminateService);
+				RpcServer = new JsonRpcServer(wasabiJsonRpcService, jsonRpcServerConfig);
 				try
 				{
 					await RpcServer.StartAsync(cancel).ConfigureAwait(false);

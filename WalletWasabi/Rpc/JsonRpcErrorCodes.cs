@@ -1,4 +1,4 @@
-namespace WalletWasabi.Fluent.Rpc
+namespace WalletWasabi.Rpc
 {
 	public enum JsonRpcErrorCodes
 	{
