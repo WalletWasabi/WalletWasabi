@@ -56,7 +56,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		private async Task OnNextAsync(string? walletName)
 		{
 			var dialogResult = await NavigateDialogAsync(
-				new CreatePasswordDialogViewModel("Type the password of the wallet if exists.")
+				new CreatePasswordDialogViewModel("Type the password of the wallet if you used one.")
 				, NavigationTarget.CompactDialogScreen);
 
 			if (dialogResult.Result is { } password)
