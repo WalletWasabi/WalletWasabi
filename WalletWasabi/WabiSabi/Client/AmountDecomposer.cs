@@ -144,7 +144,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 			foreach (var input in allInputCoins)
 			{
-				foreach (var denom in BreakDown(input.Amount, demonsForBreakDown))
+				foreach (var denom in BreakDown(input, demonsForBreakDown))
 				{
 					if (!denomProbabilities.TryAdd(denom, 1))
 					{
@@ -156,9 +156,9 @@ namespace WalletWasabi.WabiSabi.Client
 			return denomProbabilities;
 		}
 
-		private IEnumerable<Money> BreakDown(long amount, IEnumerable<Money> denominations)
+		private IEnumerable<Money> BreakDown(Coin coin, IEnumerable<Money> denominations)
 		{
-			var remaining = amount;
+			var remaining = coin.EffectiveValue(FeeRate);
 
 			foreach (var denomPlusFee in denominations)
 			{
