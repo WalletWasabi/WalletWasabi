@@ -108,7 +108,19 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 			while ((DateTimeOffset.UtcNow - before).TotalMilliseconds <= 100);
 
-			var finalCandidate = setCandidates.RandomElement().Value;
+			var rand = new Random();
+			var counts = setCandidates.Select(x => x.Key).Distinct().OrderBy(x => x);
+			var selectedCount = counts.Max();
+			foreach(var count in counts)
+			{
+				if(rand.NextDouble() < 0.3)
+				{
+					selectedCount = count;
+					break;
+				}
+			}
+
+			var finalCandidate = setCandidates.Where(x=>x.Key == selectedCount).RandomElement().Value;
 
 			var totalOutput = finalCandidate.Sum(x => x + OutputFee);
 			if (totalOutput > totalInput)
@@ -119,6 +131,7 @@ namespace WalletWasabi.WabiSabi.Client
 			{
 				throw new InvalidOperationException("The decomposer is losing money. Aborting.");
 			}
+
 			return finalCandidate;
 		}
 
