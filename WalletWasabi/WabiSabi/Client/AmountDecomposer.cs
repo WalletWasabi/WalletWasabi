@@ -65,7 +65,7 @@ namespace WalletWasabi.WabiSabi.Client
 				}
 			}
 
-			if (remaining >= MinimumAmountPlusFee && remainingVsize >= OutputSize)
+			if (remaining >= MinimumAmountPlusFee)
 			{
 				naiveSet.Add(remaining - OutputFee);
 			}
