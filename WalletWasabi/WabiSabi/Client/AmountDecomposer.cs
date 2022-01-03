@@ -111,9 +111,9 @@ namespace WalletWasabi.WabiSabi.Client
 			var rand = new Random();
 			var counts = setCandidates.Select(x => x.Key).Distinct().OrderBy(x => x);
 			var selectedCount = counts.Max();
-			foreach(var count in counts)
+			foreach (var count in counts)
 			{
-				if(rand.NextDouble() < 0.3)
+				if (rand.NextDouble() < 0.3)
 				{
 					selectedCount = count;
 					break;
