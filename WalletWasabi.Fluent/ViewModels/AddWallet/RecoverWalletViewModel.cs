@@ -51,18 +51,18 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
 				async () => await OnAdvancedRecoveryOptionsDialogAsync());
-
-			EnableAutoBusyOn(NextCommand);
 		}
 
 		private async Task OnNextAsync(string? walletName)
 		{
 			var dialogResult = await NavigateDialogAsync(
-				new CreatePasswordDialogViewModel(
-					"Type the password of the wallet to be able to recover and click Continue."));
+				new CreatePasswordDialogViewModel("Password", "Type the password of the wallet if there is one.")
+				, NavigationTarget.CompactDialogScreen);
 
 			if (dialogResult.Result is { } password)
 			{
+				IsBusy = true;
+
 				try
 				{
 					var keyManager = await Task.Run(
@@ -85,19 +85,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 						});
 
 					Navigate().To(new AddedWalletPageViewModel(keyManager));
-
-					return;
 				}
 				catch (Exception ex)
 				{
 					// TODO navigate to error dialog.
 					Logger.LogError(ex);
 				}
-			}
 
-			if (dialogResult.Kind == DialogResultKind.Cancel)
-			{
-				Navigate().Clear();
+				IsBusy = false;
 			}
 		}
 

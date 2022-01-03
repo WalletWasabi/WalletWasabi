@@ -68,12 +68,12 @@
                                      FallbackColor="{DynamicResource AcrylicFallbackColor}"
                                      MaterialOpacity="0.2" />
       </ExperimentalAcrylicBorder.Material>
-      <Viewbox Stretch="Uniform" ClipToBounds="False" >
+      <Viewbox Stretch="Uniform" ClipToBounds="False">
         <ContentControl Template="{StaticResource WelcomeBg}" ClipToBounds="False" />
       </Viewbox>
 
     </ExperimentalAcrylicBorder>
-    <c:AdornerCanvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+    <c:AdornerCanvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
     <c:Dialog x:CompileBindings="False"
               DataContext="{Binding FullScreen}"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
@@ -125,14 +125,7 @@
               EnableCancelOnPressed="{Binding CurrentPage.EnableCancelOnPressed, FallbackValue=True}"
               EnableCancelOnEscape="{Binding CurrentPage.EnableCancelOnEscape, FallbackValue=True}"
               IsEnabled="{Binding $parent.DataContext.IsDialogScreenEnabled}"
-              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-              IncreasedWidthThreshold="740" IncreasedHeightThreshold="580" FullScreenHeightThreshold="580">
-      <c:Dialog.Styles>
-        <Style Selector="c|Dialog[FullScreenEnabled=True]">
-          <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-          <Setter Property="VerticalContentAlignment" Value="Stretch" />
-        </Style>
-      </c:Dialog.Styles>
+              HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
       <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
   </Panel>
