@@ -66,6 +66,8 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 				logging.AddFilter((_, category, _) => !category.Contains("Microsoft"));
 				logging.ClearProviders();
 				logging.AddWabiSabiLogger();
+
+				//logging.SetMinimumLevel(LogLevel.Trace);
 		});
 	}
 

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using NBitcoin;
 using System.Threading;
@@ -29,7 +30,7 @@ public class ArenaBuilder
 		IRPCClient rpc = Rpc ?? WabiSabiFactory.CreatePreconfiguredRpcClient().Object;
 		Network network = Network ?? Network.Main;
 
-		Arena arena = new(period, network, config, rpc, prison);
+		Arena arena = new(period, config, rpc, prison, NullLogger<Arena>.Instance);
 
 		foreach (var round in rounds)
 		{
