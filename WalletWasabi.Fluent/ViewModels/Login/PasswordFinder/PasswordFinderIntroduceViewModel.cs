@@ -23,7 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 		{
 			var dialogResult =
 				await NavigateDialogAsync(
-					new CreatePasswordDialogViewModel("Type in your most likely password.", enableEmpty: false)
+					new CreatePasswordDialogViewModel("Password", "Type in your most likely password.", enableEmpty: false)
 					, NavigationTarget.CompactDialogScreen);
 
 			if (dialogResult.Result is { } password)

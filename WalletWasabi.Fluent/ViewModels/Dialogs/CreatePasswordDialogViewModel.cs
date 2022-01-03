@@ -8,14 +8,14 @@ using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
-	[NavigationMetaData(Title = "Password")]
 	public partial class CreatePasswordDialogViewModel : DialogViewModelBase<string?>
 	{
 		[AutoNotify] private string? _confirmPassword;
 		[AutoNotify] private string? _password;
 
-		public CreatePasswordDialogViewModel(string caption, bool enableEmpty = true)
+		public CreatePasswordDialogViewModel(string title, string caption, bool enableEmpty = true)
 		{
+			Title = title;
 			Caption = caption;
 
 			// This means pressing continue will make the password empty string.
@@ -54,6 +54,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			NextCommand = ReactiveCommand.Create(() => Close(result: Password), nextCommandCanExecute);
 			CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel), cancelCommandCanExecute);
 		}
+
+		public sealed override string Title { get; protected set; }
 
 		public string Caption { get; }
 
