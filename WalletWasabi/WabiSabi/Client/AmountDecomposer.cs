@@ -122,16 +122,21 @@ namespace WalletWasabi.WabiSabi.Client
 
 			var finalCandidate = setCandidates.Where(x=>x.Key == selectedCount).RandomElement().Value;
 
-			var totalOutput = finalCandidate.Sum(x => x + OutputFee);
-			if (totalOutput > totalInput)
+			var totalOutputAmount = finalCandidate.Sum(x => x + OutputFee);
+			if (totalOutputAmount > totalInput)
 			{
 				throw new InvalidOperationException("The decomposer is creating money. Aborting.");
 			}
-			if (totalOutput + MinimumAmountPlusFee < totalInput)
+			if (totalOutputAmount + MinimumAmountPlusFee < totalInput)
 			{
 				throw new InvalidOperationException("The decomposer is losing money. Aborting.");
 			}
 
+			var totalOutputVsize = finalCandidate.Count() * OutputSize;
+			if (totalOutputVsize > AvailableVsize)
+			{
+				throw new InvalidOperationException("The decomposer created more ouputs than that it can. Aborting.");
+			}
 			return finalCandidate;
 		}
 
