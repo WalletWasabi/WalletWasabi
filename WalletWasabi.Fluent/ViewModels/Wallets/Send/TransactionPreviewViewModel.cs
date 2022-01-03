@@ -438,7 +438,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			_info.UserLabels = result.Result;
 
-			var transaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info));
+			var transaction = _info.IsOptimized ?
+				await Task.Run(() => TransactionHelpers.BuildChangelessTransaction(_wallet, _info.Address, _info.UserLabels, _info.FeeRate, _info.ChangelessCoins))
+				: await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info));
+
 			var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
 			var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
 			if (authResult)
