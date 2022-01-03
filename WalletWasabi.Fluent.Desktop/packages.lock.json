@@ -188,7 +188,7 @@
       "HarfBuzzSharp.NativeAssets.macOS": {
         "type": "Transitive",
         "resolved": "2.8.2-preview.178",
-        "contentHash": "QtmAs62il4vFtt3fFOXhhPDl7TX+NGu4tFB5qmnqUn+EnSJW7mxqNk1n9I7+Z2ORym0nTP4dhcRNtOpOS7Oenw=="
+        "contentHash": "J2tE2QlABgfpfdV/CeJdAL17z5fJ/tXFC6PCKxxXVCvD08IzZuuoEBUdcekp7fVPBOlurdVhriKTt7djKzSfPg=="
       },
       "HarfBuzzSharp.NativeAssets.WebAssembly": {
         "type": "Transitive",
@@ -198,7 +198,7 @@
       "HarfBuzzSharp.NativeAssets.Win32": {
         "type": "Transitive",
         "resolved": "2.8.2-preview.178",
-        "contentHash": "EgeF5uCZcAriIHmWq3hKNxz/jBJLeP/PKU4yI87UNkJCt4hYignOMjY0irl/rGVZtTL/G05xxf7TB6sjisi8sQ=="
+        "contentHash": "3A3/Bx2/f/wKqsSEc4HuZfCZSRZqX8PtUcZAfhO4Z7MPF/n/FtmZt2845gMm/iAQi/5ngwnG/nF+mAc6PWsojg=="
       },
       "JetBrains.Annotations": {
         "type": "Transitive",
@@ -383,7 +383,7 @@
       "SkiaSharp.NativeAssets.macOS": {
         "type": "Transitive",
         "resolved": "2.88.0-preview.178",
-        "contentHash": "+Hs3ku4buimzBHuc8FoyjOcE6eU5r98zcG7WH/s+doYQ1bFIjk+dKfqthgZ2o0NRAv8D3esq9rWrZTj12q+m1w=="
+        "contentHash": "DE29xDlHhnQCmQ58+phbF72VjGLy9tid/b3gjwfNnlqmsbi8abPrEwZXplJIKAlAPj/SeTfqLy/oM2EBRgb3Vw=="
       },
       "SkiaSharp.NativeAssets.WebAssembly": {
         "type": "Transitive",
@@ -393,7 +393,7 @@
       "SkiaSharp.NativeAssets.Win32": {
         "type": "Transitive",
         "resolved": "2.88.0-preview.178",
-        "contentHash": "9og9GCkdZc/NYrmbsRzohmIBRlS1oFegJiBMsoG93qYjhh2o6q5QBYxd61zw5Mgeytl3qj4YM+6BNIF4tcF+6w=="
+        "contentHash": "Zb9y/ltfHU7p8KuK9W3fb7TaiRUeEJbBNZ379WEfdd8RjpNei+A+DD+RVFNVQBFmKcxqpN7KntkbKaey6tp1tg=="
       },
       "Splat": {
         "type": "Transitive",
@@ -727,12 +727,12 @@
       "HarfBuzzSharp.NativeAssets.macOS": {
         "type": "Transitive",
         "resolved": "2.8.2-preview.178",
-        "contentHash": "QtmAs62il4vFtt3fFOXhhPDl7TX+NGu4tFB5qmnqUn+EnSJW7mxqNk1n9I7+Z2ORym0nTP4dhcRNtOpOS7Oenw=="
+        "contentHash": "J2tE2QlABgfpfdV/CeJdAL17z5fJ/tXFC6PCKxxXVCvD08IzZuuoEBUdcekp7fVPBOlurdVhriKTt7djKzSfPg=="
       },
       "HarfBuzzSharp.NativeAssets.Win32": {
         "type": "Transitive",
         "resolved": "2.8.2-preview.178",
-        "contentHash": "EgeF5uCZcAriIHmWq3hKNxz/jBJLeP/PKU4yI87UNkJCt4hYignOMjY0irl/rGVZtTL/G05xxf7TB6sjisi8sQ=="
+        "contentHash": "3A3/Bx2/f/wKqsSEc4HuZfCZSRZqX8PtUcZAfhO4Z7MPF/n/FtmZt2845gMm/iAQi/5ngwnG/nF+mAc6PWsojg=="
       },
       "Microsoft.Win32.SystemEvents": {
         "type": "Transitive",
@@ -923,12 +923,12 @@
       "SkiaSharp.NativeAssets.macOS": {
         "type": "Transitive",
         "resolved": "2.88.0-preview.178",
-        "contentHash": "+Hs3ku4buimzBHuc8FoyjOcE6eU5r98zcG7WH/s+doYQ1bFIjk+dKfqthgZ2o0NRAv8D3esq9rWrZTj12q+m1w=="
+        "contentHash": "DE29xDlHhnQCmQ58+phbF72VjGLy9tid/b3gjwfNnlqmsbi8abPrEwZXplJIKAlAPj/SeTfqLy/oM2EBRgb3Vw=="
       },
       "SkiaSharp.NativeAssets.Win32": {
         "type": "Transitive",
         "resolved": "2.88.0-preview.178",
-        "contentHash": "9og9GCkdZc/NYrmbsRzohmIBRlS1oFegJiBMsoG93qYjhh2o6q5QBYxd61zw5Mgeytl3qj4YM+6BNIF4tcF+6w=="
+        "contentHash": "Zb9y/ltfHU7p8KuK9W3fb7TaiRUeEJbBNZ379WEfdd8RjpNei+A+DD+RVFNVQBFmKcxqpN7KntkbKaey6tp1tg=="
       },
       "System.Collections": {
         "type": "Transitive",
@@ -1150,12 +1150,12 @@
       "HarfBuzzSharp.NativeAssets.macOS": {
         "type": "Transitive",
         "resolved": "2.8.2-preview.178",
-        "contentHash": "QtmAs62il4vFtt3fFOXhhPDl7TX+NGu4tFB5qmnqUn+EnSJW7mxqNk1n9I7+Z2ORym0nTP4dhcRNtOpOS7Oenw=="
+        "contentHash": "J2tE2QlABgfpfdV/CeJdAL17z5fJ/tXFC6PCKxxXVCvD08IzZuuoEBUdcekp7fVPBOlurdVhriKTt7djKzSfPg=="
       },
       "HarfBuzzSharp.NativeAssets.Win32": {
         "type": "Transitive",
         "resolved": "2.8.2-preview.178",
-        "contentHash": "EgeF5uCZcAriIHmWq3hKNxz/jBJLeP/PKU4yI87UNkJCt4hYignOMjY0irl/rGVZtTL/G05xxf7TB6sjisi8sQ=="
+        "contentHash": "3A3/Bx2/f/wKqsSEc4HuZfCZSRZqX8PtUcZAfhO4Z7MPF/n/FtmZt2845gMm/iAQi/5ngwnG/nF+mAc6PWsojg=="
       },
       "Microsoft.Win32.SystemEvents": {
         "type": "Transitive",
@@ -1346,12 +1346,12 @@
       "SkiaSharp.NativeAssets.macOS": {
         "type": "Transitive",
         "resolved": "2.88.0-preview.178",
-        "contentHash": "+Hs3ku4buimzBHuc8FoyjOcE6eU5r98zcG7WH/s+doYQ1bFIjk+dKfqthgZ2o0NRAv8D3esq9rWrZTj12q+m1w=="
+        "contentHash": "DE29xDlHhnQCmQ58+phbF72VjGLy9tid/b3gjwfNnlqmsbi8abPrEwZXplJIKAlAPj/SeTfqLy/oM2EBRgb3Vw=="
       },
       "SkiaSharp.NativeAssets.Win32": {
         "type": "Transitive",
         "resolved": "2.88.0-preview.178",
-        "contentHash": "9og9GCkdZc/NYrmbsRzohmIBRlS1oFegJiBMsoG93qYjhh2o6q5QBYxd61zw5Mgeytl3qj4YM+6BNIF4tcF+6w=="
+        "contentHash": "Zb9y/ltfHU7p8KuK9W3fb7TaiRUeEJbBNZ379WEfdd8RjpNei+A+DD+RVFNVQBFmKcxqpN7KntkbKaey6tp1tg=="
       },
       "System.Collections": {
         "type": "Transitive",
@@ -1573,12 +1573,12 @@
       "HarfBuzzSharp.NativeAssets.macOS": {
         "type": "Transitive",
         "resolved": "2.8.2-preview.178",
-        "contentHash": "QtmAs62il4vFtt3fFOXhhPDl7TX+NGu4tFB5qmnqUn+EnSJW7mxqNk1n9I7+Z2ORym0nTP4dhcRNtOpOS7Oenw=="
+        "contentHash": "J2tE2QlABgfpfdV/CeJdAL17z5fJ/tXFC6PCKxxXVCvD08IzZuuoEBUdcekp7fVPBOlurdVhriKTt7djKzSfPg=="
       },
       "HarfBuzzSharp.NativeAssets.Win32": {
         "type": "Transitive",
         "resolved": "2.8.2-preview.178",
-        "contentHash": "EgeF5uCZcAriIHmWq3hKNxz/jBJLeP/PKU4yI87UNkJCt4hYignOMjY0irl/rGVZtTL/G05xxf7TB6sjisi8sQ=="
+        "contentHash": "3A3/Bx2/f/wKqsSEc4HuZfCZSRZqX8PtUcZAfhO4Z7MPF/n/FtmZt2845gMm/iAQi/5ngwnG/nF+mAc6PWsojg=="
       },
       "Microsoft.Win32.SystemEvents": {
         "type": "Transitive",
@@ -1685,12 +1685,12 @@
       "SkiaSharp.NativeAssets.macOS": {
         "type": "Transitive",
         "resolved": "2.88.0-preview.178",
-        "contentHash": "+Hs3ku4buimzBHuc8FoyjOcE6eU5r98zcG7WH/s+doYQ1bFIjk+dKfqthgZ2o0NRAv8D3esq9rWrZTj12q+m1w=="
+        "contentHash": "DE29xDlHhnQCmQ58+phbF72VjGLy9tid/b3gjwfNnlqmsbi8abPrEwZXplJIKAlAPj/SeTfqLy/oM2EBRgb3Vw=="
       },
       "SkiaSharp.NativeAssets.Win32": {
         "type": "Transitive",
         "resolved": "2.88.0-preview.178",
-        "contentHash": "9og9GCkdZc/NYrmbsRzohmIBRlS1oFegJiBMsoG93qYjhh2o6q5QBYxd61zw5Mgeytl3qj4YM+6BNIF4tcF+6w=="
+        "contentHash": "Zb9y/ltfHU7p8KuK9W3fb7TaiRUeEJbBNZ379WEfdd8RjpNei+A+DD+RVFNVQBFmKcxqpN7KntkbKaey6tp1tg=="
       },
       "System.Collections": {
         "type": "Transitive",
