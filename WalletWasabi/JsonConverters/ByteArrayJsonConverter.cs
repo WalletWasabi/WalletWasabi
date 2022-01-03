@@ -6,16 +6,10 @@ namespace WalletWasabi.JsonConverters
 	/// Converter used to convert <see cref="byte"/> arrays to and from JSON.
 	/// </summary>
 	/// <seealso cref="JsonConverter" />
-	public class ByteArrayJsonConverter : JsonConverter
+	public class ByteArrayJsonConverter : JsonConverter<byte[]>
 	{
 		/// <inheritdoc />
-		public override bool CanConvert(Type objectType)
-		{
-			return objectType == typeof(byte[]);
-		}
-
-		/// <inheritdoc />
-		public override object? ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+		public override byte[]? ReadJson(JsonReader reader, Type objectType, byte[]? existingValue, bool hasExistingValue, JsonSerializer serializer)
 		{
 			var value = reader.Value as string;
 
@@ -28,9 +22,16 @@ namespace WalletWasabi.JsonConverters
 		}
 
 		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+		public override void WriteJson(JsonWriter writer, byte[]? value, JsonSerializer serializer)
 		{
-			writer.WriteValue(Convert.ToBase64String((byte[])value));
+			if (value is null)
+			{
+				throw new ArgumentNullException(nameof(value));
+			}
+			else
+			{
+				writer.WriteValue(Convert.ToBase64String(value));
+			}
 		}
 	}
 }

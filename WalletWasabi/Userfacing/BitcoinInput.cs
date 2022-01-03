@@ -71,7 +71,7 @@ namespace WalletWasabi.Helpers
 			var dotIndex = corrected.IndexOf('.');
 			if (dotIndex != -1 && corrected.Length - (dotIndex + 1) > 8)
 			{
-				corrected = corrected.Substring(0, dotIndex + 1 + 8);
+				corrected = corrected[..(dotIndex + 1 + 8)];
 			}
 
 			// Make sure you don't send more bitcoins than how much there is in existence.

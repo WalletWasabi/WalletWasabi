@@ -1,5 +1,6 @@
 using Moq;
 using NBitcoin;
+using NBitcoin.Policy;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
@@ -585,6 +586,83 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var rest = dict.Where(x => x.Key < 0).Select(x => x.Value);
 			Assert.DoesNotContain(rest, x => x > samplingSize * 0.001);
+		}
+
+		[Fact]
+		public void HowFeeRateAffectsFeeAndNumberOfOutputs()
+		{
+			// Fee rate: 5.0 sat/vb.
+			{
+				BuildTransactionResult txResult = ComputeTxResult(new FeeRate(5.0m));
+				Assert.Equal(2, txResult.Transaction.Transaction.Outputs.Count);
+				AssertOutputValues(mainValue: Money.Satoshis(10000m), changeValue: Money.Satoshis(689m), txResult.Transaction.Transaction.Outputs);
+				Assert.Equal(7.2m, txResult.FeePercentOfSent);
+				Assert.Equal(Money.Satoshis(720), txResult.Fee);
+			}
+
+			// Fee rate: 6.0 sat/vb.
+			{
+				BuildTransactionResult txResult = ComputeTxResult(new FeeRate(6.0m));
+				Assert.Equal(2, txResult.Transaction.Transaction.Outputs.Count);
+				AssertOutputValues(mainValue: Money.Satoshis(10000m), changeValue: Money.Satoshis(545m), txResult.Transaction.Transaction.Outputs);
+				Assert.Equal(8.64m, txResult.FeePercentOfSent);
+				Assert.Equal(Money.Satoshis(864), txResult.Fee);
+			}
+
+			// Fee rate: 7.0 sat/vb.
+			{
+				BuildTransactionResult txResult = ComputeTxResult(new FeeRate(7.0m));
+				Assert.Equal(2, txResult.Transaction.Transaction.Outputs.Count);
+				AssertOutputValues(mainValue: Money.Satoshis(10000m), changeValue: Money.Satoshis(401m), txResult.Transaction.Transaction.Outputs);
+				Assert.Equal(10.08m, txResult.FeePercentOfSent);
+				Assert.Equal(Money.Satoshis(1008), txResult.Fee);
+			}
+
+			// Fee rate: 7.74 sat/vb.
+			{
+				BuildTransactionResult txResult = ComputeTxResult(new FeeRate(7.74m));
+				Assert.Equal(2, txResult.Transaction.Transaction.Outputs.Count);
+				AssertOutputValues(mainValue: Money.Satoshis(10000m), changeValue: Money.Satoshis(295m), txResult.Transaction.Transaction.Outputs);
+				Assert.Equal(11.14m, txResult.FeePercentOfSent);
+				Assert.Equal(Money.Satoshis(1114), txResult.Fee);
+			}
+
+			// Fee rate: 7.75 sat/vb. There is only ONE output now!
+			{
+				BuildTransactionResult txResult = ComputeTxResult(new FeeRate(7.75m));
+				Assert.Single(txResult.Transaction.Transaction.Outputs);
+				Assert.Equal(Money.Satoshis(10000m), txResult.Transaction.Transaction.Outputs[0].Value);
+				Assert.Equal(14.09m, txResult.FeePercentOfSent);
+				Assert.Equal(Money.Satoshis(1409), txResult.Fee);
+			}
+
+			static BuildTransactionResult ComputeTxResult(FeeRate feeRate)
+			{
+				TransactionFactory transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
+				{
+					(Label: "Pablo", KeyIndex: 0, Amount: 0.00011409m, Confirmed: true, AnonymitySet: 1)
+				});
+
+				using Key key = new();
+				PaymentIntent payment = new(key, MoneyRequest.Create(Money.Coins(0.00010000m)));
+				return transactionFactory.BuildTransaction(payment, feeRate);
+			}
+
+			static void AssertOutputValues(Money mainValue, Money changeValue, TxOutList txOuts)
+			{
+				if (mainValue == txOuts[0].Value)
+				{
+					Assert.Equal(changeValue, txOuts[1].Value);
+				}
+				else if (mainValue == txOuts[1].Value)
+				{
+					Assert.Equal(changeValue, txOuts[0].Value);
+				}
+				else
+				{
+					Assert.True(false, "Main value is not correct.");
+				}
+			}
 		}
 	}
 }

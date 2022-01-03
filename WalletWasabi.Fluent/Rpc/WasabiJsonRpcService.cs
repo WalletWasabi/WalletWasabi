@@ -156,7 +156,6 @@ namespace WalletWasabi.Fluent.Rpc
 		public async Task<object> SendTransactionAsync(PaymentInfo[] payments, OutPoint[] coins, int feeTarget, string? password = null)
 		{
 			password = Guard.Correct(password);
-			var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 			var txHex = BuildTransaction(payments, coins, feeTarget, password);
 			var smartTx = new SmartTransaction(Transaction.Parse(txHex, Global.Network), Height.Mempool);
 

@@ -24,14 +24,6 @@ namespace WalletWasabi.Helpers
 			return outputSum;
 		}
 
-		public static int CalculateVsizeAssumeSegwit(int inNum, int outNum)
-		{
-			var origTxSize = (inNum * Constants.P2pkhInputSizeInBytes) + (outNum * Constants.OutputSizeInBytes) + 10;
-			var newTxSize = (inNum * Constants.P2wpkhInputSizeInBytes) + (outNum * Constants.OutputSizeInBytes) + 10; // BEWARE: This assumes segwit only inputs!
-			var vSize = (int)Math.Ceiling(((3 * newTxSize) + origTxSize) / 4m);
-			return vSize;
-		}
-
 		public static ExtPubKey BetterParseExtPubKey(string extPubKeyString)
 		{
 			extPubKeyString = Guard.NotNullOrEmptyOrWhitespace(nameof(extPubKeyString), extPubKeyString, trim: true);

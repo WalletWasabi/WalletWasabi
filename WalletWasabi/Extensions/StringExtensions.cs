@@ -21,7 +21,7 @@ namespace System
 		{
 			if (me.EndsWith(trimString, comparisonType))
 			{
-				return me.Substring(0, me.Length - trimString.Length);
+				return me[..^trimString.Length];
 			}
 			return me;
 		}
