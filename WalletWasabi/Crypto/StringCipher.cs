@@ -24,7 +24,6 @@ namespace WalletWasabi.Crypto
 			AesBlockByteSize + // Cipher text min length
 			SignatureByteSize; // Signature tag
 
-
 		public static string Encrypt(string plainText, string passPhrase)
 		{
 			using SecureRandom secureRandom = new();
