@@ -7,8 +7,8 @@ namespace WalletWasabi.Crypto
 {
 	public static class StringCipher
 	{
-		// This constant is used to determine the keysize of the encryption algorithm in bits.
-		// We divide this by 8 within the code below to get the equivalent number of bytes.
+		// This code is strongly inspired by https://tomrucki.com/posts/aes-encryption-in-csharp/ and
+		// https://netnix.org/2015/04/19/aes-encryption-with-hmac-integrity-in-java/
 		private const int KeyByteSize = 128 / 8;
 		private const int AesBlockByteSize = 128 / 8;
 		private const int PasswordSaltByteSize = 128 / 8;
@@ -24,23 +24,24 @@ namespace WalletWasabi.Crypto
 			AesBlockByteSize + // Cipher text min length
 			SignatureByteSize; // Signature tag
 
-		private static readonly SecureRandom SecureRandom = new();
 
 		public static string Encrypt(string plainText, string passPhrase)
 		{
+			using SecureRandom secureRandom = new();
+
 			// Salt is randomly generated each time, but is prepended to encrypted cipher text
 			// so that the same Salt value can be used when decrypting.
-			byte[] iv = GenerateRandomEntropy(AesBlockByteSize);
-			byte[] encryptionKeySalt = GenerateRandomEntropy(PasswordSaltByteSize);
+			byte[] iv = secureRandom.GetBytes(AesBlockByteSize);
+			byte[] encryptionKeySalt = secureRandom.GetBytes(PasswordSaltByteSize);
 			byte[] encryptionKey = DerivateKey(passPhrase, encryptionKeySalt);
 
-			// Encrpyt the plain text
+			// Encrypt the plain text.
 			using var aes = CreateAES(encryptionKey);
 			byte[] plainTextBytes = Encoding.UTF8.GetBytes(plainText);
 			byte[] cipherTextBytes = aes.EncryptCbc(plainTextBytes, iv);
 
-			// Authenticate
-			byte[] authKeySalt = GenerateRandomEntropy(PasswordSaltByteSize);
+			// Authenticate.
+			byte[] authKeySalt = secureRandom.GetBytes(PasswordSaltByteSize);
 			byte[] authKey = DerivateKey(passPhrase, authKeySalt);
 			byte[] result = MergeArrays(additionalCapacity: SignatureByteSize, encryptionKeySalt, iv, authKeySalt, cipherTextBytes);
 
@@ -64,7 +65,7 @@ namespace WalletWasabi.Crypto
 			Span<byte> authKeySalt = encryptedData.AsSpan(PasswordSaltByteSize + AesBlockByteSize, PasswordSaltByteSize);
 			Span<byte> authCode = encryptedData.AsSpan(encryptedData.Length - SignatureByteSize, SignatureByteSize);
 
-			// Authenticate
+			// Authenticate.
 			byte[] authKey = DerivateKey(passPhrase, authKeySalt);
 
 			byte[] expectedAuthCode = HMACSHA256.HashData(authKey, encryptedData[..^SignatureByteSize]);
@@ -94,9 +95,6 @@ namespace WalletWasabi.Crypto
 			aes.Key = encryptionKey;
 			return aes;
 		}
-
-		private static byte[] GenerateRandomEntropy(int numberOfBytes) =>
-			SecureRandom.GetBytes(numberOfBytes);
 
 		private static byte[] MergeArrays(int additionalCapacity, params byte[][] arrays)
 		{
