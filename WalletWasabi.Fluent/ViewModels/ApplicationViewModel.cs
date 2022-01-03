@@ -20,7 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				if (CanShutdown())
 				{
 					if (Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime
-					    desktopLifetime)
+						desktopLifetime)
 					{
 						desktopLifetime.Shutdown();
 					}
@@ -31,9 +31,9 @@ namespace WalletWasabi.Fluent.ViewModels
 					ShowRequested?.Invoke(this, EventArgs.Empty);
 
 					await MainViewModel.Instance!.CompactDialogScreen.NavigateDialogAsync(new Dialogs.ShowErrorDialogViewModel(
-						"Wasabi is currently anonymising your wallet. Please try again in a few seconds.",
+						"Wasabi is currently anonymising your wallet. Please try again in a few minutes.",
 						"Warning",
-						"Unable to close"));
+						"Unable to close right now"));
 				}
 			});
 

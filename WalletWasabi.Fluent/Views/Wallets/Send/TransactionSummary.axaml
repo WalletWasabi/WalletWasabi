@@ -16,31 +16,6 @@
 
       <Separator />
 
-      <DockPanel IsVisible="{Binding TransactionHasPockets}">
-        <Button Classes="plain"
-                Command="{Binding Parent.ChangePocketsCommand}"
-                ToolTip.Tip="Change who could know about this transaction"
-                DockPanel.Dock="Right"
-                Margin="10 0"
-                IsVisible="{Binding !IsPreview}">
-          <Viewbox Height="20">
-            <PathIcon Data="{StaticResource entities_edit_regular}" Foreground="{DynamicResource SystemAccentColor}" />
-          </Viewbox>
-        </Button>
-
-        <c:PreviewItem Icon="{StaticResource entities_regular}"
-                       Text="will be sent to and may be known by">
-          <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Labels}">
-            <c:TagsBox.Styles>
-              <Style Selector="c|TagsBox:readonly WrapPanel">
-                <Setter Property="Margin" Value="0" />
-              </Style>
-            </c:TagsBox.Styles>
-          </c:TagsBox>
-        </c:PreviewItem>
-      </DockPanel>
-      <Separator IsVisible="{Binding TransactionHasPockets}"/>
-
       <c:PreviewItem Icon="{StaticResource transceive_regular}"
                      Text="to the Bitcoin address">
         <TextBlock Classes="monoSpaced" Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
@@ -70,12 +45,12 @@
 
         <StackPanel Spacing="10">
           <c:PreviewItem Icon="{StaticResource timer_regular}"
-                         Text="miners will work hard to confirm your transaction within"
+                         Text="your transaction should be confirmed within"
                          IsVisible="{Binding !IsCustomFeeUsed}">
             <TextBlock Text="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
           </c:PreviewItem>
           <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
-                         Text="for an additional charge of">
+                         Text="there will be an additional transaction fee of">
             <TextBlock Text="{Binding FeeText, FallbackValue=235 sats (≈55.34 USD)}" />
           </c:PreviewItem>
         </StackPanel>

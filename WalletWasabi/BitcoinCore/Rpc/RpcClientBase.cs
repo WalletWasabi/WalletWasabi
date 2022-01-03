@@ -83,13 +83,13 @@ namespace WalletWasabi.BitcoinCore.Rpc
 
 				return new MemPoolInfo()
 				{
-					Size = int.Parse((string)response.Result["size"], CultureInfo.InvariantCulture),
-					Bytes = int.Parse((string)response.Result["bytes"], CultureInfo.InvariantCulture),
-					Usage = int.Parse((string)response.Result["usage"], CultureInfo.InvariantCulture),
-					MaxMemPool = double.Parse((string)response.Result["maxmempool"], CultureInfo.InvariantCulture),
-					MemPoolMinFee = double.Parse((string)response.Result["mempoolminfee"], CultureInfo.InvariantCulture),
-					MinRelayTxFee = double.Parse((string)response.Result["minrelaytxfee"], CultureInfo.InvariantCulture),
-					Histogram = ExtractFeeRateGroups(response.Result["fee_histogram"]).ToArray()
+					Size = int.Parse((string)response.Result["size"]!, CultureInfo.InvariantCulture),
+					Bytes = int.Parse((string)response.Result["bytes"]!, CultureInfo.InvariantCulture),
+					Usage = int.Parse((string)response.Result["usage"]!, CultureInfo.InvariantCulture),
+					MaxMemPool = double.Parse((string)response.Result["maxmempool"]!, CultureInfo.InvariantCulture),
+					MemPoolMinFee = double.Parse((string)response.Result["mempoolminfee"]!, CultureInfo.InvariantCulture),
+					MinRelayTxFee = double.Parse((string)response.Result["minrelaytxfee"]!, CultureInfo.InvariantCulture),
+					Histogram = ExtractFeeRateGroups(response.Result["fee_histogram"]!).ToArray()
 				};
 			}
 			catch (RPCException ex) when (ex.RPCCode == RPCErrorCode.RPC_MISC_ERROR)

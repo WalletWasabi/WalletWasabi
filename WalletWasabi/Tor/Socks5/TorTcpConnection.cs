@@ -24,11 +24,13 @@ namespace WalletWasabi.Tor.Socks5
 		/// <param name="allowRecycling">Whether it is allowed to re-use this Tor TCP connection.</param>
 		public TorTcpConnection(TcpClient tcpClient, Stream transportStream, ICircuit circuit, bool allowRecycling)
 		{
+			long id = Interlocked.Increment(ref LastId);
+			Name = $"TC#{id:0000}#{circuit.Name[0..10]}";
+
 			TcpClient = tcpClient;
 			TransportStream = transportStream;
 			Circuit = circuit;
 			AllowRecycling = allowRecycling;
-			Id = Interlocked.Increment(ref LastId);
 		}
 
 		/// <remarks>Lock object to guard <see cref="State"/> property.</remarks>
@@ -53,8 +55,8 @@ namespace WalletWasabi.Tor.Socks5
 			}
 		}
 
-		/// <summary>Unique identifier of the pool item for logging purposes.</summary>
-		private long Id { get; }
+		/// <summary>Unique identifier of the TCP connection for logging purposes.</summary>
+		private string Name { get; }
 
 		/// <summary>TCP connection to Tor's SOCKS5 server.</summary>
 		private TcpClient TcpClient { get; }
@@ -115,7 +117,7 @@ namespace WalletWasabi.Tor.Socks5
 		/// <inheritdoc/>
 		public override string ToString()
 		{
-			return $"PoolConnection#{Id}";
+			return Name;
 		}
 
 		protected virtual void Dispose(bool disposing)

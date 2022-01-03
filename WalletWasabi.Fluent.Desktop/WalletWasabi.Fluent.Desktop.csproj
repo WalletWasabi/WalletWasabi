@@ -43,7 +43,7 @@
 		<PackageIcon>Assets\WasabiLogo.ico</PackageIcon>
 		<Product>Wasabi Wallet Fluent</Product>
 		<!-- owners is not supported in MSBuild -->
-		<AvaloniaVersion>0.10.11-rc.2</AvaloniaVersion>
+		<AvaloniaVersion>0.10.11</AvaloniaVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
