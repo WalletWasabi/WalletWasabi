@@ -23,6 +23,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	[NavigationMetaData(Title = "Transaction Preview")]
 	public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
+		private const decimal PercentageThreshold = 130;
+
 		private readonly Wallet _wallet;
 		private readonly TransactionInfo _info;
 		private BuildTransactionResult? _transaction;
@@ -262,14 +264,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				return await BuildTransactionAsync();
 			}
-			catch (InsufficientBalanceException)
+			catch (InsufficientBalanceException ex)
 			{
 				if (_info.IsPayJoin)
 				{
 					return await HandleInsufficientBalanceWhenPayJoinAsync(_wallet, _info);
 				}
 
-				return await HandleInsufficientBalanceWhenNormalAsync(_wallet, _info);
+				return await HandleInsufficientBalanceWhenNormalAsync(ex, _wallet, _info);
 			}
 			catch (Exception ex)
 			{
@@ -310,36 +312,46 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return true;
 		}
 
-		private async Task<BuildTransactionResult?> HandleInsufficientBalanceWhenNormalAsync(Wallet wallet, TransactionInfo transactionInfo)
+		private async Task<BuildTransactionResult?> HandleInsufficientBalanceWhenNormalAsync(InsufficientBalanceException ex, Wallet wallet, TransactionInfo transactionInfo)
 		{
-			var dialog = new InsufficientBalanceDialogViewModel(transactionInfo.IsPrivate
-				? BalanceType.Private
-				: BalanceType.Pocket);
+			var selectedFee = ex.Minimum - transactionInfo.Amount;
+			var maxPossibleFee = ex.Actual - transactionInfo.Amount;
+			var percentage = (decimal)selectedFee.Satoshi / maxPossibleFee.Satoshi * 100;
 
-			var result = await NavigateDialogAsync(dialog, NavigationTarget.DialogScreen);
-
-			if (result.Result)
+			if (percentage <= PercentageThreshold && TrySetMaximumPossibleFee(percentage, _wallet, transactionInfo))
 			{
-				transactionInfo.SubtractFee = true;
-				return await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo));
-			}
-
-			if (wallet.Coins.TotalAmount() > transactionInfo.Amount)
-			{
-				var privacyControlDialogResult = await NavigateDialogAsync(
-					new PrivacyControlViewModel(wallet, transactionInfo, isSilent: false),
-					NavigationTarget.DialogScreen);
-
-				if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
-				    privacyControlDialogResult.Result is { })
-				{
-					transactionInfo.Coins = privacyControlDialogResult.Result;
-				}
-
 				return await BuildTransactionAsync();
 			}
 
-			Navigate().BackTo<SendViewModel>();
+
+			// var dialog = new InsufficientBalanceDialogViewModel(transactionInfo.IsPrivate
+			// 	? BalanceType.Private
+			// 	: BalanceType.Pocket);
+			//
+			// var result = await NavigateDialogAsync(dialog, NavigationTarget.DialogScreen);
+			//
+			// if (result.Result)
+			// {
+			// 	transactionInfo.SubtractFee = true;
+			// 	return await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo));
+			// }
+			//
+			// if (wallet.Coins.TotalAmount() > transactionInfo.Amount)
+			// {
+			// 	var privacyControlDialogResult = await NavigateDialogAsync(
+			// 		new PrivacyControlViewModel(wallet, transactionInfo, isSilent: false),
+			// 		NavigationTarget.DialogScreen);
+			//
+			// 	if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
+			// 	    privacyControlDialogResult.Result is { })
+			// 	{
+			// 		transactionInfo.Coins = privacyControlDialogResult.Result;
+			// 	}
+			//
+			// 	return await BuildTransactionAsync();
+			// }
+			//
+			// Navigate().BackTo<SendViewModel>();
 			return null;
 		}
 
@@ -409,7 +421,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (!isInHistory)
 			{
-				RxApp.MainThreadScheduler.Schedule(async ()=> await InitialiseViewModelAsync());
+				RxApp.MainThreadScheduler.Schedule(async () => await InitialiseViewModelAsync());
 			}
 		}
 
