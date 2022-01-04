@@ -18,7 +18,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		private Random Random { get; } = new();
-		public HdPubKey HdPubKey { get; }
+		private HdPubKey HdPubKey { get; }
 
 		[Fact]
 		public void RandomizedTest()
