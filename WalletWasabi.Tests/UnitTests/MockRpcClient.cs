@@ -102,8 +102,9 @@ namespace WalletWasabi.Tests.UnitTests
 
 		public Task<GetTxOutResponse?> GetTxOutAsync(uint256 txid, int index, bool includeMempool = true, CancellationToken cancellationToken = default)
 		{
-			return OnGetTxOutAsync switch {
-				{} fn => Task.FromResult(fn(txid, index, includeMempool)),
+			return OnGetTxOutAsync switch
+			{
+				{ } fn => Task.FromResult(fn(txid, index, includeMempool)),
 				null => Task.FromException<GetTxOutResponse?>(new InvalidOperationException($"{nameof(GetTxOutAsync)} was invoked but never assigned."))
 			};
 		}
@@ -142,8 +143,8 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			return OnSendRawTransactionAsync switch
 			{
-				{} fn => Task.FromResult(fn(transaction)),
-				null  => Task.FromException<uint256>(new InvalidOperationException($"{nameof(OnSendRawTransactionAsync)} was invoked but never assigned."))
+				{ } fn => Task.FromResult(fn(transaction)),
+				null => Task.FromException<uint256>(new InvalidOperationException($"{nameof(OnSendRawTransactionAsync)} was invoked but never assigned."))
 			};
 		}
 

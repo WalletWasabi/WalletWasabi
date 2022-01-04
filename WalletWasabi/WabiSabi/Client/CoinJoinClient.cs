@@ -58,7 +58,7 @@ namespace WalletWasabi.WabiSabi.Client
 			// This should be roughly log(#inputs), it could be set slightly
 			// higher if more inputs are observed but that involves trusting the
 			// coordinator with those values. Therefore, conservatively set this
-			// so that a maximum of 5 blame rounds are executed.
+			// so that a maximum of 6 blame rounds are executed.
 			// FIXME should smaller rounds abort earlier?
 			var tryLimit = 6;
 

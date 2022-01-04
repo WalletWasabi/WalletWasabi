@@ -129,8 +129,8 @@ namespace WalletWasabi.Tests.Helpers
 			return CreateAlice(key, amount, round);
 		}
 
-		public static Alice CreateAlice(Key key, Round round) =>
-			CreateAlice(key, Money.Coins(1), round);
+		public static Alice CreateAlice(Key key, Round round)
+			=> CreateAlice(key, Money.Coins(1), round);
 
 		public static Alice CreateAlice(Round round)
 		{

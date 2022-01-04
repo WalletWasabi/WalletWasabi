@@ -141,7 +141,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			// Inputs request tests
 			var inputsRequest = new InputsRequest4
 			{
-				BlindedOutputScripts = null!, // null is not allowed and that's what want here: try with invalid requests.
+				BlindedOutputScripts = null!, // null is not allowed and that's what we want here: try with invalid requests.
 				ChangeOutputAddress = null!,
 				Inputs = null!,
 			};
