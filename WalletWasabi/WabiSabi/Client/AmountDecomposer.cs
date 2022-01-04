@@ -154,32 +154,50 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			var histogram = GetDenominationFrequencies(othersInputCoins.Concat(myInputCoins));
 
+			// Filter out and order denominations those have occured in the frequency table at least twice.
 			var denoms = histogram
 				.Where(x => x.Value > 1)
 				.OrderByDescending(x => x.Key)
 				.Select(x => x.Key)
 				.ToArray();
 
-			var inputs = myInputCoins.Select(x => x.EffectiveValue(FeeRate)).ToImmutableArray();
-			var totalInput = inputs.Sum();
-			var remaining = totalInput;
+			var myInputs = myInputCoins.Select(x => x.EffectiveValue(FeeRate)).ToArray();
+			var myInputSum = myInputs.Sum();
+			var remaining = myInputSum;
 			var remainingVsize = AvailableVsize;
 
+			var setCandidates = new Dictionary<ulong, (IEnumerable<Money> Decomp, Money Cost)>();
+			var random = new Random();
+
+			// How many times can we participate with the same denomination.
+			var maxDenomUsage = random.Next(2, 8);
+
+			// Create the most naive decomposition for starter.
 			List<Money> naiveSet = new();
 			bool end = false;
-			foreach (var denom in denoms.Where(x => x <= remaining))
+			foreach (var denomPlusFee in denoms.Where(x => x <= remaining))
 			{
-				while (denom <= remaining)
+				var denomUsage = 0;
+				while (denomPlusFee <= remaining)
 				{
+					// We can only let this go forward if at least 2 output can be added (denom + potential change)
 					if (remaining < MinAllowedOutputAmountPlusFee || remainingVsize < 2 * OutputSize)
 					{
 						end = true;
 						break;
 					}
 
-					naiveSet.Add(denom - OutputFee);
-					remaining -= denom;
+					naiveSet.Add(denomPlusFee);
+					remaining -= denomPlusFee;
 					remainingVsize -= OutputSize;
+					denomUsage++;
+
+					// If we reached the limit, the rest will be change.
+					if (denomUsage >= maxDenomUsage)
+					{
+						end = true;
+						break;
+					}
 				}
 
 				if (end)
@@ -188,19 +206,32 @@ namespace WalletWasabi.WabiSabi.Client
 				}
 			}
 
+			var loss = 0UL;
 			if (remaining >= MinAllowedOutputAmountPlusFee)
 			{
-				naiveSet.Add(remaining - OutputFee);
+				naiveSet.Add(remaining);
+			}
+			else
+			{
+				// This goes to miners.
+				loss = remaining;
 			}
 
-			var setCandidates = new Dictionary<int, IEnumerable<Money>>
+			// This can happen when smallest denom is larger than the input sum.
+			if (naiveSet.Count == 0)
 			{
-				{ naiveSet.Count, naiveSet }
-			};
+				naiveSet.Add(remaining);
+			}
+
+			setCandidates.Add(
+				naiveSet.OrderBy(x => x).Aggregate((x, y) => 31 * x + y), // Create hash to ensure uniqueness.
+				(naiveSet, loss + (ulong)naiveSet.Count * OutputFee)); // The cost is the remaining + output cost.
+
+			// Create many decompositions for optimization.
 			var before = DateTimeOffset.UtcNow;
 			do
 			{
-				remaining = inputs.Sum();
+				remaining = myInputs.Sum();
 				remainingVsize = AvailableVsize;
 				var currSet = new List<Money>();
 				do
@@ -253,11 +284,11 @@ namespace WalletWasabi.WabiSabi.Client
 			var finalCandidate = setCandidates.Where(x => x.Key == selectedCount).RandomElement().Value;
 
 			var totalOutputAmount = finalCandidate.Sum(x => x + OutputFee);
-			if (totalOutputAmount > totalInput)
+			if (totalOutputAmount > myInputSum)
 			{
 				throw new InvalidOperationException("The decomposer is creating money. Aborting.");
 			}
-			if (totalOutputAmount + MinAllowedOutputAmountPlusFee < totalInput)
+			if (totalOutputAmount + MinAllowedOutputAmountPlusFee < myInputSum)
 			{
 				throw new InvalidOperationException("The decomposer is losing money. Aborting.");
 			}
