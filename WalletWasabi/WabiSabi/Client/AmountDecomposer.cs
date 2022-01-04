@@ -70,8 +70,10 @@ namespace WalletWasabi.WabiSabi.Client
 				naiveSet.Add(remaining - OutputFee);
 			}
 
-			var setCandidates = new Dictionary<int, IEnumerable<Money>>();
-			setCandidates.Add(naiveSet.Count, naiveSet);
+			var setCandidates = new Dictionary<int, IEnumerable<Money>>
+			{
+				{ naiveSet.Count, naiveSet }
+			};
 			var before = DateTimeOffset.UtcNow;
 			do
 			{
@@ -135,7 +137,7 @@ namespace WalletWasabi.WabiSabi.Client
 			var totalOutputVsize = finalCandidate.Count() * OutputSize;
 			if (totalOutputVsize > AvailableVsize)
 			{
-				throw new InvalidOperationException("The decomposer created more ouputs than that it can. Aborting.");
+				throw new InvalidOperationException("The decomposer created more outputs than it can. Aborting.");
 			}
 			return finalCandidate;
 		}

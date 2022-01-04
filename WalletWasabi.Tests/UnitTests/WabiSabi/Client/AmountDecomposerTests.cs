@@ -41,7 +41,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var totalEffectiveCost = outputValues.Count() * feePerOutput;
 
 			Assert.InRange(outputValues.Count(), 1, maxAvailableOutputs);
-			Assert.True(totalEffectiveValue - totalEffectiveCost -minOutputAmount <= outputValues.Sum());
+			Assert.True(totalEffectiveValue - totalEffectiveCost - minOutputAmount <= outputValues.Sum());
 			Assert.All(outputValues, v => Assert.InRange(v.Satoshi, minOutputAmount, totalEffectiveValue));
 		}
 
