@@ -150,9 +150,9 @@ namespace WalletWasabi.WabiSabi.Client
 			return denominations.OrderByDescending(x => x);
 		}
 
-		public IEnumerable<Money> Decompose(IEnumerable<Coin> myInputCoins, IEnumerable<Coin> allInputCoins)
+		public IEnumerable<Money> Decompose(IEnumerable<Coin> myInputCoins, IEnumerable<Coin> othersInputCoins)
 		{
-			var histogram = GetDenominationFrequency(allInputCoins);
+			var histogram = GetDenominationFrequencies(othersInputCoins.Concat(myInputCoins));
 
 			var denoms = histogram
 				.Where(x => x.Value > 1)
@@ -270,27 +270,30 @@ namespace WalletWasabi.WabiSabi.Client
 			return finalCandidate;
 		}
 
-		private Dictionary<ulong, long> GetDenominationFrequency(IEnumerable<Coin> allInputCoins)
+		/// <returns>Pair of denomination and the number of times we found it in a breakdown.</returns>
+		private Dictionary<ulong, long> GetDenominationFrequencies(IEnumerable<Coin> inputs)
 		{
-			var secondLargestInput = allInputCoins.OrderByDescending(x => x.Amount).Skip(1).FirstOrDefault();
-			IEnumerable<ulong> demonsForBreakDown = DenominationsPlusFees.Where(x => secondLargestInput is null || x <= (ulong)secondLargestInput.EffectiveValue(FeeRate).Satoshi);
+			var secondLargestInput = inputs.OrderByDescending(x => x.Amount).Skip(1).First();
+			IEnumerable<ulong> demonsForBreakDown = DenominationsPlusFees.Where(x => x <= (ulong)secondLargestInput.EffectiveValue(FeeRate).Satoshi);
 
-			Dictionary<ulong, long> denomProbabilities = new();
-
-			foreach (var input in allInputCoins)
+			Dictionary<ulong, long> denomFrequencies = new();
+			foreach (var input in inputs)
 			{
 				foreach (var denom in BreakDown(input, demonsForBreakDown))
 				{
-					if (!denomProbabilities.TryAdd(denom, 1))
+					if (!denomFrequencies.TryAdd(denom, 1))
 					{
-						denomProbabilities[denom]++;
+						denomFrequencies[denom]++;
 					}
 				}
 			}
 
-			return denomProbabilities;
+			return denomFrequencies;
 		}
 
+		/// <summary>
+		/// Greedily decomposes an amount to the given denominations.
+		/// </summary>
 		private IEnumerable<ulong> BreakDown(Coin coin, IEnumerable<ulong> denominations)
 		{
 			var remaining = coin.EffectiveValue(FeeRate);

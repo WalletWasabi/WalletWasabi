@@ -110,8 +110,8 @@ namespace WalletWasabi.WabiSabi.Client
 				roundState = await RoundStatusUpdater.CreateRoundAwaiter(rs => rs.Id == roundState.Id, cancellationToken).ConfigureAwait(false);
 				constructionState = roundState.Assert<ConstructionState>();
 				AmountDecomposer amountDecomposer = new(roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min, Constants.P2WPKHOutputSizeInBytes, (int)availableVsize);
-				var allCoins = constructionState.Inputs.Except(registeredCoins);
-				var outputValues = amountDecomposer.Decompose(registeredCoins, allCoins);
+				var theirCoins = constructionState.Inputs.Except(registeredCoins);
+				var outputValues = amountDecomposer.Decompose(registeredCoins, theirCoins);
 
 				// Get all locked internal keys we have and assert we have enough.
 				Keymanager.AssertLockedInternalKeysIndexed(howMany: outputValues.Count());
@@ -203,7 +203,7 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 
 			// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to be registered.
-			var remainingTimeForRegistration = ( roundState.InputRegistrationEnd - DateTimeOffset.UtcNow ) - TimeSpan.FromSeconds(15);
+			var remainingTimeForRegistration = (roundState.InputRegistrationEnd - DateTimeOffset.UtcNow) - TimeSpan.FromSeconds(15);
 
 			Logger.LogDebug($"Round ({roundState.Id}): Input registration started, it will end in {remainingTimeForRegistration.TotalMinutes} minutes.");
 
