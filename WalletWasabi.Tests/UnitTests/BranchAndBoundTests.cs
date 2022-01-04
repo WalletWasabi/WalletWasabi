@@ -98,7 +98,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			for (int i = 0; i < 1000; i++)
 			{
-				availableCoins.Add(BitcoinFactory.CreateSmartCoin(hdPubKey, (ulong)Random.Next((int)Money.Satoshis(1000), (int)Money.Satoshis(99999999))));
+				availableCoins.Add(BitcoinFactory.CreateSmartCoin(hdPubKey, amount: (ulong)Random.Next(1000, 99999999)));
 			}
 			return availableCoins;
 		}
