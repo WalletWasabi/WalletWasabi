@@ -4,6 +4,9 @@ using System.Linq;
 using NBitcoin;
 using WalletWasabi.WabiSabi.Models.Decomposition;
 
+/// <summary>
+/// Pull requests to this file must be up to date with this simulation to ensure correctness: https://github.com/nopara73/Sake
+/// </summary>
 namespace WalletWasabi.WabiSabi.Client
 {
 	public class AmountDecomposer
@@ -122,7 +125,7 @@ namespace WalletWasabi.WabiSabi.Client
 				}
 			}
 
-			var finalCandidate = setCandidates.Where(x=>x.Key == selectedCount).RandomElement().Value;
+			var finalCandidate = setCandidates.Where(x => x.Key == selectedCount).RandomElement().Value;
 
 			var totalOutputAmount = finalCandidate.Sum(x => x + OutputFee);
 			if (totalOutputAmount > totalInput)
