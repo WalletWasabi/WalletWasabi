@@ -23,15 +23,18 @@
     <StackPanel Spacing="5">
       <Button Command="{Binding NextCommand}"
               CommandParameter="{x:Static dialog:InsufficientBalanceUserDecision.SendAnyway}"
-              Content="Send anyway" />
+              Content="Send anyway"
+              IsVisible="{Binding EnableSendAnyway}" />
 
       <Button Command="{Binding NextCommand}"
               CommandParameter="{x:Static dialog:InsufficientBalanceUserDecision.SelectMoreCoin}"
-              Content="Select more coin" />
+              Content="Select more coin"
+              IsVisible="{Binding EnableSelectMoreCoin}" />
 
       <Button Command="{Binding NextCommand}"
               CommandParameter="{x:Static dialog:InsufficientBalanceUserDecision.SubtractTransactionFee}"
-              Content="Subtract fee" />
+              Content="Subtract fee"
+              IsVisible="{Binding EnableSubtractFee}" />
 
       <Button Command="{Binding NextCommand}"
               CommandParameter="{x:Static dialog:InsufficientBalanceUserDecision.Cancel}"
