@@ -17,7 +17,8 @@ namespace WalletWasabi.Tests.UnitTests
 			var serialized = JsonConvert.SerializeObject(resp);
 			var deserialized = JsonConvert.DeserializeObject<InputsResponse>(serialized);
 
-			Assert.Equal(resp.RoundId, deserialized.RoundId);
+			Assert.NotNull(deserialized);
+			Assert.Equal(resp.RoundId, deserialized!.RoundId);
 			Assert.Equal(resp.UniqueId, deserialized.UniqueId);
 		}
 	}

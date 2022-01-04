@@ -103,6 +103,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var testSet = JsonConvert.DeserializeObject<StrobeTestSet>(testVectorFile);
 
 			Assert.NotNull(testSet);
+
 			// return all test vectors except the one for streaming because it is not implemented.
 			foreach (var vector in testSet!.TestVectors.Where(x => !x.Name.Contains("streaming")))
 			{

@@ -850,7 +850,10 @@ namespace WalletWasabi.Tests.RegressionTests
 				await aliceClient.PostSignaturesAsync(witnesses);
 			}
 
-			((CachedRpcClient)rpc)?.Cache.Remove("GetRawMempoolAsync");
+			if (rpc is CachedRpcClient cachedRpc)
+			{
+				cachedRpc.Cache.Remove("GetRawMempoolAsync");
+			}
 
 			uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
 			Assert.Contains(transactionId, mempooltxs);

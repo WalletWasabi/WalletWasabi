@@ -29,10 +29,11 @@ namespace WalletWasabi.Tests.UnitTests
 			var serialized = JsonConvert.SerializeObject(allFee);
 			var deserialized = JsonConvert.DeserializeObject<AllFeeEstimate>(serialized);
 
-			Assert.Equal(estimations[2], deserialized.Estimations[2]);
-			Assert.Equal(estimations[3], deserialized.Estimations[3]);
-			Assert.Equal(estimations[19], deserialized.Estimations[36]);
-			Assert.Equal(EstimateSmartFeeMode.Conservative, deserialized.Type);
+			Assert.NotNull(deserialized);
+			Assert.Equal(estimations[2], deserialized!.Estimations[2]);
+			Assert.Equal(estimations[3], deserialized!.Estimations[3]);
+			Assert.Equal(estimations[19], deserialized!.Estimations[36]);
+			Assert.Equal(EstimateSmartFeeMode.Conservative, deserialized!.Type);
 		}
 
 		[Fact]
