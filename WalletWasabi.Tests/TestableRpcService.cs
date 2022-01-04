@@ -33,7 +33,7 @@ namespace WalletWasabi.Tests
 		{
 			Unused(unit);
 			Unused(ct);
-			await Task.FromResult((JsonRpcResponse)null);
+			await Task.FromResult<JsonRpcResponse>(null!);
 		}
 
 		private void Unused(object item)
