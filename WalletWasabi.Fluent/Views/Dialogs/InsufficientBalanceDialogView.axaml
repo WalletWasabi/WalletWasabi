@@ -4,41 +4,54 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:dialog="using:WalletWasabi.Fluent.ViewModels.Dialogs"
+             xmlns:models="clr-namespace:WalletWasabi.Fluent.Models"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="dialog:InsufficientBalanceDialogViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.InsufficientBalanceDialogView">
-  <c:ContentArea Title="{Binding Title}">
-    <!-- <c:QuestionControl YesCommand="{Binding NextCommand}" -->
-    <!--                    NoCommand="{Binding CancelCommand}" -->
-    <!--                    HighlightButton="YesButton"> -->
-    <!--   <c:QuestionControl.IconContent> -->
-    <!--     <Viewbox MaxHeight="150" Margin="40"> -->
-    <!--       <PathIcon Data="{StaticResource warning_regular}" Opacity="0.6"/> -->
-    <!--     </Viewbox> -->
-    <!--   </c:QuestionControl.IconContent> -->
-    <!--   <TextBlock Text="{Binding Question}" TextWrapping="Wrap" TextAlignment="Center"/> -->
-    <!-- </c:QuestionControl> -->
+  <c:ContentArea Title="{Binding Title}"
+                 EnableBack="{Binding EnableBack}"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <DockPanel>
+      <StackPanel Spacing="10" Orientation="Horizontal" HorizontalAlignment="Center" DockPanel.Dock="Bottom">
+        <StackPanel.Styles>
+          <Style Selector="Button">
+            <Setter Property="Width" Value="150" />
+            <Setter Property="Height" Value="40" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="FontSize" Value="{StaticResource FontSizeH6}" />
+            <Setter Property="Padding" Value="0" />
+          </Style>
+          <Style Selector="Button:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource ActionButtonPressedBackgroundColor}" />
+          </Style>
+          <Style Selector="Button:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource ActionButtonPointerOverBackgroundColor}" />
+          </Style>
+        </StackPanel.Styles>
+        <Button Command="{Binding NextCommand}"
+                CommandParameter="{x:Static models:InsufficientBalanceUserDecision.SendAnyway}"
+                Content="Send anyway"
+                IsVisible="{Binding EnableSendAnyway}" />
 
-    <StackPanel Spacing="5">
-      <Button Command="{Binding NextCommand}"
-              CommandParameter="{x:Static dialog:InsufficientBalanceUserDecision.SendAnyway}"
-              Content="Send anyway"
-              IsVisible="{Binding EnableSendAnyway}" />
+        <Button Command="{Binding NextCommand}"
+                CommandParameter="{x:Static models:InsufficientBalanceUserDecision.SelectMoreCoin}"
+                Content="Select more coin"
+                IsVisible="{Binding EnableSelectMoreCoin}" />
 
-      <Button Command="{Binding NextCommand}"
-              CommandParameter="{x:Static dialog:InsufficientBalanceUserDecision.SelectMoreCoin}"
-              Content="Select more coin"
-              IsVisible="{Binding EnableSelectMoreCoin}" />
+        <Button Command="{Binding NextCommand}"
+                CommandParameter="{x:Static models:InsufficientBalanceUserDecision.SubtractTransactionFee}"
+                Content="Subtract fee"
+                IsVisible="{Binding EnableSubtractFee}" />
+      </StackPanel>
 
-      <Button Command="{Binding NextCommand}"
-              CommandParameter="{x:Static dialog:InsufficientBalanceUserDecision.SubtractTransactionFee}"
-              Content="Subtract fee"
-              IsVisible="{Binding EnableSubtractFee}" />
+      <TextBlock Text="{Binding Question}" TextWrapping="Wrap" Margin="10 0 10 40" TextAlignment="Center" DockPanel.Dock="Bottom" />
 
-      <Button Command="{Binding NextCommand}"
-              CommandParameter="{x:Static dialog:InsufficientBalanceUserDecision.Cancel}"
-              Content="Cancel" />
-    </StackPanel>
+      <Viewbox MaxHeight="150" Margin="40" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <PathIcon Data="{StaticResource warning_regular}" Opacity="0.6" />
+      </Viewbox>
+
+    </DockPanel>
   </c:ContentArea>
 </UserControl>

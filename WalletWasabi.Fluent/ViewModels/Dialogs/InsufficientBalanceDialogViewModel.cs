@@ -4,14 +4,6 @@ using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
-	public enum InsufficientBalanceUserDecision
-	{
-		Cancel,
-		SendAnyway,
-		SelectMoreCoin,
-		SubtractTransactionFee
-	}
-
 	[NavigationMetaData(Title = "Insufficient Balance")]
 	public partial class InsufficientBalanceDialogViewModel : DialogViewModelBase<InsufficientBalanceUserDecision>
 	{
@@ -25,6 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			NextCommand = ReactiveCommand.Create<InsufficientBalanceUserDecision>(decision => Close(result: decision));
 
 			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
+			EnableBack = true;
 		}
 
 		public bool EnableSendAnyway { get; }
