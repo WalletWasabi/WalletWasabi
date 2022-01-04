@@ -284,19 +284,26 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 			while ((DateTimeOffset.UtcNow - before).TotalMilliseconds <= 500);
 
-			var rand = new Random();
-			var counts = setCandidates.Select(x => x.Key).Distinct().OrderBy(x => x);
-			var selectedCount = counts.Max();
-			foreach (var count in counts)
+			var denomHashSet = denoms.ToHashSet();
+			var finalCandidates = setCandidates.Select(x => x.Value).ToList();
+			finalCandidates.Shuffle();
+
+			var orderedCandidates = finalCandidates
+				.OrderBy(x => x.Cost) // Less cost is better.
+				.ThenBy(x => x.Decomp.All(x => denomHashSet.Contains(x)) ? 0 : 1) // Prefer no change.
+				.Select(x => x).ToList();
+
+			var finalCandidate = orderedCandidates.First().Decomp;
+			foreach (var candidate in orderedCandidates)
 			{
-				if (rand.NextDouble() < 0.3)
+				if (random.NextDouble() < 0.5)
 				{
-					selectedCount = count;
+					finalCandidate = candidate.Decomp;
 					break;
 				}
 			}
 
-			var finalCandidate = setCandidates.Where(x => x.Key == selectedCount).RandomElement().Value;
+			finalCandidate = finalCandidate.Select(x => x - OutputFee);
 
 			var totalOutputAmount = finalCandidate.Sum(x => x + OutputFee);
 			if (totalOutputAmount > myInputSum)
