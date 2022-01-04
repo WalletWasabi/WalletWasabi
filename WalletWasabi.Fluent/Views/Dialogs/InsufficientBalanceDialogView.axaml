@@ -9,15 +9,33 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.InsufficientBalanceDialogView">
   <c:ContentArea Title="{Binding Title}">
-    <c:QuestionControl YesCommand="{Binding NextCommand}"
-                       NoCommand="{Binding CancelCommand}"
-                       HighlightButton="YesButton">
-      <c:QuestionControl.IconContent>
-        <Viewbox MaxHeight="150" Margin="40">
-          <PathIcon Data="{StaticResource warning_regular}" Opacity="0.6"/>
-        </Viewbox>
-      </c:QuestionControl.IconContent>
-      <TextBlock Text="{Binding Question}" TextWrapping="Wrap" TextAlignment="Center"/>
-    </c:QuestionControl>
+    <!-- <c:QuestionControl YesCommand="{Binding NextCommand}" -->
+    <!--                    NoCommand="{Binding CancelCommand}" -->
+    <!--                    HighlightButton="YesButton"> -->
+    <!--   <c:QuestionControl.IconContent> -->
+    <!--     <Viewbox MaxHeight="150" Margin="40"> -->
+    <!--       <PathIcon Data="{StaticResource warning_regular}" Opacity="0.6"/> -->
+    <!--     </Viewbox> -->
+    <!--   </c:QuestionControl.IconContent> -->
+    <!--   <TextBlock Text="{Binding Question}" TextWrapping="Wrap" TextAlignment="Center"/> -->
+    <!-- </c:QuestionControl> -->
+
+    <StackPanel Spacing="5">
+      <Button Command="{Binding NextCommand}"
+              CommandParameter="{x:Static dialog:InsufficientBalanceUserDecision.SendAnyway}"
+              Content="Send anyway" />
+
+      <Button Command="{Binding NextCommand}"
+              CommandParameter="{x:Static dialog:InsufficientBalanceUserDecision.SelectMoreCoin}"
+              Content="Select more coin" />
+
+      <Button Command="{Binding NextCommand}"
+              CommandParameter="{x:Static dialog:InsufficientBalanceUserDecision.SubtractTransactionFee}"
+              Content="Subtract fee" />
+
+      <Button Command="{Binding NextCommand}"
+              CommandParameter="{x:Static dialog:InsufficientBalanceUserDecision.Cancel}"
+              Content="Cancel" />
+    </StackPanel>
   </c:ContentArea>
 </UserControl>

@@ -318,6 +318,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			var maxPossibleFee = ex.Actual - transactionInfo.Amount;
 			var percentage = (decimal)selectedFee.Satoshi / maxPossibleFee.Satoshi * 100;
 
+			var tmpFeeRate = transactionInfo.FeeRate;
+			var tmpConfirmationTime = transactionInfo.ConfirmationTimeSpan;
+			var tmpMaximumPossibleFeeRate = transactionInfo.MaximumPossibleFeeRate;
+
 			var settingMaxFeeResult = TrySetMaximumPossibleFee(percentage, _wallet, transactionInfo);
 
 			if (!settingMaxFeeResult)
@@ -331,6 +335,39 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			if (percentage <= PercentageThreshold)
 			{
 				return await BuildTransactionAsync();
+			}
+
+			var userDecision = await NavigateDialogAsync(new InsufficientBalanceDialogViewModel(), NavigationTarget.DialogScreen);
+
+			switch (userDecision.Result)
+			{
+				case InsufficientBalanceUserDecision.SendAnyway:
+					return await BuildTransactionAsync();
+
+				case InsufficientBalanceUserDecision.SelectMoreCoin:
+					var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(wallet, transactionInfo, isSilent: false), NavigationTarget.DialogScreen);
+
+					if (privacyControlDialogResult.Result is { })
+					{
+						transactionInfo.FeeRate = tmpFeeRate;
+						transactionInfo.ConfirmationTimeSpan = tmpConfirmationTime;
+						transactionInfo.MaximumPossibleFeeRate = tmpMaximumPossibleFeeRate;
+						transactionInfo.Coins = privacyControlDialogResult.Result;
+
+						return await BuildTransactionAsync();
+					}
+
+					return null;
+
+				case InsufficientBalanceUserDecision.SubtractTransactionFee:
+					transactionInfo.FeeRate = tmpFeeRate;
+					transactionInfo.ConfirmationTimeSpan = tmpConfirmationTime;
+					transactionInfo.MaximumPossibleFeeRate = tmpMaximumPossibleFeeRate;
+					transactionInfo.SubtractFee = true;
+					return await BuildTransactionAsync();
+
+				default:
+					return null;
 			}
 
 			// var dialog = new InsufficientBalanceDialogViewModel(transactionInfo.IsPrivate
