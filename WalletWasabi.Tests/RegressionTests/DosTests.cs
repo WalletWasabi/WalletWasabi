@@ -125,7 +125,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			foreach (var user in inputRegistrationUsers)
 			{
-				aliceClients.Add(AliceClientBase.CreateNewAsync(round.RoundId, new[] { user.activeOutputAddress }, new[] { round.MixingLevels.GetBaseLevel().SignerKey.PubKey }, new[] { user.requester }, network, user.changeOutputAddress, new[] { user.blinded }, user.inputProofModels, BackendHttpClient));
+				aliceClients.Add(AliceClientBase.CreateNewAsync(round!.RoundId, new[] { user.activeOutputAddress }, new[] { round!.MixingLevels.GetBaseLevel().SignerKey.PubKey }, new[] { user.requester }, network, user.changeOutputAddress, new[] { user.blinded }, user.inputProofModels, BackendHttpClient));
 			}
 
 			long roundId = 0;
@@ -147,7 +147,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				}
 
 				// Because it's a value tuple.
-				users.Add((user.requester, user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, aliceClient, null));
+				users.Add((user.requester, user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, aliceClient, null!));
 			}
 
 			Assert.Equal(users.Count, roundConfig.AnonymitySet);
@@ -218,7 +218,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				}
 
 				// Because it's a value tuple.
-				users.Add((user.requester, user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, aliceClient, null));
+				users.Add((user.requester, user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, aliceClient, null!));
 			}
 
 			Assert.Equal(users.Count, roundConfig.AnonymitySet);
@@ -306,7 +306,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			foreach (var registerRequest in registerRequests)
 			{
-				await AliceClientBase.CreateNewAsync(round!.RoundId, aliceClientBackup.RegisteredAddresses, round.MixingLevels.GetAllLevels().Select(x => x.SignerKey.PubKey), aliceClientBackup.Requesters, network, registerRequest.changeOutputAddress, new[] { registerRequest.blindedData }, registerRequest.inputsProofs, BackendHttpClient);
+				await AliceClientBase.CreateNewAsync(round!.RoundId, aliceClientBackup!.RegisteredAddresses, round.MixingLevels.GetAllLevels().Select(x => x.SignerKey.PubKey), aliceClientBackup.Requesters, network, registerRequest.changeOutputAddress, new[] { registerRequest.blindedData }, registerRequest.inputsProofs, BackendHttpClient);
 			}
 
 			await WaitForTimeoutAsync();
