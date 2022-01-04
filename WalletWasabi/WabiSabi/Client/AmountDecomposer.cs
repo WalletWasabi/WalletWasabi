@@ -231,13 +231,13 @@ namespace WalletWasabi.WabiSabi.Client
 			var before = DateTimeOffset.UtcNow;
 			do
 			{
+				var currSet = new List<Money>();
 				remaining = myInputs.Sum();
 				remainingVsize = AvailableVsize;
-				var currSet = new List<Money>();
 				do
 				{
 					var denomPlusFees = denoms.Where(x => x <= remaining && x >= (remaining / 3)).ToList();
-					if (denomPlusFees.Any())
+					if (!denomPlusFees.Any())
 					{
 						break;
 					}
@@ -250,24 +250,39 @@ namespace WalletWasabi.WabiSabi.Client
 
 					if (denomPlusFee <= remaining)
 					{
-						currSet.Add(denomPlusFee - OutputFee);
+						currSet.Add(denomPlusFee);
 						remaining -= denomPlusFee;
 						remainingVsize -= OutputSize;
 					}
 				}
 				while (currSet.Count <= naiveSet.Count || currSet.Count <= 3);
 
+				// If currSet.Count <= 3 then we still generate sets to add ambiguity.
 				if (currSet.Count <= naiveSet.Count || currSet.Count <= 3)
 				{
+					loss = 0;
 					if (remaining >= MinAllowedOutputAmountPlusFee)
 					{
-						currSet.Add(remaining - OutputFee);
+						currSet.Add(remaining);
+					}
+					else
+					{
+						loss = remaining;
 					}
 
-					setCandidates.TryAdd(currSet.Count, currSet);
+					// When not even the minimum denom is reached.
+					if (currSet.Count == 0)
+					{
+						currSet.Add(remaining);
+						loss = 0;
+					}
+
+					setCandidates.TryAdd(
+						currSet.OrderBy(x => x).Aggregate((x, y) => 31 * x + y),
+						(currSet, loss + (ulong)currSet.Count * OutputFee));
 				}
 			}
-			while ((DateTimeOffset.UtcNow - before).TotalMilliseconds <= 100);
+			while ((DateTimeOffset.UtcNow - before).TotalMilliseconds <= 500);
 
 			var rand = new Random();
 			var counts = setCandidates.Select(x => x.Key).Distinct().OrderBy(x => x);
