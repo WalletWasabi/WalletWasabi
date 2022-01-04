@@ -318,11 +318,20 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			var maxPossibleFee = ex.Actual - transactionInfo.Amount;
 			var percentage = (decimal)selectedFee.Satoshi / maxPossibleFee.Satoshi * 100;
 
-			if (percentage <= PercentageThreshold && TrySetMaximumPossibleFee(percentage, _wallet, transactionInfo))
+			var settingMaxFeeResult = TrySetMaximumPossibleFee(percentage, _wallet, transactionInfo);
+
+			if (!settingMaxFeeResult)
+			{
+				// TODO: add message.
+				// Subtract fee?
+				await ShowErrorAsync("Transaction Building", "", "Wasabi was unable to create your transaction.");
+				return null;
+			}
+
+			if (percentage <= PercentageThreshold)
 			{
 				return await BuildTransactionAsync();
 			}
-
 
 			// var dialog = new InsufficientBalanceDialogViewModel(transactionInfo.IsPrivate
 			// 	? BalanceType.Private
