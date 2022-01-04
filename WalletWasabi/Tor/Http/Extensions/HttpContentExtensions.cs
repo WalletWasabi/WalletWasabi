@@ -12,7 +12,7 @@ namespace WalletWasabi.Tor.Http.Extensions
 		{
 			if (me is null)
 			{
-				return default;
+				throw new ArgumentNullException(nameof(me));
 			}
 
 			var settings = new JsonSerializerSettings
@@ -20,7 +20,8 @@ namespace WalletWasabi.Tor.Http.Extensions
 				Converters = new[] { new RoundStateResponseJsonConverter(WasabiClient.ApiVersion) }
 			};
 			var jsonString = await me.ReadAsStringAsync().ConfigureAwait(false);
-			return JsonConvert.DeserializeObject<T>(jsonString, settings);
+			return JsonConvert.DeserializeObject<T>(jsonString, settings)
+				?? throw new InvalidOperationException($"Deserialization failed. Received json: {jsonString}");
 		}
 	}
 }

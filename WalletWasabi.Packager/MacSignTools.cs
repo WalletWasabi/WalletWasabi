@@ -53,10 +53,19 @@ namespace WalletWasabi.Packager
 
 			Console.WriteLine("Phase: creating the working directory.");
 
-			Console.WriteLine("Enter appleId (email):");
-			var appleId = Console.ReadLine();
-			Console.WriteLine("Enter password:");
-			var password = Console.ReadLine();
+			string? appleId = null;
+			string? password = null;
+			do
+			{
+				Console.WriteLine("Enter appleId (email):");
+				appleId = Console.ReadLine();
+			} while (string.IsNullOrWhiteSpace(appleId));
+
+			do
+			{
+				Console.WriteLine("Enter password:");
+				password = Console.ReadLine();
+			} while (string.IsNullOrWhiteSpace(password));
 
 			if (Directory.Exists(workingDir))
 			{
@@ -80,7 +89,7 @@ namespace WalletWasabi.Packager
 			Console.WriteLine("Update the plist file with current information for example with version.");
 
 			var lines = File.ReadAllLines(infoFilePath);
-			string bundleIdentifier = null;
+			string? bundleIdentifier = null;
 
 			for (int i = 0; i < lines.Length; i++)
 			{
@@ -100,6 +109,10 @@ namespace WalletWasabi.Packager
 					bundleIdentifier = lines[i + 1].Trim().Replace("<string>", "").Replace("</string>", "");
 				}
 			}
+			if (string.IsNullOrWhiteSpace(bundleIdentifier))
+			{
+				throw new InvalidDataException("Bundle identifier not found in plist file.");
+			}
 
 			File.Delete(infoFilePath);
 
@@ -112,6 +125,10 @@ namespace WalletWasabi.Packager
 				WorkingDirectory = workingDir
 			}))
 			{
+				if (process is null)
+				{
+					throw new InvalidOperationException("Could not start chmod process.");
+				}
 				process.WaitForExit();
 			}
 
@@ -146,6 +163,10 @@ namespace WalletWasabi.Packager
 					Arguments = $"u+x \"{file}\"",
 					WorkingDirectory = workingDir
 				});
+				if (process is null)
+				{
+					throw new InvalidOperationException("Could not start chmod process.");
+				}
 				process.WaitForExit();
 			}
 
@@ -165,6 +186,10 @@ namespace WalletWasabi.Packager
 				WorkingDirectory = workingDir
 			}))
 			{
+				if (process is null)
+				{
+					throw new InvalidOperationException("Could not start ditto process.");
+				}
 				process.WaitForExit();
 			}
 
@@ -179,6 +204,10 @@ namespace WalletWasabi.Packager
 				RedirectStandardError = true
 			}))
 			{
+				if (process is null)
+				{
+					throw new InvalidOperationException("Could not start spctl process.");
+				}
 				process.WaitForExit();
 				string result = process.StandardError.ReadToEnd();
 				if (!result.Contains(": accepted"))
@@ -210,6 +239,10 @@ namespace WalletWasabi.Packager
 				WorkingDirectory = dmgPath
 			}))
 			{
+				if (process is null)
+				{
+					throw new InvalidOperationException("Could not start ln process.");
+				}
 				process.WaitForExit();
 			}
 
@@ -232,6 +265,10 @@ namespace WalletWasabi.Packager
 				WorkingDirectory = dmgPath
 			}))
 			{
+				if (process is null)
+				{
+					throw new InvalidOperationException("Could not start hdiutil process.");
+				}
 				process.WaitForExit();
 			}
 
@@ -252,6 +289,10 @@ namespace WalletWasabi.Packager
 				WorkingDirectory = dmgPath
 			}))
 			{
+				if (process is null)
+				{
+					throw new InvalidOperationException("Could not start hdiutil process.");
+				}
 				process.WaitForExit();
 			}
 
@@ -277,6 +318,10 @@ namespace WalletWasabi.Packager
 				RedirectStandardError = true
 			}))
 			{
+				if (process is null)
+				{
+					throw new InvalidOperationException("Could not start spctl process.");
+				}
 				process.WaitForExit();
 				string result = process.StandardError.ReadToEnd();
 				if (!result.Contains(": accepted"))
@@ -293,7 +338,7 @@ namespace WalletWasabi.Packager
 
 		private static void Notarize(string appleId, string password, string filePath, string bundleIdentifier)
 		{
-			string uploadId = null;
+			string? uploadId = null;
 
 			Console.WriteLine("Start notarizing, uploading file.");
 
@@ -304,6 +349,10 @@ namespace WalletWasabi.Packager
 				RedirectStandardOutput = true,
 			}))
 			{
+				if (process is null)
+				{
+					throw new InvalidOperationException("Could not start xcrun process.");
+				}
 				process.WaitForExit();
 				string result = process.StandardOutput.ReadToEnd();
 
@@ -351,6 +400,10 @@ namespace WalletWasabi.Packager
 					RedirectStandardError = true,
 					RedirectStandardOutput = true,
 				});
+				if (process is null)
+				{
+					throw new InvalidOperationException("Could not start altool process.");
+				}
 				process.WaitForExit();
 				string result = $"{process.StandardError.ReadToEnd()} {process.StandardOutput.ReadToEnd()}";
 				if (result.Contains("Status Message: Package Approved"))
@@ -379,6 +432,10 @@ namespace WalletWasabi.Packager
 				FileName = "xcrun",
 				Arguments = $"stapler staple \"{filePath}\"",
 			});
+			if (process is null)
+			{
+				throw new InvalidOperationException("Could not start stapler process.");
+			}
 			process.WaitForExit();
 		}
 
@@ -390,6 +447,10 @@ namespace WalletWasabi.Packager
 				Arguments = $"-R ugo+rwx \"{path}\"",
 			}))
 			{
+				if (process is null)
+				{
+					throw new InvalidOperationException("Could not start chmod process.");
+				}
 				process.WaitForExit();
 			}
 
@@ -405,6 +466,10 @@ namespace WalletWasabi.Packager
 				WorkingDirectory = workingDir,
 				RedirectStandardError = true
 			});
+			if (process is null)
+			{
+				throw new InvalidOperationException("Could not start codesign process.");
+			}
 			process.WaitForExit();
 			var result = process.StandardError.ReadToEnd();
 			if (result.Contains("code object is not signed at all"))
@@ -428,6 +493,10 @@ namespace WalletWasabi.Packager
 				Arguments = $"-dv --verbose=4 \"{path}\"",
 				RedirectStandardError = true,
 			});
+			if (process is null)
+			{
+				throw new InvalidOperationException("Could not start codesign process.");
+			}
 			process.WaitForExit();
 			string result = process.StandardError.ReadToEnd();
 			if (!result.Contains("Authority=Developer ID Application: zkSNACKs Ltd."))
@@ -480,7 +549,10 @@ namespace WalletWasabi.Packager
 				RedirectStandardOutput = true,
 				CreateNoWindow = true
 			});
-
+			if (process is null)
+			{
+				throw new InvalidOperationException("Could not start bash process.");
+			}
 			var result = process.StandardOutput.ReadToEnd();
 			process.WaitForExit();
 
