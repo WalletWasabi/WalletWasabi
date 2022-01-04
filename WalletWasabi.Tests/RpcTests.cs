@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using WalletWasabi.Fluent.Rpc;
+using WalletWasabi.Rpc;
 using Xunit;
 
 namespace WalletWasabi.Tests
