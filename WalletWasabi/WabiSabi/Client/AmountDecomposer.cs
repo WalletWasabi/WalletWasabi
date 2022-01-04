@@ -11,7 +11,7 @@ namespace WalletWasabi.WabiSabi.Client
 	public class AmountDecomposer
 	{
 		/// <param name="feeRate">Bitcoin network fee rate the coinjoin is targeting.</param>
-		/// <param name="minAllowedOutputAmount"></param>
+		/// <param name="minAllowedOutputAmount">Minimum output amount that's allowed to be registered.</param>
 		/// <param name="outputSize">Size of an output.</param>
 		/// <param name="availableVsize">Available virtual size for outputs.</param>
 		public AmountDecomposer(FeeRate feeRate, Money minAllowedOutputAmount, int outputSize, int availableVsize)
