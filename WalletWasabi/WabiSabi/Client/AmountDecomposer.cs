@@ -166,7 +166,7 @@ namespace WalletWasabi.WabiSabi.Client
 			var remaining = myInputSum;
 			var remainingVsize = AvailableVsize;
 
-			var setCandidates = new Dictionary<ulong, (IEnumerable<Money> Decomp, Money Cost)>();
+			var setCandidates = new Dictionary<int, (IEnumerable<Money> Decomp, Money Cost)>();
 			var random = new Random();
 
 			// How many times can we participate with the same denomination.
@@ -223,8 +223,14 @@ namespace WalletWasabi.WabiSabi.Client
 				naiveSet.Add(remaining);
 			}
 
+			HashCode hash = new();
+			foreach (var item in naiveSet.OrderBy(x => x))
+			{
+				hash.Add(item);
+			}
+
 			setCandidates.Add(
-				naiveSet.OrderBy(x => x).Aggregate((x, y) => 31 * x + y), // Create hash to ensure uniqueness.
+				hash.ToHashCode(), // Create hash to ensure uniqueness.
 				(naiveSet, loss + (ulong)naiveSet.Count * OutputFee)); // The cost is the remaining + output cost.
 
 			// Create many decompositions for optimization.
@@ -277,8 +283,14 @@ namespace WalletWasabi.WabiSabi.Client
 						loss = 0;
 					}
 
+					hash = new();
+					foreach (var item in currSet.OrderBy(x => x))
+					{
+						hash.Add(item);
+					}
+
 					setCandidates.TryAdd(
-						currSet.OrderBy(x => x).Aggregate((x, y) => 31 * x + y),
+						hash.ToHashCode(),
 						(currSet, loss + (ulong)currSet.Count * OutputFee));
 				}
 			}
