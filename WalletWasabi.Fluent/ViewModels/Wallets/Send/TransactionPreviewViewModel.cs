@@ -345,7 +345,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					return await BuildTransactionAsync();
 
 				case InsufficientBalanceUserDecision.SelectMoreCoin:
-					var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(wallet, transactionInfo, isSilent: false), NavigationTarget.DialogScreen);
+					var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(
+							wallet,
+							transactionInfo,
+							isSilent: false,
+							targetAmount: ex.Minimum),
+						NavigationTarget.DialogScreen);
 
 					if (privacyControlDialogResult.Result is { })
 					{

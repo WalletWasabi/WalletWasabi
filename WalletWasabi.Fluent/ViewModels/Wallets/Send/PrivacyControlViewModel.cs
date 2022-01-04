@@ -16,6 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	[NavigationMetaData(Title = "Privacy Control")]
 	public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<SmartCoin>>
 	{
+		private readonly Money _targetAmount;
 		private readonly Wallet _wallet;
 		private readonly TransactionInfo _transactionInfo;
 		private readonly bool _isSilent;
@@ -27,8 +28,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private bool _enoughSelected;
 		[AutoNotify] private bool _isWarningOpen;
 
-		public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, bool isSilent)
+		public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, bool isSilent, Money? targetAmount = null)
 		{
+			_targetAmount = targetAmount ?? transactionInfo.Amount;
 			_wallet = wallet;
 			_transactionInfo = transactionInfo;
 			_isSilent = isSilent;
@@ -50,11 +52,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					IsWarningOpen = _selectedPockets.Count > 1 && _selectedPockets.Items.Any(x => x.Labels == CoinPocketHelper.PrivateFundsText);
 
-					StillNeeded = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC) - x;
+					StillNeeded = _targetAmount.ToDecimal(MoneyUnit.BTC) - x;
 					EnoughSelected = StillNeeded <= 0;
 				});
 
-			StillNeeded = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC);
+			StillNeeded = _targetAmount.ToDecimal(MoneyUnit.BTC);
 
 			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 			EnableBack = true;
@@ -94,8 +96,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				Complete();
 			}
 			else if (_isSilent &&
-					 _pocketSource.Items.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText) is { } privatePocket &&
-					 privatePocket.Coins.TotalAmount() >= _transactionInfo.Amount)
+			         _pocketSource.Items.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText) is { } privatePocket &&
+			         privatePocket.Coins.TotalAmount() >= _targetAmount)
 			{
 				privatePocket.IsSelected = true;
 				Complete();
