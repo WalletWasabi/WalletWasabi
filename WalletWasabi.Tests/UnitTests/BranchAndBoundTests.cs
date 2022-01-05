@@ -86,7 +86,7 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			List<long> values = new();
 
-			for (int i = 0; i < 1000; i++)
+			for (int i = 0; i < count; i++)
 			{
 				values.Add(Random.Next(1000, 99999999));
 			}
