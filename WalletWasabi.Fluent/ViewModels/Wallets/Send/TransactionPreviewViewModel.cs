@@ -268,12 +268,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 			catch (InsufficientBalanceException ex)
 			{
-				if (_info.IsPayJoin)
-				{
-					return await HandleInsufficientBalanceWhenPayJoinAsync(_wallet, _info);
-				}
+				var dialog = new InsufficientBalanceDialogViewModel(ex, _wallet, _info);
+				var result = await NavigateDialogAsync(dialog, NavigationTarget.DialogScreen);
 
-				return await HandleInsufficientBalanceWhenNormalAsync(ex, _wallet, _info);
+				return result.Kind == DialogResultKind.Normal ? await BuildTransactionAsync() : null;
 			}
 			catch (Exception ex)
 			{
@@ -288,55 +286,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				IsBusy = false;
 			}
-		}
-
-		private async Task<BuildTransactionResult?> HandleInsufficientBalanceWhenNormalAsync(InsufficientBalanceException ex, Wallet wallet, TransactionInfo transactionInfo)
-		{
-			var dialog = new InsufficientBalanceDialogViewModel(ex, wallet, transactionInfo);
-			var result = await NavigateDialogAsync(dialog, NavigationTarget.DialogScreen);
-
-			return result.Kind == DialogResultKind.Normal ? await BuildTransactionAsync() : null;
-		}
-
-		private async Task<BuildTransactionResult?> HandleInsufficientBalanceWhenPayJoinAsync(Wallet wallet,
-			TransactionInfo transactionInfo)
-		{
-			if (wallet.Coins.TotalAmount() > transactionInfo.Amount)
-			{
-				await ShowErrorAsync("Transaction Building",
-					$"There are not enough {(transactionInfo.IsPrivate ? "private funds" : "funds selected")} to cover the transaction fee",
-					"Wasabi was unable to create your transaction.");
-
-				var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(wallet, transactionInfo, false),
-					NavigationTarget.DialogScreen);
-				if (feeDialogResult.Kind == DialogResultKind.Normal && feeDialogResult.Result is { } newFeeRate)
-				{
-					transactionInfo.FeeRate = newFeeRate;
-				}
-
-				if (TransactionHelpers.TryBuildTransaction(wallet, transactionInfo, out var txn))
-				{
-					return txn;
-				}
-
-				var privacyControlDialogResult = await NavigateDialogAsync(
-					new PrivacyControlViewModel(wallet, transactionInfo, isSilent: false),
-					NavigationTarget.DialogScreen);
-				if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
-				    privacyControlDialogResult.Result is { })
-				{
-					transactionInfo.Coins = privacyControlDialogResult.Result;
-				}
-
-				return await BuildTransactionAsync();
-			}
-
-			await ShowErrorAsync("Transaction Building",
-				"There are not enough funds to cover the transaction fee",
-				"Wasabi was unable to create your transaction.");
-
-			Navigate().BackTo<SendViewModel>();
-			return null;
 		}
 
 		private async Task InitialiseViewModelAsync()
