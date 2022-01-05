@@ -33,7 +33,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 
 				Assert.True(parameters.Count <= 10);
 
-				IEnumerable<uint256> requestedTxIds = parameters["transactionIds"].Split(",").Select(x => uint256.Parse(x));
+				IEnumerable<uint256> requestedTxIds = parameters["transactionIds"]!.Split(",").Select(x => uint256.Parse(x));
 				IEnumerable<string> result = mempool.Where(tx => requestedTxIds.Contains(tx.GetHash())).Select(tx => tx.ToHex());
 
 				var response = new HttpResponseMessage(HttpStatusCode.OK);

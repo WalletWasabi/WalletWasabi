@@ -23,14 +23,7 @@ namespace WalletWasabi.JsonConverters
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, BitcoinAddress? value, JsonSerializer serializer)
 		{
-			if (value is null)
-			{
-				writer.WriteNull();
-			}
-			else
-			{
-				writer.WriteValue(value.ToString());
-			}
+			writer.WriteValue(value.ToString());
 		}
 	}
 }

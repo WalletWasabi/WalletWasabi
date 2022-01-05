@@ -475,18 +475,19 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Empty(reorgedTxs);
 
 			// reorgs most recent block
-			reorgedTxs = txStore.ReleaseToMempoolFromBlock(newestConfirmedTx.BlockHash);
+			Assert.NotNull(tipHash);
+			reorgedTxs = txStore.ReleaseToMempoolFromBlock(tipHash!);
 			Assert.Equal(3, reorgedTxs.Count());
 			Assert.All(reorgedTxs, tx => Assert.False(tx?.Confirmed));
 			Assert.All(reorgedTxs, tx => Assert.True(txStore.TryGetTransaction(tx.GetHash(), out _)));
 
-			Assert.False(txStore.TryGetTransaction(tipHash, out _));
+			Assert.False(txStore.TryGetTransaction(tipHash!, out _));
 			Assert.DoesNotContain(tipHash, txStore.GetTransactionHashes());
 
 			// reorgs the same block again
-			reorgedTxs = txStore.ReleaseToMempoolFromBlock(newestConfirmedTx.BlockHash);
+			reorgedTxs = txStore.ReleaseToMempoolFromBlock(tipHash!);
 			Assert.Empty(reorgedTxs);
-			Assert.False(txStore.TryGetTransaction(tipHash, out _));
+			Assert.False(txStore.TryGetTransaction(tipHash!, out _));
 			Assert.DoesNotContain(tipHash, txStore.GetTransactionHashes());
 
 			// reorgs deep block
@@ -494,7 +495,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var firstBlockHash = oldestConfirmedTx.BlockHash;
 
 			// What to do here
-			reorgedTxs = txStore.ReleaseToMempoolFromBlock(firstBlockHash);
+			reorgedTxs = txStore.ReleaseToMempoolFromBlock(firstBlockHash!);
 			Assert.NotEmpty(reorgedTxs);
 		}
 	}

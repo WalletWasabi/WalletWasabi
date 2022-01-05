@@ -73,9 +73,10 @@ namespace WalletWasabi.Tests.UnitTests
 
 			public int Value { get; }
 
-			public int CompareTo([AllowNull] ReverseComparable other)
+			public int CompareTo(ReverseComparable? other)
 			{
-				return other.Value.CompareTo(Value);
+				var nonNullOther = other ?? throw new ArgumentNullException(nameof(other));
+				return nonNullOther.Value.CompareTo(Value);
 			}
 		}
 	}

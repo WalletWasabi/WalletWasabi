@@ -59,7 +59,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			// Valid proof, invalid scriptPubKey
 			// [all all all all all all all all all all all all]/84'/0'/0'/1/1
-			var invalidKey = new Key(Encoders.Hex.DecodeData("7b041dd735e7202d3c1b9592147894ed24da6355f0cd66573c273c0df1afa78a"));
+			using var invalidKey = new Key(Encoders.Hex.DecodeData("7b041dd735e7202d3c1b9592147894ed24da6355f0cd66573c273c0df1afa78a"));
 			var invalidScriptPubKey = PayToWitPubKeyHashTemplate.Instance.GenerateScriptPubKey(invalidKey.PubKey);
 			Assert.False(ownershipProof.VerifyOwnership(invalidScriptPubKey, commitmentData, false));
 

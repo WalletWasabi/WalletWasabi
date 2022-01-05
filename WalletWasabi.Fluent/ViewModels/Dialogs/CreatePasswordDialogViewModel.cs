@@ -8,17 +8,14 @@ using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
-	[NavigationMetaData(Title = "Enter a password")]
 	public partial class CreatePasswordDialogViewModel : DialogViewModelBase<string?>
 	{
-		private readonly bool _enableCancel;
-
 		[AutoNotify] private string? _confirmPassword;
 		[AutoNotify] private string? _password;
 
-		public CreatePasswordDialogViewModel(string caption, bool enableEmpty = true, bool enableCancel = true)
+		public CreatePasswordDialogViewModel(string title, string caption, bool enableEmpty = true)
 		{
-			_enableCancel = enableCancel;
+			Title = title;
 			Caption = caption;
 
 			// This means pressing continue will make the password empty string.
@@ -28,7 +25,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			this.ValidateProperty(x => x.Password, ValidatePassword);
 			this.ValidateProperty(x => x.ConfirmPassword, ValidateConfirmPassword);
 
-			EnableBack = true;
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+			EnableBack = false;
 
 			var backCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
 
@@ -43,10 +41,10 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 						this.RaisePropertyChanged(nameof(ConfirmPassword));
 
 						return IsDialogOpen &&
-							   ((enableEmpty && string.IsNullOrEmpty(Password) &&
-								 string.IsNullOrEmpty(ConfirmPassword)) ||
-								(!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword) &&
-								 !Validations.Any));
+						       ((enableEmpty && string.IsNullOrEmpty(Password) &&
+						         string.IsNullOrEmpty(ConfirmPassword)) ||
+						        (!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword) &&
+						         !Validations.Any));
 					})
 				.ObserveOn(RxApp.MainThreadScheduler);
 
@@ -56,6 +54,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			NextCommand = ReactiveCommand.Create(() => Close(result: Password), nextCommandCanExecute);
 			CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel), cancelCommandCanExecute);
 		}
+
+		public sealed override string Title { get; protected set; }
 
 		public string Caption { get; }
 
@@ -84,13 +84,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			{
 				errors.Add(ErrorSeverity.Error, PasswordHelper.PasswordTooLongMessage);
 			}
-		}
-
-		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-		{
-			base.OnNavigatedTo(isInHistory, disposables);
-
-			SetupCancel(enableCancel: _enableCancel, enableCancelOnEscape: _enableCancel, enableCancelOnPressed: false);
 		}
 	}
 }

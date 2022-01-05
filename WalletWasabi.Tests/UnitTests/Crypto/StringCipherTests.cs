@@ -1,7 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
 using WalletWasabi.Crypto;
-using WalletWasabi.Logging;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Crypto

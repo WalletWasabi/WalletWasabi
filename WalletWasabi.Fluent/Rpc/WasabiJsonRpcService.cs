@@ -8,12 +8,13 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.Rpc;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Rpc
 {
-	public partial class WasabiJsonRpcService
+	public class WasabiJsonRpcService : IJsonRpcService
 	{
 		public WasabiJsonRpcService(Global global, TerminateService terminateService)
 		{

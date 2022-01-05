@@ -134,8 +134,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			roundStatusUpdater.TriggerRound();
 			roundStatusUpdater.TriggerRound();
 			roundStatusUpdater.TriggerRound();
-			roundStatusUpdater.TriggerRound();
-			roundStatusUpdater.TriggerRound();
 			await Task.Delay(TimeSpan.FromSeconds(1));
 
 			// But in the end everything is alright.
