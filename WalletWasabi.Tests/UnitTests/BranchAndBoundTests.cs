@@ -1,4 +1,3 @@
-using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.BranchNBound;
@@ -91,6 +90,7 @@ namespace WalletWasabi.Tests.UnitTests
 			{
 				values.Add(Random.Next(1000, 99999999));
 			}
+
 			return values;
 		}
 	}
