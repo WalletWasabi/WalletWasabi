@@ -5,14 +5,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using WalletWasabi.Logging;
-using WalletWasabi.Fluent.Models;
-using WalletWasabi.Services.Terminate;
 
-namespace WalletWasabi.Fluent.Rpc
+namespace WalletWasabi.Rpc
 {
 	public class JsonRpcServer : BackgroundService
 	{
-		public JsonRpcServer(Global global, JsonRpcServerConfiguration config, TerminateService terminateService)
+		public JsonRpcServer(IJsonRpcService service, JsonRpcServerConfiguration config)
 		{
 			Config = config;
 			Listener = new HttpListener();
@@ -21,11 +19,11 @@ namespace WalletWasabi.Fluent.Rpc
 			{
 				Listener.Prefixes.Add(prefix);
 			}
-			Service = new WasabiJsonRpcService(global, terminateService);
+			Service = service;
 		}
 
 		private HttpListener Listener { get; }
-		private WasabiJsonRpcService Service { get; }
+		private IJsonRpcService Service { get; }
 		private JsonRpcServerConfiguration Config { get; }
 
 		public override async Task StartAsync(CancellationToken cancellationToken)
@@ -42,7 +40,7 @@ namespace WalletWasabi.Fluent.Rpc
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
-			var handler = new JsonRpcRequestHandler<WasabiJsonRpcService>(Service);
+			var handler = new JsonRpcRequestHandler<IJsonRpcService>(Service);
 
 			while (!stoppingToken.IsCancellationRequested)
 			{

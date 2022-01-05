@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using WalletWasabi.Fluent.Rpc;
+using WalletWasabi.Rpc;
 using Xunit;
 
 namespace WalletWasabi.Tests
@@ -17,7 +17,7 @@ namespace WalletWasabi.Tests
 				{
 					"Invalid (broken) request",
 					Request("1", "substract").Replace("\"id\":", "\"id\","),
-					Error(null, -32700, "Parse error")
+					Error(null!, -32700, "Parse error")
 				},
 				new[]
 				{
@@ -29,7 +29,7 @@ namespace WalletWasabi.Tests
 				{
 					"Invalid (missing method) request",
 					Request("1", "", "[42, 23]").Replace("\"method\":\"\",", ""),
-					Error(null, -32700, "Parse error")
+					Error(null!, -32700, "Parse error")
 				},
 				new[]
 				{
@@ -58,20 +58,20 @@ namespace WalletWasabi.Tests
 				new[]
 				{
 					"Valid request (Notification)",
-					Request(null, "substract", 42, 23),
+					Request(null!, "substract", 42, 23),
 					""
 				},
 				new[]
 				{
 					"Valid request for void procedure",
 					Request("log-id-01", "writelog", "blah blah blah" ),
-					Ok("log-id-01", null)
+					Ok("log-id-01", null!)
 				},
 				new[]
 				{
 					"Valid request for async procedure with cancellation token",
 					Request("1", "format", "c:" ),
-					Ok("1", null)
+					Ok("1", null!)
 				},
 				new[]
 				{

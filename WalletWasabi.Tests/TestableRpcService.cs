@@ -1,6 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Fluent.Rpc;
+using WalletWasabi.Rpc;
 
 namespace WalletWasabi.Tests
 {
@@ -33,7 +33,7 @@ namespace WalletWasabi.Tests
 		{
 			Unused(unit);
 			Unused(ct);
-			await Task.FromResult((JsonRpcResponse)null);
+			await Task.FromResult<JsonRpcResponse>(null!);
 		}
 
 		private void Unused(object item)

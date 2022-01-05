@@ -55,7 +55,7 @@ namespace WalletWasabi.Tests.AcceptanceTests
 
 			string devicePath = entry.Path;
 			HardwareWalletModels deviceType = entry.Model;
-			HDFingerprint fingerprint = entry.Fingerprint.Value;
+			HDFingerprint fingerprint = entry.Fingerprint!.Value;
 
 			await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, false, cts.Token));
 
@@ -157,7 +157,7 @@ namespace WalletWasabi.Tests.AcceptanceTests
 
 			string devicePath = entry.Path;
 			HardwareWalletModels deviceType = entry.Model;
-			HDFingerprint fingerprint = entry.Fingerprint.Value;
+			HDFingerprint fingerprint = entry.Fingerprint!.Value;
 
 			// ColdCard doesn't support it.
 			await Assert.ThrowsAsync<HwiException>(async () => await client.WipeAsync(deviceType, devicePath, cts.Token));
@@ -243,7 +243,7 @@ namespace WalletWasabi.Tests.AcceptanceTests
 
 			string devicePath = entry.Path;
 			HardwareWalletModels deviceType = entry.Model;
-			HDFingerprint fingerprint = entry.Fingerprint.Value;
+			HDFingerprint fingerprint = entry.Fingerprint!.Value;
 
 			await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, false, cts.Token));
 
@@ -326,7 +326,7 @@ namespace WalletWasabi.Tests.AcceptanceTests
 
 			string devicePath = entry.Path;
 			HardwareWalletModels deviceType = entry.Model;
-			HDFingerprint fingerprint = entry.Fingerprint.Value;
+			HDFingerprint fingerprint = entry.Fingerprint!.Value;
 
 			await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, false, cts.Token));
 

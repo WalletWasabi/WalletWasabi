@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 using WalletWasabi.Wallets.PasswordFinder;
@@ -24,17 +23,13 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 		{
 			var dialogResult =
 				await NavigateDialogAsync(
-					new CreatePasswordDialogViewModel("Type in your most likely password", enableEmpty: false));
+					new CreatePasswordDialogViewModel("Password", "Type in your most likely password.", enableEmpty: false)
+					, NavigationTarget.CompactDialogScreen);
 
 			if (dialogResult.Result is { } password)
 			{
 				var options = new PasswordFinderOptions(wallet, password);
 				Navigate().To(new SelectCharsetViewModel(options));
-			}
-
-			if (dialogResult.Kind == DialogResultKind.Cancel)
-			{
-				Navigate().Clear();
 			}
 		}
 	}

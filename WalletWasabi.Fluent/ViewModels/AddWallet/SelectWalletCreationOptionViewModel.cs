@@ -27,8 +27,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			ConnectHardwareWalletCommand = ReactiveCommand.Create(() => OnConnectHardwareWallet(walletName));
 
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnCreateWalletAsync(walletName));
-
-			EnableAutoBusyOn(CreateWalletCommand);
 		}
 
 		public ICommand CreateWalletCommand { get; }
@@ -75,10 +73,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		private async Task OnCreateWalletAsync(string walletName)
 		{
 			var dialogResult = await NavigateDialogAsync(
-				new CreatePasswordDialogViewModel("Type the password of the wallet and click Continue.", enableEmpty: true, enableCancel: Services.WalletManager.HasWallet()));
+				new CreatePasswordDialogViewModel("Create Password", "Enter a password for your wallet.", enableEmpty: true)
+				, NavigationTarget.CompactDialogScreen);
 
 			if (dialogResult.Result is { } password)
 			{
+				IsBusy = true;
+
 				var (km, mnemonic) = await Task.Run(
 					() =>
 					{
@@ -92,6 +93,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					});
 
 				Navigate().To(new RecoveryWordsViewModel(km, mnemonic));
+
+				IsBusy = false;
 			}
 		}
 

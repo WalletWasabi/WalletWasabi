@@ -1,4 +1,4 @@
-namespace WalletWasabi.Fluent.Rpc
+namespace WalletWasabi.Rpc
 {
 	/// <summary>
 	/// Class used to decorate service methods and map them with their rpc method name.

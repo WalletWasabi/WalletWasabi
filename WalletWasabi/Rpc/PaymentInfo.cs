@@ -1,6 +1,6 @@
 using NBitcoin;
 
-namespace WalletWasabi.Fluent.Rpc
+namespace WalletWasabi.Rpc
 {
 	public class PaymentInfo
 	{

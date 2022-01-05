@@ -10,31 +10,34 @@ namespace WalletWasabi.Tests.UnitTests
 {
 	public class MockRpcClient : IRPCClient
 	{
-		public Func<Task<uint256>> OnGetBestBlockHashAsync { get; set; }
-		public Func<uint256, int, bool, GetTxOutResponse?> OnGetTxOutAsync { get; set; }
-		public Func<uint256, Task<Block>> OnGetBlockAsync { get; set; }
-		public Func<int, Task<uint256>> OnGetBlockHashAsync { get; set; }
-		public Func<uint256, Task<BlockHeader>> OnGetBlockHeaderAsync { get; set; }
-		public Func<Task<BlockchainInfo>> OnGetBlockchainInfoAsync { get; set; }
-		public Func<uint256, Task<VerboseBlockInfo>> OnGetVerboseBlockAsync { get; set; }
-		public Func<Transaction, uint256> OnSendRawTransactionAsync { get; set; }
-		public Func<Task<MemPoolInfo>> OnGetMempoolInfoAsync { get; set; }
-		public Func<Task<uint256[]>> OnGetRawMempoolAsync { get; set; }
-		public Func<uint256, bool, Task<Transaction>> OnGetRawTransactionAsync { get; set; }
-		public Func<int, EstimateSmartFeeMode, Task<EstimateSmartFeeResponse>> OnEstimateSmartFeeAsync { get; set; }
-		public Func<Task<PeerInfo[]>> OnGetPeersInfoAsync { get; set; }
-		public Func<int, BitcoinAddress, Task<uint256[]>> OnGenerateToAddressAsync { get; set; }
+		public Func<Task<uint256>>? OnGetBestBlockHashAsync { get; set; }
+		public Func<uint256, int, bool, GetTxOutResponse?>? OnGetTxOutAsync { get; set; }
+		public Func<uint256, Task<Block>>? OnGetBlockAsync { get; set; }
+		public Func<int, Task<uint256>>? OnGetBlockHashAsync { get; set; }
+		public Func<uint256, Task<BlockHeader>>? OnGetBlockHeaderAsync { get; set; }
+		public Func<Task<BlockchainInfo>>? OnGetBlockchainInfoAsync { get; set; }
+		public Func<uint256, Task<VerboseBlockInfo>>? OnGetVerboseBlockAsync { get; set; }
+		public Func<Transaction, uint256>? OnSendRawTransactionAsync { get; set; }
+		public Func<Task<MemPoolInfo>>? OnGetMempoolInfoAsync { get; set; }
+		public Func<Task<uint256[]>>? OnGetRawMempoolAsync { get; set; }
+		public Func<uint256, bool, Task<Transaction>>? OnGetRawTransactionAsync { get; set; }
+		public Func<int, EstimateSmartFeeMode, Task<EstimateSmartFeeResponse>>? OnEstimateSmartFeeAsync { get; set; }
+		public Func<Task<PeerInfo[]>>? OnGetPeersInfoAsync { get; set; }
+		public Func<int, BitcoinAddress, Task<uint256[]>>? OnGenerateToAddressAsync { get; set; }
 		public Network Network { get; set; } = Network.RegTest;
 		public RPCCredentialString CredentialString => new();
 
+		private static Task<T> NotImplementedTask<T>(string nameOfMethod) =>
+			Task.FromException<T>(new NotImplementedException($"{nameOfMethod} was invoked but never assigned."));
+
 		public Task<uint256> GetBestBlockHashAsync(CancellationToken cancellationToken = default)
 		{
-			return OnGetBestBlockHashAsync();
+			return OnGetBestBlockHashAsync?.Invoke() ?? NotImplementedTask<uint256>(nameof(GetBestBlockHashAsync));
 		}
 
 		public Task<Block> GetBlockAsync(uint256 blockId, CancellationToken cancellationToken = default)
 		{
-			return OnGetBlockAsync(blockId);
+			return OnGetBlockAsync?.Invoke(blockId) ?? NotImplementedTask<Block>(nameof(GetBlockAsync));
 		}
 
 		public Task<Block> GetBlockAsync(uint blockHeight, CancellationToken cancellationToken = default)
@@ -44,7 +47,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 		public Task<BlockchainInfo> GetBlockchainInfoAsync(CancellationToken cancellationToken = default)
 		{
-			return OnGetBlockchainInfoAsync();
+			return OnGetBlockchainInfoAsync?.Invoke() ?? NotImplementedTask<BlockchainInfo>(nameof(GetBlockchainInfoAsync));
 		}
 
 		public Task<int> GetBlockCountAsync(CancellationToken cancellationToken = default)
@@ -54,12 +57,12 @@ namespace WalletWasabi.Tests.UnitTests
 
 		public Task<uint256> GetBlockHashAsync(int height, CancellationToken cancellationToken = default)
 		{
-			return OnGetBlockHashAsync(height);
+			return OnGetBlockHashAsync?.Invoke(height) ?? Task.FromException<uint256>(new InvalidOperationException($"{nameof(GetBlockHashAsync)} was invoked but never assigned."));
 		}
 
 		public Task<BlockHeader> GetBlockHeaderAsync(uint256 blockHash, CancellationToken cancellationToken = default)
 		{
-			return OnGetBlockHeaderAsync(blockHash);
+			return OnGetBlockHeaderAsync?.Invoke(blockHash) ?? NotImplementedTask<BlockHeader>(nameof(GetBlockHeaderAsync));
 		}
 
 		public Task<MempoolEntry> GetMempoolEntryAsync(uint256 txid, bool throwIfNotFound = true, CancellationToken cancellationToken = default)
@@ -69,7 +72,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 		public Task<MemPoolInfo> GetMempoolInfoAsync(CancellationToken cancellationToken = default)
 		{
-			return OnGetMempoolInfoAsync();
+			return OnGetMempoolInfoAsync?.Invoke() ?? NotImplementedTask<MemPoolInfo>(nameof(GetMempoolInfoAsync));
 		}
 
 		public Task<BitcoinAddress> GetNewAddressAsync(CancellationToken cancellationToken = default)
@@ -79,17 +82,17 @@ namespace WalletWasabi.Tests.UnitTests
 
 		public Task<PeerInfo[]> GetPeersInfoAsync(CancellationToken cancellationToken = default)
 		{
-			return OnGetPeersInfoAsync();
+			return OnGetPeersInfoAsync?.Invoke() ?? NotImplementedTask<PeerInfo[]>(nameof(GetPeersInfoAsync));
 		}
 
 		public Task<uint256[]> GetRawMempoolAsync(CancellationToken cancellationToken = default)
 		{
-			return OnGetRawMempoolAsync();
+			return OnGetRawMempoolAsync?.Invoke() ?? NotImplementedTask<uint256[]>(nameof(GetRawMempoolAsync));
 		}
 
 		public Task<Transaction> GetRawTransactionAsync(uint256 txid, bool throwIfNotFound = true, CancellationToken cancellationToken = default)
 		{
-			return OnGetRawTransactionAsync(txid, throwIfNotFound);
+			return OnGetRawTransactionAsync?.Invoke(txid, throwIfNotFound) ?? NotImplementedTask<Transaction>(nameof(GetRawTransactionAsync));
 		}
 
 		public Task<IEnumerable<Transaction>> GetRawTransactionsAsync(IEnumerable<uint256> txids, CancellationToken cancellationToken = default)
@@ -99,8 +102,11 @@ namespace WalletWasabi.Tests.UnitTests
 
 		public Task<GetTxOutResponse?> GetTxOutAsync(uint256 txid, int index, bool includeMempool = true, CancellationToken cancellationToken = default)
 		{
-			var resp = OnGetTxOutAsync(txid, index, includeMempool);
-			return Task.FromResult(resp);
+			return OnGetTxOutAsync switch
+			{
+				{ } fn => Task.FromResult(fn(txid, index, includeMempool)),
+				null => Task.FromException<GetTxOutResponse?>(new InvalidOperationException($"{nameof(GetTxOutAsync)} was invoked but never assigned."))
+			};
 		}
 
 		public Task InvalidateBlockAsync(uint256 blockHash, CancellationToken cancellationToken = default)
@@ -130,13 +136,16 @@ namespace WalletWasabi.Tests.UnitTests
 
 		public Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId, CancellationToken cancellationToken = default)
 		{
-			return OnGetVerboseBlockAsync(blockId);
+			return OnGetVerboseBlockAsync?.Invoke(blockId) ?? NotImplementedTask<VerboseBlockInfo>(nameof(GetVerboseBlockAsync));
 		}
 
 		public Task<uint256> SendRawTransactionAsync(Transaction transaction, CancellationToken cancellationToken = default)
 		{
-			var resp = OnSendRawTransactionAsync(transaction);
-			return Task.FromResult(resp);
+			return OnSendRawTransactionAsync switch
+			{
+				{ } fn => Task.FromResult(fn(transaction)),
+				null => Task.FromException<uint256>(new InvalidOperationException($"{nameof(OnSendRawTransactionAsync)} was invoked but never assigned."))
+			};
 		}
 
 		public Task<uint256> SendToAddressAsync(BitcoinAddress address, Money amount, bool replaceable = false, CancellationToken cancellationToken = default)
@@ -181,12 +190,12 @@ namespace WalletWasabi.Tests.UnitTests
 
 		public Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, CancellationToken cancellationToken = default)
 		{
-			return OnEstimateSmartFeeAsync(confirmationTarget, estimateMode);
+			return OnEstimateSmartFeeAsync?.Invoke(confirmationTarget, estimateMode) ?? NotImplementedTask<EstimateSmartFeeResponse>(nameof(EstimateSmartFeeAsync));
 		}
 
 		public Task<uint256[]> GenerateToAddressAsync(int nBlocks, BitcoinAddress address, CancellationToken cancellationToken = default)
 		{
-			return OnGenerateToAddressAsync(nBlocks, address);
+			return OnGenerateToAddressAsync?.Invoke(nBlocks, address) ?? NotImplementedTask<uint256[]>(nameof(GenerateToAddressAsync));
 		}
 
 		public Task<RPCClient> CreateWalletAsync(string walletNameOrPath, CreateWalletOptions? options = null, CancellationToken cancellationToken = default)

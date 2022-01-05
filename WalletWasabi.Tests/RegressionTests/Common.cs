@@ -82,8 +82,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			var serviceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.PrivacyLevelSome.ToString(), 2, 21, 50, regTestFixture.BackendRegTestNode.P2pEndPoint, Money.Coins(WalletWasabi.Helpers.Constants.DefaultDustThreshold));
 
 			var dir = Helpers.Common.GetWorkDir(callerFilePath, callerMemberName);
-			var indexStore = new IndexStore(Path.Combine(dir, "indexStore"), network, new SmartHeaderChain());
-			var transactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), network);
+			await using var indexStore = new IndexStore(Path.Combine(dir, "indexStore"), network, new SmartHeaderChain());
+			await using var transactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), network);
 			var mempoolService = new MempoolService();
 			var blocks = new FileSystemBlockRepository(Path.Combine(dir, "blocks"), network);
 			var bitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService, blocks);

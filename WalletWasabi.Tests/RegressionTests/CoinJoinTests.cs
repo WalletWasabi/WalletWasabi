@@ -141,9 +141,9 @@ namespace WalletWasabi.Tests.RegressionTests
 			// Inputs request tests
 			var inputsRequest = new InputsRequest4
 			{
-				BlindedOutputScripts = null,
-				ChangeOutputAddress = null,
-				Inputs = null,
+				BlindedOutputScripts = null!, // null is not allowed and that's what we want here: try with invalid requests.
+				ChangeOutputAddress = null!,
+				Inputs = null!,
 			};
 
 			Assert.True(coordinator.TryGetCurrentInputRegisterableRound(out CoordinatorRound? round));
@@ -215,7 +215,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			Assert.True(coordinator.TryGetCurrentInputRegisterableRound(out round));
 			var requester = new Requester();
 			uint256 msg = new(NBitcoin.Crypto.Hashes.SHA256(network.Consensus.ConsensusFactory.CreateTransaction().ToBytes()));
-			var nonce = round.NonceProvider.GetNextNonce();
+			var nonce = round!.NonceProvider.GetNextNonce();
 			BlindedOutputWithNonceIndex blindedData = new(nonce.N, requester.BlindMessage(msg, nonce.R, round.MixingLevels.GetBaseLevel().SignerKey.PubKey));
 			inputsRequest.BlindedOutputScripts = new[] { blindedData };
 			uint256 blindedOutputScriptsHash = new(NBitcoin.Crypto.Hashes.SHA256(blindedData.BlindedOutput.ToBytes()));
@@ -230,7 +230,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			coordinator.AbortAllRoundsInInputRegistration("");
 			await Task.Delay(200).ConfigureAwait(false);
 			Assert.True(coordinator.TryGetCurrentInputRegisterableRound(out round));
-			roundId = round.RoundId;
+			roundId = round!.RoundId;
 			inputsRequest.RoundId = roundId;
 			signerPubKeys = round.MixingLevels.SignerPubKeys;
 			httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await CreateNewAliceClientAsync(roundId, registeredAddresses, signerPubKeys, requesters, inputsRequest));
@@ -689,7 +689,10 @@ namespace WalletWasabi.Tests.RegressionTests
 				await aliceClient1.PostSignaturesAsync(myDic1);
 				await aliceClient2.PostSignaturesAsync(myDic2);
 
-				((CachedRpcClient)rpc)?.Cache.Remove("GetRawMempoolAsync");
+				if (rpc is CachedRpcClient cachedRpc)
+				{
+					cachedRpc.Cache.Remove("GetRawMempoolAsync");
+				}
 
 				uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
 				Assert.Contains(unsignedCoinJoin.GetHash(), mempooltxs);
@@ -847,7 +850,10 @@ namespace WalletWasabi.Tests.RegressionTests
 				await aliceClient.PostSignaturesAsync(witnesses);
 			}
 
-			((CachedRpcClient)rpc)?.Cache.Remove("GetRawMempoolAsync");
+			if (rpc is CachedRpcClient cachedRpc)
+			{
+				cachedRpc.Cache.Remove("GetRawMempoolAsync");
+			}
 
 			uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
 			Assert.Contains(transactionId, mempooltxs);
@@ -948,7 +954,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			}
 
 			long roundId = 0;
-			var users = new List<(Requester requester, BlindedOutputWithNonceIndex blinded, BitcoinAddress activeOutputAddress, BitcoinAddress changeOutputAddress, IEnumerable<InputProofModel> inputProofModels, List<(Key key, BitcoinAddress address, uint256 txHash, Transaction tx, OutPoint input)> userInputData, AliceClient4 aliceClient, UnblindedSignature unblindedSignature)>();
+			var users = new List<(Requester requester, BlindedOutputWithNonceIndex blinded, BitcoinAddress activeOutputAddress, BitcoinAddress changeOutputAddress, IEnumerable<InputProofModel> inputProofModels, List<(Key key, BitcoinAddress address, uint256 txHash, Transaction tx, OutPoint input)> userInputData, AliceClient4 aliceClient)>();
 			for (int i = 0; i < inputRegistrationUsers.Count; i++)
 			{
 				var user = inputRegistrationUsers[i];
@@ -964,7 +970,7 @@ namespace WalletWasabi.Tests.RegressionTests
 					Assert.Equal(roundId, aliceClient.RoundId);
 				}
 				// Because it's valuetuple.
-				users.Add((user.requester, user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, aliceClient, null));
+				users.Add((user.requester, user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, aliceClient));
 			}
 
 			Logger.TurnOn();
@@ -979,6 +985,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			RoundPhase roundPhase = RoundPhase.InputRegistration;
 			int k = 0;
+			var usersWithSignatures = new List<(Requester requester, BlindedOutputWithNonceIndex blinded, BitcoinAddress activeOutputAddress, BitcoinAddress changeOutputAddress, IEnumerable<InputProofModel> inputProofModels, List<(Key key, BitcoinAddress address, uint256 txHash, Transaction tx, OutPoint input)> userInputData, AliceClient4 aliceClient, UnblindedSignature unblindedSignature)>();
 			foreach (var request in confirmationRequests)
 			{
 				var resp = await request;
@@ -993,12 +1000,11 @@ namespace WalletWasabi.Tests.RegressionTests
 
 				// Because it's valuetuple.
 				var user = users.ElementAt(k);
-				users.RemoveAt(k);
-				users.Add((user.requester, user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, user.aliceClient, resp.Item2.First().Signature));
+				usersWithSignatures.Add((user.requester, user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, user.aliceClient, resp.Item2.First().Signature));
 			}
 
 			var outputRequests = new List<Task>();
-			foreach (var user in users)
+			foreach (var user in usersWithSignatures)
 			{
 				var bobClient = new BobClient(BackendClearnetHttpClient);
 				outputRequests.Add(bobClient.PostOutputAsync(roundId, new ActiveOutput(user.activeOutputAddress, user.unblindedSignature, 0)));
@@ -1010,7 +1016,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			}
 
 			var coinjoinRequests = new List<Task<Transaction>>();
-			foreach (var user in users)
+			foreach (var user in usersWithSignatures)
 			{
 				coinjoinRequests.Add(user.aliceClient.GetUnsignedCoinJoinAsync());
 			}
@@ -1020,7 +1026,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			Assert.All(coinjoinRequests, async x => Assert.Equal(unsignedCoinJoinHex, (await x).ToHex()));
 
 			var signatureRequests = new List<Task>();
-			foreach (var user in users)
+			foreach (var user in usersWithSignatures)
 			{
 				var partSignedCj = Transaction.Parse(unsignedCoinJoinHex, network);
 				partSignedCj.Sign(
@@ -1047,7 +1053,10 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			await Task.WhenAll(signatureRequests);
 
-			((CachedRpcClient)rpc)?.Cache.Remove("GetRawMempoolAsync");
+			if (rpc is CachedRpcClient cachedRpc)
+			{
+				cachedRpc.Cache.Remove("GetRawMempoolAsync");
+			}
 			uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
 			Assert.Contains(unsignedCoinJoin.GetHash(), mempooltxs);
 

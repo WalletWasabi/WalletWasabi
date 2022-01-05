@@ -58,7 +58,7 @@ namespace WalletWasabi.WabiSabi.Client
 			// This should be roughly log(#inputs), it could be set slightly
 			// higher if more inputs are observed but that involves trusting the
 			// coordinator with those values. Therefore, conservatively set this
-			// so that a maximum of 5 blame rounds are executed.
+			// so that a maximum of 6 blame rounds are executed.
 			// FIXME should smaller rounds abort earlier?
 			var tryLimit = 6;
 
@@ -203,7 +203,7 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 
 			// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to be registered.
-			var remainingTimeForRegistration = ( roundState.InputRegistrationEnd - DateTimeOffset.UtcNow ) - TimeSpan.FromSeconds(15);
+			var remainingTimeForRegistration = (roundState.InputRegistrationEnd - DateTimeOffset.UtcNow) - TimeSpan.FromSeconds(15);
 
 			Logger.LogDebug($"Round ({roundState.Id}): Input registration started, it will end in {remainingTimeForRegistration.TotalMinutes} minutes.");
 

@@ -13,9 +13,9 @@ namespace WalletWasabi.Userfacing
 	{
 		public const int MaxPasswordLength = 150;
 		public const string CompatibilityPasswordWarnMessage = "Compatibility password was used! Please consider generating a new wallet to ensure recoverability!";
-		public static readonly string PasswordTooLongMessage = $"Password is too long (Max {MaxPasswordLength} characters).";
+		public static readonly string PasswordTooLongMessage = $"Password is too long.";
 		public const string TrimWarnMessage = "Leading and trailing white spaces will be removed!";
-		public const string MatchingMessage = "Passwords don't match, check any spelling mistakes and try again.";
+		public const string MatchingMessage = "Passwords don't match.";
 		public const string WhitespaceMessage = "Leading and trailing white spaces are not allowed!";
 
 		public static string[] GetPossiblePasswords(string? originalPassword)
@@ -91,6 +91,7 @@ namespace WalletWasabi.Userfacing
 			{
 				return false;
 			}
+
 			return true;
 		}
 
@@ -129,6 +130,7 @@ namespace WalletWasabi.Userfacing
 						compatiblityPassword = pw;
 						Logger.LogError(CompatibilityPasswordWarnMessage);
 					}
+
 					return result;
 				}
 				catch (SecurityException ex) // Any other exception - let it go.

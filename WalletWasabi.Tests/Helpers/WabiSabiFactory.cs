@@ -124,13 +124,19 @@ namespace WalletWasabi.Tests.Helpers
 			=> CreateAlice(CreateCoin(key, amount), CreateOwnershipProof(key), round);
 
 		public static Alice CreateAlice(Money amount, Round round)
-			=> CreateAlice(new Key(), amount, round);
+		{
+			using var key = new Key();
+			return CreateAlice(key, amount, round);
+		}
 
 		public static Alice CreateAlice(Key key, Round round)
 			=> CreateAlice(key, Money.Coins(1), round);
 
 		public static Alice CreateAlice(Round round)
-			=> CreateAlice(new Key(), Money.Coins(1), round);
+		{
+			using var key = new Key();
+			return CreateAlice(key, Money.Coins(1), round);
+		}
 
 		public static ArenaClient CreateArenaClient(Arena arena)
 		{
@@ -148,10 +154,11 @@ namespace WalletWasabi.Tests.Helpers
 			var (zeroAmountCredentialRequest, _) = amClient.CreateRequestForZeroAmount();
 			var (zeroVsizeCredentialRequest, _) = vsClient.CreateRequestForZeroAmount();
 
+			using var newkey = new Key();
 			return new(
 				round.Id,
 				prevout ?? BitcoinFactory.CreateOutPoint(),
-				CreateOwnershipProof(key ?? new Key(), round.Id),
+				CreateOwnershipProof(key ?? newkey, round.Id),
 				zeroAmountCredentialRequest,
 				zeroVsizeCredentialRequest);
 		}
