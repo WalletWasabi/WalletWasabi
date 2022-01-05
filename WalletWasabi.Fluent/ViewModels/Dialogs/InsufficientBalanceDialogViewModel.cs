@@ -1,11 +1,12 @@
+using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Wallets;
@@ -13,7 +14,7 @@ using WalletWasabi.Wallets;
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
 	[NavigationMetaData(Title = "Insufficient Balance")]
-	public partial class InsufficientBalanceDialogViewModel : DialogViewModelBase<InsufficientBalanceUserDecision>
+	public partial class InsufficientBalanceDialogViewModel : DialogViewModelBase<Unit>
 	{
 		private readonly InsufficientBalanceException _ex;
 		private readonly Wallet _wallet;
@@ -39,11 +40,19 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 			Question = "What to do";
 
-			NextCommand = ReactiveCommand.CreateFromTask<InsufficientBalanceUserDecision>(CompleteAsync);
+			SendAnywayCommand = ReactiveCommand.Create(OnSendAnyway);
+			SubtractTransactionFeeCommand = ReactiveCommand.Create(OnSubtractTransactionFee);
+			SelectMoreCoinCommand = ReactiveCommand.CreateFromTask(OnSelectMoreCoinAsync);
 
 			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 			EnableBack = true;
 		}
+
+		public ICommand SendAnywayCommand { get; }
+
+		public ICommand SubtractTransactionFeeCommand { get; }
+
+		public ICommand SelectMoreCoinCommand { get; }
 
 		public bool EnableSendAnyway { get; }
 
@@ -53,44 +62,38 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 		public string Question { get; }
 
-		private async Task CompleteAsync(InsufficientBalanceUserDecision decision)
+		private async Task OnSelectMoreCoinAsync()
 		{
-			switch (decision)
+			var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(
+					_wallet,
+					_transactionInfo,
+					isSilent: false,
+					targetAmount: _ex.Minimum),
+				NavigationTarget.DialogScreen);
+
+			if (privacyControlDialogResult.Result is { })
 			{
-				case InsufficientBalanceUserDecision.SendAnyway:
-					_transactionInfo.MaximumPossibleFeeRate = _maximumPossibleFee;
-					_transactionInfo.FeeRate = _maximumPossibleFee;
-					_transactionInfo.ConfirmationTimeSpan = _confirmationTimeWithMaxFee;
-					break;
-
-				case InsufficientBalanceUserDecision.SubtractTransactionFee:
-					_transactionInfo.SubtractFee = true;
-					break;
-
-				case InsufficientBalanceUserDecision.SelectMoreCoin:
-				{
-					var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(
-							_wallet,
-							_transactionInfo,
-							isSilent: false,
-							targetAmount: _ex.Minimum),
-						NavigationTarget.DialogScreen);
-
-					if (privacyControlDialogResult.Result is { })
-					{
-						_transactionInfo.Coins = privacyControlDialogResult.Result;
-					}
-					else
-					{
-						Close();
-						return;
-					}
-
-					break;
-				}
+				_transactionInfo.Coins = privacyControlDialogResult.Result;
+				Close();
 			}
+			else
+			{
+				Close(DialogResultKind.Back);
+			}
+		}
 
-			Close(DialogResultKind.Normal, decision);
+		private void OnSubtractTransactionFee()
+		{
+			_transactionInfo.SubtractFee = true;
+			Close();
+		}
+
+		private void OnSendAnyway()
+		{
+			_transactionInfo.MaximumPossibleFeeRate = _maximumPossibleFee;
+			_transactionInfo.FeeRate = _maximumPossibleFee;
+			_transactionInfo.ConfirmationTimeSpan = _confirmationTimeWithMaxFee;
+			Close();
 		}
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -102,7 +105,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 				if (_transactionInfo.IsPayJoin && _wallet.Coins.TotalAmount() == _transactionInfo.Amount)
 				{
 					await ShowErrorAsync("Transaction Building", "There are not enough funds to cover the transaction fee.", "Wasabi was unable to create your transaction.");
-					Close();
+					Close(DialogResultKind.Back);
 					return;
 				}
 
@@ -124,7 +127,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 				// TODO: add message.
 				// Subtract fee?
 				await ShowErrorAsync("Transaction Building", "", "Wasabi was unable to create your transaction.");
-				Close();
+				Close(DialogResultKind.Back);
 				return;
 			}
 
@@ -133,7 +136,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 			if (percentage <= TransactionFeeHelper.FeePercentageThreshold)
 			{
-				await CompleteAsync(InsufficientBalanceUserDecision.SendAnyway);
+				OnSendAnyway();
 			}
 		}
 	}

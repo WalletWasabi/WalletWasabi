@@ -31,18 +31,15 @@
             <Setter Property="Background" Value="{DynamicResource ActionButtonPointerOverBackgroundColor}" />
           </Style>
         </StackPanel.Styles>
-        <Button Command="{Binding NextCommand}"
-                CommandParameter="{x:Static models:InsufficientBalanceUserDecision.SendAnyway}"
+        <Button Command="{Binding SendAnywayCommand}"
                 Content="Send anyway"
                 IsVisible="{Binding EnableSendAnyway}" />
 
-        <Button Command="{Binding NextCommand}"
-                CommandParameter="{x:Static models:InsufficientBalanceUserDecision.SelectMoreCoin}"
+        <Button Command="{Binding SelectMoreCoinCommand}"
                 Content="Select more coin"
                 IsVisible="{Binding EnableSelectMoreCoin}" />
 
-        <Button Command="{Binding NextCommand}"
-                CommandParameter="{x:Static models:InsufficientBalanceUserDecision.SubtractTransactionFee}"
+        <Button Command="{Binding SubtractTransactionFeeCommand}"
                 Content="Subtract fee"
                 IsVisible="{Binding EnableSubtractFee}" />
       </StackPanel>
