@@ -59,13 +59,15 @@ namespace WalletWasabi.Packager
 			{
 				Console.WriteLine("Enter appleId (email):");
 				appleId = Console.ReadLine();
-			} while (string.IsNullOrWhiteSpace(appleId));
+			}
+			while (string.IsNullOrWhiteSpace(appleId));
 
 			do
 			{
 				Console.WriteLine("Enter password:");
 				password = Console.ReadLine();
-			} while (string.IsNullOrWhiteSpace(password));
+			}
+			while (string.IsNullOrWhiteSpace(password));
 
 			if (Directory.Exists(workingDir))
 			{
@@ -125,11 +127,7 @@ namespace WalletWasabi.Packager
 				WorkingDirectory = workingDir
 			}))
 			{
-				if (process is null)
-				{
-					throw new InvalidOperationException("Could not start chmod process.");
-				}
-				process.WaitForExit();
+				WaitProcessToFinish(process, "chmod");
 			}
 
 			var filesToCheck = new[] { entitlementsPath };
@@ -163,11 +161,7 @@ namespace WalletWasabi.Packager
 					Arguments = $"u+x \"{file}\"",
 					WorkingDirectory = workingDir
 				});
-				if (process is null)
-				{
-					throw new InvalidOperationException("Could not start chmod process.");
-				}
-				process.WaitForExit();
+				WaitProcessToFinish(process, "chmod");
 			}
 
 			SignDirectory(filesToSignInOrder, workingDir, signArguments, entitlementsPath);
@@ -186,11 +180,7 @@ namespace WalletWasabi.Packager
 				WorkingDirectory = workingDir
 			}))
 			{
-				if (process is null)
-				{
-					throw new InvalidOperationException("Could not start ditto process.");
-				}
-				process.WaitForExit();
+				WaitProcessToFinish(process, "ditto");
 			}
 
 			Notarize(appleId, password, appNotarizeFilePath, bundleIdentifier);
@@ -204,12 +194,8 @@ namespace WalletWasabi.Packager
 				RedirectStandardError = true
 			}))
 			{
-				if (process is null)
-				{
-					throw new InvalidOperationException("Could not start spctl process.");
-				}
-				process.WaitForExit();
-				string result = process.StandardError.ReadToEnd();
+				var nonNullProcess = WaitProcessToFinish(process, "spctl");
+				string result = nonNullProcess.StandardError.ReadToEnd();
 				if (!result.Contains(": accepted"))
 				{
 					throw new InvalidOperationException(result);
@@ -239,11 +225,7 @@ namespace WalletWasabi.Packager
 				WorkingDirectory = dmgPath
 			}))
 			{
-				if (process is null)
-				{
-					throw new InvalidOperationException("Could not start ln process.");
-				}
-				process.WaitForExit();
+				WaitProcessToFinish(process, "ln");
 			}
 
 			var hdutilCreateArgs = string.Join(
@@ -265,11 +247,7 @@ namespace WalletWasabi.Packager
 				WorkingDirectory = dmgPath
 			}))
 			{
-				if (process is null)
-				{
-					throw new InvalidOperationException("Could not start hdiutil process.");
-				}
-				process.WaitForExit();
+				WaitProcessToFinish(process, "hdiutil");
 			}
 
 			var hdutilConvertArgs = string.Join(
@@ -289,11 +267,7 @@ namespace WalletWasabi.Packager
 				WorkingDirectory = dmgPath
 			}))
 			{
-				if (process is null)
-				{
-					throw new InvalidOperationException("Could not start hdiutil process.");
-				}
-				process.WaitForExit();
+				WaitProcessToFinish(process, "hdiutil");
 			}
 
 			Console.WriteLine("Phase: signing the dmg file.");
@@ -318,12 +292,8 @@ namespace WalletWasabi.Packager
 				RedirectStandardError = true
 			}))
 			{
-				if (process is null)
-				{
-					throw new InvalidOperationException("Could not start spctl process.");
-				}
-				process.WaitForExit();
-				string result = process.StandardError.ReadToEnd();
+				var nonNullProcess = WaitProcessToFinish(process, "spctl");
+				string result = nonNullProcess.StandardError.ReadToEnd();
 				if (!result.Contains(": accepted"))
 				{
 					throw new InvalidOperationException(result);
@@ -334,6 +304,16 @@ namespace WalletWasabi.Packager
 			DeleteWithChmod(workingDir);
 
 			Console.WriteLine("Phase: finish.");
+		}
+
+		private static Process WaitProcessToFinish(Process? process, string processName)
+		{
+			if (process is null)
+			{
+				throw new InvalidOperationException($"Could not start ${processName} process.");
+			}
+			process.WaitForExit();
+			return process;
 		}
 
 		private static void Notarize(string appleId, string password, string filePath, string bundleIdentifier)
@@ -349,12 +329,8 @@ namespace WalletWasabi.Packager
 				RedirectStandardOutput = true,
 			}))
 			{
-				if (process is null)
-				{
-					throw new InvalidOperationException("Could not start xcrun process.");
-				}
-				process.WaitForExit();
-				string result = process.StandardOutput.ReadToEnd();
+				var nonNullProcess = WaitProcessToFinish(process, "xcrum");
+				string result = nonNullProcess.StandardOutput.ReadToEnd();
 
 				if (result.Contains("The software asset has already been uploaded. The upload ID is"))
 				{
@@ -400,12 +376,8 @@ namespace WalletWasabi.Packager
 					RedirectStandardError = true,
 					RedirectStandardOutput = true,
 				});
-				if (process is null)
-				{
-					throw new InvalidOperationException("Could not start altool process.");
-				}
-				process.WaitForExit();
-				string result = $"{process.StandardError.ReadToEnd()} {process.StandardOutput.ReadToEnd()}";
+				var nonNullProcess = WaitProcessToFinish(process, "xcrum");
+				string result = $"{nonNullProcess.StandardError.ReadToEnd()} {nonNullProcess.StandardOutput.ReadToEnd()}";
 				if (result.Contains("Status Message: Package Approved"))
 				{
 					break;
@@ -432,11 +404,7 @@ namespace WalletWasabi.Packager
 				FileName = "xcrun",
 				Arguments = $"stapler staple \"{filePath}\"",
 			});
-			if (process is null)
-			{
-				throw new InvalidOperationException("Could not start stapler process.");
-			}
-			process.WaitForExit();
+			WaitProcessToFinish(process, "xcrum");
 		}
 
 		private static void DeleteWithChmod(string path)
@@ -447,11 +415,7 @@ namespace WalletWasabi.Packager
 				Arguments = $"-R ugo+rwx \"{path}\"",
 			}))
 			{
-				if (process is null)
-				{
-					throw new InvalidOperationException("Could not start chmod process.");
-				}
-				process.WaitForExit();
+				WaitProcessToFinish(process, "chmod");
 			}
 
 			IoHelpers.TryDeleteDirectoryAsync(path).GetAwaiter().GetResult();
@@ -466,12 +430,8 @@ namespace WalletWasabi.Packager
 				WorkingDirectory = workingDir,
 				RedirectStandardError = true
 			});
-			if (process is null)
-			{
-				throw new InvalidOperationException("Could not start codesign process.");
-			}
-			process.WaitForExit();
-			var result = process.StandardError.ReadToEnd();
+			var nonNullProcess = WaitProcessToFinish(process, "codesign");
+			var result = nonNullProcess.StandardError.ReadToEnd();
 			if (result.Contains("code object is not signed at all"))
 			{
 				throw new InvalidOperationException(result);
@@ -493,12 +453,8 @@ namespace WalletWasabi.Packager
 				Arguments = $"-dv --verbose=4 \"{path}\"",
 				RedirectStandardError = true,
 			});
-			if (process is null)
-			{
-				throw new InvalidOperationException("Could not start codesign process.");
-			}
-			process.WaitForExit();
-			string result = process.StandardError.ReadToEnd();
+			var nonNullProcess = WaitProcessToFinish(process, "codesign");
+			string result = nonNullProcess.StandardError.ReadToEnd();
 			if (!result.Contains("Authority=Developer ID Application: zkSNACKs Ltd."))
 			{
 				throw new InvalidOperationException(result);
