@@ -23,8 +23,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	[NavigationMetaData(Title = "Transaction Preview")]
 	public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
-		private const decimal PercentageThreshold = 130;
-
 		private readonly Wallet _wallet;
 		private readonly TransactionInfo _info;
 		private BuildTransactionResult? _transaction;
@@ -252,7 +250,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 			catch (TransactionFeeOverpaymentException ex)
 			{
-				var result = TrySetMaximumPossibleFee(ex.PercentageOfOverpayment, _wallet, _info);
+				var result = TransactionFeeHelper.TryGetMaximumPossibleFee(ex.PercentageOfOverpayment, _wallet, _info.FeeRate, out var maximumPossibleFeeRate);
 
 				if (!result)
 				{
@@ -261,6 +259,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 					return null;
 				}
+
+				_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
+				_info.FeeRate = maximumPossibleFeeRate;
+				_info.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(maximumPossibleFeeRate, _wallet);
 
 				return await BuildTransactionAsync();
 			}
@@ -288,97 +290,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 		}
 
-		private bool TrySetMaximumPossibleFee(decimal percentageOfOverpayment, Wallet wallet, TransactionInfo transactionInfo)
-		{
-			var currentFeeRate = transactionInfo.FeeRate;
-			var maxPossibleFeeRateInSatoshiPerByte = (currentFeeRate.SatoshiPerByte / percentageOfOverpayment) * 100;
-			var maximumPossibleFeeRate = new FeeRate(maxPossibleFeeRateInSatoshiPerByte);
-
-			var feeChartViewModel = new FeeChartViewModel();
-			feeChartViewModel.UpdateFeeEstimates(TransactionFeeHelper.GetFeeEstimates(wallet));
-
-			var blockTarget = feeChartViewModel.GetConfirmationTarget(maximumPossibleFeeRate);
-			var newFeeRate = new FeeRate(feeChartViewModel.GetSatoshiPerByte(blockTarget));
-
-			if (newFeeRate > maximumPossibleFeeRate)
-			{
-				return false;
-			}
-
-			transactionInfo.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(blockTarget);
-			transactionInfo.FeeRate = newFeeRate;
-			transactionInfo.MaximumPossibleFeeRate = maximumPossibleFeeRate;
-
-			return true;
-		}
-
 		private async Task<BuildTransactionResult?> HandleInsufficientBalanceWhenNormalAsync(InsufficientBalanceException ex, Wallet wallet, TransactionInfo transactionInfo)
 		{
-			var selectedFee = ex.Minimum - transactionInfo.Amount;
-			var maxPossibleFee = ex.Actual - transactionInfo.Amount;
-			var percentage = maxPossibleFee == Money.Zero ? 0M : (decimal)selectedFee.Satoshi / maxPossibleFee.Satoshi * 100;
+			var dialog = new InsufficientBalanceDialogViewModel(ex, wallet, transactionInfo);
+			var result = await NavigateDialogAsync(dialog, NavigationTarget.DialogScreen);
 
-			var tmpFeeRate = transactionInfo.FeeRate;
-			var tmpConfirmationTime = transactionInfo.ConfirmationTimeSpan;
-			var tmpMaximumPossibleFeeRate = transactionInfo.MaximumPossibleFeeRate;
-
-			if (percentage > 0)
-			{
-				if (!TrySetMaximumPossibleFee(percentage, _wallet, transactionInfo))
-				{
-					// TODO: add message.
-					// Subtract fee?
-					await ShowErrorAsync("Transaction Building", "", "Wasabi was unable to create your transaction.");
-					return null;
-				}
-			}
-
-			if (percentage is > 0 and <= PercentageThreshold)
-			{
-				return await BuildTransactionAsync();
-			}
-
-			var enableSelectMoreCoins = wallet.Coins.TotalAmount() >= ex.Minimum;
-			var enableSendAnyway = maxPossibleFee != Money.Zero;
-			var enableSubtractFee = wallet.Coins.TotalAmount() == transactionInfo.Amount;
-
-			var userDecision = await NavigateDialogAsync(new InsufficientBalanceDialogViewModel(enableSendAnyway, enableSelectMoreCoins, enableSubtractFee), NavigationTarget.DialogScreen);
-
-			switch (userDecision.Result)
-			{
-				case InsufficientBalanceUserDecision.SendAnyway:
-					return await BuildTransactionAsync();
-
-				case InsufficientBalanceUserDecision.SelectMoreCoin:
-					var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(
-							wallet,
-							transactionInfo,
-							isSilent: false,
-							targetAmount: ex.Minimum),
-						NavigationTarget.DialogScreen);
-
-					if (privacyControlDialogResult.Result is { })
-					{
-						transactionInfo.FeeRate = tmpFeeRate;
-						transactionInfo.ConfirmationTimeSpan = tmpConfirmationTime;
-						transactionInfo.MaximumPossibleFeeRate = tmpMaximumPossibleFeeRate;
-						transactionInfo.Coins = privacyControlDialogResult.Result;
-
-						return await BuildTransactionAsync();
-					}
-
-					return null;
-
-				case InsufficientBalanceUserDecision.SubtractTransactionFee:
-					transactionInfo.FeeRate = tmpFeeRate;
-					transactionInfo.ConfirmationTimeSpan = tmpConfirmationTime;
-					transactionInfo.MaximumPossibleFeeRate = tmpMaximumPossibleFeeRate;
-					transactionInfo.SubtractFee = true;
-					return await BuildTransactionAsync();
-
-				default:
-					return null;
-			}
+			return result.Kind == DialogResultKind.Normal ? await BuildTransactionAsync() : null;
 		}
 
 		private async Task<BuildTransactionResult?> HandleInsufficientBalanceWhenPayJoinAsync(Wallet wallet,

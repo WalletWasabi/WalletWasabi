@@ -11,6 +11,7 @@
              x:Class="WalletWasabi.Fluent.Views.Dialogs.InsufficientBalanceDialogView">
   <c:ContentArea Title="{Binding Title}"
                  EnableBack="{Binding EnableBack}"
+                 IsBusy="{Binding IsBusy}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel>
       <StackPanel Spacing="10" Orientation="Horizontal" HorizontalAlignment="Center" DockPanel.Dock="Bottom">
