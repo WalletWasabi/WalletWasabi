@@ -159,11 +159,34 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private IEnumerable<SmartCoin> SelectCandidateCoins(Wallet openedWallet)
 		{
-			return openedWallet.Coins
+			var coins = new CoinsView(openedWallet.Coins
 				.Available()
 				.Confirmed()
 				.Where(x => x.HdPubKey.AnonymitySet < ServiceConfiguration.MaxAnonScoreTarget)
-				.Where(x => !CoinRefrigerator.IsFrozen(x));
+				.Where(x => !CoinRefrigerator.IsFrozen(x)));
+
+			// If a small portion of the wallet isn't private, it's better to wait with mixing.
+			if (GetPrivacyPercentage(coins) > 0.99)
+			{
+				return Enumerable.Empty<SmartCoin>();
+			}
+
+			return coins;
+		}
+
+		private double GetPrivacyPercentage(CoinsView coins)
+		{
+			var privateThreshold = ServiceConfiguration.MinAnonScoreTarget;
+
+			var privateAmount = coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
+			var normalAmount = coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold).TotalAmount();
+
+			var privateDecimalAmount = privateAmount.ToDecimal(MoneyUnit.BTC);
+			var normalDecimalAmount = normalAmount.ToDecimal(MoneyUnit.BTC);
+			var totalDecimalAmount = privateDecimalAmount + normalDecimalAmount;
+
+			var pcPrivate = totalDecimalAmount == 0M ? 1d : (double)(privateDecimalAmount / totalDecimalAmount);
+			return pcPrivate;
 		}
 
 		private record WalletTrackingData(Wallet Wallet, CoinJoinClient CoinJoinClient, Task<bool> CoinJoinTask, IEnumerable<SmartCoin> CoinCandidates, CancellationTokenSource CancellationTokenSource);
