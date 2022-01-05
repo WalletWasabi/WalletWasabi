@@ -32,14 +32,14 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			List<long> inputValues = new() { 120000, 100000, 100000, 50000, 40000 };
 			BranchAndBound selector = new(inputValues);
-			List<long> expectedCoins = new() { 100000, 50000, 40000 };
+			List<long> expectedValues = new() { 100000, 50000, 40000 };
 			long target = 190000;
 
 			bool wasSuccessful = selector.TryGetExactMatch(target, out List<long>? selectedCoins);
 
 			Assert.True(wasSuccessful);
 			Assert.NotNull(selectedCoins);
-			Assert.Equal(expectedCoins, selectedCoins);
+			Assert.Equal(expectedValues, selectedCoins);
 		}
 
 		[Fact]
@@ -47,14 +47,14 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			List<long> inputValues = new() { 120000, 100000, 100000 };
 			BranchAndBound selector = new(inputValues);
-			List<long> expectedCoins = new() { 120000, 100000, 100000 };
+			List<long> expectedValues = new() { 120000, 100000, 100000 };
 			long target = 320000;
 
 			bool wasSuccessful = selector.TryGetExactMatch(target, out List<long>? selectedCoins);
 
 			Assert.True(wasSuccessful);
 			Assert.NotNull(selectedCoins);
-			Assert.Equal(expectedCoins, selectedCoins);
+			Assert.Equal(expectedValues, selectedCoins);
 		}
 
 		[Fact]
