@@ -56,7 +56,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			BalanceFiat = _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC)
 				.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
 
-			var privateThreshold = _wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
+			var privateThreshold = _wallet.ServiceConfiguration.MinAnonScoreTarget;
 			var privateCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold);
 			var normalCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold);
 
@@ -77,7 +77,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			var recent = _history.FirstOrDefault();
 			if (recent is { })
 			{
-
 				var isIncoming = recent.IncomingAmount is { };
 
 				RecentTransactionName = isIncoming ? "Incoming" : "Outgoing";

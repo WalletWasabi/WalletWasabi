@@ -18,19 +18,16 @@ namespace WalletWasabi.Fluent
 	[JsonObject(MemberSerialization.OptIn)]
 	public class Config : ConfigBase
 	{
-		public const int DefaultPrivacyLevelSome = 2;
-		public const int DefaultPrivacyLevelFine = 21;
-		public const int DefaultPrivacyLevelStrong = 50;
+		public const int DefaultMinAnonScoreTarget = 5;
+		public const int DefaultMaxAnonScoreTarget = 10;
+
 		public const int DefaultJsonRpcServerPort = 37128;
 		public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);
 
 		private Uri _backendUri = null;
 		private Uri _fallbackBackendUri;
-
-		private string _mixUntilAnonymitySet = WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelStrong.ToString();
-		private int _privacyLevelSome;
-		private int _privacyLevelFine;
-		private int _privacyLevelStrong;
+		private int _minAnonScoreTarget;
+		private int _maxAnonScoreTarget;
 
 		public Config() : base()
 		{
@@ -38,7 +35,7 @@ namespace WalletWasabi.Fluent
 
 		public Config(string filePath) : base(filePath)
 		{
-			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet, PrivacyLevelSome, PrivacyLevelFine, PrivacyLevelStrong, GetBitcoinP2pEndPoint(), DustThreshold);
+			ServiceConfiguration = new ServiceConfiguration(MinAnonScoreTarget, MaxAnonScoreTarget, GetBitcoinP2pEndPoint(), DustThreshold);
 		}
 
 		[JsonProperty(PropertyName = "Network")]
@@ -115,74 +112,37 @@ namespace WalletWasabi.Fluent
 			"http://localhost:37128/"
 		};
 
-		[DefaultValue(nameof(WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelStrong))]
-		[JsonProperty(PropertyName = "MixUntilAnonymitySet", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public string MixUntilAnonymitySet
+		[DefaultValue(DefaultMinAnonScoreTarget)]
+		[JsonProperty(PropertyName = "MinAnonScoreTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int MinAnonScoreTarget
 		{
-			get => _mixUntilAnonymitySet;
+			get => _minAnonScoreTarget;
 			internal set
 			{
-				if (RaiseAndSetIfChanged(ref _mixUntilAnonymitySet, value))
+				if (_minAnonScoreTarget != value)
 				{
+					_minAnonScoreTarget = value;
 					if (ServiceConfiguration is { })
 					{
-						ServiceConfiguration.MixUntilAnonymitySet = value;
+						ServiceConfiguration.MinAnonScoreTarget = value;
 					}
 				}
 			}
 		}
 
-		public int MixUntilAnonymitySetValue => GetAnonymitySet(MixUntilAnonymitySet);
-
-		[DefaultValue(DefaultPrivacyLevelSome)]
-		[JsonProperty(PropertyName = "PrivacyLevelSome", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public int PrivacyLevelSome
+		[DefaultValue(DefaultMaxAnonScoreTarget)]
+		[JsonProperty(PropertyName = "MaxAnonScoreTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int MaxAnonScoreTarget
 		{
-			get => _privacyLevelSome;
+			get => _maxAnonScoreTarget;
 			internal set
 			{
-				if (_privacyLevelSome != value)
+				if (_maxAnonScoreTarget != value)
 				{
-					_privacyLevelSome = value;
+					_maxAnonScoreTarget = value;
 					if (ServiceConfiguration is { })
 					{
-						ServiceConfiguration.PrivacyLevelSome = value;
-					}
-				}
-			}
-		}
-
-		[DefaultValue(DefaultPrivacyLevelFine)]
-		[JsonProperty(PropertyName = "PrivacyLevelFine", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public int PrivacyLevelFine
-		{
-			get => _privacyLevelFine;
-			internal set
-			{
-				if (_privacyLevelFine != value)
-				{
-					_privacyLevelFine = value;
-					if (ServiceConfiguration is { })
-					{
-						ServiceConfiguration.PrivacyLevelFine = value;
-					}
-				}
-			}
-		}
-
-		[DefaultValue(DefaultPrivacyLevelStrong)]
-		[JsonProperty(PropertyName = "PrivacyLevelStrong", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public int PrivacyLevelStrong
-		{
-			get => _privacyLevelStrong;
-			internal set
-			{
-				if (_privacyLevelStrong != value)
-				{
-					_privacyLevelStrong = value;
-					if (ServiceConfiguration is { })
-					{
-						ServiceConfiguration.PrivacyLevelStrong = value;
+						ServiceConfiguration.MaxAnonScoreTarget = value;
 					}
 				}
 			}
@@ -298,69 +258,10 @@ namespace WalletWasabi.Fluent
 		{
 			base.LoadFile();
 
-			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet, PrivacyLevelSome, PrivacyLevelFine, PrivacyLevelStrong, GetBitcoinP2pEndPoint(), DustThreshold);
+			ServiceConfiguration = new ServiceConfiguration(MinAnonScoreTarget, MaxAnonScoreTarget, GetBitcoinP2pEndPoint(), DustThreshold);
 
 			// Just debug convenience.
 			_backendUri = GetCurrentBackendUri();
-		}
-
-		private int CorrectMixUntilAnonymitySetValue()
-		{
-			try
-			{
-				if (int.TryParse(MixUntilAnonymitySet, out int mixUntilAnonymitySetValue))
-				{
-					if (mixUntilAnonymitySetValue <= PrivacyLevelSome)
-					{
-						MixUntilAnonymitySet = WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelSome.ToString();
-						return PrivacyLevelSome;
-					}
-					else if (mixUntilAnonymitySetValue <= PrivacyLevelFine)
-					{
-						MixUntilAnonymitySet = WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelFine.ToString();
-						return PrivacyLevelFine;
-					}
-					else
-					{
-						MixUntilAnonymitySet = WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelStrong.ToString();
-						return PrivacyLevelStrong;
-					}
-				}
-				else
-				{
-					MixUntilAnonymitySet = WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelStrong.ToString();
-					return PrivacyLevelStrong;
-				}
-			}
-			finally
-			{
-				ToFile();
-			}
-		}
-
-		public void CorrectMixUntilAnonymitySet()
-		{
-			GetAnonymitySet(MixUntilAnonymitySet);
-		}
-
-		public int GetAnonymitySet(string mixUntilAnonymitySet)
-		{
-			if (mixUntilAnonymitySet == WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelSome.ToString())
-			{
-				return PrivacyLevelSome;
-			}
-			else if (mixUntilAnonymitySet == WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelFine.ToString())
-			{
-				return PrivacyLevelFine;
-			}
-			else if (mixUntilAnonymitySet == WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelStrong.ToString())
-			{
-				return PrivacyLevelStrong;
-			}
-			else
-			{
-				return CorrectMixUntilAnonymitySetValue();
-			}
 		}
 
 		protected override bool TryEnsureBackwardsCompatibility(string jsonString)

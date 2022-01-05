@@ -98,7 +98,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
 			var feeProvider = new HybridFeeProvider(synchronizer, null);
 
-			ServiceConfiguration serviceConfig = new(MixUntilAnonymitySet.PrivacyLevelStrong.ToString(), 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
+			ServiceConfiguration serviceConfig = new(5, 10, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
 			CachedBlockProvider blockProvider = new(
 				new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfig, network),
 				bitcoinStore.BlockRepository);
@@ -109,7 +109,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				keyManager,
 				synchronizer,
 				dataDir,
-				new ServiceConfiguration(MixUntilAnonymitySet.PrivacyLevelStrong.ToString(), 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold)),
+				new ServiceConfiguration(5, 10, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold)),
 				feeProvider,
 				blockProvider);
 			Assert.True(Directory.Exists(blocks.BlocksFolderPath));

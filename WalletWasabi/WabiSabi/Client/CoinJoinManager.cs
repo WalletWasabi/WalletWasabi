@@ -162,7 +162,7 @@ namespace WalletWasabi.WabiSabi.Client
 			return openedWallet.Coins
 				.Available()
 				.Confirmed()
-				.Where(x => x.HdPubKey.AnonymitySet < ServiceConfiguration.GetMixUntilAnonymitySetValue())
+				.Where(x => x.HdPubKey.AnonymitySet < ServiceConfiguration.MaxAnonScoreTarget)
 				.Where(x => !CoinRefrigerator.IsFrozen(x));
 		}
 
