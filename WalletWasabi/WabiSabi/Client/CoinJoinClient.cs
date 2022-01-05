@@ -30,12 +30,16 @@ namespace WalletWasabi.WabiSabi.Client
 			IBackendHttpClientFactory httpClientFactory,
 			Kitchen kitchen,
 			KeyManager keymanager,
-			RoundStateUpdater roundStatusUpdater)
+			RoundStateUpdater roundStatusUpdater,
+			int minAnonScoreTarget = int.MaxValue,
+			bool consolidationMode = false)
 		{
 			HttpClientFactory = httpClientFactory;
 			Kitchen = kitchen;
 			Keymanager = keymanager;
 			RoundStatusUpdater = roundStatusUpdater;
+			MinAnonScoreTarget = minAnonScoreTarget;
+			ConsolidationMode = consolidationMode;
 			SecureRandom = new SecureRandom();
 		}
 
@@ -44,12 +48,15 @@ namespace WalletWasabi.WabiSabi.Client
 		public Kitchen Kitchen { get; }
 		public KeyManager Keymanager { get; }
 		private RoundStateUpdater RoundStatusUpdater { get; }
+		public int MinAnonScoreTarget { get; }
 
 		public bool InCriticalCoinJoinState
 		{
 			get => _inCriticalCoinJoinState;
 			private set => _inCriticalCoinJoinState = value;
 		}
+
+		public bool ConsolidationMode { get; private set; }
 
 		public async Task<bool> StartCoinJoinAsync(IEnumerable<SmartCoin> coins, CancellationToken cancellationToken)
 		{
@@ -310,13 +317,13 @@ namespace WalletWasabi.WabiSabi.Client
 				.ToArray();
 
 			// How many inputs do we want to provide to the mix?
-			int inputCount = GetInputTarget(filteredCoins.Length);
+			int inputCount = ConsolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(filteredCoins.Length);
 
 			// Select a group of coins those are close to each other by Anonimity Score.
 			List<IEnumerable<SmartCoin>> groups = new();
 
 			// I can take more coins those are already reached the minimum privacy threshold.
-			int nonPrivateCoinCount = filteredCoins.Where(x => x.HdPubKey.AnonymitySet < 5).Count();
+			int nonPrivateCoinCount = filteredCoins.Where(x => x.HdPubKey.AnonymitySet < MinAnonScoreTarget).Count();
 			for (int i = 0; i < nonPrivateCoinCount; i++)
 			{
 				var group = filteredCoins.Skip(i).Take(inputCount);

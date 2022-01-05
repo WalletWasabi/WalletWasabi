@@ -76,7 +76,7 @@ namespace WalletWasabi.WabiSabi.Client
 						continue;
 					}
 
-					var coinjoinClient = new CoinJoinClient(HttpClientFactory, openedWallet.Kitchen, openedWallet.KeyManager, RoundStatusUpdater);
+					var coinjoinClient = new CoinJoinClient(HttpClientFactory, openedWallet.Kitchen, openedWallet.KeyManager, RoundStatusUpdater, openedWallet.ServiceConfiguration.MinAnonScoreTarget);
 					var cts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
 					var coinjoinTask = coinjoinClient.StartCoinJoinAsync(coinCandidates, cts.Token);
 

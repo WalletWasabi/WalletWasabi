@@ -89,7 +89,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var kitchen = new Kitchen();
 			kitchen.Cook("");
 
-			var coinJoinClient = new CoinJoinClient(HttpClientFactory, kitchen, KeyManager, roundStateUpdater);
+			var coinJoinClient = new CoinJoinClient(HttpClientFactory, kitchen, KeyManager, roundStateUpdater, consolidationMode: true);
 
 			// Run the coinjoin client task.
 			await coinJoinClient.StartCoinJoinAsync(Coins, cancellationToken).ConfigureAwait(false);
