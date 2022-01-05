@@ -6,6 +6,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.BranchNBound
 {
+	/// <seealso href="https://murch.one/wp-content/uploads/2016/11/erhardt2016coinselection.pdf">Section "5.3 Branch and Bound".</seealso>
 	public class BranchAndBound
 	{
 		private readonly Random _random = new();
