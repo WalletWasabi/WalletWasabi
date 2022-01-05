@@ -152,7 +152,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 					{
 						Logger.LogTrace($"['{connection}'] Circuit '{circuit.Name}' has expired and cannot be used again.", e);
 
-						throw new HttpRequestException("Circuit '{circuit.Name}' has expired and cannot be used again.", e);
+						throw new HttpRequestException($"Circuit '{circuit.Name}' has expired and cannot be used again.", e);
 					}
 					catch (TorConnectCommandFailedException e) when (e.RepField == RepField.TtlExpired)
 					{
