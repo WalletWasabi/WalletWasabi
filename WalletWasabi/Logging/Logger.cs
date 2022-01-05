@@ -45,7 +45,7 @@ namespace WalletWasabi.Logging
 		/// <summary>
 		/// Gets or sets the maximum log file size in KB.
 		/// </summary>
-		/// <remarks>Default value is approximately 10 MB.</remarks>
+		/// <remarks>Default value is approximately 10 MB. But it also depends on <see cref="LogLevel"/>.</remarks>
 		private static long MaximumLogFileSize { get; set; } = 10_000;
 
 		#endregion PropertiesAndMembers
@@ -75,6 +75,7 @@ namespace WalletWasabi.Logging
 			SetMinimumLevel(logLevel ??= LogLevel.Debug);
 			SetModes(LogMode.Debug, LogMode.Console, LogMode.File);
 #endif
+			MaximumLogFileSize = MinimumLevel == LogLevel.Trace ? 50_000 : 10_000;
 		}
 
 		public static void SetMinimumLevel(LogLevel level) => MinimumLevel = level;
