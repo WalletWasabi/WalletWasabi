@@ -316,6 +316,13 @@ namespace WalletWasabi.WabiSabi.Client
 				.ThenByDescending(y => y.Amount)
 				.ToArray();
 
+			// If there's no non-private coins then there's no reason to mix, the rest that's here has already reached the min anonscore target.
+			int nonPrivateCoinCount = filteredCoins.Where(x => x.HdPubKey.AnonymitySet < MinAnonScoreTarget).Count();
+			if (nonPrivateCoinCount == 0)
+			{
+				return Enumerable.Empty<SmartCoin>().ToImmutableList();
+			}
+
 			// How many inputs do we want to provide to the mix?
 			int inputCount = ConsolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(filteredCoins.Length);
 
@@ -323,7 +330,6 @@ namespace WalletWasabi.WabiSabi.Client
 			List<IEnumerable<SmartCoin>> groups = new();
 
 			// I can take more coins those are already reached the minimum privacy threshold.
-			int nonPrivateCoinCount = filteredCoins.Where(x => x.HdPubKey.AnonymitySet < MinAnonScoreTarget).Count();
 			for (int i = 0; i < nonPrivateCoinCount; i++)
 			{
 				var group = filteredCoins.Skip(i).Take(inputCount);
