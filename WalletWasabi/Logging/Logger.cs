@@ -45,7 +45,7 @@ namespace WalletWasabi.Logging
 		/// <summary>
 		/// Gets or sets the maximum log file size in KB.
 		/// </summary>
-		/// <remarks>Default value is approximately 10 MB. But it also depends on <see cref="LogLevel"/>.</remarks>
+		/// <remarks>Default value is approximately 10 MB. If set to <c>0</c>, then there is no maximum log file size.</remarks>
 		private static long MaximumLogFileSize { get; set; } = 10_000;
 
 		#endregion PropertiesAndMembers
@@ -75,7 +75,7 @@ namespace WalletWasabi.Logging
 			SetMinimumLevel(logLevel ??= LogLevel.Debug);
 			SetModes(LogMode.Debug, LogMode.Console, LogMode.File);
 #endif
-			MaximumLogFileSize = MinimumLevel == LogLevel.Trace ? 50_000 : 10_000;
+			MaximumLogFileSize = MinimumLevel == LogLevel.Trace ? 0 : 10_000;
 		}
 
 		public static void SetMinimumLevel(LogLevel level) => MinimumLevel = level;
@@ -219,12 +219,15 @@ namespace WalletWasabi.Logging
 
 					IoHelpers.EnsureContainingDirectoryExists(FilePath);
 
-					if (File.Exists(FilePath))
+					if (MaximumLogFileSize > 0)
 					{
-						var sizeInBytes = new FileInfo(FilePath).Length;
-						if (sizeInBytes > 1000 * MaximumLogFileSize)
+						if (File.Exists(FilePath))
 						{
-							File.Delete(FilePath);
+							var sizeInBytes = new FileInfo(FilePath).Length;
+							if (sizeInBytes > 1000 * MaximumLogFileSize)
+							{
+								File.Delete(FilePath);
+							}
 						}
 					}
 
