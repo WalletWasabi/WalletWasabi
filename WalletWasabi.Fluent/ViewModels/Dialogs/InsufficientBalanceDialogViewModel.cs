@@ -33,8 +33,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			var maxPossibleFee = ex.Actual - _transactionInfo.Amount;
 			_differenceOfFeePercentage = maxPossibleFee == Money.Zero ? 0M : (decimal)selectedFee.Satoshi / maxPossibleFee.Satoshi * 100;
 
-			EnableSendAnyway = _wallet.Coins.TotalAmount() >= ex.Minimum;
-			EnableSelectMoreCoin = maxPossibleFee != Money.Zero;
+			EnableSendAnyway = maxPossibleFee != Money.Zero;
+			EnableSelectMoreCoin = _wallet.Coins.TotalAmount() >= ex.Minimum;
 			EnableSubtractFee = _wallet.Coins.TotalAmount() == _transactionInfo.Amount;
 
 			Question = "What to do";
@@ -97,13 +97,16 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
-			RxApp.MainThreadScheduler.Schedule(async () => await CheckSilentCaseAsync(_differenceOfFeePercentage, _wallet, _transactionInfo));
+			RxApp.MainThreadScheduler.Schedule(async () =>
+			{
+				IsBusy = true;
+				await CheckSilentCaseAsync(_differenceOfFeePercentage, _wallet, _transactionInfo);
+				IsBusy = false;
+			});
 		}
 
 		private async Task CheckSilentCaseAsync(decimal percentage, Wallet wallet, TransactionInfo transactionInfo)
 		{
-			IsBusy = true;
-
 			if (percentage == 0)
 			{
 				return;
@@ -125,8 +128,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			{
 				await CompleteAsync(InsufficientBalanceUserDecision.SendAnyway);
 			}
-
-			IsBusy = false;
 		}
 	}
 }
