@@ -23,7 +23,7 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class CoinJoinClient
 	{
-		private const int MaxInputsRegistrableByWallet = 7; // how many
+		private const int MaxInputsRegistrableByWallet = 10; // how many
 		private volatile bool _inCriticalCoinJoinState;
 
 		public CoinJoinClient(
@@ -311,16 +311,63 @@ namespace WalletWasabi.WabiSabi.Client
 		//
 		// Note: this method works on already pre-filteres coins: those available and that didn't reached the
 		// expected anonymity set threshold.
-		private ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, MultipartyTransactionParameters parameters) =>
-			coins
+		private ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, MultipartyTransactionParameters parameters)
+		{
+			var filteredCoins = coins
 				.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
-				.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t)))
-				.GroupBy(x => x.TransactionId)
+				.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t)));
+
+			// How many inputs do we want to provide to the mix?
+			int inputCount = GetInputTarget(filteredCoins.Count());
+
+			return filteredCoins.GroupBy(x => x.TransactionId)
 				.Select(x => x.OrderByDescending(y => y.Amount).First())
 				.OrderBy(x => x.HdPubKey.AnonymitySet)
 				.ThenByDescending(x => x.Amount)
-				.Take(MaxInputsRegistrableByWallet)
+				.Take(inputCount)
 				.ToShuffled()
 				.ToImmutableList();
+		}
+
+		private int GetInputTarget(int count)
+		{
+			int targetInputCount;
+			if (count < 35)
+			{
+				targetInputCount = 1;
+			}
+			else if (count > 150)
+			{
+				targetInputCount = MaxInputsRegistrableByWallet;
+			}
+			else
+			{
+				var min = 2;
+				var max = MaxInputsRegistrableByWallet - 1;
+
+				var percent = (double)(count - 35) / (150 - 35);
+				targetInputCount = (int)Math.Round((max - min) * percent + min);
+			}
+
+			var distance = new Dictionary<int, int>();
+			for (int i = targetInputCount; i <= MaxInputsRegistrableByWallet; i++)
+			{
+				distance.TryAdd(i, Math.Abs(i - targetInputCount));
+			}
+			for (int i = targetInputCount; i >= 1; i--)
+			{
+				distance.TryAdd(i, Math.Abs(i - targetInputCount));
+			}
+
+			foreach (var best in distance.OrderBy(x => x.Value))
+			{
+				if (SecureRandom.GetInt(0, 10) < 5)
+				{
+					return best.Key;
+				}
+			}
+
+			return targetInputCount;
+		}
 	}
 }
