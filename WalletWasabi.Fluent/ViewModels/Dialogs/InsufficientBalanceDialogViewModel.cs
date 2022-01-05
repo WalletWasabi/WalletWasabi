@@ -99,6 +99,13 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 			RxApp.MainThreadScheduler.Schedule(async () =>
 			{
+				if (_transactionInfo.IsPayJoin && _wallet.Coins.TotalAmount() == _transactionInfo.Amount)
+				{
+					await ShowErrorAsync("Transaction Building", "There are not enough funds to cover the transaction fee.", "Wasabi was unable to create your transaction.");
+					Close();
+					return;
+				}
+
 				IsBusy = true;
 				await CheckSilentCaseAsync(_differenceOfFeePercentage, _wallet, _transactionInfo);
 				IsBusy = false;
