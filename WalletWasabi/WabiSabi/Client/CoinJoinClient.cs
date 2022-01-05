@@ -299,34 +299,48 @@ namespace WalletWasabi.WabiSabi.Client
 			await Task.WhenAll(readyRequests).ConfigureAwait(false);
 		}
 
-		// Selects coin candidates for participating in a round.
-		// The criteria is the following:
-		// * Only coin with amount in the allowed range
-		// * Only coins with allowed script types
-		// * Only one coin (the biggest one) from the same transaction (do not consolidate same transaction outputs)
-		//
-		// Then prefer:
-		// * less private coins should be the first ones
-		// * bigger coins first (this makes economical sense because mix more money paying less network fees)
-		//
-		// Note: this method works on already pre-filteres coins: those available and that didn't reached the
-		// expected anonymity set threshold.
 		private ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, MultipartyTransactionParameters parameters)
 		{
 			var filteredCoins = coins
 				.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
-				.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t)));
+				.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t)))
+				.ToShuffled() // Preshuffle before ordering.
+				.OrderBy(x => x.HdPubKey.AnonymitySet)
+				.ThenByDescending(y => y.Amount)
+				.ToArray();
 
 			// How many inputs do we want to provide to the mix?
-			int inputCount = GetInputTarget(filteredCoins.Count());
+			int inputCount = GetInputTarget(filteredCoins.Length);
 
-			return filteredCoins.GroupBy(x => x.TransactionId)
-				.Select(x => x.OrderByDescending(y => y.Amount).First())
-				.OrderBy(x => x.HdPubKey.AnonymitySet)
-				.ThenByDescending(x => x.Amount)
-				.Take(inputCount)
-				.ToShuffled()
-				.ToImmutableList();
+			// Select a group of coins those are close to each other by Anonimity Score.
+			List<IEnumerable<SmartCoin>> groups = new();
+
+			// I can take more coins those are already reached the minimum privacy threshold.
+			int nonPrivateCoinCount = filteredCoins.Where(x => x.HdPubKey.AnonymitySet < 5).Count();
+			for (int i = 0; i < nonPrivateCoinCount; i++)
+			{
+				var group = filteredCoins.Skip(i).Take(inputCount);
+				groups.Add(group);
+			}
+
+			List<(int Diff, IEnumerable<SmartCoin> Group)> anonScoreDiffs = new();
+			foreach (var group in groups)
+			{
+				var diff = group.Max(x => x.HdPubKey.AnonymitySet) - group.Min(x => x.HdPubKey.AnonymitySet);
+				anonScoreDiffs.Add((diff, group));
+			}
+
+			var bestDiff = anonScoreDiffs.Select(g => g.Diff).Min();
+			var bestgroups = anonScoreDiffs.Where(x => x.Diff == bestDiff).Select(x => x.Group);
+
+			// Select the group where the less coins coming from the same tx.
+			var bestgroup = bestgroups
+				.Select(group =>
+					(Reps: group.GroupBy(x => x.TransactionId).Sum(coinsInTxGroup => coinsInTxGroup.Count() - 1),
+					Group: group))
+				.MinBy(i => i.Reps).Group;
+
+			return bestgroup.ToShuffled().ToImmutableList();
 		}
 
 		private int GetInputTarget(int count)
