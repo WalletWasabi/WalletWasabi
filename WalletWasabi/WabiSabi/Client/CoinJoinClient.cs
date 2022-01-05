@@ -320,7 +320,7 @@ namespace WalletWasabi.WabiSabi.Client
 			int nonPrivateCoinCount = filteredCoins.Where(x => x.HdPubKey.AnonymitySet < MinAnonScoreTarget).Count();
 			if (nonPrivateCoinCount == 0)
 			{
-				return Enumerable.Empty<SmartCoin>().ToImmutableList();
+				throw new InvalidOperationException("Coin selection failed to return a valid coin set.");
 			}
 
 			// How many inputs do we want to provide to the mix?
@@ -336,15 +336,22 @@ namespace WalletWasabi.WabiSabi.Client
 				groups.Add(group);
 			}
 
-			List<(int Diff, IEnumerable<SmartCoin> Group)> anonScoreDiffs = new();
+			// Calculate the anonScore cost of input consolidation.
+			List<(long Cost, IEnumerable<SmartCoin> Group)> anonScoreCosts = new();
 			foreach (var group in groups)
 			{
-				var diff = group.Max(x => x.HdPubKey.AnonymitySet) - group.Min(x => x.HdPubKey.AnonymitySet);
-				anonScoreDiffs.Add((diff, group));
+				var smallestAnon = group.Min(x => x.HdPubKey.AnonymitySet);
+				var cost = 0L;
+				foreach (var coin in group.Where(c => c.HdPubKey.AnonymitySet != smallestAnon))
+				{
+					cost += (coin.Amount.Satoshi * coin.HdPubKey.AnonymitySet) - (coin.Amount.Satoshi * smallestAnon);
+				}
+
+				anonScoreCosts.Add((cost, group));
 			}
 
-			var bestDiff = anonScoreDiffs.Select(g => g.Diff).Min();
-			var bestgroups = anonScoreDiffs.Where(x => x.Diff == bestDiff).Select(x => x.Group);
+			var bestCost = anonScoreCosts.Select(g => g.Cost).Min();
+			var bestgroups = anonScoreCosts.Where(x => x.Cost == bestCost).Select(x => x.Group);
 
 			// Select the group where the less coins coming from the same tx.
 			var bestgroup = bestgroups
