@@ -26,6 +26,8 @@ namespace WalletWasabi.WabiSabi.Client
 		private const int MaxInputsRegistrableByWallet = 10; // how many
 		private volatile bool _inCriticalCoinJoinState;
 
+		/// <param name="minAnonScoreTarget">Coins those have reached anonymity target, but still can be mixed if desired.</param>
+		/// <param name="consolidationMode">If true, then aggressively try to consolidate as many coins as it can.</param>
 		public CoinJoinClient(
 			IBackendHttpClientFactory httpClientFactory,
 			Kitchen kitchen,
