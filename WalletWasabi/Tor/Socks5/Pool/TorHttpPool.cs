@@ -357,6 +357,10 @@ namespace WalletWasabi.Tor.Socks5.Pool
 			{
 				Logger.LogTrace($"Beware! Too many active connections: '{string.Join(", ", hostConnections.Select(c => c.ToString()))}'.");
 			}
+			else
+			{
+				Logger.LogTrace($"There are active connections: {hostConnections.Count}.");
+			}
 
 			return canBeAdded;
 		}
