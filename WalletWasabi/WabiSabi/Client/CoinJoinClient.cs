@@ -385,11 +385,7 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 
 			var distance = new Dictionary<int, int>();
-			for (int i = targetInputCount; i <= MaxInputsRegistrableByWallet; i++)
-			{
-				distance.TryAdd(i, Math.Abs(i - targetInputCount));
-			}
-			for (int i = targetInputCount; i >= 1; i--)
+			for (int i = 1; i <= MaxInputsRegistrableByWallet; i++)
 			{
 				distance.TryAdd(i, Math.Abs(i - targetInputCount));
 			}
