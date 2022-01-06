@@ -33,7 +33,7 @@ namespace WalletWasabi.Wallets
 
 		public Wallet(string dataDir, Network network, KeyManager keyManager)
 		{
-			Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
+			DataDir = Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
 			Network = Guard.NotNull(nameof(network), network);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 
@@ -75,12 +75,14 @@ namespace WalletWasabi.Wallets
 		public WasabiSynchronizer Synchronizer { get; private set; }
 		public ServiceConfiguration ServiceConfiguration { get; private set; }
 		public string WalletName => KeyManager.WalletName;
+		private WalletLogger? WalletLogger { get; set; }
 
 		/// <summary>
 		/// Unspent Transaction Outputs
 		/// </summary>
 		public ICoinsView Coins { get; private set; }
 
+		private string DataDir { get; }
 		public Network Network { get; }
 		public TransactionProcessor TransactionProcessor { get; private set; }
 
@@ -189,6 +191,7 @@ namespace WalletWasabi.Wallets
 				await base.StartAsync(cancel).ConfigureAwait(false);
 
 				State = WalletState.Started;
+				WalletLogger = new WalletLogger(WalletName, Network, Coins, DataDir);
 			}
 			catch
 			{
@@ -276,6 +279,11 @@ namespace WalletWasabi.Wallets
 			try
 			{
 				WalletRelevantTransactionProcessed?.Invoke(this, e);
+
+				if (WalletLogger is { })
+				{
+					await WalletLogger.LogAsync(e).ConfigureAwait(false);
+				}
 			}
 			catch (Exception ex)
 			{
