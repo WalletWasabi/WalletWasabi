@@ -336,6 +336,12 @@ namespace WalletWasabi.WabiSabi.Client
 			{
 				// Make sure the group can at least register an output even after paying fees.
 				var group = filteredCoins.Skip(i).Take(inputCount);
+
+				if (group.Count() < Math.Min(filteredCoins.Length, inputCount))
+				{
+					break;
+				}
+
 				var inSum = group.Sum(x => x.EffectiveValue(parameters.FeeRate));
 				var outFee = parameters.FeeRate.GetFee(Constants.P2wpkhOutputSizeInBytes);
 				if (inSum >= outFee + parameters.AllowedOutputAmounts.Min)

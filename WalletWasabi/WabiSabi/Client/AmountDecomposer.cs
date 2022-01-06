@@ -294,7 +294,7 @@ namespace WalletWasabi.WabiSabi.Client
 						(currSet, loss + (ulong)currSet.Count * OutputFee));
 				}
 			}
-			while ((DateTimeOffset.UtcNow - before).TotalMilliseconds <= 500);
+			while ((DateTimeOffset.UtcNow - before).TotalMilliseconds <= 1);
 
 			var denomHashSet = denoms.ToHashSet();
 			var finalCandidates = setCandidates.Select(x => x.Value).ToList();
