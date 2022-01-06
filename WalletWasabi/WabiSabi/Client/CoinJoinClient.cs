@@ -358,6 +358,7 @@ namespace WalletWasabi.WabiSabi.Client
 				.Select(group =>
 					(Reps: group.GroupBy(x => x.TransactionId).Sum(coinsInTxGroup => coinsInTxGroup.Count() - 1),
 					Group: group))
+				.ToShuffled()
 				.MinBy(i => i.Reps).Group;
 
 			return bestgroup.ToShuffled().ToImmutableList();
