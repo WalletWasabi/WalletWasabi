@@ -30,7 +30,7 @@ namespace WalletWasabi.Wallets
 				BlockExplorerPrefix = "";
 			}
 
-			FilePath = Path.Combine(dataDir, "WalletLogs", $"WalletLog_{WalletName}.txt");
+			FilePath = Path.Combine(dataDir, "WalletLogs", WalletName, $"WalletLog_{WalletName}_{DateTime.Now:yyyyMMdd}.txt");
 
 			TryCreateFile(FilePath);
 
