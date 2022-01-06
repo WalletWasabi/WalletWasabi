@@ -31,10 +31,10 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			_transactionInfo = transactionInfo;
 
 			var selectedFee = ex.Minimum - _transactionInfo.Amount;
-			var maxPossibleFee = ex.Actual - _transactionInfo.Amount;
-			_differenceOfFeePercentage = maxPossibleFee == Money.Zero ? 0M : (decimal)selectedFee.Satoshi / maxPossibleFee.Satoshi * 100;
+			var maxPossibleFeeWithCurrentCoins = ex.Actual - _transactionInfo.Amount;
+			_differenceOfFeePercentage = maxPossibleFeeWithCurrentCoins == Money.Zero ? 0M : (decimal)selectedFee.Satoshi / maxPossibleFeeWithCurrentCoins.Satoshi * 100;
 
-			EnableSendAnyway = maxPossibleFee != Money.Zero;
+			EnableSendAnyway = maxPossibleFeeWithCurrentCoins != Money.Zero;
 			EnableSelectMoreCoin = _wallet.Coins.TotalAmount() >= ex.Minimum;
 			EnableSubtractFee = _wallet.Coins.TotalAmount() == _transactionInfo.Amount;
 
@@ -100,19 +100,32 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
-			RxApp.MainThreadScheduler.Schedule(async () =>
+			if (!isInHistory)
 			{
-				if (_transactionInfo.IsPayJoin && _wallet.Coins.TotalAmount() == _transactionInfo.Amount)
+				RxApp.MainThreadScheduler.Schedule(async () =>
 				{
-					await ShowErrorAsync("Transaction Building", "There are not enough funds to cover the transaction fee.", "Wasabi was unable to create your transaction.");
-					Close(DialogResultKind.Back);
-					return;
-				}
+					// Edge cases, probably never will happen.
+					if (!EnableSendAnyway && !EnableSubtractFee && !EnableSelectMoreCoin)
+					{
+						await ShowErrorAsync("Transaction Building",
+							"Automatic transaction fee selection is not possible at the moment, alternatively you can enter the transaction fee manually in Advanced options.",
+							"Wasabi was unable to create your transaction.");
+						Close(DialogResultKind.Back);
+						return;
+					}
 
-				IsBusy = true;
-				await CheckSilentCaseAsync(_differenceOfFeePercentage, _wallet, _transactionInfo);
-				IsBusy = false;
-			});
+					if (_transactionInfo.IsPayJoin && _wallet.Coins.TotalAmount() == _transactionInfo.Amount)
+					{
+						await ShowErrorAsync("Transaction Building", "There are not enough funds to cover the transaction fee.", "Wasabi was unable to create your transaction.");
+						Close(DialogResultKind.Back);
+						return;
+					}
+
+					IsBusy = true;
+					await CheckSilentCaseAsync(_differenceOfFeePercentage, _wallet, _transactionInfo);
+					IsBusy = false;
+				});
+			}
 		}
 
 		private async Task CheckSilentCaseAsync(decimal percentage, Wallet wallet, TransactionInfo transactionInfo)
