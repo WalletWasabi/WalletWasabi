@@ -364,14 +364,20 @@ namespace WalletWasabi.WabiSabi.Client
 			return bestgroup.ToShuffled().ToImmutableList();
 		}
 
-		private int GetInputTarget(int count)
+		/// <summary>
+		/// Calculates how many inputs are desirable to be registered
+		/// based on rougly the total number of coins in a wallet.
+		/// Note: random biasing is applied.
+		/// </summary>
+		/// <returns>Desired input count.</returns>
+		private int GetInputTarget(int utxoCount)
 		{
 			int targetInputCount;
-			if (count < 35)
+			if (utxoCount < 35)
 			{
 				targetInputCount = 1;
 			}
-			else if (count > 150)
+			else if (utxoCount > 150)
 			{
 				targetInputCount = MaxInputsRegistrableByWallet;
 			}
@@ -380,7 +386,7 @@ namespace WalletWasabi.WabiSabi.Client
 				var min = 2;
 				var max = MaxInputsRegistrableByWallet - 1;
 
-				var percent = (double)(count - 35) / (150 - 35);
+				var percent = (double)(utxoCount - 35) / (150 - 35);
 				targetInputCount = (int)Math.Round((max - min) * percent + min);
 			}
 
