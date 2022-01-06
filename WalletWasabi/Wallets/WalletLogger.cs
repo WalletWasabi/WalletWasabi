@@ -13,8 +13,6 @@ namespace WalletWasabi.Wallets
 {
 	public class WalletLogger
 	{
-		public static bool Enabled { get; set; } = false;
-
 		public WalletLogger(string walletName, Network network, ICoinsView coins, string dataDir)
 		{
 			if (!Enabled)
@@ -51,6 +49,10 @@ namespace WalletWasabi.Wallets
 		private string DataDir { get; }
 		private Money LastBalance { get; }
 		private int CurrentDay { get; set; } = 0;
+		public static bool Enabled { get; set; } = false;
+
+		public string LastCoinsText { get; set; } = "";
+		private Dictionary<SmartCoin, int> LastCoinAnonSets { get; set; } = new();
 
 		public async Task LogAsync(ProcessedResult e)
 		{
@@ -64,7 +66,7 @@ namespace WalletWasabi.Wallets
 				sb.AppendLine($"Spent");
 				foreach (var coin in e.NewlySpentCoins.OrderByDescending(c => c.Amount))
 				{
-					sb.AppendLine($"{coin.Amount}({coin.HdPubKey.AnonymitySet})");
+					sb.AppendLine(CoinToString(coin, LastCoinAnonSets));
 				}
 			}
 
@@ -73,7 +75,7 @@ namespace WalletWasabi.Wallets
 				sb.AppendLine($"Received");
 				foreach (var coin in e.NewlyReceivedCoins.OrderByDescending(c => c.Amount))
 				{
-					sb.AppendLine($"{coin.Amount}({coin.HdPubKey.AnonymitySet})");
+					sb.AppendLine(CoinToString(coin));
 				}
 			}
 
@@ -100,6 +102,17 @@ namespace WalletWasabi.Wallets
 				header.AppendLine($"Balance change: { currentBalance - LastBalance } - Total balance: {Coins.TotalAmount()}");
 				header.AppendLine($"TxId: {BlockExplorerPrefix}{e.Transaction.GetHash()} {DateTime.Now}");
 				sb.Insert(0, header.ToString());
+
+				if (Coins.Any())
+				{
+					sb.AppendLine();
+					sb.AppendLine($"Prev {LastCoinsText}");
+					var text = CoinsToString(Coins);
+					sb.AppendLine($"Curr {text}");
+
+					LastCoinsText = text;
+					LastCoinAnonSets = Coins.ToDictionary(c => c, c => c.HdPubKey.AnonymitySet);
+				}
 			}
 
 			await File.AppendAllTextAsync(FilePath, sb.ToString()).ConfigureAwait(false);
@@ -134,14 +147,34 @@ namespace WalletWasabi.Wallets
 			sb.AppendLine($"Total balance: {Coins.TotalAmount()}");
 			if (Coins.Any())
 			{
-				sb.AppendLine($"Coins ({Coins.Count()}):");
+				sb.AppendLine($"Coins ({Coins.Count():0##}):");
 				foreach (var coin in Coins.OrderByDescending(c => c.Amount))
 				{
-					sb.AppendLine($"{coin.Amount}({coin.HdPubKey.AnonymitySet})");
+					sb.AppendLine(CoinToString(coin));
 				}
 			}
 
 			File.WriteAllText(FilePath, sb.ToString());
+		}
+
+		private static string CoinToString(SmartCoin coin, Dictionary<SmartCoin, int>? lastCoinAnonSets = null)
+		{
+			var anon = coin.HdPubKey.AnonymitySet;
+			if (lastCoinAnonSets?.ContainsKey(coin) is true)
+			{
+				anon = lastCoinAnonSets[coin];
+			}
+			return $"{coin.Amount}({anon:0##})@{coin.OutPoint.Hash.ToString()[..5]}{coin.OutPoint.N:0#}";
+		}
+
+		private static string CoinsToString(IEnumerable<SmartCoin> coins)
+		{
+			var coinsText =
+				string.Join(" ", coins
+					.OrderByDescending(c => c.Amount)
+					.Select(coin => CoinToString(coin)));
+			var currentCoinsText = $"[{coins.Count():0##}] {coinsText}";
+			return currentCoinsText;
 		}
 	}
 }
