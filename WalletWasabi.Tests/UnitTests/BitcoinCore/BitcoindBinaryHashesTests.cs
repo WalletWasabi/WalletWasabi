@@ -22,9 +22,9 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 
 			Dictionary<OSPlatform, string> expectedHashes = new Dictionary<OSPlatform, string>()
 			{
-				{ OSPlatform.Windows, "957d43d6290ad1bda3e4ee6dc1303a7dac56c378ad4a4b4896610fb02f4fe177" },
-				{ OSPlatform.Linux, "72c713789869010a70f264a03261e7fcb9e2dc3052ba618f2e5056fb45cdc6e5" },
-				{ OSPlatform.OSX, "182cd983fba123b77d6deaefee4669b9e256dda8274c86249e6f4b852dd02924" },
+				{ OSPlatform.Windows, "82686bbedb4a09e0e680ca65af21a18705b90d2e42dcc9b7b248c5705f6a8fb4" },
+				{ OSPlatform.Linux, "1b9938fdad1bcf0c7fe7598cefcf03c8f5623104341c2a9023570899013da344" },
+				{ OSPlatform.OSX, "0ee016965a71a93a0f4fd494445f6228a37f6eecad1f2d45ab2c485d1734d9c4" },
 			};
 
 			foreach (var item in expectedHashes)
