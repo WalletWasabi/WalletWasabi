@@ -52,7 +52,7 @@ namespace WalletWasabi.Wallets
 
 			if (e.NewlySpentCoins.Any())
 			{
-				sb.AppendLine($"Newly Spent");
+				sb.AppendLine($"Spent");
 				foreach (var coin in e.NewlySpentCoins.OrderByDescending(c => c.Amount))
 				{
 					sb.AppendLine($"{coin.Amount}({coin.HdPubKey.AnonymitySet})");
@@ -61,7 +61,7 @@ namespace WalletWasabi.Wallets
 
 			if (e.NewlyReceivedCoins.Any())
 			{
-				sb.AppendLine($"Newly Received");
+				sb.AppendLine($"Received");
 				foreach (var coin in e.NewlyReceivedCoins.OrderByDescending(c => c.Amount))
 				{
 					sb.AppendLine($"{coin.Amount}({coin.HdPubKey.AnonymitySet})");
@@ -105,7 +105,7 @@ namespace WalletWasabi.Wallets
 
 			IoHelpers.EnsureContainingDirectoryExists(filePath);
 
-			StringBuilder sb = new StringBuilder();
+			StringBuilder sb = new ();
 
 			sb.AppendLine($"WARNING! This file created only for debugging purposes! In any other cases immediately disable WalletLogging feature!");
 			sb.AppendLine($"WalletName: {WalletName} File created: {DateTime.Now}");
