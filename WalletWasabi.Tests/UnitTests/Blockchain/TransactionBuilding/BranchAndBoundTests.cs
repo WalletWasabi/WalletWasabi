@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
-using WalletWasabi.BranchNBound;
+using WalletWasabi.Blockchain.TransactionBuilding;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests
+namespace WalletWasabi.Tests.UnitTests.Blockchain.TransactionBuilding
 {
 	/// <summary>
 	/// Tests for <see cref="BranchAndBound"/> class.
