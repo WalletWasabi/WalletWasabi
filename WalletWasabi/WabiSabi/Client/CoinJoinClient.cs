@@ -118,7 +118,7 @@ namespace WalletWasabi.WabiSabi.Client
 				// Calculate outputs values
 				roundState = await RoundStatusUpdater.CreateRoundAwaiter(rs => rs.Id == roundState.Id, cancellationToken).ConfigureAwait(false);
 				constructionState = roundState.Assert<ConstructionState>();
-				AmountDecomposer amountDecomposer = new(roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min, Constants.P2WPKHOutputSizeInBytes, (int)availableVsize);
+				AmountDecomposer amountDecomposer = new(roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min, Constants.P2wpkhOutputSizeInBytes, (int)availableVsize);
 				var theirCoins = constructionState.Inputs.Except(registeredCoins);
 				var outputValues = amountDecomposer.Decompose(registeredCoins, theirCoins);
 
@@ -334,8 +334,14 @@ namespace WalletWasabi.WabiSabi.Client
 			// I can take more coins those are already reached the minimum privacy threshold.
 			for (int i = 0; i < nonPrivateCoinCount; i++)
 			{
+				// Make sure the group can at least register an output even after paying fees.
 				var group = filteredCoins.Skip(i).Take(inputCount);
-				groups.Add(group);
+				var inSum = group.Sum(x => x.EffectiveValue(parameters.FeeRate));
+				var outFee = parameters.FeeRate.GetFee(Constants.P2wpkhOutputSizeInBytes);
+				if (inSum >= outFee + parameters.AllowedOutputAmounts.Min)
+				{
+					groups.Add(group);
+				}
 			}
 
 			// Calculate the anonScore cost of input consolidation.
