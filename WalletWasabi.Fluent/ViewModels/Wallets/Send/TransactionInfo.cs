@@ -16,7 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public TransactionInfo()
 		{
-			_privateCoinThreshold = Services.Config.MixUntilAnonymitySetValue;
+			_privateCoinThreshold = Services.Config.MinAnonScoreTarget;
 
 			this.WhenAnyValue(x => x.Amount)
 				.Subscribe(_ => OnAmountChanged());

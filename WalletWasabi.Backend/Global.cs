@@ -53,14 +53,14 @@ namespace WalletWasabi.Backend
 			// Make sure P2P works.
 			await InitializeP2pAsync(config.Network, config.GetBitcoinP2pEndPoint(), cancel);
 
-			HostedServices.Register<MempoolMirror>(new MempoolMirror(TimeSpan.FromSeconds(21), RpcClient, P2pNode), "Full Node Mempool Mirror");
+			HostedServices.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(21), RpcClient, P2pNode), "Full Node Mempool Mirror");
 
 			CoordinatorParameters coordinatorParameters = new(DataDir);
-			HostedServices.Register<WabiSabiCoordinator>(new WabiSabiCoordinator(coordinatorParameters, RpcClient), "WabiSabi Coordinator");
+			HostedServices.Register<WabiSabiCoordinator>(() => new WabiSabiCoordinator(coordinatorParameters, RpcClient), "WabiSabi Coordinator");
 
 			if (roundConfig.FilePath is { })
 			{
-				HostedServices.Register<ConfigWatcher>(
+				HostedServices.Register<ConfigWatcher>( () =>
 					new ConfigWatcher(
 						TimeSpan.FromSeconds(10), // Every 10 seconds check the config
 						RoundConfig,
@@ -85,7 +85,7 @@ namespace WalletWasabi.Backend
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
 			var blockNotifier = HostedServices.Get<BlockNotifier>();
 			Coordinator = new(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig);
-			HostedServices.Register<RoundBootstrapper>(new RoundBootstrapper(TimeSpan.FromMilliseconds(100), Coordinator), "Round Bootstrapper");
+			HostedServices.Register<RoundBootstrapper>(() => new RoundBootstrapper(TimeSpan.FromMilliseconds(100), Coordinator), "Round Bootstrapper");
 
 			await HostedServices.StartAllAsync(cancel);
 
@@ -102,7 +102,7 @@ namespace WalletWasabi.Backend
 			// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
 			P2pNode = new(network, endPoint, new(), $"/WasabiCoordinator:{Constants.BackendMajorVersion}/");
 			await P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
-			HostedServices.Register<BlockNotifier>(new BlockNotifier(TimeSpan.FromSeconds(7), RpcClient, P2pNode), "Block Notifier");
+			HostedServices.Register<BlockNotifier>(() => new BlockNotifier(TimeSpan.FromSeconds(7), RpcClient, P2pNode), "Block Notifier");
 		}
 
 		private async Task AssertRpcNodeFullyInitializedAsync(CancellationToken cancellationToken)

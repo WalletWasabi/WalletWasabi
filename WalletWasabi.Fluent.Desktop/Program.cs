@@ -149,7 +149,6 @@ namespace WalletWasabi.Fluent.Desktop
 
 			Config config = new(Path.Combine(dataDir, "Config.json"));
 			config.LoadOrCreateDefaultFile();
-			config.CorrectMixUntilAnonymitySet();
 
 			return (uiConfig, config);
 		}

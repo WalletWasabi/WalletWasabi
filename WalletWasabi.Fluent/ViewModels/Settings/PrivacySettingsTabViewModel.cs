@@ -12,71 +12,47 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		IconName = "settings_privacy_regular")]
 	public partial class PrivacySettingsTabViewModel : SettingsTabViewModelBase
 	{
-		[AutoNotify] private int _minimalPrivacyLevel;
-		[AutoNotify] private int _mediumPrivacyLevel;
-		[AutoNotify] private int _strongPrivacyLevel;
+		[AutoNotify] private int _minAnonScoreTarget;
+		[AutoNotify] private int _maxAnonScoreTarget;
 
 		public PrivacySettingsTabViewModel()
 		{
-			_minimalPrivacyLevel = Services.Config.PrivacyLevelSome;
-			_mediumPrivacyLevel = Services.Config.PrivacyLevelFine;
-			_strongPrivacyLevel = Services.Config.PrivacyLevelStrong;
+			_minAnonScoreTarget = Services.Config.MinAnonScoreTarget;
+			_maxAnonScoreTarget = Services.Config.MaxAnonScoreTarget;
 
 			this.WhenAnyValue(
-					x => x.MinimalPrivacyLevel,
-					x => x.MediumPrivacyLevel,
-					x => x.StrongPrivacyLevel)
+					x => x.MinAnonScoreTarget,
+					x => x.MaxAnonScoreTarget)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 				.Skip(1)
 				.Subscribe(_ => Save());
 
-			this.WhenAnyValue(x => x.MinimalPrivacyLevel)
+			this.WhenAnyValue(x => x.MinAnonScoreTarget)
 				.Subscribe(
 					x =>
 					{
-						if (x >= MediumPrivacyLevel)
+						if (x >= MaxAnonScoreTarget)
 						{
-							MediumPrivacyLevel = x + 1;
+							MaxAnonScoreTarget = x + 1;
 						}
 					});
 
-			this.WhenAnyValue(x => x.MediumPrivacyLevel)
+			this.WhenAnyValue(x => x.MaxAnonScoreTarget)
 				.Subscribe(
 					x =>
 					{
-						if (x >= StrongPrivacyLevel)
+						if (x <= MinAnonScoreTarget)
 						{
-							StrongPrivacyLevel = x + 1;
-						}
-
-						if (x <= MinimalPrivacyLevel)
-						{
-							MinimalPrivacyLevel = x - 1;
-						}
-					});
-
-			this.WhenAnyValue(x => x.StrongPrivacyLevel)
-				.Subscribe(
-					x =>
-					{
-						if (x <= MinimalPrivacyLevel)
-						{
-							MinimalPrivacyLevel = x - 1;
-						}
-
-						if (x <= MediumPrivacyLevel)
-						{
-							MediumPrivacyLevel = x - 1;
+							MinAnonScoreTarget = x - 1;
 						}
 					});
 		}
 
 		protected override void EditConfigOnSave(Config config)
 		{
-			config.PrivacyLevelSome = MinimalPrivacyLevel;
-			config.PrivacyLevelFine = MediumPrivacyLevel;
-			config.PrivacyLevelStrong = StrongPrivacyLevel;
+			config.MinAnonScoreTarget = MinAnonScoreTarget;
+			config.MaxAnonScoreTarget = MaxAnonScoreTarget;
 		}
 	}
 }
