@@ -14,16 +14,18 @@ namespace WalletWasabi.BranchNBound
 		/// <param name="values">All values must be strictly positive.</param>
 		public BranchAndBound(List<long> values)
 		{
-			Count = values.Count;
-			SortedValues = values.OrderByDescending(x => x).ToArray();
-
-			foreach (var value in SortedValues)
+			if (values.Count == 0)
 			{
-				if (value <= 0)
-				{
-					throw new ArgumentException("Only strictly positive values are supported.");
-				}
+				throw new ArgumentException("List is empty.");
 			}
+
+			if (values.Any(x => x <= 0))
+			{
+				throw new ArgumentException("Only strictly positive values are supported.");
+			}
+
+			Count = values.Count;
+			SortedValues = values.OrderByDescending(x => x).ToArray();			
 		}
 
 		private enum NextAction
