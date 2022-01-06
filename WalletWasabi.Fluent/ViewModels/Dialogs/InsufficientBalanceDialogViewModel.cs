@@ -108,7 +108,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 					if (!EnableSendAnyway && !EnableSubtractFee && !EnableSelectMoreCoin)
 					{
 						await ShowErrorAsync("Transaction Building",
-							"Automatic transaction fee selection is not possible at the moment, alternatively you can enter the transaction fee manually in Advanced options.",
+							"Automatic transaction fee selection is not possible at the moment. Alternatively, you can enter the transaction fee manually in Advanced options.",
 							"Wasabi was unable to create your transaction.");
 						Close(DialogResultKind.Back);
 						return;
@@ -137,9 +137,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 			if (!TransactionFeeHelper.TryGetMaximumPossibleFee(percentage, wallet, transactionInfo.FeeRate, out var maxFee))
 			{
-				// TODO: add message.
-				// Subtract fee?
-				await ShowErrorAsync("Transaction Building", "", "Wasabi was unable to create your transaction.");
+				await ShowErrorAsync("Transaction Building", "Automatic transaction fee selection is not possible at the moment. Alternatively, you can enter the transaction fee manually in Advanced options.", "Wasabi was unable to create your transaction.");
 				Close(DialogResultKind.Back);
 				return;
 			}
