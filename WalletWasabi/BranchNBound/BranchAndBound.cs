@@ -11,10 +11,19 @@ namespace WalletWasabi.BranchNBound
 	{
 		private readonly Random _random = new();
 
+		/// <param name="values">All values must be strictly positive.</param>
 		public BranchAndBound(List<long> values)
 		{
 			Count = values.Count;
 			SortedValues = values.OrderByDescending(x => x).ToArray();
+
+			foreach (var value in SortedValues)
+			{
+				if (value <= 0)
+				{
+					throw new ArgumentException("Only strictly positive values are supported.");
+				}
+			}
 		}
 
 		private enum NextAction
@@ -49,43 +58,34 @@ namespace WalletWasabi.BranchNBound
 		/// <returns><c>true</c> when a match is found, <c>false</c> otherwise.</returns>
 		public bool TryGetExactMatch(long target, [NotNullWhen(true)] out List<long>? selectedValues)
 		{
-			using (BenchmarkLogger.Measure())
-			{
-				if (SortedValues.Sum() < target)
-				{
-					selectedValues = null;
-					return false;
-				}
+			selectedValues = null;
 
+			if (SortedValues.Sum() < target)
+			{
+				return false;
+			}
+
+			if (TryFindSolution(target, out long[]? solution))
+			{
 				selectedValues = new List<long>();
 
-				try
+				for (int i = 0; i < Count; i++)
 				{
-					if (Search(target, out long[]? solution))
+					if (solution[i] > 0)
 					{
-						for (int i = 0; i < Count; i++)
-						{
-							if (solution[i] > 0)
-							{
-								selectedValues.Add(SortedValues[i]);
-							}
-						}
-						Logger.LogInfo($"{Count} coins were involved in 'Branch and Bound' selection.");
-
-						return true;
+						selectedValues.Add(SortedValues[i]);
 					}
-					selectedValues = null;
-					return false;
 				}
-				catch (Exception ex)
-				{
-					Logger.LogError("Couldn't find the right pair. ", ex);
-					return false;
-				}
+
+				Logger.LogInfo($"{Count} coins were involved in 'Branch and Bound' selection.");
+
+				return true;
 			}
+
+			return false;
 		}
 
-		private bool Search(long target, [NotNullWhen(true)] out long[]? solution)
+		private bool TryFindSolution(long target, [NotNullWhen(true)] out long[]? solution)
 		{
 			// Current effective value.
 			long effValue = 0L;
@@ -101,7 +101,7 @@ namespace WalletWasabi.BranchNBound
 			{
 				NextAction action = actions[depth];
 
-				// Branch WITH the UTXO included.
+				// Branch WITH the value included.
 				if ((action == NextAction.AandB) || (action == NextAction.A))
 				{
 					actions[depth] = GetNextStep(action);
@@ -132,7 +132,7 @@ namespace WalletWasabi.BranchNBound
 				{
 					actions[depth] = GetNextStep(action);
 
-					// Branch WITHOUT the UTXO included.
+					// Branch WITHOUT the value included.
 					effValue -= solution[depth];
 					solution[depth] = 0;
 
