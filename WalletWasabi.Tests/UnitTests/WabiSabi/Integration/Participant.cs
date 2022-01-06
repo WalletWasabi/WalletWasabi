@@ -65,6 +65,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 				.Select(x => Money.Satoshis((long)x));
 
 			var keys = Enumerable.Range(0, amounts.Count()).Select(x => KeyManager.GetNextReceiveKey("no-label", out _)).ToImmutableList();
+
+			foreach (var key in keys)
+			{
+				key.SetAnonymitySet(1);
+			}
+
 			foreach (var (amount, key) in amounts.Zip(keys))
 			{
 				var scriptPubKey = key.P2wpkhScript;
@@ -89,7 +95,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var kitchen = new Kitchen();
 			kitchen.Cook("");
 
-			var coinJoinClient = new CoinJoinClient(HttpClientFactory, kitchen, KeyManager, roundStateUpdater);
+			var coinJoinClient = new CoinJoinClient(HttpClientFactory, kitchen, KeyManager, roundStateUpdater, consolidationMode: true);
 
 			// Run the coinjoin client task.
 			await coinJoinClient.StartCoinJoinAsync(Coins, cancellationToken).ConfigureAwait(false);

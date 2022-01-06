@@ -90,7 +90,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 		private bool CanCoinJoin()
 		{
-			var privateThreshold = _wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
+			var privateThreshold = _wallet.ServiceConfiguration.MinAnonScoreTarget;
 
 			return _wallet.Coins.Any(x => x.HdPubKey.AnonymitySet < privateThreshold);
 		}
@@ -119,7 +119,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 		private void Update()
 		{
-			var privateThreshold = _wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
+			var privateThreshold = _wallet.ServiceConfiguration.MinAnonScoreTarget;
 
 			var privateAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
 			var normalAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold).TotalAmount();
