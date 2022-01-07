@@ -55,27 +55,30 @@ namespace WalletWasabi.Fluent.Desktop
 			}
 
 			Exception? exceptionToReport = null;
-			SingleInstanceChecker? singleInstanceChecker = null;
 
 			if (runGui)
 			{
 				try
 				{
 					var (uiConfig, config) = LoadOrCreateConfigs(dataDir);
-					singleInstanceChecker = new SingleInstanceChecker(config.Network);
-					singleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
 
-					Global = CreateGlobal(dataDir, uiConfig, config);
+					using (var singleInstanceChecker = new SingleInstanceChecker(config.Network))
+					{
+						singleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
 
-					// TODO only required due to statusbar vm... to be removed.
-					Locator.CurrentMutable.RegisterConstant(Global);
+						Global = CreateGlobal(dataDir, uiConfig, config);
 
-					Services.Initialize(Global, singleInstanceChecker);
+						// TODO only required due to statusbar vm... to be removed.
+						Locator.CurrentMutable.RegisterConstant(Global);
 
-					Logger.LogSoftwareStarted("Wasabi GUI");
-					BuildAvaloniaApp()
-						.AfterSetup(_ => ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light))
-						.StartWithClassicDesktopLifetime(args);
+						Services.Initialize(Global, singleInstanceChecker);
+
+						Logger.LogSoftwareStarted("Wasabi GUI");
+						BuildAvaloniaApp()
+							.AfterSetup(_ =>
+								ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light))
+							.StartWithClassicDesktopLifetime(args);
+					}
 				}
 				catch (OperationCanceledException ex)
 				{
@@ -91,11 +94,6 @@ namespace WalletWasabi.Fluent.Desktop
 			// Start termination/disposal of the application.
 
 			TerminateService.Terminate();
-
-			if (singleInstanceChecker is { } single)
-			{
-				Task.Run(async () => await single.DisposeAsync()).Wait();
-			}
 
 			if (exceptionToReport is { })
 			{
