@@ -59,7 +59,7 @@ namespace WalletWasabi.Fluent.Rpc
 
 			AssertWalletIsLoaded();
 
-			pocketS.AddRange(activeWallet.Coins.GetPockets(0).Select(x => new PocketViewModel(x)));
+			pocketS.AddRange(activeWallet.Coins.GetPockets(activeWallet.ServiceConfiguration.GetMixUntilAnonymitySetValue()).Select(x => new PocketViewModel(x)));
 
 			return pocketS.Items.ToArray();
 		}
