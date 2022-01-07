@@ -67,7 +67,7 @@ namespace WalletWasabi.Fluent.Helpers
 					transactionInfo.Address,
 					transactionInfo.UserLabels,
 					transactionInfo.FeeRate,
-					transactionInfo.Coins);
+					transactionInfo.ChangelessCoins);
 			}
 
 			if (isPayJoin && transactionInfo.SubtractFee)
