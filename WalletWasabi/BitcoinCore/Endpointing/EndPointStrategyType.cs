@@ -1,9 +1,8 @@
-namespace WalletWasabi.BitcoinCore.Endpointing
+namespace WalletWasabi.BitcoinCore.Endpointing;
+
+public enum EndPointStrategyType
 {
-	public enum EndPointStrategyType
-	{
-		Default,
-		Custom,
-		Random
-	}
+	Default,
+	Custom,
+	Random
 }

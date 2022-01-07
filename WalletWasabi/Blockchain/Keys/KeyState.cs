@@ -1,9 +1,8 @@
-namespace WalletWasabi.Blockchain.Keys
+namespace WalletWasabi.Blockchain.Keys;
+
+public enum KeyState
 {
-	public enum KeyState
-	{
-		Clean,
-		Locked,
-		Used
-	}
+	Clean,
+	Locked,
+	Used
 }

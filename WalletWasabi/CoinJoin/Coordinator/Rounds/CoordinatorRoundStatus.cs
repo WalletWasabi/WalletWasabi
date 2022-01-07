@@ -1,10 +1,9 @@
-namespace WalletWasabi.CoinJoin.Coordinator.Rounds
+namespace WalletWasabi.CoinJoin.Coordinator.Rounds;
+
+public enum CoordinatorRoundStatus
 {
-	public enum CoordinatorRoundStatus
-	{
-		NotStarted,
-		Running,
-		Succeded,
-		Aborted
-	}
+	NotStarted,
+	Running,
+	Succeded,
+	Aborted
 }

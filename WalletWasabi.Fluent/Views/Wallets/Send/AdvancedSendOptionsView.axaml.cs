@@ -1,18 +1,17 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Wallets.Send
-{
-	public class AdvancedSendOptionsView : UserControl
-	{
-		public AdvancedSendOptionsView()
-		{
-			InitializeComponent();
-		}
+namespace WalletWasabi.Fluent.Views.Wallets.Send;
 
-		private void InitializeComponent()
-		{
-			AvaloniaXamlLoader.Load(this);
-		}
+public class AdvancedSendOptionsView : UserControl
+{
+	public AdvancedSendOptionsView()
+	{
+		InitializeComponent();
+	}
+
+	private void InitializeComponent()
+	{
+		AvaloniaXamlLoader.Load(this);
 	}
 }

@@ -14,153 +14,152 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
+
+public partial class HistoryViewModel : ActivatableViewModel
 {
-	public partial class HistoryViewModel : ActivatableViewModel
+	private readonly SourceList<HistoryItemViewModelBase> _transactionSourceList;
+	private readonly WalletViewModel _walletViewModel;
+	private readonly IObservable<Unit> _updateTrigger;
+	private readonly ObservableCollectionExtended<HistoryItemViewModelBase> _transactions;
+	private readonly ObservableCollectionExtended<HistoryItemViewModelBase> _unfilteredTransactions;
+	private readonly object _transactionListLock = new();
+
+	[AutoNotify] private HistoryItemViewModelBase? _selectedItem;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isTransactionHistoryEmpty;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isInitialized;
+
+	public HistoryViewModel(WalletViewModel walletViewModel, IObservable<Unit> updateTrigger)
 	{
-		private readonly SourceList<HistoryItemViewModelBase> _transactionSourceList;
-		private readonly WalletViewModel _walletViewModel;
-		private readonly IObservable<Unit> _updateTrigger;
-		private readonly ObservableCollectionExtended<HistoryItemViewModelBase> _transactions;
-		private readonly ObservableCollectionExtended<HistoryItemViewModelBase> _unfilteredTransactions;
-		private readonly object _transactionListLock = new();
+		_walletViewModel = walletViewModel;
+		_updateTrigger = updateTrigger;
+		_transactionSourceList = new SourceList<HistoryItemViewModelBase>();
+		_transactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();
+		_unfilteredTransactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();
 
-		[AutoNotify] private HistoryItemViewModelBase? _selectedItem;
-		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isTransactionHistoryEmpty;
-		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isInitialized;
+		this.WhenAnyValue(x => x.UnfilteredTransactions.Count)
+			.Subscribe(x => IsTransactionHistoryEmpty = x <= 0);
 
-		public HistoryViewModel(WalletViewModel walletViewModel, IObservable<Unit> updateTrigger)
+		_transactionSourceList
+			.Connect()
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Sort(SortExpressionComparer<HistoryItemViewModelBase>.Descending(x => x.OrderIndex))
+			.Bind(_unfilteredTransactions)
+			.Bind(_transactions)
+			.Subscribe();
+	}
+
+	public ObservableCollection<HistoryItemViewModelBase> UnfilteredTransactions => _unfilteredTransactions;
+
+	public ObservableCollection<HistoryItemViewModelBase> Transactions => _transactions;
+
+	public void SelectTransaction(uint256 txid)
+	{
+		var txnItem = Transactions.FirstOrDefault(item =>
 		{
-			_walletViewModel = walletViewModel;
-			_updateTrigger = updateTrigger;
-			_transactionSourceList = new SourceList<HistoryItemViewModelBase>();
-			_transactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();
-			_unfilteredTransactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();
-
-			this.WhenAnyValue(x => x.UnfilteredTransactions.Count)
-				.Subscribe(x => IsTransactionHistoryEmpty = x <= 0);
-
-			_transactionSourceList
-				.Connect()
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Sort(SortExpressionComparer<HistoryItemViewModelBase>.Descending(x => x.OrderIndex))
-				.Bind(_unfilteredTransactions)
-				.Bind(_transactions)
-				.Subscribe();
-		}
-
-		public ObservableCollection<HistoryItemViewModelBase> UnfilteredTransactions => _unfilteredTransactions;
-
-		public ObservableCollection<HistoryItemViewModelBase> Transactions => _transactions;
-
-		public void SelectTransaction(uint256 txid)
-		{
-			var txnItem = Transactions.FirstOrDefault(item =>
+			if (item is CoinJoinsHistoryItemViewModel cjGroup)
 			{
-				if (item is CoinJoinsHistoryItemViewModel cjGroup)
-				{
-					return cjGroup.CoinJoinTransactions.Any(x => x.TransactionId == txid);
-				}
-
-				return item.Id == txid;
-			});
-
-			if (txnItem is { })
-			{
-				SelectedItem = txnItem;
-				SelectedItem.IsFlashing = true;
+				return cjGroup.CoinJoinTransactions.Any(x => x.TransactionId == txid);
 			}
-		}
 
-		protected override void OnActivated(CompositeDisposable disposables)
+			return item.Id == txid;
+		});
+
+		if (txnItem is { })
 		{
-			base.OnActivated(disposables);
-
-			_updateTrigger
-				.Subscribe(async _ => await UpdateAsync())
-				.DisposeWith(disposables);
+			SelectedItem = txnItem;
+			SelectedItem.IsFlashing = true;
 		}
+	}
 
-		private async Task UpdateAsync()
+	protected override void OnActivated(CompositeDisposable disposables)
+	{
+		base.OnActivated(disposables);
+
+		_updateTrigger
+			.Subscribe(async _ => await UpdateAsync())
+			.DisposeWith(disposables);
+	}
+
+	private async Task UpdateAsync()
+	{
+		try
 		{
-			try
+			var historyBuilder = new TransactionHistoryBuilder(_walletViewModel.Wallet);
+			var rawHistoryList = await Task.Run(historyBuilder.BuildHistorySummary);
+			var newHistoryList = GenerateHistoryList(rawHistoryList).ToArray();
+
+			lock (_transactionListLock)
 			{
-				var historyBuilder = new TransactionHistoryBuilder(_walletViewModel.Wallet);
-				var rawHistoryList = await Task.Run(historyBuilder.BuildHistorySummary);
-				var newHistoryList = GenerateHistoryList(rawHistoryList).ToArray();
+				var copyList = Transactions.ToList();
 
-				lock (_transactionListLock)
+				foreach (var oldItem in copyList)
 				{
-					var copyList = Transactions.ToList();
-
-					foreach (var oldItem in copyList)
+					if (newHistoryList.All(x => x.Id != oldItem.Id))
 					{
-						if (newHistoryList.All(x => x.Id != oldItem.Id))
-						{
-							_transactionSourceList.Remove(oldItem);
-						}
-					}
-
-					foreach (var newItem in newHistoryList)
-					{
-						if (_transactions.FirstOrDefault(x => x.Id == newItem.Id) is { } item)
-						{
-							item.Update(newItem);
-						}
-						else
-						{
-							_transactionSourceList.Add(newItem);
-						}
-					}
-
-					if (!IsInitialized)
-					{
-						IsInitialized = true;
+						_transactionSourceList.Remove(oldItem);
 					}
 				}
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-			}
-		}
 
-		private IEnumerable<HistoryItemViewModelBase> GenerateHistoryList(List<TransactionSummary> txRecordList)
-		{
-			Money balance = Money.Zero;
-			CoinJoinsHistoryItemViewModel? coinJoinGroup = default;
-
-			for (var i = 0; i < txRecordList.Count; i++)
-			{
-				var item = txRecordList[i];
-
-				balance += item.Amount;
-
-				if (!item.IsLikelyCoinJoinOutput)
+				foreach (var newItem in newHistoryList)
 				{
-					yield return new TransactionHistoryItemViewModel(i, item, _walletViewModel, balance, _updateTrigger);
-				}
-
-				if (item.IsLikelyCoinJoinOutput)
-				{
-					if (coinJoinGroup is null)
+					if (_transactions.FirstOrDefault(x => x.Id == newItem.Id) is { } item)
 					{
-						coinJoinGroup = new CoinJoinsHistoryItemViewModel(i, item);
+						item.Update(newItem);
 					}
 					else
 					{
-						coinJoinGroup.Add(item);
+						_transactionSourceList.Add(newItem);
 					}
 				}
 
-				if (coinJoinGroup is { } cjg &&
-					(i + 1 < txRecordList.Count && !txRecordList[i + 1].IsLikelyCoinJoinOutput || // The next item is not CJ so add the group.
-					 i == txRecordList.Count - 1)) // There is no following item in the list so add the group.
+				if (!IsInitialized)
 				{
-					cjg.SetBalance(balance);
-					yield return cjg;
-					coinJoinGroup = null;
+					IsInitialized = true;
 				}
+			}
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+		}
+	}
+
+	private IEnumerable<HistoryItemViewModelBase> GenerateHistoryList(List<TransactionSummary> txRecordList)
+	{
+		Money balance = Money.Zero;
+		CoinJoinsHistoryItemViewModel? coinJoinGroup = default;
+
+		for (var i = 0; i < txRecordList.Count; i++)
+		{
+			var item = txRecordList[i];
+
+			balance += item.Amount;
+
+			if (!item.IsLikelyCoinJoinOutput)
+			{
+				yield return new TransactionHistoryItemViewModel(i, item, _walletViewModel, balance, _updateTrigger);
+			}
+
+			if (item.IsLikelyCoinJoinOutput)
+			{
+				if (coinJoinGroup is null)
+				{
+					coinJoinGroup = new CoinJoinsHistoryItemViewModel(i, item);
+				}
+				else
+				{
+					coinJoinGroup.Add(item);
+				}
+			}
+
+			if (coinJoinGroup is { } cjg &&
+				(i + 1 < txRecordList.Count && !txRecordList[i + 1].IsLikelyCoinJoinOutput || // The next item is not CJ so add the group.
+				 i == txRecordList.Count - 1)) // There is no following item in the list so add the group.
+			{
+				cjg.SetBalance(balance);
+				yield return cjg;
+				coinJoinGroup = null;
 			}
 		}
 	}

@@ -5,107 +5,106 @@ using System.Reactive.Linq;
 using Avalonia.Controls;
 using ReactiveUI;
 
-namespace WalletWasabi.Fluent.Controls
+namespace WalletWasabi.Fluent.Controls;
+
+public enum ReplacementMode
 {
-	public enum ReplacementMode
+	Text,
+	Icon
+}
+
+public class PrivacyContentControl : ContentControl
+{
+	private const char PrivacyChar = '#';
+
+	private CompositeDisposable? _disposable;
+
+	public static readonly StyledProperty<bool> IsPrivacyContentVisibleProperty =
+		AvaloniaProperty.Register<PrivacyContentControl, bool>(nameof(IsPrivacyContentVisible));
+
+	public static readonly StyledProperty<bool> IsContentVisibleProperty =
+		AvaloniaProperty.Register<PrivacyContentControl, bool>(nameof(IsContentVisible));
+
+	public static readonly StyledProperty<uint> NumberOfPrivacyCharsProperty =
+		AvaloniaProperty.Register<PrivacyContentControl, uint>(nameof(NumberOfPrivacyChars), 5);
+
+	public static readonly StyledProperty<string> PrivacyTextProperty =
+		AvaloniaProperty.Register<PrivacyContentControl, string>(nameof(PrivacyText));
+
+	public static readonly StyledProperty<ReplacementMode> PrivacyReplacementModeProperty =
+		AvaloniaProperty.Register<PrivacyContentControl, ReplacementMode>(nameof(PrivacyReplacementMode));
+
+	public static readonly StyledProperty<bool> ForceShowProperty =
+		AvaloniaProperty.Register<PrivacyContentControl, bool>(nameof(ForceShow));
+
+	private bool IsPrivacyContentVisible
 	{
-		Text,
-		Icon
+		get => GetValue(IsPrivacyContentVisibleProperty);
+		set => SetValue(IsPrivacyContentVisibleProperty, value);
 	}
 
-	public class PrivacyContentControl : ContentControl
+	private bool IsContentVisible
 	{
-		private const char PrivacyChar = '#';
+		get => GetValue(IsContentVisibleProperty);
+		set => SetValue(IsContentVisibleProperty, value);
+	}
 
-		private CompositeDisposable? _disposable;
+	public uint NumberOfPrivacyChars
+	{
+		get => GetValue(NumberOfPrivacyCharsProperty);
+		set => SetValue(NumberOfPrivacyCharsProperty, value);
+	}
 
-		public static readonly StyledProperty<bool> IsPrivacyContentVisibleProperty =
-			AvaloniaProperty.Register<PrivacyContentControl, bool>(nameof(IsPrivacyContentVisible));
+	private string PrivacyText
+	{
+		get => GetValue(PrivacyTextProperty);
+		set => SetValue(PrivacyTextProperty, value);
+	}
 
-		public static readonly StyledProperty<bool> IsContentVisibleProperty =
-			AvaloniaProperty.Register<PrivacyContentControl, bool>(nameof(IsContentVisible));
+	public ReplacementMode PrivacyReplacementMode
+	{
+		get => GetValue(PrivacyReplacementModeProperty);
+		set => SetValue(PrivacyReplacementModeProperty, value);
+	}
 
-		public static readonly StyledProperty<uint> NumberOfPrivacyCharsProperty =
-			AvaloniaProperty.Register<PrivacyContentControl, uint>(nameof(NumberOfPrivacyChars), 5);
+	public bool ForceShow
+	{
+		get => GetValue(ForceShowProperty);
+		set => SetValue(ForceShowProperty, value);
+	}
 
-		public static readonly StyledProperty<string> PrivacyTextProperty =
-			AvaloniaProperty.Register<PrivacyContentControl, string>(nameof(PrivacyText));
-
-		public static readonly StyledProperty<ReplacementMode> PrivacyReplacementModeProperty =
-			AvaloniaProperty.Register<PrivacyContentControl, ReplacementMode>(nameof(PrivacyReplacementMode));
-
-		public static readonly StyledProperty<bool> ForceShowProperty =
-			AvaloniaProperty.Register<PrivacyContentControl, bool>(nameof(ForceShow));
-
-		private bool IsPrivacyContentVisible
+	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+	{
+		if (Design.IsDesignMode)
 		{
-			get => GetValue(IsPrivacyContentVisibleProperty);
-			set => SetValue(IsPrivacyContentVisibleProperty, value);
+			return;
 		}
 
-		private bool IsContentVisible
-		{
-			get => GetValue(IsContentVisibleProperty);
-			set => SetValue(IsContentVisibleProperty, value);
-		}
+		base.OnAttachedToVisualTree(e);
 
-		public uint NumberOfPrivacyChars
-		{
-			get => GetValue(NumberOfPrivacyCharsProperty);
-			set => SetValue(NumberOfPrivacyCharsProperty, value);
-		}
+		_disposable = new CompositeDisposable();
 
-		private string PrivacyText
-		{
-			get => GetValue(PrivacyTextProperty);
-			set => SetValue(PrivacyTextProperty, value);
-		}
-
-		public ReplacementMode PrivacyReplacementMode
-		{
-			get => GetValue(PrivacyReplacementModeProperty);
-			set => SetValue(PrivacyReplacementModeProperty, value);
-		}
-
-		public bool ForceShow
-		{
-			get => GetValue(ForceShowProperty);
-			set => SetValue(ForceShowProperty, value);
-		}
-
-		protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
-		{
-			if (Design.IsDesignMode)
+		Services.UiConfig
+			.WhenAnyValue(x => x.PrivacyMode)
+			.Merge(this.WhenAnyValue(x => x.ForceShow))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(_ =>
 			{
-				return;
-			}
+				var value = !Services.UiConfig.PrivacyMode || ForceShow;
 
-			base.OnAttachedToVisualTree(e);
+				IsPrivacyContentVisible = !value;
+				IsContentVisible = value;
+			})
+			.DisposeWith(_disposable);
 
-			_disposable = new CompositeDisposable();
+		PrivacyText = new string(Enumerable.Repeat(PrivacyChar, (int)NumberOfPrivacyChars).ToArray());
+	}
 
-			Services.UiConfig
-				.WhenAnyValue(x => x.PrivacyMode)
-				.Merge(this.WhenAnyValue(x => x.ForceShow))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					var value = !Services.UiConfig.PrivacyMode || ForceShow;
+	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+	{
+		base.OnDetachedFromVisualTree(e);
 
-					IsPrivacyContentVisible = !value;
-					IsContentVisible = value;
-				})
-				.DisposeWith(_disposable);
-
-			PrivacyText = new string(Enumerable.Repeat(PrivacyChar, (int)NumberOfPrivacyChars).ToArray());
-		}
-
-		protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
-		{
-			base.OnDetachedFromVisualTree(e);
-
-			_disposable?.Dispose();
-			_disposable = null;
-		}
+		_disposable?.Dispose();
+		_disposable = null;
 	}
 }

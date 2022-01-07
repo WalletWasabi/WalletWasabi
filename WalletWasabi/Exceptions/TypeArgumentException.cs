@@ -1,9 +1,8 @@
-namespace WalletWasabi.Exceptions
+namespace WalletWasabi.Exceptions;
+
+public class TypeArgumentException : ArgumentException
 {
-	public class TypeArgumentException : ArgumentException
+	public TypeArgumentException(object value, Type expected, string paramName) : base($"Invalid type: {value.GetType()}. Expected: {expected}.", paramName)
 	{
-		public TypeArgumentException(object value, Type expected, string paramName) : base($"Invalid type: {value.GetType()}. Expected: {expected}.", paramName)
-		{
-		}
 	}
 }
