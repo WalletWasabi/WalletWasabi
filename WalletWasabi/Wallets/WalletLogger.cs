@@ -100,7 +100,7 @@ namespace WalletWasabi.Wallets
 			if (sb.Length > 0)
 			{
 				StringBuilder header = new();
-				header.AppendLine();
+				header.AppendLine("===================");
 				header.AppendLine($"Balance change: { currentBalance - LastBalance } - Total balance: {Coins.TotalAmount()}");
 				header.AppendLine($"TxId: {BlockExplorerPrefix}{e.Transaction.GetHash()} {DateTime.Now}");
 				sb.Insert(0, header.ToString());
@@ -145,16 +145,6 @@ namespace WalletWasabi.Wallets
 
 			sb.AppendLine($"WARNING! This file created only for debugging purposes! In any other cases immediately disable WalletLogging feature!");
 			sb.AppendLine($"WalletName: {WalletName} File created: {DateTime.Now}");
-
-			sb.AppendLine($"Total balance: {Coins.TotalAmount()}");
-			if (Coins.Any())
-			{
-				sb.AppendLine($"Coins ({Coins.Count():0##}):");
-				foreach (var coin in Coins.OrderByDescending(c => c.Amount))
-				{
-					sb.AppendLine(CoinToString(coin));
-				}
-			}
 
 			File.WriteAllText(FilePath, sb.ToString());
 		}
