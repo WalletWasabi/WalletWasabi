@@ -8,9 +8,9 @@ namespace WalletWasabi.Fluent.Converters;
 public static class WalletIconConverter
 {
 	public static readonly IValueConverter WalletTypeToImage =
-		new FuncValueConverter<WalletType, Bitmap>(GetBitmap);
+			new FuncValueConverter<WalletType, Bitmap?>(GetBitmap);
 
-	private static Bitmap GetBitmap(WalletType type)
+		private static Bitmap? GetBitmap(WalletType type)
 	{
 		Uri uri = new($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/generic.png");
 
