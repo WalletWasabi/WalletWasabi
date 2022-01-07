@@ -55,14 +55,13 @@ public class Program
 		}
 
 		Exception? exceptionToReport = null;
-		SingleInstanceChecker? singleInstanceChecker = null;
 
 		if (runGui)
 		{
 			try
 			{
 				var (uiConfig, config) = LoadOrCreateConfigs(dataDir);
-				singleInstanceChecker = new SingleInstanceChecker(config.Network);
+				using SingleInstanceChecker singleInstanceChecker = new(config.Network);
 				singleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
 
 				Global = CreateGlobal(dataDir, uiConfig, config);
@@ -89,13 +88,7 @@ public class Program
 		}
 
 		// Start termination/disposal of the application.
-
 		TerminateService.Terminate();
-
-		if (singleInstanceChecker is { } single)
-		{
-			Task.Run(async () => await single.DisposeAsync()).Wait();
-		}
 
 		if (exceptionToReport is { })
 		{
