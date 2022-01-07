@@ -2,21 +2,19 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
-using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Tor.Socks5.Pool.Circuits;
 
 namespace WalletWasabi.WabiSabi.Client
 {
 	public class AliceClient
 	{
 		private AliceClient(
-			PersonCircuit personCircuit,
 			Guid aliceId,
 			RoundState roundState,
 			ArenaClient arenaClient,
@@ -25,7 +23,6 @@ namespace WalletWasabi.WabiSabi.Client
 			IEnumerable<Credential> issuedAmountCredentials,
 			IEnumerable<Credential> issuedVsizeCredentials)
 		{
-			PersonCircuit = personCircuit;
 			AliceId = aliceId;
 			RoundId = roundState.Id;
 			ArenaClient = arenaClient;
@@ -38,7 +35,6 @@ namespace WalletWasabi.WabiSabi.Client
 			ConfirmationTimeout = roundState.ConnectionConfirmationTimeout / 2;
 		}
 
-		public PersonCircuit PersonCircuit { get; }
 		public Guid AliceId { get; }
 		public uint256 RoundId { get; }
 		private ArenaClient ArenaClient { get; }
@@ -51,7 +47,6 @@ namespace WalletWasabi.WabiSabi.Client
 		private TimeSpan ConfirmationTimeout { get; }
 
 		public static async Task<AliceClient> CreateRegisterAndConfirmInputAsync(
-			PersonCircuit personCircuit,
 			RoundState roundState,
 			ArenaClient arenaClient,
 			SmartCoin coin,
@@ -63,7 +58,7 @@ namespace WalletWasabi.WabiSabi.Client
 			AliceClient? aliceClient = null;
 			try
 			{
-				aliceClient = await RegisterInputAsync(personCircuit, roundState, arenaClient, coin, bitcoinSecret, identificationKey, cancellationToken).ConfigureAwait(false);
+				aliceClient = await RegisterInputAsync(roundState, arenaClient, coin, bitcoinSecret, identificationKey, cancellationToken).ConfigureAwait(false);
 				await aliceClient.ConfirmConnectionAsync(roundStatusUpdater, cancellationToken).ConfigureAwait(false);
 
 				Logger.LogInfo($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Connection successfully confirmed.");
@@ -81,7 +76,7 @@ namespace WalletWasabi.WabiSabi.Client
 			return aliceClient;
 		}
 
-		private static async Task<AliceClient> RegisterInputAsync(PersonCircuit personCircuit, RoundState roundState, ArenaClient arenaClient, SmartCoin coin, BitcoinSecret bitcoinSecret, Key identificationKey, CancellationToken cancellationToken)
+		private static async Task<AliceClient> RegisterInputAsync(RoundState roundState, ArenaClient arenaClient, SmartCoin coin, BitcoinSecret bitcoinSecret, Key identificationKey, CancellationToken cancellationToken)
 		{
 			AliceClient? aliceClient;
 			try
@@ -93,7 +88,7 @@ namespace WalletWasabi.WabiSabi.Client
 					new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundState.Id));
 
 				var response = await arenaClient.RegisterInputAsync(roundState.Id, coin.Coin.Outpoint, ownershipProof, cancellationToken).ConfigureAwait(false);
-				aliceClient = new(personCircuit, response.Value, roundState, arenaClient, coin, bitcoinSecret, response.IssuedAmountCredentials, response.IssuedVsizeCredentials);
+				aliceClient = new(response.Value, roundState, arenaClient, coin, bitcoinSecret, response.IssuedAmountCredentials, response.IssuedVsizeCredentials);
 				coin.CoinJoinInProgress = true;
 
 				Logger.LogInfo($"Round ({roundState.Id}), Alice ({aliceClient.AliceId}): Registered {coin.OutPoint}.");
@@ -222,7 +217,6 @@ namespace WalletWasabi.WabiSabi.Client
 		public void Finish()
 		{
 			SmartCoin.CoinJoinInProgress = false;
-			PersonCircuit.Dispose();
 		}
 
 		public async Task RemoveInputAsync(CancellationToken cancellationToken)

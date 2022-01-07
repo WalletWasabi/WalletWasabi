@@ -90,7 +90,10 @@ namespace WalletWasabi.WabiSabi.Client
 			var coinCandidates = SelectCoinsForRound(smartCoins, constructionState.Parameters);
 
 			// Register coins.
-			var registeredAliceClients = await CreateRegisterAndConfirmCoinsAsync(coinCandidates, roundState, cancellationToken).ConfigureAwait(false);
+
+			using PersonCircuit personCircuit = HttpClientFactory.NewHttpClientWithPersonCircuit(out Tor.Http.IHttpClient httpClient);
+
+			var registeredAliceClients = await CreateRegisterAndConfirmCoinsAsync(httpClient, coinCandidates, roundState, cancellationToken).ConfigureAwait(false);
 			if (!registeredAliceClients.Any())
 			{
 				Logger.LogInfo($"Round ({roundState.Id}): There is no available alices to participate with.");
@@ -168,14 +171,13 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 		}
 
-		private async Task<ImmutableArray<AliceClient>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
+		private async Task<ImmutableArray<AliceClient>> CreateRegisterAndConfirmCoinsAsync(Tor.Http.IHttpClient httpClient, IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 		{
 			async Task<AliceClient?> RegisterInputAsync(SmartCoin coin, CancellationToken cancellationToken)
 			{
 				try
 				{
 					// Alice client requests are inherently linkable to each other, so the circuit can be reused
-					PersonCircuit personCircuit = HttpClientFactory.NewHttpClientWithPersonCircuit(out Tor.Http.IHttpClient httpClient);
 					var arenaRequestHandler = new WabiSabiHttpApiClient(httpClient);
 
 					var aliceArenaClient = new ArenaClient(
@@ -194,7 +196,7 @@ namespace WalletWasabi.WabiSabi.Client
 					var identificationMasterKey = Slip21Node.FromSeed(masterKey.ToBytes());
 					var identificationKey = identificationMasterKey.DeriveChild("SLIP-0019").DeriveChild("Ownership identification key").Key;
 
-					return await AliceClient.CreateRegisterAndConfirmInputAsync(personCircuit, roundState, aliceArenaClient, coin, secret, identificationKey, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
+					return await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, secret, identificationKey, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
 				}
 				catch (HttpRequestException)
 				{

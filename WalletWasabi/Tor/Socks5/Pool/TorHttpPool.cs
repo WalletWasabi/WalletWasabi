@@ -359,7 +359,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 			}
 			else
 			{
-				Logger.LogTrace($"There are active connections: {hostConnections.Count}.");
+				Logger.LogTrace($"There are active connections [{hostConnections.Count}]: '{string.Join(", ", hostConnections.Select(c => c.ToString()))}'.");
 			}
 
 			return canBeAdded;

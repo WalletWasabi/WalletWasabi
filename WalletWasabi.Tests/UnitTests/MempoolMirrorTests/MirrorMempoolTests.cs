@@ -1,6 +1,6 @@
+using NBitcoin;
 using System.Linq;
 using System.Threading.Tasks;
-using NBitcoin;
 using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.Helpers;
