@@ -4,27 +4,16 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
-using WalletWasabi.Tor.Http;
-using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Models;
-using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.WabiSabi.Client
 {
 	public class RoundStateUpdater : PeriodicRunner
 	{
-		private readonly PersonCircuit? _personCircuit;
-
 		public RoundStateUpdater(TimeSpan requestInterval, IWabiSabiApiRequestHandler arenaRequestHandler) : base(requestInterval)
 		{
 			ArenaRequestHandler = arenaRequestHandler;
-		}
-
-		public RoundStateUpdater(TimeSpan requestInterval, IWasabiHttpClientFactory backendHttpClientFactory) : base(requestInterval)
-		{
-			_personCircuit = backendHttpClientFactory.NewHttpClientWithPersonCircuit(out IHttpClient httpClient);
-			ArenaRequestHandler = new WabiSabiHttpApiClient(httpClient);
 		}
 
 		private IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
@@ -86,9 +75,6 @@ namespace WalletWasabi.WabiSabi.Client
 					awaiter.Cancel();
 				}
 			}
-
-			_personCircuit?.Dispose();
-
 			return base.StopAsync(cancellationToken);
 		}
 	}

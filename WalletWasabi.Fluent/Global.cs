@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using Nito.AsyncEx;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net;
 using System.Threading;
@@ -68,6 +67,7 @@ namespace WalletWasabi.Fluent
 		public MemoryCache Cache { get; private set; }
 
 		public JsonRpcServer? RpcServer { get; private set; }
+		private PersonCircuit RoundStateUpdaterCircuit { get; }
 
 		public Global(string dataDir, Config config, UiConfig uiConfig, WalletManager walletManager)
 		{
@@ -103,6 +103,8 @@ namespace WalletWasabi.Fluent
 				Synchronizer = new WasabiSynchronizer(BitcoinStore, BackendHttpClientFactory);
 				LegalChecker = new(DataDir);
 				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, BackendHttpClientFactory, WalletManager);
+
+				RoundStateUpdaterCircuit = new PersonCircuit();
 			}
 		}
 
@@ -273,7 +275,6 @@ namespace WalletWasabi.Fluent
 			}
 		}
 
-		[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Services are disposed by HostedServices class.")]
 		private void RegisterLocalNodeDependantComponents()
 		{
 			HostedServices.Register<BlockNotifier>(() => new BlockNotifier(TimeSpan.FromSeconds(7), BitcoinCoreNode.RpcClient, BitcoinCoreNode.P2pNode), "Block Notifier");
@@ -282,7 +283,6 @@ namespace WalletWasabi.Fluent
 			HostedServices.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(21), BitcoinCoreNode.RpcClient, BitcoinCoreNode.P2pNode), "Full Node Mempool Mirror");
 		}
 
-		[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Services are disposed by HostedServices class.")]
 		private void RegisterFeeRateProviders()
 		{
 			HostedServices.Register<BlockstreamInfoFeeProvider>(() => new BlockstreamInfoFeeProvider(TimeSpan.FromMinutes(3), new(Network, ExternalHttpClientFactory)) { IsPaused = true }, "Blockstream.info Fee Provider");
@@ -290,10 +290,10 @@ namespace WalletWasabi.Fluent
 			HostedServices.Register<HybridFeeProvider>(() => new HybridFeeProvider(HostedServices.Get<ThirdPartyFeeProvider>(), HostedServices.GetOrDefault<RpcFeeProvider>()), "Hybrid Fee Provider");
 		}
 
-		[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Services are disposed by HostedServices class.")]
 		private void RegisterCoinJoinComponents()
 		{
-			HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(5), BackendHttpClientFactory), "Round info updater");
+			Tor.Http.IHttpClient roundStateUpdaterHttpClient = BackendHttpClientFactory.NewHttpClient(Mode.SingleCircuitPerLifetime, RoundStateUpdaterCircuit);
+			HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(5), new WabiSabiHttpApiClient(roundStateUpdaterHttpClient)), "Round info updater");
 			HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), BackendHttpClientFactory, Config.ServiceConfiguration), "CoinJoin Manager");
 		}
 
@@ -345,6 +345,9 @@ namespace WalletWasabi.Fluent
 						legalChecker.Dispose();
 						Logger.LogInfo($"Disposed {nameof(LegalChecker)}.");
 					}
+
+					RoundStateUpdaterCircuit.Dispose();
+					Logger.LogInfo($"Disposed {nameof(RoundStateUpdaterCircuit)}.");
 
 					if (HostedServices is { } backgroundServices)
 					{
