@@ -21,6 +21,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		private readonly TransactionInfo _transactionInfo;
 		private readonly decimal _differenceOfFeePercentage;
 
+		[AutoNotify] private string? _question;
+
 		private FeeRate _maximumPossibleFee = FeeRate.Zero;
 		private TimeSpan _confirmationTimeWithMaxFee = TimeSpan.Zero;
 
@@ -38,11 +40,9 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			EnableSelectMoreCoin = _wallet.Coins.TotalAmount() >= ex.Minimum;
 			EnableSubtractFee = _wallet.Coins.TotalAmount() == _transactionInfo.Amount;
 
-			Question = "What to do";
-
 			SendAnywayCommand = ReactiveCommand.Create(OnSendAnyway);
-			SubtractTransactionFeeCommand = ReactiveCommand.Create(OnSubtractTransactionFee);
 			SelectMoreCoinCommand = ReactiveCommand.CreateFromTask(OnSelectMoreCoinAsync);
+			SubtractTransactionFeeCommand = ReactiveCommand.Create(OnSubtractTransactionFee);
 
 			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 			EnableBack = true;
@@ -59,8 +59,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		public bool EnableSelectMoreCoin { get; }
 
 		public bool EnableSubtractFee { get; }
-
-		public string Question { get; }
 
 		private async Task OnSelectMoreCoinAsync()
 		{
@@ -123,6 +121,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 					IsBusy = true;
 					await CheckSilentCaseAsync(_differenceOfFeePercentage, _wallet, _transactionInfo);
+					SetQuestion();
 					IsBusy = false;
 				});
 			}
@@ -137,7 +136,9 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 			if (!TransactionFeeHelper.TryGetMaximumPossibleFee(percentage, wallet, transactionInfo.FeeRate, out var maxFee))
 			{
-				await ShowErrorAsync("Transaction Building", "Automatic transaction fee selection is not possible at the moment. Alternatively, you can enter the transaction fee manually in Advanced options.", "Wasabi was unable to create your transaction.");
+				await ShowErrorAsync("Transaction Building",
+					"Automatic transaction fee selection is not possible at the moment. Alternatively, you can enter the transaction fee manually in Advanced options.",
+					"Wasabi was unable to create your transaction.");
 				Close(DialogResultKind.Back);
 				return;
 			}
@@ -148,6 +149,34 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			if (percentage <= TransactionFeeHelper.FeePercentageThreshold)
 			{
 				OnSendAnyway();
+			}
+		}
+
+		private void SetQuestion()
+		{
+			var sendingTotalBalance = _wallet.Coins.TotalAmount() == _transactionInfo.Amount;
+
+			Question = $"There are not enough funds {(!sendingTotalBalance ? "selected " : "")}to cover the preferred transaction fee. Alternatively, ";
+
+			if (EnableSubtractFee)
+			{
+				Question += "you can subtract the transaction fee from the amount.";
+				return;
+			}
+
+			if (EnableSendAnyway && EnableSelectMoreCoin)
+			{
+				Question += $"you can send the transaction with an adjusted transaction fee, so it should be confirmed within approximately {TextHelpers.TimeSpanToFriendlyString(_confirmationTimeWithMaxFee)} or select more coin.";
+			}
+
+			if (EnableSendAnyway && !EnableSelectMoreCoin)
+			{
+				Question += $"you can send the transaction with an adjusted transaction fee, so it should be confirmed within approximately {TextHelpers.TimeSpanToFriendlyString(_confirmationTimeWithMaxFee)}.";
+			}
+
+			if (!EnableSendAnyway && EnableSelectMoreCoin)
+			{
+				Question += "you can select more coin.";
 			}
 		}
 	}
