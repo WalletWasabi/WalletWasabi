@@ -118,7 +118,7 @@ namespace WalletWasabi.WabiSabi.Client
 				// Calculate outputs values
 				roundState = await RoundStatusUpdater.CreateRoundAwaiter(rs => rs.Id == roundState.Id, cancellationToken).ConfigureAwait(false);
 				constructionState = roundState.Assert<ConstructionState>();
-        AmountDecomposer amountDecomposer = new(roundState.FeeRate, roundState.CoordinationFeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min, Constants.P2wpkhOutputSizeInBytes, (int)availableVsize);
+				AmountDecomposer amountDecomposer = new(roundState.FeeRate, roundState.CoordinationFeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min, Constants.P2wpkhOutputSizeInBytes, (int)availableVsize);
 				var theirCoins = constructionState.Inputs.Except(registeredCoins);
 				var outputValues = amountDecomposer.Decompose(registeredCoins, theirCoins);
 
@@ -342,7 +342,7 @@ namespace WalletWasabi.WabiSabi.Client
 					break;
 				}
 
-				var inSum = group.Sum(x => x.EffectiveValue(parameters.FeeRate));
+				var inSum = group.Sum(x => x.EffectiveValue(parameters.FeeRate, parameters.CoordinationFeeRate));
 				var outFee = parameters.FeeRate.GetFee(Constants.P2wpkhOutputSizeInBytes);
 				if (inSum >= outFee + parameters.AllowedOutputAmounts.Min)
 				{
