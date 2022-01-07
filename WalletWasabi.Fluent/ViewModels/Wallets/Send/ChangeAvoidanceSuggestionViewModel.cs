@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
 
@@ -100,6 +101,28 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 				wallet.Synchronizer.UsdExchangeRate, false);
 		}
 
+		ChangeAvoidanceSuggestionViewModel? bnbSuggestion = null;
+
+		bool canBuildWithoutChangeWithBnb = BnBManager.CanCreateChangelessTransaction(wallet.Coins.Confirmed().ToList(), transactionInfo.Amount, out List<SmartCoin>? bnbResult);
+
+		if (canBuildWithoutChangeWithBnb && bnbResult is not null)
+		{
+			var bnbTransaction = await Task.Run(() => TransactionHelpers.BuildChangelessTransaction(
+				wallet,
+				transactionInfo.Address,
+				transactionInfo.UserLabels,
+				transactionInfo.FeeRate,
+				bnbResult
+				));
+
+			bnbSuggestion = new ChangeAvoidanceSuggestionViewModel(
+				transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
+				bnbTransaction,
+				wallet.Synchronizer.UsdExchangeRate,
+				false
+				);
+		}
+
 		var defaultSelection = new ChangeAvoidanceSuggestionViewModel(
 			transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), requestedTransaction,
 			wallet.Synchronizer.UsdExchangeRate, true);
@@ -124,10 +147,15 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 			suggestions.Add(smallerSuggestion);
 		}
 
+		if (bnbSuggestion is { })
+		{
+			suggestions.Add(bnbSuggestion);
+		}
+
 		var results = new List<ChangeAvoidanceSuggestionViewModel>();
 
 		foreach (var suggestion in NormalizeSuggestions(suggestions, defaultSelection)
-			         .Where(x => x != defaultSelection))
+					 .Where(x => x != defaultSelection))
 		{
 			results.Add(suggestion);
 		}
