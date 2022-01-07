@@ -40,7 +40,7 @@ public static class FileHelpers
 				if (openWithNotepad)
 				{
 					// Open file using Notepad.
-					using Process notepadProcess = Process.Start(new ProcessStartInfo
+						using var notepadProcess = Process.Start(new ProcessStartInfo
 					{
 						FileName = "notepad.exe",
 						Arguments = filePath,
@@ -52,7 +52,7 @@ public static class FileHelpers
 			}
 
 			// Open file with the default editor.
-			using Process defaultEditorProcess = Process.Start(new ProcessStartInfo
+				using var defaultEditorProcess = Process.Start(new ProcessStartInfo
 			{
 				FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? filePath : "open",
 				Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e {filePath}" : "",
