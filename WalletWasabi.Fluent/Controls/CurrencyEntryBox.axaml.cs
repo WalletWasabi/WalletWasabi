@@ -44,7 +44,7 @@ public class CurrencyEntryBox : TextBox
 	private readonly CultureInfo _customCultureInfo;
 	private readonly char _decimalSeparator = '.';
 	private readonly char _groupSeparator = ' ';
-	private readonly Regex _regexBTCFormat;
+		private readonly Regex _regexBtcFormat;
 	private readonly Regex _regexDecimalCharsOnly;
 	private readonly Regex _regexConsecutiveSpaces;
 	private readonly Regex _regexGroupAndDecimal;
@@ -75,7 +75,7 @@ public class CurrencyEntryBox : TextBox
 		Watermark = "0 BTC";
 		Text = string.Empty;
 
-		_regexBTCFormat =
+			_regexBtcFormat =
 			new Regex(
 				$"^(?<Whole>[0-9{_groupSeparator}]*)(\\{_decimalSeparator}?(?<Frac>[0-9{_groupSeparator}]*))$",
 				RegexOptions.Compiled);
@@ -195,7 +195,7 @@ public class CurrencyEntryBox : TextBox
 	{
 		// Check if it has a decimal separator.
 		var trailingDecimal = preComposedText.Length > 0 && preComposedText[^1] == _decimalSeparator;
-		var match = _regexBTCFormat.Match(preComposedText);
+			var match = _regexBtcFormat.Match(preComposedText);
 
 		// Ignore group chars on count of the whole part of the decimal.
 		var wholeStr = match.Groups["Whole"].ToString();
@@ -255,16 +255,16 @@ public class CurrencyEntryBox : TextBox
 
 	protected override void OnKeyDown(KeyEventArgs e)
 	{
-		DoPasteCheckAsync(e);
+			DoPasteCheck(e);
 	}
 
-	private async void DoPasteCheckAsync(KeyEventArgs e)
+		private void DoPasteCheck(KeyEventArgs e)
 	{
 		var keymap = AvaloniaLocator.Current.GetService<PlatformHotkeyConfiguration>();
 
-		bool Match(List<KeyGesture> gestures) => gestures.Any(g => g.Matches(e));
+			bool Match(IEnumerable<KeyGesture> gestures) => gestures.Any(g => g.Matches(e));
 
-		if (Match(keymap.Paste))
+			if (keymap is { } && Match(keymap.Paste))
 		{
 			ModifiedPasteAsync();
 		}
@@ -276,7 +276,9 @@ public class CurrencyEntryBox : TextBox
 
 	public async void ModifiedPasteAsync()
 	{
-		var text = await AvaloniaLocator.Current.GetService<IClipboard>().GetTextAsync();
+			if (AvaloniaLocator.Current.GetService<IClipboard>() is { } clipboard)
+			{
+				var text = await clipboard.GetTextAsync();
 
 		if (string.IsNullOrEmpty(text))
 		{
@@ -300,12 +302,13 @@ public class CurrencyEntryBox : TextBox
 			OnTextInput(new TextInputEventArgs { Text = text });
 		}
 	}
+		}
 
 	// Pre-composes the TextInputEventArgs to see the potential Text that is to
 	// be committed to the TextPresenter in this control.
 
 	// An event in Avalonia's TextBox with this function should be implemented there for brevity.
-	private string PreComposeText(string input)
+		private string PreComposeText(string? input)
 	{
 		input = RemoveInvalidCharacters(input);
 		var preComposedText = Text ?? "";
