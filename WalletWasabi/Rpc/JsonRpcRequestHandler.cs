@@ -79,7 +79,10 @@ namespace WalletWasabi.Rpc
 					var count = methodParameters.Count < jarr.Count ? methodParameters.Count : jarr.Count;
 					for (int i = 0; i < count; i++)
 					{
-						parameters.Add(jarr[i].ToObject(methodParameters[i].type, DefaultSerializer));
+						var param = methodParameters[i];
+						var item = jarr[i].ToObject(param.type, DefaultSerializer)
+							?? throw new InvalidOperationException($"Parameter `{param.name}` is null.");
+						parameters.Add(item);
 					}
 				}
 				else if (jsonRpcRequest.Parameters is JObject jobj)
@@ -121,7 +124,7 @@ namespace WalletWasabi.Rpc
 					return "";
 				}
 
-				JsonRpcResponse response = null;
+				JsonRpcResponse? response = null;
 				if (prodecureMetadata.MethodInfo.IsAsync())
 				{
 					if (!prodecureMetadata.MethodInfo.ReturnType.IsGenericType)
@@ -143,7 +146,8 @@ namespace WalletWasabi.Rpc
 			}
 			catch (TargetInvocationException e)
 			{
-				return Error(JsonRpcErrorCodes.InternalError, e.InnerException.Message, jsonRpcRequest.Id);
+				var ex = e.InnerException ?? e;
+				return Error(JsonRpcErrorCodes.InternalError, ex.Message, jsonRpcRequest.Id);
 			}
 			catch (Exception e)
 			{

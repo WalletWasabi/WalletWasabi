@@ -30,7 +30,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var pseudoSet = new HashSet<byte[]>();
 			var secureSet = new HashSet<byte[]>();
 			var count = 100;
-			var insecureRandom = new InsecureRandom();
+			using var insecureRandom = new InsecureRandom();
 			using var secureRandom = new SecureRandom();
 			for (int i = 0; i < count; i++)
 			{
@@ -107,7 +107,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		[Fact]
 		public void ScalarInternalTests()
 		{
-			var mockRandom = new MockRandom();
+			using var mockRandom = new MockRandom();
 
 			// The random should not overflow.
 			mockRandom.GetBytesResults.Add(EC.N.ToBytes());

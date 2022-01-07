@@ -8,7 +8,7 @@ namespace WalletWasabi.Tor.Http.Extensions
 		public static string ToReasonString(this HttpStatusCode me)
 		{
 			using var message = new HttpResponseMessage(me);
-			return message.ReasonPhrase;
+			return message.ReasonPhrase ?? "Unknown reason";
 		}
 	}
 }

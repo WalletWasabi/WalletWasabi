@@ -15,7 +15,7 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 		{
 			var coreNode = await TestNodeBuilder.CreateAsync();
 			using HostedServices services = new();
-			services.Register<MempoolMirror>(new MempoolMirror(TimeSpan.FromSeconds(2), coreNode.RpcClient, coreNode.P2pNode), "Mempool Mirror");
+			services.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(2), coreNode.RpcClient, coreNode.P2pNode), "Mempool Mirror");
 			try
 			{
 				var rpc = coreNode.RpcClient;
@@ -56,7 +56,7 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 		{
 			var coreNode = await TestNodeBuilder.CreateAsync();
 			using HostedServices services = new();
-			services.Register<MempoolMirror>(new MempoolMirror(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.P2pNode), "Mempool Mirror");
+			services.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.P2pNode), "Mempool Mirror");
 			try
 			{
 				var rpc = coreNode.RpcClient;
@@ -94,7 +94,7 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 		{
 			var coreNode = await TestNodeBuilder.CreateAsync();
 			using HostedServices services = new();
-			services.Register<MempoolMirror>(new MempoolMirror(TimeSpan.FromSeconds(2), coreNode.RpcClient, coreNode.P2pNode), "Mempool Mirror");
+			services.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(2), coreNode.RpcClient, coreNode.P2pNode), "Mempool Mirror");
 			try
 			{
 				var rpc = coreNode.RpcClient;
@@ -147,7 +147,7 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 		{
 			var coreNode = await TestNodeBuilder.CreateAsync();
 			using HostedServices services = new();
-			services.Register<MempoolMirror>(new MempoolMirror(TimeSpan.FromSeconds(2), coreNode.RpcClient, coreNode.P2pNode), "Mempool Mirror");
+			services.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(2), coreNode.RpcClient, coreNode.P2pNode), "Mempool Mirror");
 			try
 			{
 				var rpc = coreNode.RpcClient;
@@ -193,7 +193,7 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 		{
 			var coreNode = await TestNodeBuilder.CreateAsync();
 			using HostedServices services = new();
-			services.Register<MempoolMirror>(new MempoolMirror(TimeSpan.FromSeconds(2), coreNode.RpcClient, coreNode.P2pNode), "Mempool Mirror");
+			services.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(2), coreNode.RpcClient, coreNode.P2pNode), "Mempool Mirror");
 			try
 			{
 				var rpc = coreNode.RpcClient;

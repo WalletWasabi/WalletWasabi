@@ -79,7 +79,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			global.Coordinator.UtxoReferee.Clear();
 
 			var network = global.RpcClient.Network;
-			var serviceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.PrivacyLevelSome.ToString(), 2, 21, 50, regTestFixture.BackendRegTestNode.P2pEndPoint, Money.Coins(WalletWasabi.Helpers.Constants.DefaultDustThreshold));
+			var serviceConfiguration = new ServiceConfiguration(5, 10, regTestFixture.BackendRegTestNode.P2pEndPoint, Money.Coins(WalletWasabi.Helpers.Constants.DefaultDustThreshold));
 
 			var dir = Helpers.Common.GetWorkDir(callerFilePath, callerMemberName);
 			await using var indexStore = new IndexStore(Path.Combine(dir, "indexStore"), network, new SmartHeaderChain());

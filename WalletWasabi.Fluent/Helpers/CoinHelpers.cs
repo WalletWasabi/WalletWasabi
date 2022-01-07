@@ -7,7 +7,7 @@ namespace WalletWasabi.Fluent.Helpers
 	{
 		public static bool IsPrivate(this SmartCoin coin)
 		{
-			var privateThreshold = Services.Config.MixUntilAnonymitySetValue;
+			var privateThreshold = Services.Config.MinAnonScoreTarget;
 			return coin.HdPubKey.AnonymitySet >= privateThreshold;
 		}
 
