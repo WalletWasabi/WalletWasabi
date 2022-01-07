@@ -25,7 +25,13 @@ namespace WalletWasabi.Tor.Socks5
 		public TorTcpConnection(TcpClient tcpClient, Stream transportStream, ICircuit circuit, bool allowRecycling)
 		{
 			long id = Interlocked.Increment(ref LastId);
-			Name = $"TC#{id:0000}#{circuit.Name[0..10]}";
+			string prefix = circuit switch
+			{
+				DefaultCircuit _ => "DC",
+				PersonCircuit _ => "PC",
+				_ => "UC" // Unknown circuit type.
+			};
+			Name = $"{prefix}#{id:0000}#{circuit.Name[0..10]}";
 
 			TcpClient = tcpClient;
 			TransportStream = transportStream;
