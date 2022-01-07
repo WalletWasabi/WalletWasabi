@@ -4,6 +4,7 @@ using Avalonia.Dialogs;
 using Avalonia.ReactiveUI;
 using Splat;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.CrashReport;
@@ -56,6 +57,11 @@ namespace WalletWasabi.Fluent.Desktop
 
 			Exception? exceptionToReport = null;
 			SingleInstanceChecker? singleInstanceChecker = null;
+
+			if (args.Any(arg => arg.Contains("walletlog", StringComparison.InvariantCultureIgnoreCase)))
+			{
+				WalletLogger.Enabled = true;
+			}
 
 			if (runGui)
 			{
@@ -130,10 +136,6 @@ namespace WalletWasabi.Fluent.Desktop
 						logLevel = parsedLevel;
 						break;
 					}
-				}
-				if (arg.StartsWith("walletlog", StringComparison.InvariantCultureIgnoreCase))
-				{
-					WalletLogger.Enabled = true;
 				}
 			}
 
