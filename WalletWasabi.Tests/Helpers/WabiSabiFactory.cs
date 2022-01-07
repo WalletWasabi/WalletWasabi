@@ -52,7 +52,7 @@ namespace WalletWasabi.Tests.Helpers
 				Network.Main,
 				new InsecureRandom(),
 				new FeeRate(100m),
-				new CoordinationFeeRate(0.001m)));
+				new CoordinationFeeRate(0.003m)));
 			round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
 			return round;
 		}
