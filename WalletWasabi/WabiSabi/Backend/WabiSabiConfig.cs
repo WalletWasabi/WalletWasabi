@@ -95,7 +95,7 @@ namespace WalletWasabi.WabiSabi.Backend
 		[JsonConverter(typeof(ScriptJsonConverter))]
 		public Script BlameScript { get; set; } = new Script("0 1251dec2e6a6694a789f0cca6c2a9cfb4c74fb4e");
 
-		[DefaultValueCoordinationFeeRate(0.001)]
+		[DefaultValueCoordinationFeeRate(0.003)]
 		[JsonProperty(PropertyName = "CoordinationFeeRate", DefaultValueHandling = DefaultValueHandling.Populate)]
 		[JsonConverter(typeof(CoordinationFeeRateJsonConverter))]
 		public CoordinationFeeRate CoordinationFeeRate { get; set; } = new CoordinationFeeRate(0.001m);
