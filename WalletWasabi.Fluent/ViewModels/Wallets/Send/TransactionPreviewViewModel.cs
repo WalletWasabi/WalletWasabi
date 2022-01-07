@@ -52,7 +52,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					if (x is ChangeAvoidanceSuggestionViewModel ca)
 					{
-						_info.Coins = ca.TransactionResult.SpentCoins;
+						_info.ChangelessCoins = ca.TransactionResult.SpentCoins;
 						UpdateTransaction(PreviewTransactionSummary, ca.TransactionResult);
 					}
 					else
@@ -69,7 +69,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 					if (x is ChangeAvoidanceSuggestionViewModel ca)
 					{
-						_info.IsOptimized = true;
 						UpdateTransaction(CurrentTransactionSummary, ca.TransactionResult);
 
 						await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, ca.TransactionResult);
@@ -438,9 +437,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			_info.UserLabels = result.Result;
 
-			var transaction = _info.IsOptimized ?
-							 TransactionHelpers.BuildChangelessTransaction(_wallet, _info.Address, _info.UserLabels, _info.FeeRate, _info.Coins)
-							: TransactionHelpers.BuildTransaction(_wallet, _info);
+			var transaction = TransactionHelpers.BuildTransaction(_wallet, _info);
 
 			var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
 			var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
