@@ -96,9 +96,14 @@ namespace WalletWasabi.WabiSabi.Backend
 		[JsonConverter(typeof(ExtPubKeyJsonConverter))]
 		public ExtPubKey CoordinatorExtPubKey { get; } = Constants.WabiSabiFallBackCoordinatorExtPubKey;
 
-		[DefaultValue(0)]
+		[DefaultValue(1)]
 		[JsonProperty(PropertyName = "CoordinatorExtPubKeyCurrentDepth", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public int CoordinatorExtPubKeyCurrentDepth { get; private set; }
+
+		/// <summary>
+		/// If money comes to the blame script, then either an attacker lost money or there's a client bug.
+		/// </summary>
+		public Script BlameScript => DeriveCoordinatorScript(0);
 
 		public Script GetNextCleanCoordinatorScript() => DeriveCoordinatorScript(CoordinatorExtPubKeyCurrentDepth);
 
@@ -109,10 +114,5 @@ namespace WalletWasabi.WabiSabi.Backend
 			CoordinatorExtPubKeyCurrentDepth++;
 			ToFile();
 		}
-
-		/// <summary>
-		/// If money comes to the blame script, then either an attacker lost money or there's a client bug.
-		/// </summary>
-		public Script BlameScript => DeriveCoordinatorScript(0);
 	}
 }

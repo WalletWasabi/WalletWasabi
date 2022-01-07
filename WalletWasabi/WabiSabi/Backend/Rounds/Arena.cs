@@ -191,7 +191,15 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 							var coordinatorScriptPubKey = Config.GetNextCleanCoordinatorScript();
 							var coordinationFee = round.Alices.Sum(x => round.CoordinationFeeRate.GetFee(x.Coin.Amount));
 							coordinationFee -= round.FeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize());
-							coinjoin = round.AddOutput(new TxOut(coordinationFee, coordinatorScriptPubKey));
+
+							if (coordinationFee > coinjoin.Parameters.AllowedOutputAmounts.Min)
+							{
+								coinjoin = round.AddOutput(new TxOut(coordinationFee, coordinatorScriptPubKey));
+							}
+							else
+							{
+								round.LogWarning($"Coordinator fee wasn't taken, because it was too small: {nameof(diffMoney)}: {diffMoney}, {nameof(allReady)}: {allReady}.");
+							}
 						}
 
 						round.CoinjoinState = coinjoin.Finalize();
