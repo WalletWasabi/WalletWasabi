@@ -14,7 +14,17 @@ namespace WalletWasabi.WabiSabi.Models
 
 		public decimal Rate { get; }
 
-		public Money GetFee(Money amount) =>
-			Money.Satoshis(Math.Floor(amount.Satoshi * Rate));
+		public Money GetFee(Money amount)
+		{
+			// Under 100 000 satoshis plebs don't have to pay.
+			if (amount <= Money.Coins(0.001m))
+			{
+				return Money.Zero;
+			}
+			else
+			{
+				return Money.Satoshis(Math.Floor(amount.Satoshi * Rate));
+			}
+		}
 	}
 }
