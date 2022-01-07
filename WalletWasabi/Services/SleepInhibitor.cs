@@ -8,112 +8,111 @@ using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Client;
 using static WalletWasabi.Helpers.PowerSaving.LinuxInhibitorTask;
 
-namespace WalletWasabi.Services
+namespace WalletWasabi.Services;
+
+public class SleepInhibitor : PeriodicRunner
 {
-	public class SleepInhibitor : PeriodicRunner
+	private const string Reason = "CoinJoin is in progress.";
+	private static readonly TimeSpan Timeout = TimeSpan.FromMinutes(1);
+
+	private volatile IPowerSavingInhibitorTask? _powerSavingTask;
+
+	private SleepInhibitor(CoinJoinManager coinJoinManager, Func<Task<IPowerSavingInhibitorTask>>? taskFactory) : base(TimeSpan.FromSeconds(5))
 	{
-		private const string Reason = "CoinJoin is in progress.";
-		private static readonly TimeSpan Timeout = TimeSpan.FromMinutes(1);
+		CoinJoinManager = coinJoinManager;
+		TaskFactory = taskFactory;
+	}
 
-		private volatile IPowerSavingInhibitorTask? _powerSavingTask;
+	private CoinJoinManager CoinJoinManager { get; }
+	public Func<Task<IPowerSavingInhibitorTask>>? TaskFactory { get; }
 
-		private SleepInhibitor(CoinJoinManager coinJoinManager, Func<Task<IPowerSavingInhibitorTask>>? taskFactory) : base(TimeSpan.FromSeconds(5))
+	/// <summary>Checks whether we support awake state prolonging for the current platform.</summary>
+	public static async Task<SleepInhibitor?> CreateAsync(CoinJoinManager coinJoinManager)
+	{
+		Func<Task<IPowerSavingInhibitorTask>>? taskFactory = null;
+
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 		{
-			CoinJoinManager = coinJoinManager;
-			TaskFactory = taskFactory;
+			// Either we have systemd or not.
+			bool isSystemd = await LinuxInhibitorTask.IsSystemdInhibitSupportedAsync().ConfigureAwait(false);
+			if (!isSystemd)
+			{
+				return null;
+			}
+
+			GraphicalEnvironment gui = GraphicalEnvironment.Other;
+
+			// Specialization for GNOME.
+			if (await LinuxInhibitorTask.IsMateSessionInhibitSupportedAsync().ConfigureAwait(false))
+			{
+				gui = GraphicalEnvironment.Mate;
+			}
+			else if (await LinuxInhibitorTask.IsGnomeSessionInhibitSupportedAsync().ConfigureAwait(false))
+			{
+				gui = GraphicalEnvironment.Gnome;
+			}
+
+			taskFactory = () => Task.FromResult<IPowerSavingInhibitorTask>(LinuxInhibitorTask.Create(InhibitWhat.Idle, Timeout, Reason, gui));
+		}
+		else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		{
+			taskFactory = () => Task.FromResult<IPowerSavingInhibitorTask>(WindowsPowerAvailabilityTask.Create(Reason));
 		}
 
-		private CoinJoinManager CoinJoinManager { get; }
-		public Func<Task<IPowerSavingInhibitorTask>>? TaskFactory { get; }
+		return new SleepInhibitor(coinJoinManager, taskFactory);
+	}
 
-		/// <summary>Checks whether we support awake state prolonging for the current platform.</summary>
-		public static async Task<SleepInhibitor?> CreateAsync(CoinJoinManager coinJoinManager)
+	protected override async Task ActionAsync(CancellationToken cancel)
+	{
+		switch (CoinJoinManager.HighestCoinJoinClientState)
 		{
-			Func<Task<IPowerSavingInhibitorTask>>? taskFactory = null;
+			case CoinJoinClientState.Idle:
+				Logger.LogTrace("Computer idle state is allowed again.");
+				await StopTaskAsync().ConfigureAwait(false);
+				break;
 
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-			{
-				// Either we have systemd or not.
-				bool isSystemd = await LinuxInhibitorTask.IsSystemdInhibitSupportedAsync().ConfigureAwait(false);
-				if (!isSystemd)
-				{
-					return null;
-				}
+			case CoinJoinClientState.InProgress or CoinJoinClientState.InCriticalPhase:
+				await PreventSleepAsync().ConfigureAwait(false);
+				break;
 
-				GraphicalEnvironment gui = GraphicalEnvironment.Other;
-
-				// Specialization for GNOME.
-				if (await LinuxInhibitorTask.IsMateSessionInhibitSupportedAsync().ConfigureAwait(false))
-				{
-					gui = GraphicalEnvironment.Mate;
-				}
-				else if (await LinuxInhibitorTask.IsGnomeSessionInhibitSupportedAsync().ConfigureAwait(false))
-				{
-					gui = GraphicalEnvironment.Gnome;
-				}
-
-				taskFactory = () => Task.FromResult<IPowerSavingInhibitorTask>(LinuxInhibitorTask.Create(InhibitWhat.Idle, Timeout, Reason, gui));
-			}
-			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-			{
-				taskFactory = () => Task.FromResult<IPowerSavingInhibitorTask>(WindowsPowerAvailabilityTask.Create(Reason));
-			}
-
-			return new SleepInhibitor(coinJoinManager, taskFactory);
+			default:
+				throw new NotSupportedException($"Unsupported {CoinJoinManager.HighestCoinJoinClientState} value.");
 		}
+	}
 
-		protected override async Task ActionAsync(CancellationToken cancel)
+	private async Task PreventSleepAsync()
+	{
+		IPowerSavingInhibitorTask? task = _powerSavingTask;
+
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
-			switch (CoinJoinManager.HighestCoinJoinClientState)
+			if (task is not null)
 			{
-				case CoinJoinClientState.Idle:
-					Logger.LogTrace("Computer idle state is allowed again.");
-					await StopTaskAsync().ConfigureAwait(false);
-					break;
+				if (!task.Prolong(Timeout))
+				{
+					Logger.LogTrace("Failed to prolong the power saving task.");
+					task = null;
+				}
+			}
 
-				case CoinJoinClientState.InProgress or CoinJoinClientState.InCriticalPhase:
-					await PreventSleepAsync().ConfigureAwait(false);
-					break;
-
-				default:
-					throw new NotSupportedException($"Unsupported {CoinJoinManager.HighestCoinJoinClientState} value.");
+			if (task is null)
+			{
+				Logger.LogTrace("Create new power saving prevention task.");
+				_powerSavingTask = await TaskFactory!().ConfigureAwait(false);
 			}
 		}
-
-		private async Task PreventSleepAsync()
+		else
 		{
-			IPowerSavingInhibitorTask? task = _powerSavingTask;
-
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-			{
-				if (task is not null)
-				{
-					if (!task.Prolong(Timeout))
-					{
-						Logger.LogTrace("Failed to prolong the power saving task.");
-						task = null;
-					}
-				}
-
-				if (task is null)
-				{
-					Logger.LogTrace("Create new power saving prevention task.");
-					_powerSavingTask = await TaskFactory!().ConfigureAwait(false);
-				}
-			}
-			else
-			{
-				await EnvironmentHelpers.ProlongSystemAwakeAsync().ConfigureAwait(false);
-			}
+			await EnvironmentHelpers.ProlongSystemAwakeAsync().ConfigureAwait(false);
 		}
+	}
 
-		private async Task StopTaskAsync()
+	private async Task StopTaskAsync()
+	{
+		if (_powerSavingTask is not null)
 		{
-			if (_powerSavingTask is not null)
-			{
-				await _powerSavingTask.StopAsync().ConfigureAwait(false);
-				_powerSavingTask = null;
-			}
+			await _powerSavingTask.StopAsync().ConfigureAwait(false);
+			_powerSavingTask = null;
 		}
 	}
 }

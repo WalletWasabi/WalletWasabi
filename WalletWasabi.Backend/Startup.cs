@@ -23,129 +23,128 @@ using WalletWasabi.WebClients;
 
 [assembly: ApiController]
 
-namespace WalletWasabi.Backend
+namespace WalletWasabi.Backend;
+
+public class Startup
 {
-	public class Startup
+	public Startup(IConfiguration configuration)
 	{
-		public Startup(IConfiguration configuration)
+		Configuration = configuration;
+	}
+
+	public IConfiguration Configuration { get; }
+
+	// This method gets called by the runtime. Use this method to add services to the container.
+	public void ConfigureServices(IServiceCollection services)
+	{
+		services.AddMemoryCache();
+
+		services.AddMvc(options => options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(BitcoinAddress))))
+			.AddControllersAsServices();
+
+		services.AddMvc()
+			.AddNewtonsoftJson();
+
+		services.AddControllers().AddNewtonsoftJson(x =>
 		{
-			Configuration = configuration;
-		}
+			x.SerializerSettings.Converters = JsonSerializationOptions.Default.Settings.Converters;
+		});
 
-		public IConfiguration Configuration { get; }
-
-		// This method gets called by the runtime. Use this method to add services to the container.
-		public void ConfigureServices(IServiceCollection services)
+		// Register the Swagger generator, defining one or more Swagger documents
+		services.AddSwaggerGen(c =>
 		{
-			services.AddMemoryCache();
-
-			services.AddMvc(options => options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(BitcoinAddress))))
-				.AddControllersAsServices();
-
-			services.AddMvc()
-				.AddNewtonsoftJson();
-
-			services.AddControllers().AddNewtonsoftJson(x =>
+			c.SwaggerDoc($"v{Constants.BackendMajorVersion}", new OpenApiInfo
 			{
-				x.SerializerSettings.Converters = JsonSerializationOptions.Default.Settings.Converters;
+				Version = $"v{Constants.BackendMajorVersion}",
+				Title = "Wasabi Wallet API",
+				Description = "Privacy focused Bitcoin Web API.",
+				License = new OpenApiLicense { Name = "Use under MIT.", Url = new Uri("https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md") }
 			});
-
-			// Register the Swagger generator, defining one or more Swagger documents
-			services.AddSwaggerGen(c =>
-			{
-				c.SwaggerDoc($"v{Constants.BackendMajorVersion}", new OpenApiInfo
-				{
-					Version = $"v{Constants.BackendMajorVersion}",
-					Title = "Wasabi Wallet API",
-					Description = "Privacy focused Bitcoin Web API.",
-					License = new OpenApiLicense { Name = "Use under MIT.", Url = new Uri("https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md") }
-				});
 
 				// Set the comments path for the Swagger JSON and UI.
 				var basePath = AppContext.BaseDirectory;
-				var xmlPath = Path.Combine(basePath, "WalletWasabi.Backend.xml");
-				c.IncludeXmlComments(xmlPath);
-			});
+			var xmlPath = Path.Combine(basePath, "WalletWasabi.Backend.xml");
+			c.IncludeXmlComments(xmlPath);
+		});
 
-			services.AddLogging(logging => logging.AddFilter((s, level) => level >= Microsoft.Extensions.Logging.LogLevel.Warning));
+		services.AddLogging(logging => logging.AddFilter((s, level) => level >= Microsoft.Extensions.Logging.LogLevel.Warning));
 
-			services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider());
-			services.AddSingleton<IdempotencyRequestCache>();
-			services.AddSingleton(new Global(Configuration["datadir"]));
-			services.AddSingleton(serviceProvider =>
-			{
-				var global = serviceProvider.GetRequiredService<Global>();
-				var coordinator = global.HostedServices.Get<WabiSabiCoordinator>();
-				return coordinator.Arena;
-			});
-			services.AddStartupTask<InitConfigStartupTask>();
-
-			services.AddResponseCompression();
-		}
-
-		[SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "This method gets called by the runtime. Use this method to configure the HTTP request pipeline")]
-		public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Global global)
+		services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider());
+		services.AddSingleton<IdempotencyRequestCache>();
+		services.AddSingleton(new Global(Configuration["datadir"]));
+		services.AddSingleton(serviceProvider =>
 		{
-			app.UseStaticFiles();
+			var global = serviceProvider.GetRequiredService<Global>();
+			var coordinator = global.HostedServices.Get<WabiSabiCoordinator>();
+			return coordinator.Arena;
+		});
+		services.AddStartupTask<InitConfigStartupTask>();
 
-			// Enable middleware to serve generated Swagger as a JSON endpoint.
-			app.UseSwagger();
+		services.AddResponseCompression();
+	}
 
-			// Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint.
-			app.UseSwaggerUI(c => c.SwaggerEndpoint($"/swagger/v{Constants.BackendMajorVersion}/swagger.json", $"Wasabi Wallet API V{Constants.BackendMajorVersion}"));
+	[SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "This method gets called by the runtime. Use this method to configure the HTTP request pipeline")]
+	public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Global global)
+	{
+		app.UseStaticFiles();
 
-			app.UseRouting();
+		// Enable middleware to serve generated Swagger as a JSON endpoint.
+		app.UseSwagger();
 
-			// So to correctly handle HEAD requests.
-			// https://www.tpeczek.com/2017/10/exploring-head-method-behavior-in.html
-			// https://github.com/tpeczek/Demo.AspNetCore.Mvc.CosmosDB/blob/master/Demo.AspNetCore.Mvc.CosmosDB/Middlewares/HeadMethodMiddleware.cs
-			app.UseMiddleware<HeadMethodMiddleware>();
+		// Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint.
+		app.UseSwaggerUI(c => c.SwaggerEndpoint($"/swagger/v{Constants.BackendMajorVersion}/swagger.json", $"Wasabi Wallet API V{Constants.BackendMajorVersion}"));
 
-			app.UseResponseCompression();
+		app.UseRouting();
 
-			app.UseEndpoints(endpoints => endpoints.MapControllers());
+		// So to correctly handle HEAD requests.
+		// https://www.tpeczek.com/2017/10/exploring-head-method-behavior-in.html
+		// https://github.com/tpeczek/Demo.AspNetCore.Mvc.CosmosDB/blob/master/Demo.AspNetCore.Mvc.CosmosDB/Middlewares/HeadMethodMiddleware.cs
+		app.UseMiddleware<HeadMethodMiddleware>();
 
-			var applicationLifetime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
-			applicationLifetime.ApplicationStopped.Register(() => OnShutdown(global)); // Don't register async, that won't hold up the shutdown
-		}
+		app.UseResponseCompression();
 
-		private void OnShutdown(Global global)
+		app.UseEndpoints(endpoints => endpoints.MapControllers());
+
+		var applicationLifetime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
+		applicationLifetime.ApplicationStopped.Register(() => OnShutdown(global)); // Don't register async, that won't hold up the shutdown
+	}
+
+	private void OnShutdown(Global global)
+	{
+		CleanupAsync(global).GetAwaiter().GetResult(); // This is needed, if async function is registered then it won't wait until it finishes
+	}
+
+	private async Task CleanupAsync(Global global)
+	{
+		var coordinator = global.Coordinator;
+		if (coordinator is { })
 		{
-			CleanupAsync(global).GetAwaiter().GetResult(); // This is needed, if async function is registered then it won't wait until it finishes
+			coordinator.Dispose();
+			Logger.LogInfo($"{nameof(coordinator)} is disposed.");
 		}
 
-		private async Task CleanupAsync(Global global)
+		var indexBuilderService = global.IndexBuilderService;
+		if (indexBuilderService is { })
 		{
-			var coordinator = global.Coordinator;
-			if (coordinator is { })
-			{
-				coordinator.Dispose();
-				Logger.LogInfo($"{nameof(coordinator)} is disposed.");
-			}
-
-			var indexBuilderService = global.IndexBuilderService;
-			if (indexBuilderService is { })
-			{
-				await indexBuilderService.StopAsync();
-				Logger.LogInfo($"{nameof(indexBuilderService)} is stopped.");
-			}
-
-			var hostedServices = global.HostedServices;
-			if (hostedServices is { })
-			{
-				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
-				await hostedServices.StopAllAsync(cts.Token);
-				hostedServices.Dispose();
-			}
-
-			var p2pNode = global.P2pNode;
-			if (p2pNode is { })
-			{
-				await p2pNode.DisposeAsync();
-				Logger.LogInfo($"{nameof(p2pNode)} is disposed.");
-			}
-
-			Logger.LogSoftwareStopped("Wasabi Backend");
+			await indexBuilderService.StopAsync();
+			Logger.LogInfo($"{nameof(indexBuilderService)} is stopped.");
 		}
+
+		var hostedServices = global.HostedServices;
+		if (hostedServices is { })
+		{
+			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
+			await hostedServices.StopAllAsync(cts.Token);
+			hostedServices.Dispose();
+		}
+
+		var p2pNode = global.P2pNode;
+		if (p2pNode is { })
+		{
+			await p2pNode.DisposeAsync();
+			Logger.LogInfo($"{nameof(p2pNode)} is disposed.");
+		}
+
+		Logger.LogSoftwareStopped("Wasabi Backend");
 	}
 }

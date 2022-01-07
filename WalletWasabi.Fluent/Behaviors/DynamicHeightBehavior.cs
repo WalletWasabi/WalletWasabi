@@ -3,46 +3,45 @@ using Avalonia;
 using Avalonia.Controls;
 using ReactiveUI;
 
-namespace WalletWasabi.Fluent.Behaviors
+namespace WalletWasabi.Fluent.Behaviors;
+
+public class DynamicHeightBehavior : DisposingBehavior<Control>
 {
-	public class DynamicHeightBehavior : DisposingBehavior<Control>
+	public static readonly StyledProperty<double> HeightMultiplierProperty =
+		AvaloniaProperty.Register<DynamicHeightBehavior, double>(nameof(HeightMultiplier));
+
+	public static readonly StyledProperty<double> HideThresholdHeightProperty =
+		AvaloniaProperty.Register<DynamicHeightBehavior, double>(nameof(HideThresholdHeight));
+
+	public double HeightMultiplier
 	{
-		public static readonly StyledProperty<double> HeightMultiplierProperty =
-			AvaloniaProperty.Register<DynamicHeightBehavior, double>(nameof(HeightMultiplier));
+		get => GetValue(HeightMultiplierProperty);
+		set => SetValue(HeightMultiplierProperty, value);
+	}
 
-		public static readonly StyledProperty<double> HideThresholdHeightProperty =
-			AvaloniaProperty.Register<DynamicHeightBehavior, double>(nameof(HideThresholdHeight));
+	public double HideThresholdHeight
+	{
+		get => GetValue(HideThresholdHeightProperty);
+		set => SetValue(HideThresholdHeightProperty, value);
+	}
 
-		public double HeightMultiplier
-		{
-			get => GetValue(HeightMultiplierProperty);
-			set => SetValue(HeightMultiplierProperty, value);
-		}
+	protected override void OnAttached(CompositeDisposable disposables)
+	{
+		AssociatedObject?.Parent?.WhenAnyValue(x => x.Bounds)
+			.Subscribe(bounds =>
+			{
+				var newHeight = bounds.Height * HeightMultiplier;
 
-		public double HideThresholdHeight
-		{
-			get => GetValue(HideThresholdHeightProperty);
-			set => SetValue(HideThresholdHeightProperty, value);
-		}
-
-		protected override void OnAttached(CompositeDisposable disposables)
-		{
-			AssociatedObject?.Parent?.WhenAnyValue(x => x.Bounds)
-				.Subscribe(bounds =>
+				if (newHeight < HideThresholdHeight)
 				{
-					var newHeight = bounds.Height * HeightMultiplier;
-
-					if (newHeight < HideThresholdHeight)
-					{
-						AssociatedObject.IsVisible = false;
-					}
-					else
-					{
-						AssociatedObject.IsVisible = true;
-						AssociatedObject.Height = newHeight;
-					}
-				})
-				.DisposeWith(disposables);
-		}
+					AssociatedObject.IsVisible = false;
+				}
+				else
+				{
+					AssociatedObject.IsVisible = true;
+					AssociatedObject.Height = newHeight;
+				}
+			})
+			.DisposeWith(disposables);
 	}
 }
