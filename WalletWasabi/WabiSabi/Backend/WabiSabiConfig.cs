@@ -98,7 +98,7 @@ namespace WalletWasabi.WabiSabi.Backend
 
 		[DefaultValue(1)]
 		[JsonProperty(PropertyName = "CoordinatorExtPubKeyCurrentDepth", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public int CoordinatorExtPubKeyCurrentDepth { get; private set; }
+		public int CoordinatorExtPubKeyCurrentDepth { get; private set; } = 1;
 
 		/// <summary>
 		/// If money comes to the blame script, then either an attacker lost money or there's a client bug.

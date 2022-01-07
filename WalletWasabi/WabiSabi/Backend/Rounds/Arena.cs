@@ -174,32 +174,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 						round.LogInfo($"{coinjoin.Inputs.Count} inputs were added.");
 						round.LogInfo($"{coinjoin.Outputs.Count} outputs were added.");
 
-						long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate));
-						long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
-						var diff = aliceSum - bobSum;
+						coinjoin = AddCoordinatorFee(round, coinjoin);
 
-						// If timeout we must fill up the outputs to build a reasonable transaction.
-						// This won't be signed by the alice who failed to provide output, so we know who to ban.
-						var diffMoney = Money.Satoshis(diff) - coinjoin.Parameters.FeeRate.GetFee(Config.BlameScript.EstimateOutputVsize());
-						if (!allReady && diffMoney > coinjoin.Parameters.AllowedOutputAmounts.Min)
+						if (!allReady)
 						{
-							coinjoin = round.AddOutput(new TxOut(diffMoney, Config.BlameScript));
-							round.LogInfo("Filled up the outputs to build a reasonable transaction because some alice failed to provide its output.");
-						}
-						else
-						{
-							var coordinatorScriptPubKey = Config.GetNextCleanCoordinatorScript();
-							var coordinationFee = round.Alices.Sum(x => round.CoordinationFeeRate.GetFee(x.Coin.Amount));
-							coordinationFee -= round.FeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize());
-
-							if (coordinationFee > coinjoin.Parameters.AllowedOutputAmounts.Min)
-							{
-								coinjoin = round.AddOutput(new TxOut(coordinationFee, coordinatorScriptPubKey));
-							}
-							else
-							{
-								round.LogWarning($"Coordinator fee wasn't taken, because it was too small: {nameof(diffMoney)}: {diffMoney}, {nameof(allReady)}: {allReady}.");
-							}
+							coinjoin = AddBlameScript(round, coinjoin);
 						}
 
 						round.CoinjoinState = coinjoin.Finalize();
@@ -213,6 +192,46 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					round.LogError(ex.Message);
 				}
 			}
+		}
+
+		private ConstructionState AddBlameScript(Round round, ConstructionState coinjoin)
+		{
+			long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate));
+			long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
+			var diff = aliceSum - bobSum;
+
+			// If timeout we must fill up the outputs to build a reasonable transaction.
+			// This won't be signed by the alice who failed to provide output, so we know who to ban.
+			var diffMoney = Money.Satoshis(diff) - coinjoin.Parameters.FeeRate.GetFee(Config.BlameScript.EstimateOutputVsize());
+			if (diffMoney > coinjoin.Parameters.AllowedOutputAmounts.Min)
+			{
+				coinjoin = round.AddOutput(new TxOut(diffMoney, Config.BlameScript));
+				round.LogInfo("Filled up the outputs to build a reasonable transaction because some alice failed to provide its output.");
+			}
+			else
+			{
+				round.LogWarning($"Could not add blame script, because the amount was too small: {nameof(diffMoney)}: {diffMoney}.");
+			}
+
+			return coinjoin;
+		}
+
+		private ConstructionState AddCoordinatorFee(Round round, ConstructionState coinjoin)
+		{
+			var coordinatorScriptPubKey = Config.GetNextCleanCoordinatorScript();
+			var coordinationFee = round.Alices.Sum(x => round.CoordinationFeeRate.GetFee(x.Coin.Amount));
+			coordinationFee -= round.FeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize());
+
+			if (coordinationFee > coinjoin.Parameters.AllowedOutputAmounts.Min)
+			{
+				coinjoin = round.AddOutput(new TxOut(coordinationFee, coordinatorScriptPubKey));
+			}
+			else
+			{
+				round.LogWarning($"Coordinator fee wasn't taken, because it was too small: {nameof(coordinationFee)}: {coordinationFee}.");
+			}
+
+			return coinjoin;
 		}
 
 		private async Task StepTransactionSigningPhaseAsync(CancellationToken cancellationToken)
