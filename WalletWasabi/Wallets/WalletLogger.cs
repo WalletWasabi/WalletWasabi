@@ -169,10 +169,7 @@ namespace WalletWasabi.Wallets
 
 		private static string CoinsToString(IEnumerable<SmartCoin> coins)
 		{
-			var coinsText =
-				string.Join(" ", coins
-					.OrderByDescending(c => c.Amount)
-					.Select(coin => CoinToString(coin)));
+			var coinsText = string.Join(" ", coins.OrderByDescending(c => c.Amount).Select(coin => CoinToString(coin)));
 			var currentCoinsText = $"[{coins.Count():0##}] {coinsText}";
 			return currentCoinsText;
 		}
