@@ -12,14 +12,15 @@ namespace WalletWasabi.JsonConverters
 		}
 
 		/// <inheritdoc />
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+		public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
 		{
-			var value = long.Parse(reader.Value.ToString());
+			var stringValue = reader.Value?.ToString() ?? throw new InvalidOperationException("json reader returns null.");
+			var value = long.Parse(stringValue);
 			return new Height((int)value);
 		}
 
 		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+		public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
 		{
 			writer.WriteValue(((Height)value).Value.ToString());
 		}

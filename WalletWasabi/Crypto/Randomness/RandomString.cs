@@ -6,23 +6,9 @@ namespace WalletWasabi.Crypto.Randomness
 	{
 		public static string FromCharacters(int length, string characters, bool secureRandom = false)
 		{
-			WasabiRandom random;
-			if (secureRandom)
-			{
-				random = new SecureRandom();
-			}
-			else
-			{
-				random = new InsecureRandom();
-			}
+			using WasabiRandom random = secureRandom ? new SecureRandom() : new InsecureRandom();
 
 			var res = random.GetString(length, characters);
-
-			if (random is IDisposable disposableRandom)
-			{
-				disposableRandom.Dispose();
-			}
-
 			return res;
 		}
 

@@ -16,7 +16,12 @@ namespace WalletWasabi.Services
 		private object ServicesLock { get; } = new object();
 		private bool IsStartAllAsyncStarted { get; set; } = false;
 
-		public void Register<T>(IHostedService service, string friendlyName) where T : class, IHostedService
+		public void Register<T>(Func<IHostedService> serviceFactory, string friendlyName) where T : class, IHostedService
+		{
+			Register<T>(serviceFactory(), friendlyName);
+		}
+
+		private void Register<T>(IHostedService service, string friendlyName) where T : class, IHostedService
 		{
 			if (typeof(T) != service.GetType())
 			{

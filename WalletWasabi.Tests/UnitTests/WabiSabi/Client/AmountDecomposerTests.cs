@@ -29,14 +29,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		[InlineData(5000, 0, 8)]
 		public void DecompositionsInvariantTest(decimal feeRateDecimal, long minOutputAmount, int maxAvailableOutputs)
 		{
-			var availableVsize = maxAvailableOutputs * Constants.P2WPKHOutputSizeInBytes;
+			var availableVsize = maxAvailableOutputs * Constants.P2wpkhOutputSizeInBytes;
 			var feeRate = new FeeRate(feeRateDecimal);
-			var coordinationFeeRate = new CoordinationFeeRate(0.01m);
-			var feePerOutput = feeRate.GetFee(Constants.P2WPKHOutputSizeInBytes);
+      var coordinationFeeRate = new CoordinationFeeRate(0.01m);
+			var feePerOutput = feeRate.GetFee(Constants.P2wpkhOutputSizeInBytes);
 			var registeredCoins = GenerateRandomCoins().Take(3).ToList();
 			var theirCoins = GenerateRandomCoins().Take(30).ToList();
-
-			var amountDecomposer = new AmountDecomposer(feeRate, coordinationFeeRate, minOutputAmount, Constants.P2WPKHOutputSizeInBytes, availableVsize);
+			var amountDecomposer = new AmountDecomposer(feeRate, coordinationFeeRate, minOutputAmount, Constants.P2wpkhOutputSizeInBytes, availableVsize);
+      
 			var outputValues = amountDecomposer.Decompose(registeredCoins, theirCoins);
 
 			var totalEffectiveValue = registeredCoins.Sum(x => x.EffectiveValue(feeRate, coordinationFeeRate));

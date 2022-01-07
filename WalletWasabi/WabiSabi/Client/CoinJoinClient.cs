@@ -23,19 +23,25 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class CoinJoinClient
 	{
-		private const int MaxInputsRegistrableByWallet = 7; // how many
+		private const int MaxInputsRegistrableByWallet = 10; // how many
 		private volatile bool _inCriticalCoinJoinState;
 
+		/// <param name="minAnonScoreTarget">Coins those have reached anonymity target, but still can be mixed if desired.</param>
+		/// <param name="consolidationMode">If true, then aggressively try to consolidate as many coins as it can.</param>
 		public CoinJoinClient(
 			IBackendHttpClientFactory httpClientFactory,
 			Kitchen kitchen,
 			KeyManager keymanager,
-			RoundStateUpdater roundStatusUpdater)
+			RoundStateUpdater roundStatusUpdater,
+			int minAnonScoreTarget = int.MaxValue,
+			bool consolidationMode = false)
 		{
 			HttpClientFactory = httpClientFactory;
 			Kitchen = kitchen;
 			Keymanager = keymanager;
 			RoundStatusUpdater = roundStatusUpdater;
+			MinAnonScoreTarget = minAnonScoreTarget;
+			ConsolidationMode = consolidationMode;
 			SecureRandom = new SecureRandom();
 		}
 
@@ -44,12 +50,15 @@ namespace WalletWasabi.WabiSabi.Client
 		public Kitchen Kitchen { get; }
 		public KeyManager Keymanager { get; }
 		private RoundStateUpdater RoundStatusUpdater { get; }
+		public int MinAnonScoreTarget { get; }
 
 		public bool InCriticalCoinJoinState
 		{
 			get => _inCriticalCoinJoinState;
 			private set => _inCriticalCoinJoinState = value;
 		}
+
+		public bool ConsolidationMode { get; private set; }
 
 		public async Task<bool> StartCoinJoinAsync(IEnumerable<SmartCoin> coins, CancellationToken cancellationToken)
 		{
@@ -109,7 +118,7 @@ namespace WalletWasabi.WabiSabi.Client
 				// Calculate outputs values
 				roundState = await RoundStatusUpdater.CreateRoundAwaiter(rs => rs.Id == roundState.Id, cancellationToken).ConfigureAwait(false);
 				constructionState = roundState.Assert<ConstructionState>();
-				AmountDecomposer amountDecomposer = new(roundState.FeeRate, roundState.CoordinationFeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min, Constants.P2WPKHOutputSizeInBytes, (int)availableVsize);
+        AmountDecomposer amountDecomposer = new(roundState.FeeRate, roundState.CoordinationFeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min, Constants.P2wpkhOutputSizeInBytes, (int)availableVsize);
 				var theirCoins = constructionState.Inputs.Except(registeredCoins);
 				var outputValues = amountDecomposer.Decompose(registeredCoins, theirCoins);
 
@@ -299,28 +308,117 @@ namespace WalletWasabi.WabiSabi.Client
 			await Task.WhenAll(readyRequests).ConfigureAwait(false);
 		}
 
-		// Selects coin candidates for participating in a round.
-		// The criteria is the following:
-		// * Only coin with amount in the allowed range
-		// * Only coins with allowed script types
-		// * Only one coin (the biggest one) from the same transaction (do not consolidate same transaction outputs)
-		//
-		// Then prefer:
-		// * less private coins should be the first ones
-		// * bigger coins first (this makes economical sense because mix more money paying less network fees)
-		//
-		// Note: this method works on already pre-filteres coins: those available and that didn't reached the
-		// expected anonymity set threshold.
-		private ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, MultipartyTransactionParameters parameters) =>
-			coins
+		private ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, MultipartyTransactionParameters parameters)
+		{
+			var filteredCoins = coins
 				.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
 				.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t)))
-				.GroupBy(x => x.TransactionId)
-				.Select(x => x.OrderByDescending(y => y.Amount).First())
+				.ToShuffled() // Preshuffle before ordering.
 				.OrderBy(x => x.HdPubKey.AnonymitySet)
-				.ThenByDescending(x => x.Amount)
-				.Take(MaxInputsRegistrableByWallet)
+				.ThenByDescending(y => y.Amount)
+				.ToArray();
+
+			// If there's no non-private coins then there's no reason to mix, the rest that's here has already reached the min anonscore target.
+			int nonPrivateCoinCount = filteredCoins.Where(x => x.HdPubKey.AnonymitySet < MinAnonScoreTarget).Count();
+			if (nonPrivateCoinCount == 0)
+			{
+				throw new InvalidOperationException("Coin selection failed to return a valid coin set.");
+			}
+
+			// How many inputs do we want to provide to the mix?
+			int inputCount = ConsolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(filteredCoins.Length);
+
+			// Select a group of coins those are close to each other by Anonimity Score.
+			List<IEnumerable<SmartCoin>> groups = new();
+
+			// I can take more coins those are already reached the minimum privacy threshold.
+			for (int i = 0; i < nonPrivateCoinCount; i++)
+			{
+				// Make sure the group can at least register an output even after paying fees.
+				var group = filteredCoins.Skip(i).Take(inputCount);
+
+				if (group.Count() < Math.Min(filteredCoins.Length, inputCount))
+				{
+					break;
+				}
+
+				var inSum = group.Sum(x => x.EffectiveValue(parameters.FeeRate));
+				var outFee = parameters.FeeRate.GetFee(Constants.P2wpkhOutputSizeInBytes);
+				if (inSum >= outFee + parameters.AllowedOutputAmounts.Min)
+				{
+					groups.Add(group);
+				}
+			}
+
+			// Calculate the anonScore cost of input consolidation.
+			List<(long Cost, IEnumerable<SmartCoin> Group)> anonScoreCosts = new();
+			foreach (var group in groups)
+			{
+				var smallestAnon = group.Min(x => x.HdPubKey.AnonymitySet);
+				var cost = 0L;
+				foreach (var coin in group.Where(c => c.HdPubKey.AnonymitySet != smallestAnon))
+				{
+					cost += (coin.Amount.Satoshi * coin.HdPubKey.AnonymitySet) - (coin.Amount.Satoshi * smallestAnon);
+				}
+
+				anonScoreCosts.Add((cost, group));
+			}
+
+			var bestCost = anonScoreCosts.Select(g => g.Cost).Min();
+			var bestgroups = anonScoreCosts.Where(x => x.Cost == bestCost).Select(x => x.Group);
+
+			// Select the group where the less coins coming from the same tx.
+			var bestgroup = bestgroups
+				.Select(group =>
+					(Reps: group.GroupBy(x => x.TransactionId).Sum(coinsInTxGroup => coinsInTxGroup.Count() - 1),
+					Group: group))
 				.ToShuffled()
-				.ToImmutableList();
+				.MinBy(i => i.Reps).Group;
+
+			return bestgroup.ToShuffled().ToImmutableList();
+		}
+
+		/// <summary>
+		/// Calculates how many inputs are desirable to be registered
+		/// based on rougly the total number of coins in a wallet.
+		/// Note: random biasing is applied.
+		/// </summary>
+		/// <returns>Desired input count.</returns>
+		private int GetInputTarget(int utxoCount)
+		{
+			int targetInputCount;
+			if (utxoCount < 35)
+			{
+				targetInputCount = 1;
+			}
+			else if (utxoCount > 150)
+			{
+				targetInputCount = MaxInputsRegistrableByWallet;
+			}
+			else
+			{
+				var min = 2;
+				var max = MaxInputsRegistrableByWallet - 1;
+
+				var percent = (double)(utxoCount - 35) / (150 - 35);
+				targetInputCount = (int)Math.Round((max - min) * percent + min);
+			}
+
+			var distance = new Dictionary<int, int>();
+			for (int i = 1; i <= MaxInputsRegistrableByWallet; i++)
+			{
+				distance.TryAdd(i, Math.Abs(i - targetInputCount));
+			}
+
+			foreach (var best in distance.OrderBy(x => x.Value))
+			{
+				if (SecureRandom.GetInt(0, 10) < 5)
+				{
+					return best.Key;
+				}
+			}
+
+			return targetInputCount;
+		}
 	}
 }

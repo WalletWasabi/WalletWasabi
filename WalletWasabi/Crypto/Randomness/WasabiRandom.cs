@@ -5,7 +5,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.Randomness
 {
-	public abstract class WasabiRandom : IRandom
+	public abstract class WasabiRandom : IRandom, IDisposable
 	{
 		public abstract void GetBytes(byte[] output);
 
@@ -52,6 +52,10 @@ namespace WalletWasabi.Crypto.Randomness
 			}
 			while (overflow != 0 || (!allowZero && randomScalar.IsZero));
 			return randomScalar;
+		}
+
+		public virtual void Dispose()
+		{
 		}
 	}
 }

@@ -77,7 +77,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (!isInHistory)
 			{
-				var pockets = _wallet.Coins.GetPockets(_wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue()).Select(x => new PocketViewModel(x));
+				var pockets = _wallet.Coins.GetPockets(_wallet.ServiceConfiguration.MinAnonScoreTarget).Select(x => new PocketViewModel(x));
 
 				_pocketSource.AddRange(pockets);
 			}

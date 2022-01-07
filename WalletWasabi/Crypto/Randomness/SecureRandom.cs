@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 
 namespace WalletWasabi.Crypto.Randomness
 {
-	public class SecureRandom : WasabiRandom, IDisposable
+	public class SecureRandom : WasabiRandom
 	{
 		private bool _disposedValue;
 
@@ -32,7 +32,7 @@ namespace WalletWasabi.Crypto.Randomness
 			}
 		}
 
-		public void Dispose()
+		public override void Dispose()
 		{
 			// Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
 			Dispose(disposing: true);

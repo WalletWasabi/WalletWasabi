@@ -20,7 +20,8 @@ namespace WalletWasabi.JsonConverters.Bitcoin
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, Script? value, JsonSerializer serializer)
 		{
-			writer.WriteValue(value.ToString());
+			var stringValue = value?.ToString() ?? throw new ArgumentNullException(nameof(value));
+			writer.WriteValue(stringValue);
 		}
 	}
 }

@@ -140,11 +140,7 @@ namespace WalletWasabi.Tor.Http.Models
 				}
 			}
 
-			return new HttpRequestContentHeaders
-			{
-				RequestHeaders = message.Headers,
-				ContentHeaders = message.Content.Headers
-			};
+			return new HttpRequestContentHeaders(message.Headers, message.Content.Headers);
 		}
 
 		public HttpResponseContentHeaders ToHttpResponseHeaders()
@@ -166,11 +162,7 @@ namespace WalletWasabi.Tor.Http.Models
 				}
 			}
 
-			return new HttpResponseContentHeaders
-			{
-				ResponseHeaders = message.Headers,
-				ContentHeaders = message.Content.Headers
-			};
+			return new HttpResponseContentHeaders(message.Headers, message.Content.Headers);
 		}
 
 		public static HeaderSection CreateNew(HttpHeaders headers)
