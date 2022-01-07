@@ -1,6 +1,7 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -12,11 +13,19 @@ namespace WalletWasabi.Wallets
 {
 	public class WalletLogger
 	{
+		public static bool Enabled { get; set; } = false;
+
 		public WalletLogger(string walletName, Network network, ICoinsView coins, string dataDir)
 		{
+			if (!Enabled)
+			{
+				throw new InvalidProgramException("WalletLogger is not enabled.");
+			}
+
 			WalletName = walletName;
 			Network = network;
 			Coins = coins;
+			DataDir = dataDir;
 			if (network == Network.Main)
 			{
 				BlockExplorerPrefix = "https://mempool.space/tx/";
@@ -30,24 +39,24 @@ namespace WalletWasabi.Wallets
 				BlockExplorerPrefix = "";
 			}
 
-			FilePath = Path.Combine(dataDir, "WalletLogs", WalletName, $"WalletLog_{WalletName}_{DateTime.Now:yyyyMMdd}.txt");
-
-			TryCreateFile(FilePath);
-
 			LastBalance = Coins.TotalAmount();
+			TryCreateFile();
 		}
 
 		private string WalletName { get; }
 		private string BlockExplorerPrefix { get; }
-		private string FilePath { get; }
+		private string FilePath { get; set; }
 		private Network Network { get; }
 		public ICoinsView Coins { get; }
+		private string DataDir { get; }
 		private Money LastBalance { get; }
+		private int CurrentDay { get; set; } = 0;
 
 		public async Task LogAsync(ProcessedResult e)
 		{
-			var currentBalance = Coins.TotalAmount();
+			TryCreateFile();
 
+			var currentBalance = Coins.TotalAmount();
 			StringBuilder sb = new();
 
 			if (e.NewlySpentCoins.Any())
@@ -96,16 +105,28 @@ namespace WalletWasabi.Wallets
 			await File.AppendAllTextAsync(FilePath, sb.ToString()).ConfigureAwait(false);
 		}
 
-		private void TryCreateFile(string filePath)
+		[MemberNotNull(nameof(FilePath))]
+		private void TryCreateFile()
 		{
-			if (File.Exists(filePath))
+			if (CurrentDay != DateTime.Now.Day)
+			{
+				CurrentDay = DateTime.Now.Day;
+				FilePath = Path.Combine(DataDir, "WalletLogs", WalletName, $"WalletLog_{WalletName}_{DateTime.Now:yyyyMMdd}.txt");
+			}
+
+			if (FilePath is null)
+			{
+				throw new ArgumentNullException(nameof(FilePath));
+			}
+
+			if (File.Exists(FilePath))
 			{
 				return;
 			}
 
-			IoHelpers.EnsureContainingDirectoryExists(filePath);
+			IoHelpers.EnsureContainingDirectoryExists(FilePath);
 
-			StringBuilder sb = new ();
+			StringBuilder sb = new();
 
 			sb.AppendLine($"WARNING! This file created only for debugging purposes! In any other cases immediately disable WalletLogging feature!");
 			sb.AppendLine($"WalletName: {WalletName} File created: {DateTime.Now}");
@@ -120,7 +141,7 @@ namespace WalletWasabi.Wallets
 				}
 			}
 
-			File.WriteAllText(filePath, sb.ToString());
+			File.WriteAllText(FilePath, sb.ToString());
 		}
 	}
 }

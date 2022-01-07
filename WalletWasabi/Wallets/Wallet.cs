@@ -191,7 +191,10 @@ namespace WalletWasabi.Wallets
 				await base.StartAsync(cancel).ConfigureAwait(false);
 
 				State = WalletState.Started;
-				WalletLogger = new WalletLogger(WalletName, Network, Coins, DataDir);
+				if (WalletLogger.Enabled)
+				{
+					WalletLogger = new WalletLogger(WalletName, Network, Coins, DataDir);
+				}
 			}
 			catch
 			{

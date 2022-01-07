@@ -131,6 +131,10 @@ namespace WalletWasabi.Fluent.Desktop
 						break;
 					}
 				}
+				if (arg.StartsWith("walletlog", StringComparison.InvariantCultureIgnoreCase))
+				{
+					WalletLogger.Enabled = true;
+				}
 			}
 
 			Logger.InitializeDefaults(Path.Combine(dataDir, "Logs.txt"), logLevel);
