@@ -219,6 +219,15 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		private ConstructionState AddCoordinatorFee(Round round, ConstructionState coinjoin)
 		{
 			var coordinatorScriptPubKey = Config.GetNextCleanCoordinatorScript();
+
+			// Prevent coord script reuse.
+			if (Rounds.Where(r => r.Phase is Phase.OutputRegistration or Phase.TransactionSigning).Any(r => r.Assert<ConstructionState>().Outputs.Any(o => o.ScriptPubKey == coordinatorScriptPubKey)))
+			{
+				Config.MakeNextCoordinatorScriptDirty();
+				coordinatorScriptPubKey = Config.GetNextCleanCoordinatorScript();
+				round.LogWarning($"Coordinator script pub key was already used by another round, making it dirty and taking a new one.");
+			}
+
 			var coordinationFee = round.Alices.Sum(x => round.CoordinationFeeRate.GetFee(x.Coin.Amount));
 			coordinationFee -= round.FeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize());
 
