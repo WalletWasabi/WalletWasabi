@@ -12,23 +12,27 @@ public class FocusNextWhenValid : DisposingBehavior<TextBox>
 {
 	protected override void OnAttached(CompositeDisposable disposables)
 	{
-		var hasErrors = AssociatedObject.GetObservable(DataValidationErrors.HasErrorsProperty);
-		var text = AssociatedObject.GetObservable(TextBox.TextProperty);
+		if (AssociatedObject is { })
+		{
+			var hasErrors = AssociatedObject.GetObservable(DataValidationErrors.HasErrorsProperty);
+			var text = AssociatedObject.GetObservable(TextBox.TextProperty);
 
-		hasErrors.Select(_ => Unit.Default)
-			.Merge(text.Select(_ => Unit.Default))
-			.Throttle(TimeSpan.FromMilliseconds(100))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ =>
-			{
-				if (AssociatedObject is { } &&
-					!DataValidationErrors.GetHasErrors(AssociatedObject) &&
-					!string.IsNullOrEmpty(AssociatedObject.Text) &&
-					KeyboardNavigationHandler.GetNext(AssociatedObject, NavigationDirection.Next) is { } nextFocus)
+			hasErrors.Select(_ => Unit.Default)
+				.Merge(text.Select(_ => Unit.Default))
+				.Throttle(TimeSpan.FromMilliseconds(100))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
 				{
-					nextFocus.Focus();
-				}
-			})
-			.DisposeWith(disposables);
+					if (AssociatedObject is { } &&
+						!DataValidationErrors.GetHasErrors(AssociatedObject) &&
+						!string.IsNullOrEmpty(AssociatedObject.Text) &&
+								KeyboardNavigationHandler.GetNext(AssociatedObject, NavigationDirection.Next) is
+									{ } nextFocus)
+					{
+						nextFocus.Focus();
+					}
+				})
+				.DisposeWith(disposables);
+		}
 	}
 }
