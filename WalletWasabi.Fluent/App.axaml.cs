@@ -16,7 +16,7 @@ namespace WalletWasabi.Fluent;
 
 public class App : Application
 {
-	private Func<Task> _backendInitialiseAsync;
+	private readonly Func<Task>? _backendInitialiseAsync;
 
 	/// <summary>
 	/// Defines the <see cref="CanShutdownProvider"/> property.
@@ -56,8 +56,6 @@ public class App : Application
 
 		if (!Design.IsDesignMode)
 		{
-			MainViewModel.Instance = new MainViewModel();
-
 			if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
 			{
 				desktop.ShutdownRequested += DesktopOnShutdownRequested;
@@ -70,9 +68,12 @@ public class App : Application
 				RxApp.MainThreadScheduler.Schedule(
 					async () =>
 					{
+							if (_backendInitialiseAsync is { })
+							{
 						await _backendInitialiseAsync();
+							}
 
-						MainViewModel.Instance!.Initialize();
+							MainViewModel.Instance.Initialize();
 					});
 			}
 		}
