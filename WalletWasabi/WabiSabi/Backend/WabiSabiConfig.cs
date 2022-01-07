@@ -98,7 +98,7 @@ namespace WalletWasabi.WabiSabi.Backend
 		[DefaultValueCoordinationFeeRate(0.003)]
 		[JsonProperty(PropertyName = "CoordinationFeeRate", DefaultValueHandling = DefaultValueHandling.Populate)]
 		[JsonConverter(typeof(CoordinationFeeRateJsonConverter))]
-		public CoordinationFeeRate CoordinationFeeRate { get; set; } = new CoordinationFeeRate(0.001m);
+		public CoordinationFeeRate CoordinationFeeRate { get; set; } = new CoordinationFeeRate(0.003m);
 
 		[JsonProperty(PropertyName = "CoordinatorExtPubKey")]
 		[JsonConverter(typeof(ExtPubKeyJsonConverter))]
