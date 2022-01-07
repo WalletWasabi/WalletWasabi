@@ -6,45 +6,44 @@ using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 
-namespace WalletWasabi.BitcoinCore.Monitoring
+namespace WalletWasabi.BitcoinCore.Monitoring;
+
+public class RpcFeeProvider : PeriodicRunner
 {
-	public class RpcFeeProvider : PeriodicRunner
+	public RpcFeeProvider(TimeSpan period, IRPCClient rpcClient, RpcMonitor rpcMonitor) : base(period)
 	{
-		public RpcFeeProvider(TimeSpan period, IRPCClient rpcClient, RpcMonitor rpcMonitor) : base(period)
+		RpcClient = rpcClient;
+		RpcMonitor = rpcMonitor;
+	}
+
+	public event EventHandler<AllFeeEstimate>? AllFeeEstimateArrived;
+
+	public IRPCClient RpcClient { get; set; }
+	public RpcMonitor RpcMonitor { get; }
+	public AllFeeEstimate? LastAllFeeEstimate { get; private set; }
+	public bool InError { get; private set; } = false;
+
+	protected override async Task ActionAsync(CancellationToken cancel)
+	{
+		try
 		{
-			RpcClient = rpcClient;
-			RpcMonitor = rpcMonitor;
+			var allFeeEstimate = await RpcClient.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative, true, cancel).ConfigureAwait(false);
+
+			// If Core was running for a day already && it's synchronized, then we can be pretty sure that the estimate is accurate.
+			// It could also be accurate if Core was only shut down for a few minutes, but that's hard to figure out.
+			allFeeEstimate.IsAccurate = RpcMonitor.RpcStatus.Synchronized && await RpcClient.UptimeAsync(cancel).ConfigureAwait(false) > TimeSpan.FromDays(1);
+
+			LastAllFeeEstimate = allFeeEstimate;
+			if (allFeeEstimate?.Estimations?.Any() is true)
+			{
+				AllFeeEstimateArrived?.Invoke(this, allFeeEstimate);
+			}
+			InError = false;
 		}
-
-		public event EventHandler<AllFeeEstimate>? AllFeeEstimateArrived;
-
-		public IRPCClient RpcClient { get; set; }
-		public RpcMonitor RpcMonitor { get; }
-		public AllFeeEstimate? LastAllFeeEstimate { get; private set; }
-		public bool InError { get; private set; } = false;
-
-		protected override async Task ActionAsync(CancellationToken cancel)
+		catch
 		{
-			try
-			{
-				var allFeeEstimate = await RpcClient.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative, true, cancel).ConfigureAwait(false);
-
-				// If Core was running for a day already && it's synchronized, then we can be pretty sure that the estimate is accurate.
-				// It could also be accurate if Core was only shut down for a few minutes, but that's hard to figure out.
-				allFeeEstimate.IsAccurate = RpcMonitor.RpcStatus.Synchronized && await RpcClient.UptimeAsync(cancel).ConfigureAwait(false) > TimeSpan.FromDays(1);
-
-				LastAllFeeEstimate = allFeeEstimate;
-				if (allFeeEstimate?.Estimations?.Any() is true)
-				{
-					AllFeeEstimateArrived?.Invoke(this, allFeeEstimate);
-				}
-				InError = false;
-			}
-			catch
-			{
-				InError = true;
-				throw;
-			}
+			InError = true;
+			throw;
 		}
 	}
 }

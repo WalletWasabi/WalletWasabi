@@ -5,13 +5,13 @@ using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 
-namespace WalletWasabi.Fluent.Helpers
+namespace WalletWasabi.Fluent.Helpers;
+
+public static class TileHelper
 {
-	public static class TileHelper
+	public static List<TileViewModel> GetNormalWalletTiles(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
 	{
-		public static List<TileViewModel> GetNormalWalletTiles(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
-		{
-			return new List<TileViewModel>
+		return new List<TileViewModel>
 			{
 				new WalletBalanceTileViewModel(walletViewModel.Wallet, balanceChanged, walletViewModel.History.UnfilteredTransactions)
 				{
@@ -57,11 +57,11 @@ namespace WalletWasabi.Fluent.Helpers
 					TilePresetIndex = walletViewModel.LayoutIndex
 				},
 			};
-		}
+	}
 
-		public static List<TileViewModel> GetWatchOnlyWalletTiles(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
-		{
-			return new List<TileViewModel>
+	public static List<TileViewModel> GetWatchOnlyWalletTiles(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
+	{
+		return new List<TileViewModel>
 			{
 				new WalletBalanceTileViewModel(walletViewModel.Wallet, balanceChanged, walletViewModel.History.UnfilteredTransactions)
 				{
@@ -96,26 +96,25 @@ namespace WalletWasabi.Fluent.Helpers
 					TilePresetIndex = walletViewModel.LayoutIndex
 				},
 			};
-		}
+	}
 
-		public static IList<TileLayoutViewModel> GetWatchOnlyWalletLayout()
-		{
-			return new ObservableCollection<TileLayoutViewModel>()
+	public static IList<TileLayoutViewModel> GetWatchOnlyWalletLayout()
+	{
+		return new ObservableCollection<TileLayoutViewModel>()
 			{
 				new("Small", columnDefinitions:"330,330,330", rowDefinitions:"150"),
 				new("Normal", columnDefinitions:"330,660", rowDefinitions:"150,150"),
 				new("Wide", columnDefinitions: "330,330", rowDefinitions: "150,300")
 			};
-		}
+	}
 
-		public static IList<TileLayoutViewModel> GetNormalWalletLayout()
-		{
-			return new ObservableCollection<TileLayoutViewModel>()
+	public static IList<TileLayoutViewModel> GetNormalWalletLayout()
+	{
+		return new ObservableCollection<TileLayoutViewModel>()
 			{
 				new("Small", columnDefinitions: "330,330,330,330", rowDefinitions: "150"),
 				new("Normal", columnDefinitions: "330,330,*", rowDefinitions: "150,150"),
 				new("Wide", columnDefinitions: "330,330", rowDefinitions: "150,150,*")
 			};
-		}
 	}
 }

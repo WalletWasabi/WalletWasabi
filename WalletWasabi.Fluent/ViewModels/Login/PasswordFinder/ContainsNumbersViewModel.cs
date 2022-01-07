@@ -5,36 +5,35 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets.PasswordFinder;
 
-namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
+namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder;
+
+[NavigationMetaData(Title = "Password Finder")]
+public partial class ContainsNumbersViewModel : RoutableViewModel
 {
-	[NavigationMetaData(Title = "Password Finder")]
-	public partial class ContainsNumbersViewModel : RoutableViewModel
+	public ContainsNumbersViewModel(PasswordFinderOptions options)
 	{
-		public ContainsNumbersViewModel(PasswordFinderOptions options)
-		{
-			Options = options;
-			Icon = AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/PasswordFinder/{ThemeHelper.CurrentTheme}/numbers.png");
+		Options = options;
+		Icon = AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/PasswordFinder/{ThemeHelper.CurrentTheme}/numbers.png");
 
-			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
-			EnableBack = true;
+		EnableBack = true;
 
-			YesCommand = ReactiveCommand.Create(() => SetAnswer(true));
-			NoCommand = ReactiveCommand.Create(() => SetAnswer(false));
-		}
+		YesCommand = ReactiveCommand.Create(() => SetAnswer(true));
+		NoCommand = ReactiveCommand.Create(() => SetAnswer(false));
+	}
 
-		public PasswordFinderOptions Options { get; }
+	public PasswordFinderOptions Options { get; }
 
-		public ICommand YesCommand { get; }
+	public ICommand YesCommand { get; }
 
-		public ICommand NoCommand { get; }
+	public ICommand NoCommand { get; }
 
-		public IImage Icon { get; }
+	public IImage Icon { get; }
 
-		private void SetAnswer(bool ans)
-		{
-			Options.UseNumbers = ans;
-			Navigate().To(new ContainsSymbolsViewModel(Options));
-		}
+	private void SetAnswer(bool ans)
+	{
+		Options.UseNumbers = ans;
+		Navigate().To(new ContainsSymbolsViewModel(Options));
 	}
 }

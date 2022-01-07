@@ -1,8 +1,7 @@
-namespace WalletWasabi.BitcoinCore.Endpointing
+namespace WalletWasabi.BitcoinCore.Endpointing;
+
+public enum EndPointType
 {
-	public enum EndPointType
-	{
-		P2p,
-		Rpc
-	}
+	P2p,
+	Rpc
 }
