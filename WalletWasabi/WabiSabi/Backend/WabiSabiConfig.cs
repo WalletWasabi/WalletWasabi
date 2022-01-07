@@ -87,14 +87,6 @@ namespace WalletWasabi.WabiSabi.Backend
 
 		public int MinInputCountByRound => Math.Max(1, (int)(MaxInputCountByRound * MinInputCountByRoundMultiplier));
 
-		/// <summary>
-		/// If money comes to the blame script, then either an attacker lost money or there's a client bug.
-		/// </summary>
-		[DefaultValueScript("0 1251dec2e6a6694a789f0cca6c2a9cfb4c74fb4e")]
-		[JsonProperty(PropertyName = "BlameScript", DefaultValueHandling = DefaultValueHandling.Populate)]
-		[JsonConverter(typeof(ScriptJsonConverter))]
-		public Script BlameScript { get; set; } = new Script("0 1251dec2e6a6694a789f0cca6c2a9cfb4c74fb4e");
-
 		[DefaultValueCoordinationFeeRate(0.003)]
 		[JsonProperty(PropertyName = "CoordinationFeeRate", DefaultValueHandling = DefaultValueHandling.Populate)]
 		[JsonConverter(typeof(CoordinationFeeRateJsonConverter))]
@@ -117,5 +109,10 @@ namespace WalletWasabi.WabiSabi.Backend
 			CoordinatorExtPubKeyCurrentDepth++;
 			ToFile();
 		}
+
+		/// <summary>
+		/// If money comes to the blame script, then either an attacker lost money or there's a client bug.
+		/// </summary>
+		public Script BlameScript => DeriveCoordinatorScript(0);
 	}
 }
