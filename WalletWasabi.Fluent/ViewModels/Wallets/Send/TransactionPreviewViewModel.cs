@@ -52,6 +52,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					if (x is ChangeAvoidanceSuggestionViewModel ca)
 					{
+						_info.Coins = ca.TransactionResult.SpentCoins;
 						UpdateTransaction(PreviewTransactionSummary, ca.TransactionResult);
 					}
 					else
@@ -68,6 +69,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 					if (x is ChangeAvoidanceSuggestionViewModel ca)
 					{
+						_info.IsOptimized = true;
 						UpdateTransaction(CurrentTransactionSummary, ca.TransactionResult);
 
 						await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, ca.TransactionResult);
@@ -169,7 +171,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			var feeRateDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, false));
 
 			if (feeRateDialogResult.Kind == DialogResultKind.Normal && feeRateDialogResult.Result is { } newFeeRate &&
-			    newFeeRate != _info.FeeRate)
+				newFeeRate != _info.FeeRate)
 			{
 				_info.FeeRate = feeRateDialogResult.Result;
 
@@ -209,7 +211,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				var privacyControlDialogResult =
 					await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, isSilent: true));
 				if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
-				    privacyControlDialogResult.Result is { } coins)
+					privacyControlDialogResult.Result is { } coins)
 				{
 					_info.Coins = coins;
 				}
@@ -331,7 +333,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					NavigationTarget.DialogScreen);
 
 				if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
-				    privacyControlDialogResult.Result is { })
+					privacyControlDialogResult.Result is { })
 				{
 					transactionInfo.Coins = privacyControlDialogResult.Result;
 				}
@@ -368,7 +370,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					new PrivacyControlViewModel(wallet, transactionInfo, isSilent: false),
 					NavigationTarget.DialogScreen);
 				if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
-				    privacyControlDialogResult.Result is { })
+					privacyControlDialogResult.Result is { })
 				{
 					transactionInfo.Coins = privacyControlDialogResult.Result;
 				}
@@ -409,7 +411,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (!isInHistory)
 			{
-				RxApp.MainThreadScheduler.Schedule(async ()=> await InitialiseViewModelAsync());
+				RxApp.MainThreadScheduler.Schedule(async () => await InitialiseViewModelAsync());
 			}
 		}
 
@@ -436,7 +438,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			_info.UserLabels = result.Result;
 
-			var transaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info));
+			var transaction = _info.IsOptimized ?
+							 TransactionHelpers.BuildChangelessTransaction(_wallet, _info.Address, _info.UserLabels, _info.FeeRate, _info.Coins)
+							: TransactionHelpers.BuildTransaction(_wallet, _info);
+
 			var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
 			var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
 			if (authResult)
@@ -465,7 +470,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private async Task<bool> AuthorizeAsync(TransactionAuthorizationInfo transactionAuthorizationInfo)
 		{
 			if (!_wallet.KeyManager.IsHardwareWallet &&
-			    string.IsNullOrEmpty(_wallet.Kitchen.SaltSoup())) // Do not show auth dialog when password is empty
+				string.IsNullOrEmpty(_wallet.Kitchen.SaltSoup())) // Do not show auth dialog when password is empty
 			{
 				return true;
 			}

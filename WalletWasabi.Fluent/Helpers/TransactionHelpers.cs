@@ -67,7 +67,7 @@ namespace WalletWasabi.Fluent.Helpers
 					transactionInfo.Address,
 					transactionInfo.UserLabels,
 					transactionInfo.FeeRate,
-					transactionInfo.ChangelessCoins);
+					transactionInfo.Coins);
 			}
 
 			if (isPayJoin && transactionInfo.SubtractFee)
@@ -84,7 +84,6 @@ namespace WalletWasabi.Fluent.Helpers
 				transactionInfo.Coins,
 				transactionInfo.SubtractFee,
 				isPayJoin ? transactionInfo.PayJoinClient : null);
-
 		}
 
 		public static bool TryBuildTransaction(Wallet wallet, TransactionInfo transactionInfo, [NotNullWhen(true)] out BuildTransactionResult? transaction, bool isPayJoin = false)
