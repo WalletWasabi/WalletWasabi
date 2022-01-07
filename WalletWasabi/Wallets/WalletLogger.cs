@@ -38,6 +38,8 @@ namespace WalletWasabi.Wallets
 			}
 
 			LastBalance = Coins.TotalAmount();
+			LastCoinsText = CoinsToString(Coins);
+
 			TryCreateFile();
 		}
 
