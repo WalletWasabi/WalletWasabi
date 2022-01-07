@@ -323,8 +323,9 @@ namespace WalletWasabi.WabiSabi.Client
 
 			// Select a group of coins those are close to each other by Anonimity Score.
 			List<IEnumerable<SmartCoin>> groups = new();
-			int nonPrivateCoinCount = filteredCoins.Where(x => x.HdPubKey.AnonymitySet < MinAnonScoreTarget).Count();
+
 			// I can take more coins those are already reached the minimum privacy threshold.
+			int nonPrivateCoinCount = filteredCoins.Where(x => x.HdPubKey.AnonymitySet < MinAnonScoreTarget).Count();
 			for (int i = 0; i < nonPrivateCoinCount; i++)
 			{
 				// Make sure the group can at least register an output even after paying fees.
