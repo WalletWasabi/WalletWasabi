@@ -2,77 +2,76 @@ using System.Collections;
 using System.Collections.Generic;
 using WalletWasabi.Helpers;
 
-namespace Nito.Collections
+namespace Nito.Collections;
+
+internal static class CollectionHelpers
 {
-	internal static class CollectionHelpers
+	public static IReadOnlyCollection<T> ReifyCollection<T>(IEnumerable<T> source)
 	{
-		public static IReadOnlyCollection<T> ReifyCollection<T>(IEnumerable<T> source)
+		Guard.NotNull(nameof(source), source);
+
+		if (source is IReadOnlyCollection<T> result)
 		{
-			Guard.NotNull(nameof(source), source);
-
-			if (source is IReadOnlyCollection<T> result)
-			{
-				return result;
-			}
-
-			if (source is ICollection<T> collection)
-			{
-				return new CollectionWrapper<T>(collection);
-			}
-
-			if (source is ICollection nongenericCollection)
-			{
-				return new NongenericCollectionWrapper<T>(nongenericCollection);
-			}
-
-			return new List<T>(source);
+			return result;
 		}
 
-		private sealed class NongenericCollectionWrapper<T> : IReadOnlyCollection<T>
+		if (source is ICollection<T> collection)
 		{
-			private readonly ICollection _collection;
+			return new CollectionWrapper<T>(collection);
+		}
 
-			public NongenericCollectionWrapper(ICollection collection)
+		if (source is ICollection nongenericCollection)
+		{
+			return new NongenericCollectionWrapper<T>(nongenericCollection);
+		}
+
+		return new List<T>(source);
+	}
+
+	private sealed class NongenericCollectionWrapper<T> : IReadOnlyCollection<T>
+	{
+		private readonly ICollection _collection;
+
+		public NongenericCollectionWrapper(ICollection collection)
+		{
+			_collection = collection ?? throw new ArgumentNullException(nameof(collection));
+		}
+
+		public int Count => _collection.Count;
+
+		public IEnumerator<T> GetEnumerator()
+		{
+			foreach (T item in _collection)
 			{
-				_collection = collection ?? throw new ArgumentNullException(nameof(collection));
-			}
-
-			public int Count => _collection.Count;
-
-			public IEnumerator<T> GetEnumerator()
-			{
-				foreach (T item in _collection)
-				{
-					yield return item;
-				}
-			}
-
-			IEnumerator IEnumerable.GetEnumerator()
-			{
-				return _collection.GetEnumerator();
+				yield return item;
 			}
 		}
 
-		private sealed class CollectionWrapper<T> : IReadOnlyCollection<T>
+		IEnumerator IEnumerable.GetEnumerator()
 		{
-			private readonly ICollection<T> _collection;
+			return _collection.GetEnumerator();
+		}
+	}
 
-			public CollectionWrapper(ICollection<T> collection)
-			{
-				_collection = collection ?? throw new ArgumentNullException(nameof(collection));
-			}
+	private sealed class CollectionWrapper<T> : IReadOnlyCollection<T>
+	{
+		private readonly ICollection<T> _collection;
 
-			public int Count => _collection.Count;
+		public CollectionWrapper(ICollection<T> collection)
+		{
+			_collection = collection ?? throw new ArgumentNullException(nameof(collection));
+		}
 
-			public IEnumerator<T> GetEnumerator()
-			{
-				return _collection.GetEnumerator();
-			}
+		public int Count => _collection.Count;
 
-			IEnumerator IEnumerable.GetEnumerator()
-			{
-				return _collection.GetEnumerator();
-			}
+		public IEnumerator<T> GetEnumerator()
+		{
+			return _collection.GetEnumerator();
+		}
+
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return _collection.GetEnumerator();
 		}
 	}
 }

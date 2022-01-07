@@ -2,102 +2,101 @@ using System.Diagnostics.CodeAnalysis;
 using NBitcoin.DataEncoders;
 using NBitcoin.Secp256k1;
 
-namespace WalletWasabi.Crypto
+namespace WalletWasabi.Crypto;
+
+public class UnblindedSignature
 {
-	public class UnblindedSignature
+	internal UnblindedSignature(in Scalar c, in Scalar s)
 	{
-		internal UnblindedSignature(in Scalar c, in Scalar s)
+		C = c;
+		S = s;
+	}
+
+	internal Scalar C { get; }
+	internal Scalar S { get; }
+
+	public static bool TryParse(ReadOnlySpan<byte> in64, [NotNullWhen(true)] out UnblindedSignature? unblindedSignature)
+	{
+		unblindedSignature = null;
+		if (in64.Length != 64)
 		{
-			C = c;
-			S = s;
+			return false;
 		}
 
-		internal Scalar C { get; }
-		internal Scalar S { get; }
-
-		public static bool TryParse(ReadOnlySpan<byte> in64, [NotNullWhen(true)] out UnblindedSignature? unblindedSignature)
+		var c = new Scalar(in64.Slice(0, 32), out int overflow);
+		if (c.IsZero || overflow != 0)
 		{
-			unblindedSignature = null;
-			if (in64.Length != 64)
-			{
-				return false;
-			}
-
-			var c = new Scalar(in64.Slice(0, 32), out int overflow);
-			if (c.IsZero || overflow != 0)
-			{
-				return false;
-			}
-
-			var s = new Scalar(in64.Slice(32, 32), out overflow);
-			if (s.IsZero || overflow != 0)
-			{
-				return false;
-			}
-
-			unblindedSignature = new UnblindedSignature(c, s);
-			return true;
+			return false;
 		}
 
-		public static UnblindedSignature Parse(ReadOnlySpan<byte> in64)
+		var s = new Scalar(in64.Slice(32, 32), out overflow);
+		if (s.IsZero || overflow != 0)
 		{
-			if (TryParse(in64, out var unblindedSignature))
-			{
-				return unblindedSignature;
-			}
-
-			throw new FormatException("Invalid unblinded signature");
+			return false;
 		}
 
-		public static UnblindedSignature Parse(string str)
-		{
-			if (TryParse(str, out var unblindedSignature))
-			{
-				return unblindedSignature;
-			}
+		unblindedSignature = new UnblindedSignature(c, s);
+		return true;
+	}
 
-			throw new FormatException("Invalid unblinded signature");
+	public static UnblindedSignature Parse(ReadOnlySpan<byte> in64)
+	{
+		if (TryParse(in64, out var unblindedSignature))
+		{
+			return unblindedSignature;
 		}
 
-		public static bool TryParse(string str, [NotNullWhen(true)] out UnblindedSignature? unblindedSignature)
+		throw new FormatException("Invalid unblinded signature");
+	}
+
+	public static UnblindedSignature Parse(string str)
+	{
+		if (TryParse(str, out var unblindedSignature))
 		{
-			unblindedSignature = null;
-			if (str is null)
-			{
-				throw new ArgumentNullException(nameof(str));
-			}
-
-			if (!HexEncoder.IsWellFormed(str))
-			{
-				return false;
-			}
-
-			return TryParse(Encoders.Hex.DecodeData(str), out unblindedSignature);
+			return unblindedSignature;
 		}
 
-		public byte[] ToBytes()
+		throw new FormatException("Invalid unblinded signature");
+	}
+
+	public static bool TryParse(string str, [NotNullWhen(true)] out UnblindedSignature? unblindedSignature)
+	{
+		unblindedSignature = null;
+		if (str is null)
 		{
-			var result = new byte[64];
-			ToBytes(result.AsSpan());
-			return result;
+			throw new ArgumentNullException(nameof(str));
 		}
 
-		public void ToBytes(Span<byte> out64)
+		if (!HexEncoder.IsWellFormed(str))
 		{
-			if (out64.Length != 64)
-			{
-				throw new ArgumentException(paramName: nameof(out64), message: "out64 must be 64 bytes");
-			}
-
-			C.WriteToSpan(out64.Slice(0, 32));
-			S.WriteToSpan(out64.Slice(32, 32));
+			return false;
 		}
 
-		public override string ToString()
+		return TryParse(Encoders.Hex.DecodeData(str), out unblindedSignature);
+	}
+
+	public byte[] ToBytes()
+	{
+		var result = new byte[64];
+		ToBytes(result.AsSpan());
+		return result;
+	}
+
+	public void ToBytes(Span<byte> out64)
+	{
+		if (out64.Length != 64)
 		{
-			Span<byte> tmp = stackalloc byte[64];
-			ToBytes(tmp);
-			return Encoders.Hex.EncodeData(tmp);
+			throw new ArgumentException(paramName: nameof(out64), message: "out64 must be 64 bytes");
 		}
+
+		C.WriteToSpan(out64.Slice(0, 32));
+		S.WriteToSpan(out64.Slice(32, 32));
+	}
+
+	public override string ToString()
+	{
+		Span<byte> tmp = stackalloc byte[64];
+		ToBytes(tmp);
+		return Encoders.Hex.EncodeData(tmp);
 	}
 }

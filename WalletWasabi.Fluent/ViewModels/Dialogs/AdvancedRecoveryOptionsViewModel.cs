@@ -6,83 +6,82 @@ using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Fluent.ViewModels.Dialogs
+namespace WalletWasabi.Fluent.ViewModels.Dialogs;
+
+[NavigationMetaData(Title = "Advanced Recovery Options")]
+public partial class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<(KeyPath? accountKeyPath, int? minGapLimit)>
 {
-	[NavigationMetaData(Title = "Advanced Recovery Options")]
-	public partial class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<(KeyPath? accountKeyPath, int? minGapLimit)>
+	[AutoNotify] private string _accountKeyPath;
+	[AutoNotify] private string _minGapLimit;
+
+	public AdvancedRecoveryOptionsViewModel((KeyPath keyPath, int minGapLimit) interactionInput)
 	{
-		[AutoNotify] private string _accountKeyPath;
-		[AutoNotify] private string _minGapLimit;
+		this.ValidateProperty(x => x.AccountKeyPath, ValidateAccountKeyPath);
+		this.ValidateProperty(x => x.MinGapLimit, ValidateMinGapLimit);
 
-		public AdvancedRecoveryOptionsViewModel((KeyPath keyPath, int minGapLimit) interactionInput)
-		{
-			this.ValidateProperty(x => x.AccountKeyPath, ValidateAccountKeyPath);
-			this.ValidateProperty(x => x.MinGapLimit, ValidateMinGapLimit);
+		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
-			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+		EnableBack = false;
 
-			EnableBack = false;
+		var backCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
 
-			var backCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
-
-			var nextCommandCanExecute = this.WhenAnyValue(
-					x => x.IsDialogOpen,
-					x => x.AccountKeyPath,
-					x => x.MinGapLimit,
-					delegate
-					{
+		var nextCommandCanExecute = this.WhenAnyValue(
+				x => x.IsDialogOpen,
+				x => x.AccountKeyPath,
+				x => x.MinGapLimit,
+				delegate
+				{
 						// This will fire validations before return canExecute value.
 						this.RaisePropertyChanged(nameof(AccountKeyPath));
-						this.RaisePropertyChanged(nameof(MinGapLimit));
+					this.RaisePropertyChanged(nameof(MinGapLimit));
 
-						return IsDialogOpen && !Validations.Any;
-					})
-				.ObserveOn(RxApp.MainThreadScheduler);
+					return IsDialogOpen && !Validations.Any;
+				})
+			.ObserveOn(RxApp.MainThreadScheduler);
 
-			var cancelCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
+		var cancelCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
 
-			_accountKeyPath = interactionInput.keyPath.ToString();
-			_minGapLimit = interactionInput.minGapLimit.ToString();
+		_accountKeyPath = interactionInput.keyPath.ToString();
+		_minGapLimit = interactionInput.minGapLimit.ToString();
 
-			BackCommand = ReactiveCommand.Create(() => Navigate().Back(), backCommandCanExecute);
+		BackCommand = ReactiveCommand.Create(() => Navigate().Back(), backCommandCanExecute);
 
-			NextCommand = ReactiveCommand.Create(
-				() => Close(result: (KeyPath.Parse(AccountKeyPath), int.Parse(MinGapLimit))),
-				nextCommandCanExecute);
+		NextCommand = ReactiveCommand.Create(
+			() => Close(result: (KeyPath.Parse(AccountKeyPath), int.Parse(MinGapLimit))),
+			nextCommandCanExecute);
 
-			CancelCommand = ReactiveCommand.Create(() => Close(), cancelCommandCanExecute);
-		}
+		CancelCommand = ReactiveCommand.Create(() => Close(), cancelCommandCanExecute);
+	}
 
-		private void ValidateMinGapLimit(IValidationErrors errors)
+	private void ValidateMinGapLimit(IValidationErrors errors)
+	{
+		if (!int.TryParse(MinGapLimit, out var minGapLimit) || minGapLimit < KeyManager.AbsoluteMinGapLimit ||
+			minGapLimit > KeyManager.MaxGapLimit)
 		{
-			if (!int.TryParse(MinGapLimit, out var minGapLimit) || minGapLimit < KeyManager.AbsoluteMinGapLimit ||
-				minGapLimit > KeyManager.MaxGapLimit)
+			errors.Add(
+				ErrorSeverity.Error,
+				$"Must be a number between {KeyManager.AbsoluteMinGapLimit} and {KeyManager.MaxGapLimit}.");
+		}
+	}
+
+	private void ValidateAccountKeyPath(IValidationErrors errors)
+	{
+		if (KeyPath.TryParse(AccountKeyPath, out var keyPath) && keyPath is { })
+		{
+			var accountKeyPath = keyPath.GetAccountKeyPath();
+			if (keyPath.Length != accountKeyPath.Length ||
+				accountKeyPath.Length != KeyManager.GetAccountKeyPath(Network.Main).Length)
 			{
-				errors.Add(
-					ErrorSeverity.Error,
-					$"Must be a number between {KeyManager.AbsoluteMinGapLimit} and {KeyManager.MaxGapLimit}.");
+				errors.Add(ErrorSeverity.Error, "Path is not a compatible account derivation path.");
 			}
 		}
-
-		private void ValidateAccountKeyPath(IValidationErrors errors)
+		else
 		{
-			if (KeyPath.TryParse(AccountKeyPath, out var keyPath) && keyPath is { })
-			{
-				var accountKeyPath = keyPath.GetAccountKeyPath();
-				if (keyPath.Length != accountKeyPath.Length ||
-					accountKeyPath.Length != KeyManager.GetAccountKeyPath(Network.Main).Length)
-				{
-					errors.Add(ErrorSeverity.Error, "Path is not a compatible account derivation path.");
-				}
-			}
-			else
-			{
-				errors.Add(ErrorSeverity.Error, "Path is not a valid derivation path.");
-			}
+			errors.Add(ErrorSeverity.Error, "Path is not a valid derivation path.");
 		}
+	}
 
-		protected override void OnDialogClosed()
-		{
-		}
+	protected override void OnDialogClosed()
+	{
 	}
 }

@@ -2,43 +2,42 @@ using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 
-namespace WalletWasabi.Fluent.ViewModels.Settings
+namespace WalletWasabi.Fluent.ViewModels.Settings;
+
+[NavigationMetaData(Title = "Privacy Mode", Searchable = false, NavBarPosition = NavBarPosition.Bottom)]
+public partial class PrivacyModeViewModel : NavBarItemViewModel
 {
-	[NavigationMetaData(Title = "Privacy Mode", Searchable = false, NavBarPosition = NavBarPosition.Bottom)]
-	public partial class PrivacyModeViewModel : NavBarItemViewModel
+	[AutoNotify] private bool _privacyMode;
+
+	public PrivacyModeViewModel()
 	{
-		[AutoNotify] private bool _privacyMode;
+		_privacyMode = Services.UiConfig.PrivacyMode;
 
-		public PrivacyModeViewModel()
-		{
-			_privacyMode = Services.UiConfig.PrivacyMode;
+		SelectionMode = NavBarItemSelectionMode.Toggle;
 
-			SelectionMode = NavBarItemSelectionMode.Toggle;
+		ToggleTitle();
 
-			ToggleTitle();
+		this.WhenAnyValue(x => x.PrivacyMode)
+			.Skip(1)
+			.ObserveOn(RxApp.TaskpoolScheduler)
+			.Subscribe(
+				x =>
+			{
+				ToggleTitle();
+				this.RaisePropertyChanged(nameof(IconName));
+				Services.UiConfig.PrivacyMode = x;
+			});
+	}
 
-			this.WhenAnyValue(x => x.PrivacyMode)
-				.Skip(1)
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(
-					x =>
-				{
-					ToggleTitle();
-					this.RaisePropertyChanged(nameof(IconName));
-					Services.UiConfig.PrivacyMode = x;
-				});
-		}
+	public override string IconName => _privacyMode ? "incognito_filled" : "incognito_regular";
 
-		public override string IconName => _privacyMode ? "incognito_filled" : "incognito_regular";
+	public override void Toggle()
+	{
+		PrivacyMode = !PrivacyMode;
+	}
 
-		public override void Toggle()
-		{
-			PrivacyMode = !PrivacyMode;
-		}
-
-		private void ToggleTitle()
-		{
-			Title = $"Privacy Mode {(_privacyMode ? "(On)" : "(Off)")}";
-		}
+	private void ToggleTitle()
+	{
+		Title = $"Privacy Mode {(_privacyMode ? "(On)" : "(Off)")}";
 	}
 }

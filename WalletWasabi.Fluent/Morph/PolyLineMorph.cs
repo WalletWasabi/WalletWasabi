@@ -4,94 +4,93 @@ using System.Linq;
 using Avalonia.Animation.Easings;
 using WalletWasabi.Fluent.MathNet;
 
-namespace WalletWasabi.Fluent.Morph
+namespace WalletWasabi.Fluent.Morph;
+
+public static class PolyLineMorph
 {
-	public static class PolyLineMorph
+	public static List<PolyLine> ToCache(PolyLine source, PolyLine target, double speed, IEasing easing, bool interpolateXAxis = true)
 	{
-		public static List<PolyLine> ToCache(PolyLine source, PolyLine target, double speed, IEasing easing, bool interpolateXAxis = true)
+		int steps = (int)(1 / speed);
+		double p = speed;
+		var cache = new List<PolyLine>(steps);
+
+		for (int i = 0; i < steps; i++)
 		{
-			int steps = (int)(1 / speed);
-			double p = speed;
-			var cache = new List<PolyLine>(steps);
+			var clone = source.Clone();
+			var easeP = easing.Ease(p);
 
-			for (int i = 0; i < steps; i++)
-			{
-				var clone = source.Clone();
-				var easeP = easing.Ease(p);
+			To(clone, target, easeP, interpolateXAxis);
 
-				To(clone, target, easeP, interpolateXAxis);
+			p += speed;
 
-				p += speed;
-
-				cache.Add(clone);
-			}
-
-			return cache;
+			cache.Add(clone);
 		}
 
-		public static void To(PolyLine source, PolyLine target, double progress, bool interpolateXAxis)
+		return cache;
+	}
+
+	public static void To(PolyLine source, PolyLine target, double progress, bool interpolateXAxis)
+	{
+		if (source.XValues.Count < target.XValues.Count)
 		{
-			if (source.XValues.Count < target.XValues.Count)
-			{
-				InterpolatePolyLine(
-					source.XValues.ToArray(),
-					source.YValues.ToArray(),
-					target.XValues.Count,
-					out var xValues,
-					out var yValues);
-				source.XValues = xValues;
-				source.YValues = yValues;
-			}
-			else if (source.XValues.Count > target.XValues.Count)
-			{
-				InterpolatePolyLine(
-					target.XValues.ToArray(),
-					target.YValues.ToArray(),
-					source.XValues.Count,
-					out var xValues,
-					out var yValues);
-				target.XValues = xValues;
-				target.YValues = yValues;
-			}
-
-			for (int j = 0; j < source.XValues.Count; j++)
-			{
-				if (!interpolateXAxis)
-				{
-					source.XValues[j] = target.XValues[j];
-				}
-				else
-				{
-					source.XValues[j] = Interpolate(source.XValues[j], target.XValues[j], progress);
-				}
-
-				source.YValues[j] = Interpolate(source.YValues[j], target.YValues[j], progress);
-			}
+			InterpolatePolyLine(
+				source.XValues.ToArray(),
+				source.YValues.ToArray(),
+				target.XValues.Count,
+				out var xValues,
+				out var yValues);
+			source.XValues = xValues;
+			source.YValues = yValues;
+		}
+		else if (source.XValues.Count > target.XValues.Count)
+		{
+			InterpolatePolyLine(
+				target.XValues.ToArray(),
+				target.YValues.ToArray(),
+				source.XValues.Count,
+				out var xValues,
+				out var yValues);
+			target.XValues = xValues;
+			target.YValues = yValues;
 		}
 
-		public static double Interpolate(double from, double to, double progress)
+		for (int j = 0; j < source.XValues.Count; j++)
 		{
-			return from + (to - from) * progress;
-		}
-
-		public static void InterpolatePolyLine(double[] xs, double[] ys, int count, out ObservableCollection<double> xValues, out ObservableCollection<double> yValues)
-		{
-			var a = xs.Min();
-			var b = xs.Max();
-			var range = b - a;
-			var step = range / count;
-			var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
-
-			xValues = new ObservableCollection<double>();
-			yValues = new ObservableCollection<double>();
-
-			for (var i = 0; i < count; i++)
+			if (!interpolateXAxis)
 			{
-				var x = a + i * step;
-				var y = spline.Interpolate(x);
-				xValues.Add(x);
-				yValues.Add(y);
+				source.XValues[j] = target.XValues[j];
 			}
+			else
+			{
+				source.XValues[j] = Interpolate(source.XValues[j], target.XValues[j], progress);
+			}
+
+			source.YValues[j] = Interpolate(source.YValues[j], target.YValues[j], progress);
+		}
+	}
+
+	public static double Interpolate(double from, double to, double progress)
+	{
+		return from + (to - from) * progress;
+	}
+
+	public static void InterpolatePolyLine(double[] xs, double[] ys, int count, out ObservableCollection<double> xValues, out ObservableCollection<double> yValues)
+	{
+		var a = xs.Min();
+		var b = xs.Max();
+		var range = b - a;
+		var step = range / count;
+		var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
+
+		xValues = new ObservableCollection<double>();
+		yValues = new ObservableCollection<double>();
+
+		for (var i = 0; i < count; i++)
+		{
+			var x = a + i * step;
+			var y = spline.Interpolate(x);
+			xValues.Add(x);
+			yValues.Add(y);
 		}
 	}
 }
