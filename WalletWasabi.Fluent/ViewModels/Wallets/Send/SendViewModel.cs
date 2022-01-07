@@ -83,7 +83,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
 		AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
-		QRCommand = ReactiveCommand.Create(async () =>
+			QrCommand = ReactiveCommand.Create(async () =>
 		{
 			ShowQrCameraDialogViewModel dialog = new(_wallet.Network);
 			var result = await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen);
@@ -107,7 +107,7 @@ public partial class SendViewModel : RoutableViewModel
 					return allFilled && !hasError;
 				});
 
-		NextCommand = ReactiveCommand.CreateFromTask(async () =>
+			NextCommand = ReactiveCommand.Create(() =>
 		{
 			_transactionInfo.Amount = new Money(AmountBtc, MoneyUnit.BTC);
 
@@ -121,7 +121,7 @@ public partial class SendViewModel : RoutableViewModel
 
 	public ICommand AutoPasteCommand { get; }
 
-	public ICommand QRCommand { get; }
+		public ICommand QrCommand { get; }
 
 	public ICommand AdvancedOptionsCommand { get; }
 
@@ -137,7 +137,9 @@ public partial class SendViewModel : RoutableViewModel
 
 	private async Task OnPasteAsync(bool pasteIfInvalid = true)
 	{
-		var text = await Application.Current.Clipboard.GetTextAsync();
+			if (Application.Current is { Clipboard: { } clipboard })
+			{
+				var text = await clipboard.GetTextAsync();
 
 		_parsingUrl = true;
 
@@ -148,6 +150,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		_parsingUrl = false;
 	}
+		}
 
 	private IPayjoinClient? GetPayjoinClient(string endPoint)
 	{

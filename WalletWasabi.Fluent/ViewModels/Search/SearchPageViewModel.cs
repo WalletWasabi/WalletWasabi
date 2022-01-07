@@ -25,7 +25,6 @@ public partial class SearchPageViewModel : NavBarItemViewModel
 
 	public SearchPageViewModel()
 	{
-		Title = "Action Center";
 		_categories = new Dictionary<string, SearchCategory>();
 		_categorySources = new Dictionary<SearchCategory, SourceList<SearchItemViewModel>>();
 	}
@@ -45,15 +44,20 @@ public partial class SearchPageViewModel : NavBarItemViewModel
 			.Select(SearchQueryFilter)
 			.DistinctUntilChanged();
 
+			if (_sourceObservable is { })
+			{
 		_sourceObservable
 			.Filter(queryFilter)
 			.GroupWithImmutableState(x => x.Category)
-			.Transform(grouping => new SearchResult(grouping.Key, grouping.Items.OrderBy(x => x.Order).ThenBy(x => x.Title)))
-			.Sort(SortExpressionComparer<SearchResult>.Ascending(i => i.Category.Order).ThenByAscending(i => i.Category.Title))
+					.Transform(grouping =>
+						new SearchResult(grouping.Key, grouping.Items.OrderBy(x => x.Order).ThenBy(x => x.Title)))
+					.Sort(SortExpressionComparer<SearchResult>.Ascending(i => i.Category.Order)
+						.ThenByAscending(i => i.Category.Title))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Bind(out _searchResults)
 			.AsObservableList();
 	}
+		}
 
 	public void RegisterCategory(string title, int order)
 	{

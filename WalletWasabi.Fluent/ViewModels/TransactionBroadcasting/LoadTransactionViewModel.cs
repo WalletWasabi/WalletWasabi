@@ -59,7 +59,9 @@ public partial class LoadTransactionViewModel : DialogViewModelBase<SmartTransac
 	{
 		try
 		{
-			var textToPaste = await Application.Current.Clipboard.GetTextAsync();
+				if (Application.Current is { Clipboard: { } clipboard })
+				{
+					var textToPaste = await clipboard.GetTextAsync();
 
 			if (string.IsNullOrWhiteSpace(textToPaste))
 			{
@@ -77,7 +79,9 @@ public partial class LoadTransactionViewModel : DialogViewModelBase<SmartTransac
 			}
 			else
 			{
-				FinalTransaction = new SmartTransaction(Transaction.Parse(textToPaste, Network), Height.Unknown);
+						FinalTransaction =
+							new SmartTransaction(Transaction.Parse(textToPaste, Network), Height.Unknown);
+					}
 			}
 		}
 		catch (Exception ex)

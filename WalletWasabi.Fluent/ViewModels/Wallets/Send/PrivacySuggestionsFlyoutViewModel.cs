@@ -47,7 +47,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 		var suggestions =
 			await ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, wallet, transaction);
 
-		var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != info.Address.ScriptPubKey);
+		var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != info.Address?.ScriptPubKey);
 
 		if (hasChange)
 		{

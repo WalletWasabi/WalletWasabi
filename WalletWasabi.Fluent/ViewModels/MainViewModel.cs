@@ -149,7 +149,7 @@ public partial class MainViewModel : ViewModelBase
 
 	public TargettedNavigationStack MainScreen { get; }
 
-	public static MainViewModel? Instance { get; internal set; }
+		public static MainViewModel Instance { get; } = new();
 
 	public void ClearStacks()
 	{

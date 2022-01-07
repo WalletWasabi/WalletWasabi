@@ -11,7 +11,7 @@ public partial class PocketSuggestionViewModel : SuggestionViewModel
 
 	public PocketSuggestionViewModel(SmartLabel currentLabels)
 	{
-		Labels = currentLabels.Take(1).ToList();
-		FilteredLabels = currentLabels.Skip(1).ToList();
+		_labels = currentLabels.Take(1).ToList();
+		_filteredLabels = currentLabels.Skip(1).ToList();
 	}
 }

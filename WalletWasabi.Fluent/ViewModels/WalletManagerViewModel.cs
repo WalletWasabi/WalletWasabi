@@ -50,7 +50,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 			.AsObservableList();
 
 		Observable
-			.FromEventPattern<WalletState>(Services.WalletManager, nameof(WalletWasabi.Wallets.WalletManager.WalletStateChanged))
+				.FromEventPattern<WalletState>(Services.WalletManager, nameof(WalletManager.WalletStateChanged))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(
 				x =>
@@ -73,7 +73,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 			});
 
 		Observable
-			.FromEventPattern<Wallet>(Services.WalletManager, nameof(WalletWasabi.Wallets.WalletManager.WalletAdded))
+				.FromEventPattern<Wallet>(Services.WalletManager, nameof(WalletManager.WalletAdded))
 			.Select(x => x.EventArgs)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(

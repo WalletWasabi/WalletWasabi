@@ -19,7 +19,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 		{
 			if (CanShutdown())
 			{
-				if (Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime
+					if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime
 					desktopLifetime)
 				{
 					desktopLifetime.Shutdown();
@@ -39,12 +39,27 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 		ShowCommand = ReactiveCommand.Create(() => ShowRequested?.Invoke(this, EventArgs.Empty));
 
-		TrayIcon = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-			? new WindowIcon(AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo_white.ico"))
-			: new WindowIcon(AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo.ico"));
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			{
+				var asset = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo_white.ico");
+
+				if (asset is { })
+				{
+					TrayIcon = new WindowIcon(asset);
+				}
+			}
+			else
+			{
+				var asset = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo.ico");
+
+				if (asset is { })
+				{
+					TrayIcon = new WindowIcon(asset);
+				}
+			}
 	}
 
-	public WindowIcon TrayIcon { get; }
+		public WindowIcon? TrayIcon { get; }
 
 	public event EventHandler? ShowRequested;
 

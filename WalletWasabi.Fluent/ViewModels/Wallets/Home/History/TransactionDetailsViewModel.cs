@@ -40,7 +40,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		UpdateValues(transactionSummary);
 	}
 
-	public ICommand CopyTransactionIdCommand { get; set; }
+		public ICommand CopyTransactionIdCommand { get; }
 
 	private async Task OnCopyTransactionIdAsync()
 	{
@@ -49,7 +49,10 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 			return;
 		}
 
-		await Application.Current.Clipboard.SetTextAsync(TransactionId);
+			if (Application.Current is { Clipboard: { } clipboard })
+			{
+				await clipboard.SetTextAsync(TransactionId);
+			}
 	}
 
 	private void UpdateValues(TransactionSummary transactionSummary)
