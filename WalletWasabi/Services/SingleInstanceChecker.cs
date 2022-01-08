@@ -12,7 +12,7 @@ namespace WalletWasabi.Services;
 
 public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 {
-	private const string WasabiMagicString = "InCryptoWeTrust";
+	private const string WasabiMagicString = "InBitcoinWeTrust";
 	public static readonly TimeSpan ClientTimeOut = TimeSpan.FromSeconds(2);
 
 	/// <summary>
@@ -86,10 +86,12 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 
 			await client.ConnectAsync(IPAddress.Loopback, Port, cts.Token).ConfigureAwait(false);
 
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
 			await using NetworkStream networkStream = client.GetStream();
-
 			networkStream.WriteTimeout = (int)ClientTimeOut.TotalMilliseconds * 2;
 			await using var writer = new StreamWriter(networkStream, Encoding.UTF8);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+
 			await writer.WriteAsync(new StringBuilder(WasabiMagicString), cts.Token).ConfigureAwait(false);
 			await writer.FlushAsync().ConfigureAwait(false);
 			await networkStream.FlushAsync(cts.Token).ConfigureAwait(false);
@@ -141,7 +143,10 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 				client.ReceiveBufferSize = 1000;
 				try
 				{
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
 					await using NetworkStream networkStream = client.GetStream();
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+
 					networkStream.ReadTimeout = (int)ClientTimeOut.TotalMilliseconds;
 					using var reader = new StreamReader(networkStream, Encoding.UTF8);
 					// Make sure the client will be disconnected.
@@ -180,6 +185,28 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 		DisposeCts.Cancel();
 
 		await StopAsync(CancellationToken.None).ConfigureAwait(false);
+
+		DisposeCts.Dispose();
+	}
+
+	public override void Dispose()
+	{
+		base.Dispose();
+		DisposeCts.Cancel();
+
+		// Stopping the execution task and wait until it finishes.
+		using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(20));
+
+		// This is added because Dispose is called from the Main and Main cannot be an async function.
+		while (!ExecuteTask.IsCompleted)
+		{
+			Thread.Sleep(10);
+			if (timeout.IsCancellationRequested)
+			{
+				Logger.LogWarning($"{nameof(SingleInstanceChecker)} cannot be disposed properly in time.");
+				break;
+			}
+		}
 
 		DisposeCts.Dispose();
 	}
