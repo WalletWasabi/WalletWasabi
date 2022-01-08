@@ -1,9 +1,8 @@
-namespace WalletWasabi.WabiSabi.Client
+namespace WalletWasabi.WabiSabi.Client;
+
+public enum CoinJoinClientState
 {
-	public enum CoinJoinClientState
-	{
-		Idle,
-		InProgress,
-		InCriticalPhase
-	}
+	Idle,
+	InProgress,
+	InCriticalPhase
 }

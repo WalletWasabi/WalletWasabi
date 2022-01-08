@@ -1,8 +1,7 @@
-namespace WalletWasabi.Models
+namespace WalletWasabi.Models;
+
+public enum BackendStatus
 {
-	public enum BackendStatus
-	{
-		NotConnected,
-		Connected
-	}
+	NotConnected,
+	Connected
 }

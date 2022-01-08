@@ -1,10 +1,9 @@
-namespace WalletWasabi.CoinJoin.Common.Models
+namespace WalletWasabi.CoinJoin.Common.Models;
+
+public enum RoundPhase
 {
-	public enum RoundPhase
-	{
-		InputRegistration,
-		ConnectionConfirmation,
-		OutputRegistration,
-		Signing
-	}
+	InputRegistration,
+	ConnectionConfirmation,
+	OutputRegistration,
+	Signing
 }

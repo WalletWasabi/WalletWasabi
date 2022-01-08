@@ -3,55 +3,54 @@ using System.Linq;
 using WalletWasabi.BitcoinCore.Configuration.Whitening;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.BitcoinCore.Configuration
+namespace WalletWasabi.BitcoinCore.Configuration;
+
+public class CoreConfigTranslator
 {
-	public class CoreConfigTranslator
+	public CoreConfigTranslator(CoreConfig config, Network network)
 	{
-		public CoreConfigTranslator(CoreConfig config, Network network)
+		Config = Guard.NotNull(nameof(config), config);
+		Network = Guard.NotNull(nameof(network), network);
+	}
+
+	public CoreConfig Config { get; }
+	public Network Network { get; }
+
+	public string? TryGetValue(string key)
+	{
+		var configDic = Config.ToDictionary();
+		return NetworkTranslator.GetConfigPrefixesWithDots(Network)
+			.Select(networkPrefixWithDot => configDic.TryGet($"{networkPrefixWithDot}{key}"))
+			.LastOrDefault(x => x is { });
+	}
+
+	public string? TryGetRpcUser() => TryGetValue("rpcuser");
+
+	public string? TryGetRpcPassword() => TryGetValue("rpcpassword");
+
+	public string? TryGetRpcCookieFile() => TryGetValue("rpccookiefile");
+
+	public string? TryGetRpcBind() => TryGetValue("rpcbind");
+
+	public ushort? TryGetRpcPort()
+	{
+		var stringValue = TryGetValue("rpcport");
+		if (stringValue is { } && ushort.TryParse(stringValue, out ushort value))
 		{
-			Config = Guard.NotNull(nameof(config), config);
-			Network = Guard.NotNull(nameof(network), network);
+			return value;
 		}
 
-		public CoreConfig Config { get; }
-		public Network Network { get; }
+		return null;
+	}
 
-		public string? TryGetValue(string key)
+	public WhiteBind? TryGetWhiteBind()
+	{
+		var stringValue = TryGetValue("whitebind");
+		if (stringValue is { } && WhiteBind.TryParse(stringValue, Network, out WhiteBind? value))
 		{
-			var configDic = Config.ToDictionary();
-			return NetworkTranslator.GetConfigPrefixesWithDots(Network)
-				.Select(networkPrefixWithDot => configDic.TryGet($"{networkPrefixWithDot}{key}"))
-				.LastOrDefault(x => x is { });
+			return value;
 		}
 
-		public string? TryGetRpcUser() => TryGetValue("rpcuser");
-
-		public string? TryGetRpcPassword() => TryGetValue("rpcpassword");
-
-		public string? TryGetRpcCookieFile() => TryGetValue("rpccookiefile");
-
-		public string? TryGetRpcBind() => TryGetValue("rpcbind");
-
-		public ushort? TryGetRpcPort()
-		{
-			var stringValue = TryGetValue("rpcport");
-			if (stringValue is { } && ushort.TryParse(stringValue, out ushort value))
-			{
-				return value;
-			}
-
-			return null;
-		}
-
-		public WhiteBind? TryGetWhiteBind()
-		{
-			var stringValue = TryGetValue("whitebind");
-			if (stringValue is { } && WhiteBind.TryParse(stringValue, Network, out WhiteBind? value))
-			{
-				return value;
-			}
-
-			return null;
-		}
+		return null;
 	}
 }

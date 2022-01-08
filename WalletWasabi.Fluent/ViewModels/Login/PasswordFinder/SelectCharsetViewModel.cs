@@ -5,37 +5,36 @@ using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets.PasswordFinder;
 
-namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
+namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder;
+
+[NavigationMetaData(Title = "Password Finder")]
+public partial class SelectCharsetViewModel : RoutableViewModel
 {
-	[NavigationMetaData(Title = "Password Finder")]
-	public partial class SelectCharsetViewModel : RoutableViewModel
+	[AutoNotify] private Charset? _selectedCharset;
+
+	public SelectCharsetViewModel(PasswordFinderOptions options)
 	{
-		[AutoNotify] private Charset? _selectedCharset;
+		Title = "Password Finder";
 
-		public SelectCharsetViewModel(PasswordFinderOptions options)
-		{
-			Title = "Password Finder";
+		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
-			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+		EnableBack = true;
 
-			EnableBack = true;
-
-			this.WhenAnyValue(x => x.SelectedCharset)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
+		this.WhenAnyValue(x => x.SelectedCharset)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(x =>
+			{
+				if (x is null)
 				{
-					if (x is null)
-					{
-						return;
-					}
+					return;
+				}
 
-					options.Charset = (Charset)x;
-					Navigate().To(new ContainsNumbersViewModel(options));
+				options.Charset = (Charset)x;
+				Navigate().To(new ContainsNumbersViewModel(options));
 
-					SelectedCharset = null;
-				});
-		}
-
-		public IEnumerable<Charset> Charsets => Enum.GetValues(typeof(Charset)).Cast<Charset>();
+				SelectedCharset = null;
+			});
 	}
+
+	public IEnumerable<Charset> Charsets => Enum.GetValues(typeof(Charset)).Cast<Charset>();
 }

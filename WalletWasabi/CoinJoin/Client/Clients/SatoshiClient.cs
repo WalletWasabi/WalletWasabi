@@ -8,39 +8,38 @@ using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.WebClients.Wasabi;
 
-namespace WalletWasabi.CoinJoin.Client.Clients
+namespace WalletWasabi.CoinJoin.Client.Clients;
+
+public class SatoshiClient
 {
-	public class SatoshiClient
+	public SatoshiClient(IHttpClient httpClient)
 	{
-		public SatoshiClient(IHttpClient httpClient)
+		HttpClient = httpClient;
+	}
+
+	private IHttpClient HttpClient { get; }
+
+	public async Task<IEnumerable<RoundStateResponseBase>> GetAllRoundStatesAsync()
+	{
+		using var response = await HttpClient.SendAsync(HttpMethod.Get, $"/api/v{WasabiClient.ApiVersion}/btc/chaumiancoinjoin/states/").ConfigureAwait(false);
+		if (response.StatusCode != HttpStatusCode.OK)
 		{
-			HttpClient = httpClient;
+			await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
 		}
 
-		private IHttpClient HttpClient { get; }
+		var states = await response.Content.ReadAsJsonAsync<IEnumerable<RoundStateResponseBase>>().ConfigureAwait(false);
+		return states;
+	}
 
-		public async Task<IEnumerable<RoundStateResponseBase>> GetAllRoundStatesAsync()
-		{
-			using var response = await HttpClient.SendAsync(HttpMethod.Get, $"/api/v{WasabiClient.ApiVersion}/btc/chaumiancoinjoin/states/").ConfigureAwait(false);
-			if (response.StatusCode != HttpStatusCode.OK)
-			{
-				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
-			}
+	public async Task<RoundStateResponseBase> GetRoundStateAsync(long roundId)
+	{
+		IEnumerable<RoundStateResponseBase> states = await GetAllRoundStatesAsync().ConfigureAwait(false);
+		return states.Single(x => x.RoundId == roundId);
+	}
 
-			var states = await response.Content.ReadAsJsonAsync<IEnumerable<RoundStateResponseBase>>().ConfigureAwait(false);
-			return states;
-		}
-
-		public async Task<RoundStateResponseBase> GetRoundStateAsync(long roundId)
-		{
-			IEnumerable<RoundStateResponseBase> states = await GetAllRoundStatesAsync().ConfigureAwait(false);
-			return states.Single(x => x.RoundId == roundId);
-		}
-
-		public async Task<RoundStateResponseBase?> TryGetRegistrableRoundStateAsync()
-		{
-			IEnumerable<RoundStateResponseBase> states = await GetAllRoundStatesAsync().ConfigureAwait(false);
-			return states.FirstOrDefault(x => x.Phase == RoundPhase.InputRegistration);
-		}
+	public async Task<RoundStateResponseBase?> TryGetRegistrableRoundStateAsync()
+	{
+		IEnumerable<RoundStateResponseBase> states = await GetAllRoundStatesAsync().ConfigureAwait(false);
+		return states.FirstOrDefault(x => x.Phase == RoundPhase.InputRegistration);
 	}
 }

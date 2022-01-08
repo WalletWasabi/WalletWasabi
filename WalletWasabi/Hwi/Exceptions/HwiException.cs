@@ -1,12 +1,11 @@
-namespace WalletWasabi.Hwi.Exceptions
-{
-	public class HwiException : Exception
-	{
-		public HwiException(HwiErrorCode errorCode, string message) : base(message)
-		{
-			ErrorCode = errorCode;
-		}
+namespace WalletWasabi.Hwi.Exceptions;
 
-		public HwiErrorCode ErrorCode { get; }
+public class HwiException : Exception
+{
+	public HwiException(HwiErrorCode errorCode, string message) : base(message)
+	{
+		ErrorCode = errorCode;
 	}
+
+	public HwiErrorCode ErrorCode { get; }
 }

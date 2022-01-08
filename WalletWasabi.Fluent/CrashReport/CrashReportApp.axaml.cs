@@ -5,38 +5,37 @@ using WalletWasabi.Fluent.CrashReport.ViewModels;
 using WalletWasabi.Models;
 using WalletWasabi.Fluent.CrashReport.Views;
 
-namespace WalletWasabi.Fluent.CrashReport
+namespace WalletWasabi.Fluent.CrashReport;
+
+public class CrashReportApp : Application
 {
-	public class CrashReportApp : Application
+	private readonly SerializableException? _serializableException;
+
+	public CrashReportApp()
 	{
-		private readonly SerializableException? _serializableException;
+		Name = "Wasabi Wallet Crash Report";
+	}
 
-		public CrashReportApp()
-		{
-			Name = "Wasabi Wallet Crash Report";
-		}
+	public CrashReportApp(SerializableException exception) : this()
+	{
+		_serializableException = exception;
+	}
 
-		public CrashReportApp(SerializableException exception) : this()
-		{
-			_serializableException = exception;
-		}
+	public override void Initialize()
+	{
+		AvaloniaXamlLoader.Load(this);
+	}
 
-		public override void Initialize()
+	public override void OnFrameworkInitializationCompleted()
+	{
+		if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && _serializableException is { })
 		{
-			AvaloniaXamlLoader.Load(this);
-		}
-
-		public override void OnFrameworkInitializationCompleted()
-		{
-			if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && _serializableException is { })
+			desktop.MainWindow = new CrashReportWindow
 			{
-				desktop.MainWindow = new CrashReportWindow
-				{
-					DataContext = new CrashReportWindowViewModel(_serializableException)
-				};
-			}
-
-			base.OnFrameworkInitializationCompleted();
+				DataContext = new CrashReportWindowViewModel(_serializableException)
+			};
 		}
+
+		base.OnFrameworkInitializationCompleted();
 	}
 }

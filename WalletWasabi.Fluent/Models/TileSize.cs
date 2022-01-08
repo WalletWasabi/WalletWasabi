@@ -1,9 +1,8 @@
-namespace WalletWasabi.Fluent.Models
+namespace WalletWasabi.Fluent.Models;
+
+public enum TileSize
 {
-	public enum TileSize
-	{
-		Medium,
-		Large,
-		Wide
-	}
+	Medium,
+	Large,
+	Wide
 }
