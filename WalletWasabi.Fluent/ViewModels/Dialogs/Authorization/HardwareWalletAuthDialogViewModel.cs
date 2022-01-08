@@ -7,53 +7,52 @@ using WalletWasabi.Hwi;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
+namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
+
+[NavigationMetaData(Title = "Authorize with Hardware Wallet", NavigationTarget = NavigationTarget.CompactDialogScreen)]
+public partial class HardwareWalletAuthDialogViewModel : AuthorizationDialogBase
 {
-	[NavigationMetaData(Title = "Authorize with Hardware Wallet", NavigationTarget = NavigationTarget.CompactDialogScreen)]
-	public partial class HardwareWalletAuthDialogViewModel : AuthorizationDialogBase
+	private readonly Wallet _wallet;
+	private readonly TransactionAuthorizationInfo _transactionAuthorizationInfo;
+
+	public HardwareWalletAuthDialogViewModel(Wallet wallet, TransactionAuthorizationInfo transactionAuthorizationInfo)
 	{
-		private readonly Wallet _wallet;
-		private readonly TransactionAuthorizationInfo _transactionAuthorizationInfo;
-
-		public HardwareWalletAuthDialogViewModel(Wallet wallet, TransactionAuthorizationInfo transactionAuthorizationInfo)
+		if (!wallet.KeyManager.IsHardwareWallet)
 		{
-			if (!wallet.KeyManager.IsHardwareWallet)
-			{
-				throw new InvalidOperationException("Not a hardware wallet.");
-			}
-
-			_wallet = wallet;
-			_transactionAuthorizationInfo = transactionAuthorizationInfo;
-			WalletType = WalletHelpers.GetType(wallet.KeyManager);
-
-			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
-
-			EnableBack = false;
+			throw new InvalidOperationException("Not a hardware wallet.");
 		}
 
-		public WalletType WalletType { get; }
+		_wallet = wallet;
+		_transactionAuthorizationInfo = transactionAuthorizationInfo;
+		WalletType = WalletHelpers.GetType(wallet.KeyManager);
 
-		protected override async Task<bool> Authorize()
+		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+
+		EnableBack = false;
+	}
+
+	public WalletType WalletType { get; }
+
+	protected override async Task<bool> Authorize()
+	{
+		try
 		{
-			try
-			{
-				var client = new HwiClient(_wallet.Network);
-				using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+			var client = new HwiClient(_wallet.Network);
+			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 
-				var signedPsbt = await client.SignTxAsync(
-					_wallet.KeyManager.MasterFingerprint!.Value,
-					_transactionAuthorizationInfo.Psbt,
-					cts.Token);
+			var signedPsbt = await client.SignTxAsync(
+				_wallet.KeyManager.MasterFingerprint!.Value,
+				_transactionAuthorizationInfo.Psbt,
+				cts.Token);
 
-				_transactionAuthorizationInfo.Transaction = signedPsbt.ExtractSmartTransaction(_transactionAuthorizationInfo.Transaction);
+			_transactionAuthorizationInfo.Transaction = signedPsbt.ExtractSmartTransaction(_transactionAuthorizationInfo.Transaction);
 
-				return true;
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-				return false;
-			}
+			return true;
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+			return false;
 		}
 	}
 }

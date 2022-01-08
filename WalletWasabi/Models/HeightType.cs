@@ -1,9 +1,8 @@
-namespace WalletWasabi.Models
+namespace WalletWasabi.Models;
+
+public enum HeightType
 {
-	public enum HeightType
-	{
-		Chain,
-		Mempool,
-		Unknown
-	}
+	Chain,
+	Mempool,
+	Unknown
 }

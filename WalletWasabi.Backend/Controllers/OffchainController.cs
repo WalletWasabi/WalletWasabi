@@ -7,62 +7,61 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 
-namespace WalletWasabi.Backend.Controllers
+namespace WalletWasabi.Backend.Controllers;
+
+/// <summary>
+/// To acquire offchain data.
+/// </summary>
+[Produces("application/json")]
+[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
+public class OffchainController : ControllerBase
 {
-	/// <summary>
-	/// To acquire offchain data.
-	/// </summary>
-	[Produces("application/json")]
-	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
-	public class OffchainController : ControllerBase
+	public OffchainController(IMemoryCache memoryCache, IExchangeRateProvider exchangeRateProvider)
 	{
-		public OffchainController(IMemoryCache memoryCache, IExchangeRateProvider exchangeRateProvider)
+		Cache = memoryCache;
+		ExchangeRateProvider = exchangeRateProvider;
+	}
+
+	private IMemoryCache Cache { get; }
+	private IExchangeRateProvider ExchangeRateProvider { get; }
+
+	/// <summary>
+	/// Gets exchange rates for one Bitcoin.
+	/// </summary>
+	/// <returns>ExchangeRates[] contains ticker and exchange rate pairs.</returns>
+	/// <response code="200">Returns an array of exchange rates.</response>
+	/// <response code="404">Exchange rates are not available.</response>
+	[HttpGet("exchange-rates")]
+	[ProducesResponseType(200)]
+	[ProducesResponseType(404)]
+	public async Task<IActionResult> GetExchangeRatesAsync()
+	{
+		IEnumerable<ExchangeRate> exchangeRates = await GetExchangeRatesCollectionAsync();
+
+		if (!exchangeRates.Any())
 		{
-			Cache = memoryCache;
-			ExchangeRateProvider = exchangeRateProvider;
+			return NotFound("Exchange rates are not available.");
 		}
 
-		private IMemoryCache Cache { get; }
-		private IExchangeRateProvider ExchangeRateProvider { get; }
+		return Ok(exchangeRates);
+	}
 
-		/// <summary>
-		/// Gets exchange rates for one Bitcoin.
-		/// </summary>
-		/// <returns>ExchangeRates[] contains ticker and exchange rate pairs.</returns>
-		/// <response code="200">Returns an array of exchange rates.</response>
-		/// <response code="404">Exchange rates are not available.</response>
-		[HttpGet("exchange-rates")]
-		[ProducesResponseType(200)]
-		[ProducesResponseType(404)]
-		public async Task<IActionResult> GetExchangeRatesAsync()
+	internal async Task<IEnumerable<ExchangeRate>> GetExchangeRatesCollectionAsync()
+	{
+		var cacheKey = nameof(GetExchangeRatesCollectionAsync);
+
+		if (!Cache.TryGetValue(cacheKey, out IEnumerable<ExchangeRate> exchangeRates))
 		{
-			IEnumerable<ExchangeRate> exchangeRates = await GetExchangeRatesCollectionAsync();
+			exchangeRates = await ExchangeRateProvider.GetExchangeRateAsync();
 
-			if (!exchangeRates.Any())
+			if (exchangeRates.Any())
 			{
-				return NotFound("Exchange rates are not available.");
+				var cacheEntryOptions = new MemoryCacheEntryOptions()
+					.SetAbsoluteExpiration(TimeSpan.FromSeconds(500));
+
+				Cache.Set(cacheKey, exchangeRates, cacheEntryOptions);
 			}
-
-			return Ok(exchangeRates);
 		}
-
-		internal async Task<IEnumerable<ExchangeRate>> GetExchangeRatesCollectionAsync()
-		{
-			var cacheKey = nameof(GetExchangeRatesCollectionAsync);
-
-			if (!Cache.TryGetValue(cacheKey, out IEnumerable<ExchangeRate> exchangeRates))
-			{
-				exchangeRates = await ExchangeRateProvider.GetExchangeRateAsync();
-
-				if (exchangeRates.Any())
-				{
-					var cacheEntryOptions = new MemoryCacheEntryOptions()
-						.SetAbsoluteExpiration(TimeSpan.FromSeconds(500));
-
-					Cache.Set(cacheKey, exchangeRates, cacheEntryOptions);
-				}
-			}
-			return exchangeRates;
-		}
+		return exchangeRates;
 	}
 }

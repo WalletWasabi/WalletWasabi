@@ -10,222 +10,221 @@ using WalletWasabi.Tor.Socks5.Models.Messages;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
+namespace WalletWasabi.Tests.UnitTests.Tor.Socks5;
+
+/// <summary>
+/// Tests for <see cref="TorTcpConnectionFactory"/> class.
+/// </summary>
+[Collection("Serial unit tests collection")]
+public class TorTcpConnectionFactoryTests
 {
+	private static readonly TimeSpan TimeoutLimit = TimeSpan.FromMinutes(2);
+
 	/// <summary>
-	/// Tests for <see cref="TorTcpConnectionFactory"/> class.
+	/// <list type="bullet">
+	/// <item>Client sends an HTTP request to Tor SOCKS5 endpoint.</item>
+	/// <item>Test server verifies that the data received is correct.</item>
+	/// <item>Test server responds with <see cref="MethodField.NoAcceptableMethods"/> to the client's handshake.</item>
+	/// <item><see cref="NotSupportedException"/> is expected to be thrown on the client side.</item>
+	/// </list>
 	/// </summary>
-	[Collection("Serial unit tests collection")]
-	public class TorTcpConnectionFactoryTests
+	[Fact]
+	public async Task AuthenticationErrorScenarioAsync()
 	{
-		private static readonly TimeSpan TimeoutLimit = TimeSpan.FromMinutes(2);
+		using CancellationTokenSource timeoutCts = new(TimeoutLimit);
+		CancellationToken timeoutToken = timeoutCts.Token;
 
-		/// <summary>
-		/// <list type="bullet">
-		/// <item>Client sends an HTTP request to Tor SOCKS5 endpoint.</item>
-		/// <item>Test server verifies that the data received is correct.</item>
-		/// <item>Test server responds with <see cref="MethodField.NoAcceptableMethods"/> to the client's handshake.</item>
-		/// <item><see cref="NotSupportedException"/> is expected to be thrown on the client side.</item>
-		/// </list>
-		/// </summary>
-		[Fact]
-		public async Task AuthenticationErrorScenarioAsync()
+		// No request is sent to the URI.
+		Uri uri = new("http://postman-echo.com");
+		string httpRequestHost = uri.Host;
+		int httpRequestPort = 80;
+
+		TcpListener? listener = null;
+
+		try
 		{
-			using CancellationTokenSource timeoutCts = new(TimeoutLimit);
-			CancellationToken timeoutToken = timeoutCts.Token;
+			// Start local TCP server.
+			listener = new(IPAddress.Loopback, port: 0);
+			listener.Start();
+			int serverPort = ((IPEndPoint)listener.LocalEndpoint).Port;
 
-			// No request is sent to the URI.
-			Uri uri = new("http://postman-echo.com");
-			string httpRequestHost = uri.Host;
-			int httpRequestPort = 80;
+			Logger.LogTrace($"[{nameof(AuthenticationErrorScenarioAsync)}][server] Waiting for a TCP client on port {serverPort}.");
+			ValueTask<TcpClient> acceptTask = listener.AcceptTcpClientAsync(timeoutToken);
 
-			TcpListener? listener = null;
+			Task clientTask = Task.Run(
+				async () =>
+				{
+					TorTcpConnectionFactory factory = new(new IPEndPoint(IPAddress.Loopback, serverPort));
 
-			try
-			{
-				// Start local TCP server.
-				listener = new(IPAddress.Loopback, port: 0);
-				listener.Start();
-				int serverPort = ((IPEndPoint)listener.LocalEndpoint).Port;
+					Logger.LogTrace($"[{nameof(AuthenticationErrorScenarioAsync)}][client] About to make connection.");
+					using TorTcpConnection torConnection = await factory.ConnectAsync(httpRequestHost, httpRequestPort, useSsl: false, DefaultCircuit.Instance, timeoutToken).ConfigureAwait(false);
+					Logger.LogTrace($"[{nameof(AuthenticationErrorScenarioAsync)}][client] Connection established.");
+				},
+				timeoutToken);
 
-				Logger.LogTrace($"[{nameof(AuthenticationErrorScenarioAsync)}][server] Waiting for a TCP client on port {serverPort}.");
-				ValueTask<TcpClient> acceptTask = listener.AcceptTcpClientAsync(timeoutToken);
+			using TcpClient client = await acceptTask;
 
-				Task clientTask = Task.Run(
-					async () =>
-					{
-						TorTcpConnectionFactory factory = new(new IPEndPoint(IPAddress.Loopback, serverPort));
+			Logger.LogTrace($"[{nameof(AuthenticationErrorScenarioAsync)}][server] Connected!");
+			using NetworkStream stream = client.GetStream();
+			stream.ReadTimeout = (int)TimeoutLimit.TotalMilliseconds;
 
-						Logger.LogTrace($"[{nameof(AuthenticationErrorScenarioAsync)}][client] About to make connection.");
-						using TorTcpConnection torConnection = await factory.ConnectAsync(httpRequestHost, httpRequestPort, useSsl: false, DefaultCircuit.Instance, timeoutToken).ConfigureAwait(false);
-						Logger.LogTrace($"[{nameof(AuthenticationErrorScenarioAsync)}][client] Connection established.");
-					},
-					timeoutToken);
+			// Read SOCKS protocol version.
+			int versionByte = stream.ReadByte();
+			Assert.Equal(VerField.Socks5.Value, versionByte);
 
-				using TcpClient client = await acceptTask;
+			// Read "NMethods" version.
+			int nmethodsByte = stream.ReadByte();
+			Assert.Equal(1, nmethodsByte);
 
-				Logger.LogTrace($"[{nameof(AuthenticationErrorScenarioAsync)}][server] Connected!");
-				using NetworkStream stream = client.GetStream();
-				stream.ReadTimeout = (int)TimeoutLimit.TotalMilliseconds;
+			// Read SOCKS version.
+			int methodByte = stream.ReadByte();
+			Assert.Equal(MethodField.UsernamePassword.ToByte(), methodByte);
 
-				// Read SOCKS protocol version.
-				int versionByte = stream.ReadByte();
-				Assert.Equal(VerField.Socks5.Value, versionByte);
+			// Write response: version + method selected.
+			stream.WriteByte(VerField.Socks5.Value);
+			stream.WriteByte(MethodField.NoAcceptableMethods.ToByte());
+			stream.Flush();
 
-				// Read "NMethods" version.
-				int nmethodsByte = stream.ReadByte();
-				Assert.Equal(1, nmethodsByte);
-
-				// Read SOCKS version.
-				int methodByte = stream.ReadByte();
-				Assert.Equal(MethodField.UsernamePassword.ToByte(), methodByte);
-
-				// Write response: version + method selected.
-				stream.WriteByte(VerField.Socks5.Value);
-				stream.WriteByte(MethodField.NoAcceptableMethods.ToByte());
-				stream.Flush();
-
-				Logger.LogTrace($"[{nameof(AuthenticationErrorScenarioAsync)}][server] Expecting exception.");
-				await Assert.ThrowsAsync<NotSupportedException>(async () => await clientTask.WithAwaitCancellationAsync(timeoutToken).ConfigureAwait(false));
-			}
-			finally
-			{
-				listener?.Stop();
-			}
+			Logger.LogTrace($"[{nameof(AuthenticationErrorScenarioAsync)}][server] Expecting exception.");
+			await Assert.ThrowsAsync<NotSupportedException>(async () => await clientTask.WithAwaitCancellationAsync(timeoutToken).ConfigureAwait(false));
 		}
-
-		/// <summary>
-		/// <list type="bullet">
-		/// <item>Client sends an HTTP request to Tor SOCKS5 endpoint.</item>
-		/// <item>Test server verifies that the data received is correct.</item>
-		/// <item>Test server responds with <see cref="RepField.TtlExpired"/> to the client's CONNECT command.</item>
-		/// <item><see cref="TorConnectCommandFailedException"/> is expected to be thrown on the client side.</item>
-		/// </list>
-		/// </summary>
-		[Fact]
-		public async Task TtlExpiredScenarioAsync()
+		finally
 		{
-			using CancellationTokenSource timeoutCts = new(TimeoutLimit);
-			CancellationToken timeoutToken = timeoutCts.Token;
+			listener?.Stop();
+		}
+	}
 
-			Uri uri = new("http://postman-echo.com");
-			string httpRequestHost = uri.Host;
-			int httpRequestPort = 80;
+	/// <summary>
+	/// <list type="bullet">
+	/// <item>Client sends an HTTP request to Tor SOCKS5 endpoint.</item>
+	/// <item>Test server verifies that the data received is correct.</item>
+	/// <item>Test server responds with <see cref="RepField.TtlExpired"/> to the client's CONNECT command.</item>
+	/// <item><see cref="TorConnectCommandFailedException"/> is expected to be thrown on the client side.</item>
+	/// </list>
+	/// </summary>
+	[Fact]
+	public async Task TtlExpiredScenarioAsync()
+	{
+		using CancellationTokenSource timeoutCts = new(TimeoutLimit);
+		CancellationToken timeoutToken = timeoutCts.Token;
 
-			TcpListener? listener = null;
+		Uri uri = new("http://postman-echo.com");
+		string httpRequestHost = uri.Host;
+		int httpRequestPort = 80;
 
-			try
+		TcpListener? listener = null;
+
+		try
+		{
+			// Start local TCP server.
+			listener = new(IPAddress.Loopback, port: 0);
+			listener.Start();
+			int serverPort = ((IPEndPoint)listener.LocalEndpoint).Port;
+
+			Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][server] Wait for TCP client on port {serverPort}.");
+			ValueTask<TcpClient> acceptTask = listener.AcceptTcpClientAsync(timeoutToken);
+
+			Task clientTask = Task.Run(
+				async () =>
+				{
+					TorTcpConnectionFactory factory = new(new IPEndPoint(IPAddress.Loopback, serverPort));
+
+					Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][client] About to make connection.");
+					using TorTcpConnection torConnection = await factory.ConnectAsync(httpRequestHost, httpRequestPort, useSsl: false, DefaultCircuit.Instance, timeoutToken);
+					Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][client] Connection established.");
+				},
+				timeoutToken);
+
+			using TcpClient client = await acceptTask;
+
+			Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][server] Connected!");
+			using NetworkStream stream = client.GetStream();
+			stream.ReadTimeout = (int)TimeoutLimit.TotalMilliseconds;
+
+			// <Version method request>
+			// Read SOCKS protocol version.
+			int versionByte = stream.ReadByte();
+			Assert.Equal(VerField.Socks5.Value, versionByte);
+
+			// Read "NMethods" version.
+			int nmethodsByte = stream.ReadByte();
+			Assert.Equal(1, nmethodsByte);
+
+			// Read method byte.
+			int methodByte = stream.ReadByte();
+			Assert.Equal(MethodField.UsernamePassword.ToByte(), methodByte);
+
+			// Write response: version + method selected.
+			stream.WriteByte(VerField.Socks5.Value);
+			stream.WriteByte(MethodField.UsernamePassword.ToByte());
+			stream.Flush();
+
+			// </Version method request>
+
+			// <UsernamePasswordRequest>
+			// Read "AuthVerField" byte.
+			int authVerByte = stream.ReadByte();
+			Assert.Equal(AuthVerField.Version1.Value, authVerByte);
+
+			int ulenByte = stream.ReadByte();
+			Assert.Equal(21, ulenByte);
+
+			// Read "UName".
+			for (int j = 0; j < 21; j++)
 			{
-				// Start local TCP server.
-				listener = new(IPAddress.Loopback, port: 0);
-				listener.Start();
-				int serverPort = ((IPEndPoint)listener.LocalEndpoint).Port;
+				_ = stream.ReadByte();
+			}
 
-				Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][server] Wait for TCP client on port {serverPort}.");
-				ValueTask<TcpClient> acceptTask = listener.AcceptTcpClientAsync(timeoutToken);
+			int plenByte = stream.ReadByte();
+			Assert.Equal(21, plenByte);
 
-				Task clientTask = Task.Run(
-					async () =>
-					{
-						TorTcpConnectionFactory factory = new(new IPEndPoint(IPAddress.Loopback, serverPort));
+			// Read "Passwd".
+			for (int j = 0; j < 21; j++)
+			{
+				_ = stream.ReadByte();
+			}
 
-						Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][client] About to make connection.");
-						using TorTcpConnection torConnection = await factory.ConnectAsync(httpRequestHost, httpRequestPort, useSsl: false, DefaultCircuit.Instance, timeoutToken);
-						Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][client] Connection established.");
-					},
-					timeoutToken);
+			// Write response (UsernamePasswordResponse): version + method selected.
+			stream.WriteByte((byte)AuthVerField.Version1.Value);
+			stream.WriteByte(AuthStatusField.Success.ToByte());
+			stream.Flush();
 
-				using TcpClient client = await acceptTask;
+			// </UsernamePasswordRequest>
 
-				Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][server] Connected!");
-				using NetworkStream stream = client.GetStream();
-				stream.ReadTimeout = (int)TimeoutLimit.TotalMilliseconds;
+			TorSocks5Request expectedConnectionRequest = new(cmd: CmdField.Connect, new(httpRequestHost), new(httpRequestPort));
 
-				// <Version method request>
-				// Read SOCKS protocol version.
-				int versionByte = stream.ReadByte();
-				Assert.Equal(VerField.Socks5.Value, versionByte);
+			int i = 0;
+			foreach (byte byteValue in expectedConnectionRequest.ToBytes())
+			{
+				i++;
+				Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][server] Reading request byte #{i}.");
+				int readByte = stream.ReadByte();
+				Assert.Equal(byteValue, readByte);
+			}
 
-				// Read "NMethods" version.
-				int nmethodsByte = stream.ReadByte();
-				Assert.Equal(1, nmethodsByte);
-
-				// Read method byte.
-				int methodByte = stream.ReadByte();
-				Assert.Equal(MethodField.UsernamePassword.ToByte(), methodByte);
-
-				// Write response: version + method selected.
-				stream.WriteByte(VerField.Socks5.Value);
-				stream.WriteByte(MethodField.UsernamePassword.ToByte());
-				stream.Flush();
-
-				// </Version method request>
-
-				// <UsernamePasswordRequest>
-				// Read "AuthVerField" byte.
-				int authVerByte = stream.ReadByte();
-				Assert.Equal(AuthVerField.Version1.Value, authVerByte);
-
-				int ulenByte = stream.ReadByte();
-				Assert.Equal(21, ulenByte);
-
-				// Read "UName".
-				for (int j = 0; j < 21; j++)
-				{
-					_ = stream.ReadByte();
-				}
-
-				int plenByte = stream.ReadByte();
-				Assert.Equal(21, plenByte);
-
-				// Read "Passwd".
-				for (int j = 0; j < 21; j++)
-				{
-					_ = stream.ReadByte();
-				}
-
-				// Write response (UsernamePasswordResponse): version + method selected.
-				stream.WriteByte((byte)AuthVerField.Version1.Value);
-				stream.WriteByte(AuthStatusField.Success.ToByte());
-				stream.Flush();
-
-				// </UsernamePasswordRequest>
-
-				TorSocks5Request expectedConnectionRequest = new(cmd: CmdField.Connect, new(httpRequestHost), new(httpRequestPort));
-
-				int i = 0;
-				foreach (byte byteValue in expectedConnectionRequest.ToBytes())
-				{
-					i++;
-					Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][server] Reading request byte #{i}.");
-					int readByte = stream.ReadByte();
-					Assert.Equal(byteValue, readByte);
-				}
-
-				// Tor SOCKS5 reply reporting TTL expired error.
-				// Note: RepField.Succeeded is the only OK code.
-				// https://tools.ietf.org/html/rfc1928: See "6. Replies"
-				byte[] torSocks5Response = new byte[]
-				{
+			// Tor SOCKS5 reply reporting TTL expired error.
+			// Note: RepField.Succeeded is the only OK code.
+			// https://tools.ietf.org/html/rfc1928: See "6. Replies"
+			byte[] torSocks5Response = new byte[]
+			{
 					VerField.Socks5.Value,
 					RepField.TtlExpired.ToByte(),
 					RsvField.X00.ToByte(),
 					AtypField.DomainName.ToByte(),
 					0x04, 0x00, 0x00, 0x00, 0x00, // BndAddr (ATYP = "Domain" therefore the first octet is length of "BND.ADDR")
 					0x00, 0x00 // BndPort
-				};
+			};
 
-				Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][server] Respond with RepField.TtlExpired result.");
-				await stream.WriteAsync(torSocks5Response, timeoutToken);
-				stream.Flush();
+			Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][server] Respond with RepField.TtlExpired result.");
+			await stream.WriteAsync(torSocks5Response, timeoutToken);
+			stream.Flush();
 
-				Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][server] Expecting exception.");
-				await Assert.ThrowsAsync<TorConnectCommandFailedException>(async () => await clientTask.WithAwaitCancellationAsync(timeoutToken));
-			}
-			finally
-			{
-				listener?.Stop();
-			}
+			Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][server] Expecting exception.");
+			await Assert.ThrowsAsync<TorConnectCommandFailedException>(async () => await clientTask.WithAwaitCancellationAsync(timeoutToken));
+		}
+		finally
+		{
+			listener?.Stop();
 		}
 	}
 }

@@ -1,11 +1,10 @@
-namespace WalletWasabi.WabiSabi.Backend.Rounds
+namespace WalletWasabi.WabiSabi.Backend.Rounds;
+
+public enum Phase
 {
-	public enum Phase
-	{
-		InputRegistration,
-		ConnectionConfirmation,
-		OutputRegistration,
-		TransactionSigning,
-		Ended
-	}
+	InputRegistration,
+	ConnectionConfirmation,
+	OutputRegistration,
+	TransactionSigning,
+	Ended
 }

@@ -1,9 +1,8 @@
-namespace WalletWasabi.Models
+namespace WalletWasabi.Models;
+
+public enum TorStatus
 {
-	public enum TorStatus
-	{
-		NotRunning,
-		TurnedOff,
-		Running
-	}
+	NotRunning,
+	TurnedOff,
+	Running
 }

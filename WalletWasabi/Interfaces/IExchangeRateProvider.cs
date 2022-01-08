@@ -2,10 +2,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 
-namespace WalletWasabi.Interfaces
+namespace WalletWasabi.Interfaces;
+
+public interface IExchangeRateProvider
 {
-	public interface IExchangeRateProvider
-	{
-		Task<IEnumerable<ExchangeRate>> GetExchangeRateAsync();
-	}
+	Task<IEnumerable<ExchangeRate>> GetExchangeRateAsync();
 }

@@ -3,35 +3,34 @@ using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
-namespace WalletWasabi.Fluent.ViewModels.AddWallet
+namespace WalletWasabi.Fluent.ViewModels.AddWallet;
+
+[NavigationMetaData(Title = "Terms and conditions")]
+public partial class TermsAndConditionsViewModel : DialogViewModelBase<bool>
 {
-	[NavigationMetaData(Title = "Terms and conditions")]
-	public partial class TermsAndConditionsViewModel : DialogViewModelBase<bool>
+	[AutoNotify] private bool _isAgreed;
+
+	public TermsAndConditionsViewModel(string legalDocument)
 	{
-		[AutoNotify] private bool _isAgreed;
+		ViewTermsCommand = ReactiveCommand.Create(() => OnViewTerms(legalDocument));
 
-		public TermsAndConditionsViewModel(string legalDocument)
-		{
-			ViewTermsCommand = ReactiveCommand.Create(() => OnViewTerms(legalDocument));
+		NextCommand = ReactiveCommand.Create(
+			OnNext,
+			this.WhenAnyValue(x => x.IsAgreed)
+				.ObserveOn(RxApp.MainThreadScheduler));
 
-			NextCommand = ReactiveCommand.Create(
-				OnNext,
-				this.WhenAnyValue(x => x.IsAgreed)
-					.ObserveOn(RxApp.MainThreadScheduler));
+		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
+	}
 
-			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
-		}
+	public ICommand ViewTermsCommand { get; }
 
-		public ICommand ViewTermsCommand { get; }
+	private void OnViewTerms(string legalDocument)
+	{
+		Navigate().To(new LegalDocumentsViewModel(legalDocument));
+	}
 
-		private void OnViewTerms(string legalDocument)
-		{
-			Navigate().To(new LegalDocumentsViewModel(legalDocument));
-		}
-
-		private void OnNext()
-		{
-			Close(DialogResultKind.Normal, true);
-		}
+	private void OnNext()
+	{
+		Close(DialogResultKind.Normal, true);
 	}
 }
