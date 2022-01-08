@@ -39,7 +39,7 @@ public class TorHttpPool : IDisposable
 {
 	/// <summary>Maximum number of <see cref="TorTcpConnection"/>s per URI host.</summary>
 	/// <remarks>This parameter affects maximum parallelization for given URI host.</remarks>
-	public const int MaxConnectionsPerHost = 100;
+	public const int MaxConnectionsPerHost = 500;
 
 	private bool _disposedValue;
 
@@ -148,6 +148,12 @@ public class TorHttpPool : IDisposable
 
 					throw new HttpRequestException("Failed to get/read an HTTP response from Tor.", e);
 				}
+				catch (TorCircuitExpiredException e)
+				{
+					Logger.LogTrace($"['{connection}'] Circuit '{circuit.Name}' has expired and cannot be used again.", e);
+
+					throw new HttpRequestException($"Circuit '{circuit.Name}' has expired and cannot be used again.", e);
+				}
 				catch (TorConnectCommandFailedException e) when (e.RepField == RepField.TtlExpired)
 				{
 					// If we get TTL Expired error then wait and retry again, Linux often does this.
@@ -222,6 +228,12 @@ public class TorHttpPool : IDisposable
 				{
 					Logger.LogTrace($"[OLD {connection}]['{request.RequestUri}'] Re-use existing Tor SOCKS5 connection.");
 					return connection;
+				}
+
+				// The circuit may be disposed almost immediately after this check but we don't mind.
+				if (!circuit.IsActive)
+				{
+					throw new TorCircuitExpiredException();
 				}
 
 				if (canBeAdded)
@@ -331,7 +343,7 @@ public class TorHttpPool : IDisposable
 		// Find TCP connections to dispose.
 		foreach (TorTcpConnection tcpConnection in hostConnections.FindAll(c => c.NeedDisposal).ToList())
 		{
-			Logger.LogDebug($"['{tcpConnection}'] Connection is to be disposed.");
+			Logger.LogTrace($"['{tcpConnection}'] Connection is to be disposed.");
 			hostConnections.Remove(tcpConnection);
 			tcpConnection.Dispose();
 		}
@@ -344,6 +356,10 @@ public class TorHttpPool : IDisposable
 		if (!canBeAdded)
 		{
 			Logger.LogTrace($"Beware! Too many active connections: '{string.Join(", ", hostConnections.Select(c => c.ToString()))}'.");
+		}
+		else
+		{
+			Logger.LogTrace($"There are active connections [{hostConnections.Count}]: '{string.Join(", ", hostConnections.Select(c => c.ToString()))}'.");
 		}
 
 		return canBeAdded;
