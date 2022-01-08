@@ -198,7 +198,7 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 		using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(20));
 
 		// This is added because Dispose called from the Main and Main cannot be an async function.
-		while (!ExecuteTask.IsCompleted && !timeout.IsCancellationRequested)
+		while (!ExecuteTask.IsCompleted)
 		{
 			Thread.Sleep(10);
 			if (timeout.IsCancellationRequested)
