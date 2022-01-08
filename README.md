@@ -58,16 +58,6 @@
 
 <br>
 
-<p align="center">
-  <img height="360" src="https://i.imgur.com/4tazbiF.png"/>
-</p>
-
-Note that [Wasabi Wallet 2.0](https://blog.wasabiwallet.io/wasabi-wallet-2/) is in the works, which means some code you may want to work on is about to be obsoleted. The most affected code is the UI and CoinJoin parts.
-
-For more information, please check out the [Wasabi Documentation](https://docs.wasabiwallet.io), an archive of knowledge about the nuances of Bitcoin privacy and how to use Wasabi.
-
-<br>
-
 # 💻 [Download Wasabi](https://github.com/zkSNACKs/WalletWasabi/releases)
 
 <br>

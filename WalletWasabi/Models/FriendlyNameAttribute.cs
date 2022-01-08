@@ -1,15 +1,12 @@
-using System;
+namespace WalletWasabi.Models;
 
-namespace WalletWasabi.Models
+[AttributeUsage(AttributeTargets.Field)]
+public class FriendlyNameAttribute : Attribute
 {
-	[AttributeUsage(AttributeTargets.Field)]
-	public class FriendlyNameAttribute : Attribute
+	public FriendlyNameAttribute(string friendlyName)
 	{
-		public FriendlyNameAttribute(string friendlyName)
-		{
-			FriendlyName = friendlyName;
-		}
-
-		public string FriendlyName { get; }
+		FriendlyName = friendlyName;
 	}
+
+	public string FriendlyName { get; }
 }

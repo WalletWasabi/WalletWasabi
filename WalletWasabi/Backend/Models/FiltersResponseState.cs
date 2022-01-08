@@ -1,9 +1,8 @@
-namespace WalletWasabi.Backend.Models
+namespace WalletWasabi.Backend.Models;
+
+public enum FiltersResponseState
 {
-	public enum FiltersResponseState
-	{
-		BestKnownHashNotFound, // When this happens, it's a reorg.
-		NoNewFilter,
-		NewFilters
-	}
+	BestKnownHashNotFound, // When this happens, it's a reorg.
+	NoNewFilter,
+	NewFilters
 }

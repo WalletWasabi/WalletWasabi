@@ -1,4 +1,3 @@
-namespace WalletWasabi.WabiSabi.Crypto.CredentialRequesting
-{
-	public record RealCredentialsRequestData(RealCredentialsRequest CredentialsRequest, CredentialsResponseValidation CredentialsResponseValidation);
-}
+namespace WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
+
+public record RealCredentialsRequestData(RealCredentialsRequest CredentialsRequest, CredentialsResponseValidation CredentialsResponseValidation);
