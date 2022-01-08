@@ -138,7 +138,7 @@ public class Wallet : BackgroundService
 			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 			FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
 
-			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, ServiceConfiguration.PrivacyLevelStrong);
+			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, ServiceConfiguration.MinAnonScoreTarget);
 			Coins = TransactionProcessor.Coins;
 
 			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
@@ -397,7 +397,7 @@ public class Wallet : BackgroundService
 				foreach (var tx in BitcoinStore.TransactionStore.MempoolStore.GetTransactions())
 				{
 					uint256 hash = tx.GetHash();
-					if (mempoolHashes.Contains(hash.ToString().Substring(0, compactness)))
+					if (mempoolHashes.Contains(hash.ToString()[..compactness]))
 					{
 						txsToProcess.Add(tx);
 						Logger.LogInfo($"Transaction was successfully tested against the backend's mempool hashes: {hash}.");

@@ -4,92 +4,91 @@ using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 
-namespace WalletWasabi.Fluent.Behaviors
+namespace WalletWasabi.Fluent.Behaviors;
+
+public class SplitViewAutoBehavior : DisposingBehavior<SplitView>
 {
-	public class SplitViewAutoBehavior : DisposingBehavior<SplitView>
+	private bool _sidebarWasForceClosed;
+
+	public static readonly StyledProperty<double> CollapseThresholdProperty =
+		AvaloniaProperty.Register<SplitViewAutoBehavior, double>(nameof(CollapseThreshold));
+
+	public static readonly StyledProperty<Action> ToggleActionProperty =
+		AvaloniaProperty.Register<SplitViewAutoBehavior, Action>(nameof(ToggleAction));
+
+	public static readonly StyledProperty<Action> CollapseOnClickActionProperty =
+		AvaloniaProperty.Register<SplitViewAutoBehavior, Action>(nameof(CollapseOnClickAction));
+
+	public double CollapseThreshold
 	{
-		private bool _sidebarWasForceClosed;
+		get => GetValue(CollapseThresholdProperty);
+		set => SetValue(CollapseThresholdProperty, value);
+	}
 
-		public static readonly StyledProperty<double> CollapseThresholdProperty =
-			AvaloniaProperty.Register<SplitViewAutoBehavior, double>(nameof(CollapseThreshold));
+	public Action ToggleAction
+	{
+		get => GetValue(ToggleActionProperty);
+		set => SetValue(ToggleActionProperty, value);
+	}
 
-		public static readonly StyledProperty<Action> ToggleActionProperty =
-			AvaloniaProperty.Register<SplitViewAutoBehavior, Action>(nameof(ToggleAction));
+	public Action CollapseOnClickAction
+	{
+		get => GetValue(CollapseOnClickActionProperty);
+		set => SetValue(CollapseOnClickActionProperty, value);
+	}
 
-		public static readonly StyledProperty<Action> CollapseOnClickActionProperty =
-			AvaloniaProperty.Register<SplitViewAutoBehavior, Action>(nameof(CollapseOnClickAction));
+	protected override void OnAttached(CompositeDisposable disposables)
+	{
+		AssociatedObject!.WhenAnyValue(x => x.Bounds)
+			.DistinctUntilChanged()
+			.Subscribe(SplitViewBoundsChanged)
+			.DisposeWith(disposables);
 
-		public double CollapseThreshold
+		ToggleAction = OnToggleAction;
+		CollapseOnClickAction = OnCollapseOnClickAction;
+	}
+
+	private void OnCollapseOnClickAction()
+	{
+		if (AssociatedObject!.Bounds.Width <= CollapseThreshold && AssociatedObject!.IsPaneOpen)
 		{
-			get => GetValue(CollapseThresholdProperty);
-			set => SetValue(CollapseThresholdProperty, value);
+			AssociatedObject!.IsPaneOpen = false;
+		}
+	}
+
+	private void OnToggleAction()
+	{
+		if (AssociatedObject!.Bounds.Width > CollapseThreshold)
+		{
+			_sidebarWasForceClosed = AssociatedObject!.IsPaneOpen;
 		}
 
-		public Action ToggleAction
+		AssociatedObject!.IsPaneOpen = !AssociatedObject!.IsPaneOpen;
+	}
+
+	private void SplitViewBoundsChanged(Rect x)
+	{
+		if (AssociatedObject is null)
 		{
-			get => GetValue(ToggleActionProperty);
-			set => SetValue(ToggleActionProperty, value);
+			return;
 		}
 
-		public Action CollapseOnClickAction
+		if (x.Width <= CollapseThreshold)
 		{
-			get => GetValue(CollapseOnClickActionProperty);
-			set => SetValue(CollapseOnClickActionProperty, value);
-		}
+			AssociatedObject.DisplayMode = SplitViewDisplayMode.CompactOverlay;
 
-		protected override void OnAttached(CompositeDisposable disposables)
-		{
-			AssociatedObject!.WhenAnyValue(x => x.Bounds)
-				.DistinctUntilChanged()
-				.Subscribe(SplitViewBoundsChanged)
-				.DisposeWith(disposables);
-
-			ToggleAction = OnToggleAction;
-			CollapseOnClickAction = OnCollapseOnClickAction;
-		}
-
-		private void OnCollapseOnClickAction()
-		{
-			if (AssociatedObject!.Bounds.Width <= CollapseThreshold && AssociatedObject!.IsPaneOpen)
+			if (!_sidebarWasForceClosed && AssociatedObject.IsPaneOpen)
 			{
-				AssociatedObject!.IsPaneOpen = false;
+				AssociatedObject.IsPaneOpen = false;
 			}
 		}
-
-		private void OnToggleAction()
+		else
 		{
-			if (AssociatedObject!.Bounds.Width > CollapseThreshold)
+			AssociatedObject.DisplayMode = SplitViewDisplayMode.CompactInline;
+
+			if (!_sidebarWasForceClosed && !AssociatedObject.IsPaneOpen)
 			{
-				_sidebarWasForceClosed = AssociatedObject!.IsPaneOpen;
-			}
-
-			AssociatedObject!.IsPaneOpen = !AssociatedObject!.IsPaneOpen;
-		}
-
-		private void SplitViewBoundsChanged(Rect x)
-		{
-			if (AssociatedObject is null)
-			{
-				return;
-			}
-
-			if (x.Width <= CollapseThreshold)
-			{
-				AssociatedObject.DisplayMode = SplitViewDisplayMode.CompactOverlay;
-
-				if (!_sidebarWasForceClosed && AssociatedObject.IsPaneOpen)
-				{
-					AssociatedObject.IsPaneOpen = false;
-				}
-			}
-			else
-			{
-				AssociatedObject.DisplayMode = SplitViewDisplayMode.CompactInline;
-
-				if (!_sidebarWasForceClosed && !AssociatedObject.IsPaneOpen)
-				{
-					AssociatedObject.IsPaneOpen = true;
-				}
+				AssociatedObject.IsPaneOpen = true;
 			}
 		}
 	}

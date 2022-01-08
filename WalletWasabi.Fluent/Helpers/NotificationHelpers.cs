@@ -9,109 +9,108 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.Fluent.Helpers
+namespace WalletWasabi.Fluent.Helpers;
+
+public static class NotificationHelpers
 {
-	public static class NotificationHelpers
+	private const int DefaultNotificationTimeout = 10;
+	private static WindowNotificationManager? NotificationManager;
+
+	public static void SetNotificationManager(Window host)
 	{
-		private const int DefaultNotificationTimeout = 10;
-		private static WindowNotificationManager? NotificationManager;
-
-		public static void SetNotificationManager(Window host)
+		var notificationManager = new WindowNotificationManager(host)
 		{
-			var notificationManager = new WindowNotificationManager(host)
-			{
-				Position = NotificationPosition.BottomRight,
-				MaxItems = 4,
-				Margin = new Thickness(0, 0, 15, 40)
-			};
+			Position = NotificationPosition.BottomRight,
+			MaxItems = 4,
+			Margin = new Thickness(0, 0, 15, 40)
+		};
 
-			NotificationManager = notificationManager;
+		NotificationManager = notificationManager;
+	}
+
+	public static void Show(string title, string message, Action? onClick = null)
+	{
+		if (NotificationManager is { } nm)
+		{
+			RxApp.MainThreadScheduler.Schedule(() => nm.Show(new Notification(title, message, NotificationType.Information, TimeSpan.FromSeconds(DefaultNotificationTimeout), onClick)));
 		}
+	}
 
-		public static void Show(string title, string message, Action? onClick = null)
+	public static void Show(string walletName, ProcessedResult result, Action onClick)
+	{
+		if (TryGetNotificationInputs(result, out var message))
 		{
-			if (NotificationManager is { } nm)
-			{
-				RxApp.MainThreadScheduler.Schedule(() => nm.Show(new Notification(title, message, NotificationType.Information, TimeSpan.FromSeconds(DefaultNotificationTimeout), onClick)));
-			}
+			Show(walletName, message, onClick);
 		}
+	}
 
-		public static void Show(string walletName, ProcessedResult result, Action onClick)
+	private static bool TryGetNotificationInputs(ProcessedResult result, [NotNullWhen(true)] out string? message)
+	{
+		message = null;
+
+		try
 		{
-			if (TryGetNotificationInputs(result, out var message))
+			bool isSpent = result.NewlySpentCoins.Any();
+			bool isReceived = result.NewlyReceivedCoins.Any();
+			bool isConfirmedReceive = result.NewlyConfirmedReceivedCoins.Any();
+			bool isConfirmedSpent = result.NewlyConfirmedReceivedCoins.Any();
+			Money miningFee = result.Transaction.Transaction.GetFee(result.SpentCoins.Select(x => x.Coin).ToArray());
+
+			if (isReceived || isSpent)
 			{
-				Show(walletName, message, onClick);
-			}
-		}
+				Money receivedSum = result.NewlyReceivedCoins.Sum(x => x.Amount);
+				Money spentSum = result.NewlySpentCoins.Sum(x => x.Amount);
+				Money incoming = receivedSum - spentSum;
+				Money receiveSpentDiff = incoming.Abs();
+				string amountString = receiveSpentDiff.ToFormattedString();
 
-		private static bool TryGetNotificationInputs(ProcessedResult result, [NotNullWhen(true)] out string? message)
-		{
-			message = null;
-
-			try
-			{
-				bool isSpent = result.NewlySpentCoins.Any();
-				bool isReceived = result.NewlyReceivedCoins.Any();
-				bool isConfirmedReceive = result.NewlyConfirmedReceivedCoins.Any();
-				bool isConfirmedSpent = result.NewlyConfirmedReceivedCoins.Any();
-				Money miningFee = result.Transaction.Transaction.GetFee(result.SpentCoins.Select(x => x.Coin).ToArray());
-
-				if (isReceived || isSpent)
+				if (result.Transaction.Transaction.IsCoinBase)
 				{
-					Money receivedSum = result.NewlyReceivedCoins.Sum(x => x.Amount);
-					Money spentSum = result.NewlySpentCoins.Sum(x => x.Amount);
-					Money incoming = receivedSum - spentSum;
-					Money receiveSpentDiff = incoming.Abs();
-					string amountString = receiveSpentDiff.ToFormattedString();
-
-					if (result.Transaction.Transaction.IsCoinBase)
-					{
-						message = $"{amountString} BTC received as Coinbase reward";
-					}
-					else if (isSpent && receiveSpentDiff == miningFee)
-					{
-						message = $"Self transfer. Fee: {amountString} BTC";
-					}
-					else if (incoming > Money.Zero)
-					{
-						message = $"{amountString} BTC received";
-
-					}
-					else if (incoming < Money.Zero)
-					{
-						var sentAmount = receiveSpentDiff - miningFee;
-						message = $"{sentAmount.ToFormattedString()} BTC sent";
-					}
+					message = $"{amountString} BTC received as Coinbase reward";
 				}
-				else if (isConfirmedReceive || isConfirmedSpent)
+				else if (isSpent && receiveSpentDiff == miningFee)
 				{
-					Money receivedSum = result.ReceivedCoins.Sum(x => x.Amount);
-					Money spentSum = result.SpentCoins.Sum(x => x.Amount);
-					Money incoming = receivedSum - spentSum;
-					Money receiveSpentDiff = incoming.Abs();
-					string amountString = receiveSpentDiff.ToFormattedString();
+					message = $"Self transfer. Fee: {amountString} BTC";
+				}
+				else if (incoming > Money.Zero)
+				{
+					message = $"{amountString} BTC received";
 
-					if (isConfirmedSpent && receiveSpentDiff == miningFee)
-					{
-						message = $"Self transfer confirmed. Fee: {amountString} BTC";
-					}
-					else if (incoming > Money.Zero)
-					{
-						message = $"Receiving {amountString} BTC has been confirmed";
-					}
-					else if (incoming < Money.Zero)
-					{
-						var sentAmount = receiveSpentDiff - miningFee;
-						message = $"{sentAmount.ToFormattedString()} BTC sent got confirmed";
-					}
+				}
+				else if (incoming < Money.Zero)
+				{
+					var sentAmount = receiveSpentDiff - miningFee;
+					message = $"{sentAmount.ToFormattedString()} BTC sent";
 				}
 			}
-			catch (Exception ex)
+			else if (isConfirmedReceive || isConfirmedSpent)
 			{
-				Logger.LogWarning(ex);
-			}
+				Money receivedSum = result.ReceivedCoins.Sum(x => x.Amount);
+				Money spentSum = result.SpentCoins.Sum(x => x.Amount);
+				Money incoming = receivedSum - spentSum;
+				Money receiveSpentDiff = incoming.Abs();
+				string amountString = receiveSpentDiff.ToFormattedString();
 
-			return message is { };
+				if (isConfirmedSpent && receiveSpentDiff == miningFee)
+				{
+					message = $"Self transfer confirmed. Fee: {amountString} BTC";
+				}
+				else if (incoming > Money.Zero)
+				{
+					message = $"Receiving {amountString} BTC has been confirmed";
+				}
+				else if (incoming < Money.Zero)
+				{
+					var sentAmount = receiveSpentDiff - miningFee;
+					message = $"{sentAmount.ToFormattedString()} BTC sent got confirmed";
+				}
+			}
 		}
+		catch (Exception ex)
+		{
+			Logger.LogWarning(ex);
+		}
+
+		return message is { };
 	}
 }

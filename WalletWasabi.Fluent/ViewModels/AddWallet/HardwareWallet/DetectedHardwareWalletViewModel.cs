@@ -10,83 +10,82 @@ using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
+namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
+
+[NavigationMetaData(Title = "Hardware Wallet")]
+public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 {
-	[NavigationMetaData(Title = "Hardware Wallet")]
-	public partial class DetectedHardwareWalletViewModel : RoutableViewModel
+	public DetectedHardwareWalletViewModel(string walletName, HwiEnumerateEntry device)
 	{
-		public DetectedHardwareWalletViewModel(string walletName, HwiEnumerateEntry device)
+		WalletName = walletName;
+		CancelCts = new CancellationTokenSource();
+
+		Type = device.Model switch
 		{
-			WalletName = walletName;
-			CancelCts = new CancellationTokenSource();
+			HardwareWalletModels.Coldcard or HardwareWalletModels.Coldcard_Simulator => WalletType.Coldcard,
+			HardwareWalletModels.Ledger_Nano_S or HardwareWalletModels.Ledger_Nano_X => WalletType.Ledger,
+			HardwareWalletModels.Trezor_1 or HardwareWalletModels.Trezor_1_Simulator or HardwareWalletModels.Trezor_T or HardwareWalletModels.Trezor_T_Simulator => WalletType.Trezor,
+			_ => WalletType.Hardware
+		};
 
-			Type = device.Model switch
-			{
-				HardwareWalletModels.Coldcard or HardwareWalletModels.Coldcard_Simulator => WalletType.Coldcard,
-				HardwareWalletModels.Ledger_Nano_S or HardwareWalletModels.Ledger_Nano_X => WalletType.Ledger,
-				HardwareWalletModels.Trezor_1 or HardwareWalletModels.Trezor_1_Simulator or HardwareWalletModels.Trezor_T or HardwareWalletModels.Trezor_T_Simulator => WalletType.Trezor,
-				_ => WalletType.Hardware
-			};
+		TypeName = device.Model.FriendlyName();
 
-			TypeName = device.Model.FriendlyName();
+		SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
 
-			SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
+		EnableBack = false;
 
-			EnableBack = false;
+		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(device));
 
-			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(device));
+		NoCommand = ReactiveCommand.Create(OnNo);
 
-			NoCommand = ReactiveCommand.Create(OnNo);
+		EnableAutoBusyOn(NextCommand);
+	}
 
-			EnableAutoBusyOn(NextCommand);
+	public CancellationTokenSource CancelCts { get; }
+
+	public string WalletName { get; }
+
+	public WalletType Type { get; }
+
+	public string TypeName { get; }
+
+	public ICommand NoCommand { get; }
+
+	private async Task OnNextAsync(HwiEnumerateEntry device)
+	{
+		try
+		{
+			var walletFilePath = Services.WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
+			var km = await HardwareWalletOperationHelpers.GenerateWalletAsync(device, walletFilePath, Services.WalletManager.Network, CancelCts.Token);
+			km.SetIcon(Type);
+
+			Navigate().To(new AddedWalletPageViewModel(km));
 		}
-
-		public CancellationTokenSource CancelCts { get; }
-
-		public string WalletName { get; }
-
-		public WalletType Type { get; }
-
-		public string TypeName { get; }
-
-		public ICommand NoCommand { get; }
-
-		private async Task OnNextAsync(HwiEnumerateEntry device)
+		catch (Exception ex)
 		{
-			try
-			{
-				var walletFilePath = Services.WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
-				var km = await HardwareWalletOperationHelpers.GenerateWalletAsync(device, walletFilePath, Services.WalletManager.Network, CancelCts.Token);
-				km.SetIcon(Type);
-
-				Navigate().To(new AddedWalletPageViewModel(km));
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-				await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "Error occured during adding your wallet.");
-				Navigate().Back();
-			}
-		}
-
-		private void OnNo()
-		{
+			Logger.LogError(ex);
+			await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "Error occured during adding your wallet.");
 			Navigate().Back();
 		}
+	}
 
-		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-		{
-			base.OnNavigatedTo(isInHistory, disposables);
+	private void OnNo()
+	{
+		Navigate().Back();
+	}
 
-			var enableCancel = Services.WalletManager.HasWallet();
-			SetupCancel(enableCancel: false, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
 
-			Disposable.Create(() =>
-				{
-					CancelCts.Cancel();
-					CancelCts.Dispose();
-				})
-				.DisposeWith(disposables);
-		}
+		var enableCancel = Services.WalletManager.HasWallet();
+		SetupCancel(enableCancel: false, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
+
+		Disposable.Create(() =>
+			{
+				CancelCts.Cancel();
+				CancelCts.Dispose();
+			})
+			.DisposeWith(disposables);
 	}
 }

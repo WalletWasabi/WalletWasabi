@@ -1,13 +1,12 @@
-namespace WalletWasabi.Wallets
+namespace WalletWasabi.Wallets;
+
+public enum WalletState
 {
-	public enum WalletState
-	{
-		Uninitialized,
-		WaitingForInit,
-		Initialized,
-		Starting,
-		Started,
-		Stopping,
-		Stopped
-	}
+	Uninitialized,
+	WaitingForInit,
+	Initialized,
+	Starting,
+	Started,
+	Stopping,
+	Stopped
 }

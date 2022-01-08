@@ -1,54 +1,53 @@
 using System.Collections.Generic;
 using WalletWasabi.Helpers;
 
-namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
+namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition;
+
+public static class InputRecognise
 {
-	public static class InputRecognise
+	public static RecognitionStruct Recognise(string content)
 	{
-		public static RecognitionStruct Recognise(string content)
+		string encodingName = EightBitByteRecognision(content, 0, content.Length);
+		return new RecognitionStruct(encodingName);
+	}
+
+	private static string EightBitByteRecognision(string content, int startPos, int contentLength)
+	{
+		Guard.NotNullOrEmpty(nameof(content), content);
+
+		var eciSets = new ECISet(ECISet.AppendOption.NameToValue);
+
+		Dictionary<string, int> eciSet = eciSets.GetECITable();
+
+		// we will not check for utf8 encoding.
+		eciSet.Remove(QRCodeConstantVariable.UTF8Encoding);
+		eciSet.Remove(QRCodeConstantVariable.DefaultEncoding);
+
+		int scanPos = startPos;
+
+		// default encoding as priority
+		scanPos = ModeEncodeCheck.TryEncodeEightBitByte(content, QRCodeConstantVariable.DefaultEncoding, scanPos, contentLength);
+		if (scanPos == -1)
 		{
-			string encodingName = EightBitByteRecognision(content, 0, content.Length);
-			return new RecognitionStruct(encodingName);
+			return QRCodeConstantVariable.DefaultEncoding;
 		}
 
-		private static string EightBitByteRecognision(string content, int startPos, int contentLength)
+		foreach (KeyValuePair<string, int> kvp in eciSet)
 		{
-			Guard.NotNullOrEmpty(nameof(content), content);
-
-			var eciSets = new ECISet(ECISet.AppendOption.NameToValue);
-
-			Dictionary<string, int> eciSet = eciSets.GetECITable();
-
-			// we will not check for utf8 encoding.
-			eciSet.Remove(QRCodeConstantVariable.UTF8Encoding);
-			eciSet.Remove(QRCodeConstantVariable.DefaultEncoding);
-
-			int scanPos = startPos;
-
-			// default encoding as priority
-			scanPos = ModeEncodeCheck.TryEncodeEightBitByte(content, QRCodeConstantVariable.DefaultEncoding, scanPos, contentLength);
+			scanPos = ModeEncodeCheck.TryEncodeEightBitByte(content, kvp.Key, scanPos, contentLength);
 			if (scanPos == -1)
 			{
-				return QRCodeConstantVariable.DefaultEncoding;
+				return kvp.Key;
 			}
+		}
 
-			foreach (KeyValuePair<string, int> kvp in eciSet)
-			{
-				scanPos = ModeEncodeCheck.TryEncodeEightBitByte(content, kvp.Key, scanPos, contentLength);
-				if (scanPos == -1)
-				{
-					return kvp.Key;
-				}
-			}
-
-			if (scanPos == -1)
-			{
-				throw new ArgumentException("foreach Loop check give wrong result.");
-			}
-			else
-			{
-				return QRCodeConstantVariable.UTF8Encoding;
-			}
+		if (scanPos == -1)
+		{
+			throw new ArgumentException("foreach Loop check give wrong result.");
+		}
+		else
+		{
+			return QRCodeConstantVariable.UTF8Encoding;
 		}
 	}
 }
