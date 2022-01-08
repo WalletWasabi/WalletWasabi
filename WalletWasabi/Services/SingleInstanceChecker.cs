@@ -197,7 +197,7 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 		// Stopping the execution task and wait until it finishes.
 		using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(20));
 
-		// This is added because Dispose called from the Main and Main cannot be an async function.
+		// This is added because Dispose is called from the Main and Main cannot be an async function.
 		while (!ExecuteTask.IsCompleted)
 		{
 			Thread.Sleep(10);
