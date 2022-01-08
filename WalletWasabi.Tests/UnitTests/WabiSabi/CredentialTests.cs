@@ -3,27 +3,27 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Crypto;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.WabiSabi
+namespace WalletWasabi.Tests.UnitTests.WabiSabi;
+
+public class CredentialTests
 {
-	public class CredentialTests
+	[Fact]
+	[Trait("UnitTest", "UnitTest")]
+	public void CorrectRangeProof()
 	{
-		[Fact]
-		[Trait("UnitTest", "UnitTest")]
-		public void CorrectRangeProof()
-		{
-			using var rnd = new SecureRandom();
-			var sk = new CredentialIssuerSecretKey(rnd);
+		using var rnd = new SecureRandom();
+		var sk = new CredentialIssuerSecretKey(rnd);
 
-			var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000);
-			var issuer = new CredentialIssuer(sk, rnd, 4300000000000);
-			Assert.Equal(42, client.RangeProofWidth);
-			Assert.Equal(42, issuer.RangeProofWidth);
+		var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000);
+		var issuer = new CredentialIssuer(sk, rnd, 4300000000000);
+		Assert.Equal(42, client.RangeProofWidth);
+		Assert.Equal(42, issuer.RangeProofWidth);
 
-			client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4400000000001);
-			issuer = new CredentialIssuer(sk, rnd, 4400000000001);
-			Assert.Equal(43, client.RangeProofWidth);
-			Assert.Equal(43, issuer.RangeProofWidth);
-		}
+		client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4400000000001);
+		issuer = new CredentialIssuer(sk, rnd, 4400000000001);
+		Assert.Equal(43, client.RangeProofWidth);
+		Assert.Equal(43, issuer.RangeProofWidth);
+	}
 
 #if false
 		[Fact]
@@ -289,5 +289,4 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 			}
 		}
 #endif
-	}
 }

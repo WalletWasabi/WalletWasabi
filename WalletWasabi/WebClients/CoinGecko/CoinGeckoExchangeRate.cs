@@ -1,10 +1,9 @@
 using Newtonsoft.Json;
 
-namespace WalletWasabi.WebClients.CoinGecko
+namespace WalletWasabi.WebClients.CoinGecko;
+
+public class CoinGeckoExchangeRate
 {
-	public class CoinGeckoExchangeRate
-	{
-		[JsonProperty(PropertyName = "current_price")]
-		public decimal Rate { get; set; }
-	}
+	[JsonProperty(PropertyName = "current_price")]
+	public decimal Rate { get; set; }
 }

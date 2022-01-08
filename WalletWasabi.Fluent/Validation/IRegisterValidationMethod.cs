@@ -1,7 +1,6 @@
-namespace WalletWasabi.Fluent.Validation
+namespace WalletWasabi.Fluent.Validation;
+
+public interface IRegisterValidationMethod
 {
-	public interface IRegisterValidationMethod
-	{
-		void RegisterValidationMethod(string propertyName, ValidateMethod validateMethod);
-	}
+	void RegisterValidationMethod(string propertyName, ValidateMethod validateMethod);
 }

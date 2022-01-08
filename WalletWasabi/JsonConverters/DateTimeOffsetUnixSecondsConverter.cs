@@ -1,34 +1,26 @@
 using Newtonsoft.Json;
-using System;
 
-namespace WalletWasabi.JsonConverters
+namespace WalletWasabi.JsonConverters;
+
+public class DateTimeOffsetUnixSecondsConverter : JsonConverter<DateTimeOffset>
 {
-	public class DateTimeOffsetUnixSecondsConverter : JsonConverter
+	/// <inheritdoc />
+	public override DateTimeOffset ReadJson(JsonReader reader, Type objectType, DateTimeOffset existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
-		/// <inheritdoc />
-		public override bool CanConvert(Type objectType)
+		var stringValue = reader.Value as string;
+		if (string.IsNullOrWhiteSpace(stringValue))
 		{
-			return objectType == typeof(DateTimeOffset);
+			return default;
 		}
+		else
+		{
+			return DateTimeOffset.FromUnixTimeSeconds(long.Parse(stringValue));
+		}
+	}
 
-		/// <inheritdoc />
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-		{
-			var stringValue = reader.Value as string;
-			if (string.IsNullOrWhiteSpace(stringValue))
-			{
-				return default(DateTimeOffset);
-			}
-			else
-			{
-				return DateTimeOffset.FromUnixTimeSeconds(long.Parse(stringValue));
-			}
-		}
-
-		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-		{
-			writer.WriteValue(((DateTimeOffset)value).ToUnixTimeSeconds());
-		}
+	/// <inheritdoc />
+	public override void WriteJson(JsonWriter writer, DateTimeOffset value, JsonSerializer serializer)
+	{
+		writer.WriteValue(value.ToUnixTimeSeconds());
 	}
 }

@@ -1,48 +1,46 @@
 using NBitcoin;
-using System;
 
-namespace WalletWasabi.Blockchain.TransactionBuilding
+namespace WalletWasabi.Blockchain.TransactionBuilding;
+
+public class MoneyRequest
 {
-	public class MoneyRequest
+	private MoneyRequest(Money? amount, MoneyRequestType type, bool subtractFee)
 	{
-		private MoneyRequest(Money? amount, MoneyRequestType type, bool subtractFee)
+		if (type is MoneyRequestType.AllRemaining or MoneyRequestType.Change)
 		{
-			if (type is MoneyRequestType.AllRemaining or MoneyRequestType.Change)
+			if (amount is not null)
 			{
-				if (amount is not null)
-				{
-					throw new ArgumentException("Must be null.", nameof(amount));
-				}
+				throw new ArgumentException("Must be null.", nameof(amount));
 			}
-			else if (type == MoneyRequestType.Value)
+		}
+		else if (type == MoneyRequestType.Value)
+		{
+			if (amount is null)
 			{
-				if (amount is null)
-				{
-					throw new ArgumentNullException(nameof(amount));
-				}
-				else if (amount <= Money.Zero)
-				{
-					throw new ArgumentOutOfRangeException(nameof(amount), amount.ToString(false, true), "Must be positive.");
-				}
+				throw new ArgumentNullException(nameof(amount));
 			}
-			else
+			else if (amount <= Money.Zero)
 			{
-				throw new NotSupportedException($"{nameof(type)} is not supported: {type}.");
+				throw new ArgumentOutOfRangeException(nameof(amount), amount.ToString(false, true), "Must be positive.");
 			}
-
-			Amount = amount;
-			Type = type;
-			SubtractFee = subtractFee;
+		}
+		else
+		{
+			throw new NotSupportedException($"{nameof(type)} is not supported: {type}.");
 		}
 
-		public Money? Amount { get; }
-		public MoneyRequestType Type { get; }
-		public bool SubtractFee { get; }
-
-		public static MoneyRequest Create(Money amount, bool subtractFee = false) => new(amount, MoneyRequestType.Value, subtractFee);
-
-		public static MoneyRequest CreateChange(bool subtractFee = true) => new(null, MoneyRequestType.Change, subtractFee);
-
-		public static MoneyRequest CreateAllRemaining(bool subtractFee = true) => new(null, MoneyRequestType.AllRemaining, subtractFee);
+		Amount = amount;
+		Type = type;
+		SubtractFee = subtractFee;
 	}
+
+	public Money? Amount { get; }
+	public MoneyRequestType Type { get; }
+	public bool SubtractFee { get; }
+
+	public static MoneyRequest Create(Money amount, bool subtractFee = false) => new(amount, MoneyRequestType.Value, subtractFee);
+
+	public static MoneyRequest CreateChange(bool subtractFee = true) => new(null, MoneyRequestType.Change, subtractFee);
+
+	public static MoneyRequest CreateAllRemaining(bool subtractFee = true) => new(null, MoneyRequestType.AllRemaining, subtractFee);
 }

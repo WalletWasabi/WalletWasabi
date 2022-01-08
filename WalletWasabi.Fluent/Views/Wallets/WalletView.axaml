@@ -41,7 +41,6 @@
               </StackPanel>
             </Button>
             <Button Classes="function"
-                    IsVisible="{Binding !IsEmptyWallet}"
                     Command="{Binding ReceiveCommand}">
               <StackPanel Orientation="Horizontal" Spacing="15">
                 <PathIcon Data="{StaticResource wallet_action_receive}" />
@@ -90,14 +89,14 @@
             <Setter Property="(DockPanel.Dock)" Value="Top"/>
           </Style>
           <Style Selector="Panel.normalLayout">
-            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="VerticalAlignment" Value="Top"/>
             <Setter Property="Margin" Value="0,0,0,11"/>
             <Setter Property="(DockPanel.Dock)" Value="Top"/>
           </Style>
           <Style Selector="Panel.wideLayout">
             <Setter Property="HorizontalAlignment" Value="Left"/>
-            <Setter Property="VerticalAlignment" Value="Top"/>
+            <Setter Property="VerticalAlignment" Value="Stretch"/>
             <Setter Property="Margin" Value="0,0,11,0"/>
             <Setter Property="(DockPanel.Dock)" Value="Left"/>
           </Style>
@@ -106,19 +105,12 @@
             <Setter Property="VerticalAlignment" Value="Stretch"/>
           </Style>
         </Panel.Styles>
-        <home:WalletTiles IsVisible="{Binding !IsEmptyWallet}"/>
-        <home:WalletTilesPlaceholder HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                                     IsVisible="{Binding IsEmptyWallet}"/>
+        <home:WalletTiles />
       </Panel>
       <Panel>
         <history:HistoryTable Name="HistoryTable"
                               DataContext="{Binding History}"
-                              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                              IsVisible="{Binding !IsTransactionHistoryEmpty}"/>
-        <history:HistoryTablePlaceholder Name="HistoryTablePlaceholder"
-                                         DataContext="{Binding History}"
-                                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                                         IsVisible="{Binding IsTransactionHistoryEmpty}"/>
+                              HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
       </Panel>
     </DockPanel>
   </c:ContentArea>
