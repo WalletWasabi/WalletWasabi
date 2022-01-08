@@ -1,12 +1,11 @@
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Fluent.Models
-{
-	public enum FeeDisplayFormat
-	{
-		BTC,
+namespace WalletWasabi.Fluent.Models;
 
-		[FriendlyName("sat/vByte")]
-		SatoshiPerByte,
-	}
+public enum FeeDisplayFormat
+{
+	BTC,
+
+	[FriendlyName("sat/vByte")]
+	SatoshiPerByte,
 }
