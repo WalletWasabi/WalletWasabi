@@ -14,7 +14,7 @@ public class ColumnHintsConverter : IValueConverter
 	{
 	}
 
-		object? IValueConverter.Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+	object? IValueConverter.Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
 		if (value is AvaloniaList<int> columnHints)
 		{
@@ -24,7 +24,7 @@ public class ColumnHintsConverter : IValueConverter
 		return null;
 	}
 
-		object? IValueConverter.ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+	object? IValueConverter.ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
 		if (value is string str)
 		{
@@ -33,7 +33,7 @@ public class ColumnHintsConverter : IValueConverter
 
 			foreach (var s in values)
 			{
-					if (TypeUtilities.TryConvert(typeof(int), s, culture, out var v) && v is { })
+				if (TypeUtilities.TryConvert(typeof(int), s, culture, out var v) && v is { })
 				{
 					columnHints.Add((int)v);
 				}

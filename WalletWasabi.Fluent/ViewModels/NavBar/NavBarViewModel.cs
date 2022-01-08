@@ -34,10 +34,10 @@ public partial class NavBarViewModel : ViewModelBase
 		_bottomItems = new ObservableCollection<NavBarItemViewModel>();
 
 		mainScreen.WhenAnyValue(x => x.CurrentPage)
-				.WhereNotNull()
+			.WhereNotNull()
 			.OfType<NavBarItemViewModel>()
 			.DistinctUntilChanged()
-				.Subscribe(CurrentPageChanged);
+			.Subscribe(CurrentPageChanged);
 
 		this.WhenAnyValue(x => x.SelectedItem)
 			.Subscribe(selectedItem =>
@@ -60,7 +60,7 @@ public partial class NavBarViewModel : ViewModelBase
 				{
 					if (!UiServices.WalletManager.IsLoadingWallet)
 					{
-							var lastSelectedItem = Items.FirstOrDefault(item => item is WalletViewModelBase wallet && wallet.WalletName == Services.UiConfig.LastSelectedWallet);
+						var lastSelectedItem = Items.FirstOrDefault(item => item is WalletViewModelBase wallet && wallet.WalletName == Services.UiConfig.LastSelectedWallet);
 
 						SelectedItem = lastSelectedItem ?? Items.FirstOrDefault();
 					}
@@ -77,19 +77,18 @@ public partial class NavBarViewModel : ViewModelBase
 			});
 
 		this.WhenAnyValue(x => x.IsHidden)
-			.Subscribe(
-				x =>
+			.Subscribe( x =>
 			{
 				CurrentCompactPaneLength = x ? 0 : NormalCompactPaneLength;
 				CurrentOpenPaneLength = x ? 0 : NormalOpenPaneLength;
 			});
 
 		UiServices.WalletManager.WhenAnyValue(x => x.SelectedWallet)
-				.WhereNotNull()
+			.WhereNotNull()
 			.OfType<NavBarItemViewModel>()
 			.Subscribe(x =>
 			{
-					SelectedItem = x;
+				SelectedItem = x;
 			});
 	}
 

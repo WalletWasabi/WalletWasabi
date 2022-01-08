@@ -62,24 +62,24 @@ public class Program
 			{
 				var (uiConfig, config) = LoadOrCreateConfigs(dataDir);
 
-					using (var singleInstanceChecker = new SingleInstanceChecker(config.Network))
-					{
-				singleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
+				using (var singleInstanceChecker = new SingleInstanceChecker(config.Network))
+				{
+					singleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
 
-				Global = CreateGlobal(dataDir, uiConfig, config);
+					Global = CreateGlobal(dataDir, uiConfig, config);
 
-				// TODO only required due to statusbar vm... to be removed.
-				Locator.CurrentMutable.RegisterConstant(Global);
+					// TODO only required due to statusbar vm... to be removed.
+					Locator.CurrentMutable.RegisterConstant(Global);
 
-				Services.Initialize(Global, singleInstanceChecker);
+					Services.Initialize(Global, singleInstanceChecker);
 
-				Logger.LogSoftwareStarted("Wasabi GUI");
-				BuildAvaloniaApp()
-							.AfterSetup(_ =>
-								ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light))
-					.StartWithClassicDesktopLifetime(args);
-			}
+					Logger.LogSoftwareStarted("Wasabi GUI");
+					BuildAvaloniaApp()
+								.AfterSetup(_ =>
+									ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light))
+						.StartWithClassicDesktopLifetime(args);
 				}
+			}
 			catch (OperationCanceledException ex)
 			{
 				Logger.LogDebug(ex);

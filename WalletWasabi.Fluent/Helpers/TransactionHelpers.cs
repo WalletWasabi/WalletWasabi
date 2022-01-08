@@ -61,10 +61,10 @@ public static class TransactionHelpers
 
 	public static BuildTransactionResult BuildTransaction(Wallet wallet, TransactionInfo transactionInfo, bool isPayJoin = false)
 	{
-			if (transactionInfo.Address is null)
-			{
-				throw new NullReferenceException();
-			}
+		if (transactionInfo.Address is null)
+		{
+			throw new NullReferenceException();
+		}
 
 		if (transactionInfo.IsOptimized)
 		{

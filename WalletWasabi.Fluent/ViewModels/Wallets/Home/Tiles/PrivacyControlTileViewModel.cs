@@ -29,14 +29,14 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 	{
 		_wallet = walletVm.Wallet;
 		_balanceChanged = balanceChanged;
-			_percentText = "";
+		_percentText = "";
 
 		_animationTimer = new DispatcherTimer
 		{
 			Interval = TimeSpan.FromSeconds(30)
 		};
 
-			_animationTimer.Tick += (_, _) =>
+		_animationTimer.Tick += (_, _) =>
 		{
 			ShowBoostingAnimation = !ShowBoostingAnimation;
 

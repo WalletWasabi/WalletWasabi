@@ -76,8 +76,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 				.FromEventPattern<Wallet>(Services.WalletManager, nameof(WalletManager.WalletAdded))
 			.Select(x => x.EventArgs)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(
-				wallet =>
+			.Subscribe(wallet =>
 			{
 				WalletViewModelBase vm = (wallet.State <= WalletState.Starting)
 					? ClosedWalletViewModel.Create(wallet)

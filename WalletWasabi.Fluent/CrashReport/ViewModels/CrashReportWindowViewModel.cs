@@ -24,10 +24,10 @@ public class CrashReportWindowViewModel : ViewModelBase
 
 		CopyTraceCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
-				if (Application.Current is { } && Application.Current.Clipboard is { })
-				{
-			await Application.Current.Clipboard.SetTextAsync(Trace);
-				}
+			if (Application.Current is { } && Application.Current.Clipboard is { })
+			{
+				await Application.Current.Clipboard.SetTextAsync(Trace);
+			}
 		});
 	}
 

@@ -12,18 +12,18 @@ public class StatusBarStateVisibilityConverter : IValueConverter
 	{
 	}
 
-		object? IValueConverter.Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+	object? IValueConverter.Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
-			if (value is StatusBarState state && parameter is StatusBarState paramState)
-			{
-				return state == paramState;
-			}
+		if (value is StatusBarState state && parameter is StatusBarState paramState)
+		{
+			return state == paramState;
+		}
 
-			return null;
+		return null;
 	}
 
-		object? IValueConverter.ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+	object? IValueConverter.ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
-			return null;
+		return null;
 	}
 }

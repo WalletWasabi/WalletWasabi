@@ -68,12 +68,12 @@ public class App : Application
 				RxApp.MainThreadScheduler.Schedule(
 					async () =>
 					{
-							if (_backendInitialiseAsync is { })
-							{
-						await _backendInitialiseAsync();
-							}
+						if (_backendInitialiseAsync is { })
+						{
+							await _backendInitialiseAsync();
+						}
 
-							MainViewModel.Instance.Initialize();
+						MainViewModel.Instance.Initialize();
 					});
 			}
 		}

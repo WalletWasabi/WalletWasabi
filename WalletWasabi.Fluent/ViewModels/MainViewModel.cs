@@ -98,10 +98,10 @@ public partial class MainViewModel : ViewModelBase
 			{
 				var (dialog, compactDialog, fullscreenDialog, mainsScreen) = tup;
 
-					/*
-					 * Order is important.
-					 * Always the topmost content will be the active one.
-					 */
+				/*
+				 * Order is important.
+				 * Always the topmost content will be the active one.
+				 */
 
 				if (compactDialog is { })
 				{
@@ -149,7 +149,7 @@ public partial class MainViewModel : ViewModelBase
 
 	public TargettedNavigationStack MainScreen { get; }
 
-		public static MainViewModel Instance { get; } = new();
+	public static MainViewModel Instance { get; } = new();
 
 	public void ClearStacks()
 	{

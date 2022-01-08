@@ -14,7 +14,7 @@ public class WidthTriggersConverter : IValueConverter
 	{
 	}
 
-		object? IValueConverter.Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+	object? IValueConverter.Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
 		if (value is AvaloniaList<double> widthTriggers)
 		{
@@ -24,7 +24,7 @@ public class WidthTriggersConverter : IValueConverter
 		return null;
 	}
 
-		object? IValueConverter.ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+	object? IValueConverter.ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
 		if (value is string str)
 		{
@@ -33,9 +33,9 @@ public class WidthTriggersConverter : IValueConverter
 
 			foreach (var s in values)
 			{
-					if (TypeUtilities.TryConvert(typeof(double), s, culture, out var v) && v is double vd)
+				if (TypeUtilities.TryConvert(typeof(double), s, culture, out var v) && v is double vd)
 				{
-						widthTriggers.Add(vd);
+					widthTriggers.Add(vd);
 				}
 				else
 				{

@@ -14,7 +14,7 @@ public partial class BtcPriceTileViewModel : TileViewModel
 	public BtcPriceTileViewModel(Wallet wallet)
 	{
 		_wallet = wallet;
-			_btcPrice = "";
+		_btcPrice = "";
 	}
 
 	protected override void OnActivated(CompositeDisposable disposables)

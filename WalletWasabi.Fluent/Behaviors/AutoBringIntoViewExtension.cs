@@ -41,7 +41,7 @@ public static class AutoBringIntoViewExtension
 						{
 							BringParentToView(ie);
 						}
-				});
+					});
 			}
 		}
 	}

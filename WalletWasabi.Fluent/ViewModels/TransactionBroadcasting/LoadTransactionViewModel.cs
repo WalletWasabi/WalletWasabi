@@ -59,29 +59,29 @@ public partial class LoadTransactionViewModel : DialogViewModelBase<SmartTransac
 	{
 		try
 		{
-				if (Application.Current is { Clipboard: { } clipboard })
-				{
-					var textToPaste = await clipboard.GetTextAsync();
-
-			if (string.IsNullOrWhiteSpace(textToPaste))
+			if (Application.Current is { Clipboard: { } clipboard })
 			{
-				throw new InvalidDataException("The clipboard is empty!");
-			}
+				var textToPaste = await clipboard.GetTextAsync();
 
-			if (PSBT.TryParse(textToPaste, Network, out var signedPsbt))
-			{
-				if (!signedPsbt.IsAllFinalized())
+				if (string.IsNullOrWhiteSpace(textToPaste))
 				{
-					signedPsbt.Finalize();
+					throw new InvalidDataException("The clipboard is empty!");
 				}
 
-				FinalTransaction = signedPsbt.ExtractSmartTransaction();
-			}
-			else
-			{
-						FinalTransaction =
-							new SmartTransaction(Transaction.Parse(textToPaste, Network), Height.Unknown);
+				if (PSBT.TryParse(textToPaste, Network, out var signedPsbt))
+				{
+					if (!signedPsbt.IsAllFinalized())
+					{
+						signedPsbt.Finalize();
 					}
+
+					FinalTransaction = signedPsbt.ExtractSmartTransaction();
+				}
+				else
+				{
+					FinalTransaction =
+						new SmartTransaction(Transaction.Parse(textToPaste, Network), Height.Unknown);
+				}
 			}
 		}
 		catch (Exception ex)

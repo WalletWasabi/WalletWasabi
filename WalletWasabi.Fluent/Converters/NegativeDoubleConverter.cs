@@ -11,7 +11,7 @@ public class NegativeDoubleConverter : IValueConverter
 	{
 	}
 
-		object? IValueConverter.Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+	object? IValueConverter.Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
 		if (value is double d)
 		{
@@ -21,8 +21,8 @@ public class NegativeDoubleConverter : IValueConverter
 		return null;
 	}
 
-		object? IValueConverter.ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+	object? IValueConverter.ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
-			return null;
+		return null;
 	}
 }

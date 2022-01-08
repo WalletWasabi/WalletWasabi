@@ -143,18 +143,18 @@ public class AdornerCanvas : Canvas, ICustomSimpleHitTest
 		clip.Rect = clipBounds;
 	}
 
-		private void ChildrenCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+	private void ChildrenCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
 	{
 		switch (e.Action)
 		{
 			case NotifyCollectionChangedAction.Add:
-					if (e.NewItems is { })
-					{
-				foreach (Visual i in e.NewItems)
+				if (e.NewItems is { })
 				{
-					UpdateAdornedElement(i, i.GetValue(AdornedElementProperty));
-				}
+					foreach (Visual i in e.NewItems)
+					{
+						UpdateAdornedElement(i, i.GetValue(AdornedElementProperty));
 					}
+				}
 
 				break;
 		}

@@ -19,16 +19,16 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 		{
 			if (CanShutdown())
 			{
-					if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime
-					desktopLifetime)
+				if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime
+				desktopLifetime)
 				{
 					desktopLifetime.Shutdown();
 				}
 			}
 			else
 			{
-					// Show the window if it was hidden.
-					ShowRequested?.Invoke(this, EventArgs.Empty);
+				// Show the window if it was hidden.
+				ShowRequested?.Invoke(this, EventArgs.Empty);
 
 				await MainViewModel.Instance!.CompactDialogScreen.NavigateDialogAsync(new Dialogs.ShowErrorDialogViewModel(
 					"Wasabi is currently anonymising your wallet. Please try again in a few minutes.",
@@ -39,27 +39,27 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 		ShowCommand = ReactiveCommand.Create(() => ShowRequested?.Invoke(this, EventArgs.Empty));
 
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-			{
-				var asset = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo_white.ico");
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+		{
+			var asset = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo_white.ico");
 
-				if (asset is { })
-				{
-					TrayIcon = new WindowIcon(asset);
-				}
-			}
-			else
+			if (asset is { })
 			{
-				var asset = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo.ico");
-
-				if (asset is { })
-				{
-					TrayIcon = new WindowIcon(asset);
-				}
+				TrayIcon = new WindowIcon(asset);
 			}
+		}
+		else
+		{
+			var asset = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo.ico");
+
+			if (asset is { })
+			{
+				TrayIcon = new WindowIcon(asset);
+			}
+		}
 	}
 
-		public WindowIcon? TrayIcon { get; }
+	public WindowIcon? TrayIcon { get; }
 
 	public event EventHandler? ShowRequested;
 
