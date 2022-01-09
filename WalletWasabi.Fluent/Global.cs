@@ -346,9 +346,6 @@ public class Global
 					Logger.LogInfo($"Disposed {nameof(LegalChecker)}.");
 				}
 
-				RoundStateUpdaterCircuit.Dispose();
-				Logger.LogInfo($"Disposed {nameof(RoundStateUpdaterCircuit)}.");
-
 				if (HostedServices is { } backgroundServices)
 				{
 					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
@@ -356,6 +353,9 @@ public class Global
 					backgroundServices.Dispose();
 					Logger.LogInfo("Stopped background services.");
 				}
+
+				RoundStateUpdaterCircuit.Dispose();
+				Logger.LogInfo($"Disposed {nameof(RoundStateUpdaterCircuit)}.");
 
 				if (Synchronizer is { } synchronizer)
 				{
