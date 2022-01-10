@@ -5,6 +5,9 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Avalonia.Controls;
+using Avalonia.Controls.Models.TreeDataGrid;
+using Avalonia.Controls.Templates;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
@@ -12,6 +15,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
+using WalletWasabi.Fluent.Views.Wallets.Home.History.Columns;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
@@ -47,11 +51,104 @@ public partial class HistoryViewModel : ActivatableViewModel
 			.Bind(_unfilteredTransactions)
 			.Bind(_transactions)
 			.Subscribe();
+
+
+			// [Column]			[View]						[Header]		[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
+			// Indicators		IndicatorsColumnView		-				Auto		80				-			false
+			// Date				DateColumnView				Date / Time		Auto		150				-			true
+			// Labels			LabelsColumnView			Labels			*			75				-			false
+			// Incoming			IncomingColumnView			Incoming (₿)	Auto		120				150			true
+			// Outgoing			OutgoingColumnView			Outgoing (₿)	Auto		120				150			true
+			// Balance			BalanceColumnView			Balance (₿)		Auto		120				150			true
+
+			IControl IndicatorsColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new IndicatorsColumnView() { Height = 37.5, MinWidth = 80 };
+			IControl DateColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new DateColumnView() { Height = 37.5, MinWidth = 150 };
+			IControl LabelsColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new LabelsColumnView() { Height = 37.5, MinWidth = 75 };
+			IControl IncomingColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new IncomingColumnView() { Height = 37.5, MinWidth = 120, MaxWidth = 150 };
+			IControl OutgoingColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new OutgoingColumnView() { Height = 37.5, MinWidth = 120, MaxWidth = 150 };
+			IControl BalanceColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new BalanceColumnView() { Height = 37.5, MinWidth = 120, MaxWidth = 150 };
+
+			Source = new FlatTreeDataGridSource<HistoryItemViewModelBase>(_transactions)
+            {
+                Columns =
+                {
+	                // Indicators
+                    new TemplateColumn<HistoryItemViewModelBase>(
+                        null,
+                        new FuncDataTemplate<HistoryItemViewModelBase>(IndicatorsColumnTemplate, true),
+                        options: new ColumnOptions<HistoryItemViewModelBase>
+                        {
+                            CanUserResizeColumn = false,
+                            CanUserSortColumn = false
+                        },
+                        width: new GridLength(0, GridUnitType.Auto)),
+                    // Date
+                    new TemplateColumn<HistoryItemViewModelBase>(
+	                    "Date / Time",
+	                    new FuncDataTemplate<HistoryItemViewModelBase>(DateColumnTemplate, true),
+	                    options: new ColumnOptions<HistoryItemViewModelBase>
+	                    {
+		                    CanUserResizeColumn = false,
+		                    CanUserSortColumn = true,
+		                    CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Date),
+		                    CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Date),
+	                    },
+	                    width: new GridLength(0, GridUnitType.Auto)),
+                    // Labels
+                    new TemplateColumn<HistoryItemViewModelBase>(
+	                    "Labels",
+	                    new FuncDataTemplate<HistoryItemViewModelBase>(LabelsColumnTemplate, true),
+	                    options: new ColumnOptions<HistoryItemViewModelBase>
+	                    {
+		                    CanUserResizeColumn = false,
+		                    CanUserSortColumn = false
+	                    },
+	                    width: new GridLength(1, GridUnitType.Star)),
+                    // Incoming
+                    new TemplateColumn<HistoryItemViewModelBase>(
+	                    "Incoming (₿)",
+	                    new FuncDataTemplate<HistoryItemViewModelBase>(IncomingColumnTemplate, true),
+	                    options: new ColumnOptions<HistoryItemViewModelBase>
+	                    {
+		                    CanUserResizeColumn = false,
+		                    CanUserSortColumn = true,
+		                    CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.IncomingAmount),
+		                    CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.IncomingAmount),
+	                    },
+	                    width: new GridLength(0, GridUnitType.Auto)),
+                    // Outgoing
+                    new TemplateColumn<HistoryItemViewModelBase>(
+	                    "Outgoing (₿)",
+	                    new FuncDataTemplate<HistoryItemViewModelBase>(OutgoingColumnTemplate, true),
+	                    options: new ColumnOptions<HistoryItemViewModelBase>
+	                    {
+		                    CanUserResizeColumn = false,
+		                    CanUserSortColumn = true,
+		                    CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.OutgoingAmount),
+		                    CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.OutgoingAmount),
+	                    },
+	                    width: new GridLength(0, GridUnitType.Auto)),
+                    // Balance
+                    new TemplateColumn<HistoryItemViewModelBase>(
+	                    "Balance (₿)",
+	                    new FuncDataTemplate<HistoryItemViewModelBase>(BalanceColumnTemplate, true),
+	                    options: new ColumnOptions<HistoryItemViewModelBase>
+	                    {
+		                    CanUserResizeColumn = false,
+		                    CanUserSortColumn = true,
+		                    CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Balance),
+		                    CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Balance),
+	                    },
+	                    width: new GridLength(0, GridUnitType.Auto)),
+                }
+            };
 	}
 
 	public ObservableCollection<HistoryItemViewModelBase> UnfilteredTransactions => _unfilteredTransactions;
 
 	public ObservableCollection<HistoryItemViewModelBase> Transactions => _transactions;
+
+	public FlatTreeDataGridSource<HistoryItemViewModelBase> Source { get; }
 
 	public void SelectTransaction(uint256 txid)
 	{
