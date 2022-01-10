@@ -1108,3 +1108,6 @@ ol li::marker {
         transform: scale(0.5) translateX(-50%) translateY(-50%);
     }
 }
+.cursor-select {
+    cursor: text;
+}
