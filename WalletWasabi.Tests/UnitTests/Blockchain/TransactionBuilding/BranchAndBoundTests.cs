@@ -31,7 +31,7 @@ public class BranchAndBoundTests
 	{
 		List<long> inputValues = new() { 120_000, 100_000, 100_000, 50_000, 40_000 };
 		BranchAndBound selector = new(inputValues);
-		List<long> expectedValues = new() { 100_000, 50_000, 40_000 };
+		List<long> expectedValues = new() { 40_000, 50_000, 100_000 };
 		long target = 190_000;
 
 		bool wasSuccessful = selector.TryGetExactMatch(target, out List<long>? selectedCoins);
@@ -46,7 +46,7 @@ public class BranchAndBoundTests
 	{
 		List<long> inputValues = new() { 120_000, 100_000, 100_000 };
 		BranchAndBound selector = new(inputValues);
-		List<long> expectedValues = new() { 120_000, 100_000, 100_000 };
+		List<long> expectedValues = new() { 100_000, 100_000, 120_000 };
 		long target = 320000;
 
 		bool wasSuccessful = selector.TryGetExactMatch(target, out List<long>? selectedCoins);
