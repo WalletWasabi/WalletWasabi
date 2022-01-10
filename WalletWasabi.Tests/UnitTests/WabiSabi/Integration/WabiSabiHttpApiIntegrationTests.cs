@@ -8,7 +8,6 @@ using Moq;
 using NBitcoin;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Logging;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
@@ -85,9 +84,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			{
 				var rpc = BitcoinFactory.GetMockMinimalRpc();
 
-					// Make the coordinator to believe that the coins are real and
-					// that they exist in the blockchain with many confirmations.
-					rpc.OnGetTxOutAsync = (txId, idx, _) => new()
+				// Make the coordinator to believe that the coins are real and
+				// that they exist in the blockchain with many confirmations.
+				rpc.OnGetTxOutAsync = (txId, idx, _) => new()
 				{
 					Confirmations = 101,
 					IsCoinBase = false,
@@ -95,19 +94,19 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					TxOut = coins.Single(x => x.TransactionId == txId && x.Index == idx).TxOut
 				};
 
-					// Make the coordinator believe that the transaction is being
-					// broadcasted using the RPC interface. Once we receive this tx
-					// (the `SendRawTransationAsync` was invoked) we stop waiting
-					// and finish the waiting tasks to finish the test successfully.
-					rpc.OnSendRawTransactionAsync = (tx) =>
-				{
-					transactionCompleted.SetResult(tx);
-					return tx.GetHash();
-				};
+				// Make the coordinator believe that the transaction is being
+				// broadcasted using the RPC interface. Once we receive this tx
+				// (the `SendRawTransationAsync` was invoked) we stop waiting
+				// and finish the waiting tasks to finish the test successfully.
+				rpc.OnSendRawTransactionAsync = (tx) =>
+			{
+				transactionCompleted.SetResult(tx);
+				return tx.GetHash();
+			};
 
-					// Instruct the coordinator DI container to use these two scoped
-					// services to build everything (WabiSabi controller, arena, etc)
-					services.AddScoped<IRPCClient>(s => rpc);
+				// Instruct the coordinator DI container to use these two scoped
+				// services to build everything (WabiSabi controller, arena, etc)
+				services.AddScoped<IRPCClient>(s => rpc);
 				services.AddScoped(s => new WabiSabiConfig
 				{
 					MaxInputCountByRound = inputCount,
@@ -184,9 +183,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			{
 				var rpc = BitcoinFactory.GetMockMinimalRpc();
 
-					// Make the coordinator to believe that the coins are real and
-					// that they exist in the blockchain with many confirmations.
-					rpc.OnGetTxOutAsync = (txId, idx, _) => new()
+				// Make the coordinator to believe that the coins are real and
+				// that they exist in the blockchain with many confirmations.
+				rpc.OnGetTxOutAsync = (txId, idx, _) => new()
 				{
 					Confirmations = 101,
 					IsCoinBase = false,
@@ -194,19 +193,19 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					TxOut = Enumerable.Concat(coins, badCoins).Single(x => x.TransactionId == txId && x.Index == idx).TxOut
 				};
 
-					// Make the coordinator believe that the transaction is being
-					// broadcasted using the RPC interface. Once we receive this tx
-					// (the `SendRawTransationAsync` was invoked) we stop waiting
-					// and finish the waiting tasks to finish the test successfully.
-					rpc.OnSendRawTransactionAsync = (tx) =>
-				{
-					transactionCompleted.SetResult(tx);
-					return tx.GetHash();
-				};
+				// Make the coordinator believe that the transaction is being
+				// broadcasted using the RPC interface. Once we receive this tx
+				// (the `SendRawTransationAsync` was invoked) we stop waiting
+				// and finish the waiting tasks to finish the test successfully.
+				rpc.OnSendRawTransactionAsync = (tx) =>
+			{
+				transactionCompleted.SetResult(tx);
+				return tx.GetHash();
+			};
 
-					// Instruct the coordinator DI container to use these two scoped
-					// services to build everything (WabiSabi controller, arena, etc)
-					services.AddScoped<IRPCClient>(s => rpc);
+				// Instruct the coordinator DI container to use these two scoped
+				// services to build everything (WabiSabi controller, arena, etc)
+				services.AddScoped<IRPCClient>(s => rpc);
 				services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig
 				{
 					MaxInputCountByRound = 2 * inputCount,
@@ -302,9 +301,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			{
 				builder.ConfigureServices(services =>
 				{
-						// Instruct the coordinator DI container to use these two scoped
-						// services to build everything (WabiSabi controller, arena, etc)
-						services.AddScoped<IRPCClient>(s => rpc);
+					// Instruct the coordinator DI container to use these two scoped
+					// services to build everything (WabiSabi controller, arena, etc)
+					services.AddScoped<IRPCClient>(s => rpc);
 					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig
 					{
 						MaxRegistrableAmount = Money.Coins(500m),
