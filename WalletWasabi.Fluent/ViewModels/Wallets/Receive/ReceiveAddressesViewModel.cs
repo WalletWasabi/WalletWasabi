@@ -83,13 +83,14 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 		model.SetKeyState(KeyState.Locked, Wallet.KeyManager);
 		InitializeAddresses();
 
-			if (Application.Current is { Clipboard: { } clipboard })
-			{
-				var isAddressCopied = await clipboard.GetTextAsync() == address;
-		if (isAddressCopied)
+		if (Application.Current is { Clipboard: { } clipboard })
 		{
-					await clipboard.ClearAsync();
-				}
+			var isAddressCopied = await clipboard.GetTextAsync() == address;
+
+			if (isAddressCopied)
+			{
+				await clipboard.ClearAsync();
+			}
 		}
 	}
 
