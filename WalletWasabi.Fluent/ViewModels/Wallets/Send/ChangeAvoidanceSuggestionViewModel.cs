@@ -147,7 +147,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 			suggestions.Add(smallerSuggestion);
 		}
 
-		if (bnbSuggestion is { })
+		if (bnbSuggestion is not null)
 		{
 			suggestions.Add(bnbSuggestion);
 		}
