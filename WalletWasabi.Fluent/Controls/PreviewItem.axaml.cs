@@ -41,9 +41,9 @@ public class PreviewItem : ContentControl
 			{
 				_copyButtonPressedStopwatch = Stopwatch.StartNew();
 
-				if (Application.Current is { Clipboard: { } })
+				if (Application.Current is { Clipboard: { } clipboard })
 				{
-					await Application.Current.Clipboard.SetTextAsync(text);
+					await clipboard.SetTextAsync(text);
 				}
 			}
 		});

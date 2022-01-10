@@ -176,7 +176,7 @@ public class CurrencyEntryBox : TextBox
 			return;
 		}
 
-		var preComposedText = PreComposeText(e.Text);
+		var preComposedText = PreComposeText(input);
 
 		decimal fiatValue = 0;
 
@@ -308,7 +308,7 @@ public class CurrencyEntryBox : TextBox
 	// be committed to the TextPresenter in this control.
 
 	// An event in Avalonia's TextBox with this function should be implemented there for brevity.
-	private string PreComposeText(string? input)
+	private string PreComposeText(string input)
 	{
 		input = RemoveInvalidCharacters(input);
 		var preComposedText = Text ?? "";

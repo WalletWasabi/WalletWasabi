@@ -76,7 +76,7 @@ internal class ResponsivePanelState
 	{
 		if (ColumnHints is null)
 		{
-			return new Size();
+			return Size.Empty;
 		}
 
 		var layoutIndex = 0;
