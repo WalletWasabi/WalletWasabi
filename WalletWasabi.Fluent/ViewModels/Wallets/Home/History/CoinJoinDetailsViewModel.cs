@@ -29,12 +29,12 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 		NextCommand = CancelCommand;
 
 		CopyCommand = ReactiveCommand.CreateFromTask<uint256>(async txid =>
+		{
+			if (Application.Current is { Clipboard: { } clipboard })
 			{
-				if (Application.Current is { Clipboard: { } clipboard })
-				{
-					await clipboard.SetTextAsync(txid.ToString());
-				}
-			});
+				await clipboard.SetTextAsync(txid.ToString());
+			}
+		});
 
 		Update();
 	}
