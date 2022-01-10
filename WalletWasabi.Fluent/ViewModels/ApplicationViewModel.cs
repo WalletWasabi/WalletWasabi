@@ -19,10 +19,9 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 		{
 			if (CanShutdown())
 			{
-				if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime
-				desktopLifetime)
+				if (Application.Current?.ApplicationLifetime is IControlledApplicationLifetime lifetime)
 				{
-					desktopLifetime.Shutdown();
+					lifetime.Shutdown();
 				}
 			}
 			else
@@ -41,20 +40,20 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 		{
-			var asset = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo_white.ico");
+			using var bitmap = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo_white.ico");
 
-			if (asset is { })
+			if (bitmap is { })
 			{
-				TrayIcon = new WindowIcon(asset);
+				TrayIcon = new WindowIcon(bitmap);
 			}
 		}
 		else
 		{
-			var asset = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo.ico");
+			using var bitmap = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo.ico");
 
-			if (asset is { })
+			if (bitmap is { })
 			{
-				TrayIcon = new WindowIcon(asset);
+				TrayIcon = new WindowIcon(bitmap);
 			}
 		}
 	}
