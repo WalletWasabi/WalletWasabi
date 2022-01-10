@@ -246,7 +246,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			IsBusy = true;
 
-			return await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info));
+			return await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info, tryToSign: false));
 		}
 		catch (TransactionFeeOverpaymentException ex)
 		{

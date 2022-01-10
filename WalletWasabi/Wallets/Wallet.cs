@@ -215,7 +215,8 @@ public class Wallet : BackgroundService
 		FeeStrategy feeStrategy,
 		bool allowUnconfirmed = false,
 		IEnumerable<OutPoint>? allowedInputs = null,
-		IPayjoinClient? payjoinClient = null)
+		IPayjoinClient? payjoinClient = null,
+		bool tryToSign = true)
 	{
 		var builder = new TransactionFactory(Network, KeyManager, Coins, BitcoinStore.TransactionStore, password, allowUnconfirmed);
 		return builder.BuildTransaction(
@@ -241,7 +242,8 @@ public class Wallet : BackgroundService
 				var currentTipHeight = BitcoinStore.SmartHeaderChain.TipHeight;
 				return LockTimeSelector.Instance.GetLockTimeBasedOnDistribution(currentTipHeight);
 			},
-			payjoinClient);
+			payjoinClient,
+			tryToSign: tryToSign);
 	}
 
 	/// <inheritdoc/>
