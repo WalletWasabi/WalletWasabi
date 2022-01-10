@@ -6,100 +6,99 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
+
+public abstract partial class HistoryItemViewModelBase : ViewModelBase
 {
-	public abstract partial class HistoryItemViewModelBase : ViewModelBase
+	[AutoNotify] private bool _isFlashing;
+	[AutoNotify] private int _orderIndex;
+	[AutoNotify] private DateTimeOffset _date;
+	[AutoNotify] private string _dateString = "";
+	[AutoNotify] private bool _isConfirmed;
+
+	protected HistoryItemViewModelBase(int orderIndex, TransactionSummary transactionSummary)
 	{
-		[AutoNotify] private bool _isFlashing;
-		[AutoNotify] private int _orderIndex;
-		[AutoNotify] private DateTimeOffset _date;
-		[AutoNotify] private string _dateString = "";
-		[AutoNotify] private bool _isConfirmed;
+		OrderIndex = orderIndex;
+		Id = transactionSummary.TransactionId;
 
-		protected HistoryItemViewModelBase(int orderIndex, TransactionSummary transactionSummary)
-		{
-			OrderIndex = orderIndex;
-			Id = transactionSummary.TransactionId;
-
-			this.WhenAnyValue(x => x.IsFlashing)
-				.Where(x => x)
-				.Subscribe(async _ =>
-				{
-					await Task.Delay(1260);
-					IsFlashing = false;
-				});
-		}
-
-		public uint256 Id { get; }
-
-		public List<string>? FilteredLabel { get; protected set; }
-
-		public List<string>? Label { get; protected set; }
-
-		public bool IsCoinJoin { get; protected set; }
-
-		public Money? Balance { get; protected set; }
-
-		public Money? OutgoingAmount { get; protected set; }
-
-		public Money? IncomingAmount { get; protected set; }
-
-		public ICommand? ShowDetailsCommand { get; protected set; }
-
-		public virtual void Update(HistoryItemViewModelBase item)
-		{
-			OrderIndex = item.OrderIndex;
-			Date = item.Date;
-			DateString = item.DateString;
-			IsConfirmed = item.IsConfirmed;
-		}
-
-		public bool IsSimilar(HistoryItemViewModelBase item) => Id == item.Id;
-
-		public static Comparison<HistoryItemViewModelBase?> SortAscending<T>(Func<HistoryItemViewModelBase, T> selector)
-		{
-			return (x, y) =>
+		this.WhenAnyValue(x => x.IsFlashing)
+			.Where(x => x)
+			.Subscribe(async _ =>
 			{
-				if (x is null && y is null)
-				{
-					return 0;
-				}
-				else if (x is null)
-				{
-					return -1;
-				}
-				else if (y is null)
-				{
-					return 1;
-				}
-				else
-				{
-					return Comparer<T>.Default.Compare(selector(x), selector(y));
-				}
-			};
-		}
+				await Task.Delay(1260);
+				IsFlashing = false;
+			});
+	}
 
-		public static Comparison<HistoryItemViewModelBase?> SortDescending<T>(Func<HistoryItemViewModelBase, T> selector)
+	public uint256 Id { get; }
+
+	public List<string>? FilteredLabel { get; protected set; }
+
+	public List<string>? Label { get; protected set; }
+
+	public bool IsCoinJoin { get; protected set; }
+
+	public Money? Balance { get; protected set; }
+
+	public Money? OutgoingAmount { get; protected set; }
+
+	public Money? IncomingAmount { get; protected set; }
+
+	public ICommand? ShowDetailsCommand { get; protected set; }
+
+	public virtual void Update(HistoryItemViewModelBase item)
+	{
+		OrderIndex = item.OrderIndex;
+		Date = item.Date;
+		DateString = item.DateString;
+		IsConfirmed = item.IsConfirmed;
+	}
+
+	public bool IsSimilar(HistoryItemViewModelBase item) => Id == item.Id;
+
+	public static Comparison<HistoryItemViewModelBase?> SortAscending<T>(Func<HistoryItemViewModelBase, T> selector)
+	{
+		return (x, y) =>
 		{
-			return (x, y) =>
+			if (x is null && y is null)
 			{
-				if (x is null && y is null)
-				{
-					return 0;
-				}
-				else if (x is null)
-				{
-					return 1;
-				}
-				else if (y is null)
-				{
-					return -1;
-				}
-				else
-				{
-					return Comparer<T>.Default.Compare(selector(y), selector(x));
-				}
-			};
-		}
+				return 0;
+			}
+			else if (x is null)
+			{
+				return -1;
+			}
+			else if (y is null)
+			{
+				return 1;
+			}
+			else
+			{
+				return Comparer<T>.Default.Compare(selector(x), selector(y));
+			}
+		};
+	}
+
+	public static Comparison<HistoryItemViewModelBase?> SortDescending<T>(Func<HistoryItemViewModelBase, T> selector)
+	{
+		return (x, y) =>
+		{
+			if (x is null && y is null)
+			{
+				return 0;
+			}
+			else if (x is null)
+			{
+				return 1;
+			}
+			else if (y is null)
+			{
+				return -1;
+			}
+			else
+			{
+				return Comparer<T>.Default.Compare(selector(y), selector(x));
+			}
+		};
 	}
 }
