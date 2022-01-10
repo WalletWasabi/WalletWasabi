@@ -80,7 +80,7 @@ public class BranchAndBound
 			}
 
 			Logger.LogInfo($"{Count} coins were involved in 'Branch and Bound' selection.");
-
+			selectedValues.Sort();
 			return true;
 		}
 

@@ -103,7 +103,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 		ChangeAvoidanceSuggestionViewModel? bnbSuggestion = null;
 
-		bool canBuildWithoutChangeWithBnb = BnBManager.CanCreateChangelessTransaction(wallet.Coins.Confirmed().ToList(), transactionInfo.Amount, out List<SmartCoin>? bnbResult);
+		bool canBuildWithoutChangeWithBnb = ChangelessTransactionCoinSelector.TryGetCoins(wallet.Coins.Available().Confirmed().ToList(), transactionInfo.FeeRate, transactionInfo.Amount, out List<SmartCoin>? bnbResult);
 
 		if (canBuildWithoutChangeWithBnb && bnbResult is not null)
 		{
