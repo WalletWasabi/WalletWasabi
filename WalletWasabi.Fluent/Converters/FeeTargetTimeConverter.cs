@@ -53,7 +53,7 @@ public class FeeTargetTimeConverter : IValueConverter
 
 	public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
-		throw new NotSupportedException();
+		throw new NotImplementedException();
 	}
 
 	private static string IfPlural(int val, string singular, string plural)

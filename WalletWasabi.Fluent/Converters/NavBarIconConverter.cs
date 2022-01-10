@@ -27,6 +27,6 @@ public class NavBarIconConverter : IValueConverter
 
 	object? IValueConverter.ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
-		throw new NotSupportedException();
+		throw new NotImplementedException();
 	}
 }
