@@ -2,14 +2,12 @@ using Avalonia.Data.Converters;
 using System.Globalization;
 using Avalonia;
 using WalletWasabi.Helpers;
-using WalletWasabi.Fluent.Models;
-using WalletWasabi.Exceptions;
 
 namespace WalletWasabi.Fluent.Converters;
 
 public class FeeTargetTimeConverter : IValueConverter
 {
-	public static string Convert(int feeTarget, string minutesLabel, string hourLabel, string hoursLabel, string dayLabel, string daysLabel)
+	public static string? Convert(int feeTarget, string minutesLabel, string hourLabel, string hoursLabel, string dayLabel, string daysLabel)
 	{
 		if (feeTarget == Constants.FastestConfirmationTarget)
 		{
@@ -38,14 +36,14 @@ public class FeeTargetTimeConverter : IValueConverter
 			return "one week";
 		}
 
-		return "invalid";
+		return null;
 	}
 
-	public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+	public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
 		if (value is int feeTarget)
 		{
-			return Convert(feeTarget, " minutes", " hour", " hours", " day", " days");
+			return Convert(feeTarget, " minutes", " hour", " hours", " day", " days") ?? AvaloniaProperty.UnsetValue;
 		}
 
 		return AvaloniaProperty.UnsetValue;
