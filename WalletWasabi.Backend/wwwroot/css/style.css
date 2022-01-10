@@ -800,6 +800,10 @@ body:not(:hover) .exitpopup {
     background-color: var(--green);
     border-color: var(--green);
 }
+.btn-download {
+    font-size: 20px;
+    padding: 15px 25px 9px;
+}
 .btn-primary:hover {
     background-color: var(--light-blue);
     border-color: var(--light-blue);
