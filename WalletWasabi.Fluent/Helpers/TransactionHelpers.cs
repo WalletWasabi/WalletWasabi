@@ -59,18 +59,13 @@ public static class TransactionHelpers
 		return txRes;
 	}
 
-	public static BuildTransactionResult BuildTransaction(Wallet wallet, TransactionInfo transactionInfo, bool isPayJoin = false)
+	public static BuildTransactionResult BuildTransaction(Wallet wallet, TransactionInfo transactionInfo, BitcoinAddress destination, bool isPayJoin = false)
 	{
-		if (transactionInfo.Address is null)
-		{
-			throw new Exception("Unable to build transaction without a valid address.");
-		}
-
 		if (transactionInfo.IsOptimized)
 		{
 			return BuildChangelessTransaction(
 				wallet,
-				transactionInfo.Address,
+				destination,
 				transactionInfo.UserLabels,
 				transactionInfo.FeeRate,
 				transactionInfo.ChangelessCoins);
@@ -83,7 +78,7 @@ public static class TransactionHelpers
 
 		return BuildTransaction(
 			wallet,
-			transactionInfo.Address,
+			destination,
 			transactionInfo.Amount,
 			transactionInfo.UserLabels,
 			transactionInfo.FeeRate,
@@ -93,13 +88,13 @@ public static class TransactionHelpers
 
 	}
 
-	public static bool TryBuildTransaction(Wallet wallet, TransactionInfo transactionInfo, [NotNullWhen(true)] out BuildTransactionResult? transaction, bool isPayJoin = false)
+	public static bool TryBuildTransaction(Wallet wallet, TransactionInfo transactionInfo, BitcoinAddress destination, [NotNullWhen(true)] out BuildTransactionResult? transaction, bool isPayJoin = false)
 	{
 		transaction = null;
 
 		try
 		{
-			transaction = BuildTransaction(wallet, transactionInfo, isPayJoin);
+			transaction = BuildTransaction(wallet, transactionInfo, destination, isPayJoin);
 		}
 		catch (Exception)
 		{

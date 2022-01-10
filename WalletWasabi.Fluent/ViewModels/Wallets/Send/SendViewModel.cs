@@ -34,7 +34,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 public partial class SendViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
-	private readonly PartialTransactionInfo _transactionInfo;
+	private readonly TransactionInfo _transactionInfo;
 	[AutoNotify] private string _to;
 	[AutoNotify] private decimal _amountBtc;
 	[AutoNotify] private decimal _exchangeRate;
@@ -48,7 +48,7 @@ public partial class SendViewModel : RoutableViewModel
 	{
 		_to = "";
 		_wallet = wallet;
-		_transactionInfo = new PartialTransactionInfo();
+		_transactionInfo = new TransactionInfo();
 
 		IsQrButtonVisible = WebcamQrReader.IsOsPlatformSupported;
 
@@ -111,8 +111,7 @@ public partial class SendViewModel : RoutableViewModel
 			{
 				_transactionInfo.Amount = new Money(AmountBtc, MoneyUnit.BTC);
 
-				Navigate().To(new TransactionPreviewViewModel(wallet,
-					_transactionInfo.ToFullTransaction(_currentAddress)));
+				Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo, _currentAddress));
 			}
 		}, nextCommandCanExecute);
 	}
