@@ -9,13 +9,15 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<TargetFramework>net5.0</TargetFramework>
+		<TargetFramework>net6.0</TargetFramework>
+		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
 		<AnalysisLevel>latest</AnalysisLevel>
 		<LangVersion>latest</LangVersion>
 		<NoWarn>1701;1702;1705;1591;1573;CA1031;CA1822</NoWarn>
 		<Nullable>enable</Nullable>
 		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 		<DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
+		<InvariantGlobalization>true</InvariantGlobalization>
 		<RuntimeIdentifiers>win7-x64;linux-x64;osx-x64</RuntimeIdentifiers>
 		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Fluent.Desktop</PathMap>
 	</PropertyGroup>
@@ -41,15 +43,15 @@
 		<PackageIcon>Assets\WasabiLogo.ico</PackageIcon>
 		<Product>Wasabi Wallet Fluent</Product>
 		<!-- owners is not supported in MSBuild -->
+		<AvaloniaVersion>0.10.11</AvaloniaVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<AvaloniaResource Include="Assets\**" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Avalonia" Version="0.10.10" />
-		<PackageReference Include="Avalonia.Desktop" Version="0.10.10" />
-		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.10" />
+		<PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
+		<PackageReference Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi.Fluent\WalletWasabi.Fluent.csproj" />

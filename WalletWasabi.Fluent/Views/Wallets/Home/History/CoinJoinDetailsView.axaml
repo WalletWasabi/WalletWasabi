@@ -18,7 +18,7 @@
       <c:PreviewItem Icon="{StaticResource timer_regular}"
                      Text="Date"
                      CopyParameter="{Binding Date}">
-        <TextBox Classes="selectableTextBlock" Text="{Binding Date}" />
+        <TextBlock Text="{Binding Date}" />
       </c:PreviewItem>
 
       <Separator />
@@ -60,7 +60,7 @@
       <!-- Status -->
       <c:PreviewItem Icon="{StaticResource status_regular}"
                      Text="Status">
-        <TextBox Classes="selectableTextBlock" Text="{Binding Status}" />
+        <TextBlock Text="{Binding Status}" />
       </c:PreviewItem>
 
       <Separator />
@@ -69,7 +69,7 @@
       <c:PreviewItem Icon="{StaticResource btc_logo}"
                      Text="Mining fee paid"
                      CopyParameter="{Binding CoinJoinFee}">
-        <TextBox Classes="selectableTextBlock" Text="{Binding CoinJoinFee, StringFormat={}{0} BTC}" />
+        <TextBlock Text="{Binding CoinJoinFee, StringFormat={}{0} BTC, Mode=OneWay}" />
       </c:PreviewItem>
 
     </StackPanel>

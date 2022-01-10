@@ -1,45 +1,43 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using ReactiveUI;
-using System;
 using System.Reactive.Linq;
 
-namespace WalletWasabi.Fluent.Behaviors
+namespace WalletWasabi.Fluent.Behaviors;
+
+public static class AutoBringIntoViewExtension
 {
-	public static class AutoBringIntoViewExtension
+	private static bool Initialised { get; set; }
+
+	public static void Initialise()
 	{
-		private static bool Initialised { get; set; }
-
-		public static void Initialise()
+		if (!Initialised)
 		{
-			if (!Initialised)
-			{
-				Initialised = true;
+			Initialised = true;
 
-				KeyboardDevice.Instance.WhenAnyValue(x => x.FocusedElement)
-				.OfType<IControl>()
-				.Subscribe(
-					x =>
+			KeyboardDevice.Instance.WhenAnyValue(x => x.FocusedElement)
+			.OfType<IControl>()
+			.Subscribe(
+				x =>
+				{
+					static void BringParentToView(IInputElement ie)
 					{
-						static void BringParentToView(IInputElement ie)
+						if (ie.VisualParent is IInputElement parent && parent.IsKeyboardFocusWithin)
 						{
-							if (ie.VisualParent is IInputElement parent && parent.IsKeyboardFocusWithin)
-							{
-								BringParentToView(parent);
-							}
-
-							if (ie is IControl ic)
-							{
-								ic.BringIntoView();
-							}
+							BringParentToView(parent);
 						}
 
-						if (x is IInputElement ie)
+						if (ie is IControl ic)
 						{
-							BringParentToView(ie);
+							ic.BringIntoView();
 						}
-					});
-			}
+					}
+
+					if (x is IInputElement ie)
+					{
+						BringParentToView(ie);
+					}
+				});
 		}
 	}
 }

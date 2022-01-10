@@ -14,7 +14,11 @@
   <DockPanel>
     <DockPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch">
       <TextBlock Text="Balance over time" DockPanel.Dock="Left" />
-      <Button Classes="plain" DockPanel.Dock="Right" HorizontalAlignment="Right" Margin="0 0 0 -3">
+      <Button Classes="plain"
+              DockPanel.Dock="Right"
+              HorizontalAlignment="Right"
+              Margin="0 0 0 -3"
+              IsVisible="{Binding !IsEmptyWallet}">
         <Button.Flyout>
           <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway">
             <ItemsControl Items="{Binding TimePeriodOptions}">
@@ -37,16 +41,32 @@
       </Button>
     </DockPanel>
     <c:PrivacyContentControl PrivacyReplacementMode="Icon">
-      <c:LineChart x:CompileBindings="True"
-                   DataContext="{Binding Animator}"
-                   Classes="area border xAxis xAxisLabels yAxis yAxisLabels"
-                   Margin="30 15 15 25"
-                   SmoothCurve="True"
-                   XAxisMinimum="{Binding XMinimum}"
-                   XAxisValues="{Binding XValues}"
-                   XAxisLabels="{Binding XLabels}"
-                   YAxisValues="{Binding YValues}"
-                   YAxisLabels="{Binding YLabels}" />
+      <Panel>
+        <c:LineChart x:CompileBindings="True"
+                     Classes="area border xAxis xAxisLabels yAxis yAxisLabels"
+                     Margin="30 15 15 25"
+                     SmoothCurve="True"
+                     XAxisMinimum="{Binding Animator.XMinimum}"
+                     XAxisValues="{Binding Animator.XValues}"
+                     XAxisLabels="{Binding Animator.XLabels}"
+                     YAxisValues="{Binding Animator.YValues}"
+                     YAxisLabels="{Binding Animator.YLabels}"
+                     IsVisible="{Binding !IsEmptyWallet}" />
+        <c:LineChart x:CompileBindings="True"
+                     Classes="area placeholder border xAxis yAxis"
+                     Margin="30 10 15 30"
+                     SmoothCurve="True"
+                     XAxisMinimum="{Binding Placeholder.XMinimum}"
+                     XAxisValues="{Binding Placeholder.XValues}"
+                     YAxisValues="{Binding Placeholder.YValues}"
+                     IsVisible="{Binding IsEmptyWallet}" />
+        <TextBlock Classes="h6 bold"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Center"
+                   IsVisible="{Binding IsEmptyWallet}"
+                   Opacity="{StaticResource HistoryTablePlaceholderTextOpacity}"
+                   Text="Nothing to see here yet." />
+      </Panel>
     </c:PrivacyContentControl>
   </DockPanel>
 </UserControl>

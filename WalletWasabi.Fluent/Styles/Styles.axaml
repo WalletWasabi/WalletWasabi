@@ -5,7 +5,7 @@
     <sys:Double x:Key="IconElementThemeHeight">16</sys:Double>
     <Easing x:Key="FluentEasing">0.4,0,0.6,1</Easing>
     <KeySpline x:Key="FluentKeySpline">0.4,0,0.6,1</KeySpline>
-    <FontFamily x:Key="MonospacedFont">avares://WalletWasabi.Fluent/Assets/Fonts/CascadiaCode.ttf</FontFamily>
+    <FontFamily x:Key="MonospacedFont">avares://WalletWasabi.Fluent/Assets/Fonts#Roboto Mono</FontFamily>
     <FontFamily x:Key="WasabiLogoTextFont">avares://WalletWasabi.Fluent/Assets/Fonts#Objectivity</FontFamily>
     <sys:Int32 x:Key="MaxLabelLength">50</sys:Int32>
   </Styles.Resources>
@@ -22,7 +22,9 @@
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/HyperlinkButton.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/AnimatedButton.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/CurrencyEntryBox.axaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/HistoryPlaceholderPanel.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/DataGrid.axaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/DataBox.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/RadioButton.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/SettingsLayout.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Slider.axaml" />

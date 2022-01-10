@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<PlatformTarget>x64</PlatformTarget>
-		<TargetFramework>net5.0</TargetFramework>
+		<TargetFramework>net6.0</TargetFramework>
+		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
 		<AnalysisLevel>latest</AnalysisLevel>
 		<IsPackable>false</IsPackable>
 		<LangVersion>latest</LangVersion>
@@ -12,19 +12,20 @@
 		<StartupObject />
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 		<Nullable>enable</Nullable>
+		<InvariantGlobalization>true</InvariantGlobalization>
 		<RuntimeIdentifiers>win7-x64;linux-x64;osx-x64</RuntimeIdentifiers>
 		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Tests</PathMap>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="coverlet.collector" Version="3.0.3">
+		<PackageReference Include="coverlet.collector" Version="3.1.0">
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
-		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="5.0.8" />
-		<PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.9.0" />
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.9.0" />
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.0" />
+		<PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.0.1" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.1" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
 		<PackageReference Include="Moq" Version="4.16.1" />
 		<PackageReference Include="xunit" Version="2.4.1" />
 		<PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
@@ -32,7 +33,7 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
 		</PackageReference>
 		<DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
-		<PackageReference Include="Avalonia.Desktop" Version="0.10.6" />
+		<PackageReference Include="Avalonia.Desktop" Version="0.10.10" />
 	</ItemGroup>
 
 	<ItemGroup>

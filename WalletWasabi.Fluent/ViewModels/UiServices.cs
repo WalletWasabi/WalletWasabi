@@ -1,14 +1,11 @@
-using WalletWasabi.Helpers;
+namespace WalletWasabi.Fluent.ViewModels;
 
-namespace WalletWasabi.Fluent.ViewModels
+public static class UiServices
 {
-	public static class UiServices
-	{
-		public static WalletManagerViewModel WalletManager { get; private set; } = null!;
+	public static WalletManagerViewModel WalletManager { get; private set; } = null!;
 
-		public static void Initialize()
-		{
-			WalletManager = new WalletManagerViewModel();
-		}
+	public static void Initialize()
+	{
+		WalletManager = new WalletManagerViewModel();
 	}
 }

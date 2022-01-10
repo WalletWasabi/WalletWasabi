@@ -1,5 +1,4 @@
 using NBitcoin;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -7,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Blockchain.BlockFilters;
+using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Tor;
@@ -16,158 +16,168 @@ using WalletWasabi.Tor.Socks5.Pool;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
-namespace WalletWasabi.Tests.IntegrationTests
+namespace WalletWasabi.Tests.IntegrationTests;
+
+[Collection("LiveServerTests collection")]
+public class LiveServerTests : IAsyncLifetime
 {
-	[Collection("LiveServerTests collection")]
-	public class LiveServerTests : IAsyncLifetime
+	public LiveServerTests(LiveServerTestsFixture liveServerTestsFixture)
 	{
-		public LiveServerTests(LiveServerTestsFixture liveServerTestsFixture)
-		{
-			LiveServerTestsFixture = liveServerTestsFixture;
+		LiveServerTestsFixture = liveServerTestsFixture;
 
-			TorHttpPool = new(new TorTcpConnectionFactory(Common.TorSocks5Endpoint));
-			TorManager = new(Common.TorSettings);
-		}
+		TorHttpPool = new(new TorTcpConnectionFactory(Common.TorSocks5Endpoint));
+		TorManager = new(Common.TorSettings);
+	}
 
-		private TorProcessManager TorManager { get; }
-		private TorHttpPool TorHttpPool { get; }
-		private LiveServerTestsFixture LiveServerTestsFixture { get; }
+	private TorProcessManager TorManager { get; }
+	private TorHttpPool TorHttpPool { get; }
+	private LiveServerTestsFixture LiveServerTestsFixture { get; }
 
-		public async Task InitializeAsync()
-		{
-			await TorManager.StartAsync();
-		}
+	public async Task InitializeAsync()
+	{
+		await TorManager.StartAsync();
+	}
 
-		public async Task DisposeAsync()
-		{
-			TorHttpPool.Dispose();
-			await TorManager.DisposeAsync();
-		}
+	public async Task DisposeAsync()
+	{
+		TorHttpPool.Dispose();
+		await TorManager.DisposeAsync();
+	}
 
-		#region Blockchain
+	#region Blockchain
 
-		[Theory]
-		[MemberData(nameof(GetNetworks))]
-		public async Task GetFiltersAsync(Network network)
-		{
-			TorHttpClient torHttpClient = MakeTorHttpClient(network);
-			WasabiClient client = new(torHttpClient);
+	[Theory]
+	[MemberData(nameof(GetNetworks))]
+	public async Task GetFiltersAsync(Network network)
+	{
+		TorHttpClient torHttpClient = MakeTorHttpClient(network);
+		WasabiClient client = new(torHttpClient);
 
-			var filterModel = StartingFilters.GetStartingFilter(network);
+		var filterModel = StartingFilters.GetStartingFilter(network);
 
-			FiltersResponse? filtersResponse = await client.GetFiltersAsync(filterModel.Header.BlockHash, 2);
+		FiltersResponse? filtersResponse = await client.GetFiltersAsync(filterModel.Header.BlockHash, 2);
 
-			Assert.NotNull(filtersResponse);
-			Assert.True(filtersResponse!.Filters.Count() == 2);
-		}
+		Assert.NotNull(filtersResponse);
+		Assert.True(filtersResponse!.Filters.Count() == 2);
+	}
 
-		[Theory]
-		[MemberData(nameof(GetNetworks))]
-		public async Task GetTransactionsAsync(Network network)
-		{
-			TorHttpClient torHttpClient = MakeTorHttpClient(network);
-			WasabiClient client = new(torHttpClient);
+	[Theory]
+	[MemberData(nameof(GetNetworks))]
+	public async Task GetAllRoundStatesAsync(Network network)
+	{
+		TorHttpClient torHttpClient = MakeTorHttpClient(network);
+		SatoshiClient client = new(torHttpClient);
+		var states = await client.GetAllRoundStatesAsync();
+		Assert.True(states.NotNullAndNotEmpty());
+		Assert.True(states.Any());
+	}
 
-			IEnumerable<uint256> randomTxIds = Enumerable.Range(0, 20).Select(_ => RandomUtils.GetUInt256());
+	[Theory]
+	[MemberData(nameof(GetNetworks))]
+	public async Task GetTransactionsAsync(Network network)
+	{
+		TorHttpClient torHttpClient = MakeTorHttpClient(network);
+		WasabiClient client = new(torHttpClient);
 
-			var ex = await Assert.ThrowsAsync<HttpRequestException>(async () =>
-				await client.GetTransactionsAsync(network, randomTxIds.Take(4), CancellationToken.None));
-			Assert.Equal("Bad Request\nNo such mempool or blockchain transaction. Use gettransaction for wallet transactions.", ex.Message);
+		IEnumerable<uint256> randomTxIds = Enumerable.Range(0, 20).Select(_ => RandomUtils.GetUInt256());
 
-			var mempoolTxIds = await client.GetMempoolHashesAsync(CancellationToken.None);
-			randomTxIds = Enumerable.Range(0, 5).Select(_ => mempoolTxIds.RandomElement()!).Distinct().ToArray();
-			var txs = await client.GetTransactionsAsync(network, randomTxIds, CancellationToken.None);
-			var returnedTxIds = txs.Select(tx => tx.GetHash());
-			Assert.Equal(returnedTxIds.OrderBy(x => x).ToArray(), randomTxIds.OrderBy(x => x).ToArray());
-		}
+		var ex = await Assert.ThrowsAsync<HttpRequestException>(async () =>
+			await client.GetTransactionsAsync(network, randomTxIds.Take(4), CancellationToken.None));
+		Assert.Equal("Bad Request\nNo such mempool or blockchain transaction. Use gettransaction for wallet transactions.", ex.Message);
 
-		#endregion Blockchain
+		var mempoolTxIds = await client.GetMempoolHashesAsync(CancellationToken.None);
+		randomTxIds = Enumerable.Range(0, 5).Select(_ => mempoolTxIds.RandomElement()!).Distinct().ToArray();
+		var txs = await client.GetTransactionsAsync(network, randomTxIds, CancellationToken.None);
+		var returnedTxIds = txs.Select(tx => tx.GetHash());
+		Assert.Equal(returnedTxIds.OrderBy(x => x).ToArray(), randomTxIds.OrderBy(x => x).ToArray());
+	}
 
-		#region Offchain
+	#endregion Blockchain
 
-		[Theory]
-		[MemberData(nameof(GetNetworks))]
-		public async Task GetExchangeRateAsync(Network network)
-		{
-			TorHttpClient torHttpClient = MakeTorHttpClient(network);
-			WasabiClient client = new(torHttpClient);
+	#region Offchain
 
-			var exchangeRates = await client.GetExchangeRatesAsync();
+	[Theory]
+	[MemberData(nameof(GetNetworks))]
+	public async Task GetExchangeRateAsync(Network network)
+	{
+		TorHttpClient torHttpClient = MakeTorHttpClient(network);
+		WasabiClient client = new(torHttpClient);
 
-			Assert.True(exchangeRates.NotNullAndNotEmpty());
-		}
+		var exchangeRates = await client.GetExchangeRatesAsync();
 
-		#endregion Offchain
+		Assert.True(exchangeRates.NotNullAndNotEmpty());
+	}
 
-		#region Software
+	#endregion Offchain
 
-		[Theory]
-		[MemberData(nameof(GetNetworks))]
-		public async Task GetVersionsTestsAsync(Network network)
-		{
-			TorHttpClient torHttpClient = MakeTorHttpClient(network);
-			WasabiClient client = new(torHttpClient);
+	#region Software
 
-			var versions = await client.GetVersionsAsync(CancellationToken.None);
-			Assert.InRange(versions.ClientVersion, new(1, 1, 10), new(1, 2));
-			Assert.InRange(versions.ClientVersion, new(1, 1, 10), WalletWasabi.Helpers.Constants.ClientVersion);
-			Assert.Equal(4, versions.BackendMajorVersion);
-			Assert.Equal(new(2, 0), versions.LegalDocumentsVersion);
-		}
+	[Theory]
+	[MemberData(nameof(GetNetworks))]
+	public async Task GetVersionsTestsAsync(Network network)
+	{
+		TorHttpClient torHttpClient = MakeTorHttpClient(network);
+		WasabiClient client = new(torHttpClient);
 
-		[Theory]
-		[MemberData(nameof(GetNetworks))]
-		public async Task CheckUpdatesTestsAsync(Network network)
-		{
-			TorHttpClient torHttpClient = MakeTorHttpClient(network);
-			WasabiClient client = new(torHttpClient);
+		var versions = await client.GetVersionsAsync(CancellationToken.None);
+		Assert.InRange(versions.ClientVersion, new(1, 1, 10), new(1, 2));
+		Assert.InRange(versions.ClientVersion, new(1, 1, 10), WalletWasabi.Helpers.Constants.ClientVersion);
+		Assert.Equal(4, versions.BackendMajorVersion);
+		Assert.Equal(new(2, 0), versions.LegalDocumentsVersion);
+	}
 
-			var updateStatus = await client.CheckUpdatesAsync(CancellationToken.None);
+	[Theory]
+	[MemberData(nameof(GetNetworks))]
+	public async Task CheckUpdatesTestsAsync(Network network)
+	{
+		TorHttpClient torHttpClient = MakeTorHttpClient(network);
+		WasabiClient client = new(torHttpClient);
 
-			Version expectedVersion = new(2, 0);
-			Version expectedClientVersion = new(1, 1, 12, 9);
-			ushort backendVersion = 4;
-			Assert.Equal(new(true, true, expectedVersion, backendVersion, expectedClientVersion), updateStatus);
-			Assert.True(updateStatus.BackendCompatible);
-			Assert.True(updateStatus.ClientUpToDate);
-			Assert.Equal(expectedVersion, updateStatus.LegalDocumentsVersion);
-			Assert.Equal(backendVersion, updateStatus.CurrentBackendMajorVersion);
+		var updateStatus = await client.CheckUpdatesAsync(CancellationToken.None);
 
-			var versions = await client.GetVersionsAsync(CancellationToken.None);
-			Assert.Equal(versions.LegalDocumentsVersion, updateStatus.LegalDocumentsVersion);
-		}
+		Version expectedVersion = new(2, 0);
+		Version expectedClientVersion = new(1, 1, 12, 9);
+		ushort backendVersion = 4;
+		Assert.Equal(new(true, true, expectedVersion, backendVersion, expectedClientVersion), updateStatus);
+		Assert.True(updateStatus.BackendCompatible);
+		Assert.True(updateStatus.ClientUpToDate);
+		Assert.Equal(expectedVersion, updateStatus.LegalDocumentsVersion);
+		Assert.Equal(backendVersion, updateStatus.CurrentBackendMajorVersion);
 
-		#endregion Software
+		var versions = await client.GetVersionsAsync(CancellationToken.None);
+		Assert.Equal(versions.LegalDocumentsVersion, updateStatus.LegalDocumentsVersion);
+	}
 
-		#region Wasabi
+	#endregion Software
 
-		[Theory]
-		[MemberData(nameof(GetNetworks))]
-		public async Task GetLegalDocumentsTestsAsync(Network network)
-		{
-			TorHttpClient torHttpClient = MakeTorHttpClient(network);
-			WasabiClient client = new(torHttpClient);
+	#region Wasabi
 
-			var content = await client.GetLegalDocumentsAsync(CancellationToken.None);
+	[Theory]
+	[MemberData(nameof(GetNetworks))]
+	public async Task GetLegalDocumentsTestsAsync(Network network)
+	{
+		TorHttpClient torHttpClient = MakeTorHttpClient(network);
+		WasabiClient client = new(torHttpClient);
 
-			var lines = content.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-			Assert.Equal("Last Updated: 2020-04-05", lines[0]);
-			var lineCount = lines.Length;
-			Assert.InRange(lineCount, 100, 1000);
-		}
+		var content = await client.GetLegalDocumentsAsync(CancellationToken.None);
 
-		#endregion Wasabi
+		var lines = content.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+		Assert.Equal("Last Updated: 2020-04-05", lines[0]);
+		var lineCount = lines.Length;
+		Assert.InRange(lineCount, 100, 1000);
+	}
 
-		private TorHttpClient MakeTorHttpClient(Network network)
-		{
-			Uri baseUri = LiveServerTestsFixture.UriMappings[network];
-			return new(baseUri, TorHttpPool);
-		}
+	#endregion Wasabi
 
-		public static IEnumerable<object[]> GetNetworks()
-		{
-			yield return new object[] { Network.Main };
-			yield return new object[] { Network.TestNet };
-		}
+	private TorHttpClient MakeTorHttpClient(Network network)
+	{
+		Uri baseUri = LiveServerTestsFixture.UriMappings[network];
+		return new(baseUri, TorHttpPool);
+	}
+
+	public static IEnumerable<object[]> GetNetworks()
+	{
+		yield return new object[] { Network.Main };
+		yield return new object[] { Network.TestNet };
 	}
 }

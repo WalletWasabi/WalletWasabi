@@ -1,26 +1,21 @@
 using NBitcoin;
 using Newtonsoft.Json;
-using System;
 
-namespace WalletWasabi.JsonConverters.Bitcoin
+namespace WalletWasabi.JsonConverters.Bitcoin;
+
+public class FeeRateJsonConverter : JsonConverter<FeeRate>
 {
-	public class FeeRateJsonConverter : JsonConverter
+	/// <inheritdoc />
+	public override FeeRate? ReadJson(JsonReader reader, Type objectType, FeeRate? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
-		public override bool CanConvert(Type objectType)
-		{
-			return objectType == typeof(FeeRate);
-		}
+		var serialized = (long?)reader.Value;
+		return serialized is null ? null : new FeeRate(Money.Satoshis(serialized.Value));
+	}
 
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-		{
-			return new FeeRate(Money.Satoshis((long)reader.Value));
-		}
-
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-		{
-			var feerate = (FeeRate)value;
-
-			writer.WriteValue(feerate.FeePerK.Satoshi);
-		}
+	/// <inheritdoc />
+	public override void WriteJson(JsonWriter writer, FeeRate? value, JsonSerializer serializer)
+	{
+		var longValue = value?.FeePerK.Satoshi ?? throw new ArgumentNullException(nameof(value));
+		writer.WriteValue(longValue);
 	}
 }
