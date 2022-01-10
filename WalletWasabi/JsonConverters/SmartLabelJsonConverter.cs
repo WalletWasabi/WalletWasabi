@@ -1,27 +1,26 @@
 using Newtonsoft.Json;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 
-namespace WalletWasabi.JsonConverters
+namespace WalletWasabi.JsonConverters;
+
+public class SmartLabelJsonConverter : JsonConverter
 {
-	public class SmartLabelJsonConverter : JsonConverter
+	public override bool CanConvert(Type objectType)
 	{
-		public override bool CanConvert(Type objectType)
-		{
-			return objectType == typeof(SmartLabel);
-		}
+		return objectType == typeof(SmartLabel);
+	}
 
-		/// <inheritdoc />
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-		{
-			var s = reader.Value as string;
-			return new SmartLabel(s);
-		}
+	/// <inheritdoc />
+	public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+	{
+		var s = reader.Value as string;
+		return new SmartLabel(s);
+	}
 
-		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-		{
-			var label = value as SmartLabel;
-			writer.WriteValue(label ?? "");
-		}
+	/// <inheritdoc />
+	public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+	{
+		var label = value as SmartLabel;
+		writer.WriteValue(label ?? "");
 	}
 }

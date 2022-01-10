@@ -1,68 +1,67 @@
 using NBitcoin;
 
-namespace WalletWasabi.Blockchain.Transactions
+namespace WalletWasabi.Blockchain.Transactions;
+
+public class TransactionBroadcastEntry
 {
-	public class TransactionBroadcastEntry
+	public TransactionBroadcastEntry(Transaction transaction, string nodeRemoteSocketEndpoint)
 	{
-		public TransactionBroadcastEntry(Transaction transaction, string nodeRemoteSocketEndpoint)
+		Lock = new object();
+		Transaction = transaction;
+		TransactionId = Transaction.GetHash();
+		Broadcasted = false;
+		PropagationConfirmations = 0;
+		NodeRemoteSocketEndpoint = nodeRemoteSocketEndpoint;
+	}
+
+	public Transaction Transaction { get; }
+	public uint256 TransactionId { get; }
+	public string NodeRemoteSocketEndpoint { get; }
+
+	private bool Broadcasted { get; set; }
+	private int PropagationConfirmations { get; set; }
+
+	private object Lock { get; }
+
+	public void MakeBroadcasted()
+	{
+		lock (Lock)
 		{
-			Lock = new object();
-			Transaction = transaction;
-			TransactionId = Transaction.GetHash();
-			Broadcasted = false;
-			PropagationConfirmations = 0;
-			NodeRemoteSocketEndpoint = nodeRemoteSocketEndpoint;
+			Broadcasted = true;
 		}
+	}
 
-		public Transaction Transaction { get; }
-		public uint256 TransactionId { get; }
-		public string NodeRemoteSocketEndpoint { get; }
-
-		private bool Broadcasted { get; set; }
-		private int PropagationConfirmations { get; set; }
-
-		private object Lock { get; }
-
-		public void MakeBroadcasted()
+	public bool IsBroadcasted()
+	{
+		lock (Lock)
 		{
-			lock (Lock)
-			{
-				Broadcasted = true;
-			}
+			return Broadcasted;
 		}
+	}
 
-		public bool IsBroadcasted()
+	public void ConfirmPropagationOnce()
+	{
+		lock (Lock)
 		{
-			lock (Lock)
-			{
-				return Broadcasted;
-			}
+			Broadcasted = true;
+			PropagationConfirmations++;
 		}
+	}
 
-		public void ConfirmPropagationOnce()
+	public void ConfirmPropagationForGood()
+	{
+		lock (Lock)
 		{
-			lock (Lock)
-			{
-				Broadcasted = true;
-				PropagationConfirmations++;
-			}
+			Broadcasted = true;
+			PropagationConfirmations = 21;
 		}
+	}
 
-		public void ConfirmPropagationForGood()
+	public int GetPropagationConfirmations()
+	{
+		lock (Lock)
 		{
-			lock (Lock)
-			{
-				Broadcasted = true;
-				PropagationConfirmations = 21;
-			}
-		}
-
-		public int GetPropagationConfirmations()
-		{
-			lock (Lock)
-			{
-				return PropagationConfirmations;
-			}
+			return PropagationConfirmations;
 		}
 	}
 }

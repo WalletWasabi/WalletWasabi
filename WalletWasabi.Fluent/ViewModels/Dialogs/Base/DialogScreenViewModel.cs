@@ -4,55 +4,54 @@ using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
-namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base
+namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+
+public partial class DialogScreenViewModel : TargettedNavigationStack
 {
-	public partial class DialogScreenViewModel : TargettedNavigationStack
+	[AutoNotify] private bool _isDialogOpen;
+
+	public DialogScreenViewModel(NavigationTarget navigationTarget = NavigationTarget.DialogScreen) : base(navigationTarget)
 	{
-		[AutoNotify] private bool _isDialogOpen;
-
-		public DialogScreenViewModel(NavigationTarget navigationTarget = NavigationTarget.DialogScreen) : base(navigationTarget)
-		{
-			this.WhenAnyValue(x => x.IsDialogOpen)
-				.Skip(1) // Skip the initial value change (which is false).
-				.DistinctUntilChanged()
-				.Subscribe(
-					x =>
-					{
-						if (!x)
-						{
-							CloseScreen();
-						}
-					});
-		}
-
-		protected override void OnNavigated(RoutableViewModel? oldPage, bool oldInStack, RoutableViewModel? newPage, bool newInStack)
-		{
-			base.OnNavigated(oldPage, oldInStack, newPage, newInStack);
-
-			IsDialogOpen = CurrentPage is not null;
-		}
-
-		private static void CloseDialogs(IEnumerable<RoutableViewModel> navigationStack)
-		{
-			// Close all dialogs so the awaited tasks can complete.
-			// - DialogViewModelBase.ShowDialogAsync()
-			// - DialogViewModelBase.GetDialogResultAsync()
-
-			foreach (var routable in navigationStack)
-			{
-				if (routable is DialogViewModelBase dialog)
+		this.WhenAnyValue(x => x.IsDialogOpen)
+			.Skip(1) // Skip the initial value change (which is false).
+			.DistinctUntilChanged()
+			.Subscribe(
+				x =>
 				{
-					dialog.IsDialogOpen = false;
-				}
+					if (!x)
+					{
+						CloseScreen();
+					}
+				});
+	}
+
+	protected override void OnNavigated(RoutableViewModel? oldPage, bool oldInStack, RoutableViewModel? newPage, bool newInStack)
+	{
+		base.OnNavigated(oldPage, oldInStack, newPage, newInStack);
+
+		IsDialogOpen = CurrentPage is not null;
+	}
+
+	private static void CloseDialogs(IEnumerable<RoutableViewModel> navigationStack)
+	{
+		// Close all dialogs so the awaited tasks can complete.
+		// - DialogViewModelBase.ShowDialogAsync()
+		// - DialogViewModelBase.GetDialogResultAsync()
+
+		foreach (var routable in navigationStack)
+		{
+			if (routable is DialogViewModelBase dialog)
+			{
+				dialog.IsDialogOpen = false;
 			}
 		}
+	}
 
-		private void CloseScreen()
-		{
-			var navStack = Stack.ToList();
-			Clear();
+	private void CloseScreen()
+	{
+		var navStack = Stack.ToList();
+		Clear();
 
-			CloseDialogs(navStack);
-		}
+		CloseDialogs(navStack);
 	}
 }

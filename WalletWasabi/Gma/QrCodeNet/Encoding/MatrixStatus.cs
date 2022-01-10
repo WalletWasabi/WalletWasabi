@@ -1,9 +1,8 @@
-namespace Gma.QrCodeNet.Encoding
+namespace Gma.QrCodeNet.Encoding;
+
+public enum MatrixStatus
 {
-	public enum MatrixStatus
-	{
-		None,
-		NoMask,
-		Data
-	}
+	None,
+	NoMask,
+	Data
 }

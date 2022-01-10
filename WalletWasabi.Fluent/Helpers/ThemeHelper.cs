@@ -2,34 +2,33 @@ using System.Linq;
 using Avalonia;
 using Avalonia.Markup.Xaml.Styling;
 
-namespace WalletWasabi.Fluent.Helpers
+namespace WalletWasabi.Fluent.Helpers;
+
+public enum Theme
 {
-	public enum Theme
-	{
-		Dark,
-		Light
-	}
+	Dark,
+	Light
+}
 
-	public static class ThemeHelper
-	{
-		public static Theme CurrentTheme { get; private set; }
+public static class ThemeHelper
+{
+	public static Theme CurrentTheme { get; private set; }
 
-		public static void ApplyTheme(Theme theme)
+	public static void ApplyTheme(Theme theme)
+	{
+		var currentTheme = Application.Current.Styles.Select(x => (StyleInclude)x).FirstOrDefault(x => x.Source is { } && x.Source.AbsolutePath.Contains("Themes"));
+
+		if (currentTheme is { })
 		{
-			var currentTheme = Application.Current.Styles.Select(x => (StyleInclude)x).FirstOrDefault(x => x.Source is { } && x.Source.AbsolutePath.Contains("Themes"));
+			var themeIndex = Application.Current.Styles.IndexOf(currentTheme);
 
-			if (currentTheme is { })
+			var newTheme = new StyleInclude(new Uri("avares://WalletWasabi.Fluent/App.axaml"))
 			{
-				var themeIndex = Application.Current.Styles.IndexOf(currentTheme);
+				Source = new Uri($"avares://WalletWasabi.Fluent/Styles/Themes/Base{theme}.axaml")
+			};
 
-				var newTheme = new StyleInclude(new Uri("avares://WalletWasabi.Fluent/App.axaml"))
-				{
-					Source = new Uri($"avares://WalletWasabi.Fluent/Styles/Themes/Base{theme}.axaml")
-				};
-
-				CurrentTheme = theme;
-				Application.Current.Styles[themeIndex] = newTheme;
-			}
+			CurrentTheme = theme;
+			Application.Current.Styles[themeIndex] = newTheme;
 		}
 	}
 }

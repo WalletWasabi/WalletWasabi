@@ -1,7 +1,6 @@
-namespace WalletWasabi.Blockchain.Transactions.Operations
+namespace WalletWasabi.Blockchain.Transactions.Operations;
+
+public interface ITxStoreOperation
 {
-	public interface ITxStoreOperation
-	{
-		public bool IsEmpty { get; }
-	}
+	public bool IsEmpty { get; }
 }
