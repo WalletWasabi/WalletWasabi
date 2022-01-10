@@ -1,6 +1,3 @@
-using System;
-using System.Linq;
-using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -37,7 +34,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 public partial class SendViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
-	private readonly TransactionInfo _transactionInfo;
+	private readonly PartialTransactionInfo _transactionInfo;
 	[AutoNotify] private string _to;
 	[AutoNotify] private decimal _amountBtc;
 	[AutoNotify] private decimal _exchangeRate;
@@ -45,12 +42,13 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private bool _isPayJoin;
 	[AutoNotify] private string? _payJoinEndPoint;
 	private bool _parsingUrl;
+	private BitcoinAddress? _currentAddress;
 
 	public SendViewModel(Wallet wallet)
 	{
 		_to = "";
 		_wallet = wallet;
-		_transactionInfo = new TransactionInfo();
+		_transactionInfo = new PartialTransactionInfo();
 
 		IsQrButtonVisible = WebcamQrReader.IsOsPlatformSupported;
 
@@ -109,9 +107,13 @@ public partial class SendViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.Create(() =>
 		{
-			_transactionInfo.Amount = new Money(AmountBtc, MoneyUnit.BTC);
+			if (_currentAddress is { })
+			{
+				_transactionInfo.Amount = new Money(AmountBtc, MoneyUnit.BTC);
 
-			Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo));
+				Navigate().To(new TransactionPreviewViewModel(wallet,
+					_transactionInfo.ToFullTransaction(_currentAddress)));
+			}
 		}, nextCommandCanExecute);
 	}
 
@@ -252,7 +254,7 @@ public partial class SendViewModel : RoutableViewModel
 
 			if (url.Address is { })
 			{
-				_transactionInfo.Address = url.Address;
+				_currentAddress = url.Address;
 				To = url.Address.ToString();
 			}
 
