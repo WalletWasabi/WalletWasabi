@@ -42,12 +42,13 @@ public partial class SearchPasswordViewModel : RoutableViewModel
 
 		var t = Task.Run(() => FindPassword(Options, cancelToken.Token));
 
-		Disposable.Create(async () =>
+		disposables.Add(Disposable.Create(async () =>
 		{
 			cancelToken.Cancel();
 			await t;
-		})
-		.DisposeWith(disposables);
+		}));
+
+		disposables.Add(cancelToken);
 	}
 
 	private void FindPassword(PasswordFinderOptions options, CancellationToken token)
