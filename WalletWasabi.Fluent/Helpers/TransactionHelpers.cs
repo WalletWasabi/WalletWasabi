@@ -63,7 +63,7 @@ public static class TransactionHelpers
 	{
 		if (transactionInfo.Address is null)
 		{
-			throw new NullReferenceException();
+			throw new Exception("Unable to build transaction without a valid address.");
 		}
 
 		if (transactionInfo.IsOptimized)
