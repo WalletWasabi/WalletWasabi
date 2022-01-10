@@ -804,6 +804,11 @@ body:not(:hover) .exitpopup {
     font-size: 20px;
     padding: 15px 25px 9px;
 }
+.btn-download svg {
+    fill: #FFF;
+    height: 26px;
+    margin-left: 5px;
+}
 .btn-primary:hover {
     background-color: var(--light-blue);
     border-color: var(--light-blue);
