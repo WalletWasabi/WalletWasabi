@@ -34,7 +34,7 @@ public partial class SearchPageViewModel : NavBarItemViewModel
 	public void Initialise()
 	{
 		foreach (var metaData in NavigationManager.MetaData.Where(
-			x => x.Searchable))
+			         x => x.Searchable))
 		{
 			RegisterSearchEntry(metaData);
 		}
@@ -44,19 +44,16 @@ public partial class SearchPageViewModel : NavBarItemViewModel
 			.Select(SearchQueryFilter)
 			.DistinctUntilChanged();
 
-		if (_sourceObservable is { })
-		{
-			_sourceObservable
-				.Filter(queryFilter)
-				.GroupWithImmutableState(x => x.Category)
-						.Transform(grouping =>
-							new SearchResult(grouping.Key, grouping.Items.OrderBy(x => x.Order).ThenBy(x => x.Title)))
-						.Sort(SortExpressionComparer<SearchResult>.Ascending(i => i.Category.Order)
-							.ThenByAscending(i => i.Category.Title))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Bind(out _searchResults)
-				.AsObservableList();
-		}
+		_sourceObservable?
+			.Filter(queryFilter)
+			.GroupWithImmutableState(x => x.Category)
+			.Transform(grouping =>
+				new SearchResult(grouping.Key, grouping.Items.OrderBy(x => x.Order).ThenBy(x => x.Title)))
+			.Sort(SortExpressionComparer<SearchResult>.Ascending(i => i.Category.Order)
+				.ThenByAscending(i => i.Category.Title))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Bind(out _searchResults)
+			.AsObservableList();
 	}
 
 	public void RegisterCategory(string title, int order)
