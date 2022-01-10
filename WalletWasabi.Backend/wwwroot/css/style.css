@@ -521,6 +521,14 @@ footer .white-text {
     background: #fff;
     color: var(--black);
 }
+.feature-box {
+    background: #F8F8F8;
+    padding: 20px 40px;
+    color: var(--blue);
+}
+.feature-box .title {
+    font-size: 24px;
+}
 .faq-box {
     background: #F8F8F8;
     padding: 40px;
