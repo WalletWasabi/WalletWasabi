@@ -68,10 +68,7 @@ public class App : Application
 				RxApp.MainThreadScheduler.Schedule(
 					async () =>
 					{
-						if (_backendInitialiseAsync is { })
-						{
-							await _backendInitialiseAsync();
-						}
+						await _backendInitialiseAsync!(); // Guaranteed not to be null when not in designer.
 
 						MainViewModel.Instance.Initialize();
 					});
