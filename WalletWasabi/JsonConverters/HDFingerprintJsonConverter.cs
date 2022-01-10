@@ -11,7 +11,7 @@ public class HDFingerprintJsonConverter : JsonConverter<HDFingerprint>
 		var s = (string?)reader.Value;
 		if (string.IsNullOrWhiteSpace(s))
 		{
-			throw new ArgumentNullException(nameof(reader.Value));
+			return default;
 		}
 
 		var fp = new HDFingerprint(ByteHelpers.FromHex(s));
