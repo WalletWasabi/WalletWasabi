@@ -6,7 +6,7 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class AssetHelpers
 {
-	public static Bitmap? GetBitmapAsset(Uri uri)
+	public static Bitmap GetBitmapAsset(Uri uri)
 	{
 		var assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
 
@@ -16,10 +16,10 @@ public static class AssetHelpers
 			return new Bitmap(image);
 		}
 
-		return null;
+		throw new Exception("Program is not initialised or is in an inconsistent state.");
 	}
 
-	public static Bitmap? GetBitmapAsset(string path)
+	public static Bitmap GetBitmapAsset(string path)
 	{
 		return GetBitmapAsset(new Uri(path));
 	}

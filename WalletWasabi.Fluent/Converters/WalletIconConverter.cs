@@ -1,3 +1,5 @@
+using System.Globalization;
+using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media.Imaging;
 using WalletWasabi.Fluent.Helpers;
@@ -5,12 +7,35 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Converters;
 
-public static class WalletIconConverter
+public class WalletIconConverter : IValueConverter
 {
-	public static readonly IValueConverter WalletTypeToImage =
-		new FuncValueConverter<WalletType, Bitmap?>(GetBitmap);
+	public static readonly IValueConverter WalletTypeToImage = new WalletIconConverter();
 
-	private static Bitmap? GetBitmap(WalletType type)
+
+
+	public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+	{
+		if (value is WalletType type)
+		{
+			try
+			{
+				return GetBitmap(type);
+			}
+			catch
+			{
+				// ignored
+			}
+		}
+
+		return AvaloniaProperty.UnsetValue;
+	}
+
+	public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+	{
+		throw new NotSupportedException();
+	}
+
+	private static Bitmap GetBitmap(WalletType type)
 	{
 		Uri uri = new($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/generic.png");
 

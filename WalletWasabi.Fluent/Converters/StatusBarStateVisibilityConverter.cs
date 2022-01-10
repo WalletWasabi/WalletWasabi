@@ -1,4 +1,5 @@
 using System.Globalization;
+using Avalonia;
 using Avalonia.Data.Converters;
 using WalletWasabi.Fluent.Models;
 
@@ -19,11 +20,11 @@ public class StatusBarStateVisibilityConverter : IValueConverter
 			return state == paramState;
 		}
 
-		return null;
+		return AvaloniaProperty.UnsetValue;
 	}
 
 	object? IValueConverter.ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
-		return null;
+		throw new NotSupportedException();
 	}
 }

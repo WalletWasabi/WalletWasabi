@@ -1,5 +1,6 @@
 using Avalonia.Data.Converters;
 using System.Globalization;
+using Avalonia;
 using WalletWasabi.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Exceptions;
@@ -47,17 +48,12 @@ public class FeeTargetTimeConverter : IValueConverter
 			return Convert(feeTarget, " minutes", " hour", " hours", " day", " days");
 		}
 
-		if (value is { })
-		{
-			throw new TypeArgumentException(value, typeof(SmartCoinStatus), nameof(value));
-		}
-
-		return null;
+		return AvaloniaProperty.UnsetValue;
 	}
 
-	public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+	public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
-		return null;
+		throw new NotSupportedException();
 	}
 
 	private static string IfPlural(int val, string singular, string plural)
