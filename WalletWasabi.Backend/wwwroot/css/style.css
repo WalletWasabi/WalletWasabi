@@ -905,13 +905,7 @@ ol li::marker {
 .versions label:nth-child(2) .v-text {
     left: calc(50% + 60px);
 }
-.version-content {
-    display: none;
-    left: 0;
-    top: 50px;
-    border-top: 1px dashed var(--light-gray);
-    padding-top: 40px;
-}
+.version-content {}
 .version-select:checked + .version-content {
     display: block;
 }
