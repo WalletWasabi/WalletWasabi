@@ -44,6 +44,9 @@ p {
 p a, .list a {
     color: var(--green);
 }
+p a:hover {
+    color: var(--light-blue);
+}
 header {
     position: absolute;
     left: 0;
