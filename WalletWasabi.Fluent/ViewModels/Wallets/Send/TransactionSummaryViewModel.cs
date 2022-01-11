@@ -1,7 +1,6 @@
 using System.Linq;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
@@ -12,6 +11,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 {
 	private readonly Wallet _wallet;
 	private readonly TransactionInfo _info;
+	private readonly BitcoinAddress _address;
 	private BuildTransactionResult? _transaction;
 	[AutoNotify] private string _amountText = "";
 	[AutoNotify] private bool _transactionHasChange;
@@ -21,17 +21,18 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private bool _maxPrivacy;
 	[AutoNotify] private bool _isCustomFeeUsed;
 
-	public TransactionSummaryViewModel(TransactionPreviewViewModel parent, Wallet wallet, TransactionInfo info, bool isPreview = false)
+	public TransactionSummaryViewModel(TransactionPreviewViewModel parent, Wallet wallet, TransactionInfo info, BitcoinAddress address, bool isPreview = false)
 	{
 		Parent = parent;
 		_wallet = wallet;
 		_info = info;
+		_address = address;
 		IsPreview = isPreview;
 
 		this.WhenAnyValue(x => x.TransactionHasChange, x => x.TransactionHasPockets)
 			.Subscribe(_ => { MaxPrivacy = !TransactionHasPockets && !TransactionHasChange; });
 
-		AddressText = info.Address.ToString();
+		AddressText = _address.ToString();
 		PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
 		IsPayJoin = PayJoinUrl is not null;
 	}
@@ -66,7 +67,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		FeeText = $"{btcFeeText}{fiatFeeText}";
 
 		TransactionHasChange =
-			_transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != _info.Address.ScriptPubKey);
+			_transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != _address.ScriptPubKey);
 
 		TransactionHasPockets = !_info.IsPrivate;
 

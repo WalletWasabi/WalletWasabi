@@ -73,10 +73,10 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 	}
 
 	public static async Task<IEnumerable<ChangeAvoidanceSuggestionViewModel>> GenerateSuggestionsAsync(
-		TransactionInfo transactionInfo, Wallet wallet, BuildTransactionResult requestedTransaction)
+		TransactionInfo transactionInfo, BitcoinAddress destination, Wallet wallet, BuildTransactionResult requestedTransaction)
 	{
 		var intent = new PaymentIntent(
-			transactionInfo.Address,
+			destination,
 			MoneyRequest.CreateAllRemaining(subtractFee: true),
 			transactionInfo.UserLabels);
 
