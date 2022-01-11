@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -32,7 +33,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 	public ObservableCollection<SuggestionViewModel> Suggestions { get; }
 
-	public  async Task BuildPrivacySuggestionsAsync(Wallet wallet, TransactionInfo info, BuildTransactionResult transaction)
+	public async Task BuildPrivacySuggestionsAsync(Wallet wallet, TransactionInfo info, BuildTransactionResult transaction, CancellationToken cancellationToken = default)
 	{
 		IsLoading = true;
 
@@ -45,7 +46,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 		}
 
 		var suggestions =
-			await ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, wallet, transaction);
+			await ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, wallet, transaction, cancellationToken);
 
 		var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != info.Address.ScriptPubKey);
 

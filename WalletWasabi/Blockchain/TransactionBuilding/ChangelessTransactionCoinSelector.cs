@@ -2,13 +2,14 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using WalletWasabi.Blockchain.TransactionOutputs;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding;
 
 public static class ChangelessTransactionCoinSelector
 {
-	public static bool TryGetCoins(List<SmartCoin> availableCoins, FeeRate feeRate, long target, [NotNullWhen(true)] out List<SmartCoin>? selectedCoins)
+	public static bool TryGetCoins(List<SmartCoin> availableCoins, FeeRate feeRate, long target, [NotNullWhen(true)] out List<SmartCoin>? selectedCoins, CancellationToken cancellationToken)
 	{
 		selectedCoins = null;
 		// Keys are effective values of smart coins in satoshis.
@@ -19,7 +20,7 @@ public static class ChangelessTransactionCoinSelector
 		// Pass smart coins' effective values in ascending order.
 		BranchAndBound branchAndBound = new(inputs.Values.ToList());
 
-		if (branchAndBound.TryGetExactMatch(target, out List<long>? solution))
+		if (branchAndBound.TryGetExactMatch(target, out List<long>? solution, cancellationToken))
 		{
 			selectedCoins = new();
 			int i = 0;

@@ -2,6 +2,7 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding;
@@ -58,7 +59,7 @@ public class BranchAndBound
 	/// <param name="target">Target value we want to sum up from the input values.</param>
 	/// <param name="selectedValues">Values that sum up to the <paramref name="target"/> value.</param>
 	/// <returns><c>true</c> when a match is found, <c>false</c> otherwise.</returns>
-	public bool TryGetExactMatch(long target, [NotNullWhen(true)] out List<long>? selectedValues)
+	public bool TryGetExactMatch(long target, [NotNullWhen(true)] out List<long>? selectedValues, CancellationToken cancellationToken)
 	{
 		selectedValues = null;
 
@@ -67,7 +68,7 @@ public class BranchAndBound
 			return false;
 		}
 
-		if (TryFindSolution(target, out long[]? solution))
+		if (TryFindSolution(target, out long[]? solution, cancellationToken))
 		{
 			selectedValues = new List<long>();
 
@@ -87,7 +88,7 @@ public class BranchAndBound
 		return false;
 	}
 
-	private bool TryFindSolution(long target, [NotNullWhen(true)] out long[]? solution)
+	private bool TryFindSolution(long target, [NotNullWhen(true)] out long[]? solution, CancellationToken cancellationToken)
 	{
 		// Current effective value.
 		long effValue = 0L;
@@ -154,7 +155,7 @@ public class BranchAndBound
 				depth--;
 			}
 		}
-		while (depth >= 0);
+		while (depth >= 0 && !cancellationToken.IsCancellationRequested);
 
 		return false;
 	}

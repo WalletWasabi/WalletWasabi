@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -74,7 +75,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 	}
 
 	public static async Task<IEnumerable<ChangeAvoidanceSuggestionViewModel>> GenerateSuggestionsAsync(
-		TransactionInfo transactionInfo, Wallet wallet, BuildTransactionResult requestedTransaction)
+		TransactionInfo transactionInfo, Wallet wallet, BuildTransactionResult requestedTransaction, CancellationToken cancellationToken)
 	{
 		var intent = new PaymentIntent(
 			transactionInfo.Address,
@@ -102,8 +103,8 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		}
 
 		ChangeAvoidanceSuggestionViewModel? bnbSuggestion = null;
-
-		bool canBuildWithoutChangeWithBnb = ChangelessTransactionCoinSelector.TryGetCoins(wallet.Coins.Available().Confirmed().ToList(), transactionInfo.FeeRate, transactionInfo.Amount, out List<SmartCoin>? bnbResult);
+		List<SmartCoin>? bnbResult = null;
+		bool canBuildWithoutChangeWithBnb = await Task.Run(() => ChangelessTransactionCoinSelector.TryGetCoins(wallet.Coins.Available().Confirmed().ToList(), transactionInfo.FeeRate, transactionInfo.Amount, out bnbResult, cancellationToken));
 
 		if (canBuildWithoutChangeWithBnb && bnbResult is not null)
 		{
