@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using Xunit;
 
@@ -19,7 +20,7 @@ public class BranchAndBoundTests
 		BranchAndBound selector = new(inputValues);
 		long target = 100_000_000;
 
-		bool successful = selector.TryGetExactMatch(target, out List<long>? selectedValues);
+		bool successful = selector.TryGetExactMatch(target, out List<long>? selectedValues, CancellationToken.None);
 
 		Assert.True(successful);
 		Assert.NotNull(selectedValues);
@@ -34,7 +35,7 @@ public class BranchAndBoundTests
 		List<long> expectedValues = new() { 40_000, 50_000, 100_000 };
 		long target = 190_000;
 
-		bool wasSuccessful = selector.TryGetExactMatch(target, out List<long>? selectedCoins);
+		bool wasSuccessful = selector.TryGetExactMatch(target, out List<long>? selectedCoins, CancellationToken.None);
 
 		Assert.True(wasSuccessful);
 		Assert.NotNull(selectedCoins);
@@ -49,7 +50,7 @@ public class BranchAndBoundTests
 		List<long> expectedValues = new() { 100_000, 100_000, 120_000 };
 		long target = 320000;
 
-		bool wasSuccessful = selector.TryGetExactMatch(target, out List<long>? selectedCoins);
+		bool wasSuccessful = selector.TryGetExactMatch(target, out List<long>? selectedCoins, CancellationToken.None);
 
 		Assert.True(wasSuccessful);
 		Assert.NotNull(selectedCoins);
@@ -71,7 +72,7 @@ public class BranchAndBoundTests
 		}
 
 		BranchAndBound selector = new(inputValues);
-		bool wasSuccessful = selector.TryGetExactMatch(target, out List<long>? selectedCoins);
+		bool wasSuccessful = selector.TryGetExactMatch(target, out List<long>? selectedCoins, CancellationToken.None);
 
 		Assert.False(wasSuccessful);
 		Assert.Null(selectedCoins);
@@ -84,7 +85,7 @@ public class BranchAndBoundTests
 		BranchAndBound selector = new(inputValues);
 		long target = 300000;
 
-		bool wasSuccessful = selector.TryGetExactMatch(target, out List<long>? selectedCoins);
+		bool wasSuccessful = selector.TryGetExactMatch(target, out List<long>? selectedCoins, CancellationToken.None);
 
 		Assert.False(wasSuccessful);
 		Assert.Null(selectedCoins);

@@ -75,7 +75,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 	}
 
 	public static async Task<IEnumerable<ChangeAvoidanceSuggestionViewModel>> GenerateSuggestionsAsync(
-		TransactionInfo transactionInfo, Wallet wallet, BuildTransactionResult requestedTransaction, CancellationToken cancellationToken)
+		TransactionInfo transactionInfo, BitcoinAddress destination, Wallet wallet, BuildTransactionResult requestedTransaction, CancellationToken cancellationToken)
 	{
 		var intent = new PaymentIntent(
 			destination,
@@ -110,7 +110,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		{
 			var bnbTransaction = await Task.Run(() => TransactionHelpers.BuildChangelessTransaction(
 				wallet,
-				transactionInfo.Address,
+				destination,
 				transactionInfo.UserLabels,
 				transactionInfo.FeeRate,
 				bnbResult

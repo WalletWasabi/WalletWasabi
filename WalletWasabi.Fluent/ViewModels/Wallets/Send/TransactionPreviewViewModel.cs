@@ -396,7 +396,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			UpdateTransaction(CurrentTransactionSummary, initialTransaction);
 
-			await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, initialTransaction, _cancellationTokenSource.Token);
+			await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, initialTransaction, _cancellationTokenSource.Token);
 		}
 		else
 		{
