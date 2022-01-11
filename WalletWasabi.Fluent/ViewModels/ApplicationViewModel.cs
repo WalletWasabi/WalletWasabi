@@ -11,7 +11,7 @@ using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
-public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
+public class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 {
 	public ApplicationViewModel()
 	{
@@ -19,18 +19,17 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 		{
 			if (CanShutdown())
 			{
-				if (Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime
-					desktopLifetime)
+				if (Application.Current?.ApplicationLifetime is IControlledApplicationLifetime lifetime)
 				{
-					desktopLifetime.Shutdown();
+					lifetime.Shutdown();
 				}
 			}
 			else
 			{
-					// Show the window if it was hidden.
-					ShowRequested?.Invoke(this, EventArgs.Empty);
+				// Show the window if it was hidden.
+				ShowRequested?.Invoke(this, EventArgs.Empty);
 
-				await MainViewModel.Instance!.CompactDialogScreen.NavigateDialogAsync(new Dialogs.ShowErrorDialogViewModel(
+				await MainViewModel.Instance.CompactDialogScreen.NavigateDialogAsync(new Dialogs.ShowErrorDialogViewModel(
 					"Wasabi is currently anonymising your wallet. Please try again in a few minutes.",
 					"Warning",
 					"Unable to close right now"));
@@ -39,9 +38,18 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 		ShowCommand = ReactiveCommand.Create(() => ShowRequested?.Invoke(this, EventArgs.Empty));
 
-		TrayIcon = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-			? new WindowIcon(AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo_white.ico"))
-			: new WindowIcon(AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo.ico"));
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+		{
+			using var bitmap = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo_white.ico");
+
+			TrayIcon = new WindowIcon(bitmap);
+		}
+		else
+		{
+			using var bitmap = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo.ico");
+
+			TrayIcon = new WindowIcon(bitmap);
+		}
 	}
 
 	public WindowIcon TrayIcon { get; }

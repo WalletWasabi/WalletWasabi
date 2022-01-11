@@ -51,7 +51,7 @@ public partial class SettingsPageViewModel : NavBarItemViewModel
 
 		SettingsTabViewModelBase.RestartNeeded += OnRestartNeeded;
 
-		Disposable.Create(() => SettingsTabViewModelBase.RestartNeeded -= OnRestartNeeded)
-			.DisposeWith(disposables);
+		disposables.Add(
+			Disposable.Create(() => SettingsTabViewModelBase.RestartNeeded -= OnRestartNeeded));
 	}
 }
