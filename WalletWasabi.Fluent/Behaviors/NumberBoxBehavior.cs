@@ -35,8 +35,10 @@ public class NumberBoxBehavior : DisposingBehavior<TextBox>
 			{
 				e.Handled = true;
 
-				var text = await Application.Current.Clipboard.GetTextAsync();
-				AssociatedObject.Text = CorrectInput(text);
+					if (Application.Current is { Clipboard: { } clipboard })
+					{
+						AssociatedObject.Text = CorrectInput(await clipboard.GetTextAsync());
+					}
 			})
 			.DisposeWith(disposables);
 	}

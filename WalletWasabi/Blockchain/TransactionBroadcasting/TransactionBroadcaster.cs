@@ -28,7 +28,7 @@ public class TransactionBroadcaster
 	}
 
 	public BitcoinStore BitcoinStore { get; }
-	public HttpClientFactory HttpClientFactory { get; }
+	public IWasabiHttpClientFactory HttpClientFactory { get; }
 	public Network Network { get; }
 	public NodesGroup? Nodes { get; private set; }
 	public IRPCClient? RpcClient { get; private set; }
@@ -90,7 +90,7 @@ public class TransactionBroadcaster
 	private async Task BroadcastTransactionToBackendAsync(SmartTransaction transaction)
 	{
 		Logger.LogInfo("Broadcasting with backend...");
-		IHttpClient httpClient = HttpClientFactory.NewBackendHttpClient(Mode.NewCircuitPerRequest);
+		IHttpClient httpClient = HttpClientFactory.NewHttpClientWithCircuitPerRequest();
 
 		WasabiClient client = new(httpClient);
 

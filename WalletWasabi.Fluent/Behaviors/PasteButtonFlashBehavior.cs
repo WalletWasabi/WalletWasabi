@@ -38,7 +38,7 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 	{
 		RxApp.MainThreadScheduler.Schedule(async () => await CheckClipboardForValidAddressAsync());
 
-		if (Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+		if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
 		{
 			var mainWindow = lifetime.MainWindow;
 
@@ -73,25 +73,28 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 
 	private async Task CheckClipboardForValidAddressAsync()
 	{
-		var clipboardValue = await Application.Current.Clipboard.GetTextAsync();
-
-		if (AssociatedObject is null || _lastFlashedOn == clipboardValue)
+		if (Application.Current is { Clipboard: { } clipboard })
 		{
-			return;
-		}
+			var clipboardValue = await clipboard.GetTextAsync();
 
-		AssociatedObject.Classes.Remove(FlashAnimation);
+			if (AssociatedObject is null || _lastFlashedOn == clipboardValue)
+			{
+				return;
+			}
 
-		if (clipboardValue != CurrentAddress &&
-			AddressStringParser.TryParse(clipboardValue, Services.WalletManager.Network, out _))
-		{
-			AssociatedObject.Classes.Add(FlashAnimation);
-			_lastFlashedOn = clipboardValue;
-			ToolTip.SetTip(AssociatedObject, $"Paste BTC Address:\r\n{clipboardValue}");
-		}
-		else
-		{
-			ToolTip.SetTip(AssociatedObject, "Paste");
+			AssociatedObject.Classes.Remove(FlashAnimation);
+
+			if (clipboardValue != CurrentAddress &&
+				AddressStringParser.TryParse(clipboardValue, Services.WalletManager.Network, out _))
+			{
+				AssociatedObject.Classes.Add(FlashAnimation);
+				_lastFlashedOn = clipboardValue;
+				ToolTip.SetTip(AssociatedObject, $"Paste BTC Address:\r\n{clipboardValue}");
+			}
+			else
+			{
+				ToolTip.SetTip(AssociatedObject, "Paste");
+			}
 		}
 	}
 }

@@ -423,7 +423,7 @@ public class CoinJoinClient
 		shuffledOutputs.Shuffle();
 		foreach (var activeOutput in shuffledOutputs)
 		{
-			IHttpClient httpClient = Synchronizer.HttpClientFactory.NewBackendHttpClient(Mode.NewCircuitPerRequest);
+			IHttpClient httpClient = Synchronizer.HttpClientFactory.NewHttpClient(Mode.NewCircuitPerRequest);
 			var bobClient = new BobClient(httpClient);
 			if (!await bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput).ConfigureAwait(false))
 			{
@@ -1047,7 +1047,7 @@ public class CoinJoinClient
 	{
 		HttpClientFactory factory = Synchronizer.HttpClientFactory;
 
-		IHttpClient satoshiHttpClient = factory.NewBackendHttpClient(Mode.NewCircuitPerRequest);
+		IHttpClient satoshiHttpClient = factory.NewHttpClient(Mode.NewCircuitPerRequest);
 		SatoshiClient satoshiClient = new(satoshiHttpClient);
 		RoundStateResponse4 state = (RoundStateResponse4)await satoshiClient.GetRoundStateAsync(roundId).ConfigureAwait(false);
 

@@ -9,6 +9,7 @@ using NBitcoin;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -83,9 +84,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			{
 				var rpc = BitcoinFactory.GetMockMinimalRpc();
 
-					// Make the coordinator to believe that the coins are real and
-					// that they exist in the blockchain with many confirmations.
-					rpc.OnGetTxOutAsync = (txId, idx, _) => new()
+				// Make the coordinator to believe that the coins are real and
+				// that they exist in the blockchain with many confirmations.
+				rpc.OnGetTxOutAsync = (txId, idx, _) => new()
 				{
 					Confirmations = 101,
 					IsCoinBase = false,
@@ -93,19 +94,19 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					TxOut = coins.Single(x => x.TransactionId == txId && x.Index == idx).TxOut
 				};
 
-					// Make the coordinator believe that the transaction is being
-					// broadcasted using the RPC interface. Once we receive this tx
-					// (the `SendRawTransationAsync` was invoked) we stop waiting
-					// and finish the waiting tasks to finish the test successfully.
-					rpc.OnSendRawTransactionAsync = (tx) =>
-				{
-					transactionCompleted.SetResult(tx);
-					return tx.GetHash();
-				};
+				// Make the coordinator believe that the transaction is being
+				// broadcasted using the RPC interface. Once we receive this tx
+				// (the `SendRawTransationAsync` was invoked) we stop waiting
+				// and finish the waiting tasks to finish the test successfully.
+				rpc.OnSendRawTransactionAsync = (tx) =>
+			{
+				transactionCompleted.SetResult(tx);
+				return tx.GetHash();
+			};
 
-					// Instruct the coordinator DI container to use these two scoped
-					// services to build everything (WabiSabi controller, arena, etc)
-					services.AddScoped<IRPCClient>(s => rpc);
+				// Instruct the coordinator DI container to use these two scoped
+				// services to build everything (WabiSabi controller, arena, etc)
+				services.AddScoped<IRPCClient>(s => rpc);
 				services.AddScoped(s => new WabiSabiConfig
 				{
 					MaxInputCountByRound = inputCount,
@@ -115,11 +116,18 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		}).CreateClient();
 
 		// Create the coinjoin client
+		using PersonCircuit personCircuit = new();
+		IHttpClient httpClientWrapper = new HttpClientWrapper(httpClient);
 		var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
-		var mockHttpClientFactory = new Mock<IBackendHttpClientFactory>();
+		var mockHttpClientFactory = new Mock<IWasabiHttpClientFactory>(MockBehavior.Strict);
+
 		mockHttpClientFactory
-			.Setup(factory => factory.NewBackendHttpClient(It.IsAny<Mode>()))
-			.Returns(new HttpClientWrapper(httpClient));
+			.Setup(factory => factory.NewHttpClientWithPersonCircuit(out httpClientWrapper))
+			.Returns(personCircuit);
+
+		mockHttpClientFactory
+			.Setup(factory => factory.NewHttpClientWithCircuitPerRequest())
+			.Returns(httpClientWrapper);
 
 		using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(1), apiClient);
 		await roundStateUpdater.StartAsync(CancellationToken.None);
@@ -175,9 +183,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			{
 				var rpc = BitcoinFactory.GetMockMinimalRpc();
 
-					// Make the coordinator to believe that the coins are real and
-					// that they exist in the blockchain with many confirmations.
-					rpc.OnGetTxOutAsync = (txId, idx, _) => new()
+				// Make the coordinator to believe that the coins are real and
+				// that they exist in the blockchain with many confirmations.
+				rpc.OnGetTxOutAsync = (txId, idx, _) => new()
 				{
 					Confirmations = 101,
 					IsCoinBase = false,
@@ -185,19 +193,19 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					TxOut = Enumerable.Concat(coins, badCoins).Single(x => x.TransactionId == txId && x.Index == idx).TxOut
 				};
 
-					// Make the coordinator believe that the transaction is being
-					// broadcasted using the RPC interface. Once we receive this tx
-					// (the `SendRawTransationAsync` was invoked) we stop waiting
-					// and finish the waiting tasks to finish the test successfully.
-					rpc.OnSendRawTransactionAsync = (tx) =>
-				{
-					transactionCompleted.SetResult(tx);
-					return tx.GetHash();
-				};
+				// Make the coordinator believe that the transaction is being
+				// broadcasted using the RPC interface. Once we receive this tx
+				// (the `SendRawTransationAsync` was invoked) we stop waiting
+				// and finish the waiting tasks to finish the test successfully.
+				rpc.OnSendRawTransactionAsync = (tx) =>
+			{
+				transactionCompleted.SetResult(tx);
+				return tx.GetHash();
+			};
 
-					// Instruct the coordinator DI container to use these two scoped
-					// services to build everything (WabiSabi controller, arena, etc)
-					services.AddScoped<IRPCClient>(s => rpc);
+				// Instruct the coordinator DI container to use these two scoped
+				// services to build everything (WabiSabi controller, arena, etc)
+				services.AddScoped<IRPCClient>(s => rpc);
 				services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig
 				{
 					MaxInputCountByRound = 2 * inputCount,
@@ -209,11 +217,18 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		}).CreateClient();
 
 		// Create the coinjoin client
+		using PersonCircuit personCircuit = new();
+		IHttpClient httpClientWrapper = new HttpClientWrapper(httpClient);
+
 		var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
-		var mockHttpClientFactory = new Mock<IBackendHttpClientFactory>();
+		var mockHttpClientFactory = new Mock<IWasabiHttpClientFactory>(MockBehavior.Strict);
 		mockHttpClientFactory
-			.Setup(factory => factory.NewBackendHttpClient(It.IsAny<Mode>()))
-			.Returns(new HttpClientWrapper(httpClient));
+			.Setup(factory => factory.NewHttpClientWithPersonCircuit(out httpClientWrapper))
+			.Returns(personCircuit);
+
+		mockHttpClientFactory
+			.Setup(factory => factory.NewHttpClientWithCircuitPerRequest())
+			.Returns(httpClientWrapper);
 
 		using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(1), apiClient);
 		await roundStateUpdater.StartAsync(CancellationToken.None);
@@ -230,20 +245,26 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		// Creates a IBackendHttpClientFactory that creates an HttpClient that says everything is okay
 		// when a signature is sent but it doesn't really send it.
-		var nonSigningHttpClient = new Mock<HttpClientWrapper>(httpClient);
-		nonSigningHttpClient
+		var nonSigningHttpClientMock = new Mock<HttpClientWrapper>(MockBehavior.Strict, httpClient);
+		nonSigningHttpClientMock
 			.Setup(httpClient => httpClient.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
 			.CallBase();
-		nonSigningHttpClient
+		nonSigningHttpClientMock
 			.Setup(httpClient => httpClient.SendAsync(It.Is<HttpRequestMessage>(
 				req => req.RequestUri!.AbsolutePath.Contains("transaction-signature")),
 				It.IsAny<CancellationToken>()))
 			.ThrowsAsync(new HttpRequestException("Something was wrong posting the signature."));
 
-		var mockNonSigningHttpClientFactory = new Mock<IBackendHttpClientFactory>();
+		IHttpClient nonSigningHttpClient = nonSigningHttpClientMock.Object;
+
+		var mockNonSigningHttpClientFactory = new Mock<IWasabiHttpClientFactory>(MockBehavior.Strict);
 		mockNonSigningHttpClientFactory
-			.Setup(factory => factory.NewBackendHttpClient(It.IsAny<Mode>()))
-			.Returns(nonSigningHttpClient.Object);
+			.Setup(factory => factory.NewHttpClientWithPersonCircuit(out nonSigningHttpClient))
+			.Returns(personCircuit);
+
+		mockNonSigningHttpClientFactory
+			.Setup(factory => factory.NewHttpClientWithCircuitPerRequest())
+			.Returns(nonSigningHttpClient);
 
 		var badCoinJoinClient = new CoinJoinClient(mockNonSigningHttpClientFactory.Object, kitchen, keyManager2, roundStateUpdater, consolidationMode: true);
 		var badCoinsTask = Task.Run(async () => await badCoinJoinClient.StartRoundAsync(badCoins, roundState, cts.Token).ConfigureAwait(false), cts.Token);
@@ -280,9 +301,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			{
 				builder.ConfigureServices(services =>
 				{
-						// Instruct the coordinator DI container to use these two scoped
-						// services to build everything (WabiSabi controller, arena, etc)
-						services.AddScoped<IRPCClient>(s => rpc);
+					// Instruct the coordinator DI container to use these two scoped
+					// services to build everything (WabiSabi controller, arena, etc)
+					services.AddScoped<IRPCClient>(s => rpc);
 					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig
 					{
 						MaxRegistrableAmount = Money.Coins(500m),
@@ -294,10 +315,21 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				});
 			});
 
-			var mockHttpClientFactory = new Mock<IBackendHttpClientFactory>();
+			using PersonCircuit personCircuit = new();
+			IHttpClient httpClientWrapper = new HttpClientWrapper(app.CreateClient());
+
+			var mockHttpClientFactory = new Mock<IWasabiHttpClientFactory>(MockBehavior.Strict);
 			mockHttpClientFactory
-				.Setup(factory => factory.NewBackendHttpClient(It.IsAny<Mode>()))
-				.Returns(new HttpClientWrapper(app.CreateClient()));
+				.Setup(factory => factory.NewHttpClientWithPersonCircuit(out httpClientWrapper))
+				.Returns(personCircuit);
+
+			mockHttpClientFactory
+				.Setup(factory => factory.NewHttpClientWithCircuitPerRequest())
+				.Returns(httpClientWrapper);
+
+			mockHttpClientFactory
+				.Setup(factory => factory.NewHttpClientWithDefaultCircuit())
+				.Returns(httpClientWrapper);
 
 			// Total test timeout.
 			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(40 * ExpectedInputNumber));

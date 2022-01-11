@@ -29,7 +29,7 @@ public class CoinJoinClient
 	/// <param name="minAnonScoreTarget">Coins those have reached anonymity target, but still can be mixed if desired.</param>
 	/// <param name="consolidationMode">If true, then aggressively try to consolidate as many coins as it can.</param>
 	public CoinJoinClient(
-		IBackendHttpClientFactory httpClientFactory,
+		IWasabiHttpClientFactory httpClientFactory,
 		Kitchen kitchen,
 		KeyManager keymanager,
 		RoundStateUpdater roundStatusUpdater,
@@ -46,7 +46,7 @@ public class CoinJoinClient
 	}
 
 	private SecureRandom SecureRandom { get; }
-	public IBackendHttpClientFactory HttpClientFactory { get; }
+	public IWasabiHttpClientFactory HttpClientFactory { get; }
 	public Kitchen Kitchen { get; }
 	public KeyManager Keymanager { get; }
 	private RoundStateUpdater RoundStatusUpdater { get; }
@@ -100,7 +100,10 @@ public class CoinJoinClient
 		var coinCandidates = SelectCoinsForRound(smartCoins, constructionState.Parameters);
 
 		// Register coins.
-		var registeredAliceClients = await CreateRegisterAndConfirmCoinsAsync(coinCandidates, roundState, cancellationToken).ConfigureAwait(false);
+
+		using PersonCircuit personCircuit = HttpClientFactory.NewHttpClientWithPersonCircuit(out Tor.Http.IHttpClient httpClient);
+
+		var registeredAliceClients = await CreateRegisterAndConfirmCoinsAsync(httpClient, coinCandidates, roundState, cancellationToken).ConfigureAwait(false);
 		if (!registeredAliceClients.Any())
 		{
 			Logger.LogInfo($"Round ({roundState.Id}): There is no available alices to participate with.");
@@ -178,14 +181,14 @@ public class CoinJoinClient
 		}
 	}
 
-	private async Task<ImmutableArray<AliceClient>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
+	private async Task<ImmutableArray<AliceClient>> CreateRegisterAndConfirmCoinsAsync(Tor.Http.IHttpClient httpClient, IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 	{
 		async Task<AliceClient?> RegisterInputAsync(SmartCoin coin, CancellationToken cancellationToken)
 		{
 			try
 			{
 				// Alice client requests are inherently linkable to each other, so the circuit can be reused
-				var arenaRequestHandler = new WabiSabiHttpApiClient(HttpClientFactory.NewBackendHttpClient(Mode.SingleCircuitPerLifetime));
+				var arenaRequestHandler = new WabiSabiHttpApiClient(httpClient);
 
 				var aliceArenaClient = new ArenaClient(
 					roundState.CreateAmountCredentialClient(SecureRandom),
@@ -241,7 +244,7 @@ public class CoinJoinClient
 
 	private BobClient CreateBobClient(RoundState roundState)
 	{
-		var arenaRequestHandler = new WabiSabiHttpApiClient(HttpClientFactory.NewBackendHttpClient(Mode.NewCircuitPerRequest));
+		var arenaRequestHandler = new WabiSabiHttpApiClient(HttpClientFactory.NewHttpClientWithCircuitPerRequest());
 
 		return new BobClient(
 			roundState.Id,
@@ -318,13 +321,6 @@ public class CoinJoinClient
 			.ThenByDescending(y => y.Amount)
 			.ToArray();
 
-		// If there's no non-private coins then there's no reason to mix, the rest that's here has already reached the min anonscore target.
-		int nonPrivateCoinCount = filteredCoins.Where(x => x.HdPubKey.AnonymitySet < MinAnonScoreTarget).Count();
-		if (nonPrivateCoinCount == 0)
-		{
-			throw new InvalidOperationException("Coin selection failed to return a valid coin set.");
-		}
-
 		// How many inputs do we want to provide to the mix?
 		int inputCount = ConsolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(filteredCoins.Length);
 
@@ -332,6 +328,7 @@ public class CoinJoinClient
 		List<IEnumerable<SmartCoin>> groups = new();
 
 		// I can take more coins those are already reached the minimum privacy threshold.
+		int nonPrivateCoinCount = filteredCoins.Where(x => x.HdPubKey.AnonymitySet < MinAnonScoreTarget).Count();
 		for (int i = 0; i < nonPrivateCoinCount; i++)
 		{
 			// Make sure the group can at least register an output even after paying fees.
@@ -348,6 +345,12 @@ public class CoinJoinClient
 			{
 				groups.Add(group);
 			}
+		}
+
+		// If there're no selections then there's no reason to mix.
+		if (!groups.Any())
+		{
+			throw new InvalidOperationException("Coin selection failed to return a valid coin set.");
 		}
 
 		// Calculate the anonScore cost of input consolidation.

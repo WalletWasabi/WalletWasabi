@@ -1,6 +1,3 @@
-using System;
-using System.Linq;
-using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -45,6 +42,7 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private bool _isPayJoin;
 	[AutoNotify] private string? _payJoinEndPoint;
 	private bool _parsingUrl;
+	private BitcoinAddress? _currentAddress;
 
 	public SendViewModel(Wallet wallet)
 	{
@@ -83,7 +81,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
 		AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
-		QRCommand = ReactiveCommand.Create(async () =>
+		QrCommand = ReactiveCommand.Create(async () =>
 		{
 			ShowQrCameraDialogViewModel dialog = new(_wallet.Network);
 			var result = await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen);
@@ -109,9 +107,12 @@ public partial class SendViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.Create(() =>
 		{
-			_transactionInfo.Amount = new Money(AmountBtc, MoneyUnit.BTC);
+			if (_currentAddress is { })
+			{
+				_transactionInfo.Amount = new Money(AmountBtc, MoneyUnit.BTC);
 
-			Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo));
+				Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo, _currentAddress));
+			}
 		}, nextCommandCanExecute);
 	}
 
@@ -121,7 +122,7 @@ public partial class SendViewModel : RoutableViewModel
 
 	public ICommand AutoPasteCommand { get; }
 
-	public ICommand QRCommand { get; }
+	public ICommand QrCommand { get; }
 
 	public ICommand AdvancedOptionsCommand { get; }
 
@@ -137,16 +138,19 @@ public partial class SendViewModel : RoutableViewModel
 
 	private async Task OnPasteAsync(bool pasteIfInvalid = true)
 	{
-		var text = await Application.Current.Clipboard.GetTextAsync();
-
-		_parsingUrl = true;
-
-		if (!TryParseUrl(text) && pasteIfInvalid)
+		if (Application.Current is { Clipboard: { } clipboard })
 		{
-			To = text;
-		}
+			var text = await clipboard.GetTextAsync();
 
-		_parsingUrl = false;
+			_parsingUrl = true;
+
+			if (!TryParseUrl(text) && pasteIfInvalid)
+			{
+				To = text;
+			}
+
+			_parsingUrl = false;
+		}
 	}
 
 	private IPayjoinClient? GetPayjoinClient(string endPoint)
@@ -249,7 +253,7 @@ public partial class SendViewModel : RoutableViewModel
 
 			if (url.Address is { })
 			{
-				_transactionInfo.Address = url.Address;
+				_currentAddress = url.Address;
 				To = url.Address.ToString();
 			}
 

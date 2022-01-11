@@ -15,7 +15,12 @@ public class LinkViewModel : ViewModelBase
 
 		CopyLinkCommand = ReactiveCommand.CreateFromTask<string>(
 			async (link) =>
-				await Application.Current.Clipboard.SetTextAsync(link));
+				{
+					if (Application.Current is { Clipboard: { } clipboard })
+					{
+						await clipboard.SetTextAsync(link);
+					}
+				});
 	}
 
 	public string? Link { get; set; }
