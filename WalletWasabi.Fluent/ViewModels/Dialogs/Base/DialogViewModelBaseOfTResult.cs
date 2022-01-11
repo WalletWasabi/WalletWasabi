@@ -53,7 +53,7 @@ public abstract class DialogViewModelBase<TResult> : DialogViewModelBase
 	/// and ready to pass a value back to the caller.
 	/// </summary>
 	/// <param name="result">The return value of the dialog</param>
-	protected void Close(DialogResultKind kind = DialogResultKind.Normal, TResult result = default)
+	protected void Close(DialogResultKind kind = DialogResultKind.Normal, TResult? result = default)
 	{
 		if (_currentTaskCompletionSource!.Task.IsCompleted)
 		{

@@ -122,7 +122,7 @@ public class TorTcpConnectionFactory
 	/// <summary>
 	/// Checks whether communication can be established with Tor over <see cref="TorSocks5EndPoint"/> endpoint.
 	/// </summary>
-	public async virtual Task<bool> IsTorRunningAsync()
+	public virtual async Task<bool> IsTorRunningAsync()
 	{
 		try
 		{

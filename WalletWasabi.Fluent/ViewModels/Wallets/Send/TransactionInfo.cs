@@ -24,8 +24,6 @@ public partial class TransactionInfo
 
 	public SmartLabel UserLabels { get; set; } = SmartLabel.Empty;
 
-	public BitcoinAddress Address { get; set; }
-
 	public FeeRate FeeRate { get; set; } = FeeRate.Zero;
 
 	public FeeRate? MaximumPossibleFeeRate { get; set; }

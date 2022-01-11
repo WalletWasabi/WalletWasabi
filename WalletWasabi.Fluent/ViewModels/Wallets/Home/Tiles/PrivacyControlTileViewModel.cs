@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using System.Windows.Input;
 using Avalonia.Threading;
 using NBitcoin;
@@ -30,13 +29,14 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 	{
 		_wallet = walletVm.Wallet;
 		_balanceChanged = balanceChanged;
+		_percentText = "";
 
 		_animationTimer = new DispatcherTimer
 		{
 			Interval = TimeSpan.FromSeconds(30)
 		};
 
-		_animationTimer.Tick += (sender, args) =>
+		_animationTimer.Tick += (_, _) =>
 		{
 			ShowBoostingAnimation = !ShowBoostingAnimation;
 

@@ -148,6 +148,12 @@ public class TorHttpPool : IDisposable
 
 					throw new HttpRequestException("Failed to get/read an HTTP response from Tor.", e);
 				}
+				catch (TorCircuitExpiredException e)
+				{
+					Logger.LogTrace($"['{connection}'] Circuit '{circuit.Name}' has expired and cannot be used again.", e);
+
+					throw new HttpRequestException($"Circuit '{circuit.Name}' has expired and cannot be used again.", e);
+				}
 				catch (TorConnectCommandFailedException e) when (e.RepField == RepField.TtlExpired)
 				{
 					// If we get TTL Expired error then wait and retry again, Linux often does this.
@@ -222,6 +228,12 @@ public class TorHttpPool : IDisposable
 				{
 					Logger.LogTrace($"[OLD {connection}]['{request.RequestUri}'] Re-use existing Tor SOCKS5 connection.");
 					return connection;
+				}
+
+				// The circuit may be disposed almost immediately after this check but we don't mind.
+				if (!circuit.IsActive)
+				{
+					throw new TorCircuitExpiredException();
 				}
 
 				if (canBeAdded)
@@ -331,7 +343,7 @@ public class TorHttpPool : IDisposable
 		// Find TCP connections to dispose.
 		foreach (TorTcpConnection tcpConnection in hostConnections.FindAll(c => c.NeedDisposal).ToList())
 		{
-			Logger.LogDebug($"['{tcpConnection}'] Connection is to be disposed.");
+			Logger.LogTrace($"['{tcpConnection}'] Connection is to be disposed.");
 			hostConnections.Remove(tcpConnection);
 			tcpConnection.Dispose();
 		}
