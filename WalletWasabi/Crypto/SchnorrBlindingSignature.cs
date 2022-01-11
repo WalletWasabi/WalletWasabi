@@ -75,7 +75,7 @@ public class SchnorrBlinding
 
 			RandomUtils.GetBytes(tmp);
 			_w = new Scalar(tmp, out overflow);
-			if (overflow != 0 || _v.IsZero)
+			if (overflow != 0 || _w.IsZero)
 			{
 				goto retry;
 			}

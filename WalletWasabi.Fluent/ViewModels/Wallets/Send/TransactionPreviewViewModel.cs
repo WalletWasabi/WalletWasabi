@@ -26,21 +26,23 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
 	private readonly TransactionInfo _info;
+	private readonly BitcoinAddress _destination;
 	private BuildTransactionResult? _transaction;
 	private CancellationTokenSource _cancellationTokenSource;
 	[AutoNotify] private string _nextButtonText;
 	[AutoNotify] private bool _adjustFeeAvailable;
 	[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
 
-	public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info)
+	public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, BitcoinAddress destination)
 	{
 		_wallet = wallet;
 		_info = info;
+		_destination = destination;
 
 		_cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));
 		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel();
-		CurrentTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info);
-		PreviewTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info, true);
+		CurrentTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info, destination);
+		PreviewTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info, destination, true);
 
 		TransactionSummaries = new List<TransactionSummaryViewModel>
 			{
@@ -74,7 +76,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				{
 					UpdateTransaction(CurrentTransactionSummary, ca.TransactionResult);
 
-					await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, ca.TransactionResult);
+					await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, ca.TransactionResult);
 				}
 				else if (x is PocketSuggestionViewModel)
 				{
@@ -189,7 +191,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			UpdateTransaction(CurrentTransactionSummary, newTransaction);
 
-			await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, newTransaction);
+			await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, newTransaction);
 		}
 	}
 
@@ -250,7 +252,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			IsBusy = true;
 
-			return await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info));
+			return await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info, _destination));
 		}
 		catch (TransactionFeeOverpaymentException ex)
 		{
@@ -325,7 +327,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		if (result.Result)
 		{
 			transactionInfo.SubtractFee = true;
-			return await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo));
+			return await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo, _destination));
 		}
 
 		if (wallet.Coins.TotalAmount() > transactionInfo.Amount)
@@ -363,7 +365,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				transactionInfo.FeeRate = newFeeRate;
 			}
 
-			if (TransactionHelpers.TryBuildTransaction(wallet, transactionInfo, out var txn))
+			if (TransactionHelpers.TryBuildTransaction(wallet, transactionInfo, _destination, out var txn))
 			{
 				return txn;
 			}
@@ -446,7 +448,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		_info.UserLabels = result.Result;
 
-		var transaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info));
+		var transaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info, _destination));
 		var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
 		var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
 		if (authResult)
@@ -504,7 +506,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			try
 			{
 				var payJoinTransaction = await Task.Run(() =>
-					TransactionHelpers.BuildTransaction(_wallet, transactionInfo, isPayJoin: true));
+					TransactionHelpers.BuildTransaction(_wallet, transactionInfo, _destination, isPayJoin: true));
 				return payJoinTransaction.Transaction;
 			}
 			catch (Exception ex)

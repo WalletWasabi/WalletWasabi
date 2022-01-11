@@ -78,7 +78,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		TransactionInfo transactionInfo, Wallet wallet, BuildTransactionResult requestedTransaction, CancellationToken cancellationToken)
 	{
 		var intent = new PaymentIntent(
-			transactionInfo.Address,
+			destination,
 			MoneyRequest.CreateAllRemaining(subtractFee: true),
 			transactionInfo.UserLabels);
 
