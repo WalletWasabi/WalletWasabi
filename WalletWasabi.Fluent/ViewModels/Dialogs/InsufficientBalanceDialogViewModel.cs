@@ -23,8 +23,8 @@ public partial class InsufficientBalanceDialogViewModel : DialogViewModelBase<Un
 
 	[AutoNotify] private string? _question;
 
-	private FeeRate _maximumPossibleFee = FeeRate.Zero;
-	private TimeSpan _confirmationTimeWithMaxFee = TimeSpan.Zero;
+	private FeeRate _maximumPossibleFeeRate = FeeRate.Zero;
+	private TimeSpan _confirmationTimeWithMaxFeeRate = TimeSpan.Zero;
 
 	public InsufficientBalanceDialogViewModel(InsufficientBalanceException ex, Wallet wallet, TransactionInfo transactionInfo)
 	{
@@ -88,9 +88,9 @@ public partial class InsufficientBalanceDialogViewModel : DialogViewModelBase<Un
 
 	private void OnSendAnyway()
 	{
-		_transactionInfo.MaximumPossibleFeeRate = _maximumPossibleFee;
-		_transactionInfo.FeeRate = _maximumPossibleFee;
-		_transactionInfo.ConfirmationTimeSpan = _confirmationTimeWithMaxFee;
+		_transactionInfo.MaximumPossibleFeeRate = _maximumPossibleFeeRate;
+		_transactionInfo.FeeRate = _maximumPossibleFeeRate;
+		_transactionInfo.ConfirmationTimeSpan = _confirmationTimeWithMaxFeeRate;
 		Close();
 	}
 
@@ -134,7 +134,7 @@ public partial class InsufficientBalanceDialogViewModel : DialogViewModelBase<Un
 			return;
 		}
 
-		if (!TransactionFeeHelper.TryGetMaximumPossibleFee(percentage, wallet, transactionInfo.FeeRate, out var maxFee))
+		if (!TransactionFeeHelper.TryGetMaximumPossibleFeeRate(percentage, wallet, transactionInfo.FeeRate, out var maxFeeRate))
 		{
 			await ShowErrorAsync("Transaction Building",
 				"Automatic transaction fee selection is not possible at the moment. Alternatively, you can enter the transaction fee manually in Advanced options.",
@@ -143,8 +143,8 @@ public partial class InsufficientBalanceDialogViewModel : DialogViewModelBase<Un
 			return;
 		}
 
-		_maximumPossibleFee = maxFee;
-		_confirmationTimeWithMaxFee = TransactionFeeHelper.CalculateConfirmationTime(maxFee, wallet);
+		_maximumPossibleFeeRate = maxFeeRate;
+		_confirmationTimeWithMaxFeeRate = TransactionFeeHelper.CalculateConfirmationTime(maxFeeRate, wallet);
 
 		if (percentage <= TransactionFeeHelper.FeePercentageThreshold)
 		{
@@ -166,7 +166,7 @@ public partial class InsufficientBalanceDialogViewModel : DialogViewModelBase<Un
 
 		if (EnableSendAnyway)
 		{
-			Question += $"you can send the transaction with an adjusted transaction fee, so it should be confirmed within approximately {TextHelpers.TimeSpanToFriendlyString(_confirmationTimeWithMaxFee)}";
+			Question += $"you can send the transaction with an adjusted transaction fee, so it should be confirmed within approximately {TextHelpers.TimeSpanToFriendlyString(_confirmationTimeWithMaxFeeRate)}";
 
 			if (EnableSelectMoreCoin)
 			{

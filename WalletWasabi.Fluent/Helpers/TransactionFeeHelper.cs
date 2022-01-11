@@ -61,7 +61,7 @@ public static class TransactionFeeHelper
 		return time;
 	}
 
-	public static bool TryGetMaximumPossibleFee(decimal percentageOfOverpayment, Wallet wallet, FeeRate currentFeeRate, out FeeRate maximumPossibleFeeRate)
+	public static bool TryGetMaximumPossibleFeeRate(decimal percentageOfOverpayment, Wallet wallet, FeeRate currentFeeRate, out FeeRate maximumPossibleFeeRate)
 	{
 		var maxPossibleFeeRateInSatoshiPerByte = (currentFeeRate.SatoshiPerByte / percentageOfOverpayment) * 100;
 		maximumPossibleFeeRate = new FeeRate(maxPossibleFeeRateInSatoshiPerByte);

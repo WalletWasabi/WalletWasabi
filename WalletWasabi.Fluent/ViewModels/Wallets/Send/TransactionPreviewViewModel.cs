@@ -250,7 +250,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 		catch (TransactionFeeOverpaymentException ex)
 		{
-			var result = TransactionFeeHelper.TryGetMaximumPossibleFee(ex.PercentageOfOverpayment, _wallet, _info.FeeRate, out var maximumPossibleFeeRate);
+			var result = TransactionFeeHelper.TryGetMaximumPossibleFeeRate(ex.PercentageOfOverpayment, _wallet, _info.FeeRate, out var maximumPossibleFeeRate);
 
 			if (!result)
 			{
