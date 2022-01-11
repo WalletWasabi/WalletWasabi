@@ -5,74 +5,73 @@ using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.Helpers
+namespace WalletWasabi.Fluent.Helpers;
+
+public static class TransactionFeeHelper
 {
-	public static class TransactionFeeHelper
+	public const decimal FeePercentageThreshold = 130;
+
+	private static readonly Dictionary<int, int> TestNetFeeEstimates = new()
 	{
-		public const decimal FeePercentageThreshold = 130;
+		[1] = 17,
+		[2] = 12,
+		[3] = 9,
+		[6] = 9,
+		[18] = 2,
+		[36] = 2,
+		[72] = 2,
+		[144] = 2,
+		[432] = 1,
+		[1008] = 1
+	};
 
-		private static readonly Dictionary<int, int> TestNetFeeEstimates = new()
+	public static Dictionary<int, int> GetFeeEstimates(Wallet wallet)
+	{
+		if (wallet.FeeProvider.AllFeeEstimate is null)
 		{
-			[1] = 17,
-			[2] = 12,
-			[3] = 9,
-			[6] = 9,
-			[18] = 2,
-			[36] = 2,
-			[72] = 2,
-			[144] = 2,
-			[432] = 1,
-			[1008] = 1
-		};
-
-		public static Dictionary<int, int> GetFeeEstimates(Wallet wallet)
-		{
-			if (wallet.FeeProvider.AllFeeEstimate is null)
-			{
-				throw new InvalidOperationException($"Not possible to get the fee estimates. {nameof(wallet.FeeProvider.AllFeeEstimate)} is null.");
-			}
-
-			return wallet.Network == Network.TestNet ? TestNetFeeEstimates : wallet.FeeProvider.AllFeeEstimate.Estimations;
+			throw new InvalidOperationException($"Not possible to get the fee estimates. {nameof(wallet.FeeProvider.AllFeeEstimate)} is null.");
 		}
 
-		public static bool AreTransactionFeesEqual(Wallet wallet)
-		{
-			var feeEstimates = GetFeeEstimates(wallet);
+		return wallet.Network == Network.TestNet ? TestNetFeeEstimates : wallet.FeeProvider.AllFeeEstimate.Estimations;
+	}
 
-			var first = feeEstimates.First();
-			var last = feeEstimates.Last();
+	public static bool AreTransactionFeesEqual(Wallet wallet)
+	{
+		var feeEstimates = GetFeeEstimates(wallet);
 
-			return first.Value == last.Value;
-		}
+		var first = feeEstimates.First();
+		var last = feeEstimates.Last();
 
-		public static TimeSpan CalculateConfirmationTime(FeeRate feeRate, Wallet wallet)
-		{
-			var feeChartViewModel = new FeeChartViewModel();
-			feeChartViewModel.UpdateFeeEstimates(GetFeeEstimates(wallet));
-			var blockTarget = feeChartViewModel.GetConfirmationTarget(feeRate);
+		return first.Value == last.Value;
+	}
 
-			return CalculateConfirmationTime(blockTarget);
-		}
+	public static TimeSpan CalculateConfirmationTime(FeeRate feeRate, Wallet wallet)
+	{
+		var feeChartViewModel = new FeeChartViewModel();
+		feeChartViewModel.UpdateFeeEstimates(GetFeeEstimates(wallet));
+		var blockTarget = feeChartViewModel.GetConfirmationTarget(feeRate);
 
-		public static TimeSpan CalculateConfirmationTime(double targetBlock)
-		{
-			var timeInMinutes = Math.Ceiling(targetBlock) * 10;
-			var time = TimeSpan.FromMinutes(timeInMinutes);
-			return time;
-		}
+		return CalculateConfirmationTime(blockTarget);
+	}
 
-		public static bool TryGetMaximumPossibleFee(decimal percentageOfOverpayment, Wallet wallet, FeeRate currentFeeRate, out FeeRate maximumPossibleFeeRate)
-		{
-			var maxPossibleFeeRateInSatoshiPerByte = (currentFeeRate.SatoshiPerByte / percentageOfOverpayment) * 100;
-			maximumPossibleFeeRate = new FeeRate(maxPossibleFeeRateInSatoshiPerByte);
+	public static TimeSpan CalculateConfirmationTime(double targetBlock)
+	{
+		var timeInMinutes = Math.Ceiling(targetBlock) * 10;
+		var time = TimeSpan.FromMinutes(timeInMinutes);
+		return time;
+	}
 
-			var feeChartViewModel = new FeeChartViewModel();
-			feeChartViewModel.UpdateFeeEstimates(GetFeeEstimates(wallet));
+	public static bool TryGetMaximumPossibleFee(decimal percentageOfOverpayment, Wallet wallet, FeeRate currentFeeRate, out FeeRate maximumPossibleFeeRate)
+	{
+		var maxPossibleFeeRateInSatoshiPerByte = (currentFeeRate.SatoshiPerByte / percentageOfOverpayment) * 100;
+		maximumPossibleFeeRate = new FeeRate(maxPossibleFeeRateInSatoshiPerByte);
 
-			var blockTarget = feeChartViewModel.GetConfirmationTarget(maximumPossibleFeeRate);
-			var newFeeRate = new FeeRate(feeChartViewModel.GetSatoshiPerByte(blockTarget));
+		var feeChartViewModel = new FeeChartViewModel();
+		feeChartViewModel.UpdateFeeEstimates(GetFeeEstimates(wallet));
 
-			return newFeeRate <= maximumPossibleFeeRate;
-		}
+		var blockTarget = feeChartViewModel.GetConfirmationTarget(maximumPossibleFeeRate);
+		var newFeeRate = new FeeRate(feeChartViewModel.GetSatoshiPerByte(blockTarget));
+
+		return newFeeRate <= maximumPossibleFeeRate;
 	}
 }
