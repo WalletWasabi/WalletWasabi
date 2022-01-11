@@ -39,7 +39,18 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 			}
 		});
 
-		ShowCommand = ReactiveCommand.Create(() => ShowRequested?.Invoke(this, EventArgs.Empty));
+		ShowCommand = ReactiveCommand.Create(() =>
+			{
+				if (ShowOrHideHeader == "Show")
+				{
+					ShowRequested?.Invoke(this, EventArgs.Empty);
+				}
+				else
+				{
+					HideRequested?.Invoke(this, EventArgs.Empty);
+				}
+			}
+		);
 
 		TrayIcon = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
 			? new WindowIcon(AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo_white.ico"))
@@ -48,7 +59,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 	public WindowIcon TrayIcon { get; }
 
-	public event EventHandler? ShowRequested;
+	public event EventHandler? ShowRequested, HideRequested;
 
 	public ICommand QuitCommand { get; }
 	public ICommand ShowCommand { get; }

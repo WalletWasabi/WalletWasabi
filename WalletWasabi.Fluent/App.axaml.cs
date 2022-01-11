@@ -39,7 +39,7 @@ public class App : Application
 		_backendInitialiseAsync = backendInitialiseAsync;
 	}
 
-	public event EventHandler? ShowRequested;
+	public event EventHandler? ShowRequested, HideRequested;
 
 	public ICanShutdownProvider? CanShutdownProvider
 	{
