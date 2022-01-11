@@ -194,64 +194,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		private ConstructionState AddBlameScript(Round round, ConstructionState coinjoin)
-		{
-			long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate));
-			long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
-			var diff = aliceSum - bobSum;
-
-			// If timeout we must fill up the outputs to build a reasonable transaction.
-			// This won't be signed by the alice who failed to provide output, so we know who to ban.
-			var diffMoney = Money.Satoshis(diff) - coinjoin.Parameters.FeeRate.GetFee(Config.BlameScript.EstimateOutputVsize());
-			if (diffMoney > coinjoin.Parameters.AllowedOutputAmounts.Min)
-			{
-				coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, Config.BlameScript));
-				round.LogInfo("Filled up the outputs to build a reasonable transaction because some alice failed to provide its output.");
-			}
-			else
-			{
-				round.LogWarning($"Could not add blame script, because the amount was too small: {nameof(diffMoney)}: {diffMoney}.");
-			}
-
-			return coinjoin;
-		}
-
-		private ConstructionState AddCoordinatorFee(Round round, ConstructionState coinjoin)
-		{
-			Script coordinatorScriptPubKey = GetCoordinatorScriptPreventReuse(round);
-
-			var coordinationFee = round.Alices.Sum(x => round.CoordinationFeeRate.GetFee(x.Coin.Amount));
-			coordinationFee -= round.FeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize());
-
-			if (coordinationFee > coinjoin.Parameters.AllowedOutputAmounts.Min)
-			{
-				coinjoin = coinjoin.AddOutput(new TxOut(coordinationFee, coordinatorScriptPubKey));
-			}
-			else
-			{
-				round.LogWarning($"Coordinator fee wasn't taken, because it was too small: {nameof(coordinationFee)}: {coordinationFee}.");
-			}
-
-			return coinjoin;
-		}
-
-		private Script GetCoordinatorScriptPreventReuse(Round round)
-		{
-			var coordinatorScriptPubKey = Config.GetNextCleanCoordinatorScript();
-
-			// Prevent coord script reuse.
-			if (Rounds.Any(r =>
-				r.Phase is Phase.TransactionSigning &&
-				r.Assert<SigningState>().Outputs.Any(o => o.ScriptPubKey == coordinatorScriptPubKey)))
-			{
-				Config.MakeNextCoordinatorScriptDirty();
-				coordinatorScriptPubKey = Config.GetNextCleanCoordinatorScript();
-				round.LogWarning($"Coordinator script pub key was already used by another round, making it dirty and taking a new one.");
-			}
-
-			return coordinatorScriptPubKey;
-		}
-
 		private async Task StepTransactionSigningPhaseAsync(CancellationToken cancellationToken)
 		{
 			foreach (var round in Rounds.Where(x => x.Phase == Phase.TransactionSigning).ToArray())
@@ -405,6 +347,64 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					round.LogInfo($"{removedAliceCount} alices timed out and removed.");
 				}
 			}
+		}
+
+		private ConstructionState AddBlameScript(Round round, ConstructionState coinjoin)
+		{
+			long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate));
+			long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
+			var diff = aliceSum - bobSum;
+
+			// If timeout we must fill up the outputs to build a reasonable transaction.
+			// This won't be signed by the alice who failed to provide output, so we know who to ban.
+			var diffMoney = Money.Satoshis(diff) - coinjoin.Parameters.FeeRate.GetFee(Config.BlameScript.EstimateOutputVsize());
+			if (diffMoney > coinjoin.Parameters.AllowedOutputAmounts.Min)
+			{
+				coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, Config.BlameScript));
+				round.LogInfo("Filled up the outputs to build a reasonable transaction because some alice failed to provide its output.");
+			}
+			else
+			{
+				round.LogWarning($"Could not add blame script, because the amount was too small: {nameof(diffMoney)}: {diffMoney}.");
+			}
+
+			return coinjoin;
+		}
+
+		private ConstructionState AddCoordinatorFee(Round round, ConstructionState coinjoin)
+		{
+			Script coordinatorScriptPubKey = GetCoordinatorScriptPreventReuse(round);
+
+			var coordinationFee = round.Alices.Sum(x => round.CoordinationFeeRate.GetFee(x.Coin.Amount));
+			coordinationFee -= round.FeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize());
+
+			if (coordinationFee > coinjoin.Parameters.AllowedOutputAmounts.Min)
+			{
+				coinjoin = coinjoin.AddOutput(new TxOut(coordinationFee, coordinatorScriptPubKey));
+			}
+			else
+			{
+				round.LogWarning($"Coordinator fee wasn't taken, because it was too small: {nameof(coordinationFee)}: {coordinationFee}.");
+			}
+
+			return coinjoin;
+		}
+
+		private Script GetCoordinatorScriptPreventReuse(Round round)
+		{
+			var coordinatorScriptPubKey = Config.GetNextCleanCoordinatorScript();
+
+			// Prevent coord script reuse.
+			if (Rounds.Any(r =>
+				r.Phase is Phase.TransactionSigning &&
+				r.Assert<SigningState>().Outputs.Any(o => o.ScriptPubKey == coordinatorScriptPubKey)))
+			{
+				Config.MakeNextCoordinatorScriptDirty();
+				coordinatorScriptPubKey = Config.GetNextCleanCoordinatorScript();
+				round.LogWarning($"Coordinator script pub key was already used by another round, making it dirty and taking a new one.");
+			}
+
+			return coordinatorScriptPubKey;
 		}
 
 		public override void Dispose()
