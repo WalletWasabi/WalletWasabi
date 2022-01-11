@@ -221,7 +221,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			var coordinatorScriptPubKey = Config.GetNextCleanCoordinatorScript();
 
 			// Prevent coord script reuse.
-			if (Rounds.Where(r => r.Phase is Phase.OutputRegistration or Phase.TransactionSigning).Any(r => r.Assert<ConstructionState>().Outputs.Any(o => o.ScriptPubKey == coordinatorScriptPubKey)))
+			if (Rounds.Any(r =>
+				r.Phase is Phase.OutputRegistration or Phase.TransactionSigning &&
+				r.Assert<ConstructionState>().Outputs.Any(o => o.ScriptPubKey == coordinatorScriptPubKey)))
 			{
 				Config.MakeNextCoordinatorScriptDirty();
 				coordinatorScriptPubKey = Config.GetNextCleanCoordinatorScript();
