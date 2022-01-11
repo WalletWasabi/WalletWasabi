@@ -13,6 +13,8 @@ namespace WalletWasabi.Fluent.ViewModels;
 
 public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 {
+	[AutoNotify] private string _showOrHideHeader;
+
 	public ApplicationViewModel()
 	{
 		QuitCommand = ReactiveCommand.CreateFromTask(async () =>
