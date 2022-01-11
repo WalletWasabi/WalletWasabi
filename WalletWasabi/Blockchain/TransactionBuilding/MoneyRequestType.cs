@@ -1,9 +1,8 @@
-namespace WalletWasabi.Blockchain.TransactionBuilding
+namespace WalletWasabi.Blockchain.TransactionBuilding;
+
+public enum MoneyRequestType
 {
-	public enum MoneyRequestType
-	{
-		Value,
-		Change,
-		AllRemaining
-	}
+	Value,
+	Change,
+	AllRemaining
 }

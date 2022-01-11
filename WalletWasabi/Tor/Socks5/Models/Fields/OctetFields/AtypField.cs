@@ -3,36 +3,35 @@ using System.Net.Sockets;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tor.Socks5.Models.Bases;
 
-namespace WalletWasabi.Tor.Socks5.Models.Fields.OctetFields
+namespace WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
+
+public class AtypField : OctetSerializableBase
 {
-	public class AtypField : OctetSerializableBase
+	// https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt
+	// IPv6 is not supported in CONNECT commands.
+
+	public static readonly AtypField IPv4 = new(0x01);
+
+	public static readonly AtypField DomainName = new(0x03);
+
+	public AtypField(byte value)
 	{
-		// https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt
-		// IPv6 is not supported in CONNECT commands.
+		ByteValue = value;
+	}
 
-		public static readonly AtypField IPv4 = new(0x01);
+	public AtypField(string dstAddr)
+	{
+		dstAddr = Guard.NotNullOrEmptyOrWhitespace(nameof(dstAddr), dstAddr, true);
 
-		public static readonly AtypField DomainName = new(0x03);
-
-		public AtypField(byte value)
+		if (IPAddress.TryParse(dstAddr, out IPAddress? address))
 		{
-			ByteValue = value;
+			Guard.Same($"{nameof(address)}.{nameof(address.AddressFamily)}", AddressFamily.InterNetwork, address.AddressFamily);
+
+			ByteValue = IPv4.ToByte();
 		}
-
-		public AtypField(string dstAddr)
+		else
 		{
-			dstAddr = Guard.NotNullOrEmptyOrWhitespace(nameof(dstAddr), dstAddr, true);
-
-			if (IPAddress.TryParse(dstAddr, out IPAddress? address))
-			{
-				Guard.Same($"{nameof(address)}.{nameof(address.AddressFamily)}", AddressFamily.InterNetwork, address.AddressFamily);
-
-				ByteValue = IPv4.ToByte();
-			}
-			else
-			{
-				ByteValue = DomainName.ToByte();
-			}
+			ByteValue = DomainName.ToByte();
 		}
 	}
 }

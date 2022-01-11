@@ -5,82 +5,81 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Blockchain.Transactions
+namespace WalletWasabi.Blockchain.Transactions;
+
+public class TransactionHistoryBuilder
 {
-	public class TransactionHistoryBuilder
+	public TransactionHistoryBuilder(Wallet wallet)
 	{
-		public TransactionHistoryBuilder(Wallet wallet)
+		Wallet = wallet;
+	}
+
+	public Wallet Wallet { get; }
+
+	public List<TransactionSummary> BuildHistorySummary()
+	{
+		var wallet = Wallet;
+
+		var txRecordList = new List<TransactionSummary>();
+		if (wallet is null)
 		{
-			Wallet = wallet;
+			return txRecordList;
 		}
 
-		public Wallet Wallet { get; }
-
-		public List<TransactionSummary> BuildHistorySummary()
+		var allCoins = ((CoinsRegistry)wallet.Coins).AsAllCoinsView();
+		foreach (SmartCoin coin in allCoins)
 		{
-			var wallet = Wallet;
+			var containingTransaction = coin.Transaction;
 
-			var txRecordList = new List<TransactionSummary>();
-			if (wallet is null)
+			var dateTime = containingTransaction.FirstSeen;
+			var found = txRecordList.FirstOrDefault(x => x.TransactionId == coin.TransactionId);
+			if (found is { }) // if found then update
 			{
-				return txRecordList;
+				found.DateTime = found.DateTime < dateTime ? found.DateTime : dateTime;
+				found.Amount += coin.Amount;
+				found.Label = SmartLabel.Merge(found.Label, containingTransaction.Label);
+			}
+			else
+			{
+				txRecordList.Add(new TransactionSummary
+				{
+					DateTime = dateTime,
+					Height = coin.Height,
+					Amount = coin.Amount,
+					Label = containingTransaction.Label,
+					TransactionId = coin.TransactionId,
+					BlockIndex = containingTransaction.BlockIndex,
+					IsLikelyCoinJoinOutput = containingTransaction.Transaction.IsLikelyCoinjoin()
+				});
 			}
 
-			var allCoins = ((CoinsRegistry)wallet.Coins).AsAllCoinsView();
-			foreach (SmartCoin coin in allCoins)
+			var spenderTransaction = coin.SpenderTransaction;
+			if (spenderTransaction is { })
 			{
-				var containingTransaction = coin.Transaction;
-
-				var dateTime = containingTransaction.FirstSeen;
-				var found = txRecordList.FirstOrDefault(x => x.TransactionId == coin.TransactionId);
-				if (found is { }) // if found then update
+				var spenderTxId = spenderTransaction.GetHash();
+				dateTime = spenderTransaction.FirstSeen;
+				var foundSpenderCoin = txRecordList.FirstOrDefault(x => x.TransactionId == spenderTxId);
+				if (foundSpenderCoin is { }) // if found
 				{
-					found.DateTime = found.DateTime < dateTime ? found.DateTime : dateTime;
-					found.Amount += coin.Amount;
-					found.Label = SmartLabel.Merge(found.Label, containingTransaction.Label);
+					foundSpenderCoin.DateTime = foundSpenderCoin.DateTime < dateTime ? foundSpenderCoin.DateTime : dateTime;
+					foundSpenderCoin.Amount -= coin.Amount;
 				}
 				else
 				{
 					txRecordList.Add(new TransactionSummary
 					{
 						DateTime = dateTime,
-						Height = coin.Height,
-						Amount = coin.Amount,
-						Label = containingTransaction.Label,
-						TransactionId = coin.TransactionId,
-						BlockIndex = containingTransaction.BlockIndex,
-						IsLikelyCoinJoinOutput = containingTransaction.Transaction.IsLikelyCoinjoin()
+						Height = spenderTransaction.Height,
+						Amount = Money.Zero - coin.Amount,
+						Label = spenderTransaction.Label,
+						TransactionId = spenderTxId,
+						BlockIndex = spenderTransaction.BlockIndex,
+						IsLikelyCoinJoinOutput = spenderTransaction.Transaction.IsLikelyCoinjoin()
 					});
 				}
-
-				var spenderTransaction = coin.SpenderTransaction;
-				if (spenderTransaction is { })
-				{
-					var spenderTxId = spenderTransaction.GetHash();
-					dateTime = spenderTransaction.FirstSeen;
-					var foundSpenderCoin = txRecordList.FirstOrDefault(x => x.TransactionId == spenderTxId);
-					if (foundSpenderCoin is { }) // if found
-					{
-						foundSpenderCoin.DateTime = foundSpenderCoin.DateTime < dateTime ? foundSpenderCoin.DateTime : dateTime;
-						foundSpenderCoin.Amount -= coin.Amount;
-					}
-					else
-					{
-						txRecordList.Add(new TransactionSummary
-						{
-							DateTime = dateTime,
-							Height = spenderTransaction.Height,
-							Amount = Money.Zero - coin.Amount,
-							Label = spenderTransaction.Label,
-							TransactionId = spenderTxId,
-							BlockIndex = spenderTransaction.BlockIndex,
-							IsLikelyCoinJoinOutput = spenderTransaction.Transaction.IsLikelyCoinjoin()
-						});
-					}
-				}
 			}
-			txRecordList = txRecordList.OrderByBlockchain().ToList();
-			return txRecordList;
 		}
+		txRecordList = txRecordList.OrderByBlockchain().ToList();
+		return txRecordList;
 	}
 }
