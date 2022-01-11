@@ -383,7 +383,7 @@ public class CoinJoinClient
 
 	/// <summary>
 	/// Calculates how many inputs are desirable to be registered
-	/// based on rougly the total number of coins in a wallet.
+	/// based on roughly the total number of coins in a wallet.
 	/// Note: random biasing is applied.
 	/// </summary>
 	/// <returns>Desired input count.</returns>
