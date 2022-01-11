@@ -76,7 +76,7 @@ namespace WalletWasabi.WabiSabi.Models
 				CoinjoinState.Parameters.AllowedOutputTypes,
 				CoinjoinState.Parameters.Network,
 				CoinjoinState.Parameters.FeeRate.FeePerK,
-				CoinjoinState.Parameters.CoordinationFeeRate.Rate,
+				CoinjoinState.Parameters.CoordinationFeeRate,
 				CoinjoinState.Parameters.MaxTransactionSize,
 				CoinjoinState.Parameters.MinRelayTxFee.FeePerK,
 				MaxAmountCredentialValue,

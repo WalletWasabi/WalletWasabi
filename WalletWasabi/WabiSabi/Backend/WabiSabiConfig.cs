@@ -87,10 +87,14 @@ namespace WalletWasabi.WabiSabi.Backend
 
 		public int MinInputCountByRound => Math.Max(1, (int)(MaxInputCountByRound * MinInputCountByRoundMultiplier));
 
-		[DefaultValueCoordinationFeeRate(0.003)]
+		[DefaultValueCoordinationFeeRate(0.003, 0.01)]
 		[JsonProperty(PropertyName = "CoordinationFeeRate", DefaultValueHandling = DefaultValueHandling.Populate)]
 		[JsonConverter(typeof(CoordinationFeeRateJsonConverter))]
-		public CoordinationFeeRate CoordinationFeeRate { get; set; } = new CoordinationFeeRate(0.003m);
+		public CoordinationFeeRate CoordinationFeeRate { get; set; } = new CoordinationFeeRate(0.003m, Money.Coins(0.01m));
+
+		[DefaultValue(0.01)]
+		[JsonProperty(PropertyName = "PlebsDontPayThreshold", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public double PlebsDontPayThreshold { get; set; } = 0.01;
 
 		[JsonProperty(PropertyName = "CoordinatorExtPubKey")]
 		[JsonConverter(typeof(ExtPubKeyJsonConverter))]

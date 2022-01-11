@@ -20,7 +20,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 				ImmutableSortedSet<ScriptType> allowedOutputTypes,
 				Network network,
 				long feePerK,
-				decimal coordinationFeRate,
+				CoordinationFeeRate coordinationFeRate,
 				int maxTransactionSize,
 				long minRelayTxFeePerK,
 				long maxAmountCredentialValue,

@@ -11,6 +11,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 	public class Round
 	{
 		private uint256 _id;
+
 		public Round(RoundParameters roundParameters)
 		{
 			RoundParameters = roundParameters;
@@ -135,7 +136,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					CoinjoinState.Parameters.AllowedOutputTypes,
 					CoinjoinState.Parameters.Network,
 					CoinjoinState.Parameters.FeeRate.FeePerK,
-					CoinjoinState.Parameters.CoordinationFeeRate.Rate,
+					CoinjoinState.Parameters.CoordinationFeeRate,
 					CoinjoinState.Parameters.MaxTransactionSize,
 					CoinjoinState.Parameters.MinRelayTxFee.FeePerK,
 					MaxAmountCredentialValue,

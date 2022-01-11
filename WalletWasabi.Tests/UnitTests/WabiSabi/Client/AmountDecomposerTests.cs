@@ -12,7 +12,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 {
 	public class AmountDecomposerTests
 	{
-		private static readonly Random Random = new (1234567);
+		private static readonly Random Random = new(1234567);
 
 		[Theory]
 		[InlineData(0, 0, 8)]
@@ -31,12 +31,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		{
 			var availableVsize = maxAvailableOutputs * Constants.P2wpkhOutputSizeInBytes;
 			var feeRate = new FeeRate(feeRateDecimal);
-      var coordinationFeeRate = new CoordinationFeeRate(0.01m);
+			var coordinationFeeRate = new CoordinationFeeRate(0.01m, Money.Zero);
 			var feePerOutput = feeRate.GetFee(Constants.P2wpkhOutputSizeInBytes);
 			var registeredCoins = GenerateRandomCoins().Take(3).ToList();
 			var theirCoins = GenerateRandomCoins().Take(30).ToList();
 			var amountDecomposer = new AmountDecomposer(feeRate, coordinationFeeRate, minOutputAmount, Constants.P2wpkhOutputSizeInBytes, availableVsize);
-      
+
 			var outputValues = amountDecomposer.Decompose(registeredCoins, theirCoins);
 
 			var totalEffectiveValue = registeredCoins.Sum(x => x.EffectiveValue(feeRate, coordinationFeeRate));
