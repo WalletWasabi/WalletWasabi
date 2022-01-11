@@ -39,7 +39,7 @@ public class TorHttpPool : IDisposable
 {
 	/// <summary>Maximum number of <see cref="TorTcpConnection"/>s per URI host.</summary>
 	/// <remarks>This parameter affects maximum parallelization for given URI host.</remarks>
-	public const int MaxConnectionsPerHost = 500;
+	public const int MaxConnectionsPerHost = 100;
 
 	private bool _disposedValue;
 
