@@ -357,10 +357,6 @@ public class TorHttpPool : IDisposable
 		{
 			Logger.LogTrace($"Beware! Too many active connections: '{string.Join(", ", hostConnections.Select(c => c.ToString()))}'.");
 		}
-		else
-		{
-			Logger.LogTrace($"There are active connections [{hostConnections.Count}]: '{string.Join(", ", hostConnections.Select(c => c.ToString()))}'.");
-		}
 
 		return canBeAdded;
 	}
