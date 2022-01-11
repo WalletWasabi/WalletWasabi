@@ -43,7 +43,6 @@ public class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 			using var bitmap = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo_white.ico");
 
 			TrayIcon = new WindowIcon(bitmap);
-
 		}
 		else
 		{
