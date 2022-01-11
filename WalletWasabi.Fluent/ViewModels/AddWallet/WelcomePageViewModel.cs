@@ -38,13 +38,13 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 		PrevCommand = ReactiveCommand.Create(() => SelectedIndex--, this.WhenAnyValue(x => x.SelectedIndex).Select(c => c > 0));
 	}
 
-	public Bitmap? WelcomeImage { get; } = AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WelcomeScreen/{ThemeHelper.CurrentTheme}/welcome.png");
+	public Bitmap WelcomeImage { get; } = AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WelcomeScreen/{ThemeHelper.CurrentTheme}/welcome.png");
 
-	public Bitmap? TrustlessImage { get; } = AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WelcomeScreen/{ThemeHelper.CurrentTheme}/trustless.png");
+	public Bitmap TrustlessImage { get; } = AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WelcomeScreen/{ThemeHelper.CurrentTheme}/trustless.png");
 
-	public Bitmap? OpensourceImage { get; } = AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WelcomeScreen/{ThemeHelper.CurrentTheme}/opensource.png");
+	public Bitmap OpensourceImage { get; } = AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WelcomeScreen/{ThemeHelper.CurrentTheme}/opensource.png");
 
-	public Bitmap? AnonymousImage { get; } = AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WelcomeScreen/{ThemeHelper.CurrentTheme}/anonymous.png");
+	public Bitmap AnonymousImage { get; } = AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WelcomeScreen/{ThemeHelper.CurrentTheme}/anonymous.png");
 
 	public ICommand GetStartedCommand { get; }
 

@@ -29,7 +29,7 @@ public partial class ContainsSymbolsViewModel : RoutableViewModel
 
 	public ICommand NoCommand { get; }
 
-	public IImage? Icon { get; }
+	public IImage Icon { get; }
 
 	private void SetAnswer(bool ans)
 	{

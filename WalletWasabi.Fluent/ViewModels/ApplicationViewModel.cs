@@ -11,7 +11,7 @@ using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
-public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
+public class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 {
 	public ApplicationViewModel()
 	{
@@ -29,7 +29,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 				// Show the window if it was hidden.
 				ShowRequested?.Invoke(this, EventArgs.Empty);
 
-				await MainViewModel.Instance!.CompactDialogScreen.NavigateDialogAsync(new Dialogs.ShowErrorDialogViewModel(
+				await MainViewModel.Instance.CompactDialogScreen.NavigateDialogAsync(new Dialogs.ShowErrorDialogViewModel(
 					"Wasabi is currently anonymising your wallet. Please try again in a few minutes.",
 					"Warning",
 					"Unable to close right now"));
@@ -42,23 +42,18 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 		{
 			using var bitmap = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo_white.ico");
 
-			if (bitmap is { })
-			{
-				TrayIcon = new WindowIcon(bitmap);
-			}
+			TrayIcon = new WindowIcon(bitmap);
+
 		}
 		else
 		{
 			using var bitmap = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo.ico");
 
-			if (bitmap is { })
-			{
-				TrayIcon = new WindowIcon(bitmap);
-			}
+			TrayIcon = new WindowIcon(bitmap);
 		}
 	}
 
-	public WindowIcon? TrayIcon { get; }
+	public WindowIcon TrayIcon { get; }
 
 	public event EventHandler? ShowRequested;
 

@@ -7,7 +7,7 @@ namespace WalletWasabi.Fluent.Converters;
 
 public class FeeTargetTimeConverter : IValueConverter
 {
-	public static string? Convert(int feeTarget, string minutesLabel, string hourLabel, string hoursLabel, string dayLabel, string daysLabel)
+	public static string Convert(int feeTarget, string minutesLabel, string hourLabel, string hoursLabel, string dayLabel, string daysLabel)
 	{
 		if (feeTarget == Constants.FastestConfirmationTarget)
 		{
@@ -36,14 +36,14 @@ public class FeeTargetTimeConverter : IValueConverter
 			return "one week";
 		}
 
-		return null;
+		return "> one week";
 	}
 
 	public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
 		if (value is int feeTarget)
 		{
-			return Convert(feeTarget, " minutes", " hour", " hours", " day", " days") ?? AvaloniaProperty.UnsetValue;
+			return Convert(feeTarget, " minutes", " hour", " hours", " day", " days");
 		}
 
 		return AvaloniaProperty.UnsetValue;
