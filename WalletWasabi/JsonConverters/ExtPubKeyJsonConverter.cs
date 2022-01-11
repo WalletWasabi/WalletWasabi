@@ -4,28 +4,25 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.JsonConverters;
 
-public class ExtPubKeyJsonConverter : JsonConverter
+public class ExtPubKeyJsonConverter : JsonConverter<ExtPubKey>
 {
 	/// <inheritdoc />
-	public override bool CanConvert(Type objectType)
+	public override ExtPubKey? ReadJson(JsonReader reader, Type objectType, ExtPubKey? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
-		return objectType == typeof(ExtPubKey);
+		var s = (string?)reader.Value;
+		if (s is not null)
+		{
+			ExtPubKey epk = NBitcoinHelpers.BetterParseExtPubKey(s);
+			return epk;
+		}
+
+		return null;
 	}
 
 	/// <inheritdoc />
-	public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+	public override void WriteJson(JsonWriter writer, ExtPubKey? value, JsonSerializer serializer)
 	{
-		var s = (string)reader.Value;
-		ExtPubKey epk = NBitcoinHelpers.BetterParseExtPubKey(s);
-		return epk;
-	}
-
-	/// <inheritdoc />
-	public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-	{
-		var epk = (ExtPubKey)value;
-
-		var xpub = epk.GetWif(Network.Main).ToWif();
+		var xpub = value?.GetWif(Network.Main).ToWif() ?? throw new ArgumentNullException(nameof(value));
 		writer.WriteValue(xpub);
 	}
 }
