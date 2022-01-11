@@ -205,7 +205,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			var diffMoney = Money.Satoshis(diff) - coinjoin.Parameters.FeeRate.GetFee(Config.BlameScript.EstimateOutputVsize());
 			if (diffMoney > coinjoin.Parameters.AllowedOutputAmounts.Min)
 			{
-				coinjoin = round.AddOutput(new TxOut(diffMoney, Config.BlameScript));
+				coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, Config.BlameScript));
 				round.LogInfo("Filled up the outputs to build a reasonable transaction because some alice failed to provide its output.");
 			}
 			else
@@ -233,7 +233,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 			if (coordinationFee > coinjoin.Parameters.AllowedOutputAmounts.Min)
 			{
-				coinjoin = round.AddOutput(new TxOut(coordinationFee, coordinatorScriptPubKey));
+				coinjoin = coinjoin.AddOutput(new TxOut(coordinationFee, coordinatorScriptPubKey));
 			}
 			else
 			{
