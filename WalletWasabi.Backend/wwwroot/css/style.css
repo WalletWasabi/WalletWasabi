@@ -41,10 +41,10 @@ p {
     font-weight: medium;
     line-height: 1.7em;
 }
-p a, .list a {
+p a, .list a, li a {
     color: var(--green);
 }
-p a:hover {
+p a:hover, li a:hover {
     color: var(--light-blue);
 }
 header {
