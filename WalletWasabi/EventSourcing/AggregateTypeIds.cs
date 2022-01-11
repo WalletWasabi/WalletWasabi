@@ -5,18 +5,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WalletWasabi.EventSourcing
-{
-	public record AggregateTypeIds(long TailIndex, ImmutableSortedSet<string> Ids)
-	{
-		/// <summary>
-		/// Index of the last aggregateId in this aggregateType
-		/// </summary>
-		public long TailIndex { get; init; } = TailIndex;
+namespace WalletWasabi.EventSourcing;
 
-		/// <summary>
-		/// List of aggregate Ids in this aggregateType
-		/// </summary>
-		public ImmutableSortedSet<string> Ids { get; init; } = Ids;
-	}
+public record AggregateTypeIds(long TailIndex, ImmutableSortedSet<string> Ids)
+{
+	/// <summary>
+	/// Index of the last aggregateId in this aggregateType
+	/// </summary>
+	public long TailIndex { get; init; } = TailIndex;
+
+	/// <summary>
+	/// List of aggregate Ids in this aggregateType
+	/// </summary>
+	public ImmutableSortedSet<string> Ids { get; init; } = Ids;
 }

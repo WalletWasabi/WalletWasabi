@@ -11,17 +11,17 @@
   <StackPanel Classes="settingsLayout">
 
     <DockPanel>
-      <TextBlock Text="Dark Mode" />
+      <TextBlock Text="Dark mode" />
       <ToggleSwitch IsChecked="{Binding DarkModeEnabled}" />
     </DockPanel>
 
     <DockPanel>
-      <TextBlock Text="Start Wasabi with the system" />
+      <TextBlock Text="Run Wasabi when computer starts" />
       <ToggleSwitch IsChecked="{Binding RunOnSystemStartup}" Command="{Binding StartupCommand}" />
     </DockPanel>
 
     <DockPanel>
-      <TextBlock Text="Hide Window on close" />
+      <TextBlock Text="Run in background when closed" />
       <ToggleSwitch IsChecked="{Binding HideOnClose}" />
     </DockPanel>
 
@@ -36,12 +36,12 @@
     </DockPanel>
 
     <DockPanel>
-      <TextBlock VerticalAlignment="Center" Text="Custom change address." />
+      <TextBlock VerticalAlignment="Center" Text="Custom change address" />
       <ToggleSwitch IsChecked="{Binding CustomChangeAddress}" />
     </DockPanel>
 
     <StackPanel Spacing="10">
-      <TextBlock Text="Fee Display Format" />
+      <TextBlock Text="Fee display format" />
       <ComboBox HorizontalAlignment="Stretch" Items="{Binding FeeDisplayFormats}" SelectedItem="{Binding SelectedFeeDisplayFormat}">
         <ComboBox.ItemTemplate>
           <DataTemplate>

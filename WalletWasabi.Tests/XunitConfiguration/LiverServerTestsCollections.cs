@@ -1,9 +1,8 @@
 using Xunit;
 
-namespace WalletWasabi.Tests.XunitConfiguration
+namespace WalletWasabi.Tests.XunitConfiguration;
+
+[CollectionDefinition("LiveServerTests collection")]
+public class LiverServerTestsCollections : ICollectionFixture<LiveServerTestsFixture>
 {
-	[CollectionDefinition("LiveServerTests collection")]
-	public class LiverServerTestsCollections : ICollectionFixture<LiveServerTestsFixture>
-	{
-	}
 }

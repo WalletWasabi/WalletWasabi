@@ -3,48 +3,47 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 
-namespace WalletWasabi.Fluent.Behaviors
+namespace WalletWasabi.Fluent.Behaviors;
+
+internal class BoundsObserverBehavior : DisposingBehavior<Control>
 {
-	internal class BoundsObserverBehavior : DisposingBehavior<Control>
+	public static readonly StyledProperty<Rect> BoundsProperty =
+		AvaloniaProperty.Register<BoundsObserverBehavior, Rect>(nameof(Bounds), defaultBindingMode: BindingMode.OneWay);
+
+	public static readonly StyledProperty<double> WidthProperty =
+		AvaloniaProperty.Register<BoundsObserverBehavior, double>(nameof(Width), defaultBindingMode: BindingMode.TwoWay);
+
+	public static readonly StyledProperty<double> HeightProperty =
+		AvaloniaProperty.Register<BoundsObserverBehavior, double>(nameof(Height), defaultBindingMode: BindingMode.TwoWay);
+
+	public Rect Bounds
 	{
-		public static readonly StyledProperty<Rect> BoundsProperty =
-			AvaloniaProperty.Register<BoundsObserverBehavior, Rect>(nameof(Bounds), defaultBindingMode: BindingMode.OneWay);
+		get => GetValue(BoundsProperty);
+		set => SetValue(BoundsProperty, value);
+	}
 
-		public static readonly StyledProperty<double> WidthProperty =
-			AvaloniaProperty.Register<BoundsObserverBehavior, double>(nameof(Width), defaultBindingMode: BindingMode.TwoWay);
+	public double Width
+	{
+		get => GetValue(WidthProperty);
+		set => SetValue(WidthProperty, value);
+	}
 
-		public static readonly StyledProperty<double> HeightProperty =
-			AvaloniaProperty.Register<BoundsObserverBehavior, double>(nameof(Height), defaultBindingMode: BindingMode.TwoWay);
+	public double Height
+	{
+		get => GetValue(HeightProperty);
+		set => SetValue(HeightProperty, value);
+	}
 
-		public Rect Bounds
+	protected override void OnAttached(CompositeDisposable disposables)
+	{
+		if (AssociatedObject is not null)
 		{
-			get => GetValue(BoundsProperty);
-			set => SetValue(BoundsProperty, value);
-		}
-
-		public double Width
-		{
-			get => GetValue(WidthProperty);
-			set => SetValue(WidthProperty, value);
-		}
-
-		public double Height
-		{
-			get => GetValue(HeightProperty);
-			set => SetValue(HeightProperty, value);
-		}
-
-		protected override void OnAttached(CompositeDisposable disposables)
-		{
-			if (AssociatedObject is not null)
-			{
-				disposables.Add(this.GetObservable(BoundsProperty)
-					.Subscribe(bounds =>
-					{
-						Width = bounds.Width;
-						Height = bounds.Height;
-					}));
-			}
+			disposables.Add(this.GetObservable(BoundsProperty)
+				.Subscribe(bounds =>
+				{
+					Width = bounds.Width;
+					Height = bounds.Height;
+				}));
 		}
 	}
 }
