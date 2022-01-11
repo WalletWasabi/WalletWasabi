@@ -69,4 +69,13 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 		return true;
 	}
+
+	public void MainViewInitializedFromDesktop()
+	{
+		MainViewModel.Instance!.WhenAnyValue(x => x.WindowState)
+			.Subscribe(x =>
+			{
+				ShowOrHideHeader = x is WindowState.Maximized or WindowState.FullScreen ? "Hide" : "Show";
+			});
+	}
 }

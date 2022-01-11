@@ -17,6 +17,7 @@ namespace WalletWasabi.Fluent;
 public class App : Application
 {
 	private Func<Task> _backendInitialiseAsync;
+	private ApplicationViewModel applicationViewModel;
 
 	/// <summary>
 	/// Defines the <see cref="CanShutdownProvider"/> property.
@@ -27,9 +28,10 @@ public class App : Application
 	public App()
 	{
 		Name = "Wasabi Wallet";
-		ApplicationViewModel applicationViewModel = new();
+		applicationViewModel = new();
 		DataContext = applicationViewModel;
 		applicationViewModel.ShowRequested += (sender, args) => ShowRequested?.Invoke(sender, args);
+		applicationViewModel.HideRequested += (sender, args) => HideRequested?.Invoke(sender, args);
 	}
 
 	public App(Func<Task> backendInitialiseAsync) : this()
@@ -60,6 +62,8 @@ public class App : Application
 
 			if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
 			{
+				applicationViewModel.MainViewInitializedFromDesktop();
+
 				desktop.ShutdownRequested += DesktopOnShutdownRequested;
 
 				desktop.MainWindow = new MainWindow
