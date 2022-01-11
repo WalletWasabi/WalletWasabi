@@ -7,78 +7,77 @@ using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels;
+
+public partial class SuggestionLabelsViewModel : ViewModelBase
 {
-	public partial class SuggestionLabelsViewModel : ViewModelBase
+	private readonly SourceList<SuggestionLabelViewModel> _sourceLabels;
+	private readonly ObservableCollectionExtended<string> _topSuggestions;
+	private readonly ObservableCollectionExtended<string> _suggestions;
+	private readonly ObservableCollectionExtended<string> _labels;
+
+	[AutoNotify] private bool _isCurrentTextValid;
+
+	public SuggestionLabelsViewModel(int topSuggestionsCount)
 	{
-		private readonly SourceList<SuggestionLabelViewModel> _sourceLabels;
-		private readonly ObservableCollectionExtended<string> _topSuggestions;
-		private readonly ObservableCollectionExtended<string> _suggestions;
-		private readonly ObservableCollectionExtended<string> _labels;
+		_sourceLabels = new SourceList<SuggestionLabelViewModel>();
+		_topSuggestions = new ObservableCollectionExtended<string>();
+		_suggestions = new ObservableCollectionExtended<string>();
+		_labels = new ObservableCollectionExtended<string>();
 
-		[AutoNotify] private bool _isCurrentTextValid;
+		UpdateLabels();
+		CreateSuggestions(topSuggestionsCount);
+	}
 
-		public SuggestionLabelsViewModel(int topSuggestionsCount)
-		{
-			_sourceLabels = new SourceList<SuggestionLabelViewModel>();
-			_topSuggestions = new ObservableCollectionExtended<string>();
-			_suggestions = new ObservableCollectionExtended<string>();
-			_labels = new ObservableCollectionExtended<string>();
+	public ObservableCollection<string> TopSuggestions => _topSuggestions;
 
-			UpdateLabels();
-			CreateSuggestions(topSuggestionsCount);
-		}
+	public ObservableCollection<string> Suggestions => _suggestions;
 
-		public ObservableCollection<string> TopSuggestions => _topSuggestions;
+	public ObservableCollection<string> Labels => _labels;
 
-		public ObservableCollection<string> Suggestions => _suggestions;
+	public void UpdateLabels()
+	{
+		var labels = WalletHelpers.GetLabels();
 
-		public ObservableCollection<string> Labels => _labels;
+		var mostUsedLabels = labels.GroupBy(x => x)
+			.Select(x => new
+			{
+				Label = x.Key,
+				Count = x.Count()
+			})
+			.OrderByDescending(x => x.Count)
+			.ToList();
 
-		public void UpdateLabels()
-		{
-			var labels = WalletHelpers.GetLabels();
+		_sourceLabels.Clear();
+		_sourceLabels.AddRange(
+			mostUsedLabels.Select(x => new SuggestionLabelViewModel(x.Label, x.Count)));
+	}
 
-			var mostUsedLabels = labels.GroupBy(x => x)
-				.Select(x => new
-				{
-					Label = x.Key,
-					Count = x.Count()
-				})
-				.OrderByDescending(x => x.Count)
-				.ToList();
+	private void CreateSuggestions(int topSuggestionsCount)
+	{
+		var suggestionLabelsFilter = this.WhenAnyValue(x => x.Labels).Select(_ => Unit.Default)
+			.Merge(Observable.FromEventPattern(Labels, nameof(Labels.CollectionChanged)).Select(_ => Unit.Default))
+			.Select(_ => SuggestionLabelsFilter());
 
-			_sourceLabels.Clear();
-			_sourceLabels.AddRange(
-				mostUsedLabels.Select(x => new SuggestionLabelViewModel(x.Label, x.Count)));
-		}
+		_sourceLabels
+			.Connect()
+			.Filter(suggestionLabelsFilter)
+			.Sort(SortExpressionComparer<SuggestionLabelViewModel>.Descending(x => x.Count).ThenByAscending(x => x.Label))
+			.Top(topSuggestionsCount)
+			.Transform(x => x.Label)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Bind(_topSuggestions)
+			.Subscribe();
 
-		private void CreateSuggestions(int topSuggestionsCount)
-		{
-			var suggestionLabelsFilter = this.WhenAnyValue(x => x.Labels).Select(_ => Unit.Default)
-				.Merge(Observable.FromEventPattern(Labels, nameof(Labels.CollectionChanged)).Select(_ => Unit.Default))
-				.Select(_ => SuggestionLabelsFilter());
+		_sourceLabels
+			.Connect()
+			.Filter(suggestionLabelsFilter)
+			.Sort(SortExpressionComparer<SuggestionLabelViewModel>.Descending(x => x.Count).ThenByAscending(x => x.Label))
+			.Transform(x => x.Label)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Bind(_suggestions)
+			.Subscribe();
 
-			_sourceLabels
-				.Connect()
-				.Filter(suggestionLabelsFilter)
-				.Sort(SortExpressionComparer<SuggestionLabelViewModel>.Descending(x => x.Count).ThenByAscending(x => x.Label))
-				.Top(topSuggestionsCount)
-				.Transform(x => x.Label)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Bind(_topSuggestions)
-				.Subscribe();
-
-			_sourceLabels
-				.Connect()
-				.Filter(suggestionLabelsFilter)
-				.Sort(SortExpressionComparer<SuggestionLabelViewModel>.Descending(x => x.Count).ThenByAscending(x => x.Label))
-				.Transform(x => x.Label)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Bind(_suggestions)
-				.Subscribe();
-
-			Func<SuggestionLabelViewModel, bool> SuggestionLabelsFilter() => suggestionLabel => !_labels.Contains(suggestionLabel.Label);
-		}
+		Func<SuggestionLabelViewModel, bool> SuggestionLabelsFilter() => suggestionLabel => !_labels.Contains(suggestionLabel.Label);
 	}
 }

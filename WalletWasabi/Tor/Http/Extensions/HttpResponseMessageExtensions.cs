@@ -10,92 +10,91 @@ using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Models;
 
-namespace WalletWasabi.Tor.Http.Extensions
+namespace WalletWasabi.Tor.Http.Extensions;
+
+public static class HttpResponseMessageExtensions
 {
-	public static class HttpResponseMessageExtensions
+	public static async Task<HttpResponseMessage> CreateNewAsync(Stream responseStream, HttpMethod requestMethod, CancellationToken cancellationToken = default)
 	{
-		public static async Task<HttpResponseMessage> CreateNewAsync(Stream responseStream, HttpMethod requestMethod, CancellationToken cancellationToken = default)
+		// https://tools.ietf.org/html/rfc7230#section-3
+		// The normal procedure for parsing an HTTP message is to read the
+		// start - line into a structure, read each header field into a hash table
+		// by field name until the empty line, and then use the parsed data to
+		// determine if a message body is expected.If a message body has been
+		// indicated, then it is read as a stream until an amount of octets
+		// equal to the message body length is read or the connection is closed.
+
+		// https://tools.ietf.org/html/rfc7230#section-3
+		// All HTTP/ 1.1 messages consist of a start - line followed by a sequence
+		// of octets in a format similar to the Internet Message Format
+		// [RFC5322]: zero or more header fields(collectively referred to as
+		// the "headers" or the "header section"), an empty line indicating the
+		// end of the header section, and an optional message body.
+		// HTTP - message = start - line
+		//					* (header - field CRLF )
+		//					CRLF
+		//					[message - body]
+
+		string startLine = await HttpMessageHelper.ReadStartLineAsync(responseStream, cancellationToken).ConfigureAwait(false);
+
+		StatusLine statusLine = StatusLine.Parse(startLine);
+		HttpResponseMessage response = new(statusLine.StatusCode);
+
+		string headers = await HttpMessageHelper.ReadHeadersAsync(responseStream, cancellationToken).ConfigureAwait(false);
+
+		HeaderSection headerSection = await HeaderSection.CreateNewAsync(headers).ConfigureAwait(false);
+		HttpResponseContentHeaders headerStruct = headerSection.ToHttpResponseHeaders();
+
+		HttpMessageHelper.AssertValidHeaders(headerStruct.ResponseHeaders, headerStruct.ContentHeaders);
+		byte[]? contentBytes = await HttpMessageHelper.GetContentBytesAsync(responseStream, headerStruct, requestMethod, statusLine, cancellationToken).ConfigureAwait(false);
+		contentBytes = HttpMessageHelper.HandleGzipCompression(headerStruct.ContentHeaders, contentBytes);
+		response.Content = contentBytes is null ? null : new ByteArrayContent(contentBytes);
+
+		HttpMessageHelper.CopyHeaders(headerStruct.ResponseHeaders, response.Headers);
+		if (response.Content is { })
 		{
-			// https://tools.ietf.org/html/rfc7230#section-3
-			// The normal procedure for parsing an HTTP message is to read the
-			// start - line into a structure, read each header field into a hash table
-			// by field name until the empty line, and then use the parsed data to
-			// determine if a message body is expected.If a message body has been
-			// indicated, then it is read as a stream until an amount of octets
-			// equal to the message body length is read or the connection is closed.
-
-			// https://tools.ietf.org/html/rfc7230#section-3
-			// All HTTP/ 1.1 messages consist of a start - line followed by a sequence
-			// of octets in a format similar to the Internet Message Format
-			// [RFC5322]: zero or more header fields(collectively referred to as
-			// the "headers" or the "header section"), an empty line indicating the
-			// end of the header section, and an optional message body.
-			// HTTP - message = start - line
-			//					* (header - field CRLF )
-			//					CRLF
-			//					[message - body]
-
-			string startLine = await HttpMessageHelper.ReadStartLineAsync(responseStream, cancellationToken).ConfigureAwait(false);
-
-			StatusLine statusLine = StatusLine.Parse(startLine);
-			HttpResponseMessage response = new(statusLine.StatusCode);
-
-			string headers = await HttpMessageHelper.ReadHeadersAsync(responseStream, cancellationToken).ConfigureAwait(false);
-
-			HeaderSection headerSection = await HeaderSection.CreateNewAsync(headers).ConfigureAwait(false);
-			HttpResponseContentHeaders headerStruct = headerSection.ToHttpResponseHeaders();
-
-			HttpMessageHelper.AssertValidHeaders(headerStruct.ResponseHeaders, headerStruct.ContentHeaders);
-			byte[]? contentBytes = await HttpMessageHelper.GetContentBytesAsync(responseStream, headerStruct, requestMethod, statusLine, cancellationToken).ConfigureAwait(false);
-			contentBytes = HttpMessageHelper.HandleGzipCompression(headerStruct.ContentHeaders, contentBytes);
-			response.Content = contentBytes is null ? null : new ByteArrayContent(contentBytes);
-
-			HttpMessageHelper.CopyHeaders(headerStruct.ResponseHeaders, response.Headers);
-			if (response.Content is { })
-			{
-				HttpMessageHelper.CopyHeaders(headerStruct.ContentHeaders, response.Content.Headers);
-			}
-			return response;
+			HttpMessageHelper.CopyHeaders(headerStruct.ContentHeaders, response.Content.Headers);
 		}
+		return response;
+	}
 
-		public static async Task ThrowRequestExceptionFromContentAsync(this HttpResponseMessage me, CancellationToken cancellationToken = default)
+	public static async Task ThrowRequestExceptionFromContentAsync(this HttpResponseMessage me, CancellationToken cancellationToken = default)
+	{
+		var errorMessage = "";
+
+		if (me.Content is not null)
 		{
-			var errorMessage = "";
-
-			if (me.Content is not null)
+			var contentString = await me.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+			var error = JsonConvert.DeserializeObject<Error>(contentString, new JsonSerializerSettings()
 			{
-				var contentString = await me.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-				var error = JsonConvert.DeserializeObject<Error>(contentString, new JsonSerializerSettings()
-				{
-					Error = (_, e) => e.ErrorContext.Handled = true // Try to deserialize an Error object
-				});
-				var innerException = error switch
-				{
-					{ Type: ProtocolConstants.ProtocolViolationType } => Enum.TryParse<WabiSabiProtocolErrorCode>(error.ErrorCode, out var code)
-						? new WabiSabiProtocolException(code, error.Description)
-						: new NotSupportedException($"Received WabiSabi protocol exception with unknown '{error.ErrorCode}' error code.\n\tDescription: '{error.Description}'."),
-					{ Type: "unknown" } => new Exception(error.Description),
-					_ => null
-				};
+				Error = (_, e) => e.ErrorContext.Handled = true // Try to deserialize an Error object
+			});
+			var innerException = error switch
+			{
+				{ Type: ProtocolConstants.ProtocolViolationType } => Enum.TryParse<WabiSabiProtocolErrorCode>(error.ErrorCode, out var code)
+					? new WabiSabiProtocolException(code, error.Description)
+					: new NotSupportedException($"Received WabiSabi protocol exception with unknown '{error.ErrorCode}' error code.\n\tDescription: '{error.Description}'."),
+				{ Type: "unknown" } => new Exception(error.Description),
+				_ => null
+			};
 
-				if (innerException is not null)
-				{
-					throw new HttpRequestException("Remote coordinator responded with an error.", innerException, me.StatusCode);
-				}
-
-				// Remove " from beginning and end to ensure backwards compatibility and it's kind of trash, too.
-				if (contentString.Count(f => f == '"') <= 2)
-				{
-					contentString = contentString.Trim('"');
-				}
-
-				if (!string.IsNullOrWhiteSpace(contentString))
-				{
-					errorMessage = $"\n{contentString}";
-				}
+			if (innerException is not null)
+			{
+				throw new HttpRequestException("Remote coordinator responded with an error.", innerException, me.StatusCode);
 			}
 
-			throw new HttpRequestException($"{me.StatusCode.ToReasonString()}{errorMessage}");
+			// Remove " from beginning and end to ensure backwards compatibility and it's kind of trash, too.
+			if (contentString.Count(f => f == '"') <= 2)
+			{
+				contentString = contentString.Trim('"');
+			}
+
+			if (!string.IsNullOrWhiteSpace(contentString))
+			{
+				errorMessage = $"\n{contentString}";
+			}
 		}
+
+		throw new HttpRequestException($"{me.StatusCode.ToReasonString()}{errorMessage}");
 	}
 }

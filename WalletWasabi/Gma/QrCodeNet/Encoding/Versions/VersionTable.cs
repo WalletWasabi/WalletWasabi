@@ -1,35 +1,35 @@
-namespace Gma.QrCodeNet.Encoding.Versions
+namespace Gma.QrCodeNet.Encoding.Versions;
+
+public static class VersionTable
 {
-	public static class VersionTable
+	private static readonly QRCodeVersion[] Version = Initialize();
+
+	internal static QRCodeVersion GetVersionByNum(int versionNum)
 	{
-		private static readonly QRCodeVersion[] Version = Initialize();
-
-		internal static QRCodeVersion GetVersionByNum(int versionNum)
+		if (versionNum is < QRCodeConstantVariable.MinVersion or > QRCodeConstantVariable.MaxVersion)
 		{
-			if (versionNum is < QRCodeConstantVariable.MinVersion or > QRCodeConstantVariable.MaxVersion)
-			{
-				throw new InvalidOperationException($"Unexpected version number: {versionNum}.");
-			}
-
-			return Version[versionNum - 1];
+			throw new InvalidOperationException($"Unexpected version number: {versionNum}.");
 		}
 
-		internal static QRCodeVersion GetVersionByWidth(int matrixWidth)
-		{
-			if ((matrixWidth - 17) % 4 != 0)
-			{
-				throw new ArgumentException("Incorrect matrix width.");
-			}
-			else
-			{
-				return GetVersionByNum((matrixWidth - 17) / 4);
-			}
-		}
+		return Version[versionNum - 1];
+	}
 
-		private static QRCodeVersion[] Initialize()
+	internal static QRCodeVersion GetVersionByWidth(int matrixWidth)
+	{
+		if ((matrixWidth - 17) % 4 != 0)
 		{
-			return new QRCodeVersion[]
-			{
+			throw new ArgumentException("Incorrect matrix width.");
+		}
+		else
+		{
+			return GetVersionByNum((matrixWidth - 17) / 4);
+		}
+	}
+
+	private static QRCodeVersion[] Initialize()
+	{
+		return new QRCodeVersion[]
+		{
 				new QRCodeVersion(
 					1,
 					26,
@@ -310,7 +310,6 @@ namespace Gma.QrCodeNet.Encoding.Versions
 					new ErrorCorrectionBlocks(1372, new ErrorCorrectionBlock(18, 47), new ErrorCorrectionBlock(31, 48)),
 					new ErrorCorrectionBlocks(2040, new ErrorCorrectionBlock(34, 24), new ErrorCorrectionBlock(34, 25)),
 					new ErrorCorrectionBlocks(2430, new ErrorCorrectionBlock(20, 15), new ErrorCorrectionBlock(61, 16))),
-			};
-		}
+		};
 	}
 }

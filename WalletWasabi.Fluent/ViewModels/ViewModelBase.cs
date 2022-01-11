@@ -3,55 +3,54 @@ using System.Collections;
 using System.ComponentModel;
 using WalletWasabi.Fluent.Validation;
 
-namespace WalletWasabi.Fluent.ViewModels
+namespace WalletWasabi.Fluent.ViewModels;
+
+public class ViewModelBase : ReactiveObject, INotifyDataErrorInfo, IRegisterValidationMethod
 {
-	public class ViewModelBase : ReactiveObject, INotifyDataErrorInfo, IRegisterValidationMethod
+	private Validations _validations;
+
+	public ViewModelBase()
 	{
-		private Validations _validations;
+		_validations = new Validations();
+		_validations.ErrorsChanged += OnValidations_ErrorsChanged;
+		PropertyChanged += ViewModelBase_PropertyChanged;
+	}
 
-		public ViewModelBase()
+	public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
+
+	protected IValidations Validations => _validations;
+
+	bool INotifyDataErrorInfo.HasErrors => Validations.Any;
+
+	protected void ClearValidations()
+	{
+		_validations.Clear();
+	}
+
+	private void OnValidations_ErrorsChanged(object? sender, DataErrorsChangedEventArgs e)
+	{
+		ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(e.PropertyName));
+	}
+
+	private void ViewModelBase_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+	{
+		if (string.IsNullOrWhiteSpace(e.PropertyName))
 		{
-			_validations = new Validations();
-			_validations.ErrorsChanged += OnValidations_ErrorsChanged;
-			PropertyChanged += ViewModelBase_PropertyChanged;
+			_validations.Validate();
 		}
-
-		public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
-
-		protected IValidations Validations => _validations;
-
-		bool INotifyDataErrorInfo.HasErrors => Validations.Any;
-
-		protected void ClearValidations()
+		else
 		{
-			_validations.Clear();
+			_validations.ValidateProperty(e.PropertyName);
 		}
+	}
 
-		private void OnValidations_ErrorsChanged(object? sender, DataErrorsChangedEventArgs e)
-		{
-			ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(e.PropertyName));
-		}
+	IEnumerable INotifyDataErrorInfo.GetErrors(string? propertyName)
+	{
+		return _validations.GetErrors(propertyName);
+	}
 
-		private void ViewModelBase_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-		{
-			if (string.IsNullOrWhiteSpace(e.PropertyName))
-			{
-				_validations.Validate();
-			}
-			else
-			{
-				_validations.ValidateProperty(e.PropertyName);
-			}
-		}
-
-		IEnumerable INotifyDataErrorInfo.GetErrors(string? propertyName)
-		{
-			return _validations.GetErrors(propertyName);
-		}
-
-		void IRegisterValidationMethod.RegisterValidationMethod(string propertyName, ValidateMethod validateMethod)
-		{
-			((IRegisterValidationMethod)_validations).RegisterValidationMethod(propertyName, validateMethod);
-		}
+	void IRegisterValidationMethod.RegisterValidationMethod(string propertyName, ValidateMethod validateMethod)
+	{
+		((IRegisterValidationMethod)_validations).RegisterValidationMethod(propertyName, validateMethod);
 	}
 }

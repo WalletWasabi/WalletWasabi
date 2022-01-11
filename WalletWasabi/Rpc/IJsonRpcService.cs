@@ -1,6 +1,5 @@
-namespace WalletWasabi.Rpc
+namespace WalletWasabi.Rpc;
+
+public interface IJsonRpcService
 {
-	public interface IJsonRpcService
-	{
-	}
 }

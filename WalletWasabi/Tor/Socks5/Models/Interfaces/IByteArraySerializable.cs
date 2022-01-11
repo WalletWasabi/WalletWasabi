@@ -1,9 +1,8 @@
-namespace WalletWasabi.Tor.Socks5.Models.Interfaces
-{
-	public interface IByteArraySerializable
-	{
-		byte[] ToBytes();
+namespace WalletWasabi.Tor.Socks5.Models.Interfaces;
 
-		string ToHex(bool xhhSyntax);
-	}
+public interface IByteArraySerializable
+{
+	byte[] ToBytes();
+
+	string ToHex(bool xhhSyntax);
 }

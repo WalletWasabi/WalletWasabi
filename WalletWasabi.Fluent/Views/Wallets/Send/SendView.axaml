@@ -66,7 +66,7 @@
               <c:AnimatedButton IsVisible="{Binding IsQrButtonVisible}"
                                 KeyboardNavigation.IsTabStop="False"
                                 Focusable="False"
-                                Command="{Binding QRCommand}"
+                                Command="{Binding QrCommand}"
                                 ToolTip.Tip="Scan QR Code"
                                 NormalIcon="{StaticResource qr_code_regular}" />
             </StackPanel>

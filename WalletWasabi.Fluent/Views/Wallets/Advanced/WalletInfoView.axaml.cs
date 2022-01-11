@@ -1,18 +1,17 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Wallets.Advanced
-{
-	public class WalletInfoView : UserControl
-	{
-		public WalletInfoView()
-		{
-			InitializeComponent();
-		}
+namespace WalletWasabi.Fluent.Views.Wallets.Advanced;
 
-		private void InitializeComponent()
-		{
-			AvaloniaXamlLoader.Load(this);
-		}
+public class WalletInfoView : UserControl
+{
+	public WalletInfoView()
+	{
+		InitializeComponent();
+	}
+
+	private void InitializeComponent()
+	{
+		AvaloniaXamlLoader.Load(this);
 	}
 }
