@@ -50,8 +50,14 @@ public class UiConfig : ConfigBase
 			.Subscribe(_ => ToFile());
 	}
 
-	[JsonProperty(PropertyName = "Oobe", DefaultValueHandling = DefaultValueHandling.Populate)]
+#if (DEBUG)
+
+	[DefaultValue(false)]
+#else
+
 	[DefaultValue(true)]
+#endif
+	[JsonProperty(PropertyName = "Oobe", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool Oobe
 	{
 		get => _oobe;
@@ -138,7 +144,13 @@ public class UiConfig : ConfigBase
 		set => RaiseAndSetIfChanged(ref _runOnSystemStartup, value);
 	}
 
+#if (DEBUG)
+
+	[DefaultValue(false)]
+#else
+
 	[DefaultValue(true)]
+#endif
 	[JsonProperty(PropertyName = "HideOnClose", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool HideOnClose
 	{
