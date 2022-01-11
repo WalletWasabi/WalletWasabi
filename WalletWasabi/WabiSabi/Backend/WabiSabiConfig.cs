@@ -27,7 +27,6 @@ namespace WalletWasabi.WabiSabi.Backend
 
 		[DefaultValueTimeSpan("0d 3h 0m 0s")]
 		[JsonProperty(PropertyName = "ReleaseUtxoFromPrisonAfter", DefaultValueHandling = DefaultValueHandling.Populate)]
-		[JsonConverter(typeof(TimeSpanJsonConverter))]
 		public TimeSpan ReleaseUtxoFromPrisonAfter { get; set; } = TimeSpan.FromHours(3);
 
 		[DefaultValueMoneyBtc("0.00005")]
@@ -49,32 +48,26 @@ namespace WalletWasabi.WabiSabi.Backend
 
 		[DefaultValueTimeSpan("0d 1h 0m 0s")]
 		[JsonProperty(PropertyName = "StandardInputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-		[JsonConverter(typeof(TimeSpanJsonConverter))]
 		public TimeSpan StandardInputRegistrationTimeout { get; set; } = TimeSpan.FromHours(1);
 
 		[DefaultValueTimeSpan("0d 0h 3m 0s")]
 		[JsonProperty(PropertyName = "BlameInputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-		[JsonConverter(typeof(TimeSpanJsonConverter))]
 		public TimeSpan BlameInputRegistrationTimeout { get; set; } = TimeSpan.FromMinutes(3);
 
 		[DefaultValueTimeSpan("0d 0h 1m 0s")]
 		[JsonProperty(PropertyName = "ConnectionConfirmationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-		[JsonConverter(typeof(TimeSpanJsonConverter))]
 		public TimeSpan ConnectionConfirmationTimeout { get; set; } = TimeSpan.FromMinutes(1);
 
 		[DefaultValueTimeSpan("0d 0h 1m 0s")]
 		[JsonProperty(PropertyName = "OutputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-		[JsonConverter(typeof(TimeSpanJsonConverter))]
 		public TimeSpan OutputRegistrationTimeout { get; set; } = TimeSpan.FromMinutes(1);
 
 		[DefaultValueTimeSpan("0d 0h 1m 0s")]
 		[JsonProperty(PropertyName = "TransactionSigningTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-		[JsonConverter(typeof(TimeSpanJsonConverter))]
 		public TimeSpan TransactionSigningTimeout { get; set; } = TimeSpan.FromMinutes(1);
 
 		[DefaultValueTimeSpan("0d 0h 5m 0s")]
 		[JsonProperty(PropertyName = "RoundExpiryTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-		[JsonConverter(typeof(TimeSpanJsonConverter))]
 		public TimeSpan RoundExpiryTimeout { get; set; } = TimeSpan.FromMinutes(5);
 
 		[DefaultValue(100)]
@@ -89,15 +82,9 @@ namespace WalletWasabi.WabiSabi.Backend
 
 		[DefaultValueCoordinationFeeRate(0.003, 0.01)]
 		[JsonProperty(PropertyName = "CoordinationFeeRate", DefaultValueHandling = DefaultValueHandling.Populate)]
-		[JsonConverter(typeof(CoordinationFeeRateJsonConverter))]
 		public CoordinationFeeRate CoordinationFeeRate { get; set; } = new CoordinationFeeRate(0.003m, Money.Coins(0.01m));
 
-		[DefaultValue(0.01)]
-		[JsonProperty(PropertyName = "PlebsDontPayThreshold", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public double PlebsDontPayThreshold { get; set; } = 0.01;
-
 		[JsonProperty(PropertyName = "CoordinatorExtPubKey")]
-		[JsonConverter(typeof(ExtPubKeyJsonConverter))]
 		public ExtPubKey CoordinatorExtPubKey { get; } = Constants.WabiSabiFallBackCoordinatorExtPubKey;
 
 		[DefaultValue(1)]

@@ -5,6 +5,7 @@ using System.Text;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Models.Serialization;
 
 namespace WalletWasabi.Bases
 {
@@ -44,7 +45,7 @@ namespace WalletWasabi.Bases
 			string jsonString = File.ReadAllText(FilePath, Encoding.UTF8);
 
 			var newConfigObject = Activator.CreateInstance(GetType());
-			JsonConvert.PopulateObject(jsonString, newConfigObject);
+			JsonConvert.PopulateObject(jsonString, newConfigObject, JsonSerializationOptions.Default.Settings);
 
 			return !AreDeepEqual(newConfigObject);
 		}
@@ -80,7 +81,7 @@ namespace WalletWasabi.Bases
 		{
 			var jsonString = File.ReadAllText(FilePath, Encoding.UTF8);
 
-			JsonConvert.PopulateObject(jsonString, this);
+			JsonConvert.PopulateObject(jsonString, this, JsonSerializationOptions.Default.Settings);
 
 			if (TryEnsureBackwardsCompatibility(jsonString))
 			{
