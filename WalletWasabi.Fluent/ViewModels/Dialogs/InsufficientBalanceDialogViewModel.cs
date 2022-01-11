@@ -102,7 +102,7 @@ public partial class InsufficientBalanceDialogViewModel : DialogViewModelBase<Un
 		{
 			RxApp.MainThreadScheduler.Schedule(async () =>
 			{
-				// Edge cases, probably never will happen.
+				// Edge cases, probably will never happen.
 				if (!EnableSendAnyway && !EnableSubtractFee && !EnableSelectMoreCoin)
 				{
 					await ShowErrorAsync("Transaction Building",
