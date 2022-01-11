@@ -47,19 +47,19 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		DisplayedTransactionSummary = CurrentTransactionSummary;
 
-			PrivacySuggestions.WhenAnyValue(x => x.PreviewSuggestion)
-				.Subscribe(x =>
+		PrivacySuggestions.WhenAnyValue(x => x.PreviewSuggestion)
+			.Subscribe(x =>
+			{
+				if (x is ChangeAvoidanceSuggestionViewModel ca)
 				{
-					if (x is ChangeAvoidanceSuggestionViewModel ca)
-					{
-						_info.ChangelessCoins = ca.TransactionResult.SpentCoins;
-						UpdateTransaction(PreviewTransactionSummary, ca.TransactionResult);
-					}
-					else
-					{
-						DisplayedTransactionSummary = CurrentTransactionSummary;
-					}
-				});
+					_info.ChangelessCoins = ca.TransactionResult.SpentCoins;
+					UpdateTransaction(PreviewTransactionSummary, ca.TransactionResult);
+				}
+				else
+				{
+					DisplayedTransactionSummary = CurrentTransactionSummary;
+				}
+			});
 
 		PrivacySuggestions.WhenAnyValue(x => x.SelectedSuggestion)
 			.Subscribe(async x =>
@@ -316,7 +316,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		var dialog = new InsufficientBalanceDialogViewModel(transactionInfo.IsPrivate
 			? BalanceType.Private
 			: BalanceType.Pocket);
-      
+
 		var result = await NavigateDialogAsync(dialog, NavigationTarget.DialogScreen);
 
 		if (result.Result)
@@ -336,7 +336,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			{
 				transactionInfo.Coins = privacyControlDialogResult.Result;
 			}
-      
+
 			return await BuildTransactionAsync();
 		}
 
@@ -420,7 +420,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		DisplayedTransactionSummary = null;
 	}
-  
+
 	private async Task OnConfirmAsync()
 	{
 		var labelDialog = new LabelEntryDialogViewModel(_wallet, _info);
