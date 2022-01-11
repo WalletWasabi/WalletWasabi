@@ -164,20 +164,26 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 				return;
 			}
 
-			if (EnableSendAnyway && EnableSelectMoreCoin)
+			if (EnableSendAnyway)
 			{
-				Question += $"you can send the transaction with an adjusted transaction fee, so it should be confirmed within approximately {TextHelpers.TimeSpanToFriendlyString(_confirmationTimeWithMaxFee)} or select more coin.";
-			}
+                Question += $"you can send the transaction with an adjusted transaction fee, so it should be confirmed within approximately {TextHelpers.TimeSpanToFriendlyString(_confirmationTimeWithMaxFee)}";
 
-			if (EnableSendAnyway && !EnableSelectMoreCoin)
+                if (EnableSelectMoreCoin)
+				{
+                    Question += " or select more coins.";
+                }
+                else
+				{
+                    Question += ".";
+                }
+            }
+			else
 			{
-				Question += $"you can send the transaction with an adjusted transaction fee, so it should be confirmed within approximately {TextHelpers.TimeSpanToFriendlyString(_confirmationTimeWithMaxFee)}.";
-			}
-
-			if (!EnableSendAnyway && EnableSelectMoreCoin)
-			{
-				Question += "you can select more coin.";
-			}
+				if (EnableSelectMoreCoin)
+				{
+                    Question += "you can select more coins.";
+                }
+            }
 		}
 	}
 }
