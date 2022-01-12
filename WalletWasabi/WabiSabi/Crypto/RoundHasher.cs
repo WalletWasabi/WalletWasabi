@@ -20,7 +20,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 				ImmutableSortedSet<ScriptType> allowedOutputTypes,
 				Network network,
 				long feePerK,
-				CoordinationFeeRate coordinationFeRate,
+				CoordinationFeeRate coordinationFeeRate,
 				int maxTransactionSize,
 				long minRelayTxFeePerK,
 				long maxAmountCredentialValue,
@@ -40,7 +40,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 					.Append(ProtocolConstants.RoundAllowedOutputTypesStrobeLabel, allowedOutputTypes)
 					.Append(ProtocolConstants.RoundNetworkStrobeLabel, network.ToString())
 					.Append(ProtocolConstants.RoundFeeRateStrobeLabel, feePerK)
-					.Append(ProtocolConstants.RoundCoordinationFeeRateStrobeLabel, coordinationFeRate)
+					.Append(ProtocolConstants.RoundCoordinationFeeRateStrobeLabel, coordinationFeeRate)
 					.Append(ProtocolConstants.RoundMaxTransactionSizeStrobeLabel, maxTransactionSize)
 					.Append(ProtocolConstants.RoundMinRelayTxFeeStrobeLabel, minRelayTxFeePerK)
 					.Append(ProtocolConstants.RoundMaxAmountCredentialValueStrobeLabel, maxAmountCredentialValue)
