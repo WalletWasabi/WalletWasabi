@@ -11,6 +11,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding;
 public class BranchAndBound
 {
 	private readonly Random _random = new();
+	private readonly long _defaultTolerance = 500;
 
 	/// <param name="values">All values must be strictly positive.</param>
 	public BranchAndBound(List<long> values)
@@ -112,12 +113,12 @@ public class BranchAndBound
 				solution[depth] = SortedValues[depth];
 				effValue += solution[depth];
 
-				if (effValue > target)
+				if (effValue > target + _defaultTolerance)
 				{
 					// Excessive funds, cut the branch!
 					continue;
 				}
-				else if (effValue == target)
+				else if (effValue <= target + _defaultTolerance && effValue >= target)
 				{
 					// Match found!
 					return true;
