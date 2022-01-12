@@ -2,7 +2,8 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using WalletWasabi.Logging;
+using System.Threading;
+using WalletWasabi.Blockchain.TransactionBuilding.BnB;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding;
 
@@ -10,10 +11,14 @@ namespace WalletWasabi.Blockchain.TransactionBuilding;
 public class BranchAndBound
 {
 	private readonly Random _random = new();
+	private readonly Func<bool> _randomFn;
 
 	/// <param name="values">All values must be strictly positive.</param>
-	public BranchAndBound(List<long> values)
+	/// <param name="randomFn">Function returning randomly <c>true</c> and <c>false</c>.</param>
+	public BranchAndBound(List<long> values, Func<bool>? randomFn = null)
 	{
+		_randomFn = randomFn ??= () => _random.Next(0, 2) == 1;
+
 		if (values.Count == 0)
 		{
 			throw new ArgumentException("List is empty.");
@@ -55,19 +60,19 @@ public class BranchAndBound
 	/// <summary>
 	/// Attempts to find a set of values that sum up to the target value.
 	/// </summary>
-	/// <param name="target">Target value we want to sum up from the input values.</param>
-	/// <param name="selectedValues">Values that sum up to the <paramref name="target"/> value.</param>
+	/// <param name="searchStrategy">Search strategy that affects how the algorithm searches through the options.</param>
+	/// <param name="selectedValues">Solution of the search algorithm based on <paramref name="searchStrategy"/>.</param>
 	/// <returns><c>true</c> when a match is found, <c>false</c> otherwise.</returns>
-	public bool TryGetExactMatch(long target, [NotNullWhen(true)] out List<long>? selectedValues)
+	public bool TryGetMatch(ISearchStrategy searchStrategy, [NotNullWhen(true)] out List<long>? selectedValues, CancellationToken cancellationToken = default)
 	{
 		selectedValues = null;
 
-		if (SortedValues.Sum() < target)
+		if (SortedValues.Sum() < searchStrategy.Target)
 		{
 			return false;
 		}
 
-		if (TryFindSolution(target, out long[]? solution))
+		if (TryFindSolution(searchStrategy, out long[]? solution, cancellationToken))
 		{
 			selectedValues = new List<long>();
 
@@ -79,15 +84,13 @@ public class BranchAndBound
 				}
 			}
 
-			Logger.LogInfo($"{Count} coins were involved in 'Branch and Bound' selection.");
-
 			return true;
 		}
 
 		return false;
 	}
 
-	private bool TryFindSolution(long target, [NotNullWhen(true)] out long[]? solution)
+	private bool TryFindSolution(ISearchStrategy searchStrategy, [NotNullWhen(true)] out long[]? solution, CancellationToken cancellationToken = default)
 	{
 		// Current effective value.
 		long effValue = 0L;
@@ -99,8 +102,11 @@ public class BranchAndBound
 		NextAction[] actions = new NextAction[Count];
 		actions[0] = GetRandomNextAction();
 
+		int i = 0;
+
 		do
 		{
+			i++;
 			NextAction action = actions[depth];
 
 			// Branch WITH the value included.
@@ -111,20 +117,15 @@ public class BranchAndBound
 				solution[depth] = SortedValues[depth];
 				effValue += solution[depth];
 
-				if (effValue > target)
+				EvaluationResult result = searchStrategy.Evaluate(solution, depth, effValue);
+
+				if (result == EvaluationResult.SkipBranch)
 				{
-					// Excessive funds, cut the branch!
 					continue;
 				}
-				else if (effValue == target)
+				else if (result == EvaluationResult.Match)
 				{
-					// Match found!
 					return true;
-				}
-				else if (depth + 1 == Count)
-				{
-					// Leaf reached, no match
-					continue;
 				}
 
 				depth++;
@@ -153,6 +154,12 @@ public class BranchAndBound
 				solution[depth] = 0;
 				depth--;
 			}
+
+			// Micro optimization: Do not check cancellation token every time as it requires accessing volatile memory.
+			if (i % 10_000 == 0 && cancellationToken.IsCancellationRequested)
+			{
+				return false;
+			}
 		}
 		while (depth >= 0);
 
@@ -161,7 +168,7 @@ public class BranchAndBound
 
 	private NextAction GetRandomNextAction()
 	{
-		return _random.Next(0, 2) == 1 ? NextAction.IncludeFirstThenOmit : NextAction.OmitFirstThenInclude;
+		return _randomFn() ? NextAction.IncludeFirstThenOmit : NextAction.OmitFirstThenInclude;
 	}
 
 	private NextAction GetNextStep(NextAction action)

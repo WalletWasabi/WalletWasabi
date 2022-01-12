@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.TransactionBuilding.BnB;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Blockchain.TransactionBuilding;
@@ -13,13 +14,14 @@ public class BranchAndBoundTests
 	private static Random Random { get; } = new();
 
 	[Fact]
-	public void RandomizedTest()
+	public void ExactMatch_RandomizedTest()
 	{
 		List<long> inputValues = GenerateListOfRandomValues();
-		BranchAndBound selector = new(inputValues);
 		long target = 100_000_000;
 
-		bool successful = selector.TryGetExactMatch(target, out List<long>? selectedValues);
+		BranchAndBound algorithm = new(inputValues);
+		ExactMatchStrategy strategy = new(target);
+		bool successful = algorithm.TryGetMatch(strategy, out List<long>? selectedValues);
 
 		Assert.True(successful);
 		Assert.NotNull(selectedValues);
@@ -27,14 +29,15 @@ public class BranchAndBoundTests
 	}
 
 	[Fact]
-	public void SimpleSelectionTest()
+	public void ExactMatch_SimpleSelectionTest()
 	{
 		List<long> inputValues = new() { 120_000, 100_000, 100_000, 50_000, 40_000 };
-		BranchAndBound selector = new(inputValues);
 		List<long> expectedValues = new() { 100_000, 50_000, 40_000 };
 		long target = 190_000;
 
-		bool wasSuccessful = selector.TryGetExactMatch(target, out List<long>? selectedCoins);
+		BranchAndBound algorithm = new(inputValues);
+		ExactMatchStrategy strategy = new(target);
+		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins);
 
 		Assert.True(wasSuccessful);
 		Assert.NotNull(selectedCoins);
@@ -42,14 +45,15 @@ public class BranchAndBoundTests
 	}
 
 	[Fact]
-	public void CanSelectEveryCoin()
+	public void ExactMatch_CanSelectEveryCoin()
 	{
 		List<long> inputValues = new() { 120_000, 100_000, 100_000 };
-		BranchAndBound selector = new(inputValues);
 		List<long> expectedValues = new() { 120_000, 100_000, 100_000 };
 		long target = 320000;
 
-		bool wasSuccessful = selector.TryGetExactMatch(target, out List<long>? selectedCoins);
+		BranchAndBound algorithm = new(inputValues);
+		ExactMatchStrategy strategy = new(target);
+		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins);
 
 		Assert.True(wasSuccessful);
 		Assert.NotNull(selectedCoins);
@@ -60,34 +64,52 @@ public class BranchAndBoundTests
 	/// Tests that sum of input values must be larger or equal to the target otherwise we end up searching all options in vain.
 	/// </summary>
 	[Fact]
-	public void TargetIsBiggerThanBalance()
+	public void ExactMatch_TargetIsBiggerThanBalance()
 	{
-		long target = 5_000;
 		List<long> inputValues = new();
+		long target = 5_000;
 
 		for (int i = 0; i < target - 1; i++)
 		{
 			inputValues.Add(1);
 		}
 
-		BranchAndBound selector = new(inputValues);
-		bool wasSuccessful = selector.TryGetExactMatch(target, out List<long>? selectedCoins);
+		BranchAndBound algorithm = new(inputValues);
+		ExactMatchStrategy strategy = new(target);
+		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins);
 
 		Assert.False(wasSuccessful);
 		Assert.Null(selectedCoins);
 	}
 
 	[Fact]
-	public void ReturnNullIfNoExactMatchFoundTest()
+	public void ExactMatch_ReturnNullIfNoExactMatchFoundTest()
 	{
 		List<long> inputValues = new() { 120_000, 100_000, 100_000, 50_000, 40_000 };
-		BranchAndBound selector = new(inputValues);
 		long target = 300000;
 
-		bool wasSuccessful = selector.TryGetExactMatch(target, out List<long>? selectedCoins);
+		BranchAndBound algorithm = new(inputValues);
+		ExactMatchStrategy strategy = new(target);
+		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins);
 
 		Assert.False(wasSuccessful);
 		Assert.Null(selectedCoins);
+	}
+
+	/// <summary>Tests that best found solution is found when exact solution does not exist.</summary>
+	[Fact]
+	public void PruneByBest_NoExactSolution()
+	{
+		List<long> inputValues = new() { 2, 3, 5, 7, 11 }; // Sum is 28.
+		long target = 27; // Target that we cannot get as a sum of input values.
+
+		BranchAndBound algorithm = new(inputValues);
+		PruneByBestStrategy strategy = new(target);
+		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins);
+
+		Assert.False(wasSuccessful);
+		Assert.Null(selectedCoins);
+		Assert.Equal(new long[] { 11, 7, 5, 3 }, strategy.GetBestSolution());
 	}
 
 	private List<long> GenerateListOfRandomValues(int count = 1000)
