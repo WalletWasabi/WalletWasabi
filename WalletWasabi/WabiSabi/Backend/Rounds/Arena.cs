@@ -24,6 +24,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			WabiSabiConfig config,
 			IRPCClient rpc,
 			Prison prison,
+			InMemoryCoinJoinIdStore inMemoryCoinJoinIdStore,
 			CoinJoinTransactionArchiver? archiver = null) : base(period)
 		{
 			Network = network;
@@ -32,7 +33,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			Prison = prison;
 			TransactionArchiver = archiver;
 			Random = new SecureRandom();
-			InMemoryCoinJoinIdStore = new InMemoryCoinJoinIdStore(Enumerable.Empty<uint256>());
+			InMemoryCoinJoinIdStore = inMemoryCoinJoinIdStore;
 		}
 
 		public HashSet<Round> Rounds { get; } = new();

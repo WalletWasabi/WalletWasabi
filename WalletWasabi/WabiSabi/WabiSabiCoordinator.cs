@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Hosting;
+using NBitcoin;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
@@ -22,7 +24,10 @@ namespace WalletWasabi.WabiSabi
 			ConfigWatcher = new(parameters.ConfigChangeMonitoringPeriod, Config, () => Logger.LogInfo("WabiSabi configuration has changed."));
 
 			CoinJoinTransactionArchiver transactionArchiver = new(Path.Combine(parameters.CoordinatorDataDir, "CoinJoinTransactions"));
-			Arena = new(parameters.RoundProgressSteppingPeriod, rpc.Network, Config, rpc, Warden.Prison, transactionArchiver);
+
+			var inMemoryCoinJoinIdStore = InMemoryCoinJoinIdStore.LoadFromFile(parameters.CoinJoinIdStoreFilePath);
+
+			Arena = new(parameters.RoundProgressSteppingPeriod, rpc.Network, Config, rpc, Warden.Prison, inMemoryCoinJoinIdStore, transactionArchiver);
 		}
 
 		public ConfigWatcher ConfigWatcher { get; }

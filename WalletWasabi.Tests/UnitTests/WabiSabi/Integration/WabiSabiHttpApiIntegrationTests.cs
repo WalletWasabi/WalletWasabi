@@ -13,6 +13,7 @@ using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
@@ -110,18 +111,24 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 					{
 						MaxInputCountByRound = inputCount,
 						StandardInputRegistrationTimeout = TimeSpan.FromSeconds(10)
-					});
+					}
+					);
+					// Emulate that the first coin is coming from a CoinJoin.
+					services.AddScoped(s => new InMemoryCoinJoinIdStore(new[] { coins.First().Coin.Outpoint.Hash }));
 				});
 			}).CreateClient();
 
 			// Create the coinjoin client
 			var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
+
 			var mockHttpClientFactory = new Mock<IBackendHttpClientFactory>();
 			mockHttpClientFactory
 				.Setup(factory => factory.NewBackendHttpClient(It.IsAny<Mode>()))
-				.Returns(new HttpClientWrapper(httpClient));
+
+					.Returns(new HttpClientWrapper(httpClient));
 
 			using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(1), apiClient);
+
 			await roundStateUpdater.StartAsync(CancellationToken.None);
 
 			var kitchen = new Kitchen();
@@ -190,10 +197,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 					// (the `SendRawTransationAsync` was invoked) we stop waiting
 					// and finish the waiting tasks to finish the test successfully.
 					rpc.OnSendRawTransactionAsync = (tx) =>
-					{
-						transactionCompleted.SetResult(tx);
-						return tx.GetHash();
-					};
+				{
+					transactionCompleted.SetResult(tx);
+					return tx.GetHash();
+				};
 
 					// Instruct the coordinator DI container to use these two scoped
 					// services to build everything (WabiSabi controller, arena, etc)

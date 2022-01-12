@@ -16,6 +16,10 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage
 			CoinJoinIds = new ConcurrentDictionary<uint256, bool>(coinJoinHashes.ToDictionary(x => x, x => true));
 		}
 
+		public InMemoryCoinJoinIdStore() : this(Enumerable.Empty<uint256>())
+		{
+		}
+
 		public ConcurrentDictionary<uint256, bool> CoinJoinIds { get; }
 
 		public bool Contains(uint256 hash)

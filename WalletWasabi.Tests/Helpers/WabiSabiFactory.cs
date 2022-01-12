@@ -15,6 +15,7 @@ using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
@@ -109,7 +110,7 @@ namespace WalletWasabi.Tests.Helpers
 
 		public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig cfg, IMock<IRPCClient> mockRpc, params Round[] rounds)
 		{
-			Arena arena = new(TimeSpan.FromHours(1), Network.Main, cfg, mockRpc.Object, new Prison());
+			Arena arena = new(TimeSpan.FromHours(1), Network.Main, cfg, mockRpc.Object, new Prison(), new InMemoryCoinJoinIdStore(Enumerable.Empty<uint256>()));
 			foreach (var round in rounds)
 			{
 				arena.Rounds.Add(round);

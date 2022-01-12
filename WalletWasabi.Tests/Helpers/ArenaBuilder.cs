@@ -6,6 +6,7 @@ using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 
 namespace WalletWasabi.Tests.Helpers
 {
@@ -29,7 +30,7 @@ namespace WalletWasabi.Tests.Helpers
 			IRPCClient rpc = Rpc ?? WabiSabiFactory.CreatePreconfiguredRpcClient().Object;
 			Network network = Network ?? Network.Main;
 
-			Arena arena = new(period, network, config, rpc, prison);
+			Arena arena = new(period, network, config, rpc, prison, new InMemoryCoinJoinIdStore());
 
 			foreach (var round in rounds)
 			{
