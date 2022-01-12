@@ -43,54 +43,54 @@ internal class Participant
 		minerKey.SetKeyState(KeyState.Used);
 	}
 
-		public async Task GenerateCoinsAsync(int numberOfCoins, int seed, CancellationToken cancellationToken)
-		{
-			var rnd = new Random(seed);
-			var feeRate = new FeeRate(4.0m);
+	public async Task GenerateCoinsAsync(int numberOfCoins, int seed, CancellationToken cancellationToken)
+	{
+		var rnd = new Random(seed);
+		var feeRate = new FeeRate(4.0m);
 
-			var splitTx = Transaction.Create(Rpc.Network);
-			splitTx.Inputs.Add(new TxIn(SourceCoin!.Outpoint));
+		var splitTx = Transaction.Create(Rpc.Network);
+		splitTx.Inputs.Add(new TxIn(SourceCoin!.Outpoint));
 
-			double NextNotTooSmall() => 0.00001 + (rnd.NextDouble() * 0.99999);
-			var sampling = Enumerable
-				.Range(0, numberOfCoins - 1)
-				.Select(_ => NextNotTooSmall())
-				.Prepend(0)
-				.Prepend(1)
-				.OrderBy(x => x)
-				.ToArray();
+		double NextNotTooSmall() => 0.00001 + (rnd.NextDouble() * 0.99999);
+		var sampling = Enumerable
+			.Range(0, numberOfCoins - 1)
+			.Select(_ => NextNotTooSmall())
+			.Prepend(0)
+			.Prepend(1)
+			.OrderBy(x => x)
+			.ToArray();
 
 		var amounts = sampling
 			.Zip(sampling.Skip(1), (x, y) => y - x)
 			.Select(x => x * SourceCoin.Amount.Satoshi)
 			.Select(x => Money.Satoshis((long)x));
 
-			var coinCreationTasks = amounts.Select(x => Task.Run(() => CreateKeyAndTxOutPair(x)));
+		var keyAndTxOutCreationTasks = amounts.Select(x => Task.Run(() => CreateKeyAndTxOutPair(x)));
 
-			(HdPubKey Key, TxOut TxOut) CreateKeyAndTxOutPair(Money amount)
-			{
-				var key = KeyManager.GetNextReceiveKey("no-label", out _);
+		(HdPubKey Key, TxOut TxOut) CreateKeyAndTxOutPair(Money amount)
+		{
+			var key = KeyManager.GetNextReceiveKey("no-label", out _);
 
-				key.SetAnonymitySet(1);
+			key.SetAnonymitySet(1);
 
-				var scriptPubKey = key.P2wpkhScript;
-				var effectiveOutputValue = amount - feeRate.GetFee(scriptPubKey.EstimateOutputVsize());
+			var scriptPubKey = key.P2wpkhScript;
+			var effectiveOutputValue = amount - feeRate.GetFee(scriptPubKey.EstimateOutputVsize());
 
-				return (key, new TxOut(effectiveOutputValue, scriptPubKey));
-			}
-
-			var keyAndTxOutPairs = await Task.WhenAll(coinCreationTasks).ConfigureAwait(false);
-			var indexedKeyAndTxOutPairs = keyAndTxOutPairs.Select((x, i) => (Index: i, Key: x.Key, TxOut: x.TxOut));
-			splitTx.Outputs.AddRange(keyAndTxOutPairs.Select(x => x.TxOut));
-
-			var minerKey = KeyManager.GetSecrets("", SourceCoin.ScriptPubKey).First();
-			splitTx.Sign(minerKey.PrivateKey.GetBitcoinSecret(Rpc.Network), SourceCoin);
-			var stx = new SmartTransaction(splitTx, new Height(500_000));
-
-			Coins.AddRange(indexedKeyAndTxOutPairs.Select(x => new SmartCoin(stx, (uint)x.Index, x.Key)));
-
-			await Rpc.SendRawTransactionAsync(splitTx, cancellationToken).ConfigureAwait(false);
+			return (key, new TxOut(effectiveOutputValue, scriptPubKey));
 		}
+
+		var keyAndTxOutPairs = await Task.WhenAll(keyAndTxOutCreationTasks).ConfigureAwait(false);
+		var indexedKeyAndTxOutPairs = keyAndTxOutPairs.Select((x, i) => (Index: i, Key: x.Key, TxOut: x.TxOut));
+		splitTx.Outputs.AddRange(keyAndTxOutPairs.Select(x => x.TxOut));
+
+		var minerKey = KeyManager.GetSecrets("", SourceCoin.ScriptPubKey).First();
+		splitTx.Sign(minerKey.PrivateKey.GetBitcoinSecret(Rpc.Network), SourceCoin);
+		var stx = new SmartTransaction(splitTx, new Height(500_000));
+
+		Coins.AddRange(indexedKeyAndTxOutPairs.Select(x => new SmartCoin(stx, (uint)x.Index, x.Key)));
+
+		await Rpc.SendRawTransactionAsync(splitTx, cancellationToken).ConfigureAwait(false);
+	}
 
 	public async Task StartParticipatingAsync(CancellationToken cancellationToken)
 	{
