@@ -66,10 +66,7 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 			})
 			.DisposeWith(disposables);
 
-		disposables.Add(Disposable.Create(() =>
-		{
-			RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StopScanningAsync());
-		}));
+		disposables.Add(Disposable.Create(() => RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StopScanningAsync())));
 
 		RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StartScanningAsync());
 	}

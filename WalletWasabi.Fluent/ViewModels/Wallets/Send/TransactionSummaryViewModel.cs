@@ -30,7 +30,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		IsPreview = isPreview;
 
 		this.WhenAnyValue(x => x.TransactionHasChange, x => x.TransactionHasPockets)
-			.Subscribe(_ => { MaxPrivacy = !TransactionHasPockets && !TransactionHasChange; });
+			.Subscribe(_ => MaxPrivacy = !TransactionHasPockets && !TransactionHasChange);
 
 		AddressText = _address.ToString();
 		PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;

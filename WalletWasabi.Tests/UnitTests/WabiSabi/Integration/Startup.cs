@@ -20,10 +20,7 @@ public class Startup
 	{
 		app.UseStaticFiles();
 		app.UseRouting();
-		app.UseEndpoints(endpoints =>
-		{
-			endpoints.MapControllers();
-		});
+		app.UseEndpoints(endpoints => endpoints.MapControllers());
 	}
 
 	public void ConfigureServices(IServiceCollection services)
