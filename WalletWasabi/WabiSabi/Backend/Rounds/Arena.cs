@@ -43,7 +43,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		private Prison Prison { get; }
 		private SecureRandom Random { get; }
 		private CoinJoinTransactionArchiver? TransactionArchiver { get; }
-		private InMemoryCoinJoinIdStore InMemoryCoinJoinIdStore { get; }
+		public InMemoryCoinJoinIdStore InMemoryCoinJoinIdStore { get; }
 
 		protected override async Task ActionAsync(CancellationToken cancel)
 		{
