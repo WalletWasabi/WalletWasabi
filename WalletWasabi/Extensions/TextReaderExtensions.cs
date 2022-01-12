@@ -1,69 +1,68 @@
 using System.Text;
 
-namespace System.IO
+namespace System.IO;
+
+public static class TextReaderExtensions
 {
-	public static class TextReaderExtensions
+	// Reads a line. If CRLF is false a line is defined as a sequence of characters followed by
+	// a carriage return ('\r'), a line feed ('\n'), or a carriage return
+	// immediately followed by a line feed. The resulting string does not
+	// contain the terminating carriage return and/or line feed. The returned
+	// value is null if the end of the input stream has been reached.
+	// If CRLF is true, the line ends only at ("\r\n").
+	public static string? ReadLine(this TextReader me, bool strictCRLF = false)
 	{
-		// Reads a line. If CRLF is false a line is defined as a sequence of characters followed by
-		// a carriage return ('\r'), a line feed ('\n'), or a carriage return
-		// immediately followed by a line feed. The resulting string does not
-		// contain the terminating carriage return and/or line feed. The returned
-		// value is null if the end of the input stream has been reached.
-		// If CRLF is true, the line ends only at ("\r\n").
-		public static string? ReadLine(this TextReader me, bool strictCRLF = false)
+		if (strictCRLF == false)
 		{
-			if (strictCRLF == false)
+			return me.ReadLine();
+		}
+
+		var sb = new StringBuilder();
+		while (true)
+		{
+			int ch = me.Read();
+			if (ch == -1)
 			{
-				return me.ReadLine();
+				break;
 			}
 
-			var sb = new StringBuilder();
-			while (true)
+			if (ch == '\r' && me.Peek() == '\n')
 			{
-				int ch = me.Read();
-				if (ch == -1)
-				{
-					break;
-				}
-
-				if (ch == '\r' && me.Peek() == '\n')
-				{
-					me.Read();
-					return sb.ToString();
-				}
-				sb.Append((char)ch);
+				me.Read();
+				return sb.ToString();
 			}
-			if (sb.Length > 0)
+			sb.Append((char)ch);
+		}
+		if (sb.Length > 0)
+		{
+			return sb.ToString();
+		}
+
+		return null;
+	}
+
+	public static string? ReadPart(this TextReader me, char separator)
+	{
+		var sb = new StringBuilder();
+		while (true)
+		{
+			int ch = me.Read();
+			if (ch == -1)
+			{
+				break;
+			}
+
+			if (ch == separator)
 			{
 				return sb.ToString();
 			}
-
-			return null;
+			sb.Append((char)ch);
 		}
-
-		public static string? ReadPart(this TextReader me, char separator)
+		if (sb.Length > 0)
 		{
-			var sb = new StringBuilder();
-			while (true)
-			{
-				int ch = me.Read();
-				if (ch == -1)
-				{
-					break;
-				}
-
-				if (ch == separator)
-				{
-					return sb.ToString();
-				}
-				sb.Append((char)ch);
-			}
-			if (sb.Length > 0)
-			{
-				return sb.ToString();
-			}
-
-			return null;
+			return sb.ToString();
 		}
+
+		return null;
 	}
 }

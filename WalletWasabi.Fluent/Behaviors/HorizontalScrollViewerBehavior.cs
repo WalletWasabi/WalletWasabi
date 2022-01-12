@@ -4,73 +4,72 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactivity;
 
-namespace WalletWasabi.Fluent.Behaviors
+namespace WalletWasabi.Fluent.Behaviors;
+
+internal class HorizontalScrollViewerBehavior : Behavior<ScrollViewer>
 {
-	internal class HorizontalScrollViewerBehavior : Behavior<ScrollViewer>
+	public enum ChangeSize
 	{
-		public enum ChangeSize
+		Line,
+		Page
+	}
+
+	public static readonly StyledProperty<bool> RequireShiftKeyProperty =
+		AvaloniaProperty.Register<HorizontalScrollViewerBehavior, bool>(nameof(RequireShiftKey));
+
+	public static readonly StyledProperty<ChangeSize> ScrollChangeSizeProperty =
+		AvaloniaProperty.Register<HorizontalScrollViewerBehavior, ChangeSize>(nameof(ScrollChangeSize));
+
+	public bool RequireShiftKey
+	{
+		get => GetValue(RequireShiftKeyProperty);
+		set => SetValue(RequireShiftKeyProperty, value);
+	}
+
+	public ChangeSize ScrollChangeSize
+	{
+		get => GetValue(ScrollChangeSizeProperty);
+		set => SetValue(ScrollChangeSizeProperty, value);
+	}
+
+	protected override void OnAttached()
+	{
+		base.OnAttached();
+
+		AssociatedObject!.AddHandler(InputElement.PointerWheelChangedEvent, OnPointerWheelChanged, RoutingStrategies.Tunnel);
+	}
+
+	protected override void OnDetaching()
+	{
+		base.OnDetaching();
+
+		AssociatedObject!.RemoveHandler(InputElement.PointerWheelChangedEvent, OnPointerWheelChanged);
+	}
+
+	private void OnPointerWheelChanged(object? sender, PointerWheelEventArgs e)
+	{
+		if (RequireShiftKey && e.KeyModifiers == KeyModifiers.Shift || !RequireShiftKey)
 		{
-			Line,
-			Page
-		}
-
-		public static readonly StyledProperty<bool> RequireShiftKeyProperty =
-			AvaloniaProperty.Register<HorizontalScrollViewerBehavior, bool>(nameof(RequireShiftKey));
-
-		public static readonly StyledProperty<ChangeSize> ScrollChangeSizeProperty =
-			AvaloniaProperty.Register<HorizontalScrollViewerBehavior, ChangeSize>(nameof(ScrollChangeSize));
-
-		public bool RequireShiftKey
-		{
-			get => GetValue(RequireShiftKeyProperty);
-			set => SetValue(RequireShiftKeyProperty, value);
-		}
-
-		public ChangeSize ScrollChangeSize
-		{
-			get => GetValue(ScrollChangeSizeProperty);
-			set => SetValue(ScrollChangeSizeProperty, value);
-		}
-
-		protected override void OnAttached()
-		{
-			base.OnAttached();
-
-			AssociatedObject!.AddHandler(InputElement.PointerWheelChangedEvent, OnPointerWheelChanged, RoutingStrategies.Tunnel);
-		}
-
-		protected override void OnDetaching()
-		{
-			base.OnDetaching();
-
-			AssociatedObject!.RemoveHandler(InputElement.PointerWheelChangedEvent, OnPointerWheelChanged);
-		}
-
-		private void OnPointerWheelChanged(object? sender, PointerWheelEventArgs e)
-		{
-			if (RequireShiftKey && e.KeyModifiers == KeyModifiers.Shift || !RequireShiftKey)
+			if (e.Delta.Y < 0)
 			{
-				if (e.Delta.Y < 0)
+				if (ScrollChangeSize == ChangeSize.Line)
 				{
-					if (ScrollChangeSize == ChangeSize.Line)
-					{
-						AssociatedObject!.LineRight();
-					}
-					else
-					{
-						AssociatedObject!.PageRight();
-					}
+					AssociatedObject!.LineRight();
 				}
 				else
 				{
-					if (ScrollChangeSize == ChangeSize.Line)
-					{
-						AssociatedObject!.LineLeft();
-					}
-					else
-					{
-						AssociatedObject!.PageLeft();
-					}
+					AssociatedObject!.PageRight();
+				}
+			}
+			else
+			{
+				if (ScrollChangeSize == ChangeSize.Line)
+				{
+					AssociatedObject!.LineLeft();
+				}
+				else
+				{
+					AssociatedObject!.PageLeft();
 				}
 			}
 		}

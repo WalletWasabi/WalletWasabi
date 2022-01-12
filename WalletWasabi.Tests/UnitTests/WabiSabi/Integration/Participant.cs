@@ -14,34 +14,34 @@ using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
-namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
+namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
+
+internal class Participant
 {
-	internal class Participant
+	public Participant(IRPCClient rpc, IWasabiHttpClientFactory httpClientFactory)
 	{
-		public Participant(IRPCClient rpc, IBackendHttpClientFactory httpClientFactory)
-		{
-			Rpc = rpc;
-			HttpClientFactory = httpClientFactory;
+		Rpc = rpc;
+		HttpClientFactory = httpClientFactory;
 
-			KeyManager = KeyManager.CreateNew(out var _, password: "", Network.Main);
-			KeyManager.AssertCleanKeysIndexed();
-		}
+		KeyManager = KeyManager.CreateNew(out var _, password: "", Network.Main);
+		KeyManager.AssertCleanKeysIndexed();
+	}
 
-		public KeyManager KeyManager { get; }
-		public List<SmartCoin> Coins { get; } = new();
-		public IRPCClient Rpc { get; }
-		public IBackendHttpClientFactory HttpClientFactory { get; }
+	public KeyManager KeyManager { get; }
+	public List<SmartCoin> Coins { get; } = new();
+	public IRPCClient Rpc { get; }
+	public IWasabiHttpClientFactory HttpClientFactory { get; }
 
-		private Coin? SourceCoin { get; set; }
+	private Coin? SourceCoin { get; set; }
 
-		public async Task GenerateSourceCoinAsync(CancellationToken cancellationToken)
-		{
-			var minerKey = KeyManager.GetNextReceiveKey("coinbase", out _);
-			var blockIds = await Rpc.GenerateToAddressAsync(1, minerKey.GetP2wpkhAddress(Rpc.Network), cancellationToken).ConfigureAwait(false);
-			var block = await Rpc.GetBlockAsync(blockIds.First(), cancellationToken).ConfigureAwait(false);
-			SourceCoin = block.Transactions[0].Outputs.GetCoins(minerKey.P2wpkhScript).First();
-			minerKey.SetKeyState(KeyState.Used);
-		}
+	public async Task GenerateSourceCoinAsync(CancellationToken cancellationToken)
+	{
+		var minerKey = KeyManager.GetNextReceiveKey("coinbase", out _);
+		var blockIds = await Rpc.GenerateToAddressAsync(1, minerKey.GetP2wpkhAddress(Rpc.Network), cancellationToken).ConfigureAwait(false);
+		var block = await Rpc.GetBlockAsync(blockIds.First(), cancellationToken).ConfigureAwait(false);
+		SourceCoin = block.Transactions[0].Outputs.GetCoins(minerKey.P2wpkhScript).First();
+		minerKey.SetKeyState(KeyState.Used);
+	}
 
 		public async Task GenerateCoinsAsync(int numberOfCoins, int seed, CancellationToken cancellationToken)
 		{
@@ -60,10 +60,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 				.OrderBy(x => x)
 				.ToArray();
 
-			var amounts = sampling
-				.Zip(sampling.Skip(1), (x, y) => y - x)
-				.Select(x => x * SourceCoin.Amount.Satoshi)
-				.Select(x => Money.Satoshis((long)x));
+		var amounts = sampling
+			.Zip(sampling.Skip(1), (x, y) => y - x)
+			.Select(x => x * SourceCoin.Amount.Satoshi)
+			.Select(x => Money.Satoshis((long)x));
 
 			var coinCreationTasks = amounts.Select(x => Task.Run(() => CreateKeyAndTxOutPair(x)));
 
@@ -92,21 +92,20 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			await Rpc.SendRawTransactionAsync(splitTx, cancellationToken).ConfigureAwait(false);
 		}
 
-		public async Task StartParticipatingAsync(CancellationToken cancellationToken)
-		{
-			var apiClient = new WabiSabiHttpApiClient(HttpClientFactory.NewBackendHttpClient(Mode.DefaultCircuit));
-			using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(3), apiClient);
-			await roundStateUpdater.StartAsync(cancellationToken).ConfigureAwait(false);
+	public async Task StartParticipatingAsync(CancellationToken cancellationToken)
+	{
+		var apiClient = new WabiSabiHttpApiClient(HttpClientFactory.NewHttpClientWithDefaultCircuit());
+		using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(3), apiClient);
+		await roundStateUpdater.StartAsync(cancellationToken).ConfigureAwait(false);
 
-			var kitchen = new Kitchen();
-			kitchen.Cook("");
+		var kitchen = new Kitchen();
+		kitchen.Cook("");
 
-			var coinJoinClient = new CoinJoinClient(HttpClientFactory, kitchen, KeyManager, roundStateUpdater, consolidationMode: true);
+		var coinJoinClient = new CoinJoinClient(HttpClientFactory, kitchen, KeyManager, roundStateUpdater, consolidationMode: true);
 
-			// Run the coinjoin client task.
-			await coinJoinClient.StartCoinJoinAsync(Coins, cancellationToken).ConfigureAwait(false);
+		// Run the coinjoin client task.
+		await coinJoinClient.StartCoinJoinAsync(Coins, cancellationToken).ConfigureAwait(false);
 
-			await roundStateUpdater.StopAsync(cancellationToken).ConfigureAwait(false);
-		}
+		await roundStateUpdater.StopAsync(cancellationToken).ConfigureAwait(false);
 	}
 }

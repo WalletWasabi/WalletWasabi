@@ -6,81 +6,81 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets.PasswordFinder;
 
-namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
+namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder;
+
+[NavigationMetaData(Title = "Password Finder")]
+public partial class SearchPasswordViewModel : RoutableViewModel
 {
-	[NavigationMetaData(Title = "Password Finder")]
-	public partial class SearchPasswordViewModel : RoutableViewModel
+	[AutoNotify] private int _percentage;
+	[AutoNotify] private int _remainingHour;
+	[AutoNotify] private int _remainingMin;
+	[AutoNotify] private int _remainingSec;
+	[AutoNotify] private string _hourText;
+	[AutoNotify] private string _minText;
+	[AutoNotify] private string _secText;
+	[AutoNotify] private bool _remainingTimeReceived;
+
+	public SearchPasswordViewModel(PasswordFinderOptions options)
 	{
-		[AutoNotify] private int _percentage;
-		[AutoNotify] private int _remainingHour;
-		[AutoNotify] private int _remainingMin;
-		[AutoNotify] private int _remainingSec;
-		[AutoNotify] private string _hourText;
-		[AutoNotify] private string _minText;
-		[AutoNotify] private string _secText;
-		[AutoNotify] private bool _remainingTimeReceived;
+		Options = options;
+		_hourText = "";
+		_minText = "";
+		_secText = "";
 
-		public SearchPasswordViewModel(PasswordFinderOptions options)
+		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+
+		EnableBack = false;
+	}
+
+	public PasswordFinderOptions Options { get; }
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
+
+		var cancelToken = new CancellationTokenSource();
+
+		var t = Task.Run(() => FindPassword(Options, cancelToken.Token));
+
+		disposables.Add(Disposable.Create(async () =>
 		{
-			Options = options;
-			_hourText = "";
-			_minText = "";
-			_secText = "";
+			cancelToken.Cancel();
+			await t;
+		}));
 
-			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+		disposables.Add(cancelToken);
+	}
 
-			EnableBack = false;
-		}
-
-		public PasswordFinderOptions Options { get; }
-
-		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	private void FindPassword(PasswordFinderOptions options, CancellationToken token)
+	{
+		try
 		{
-			base.OnNavigatedTo(isInHistory, disposables);
-
-			var cancelToken = new CancellationTokenSource();
-
-			var t = Task.Run(() => FindPassword(Options, cancelToken.Token));
-
-			Disposable.Create(async () =>
+			if (PasswordFinderHelper.TryFind(options, out var foundPassword, SetStatus, token))
 			{
-				cancelToken.Cancel();
-				await t;
-			})
-			.DisposeWith(disposables);
-		}
-
-		private void FindPassword(PasswordFinderOptions options, CancellationToken token)
-		{
-			try
-			{
-				if (PasswordFinderHelper.TryFind(options, out var foundPassword, SetStatus, token))
-				{
-					Navigate().To(new PasswordFoundViewModel(foundPassword), NavigationMode.Clear);
-				}
-				else
-				{
-					Navigate().To(new PasswordNotFoundViewModel(options.Wallet), NavigationMode.Clear);
-				}
+				Navigate().To(new PasswordFoundViewModel(foundPassword), NavigationMode.Clear);
 			}
-			catch (OperationCanceledException)
+			else
 			{
-				Logger.LogTrace("Operation was canceled.");
+				Navigate().To(new PasswordNotFoundViewModel(options.Wallet), NavigationMode.Clear);
 			}
 		}
-
-		private void SetStatus(int percentage, TimeSpan remainingTime)
+		catch (OperationCanceledException)
 		{
-			RemainingTimeReceived = true;
-			Percentage = percentage;
-
-			RemainingHour = remainingTime.Hours;
-			RemainingMin = remainingTime.Minutes;
-			RemainingSec = remainingTime.Seconds;
-
-			HourText = $" hour{TextHelpers.AddSIfPlural(RemainingHour)}{TextHelpers.CloseSentenceIfZero(RemainingMin, RemainingSec)}";
-			MinText = $" minute{TextHelpers.AddSIfPlural(RemainingMin)}{TextHelpers.CloseSentenceIfZero(RemainingSec)}";
-			SecText = $" second{TextHelpers.AddSIfPlural(RemainingSec)}.";
+			Logger.LogTrace("Operation was canceled.");
 		}
+	}
+
+	private void SetStatus(int percentage, TimeSpan remainingTime)
+	{
+		RemainingTimeReceived = true;
+		Percentage = percentage;
+
+		RemainingHour = remainingTime.Hours;
+		RemainingMin = remainingTime.Minutes;
+		RemainingSec = remainingTime.Seconds;
+
+		HourText = $" hour{TextHelpers.AddSIfPlural(RemainingHour)}{TextHelpers.CloseSentenceIfZero(RemainingMin, RemainingSec)}";
+		MinText = $" minute{TextHelpers.AddSIfPlural(RemainingMin)}{TextHelpers.CloseSentenceIfZero(RemainingSec)}";
+		SecText = $" second{TextHelpers.AddSIfPlural(RemainingSec)}.";
 	}
 }

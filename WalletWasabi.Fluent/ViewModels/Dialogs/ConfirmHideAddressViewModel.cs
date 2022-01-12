@@ -2,29 +2,28 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
-namespace WalletWasabi.Fluent.ViewModels.Dialogs
+namespace WalletWasabi.Fluent.ViewModels.Dialogs;
+
+public class ConfirmHideAddressViewModel : DialogViewModelBase<bool>
 {
-	public class ConfirmHideAddressViewModel : DialogViewModelBase<bool>
+	private string _title;
+
+	public ConfirmHideAddressViewModel(SmartLabel label)
 	{
-		private string _title;
+		Label = label;
+		_title = "Hide Address";
 
-		public ConfirmHideAddressViewModel(SmartLabel label)
-		{
-			Label = label;
-			_title = "Hide Address";
+		NextCommand = ReactiveCommand.Create(() => Close(result: true));
+		CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel));
 
-			NextCommand = ReactiveCommand.Create(() => Close(result: true));
-			CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel));
+		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
+	}
 
-			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
-		}
+	public SmartLabel Label { get; }
 
-		public SmartLabel Label { get; }
-
-		public override string Title
-		{
-			get => _title;
-			protected set => this.RaiseAndSetIfChanged(ref _title, value);
-		}
+	public override string Title
+	{
+		get => _title;
+		protected set => this.RaiseAndSetIfChanged(ref _title, value);
 	}
 }

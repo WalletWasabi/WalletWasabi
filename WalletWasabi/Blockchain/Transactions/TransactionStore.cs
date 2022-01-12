@@ -12,399 +12,398 @@ using WalletWasabi.Io;
 using WalletWasabi.Logging;
 using WalletWasabi.Nito.AsyncEx;
 
-namespace WalletWasabi.Blockchain.Transactions
+namespace WalletWasabi.Blockchain.Transactions;
+
+public class TransactionStore : IAsyncDisposable
 {
-	public class TransactionStore : IAsyncDisposable
+	public string WorkFolderPath { get; private set; }
+	public Network Network { get; private set; }
+
+	private Dictionary<uint256, SmartTransaction> Transactions { get; } = new Dictionary<uint256, SmartTransaction>();
+	private object TransactionsLock { get; } = new object();
+	private IoManager TransactionsFileManager { get; set; }
+	private AsyncLock TransactionsFileAsyncLock { get; } = new AsyncLock();
+	private List<ITxStoreOperation> Operations { get; } = new List<ITxStoreOperation>();
+	private object OperationsLock { get; } = new object();
+
+	private AbandonedTasks AbandonedTasks { get; } = new AbandonedTasks();
+
+	public async Task InitializeAsync(string workFolderPath, Network network, string operationName, CancellationToken cancel)
 	{
-		public string WorkFolderPath { get; private set; }
-		public Network Network { get; private set; }
-
-		private Dictionary<uint256, SmartTransaction> Transactions { get; } = new Dictionary<uint256, SmartTransaction>();
-		private object TransactionsLock { get; } = new object();
-		private IoManager TransactionsFileManager { get; set; }
-		private AsyncLock TransactionsFileAsyncLock { get; } = new AsyncLock();
-		private List<ITxStoreOperation> Operations { get; } = new List<ITxStoreOperation>();
-		private object OperationsLock { get; } = new object();
-
-		private AbandonedTasks AbandonedTasks { get; } = new AbandonedTasks();
-
-		public async Task InitializeAsync(string workFolderPath, Network network, string operationName, CancellationToken cancel)
+		using (BenchmarkLogger.Measure(operationName: operationName))
 		{
-			using (BenchmarkLogger.Measure(operationName: operationName))
+			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
+			Network = Guard.NotNull(nameof(network), network);
+
+			var transactionsFilePath = Path.Combine(WorkFolderPath, "Transactions.dat");
+
+			// In Transactions.dat every line starts with the tx id, so the first character is the best for digest creation.
+			TransactionsFileManager = new IoManager(transactionsFilePath);
+
+			cancel.ThrowIfCancellationRequested();
+			using (await TransactionsFileAsyncLock.LockAsync(cancel).ConfigureAwait(false))
 			{
-				WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
-				Network = Guard.NotNull(nameof(network), network);
-
-				var transactionsFilePath = Path.Combine(WorkFolderPath, "Transactions.dat");
-
-				// In Transactions.dat every line starts with the tx id, so the first character is the best for digest creation.
-				TransactionsFileManager = new IoManager(transactionsFilePath);
-
-				cancel.ThrowIfCancellationRequested();
-				using (await TransactionsFileAsyncLock.LockAsync(cancel).ConfigureAwait(false))
-				{
-					IoHelpers.EnsureDirectoryExists(WorkFolderPath);
-					cancel.ThrowIfCancellationRequested();
-
-					if (!TransactionsFileManager.Exists())
-					{
-						await SerializeAllTransactionsNoLockAsync().ConfigureAwait(false);
-						cancel.ThrowIfCancellationRequested();
-					}
-
-					await InitializeTransactionsNoLockAsync(cancel).ConfigureAwait(false);
-				}
-			}
-		}
-
-		private async Task InitializeTransactionsNoLockAsync(CancellationToken cancel)
-		{
-			try
-			{
-				IoHelpers.EnsureFileExists(TransactionsFileManager.FilePath);
+				IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 				cancel.ThrowIfCancellationRequested();
 
-				var allLines = await TransactionsFileManager.ReadAllLinesAsync(cancel).ConfigureAwait(false);
-				var allTransactions = allLines
-					.Select(x => SmartTransaction.FromLine(x, Network))
-					.OrderByBlockchain();
-
-				var added = false;
-				var updated = false;
-				lock (TransactionsLock)
+				if (!TransactionsFileManager.Exists())
 				{
-					foreach (var tx in allTransactions)
-					{
-						var (isAdded, isUpdated) = TryAddOrUpdateNoLockNoSerialization(tx);
-						if (isAdded)
-						{
-							added = true;
-						}
-						if (isUpdated)
-						{
-							updated = true;
-						}
-					}
-				}
-
-				if (added || updated)
-				{
-					cancel.ThrowIfCancellationRequested();
-
-					// Another process worked into the file and appended the same transaction into it.
-					// In this case we correct the file by serializing the unique set.
 					await SerializeAllTransactionsNoLockAsync().ConfigureAwait(false);
+					cancel.ThrowIfCancellationRequested();
 				}
-			}
-			catch (Exception ex) when (ex is not OperationCanceledException)
-			{
-				// We found a corrupted entry. Stop here.
-				// Delete the corrupted file.
-				// Do not try to autocorrect, because the internal data structures are throwing events that may confuse the consumers of those events.
-				Logger.LogError($"{TransactionsFileManager.FileNameWithoutExtension} file got corrupted. Deleting it...");
-				TransactionsFileManager.DeleteMe();
-				throw;
+
+				await InitializeTransactionsNoLockAsync(cancel).ConfigureAwait(false);
 			}
 		}
+	}
 
-		#region Modifiers
-
-		public (bool isAdded, bool isUpdated) TryAddOrUpdate(SmartTransaction tx)
+	private async Task InitializeTransactionsNoLockAsync(CancellationToken cancel)
+	{
+		try
 		{
-			(bool isAdded, bool isUpdated) ret;
+			IoHelpers.EnsureFileExists(TransactionsFileManager.FilePath);
+			cancel.ThrowIfCancellationRequested();
 
+			var allLines = await TransactionsFileManager.ReadAllLinesAsync(cancel).ConfigureAwait(false);
+			var allTransactions = allLines
+				.Select(x => SmartTransaction.FromLine(x, Network))
+				.OrderByBlockchain();
+
+			var added = false;
+			var updated = false;
 			lock (TransactionsLock)
 			{
-				ret = TryAddOrUpdateNoLockNoSerialization(tx);
+				foreach (var tx in allTransactions)
+				{
+					var (isAdded, isUpdated) = TryAddOrUpdateNoLockNoSerialization(tx);
+					if (isAdded)
+					{
+						added = true;
+					}
+					if (isUpdated)
+					{
+						updated = true;
+					}
+				}
 			}
 
-			if (ret.isAdded)
+			if (added || updated)
 			{
-				AbandonedTasks.AddAndClearCompleted(TryAppendToFileAsync(tx));
-			}
+				cancel.ThrowIfCancellationRequested();
 
-			if (ret.isUpdated)
-			{
-				AbandonedTasks.AddAndClearCompleted(TryUpdateFileAsync(tx));
+				// Another process worked into the file and appended the same transaction into it.
+				// In this case we correct the file by serializing the unique set.
+				await SerializeAllTransactionsNoLockAsync().ConfigureAwait(false);
 			}
+		}
+		catch (Exception ex) when (ex is not OperationCanceledException)
+		{
+			// We found a corrupted entry. Stop here.
+			// Delete the corrupted file.
+			// Do not try to autocorrect, because the internal data structures are throwing events that may confuse the consumers of those events.
+			Logger.LogError($"{TransactionsFileManager.FileNameWithoutExtension} file got corrupted. Deleting it...");
+			TransactionsFileManager.DeleteMe();
+			throw;
+		}
+	}
 
-			return ret;
+	#region Modifiers
+
+	public (bool isAdded, bool isUpdated) TryAddOrUpdate(SmartTransaction tx)
+	{
+		(bool isAdded, bool isUpdated) ret;
+
+		lock (TransactionsLock)
+		{
+			ret = TryAddOrUpdateNoLockNoSerialization(tx);
 		}
 
-		private (bool isAdded, bool isUpdated) TryAddOrUpdateNoLockNoSerialization(SmartTransaction tx)
+		if (ret.isAdded)
 		{
-			var hash = tx.GetHash();
+			AbandonedTasks.AddAndClearCompleted(TryAppendToFileAsync(tx));
+		}
 
-			if (Transactions.TryAdd(hash, tx))
+		if (ret.isUpdated)
+		{
+			AbandonedTasks.AddAndClearCompleted(TryUpdateFileAsync(tx));
+		}
+
+		return ret;
+	}
+
+	private (bool isAdded, bool isUpdated) TryAddOrUpdateNoLockNoSerialization(SmartTransaction tx)
+	{
+		var hash = tx.GetHash();
+
+		if (Transactions.TryAdd(hash, tx))
+		{
+			return (true, false);
+		}
+		else
+		{
+			if (Transactions[hash].TryUpdate(tx))
 			{
-				return (true, false);
+				return (false, true);
 			}
 			else
 			{
-				if (Transactions[hash].TryUpdate(tx))
-				{
-					return (false, true);
-				}
-				else
-				{
-					return (false, false);
-				}
+				return (false, false);
 			}
 		}
+	}
 
-		public bool TryUpdate(SmartTransaction tx)
+	public bool TryUpdate(SmartTransaction tx)
+	{
+		bool ret;
+		lock (TransactionsLock)
 		{
-			bool ret;
-			lock (TransactionsLock)
-			{
-				ret = TryUpdateNoLockNoSerialization(tx);
-			}
-
-			if (ret)
-			{
-				AbandonedTasks.AddAndClearCompleted(TryUpdateFileAsync(tx));
-			}
-
-			return ret;
+			ret = TryUpdateNoLockNoSerialization(tx);
 		}
 
-		private bool TryUpdateNoLockNoSerialization(SmartTransaction tx)
+		if (ret)
 		{
-			var hash = tx.GetHash();
-
-			if (Transactions.TryGetValue(hash, out var found))
-			{
-				return found.TryUpdate(tx);
-			}
-
-			return false;
+			AbandonedTasks.AddAndClearCompleted(TryUpdateFileAsync(tx));
 		}
 
-		public bool TryRemove(uint256 hash, [NotNullWhen(true)] out SmartTransaction? stx)
+		return ret;
+	}
+
+	private bool TryUpdateNoLockNoSerialization(SmartTransaction tx)
+	{
+		var hash = tx.GetHash();
+
+		if (Transactions.TryGetValue(hash, out var found))
 		{
-			bool isRemoved;
-
-			lock (TransactionsLock)
-			{
-				isRemoved = Transactions.Remove(hash, out stx);
-			}
-
-			if (isRemoved)
-			{
-				AbandonedTasks.AddAndClearCompleted(TryRemoveFromFileAsync(hash));
-			}
-
-			return isRemoved;
+			return found.TryUpdate(tx);
 		}
 
-		#endregion Modifiers
+		return false;
+	}
 
-		#region Accessors
+	public bool TryRemove(uint256 hash, [NotNullWhen(true)] out SmartTransaction? stx)
+	{
+		bool isRemoved;
 
-		public bool TryGetTransaction(uint256 hash, [NotNullWhen(true)] out SmartTransaction? sameStx)
+		lock (TransactionsLock)
 		{
-			lock (TransactionsLock)
-			{
-				return Transactions.TryGetValue(hash, out sameStx);
-			}
+			isRemoved = Transactions.Remove(hash, out stx);
 		}
 
-		public IEnumerable<SmartTransaction> GetTransactions()
+		if (isRemoved)
 		{
-			lock (TransactionsLock)
-			{
-				return Transactions.Values.OrderByBlockchain().ToList();
-			}
+			AbandonedTasks.AddAndClearCompleted(TryRemoveFromFileAsync(hash));
 		}
 
-		public IEnumerable<uint256> GetTransactionHashes()
+		return isRemoved;
+	}
+
+	#endregion Modifiers
+
+	#region Accessors
+
+	public bool TryGetTransaction(uint256 hash, [NotNullWhen(true)] out SmartTransaction? sameStx)
+	{
+		lock (TransactionsLock)
 		{
-			lock (TransactionsLock)
-			{
-				return Transactions.Values.OrderByBlockchain().Select(x => x.GetHash()).ToList();
-			}
+			return Transactions.TryGetValue(hash, out sameStx);
+		}
+	}
+
+	public IEnumerable<SmartTransaction> GetTransactions()
+	{
+		lock (TransactionsLock)
+		{
+			return Transactions.Values.OrderByBlockchain().ToList();
+		}
+	}
+
+	public IEnumerable<uint256> GetTransactionHashes()
+	{
+		lock (TransactionsLock)
+		{
+			return Transactions.Values.OrderByBlockchain().Select(x => x.GetHash()).ToList();
+		}
+	}
+
+	public bool IsEmpty()
+	{
+		lock (TransactionsLock)
+		{
+			return !Transactions.Any();
+		}
+	}
+
+	public bool Contains(uint256 hash)
+	{
+		lock (TransactionsLock)
+		{
+			return Transactions.ContainsKey(hash);
+		}
+	}
+
+	#endregion Accessors
+
+	#region Serialization
+
+	private async Task SerializeAllTransactionsNoLockAsync()
+	{
+		List<SmartTransaction> transactionsClone;
+		lock (TransactionsLock)
+		{
+			transactionsClone = Transactions.Values.ToList();
 		}
 
-		public bool IsEmpty()
+		await TransactionsFileManager.WriteAllLinesAsync(transactionsClone.ToBlockchainOrderedLines()).ConfigureAwait(false);
+	}
+
+	private async Task TryAppendToFileAsync(params SmartTransaction[] transactions)
+		=> await TryAppendToFileAsync(transactions as IEnumerable<SmartTransaction>).ConfigureAwait(false);
+
+	private async Task TryAppendToFileAsync(IEnumerable<SmartTransaction> transactions)
+		=> await TryCommitToFileAsync(new Append(transactions)).ConfigureAwait(false);
+
+	private async Task TryRemoveFromFileAsync(params uint256[] transactionIds)
+		=> await TryRemoveFromFileAsync(transactionIds as IEnumerable<uint256>).ConfigureAwait(false);
+
+	private async Task TryRemoveFromFileAsync(IEnumerable<uint256> transactionIds)
+		=> await TryCommitToFileAsync(new Remove(transactionIds)).ConfigureAwait(false);
+
+	private async Task TryUpdateFileAsync(params SmartTransaction[] transactions)
+		=> await TryUpdateFileAsync(transactions as IEnumerable<SmartTransaction>).ConfigureAwait(false);
+
+	private async Task TryUpdateFileAsync(IEnumerable<SmartTransaction> transactions)
+		=> await TryCommitToFileAsync(new Update(transactions)).ConfigureAwait(false);
+
+	private async Task TryCommitToFileAsync(ITxStoreOperation operation)
+	{
+		try
 		{
-			lock (TransactionsLock)
+			if (operation is null || operation.IsEmpty)
 			{
-				return !Transactions.Any();
+				return;
 			}
-		}
 
-		public bool Contains(uint256 hash)
-		{
-			lock (TransactionsLock)
+			// Make sure that only one call can continue.
+			lock (OperationsLock)
 			{
-				return Transactions.ContainsKey(hash);
-			}
-		}
-
-		#endregion Accessors
-
-		#region Serialization
-
-		private async Task SerializeAllTransactionsNoLockAsync()
-		{
-			List<SmartTransaction> transactionsClone;
-			lock (TransactionsLock)
-			{
-				transactionsClone = Transactions.Values.ToList();
-			}
-
-			await TransactionsFileManager.WriteAllLinesAsync(transactionsClone.ToBlockchainOrderedLines()).ConfigureAwait(false);
-		}
-
-		private async Task TryAppendToFileAsync(params SmartTransaction[] transactions)
-			=> await TryAppendToFileAsync(transactions as IEnumerable<SmartTransaction>).ConfigureAwait(false);
-
-		private async Task TryAppendToFileAsync(IEnumerable<SmartTransaction> transactions)
-			=> await TryCommitToFileAsync(new Append(transactions)).ConfigureAwait(false);
-
-		private async Task TryRemoveFromFileAsync(params uint256[] transactionIds)
-			=> await TryRemoveFromFileAsync(transactionIds as IEnumerable<uint256>).ConfigureAwait(false);
-
-		private async Task TryRemoveFromFileAsync(IEnumerable<uint256> transactionIds)
-			=> await TryCommitToFileAsync(new Remove(transactionIds)).ConfigureAwait(false);
-
-		private async Task TryUpdateFileAsync(params SmartTransaction[] transactions)
-			=> await TryUpdateFileAsync(transactions as IEnumerable<SmartTransaction>).ConfigureAwait(false);
-
-		private async Task TryUpdateFileAsync(IEnumerable<SmartTransaction> transactions)
-			=> await TryCommitToFileAsync(new Update(transactions)).ConfigureAwait(false);
-
-		private async Task TryCommitToFileAsync(ITxStoreOperation operation)
-		{
-			try
-			{
-				if (operation is null || operation.IsEmpty)
+				var isRunning = Operations.Any();
+				Operations.Add(operation);
+				if (isRunning)
 				{
 					return;
 				}
+			}
 
-				// Make sure that only one call can continue.
+			// Wait until the operation list calms down.
+			IEnumerable<ITxStoreOperation> operationsToExecute;
+			while (true)
+			{
+				var count = Operations.Count;
+
+				await Task.Delay(100).ConfigureAwait(false);
+
 				lock (OperationsLock)
 				{
-					var isRunning = Operations.Any();
-					Operations.Add(operation);
-					if (isRunning)
+					if (count == Operations.Count)
 					{
-						return;
-					}
-				}
-
-				// Wait until the operation list calms down.
-				IEnumerable<ITxStoreOperation> operationsToExecute;
-				while (true)
-				{
-					var count = Operations.Count;
-
-					await Task.Delay(100).ConfigureAwait(false);
-
-					lock (OperationsLock)
-					{
-						if (count == Operations.Count)
-						{
-							// Merge operations.
-							operationsToExecute = OperationMerger.Merge(Operations).ToList();
-							Operations.Clear();
-							break;
-						}
-					}
-				}
-
-				using (await TransactionsFileAsyncLock.LockAsync().ConfigureAwait(false))
-				{
-					foreach (ITxStoreOperation op in operationsToExecute)
-					{
-						if (op is Append appendOperation)
-						{
-							var toAppends = appendOperation.Transactions;
-
-							try
-							{
-								await TransactionsFileManager.AppendAllLinesAsync(toAppends.ToBlockchainOrderedLines()).ConfigureAwait(false);
-							}
-							catch
-							{
-								await SerializeAllTransactionsNoLockAsync().ConfigureAwait(false);
-							}
-						}
-						else if (op is Remove removeOperation)
-						{
-							var toRemoves = removeOperation.Transactions;
-
-							string[] allLines = await TransactionsFileManager.ReadAllLinesAsync().ConfigureAwait(false);
-							var toSerialize = new List<string>();
-							foreach (var line in allLines)
-							{
-								var startsWith = false;
-								foreach (var toRemoveString in toRemoves.Select(x => x.ToString()))
-								{
-									startsWith = startsWith || line.StartsWith(toRemoveString, StringComparison.Ordinal);
-								}
-
-								if (!startsWith)
-								{
-									toSerialize.Add(line);
-								}
-							}
-
-							try
-							{
-								await TransactionsFileManager.WriteAllLinesAsync(toSerialize).ConfigureAwait(false);
-							}
-							catch
-							{
-								await SerializeAllTransactionsNoLockAsync().ConfigureAwait(false);
-							}
-						}
-						else if (op is Update updateOperation)
-						{
-							var toUpdates = updateOperation.Transactions;
-
-							string[] allLines = await TransactionsFileManager.ReadAllLinesAsync().ConfigureAwait(false);
-							IEnumerable<SmartTransaction> allTransactions = allLines.Select(x => SmartTransaction.FromLine(x, Network));
-							var toSerialize = new List<SmartTransaction>();
-
-							foreach (SmartTransaction tx in allTransactions)
-							{
-								var txsToUpdateWith = toUpdates.Where(x => x == tx);
-								foreach (var txToUpdateWith in txsToUpdateWith)
-								{
-									tx.TryUpdate(txToUpdateWith);
-								}
-								toSerialize.Add(tx);
-							}
-
-							try
-							{
-								await TransactionsFileManager.WriteAllLinesAsync(toSerialize.ToBlockchainOrderedLines()).ConfigureAwait(false);
-							}
-							catch
-							{
-								await SerializeAllTransactionsNoLockAsync().ConfigureAwait(false);
-							}
-						}
-						else
-						{
-							throw new NotSupportedException();
-						}
+						// Merge operations.
+						operationsToExecute = OperationMerger.Merge(Operations).ToList();
+						Operations.Clear();
+						break;
 					}
 				}
 			}
-			catch (Exception ex)
+
+			using (await TransactionsFileAsyncLock.LockAsync().ConfigureAwait(false))
 			{
-				Logger.LogError(ex);
+				foreach (ITxStoreOperation op in operationsToExecute)
+				{
+					if (op is Append appendOperation)
+					{
+						var toAppends = appendOperation.Transactions;
+
+						try
+						{
+							await TransactionsFileManager.AppendAllLinesAsync(toAppends.ToBlockchainOrderedLines()).ConfigureAwait(false);
+						}
+						catch
+						{
+							await SerializeAllTransactionsNoLockAsync().ConfigureAwait(false);
+						}
+					}
+					else if (op is Remove removeOperation)
+					{
+						var toRemoves = removeOperation.Transactions;
+
+						string[] allLines = await TransactionsFileManager.ReadAllLinesAsync().ConfigureAwait(false);
+						var toSerialize = new List<string>();
+						foreach (var line in allLines)
+						{
+							var startsWith = false;
+							foreach (var toRemoveString in toRemoves.Select(x => x.ToString()))
+							{
+								startsWith = startsWith || line.StartsWith(toRemoveString, StringComparison.Ordinal);
+							}
+
+							if (!startsWith)
+							{
+								toSerialize.Add(line);
+							}
+						}
+
+						try
+						{
+							await TransactionsFileManager.WriteAllLinesAsync(toSerialize).ConfigureAwait(false);
+						}
+						catch
+						{
+							await SerializeAllTransactionsNoLockAsync().ConfigureAwait(false);
+						}
+					}
+					else if (op is Update updateOperation)
+					{
+						var toUpdates = updateOperation.Transactions;
+
+						string[] allLines = await TransactionsFileManager.ReadAllLinesAsync().ConfigureAwait(false);
+						IEnumerable<SmartTransaction> allTransactions = allLines.Select(x => SmartTransaction.FromLine(x, Network));
+						var toSerialize = new List<SmartTransaction>();
+
+						foreach (SmartTransaction tx in allTransactions)
+						{
+							var txsToUpdateWith = toUpdates.Where(x => x == tx);
+							foreach (var txToUpdateWith in txsToUpdateWith)
+							{
+								tx.TryUpdate(txToUpdateWith);
+							}
+							toSerialize.Add(tx);
+						}
+
+						try
+						{
+							await TransactionsFileManager.WriteAllLinesAsync(toSerialize.ToBlockchainOrderedLines()).ConfigureAwait(false);
+						}
+						catch
+						{
+							await SerializeAllTransactionsNoLockAsync().ConfigureAwait(false);
+						}
+					}
+					else
+					{
+						throw new NotSupportedException();
+					}
+				}
 			}
 		}
-
-		#endregion Serialization
-
-		public async ValueTask DisposeAsync()
+		catch (Exception ex)
 		{
-			await AbandonedTasks.WhenAllAsync().ConfigureAwait(false);
+			Logger.LogError(ex);
 		}
+	}
+
+	#endregion Serialization
+
+	public async ValueTask DisposeAsync()
+	{
+		await AbandonedTasks.WhenAllAsync().ConfigureAwait(false);
 	}
 }

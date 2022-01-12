@@ -1,7 +1,6 @@
-﻿namespace WalletWasabi.Fluent.Providers
+﻿namespace WalletWasabi.Fluent.Providers;
+
+public interface ICanShutdownProvider
 {
-	public interface ICanShutdownProvider
-	{
-		bool CanShutdown();
-	}
+	bool CanShutdown();
 }
