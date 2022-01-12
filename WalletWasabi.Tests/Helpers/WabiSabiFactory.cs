@@ -47,10 +47,12 @@ public static class WabiSabiFactory
 
 	public static Round CreateRound(WabiSabiConfig cfg)
 	{
+		using var insecureRandom = new InsecureRandom();
+
 		Round round = new(new RoundParameters(
 			cfg,
 			Network.Main,
-			new InsecureRandom(),
+			insecureRandom,
 			new FeeRate(100m)));
 		round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
 		return round;
@@ -141,7 +143,7 @@ public static class WabiSabiFactory
 	public static ArenaClient CreateArenaClient(Arena arena)
 	{
 		var roundState = RoundState.FromRound(arena.Rounds.First());
-		var random = new InsecureRandom();
+		using var random = new InsecureRandom();
 		return new ArenaClient(
 			roundState.CreateAmountCredentialClient(random),
 			roundState.CreateVsizeCredentialClient(random),
@@ -170,9 +172,9 @@ public static class WabiSabiFactory
 		CredentialIssuer vsizeIssuer,
 		IEnumerable<Credential> amountZeroCredentials,
 		IEnumerable<Credential> vsizeZeroCredentials
-	) CreateWabiSabiClientsAndIssuers(Round round)
+		) CreateWabiSabiClientsAndIssuers(Round round)
 	{
-		var rnd = new InsecureRandom();
+		using var rnd = new InsecureRandom();
 		var amountIssuer = round.AmountCredentialIssuer;
 		var vsizeIssuer = round.VsizeCredentialIssuer;
 		var amountClient = new WabiSabiClient(
@@ -273,7 +275,11 @@ public static class WabiSabiFactory
 	}
 
 	public static BlameRound CreateBlameRound(Round round, WabiSabiConfig cfg)
-		=> new(new(cfg, round.Network, new InsecureRandom(), round.FeeRate), round, round.Alices.Select(x => x.Coin.Outpoint).ToHashSet());
+	{
+		using var insecureRandom = new InsecureRandom();
+
+		return new(new(cfg, round.Network, insecureRandom, round.FeeRate), round, round.Alices.Select(x => x.Coin.Outpoint).ToHashSet());
+	}
 
 	public static (Key, SmartCoin, Key, SmartCoin) CreateCoinKeyPairs()
 	{

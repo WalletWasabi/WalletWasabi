@@ -75,7 +75,7 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 	{
 		var rounds = await wabiSabiHttpApiClient.GetStatusAsync(CancellationToken.None);
 		var round = rounds.First(x => x.CoinjoinState is ConstructionState);
-		var insecureRandom = new InsecureRandom();
+		using var insecureRandom = new InsecureRandom();
 		var arenaClient = new ArenaClient(
 			round.CreateAmountCredentialClient(insecureRandom),
 			round.CreateVsizeCredentialClient(insecureRandom),

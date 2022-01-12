@@ -36,7 +36,7 @@ public class BobClientTests
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
 		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena);
 
-		var insecureRandom = new InsecureRandom();
+		using var insecureRandom = new InsecureRandom();
 		var roundState = RoundState.FromRound(round);
 		var aliceArenaClient = new ArenaClient(
 			roundState.CreateAmountCredentialClient(insecureRandom),
