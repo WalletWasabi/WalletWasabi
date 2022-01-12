@@ -45,11 +45,12 @@ internal class Participant
 
 	public async Task GenerateCoinsAsync(int numberOfCoins, int seed, CancellationToken cancellationToken)
 	{
+		var rnd = new Random(seed);
 		var feeRate = new FeeRate(4.0m);
+
 		var splitTx = Transaction.Create(Rpc.Network);
 		splitTx.Inputs.Add(new TxIn(SourceCoin!.Outpoint));
 
-		var rnd = new Random(seed);
 		double NextNotTooSmall() => 0.00001 + (rnd.NextDouble() * 0.99999);
 		var sampling = Enumerable
 			.Range(0, numberOfCoins - 1)
@@ -64,25 +65,30 @@ internal class Participant
 			.Select(x => x * SourceCoin.Amount.Satoshi)
 			.Select(x => Money.Satoshis((long)x));
 
-		var keys = Enumerable.Range(0, amounts.Count()).Select(x => KeyManager.GetNextReceiveKey("no-label", out _)).ToImmutableList();
+		var keyAndTxOutCreationTasks = amounts.Select(x => Task.Run(() => CreateKeyAndTxOutPair(x)));
 
-		foreach (var key in keys)
+		(HdPubKey Key, TxOut TxOut) CreateKeyAndTxOutPair(Money amount)
 		{
+			var key = KeyManager.GetNextReceiveKey("no-label", out _);
+
 			key.SetAnonymitySet(1);
-		}
 
-		foreach (var (amount, key) in amounts.Zip(keys))
-		{
 			var scriptPubKey = key.P2wpkhScript;
 			var effectiveOutputValue = amount - feeRate.GetFee(scriptPubKey.EstimateOutputVsize());
-			splitTx.Outputs.Add(new TxOut(effectiveOutputValue, scriptPubKey));
+
+			return (key, new TxOut(effectiveOutputValue, scriptPubKey));
 		}
+
+		var keyAndTxOutPairs = await Task.WhenAll(keyAndTxOutCreationTasks).ConfigureAwait(false);
+		var indexedKeyAndTxOutPairs = keyAndTxOutPairs.Select((x, i) => (Index: i, Key: x.Key, TxOut: x.TxOut));
+		splitTx.Outputs.AddRange(keyAndTxOutPairs.Select(x => x.TxOut));
+
 		var minerKey = KeyManager.GetSecrets("", SourceCoin.ScriptPubKey).First();
 		splitTx.Sign(minerKey.PrivateKey.GetBitcoinSecret(Rpc.Network), SourceCoin);
 		var stx = new SmartTransaction(splitTx, new Height(500_000));
 
-		var smartCoins = keys.Select((k, i) => new SmartCoin(stx, (uint)i, k));
-		Coins.AddRange(smartCoins);
+		Coins.AddRange(indexedKeyAndTxOutPairs.Select(x => new SmartCoin(stx, (uint)x.Index, x.Key)));
+
 		await Rpc.SendRawTransactionAsync(splitTx, cancellationToken).ConfigureAwait(false);
 	}
 
