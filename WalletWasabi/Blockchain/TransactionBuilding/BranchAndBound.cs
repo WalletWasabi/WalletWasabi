@@ -31,16 +31,16 @@ public class BranchAndBound
 	private enum NextAction
 	{
 		/// <summary>First try to include a value and then try not to include the value in the selection.</summary>
-		AandB,
+		IncludeFirstThenOmit,
 
 		/// <summary>First try NOT to include a value and then try to include the value in the selection.</summary>
-		BandA,
+		OmitFirstThenInclude,
 
 		/// <summary>Include value.</summary>
-		A,
+		Include,
 
 		/// <summary>Omit value.</summary>
-		B,
+		Omit,
 
 		/// <summary>Current selection is wrong, rolling back and trying different combination.</summary>
 		Backtrack
@@ -104,7 +104,7 @@ public class BranchAndBound
 			NextAction action = actions[depth];
 
 			// Branch WITH the value included.
-			if ((action == NextAction.AandB) || (action == NextAction.A))
+			if ((action == NextAction.IncludeFirstThenOmit) || (action == NextAction.Include))
 			{
 				actions[depth] = GetNextStep(action);
 
@@ -130,7 +130,7 @@ public class BranchAndBound
 				depth++;
 				actions[depth] = GetRandomNextAction();
 			}
-			else if ((action == NextAction.BandA) || (action == NextAction.B))
+			else if ((action == NextAction.OmitFirstThenInclude) || (action == NextAction.Omit))
 			{
 				actions[depth] = GetNextStep(action);
 
@@ -161,17 +161,17 @@ public class BranchAndBound
 
 	private NextAction GetRandomNextAction()
 	{
-		return _random.Next(0, 2) == 1 ? NextAction.AandB : NextAction.BandA;
+		return _random.Next(0, 2) == 1 ? NextAction.IncludeFirstThenOmit : NextAction.OmitFirstThenInclude;
 	}
 
 	private NextAction GetNextStep(NextAction action)
 	{
 		return action switch
 		{
-			NextAction.AandB => NextAction.B,
-			NextAction.BandA => NextAction.A,
-			NextAction.A => NextAction.Backtrack,
-			NextAction.B => NextAction.Backtrack,
+			NextAction.IncludeFirstThenOmit => NextAction.Omit,
+			NextAction.OmitFirstThenInclude => NextAction.Include,
+			NextAction.Include => NextAction.Backtrack,
+			NextAction.Omit => NextAction.Backtrack,
 			NextAction.Backtrack => throw new InvalidOperationException("This should never happen."),
 			_ => throw new InvalidOperationException("No other values are valid.")
 		};
