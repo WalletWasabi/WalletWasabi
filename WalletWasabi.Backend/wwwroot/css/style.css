@@ -923,6 +923,12 @@ ol li::marker {
 .muted-text {
     opacity: 0.5;
 }
+.muted-text:hover {
+    opacity: 1;
+}
+.cursor-select {
+    cursor: text;
+}
 @media (min-width: 576px) {
     body {
         --breakpoint: 540px;
@@ -1115,7 +1121,4 @@ ol li::marker {
     .download-btn-area {
         transform: translateY(-50%);
     }
-}
-.cursor-select {
-    cursor: text;
 }
