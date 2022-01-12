@@ -3,35 +3,34 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 
-namespace WalletWasabi.Fluent.Behaviors
+namespace WalletWasabi.Fluent.Behaviors;
+
+internal class FocusBehavior : DisposingBehavior<Control>
 {
-	internal class FocusBehavior : DisposingBehavior<Control>
+	public static readonly StyledProperty<bool> IsFocusedProperty =
+		AvaloniaProperty.Register<FocusBehavior, bool>(nameof(IsFocused), defaultBindingMode: BindingMode.TwoWay);
+
+	public bool IsFocused
 	{
-		public static readonly StyledProperty<bool> IsFocusedProperty =
-			AvaloniaProperty.Register<FocusBehavior, bool>(nameof(IsFocused), defaultBindingMode: BindingMode.TwoWay);
+		get => GetValue(IsFocusedProperty);
+		set => SetValue(IsFocusedProperty, value);
+	}
 
-		public bool IsFocused
+	protected override void OnAttached(CompositeDisposable disposables)
+	{
+		base.OnAttached();
+
+		if (AssociatedObject is not null)
 		{
-			get => GetValue(IsFocusedProperty);
-			set => SetValue(IsFocusedProperty, value);
-		}
-
-		protected override void OnAttached(CompositeDisposable disposables)
-		{
-			base.OnAttached();
-
-			if (AssociatedObject is not null)
-			{
-				AssociatedObject.AttachedToLogicalTree += (sender, e) =>
-					disposables.Add(this.GetObservable(IsFocusedProperty)
-						.Subscribe(focused =>
+			AssociatedObject.AttachedToLogicalTree += (sender, e) =>
+				disposables.Add(this.GetObservable(IsFocusedProperty)
+					.Subscribe(focused =>
+					{
+						if (focused)
 						{
-							if (focused)
-							{
-								AssociatedObject.Focus();
-							}
-						}));
-			}
+							AssociatedObject.Focus();
+						}
+					}));
 		}
 	}
 }

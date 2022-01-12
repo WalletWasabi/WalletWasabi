@@ -1,9 +1,8 @@
-namespace WalletWasabi.Models
+namespace WalletWasabi.Models;
+
+public enum MixUntilAnonymitySet
 {
-	public enum MixUntilAnonymitySet
-	{
-		PrivacyLevelSome,
-		PrivacyLevelFine,
-		PrivacyLevelStrong
-	}
+	PrivacyLevelSome,
+	PrivacyLevelFine,
+	PrivacyLevelStrong
 }

@@ -43,7 +43,7 @@
                   </c:AdorningContentControl.Adornment>
 
                   <c:PrivacyContentControl NumberOfPrivacyChars="48">
-                    <TextBox Classes="selectableTextBlock monoSpaced" Text="{Binding .}" />
+                    <TextBlock Classes="monoSpaced" Text="{Binding .}" />
                   </c:PrivacyContentControl>
 
                 </c:AdorningContentControl>

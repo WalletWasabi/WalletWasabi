@@ -77,12 +77,12 @@
                                      FallbackColor="{DynamicResource AcrylicFallbackColor}"
                                      MaterialOpacity="0.2" />
       </ExperimentalAcrylicBorder.Material>
-      <Viewbox Stretch="Uniform" ClipToBounds="False" >
+      <Viewbox Stretch="Uniform" ClipToBounds="False">
         <ContentControl Template="{StaticResource WelcomeBg}" ClipToBounds="False" />
       </Viewbox>
 
     </ExperimentalAcrylicBorder>
-    <c:AdornerCanvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+    <c:AdornerCanvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
     <c:Dialog x:CompileBindings="False"
               DataContext="{Binding FullScreen}"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"

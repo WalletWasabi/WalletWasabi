@@ -1,22 +1,21 @@
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Wallets.PasswordFinder
+namespace WalletWasabi.Wallets.PasswordFinder;
+
+public enum Charset
 {
-	public enum Charset
-	{
-		[FriendlyName("English")]
-		en,
+	[FriendlyName("English")]
+	en,
 
-		[FriendlyName("Spanish")]
-		es,
+	[FriendlyName("Spanish")]
+	es,
 
-		[FriendlyName("Italian")]
-		it,
+	[FriendlyName("Italian")]
+	it,
 
-		[FriendlyName("French")]
-		fr,
+	[FriendlyName("French")]
+	fr,
 
-		[FriendlyName("Portuguese")]
-		pt
-	}
+	[FriendlyName("Portuguese")]
+	pt
 }

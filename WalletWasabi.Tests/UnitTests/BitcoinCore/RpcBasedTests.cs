@@ -9,13 +9,13 @@ using WalletWasabi.BitcoinCore.Rpc.Models;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.BitcoinCore
-{
-	public class RpcBasedTests
-	{
-		#region Mocked RPC response
+namespace WalletWasabi.Tests.UnitTests.BitcoinCore;
 
-		private static string RpcOutput = @"
+public class RpcBasedTests
+{
+	#region Mocked RPC response
+
+	private static string RpcOutput = @"
 		{
 		    'hash': '27cac34bec2bfc3422c352d558b4db29e6d7e8114db2dbc955df06a63cda82fe',
 		    'confirmations': 1,
@@ -147,173 +147,172 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		    'previousblockhash': '1d434df0cdd3fe26535ebe9734ef013b036441be38921606a9336ce74ab1cf04'
 		}".Replace("'", "\"");
 
-		#endregion Mocked RPC response
+	#endregion Mocked RPC response
 
-		[Fact]
-		public async Task AllFeeEstimateAsync()
+	[Fact]
+	public async Task AllFeeEstimateAsync()
+	{
+		var coreNode = await TestNodeBuilder.CreateAsync();
+		try
 		{
-			var coreNode = await TestNodeBuilder.CreateAsync();
-			try
-			{
-				var rpc = coreNode.RpcClient;
-				var estimations = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative, simulateIfRegTest: true);
-				Assert.Equal(7, estimations.Estimations.Count);
-				Assert.True(estimations.Estimations.First().Key < estimations.Estimations.Last().Key);
-				Assert.True(estimations.Estimations.First().Value > estimations.Estimations.Last().Value);
-				Assert.Equal(EstimateSmartFeeMode.Conservative, estimations.Type);
-				estimations = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Economical, simulateIfRegTest: true);
-				Assert.Equal(7, estimations.Estimations.Count);
-				Assert.True(estimations.Estimations.First().Key < estimations.Estimations.Last().Key);
-				Assert.True(estimations.Estimations.First().Value > estimations.Estimations.Last().Value);
-				Assert.Equal(EstimateSmartFeeMode.Economical, estimations.Type);
-			}
-			finally
-			{
-				await coreNode.TryStopAsync();
-			}
+			var rpc = coreNode.RpcClient;
+			var estimations = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative, simulateIfRegTest: true);
+			Assert.Equal(7, estimations.Estimations.Count);
+			Assert.True(estimations.Estimations.First().Key < estimations.Estimations.Last().Key);
+			Assert.True(estimations.Estimations.First().Value > estimations.Estimations.Last().Value);
+			Assert.Equal(EstimateSmartFeeMode.Conservative, estimations.Type);
+			estimations = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Economical, simulateIfRegTest: true);
+			Assert.Equal(7, estimations.Estimations.Count);
+			Assert.True(estimations.Estimations.First().Key < estimations.Estimations.Last().Key);
+			Assert.True(estimations.Estimations.First().Value > estimations.Estimations.Last().Value);
+			Assert.Equal(EstimateSmartFeeMode.Economical, estimations.Type);
 		}
-
-		[Fact]
-		public async Task FeeEstimationCanCancelAsync()
+		finally
 		{
-			var coreNode = await TestNodeBuilder.CreateAsync();
-			try
-			{
-				var rpc = coreNode.RpcClient;
-				using CancellationTokenSource cts = new(TimeSpan.Zero);
-				await Assert.ThrowsAsync<TaskCanceledException>(async () => await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative, true, cts.Token));
-			}
-			finally
-			{
-				await coreNode.TryStopAsync();
-			}
+			await coreNode.TryStopAsync();
 		}
+	}
 
-		[Fact]
-		public async Task CantDoubleSpendAsync()
+	[Fact]
+	public async Task FeeEstimationCanCancelAsync()
+	{
+		var coreNode = await TestNodeBuilder.CreateAsync();
+		try
 		{
-			var coreNode = await TestNodeBuilder.CreateAsync();
-			try
-			{
-				var rpc = coreNode.RpcClient;
-				var network = rpc.Network;
-
-				var walletName = "wallet";
-				await rpc.CreateWalletAsync(walletName);
-
-				using var k1 = new Key();
-				var blockId = await rpc.GenerateToAddressAsync(1, k1.PubKey.WitHash.GetAddress(network));
-				var block = await rpc.GetBlockAsync(blockId[0]);
-				var coinBaseTx = block.Transactions[0];
-
-				var tx = Transaction.Create(network);
-				tx.Inputs.Add(coinBaseTx, 0);
-				using var k2 = new Key();
-				tx.Outputs.Add(Money.Coins(49.9999m), k2.PubKey.WitHash.GetAddress(network));
-				tx.Sign(k1.GetBitcoinSecret(network), coinBaseTx.Outputs.AsCoins().First());
-				var valid = tx.Check();
-
-				var doubleSpend = Transaction.Create(network);
-				doubleSpend.Inputs.Add(coinBaseTx, 0);
-				using var k3 = new Key();
-				doubleSpend.Outputs.Add(Money.Coins(49.998m), k3.PubKey.WitHash.GetAddress(network));
-				doubleSpend.Sign(k1.GetBitcoinSecret(network), coinBaseTx.Outputs.AsCoins().First());
-				valid = doubleSpend.Check();
-
-				await rpc.GenerateAsync(101);
-
-				var txId = await rpc.SendRawTransactionAsync(tx);
-				await Assert.ThrowsAsync<RPCException>(async () => await rpc.SendRawTransactionAsync(doubleSpend));
-			}
-			finally
-			{
-				await coreNode.TryStopAsync();
-			}
+			var rpc = coreNode.RpcClient;
+			using CancellationTokenSource cts = new(TimeSpan.Zero);
+			await Assert.ThrowsAsync<TaskCanceledException>(async () => await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative, true, cts.Token));
 		}
-
-		[Fact]
-		public async Task VerboseBlockInfoAsync()
+		finally
 		{
-			var coreNode = await TestNodeBuilder.CreateAsync();
-			try
-			{
-				var rpc = coreNode.RpcClient;
-				var blockInfo = await rpc.GetVerboseBlockAsync(coreNode.Network.GenesisHash);
-				Assert.NotNull(blockInfo.Transactions.ElementAt(0).Inputs.ElementAt(0).Coinbase);
-			}
-			finally
-			{
-				await coreNode.TryStopAsync();
-			}
+			await coreNode.TryStopAsync();
 		}
+	}
 
-		[Fact]
-		public void ParseVerboseBlockInfo()
+	[Fact]
+	public async Task CantDoubleSpendAsync()
+	{
+		var coreNode = await TestNodeBuilder.CreateAsync();
+		try
 		{
-			var blockInfo = RpcParser.ParseVerboseBlockResponse(RpcOutput);
-			Assert.Equal(2, blockInfo.Transactions.Count());
-			Assert.Single(blockInfo.Transactions.ElementAt(0).Inputs);
-			Assert.Equal(2, blockInfo.Transactions.ElementAt(0).Outputs.Count());
-			Assert.Single(blockInfo.Transactions.ElementAt(1).Inputs);
-			Assert.Equal(2, blockInfo.Transactions.ElementAt(1).Outputs.Count());
+			var rpc = coreNode.RpcClient;
+			var network = rpc.Network;
 
-			Assert.Equal("01660101", blockInfo.Transactions.ElementAt(0).Inputs.ElementAt(0).Coinbase);
-			Assert.Equal(RpcPubkeyType.TxPubkeyhash, blockInfo.Transactions.ElementAt(0).Outputs.ElementAt(0).PubkeyType);
-			Assert.Equal(RpcPubkeyType.TxNullData, blockInfo.Transactions.ElementAt(0).Outputs.ElementAt(1).PubkeyType);
+			var walletName = "wallet";
+			await rpc.CreateWalletAsync(walletName);
 
-			var in0 = blockInfo.Transactions.ElementAt(1).Inputs.ElementAt(0);
-			Assert.False(in0.IsCoinbase);
-			var prevOut0 = in0.PrevOutput;
-			Assert.Equal(Money.Coins(50), prevOut0?.Value);
-			Assert.Equal(RpcPubkeyType.TxPubkeyhash, prevOut0?.PubkeyType);
+			using var k1 = new Key();
+			var blockId = await rpc.GenerateToAddressAsync(1, k1.PubKey.WitHash.GetAddress(network));
+			var block = await rpc.GetBlockAsync(blockId[0]);
+			var coinBaseTx = block.Transactions[0];
 
-			Assert.Equal(Money.Coins((decimal)48.99995500), blockInfo.Transactions.ElementAt(1).Outputs.ElementAt(0).Value);
-			Assert.Equal(Money.Coins((decimal)1.00000000), blockInfo.Transactions.ElementAt(1).Outputs.ElementAt(1).Value);
-			Assert.Equal(RpcPubkeyType.TxPubkeyhash, blockInfo.Transactions.ElementAt(1).Outputs.ElementAt(0).PubkeyType);
-			Assert.Equal(RpcPubkeyType.TxPubkeyhash, blockInfo.Transactions.ElementAt(1).Outputs.ElementAt(1).PubkeyType);
+			var tx = Transaction.Create(network);
+			tx.Inputs.Add(coinBaseTx, 0);
+			using var k2 = new Key();
+			tx.Outputs.Add(Money.Coins(49.9999m), k2.PubKey.WitHash.GetAddress(network));
+			tx.Sign(k1.GetBitcoinSecret(network), coinBaseTx.Outputs.AsCoins().First());
+			var valid = tx.Check();
+
+			var doubleSpend = Transaction.Create(network);
+			doubleSpend.Inputs.Add(coinBaseTx, 0);
+			using var k3 = new Key();
+			doubleSpend.Outputs.Add(Money.Coins(49.998m), k3.PubKey.WitHash.GetAddress(network));
+			doubleSpend.Sign(k1.GetBitcoinSecret(network), coinBaseTx.Outputs.AsCoins().First());
+			valid = doubleSpend.Check();
+
+			await rpc.GenerateAsync(101);
+
+			var txId = await rpc.SendRawTransactionAsync(tx);
+			await Assert.ThrowsAsync<RPCException>(async () => await rpc.SendRawTransactionAsync(doubleSpend));
 		}
-
-		[Fact]
-		public async Task GetRawTransactionsAsync()
+		finally
 		{
-			var coreNode = await TestNodeBuilder.CreateAsync();
-			try
+			await coreNode.TryStopAsync();
+		}
+	}
+
+	[Fact]
+	public async Task VerboseBlockInfoAsync()
+	{
+		var coreNode = await TestNodeBuilder.CreateAsync();
+		try
+		{
+			var rpc = coreNode.RpcClient;
+			var blockInfo = await rpc.GetVerboseBlockAsync(coreNode.Network.GenesisHash);
+			Assert.NotNull(blockInfo.Transactions.ElementAt(0).Inputs.ElementAt(0).Coinbase);
+		}
+		finally
+		{
+			await coreNode.TryStopAsync();
+		}
+	}
+
+	[Fact]
+	public void ParseVerboseBlockInfo()
+	{
+		var blockInfo = RpcParser.ParseVerboseBlockResponse(RpcOutput);
+		Assert.Equal(2, blockInfo.Transactions.Count());
+		Assert.Single(blockInfo.Transactions.ElementAt(0).Inputs);
+		Assert.Equal(2, blockInfo.Transactions.ElementAt(0).Outputs.Count());
+		Assert.Single(blockInfo.Transactions.ElementAt(1).Inputs);
+		Assert.Equal(2, blockInfo.Transactions.ElementAt(1).Outputs.Count());
+
+		Assert.Equal("01660101", blockInfo.Transactions.ElementAt(0).Inputs.ElementAt(0).Coinbase);
+		Assert.Equal(RpcPubkeyType.TxPubkeyhash, blockInfo.Transactions.ElementAt(0).Outputs.ElementAt(0).PubkeyType);
+		Assert.Equal(RpcPubkeyType.TxNullData, blockInfo.Transactions.ElementAt(0).Outputs.ElementAt(1).PubkeyType);
+
+		var in0 = blockInfo.Transactions.ElementAt(1).Inputs.ElementAt(0);
+		Assert.False(in0.IsCoinbase);
+		var prevOut0 = in0.PrevOutput;
+		Assert.Equal(Money.Coins(50), prevOut0?.Value);
+		Assert.Equal(RpcPubkeyType.TxPubkeyhash, prevOut0?.PubkeyType);
+
+		Assert.Equal(Money.Coins((decimal)48.99995500), blockInfo.Transactions.ElementAt(1).Outputs.ElementAt(0).Value);
+		Assert.Equal(Money.Coins((decimal)1.00000000), blockInfo.Transactions.ElementAt(1).Outputs.ElementAt(1).Value);
+		Assert.Equal(RpcPubkeyType.TxPubkeyhash, blockInfo.Transactions.ElementAt(1).Outputs.ElementAt(0).PubkeyType);
+		Assert.Equal(RpcPubkeyType.TxPubkeyhash, blockInfo.Transactions.ElementAt(1).Outputs.ElementAt(1).PubkeyType);
+	}
+
+	[Fact]
+	public async Task GetRawTransactionsAsync()
+	{
+		var coreNode = await TestNodeBuilder.CreateAsync();
+		try
+		{
+			var rpc = coreNode.RpcClient;
+			var txs = await rpc.GetRawTransactionsAsync(new[] { BitcoinFactory.CreateUint256(), BitcoinFactory.CreateUint256() }, CancellationToken.None);
+			Assert.Empty(txs);
+
+			await rpc.CreateWalletAsync("wallet");
+			await rpc.GenerateAsync(101);
+			var txid = await rpc.SendToAddressAsync(BitcoinFactory.CreateScript().GetDestinationAddress(Network.RegTest), Money.Coins(1));
+
+			txs = await rpc.GetRawTransactionsAsync(new[] { txid }, CancellationToken.None);
+			Assert.Single(txs);
+
+			List<uint256> txids = new();
+			for (int i = 0; i < 2; i++)
 			{
-				var rpc = coreNode.RpcClient;
-				var txs = await rpc.GetRawTransactionsAsync(new[] { BitcoinFactory.CreateUint256(), BitcoinFactory.CreateUint256() }, CancellationToken.None);
-				Assert.Empty(txs);
-
-				await rpc.CreateWalletAsync("wallet");
-				await rpc.GenerateAsync(101);
-				var txid = await rpc.SendToAddressAsync(BitcoinFactory.CreateScript().GetDestinationAddress(Network.RegTest), Money.Coins(1));
-
-				txs = await rpc.GetRawTransactionsAsync(new[] { txid }, CancellationToken.None);
-				Assert.Single(txs);
-
-				List<uint256> txids = new();
-				for (int i = 0; i < 2; i++)
-				{
-					var txid2 = await rpc.SendToAddressAsync(BitcoinFactory.CreateScript().GetDestinationAddress(Network.RegTest), Money.Coins(1));
-					txids.Add(txid2);
-				}
-
-				txs = await rpc.GetRawTransactionsAsync(txids, CancellationToken.None);
-				Assert.Equal(2, txs.Count());
-
-				txids = new();
-				for (int i = 0; i < 20; i++)
-				{
-					var txid2 = await rpc.SendToAddressAsync(BitcoinFactory.CreateScript().GetDestinationAddress(Network.RegTest), Money.Coins(1));
-					txids.Add(txid2);
-				}
-
-				txs = await rpc.GetRawTransactionsAsync(txids, CancellationToken.None);
-				Assert.Equal(20, txs.Count());
+				var txid2 = await rpc.SendToAddressAsync(BitcoinFactory.CreateScript().GetDestinationAddress(Network.RegTest), Money.Coins(1));
+				txids.Add(txid2);
 			}
-			finally
+
+			txs = await rpc.GetRawTransactionsAsync(txids, CancellationToken.None);
+			Assert.Equal(2, txs.Count());
+
+			txids = new();
+			for (int i = 0; i < 20; i++)
 			{
-				await coreNode.TryStopAsync();
+				var txid2 = await rpc.SendToAddressAsync(BitcoinFactory.CreateScript().GetDestinationAddress(Network.RegTest), Money.Coins(1));
+				txids.Add(txid2);
 			}
+
+			txs = await rpc.GetRawTransactionsAsync(txids, CancellationToken.None);
+			Assert.Equal(20, txs.Count());
+		}
+		finally
+		{
+			await coreNode.TryStopAsync();
 		}
 	}
 }

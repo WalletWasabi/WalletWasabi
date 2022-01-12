@@ -1,9 +1,8 @@
-namespace WalletWasabi.CoinJoin.Coordinator.Participants
+namespace WalletWasabi.CoinJoin.Coordinator.Participants;
+
+public enum AliceState
 {
-	public enum AliceState
-	{
-		InputsRegistered,
-		ConnectionConfirmed,
-		SignedCoinJoin
-	}
+	InputsRegistered,
+	ConnectionConfirmed,
+	SignedCoinJoin
 }
