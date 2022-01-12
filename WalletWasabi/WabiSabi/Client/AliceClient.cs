@@ -130,7 +130,8 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private async Task ConfirmConnectionAsync(RoundStateUpdater roundStatusUpdater, CancellationToken cancellationToken)
 		{
-			long[] amountsToRequest = { SmartCoin.EffectiveValue(FeeRate, CoordinationFeeRate).Satoshi };
+			var coordinationFeeRate = SmartCoin.Transaction.Transaction.IsLikelyCoinjoin() ? CoordinationFeeRate.Zero : CoordinationFeeRate;
+			long[] amountsToRequest = { SmartCoin.EffectiveValue(FeeRate, coordinationFeeRate).Satoshi };
 			long[] vsizesToRequest = { MaxVsizeAllocationPerAlice - SmartCoin.ScriptPubKey.EstimateInputVsize() };
 
 			do
