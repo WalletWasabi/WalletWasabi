@@ -14,20 +14,6 @@ public class BranchAndBoundTests
 	private static Random Random { get; } = new();
 
 	[Fact]
-	public void RandomizedTest()
-	{
-		List<long> inputValues = GenerateListOfRandomValues();
-		BranchAndBound selector = new(inputValues);
-		long target = 100_000_000;
-
-		bool successful = selector.TryGetExactMatch(target, out List<long>? selectedValues, CancellationToken.None);
-
-		Assert.True(successful);
-		Assert.NotNull(selectedValues);
-		Assert.Equal(target, selectedValues!.Sum());
-	}
-
-	[Fact]
 	public void SimpleSelectionTest()
 	{
 		List<long> inputValues = new() { 120_000, 100_000, 100_000, 50_000, 40_000 };
@@ -91,15 +77,16 @@ public class BranchAndBoundTests
 		Assert.Null(selectedCoins);
 	}
 
-	private List<long> GenerateListOfRandomValues(int count = 1000)
+	[Fact]
+	public void CanSelectCoinsWithToleranceTest()
 	{
-		List<long> values = new();
+		List<long> inputValues = new() { 1200, 1000, 1100 };
+		BranchAndBound selector = new(inputValues);
+		long target = 3200;
 
-		for (int i = 0; i < count; i++)
-		{
-			values.Add(Random.Next(1000, 99999999));
-		}
+		bool wasSuccessful = selector.TryGetExactMatch(target, out List<long>? selectedCoins, CancellationToken.None);
 
-		return values;
+		Assert.True(wasSuccessful);
+		Assert.NotNull(selectedCoins);
 	}
 }
