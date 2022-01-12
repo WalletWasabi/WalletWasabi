@@ -5,235 +5,234 @@ using Avalonia.Controls.Presenters;
 using Avalonia.Media;
 using ReactiveUI;
 
-namespace WalletWasabi.Fluent.Controls
+namespace WalletWasabi.Fluent.Controls;
+
+public class ContentArea : ContentControl
 {
-	public class ContentArea : ContentControl
+	public static readonly StyledProperty<object> TitleProperty =
+		AvaloniaProperty.Register<ContentArea, object>(nameof(Title));
+
+	public static readonly StyledProperty<object> CaptionProperty =
+		AvaloniaProperty.Register<ContentArea, object>(nameof(Caption));
+
+	public static readonly StyledProperty<bool> EnableBackProperty =
+		AvaloniaProperty.Register<ContentArea, bool>(nameof(EnableBack));
+
+	public static readonly StyledProperty<bool> EnableCancelProperty =
+		AvaloniaProperty.Register<ContentArea, bool>(nameof(EnableCancel));
+
+	public static readonly StyledProperty<bool> EnableNextProperty =
+		AvaloniaProperty.Register<ContentArea, bool>(nameof(EnableNext));
+
+	public static readonly StyledProperty<bool> EnableSkipProperty =
+		AvaloniaProperty.Register<ContentArea, bool>(nameof(EnableSkip));
+
+	public static readonly StyledProperty<bool> FocusNextProperty =
+		AvaloniaProperty.Register<ContentArea, bool>(nameof(FocusNext));
+
+	public static readonly StyledProperty<bool> FocusCancelProperty =
+		AvaloniaProperty.Register<ContentArea, bool>(nameof(FocusCancel));
+
+	public static readonly StyledProperty<object> CancelContentProperty =
+		AvaloniaProperty.Register<ContentArea, object>(nameof(CancelContent), "Cancel");
+
+	public static readonly StyledProperty<object> NextContentProperty =
+		AvaloniaProperty.Register<ContentArea, object>(nameof(NextContent), "Next");
+
+	public static readonly StyledProperty<object> SkipContentProperty =
+		AvaloniaProperty.Register<ContentArea, object>(nameof(NextContent), "Skip");
+
+	public static readonly StyledProperty<bool> IsBusyProperty =
+		AvaloniaProperty.Register<ContentArea, bool>(nameof(IsBusy));
+
+	public static readonly StyledProperty<IBrush> HeaderBackgroundProperty =
+		AvaloniaProperty.Register<ContentArea, IBrush>(nameof(HeaderBackground));
+
+	public static readonly StyledProperty<bool> EnabledAdaptiveButtonAreaProperty =
+		AvaloniaProperty.Register<ContentArea, bool>(nameof(EnabledAdaptiveButtonArea));
+
+	public static readonly StyledProperty<ButtonAreaPlacement> AdaptiveButtonAreaPlacementProperty =
+		AvaloniaProperty.Register<ContentArea, ButtonAreaPlacement>(nameof(AdaptiveButtonAreaPlacement), ButtonAreaPlacement.Overlay);
+
+	public static readonly StyledProperty<double> AdaptiveButtonAreaHeightTriggerProperty =
+		AvaloniaProperty.Register<ContentArea, double>(nameof(AdaptiveButtonAreaHeightTrigger), 580);
+
+	public static readonly StyledProperty<ButtonAreaPlacement> ButtonAreaPlacementProperty =
+		AvaloniaProperty.Register<ContentArea, ButtonAreaPlacement>(nameof(ButtonAreaPlacement));
+
+	private IContentPresenter? _titlePresenter;
+	private IContentPresenter? _captionPresenter;
+
+	public ContentArea()
 	{
-		public static readonly StyledProperty<object> TitleProperty =
-			AvaloniaProperty.Register<ContentArea, object>(nameof(Title));
+		this.WhenAnyValue(x => x.Bounds)
+			.Subscribe(AdaptButtonArea);
+	}
 
-		public static readonly StyledProperty<object> CaptionProperty =
-			AvaloniaProperty.Register<ContentArea, object>(nameof(Caption));
+	public object Title
+	{
+		get => GetValue(TitleProperty);
+		set => SetValue(TitleProperty, value);
+	}
 
-		public static readonly StyledProperty<bool> EnableBackProperty =
-			AvaloniaProperty.Register<ContentArea, bool>(nameof(EnableBack));
+	public object Caption
+	{
+		get => GetValue(CaptionProperty);
+		set => SetValue(CaptionProperty, value);
+	}
 
-		public static readonly StyledProperty<bool> EnableCancelProperty =
-			AvaloniaProperty.Register<ContentArea, bool>(nameof(EnableCancel));
+	public bool EnableBack
+	{
+		get => GetValue(EnableBackProperty);
+		set => SetValue(EnableBackProperty, value);
+	}
 
-		public static readonly StyledProperty<bool> EnableNextProperty =
-			AvaloniaProperty.Register<ContentArea, bool>(nameof(EnableNext));
+	public bool EnableCancel
+	{
+		get => GetValue(EnableCancelProperty);
+		set => SetValue(EnableCancelProperty, value);
+	}
 
-		public static readonly StyledProperty<bool> EnableSkipProperty =
-			AvaloniaProperty.Register<ContentArea, bool>(nameof(EnableSkip));
+	public bool EnableNext
+	{
+		get => GetValue(EnableNextProperty);
+		set => SetValue(EnableNextProperty, value);
+	}
 
-		public static readonly StyledProperty<bool> FocusNextProperty =
-			AvaloniaProperty.Register<ContentArea, bool>(nameof(FocusNext));
+	public bool EnableSkip
+	{
+		get => GetValue(EnableSkipProperty);
+		set => SetValue(EnableSkipProperty, value);
+	}
 
-		public static readonly StyledProperty<bool> FocusCancelProperty =
-			AvaloniaProperty.Register<ContentArea, bool>(nameof(FocusCancel));
+	public bool FocusNext
+	{
+		get => GetValue(FocusNextProperty);
+		set => SetValue(FocusNextProperty, value);
+	}
 
-		public static readonly StyledProperty<object> CancelContentProperty =
-			AvaloniaProperty.Register<ContentArea, object>(nameof(CancelContent), "Cancel");
+	public bool FocusCancel
+	{
+		get => GetValue(FocusCancelProperty);
+		set => SetValue(FocusCancelProperty, value);
+	}
 
-		public static readonly StyledProperty<object> NextContentProperty =
-			AvaloniaProperty.Register<ContentArea, object>(nameof(NextContent), "Next");
+	public object CancelContent
+	{
+		get => GetValue(CancelContentProperty);
+		set => SetValue(CancelContentProperty, value);
+	}
 
-		public static readonly StyledProperty<object> SkipContentProperty =
-			AvaloniaProperty.Register<ContentArea, object>(nameof(NextContent), "Skip");
+	public object NextContent
+	{
+		get => GetValue(NextContentProperty);
+		set => SetValue(NextContentProperty, value);
+	}
 
-		public static readonly StyledProperty<bool> IsBusyProperty =
-			AvaloniaProperty.Register<ContentArea, bool>(nameof(IsBusy));
+	public object SkipContent
+	{
+		get => GetValue(SkipContentProperty);
+		set => SetValue(SkipContentProperty, value);
+	}
 
-		public static readonly StyledProperty<IBrush> HeaderBackgroundProperty =
-			AvaloniaProperty.Register<ContentArea, IBrush>(nameof(HeaderBackground));
+	public bool IsBusy
+	{
+		get => GetValue(IsBusyProperty);
+		set => SetValue(IsBusyProperty, value);
+	}
 
-		public static readonly StyledProperty<bool> EnabledAdaptiveButtonAreaProperty =
-			AvaloniaProperty.Register<ContentArea, bool>(nameof(EnabledAdaptiveButtonArea));
+	public IBrush HeaderBackground
+	{
+		get => GetValue(HeaderBackgroundProperty);
+		set => SetValue(HeaderBackgroundProperty, value);
+	}
 
-		public static readonly StyledProperty<ButtonAreaPlacement> AdaptiveButtonAreaPlacementProperty =
-			AvaloniaProperty.Register<ContentArea, ButtonAreaPlacement>(nameof(AdaptiveButtonAreaPlacement), ButtonAreaPlacement.Overlay);
+	public bool EnabledAdaptiveButtonArea
+	{
+		get => GetValue(EnabledAdaptiveButtonAreaProperty);
+		set => SetValue(EnabledAdaptiveButtonAreaProperty, value);
+	}
 
-		public static readonly StyledProperty<double> AdaptiveButtonAreaHeightTriggerProperty =
-			AvaloniaProperty.Register<ContentArea, double>(nameof(AdaptiveButtonAreaHeightTrigger), 580);
+	public ButtonAreaPlacement AdaptiveButtonAreaPlacement
+	{
+		get => GetValue(AdaptiveButtonAreaPlacementProperty);
+		set => SetValue(AdaptiveButtonAreaPlacementProperty, value);
+	}
 
-		public static readonly StyledProperty<ButtonAreaPlacement> ButtonAreaPlacementProperty =
-			AvaloniaProperty.Register<ContentArea, ButtonAreaPlacement>(nameof(ButtonAreaPlacement));
+	public double AdaptiveButtonAreaHeightTrigger
+	{
+		get => GetValue(AdaptiveButtonAreaHeightTriggerProperty);
+		set => SetValue(AdaptiveButtonAreaHeightTriggerProperty, value);
+	}
 
-		private IContentPresenter? _titlePresenter;
-		private IContentPresenter? _captionPresenter;
+	public ButtonAreaPlacement ButtonAreaPlacement
+	{
+		get => GetValue(ButtonAreaPlacementProperty);
+		set => SetValue(ButtonAreaPlacementProperty, value);
+	}
 
-		public ContentArea()
+	protected override bool RegisterContentPresenter(IContentPresenter presenter)
+	{
+		var result = base.RegisterContentPresenter(presenter);
+
+		switch (presenter.Name)
 		{
-			this.WhenAnyValue(x => x.Bounds)
-				.Subscribe(AdaptButtonArea);
-		}
-
-		public object Title
-		{
-			get => GetValue(TitleProperty);
-			set => SetValue(TitleProperty, value);
-		}
-
-		public object Caption
-		{
-			get => GetValue(CaptionProperty);
-			set => SetValue(CaptionProperty, value);
-		}
-
-		public bool EnableBack
-		{
-			get => GetValue(EnableBackProperty);
-			set => SetValue(EnableBackProperty, value);
-		}
-
-		public bool EnableCancel
-		{
-			get => GetValue(EnableCancelProperty);
-			set => SetValue(EnableCancelProperty, value);
-		}
-
-		public bool EnableNext
-		{
-			get => GetValue(EnableNextProperty);
-			set => SetValue(EnableNextProperty, value);
-		}
-
-		public bool EnableSkip
-		{
-			get => GetValue(EnableSkipProperty);
-			set => SetValue(EnableSkipProperty, value);
-		}
-
-		public bool FocusNext
-		{
-			get => GetValue(FocusNextProperty);
-			set => SetValue(FocusNextProperty, value);
-		}
-
-		public bool FocusCancel
-		{
-			get => GetValue(FocusCancelProperty);
-			set => SetValue(FocusCancelProperty, value);
-		}
-
-		public object CancelContent
-		{
-			get => GetValue(CancelContentProperty);
-			set => SetValue(CancelContentProperty, value);
-		}
-
-		public object NextContent
-		{
-			get => GetValue(NextContentProperty);
-			set => SetValue(NextContentProperty, value);
-		}
-
-		public object SkipContent
-		{
-			get => GetValue(SkipContentProperty);
-			set => SetValue(SkipContentProperty, value);
-		}
-
-		public bool IsBusy
-		{
-			get => GetValue(IsBusyProperty);
-			set => SetValue(IsBusyProperty, value);
-		}
-
-		public IBrush HeaderBackground
-		{
-			get => GetValue(HeaderBackgroundProperty);
-			set => SetValue(HeaderBackgroundProperty, value);
-		}
-
-		public bool EnabledAdaptiveButtonArea
-		{
-			get => GetValue(EnabledAdaptiveButtonAreaProperty);
-			set => SetValue(EnabledAdaptiveButtonAreaProperty, value);
-		}
-
-		public ButtonAreaPlacement AdaptiveButtonAreaPlacement
-		{
-			get => GetValue(AdaptiveButtonAreaPlacementProperty);
-			set => SetValue(AdaptiveButtonAreaPlacementProperty, value);
-		}
-
-		public double AdaptiveButtonAreaHeightTrigger
-		{
-			get => GetValue(AdaptiveButtonAreaHeightTriggerProperty);
-			set => SetValue(AdaptiveButtonAreaHeightTriggerProperty, value);
-		}
-
-		public ButtonAreaPlacement ButtonAreaPlacement
-		{
-			get => GetValue(ButtonAreaPlacementProperty);
-			set => SetValue(ButtonAreaPlacementProperty, value);
-		}
-
-		protected override bool RegisterContentPresenter(IContentPresenter presenter)
-		{
-			var result = base.RegisterContentPresenter(presenter);
-
-			switch (presenter.Name)
-			{
-				case "PART_TitlePresenter":
-					if (_titlePresenter is { })
-					{
-						_titlePresenter.PropertyChanged -= PresenterOnPropertyChanged;
-					}
-
-					_titlePresenter = presenter;
-					_titlePresenter.PropertyChanged += PresenterOnPropertyChanged;
-					result = true;
-					break;
-
-				case "PART_CaptionPresenter":
-					if (_captionPresenter is { })
-					{
-						_captionPresenter.PropertyChanged -= PresenterOnPropertyChanged;
-					}
-
-					_captionPresenter = presenter;
-					_captionPresenter.PropertyChanged += PresenterOnPropertyChanged;
-					_captionPresenter.IsVisible = Caption is not null;
-					result = true;
-					break;
-			}
-
-			return result;
-		}
-
-		private void PresenterOnPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
-		{
-			if (e.Property == ContentPresenter.ChildProperty)
-			{
-				var className = sender == _captionPresenter ? "caption" : "title";
-
-				if (e.OldValue is IStyledElement oldValue)
+			case "PART_TitlePresenter":
+				if (_titlePresenter is { })
 				{
-					oldValue.Classes.Remove(className);
+					_titlePresenter.PropertyChanged -= PresenterOnPropertyChanged;
 				}
 
-				if (e.NewValue is IStyledElement newValue)
+				_titlePresenter = presenter;
+				_titlePresenter.PropertyChanged += PresenterOnPropertyChanged;
+				result = true;
+				break;
+
+			case "PART_CaptionPresenter":
+				if (_captionPresenter is { })
 				{
-					newValue.Classes.Add(className);
+					_captionPresenter.PropertyChanged -= PresenterOnPropertyChanged;
 				}
-			}
-			else if (e.Property == CaptionProperty && _captionPresenter is not null)
-			{
-				_captionPresenter.IsVisible = e.NewValue is not null;
-			}
+
+				_captionPresenter = presenter;
+				_captionPresenter.PropertyChanged += PresenterOnPropertyChanged;
+				_captionPresenter.IsVisible = Caption is not null;
+				result = true;
+				break;
 		}
 
-		private void AdaptButtonArea(Rect bounds)
+		return result;
+	}
+
+	private void PresenterOnPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+	{
+		if (e.Property == ContentPresenter.ChildProperty)
 		{
-			var isEnabled = EnabledAdaptiveButtonArea
-			                && bounds.Height < AdaptiveButtonAreaHeightTrigger;
+			var className = sender == _captionPresenter ? "caption" : "title";
 
-			ButtonAreaPlacement = isEnabled
-				? AdaptiveButtonAreaPlacement
-				: ButtonAreaPlacement.Default;
+			if (e.OldValue is IStyledElement oldValue)
+			{
+				oldValue.Classes.Remove(className);
+			}
+
+			if (e.NewValue is IStyledElement newValue)
+			{
+				newValue.Classes.Add(className);
+			}
 		}
+		else if (e.Property == CaptionProperty && _captionPresenter is not null)
+		{
+			_captionPresenter.IsVisible = e.NewValue is not null;
+		}
+	}
+
+	private void AdaptButtonArea(Rect bounds)
+	{
+		var isEnabled = EnabledAdaptiveButtonArea
+		                && bounds.Height < AdaptiveButtonAreaHeightTrigger;
+
+		ButtonAreaPlacement = isEnabled
+			? AdaptiveButtonAreaPlacement
+			: ButtonAreaPlacement.Default;
 	}
 }
