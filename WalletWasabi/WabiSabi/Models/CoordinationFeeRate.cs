@@ -18,7 +18,7 @@ namespace WalletWasabi.WabiSabi.Models
 
 		public Money GetFee(Money amount)
 		{
-			// Under 100 000 satoshis plebs don't have to pay.
+			// Under 1 000 000 satoshis plebs don't have to pay.
 			if (amount <= PlebsDontPayThreshold)
 			{
 				return Money.Zero;
