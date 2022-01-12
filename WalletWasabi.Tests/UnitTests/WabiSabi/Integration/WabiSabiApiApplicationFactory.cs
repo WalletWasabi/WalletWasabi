@@ -39,10 +39,7 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 
 	protected override IHostBuilder CreateHostBuilder()
 	{
-		var builder = Host.CreateDefaultBuilder().ConfigureWebHostDefaults(x =>
-		{
-			x.UseStartup<TStartup>().UseTestServer();
-		});
+		var builder = Host.CreateDefaultBuilder().ConfigureWebHostDefaults(x => x.UseStartup<TStartup>().UseTestServer());
 		return builder;
 	}
 
@@ -59,10 +56,7 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 			services.AddScoped<WabiSabiConfig>();
 			services.AddScoped(typeof(TimeSpan), _ => TimeSpan.FromSeconds(2));
 		});
-		builder.ConfigureLogging(o =>
-		{
-			o.SetMinimumLevel(LogLevel.Warning);
-		});
+		builder.ConfigureLogging(o => o.SetMinimumLevel(LogLevel.Warning));
 	}
 
 	public Task<ArenaClient> CreateArenaClientAsync(HttpClient httpClient) =>

@@ -1,4 +1,4 @@
-﻿using System.Reactive.Disposables;
+using System.Reactive.Disposables;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -38,10 +38,7 @@ public class ButtonExecuteCommandOnKeyDownBehavior : AttachedToVisualTreeBehavio
 		{
 			inputRoot.AddHandler(InputElement.KeyDownEvent, RootDefaultKeyDown);
 
-			disposable.Add(Disposable.Create(() =>
-			{
-				inputRoot.RemoveHandler(InputElement.KeyDownEvent, RootDefaultKeyDown);
-			}));
+			disposable.Add(Disposable.Create(() => inputRoot.RemoveHandler(InputElement.KeyDownEvent, RootDefaultKeyDown)));
 		}
 	}
 
