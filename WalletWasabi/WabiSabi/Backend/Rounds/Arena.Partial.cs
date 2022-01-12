@@ -1,5 +1,6 @@
 using NBitcoin;
 using Nito.AsyncEx;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,7 +58,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				// not say anything about GUID version or randomness source,
 				// only that the probability of duplicates is very low).
 				var id = new Guid(Random.GetBytes(16));
-				var alice = new Alice(coin, request.OwnershipProof, round, id);
+
+				var isComingFromCoinJoin = InMemoryCoinJoinIdStore.Contains(coin.Outpoint.Hash);
+				var alice = new Alice(coin, request.OwnershipProof, round, id, isComingFromCoinJoin);
 
 				if (alice.TotalInputAmount < round.MinAmountCredentialValue)
 				{
@@ -136,6 +139,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedVsizeCredentials, $"Round ({request.RoundId}): Incorrect requested vsize credentials.");
 				}
+
 				if (realAmountCredentialRequests.Delta != alice.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate))
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedAmountCredentials, $"Round ({request.RoundId}): Incorrect requested amount credentials.");

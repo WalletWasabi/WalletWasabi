@@ -173,7 +173,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			round.SetPhase(Phase.ConnectionConfirmation);
 			var fundingTx = BitcoinFactory.CreateSmartTransaction(ownOutputCount: 1);
 			var coin = fundingTx.WalletOutputs.First().Coin;
-			var alice = new Alice(coin, new OwnershipProof(), round, Guid.NewGuid());
+			var alice = new Alice(coin, new OwnershipProof(), round, Guid.NewGuid(), false);
 			round.Alices.Add(alice);
 
 			using Arena arena = await ArenaBuilder.From(config).CreateAndStartAsync(round);

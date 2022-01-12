@@ -12,7 +12,7 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
-using WalletWasabi.WabiSabi.Backend.Rounds.Utils;
+using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds
 {
@@ -32,6 +32,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			Prison = prison;
 			TransactionArchiver = archiver;
 			Random = new SecureRandom();
+			InMemoryCoinJoinIdStore = new InMemoryCoinJoinIdStore(Enumerable.Empty<uint256>());
 		}
 
 		public HashSet<Round> Rounds { get; } = new();
@@ -42,6 +43,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		private Prison Prison { get; }
 		private SecureRandom Random { get; }
 		private CoinJoinTransactionArchiver? TransactionArchiver { get; }
+		private InMemoryCoinJoinIdStore InMemoryCoinJoinIdStore { get; }
 
 		protected override async Task ActionAsync(CancellationToken cancel)
 		{
@@ -240,6 +242,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 						{
 							Config.MakeNextCoordinatorScriptDirty();
 						}
+
+						InMemoryCoinJoinIdStore.Add(coinjoin.GetHash());
+
 						round.SetPhase(Phase.Ended);
 
 						round.LogInfo($"Successfully broadcast the CoinJoin: {coinjoin.GetHash()}.");

@@ -7,13 +7,14 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 {
 	public class Alice
 	{
-		public Alice(Coin coin, OwnershipProof ownershipProof, Round round, Guid id)
+		public Alice(Coin coin, OwnershipProof ownershipProof, Round round, Guid id, bool isComingFromCoinJoin)
 		{
 			// TODO init syntax?
 			Round = round;
 			Coin = coin;
 			OwnershipProof = ownershipProof;
 			Id = id;
+			IsComingFromCoinJoin = isComingFromCoinJoin;
 		}
 
 		public Round Round { get; }
@@ -26,10 +27,12 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 
 		public bool ConfirmedConnection { get; set; } = false;
 		public bool ReadyToSign { get; set; }
+		public bool IsComingFromCoinJoin { get; } = false;
 
 		public long CalculateRemainingVsizeCredentials(int maxRegistrableSize) => maxRegistrableSize - TotalInputVsize;
 
-		public Money CalculateRemainingAmountCredentials(FeeRate feeRate, CoordinationFeeRate coordinationFeeRate) => Coin.EffectiveValue(feeRate, coordinationFeeRate);
+		public Money CalculateRemainingAmountCredentials(FeeRate feeRate, CoordinationFeeRate coordinationFeeRate) =>
+			Coin.EffectiveValue(feeRate, IsComingFromCoinJoin ? CoordinationFeeRate.Zero : coordinationFeeRate);
 
 		public void SetDeadlineRelativeTo(TimeSpan connectionConfirmationTimeout)
 		{
