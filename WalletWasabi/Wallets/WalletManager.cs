@@ -161,9 +161,9 @@ public class WalletManager
 			try
 			{
 				var cancel = CancelAllInitialization.Token;
-				Logger.LogInfo($"Starting {nameof(Wallet)}...");
+				Logger.LogInfo($"Starting wallet '{wallet.WalletName}'...");
 				await wallet.StartAsync(cancel).ConfigureAwait(false);
-				Logger.LogInfo($"{nameof(Wallet)} started.");
+				Logger.LogInfo($"Wallet '{wallet.WalletName}' started.");
 				cancel.ThrowIfCancellationRequested();
 
 				return wallet;
@@ -318,7 +318,7 @@ public class WalletManager
 						keyManager.ToFile(backupWalletFilePath);
 						Logger.LogInfo($"{nameof(wallet.KeyManager)} backup saved to `{backupWalletFilePath}`.");
 						await wallet.StopAsync(cancel).ConfigureAwait(false);
-						Logger.LogInfo($"{nameof(Wallet)} is stopped.");
+						Logger.LogInfo($"'{wallet.WalletName}' wallet is stopped.");
 					}
 					wallet?.Dispose();
 				}

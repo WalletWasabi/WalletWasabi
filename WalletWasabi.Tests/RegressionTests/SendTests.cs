@@ -99,7 +99,7 @@ public class SendTests
 				waitCount++;
 				if (waitCount >= 21)
 				{
-					Logger.LogInfo("Funding transaction to the wallet did not arrive.");
+					Logger.LogInfo($"Funding transaction to the wallet '{wallet.WalletName}' did not arrive.");
 					return; // Very rarely this test fails. I have no clue why. Probably because all these RegTests are interconnected, anyway let's not bother the CI with it.
 				}
 			}
