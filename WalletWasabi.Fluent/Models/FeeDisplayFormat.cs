@@ -1,14 +1,11 @@
-using System.ComponentModel;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.Models;
 
 public enum FeeDisplayFormat
 {
-	USD,
 	BTC,
 
-	[Description("sat/vByte")]
+	[FriendlyName("sat/vByte")]
 	SatoshiPerByte,
-
-	Percentage
 }
