@@ -37,13 +37,7 @@ public class HideShowBehavior : DisposingBehavior<Window>
 
 		Observable.FromEventPattern((App) Application.Current!, nameof(App.HideRequested))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ =>
-			{
-				if (AssociatedObject.WindowState is WindowState.Maximized or WindowState.FullScreen)
-				{
-					AssociatedObject.WindowState = WindowState.Minimized;
-				}
-			});
+			.Subscribe(_ => { AssociatedObject.WindowState = WindowState.Minimized; });
 
 		// TODO: we need the close button click only, external close request should not be cancelled.
 		Observable

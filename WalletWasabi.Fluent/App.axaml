@@ -44,7 +44,7 @@
       <TrayIcon Icon="{Binding TrayIcon}" Clicked="TrayIcon_OnClicked">
         <NativeMenu.Menu>
           <NativeMenu>
-            <NativeMenuItem Header="{Binding ShowOrHideHeader}" Command="{Binding ShowCommand} " />
+            <NativeMenuItem Header="{Binding ShowOrHideHeader}" Command="{Binding ShowOrHideCommand} " />
             <NativeMenuItemSeparator />
             <NativeMenuItem Header="Quit" Command="{Binding QuitCommand}" />
           </NativeMenu>
