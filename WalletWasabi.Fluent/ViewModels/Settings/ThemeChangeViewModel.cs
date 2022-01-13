@@ -5,28 +5,27 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
-namespace WalletWasabi.Fluent.ViewModels.Settings
+namespace WalletWasabi.Fluent.ViewModels.Settings;
+
+[NavigationMetaData(Title = "")]
+public partial class ThemeChangeViewModel : RoutableViewModel
 {
-	[NavigationMetaData(Title = "")]
-	public partial class ThemeChangeViewModel : RoutableViewModel
+	private readonly Theme _newTheme;
+
+	public ThemeChangeViewModel(Theme newTheme)
 	{
-		private readonly Theme _newTheme;
+		_newTheme = newTheme;
+	}
 
-		public ThemeChangeViewModel(Theme newTheme)
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
+
+		RxApp.MainThreadScheduler.Schedule(async () =>
 		{
-			_newTheme = newTheme;
-		}
-
-		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-		{
-			base.OnNavigatedTo(isInHistory, disposables);
-
-			RxApp.MainThreadScheduler.Schedule(async () =>
-			{
-				await Task.Delay(500);
-				ThemeHelper.ApplyTheme(_newTheme);
-				Navigate().Clear();
-			});
-		}
+			await Task.Delay(500);
+			ThemeHelper.ApplyTheme(_newTheme);
+			Navigate().Clear();
+		});
 	}
 }

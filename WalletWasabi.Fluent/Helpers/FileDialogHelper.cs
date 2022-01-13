@@ -7,109 +7,116 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 
-namespace WalletWasabi.Fluent.Helpers
+namespace WalletWasabi.Fluent.Helpers;
+
+public static class FileDialogHelper
 {
-	public static class FileDialogHelper
+	public static async Task<string?> ShowOpenFileDialogAsync(string title)
 	{
-		public static async Task<string?> ShowOpenFileDialogAsync(string title)
-		{
-			var ofd = CreateOpenFileDialog(title);
-			return await GetDialogResultAsync(ofd);
-		}
+		var ofd = CreateOpenFileDialog(title);
+		return await GetDialogResultAsync(ofd);
+	}
 
-		public static async Task<string?> ShowOpenFileDialogAsync(string title, string[] filterExtTypes)
-		{
-			var ofd = CreateOpenFileDialog(title);
-			ofd.Filters = GenerateFilters(filterExtTypes);
-			return await GetDialogResultAsync(ofd);
-		}
+	public static async Task<string?> ShowOpenFileDialogAsync(string title, string[] filterExtTypes)
+	{
+		var ofd = CreateOpenFileDialog(title);
+		ofd.Filters = GenerateFilters(filterExtTypes);
+		return await GetDialogResultAsync(ofd);
+	}
 
-		public static async Task<string?> ShowSaveFileDialogAsync(string title, params string[] filterExtTypes)
-		{
-			var sfd = CreateSaveFileDialog(title, filterExtTypes);
-			sfd.Filters = GenerateFilters(filterExtTypes);
-			return await GetDialogResultAsync(sfd);
-		}
+	public static async Task<string?> ShowSaveFileDialogAsync(string title, params string[] filterExtTypes)
+	{
+		var sfd = CreateSaveFileDialog(title, filterExtTypes);
+		sfd.Filters = GenerateFilters(filterExtTypes);
+		return await GetDialogResultAsync(sfd);
+	}
 
-		private static SaveFileDialog CreateSaveFileDialog(string title, IEnumerable<string> filterExtTypes)
+	private static SaveFileDialog CreateSaveFileDialog(string title, IEnumerable<string> filterExtTypes)
+	{
+		var sfd = new SaveFileDialog
 		{
-			var sfd = new SaveFileDialog
-			{
-				DefaultExtension = filterExtTypes.FirstOrDefault(),
-				Title = title
-			};
+			DefaultExtension = filterExtTypes.FirstOrDefault(),
+			Title = title
+		};
 
-			return sfd;
-		}
+		return sfd;
+	}
 
-		private static async Task<string?> GetDialogResultAsync(OpenFileDialog ofd)
+	private static async Task<string?> GetDialogResultAsync(OpenFileDialog ofd)
+	{
+		if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime &&
+			lifetime.MainWindow is { })
 		{
-			var window = ((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).MainWindow;
-			var selected = await ofd.ShowAsync(window);
+			var selected = await ofd.ShowAsync(lifetime.MainWindow);
 
 			return selected?.FirstOrDefault();
 		}
 
-		private static async Task<string?> GetDialogResultAsync(SaveFileDialog sfd)
-		{
-			var window = ((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).MainWindow;
-			var selected = await sfd.ShowAsync(window);
+		return null;
+	}
 
-			return selected;
+	private static async Task<string?> GetDialogResultAsync(SaveFileDialog sfd)
+	{
+		if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime &&
+			lifetime.MainWindow is { })
+		{
+			return await sfd.ShowAsync(lifetime.MainWindow);
 		}
 
-		private static OpenFileDialog CreateOpenFileDialog(string title)
+		return null;
+	}
+
+	private static OpenFileDialog CreateOpenFileDialog(string title)
+	{
+		var ofd = new OpenFileDialog
 		{
-			var ofd = new OpenFileDialog
+			AllowMultiple = false,
+			Title = title,
+		};
+
+		SetDefaultDirectory(ofd);
+
+		return ofd;
+	}
+
+	private static List<FileDialogFilter> GenerateFilters(string[] filterExtTypes)
+	{
+		var filters = new List<FileDialogFilter>();
+
+		var generatedFilters =
+			filterExtTypes
+				.Where(x => x != "*")
+				.Select(ext =>
+					new FileDialogFilter
+					{
+						Name = $"{ext.ToUpper()} files",
+						Extensions = new List<string> { ext }
+					});
+
+		filters.AddRange(generatedFilters);
+
+		if (filterExtTypes.Contains("*"))
+		{
+			filters.Add(new FileDialogFilter()
 			{
-				AllowMultiple = false,
-				Title = title,
-			};
-
-			SetDefaultDirectory(ofd);
-
-			return ofd;
+				Name = "All files",
+				Extensions = new List<string> { "*" }
+			});
 		}
 
-		private static List<FileDialogFilter> GenerateFilters(string[] filterExtTypes)
+		return filters;
+	}
+
+	private static void SetDefaultDirectory(FileSystemDialog sfd)
+	{
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 		{
-			var filters = new List<FileDialogFilter>();
-
-			var generatedFilters =
-				filterExtTypes
-					.Where(x => x != "*")
-					.Select(ext =>
-						new FileDialogFilter
-						{
-							Name = $"{ext.ToUpper()} files",
-							Extensions = new List<string> { ext }
-						});
-
-			filters.AddRange(generatedFilters);
-
-			if (filterExtTypes.Contains("*"))
-			{
-				filters.Add(new FileDialogFilter()
-				{
-					Name = "All files",
-					Extensions = new List<string> { "*" }
-				});
-			}
-
-			return filters;
+			sfd.Directory = Path.Combine("/media", Environment.UserName);
 		}
 
-		private static void SetDefaultDirectory(FileSystemDialog sfd)
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 		{
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-			{
-				sfd.Directory = Path.Combine("/media", Environment.UserName);
-			}
-
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-			{
-				sfd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-			}
+			sfd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 		}
 	}
 }

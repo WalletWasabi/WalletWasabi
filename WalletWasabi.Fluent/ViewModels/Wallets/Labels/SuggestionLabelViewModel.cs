@@ -1,15 +1,14 @@
-namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels;
+
+public class SuggestionLabelViewModel : ViewModelBase
 {
-	public class SuggestionLabelViewModel : ViewModelBase
+	public SuggestionLabelViewModel(string label, int count)
 	{
-		public SuggestionLabelViewModel(string label, int count)
-		{
-			Label = label;
-			Count = count;
-		}
-
-		public string Label { get; }
-
-		public int Count { get; }
+		Label = label;
+		Count = count;
 	}
+
+	public string Label { get; }
+
+	public int Count { get; }
 }

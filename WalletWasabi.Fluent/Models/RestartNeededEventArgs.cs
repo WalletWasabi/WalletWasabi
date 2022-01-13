@@ -1,7 +1,6 @@
-namespace WalletWasabi.Fluent.Models
+namespace WalletWasabi.Fluent.Models;
+
+public class RestartNeededEventArgs : EventArgs
 {
-	public class RestartNeededEventArgs : EventArgs
-	{
-		public bool IsRestartNeeded { get; init; }
-	}
+	public bool IsRestartNeeded { get; init; }
 }

@@ -6,56 +6,55 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Xaml.Interactivity;
 
-namespace WalletWasabi.Fluent.Behaviors
+namespace WalletWasabi.Fluent.Behaviors;
+
+public class CheckMarkVisibilityBehavior : Behavior<PathIcon>
 {
-	public class CheckMarkVisibilityBehavior : Behavior<PathIcon>
+	private CompositeDisposable? _disposables;
+
+	public static readonly StyledProperty<TextBox> OwnerTextBoxProperty =
+		AvaloniaProperty.Register<CheckMarkVisibilityBehavior, TextBox>(nameof(OwnerTextBox));
+
+	[ResolveByName]
+	public TextBox OwnerTextBox
 	{
-		private CompositeDisposable? _disposables;
+		get => GetValue(OwnerTextBoxProperty);
+		set => SetValue(OwnerTextBoxProperty, value);
+	}
 
-		public static readonly StyledProperty<TextBox> OwnerTextBoxProperty =
-			AvaloniaProperty.Register<CheckMarkVisibilityBehavior, TextBox>(nameof(OwnerTextBox));
+	protected override void OnAttached()
+	{
+		this.WhenAnyValue(x => x.OwnerTextBox)
+			.Subscribe(
+				x =>
+				{
+					_disposables?.Dispose();
 
-		[ResolveByName]
-		public TextBox OwnerTextBox
-		{
-			get => GetValue(OwnerTextBoxProperty);
-			set => SetValue(OwnerTextBoxProperty, value);
-		}
-
-		protected override void OnAttached()
-		{
-			this.WhenAnyValue(x => x.OwnerTextBox)
-				.Subscribe(
-					x =>
+					if (x is not null)
 					{
-						_disposables?.Dispose();
+						_disposables = new CompositeDisposable();
 
-						if (x is not null)
-						{
-							_disposables = new CompositeDisposable();
+						var hasErrors = OwnerTextBox.GetObservable(DataValidationErrors.HasErrorsProperty);
+						var text = OwnerTextBox.GetObservable(TextBox.TextProperty);
 
-							var hasErrors = OwnerTextBox.GetObservable(DataValidationErrors.HasErrorsProperty);
-							var text = OwnerTextBox.GetObservable(TextBox.TextProperty);
-
-							hasErrors.Select(_ => Unit.Default)
-								.Merge(text.Select(_ => Unit.Default))
-								.Throttle(TimeSpan.FromMilliseconds(100))
-								.ObserveOn(RxApp.MainThreadScheduler)
-								.Subscribe(
-									_ =>
+						hasErrors.Select(_ => Unit.Default)
+							.Merge(text.Select(_ => Unit.Default))
+							.Throttle(TimeSpan.FromMilliseconds(100))
+							.ObserveOn(RxApp.MainThreadScheduler)
+							.Subscribe(
+								_ =>
+								{
+									if (AssociatedObject is { })
 									{
-										if (AssociatedObject is { })
-										{
-											AssociatedObject.Opacity =
-												!DataValidationErrors.GetHasErrors(OwnerTextBox) &&
-												!string.IsNullOrEmpty(OwnerTextBox.Text)
-													? 1
-													: 0;
-										}
-									})
-								.DisposeWith(_disposables);
-						}
-					});
-		}
+										AssociatedObject.Opacity =
+											!DataValidationErrors.GetHasErrors(OwnerTextBox) &&
+											!string.IsNullOrEmpty(OwnerTextBox.Text)
+												? 1
+												: 0;
+									}
+								})
+							.DisposeWith(_disposables);
+					}
+				});
 	}
 }

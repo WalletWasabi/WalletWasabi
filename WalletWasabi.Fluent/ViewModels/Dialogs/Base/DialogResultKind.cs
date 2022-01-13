@@ -1,9 +1,8 @@
-namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base
+namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+
+public enum DialogResultKind
 {
-	public enum DialogResultKind
-	{
-		Normal,
-		Cancel,
-		Back
-	}
+	Normal,
+	Cancel,
+	Back
 }
