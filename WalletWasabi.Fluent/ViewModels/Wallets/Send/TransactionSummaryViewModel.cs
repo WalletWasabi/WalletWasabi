@@ -60,7 +60,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		AmountText = $"{btcAmountText}{fiatAmountText}";
 
 		var fee = _transaction.Fee;
-		var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} sats ";
+		var btcFeeText = $"{fee.ToDecimal(MoneyUnit.BTC)} bitcoin ";
 		var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC)
 			.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
 
