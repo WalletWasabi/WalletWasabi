@@ -97,6 +97,8 @@ public class BranchAndBound
 		// Current depth (think of the depth in the recursive algorithm sense).
 		int depth = 0;
 
+		int loopCounter = 0;
+
 		solution = new long[Count];
 		NextAction[] actions = new NextAction[Count];
 		actions[0] = GetRandomNextAction();
@@ -104,6 +106,8 @@ public class BranchAndBound
 		do
 		{
 			NextAction action = actions[depth];
+
+			loopCounter++;
 
 			// Branch WITH the value included.
 			if ((action == NextAction.IncludeFirstThenOmit) || (action == NextAction.Include))
@@ -155,8 +159,14 @@ public class BranchAndBound
 				solution[depth] = 0;
 				depth--;
 			}
+
+			// Optimization: Do not check cancellation token every time as it requires accessing volatile memory.
+			if (loopCounter % 10_000 == 0 && cancellationToken.IsCancellationRequested)
+			{
+				return false;
+			}
 		}
-		while (depth >= 0 && !cancellationToken.IsCancellationRequested);
+		while (depth >= 0);
 
 		return false;
 	}
