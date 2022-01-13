@@ -17,14 +17,14 @@ public class CrashReportWindowViewModel : ViewModelBase
 		CancelCommand = ReactiveCommand.Create(AppLifetimeHelper.Restart);
 		NextCommand = ReactiveCommand.Create(AppLifetimeHelper.Shutdown);
 
-		OpenGitHubRepoCommand = ReactiveCommand.CreateFromTask(async () =>
-		{
-			await IoHelpers.OpenBrowserAsync(AboutViewModel.UserSupportLink);
-		});
+		OpenGitHubRepoCommand = ReactiveCommand.CreateFromTask(async () => await IoHelpers.OpenBrowserAsync(AboutViewModel.UserSupportLink));
 
 		CopyTraceCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
-			await Application.Current.Clipboard.SetTextAsync(Trace);
+			if (Application.Current is { Clipboard: { } clipboard })
+			{
+				await clipboard.SetTextAsync(Trace);
+			}
 		});
 	}
 

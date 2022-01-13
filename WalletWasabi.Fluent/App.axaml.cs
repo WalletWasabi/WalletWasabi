@@ -16,7 +16,7 @@ namespace WalletWasabi.Fluent;
 
 public class App : Application
 {
-	private Func<Task> _backendInitialiseAsync;
+	private readonly Func<Task>? _backendInitialiseAsync;
 	private ApplicationViewModel applicationViewModel;
 
 	/// <summary>
@@ -58,8 +58,6 @@ public class App : Application
 
 		if (!Design.IsDesignMode)
 		{
-			MainViewModel.Instance = new MainViewModel();
-
 			if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
 			{
 				applicationViewModel.MainViewInitializedFromDesktop();
@@ -74,9 +72,9 @@ public class App : Application
 				RxApp.MainThreadScheduler.Schedule(
 					async () =>
 					{
-						await _backendInitialiseAsync();
+						await _backendInitialiseAsync!(); // Guaranteed not to be null when not in designer.
 
-						MainViewModel.Instance!.Initialize();
+						MainViewModel.Instance.Initialize();
 					});
 			}
 		}

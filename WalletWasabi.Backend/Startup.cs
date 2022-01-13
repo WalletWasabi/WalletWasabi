@@ -45,10 +45,7 @@ public class Startup
 		services.AddMvc()
 			.AddNewtonsoftJson();
 
-		services.AddControllers().AddNewtonsoftJson(x =>
-		{
-			x.SerializerSettings.Converters = JsonSerializationOptions.Default.Settings.Converters;
-		});
+		services.AddControllers().AddNewtonsoftJson(x => x.SerializerSettings.Converters = JsonSerializationOptions.Default.Settings.Converters);
 
 		// Register the Swagger generator, defining one or more Swagger documents
 		services.AddSwaggerGen(c =>
@@ -61,8 +58,8 @@ public class Startup
 				License = new OpenApiLicense { Name = "Use under MIT.", Url = new Uri("https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md") }
 			});
 
-				// Set the comments path for the Swagger JSON and UI.
-				var basePath = AppContext.BaseDirectory;
+			// Set the comments path for the Swagger JSON and UI.
+			var basePath = AppContext.BaseDirectory;
 			var xmlPath = Path.Combine(basePath, "WalletWasabi.Backend.xml");
 			c.IncludeXmlComments(xmlPath);
 		});
