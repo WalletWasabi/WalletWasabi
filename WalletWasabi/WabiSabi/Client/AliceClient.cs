@@ -238,4 +238,12 @@ public class AliceClient
 		await ArenaClient.ReadyToSignAsync(RoundId, AliceId, cancellationToken).ConfigureAwait(false);
 		Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Ready to sign.");
 	}
+
+	public Money EffectiveValue
+	{
+		get
+		{
+			return SmartCoin.EffectiveValue(FeeRate);
+		}
+	}
 }
