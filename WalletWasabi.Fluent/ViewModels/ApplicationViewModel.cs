@@ -87,8 +87,8 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 		MainViewModel.Instance!.WhenAnyValue(x => x.WindowState)
 			.Subscribe(x =>
 			{
-				_isShown = x is not WindowState.Minimized;
-				ShowOrHideHeader = _isShown ? "Hide" : "Show";
+				_isShown = x is WindowState.Minimized;
+				ShowOrHideHeader = _isShown ? "Show" : "Hide";
 			});
 	}
 }
