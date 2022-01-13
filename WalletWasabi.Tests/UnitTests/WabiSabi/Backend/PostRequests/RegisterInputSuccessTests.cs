@@ -42,7 +42,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		}
 
 		[Fact]
-		public async Task SuccessFromPreviusCoinJoinAsync()
+		public async Task SuccessFromPreviousCoinJoinAsync()
 		{
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
