@@ -20,17 +20,20 @@ public class ExecuteCommandOnActivated : DisposingBehavior<Control>
 
 	protected override void OnAttached(CompositeDisposable disposables)
 	{
-		var mainWindow = ((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).MainWindow;
+		if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+		{
+			var mainWindow = lifetime.MainWindow;
 
-		Observable
-			.FromEventPattern(mainWindow, nameof(mainWindow.Activated))
-			.Subscribe(_ =>
-			{
-				if (Command is { } cmd && cmd.CanExecute(default))
+			Observable
+				.FromEventPattern(mainWindow, nameof(mainWindow.Activated))
+				.Subscribe(_ =>
 				{
-					cmd.Execute(default);
-				}
-			})
-			.DisposeWith(disposables);
+					if (Command is { } cmd && cmd.CanExecute(default))
+					{
+						cmd.Execute(default);
+					}
+				})
+				.DisposeWith(disposables);
+		}
 	}
 }

@@ -154,12 +154,9 @@ public class Program
 	/// </summary>
 	private static async Task TerminateApplicationAsync()
 	{
-		if (MainViewModel.Instance is { } mainViewModel)
-		{
-			mainViewModel.ClearStacks();
-			mainViewModel.StatusBar.Dispose();
-			Logger.LogSoftwareStopped("Wasabi GUI");
-		}
+		MainViewModel.Instance.ClearStacks();
+		MainViewModel.Instance.StatusBar.Dispose();
+		Logger.LogSoftwareStopped("Wasabi GUI");
 
 		if (Global is { } global)
 		{

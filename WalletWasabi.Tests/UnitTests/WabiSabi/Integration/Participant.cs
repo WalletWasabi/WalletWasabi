@@ -18,7 +18,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
 internal class Participant
 {
-	public Participant(IRPCClient rpc, IBackendHttpClientFactory httpClientFactory)
+	public Participant(IRPCClient rpc, IWasabiHttpClientFactory httpClientFactory)
 	{
 		Rpc = rpc;
 		HttpClientFactory = httpClientFactory;
@@ -30,7 +30,7 @@ internal class Participant
 	public KeyManager KeyManager { get; }
 	public List<SmartCoin> Coins { get; } = new();
 	public IRPCClient Rpc { get; }
-	public IBackendHttpClientFactory HttpClientFactory { get; }
+	public IWasabiHttpClientFactory HttpClientFactory { get; }
 
 	private Coin? SourceCoin { get; set; }
 
@@ -88,7 +88,7 @@ internal class Participant
 
 	public async Task StartParticipatingAsync(CancellationToken cancellationToken)
 	{
-		var apiClient = new WabiSabiHttpApiClient(HttpClientFactory.NewBackendHttpClient(Mode.DefaultCircuit));
+		var apiClient = new WabiSabiHttpApiClient(HttpClientFactory.NewHttpClientWithDefaultCircuit());
 		using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(3), apiClient);
 		await roundStateUpdater.StartAsync(cancellationToken).ConfigureAwait(false);
 

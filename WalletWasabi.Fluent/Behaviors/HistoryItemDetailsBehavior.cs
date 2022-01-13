@@ -19,10 +19,7 @@ public class HistoryItemDetailsBehavior : DisposingBehavior<DataBoxRow>
 		if (AssociatedObject is not null)
 		{
 			Observable.FromEventPattern(AssociatedObject, nameof(AssociatedObject.DetachedFromVisualTree))
-				.Subscribe(x =>
-				{
-					Remove();
-				})
+				.Subscribe(x => Remove())
 				.DisposeWith(disposables);
 
 			AssociatedObject

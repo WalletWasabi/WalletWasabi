@@ -22,16 +22,21 @@ public partial class AddressViewModel : ViewModelBase
 		FilteredLabel = model.Label.Skip(1).ToList();
 
 		CopyAddressCommand =
-			ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Address));
+				ReactiveCommand.CreateFromTask(async () =>
+				{
+					if (Application.Current is { Clipboard: { } clipboard })
+					{
+						await clipboard.SetTextAsync(Address);
+					}
+				});
+
 		HideAddressCommand =
 			ReactiveCommand.CreateFromTask(async () => await parent.HideAddressAsync(model, Address));
+			
 		EditLabelCommand =
 			ReactiveCommand.Create(() => parent.NavigateToAddressEdit(model, parent.Wallet.KeyManager));
 
-		NavigateCommand = ReactiveCommand.Create(() =>
-		{
-			parent.Navigate().To(new ReceiveAddressViewModel(wallet, model));
-		});
+		NavigateCommand = ReactiveCommand.Create(() => parent.Navigate().To(new ReceiveAddressViewModel(wallet, model)));
 	}
 
 	public ICommand CopyAddressCommand { get; }

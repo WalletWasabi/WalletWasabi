@@ -30,7 +30,7 @@ public class WebcamQrReader
 
 	public event EventHandler<string>? InvalidAddressFound;
 
-	public event EventHandler<Exception>? ErrorOccured;
+	public event EventHandler<Exception>? ErrorOccurred;
 
 	private AsyncLock ScanningTaskLock { get; } = new();
 	private Network Network { get; }
@@ -57,9 +57,9 @@ public class WebcamQrReader
 					}
 					camera = new();
 					camera.SetExceptionMode(true);
-						// Setting VideoCaptureAPI to DirectShow, to remove warning logs,
-						// might need to be changed in the future for other operating systems
-						if (!camera.Open(DefaultCameraId, VideoCaptureAPIs.DSHOW))
+					// Setting VideoCaptureAPI to DirectShow, to remove warning logs,
+					// might need to be changed in the future for other operating systems
+					if (!camera.Open(DefaultCameraId, VideoCaptureAPIs.DSHOW))
 					{
 						throw new InvalidOperationException("Could not open webcamera.");
 					}
@@ -68,12 +68,12 @@ public class WebcamQrReader
 				catch (OpenCVException ex)
 				{
 					Logger.LogError("Could not open camera. Reason: " + ex);
-					ErrorOccured?.Invoke(this, new NotSupportedException("Could not open camera."));
+					ErrorOccurred?.Invoke(this, new NotSupportedException("Could not open camera."));
 				}
 				catch (Exception ex)
 				{
 					Logger.LogError("QR scanning stopped. Reason:", ex);
-					ErrorOccured?.Invoke(this, ex);
+					ErrorOccurred?.Invoke(this, ex);
 				}
 				finally
 				{

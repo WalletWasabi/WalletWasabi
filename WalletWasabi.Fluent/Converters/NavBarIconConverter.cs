@@ -12,20 +12,20 @@ public class NavBarIconConverter : IValueConverter
 	{
 	}
 
-	object? IValueConverter.Convert(object value, Type targetType, object parameter, CultureInfo culture)
+	object IValueConverter.Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
-		if (value is string iconName)
+		if (Application.Current is { } && value is string iconName)
 		{
 			if (Application.Current.Styles.TryGetResource(iconName, out object? resource))
 			{
-				return resource;
+				return resource ?? AvaloniaProperty.UnsetValue;
 			}
 		}
 
-		return null;
+		return AvaloniaProperty.UnsetValue;
 	}
 
-	object IValueConverter.ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+	object IValueConverter.ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
 		throw new NotImplementedException();
 	}

@@ -60,13 +60,13 @@ public static class TransactionHelpers
 		return txRes;
 	}
 
-	public static BuildTransactionResult BuildTransaction(Wallet wallet, TransactionInfo transactionInfo, bool isPayJoin = false, bool tryToSign = true)
+	public static BuildTransactionResult BuildTransaction(Wallet wallet, TransactionInfo transactionInfo, BitcoinAddress destination, bool isPayJoin = false, bool tryToSign = true)
 	{
 		if (transactionInfo.IsOptimized)
 		{
 			return BuildChangelessTransaction(
 				wallet,
-				transactionInfo.Address,
+				destination,
 				transactionInfo.UserLabels,
 				transactionInfo.FeeRate,
 				transactionInfo.ChangelessCoins,
@@ -80,7 +80,7 @@ public static class TransactionHelpers
 
 		return BuildTransaction(
 			wallet,
-			transactionInfo.Address,
+			destination,
 			transactionInfo.Amount,
 			transactionInfo.UserLabels,
 			transactionInfo.FeeRate,
@@ -90,13 +90,13 @@ public static class TransactionHelpers
 			tryToSign: tryToSign);
 	}
 
-	public static bool TryBuildTransaction(Wallet wallet, TransactionInfo transactionInfo, [NotNullWhen(true)] out BuildTransactionResult? transaction, bool isPayJoin = false, bool tryToSign = true)
+	public static bool TryBuildTransaction(Wallet wallet, TransactionInfo transactionInfo, BitcoinAddress destination, [NotNullWhen(true)] out BuildTransactionResult? transaction, bool isPayJoin = false, bool tryToSign = true)
 	{
 		transaction = null;
 
 		try
 		{
-			transaction = BuildTransaction(wallet, transactionInfo, isPayJoin, tryToSign: tryToSign);
+			transaction = BuildTransaction(wallet, transactionInfo, destination, isPayJoin, tryToSign: tryToSign);
 		}
 		catch (Exception)
 		{

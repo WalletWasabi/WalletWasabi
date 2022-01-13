@@ -180,7 +180,7 @@
             <Setter Property="AreaMinViableWidth" Value="40"/>
             <Setter Property="AreaMinViableHeight" Value="20"/>
             <Setter Property="Focusable" Value="True"/>
-            <Setter Property="YAxisTitle" Value="Increasing Cost (sats/vbyte)"/>
+            <Setter Property="YAxisTitle" Value="Increasing Cost (sat/vByte)"/>
           </Style>
           <Style Selector="c|LineChart.narrow">
             <Setter Property="AreaMargin" Value="30,0,10,45"/>

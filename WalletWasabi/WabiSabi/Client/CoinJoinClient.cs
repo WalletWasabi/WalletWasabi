@@ -29,7 +29,7 @@ public class CoinJoinClient
 	/// <param name="minAnonScoreTarget">Coins those have reached anonymity target, but still can be mixed if desired.</param>
 	/// <param name="consolidationMode">If true, then aggressively try to consolidate as many coins as it can.</param>
 	public CoinJoinClient(
-		IBackendHttpClientFactory httpClientFactory,
+		IWasabiHttpClientFactory httpClientFactory,
 		Kitchen kitchen,
 		KeyManager keymanager,
 		RoundStateUpdater roundStatusUpdater,
@@ -46,7 +46,7 @@ public class CoinJoinClient
 	}
 
 	private SecureRandom SecureRandom { get; }
-	public IBackendHttpClientFactory HttpClientFactory { get; }
+	public IWasabiHttpClientFactory HttpClientFactory { get; }
 	public Kitchen Kitchen { get; }
 	public KeyManager Keymanager { get; }
 	private RoundStateUpdater RoundStatusUpdater { get; }
@@ -100,7 +100,10 @@ public class CoinJoinClient
 		var coinCandidates = SelectCoinsForRound(smartCoins, constructionState.Parameters);
 
 		// Register coins.
-		var registeredAliceClients = await CreateRegisterAndConfirmCoinsAsync(coinCandidates, roundState, cancellationToken).ConfigureAwait(false);
+
+		using PersonCircuit personCircuit = HttpClientFactory.NewHttpClientWithPersonCircuit(out Tor.Http.IHttpClient httpClient);
+
+		var registeredAliceClients = await CreateRegisterAndConfirmCoinsAsync(httpClient, coinCandidates, roundState, cancellationToken).ConfigureAwait(false);
 		if (!registeredAliceClients.Any())
 		{
 			Logger.LogInfo($"Round ({roundState.Id}): There is no available alices to participate with.");
@@ -178,14 +181,14 @@ public class CoinJoinClient
 		}
 	}
 
-	private async Task<ImmutableArray<AliceClient>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
+	private async Task<ImmutableArray<AliceClient>> CreateRegisterAndConfirmCoinsAsync(Tor.Http.IHttpClient httpClient, IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 	{
 		async Task<AliceClient?> RegisterInputAsync(SmartCoin coin, CancellationToken cancellationToken)
 		{
 			try
 			{
 				// Alice client requests are inherently linkable to each other, so the circuit can be reused
-				var arenaRequestHandler = new WabiSabiHttpApiClient(HttpClientFactory.NewBackendHttpClient(Mode.SingleCircuitPerLifetime));
+				var arenaRequestHandler = new WabiSabiHttpApiClient(httpClient);
 
 				var aliceArenaClient = new ArenaClient(
 					roundState.CreateAmountCredentialClient(SecureRandom),
@@ -241,7 +244,7 @@ public class CoinJoinClient
 
 	private BobClient CreateBobClient(RoundState roundState)
 	{
-		var arenaRequestHandler = new WabiSabiHttpApiClient(HttpClientFactory.NewBackendHttpClient(Mode.NewCircuitPerRequest));
+		var arenaRequestHandler = new WabiSabiHttpApiClient(HttpClientFactory.NewHttpClientWithCircuitPerRequest());
 
 		return new BobClient(
 			roundState.Id,
@@ -380,7 +383,7 @@ public class CoinJoinClient
 
 	/// <summary>
 	/// Calculates how many inputs are desirable to be registered
-	/// based on rougly the total number of coins in a wallet.
+	/// based on roughly the total number of coins in a wallet.
 	/// Note: random biasing is applied.
 	/// </summary>
 	/// <returns>Desired input count.</returns>
