@@ -23,7 +23,7 @@ public class ExactMatchStrategy : ISearchStrategy
 			// Match found!
 			return EvaluationResult.Match;
 		}
-		else if (depth + 1 == solution.Length)
+		else if (depth == solution.Length)
 		{
 			// Leaf reached, no match
 			return EvaluationResult.SkipBranch;

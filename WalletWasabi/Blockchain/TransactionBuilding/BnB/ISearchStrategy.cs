@@ -12,7 +12,10 @@ public interface ISearchStrategy
 	/// Evaluation function that evaluates each step of the Branch and Bound algorithm and
 	/// tells the algorithm what to do next.
 	/// </summary>
-	EvaluationResult Evaluate(long[] solution, int depth, long effValue);
+	/// <param name="solution">Currently selected values. <c>0</c> when the corresponding value is not selected.</param>
+	/// <param name="count">Number of <paramref name="solution"/> elements that contains the current solution.</param>
+	/// <param name="sum">Sum of first <paramref name="count"/> elements of <paramref name="solution"/>.</param>
+	EvaluationResult Evaluate(long[] solution, int count, long sum);
 }
 
 public enum EvaluationResult

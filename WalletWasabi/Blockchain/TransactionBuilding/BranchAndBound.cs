@@ -61,7 +61,7 @@ public class BranchAndBound
 	/// Attempts to find a set of values that sum up to the target value.
 	/// </summary>
 	/// <param name="searchStrategy">Search strategy that affects how the algorithm searches through the options.</param>
-	/// <param name="selectedValues">Solution of the search algorithm based on <paramref name="searchStrategy"/>.</param>
+	/// <param name="selectedValues">Solution of the search algorithm based on <paramref name="searchStrategy"/> sorted in descending order.</param>
 	/// <returns><c>true</c> when a match is found, <c>false</c> otherwise.</returns>
 	public bool TryGetMatch(ISearchStrategy searchStrategy, [NotNullWhen(true)] out List<long>? selectedValues, CancellationToken cancellationToken = default)
 	{
@@ -93,7 +93,7 @@ public class BranchAndBound
 	private bool TryFindSolution(ISearchStrategy searchStrategy, [NotNullWhen(true)] out long[]? solution, CancellationToken cancellationToken = default)
 	{
 		// Current effective value.
-		long effValue = 0L;
+		long sum = 0L;
 
 		// Current depth (think of the depth in the recursive algorithm sense).
 		int depth = 0;
@@ -115,9 +115,9 @@ public class BranchAndBound
 				actions[depth] = GetNextStep(action);
 
 				solution[depth] = SortedValues[depth];
-				effValue += solution[depth];
+				sum += solution[depth];
 
-				EvaluationResult result = searchStrategy.Evaluate(solution, depth, effValue);
+				EvaluationResult result = searchStrategy.Evaluate(solution, depth + 1, sum);
 
 				if (result == EvaluationResult.SkipBranch)
 				{
@@ -136,7 +136,7 @@ public class BranchAndBound
 				actions[depth] = GetNextStep(action);
 
 				// Branch WITHOUT the value included.
-				effValue -= solution[depth];
+				sum -= solution[depth];
 				solution[depth] = 0;
 
 				if (depth + 1 == Count)
@@ -150,7 +150,7 @@ public class BranchAndBound
 			}
 			else
 			{
-				effValue -= solution[depth];
+				sum -= solution[depth];
 				solution[depth] = 0;
 				depth--;
 			}

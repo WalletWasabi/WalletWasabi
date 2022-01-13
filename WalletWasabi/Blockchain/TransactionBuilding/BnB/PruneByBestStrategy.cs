@@ -34,7 +34,7 @@ public class PruneByBestStrategy : ISearchStrategy
 			if (_bestTargetSoFar > effValue)
 			{
 				_bestTargetSoFar = effValue;
-				_bestSolutionSoFar = solution[0..(depth + 1)];
+				_bestSolutionSoFar = solution[0..depth];
 			}
 
 			if (effValue > Target)
@@ -48,7 +48,7 @@ public class PruneByBestStrategy : ISearchStrategy
 				return EvaluationResult.Match;
 			}
 		}
-		else if (depth + 1 == solution.Length)
+		else if (depth == solution.Length)
 		{
 			// Leaf reached, no match
 			return EvaluationResult.SkipBranch;

@@ -14,7 +14,7 @@ public static class ChangelessTransactionCoinSelector
 	{
 		selectedCoins = null;
 		// Keys are effective values of smart coins in satoshis.
-		var sortedCoins = availableCoins.OrderByDescending(x => x.EffectiveValue(feeRate).Satoshi);
+		IOrderedEnumerable<SmartCoin> sortedCoins = availableCoins.OrderByDescending(x => x.EffectiveValue(feeRate).Satoshi);
 
 		Dictionary<SmartCoin, long> inputs = new(sortedCoins.ToDictionary(x => x, x => x.EffectiveValue(feeRate).Satoshi));
 
