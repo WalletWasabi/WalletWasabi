@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 
 /// <summary>
@@ -17,7 +19,7 @@ public class PruneByBestStrategy : ISearchStrategy
 	/// <inheritdoc/>
 	public long Target { get; }
 
-	public long[]? GetBestSolution() => _bestSolutionSoFar;
+	public long[]? GetBestSolution() => _bestSolutionSoFar?.Where(x => x > 0).ToArray();
 
 	/// <inheritdoc/>
 	public EvaluationResult Evaluate(long[] solution, int depth, long effValue)
@@ -32,7 +34,7 @@ public class PruneByBestStrategy : ISearchStrategy
 			if (_bestTargetSoFar > effValue)
 			{
 				_bestTargetSoFar = effValue;
-				_bestSolutionSoFar = solution[0..depth];
+				_bestSolutionSoFar = solution[0..(depth + 1)];
 			}
 
 			if (effValue > Target)

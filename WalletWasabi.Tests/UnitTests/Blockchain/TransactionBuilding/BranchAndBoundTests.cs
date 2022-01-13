@@ -109,7 +109,7 @@ public class BranchAndBoundTests
 
 		Assert.False(wasSuccessful);
 		Assert.Null(selectedCoins);
-		Assert.Equal(new long[] { 11, 7, 5, 3 }, strategy.GetBestSolution());
+		Assert.Equal(new long[] { 11, 7, 5, 3, 2 }, strategy.GetBestSolution());
 	}
 
 	private List<long> GenerateListOfRandomValues(int count = 1000)
