@@ -55,7 +55,8 @@ public class TransactionFactory
 		Func<FeeRate> feeRateFetcher,
 		IEnumerable<OutPoint>? allowedInputs = null,
 		Func<LockTime>? lockTimeSelector = null,
-		IPayjoinClient? payjoinClient = null)
+		IPayjoinClient? payjoinClient = null,
+		bool tryToSign = true)
 	{
 		lockTimeSelector ??= () => LockTime.Zero;
 
@@ -221,7 +222,7 @@ public class TransactionFactory
 		psbt.AddPrevTxs(TransactionStore);
 
 		Transaction tx;
-		if (KeyManager.IsWatchOnly)
+		if (KeyManager.IsWatchOnly || !tryToSign)
 		{
 			tx = psbt.GetGlobalTransaction();
 		}
