@@ -400,7 +400,7 @@ public class Wallet : BackgroundService
 					if (mempoolHashes.Contains(hash.ToString()[..compactness]))
 					{
 						txsToProcess.Add(tx);
-						Logger.LogInfo($"Transaction was successfully tested against the backend's mempool hashes: {hash}.");
+						Logger.LogInfo($"'{WalletName}': Transaction was successfully tested against the backend's mempool hashes: {hash}.");
 					}
 					else
 					{
