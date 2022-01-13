@@ -150,9 +150,9 @@ public class AmountDecomposer
 		return denominations.OrderByDescending(x => x);
 	}
 
-	public IEnumerable<Money> Decompose(IEnumerable<Money> myInputCoinEffectiveValues, IEnumerable<Money> othersInputCoins)
+	public IEnumerable<Money> Decompose(IEnumerable<Money> myInputCoinEffectiveValues, IEnumerable<Money> othersInputCoinEffectiveValues)
 	{
-		var histogram = GetDenominationFrequencies(othersInputCoins.Concat(myInputCoinEffectiveValues));
+		var histogram = GetDenominationFrequencies(othersInputCoinEffectiveValues.Concat(myInputCoinEffectiveValues));
 
 		// Filter out and order denominations those have occurred in the frequency table at least twice.
 		var denoms = histogram
