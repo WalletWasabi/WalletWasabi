@@ -176,7 +176,7 @@ public class BranchAndBound
 		return _random.Next(0, 2) == 1 ? NextAction.IncludeFirstThenOmit : NextAction.OmitFirstThenInclude;
 	}
 
-	private NextAction GetNextStep(NextAction action)
+	private static NextAction GetNextStep(NextAction action)
 	{
 		return action switch
 		{
