@@ -14,6 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels;
 public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 {
 	[AutoNotify] private string _showOrHideHeader;
+	private bool _isShown = false;
 
 	public ApplicationViewModel()
 	{
@@ -21,7 +22,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 		{
 			if (CanShutdown())
 			{
-				if (Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime
+				if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime
 					desktopLifetime)
 				{
 					desktopLifetime.Shutdown();
@@ -41,13 +42,13 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 		ShowCommand = ReactiveCommand.Create(() =>
 			{
-				if (ShowOrHideHeader == "Show")
+				if (_isShown)
 				{
-					ShowRequested?.Invoke(this, EventArgs.Empty);
+					HideRequested?.Invoke(this, EventArgs.Empty);
 				}
 				else
 				{
-					HideRequested?.Invoke(this, EventArgs.Empty);
+					ShowRequested?.Invoke(this, EventArgs.Empty);
 				}
 			}
 		);
@@ -86,7 +87,8 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 		MainViewModel.Instance!.WhenAnyValue(x => x.WindowState)
 			.Subscribe(x =>
 			{
-				ShowOrHideHeader = x is WindowState.Maximized or WindowState.FullScreen ? "Hide" : "Show";
+				_isShown = x is not WindowState.Minimized;
+				ShowOrHideHeader = _isShown ? "Hide" : "Show";
 			});
 	}
 }
