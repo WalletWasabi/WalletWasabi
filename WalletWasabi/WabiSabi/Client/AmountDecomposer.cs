@@ -154,7 +154,7 @@ public class AmountDecomposer
 	{
 		var histogram = GetDenominationFrequencies(othersInputCoins.Concat(myInputCoins));
 
-		// Filter out and order denominations those have occured in the frequency table at least twice.
+		// Filter out and order denominations those have occurred in the frequency table at least twice.
 		var denoms = histogram
 			.Where(x => x.Value > 1)
 			.OrderByDescending(x => x.Key)
