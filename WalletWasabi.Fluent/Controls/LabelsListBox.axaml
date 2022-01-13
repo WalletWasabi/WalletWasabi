@@ -1,0 +1,50 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:g="clr-namespace:System.Collections.Generic;assembly=System.Collections"
+        xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls">
+
+  <Design.PreviewWith>
+    <Border BorderBrush="Black" BorderThickness="1" Width="250" Height="50">
+      <controls:LabelsListBox HorizontalAlignment="Left" VerticalAlignment="Center">
+        <controls:LabelsListBox.Items>
+          <g:List x:TypeArguments="x:String">
+            <x:String>Label 1</x:String>
+            <x:String>Label 2</x:String>
+            <x:String>Label 3</x:String>
+            <x:String>Label 4</x:String>
+          </g:List>
+        </controls:LabelsListBox.Items>
+      </controls:LabelsListBox>
+    </Border>
+  </Design.PreviewWith>
+
+  <Style Selector="controls|LabelsListBox">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <ScrollViewer Name="PART_ScrollViewer"
+                      HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto"
+                      AllowAutoHide="False">
+          <ItemsPresenter Name="PART_ItemsPresenter"
+                          Items="{TemplateBinding Items}"
+                          Margin="0"
+                          VirtualizationMode="Simple">
+            <ItemsPresenter.ItemsPanel>
+              <ItemsPanelTemplate>
+                <controls:LabelsPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Left">
+                  <controls:LabelsPanel.EllipsisControl>
+                    <Border BorderBrush="Black" BorderThickness="1" CornerRadius="2">
+                      <TextBlock Text="..." Margin="5" />
+                    </Border>
+                  </controls:LabelsPanel.EllipsisControl>
+                </controls:LabelsPanel>
+              </ItemsPanelTemplate>
+            </ItemsPresenter.ItemsPanel>
+          </ItemsPresenter>
+        </ScrollViewer>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+
+</Styles>
+

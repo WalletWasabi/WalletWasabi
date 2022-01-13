@@ -1,0 +1,24 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls">
+
+  <Design.PreviewWith>
+      <controls:LabelControl DataContext="Label 1" />
+  </Design.PreviewWith>
+
+  <Style Selector="controls|LabelControl">
+    <Setter Property="Margin" Value="0" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border BorderBrush="Black" BorderThickness="1" CornerRadius="2">
+          <TextBlock Text="{Binding}"
+                     Margin="5"
+                     TextTrimming="CharacterEllipsis"
+                     MaxWidth="120" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+
+</Styles>
+
