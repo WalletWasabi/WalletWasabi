@@ -11,7 +11,7 @@ using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
-public class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
+public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 {
 	[AutoNotify] private string _showOrHideHeader;
 	private bool _isShown = false;
