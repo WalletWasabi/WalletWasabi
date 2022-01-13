@@ -116,6 +116,9 @@ nav > ul > li > ul > li:before {
 nav a {
     color: var(--gray);
 }
+nav a:hover {
+    color: var(--green);
+}
 .nav-trigger {
     position: fixed;
     top: 50%;
