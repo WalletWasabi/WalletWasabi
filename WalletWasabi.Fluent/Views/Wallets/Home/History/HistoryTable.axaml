@@ -220,6 +220,11 @@
             <DataTemplate>
               <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15"
                                        Classes="monoSpacedPrivacyReplacement">
+                <c:LabelsListBox Items="{Binding Label}"
+                                 HorizontalAlignment="Left"
+                                 VerticalAlignment="Center"
+                                 x:DataType="historyItems:HistoryItemViewModelBase"/>
+                <!--
                 <DockPanel LastChildFill="False" x:DataType="historyItems:HistoryItemViewModelBase">
                   <c:TagsBox Padding="0"
                              Margin="0"
@@ -250,6 +255,7 @@
                     </ToolTip.Tip>
                   </Button>
                 </DockPanel>
+                -->
               </c:PrivacyContentControl>
             </DataTemplate>
           </DataBoxTemplateColumn.CellTemplate>
