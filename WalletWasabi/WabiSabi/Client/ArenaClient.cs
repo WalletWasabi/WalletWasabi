@@ -28,7 +28,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public WabiSabiClient VsizeCredentialClient { get; }
 		public IWabiSabiApiRequestHandler RequestHandler { get; }
 
-		public async Task<ArenaResponse<Guid>> RegisterInputAsync(
+		public async Task<(ArenaResponse<Guid> ArenaResponse, bool IsPayingZeroCoordinationFee)> RegisterInputAsync(
 			uint256 roundId,
 			OutPoint outPoint,
 			OwnershipProof ownershipProof,
@@ -49,7 +49,7 @@ namespace WalletWasabi.WabiSabi.Client
 			var realAmountCredentials = AmountCredentialClient.HandleResponse(inputRegistrationResponse.AmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
 			var realVsizeCredentials = VsizeCredentialClient.HandleResponse(inputRegistrationResponse.VsizeCredentials, zeroVsizeCredentialRequestData.CredentialsResponseValidation);
 
-			return new(inputRegistrationResponse.AliceId, realAmountCredentials, realVsizeCredentials);
+			return (new(inputRegistrationResponse.AliceId, realAmountCredentials, realVsizeCredentials), inputRegistrationResponse.IsPayingZeroCoordinationFee);
 		}
 
 		public async Task RemoveInputAsync(uint256 roundId, Guid aliceId, CancellationToken cancellationToken)

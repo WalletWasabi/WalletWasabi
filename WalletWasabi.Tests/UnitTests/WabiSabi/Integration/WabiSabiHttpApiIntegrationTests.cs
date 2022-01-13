@@ -375,6 +375,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 						TxOut = coinToRegister.TxOut
 					};
 					services.AddScoped<IRPCClient>(s => rpc);
+					services.AddScoped(s => new InMemoryCoinJoinIdStore());
 				});
 			}).CreateClient();
 
@@ -383,7 +384,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var round = rounds.First(x => x.CoinjoinState is ConstructionState);
 
 			var ownershipProof = WabiSabiFactory.CreateOwnershipProof(signingKey, round.Id);
-			var response = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, ownershipProof, CancellationToken.None);
+			var (response, _) = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, ownershipProof, CancellationToken.None);
 
 			Assert.NotEqual(Guid.Empty, response.Value);
 		}
@@ -417,7 +418,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			RoundState round = rounds.First(x => x.CoinjoinState is ConstructionState);
 
 			var ownershipProof = WabiSabiFactory.CreateOwnershipProof(signingKey, round.Id);
-			ArenaResponse<Guid> response = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, ownershipProof, CancellationToken.None);
+			var (response, _) = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, ownershipProof, CancellationToken.None);
 
 			Assert.NotEqual(Guid.Empty, response.Value);
 		}

@@ -42,7 +42,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			var message = new InputRegistrationResponse(
 				Guid.NewGuid(),
 				CreateCredentialsResponse(),
-				CreateCredentialsResponse());
+				CreateCredentialsResponse(),
+				true);
 
 			AssertSerialization(message);
 		}

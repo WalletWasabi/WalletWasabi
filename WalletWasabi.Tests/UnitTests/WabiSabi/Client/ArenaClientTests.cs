@@ -72,7 +72,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				wabiSabiApi);
 			var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
-			var inputRegistrationResponse = await aliceArenaClient.RegisterInputAsync(round.Id, outpoint, ownershipProof, CancellationToken.None);
+			var (inputRegistrationResponse, _) = await aliceArenaClient.RegisterInputAsync(round.Id, outpoint, ownershipProof, CancellationToken.None);
 			var aliceId = inputRegistrationResponse.Value;
 
 			var inputVsize = Constants.P2wpkhInputVirtualSize;

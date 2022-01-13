@@ -35,7 +35,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 			var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
-			var resp = await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None);
+			var (resp, _) = await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None);
 			AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -56,7 +56,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 			var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
-			var resp = await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None);
+			var (resp, _) = await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None);
 			AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);
 
 			var myAlice = Assert.Single(round.Alices);

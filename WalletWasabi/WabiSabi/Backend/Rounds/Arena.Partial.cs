@@ -90,9 +90,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeFrame.Duration);
 				round.Alices.Add(alice);
 
+				bool isZeroCoordinatorFee = alice.IsComingFromCoinJoin;
+
 				return new(alice.Id,
 					commitAmountCredentialResponse,
-					commitVsizeCredentialResponse);
+					commitVsizeCredentialResponse,
+					isZeroCoordinatorFee);
 			}
 		}
 

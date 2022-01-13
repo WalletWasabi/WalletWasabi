@@ -21,7 +21,8 @@ namespace WalletWasabi.WabiSabi.Client
 			SmartCoin coin,
 			BitcoinSecret bitcoinSecret,
 			IEnumerable<Credential> issuedAmountCredentials,
-			IEnumerable<Credential> issuedVsizeCredentials)
+			IEnumerable<Credential> issuedVsizeCredentials,
+			bool isPayingZeroCoordinationFee)
 		{
 			AliceId = aliceId;
 			RoundId = roundState.Id;
@@ -34,6 +35,7 @@ namespace WalletWasabi.WabiSabi.Client
 			IssuedVsizeCredentials = issuedVsizeCredentials;
 			MaxVsizeAllocationPerAlice = roundState.MaxVsizeAllocationPerAlice;
 			ConfirmationTimeout = roundState.ConnectionConfirmationTimeout / 2;
+			IsPayingZeroCoordinationFee = isPayingZeroCoordinationFee;
 		}
 
 		public Guid AliceId { get; }
@@ -47,6 +49,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public IEnumerable<Credential> IssuedVsizeCredentials { get; private set; }
 		private long MaxVsizeAllocationPerAlice { get; }
 		private TimeSpan ConfirmationTimeout { get; }
+		private bool IsPayingZeroCoordinationFee { get; }
 
 		public static async Task<AliceClient> CreateRegisterAndConfirmInputAsync(
 			RoundState roundState,
@@ -89,8 +92,8 @@ namespace WalletWasabi.WabiSabi.Client
 					new OwnershipIdentifier(identificationKey, signingKey.PubKey.WitHash.ScriptPubKey),
 					new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundState.Id));
 
-				var response = await arenaClient.RegisterInputAsync(roundState.Id, coin.Coin.Outpoint, ownershipProof, cancellationToken).ConfigureAwait(false);
-				aliceClient = new(response.Value, roundState, arenaClient, coin, bitcoinSecret, response.IssuedAmountCredentials, response.IssuedVsizeCredentials);
+				var (response, isPayingZeroCoordinationFee) = await arenaClient.RegisterInputAsync(roundState.Id, coin.Coin.Outpoint, ownershipProof, cancellationToken).ConfigureAwait(false);
+				aliceClient = new(response.Value, roundState, arenaClient, coin, bitcoinSecret, response.IssuedAmountCredentials, response.IssuedVsizeCredentials, isPayingZeroCoordinationFee);
 				coin.CoinJoinInProgress = true;
 
 				Logger.LogInfo($"Round ({roundState.Id}), Alice ({aliceClient.AliceId}): Registered {coin.OutPoint}.");
@@ -130,7 +133,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private async Task ConfirmConnectionAsync(RoundStateUpdater roundStatusUpdater, CancellationToken cancellationToken)
 		{
-			var coordinationFeeRate = SmartCoin.Transaction.Transaction.IsLikelyCoinjoin() ? CoordinationFeeRate.Zero : CoordinationFeeRate;
+			var coordinationFeeRate = IsPayingZeroCoordinationFee ? CoordinationFeeRate.Zero : CoordinationFeeRate;
 			long[] amountsToRequest = { SmartCoin.EffectiveValue(FeeRate, coordinationFeeRate).Satoshi };
 			long[] vsizesToRequest = { MaxVsizeAllocationPerAlice - SmartCoin.ScriptPubKey.EstimateInputVsize() };
 

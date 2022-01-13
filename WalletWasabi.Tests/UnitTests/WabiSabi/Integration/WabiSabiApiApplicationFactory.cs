@@ -16,6 +16,7 @@ using WalletWasabi.Tor.Http;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
@@ -58,6 +59,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 				services.AddScoped<Prison>();
 				services.AddScoped<WabiSabiConfig>();
 				services.AddScoped(typeof(TimeSpan), _ => TimeSpan.FromSeconds(2));
+				services.AddScoped(s => new InMemoryCoinJoinIdStore());
 			});
 			builder.ConfigureLogging(o =>
 			{
