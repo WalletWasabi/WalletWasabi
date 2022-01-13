@@ -485,7 +485,8 @@ public class CurrencyEntryBox : TextBox
 		else if (change.Property == ConversionRateProperty)
 		{
 			PseudoClasses.Set(":noexchangerate", change.NewValue.GetValueOrDefault<decimal>() == 0m);
-		} else if (change.Property == IsConversionReversedProperty)
+		}
+		else if (change.Property == IsConversionReversedProperty)
 		{
 			UpdateDisplay(true);
 			CaretIndex = SelectionStart = SelectionEnd = Text.Length;
