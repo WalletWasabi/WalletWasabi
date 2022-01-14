@@ -181,7 +181,7 @@
         <Setter Property="MaxDropDownHeight" Value="90" />
         <Setter Property="MinimumPrefixLength" Value="1" />
         <Setter Property="Focusable" Value="False" />
-        <Setter Property="IsTextCompletionEnabled" Value="True" />
+        <Setter Property="IsTextCompletionEnabled" Value="False" />
         <Setter Property="Template">
             <ControlTemplate>
                 <Grid Name="PART_LayoutRoot">
