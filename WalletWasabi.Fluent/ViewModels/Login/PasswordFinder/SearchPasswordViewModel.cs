@@ -38,17 +38,17 @@ public partial class SearchPasswordViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		var cancelToken = new CancellationTokenSource();
+		var cts = new CancellationTokenSource();
 
-		var t = Task.Run(() => FindPassword(Options, cancelToken.Token));
+		var t = Task.Run(() => FindPassword(Options, cts.Token));
 
 		disposables.Add(Disposable.Create(async () =>
 		{
-			cancelToken.Cancel();
+			cts.Cancel();
 			await t;
 		}));
 
-		disposables.Add(cancelToken);
+		disposables.Add(cts);
 	}
 
 	private void FindPassword(PasswordFinderOptions options, CancellationToken token)

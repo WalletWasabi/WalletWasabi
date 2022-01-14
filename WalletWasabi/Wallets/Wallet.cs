@@ -141,7 +141,7 @@ public class Wallet : BackgroundService
 			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, ServiceConfiguration.MinAnonScoreTarget);
 			Coins = TransactionProcessor.Coins;
 
-			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessedAsync;
+			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
 			BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
 			BitcoinStore.IndexStore.Reorged += IndexDownloader_ReorgedAsync;
 			BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
@@ -215,7 +215,8 @@ public class Wallet : BackgroundService
 		FeeStrategy feeStrategy,
 		bool allowUnconfirmed = false,
 		IEnumerable<OutPoint>? allowedInputs = null,
-		IPayjoinClient? payjoinClient = null)
+		IPayjoinClient? payjoinClient = null,
+		bool tryToSign = true)
 	{
 		var builder = new TransactionFactory(Network, KeyManager, Coins, BitcoinStore.TransactionStore, password, allowUnconfirmed);
 		return builder.BuildTransaction(
@@ -241,7 +242,8 @@ public class Wallet : BackgroundService
 				var currentTipHeight = BitcoinStore.SmartHeaderChain.TipHeight;
 				return LockTimeSelector.Instance.GetLockTimeBasedOnDistribution(currentTipHeight);
 			},
-			payjoinClient);
+			payjoinClient,
+			tryToSign: tryToSign);
 	}
 
 	/// <inheritdoc/>
@@ -261,7 +263,7 @@ public class Wallet : BackgroundService
 					BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
 					BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
 					BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
-					TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessedAsync;
+					TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
 				}
 			}
 		}
@@ -271,7 +273,7 @@ public class Wallet : BackgroundService
 		}
 	}
 
-	private async void TransactionProcessor_WalletRelevantTransactionProcessedAsync(object? sender, ProcessedResult e)
+	private void TransactionProcessor_WalletRelevantTransactionProcessed(object? sender, ProcessedResult e)
 	{
 		try
 		{
@@ -400,7 +402,7 @@ public class Wallet : BackgroundService
 					if (mempoolHashes.Contains(hash.ToString()[..compactness]))
 					{
 						txsToProcess.Add(tx);
-						Logger.LogInfo($"Transaction was successfully tested against the backend's mempool hashes: {hash}.");
+						Logger.LogInfo($"'{WalletName}': Transaction was successfully tested against the backend's mempool hashes: {hash}.");
 					}
 					else
 					{

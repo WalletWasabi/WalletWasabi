@@ -43,7 +43,7 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 
 		string jsonString = File.ReadAllText(FilePath, Encoding.UTF8);
 
-		var newConfigObject = Activator.CreateInstance(GetType());
+		var newConfigObject = Activator.CreateInstance(GetType())!;
 		JsonConvert.PopulateObject(jsonString, newConfigObject);
 
 		return !AreDeepEqual(newConfigObject);

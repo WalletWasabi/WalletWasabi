@@ -33,24 +33,17 @@ public abstract class WasabiRandom : IRandom, IDisposable
 		return random;
 	}
 
-	public virtual Scalar GetScalar(bool allowZero = true)
+	public virtual Scalar GetScalar()
 	{
 		Scalar randomScalar;
 		int overflow;
 		Span<byte> buffer = stackalloc byte[32];
-		var randomWasZero = false;
 		do
 		{
 			GetBytes(buffer);
 			randomScalar = new Scalar(buffer, out overflow);
-
-			if (randomScalar.IsZero && randomWasZero)
-			{
-				throw new InvalidOperationException("Random generator generated zero scalar twice in a row. Stop using this computer now!");
-			}
-			randomWasZero = randomScalar.IsZero;
 		}
-		while (overflow != 0 || (!allowZero && randomScalar.IsZero));
+		while (overflow != 0 || randomScalar.IsZero);
 		return randomScalar;
 	}
 
