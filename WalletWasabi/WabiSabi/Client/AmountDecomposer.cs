@@ -161,7 +161,7 @@ public class AmountDecomposer
 			.Select(x => x.Key)
 			.ToArray();
 
-		var myInputs = myInputCoinEffectiveValues.ToArray(); ;
+		var myInputs = myInputCoinEffectiveValues.ToArray();
 		var myInputSum = myInputs.Sum();
 		var remaining = myInputSum;
 		var remainingVsize = AvailableVsize;

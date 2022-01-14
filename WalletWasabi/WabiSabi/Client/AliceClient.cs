@@ -239,11 +239,5 @@ public class AliceClient
 		Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Ready to sign.");
 	}
 
-	public Money EffectiveValue
-	{
-		get
-		{
-			return SmartCoin.EffectiveValue(FeeRate);
-		}
-	}
+	public Money EffectiveValue => SmartCoin.EffectiveValue(FeeRate);
 }
