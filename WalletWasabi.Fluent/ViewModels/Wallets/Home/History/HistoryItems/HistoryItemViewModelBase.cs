@@ -16,6 +16,12 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	[AutoNotify] private string _dateString = "";
 	[AutoNotify] private bool _isConfirmed;
 
+	[AutoNotify(SetterModifier = AccessModifier.Protected)]
+	private List<string>? _filteredLabel;
+
+	[AutoNotify(SetterModifier = AccessModifier.Protected)]
+	private List<string>? _label;
+
 	protected HistoryItemViewModelBase(int orderIndex, TransactionSummary transactionSummary)
 	{
 		OrderIndex = orderIndex;
@@ -31,10 +37,6 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	}
 
 	public uint256 Id { get; }
-
-	public List<string>? FilteredLabel { get; protected set; }
-
-	public List<string>? Label { get; protected set; }
 
 	public bool IsCoinJoin { get; protected set; }
 
@@ -52,6 +54,8 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 		Date = item.Date;
 		DateString = item.DateString;
 		IsConfirmed = item.IsConfirmed;
+		Label = item.Label;
+		FilteredLabel = item.FilteredLabel;
 	}
 
 	public bool IsSimilar(HistoryItemViewModelBase item) => Id == item.Id;
