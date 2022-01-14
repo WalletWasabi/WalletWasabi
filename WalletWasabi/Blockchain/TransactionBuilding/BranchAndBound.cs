@@ -14,7 +14,7 @@ public class BranchAndBound
 	private readonly Func<bool> _randomFn;
 
 	/// <param name="values">All values must be strictly positive.</param>
-	/// <param name="randomFn">Function returning randomly <c>true</c> and <c>false</c>.</param>
+	/// <param name="randomFn">Function returning randomly <c>true</c> or <c>false</c>.</param>
 	public BranchAndBound(List<long> values, Func<bool>? randomFn = null)
 	{
 		_randomFn = randomFn ??= () => _random.Next(0, 2) == 1;
