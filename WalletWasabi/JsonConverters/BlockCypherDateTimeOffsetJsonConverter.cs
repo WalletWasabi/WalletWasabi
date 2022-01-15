@@ -3,16 +3,16 @@ using System.Globalization;
 
 namespace WalletWasabi.JsonConverters;
 
-public class BlockCypherDateTimeOffsetJsonConverter : JsonConverter<DateTimeOffset>
+public class BlockCypherDateTimeOffsetJsonConverter : JsonConverter<DateTimeOffset?>
 {
 	/// <inheritdoc />
-	public override DateTimeOffset ReadJson(JsonReader reader, Type objectType, DateTimeOffset existingValue, bool hasExistingValue, JsonSerializer serializer)
+	public override DateTimeOffset? ReadJson(JsonReader reader, Type objectType, DateTimeOffset? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
 		var value = reader.Value as string;
 
 		if (string.IsNullOrWhiteSpace(value))
 		{
-			return DateTimeOffset.Now;
+			return null;
 		}
 
 		string time = value.Trim();
@@ -20,8 +20,8 @@ public class BlockCypherDateTimeOffsetJsonConverter : JsonConverter<DateTimeOffs
 	}
 
 	/// <inheritdoc />
-	public override void WriteJson(JsonWriter writer, DateTimeOffset value, JsonSerializer serializer)
+	public override void WriteJson(JsonWriter writer, DateTimeOffset? value, JsonSerializer serializer)
 	{
-		writer.WriteValue(value.ToString(CultureInfo.InvariantCulture));
+		writer.WriteValue(value.ToString());
 	}
 }
