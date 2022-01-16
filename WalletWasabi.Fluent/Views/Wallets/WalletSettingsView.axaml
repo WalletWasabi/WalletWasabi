@@ -20,8 +20,8 @@
       </DockPanel>
 
       <DockPanel IsVisible="{Binding !IsWatchOnly}">
-        <TextBlock Text="Auto coinjoin" />
-        <ToggleSwitch IsChecked="{Binding AutoCoinjoin}" />
+        <TextBlock Text="Auto CoinJoin" />
+        <ToggleSwitch IsChecked="{Binding AutoCoinJoin}" />
       </DockPanel>
     </StackPanel>
   </c:ContentArea>
