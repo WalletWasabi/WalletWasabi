@@ -20,6 +20,7 @@ public class HDFingerprintJsonConverter : JsonConverter<HDFingerprint?>
 	/// <inheritdoc />
 	public override void WriteJson(JsonWriter writer, HDFingerprint? value, JsonSerializer serializer)
 	{
-		writer.WriteValue(value.ToString());
+		var stringValue = value?.ToString() ?? throw new ArgumentNullException(nameof(value));
+		writer.WriteValue(stringValue);
 	}
 }
