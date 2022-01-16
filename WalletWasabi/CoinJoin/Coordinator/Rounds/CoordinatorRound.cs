@@ -329,73 +329,73 @@ public class CoordinatorRound
 
 					// This will happen outside the lock.
 					_ = Task.Run(async () =>
-				{
-					try
 					{
-						switch (phase)
+						try
 						{
-							case RoundPhase.InputRegistration:
-								{
-									// Only abort if less than two one Alice is registered.
-									// Do not ban anyone, it's ok if they lost connection.
-									await RemoveAlicesIfAnInputRefusedByMempoolAsync().ConfigureAwait(false);
-									int aliceCountAfterInputRegistrationTimeout = CountAlices();
-									if (aliceCountAfterInputRegistrationTimeout < 2)
+							switch (phase)
+							{
+								case RoundPhase.InputRegistration:
 									{
-										Abort($"Only {aliceCountAfterInputRegistrationTimeout} Alices registered.");
+										// Only abort if less than two one Alice is registered.
+										// Do not ban anyone, it's ok if they lost connection.
+										await RemoveAlicesIfAnInputRefusedByMempoolAsync().ConfigureAwait(false);
+										int aliceCountAfterInputRegistrationTimeout = CountAlices();
+										if (aliceCountAfterInputRegistrationTimeout < 2)
+										{
+											Abort($"Only {aliceCountAfterInputRegistrationTimeout} Alices registered.");
+										}
+										else
+										{
+											UpdateAnonymitySet(aliceCountAfterInputRegistrationTimeout);
+											// Progress to the next phase, which will be ConnectionConfirmation
+											await ExecuteNextPhaseAsync(RoundPhase.ConnectionConfirmation).ConfigureAwait(false);
+										}
 									}
-									else
+									break;
+
+								case RoundPhase.ConnectionConfirmation:
 									{
-										UpdateAnonymitySet(aliceCountAfterInputRegistrationTimeout);
-										// Progress to the next phase, which will be ConnectionConfirmation
-										await ExecuteNextPhaseAsync(RoundPhase.ConnectionConfirmation).ConfigureAwait(false);
-									}
-								}
-								break;
+										using (await ConnectionConfirmationLock.LockAsync().ConfigureAwait(false))
+										{
+											IEnumerable<Alice> alicesToBan = GetAlicesBy(AliceState.InputsRegistered);
 
-							case RoundPhase.ConnectionConfirmation:
-								{
-									using (await ConnectionConfirmationLock.LockAsync().ConfigureAwait(false))
+											await ProgressToOutputRegistrationOrFailAsync(alicesToBan.ToArray()).ConfigureAwait(false);
+										}
+									}
+									break;
+
+								case RoundPhase.OutputRegistration:
 									{
-										IEnumerable<Alice> alicesToBan = GetAlicesBy(AliceState.InputsRegistered);
-
-										await ProgressToOutputRegistrationOrFailAsync(alicesToBan.ToArray()).ConfigureAwait(false);
+										// Output registration never aborts.
+										// We do not know which Alice to ban.
+										// Therefore proceed to signing, and whichever Alice does not sign, ban her.
+										await ExecuteNextPhaseAsync(RoundPhase.Signing).ConfigureAwait(false);
 									}
-								}
-								break;
+									break;
 
-							case RoundPhase.OutputRegistration:
-								{
-									// Output registration never aborts.
-									// We do not know which Alice to ban.
-									// Therefore proceed to signing, and whichever Alice does not sign, ban her.
-									await ExecuteNextPhaseAsync(RoundPhase.Signing).ConfigureAwait(false);
-								}
-								break;
-
-							case RoundPhase.Signing:
-								{
-									Alice[] alicesToBan = GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: true).ToArray();
-
-									if (alicesToBan.Any())
+								case RoundPhase.Signing:
 									{
-										await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, alicesToBan.SelectMany(x => x.Inputs.Select(y => y.Outpoint)).ToArray()).ConfigureAwait(false);
+										Alice[] alicesToBan = GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: true).ToArray();
+
+										if (alicesToBan.Any())
+										{
+											await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, alicesToBan.SelectMany(x => x.Inputs.Select(y => y.Outpoint)).ToArray()).ConfigureAwait(false);
+										}
+
+										Abort($"{alicesToBan.Length} Alices did not sign.");
 									}
+									break;
 
-									Abort($"{alicesToBan.Length} Alices did not sign.");
-								}
-								break;
-
-							default:
-								throw new InvalidOperationException("This should never happen.");
+								default:
+									throw new InvalidOperationException("This should never happen.");
+							}
 						}
-					}
-					catch (Exception ex)
-					{
-						Logger.LogWarning($"Round ({RoundId}): {phase} timeout failed.");
-						Logger.LogWarning(ex);
-					}
-				}).ConfigureAwait(false);
+						catch (Exception ex)
+						{
+							Logger.LogWarning($"Round ({RoundId}): {phase} timeout failed.");
+							Logger.LogWarning(ex);
+						}
+					}).ConfigureAwait(false);
 				}
 			}
 			catch (Exception ex)
