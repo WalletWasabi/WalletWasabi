@@ -468,7 +468,7 @@ public static class Program
 					$"License: Open Source (MIT)\n" +
 					$"Installed-Size: {installedSizeKb}\n" +
 					$"Description: open-source, non-custodial, privacy focused Bitcoin wallet\n" +
-					$"  Built-in Tor, CoinJoin, PayJoin and Coin Control features.\n";
+					$"  Built-in Tor, coinjoin, PayJoin and coin control features.\n";
 
 				File.WriteAllText(controlFilePath, controlFileContent, Encoding.ASCII);
 

@@ -7,14 +7,14 @@ SUMMARY
 
     The WASABI team is committed to be fully transparent to its users, from its source code to the legal aspects of its services. The purpose of Wasabi Wallet is to provide privacy for its users’ Bitcoin transactions. This means that with the use of the wallet we would like to enable the users to make Bitcoin payments in such a way that their spending history, wallet balances, etc. are not visible to the receiving party. This does not necessarily mean that the user stays anonymous, since the receiving party might have to identify the sending party.
     Our goal is to minimize the unintentional leaking or disclosure of private financial information to third parties and to the receiver of any transaction resulting from the use of the Wasabi Wallet. The protection of your privacy and the protection of your (personal) data is our highest priority, which also defines the essence of our services.
-    One instance of the Wasabi Wallet CoinJoin coordinating server is operated by a legal entity, zkSNACKs Ltd. Thus, in order to legally provide our services to our clients, we have defined the framework and the rules that both parties must follow in order to protect each other.
+    One instance of the Wasabi Wallet coinjoin coordinating server is operated by a legal entity, zkSNACKs Ltd. Thus, in order to legally provide our services to our clients, we have defined the framework and the rules that both parties must follow in order to protect each other.
 
     The most important parts of the document below is summarized in the following points:
      - The service is open-source under the MIT license.
      - The service is provided on a non-custodial basis. Safekeeping of keys are the sole responsibility of the user.
      - The user is solely responsible to act according to their local laws and regulations.
      - We do not store any personally identifiable information. Moreover, our trustless software architecture prevents us from gathering this information in the first place.
-     - A transaction fee is only charged by the service provider for CoinJoin transactions.
+     - A transaction fee is only charged by the service provider for coinjoin transactions.
      - We only provide written support, and NEVER ask for recovery words, passwords or similar security critical information.
 
     The services are provided between remote parties and therefore these terms and conditions cannot be individually negotiated with clients. This document will help each of our clients to understand exactly the terms and conditions under which we can provide our services. We recommend you to first learn the basics of Bitcoin before starting to use our services.
@@ -35,7 +35,7 @@ I. TERMS AND CONDITIONS
      - zkSNACKs Ltd. (“Service Provider” or “we”, which includes our subsidiaries, partners, affiliates, agents, employees, licensors, service providers or subcontractors (if any)) and
      - the person, persons, or entity (“You” or “Your”) using the Services (as defined below).
 
-    These Terms apply to the download of the Client Application (as defined below), any access and use of the Client Application , our website at https://wasabiwallet.io or its onion mirror at http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion (*) and our CoinJoin Coordinator Services (as defined below), and any of our other Services related to or utilizing any of the foregoing, which we refer to in these Terms and Conditions documents (“Terms” or “Terms of Use”), collectively, as our “Services”.
+    These Terms apply to the download of the Client Application (as defined below), any access and use of the Client Application , our website at https://wasabiwallet.io or its onion mirror at http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion (*) and our Coinjoin Coordinator Services (as defined below), and any of our other Services related to or utilizing any of the foregoing, which we refer to in these Terms and Conditions documents (“Terms” or “Terms of Use”), collectively, as our “Services”.
 
 1.2 ELIGIBILITY AND AGREEMENT
     If You use the Services these Terms apply. You will be solely liable for any damage or consequences arising from use without the full acceptance of the rules. The Service Provider shall not be liable under any circumstances in this case.
@@ -62,19 +62,19 @@ I. TERMS AND CONDITIONS
 ===================================
 
 2.1 DESCRIPTION OF SERVICES
-    This Software consists of the Client Application and the CoinJoin Coordinator (both as defined below) and functions as a free, open-source, non-custodial desktop Bitcoin wallet. The Software does not constitute an account where we or other third parties serve as financial intermediaries or custodians of Your bitcoins. The Software and our Services are therefore not a bank, a custodian, an exchange, a financial intermediary or a regulated financial institution and is exempt from the authority of the Gibraltar Financial Services Commission or any other financial institutions.
+    This Software consists of the Client Application and the Coinjoin Coordinator (both as defined below) and functions as a free, open-source, non-custodial desktop Bitcoin wallet. The Software does not constitute an account where we or other third parties serve as financial intermediaries or custodians of Your bitcoins. The Software and our Services are therefore not a bank, a custodian, an exchange, a financial intermediary or a regulated financial institution and is exempt from the authority of the Gibraltar Financial Services Commission or any other financial institutions.
 
     The client application (“Client Application”) is software, with the sole purpose of allowing You access to the Bitcoin network and our Services (as defined below), without the need or requirement to create or maintain a user account. The application itself is an ordinary Bitcoin desktop wallet with ordinary features. Wasabi Wallet does not store, send or receive bitcoins. This is because bitcoins exist only by virtue of the ownership record maintained in the Bitcoin network. Any transfer of title in bitcoins occurs within the decentralized Bitcoin network, and not in the Wasabi Wallet.
-    The CoinJoin Coordinator Service is an online service that implements trustless CoinJoin to prevent third parties from spying on the Blockchain. Throughout the process, the Service does not initiate or process any standalone transactions whatsoever towards third parties (i.e. non-users of the Service) and therefore does not store or transmit value belonging to others. For further information on how it works please visit our GitHub page: https://github.com/zkSNACKs
+    The Coinjoin Coordinator Service is an online service that implements trustless coinjoin to prevent third parties from spying on the Blockchain. Throughout the process, the Service does not initiate or process any standalone transactions whatsoever towards third parties (i.e. non-users of the Service) and therefore does not store or transmit value belonging to others. For further information on how it works please visit our GitHub page: https://github.com/zkSNACKs
 
 2.2 FEES
     Subject to the other provisions of these Terms, including, but not limited to Section 3 on Prohibited Activities, You may freely download and use the Client Application without any charge or fee imposed on You by the Service Provider.
     The Service Provider does not charge You transaction fees for normal Bitcoin transactions, however You are still subject to transaction fees, charged by the Bitcoin network.
-    Both the Service Provider and the Bitcoin network charge You transaction fees for CoinJoin Bitcoin transactions.
+    Both the Service Provider and the Bitcoin network charge You transaction fees for coinjoin Bitcoin transactions.
 
     The transaction fee, charged by the Service Provider is 0.003% multiplied by the number of users in each round of transaction You initiate, except if:
      - You are providing the unspent transaction outputs with the smallest accumulated value to the round. In this case You are not being charged with any fees by the Service Provider.
-     - You are providing unspent transaction outputs, in a way that the final CoinJoin transaction would result in a change output back to You that is smaller than or equal to 1% of the denomination of the CoinJoin round. In this rare case, a change output will not be generated, to gain an edge on privacy. Instead, the value of the change output will be added to the fees charged by the Service Provider after the round.
+     - You are providing unspent transaction outputs, in a way that the final coinjoin transaction would result in a change output back to You that is smaller than or equal to 1% of the denomination of the coinjoin round. In this rare case, a change output will not be generated, to gain an edge on privacy. Instead, the value of the change output will be added to the fees charged by the Service Provider after the round.
 
     BY ACCEPTING THESE TERMS AND CONDITIONS PURSUANT TO SECTION 1.1 YOU EXPRESSLY ACKNOWLEDGE AND AGREE THAT OUR COORDINATOR AUTOMATICALLY DEDUCTS THE TRANSACTION FEES FROM THE TRANSACTION YOU SUBMITTED FOR THE SERVICES IN LINE WITH THE PREVIOUS PARAGRAPHS.
 
