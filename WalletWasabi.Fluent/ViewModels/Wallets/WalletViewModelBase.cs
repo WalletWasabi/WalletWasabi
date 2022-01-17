@@ -45,7 +45,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					}
 					else if (isCoinJoining)
 					{
-						StatusText = "CoinJoining";
+						StatusText = "Coinjoining";
 					}
 					else
 					{
