@@ -6,13 +6,13 @@ using Newtonsoft.Json;
 using WalletWasabi.Rpc;
 using Xunit;
 
-namespace WalletWasabi.Tests
+namespace WalletWasabi.Tests;
+
+public class RpcTests
 {
-	public class RpcTests
-	{
-		public static IEnumerable<object[]> RequestResponse =>
-			new[]
-			{
+	public static IEnumerable<object[]> RequestResponse =>
+		new[]
+		{
 				new[]
 				{
 					"Invalid (broken) request",
@@ -85,58 +85,57 @@ namespace WalletWasabi.Tests
 					Request("7", "substractasync", new { minuend = 42, subtrahend = 23 }),
 					Ok("7", 19)
 				}
-			}
-			.Select(x => x.Skip(1).ToArray());
-
-		[Theory]
-		[MemberData(nameof(RequestResponse))]
-		public async Task ParsingRequestTestsAsync(string request, string expectedResponse)
-		{
-			var handler = new JsonRpcRequestHandler<TestableRpcService>(new TestableRpcService());
-
-			var response = await handler.HandleAsync(request, CancellationToken.None);
-			Assert.Equal(expectedResponse, response);
 		}
+		.Select(x => x.Skip(1).ToArray());
 
-		private static string Request(string id, string methodName, params object[] parameters)
+	[Theory]
+	[MemberData(nameof(RequestResponse))]
+	public async Task ParsingRequestTestsAsync(string request, string expectedResponse)
+	{
+		var handler = new JsonRpcRequestHandler<TestableRpcService>(new TestableRpcService());
+
+		var response = await handler.HandleAsync(request, CancellationToken.None);
+		Assert.Equal(expectedResponse, response);
+	}
+
+	private static string Request(string id, string methodName, params object[] parameters)
+	{
+		return ToJson(new
 		{
-			return ToJson(new
+			jsonrpc = "2.0",
+			method = methodName,
+			@params = parameters.Length == 1 && (parameters[0].GetType().IsClass && !(parameters[0] is string)) ? parameters[0] : parameters,
+			id
+		});
+	}
+
+	private static string Ok(string id, object content)
+	{
+		return ToJson(new
+		{
+			jsonrpc = "2.0",
+			result = content,
+			id
+		});
+	}
+
+	private static string Error(string id, int code, string message)
+	{
+		return ToJson(new
+		{
+			jsonrpc = "2.0",
+			error = new { code, message },
+			id
+		});
+	}
+
+	private static string ToJson(object o)
+	{
+		return JsonConvert.SerializeObject(
+			o,
+			new JsonSerializerSettings
 			{
-				jsonrpc = "2.0",
-				method = methodName,
-				@params = parameters.Length == 1 && (parameters[0].GetType().IsClass && !(parameters[0] is string)) ? parameters[0] : parameters,
-				id
+				DefaultValueHandling = DefaultValueHandling.Ignore
 			});
-		}
-
-		private static string Ok(string id, object content)
-		{
-			return ToJson(new
-			{
-				jsonrpc = "2.0",
-				result = content,
-				id
-			});
-		}
-
-		private static string Error(string id, int code, string message)
-		{
-			return ToJson(new
-			{
-				jsonrpc = "2.0",
-				error = new { code, message },
-				id
-			});
-		}
-
-		private static string ToJson(object o)
-		{
-			return JsonConvert.SerializeObject(
-				o,
-				new JsonSerializerSettings
-				{
-					DefaultValueHandling = DefaultValueHandling.Ignore
-				});
-		}
 	}
 }

@@ -13,314 +13,324 @@ using WalletWasabi.Models;
 using WalletWasabi.Tor;
 using WalletWasabi.Userfacing;
 
-namespace WalletWasabi.Fluent
+namespace WalletWasabi.Fluent;
+
+[JsonObject(MemberSerialization.OptIn)]
+public class Config : ConfigBase
 {
-	[JsonObject(MemberSerialization.OptIn)]
-	public class Config : ConfigBase
+	public const int DefaultMinAnonScoreTarget = 5;
+	public const int DefaultMaxAnonScoreTarget = 10;
+
+	public const int DefaultJsonRpcServerPort = 37128;
+	public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);
+
+	private Uri? _backendUri = null;
+	private Uri? _fallbackBackendUri;
+	private int _minAnonScoreTarget;
+	private int _maxAnonScoreTarget;
+
+	/// <summary>
+	/// Constructor for config population using Newtonsoft.JSON.
+	/// </summary>
+	public Config() : base()
 	{
-		public const int DefaultMinAnonScoreTarget = 5;
-		public const int DefaultMaxAnonScoreTarget = 10;
+		ServiceConfiguration = null!;
+	}
 
-		public const int DefaultJsonRpcServerPort = 37128;
-		public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);
+	public Config(string filePath) : base(filePath)
+	{
+		ServiceConfiguration = new ServiceConfiguration(MinAnonScoreTarget, MaxAnonScoreTarget, GetBitcoinP2pEndPoint(), DustThreshold);
+	}
 
-		private Uri _backendUri = null;
-		private Uri _fallbackBackendUri;
-		private int _minAnonScoreTarget;
-		private int _maxAnonScoreTarget;
+	[JsonProperty(PropertyName = "Network")]
+	[JsonConverter(typeof(NetworkJsonConverter))]
+	public Network Network { get; internal set; } = Network.Main;
 
-		public Config() : base()
-		{
-		}
+	[DefaultValue("http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/")]
+	[JsonProperty(PropertyName = "MainNetBackendUriV3", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public string MainNetBackendUriV3 { get; private set; } = "http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/";
 
-		public Config(string filePath) : base(filePath)
-		{
-			ServiceConfiguration = new ServiceConfiguration(MinAnonScoreTarget, MaxAnonScoreTarget, GetBitcoinP2pEndPoint(), DustThreshold);
-		}
+	[DefaultValue("http://testwnp3fugjln6vh5vpj7mvq3lkqqwjj3c2aafyu7laxz42kgwh2rad.onion/")]
+	[JsonProperty(PropertyName = "TestNetBackendUriV3", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public string TestNetBackendUriV3 { get; private set; } = "http://testwnp3fugjln6vh5vpj7mvq3lkqqwjj3c2aafyu7laxz42kgwh2rad.onion/";
 
-		[JsonProperty(PropertyName = "Network")]
-		[JsonConverter(typeof(NetworkJsonConverter))]
-		public Network Network { get; internal set; } = Network.Main;
+	[DefaultValue("https://wasabiwallet.io/")]
+	[JsonProperty(PropertyName = "MainNetFallbackBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public string MainNetFallbackBackendUri { get; private set; } = "https://wasabiwallet.io/";
 
-		[DefaultValue("http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/")]
-		[JsonProperty(PropertyName = "MainNetBackendUriV3", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public string MainNetBackendUriV3 { get; private set; }
+	[DefaultValue("https://wasabiwallet.co/")]
+	[JsonProperty(PropertyName = "TestNetFallbackBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public string TestNetFallbackBackendUri { get; private set; } = "https://wasabiwallet.co/";
 
-		[DefaultValue("http://testwnp3fugjln6vh5vpj7mvq3lkqqwjj3c2aafyu7laxz42kgwh2rad.onion/")]
-		[JsonProperty(PropertyName = "TestNetBackendUriV3", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public string TestNetBackendUriV3 { get; private set; }
+	[DefaultValue("http://localhost:37127/")]
+	[JsonProperty(PropertyName = "RegTestBackendUriV3", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public string RegTestBackendUriV3 { get; private set; } = "http://localhost:37127/";
 
-		[DefaultValue("https://wasabiwallet.io/")]
-		[JsonProperty(PropertyName = "MainNetFallbackBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public string MainNetFallbackBackendUri { get; private set; }
+	[DefaultValue(true)]
+	[JsonProperty(PropertyName = "UseTor", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool UseTor { get; internal set; } = true;
 
-		[DefaultValue("https://wasabiwallet.co/")]
-		[JsonProperty(PropertyName = "TestNetFallbackBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public string TestNetFallbackBackendUri { get; private set; }
+	[DefaultValue(false)]
+	[JsonProperty(PropertyName = "TerminateTorOnExit", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool TerminateTorOnExit { get; internal set; } = false;
 
-		[DefaultValue("http://localhost:37127/")]
-		[JsonProperty(PropertyName = "RegTestBackendUriV3", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public string RegTestBackendUriV3 { get; private set; }
+	[DefaultValue(false)]
+	[JsonProperty(PropertyName = "StartLocalBitcoinCoreOnStartup", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool StartLocalBitcoinCoreOnStartup { get; internal set; } = false;
 
-		[DefaultValue(true)]
-		[JsonProperty(PropertyName = "UseTor", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public bool UseTor { get; internal set; }
+	[DefaultValue(true)]
+	[JsonProperty(PropertyName = "StopLocalBitcoinCoreOnShutdown", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool StopLocalBitcoinCoreOnShutdown { get; internal set; } = true;
 
-		[DefaultValue(false)]
-		[JsonProperty(PropertyName = "TerminateTorOnExit", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public bool TerminateTorOnExit { get; internal set; }
+	[JsonProperty(PropertyName = "LocalBitcoinCoreDataDir")]
+	public string LocalBitcoinCoreDataDir { get; internal set; } = EnvironmentHelpers.GetDefaultBitcoinCoreDataDirOrEmptyString();
 
-		[DefaultValue(false)]
-		[JsonProperty(PropertyName = "StartLocalBitcoinCoreOnStartup", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public bool StartLocalBitcoinCoreOnStartup { get; internal set; }
+	[JsonProperty(PropertyName = "MainNetBitcoinP2pEndPoint")]
+	[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultMainNetBitcoinP2pPort)]
+	public EndPoint MainNetBitcoinP2pEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultMainNetBitcoinP2pPort);
 
-		[DefaultValue(true)]
-		[JsonProperty(PropertyName = "StopLocalBitcoinCoreOnShutdown", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public bool StopLocalBitcoinCoreOnShutdown { get; internal set; }
+	[JsonProperty(PropertyName = "TestNetBitcoinP2pEndPoint")]
+	[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultTestNetBitcoinP2pPort)]
+	public EndPoint TestNetBitcoinP2pEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultTestNetBitcoinP2pPort);
 
-		[JsonProperty(PropertyName = "LocalBitcoinCoreDataDir")]
-		public string LocalBitcoinCoreDataDir { get; internal set; } = EnvironmentHelpers.GetDefaultBitcoinCoreDataDirOrEmptyString();
+	[JsonProperty(PropertyName = "RegTestBitcoinP2pEndPoint")]
+	[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultRegTestBitcoinP2pPort)]
+	public EndPoint RegTestBitcoinP2pEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultRegTestBitcoinP2pPort);
 
-		[JsonProperty(PropertyName = "MainNetBitcoinP2pEndPoint")]
-		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultMainNetBitcoinP2pPort)]
-		public EndPoint MainNetBitcoinP2pEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultMainNetBitcoinP2pPort);
+	[DefaultValue(false)]
+	[JsonProperty(PropertyName = "JsonRpcServerEnabled", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool JsonRpcServerEnabled { get; internal set; }
 
-		[JsonProperty(PropertyName = "TestNetBitcoinP2pEndPoint")]
-		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultTestNetBitcoinP2pPort)]
-		public EndPoint TestNetBitcoinP2pEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultTestNetBitcoinP2pPort);
+	[DefaultValue("")]
+	[JsonProperty(PropertyName = "JsonRpcUser", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public string JsonRpcUser { get; internal set; } = "";
 
-		[JsonProperty(PropertyName = "RegTestBitcoinP2pEndPoint")]
-		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultRegTestBitcoinP2pPort)]
-		public EndPoint RegTestBitcoinP2pEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultRegTestBitcoinP2pPort);
+	[DefaultValue("")]
+	[JsonProperty(PropertyName = "JsonRpcPassword", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public string JsonRpcPassword { get; internal set; } = "";
 
-		[DefaultValue(false)]
-		[JsonProperty(PropertyName = "JsonRpcServerEnabled", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public bool JsonRpcServerEnabled { get; internal set; }
-
-		[DefaultValue("")]
-		[JsonProperty(PropertyName = "JsonRpcUser", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public string JsonRpcUser { get; internal set; }
-
-		[DefaultValue("")]
-		[JsonProperty(PropertyName = "JsonRpcPassword", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public string JsonRpcPassword { get; internal set; }
-
-		[JsonProperty(PropertyName = "JsonRpcServerPrefixes")]
-		public string[] JsonRpcServerPrefixes { get; internal set; } = new[]
-		{
+	[JsonProperty(PropertyName = "JsonRpcServerPrefixes")]
+	public string[] JsonRpcServerPrefixes { get; internal set; } = new[]
+	{
 			"http://127.0.0.1:37128/",
 			"http://localhost:37128/"
 		};
 
-		[DefaultValue(DefaultMinAnonScoreTarget)]
-		[JsonProperty(PropertyName = "MinAnonScoreTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public int MinAnonScoreTarget
+	[DefaultValue(DefaultMinAnonScoreTarget)]
+	[JsonProperty(PropertyName = "MinAnonScoreTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public int MinAnonScoreTarget
+	{
+		get => _minAnonScoreTarget;
+		internal set
 		{
-			get => _minAnonScoreTarget;
-			internal set
+			if (_minAnonScoreTarget != value)
 			{
-				if (_minAnonScoreTarget != value)
+				_minAnonScoreTarget = value;
+				if (ServiceConfiguration is { })
 				{
-					_minAnonScoreTarget = value;
-					if (ServiceConfiguration is { })
-					{
-						ServiceConfiguration.MinAnonScoreTarget = value;
-					}
+					ServiceConfiguration.MinAnonScoreTarget = value;
 				}
 			}
 		}
+	}
 
-		[DefaultValue(DefaultMaxAnonScoreTarget)]
-		[JsonProperty(PropertyName = "MaxAnonScoreTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public int MaxAnonScoreTarget
+	[DefaultValue(DefaultMaxAnonScoreTarget)]
+	[JsonProperty(PropertyName = "MaxAnonScoreTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public int MaxAnonScoreTarget
+	{
+		get => _maxAnonScoreTarget;
+		internal set
 		{
-			get => _maxAnonScoreTarget;
-			internal set
+			if (_maxAnonScoreTarget != value)
 			{
-				if (_maxAnonScoreTarget != value)
+				_maxAnonScoreTarget = value;
+				if (ServiceConfiguration is { })
 				{
-					_maxAnonScoreTarget = value;
-					if (ServiceConfiguration is { })
-					{
-						ServiceConfiguration.MaxAnonScoreTarget = value;
-					}
+					ServiceConfiguration.MaxAnonScoreTarget = value;
 				}
 			}
 		}
+	}
 
-		[JsonProperty(PropertyName = "DustThreshold")]
-		[JsonConverter(typeof(MoneyBtcJsonConverter))]
-		public Money DustThreshold { get; internal set; } = DefaultDustThreshold;
+	[JsonProperty(PropertyName = "DustThreshold")]
+	[JsonConverter(typeof(MoneyBtcJsonConverter))]
+	public Money DustThreshold { get; internal set; } = DefaultDustThreshold;
 
-		public ServiceConfiguration ServiceConfiguration { get; private set; }
+	public ServiceConfiguration ServiceConfiguration { get; private set; }
 
-		public Uri GetCurrentBackendUri()
+	public Uri GetCurrentBackendUri()
+	{
+		if (TorMonitor.RequestFallbackAddressUsage)
 		{
-			if (TorMonitor.RequestFallbackAddressUsage)
-			{
-				return GetFallbackBackendUri();
-			}
+			return GetFallbackBackendUri();
+		}
 
-			if (_backendUri is { })
-			{
-				return _backendUri;
-			}
-
-			if (Network == Network.Main)
-			{
-				_backendUri = new Uri(MainNetBackendUriV3);
-			}
-			else if (Network == Network.TestNet)
-			{
-				_backendUri = new Uri(TestNetBackendUriV3);
-			}
-			else if (Network == Network.RegTest)
-			{
-				_backendUri = new Uri(RegTestBackendUriV3);
-			}
-			else
-			{
-				throw new NotSupportedNetworkException(Network);
-			}
-
+		if (_backendUri is { })
+		{
 			return _backendUri;
 		}
 
-		public Uri GetFallbackBackendUri()
+		if (Network == Network.Main)
 		{
-			if (_fallbackBackendUri is { })
-			{
-				return _fallbackBackendUri;
-			}
+			_backendUri = new Uri(MainNetBackendUriV3);
+		}
+		else if (Network == Network.TestNet)
+		{
+			_backendUri = new Uri(TestNetBackendUriV3);
+		}
+		else if (Network == Network.RegTest)
+		{
+			_backendUri = new Uri(RegTestBackendUriV3);
+		}
+		else
+		{
+			throw new NotSupportedNetworkException(Network);
+		}
 
-			if (Network == Network.Main)
-			{
-				_fallbackBackendUri = new Uri(MainNetFallbackBackendUri);
-			}
-			else if (Network == Network.TestNet)
-			{
-				_fallbackBackendUri = new Uri(TestNetFallbackBackendUri);
-			}
-			else if (Network == Network.RegTest)
-			{
-				_fallbackBackendUri = new Uri(RegTestBackendUriV3);
-			}
-			else
-			{
-				throw new NotSupportedNetworkException(Network);
-			}
+		return _backendUri;
+	}
 
+	public Uri GetFallbackBackendUri()
+	{
+		if (_fallbackBackendUri is { })
+		{
 			return _fallbackBackendUri;
 		}
 
-		public EndPoint GetBitcoinP2pEndPoint()
+		if (Network == Network.Main)
 		{
-			if (Network == Network.Main)
-			{
-				return MainNetBitcoinP2pEndPoint;
-			}
-			else if (Network == Network.TestNet)
-			{
-				return TestNetBitcoinP2pEndPoint;
-			}
-			else if (Network == Network.RegTest)
-			{
-				return RegTestBitcoinP2pEndPoint;
-			}
-			else
-			{
-				throw new NotSupportedNetworkException(Network);
-			}
+			_fallbackBackendUri = new Uri(MainNetFallbackBackendUri);
+		}
+		else if (Network == Network.TestNet)
+		{
+			_fallbackBackendUri = new Uri(TestNetFallbackBackendUri);
+		}
+		else if (Network == Network.RegTest)
+		{
+			_fallbackBackendUri = new Uri(RegTestBackendUriV3);
+		}
+		else
+		{
+			throw new NotSupportedNetworkException(Network);
 		}
 
-		public void SetBitcoinP2pEndpoint(EndPoint endPoint)
+		return _fallbackBackendUri;
+	}
+
+	public EndPoint GetBitcoinP2pEndPoint()
+	{
+		if (Network == Network.Main)
 		{
-			if (Network == Network.Main)
-			{
-				MainNetBitcoinP2pEndPoint = endPoint;
-			}
-			else if (Network == Network.TestNet)
-			{
-				TestNetBitcoinP2pEndPoint = endPoint;
-			}
-			else if (Network == Network.RegTest)
-			{
-				RegTestBitcoinP2pEndPoint = endPoint;
-			}
-			else
-			{
-				throw new NotSupportedNetworkException(Network);
-			}
+			return MainNetBitcoinP2pEndPoint;
 		}
-
-		/// <inheritdoc />
-		public override void LoadFile()
+		else if (Network == Network.TestNet)
 		{
-			base.LoadFile();
-
-			ServiceConfiguration = new ServiceConfiguration(MinAnonScoreTarget, MaxAnonScoreTarget, GetBitcoinP2pEndPoint(), DustThreshold);
-
-			// Just debug convenience.
-			_backendUri = GetCurrentBackendUri();
+			return TestNetBitcoinP2pEndPoint;
 		}
-
-		protected override bool TryEnsureBackwardsCompatibility(string jsonString)
+		else if (Network == Network.RegTest)
 		{
-			try
+			return RegTestBitcoinP2pEndPoint;
+		}
+		else
+		{
+			throw new NotSupportedNetworkException(Network);
+		}
+	}
+
+	public void SetBitcoinP2pEndpoint(EndPoint endPoint)
+	{
+		if (Network == Network.Main)
+		{
+			MainNetBitcoinP2pEndPoint = endPoint;
+		}
+		else if (Network == Network.TestNet)
+		{
+			TestNetBitcoinP2pEndPoint = endPoint;
+		}
+		else if (Network == Network.RegTest)
+		{
+			RegTestBitcoinP2pEndPoint = endPoint;
+		}
+		else
+		{
+			throw new NotSupportedNetworkException(Network);
+		}
+	}
+
+	/// <inheritdoc />
+	public override void LoadFile()
+	{
+		base.LoadFile();
+
+		ServiceConfiguration = new ServiceConfiguration(MinAnonScoreTarget, MaxAnonScoreTarget, GetBitcoinP2pEndPoint(), DustThreshold);
+
+		// Just debug convenience.
+		_backendUri = GetCurrentBackendUri();
+	}
+
+	protected override bool TryEnsureBackwardsCompatibility(string jsonString)
+	{
+		try
+		{
+			var jsObject = JsonConvert.DeserializeObject<JObject>(jsonString);
+
+			if (jsObject is null)
 			{
-				var jsObject = JsonConvert.DeserializeObject<JObject>(jsonString);
-				bool saveIt = false;
-
-				var torHost = jsObject.Value<string>("TorHost");
-				var torSocks5Port = jsObject.Value<int?>("TorSocks5Port");
-				var mainNetBitcoinCoreHost = jsObject.Value<string>("MainNetBitcoinCoreHost");
-				var mainNetBitcoinCorePort = jsObject.Value<int?>("MainNetBitcoinCorePort");
-				var testNetBitcoinCoreHost = jsObject.Value<string>("TestNetBitcoinCoreHost");
-				var testNetBitcoinCorePort = jsObject.Value<int?>("TestNetBitcoinCorePort");
-				var regTestBitcoinCoreHost = jsObject.Value<string>("RegTestBitcoinCoreHost");
-				var regTestBitcoinCorePort = jsObject.Value<int?>("RegTestBitcoinCorePort");
-
-				if (mainNetBitcoinCoreHost is { })
-				{
-					int port = mainNetBitcoinCorePort ?? Constants.DefaultMainNetBitcoinP2pPort;
-
-					if (EndPointParser.TryParse(mainNetBitcoinCoreHost, port, out EndPoint? ep))
-					{
-						MainNetBitcoinP2pEndPoint = ep;
-						saveIt = true;
-					}
-				}
-
-				if (testNetBitcoinCoreHost is { })
-				{
-					int port = testNetBitcoinCorePort ?? Constants.DefaultTestNetBitcoinP2pPort;
-
-					if (EndPointParser.TryParse(testNetBitcoinCoreHost, port, out EndPoint? ep))
-					{
-						TestNetBitcoinP2pEndPoint = ep;
-						saveIt = true;
-					}
-				}
-
-				if (regTestBitcoinCoreHost is { })
-				{
-					int port = regTestBitcoinCorePort ?? Constants.DefaultRegTestBitcoinP2pPort;
-
-					if (EndPointParser.TryParse(regTestBitcoinCoreHost, port, out EndPoint? ep))
-					{
-						RegTestBitcoinP2pEndPoint = ep;
-						saveIt = true;
-					}
-				}
-
-				return saveIt;
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning("Backwards compatibility couldn't be ensured.");
-				Logger.LogInfo(ex);
+				Logger.LogWarning("Failed to parse config JSON.");
 				return false;
 			}
+
+			bool saveIt = false;
+
+			var torHost = jsObject.Value<string>("TorHost");
+			var torSocks5Port = jsObject.Value<int?>("TorSocks5Port");
+			var mainNetBitcoinCoreHost = jsObject.Value<string>("MainNetBitcoinCoreHost");
+			var mainNetBitcoinCorePort = jsObject.Value<int?>("MainNetBitcoinCorePort");
+			var testNetBitcoinCoreHost = jsObject.Value<string>("TestNetBitcoinCoreHost");
+			var testNetBitcoinCorePort = jsObject.Value<int?>("TestNetBitcoinCorePort");
+			var regTestBitcoinCoreHost = jsObject.Value<string>("RegTestBitcoinCoreHost");
+			var regTestBitcoinCorePort = jsObject.Value<int?>("RegTestBitcoinCorePort");
+
+			if (mainNetBitcoinCoreHost is { })
+			{
+				int port = mainNetBitcoinCorePort ?? Constants.DefaultMainNetBitcoinP2pPort;
+
+				if (EndPointParser.TryParse(mainNetBitcoinCoreHost, port, out EndPoint? ep))
+				{
+					MainNetBitcoinP2pEndPoint = ep;
+					saveIt = true;
+				}
+			}
+
+			if (testNetBitcoinCoreHost is { })
+			{
+				int port = testNetBitcoinCorePort ?? Constants.DefaultTestNetBitcoinP2pPort;
+
+				if (EndPointParser.TryParse(testNetBitcoinCoreHost, port, out EndPoint? ep))
+				{
+					TestNetBitcoinP2pEndPoint = ep;
+					saveIt = true;
+				}
+			}
+
+			if (regTestBitcoinCoreHost is { })
+			{
+				int port = regTestBitcoinCorePort ?? Constants.DefaultRegTestBitcoinP2pPort;
+
+				if (EndPointParser.TryParse(regTestBitcoinCoreHost, port, out EndPoint? ep))
+				{
+					RegTestBitcoinP2pEndPoint = ep;
+					saveIt = true;
+				}
+			}
+
+			return saveIt;
+		}
+		catch (Exception ex)
+		{
+			Logger.LogWarning("Backwards compatibility couldn't be ensured.");
+			Logger.LogInfo(ex);
+			return false;
 		}
 	}
 }

@@ -1,16 +1,15 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace WalletWasabi.Backend.Models
-{
-	/// <summary>
-	/// Satoshi per byte.
-	/// </summary>
-	public class FeeEstimationPair
-	{
-		[Required]
-		public long Economical { get; set; }
+namespace WalletWasabi.Backend.Models;
 
-		[Required]
-		public long Conservative { get; set; }
-	}
+/// <summary>
+/// Satoshi per byte.
+/// </summary>
+public class FeeEstimationPair
+{
+	[Required]
+	public long Economical { get; set; }
+
+	[Required]
+	public long Conservative { get; set; }
 }

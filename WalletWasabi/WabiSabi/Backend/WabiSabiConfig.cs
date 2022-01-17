@@ -8,43 +8,43 @@ using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.JsonConverters.Timing;
 using WalletWasabi.WabiSabi.Models;
 
-namespace WalletWasabi.WabiSabi.Backend
+namespace WalletWasabi.WabiSabi.Backend;
+
+[JsonObject(MemberSerialization.OptIn)]
+public class WabiSabiConfig : ConfigBase
 {
-	[JsonObject(MemberSerialization.OptIn)]
-	public class WabiSabiConfig : ConfigBase
+	public WabiSabiConfig() : base()
 	{
-		public WabiSabiConfig() : base()
-		{
-		}
+	}
 
-		public WabiSabiConfig(string filePath) : base(filePath)
-		{
-		}
+	public WabiSabiConfig(string filePath) : base(filePath)
+	{
+	}
 
-		[DefaultValue(108)]
-		[JsonProperty(PropertyName = "ConfirmationTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public uint ConfirmationTarget { get; set; } = 108;
+	[DefaultValue(108)]
+	[JsonProperty(PropertyName = "ConfirmationTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public uint ConfirmationTarget { get; set; } = 108;
 
 		[DefaultValueTimeSpan("0d 3h 0m 0s")]
 		[JsonProperty(PropertyName = "ReleaseUtxoFromPrisonAfter", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public TimeSpan ReleaseUtxoFromPrisonAfter { get; set; } = TimeSpan.FromHours(3);
 
-		[DefaultValueMoneyBtc("0.00005")]
-		[JsonProperty(PropertyName = "MinRegistrableAmount", DefaultValueHandling = DefaultValueHandling.Populate)]
-		[JsonConverter(typeof(MoneyBtcJsonConverter))]
-		public Money MinRegistrableAmount { get; set; } = Money.Coins(0.00005m);
+	[DefaultValueMoneyBtc("0.00005")]
+	[JsonProperty(PropertyName = "MinRegistrableAmount", DefaultValueHandling = DefaultValueHandling.Populate)]
+	[JsonConverter(typeof(MoneyBtcJsonConverter))]
+	public Money MinRegistrableAmount { get; set; } = Money.Coins(0.00005m);
 
-		/// <summary>
-		/// The width of the rangeproofs are calculated from this, so don't choose stupid numbers.
-		/// </summary>
-		[DefaultValueMoneyBtc("43000")]
-		[JsonProperty(PropertyName = "MaxRegistrableAmount", DefaultValueHandling = DefaultValueHandling.Populate)]
-		[JsonConverter(typeof(MoneyBtcJsonConverter))]
-		public Money MaxRegistrableAmount { get; set; } = Money.Coins(43_000m);
+	/// <summary>
+	/// The width of the rangeproofs are calculated from this, so don't choose stupid numbers.
+	/// </summary>
+	[DefaultValueMoneyBtc("43000")]
+	[JsonProperty(PropertyName = "MaxRegistrableAmount", DefaultValueHandling = DefaultValueHandling.Populate)]
+	[JsonConverter(typeof(MoneyBtcJsonConverter))]
+	public Money MaxRegistrableAmount { get; set; } = Money.Coins(43_000m);
 
-		[DefaultValue(true)]
-		[JsonProperty(PropertyName = "AllowNotedInputRegistration", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public bool AllowNotedInputRegistration { get; set; } = true;
+	[DefaultValue(true)]
+	[JsonProperty(PropertyName = "AllowNotedInputRegistration", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool AllowNotedInputRegistration { get; set; } = true;
 
 		[DefaultValueTimeSpan("0d 1h 0m 0s")]
 		[JsonProperty(PropertyName = "StandardInputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -70,15 +70,15 @@ namespace WalletWasabi.WabiSabi.Backend
 		[JsonProperty(PropertyName = "RoundExpiryTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public TimeSpan RoundExpiryTimeout { get; set; } = TimeSpan.FromMinutes(5);
 
-		[DefaultValue(100)]
-		[JsonProperty(PropertyName = "MaxInputCountByRound", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public int MaxInputCountByRound { get; set; } = 100;
+	[DefaultValue(100)]
+	[JsonProperty(PropertyName = "MaxInputCountByRound", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public int MaxInputCountByRound { get; set; } = 100;
 
-		[DefaultValue(0.5)]
-		[JsonProperty(PropertyName = "MinInputCountByRoundMultiplier", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public double MinInputCountByRoundMultiplier { get; set; } = 0.5;
+	[DefaultValue(0.5)]
+	[JsonProperty(PropertyName = "MinInputCountByRoundMultiplier", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public double MinInputCountByRoundMultiplier { get; set; } = 0.5;
 
-		public int MinInputCountByRound => Math.Max(1, (int)(MaxInputCountByRound * MinInputCountByRoundMultiplier));
+	public int MinInputCountByRound => Math.Max(1, (int)(MaxInputCountByRound * MinInputCountByRoundMultiplier));
 
 		[DefaultValueCoordinationFeeRate(0.003, 0.01)]
 		[JsonProperty(PropertyName = "CoordinationFeeRate", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -106,4 +106,4 @@ namespace WalletWasabi.WabiSabi.Backend
 			ToFile();
 		}
 	}
-}
+

@@ -1,20 +1,19 @@
 ﻿using NBitcoin;
 
-namespace WalletWasabi.Fluent.Models
-{
-	public readonly struct DataLegend
-	{
-		public DataLegend(Money amount, string label, string hexColor, double percentShare)
-		{
-			Amount = amount;
-			Label = label;
-			HexColor = hexColor;
-			PercentShare = percentShare;
-		}
+namespace WalletWasabi.Fluent.Models;
 
-		public Money Amount { get; }
-		public string Label { get; }
-		public string HexColor { get; }
-		public double PercentShare { get; }
+public readonly struct DataLegend
+{
+	public DataLegend(Money amount, string label, string hexColor, double percentShare)
+	{
+		Amount = amount;
+		Label = label;
+		HexColor = hexColor;
+		PercentShare = percentShare;
 	}
+
+	public Money Amount { get; }
+	public string Label { get; }
+	public string HexColor { get; }
+	public double PercentShare { get; }
 }

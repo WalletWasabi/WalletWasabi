@@ -12,89 +12,86 @@ using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.Views;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.Fluent
+namespace WalletWasabi.Fluent;
+
+public class App : Application
 {
-	public class App : Application
+	private readonly Func<Task>? _backendInitialiseAsync;
+
+	/// <summary>
+	/// Defines the <see cref="CanShutdownProvider"/> property.
+	/// </summary>/
+	public static readonly StyledProperty<ICanShutdownProvider?> CanShutdownProviderProperty =
+		AvaloniaProperty.Register<App, ICanShutdownProvider?>(nameof(CanShutdownProvider), null, defaultBindingMode: BindingMode.TwoWay);
+
+	public App()
 	{
-		private Func<Task> _backendInitialiseAsync;
+		Name = "Wasabi Wallet";
+		ApplicationViewModel applicationViewModel = new();
+		DataContext = applicationViewModel;
+		applicationViewModel.ShowRequested += (sender, args) => ShowRequested?.Invoke(sender, args);
+	}
 
-		/// <summary>
-		/// Defines the <see cref="CanShutdownProvider"/> property.
-		/// </summary>/
-		public static readonly StyledProperty<ICanShutdownProvider?> CanShutdownProviderProperty =
-			AvaloniaProperty.Register<App, ICanShutdownProvider?>(nameof(CanShutdownProvider), null, defaultBindingMode: BindingMode.TwoWay);
+	public App(Func<Task> backendInitialiseAsync) : this()
+	{
+		_backendInitialiseAsync = backendInitialiseAsync;
+	}
 
-		public App()
+	public event EventHandler? ShowRequested;
+
+	public ICanShutdownProvider? CanShutdownProvider
+	{
+		get => GetValue(CanShutdownProviderProperty);
+		set => SetValue(CanShutdownProviderProperty, value);
+	}
+
+	public override void Initialize()
+	{
+		AvaloniaXamlLoader.Load(this);
+	}
+
+	public override void OnFrameworkInitializationCompleted()
+	{
+		AutoBringIntoViewExtension.Initialise();
+
+		if (!Design.IsDesignMode)
 		{
-			Name = "Wasabi Wallet";
-			ApplicationViewModel applicationViewModel = new();
-			DataContext = applicationViewModel;
-			applicationViewModel.ShowRequested += (sender, args) => ShowRequested?.Invoke(sender, args);
-		}
-
-		public App(Func<Task> backendInitialiseAsync) : this()
-		{
-			_backendInitialiseAsync = backendInitialiseAsync;
-		}
-
-		public event EventHandler? ShowRequested;
-
-		public ICanShutdownProvider? CanShutdownProvider
-		{
-			get => GetValue(CanShutdownProviderProperty);
-			set => SetValue(CanShutdownProviderProperty, value);
-		}
-
-		public override void Initialize()
-		{
-			AvaloniaXamlLoader.Load(this);
-		}
-
-		public override void OnFrameworkInitializationCompleted()
-		{
-			AutoBringIntoViewExtension.Initialise();
-
-			if (!Design.IsDesignMode)
+			if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
 			{
-				MainViewModel.Instance = new MainViewModel();
+				desktop.ShutdownRequested += DesktopOnShutdownRequested;
 
-				if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+				desktop.MainWindow = new MainWindow
 				{
-					desktop.ShutdownRequested += DesktopOnShutdownRequested;
+					DataContext = MainViewModel.Instance
+				};
 
-					desktop.MainWindow = new MainWindow
+				RxApp.MainThreadScheduler.Schedule(
+					async () =>
 					{
-						DataContext = MainViewModel.Instance
-					};
+						await _backendInitialiseAsync!(); // Guaranteed not to be null when not in designer.
 
-					RxApp.MainThreadScheduler.Schedule(
-						async () =>
-						{
-							await _backendInitialiseAsync();
-
-							MainViewModel.Instance!.Initialize();
-						});
-				}
-			}
-
-			base.OnFrameworkInitializationCompleted();
-		}
-
-		private void DesktopOnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
-		{
-			if (CanShutdownProvider is { } provider)
-			{
-				// Shutdown prevention will only work if you directly run the executable.
-				e.Cancel = !provider.CanShutdown();
-				Logger.LogDebug($"Cancellation of the shutdown set to: {e.Cancel}.");
+						MainViewModel.Instance.Initialize();
+					});
 			}
 		}
 
-		// Note, this is only supported on Win32 and some Linux DEs
-		// https://github.com/AvaloniaUI/Avalonia/blob/99d983499f5412febf07aafe2bf03872319b412b/src/Avalonia.Controls/TrayIcon.cs#L66
-		private void TrayIcon_OnClicked(object? sender, EventArgs e)
+		base.OnFrameworkInitializationCompleted();
+	}
+
+	private void DesktopOnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
+	{
+		if (CanShutdownProvider is { } provider)
 		{
-			ShowRequested?.Invoke(this, EventArgs.Empty);
+			// Shutdown prevention will only work if you directly run the executable.
+			e.Cancel = !provider.CanShutdown();
+			Logger.LogDebug($"Cancellation of the shutdown set to: {e.Cancel}.");
 		}
+	}
+
+	// Note, this is only supported on Win32 and some Linux DEs
+	// https://github.com/AvaloniaUI/Avalonia/blob/99d983499f5412febf07aafe2bf03872319b412b/src/Avalonia.Controls/TrayIcon.cs#L66
+	private void TrayIcon_OnClicked(object? sender, EventArgs e)
+	{
+		ShowRequested?.Invoke(this, EventArgs.Empty);
 	}
 }

@@ -15,249 +15,248 @@ using WalletWasabi.Fluent.ViewModels.OpenDirectory;
 using WalletWasabi.Logging;
 using WalletWasabi.Fluent.ViewModels.StatusBar;
 
-namespace WalletWasabi.Fluent.ViewModels
+namespace WalletWasabi.Fluent.ViewModels;
+
+public partial class MainViewModel : ViewModelBase
 {
-	public partial class MainViewModel : ViewModelBase
+	private readonly SettingsPageViewModel _settingsPage;
+	private readonly SearchPageViewModel _searchPage;
+	private readonly PrivacyModeViewModel _privacyMode;
+	private readonly AddWalletPageViewModel _addWalletPage;
+	[AutoNotify] private bool _isMainContentEnabled;
+	[AutoNotify] private bool _isDialogScreenEnabled;
+	[AutoNotify] private bool _isFullScreenEnabled;
+	[AutoNotify] private DialogScreenViewModel _dialogScreen;
+	[AutoNotify] private DialogScreenViewModel _fullScreen;
+	[AutoNotify] private DialogScreenViewModel _compactDialogScreen;
+	[AutoNotify] private NavBarViewModel _navBar;
+	[AutoNotify] private StatusBarViewModel _statusBar;
+	[AutoNotify] private string _title = "Wasabi Wallet";
+	[AutoNotify] private WindowState _windowState;
+	[AutoNotify] private bool _isOobeBackgroundVisible;
+
+	public MainViewModel()
 	{
-		private readonly SettingsPageViewModel _settingsPage;
-		private readonly SearchPageViewModel _searchPage;
-		private readonly PrivacyModeViewModel _privacyMode;
-		private readonly AddWalletPageViewModel _addWalletPage;
-		[AutoNotify] private bool _isMainContentEnabled;
-		[AutoNotify] private bool _isDialogScreenEnabled;
-		[AutoNotify] private bool _isFullScreenEnabled;
-		[AutoNotify] private DialogScreenViewModel _dialogScreen;
-		[AutoNotify] private DialogScreenViewModel _fullScreen;
-		[AutoNotify] private DialogScreenViewModel _compactDialogScreen;
-		[AutoNotify] private NavBarViewModel _navBar;
-		[AutoNotify] private StatusBarViewModel _statusBar;
-		[AutoNotify] private string _title = "Wasabi Wallet";
-		[AutoNotify] private WindowState _windowState;
-		[AutoNotify] private bool _isOobeBackgroundVisible;
+		_windowState = (WindowState)Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
+		_dialogScreen = new DialogScreenViewModel();
 
-		public MainViewModel()
-		{
-			_windowState = (WindowState)Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
-			_dialogScreen = new DialogScreenViewModel();
+		_fullScreen = new DialogScreenViewModel(NavigationTarget.FullScreen);
 
-			_fullScreen = new DialogScreenViewModel(NavigationTarget.FullScreen);
+		_compactDialogScreen = new DialogScreenViewModel(NavigationTarget.CompactDialogScreen);
 
-			_compactDialogScreen = new DialogScreenViewModel(NavigationTarget.CompactDialogScreen);
+		MainScreen = new TargettedNavigationStack(NavigationTarget.HomeScreen);
 
-			MainScreen = new TargettedNavigationStack(NavigationTarget.HomeScreen);
+		NavigationState.Register(MainScreen, DialogScreen, FullScreen, CompactDialogScreen);
 
-			NavigationState.Register(MainScreen, DialogScreen, FullScreen, CompactDialogScreen);
+		_isMainContentEnabled = true;
+		_isDialogScreenEnabled = true;
+		_isFullScreenEnabled = true;
 
-			_isMainContentEnabled = true;
-			_isDialogScreenEnabled = true;
-			_isFullScreenEnabled = true;
+		_statusBar = new StatusBarViewModel();
 
-			_statusBar = new StatusBarViewModel();
+		UiServices.Initialize();
 
-			UiServices.Initialize();
+		_addWalletPage = new AddWalletPageViewModel();
+		_settingsPage = new SettingsPageViewModel();
+		_privacyMode = new PrivacyModeViewModel();
+		_searchPage = new SearchPageViewModel();
+		_navBar = new NavBarViewModel(MainScreen);
 
-			_addWalletPage = new AddWalletPageViewModel();
-			_settingsPage = new SettingsPageViewModel();
-			_privacyMode = new PrivacyModeViewModel();
-			_searchPage = new SearchPageViewModel();
-			_navBar = new NavBarViewModel(MainScreen);
+		NavigationManager.RegisterType(_navBar);
 
-			NavigationManager.RegisterType(_navBar);
+		RegisterCategories(_searchPage);
+		RegisterViewModels();
 
-			RegisterCategories(_searchPage);
-			RegisterViewModels();
+		RxApp.MainThreadScheduler.Schedule(async () => await _navBar.InitialiseAsync());
 
-			RxApp.MainThreadScheduler.Schedule(async () => await _navBar.InitialiseAsync());
+		_searchPage.Initialise();
 
-			_searchPage.Initialise();
+		this.WhenAnyValue(x => x.WindowState)
+			.Where(x => x != WindowState.Minimized)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(windowState => Services.UiConfig.WindowState = windowState.ToString());
 
-			this.WhenAnyValue(x => x.WindowState)
-				.Where(x => x != WindowState.Minimized)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(windowState => Services.UiConfig.WindowState = windowState.ToString());
-
-			this.WhenAnyValue(
-					x => x.DialogScreen!.IsDialogOpen,
-					x => x.FullScreen!.IsDialogOpen,
-					x => x.CompactDialogScreen!.IsDialogOpen)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(tup =>
-				{
-					var (dialogScreenIsOpen, fullScreenIsOpen, compactDialogScreenIsOpen) = tup;
-
-					IsMainContentEnabled = !(dialogScreenIsOpen || fullScreenIsOpen || compactDialogScreenIsOpen);
-				});
-
-			this.WhenAnyValue(
-					x => x.DialogScreen.CurrentPage,
-					x => x.CompactDialogScreen.CurrentPage,
-					x => x.FullScreen.CurrentPage,
-					x => x.MainScreen.CurrentPage)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(tup =>
-				{
-					var (dialog, compactDialog, fullscreenDialog, mainsScreen) = tup;
-
-					/*
-					 * Order is important.
-					 * Always the topmost content will be the active one.
-					 */
-
-					if (compactDialog is { })
-					{
-						compactDialog.SetActive();
-						return;
-					}
-
-					if (dialog is { })
-					{
-						dialog.SetActive();
-						return;
-					}
-
-					if (fullscreenDialog is { })
-					{
-						fullscreenDialog.SetActive();
-						return;
-					}
-
-					if (mainsScreen is { })
-					{
-						mainsScreen.SetActive();
-						return;
-					}
-				});
-
-			IsOobeBackgroundVisible = Services.UiConfig.Oobe;
-
-			RxApp.MainThreadScheduler.Schedule(async () =>
+		this.WhenAnyValue(
+				x => x.DialogScreen!.IsDialogOpen,
+				x => x.FullScreen!.IsDialogOpen,
+				x => x.CompactDialogScreen!.IsDialogOpen)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(tup =>
 			{
-				if (!Services.WalletManager.HasWallet() || Services.UiConfig.Oobe)
+				var (dialogScreenIsOpen, fullScreenIsOpen, compactDialogScreenIsOpen) = tup;
+
+				IsMainContentEnabled = !(dialogScreenIsOpen || fullScreenIsOpen || compactDialogScreenIsOpen);
+			});
+
+		this.WhenAnyValue(
+				x => x.DialogScreen.CurrentPage,
+				x => x.CompactDialogScreen.CurrentPage,
+				x => x.FullScreen.CurrentPage,
+				x => x.MainScreen.CurrentPage)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(tup =>
+			{
+				var (dialog, compactDialog, fullscreenDialog, mainsScreen) = tup;
+
+				/*
+				 * Order is important.
+				 * Always the topmost content will be the active one.
+				 */
+
+				if (compactDialog is { })
 				{
-					IsOobeBackgroundVisible = true;
+					compactDialog.SetActive();
+					return;
+				}
 
-					await _dialogScreen.NavigateDialogAsync(new WelcomePageViewModel(_addWalletPage));
+				if (dialog is { })
+				{
+					dialog.SetActive();
+					return;
+				}
 
-					if (Services.WalletManager.HasWallet())
-					{
-						Services.UiConfig.Oobe = false;
-						IsOobeBackgroundVisible = false;
-					}
+				if (fullscreenDialog is { })
+				{
+					fullscreenDialog.SetActive();
+					return;
+				}
+
+				if (mainsScreen is { })
+				{
+					mainsScreen.SetActive();
+					return;
 				}
 			});
-		}
 
-		public TargettedNavigationStack MainScreen { get; }
+		IsOobeBackgroundVisible = Services.UiConfig.Oobe;
 
-		public static MainViewModel? Instance { get; internal set; }
-
-		public void ClearStacks()
+		RxApp.MainThreadScheduler.Schedule(async () =>
 		{
-			MainScreen.Clear();
-			DialogScreen.Clear();
-			FullScreen.Clear();
-			CompactDialogScreen.Clear();
-		}
-
-		public void Initialize()
-		{
-			StatusBar.Initialize();
-
-			if (Services.Config.Network != Network.Main)
+			if (!Services.WalletManager.HasWallet() || Services.UiConfig.Oobe)
 			{
-				Title += $" - {Services.Config.Network}";
+				IsOobeBackgroundVisible = true;
+
+				await _dialogScreen.NavigateDialogAsync(new WelcomePageViewModel(_addWalletPage));
+
+				if (Services.WalletManager.HasWallet())
+				{
+					Services.UiConfig.Oobe = false;
+					IsOobeBackgroundVisible = false;
+				}
 			}
-		}
+		});
+	}
 
-		private void RegisterViewModels()
+	public TargettedNavigationStack MainScreen { get; }
+
+	public static MainViewModel Instance { get; } = new();
+
+	public void ClearStacks()
+	{
+		MainScreen.Clear();
+		DialogScreen.Clear();
+		FullScreen.Clear();
+		CompactDialogScreen.Clear();
+	}
+
+	public void Initialize()
+	{
+		StatusBar.Initialize();
+
+		if (Services.Config.Network != Network.Main)
 		{
-			SearchPageViewModel.Register(_searchPage);
-			PrivacyModeViewModel.Register(_privacyMode);
-			AddWalletPageViewModel.Register(_addWalletPage);
-			SettingsPageViewModel.Register(_settingsPage);
+			Title += $" - {Services.Config.Network}";
+		}
+	}
 
-			GeneralSettingsTabViewModel.RegisterLazy(
-				() =>
-				{
-					_settingsPage.SelectedTab = 0;
-					return _settingsPage;
-				});
+	private void RegisterViewModels()
+	{
+		SearchPageViewModel.Register(_searchPage);
+		PrivacyModeViewModel.Register(_privacyMode);
+		AddWalletPageViewModel.Register(_addWalletPage);
+		SettingsPageViewModel.Register(_settingsPage);
 
-			PrivacySettingsTabViewModel.RegisterLazy(
-				() =>
-				{
-					_settingsPage.SelectedTab = 1;
-					return _settingsPage;
-				});
-
-			NetworkSettingsTabViewModel.RegisterLazy(
-				() =>
-				{
-					_settingsPage.SelectedTab = 2;
-					return _settingsPage;
-				});
-
-			BitcoinTabSettingsViewModel.RegisterLazy(
-				() =>
-				{
-					_settingsPage.SelectedTab = 3;
-					return _settingsPage;
-				});
-
-			AboutViewModel.RegisterLazy(() => new AboutViewModel());
-
-			BroadcastTransactionViewModel.RegisterAsyncLazy(
-				async () =>
-				{
-					var dialogResult = await DialogScreen.NavigateDialogAsync(new LoadTransactionViewModel(Services.Config.Network));
-
-					if (dialogResult.Result is { })
-					{
-						return new BroadcastTransactionViewModel(Services.Config.Network,
-							dialogResult.Result);
-					}
-
-					return null;
-				});
-
-			RxApp.MainThreadScheduler.Schedule(async () =>
+		GeneralSettingsTabViewModel.RegisterLazy(
+			() =>
 			{
-				try
-				{
-					await Services.LegalChecker.WaitAndGetLatestDocumentAsync();
-
-					LegalDocumentsViewModel.RegisterAsyncLazy(async () =>
-					{
-						var document = await Services.LegalChecker.WaitAndGetLatestDocumentAsync();
-						return new LegalDocumentsViewModel(document.Content);
-					});
-					_searchPage.RegisterSearchEntry(LegalDocumentsViewModel.MetaData);
-				}
-				catch (Exception ex)
-				{
-					if (ex is not OperationCanceledException)
-					{
-						Logger.LogError("Failed to get Legal documents.", ex);
-					}
-				}
+				_settingsPage.SelectedTab = 0;
+				return _settingsPage;
 			});
 
-			UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel());
-			BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel());
-			DocsLinkViewModel.RegisterLazy(() => new DocsLinkViewModel());
-			OpenDataFolderViewModel.RegisterLazy(() => new OpenDataFolderViewModel());
-			OpenWalletsFolderViewModel.RegisterLazy(() => new OpenWalletsFolderViewModel());
-			OpenLogsViewModel.RegisterLazy(() => new OpenLogsViewModel());
-			OpenTorLogsViewModel.RegisterLazy(() => new OpenTorLogsViewModel());
-			OpenConfigFileViewModel.RegisterLazy(() => new OpenConfigFileViewModel());
-		}
+		PrivacySettingsTabViewModel.RegisterLazy(
+			() =>
+			{
+				_settingsPage.SelectedTab = 1;
+				return _settingsPage;
+			});
 
-		private static void RegisterCategories(SearchPageViewModel searchPage)
+		NetworkSettingsTabViewModel.RegisterLazy(
+			() =>
+			{
+				_settingsPage.SelectedTab = 2;
+				return _settingsPage;
+			});
+
+		BitcoinTabSettingsViewModel.RegisterLazy(
+			() =>
+			{
+				_settingsPage.SelectedTab = 3;
+				return _settingsPage;
+			});
+
+		AboutViewModel.RegisterLazy(() => new AboutViewModel());
+
+		BroadcastTransactionViewModel.RegisterAsyncLazy(
+			async () =>
+			{
+				var dialogResult = await DialogScreen.NavigateDialogAsync(new LoadTransactionViewModel(Services.Config.Network));
+
+				if (dialogResult.Result is { })
+				{
+					return new BroadcastTransactionViewModel(Services.Config.Network,
+						dialogResult.Result);
+				}
+
+				return null;
+			});
+
+		RxApp.MainThreadScheduler.Schedule(async () =>
 		{
-			searchPage.RegisterCategory("General", 0);
-			searchPage.RegisterCategory("Settings", 1);
-			searchPage.RegisterCategory("Help & Support", 2);
-			searchPage.RegisterCategory("Open", 3);
-		}
+			try
+			{
+				await Services.LegalChecker.WaitAndGetLatestDocumentAsync();
+
+				LegalDocumentsViewModel.RegisterAsyncLazy(async () =>
+				{
+					var document = await Services.LegalChecker.WaitAndGetLatestDocumentAsync();
+					return new LegalDocumentsViewModel(document.Content);
+				});
+				_searchPage.RegisterSearchEntry(LegalDocumentsViewModel.MetaData);
+			}
+			catch (Exception ex)
+			{
+				if (ex is not OperationCanceledException)
+				{
+					Logger.LogError("Failed to get Legal documents.", ex);
+				}
+			}
+		});
+
+		UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel());
+		BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel());
+		DocsLinkViewModel.RegisterLazy(() => new DocsLinkViewModel());
+		OpenDataFolderViewModel.RegisterLazy(() => new OpenDataFolderViewModel());
+		OpenWalletsFolderViewModel.RegisterLazy(() => new OpenWalletsFolderViewModel());
+		OpenLogsViewModel.RegisterLazy(() => new OpenLogsViewModel());
+		OpenTorLogsViewModel.RegisterLazy(() => new OpenTorLogsViewModel());
+		OpenConfigFileViewModel.RegisterLazy(() => new OpenConfigFileViewModel());
+	}
+
+	private static void RegisterCategories(SearchPageViewModel searchPage)
+	{
+		searchPage.RegisterCategory("General", 0);
+		searchPage.RegisterCategory("Settings", 1);
+		searchPage.RegisterCategory("Help & Support", 2);
+		searchPage.RegisterCategory("Open", 3);
 	}
 }

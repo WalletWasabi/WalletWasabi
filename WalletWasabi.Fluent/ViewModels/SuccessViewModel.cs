@@ -1,19 +1,18 @@
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
-namespace WalletWasabi.Fluent.ViewModels
+namespace WalletWasabi.Fluent.ViewModels;
+
+[NavigationMetaData(Title = "Success")]
+public partial class SuccessViewModel : RoutableViewModel
 {
-	[NavigationMetaData(Title = "Success")]
-	public partial class SuccessViewModel : RoutableViewModel
+	public SuccessViewModel(string successText)
 	{
-		public SuccessViewModel(string successText)
-		{
-			SuccessText = successText;
-			NextCommand = ReactiveCommand.Create(() => Navigate().Clear());
+		SuccessText = successText;
+		NextCommand = ReactiveCommand.Create(() => Navigate().Clear());
 
-			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
-		}
-
-		public string SuccessText { get; }
+		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}
+
+	public string SuccessText { get; }
 }
