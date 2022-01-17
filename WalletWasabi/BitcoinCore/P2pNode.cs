@@ -9,199 +9,198 @@ using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.BitcoinCore
+namespace WalletWasabi.BitcoinCore;
+
+public class P2pNode
 {
-	public class P2pNode
+	private bool _disposed = false;
+
+	public P2pNode(Network network, EndPoint endPoint, MempoolService mempoolService, string userAgent)
 	{
-		private bool _disposed = false;
+		Network = Guard.NotNull(nameof(network), network);
+		EndPoint = Guard.NotNull(nameof(endPoint), endPoint);
+		MempoolService = Guard.NotNull(nameof(mempoolService), mempoolService);
+		UserAgent = Guard.NotNullOrEmptyOrWhitespace(nameof(userAgent), userAgent, trim: true);
 
-		public P2pNode(Network network, EndPoint endPoint, MempoolService mempoolService, string userAgent)
+		Stop = new CancellationTokenSource();
+		NodeEventsSubscribed = false;
+		SubscriptionLock = new object();
+		P2pReconnector = new P2pReconnector(TimeSpan.FromSeconds(7), this);
+	}
+
+	public event EventHandler<uint256>? BlockInv;
+
+	private Node? Node { get; set; }
+	private TrustedP2pBehavior? TrustedP2pBehavior { get; set; }
+	public Network Network { get; }
+	public EndPoint EndPoint { get; }
+	public MempoolService MempoolService { get; }
+	public string UserAgent { get; }
+
+	private bool NodeEventsSubscribed { get; set; }
+	private object SubscriptionLock { get; }
+	private CancellationTokenSource Stop { get; }
+	private P2pReconnector P2pReconnector { get; set; }
+
+	public async Task ConnectAsync(CancellationToken cancel)
+	{
+		using var handshakeTimeout = new CancellationTokenSource();
+		using var linked = CancellationTokenSource.CreateLinkedTokenSource(handshakeTimeout.Token, cancel, Stop.Token);
+		handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(21));
+		var parameters = new NodeConnectionParameters()
 		{
-			Network = Guard.NotNull(nameof(network), network);
-			EndPoint = Guard.NotNull(nameof(endPoint), endPoint);
-			MempoolService = Guard.NotNull(nameof(mempoolService), mempoolService);
-			UserAgent = Guard.NotNullOrEmptyOrWhitespace(nameof(userAgent), userAgent, trim: true);
+			UserAgent = UserAgent,
+			ConnectCancellation = linked.Token,
+			IsRelay = true
+		};
 
-			Stop = new CancellationTokenSource();
-			NodeEventsSubscribed = false;
-			SubscriptionLock = new object();
-			P2pReconnector = new P2pReconnector(TimeSpan.FromSeconds(7), this);
+		parameters.TemplateBehaviors.Add(new TrustedP2pBehavior(MempoolService));
+
+		Node = await Node.ConnectAsync(Network, EndPoint, parameters).ConfigureAwait(false);
+		Node.VersionHandshake(cancel);
+
+		if (!Node.PeerVersion.Services.HasFlag(NodeServices.Network))
+		{
+			throw new InvalidOperationException("Wasabi cannot use the local node because it does not provide blocks.");
 		}
 
-		public event EventHandler<uint256>? BlockInv;
-
-		private Node? Node { get; set; }
-		private TrustedP2pBehavior? TrustedP2pBehavior { get; set; }
-		public Network Network { get; }
-		public EndPoint EndPoint { get; }
-		public MempoolService MempoolService { get; }
-		public string UserAgent { get; }
-
-		private bool NodeEventsSubscribed { get; set; }
-		private object SubscriptionLock { get; }
-		private CancellationTokenSource Stop { get; }
-		private P2pReconnector P2pReconnector { get; set; }
-
-		public async Task ConnectAsync(CancellationToken cancel)
+		if (!Node.IsConnected)
 		{
-			using var handshakeTimeout = new CancellationTokenSource();
-			using var linked = CancellationTokenSource.CreateLinkedTokenSource(handshakeTimeout.Token, cancel, Stop.Token);
-			handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(21));
-			var parameters = new NodeConnectionParameters()
-			{
-				UserAgent = UserAgent,
-				ConnectCancellation = linked.Token,
-				IsRelay = true
-			};
+			throw new InvalidOperationException(
+				$"Could not complete the handshake with the local node and dropped the connection.{Environment.NewLine}" +
+				"Probably this is because the node does not support retrieving full blocks or segwit serialization.");
+		}
 
-			parameters.TemplateBehaviors.Add(new TrustedP2pBehavior(MempoolService));
+		lock (SubscriptionLock)
+		{
+			TrustedP2pBehavior = Node.Behaviors.Find<TrustedP2pBehavior>();
+			Node.UncaughtException += Node_UncaughtException;
+			Node.StateChanged += P2pNode_StateChanged;
+			Node.Disconnected += Node_DisconnectedAsync;
+			TrustedP2pBehavior.BlockInv += TrustedP2pBehavior_BlockInv;
+			NodeEventsSubscribed = true;
+			MempoolService.TrustedNodeMode = Node.IsConnected;
+		}
+	}
 
-			Node = await Node.ConnectAsync(Network, EndPoint, parameters).ConfigureAwait(false);
-			Node.VersionHandshake(cancel);
+	private void Node_UncaughtException(Node sender, Exception ex)
+	{
+		Logger.LogInfo($"Node {sender.Peer.Endpoint} failed with exception: {ex}");
+	}
 
-			if (!Node.PeerVersion.Services.HasFlag(NodeServices.Network))
-			{
-				throw new InvalidOperationException("Wasabi cannot use the local node because it does not provide blocks.");
-			}
+	private async void Node_DisconnectedAsync(Node node)
+	{
+		try
+		{
+			await P2pReconnector.StartAndAwaitReconnectionAsync(Stop.Token).ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogDebug(ex);
+		}
+	}
 
-			if (!Node.IsConnected)
-			{
-				throw new InvalidOperationException(
-					$"Could not complete the handshake with the local node and dropped the connection.{Environment.NewLine}" +
-					"Probably this is because the node does not support retrieving full blocks or segwit serialization.");
-			}
+	private void TrustedP2pBehavior_BlockInv(object? sender, uint256 e)
+	{
+		BlockInv?.Invoke(this, e);
+	}
 
+	private void P2pNode_StateChanged(Node node, NodeState oldState)
+	{
+		var isConnected = node.IsConnected;
+		var trustedNodeMode = MempoolService.TrustedNodeMode;
+		if (trustedNodeMode != isConnected)
+		{
+			MempoolService.TrustedNodeMode = isConnected;
+			Logger.LogInfo($"CoreNode connection state changed. Triggered {nameof(MempoolService)}.{nameof(MempoolService.TrustedNodeMode)} to be {MempoolService.TrustedNodeMode}");
+		}
+	}
+
+	public async Task DisposeAsync()
+	{
+		if (_disposed)
+		{
+			return;
+		}
+		_disposed = true;
+
+		Stop.Cancel();
+
+		await P2pReconnector.StopAsync(CancellationToken.None).ConfigureAwait(false);
+		P2pReconnector.Dispose();
+
+		await TryDisconnectAsync(CancellationToken.None).ConfigureAwait(false);
+		Stop.Dispose();
+	}
+
+	/// <summary>
+	/// It is not equivalent to Dispose, but it is being called from Dispose.
+	/// </summary>
+	public async Task<bool> TryDisconnectAsync(CancellationToken cancel)
+	{
+		var node = Node;
+		if (node is null)
+		{
+			return true;
+		}
+
+		try
+		{
 			lock (SubscriptionLock)
 			{
-				TrustedP2pBehavior = Node.Behaviors.Find<TrustedP2pBehavior>();
-				Node.UncaughtException += Node_UncaughtException;
-				Node.StateChanged += P2pNode_StateChanged;
-				Node.Disconnected += Node_DisconnectedAsync;
-				TrustedP2pBehavior.BlockInv += TrustedP2pBehavior_BlockInv;
-				NodeEventsSubscribed = true;
-				MempoolService.TrustedNodeMode = Node.IsConnected;
+				MempoolService.TrustedNodeMode = false;
+				if (NodeEventsSubscribed)
+				{
+					if (TrustedP2pBehavior is { } trustedP2pBehavior)
+					{
+						trustedP2pBehavior.BlockInv -= TrustedP2pBehavior_BlockInv;
+					}
+					node.Disconnected -= Node_DisconnectedAsync;
+					node.StateChanged -= P2pNode_StateChanged;
+					node.UncaughtException -= Node_UncaughtException;
+					NodeEventsSubscribed = false;
+				}
 			}
-		}
 
-		private void Node_UncaughtException(Node sender, Exception ex)
-		{
-			Logger.LogInfo($"Node {sender.Peer.Endpoint} failed with exception: {ex}");
-		}
+			await DisconnectAsync(node, cancel).ConfigureAwait(false);
 
-		private async void Node_DisconnectedAsync(Node node)
-		{
-			try
-			{
-				await P2pReconnector.StartAndAwaitReconnectionAsync(Stop.Token).ConfigureAwait(false);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogDebug(ex);
-			}
+			Logger.LogInfo("P2p Bitcoin node is disconnected.");
+			return true;
 		}
-
-		private void TrustedP2pBehavior_BlockInv(object? sender, uint256 e)
+		catch (Exception ex)
 		{
-			BlockInv?.Invoke(this, e);
+			Logger.LogError($"P2p Bitcoin node failed to disconnect. '{ex}'");
+			return false;
 		}
-
-		private void P2pNode_StateChanged(Node node, NodeState oldState)
+		finally
 		{
-			var isConnected = node.IsConnected;
-			var trustedNodeMode = MempoolService.TrustedNodeMode;
-			if (trustedNodeMode != isConnected)
-			{
-				MempoolService.TrustedNodeMode = isConnected;
-				Logger.LogInfo($"CoreNode connection state changed. Triggered {nameof(MempoolService)}.{nameof(MempoolService.TrustedNodeMode)} to be {MempoolService.TrustedNodeMode}");
-			}
+			Node = null;
 		}
+	}
 
-		public async Task DisposeAsync()
+	private static async Task DisconnectAsync(Node node, CancellationToken cancel)
+	{
+		TaskCompletionSource<bool> tcs = new();
+		node.Disconnected += Node_Disconnected;
+		try
 		{
-			if (_disposed)
+			if (!node.IsConnected)
 			{
 				return;
 			}
-			_disposed = true;
 
-			Stop.Cancel();
-
-			await P2pReconnector.StopAsync(CancellationToken.None).ConfigureAwait(false);
-			P2pReconnector.Dispose();
-
-			await TryDisconnectAsync(CancellationToken.None).ConfigureAwait(false);
-			Stop.Dispose();
+			// Disconnection not waited here.
+			node.DisconnectAsync();
+			await tcs.Task.WithAwaitCancellationAsync(cancel).ConfigureAwait(false);
+		}
+		finally
+		{
+			node.Disconnected -= Node_Disconnected;
 		}
 
-		/// <summary>
-		/// It is not equivalent to Dispose, but it is being called from Dispose.
-		/// </summary>
-		public async Task<bool> TryDisconnectAsync(CancellationToken cancel)
+		void Node_Disconnected(Node node)
 		{
-			var node = Node;
-			if (node is null)
-			{
-				return true;
-			}
-
-			try
-			{
-				lock (SubscriptionLock)
-				{
-					MempoolService.TrustedNodeMode = false;
-					if (NodeEventsSubscribed)
-					{
-						if (TrustedP2pBehavior is { } trustedP2pBehavior)
-						{
-							trustedP2pBehavior.BlockInv -= TrustedP2pBehavior_BlockInv;
-						}
-						node.Disconnected -= Node_DisconnectedAsync;
-						node.StateChanged -= P2pNode_StateChanged;
-						node.UncaughtException -= Node_UncaughtException;
-						NodeEventsSubscribed = false;
-					}
-				}
-
-				await DisconnectAsync(node, cancel).ConfigureAwait(false);
-
-				Logger.LogInfo("P2p Bitcoin node is disconnected.");
-				return true;
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError($"P2p Bitcoin node failed to disconnect. '{ex}'");
-				return false;
-			}
-			finally
-			{
-				Node = null;
-			}
-		}
-
-		private static async Task DisconnectAsync(Node node, CancellationToken cancel)
-		{
-			TaskCompletionSource<bool> tcs = new();
-			node.Disconnected += Node_Disconnected;
-			try
-			{
-				if (!node.IsConnected)
-				{
-					return;
-				}
-
-				// Disconnection not waited here.
-				node.DisconnectAsync();
-				await tcs.Task.WithAwaitCancellationAsync(cancel).ConfigureAwait(false);
-			}
-			finally
-			{
-				node.Disconnected -= Node_Disconnected;
-			}
-
-			void Node_Disconnected(Node node)
-			{
-				tcs.TrySetResult(true);
-			}
+			tcs.TrySetResult(true);
 		}
 	}
 }

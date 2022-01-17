@@ -1,31 +1,30 @@
 using System.Reactive.Disposables;
 using Avalonia;
 
-namespace WalletWasabi.Fluent.Behaviors
+namespace WalletWasabi.Fluent.Behaviors;
+
+public abstract class AttachedToVisualTreeBehavior<T> : DisposingBehavior<T> where T : Visual
 {
-	public abstract class AttachedToVisualTreeBehavior<T> : DisposingBehavior<T> where T : Visual
+	private CompositeDisposable? _disposables;
+
+	protected override void OnAttached(CompositeDisposable disposables)
 	{
-		private CompositeDisposable? _disposables;
+		_disposables = disposables;
 
-		protected override void OnAttached(CompositeDisposable disposables)
-		{
-			_disposables = disposables;
+		AssociatedObject!.AttachedToVisualTree += AssociatedObjectOnAttachedToVisualTree;
+	}
 
-			AssociatedObject!.AttachedToVisualTree += AssociatedObjectOnAttachedToVisualTree;
-		}
+	private void AssociatedObjectOnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
+	{
+		OnAttachedToVisualTree(_disposables!);
+	}
 
-		private void AssociatedObjectOnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
-		{
-			OnAttachedToVisualTree(_disposables!);
-		}
+	protected abstract void OnAttachedToVisualTree(CompositeDisposable disposable);
 
-		protected abstract void OnAttachedToVisualTree(CompositeDisposable disposable);
+	protected override void OnDetaching()
+	{
+		base.OnDetaching();
 
-		protected override void OnDetaching()
-		{
-			base.OnDetaching();
-
-			AssociatedObject!.AttachedToVisualTree -= AssociatedObjectOnAttachedToVisualTree;
-		}
+		AssociatedObject!.AttachedToVisualTree -= AssociatedObjectOnAttachedToVisualTree;
 	}
 }

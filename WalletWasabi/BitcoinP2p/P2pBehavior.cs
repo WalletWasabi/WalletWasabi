@@ -9,119 +9,118 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.BitcoinP2p
+namespace WalletWasabi.BitcoinP2p;
+
+public abstract class P2pBehavior : NodeBehavior
 {
-	public abstract class P2pBehavior : NodeBehavior
+	private const int MaxInvSize = 50000;
+
+	protected P2pBehavior(MempoolService mempoolService)
 	{
-		private const int MaxInvSize = 50000;
+		MempoolService = Guard.NotNull(nameof(mempoolService), mempoolService);
+	}
 
-		protected P2pBehavior(MempoolService mempoolService)
+	public MempoolService MempoolService { get; }
+
+	protected override void AttachCore()
+	{
+		AttachedNode.MessageReceived += AttachedNode_MessageReceivedAsync;
+	}
+
+	protected override void DetachCore()
+	{
+		AttachedNode.MessageReceived -= AttachedNode_MessageReceivedAsync;
+	}
+
+	private async void AttachedNode_MessageReceivedAsync(Node node, IncomingMessage message)
+	{
+		try
 		{
-			MempoolService = Guard.NotNull(nameof(mempoolService), mempoolService);
-		}
-
-		public MempoolService MempoolService { get; }
-
-		protected override void AttachCore()
-		{
-			AttachedNode.MessageReceived += AttachedNode_MessageReceivedAsync;
-		}
-
-		protected override void DetachCore()
-		{
-			AttachedNode.MessageReceived -= AttachedNode_MessageReceivedAsync;
-		}
-
-		private async void AttachedNode_MessageReceivedAsync(Node node, IncomingMessage message)
-		{
-			try
+			if (message.Message.Payload is GetDataPayload getDataPayload)
 			{
-				if (message.Message.Payload is GetDataPayload getDataPayload)
+				await ProcessGetDataAsync(node, getDataPayload).ConfigureAwait(false);
+			}
+			else if (message.Message.Payload is TxPayload txPayload)
+			{
+				ProcessTx(txPayload);
+			}
+			else if (message.Message.Payload is InvPayload invPayload)
+			{
+				await ProcessInventoryAsync(node, invPayload).ConfigureAwait(false);
+			}
+		}
+		catch (OperationCanceledException ex)
+		{
+			Logger.LogDebug(ex);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogInfo($"Ignoring {ex.GetType()}: {ex.Message}");
+			Logger.LogDebug(ex);
+		}
+	}
+
+	private async Task ProcessInventoryAsync(Node node, InvPayload invPayload)
+	{
+		var getDataPayload = new GetDataPayload();
+		foreach (var inv in invPayload.Inventory)
+		{
+			if (ProcessInventoryVector(inv, node.RemoteSocketEndpoint))
+			{
+				getDataPayload.Inventory.Add(inv);
+			}
+		}
+		if (getDataPayload.Inventory.Any() && node.IsConnected)
+		{
+			await node.SendMessageAsync(getDataPayload).ConfigureAwait(false);
+		}
+	}
+
+	protected abstract bool ProcessInventoryVector(InventoryVector inv, EndPoint remoteSocketEndpoint);
+
+	private async Task ProcessGetDataAsync(Node node, GetDataPayload payload)
+	{
+		if (payload.Inventory.Count > MaxInvSize)
+		{
+			Logger.LogDebug($"Received inventory too big. {nameof(MaxInvSize)}: {MaxInvSize}, Node: {node.RemoteSocketEndpoint}");
+			return;
+		}
+
+		foreach (var inv in payload.Inventory.Where(inv => inv.Type.HasFlag(InventoryType.MSG_TX)))
+		{
+			if (MempoolService.TryGetFromBroadcastStore(inv.Hash, out TransactionBroadcastEntry? entry)) // If we have the transaction to be broadcasted then broadcast it now.
+			{
+				if (entry.NodeRemoteSocketEndpoint != node.RemoteSocketEndpoint.ToString())
 				{
-					await ProcessGetDataAsync(node, getDataPayload).ConfigureAwait(false);
+					continue; // Would be strange. It could be some kind of attack.
 				}
-				else if (message.Message.Payload is TxPayload txPayload)
-				{
-					ProcessTx(txPayload);
-				}
-				else if (message.Message.Payload is InvPayload invPayload)
-				{
-					await ProcessInventoryAsync(node, invPayload).ConfigureAwait(false);
-				}
-			}
-			catch (OperationCanceledException ex)
-			{
-				Logger.LogDebug(ex);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogInfo($"Ignoring {ex.GetType()}: {ex.Message}");
-				Logger.LogDebug(ex);
-			}
-		}
 
-		private async Task ProcessInventoryAsync(Node node, InvPayload invPayload)
-		{
-			var getDataPayload = new GetDataPayload();
-			foreach (var inv in invPayload.Inventory)
-			{
-				if (ProcessInventoryVector(inv, node.RemoteSocketEndpoint))
+				try
 				{
-					getDataPayload.Inventory.Add(inv);
-				}
-			}
-			if (getDataPayload.Inventory.Any() && node.IsConnected)
-			{
-				await node.SendMessageAsync(getDataPayload).ConfigureAwait(false);
-			}
-		}
-
-		protected abstract bool ProcessInventoryVector(InventoryVector inv, EndPoint remoteSocketEndpoint);
-
-		private async Task ProcessGetDataAsync(Node node, GetDataPayload payload)
-		{
-			if (payload.Inventory.Count > MaxInvSize)
-			{
-				Logger.LogDebug($"Received inventory too big. {nameof(MaxInvSize)}: {MaxInvSize}, Node: {node.RemoteSocketEndpoint}");
-				return;
-			}
-
-			foreach (var inv in payload.Inventory.Where(inv => inv.Type.HasFlag(InventoryType.MSG_TX)))
-			{
-				if (MempoolService.TryGetFromBroadcastStore(inv.Hash, out TransactionBroadcastEntry? entry)) // If we have the transaction to be broadcasted then broadcast it now.
-				{
-					if (entry.NodeRemoteSocketEndpoint != node.RemoteSocketEndpoint.ToString())
+					var txPayload = new TxPayload(entry.Transaction);
+					if (!node.IsConnected)
 					{
-						continue; // Would be strange. It could be some kind of attack.
+						Logger.LogInfo($"Could not serve transaction. Node ({node.RemoteSocketEndpoint}) is not connected anymore: {entry.TransactionId}.");
 					}
-
-					try
+					else
 					{
-						var txPayload = new TxPayload(entry.Transaction);
-						if (!node.IsConnected)
-						{
-							Logger.LogInfo($"Could not serve transaction. Node ({node.RemoteSocketEndpoint}) is not connected anymore: {entry.TransactionId}.");
-						}
-						else
-						{
-							await node.SendMessageAsync(txPayload).ConfigureAwait(false);
-							entry.MakeBroadcasted();
-							Logger.LogInfo($"Successfully served transaction to node ({node.RemoteSocketEndpoint}): {entry.TransactionId}.");
-						}
-					}
-					catch (Exception ex)
-					{
-						Logger.LogInfo(ex);
+						await node.SendMessageAsync(txPayload).ConfigureAwait(false);
+						entry.MakeBroadcasted();
+						Logger.LogInfo($"Successfully served transaction to node ({node.RemoteSocketEndpoint}): {entry.TransactionId}.");
 					}
 				}
+				catch (Exception ex)
+				{
+					Logger.LogInfo(ex);
+				}
 			}
 		}
+	}
 
-		protected virtual void ProcessTx(TxPayload payload)
-		{
-			Transaction transaction = payload.Object;
-			transaction.PrecomputeHash(false, true);
-			MempoolService.Process(transaction);
-		}
+	protected virtual void ProcessTx(TxPayload payload)
+	{
+		Transaction transaction = payload.Object;
+		transaction.PrecomputeHash(false, true);
+		MempoolService.Process(transaction);
 	}
 }

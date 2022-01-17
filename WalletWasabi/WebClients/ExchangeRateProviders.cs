@@ -11,12 +11,12 @@ using WalletWasabi.WebClients.Gemini;
 using WalletWasabi.WebClients.ItBit;
 using System.Linq;
 
-namespace WalletWasabi.WebClients
+namespace WalletWasabi.WebClients;
+
+public class ExchangeRateProvider : IExchangeRateProvider
 {
-	public class ExchangeRateProvider : IExchangeRateProvider
+	private readonly IExchangeRateProvider[] _exchangeRateProviders =
 	{
-		private readonly IExchangeRateProvider[] _exchangeRateProviders =
-		{
 			new BlockchainInfoExchangeRateProvider(),
 			new BitstampExchangeRateProvider(),
 			new CoinGeckoExchangeRateProvider(),
@@ -25,21 +25,20 @@ namespace WalletWasabi.WebClients
 			new ItBitExchangeRateProvider()
 		};
 
-		public async Task<IEnumerable<ExchangeRate>> GetExchangeRateAsync()
+	public async Task<IEnumerable<ExchangeRate>> GetExchangeRateAsync()
+	{
+		foreach (var provider in _exchangeRateProviders)
 		{
-			foreach (var provider in _exchangeRateProviders)
+			try
 			{
-				try
-				{
-					return await provider.GetExchangeRateAsync().ConfigureAwait(false);
-				}
-				catch (Exception ex)
-				{
-					// Ignore it and try with the next one
-					Logger.LogTrace(ex);
-				}
+				return await provider.GetExchangeRateAsync().ConfigureAwait(false);
 			}
-			return Enumerable.Empty<ExchangeRate>();
+			catch (Exception ex)
+			{
+				// Ignore it and try with the next one
+				Logger.LogTrace(ex);
+			}
 		}
+		return Enumerable.Empty<ExchangeRate>();
 	}
 }

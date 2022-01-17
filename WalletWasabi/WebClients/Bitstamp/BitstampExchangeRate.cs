@@ -1,10 +1,9 @@
 using Newtonsoft.Json;
 
-namespace WalletWasabi.WebClients.Bitstamp
+namespace WalletWasabi.WebClients.Bitstamp;
+
+public class BitstampExchangeRate
 {
-	public class BitstampExchangeRate
-	{
-		[JsonProperty(PropertyName = "bid")]
-		public decimal Rate { get; set; }
-	}
+	[JsonProperty(PropertyName = "bid")]
+	public decimal Rate { get; set; }
 }

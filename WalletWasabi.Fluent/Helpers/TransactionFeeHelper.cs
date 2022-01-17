@@ -3,49 +3,48 @@ using System.Linq;
 using NBitcoin;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.Helpers
+namespace WalletWasabi.Fluent.Helpers;
+
+public static class TransactionFeeHelper
 {
-	public static class TransactionFeeHelper
+	private static readonly Dictionary<int, int> TestNetFeeEstimates = new()
 	{
-		private static readonly Dictionary<int, int> TestNetFeeEstimates = new()
-		{
-			[1] = 17,
-			[2] = 12,
-			[3] = 9,
-			[6] = 9,
-			[18] = 2,
-			[36] = 2,
-			[72] = 2,
-			[144] = 2,
-			[432] = 1,
-			[1008] = 1
-		};
+		[1] = 17,
+		[2] = 12,
+		[3] = 9,
+		[6] = 9,
+		[18] = 2,
+		[36] = 2,
+		[72] = 2,
+		[144] = 2,
+		[432] = 1,
+		[1008] = 1
+	};
 
-		public static Dictionary<int, int> GetFeeEstimates(Wallet wallet)
+	public static Dictionary<int, int> GetFeeEstimates(Wallet wallet)
+	{
+		if (wallet.FeeProvider.AllFeeEstimate is null)
 		{
-			if (wallet.FeeProvider.AllFeeEstimate is null)
-			{
-				throw new InvalidOperationException($"Not possible to get the fee estimates. {nameof(wallet.FeeProvider.AllFeeEstimate)} is null.");
-			}
-
-			return wallet.Network == Network.TestNet ? TestNetFeeEstimates : wallet.FeeProvider.AllFeeEstimate.Estimations;
+			throw new InvalidOperationException($"Not possible to get the fee estimates. {nameof(wallet.FeeProvider.AllFeeEstimate)} is null.");
 		}
 
-		public static bool AreTransactionFeesEqual(Wallet wallet)
-		{
-			var feeEstimates = GetFeeEstimates(wallet);
+		return wallet.Network == Network.TestNet ? TestNetFeeEstimates : wallet.FeeProvider.AllFeeEstimate.Estimations;
+	}
 
-			var first = feeEstimates.First();
-			var last = feeEstimates.Last();
+	public static bool AreTransactionFeesEqual(Wallet wallet)
+	{
+		var feeEstimates = GetFeeEstimates(wallet);
 
-			return first.Value == last.Value;
-		}
+		var first = feeEstimates.First();
+		var last = feeEstimates.Last();
 
-		public static TimeSpan CalculateConfirmationTime(double targetBlock)
-		{
-			var timeInMinutes = Math.Ceiling(targetBlock) * 10;
-			var time = TimeSpan.FromMinutes(timeInMinutes);
-			return time;
-		}
+		return first.Value == last.Value;
+	}
+
+	public static TimeSpan CalculateConfirmationTime(double targetBlock)
+	{
+		var timeInMinutes = Math.Ceiling(targetBlock) * 10;
+		var time = TimeSpan.FromMinutes(timeInMinutes);
+		return time;
 	}
 }

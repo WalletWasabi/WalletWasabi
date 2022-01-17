@@ -1,9 +1,8 @@
-namespace WalletWasabi.Fluent.Models
+namespace WalletWasabi.Fluent.Models;
+
+public enum BalanceType
 {
-	public enum BalanceType
-	{
-		All,
-		Private,
-		Pocket
-	}
+	All,
+	Private,
+	Pocket
 }
