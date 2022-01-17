@@ -381,7 +381,7 @@ public partial class Arena : PeriodicRunner
 	{
 		Script coordinatorScriptPubKey = GetCoordinatorScriptPreventReuse(round);
 
-		var coordinationFee = round.Alices.Sum(x => round.CoordinationFeeRate.GetFee(x.Coin.Amount));
+		var coordinationFee = round.Alices.Where(a => !a.IsPayingZeroCoordinationFee).Sum(x => round.CoordinationFeeRate.GetFee(x.Coin.Amount));
 		coordinationFee -= round.FeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize());
 
 		if (coordinationFee > coinjoin.Parameters.AllowedOutputAmounts.Min)
