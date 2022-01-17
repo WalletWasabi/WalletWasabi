@@ -72,12 +72,12 @@ public class ArenaClientTests
 			wabiSabiApi);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
-			var (inputRegistrationResponse, _) = await aliceArenaClient.RegisterInputAsync(round.Id, outpoint, ownershipProof, CancellationToken.None);
-			var aliceId = inputRegistrationResponse.Value;
+		var (inputRegistrationResponse, _) = await aliceArenaClient.RegisterInputAsync(round.Id, outpoint, ownershipProof, CancellationToken.None);
+		var aliceId = inputRegistrationResponse.Value;
 
-			var inputVsize = Constants.P2wpkhInputVirtualSize;
-			var amountsToRequest = new[]
-			{
+		var inputVsize = Constants.P2wpkhInputVirtualSize;
+		var amountsToRequest = new[]
+		{
 				Money.Coins(.75m) - round.FeeRate.GetFee(inputVsize) - round.CoordinationFeeRate.GetFee(Money.Coins(1m)),
 				Money.Coins(.25m),
 			}.Select(x => x.Satoshi).ToArray();
@@ -160,21 +160,21 @@ public class ArenaClientTests
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 
-			var tx = round.Assert<SigningState>().CreateTransaction();
-			Assert.Single(tx.Inputs);
-			Assert.Equal(2 + 1, tx.Outputs.Count); // +1 because it pays coordination fees
-		}
+		var tx = round.Assert<SigningState>().CreateTransaction();
+		Assert.Single(tx.Inputs);
+		Assert.Equal(2 + 1, tx.Outputs.Count); // +1 because it pays coordination fees
+	}
 
-		[Fact]
-		public async Task RemoveInputAsyncTestAsync()
-		{
-			var config = new WabiSabiConfig();
-			var round = WabiSabiFactory.CreateRound(config);
-			round.SetPhase(Phase.ConnectionConfirmation);
-			var fundingTx = BitcoinFactory.CreateSmartTransaction(ownOutputCount: 1);
-			var coin = fundingTx.WalletOutputs.First().Coin;
-			var alice = new Alice(coin, new OwnershipProof(), round, Guid.NewGuid(), false);
-			round.Alices.Add(alice);
+	[Fact]
+	public async Task RemoveInputAsyncTestAsync()
+	{
+		var config = new WabiSabiConfig();
+		var round = WabiSabiFactory.CreateRound(config);
+		round.SetPhase(Phase.ConnectionConfirmation);
+		var fundingTx = BitcoinFactory.CreateSmartTransaction(ownOutputCount: 1);
+		var coin = fundingTx.WalletOutputs.First().Coin;
+		var alice = new Alice(coin, new OwnershipProof(), round, Guid.NewGuid(), false);
+		round.Alices.Add(alice);
 
 		using Arena arena = await ArenaBuilder.From(config).CreateAndStartAsync(round);
 

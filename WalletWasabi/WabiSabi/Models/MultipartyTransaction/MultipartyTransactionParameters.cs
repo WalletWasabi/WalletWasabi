@@ -13,19 +13,19 @@ public record MultipartyTransactionParameters
 
 	public static ImmutableSortedSet<ScriptType> OnlyP2WPKH = ImmutableSortedSet.Create<ScriptType>(ScriptType.P2WPKH);
 
-		public MultipartyTransactionParameters(
-			FeeRate feeRate,
-			Models.CoordinationFeeRate coordinationFeeRate,
-			MoneyRange allowedInputAmounts,
-			MoneyRange allowedOutputAmounts,
-			Network network)
-		{
-			FeeRate = feeRate;
-			CoordinationFeeRate = coordinationFeeRate;
-			AllowedInputAmounts = allowedInputAmounts;
-			AllowedOutputAmounts = allowedOutputAmounts;
-			Network = network;
-		}
+	public MultipartyTransactionParameters(
+		FeeRate feeRate,
+		Models.CoordinationFeeRate coordinationFeeRate,
+		MoneyRange allowedInputAmounts,
+		MoneyRange allowedOutputAmounts,
+		Network network)
+	{
+		FeeRate = feeRate;
+		CoordinationFeeRate = coordinationFeeRate;
+		AllowedInputAmounts = allowedInputAmounts;
+		AllowedOutputAmounts = allowedOutputAmounts;
+		Network = network;
+	}
 
 	// These parameters need to be committed to the transcript, but we want
 	// the NBitcoin supplied default values, hence the private static property
@@ -34,13 +34,13 @@ public record MultipartyTransactionParameters
 	public ImmutableSortedSet<ScriptType> AllowedInputTypes { get; init; } = OnlyP2WPKH;
 	public ImmutableSortedSet<ScriptType> AllowedOutputTypes { get; init; } = OnlyP2WPKH;
 
-		public int MaxTransactionSize { get; init; } = StandardTransactionPolicy.MaxTransactionSize!.Value;
-		public FeeRate MinRelayTxFee { get; init; } = StandardTransactionPolicy.MinRelayTxFee;
-		public FeeRate FeeRate { get; init; }
-		public CoordinationFeeRate CoordinationFeeRate { get; init; }
-		public MoneyRange AllowedInputAmounts { get; init; }
-		public MoneyRange AllowedOutputAmounts { get; init; }
-		public Network Network { get; }
+	public int MaxTransactionSize { get; init; } = StandardTransactionPolicy.MaxTransactionSize!.Value;
+	public FeeRate MinRelayTxFee { get; init; } = StandardTransactionPolicy.MinRelayTxFee;
+	public FeeRate FeeRate { get; init; }
+	public CoordinationFeeRate CoordinationFeeRate { get; init; }
+	public MoneyRange AllowedInputAmounts { get; init; }
+	public MoneyRange AllowedOutputAmounts { get; init; }
+	public Network Network { get; }
 
 	// implied:
 	// segwit transaction

@@ -25,9 +25,9 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "ConfirmationTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public uint ConfirmationTarget { get; set; } = 108;
 
-		[DefaultValueTimeSpan("0d 3h 0m 0s")]
-		[JsonProperty(PropertyName = "ReleaseUtxoFromPrisonAfter", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public TimeSpan ReleaseUtxoFromPrisonAfter { get; set; } = TimeSpan.FromHours(3);
+	[DefaultValueTimeSpan("0d 3h 0m 0s")]
+	[JsonProperty(PropertyName = "ReleaseUtxoFromPrisonAfter", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public TimeSpan ReleaseUtxoFromPrisonAfter { get; set; } = TimeSpan.FromHours(3);
 
 	[DefaultValueMoneyBtc("0.00005")]
 	[JsonProperty(PropertyName = "MinRegistrableAmount", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -46,29 +46,29 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "AllowNotedInputRegistration", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool AllowNotedInputRegistration { get; set; } = true;
 
-		[DefaultValueTimeSpan("0d 1h 0m 0s")]
-		[JsonProperty(PropertyName = "StandardInputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public TimeSpan StandardInputRegistrationTimeout { get; set; } = TimeSpan.FromHours(1);
+	[DefaultValueTimeSpan("0d 1h 0m 0s")]
+	[JsonProperty(PropertyName = "StandardInputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public TimeSpan StandardInputRegistrationTimeout { get; set; } = TimeSpan.FromHours(1);
 
-		[DefaultValueTimeSpan("0d 0h 3m 0s")]
-		[JsonProperty(PropertyName = "BlameInputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public TimeSpan BlameInputRegistrationTimeout { get; set; } = TimeSpan.FromMinutes(3);
+	[DefaultValueTimeSpan("0d 0h 3m 0s")]
+	[JsonProperty(PropertyName = "BlameInputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public TimeSpan BlameInputRegistrationTimeout { get; set; } = TimeSpan.FromMinutes(3);
 
-		[DefaultValueTimeSpan("0d 0h 1m 0s")]
-		[JsonProperty(PropertyName = "ConnectionConfirmationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public TimeSpan ConnectionConfirmationTimeout { get; set; } = TimeSpan.FromMinutes(1);
+	[DefaultValueTimeSpan("0d 0h 1m 0s")]
+	[JsonProperty(PropertyName = "ConnectionConfirmationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public TimeSpan ConnectionConfirmationTimeout { get; set; } = TimeSpan.FromMinutes(1);
 
-		[DefaultValueTimeSpan("0d 0h 1m 0s")]
-		[JsonProperty(PropertyName = "OutputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public TimeSpan OutputRegistrationTimeout { get; set; } = TimeSpan.FromMinutes(1);
+	[DefaultValueTimeSpan("0d 0h 1m 0s")]
+	[JsonProperty(PropertyName = "OutputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public TimeSpan OutputRegistrationTimeout { get; set; } = TimeSpan.FromMinutes(1);
 
-		[DefaultValueTimeSpan("0d 0h 1m 0s")]
-		[JsonProperty(PropertyName = "TransactionSigningTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public TimeSpan TransactionSigningTimeout { get; set; } = TimeSpan.FromMinutes(1);
+	[DefaultValueTimeSpan("0d 0h 1m 0s")]
+	[JsonProperty(PropertyName = "TransactionSigningTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public TimeSpan TransactionSigningTimeout { get; set; } = TimeSpan.FromMinutes(1);
 
-		[DefaultValueTimeSpan("0d 0h 5m 0s")]
-		[JsonProperty(PropertyName = "RoundExpiryTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public TimeSpan RoundExpiryTimeout { get; set; } = TimeSpan.FromMinutes(5);
+	[DefaultValueTimeSpan("0d 0h 5m 0s")]
+	[JsonProperty(PropertyName = "RoundExpiryTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public TimeSpan RoundExpiryTimeout { get; set; } = TimeSpan.FromMinutes(5);
 
 	[DefaultValue(100)]
 	[JsonProperty(PropertyName = "MaxInputCountByRound", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -80,30 +80,29 @@ public class WabiSabiConfig : ConfigBase
 
 	public int MinInputCountByRound => Math.Max(1, (int)(MaxInputCountByRound * MinInputCountByRoundMultiplier));
 
-		[DefaultValueCoordinationFeeRate(0.003, 0.01)]
-		[JsonProperty(PropertyName = "CoordinationFeeRate", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public CoordinationFeeRate CoordinationFeeRate { get; set; } = new CoordinationFeeRate(0.003m, Money.Coins(0.01m));
+	[DefaultValueCoordinationFeeRate(0.003, 0.01)]
+	[JsonProperty(PropertyName = "CoordinationFeeRate", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public CoordinationFeeRate CoordinationFeeRate { get; set; } = new CoordinationFeeRate(0.003m, Money.Coins(0.01m));
 
-		[JsonProperty(PropertyName = "CoordinatorExtPubKey")]
-		public ExtPubKey CoordinatorExtPubKey { get; } = Constants.WabiSabiFallBackCoordinatorExtPubKey;
+	[JsonProperty(PropertyName = "CoordinatorExtPubKey")]
+	public ExtPubKey CoordinatorExtPubKey { get; } = Constants.WabiSabiFallBackCoordinatorExtPubKey;
 
-		[DefaultValue(1)]
-		[JsonProperty(PropertyName = "CoordinatorExtPubKeyCurrentDepth", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public int CoordinatorExtPubKeyCurrentDepth { get; private set; } = 1;
+	[DefaultValue(1)]
+	[JsonProperty(PropertyName = "CoordinatorExtPubKeyCurrentDepth", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public int CoordinatorExtPubKeyCurrentDepth { get; private set; } = 1;
 
-		/// <summary>
-		/// If money comes to the blame script, then either an attacker lost money or there's a client bug.
-		/// </summary>
-		public Script BlameScript => DeriveCoordinatorScript(0);
+	/// <summary>
+	/// If money comes to the blame script, then either an attacker lost money or there's a client bug.
+	/// </summary>
+	public Script BlameScript => DeriveCoordinatorScript(0);
 
-		public Script GetNextCleanCoordinatorScript() => DeriveCoordinatorScript(CoordinatorExtPubKeyCurrentDepth);
+	public Script GetNextCleanCoordinatorScript() => DeriveCoordinatorScript(CoordinatorExtPubKeyCurrentDepth);
 
-		public Script DeriveCoordinatorScript(int index) => CoordinatorExtPubKey.Derive(0, false).Derive(index, false).PubKey.WitHash.ScriptPubKey;
+	public Script DeriveCoordinatorScript(int index) => CoordinatorExtPubKey.Derive(0, false).Derive(index, false).PubKey.WitHash.ScriptPubKey;
 
-		public void MakeNextCoordinatorScriptDirty()
-		{
-			CoordinatorExtPubKeyCurrentDepth++;
-			ToFile();
-		}
+	public void MakeNextCoordinatorScriptDirty()
+	{
+		CoordinatorExtPubKeyCurrentDepth++;
+		ToFile();
 	}
-
+}

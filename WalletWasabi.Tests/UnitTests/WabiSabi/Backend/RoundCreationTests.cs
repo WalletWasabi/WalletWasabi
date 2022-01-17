@@ -26,11 +26,11 @@ public class RoundCreationTests
 				FeeRate = new FeeRate(10m)
 			});
 
-			using Arena arena = new(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison(), new InMemoryCoinJoinIdStore());
-			Assert.Empty(arena.Rounds);
-			await arena.StartAsync(CancellationToken.None);
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.Single(arena.Rounds);
+		using Arena arena = new(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison(), new InMemoryCoinJoinIdStore());
+		Assert.Empty(arena.Rounds);
+		await arena.StartAsync(CancellationToken.None);
+		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+		Assert.Single(arena.Rounds);
 
 		await arena.StopAsync(CancellationToken.None);
 	}
@@ -47,11 +47,11 @@ public class RoundCreationTests
 				FeeRate = new FeeRate(10m)
 			});
 
-			using Arena arena = new(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison(), new InMemoryCoinJoinIdStore());
-			Assert.Empty(arena.Rounds);
-			await arena.StartAsync(CancellationToken.None);
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			var round = Assert.Single(arena.Rounds);
+		using Arena arena = new(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison(), new InMemoryCoinJoinIdStore());
+		Assert.Empty(arena.Rounds);
+		await arena.StartAsync(CancellationToken.None);
+		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+		var round = Assert.Single(arena.Rounds);
 
 		round.SetPhase(Phase.ConnectionConfirmation);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -72,11 +72,11 @@ public class RoundCreationTests
 				FeeRate = new FeeRate(10m)
 			});
 
-			using Arena arena = new(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison(), new InMemoryCoinJoinIdStore());
-			Assert.Empty(arena.Rounds);
-			await arena.StartAsync(CancellationToken.None);
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			var round = Assert.Single(arena.Rounds);
+		using Arena arena = new(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison(), new InMemoryCoinJoinIdStore());
+		Assert.Empty(arena.Rounds);
+		await arena.StartAsync(CancellationToken.None);
+		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+		var round = Assert.Single(arena.Rounds);
 
 		round.SetPhase(Phase.ConnectionConfirmation);
 		round.Alices.Add(WabiSabiFactory.CreateAlice(round));

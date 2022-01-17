@@ -36,14 +36,14 @@ public class SerializationTests
 		AssertSerialization(message);
 	}
 
-		[Fact]
-		public void InputRegistrationResponseMessageSerialization()
-		{
-			var message = new InputRegistrationResponse(
-				Guid.NewGuid(),
-				CreateCredentialsResponse(),
-				CreateCredentialsResponse(),
-				true);
+	[Fact]
+	public void InputRegistrationResponseMessageSerialization()
+	{
+		var message = new InputRegistrationResponse(
+			Guid.NewGuid(),
+			CreateCredentialsResponse(),
+			CreateCredentialsResponse(),
+			true);
 
 		AssertSerialization(message);
 	}

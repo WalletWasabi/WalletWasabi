@@ -44,25 +44,25 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 		return builder;
 	}
 
-		protected override void ConfigureWebHost(IWebHostBuilder builder)
+	protected override void ConfigureWebHost(IWebHostBuilder builder)
+	{
+		// will be called after the `ConfigureServices` from the Startup
+		builder.ConfigureTestServices(services =>
 		{
-			// will be called after the `ConfigureServices` from the Startup
-			builder.ConfigureTestServices(services =>
-			{
-				services.AddHostedService<BackgroundServiceStarter<Arena>>();
-				services.AddSingleton<Arena>();
-				services.AddScoped<Network>(_ => Network.Main);
-				services.AddScoped<IRPCClient>(_ => BitcoinFactory.GetMockMinimalRpc());
-				services.AddScoped<Prison>();
-				services.AddScoped<WabiSabiConfig>();
-				services.AddScoped(typeof(TimeSpan), _ => TimeSpan.FromSeconds(2));
-				services.AddScoped(s => new InMemoryCoinJoinIdStore());
-			});
-			builder.ConfigureLogging(o =>
-			{
-				o.SetMinimumLevel(LogLevel.Warning);
-			});
-		}
+			services.AddHostedService<BackgroundServiceStarter<Arena>>();
+			services.AddSingleton<Arena>();
+			services.AddScoped<Network>(_ => Network.Main);
+			services.AddScoped<IRPCClient>(_ => BitcoinFactory.GetMockMinimalRpc());
+			services.AddScoped<Prison>();
+			services.AddScoped<WabiSabiConfig>();
+			services.AddScoped(typeof(TimeSpan), _ => TimeSpan.FromSeconds(2));
+			services.AddScoped(s => new InMemoryCoinJoinIdStore());
+		});
+		builder.ConfigureLogging(o =>
+		{
+			o.SetMinimumLevel(LogLevel.Warning);
+		});
+	}
 
 	public Task<ArenaClient> CreateArenaClientAsync(HttpClient httpClient) =>
 		CreateArenaClientAsync(CreateWabiSabiHttpApiClient(httpClient));

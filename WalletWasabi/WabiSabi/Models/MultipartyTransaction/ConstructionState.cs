@@ -96,17 +96,17 @@ public record ConstructionState : MultipartyTransactionState
 		return this with { Outputs = Outputs.Add(output) };
 	}
 
-		public SigningState Finalize()
+	public SigningState Finalize()
+	{
+		if (EstimatedVsize > Parameters.MaxTransactionSize)
 		{
-			if (EstimatedVsize > Parameters.MaxTransactionSize)
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.SizeLimitExceeded, $"Transaction size is {EstimatedVsize} bytes, which exceeds the limit of {Parameters.MaxTransactionSize} bytes.");
-			}
+			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.SizeLimitExceeded, $"Transaction size is {EstimatedVsize} bytes, which exceeds the limit of {Parameters.MaxTransactionSize} bytes.");
+		}
 
-			if (EffectiveFeeRate < Parameters.FeeRate)
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InsufficientFees, $"Effective fee rate {EffectiveFeeRate} is less than required {Parameters.FeeRate}.");
-			}
+		if (EffectiveFeeRate < Parameters.FeeRate)
+		{
+			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InsufficientFees, $"Effective fee rate {EffectiveFeeRate} is less than required {Parameters.FeeRate}.");
+		}
 
 		return new SigningState(Parameters, Inputs, Outputs);
 	}

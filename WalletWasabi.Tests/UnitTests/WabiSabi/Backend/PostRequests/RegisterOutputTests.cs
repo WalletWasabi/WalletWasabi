@@ -100,14 +100,14 @@ public class RegisterOutputTests
 		await arena.StopAsync(CancellationToken.None);
 	}
 
-		[Fact]
-		public async Task TooMuchFundsAsync()
-		{
-			WabiSabiConfig cfg = new() { MaxRegistrableAmount = Money.Coins(1.993m) }; // TODO migrate to MultipartyTransactionParameters
-			var round = WabiSabiFactory.CreateRound(cfg);
-			round.SetPhase(Phase.OutputRegistration);
-			round.Alices.Add(WabiSabiFactory.CreateAlice(Money.Coins(2), round));
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+	[Fact]
+	public async Task TooMuchFundsAsync()
+	{
+		WabiSabiConfig cfg = new() { MaxRegistrableAmount = Money.Coins(1.993m) }; // TODO migrate to MultipartyTransactionParameters
+		var round = WabiSabiFactory.CreateRound(cfg);
+		round.SetPhase(Phase.OutputRegistration);
+		round.Alices.Add(WabiSabiFactory.CreateAlice(Money.Coins(2), round));
+		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 		var req = WabiSabiFactory.CreateOutputRegistrationRequest(round);
 

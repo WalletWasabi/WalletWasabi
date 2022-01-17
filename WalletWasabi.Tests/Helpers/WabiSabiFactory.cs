@@ -46,17 +46,17 @@ public static class WabiSabiFactory
 		return new OwnershipIdentifier(identificationKey, scriptPubKey);
 	}
 
-		public static Round CreateRound(WabiSabiConfig cfg)
-		{
-			Round round = new(new RoundParameters(
-				cfg,
-				Network.Main,
-				new InsecureRandom(),
-				new FeeRate(100m),
-				new CoordinationFeeRate(0.003m, Money.Zero)));
-			round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
-			return round;
-		}
+	public static Round CreateRound(WabiSabiConfig cfg)
+	{
+		Round round = new(new RoundParameters(
+			cfg,
+			Network.Main,
+			new InsecureRandom(),
+			new FeeRate(100m),
+			new CoordinationFeeRate(0.003m, Money.Zero)));
+		round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
+		return round;
+	}
 
 	public static Mock<IRPCClient> CreatePreconfiguredRpcClient(params Coin[] coins)
 	{
@@ -108,19 +108,19 @@ public static class WabiSabiFactory
 			CreatePreconfiguredRpcClient(),
 			rounds);
 
-		public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig cfg, IMock<IRPCClient> mockRpc, params Round[] rounds)
+	public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig cfg, IMock<IRPCClient> mockRpc, params Round[] rounds)
+	{
+		Arena arena = new(TimeSpan.FromHours(1), Network.Main, cfg, mockRpc.Object, new Prison(), new InMemoryCoinJoinIdStore(Enumerable.Empty<uint256>()));
+		foreach (var round in rounds)
 		{
-			Arena arena = new(TimeSpan.FromHours(1), Network.Main, cfg, mockRpc.Object, new Prison(), new InMemoryCoinJoinIdStore(Enumerable.Empty<uint256>()));
-			foreach (var round in rounds)
-			{
-				arena.Rounds.Add(round);
-			}
-			await arena.StartAsync(CancellationToken.None).ConfigureAwait(false);
-			return arena;
+			arena.Rounds.Add(round);
 		}
+		await arena.StartAsync(CancellationToken.None).ConfigureAwait(false);
+		return arena;
+	}
 
-		public static Alice CreateAlice(Coin coin, OwnershipProof ownershipProof, Round round)
-			=> new(coin, ownershipProof, round, Guid.NewGuid(), false) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
+	public static Alice CreateAlice(Coin coin, OwnershipProof ownershipProof, Round round)
+		=> new(coin, ownershipProof, round, Guid.NewGuid(), false) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
 
 	public static Alice CreateAlice(Key key, Money amount, Round round)
 		=> CreateAlice(CreateCoin(key, amount), CreateOwnershipProof(key), round);
@@ -208,15 +208,15 @@ public static class WabiSabiFactory
 	{
 		var (amClient, vsClient, _, _, amZeroCredentials, vsZeroCredentials) = CreateWabiSabiClientsAndIssuers(round);
 
-			var alice = round.Alices.FirstOrDefault() ?? CreateAlice(round);
-			var (realAmountCredentialRequest, _) = amClient.CreateRequest(
-				new[] { amount?.Satoshi ?? alice.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate).Satoshi },
-				amZeroCredentials,
-				CancellationToken.None);
-			var (realVsizeCredentialRequest, _) = vsClient.CreateRequest(
-				new[] { vsize ?? alice.CalculateRemainingVsizeCredentials(round.MaxVsizeAllocationPerAlice) },
-				vsZeroCredentials,
-				CancellationToken.None);
+		var alice = round.Alices.FirstOrDefault() ?? CreateAlice(round);
+		var (realAmountCredentialRequest, _) = amClient.CreateRequest(
+			new[] { amount?.Satoshi ?? alice.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate).Satoshi },
+			amZeroCredentials,
+			CancellationToken.None);
+		var (realVsizeCredentialRequest, _) = vsClient.CreateRequest(
+			new[] { vsize ?? alice.CalculateRemainingVsizeCredentials(round.MaxVsizeAllocationPerAlice) },
+			vsZeroCredentials,
+			CancellationToken.None);
 
 		return (alice, realAmountCredentialRequest, realVsizeCredentialRequest);
 	}
@@ -242,16 +242,16 @@ public static class WabiSabiFactory
 	{
 		var (amClient, vsClient, amIssuer, vsIssuer, amZeroCredentials, vsZeroCredentials) = CreateWabiSabiClientsAndIssuers(round);
 
-			var alice = round.Alices.FirstOrDefault() ?? CreateAlice(round);
-			var (amCredentialRequest, amValid) = amClient.CreateRequest(
-				new[] { alice.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate).Satoshi },
-				amZeroCredentials, // FIXME doesn't make much sense
-				CancellationToken.None);
-			long startingVsizeCredentialAmount = vsize ?? alice.CalculateRemainingVsizeCredentials(round.MaxVsizeAllocationPerAlice);
-			var (vsCredentialRequest, weValid) = vsClient.CreateRequest(
-				new[] { startingVsizeCredentialAmount },
-				vsZeroCredentials, // FIXME doesn't make much sense
-				CancellationToken.None);
+		var alice = round.Alices.FirstOrDefault() ?? CreateAlice(round);
+		var (amCredentialRequest, amValid) = amClient.CreateRequest(
+			new[] { alice.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate).Satoshi },
+			amZeroCredentials, // FIXME doesn't make much sense
+			CancellationToken.None);
+		long startingVsizeCredentialAmount = vsize ?? alice.CalculateRemainingVsizeCredentials(round.MaxVsizeAllocationPerAlice);
+		var (vsCredentialRequest, weValid) = vsClient.CreateRequest(
+			new[] { startingVsizeCredentialAmount },
+			vsZeroCredentials, // FIXME doesn't make much sense
+			CancellationToken.None);
 
 		var amResp = amIssuer.HandleRequest(amCredentialRequest);
 		var weResp = vsIssuer.HandleRequest(vsCredentialRequest);
@@ -274,8 +274,8 @@ public static class WabiSabiFactory
 			realVsizeCredentialRequest);
 	}
 
-		public static BlameRound CreateBlameRound(Round round, WabiSabiConfig cfg)
-			=> new(new(cfg, round.Network, new InsecureRandom(), round.FeeRate, round.CoordinationFeeRate), round, round.Alices.Select(x => x.Coin.Outpoint).ToHashSet());
+	public static BlameRound CreateBlameRound(Round round, WabiSabiConfig cfg)
+		=> new(new(cfg, round.Network, new InsecureRandom(), round.FeeRate, round.CoordinationFeeRate), round, round.Alices.Select(x => x.Coin.Outpoint).ToHashSet());
 
 	public static (Key, SmartCoin, Key, SmartCoin) CreateCoinKeyPairs()
 	{
