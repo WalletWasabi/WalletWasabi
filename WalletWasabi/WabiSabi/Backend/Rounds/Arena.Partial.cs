@@ -53,14 +53,14 @@ public partial class Arena : IWabiSabiApiRequestHandler
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
 			}
 
-				// Generate a new GUID with the secure random source, to be sure
-				// that it is not guessable (Guid.NewGuid() documentation does
-				// not say anything about GUID version or randomness source,
-				// only that the probability of duplicates is very low).
-				var id = new Guid(Random.GetBytes(16));
+			// Generate a new GUID with the secure random source, to be sure
+			// that it is not guessable (Guid.NewGuid() documentation does
+			// not say anything about GUID version or randomness source,
+			// only that the probability of duplicates is very low).
+			var id = new Guid(Random.GetBytes(16));
 
-				var isComingFromCoinJoin = InMemoryCoinJoinIdStore.Contains(coin.Outpoint.Hash);
-				var alice = new Alice(coin, request.OwnershipProof, round, id, isComingFromCoinJoin);
+			var isPayingZeroCoordinationFee = InMemoryCoinJoinIdStore.Contains(coin.Outpoint.Hash);
+			var alice = new Alice(coin, request.OwnershipProof, round, id, isPayingZeroCoordinationFee);
 
 			if (alice.TotalInputAmount < round.MinAmountCredentialValue)
 			{
@@ -90,14 +90,12 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeFrame.Duration);
 			round.Alices.Add(alice);
 
-				bool isZeroCoordinatorFee = alice.IsComingFromCoinJoin;
-
-				return new(alice.Id,
-					commitAmountCredentialResponse,
-					commitVsizeCredentialResponse,
-					isZeroCoordinatorFee);
-			}
+			return new(alice.Id,
+				commitAmountCredentialResponse,
+				commitVsizeCredentialResponse,
+				alice.IsPayingZeroCoordinationFee);
 		}
+	}
 
 	public async Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken)
 	{
@@ -138,16 +136,17 @@ public partial class Arena : IWabiSabiApiRequestHandler
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyConfirmedConnection, $"Round ({request.RoundId}): Alice ({request.AliceId}) already confirmed connection.");
 			}
 
-				if (realVsizeCredentialRequests.Delta != alice.CalculateRemainingVsizeCredentials(round.MaxVsizeAllocationPerAlice))
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedVsizeCredentials, $"Round ({request.RoundId}): Incorrect requested vsize credentials.");
-				}
-
-				if (realAmountCredentialRequests.Delta != alice.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate))
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedAmountCredentials, $"Round ({request.RoundId}): Incorrect requested amount credentials.");
-				}
+			if (realVsizeCredentialRequests.Delta != alice.CalculateRemainingVsizeCredentials(round.MaxVsizeAllocationPerAlice))
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedVsizeCredentials, $"Round ({request.RoundId}): Incorrect requested vsize credentials.");
 			}
+
+			var remaining = alice.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate);
+			if (realAmountCredentialRequests.Delta != remaining)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedAmountCredentials, $"Round ({request.RoundId}): Incorrect requested amount credentials.");
+			}
+		}
 
 		var amountZeroCredentialTask = round.AmountCredentialIssuer.HandleRequestAsync(request.ZeroAmountCredentialRequests, cancellationToken);
 		var vsizeZeroCredentialTask = round.VsizeCredentialIssuer.HandleRequestAsync(request.ZeroVsizeCredentialRequests, cancellationToken);

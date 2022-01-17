@@ -54,11 +54,11 @@ public class StepOutputRegistrationTests
 			await alice.ReadyToSignAsync(CancellationToken.None);
 		}
 
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.Equal(Phase.TransactionSigning, round.Phase);
-			var tx = round.Assert<SigningState>().CreateTransaction();
-			Assert.Equal(2, tx.Inputs.Count);
-			Assert.Equal(2 +1, tx.Outputs.Count); // +1 for the coordinator fee
+		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+		Assert.Equal(Phase.TransactionSigning, round.Phase);
+		var tx = round.Assert<SigningState>().CreateTransaction();
+		Assert.Equal(2, tx.Inputs.Count);
+		Assert.Equal(2 + 1, tx.Outputs.Count); // +1 for the coordinator fee
 
 		await arena.StopAsync(CancellationToken.None);
 	}
@@ -89,12 +89,12 @@ public class StepOutputRegistrationTests
 			vsizeCredentials1.Take(ProtocolConstants.CredentialNumber),
 			CancellationToken.None);
 
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.Equal(Phase.TransactionSigning, round.Phase);
-			var tx = round.Assert<SigningState>().CreateTransaction();
-			Assert.Equal(2, tx.Inputs.Count);
-			Assert.Equal(2 + 1, tx.Outputs.Count); // +1 for the coordinator fee
-			Assert.Contains(cfg.BlameScript, tx.Outputs.Select(x => x.ScriptPubKey));
+		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+		Assert.Equal(Phase.TransactionSigning, round.Phase);
+		var tx = round.Assert<SigningState>().CreateTransaction();
+		Assert.Equal(2, tx.Inputs.Count);
+		Assert.Equal(2 + 1, tx.Outputs.Count); // +1 for the coordinator fee
+		Assert.Contains(cfg.BlameScript, tx.Outputs.Select(x => x.ScriptPubKey));
 
 		await arena.StopAsync(CancellationToken.None);
 	}
@@ -144,7 +144,7 @@ public class StepOutputRegistrationTests
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 		var tx = round.Assert<SigningState>().CreateTransaction();
 		Assert.Equal(3, tx.Inputs.Count);
-		Assert.Equal(2 +1, tx.Outputs.Count); // +1 for the coordinator fee
+		Assert.Equal(2 + 1, tx.Outputs.Count); // +1 for the coordinator fee
 		Assert.DoesNotContain(cfg.BlameScript, tx.Outputs.Select(x => x.ScriptPubKey));
 
 		await arena.StopAsync(CancellationToken.None);
