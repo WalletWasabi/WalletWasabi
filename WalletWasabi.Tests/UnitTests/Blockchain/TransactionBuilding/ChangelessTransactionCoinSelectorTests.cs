@@ -17,8 +17,11 @@ namespace WalletWasabi.Tests.UnitTests.Blockchain.TransactionBuilding;
 /// </summary>
 public class ChangelessTransactionCoinSelectorTests
 {
+	/// <summary>
+	/// Tests that we select coins so that user can agree with paying more money for having a payment transaction with no change output.
+	/// </summary>
 	[Fact]
-	public void FindBestSolution()
+	public void TryGetCoins()
 	{
 		using Key key = new();
 
@@ -33,6 +36,7 @@ public class ChangelessTransactionCoinSelectorTests
 		Assert.Equal(6025, solution.Sum() - target); // ~4% more for the privacy.
 	}
 
+	/// <remarks>These smart coins are from an invalid transaction but we are interested only in smart coins' amounts.</remarks>
 	private List<SmartCoin> GenerateDummySmartCoins(Key key, params long[] values)
 	{
 		Network network = Network.Main;
