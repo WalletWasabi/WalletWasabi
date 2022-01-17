@@ -42,18 +42,18 @@ public record DependencyGraph
 
 	private string AsGraphviz() => DependencyGraphExtensions.AsGraphviz(this);
 
-		/// <summary>Construct a graph from amounts, and resolve the
-		/// credential dependencies.</summary>
-		///
-		/// <remarks>Should only produce valid graphs. The elements of the
-		/// <see>Vertices</see> property will correspond to the given values in order,
-		/// and may contain additional nodes if reissuance requests are
-		/// required.</remarks>
-		///
-		public static DependencyGraph ResolveCredentialDependencies(IEnumerable<Coin> inputs, IEnumerable<TxOut> outputs, FeeRate feerate, CoordinationFeeRate coordinationFeeRate, long vsizeAllocationPerInput)
-		{
-			var inputSizes = inputs.Select(x => x.ScriptPubKey.EstimateInputVsize());
-			var effectiveValues = Enumerable.Zip(inputs, inputSizes, (coin, size) => coin.EffectiveValue(feerate, coordinationFeeRate));
+	/// <summary>Construct a graph from amounts, and resolve the
+	/// credential dependencies.</summary>
+	///
+	/// <remarks>Should only produce valid graphs. The elements of the
+	/// <see>Vertices</see> property will correspond to the given values in order,
+	/// and may contain additional nodes if reissuance requests are
+	/// required.</remarks>
+	///
+	public static DependencyGraph ResolveCredentialDependencies(IEnumerable<(Money EffectiveValue, int InputSize)> effectiveValuesAndSizes, IEnumerable<TxOut> outputs, FeeRate feerate, CoordinationFeeRate coordinationFeeRate, long vsizeAllocationPerInput)
+	{
+		var effectiveValues = effectiveValuesAndSizes.Select(x => x.EffectiveValue);
+		var inputSizes = effectiveValuesAndSizes.Select(x => x.InputSize);
 
 		if (effectiveValues.Any(x => x <= Money.Zero))
 		{
