@@ -160,9 +160,7 @@ public class AliceClient
 
 	private async Task<bool> TryConfirmConnectionAsync(IEnumerable<long> amountsToRequest, IEnumerable<long> vsizesToRequest, CancellationToken cancellationToken)
 	{
-		var totalFeeToPay = FeeRate.GetFee(SmartCoin.ScriptPubKey.EstimateInputVsize());
-		var totalAmount = SmartCoin.Amount;
-		var effectiveAmount = totalAmount - totalFeeToPay;
+		var effectiveAmount = EffectiveValue;
 
 		if (effectiveAmount <= Money.Zero)
 		{

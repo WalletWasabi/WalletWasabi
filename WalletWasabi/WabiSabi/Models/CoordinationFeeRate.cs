@@ -1,32 +1,31 @@
 using NBitcoin;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.WabiSabi.Models
+namespace WalletWasabi.WabiSabi.Models;
+
+public struct CoordinationFeeRate
 {
-	public struct CoordinationFeeRate
+	public static readonly CoordinationFeeRate Zero = new(0, Money.Zero);
+
+	public CoordinationFeeRate(decimal rate, Money plebsDontPayThreshold)
 	{
-		public static readonly CoordinationFeeRate Zero = new(0, Money.Zero);
+		Rate = Guard.InRangeAndNotNull(nameof(rate), rate, 0m, 0.01m);
+		PlebsDontPayThreshold = plebsDontPayThreshold;
+	}
 
-		public CoordinationFeeRate(decimal rate, Money plebsDontPayThreshold)
+	public decimal Rate { get; }
+	public Money PlebsDontPayThreshold { get; }
+
+	public Money GetFee(Money amount)
+	{
+		// Plebs don't have to pay.
+		if (amount <= PlebsDontPayThreshold)
 		{
-			Rate = Guard.InRangeAndNotNull(nameof(rate), rate, 0m, 0.01m);
-			PlebsDontPayThreshold = plebsDontPayThreshold;
+			return Money.Zero;
 		}
-
-		public decimal Rate { get; }
-		public Money PlebsDontPayThreshold { get; }
-
-		public Money GetFee(Money amount)
+		else
 		{
-			// Under 1 000 000 satoshis plebs don't have to pay.
-			if (amount <= PlebsDontPayThreshold)
-			{
-				return Money.Zero;
-			}
-			else
-			{
-				return Money.Satoshis(Math.Floor(amount.Satoshi * Rate));
-			}
+			return Money.Satoshis(Math.Floor(amount.Satoshi * Rate));
 		}
 	}
 }

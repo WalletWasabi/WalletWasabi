@@ -28,14 +28,14 @@ public class ArenaClient
 	public WabiSabiClient VsizeCredentialClient { get; }
 	public IWabiSabiApiRequestHandler RequestHandler { get; }
 
-		public async Task<(ArenaResponse<Guid> ArenaResponse, bool IsPayingZeroCoordinationFee)> RegisterInputAsync(
-			uint256 roundId,
-			OutPoint outPoint,
-			OwnershipProof ownershipProof,
-			CancellationToken cancellationToken)
-		{
-			var zeroAmountCredentialRequestData = AmountCredentialClient.CreateRequestForZeroAmount();
-			var zeroVsizeCredentialRequestData = VsizeCredentialClient.CreateRequestForZeroAmount();
+	public async Task<(ArenaResponse<Guid> ArenaResponse, bool IsPayingZeroCoordinationFee)> RegisterInputAsync(
+		uint256 roundId,
+		OutPoint outPoint,
+		OwnershipProof ownershipProof,
+		CancellationToken cancellationToken)
+	{
+		var zeroAmountCredentialRequestData = AmountCredentialClient.CreateRequestForZeroAmount();
+		var zeroVsizeCredentialRequestData = VsizeCredentialClient.CreateRequestForZeroAmount();
 
 		var inputRegistrationResponse = await RequestHandler.RegisterInputAsync(
 			new InputRegistrationRequest(
@@ -49,8 +49,8 @@ public class ArenaClient
 		var realAmountCredentials = AmountCredentialClient.HandleResponse(inputRegistrationResponse.AmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
 		var realVsizeCredentials = VsizeCredentialClient.HandleResponse(inputRegistrationResponse.VsizeCredentials, zeroVsizeCredentialRequestData.CredentialsResponseValidation);
 
-			return (new(inputRegistrationResponse.AliceId, realAmountCredentials, realVsizeCredentials), inputRegistrationResponse.IsPayingZeroCoordinationFee);
-		}
+		return (new(inputRegistrationResponse.AliceId, realAmountCredentials, realVsizeCredentials), inputRegistrationResponse.IsPayingZeroCoordinationFee);
+	}
 
 	public async Task RemoveInputAsync(uint256 roundId, Guid aliceId, CancellationToken cancellationToken)
 	{
