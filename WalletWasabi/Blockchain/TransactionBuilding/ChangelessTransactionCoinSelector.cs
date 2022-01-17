@@ -32,11 +32,11 @@ public static class ChangelessTransactionCoinSelector
 
 		// Pass smart coins' effective values in descending order.
 		BranchAndBound branchAndBound = new(inputs.Values.ToList());
-		PruneByBestStrategy strategy = new(target);
+		BestSumStrategy strategy = new(target);
 
 		_ = branchAndBound.TryGetMatch(strategy, out List<long>? solution, cancellationToken);
 
-		if (solution is null && strategy.GetBestSolution() is long[] bestSolution)
+		if (solution is null && strategy.GetBestSumFound() is long[] bestSolution)
 		{
 			solution = bestSolution.ToList();
 		}

@@ -104,12 +104,12 @@ public class BranchAndBoundTests
 		long target = 27; // Target that we cannot get as a sum of input values.
 
 		BranchAndBound algorithm = new(inputValues);
-		PruneByBestStrategy strategy = new(target);
+		BestSumStrategy strategy = new(target);
 		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins);
 
 		Assert.False(wasSuccessful);
 		Assert.Null(selectedCoins);
-		Assert.Equal(new long[] { 11, 7, 5, 3, 2 }, strategy.GetBestSolution());
+		Assert.Equal(new long[] { 11, 7, 5, 3, 2 }, strategy.GetBestSumFound());
 	}
 
 	private List<long> GenerateListOfRandomValues(int count = 1000)

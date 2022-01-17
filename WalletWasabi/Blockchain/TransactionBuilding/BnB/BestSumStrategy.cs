@@ -3,15 +3,15 @@ using System.Linq;
 namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 
 /// <summary>
-/// Strategy that stores the best solution found along the way and prunes
+/// Strategy that stores the best sum of values found along the way and prunes
 /// search space where we would find worse solutions that we already have.
 /// </summary>
-public class PruneByBestStrategy : ISearchStrategy
+public class BestSumStrategy : ISearchStrategy
 {
 	private long _bestTargetSoFar = long.MaxValue;
 	private long[]? _bestSolutionSoFar;
 
-	public PruneByBestStrategy(long target)
+	public BestSumStrategy(long target)
 	{
 		Target = target;
 	}
@@ -19,7 +19,8 @@ public class PruneByBestStrategy : ISearchStrategy
 	/// <inheritdoc/>
 	public long Target { get; }
 
-	public long[]? GetBestSolution() => _bestSolutionSoFar?.Where(x => x > 0).ToArray();
+	/// <summary>Gives lowest found value selection whose sum is larger than or equal to <see cref="Target"/>.</summary>
+	public long[]? GetBestSumFound() => _bestSolutionSoFar?.Where(x => x > 0).ToArray();
 
 	/// <inheritdoc/>
 	public EvaluationResult Evaluate(long[] solution, int depth, long effValue)
