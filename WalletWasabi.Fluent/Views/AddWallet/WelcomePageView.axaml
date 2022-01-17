@@ -129,14 +129,14 @@
         <Carousel.PageTransition>
           <CrossFade Duration="0.6"
                      FadeInEasing="{StaticResource FluentEasing}"
-                     FadeOutEasing="{StaticResource FluentEasing}"/>
+                     FadeOutEasing="{StaticResource FluentEasing}" />
         </Carousel.PageTransition>
 
         <!-- Welcome to Wasabi -->
         <Grid ColumnDefinitions="*,*">
           <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
             <TextBlock Classes="text" Text="Use Wasabi Wallet to retain your individuality, regain your identity and ultimately, reclaim your privacy. We let you control what you reveal about your Bitcoin life. Welcome to Wasabi Wallet sovereign individual." />
-            <TextBlock Text="Welcome to Wasabi Wallet"
+            <TextBlock Text="Welcome to Wasabi"
                        Classes="title" />
             <Viewbox Classes="icon">
               <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
@@ -206,14 +206,13 @@
                      FontWeight="Light"
                      LineHeight="22"
                      DockPanel.Dock="Bottom"
-                     Margin="0 15"/>
+                     Margin="0 15" />
           <TextBlock Text="Start using Wasabi Wallet" FontSize="30" HorizontalAlignment="Center"
                      DockPanel.Dock="Bottom" />
           <Viewbox MaxHeight="60" HorizontalAlignment="Center" DockPanel.Dock="Bottom" Margin="0 0 0 15">
             <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
           </Viewbox>
         </DockPanel>
-
       </Carousel>
     </DockPanel>
   </controls:ContentArea>
