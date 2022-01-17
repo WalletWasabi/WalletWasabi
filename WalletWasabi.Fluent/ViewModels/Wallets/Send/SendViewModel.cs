@@ -111,7 +111,7 @@ public partial class SendViewModel : RoutableViewModel
 			{
 				_transactionInfo.Amount = new Money(AmountBtc, MoneyUnit.BTC);
 
-				Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo, _currentAddress));
+				Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo, _currentAddress, _isFixedAmount));
 			}
 		}, nextCommandCanExecute);
 	}
