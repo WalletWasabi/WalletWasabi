@@ -11,14 +11,10 @@ namespace WalletWasabi.Blockchain.TransactionBuilding;
 public class BranchAndBound
 {
 	private readonly Random _random = new();
-	private readonly Func<bool> _randomFn;
 
 	/// <param name="values">All values must be strictly positive.</param>
-	/// <param name="randomFn">Function returning randomly <c>true</c> or <c>false</c>.</param>
-	public BranchAndBound(List<long> values, Func<bool>? randomFn = null)
+	public BranchAndBound(List<long> values)
 	{
-		_randomFn = randomFn ??= () => _random.Next(0, 2) == 1;
-
 		if (values.Count == 0)
 		{
 			throw new ArgumentException("List is empty.");
@@ -168,7 +164,7 @@ public class BranchAndBound
 
 	private NextAction GetRandomNextAction()
 	{
-		return _randomFn() ? NextAction.IncludeFirstThenOmit : NextAction.OmitFirstThenInclude;
+		return _random.Next(0, 2) == 1 ? NextAction.IncludeFirstThenOmit : NextAction.OmitFirstThenInclude;
 	}
 
 	private static NextAction GetNextStep(NextAction action)
