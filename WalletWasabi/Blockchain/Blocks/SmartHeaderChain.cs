@@ -1,59 +1,99 @@
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
-using WalletWasabi.Bases;
 
 namespace WalletWasabi.Blockchain.Blocks;
 
 /// <summary>
 /// High performance chain index and cache.
 /// </summary>
-public class SmartHeaderChain : NotifyPropertyChangedBase
+public class SmartHeaderChain
 {
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private uint _tipHeight;
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private SmartHeader? _tip;
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private uint256? _tipHash;
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private uint _serverTipHeight;
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private int _hashesLeft;
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private int _hashesCount;
 
-	private Dictionary<uint, SmartHeader> Chain { get; } = new Dictionary<uint, SmartHeader>();
-	private object Lock { get; } = new object();
+	private Dictionary<uint, SmartHeader> Chain { get; } = new();
+	private object Lock { get; } = new();
 
 	public SmartHeader? Tip
 	{
-		get => _tip;
-		private set => RaiseAndSetIfChanged(ref _tip, value);
+		get
+		{
+			lock (Lock)
+			{
+				return _tip;
+			}
+		}
 	}
 
 	public uint TipHeight
 	{
-		get => _tipHeight;
-		private set => RaiseAndSetIfChanged(ref _tipHeight, value);
+		get
+		{
+			lock (Lock)
+			{
+				return _tipHeight;
+			}
+		}
 	}
 
 	public uint256? TipHash
 	{
-		get => _tipHash;
-		private set => RaiseAndSetIfChanged(ref _tipHash, value);
+		get
+		{
+			lock (Lock)
+			{
+				return _tipHash;
+			}
+		}
 	}
 
 	public uint ServerTipHeight
 	{
-		get => _serverTipHeight;
-		private set => RaiseAndSetIfChanged(ref _serverTipHeight, value);
+		get
+		{
+			lock (Lock)
+			{
+				return _serverTipHeight;
+			}
+		}
 	}
 
 	public int HashesLeft
 	{
-		get => _hashesLeft;
-		private set => RaiseAndSetIfChanged(ref _hashesLeft, value);
+		get
+		{
+			lock (Lock)
+			{
+				return _hashesLeft;
+			}
+		}
 	}
 
 	public int HashCount
 	{
-		get => _hashesCount;
-		private set => RaiseAndSetIfChanged(ref _hashesCount, value);
+		get
+		{
+			lock (Lock)
+			{
+				return _hashesCount;
+			}
+		}
 	}
 
 	public void AddOrReplace(SmartHeader header)
@@ -74,53 +114,60 @@ public class SmartHeaderChain : NotifyPropertyChangedBase
 			}
 
 			Chain.Add(header.Height, header);
-			SetTip(header);
+			SetTipNoLock(header);
 		}
 	}
 
-	private void SetTip(SmartHeader? header)
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private void SetTipNoLock(SmartHeader? header)
 	{
-		Tip = header;
-		TipHeight = header?.Height ?? default;
-		TipHash = header?.BlockHash;
-		HashCount = Chain?.Count ?? default;
-		SetHashesLeft();
+		_tip = header;
+		_tipHeight = header?.Height ?? default;
+		_tipHash = header?.BlockHash;
+		_hashesCount = Chain?.Count ?? default;
+		SetHashesLeftNoLock();
 	}
 
-	private void SetHashesLeft()
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private void SetHashesLeftNoLock()
 	{
-		HashesLeft = (int)Math.Max(0, (long)ServerTipHeight - TipHeight);
+		_hashesLeft = (int)Math.Max(0, (long)_serverTipHeight - _tipHeight);
 	}
 
-	public void RemoveLast()
+	public bool RemoveLast()
 	{
+		bool result = false;
+
 		lock (Lock)
 		{
 			if (Chain.Any())
 			{
-				Chain.Remove(Chain.Last().Key);
+				result = Chain.Remove(Chain.Last().Key);
 				if (Chain.Any())
 				{
 					var newLast = Chain.Last();
-					SetTip(newLast.Value);
+					SetTipNoLock(newLast.Value);
 				}
 				else
 				{
-					SetTip(null);
+					SetTipNoLock(null);
 				}
 			}
 		}
+
+		return result;
 	}
 
 	public void UpdateServerTipHeight(uint height)
 	{
 		lock (Lock)
 		{
-			ServerTipHeight = height;
-			SetHashesLeft();
+			_serverTipHeight = height;
+			SetHashesLeftNoLock();
 		}
 	}
 
+	/// <remarks>Only for tests.</remarks>
 	public (uint height, SmartHeader header)[] GetChain()
 	{
 		lock (Lock)
