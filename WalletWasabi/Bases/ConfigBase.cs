@@ -45,7 +45,7 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 		string jsonString = File.ReadAllText(FilePath, Encoding.UTF8);
 
 		var newConfigObject = Activator.CreateInstance(GetType())!;
-		JsonConvert.PopulateObject(jsonString, newConfigObject);
+		JsonConvert.PopulateObject(jsonString, newConfigObject, JsonSerializationOptions.Default.Settings);
 
 		return !AreDeepEqual(newConfigObject);
 	}
@@ -81,7 +81,7 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 	{
 		var jsonString = File.ReadAllText(FilePath, Encoding.UTF8);
 
-		JsonConvert.PopulateObject(jsonString, this);
+		JsonConvert.PopulateObject(jsonString, this, JsonSerializationOptions.Default.Settings);
 
 		if (TryEnsureBackwardsCompatibility(jsonString))
 		{

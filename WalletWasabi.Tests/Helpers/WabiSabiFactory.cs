@@ -53,7 +53,7 @@ public static class WabiSabiFactory
 			Network.Main,
 			new InsecureRandom(),
 			new FeeRate(100m),
-			new CoordinationFeeRate(0.003m, Money.Coins(0.01m))));
+			new CoordinationFeeRate(0.003m, Money.Zero)));
 		round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
 		return round;
 	}
