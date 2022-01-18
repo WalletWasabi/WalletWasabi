@@ -5,6 +5,7 @@ using System.Text;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Models.Serialization;
 
 namespace WalletWasabi.Bases;
 
