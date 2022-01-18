@@ -14,6 +14,8 @@ namespace WalletWasabi.Tests.Helpers;
 /// </summary>
 public class ArenaBuilder
 {
+	public static readonly ArenaBuilder Default = new();
+
 	public TimeSpan? Period { get; set; }
 	public Network? Network { get; set; }
 	public WabiSabiConfig? Config { get; set; }
@@ -58,6 +60,15 @@ public class ArenaBuilder
 		{
 			toDispose?.Dispose();
 		}
+	}
+
+	public ArenaBuilder With(IMock<IRPCClient> rpc) =>
+		With(rpc.Object);
+
+	public ArenaBuilder With(IRPCClient rpc)
+	{
+		Rpc = rpc;
+		return this;
 	}
 
 	public static ArenaBuilder From(WabiSabiConfig cfg) => new() { Config = cfg };

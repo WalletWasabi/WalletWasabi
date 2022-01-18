@@ -57,7 +57,7 @@ public class ArenaClientTests
 		mockRpc.Setup(rpc => rpc.PrepareBatch()).Returns(mockRpc.Object);
 		mockRpc.Setup(rpc => rpc.SendBatchAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, mockRpc, round);
+		using Arena arena = await ArenaBuilder.From(config).With(mockRpc).CreateAndStartAsync(round);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
@@ -204,7 +204,7 @@ public class ArenaClientTests
 		Alice alice2 = WabiSabiFactory.CreateAlice(key: key2, round: round);
 		round.Alices.Add(alice2);
 
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, round);
+		using Arena arena = await ArenaBuilder.From(config).CreateAndStartAsync(round);
 
 		var mockRpc = new Mock<IRPCClient>();
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
