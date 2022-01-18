@@ -104,6 +104,18 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					return tx.GetHash();
 				};
 
+				rpc.OnGetRawTransactionAsync = (txid, throwIfNotFound) =>
+				{
+					var tx = coins.First(coin => coin.TransactionId == txid)?.Transaction?.Transaction;
+
+					if (tx is null)
+					{
+						return Task.FromException<Transaction>(new InvalidOperationException("tx not found"));
+					}
+
+					return Task.FromResult(tx);
+				};
+
 				// Instruct the coordinator DI container to use these two scoped
 				// services to build everything (WabiSabi controller, arena, etc)
 				services.AddScoped<IRPCClient>(s => rpc);
@@ -112,6 +124,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					MaxInputCountByRound = inputCount,
 					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(10)
 				}
+
 				);
 				// Emulate that the first coin is coming from a CoinJoin.
 				services.AddScoped(s => new InMemoryCoinJoinIdStore(new[] { coins.First().Coin.Outpoint.Hash }));
@@ -200,10 +213,10 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			// (the `SendRawTransationAsync` was invoked) we stop waiting
 			// and finish the waiting tasks to finish the test successfully.
 			rpc.OnSendRawTransactionAsync = (tx) =>
-			{
-				transactionCompleted.SetResult(tx);
-				return tx.GetHash();
-			};
+		{
+			transactionCompleted.SetResult(tx);
+			return tx.GetHash();
+		};
 
 			// Instruct the coordinator DI container to use these two scoped
 			// services to build everything (WabiSabi controller, arena, etc)

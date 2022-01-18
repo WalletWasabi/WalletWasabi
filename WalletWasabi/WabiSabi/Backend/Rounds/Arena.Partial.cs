@@ -60,6 +60,25 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			var id = new Guid(Random.GetBytes(16));
 
 			var isPayingZeroCoordinationFee = InMemoryCoinJoinIdStore.Contains(coin.Outpoint.Hash);
+
+			if (!isPayingZeroCoordinationFee)
+			{
+				// If the coin comes from a tx that all of the tx inputs are coming from a CJ (1 hop - no pay).
+				Transaction? tx = null;
+				try
+				{
+					tx = await Rpc.GetRawTransactionAsync(coin.Outpoint.Hash, true, cancellationToken).ConfigureAwait(false);
+					if (tx is { } && tx.Inputs.All(input => InMemoryCoinJoinIdStore.Contains(input.PrevOut.Hash)))
+					{
+						isPayingZeroCoordinationFee = true;
+					}
+				}
+				catch (Exception)
+				{
+					round.LogWarning($"Transaction {coin.Outpoint.Hash} was not found through RPC.");
+				}
+			}
+
 			var alice = new Alice(coin, request.OwnershipProof, round, id, isPayingZeroCoordinationFee);
 
 			if (alice.TotalInputAmount < round.MinAmountCredentialValue)
