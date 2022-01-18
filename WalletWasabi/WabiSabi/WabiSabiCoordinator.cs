@@ -28,6 +28,7 @@ public class WabiSabiCoordinator : BackgroundService
 		var inMemoryCoinJoinIdStore = InMemoryCoinJoinIdStore.LoadFromFile(parameters.CoinJoinIdStoreFilePath);
 
 		Arena = new(parameters.RoundProgressSteppingPeriod, rpc.Network, Config, rpc, Warden.Prison, inMemoryCoinJoinIdStore, transactionArchiver);
+		Arena.CoinJoinBroadcast += Arena_CoinJoinBroadcast;
 	}
 
 	public ConfigWatcher ConfigWatcher { get; }
@@ -37,6 +38,16 @@ public class WabiSabiCoordinator : BackgroundService
 	public Arena Arena { get; }
 
 	public WabiSabiConfig Config => Parameters.RuntimeCoordinatorConfig;
+
+	private void Arena_CoinJoinBroadcast(object? sender, Transaction e)
+	{
+		if (!File.Exists(Parameters.CoinJoinIdStoreFilePath))
+		{
+			IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinIdStoreFilePath);
+		}
+
+		File.AppendAllLines(Parameters.CoinJoinIdStoreFilePath, new[] { e.GetHash().ToString() });
+	}
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
@@ -56,6 +67,7 @@ public class WabiSabiCoordinator : BackgroundService
 
 	public override void Dispose()
 	{
+		Arena.CoinJoinBroadcast -= Arena_CoinJoinBroadcast;
 		ConfigWatcher.Dispose();
 		Warden.Dispose();
 		base.Dispose();

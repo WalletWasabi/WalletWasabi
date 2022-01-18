@@ -46,6 +46,8 @@ public partial class Arena : PeriodicRunner
 	private CoinJoinTransactionArchiver? TransactionArchiver { get; }
 	public InMemoryCoinJoinIdStore InMemoryCoinJoinIdStore { get; }
 
+	public event EventHandler<Transaction>? CoinJoinBroadcast;
+
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
 		using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
@@ -244,11 +246,11 @@ public partial class Arena : PeriodicRunner
 						Config.MakeNextCoordinatorScriptDirty();
 					}
 
-					InMemoryCoinJoinIdStore.Add(coinjoin.GetHash());
-
 					round.SetPhase(Phase.Ended);
-
 					round.LogInfo($"Successfully broadcast the CoinJoin: {coinjoin.GetHash()}.");
+
+					InMemoryCoinJoinIdStore.Add(coinjoin.GetHash());
+					CoinJoinBroadcast?.Invoke(this, coinjoin);
 				}
 				else if (round.TransactionSigningTimeFrame.HasExpired)
 				{

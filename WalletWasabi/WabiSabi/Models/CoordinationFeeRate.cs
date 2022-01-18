@@ -10,7 +10,7 @@ public struct CoordinationFeeRate
 	public CoordinationFeeRate(decimal rate, Money plebsDontPayThreshold)
 	{
 		Rate = Guard.InRangeAndNotNull(nameof(rate), rate, 0m, 0.01m);
-		PlebsDontPayThreshold = plebsDontPayThreshold;
+		PlebsDontPayThreshold = plebsDontPayThreshold ?? Money.Zero;
 	}
 
 	public decimal Rate { get; }
