@@ -9,13 +9,31 @@ public interface ISearchStrategy
 	long Target { get; }
 
 	/// <summary>
+	/// Modifies selection sum so that we don't need to recompute it.
+	/// </summary>
+	/// <param name="action">Current action of the BnB algorithm.</param>
+	/// <param name="selection">Currently selected values. <c>0</c> when the corresponding value is not selected.</param>
+	/// <param name="depth">Index of a <paramref name="selection"/> value that is currently being included / omitted.</param>
+	/// <param name="oldSum">Previous sum value.</param>
+	/// <returns>New selection sum.</returns>
+	long UpdateSum(NextAction action, long[] selection, int depth, long oldSum)
+	{
+		if (action == NextAction.IncludeFirstThenOmit || action == NextAction.Include)
+		{
+			return oldSum + selection[depth];
+		}
+
+		return oldSum - selection[depth];
+	}
+
+	/// <summary>
 	/// Evaluation function that evaluates each step of the Branch and Bound algorithm and
 	/// tells the algorithm what to do next.
 	/// </summary>
-	/// <param name="solution">Currently selected values. <c>0</c> when the corresponding value is not selected.</param>
-	/// <param name="count">Number of <paramref name="solution"/> elements that contains the current solution.</param>
-	/// <param name="sum">Sum of first <paramref name="count"/> elements of <paramref name="solution"/>.</param>
-	EvaluationResult Evaluate(long[] solution, int count, long sum);
+	/// <param name="selection">Currently selected values. <c>0</c> when the corresponding value is not selected.</param>
+	/// <param name="count">Number of <paramref name="selection"/> elements that contains the current solution.</param>
+	/// <param name="sum">Sum of first <paramref name="count"/> elements of <paramref name="selection"/>.</param>
+	EvaluationResult Evaluate(long[] selection, int count, long sum);
 }
 
 public enum EvaluationResult

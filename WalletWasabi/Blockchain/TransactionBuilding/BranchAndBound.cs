@@ -29,24 +29,6 @@ public class BranchAndBound
 		SortedValues = values.OrderByDescending(x => x).ToArray();
 	}
 
-	private enum NextAction
-	{
-		/// <summary>First try to include a value and then try not to include the value in the selection.</summary>
-		IncludeFirstThenOmit,
-
-		/// <summary>First try NOT to include a value and then try to include the value in the selection.</summary>
-		OmitFirstThenInclude,
-
-		/// <summary>Include value.</summary>
-		Include,
-
-		/// <summary>Omit value.</summary>
-		Omit,
-
-		/// <summary>Current selection is wrong, rolling back and trying different combination.</summary>
-		Backtrack
-	}
-
 	/// <remarks>Input values sorted in descending order.</remarks>
 	private long[] SortedValues { get; }
 
@@ -106,12 +88,12 @@ public class BranchAndBound
 			NextAction action = actions[depth];
 
 			// Branch WITH the value included.
-			if ((action == NextAction.IncludeFirstThenOmit) || (action == NextAction.Include))
+			if (action == NextAction.IncludeFirstThenOmit || action == NextAction.Include)
 			{
 				actions[depth] = GetNextStep(action);
 
 				solution[depth] = SortedValues[depth];
-				sum += solution[depth];
+				sum = searchStrategy.UpdateSum(action, solution, depth, sum);
 
 				EvaluationResult result = searchStrategy.Evaluate(solution, depth + 1, sum);
 
@@ -127,12 +109,12 @@ public class BranchAndBound
 				depth++;
 				actions[depth] = GetRandomNextAction();
 			}
-			else if ((action == NextAction.OmitFirstThenInclude) || (action == NextAction.Omit))
+			else if (action == NextAction.OmitFirstThenInclude || action == NextAction.Omit)
 			{
 				actions[depth] = GetNextStep(action);
 
 				// Branch WITHOUT the value included.
-				sum -= solution[depth];
+				sum = searchStrategy.UpdateSum(action, solution, depth, sum);
 				solution[depth] = 0;
 
 				if (depth + 1 == Count)
@@ -146,7 +128,7 @@ public class BranchAndBound
 			}
 			else
 			{
-				sum -= solution[depth];
+				sum = searchStrategy.UpdateSum(action, solution, depth, sum);
 				solution[depth] = 0;
 				depth--;
 			}
