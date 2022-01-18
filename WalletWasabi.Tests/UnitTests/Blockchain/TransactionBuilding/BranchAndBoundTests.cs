@@ -98,7 +98,7 @@ public class BranchAndBoundTests
 
 	/// <summary>Tests that best found solution is found when exact solution does not exist.</summary>
 	[Fact]
-	public void PruneByBest_NoExactSolution()
+	public void BestSum_NoExactSolution()
 	{
 		List<long> inputValues = new() { 2, 3, 5, 7, 11 }; // Sum is 28.
 		long target = 27; // Target that we cannot get as a sum of input values.
