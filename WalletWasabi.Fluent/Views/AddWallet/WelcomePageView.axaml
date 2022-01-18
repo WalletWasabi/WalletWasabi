@@ -166,7 +166,7 @@
         <Grid ColumnDefinitions="*,*">
           <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
             <TextBlock Classes="text" Text="Wasabi protects your financial information through coinjoins, client side block filtering, and communicating over the Tor anonymity network. Neither the public nor the developers can breach your privacy." />
-            <TextBlock Text="Privacy by Default"
+            <TextBlock Text="Always Be Coinjoining"
                        Classes="title" />
             <Viewbox Classes="icon">
               <PathIcon Data="{StaticResource incognito_regular}" Foreground="{DynamicResource SliderTrackValueFill}" />
