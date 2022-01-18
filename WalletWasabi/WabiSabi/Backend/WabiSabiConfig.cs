@@ -76,7 +76,6 @@ public class WabiSabiConfig : ConfigBase
 	public CoordinationFeeRate CoordinationFeeRate { get; set; } = new CoordinationFeeRate(0.003m, Money.Coins(0.01m));
 
 	[JsonProperty(PropertyName = "CoordinatorExtPubKey")]
-	[JsonConverter(typeof(ExtPubKeyJsonConverter))]
 	public ExtPubKey CoordinatorExtPubKey { get; } = Constants.WabiSabiFallBackCoordinatorExtPubKey;
 
 	[DefaultValue(1)]
