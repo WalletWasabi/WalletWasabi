@@ -306,7 +306,7 @@ public class RegisterInputFailureTests
 			async () => await arenaClient.RegisterInputAsync(round.Id, BitcoinFactory.CreateOutPoint(), ownershipProof, CancellationToken.None));
 
 		Assert.Equal(WabiSabiProtocolErrorCode.ScriptNotAllowed, ex.ErrorCode);
-
+		Assert.Single(prison.GetInmates());
 		await arena.StopAsync(CancellationToken.None);
 	}
 
