@@ -9,6 +9,7 @@ using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Helpers;
@@ -57,7 +58,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			{
 				if (x is ChangeAvoidanceSuggestionViewModel ca)
 				{
-					_info.ChangelessCoins = ca.TransactionResult.SpentCoins;
 					UpdateTransaction(PreviewTransactionSummary, ca.TransactionResult);
 				}
 				else
@@ -74,6 +74,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 				if (x is ChangeAvoidanceSuggestionViewModel ca)
 				{
+					_info.ChangelessCoins = ca.TransactionResult.SpentCoins;
 					UpdateTransaction(CurrentTransactionSummary, ca.TransactionResult);
 
 					await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, ca.TransactionResult);
@@ -115,6 +116,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		AdjustFeeCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
+			// So we get back the original Tx on fee adjustment.
+			_info.ChangelessCoins = new List<SmartCoin>();
 			if (_info.IsCustomFeeUsed)
 			{
 				await ShowAdvancedDialogAsync();
