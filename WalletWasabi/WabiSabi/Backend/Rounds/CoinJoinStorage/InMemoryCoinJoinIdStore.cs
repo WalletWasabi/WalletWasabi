@@ -31,7 +31,10 @@ public class InMemoryCoinJoinIdStore
 
 	public static InMemoryCoinJoinIdStore LoadFromFile(string filePath)
 	{
-		var lines = File.ReadAllLines(filePath).Select(x => uint256.Parse(x));
+		var lines = File.Exists(filePath)
+			? File.ReadAllLines(filePath).Select(x => uint256.Parse(x))
+			: Enumerable.Empty<uint256>();
+
 		var store = new InMemoryCoinJoinIdStore(lines);
 		return store;
 	}
