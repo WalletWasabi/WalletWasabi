@@ -14,6 +14,22 @@ public class BranchAndBoundTests
 	private static Random Random { get; } = new();
 
 	[Fact]
+	public void InvalidInputs()
+	{
+		List<long> inputValues = new() { };
+		ArgumentException argumentException = Assert.Throws<ArgumentException>(() => new BranchAndBound(inputValues));
+		Assert.Equal("List is empty.", argumentException.Message);
+
+		inputValues = new() { -1, 1, 1 };
+		argumentException = Assert.Throws<ArgumentException>(() => new BranchAndBound(inputValues));
+		Assert.Equal("Only strictly positive values are supported.", argumentException.Message);
+
+		inputValues = new() { 1, 2, 3, 1 };
+		argumentException = Assert.Throws<ArgumentException>(() => new BranchAndBound(inputValues));
+		Assert.Equal("Input values must be sorted in descending order.", argumentException.Message);
+	}
+
+	[Fact]
 	public void ExactMatch_RandomizedTest()
 	{
 		List<long> inputValues = GenerateListOfRandomValues();
@@ -61,7 +77,8 @@ public class BranchAndBoundTests
 	}
 
 	/// <summary>
-	/// Tests that sum of input values must be larger or equal to the target otherwise we end up searching all options in vain.
+	/// Tests that sum of input values must be larger or equal to the target otherwise
+	/// we end up searching all options in vain.
 	/// </summary>
 	[Fact]
 	public void ExactMatch_TargetIsBiggerThanBalance()
@@ -96,20 +113,63 @@ public class BranchAndBoundTests
 		Assert.Null(selectedCoins);
 	}
 
-	/// <summary>Tests that best found solution is found when exact solution does not exist.</summary>
+	/// <summary>Tests that a best found selection is found when an exact solution does not exist.</summary>
 	[Fact]
-	public void BestSum_NoExactSolution()
+	public void CheapestSelection_NoInputCosts()
 	{
-		List<long> inputValues = new() { 2, 3, 5, 7, 11 }; // Sum is 28.
+		List<long> inputValues = new() { 11, 7, 5, 3, 2 }; // Sum is 28.
+		long[] inputCosts = new long[] { 0, 0, 0, 0, 0 }; // No input costs. Idealized.
 		long target = 27; // Target that we cannot get as a sum of input values.
 
 		BranchAndBound algorithm = new(inputValues);
-		BestSumStrategy strategy = new(target);
+		CheapestSelectionStrategy strategy = new(target, inputCosts);
 		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins);
 
 		Assert.False(wasSuccessful);
 		Assert.Null(selectedCoins);
-		Assert.Equal(new long[] { 11, 7, 5, 3, 2 }, strategy.GetBestSumFound());
+		Assert.Equal(new long[] { 11, 7, 5, 3, 2 }, strategy.GetBestSelectionFound());
+	}
+
+	[Fact]
+	public void CheapestSelection_ExactMatchIsAlsoCheapest()
+	{
+		List<long> inputValues = new() { 35, 17, 10, 5, 3, 2 };
+
+		// Make the second input very expensive to spend so that it is not selected (not likely in reality).
+		long[] inputCosts = new long[] { 1, 5, 1, 1, 1, 1 };
+
+		long target = 27;
+
+		BranchAndBound algorithm = new(inputValues);
+		CheapestSelectionStrategy strategy = new(target, inputCosts);
+		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins);
+
+		Assert.False(wasSuccessful);
+		Assert.Null(selectedCoins);
+
+		Assert.Equal(new long[] { 17, 10 }, strategy.GetBestSelectionFound());
+	}
+
+	[Fact]
+	public void CheapestSelection_ExactMatchIsExpensive()
+	{
+		List<long> inputValues = new() { 35, 17, 10, 5, 3, 2 };
+
+		// Make the second input very expensive to spend so that it is not selected (not likely in reality).
+		long[] inputCosts = new long[] { 1, 1000, 1, 1, 1, 1 };
+
+		long target = 27; // Target that we cannot get as a sum of input values.
+
+		BranchAndBound algorithm = new(inputValues);
+		CheapestSelectionStrategy strategy = new(target, inputCosts);
+		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins);
+
+		Assert.False(wasSuccessful);
+		Assert.Null(selectedCoins);
+
+		// Selection (17, 10) is actually more expensive: 17 + 10 + 1000 + 1 = 1018.
+		// Whereas (35) costs us 35 + 1 = 36.
+		Assert.Equal(new long[] { 35 }, strategy.GetBestSelectionFound());
 	}
 
 	private List<long> GenerateListOfRandomValues(int count = 1000)
@@ -120,6 +180,8 @@ public class BranchAndBoundTests
 		{
 			values.Add(Random.Next(1000, 99999999));
 		}
+
+		values = values.OrderByDescending(x => x).ToList();
 
 		return values;
 	}

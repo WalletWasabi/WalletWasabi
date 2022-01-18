@@ -12,7 +12,7 @@ public class BranchAndBound
 {
 	private readonly Random _random = new();
 
-	/// <param name="values">All values must be strictly positive.</param>
+	/// <param name="values">All values must be strictly positive and in descending order.</param>
 	public BranchAndBound(List<long> values)
 	{
 		if (values.Count == 0)
@@ -27,6 +27,11 @@ public class BranchAndBound
 
 		Count = values.Count;
 		SortedValues = values.OrderByDescending(x => x).ToArray();
+
+		if (!values.SequenceEqual(SortedValues))
+		{
+			throw new ArgumentException("Input values must be sorted in descending order.");
+		}
 	}
 
 	/// <remarks>Input values sorted in descending order.</remarks>

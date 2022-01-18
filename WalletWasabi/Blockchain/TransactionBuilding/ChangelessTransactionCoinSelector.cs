@@ -28,15 +28,18 @@ public static class ChangelessTransactionCoinSelector
 		// Keys are effective values of smart coins in satoshis.
 		IOrderedEnumerable<SmartCoin> sortedCoins = availableCoins.OrderByDescending(x => x.EffectiveValue(feeRate).Satoshi);
 
+		// How much it costs to spend each coin.
+		long[] inputCosts = sortedCoins.Select(x => x.Amount.Satoshi - x.EffectiveValue(feeRate).Satoshi).ToArray();
+
 		Dictionary<SmartCoin, long> inputs = new(sortedCoins.ToDictionary(x => x, x => x.EffectiveValue(feeRate).Satoshi));
 
 		// Pass smart coins' effective values in descending order.
 		BranchAndBound branchAndBound = new(inputs.Values.ToList());
-		BestSumStrategy strategy = new(target);
+		CheapestSelectionStrategy strategy = new(target, inputCosts);
 
 		_ = branchAndBound.TryGetMatch(strategy, out List<long>? solution, cancellationToken);
 
-		if (solution is null && strategy.GetBestSumFound() is long[] bestSolution)
+		if (solution is null && strategy.GetBestSelectionFound() is long[] bestSolution)
 		{
 			solution = bestSolution.ToList();
 		}
