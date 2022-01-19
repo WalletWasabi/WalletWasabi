@@ -58,8 +58,8 @@ public partial class VerifyRecoveryPhraseViewModel : RoutableViewModel
 	private async Task OnNextAsync()
 	{
 		var dialogResult = await NavigateDialogAsync(
-			new PasswordAuthDialogViewModel(_wallet)
-			, NavigationTarget.CompactDialogScreen);
+			new PasswordAuthDialogViewModel(_wallet),
+			NavigationTarget.CompactDialogScreen);
 
 		if (dialogResult.Result)
 		{
@@ -82,7 +82,7 @@ public partial class VerifyRecoveryPhraseViewModel : RoutableViewModel
 					else
 					{
 						await ShowErrorAsync("Error", "Your recovery phrase was incorrect.",
-							"You may try again, but if you are unable to verify your recovery phrase correctly. Your MUST move your funds to a new wallet as soon as possible.");
+							"You may try again, but if you are unable to verify your recovery phrase correctly. You MUST move your funds to a new wallet as soon as possible.");
 
 						Mnemonics.Clear();
 					}
@@ -99,7 +99,7 @@ public partial class VerifyRecoveryPhraseViewModel : RoutableViewModel
 		else
 		{
 			await ShowErrorAsync("Error", "The entered password was incorrect.",
-				"You may try again, but if you are unable to verify your recovery phrase correctly. Your MUST move your funds to a new wallet as soon as possible.");
+				"You may try again, but if you are unable to verify your recovery phrase correctly. You MUST move your funds to a new wallet as soon as possible.");
 		}
 	}
 
