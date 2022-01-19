@@ -36,7 +36,7 @@ public class BranchAndBoundTests
 		long target = 100_000_000;
 
 		BranchAndBound algorithm = new(inputValues);
-		ExactMatchStrategy strategy = new(target);
+		ExactMatchStrategy strategy = new(target, inputValues);
 		bool successful = algorithm.TryGetMatch(strategy, out List<long>? selectedValues);
 
 		Assert.True(successful);
@@ -52,7 +52,7 @@ public class BranchAndBoundTests
 		long target = 190_000;
 
 		BranchAndBound algorithm = new(inputValues);
-		ExactMatchStrategy strategy = new(target);
+		ExactMatchStrategy strategy = new(target, inputValues);
 		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins);
 
 		Assert.True(wasSuccessful);
@@ -68,7 +68,7 @@ public class BranchAndBoundTests
 		long target = 320000;
 
 		BranchAndBound algorithm = new(inputValues);
-		ExactMatchStrategy strategy = new(target);
+		ExactMatchStrategy strategy = new(target, inputValues);
 		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins);
 
 		Assert.True(wasSuccessful);
@@ -92,7 +92,7 @@ public class BranchAndBoundTests
 		}
 
 		BranchAndBound algorithm = new(inputValues);
-		ExactMatchStrategy strategy = new(target);
+		ExactMatchStrategy strategy = new(target, inputValues);
 		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins);
 
 		Assert.False(wasSuccessful);
@@ -106,7 +106,7 @@ public class BranchAndBoundTests
 		long target = 300000;
 
 		BranchAndBound algorithm = new(inputValues);
-		ExactMatchStrategy strategy = new(target);
+		ExactMatchStrategy strategy = new(target, inputValues);
 		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins);
 
 		Assert.False(wasSuccessful);
@@ -122,7 +122,7 @@ public class BranchAndBoundTests
 		long target = 27; // Target that we cannot get as a sum of input values.
 
 		BranchAndBound algorithm = new(inputValues);
-		CheapestSelectionStrategy strategy = new(target, inputCosts);
+		CheapestSelectionStrategy strategy = new(target, inputValues, inputCosts);
 		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins);
 
 		Assert.False(wasSuccessful);
@@ -141,7 +141,7 @@ public class BranchAndBoundTests
 		long target = 27;
 
 		BranchAndBound algorithm = new(inputValues);
-		CheapestSelectionStrategy strategy = new(target, inputCosts);
+		CheapestSelectionStrategy strategy = new(target, inputValues, inputCosts);
 		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins);
 
 		Assert.False(wasSuccessful);
@@ -175,15 +175,27 @@ public class BranchAndBoundTests
 		long target = 27; // Target that we cannot get as a sum of input values.
 
 		BranchAndBound algorithm = new(inputValues);
-		CheapestSelectionStrategy strategy = new(target, inputCosts);
+		CheapestSelectionStrategy strategy = new(target, inputValues, inputCosts);
 		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins);
 
 		Assert.False(wasSuccessful);
 		Assert.Null(selectedCoins);
 
+		// There are multiple existing solutions.
 		// Selection (17, 10) is actually more expensive: 17 + 10 + 1000 + 1 = 1018.
-		// Whereas (35) costs us 35 + 1 = 36.
-		Assert.Equal(new long[] { 35 }, strategy.GetBestSelectionFound());
+		// Whereas (35) costs us 35 + 1 = 36.		
+		long[][] solutions = new long[][]  {
+			new long[] { 17, 5, 3, 2 },
+			new long[] { 35 }
+		};
+
+		long[] actualSelection = strategy.GetBestSelectionFound()!;
+		Assert.NotNull(actualSelection);
+
+		bool isOk = solutions[0].SequenceEqual(actualSelection)
+			|| solutions[1].SequenceEqual(actualSelection);
+
+		Assert.True(isOk, userMessage: string.Join(", ", actualSelection));
 	}
 
 	private List<long> GenerateListOfRandomValues(int count = 1000)

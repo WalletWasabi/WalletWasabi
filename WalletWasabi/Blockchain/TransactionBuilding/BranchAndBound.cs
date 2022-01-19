@@ -73,15 +73,15 @@ public class BranchAndBound
 		return false;
 	}
 
-	private bool TryFindSolution(ISearchStrategy searchStrategy, [NotNullWhen(true)] out long[]? solution, CancellationToken cancellationToken = default)
+	private bool TryFindSolution(ISearchStrategy searchStrategy, [NotNullWhen(true)] out long[]? selection, CancellationToken cancellationToken = default)
 	{
-		// Current effective value.
+		// Current selection sum.
 		long sum = 0L;
 
 		// Current depth (think of the depth in the recursive algorithm sense).
 		int depth = 0;
 
-		solution = new long[Count];
+		selection = new long[Count];
 		NextAction[] actions = new NextAction[Count];
 		actions[0] = GetRandomNextAction();
 
@@ -96,11 +96,9 @@ public class BranchAndBound
 			if (action == NextAction.IncludeFirstThenOmit || action == NextAction.Include)
 			{
 				actions[depth] = GetNextStep(action);
+				sum = searchStrategy.UpdateSum(action, selection, depth, sum);
 
-				solution[depth] = SortedValues[depth];
-				sum = searchStrategy.UpdateSum(action, solution, depth, sum);
-
-				EvaluationResult result = searchStrategy.Evaluate(solution, depth + 1, sum);
+				EvaluationResult result = searchStrategy.Evaluate(selection, depth + 1, sum);
 
 				if (result == EvaluationResult.SkipBranch)
 				{
@@ -119,12 +117,11 @@ public class BranchAndBound
 				actions[depth] = GetNextStep(action);
 
 				// Branch WITHOUT the value included.
-				sum = searchStrategy.UpdateSum(action, solution, depth, sum);
-				solution[depth] = 0;
+				sum = searchStrategy.UpdateSum(action, selection, depth, sum);
 
 				if (depth + 1 == Count)
 				{
-					// Leaf reached, no match
+					// Leaf reached, no match.
 					continue;
 				}
 
@@ -133,8 +130,7 @@ public class BranchAndBound
 			}
 			else
 			{
-				sum = searchStrategy.UpdateSum(action, solution, depth, sum);
-				solution[depth] = 0;
+				sum = searchStrategy.UpdateSum(action, selection, depth, sum);
 				depth--;
 			}
 

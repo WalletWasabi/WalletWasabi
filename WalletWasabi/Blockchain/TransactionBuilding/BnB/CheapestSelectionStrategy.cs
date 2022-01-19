@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
@@ -15,14 +17,16 @@ public class CheapestSelectionStrategy : ISearchStrategy
 
 	/// <param name="target">Value in satoshis.</param>
 	/// <param name="inputSpendingCosts">Costs of spending coins in satoshis.</param>
-	public CheapestSelectionStrategy(long target, long[] inputSpendingCosts)
+	public CheapestSelectionStrategy(long target, List<long> inputValues, long[] inputSpendingCosts)
 	{
 		Target = target;
+		InputValues = inputValues;
 		InputCosts = inputSpendingCosts;
 	}
 
 	/// <inheritdoc/>
 	public long Target { get; }
+	public List<long> InputValues { get; }
 	public long[] InputCosts { get; }
 
 	/// <summary>Gives lowest found value selection whose sum is larger than or equal to <see cref="Target"/>.</summary>
@@ -31,32 +35,65 @@ public class CheapestSelectionStrategy : ISearchStrategy
 	/// <inheritdoc/>
 	public long UpdateSum(NextAction action, long[] selection, int depth, long oldSum)
 	{
+		long result;
+
 		if (action == NextAction.IncludeFirstThenOmit || action == NextAction.Include)
 		{
-			_currentInputCosts += InputCosts[depth];
-			return oldSum + selection[depth];
+			if (selection[depth] == 0)
+			{
+				_currentInputCosts += InputCosts[depth];
+			}
+
+			selection[depth] = InputValues[depth];
+			result = oldSum + selection[depth];
+		}
+		else if (action == NextAction.OmitFirstThenInclude || action == NextAction.Omit)
+		{
+			if (selection[depth] > 0)
+			{
+				_currentInputCosts -= InputCosts[depth];
+			}
+
+			result = oldSum - selection[depth];
+			selection[depth] = 0;
+		}
+		else
+		{
+			if (selection[depth] > 0)
+			{
+				_currentInputCosts -= InputCosts[depth];
+			}
+
+			result = oldSum - selection[depth];
+			selection[depth] = 0;
 		}
 
-		_currentInputCosts -= InputCosts[depth];
-		return oldSum - selection[depth];
+		return result;
 	}
+
+	private long[] _sol1 = new long[] { 0, 17, 10 };
 
 	/// <inheritdoc/>
 	public EvaluationResult Evaluate(long[] selection, int depth, long sum)
 	{
-		long totalSum = sum + _currentInputCosts;
+		long totalCost = sum + _currentInputCosts;
 
-		if (totalSum > _bestTargetSoFar)
+		if (totalCost > _bestTargetSoFar)
 		{
 			// Our solution is already better than what we might get here.
 			return EvaluationResult.SkipBranch;
 		}
 		else if (sum >= Target)
 		{
-			if (_bestTargetSoFar > totalSum)
+			if (_bestTargetSoFar > totalCost)
 			{
-				_bestTargetSoFar = totalSum;
 				_bestSelectionSoFar = selection[0..depth];
+				_bestTargetSoFar = totalCost;
+
+				if (_bestSelectionSoFar.SequenceEqual(_sol1))
+				{
+					Debug.Assert(true);
+				}
 			}
 
 			// Even if a match occurred we cannot be sure that there isn't

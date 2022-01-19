@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 
 /// <summary>
@@ -7,6 +9,8 @@ public interface ISearchStrategy
 {
 	/// <summary>Target value we want to, ideally, sum up from the input values.</summary>
 	long Target { get; }
+
+	public List<long> InputValues { get; }
 
 	/// <summary>
 	/// Modifies selection sum so that we don't need to recompute it.
@@ -18,12 +22,26 @@ public interface ISearchStrategy
 	/// <returns>New selection sum.</returns>
 	long UpdateSum(NextAction action, long[] selection, int depth, long oldSum)
 	{
+		long result;
+
 		if (action == NextAction.IncludeFirstThenOmit || action == NextAction.Include)
 		{
-			return oldSum + selection[depth];
+
+			selection[depth] = InputValues[depth];
+			result = oldSum + selection[depth];
+		}
+		else if (action == NextAction.OmitFirstThenInclude || action == NextAction.Omit)
+		{
+			result = oldSum - selection[depth];
+			selection[depth] = 0;
+		}
+		else
+		{
+			result = oldSum - selection[depth];
+			selection[depth] = 0;
 		}
 
-		return oldSum - selection[depth];
+		return result;
 	}
 
 	/// <summary>

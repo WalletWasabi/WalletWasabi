@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 
 public class ExactMatchStrategy : ISearchStrategy
@@ -5,9 +7,12 @@ public class ExactMatchStrategy : ISearchStrategy
 	/// <inheritdoc/>
 	public long Target { get; }
 
-	public ExactMatchStrategy(long target)
+	public List<long> InputValues { get; }
+
+	public ExactMatchStrategy(long target, List<long> inputValues)
 	{
 		Target = target;
+		InputValues = inputValues;
 	}
 
 	/// <inheritdoc/>
