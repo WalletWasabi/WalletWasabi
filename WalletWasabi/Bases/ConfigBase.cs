@@ -98,8 +98,9 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 	/// <inheritdoc />
 	public bool AreDeepEqual(object otherConfig)
 	{
-		var currentConfig = JObject.FromObject(this);
-		var otherConfigJson = JObject.FromObject(otherConfig);
+		var serializer = JsonSerializer.Create(JsonSerializationOptions.Default.Settings);
+		var currentConfig = JObject.FromObject(this, serializer);
+		var otherConfigJson = JObject.FromObject(otherConfig, serializer);
 		return JToken.DeepEquals(otherConfigJson, currentConfig);
 	}
 
@@ -108,7 +109,7 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 	{
 		AssertFilePathSet();
 
-		string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
+		string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented, JsonSerializationOptions.Default.Settings);
 		File.WriteAllText(FilePath, jsonString, Encoding.UTF8);
 	}
 

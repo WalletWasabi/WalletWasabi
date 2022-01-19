@@ -94,6 +94,7 @@ public class WabiSabiConfig : ConfigBase
 	/// <summary>
 	/// If money comes to the blame script, then either an attacker lost money or there's a client bug.
 	/// </summary>
+	[JsonIgnore]
 	public Script BlameScript => DeriveCoordinatorScript(0);
 
 	public Script GetNextCleanCoordinatorScript() => DeriveCoordinatorScript(CoordinatorExtPubKeyCurrentDepth);
