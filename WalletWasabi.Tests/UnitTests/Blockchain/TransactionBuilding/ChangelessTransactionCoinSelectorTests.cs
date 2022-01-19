@@ -21,7 +21,7 @@ public class ChangelessTransactionCoinSelectorTests
 	/// Tests that we select coins so that user can agree with paying more money for having a payment transaction with no change output.
 	/// </summary>
 	[Fact]
-	public void TryGetCoins()
+	public void GoodSuggestion()
 	{
 		using Key key = new();
 
@@ -34,6 +34,21 @@ public class ChangelessTransactionCoinSelectorTests
 		long[] solution = selectedCoins!.Select(x => x.Amount.Satoshi).ToArray();
 		Assert.Equal(new long[] { 100_000, 50_000, 6_025 }, solution);
 		Assert.Equal(6025, solution.Sum() - target); // ~4% more for the privacy.
+	}
+
+	/// <summary>
+	/// Tests that solutions respect <see cref="ChangelessTransactionCoinSelector.MaxExtraFee"/> restriction.
+	/// </summary>
+	[Fact]
+	public void TooExpensiveSolution()
+	{
+		using Key key = new();
+
+		List<SmartCoin> coins = GenerateDummySmartCoins(key, 150_000);
+		long target = 100_000;
+
+		bool found = ChangelessTransactionCoinSelector.TryGetCoins(coins, new FeeRate(satoshiPerByte: 4), target, out List<SmartCoin>? selectedCoins);
+		Assert.False(found);
 	}
 
 	/// <remarks>These smart coins are from an invalid transaction but we are interested only in smart coins' amounts.</remarks>
