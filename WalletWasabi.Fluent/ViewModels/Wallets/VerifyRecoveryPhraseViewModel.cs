@@ -95,6 +95,11 @@ public partial class VerifyRecoveryPhraseViewModel : RoutableViewModel
 
 			IsBusy = false;
 		}
+		else
+		{
+			await ShowErrorAsync("Error", "The entered password was incorrect.",
+				"You may try again, but if you are unable to verify your recovery phrase correctly. Your MUST move your funds to a new wallet as soon as possible.");
+		}
 	}
 
 	public bool IsMnemonicsValid => CurrentMnemonics is { IsValidChecksum: true };
