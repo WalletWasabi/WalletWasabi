@@ -15,71 +15,9 @@
                  IsBusy="{Binding IsBusy}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel>
-
-      <!-- Warning messages -->
-      <StackPanel Margin="0 10 0 0" DockPanel.Dock="Bottom" Spacing="5">
-        <Panel.Styles>
-          <Style Selector="c|InfoMessage[IsVisible=False]">
-            <Setter Property="Opacity" Value="0" />
-          </Style>
-          <Style Selector="c|InfoMessage">
-            <Setter Property="HorizontalAlignment" Value="Center" />
-          </Style>
-        </Panel.Styles>
-
-        <c:InfoMessage Foreground="{DynamicResource WarningMessageForeground}"
-                       IsVisible="{Binding !EnoughSelected}">
-          <StackPanel Orientation="Horizontal">
-            <TextBlock Text="Insufficient funds selected. Select at least another " />
-            <TextBlock Text="{Binding StillNeeded}" />
-            <TextBlock Text=" BTC" />
-          </StackPanel>
-        </c:InfoMessage>
-
-        <c:InfoMessage Content="Warning, using both private and non-private funds in the same transaction can destroy your privacy."
-                       IsVisible="{Binding IsWarningOpen}" Foreground="{DynamicResource SystemErrorTextColor}" />
-
-        <c:InfoMessage Content="Not in a hurry? Consider making more of your funds private by CoinJoining before making this transaction.">
-          <c:InfoMessage.IsVisible>
-            <MultiBinding Converter="{x:Static BoolConverters.And}">
-              <Binding Path="EnoughSelected" />
-              <Binding Path="IsWarningOpen" Converter="{x:Static BoolConverters.Not}" />
-            </MultiBinding>
-          </c:InfoMessage.IsVisible>
-        </c:InfoMessage>
-      </StackPanel>
-
-      <!-- List -->
-      <DataBox Items="{Binding Pockets}">
-        <DataBox.Resources>
-          <SolidColorBrush x:Key="DataGridRowIndicatorBrush" Color="Transparent" />
-          <SolidColorBrush x:Key="DataGridRowSelectedBackgroundColor" Color="Transparent" />
-          <StaticResource x:Key="DataGridRowSelectedUnfocusedBackgroundColor"
-                          ResourceKey="DataGridRowSelectedBackgroundColor" />
-        </DataBox.Resources>
-        <DataBox.Columns>
-          <DataBoxTemplateColumn CanUserSort="False" CanUserResize="False" CanUserReorder="False">
-            <DataBoxTemplateColumn.CellTemplate>
-              <DataTemplate x:DataType="vm:PocketViewModel">
-                <CheckBox HorizontalAlignment="Center" IsChecked="{Binding IsSelected}" Focusable="False" />
-              </DataTemplate>
-            </DataBoxTemplateColumn.CellTemplate>
-          </DataBoxTemplateColumn>
-
-          <DataBoxTextColumn x:DataType="vm:PocketViewModel"
-                             CanUserSort="False"
-                             Header="Total (BTC)"
-                             Binding="{Binding TotalBtc}" />
-
-          <DataBoxTemplateColumn CanUserSort="False" Width="*" Header="Labels">
-            <DataBoxTemplateColumn.CellTemplate>
-              <DataTemplate x:DataType="vm:PocketViewModel">
-                <c:TagsBox Items="{Binding Labels}" IsReadOnly="True" HorizontalAlignment="Left" />
-              </DataTemplate>
-            </DataBoxTemplateColumn.CellTemplate>
-          </DataBoxTemplateColumn>
-        </DataBox.Columns>
-      </DataBox>
+      <c:TagsBox Items="{Binding MustHaveLabels}" IsReadOnly="True" DockPanel.Dock="Bottom" />
+      <TextBlock Text="Must have:" DockPanel.Dock="Bottom" />
+      <c:TagsBox Items="{Binding Labels}" EnableDelete="True" />
     </DockPanel>
   </c:ContentArea>
 </UserControl>
