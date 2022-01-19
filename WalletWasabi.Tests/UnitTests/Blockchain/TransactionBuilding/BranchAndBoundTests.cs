@@ -150,12 +150,18 @@ public class BranchAndBoundTests
 		// There are multiple existing solutions.
 		long[][] solutions = new long[][]  {
 			new long[] { 17, 10 },
-			new long[] { 17, 5, 3, 2 }
+			new long[] { 17, 5, 3, 2 },
+			new long[] { 35 }
 		};
 
 		long[] actualSelection = strategy.GetBestSelectionFound()!;
 		Assert.NotNull(actualSelection);
-		Assert.True(solutions[0].SequenceEqual(actualSelection) || solutions[1].SequenceEqual(actualSelection));
+
+		bool isOk = solutions[0].SequenceEqual(actualSelection)
+			|| solutions[1].SequenceEqual(actualSelection)
+			|| solutions[2].SequenceEqual(actualSelection);
+
+		Assert.True(isOk, userMessage: string.Join(", ", actualSelection));
 	}
 
 	[Fact]
