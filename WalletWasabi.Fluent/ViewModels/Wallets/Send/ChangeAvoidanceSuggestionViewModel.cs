@@ -115,7 +115,8 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 				destination,
 				transactionInfo.UserLabels,
 				transactionInfo.FeeRate,
-				bnbResult
+				bnbResult,
+				false
 				));
 
 			bnbSuggestion = new ChangeAvoidanceSuggestionViewModel(
