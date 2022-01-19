@@ -8,6 +8,7 @@ using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -70,10 +71,10 @@ public partial class VerifyRecoveryPhraseViewModel : RoutableViewModel
 				{
 					var saltSoup = _wallet.Kitchen.SaltSoup();
 
-					var extKey = _currentMnemonics.DeriveExtKey(saltSoup);
-					var masterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
+					var recovered = KeyManager.Recover(_currentMnemonics, saltSoup, _wallet.Network, _wallet.KeyManager.AccountKeyPath,
+						null, _wallet.KeyManager.MinGapLimit);
 
-					if (_wallet.KeyManager.MasterFingerprint == masterFingerprint)
+					if (_wallet.KeyManager.ExtPubKey == recovered.ExtPubKey)
 					{
 						Navigate().To(new SuccessViewModel("Your Seed Recovery words have been verified as correct."),
 							NavigationMode.Clear);
