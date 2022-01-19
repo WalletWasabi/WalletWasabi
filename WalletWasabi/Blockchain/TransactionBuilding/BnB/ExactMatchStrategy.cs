@@ -1,29 +1,21 @@
-using System.Collections.Generic;
-
 namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 
-public class ExactMatchStrategy : ISearchStrategy
+public class ExactMatchStrategy : BaseStrategy
 {
-	/// <inheritdoc/>
-	public long Target { get; }
-
-	public List<long> InputValues { get; }
-
-	public ExactMatchStrategy(long target, List<long> inputValues)
+	public ExactMatchStrategy(long target, long[] inputValues)
+		: base(target, inputValues)
 	{
-		Target = target;
-		InputValues = inputValues;
 	}
 
 	/// <inheritdoc/>
-	public EvaluationResult Evaluate(long[] solution, int depth, long effValue)
+	public override EvaluationResult Evaluate(long[] solution, int depth, long sum)
 	{
-		if (effValue > Target)
+		if (sum > Target)
 		{
 			// Excessive funds, cut the branch!
 			return EvaluationResult.SkipBranch;
 		}
-		else if (effValue == Target)
+		else if (sum == Target)
 		{
 			// Match found!
 			return EvaluationResult.Match;

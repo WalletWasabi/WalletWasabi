@@ -12,34 +12,6 @@ public class BranchAndBound
 {
 	private readonly Random _random = new();
 
-	/// <param name="values">All values must be strictly positive and in descending order.</param>
-	public BranchAndBound(List<long> values)
-	{
-		if (values.Count == 0)
-		{
-			throw new ArgumentException("List is empty.");
-		}
-
-		if (values.Any(x => x <= 0))
-		{
-			throw new ArgumentException("Only strictly positive values are supported.");
-		}
-
-		Count = values.Count;
-		SortedValues = values.OrderByDescending(x => x).ToArray();
-
-		if (!values.SequenceEqual(SortedValues))
-		{
-			throw new ArgumentException("Input values must be sorted in descending order.");
-		}
-	}
-
-	/// <remarks>Input values sorted in descending order.</remarks>
-	private long[] SortedValues { get; }
-
-	/// <summary>Number of input values.</summary>
-	private int Count { get; }
-
 	/// <summary>
 	/// Attempts to find a set of values that sum up to the target value.
 	/// </summary>
@@ -50,7 +22,7 @@ public class BranchAndBound
 	{
 		selectedValues = null;
 
-		if (SortedValues.Sum() < searchStrategy.Target)
+		if (searchStrategy.InputValues.Sum() < searchStrategy.Target)
 		{
 			return false;
 		}
@@ -59,11 +31,11 @@ public class BranchAndBound
 		{
 			selectedValues = new List<long>();
 
-			for (int i = 0; i < Count; i++)
+			for (int i = 0; i < solution.Length; i++)
 			{
 				if (solution[i] > 0)
 				{
-					selectedValues.Add(SortedValues[i]);
+					selectedValues.Add(solution[i]);
 				}
 			}
 
@@ -81,8 +53,10 @@ public class BranchAndBound
 		// Current depth (think of the depth in the recursive algorithm sense).
 		int depth = 0;
 
-		selection = new long[Count];
-		NextAction[] actions = new NextAction[Count];
+		int length = searchStrategy.InputValues.Length;
+
+		selection = new long[length];
+		NextAction[] actions = new NextAction[length];
 		actions[0] = GetRandomNextAction();
 
 		int i = 0;
@@ -96,7 +70,7 @@ public class BranchAndBound
 			if (action == NextAction.IncludeFirstThenOmit || action == NextAction.Include)
 			{
 				actions[depth] = GetNextStep(action);
-				sum = searchStrategy.UpdateSum(action, selection, depth, sum);
+				sum = searchStrategy.ProcessAction(action, selection, depth, sum);
 
 				EvaluationResult result = searchStrategy.Evaluate(selection, depth + 1, sum);
 
@@ -117,9 +91,9 @@ public class BranchAndBound
 				actions[depth] = GetNextStep(action);
 
 				// Branch WITHOUT the value included.
-				sum = searchStrategy.UpdateSum(action, selection, depth, sum);
+				sum = searchStrategy.ProcessAction(action, selection, depth, sum);
 
-				if (depth + 1 == Count)
+				if (depth + 1 == length)
 				{
 					// Leaf reached, no match.
 					continue;
@@ -130,7 +104,7 @@ public class BranchAndBound
 			}
 			else
 			{
-				sum = searchStrategy.UpdateSum(action, selection, depth, sum);
+				sum = searchStrategy.ProcessAction(action, selection, depth, sum);
 				depth--;
 			}
 

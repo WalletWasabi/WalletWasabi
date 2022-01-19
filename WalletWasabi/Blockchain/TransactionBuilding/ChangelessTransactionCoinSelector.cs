@@ -34,9 +34,9 @@ public static class ChangelessTransactionCoinSelector
 		Dictionary<SmartCoin, long> inputs = new(sortedCoins.ToDictionary(x => x, x => x.EffectiveValue(feeRate).Satoshi));
 
 		// Pass smart coins' effective values in descending order.
-		List<long> inputValues = inputs.Values.ToList();
+		long[] inputValues = inputs.Values.ToArray();
 
-		BranchAndBound branchAndBound = new(inputValues);
+		BranchAndBound branchAndBound = new();
 		CheapestSelectionStrategy strategy = new(target, inputValues, inputCosts);
 
 		_ = branchAndBound.TryGetMatch(strategy, out List<long>? solution, cancellationToken);

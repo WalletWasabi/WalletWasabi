@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
@@ -9,7 +7,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 /// waste of user's fund by looking for a selection that minimizes inputs' spending costs
 /// and extra cost of paying more than specified target.
 /// </summary>
-public class CheapestSelectionStrategy : ISearchStrategy
+public class CheapestSelectionStrategy : BaseStrategy
 {
 	private long _currentInputCosts = 0;
 	private long _bestTargetSoFar = long.MaxValue;
@@ -17,25 +15,22 @@ public class CheapestSelectionStrategy : ISearchStrategy
 
 	/// <param name="target">Value in satoshis.</param>
 	/// <param name="inputSpendingCosts">Costs of spending coins in satoshis.</param>
-	public CheapestSelectionStrategy(long target, List<long> inputValues, long[] inputSpendingCosts)
+	public CheapestSelectionStrategy(long target, long[] inputValues, long[] inputSpendingCosts)
+		: base(target, inputValues)
 	{
-		Target = target;
-		InputValues = inputValues;
 		InputCosts = inputSpendingCosts;
 	}
 
-	/// <inheritdoc/>
-	public long Target { get; }
-	public List<long> InputValues { get; }
+	/// <summary>Costs corresponding to <see cref="ISearchStrategy.InputValues"/> values.</summary>
 	public long[] InputCosts { get; }
 
-	/// <summary>Gives lowest found value selection whose sum is larger than or equal to <see cref="Target"/>.</summary>
+	/// <summary>Gives lowest found value selection whose sum is larger than or equal to <see cref="ISearchStrategy.Target"/>.</summary>
 	public long[]? GetBestSelectionFound() => _bestSelectionSoFar?.Where(x => x > 0).ToArray();
 
 	/// <inheritdoc/>
-	public long UpdateSum(NextAction action, long[] selection, int depth, long oldSum)
+	public override long ProcessAction(NextAction action, long[] selection, int depth, long oldSum)
 	{
-		long result;
+		long newSum;
 
 		if (action == NextAction.IncludeFirstThenOmit || action == NextAction.Include)
 		{
@@ -45,7 +40,7 @@ public class CheapestSelectionStrategy : ISearchStrategy
 			}
 
 			selection[depth] = InputValues[depth];
-			result = oldSum + selection[depth];
+			newSum = oldSum + selection[depth];
 		}
 		else if (action == NextAction.OmitFirstThenInclude || action == NextAction.Omit)
 		{
@@ -54,7 +49,7 @@ public class CheapestSelectionStrategy : ISearchStrategy
 				_currentInputCosts -= InputCosts[depth];
 			}
 
-			result = oldSum - selection[depth];
+			newSum = oldSum - selection[depth];
 			selection[depth] = 0;
 		}
 		else
@@ -64,17 +59,15 @@ public class CheapestSelectionStrategy : ISearchStrategy
 				_currentInputCosts -= InputCosts[depth];
 			}
 
-			result = oldSum - selection[depth];
+			newSum = oldSum - selection[depth];
 			selection[depth] = 0;
 		}
 
-		return result;
+		return newSum;
 	}
 
-	private long[] _sol1 = new long[] { 0, 17, 10 };
-
 	/// <inheritdoc/>
-	public EvaluationResult Evaluate(long[] selection, int depth, long sum)
+	public override EvaluationResult Evaluate(long[] selection, int depth, long sum)
 	{
 		long totalCost = sum + _currentInputCosts;
 
@@ -89,11 +82,6 @@ public class CheapestSelectionStrategy : ISearchStrategy
 			{
 				_bestSelectionSoFar = selection[0..depth];
 				_bestTargetSoFar = totalCost;
-
-				if (_bestSelectionSoFar.SequenceEqual(_sol1))
-				{
-					Debug.Assert(true);
-				}
 			}
 
 			// Even if a match occurred we cannot be sure that there isn't
