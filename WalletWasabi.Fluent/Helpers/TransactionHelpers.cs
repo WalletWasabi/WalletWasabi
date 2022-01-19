@@ -17,7 +17,7 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class TransactionHelpers
 {
-	public static BuildTransactionResult BuildChangelessTransaction(Wallet wallet, BitcoinAddress address, SmartLabel labels, FeeRate feeRate, IEnumerable<SmartCoin> coins)
+	public static BuildTransactionResult BuildChangelessTransaction(Wallet wallet, BitcoinAddress address, SmartLabel labels, FeeRate feeRate, IEnumerable<SmartCoin> coins, bool tryToSign = true)
 	{
 		var intent = new PaymentIntent(
 			address,
@@ -29,12 +29,13 @@ public static class TransactionHelpers
 			intent,
 			FeeStrategy.CreateFromFeeRate(feeRate),
 			allowUnconfirmed: true,
-			coins.Select(coin => coin.OutPoint));
+			coins.Select(coin => coin.OutPoint),
+			tryToSign: tryToSign);
 
 		return txRes;
 	}
 
-	public static BuildTransactionResult BuildTransaction(Wallet wallet, BitcoinAddress address, Money amount, SmartLabel labels, FeeRate feeRate, IEnumerable<SmartCoin> coins, bool subtractFee, IPayjoinClient? payJoinClient = null)
+	public static BuildTransactionResult BuildTransaction(Wallet wallet, BitcoinAddress address, Money amount, SmartLabel labels, FeeRate feeRate, IEnumerable<SmartCoin> coins, bool subtractFee, IPayjoinClient? payJoinClient = null, bool tryToSign = true)
 	{
 		if (payJoinClient is { } && subtractFee)
 		{
@@ -53,12 +54,13 @@ public static class TransactionHelpers
 			feeStrategy: FeeStrategy.CreateFromFeeRate(feeRate),
 			allowUnconfirmed: true,
 			allowedInputs: coins.Select(coin => coin.OutPoint),
-			payjoinClient: payJoinClient);
+			payjoinClient: payJoinClient,
+			tryToSign: tryToSign);
 
 		return txRes;
 	}
 
-	public static BuildTransactionResult BuildTransaction(Wallet wallet, TransactionInfo transactionInfo, BitcoinAddress destination, bool isPayJoin = false)
+	public static BuildTransactionResult BuildTransaction(Wallet wallet, TransactionInfo transactionInfo, BitcoinAddress destination, bool isPayJoin = false, bool tryToSign = true)
 	{
 		if (transactionInfo.IsOptimized)
 		{
@@ -67,7 +69,8 @@ public static class TransactionHelpers
 				destination,
 				transactionInfo.UserLabels,
 				transactionInfo.FeeRate,
-				transactionInfo.ChangelessCoins);
+				transactionInfo.ChangelessCoins,
+				tryToSign: tryToSign);
 		}
 
 		if (isPayJoin && transactionInfo.SubtractFee)
@@ -83,17 +86,17 @@ public static class TransactionHelpers
 			transactionInfo.FeeRate,
 			transactionInfo.Coins,
 			transactionInfo.SubtractFee,
-			isPayJoin ? transactionInfo.PayJoinClient : null);
-
+			isPayJoin ? transactionInfo.PayJoinClient : null,
+			tryToSign: tryToSign);
 	}
 
-	public static bool TryBuildTransaction(Wallet wallet, TransactionInfo transactionInfo, BitcoinAddress destination, [NotNullWhen(true)] out BuildTransactionResult? transaction, bool isPayJoin = false)
+	public static bool TryBuildTransaction(Wallet wallet, TransactionInfo transactionInfo, BitcoinAddress destination, [NotNullWhen(true)] out BuildTransactionResult? transaction, bool isPayJoin = false, bool tryToSign = true)
 	{
 		transaction = null;
 
 		try
 		{
-			transaction = BuildTransaction(wallet, transactionInfo, destination, isPayJoin);
+			transaction = BuildTransaction(wallet, transactionInfo, destination, isPayJoin, tryToSign: tryToSign);
 		}
 		catch (Exception)
 		{

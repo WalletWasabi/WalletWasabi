@@ -21,6 +21,6 @@ public class PolyLine
 
 	public PolyLine Clone()
 	{
-			return new PolyLine(XValues, YValues);
+		return new PolyLine(XValues, YValues);
 	}
 }

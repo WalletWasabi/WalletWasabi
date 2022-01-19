@@ -123,7 +123,10 @@ public class CoinJoinClient
 			constructionState = roundState.Assert<ConstructionState>();
 			AmountDecomposer amountDecomposer = new(roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min, Constants.P2wpkhOutputSizeInBytes, (int)availableVsize);
 			var theirCoins = constructionState.Inputs.Except(registeredCoins);
-			var outputValues = amountDecomposer.Decompose(registeredCoins, theirCoins);
+
+			var registeredCoinEffectiveValues = registeredAliceClients.Select(x => x.EffectiveValue);
+			var theirCoinEffectiveValues = theirCoins.Select(x => x.EffectiveValue(roundState.FeeRate));
+			var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues);
 
 			// Get all locked internal keys we have and assert we have enough.
 			Keymanager.AssertLockedInternalKeysIndexed(howMany: outputValues.Count());
@@ -383,7 +386,7 @@ public class CoinJoinClient
 
 	/// <summary>
 	/// Calculates how many inputs are desirable to be registered
-	/// based on rougly the total number of coins in a wallet.
+	/// based on roughly the total number of coins in a wallet.
 	/// Note: random biasing is applied.
 	/// </summary>
 	/// <returns>Desired input count.</returns>
