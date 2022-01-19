@@ -147,7 +147,15 @@ public class BranchAndBoundTests
 		Assert.False(wasSuccessful);
 		Assert.Null(selectedCoins);
 
-		Assert.Equal(new long[] { 17, 10 }, strategy.GetBestSelectionFound());
+		// There are multiple existing solutions.
+		long[][] solutions = new long[][]  {
+			new long[] { 17, 10 },
+			new long[] { 17, 5, 3, 2 }
+		};
+
+		long[] actualSelection = strategy.GetBestSelectionFound()!;
+		Assert.NotNull(actualSelection);
+		Assert.True(solutions[0].SequenceEqual(actualSelection) || solutions[1].SequenceEqual(actualSelection));
 	}
 
 	[Fact]
