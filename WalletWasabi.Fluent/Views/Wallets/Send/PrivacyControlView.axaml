@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:PrivacyControlViewModel"
              x:CompileBindings="True"
@@ -17,7 +18,11 @@
     <DockPanel>
       <c:TagsBox Items="{Binding MustHaveLabels}" IsReadOnly="True" DockPanel.Dock="Bottom" />
       <TextBlock Text="Must have:" DockPanel.Dock="Bottom" />
-      <c:TagsBox Items="{Binding Labels}" EnableDelete="True" />
+      <c:TagsBox Items="{Binding Labels}" EnableDelete="True">
+        <Interaction.Behaviors>
+          <behaviors:FadePocketLabelsBehavior Pockets="{Binding UsedPockets}" />
+        </Interaction.Behaviors>
+      </c:TagsBox>
     </DockPanel>
   </c:ContentArea>
 </UserControl>

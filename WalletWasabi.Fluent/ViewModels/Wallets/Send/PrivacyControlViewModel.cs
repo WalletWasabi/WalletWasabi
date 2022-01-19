@@ -18,10 +18,11 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 {
 	private readonly Wallet _wallet;
 	private readonly TransactionInfo _transactionInfo;
-
 	private readonly bool _isSilent;
 
-	private List<PocketViewModel> _usedPockets;
+	[AutoNotify] private List<PocketViewModel> _usedPockets;
+
+	// private List<PocketViewModel> _usedPockets;
 	private bool _isUpdating;
 
 	public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, bool isSilent)
@@ -50,7 +51,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 					return;
 				}
 
-				var pocketsToRemove = _usedPockets
+				var pocketsToRemove = UsedPockets
 					.Where(x => x.Labels.Any(y => !Labels.Contains(y) && x.Labels.Any(y => !MustHaveLabels.Contains(y))))
 					.ToArray();
 
@@ -58,7 +59,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 				{
 					_isUpdating = true;
 
-					_usedPockets = _usedPockets.Except(pocketsToRemove).ToList();
+					UsedPockets = UsedPockets.Except(pocketsToRemove).ToList();
 					Labels.Clear();
 					UpdateLabels();
 
@@ -73,16 +74,16 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 	private void Complete()
 	{
-		Close(DialogResultKind.Normal, _usedPockets.SelectMany(x => x.Coins).ToArray());
+		Close(DialogResultKind.Normal, UsedPockets.SelectMany(x => x.Coins).ToArray());
 	}
 
 	private void UpdateLabels()
 	{
-		foreach (var label in SmartLabel.Merge(_usedPockets.Select(x => x.Labels)))
+		foreach (var label in SmartLabel.Merge(UsedPockets.Select(x => x.Labels)))
 		{
-			var coinsWithSameLabel = _usedPockets.Where(x => x.Labels.Contains(label));
+			var coinsWithSameLabel = UsedPockets.Where(x => x.Labels.Contains(label));
 
-			if (_usedPockets.Sum(x => x.Coins.TotalAmount()) - coinsWithSameLabel.Sum(x => x.Coins.TotalAmount()) >= _transactionInfo.Amount)
+			if (UsedPockets.Sum(x => x.Coins.TotalAmount()) - coinsWithSameLabel.Sum(x => x.Coins.TotalAmount()) >= _transactionInfo.Amount)
 			{
 				Labels.Add(label);
 			}
@@ -104,15 +105,15 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 			_isUpdating = false;
 		}
 
-		if (_usedPockets.Count == 1)
+		if (UsedPockets.Count == 1)
 		{
 			Complete();
 		}
 		else if (_isSilent &&
-		         _usedPockets.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText) is { } privatePocket &&
+		         UsedPockets.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText) is { } privatePocket &&
 		         privatePocket.Coins.TotalAmount() >= _transactionInfo.Amount)
 		{
-			_usedPockets = _usedPockets.Where(x => x.Labels == CoinPocketHelper.PrivateFundsText).ToList();
+			UsedPockets = UsedPockets.Where(x => x.Labels == CoinPocketHelper.PrivateFundsText).ToList();
 			Complete();
 		}
 	}
