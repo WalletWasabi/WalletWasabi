@@ -131,21 +131,10 @@ public class BranchAndBoundTests
 		Assert.False(wasSuccessful);
 		Assert.Null(selectedCoins);
 
-		// There are multiple existing solutions.
-		long[][] solutions = new long[][]  {
-			new long[] { 17, 10 },
-			new long[] { 17, 5, 3, 2 },
-			new long[] { 35 }
-		};
-
 		long[] actualSelection = strategy.GetBestSelectionFound()!;
 		Assert.NotNull(actualSelection);
 
-		bool isOk = solutions[0].SequenceEqual(actualSelection)
-			|| solutions[1].SequenceEqual(actualSelection)
-			|| solutions[2].SequenceEqual(actualSelection);
-
-		Assert.True(isOk, userMessage: string.Join(", ", actualSelection));
+		Assert.Equal(new long[] { 17, 10 }, actualSelection);
 	}
 
 	[Fact]
@@ -168,18 +157,10 @@ public class BranchAndBoundTests
 		// There are multiple existing solutions.
 		// Selection (17, 10) is actually more expensive: 17 + 10 + 1000 + 1 = 1018.
 		// Whereas (35) costs us 35 + 1 = 36.		
-		long[][] solutions = new long[][] {
-			new long[] { 17, 5, 3, 2 },
-			new long[] { 35 }
-		};
-
 		long[] actualSelection = strategy.GetBestSelectionFound()!;
 		Assert.NotNull(actualSelection);
 
-		bool isOk = solutions[0].SequenceEqual(actualSelection)
-			|| solutions[1].SequenceEqual(actualSelection);
-
-		Assert.True(isOk, userMessage: string.Join(", ", actualSelection));
+		Assert.Equal(new long[] { 35 }, actualSelection);
 	}
 
 	private long[] GenerateListOfRandomValues(int count = 1000)
