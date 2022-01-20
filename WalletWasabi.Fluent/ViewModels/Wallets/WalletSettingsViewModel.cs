@@ -23,7 +23,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 		NextCommand = CancelCommand;
 
-		VerifyRecoveryPhraseCommand = ReactiveCommand.Create(() => Navigate().To(new VerifyRecoveryWordsViewModel(wallet)));
+		VerifyRecoveryWordsCommand = ReactiveCommand.Create(() => Navigate().To(new VerifyRecoveryWordsViewModel(wallet)));
 
 		this.WhenAnyValue(x => x.PreferPsbtWorkflow)
 			.Skip(1)
@@ -50,5 +50,5 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 	public override sealed string Title { get; protected set; }
 
-	public ICommand VerifyRecoveryPhraseCommand { get; }
+	public ICommand VerifyRecoveryWordsCommand { get; }
 }
