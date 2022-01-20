@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
+using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
@@ -16,6 +17,19 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds;
 public partial class Arena : IWabiSabiApiRequestHandler
 {
 	public async Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
+	{
+		try
+		{
+			return await RegisterInputCoreAsync(request, cancellationToken).ConfigureAwait(false);
+		}
+		catch (Exception ex) when (IsUserCheating(ex))
+		{
+			Prison.Ban(request.Input, request.RoundId);
+			throw;
+		}
+	}
+
+	private async Task<InputRegistrationResponse> RegisterInputCoreAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 	{
 		var coin = await OutpointToCoinAsync(request, cancellationToken).ConfigureAwait(false);
 
@@ -114,6 +128,21 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	}
 
 	public async Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken)
+	{
+		try
+		{
+			return await ConfirmConnectionCoreAsync(request, cancellationToken).ConfigureAwait(false);
+		}
+		catch (Exception ex) when (IsUserCheating(ex))
+		{
+			var round = GetRound(request.RoundId);
+			var alice = GetAlice(request.AliceId, round);
+			Prison.Ban(alice.Coin.Outpoint, round.Id);
+			throw;
+		}
+	}
+
+	private async Task<ConnectionConfirmationResponse> ConfirmConnectionCoreAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken)
 	{
 		Round round;
 		Alice alice;
@@ -329,4 +358,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	private Alice GetAlice(Guid aliceId, Round round) =>
 		round.Alices.Find(x => x.Id == aliceId)
 		?? throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound, $"Round ({round.Id}): Alice ({aliceId}) not found.");
+
+	private static bool IsUserCheating(Exception e) =>
+		e is WabiSabiCryptoException || (e is WabiSabiProtocolException wpe && wpe.ErrorCode.IsEvidencingClearMisbehavior());
 }
