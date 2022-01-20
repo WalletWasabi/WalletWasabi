@@ -208,15 +208,21 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				TxOut = Enumerable.Concat(coins, badCoins).Single(x => x.TransactionId == txId && x.Index == idx).TxOut
 			};
 
+			rpc.OnGetRawTransactionAsync = (txid, throwIfNotFound) =>
+			{
+				var tx = Transaction.Create(Network.Main);
+				return Task.FromResult(tx);
+			};
+
 			// Make the coordinator believe that the transaction is being
 			// broadcasted using the RPC interface. Once we receive this tx
 			// (the `SendRawTransationAsync` was invoked) we stop waiting
 			// and finish the waiting tasks to finish the test successfully.
 			rpc.OnSendRawTransactionAsync = (tx) =>
-		{
-			transactionCompleted.SetResult(tx);
-			return tx.GetHash();
-		};
+			{
+				transactionCompleted.SetResult(tx);
+				return tx.GetHash();
+			};
 
 			// Instruct the coordinator DI container to use these two scoped
 			// services to build everything (WabiSabi controller, arena, etc)
@@ -411,6 +417,11 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					ScriptPubKeyType = "witness_v0_keyhash",
 					TxOut = coinToRegister.TxOut
 				};
+				rpc.OnGetRawTransactionAsync = (txid, throwIfNotFound) =>
+				{
+					var tx = Transaction.Create(Network.Main);
+					return Task.FromResult(tx);
+				};
 				services.AddScoped<IRPCClient>(s => rpc);
 				services.AddScoped(s => new InMemoryCoinJoinIdStore());
 			});
@@ -444,6 +455,11 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					IsCoinBase = false,
 					ScriptPubKeyType = "witness_v0_keyhash",
 					TxOut = coinToRegister.TxOut
+				};
+				rpc.OnGetRawTransactionAsync = (txid, throwIfNotFound) =>
+				{
+					var tx = Transaction.Create(Network.Main);
+					return Task.FromResult(tx);
 				};
 				services.AddScoped<IRPCClient>(s => rpc);
 			})).CreateClient();
