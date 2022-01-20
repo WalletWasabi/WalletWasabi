@@ -10,14 +10,20 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacyControlView">
   <c:ContentArea Title="Send - Privacy Control"
-                 Caption="Parts of your wallet are known to certain entities. Select the entities you can tolerate leaking information about this transaction:"
+                 Caption="Parts of your wallet are known to certain entities."
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="Continue"
                  IsBusy="{Binding IsBusy}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel>
+
       <c:TagsBox Items="{Binding MustHaveLabels}" IsReadOnly="True" DockPanel.Dock="Bottom" />
-      <TextBlock Text="Must have:" DockPanel.Dock="Bottom" />
+      <TextBlock Text="Not possible to avoid them:" DockPanel.Dock="Bottom" IsVisible="{Binding !!MustHaveLabels.Count}" />
+
+      <c:InfoMessage DockPanel.Dock="Bottom" HorizontalAlignment="Center" Margin="0 20" Opacity="0.6"
+                     Content="Even if you left someone there, not all of them will know about this transaction.  " />
+
+      <TextBlock Text="Remove the entities you cannot tolerate leaking information about this transaction:" DockPanel.Dock="Top" />
       <c:TagsBox Items="{Binding Labels}" EnableDelete="True" HorizontalAlignment="Center">
         <c:TagsBox.Styles>
           <Style Selector="c|TagsBox AutoCompleteBox">
@@ -43,6 +49,7 @@
           <behaviors:FadePocketLabelsBehavior Pockets="{Binding UsedPockets}" />
         </Interaction.Behaviors>
       </c:TagsBox>
+
     </DockPanel>
   </c:ContentArea>
 </UserControl>
