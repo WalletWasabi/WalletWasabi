@@ -14,7 +14,7 @@ namespace WalletWasabi.Tests.Helpers;
 /// </summary>
 public class ArenaBuilder
 {
-	public static readonly ArenaBuilder Default = new();
+	public static ArenaBuilder Default => new();
 
 	public TimeSpan? Period { get; set; }
 	public Network? Network { get; set; }
