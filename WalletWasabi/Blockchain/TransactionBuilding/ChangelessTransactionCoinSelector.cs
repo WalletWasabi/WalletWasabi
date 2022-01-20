@@ -31,12 +31,12 @@ public static class ChangelessTransactionCoinSelector
 		IOrderedEnumerable<SmartCoin> sortedCoins = availableCoins.OrderByDescending(x => x.EffectiveValue(feeRate).Satoshi);
 
 		// How much it costs to spend each coin.
-		long[] inputCosts = sortedCoins.Select(x => x.Amount.Satoshi - x.EffectiveValue(feeRate).Satoshi).ToArray();
+		long[] inputCosts = sortedCoins.Select(x => feeRate.GetFee(x.ScriptPubKey.EstimateInputVsize()).Satoshi).ToArray();
 
-		Dictionary<SmartCoin, long> inputs = new(sortedCoins.ToDictionary(x => x, x => x.EffectiveValue(feeRate).Satoshi));
+		Dictionary<SmartCoin, long> inputEffectiveValues = new(sortedCoins.ToDictionary(x => x, x => x.EffectiveValue(feeRate).Satoshi));
 
 		// Pass smart coins' effective values in descending order.
-		long[] inputValues = inputs.Values.ToArray();
+		long[] inputValues = inputEffectiveValues.Values.ToArray();
 
 		BranchAndBound branchAndBound = new();
 		CheapestSelectionStrategy strategy = new(target, inputValues, inputCosts);
@@ -58,7 +58,7 @@ public static class ChangelessTransactionCoinSelector
 			List<SmartCoin> resultCoins = new();
 			int i = 0;
 
-			foreach ((SmartCoin smartCoin, long effectiveSatoshis) in inputs)
+			foreach ((SmartCoin smartCoin, long effectiveSatoshis) in inputEffectiveValues)
 			{
 				if (effectiveSatoshis == solution[i])
 				{
