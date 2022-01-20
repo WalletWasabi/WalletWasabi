@@ -17,7 +17,7 @@ public class InMemoryCoinJoinIdStore
 	{
 	}
 
-	public ConcurrentDictionary<uint256, bool> CoinJoinIds { get; }
+	private ConcurrentDictionary<uint256, bool> CoinJoinIds { get; }
 
 	public bool Contains(uint256 hash)
 	{
