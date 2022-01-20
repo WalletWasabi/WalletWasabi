@@ -92,7 +92,7 @@ public class ConfigTests
 	}
 
 	[Fact]
-	public async Task XXXXXChecksConfigChangesAsync()
+	public void LoadConfigFile()
 	{
 		WabiSabiConfig configChanger = new("./conf.txt");
 		configChanger.LoadOrCreateDefaultFile();
