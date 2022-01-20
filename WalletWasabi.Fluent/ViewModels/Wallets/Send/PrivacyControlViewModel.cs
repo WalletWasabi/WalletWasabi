@@ -22,7 +22,6 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 	[AutoNotify] private List<PocketViewModel> _usedPockets;
 
-	// private List<PocketViewModel> _usedPockets;
 	private bool _isUpdating;
 
 	public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, bool isSilent)
@@ -38,7 +37,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
 
-		NextCommand = ReactiveCommand.Create(Complete);
+		NextCommand = ReactiveCommand.Create(() => Complete(UsedPockets));
 
 		EnableAutoBusyOn(NextCommand);
 
@@ -72,9 +71,9 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 	public ObservableCollection<string> MustHaveLabels { get; }
 
-	private void Complete()
+	private void Complete(IEnumerable<PocketViewModel> pockets)
 	{
-		Close(DialogResultKind.Normal, UsedPockets.SelectMany(x => x.Coins).ToArray());
+		Close(DialogResultKind.Normal, pockets.SelectMany(x => x.Coins));
 	}
 
 	private void UpdateLabels()
@@ -105,16 +104,21 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 			_isUpdating = false;
 		}
 
-		if (UsedPockets.Count == 1)
+		if (_isSilent)
 		{
-			Complete();
-		}
-		else if (_isSilent &&
-		         UsedPockets.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText) is { } privatePocket &&
-		         privatePocket.Coins.TotalAmount() >= _transactionInfo.Amount)
-		{
-			UsedPockets = UsedPockets.Where(x => x.Labels == CoinPocketHelper.PrivateFundsText).ToList();
-			Complete();
+			if (UsedPockets.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText) is { } privatePocket &&
+			    privatePocket.Coins.TotalAmount() >= _transactionInfo.Amount)
+			{
+				Complete(UsedPockets.Where(x => x.Labels == CoinPocketHelper.PrivateFundsText));
+			}
+			else if (UsedPockets.Where(x => x.Labels != CoinPocketHelper.PrivateFundsText).Sum(x => x.Coins.TotalAmount()) >= _transactionInfo.Amount)
+			{
+				Complete(UsedPockets.Where(x => x.Labels != CoinPocketHelper.PrivateFundsText));
+			}
+			else
+			{
+				Complete(UsedPockets);
+			}
 		}
 	}
 }

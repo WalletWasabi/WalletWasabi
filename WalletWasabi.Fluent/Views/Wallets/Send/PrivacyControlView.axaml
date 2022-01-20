@@ -21,7 +21,7 @@
       <TextBlock Text="Not possible to avoid them:" DockPanel.Dock="Bottom" IsVisible="{Binding !!MustHaveLabels.Count}" />
 
       <c:InfoMessage DockPanel.Dock="Bottom" HorizontalAlignment="Center" Margin="0 20" Opacity="0.6"
-                     Content="Even if you left someone there, not all of them will know about this transaction.  " />
+                     Content="Even if you left someone there, not all of them will know about this transaction." />
 
       <TextBlock Text="Remove the entities you cannot tolerate leaking information about this transaction:" DockPanel.Dock="Top" />
       <c:TagsBox Items="{Binding Labels}" EnableDelete="True" HorizontalAlignment="Center">
