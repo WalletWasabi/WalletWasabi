@@ -19,12 +19,14 @@ public static class ChangelessTransactionCoinSelector
 	/// </summary>
 	/// <param name="availableCoins">Coins owned by the user.</param>
 	/// <param name="feeRate">Current fee rate to take into account effective values of available coins.</param>
-	/// <param name="target">Amount the user wants to pay in satoshis.</param>
+	/// <param name="targetAmount">Amount the user wants to pay.</param>
 	/// <returns><c>true</c> if a solution was found, <c>false</c> otherwise.</returns>
-	/// <remarks>The implementation gives only the guarantee that user can pay at most 25% more than <paramref name="target"/>.</remarks>
-	public static bool TryGetCoins(IEnumerable<SmartCoin> availableCoins, FeeRate feeRate, long target, [NotNullWhen(true)] out IEnumerable<SmartCoin>? selectedCoins, CancellationToken cancellationToken = default)
+	/// <remarks>The implementation gives only the guarantee that user can pay at most 25% more than <paramref name="targetAmount"/>.</remarks>
+	public static bool TryGetCoins(IEnumerable<SmartCoin> availableCoins, FeeRate feeRate, Money targetAmount, [NotNullWhen(true)] out IEnumerable<SmartCoin>? selectedCoins, CancellationToken cancellationToken = default)
 	{
 		selectedCoins = null;
+		var target = targetAmount.Satoshi;
+
 		// Keys are effective values of smart coins in satoshis.
 		IOrderedEnumerable<SmartCoin> sortedCoins = availableCoins.OrderByDescending(x => x.EffectiveValue(feeRate).Satoshi);
 

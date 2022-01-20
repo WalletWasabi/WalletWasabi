@@ -26,14 +26,14 @@ public class ChangelessTransactionCoinSelectorTests
 		using Key key = new();
 
 		List<SmartCoin> coins = GenerateDummySmartCoins(key, 6_025, 6_561, 8_192, 13_122, 50_000, 100_000, 196_939, 524_288);
-		long target = 150_000;
+		var target = Money.Satoshis(150_000);
 
 		bool found = ChangelessTransactionCoinSelector.TryGetCoins(coins, new FeeRate(satoshiPerByte: 4), target, out IEnumerable<SmartCoin>? selectedCoins);
 		Assert.True(found);
 
 		long[] solution = selectedCoins!.Select(x => x.Amount.Satoshi).ToArray();
 		Assert.Equal(new long[] { 100_000, 50_000, 6_025 }, solution);
-		Assert.Equal(6025, solution.Sum() - target); // ~4% more for the privacy.
+		Assert.Equal(Money.Satoshis(6025), solution.Sum() - target); // ~4% more for the privacy.
 	}
 
 	/// <summary>
@@ -45,7 +45,7 @@ public class ChangelessTransactionCoinSelectorTests
 		using Key key = new();
 
 		List<SmartCoin> coins = GenerateDummySmartCoins(key, 150_000);
-		long target = 100_000;
+		var target = Money.Satoshis(100_000);
 
 		bool found = ChangelessTransactionCoinSelector.TryGetCoins(coins, new FeeRate(satoshiPerByte: 4), target, out IEnumerable<SmartCoin>? selectedCoins);
 		Assert.False(found);
