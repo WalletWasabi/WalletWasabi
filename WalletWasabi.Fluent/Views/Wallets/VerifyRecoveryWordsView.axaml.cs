@@ -4,9 +4,9 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets;
 
-public class VerifyRecoveryPhraseView : UserControl
+public class VerifyRecoveryWordsView : UserControl
 {
-	public VerifyRecoveryPhraseView()
+	public VerifyRecoveryWordsView()
 	{
 		InitializeComponent();
 	}
