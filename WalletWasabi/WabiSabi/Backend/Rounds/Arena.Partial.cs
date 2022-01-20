@@ -64,20 +64,11 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			if (!isPayingZeroCoordinationFee)
 			{
 				// If the coin comes from a tx that all of the tx inputs are coming from a CJ (1 hop - no pay).
-				Transaction? tx = null;
-				try
-				{
-					tx = await Rpc.GetRawTransactionAsync(coin.Outpoint.Hash, true, cancellationToken).ConfigureAwait(false);
+				Transaction tx = await Rpc.GetRawTransactionAsync(coin.Outpoint.Hash, true, cancellationToken).ConfigureAwait(false);
 
-					// Cannot return null, because throwIfNotFound set to true.
-					if (tx.Inputs.All(input => InMemoryCoinJoinIdStore.Contains(input.PrevOut.Hash)))
-					{
-						isPayingZeroCoordinationFee = true;
-					}
-				}
-				catch (Exception ex)
+				if (tx.Inputs.All(input => InMemoryCoinJoinIdStore.Contains(input.PrevOut.Hash)))
 				{
-					round.LogWarning($"Transaction {coin.Outpoint.Hash} was not found through RPC. '{ex.Message}'");
+					isPayingZeroCoordinationFee = true;
 				}
 			}
 
