@@ -134,7 +134,7 @@ public class SmartHeaderChain
 		_hashesLeft = (int)Math.Max(0, (long)_serverTipHeight - _tipHeight);
 	}
 
-	public bool RemoveLast()
+	public bool RemoveTip()
 	{
 		bool result = false;
 

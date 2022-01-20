@@ -322,7 +322,7 @@ public class IndexStore : IAsyncDisposable
 			{
 				throw new InvalidOperationException($"{nameof(SmartHeaderChain)} and {nameof(ImmatureFilters)} are not in sync.");
 			}
-			SmartHeaderChain.RemoveLast();
+			SmartHeaderChain.RemoveTip();
 		}
 
 		Reorged?.Invoke(this, filter);
