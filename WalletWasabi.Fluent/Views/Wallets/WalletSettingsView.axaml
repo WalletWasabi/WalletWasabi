@@ -26,11 +26,11 @@
         </DockPanel>
       </StackPanel>
       <StackPanel Spacing="20">
-        <TextBlock Classes="h6" Text="Have you checked your wallet recovery words?" />
+        <TextBlock Classes="h6" Text="Have you checked your wallet Recovery Words?" />
         <c:InfoMessage>
           <DockPanel>
             <Button Margin="50 0" Command="{Binding VerifyRecoveryPhraseCommand}" Content="Verify Recovery Words" DockPanel.Dock="Right" />
-            <TextBlock Text="It is recommended that you verify your wallet recovery seed words every 6 months." />
+            <TextBlock Text="It is recommended that you verify your wallet Recovery Words every 6 months." />
           </DockPanel>
         </c:InfoMessage>
       </StackPanel>

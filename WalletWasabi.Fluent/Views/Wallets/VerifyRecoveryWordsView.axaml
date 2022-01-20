@@ -11,7 +11,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.VerifyRecoveryWordsView">
   <controls:ContentArea Title="{Binding Title}"
-                        Caption="Please enter your wallet recovery words in the correct order"
+                        Caption="Please enter your wallet Recovery Words in the correct order"
                         NextContent="Verify" EnableNext="True" EnableCancel="True">
     <DockPanel VerticalAlignment="Top">
       <PathIcon Name="IconCheckmark"
