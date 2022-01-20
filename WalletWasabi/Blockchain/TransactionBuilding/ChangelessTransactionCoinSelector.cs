@@ -22,7 +22,7 @@ public static class ChangelessTransactionCoinSelector
 	/// <param name="target">Amount the user wants to pay in satoshis.</param>
 	/// <returns><c>true</c> if a solution was found, <c>false</c> otherwise.</returns>
 	/// <remarks>The implementation gives only the guarantee that user can pay at most 25% more than <paramref name="target"/>.</remarks>
-	public static bool TryGetCoins(List<SmartCoin> availableCoins, FeeRate feeRate, long target, [NotNullWhen(true)] out List<SmartCoin>? selectedCoins, CancellationToken cancellationToken = default)
+	public static bool TryGetCoins(IEnumerable<SmartCoin> availableCoins, FeeRate feeRate, long target, [NotNullWhen(true)] out IEnumerable<SmartCoin>? selectedCoins, CancellationToken cancellationToken = default)
 	{
 		selectedCoins = null;
 		// Keys are effective values of smart coins in satoshis.
@@ -53,7 +53,7 @@ public static class ChangelessTransactionCoinSelector
 				return false;
 			}
 
-			selectedCoins = new();
+			List<SmartCoin> resultCoins = new();
 			int i = 0;
 
 			foreach ((SmartCoin smartCoin, long effectiveSatoshis) in inputs)
@@ -61,7 +61,7 @@ public static class ChangelessTransactionCoinSelector
 				if (effectiveSatoshis == solution[i])
 				{
 					i++;
-					selectedCoins.Add(smartCoin);
+					resultCoins.Add(smartCoin);
 					if (i == solution.Count)
 					{
 						break;
@@ -69,6 +69,7 @@ public static class ChangelessTransactionCoinSelector
 				}
 			}
 
+			selectedCoins = resultCoins;
 			return true;
 		}
 
