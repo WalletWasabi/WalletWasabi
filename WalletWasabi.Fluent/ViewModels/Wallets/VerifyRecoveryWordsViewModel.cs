@@ -110,7 +110,7 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 			return;
 		}
 
-		errors.Add(ErrorSeverity.Error, "Recovery words are not valid.");
+		errors.Add(ErrorSeverity.Error, "Recovery Words are not valid.");
 	}
 
 	private string GetTagsAsConcatString()
