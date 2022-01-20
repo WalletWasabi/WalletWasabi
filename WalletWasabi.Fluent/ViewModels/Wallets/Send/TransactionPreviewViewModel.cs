@@ -42,10 +42,10 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		PreviewTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info, destination, true);
 
 		TransactionSummaries = new List<TransactionSummaryViewModel>
-			{
-				CurrentTransactionSummary,
-				PreviewTransactionSummary
-			};
+		{
+			CurrentTransactionSummary,
+			PreviewTransactionSummary
+		};
 
 		DisplayedTransactionSummary = CurrentTransactionSummary;
 
@@ -171,7 +171,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		var feeRateDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, false));
 
 		if (feeRateDialogResult.Kind == DialogResultKind.Normal && feeRateDialogResult.Result is { } newFeeRate &&
-			newFeeRate != _info.FeeRate)
+		    newFeeRate != _info.FeeRate)
 		{
 			_info.FeeRate = feeRateDialogResult.Result;
 
@@ -211,7 +211,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			var privacyControlDialogResult =
 				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, isSilent: true));
 			if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
-				privacyControlDialogResult.Result is { } coins)
+			    privacyControlDialogResult.Result is { } coins)
 			{
 				_info.Coins = coins;
 			}
@@ -268,14 +268,12 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 			return await BuildTransactionAsync();
 		}
-		catch (InsufficientBalanceException)
+		catch (InsufficientBalanceException ex)
 		{
-			if (_info.IsPayJoin)
-			{
-				return await HandleInsufficientBalanceWhenPayJoinAsync(_wallet, _info);
-			}
+			var dialog = new InsufficientBalanceDialogViewModel(ex, _wallet, _info);
+			var result = await NavigateDialogAsync(dialog, NavigationTarget.DialogScreen);
 
-			return await HandleInsufficientBalanceWhenNormalAsync(_wallet, _info);
+			return result.Kind == DialogResultKind.Normal ? await BuildTransactionAsync() : null;
 		}
 		catch (Exception ex)
 		{
@@ -313,7 +311,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				NavigationTarget.DialogScreen);
 
 			if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
-				privacyControlDialogResult.Result is { })
+			    privacyControlDialogResult.Result is { })
 			{
 				transactionInfo.Coins = privacyControlDialogResult.Result;
 			}
@@ -350,7 +348,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				new PrivacyControlViewModel(wallet, transactionInfo, isSilent: false),
 				NavigationTarget.DialogScreen);
 			if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
-				privacyControlDialogResult.Result is { })
+			    privacyControlDialogResult.Result is { })
 			{
 				transactionInfo.Coins = privacyControlDialogResult.Result;
 			}
@@ -447,7 +445,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private async Task<bool> AuthorizeAsync(TransactionAuthorizationInfo transactionAuthorizationInfo)
 	{
 		if (!_wallet.KeyManager.IsHardwareWallet &&
-			string.IsNullOrEmpty(_wallet.Kitchen.SaltSoup())) // Do not show auth dialog when password is empty
+		    string.IsNullOrEmpty(_wallet.Kitchen.SaltSoup())) // Do not show auth dialog when password is empty
 		{
 			return true;
 		}

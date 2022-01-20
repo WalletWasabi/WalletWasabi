@@ -8,16 +8,47 @@
              x:DataType="dialog:InsufficientBalanceDialogViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.InsufficientBalanceDialogView">
-  <c:ContentArea Title="{Binding Title}">
-    <c:QuestionControl YesCommand="{Binding NextCommand}"
-                       NoCommand="{Binding CancelCommand}"
-                       HighlightButton="YesButton">
-      <c:QuestionControl.IconContent>
-        <Viewbox MaxHeight="150" Margin="40">
-          <PathIcon Data="{StaticResource warning_regular}" Opacity="0.6"/>
-        </Viewbox>
-      </c:QuestionControl.IconContent>
-      <TextBlock Text="{Binding Question}" TextWrapping="Wrap" TextAlignment="Center"/>
-    </c:QuestionControl>
+  <c:ContentArea Title="{Binding Title}"
+                 EnableBack="{Binding EnableBack}"
+                 IsBusy="{Binding IsBusy}"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <DockPanel>
+      <StackPanel Spacing="10" Orientation="Horizontal" HorizontalAlignment="Center" DockPanel.Dock="Bottom">
+        <StackPanel.Styles>
+          <Style Selector="Button">
+            <Setter Property="Width" Value="150" />
+            <Setter Property="Height" Value="40" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="FontSize" Value="{StaticResource FontSizeH6}" />
+            <Setter Property="Padding" Value="0" />
+          </Style>
+          <Style Selector="Button:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource ActionButtonPressedBackgroundColor}" />
+          </Style>
+          <Style Selector="Button:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource ActionButtonPointerOverBackgroundColor}" />
+          </Style>
+        </StackPanel.Styles>
+        <Button Command="{Binding SendAnywayCommand}"
+                Content="Send anyway"
+                IsVisible="{Binding EnableSendAnyway}" />
+
+        <Button Command="{Binding SelectMoreCoinCommand}"
+                Content="Select more coin"
+                IsVisible="{Binding EnableSelectMoreCoin}" />
+
+        <Button Command="{Binding SubtractTransactionFeeCommand}"
+                Content="Subtract fee"
+                IsVisible="{Binding EnableSubtractFee}" />
+      </StackPanel>
+
+      <TextBlock Text="{Binding Question}" TextWrapping="Wrap" Margin="10 0 10 40" TextAlignment="Center" DockPanel.Dock="Bottom" />
+
+      <Viewbox MaxHeight="150" Margin="40" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <PathIcon Data="{StaticResource warning_regular}" Opacity="0.6" />
+      </Viewbox>
+
+    </DockPanel>
   </c:ContentArea>
 </UserControl>
