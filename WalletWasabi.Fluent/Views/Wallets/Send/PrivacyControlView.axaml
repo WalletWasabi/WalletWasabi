@@ -18,7 +18,27 @@
     <DockPanel>
       <c:TagsBox Items="{Binding MustHaveLabels}" IsReadOnly="True" DockPanel.Dock="Bottom" />
       <TextBlock Text="Must have:" DockPanel.Dock="Bottom" />
-      <c:TagsBox Items="{Binding Labels}" EnableDelete="True">
+      <c:TagsBox Items="{Binding Labels}" EnableDelete="True" HorizontalAlignment="Center">
+        <c:TagsBox.Styles>
+          <Style Selector="c|TagsBox AutoCompleteBox">
+            <Setter Property="IsEnabled" Value="False" />
+          </Style>
+          <Style Selector="c|TagsBox">
+            <Setter Property="Cursor" Value="Arrow" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+          </Style>
+          <Style Selector="c|TagsBox:pointerover /template/ Border#PART_Border">
+            <Setter Property="Background" Value="Transparent" />
+          </Style>
+          <Style Selector="c|TagControl">
+            <Setter Property="Transitions">
+              <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.15" Easing="{StaticResource FluentEasing}" />
+              </Transitions>
+            </Setter>
+          </Style>
+        </c:TagsBox.Styles>
         <Interaction.Behaviors>
           <behaviors:FadePocketLabelsBehavior Pockets="{Binding UsedPockets}" />
         </Interaction.Behaviors>
