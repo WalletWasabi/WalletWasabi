@@ -154,7 +154,6 @@ public class BranchAndBoundTests
 		Assert.False(wasSuccessful);
 		Assert.Null(selectedCoins);
 
-		// There are multiple existing solutions.
 		// Selection (17, 10) is actually more expensive: 17 + 10 + 1000 + 1 = 1018.
 		// Whereas (35) costs us 35 + 1 = 36.		
 		long[] actualSelection = strategy.GetBestSelectionFound()!;
