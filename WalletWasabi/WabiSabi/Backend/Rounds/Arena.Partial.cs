@@ -68,7 +68,9 @@ public partial class Arena : IWabiSabiApiRequestHandler
 				try
 				{
 					tx = await Rpc.GetRawTransactionAsync(coin.Outpoint.Hash, true, cancellationToken).ConfigureAwait(false);
-					if (tx is { } && tx.Inputs.All(input => InMemoryCoinJoinIdStore.Contains(input.PrevOut.Hash)))
+
+					// Cannot return null, because throwIfNotFound set to true.
+					if (tx.Inputs.All(input => InMemoryCoinJoinIdStore.Contains(input.PrevOut.Hash)))
 					{
 						isPayingZeroCoordinationFee = true;
 					}
