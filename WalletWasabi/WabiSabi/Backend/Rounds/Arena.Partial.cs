@@ -73,13 +73,18 @@ public partial class Arena : IWabiSabiApiRequestHandler
 						isPayingZeroCoordinationFee = true;
 					}
 				}
-				catch (Exception)
+				catch (Exception ex)
 				{
-					round.LogWarning($"Transaction {coin.Outpoint.Hash} was not found through RPC.");
+					round.LogWarning($"Transaction {coin.Outpoint.Hash} was not found through RPC. '{ex.Message}'");
 				}
 			}
 
 			var alice = new Alice(coin, request.OwnershipProof, round, id, isPayingZeroCoordinationFee);
+
+			if (alice.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate) <= Money.Zero)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.UneconomicalInput);
+			}
 
 			if (alice.TotalInputAmount < round.MinAmountCredentialValue)
 			{
