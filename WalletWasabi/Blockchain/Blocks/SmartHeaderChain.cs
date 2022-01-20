@@ -27,7 +27,7 @@ public class SmartHeaderChain
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private int _hashesCount;
 
-	private Dictionary<uint, SmartHeader> Chain { get; } = new();
+	private List<SmartHeader> Chain { get; } = new();
 	private object Lock { get; } = new();
 
 	public SmartHeader? Tip
@@ -96,34 +96,39 @@ public class SmartHeaderChain
 		}
 	}
 
-	public void AddOrReplace(SmartHeader header)
+	/// <summary>
+	/// Adds a new tip to the chain or replaces the current tip based on header height value.
+	/// </summary>
+	public void AddOrReplace(SmartHeader tip)
 	{
 		lock (Lock)
 		{
-			if (Chain.TryGetValue(TipHeight, out var lastHeader))
+			if (Chain.Count > 0)
 			{
-				if (lastHeader.BlockHash != header.PrevHash)
+				SmartHeader lastHeader = Chain[^1];
+
+				if (lastHeader.BlockHash != tip.PrevHash)
 				{
-					throw new InvalidOperationException($"Header doesn't point to previous header. Actual: {lastHeader.PrevHash}. Expected: {header.PrevHash}.");
+					throw new InvalidOperationException($"Header doesn't point to previous header. Actual: {lastHeader.PrevHash}. Expected: {tip.PrevHash}.");
 				}
 
-				if (lastHeader.Height != header.Height - 1)
+				if (lastHeader.Height != tip.Height - 1)
 				{
-					throw new InvalidOperationException($"Header height isn't one more than the previous header height. Actual: {lastHeader.Height}. Expected: {header.Height - 1}.");
+					throw new InvalidOperationException($"Header height isn't one more than the previous header height. Actual: {lastHeader.Height}. Expected: {tip.Height - 1}.");
 				}
 			}
 
-			Chain.Add(header.Height, header);
-			SetTipNoLock(header);
+			Chain.Add(tip);
+			SetTipNoLock(tip);
 		}
 	}
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private void SetTipNoLock(SmartHeader? header)
+	private void SetTipNoLock(SmartHeader? tip)
 	{
-		_tip = header;
-		_tipHeight = header?.Height ?? default;
-		_tipHash = header?.BlockHash;
+		_tip = tip;
+		_tipHeight = tip?.Height ?? default;
+		_tipHash = tip?.BlockHash;
 		_hashesCount = Chain?.Count ?? default;
 		SetHashesLeftNoLock();
 	}
@@ -140,18 +145,14 @@ public class SmartHeaderChain
 
 		lock (Lock)
 		{
-			if (Chain.Any())
+			if (Chain.Count > 0)
 			{
-				result = Chain.Remove(Chain.Last().Key);
-				if (Chain.Any())
-				{
-					var newLast = Chain.Last();
-					SetTipNoLock(newLast.Value);
-				}
-				else
-				{
-					SetTipNoLock(null);
-				}
+				Chain.RemoveAt(Chain.Count - 1);
+
+				SmartHeader? newTip = (Chain.Count > 0) ? Chain[^1] : null;
+				SetTipNoLock(newTip);
+
+				result = true;
 			}
 		}
 
@@ -172,7 +173,7 @@ public class SmartHeaderChain
 	{
 		lock (Lock)
 		{
-			return Chain.Select(x => (x.Key, x.Value)).ToArray();
+			return Chain.Select(x => (x.Height, x)).ToArray();
 		}
 	}
 }
