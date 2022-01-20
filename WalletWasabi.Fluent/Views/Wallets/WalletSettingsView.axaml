@@ -25,7 +25,8 @@
           <ToggleSwitch IsChecked="{Binding AutoCoinJoin}" />
         </DockPanel>
       </StackPanel>
-      <StackPanel Spacing="20">
+      
+      <StackPanel Spacing="20" IsVisible="{Binding !IsWatchOnly}">
         <TextBlock Classes="h6" Text="Have you checked your wallet Recovery Words?" />
         <c:InfoMessage>
           <DockPanel>
