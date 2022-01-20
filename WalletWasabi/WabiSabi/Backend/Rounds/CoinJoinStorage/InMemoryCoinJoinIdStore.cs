@@ -10,14 +10,15 @@ public class InMemoryCoinJoinIdStore
 {
 	public InMemoryCoinJoinIdStore(IEnumerable<uint256> coinJoinHashes)
 	{
-		CoinJoinIds = new ConcurrentDictionary<uint256, bool>(coinJoinHashes.ToDictionary(x => x, x => true));
+		CoinJoinIds = new ConcurrentDictionary<uint256, byte>(coinJoinHashes.ToDictionary(x => x, x => byte.MinValue));
 	}
 
 	public InMemoryCoinJoinIdStore() : this(Enumerable.Empty<uint256>())
 	{
 	}
 
-	private ConcurrentDictionary<uint256, bool> CoinJoinIds { get; }
+	// We would use a HashSet here but ConcurrentHashSet not exists.
+	private ConcurrentDictionary<uint256, byte> CoinJoinIds { get; }
 
 	public bool Contains(uint256 hash)
 	{
@@ -26,7 +27,8 @@ public class InMemoryCoinJoinIdStore
 
 	public void Add(uint256 hash)
 	{
-		CoinJoinIds.TryAdd(hash, true);
+		// The byte is just a dummy value, we are not using it.
+		CoinJoinIds.TryAdd(hash, byte.MinValue);
 	}
 
 	public static InMemoryCoinJoinIdStore LoadFromFile(string filePath)
