@@ -27,7 +27,7 @@ public class SmartHeaderChain
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private int _hashesCount;
 
-	private List<SmartHeader> Chain { get; } = new();
+	private LinkedList<SmartHeader> Chain { get; } = new();
 	private object Lock { get; } = new();
 
 	public SmartHeader? Tip
@@ -105,7 +105,7 @@ public class SmartHeaderChain
 		{
 			if (Chain.Count > 0)
 			{
-				SmartHeader lastHeader = Chain[^1];
+				SmartHeader lastHeader = Chain.Last!.Value;
 
 				if (lastHeader.BlockHash != tip.PrevHash)
 				{
@@ -118,7 +118,7 @@ public class SmartHeaderChain
 				}
 			}
 
-			Chain.Add(tip);
+			Chain.AddLast(tip);
 			SetTipNoLock(tip);
 		}
 	}
@@ -147,9 +147,9 @@ public class SmartHeaderChain
 		{
 			if (Chain.Count > 0)
 			{
-				Chain.RemoveAt(Chain.Count - 1);
+				Chain.RemoveLast();
 
-				SmartHeader? newTip = (Chain.Count > 0) ? Chain[^1] : null;
+				SmartHeader? newTip = (Chain.Count > 0) ? Chain.Last!.Value : null;
 				SetTipNoLock(newTip);
 
 				result = true;
