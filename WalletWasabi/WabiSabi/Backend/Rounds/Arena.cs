@@ -181,10 +181,7 @@ public partial class Arena : PeriodicRunner
 
 					coinjoin = AddCoordinatorFee(round, coinjoin);
 
-					if (!allReady)
-					{
-						coinjoin = AddBlameScript(round, coinjoin);
-					}
+					coinjoin = AddBlameScript(round, coinjoin, allReady);
 
 					round.CoinjoinState = coinjoin.Finalize();
 
@@ -357,7 +354,7 @@ public partial class Arena : PeriodicRunner
 		}
 	}
 
-	private ConstructionState AddBlameScript(Round round, ConstructionState coinjoin)
+	private ConstructionState AddBlameScript(Round round, ConstructionState coinjoin, bool allReady)
 	{
 		long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate));
 		long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
@@ -369,9 +366,9 @@ public partial class Arena : PeriodicRunner
 		if (diffMoney > coinjoin.Parameters.AllowedOutputAmounts.Min)
 		{
 			coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, Config.BlameScript));
-			round.LogInfo("Filled up the outputs to build a reasonable transaction because some alice failed to provide its output.");
+			round.LogInfo($"Filled up the outputs to build a reasonable transaction because some alice failed to provide its output. Added amount: '{diffMoney}'");
 		}
-		else
+		else if (!allReady)
 		{
 			round.LogWarning($"Could not add blame script, because the amount was too small: {nameof(diffMoney)}: {diffMoney}.");
 		}
