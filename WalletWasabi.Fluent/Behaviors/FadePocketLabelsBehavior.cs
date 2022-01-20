@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.VisualTree;
@@ -50,12 +51,13 @@ public class FadePocketLabelsBehavior : AttachedToVisualTreeBehavior<TagsBox>
 					{
 						tagControl
 							.WhenAnyValue(x => x.IsPointerOver)
+							.Skip(1)
 							.Subscribe(x =>
 							{
 								var tagControlLabel = tagControl.DataContext;
 								var affectedPockets = Pockets.Where(x => x.Labels.Contains(tagControlLabel));
-								var labelsToFade = SmartLabel.Merge(affectedPockets.Select(x => x.Labels));
-								var tagsToFade = _currentTags.Where(x => labelsToFade.Contains(x.DataContext));
+								var remainingPockets = Pockets.Except(affectedPockets);
+								var tagsToFade = _currentTags.Where(x => !remainingPockets.Any(y => y.Labels.Contains(x.DataContext)));
 
 								foreach (var control in tagsToFade)
 								{
