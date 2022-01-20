@@ -71,13 +71,13 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 
 				if (_wallet.KeyManager.ExtPubKey == recovered.ExtPubKey)
 				{
-					Navigate().To(new SuccessViewModel("Your Seed Recovery words have been verified as correct."),
+					Navigate().To(new SuccessViewModel("Your Recovery Words have been verified and are correct."),
 						NavigationMode.Clear);
 				}
 				else
 				{
-					await ShowErrorAsync("Error", "Your recovery phrase was incorrect.",
-						"You may try again, but if you are unable to verify your recovery phrase correctly. You MUST move your funds to a new wallet as soon as possible.");
+					await ShowErrorAsync("Error", "The Recovery Words you entered were incorrect.",
+						"Try again, but if you are unable to verify your Recovery Words, you MUST move your funds to a new wallet as soon as possible.");
 
 					Mnemonics.Clear();
 				}
