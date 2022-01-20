@@ -360,13 +360,5 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		?? throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound, $"Round ({round.Id}): Alice ({aliceId}) not found.");
 
 	private static bool IsUserCheating(Exception e) =>
-		e is WabiSabiCryptoException || e is WabiSabiProtocolException wpe && wpe.ErrorCode
-			is WabiSabiProtocolErrorCode.InputSpent
-			or WabiSabiProtocolErrorCode.WrongOwnershipProof
-			or WabiSabiProtocolErrorCode.ScriptNotAllowed
-			or WabiSabiProtocolErrorCode.NonStandardInput
-			or WabiSabiProtocolErrorCode.NonStandardOutput
-			or WabiSabiProtocolErrorCode.DeltaNotZero
-			or WabiSabiProtocolErrorCode.WrongNumberOfCreds
-			or WabiSabiProtocolErrorCode.CryptoException;
+		e is WabiSabiCryptoException || (e is WabiSabiProtocolException wpe && wpe.ErrorCode.IsEvidencingClearMisbehavior());
 }
