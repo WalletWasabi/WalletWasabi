@@ -432,8 +432,162 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var round = rounds.First(x => x.CoinjoinState is ConstructionState);
 
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(signingKey, round.Id);
-		var (response, _) = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, ownershipProof, CancellationToken.None);
+		var (response, isPayingZeroCoordinationFee) = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, ownershipProof, CancellationToken.None);
 
+		Assert.False(isPayingZeroCoordinationFee);
+		Assert.NotEqual(Guid.Empty, response.Value);
+	}
+
+	[Fact]
+	public async Task RegisterCoinFromCoinJoinAsync()
+	{
+		using var signingKey = new Key();
+		var coinToRegister = new Coin(
+			BitcoinFactory.CreateOutPoint(),
+			new TxOut(Money.Coins(1), signingKey.PubKey.WitHash.ScriptPubKey));
+
+		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
+		{
+			builder.ConfigureServices(services =>
+			{
+				var rpc = BitcoinFactory.GetMockMinimalRpc();
+				rpc.OnGetTxOutAsync = (_, _, _) => new()
+				{
+					Confirmations = 101,
+					IsCoinBase = false,
+					ScriptPubKeyType = "witness_v0_keyhash",
+					TxOut = coinToRegister.TxOut
+				};
+				rpc.OnGetRawTransactionAsync = (txid, throwIfNotFound) =>
+				{
+					var tx = Transaction.Create(Network.Main);
+					return Task.FromResult(tx);
+				};
+				services.AddScoped<IRPCClient>(s => rpc);
+				services.AddScoped(s => new InMemoryCoinJoinIdStore(new[] { coinToRegister.Outpoint.Hash }));
+			});
+		}).CreateClient();
+
+		var apiClient = await _apiApplicationFactory.CreateArenaClientAsync(httpClient);
+		var rounds = await apiClient.GetStatusAsync(CancellationToken.None);
+		var round = rounds.First(x => x.CoinjoinState is ConstructionState);
+
+		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(signingKey, round.Id);
+		var (response, isPayingZeroCoordinationFee) = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, ownershipProof, CancellationToken.None);
+
+		Assert.True(isPayingZeroCoordinationFee);
+		Assert.NotEqual(Guid.Empty, response.Value);
+	}
+
+	[Fact]
+	public async Task RegisterCoinOneHopAsync()
+	{
+		var keyManager = ServiceFactory.CreateKeyManager("");
+
+		var hdPubKey = BitcoinFactory.CreateHdPubKey(keyManager);
+		var smartTx = BitcoinFactory.CreateSmartTransaction(
+			othersInputCount: 1,
+			othersOutputs: Enumerable.Empty<Money>(),
+			ownInputs: Enumerable.Empty<(Money, int, HdPubKey)>(),
+			ownOutputs: new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, hdPubKey) });
+
+		var smartCoin = smartTx.WalletOutputs.First();
+		var hdKey = keyManager.GetSecrets("", smartCoin.ScriptPubKey).Single();
+		var secret = hdKey.PrivateKey.GetBitcoinSecret(keyManager.GetNetwork());
+		var signingKey = secret.PrivateKey;
+		var coinToRegister = smartCoin.Coin;
+
+		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
+		{
+			builder.ConfigureServices(services =>
+			{
+				var rpc = BitcoinFactory.GetMockMinimalRpc();
+				rpc.OnGetTxOutAsync = (_, _, _) => new()
+				{
+					Confirmations = 101,
+					IsCoinBase = false,
+					ScriptPubKeyType = "witness_v0_keyhash",
+					TxOut = coinToRegister.TxOut
+				};
+				rpc.OnGetRawTransactionAsync = (txid, throwIfNotFound) =>
+				{
+					if (txid == smartTx.GetHash())
+					{
+						return Task.FromResult(smartTx.Transaction);
+					}
+
+					var tx = Transaction.Create(Network.Main);
+					return Task.FromResult(tx);
+				};
+				services.AddScoped<IRPCClient>(s => rpc);
+				services.AddScoped(s => new InMemoryCoinJoinIdStore(new[] { smartTx.Transaction.Inputs.First().PrevOut.Hash }));
+			});
+		}).CreateClient();
+
+		var apiClient = await _apiApplicationFactory.CreateArenaClientAsync(httpClient);
+		var rounds = await apiClient.GetStatusAsync(CancellationToken.None);
+		var round = rounds.First(x => x.CoinjoinState is ConstructionState);
+
+		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(signingKey, round.Id);
+		var (response, isPayingZeroCoordinationFee) = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, ownershipProof, CancellationToken.None);
+
+		Assert.True(isPayingZeroCoordinationFee);
+		Assert.NotEqual(Guid.Empty, response.Value);
+	}
+
+	[Fact]
+	public async Task RegisterCoinOneHopButOneInputNotCoinJoinAsync()
+	{
+		var keyManager = ServiceFactory.CreateKeyManager("");
+
+		var hdPubKey = BitcoinFactory.CreateHdPubKey(keyManager);
+		var smartTx = BitcoinFactory.CreateSmartTransaction(
+			othersInputCount: 2,
+			othersOutputs: Enumerable.Empty<Money>(),
+			ownInputs: Enumerable.Empty<(Money, int, HdPubKey)>(),
+			ownOutputs: new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, hdPubKey) });
+
+		var smartCoin = smartTx.WalletOutputs.First();
+		var hdKey = keyManager.GetSecrets("", smartCoin.ScriptPubKey).Single();
+		var secret = hdKey.PrivateKey.GetBitcoinSecret(keyManager.GetNetwork());
+		var signingKey = secret.PrivateKey;
+		var coinToRegister = smartCoin.Coin;
+
+		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
+		{
+			builder.ConfigureServices(services =>
+			{
+				var rpc = BitcoinFactory.GetMockMinimalRpc();
+				rpc.OnGetTxOutAsync = (_, _, _) => new()
+				{
+					Confirmations = 101,
+					IsCoinBase = false,
+					ScriptPubKeyType = "witness_v0_keyhash",
+					TxOut = coinToRegister.TxOut
+				};
+				rpc.OnGetRawTransactionAsync = (txid, throwIfNotFound) =>
+				{
+					if (txid == smartTx.GetHash())
+					{
+						return Task.FromResult(smartTx.Transaction);
+					}
+
+					var tx = Transaction.Create(Network.Main);
+					return Task.FromResult(tx);
+				};
+				services.AddScoped<IRPCClient>(s => rpc);
+				services.AddScoped(s => new InMemoryCoinJoinIdStore(new[] { smartTx.Transaction.Inputs.First().PrevOut.Hash }));
+			});
+		}).CreateClient();
+
+		var apiClient = await _apiApplicationFactory.CreateArenaClientAsync(httpClient);
+		var rounds = await apiClient.GetStatusAsync(CancellationToken.None);
+		var round = rounds.First(x => x.CoinjoinState is ConstructionState);
+
+		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(signingKey, round.Id);
+		var (response, isPayingZeroCoordinationFee) = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, ownershipProof, CancellationToken.None);
+
+		Assert.False(isPayingZeroCoordinationFee);
 		Assert.NotEqual(Guid.Empty, response.Value);
 	}
 
