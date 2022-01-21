@@ -20,7 +20,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 	private readonly TransactionInfo _transactionInfo;
 	private readonly bool _isSilent;
 
-	[AutoNotify] private List<PocketViewModel> _usedPockets;
+	[AutoNotify] private List<PocketViewModel> _usedPockets = new();
 
 	private bool _isUpdating;
 
@@ -30,7 +30,6 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		_transactionInfo = transactionInfo;
 		_isSilent = isSilent;
 
-		_usedPockets = _wallet.Coins.GetPockets(_wallet.ServiceConfiguration.MinAnonScoreTarget).Select(x => new PocketViewModel(x)).ToList();
 		Labels = new ObservableCollection<string>();
 		MustHaveLabels = new ObservableCollection<string>();
 
@@ -93,16 +92,34 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		}
 	}
 
+	private void InitializeLabels()
+	{
+		_isUpdating = true;
+
+		UsedPockets = _wallet.Coins.GetPockets(_wallet.ServiceConfiguration.MinAnonScoreTarget).Select(x => new PocketViewModel(x)).ToList();
+		this.RaisePropertyChanged(nameof(UsedPockets));
+		MustHaveLabels.Clear();
+		Labels.Clear();
+
+		UpdateLabels();
+
+		_isUpdating = false;
+	}
+
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		if (!isInHistory)
 		{
-			_isUpdating = true;
-			UpdateLabels();
-			_isUpdating = false;
+			InitializeLabels();
 		}
+
+		Observable
+			.FromEventPattern(_wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(_ => InitializeLabels())
+			.DisposeWith(disposables);
 
 		if (_isSilent)
 		{
