@@ -14,10 +14,10 @@ public class CheapestSelectionStrategy
 	private long[]? _bestSelectionSoFar;
 
 	/// <param name="target">Value in satoshis.</param>
-	/// <param name="inputSpendingCosts">Costs of spending coins in satoshis.</param>
-	public CheapestSelectionStrategy(long target, long[] inputValues, long[] inputSpendingCosts)
+	/// <param name="inputCosts">Costs of spending coins in satoshis.</param>
+	public CheapestSelectionStrategy(long target, long[] inputValues, long[] inputCosts)
 	{
-		InputCosts = inputSpendingCosts;
+		InputCosts = inputCosts;
 		InputValues = inputValues;
 		Target = target;
 	}
