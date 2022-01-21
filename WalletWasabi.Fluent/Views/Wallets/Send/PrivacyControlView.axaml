@@ -16,6 +16,12 @@
                  IsBusy="{Binding IsBusy}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel>
+      <DockPanel.Styles>
+        <Style Selector="c|TagControl[DataContext=Private Funds], c|TagControl[DataContext=Private Funds] PathIcon">
+          <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+          <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
+        </Style>
+      </DockPanel.Styles>
 
       <c:TagsBox Items="{Binding MustHaveLabels}" IsReadOnly="True" DockPanel.Dock="Bottom" />
       <TextBlock Text="Not possible to avoid them:" DockPanel.Dock="Bottom" IsVisible="{Binding !!MustHaveLabels.Count}" />
