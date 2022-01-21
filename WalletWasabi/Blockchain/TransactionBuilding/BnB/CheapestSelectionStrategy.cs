@@ -22,7 +22,7 @@ public class CheapestSelectionStrategy
 		Target = target;
 	}
 
-	/// <summary>Costs corresponding to <see cref="ISearchStrategy.InputValues"/> values.</summary>
+	/// <summary>Costs corresponding to <see cref="InputValues"/> values.</summary>
 	public long[] InputCosts { get; }
 
 	/// <summary>Target value we want to, ideally, sum up from the input values.</summary>
@@ -31,7 +31,7 @@ public class CheapestSelectionStrategy
 	/// <summary>Input values sorted in descending orders.</summary>
 	public long[] InputValues { get; }
 
-	/// <summary>Gives lowest found value selection whose sum is larger than or equal to <see cref="ISearchStrategy.Target"/>.</summary>
+	/// <summary>Gives lowest found value selection whose sum is larger than or equal to <see cref="Target"/>.</summary>
 	public long[]? GetBestSelectionFound() => _bestSelectionSoFar?.Where(x => x > 0).ToArray();
 
 	/// <summary>
