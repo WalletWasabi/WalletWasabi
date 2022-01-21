@@ -32,7 +32,7 @@ public class ArenaBuilder
 		WabiSabiConfig config = Config ?? new();
 		IRPCClient rpc = Rpc ?? WabiSabiFactory.CreatePreconfiguredRpcClient().Object;
 		Network network = Network ?? Network.Main;
-		InMemoryCoinJoinIdStore coinJoinIdStore = CoinJoinIdsStore ?? new ();
+		InMemoryCoinJoinIdStore coinJoinIdStore = CoinJoinIdsStore ?? new();
 
 		Arena arena = new(period, network, config, rpc, prison, coinJoinIdStore);
 
