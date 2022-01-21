@@ -248,7 +248,9 @@ public class CoinJoinClient
 	private bool SanityCheck(IEnumerable<TxOut> expectedOutputs, Transaction unsignedCoinJoinTransaction)
 	{
 		var coinJoinOutputs = unsignedCoinJoinTransaction.Outputs.Select(o => (o.Value, o.ScriptPubKey));
-		var expectedOutputTuples = expectedOutputs.Select(o => (o.Value, o.ScriptPubKey));
+		var expectedOutputTuples = expectedOutputs
+			.GroupBy(x => x.ScriptPubKey)
+			.Select(o => (o.Select(x => x.Value).Sum(), o.Key));
 		return coinJoinOutputs.IsSuperSetOf(expectedOutputTuples);
 	}
 
