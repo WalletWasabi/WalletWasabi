@@ -145,4 +145,6 @@ public static class BitcoinFactory
 	{
 		return CreateScript(key).GetDestinationAddress(network);
 	}
+
+	public static Transaction CreateTransaction() => CreateSmartTransaction(1,0,0,1).Transaction;
 }

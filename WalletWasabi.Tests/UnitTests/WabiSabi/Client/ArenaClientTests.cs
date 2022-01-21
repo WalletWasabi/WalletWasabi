@@ -56,8 +56,10 @@ public class ArenaClientTests
 			});
 		mockRpc.Setup(rpc => rpc.PrepareBatch()).Returns(mockRpc.Object);
 		mockRpc.Setup(rpc => rpc.SendBatchAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+		mockRpc.Setup(rpc => rpc.GetRawTransactionAsync(It.IsAny<uint256>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+				.ReturnsAsync(BitcoinFactory.CreateTransaction());
 
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, mockRpc, round);
+		using Arena arena = await ArenaBuilder.From(config).With(mockRpc).CreateAndStartAsync(round);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
@@ -72,13 +74,13 @@ public class ArenaClientTests
 			wabiSabiApi);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
-		var inputRegistrationResponse = await aliceArenaClient.RegisterInputAsync(round.Id, outpoint, ownershipProof, CancellationToken.None);
+		var (inputRegistrationResponse, _) = await aliceArenaClient.RegisterInputAsync(round.Id, outpoint, ownershipProof, CancellationToken.None);
 		var aliceId = inputRegistrationResponse.Value;
 
 		var inputVsize = Constants.P2wpkhInputVirtualSize;
 		var amountsToRequest = new[]
 		{
-				Money.Coins(.75m) - round.FeeRate.GetFee(inputVsize),
+				Money.Coins(.75m) - round.FeeRate.GetFee(inputVsize) - round.CoordinationFeeRate.GetFee(Money.Coins(1m)),
 				Money.Coins(.25m),
 			}.Select(x => x.Satoshi).ToArray();
 
@@ -162,7 +164,7 @@ public class ArenaClientTests
 
 		var tx = round.Assert<SigningState>().CreateTransaction();
 		Assert.Single(tx.Inputs);
-		Assert.Equal(2, tx.Outputs.Count);
+		Assert.Equal(2 + 1, tx.Outputs.Count); // +1 because it pays coordination fees
 	}
 
 	[Fact]
@@ -173,7 +175,7 @@ public class ArenaClientTests
 		round.SetPhase(Phase.ConnectionConfirmation);
 		var fundingTx = BitcoinFactory.CreateSmartTransaction(ownOutputCount: 1);
 		var coin = fundingTx.WalletOutputs.First().Coin;
-		var alice = new Alice(coin, new OwnershipProof(), round, Guid.NewGuid());
+		var alice = new Alice(coin, new OwnershipProof(), round, Guid.NewGuid(), false);
 		round.Alices.Add(alice);
 
 		using Arena arena = await ArenaBuilder.From(config).CreateAndStartAsync(round);
@@ -204,7 +206,7 @@ public class ArenaClientTests
 		Alice alice2 = WabiSabiFactory.CreateAlice(key: key2, round: round);
 		round.Alices.Add(alice2);
 
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, round);
+		using Arena arena = await ArenaBuilder.From(config).CreateAndStartAsync(round);
 
 		var mockRpc = new Mock<IRPCClient>();
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
