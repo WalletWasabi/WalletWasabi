@@ -116,8 +116,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		AdjustFeeCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
-			// So we get back the original Tx on fee adjustment.
-			_info.ChangelessCoins = new List<SmartCoin>();
 			if (_info.IsCustomFeeUsed)
 			{
 				await ShowAdvancedDialogAsync();
