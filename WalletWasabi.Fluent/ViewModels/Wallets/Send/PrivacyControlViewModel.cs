@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Windows.Input;
 using Avalonia.Threading;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -19,6 +20,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 	private readonly Wallet _wallet;
 	private readonly TransactionInfo _transactionInfo;
 	private readonly bool _isSilent;
+	private readonly Stack<PocketViewModel[]> _removedPocketStack;
 
 	[AutoNotify] private PocketViewModel[] _usedPockets = Array.Empty<PocketViewModel>();
 
@@ -29,6 +31,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		_wallet = wallet;
 		_transactionInfo = transactionInfo;
 		_isSilent = isSilent;
+		_removedPocketStack = new Stack<PocketViewModel[]>();
 
 		Labels = new ObservableCollection<string>();
 		MustHaveLabels = new ObservableCollection<string>();
@@ -39,6 +42,9 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		NextCommand = ReactiveCommand.Create(() => Complete(UsedPockets));
 
 		EnableAutoBusyOn(NextCommand);
+
+		var undoCommandCanExecute = this.WhenAnyValue(x => x.Labels.Count).Select(_ => _removedPocketStack.Count > 0);
+		UndoCommand = ReactiveCommand.Create(OnUndo, undoCommandCanExecute);
 
 		Observable
 			.FromEventPattern(Labels, nameof(Labels.CollectionChanged))
@@ -57,6 +63,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 				{
 					_isUpdating = true;
 
+					_removedPocketStack.Push(pocketsToRemove);
 					UsedPockets = UsedPockets.Except(pocketsToRemove).ToArray();
 					Labels.Clear();
 					UpdateLabels();
@@ -65,6 +72,23 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 				});
 			});
 	}
+
+	private void OnUndo()
+	{
+		_isUpdating = true;
+
+		var pocketsToUndo = _removedPocketStack.Pop();
+		UsedPockets = UsedPockets.Union(pocketsToUndo).ToArray();
+
+		MustHaveLabels.Clear();
+		Labels.Clear();
+
+		UpdateLabels();
+
+		_isUpdating = false;
+	}
+
+	public ICommand UndoCommand { get; }
 
 	public ObservableCollection<string> Labels { get; set; }
 
@@ -97,7 +121,6 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		_isUpdating = true;
 
 		UsedPockets = _wallet.Coins.GetPockets(_wallet.ServiceConfiguration.MinAnonScoreTarget).Select(x => new PocketViewModel(x)).ToArray();
-		this.RaisePropertyChanged(nameof(UsedPockets));
 		MustHaveLabels.Clear();
 		Labels.Clear();
 

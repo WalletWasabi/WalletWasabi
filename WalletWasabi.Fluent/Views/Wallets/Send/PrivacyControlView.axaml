@@ -23,6 +23,7 @@
       <c:InfoMessage DockPanel.Dock="Bottom" HorizontalAlignment="Center" Margin="0 20" Opacity="0.6"
                      Content="Even if you left someone there, not all of them will know about this transaction." />
 
+      <Button Content="Undo" Command="{Binding UndoCommand}" DockPanel.Dock="Top" />
       <TextBlock Text="Remove the entities you cannot tolerate leaking information about this transaction:" DockPanel.Dock="Top" />
       <c:TagsBox Items="{Binding Labels}" EnableDelete="True" HorizontalAlignment="Center">
         <c:TagsBox.Styles>
