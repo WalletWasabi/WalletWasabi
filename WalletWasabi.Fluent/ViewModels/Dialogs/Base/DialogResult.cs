@@ -1,15 +1,14 @@
-namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base
+namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+
+public struct DialogResult<TResult>
 {
-	public struct DialogResult<TResult>
+	public DialogResult(TResult? result, DialogResultKind kind)
 	{
-		public DialogResult(TResult? result, DialogResultKind kind)
-		{
-			Result = result;
-			Kind = kind;
-		}
-
-		public TResult? Result { get; }
-
-		public DialogResultKind Kind { get; }
+		Result = result;
+		Kind = kind;
 	}
+
+	public TResult? Result { get; }
+
+	public DialogResultKind Kind { get; }
 }

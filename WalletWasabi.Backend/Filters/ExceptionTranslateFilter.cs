@@ -6,32 +6,31 @@ using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models;
 
-namespace WalletWasabi.Backend.Filters
-{
-	public class ExceptionTranslateAttribute : ExceptionFilterAttribute
-	{
-		public override void OnException(ExceptionContext context)
-		{
-			var exception = context.Exception.InnerException ?? context.Exception;
+namespace WalletWasabi.Backend.Filters;
 
-			context.Result = exception switch
+public class ExceptionTranslateAttribute : ExceptionFilterAttribute
+{
+	public override void OnException(ExceptionContext context)
+	{
+		var exception = context.Exception.InnerException ?? context.Exception;
+
+		context.Result = exception switch
+		{
+			WabiSabiProtocolException e => new JsonResult(new Error(
+				Type: ProtocolConstants.ProtocolViolationType,
+				ErrorCode: e.ErrorCode.ToString(),
+				Description: e.Message))
 			{
-				WabiSabiProtocolException e => new JsonResult(new Error(
-					Type: ProtocolConstants.ProtocolViolationType,
-					ErrorCode: e.ErrorCode.ToString(),
-					Description: e.Message))
-				{
-					StatusCode = (int)HttpStatusCode.InternalServerError
-				},
-				WabiSabiCryptoException e => new JsonResult(new Error(
-					Type: ProtocolConstants.ProtocolViolationType,
-					ErrorCode: WabiSabiProtocolErrorCode.CryptoException.ToString(),
-					Description: e.Message))
-				{
-					StatusCode = (int)HttpStatusCode.InternalServerError
-				},
-				_ => new StatusCodeResult((int)HttpStatusCode.InternalServerError)
-			};
-		}
+				StatusCode = (int)HttpStatusCode.InternalServerError
+			},
+			WabiSabiCryptoException e => new JsonResult(new Error(
+				Type: ProtocolConstants.ProtocolViolationType,
+				ErrorCode: WabiSabiProtocolErrorCode.CryptoException.ToString(),
+				Description: e.Message))
+			{
+				StatusCode = (int)HttpStatusCode.InternalServerError
+			},
+			_ => new StatusCodeResult((int)HttpStatusCode.InternalServerError)
+		};
 	}
 }

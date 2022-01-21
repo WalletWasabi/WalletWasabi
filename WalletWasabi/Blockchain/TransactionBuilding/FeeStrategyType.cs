@@ -1,8 +1,7 @@
-namespace WalletWasabi.Blockchain.TransactionBuilding
+namespace WalletWasabi.Blockchain.TransactionBuilding;
+
+public enum FeeStrategyType
 {
-	public enum FeeStrategyType
-	{
-		Target,
-		Rate
-	}
+	Target,
+	Rate
 }

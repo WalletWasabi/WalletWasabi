@@ -2,21 +2,24 @@ using System.Linq;
 using Avalonia;
 using Avalonia.Markup.Xaml.Styling;
 
-namespace WalletWasabi.Fluent.Helpers
+namespace WalletWasabi.Fluent.Helpers;
+
+public enum Theme
 {
-	public enum Theme
-	{
-		Dark,
-		Light
-	}
+	Dark,
+	Light
+}
 
-	public static class ThemeHelper
-	{
-		public static Theme CurrentTheme { get; private set; }
+public static class ThemeHelper
+{
+	public static Theme CurrentTheme { get; private set; }
 
-		public static void ApplyTheme(Theme theme)
+	public static void ApplyTheme(Theme theme)
+	{
+		if (Application.Current is { })
 		{
-			var currentTheme = Application.Current.Styles.Select(x => (StyleInclude)x).FirstOrDefault(x => x.Source is { } && x.Source.AbsolutePath.Contains("Themes"));
+			var currentTheme = Application.Current.Styles.Select(x => (StyleInclude)x)
+				.FirstOrDefault(x => x.Source is { } && x.Source.AbsolutePath.Contains("Themes"));
 
 			if (currentTheme is { })
 			{

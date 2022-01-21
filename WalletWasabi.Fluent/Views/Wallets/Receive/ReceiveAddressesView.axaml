@@ -35,7 +35,7 @@
         </Style>
       </DataBox.Styles>
       <DataBox.Columns>
-        <DataBoxTemplateColumn Width="60"
+        <DataBoxTemplateColumn Width="90"
                                CanUserSort="False">
           <DataBoxTemplateColumn.CellTemplate>
             <DataTemplate>
@@ -43,6 +43,13 @@
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
                             Margin="-5 0 0 0" Spacing="5" Orientation="Horizontal"
                             x:DataType="receive:AddressViewModel">
+                  <Button Classes="plain addressActionButton"
+                             Margin="0"
+                             Command="{Binding HideAddressCommand}"
+                             ToolTip.Tip="Hide address">
+                    <PathIcon Data="{StaticResource dismiss_light}" Classes=" addressActionIcon" />
+                  </Button>
+                  
                   <c:AnimatedButton Classes="addressActionButton" DockPanel.Dock="Right"
                                     Margin="0"
                                     ToolTip.Tip="Copy"
@@ -79,7 +86,7 @@
         </DataBoxTemplateColumn>
 
         <DataBoxTemplateColumn Header="Labels"
-                               Width="240"
+                               Width="210"
                                CanUserSort="True">
           <DataBoxTemplateColumn.CellTemplate>
             <DataTemplate>
@@ -122,12 +129,6 @@
                       <Button Classes="plain addressActionButton" ToolTip.Tip="Edit"
                               Command="{Binding EditLabelCommand}">
                         <PathIcon Data="{StaticResource edit_regular}" Classes="addressActionIcon" />
-                      </Button>
-                      <Button Classes="plain addressActionButton"
-                              Margin="0"
-                              Command="{Binding HideAddressCommand}"
-                              ToolTip.Tip="Hide address">
-                        <PathIcon Data="{StaticResource dismiss_light}" Classes=" addressActionIcon" />
                       </Button>
                     </StackPanel>
                   </DockPanel>

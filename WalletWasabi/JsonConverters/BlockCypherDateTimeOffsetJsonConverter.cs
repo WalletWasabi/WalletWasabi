@@ -1,34 +1,28 @@
 using Newtonsoft.Json;
 using System.Globalization;
 
-namespace WalletWasabi.JsonConverters
+namespace WalletWasabi.JsonConverters;
+
+public class BlockCypherDateTimeOffsetJsonConverter : JsonConverter<DateTimeOffset?>
 {
-	public class BlockCypherDateTimeOffsetJsonConverter : JsonConverter
+	/// <inheritdoc />
+	public override DateTimeOffset? ReadJson(JsonReader reader, Type objectType, DateTimeOffset? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
-		/// <inheritdoc />
-		public override bool CanConvert(Type objectType)
+		var value = reader.Value as string;
+
+		if (string.IsNullOrWhiteSpace(value))
 		{
-			return objectType == typeof(DateTimeOffset);
+			return null;
 		}
 
-		/// <inheritdoc />
-		public override object? ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-		{
-			var value = reader.Value as string;
+		string time = value.Trim();
+		return DateTimeOffset.Parse(time, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
+	}
 
-			if (string.IsNullOrWhiteSpace(value))
-			{
-				return null;
-			}
-
-			string time = value.Trim();
-			return DateTimeOffset.Parse(time, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
-		}
-
-		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-		{
-			writer.WriteValue(((DateTimeOffset)value).ToString(CultureInfo.InvariantCulture));
-		}
+	/// <inheritdoc />
+	public override void WriteJson(JsonWriter writer, DateTimeOffset? value, JsonSerializer serializer)
+	{
+		var stringValue = value?.ToString() ?? throw new ArgumentNullException(nameof(value));
+		writer.WriteValue(stringValue);
 	}
 }
