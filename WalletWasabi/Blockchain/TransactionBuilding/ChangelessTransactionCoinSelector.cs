@@ -41,15 +41,17 @@ public static class ChangelessTransactionCoinSelector
 		BranchAndBound branchAndBound = new();
 		CheapestSelectionStrategy strategy = new(target, inputValues, inputCosts);
 
-		_ = branchAndBound.TryGetMatch(strategy, out List<long>? solution, cancellationToken);
+		var foundExactMatch = branchAndBound.TryGetMatch(strategy, out List<long>? solution, cancellationToken);
 
-		if (solution is null && strategy.GetBestSelectionFound() is long[] bestSolution)
+		// If we've not found and optimal solution than we will use the best.
+		if (!foundExactMatch && strategy.GetBestSelectionFound() is long[] bestSolution)
 		{
 			solution = bestSolution.ToList();
 		}
 
 		if (solution is not null)
 		{
+			// Sanity check: do not return solution that is too expensive.
 			if (solution.Sum() > target * MaxExtraFee)
 			{
 				return false;
@@ -60,6 +62,7 @@ public static class ChangelessTransactionCoinSelector
 
 			foreach ((SmartCoin smartCoin, long effectiveSatoshis) in inputEffectiveValues)
 			{
+				// Both array are in decreasing order so the first match will be the coin we are looking for.
 				if (effectiveSatoshis == solution[i])
 				{
 					i++;

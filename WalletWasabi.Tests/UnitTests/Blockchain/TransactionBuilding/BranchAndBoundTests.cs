@@ -11,92 +11,6 @@ namespace WalletWasabi.Tests.UnitTests.Blockchain.TransactionBuilding;
 /// </summary>
 public class BranchAndBoundTests
 {
-	private static Random Random { get; } = new();
-
-	[Fact]
-	public void ExactMatch_RandomizedTest()
-	{
-		long[] inputValues = GenerateListOfRandomValues();
-		long target = 100_000_000;
-
-		BranchAndBound algorithm = new();
-		ExactMatchStrategy strategy = new(target, inputValues);
-		bool successful = algorithm.TryGetMatch(strategy, out List<long>? selectedValues);
-
-		Assert.True(successful);
-		Assert.NotNull(selectedValues);
-		Assert.Equal(target, selectedValues!.Sum());
-	}
-
-	[Fact]
-	public void ExactMatch_SimpleSelectionTest()
-	{
-		long[] inputValues = new long[] { 120_000, 100_000, 100_000, 50_000, 40_000 };
-		List<long> expectedValues = new() { 100_000, 50_000, 40_000 };
-		long target = 190_000;
-
-		BranchAndBound algorithm = new();
-		ExactMatchStrategy strategy = new(target, inputValues);
-		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins);
-
-		Assert.True(wasSuccessful);
-		Assert.NotNull(selectedCoins);
-		Assert.Equal(expectedValues, selectedCoins);
-	}
-
-	[Fact]
-	public void ExactMatch_CanSelectEveryCoin()
-	{
-		long[] inputValues = new long[] { 120_000, 100_000, 100_000 };
-		List<long> expectedValues = new() { 120_000, 100_000, 100_000 };
-		long target = 320000;
-
-		BranchAndBound algorithm = new();
-		ExactMatchStrategy strategy = new(target, inputValues);
-		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins);
-
-		Assert.True(wasSuccessful);
-		Assert.NotNull(selectedCoins);
-		Assert.Equal(expectedValues, selectedCoins);
-	}
-
-	/// <summary>
-	/// Tests that sum of input values must be larger or equal to the target otherwise
-	/// we end up searching all options in vain.
-	/// </summary>
-	[Fact]
-	public void ExactMatch_TargetIsBiggerThanBalance()
-	{
-		List<long> inputValues = new();
-		long target = 5_000;
-
-		for (int i = 0; i < target - 1; i++)
-		{
-			inputValues.Add(1);
-		}
-
-		BranchAndBound algorithm = new();
-		ExactMatchStrategy strategy = new(target, inputValues.ToArray());
-		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins);
-
-		Assert.False(wasSuccessful);
-		Assert.Null(selectedCoins);
-	}
-
-	[Fact]
-	public void ExactMatch_ReturnNullIfNoExactMatchFoundTest()
-	{
-		long[] inputValues = new long[] { 120_000, 100_000, 100_000, 50_000, 40_000 };
-		long target = 300000;
-
-		BranchAndBound algorithm = new();
-		ExactMatchStrategy strategy = new(target, inputValues);
-		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins);
-
-		Assert.False(wasSuccessful);
-		Assert.Null(selectedCoins);
-	}
-
 	/// <summary>Tests that a best found selection is found when an exact solution does not exist.</summary>
 	[Fact]
 	public void CheapestSelection_NoInputCosts()
@@ -155,24 +69,10 @@ public class BranchAndBoundTests
 		Assert.Null(selectedCoins);
 
 		// Selection (17, 10) is actually more expensive: 17 + 10 + 1000 + 1 = 1018.
-		// Whereas (35) costs us 35 + 1 = 36.		
+		// Whereas (35) costs us 35 + 1 = 36.
 		long[] actualSelection = strategy.GetBestSelectionFound()!;
 		Assert.NotNull(actualSelection);
 
 		Assert.Equal(new long[] { 35 }, actualSelection);
-	}
-
-	private long[] GenerateListOfRandomValues(int count = 1000)
-	{
-		List<long> values = new();
-
-		for (int i = 0; i < count; i++)
-		{
-			values.Add(Random.Next(1000, 99999999));
-		}
-
-		values = values.OrderByDescending(x => x).ToList();
-
-		return values.ToArray();
 	}
 }
