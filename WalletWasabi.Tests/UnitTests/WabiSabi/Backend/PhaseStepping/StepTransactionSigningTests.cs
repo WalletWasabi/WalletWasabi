@@ -30,7 +30,7 @@ public class StepTransactionSigningTests
 		var (key1, coin1, key2, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
+		using Arena arena = await ArenaBuilder.From(cfg).With(mockRpc).CreateAndStartAsync();
 		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, key1, coin1, key2, coin2);
 
 		await aliceClient1.ReadyToSignAsync(CancellationToken.None);

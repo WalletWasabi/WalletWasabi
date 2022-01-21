@@ -20,7 +20,7 @@ public class RegisterOutputTests
 		var round = WabiSabiFactory.CreateRound(cfg);
 		round.SetPhase(Phase.OutputRegistration);
 		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
 		var req = WabiSabiFactory.CreateOutputRegistrationRequest(round);
 		await arena.RegisterOutputAsync(req, CancellationToken.None);
@@ -34,7 +34,7 @@ public class RegisterOutputTests
 	{
 		var cfg = new WabiSabiConfig();
 		var nonExistingRound = WabiSabiFactory.CreateRound(cfg);
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync();
+		using Arena arena = await ArenaBuilder.Default.CreateAndStartAsync();
 		var req = WabiSabiFactory.CreateOutputRegistrationRequest(nonExistingRound);
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.RegisterOutputAsync(req, CancellationToken.None));
 		Assert.Equal(WabiSabiProtocolErrorCode.RoundNotFound, ex.ErrorCode);
@@ -49,7 +49,7 @@ public class RegisterOutputTests
 		var round = WabiSabiFactory.CreateRound(cfg);
 		round.MaxVsizeAllocationPerAlice = 11 + 34 + MultipartyTransactionParameters.SharedOverhead;
 
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 		using Key key = new();
 
 		round.SetPhase(Phase.OutputRegistration);
@@ -68,7 +68,7 @@ public class RegisterOutputTests
 		WabiSabiConfig cfg = new();
 		var round = WabiSabiFactory.CreateRound(cfg);
 		round.MaxVsizeAllocationPerAlice += 13;
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
 		round.SetPhase(Phase.OutputRegistration);
 		round.Alices.Add(WabiSabiFactory.CreateAlice(Money.Coins(1), round));
@@ -90,7 +90,7 @@ public class RegisterOutputTests
 		var round = WabiSabiFactory.CreateRound(cfg);
 		round.SetPhase(Phase.OutputRegistration);
 		round.Alices.Add(WabiSabiFactory.CreateAlice(Money.Coins(1), round));
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
 		var req = WabiSabiFactory.CreateOutputRegistrationRequest(round);
 
@@ -103,11 +103,11 @@ public class RegisterOutputTests
 	[Fact]
 	public async Task TooMuchFundsAsync()
 	{
-		WabiSabiConfig cfg = new() { MaxRegistrableAmount = Money.Coins(1.999m) }; // TODO migrate to MultipartyTransactionParameters
+		WabiSabiConfig cfg = new() { MaxRegistrableAmount = Money.Coins(1.993m) }; // TODO migrate to MultipartyTransactionParameters
 		var round = WabiSabiFactory.CreateRound(cfg);
 		round.SetPhase(Phase.OutputRegistration);
 		round.Alices.Add(WabiSabiFactory.CreateAlice(Money.Coins(2), round));
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
 		var req = WabiSabiFactory.CreateOutputRegistrationRequest(round);
 
@@ -124,7 +124,7 @@ public class RegisterOutputTests
 		var round = WabiSabiFactory.CreateRound(cfg);
 		round.SetPhase(Phase.OutputRegistration);
 		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
 		var req = WabiSabiFactory.CreateOutputRegistrationRequest(round, vsize: 30);
 
@@ -138,7 +138,7 @@ public class RegisterOutputTests
 	public async Task WrongPhaseAsync()
 	{
 		WabiSabiConfig cfg = new();
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync();
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		var round = arena.Rounds.First();
 		round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
