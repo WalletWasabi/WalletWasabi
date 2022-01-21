@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.JsonConverters.Bitcoin;
+using WalletWasabi.JsonConverters.Timing;
 using WalletWasabi.WabiSabi.Crypto.Serialization;
 
 namespace WalletWasabi.WabiSabi.Models.Serialization;
@@ -22,7 +23,9 @@ public class JsonSerializationOptions
 				new FeeRateJsonConverter(),
 				new MoneySatoshiJsonConverter(),
 				new Uint256JsonConverter(),
-				new MultipartyTransactionStateJsonConverter()
+				new MultipartyTransactionStateJsonConverter(),
+				new ExtPubKeyJsonConverter(),
+				new TimeSpanJsonConverter(),
 			}
 	};
 	public static readonly JsonSerializationOptions Default = new();

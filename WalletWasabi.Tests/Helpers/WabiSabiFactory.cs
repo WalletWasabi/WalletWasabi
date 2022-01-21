@@ -15,6 +15,7 @@ using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
@@ -51,7 +52,8 @@ public static class WabiSabiFactory
 			cfg,
 			Network.Main,
 			new InsecureRandom(),
-			new FeeRate(100m)));
+			new FeeRate(100m),
+			new CoordinationFeeRate(0.003m, Money.Zero)));
 		round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
 		return round;
 	}
@@ -78,6 +80,9 @@ public static class WabiSabiFactory
 					Confirmations = 120,
 					TxOut = coin.TxOut,
 				});
+
+			mockRpc.Setup(rpc => rpc.GetRawTransactionAsync(coin.Outpoint.Hash, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+				.ReturnsAsync(BitcoinFactory.CreateTransaction());
 		}
 		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), It.IsAny<EstimateSmartFeeMode>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync(new EstimateSmartFeeResponse
@@ -96,7 +101,7 @@ public static class WabiSabiFactory
 	}
 
 	public static Alice CreateAlice(Coin coin, OwnershipProof ownershipProof, Round round)
-		=> new(coin, ownershipProof, round, Guid.NewGuid()) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
+		=> new(coin, ownershipProof, round, Guid.NewGuid(), false) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
 
 	public static Alice CreateAlice(Key key, Money amount, Round round)
 		=> CreateAlice(CreateCoin(key, amount), CreateOwnershipProof(key), round);
@@ -186,7 +191,7 @@ public static class WabiSabiFactory
 
 		var alice = round.Alices.FirstOrDefault() ?? CreateAlice(round);
 		var (realAmountCredentialRequest, _) = amClient.CreateRequest(
-			new[] { amount?.Satoshi ?? alice.CalculateRemainingAmountCredentials(round.FeeRate).Satoshi },
+			new[] { amount?.Satoshi ?? alice.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate).Satoshi },
 			amZeroCredentials,
 			CancellationToken.None);
 		var (realVsizeCredentialRequest, _) = vsClient.CreateRequest(
@@ -220,7 +225,7 @@ public static class WabiSabiFactory
 
 		var alice = round.Alices.FirstOrDefault() ?? CreateAlice(round);
 		var (amCredentialRequest, amValid) = amClient.CreateRequest(
-			new[] { alice.CalculateRemainingAmountCredentials(round.FeeRate).Satoshi },
+			new[] { alice.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate).Satoshi },
 			amZeroCredentials, // FIXME doesn't make much sense
 			CancellationToken.None);
 		long startingVsizeCredentialAmount = vsize ?? alice.CalculateRemainingVsizeCredentials(round.MaxVsizeAllocationPerAlice);
@@ -251,7 +256,7 @@ public static class WabiSabiFactory
 	}
 
 	public static BlameRound CreateBlameRound(Round round, WabiSabiConfig cfg)
-		=> new(new(cfg, round.Network, new InsecureRandom(), round.FeeRate), round, round.Alices.Select(x => x.Coin.Outpoint).ToHashSet());
+		=> new(new(cfg, round.Network, new InsecureRandom(), round.FeeRate, round.CoordinationFeeRate), round, round.Alices.Select(x => x.Coin.Outpoint).ToHashSet());
 
 	public static (Key, SmartCoin, Key, SmartCoin) CreateCoinKeyPairs()
 	{

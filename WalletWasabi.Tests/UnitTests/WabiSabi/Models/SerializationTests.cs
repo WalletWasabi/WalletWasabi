@@ -42,7 +42,8 @@ public class SerializationTests
 		var message = new InputRegistrationResponse(
 			Guid.NewGuid(),
 			CreateCredentialsResponse(),
-			CreateCredentialsResponse());
+			CreateCredentialsResponse(),
+			true);
 
 		AssertSerialization(message);
 	}
