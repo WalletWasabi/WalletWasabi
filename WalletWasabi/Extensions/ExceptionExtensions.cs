@@ -4,64 +4,63 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Models;
 
-namespace System
+namespace System;
+
+public static class ExceptionExtensions
 {
-	public static class ExceptionExtensions
+	public static string ToTypeMessageString(this Exception ex)
 	{
-		public static string ToTypeMessageString(this Exception ex)
+		var trimmed = Guard.Correct(ex.Message);
+
+		if (trimmed.Length == 0)
 		{
-			var trimmed = Guard.Correct(ex.Message);
-
-			if (trimmed.Length == 0)
+			if (ex is HwiException hwiEx)
 			{
-				if (ex is HwiException hwiEx)
-				{
-					return $"{hwiEx.GetType().Name}: {hwiEx.ErrorCode}";
-				}
-				return ex.GetType().Name;
+				return $"{hwiEx.GetType().Name}: {hwiEx.ErrorCode}";
 			}
-			else
-			{
-				return $"{ex.GetType().Name}: {ex.Message}";
-			}
+			return ex.GetType().Name;
 		}
-
-		public static string ToUserFriendlyString(this Exception ex)
+		else
 		{
-			var trimmed = Guard.Correct(ex.Message);
-			if (trimmed.Length == 0)
-			{
-				return ex.ToTypeMessageString();
-			}
-			else
-			{
-				if (ex is HwiException hwiEx)
-				{
-					if (hwiEx.ErrorCode == HwiErrorCode.DeviceConnError)
-					{
-						return "Could not find the hardware wallet.\nMake sure it is connected.";
-					}
-					else if (hwiEx.ErrorCode == HwiErrorCode.ActionCanceled)
-					{
-						return "The transaction was canceled on the device.";
-					}
-				}
-
-				foreach (KeyValuePair<string, string> pair in RpcErrorTools.ErrorTranslations)
-				{
-					if (trimmed.Contains(pair.Key, StringComparison.InvariantCultureIgnoreCase))
-					{
-						return pair.Value;
-					}
-				}
-
-				return ex.ToTypeMessageString();
-			}
+			return $"{ex.GetType().Name}: {ex.Message}";
 		}
+	}
 
-		public static SerializableException ToSerializableException(this Exception ex)
+	public static string ToUserFriendlyString(this Exception ex)
+	{
+		var trimmed = Guard.Correct(ex.Message);
+		if (trimmed.Length == 0)
 		{
-			return new SerializableException(ex);
+			return ex.ToTypeMessageString();
 		}
+		else
+		{
+			if (ex is HwiException hwiEx)
+			{
+				if (hwiEx.ErrorCode == HwiErrorCode.DeviceConnError)
+				{
+					return "Could not find the hardware wallet.\nMake sure it is connected.";
+				}
+				else if (hwiEx.ErrorCode == HwiErrorCode.ActionCanceled)
+				{
+					return "The transaction was canceled on the device.";
+				}
+			}
+
+			foreach (KeyValuePair<string, string> pair in RpcErrorTools.ErrorTranslations)
+			{
+				if (trimmed.Contains(pair.Key, StringComparison.InvariantCultureIgnoreCase))
+				{
+					return pair.Value;
+				}
+			}
+
+			return ex.ToTypeMessageString();
+		}
+	}
+
+	public static SerializableException ToSerializableException(this Exception ex)
+	{
+		return new SerializableException(ex);
 	}
 }

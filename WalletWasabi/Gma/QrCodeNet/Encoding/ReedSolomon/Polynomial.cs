@@ -1,241 +1,240 @@
-namespace Gma.QrCodeNet.Encoding.ReedSolomon
+namespace Gma.QrCodeNet.Encoding.ReedSolomon;
+
+internal sealed class Polynomial
 {
-	internal sealed class Polynomial
+	internal Polynomial(GaloisField256 gfield, int[] coefficients)
 	{
-		internal Polynomial(GaloisField256 gfield, int[] coefficients)
-		{
-			int coefficientsLength = coefficients.Length;
+		int coefficientsLength = coefficients.Length;
 
-			if (coefficientsLength == 0 || coefficients is null)
+		if (coefficientsLength == 0 || coefficients is null)
+		{
+			throw new ArithmeticException($"Cannot create empty {nameof(Polynomial)}.");
+		}
+
+		GField = gfield;
+
+		Primitive = gfield.Primitive;
+
+		if (coefficientsLength > 1 && coefficients[0] == 0)
+		{
+			int firstNonZeroIndex = 1;
+			while (firstNonZeroIndex < coefficientsLength && coefficients[firstNonZeroIndex] == 0)
 			{
-				throw new ArithmeticException($"Cannot create empty {nameof(Polynomial)}.");
+				firstNonZeroIndex++;
 			}
 
-			GField = gfield;
-
-			Primitive = gfield.Primitive;
-
-			if (coefficientsLength > 1 && coefficients[0] == 0)
+			if (firstNonZeroIndex == coefficientsLength)
 			{
-				int firstNonZeroIndex = 1;
-				while (firstNonZeroIndex < coefficientsLength && coefficients[firstNonZeroIndex] == 0)
-				{
-					firstNonZeroIndex++;
-				}
-
-				if (firstNonZeroIndex == coefficientsLength)
-				{
-					Coefficients = new int[] { 0 };
-				}
-				else
-				{
-					int newLength = coefficientsLength - firstNonZeroIndex;
-					Coefficients = new int[newLength];
-					Array.Copy(coefficients, firstNonZeroIndex, Coefficients, 0, newLength);
-				}
+				Coefficients = new int[] { 0 };
 			}
 			else
 			{
-				Coefficients = new int[coefficientsLength];
-				Array.Copy(coefficients, Coefficients, coefficientsLength);
+				int newLength = coefficientsLength - firstNonZeroIndex;
+				Coefficients = new int[newLength];
+				Array.Copy(coefficients, firstNonZeroIndex, Coefficients, 0, newLength);
 			}
 		}
-
-		internal int[] Coefficients { get; }
-
-		internal GaloisField256 GField { get; }
-
-		internal int Degree => Coefficients.Length - 1;
-
-		internal int Primitive { get; }
-
-		internal bool IsMonomialZero => Coefficients[0] == 0;
-
-		/// <returns>
-		/// Coefficient position. where (coefficient)x^degree
-		/// </returns>
-		internal int GetCoefficient(int degree)
+		else
 		{
-			// Eg: x^2 + x + 1. degree 1, reverse position = degree + 1 = 2.
-			// Pos = 3 - 2 = 1
-			return Coefficients[^(degree + 1)];
+			Coefficients = new int[coefficientsLength];
+			Array.Copy(coefficients, Coefficients, coefficientsLength);
+		}
+	}
+
+	internal int[] Coefficients { get; }
+
+	internal GaloisField256 GField { get; }
+
+	internal int Degree => Coefficients.Length - 1;
+
+	internal int Primitive { get; }
+
+	internal bool IsMonomialZero => Coefficients[0] == 0;
+
+	/// <returns>
+	/// Coefficient position. where (coefficient)x^degree
+	/// </returns>
+	internal int GetCoefficient(int degree)
+	{
+		// Eg: x^2 + x + 1. degree 1, reverse position = degree + 1 = 2.
+		// Pos = 3 - 2 = 1
+		return Coefficients[^(degree + 1)];
+	}
+
+	/// <summary>
+	/// Add another Polynomial to current one
+	/// </summary>
+	/// <param name="other">The polynomial need to add or subtract to current one</param>
+	/// <returns>Result polynomial after add or subtract</returns>
+	internal Polynomial AddOrSubtract(Polynomial other)
+	{
+		if (Primitive != other.Primitive)
+		{
+			throw new ArgumentException($"{nameof(Polynomial)} cannot perform {nameof(AddOrSubtract)} as they do not have the same {nameof(Primitive)}" +
+				$" for {nameof(GaloisField256)}.");
+		}
+		if (IsMonomialZero)
+		{
+			return other;
+		}
+		else if (other.IsMonomialZero)
+		{
+			return this;
 		}
 
-		/// <summary>
-		/// Add another Polynomial to current one
-		/// </summary>
-		/// <param name="other">The polynomial need to add or subtract to current one</param>
-		/// <returns>Result polynomial after add or subtract</returns>
-		internal Polynomial AddOrSubtract(Polynomial other)
+		int otherLength = other.Coefficients.Length;
+		int thisLength = Coefficients.Length;
+
+		if (otherLength > thisLength)
 		{
-			if (Primitive != other.Primitive)
-			{
-				throw new ArgumentException($"{nameof(Polynomial)} cannot perform {nameof(AddOrSubtract)} as they do not have the same {nameof(Primitive)}" +
-					$" for {nameof(GaloisField256)}.");
-			}
-			if (IsMonomialZero)
-			{
-				return other;
-			}
-			else if (other.IsMonomialZero)
-			{
-				return this;
-			}
+			return CoefficientXor(Coefficients, other.Coefficients);
+		}
+		else
+		{
+			return CoefficientXor(other.Coefficients, Coefficients);
+		}
+	}
 
-			int otherLength = other.Coefficients.Length;
-			int thisLength = Coefficients.Length;
-
-			if (otherLength > thisLength)
-			{
-				return CoefficientXor(Coefficients, other.Coefficients);
-			}
-			else
-			{
-				return CoefficientXor(other.Coefficients, Coefficients);
-			}
+	internal Polynomial CoefficientXor(int[] smallerCoefficients, int[] largerCoefficients)
+	{
+		if (smallerCoefficients.Length > largerCoefficients.Length)
+		{
+			throw new ArgumentException($"Cannot perform {nameof(CoefficientXor)} method as smaller {nameof(Coefficients)} length is greater than the larger one.");
 		}
 
-		internal Polynomial CoefficientXor(int[] smallerCoefficients, int[] largerCoefficients)
+		int targetLength = largerCoefficients.Length;
+		int[] xorCoefficient = new int[targetLength];
+		int lengthDiff = largerCoefficients.Length - smallerCoefficients.Length;
+
+		Array.Copy(largerCoefficients, 0, xorCoefficient, 0, lengthDiff);
+
+		for (int index = lengthDiff; index < targetLength; index++)
 		{
-			if (smallerCoefficients.Length > largerCoefficients.Length)
-			{
-				throw new ArgumentException($"Cannot perform {nameof(CoefficientXor)} method as smaller {nameof(Coefficients)} length is greater than the larger one.");
-			}
-
-			int targetLength = largerCoefficients.Length;
-			int[] xorCoefficient = new int[targetLength];
-			int lengthDiff = largerCoefficients.Length - smallerCoefficients.Length;
-
-			Array.Copy(largerCoefficients, 0, xorCoefficient, 0, lengthDiff);
-
-			for (int index = lengthDiff; index < targetLength; index++)
-			{
-				xorCoefficient[index] = GField.Addition(largerCoefficients[index], smallerCoefficients[index - lengthDiff]);
-			}
-
-			return new Polynomial(GField, xorCoefficient);
+			xorCoefficient[index] = GField.Addition(largerCoefficients[index], smallerCoefficients[index - lengthDiff]);
 		}
 
-		/// <summary>
-		/// Multiply current Polynomial to another one.
-		/// </summary>
-		/// <returns>Result polynomial after multiply</returns>
-		internal Polynomial Multiply(Polynomial other)
+		return new Polynomial(GField, xorCoefficient);
+	}
+
+	/// <summary>
+	/// Multiply current Polynomial to another one.
+	/// </summary>
+	/// <returns>Result polynomial after multiply</returns>
+	internal Polynomial Multiply(Polynomial other)
+	{
+		if (Primitive != other.Primitive)
 		{
-			if (Primitive != other.Primitive)
-			{
-				throw new ArgumentException($"{nameof(Polynomial)} cannot perform {nameof(Multiply)} as they do not have the same {nameof(Primitive)}" +
-					$" for {nameof(GaloisField256)}.");
-			}
-			if (IsMonomialZero || other.IsMonomialZero)
-			{
-				return new Polynomial(GField, new int[] { 0 });
-			}
+			throw new ArgumentException($"{nameof(Polynomial)} cannot perform {nameof(Multiply)} as they do not have the same {nameof(Primitive)}" +
+				$" for {nameof(GaloisField256)}.");
+		}
+		if (IsMonomialZero || other.IsMonomialZero)
+		{
+			return new Polynomial(GField, new int[] { 0 });
+		}
 
-			int[] aCoefficients = Coefficients;
-			int aLength = aCoefficients.Length;
-			int[] bCoefficient = other.Coefficients;
-			int bLength = bCoefficient.Length;
-			int[] rCoefficients = new int[aLength + bLength - 1];
+		int[] aCoefficients = Coefficients;
+		int aLength = aCoefficients.Length;
+		int[] bCoefficient = other.Coefficients;
+		int bLength = bCoefficient.Length;
+		int[] rCoefficients = new int[aLength + bLength - 1];
 
-			for (int aIndex = 0; aIndex < aLength; aIndex++)
+		for (int aIndex = 0; aIndex < aLength; aIndex++)
+		{
+			int aCoeff = aCoefficients[aIndex];
+			for (int bIndex = 0; bIndex < bLength; bIndex++)
 			{
-				int aCoeff = aCoefficients[aIndex];
-				for (int bIndex = 0; bIndex < bLength; bIndex++)
+				rCoefficients[aIndex + bIndex] =
+					GField.Addition(rCoefficients[aIndex + bIndex], GField.Product(aCoeff, bCoefficient[bIndex]));
+			}
+		}
+		return new Polynomial(GField, rCoefficients);
+	}
+
+	/// <summary>
+	/// Multiplay scalar to current polynomial
+	/// </summary>
+	/// <returns>Result of polynomial after multiply scalar</returns>
+	internal Polynomial MultiplyScalar(int scalar)
+	{
+		if (scalar == 0)
+		{
+			return new Polynomial(GField, new int[] { 0 });
+		}
+		else if (scalar == 1)
+		{
+			return this;
+		}
+
+		int length = Coefficients.Length;
+		int[] rCoefficient = new int[length];
+
+		for (int index = 0; index < length; index++)
+		{
+			rCoefficient[index] = GField.Product(Coefficients[index], scalar);
+		}
+
+		return new Polynomial(GField, rCoefficient);
+	}
+
+	/// <summary>
+	/// Divide current polynomial by "other"
+	/// </summary>
+	/// <returns>Result polynomial after divide</returns>
+	internal PolyDivideStruct Divide(Polynomial other)
+	{
+		if (Primitive != other.Primitive)
+		{
+			throw new ArgumentException($"{nameof(Polynomial)} cannot perform {nameof(Divide)} as they do not have the same {nameof(Primitive)}" +
+				$" for {nameof(GaloisField256)}.");
+		}
+		if (other.IsMonomialZero)
+		{
+			throw new ArgumentException($"Cannot divide by {nameof(Polynomial)} Zero.");
+		}
+
+		// This divide by other = a divide by b
+		int aLength = Coefficients.Length;
+
+		// We will make change to aCoefficient. It will return as remainder
+		int[] aCoefficients = new int[aLength];
+		Array.Copy(Coefficients, 0, aCoefficients, 0, aLength);
+
+		int bLength = other.Coefficients.Length;
+
+		if (aLength < bLength)
+		{
+			return new PolyDivideStruct(new Polynomial(GField, new int[] { 0 }), this);
+		}
+		else
+		{
+			// Quotient coefficients
+			// qLastIndex = alength - blength  qlength = qLastIndex + 1
+			int[] qCoefficients = new int[(aLength - bLength) + 1];
+
+			// Denominator
+			int otherLeadingTerm = other.GetCoefficient(other.Degree);
+			int inverseOtherLeadingTerm = GField.Inverse(otherLeadingTerm);
+
+			for (int aIndex = 0; aIndex <= aLength - bLength; aIndex++)
+			{
+				if (aCoefficients[aIndex] != 0)
 				{
-					rCoefficients[aIndex + bIndex] =
-						GField.Addition(rCoefficients[aIndex + bIndex], GField.Product(aCoeff, bCoefficient[bIndex]));
-				}
-			}
-			return new Polynomial(GField, rCoefficients);
-		}
+					int aScalar = GField.Product(inverseOtherLeadingTerm, aCoefficients[aIndex]);
+					Polynomial term = other.MultiplyScalar(aScalar);
+					qCoefficients[aIndex] = aScalar;
 
-		/// <summary>
-		/// Multiplay scalar to current polynomial
-		/// </summary>
-		/// <returns>Result of polynomial after multiply scalar</returns>
-		internal Polynomial MultiplyScalar(int scalar)
-		{
-			if (scalar == 0)
-			{
-				return new Polynomial(GField, new int[] { 0 });
-			}
-			else if (scalar == 1)
-			{
-				return this;
-			}
-
-			int length = Coefficients.Length;
-			int[] rCoefficient = new int[length];
-
-			for (int index = 0; index < length; index++)
-			{
-				rCoefficient[index] = GField.Product(Coefficients[index], scalar);
-			}
-
-			return new Polynomial(GField, rCoefficient);
-		}
-
-		/// <summary>
-		/// Divide current polynomial by "other"
-		/// </summary>
-		/// <returns>Result polynomial after divide</returns>
-		internal PolyDivideStruct Divide(Polynomial other)
-		{
-			if (Primitive != other.Primitive)
-			{
-				throw new ArgumentException($"{nameof(Polynomial)} cannot perform {nameof(Divide)} as they do not have the same {nameof(Primitive)}" +
-					$" for {nameof(GaloisField256)}.");
-			}
-			if (other.IsMonomialZero)
-			{
-				throw new ArgumentException($"Cannot divide by {nameof(Polynomial)} Zero.");
-			}
-
-			// This divide by other = a divide by b
-			int aLength = Coefficients.Length;
-
-			// We will make change to aCoefficient. It will return as remainder
-			int[] aCoefficients = new int[aLength];
-			Array.Copy(Coefficients, 0, aCoefficients, 0, aLength);
-
-			int bLength = other.Coefficients.Length;
-
-			if (aLength < bLength)
-			{
-				return new PolyDivideStruct(new Polynomial(GField, new int[] { 0 }), this);
-			}
-			else
-			{
-				// Quotient coefficients
-				// qLastIndex = alength - blength  qlength = qLastIndex + 1
-				int[] qCoefficients = new int[(aLength - bLength) + 1];
-
-				// Denominator
-				int otherLeadingTerm = other.GetCoefficient(other.Degree);
-				int inverseOtherLeadingTerm = GField.Inverse(otherLeadingTerm);
-
-				for (int aIndex = 0; aIndex <= aLength - bLength; aIndex++)
-				{
-					if (aCoefficients[aIndex] != 0)
+					int[] bCoefficient = term.Coefficients;
+					if (bCoefficient[0] != 0)
 					{
-						int aScalar = GField.Product(inverseOtherLeadingTerm, aCoefficients[aIndex]);
-						Polynomial term = other.MultiplyScalar(aScalar);
-						qCoefficients[aIndex] = aScalar;
-
-						int[] bCoefficient = term.Coefficients;
-						if (bCoefficient[0] != 0)
+						for (int bIndex = 0; bIndex < bLength; bIndex++)
 						{
-							for (int bIndex = 0; bIndex < bLength; bIndex++)
-							{
-								aCoefficients[aIndex + bIndex] = GField.Subtraction(aCoefficients[aIndex + bIndex], bCoefficient[bIndex]);
-							}
+							aCoefficients[aIndex + bIndex] = GField.Subtraction(aCoefficients[aIndex + bIndex], bCoefficient[bIndex]);
 						}
 					}
 				}
-
-				return new PolyDivideStruct(new Polynomial(GField, qCoefficients), new Polynomial(GField, aCoefficients));
 			}
+
+			return new PolyDivideStruct(new Polynomial(GField, qCoefficients), new Polynomial(GField, aCoefficients));
 		}
 	}
 }

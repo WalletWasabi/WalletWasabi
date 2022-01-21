@@ -2,30 +2,29 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
-namespace WalletWasabi.Tests.Helpers
+namespace WalletWasabi.Tests.Helpers;
+
+public class StringNoWhiteSpaceEqualityComparer : IEqualityComparer<string>
 {
-	public class StringNoWhiteSpaceEqualityComparer : IEqualityComparer<string>
+	public bool Equals([AllowNull] string x, [AllowNull] string y)
 	{
-		public bool Equals([AllowNull] string x, [AllowNull] string y)
+		if (x == y)
 		{
-			if (x == y)
-			{
-				return true;
-			}
-
-			if (x is null || y is null)
-			{
-				return false;
-			}
-
-			return Enumerable.SequenceEqual(
-				x.Where(c => !char.IsWhiteSpace(c)),
-				y.Where(c => !char.IsWhiteSpace(c)));
+			return true;
 		}
 
-		public int GetHashCode([DisallowNull] string obj)
+		if (x is null || y is null)
 		{
-			throw new NotImplementedException();
+			return false;
 		}
+
+		return Enumerable.SequenceEqual(
+			x.Where(c => !char.IsWhiteSpace(c)),
+			y.Where(c => !char.IsWhiteSpace(c)));
+	}
+
+	public int GetHashCode([DisallowNull] string obj)
+	{
+		throw new NotImplementedException();
 	}
 }

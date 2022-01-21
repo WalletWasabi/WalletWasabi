@@ -2,28 +2,27 @@ using Avalonia.Controls;
 using Avalonia.LogicalTree;
 using Avalonia.Xaml.Interactivity;
 
-namespace WalletWasabi.Fluent.Behaviors
+namespace WalletWasabi.Fluent.Behaviors;
+
+internal class FocusFirstTextBoxInItemsControlBehavior : Behavior<ItemsControl>
 {
-	internal class FocusFirstTextBoxInItemsControlBehavior : Behavior<ItemsControl>
+	protected override void OnAttached()
 	{
-		protected override void OnAttached()
-		{
-			base.OnAttached();
+		base.OnAttached();
 
-			AssociatedObject!.LayoutUpdated += OnLayoutUpdated;
-		}
+		AssociatedObject!.LayoutUpdated += OnLayoutUpdated;
+	}
 
-		protected override void OnDetaching()
-		{
-			base.OnDetaching();
+	protected override void OnDetaching()
+	{
+		base.OnDetaching();
 
-			AssociatedObject!.LayoutUpdated -= OnLayoutUpdated;
-		}
+		AssociatedObject!.LayoutUpdated -= OnLayoutUpdated;
+	}
 
-		private void OnLayoutUpdated(object? sender, EventArgs e)
-		{
-			AssociatedObject!.LayoutUpdated -= OnLayoutUpdated;
-			AssociatedObject.FindLogicalDescendantOfType<TextBox>()?.Focus();
-		}
+	private void OnLayoutUpdated(object? sender, EventArgs e)
+	{
+		AssociatedObject!.LayoutUpdated -= OnLayoutUpdated;
+		AssociatedObject.FindLogicalDescendantOfType<TextBox>()?.Focus();
 	}
 }
