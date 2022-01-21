@@ -24,7 +24,7 @@ public class AliceTimeoutTests
 		var smartCoin = BitcoinFactory.CreateSmartCoin(key, 10m);
 		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(smartCoin.Coin);
 
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, rpc, round);
+		using Arena arena = await ArenaBuilder.From(cfg).With(rpc).CreateAndStartAsync(round);
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
 		using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), arena);
@@ -65,7 +65,7 @@ public class AliceTimeoutTests
 		round.SetPhase(Phase.ConnectionConfirmation);
 		var alice = WabiSabiFactory.CreateAlice(round);
 		round.Alices.Add(alice);
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
 		var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 
@@ -88,7 +88,7 @@ public class AliceTimeoutTests
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var alice = WabiSabiFactory.CreateAlice(round);
 		round.Alices.Add(alice);
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
 		var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 
@@ -113,7 +113,7 @@ public class AliceTimeoutTests
 		round.Alices.Add(alice);
 		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
 		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
 		var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 
@@ -135,7 +135,7 @@ public class AliceTimeoutTests
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var alice = WabiSabiFactory.CreateAlice(round);
 		round.Alices.Add(alice);
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
 		var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 

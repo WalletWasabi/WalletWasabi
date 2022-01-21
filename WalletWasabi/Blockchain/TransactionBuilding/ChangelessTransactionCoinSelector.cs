@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using WalletWasabi.Blockchain.TransactionBuilding.BnB;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding;
 
