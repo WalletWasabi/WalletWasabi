@@ -135,7 +135,7 @@
         <!-- Welcome to Wasabi -->
         <Grid ColumnDefinitions="*,*">
           <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
-            <TextBlock Classes="text" Text="Satoshi brought us scarcity, Wasabi is bringing us fungibility. As inflation is running rampant, vigilant individuals are opting out. Bitcoin is rapidly becoming the world's reserve currency, but its fungibility - a property of good money - is still unsatisfactory. Wasabi Wallet is a bastion of hope in the quest to qualitatively improve the money of our future." />
+            <TextBlock Classes="text" Text="Satoshi brought scarcity, while Wasabi is bringing fungibility. As inflation is running rampant, vigilant individuals are opting out. Bitcoin is rapidly becoming the world's reserve currency, but its fungibility - a property of good money - is still unsatisfactory. Wasabi Wallet is a bastion of hope in the quest to qualitatively improve the money of the future." />
             <TextBlock Text="Welcome to Wasabi"
                        Classes="title" />
             <Viewbox Classes="icon">
@@ -150,7 +150,7 @@
         <!-- Trustless by design -->
         <Grid ColumnDefinitions="*,*">
           <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
-            <TextBlock Classes="text" Text="If you don't control your private keys, then you are not the true owner of the funds. Wasabi is non-custodial: the developers cannot steal or freeze your funds." />
+            <TextBlock Classes="text" Text="If you don't control your private keys, then you are not the true owner of your funds. Wasabi is non-custodial: the developers cannot steal or freeze your funds." />
             <TextBlock Text="Not Your Keys, Not Your Coins"
                        Classes="title" />
             <Viewbox Classes="icon">
@@ -165,7 +165,7 @@
         <!-- Anonymous -->
         <Grid ColumnDefinitions="*,*">
           <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
-            <TextBlock Classes="text" Text="Wasabi protects your financial information through coinjoins, client side block filtering, and communicating over the Tor anonymity network. Neither the public nor the developers can breach your privacy." />
+            <TextBlock Classes="text" Text="Wasabi protects your financial information through coinjoins, client-side block filtering, and communication over the Tor anonymity network. Neither the public nor the developers can breach your privacy." />
             <TextBlock Text="Always Be Coinjoining"
                        Classes="title" />
             <Viewbox Classes="icon">
@@ -180,7 +180,7 @@
         <!-- Free and Open Source -->
         <Grid ColumnDefinitions="*,*">
           <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
-            <TextBlock Classes="text" Text="In order to ensure the code - that's running on your computer - can indeed protect you from the developers and from the public, Wasabi is free, open-source and deterministically reproducible software." />
+            <TextBlock Classes="text" Text="To ensure the code - running on your computer - can indeed protect you from the developers and the public, Wasabi is free, open-source and deterministically reproducible software." />
             <TextBlock Text="Don't Trust Verify"
                        Classes="title" />
             <Viewbox Classes="icon">
