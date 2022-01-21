@@ -41,6 +41,8 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private bool _isFixedAmount;
 	[AutoNotify] private bool _isPayJoin;
 	[AutoNotify] private string? _payJoinEndPoint;
+	[AutoNotify] private bool _conversionReversed;
+
 	private bool _parsingUrl;
 	private BitcoinAddress? _currentAddress;
 

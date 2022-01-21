@@ -118,6 +118,7 @@ public class RandomTests
 		mockRandom.GetBytesResults.Add(Scalar.Zero.ToBytes());
 		var one = new Scalar(1);
 		mockRandom.GetBytesResults.Add(one.ToBytes());
+		mockRandom.GetBytesResults.Add(one.ToBytes());
 		var two = new Scalar(2);
 		mockRandom.GetBytesResults.Add(two.ToBytes());
 		var big = new Scalar(int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue);
@@ -126,7 +127,7 @@ public class RandomTests
 		mockRandom.GetBytesResults.Add(biggest.ToBytes());
 
 		var randomScalar = mockRandom.GetScalar();
-		Assert.Equal(Scalar.Zero, randomScalar);
+		Assert.Equal(one, randomScalar);
 		randomScalar = mockRandom.GetScalar();
 		Assert.Equal(one, randomScalar);
 		randomScalar = mockRandom.GetScalar();

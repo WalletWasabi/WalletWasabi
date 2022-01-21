@@ -86,10 +86,7 @@ public partial class NavBarViewModel : ViewModelBase
 		UiServices.WalletManager.WhenAnyValue(x => x.SelectedWallet)
 			.WhereNotNull()
 			.OfType<NavBarItemViewModel>()
-			.Subscribe(x =>
-			{
-				SelectedItem = x;
-			});
+			.Subscribe(x => SelectedItem = x);
 	}
 
 	public ReadOnlyObservableCollection<NavBarItemViewModel> Items => UiServices.WalletManager.Items;
