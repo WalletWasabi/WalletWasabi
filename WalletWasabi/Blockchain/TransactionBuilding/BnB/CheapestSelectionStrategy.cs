@@ -7,7 +7,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 /// waste of user's fund by looking for a selection that minimizes inputs' spending costs
 /// and extra cost of paying more than specified target.
 /// </summary>
-public class CheapestSelectionStrategy : BaseStrategy
+public class CheapestSelectionStrategy
 {
 	private long _currentInputCosts = 0;
 	private long _bestTargetSoFar = long.MaxValue;
@@ -16,19 +16,33 @@ public class CheapestSelectionStrategy : BaseStrategy
 	/// <param name="target">Value in satoshis.</param>
 	/// <param name="inputSpendingCosts">Costs of spending coins in satoshis.</param>
 	public CheapestSelectionStrategy(long target, long[] inputValues, long[] inputSpendingCosts)
-		: base(target, inputValues)
 	{
 		InputCosts = inputSpendingCosts;
+		InputValues = inputValues;
+		Target = target;
 	}
 
 	/// <summary>Costs corresponding to <see cref="ISearchStrategy.InputValues"/> values.</summary>
 	public long[] InputCosts { get; }
 
+	/// <summary>Target value we want to, ideally, sum up from the input values.</summary>
+	public long Target { get; }
+
+	/// <summary>Input values sorted in descending orders.</summary>
+	public long[] InputValues { get; }
+
 	/// <summary>Gives lowest found value selection whose sum is larger than or equal to <see cref="ISearchStrategy.Target"/>.</summary>
 	public long[]? GetBestSelectionFound() => _bestSelectionSoFar?.Where(x => x > 0).ToArray();
 
-	/// <inheritdoc/>
-	public override long ProcessAction(NextAction action, long[] selection, int depth, long oldSum)
+	/// <summary>
+	/// Modifies selection sum so that we don't need to recompute it.
+	/// </summary>
+	/// <param name="action">Current action of the BnB algorithm.</param>
+	/// <param name="selection">Currently selected values. <c>0</c> when the corresponding value is not selected.</param>
+	/// <param name="depth">Index of a <paramref name="selection"/> value that is currently being included / omitted.</param>
+	/// <param name="oldSum">Previous sum value.</param>
+	/// <returns>New selection sum.</returns>
+	public long ProcessAction(NextAction action, long[] selection, int depth, long oldSum)
 	{
 		long newSum;
 
@@ -66,8 +80,14 @@ public class CheapestSelectionStrategy : BaseStrategy
 		return newSum;
 	}
 
-	/// <inheritdoc/>
-	public override EvaluationResult Evaluate(long[] selection, int depth, long sum)
+	/// <summary>
+	/// Evaluation function that evaluates each step of the Branch and Bound algorithm and
+	/// tells the algorithm what to do next.
+	/// </summary>
+	/// <param name="selection">Currently selected values. <c>0</c> when the corresponding value is not selected.</param>
+	/// <param name="depth">Number of <paramref name="selection"/> elements that contains the current solution.</param>
+	/// <param name="sum">Sum of first <paramref name="depth"/> elements of <paramref name="selection"/>.</param>
+	public EvaluationResult Evaluate(long[] selection, int depth, long sum)
 	{
 		long totalCost = sum + _currentInputCosts;
 
