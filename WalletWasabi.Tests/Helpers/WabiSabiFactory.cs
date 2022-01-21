@@ -15,11 +15,13 @@ using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Tests.Helpers;
 
@@ -51,7 +53,8 @@ public static class WabiSabiFactory
 			cfg,
 			Network.Main,
 			new InsecureRandom(),
-			new FeeRate(100m)));
+			new FeeRate(100m),
+			new CoordinationFeeRate(0.003m, Money.Zero)));
 		round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
 		return round;
 	}
@@ -78,6 +81,9 @@ public static class WabiSabiFactory
 					Confirmations = 120,
 					TxOut = coin.TxOut,
 				});
+
+			mockRpc.Setup(rpc => rpc.GetRawTransactionAsync(coin.Outpoint.Hash, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+				.ReturnsAsync(BitcoinFactory.CreateTransaction());
 		}
 		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), It.IsAny<EstimateSmartFeeMode>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync(new EstimateSmartFeeResponse
@@ -95,30 +101,8 @@ public static class WabiSabiFactory
 		return mockRpc;
 	}
 
-	public static async Task<Arena> CreateAndStartArenaAsync()
-		=> await CreateAndStartArenaAsync(
-			new WabiSabiConfig(),
-			CreatePreconfiguredRpcClient());
-
-	public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig cfg, params Round[] rounds)
-		=> await CreateAndStartArenaAsync(
-			cfg,
-			CreatePreconfiguredRpcClient(),
-			rounds);
-
-	public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig cfg, IMock<IRPCClient> mockRpc, params Round[] rounds)
-	{
-		Arena arena = new(TimeSpan.FromHours(1), Network.Main, cfg, mockRpc.Object, new Prison());
-		foreach (var round in rounds)
-		{
-			arena.Rounds.Add(round);
-		}
-		await arena.StartAsync(CancellationToken.None).ConfigureAwait(false);
-		return arena;
-	}
-
 	public static Alice CreateAlice(Coin coin, OwnershipProof ownershipProof, Round round)
-		=> new(coin, ownershipProof, round, Guid.NewGuid()) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
+		=> new(coin, ownershipProof, round, Guid.NewGuid(), false) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
 
 	public static Alice CreateAlice(Key key, Money amount, Round round)
 		=> CreateAlice(CreateCoin(key, amount), CreateOwnershipProof(key), round);
@@ -208,7 +192,7 @@ public static class WabiSabiFactory
 
 		var alice = round.Alices.FirstOrDefault() ?? CreateAlice(round);
 		var (realAmountCredentialRequest, _) = amClient.CreateRequest(
-			new[] { amount?.Satoshi ?? alice.CalculateRemainingAmountCredentials(round.FeeRate).Satoshi },
+			new[] { amount?.Satoshi ?? alice.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate).Satoshi },
 			amZeroCredentials,
 			CancellationToken.None);
 		var (realVsizeCredentialRequest, _) = vsClient.CreateRequest(
@@ -242,7 +226,7 @@ public static class WabiSabiFactory
 
 		var alice = round.Alices.FirstOrDefault() ?? CreateAlice(round);
 		var (amCredentialRequest, amValid) = amClient.CreateRequest(
-			new[] { alice.CalculateRemainingAmountCredentials(round.FeeRate).Satoshi },
+			new[] { alice.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate).Satoshi },
 			amZeroCredentials, // FIXME doesn't make much sense
 			CancellationToken.None);
 		long startingVsizeCredentialAmount = vsize ?? alice.CalculateRemainingVsizeCredentials(round.MaxVsizeAllocationPerAlice);
@@ -273,15 +257,15 @@ public static class WabiSabiFactory
 	}
 
 	public static BlameRound CreateBlameRound(Round round, WabiSabiConfig cfg)
-		=> new(new(cfg, round.Network, new InsecureRandom(), round.FeeRate), round, round.Alices.Select(x => x.Coin.Outpoint).ToHashSet());
+		=> new(new(cfg, round.Network, new InsecureRandom(), round.FeeRate, round.CoordinationFeeRate), round, round.Alices.Select(x => x.Coin.Outpoint).ToHashSet());
 
-	public static (Key, SmartCoin, Key, SmartCoin) CreateCoinKeyPairs()
+	public static (IKeyChain, SmartCoin, SmartCoin) CreateCoinKeyPairs()
 	{
 		var km = ServiceFactory.CreateKeyManager("");
+		var keyChain = new KeyChain(km);
+
 		var smartCoin1 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m));
 		var smartCoin2 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(2m));
-		var sk1 = km.GetSecrets("", smartCoin1.ScriptPubKey).Single();
-		var sk2 = km.GetSecrets("", smartCoin2.ScriptPubKey).Single();
-		return (sk1.PrivateKey, smartCoin1, sk2.PrivateKey, smartCoin2);
+		return (keyChain, smartCoin1, smartCoin2);
 	}
 }

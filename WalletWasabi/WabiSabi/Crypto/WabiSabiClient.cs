@@ -55,7 +55,7 @@ public class WabiSabiClient
 
 		for (var i = 0; i < NumberOfCredentials; i++)
 		{
-			var randomness = RandomNumberGenerator.GetScalar(allowZero: false);
+			var randomness = RandomNumberGenerator.GetScalar();
 			var ma = randomness * Generators.Gh;
 
 			knowledge[i] = ProofSystem.ZeroProofKnowledge(ma, randomness);
@@ -144,7 +144,7 @@ public class WabiSabiClient
 			var value = credentialAmountsToRequest[i];
 			var scalar = new Scalar((ulong)value);
 
-			var randomness = RandomNumberGenerator.GetScalar(allowZero: false);
+			var randomness = RandomNumberGenerator.GetScalar();
 			var ma = ProofSystem.PedersenCommitment(scalar, randomness);
 
 			var (rangeKnowledge, bitCommitments) = ProofSystem.RangeProofKnowledge(scalar, randomness, RangeProofWidth, RandomNumberGenerator);

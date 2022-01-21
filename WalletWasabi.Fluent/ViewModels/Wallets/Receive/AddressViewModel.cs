@@ -36,10 +36,7 @@ public partial class AddressViewModel : ViewModelBase
 		EditLabelCommand =
 			ReactiveCommand.Create(() => parent.NavigateToAddressEdit(model, parent.Wallet.KeyManager));
 
-		NavigateCommand = ReactiveCommand.Create(() =>
-		{
-			parent.Navigate().To(new ReceiveAddressViewModel(wallet, model));
-		});
+		NavigateCommand = ReactiveCommand.Create(() => parent.Navigate().To(new ReceiveAddressViewModel(wallet, model)));
 	}
 
 	public ICommand CopyAddressCommand { get; }

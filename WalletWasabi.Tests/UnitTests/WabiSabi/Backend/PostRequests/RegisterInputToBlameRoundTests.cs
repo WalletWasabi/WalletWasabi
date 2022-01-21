@@ -19,7 +19,7 @@ public class RegisterInputToBlameRoundTests
 		var round = WabiSabiFactory.CreateRound(cfg);
 		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
 		Round blameRound = WabiSabiFactory.CreateBlameRound(round, cfg);
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round, blameRound);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round, blameRound);
 		using Key key = new();
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient();
 
@@ -38,7 +38,7 @@ public class RegisterInputToBlameRoundTests
 		var alice = WabiSabiFactory.CreateAlice(round);
 		round.Alices.Add(alice);
 		Round blameRound = WabiSabiFactory.CreateBlameRound(round, cfg);
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round, blameRound);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round, blameRound);
 
 		var req = WabiSabiFactory.CreateInputRegistrationRequest(prevout: alice.Coin.Outpoint, round: blameRound);
 
