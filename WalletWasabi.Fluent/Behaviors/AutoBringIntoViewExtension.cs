@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using ReactiveUI;
 using System.Reactive.Linq;
+using Avalonia.VisualTree;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
@@ -15,29 +16,34 @@ public static class AutoBringIntoViewExtension
 		{
 			Initialised = true;
 
-			KeyboardDevice.Instance.WhenAnyValue(x => x.FocusedElement)
-			.OfType<IControl>()
-			.Subscribe(
-				x =>
-				{
-					static void BringParentToView(IInputElement ie)
+			if (KeyboardDevice.Instance is { } device)
+			{
+				device.WhenAnyValue(x => x.FocusedElement)
+					.Where(x => x is IControl)
+					.Select(x => x as IControl)
+					.Subscribe(
+					x =>
 					{
-						if (ie.VisualParent is IInputElement parent && parent.IsKeyboardFocusWithin)
+						static void BringParentToView(IVisual ie)
 						{
-							BringParentToView(parent);
+							if (ie.VisualParent is IInputElement { IsKeyboardFocusWithin: true } parent)
+							{
+								BringParentToView(parent);
+							}
+
+							if (ie is IControl ic)
+							{
+								ic.BringIntoView();
+							}
 						}
 
-						if (ie is IControl ic)
+						if (x is IInputElement ie)
 						{
-							ic.BringIntoView();
+							BringParentToView(ie);
 						}
-					}
-
-					if (x is IInputElement ie)
-					{
-						BringParentToView(ie);
-					}
-				});
+					});
+			}
 		}
 	}
 }
+

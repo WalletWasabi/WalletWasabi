@@ -11,7 +11,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Login;
 
-[NavigationMetaData(Title = "Login")]
+[NavigationMetaData(Title = "Open")]
 public partial class LoginViewModel : RoutableViewModel
 {
 	[AutoNotify] private string _password;

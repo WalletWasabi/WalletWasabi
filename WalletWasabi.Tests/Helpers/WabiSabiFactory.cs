@@ -95,28 +95,6 @@ public static class WabiSabiFactory
 		return mockRpc;
 	}
 
-	public static async Task<Arena> CreateAndStartArenaAsync()
-		=> await CreateAndStartArenaAsync(
-			new WabiSabiConfig(),
-			CreatePreconfiguredRpcClient());
-
-	public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig cfg, params Round[] rounds)
-		=> await CreateAndStartArenaAsync(
-			cfg,
-			CreatePreconfiguredRpcClient(),
-			rounds);
-
-	public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig cfg, IMock<IRPCClient> mockRpc, params Round[] rounds)
-	{
-		Arena arena = new(TimeSpan.FromHours(1), Network.Main, cfg, mockRpc.Object, new Prison());
-		foreach (var round in rounds)
-		{
-			arena.Rounds.Add(round);
-		}
-		await arena.StartAsync(CancellationToken.None).ConfigureAwait(false);
-		return arena;
-	}
-
 	public static Alice CreateAlice(Coin coin, OwnershipProof ownershipProof, Round round)
 		=> new(coin, ownershipProof, round, Guid.NewGuid()) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
 

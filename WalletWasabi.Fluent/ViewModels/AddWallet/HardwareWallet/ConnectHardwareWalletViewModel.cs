@@ -219,6 +219,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		var enableCancel = Services.WalletManager.HasWallet();
+
 		SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
 
 		if (isInHistory)
@@ -228,12 +229,11 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 		StartDetection();
 
-		Disposable.Create(async () =>
-			{
-				CancelCts.Cancel();
-				await AbandonedTasks.WhenAllAsync();
-				CancelCts.Dispose();
-			})
-			.DisposeWith(disposables);
+		disposables.Add(Disposable.Create(async () =>
+		{
+			CancelCts.Cancel();
+			await AbandonedTasks.WhenAllAsync();
+			CancelCts.Dispose();
+		}));
 	}
 }

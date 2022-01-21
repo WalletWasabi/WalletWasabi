@@ -127,17 +127,9 @@ public partial class WalletBalanceChartTileViewModel : TileViewModel
 			}
 		}
 
-		Animator.Source = new PolyLine()
-		{
-			XValues = new ObservableCollection<double>(sourceXValues),
-			YValues = new ObservableCollection<double>(sourceYValues)
-		};
+			Animator.Source = new PolyLine(sourceXValues, sourceYValues);
 
-		Animator.Target = new PolyLine()
-		{
-			XValues = new ObservableCollection<double>(),
-			YValues = new ObservableCollection<double>()
-		};
+			Animator.Target = new PolyLine();
 
 		Animator.XValues.Clear();
 		Animator.YValues.Clear();
