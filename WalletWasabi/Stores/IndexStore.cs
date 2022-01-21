@@ -162,7 +162,7 @@ public class IndexStore : IAsyncDisposable
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{
 			// We found a corrupted entry. Stop here.
-			// Delete the currupted file.
+			// Delete the corrupted file.
 			// Do not try to autocorrect, because the internal data structures are throwing events that may confuse the consumers of those events.
 			Logger.LogError("Mature index got corrupted. Deleting both mature and immature index...");
 			MatureIndexFileManager.DeleteMe();
@@ -185,7 +185,7 @@ public class IndexStore : IAsyncDisposable
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{
 			// We found a corrupted entry. Stop here.
-			// Delete the currupted file.
+			// Delete the corrupted file.
 			// Do not try to autocorrect, because the internal data structures are throwing events that may confuse the consumers of those events.
 			Logger.LogError("Immature index got corrupted. Deleting it...");
 			ImmatureIndexFileManager.DeleteMe();
