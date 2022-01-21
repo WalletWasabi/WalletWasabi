@@ -107,6 +107,12 @@ public class Global
 			TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, BackendHttpClientFactory, WalletManager);
 
 			RoundStateUpdaterCircuit = new PersonCircuit();
+
+			Cache = new MemoryCache(new MemoryCacheOptions
+			{
+				SizeLimit = 1_000,
+				ExpirationScanFrequency = TimeSpan.FromSeconds(30)
+			});
 		}
 	}
 
