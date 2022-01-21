@@ -42,6 +42,8 @@ public partial class TransactionInfo
 
 	public bool IsPrivate => Coins.All(x => x.HdPubKey.AnonymitySet >= _privateCoinThreshold);
 
+	public bool IsConfirmed => Coins.All(x => x.Confirmed);
+
 	public bool IsCustomFeeUsed { get; set; }
 
 	public bool SubtractFee { get; set; }

@@ -26,6 +26,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 	[AutoNotify] private decimal _stillNeeded;
 	[AutoNotify] private bool _enoughSelected;
 	[AutoNotify] private bool _isWarningOpen;
+	[AutoNotify] private bool _isConfirmed;
 
 	public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, bool isSilent)
 	{
@@ -55,6 +56,8 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 			});
 
 		StillNeeded = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC);
+
+		_isConfirmed = transactionInfo.IsConfirmed;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
