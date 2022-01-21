@@ -5,49 +5,40 @@ using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
-using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi.Client;
-using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
 internal class Participant
 {
-	public Participant(IRPCClient rpc, IWasabiHttpClientFactory httpClientFactory)
+	public Participant(string name, IRPCClient rpc, IWasabiHttpClientFactory httpClientFactory)
 	{
-		Rpc = rpc;
 		HttpClientFactory = httpClientFactory;
 
-		KeyManager = KeyManager.CreateNew(out var _, password: "", Network.Main);
-		KeyManager.AssertCleanKeysIndexed();
+		Wallet = new TestWallet(name, rpc);
 	}
 
-	public KeyManager KeyManager { get; }
-	public List<SmartCoin> Coins { get; } = new();
-	public IRPCClient Rpc { get; }
+	private TestWallet Wallet { get; }
 	public IWasabiHttpClientFactory HttpClientFactory { get; }
-
-	private Coin? SourceCoin { get; set; }
+	private SmartTransaction SplitTransaction { get; set; }
 
 	public async Task GenerateSourceCoinAsync(CancellationToken cancellationToken)
 	{
-		var minerKey = KeyManager.GetNextReceiveKey("coinbase", out _);
-		var blockIds = await Rpc.GenerateToAddressAsync(1, minerKey.GetP2wpkhAddress(Rpc.Network), cancellationToken).ConfigureAwait(false);
-		var block = await Rpc.GetBlockAsync(blockIds.First(), cancellationToken).ConfigureAwait(false);
-		SourceCoin = block.Transactions[0].Outputs.GetCoins(minerKey.P2wpkhScript).First();
-		minerKey.SetKeyState(KeyState.Used);
+		await Wallet.GenerateAsync(1, cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task GenerateCoinsAsync(int numberOfCoins, int seed, CancellationToken cancellationToken)
 	{
 		var feeRate = new FeeRate(4.0m);
-		var splitTx = Transaction.Create(Rpc.Network);
-		splitTx.Inputs.Add(new TxIn(SourceCoin!.Outpoint));
+		var splitTx = Wallet.CreateSelfTransfer(FeeRate.Zero);
+		var satoshisAvailable = splitTx.Outputs[0].Value.Satoshi;
+		splitTx.Outputs.Clear();
 
 		var rnd = new Random(seed);
 		double NextNotTooSmall() => 0.00001 + (rnd.NextDouble() * 0.99999);
@@ -61,29 +52,18 @@ internal class Participant
 
 		var amounts = sampling
 			.Zip(sampling.Skip(1), (x, y) => y - x)
-			.Select(x => x * SourceCoin.Amount.Satoshi)
+			.Select(x => x * satoshisAvailable)
 			.Select(x => Money.Satoshis((long)x));
 
-		var keys = Enumerable.Range(0, amounts.Count()).Select(x => KeyManager.GetNextReceiveKey("no-label", out _)).ToImmutableList();
-
-		foreach (var key in keys)
+		var scriptPubKey = Wallet.ScriptPubKey;
+		foreach (var amount in amounts)
 		{
-			key.SetAnonymitySet(1);
-		}
-
-		foreach (var (amount, key) in amounts.Zip(keys))
-		{
-			var scriptPubKey = key.P2wpkhScript;
 			var effectiveOutputValue = amount - feeRate.GetFee(scriptPubKey.EstimateOutputVsize());
 			splitTx.Outputs.Add(new TxOut(effectiveOutputValue, scriptPubKey));
 		}
-		var minerKey = KeyManager.GetSecrets("", SourceCoin.ScriptPubKey).First();
-		splitTx.Sign(minerKey.PrivateKey.GetBitcoinSecret(Rpc.Network), SourceCoin);
-		var stx = new SmartTransaction(splitTx, new Height(500_000));
 
-		var smartCoins = keys.Select((k, i) => new SmartCoin(stx, (uint)i, k));
-		Coins.AddRange(smartCoins);
-		await Rpc.SendRawTransactionAsync(splitTx, cancellationToken).ConfigureAwait(false);
+		await Wallet.SendRawTransactionAsync(Wallet.SignTransaction(splitTx), cancellationToken).ConfigureAwait(false);
+		SplitTransaction = new SmartTransaction(splitTx, new Height(1));
 	}
 
 	public async Task StartParticipatingAsync(CancellationToken cancellationToken)
@@ -94,13 +74,20 @@ internal class Participant
 
 		var coinJoinClient = new CoinJoinClient(
 			HttpClientFactory,
-			new KeyChain(KeyManager),
-			new InternalDestinationProvider(KeyManager),
+			Wallet,
+			Wallet,
 			roundStateUpdater,
 			consolidationMode: true);
 
 		// Run the coinjoin client task.
-		await coinJoinClient.StartCoinJoinAsync(Coins, cancellationToken).ConfigureAwait(false);
+		var walletHdPubKey = new HdPubKey(Wallet.PubKey, KeyPath.Parse("m/84'/0/0/0/0"), SmartLabel.Empty, KeyState.Clean);
+		walletHdPubKey.SetAnonymitySet(1); // bug if not settled
+		var smartCoins = SplitTransaction.Transaction.Outputs.AsIndexedOutputs()
+			.Select(x => new SmartCoin(SplitTransaction, x.N, walletHdPubKey))
+			.ToList();
+
+		// Run the coinjoin client task.
+		await coinJoinClient.StartCoinJoinAsync(smartCoins, cancellationToken).ConfigureAwait(false);
 
 		await roundStateUpdater.StopAsync(cancellationToken).ConfigureAwait(false);
 	}
