@@ -97,9 +97,9 @@ public class SmartHeaderChain
 	}
 
 	/// <summary>
-	/// Adds a new tip to the chain or replaces the current tip based on header height value.
+	/// Adds a new tip to the chain.
 	/// </summary>
-	public void AddOrReplace(SmartHeader tip)
+	public void AppendTip(SmartHeader tip)
 	{
 		lock (Lock)
 		{

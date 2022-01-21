@@ -21,12 +21,35 @@ public class SmarthHeaderChainTests
 		Assert.False(chain.RemoveTip());
 		AssertEverythingDefault(chain);
 
-		uint height = 0;
-		SmartHeader header = CreateSmartHeader(new uint256("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"), prevHash: uint256.Zero, height);
-		chain.AddOrReplace(header);
+		SmartHeader header = CreateGenesisHeader();
+		chain.AppendTip(header);
 
-		InvalidOperationException ex = Assert.Throws<InvalidOperationException>(() => chain.AddOrReplace(header));
+		InvalidOperationException ex = Assert.Throws<InvalidOperationException>(() => chain.AppendTip(header));
 		Assert.StartsWith("Header doesn't point to previous header.", ex.Message, StringComparison.Ordinal);
+	}
+
+	/// <summary>
+	/// Attempts to replace an added header.
+	/// </summary>
+	[Fact]
+	public void ReplaceTests()
+	{
+		SmartHeaderChain chain = new();
+
+		SmartHeader header = CreateGenesisHeader();
+		chain.AppendTip(header);
+
+		uint height = 1;
+
+		// Add new header.
+		header = CreateSmartHeader(new uint256(465465465), chain.TipHash!, height);
+		chain.AppendTip(header);
+
+		// Attempt to replace the newly added header.
+		header = CreateSmartHeader(new uint256(778797897), chain.TipHash!, height);
+
+		InvalidOperationException ex = Assert.Throws<InvalidOperationException>(() => chain.AppendTip(header));
+		Assert.StartsWith("Header height isn't one more than the previous header height.", ex.Message, StringComparison.Ordinal);
 	}
 
 	/// <summary>
@@ -42,14 +65,14 @@ public class SmarthHeaderChainTests
 		Assert.False(chain.RemoveTip());
 		AssertEverythingDefault(chain);
 
-		SmartHeader header = new(new uint256("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"), prevHash: uint256.Zero, height: 0, BlockTime);
-		chain.AddOrReplace(header);
+		SmartHeader header = CreateGenesisHeader();
+		chain.AppendTip(header);
 
 		for (uint i = 0; i < 5000; i++)
 		{
 			uint height = chain.TipHeight + 1;
 			header = CreateSmartHeader(new uint256(height), chain.TipHash!, height);
-			chain.AddOrReplace(header);
+			chain.AppendTip(header);
 		}
 
 		for (uint i = 0; i < 3000; i++)
@@ -61,7 +84,7 @@ public class SmarthHeaderChainTests
 		{
 			uint height = chain.TipHeight + 1;
 			header = CreateSmartHeader(new uint256(height), chain.TipHash!, height);
-			chain.AddOrReplace(header);
+			chain.AppendTip(header);
 		}
 
 		Assert.Equal(2500u, chain.Tip!.Height);
@@ -78,24 +101,30 @@ public class SmarthHeaderChainTests
 		Assert.Equal(2, chain.HashesLeft);
 
 		// Add first header.
-		SmartHeader header = new(new uint256("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"), prevHash: uint256.Zero, height: 0, BlockTime);
-		chain.AddOrReplace(header);
+		SmartHeader header = CreateGenesisHeader();
+		chain.AppendTip(header);
 		Assert.Equal(2, chain.HashesLeft);
 
 		// Add second header.
 		header = CreateSmartHeader(new uint256(1), chain.TipHash!, height: 1);
-		chain.AddOrReplace(header);
+		chain.AppendTip(header);
 		Assert.Equal(1, chain.HashesLeft);
 
 		// Add third header.
 		header = CreateSmartHeader(new uint256(2), chain.TipHash!, height: 2);
-		chain.AddOrReplace(header);
+		chain.AppendTip(header);
 		Assert.Equal(0, chain.HashesLeft);
 
 		// Add fourth header. Hashes left should not report negative numbers
 		header = CreateSmartHeader(new uint256(3), chain.TipHash!, height: 3);
-		chain.AddOrReplace(header);
+		chain.AppendTip(header);
 		Assert.Equal(0, chain.HashesLeft);
+	}
+
+	/// <remarks>Dummy genesis header.</remarks>
+	private static SmartHeader CreateGenesisHeader()
+	{
+		return new(new uint256("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"), prevHash: uint256.Zero, height: 0, BlockTime);
 	}
 
 	private static SmartHeader CreateSmartHeader(uint256 blockHash, uint256 prevHash, uint height)

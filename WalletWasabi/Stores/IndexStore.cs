@@ -211,7 +211,7 @@ public class IndexStore : IAsyncDisposable
 				return false;
 			}
 
-			SmartHeaderChain.AddOrReplace(filter.Header);
+			SmartHeaderChain.AppendTip(filter.Header);
 			if (enqueue)
 			{
 				ImmatureFilters.Add(filter);
