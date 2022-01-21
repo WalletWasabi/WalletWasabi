@@ -57,7 +57,7 @@ public class Global
 	public TransactionBroadcaster TransactionBroadcaster { get; set; }
 	public CoinJoinProcessor CoinJoinProcessor { get; set; }
 	private TorProcessManager? TorManager { get; set; }
-	public CoreNode BitcoinCoreNode { get; private set; }
+	public CoreNode? BitcoinCoreNode { get; private set; }
 	public HostedServices HostedServices { get; }
 
 	public UiConfig UiConfig { get; }
@@ -68,6 +68,8 @@ public class Global
 
 	public JsonRpcServer? RpcServer { get; private set; }
 	private PersonCircuit RoundStateUpdaterCircuit { get; }
+	private AllTransactionStore AllTransactionStore { get; }
+	private IndexStore IndexStore { get; }
 
 	public Global(string dataDir, Config config, UiConfig uiConfig, WalletManager walletManager)
 	{
@@ -82,12 +84,12 @@ public class Global
 			WalletManager = walletManager;
 
 			var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
-			var transactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
-			var indexStore = new IndexStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, new SmartHeaderChain());
+			AllTransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
+			IndexStore = new IndexStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, new SmartHeaderChain());
 			var mempoolService = new MempoolService();
 			var blocks = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);
 
-			BitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService, blocks);
+			BitcoinStore = new BitcoinStore(IndexStore, AllTransactionStore, mempoolService, blocks);
 
 			if (Config.UseTor)
 			{
@@ -401,8 +403,11 @@ public class Global
 
 				try
 				{
-					await BitcoinStore.DisposeAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(BitcoinStore)} is disposed.");
+					await IndexStore.DisposeAsync().ConfigureAwait(false);
+					Logger.LogInfo($"{nameof(IndexStore)} is disposed.");
+
+					await AllTransactionStore.DisposeAsync().ConfigureAwait(false);
+					Logger.LogInfo($"{nameof(AllTransactionStore)} is disposed.");
 				}
 				catch (Exception ex)
 				{
