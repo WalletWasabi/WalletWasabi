@@ -6,6 +6,7 @@ using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -106,7 +107,16 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 		ChangeAvoidanceSuggestionViewModel? bnbSuggestion = null;
 		IEnumerable<SmartCoin>? bnbResult = null;
-		bool canBuildWithoutChangeWithBnb = await Task.Run(() => ChangelessTransactionCoinSelector.TryGetCoins(wallet.Coins.Available().ToList(), transactionInfo.FeeRate, transactionInfo.Amount, out bnbResult, cancellationToken));
+		bool canBuildWithoutChangeWithBnb = false;
+
+		try
+		{
+			canBuildWithoutChangeWithBnb = await Task.Run(() => ChangelessTransactionCoinSelector.TryGetCoins(wallet.Coins.Available().ToList(), transactionInfo.FeeRate, transactionInfo.Amount, out bnbResult, cancellationToken));
+		}
+		catch (OperationCanceledException)
+		{
+			Logger.LogInfo("Changeless Coin Selector timed out.");
+		}
 
 		if (canBuildWithoutChangeWithBnb && bnbResult is not null)
 		{
