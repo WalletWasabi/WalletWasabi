@@ -12,7 +12,7 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
-using WalletWasabi.WabiSabi.Backend.Rounds.Utils;
+using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -24,6 +24,7 @@ public partial class Arena : PeriodicRunner
 		WabiSabiConfig config,
 		IRPCClient rpc,
 		Prison prison,
+		InMemoryCoinJoinIdStore inMemoryCoinJoinIdStore,
 		CoinJoinTransactionArchiver? archiver = null) : base(period)
 	{
 		Network = network;
@@ -32,6 +33,7 @@ public partial class Arena : PeriodicRunner
 		Prison = prison;
 		TransactionArchiver = archiver;
 		Random = new SecureRandom();
+		InMemoryCoinJoinIdStore = inMemoryCoinJoinIdStore;
 	}
 
 	public HashSet<Round> Rounds { get; } = new();
@@ -42,6 +44,9 @@ public partial class Arena : PeriodicRunner
 	private Prison Prison { get; }
 	private SecureRandom Random { get; }
 	private CoinJoinTransactionArchiver? TransactionArchiver { get; }
+	private InMemoryCoinJoinIdStore InMemoryCoinJoinIdStore { get; }
+
+	public event EventHandler<Transaction>? CoinJoinBroadcast;
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
@@ -174,18 +179,9 @@ public partial class Arena : PeriodicRunner
 					round.LogInfo($"{coinjoin.Inputs.Count} inputs were added.");
 					round.LogInfo($"{coinjoin.Outputs.Count} outputs were added.");
 
-					long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate));
-					long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
-					var diff = aliceSum - bobSum;
+					coinjoin = AddCoordinatorFee(round, coinjoin);
 
-					// If timeout we must fill up the outputs to build a reasonable transaction.
-					// This won't be signed by the alice who failed to provide output, so we know who to ban.
-					var diffMoney = Money.Satoshis(diff) - coinjoin.Parameters.FeeRate.GetFee(Config.BlameScript.EstimateOutputVsize());
-					if (!allReady && diffMoney > coinjoin.Parameters.AllowedOutputAmounts.Min)
-					{
-						coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, Config.BlameScript));
-						round.LogInfo("Filled up the outputs to build a reasonable transaction because some alice failed to provide its output.");
-					}
+					coinjoin = AddBlameScript(round, coinjoin, allReady);
 
 					round.CoinjoinState = coinjoin.Finalize();
 
@@ -240,9 +236,18 @@ public partial class Arena : PeriodicRunner
 					// Broadcasting.
 					await Rpc.SendRawTransactionAsync(coinjoin, cancellationToken).ConfigureAwait(false);
 					round.WasTransactionBroadcast = true;
-					round.SetPhase(Phase.Ended);
 
+					var coordinatorScriptPubKey = Config.GetNextCleanCoordinatorScript();
+					if (coinjoin.Outputs.Any(x => x.ScriptPubKey == coordinatorScriptPubKey))
+					{
+						Config.MakeNextCoordinatorScriptDirty();
+					}
+
+					round.SetPhase(Phase.Ended);
 					round.LogInfo($"Successfully broadcast the CoinJoin: {coinjoin.GetHash()}.");
+
+					InMemoryCoinJoinIdStore.Add(coinjoin.GetHash());
+					CoinJoinBroadcast?.Invoke(this, coinjoin);
 				}
 				else if (round.TransactionSigningTimeFrame.HasExpired)
 				{
@@ -304,7 +309,7 @@ public partial class Arena : PeriodicRunner
 	private async Task CreateBlameRoundAsync(Round round, CancellationToken cancellationToken)
 	{
 		var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
-		RoundParameters parameters = new(Config, Network, Random, feeRate);
+		RoundParameters parameters = new(Config, Network, Random, feeRate, round.CoordinationFeeRate);
 		var blameWhitelist = round.Alices
 			.Select(x => x.Coin.Outpoint)
 			.Where(x => !Prison.IsBanned(x))
@@ -320,7 +325,7 @@ public partial class Arena : PeriodicRunner
 		{
 			var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
 
-			RoundParameters roundParams = new(Config, Network, Random, feeRate);
+			RoundParameters roundParams = new(Config, Network, Random, feeRate, Config.CoordinationFeeRate);
 			Round r = new(roundParams);
 			Rounds.Add(r);
 		}
@@ -347,6 +352,64 @@ public partial class Arena : PeriodicRunner
 				round.LogInfo($"{removedAliceCount} alices timed out and removed.");
 			}
 		}
+	}
+
+	private ConstructionState AddBlameScript(Round round, ConstructionState coinjoin, bool allReady)
+	{
+		long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate));
+		long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
+		var diff = aliceSum - bobSum;
+
+		// If timeout we must fill up the outputs to build a reasonable transaction.
+		// This won't be signed by the alice who failed to provide output, so we know who to ban.
+		var diffMoney = Money.Satoshis(diff) - coinjoin.Parameters.FeeRate.GetFee(Config.BlameScript.EstimateOutputVsize());
+		if (diffMoney > coinjoin.Parameters.AllowedOutputAmounts.Min)
+		{
+			coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, Config.BlameScript));
+			round.LogInfo($"Filled up the outputs to build a reasonable transaction because some alice failed to provide its output. Added amount: '{diffMoney}'");
+		}
+		else if (!allReady)
+		{
+			round.LogWarning($"Could not add blame script, because the amount was too small: {nameof(diffMoney)}: {diffMoney}.");
+		}
+
+		return coinjoin;
+	}
+
+	private ConstructionState AddCoordinatorFee(Round round, ConstructionState coinjoin)
+	{
+		Script coordinatorScriptPubKey = GetCoordinatorScriptPreventReuse(round);
+
+		var coordinationFee = round.Alices.Where(a => !a.IsPayingZeroCoordinationFee).Sum(x => round.CoordinationFeeRate.GetFee(x.Coin.Amount));
+		coordinationFee -= round.FeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize());
+
+		if (coordinationFee > coinjoin.Parameters.AllowedOutputAmounts.Min)
+		{
+			coinjoin = coinjoin.AddOutput(new TxOut(coordinationFee, coordinatorScriptPubKey));
+		}
+		else
+		{
+			round.LogWarning($"Coordinator fee wasn't taken, because it was too small: {nameof(coordinationFee)}: {coordinationFee}.");
+		}
+
+		return coinjoin;
+	}
+
+	private Script GetCoordinatorScriptPreventReuse(Round round)
+	{
+		var coordinatorScriptPubKey = Config.GetNextCleanCoordinatorScript();
+
+		// Prevent coord script reuse.
+		if (Rounds.Any(r =>
+			r.Phase is Phase.TransactionSigning &&
+			r.Assert<SigningState>().Outputs.Any(o => o.ScriptPubKey == coordinatorScriptPubKey)))
+		{
+			Config.MakeNextCoordinatorScriptDirty();
+			coordinatorScriptPubKey = Config.GetNextCleanCoordinatorScript();
+			round.LogWarning($"Coordinator script pub key was already used by another round, making it dirty and taking a new one.");
+		}
+
+		return coordinatorScriptPubKey;
 	}
 
 	public override void Dispose()
