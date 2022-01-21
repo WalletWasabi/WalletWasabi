@@ -30,7 +30,8 @@ public class RegisterInputSuccessTests
 
 		using Key key = new();
 		var coin = WabiSabiFactory.CreateCoin(key);
-		using Arena arena = await ArenaBuilder.From(cfg).With(WabiSabiFactory.CreatePreconfiguredRpcClient(coin)).CreateAndStartAsync(round);
+		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);
+		using Arena arena = await ArenaBuilder.From(cfg).With(rpc).CreateAndStartAsync(round);
 
 		var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
