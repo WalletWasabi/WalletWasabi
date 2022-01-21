@@ -1,6 +1,7 @@
 using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto;
 
@@ -13,11 +14,11 @@ public record CredentialIssuerSecretKey
 
 	private CredentialIssuerSecretKey(Scalar w, Scalar wp, Scalar x0, Scalar x1, Scalar ya)
 	{
-		W = w;
-		Wp = wp;
-		X0 = x0;
-		X1 = x1;
-		Ya = ya;
+		W = Guard.NotZero(nameof(w), w);
+		Wp = Guard.NotZero(nameof(wp), wp);
+		X0 = Guard.NotZero(nameof(x0), x0);
+		X1 = Guard.NotZero(nameof(x1), x1);
+		Ya = Guard.NotZero(nameof(ya), ya);
 	}
 
 	public Scalar W { get; }

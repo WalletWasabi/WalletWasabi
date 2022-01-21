@@ -16,6 +16,7 @@ using WalletWasabi.Tor.Http;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
@@ -39,10 +40,7 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 
 	protected override IHostBuilder CreateHostBuilder()
 	{
-		var builder = Host.CreateDefaultBuilder().ConfigureWebHostDefaults(x =>
-		{
-			x.UseStartup<TStartup>().UseTestServer();
-		});
+		var builder = Host.CreateDefaultBuilder().ConfigureWebHostDefaults(x => x.UseStartup<TStartup>().UseTestServer());
 		return builder;
 	}
 
@@ -58,6 +56,7 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 			services.AddScoped<Prison>();
 			services.AddScoped<WabiSabiConfig>();
 			services.AddScoped(typeof(TimeSpan), _ => TimeSpan.FromSeconds(2));
+			services.AddScoped(s => new InMemoryCoinJoinIdStore());
 		});
 		builder.ConfigureLogging(o =>
 		{

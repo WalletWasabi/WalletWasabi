@@ -23,7 +23,7 @@ public class ConfirmConnectionTests
 		var alice = WabiSabiFactory.CreateAlice(round);
 		var preDeadline = alice.Deadline;
 		round.Alices.Add(alice);
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
 		var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 		var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
@@ -51,7 +51,7 @@ public class ConfirmConnectionTests
 		var alice = WabiSabiFactory.CreateAlice(round);
 		var preDeadline = alice.Deadline;
 		round.Alices.Add(alice);
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
 		var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 
@@ -72,7 +72,7 @@ public class ConfirmConnectionTests
 	{
 		var cfg = new WabiSabiConfig();
 		var nonExistingRound = WabiSabiFactory.CreateRound(cfg);
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync();
+		using Arena arena = await ArenaBuilder.Default.CreateAndStartAsync();
 		var req = WabiSabiFactory.CreateConnectionConfirmationRequest(nonExistingRound);
 
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
@@ -86,7 +86,7 @@ public class ConfirmConnectionTests
 	public async Task WrongPhaseAsync()
 	{
 		WabiSabiConfig cfg = new();
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync();
 		var round = arena.Rounds.First();
 		var alice = WabiSabiFactory.CreateAlice(round);
 		var preDeadline = alice.Deadline;
@@ -116,7 +116,7 @@ public class ConfirmConnectionTests
 	{
 		WabiSabiConfig cfg = new();
 		var round = WabiSabiFactory.CreateRound(cfg);
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
 		var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.ConfirmConnectionAsync(req, CancellationToken.None));
@@ -133,7 +133,7 @@ public class ConfirmConnectionTests
 		round.SetPhase(Phase.ConnectionConfirmation);
 		var alice = WabiSabiFactory.CreateAlice(round);
 		round.Alices.Add(alice);
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 		Assert.Contains(alice, round.Alices);
 
 		var incorrectVsizeCredentials = WabiSabiFactory.CreateRealCredentialRequests(round, null, 234).vsizeRequest;
@@ -154,7 +154,7 @@ public class ConfirmConnectionTests
 		round.SetPhase(Phase.ConnectionConfirmation);
 		var alice = WabiSabiFactory.CreateAlice(round);
 		round.Alices.Add(alice);
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
 		var incorrectAmountCredentials = WabiSabiFactory.CreateRealCredentialRequests(round, Money.Coins(3), null).amountRequest;
 		var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round) with { RealAmountCredentialRequests = incorrectAmountCredentials };
@@ -191,7 +191,7 @@ public class ConfirmConnectionTests
 		round.SetPhase(Phase.ConnectionConfirmation);
 		var alice = WabiSabiFactory.CreateAlice(round);
 		round.Alices.Add(alice);
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
 		var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 		var (issuer, issuer2) = credentialIssuerSelector(round);

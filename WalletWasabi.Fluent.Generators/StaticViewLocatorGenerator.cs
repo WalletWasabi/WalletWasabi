@@ -31,10 +31,7 @@ namespace WalletWasabi.Fluent
 	public void Initialize(GeneratorInitializationContext context)
 	{
 		// System.Diagnostics.Debugger.Launch();
-		context.RegisterForPostInitialization((i) =>
-		{
-			i.AddSource("StaticViewLocatorAttribute.cs", SourceText.From(AttributeText, Encoding.UTF8));
-		});
+		context.RegisterForPostInitialization((i) => i.AddSource("StaticViewLocatorAttribute.cs", SourceText.From(AttributeText, Encoding.UTF8)));
 
 		context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
 	}

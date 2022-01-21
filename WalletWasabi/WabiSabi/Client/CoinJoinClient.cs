@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -16,7 +15,6 @@ using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
-using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.WabiSabi.Client;
@@ -30,15 +28,15 @@ public class CoinJoinClient
 	/// <param name="consolidationMode">If true, then aggressively try to consolidate as many coins as it can.</param>
 	public CoinJoinClient(
 		IWasabiHttpClientFactory httpClientFactory,
-		Kitchen kitchen,
-		KeyManager keymanager,
+		IKeyChain keyChain,
+		IDestinationProvider destinationProvider,
 		RoundStateUpdater roundStatusUpdater,
 		int minAnonScoreTarget = int.MaxValue,
 		bool consolidationMode = false)
 	{
 		HttpClientFactory = httpClientFactory;
-		Kitchen = kitchen;
-		Keymanager = keymanager;
+		KeyChain = keyChain;
+		DestinationProvider = destinationProvider;
 		RoundStatusUpdater = roundStatusUpdater;
 		MinAnonScoreTarget = minAnonScoreTarget;
 		ConsolidationMode = consolidationMode;
@@ -47,8 +45,8 @@ public class CoinJoinClient
 
 	private SecureRandom SecureRandom { get; }
 	public IWasabiHttpClientFactory HttpClientFactory { get; }
-	public Kitchen Kitchen { get; }
-	public KeyManager Keymanager { get; }
+	private IKeyChain KeyChain { get; }
+	private IDestinationProvider DestinationProvider { get; }
 	private RoundStateUpdater RoundStatusUpdater { get; }
 	public int MinAnonScoreTarget { get; }
 
@@ -116,21 +114,25 @@ public class CoinJoinClient
 
 			// Calculate outputs values
 			var registeredCoins = registeredAliceClients.Select(x => x.SmartCoin.Coin);
+			var inputEffectiveValuesAndSizes = registeredAliceClients.Select(x => (x.EffectiveValue, x.SmartCoin.ScriptPubKey.EstimateInputVsize()));
+
 			var availableVsize = registeredAliceClients.SelectMany(x => x.IssuedVsizeCredentials).Sum(x => x.Value);
 
 			// Calculate outputs values
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(rs => rs.Id == roundState.Id, cancellationToken).ConfigureAwait(false);
 			constructionState = roundState.Assert<ConstructionState>();
+
 			AmountDecomposer amountDecomposer = new(roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min, Constants.P2wpkhOutputSizeInBytes, (int)availableVsize);
 			var theirCoins = constructionState.Inputs.Except(registeredCoins);
-			var outputValues = amountDecomposer.Decompose(registeredCoins, theirCoins);
+			var registeredCoinEffectiveValues = registeredAliceClients.Select(x => x.EffectiveValue);
+			var theirCoinEffectiveValues = theirCoins.Select(x => x.EffectiveValue(roundState.FeeRate, roundState.CoordinationFeeRate));
+			var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues);
 
-			// Get all locked internal keys we have and assert we have enough.
-			Keymanager.AssertLockedInternalKeysIndexed(howMany: outputValues.Count());
-			var allLockedInternalKeys = Keymanager.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked);
-			var outputTxOuts = outputValues.Zip(allLockedInternalKeys, (amount, hdPubKey) => new TxOut(amount, hdPubKey.P2wpkhScript));
+			// Get as many destinations as outputs we need.
+			var destinations = DestinationProvider.GetNextDestinations(outputValues.Count()).ToArray();
+			var outputTxOuts = outputValues.Zip(destinations, (amount, destination) => new TxOut(amount, destination.ScriptPubKey));
 
-			DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(registeredCoins, outputTxOuts, roundState.FeeRate, roundState.MaxVsizeAllocationPerAlice);
+			DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(inputEffectiveValuesAndSizes, outputTxOuts, roundState.FeeRate, roundState.CoordinationFeeRate, roundState.MaxVsizeAllocationPerAlice);
 			DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
 
 			// Re-issuances.
@@ -195,18 +197,7 @@ public class CoinJoinClient
 					roundState.CreateVsizeCredentialClient(SecureRandom),
 					arenaRequestHandler);
 
-				var hdKey = Keymanager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey).Single();
-				var secret = hdKey.PrivateKey.GetBitcoinSecret(Keymanager.GetNetwork());
-				if (hdKey.PrivateKey.PubKey.WitHash.ScriptPubKey != coin.ScriptPubKey)
-				{
-					throw new InvalidOperationException("The key cannot generate the utxo scriptpubkey. This could happen if the wallet password is not the correct one.");
-				}
-
-				var masterKey = Keymanager.GetMasterExtKey(Kitchen.SaltSoup()).PrivateKey;
-				var identificationMasterKey = Slip21Node.FromSeed(masterKey.ToBytes());
-				var identificationKey = identificationMasterKey.DeriveChild("SLIP-0019").DeriveChild("Ownership identification key").Key;
-
-				return await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, secret, identificationKey, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
+				return await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, KeyChain, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
 			}
 			catch (HttpRequestException)
 			{
@@ -267,7 +258,7 @@ public class CoinJoinClient
 		{
 			try
 			{
-				await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, cancellationToken).ConfigureAwait(false);
+				await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
 				return aliceClient;
 			}
 			catch (Exception e)
@@ -339,18 +330,12 @@ public class CoinJoinClient
 				break;
 			}
 
-			var inSum = group.Sum(x => x.EffectiveValue(parameters.FeeRate));
+			var inSum = group.Sum(x => x.EffectiveValue(parameters.FeeRate, parameters.CoordinationFeeRate));
 			var outFee = parameters.FeeRate.GetFee(Constants.P2wpkhOutputSizeInBytes);
 			if (inSum >= outFee + parameters.AllowedOutputAmounts.Min)
 			{
 				groups.Add(group);
 			}
-		}
-
-		// If there're no selections then there's no reason to mix.
-		if (!groups.Any())
-		{
-			throw new InvalidOperationException("Coin selection failed to return a valid coin set.");
 		}
 
 		// Calculate the anonScore cost of input consolidation.
@@ -383,7 +368,7 @@ public class CoinJoinClient
 
 	/// <summary>
 	/// Calculates how many inputs are desirable to be registered
-	/// based on rougly the total number of coins in a wallet.
+	/// based on roughly the total number of coins in a wallet.
 	/// Note: random biasing is applied.
 	/// </summary>
 	/// <returns>Desired input count.</returns>

@@ -46,6 +46,11 @@ public class Prison
 		Punish(alice.Coin.Outpoint, Punishment.Banned, lastDisruptedRoundId);
 	}
 
+	public void Ban(OutPoint outpoint, uint256 lastDisruptedRoundId)
+	{
+		Punish(outpoint, Punishment.Banned, lastDisruptedRoundId);
+	}
+
 	public void Punish(OutPoint utxo, Punishment punishment, uint256 lastDisruptedRoundId)
 		=> Punish(new Inmate(utxo, punishment, DateTimeOffset.UtcNow, lastDisruptedRoundId));
 

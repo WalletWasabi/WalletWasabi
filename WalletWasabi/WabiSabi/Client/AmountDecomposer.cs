@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using NBitcoin;
 
@@ -150,18 +149,18 @@ public class AmountDecomposer
 		return denominations.OrderByDescending(x => x);
 	}
 
-	public IEnumerable<Money> Decompose(IEnumerable<Coin> myInputCoins, IEnumerable<Coin> othersInputCoins)
+	public IEnumerable<Money> Decompose(IEnumerable<Money> myInputCoinEffectiveValues, IEnumerable<Money> othersInputCoinEffectiveValues)
 	{
-		var histogram = GetDenominationFrequencies(othersInputCoins.Concat(myInputCoins));
+		var histogram = GetDenominationFrequencies(othersInputCoinEffectiveValues.Concat(myInputCoinEffectiveValues));
 
-		// Filter out and order denominations those have occured in the frequency table at least twice.
+		// Filter out and order denominations those have occurred in the frequency table at least twice.
 		var denoms = histogram
 			.Where(x => x.Value > 1)
 			.OrderByDescending(x => x.Key)
 			.Select(x => x.Key)
 			.ToArray();
 
-		var myInputs = myInputCoins.Select(x => x.EffectiveValue(FeeRate)).ToArray();
+		var myInputs = myInputCoinEffectiveValues.ToArray();
 		var myInputSum = myInputs.Sum();
 		var remaining = myInputSum;
 		var remainingVsize = AvailableVsize;
@@ -336,13 +335,13 @@ public class AmountDecomposer
 	}
 
 	/// <returns>Pair of denomination and the number of times we found it in a breakdown.</returns>
-	private Dictionary<ulong, long> GetDenominationFrequencies(IEnumerable<Coin> inputs)
+	private Dictionary<ulong, long> GetDenominationFrequencies(IEnumerable<Money> inputEffectiveValues)
 	{
-		var secondLargestInput = inputs.OrderByDescending(x => x.Amount).Skip(1).First();
-		IEnumerable<ulong> demonsForBreakDown = DenominationsPlusFees.Where(x => x <= (ulong)secondLargestInput.EffectiveValue(FeeRate).Satoshi);
+		var secondLargestInput = inputEffectiveValues.OrderByDescending(x => x).Skip(1).First();
+		IEnumerable<ulong> demonsForBreakDown = DenominationsPlusFees.Where(x => x <= (ulong)secondLargestInput.Satoshi);
 
 		Dictionary<ulong, long> denomFrequencies = new();
-		foreach (var input in inputs)
+		foreach (var input in inputEffectiveValues)
 		{
 			foreach (var denom in BreakDown(input, demonsForBreakDown))
 			{
@@ -359,9 +358,9 @@ public class AmountDecomposer
 	/// <summary>
 	/// Greedily decomposes an amount to the given denominations.
 	/// </summary>
-	private IEnumerable<ulong> BreakDown(Coin coin, IEnumerable<ulong> denominations)
+	private IEnumerable<ulong> BreakDown(Money coininputEffectiveValue, IEnumerable<ulong> denominations)
 	{
-		var remaining = coin.EffectiveValue(FeeRate);
+		var remaining = coininputEffectiveValue;
 
 		foreach (var denomPlusFee in denominations)
 		{
