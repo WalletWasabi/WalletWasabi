@@ -60,7 +60,7 @@
                                 NormalIcon="{StaticResource paste_regular}"
                                 ClickIcon="{StaticResource copy_confirmed}">
                 <i:Interaction.Behaviors>
-                  <behaviors:PasteButtonFlashBehavior FlashAnimation="flash" CurrentAddress="{Binding To}"/>
+                  <behaviors:PasteButtonFlashBehavior FlashAnimation="flash" CurrentAddress="{Binding To}" />
                 </i:Interaction.Behaviors>
               </c:AnimatedButton>
               <c:AnimatedButton IsVisible="{Binding IsQrButtonVisible}"
@@ -79,12 +79,16 @@
         <DockPanel>
           <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
                  DockPanel.Dock="Right" IsVisible="{Binding IsPayJoin}" Margin="0 8 8 0" VerticalAlignment="Top" />
-          <c:CurrencyEntryBox KeyboardNavigation.IsTabStop="{Binding !IsFixedAmount}" x:Name="amountTb"
-                              IsReadOnly="{Binding IsFixedAmount}" AmountBtc="{Binding AmountBtc}"
-                              ConversionRate="{Binding ExchangeRate}" ConversionCurrencyCode="USD" />
+          <c:CurrencyEntryBox x:Name="amountTb"
+                              KeyboardNavigation.IsTabStop="{Binding !IsFixedAmount}"
+                              IsReadOnly="{Binding IsFixedAmount}"
+                              AmountBtc="{Binding AmountBtc}"
+                              ConversionRate="{Binding ExchangeRate}"
+                              ConversionCurrencyCode="USD"
+                              IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}" />
         </DockPanel>
       </DockPanel>
-     
+
       <!-- Advanced -->
       <Button Classes="h8 plain activeHyperLink" Margin="0 10 0 0"
               Command="{Binding AdvancedOptionsCommand}"

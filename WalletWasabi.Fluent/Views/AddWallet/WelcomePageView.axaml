@@ -129,14 +129,14 @@
         <Carousel.PageTransition>
           <CrossFade Duration="0.6"
                      FadeInEasing="{StaticResource FluentEasing}"
-                     FadeOutEasing="{StaticResource FluentEasing}"/>
+                     FadeOutEasing="{StaticResource FluentEasing}" />
         </Carousel.PageTransition>
 
         <!-- Welcome to Wasabi -->
         <Grid ColumnDefinitions="*,*">
           <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
-            <TextBlock Classes="text" Text="Use Wasabi Wallet to retain your individuality, regain your identity and ultimately, reclaim your privacy. We let you control what you reveal about your Bitcoin life. Welcome to Wasabi Wallet sovereign individual." />
-            <TextBlock Text="Welcome to Wasabi Wallet"
+            <TextBlock Classes="text" Text="Satoshi brought scarcity, while Wasabi is bringing fungibility. As inflation is running rampant, vigilant individuals are opting out. Bitcoin is rapidly becoming the world's reserve currency, but its fungibility - a property of good money - is still unsatisfactory. Wasabi Wallet is a bastion of hope in the quest to qualitatively improve the money of the future." />
+            <TextBlock Text="Welcome to Wasabi"
                        Classes="title" />
             <Viewbox Classes="icon">
               <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
@@ -150,8 +150,8 @@
         <!-- Trustless by design -->
         <Grid ColumnDefinitions="*,*">
           <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
-            <TextBlock Classes="text" Text="Being put in a position to trust someone is always uncomfortable. Especially regarding personal information or your money. This is why Wasabi Wallet is verifiably trustless by design. Don't trust, verify." />
-            <TextBlock Text="Trustless by design"
+            <TextBlock Classes="text" Text="If you don't control your private keys, then you are not the true owner of your funds. Wasabi is non-custodial: the developers cannot steal or freeze your funds." />
+            <TextBlock Text="Non-Custodial"
                        Classes="title" />
             <Viewbox Classes="icon">
               <PathIcon Data="{StaticResource shield_regular}" Foreground="{DynamicResource SliderTrackValueFill}" />
@@ -165,7 +165,7 @@
         <!-- Anonymous -->
         <Grid ColumnDefinitions="*,*">
           <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
-            <TextBlock Classes="text" Text="We architecturally ensure that we cannot collect information from you, even if we wanted to. We live in a world where your information is being used to typecast, manipulate and surveil you. What you do with your Bitcoin is your business." />
+            <TextBlock Classes="text" Text="Wasabi provides privacy by default, it protects your financial information through coinjoins, client-side block filtering, and communication over the Tor anonymity network. Neither the public nor the developers can breach your privacy." />
             <TextBlock Text="Anonymous"
                        Classes="title" />
             <Viewbox Classes="icon">
@@ -180,8 +180,8 @@
         <!-- Free and Open Source -->
         <Grid ColumnDefinitions="*,*">
           <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
-            <TextBlock Classes="text" Text="Wasabi follows Bitcoin's philosophy by making the software open-source and by publishing it under MIT license. Bitcoin users prefer open-source software to proprietary software for a number of reasons including: control, security, training &amp; stability." />
-            <TextBlock Text="Free and Open Source"
+            <TextBlock Classes="text" Text="To ensure the code - running on your computer - can indeed protect you from the developers and the public, Wasabi is free, open-source and deterministically reproducible software." />
+            <TextBlock Text="Open-Source"
                        Classes="title" />
             <Viewbox Classes="icon">
               <PathIcon Data="{StaticResource heart_regular}" Foreground="{DynamicResource SliderTrackValueFill}" />
@@ -201,19 +201,18 @@
                   IsDefault="{Binding IsActive}"
                   DockPanel.Dock="Bottom" />
           <TextBlock TextAlignment="Center"
-                     Text="There’s more to discover but it’s better to leave that &#x0a;on you. Without further ado, let’s begin!"
+                     Text="The 1st Rule of Wasabi: Wasabi is for self defense and self defense only"
                      Opacity="0.6"
                      FontWeight="Light"
                      LineHeight="22"
                      DockPanel.Dock="Bottom"
-                     Margin="0 15"/>
+                     Margin="0 15" />
           <TextBlock Text="Start using Wasabi Wallet" FontSize="30" HorizontalAlignment="Center"
                      DockPanel.Dock="Bottom" />
           <Viewbox MaxHeight="60" HorizontalAlignment="Center" DockPanel.Dock="Bottom" Margin="0 0 0 15">
             <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
           </Viewbox>
         </DockPanel>
-
       </Carousel>
     </DockPanel>
   </controls:ContentArea>

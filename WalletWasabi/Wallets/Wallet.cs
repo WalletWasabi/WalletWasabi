@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -438,7 +439,7 @@ public class Wallet : BackgroundService
 			for (int i = 0; i < currentBlock.Transactions.Count; i++)
 			{
 				Transaction tx = currentBlock.Transactions[i];
-				txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime));
+				txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime, label: BitcoinStore.MempoolService.TryGetLabel(tx.GetHash())));
 			}
 			TransactionProcessor.Process(txsToProcess);
 			KeyManager.SetBestHeight(height);

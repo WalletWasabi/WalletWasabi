@@ -23,13 +23,13 @@ public class StepOutputRegistrationTests
 		WabiSabiConfig cfg = new()
 		{
 			MaxInputCountByRound = 2,
-			MinInputCountByRoundMultiplier = 0.5
+			MinInputCountByRoundMultiplier = 0.5,
 		};
-		var (key1, coin1, key2, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
+		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
-		var (round, arenaClient, alices) = await CreateRoundWithTwoConfirmedConnectionsAsync(arena, key1, coin1, key2, coin2);
+		using Arena arena = await ArenaBuilder.From(cfg).With(mockRpc).CreateAndStartAsync();
+		var (round, arenaClient, alices) = await CreateRoundWithTwoConfirmedConnectionsAsync(arena, keyChain, coin1, coin2);
 		var (amountCredentials1, vsizeCredentials1) = (alices[0].IssuedAmountCredentials, alices[0].IssuedVsizeCredentials);
 		var (amountCredentials2, vsizeCredentials2) = (alices[1].IssuedAmountCredentials, alices[1].IssuedVsizeCredentials);
 
@@ -58,7 +58,7 @@ public class StepOutputRegistrationTests
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 		var tx = round.Assert<SigningState>().CreateTransaction();
 		Assert.Equal(2, tx.Inputs.Count);
-		Assert.Equal(2, tx.Outputs.Count);
+		Assert.Equal(2 + 1, tx.Outputs.Count); // +1 for the coordinator fee
 
 		await arena.StopAsync(CancellationToken.None);
 	}
@@ -72,11 +72,11 @@ public class StepOutputRegistrationTests
 			MinInputCountByRoundMultiplier = 0.5,
 			OutputRegistrationTimeout = TimeSpan.Zero
 		};
-		var (key1, coin1, key2, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
+		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
-		var (round, arenaClient, alices) = await CreateRoundWithTwoConfirmedConnectionsAsync(arena, key1, coin1, key2, coin2);
+		using Arena arena = await ArenaBuilder.From(cfg).With(mockRpc).CreateAndStartAsync();
+		var (round, arenaClient, alices) = await CreateRoundWithTwoConfirmedConnectionsAsync(arena, keyChain, coin1, coin2);
 		var (amountCredentials1, vsizeCredentials1) = (alices[0].IssuedAmountCredentials, alices[0].IssuedVsizeCredentials);
 		var (amountCredentials2, vsizeCredentials2) = (alices[1].IssuedAmountCredentials, alices[1].IssuedVsizeCredentials);
 
@@ -93,7 +93,7 @@ public class StepOutputRegistrationTests
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 		var tx = round.Assert<SigningState>().CreateTransaction();
 		Assert.Equal(2, tx.Inputs.Count);
-		Assert.Equal(2, tx.Outputs.Count);
+		Assert.Equal(2 + 1, tx.Outputs.Count); // +1 for the coordinator fee
 		Assert.Contains(cfg.BlameScript, tx.Outputs.Select(x => x.ScriptPubKey));
 
 		await arena.StopAsync(CancellationToken.None);
@@ -106,13 +106,13 @@ public class StepOutputRegistrationTests
 		{
 			MaxInputCountByRound = 2,
 			MinInputCountByRoundMultiplier = 0.5,
-			OutputRegistrationTimeout = TimeSpan.Zero
+			OutputRegistrationTimeout = TimeSpan.Zero,
 		};
-		var (key1, coin1, key2, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
+		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
-		var (round, arenaClient, alices) = await CreateRoundWithTwoConfirmedConnectionsAsync(arena, key1, coin1, key2, coin2);
+		using Arena arena = await ArenaBuilder.From(cfg).With(mockRpc).CreateAndStartAsync();
+		var (round, arenaClient, alices) = await CreateRoundWithTwoConfirmedConnectionsAsync(arena, keyChain, coin1, coin2);
 		var (amountCredentials1, vsizeCredentials1) = (alices[0].IssuedAmountCredentials, alices[0].IssuedVsizeCredentials);
 		var (amountCredentials2, vsizeCredentials2) = (alices[1].IssuedAmountCredentials, alices[1].IssuedVsizeCredentials);
 
@@ -144,7 +144,7 @@ public class StepOutputRegistrationTests
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 		var tx = round.Assert<SigningState>().CreateTransaction();
 		Assert.Equal(3, tx.Inputs.Count);
-		Assert.Equal(2, tx.Outputs.Count);
+		Assert.Equal(2 + 1, tx.Outputs.Count); // +1 for the coordinator fee
 		Assert.DoesNotContain(cfg.BlameScript, tx.Outputs.Select(x => x.ScriptPubKey));
 
 		await arena.StopAsync(CancellationToken.None);
@@ -158,11 +158,11 @@ public class StepOutputRegistrationTests
 			MaxInputCountByRound = 2,
 			MinInputCountByRoundMultiplier = 0.5
 		};
-		var (key1, coin1, key2, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
+		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc);
-		var (round, arenaClient, alices) = await CreateRoundWithTwoConfirmedConnectionsAsync(arena, key1, coin1, key2, coin2);
+		using Arena arena = await ArenaBuilder.From(cfg).With(mockRpc).CreateAndStartAsync();
+		var (round, arenaClient, alices) = await CreateRoundWithTwoConfirmedConnectionsAsync(arena, keyChain, coin1, coin2);
 		var (amountCredentials1, vsizeCredentials1) = (alices[0].IssuedAmountCredentials, alices[0].IssuedVsizeCredentials);
 		var (amountCredentials2, vsizeCredentials2) = (alices[1].IssuedAmountCredentials, alices[1].IssuedVsizeCredentials);
 
@@ -182,7 +182,7 @@ public class StepOutputRegistrationTests
 	}
 
 	private async Task<(Round Round, ArenaClient ArenaClient, AliceClient[] alices)>
-		CreateRoundWithTwoConfirmedConnectionsAsync(Arena arena, Key key1, SmartCoin coin1, Key key2, SmartCoin coin2)
+			CreateRoundWithTwoConfirmedConnectionsAsync(Arena arena, IKeyChain keyChain, SmartCoin coin1, SmartCoin coin2)
 	{
 		// Create the round.
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -192,9 +192,8 @@ public class StepOutputRegistrationTests
 
 		using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), arena);
 		await roundStateUpdater.StartAsync(CancellationToken.None);
-		var identificationKey = new Key();
-		var task1 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin1, key1.GetBitcoinSecret(round.Network), identificationKey, roundStateUpdater, CancellationToken.None);
-		var task2 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin2, key2.GetBitcoinSecret(round.Network), identificationKey, roundStateUpdater, CancellationToken.None);
+		var task1 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin1, keyChain, roundStateUpdater, CancellationToken.None);
+		var task2 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin2, keyChain, roundStateUpdater, CancellationToken.None);
 
 		while (Phase.ConnectionConfirmation != round.Phase)
 		{

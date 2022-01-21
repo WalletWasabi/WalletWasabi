@@ -2,7 +2,8 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using WalletWasabi.Logging;
+using System.Threading;
+using WalletWasabi.Blockchain.TransactionBuilding.BnB;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding;
 
@@ -11,75 +12,32 @@ public class BranchAndBound
 {
 	private readonly Random _random = new();
 
-	/// <param name="values">All values must be strictly positive.</param>
-	public BranchAndBound(List<long> values)
-	{
-		if (values.Count == 0)
-		{
-			throw new ArgumentException("List is empty.");
-		}
-
-		if (values.Any(x => x <= 0))
-		{
-			throw new ArgumentException("Only strictly positive values are supported.");
-		}
-
-		Count = values.Count;
-		SortedValues = values.OrderByDescending(x => x).ToArray();
-	}
-
-	private enum NextAction
-	{
-		/// <summary>First try to include a value and then try not to include the value in the selection.</summary>
-		AandB,
-
-		/// <summary>First try NOT to include a value and then try to include the value in the selection.</summary>
-		BandA,
-
-		/// <summary>Include value.</summary>
-		A,
-
-		/// <summary>Omit value.</summary>
-		B,
-
-		/// <summary>Current selection is wrong, rolling back and trying different combination.</summary>
-		Backtrack
-	}
-
-	/// <remarks>Input values sorted in descending order.</remarks>
-	private long[] SortedValues { get; }
-
-	/// <summary>Number of input values.</summary>
-	private int Count { get; }
-
 	/// <summary>
 	/// Attempts to find a set of values that sum up to the target value.
 	/// </summary>
-	/// <param name="target">Target value we want to sum up from the input values.</param>
-	/// <param name="selectedValues">Values that sum up to the <paramref name="target"/> value.</param>
+	/// <param name="searchStrategy">Search strategy that affects how the algorithm searches through the options.</param>
+	/// <param name="selectedValues">Solution of the search algorithm based on <paramref name="searchStrategy"/> sorted in descending order.</param>
 	/// <returns><c>true</c> when a match is found, <c>false</c> otherwise.</returns>
-	public bool TryGetExactMatch(long target, [NotNullWhen(true)] out List<long>? selectedValues)
+	public bool TryGetMatch(CheapestSelectionStrategy searchStrategy, [NotNullWhen(true)] out List<long>? selectedValues, CancellationToken cancellationToken = default)
 	{
 		selectedValues = null;
 
-		if (SortedValues.Sum() < target)
+		if (searchStrategy.InputValues.Sum() < searchStrategy.Target)
 		{
 			return false;
 		}
 
-		if (TryFindSolution(target, out long[]? solution))
+		if (TryFindSolution(searchStrategy, out long[]? solution, cancellationToken))
 		{
 			selectedValues = new List<long>();
 
-			for (int i = 0; i < Count; i++)
+			for (int i = 0; i < solution.Length; i++)
 			{
 				if (solution[i] > 0)
 				{
-					selectedValues.Add(SortedValues[i]);
+					selectedValues.Add(solution[i]);
 				}
 			}
-
-			Logger.LogInfo($"{Count} coins were involved in 'Branch and Bound' selection.");
 
 			return true;
 		}
@@ -87,60 +45,57 @@ public class BranchAndBound
 		return false;
 	}
 
-	private bool TryFindSolution(long target, [NotNullWhen(true)] out long[]? solution)
+	private bool TryFindSolution(CheapestSelectionStrategy searchStrategy, [NotNullWhen(true)] out long[]? selection, CancellationToken cancellationToken = default)
 	{
-		// Current effective value.
-		long effValue = 0L;
+		// Current selection sum.
+		long sum = 0L;
 
 		// Current depth (think of the depth in the recursive algorithm sense).
 		int depth = 0;
 
-		solution = new long[Count];
-		NextAction[] actions = new NextAction[Count];
+		int length = searchStrategy.InputValues.Length;
+
+		selection = new long[length];
+		NextAction[] actions = new NextAction[length];
 		actions[0] = GetRandomNextAction();
+
+		int i = 0;
 
 		do
 		{
+			i++;
 			NextAction action = actions[depth];
 
 			// Branch WITH the value included.
-			if ((action == NextAction.AandB) || (action == NextAction.A))
+			if (action == NextAction.IncludeFirstThenOmit || action == NextAction.Include)
 			{
 				actions[depth] = GetNextStep(action);
+				sum = searchStrategy.ProcessAction(action, selection, depth, sum);
 
-				solution[depth] = SortedValues[depth];
-				effValue += solution[depth];
+				EvaluationResult result = searchStrategy.Evaluate(selection, depth + 1, sum);
 
-				if (effValue > target)
+				if (result == EvaluationResult.SkipBranch)
 				{
-					// Excessive funds, cut the branch!
 					continue;
 				}
-				else if (effValue == target)
+				else if (result == EvaluationResult.Match)
 				{
-					// Match found!
 					return true;
-				}
-				else if (depth + 1 == Count)
-				{
-					// Leaf reached, no match
-					continue;
 				}
 
 				depth++;
 				actions[depth] = GetRandomNextAction();
 			}
-			else if ((action == NextAction.BandA) || (action == NextAction.B))
+			else if (action == NextAction.OmitFirstThenInclude || action == NextAction.Omit)
 			{
 				actions[depth] = GetNextStep(action);
 
 				// Branch WITHOUT the value included.
-				effValue -= solution[depth];
-				solution[depth] = 0;
+				sum = searchStrategy.ProcessAction(action, selection, depth, sum);
 
-				if (depth + 1 == Count)
+				if (depth + 1 == length)
 				{
-					// Leaf reached, no match
+					// Leaf reached, no match.
 					continue;
 				}
 
@@ -149,9 +104,14 @@ public class BranchAndBound
 			}
 			else
 			{
-				effValue -= solution[depth];
-				solution[depth] = 0;
+				sum = searchStrategy.ProcessAction(action, selection, depth, sum);
 				depth--;
+			}
+
+			// Micro optimization: Do not check cancellation token every time as it requires accessing volatile memory.
+			if (i % 10_000 == 0 && cancellationToken.IsCancellationRequested)
+			{
+				return false;
 			}
 		}
 		while (depth >= 0);
@@ -161,17 +121,17 @@ public class BranchAndBound
 
 	private NextAction GetRandomNextAction()
 	{
-		return _random.Next(0, 2) == 1 ? NextAction.AandB : NextAction.BandA;
+		return _random.Next(0, 2) == 1 ? NextAction.IncludeFirstThenOmit : NextAction.OmitFirstThenInclude;
 	}
 
-	private NextAction GetNextStep(NextAction action)
+	private static NextAction GetNextStep(NextAction action)
 	{
 		return action switch
 		{
-			NextAction.AandB => NextAction.B,
-			NextAction.BandA => NextAction.A,
-			NextAction.A => NextAction.Backtrack,
-			NextAction.B => NextAction.Backtrack,
+			NextAction.IncludeFirstThenOmit => NextAction.Omit,
+			NextAction.OmitFirstThenInclude => NextAction.Include,
+			NextAction.Include => NextAction.Backtrack,
+			NextAction.Omit => NextAction.Backtrack,
 			NextAction.Backtrack => throw new InvalidOperationException("This should never happen."),
 			_ => throw new InvalidOperationException("No other values are valid.")
 		};

@@ -1,9 +1,11 @@
 using NBitcoin;
 using Nito.AsyncEx;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
+using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
@@ -16,6 +18,19 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds;
 public partial class Arena : IWabiSabiApiRequestHandler
 {
 	public async Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
+	{
+		try
+		{
+			return await RegisterInputCoreAsync(request, cancellationToken).ConfigureAwait(false);
+		}
+		catch (Exception ex) when (IsUserCheating(ex))
+		{
+			Prison.Ban(request.Input, request.RoundId);
+			throw;
+		}
+	}
+
+	private async Task<InputRegistrationResponse> RegisterInputCoreAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 	{
 		var coin = await OutpointToCoinAsync(request, cancellationToken).ConfigureAwait(false);
 
@@ -57,7 +72,26 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			// not say anything about GUID version or randomness source,
 			// only that the probability of duplicates is very low).
 			var id = new Guid(Random.GetBytes(16));
-			var alice = new Alice(coin, request.OwnershipProof, round, id);
+
+			var isPayingZeroCoordinationFee = InMemoryCoinJoinIdStore.Contains(coin.Outpoint.Hash);
+
+			if (!isPayingZeroCoordinationFee)
+			{
+				// If the coin comes from a tx that all of the tx inputs are coming from a CJ (1 hop - no pay).
+				Transaction tx = await Rpc.GetRawTransactionAsync(coin.Outpoint.Hash, true, cancellationToken).ConfigureAwait(false);
+
+				if (tx.Inputs.All(input => InMemoryCoinJoinIdStore.Contains(input.PrevOut.Hash)))
+				{
+					isPayingZeroCoordinationFee = true;
+				}
+			}
+
+			var alice = new Alice(coin, request.OwnershipProof, round, id, isPayingZeroCoordinationFee);
+
+			if (alice.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate) <= Money.Zero)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.UneconomicalInput);
+			}
 
 			if (alice.TotalInputAmount < round.MinAmountCredentialValue)
 			{
@@ -89,7 +123,8 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			return new(alice.Id,
 				commitAmountCredentialResponse,
-				commitVsizeCredentialResponse);
+				commitVsizeCredentialResponse,
+				alice.IsPayingZeroCoordinationFee);
 		}
 	}
 
@@ -115,6 +150,21 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 	public async Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken)
 	{
+		try
+		{
+			return await ConfirmConnectionCoreAsync(request, cancellationToken).ConfigureAwait(false);
+		}
+		catch (Exception ex) when (IsUserCheating(ex))
+		{
+			var round = GetRound(request.RoundId);
+			var alice = GetAlice(request.AliceId, round);
+			Prison.Ban(alice.Coin.Outpoint, round.Id);
+			throw;
+		}
+	}
+
+	private async Task<ConnectionConfirmationResponse> ConfirmConnectionCoreAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken)
+	{
 		Round round;
 		Alice alice;
 		var realAmountCredentialRequests = request.RealAmountCredentialRequests;
@@ -136,7 +186,9 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedVsizeCredentials, $"Round ({request.RoundId}): Incorrect requested vsize credentials.");
 			}
-			if (realAmountCredentialRequests.Delta != alice.CalculateRemainingAmountCredentials(round.FeeRate))
+
+			var remaining = alice.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate);
+			if (realAmountCredentialRequests.Delta != remaining)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedAmountCredentials, $"Round ({request.RoundId}): Incorrect requested amount credentials.");
 			}
@@ -329,4 +381,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	private Alice GetAlice(Guid aliceId, Round round) =>
 		round.Alices.Find(x => x.Id == aliceId)
 		?? throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound, $"Round ({round.Id}): Alice ({aliceId}) not found.");
+
+	private static bool IsUserCheating(Exception e) =>
+		e is WabiSabiCryptoException || (e is WabiSabiProtocolException wpe && wpe.ErrorCode.IsEvidencingClearMisbehavior());
 }
