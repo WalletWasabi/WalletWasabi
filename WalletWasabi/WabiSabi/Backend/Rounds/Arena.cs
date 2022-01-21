@@ -44,7 +44,7 @@ public partial class Arena : PeriodicRunner
 	private Prison Prison { get; }
 	private SecureRandom Random { get; }
 	private CoinJoinTransactionArchiver? TransactionArchiver { get; }
-	public InMemoryCoinJoinIdStore InMemoryCoinJoinIdStore { get; }
+	private InMemoryCoinJoinIdStore InMemoryCoinJoinIdStore { get; }
 
 	public event EventHandler<Transaction>? CoinJoinBroadcast;
 
