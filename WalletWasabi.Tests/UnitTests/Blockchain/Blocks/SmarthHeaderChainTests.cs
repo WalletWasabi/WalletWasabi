@@ -42,8 +42,6 @@ public class SmarthHeaderChainTests
 		Assert.False(chain.RemoveTip());
 		AssertEverythingDefault(chain);
 
-		uint newServerHeight = chain.ServerTipHeight + 1;
-		chain.UpdateServerTipHeight(newServerHeight);
 		SmartHeader header = new(new uint256("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"), prevHash: uint256.Zero, height: 0, BlockTime);
 		chain.AddOrReplace(header);
 
@@ -68,6 +66,36 @@ public class SmarthHeaderChainTests
 
 		Assert.Equal(2500u, chain.Tip!.Height);
 		Assert.Equal(2500u, chain.Tip!.Height);
+	}
+
+	[Fact]
+	public void ServerTipHeightTests()
+	{
+		SmartHeaderChain chain = new();
+		Assert.Equal(0u, chain.ServerTipHeight);
+
+		chain.SetServerTipHeight(2);
+		Assert.Equal(2, chain.HashesLeft);
+
+		// Add first header.
+		SmartHeader header = new(new uint256("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"), prevHash: uint256.Zero, height: 0, BlockTime);
+		chain.AddOrReplace(header);
+		Assert.Equal(2, chain.HashesLeft);
+
+		// Add second header.
+		header = CreateSmartHeader(new uint256(1), chain.TipHash!, height: 1);
+		chain.AddOrReplace(header);
+		Assert.Equal(1, chain.HashesLeft);
+
+		// Add third header.
+		header = CreateSmartHeader(new uint256(2), chain.TipHash!, height: 2);
+		chain.AddOrReplace(header);
+		Assert.Equal(0, chain.HashesLeft);
+
+		// Add fourth header. Hashes left should not report negative numbers
+		header = CreateSmartHeader(new uint256(3), chain.TipHash!, height: 3);
+		chain.AddOrReplace(header);
+		Assert.Equal(0, chain.HashesLeft);
 	}
 
 	private static SmartHeader CreateSmartHeader(uint256 blockHash, uint256 prevHash, uint height)
