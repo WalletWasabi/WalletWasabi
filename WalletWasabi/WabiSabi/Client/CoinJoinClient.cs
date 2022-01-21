@@ -21,7 +21,7 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public class CoinJoinClient
 {
-	private const int MaxInputsRegistrableByWallet = 10; // how many
+	const int MaxInputsRegistrableByWallet = 10; // how many
 	private volatile bool _inCriticalCoinJoinState;
 
 	/// <param name="minAnonScoreTarget">Coins those have reached anonymity target, but still can be mixed if desired.</param>
@@ -319,7 +319,7 @@ public class CoinJoinClient
 		List<IEnumerable<SmartCoin>> groups = new();
 
 		// I can take more coins those are already reached the minimum privacy threshold.
-		int nonPrivateCoinCount = filteredCoins.Where(x => x.HdPubKey.AnonymitySet < MinAnonScoreTarget).Count();
+		int nonPrivateCoinCount = filteredCoins.Count(x => x.HdPubKey.AnonymitySet < MinAnonScoreTarget);
 		for (int i = 0; i < nonPrivateCoinCount; i++)
 		{
 			// Make sure the group can at least register an output even after paying fees.
@@ -352,7 +352,7 @@ public class CoinJoinClient
 			anonScoreCosts.Add((cost, group));
 		}
 
-		var bestCost = anonScoreCosts.Select(g => g.Cost).Min();
+		var bestCost = anonScoreCosts.Min(g => g.Cost);
 		var bestgroups = anonScoreCosts.Where(x => x.Cost == bestCost).Select(x => x.Group);
 
 		// Select the group where the less coins coming from the same tx.
@@ -374,6 +374,7 @@ public class CoinJoinClient
 	/// <returns>Desired input count.</returns>
 	private int GetInputTarget(int utxoCount)
 	{
+		const int MaxInputsRegistrableByWallet = 10; // how many
 		int targetInputCount;
 		if (utxoCount < 35)
 		{
