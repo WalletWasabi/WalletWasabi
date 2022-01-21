@@ -123,22 +123,6 @@ public class SmartHeaderChain
 		}
 	}
 
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private void SetTipNoLock(SmartHeader? tip)
-	{
-		_tip = tip;
-		_tipHeight = tip?.Height ?? default;
-		_tipHash = tip?.BlockHash;
-		_hashesCount = Chain?.Count ?? default;
-		SetHashesLeftNoLock();
-	}
-
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private void SetHashesLeftNoLock()
-	{
-		_hashesLeft = (int)Math.Max(0, (long)_serverTipHeight - _tipHeight);
-	}
-
 	public bool RemoveTip()
 	{
 		bool result = false;
@@ -159,7 +143,7 @@ public class SmartHeaderChain
 		return result;
 	}
 
-	public void UpdateServerTipHeight(uint height)
+	public void SetServerTipHeight(uint height)
 	{
 		lock (Lock)
 		{
@@ -175,5 +159,21 @@ public class SmartHeaderChain
 		{
 			return Chain.Select(x => (x.Height, x)).ToArray();
 		}
+	}
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private void SetTipNoLock(SmartHeader? tip)
+	{
+		_tip = tip;
+		_tipHeight = tip?.Height ?? default;
+		_tipHash = tip?.BlockHash;
+		_hashesCount = Chain?.Count ?? default;
+		SetHashesLeftNoLock();
+	}
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private void SetHashesLeftNoLock()
+	{
+		_hashesLeft = (int)Math.Max(0, (long)_serverTipHeight - _tipHeight);
 	}
 }
