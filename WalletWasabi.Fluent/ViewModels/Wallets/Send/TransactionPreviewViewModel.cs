@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
@@ -27,6 +28,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private readonly TransactionInfo _info;
 	private readonly BitcoinAddress _destination;
 	private BuildTransactionResult? _transaction;
+	private CancellationTokenSource _cancellationTokenSource;
 	[AutoNotify] private string _nextButtonText;
 	[AutoNotify] private bool _adjustFeeAvailable;
 	[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
@@ -36,6 +38,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		_wallet = wallet;
 		_info = info;
 		_destination = destination;
+		_cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));
 
 		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel();
 		CurrentTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info, destination);
@@ -70,6 +73,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 				if (x is ChangeAvoidanceSuggestionViewModel ca)
 				{
+					_info.ChangelessCoins = ca.TransactionResult.SpentCoins;
 					UpdateTransaction(CurrentTransactionSummary, ca.TransactionResult);
 
 					await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, ca.TransactionResult);
@@ -392,7 +396,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			UpdateTransaction(CurrentTransactionSummary, initialTransaction);
 
-			await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, initialTransaction);
+			await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, initialTransaction, _cancellationTokenSource.Token);
 		}
 		else
 		{
@@ -417,6 +421,12 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	protected override void OnNavigatedFrom(bool isInHistory)
 	{
+		if (!isInHistory)
+		{
+			_cancellationTokenSource.Cancel();
+			_cancellationTokenSource.Dispose();
+		}
+
 		base.OnNavigatedFrom(isInHistory);
 
 		DisplayedTransactionSummary = null;
@@ -424,6 +434,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task OnConfirmAsync()
 	{
+		_cancellationTokenSource.Cancel();
 		var labelDialog = new LabelEntryDialogViewModel(_wallet, _info);
 
 		Navigate(NavigationTarget.CompactDialogScreen).To(labelDialog);

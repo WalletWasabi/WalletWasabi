@@ -13,6 +13,7 @@ public partial class TransactionInfo
 	private readonly int _privateCoinThreshold;
 
 	[AutoNotify] private Money _amount = Money.Zero;
+	[AutoNotify] private FeeRate _feeRate = FeeRate.Zero;
 
 	public TransactionInfo()
 	{
@@ -20,11 +21,12 @@ public partial class TransactionInfo
 
 		this.WhenAnyValue(x => x.Amount)
 			.Subscribe(_ => OnAmountChanged());
+
+		this.WhenAnyValue(x => x.FeeRate)
+			.Subscribe(_ => OnFeeChanged());
 	}
 
 	public SmartLabel UserLabels { get; set; } = SmartLabel.Empty;
-
-	public FeeRate FeeRate { get; set; } = FeeRate.Zero;
 
 	public FeeRate? MaximumPossibleFeeRate { get; set; }
 
@@ -61,5 +63,10 @@ public partial class TransactionInfo
 		{
 			Coins = Enumerable.Empty<SmartCoin>();
 		}
+	}
+
+	private void OnFeeChanged()
+	{
+		ChangelessCoins = Enumerable.Empty<SmartCoin>();
 	}
 }

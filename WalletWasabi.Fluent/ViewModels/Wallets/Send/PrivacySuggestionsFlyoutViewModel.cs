@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
@@ -33,7 +34,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 	public ObservableCollection<SuggestionViewModel> Suggestions { get; }
 
-	public  async Task BuildPrivacySuggestionsAsync(Wallet wallet, TransactionInfo info, BitcoinAddress destination, BuildTransactionResult transaction)
+	public async Task BuildPrivacySuggestionsAsync(Wallet wallet, TransactionInfo info, BitcoinAddress destination, BuildTransactionResult transaction, CancellationToken cancellationToken = default)
 	{
 		IsLoading = true;
 
@@ -46,7 +47,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 		}
 
 		var suggestions =
-			await ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, transaction);
+			await ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, transaction, cancellationToken);
 
 		var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destination.ScriptPubKey);
 

@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
 
@@ -73,7 +75,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 	}
 
 	public static async Task<IEnumerable<ChangeAvoidanceSuggestionViewModel>> GenerateSuggestionsAsync(
-		TransactionInfo transactionInfo, BitcoinAddress destination, Wallet wallet, BuildTransactionResult requestedTransaction)
+		TransactionInfo transactionInfo, BitcoinAddress destination, Wallet wallet, BuildTransactionResult requestedTransaction, CancellationToken cancellationToken)
 	{
 		var intent = new PaymentIntent(
 			destination,
@@ -102,6 +104,29 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 				wallet.Synchronizer.UsdExchangeRate, false);
 		}
 
+		ChangeAvoidanceSuggestionViewModel? bnbSuggestion = null;
+		IEnumerable<SmartCoin>? bnbResult = null;
+		bool canBuildWithoutChangeWithBnb = await Task.Run(() => ChangelessTransactionCoinSelector.TryGetCoins(wallet.Coins.Available().ToList(), transactionInfo.FeeRate, transactionInfo.Amount, out bnbResult, cancellationToken));
+
+		if (canBuildWithoutChangeWithBnb && bnbResult is not null)
+		{
+			var bnbTransaction = await Task.Run(() => TransactionHelpers.BuildChangelessTransaction(
+				wallet,
+				destination,
+				transactionInfo.UserLabels,
+				transactionInfo.FeeRate,
+				bnbResult,
+				false
+				));
+
+			bnbSuggestion = new ChangeAvoidanceSuggestionViewModel(
+				transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
+				bnbTransaction,
+				wallet.Synchronizer.UsdExchangeRate,
+				false
+				);
+		}
+
 		var defaultSelection = new ChangeAvoidanceSuggestionViewModel(
 			transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), requestedTransaction,
 			wallet.Synchronizer.UsdExchangeRate, true);
@@ -126,6 +151,11 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		if (smallerSuggestion is { })
 		{
 			suggestions.Add(smallerSuggestion);
+		}
+
+		if (bnbSuggestion is not null)
+		{
+			suggestions.Add(bnbSuggestion);
 		}
 
 		var results = new List<ChangeAvoidanceSuggestionViewModel>();
