@@ -19,10 +19,10 @@ public class FadePocketLabelsBehavior : AttachedToVisualTreeBehavior<TagsBox>
 	private CompositeDisposable? _disposable;
 	private bool _isRunning = true;
 
-	public static readonly StyledProperty<List<PocketViewModel>> PocketsProperty =
-		AvaloniaProperty.Register<FadePocketLabelsBehavior, List<PocketViewModel>>(nameof(Pockets));
+	public static readonly StyledProperty<PocketViewModel[]> PocketsProperty =
+		AvaloniaProperty.Register<FadePocketLabelsBehavior, PocketViewModel[]>(nameof(Pockets));
 
-	public List<PocketViewModel> Pockets
+	public PocketViewModel[] Pockets
 	{
 		get => GetValue(PocketsProperty);
 		set => SetValue(PocketsProperty, value);

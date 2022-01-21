@@ -20,7 +20,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 	private readonly TransactionInfo _transactionInfo;
 	private readonly bool _isSilent;
 
-	[AutoNotify] private List<PocketViewModel> _usedPockets = new();
+	[AutoNotify] private PocketViewModel[] _usedPockets = Array.Empty<PocketViewModel>();
 
 	private bool _isUpdating;
 
@@ -57,7 +57,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 				{
 					_isUpdating = true;
 
-					UsedPockets = UsedPockets.Except(pocketsToRemove).ToList();
+					UsedPockets = UsedPockets.Except(pocketsToRemove).ToArray();
 					Labels.Clear();
 					UpdateLabels();
 
@@ -96,7 +96,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 	{
 		_isUpdating = true;
 
-		UsedPockets = _wallet.Coins.GetPockets(_wallet.ServiceConfiguration.MinAnonScoreTarget).Select(x => new PocketViewModel(x)).ToList();
+		UsedPockets = _wallet.Coins.GetPockets(_wallet.ServiceConfiguration.MinAnonScoreTarget).Select(x => new PocketViewModel(x)).ToArray();
 		this.RaisePropertyChanged(nameof(UsedPockets));
 		MustHaveLabels.Clear();
 		Labels.Clear();
