@@ -310,7 +310,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 	[InlineData(123456)]
 	public async Task MultiClientsCoinJoinTestAsync(int seed)
 	{
-		const int NumberOfParticipants = 20;
+		const int NumberOfParticipants = 10;
 		const int NumberOfCoinsPerParticipant = 2;
 		const int ExpectedInputNumber = (NumberOfParticipants * NumberOfCoinsPerParticipant) / 2;
 
@@ -399,45 +399,6 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		}
 	}
 
-	[Fact]
-	public async Task RegisterCoinAsync()
-	{
-		using var signingKey = new Key();
-		var coinToRegister = new Coin(
-			BitcoinFactory.CreateOutPoint(),
-			new TxOut(Money.Coins(1), signingKey.PubKey.WitHash.ScriptPubKey));
-
-		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
-		{
-			builder.ConfigureServices(services =>
-			{
-				var rpc = BitcoinFactory.GetMockMinimalRpc();
-				rpc.OnGetTxOutAsync = (_, _, _) => new()
-				{
-					Confirmations = 101,
-					IsCoinBase = false,
-					ScriptPubKeyType = "witness_v0_keyhash",
-					TxOut = coinToRegister.TxOut
-				};
-				rpc.OnGetRawTransactionAsync = (txid, throwIfNotFound) =>
-				{
-					var tx = Transaction.Create(Network.Main);
-					return Task.FromResult(tx);
-				};
-				services.AddScoped<IRPCClient>(s => rpc);
-				services.AddScoped(s => new InMemoryCoinJoinIdStore());
-			});
-		}).CreateClient();
-
-		var apiClient = await _apiApplicationFactory.CreateArenaClientAsync(httpClient);
-		var rounds = await apiClient.GetStatusAsync(CancellationToken.None);
-		var round = rounds.First(x => x.CoinjoinState is ConstructionState);
-
-		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(signingKey, round.Id);
-		var (response, _) = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, ownershipProof, CancellationToken.None);
-
-		Assert.NotEqual(Guid.Empty, response.Value);
-	}
 
 	[Fact]
 	public async Task RegisterCoinIdempotencyAsync()
