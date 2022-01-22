@@ -1,8 +1,6 @@
 using System.Linq;
-using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.VisualTree;
 using ReactiveUI;
@@ -15,7 +13,6 @@ public class FadePocketLabelsBehavior : AttachedToVisualTreeBehavior<TagsBox>
 {
 	private TagControl[] _currentTags = Array.Empty<TagControl>();
 	private CompositeDisposable? _disposable;
-	private bool _isRunning = true;
 
 	public static readonly StyledProperty<Pocket[]> PocketsProperty =
 		AvaloniaProperty.Register<FadePocketLabelsBehavior, Pocket[]>(nameof(Pockets));
@@ -33,9 +30,9 @@ public class FadePocketLabelsBehavior : AttachedToVisualTreeBehavior<TagsBox>
 			return;
 		}
 
-		RxApp.MainThreadScheduler.Schedule(async () =>
-		{
-			while (_isRunning)
+		Observable
+			.FromEventPattern(AssociatedObject, nameof(AssociatedObject.LayoutUpdated))
+			.Subscribe(_ =>
 			{
 				var tagItems = AssociatedObject.GetVisualDescendants().OfType<TagControl>().ToArray();
 
@@ -65,16 +62,7 @@ public class FadePocketLabelsBehavior : AttachedToVisualTreeBehavior<TagsBox>
 							.DisposeWith(_disposable);
 					}
 				}
-
-				await Task.Delay(500);
-			}
-		});
-	}
-
-	protected override void OnDetaching()
-	{
-		base.OnDetaching();
-
-		_isRunning = false;
+			})
+			.DisposeWith(disposable);
 	}
 }
