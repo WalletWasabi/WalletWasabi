@@ -9,6 +9,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Wallets;
 
@@ -20,9 +21,9 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 	private readonly Wallet _wallet;
 	private readonly TransactionInfo _transactionInfo;
 	private readonly bool _isSilent;
-	private readonly Stack<PocketViewModel[]> _removedPocketStack;
+	private readonly Stack<Pocket[]> _removedPocketStack;
 
-	[AutoNotify] private PocketViewModel[] _usedPockets = Array.Empty<PocketViewModel>();
+	[AutoNotify] private Pocket[] _usedPockets = Array.Empty<Pocket>();
 
 	private bool _isUpdating;
 
@@ -31,7 +32,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		_wallet = wallet;
 		_transactionInfo = transactionInfo;
 		_isSilent = isSilent;
-		_removedPocketStack = new Stack<PocketViewModel[]>();
+		_removedPocketStack = new Stack<Pocket[]>();
 
 		Labels = new ObservableCollection<string>();
 		MustHaveLabels = new ObservableCollection<string>();
@@ -39,53 +40,14 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
 
-		NextCommand = ReactiveCommand.Create(() => Complete(UsedPockets));
-
-		EnableAutoBusyOn(NextCommand);
-
 		var undoCommandCanExecute = this.WhenAnyValue(x => x.Labels.Count).Select(_ => _removedPocketStack.Count > 0);
 		UndoCommand = ReactiveCommand.Create(OnUndo, undoCommandCanExecute);
 
+		NextCommand = ReactiveCommand.Create(() => Complete(UsedPockets));
+
 		Observable
 			.FromEventPattern(Labels, nameof(Labels.CollectionChanged))
-			.Subscribe(_ =>
-			{
-				if (_isUpdating)
-				{
-					return;
-				}
-
-				var pocketsToRemove = UsedPockets
-					.Where(x => x.Labels.Any(y => !Labels.Contains(y) && x.Labels.Any(y => !MustHaveLabels.Contains(y))))
-					.ToArray();
-
-				Dispatcher.UIThread.Post(() =>
-				{
-					_isUpdating = true;
-
-					_removedPocketStack.Push(pocketsToRemove);
-					UsedPockets = UsedPockets.Except(pocketsToRemove).ToArray();
-					Labels.Clear();
-					UpdateLabels();
-
-					_isUpdating = false;
-				});
-			});
-	}
-
-	private void OnUndo()
-	{
-		_isUpdating = true;
-
-		var pocketsToUndo = _removedPocketStack.Pop();
-		UsedPockets = UsedPockets.Union(pocketsToUndo).ToArray();
-
-		MustHaveLabels.Clear();
-		Labels.Clear();
-
-		UpdateLabels();
-
-		_isUpdating = false;
+			.Subscribe(_ => OnLabelsChanged());
 	}
 
 	public ICommand UndoCommand { get; }
@@ -94,39 +56,68 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 	public ObservableCollection<string> MustHaveLabels { get; }
 
-	private void Complete(IEnumerable<PocketViewModel> pockets)
+	private void Complete(IEnumerable<Pocket> pockets)
 	{
 		Close(DialogResultKind.Normal, pockets.SelectMany(x => x.Coins));
 	}
 
-	private void UpdateLabels()
+	private void OnUndo()
 	{
+		var pocketsToUndo = _removedPocketStack.Pop();
+		var newPockets = UsedPockets.Union(pocketsToUndo);
+
+		UpdateLabels(newPockets);
+	}
+
+	private void OnLabelsChanged()
+	{
+		if (_isUpdating)
+		{
+			return;
+		}
+
+		var pocketsToRemove = UsedPockets
+			.Where(x => x.Labels.Any(y => !Labels.Contains(y) && x.Labels.Any(y => !MustHaveLabels.Contains(y))))
+			.ToArray();
+
+		Dispatcher.UIThread.Post(() =>
+		{
+			_removedPocketStack.Push(pocketsToRemove);
+			var newPockets = UsedPockets.Except(pocketsToRemove);
+
+			UpdateLabels(newPockets);
+		});
+	}
+
+	private void UpdateLabels(IEnumerable<Pocket> pockets)
+	{
+		_isUpdating = true;
+
+		UsedPockets = pockets.ToArray();
+		MustHaveLabels.Clear();
+		Labels.Clear();
+
 		foreach (var label in SmartLabel.Merge(UsedPockets.Select(x => x.Labels)))
 		{
-			var coinsWithSameLabel = UsedPockets.Where(x => x.Labels.Contains(label));
+			var pocketsWithSameLabel = UsedPockets.Where(x => x.Labels.Contains(label));
 
-			if (UsedPockets.Sum(x => x.Coins.TotalAmount()) - coinsWithSameLabel.Sum(x => x.Coins.TotalAmount()) >= _transactionInfo.Amount)
+			if (UsedPockets.Sum(x => x.Amount) - pocketsWithSameLabel.Sum(x => x.Amount) >= _transactionInfo.Amount)
 			{
 				Labels.Add(label);
 			}
-			else if (!MustHaveLabels.Contains(label))
+			else
 			{
 				MustHaveLabels.Add(label);
 			}
 		}
+
+		_isUpdating = false;
 	}
 
 	private void InitializeLabels()
 	{
-		_isUpdating = true;
-
-		UsedPockets = _wallet.Coins.GetPockets(_wallet.ServiceConfiguration.MinAnonScoreTarget).Select(x => new PocketViewModel(x)).ToArray();
-		MustHaveLabels.Clear();
-		Labels.Clear();
-
-		UpdateLabels();
-
-		_isUpdating = false;
+		var pockets = _wallet.Coins.GetPockets(_wallet.ServiceConfiguration.MinAnonScoreTarget).Select(x => new Pocket(x));
+		UpdateLabels(pockets);
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)

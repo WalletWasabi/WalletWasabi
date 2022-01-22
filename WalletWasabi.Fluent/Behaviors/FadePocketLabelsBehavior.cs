@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
@@ -7,9 +6,8 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.VisualTree;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Controls;
-using WalletWasabi.Fluent.ViewModels.Wallets.Send;
+using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
@@ -19,10 +17,10 @@ public class FadePocketLabelsBehavior : AttachedToVisualTreeBehavior<TagsBox>
 	private CompositeDisposable? _disposable;
 	private bool _isRunning = true;
 
-	public static readonly StyledProperty<PocketViewModel[]> PocketsProperty =
-		AvaloniaProperty.Register<FadePocketLabelsBehavior, PocketViewModel[]>(nameof(Pockets));
+	public static readonly StyledProperty<Pocket[]> PocketsProperty =
+		AvaloniaProperty.Register<FadePocketLabelsBehavior, Pocket[]>(nameof(Pockets));
 
-	public PocketViewModel[] Pockets
+	public Pocket[] Pockets
 	{
 		get => GetValue(PocketsProperty);
 		set => SetValue(PocketsProperty, value);
