@@ -126,14 +126,14 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 				transactionInfo.UserLabels,
 				transactionInfo.FeeRate,
 				bnbResult,
-				false
+				tryToSign: false
 				));
 
 			bnbSuggestion = new ChangeAvoidanceSuggestionViewModel(
 				transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
 				bnbTransaction,
 				wallet.Synchronizer.UsdExchangeRate,
-				false
+				isOriginal: false
 				);
 		}
 
