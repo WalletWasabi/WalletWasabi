@@ -138,11 +138,11 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		if (_isSilent)
 		{
 			if (UsedPockets.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText) is { } privatePocket &&
-			    privatePocket.Coins.TotalAmount() >= _transactionInfo.Amount)
+			    privatePocket.Amount >= _transactionInfo.Amount)
 			{
 				Complete(UsedPockets.Where(x => x.Labels == CoinPocketHelper.PrivateFundsText));
 			}
-			else if (UsedPockets.Where(x => x.Labels != CoinPocketHelper.PrivateFundsText).Sum(x => x.Coins.TotalAmount()) >= _transactionInfo.Amount)
+			else if (UsedPockets.Where(x => x.Labels != CoinPocketHelper.PrivateFundsText).Sum(x => x.Amount) >= _transactionInfo.Amount)
 			{
 				Complete(UsedPockets.Where(x => x.Labels != CoinPocketHelper.PrivateFundsText));
 			}
