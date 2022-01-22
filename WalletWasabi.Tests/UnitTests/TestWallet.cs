@@ -105,6 +105,7 @@ public class TestWallet : IKeyChain, IDestinationProvider, IDisposable
 				commitedData);
 	}
 
+    /// <remarks>Test wallet assumes that the ownership proof is always correct.</remarks>
 	public Transaction Sign(Transaction transaction, Coin coin, OwnershipProof ownershipProof)
 	{
 		ThrowIfDisposed();
