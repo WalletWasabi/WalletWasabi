@@ -57,7 +57,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			}
 
 			// Compute but don't commit updated CoinJoin to round state, it will
-			// be re-calculated on input confirmation. This is computed it here
+			// be re-calculated on input confirmation. This is computed in here
 			// for validation purposes.
 			_ = round.Assert<ConstructionState>().AddInput(coin);
 
