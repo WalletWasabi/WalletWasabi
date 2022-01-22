@@ -17,7 +17,7 @@ public class TestWallet : IKeyChain, IDestinationProvider
 	public TestWallet(string name, IRPCClient rpc)
 	{
 		Rpc = rpc;
-		Key = new Key(Hashes.SHA256(Encoding.ASCII.GetBytes(name)));
+		Key = new Key(Hashes.SHA256(Encoding.UTF8.GetBytes(name)));
 	}
 
 	private IRPCClient Rpc { get; }
