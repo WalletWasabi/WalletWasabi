@@ -46,13 +46,13 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 			Suggestions.Add(new PocketSuggestionViewModel(SmartLabel.Merge(transaction.SpentCoins.Select(x => CoinHelpers.GetLabels(x)))));
 		}
 
-		var suggestions =
-			await ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, transaction, cancellationToken);
-
 		var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destination.ScriptPubKey);
 
 		if (hasChange)
 		{
+			var suggestions =
+				await ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, transaction, cancellationToken);
+
 			foreach (var suggestion in suggestions)
 			{
 				Suggestions.Add(suggestion);
