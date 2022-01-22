@@ -86,7 +86,7 @@ internal class Participant: IDisposable
 		var walletHdPubKey = new HdPubKey(Wallet.PubKey, KeyPath.Parse("m/84'/0/0/0/0"), SmartLabel.Empty, KeyState.Clean);
 		walletHdPubKey.SetAnonymitySet(1); // bug if not settled
 
-		if (SplitTransaction != null)
+		if (SplitTransaction is null)
 		{
 			throw new InvalidOperationException($"{nameof(GenerateCoinsAsync)} has to be called first.");
 		}
