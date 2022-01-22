@@ -56,10 +56,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 	}
 
 	[Theory]
-	[InlineData(new long[] { 20_000_000, 40_000_000, 60_000_000, 80_000_000 })]
 	[InlineData(new long[] { 10_000_000, 20_000_000, 30_000_000, 40_000_000, 100_000_000 })]
-	[InlineData(new long[] { 120_000_000 })]
-	[InlineData(new long[] { 100_000_000, 10_000_000, 10_000 })]
 	public async Task SoloCoinJoinTestAsync(long[] amounts)
 	{
 		int inputCount = amounts.Length;
@@ -165,8 +162,6 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 	[Theory]
 	[InlineData(new long[] { 20_000_000, 40_000_000, 60_000_000, 80_000_000 })]
-	[InlineData(new long[] { 10_000_000, 20_000_000, 30_000_000, 40_000_000, 100_000_000 })]
-	[InlineData(new long[] { 100_000_000, 10_000_000, 10_000 })]
 	public async Task CoinJoinWithBlameRoundTestAsync(long[] amounts)
 	{
 		int inputCount = amounts.Length;
