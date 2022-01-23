@@ -1161,7 +1161,7 @@ public class CoinJoinTests
 			{
 				if (timeout.IsCompletedSuccessfully)
 				{
-					throw new TimeoutException("CoinJoin was not propagated.");
+					throw new TimeoutException("Coinjoin was not propagated.");
 				}
 
 				await Task.Delay(1000);
@@ -1179,7 +1179,7 @@ public class CoinJoinTests
 				{
 					if (timeout.IsCompletedSuccessfully)
 					{
-						throw new TimeoutException("CoinJoin was not noticed.");
+						throw new TimeoutException("Coinjoin was not noticed.");
 					}
 					await Task.Delay(1000);
 				}
@@ -1309,7 +1309,7 @@ public class CoinJoinTests
 			{
 				if (timeout.IsCompletedSuccessfully)
 				{
-					throw new TimeoutException("CoinJoin was not propagated.");
+					throw new TimeoutException("Coinjoin was not propagated.");
 				}
 				await Task.Delay(1000);
 			}
