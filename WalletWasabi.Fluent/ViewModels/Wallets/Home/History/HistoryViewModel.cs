@@ -79,7 +79,8 @@ public partial class HistoryViewModel : ActivatableViewModel
                         options: new ColumnOptions<HistoryItemViewModelBase>
                         {
                             CanUserResizeColumn = false,
-                            CanUserSortColumn = false
+                            CanUserSortColumn = false,
+                            MinimumWidth = new GridLength(80, GridUnitType.Pixel)
                         },
                         width: new GridLength(0, GridUnitType.Auto)),
                     // Date
@@ -92,6 +93,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 		                    CanUserSortColumn = true,
 		                    CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Date),
 		                    CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Date),
+		                    MinimumWidth = new GridLength(150, GridUnitType.Pixel)
 	                    },
 	                    width: new GridLength(0, GridUnitType.Auto)),
                     // Labels
@@ -101,7 +103,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 	                    options: new ColumnOptions<HistoryItemViewModelBase>
 	                    {
 		                    CanUserResizeColumn = false,
-		                    CanUserSortColumn = false
+		                    CanUserSortColumn = false,
+		                    MinimumWidth = new GridLength(75, GridUnitType.Pixel)
 	                    },
 	                    width: new GridLength(1, GridUnitType.Star)),
                     // Incoming
@@ -114,6 +117,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 		                    CanUserSortColumn = true,
 		                    CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.IncomingAmount),
 		                    CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.IncomingAmount),
+		                    MinimumWidth = new GridLength(120, GridUnitType.Pixel)
 	                    },
 	                    width: new GridLength(0, GridUnitType.Auto)),
                     // Outgoing
@@ -126,6 +130,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 		                    CanUserSortColumn = true,
 		                    CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.OutgoingAmount),
 		                    CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.OutgoingAmount),
+		                    MinimumWidth = new GridLength(120, GridUnitType.Pixel)
 	                    },
 	                    width: new GridLength(0, GridUnitType.Auto)),
                     // Balance
@@ -138,6 +143,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 		                    CanUserSortColumn = true,
 		                    CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Balance),
 		                    CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Balance),
+		                    MinimumWidth = new GridLength(120, GridUnitType.Pixel)
 	                    },
 	                    width: new GridLength(0, GridUnitType.Auto)),
                 }
