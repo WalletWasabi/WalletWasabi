@@ -442,7 +442,7 @@ footer .white-text {
     background: linear-gradient(160deg, rgba(73, 88, 107, 1) 0%, rgba(0, 16, 31, 1) 55%);
 }
 .light-area {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(225, 225, 225, 1) 100%);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.85) 0%, rgba(225, 225, 225, 1) 100%);
     color: var(--black);
     position: relative;
 }
@@ -1000,11 +1000,10 @@ ol li::marker {
 }
 .card label {
     padding: 20px 20px 16px 20px;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: bold;
     cursor: pointer;
     line-height: 1.2em;
-    text-align: center;
 }
 .card label:after {
     content: '▼';
@@ -1012,6 +1011,7 @@ ol li::marker {
     position: absolute;
     right: 0;
     padding: 0 20px;
+    top: calc(50% - 7px);
 }
 .card input:checked + label:after {
     content: '▲';
