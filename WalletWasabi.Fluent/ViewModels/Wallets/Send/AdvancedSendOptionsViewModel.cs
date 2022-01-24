@@ -7,6 +7,7 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Models;
+using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -16,6 +17,7 @@ public partial class AdvancedSendOptionsViewModel : DialogViewModelBase<Unit>
 	private readonly TransactionInfo _transactionInfo;
 
 	[AutoNotify] private string _customFee;
+	[AutoNotify] private string _customChangeAddress;
 
 	public AdvancedSendOptionsViewModel(TransactionInfo transactionInfo)
 	{
@@ -25,17 +27,22 @@ public partial class AdvancedSendOptionsViewModel : DialogViewModelBase<Unit>
 			? transactionInfo.FeeRate.SatoshiPerByte.ToString(CultureInfo.InvariantCulture)
 			: "";
 
+		_customChangeAddress = transactionInfo.CustomChangeAddress is { }
+			? transactionInfo.CustomChangeAddress.ToString()
+			: "";
+
 		EnableBack = false;
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		this.ValidateProperty(x => x.CustomFee, ValidateCustomFee);
+		this.ValidateProperty(x => x.CustomChangeAddress, ValidateCustomChangeAddress);
 
 		var nextCommandCanExecute =
 			this.WhenAnyValue(x => x.CustomFee)
 				.Select(_ =>
 				{
 					var noError = !Validations.Any;
-					var somethingFilled = CustomFee is not null or "";
+					var somethingFilled = CustomFee is not null or "" || CustomChangeAddress is not null or "";
 
 					return noError && somethingFilled;
 				});
@@ -56,7 +63,27 @@ public partial class AdvancedSendOptionsViewModel : DialogViewModelBase<Unit>
 			_transactionInfo.IsCustomFeeUsed = false;
 		}
 
+		_transactionInfo.CustomChangeAddress =
+			AddressStringParser.TryParse(CustomChangeAddress, Services.WalletManager.Network, out var bitcoinUrlBuilder)
+				? bitcoinUrlBuilder.Address
+				: null;
+
 		Close(DialogResultKind.Normal, Unit.Default);
+	}
+
+	private void ValidateCustomChangeAddress(IValidationErrors errors)
+	{
+		var address = CustomChangeAddress;
+
+		if (address is null or "")
+		{
+			return;
+		}
+
+		if (!AddressStringParser.TryParse(address, Services.WalletManager.Network, out _))
+		{
+			errors.Add(ErrorSeverity.Error, "Input a valid BTC address or URL.");
+		}
 	}
 
 	private void ValidateCustomFee(IValidationErrors errors)

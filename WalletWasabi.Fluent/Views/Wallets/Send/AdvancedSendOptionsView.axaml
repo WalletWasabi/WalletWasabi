@@ -16,7 +16,7 @@
                  NextContent="Done"
                  EnableCancel="{Binding EnableCancel}"
                  IsBusy="{Binding IsBusy}"
-                 Height="300" Width="550"
+                 Height="350" Width="550"
                  ScrollViewer.VerticalScrollBarVisibility="Auto">
     <DockPanel>
 
@@ -28,6 +28,30 @@
             <behaviors:FocusOnAttachedBehavior />
             <behaviors:NumberBoxBehavior />
           </i:Interaction.Behaviors>
+        </TextBox>
+      </DockPanel>
+
+      <!-- Change address -->
+      <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+        <Label DockPanel.Dock="Top" Content="_Change Address:" Target="changeAddressTb" />
+        <TextBox x:Name="changeAddressTb" MaxLength="250" Text="{Binding CustomChangeAddress}"
+                 Watermark="(e.g. Bitcoin address or PayJoin URL)">
+          <TextBox.InnerRightContent>
+            <!-- <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0"> -->
+            <!--   <c:AnimatedButton KeyboardNavigation.IsTabStop="False" -->
+            <!--                     Focusable="False" -->
+            <!--                     Command="{Binding PasteCommand}" -->
+            <!--                     ToolTip.Tip="Paste" -->
+            <!--                     NormalIcon="{StaticResource paste_regular}" -->
+            <!--                     ClickIcon="{StaticResource copy_confirmed}" /> -->
+            <!--   <c:AnimatedButton IsVisible="{Binding IsQrButtonVisible}" -->
+            <!--                     KeyboardNavigation.IsTabStop="False" -->
+            <!--                     Focusable="False" -->
+            <!--                     Command="{Binding QRCommand}" -->
+            <!--                     ToolTip.Tip="Scan QR Code" -->
+            <!--                     NormalIcon="{StaticResource qr_code_regular}" /> -->
+            <!-- </StackPanel> -->
+          </TextBox.InnerRightContent>
         </TextBox>
       </DockPanel>
 

@@ -22,6 +22,8 @@ public partial class TransactionInfo
 			.Subscribe(_ => OnAmountChanged());
 	}
 
+	public BitcoinAddress? CustomChangeAddress { get; set; }
+
 	public SmartLabel UserLabels { get; set; } = SmartLabel.Empty;
 
 	public FeeRate FeeRate { get; set; } = FeeRate.Zero;
