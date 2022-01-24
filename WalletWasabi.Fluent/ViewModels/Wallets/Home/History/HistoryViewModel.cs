@@ -117,7 +117,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 		                    CanUserSortColumn = true,
 		                    CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.IncomingAmount),
 		                    CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.IncomingAmount),
-		                    MinimumWidth = new GridLength(120, GridUnitType.Pixel)
+		                    MinimumWidth = new GridLength(120, GridUnitType.Pixel),
+		                    MaximumWidth = new GridLength(150, GridUnitType.Pixel)
 	                    },
 	                    width: new GridLength(0, GridUnitType.Auto)),
                     // Outgoing
@@ -130,7 +131,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 		                    CanUserSortColumn = true,
 		                    CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.OutgoingAmount),
 		                    CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.OutgoingAmount),
-		                    MinimumWidth = new GridLength(120, GridUnitType.Pixel)
+		                    MinimumWidth = new GridLength(120, GridUnitType.Pixel),
+		                    MaximumWidth = new GridLength(150, GridUnitType.Pixel)
 	                    },
 	                    width: new GridLength(0, GridUnitType.Auto)),
                     // Balance
@@ -143,7 +145,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 		                    CanUserSortColumn = true,
 		                    CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Balance),
 		                    CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Balance),
-		                    MinimumWidth = new GridLength(120, GridUnitType.Pixel)
+		                    MinimumWidth = new GridLength(120, GridUnitType.Pixel),
+		                    MaximumWidth = new GridLength(150, GridUnitType.Pixel)
 	                    },
 	                    width: new GridLength(0, GridUnitType.Auto)),
                 }
