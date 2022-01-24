@@ -76,8 +76,9 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 				}
 				else
 				{
-					await ShowErrorAsync("Error", "The Recovery Words you entered were incorrect.",
-						"Try again, but if you are unable to verify your Recovery Words, you MUST move your funds to a new wallet as soon as possible.");
+					await ShowErrorAsync("Error",
+						"Try again, but if you are unable to verify your Recovery Words, you MUST move your funds to a new wallet as soon as possible.",
+						"The Recovery Words you entered were incorrect.");
 
 					Mnemonics.Clear();
 				}
