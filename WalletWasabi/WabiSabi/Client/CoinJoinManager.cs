@@ -76,7 +76,13 @@ public class CoinJoinManager : BackgroundService
 					continue;
 				}
 
-				var coinjoinClient = new CoinJoinClient(HttpClientFactory, openedWallet.Kitchen, openedWallet.KeyManager, RoundStatusUpdater, openedWallet.ServiceConfiguration.MinAnonScoreTarget);
+				var coinjoinClient = new CoinJoinClient(
+					HttpClientFactory,
+					new KeyChain(openedWallet.KeyManager),
+					new InternalDestinationProvider(openedWallet.KeyManager),
+					RoundStatusUpdater,
+					openedWallet.ServiceConfiguration.MinAnonScoreTarget);
+
 				var cts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
 				var coinjoinTask = coinjoinClient.StartCoinJoinAsync(coinCandidates, cts.Token);
 
