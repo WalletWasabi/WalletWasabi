@@ -24,7 +24,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
 public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TStartup> where TStartup : class
 {
-	// There is a deadlock in the current version of the asmp.net testing framework
+	// There is a deadlock in the current version of the asp.net testing framework
 	// https://www.strathweb.com/2021/05/the-curious-case-of-asp-net-core-integration-test-deadlock/
 	protected override IHost CreateHost(IHostBuilder builder)
 	{
