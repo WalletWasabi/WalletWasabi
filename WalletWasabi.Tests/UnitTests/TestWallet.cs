@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto;
+using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Tests.UnitTests;
@@ -52,24 +53,25 @@ public class TestWallet : IKeyChain, IDestinationProvider, IDisposable
 
 		var tx = Rpc.Network.CreateTransaction();
 		tx.Inputs.Add(biggestUtxo.Outpoint);
-		tx.Outputs.Add(biggestUtxo.Amount - feeRate.GetFee(82), Address);
+		tx.Outputs.Add(biggestUtxo.Amount - feeRate.GetFee(Constants.P2wpkhOutputSizeInBytes), Address);
 		return tx;
 	}
 
 	public async Task<uint256> SendToAsync(Money amount, Script scriptPubKey, FeeRate feeRate, CancellationToken cancellationToken)
 	{
 		ThrowIfDisposed();
-		var cost = feeRate.GetFee(113);
+		const int FinalSignedTxVirtualSize = 222;
+		var effectiveOutputCost = amount + feeRate.GetFee(FinalSignedTxVirtualSize);
 		var tx = CreateSelfTransfer(FeeRate.Zero);
 
-		if (tx.Outputs[0].Value < amount + cost)
+		if (tx.Outputs[0].Value < effectiveOutputCost)
 		{
 			throw new ArgumentException("Not enought satoshis in input.");
 		}
 
-		tx.Outputs[0].Value -= (amount + cost);
+		tx.Outputs[0].Value -= effectiveOutputCost;
 		tx.Outputs.Add(amount, scriptPubKey);
-		return await SendRawTransactionAsync(tx, cancellationToken).ConfigureAwait(false);
+		return await SendRawTransactionAsync(SignTransaction(tx), cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<uint256> SendRawTransactionAsync(Transaction tx, CancellationToken cancellationToken)
@@ -121,13 +123,12 @@ public class TestWallet : IKeyChain, IDestinationProvider, IDisposable
 
 	private void ScanTransaction(Transaction tx)
 	{
-		foreach (var indexedOutput in tx.Outputs.AsIndexedOutputs())
-		{
-			if (indexedOutput.TxOut.ScriptPubKey == ScriptPubKey)
-			{
-				Utxos.Add(indexedOutput.ToCoin());
-			}
-		}
+		var receivedCoins = tx.Outputs.AsIndexedOutputs()
+			.Where(x => x.TxOut.ScriptPubKey == ScriptPubKey)
+			.Select(x => x.ToCoin());
+
+		Utxos.AddRange(receivedCoins);
+		Utxos.RemoveAll(x => tx.Inputs.Any(y => y.PrevOut == x.Outpoint));
 	}
 
 	private void ThrowIfDisposed()
