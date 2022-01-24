@@ -37,11 +37,11 @@ public partial class InsufficientBalanceDialogViewModel : DialogViewModelBase<Un
 		_differenceOfFeePercentage = maxPossibleFeeWithCurrentCoins == Money.Zero ? 0M : (decimal)selectedFee.Satoshi / maxPossibleFeeWithCurrentCoins.Satoshi * 100;
 
 		EnableSendAnyway = maxPossibleFeeWithCurrentCoins != Money.Zero;
-		EnableSelectMoreCoin = _wallet.Coins.TotalAmount() >= ex.Minimum;
+		EnableSelectMoreCoins = _wallet.Coins.TotalAmount() >= ex.Minimum;
 		EnableSubtractFee = _wallet.Coins.TotalAmount() == _transactionInfo.Amount;
 
 		SendAnywayCommand = ReactiveCommand.Create(OnSendAnyway);
-		SelectMoreCoinCommand = ReactiveCommand.CreateFromTask(OnSelectMoreCoinAsync);
+		SelectMoreCoinsCommand = ReactiveCommand.CreateFromTask(OnSelectMoreCoinsAsync);
 		SubtractTransactionFeeCommand = ReactiveCommand.Create(OnSubtractTransactionFee);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
@@ -52,15 +52,15 @@ public partial class InsufficientBalanceDialogViewModel : DialogViewModelBase<Un
 
 	public ICommand SubtractTransactionFeeCommand { get; }
 
-	public ICommand SelectMoreCoinCommand { get; }
+	public ICommand SelectMoreCoinsCommand { get; }
 
 	public bool EnableSendAnyway { get; }
 
-	public bool EnableSelectMoreCoin { get; }
+	public bool EnableSelectMoreCoins { get; }
 
 	public bool EnableSubtractFee { get; }
 
-	private async Task OnSelectMoreCoinAsync()
+	private async Task OnSelectMoreCoinsAsync()
 	{
 		var privacyControlDialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(
 				_wallet,
@@ -103,7 +103,7 @@ public partial class InsufficientBalanceDialogViewModel : DialogViewModelBase<Un
 			RxApp.MainThreadScheduler.Schedule(async () =>
 			{
 				// Edge cases, probably will never happen.
-				if (!EnableSendAnyway && !EnableSubtractFee && !EnableSelectMoreCoin)
+				if (!EnableSendAnyway && !EnableSubtractFee && !EnableSelectMoreCoins)
 				{
 					await ShowErrorAsync("Transaction Building",
 						"Automatic transaction fee selection is not possible at the moment. Alternatively, you can enter the transaction fee manually in Advanced options.",
@@ -168,7 +168,7 @@ public partial class InsufficientBalanceDialogViewModel : DialogViewModelBase<Un
 		{
 			Question += $"you can send the transaction with an adjusted transaction fee, so it should be confirmed within approximately {TextHelpers.TimeSpanToFriendlyString(_confirmationTimeWithMaxFeeRate)}";
 
-			if (EnableSelectMoreCoin)
+			if (EnableSelectMoreCoins)
 			{
 				Question += " or select more coins.";
 			}
@@ -179,7 +179,7 @@ public partial class InsufficientBalanceDialogViewModel : DialogViewModelBase<Un
 		}
 		else
 		{
-			if (EnableSelectMoreCoin)
+			if (EnableSelectMoreCoins)
 			{
 				Question += "you can select more coins.";
 			}
