@@ -10,7 +10,7 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.TransactionSummary">
   <StackPanel Spacing="15">
       <c:PreviewItem Icon="{StaticResource btc_logo}"
-                     Text="a total of">
+                     Text="amount">
         <TextBlock Text="{Binding AmountText, FallbackValue=0.213 BTC (≈55.34 USD)}" />
       </c:PreviewItem>
 
