@@ -142,21 +142,20 @@ public class IndexStore : IAsyncDisposable
 			{
 				using (BenchmarkLogger.Measure(LogLevel.Info, "XXX MatureIndexFileManager loading"))
 				{
-					using var sr = MatureIndexFileManager.OpenText();
+					using StreamReader sr = MatureIndexFileManager.OpenText();
 					if (!sr.EndOfStream)
 					{
-						var lineTask = sr.ReadLineAsync();
-						string? line = null;
-						while (lineTask is { })
+						while (true)
 						{
-							line ??= await lineTask.ConfigureAwait(false);
 							cancel.ThrowIfCancellationRequested();
+							string? line = await sr.ReadLineAsync().ConfigureAwait(false);
 
-							lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
+							if (line is null)
+							{
+								break;
+							}
 
 							ProcessLine(line, enqueue: false);
-
-							line = null;
 						}
 					}
 				}
