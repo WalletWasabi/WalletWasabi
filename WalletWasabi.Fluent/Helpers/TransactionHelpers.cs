@@ -35,18 +35,24 @@ public static class TransactionHelpers
 		return txRes;
 	}
 
-	public static BuildTransactionResult BuildTransaction(Wallet wallet, BitcoinAddress address, Money amount, SmartLabel labels, FeeRate feeRate, IEnumerable<SmartCoin> coins, bool subtractFee, IPayjoinClient? payJoinClient = null, bool tryToSign = true)
+	public static BuildTransactionResult BuildTransaction(Wallet wallet, BitcoinAddress address, BitcoinAddress? changeAddress, Money amount, SmartLabel labels, FeeRate feeRate, IEnumerable<SmartCoin> coins, bool subtractFee, IPayjoinClient? payJoinClient = null, bool tryToSign = true)
 	{
 		if (payJoinClient is { } && subtractFee)
 		{
 			throw new InvalidOperationException("Not possible to subtract the fee.");
 		}
 
-		var intent = new PaymentIntent(
-			destination: address,
-			amount: amount,
-			subtractFee: subtractFee,
-			label: labels);
+		var requests = new List<DestinationRequest>();
+
+		if (changeAddress is { })
+		{
+			requests.Add(new DestinationRequest(changeAddress, MoneyRequest.CreateChange(subtractFee: !subtractFee), labels));
+		}
+
+		var destinationRequest = new DestinationRequest(address, MoneyRequest.Create(amount, subtractFee), labels);
+		requests.Add(destinationRequest);
+
+		var intent = new PaymentIntent(requests);
 
 		var txRes = wallet.BuildTransaction(
 			password: wallet.Kitchen.SaltSoup(),
@@ -81,6 +87,7 @@ public static class TransactionHelpers
 		return BuildTransaction(
 			wallet,
 			destination,
+			transactionInfo.CustomChangeAddress,
 			transactionInfo.Amount,
 			transactionInfo.UserLabels,
 			transactionInfo.FeeRate,
@@ -149,6 +156,7 @@ public static class TransactionHelpers
 			{
 				filePath = $"{filePath}.{psbtExtension}";
 			}
+
 			await File.WriteAllBytesAsync(filePath, transaction.Psbt.ToBytes());
 
 			return true;
