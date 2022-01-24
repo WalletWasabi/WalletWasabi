@@ -45,7 +45,7 @@ public class FilterModel
 
 	public string ToLine()
 	{
-		var builder = new StringBuilder();
+		StringBuilder builder = new(capacity: 160);
 		builder.Append(Header.Height);
 		builder.Append(':');
 		builder.Append(Header.BlockHash);
