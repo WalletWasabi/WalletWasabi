@@ -112,7 +112,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 			if (ChangelessTransactionCoinSelector.TryGetCoins(availableCoins, transactionInfo.FeeRate, transactionInfo.Amount, out IEnumerable<SmartCoin>? selection, cancellationToken))
 			{
-				var transaction = TransactionHelpers.BuildChangelessTransaction(
+				BuildTransactionResult transaction = TransactionHelpers.BuildChangelessTransaction(
 					wallet,
 					destination,
 					transactionInfo.UserLabels,
@@ -130,27 +130,9 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 			return null;
 		});
 
-		var largerTransaction = await Task.Run(() => wallet.BuildTransaction(
-			wallet.Kitchen.SaltSoup(),
-			intent,
-			FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
-			true,
-			requestedTransaction.SpentCoins.Select(x => x.OutPoint),
-			payjoinClient: null,
-			tryToSign: false));
-
-		var largerSuggestion = new ChangeAvoidanceSuggestionViewModel(
-			transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), largerTransaction,
-			wallet.Synchronizer.UsdExchangeRate, false);
-
 		if (smallerSuggestion is not null)
 		{
 			yield return smallerSuggestion;
-		}
-
-		if (largerSuggestion is not null)
-		{
-			yield return largerSuggestion;
 		}
 
 		ChangeAvoidanceSuggestionViewModel? bnbSuggestion = await bnbSuggestionTask;
