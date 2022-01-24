@@ -61,12 +61,12 @@ public partial class HistoryViewModel : ActivatableViewModel
 			// Outgoing			OutgoingColumnView			Outgoing (₿)	Auto		120				150			true
 			// Balance			BalanceColumnView			Balance (₿)		Auto		120				150			true
 
-			IControl IndicatorsColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new IndicatorsColumnView() { Height = 37.5, MinWidth = 80 };
-			IControl DateColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new DateColumnView() { Height = 37.5, MinWidth = 150 };
-			IControl LabelsColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new LabelsColumnView() { Height = 37.5, MinWidth = 75 };
-			IControl IncomingColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new IncomingColumnView() { Height = 37.5, MinWidth = 120, MaxWidth = 150 };
-			IControl OutgoingColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new OutgoingColumnView() { Height = 37.5, MinWidth = 120, MaxWidth = 150 };
-			IControl BalanceColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new BalanceColumnView() { Height = 37.5, MinWidth = 120, MaxWidth = 150 };
+			IControl IndicatorsColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new IndicatorsColumnView() { Height = 37.5 };
+			IControl DateColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new DateColumnView() { Height = 37.5 };
+			IControl LabelsColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new LabelsColumnView() { Height = 37.5 };
+			IControl IncomingColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new IncomingColumnView() { Height = 37.5, MaxWidth = 150 };
+			IControl OutgoingColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new OutgoingColumnView() { Height = 37.5, MaxWidth = 150 };
+			IControl BalanceColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new BalanceColumnView() { Height = 37.5, MaxWidth = 150 };
 
 			Source = new FlatTreeDataGridSource<HistoryItemViewModelBase>(_transactions)
             {
