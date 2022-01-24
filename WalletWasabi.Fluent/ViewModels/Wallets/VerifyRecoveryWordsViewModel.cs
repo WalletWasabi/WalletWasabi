@@ -49,10 +49,16 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 				.Select(_ => IsMnemonicsValid);
 
 		NextCommand = ReactiveCommand.CreateFromTask(
-			async () => await OnNextAsync(),
-			NextCommandCanExecute);
+			async () => await OnNextAsync());
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+	}
+
+	private async Task ShowErrorAsync()
+	{
+		await ShowErrorAsync("Error",
+			"Try again, but if you are unable to verify your Recovery Words, you MUST move your funds to a new wallet as soon as possible.",
+			"The Recovery Words you entered were incorrect.");
 	}
 
 	private async Task OnNextAsync()
@@ -61,6 +67,15 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 
 		try
 		{
+			if (!IsMnemonicsValid)
+			{
+				await ShowErrorAsync();
+
+				Mnemonics.Clear();
+				IsBusy = false;
+				return;
+			}
+
 			if (_currentMnemonics is { })
 			{
 				var saltSoup = _wallet.Kitchen.SaltSoup();
@@ -76,9 +91,7 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 				}
 				else
 				{
-					await ShowErrorAsync("Error",
-						"Try again, but if you are unable to verify your Recovery Words, you MUST move your funds to a new wallet as soon as possible.",
-						"The Recovery Words you entered were incorrect.");
+					await ShowErrorAsync();
 
 					Mnemonics.Clear();
 				}
