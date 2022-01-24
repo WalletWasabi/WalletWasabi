@@ -35,11 +35,6 @@
       <ToggleSwitch IsChecked="{Binding AutoPaste}" />
     </DockPanel>
 
-    <DockPanel>
-      <TextBlock VerticalAlignment="Center" Text="Custom change address" />
-      <ToggleSwitch IsChecked="{Binding CustomChangeAddress}" />
-    </DockPanel>
-
     <StackPanel Spacing="10">
       <TextBlock Text="Fee display format" />
       <ComboBox HorizontalAlignment="Stretch" Items="{Binding FeeDisplayFormats}" SelectedItem="{Binding SelectedFeeDisplayFormat}">

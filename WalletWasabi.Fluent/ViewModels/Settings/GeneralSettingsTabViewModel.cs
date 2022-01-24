@@ -17,8 +17,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	Category = "Settings",
 	Keywords = new[]
 	{
-			"Settings", "General", "Dark", "Mode", "Bitcoin", "Addresses", "Manual", "Entry", "Fee", "Custom", "Change",
-			"Address", "Display", "Format", "Dust", "Threshold", "BTC", "Start", "System"
+		"Settings", "General", "Dark", "Mode", "Bitcoin", "Addresses", "Manual", "Entry", "Fee",
+		"Address", "Display", "Format", "Dust", "Threshold", "BTC", "Start", "System"
 	},
 	IconName = "settings_general_regular")]
 public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
@@ -26,7 +26,6 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 	[AutoNotify] private bool _darkModeEnabled;
 	[AutoNotify] private bool _autoCopy;
 	[AutoNotify] private bool _autoPaste;
-	[AutoNotify] private bool _customChangeAddress;
 	[AutoNotify] private FeeDisplayFormat _selectedFeeDisplayFormat;
 	[AutoNotify] private bool _runOnSystemStartup;
 	[AutoNotify] private bool _hideOnClose;
@@ -36,7 +35,6 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 		_darkModeEnabled = Services.UiConfig.DarkModeEnabled;
 		_autoCopy = Services.UiConfig.Autocopy;
 		_autoPaste = Services.UiConfig.AutoPaste;
-		_customChangeAddress = Services.UiConfig.IsCustomChangeAddress;
 		_runOnSystemStartup = Services.UiConfig.RunOnSystemStartup;
 		_hideOnClose = Services.UiConfig.HideOnClose;
 		_selectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), Services.UiConfig.FeeDisplayFormat)
@@ -76,11 +74,6 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 				await ShowErrorAsync(Title, "Couldn't save your change, please see the logs for further information.", "Error occurred.");
 			}
 		});
-
-		this.WhenAnyValue(x => x.CustomChangeAddress)
-			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Skip(1)
-			.Subscribe(x => Services.UiConfig.IsCustomChangeAddress = x);
 
 		this.WhenAnyValue(x => x.SelectedFeeDisplayFormat)
 			.ObserveOn(RxApp.MainThreadScheduler)
