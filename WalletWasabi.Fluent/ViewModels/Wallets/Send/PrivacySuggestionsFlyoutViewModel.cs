@@ -53,12 +53,12 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 			var suggestions =
 				ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, transaction, cancellationToken);
 
+			IsLoading = false;
+
 			await foreach (var suggestion in suggestions)
 			{
 				Suggestions.Add(suggestion);
 			}
 		}
-
-		IsLoading = false;
 	}
 }
