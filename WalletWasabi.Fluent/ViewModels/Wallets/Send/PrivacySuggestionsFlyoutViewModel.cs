@@ -51,9 +51,9 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 		if (hasChange)
 		{
 			var suggestions =
-				await ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, transaction, cancellationToken);
+				ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, transaction, cancellationToken);
 
-			foreach (var suggestion in suggestions)
+			await foreach (var suggestion in suggestions)
 			{
 				Suggestions.Add(suggestion);
 			}

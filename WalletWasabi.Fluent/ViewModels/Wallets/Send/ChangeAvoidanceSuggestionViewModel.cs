@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -75,8 +76,8 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		return normalized;
 	}
 
-	public static async Task<IEnumerable<ChangeAvoidanceSuggestionViewModel>> GenerateSuggestionsAsync(
-		TransactionInfo transactionInfo, BitcoinAddress destination, Wallet wallet, BuildTransactionResult requestedTransaction, CancellationToken cancellationToken)
+	public static async IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> GenerateSuggestionsAsync(
+		TransactionInfo transactionInfo, BitcoinAddress destination, Wallet wallet, BuildTransactionResult requestedTransaction, [EnumeratorCancellation] CancellationToken cancellationToken)
 	{
 		var intent = new PaymentIntent(
 			destination,
@@ -105,41 +106,29 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 				wallet.Synchronizer.UsdExchangeRate, false);
 		}
 
-		ChangeAvoidanceSuggestionViewModel? bnbSuggestion = null;
-		IEnumerable<SmartCoin>? bnbResult = null;
-		bool canBuildWithoutChangeWithBnb = false;
-
-		try
+		Task<ChangeAvoidanceSuggestionViewModel?> bnbSuggestionTask = Task.Run(() =>
 		{
-			canBuildWithoutChangeWithBnb = await Task.Run(() => ChangelessTransactionCoinSelector.TryGetCoins(wallet.Coins.Available().ToList(), transactionInfo.FeeRate, transactionInfo.Amount, out bnbResult, cancellationToken));
-		}
-		catch (OperationCanceledException)
-		{
-			Logger.LogInfo("Changeless Coin Selector timed out.");
-		}
+			List<SmartCoin> availableCoins = wallet.Coins.Available().ToList();
 
-		if (canBuildWithoutChangeWithBnb && bnbResult is not null)
-		{
-			var bnbTransaction = await Task.Run(() => TransactionHelpers.BuildChangelessTransaction(
-				wallet,
-				destination,
-				transactionInfo.UserLabels,
-				transactionInfo.FeeRate,
-				bnbResult,
-				tryToSign: false
-				));
+			if (ChangelessTransactionCoinSelector.TryGetCoins(availableCoins, transactionInfo.FeeRate, transactionInfo.Amount, out IEnumerable<SmartCoin>? selection, cancellationToken))
+			{
+				var transaction = TransactionHelpers.BuildChangelessTransaction(
+					wallet,
+					destination,
+					transactionInfo.UserLabels,
+					transactionInfo.FeeRate,
+					selection,
+					tryToSign: false);
 
-			bnbSuggestion = new ChangeAvoidanceSuggestionViewModel(
-				transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
-				bnbTransaction,
-				wallet.Synchronizer.UsdExchangeRate,
-				isOriginal: false
-				);
-		}
+				return new ChangeAvoidanceSuggestionViewModel(
+					transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
+					transaction,
+					wallet.Synchronizer.UsdExchangeRate,
+					isOriginal: false);
+			}
 
-		var defaultSelection = new ChangeAvoidanceSuggestionViewModel(
-			transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), requestedTransaction,
-			wallet.Synchronizer.UsdExchangeRate, true);
+			return null;
+		});
 
 		var largerTransaction = await Task.Run(() => wallet.BuildTransaction(
 			wallet.Kitchen.SaltSoup(),
@@ -154,28 +143,21 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 			transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), largerTransaction,
 			wallet.Synchronizer.UsdExchangeRate, false);
 
-		// There are several scenarios, both the alternate suggestions are <, or >, or 1 < and 1 >.
-		// We sort them and add the suggestions accordingly.
-		var suggestions = new List<ChangeAvoidanceSuggestionViewModel> { defaultSelection, largerSuggestion };
-
-		if (smallerSuggestion is { })
+		if (smallerSuggestion is not null)
 		{
-			suggestions.Add(smallerSuggestion);
+			yield return smallerSuggestion;
 		}
+
+		if (largerSuggestion is not null)
+		{
+			yield return largerSuggestion;
+		}
+
+		ChangeAvoidanceSuggestionViewModel? bnbSuggestion = await bnbSuggestionTask;
 
 		if (bnbSuggestion is not null)
 		{
-			suggestions.Add(bnbSuggestion);
+			yield return bnbSuggestion;
 		}
-
-		var results = new List<ChangeAvoidanceSuggestionViewModel>();
-
-		foreach (var suggestion in NormalizeSuggestions(suggestions, defaultSelection)
-					 .Where(x => x != defaultSelection))
-		{
-			results.Add(suggestion);
-		}
-
-		return results;
 	}
 }
