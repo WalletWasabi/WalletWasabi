@@ -24,7 +24,7 @@ public class SignTransactionTests
 		round.Alices.Add(alice);
 		round.CoinjoinState = round.AddInput(alice.Coin).Finalize();
 		round.SetPhase(Phase.TransactionSigning);
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
 		var aliceSignedCoinJoin = round.Assert<SigningState>().CreateUnsignedTransaction();
 		aliceSignedCoinJoin.Sign(key.GetBitcoinSecret(Network.Main), alice.Coin);
@@ -38,7 +38,7 @@ public class SignTransactionTests
 	[Fact]
 	public async Task RoundNotFoundAsync()
 	{
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync();
+		using Arena arena = await ArenaBuilder.Default.CreateAndStartAsync();
 		var req = new TransactionSignaturesRequest(uint256.Zero, 0, WitScript.Empty);
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.SignTransactionAsync(req, CancellationToken.None));
 		Assert.Equal(WabiSabiProtocolErrorCode.RoundNotFound, ex.ErrorCode);
@@ -49,7 +49,7 @@ public class SignTransactionTests
 	public async Task WrongPhaseAsync()
 	{
 		WabiSabiConfig cfg = new();
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync();
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		var round = arena.Rounds.First();
 
