@@ -37,7 +37,7 @@ public class ChangelessTransactionCoinSelectorTests
 	}
 
 	/// <summary>
-	/// Tests that solutions respect <see cref="ChangelessTransactionCoinSelector.MaxExtraFee"/> restriction.
+	/// Tests that solutions respect <see cref="ChangelessTransactionCoinSelector.MaxExtraPayment"/> restriction.
 	/// </summary>
 	[Fact]
 	public void TooExpensiveSolution()
