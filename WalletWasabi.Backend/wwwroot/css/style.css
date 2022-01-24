@@ -455,7 +455,7 @@ footer .white-text {
 }
 .feature-box {
     background: #F8F8F8;
-    padding: 10px 40px;
+    padding: 40px;
     color: var(--blue);
     margin-bottom: 20px;
     position: relative;
@@ -925,7 +925,7 @@ ol li::marker {
 }
 .timeline li {
     width: 50%;
-    padding: 60px 0;
+    padding: 60px 0 5px;
     padding-right: 20%;
     position: relative;
     display: block;
@@ -1223,7 +1223,7 @@ ol li::marker {
     }
     .timeline li:nth-child(even):before {
         left: inherit;
-        right: calc(10% - 8px);
+        right: calc(15% - 8px);
     }
 }
 @media only screen and (max-width: 400px) {} @media only screen and (max-width: 320px) {
