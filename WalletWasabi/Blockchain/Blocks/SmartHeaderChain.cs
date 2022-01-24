@@ -120,6 +120,11 @@ public class SmartHeaderChain
 
 			Chain.AddLast(tip);
 			SetTipNoLock(tip);
+
+			if (Chain.Count > 150_000)
+			{
+				Chain.RemoveFirst();
+			}
 		}
 	}
 
