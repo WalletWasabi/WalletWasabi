@@ -31,44 +31,46 @@
 
 <body>
 
-    <header>
+    <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <div class="row align-items-center">
-                <div class="col">
-                    <a href="index.html" class="logo"><img src="img/logo.svg" alt="Wasabi Wallet">
-                    </a>
-                </div>
-                <div class="col-auto text-right">
-                </div>
+            <a class="logo" href="index.html"><img src="img/logo.svg" alt="Wasabi Wallet">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="about.html">About us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="thewallet.html">The Wallet</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://blog.wasabiwallet.io" target="_blank">Blog</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="contribution.html">Contribution</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#">Help</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="faq.html">FAQ</a>
+                            </li>
+                            <li><a class="dropdown-item" href="https://github.com/zkSNACKs/WalletWasabi/discussions" target="_blank">Support Forum</a>
+                            </li>
+                            <li><a class="dropdown-item" href="https://docs.wasabiwallet.io" target="_blank">Documentation</a>
+                            </li>
+                            <li><a class="dropdown-item" href="https://www.bitcoinsupport.com/" target="_blank">Bitcoin Support</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-secondary" href="index.html#download">Download</a>
+                    </li>
+                </ul>
             </div>
         </div>
-    </header>
-
-    <div class="nav-trigger">
-        <img src="img/menu.svg" alt="Navigation">
-    </div>
-
-    <nav>
-        <ul>
-            <li><a href="about.html">About us</a>
-            </li>
-            <li><a href="thewallet.html">The Wallet</a>
-            </li>
-            <li><a href="https://blog.wasabiwallet.io" target="_blank">Blog</a>
-            </li>
-            <li><a href="contribution.html">Contribution</a>
-            </li>
-            <li><a href="#">Help</a>
-                <ul>
-                    <li><a href="faq.html">FAQ</a></li>
-                    <li><a href="https://github.com/zkSNACKs/WalletWasabi/discussions" target="_blank">Support Forum</a></li>
-                    <li><a href="https://docs.wasabiwallet.io" target="_blank">Documentation</a></li>
-                    <li><a href="https://www.bitcoinsupport.com/" target="_blank">Bitcoin Support</a></li>
-                </ul>
-            </li>
-            <li><a href="index.html#download">Download</a>
-            </li>
-        </ul>
     </nav>
 
     <div class="content">
@@ -99,14 +101,30 @@
                         <p class="my-4">Satoshi brought scarcity, while Wasabi is bringing fungibility. As inflation is running rampant, vigilant individuals are opting out. Bitcoin is rapidly becoming the world's reserve currency, but its <a href="https://nopara73.medium.com/privacy-fungibility-anonymity-451d029355f7" target="_blank">fungibility</a> - a property of good money - is still unsatisfactory. Wasabi Wallet is a bastion of hope in the quest to qualitatively improve the money of the future.</p>
                     </div>
                     <div class="col-md-6 d-none d-md-flex">
-                        <img src="img/logo.svg" class="w-100">
+                        <div class="mx-auto">
+                            <svg width="177" height="242.4" viewBox="0 0 177 242.4">
+                                <defs>
+                                    <clipPath id="clip-path">
+                                        <rect id="Rectangle_589" data-name="Rectangle 589" width="177" height="242.4" fill="#77c600" />
+                                    </clipPath>
+                                </defs>
+                                <g id="Group_308" data-name="Group 308" transform="translate(0 0)">
+                                    <g id="Group_307" data-name="Group 307" transform="translate(0 0)" clip-path="url(#clip-path)">
+                                        <path id="Path_336" data-name="Path 336" d="M161.619,86.5c1.8-18.721-6.961-38.256-22.23-43.35s-31.9-6.225-31.9-6.225L107.406.219,85.5,0l-.087,36.037L67.9,36.1,67.152.523l-21.679.2.039,36.964L0,39.192.309,62.736l18.572-.551s12.254.247,11.751,16.485.91,92.472.91,92.472-.615,7.563-10.4,8.405-14.395-.115-14.395-.115L2.694,205.312l44.322,1.357,1.079,35.408,21.85.326-.073-36.546,17.974.478.048,34.809,23.179.41-.694-37.251s41.341-.034,54.373-18.274,15.327-37.563,8.481-53.6-28.958-20.648-28.958-20.648l.107-1.761s15.437-4.8,17.238-23.516M131.8,156.338c-.817,17.8-31.666,21.12-39.49,21.805s-21.687-.138-21.687-.138l-.719-48.429s4.363-.464,25.966.385,36.745,8.574,35.93,26.376m-11.8-66.886c-1.275,8.464-10.726,12.953-19.227,15.294A69.421,69.421,0,0,1,81.168,107.1l-10.383-.171L69.414,63.155l21.213-.084c21.216-.084,31.759,10.58,29.379,26.382" transform="translate(0 -0.001)" fill="#77c600" />
+                                    </g>
+                                </g>
+                            </svg>
+                        </div>
                     </div>
                 </div>
                 <div class="row mt-5">
                     <div class="col-md-4">
                         <div class="feature-box">
                             <h2 class="title mt-5">Not your keys, not your coins</h2>
-                            <p class="my-4">If you don't control your private keys, then you are not the true owner of your funds. Wasabi is <a href="https://docs.wasabiwallet.io/glossary/Glossary-GeneralBitcoin.html#non-custodial-wallet-or-mixer" target="_blank">non-custodial:</a> the developers cannot steal or freeze your funds.</p>
+                            <p class="my-4">If you don't control your private keys, then you are not the true owner of your funds. Wasabi is <a href="https://docs.wasabiwallet.io/glossary/Glossary-GeneralBitcoin.html#non-custodial-wallet-or-mixer" target="_blank">non-custodial:</a> the developers cannot steal or freeze your funds.
+                                <br>
+                                <br>
+                            </p>
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -118,7 +136,11 @@
                     <div class="col-md-4">
                         <div class="feature-box">
                             <h2 class="title mt-5">Don't trust verify</h2>
-                            <p class="my-4">To ensure the code - running on your computer - can indeed protect you from the developers and the public, Wasabi is <a href="https://github.com/zkSNACKs/WalletWasabi" target="_blank">free, open-source</a> and <a href="https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/DeterministicBuildGuide.md" target="_blank">deterministically reproducible</a> software.</p>
+                            <p class="my-4">To ensure the code - running on your computer - can indeed protect you from the developers and the public, Wasabi is <a href="https://github.com/zkSNACKs/WalletWasabi" target="_blank">free, open-source</a> and <a href="https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/DeterministicBuildGuide.md" target="_blank">deterministically reproducible</a> software.
+                                <br>
+                                <br>
+                                <br>
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -279,7 +301,7 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" viewBox="0 0 30 30">
                                     <g>
                                         <path d="M20.1,0H9.9C4.4,0,0,4.4,0,9.9c0,0,0,0,0,0v10.3C0,25.6,4.4,30,9.9,30c0,0,0,0,0,0h10.3c5.4,0,9.9-4.4,9.9-9.9V9.9
-        C30,4.4,25.6,0,20.1,0z M11.6,20c0-3.4,0.1-6.7,0.1-10.1l8.8,5.1L11.6,20z"/>
+        C30,4.4,25.6,0,20.1,0z M11.6,20c0-3.4,0.1-6.7,0.1-10.1l8.8,5.1L11.6,20z" />
                                     </g>
                                 </svg>
                             </a>

@@ -13,166 +13,209 @@
     <title>Wasabi Wallet - Bitcoin privacy wallet with built-in CoinJoin</title>
 </head>
 
-<body>
+<body class="fixed-heading">
 
-    <header>
+    <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <div class="row align-items-center">
-                <div class="col">
-                    <a href="index.html" class="logo"><img src="img/logo.svg" alt="Wasabi Wallet">
-                    </a>
-                </div>
-                <div class="col-auto text-right">
-                </div>
+            <a class="logo" href="index.html"><img src="img/logo.svg" alt="Wasabi Wallet">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="about.html">About us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="thewallet.html">The Wallet</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://blog.wasabiwallet.io" target="_blank">Blog</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="contribution.html">Contribution</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#">Help</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="faq.html">FAQ</a>
+                            </li>
+                            <li><a class="dropdown-item" href="https://github.com/zkSNACKs/WalletWasabi/discussions" target="_blank">Support Forum</a>
+                            </li>
+                            <li><a class="dropdown-item" href="https://docs.wasabiwallet.io" target="_blank">Documentation</a>
+                            </li>
+                            <li><a class="dropdown-item" href="https://www.bitcoinsupport.com/" target="_blank">Bitcoin Support</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-secondary" href="index.html#download">Download</a>
+                    </li>
+                </ul>
             </div>
         </div>
-    </header>
-
-    <div class="nav-trigger">
-        <img src="img/menu.svg" alt="Navigation">
-    </div>
-    
-    <nav>
-        <ul>
-            <li><a href="about.html">About us</a>
-            </li>
-            <li><a href="thewallet.html">The Wallet</a>
-            </li>
-            <li><a href="https://blog.wasabiwallet.io" target="_blank">Blog</a>
-            </li>
-            <li><a href="contribution.html">Contribution</a>
-            </li>
-            <li><a href="#">Help</a>
-                <ul>
-                    <li><a href="faq.html">FAQ</a></li>
-                    <li><a href="https://github.com/zkSNACKs/WalletWasabi/discussions" target="_blank">Support Forum</a></li>
-                    <li><a href="https://docs.wasabiwallet.io" target="_blank">Documentation</a></li>
-                    <li><a href="https://www.bitcoinsupport.com/" target="_blank">Bitcoin Support</a></li>
-                </ul>
-            </li>
-            <li><a href="index.html#download">Download</a>
-            </li>
-        </ul>
     </nav>
 
-    <div class="main-img">
-        <img src="img/04_support.png" class="w-100" alt="Wasabi Wallet - Support">
-        <div class="main-img-content">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
-                        <h1 class="text-center my-5">Support</h1>
-                    </div>
-                </div>
-                <div class="row justify-content-center my-5">
-                    <div class="col-5 col-md-4 col-xl-3 support-box">
-                        <div class="support-box">
-                            <img src="img/logo_alt.svg" alt="Wasabi Wallet - Github">
-                            <a href="#" class="stretched-link" target="_blank">Github Discussion</a>
-                        </div>
-                    </div>
-                    <div class="col-5 col-md-4 col-xl-3 offset-1 support-box">
-                        <div class="support-box">
-                            <img src="img/logo_alt.svg" alt="Wasabi Wallet - Documentation">
-                            <a href="#" class="stretched-link" target="_blank">Wasabi wallet Documentation</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <h1 class="text-center my-5">FAQ</h1>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+    <div class="fixed-img">
+        <img src="img/04_support.png" alt="Wasabi Wallet - Help">
     </div>
 
-    <div class="content white-bg">
+    <div class="content subpage">
         <section class="p-100">
             <div class="container">
                 <div class="row">
                     <div class="col-md-12">
-                        <div class="faq-box">
-                            <h2 class="squared mb-5">WHAT IS A “COINJOIN?</h2>
-                            <p>A mechanism by which multiple participants combine their coins (or UTXOs, to be more precise) into one large transaction with multiple inputs and multiple outputs. An observer cannot determine which output belongs to which input, and neither can the participants themselves. This makes it difficult for outside parties to trace where a particular coin originated from and where it was sent to (as opposed to regular bitcoin transactions, where there is usually one sender and one receiver).</p>
+                        <h1 class="text-center">Help</h1>
+                    </div>
+                </div>
+                <div class="row mt-5">
+                    <div class="col-md-4">
+                        <div class="feature-box">
+                            <h2 class="title mt-5 text-center">GitHub</h2>
+                            <div class="text-center my-5">
+                                <img src="img/github.png" class="help-logo">
+                            </div>
+                            <a href="#" target="_blank" class="stretched-link"></a>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="feature-box">
+                            <h2 class="title mt-5 text-center">Documentation 1.0</h2>
+                            <div class="text-center my-5">
+                                <img src="img/wasabi-wallet-logo.svg" class="help-logo">
+                            </div>
+                            <a href="#" target="_blank" class="stretched-link"></a>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="feature-box">
+                            <h2 class="title mt-5 text-center">Documentation 2.0</h2>
+                            <div class="text-center my-5">
+                                <img src="img/logo_alt.svg" class="help-logo">
+                            </div>
+                            <a href="#" target="_blank" class="stretched-link"></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="p-100">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-8 offset-md-2">
+                        <h1 class="text-center">FAQ</h1>
 
-                            <p>This can be done with non-custodial software like Wasabi that eliminates the risk of funds disappearing or being stolen. Each of the signatures are created on the participants’ computers, so anyone trying to connect the signatures is unable to alter the transaction or redirect the funds. The funds will always be in a Bitcoin address that you control. </p>
+                        <div class="card">
+                            <input type="checkbox" id="faq1">
+                            <label for="faq1">
+                                WHAT IS A “COINJOIN”?
+                            </label>
+                            <div class="card-content">
+                                <p>A mechanism by which multiple participants combine their coins (or UTXOs, to be more precise) into one large transaction with multiple inputs and multiple outputs. An observer cannot determine which output belongs to which input, and neither can the participants themselves. This makes it difficult for outside parties to trace where a particular coin originated from and where it was sent to (as opposed to regular bitcoin transactions, where there is usually one sender and one receiver).</p>
 
-                            <p>It’s possible to do this in a decentralized way so that the service does not rely on external parties or centralized servers. It just needs the participants of the transaction. </p>
+                                <p>This can be done with non-custodial software like Wasabi that eliminates the risk of funds disappearing or being stolen. Each of the signatures are created on the participants’ computers, so anyone trying to connect the signatures is unable to alter the transaction or redirect the funds. The funds will always be in a Bitcoin address that you control. </p>
 
-                            <p>CoinJoin can be applied multiple times, and as many transactions are grouped together, participants may save on transaction fees. CoinJoin is the preferred method of gaining privacy in the Bitcoin network.</p>
+                                <p>It’s possible to do this in a decentralized way so that the service does not rely on external parties or centralized servers. It just needs the participants of the transaction. </p>
 
-                            <p>CoinJoin means: “when you want to make a transaction, find someone else who also wants to make a transaction and make a joint transaction together”. </p>
+                                <p>CoinJoin can be applied multiple times, and as many transactions are grouped together, participants may save on transaction fees. CoinJoin is the preferred method of gaining privacy in the Bitcoin network.</p>
+
+                                <p>CoinJoin means: “when you want to make a transaction, find someone else who also wants to make a transaction and make a joint transaction together”. </p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <input type="checkbox" id="faq2">
+                            <label for="faq2">
+                                DO I NEED TO TRUST WASABI WITH MY COINS?
+                            </label>
+                            <div class="card-content">
+                                <p>No, Wasabi’s coinjoin implementation is trustless by design. The participants do not need to trust each other or any third party. Both the sending address (the coinjoin input) and the receiving address (the coinjoin output) are controlled by your own private keys. Wasabi merely coordinates the process of combining the inputs of the participants into one single transaction, but the wallet can neither steal your coins, nor figure out which outputs belong to which inputs.</p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <input type="checkbox" id="faq3">
+                            <label for="faq3">
+                                DO I NEED TO RUN TOR?
+                            </label>
+                            <div class="card-content">
+                                <p>All Wasabi network traffic goes via Tor by default - no need to set up Tor yourself. If you do already have Tor, and it is running, then Wasabi will try to use that first. </p>
+                                <p> You can turn off Tor in the Settings. Note that in this case you are still private, except when you coinjoin and when you broadcast a transaction. In the first case, the coordinator would know the links between your inputs and outputs based on your IP address. In the second case, if you happen to broadcast a transaction of yours to a full node that is spying on you, it will know the link between your transaction and your IP address.</p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <input type="checkbox" id="faq4">
+                            <label for="faq4">
+                                MY WALLET CANNOT SEND TO BECH32 ADDRESSES - WHAT WALLETS CAN I USE INSTEAD?
+                            </label>
+                            <div class="card-content">
+                                <p>Wasabi generates Bech32 addresses only, also known as native SegWit addresses or bc1 addresses, because these addresses start with the characters bc1… Some wallets/exchanges do not yet support this type of address and may give an error message (e.g. “unknown bitcoin address”). The hack is to manage your funds with a wallet which does support Bech32. To check Bech32 adoption and exchange/wallet support you can follow <a href="#" target="_blank">Bitcoin.it Wiki</a> and <a href="#" target="_blank">When Segwit? website</a>.</p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <input type="checkbox" id="faq5">
+                            <label for="faq5">
+                                WHAT ARE THE FEES FOR COINJOINS?
+                            </label>
+                            <div class="card-content">
+                                <p>You currently pay a fee of 0.003% * anonymity set. If the anonymity set of a coin is 50 then you pay 0.003% * 50 (=0.15%). If you set the target anonymity set to 53 then Wasabi will continue mixing until this is reached, so you may end up with an anonymity set of say 60, and you will pay 0.003% * 60 (=0.18%). </p>
+
+                                <p>There are also edge cases where you do not pay the full fee or where you pay more. For example if you’re the smallest registrant to a round, you will never pay a fee. Also when you are remixing and you cannot pay the full fee with your input, then you only pay as much as you have, but if the change amount leftover would be too small, then that is also added to the fee. Currently the minimum change amount to be paid out is 0.7% of the base denomination (~0.1BTC.)</p>
+
+                                <p>It is also possible that you get more back from mixing than you put in. This happens when network fees go down between the start of the round and its end. In this case, the difference is split between the active outputs of the mix.</p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <input type="checkbox" id="faq6">
+                            <label for="faq6">
+                                WHAT IS AN “ANONYMITY SET?
+                            </label>
+                            <div class="card-content">
+                                <p>The anonymity set is effectively the size of the group you are hiding in. </p>
+
+                                <p>If 3 people take part in a CoinJoin (with equal size inputs) and there are 3 outputs then each of those output coins has an anonymity set of 3.</p>
+
+
+                                <table>
+                                    <tr>
+                                        <td>0.1 BTC (Alice)</td>
+                                        <td></td>
+                                        <td>0.1 BTC (Anon set 3)</td>
+                                    </tr>
+                                    <tr>
+                                        <td>0.3 BTC (Bob)</td>
+                                        <td>-></td>
+                                        <td>0.1 BTC (Anon set 3)</td>
+                                    </tr>
+                                    <tr>
+                                        <td>0.4 BTC (Charlie)</td>
+                                        <td></td>
+                                        <td>0.1 BTC (Anon set 3)</td>
+                                    </tr>
+                                    <tr>
+                                        <td></td>
+                                        <td></td>
+                                        <td>0.2 BTC (Change Coin Bob)</td>
+                                    </tr>
+                                    <tr>
+                                        <td></td>
+                                        <td></td>
+                                        <td>0.3 BTC (Change Coin Charlie)</td>
+                                    </tr>
+                                </table>
+
+
+                                <p>There is no way to know which of the anon set output coins are owned by which of the input owners. All an observer knows is that a specific anon set output coin is owned by one of the owners of one of the input Coins i.e. 3 people - hence an anonymity set of 3. </p>
+
+                                <p>Your Wasabi software has limited information on what the anonymity set should be, so the anonymity set that the software presents you is just an estimation, not an accurate value. With Wasabi we are trying to do lower estimations, rather than higher ones.</p>
+                            </div>
                         </div>
 
-                        <div class="faq-box">
-                            <h2 class="squared mb-5">DO I NEED TO TRUST WASABI WITH MY COINS?</h2>
-                            <p>No, Wasabi’s coinjoin implementation is trustless by design. The participants do not need to trust each other or any third party. Both the sending address (the coinjoin input) and the receiving address (the coinjoin output) are controlled by your own private keys. Wasabi merely coordinates the process of combining the inputs of the participants into one single transaction, but the wallet can neither steal your coins, nor figure out which outputs belong to which inputs.</p>
-
-                        </div>
-                        <div class="faq-box">
-                            <h2 class="squared mb-5">DO I NEED TO RUN TOR?</h2>
-                            <p>All Wasabi network traffic goes via Tor by default - no need to set up Tor yourself. If you do already have Tor, and it is running, then Wasabi will try to use that first. </p>
-                            <p> You can turn off Tor in the Settings. Note that in this case you are still private, except when you coinjoin and when you broadcast a transaction. In the first case, the coordinator would know the links between your inputs and outputs based on your IP address. In the second case, if you happen to broadcast a transaction of yours to a full node that is spying on you, it will know the link between your transaction and your IP address.</p>
-
-                        </div>
-                        <div class="faq-box">
-                            <h2 class="squared mb-5">MY WALLET CANNOT SEND TO BECH32 ADDRESSES - WHAT WALLETS CAN I USE INSTEAD?</h2>
-                            <p>Wasabi generates Bech32 addresses only, also known as native SegWit addresses or bc1 addresses, because these addresses start with the characters bc1… Some wallets/exchanges do not yet support this type of address and may give an error message (e.g. “unknown bitcoin address”). The hack is to manage your funds with a wallet which does support Bech32. To check Bech32 adoption and exchange/wallet support you can follow <a href="#" target="_blank">Bitcoin.it Wiki</a> and <a href="#" target="_blank">When Segwit? website</a>.</p>
-
-                            <p>Be careful, if you send all your coins from an old wallet to a new wallet (from the table above) in one transaction then you will merge all your coins which is bad for privacy - instead, send the coins individually or if possible import the seed in the new wallet.</p>
-
-                        </div>
-                        <div class="faq-box">
-                            <h2 class="squared mb-5">WHAT ARE THE FEES FOR COINJOINS?</h2>
-                            <p>You currently pay a fee of 0.003% * anonymity set. If the anonymity set of a coin is 50 then you pay 0.003% * 50 (=0.15%). If you set the target anonymity set to 53 then Wasabi will continue mixing until this is reached, so you may end up with an anonymity set of say 60, and you will pay 0.003% * 60 (=0.18%). </p>
-
-                            <p>There are also edge cases where you do not pay the full fee or where you pay more. For example if you’re the smallest registrant to a round, you will never pay a fee. Also when you are remixing and you cannot pay the full fee with your input, then you only pay as much as you have, but if the change amount leftover would be too small, then that is also added to the fee. Currently the minimum change amount to be paid out is 0.7% of the base denomination (~0.1BTC.)</p>
-
-                            <p>It is also possible that you get more back from mixing than you put in. This happens when network fees go down between the start of the round and its end. In this case, the difference is split between the active outputs of the mix.</p>
-
-                        </div>
-                        <div class="faq-box">
-                            <h2 class="squared mb-5">WHAT IS AN “ANONYMITY SET?</h2>
-                            <p>The anonymity set is effectively the size of the group you are hiding in. </p>
-
-                            <p>If 3 people take part in a CoinJoin (with equal size inputs) and there are 3 outputs then each of those output coins has an anonymity set of 3.</p>
-
-
-                            <table>
-                                <tr>
-                                    <td>0.1 BTC (Alice)</td>
-                                    <td></td>
-                                    <td>0.1 BTC (Anon set 3)</td>
-                                </tr>
-                                <tr>
-                                    <td>0.3 BTC (Bob)</td>
-                                    <td>-></td>
-                                    <td>0.1 BTC (Anon set 3)</td>
-                                </tr>
-                                <tr>
-                                    <td>0.4 BTC (Charlie)</td>
-                                    <td></td>
-                                    <td>0.1 BTC (Anon set 3)</td>
-                                </tr>
-                                <tr>
-                                    <td></td>
-                                    <td></td>
-                                    <td>0.2 BTC (Change Coin Bob)</td>
-                                </tr>
-                                <tr>
-                                    <td></td>
-                                    <td></td>
-                                    <td>0.3 BTC (Change Coin Charlie)</td>
-                                </tr>
-                            </table>
-
-
-                            <p>There is no way to know which of the anon set output coins are owned by which of the input owners. All an observer knows is that a specific anon set output coin is owned by one of the owners of one of the input Coins i.e. 3 people - hence an anonymity set of 3. </p>
-
-                            <p>Your Wasabi software has limited information on what the anonymity set should be, so the anonymity set that the software presents you is just an estimation, not an accurate value. With Wasabi we are trying to do lower estimations, rather than higher ones.</p>
-
+                        <div class="text-center my-5">
+                            <a href="index.html#download" class="btn btn-primary btn-download">Download <svg version="1.1" x="0px" y="0px" viewBox="0 0 400 400" xml:space="preserve"><g>
+                                <polygon points="225.276,110.7 188.393,110.7 188.393,10.034 120.809,10.034 120.809,110.702 83.915,110.702 154.596,211.585   "/>
+                                <polygon points="260.002,176.673 260.002,249.962 49.196,249.962 49.196,176.673 0,176.673 0,299.163 309.197,299.163 309.197,176.673  "/>
+                                </g></svg>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -217,7 +260,7 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" viewBox="0 0 30 30">
                                     <g>
                                         <path d="M20.1,0H9.9C4.4,0,0,4.4,0,9.9c0,0,0,0,0,0v10.3C0,25.6,4.4,30,9.9,30c0,0,0,0,0,0h10.3c5.4,0,9.9-4.4,9.9-9.9V9.9
-        C30,4.4,25.6,0,20.1,0z M11.6,20c0-3.4,0.1-6.7,0.1-10.1l8.8,5.1L11.6,20z"/>
+        C30,4.4,25.6,0,20.1,0z M11.6,20c0-3.4,0.1-6.7,0.1-10.1l8.8,5.1L11.6,20z" />
                                     </g>
                                 </svg>
                             </a>
