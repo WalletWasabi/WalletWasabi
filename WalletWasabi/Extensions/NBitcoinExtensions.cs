@@ -478,6 +478,9 @@ public static class NBitcoinExtensions
 	public static Money EffectiveValue(this SmartCoin coin, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate) =>
 		EffectiveValue(coin.Coin, feeRate, coordinationFeeRate);
 
+	public static Money EffectiveValue(this SmartCoin coin, FeeRate feeRate) =>
+		EffectiveValue(coin.Coin, feeRate, CoordinationFeeRate.Zero);
+
 	public static T FromBytes<T>(byte[] input) where T : IBitcoinSerializable, new()
 	{
 		BitcoinStream inputStream = new(input);

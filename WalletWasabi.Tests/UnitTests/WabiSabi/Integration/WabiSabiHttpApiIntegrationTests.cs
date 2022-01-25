@@ -1,3 +1,4 @@
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -18,7 +19,6 @@ using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
-using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
@@ -148,10 +148,11 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		await roundStateUpdater.StartAsync(CancellationToken.None);
 
-		var kitchen = new Kitchen();
-		kitchen.Cook("");
-
-		var coinJoinClient = new CoinJoinClient(mockHttpClientFactory.Object, kitchen, keyManager, roundStateUpdater, consolidationMode: true);
+		var coinJoinClient = new CoinJoinClient(mockHttpClientFactory.Object,
+			new KeyChain(keyManager),
+			new InternalDestinationProvider(keyManager),
+			roundStateUpdater,
+			consolidationMode: true);
 
 		// Run the coinjoin client task.
 		Assert.True(await coinJoinClient.StartCoinJoinAsync(coins, cts.Token));
@@ -255,10 +256,11 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		var roundState = await roundStateUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cts.Token);
 
-		var kitchen = new Kitchen();
-		kitchen.Cook("");
-
-		var coinJoinClient = new CoinJoinClient(mockHttpClientFactory.Object, kitchen, keyManager1, roundStateUpdater, consolidationMode: true);
+		var coinJoinClient = new CoinJoinClient(mockHttpClientFactory.Object,
+			new KeyChain(keyManager1),
+			new InternalDestinationProvider(keyManager1),
+			roundStateUpdater,
+			consolidationMode: true);
 
 		// Run the coinjoin client task.
 		var coinJoinTask = Task.Run(async () => await coinJoinClient.StartCoinJoinAsync(coins, cts.Token).ConfigureAwait(false), cts.Token);
@@ -286,7 +288,12 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			.Setup(factory => factory.NewHttpClientWithCircuitPerRequest())
 			.Returns(nonSigningHttpClient);
 
-		var badCoinJoinClient = new CoinJoinClient(mockNonSigningHttpClientFactory.Object, kitchen, keyManager2, roundStateUpdater, consolidationMode: true);
+		var badCoinJoinClient = new CoinJoinClient(mockNonSigningHttpClientFactory.Object,
+			new KeyChain(keyManager2),
+			new InternalDestinationProvider(keyManager2),
+			roundStateUpdater,
+			consolidationMode: true);
+
 		var badCoinsTask = Task.Run(async () => await badCoinJoinClient.StartRoundAsync(badCoins, roundState, cts.Token).ConfigureAwait(false), cts.Token);
 
 		await Task.WhenAll(new Task[] { badCoinsTask, coinJoinTask });
@@ -323,7 +330,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					// Instruct the coordinator DI container to use these two scoped
 					// services to build everything (WabiSabi controller, arena, etc)
 					services.AddScoped<IRPCClient>(s => rpc);
-					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig
+					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig(Path.GetTempFileName())
 					{
 						MaxRegistrableAmount = Money.Coins(500m),
 						MaxInputCountByRound = ExpectedInputNumber,
