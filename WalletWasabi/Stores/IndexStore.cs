@@ -140,13 +140,15 @@ public class IndexStore : IAsyncDisposable
 		{
 			if (MatureIndexFileManager.Exists())
 			{
-				using (BenchmarkLogger.Measure(LogLevel.Info, "XXX MatureIndexFileManager loading"))
+				using (BenchmarkLogger.Measure(LogLevel.Debug, "MatureIndexFileManager loading"))
 				{
+					int i = 0;
 					using StreamReader sr = MatureIndexFileManager.OpenText();
 					if (!sr.EndOfStream)
 					{
 						while (true)
 						{
+							i++;
 							cancel.ThrowIfCancellationRequested();
 							string? line = await sr.ReadLineAsync().ConfigureAwait(false);
 
@@ -158,6 +160,8 @@ public class IndexStore : IAsyncDisposable
 							ProcessLine(line, enqueue: false);
 						}
 					}
+
+					Logger.LogDebug($"Loaded {i} lines from the mature index file.");
 				}
 			}
 		}
