@@ -14,20 +14,22 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 	[AutoNotify] private string _amountFiat;
 	[AutoNotify] private string? _differenceFiat;
 
-	public ChangeAvoidanceSuggestionViewModel(decimal originalAmount,
+	public ChangeAvoidanceSuggestionViewModel(
+		decimal originalAmount,
 		BuildTransactionResult transactionResult,
+		BitcoinAddress destination,
 		decimal fiatExchangeRate,
 		bool isOriginal)
 	{
 		TransactionResult = transactionResult;
 
-		decimal total = transactionResult.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
+		Total = transactionResult.CalculateDestinationAmount(destination).ToDecimal(MoneyUnit.BTC);
 
-		_amountFiat = total.GenerateFiatText(fiatExchangeRate, "USD");
+		_amountFiat = Total.GenerateFiatText(fiatExchangeRate, "USD");
 
 		if (!isOriginal)
 		{
-			var fiatTotal = total * fiatExchangeRate;
+			var fiatTotal = Total * fiatExchangeRate;
 			var fiatOriginal = originalAmount * fiatExchangeRate;
 			var fiatDifference = fiatTotal - fiatOriginal;
 
@@ -37,8 +39,10 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 				.Replace("(", "").Replace(")", "");
 		}
 
-		_amount = $"{total} BTC";
+		_amount = $"{Total} BTC";
 	}
+
+	public decimal Total { get; }
 
 	public BuildTransactionResult TransactionResult { get; }
 
@@ -47,7 +51,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		ChangeAvoidanceSuggestionViewModel defaultSuggestion)
 	{
 		var normalized = suggestions
-			.OrderBy(x => x.TransactionResult.CalculateDestinationAmount())
+			.OrderBy(x => x.Total)
 			.ToList();
 
 		if (normalized.Count == 3)
@@ -98,12 +102,12 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 				tryToSign: false));
 
 			smallerSuggestion = new ChangeAvoidanceSuggestionViewModel(
-				transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), smallerTransaction,
+				transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), smallerTransaction, destination,
 				wallet.Synchronizer.UsdExchangeRate, false);
 		}
 
 		var defaultSelection = new ChangeAvoidanceSuggestionViewModel(
-			transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), requestedTransaction,
+			transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), requestedTransaction, destination,
 			wallet.Synchronizer.UsdExchangeRate, true);
 
 		var largerTransaction = await Task.Run(() => wallet.BuildTransaction(
@@ -116,7 +120,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 			tryToSign: false));
 
 		var largerSuggestion = new ChangeAvoidanceSuggestionViewModel(
-			transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), largerTransaction,
+			transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), largerTransaction, destination,
 			wallet.Synchronizer.UsdExchangeRate, false);
 
 		// There are several scenarios, both the alternate suggestions are <, or >, or 1 < and 1 >.

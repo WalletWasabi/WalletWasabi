@@ -15,22 +15,8 @@ public static class CurrencyUtils
 		NumberDecimalSeparator = "."
 	};
 
-	public static Money CalculateDestinationAmount(this BuildTransactionResult result)
-	{
-		var isNormalPayment = result.OuterWalletOutputs.Any();
-
-		if (isNormalPayment)
-		{
-			return result.OuterWalletOutputs.Sum(x => x.Amount);
-		}
-		else
-		{
-			return result.InnerWalletOutputs
-				.Where(x => !x.HdPubKey.IsInternal)
-				.Select(x => x.Amount)
-				.Sum();
-		}
-	}
+	public static Money CalculateDestinationAmount(this BuildTransactionResult result, BitcoinAddress destination) =>
+		result.Transaction.Transaction.Outputs.First(x => x.ScriptPubKey == destination.ScriptPubKey).Value;
 
 	public static string FormattedBtc(this Money amount)
 	{
