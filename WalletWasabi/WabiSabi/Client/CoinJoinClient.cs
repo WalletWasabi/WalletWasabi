@@ -159,7 +159,7 @@ public class CoinJoinClient
 			var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
 
 			// Sanity check.
-			if (!SanityCheck(outputTxOuts, unsignedCoinJoin))
+			if (!SanityCheck(registeredAliceClients, outputTxOuts, unsignedCoinJoin, roundState))
 			{
 				throw new InvalidOperationException($"Round ({roundState.Id}): My output is missing.");
 			}
@@ -245,10 +245,24 @@ public class CoinJoinClient
 				arenaRequestHandler));
 	}
 
-	private bool SanityCheck(IEnumerable<TxOut> expectedOutputs, Transaction unsignedCoinJoinTransaction)
+	private bool SanityCheck(ImmutableArray<AliceClient> registeredAliceClients, IEnumerable<TxOut> expectedOutputs, Transaction unsignedCoinJoinTransaction, RoundState roundState)
 	{
+		var feeRate = roundState.FeeRate;
 		var coinJoinOutputs = unsignedCoinJoinTransaction.Outputs.Select(o => (o.Value, o.ScriptPubKey));
 		var expectedOutputTuples = expectedOutputs.Select(o => (o.Value, o.ScriptPubKey));
+
+		var desiredAmount = Money.Satoshis(registeredAliceClients.Sum(a => a.EffectiveValue));
+		var actualAmount = Money.Satoshis(expectedOutputTuples.Sum(a => a.Value));
+		var diff = actualAmount - desiredAmount;
+
+		var totalInputAmount = Money.Satoshis(registeredAliceClients.Sum(a => a.SmartCoin.Amount));
+		var totalDifference = Money.Satoshis(totalInputAmount - actualAmount);
+		var totalNetworkfee = Money.Satoshis(registeredAliceClients.Sum(a => feeRate.GetFee(a.SmartCoin.Coin.ScriptPubKey.EstimateInputVsize()) + expectedOutputTuples.Sum(o => feeRate.GetFee(o.ScriptPubKey.EstimateOutputVsize()))));
+		var totalCoordinationFee = Money.Satoshis(registeredAliceClients.Where(a => a.IsPayingZeroCoordinationFee).Sum(a => roundState.CoordinationFeeRate.GetFee(a.SmartCoin.Amount)));
+		var totalLoss = Money.Satoshis(totalDifference - totalNetworkfee - totalCoordinationFee);
+
+		Logger.LogDebug($"Round ({roundState.Id}): Total difference is {totalDifference}, that is split into networkfee of {totalNetworkfee} and coordination fee of {totalCoordinationFee} and the loss of {totalLoss}.");
+
 		return coinJoinOutputs.IsSuperSetOf(expectedOutputTuples);
 	}
 
