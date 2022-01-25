@@ -392,7 +392,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			var mempool = await rpc.GetRawMempoolAsync();
 			var coinjoin = await rpc.GetRawTransactionAsync(mempool.Single());
 
-			Assert.True(coinjoin.Outputs.Count >= ExpectedInputNumber);
+			Assert.True(coinjoin.Outputs.Count <= ExpectedInputNumber);
 			Assert.True(coinjoin.Inputs.Count == ExpectedInputNumber);
 		}
 		finally
