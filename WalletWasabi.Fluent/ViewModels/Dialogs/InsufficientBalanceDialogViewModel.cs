@@ -105,8 +105,8 @@ public partial class InsufficientBalanceDialogViewModel : DialogViewModelBase<Un
 				// Edge cases, probably will never happen.
 				if (!EnableSendAnyway && !EnableSubtractFee && !EnableSelectMoreCoin)
 				{
-					await ShowErrorAsync("Transaction Building",
-						"Automatic transaction fee selection is not possible at the moment. Alternatively, you can enter the transaction fee manually in Advanced options.",
+					await ShowErrorAsync("Error",
+						"There are not enough funds to cover the transaction fee. Either reduce the amount or manually input a transaction fee in advanced options.",
 						"Wasabi was unable to create your transaction.");
 					Close(DialogResultKind.Back);
 					return;
@@ -114,7 +114,7 @@ public partial class InsufficientBalanceDialogViewModel : DialogViewModelBase<Un
 
 				if (_transactionInfo.IsPayJoin && _wallet.Coins.TotalAmount() == _transactionInfo.Amount)
 				{
-					await ShowErrorAsync("Transaction Building", "There are not enough funds to cover the transaction fee.", "Wasabi was unable to create your transaction.");
+					await ShowErrorAsync("Error", "There are not enough funds to cover the transaction fee.", "Wasabi is unable to create your transaction.");
 					Close(DialogResultKind.Back);
 					return;
 				}
@@ -136,8 +136,8 @@ public partial class InsufficientBalanceDialogViewModel : DialogViewModelBase<Un
 
 		if (!TransactionFeeHelper.TryGetMaximumPossibleFeeRate(percentage, wallet, transactionInfo.FeeRate, out var maxFeeRate))
 		{
-			await ShowErrorAsync("Transaction Building",
-				"Automatic transaction fee selection is not possible at the moment. Alternatively, you can enter the transaction fee manually in Advanced options.",
+			await ShowErrorAsync("Error",
+				"There are not enough funds to cover the transaction fee. Either reduce the amount or manually input a transaction fee in advanced options.",
 				"Wasabi was unable to create your transaction.");
 			Close(DialogResultKind.Back);
 			return;
@@ -170,7 +170,7 @@ public partial class InsufficientBalanceDialogViewModel : DialogViewModelBase<Un
 
 			if (EnableSelectMoreCoin)
 			{
-				Question += " or select more coins.";
+				Question += " or select more labels to allow the use of more funds..";
 			}
 			else
 			{
@@ -181,7 +181,7 @@ public partial class InsufficientBalanceDialogViewModel : DialogViewModelBase<Un
 		{
 			if (EnableSelectMoreCoin)
 			{
-				Question += "you can select more coins.";
+				Question += "select more labels to allow the use of more funds..";
 			}
 		}
 	}

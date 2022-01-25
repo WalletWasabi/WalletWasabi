@@ -36,7 +36,7 @@
                 IsVisible="{Binding EnableSendAnyway}" />
 
         <Button Command="{Binding SelectMoreCoinCommand}"
-                Content="Select more coin"
+                Content="Change label selection"
                 IsVisible="{Binding EnableSelectMoreCoin}" />
 
         <Button Command="{Binding SubtractTransactionFeeCommand}"
