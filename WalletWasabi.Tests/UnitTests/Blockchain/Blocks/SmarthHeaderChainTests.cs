@@ -121,6 +121,33 @@ public class SmarthHeaderChainTests
 		Assert.Equal(0, chain.HashesLeft);
 	}
 
+	[Fact]
+	public void HashCountTests()
+	{
+		SmartHeaderChain chain = new(maxChainSize: 2);
+		Assert.Equal(0u, chain.ServerTipHeight);
+
+		// Add 1st header.
+		SmartHeader header = CreateGenesisHeader();
+		chain.AppendTip(header);
+		Assert.Equal(1, chain.HashCount);
+
+		// Add 2nd header.
+		header = CreateSmartHeader(new uint256(1), chain.TipHash!, height: 1);
+		chain.AppendTip(header);
+		Assert.Equal(2, chain.HashCount);
+
+		// Add 3rd header.
+		header = CreateSmartHeader(new uint256(2), chain.TipHash!, height: 2);
+		chain.AppendTip(header);
+		Assert.Equal(3, chain.HashCount);
+
+		// Add 4th header.
+		header = CreateSmartHeader(new uint256(3), chain.TipHash!, height: 3);
+		chain.AppendTip(header);
+		Assert.Equal(4, chain.HashCount);
+	}
+
 	/// <remarks>Dummy genesis header.</remarks>
 	private static SmartHeader CreateGenesisHeader()
 	{

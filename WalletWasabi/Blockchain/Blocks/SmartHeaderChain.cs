@@ -9,6 +9,8 @@ namespace WalletWasabi.Blockchain.Blocks;
 /// </summary>
 public class SmartHeaderChain
 {
+	public const int Unlimited = 0;
+
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private uint _tipHeight;
 
@@ -26,6 +28,15 @@ public class SmartHeaderChain
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private int _hashesCount;
+
+	/// <param name="maxChainSize"><see cref="Unlimited"/> for no limit, otherwise the chain is capped to the specified number of elements.</param>
+	public SmartHeaderChain(int maxChainSize = Unlimited)
+	{
+		MaxChainSize = maxChainSize;
+	}
+
+	/// <remarks>Useful to save memory by removing elements at the beginning of the chain.</remarks>
+	private int MaxChainSize { get; }
 
 	private LinkedList<SmartHeader> Chain { get; } = new();
 	private object Lock { get; } = new();
@@ -85,6 +96,12 @@ public class SmartHeaderChain
 		}
 	}
 
+	/// <summary>Number of hashes in the chain.</summary>
+	/// <remarks>
+	/// Optimizations are taken into account for this value. So if the chain is
+	/// 1000 elements long and we remove first 100 to save memory, the reported
+	/// number will still be 1000.
+	/// </remarks>
 	public int HashCount
 	{
 		get
@@ -119,10 +136,12 @@ public class SmartHeaderChain
 			}
 
 			Chain.AddLast(tip);
+			_hashesCount++;
 			SetTipNoLock(tip);
 
-			if (Chain.Count > 150_000)
+			if (MaxChainSize != Unlimited && Chain.Count > MaxChainSize)
 			{
+				// Intentionally, we do not modify hashes count here.
 				Chain.RemoveFirst();
 			}
 		}
@@ -137,6 +156,7 @@ public class SmartHeaderChain
 			if (Chain.Count > 0)
 			{
 				Chain.RemoveLast();
+				_hashesCount--;
 
 				SmartHeader? newTip = (Chain.Count > 0) ? Chain.Last!.Value : null;
 				SetTipNoLock(newTip);
@@ -172,7 +192,6 @@ public class SmartHeaderChain
 		_tip = tip;
 		_tipHeight = tip?.Height ?? default;
 		_tipHash = tip?.BlockHash;
-		_hashesCount = Chain?.Count ?? default;
 		SetHashesLeftNoLock();
 	}
 
