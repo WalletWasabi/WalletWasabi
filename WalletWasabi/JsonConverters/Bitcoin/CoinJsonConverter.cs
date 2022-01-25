@@ -8,7 +8,8 @@ public class CoinJsonConverter : JsonConverter<Coin>
 	/// <inheritdoc />
 	public override Coin? ReadJson(JsonReader reader, Type objectType, Coin? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
-		var coin = serializer.Deserialize<SerializableCoin>(reader);
+		var coin = serializer.Deserialize<SerializableCoin>(reader)
+			?? throw new JsonSerializationException("Coin could not be deserialized.");
 		return new Coin(coin.Outpoint, coin.TxOut);
 	}
 
