@@ -179,7 +179,7 @@ public partial class Arena : PeriodicRunner
 					round.LogInfo($"{coinjoin.Inputs.Count} inputs were added.");
 					round.LogInfo($"{coinjoin.Outputs.Count} outputs were added.");
 
-					coinjoin = AddCoordinatorFee(round, coinjoin);
+					coinjoin = AddCoordinationFee(round, coinjoin);
 
 					coinjoin = AddBlameScript(round, coinjoin, allReady);
 
@@ -376,20 +376,27 @@ public partial class Arena : PeriodicRunner
 		return coinjoin;
 	}
 
-	private ConstructionState AddCoordinatorFee(Round round, ConstructionState coinjoin)
+	private ConstructionState AddCoordinationFee(Round round, ConstructionState coinjoin)
 	{
 		Script coordinatorScriptPubKey = GetCoordinatorScriptPreventReuse(round);
 
 		var coordinationFee = round.Alices.Where(a => !a.IsPayingZeroCoordinationFee).Sum(x => round.CoordinationFeeRate.GetFee(x.Coin.Amount));
-		coordinationFee -= round.FeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize());
-
-		if (coordinationFee > coinjoin.Parameters.AllowedOutputAmounts.Min)
+		if (coordinationFee == 0)
 		{
-			coinjoin = coinjoin.AddOutput(new TxOut(coordinationFee, coordinatorScriptPubKey));
+			round.LogInfo($"Coordination fee wasn't taken, because it was free for everyone. Hurray!");
 		}
 		else
 		{
-			round.LogWarning($"Coordinator fee wasn't taken, because it was too small: {nameof(coordinationFee)}: {coordinationFee}.");
+			coordinationFee -= round.FeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize());
+
+			if (coordinationFee > coinjoin.Parameters.AllowedOutputAmounts.Min)
+			{
+				coinjoin = coinjoin.AddOutput(new TxOut(coordinationFee, coordinatorScriptPubKey));
+			}
+			else
+			{
+				round.LogWarning($"Coordination fee wasn't taken, because it was too small: {nameof(coordinationFee)}: {coordinationFee}.");
+			}
 		}
 
 		return coinjoin;
