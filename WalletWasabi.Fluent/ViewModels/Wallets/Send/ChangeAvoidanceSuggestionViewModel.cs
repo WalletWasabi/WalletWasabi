@@ -88,22 +88,26 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 		if (requestedTransaction.SpentCoins.Count() > 1)
 		{
-			var smallerTransaction = await Task.Run(() => wallet.BuildTransaction(
-				wallet.Kitchen.SaltSoup(),
-				intent,
-				FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
-				allowUnconfirmed: true,
+			var smallerTransaction = await Task.Run(() => TransactionHelpers.BuildChangelessTransaction(
+				wallet,
+				destination,
+				transactionInfo.UserLabels,
+				transactionInfo.FeeRate,
 				requestedTransaction
 					.SpentCoins
-					.OrderBy(x => x.Amount)
-					.Skip(1)
-					.Select(x => x.OutPoint),
-				payjoinClient: null,
-				tryToSign: false));
+					.OrderByDescending(x => x.Amount)
+					.Skip(1),
+				tryToSign: false
+				));
 
-			smallerSuggestion = new ChangeAvoidanceSuggestionViewModel(
-				transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), smallerTransaction,
-				wallet.Synchronizer.UsdExchangeRate, false);
+			var smallerDestinationAmount = smallerTransaction.CalculateDestinationAmount();
+
+			if (smallerDestinationAmount < transactionInfo.Amount)
+			{
+				smallerSuggestion = new ChangeAvoidanceSuggestionViewModel(
+					transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), smallerTransaction,
+					wallet.Synchronizer.UsdExchangeRate, false);
+			}
 		}
 
 		Task<ChangeAvoidanceSuggestionViewModel?> bnbSuggestionTask = Task.Run(() =>
