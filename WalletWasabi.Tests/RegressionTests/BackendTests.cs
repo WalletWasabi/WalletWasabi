@@ -46,7 +46,7 @@ public class BackendTests
 	public async Task GetExchangeRatesAsync()
 	{
 		using var response = await BackendApiHttpClient.SendAsync(HttpMethod.Get, "btc/offchain/exchange-rates");
-		Assert.True(response.StatusCode == HttpStatusCode.OK);
+		Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
 		var exchangeRates = await response.Content.ReadAsJsonAsync<List<ExchangeRate>>();
 		Assert.Single(exchangeRates);
