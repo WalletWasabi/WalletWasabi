@@ -48,12 +48,12 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 		var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destination.ScriptPubKey);
 
+		IsLoading = false;
+
 		if (hasChange)
 		{
 			var suggestions =
 				ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, transaction, cancellationToken);
-
-			IsLoading = false;
 
 			await foreach (var suggestion in suggestions)
 			{
