@@ -4,10 +4,11 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:PrivacyControlViewModel"
-             x:CompileBindings="True"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacyControlView">
   <c:ContentArea Title="Send - Privacy Control"
                  Caption="Parts of your wallet are known to certain entities."
@@ -31,31 +32,64 @@
 
       <Button Content="Undo" Command="{Binding UndoCommand}" DockPanel.Dock="Top" />
       <TextBlock Text="Remove the entities you cannot tolerate leaking information about this transaction:" DockPanel.Dock="Top" />
-      <c:TagsBox Items="{Binding Labels}" EnableDelete="True" HorizontalAlignment="Center">
-        <c:TagsBox.Styles>
-          <Style Selector="c|TagsBox AutoCompleteBox">
-            <Setter Property="IsEnabled" Value="False" />
-          </Style>
-          <Style Selector="c|TagsBox">
-            <Setter Property="Cursor" Value="Arrow" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Background" Value="Transparent" />
-          </Style>
-          <Style Selector="c|TagsBox:pointerover /template/ Border#PART_Border">
-            <Setter Property="Background" Value="Transparent" />
-          </Style>
-          <Style Selector="c|TagControl">
-            <Setter Property="Transitions">
-              <Transitions>
-                <DoubleTransition Property="Opacity" Duration="0:0:0.15" Easing="{StaticResource FluentEasing}" />
-              </Transitions>
-            </Setter>
-          </Style>
-        </c:TagsBox.Styles>
-        <Interaction.Behaviors>
-          <behaviors:FadePocketLabelsBehavior Pockets="{Binding UsedPockets}" />
-        </Interaction.Behaviors>
-      </c:TagsBox>
+
+      <DockPanel>
+        <ItemsControl DockPanel.Dock="Bottom" Items="{Binding LabelsBlackList}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel Orientation="Horizontal" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:LabelViewModel">
+              <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}">
+                <i:Interaction.Behaviors>
+                  <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver, Mode=OneWayToSource}" />
+                </i:Interaction.Behaviors>
+                <c:TagControl Content="{Binding Value}" IsHitTestVisible="False">
+                  <c:TagControl.Background>
+                    <Binding Path="IsHighlighted">
+                      <Binding.Converter>
+                        <converters:BoolToBrushConverter TrueBrush="Green" />
+                      </Binding.Converter>
+                    </Binding>
+                  </c:TagControl.Background>
+                </c:TagControl>
+              </Button>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <Separator DockPanel.Dock="Bottom" />
+
+        <ItemsControl Items="{Binding LabelsWhiteList}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel Orientation="Horizontal" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:LabelViewModel">
+              <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}" Padding="10">
+                <i:Interaction.Behaviors>
+                  <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver, Mode=OneWayToSource}" />
+                </i:Interaction.Behaviors>
+                <c:TagControl Content="{Binding Value}" IsHitTestVisible="False">
+                  <c:TagControl.Background>
+                    <Binding Path="IsHighlighted">
+                      <Binding.Converter>
+                        <converters:BoolToBrushConverter TrueBrush="Red" />
+                      </Binding.Converter>
+                    </Binding>
+                  </c:TagControl.Background>
+                </c:TagControl>
+              </Button>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+      </DockPanel>
+
 
     </DockPanel>
   </c:ContentArea>

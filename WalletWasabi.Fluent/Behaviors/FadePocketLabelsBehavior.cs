@@ -2,12 +2,49 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Data;
+using Avalonia.Input;
 using Avalonia.VisualTree;
 using ReactiveUI;
 using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.Behaviors;
+
+public class BindPointerOverBehavior : DisposingBehavior<Control>
+{
+	public static readonly StyledProperty<bool> IsPointerOverProperty =
+		AvaloniaProperty.Register<BindPointerOverBehavior, bool>(nameof(IsPointerOver), defaultBindingMode: BindingMode.OneWayToSource);
+
+	public bool IsPointerOver
+	{
+		get => GetValue(IsPointerOverProperty);
+		set => SetValue(IsPointerOverProperty, value);
+	}
+
+	protected override void OnAttached(CompositeDisposable disposables)
+	{
+		AssociatedObject.PropertyChanged += AssociatedObjectOnPropertyChanged;
+	}
+
+	private void AssociatedObjectOnPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+	{
+		if (e.Property == InputElement.IsPointerOverProperty)
+		{
+			IsPointerOver = e.NewValue is true;
+		}
+	}
+
+	protected override void OnDetaching()
+	{
+		AssociatedObject.PropertyChanged -= AssociatedObjectOnPropertyChanged;
+
+		base.OnDetaching();
+
+		IsPointerOver = false;
+	}
+}
 
 public class FadePocketLabelsBehavior : AttachedToVisualTreeBehavior<TagsBox>
 {

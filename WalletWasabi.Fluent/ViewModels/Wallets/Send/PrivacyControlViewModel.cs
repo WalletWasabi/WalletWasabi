@@ -15,12 +15,67 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
+public partial class LabelViewModel : ViewModelBase
+{
+	[AutoNotify] private bool _isBlackListed;
+	[AutoNotify] private bool _isPointerOver;
+	[AutoNotify] private bool _isHighlighted;
+
+	public LabelViewModel(PrivacyControlViewModel owner, string label)
+	{
+		Pockets = new List<PocketViewModel>();
+		Value = label;
+
+		this.WhenAnyValue(x => x.IsPointerOver)
+			.Subscribe(isPointerOver =>
+			{
+				foreach (var pocket in Pockets)
+				{
+					foreach (var pocketLabel in pocket.Labels)
+					{
+						pocketLabel.IsHighlighted = isPointerOver;
+					}
+				}
+			});
+
+		ClickedCommand = ReactiveCommand.Create(() =>
+		{
+			foreach (var pocket in Pockets)
+			{
+				foreach (var pocketLabel in pocket.Labels)
+				{
+					pocketLabel.IsHighlighted = false;
+				}
+			}
+
+			owner.SwapLabel(this);
+		});
+	}
+
+	public List<PocketViewModel> Pockets { get; }
+
+	public string Value { get; }
+
+	public ICommand ClickedCommand { get; }
+}
+
+public class PocketViewModel : ViewModelBase
+{
+	public PocketViewModel()
+	{
+		Labels = new List<LabelViewModel>();
+	}
+
+	public List<LabelViewModel> Labels { get; }
+}
+
 [NavigationMetaData(Title = "Privacy Control")]
 public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<SmartCoin>>
 {
 	private readonly Wallet _wallet;
 	private readonly TransactionInfo _transactionInfo;
 	private readonly bool _isSilent;
+
 	private readonly Stack<Pocket[]> _removedPocketStack;
 
 	[AutoNotify] private Pocket[] _usedPockets = Array.Empty<Pocket>();
@@ -50,7 +105,55 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 			.Subscribe(_ => OnLabelsChanged());
 	}
 
+	internal void SwapLabel(LabelViewModel label)
+	{
+		if (label.IsBlackListed)
+		{
+			foreach (var pocket in label.Pockets)
+			{
+				WhiteListPocketLabels(pocket);
+			}
+		}
+		else
+		{
+			foreach (var pocket in label.Pockets)
+			{
+				BlackListPocketLabels(pocket);
+			}
+		}
+	}
+
+	private void WhiteListPocketLabels(PocketViewModel pocket, bool initialising = false)
+	{
+		var labels = pocket.Labels.Where(x => x.IsBlackListed);
+
+		foreach (var label in labels)
+		{
+			LabelsBlackList.Remove(label);
+
+			label.IsBlackListed = false;
+
+			LabelsWhiteList.Add(label);
+		}
+	}
+
+	private void BlackListPocketLabels(PocketViewModel pocket)
+	{
+		foreach (var label in pocket.Labels.Where(x => !x.IsBlackListed))
+		{
+			LabelsWhiteList.Remove(label);
+
+			label.IsBlackListed = true;
+
+			LabelsBlackList.Add(label);
+		}
+	}
+
 	public ICommand UndoCommand { get; }
+
+	public ObservableCollection<LabelViewModel> LabelsWhiteList { get; } = new ObservableCollection<LabelViewModel>();
+
+	public ObservableCollection<LabelViewModel> LabelsBlackList { get; } = new ObservableCollection<LabelViewModel>();
 
 	public ObservableCollection<string> Labels { get; set; }
 
@@ -93,6 +196,37 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 	{
 		_isUpdating = true;
 
+		var labelViewModels = new Dictionary<string, LabelViewModel>();
+
+		var pocketVms = new List<PocketViewModel>();
+
+		foreach (var pocket in pockets)
+		{
+			var pocketVm = new PocketViewModel();
+
+			pocketVms.Add(pocketVm);
+
+			foreach (var label in pocket.Labels)
+			{
+				if (!labelViewModels.ContainsKey(label))
+				{
+					labelViewModels[label] = new LabelViewModel(this, label) { IsBlackListed = true };
+				}
+
+				pocketVm.Labels.Add(labelViewModels[label]);
+
+				labelViewModels[label].Pockets.Add(pocketVm);
+			}
+		}
+
+		LabelsWhiteList.Clear();
+		LabelsBlackList.Clear();
+
+		foreach (var pocketVm in pocketVms)
+		{
+			WhiteListPocketLabels(pocketVm, initialising: true);
+		}
+
 		UsedPockets = pockets.ToArray();
 		MustHaveLabels.Clear();
 		Labels.Clear();
@@ -117,6 +251,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 	private void InitializeLabels()
 	{
 		var pockets = _wallet.Coins.GetPockets(_wallet.ServiceConfiguration.MinAnonScoreTarget).Select(x => new Pocket(x));
+
 		UpdateLabels(pockets);
 	}
 
