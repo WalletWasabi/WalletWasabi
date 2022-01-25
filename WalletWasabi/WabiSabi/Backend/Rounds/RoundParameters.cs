@@ -1,5 +1,6 @@
 using NBitcoin;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -9,11 +10,13 @@ public class RoundParameters
 		WabiSabiConfig wabiSabiConfig,
 		Network network,
 		WasabiRandom random,
-		FeeRate feeRate)
+		FeeRate feeRate,
+		CoordinationFeeRate coordinationFeeRate)
 	{
 		Network = network;
 		Random = random;
 		FeeRate = feeRate;
+		CoordinationFeeRate = coordinationFeeRate;
 
 		MaxInputCountByRound = wabiSabiConfig.MaxInputCountByRound;
 		MinInputCountByRound = wabiSabiConfig.MinInputCountByRound;
@@ -30,6 +33,7 @@ public class RoundParameters
 
 	public WasabiRandom Random { get; }
 	public FeeRate FeeRate { get; }
+	public CoordinationFeeRate CoordinationFeeRate { get; }
 	public Network Network { get; }
 	public int MinInputCountByRound { get; }
 	public int MaxInputCountByRound { get; }

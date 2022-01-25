@@ -23,7 +23,7 @@ public class RemoveInputTests
 		round.Alices.Add(alice);
 		Assert.True(round.RemainingInputVsizeAllocation < initialRemaining);
 
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
 		// There's no such alice yet, so success.
 		var req = new InputsRemovalRequest(round.Id, Guid.NewGuid());
@@ -43,7 +43,7 @@ public class RemoveInputTests
 	[Fact]
 	public async Task RoundNotFoundAsync()
 	{
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync();
+		using Arena arena = await ArenaBuilder.Default.CreateAndStartAsync();
 
 		var req = new InputsRemovalRequest(uint256.Zero, Guid.NewGuid());
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.RemoveInputAsync(req, CancellationToken.None));
@@ -56,7 +56,7 @@ public class RemoveInputTests
 	public async Task WrongPhaseAsync()
 	{
 		WabiSabiConfig cfg = new();
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync();
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		var round = arena.Rounds.First();
 
