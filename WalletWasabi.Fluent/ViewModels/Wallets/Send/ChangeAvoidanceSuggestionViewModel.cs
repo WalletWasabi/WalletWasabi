@@ -46,44 +46,9 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 	public BuildTransactionResult TransactionResult { get; }
 
-	private static IEnumerable<ChangeAvoidanceSuggestionViewModel> NormalizeSuggestions(
-		IEnumerable<ChangeAvoidanceSuggestionViewModel> suggestions,
-		ChangeAvoidanceSuggestionViewModel defaultSuggestion)
-	{
-		var normalized = suggestions
-			.OrderBy(x => x.TransactionResult.CalculateDestinationAmount())
-			.ToList();
-
-		if (normalized.Count == 3)
-		{
-			var index = normalized.IndexOf(defaultSuggestion);
-
-			switch (index)
-			{
-				case 1:
-					break;
-
-				case 0:
-					normalized = normalized.Take(2).ToList();
-					break;
-
-				case 2:
-					normalized = normalized.Skip(1).ToList();
-					break;
-			}
-		}
-
-		return normalized;
-	}
-
 	public static async IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> GenerateSuggestionsAsync(
 		TransactionInfo transactionInfo, BitcoinAddress destination, Wallet wallet, BuildTransactionResult requestedTransaction, [EnumeratorCancellation] CancellationToken cancellationToken)
 	{
-		var intent = new PaymentIntent(
-			destination,
-			MoneyRequest.CreateAllRemaining(subtractFee: true),
-			transactionInfo.UserLabels);
-
 		ChangeAvoidanceSuggestionViewModel? smallerSuggestion = null;
 
 		if (requestedTransaction.SpentCoins.Count() > 1)
