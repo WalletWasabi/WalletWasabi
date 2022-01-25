@@ -9,6 +9,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
@@ -38,9 +39,8 @@ internal class Participant: IDisposable
 	{
 		ThrowIfDisposed();
 		var feeRate = new FeeRate(4.0m);
-		var splitTx = Wallet.CreateSelfTransfer(FeeRate.Zero);
-		var satoshisAvailable = splitTx.Outputs[0].Value.Satoshi;
-		splitTx.Outputs.Clear();
+		var (splitTx, spendingCoin) = Wallet.CreateTemplateTransaction();
+		var availableAmount = spendingCoin.EffectiveValue(feeRate, CoordinationFeeRate.Zero);
 
 		var rnd = new Random(seed);
 		double NextNotTooSmall() => 0.00001 + (rnd.NextDouble() * 0.99999);
@@ -54,7 +54,7 @@ internal class Participant: IDisposable
 
 		var amounts = sampling
 			.Zip(sampling.Skip(1), (x, y) => y - x)
-			.Select(x => x * satoshisAvailable)
+			.Select(x => x * availableAmount.Satoshi)
 			.Select(x => Money.Satoshis((long)x));
 
 		var scriptPubKey = Wallet.ScriptPubKey;

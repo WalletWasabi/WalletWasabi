@@ -41,7 +41,7 @@ public class TestWallet : IKeyChain, IDestinationProvider, IDisposable
 		}
 	}
 
-	public Transaction CreateSelfTransfer(FeeRate feeRate)
+	public (Transaction, Coin) CreateTemplateTransaction()
 	{
 		ThrowIfDisposed();
 		var biggestUtxo = Utxos.MaxBy(x => x.Amount);
@@ -53,7 +53,14 @@ public class TestWallet : IKeyChain, IDestinationProvider, IDisposable
 
 		var tx = Rpc.Network.CreateTransaction();
 		tx.Inputs.Add(biggestUtxo.Outpoint);
-		tx.Outputs.Add(biggestUtxo.Amount - feeRate.GetFee(Constants.P2wpkhOutputSizeInBytes), Address);
+		return (tx, biggestUtxo);
+	}
+
+	public Transaction CreateSelfTransfer(FeeRate feeRate)
+	{
+		ThrowIfDisposed();
+		var (tx, spendingCoin) = CreateTemplateTransaction();
+		tx.Outputs.Add(spendingCoin.Amount - feeRate.GetFee(Constants.P2wpkhOutputSizeInBytes), Address);
 		return tx;
 	}
 
