@@ -69,8 +69,10 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 
 		FeeText = $"{btcFeeText}{fiatFeeText}";
 
-		TransactionHasChange =
-			_transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != _address.ScriptPubKey);
+		var senderWalletReceiveChange = _transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != _address.ScriptPubKey);
+		var otherWalletReceiveChange = _transaction.Transaction.Transaction.Outputs.Any(x => x.ScriptPubKey == _info.CustomChangeAddress?.ScriptPubKey);
+		TransactionHasChange = senderWalletReceiveChange || otherWalletReceiveChange;
+
 
 		TransactionHasPockets = !_info.IsPrivate;
 

@@ -33,7 +33,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 	public ObservableCollection<SuggestionViewModel> Suggestions { get; }
 
-	public  async Task BuildPrivacySuggestionsAsync(Wallet wallet, TransactionInfo info, BitcoinAddress destination, BuildTransactionResult transaction)
+	public async Task BuildPrivacySuggestionsAsync(Wallet wallet, TransactionInfo info, BitcoinAddress destination, BuildTransactionResult transaction)
 	{
 		IsLoading = true;
 
@@ -48,7 +48,9 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 		var suggestions =
 			await ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, transaction);
 
-		var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destination.ScriptPubKey);
+		var senderWalletReceiveChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destination.ScriptPubKey);
+		var otherWalletReceiveChange = transaction.Transaction.Transaction.Outputs.Any(x => x.ScriptPubKey == info.CustomChangeAddress?.ScriptPubKey);
+		var hasChange = senderWalletReceiveChange || otherWalletReceiveChange;
 
 		if (hasChange)
 		{
