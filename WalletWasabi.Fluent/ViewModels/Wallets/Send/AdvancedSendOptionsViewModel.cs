@@ -15,13 +15,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 public partial class AdvancedSendOptionsViewModel : DialogViewModelBase<Unit>
 {
 	private readonly TransactionInfo _transactionInfo;
+	private readonly string _destinationAddressString;
 
 	[AutoNotify] private string _customFee;
 	[AutoNotify] private string _customChangeAddress;
 
-	public AdvancedSendOptionsViewModel(TransactionInfo transactionInfo)
+	public AdvancedSendOptionsViewModel(TransactionInfo transactionInfo, string destinationAddressString)
 	{
 		_transactionInfo = transactionInfo;
+		_destinationAddressString = destinationAddressString;
 
 		_customFee = transactionInfo.IsCustomFeeUsed
 			? transactionInfo.FeeRate.SatoshiPerByte.ToString(CultureInfo.InvariantCulture)
@@ -38,7 +40,7 @@ public partial class AdvancedSendOptionsViewModel : DialogViewModelBase<Unit>
 		this.ValidateProperty(x => x.CustomChangeAddress, ValidateCustomChangeAddress);
 
 		var nextCommandCanExecute =
-			this.WhenAnyValue(x => x.CustomFee)
+			this.WhenAnyValue(x => x.CustomFee, x => x.CustomChangeAddress)
 				.Select(_ =>
 				{
 					var noError = !Validations.Any;
@@ -83,6 +85,13 @@ public partial class AdvancedSendOptionsViewModel : DialogViewModelBase<Unit>
 		if (!AddressStringParser.TryParse(address, Services.WalletManager.Network, out _))
 		{
 			errors.Add(ErrorSeverity.Error, "Input a valid BTC address or URL.");
+			return;
+		}
+
+		if (address == _destinationAddressString)
+		{
+			errors.Add(ErrorSeverity.Error, "Cannot be the same as the destination address.");
+			return;
 		}
 	}
 

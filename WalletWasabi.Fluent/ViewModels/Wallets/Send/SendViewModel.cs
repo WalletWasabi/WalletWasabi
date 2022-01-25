@@ -93,7 +93,7 @@ public partial class SendViewModel : RoutableViewModel
 		});
 
 		AdvancedOptionsCommand = ReactiveCommand.CreateFromTask(async () =>
-			await NavigateDialogAsync(new AdvancedSendOptionsViewModel(_transactionInfo), NavigationTarget.CompactDialogScreen));
+			await NavigateDialogAsync(new AdvancedSendOptionsViewModel(_transactionInfo, To), NavigationTarget.CompactDialogScreen));
 
 		var nextCommandCanExecute =
 			this.WhenAnyValue(x => x.AmountBtc, x => x.To)
@@ -199,14 +199,21 @@ public partial class SendViewModel : RoutableViewModel
 
 	private void ValidateToField(IValidationErrors errors)
 	{
+		BitcoinUrlBuilder? bitcoinUrlBuilder = null;
+
 		if (!string.IsNullOrWhiteSpace(To) &&
-		    !AddressStringParser.TryParse(To, _wallet.Network, out _))
+		    !AddressStringParser.TryParse(To, _wallet.Network, out bitcoinUrlBuilder))
 		{
 			errors.Add(ErrorSeverity.Error, "Input a valid BTC address or URL.");
 		}
 		else if (IsPayJoin && _wallet.KeyManager.IsHardwareWallet)
 		{
 			errors.Add(ErrorSeverity.Error, "PayJoin is not possible with hardware wallets.");
+		}
+		else if (bitcoinUrlBuilder is { } && _transactionInfo.CustomChangeAddress is { } &&
+		         bitcoinUrlBuilder.Address == _transactionInfo.CustomChangeAddress)
+		{
+			errors.Add(ErrorSeverity.Error, "Cannot be the same as the change address.");
 		}
 	}
 
