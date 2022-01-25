@@ -92,10 +92,12 @@ internal class Participant
 		using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(3), apiClient);
 		await roundStateUpdater.StartAsync(cancellationToken).ConfigureAwait(false);
 
-		var kitchen = new Kitchen();
-		kitchen.Cook("");
-
-		var coinJoinClient = new CoinJoinClient(HttpClientFactory, kitchen, KeyManager, roundStateUpdater, consolidationMode: true);
+		var coinJoinClient = new CoinJoinClient(
+			HttpClientFactory,
+			new KeyChain(KeyManager),
+			new InternalDestinationProvider(KeyManager),
+			roundStateUpdater,
+			consolidationMode: true);
 
 		// Run the coinjoin client task.
 		await coinJoinClient.StartCoinJoinAsync(Coins, cancellationToken).ConfigureAwait(false);

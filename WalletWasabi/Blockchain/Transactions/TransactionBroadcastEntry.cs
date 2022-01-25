@@ -4,7 +4,7 @@ namespace WalletWasabi.Blockchain.Transactions;
 
 public class TransactionBroadcastEntry
 {
-	public TransactionBroadcastEntry(Transaction transaction, string nodeRemoteSocketEndpoint)
+	public TransactionBroadcastEntry(SmartTransaction transaction, string nodeRemoteSocketEndpoint)
 	{
 		Lock = new object();
 		Transaction = transaction;
@@ -14,7 +14,7 @@ public class TransactionBroadcastEntry
 		NodeRemoteSocketEndpoint = nodeRemoteSocketEndpoint;
 	}
 
-	public Transaction Transaction { get; }
+	public SmartTransaction Transaction { get; }
 	public uint256 TransactionId { get; }
 	public string NodeRemoteSocketEndpoint { get; }
 
