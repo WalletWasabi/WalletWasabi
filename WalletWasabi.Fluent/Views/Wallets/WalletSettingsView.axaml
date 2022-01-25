@@ -13,16 +13,30 @@
                  EnableNext="True" NextContent="Done"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}">
-    <StackPanel Classes="settingsLayout">
-      <DockPanel IsVisible="{Binding IsHardwareWallet}">
-        <TextBlock Text="PSBT workflow" />
-        <ToggleSwitch IsChecked="{Binding PreferPsbtWorkflow}" />
-      </DockPanel>
+    <StackPanel Spacing="20">
+      <StackPanel Classes="settingsLayout">
+        <DockPanel IsVisible="{Binding IsHardwareWallet}">
+          <TextBlock Text="PSBT workflow" />
+          <ToggleSwitch IsChecked="{Binding PreferPsbtWorkflow}" />
+        </DockPanel>
 
-      <DockPanel IsVisible="{Binding !IsWatchOnly}">
-        <TextBlock Text="Auto CoinJoin" />
-        <ToggleSwitch IsChecked="{Binding AutoCoinJoin}" />
-      </DockPanel>
+        <DockPanel IsVisible="{Binding !IsWatchOnly}">
+          <TextBlock Text="Auto CoinJoin" />
+          <ToggleSwitch IsChecked="{Binding AutoCoinJoin}" />
+        </DockPanel>
+      </StackPanel>
+
+      <Separator />
+
+      <StackPanel Spacing="20" IsVisible="{Binding !IsWatchOnly}">
+        <TextBlock Classes="h6" Text="Have you checked your wallet backup?" />
+        <c:InfoMessage>
+          <DockPanel>
+            <Button Margin="50 0" Command="{Binding VerifyRecoveryWordsCommand}" Content="Verify Recovery Words" DockPanel.Dock="Right" />
+            <TextBlock Text="It is recommended that you verify your wallet Recovery Words from time to time." />
+          </DockPanel>
+        </c:InfoMessage>
+      </StackPanel>
     </StackPanel>
   </c:ContentArea>
 </UserControl>
