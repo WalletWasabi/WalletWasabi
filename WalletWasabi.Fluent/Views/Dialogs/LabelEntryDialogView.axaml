@@ -16,22 +16,34 @@
                  CancelContent="Cancel"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
-                 EnableNext="True" NextContent="Continue">
-      <c:TagsBox x:Name="LabelTagBox"
-                 DataContext="{Binding SuggestionLabels}"
-                 VerticalAlignment="Top"
-                 Watermark="{StaticResource LabelsWatermarkText}"
-                 TagSeparator=","
-                 SuggestionsAreCaseSensitive="True"
-                 RestrictInputToSuggestions="False"
-                 Items="{Binding Labels}"
-                 TopItems="{Binding TopSuggestions}"
-                 Suggestions="{Binding Suggestions}"
-                 MaxTextLength="{StaticResource MaxLabelLength}"
-                 IsCurrentTextValid="{Binding IsCurrentTextValid, Mode=OneWayToSource}">
-        <i:Interaction.Behaviors>
-          <behaviors:FocusOnAttachedBehavior />
-        </i:Interaction.Behaviors>
-      </c:TagsBox>
+                 EnableNext="True" NextContent="Continue"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                 ClipToBounds="False">
+    <DockPanel>
+      <c:InfoMessage Content="Custom Change Address is used, make sure to enter all the entities."
+                     DockPanel.Dock="Bottom"
+                     HorizontalAlignment="Center"
+                     Opacity="0.6"
+                     Margin="20 5 20 -10"
+                     IsVisible="{Binding ShowChangeAddressWarning}" />
+      <ScrollViewer>
+        <c:TagsBox x:Name="LabelTagBox"
+                   DataContext="{Binding SuggestionLabels}"
+                   VerticalAlignment="Top"
+                   Watermark="{StaticResource LabelsWatermarkText}"
+                   TagSeparator=","
+                   SuggestionsAreCaseSensitive="True"
+                   RestrictInputToSuggestions="False"
+                   Items="{Binding Labels}"
+                   TopItems="{Binding TopSuggestions}"
+                   Suggestions="{Binding Suggestions}"
+                   MaxTextLength="{StaticResource MaxLabelLength}"
+                   IsCurrentTextValid="{Binding IsCurrentTextValid, Mode=OneWayToSource}">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+          </i:Interaction.Behaviors>
+        </c:TagsBox>
+      </ScrollViewer>
+    </DockPanel>
   </c:ContentArea>
 </UserControl>

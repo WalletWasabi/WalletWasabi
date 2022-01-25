@@ -21,6 +21,7 @@ public partial class LabelEntryDialogViewModel : DialogViewModelBase<SmartLabel?
 	public LabelEntryDialogViewModel(Wallet wallet, TransactionInfo info)
 	{
 		_wallet = wallet;
+		ShowChangeAddressWarning = info.CustomChangeAddress is { };
 		SuggestionLabels = new SuggestionLabelsViewModel(3)
 		{
 			Labels = { info.UserLabels.Labels }
@@ -38,6 +39,8 @@ public partial class LabelEntryDialogViewModel : DialogViewModelBase<SmartLabel?
 	}
 
 	public SuggestionLabelsViewModel SuggestionLabels { get; }
+
+	public bool ShowChangeAddressWarning { get; }
 
 	private void OnNext()
 	{
