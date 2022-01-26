@@ -15,7 +15,7 @@ namespace WalletWasabi.Fluent.Behaviors;
 public class BindPointerOverBehavior : DisposingBehavior<Control>
 {
 	public static readonly StyledProperty<bool> IsPointerOverProperty =
-		AvaloniaProperty.Register<BindPointerOverBehavior, bool>(nameof(IsPointerOver), defaultBindingMode: BindingMode.OneWayToSource);
+		AvaloniaProperty.Register<BindPointerOverBehavior, bool>(nameof(IsPointerOver), defaultBindingMode: BindingMode.TwoWay);
 
 	public bool IsPointerOver
 	{

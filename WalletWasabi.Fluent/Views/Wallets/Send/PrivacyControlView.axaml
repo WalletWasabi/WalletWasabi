@@ -44,7 +44,7 @@
             <DataTemplate x:DataType="vm:LabelViewModel">
               <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}">
                 <i:Interaction.Behaviors>
-                  <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver, Mode=OneWayToSource}" />
+                  <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
                 </i:Interaction.Behaviors>
                 <c:TagControl Content="{Binding Value}" IsHitTestVisible="False">
                   <c:TagControl.Background>
@@ -72,7 +72,7 @@
             <DataTemplate x:DataType="vm:LabelViewModel">
               <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}" Padding="10">
                 <i:Interaction.Behaviors>
-                  <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver, Mode=OneWayToSource}" />
+                  <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
                 </i:Interaction.Behaviors>
                 <c:TagControl Content="{Binding Value}" IsHitTestVisible="False">
                   <c:TagControl.Background>
