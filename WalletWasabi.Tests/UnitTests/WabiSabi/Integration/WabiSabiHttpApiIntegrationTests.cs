@@ -1,6 +1,7 @@
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
@@ -356,20 +357,21 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 			var participants = Enumerable
 				.Range(0, NumberOfParticipants)
-				.Select(_ => new Participant(rpc, mockHttpClientFactory.Object))
+				.Select(i => new Participant($"participant{i}", rpc, mockHttpClientFactory.Object))
 				.ToArray();
 
+			using var disposableParticipants = new CompositeDisposable(participants);
 			foreach (var participant in participants)
 			{
 				await participant.GenerateSourceCoinAsync(cts.Token);
 			}
-			using var dummyKey = new Key();
-			await rpc.GenerateToAddressAsync(101, dummyKey.PubKey.GetAddress(ScriptPubKeyType.Segwit, rpc.Network));
+			using var dummyWallet = new TestWallet("dummy", rpc);
+			await dummyWallet.GenerateAsync(101, cts.Token);
 			foreach (var participant in participants)
 			{
 				await participant.GenerateCoinsAsync(NumberOfCoinsPerParticipant, seed, cts.Token);
 			}
-			await rpc.GenerateToAddressAsync(101, dummyKey.PubKey.GetAddress(ScriptPubKeyType.Segwit, rpc.Network));
+			await dummyWallet.GenerateAsync(101, cts.Token);
 
 			var tasks = participants.Select(x => x.StartParticipatingAsync(cts.Token)).ToArray();
 
@@ -390,7 +392,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			var mempool = await rpc.GetRawMempoolAsync();
 			var coinjoin = await rpc.GetRawTransactionAsync(mempool.Single());
 
-			Assert.True(coinjoin.Outputs.Count >= ExpectedInputNumber);
+			Assert.True(coinjoin.Outputs.Count <= ExpectedInputNumber);
 			Assert.True(coinjoin.Inputs.Count == ExpectedInputNumber);
 		}
 		finally
