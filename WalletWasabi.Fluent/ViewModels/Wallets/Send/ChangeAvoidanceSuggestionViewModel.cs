@@ -49,32 +49,6 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 	public static async IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> GenerateSuggestionsAsync(
 		TransactionInfo transactionInfo, BitcoinAddress destination, Wallet wallet, BuildTransactionResult requestedTransaction, [EnumeratorCancellation] CancellationToken cancellationToken)
 	{
-		ChangeAvoidanceSuggestionViewModel? smallerSuggestion = null;
-
-		if (requestedTransaction.SpentCoins.Count() > 1)
-		{
-			var smallerTransaction = await Task.Run(() => TransactionHelpers.BuildChangelessTransaction(
-				wallet,
-				destination,
-				transactionInfo.UserLabels,
-				transactionInfo.FeeRate,
-				requestedTransaction
-					.SpentCoins
-					.OrderByDescending(x => x.Amount)
-					.Skip(1),
-				tryToSign: false
-				));
-
-			var smallerDestinationAmount = smallerTransaction.CalculateDestinationAmount();
-
-			if (smallerDestinationAmount < transactionInfo.Amount)
-			{
-				smallerSuggestion = new ChangeAvoidanceSuggestionViewModel(
-					transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), smallerTransaction,
-					wallet.Synchronizer.UsdExchangeRate, false);
-			}
-		}
-
 		Task<ChangeAvoidanceSuggestionViewModel?> bnbSuggestionTask = Task.Run(() =>
 		{
 			List<SmartCoin> availableCoins = wallet.Coins.Available().ToList();
@@ -98,11 +72,6 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 			return null;
 		});
-
-		if (smallerSuggestion is not null)
-		{
-			yield return smallerSuggestion;
-		}
 
 		ChangeAvoidanceSuggestionViewModel? bnbSuggestion = await bnbSuggestionTask;
 
