@@ -4,7 +4,7 @@ This guide is for giving detailed instructions about how to debug Wasabi Wallet 
 We will focus on how to achieve this with `vscode` first because that is the cross-platform IDE used by some of the developer team members.
 
 ## Before Starting
-We assume the reader has already read the project [README](https://github.com/zkSNACKs/WalletWasabi/blob/master/README.md) file and has installed the [.NET Core 5.0 SDK](https://dotnet.microsoft.com/download), and knows how to clone the repository and build the Wasabi solution.
+We assume the reader has already read the project [README](https://github.com/zkSNACKs/WalletWasabi/blob/master/README.md) file and has installed the [.NET 6.0 SDK](https://dotnet.microsoft.com/download), and knows how to clone the repository and build the Wasabi solution.
 
 
 ## Install VS Code and C# extension
@@ -45,9 +45,9 @@ This file contains the list of projects that can be launched, how to do it, what
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build-client",
-      "program": "${workspaceFolder}/WalletWasabi.Gui/bin/Debug/netcoreapp3.1/WalletWasabi.Gui.dll",
+      "program": "${workspaceFolder}/WalletWasabi.Fluent.Desktop/bin/Debug/net6.0/WalletWasabi.Fluent.Desktop.dll",
       "args": [],
-      "cwd": "${workspaceFolder}/WalletWasabi.Gui",
+      "cwd": "${workspaceFolder}/WalletWasabi.Fluent.Desktop",
       "stopAtEntry": false,
       "internalConsoleOptions": "openOnSessionStart",
       "sourceFileMap": {
@@ -70,7 +70,7 @@ That is defined in the tasks file (it goes into `.vscode/tasks.json` file).
         "type": "process",
         "args": [
            "build",
-           "${workspaceFolder}/WalletWasabi.Gui/WalletWasabi.Gui.csproj"
+           "${workspaceFolder}/WalletWasabi.Fluent.Desktop/WalletWasabi.Fluent.Desktop.csproj"
         ],
         "problemMatcher": "$msCompile"
     }]
@@ -92,7 +92,7 @@ Add the following launcher to the array of `configurations` in the `.vscode/laun
    "type": "coreclr",
    "request": "launch",
    "preLaunchTask": "build-backend",
-   "program": "${workspaceFolder}/WalletWasabi.Backend/bin/Debug/netcoreapp3.1/WalletWasabi.Backend.dll",
+   "program": "${workspaceFolder}/WalletWasabi.Backend/bin/Debug/net6.0/WalletWasabi.Backend.dll",
    "args": [],
    "cwd": "${workspaceFolder}/WalletWasabi.Backend",
    "stopAtEntry": false,
@@ -158,9 +158,9 @@ Once this has been done a developer can press (CTRL+SHIFT+D) to go to the debugg
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build-client",
-            "program": "${workspaceFolder}/WalletWasabi.Gui/bin/Debug/netcoreapp3.1/WalletWasabi.Gui.dll",
+            "program": "${workspaceFolder}/WalletWasabi.Fluent.Desktop/bin/Debug/net6.0/WalletWasabi.Fluent.Desktop.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/WalletWasabi.Gui",
+            "cwd": "${workspaceFolder}/WalletWasabi.Fluent.Desktop",
             "stopAtEntry": false,
             "internalConsoleOptions": "openOnSessionStart",
             "sourceFileMap": {
@@ -172,7 +172,7 @@ Once this has been done a developer can press (CTRL+SHIFT+D) to go to the debugg
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build-backend",
-            "program": "${workspaceFolder}/WalletWasabi.Backend/bin/Debug/netcoreapp3.1/WalletWasabi.Backend.dll",
+            "program": "${workspaceFolder}/WalletWasabi.Backend/bin/Debug/net6.0/WalletWasabi.Backend.dll",
             "args": [],
             "cwd": "${workspaceFolder}/WalletWasabi.Backend",
             "stopAtEntry": false,
@@ -204,7 +204,7 @@ Once this has been done a developer can press (CTRL+SHIFT+D) to go to the debugg
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build-client",
-            "program": "${workspaceFolder}/WalletWasabi.Gui/bin/Debug/netcoreapp3.1/WalletWasabi.Gui.dll",
+            "program": "${workspaceFolder}/WalletWasabi.Fluent.Desktop/bin/Debug/net6.0/WalletWasabi.Fluent.Desktop.dll",
             "args": [
                 "mix", "--wallet:TestNet"
             ],
@@ -250,7 +250,7 @@ Once this has been done a developer can press (CTRL+SHIFT+D) to go to the debugg
         "type": "process",
         "args": [
             "build",
-            "${workspaceFolder}/WalletWasabi.Gui/WalletWasabi.Gui.csproj",
+            "${workspaceFolder}/WalletWasabi.Fluent.Desktop/WalletWasabi.Fluent.Desktop.csproj",
             "/property:GenerateFullPaths=true",
             "/consoleloggerparameters:NoSummary"
             ],
@@ -287,7 +287,7 @@ Once this has been done a developer can press (CTRL+SHIFT+D) to go to the debugg
             "args": [
                 "watch",
                 "run",
-                "${workspaceFolder}/WalletWasabi.Gui/WalletWasabi.Gui.csproj",
+                "${workspaceFolder}/WalletWasabi.Fluent.Desktop/WalletWasabi.Fluent.Desktop.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -306,7 +306,7 @@ You can tweak debugging options for unit tests by addind the followin setting to
    "csharp.unitTestDebuggingOptions": {
         "sourceFileMap": {
             "WalletWasabi/": "${workspaceFolder}/WalletWasabi",
-            "WalletWasabi.Gui/": "${workspaceFolder}/WalletWasabi.Gui",
+            "WalletWasabi.Fluent.Desktop/": "${workspaceFolder}/WalletWasabi.Fluent.Desktop",
             "WalletWasabi.Tests/": "${workspaceFolder}/WalletWasabi.Tests",
             "WalletWasabi.Backend/": "${workspaceFolder}/WalletWasabi.Backend"
         }

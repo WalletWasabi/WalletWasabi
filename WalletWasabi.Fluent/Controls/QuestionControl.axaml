@@ -7,10 +7,13 @@
     <Setter Property="VerticalContentAlignment" Value="Stretch" />
     <Setter Property="Template">
       <ControlTemplate>
-        <DockPanel VerticalAlignment="{TemplateBinding VerticalContentAlignment}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
+        <DockPanel VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
           <DockPanel HorizontalAlignment="Stretch" MaxWidth="500" DockPanel.Dock="Bottom">
-            <Button Name="PART_NoButton" HorizontalAlignment="Left" Content="No" Classes="yesNo" Command="{TemplateBinding NoCommand}" />
-            <Button Name="PART_YesButton" HorizontalAlignment="Right" Content="Yes" Classes="yesNo" IsDefault="True" Command="{TemplateBinding YesCommand}" />
+            <Button Name="PART_NoButton" HorizontalAlignment="Left" Content="No" Classes="yesNo"
+                    Command="{TemplateBinding NoCommand}" />
+            <Button Name="PART_YesButton" HorizontalAlignment="Right" Content="Yes" Classes="yesNo"
+                    Command="{TemplateBinding YesCommand}" />
           </DockPanel>
           <ContentPresenter Content="{TemplateBinding Content}"
                             ContentTemplate="{TemplateBinding ContentTemplate}"
@@ -18,12 +21,12 @@
                             TextBlock.FontSize="{TemplateBinding FontSize}"
                             DockPanel.Dock="Bottom"
                             Margin="0 10 0 50" />
-            <Panel DockPanel.Dock="Top">
-              <Viewbox MaxHeight="150">
-                <Image Height="100" Source="{TemplateBinding ImageIcon}" />
-              </Viewbox>
-              <ContentControl Content="{TemplateBinding IconContent}" DockPanel.Dock="Top"/>
-            </Panel>
+          <Panel DockPanel.Dock="Top">
+            <Viewbox MaxHeight="150">
+              <Image Height="100" Source="{TemplateBinding ImageIcon}" />
+            </Viewbox>
+            <ContentControl Content="{TemplateBinding IconContent}" DockPanel.Dock="Top" />
+          </Panel>
         </DockPanel>
       </ControlTemplate>
     </Setter>
@@ -35,16 +38,17 @@
 
   <!-- YesNo Button style -->
   <Style Selector="Button.yesNo">
-    <Setter Property="Width" Value="150"/>
-    <Setter Property="Height" Value="40"/>
-    <Setter Property="HorizontalContentAlignment" Value="Center"/>
-    <Setter Property="VerticalContentAlignment" Value="Center"/>
-    <Setter Property="FontSize" Value="{StaticResource FontSizeH6}"/>
-    <Setter Property="Padding" Value="0"/>
+    <Setter Property="Width" Value="150" />
+    <Setter Property="Height" Value="40" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="FontSize" Value="{StaticResource FontSizeH6}" />
+    <Setter Property="Padding" Value="0" />
   </Style>
 
   <!-- YesNo Button background -->
-  <Style Selector="c|QuestionControl[HighlightButton=NoButton] /template/ Button#PART_NoButton,
+  <Style
+    Selector="c|QuestionControl[HighlightButton=NoButton] /template/ Button#PART_NoButton,
                    c|QuestionControl[HighlightButton=YesButton] /template/ Button#PART_YesButton,
                    c|QuestionControl[HighlightButton=Both] /template/ Button#PART_NoButton,
                    c|QuestionControl[HighlightButton=Both] /template/ Button#PART_YesButton">
@@ -52,19 +56,32 @@
   </Style>
 
   <!-- YesNo Button pointerover -->
-  <Style Selector="c|QuestionControl[HighlightButton=YesButton] /template/ Button#PART_YesButton.yesNo:pointerover /template/ ContentPresenter,
+  <Style
+    Selector="c|QuestionControl[HighlightButton=YesButton] /template/ Button#PART_YesButton.yesNo:pointerover /template/ ContentPresenter,
                    c|QuestionControl[HighlightButton=NoButton] /template/ Button#PART_NoButton.yesNo:pointerover /template/ ContentPresenter,
                    c|QuestionControl[HighlightButton=Both] /template/ Button#PART_NoButton.yesNo:pointerover /template/ ContentPresenter,
                    c|QuestionControl[HighlightButton=Both] /template/ Button#PART_YesButton.yesNo:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="{StaticResource ActionButtonPointerOverBackgroundColor}" />
+    <Setter Property="Background" Value="{DynamicResource ActionButtonPointerOverBackgroundColor}" />
   </Style>
 
   <!-- YesNo Button pressed -->
-  <Style Selector="c|QuestionControl[HighlightButton=YesButton] /template/ Button#PART_YesButton.yesNo:pressed /template/ ContentPresenter,
+  <Style
+    Selector="c|QuestionControl[HighlightButton=YesButton] /template/ Button#PART_YesButton.yesNo:pressed /template/ ContentPresenter,
                    c|QuestionControl[HighlightButton=NoButton] /template/ Button#PART_NoButton.yesNo:pressed /template/ ContentPresenter,
                    c|QuestionControl[HighlightButton=Both] /template/ Button#PART_NoButton.yesNo:pressed /template/ ContentPresenter,
                    c|QuestionControl[HighlightButton=Both] /template/ Button#PART_YesButton.yesNo:pressed /template/ ContentPresenter">
-    <Setter Property="Background" Value="{StaticResource ActionButtonPressedBackgroundColor}" />
+    <Setter Property="Background" Value="{DynamicResource ActionButtonPressedBackgroundColor}" />
   </Style>
 
+  <!-- IsDefault -->
+  <Style Selector="c|QuestionControl[HighlightButton=Both] /template/ Button#PART_NoButton,
+                   c|QuestionControl[HighlightButton=Both] /template/ Button#PART_YesButton">
+    <Setter Property="IsDefault" Value="false" />
+  </Style>
+  <Style Selector="c|QuestionControl[HighlightButton=NoButton] /template/ Button#PART_NoButton">
+    <Setter Property="IsDefault" Value="{Binding IsActive}" />
+  </Style>
+  <Style Selector="c|QuestionControl[HighlightButton=YesButton] /template/ Button#PART_YesButton">
+    <Setter Property="IsDefault" Value="{Binding IsActive}" />
+  </Style>
 </Styles>

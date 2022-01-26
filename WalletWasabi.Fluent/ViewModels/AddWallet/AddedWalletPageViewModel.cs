@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Reactive.Disposables;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Helpers;
@@ -7,42 +8,51 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.AddWallet
+namespace WalletWasabi.Fluent.ViewModels.AddWallet;
+
+[NavigationMetaData(Title = "Success")]
+public partial class AddedWalletPageViewModel : RoutableViewModel
 {
-	[NavigationMetaData(Title = "Success")]
-	public partial class AddedWalletPageViewModel : RoutableViewModel
+	private readonly KeyManager _keyManager;
+
+	public AddedWalletPageViewModel(KeyManager keyManager)
 	{
-		public AddedWalletPageViewModel(KeyManager keyManager)
+		_keyManager = keyManager;
+		WalletName = _keyManager.WalletName;
+		WalletType = WalletHelpers.GetType(_keyManager);
+
+		SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
+		EnableBack = false;
+
+		NextCommand = ReactiveCommand.Create(OnNext);
+	}
+
+	public WalletType WalletType { get; }
+
+	public string WalletName { get; }
+
+	private void OnNext()
+	{
+		Navigate().Clear();
+
+		var navBar = NavigationManager.Get<NavBarViewModel>();
+
+		var wallet = navBar?.Items.OfType<WalletViewModelBase>().FirstOrDefault(x => x.WalletName == WalletName);
+
+		if (wallet is { } && navBar is { })
 		{
-			WalletName = keyManager.WalletName;
-			WalletType = WalletHelpers.GetType(keyManager);
-
-			SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
-
-			EnableBack = false;
-
-			NextCommand = ReactiveCommand.Create(() => OnNext(keyManager));
+			navBar.SelectedItem = wallet;
+			wallet.OpenCommand.Execute(default);
 		}
+	}
 
-		public WalletType WalletType { get; }
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
 
-		public string WalletName { get; }
-
-		private void OnNext(KeyManager keyManager)
+		if (!Services.WalletManager.WalletExists(_keyManager.MasterFingerprint))
 		{
-			Services.WalletManager.AddWallet(keyManager);
-
-			Navigate().Clear();
-
-			var navBar = NavigationManager.Get<NavBarViewModel>();
-
-			var wallet = navBar?.Items.OfType<WalletViewModelBase>().FirstOrDefault(x => x.WalletName == WalletName);
-
-			if (wallet is { } && navBar is { })
-			{
-				navBar.SelectedItem = wallet;
-				wallet.OpenCommand.Execute(default);
-			}
+			Services.WalletManager.AddWallet(_keyManager);
 		}
 	}
 }

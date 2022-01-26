@@ -2,7 +2,12 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Design.PreviewWith>
     <Border Padding="20">
-      <!-- Add Controls for Previewer Here -->
+      <StackPanel Spacing="10">
+        <Button Classes="action" Content="Action Button"/>
+        <Button Classes="plain" Content="Plain Button"/>
+        <Button Classes="function" Content="Function Button"/>
+        <Button Classes="invisible" Content="Invisible Button"/>
+      </StackPanel>
     </Border>
   </Design.PreviewWith>
 
@@ -12,18 +17,19 @@
   </Styles.Resources>
 
   <Style Selector="Button.action /template/ ContentPresenter">
-    <Setter Property="Background" Value="{StaticResource ActionButtonBackgroundColor}" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Background" Value="{DynamicResource ActionButtonBackgroundColor}" />
     <Setter Property="Padding" Value="{StaticResource ActionButtonPadding}" />
-    <Setter Property="TextBlock.Foreground" Value="{StaticResource ActionButtonForegroundColor}" />
+    <Setter Property="TextBlock.Foreground" Value="{DynamicResource ActionButtonForegroundColor}" />
   </Style>
   <Style Selector="Button.action:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="{StaticResource ActionButtonPointerOverBackgroundColor}" />
+    <Setter Property="Background" Value="{DynamicResource ActionButtonPointerOverBackgroundColor}" />
   </Style>
   <Style Selector="Button.action:pressed /template/ ContentPresenter">
-    <Setter Property="Background" Value="{StaticResource ActionButtonPressedBackgroundColor}" />
+    <Setter Property="Background" Value="{DynamicResource ActionButtonPressedBackgroundColor}" />
   </Style>
   <Style Selector="Button.action:disabled /template/ ContentPresenter">
-    <Setter Property="Background" Value="{StaticResource ActionButtonDisabledBackgroundColor}" />
+    <Setter Property="Background" Value="{DynamicResource ActionButtonDisabledBackgroundColor}" />
   </Style>
 
 
@@ -39,15 +45,19 @@
     <Setter Property="Background" Value="{DynamicResource InvisibleButtonBackgroundColor}" />
   </Style>
 
-
   <Style Selector="Button.function">
     <Setter Property="Padding" Value="14 10" />
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="Cursor" Value="Hand" />
   </Style>
-
   <Style Selector="Button.function PathIcon">
     <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+  </Style>
+  <Style Selector="Button.function:disabled PathIcon">
+    <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
+  </Style>
+  <Style Selector="Button.function:disabled /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
   </Style>
 
   <Style Selector="Button.invisible">
@@ -63,4 +73,30 @@
   <Style Selector="Button.invisible:pressed /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource InvisibleButtonPressedBackgroundColor}" />
   </Style>
+
+  <Style Selector="Button.labelFlyout">
+    <Setter Property="Margin" Value="0" />
+    <Setter Property="Padding" Value="12,5,12,5" />
+    <Setter Property="VerticalAlignment" Value="Top" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="MinWidth" Value="38" />
+  </Style>
+  <Style Selector="Button.labelFlyout /template/ ContentPresenter">
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="{StaticResource TagsBoxBorderBrush}" />
+    <Setter Property="Background" Value="{DynamicResource InvisibleButtonBackgroundColor}" />
+    <Setter Property="CornerRadius" Value="2" />
+  </Style>
+  <Style Selector="Button.labelFlyout:pointerover /template/ ContentPresenter">
+    <Setter Property="BorderBrush" Value="{StaticResource TagsBoxBorderBrush}" />
+  </Style>
+  <Style Selector="Button.labelFlyout:pressed /template/ ContentPresenter">
+    <Setter Property="BorderBrush" Value="{StaticResource TagsBoxBorderBrush}" />
+  </Style>
+  <Style Selector="Button.labelFlyout:disabled /template/ ContentPresenter">
+    <Setter Property="BorderBrush" Value="{StaticResource TagsBoxBorderBrush}" />
+  </Style>
+
 </Styles>

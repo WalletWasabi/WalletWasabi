@@ -1,11 +1,10 @@
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets
+namespace WalletWasabi.Fluent.ViewModels.Wallets;
+
+public class ClosedHardwareWalletViewModel : ClosedWalletViewModel
 {
-	public class ClosedHardwareWalletViewModel : ClosedWalletViewModel
+	internal ClosedHardwareWalletViewModel(Wallet wallet) : base(wallet)
 	{
-		internal ClosedHardwareWalletViewModel(WalletManagerViewModel walletManager, Wallet wallet) : base(walletManager, wallet)
-		{
-		}
 	}
 }

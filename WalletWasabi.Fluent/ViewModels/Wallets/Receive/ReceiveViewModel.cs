@@ -1,140 +1,80 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
-using DynamicData;
-using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
+
+[NavigationMetaData(
+	Title = "Receive",
+	Caption = "",
+	IconName = "wallet_action_receive",
+	NavBarPosition = NavBarPosition.None,
+	Searchable = false,
+	NavigationTarget = NavigationTarget.DialogScreen)]
+public partial class ReceiveViewModel : RoutableViewModel
 {
-	[NavigationMetaData(
-		Title = "Receive",
-		Caption = "",
-		IconName = "wallet_action_receive",
-		NavBarPosition = NavBarPosition.None,
-		Searchable = false,
-		NavigationTarget = NavigationTarget.DialogScreen)]
-	public partial class ReceiveViewModel : NavBarItemViewModel
+	private readonly Wallet _wallet;
+	[AutoNotify] private bool _isExistingAddressesButtonVisible;
+
+	public ReceiveViewModel(Wallet wallet)
 	{
-		private readonly Wallet _wallet;
-		private readonly SourceList<SuggestionLabelViewModel> _suggestionLabels;
-		private readonly ObservableCollectionExtended<SuggestionLabelViewModel> _suggestionLabelResults;
-		private readonly ObservableCollectionExtended<string> _labels;
-		[AutoNotify] private HashSet<string> _suggestions;
-		[AutoNotify] private bool _isExistingAddressesButtonVisible;
+		_wallet = wallet;
+		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
-		public ReceiveViewModel(Wallet wallet) : base(NavigationMode.Normal)
+		EnableBack = false;
+
+		SuggestionLabels = new SuggestionLabelsViewModel(3);
+
+		var nextCommandCanExecute =
+			SuggestionLabels
+				.WhenAnyValue(x => x.Labels.Count).Select(_ => Unit.Default)
+				.Merge(SuggestionLabels.WhenAnyValue(x => x.IsCurrentTextValid).Select(_ => Unit.Default))
+				.Select(_ => SuggestionLabels.Labels.Count > 0 || SuggestionLabels.IsCurrentTextValid);
+
+		NextCommand = ReactiveCommand.Create(OnNext, nextCommandCanExecute);
+
+		ShowExistingAddressesCommand = ReactiveCommand.Create(OnShowExistingAddresses);
+	}
+
+	public SuggestionLabelsViewModel SuggestionLabels { get; }
+
+	public ICommand ShowExistingAddressesCommand { get; }
+
+	private void OnNext()
+	{
+		var newKey = _wallet.KeyManager.GetNextReceiveKey(new SmartLabel(SuggestionLabels.Labels), out bool minGapLimitIncreased);
+
+		if (minGapLimitIncreased)
 		{
-			_wallet = wallet;
-			_labels = new ObservableCollectionExtended<string>();
-			var allLabels = GetLabels();
+			int minGapLimit = _wallet.KeyManager.MinGapLimit;
+			int prevMinGapLimit = minGapLimit - 1;
+			var minGapLimitMessage = $"Minimum gap limit increased from {prevMinGapLimit} to {minGapLimit}.";
 
-			var mostUsedLabels = allLabels.GroupBy(x => x)
-				.Select(x => new
-				{
-					Label = x.Key,
-					Count = x.Count()
-				})
-				.OrderByDescending(x => x.Count)
-				.ToList();
-
-			_suggestions = mostUsedLabels.Select(x => x.Label).ToHashSet();
-
-			_suggestionLabels = new SourceList<SuggestionLabelViewModel>();
-			_suggestionLabelResults = new ObservableCollectionExtended<SuggestionLabelViewModel>();
-
-			_suggestionLabels.AddRange(
-				mostUsedLabels.Select(x => new SuggestionLabelViewModel(x.Label, x.Count)));
-
-			var suggestionLabelsFilter = this.WhenAnyValue(x => x.Labels).Select(_ => Unit.Default)
-				.Merge(Observable.FromEventPattern(Labels, nameof(Labels.CollectionChanged)).Select(_ => Unit.Default))
-				.Select(SuggestionLabelsFilter);
-
-			_suggestionLabels
-				.Connect()
-				.Filter(suggestionLabelsFilter)
-				.Sort(SortExpressionComparer<SuggestionLabelViewModel>.Descending(x => x.Count))
-				.Top(3)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Bind(_suggestionLabelResults)
-				.Subscribe();
-
-			SelectionMode = NavBarItemSelectionMode.Button;
-
-			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
-
-			EnableBack = false;
-
-			NextCommand = ReactiveCommand.Create(OnNext, _labels.ToObservableChangeSet()
-				.Select(_ => _labels.Count > 0));
-
-			ShowExistingAddressesCommand = ReactiveCommand.Create(OnShowExistingAddresses);
+			// TODO: notification
 		}
 
-		public ObservableCollection<SuggestionLabelViewModel> SuggestionLabelResults => _suggestionLabelResults;
+		SuggestionLabels.Labels.Clear();
 
-		public ObservableCollection<string> Labels => _labels;
+		Navigate().To(new ReceiveAddressViewModel(_wallet, newKey));
+	}
 
-		private Func<SuggestionLabelViewModel, bool> SuggestionLabelsFilter(Unit unit)
-		{
-			return suggestionLabel => !_labels.Contains(suggestionLabel.Label);
-		}
+	private void OnShowExistingAddresses()
+	{
+		Navigate().To(new ReceiveAddressesViewModel(_wallet, SuggestionLabels.Suggestions.ToHashSet()));
+	}
 
-		private void OnNext()
-		{
-			var newKey = _wallet.KeyManager.GetNextReceiveKey(new SmartLabel(Labels), out bool minGapLimitIncreased);
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposable)
+	{
+		base.OnNavigatedTo(isInHistory, disposable);
 
-			if (minGapLimitIncreased)
-			{
-				int minGapLimit = _wallet.KeyManager.MinGapLimit.Value;
-				int prevMinGapLimit = minGapLimit - 1;
-				var minGapLimitMessage = $"Minimum gap limit increased from {prevMinGapLimit} to {minGapLimit}.";
-				// TODO: notification
-			}
-
-			Labels.Clear();
-
-			Navigate().To(new ReceiveAddressViewModel(_wallet, newKey));
-		}
-
-		private void OnShowExistingAddresses()
-		{
-			Navigate().To(new ReceiveAddressesViewModel(_wallet, Suggestions));
-		}
-
-		public ICommand ShowExistingAddressesCommand { get; }
-
-		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposable)
-		{
-			base.OnNavigatedTo(isInHistory, disposable);
-
-			IsExistingAddressesButtonVisible = _wallet.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Any();
-		}
-
-		private IEnumerable<string> GetLabels()
-		{
-			// Don't refresh wallet list as it may be slow.
-			IEnumerable<SmartLabel> labels = Services.WalletManager.GetWallets(refreshWalletList: false)
-				.Select(x => x.KeyManager)
-				.SelectMany(x => x.GetLabels());
-
-			var txStore = Services.BitcoinStore.TransactionStore;
-			if (txStore is { })
-			{
-				labels = labels.Concat(txStore.GetLabels());
-			}
-
-			return labels.SelectMany(x => x.Labels);
-		}
+		IsExistingAddressesButtonVisible = _wallet.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Any();
 	}
 }

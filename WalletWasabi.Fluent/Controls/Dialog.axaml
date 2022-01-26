@@ -19,7 +19,7 @@
                     Background="{DynamicResource RegionColor}"
                     MaxWidth="{TemplateBinding MaxContentWidth}" MaxHeight="{TemplateBinding MaxContentHeight}">
               <Panel Name="PART_Dismiss">
-                <ContentPresenter Name="PART_ContentPresenter" Margin="16 28 16 16"
+                <ContentPresenter Name="PART_ContentPresenter"
                                   Background="{TemplateBinding Background}"
                                   BorderBrush="{TemplateBinding BorderBrush}"
                                   BorderThickness="{TemplateBinding BorderThickness}"
@@ -63,6 +63,7 @@
   <Style Selector="c|Dialog /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="MinWidth" Value="382" />
     <Setter Property="MinHeight" Value="284" />
+    <Setter Property="Margin" Value="16 28 16 16"/>
   </Style>
 
   <!-- Dialog Opened State -->
@@ -83,5 +84,35 @@
   </Style>
   <Style Selector="c|Dialog:not(:open) /template/ Panel#PART_Overlay">
     <Setter Property="Opacity" Value="0"/>
+  </Style>
+
+  <!-- Dialog Increased width State -->
+  <Style Selector="c|Dialog[IncreasedWidthEnabled=True] /template/ Border#PART_Border">
+    <Setter Property="Margin" Value="0 40" />
+  </Style>
+
+  <!-- Dialog Increased height State -->
+  <Style Selector="c|Dialog[IncreasedHeightEnabled=True] /template/ Border#PART_Border">
+    <Setter Property="Margin" Value="40 0" />
+  </Style>
+
+  <!-- Dialog Increased size State -->
+  <Style Selector="c|Dialog[IncreasedSizeEnabled=True] /template/ Border#PART_Border">
+    <Setter Property="Margin" Value="0 0" />
+  </Style>
+
+  <!-- Dialog Fullscreen State -->
+  <Style Selector="c|Dialog[FullScreenEnabled=True] /template/ Border#PART_Border">
+    <Setter Property="Margin" Value="0 30 0 0" />
+    <Setter Property="BoxShadow" Value="{StaticResource EmptyBoxShadow}" />
+  </Style>
+  <Style Selector="c|Dialog[FullScreenEnabled=True] /template/ Panel#PART_DialogHost">
+    <Setter Property="Margin" Value="0" />
+  </Style>
+  <Style Selector="c|Dialog[FullScreenEnabled=True] /template/ Panel#PART_Overlay">
+    <Setter Property="Background" Value="{DynamicResource RegionColor}"/>
+  </Style>
+  <Style Selector="c|Dialog[FullScreenEnabled=True] /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Margin" Value="16 0 16 16" />
   </Style>
 </Styles>

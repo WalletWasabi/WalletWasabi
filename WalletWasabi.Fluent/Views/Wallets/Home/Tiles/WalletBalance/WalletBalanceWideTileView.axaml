@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="660" d:DesignHeight="330"
              x:CompileBindings="True" x:DataType="vm:WalletBalanceTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalance.WalletBalanceWideTileView">
@@ -21,10 +22,13 @@
           </Panel>
         </Viewbox>
         <StackPanel VerticalAlignment="Center">
-          <TextBlock Text="{Binding BalanceBtc, FallbackValue='1.21230001 BTC'}"
-                     FontSize="24" />
-          <TextBlock Text="{Binding BalanceFiat, FallbackValue='≈ 218,197 USD'}"
-                     Opacity="0.8" FontSize="12" />
+          <controls:PrivacyContentControl FontSize="24"
+                                          NumberOfPrivacyChars="13"
+                                          Content="{Binding BalanceBtc, FallbackValue='1.21230001 BTC'}" />
+          <controls:PrivacyContentControl FontSize="12"
+                                          NumberOfPrivacyChars="13"
+                                          Opacity="0.8"
+                                          Content="{Binding BalanceFiat, FallbackValue='≈ 218,197 USD'}" />
         </StackPanel>
       </StackPanel>
       <DockPanel VerticalAlignment="Center">
@@ -37,8 +41,10 @@
             </Panel>
             <StackPanel VerticalAlignment="Center">
               <TextBlock Text="Private funds" Opacity="0.8" FontSize="12" />
-              <TextBlock Text="{Binding BalancePrivateBtc, FallbackValue='1.0030001 BTC'}"
-                         FontSize="15" Margin="0,4,0,0" />
+              <controls:PrivacyContentControl FontSize="15"
+                                              NumberOfPrivacyChars="13"
+                                              Margin="0,4,0,0"
+                                              Content="{Binding BalancePrivateBtc, FallbackValue='1.0030001 BTC'}" />
             </StackPanel>
           </StackPanel>
           <!-- Non-private funds -->
@@ -49,8 +55,10 @@
             </Panel>
             <StackPanel VerticalAlignment="Center">
               <TextBlock Text="Non-private funds" Opacity="0.8" FontSize="12" />
-              <TextBlock Text="{Binding BalanceNonPrivateBtc, FallbackValue='0.21200000 BTC'}"
-                         FontSize="15" Margin="0,4,0,0" />
+              <controls:PrivacyContentControl FontSize="15"
+                                              NumberOfPrivacyChars="13"
+                                              Margin="0,4,0,0"
+                                              Content="{Binding BalanceNonPrivateBtc, FallbackValue='0.21200000 BTC'}" />
             </StackPanel>
           </StackPanel>
         </DockPanel>
@@ -75,7 +83,7 @@
                             Height="14" Width="14" Foreground="{DynamicResource SystemAccentColor}" />
                 </Viewbox>
                 <TextBlock
-                  Text="{Binding RecentTransactionDate, StringFormat='{}{0:MM/dd/yyyy HH:mm}', FallbackValue='7/12/2020'}"
+                  Text="{Binding RecentTransactionDate, FallbackValue='7/12/2020'}"
                   Opacity="0.8" FontSize="12" Margin="10,0,0,0" />
               </DockPanel>
               <!-- Recent transaction status -->

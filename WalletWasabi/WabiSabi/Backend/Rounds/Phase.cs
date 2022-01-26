@@ -1,17 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
-namespace WalletWasabi.WabiSabi.Backend.Rounds
+public enum Phase
 {
-	public enum Phase
-	{
-		InputRegistration,
-		ConnectionConfirmation,
-		OutputRegistration,
-		TransactionSigning,
-		TransactionBroadcasting
-	}
+	InputRegistration,
+	ConnectionConfirmation,
+	OutputRegistration,
+	TransactionSigning,
+	Ended
 }

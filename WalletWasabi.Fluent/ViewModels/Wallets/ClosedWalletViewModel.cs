@@ -1,101 +1,49 @@
-using System;
-using System.Diagnostics;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Login;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets
+namespace WalletWasabi.Fluent.ViewModels.Wallets;
+
+public class ClosedWalletViewModel : WalletViewModelBase
 {
-	public partial class ClosedWalletViewModel : WalletViewModelBase
+	protected ClosedWalletViewModel(Wallet wallet)
+		: base(wallet)
 	{
-		private readonly SmartHeaderChain _smartHeaderChain;
+		OpenCommand = ReactiveCommand.Create(OnOpen);
+	}
 
-		private Stopwatch? _stopwatch;
-		private uint? _startingFilterIndex;
+	public LoadingViewModel? Loading { get; private set; }
 
-		protected ClosedWalletViewModel(WalletManagerViewModel walletManagerViewModel, Wallet wallet)
-			: base(wallet)
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
+
+		Loading ??= new LoadingViewModel(Wallet);
+		Loading.Activate(disposables);
+
+		IsLoading = true;
+	}
+
+	private void OnOpen()
+	{
+		if (!Wallet.IsLoggedIn)
 		{
-			_smartHeaderChain = Services.BitcoinStore.SmartHeaderChain;
-
-			OpenCommand = ReactiveCommand.Create(() => OnOpen(walletManagerViewModel));
+			Navigate().To(new LoginViewModel(this), NavigationMode.Clear);
 		}
-
-		public LoadingControlViewModel Loading { get; } = new();
-
-		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+		else
 		{
-			base.OnNavigatedTo(isInHistory, disposables);
-
-			_stopwatch ??= Stopwatch.StartNew();
-
-			Observable.Interval(TimeSpan.FromSeconds(1))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					var segwitActivationHeight = SmartHeader.GetStartingHeader(Wallet.Network).Height;
-					if (Wallet.LastProcessedFilter?.Header?.Height is { } lastProcessedFilterHeight
-						&& lastProcessedFilterHeight > segwitActivationHeight
-						&& _smartHeaderChain.TipHeight is { } tipHeight
-						&& tipHeight > segwitActivationHeight)
-					{
-						var allFilters = tipHeight - segwitActivationHeight;
-						var processedFilters = lastProcessedFilterHeight - segwitActivationHeight;
-
-						UpdateStatus(allFilters, processedFilters, _stopwatch.ElapsedMilliseconds);
-					}
-				})
-				.DisposeWith(disposables);
+			Navigate().To(this, NavigationMode.Clear);
 		}
+	}
 
-		private void UpdateStatus(uint allFilters, uint processedFilters, double elapsedMilliseconds)
-		{
-			var percent = (decimal)processedFilters / allFilters * 100;
-			_startingFilterIndex ??= processedFilters; // Store the filter index we started on. It is needed for better remaining time calculation.
-			var realProcessedFilters = processedFilters - _startingFilterIndex.Value;
-			var remainingFilterCount = allFilters - processedFilters;
-
-			var tempPercent = (uint)Math.Round(percent);
-
-			if (tempPercent == 0 || realProcessedFilters == 0 || remainingFilterCount == 0)
-			{
-				return;
-			}
-
-			Loading.Percent = tempPercent;
-			var percentText = $"{Loading.Percent}% completed";
-
-			var remainingMilliseconds = elapsedMilliseconds / realProcessedFilters * remainingFilterCount;
-			var userFriendlyTime = TextHelpers.TimeSpanToFriendlyString(TimeSpan.FromMilliseconds(remainingMilliseconds));
-			var remainingTimeText = string.IsNullOrEmpty(userFriendlyTime) ? "" : $"- {userFriendlyTime} remaining";
-
-			Loading.StatusText = $"{percentText} {remainingTimeText}";
-		}
-
-		private void OnOpen(WalletManagerViewModel walletManagerViewModel)
-		{
-			if (!Wallet.IsLoggedIn)
-			{
-				Navigate().To(new LoginViewModel(walletManagerViewModel, this), NavigationMode.Clear);
-			}
-			else
-			{
-				Navigate().To(this, NavigationMode.Clear);
-			}
-		}
-
-		public static WalletViewModelBase Create(WalletManagerViewModel walletManager, Wallet wallet)
-		{
-			return wallet.KeyManager.IsHardwareWallet
-				? new ClosedHardwareWalletViewModel(walletManager, wallet)
-				: wallet.KeyManager.IsWatchOnly
-					? new ClosedWatchOnlyWalletViewModel(walletManager, wallet)
-					: new ClosedWalletViewModel(walletManager, wallet);
-		}
+	public static WalletViewModelBase Create(Wallet wallet)
+	{
+		return wallet.KeyManager.IsHardwareWallet
+			? new ClosedHardwareWalletViewModel(wallet)
+			: wallet.KeyManager.IsWatchOnly
+				? new ClosedWatchOnlyWalletViewModel(wallet)
+				: new ClosedWalletViewModel(wallet);
 	}
 }

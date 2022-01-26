@@ -1,42 +1,33 @@
 using NBitcoin;
 using Newtonsoft.Json;
-using System;
 
-namespace WalletWasabi.JsonConverters.Bitcoin
+namespace WalletWasabi.JsonConverters.Bitcoin;
+
+public class MoneyBtcJsonConverter : JsonConverter<Money>
 {
-	public class MoneyBtcJsonConverter : JsonConverter
+	/// <inheritdoc />
+	public override Money? ReadJson(JsonReader reader, Type objectType, Money? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
-		/// <inheritdoc />
-		public override bool CanConvert(Type objectType)
-		{
-			return objectType == typeof(Money);
-		}
+		var stringValue = reader.Value as string;
+		return Parse(stringValue);
+	}
 
-		/// <inheritdoc />
-		public override object? ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+	public static Money? Parse(string? stringValue)
+	{
+		if (string.IsNullOrWhiteSpace(stringValue))
 		{
-			var stringValue = reader.Value as string;
-			return Parse(stringValue);
+			return null;
 		}
-
-		public static Money? Parse(string? stringValue)
+		else
 		{
-			if (string.IsNullOrWhiteSpace(stringValue))
-			{
-				return null;
-			}
-			else
-			{
-				return Money.Parse(stringValue);
-			}
+			return Money.Parse(stringValue);
 		}
+	}
 
-		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-		{
-			var money = (Money)value;
-
-			writer.WriteValue(money.ToString(fplus: false, trimExcessZero: true));
-		}
+	/// <inheritdoc />
+	public override void WriteJson(JsonWriter writer, Money? value, JsonSerializer serializer)
+	{
+		var stringValue = value?.ToString(fplus: false, trimExcessZero: true) ?? throw new ArgumentNullException(nameof(value));
+		writer.WriteValue(stringValue);
 	}
 }

@@ -1,6 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:WalletWasabi.Fluent.Controls">
+        xmlns:c="using:WalletWasabi.Fluent.Controls"
+        xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters">
   <Design.PreviewWith>
     <Border Padding="10">
       <c:TagControl Content="Test" />
@@ -11,7 +12,7 @@
     <Setter Property="Cursor" Value="Arrow" />
     <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
     <Setter Property="Background" Value="Transparent" />
-    <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxControlForeground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxBorderBrush}" />
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="(ToolTip.Tip)" Value="{Binding .}" />
     <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
@@ -26,15 +27,16 @@
                     BorderThickness="{TemplateBinding BorderThickness}"
                     CornerRadius="2" />
             <DockPanel Name="PART_DummyPanel"
-                       MaxWidth="260"
                        VerticalAlignment="Top" LastChildFill="True">
               <LayoutTransformControl DockPanel.Dock="Right" Name="PART_DeleteButtonLayoutTransformer"
                                       Margin="-8,0,3,0">
                 <Button Name="PART_DeleteButton" VerticalAlignment="Center"
                         HorizontalAlignment="Center"
+                        IsVisible="{TemplateBinding EnableDelete}"
                         Width="12"
                         Height="12"
                         KeyboardNavigation.IsTabStop="False"
+                        Focusable="{TemplateBinding Focusable}"
                         Margin="4">
                   <Button.Transitions>
                     <Transitions>
@@ -49,13 +51,15 @@
                   </Transitions>
                 </LayoutTransformControl.Transitions>
               </LayoutTransformControl>
-              <ContentPresenter Name="PART_ContentPresenter"
-                                Content="{TemplateBinding Content}"
-                                Padding="{TemplateBinding Padding}"
-                                Margin="12,6,12,6"
-                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                DockPanel.Dock="Left" />
+              <DockPanel Margin="12,6,12,6" DockPanel.Dock="Left" MaxWidth="260">
+                <TextBlock DockPanel.Dock="Left" Margin="0 0 5 0" Text="{TemplateBinding OrdinalIndex, Converter={x:Static converters:IntConverter.ToOrdinalString}}" IsVisible="{TemplateBinding EnableCounter}"/>
+                <ContentPresenter Name="PART_ContentPresenter"
+                                  DockPanel.Dock="Left"
+                                  Content="{TemplateBinding Content}"
+                                  Padding="{TemplateBinding Padding}"
+                                  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
+              </DockPanel>
             </DockPanel>
           </Panel>
         </Panel>
@@ -67,6 +71,7 @@
     <Setter Property="ContentTemplate">
       <DataTemplate DataType="x:String">
         <TextBlock Text="{Binding .}"
+                   MaxWidth="120"
                    TextTrimming="CharacterEllipsis" />
       </DataTemplate>
     </Setter>
@@ -90,6 +95,7 @@
 
   <Style Selector="c|TagControl /template/ Panel#PART_TagPanel Button#PART_DeleteButton">
     <Setter Property="Opacity" Value="0" />
+    <Setter Property="Focusable" Value="False" />
   </Style>
 
   <Style

@@ -1,80 +1,69 @@
-namespace System.Threading.Tasks
+namespace System.Threading.Tasks;
+
+/// <remarks>The class implements methods for backward compatibility.</remarks>
+public static class TaskExtensions
 {
-	public static class TaskExtensions
+	/// <summary>
+	/// Implements method that behaves as <see cref="Task{T}.WaitAsync(CancellationToken)"/> but
+	/// it throws <see cref="OperationCanceledException"/> instead of <see cref="TimeoutException"/>.
+	/// </summary>
+	public static async Task<T> WithAwaitCancellationAsync<T>(this Task<T> task, CancellationToken cancellationToken)
 	{
-		/// <summary>
-		/// UNSAFE! You are cancelling the wait on the callback of the original Task, not cancelling the operation itself.
-		/// https://stackoverflow.com/questions/14524209/what-is-the-correct-way-to-cancel-an-async-operation-that-doesnt-accept-a-cance/14524565#14524565
-		/// </summary>
-		public static async Task<T> WithAwaitCancellationAsync<T>(this Task<T> me, CancellationToken cancel, int waitForGracefulTerminationMilliseconds = 0)
+		try
 		{
-			// The task completion source.
-			var tcs = new TaskCompletionSource<bool>();
-
-			// Register with the cancellation token.
-			using (cancel.Register(s => (s as TaskCompletionSource<bool>)?.TrySetResult(true), tcs))
-			{
-				// If the task waited on is the cancellation token...
-				if (me != await Task.WhenAny(me, tcs.Task).ConfigureAwait(false))
-				{
-					if (waitForGracefulTerminationMilliseconds <= 0)
-					{
-						throw new OperationCanceledException(cancel);
-					}
-					else
-					{
-						using var cts = new CancellationTokenSource(waitForGracefulTerminationMilliseconds);
-						return await me.WithAwaitCancellationAsync(cts.Token).ConfigureAwait(false);
-					}
-				}
-			}
-
-			// Wait for one or the other to complete.
-			return await me.ConfigureAwait(false);
+			return await task.WaitAsync(cancellationToken).ConfigureAwait(false);
 		}
-
-		/// <summary>
-		/// UNSAFE! You are cancelling the wait on the callback of the original Task, not cancelling the operation itself.
-		/// https://stackoverflow.com/questions/14524209/what-is-the-correct-way-to-cancel-an-async-operation-that-doesnt-accept-a-cance/14524565#14524565
-		/// </summary>
-		public static async Task WithAwaitCancellationAsync(this Task me, CancellationToken cancel, int waitForGracefulTerminationMilliseconds = 0)
+		catch (TimeoutException e)
 		{
-			// The task completion source.
-			var tcs = new TaskCompletionSource<bool>();
-
-			// Register with the cancellation token.
-			using (cancel.Register(s => (s as TaskCompletionSource<bool>)?.TrySetResult(true), tcs))
-			{
-				// If the task waited on is the cancellation token...
-				if (me != await Task.WhenAny(me, tcs.Task).ConfigureAwait(false))
-				{
-					if (waitForGracefulTerminationMilliseconds <= 0)
-					{
-						throw new OperationCanceledException(cancel);
-					}
-					else
-					{
-						using var cts = new CancellationTokenSource(waitForGracefulTerminationMilliseconds);
-						await me.WithAwaitCancellationAsync(cts.Token).ConfigureAwait(false);
-						return;
-					}
-				}
-			}
-
-			// Wait for one or the other to complete.
-			await me.ConfigureAwait(false);
+			throw new OperationCanceledException("Timed out.", innerException: e);
 		}
+	}
 
-		public static async Task<T> WithAwaitCancellationAsync<T>(this Task<T> me, int millisecondsDelay)
-			=> await me.WithAwaitCancellationAsync(ThreadingHelpers.Cancelled, millisecondsDelay).ConfigureAwait(false);
+	/// <summary>
+	/// Implements method that behaves as <see cref="Task.WaitAsync(CancellationToken)"/> but
+	/// it throws <see cref="OperationCanceledException"/> instead of <see cref="TimeoutException"/>.
+	/// </summary>
+	public static async Task WithAwaitCancellationAsync(this Task task, CancellationToken cancellationToken)
+	{
+		try
+		{
+			await task.WaitAsync(cancellationToken).ConfigureAwait(false);
+		}
+		catch (TimeoutException e)
+		{
+			throw new OperationCanceledException("Timed out.", innerException: e);
+		}
+	}
 
-		public static async Task<T> WithAwaitCancellationAsync<T>(this Task<T> me, TimeSpan timeout)
-			=> await me.WithAwaitCancellationAsync(ThreadingHelpers.Cancelled, (int)timeout.TotalMilliseconds).ConfigureAwait(false);
+	/// <summary>
+	/// Implements method that behaves as <see cref="Task{T}.WaitAsync(TimeSpan)"/> but
+	/// it throws <see cref="OperationCanceledException"/> instead of <see cref="TimeoutException"/>.
+	/// </summary>
+	public static async Task<T> WithAwaitCancellationAsync<T>(this Task<T> task, TimeSpan timeout)
+	{
+		try
+		{
+			return await task.WaitAsync(timeout).ConfigureAwait(false);
+		}
+		catch (TimeoutException e)
+		{
+			throw new OperationCanceledException("Timed out.", innerException: e);
+		}
+	}
 
-		public static async Task WithAwaitCancellationAsync(this Task me, int millisecondsDelay)
-			=> await me.WithAwaitCancellationAsync(ThreadingHelpers.Cancelled, millisecondsDelay).ConfigureAwait(false);
-
-		public static async Task WithAwaitCancellationAsync(this Task me, TimeSpan timeout)
-			=> await me.WithAwaitCancellationAsync(ThreadingHelpers.Cancelled, (int)timeout.TotalMilliseconds).ConfigureAwait(false);
+	/// <summary>
+	/// Implements method that behaves as <see cref="Task.WaitAsync(TimeSpan)"/> but
+	/// it throws <see cref="OperationCanceledException"/> instead of <see cref="TimeoutException"/>.
+	/// </summary>
+	public static async Task WithAwaitCancellationAsync(this Task task, TimeSpan timeout)
+	{
+		try
+		{
+			await task.WaitAsync(timeout).ConfigureAwait(false);
+		}
+		catch (TimeoutException e)
+		{
+			throw new OperationCanceledException("Timed out.", innerException: e);
+		}
 	}
 }

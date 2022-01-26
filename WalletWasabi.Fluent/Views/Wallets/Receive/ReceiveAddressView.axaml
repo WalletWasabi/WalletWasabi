@@ -12,48 +12,46 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="OK"
-                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                 ScrollViewer.VerticalScrollBarVisibility="Auto">
     <DockPanel LastChildFill="True">
-      <DockPanel.Styles>
-        <Style Selector="TextBlock">
-          <Setter Property="FontWeight" Value="ExtraLight"/>
-          <Setter Property="TextWrapping" Value="Wrap"/>
-          <Setter Property="TextAlignment" Value="Center"/>
-          <Setter Property="HorizontalAlignment" Value="Center"/>
-        </Style>
-      </DockPanel.Styles>
+
       <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Spacing="30">
         <DockPanel HorizontalAlignment="Center">
-          <DockPanel>
-            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="2" Margin="10 0 0 0">
-              <c:AnimatedButton ToolTip.Tip="Show on the hardware wallet"
-                                IsVisible="{Binding IsHardwareWallet}"
-                                Command="{Binding ShowOnHwWalletCommand}"
-                                NormalIcon="{StaticResource share_regular}"
-                                ClickIcon="{StaticResource copy_confirmed}"/>
+          <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="2" Margin="10 0 0 0">
+            <c:AnimatedButton ToolTip.Tip="Show on the hardware wallet"
+                              IsVisible="{Binding IsHardwareWallet}"
+                              Command="{Binding ShowOnHwWalletCommand}"
+                              NormalIcon="{StaticResource share_regular}"
+                              ClickIcon="{StaticResource copy_confirmed}" />
 
-              <c:AnimatedButton ToolTip.Tip="Copy"
-                                Command="{Binding CopyAddressCommand}"
-                                NormalIcon="{StaticResource copy_regular}"
-                                ClickIcon="{StaticResource copy_confirmed}"
-                                ExecuteOnOpen="{Binding IsAutoCopyEnabled}"/>
-            </StackPanel>
-            <TextBox Classes="selectableTextBlock" TextWrapping="Wrap" Text="{Binding Address}" FontWeight="Normal" FontSize="{StaticResource FontSizeH5}" />
-          </DockPanel>
+            <c:AnimatedButton ToolTip.Tip="Copy"
+                              Command="{Binding CopyAddressCommand}"
+                              NormalIcon="{StaticResource copy_regular}"
+                              ClickIcon="{StaticResource copy_confirmed}"
+                              ExecuteOnOpen="{Binding IsAutoCopyEnabled}" />
+          </StackPanel>
+          <c:PrivacyContentControl FontSize="{StaticResource FontSizeH5}" NumberOfPrivacyChars="38">
+            <TextBlock Classes="monoSpaced" Text="{Binding Address}" />
+          </c:PrivacyContentControl>
         </DockPanel>
-        <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Labels}" HorizontalAlignment="Center" />
+        <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15" HorizontalAlignment="Center">
+          <c:TagsBox IsReadOnly="True" Items="{Binding Labels}" />
+        </c:PrivacyContentControl>
       </StackPanel>
 
-      <c:AdorningContentControl MaxHeight="270" HorizontalAlignment="Center">
+      <c:AdorningContentControl MaxHeight="270" HorizontalAlignment="Center" ClipToBounds="False">
         <c:AdorningContentControl.Adornment>
-          <Panel HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="5 0 0 20">
-            <Button Command="{Binding SaveQrCodeCommand}" ToolTip.Tip="Save" Classes="plain icon">
-              <PathIcon Data="{StaticResource save_regular}"/>
+          <Panel Margin="0 0 -5 20">
+            <Button Command="{Binding SaveQrCodeCommand}" ToolTip.Tip="Save" Classes="plain icon"
+                    HorizontalAlignment="Right" VerticalAlignment="Bottom">
+              <PathIcon Data="{StaticResource save_regular}" />
             </Button>
           </Panel>
         </c:AdorningContentControl.Adornment>
-        <Viewbox HorizontalAlignment="Center" VerticalAlignment="Bottom" DockPanel.Dock="Left" Margin="20">
-          <c:QrCode Height="250" Matrix="{Binding QrCode}" SaveCommand="{Binding QrCodeCommand, Mode=OneWayToSource}" Margin="0 0 0 -18"/>
+        <Viewbox Margin="20" MinHeight="100">
+          <c:PrivacyContentControl Height="250" Margin="0 0 0 -18" PrivacyReplacementMode="Icon">
+            <c:QrCode Matrix="{Binding QrCode}" SaveCommand="{Binding QrCodeCommand, Mode=OneWayToSource}"  />
+          </c:PrivacyContentControl>
         </Viewbox>
       </c:AdorningContentControl>
     </DockPanel>

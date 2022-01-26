@@ -14,7 +14,10 @@
   <DockPanel>
     <DockPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch">
       <TextBlock Text="Balance over time" DockPanel.Dock="Left" />
-      <ItemsControl DockPanel.Dock="Right" HorizontalAlignment="Right" Items="{Binding TimePeriodOptions}">
+      <ItemsControl DockPanel.Dock="Right"
+                    HorizontalAlignment="Right"
+                    Items="{Binding TimePeriodOptions}"
+                    IsVisible="{Binding !IsEmptyWallet}">
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
             <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 0 0 -3" />
@@ -32,31 +35,33 @@
 
     <Separator DockPanel.Dock="Top" Margin="-16 15" />
 
-    <c:LineChart x:CompileBindings="True" x:DataType="vm:WalletBalanceChartTileViewModel" x:Name="GradientLineChart"
-                 DockPanel.Dock="Bottom" Margin="30 10 15 30"
-                 Classes="area border xAxis xAxisLabels yAxis yAxisLabels"
-                 SmoothCurve="True"
-                 XAxisMinimum="{Binding XMinimum}"
-                 XAxisValues="{Binding XValues}"
-                 XAxisLabels="{Binding XLabels}"
-                 YAxisValues="{Binding YValues}"
-                 YAxisLabels="{Binding YLabels}">
-      <c:LineChart.AreaFill>
-        <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%" Opacity="0.2">
-          <LinearGradientBrush.GradientStops>
-            <GradientStop Offset="0.0" Color="#FF72BD81" />
-            <GradientStop Offset="1.0" Color="#0072BD81" />
-          </LinearGradientBrush.GradientStops>
-        </LinearGradientBrush>
-      </c:LineChart.AreaFill>
-      <c:LineChart.AreaStroke>
-        <LinearGradientBrush StartPoint="0%,50%" EndPoint="100%,50%">
-          <LinearGradientBrush.GradientStops>
-            <GradientStop Offset="0.0" Color="#72BD81" />
-            <GradientStop Offset="1.0" Color="#72BD81" />
-          </LinearGradientBrush.GradientStops>
-        </LinearGradientBrush>
-      </c:LineChart.AreaStroke>
-    </c:LineChart>
+    <c:PrivacyContentControl DockPanel.Dock="Bottom" PrivacyReplacementMode="Icon">
+      <Panel>
+        <c:LineChart x:CompileBindings="True"
+                     Classes="area border xAxis xAxisLabels yAxis yAxisLabels"
+                     Margin="30 10 15 30"
+                     SmoothCurve="True"
+                     XAxisMinimum="{Binding Animator.XMinimum}"
+                     XAxisValues="{Binding Animator.XValues}"
+                     XAxisLabels="{Binding Animator.XLabels}"
+                     YAxisValues="{Binding Animator.YValues}"
+                     YAxisLabels="{Binding Animator.YLabels}"
+                     IsVisible="{Binding !IsEmptyWallet}" />
+        <c:LineChart x:CompileBindings="True"
+                     Classes="area placeholder border xAxis yAxis"
+                     Margin="30 10 15 30"
+                     SmoothCurve="True"
+                     XAxisMinimum="{Binding Placeholder.XMinimum}"
+                     XAxisValues="{Binding Placeholder.XValues}"
+                     YAxisValues="{Binding Placeholder.YValues}"
+                     IsVisible="{Binding IsEmptyWallet}" />
+        <TextBlock Classes="h6 bold"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Center"
+                   Opacity="{StaticResource HistoryTablePlaceholderTextOpacity}"
+                   IsVisible="{Binding IsEmptyWallet}"
+                   Text="Nothing to see here yet." />
+      </Panel>
+    </c:PrivacyContentControl>
   </DockPanel>
 </UserControl>

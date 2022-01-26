@@ -10,7 +10,7 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendSuccessView">
   <c:ContentArea Title="{Binding Title}"
                  EnableNext="True" NextContent="Done"
-                 ScrollViewer.VerticalScrollBarVisibility="Auto">
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel VerticalAlignment="Center">
       <TextBlock Text="Your transaction has been successfully sent." DockPanel.Dock="Bottom" TextAlignment="Center" TextWrapping="Wrap"/>
 

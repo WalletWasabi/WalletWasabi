@@ -14,10 +14,10 @@
                  EnableBack="{Binding EnableBack}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
-    <c:QuestionControl Content="Does your password contains special characters?"
+    <c:QuestionControl Content="Does your password contain special characters?"
                        YesCommand="{Binding YesCommand}"
                        NoCommand="{Binding NoCommand}"
                        ImageIcon="{Binding Icon}"
-                       HighlightButton="Both"/>
+                       HighlightButton="Both" />
   </c:ContentArea>
 </UserControl>

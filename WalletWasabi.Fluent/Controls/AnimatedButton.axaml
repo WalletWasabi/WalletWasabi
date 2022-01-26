@@ -4,7 +4,7 @@
         xmlns:ia="using:Avalonia.Xaml.Interactions.Core"
         xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
     <Design.PreviewWith>
-        <c:AnimatedButton InitialOpacity="0.5" PointerOverOpacity="0.75" />
+        <c:AnimatedButton />
     </Design.PreviewWith>
     <Style Selector="Button > Panel > PathIcon">
         <Setter Property="Opacity" Value="{Binding $parent[c:AnimatedButton].InitialOpacity}" />
@@ -59,6 +59,7 @@
         <Setter Property="Template">
             <ControlTemplate>
                 <Button Name="PART_Button"
+                        Focusable="{TemplateBinding Focusable}"
                         Command="{TemplateBinding Command}"
                         CommandParameter="{TemplateBinding CommandParameter}"
                         Classes="plain">

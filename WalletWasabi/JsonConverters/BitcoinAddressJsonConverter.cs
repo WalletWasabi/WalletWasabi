@@ -1,38 +1,29 @@
 using NBitcoin;
 using Newtonsoft.Json;
-using System;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.JsonConverters
+namespace WalletWasabi.JsonConverters;
+
+public class BitcoinAddressJsonConverter : JsonConverter<BitcoinAddress>
 {
-	public class BitcoinAddressJsonConverter : JsonConverter
+	/// <inheritdoc />
+	public override BitcoinAddress? ReadJson(JsonReader reader, Type objectType, BitcoinAddress? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
-		/// <inheritdoc />
-		public override bool CanConvert(Type objectType)
+		var bitcoinAddressString = reader.Value as string;
+		if (string.IsNullOrWhiteSpace(bitcoinAddressString))
 		{
-			return objectType == typeof(BitcoinAddress);
+			return default;
 		}
-
-		/// <inheritdoc />
-		public override object? ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+		else
 		{
-			var bitcoinAddressString = reader.Value as string;
-			if (string.IsNullOrWhiteSpace(bitcoinAddressString))
-			{
-				return default;
-			}
-			else
-			{
-				return NBitcoinHelpers.BetterParseBitcoinAddress(bitcoinAddressString);
-			}
+			return NBitcoinHelpers.BetterParseBitcoinAddress(bitcoinAddressString);
 		}
+	}
 
-		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-		{
-			var bitcoinAddress = value as BitcoinAddress;
-
-			writer.WriteValue(bitcoinAddress.ToString());
-		}
+	/// <inheritdoc />
+	public override void WriteJson(JsonWriter writer, BitcoinAddress? value, JsonSerializer serializer)
+	{
+		var stringValue = value?.ToString() ?? throw new ArgumentNullException(nameof(value));
+		writer.WriteValue(stringValue);
 	}
 }

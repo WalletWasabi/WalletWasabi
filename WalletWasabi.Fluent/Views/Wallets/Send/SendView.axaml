@@ -10,200 +10,92 @@
              x:DataType="vm:SendViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendView">
-    <UserControl.Styles>
-        <!-- Slider Fee -->
-        <Style Selector="Slider.cursor">
-            <Setter Property="RenderTransform">
-                <RotateTransform Angle="-180" />
-            </Setter>
+  <c:ContentArea Title="Send" Caption=""
+                 EnableBack="{Binding EnableBack}"
+                 EnableNext="True"
+                 NextContent="Continue"
+                 EnableCancel="{Binding EnableCancel}"
+                 IsBusy="{Binding IsBusy}"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto">
+    <DockPanel LastChildFill="False">
+      <DockPanel.Styles>
+        <Style Selector="DockPanel > Label">
+          <Setter Property="MinWidth" Value="80" />
         </Style>
-        <Style Selector="Slider.cursor /template/ RepeatButton#PART_IncreaseButton">
-            <Setter Property="Background" Value="{DynamicResource SliderTrackValueFill}" />
+        <Style Selector="c|AnimatedButton.flash">
+          <Setter Property="InitialOpacity" Value="0.8" />
         </Style>
-        <Style Selector="Slider:pressed.cursor /template/ RepeatButton#PART_IncreaseButton">
-            <Setter Property="Background" Value="{DynamicResource SliderTrackValueFillPressed}" />
+        <Style Selector="c|AnimatedButton.flash /template/ PathIcon#PART_IconNormal">
+          <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+          <Style.Animations>
+            <Animation Duration="0.25" IterationCount="6"
+                       PlaybackDirection="AlternateReverse"
+                       Easing="{StaticResource FluentEasing}">
+              <KeyFrame KeyTime="0:0:0.0">
+                <Setter Property="Opacity" Value="0.1" />
+              </KeyFrame>
+              <KeyFrame KeyTime="0:0:0.25">
+                <Setter Property="Opacity" Value="1" />
+              </KeyFrame>
+            </Animation>
+          </Style.Animations>
         </Style>
-        <Style Selector="Slider:pointerover.cursor /template/ RepeatButton#PART_IncreaseButton">
-            <Setter Property="Background" Value="{DynamicResource SliderTrackValueFillPointerOver}" />
-        </Style>
-        <Style Selector="Slider.cursor /template/ RepeatButton#PART_DecreaseButton">
-            <Setter Property="Background" Value="{DynamicResource SliderTrackFill}" />
-        </Style>
-        <Style Selector="Slider:pressed.cursor /template/ RepeatButton#PART_DecreaseButton">
-            <Setter Property="Background" Value="{DynamicResource SliderTrackFillPressed}" />
-        </Style>
-        <Style Selector="Slider:pointerover.cursor /template/ RepeatButton#PART_DecreaseButton">
-            <Setter Property="Background" Value="{DynamicResource SliderTrackFillPointerOver}" />
-        </Style>
-        <Style Selector="Slider:horizontal.cursor">
-            <Setter Property="Background" Value="{DynamicResource SliderTrackFill}" />
-        </Style>
-        <!-- LineChart Labels -->
-        <Style Selector="c|LineChart.xAxisLabels">
-            <Setter Property="XAxisLabelForeground" Value="{DynamicResource TextForegroundColor}" />
-            <Setter Property="XAxisLabelOpacity" Value="0.5" />
-            <Setter Property="XAxisLabelAngle" Value="0" />
-            <Setter Property="XAxisLabelOffset" Value="0,20" />
-            <Setter Property="XAxisLabelAlignment" Value="Center" />
-            <Setter Property="XAxisLabelFontFamily" Value="Arial" />
-            <Setter Property="XAxisLabelFontStyle" Value="Normal" />
-            <Setter Property="XAxisLabelFontWeight" Value="Normal" />
-            <Setter Property="XAxisLabelFontSize" Value="12" />
-        </Style>
-        <!-- LineChart Cursor -->
-        <Style Selector="c|LineChart.cursor">
-            <Setter Property="CursorStroke" Value="#72BD81" />
-            <Setter Property="CursorStrokeThickness" Value="2" />
-            <!-- <Setter Property="CursorStrokeDashStyle" Value="{x:Static DashStyle.Dash}" /> -->
-            <Setter Property="CursorStrokeLineCap" Value="Round" />
-        </Style>
-        <!-- LineChart XAxis -->
-        <Style Selector="c|LineChart.xAxis">
-            <Setter Property="XAxisOffset" Value="0,0" />
-            <Setter Property="XAxisOpacity" Value="0.5" />
-            <Setter Property="XAxisStroke" Value="{DynamicResource TextForegroundColor}" />
-            <Setter Property="XAxisStrokeThickness" Value="0.7" />
-            <Setter Property="XAxisArrowSize" Value="3.5" />
-            <Setter Property="XAxisMinViableWidth" Value="0"/>
-            <Setter Property="XAxisMinViableHeight" Value="0"/>
-        </Style>
-        <!-- LineChart YAxis -->
-        <Style Selector="c|LineChart.yAxis">
-            <Setter Property="YAxisOffset" Value="-10,-115" />
-            <Setter Property="YAxisOpacity" Value="0.5" />
-            <Setter Property="YAxisStroke" Value="{DynamicResource TextForegroundColor}" />
-            <Setter Property="YAxisStrokeThickness" Value="0.7" />
-            <Setter Property="YAxisArrowSize" Value="3.5" />
-            <Setter Property="YAxisMinViableWidth" Value="0"/>
-            <Setter Property="YAxisMinViableHeight" Value="120"/>
-        </Style>
-        <!-- LineChart YAxis Title -->
-        <Style Selector="c|LineChart.yAxisTitle">
-            <Setter Property="YAxisTitleForeground" Value="{DynamicResource TextForegroundColor}" />
-            <Setter Property="YAxisTitleOpacity" Value="0.5" />
-            <Setter Property="YAxisTitleAngle" Value="-90" />
-            <Setter Property="YAxisTitleOffset" Value="-55,-75" />
-            <Setter Property="YAxisTitleSize" Value="90,20" />
-            <Setter Property="YAxisTitleAlignment" Value="Center" />
-            <Setter Property="YAxisTitleFontFamily" Value="Arial" />
-            <Setter Property="YAxisTitleFontStyle" Value="Normal" />
-            <Setter Property="YAxisTitleFontWeight" Value="Normal" />
-            <Setter Property="YAxisTitleFontSize" Value="12" />
-        </Style>
-        <!-- LineChart Border -->
-        <Style Selector="c|LineChart.border">
-            <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="BorderRadiusX" Value="4" />
-            <Setter Property="BorderRadiusY" Value="4" />
-        </Style>
-    </UserControl.Styles>
-    <c:ContentArea Title="Send" Caption=""
-                   EnableBack="{Binding EnableBack}"
-                   EnableNext="True"
-                   NextContent="Continue"
-                   IsBusy="{Binding IsBusy}"
-                   ScrollViewer.VerticalScrollBarVisibility="Auto">
-
-        <DockPanel>
-            <StackPanel DockPanel.Dock="Top" Spacing="10">
-                <StackPanel.Styles>
-                    <Style Selector="DockPanel > Label">
-                        <Setter Property="MinWidth" Value="80" />
-                    </Style>
-                </StackPanel.Styles>
-                <DockPanel>
-                    <Label DockPanel.Dock="Left" Content="_To:" Target="toTb" />
-                    <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To}"
-                             Watermark="(e.g. Bitcoin address or PayJoin URL)">
-                        <i:Interaction.Behaviors>
-                            <behaviors:FocusOnAttachedBehavior />
-                            <behaviors:ExecuteCommandOnClickBehavior Command="{Binding AutoPasteCommand}" />
-                        </i:Interaction.Behaviors>
-                        <TextBox.InnerRightContent>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
-                                <c:AnimatedButton KeyboardNavigation.IsTabStop="False"
-                                                  Focusable="False"
-                                                  Command="{Binding PasteCommand}"
-                                                  ToolTip.Tip="Paste"
-                                                  NormalIcon="{StaticResource paste_regular}"
-                                                  ClickIcon="{StaticResource copy_confirmed}" />
-                            </StackPanel>
-                        </TextBox.InnerRightContent>
-                    </TextBox>
-                </DockPanel>
-
-                <DockPanel>
-                    <Label DockPanel.Dock="Left" Content="_Amount:" Target="amountTb" />
-                    <DockPanel>
-                        <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png" DockPanel.Dock="Right" IsVisible="{Binding IsPayJoin}"  Margin="0 8 8 0" VerticalAlignment="Top"/>
-                        <c:CurrencyEntryBox KeyboardNavigation.IsTabStop="{Binding !IsFixedAmount}" x:Name="amountTb" IsReadOnly="{Binding IsFixedAmount}" AmountBtc="{Binding AmountBtc}" ConversionRate="{Binding ExchangeRate}" ConversionCurrencyCode="USD" />
-                    </DockPanel>
-                </DockPanel>
-
-                <DockPanel>
-                    <Label DockPanel.Dock="Left" Content="_Labels:" Target="LabelTagBox" />
-                    <c:TagsBox x:Name="LabelTagBox"
-                               Watermark="{StaticResource LabelsWatermarkText}"
-                               TagSeparator=","
-                               SuggestionsAreCaseSensitive="True"
-                               RestrictInputToSuggestions="False"
-                               Items="{Binding Labels}"
-                               Suggestions="{Binding PriorLabels}" />
-                </DockPanel>
-                <Separator DockPanel.Dock="Top"
-                           HorizontalAlignment="Stretch"
-                           Margin="-200 20 0 0" />
-                <Label Margin="0 10 0 20" Content="_Priority:" Target="CursorValue2" />
+      </DockPanel.Styles>
+      <!-- To -->
+      <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+        <Label DockPanel.Dock="Left" Content="_To:" Target="toTb" />
+        <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To}" Classes="monoSpaced"
+                 Watermark="(e.g. Bitcoin address or PayJoin URL)">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+            <behaviors:ExecuteCommandOnActivated Command="{Binding AutoPasteCommand}" />
+            <behaviors:FocusNextWhenValid />
+          </i:Interaction.Behaviors>
+          <TextBox.InnerRightContent>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
+              <c:AnimatedButton KeyboardNavigation.IsTabStop="False"
+                                Focusable="False"
+                                Command="{Binding PasteCommand}"
+                                ToolTip.Tip="Paste"
+                                NormalIcon="{StaticResource paste_regular}"
+                                ClickIcon="{StaticResource copy_confirmed}">
+                <i:Interaction.Behaviors>
+                  <behaviors:PasteButtonFlashBehavior FlashAnimation="flash" CurrentAddress="{Binding To}" />
+                </i:Interaction.Behaviors>
+              </c:AnimatedButton>
+              <c:AnimatedButton IsVisible="{Binding IsQrButtonVisible}"
+                                KeyboardNavigation.IsTabStop="False"
+                                Focusable="False"
+                                Command="{Binding QrCommand}"
+                                ToolTip.Tip="Scan QR Code"
+                                NormalIcon="{StaticResource qr_code_regular}" />
             </StackPanel>
-
-            <DockPanel MinHeight="80">
-                <Slider x:Name="CursorValue2"
-                        Margin="18,0,18,0"
-                        KeyboardNavigation.IsTabStop="False"
-                        DockPanel.Dock="Bottom"
-                        Classes="cursor"
-                        Focusable="True"
-                        Minimum="{Binding XAxisMinValue}"
-                        Maximum="{Binding XAxisMaxValue}"
-                        Value="{Binding XAxisCurrentValueIndex}">
-                </Slider>
-                <c:LineChart x:Name="GradientLineChart"
-                             XAxisPlotMode="EvenlySpaced"
-                             Margin="18,0,18,0"
-                             Classes="cursor border xAxisLabels yAxis yAxisTitle"
-                             MinHeight="30"
-                             XAxisLabels="{Binding XAxisLabels}"
-                             XAxisValues="{Binding XAxisValues}"
-                             XAxisCurrentValue="{Binding XAxisCurrentValue, Mode=TwoWay}"
-                             YAxisValues="{Binding YAxisValues}"
-                             YAxisLogarithmicScale="False"
-                             AreaMargin="10,0,10,30"
-                             AreaStrokeThickness="2"
-                             AreaStrokeLineCap="Round"
-                             AreaMinViableWidth="40"
-                             AreaMinViableHeight="20"
-                             Focusable="True"
-                             YAxisTitle="More Expensive">
-                    <c:LineChart.AreaFill>
-                        <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%" Opacity="0.2">
-                            <LinearGradientBrush.GradientStops>
-                                <GradientStop Offset="0.0" Color="#FF72BD81" />
-                                <GradientStop Offset="1.0" Color="#0072BD81" />
-                            </LinearGradientBrush.GradientStops>
-                        </LinearGradientBrush>
-                    </c:LineChart.AreaFill>
-                    <c:LineChart.AreaStroke>
-                        <LinearGradientBrush StartPoint="0%,50%" EndPoint="100%,50%">
-                            <LinearGradientBrush.GradientStops>
-                                <GradientStop Offset="0.0" Color="#72BD81" />
-                                <GradientStop Offset="1.0" Color="#72BD81" />
-                            </LinearGradientBrush.GradientStops>
-                        </LinearGradientBrush>
-                    </c:LineChart.AreaStroke>
-                </c:LineChart>
-            </DockPanel>
+          </TextBox.InnerRightContent>
+        </TextBox>
+      </DockPanel>
+      <!-- Amount -->
+      <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+        <Label DockPanel.Dock="Left" Content="_Amount:" Target="amountTb" />
+        <DockPanel>
+          <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
+                 DockPanel.Dock="Right" IsVisible="{Binding IsPayJoin}" Margin="0 8 8 0" VerticalAlignment="Top" />
+          <c:CurrencyEntryBox x:Name="amountTb"
+                              KeyboardNavigation.IsTabStop="{Binding !IsFixedAmount}"
+                              IsReadOnly="{Binding IsFixedAmount}"
+                              AmountBtc="{Binding AmountBtc}"
+                              ConversionRate="{Binding ExchangeRate}"
+                              ConversionCurrencyCode="USD"
+                              IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}" />
         </DockPanel>
+      </DockPanel>
 
-    </c:ContentArea>
+      <!-- Advanced -->
+      <Button Classes="h8 plain activeHyperLink" Margin="0 10 0 0"
+              Command="{Binding AdvancedOptionsCommand}"
+              DockPanel.Dock="Bottom"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Bottom"
+              Content="Advanced options" />
+    </DockPanel>
+  </c:ContentArea>
 </UserControl>

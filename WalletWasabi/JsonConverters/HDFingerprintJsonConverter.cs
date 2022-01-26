@@ -1,37 +1,26 @@
 using NBitcoin;
 using Newtonsoft.Json;
-using System;
 
-namespace WalletWasabi.JsonConverters
+namespace WalletWasabi.JsonConverters;
+
+public class HDFingerprintJsonConverter : JsonConverter<HDFingerprint?>
 {
-	public class HDFingerprintJsonConverter : JsonConverter
+	/// <inheritdoc />
+	public override HDFingerprint? ReadJson(JsonReader reader, Type objectType, HDFingerprint? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
-		/// <inheritdoc />
-		public override bool CanConvert(Type objectType)
+		var s = (string?)reader.Value;
+		if (string.IsNullOrWhiteSpace(s))
 		{
-			return objectType == typeof(HDFingerprint);
+			return null;
 		}
 
-		/// <inheritdoc />
-		public override object? ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-		{
-			var s = (string)reader.Value;
-			if (string.IsNullOrWhiteSpace(s))
-			{
-				return null;
-			}
+		return new HDFingerprint(ByteHelpers.FromHex(s));
+	}
 
-			var fp = new HDFingerprint(ByteHelpers.FromHex(s));
-			return fp;
-		}
-
-		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-		{
-			var fp = (HDFingerprint)value;
-
-			var s = fp.ToString();
-			writer.WriteValue(s);
-		}
+	/// <inheritdoc />
+	public override void WriteJson(JsonWriter writer, HDFingerprint? value, JsonSerializer serializer)
+	{
+		var stringValue = value?.ToString() ?? throw new ArgumentNullException(nameof(value));
+		writer.WriteValue(stringValue);
 	}
 }

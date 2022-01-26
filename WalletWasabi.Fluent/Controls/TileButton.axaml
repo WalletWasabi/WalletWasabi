@@ -50,7 +50,7 @@
     <Setter Property="Height" Value="150"/>
     <Setter Property="ClipToBounds" Value="False" />
     <Setter Property="BorderThickness" Value="0" />
-    <Setter Property="Background" Value="{DynamicResource OptionButtonBackground}" />
+    <Setter Property="Background" Value="{DynamicResource TileRegionColor}" />
     <Setter Property="BorderBrush" Value="{DynamicResource OptionButtonBorderBrush}" />
   </Style>
 

@@ -22,7 +22,7 @@
                     Classes="action"
                     Icon="{StaticResource add_regular}"
                     Command="{Binding CreateWalletCommand}"
-                    IsDefault="True" />
+                    IsDefault="{Binding IsActive}" />
       <c:TileButton Text="Connect to hardware wallet"
                     Icon="{StaticResource calculator_regular}"
                     Command="{Binding ConnectHardwareWalletCommand}" />

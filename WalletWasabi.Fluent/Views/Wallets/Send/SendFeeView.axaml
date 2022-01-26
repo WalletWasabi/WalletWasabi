@@ -1,0 +1,201 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:CompileBindings="True"
+             x:DataType="vm:SendFeeViewModel"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendFeeView">
+  <UserControl.Styles>
+    <!-- Slider Fee -->
+    <Style Selector="Slider.cursor">
+      <Setter Property="RenderTransform">
+        <RotateTransform Angle="-180" />
+      </Setter>
+    </Style>
+    <Style Selector="Slider.cursor /template/ RepeatButton#PART_IncreaseButton">
+      <Setter Property="Background" Value="{DynamicResource SliderTrackValueFill}" />
+    </Style>
+    <Style Selector="Slider:pressed.cursor /template/ RepeatButton#PART_IncreaseButton">
+      <Setter Property="Background" Value="{DynamicResource SliderTrackValueFillPressed}" />
+    </Style>
+    <Style Selector="Slider:pointerover.cursor /template/ RepeatButton#PART_IncreaseButton">
+      <Setter Property="Background" Value="{DynamicResource SliderTrackValueFillPointerOver}" />
+    </Style>
+    <Style Selector="Slider.cursor /template/ RepeatButton#PART_DecreaseButton">
+      <Setter Property="Background" Value="{DynamicResource SliderTrackFill}" />
+    </Style>
+    <Style Selector="Slider:pressed.cursor /template/ RepeatButton#PART_DecreaseButton">
+      <Setter Property="Background" Value="{DynamicResource SliderTrackFillPressed}" />
+    </Style>
+    <Style Selector="Slider:pointerover.cursor /template/ RepeatButton#PART_DecreaseButton">
+      <Setter Property="Background" Value="{DynamicResource SliderTrackFillPointerOver}" />
+    </Style>
+    <Style Selector="Slider:horizontal.cursor">
+      <Setter Property="Background" Value="{DynamicResource SliderTrackFill}" />
+    </Style>
+    <!-- LineChart Labels -->
+    <Style Selector="c|LineChart.xAxisLabels">
+      <Setter Property="XAxisLabelForeground" Value="{DynamicResource TextForegroundColor}" />
+      <Setter Property="XAxisLabelOpacity" Value="0.5" />
+      <Setter Property="XAxisLabelAngle" Value="0" />
+      <Setter Property="XAxisLabelOffset" Value="0,20" />
+      <Setter Property="XAxisLabelAlignment" Value="Center" />
+      <Setter Property="XAxisLabelFontFamily" Value="Arial" />
+      <Setter Property="XAxisLabelFontStyle" Value="Normal" />
+      <Setter Property="XAxisLabelFontWeight" Value="Normal" />
+      <Setter Property="XAxisLabelFontSize" Value="12" />
+    </Style>
+    <!-- LineChart YAxis Labels -->
+    <Style Selector="c|LineChart.yAxisLabels">
+      <Setter Property="YAxisLabelForeground" Value="{DynamicResource TextForegroundColor}" />
+      <Setter Property="YAxisLabelAngle" Value="0" />
+      <Setter Property="YAxisLabelOffset" Value="-25,0" />
+      <Setter Property="YAxisLabelAlignment" Value="Auto" />
+      <Setter Property="YAxisLabelFontSize" Value="12" />
+      <Setter Property="YAxisLabelOpacity" Value="0.8" />
+    </Style>
+    <!-- LineChart Cursor -->
+    <Style Selector="c|LineChart.cursor">
+      <Setter Property="CursorStroke" Value="{DynamicResource SliderThumbBackground}" />
+      <Setter Property="CursorStrokeThickness" Value="2" />
+      <!-- <Setter Property="CursorStrokeDashStyle" Value="{x:Static DashStyle.Dash}" /> -->
+      <Setter Property="CursorStrokeLineCap" Value="Round" />
+    </Style>
+    <!-- LineChart XAxis -->
+    <Style Selector="c|LineChart.xAxis">
+      <Setter Property="XAxisOffset" Value="0,0" />
+      <Setter Property="XAxisOpacity" Value="0.5" />
+      <Setter Property="XAxisStroke" Value="{DynamicResource TextForegroundColor}" />
+      <Setter Property="XAxisStrokeThickness" Value="0.7" />
+      <Setter Property="XAxisArrowSize" Value="3.5" />
+      <Setter Property="XAxisMinViableWidth" Value="0" />
+      <Setter Property="XAxisMinViableHeight" Value="0" />
+    </Style>
+    <!-- LineChart YAxis -->
+    <Style Selector="c|LineChart.yAxis">
+      <Setter Property="YAxisOffset" Value="-10,-150" />
+      <Setter Property="YAxisOpacity" Value="0.5" />
+      <Setter Property="YAxisStroke" Value="{DynamicResource TextForegroundColor}" />
+      <Setter Property="YAxisStrokeThickness" Value="0.7" />
+      <Setter Property="YAxisArrowSize" Value="3.5" />
+      <Setter Property="YAxisMinViableWidth" Value="0" />
+      <Setter Property="YAxisMinViableHeight" Value="120" />
+    </Style>
+    <!-- LineChart YAxis Title -->
+    <Style Selector="c|LineChart.yAxisTitle">
+      <Setter Property="YAxisTitleForeground" Value="{DynamicResource TextForegroundColor}" />
+      <Setter Property="YAxisTitleOpacity" Value="0.5" />
+      <Setter Property="YAxisTitleAngle" Value="-90" />
+      <Setter Property="YAxisTitleOffset" Value="-55,-75" />
+      <Setter Property="YAxisTitleSize" Value="90,20" />
+      <Setter Property="YAxisTitleAlignment" Value="Center" />
+      <Setter Property="YAxisTitleFontFamily" Value="Arial" />
+      <Setter Property="YAxisTitleFontStyle" Value="Normal" />
+      <Setter Property="YAxisTitleFontWeight" Value="Normal" />
+      <Setter Property="YAxisTitleFontSize" Value="12" />
+    </Style>
+    <!-- LineChart Border -->
+    <Style Selector="c|LineChart.border">
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderRadiusX" Value="4" />
+      <Setter Property="BorderRadiusY" Value="4" />
+    </Style>
+    <!-- LineChart Area -->
+    <Style Selector="c|LineChart.area">
+      <Setter Property="AreaFill">
+        <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%" Opacity="0.2">
+          <LinearGradientBrush.GradientStops>
+            <GradientStop Offset="0.0" Color="{DynamicResource LineChartAreaGradientStartStopColor}" />
+            <GradientStop Offset="1.0" Color="{DynamicResource LineChartAreaGradientEndStopColor}" />
+          </LinearGradientBrush.GradientStops>
+        </LinearGradientBrush>
+      </Setter>
+      <Setter Property="AreaStroke" Value="{DynamicResource LineChartLineColor}" />
+    </Style>
+  </UserControl.Styles>
+  <c:ContentArea Title="{Binding Title}"
+                 Caption="Use the slider to choose your preference for how fast the transaction will be processed"
+                 CancelContent="Cancel"
+                 EnableCancel="{Binding EnableCancel}"
+                 EnableBack="true"
+                 EnableNext="True" NextContent="Continue"
+                 IsBusy="{Binding IsBusy}">
+    <DockPanel MinHeight="80" DataContext="{Binding FeeChart}">
+      <DockPanel.Resources>
+        <Thickness x:Key="SliderTopHeaderMargin">0,0,0,4</Thickness>
+        <GridLength x:Key="SliderPreContentMargin">0</GridLength>
+        <GridLength x:Key="SliderPostContentMargin">0</GridLength>
+      </DockPanel.Resources>
+      <Slider x:Name="CursorValue2"
+              Margin="38,0,18,0"
+              KeyboardNavigation.IsTabStop="False"
+              DockPanel.Dock="Bottom"
+              Classes="cursor"
+              Focusable="True"
+              IsSnapToTickEnabled="True"
+              TickFrequency="1"
+              Minimum="{Binding SliderMinimum}"
+              Maximum="{Binding SliderMaximum}"
+              Value="{Binding SliderValue}">
+        <Slider.Styles>
+          <Style Selector="Slider /template/ Thumb">
+            <Setter Property="ToolTip.Tip">
+              <Template>
+                <ToolTip>
+                  <StackPanel Spacing="10" x:CompileBindings="False">
+                    <TextBlock Text="{Binding $parent[Slider].DataContext.CurrentSatoshiPerByte, Mode=OneWay, StringFormat='Fee Rate: \{0:0\} sat/vByte'}" />
+                    <TextBlock Text="{Binding $parent[Slider].DataContext.CurrentConfirmationTargetString, Mode=OneWay, StringFormat='Estimated Time: ~\{0\}'}" />
+                  </StackPanel>
+                </ToolTip>
+              </Template>
+            </Setter>
+            <Setter Property="ToolTip.Placement" Value="Bottom" />
+            <Setter Property="ToolTip.VerticalOffset" Value="10" />
+            <Setter Property="ToolTip.HorizontalOffset" Value="-30" />
+          </Style>
+        </Slider.Styles>
+      </Slider>
+      <c:LineChart Classes="cursor border xAxisLabels yAxis yAxisLabels yAxisTitle area"
+                   XAxisLabels="{Binding ConfirmationTargetLabels}"
+                   XAxisValues="{Binding ConfirmationTargetValues}"
+                   XAxisCurrentValue="{Binding CurrentConfirmationTarget, Mode=TwoWay}"
+                   YAxisLabels="{Binding SatoshiPerByteLabels}"
+                   YAxisValues="{Binding SatoshiPerByteValues}">
+        <c:LineChart.Styles>
+          <Style Selector="c|LineChart">
+            <Setter Property="XAxisPlotMode" Value="EvenlySpaced"/>
+            <Setter Property="Margin" Value="18,10,18,0"/>
+            <Setter Property="MinHeight" Value="150"/>
+            <Setter Property="YAxisLogarithmicScale" Value="False"/>
+            <Setter Property="AreaMargin" Value="30,0,10,30"/>
+            <Setter Property="AreaStrokeThickness" Value="2"/>
+            <Setter Property="AreaStrokeLineCap" Value="Round"/>
+            <Setter Property="AreaMinViableWidth" Value="40"/>
+            <Setter Property="AreaMinViableHeight" Value="20"/>
+            <Setter Property="Focusable" Value="True"/>
+            <Setter Property="YAxisTitle" Value="Increasing Cost (sat/vByte)"/>
+          </Style>
+          <Style Selector="c|LineChart.narrow">
+            <Setter Property="AreaMargin" Value="30,0,10,45"/>
+            <Setter Property="MinHeight" Value="170"/>
+            <Setter Property="XAxisLabelAngle" Value="45" />
+            <Setter Property="XAxisLabelOffset" Value="-18,54" />
+          </Style>
+        </c:LineChart.Styles>
+        <i:Interaction.Behaviors>
+          <behaviors:ShowSliderThumbToolTipBehavior Slider="{Binding #CursorValue2}"/>
+          <ir:AdaptiveBehavior>
+            <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="550" ClassName="narrow"/>
+          </ir:AdaptiveBehavior>
+        </i:Interaction.Behaviors>
+      </c:LineChart>
+    </DockPanel>
+  </c:ContentArea>
+</UserControl>

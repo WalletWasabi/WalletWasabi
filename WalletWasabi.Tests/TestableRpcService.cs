@@ -1,46 +1,42 @@
-using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Gui.Rpc;
+using WalletWasabi.Rpc;
 
-namespace WalletWasabi.Tests
+namespace WalletWasabi.Tests;
+
+internal class TestableRpcService
 {
-	internal class TestableRpcService
+	public void UnpublishedProcedure()
 	{
-		public void UnpublishedProcedure()
-		{
-		}
+	}
 
-		[JsonRpcMethod("say")]
-		public string Echo(string text) => text;
+	[JsonRpcMethod("say")]
+	public string Echo(string text) => text;
 
-		[JsonRpcMethod("substract")]
-		public int Substract(int minuend, int subtrahend) => minuend - subtrahend;
+	[JsonRpcMethod("substract")]
+	public int Substract(int minuend, int subtrahend) => minuend - subtrahend;
 
-		[JsonRpcMethod("substractasync")]
-		public async Task<int> SubstractAsync(int minuend, int subtrahend) => await Task.FromResult(minuend - subtrahend);
+	[JsonRpcMethod("substractasync")]
+	public async Task<int> SubstractAsync(int minuend, int subtrahend) => await Task.FromResult(minuend - subtrahend);
 
-		[JsonRpcMethod("writelog")]
-		public void Log(string logEntry)
-		{
-			Unused(logEntry);
-		}
+	[JsonRpcMethod("writelog")]
+	public void Log(string logEntry)
+	{
+		Unused(logEntry);
+	}
 
-		[JsonRpcMethod("fail")]
-		public void Failure() => throw new InvalidOperationException("the error");
+	[JsonRpcMethod("fail")]
+	public void Failure() => throw new InvalidOperationException("the error");
 
-		[JsonRpcMethod("format")]
-		public async Task FormatHardDriveAsync(string unit, CancellationToken ct)
-		{
-			Unused(unit);
-			Unused(ct);
-			await Task.FromResult((JsonRpcResponse)null);
-		}
+	[JsonRpcMethod("format")]
+	public async Task FormatHardDriveAsync(string unit, CancellationToken ct)
+	{
+		Unused(unit);
+		Unused(ct);
+		await Task.FromResult<JsonRpcResponse>(null!);
+	}
 
-		[SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "")]
-		private void Unused(object item)
-		{
-		}
+	private void Unused(object item)
+	{
 	}
 }

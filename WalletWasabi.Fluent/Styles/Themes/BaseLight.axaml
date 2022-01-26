@@ -1,53 +1,95 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Styles.Resources>
-    <SolidColorBrush x:Key="TextControlBackground">#EFEFEF</SolidColorBrush>
-    <SolidColorBrush x:Key="TextControlBackgroundFocused">#EFEFEF</SolidColorBrush>
-    <SolidColorBrush x:Key="TextControlBackgroundPointerOver">#EFEFEF</SolidColorBrush>
-    <SolidColorBrush x:Key="TextControlForeground">#212121</SolidColorBrush>
-    <SolidColorBrush x:Key="TextForegroundColor">#212121</SolidColorBrush>
-    <SolidColorBrush x:Key="TextControlBorderBrush">#33323232</SolidColorBrush>
-    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver">#33323232</SolidColorBrush>
-    <SolidColorBrush x:Key="StatusBarControlBackground">#ECECEC</SolidColorBrush>
-    <SolidColorBrush x:Key="StatusBarControlForeground">#777777</SolidColorBrush>
-    <Color x:Key="AcrylicFallbackColor">#E2E2E2</Color>
-    <SolidColorBrush x:Key="InvisibleButtonBackgroundColor">Transparent</SolidColorBrush>
-    <SolidColorBrush x:Key="InvisibleButtonPointerOverBackgroundColor">#2F000000</SolidColorBrush>
-    <SolidColorBrush x:Key="InvisibleButtonPressedBackgroundColor">#3F000000</SolidColorBrush>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary>
+          <Color x:Key="SystemAccentColor">#FF78A827</Color>
+          <Color x:Key="SystemAltHighColor">#FFFFFFFF</Color>
+          <Color x:Key="SystemAltLowColor">#FFFFFFFF</Color>
+          <Color x:Key="SystemAltMediumColor">#FFFFFFFF</Color>
+          <Color x:Key="SystemAltMediumHighColor">#FFFFFFFF</Color>
+          <Color x:Key="SystemAltMediumLowColor">#FFFFFFFF</Color>
+          <Color x:Key="SystemBaseHighColor">#FF000000</Color>
+          <Color x:Key="SystemBaseLowColor">#ff929fb6</Color>
+          <Color x:Key="SystemBaseMediumColor">#4D8093AE</Color>
+          <Color x:Key="SystemBaseMediumHighColor">#338093AE</Color>
+          <Color x:Key="SystemBaseMediumLowColor">#808093AE</Color>
+          <Color x:Key="SystemChromeAltLowColor">#FF5C6F8F</Color>
+          <Color x:Key="SystemChromeBlackHighColor">#FF000000</Color>
+          <Color x:Key="SystemChromeBlackLowColor">#FFE3E8F0</Color>
+          <Color x:Key="SystemChromeBlackMediumColor">#FF5C6F8F</Color>
+          <Color x:Key="SystemChromeBlackMediumLowColor">#FF929FB6</Color>
+          <Color x:Key="SystemChromeDisabledHighColor">#2FE3E8F0</Color>
+          <Color x:Key="SystemChromeDisabledLowColor">#2F929FB6</Color>
+          <Color x:Key="SystemChromeGrayColor">#FF7787A2</Color>
+          <Color x:Key="SystemChromeHighColor">#FFE3E8F0</Color>
+          <Color x:Key="SystemChromeLowColor">#FFF1F6FF</Color>
+          <Color x:Key="SystemChromeMediumColor">#FFEEF3FC</Color>
+          <Color x:Key="SystemChromeMediumLowColor">#FFF1F6FF</Color>
+          <Color x:Key="SystemChromeWhiteColor">#FFFFFFFF</Color>
+          <Color x:Key="SystemListLowColor">#FFEEF3FC</Color>
+          <Color x:Key="SystemListMediumColor">#FFE3E8F0</Color>
+          <Color x:Key="SystemChromeAltMediumHighColor">#CCFCFDFF</Color>
+          <Color x:Key="SystemChromeAltHighColor">#FFE3E8F0</Color>
+          <Color x:Key="SystemRevealListLowColor">#FFEEF3FC</Color>
+          <Color x:Key="SystemRevealListMediumColor">#FFE3E8F0</Color>
+          <Color x:Key="SystemAccentColorLight1">#FF88B340</Color>
+          <Color x:Key="SystemAccentColorLight2">#FF99BF59</Color>
+          <Color x:Key="SystemAccentColorLight3">#FFA9CA73</Color>
+          <Color x:Key="SystemAccentColorDark1">#FF65951F</Color>
+          <Color x:Key="SystemAccentColorDark2">#FF528217</Color>
+          <Color x:Key="SystemAccentColorDark3">#FF3F6F10</Color>
+          <Color x:Key="RegionColor">#FCFDFF</Color>
+          <Color x:Key="TileRegionColor">#FFFFFF</Color>
+        </ResourceDictionary>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
 
-    <SolidColorBrush x:Key="OptionButtonBackground">#FFFFFF</SolidColorBrush>
-    <SolidColorBrush x:Key="OptionButtonBorderBrush">#7F000000</SolidColorBrush>
+    <Color x:Key="WelcomeScreenButtonBackground">#DADFE7</Color>
+    <Color x:Key="WelcomeScreenButtonBackgroundPressed">#C1CBD7</Color>
+    <Color x:Key="WelcomeScreenButtonBackgroundPointerOver">#CDD5DF</Color>
+
+    <SolidColorBrush x:Key="TextControlBorderBrush" Color="#CED7E2" />
+    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#A9B2BC" />
+    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#0B2545" />
+
+    <Color x:Key="SliderTrackValueFill">#0B2545</Color>
+    <Color x:Key="SliderTrackValueFillPointerOver">#0B2545</Color>
+    <Color x:Key="SliderTrackValueFillPressed">#0B2545</Color>
+    <Color x:Key="SliderThumbBackground">#0B2545</Color>
+    <Color x:Key="SliderThumbBackgroundPointerOver">#0B2545</Color>
+    <Color x:Key="SliderThumbBackgroundPressed">#0B2545</Color>
+    <Color x:Key="SliderThumbBorderBrushPointerOver">#8093AE</Color>
+
+    <Color x:Key="SliderTrackFill">#BEC7D6</Color>
+    <Color x:Key="SliderTrackFillPointerOver">#BEC7D6</Color>
+    <Color x:Key="SliderTrackFillPressed">#BEC7D6</Color>
+
+    <Color x:Key="LineChartAreaGradientStartStopColor">#FF78A827</Color>
+    <Color x:Key="LineChartAreaGradientEndStopColor">#0078A827</Color>
+    <Color x:Key="LineChartAreaGradientCursorStrokeColor">#F078A827</Color>
+    <Color x:Key="LineChartLineColor">#78A827</Color>
+
+    <SolidColorBrush x:Key="OptimizePrivacyOptionSelectedColor">#FFFFFF</SolidColorBrush>
 
     <SolidColorBrush x:Key="DialogOverlayColor">#7F7A7A7A</SolidColorBrush>
+
     <BoxShadows x:Key="DialogBoxShadow">4 11 30 1 #3F000000</BoxShadows>
     <BoxShadows x:Key="InfoBoxShadow">0 1 1.5 #3F000000</BoxShadows>
-    <SolidColorBrush x:Key="PopupBackground">#FFFFFF</SolidColorBrush>
-    <SolidColorBrush x:Key="SeparatorBackgroundBrush">#7F000000</SolidColorBrush>
-
-    <SolidColorBrush x:Key="TagsBoxControlForeground">#7F000000</SolidColorBrush>
-
-    <SolidColorBrush x:Key="PrivacySuggestionControlSelectedBackground">#E1E1E1</SolidColorBrush>
-
-    <SolidColorBrush x:Key="TileRegionColor">#FFFFFF</SolidColorBrush>
-    <Color x:Key="RegionColor">#FAFAFA</Color>
-    <Color x:Key="HeaderRegionColor">#FFFBFBFB</Color>
     <BoxShadows x:Key="BoxShadow">0 1 4 #D1D1D1</BoxShadows>
     <BoxShadows x:Key="OptionButtonShadow">0 2 2 #D1D1D1</BoxShadows>
 
-    <RadialGradientBrush x:Key="VersionHighlightRadialBrush" Radius="0.5" GradientOrigin="50%,15%" Center="50%,50%">
-      <RadialGradientBrush.GradientStops>
-        <GradientStop Color="#E2E84F" Offset="0"/>
-        <GradientStop Color="#55A94E" Offset="1"/>
-      </RadialGradientBrush.GradientStops>
-    </RadialGradientBrush>
+    <BoxShadows x:Key="OptimizePrivacyOptionBoxShadow1">0 6 16 0 #22000000</BoxShadows>
+    <BoxShadows x:Key="OptimizePrivacyOptionBoxShadow2">0 9 23 0 #4A000000</BoxShadows>
 
-    <SolidColorBrush x:Key="DataGridRowSelectedBackgroundColor" Color="#EBEBEB" />
-    <StaticResource x:Key="DataGridRowSelectedUnfocusedBackgroundColor" ResourceKey="DataGridRowSelectedBackgroundColor" />
-
-    <StaticResource x:Key="NotificationCardBackgroundBrush" ResourceKey="TileRegionColor" />
   </Styles.Resources>
-  <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentLight.xaml"/>
-  <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" /> <!-- Needs to be here because of dependency reason -->
+  <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentLight.xaml" />
+
+  <!-- Needs to be here because of dependency reason -->
+  <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
+  <StyleInclude Source="avares://DataBox/Themes/Fluent.axaml"/>
+
   <StyleInclude Source="avares://Avalonia.Xaml.Interactions/Draggable/Styles.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Base.axaml" />
 </Styles>

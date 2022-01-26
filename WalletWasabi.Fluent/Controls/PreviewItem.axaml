@@ -22,10 +22,14 @@
                                                   InitialOpacity="0.6"
                                                   IsVisible="{TemplateBinding CopyButtonVisibility}" />
                             </Panel>
-                            <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}"
-                                              ContentTemplate="{TemplateBinding ContentTemplate}"
-                                              IsVisible="{Binding !#PART_ContentReplacementTextBlock.IsVisible}" />
-                            <TextBlock Name="PART_ContentReplacementTextBlock" IsVisible="{TemplateBinding PrivacyModeEnabled}"/>
+                            <Panel>
+                              <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}"
+                                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                IsVisible="{Binding !#PART_ContentReplacementTextBlock.IsVisible}" />
+                              <TextBlock Name="PART_ContentReplacementTextBlock" IsVisible="{TemplateBinding PrivacyModeEnabled}"/>
+                            </Panel>
                         </DockPanel>
                     </DockPanel>
                 </DockPanel>

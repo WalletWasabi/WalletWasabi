@@ -10,32 +10,22 @@
   <StackPanel Classes="settingsLayout">
 
     <StackPanel Spacing="10">
-      <TextBlock Text="Minimal Anonymity Level" />
+      <TextBlock Text="Minimum Anonymity Score Target" />
       <DockPanel>
-        <PathIcon ToolTip.Tip="Minimal" DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMinimalBrush}"
+        <PathIcon ToolTip.Tip="Min" DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMinimalBrush}"
                   Data="{StaticResource privacy_minimal}" />
-        <TextBlock MinWidth="24" DockPanel.Dock="Right" Text="{Binding MinimalPrivacyLevel}" VerticalAlignment="Center" />
-        <Slider Minimum="2" Maximum="98" Value="{Binding MinimalPrivacyLevel}" Margin="10 0" />
+        <TextBlock MinWidth="24" DockPanel.Dock="Right" Text="{Binding MinAnonScoreTarget}" VerticalAlignment="Center" />
+        <Slider Minimum="2" Maximum="98" Value="{Binding MinAnonScoreTarget}" Margin="10 0" />
       </DockPanel>
     </StackPanel>
 
     <StackPanel Spacing="10">
-      <TextBlock Text="Medium Anonymity Level" />
+      <TextBlock Text="Maximum Anonymity Score Target" />
       <DockPanel>
-        <PathIcon ToolTip.Tip="Medium" DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMediumBrush}"
+        <PathIcon ToolTip.Tip="Max" DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMediumBrush}"
                   Data="{StaticResource privacy_medium}" />
-        <TextBlock MinWidth="24" DockPanel.Dock="Right" Text="{Binding MediumPrivacyLevel}" VerticalAlignment="Center" />
-        <Slider Minimum="3" Maximum="99" Value="{Binding MediumPrivacyLevel}" Margin="10 0" />
-      </DockPanel>
-    </StackPanel>
-
-    <StackPanel Spacing="10">
-      <TextBlock Text="Strong Anonymity Level" />
-      <DockPanel>
-        <PathIcon ToolTip.Tip="Strong" DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelStrongBrush}"
-                  Data="{StaticResource privacy_strong}" />
-        <TextBlock MinWidth="24" DockPanel.Dock="Right" Text="{Binding StrongPrivacyLevel}" VerticalAlignment="Center" />
-        <Slider Minimum="4" Value="{Binding StrongPrivacyLevel}" Margin="10 0" />
+        <TextBlock MinWidth="24" DockPanel.Dock="Right" Text="{Binding MaxAnonScoreTarget}" VerticalAlignment="Center" />
+        <Slider Minimum="3" Maximum="99" Value="{Binding MaxAnonScoreTarget}" Margin="10 0" />
       </DockPanel>
     </StackPanel>
   </StackPanel>

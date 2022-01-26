@@ -4,4 +4,10 @@
     <Setter Property="(TextBlock.FontWeight)" Value="Regular" />
     <Setter Property="Margin" Value="0 7 0 10" />
   </Style>
+  <Style Selector="Label.wrap > AccessText">
+    <Setter Property="TextWrapping" Value="Wrap"/>
+  </Style>
+  <Style Selector="Label.center > AccessText">
+    <Setter Property="TextAlignment" Value="Center"/>
+  </Style>
 </Styles>

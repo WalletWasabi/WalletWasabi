@@ -1,88 +1,103 @@
 using ReactiveUI;
-using System;
 using System.IO;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Validation;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Models;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 
-namespace WalletWasabi.Fluent.ViewModels.AddWallet
+namespace WalletWasabi.Fluent.ViewModels.AddWallet;
+
+[NavigationMetaData(
+	Title = "Add Wallet",
+	Caption = "Create, recover or import wallet",
+	Order = 2,
+	Category = "General",
+	Keywords = new[] { "Wallet", "Add", "Create", "Recover", "Import", "Connect", "Hardware", "ColdCard", "Trezor", "Ledger" },
+	IconName = "add_circle_regular",
+	NavigationTarget = NavigationTarget.DialogScreen,
+	NavBarPosition = NavBarPosition.Bottom)]
+public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 {
-	[NavigationMetaData(
-		Title = "Add Wallet",
-		Caption = "Create, recover or import wallet",
-		Order = 2,
-		Category = "General",
-		Keywords = new[] { "Wallet", "Add", "Create", "Recover", "Import", "Connect", "Hardware", "ColdCard", "Trezor", "Ledger" },
-		IconName = "add_circle_regular",
-		NavigationTarget = NavigationTarget.DialogScreen,
-		NavBarPosition = NavBarPosition.Bottom)]
-	public partial class AddWalletPageViewModel : NavBarItemViewModel
+	[AutoNotify] private string _walletName = "";
+
+	public AddWalletPageViewModel()
 	{
-		[AutoNotify] private string _walletName = "";
+		SelectionMode = NavBarItemSelectionMode.Button;
 
-		public AddWalletPageViewModel()
+		var canExecute = this.WhenAnyValue(x => x.WalletName)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Select(x => !string.IsNullOrWhiteSpace(x) && !Validations.Any);
+
+		NextCommand = ReactiveCommand.Create(OnNext, canExecute);
+
+		OpenCommand = ReactiveCommand.Create(
+			async () =>
 		{
-			SelectionMode = NavBarItemSelectionMode.Button;
+			MainViewModel.Instance.IsOobeBackgroundVisible = true;
 
-			var canExecute = this.WhenAnyValue(x => x.WalletName)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Select(x => !string.IsNullOrWhiteSpace(x) && !Validations.Any);
+			await NavigateDialogAsync(this, NavigationTarget.DialogScreen);
 
-			NextCommand = ReactiveCommand.Create(OnNext, canExecute);
+			MainViewModel.Instance.IsOobeBackgroundVisible = false;
+		});
 
-			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, WalletName));
+		this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, WalletName));
+	}
+
+	private void OnNext()
+	{
+		Navigate().To(new SelectWalletCreationOptionViewModel(WalletName));
+	}
+
+	private static void ValidateWalletName(IValidationErrors errors, string walletName)
+	{
+		string walletFilePath = Path.Combine(Services.WalletManager.WalletDirectories.WalletsDir, $"{walletName}.json");
+
+		if (string.IsNullOrEmpty(walletName))
+		{
+			return;
 		}
 
-		private void OnNext()
+		if (walletName.IsTrimmable())
 		{
-			Navigate().To(new SelectWalletCreationOptionViewModel(WalletName));
+			errors.Add(ErrorSeverity.Error, "Leading and trailing white spaces are not allowed!");
+			return;
 		}
 
-		private static void ValidateWalletName(IValidationErrors errors, string walletName)
+		if (File.Exists(walletFilePath))
 		{
-			string walletFilePath = Path.Combine(Services.WalletManager.WalletDirectories.WalletsDir, $"{walletName}.json");
-
-			if (string.IsNullOrEmpty(walletName))
-			{
-				return;
-			}
-
-			if (walletName.IsTrimmable())
-			{
-				errors.Add(ErrorSeverity.Error, "Leading and trailing white spaces are not allowed!");
-				return;
-			}
-
-			if (File.Exists(walletFilePath))
-			{
-				errors.Add(
-					ErrorSeverity.Error,
-					$"A wallet named {walletName} already exists. Please try a different name.");
-				return;
-			}
-
-			if (!WalletGenerator.ValidateWalletName(walletName))
-			{
-				errors.Add(ErrorSeverity.Error, "Selected Wallet is not valid. Please try a different name.");
-			}
+			errors.Add(
+				ErrorSeverity.Error,
+				$"A wallet named {walletName} already exists. Please try a different name.");
+			return;
 		}
 
-		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+		if (!WalletGenerator.ValidateWalletName(walletName))
 		{
-			base.OnNavigatedTo(isInHistory, disposables);
+			errors.Add(ErrorSeverity.Error, "Selected Wallet is not valid. Please try a different name.");
+		}
+	}
 
-			var enableCancel = Services.WalletManager.HasWallet();
-			SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
+	protected override void OnNavigatedFrom(bool isInHistory)
+	{
+		base.OnNavigatedFrom(isInHistory);
+	}
 
-			this.RaisePropertyChanged(WalletName);
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
 
-			if (!isInHistory)
-			{
-				WalletName = "";
-			}
+		var enableCancel = Services.WalletManager.HasWallet();
+		SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
+
+		this.RaisePropertyChanged(WalletName);
+
+		if (!isInHistory)
+		{
+			WalletName = "";
 		}
 	}
 }

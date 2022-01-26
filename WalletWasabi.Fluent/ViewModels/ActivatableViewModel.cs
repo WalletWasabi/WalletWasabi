@@ -1,16 +1,15 @@
 using System.Reactive.Disposables;
 
-namespace WalletWasabi.Fluent.ViewModels
-{
-	public class ActivatableViewModel : ViewModelBase
-	{
-		protected virtual void OnActivated(CompositeDisposable disposables)
-		{
-		}
+namespace WalletWasabi.Fluent.ViewModels;
 
-		public void Activate(CompositeDisposable disposables)
-		{
-			OnActivated(disposables);
-		}
+public class ActivatableViewModel : ViewModelBase
+{
+	protected virtual void OnActivated(CompositeDisposable disposables)
+	{
+	}
+
+	public void Activate(CompositeDisposable disposables)
+	{
+		OnActivated(disposables);
 	}
 }

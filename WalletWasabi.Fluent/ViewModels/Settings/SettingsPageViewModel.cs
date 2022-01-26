@@ -1,50 +1,57 @@
 using System.Reactive.Disposables;
+using System.Windows.Input;
+using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.NavBar;
-using WalletWasabi.Gui;
 
-namespace WalletWasabi.Fluent.ViewModels.Settings
+namespace WalletWasabi.Fluent.ViewModels.Settings;
+
+[NavigationMetaData(
+	Title = "Settings",
+	Caption = "Manage appearance, privacy and other settings",
+	Order = 1,
+	Category = "General",
+	Keywords = new[] { "Settings", "General", "User", "Interface", "Privacy", "Advanced" },
+	IconName = "settings_regular",
+	Searchable = false,
+	NavBarPosition = NavBarPosition.Bottom)]
+public partial class SettingsPageViewModel : NavBarItemViewModel
 {
-	[NavigationMetaData(
-		Title = "Settings",
-		Caption = "Manage appearance, privacy and other settings",
-		Order = 1,
-		Category = "General",
-		Keywords = new[] { "Settings", "General", "User", "Interface", "Privacy", "Advanced" },
-		IconName = "settings_regular")]
-	public partial class SettingsPageViewModel : NavBarItemViewModel
+	[AutoNotify] private bool _isModified;
+	[AutoNotify] private int _selectedTab;
+
+	public SettingsPageViewModel()
 	{
-		[AutoNotify] private bool _isModified;
-		[AutoNotify] private int _selectedTab;
+		_selectedTab = 0;
 
-		public SettingsPageViewModel()
-		{
-			_selectedTab = 0;
+		GeneralSettingsTab = new GeneralSettingsTabViewModel();
+		PrivacySettingsTab = new PrivacySettingsTabViewModel();
+		NetworkSettingsTab = new NetworkSettingsTabViewModel();
+		BitcoinTabSettings = new BitcoinTabSettingsViewModel();
 
-			GeneralSettingsTab = new GeneralSettingsTabViewModel();
-			PrivacySettingsTab = new PrivacySettingsTabViewModel();
-			NetworkSettingsTab = new NetworkSettingsTabViewModel();
-			BitcoinTabSettings = new BitcoinTabSettingsViewModel();
-		}
+		RestartCommand = ReactiveCommand.Create(AppLifetimeHelper.Restart);
+	}
 
-		public GeneralSettingsTabViewModel GeneralSettingsTab { get; }
-		public PrivacySettingsTabViewModel PrivacySettingsTab { get; }
-		public NetworkSettingsTabViewModel NetworkSettingsTab { get; }
-		public BitcoinTabSettingsViewModel BitcoinTabSettings { get; }
+	public ICommand RestartCommand { get; }
 
-		private void OnRestartNeeded(object? sender, RestartNeededEventArgs e)
-		{
-			IsModified = e.IsRestartNeeded;
-		}
+	public GeneralSettingsTabViewModel GeneralSettingsTab { get; }
+	public PrivacySettingsTabViewModel PrivacySettingsTab { get; }
+	public NetworkSettingsTabViewModel NetworkSettingsTab { get; }
+	public BitcoinTabSettingsViewModel BitcoinTabSettings { get; }
 
-		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-		{
-			base.OnNavigatedTo(isInHistory, disposables);
+	private void OnRestartNeeded(object? sender, RestartNeededEventArgs e)
+	{
+		IsModified = e.IsRestartNeeded;
+	}
 
-			SettingsTabViewModelBase.RestartNeeded += OnRestartNeeded;
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
 
-			Disposable.Create(() => SettingsTabViewModelBase.RestartNeeded -= OnRestartNeeded)
-				.DisposeWith(disposables);
-		}
+		SettingsTabViewModelBase.RestartNeeded += OnRestartNeeded;
+
+		disposables.Add(
+			Disposable.Create(() => SettingsTabViewModelBase.RestartNeeded -= OnRestartNeeded));
 	}
 }

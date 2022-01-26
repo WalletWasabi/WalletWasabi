@@ -2,14 +2,13 @@
         xmlns:sys="using:System"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Styles.Resources>
-    <sys:Double x:Key="SplitViewCollapseThreshold">1050</sys:Double>
+    <sys:Double x:Key="SplitViewCollapseThreshold">1080</sys:Double>
     <sys:Double x:Key="SplitViewCompactPaneLength">46</sys:Double>
   </Styles.Resources>
   <Style Selector="SplitView">
     <Setter Property="CompactPaneLength" Value="{StaticResource SplitViewCompactPaneLength}" />
     <Setter Property="OpenPaneLength" Value="320" />
     <Setter Property="DisplayMode" Value="CompactInline" />
-    <Setter Property="IsPaneOpen" Value="True" />
     <Setter Property="PaneBackground" Value="{x:Null}" />
   </Style>
 </Styles>
