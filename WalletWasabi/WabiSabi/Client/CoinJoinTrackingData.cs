@@ -13,7 +13,6 @@ public record CoinJoinTrackingData : IDisposable
 	public CoinJoinTrackingData(
 		Wallet wallet,
 		CoinJoinClient coinJoinClient,
-
 		IEnumerable<SmartCoin> coinCandidates,
 		CancellationToken cancellationToken)
 	{
