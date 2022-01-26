@@ -21,7 +21,7 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public class CoinJoinClient
 {
-	const int MaxInputsRegistrableByWallet = 10; // how many
+	private const int MaxInputsRegistrableByWallet = 10; // how many
 	private volatile bool _inCriticalCoinJoinState;
 
 	/// <param name="minAnonScoreTarget">Coins those have reached anonymity target, but still can be mixed if desired.</param>
@@ -159,7 +159,7 @@ public class CoinJoinClient
 			var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
 
 			// Sanity check.
-			if (!SanityCheck(registeredAliceClients, outputTxOuts, unsignedCoinJoin, roundState))
+			if (!SanityCheck(outputTxOuts, unsignedCoinJoin))
 			{
 				throw new InvalidOperationException($"Round ({roundState.Id}): My output is missing.");
 			}
@@ -170,6 +170,8 @@ public class CoinJoinClient
 
 			var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundState.Id && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
 			Logger.LogDebug($"Round ({roundState.Id}): Round Ended - WasTransactionBroadcast: '{finalRoundState.WasTransactionBroadcast}'.");
+
+			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, unsignedCoinJoin, roundState);
 
 			return finalRoundState.WasTransactionBroadcast;
 		}
@@ -245,25 +247,12 @@ public class CoinJoinClient
 				arenaRequestHandler));
 	}
 
-	private bool SanityCheck(ImmutableArray<AliceClient> registeredAliceClients, IEnumerable<TxOut> expectedOutputs, Transaction unsignedCoinJoinTransaction, RoundState roundState)
+	private bool SanityCheck(IEnumerable<TxOut> expectedOutputs, Transaction unsignedCoinJoinTransaction)
 	{
-		var feeRate = roundState.FeeRate;
 		var coinJoinOutputs = unsignedCoinJoinTransaction.Outputs.Select(o => (o.Value, o.ScriptPubKey));
-		var expectedOutputTuples = expectedOutputs
+		IEnumerable<(Money TotalAmount, Script Key)>? expectedOutputTuples = expectedOutputs
 			.GroupBy(x => x.ScriptPubKey)
 			.Select(o => (o.Select(x => x.Value).Sum(), o.Key));
-
-		var desiredAmount = Money.Satoshis(registeredAliceClients.Sum(a => a.EffectiveValue));
-		var actualAmount = Money.Satoshis(expectedOutputTuples.Sum(a => a.Value));
-		var diff = actualAmount - desiredAmount;
-
-		var totalInputAmount = Money.Satoshis(registeredAliceClients.Sum(a => a.SmartCoin.Amount));
-		var totalDifference = Money.Satoshis(totalInputAmount - actualAmount);
-		var totalNetworkfee = Money.Satoshis(registeredAliceClients.Sum(a => feeRate.GetFee(a.SmartCoin.Coin.ScriptPubKey.EstimateInputVsize()) + expectedOutputTuples.Sum(o => feeRate.GetFee(o.ScriptPubKey.EstimateOutputVsize()))));
-		var totalCoordinationFee = Money.Satoshis(registeredAliceClients.Where(a => a.IsPayingZeroCoordinationFee).Sum(a => roundState.CoordinationFeeRate.GetFee(a.SmartCoin.Amount)));
-		var totalLoss = Money.Satoshis(totalDifference - totalNetworkfee - totalCoordinationFee);
-
-		Logger.LogDebug($"Round ({roundState.Id}): Total difference is {totalDifference}, that is split into networkfee of {totalNetworkfee} and coordination fee of {totalCoordinationFee} and the loss of {totalLoss}.");
 
 		return coinJoinOutputs.IsSuperSetOf(expectedOutputTuples);
 	}
@@ -316,6 +305,27 @@ public class CoinJoinClient
 		var readyRequests = aliceClients.Select(ReadyToSignTask);
 
 		await Task.WhenAll(readyRequests).ConfigureAwait(false);
+	}
+
+	private void LogCoinJoinSummary(ImmutableArray<AliceClient> registeredAliceClients, IEnumerable<TxOut> expectedOutputs, Transaction unsignedCoinJoinTransaction, RoundState roundState)
+	{
+		var feeRate = roundState.FeeRate;
+		var coinJoinOutputs = unsignedCoinJoinTransaction.Outputs.Select(o => (o.Value, o.ScriptPubKey));
+		IEnumerable<(Money TotalAmount, Script Key)>? expectedOutputTuples = expectedOutputs
+			.GroupBy(x => x.ScriptPubKey)
+			.Select(o => (o.Select(x => x.Value).Sum(), o.Key));
+
+		var desiredAmount = Money.Satoshis(registeredAliceClients.Sum(a => a.EffectiveValue));
+		var actualAmount = Money.Satoshis(expectedOutputTuples.Sum(a => a.TotalAmount));
+		var diff = actualAmount - desiredAmount;
+
+		var totalInputAmount = Money.Satoshis(registeredAliceClients.Sum(a => a.SmartCoin.Amount));
+		var totalDifference = Money.Satoshis(totalInputAmount - actualAmount);
+		var totalNetworkfee = Money.Satoshis(registeredAliceClients.Sum(a => feeRate.GetFee(a.SmartCoin.Coin.ScriptPubKey.EstimateInputVsize()) + expectedOutputTuples.Sum(o => feeRate.GetFee(o.Key.EstimateOutputVsize()))));
+		var totalCoordinationFee = Money.Satoshis(registeredAliceClients.Where(a => a.IsPayingZeroCoordinationFee).Sum(a => roundState.CoordinationFeeRate.GetFee(a.SmartCoin.Amount)));
+		var totalLoss = Money.Satoshis(totalDifference - totalNetworkfee - totalCoordinationFee);
+
+		Logger.LogDebug($"Round ({roundState.Id}): Total difference is {totalDifference}, that is split into networkfee of {totalNetworkfee} and coordination fee of {totalCoordinationFee} and the loss of {totalLoss}.");
 	}
 
 	private ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, MultipartyTransactionParameters parameters)
