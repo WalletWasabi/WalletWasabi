@@ -28,27 +28,40 @@ public partial class LabelViewModel : ViewModelBase
 		this.WhenAnyValue(x => x.IsPointerOver)
 			.Subscribe(isPointerOver =>
 			{
-				foreach (var pocket in Pockets)
+				var associatedLabels = GetAssociatedLabels();
+
+				foreach (var label in associatedLabels)
 				{
-					foreach (var pocketLabel in pocket.Labels)
-					{
-						pocketLabel.IsHighlighted = isPointerOver;
-					}
+					label.IsHighlighted = isPointerOver;
 				}
 			});
 
 		ClickedCommand = ReactiveCommand.Create(() =>
 		{
-			foreach (var pocket in Pockets)
-			{
-				foreach (var pocketLabel in pocket.Labels)
-				{
-					pocketLabel.IsHighlighted = false;
-				}
-			}
-
 			owner.SwapLabel(this);
 		}, this.WhenAnyValue(x => x.MustHave, x => x.IsBlackListed).Select(x => x.Item2 || !x.Item1 && !x.Item2));
+	}
+
+	public IEnumerable<LabelViewModel> GetAssociatedLabels()
+	{
+		// find every pocket where the label appears.
+		var pockets = Pockets.Distinct();
+
+		// find every label in all the pockets
+		var labels = Pockets.SelectMany(x => x.Labels).Distinct();
+
+		foreach (var label in labels)
+		{
+			// See if the pocket exists in another pocket.
+			var existsInOtherPockets = label.Pockets.Distinct().Any(x => !pockets.Contains(x));
+
+			if(existsInOtherPockets)
+			{
+				continue;
+			}
+
+			yield return label;
+		}
 	}
 
 	public List<PocketViewModel> Pockets { get; }
@@ -97,25 +110,17 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 	{
 		if (label.IsBlackListed)
 		{
-			foreach (var pocket in label.Pockets)
-			{
-				WhiteListPocketLabels(pocket);
-			}
+			WhiteListLabels(label.GetAssociatedLabels());
 		}
 		else
 		{
-			foreach (var pocket in label.Pockets)
-			{
-				BlackListPocketLabels(pocket);
-			}
+			BlackListLabels(label.GetAssociatedLabels());
 		}
 	}
 
-	private void WhiteListPocketLabels(PocketViewModel pocket, bool initialising = false)
+	private void WhiteListLabels(IEnumerable<LabelViewModel> labels)
 	{
-		var labels = pocket.Labels.Where(x => x.IsBlackListed);
-
-		foreach (var label in labels)
+		foreach (var label in labels.Where(x => x.IsBlackListed))
 		{
 			LabelsBlackList.Remove(label);
 
@@ -127,9 +132,9 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		OnSelectionChanged();
 	}
 
-	private void BlackListPocketLabels(PocketViewModel pocket)
+	private void BlackListLabels(IEnumerable<LabelViewModel> labels)
 	{
-		foreach (var label in pocket.Labels.Where(x => !x.IsBlackListed))
+		foreach (var label in labels.Where(x => !x.IsBlackListed))
 		{
 			LabelsWhiteList.Remove(label);
 
@@ -202,10 +207,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		LabelsWhiteList.Clear();
 		LabelsBlackList.Clear();
 
-		foreach (var pocketVm in pocketVms)
-		{
-			WhiteListPocketLabels(pocketVm, initialising: true);
-		}
+		WhiteListLabels(pocketVms.SelectMany(x=>x.Labels).Distinct());
 
 		OnSelectionChanged();
 	}
