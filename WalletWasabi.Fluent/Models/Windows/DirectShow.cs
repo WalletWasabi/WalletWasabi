@@ -13,13 +13,11 @@ namespace WalletWasabi.Fluent.Models.Windows;
 
 public static class DirectShow
 {
-	/// <summary>COMオブジェクトのインスタンスを作成する。</summary>
 	public static object CoCreateInstance(Guid clsid)
 	{
 		return Activator.CreateInstance(Type.GetTypeFromCLSID(clsid));
 	}
 
-	/// <summary>COMオブジェクトのインスタンスを開放する。</summary>
 	public static void ReleaseInstance<T>(ref T com) where T : class
 	{
 		if (com != null)
@@ -29,13 +27,11 @@ public static class DirectShow
 		}
 	}
 
-	/// <summary>フィルタグラフを作成する。</summary>
 	public static IGraphBuilder CreateGraph()
 	{
 		return CoCreateInstance(DsGuid.CLSID_FilterGraph) as IGraphBuilder;
 	}
 
-	/// <summary>フィルタグラフを再生・停止・一時停止する。</summary>
 	public static void PlayGraph(IGraphBuilder graph, FILTER_STATE state)
 	{
 		var mediaControl = graph as IMediaControl;
@@ -57,7 +53,6 @@ public static class DirectShow
 		}
 	}
 
-	/// <summary>フィルタの一覧を取得する。</summary>
 	public static List<string> GetFilters(Guid category)
 	{
 		var result = new List<string>();
@@ -76,13 +71,11 @@ public static class DirectShow
 		return result;
 	}
 
-	/// <summary>フィルタのインスタンスを作成する。CLSIDで指定する。</summary>
 	public static IBaseFilter CreateFilter(Guid clsid)
 	{
 		return CoCreateInstance(clsid) as IBaseFilter;
 	}
 
-	/// <summary>フィルタのインスタンスを作成する。CategoryとIndexで指定する。</summary>
 	public static IBaseFilter CreateFilter(Guid category, int index)
 	{
 		IBaseFilter result = null;
@@ -90,10 +83,8 @@ public static class DirectShow
 		int curr_index = 0;
 		EnumMonikers(category, (moniker, prop) =>
 		{
-			// 指定indexになるまで継続。
 			if (index != curr_index++) return false;
 
-			// フィルタのインスタンス作成して返す。
 			{
 				Guid guid = DsGuid.IID_IBaseFilter;
 				moniker.BindToObject(null, null, ref guid, out object value);
@@ -106,8 +97,6 @@ public static class DirectShow
 		return result;
 	}
 
-	/// <summary>モニカを列挙する。</summary>
-	/// <remarks>モニカとはCOMオブジェクトを識別する別名のこと。</remarks>
 	private static void EnumMonikers(Guid category, Func<IMoniker, IPropertyBag, bool> func)
 	{
 		IEnumMoniker enumerator = null;
@@ -115,17 +104,13 @@ public static class DirectShow
 
 		try
 		{
-			// ICreateDevEnum インターフェース取得.
 			device = (ICreateDevEnum)Activator.CreateInstance(
 				Type.GetTypeFromCLSID(DsGuid.CLSID_SystemDeviceEnum));
 
-			// IEnumMonikerの作成.
 			device.CreateClassEnumerator(ref category, ref enumerator, 0);
 
-			// 列挙可能なデバイスが存在しない場合null
 			if (enumerator == null) return;
 
-			// 列挙.
 			var monikers = new IMoniker[1];
 			var fetched = IntPtr.Zero;
 
@@ -133,23 +118,19 @@ public static class DirectShow
 			{
 				var moniker = monikers[0];
 
-				// プロパティバッグへのバインド.
 				Guid guid = DsGuid.IID_IPropertyBag;
 				moniker.BindToStorage(null, null, ref guid, out object value);
 				var prop = (IPropertyBag)value;
 
 				try
 				{
-					// trueで列挙完了。falseで継続する。
 					var rc = func(moniker, prop);
 					if (rc == true) break;
 				}
 				finally
 				{
-					// プロパティバッグの解放
 					Marshal.ReleaseComObject(prop);
 
-					// 列挙したモニカの解放.
 					if (moniker != null) Marshal.ReleaseComObject(moniker);
 				}
 			}
@@ -161,7 +142,6 @@ public static class DirectShow
 		}
 	}
 
-	/// <summary>ピンを検索する。</summary>
 	public static IPin FindPin(IBaseFilter filter, string name)
 	{
 		var result = EnumPins(filter, (info) => { return info.achName == name; });
@@ -170,16 +150,13 @@ public static class DirectShow
 		return result;
 	}
 
-	/// <summary>ピンを検索する。</summary>
 	public static IPin FindPin(IBaseFilter filter, int index, PIN_DIRECTION direction)
 	{
 		int curr_index = 0;
 		var result = EnumPins(filter, (info) =>
 		{
-			// directionを確認。
 			if (info.dir != direction) return false;
 
-			// indexは最後にチェック。
 			return index == curr_index++;
 		});
 
@@ -187,7 +164,6 @@ public static class DirectShow
 		return result;
 	}
 
-	/// <summary>Pinを列挙する。</summary>
 	private static IPin EnumPins(IBaseFilter filter, Func<PIN_INFO, bool> func)
 	{
 		IEnumPins pins = null;
@@ -228,7 +204,6 @@ public static class DirectShow
 		return null;
 	}
 
-	/// <summary>ピンを接続する。</summary>
 	public static void ConnectFilter(IGraphBuilder graph, IBaseFilter out_flt, int out_no, IBaseFilter in_flt,
 		int in_no)
 	{
@@ -237,7 +212,6 @@ public static class DirectShow
 		graph.Connect(out_pin, inp_pin);
 	}
 
-	/// <summary>メディアタイプを開放する。</summary>
 	public static void DeleteMediaType(ref AM_MEDIA_TYPE mt)
 	{
 		if (mt.lSampleSize != 0) Marshal.FreeCoTaskMem(mt.pbFormat);
@@ -413,10 +387,8 @@ public static class DirectShow
 	 InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 	public interface IBaseFilter
 	{
-		// Inherits IPersist
 		int GetClassID([Out] out Guid pClassID);
 
-		// Inherits IMediaControl
 		int Stop();
 
 		int Pause();
@@ -429,7 +401,6 @@ public static class DirectShow
 
 		int GetSyncSource([In, Out] ref IReferenceClock pClock);
 
-		// -----
 		int EnumPins([In, Out] ref IEnumPins ppEnum);
 
 		int FindPin([In, MarshalAs(UnmanagedType.LPWStr)] string Id, [In, Out] ref IPin ppPin);
@@ -442,9 +413,6 @@ public static class DirectShow
 				ref string pVendorInfo);
 	}
 
-	/// <summary>
-	/// フィルタ グラフ内のフィルタを列挙するインタフェース.
-	/// </summary>
 	[ComVisible(true), ComImport(), Guid("56a86893-0ad4-11ce-b03a-0020af0ba770"),
 	 InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 	public interface IEnumFilters
@@ -848,12 +816,10 @@ public static class DirectShow
 
 	public static class DsGuid
 	{
-		// MediaType
 		public static readonly Guid MEDIATYPE_Video = new Guid("{73646976-0000-0010-8000-00AA00389B71}");
 
 		public static readonly Guid MEDIATYPE_Audio = new Guid("{73647561-0000-0010-8000-00AA00389B71}");
 
-		// SubType
 		public static readonly Guid MEDIASUBTYPE_None = new Guid("{E436EB8E-524F-11CE-9F53-0020AF0BA770}");
 
 		public static readonly Guid MEDIASUBTYPE_YUYV = new Guid("{56595559-0000-0010-8000-00AA00389B71}");
@@ -871,14 +837,12 @@ public static class DirectShow
 		public static readonly Guid MEDIASUBTYPE_PCM = new Guid("{00000001-0000-0010-8000-00AA00389B71}");
 		public static readonly Guid MEDIASUBTYPE_WAVE = new Guid("{E436EB8B-524F-11CE-9F53-0020AF0BA770}");
 
-		// FormatType
 		public static readonly Guid FORMAT_None = new Guid("{0F6417D6-C318-11D0-A43F-00A0C9223196}");
 
 		public static readonly Guid FORMAT_VideoInfo = new Guid("{05589F80-C356-11CE-BF01-00AA0055595A}");
 		public static readonly Guid FORMAT_VideoInfo2 = new Guid("{F72A76A0-EB0A-11d0-ACE4-0000C0CC16BA}");
 		public static readonly Guid FORMAT_WaveFormatEx = new Guid("{05589F81-C356-11CE-BF01-00AA0055595A}");
 
-		// CLSID
 		public static readonly Guid CLSID_AudioInputDeviceCategory =
 			new Guid("{33D9A762-90C8-11d0-BD43-00A0C911CE86}");
 
@@ -908,13 +872,8 @@ public static class DirectShow
 
 		private static Dictionary<Guid, string> NicknameCache = null;
 
-		/// <summary>
-		/// Guidをわかりやすい文字列で返す。
-		/// MEDIATYPE_Videoなら[Video]を返す。PIN_CATEGORY_CAPTUREなら[CATEGORY_CAPTURE]を返す。
-		/// </summary>
 		public static string GetNickname(Guid guid)
 		{
-			// リフレクションでstatic public GuidのDictionaryを作成。結果はキャッシュしておく。
 			if (NicknameCache == null)
 			{
 				NicknameCache = typeof(DsGuid)
@@ -928,9 +887,6 @@ public static class DirectShow
 				var name = NicknameCache[guid];
 				var elem = name.Split('_');
 
-				// '_'で分割して、2個目以降を連結する。
-				// MEDIATYPE_Videoなら[Video]を返す。
-				// PIN_CATEGORY_CAPTUREなら[CATEGORY_CAPTURE]を返す。
 				if (elem.Length >= 2)
 				{
 					var text = string.Join("_", elem.Skip(1).ToArray());
@@ -942,7 +898,6 @@ public static class DirectShow
 				}
 			}
 
-			// 対応してない場合はToStringを呼び出す。
 			return guid.ToString();
 		}
 	}
