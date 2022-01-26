@@ -57,7 +57,13 @@
           <Setter Property="Margin" Value="0 0"/>
           <Setter Property="Padding" Value="0,0,10,0"/>
         </Style>
-
+        <Style Selector="ItemsControl > ContentPresenter" x:DataType="tiles:TileViewModel">
+          <Setter Property="Grid.Column" Value="{Binding Column}" />
+          <Setter Property="Grid.Row" Value="{Binding Row}" />
+          <Setter Property="Grid.ColumnSpan" Value="{Binding ColumnSpan}" />
+          <Setter Property="Grid.RowSpan" Value="{Binding RowSpan}" />
+          <Setter Property="IsVisible" Value="{Binding IsVisible}" />
+        </Style>
       </ItemsControl.Styles>
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
