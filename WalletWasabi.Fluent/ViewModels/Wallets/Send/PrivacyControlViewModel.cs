@@ -4,9 +4,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
-using Avalonia.Threading;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
@@ -62,10 +60,14 @@ public partial class LabelViewModel : ViewModelBase
 
 public class PocketViewModel : ViewModelBase
 {
-	public PocketViewModel()
+	public PocketViewModel(Pocket pocket)
 	{
 		Labels = new List<LabelViewModel>();
+
+		Pocket = pocket;
 	}
+
+	public Pocket Pocket { get; }
 
 	public List<LabelViewModel> Labels { get; }
 }
@@ -77,10 +79,6 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 	private readonly TransactionInfo _transactionInfo;
 	private readonly bool _isSilent;
 
-	[AutoNotify] private Pocket[] _usedPockets = Array.Empty<Pocket>();
-
-	private bool _isUpdating;
-
 	public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, bool isSilent)
 	{
 		_wallet = wallet;
@@ -88,16 +86,11 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		_isSilent = isSilent;
 
 		Labels = new ObservableCollection<string>();
-		MustHaveLabels = new ObservableCollection<string>();
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
 
-		NextCommand = ReactiveCommand.Create(() => Complete(UsedPockets));
-
-		Observable
-			.FromEventPattern(Labels, nameof(Labels.CollectionChanged))
-			.Subscribe(_ => OnLabelsChanged());
+		NextCommand = ReactiveCommand.Create(() => Complete(GetUsedPockets()));
 	}
 
 	internal void SwapLabel(LabelViewModel label)
@@ -130,6 +123,8 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 			LabelsWhiteList.Add(label);
 		}
+
+		OnSelectionChanged();
 	}
 
 	private void BlackListPocketLabels(PocketViewModel pocket)
@@ -142,6 +137,8 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 			LabelsBlackList.Add(label);
 		}
+
+		OnSelectionChanged();
 	}
 
 	public ObservableCollection<LabelViewModel> LabelsWhiteList { get; } = new();
@@ -150,43 +147,42 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 	public ObservableCollection<string> Labels { get; set; }
 
-	public ObservableCollection<string> MustHaveLabels { get; }
+	private IEnumerable<Pocket> GetUsedPockets() =>
+		LabelsWhiteList.SelectMany(x => x.Pockets).Distinct().Select(x => x.Pocket);
 
 	private void Complete(IEnumerable<Pocket> pockets)
 	{
-		Close(DialogResultKind.Normal, pockets.SelectMany(x => x.Coins));
+		var coins = pockets.SelectMany(x => x.Coins);
+
+		Close(DialogResultKind.Normal, coins);
 	}
 
-	private void OnLabelsChanged()
+	private void OnSelectionChanged()
 	{
-		if (_isUpdating)
+		var sumOfWhiteList = LabelsWhiteList.SelectMany(x => x.Pockets).Distinct().Sum(x => x.Pocket.Amount);
+
+		foreach (var label in LabelsWhiteList)
 		{
-			return;
+			var sumOfLabelsPockets = label.Pockets.Distinct().Sum(x => x.Pocket.Amount);
+
+			var mustHave = sumOfWhiteList - sumOfLabelsPockets < _transactionInfo.Amount;
+
+			foreach (var pocketLabel in label.Pockets.Distinct().SelectMany(x => x.Labels))
+			{
+				pocketLabel.MustHave = mustHave;
+			}
 		}
-
-		var pocketsToRemove = UsedPockets
-			.Where(x => x.Labels.Any(y => !Labels.Contains(y) && x.Labels.Any(y => !MustHaveLabels.Contains(y))))
-			.ToArray();
-
-		Dispatcher.UIThread.Post(() =>
-		{
-			var newPockets = UsedPockets.Except(pocketsToRemove);
-
-			UpdateLabels(newPockets);
-		});
 	}
 
-	private void UpdateLabels(IEnumerable<Pocket> pockets)
+	private void InitializeLabels(IEnumerable<Pocket> pockets)
 	{
-		_isUpdating = true;
-
 		var labelViewModels = new Dictionary<string, LabelViewModel>();
 
 		var pocketVms = new List<PocketViewModel>();
 
 		foreach (var pocket in pockets)
 		{
-			var pocketVm = new PocketViewModel();
+			var pocketVm = new PocketViewModel(pocket);
 
 			pocketVms.Add(pocketVm);
 
@@ -211,32 +207,14 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 			WhiteListPocketLabels(pocketVm, initialising: true);
 		}
 
-		UsedPockets = pockets.ToArray();
-		MustHaveLabels.Clear();
-		Labels.Clear();
-
-		foreach (var label in SmartLabel.Merge(UsedPockets.Select(x => x.Labels)))
-		{
-			var pocketsWithSameLabel = UsedPockets.Where(x => x.Labels.Contains(label));
-
-			if (UsedPockets.Sum(x => x.Amount) - pocketsWithSameLabel.Sum(x => x.Amount) >= _transactionInfo.Amount)
-			{
-				Labels.Add(label);
-			}
-			else
-			{
-				MustHaveLabels.Add(label);
-			}
-		}
-
-		_isUpdating = false;
+		OnSelectionChanged();
 	}
 
 	private void InitializeLabels()
 	{
 		var pockets = _wallet.Coins.GetPockets(_wallet.ServiceConfiguration.MinAnonScoreTarget).Select(x => new Pocket(x));
 
-		UpdateLabels(pockets);
+		InitializeLabels(pockets);
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -256,18 +234,20 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 		if (_isSilent)
 		{
-			if (UsedPockets.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText) is { } privatePocket &&
+			var usedPockets = GetUsedPockets();
+
+			if (usedPockets.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText) is { } privatePocket &&
 			    privatePocket.Amount >= _transactionInfo.Amount)
 			{
-				Complete(UsedPockets.Where(x => x.Labels == CoinPocketHelper.PrivateFundsText));
+				Complete(usedPockets.Where(x => x.Labels == CoinPocketHelper.PrivateFundsText));
 			}
-			else if (UsedPockets.Where(x => x.Labels != CoinPocketHelper.PrivateFundsText).Sum(x => x.Amount) >= _transactionInfo.Amount)
+			else if (usedPockets.Where(x => x.Labels != CoinPocketHelper.PrivateFundsText).Sum(x => x.Amount) >= _transactionInfo.Amount)
 			{
-				Complete(UsedPockets.Where(x => x.Labels != CoinPocketHelper.PrivateFundsText));
+				Complete(usedPockets.Where(x => x.Labels != CoinPocketHelper.PrivateFundsText));
 			}
 			else
 			{
-				Complete(UsedPockets);
+				Complete(usedPockets);
 			}
 		}
 	}

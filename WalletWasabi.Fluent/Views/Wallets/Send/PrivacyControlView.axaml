@@ -23,10 +23,10 @@
           <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
           <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
         </Style>
+        <Style Selector="c|TagControl:disabled">
+          <Setter Property="Opacity" Value="0.5" />
+        </Style>
       </DockPanel.Styles>
-
-      <c:TagsBox Items="{Binding MustHaveLabels}" IsReadOnly="True" DockPanel.Dock="Bottom" />
-      <TextBlock Text="Not possible to avoid them:" DockPanel.Dock="Bottom" IsVisible="{Binding !!MustHaveLabels.Count}" />
 
       <c:InfoMessage DockPanel.Dock="Bottom" HorizontalAlignment="Center" Margin="0 20" Opacity="0.6"
                      Content="Even if you left someone there, not all of them will know about this transaction." />
@@ -78,7 +78,7 @@
                   <c:TagControl.Background>
                     <Binding Path="IsHighlighted">
                       <Binding.Converter>
-                        <converters:BoolToBrushConverter TrueBrush="Red" />
+                        <converters:BoolToBrushConverter TrueBrush="Red" FalseBrush="Green" />
                       </Binding.Converter>
                     </Binding>
                   </c:TagControl.Background>
