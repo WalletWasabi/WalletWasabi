@@ -18,9 +18,9 @@ public class CoinJoinTrackingDataFactory
 		CancellationToken = cancellationToken;
 	}
 
-	public IWasabiHttpClientFactory HttpClientFactory { get; }
-	public RoundStateUpdater RoundStatusUpdater { get; }
-	public CancellationToken CancellationToken { get; }
+	private IWasabiHttpClientFactory HttpClientFactory { get; }
+	private RoundStateUpdater RoundStatusUpdater { get; }
+	private CancellationToken CancellationToken { get; }
 
 	public CoinJoinTrackingData CreateCoinJoinTrackingData(Wallet wallet, IEnumerable<SmartCoin> coinCandidates)
 	{
