@@ -88,7 +88,6 @@ public class SmarthHeaderChainTests
 		}
 
 		Assert.Equal(2500u, chain.Tip!.Height);
-		Assert.Equal(2500u, chain.Tip!.Height);
 	}
 
 	[Fact]
