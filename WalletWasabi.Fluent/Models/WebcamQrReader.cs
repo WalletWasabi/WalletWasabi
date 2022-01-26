@@ -9,6 +9,7 @@ using WalletWasabi.Userfacing;
 using NBitcoin;
 using Nito.AsyncEx;
 using Avalonia.Platform;
+using WalletWasabi.Fluent.Models.Windows;
 
 namespace WalletWasabi.Fluent.Models;
 
@@ -48,21 +49,34 @@ public class WebcamQrReader
 			_requestEnd = false;
 			ScanningTask = Task.Run(() =>
 			{
-				VideoCapture? camera = null;
+				WindowsCapture? camera = null;
 				try
 				{
-					if (!IsOsPlatformSupported)
+					string[] devices = WindowsCapture.FindDevices();
+					if (devices.Length == 0)
 					{
-						throw new NotImplementedException("This operating system is not supported.");
+						return;
 					}
-					camera = new();
-					camera.SetExceptionMode(true);
-					// Setting VideoCaptureAPI to DirectShow, to remove warning logs,
-					// might need to be changed in the future for other operating systems
-					if (!camera.Open(DefaultCameraId, VideoCaptureAPIs.DSHOW))
-					{
-						throw new InvalidOperationException("Could not open webcamera.");
-					}
+
+					WindowsCapture.VideoFormat[] formats = WindowsCapture.GetVideoFormat(DefaultCameraId);
+
+					camera = new WindowsCapture(DefaultCameraId, formats[0]);
+					camera.Start();
+					//VideoCapture? camera = null;
+					//try
+					//{
+					//	if (!IsOsPlatformSupported)
+					//	{
+					//		throw new NotImplementedException("This operating system is not supported.");
+					//	}
+					//	camera = new();
+					//	camera.SetExceptionMode(true);
+					//	// Setting VideoCaptureAPI to DirectShow, to remove warning logs,
+					//	// might need to be changed in the future for other operating systems
+					//	if (!camera.Open(DefaultCameraId, VideoCaptureAPIs.DSHOW))
+					//	{
+					//		throw new InvalidOperationException("Could not open webcamera.");
+					//	}
 					KeepScanning(camera);
 				}
 				catch (OpenCVException ex)
@@ -78,7 +92,6 @@ public class WebcamQrReader
 				finally
 				{
 					camera?.Release();
-					camera?.Dispose();
 				}
 			});
 		}
@@ -98,73 +111,44 @@ public class WebcamQrReader
 		}
 	}
 
-	private void KeepScanning(VideoCapture camera)
+	private void KeepScanning(WindowsCapture camera)
 	{
-		PixelSize pixelSize = new(camera.FrameWidth, camera.FrameHeight);
+		PixelSize pixelSize = new((int)camera.Size.Width, (int)camera.Size.Height);
 		Vector dpi = new(96, 96);
-		using WriteableBitmap writeableBitmap = new(pixelSize, dpi, PixelFormat.Rgba8888, AlphaFormat.Unpremul);
+		WriteableBitmap writeableBitmap = new(pixelSize, dpi, PixelFormat.Rgba8888, AlphaFormat.Unpremul);
 
-		int dataSize = camera.FrameWidth * camera.FrameHeight;
+		int dataSize = (int)(camera.Size.Width * camera.Size.Height);
 		int[] helperArray = new int[dataSize];
 		using QRCodeDetector qRCodeDetector = new();
-		using Mat frame = new();
 		while (!_requestEnd)
 		{
 			try
 			{
-				bool gotBackFrame = camera.Read(frame);
-				if (!gotBackFrame || frame.Width == 0 || frame.Height == 0)
-				{
-					continue;
-				}
-				ConvertMatToWriteableBitmap(frame, writeableBitmap, helperArray);
-
+				writeableBitmap = (WriteableBitmap)camera.GetBitmap();
+				//if (!gotBackFrame || frame.Width == 0 || frame.Height == 0)
+				//{
+				//	continue;
+				//}
 				NewImageArrived?.Invoke(this, writeableBitmap);
-
-				if (qRCodeDetector.Detect(frame, out Point2f[] points))
-				{
-					using Mat tmpMat = new();
-					string decodedText = qRCodeDetector.Decode(frame, points, tmpMat);
-					if (string.IsNullOrWhiteSpace(decodedText))
-					{
-						continue;
-					}
-					if (AddressStringParser.TryParse(decodedText, Network, out _))
-					{
-						CorrectAddressFound?.Invoke(this, decodedText);
-						break;
-					}
-					else
-					{
-						InvalidAddressFound?.Invoke(this, decodedText);
-					}
-				}
+				//string decodedText = qRCodeDetector.Decode(frame, points, tmpMat);
+				//if (string.IsNullOrWhiteSpace(decodedText))
+				//{
+				//	continue;
+				//}
+				//if (AddressStringParser.TryParse(decodedText, Network, out _))
+				//{
+				//	CorrectAddressFound?.Invoke(this, decodedText);
+				//	break;
+				//}
+				//else
+				//{
+				//	InvalidAddressFound?.Invoke(this, decodedText);
+				//}
 			}
 			catch (OpenCVException)
 			{
 				throw new OpenCVException("Could not read frames. Please make sure no other program uses your camera.");
 			}
 		}
-	}
-
-	private void ConvertMatToWriteableBitmap(Mat frame, WriteableBitmap writeableBitmap, int[] helperArray)
-	{
-		using ILockedFramebuffer fb = writeableBitmap.Lock();
-		Mat.Indexer<Vec3b> indexer = frame.GetGenericIndexer<Vec3b>();
-
-		for (int y = 0; y < frame.Height; y++)
-		{
-			int rowIndex = y * fb.Size.Width;
-
-			for (int x = 0; x < frame.Width; x++)
-			{
-				(byte r, byte g, byte b) = indexer[y, x];
-				Color color = new(255, r, g, b);
-
-				helperArray[rowIndex + x] = (int)color.ToUint32();
-			}
-		}
-
-		Marshal.Copy(helperArray, 0, fb.Address, helperArray.Length);
 	}
 }
