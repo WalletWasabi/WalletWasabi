@@ -65,10 +65,6 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		// At the end of the test a coinjoin transaction has to be created and broadcasted.
 		var transactionCompleted = new TaskCompletionSource<Transaction>();
 
-		// Total test timeout.
-		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(180));
-		cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
-
 		// Create a key manager and use it to create fake coins.
 		var keyManager = KeyManager.CreateNew(out var _, password: "", Network.Main);
 		keyManager.AssertCleanKeysIndexed();
@@ -141,6 +137,10 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		mockHttpClientFactory
 			.Setup(factory => factory.NewHttpClientWithCircuitPerRequest())
 			.Returns(httpClientWrapper);
+
+		// Total test timeout.
+		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(200));
+		cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
 
 		using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(1), apiClient);
 
