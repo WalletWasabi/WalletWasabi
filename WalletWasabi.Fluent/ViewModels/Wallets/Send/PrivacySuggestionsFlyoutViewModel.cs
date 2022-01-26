@@ -7,6 +7,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -55,15 +56,22 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 		if (hasChange)
 		{
-			var suggestions =
-				ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, transaction, cancellationToken);
-
-			await foreach (var suggestion in suggestions)
+			try
 			{
-				Suggestions.Insert(Suggestions.Count - 1, suggestion);
-			}
+				var suggestions =
+					ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, transaction, cancellationToken);
 
-			Suggestions.Remove(loadingRing);
+				await foreach (var suggestion in suggestions)
+				{
+					Suggestions.Insert(Suggestions.Count - 1, suggestion);
+				}
+			}
+			catch (OperationCanceledException)
+			{
+				Logger.LogWarning("Suggestion creation has timed out.");
+			}
 		}
+
+		Suggestions.Remove(loadingRing);
 	}
 }
