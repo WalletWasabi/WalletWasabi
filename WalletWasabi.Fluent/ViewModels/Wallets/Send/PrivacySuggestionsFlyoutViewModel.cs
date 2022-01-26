@@ -46,6 +46,9 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 			Suggestions.Add(new PocketSuggestionViewModel(SmartLabel.Merge(transaction.SpentCoins.Select(x => CoinHelpers.GetLabels(x)))));
 		}
 
+		var loadingRing = new LoadingSuggestionViewModel();
+		Suggestions.Add(loadingRing);
+
 		var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destination.ScriptPubKey);
 
 		IsLoading = false;
@@ -57,8 +60,10 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 			await foreach (var suggestion in suggestions)
 			{
-				Suggestions.Add(suggestion);
+				Suggestions.Insert(Suggestions.Count - 1, suggestion);
 			}
+
+			Suggestions.Remove(loadingRing);
 		}
 	}
 }
