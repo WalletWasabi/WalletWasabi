@@ -56,7 +56,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputNotWhitelisted);
 			}
 
-			// Compute but don't commit updated CoinJoin to round state, it will
+			// Compute but don't commit updated coinjoin to round state, it will
 			// be re-calculated on input confirmation. This is computed it here
 			// for validation purposes.
 			_ = round.Assert<ConstructionState>().AddInput(coin);
@@ -233,7 +233,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 							await amountRealCredentialTask.ConfigureAwait(false),
 							await vsizeRealCredentialTask.ConfigureAwait(false));
 
-						// Update the CoinJoin state, adding the confirmed input.
+						// Update the coinjoin state, adding the confirmed input.
 						round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice.Coin);
 						alice.ConfirmedConnection = true;
 
