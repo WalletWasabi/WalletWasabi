@@ -42,7 +42,8 @@ public class SerializationTests
 		var message = new InputRegistrationResponse(
 			Guid.NewGuid(),
 			CreateCredentialsResponse(),
-			CreateCredentialsResponse());
+			CreateCredentialsResponse(),
+			true);
 
 		AssertSerialization(message);
 	}
@@ -139,6 +140,23 @@ public class SerializationTests
 		var state = round.Assert<ConstructionState>();
 		round.CoinjoinState = new SigningState(state.Parameters, state.Inputs, state.Outputs);
 		AssertSerialization(RoundState.FromRound(round));
+	}
+
+	[Fact]
+	public void CoinSerialization()
+	{
+		var coin = new Coin(
+			new OutPoint(
+				uint256.One,
+				1234),
+			new TxOut(
+				Money.Coins(1),
+				new Script("0 bf3593d140d512eb607b3ddb5c5ee085f1e3a210")));
+		AssertSerialization(coin);
+
+		var serializedCoin = JsonConvert.SerializeObject(coin, JsonSerializationOptions.Default.Settings);
+		var expectedJson = "{\"Outpoint\":\"0100000000000000000000000000000000000000000000000000000000000000D2040000\",\"TxOut\":{\"ScriptPubKey\":\"0 bf3593d140d512eb607b3ddb5c5ee085f1e3a210\",\"Value\":100000000}}";
+		Assert.Equal(expectedJson, serializedCoin);
 	}
 
 	private static void AssertSerialization<T>(T message)

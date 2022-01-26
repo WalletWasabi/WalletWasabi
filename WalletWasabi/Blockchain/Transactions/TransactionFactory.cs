@@ -215,7 +215,6 @@ public class TransactionFactory
 		}
 
 		// Build the transaction
-		Logger.LogInfo("Signing transaction...");
 
 		// It must be watch only, too, because if we have the key and also hardware wallet, we do not care we can sign.
 		psbt.AddKeyPaths(KeyManager);
@@ -228,6 +227,7 @@ public class TransactionFactory
 		}
 		else
 		{
+			Logger.LogInfo("Signing transaction...");
 			IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(Password, spentCoins.Select(x => x.ScriptPubKey).ToArray());
 			builder = builder.AddKeys(signingKeys.ToArray());
 			builder.SignPSBT(psbt);

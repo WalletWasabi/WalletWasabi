@@ -19,7 +19,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
-[NavigationMetaData(Title = "Enter recovery words")]
+[NavigationMetaData(Title = "Enter Recovery Words")]
 public partial class RecoverWalletViewModel : RoutableViewModel
 {
 	[AutoNotify] private IEnumerable<string>? _suggestions;
@@ -137,7 +137,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 			return;
 		}
 
-		errors.Add(ErrorSeverity.Error, "Recovery words are not valid.");
+		errors.Add(ErrorSeverity.Error, "Recovery Words are not valid.");
 	}
 
 	private string GetTagsAsConcatString()

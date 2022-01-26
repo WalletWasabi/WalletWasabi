@@ -41,8 +41,9 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private bool _isFixedAmount;
 	[AutoNotify] private bool _isPayJoin;
 	[AutoNotify] private string? _payJoinEndPoint;
+	[AutoNotify] private bool _conversionReversed;
+
 	private bool _parsingUrl;
-	private BitcoinAddress? _currentAddress;
 
 	public SendViewModel(Wallet wallet)
 	{
@@ -107,12 +108,10 @@ public partial class SendViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.Create(() =>
 		{
-			if (_currentAddress is { })
-			{
-				_transactionInfo.Amount = new Money(AmountBtc, MoneyUnit.BTC);
+			var address = BitcoinAddress.Create(To, wallet.Network);
+			_transactionInfo.Amount = new Money(AmountBtc, MoneyUnit.BTC);
 
-				Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo, _currentAddress));
-			}
+			Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo, address));
 		}, nextCommandCanExecute);
 	}
 
@@ -156,7 +155,7 @@ public partial class SendViewModel : RoutableViewModel
 	private IPayjoinClient? GetPayjoinClient(string endPoint)
 	{
 		if (!string.IsNullOrWhiteSpace(endPoint) &&
-			Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
+		    Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
 		{
 			var payjoinEndPointUri = new Uri(endPoint);
 			if (!Services.Config.UseTor)
@@ -201,7 +200,7 @@ public partial class SendViewModel : RoutableViewModel
 	private void ValidateToField(IValidationErrors errors)
 	{
 		if (!string.IsNullOrWhiteSpace(To) &&
-			!AddressStringParser.TryParse(To, _wallet.Network, out _))
+		    !AddressStringParser.TryParse(To, _wallet.Network, out _))
 		{
 			errors.Add(ErrorSeverity.Error, "Input a valid BTC address or URL.");
 		}
@@ -253,7 +252,6 @@ public partial class SendViewModel : RoutableViewModel
 
 			if (url.Address is { })
 			{
-				_currentAddress = url.Address;
 				To = url.Address.ToString();
 			}
 
