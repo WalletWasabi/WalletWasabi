@@ -29,14 +29,14 @@ public class CoinJoinManager : BackgroundService
 	public IWasabiHttpClientFactory HttpClientFactory { get; }
 	public RoundStateUpdater RoundStatusUpdater { get; }
 	public ServiceConfiguration ServiceConfiguration { get; }
-	private ImmutableDictionary<string, CoinJoinTrackingData> TrackedWallets { get; set; } = ImmutableDictionary<string, CoinJoinTrackingData>.Empty;
+	private ImmutableDictionary<string, CoinJoinTrackingData> TrackedCoinJoins { get; set; } = ImmutableDictionary<string, CoinJoinTrackingData>.Empty;
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
 
 	public CoinJoinClientState HighestCoinJoinClientState
 	{
 		get
 		{
-			var inProgress = TrackedWallets.Values.Where(wtd => !wtd.IsCompleted).ToImmutableArray();
+			var inProgress = TrackedCoinJoins.Values.Where(wtd => !wtd.IsCompleted).ToImmutableArray();
 
 			if (inProgress.IsEmpty)
 			{
@@ -56,7 +56,7 @@ public class CoinJoinManager : BackgroundService
 			Logger.LogInfo("WabiSabi coinjoin client-side functionality is disabled temporarily on mainnet.");
 			return;
 		}
-		var trackedWallets = new Dictionary<string, CoinJoinTrackingData>();
+		var trackedCoinJoins = new Dictionary<string, CoinJoinTrackingData>();
 
 		while (!stoppingToken.IsCancellationRequested)
 		{
@@ -65,8 +65,8 @@ public class CoinJoinManager : BackgroundService
 			var mixableWallets = RoundStatusUpdater.AnyRound
 				? GetMixableWallets()
 				: ImmutableDictionary<string, Wallet>.Empty;
-			var openedWallets = mixableWallets.Where(x => !trackedWallets.ContainsKey(x.Key));
-			var closedWallets = trackedWallets.Where(x => !mixableWallets.ContainsKey(x.Key));
+			var openedWallets = mixableWallets.Where(x => !trackedCoinJoins.ContainsKey(x.Key));
+			var closedWallets = trackedCoinJoins.Where(x => !mixableWallets.ContainsKey(x.Key));
 
 			foreach (var openedWallet in openedWallets.Select(x => x.Value))
 			{
@@ -76,9 +76,9 @@ public class CoinJoinManager : BackgroundService
 					continue;
 				}
 
-				CoinJoinTrackingData walletTrackingData = new(openedWallet, HttpClientFactory, RoundStatusUpdater, coinCandidates, stoppingToken);
+				CoinJoinTrackingData coinJoinTrackingData = new(openedWallet, HttpClientFactory, RoundStatusUpdater, coinCandidates, stoppingToken);
 
-				trackedWallets.Add(openedWallet.WalletName, walletTrackingData);
+				trackedCoinJoins.Add(openedWallet.WalletName, coinJoinTrackingData);
 				WalletStatusChanged?.Invoke(this, new WalletStatusChangedEventArgs(openedWallet, IsCoinJoining: true));
 			}
 
@@ -87,7 +87,7 @@ public class CoinJoinManager : BackgroundService
 				closedWallet.Cancel();
 			}
 
-			var finishedCoinJoins = trackedWallets
+			var finishedCoinJoins = trackedCoinJoins
 				.Where(x => x.Value.IsCompleted)
 				.Select(x => x.Value)
 				.ToImmutableArray();
@@ -95,7 +95,7 @@ public class CoinJoinManager : BackgroundService
 			foreach (var finishedCoinJoin in finishedCoinJoins)
 			{
 				var walletToRemove = finishedCoinJoin.Wallet;
-				if (!trackedWallets.Remove(walletToRemove.WalletName))
+				if (!trackedCoinJoins.Remove(walletToRemove.WalletName))
 				{
 					Logger.LogWarning($"Wallet: `{walletToRemove.WalletName}` was not removed from tracked wallet list. Will retry in a few seconds.");
 				}
@@ -143,7 +143,7 @@ public class CoinJoinManager : BackgroundService
 				}
 			}
 
-			TrackedWallets = trackedWallets.ToImmutableDictionary();
+			TrackedCoinJoins = trackedCoinJoins.ToImmutableDictionary();
 		}
 	}
 
