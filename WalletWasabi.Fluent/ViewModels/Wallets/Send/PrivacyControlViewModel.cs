@@ -76,8 +76,6 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 	private readonly TransactionInfo _transactionInfo;
 	private readonly bool _isSilent;
 
-	private readonly Stack<Pocket[]> _removedPocketStack;
-
 	[AutoNotify] private Pocket[] _usedPockets = Array.Empty<Pocket>();
 
 	private bool _isUpdating;
@@ -87,16 +85,12 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		_wallet = wallet;
 		_transactionInfo = transactionInfo;
 		_isSilent = isSilent;
-		_removedPocketStack = new Stack<Pocket[]>();
 
 		Labels = new ObservableCollection<string>();
 		MustHaveLabels = new ObservableCollection<string>();
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
-
-		var undoCommandCanExecute = this.WhenAnyValue(x => x.Labels.Count).Select(_ => _removedPocketStack.Count > 0);
-		UndoCommand = ReactiveCommand.Create(OnUndo, undoCommandCanExecute);
 
 		NextCommand = ReactiveCommand.Create(() => Complete(UsedPockets));
 
@@ -149,11 +143,9 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		}
 	}
 
-	public ICommand UndoCommand { get; }
+	public ObservableCollection<LabelViewModel> LabelsWhiteList { get; } = new();
 
-	public ObservableCollection<LabelViewModel> LabelsWhiteList { get; } = new ObservableCollection<LabelViewModel>();
-
-	public ObservableCollection<LabelViewModel> LabelsBlackList { get; } = new ObservableCollection<LabelViewModel>();
+	public ObservableCollection<LabelViewModel> LabelsBlackList { get; } = new();
 
 	public ObservableCollection<string> Labels { get; set; }
 
@@ -162,14 +154,6 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 	private void Complete(IEnumerable<Pocket> pockets)
 	{
 		Close(DialogResultKind.Normal, pockets.SelectMany(x => x.Coins));
-	}
-
-	private void OnUndo()
-	{
-		var pocketsToUndo = _removedPocketStack.Pop();
-		var newPockets = UsedPockets.Union(pocketsToUndo);
-
-		UpdateLabels(newPockets);
 	}
 
 	private void OnLabelsChanged()
@@ -185,7 +169,6 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 		Dispatcher.UIThread.Post(() =>
 		{
-			_removedPocketStack.Push(pocketsToRemove);
 			var newPockets = UsedPockets.Except(pocketsToRemove);
 
 			UpdateLabels(newPockets);
