@@ -1,7 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -10,11 +7,11 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.WabiSabi.Client;
 
-public class WalletTrackingData : IDisposable
+public class CoinJoinTrackingData : IDisposable
 {
 	private bool _disposedValue;
 
-	public WalletTrackingData(
+	public CoinJoinTrackingData(
 		Wallet wallet,
 		IWasabiHttpClientFactory httpClientFactory,
 		RoundStateUpdater roundStatusUpdater,
