@@ -36,14 +36,14 @@ public class CoinJoinManager : BackgroundService
 	{
 		get
 		{
-			var inProgress = TrackedWallets.Values.Where(wtd => !wtd.CoinJoinTask.IsCompleted).ToImmutableArray();
+			var inProgress = TrackedWallets.Values.Where(wtd => !wtd.IsCompleted).ToImmutableArray();
 
 			if (inProgress.IsEmpty)
 			{
 				return CoinJoinClientState.Idle;
 			}
 
-			return inProgress.Any(wtd => wtd.CoinJoinClient.InCriticalCoinJoinState)
+			return inProgress.Any(wtd => wtd.InCriticalCoinJoinState)
 				? CoinJoinClientState.InCriticalPhase
 				: CoinJoinClientState.InProgress;
 		}
@@ -76,27 +76,19 @@ public class CoinJoinManager : BackgroundService
 					continue;
 				}
 
-				var coinjoinClient = new CoinJoinClient(
-					HttpClientFactory,
-					new KeyChain(openedWallet.KeyManager),
-					new InternalDestinationProvider(openedWallet.KeyManager),
-					RoundStatusUpdater,
-					openedWallet.ServiceConfiguration.MinAnonScoreTarget);
+				WalletTrackingData walletTrackingData = new(openedWallet, HttpClientFactory, RoundStatusUpdater, coinCandidates, stoppingToken);
 
-				var cts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
-				var coinjoinTask = coinjoinClient.StartCoinJoinAsync(coinCandidates, cts.Token);
-
-				trackedWallets.Add(openedWallet.WalletName, new WalletTrackingData(openedWallet, coinjoinClient, coinjoinTask, coinCandidates, cts));
+				trackedWallets.Add(openedWallet.WalletName, walletTrackingData);
 				WalletStatusChanged?.Invoke(this, new WalletStatusChangedEventArgs(openedWallet, IsCoinJoining: true));
 			}
 
 			foreach (var closedWallet in closedWallets.Select(x => x.Value))
 			{
-				closedWallet.CancellationTokenSource.Cancel();
+				closedWallet.Cancel();
 			}
 
 			var finishedCoinJoins = trackedWallets
-				.Where(x => x.Value.CoinJoinTask.IsCompleted)
+				.Where(x => x.Value.IsCompleted)
 				.Select(x => x.Value)
 				.ToImmutableArray();
 
@@ -110,7 +102,7 @@ public class CoinJoinManager : BackgroundService
 				else
 				{
 					WalletStatusChanged?.Invoke(this, new WalletStatusChangedEventArgs(walletToRemove, IsCoinJoining: false));
-					finishedCoinJoin.CancellationTokenSource.Dispose();
+					finishedCoinJoin.Dispose();
 				}
 			}
 
@@ -194,6 +186,4 @@ public class CoinJoinManager : BackgroundService
 		var pcPrivate = totalDecimalAmount == 0M ? 1d : (double)(privateDecimalAmount / totalDecimalAmount);
 		return pcPrivate;
 	}
-
-	private record WalletTrackingData(Wallet Wallet, CoinJoinClient CoinJoinClient, Task<bool> CoinJoinTask, IEnumerable<SmartCoin> CoinCandidates, CancellationTokenSource CancellationTokenSource);
 }
