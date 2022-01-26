@@ -11,6 +11,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Helpers;
 using WalletWasabi.Io;
 using WalletWasabi.JsonConverters;
+using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
@@ -23,6 +24,7 @@ public class KeyManager
 {
 	public const int AbsoluteMinGapLimit = 21;
 	public const int MaxGapLimit = 10_000;
+	public static Money DefaultPlebStopThreshold = Money.Coins(0.01m);
 
 	// BIP84-ish derivation scheme
 	// m / purpose' / coin_type' / account' / change / address_index
@@ -144,6 +146,10 @@ public class KeyManager
 
 	[JsonProperty(Order = 12, PropertyName = "AutoCoinJoin", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool AutoCoinJoin { get; set; }
+
+	[JsonProperty(Order = 13, PropertyName = "PlebStopThreshold")]
+	[JsonConverter(typeof(MoneyBtcJsonConverter))]
+	public Money PlebStopThreshold { get; internal set; } = DefaultPlebStopThreshold;
 
 	private object BlockchainStateLock { get; }
 
