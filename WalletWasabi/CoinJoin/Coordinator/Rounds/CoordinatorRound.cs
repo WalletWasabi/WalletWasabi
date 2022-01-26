@@ -301,8 +301,8 @@ public class CoordinatorRound
 			{
 				TimeSpan timeout = GetTimeout(phase);
 
-					// Delay asynchronously to the requested timeout.
-					await Task.Delay(timeout).ConfigureAwait(false);
+				// Delay asynchronously to the requested timeout.
+				await Task.Delay(timeout).ConfigureAwait(false);
 
 				var executeRunAbortion = false;
 				using (await RoundSynchronizerLock.LockAsync().ConfigureAwait(false))
@@ -327,75 +327,75 @@ public class CoordinatorRound
 						Logger.LogInfo($"Round ({RoundId}): {timedOutLogString} Aborting...");
 					}
 
-						// This will happen outside the lock.
-						_ = Task.Run(async () =>
+					// This will happen outside the lock.
+					_ = Task.Run(async () =>
+				{
+					try
 					{
-						try
+						switch (phase)
 						{
-							switch (phase)
-							{
-								case RoundPhase.InputRegistration:
+							case RoundPhase.InputRegistration:
+								{
+									// Only abort if less than two one Alice is registered.
+									// Do not ban anyone, it's ok if they lost connection.
+									await RemoveAlicesIfAnInputRefusedByMempoolAsync().ConfigureAwait(false);
+									int aliceCountAfterInputRegistrationTimeout = CountAlices();
+									if (aliceCountAfterInputRegistrationTimeout < 2)
 									{
-											// Only abort if less than two one Alice is registered.
-											// Do not ban anyone, it's ok if they lost connection.
-											await RemoveAlicesIfAnInputRefusedByMempoolAsync().ConfigureAwait(false);
-										int aliceCountAfterInputRegistrationTimeout = CountAlices();
-										if (aliceCountAfterInputRegistrationTimeout < 2)
-										{
-											Abort($"Only {aliceCountAfterInputRegistrationTimeout} Alices registered.");
-										}
-										else
-										{
-											UpdateAnonymitySet(aliceCountAfterInputRegistrationTimeout);
-												// Progress to the next phase, which will be ConnectionConfirmation
-												await ExecuteNextPhaseAsync(RoundPhase.ConnectionConfirmation).ConfigureAwait(false);
-										}
+										Abort($"Only {aliceCountAfterInputRegistrationTimeout} Alices registered.");
 									}
-									break;
-
-								case RoundPhase.ConnectionConfirmation:
+									else
 									{
-										using (await ConnectionConfirmationLock.LockAsync().ConfigureAwait(false))
-										{
-											IEnumerable<Alice> alicesToBan = GetAlicesBy(AliceState.InputsRegistered);
-
-											await ProgressToOutputRegistrationOrFailAsync(alicesToBan.ToArray()).ConfigureAwait(false);
-										}
+										UpdateAnonymitySet(aliceCountAfterInputRegistrationTimeout);
+										// Progress to the next phase, which will be ConnectionConfirmation
+										await ExecuteNextPhaseAsync(RoundPhase.ConnectionConfirmation).ConfigureAwait(false);
 									}
-									break;
+								}
+								break;
 
-								case RoundPhase.OutputRegistration:
+							case RoundPhase.ConnectionConfirmation:
+								{
+									using (await ConnectionConfirmationLock.LockAsync().ConfigureAwait(false))
 									{
-											// Output registration never aborts.
-											// We do not know which Alice to ban.
-											// Therefore proceed to signing, and whichever Alice does not sign, ban her.
-											await ExecuteNextPhaseAsync(RoundPhase.Signing).ConfigureAwait(false);
-									}
-									break;
+										IEnumerable<Alice> alicesToBan = GetAlicesBy(AliceState.InputsRegistered);
 
-								case RoundPhase.Signing:
+										await ProgressToOutputRegistrationOrFailAsync(alicesToBan.ToArray()).ConfigureAwait(false);
+									}
+								}
+								break;
+
+							case RoundPhase.OutputRegistration:
+								{
+									// Output registration never aborts.
+									// We do not know which Alice to ban.
+									// Therefore proceed to signing, and whichever Alice does not sign, ban her.
+									await ExecuteNextPhaseAsync(RoundPhase.Signing).ConfigureAwait(false);
+								}
+								break;
+
+							case RoundPhase.Signing:
+								{
+									Alice[] alicesToBan = GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: true).ToArray();
+
+									if (alicesToBan.Any())
 									{
-										Alice[] alicesToBan = GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: true).ToArray();
-
-										if (alicesToBan.Any())
-										{
-											await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, alicesToBan.SelectMany(x => x.Inputs.Select(y => y.Outpoint)).ToArray()).ConfigureAwait(false);
-										}
-
-										Abort($"{alicesToBan.Length} Alices did not sign.");
+										await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, alicesToBan.SelectMany(x => x.Inputs.Select(y => y.Outpoint)).ToArray()).ConfigureAwait(false);
 									}
-									break;
 
-								default:
-									throw new InvalidOperationException("This should never happen.");
-							}
+									Abort($"{alicesToBan.Length} Alices did not sign.");
+								}
+								break;
+
+							default:
+								throw new InvalidOperationException("This should never happen.");
 						}
-						catch (Exception ex)
-						{
-							Logger.LogWarning($"Round ({RoundId}): {phase} timeout failed.");
-							Logger.LogWarning(ex);
-						}
-					}).ConfigureAwait(false);
+					}
+					catch (Exception ex)
+					{
+						Logger.LogWarning($"Round ({RoundId}): {phase} timeout failed.");
+						Logger.LogWarning(ex);
+					}
+				}).ConfigureAwait(false);
 				}
 			}
 			catch (Exception ex)
@@ -439,7 +439,7 @@ public class CoordinatorRound
 
 	private async Task MoveToSigningAsync()
 	{
-		// Build CoinJoin:
+		// Build coinjoin:
 		// 1. Set new denomination: minor optimization.
 		Money newDenomination = CalculateNewDenomination();
 		var transaction = Network.Consensus.ConsensusFactory.CreateTransaction();
@@ -806,11 +806,11 @@ public class CoordinatorRound
 			FeeRate? currentFeeRate = null;
 			if (fee is null)
 			{
-				Logger.LogError($"Round ({RoundId}): Cannot calculate CoinJoin transaction fee. Some spent coins are missing.");
+				Logger.LogError($"Round ({RoundId}): Cannot calculate coinjoin transaction fee. Some spent coins are missing.");
 			}
 			else if (fee <= Money.Zero)
 			{
-				Logger.LogError($"Round ({RoundId}): CoinJoin transaction is not paying any fee. Fee: {fee.ToString(fplus: true)}, Total Inputs: {(Money)spentCoins.Sum(x => x.Amount)}, Total Outputs: {transaction.TotalOut}.");
+				Logger.LogError($"Round ({RoundId}): Coinjoin transaction is not paying any fee. Fee: {fee.ToString(fplus: true)}, Total Inputs: {(Money)spentCoins.Sum(x => x.Amount)}, Total Outputs: {transaction.TotalOut}.");
 			}
 			else
 			{
@@ -1092,20 +1092,20 @@ public class CoordinatorRound
 		{
 			Task.Run(async () =>
 			{
-					// 2. Delay asynchronously to the requested timeout
-					await Task.Delay(AliceRegistrationTimeout).ConfigureAwait(false);
+				// 2. Delay asynchronously to the requested timeout
+				await Task.Delay(AliceRegistrationTimeout).ConfigureAwait(false);
 
 				using (await RoundSynchronizerLock.LockAsync().ConfigureAwait(false))
 				{
-						// 3. If the round is still running and the phase is still InputRegistration
-						if (Status == CoordinatorRoundStatus.Running && Phase == RoundPhase.InputRegistration)
+					// 3. If the round is still running and the phase is still InputRegistration
+					if (Status == CoordinatorRoundStatus.Running && Phase == RoundPhase.InputRegistration)
 					{
 						var alice = Alices.SingleOrDefault(x => x.UniqueId == uniqueId);
 						if (alice is not null)
 						{
-								// 4. If LastSeen is not changed by then, remove Alice.
-								// But only if Alice didn't get blind sig yet.
-								if (alice.LastSeen == started && alice.State < AliceState.ConnectionConfirmed)
+							// 4. If LastSeen is not changed by then, remove Alice.
+							// But only if Alice didn't get blind sig yet.
+							if (alice.LastSeen == started && alice.State < AliceState.ConnectionConfirmed)
 							{
 								Alices.Remove(alice);
 								Logger.LogInfo($"Round ({RoundId}): Alice ({alice.UniqueId}) timed out.");
@@ -1159,11 +1159,11 @@ public class CoordinatorRound
 					await RpcClient.SendRawTransactionAsync(CoinJoin).ConfigureAwait(false);
 					broadcasted = CoinJoin;
 					Succeed(syncLock: false);
-					Logger.LogInfo($"Round ({RoundId}): Successfully broadcasted the CoinJoin: {CoinJoin.GetHash()}.");
+					Logger.LogInfo($"Round ({RoundId}): Successfully broadcasted the coinjoin: {CoinJoin.GetHash()}.");
 				}
 				catch (Exception ex)
 				{
-					Abort($"Could not broadcast the CoinJoin: {CoinJoin.GetHash()}.", syncLock: false);
+					Abort($"Could not broadcast the coinjoin: {CoinJoin.GetHash()}.", syncLock: false);
 					Logger.LogError(ex);
 				}
 			}
