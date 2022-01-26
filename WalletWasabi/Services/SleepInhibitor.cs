@@ -12,7 +12,7 @@ namespace WalletWasabi.Services;
 
 public class SleepInhibitor : PeriodicRunner
 {
-	private const string Reason = "CoinJoin is in progress.";
+	private const string Reason = "Coinjoin is in progress.";
 	private static readonly TimeSpan Timeout = TimeSpan.FromMinutes(1);
 
 	private volatile IPowerSavingInhibitorTask? _powerSavingTask;
