@@ -66,6 +66,9 @@ public partial class SendViewModel : RoutableViewModel
 			.Skip(1)
 			.Subscribe(ParseToField);
 
+		this.WhenAnyValue(x => x._transactionInfo.CustomChangeAddress)
+			.Subscribe(_ => this.RaisePropertyChanged(nameof(To)));
+
 		this.WhenAnyValue(x => x.PayJoinEndPoint)
 			.Subscribe(endPoint =>
 			{

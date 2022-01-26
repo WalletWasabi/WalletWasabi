@@ -13,6 +13,7 @@ public partial class TransactionInfo
 	private readonly int _privateCoinThreshold;
 
 	[AutoNotify] private Money _amount = Money.Zero;
+	[AutoNotify] private BitcoinAddress? _customChangeAddress;
 
 	public TransactionInfo()
 	{
@@ -21,8 +22,6 @@ public partial class TransactionInfo
 		this.WhenAnyValue(x => x.Amount)
 			.Subscribe(_ => OnAmountChanged());
 	}
-
-	public BitcoinAddress? CustomChangeAddress { get; set; }
 
 	public SmartLabel UserLabels { get; set; } = SmartLabel.Empty;
 
