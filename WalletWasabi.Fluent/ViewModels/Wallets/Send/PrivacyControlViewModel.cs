@@ -55,7 +55,12 @@ public partial class LabelViewModel : ViewModelBase
 			// See if the pocket exists in another pocket.
 			var existsInOtherPockets = label.Pockets.Distinct().Any(x => !pockets.Contains(x));
 
-			if(existsInOtherPockets)
+			if (existsInOtherPockets)
+			{
+				continue;
+			}
+
+			if (label.IsBlackListed != IsBlackListed)
 			{
 				continue;
 			}
@@ -120,7 +125,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 	private void WhiteListLabels(IEnumerable<LabelViewModel> labels)
 	{
-		foreach (var label in labels.Where(x => x.IsBlackListed))
+		foreach (var label in labels.Where(x => x.IsBlackListed).ToList())
 		{
 			LabelsBlackList.Remove(label);
 
@@ -134,7 +139,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 	private void BlackListLabels(IEnumerable<LabelViewModel> labels)
 	{
-		foreach (var label in labels.Where(x => !x.IsBlackListed))
+		foreach (var label in labels.Where(x => !x.IsBlackListed).ToList())
 		{
 			LabelsWhiteList.Remove(label);
 
