@@ -20,7 +20,7 @@ public class CoreNodeParams
 		int? prune,
 		string mempoolReplacement,
 		string userAgent,
-		Money fallbackFee,
+		Money? fallbackFee,
 		IMemoryCache cache)
 	{
 		Network = Guard.NotNull(nameof(network), network);
@@ -47,7 +47,7 @@ public class CoreNodeParams
 	public int? Prune { get; }
 	public string MempoolReplacement { get; }
 	public string UserAgent { get; }
-	public Money FallbackFee { get; }
+	public Money? FallbackFee { get; }
 	public int? Listen { get; set; }
 	public int? ListenOnion { get; set; }
 	public int? Discover { get; set; }

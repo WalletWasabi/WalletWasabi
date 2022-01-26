@@ -366,7 +366,15 @@ public partial class Arena : PeriodicRunner
 		if (diffMoney > coinjoin.Parameters.AllowedOutputAmounts.Min)
 		{
 			coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, Config.BlameScript));
-			round.LogInfo($"Filled up the outputs to build a reasonable transaction because some alice failed to provide its output. Added amount: '{diffMoney}'");
+
+			if (allReady)
+			{
+				round.LogInfo($"Filled up the outputs to build a reasonable transaction, all Alices signalled ready. Added amount: '{diffMoney}'.");
+			}
+			else
+			{
+				round.LogWarning($"Filled up the outputs to build a reasonable transaction because some alice failed to provide its output. Added amount: '{diffMoney}'.");
+			}
 		}
 		else if (!allReady)
 		{
