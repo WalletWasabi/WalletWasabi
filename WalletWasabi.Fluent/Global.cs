@@ -57,7 +57,7 @@ public class Global
 	public TransactionBroadcaster TransactionBroadcaster { get; set; }
 	public CoinJoinProcessor CoinJoinProcessor { get; set; }
 	private TorProcessManager? TorManager { get; set; }
-	public CoreNode BitcoinCoreNode { get; private set; }
+	public CoreNode? BitcoinCoreNode { get; private set; }
 	public HostedServices HostedServices { get; }
 
 	public UiConfig UiConfig { get; }
@@ -68,6 +68,8 @@ public class Global
 
 	public JsonRpcServer? RpcServer { get; private set; }
 	private PersonCircuit RoundStateUpdaterCircuit { get; }
+	private AllTransactionStore AllTransactionStore { get; }
+	private IndexStore IndexStore { get; }
 
 	public Global(string dataDir, Config config, UiConfig uiConfig, WalletManager walletManager)
 	{
@@ -82,12 +84,13 @@ public class Global
 			WalletManager = walletManager;
 
 			var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
-			var transactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
-			var indexStore = new IndexStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, new SmartHeaderChain());
+			AllTransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
+			SmartHeaderChain smartHeaderChain = new(maxChainSize: 20_000);
+			IndexStore = new IndexStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, smartHeaderChain);
 			var mempoolService = new MempoolService();
 			var blocks = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);
 
-			BitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService, blocks);
+			BitcoinStore = new BitcoinStore(IndexStore, AllTransactionStore, mempoolService, blocks);
 
 			if (Config.UseTor)
 			{
@@ -105,6 +108,12 @@ public class Global
 			TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, BackendHttpClientFactory, WalletManager);
 
 			RoundStateUpdaterCircuit = new PersonCircuit();
+
+			Cache = new MemoryCache(new MemoryCacheOptions
+			{
+				SizeLimit = 1_000,
+				ExpirationScanFrequency = TimeSpan.FromSeconds(30)
+			});
 		}
 	}
 
@@ -133,11 +142,6 @@ public class Global
 
 			try
 			{
-				Cache = new MemoryCache(new MemoryCacheOptions
-				{
-					SizeLimit = 1_000,
-					ExpirationScanFrequency = TimeSpan.FromSeconds(30)
-				});
 				var bstoreInitTask = BitcoinStore.InitializeAsync(cancel);
 
 				HostedServices.Register<UpdateChecker>(() => new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
@@ -247,7 +251,7 @@ public class Global
 		{
 			if (Config.StartLocalBitcoinCoreOnStartup)
 			{
-				BitcoinCoreNode = await CoreNode
+				CoreNode coreNode = await CoreNode
 					.CreateAsync(
 						new CoreNodeParams(
 							Network,
@@ -266,7 +270,8 @@ public class Global
 						cancel)
 					.ConfigureAwait(false);
 
-				RegisterLocalNodeDependantComponents();
+				RegisterLocalNodeDependantComponents(coreNode);
+				BitcoinCoreNode = coreNode;
 			}
 		}
 		catch (Exception ex)
@@ -275,12 +280,12 @@ public class Global
 		}
 	}
 
-	private void RegisterLocalNodeDependantComponents()
+	private void RegisterLocalNodeDependantComponents(CoreNode coreNode)
 	{
-		HostedServices.Register<BlockNotifier>(() => new BlockNotifier(TimeSpan.FromSeconds(7), BitcoinCoreNode.RpcClient, BitcoinCoreNode.P2pNode), "Block Notifier");
-		HostedServices.Register<RpcMonitor>(() => new RpcMonitor(TimeSpan.FromSeconds(7), BitcoinCoreNode.RpcClient), "RPC Monitor");
-		HostedServices.Register<RpcFeeProvider>(() => new RpcFeeProvider(TimeSpan.FromMinutes(1), BitcoinCoreNode.RpcClient, HostedServices.Get<RpcMonitor>()), "RPC Fee Provider");
-		HostedServices.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(21), BitcoinCoreNode.RpcClient, BitcoinCoreNode.P2pNode), "Full Node Mempool Mirror");
+		HostedServices.Register<BlockNotifier>(() => new BlockNotifier(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.P2pNode), "Block Notifier");
+		HostedServices.Register<RpcMonitor>(() => new RpcMonitor(TimeSpan.FromSeconds(7), coreNode.RpcClient), "RPC Monitor");
+		HostedServices.Register<RpcFeeProvider>(() => new RpcFeeProvider(TimeSpan.FromMinutes(1), coreNode.RpcClient, HostedServices.Get<RpcMonitor>()), "RPC Fee Provider");
+		HostedServices.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(21), coreNode.RpcClient, coreNode.P2pNode), "Full Node Mempool Mirror");
 	}
 
 	private void RegisterFeeRateProviders()
@@ -401,12 +406,15 @@ public class Global
 
 				try
 				{
-					await BitcoinStore.DisposeAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(BitcoinStore)} is disposed.");
+					await IndexStore.DisposeAsync().ConfigureAwait(false);
+					Logger.LogInfo($"{nameof(IndexStore)} is disposed.");
+
+					await AllTransactionStore.DisposeAsync().ConfigureAwait(false);
+					Logger.LogInfo($"{nameof(AllTransactionStore)} is disposed.");
 				}
 				catch (Exception ex)
 				{
-					Logger.LogError($"Error during the disposal of {nameof(BitcoinStore)}: {ex}");
+					Logger.LogError($"Error during the disposal of {nameof(IndexStore)} and {nameof(AllTransactionStore)}: {ex}");
 				}
 			}
 			catch (Exception ex)
