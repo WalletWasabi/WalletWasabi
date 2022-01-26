@@ -20,6 +20,7 @@ public partial class LabelViewModel : ViewModelBase
 	[AutoNotify] private bool _isBlackListed;
 	[AutoNotify] private bool _isPointerOver;
 	[AutoNotify] private bool _isHighlighted;
+	[AutoNotify] private bool _mustHave;
 
 	public LabelViewModel(PrivacyControlViewModel owner, string label)
 	{
@@ -49,7 +50,7 @@ public partial class LabelViewModel : ViewModelBase
 			}
 
 			owner.SwapLabel(this);
-		});
+		}, this.WhenAnyValue(x => x.MustHave, x => x.IsBlackListed).Select(x => x.Item2 || !x.Item1 && !x.Item2));
 	}
 
 	public List<PocketViewModel> Pockets { get; }
