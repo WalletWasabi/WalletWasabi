@@ -130,6 +130,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 			LabelsBlackList.Remove(label);
 
 			label.IsBlackListed = false;
+			label.IsPointerOver = false;
 
 			LabelsWhiteList.Add(label);
 		}
@@ -144,6 +145,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 			LabelsWhiteList.Remove(label);
 
 			label.IsBlackListed = true;
+			label.IsPointerOver = false;
 
 			LabelsBlackList.Add(label);
 		}
