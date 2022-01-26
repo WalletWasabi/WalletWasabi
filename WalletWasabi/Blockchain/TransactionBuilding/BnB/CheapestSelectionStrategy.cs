@@ -48,7 +48,7 @@ public class CheapestSelectionStrategy
 
 		if (action == NextAction.IncludeFirstThenOmit || action == NextAction.Include)
 		{
-			if (selection[depth] == 0)
+			if (selection[depth] > 0)
 			{
 				_currentInputCosts += InputCosts[depth];
 			}
