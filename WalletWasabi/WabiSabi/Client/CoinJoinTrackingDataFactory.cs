@@ -22,7 +22,7 @@ public class CoinJoinTrackingDataFactory
 	private RoundStateUpdater RoundStatusUpdater { get; }
 	private CancellationToken CancellationToken { get; }
 
-	public CoinJoinTrackingData CreateCoinJoinTrackingData(Wallet wallet, IEnumerable<SmartCoin> coinCandidates)
+	public CoinJoinTracker CreateCoinJoinTrackingData(Wallet wallet, IEnumerable<SmartCoin> coinCandidates)
 	{
 		var coinJoinClient = new CoinJoinClient(
 			HttpClientFactory,
@@ -31,6 +31,6 @@ public class CoinJoinTrackingDataFactory
 			RoundStatusUpdater,
 			wallet.ServiceConfiguration.MinAnonScoreTarget);
 
-		return new CoinJoinTrackingData(wallet, coinJoinClient, coinCandidates, CancellationToken);
+		return new CoinJoinTracker(wallet, coinJoinClient, coinCandidates, CancellationToken);
 	}
 }

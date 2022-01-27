@@ -29,7 +29,7 @@ public class CoinJoinManager : BackgroundService
 	public IWasabiHttpClientFactory HttpClientFactory { get; }
 	public RoundStateUpdater RoundStatusUpdater { get; }
 	public ServiceConfiguration ServiceConfiguration { get; }
-	private ImmutableDictionary<string, CoinJoinTrackingData> TrackedCoinJoins { get; set; } = ImmutableDictionary<string, CoinJoinTrackingData>.Empty;
+	private ImmutableDictionary<string, CoinJoinTracker> TrackedCoinJoins { get; set; } = ImmutableDictionary<string, CoinJoinTracker>.Empty;
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
 
 	public CoinJoinClientState HighestCoinJoinClientState
@@ -58,7 +58,7 @@ public class CoinJoinManager : BackgroundService
 		}
 		CoinJoinTrackingDataFactory coinJoinTrackingDataFactory = new(HttpClientFactory, RoundStatusUpdater, stoppingToken);
 
-		var trackedCoinJoins = new Dictionary<string, CoinJoinTrackingData>();
+		var trackedCoinJoins = new Dictionary<string, CoinJoinTracker>();
 
 		while (!stoppingToken.IsCancellationRequested)
 		{
@@ -78,7 +78,7 @@ public class CoinJoinManager : BackgroundService
 					continue;
 				}
 
-				CoinJoinTrackingData coinJoinTrackingData = coinJoinTrackingDataFactory.CreateCoinJoinTrackingData(openedWallet, coinCandidates);
+				CoinJoinTracker coinJoinTrackingData = coinJoinTrackingDataFactory.CreateCoinJoinTrackingData(openedWallet, coinCandidates);
 
 				trackedCoinJoins.Add(openedWallet.WalletName, coinJoinTrackingData);
 				WalletStatusChanged?.Invoke(this, new WalletStatusChangedEventArgs(openedWallet, IsCoinJoining: true));
