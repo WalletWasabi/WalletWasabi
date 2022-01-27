@@ -6,11 +6,11 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.WabiSabi.Client;
 
-public record CoinJoinTrackingData : IDisposable
+public class CoinJoinTracker : IDisposable
 {
 	private bool _disposedValue;
 
-	public CoinJoinTrackingData(
+	public CoinJoinTracker(
 		Wallet wallet,
 		CoinJoinClient coinJoinClient,
 		IEnumerable<SmartCoin> coinCandidates,
