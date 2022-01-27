@@ -78,7 +78,7 @@ public class CoinJoinManager : BackgroundService
 					continue;
 				}
 
-				CoinJoinTracker coinJoinTracker = coinJoinTrackerFactory.Create(openedWallet, coinCandidates);
+				CoinJoinTracker coinJoinTracker = coinJoinTrackerFactory.CreateAndStart(openedWallet, coinCandidates);
 
 				trackedCoinJoins.Add(openedWallet.WalletName, coinJoinTracker);
 				WalletStatusChanged?.Invoke(this, new WalletStatusChangedEventArgs(openedWallet, IsCoinJoining: true));
