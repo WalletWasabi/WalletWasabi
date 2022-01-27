@@ -21,7 +21,9 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public class CoinJoinClient
 {
-	const int MaxInputsRegistrableByWallet = 10; // how many
+	private const int MaxInputsRegistrableByWallet = 10; // how many
+	private static TimeSpan DoNotRegisterInLastMinuteTimeSpan => TimeSpan.FromMinutes(1);
+
 	private volatile bool _inCriticalCoinJoinState;
 
 	/// <param name="minAnonScoreTarget">Coins those have reached anonymity target, but still can be mixed if desired.</param>
@@ -60,7 +62,10 @@ public class CoinJoinClient
 
 	public async Task<bool> StartCoinJoinAsync(IEnumerable<SmartCoin> coins, CancellationToken cancellationToken)
 	{
-		var currentRoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cancellationToken).ConfigureAwait(false);
+		var currentRoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState =>
+				roundState.Phase == Phase.InputRegistration &&
+				roundState.InputRegistrationEnd - DateTimeOffset.UtcNow > DoNotRegisterInLastMinuteTimeSpan
+			, cancellationToken).ConfigureAwait(false);
 
 		// This should be roughly log(#inputs), it could be set slightly
 		// higher if more inputs are observed but that involves trusting the
