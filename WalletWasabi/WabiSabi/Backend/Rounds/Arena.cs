@@ -387,15 +387,15 @@ public partial class Arena : PeriodicRunner
 		}
 		else
 		{
-			coordinationFee -= round.FeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize());
+			var effectiveCoordinationFee = coordinationFee - round.FeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize());
 
-			if (coordinationFee > coinjoin.Parameters.AllowedOutputAmounts.Min)
+			if (effectiveCoordinationFee > coinjoin.Parameters.AllowedOutputAmounts.Min)
 			{
-				coinjoin = coinjoin.AddOutput(new TxOut(coordinationFee, coordinatorScriptPubKey));
+				coinjoin = coinjoin.AddOutput(new TxOut(effectiveCoordinationFee, coordinatorScriptPubKey));
 			}
 			else
 			{
-				round.LogWarning($"Coordination fee wasn't taken, because it was too small: {nameof(coordinationFee)}: {coordinationFee}.");
+				round.LogWarning($"Effective coordination fee wasn't taken, because it was too small: {effectiveCoordinationFee}.");
 			}
 		}
 
