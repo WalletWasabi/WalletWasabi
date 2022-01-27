@@ -56,7 +56,7 @@ public class CoinJoinManager : BackgroundService
 			Logger.LogInfo("WabiSabi coinjoin client-side functionality is disabled temporarily on mainnet.");
 			return;
 		}
-		CoinJoinTrackingDataFactory coinJoinTrackingDataFactory = new(HttpClientFactory, RoundStatusUpdater, stoppingToken);
+		CoinJoinTrackerFactory coinJoinTrackerFactory = new(HttpClientFactory, RoundStatusUpdater, stoppingToken);
 
 		var trackedCoinJoins = new Dictionary<string, CoinJoinTracker>();
 
@@ -78,9 +78,9 @@ public class CoinJoinManager : BackgroundService
 					continue;
 				}
 
-				CoinJoinTracker coinJoinTrackingData = coinJoinTrackingDataFactory.CreateCoinJoinTrackingData(openedWallet, coinCandidates);
+				CoinJoinTracker coinJoinTracker = coinJoinTrackerFactory.Create(openedWallet, coinCandidates);
 
-				trackedCoinJoins.Add(openedWallet.WalletName, coinJoinTrackingData);
+				trackedCoinJoins.Add(openedWallet.WalletName, coinJoinTracker);
 				WalletStatusChanged?.Invoke(this, new WalletStatusChangedEventArgs(openedWallet, IsCoinJoining: true));
 			}
 

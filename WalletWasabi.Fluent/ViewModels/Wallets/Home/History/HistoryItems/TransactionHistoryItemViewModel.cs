@@ -34,9 +34,9 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 			IncomingAmount = amount;
 		}
 
-		ShowDetailsCommand = ReactiveCommand.Create(() =>
-			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(
-				new TransactionDetailsViewModel(transactionSummary, walletViewModel.Wallet, updateTrigger)));
+		ShowDetailsCommand = ReactiveCommand.Create((Action)(() =>
+			RoutableViewModel.Navigate((Fluent.NavigationTarget)Fluent.NavigationTarget.DialogScreen).To(
+				new TransactionDetailsViewModel(transactionSummary, walletViewModel.Wallet, updateTrigger))));
 
 		DateString = $"{Date.ToLocalTime():MM/dd/yy HH:mm}";
 	}

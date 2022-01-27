@@ -6,9 +6,9 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.WabiSabi.Client;
 
-public class CoinJoinTrackingDataFactory
+public class CoinJoinTrackerFactory
 {
-	public CoinJoinTrackingDataFactory(
+	public CoinJoinTrackerFactory(
 		IWasabiHttpClientFactory httpClientFactory,
 		RoundStateUpdater roundStatusUpdater,
 		CancellationToken cancellationToken)
@@ -22,7 +22,7 @@ public class CoinJoinTrackingDataFactory
 	private RoundStateUpdater RoundStatusUpdater { get; }
 	private CancellationToken CancellationToken { get; }
 
-	public CoinJoinTracker CreateCoinJoinTrackingData(Wallet wallet, IEnumerable<SmartCoin> coinCandidates)
+	public CoinJoinTracker Create(Wallet wallet, IEnumerable<SmartCoin> coinCandidates)
 	{
 		var coinJoinClient = new CoinJoinClient(
 			HttpClientFactory,
