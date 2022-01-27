@@ -53,11 +53,11 @@ public class P2pTests
 
 		var dataDir = Common.GetWorkDir();
 
-		var indexStore = new IndexStore(Path.Combine(dataDir, "indexStore"), network, new SmartHeaderChain());
+		await using var indexStore = new IndexStore(Path.Combine(dataDir, "indexStore"), network, new SmartHeaderChain());
 		await using var transactionStore = new AllTransactionStore(Path.Combine(dataDir, "transactionStore"), network);
 		var mempoolService = new MempoolService();
 		var blocks = new FileSystemBlockRepository(Path.Combine(dataDir, "blocks"), network);
-		await using BitcoinStore bitcoinStore = new(indexStore, transactionStore, mempoolService, blocks);
+		BitcoinStore bitcoinStore = new(indexStore, transactionStore, mempoolService, blocks);
 		await bitcoinStore.InitializeAsync();
 
 		var addressManagerFolderPath = Path.Combine(dataDir, "AddressManager");
@@ -167,8 +167,6 @@ public class P2pTests
 			IoHelpers.EnsureContainingDirectoryExists(addressManagerFilePath);
 			addressManager?.SavePeerFile(addressManagerFilePath, network);
 			Logger.LogInfo($"Saved {nameof(AddressManager)} to `{addressManagerFilePath}`.");
-
-			await bitcoinStore.DisposeAsync();
 		}
 	}
 }
