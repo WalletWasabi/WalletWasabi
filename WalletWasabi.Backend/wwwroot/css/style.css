@@ -95,10 +95,12 @@ h2 {
     fill: var(--green);
 }
 .video-homepage {
-    position: relative;
+    position: fixed;
     height: 100vh;
     width: 100%;
     min-height: 600px;
+    z-index: -1;
+    top: 0;
 }
 .video-homepage video, .video-homepage .mobile_video_bg {
     width: 100%;
@@ -122,10 +124,13 @@ video::-webkit-media-controls {
     display: none;
     -webkit-appearance: none;
 }
+.pt-100vh .content {
+    padding-top: 100vh;
+}
 .download-btn-area {
     position: absolute;
     left: calc((100% - var(--breakpoint)) / 2);
-    top: 50%;
+    top: calc(50% + 40px);
     transform: translateY(-50%);
 }
 .home {
