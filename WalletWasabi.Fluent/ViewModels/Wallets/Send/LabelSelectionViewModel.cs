@@ -76,7 +76,7 @@ public class LabelSelectionViewModel : ViewModelBase
 		}
 	}
 
-	internal void SwapLabel(LabelViewModel labelViewModel)
+	public void SwapLabel(LabelViewModel labelViewModel)
 	{
 		var affectedLabelViewModels = GetAssociatedLabels(labelViewModel);
 
