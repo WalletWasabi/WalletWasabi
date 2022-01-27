@@ -47,7 +47,7 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 				.Merge(this.WhenAnyValue(x => x.CurrentAddress).Select(_ => Unit.Default))
 				.Throttle(TimeSpan.FromMilliseconds(100))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(async _ => await CheckClipboardForValidAddressAsync())
+				.Subscribe(async _ => await CheckClipboardForValidAddressAsync(forceCheck: true))
 				.DisposeWith(disposables);
 
 			Observable
@@ -71,13 +71,18 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 			.DisposeWith(disposables);
 	}
 
-	private async Task CheckClipboardForValidAddressAsync()
+	private async Task CheckClipboardForValidAddressAsync(bool forceCheck = false)
 	{
 		if (Application.Current is { Clipboard: { } clipboard })
 		{
 			var clipboardValue = await clipboard.GetTextAsync();
 
-			if (AssociatedObject is null || _lastFlashedOn == clipboardValue)
+			if (AssociatedObject is null)
+			{
+				return;
+			}
+
+			if (_lastFlashedOn == clipboardValue && !forceCheck)
 			{
 				return;
 			}
@@ -85,7 +90,7 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 			AssociatedObject.Classes.Remove(FlashAnimation);
 
 			if (clipboardValue != CurrentAddress &&
-				AddressStringParser.TryParse(clipboardValue, Services.WalletManager.Network, out _))
+			    AddressStringParser.TryParse(clipboardValue, Services.WalletManager.Network, out _))
 			{
 				AssociatedObject.Classes.Add(FlashAnimation);
 				_lastFlashedOn = clipboardValue;
