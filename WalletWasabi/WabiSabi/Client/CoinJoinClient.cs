@@ -22,7 +22,6 @@ namespace WalletWasabi.WabiSabi.Client;
 public class CoinJoinClient
 {
 	private const int MaxInputsRegistrableByWallet = 10; // how many
-	private static TimeSpan DoNotRegisterInLastMinuteTimeSpan => TimeSpan.FromMinutes(1);
 
 	private volatile bool _inCriticalCoinJoinState;
 
@@ -34,7 +33,8 @@ public class CoinJoinClient
 		IDestinationProvider destinationProvider,
 		RoundStateUpdater roundStatusUpdater,
 		int minAnonScoreTarget = int.MaxValue,
-		bool consolidationMode = false)
+		bool consolidationMode = false,
+		TimeSpan doNotRegisterInLastMinuteTimeLimit = default)
 	{
 		HttpClientFactory = httpClientFactory;
 		KeyChain = keyChain;
@@ -43,6 +43,7 @@ public class CoinJoinClient
 		MinAnonScoreTarget = minAnonScoreTarget;
 		ConsolidationMode = consolidationMode;
 		SecureRandom = new SecureRandom();
+		DoNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
 	}
 
 	private SecureRandom SecureRandom { get; }
@@ -51,6 +52,7 @@ public class CoinJoinClient
 	private IDestinationProvider DestinationProvider { get; }
 	private RoundStateUpdater RoundStatusUpdater { get; }
 	public int MinAnonScoreTarget { get; }
+	private TimeSpan DoNotRegisterInLastMinuteTimeLimit { get; }
 
 	public bool InCriticalCoinJoinState
 	{
@@ -64,7 +66,7 @@ public class CoinJoinClient
 	{
 		var currentRoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState =>
 				roundState.Phase == Phase.InputRegistration &&
-				roundState.InputRegistrationEnd - DateTimeOffset.UtcNow > DoNotRegisterInLastMinuteTimeSpan
+				roundState.InputRegistrationEnd - DateTimeOffset.UtcNow > DoNotRegisterInLastMinuteTimeLimit
 			, cancellationToken).ConfigureAwait(false);
 
 		// This should be roughly log(#inputs), it could be set slightly
