@@ -7,7 +7,6 @@ using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -53,7 +52,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		{
 			List<SmartCoin> availableCoins = wallet.Coins.Unspent().ToList();
 
-			if (ChangelessTransactionCoinSelector.TryGetCoins(availableCoins, transactionInfo.FeeRate, transactionInfo.Amount, out IEnumerable<SmartCoin>? selection, cancellationToken))
+			if (ChangelessTransactionCoinSelector.TryGetCoins(availableCoins, transactionInfo.FeeRate, new TxOut(transactionInfo.Amount, destination), out IEnumerable<SmartCoin>? selection, cancellationToken))
 			{
 				BuildTransactionResult transaction = TransactionHelpers.BuildChangelessTransaction(
 					wallet,
