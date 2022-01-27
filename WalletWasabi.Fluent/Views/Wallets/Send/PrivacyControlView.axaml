@@ -33,7 +33,7 @@
 
       <TextBlock Text="Remove the entities you cannot tolerate leaking information about this transaction:" DockPanel.Dock="Top" />
 
-      <DockPanel>
+      <DockPanel DataContext="{Binding LabelSelection}">
         <ItemsControl DockPanel.Dock="Bottom" Items="{Binding LabelsBlackList}">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>

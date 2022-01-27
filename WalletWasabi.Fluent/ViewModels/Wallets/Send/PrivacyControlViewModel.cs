@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -13,47 +14,13 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
-public partial class LabelViewModel : ViewModelBase
+public partial class LabelSelectionViewModel : ViewModelBase
 {
-	[AutoNotify] private bool _isBlackListed;
-	[AutoNotify] private bool _isPointerOver;
-	[AutoNotify] private bool _isHighlighted;
-	[AutoNotify] private bool _mustHave;
+	private readonly Money _targetAmount;
 
-	public LabelViewModel(PrivacyControlViewModel owner, string label)
+	public LabelSelectionViewModel(Money targetAmount)
 	{
-		Value = label;
-
-		this.WhenAnyValue(x => x.IsPointerOver)
-			.Skip(1)
-			.Subscribe(isPointerOver => owner.OnPointerOver(this, isPointerOver));
-
-		ClickedCommand = ReactiveCommand.Create(() => owner.SwapLabel(this),
-			this.WhenAnyValue(x => x.MustHave, x => x.IsBlackListed).Select(x => x.Item2 || !x.Item1 && !x.Item2));
-	}
-
-	public string Value { get; }
-
-	public ICommand ClickedCommand { get; }
-}
-
-[NavigationMetaData(Title = "Privacy Control")]
-public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<SmartCoin>>
-{
-	private readonly Wallet _wallet;
-	private readonly TransactionInfo _transactionInfo;
-	private readonly bool _isSilent;
-
-	public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, bool isSilent)
-	{
-		_wallet = wallet;
-		_transactionInfo = transactionInfo;
-		_isSilent = isSilent;
-
-		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
-		EnableBack = true;
-
-		NextCommand = ReactiveCommand.Create(() => Complete(GetUsedPockets()));
+		_targetAmount = targetAmount;
 	}
 
 	public Pocket[] AllPocket { get; set; } = Array.Empty<Pocket>();
@@ -64,7 +31,17 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 	public IEnumerable<LabelViewModel> LabelsBlackList => AllLabelViewModel.Where(x => x.IsBlackListed);
 
-	private IEnumerable<Pocket> GetUsedPockets() => AllPocket.Where(x => LabelsWhiteList.Any(y => x.Labels.Contains(y.Value)));
+	public IEnumerable<Pocket> GetUsedPockets() => AllPocket.Where(x => LabelsWhiteList.Any(y => x.Labels.Contains(y.Value)));
+
+	public void Reset(Pocket[] pockets)
+	{
+		AllPocket = pockets;
+
+		var allLabels = SmartLabel.Merge(AllPocket.Select(x => x.Labels));
+		AllLabelViewModel = allLabels.Select(x => new LabelViewModel(this, x)).ToArray();
+
+		OnSelectionChanged();
+	}
 
 	public LabelViewModel[] GetAssociatedLabels(LabelViewModel labelViewModel)
 	{
@@ -118,13 +95,6 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		OnSelectionChanged();
 	}
 
-	private void Complete(IEnumerable<Pocket> pockets)
-	{
-		var coins = pockets.SelectMany(x => x.Coins);
-
-		Close(DialogResultKind.Normal, coins);
-	}
-
 	private void OnSelectionChanged()
 	{
 		var sumOfWhiteList = AllPocket.Where(x => LabelsWhiteList.Any(y => x.Labels.Contains(y.Value))).Sum(x => x.Amount);
@@ -133,21 +103,72 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		{
 			var sumOfLabelsPockets = AllPocket.Where(x => x.Labels.Contains(labelViewModel.Value)).Sum(x => x.Amount);
 
-			labelViewModel.MustHave = sumOfWhiteList - sumOfLabelsPockets < _transactionInfo.Amount;
+			labelViewModel.MustHave = sumOfWhiteList - sumOfLabelsPockets < _targetAmount;
 		}
 
 		this.RaisePropertyChanged(nameof(LabelsWhiteList));
 		this.RaisePropertyChanged(nameof(LabelsBlackList));
 	}
+}
+
+public partial class LabelViewModel : ViewModelBase
+{
+	[AutoNotify] private bool _isBlackListed;
+	[AutoNotify] private bool _isPointerOver;
+	[AutoNotify] private bool _isHighlighted;
+	[AutoNotify] private bool _mustHave;
+
+	public LabelViewModel(LabelSelectionViewModel owner, string label)
+	{
+		Value = label;
+
+		this.WhenAnyValue(x => x.IsPointerOver)
+			.Skip(1)
+			.Subscribe(isPointerOver => owner.OnPointerOver(this, isPointerOver));
+
+		ClickedCommand = ReactiveCommand.Create(() => owner.SwapLabel(this),
+			this.WhenAnyValue(x => x.MustHave, x => x.IsBlackListed).Select(x => x.Item2 || !x.Item1 && !x.Item2));
+	}
+
+	public string Value { get; }
+
+	public ICommand ClickedCommand { get; }
+}
+
+[NavigationMetaData(Title = "Privacy Control")]
+public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<SmartCoin>>
+{
+	private readonly Wallet _wallet;
+	private readonly TransactionInfo _transactionInfo;
+	private readonly bool _isSilent;
+
+
+	public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, bool isSilent)
+	{
+		_wallet = wallet;
+		_transactionInfo = transactionInfo;
+		_isSilent = isSilent;
+
+		LabelSelection = new LabelSelectionViewModel(_transactionInfo.Amount);
+
+		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
+		EnableBack = true;
+
+		NextCommand = ReactiveCommand.Create(() => Complete(LabelSelection.GetUsedPockets()));
+	}
+
+	public LabelSelectionViewModel LabelSelection { get; }
+
+	private void Complete(IEnumerable<Pocket> pockets)
+	{
+		var coins = pockets.SelectMany(x => x.Coins);
+
+		Close(DialogResultKind.Normal, coins);
+	}
 
 	private void InitializeLabels()
 	{
-		AllPocket = _wallet.Coins.GetPockets(_wallet.ServiceConfiguration.MinAnonScoreTarget).Select(x => new Pocket(x)).ToArray();
-
-		var allLabels = SmartLabel.Merge(AllPocket.Select(x => x.Labels));
-		AllLabelViewModel = allLabels.Select(x => new LabelViewModel(this, x)).ToArray();
-
-		OnSelectionChanged();
+		LabelSelection.Reset(_wallet.Coins.GetPockets(_wallet.ServiceConfiguration.MinAnonScoreTarget).Select(x => new Pocket(x)).ToArray());
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -167,7 +188,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 		if (_isSilent)
 		{
-			var usedPockets = GetUsedPockets();
+			var usedPockets = LabelSelection.GetUsedPockets();
 
 			if (usedPockets.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText) is { } privatePocket &&
 			    privatePocket.Amount >= _transactionInfo.Amount)
