@@ -110,11 +110,11 @@ public partial class WalletViewModel : WalletViewModelBase
 		this.WhenAnyValue(x => x.HeightSource)
 			.Subscribe(x => LayoutSelector(_widthSource, x));
 
-		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen)
-				.To(new SendViewModel(wallet)));
+		SendCommand = ReactiveCommand.Create((Action)(() => RoutableViewModel.Navigate((Fluent.NavigationTarget)Fluent.NavigationTarget.DialogScreen)
+				.To(new SendViewModel(wallet))));
 
-		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen)
-				.To(new ReceiveViewModel(wallet)));
+		ReceiveCommand = ReactiveCommand.Create((Action)(() => RoutableViewModel.Navigate((Fluent.NavigationTarget)Fluent.NavigationTarget.DialogScreen)
+				.To(new ReceiveViewModel(wallet))));
 
 		WalletInfoCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
@@ -137,7 +137,7 @@ public partial class WalletViewModel : WalletViewModelBase
 			Navigate(NavigationTarget.DialogScreen).To(new WalletInfoViewModel(this));
 		});
 
-		WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(Settings));
+		WalletSettingsCommand = ReactiveCommand.Create((Action)(() => RoutableViewModel.Navigate((Fluent.NavigationTarget)Fluent.NavigationTarget.DialogScreen).To(Settings)));
 	}
 
 	public WalletSettingsViewModel Settings { get; }
