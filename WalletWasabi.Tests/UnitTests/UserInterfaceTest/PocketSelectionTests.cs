@@ -206,7 +206,7 @@ public class PocketSelectionTests
 		Assert.Contains(selection.GetLabel("Roland"), selection.LabelsBlackList);
 		Assert.Contains(selection.GetLabel("Dan"), selection.LabelsBlackList);
 
-		selection.GetLabel("Dan").IsHighlighted = true;
+		selection.GetLabel("Dan").IsPointerOver = true;
 
 		Assert.True(selection.GetLabel("Dan").IsHighlighted);
 		Assert.False(selection.GetLabel("Roland").IsHighlighted);
@@ -231,10 +231,10 @@ public class PocketSelectionTests
 		Assert.Contains(selection.GetLabel("Roland"), selection.LabelsBlackList);
 		Assert.Contains(selection.GetLabel("Dan"), selection.LabelsBlackList);
 
-		selection.GetLabel("Dan").IsHighlighted = true;
+		selection.GetLabel("Dan").IsPointerOver = true;
 
 		Assert.True(selection.GetLabel("Dan").IsHighlighted);
-		Assert.False(selection.GetLabel("Roland").IsHighlighted);
+		Assert.True(selection.GetLabel("Roland").IsHighlighted);
 		Assert.True(selection.GetLabel("Target").IsHighlighted);
 	}
 
@@ -309,8 +309,6 @@ public class PocketSelectionTests
 		Assert.Contains(selection.GetLabel("Lucas"), selection.LabelsWhiteList);
 		Assert.Contains(selection.GetLabel("Jumar"), selection.LabelsWhiteList);
 	}
-
-
 }
 
 internal static class LabelTestExtensions
@@ -322,7 +320,6 @@ internal static class LabelTestExtensions
 
 	public static void AddPocket(this List<Pocket> pockets, decimal amount, params string[] labels)
 	{
-		pockets.Add(new Pocket(new (new SmartLabel(labels), new TestCoinsView(Money.FromUnit(amount, MoneyUnit.BTC)))));
+		pockets.Add(new Pocket(new(new SmartLabel(labels), new TestCoinsView(Money.FromUnit(amount, MoneyUnit.BTC)))));
 	}
 }
-
