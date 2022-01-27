@@ -1,4 +1,5 @@
 using System.Reactive.Linq;
+using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
@@ -21,6 +22,8 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		NextCommand = CancelCommand;
+
+		VerifyRecoveryWordsCommand = ReactiveCommand.Create(() => Navigate().To(new VerifyRecoveryWordsViewModel(wallet)));
 
 		this.WhenAnyValue(x => x.PreferPsbtWorkflow)
 			.Skip(1)
@@ -45,5 +48,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 	public bool IsWatchOnly { get; }
 
-	public sealed override string Title { get; protected set; }
+	public override sealed string Title { get; protected set; }
+
+	public ICommand VerifyRecoveryWordsCommand { get; }
 }

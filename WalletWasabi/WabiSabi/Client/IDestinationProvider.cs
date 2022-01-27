@@ -1,10 +1,9 @@
 using NBitcoin;
 using System.Collections.Generic;
 
-namespace WalletWasabi.WabiSabi.Client
+namespace WalletWasabi.WabiSabi.Client;
+
+public interface IDestinationProvider
 {
-	public interface IDestinationProvider
-	{
-		IEnumerable<IDestination> GetNextDestinations(int count);
-	}
+	IEnumerable<IDestination> GetNextDestinations(int count);
 }

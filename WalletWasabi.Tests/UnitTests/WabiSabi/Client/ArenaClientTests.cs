@@ -234,14 +234,14 @@ public class ArenaClientTests
 		// We can't use ``emptyState.Finalize()` because this is not a valid transaction so we fake it
 		var finalizedEmptyState = new SigningState(emptyState.Parameters, emptyState.Inputs, emptyState.Outputs);
 
-		// No inputs in the CoinJoin.
+		// No inputs in the coinjoin.
 		await Assert.ThrowsAsync<ArgumentException>(async () =>
 				await apiClient.SignTransactionAsync(round.Id, alice1.Coin, coins[0].OwnershipProof, keyChain, finalizedEmptyState.CreateUnsignedTransaction(), CancellationToken.None));
 
 		var oneInput = emptyState.AddInput(alice1.Coin).Finalize();
 		round.CoinjoinState = oneInput;
 
-		// Trying to sign coins those are not in the CoinJoin.
+		// Trying to sign coins those are not in the coinjoin.
 		await Assert.ThrowsAsync<InvalidOperationException>(async () =>
 				await apiClient.SignTransactionAsync(round.Id, alice2.Coin, coins[1].OwnershipProof, keyChain, oneInput.CreateUnsignedTransaction(), CancellationToken.None));
 
