@@ -120,7 +120,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				}
 
 				);
-				// Emulate that the first coin is coming from a CoinJoin.
+				// Emulate that the first coin is coming from a coinjoin.
 				services.AddScoped(s => new InMemoryCoinJoinIdStore(new[] { coins.First().Coin.Outpoint.Hash }));
 			})).CreateClient();
 
@@ -379,7 +379,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			{
 				if (cts.IsCancellationRequested)
 				{
-					throw new TimeoutException("CoinJoin was not propagated.");
+					throw new TimeoutException("Coinjoin was not propagated.");
 				}
 
 				await Task.Delay(500, cts.Token);
