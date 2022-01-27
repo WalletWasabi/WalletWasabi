@@ -239,6 +239,25 @@ public class PocketSelectionTests
 	}
 
 	[Fact]
+	public void WhiteListHighlightsDealWithMultipleOverlapsCorrectly()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(1.0M, "Target", "Dan");
+		pockets.AddPocket(1.0M, "Target");
+		pockets.AddPocket(1.0M, "Target", "Roland");
+
+		selection.Reset(pockets.ToArray());
+
+		selection.GetLabel("Dan").IsPointerOver = true;
+
+		Assert.True(selection.GetLabel("Dan").IsHighlighted);
+		Assert.False(selection.GetLabel("Roland").IsHighlighted);
+		Assert.False(selection.GetLabel("Target").IsHighlighted);
+	}
+
+	[Fact]
 	public void WhiteListHighlightsGroupedLabelsInOtherPocketsThatContainTargetLabelExceptThoseAvailableInOtherPockets()
 	{
 		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
