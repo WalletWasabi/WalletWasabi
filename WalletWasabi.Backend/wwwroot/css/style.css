@@ -152,6 +152,7 @@ video::-webkit-media-controls {
     text-align: center;
     border-bottom: 1px solid var(--light-gray);
     text-transform: uppercase;
+    background: var(--black);
 }
 .service-line:first-child {
     border-top: 1px solid var(--light-gray);
