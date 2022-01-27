@@ -63,7 +63,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 		if (_isSilent)
 		{
-			var usedPockets = LabelSelection.GetUsedPockets();
+			var usedPockets = LabelSelection.GetUsedPockets().ToArray();
 
 			if (usedPockets.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText) is { } privatePocket &&
 			    privatePocket.Amount >= _transactionInfo.Amount)
