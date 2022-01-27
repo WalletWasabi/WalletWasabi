@@ -69,15 +69,34 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 	public LabelViewModel[] GetAssociatedLabels(LabelViewModel labelViewModel)
 	{
 		var associatedPockets = AllPocket.Where(x => x.Labels.Contains(labelViewModel.Value));
-		var notAssociatedPockets = AllPocket.Except(associatedPockets);
-		var allNotAssociatedLabels = SmartLabel.Merge(notAssociatedPockets.Select(x => x.Labels));
-		var affectedLabelViewModels = AllLabelViewModel.Where(x => x.IsBlackListed == labelViewModel.IsBlackListed && !allNotAssociatedLabels.Contains(x.Value));
 
-		return affectedLabelViewModels.ToArray();
+		if (labelViewModel.IsBlackListed)
+		{
+			var allAssociatedLabels = SmartLabel.Merge(associatedPockets.Select(x => x.Labels));
+			var affectedLabelViewModels = AllLabelViewModel.Where(x => x.IsBlackListed == labelViewModel.IsBlackListed && allAssociatedLabels.Contains(x.Value));
+			return affectedLabelViewModels.ToArray();
+		}
+		else
+		{
+			var notAssociatedPockets = AllPocket.Except(associatedPockets);
+			var allNotAssociatedLabels = SmartLabel.Merge(notAssociatedPockets.Select(x => x.Labels));
+			var affectedLabelViewModels = AllLabelViewModel.Where(x => x.IsBlackListed == labelViewModel.IsBlackListed && !allNotAssociatedLabels.Contains(x.Value));
+			return affectedLabelViewModels.ToArray();
+		}
 	}
 
 	public void OnPointerOver(LabelViewModel labelViewModel, bool isPointerOver)
 	{
+		if (!isPointerOver)
+		{
+			foreach (LabelViewModel lvm in AllLabelViewModel)
+			{
+				lvm.IsHighlighted = false;
+			}
+
+			return;
+		}
+
 		var affectedLabelViewModels = GetAssociatedLabels(labelViewModel);
 
 		foreach (var lvm in affectedLabelViewModels)
