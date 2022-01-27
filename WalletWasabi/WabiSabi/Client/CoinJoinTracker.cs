@@ -3,33 +3,24 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Wallets;
-using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.WabiSabi.Client;
 
-public class CoinJoinTrackingData : IDisposable
+public class CoinJoinTracker : IDisposable
 {
 	private bool _disposedValue;
 
-	public CoinJoinTrackingData(
+	public CoinJoinTracker(
 		Wallet wallet,
-		IWasabiHttpClientFactory httpClientFactory,
-		RoundStateUpdater roundStatusUpdater,
+		CoinJoinClient coinJoinClient,
 		IEnumerable<SmartCoin> coinCandidates,
 		CancellationToken cancellationToken)
 	{
 		Wallet = wallet;
-
-		CoinJoinClient = new CoinJoinClient(
-			httpClientFactory,
-			new KeyChain(wallet.KeyManager),
-			new InternalDestinationProvider(wallet.KeyManager),
-			roundStatusUpdater,
-			wallet.ServiceConfiguration.MinAnonScoreTarget);
-
-		CancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-		CoinJoinTask = CoinJoinClient.StartCoinJoinAsync(coinCandidates, CancellationTokenSource.Token);
+		CoinJoinClient = coinJoinClient;
 		CoinCandidates = coinCandidates;
+		CancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+		CoinJoinTask = coinJoinClient.StartCoinJoinAsync(coinCandidates, CancellationTokenSource.Token);
 	}
 
 	private CoinJoinClient CoinJoinClient { get; }

@@ -29,7 +29,7 @@ public class CoinJoinManager : BackgroundService
 	public IWasabiHttpClientFactory HttpClientFactory { get; }
 	public RoundStateUpdater RoundStatusUpdater { get; }
 	public ServiceConfiguration ServiceConfiguration { get; }
-	private ImmutableDictionary<string, CoinJoinTrackingData> TrackedCoinJoins { get; set; } = ImmutableDictionary<string, CoinJoinTrackingData>.Empty;
+	private ImmutableDictionary<string, CoinJoinTracker> TrackedCoinJoins { get; set; } = ImmutableDictionary<string, CoinJoinTracker>.Empty;
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
 	private TimeSpan AutoCoinJoinDelayAfterWalletLoaded { get; } = TimeSpan.FromMinutes(Random.Shared.Next(5, 16));
 
@@ -57,7 +57,9 @@ public class CoinJoinManager : BackgroundService
 			Logger.LogInfo("WabiSabi coinjoin client-side functionality is disabled temporarily on mainnet.");
 			return;
 		}
-		var trackedCoinJoins = new Dictionary<string, CoinJoinTrackingData>();
+		CoinJoinTrackerFactory coinJoinTrackerFactory = new(HttpClientFactory, RoundStatusUpdater, stoppingToken);
+
+		var trackedCoinJoins = new Dictionary<string, CoinJoinTracker>();
 
 		while (!stoppingToken.IsCancellationRequested)
 		{
@@ -77,9 +79,9 @@ public class CoinJoinManager : BackgroundService
 					continue;
 				}
 
-				CoinJoinTrackingData coinJoinTrackingData = new(openedWallet, HttpClientFactory, RoundStatusUpdater, coinCandidates, stoppingToken);
+				CoinJoinTracker coinJoinTracker = coinJoinTrackerFactory.CreateAndStart(openedWallet, coinCandidates);
 
-				trackedCoinJoins.Add(openedWallet.WalletName, coinJoinTrackingData);
+				trackedCoinJoins.Add(openedWallet.WalletName, coinJoinTracker);
 				WalletStatusChanged?.Invoke(this, new WalletStatusChangedEventArgs(openedWallet, IsCoinJoining: true));
 			}
 
