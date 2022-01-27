@@ -391,8 +391,8 @@ footer .white-text {
     line-height: 1.5em;
 }
 .btn {
-    padding-top: 10px;
-    padding-bottom: 5px;
+    padding-top: 15px;
+    padding-bottom: 10px;
     font-weight: bold;
     font-size: 14px;
     border-radius: 0;
@@ -420,7 +420,6 @@ footer .white-text {
 .btn-download svg {
     fill: #FFF;
     height: 26px;
-    margin-left: 5px;
 }
 .btn-primary:hover {
     background-color: var(--light-blue);
@@ -437,6 +436,10 @@ footer .white-text {
     left: 0;
     padding: 0;
     font-size: 15px;
+}
+.navbar .btn {
+    padding-top: 10px;
+    padding-bottom: 5px;
 }
 .navbar-expand-lg .navbar-nav .nav-item {
     padding: 0.4em 1em;
