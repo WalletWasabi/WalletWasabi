@@ -77,44 +77,52 @@
     </nav>
 
     <div class="fixed-img">
-        <img src="img/04_support.png" alt="Wasabi Wallet - Help">
+        <img src="img/06_contribution.png" alt="Wasabi Wallet - Contribution">
     </div>
 
     <div class="content subpage">
         <section class="p-100">
             <div class="container">
                 <div class="row">
-                    <div class="col-md-12">
-                        <h1 class="text-center">Help</h1>
+                    <div class="col-md-8">
+                        <h1>Jobs</h1>
+                        <p>zkSNACKs is not an ordinary company. It is a collection of like-minded individuals who want to fix the world by fixing the money.</p>
+                        <h2 class="mt-5">Open Source</h2>
+                        <p>Value creation is not a zero-sum game. Individuals organizing into groups to pursue the same goal will create more value than if they would have tried to do it individually. While this is great, groups also corrupt. Publishing all your work keeps us accountable to the public, as well as the large body of publicly verifiable work you accumulate throughout your journey with us will give you a strong competitive advantage finding a new job when the time comes for you to move on.</p>
+                        <h2 class="mt-5">Zero Knowledge</h2>
+                        <p>We build systems those can't be evil. zkSNACKs is a wordplay, originating from the Block Digest podcast, on the zkSNARKs (Zero-Knowledge Succinct Non-Interactive Argument of Knowledge) and zkSTARKs (Zero-Knowledge Succinct Transparent Argument of Knowledge) cryptographic concepts. But it goes beyond that. Zero Knowledge Snacks implies the Snacks should know nothing about their consumers. Anyone should consume these snacks without the snacks knowing who they are being consumed by. The snacks are the products, like Wasabi Wallet, and the consumers are its users. The wallet provider should not be able to take the funds of its users and figure out who their users are. This isn’t ensured by the wallet provider choosing to not collect information. This is ensured on the architectural level. The wallet provider cannot collect information even if it wanted to.</p>
+
+                    </div>
+                    <div class="col-md-4">
+                        <div class="sticky-top pt-header">
+                            <div class="feature-box">
+                                <h2>Bitcoin Only</h2>
+                                <ol>
+                                    <li>We all hate wasting our time</li>
+                                    <li>Cryptocurrency is the future</li>
+                                    <li>Good money drives out bad money</li>
+                                </ol>
+                                <p>As long as Bitcoin is the largest cryptocurrency, dealing with altcoins is a likely way to end up on the wrong side of history. As of 2022, altcoins are noise and Bitcoin is the signal.</p>
+                            </div>
+                            <div class="my-4">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <a href="https://github.com/zkSNACKs/Meta" target="_blank" class="btn btn-secondary d-block">Read our Meta</a>
+                                    </div>
+                                    <div class="col-6">
+                                        <a href="https://github.com/zkSNACKs/WalletWasabi" target="_blank" class="btn btn-primary d-block">CHECK OUR GITHUB</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="row mt-5">
-                    <div class="col-md-4">
-                        <div class="feature-box">
-                            <h2 class="title mt-5 text-center">GitHub</h2>
-                            <div class="text-center my-5">
-                                <img src="img/github.png" class="help-logo" alt="Github">
-                            </div>
-                            <a href="https://github.com/zkSNACKs/WalletWasabi" target="_blank" class="stretched-link"></a>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="feature-box">
-                            <h2 class="title mt-5 text-center">Documentation 1.0</h2>
-                            <div class="text-center my-5">
-                                <img src="img/wasabi-wallet-logo.svg" class="help-logo" alt="Wasabi Wallet">
-                            </div>
-                            <a href="https://docs.wasabiwallet.io" target="_blank" class="stretched-link"></a>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="feature-box">
-                            <h2 class="title mt-5 text-center">Documentation 2.0</h2>
-                            <div class="text-center my-5">
-                                <img src="img/logo_alt.svg" class="help-logo"  alt="Wasabi Wallet">
-                            </div>
-                            <a href="#" target="_blank" class="stretched-link"></a>
-                        </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <h2 class="mt-5 mb-3">Wasabika's office life</h2>
+                        <video controls class="w-100" poster="img/video_bg.png">
+                            <source src="img/homepage_anim.mp4" type="video/mp4">
+                        </video>
                     </div>
                 </div>
             </div>
@@ -122,116 +130,25 @@
         <section class="p-100">
             <div class="container">
                 <div class="row">
-                    <div class="col-md-8 offset-md-2">
-                        <h1 class="text-center">FAQ</h1>
-
-                        <div class="card">
-                            <input type="checkbox" id="faq1">
-                            <label for="faq1">
-                                WHAT IS A “COINJOIN”?
-                            </label>
-                            <div class="card-content">
-                                <p>A mechanism by which multiple participants combine their coins (or UTXOs, to be more precise) into one large transaction with multiple inputs and multiple outputs. An observer cannot determine which output belongs to which input, and neither can the participants themselves. This makes it difficult for outside parties to trace where a particular coin originated from and where it was sent to (as opposed to regular bitcoin transactions, where there is usually one sender and one receiver).</p>
-
-                                <p>This can be done with non-custodial software like Wasabi that eliminates the risk of funds disappearing or being stolen. Each of the signatures are created on the participants’ computers, so anyone trying to connect the signatures is unable to alter the transaction or redirect the funds. The funds will always be in a Bitcoin address that you control. </p>
-
-                                <p>It’s possible to do this in a decentralized way so that the service does not rely on external parties or centralized servers. It just needs the participants of the transaction. </p>
-
-                                <p>CoinJoin can be applied multiple times, and as many transactions are grouped together, participants may save on transaction fees. CoinJoin is the preferred method of gaining privacy in the Bitcoin network.</p>
-
-                                <p>CoinJoin means: “when you want to make a transaction, find someone else who also wants to make a transaction and make a joint transaction together”. </p>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <input type="checkbox" id="faq2">
-                            <label for="faq2">
-                                DO I NEED TO TRUST WASABI WITH MY COINS?
-                            </label>
-                            <div class="card-content">
-                                <p>No, Wasabi’s coinjoin implementation is trustless by design. The participants do not need to trust each other or any third party. Both the sending address (the coinjoin input) and the receiving address (the coinjoin output) are controlled by your own private keys. Wasabi merely coordinates the process of combining the inputs of the participants into one single transaction, but the wallet can neither steal your coins, nor figure out which outputs belong to which inputs.</p>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <input type="checkbox" id="faq3">
-                            <label for="faq3">
-                                DO I NEED TO RUN TOR?
-                            </label>
-                            <div class="card-content">
-                                <p>All Wasabi network traffic goes via Tor by default - no need to set up Tor yourself. If you do already have Tor, and it is running, then Wasabi will try to use that first. </p>
-                                <p> You can turn off Tor in the Settings. Note that in this case you are still private, except when you coinjoin and when you broadcast a transaction. In the first case, the coordinator would know the links between your inputs and outputs based on your IP address. In the second case, if you happen to broadcast a transaction of yours to a full node that is spying on you, it will know the link between your transaction and your IP address.</p>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <input type="checkbox" id="faq4">
-                            <label for="faq4">
-                                MY WALLET CANNOT SEND TO BECH32 ADDRESSES <br>- WHAT WALLETS CAN I USE INSTEAD?
-                            </label>
-                            <div class="card-content">
-                                <p>Wasabi generates Bech32 addresses only, also known as native SegWit addresses or bc1 addresses, because these addresses start with the characters bc1… Some wallets/exchanges do not yet support this type of address and may give an error message (e.g. “unknown bitcoin address”). The hack is to manage your funds with a wallet which does support Bech32. To check Bech32 adoption and exchange/wallet support you can follow <a href="#" target="_blank">Bitcoin.it Wiki</a> and <a href="#" target="_blank">When Segwit? website</a>.</p>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <input type="checkbox" id="faq5">
-                            <label for="faq5">
-                                WHAT ARE THE FEES FOR COINJOINS?
-                            </label>
-                            <div class="card-content">
-                                <p>You currently pay a fee of 0.003% * anonymity set. If the anonymity set of a coin is 50 then you pay 0.003% * 50 (=0.15%). If you set the target anonymity set to 53 then Wasabi will continue mixing until this is reached, so you may end up with an anonymity set of say 60, and you will pay 0.003% * 60 (=0.18%). </p>
-
-                                <p>There are also edge cases where you do not pay the full fee or where you pay more. For example if you’re the smallest registrant to a round, you will never pay a fee. Also when you are remixing and you cannot pay the full fee with your input, then you only pay as much as you have, but if the change amount leftover would be too small, then that is also added to the fee. Currently the minimum change amount to be paid out is 0.7% of the base denomination (~0.1BTC.)</p>
-
-                                <p>It is also possible that you get more back from mixing than you put in. This happens when network fees go down between the start of the round and its end. In this case, the difference is split between the active outputs of the mix.</p>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <input type="checkbox" id="faq6">
-                            <label for="faq6">
-                                WHAT IS AN “ANONYMITY SET?
-                            </label>
-                            <div class="card-content">
-                                <p>The anonymity set is effectively the size of the group you are hiding in. </p>
-
-                                <p>If 3 people take part in a CoinJoin (with equal size inputs) and there are 3 outputs then each of those output coins has an anonymity set of 3.</p>
-
-
-                                <table>
-                                    <tr>
-                                        <td>0.1 BTC (Alice)</td>
-                                        <td></td>
-                                        <td>0.1 BTC (Anon set 3)</td>
-                                    </tr>
-                                    <tr>
-                                        <td>0.3 BTC (Bob)</td>
-                                        <td>-></td>
-                                        <td>0.1 BTC (Anon set 3)</td>
-                                    </tr>
-                                    <tr>
-                                        <td>0.4 BTC (Charlie)</td>
-                                        <td></td>
-                                        <td>0.1 BTC (Anon set 3)</td>
-                                    </tr>
-                                    <tr>
-                                        <td></td>
-                                        <td></td>
-                                        <td>0.2 BTC (Change Coin Bob)</td>
-                                    </tr>
-                                    <tr>
-                                        <td></td>
-                                        <td></td>
-                                        <td>0.3 BTC (Change Coin Charlie)</td>
-                                    </tr>
-                                </table>
-
-
-                                <p>There is no way to know which of the anon set output coins are owned by which of the input owners. All an observer knows is that a specific anon set output coin is owned by one of the owners of one of the input Coins i.e. 3 people - hence an anonymity set of 3. </p>
-
-                                <p>Your Wasabi software has limited information on what the anonymity set should be, so the anonymity set that the software presents you is just an estimation, not an accurate value. With Wasabi we are trying to do lower estimations, rather than higher ones.</p>
-                            </div>
-                        </div>
-
-                        <div class="text-center my-5">
-                            <a href="index.html#download" class="btn btn-primary btn-download">Download NOW</a>
-                        </div>
+                    <div class="col-lg-4">
+                        <h2 class="squared">C#/.NET Developer</h2>
+                    </div>
+                    <div class="col-lg-8 col-xl-6">
+                        <p>Describe the job</p>
+                        <a href="https://forms.monday.com/forms/c74d845ed91d937c4cea5d229e203cd5?r=use1" target="_blank" class="btn btn-primary">Applying for the job ▸</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="p-100">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-4">
+                        <h2 class="squared">Marketing Assistant</h2>
+                    </div>
+                    <div class="col-lg-8 col-xl-6">
+                        <p>Describe the job</p>
+                        <a href="https://forms.monday.com/forms/9b2988d9033e2ef18005b4f4190a41ce?r=use1" target="_blank" class="btn btn-primary">Applying for the job ▸</a>
                     </div>
                 </div>
             </div>

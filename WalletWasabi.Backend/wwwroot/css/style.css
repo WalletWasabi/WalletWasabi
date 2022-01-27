@@ -57,11 +57,8 @@ h2 {
     font-weight: bold;
     text-transform: uppercase;
 }
-.logo {
-    margin: 5px 0;
-}
 .logo img {
-    height: 40px;
+    height: 30px;
 }
 .squared {
     position: relative;
@@ -395,6 +392,7 @@ footer .white-text {
 }
 .btn {
     padding-top: 10px;
+    padding-bottom: 5px;
     font-weight: bold;
     font-size: 14px;
     border-radius: 0;
@@ -438,9 +436,10 @@ footer .white-text {
     top: 0;
     left: 0;
     padding: 0;
+    font-size: 15px;
 }
 .navbar-expand-lg .navbar-nav .nav-item {
-    padding: 1em;
+    padding: 0.4em 1em;
     text-transform: uppercase;
 }
 .navbar-expand-lg .navbar-nav .nav-item:last-child {
@@ -453,7 +452,7 @@ footer .white-text {
     color: var(--green);
 }
 .nav-link {
-    padding: .8rem 1rem;
+    padding: 0.9em 0 0.4em;
 }
 .dropdown:hover > .dropdown-menu {
     display: block;
@@ -639,7 +638,7 @@ ol li::marker {
     border: 0;
     border-radius: 0;
     padding: 10px 20px;
-    margin-top: 1em;
+    margin-top: 0.6em;
 }
 .dropdown-menu a {
     color: #fff;
@@ -649,6 +648,9 @@ ol li::marker {
 .dropdown-item:focus, .dropdown-item:hover {
     color: var(--green);
     background-color: transparent;
+}
+.pt-header {
+    padding-top: 80px;
 }
 @media (min-width: 576px) {
     body {
@@ -758,13 +760,16 @@ ol li::marker {
         backdrop-filter: none;
     }
     .navbar-expand-lg .navbar-nav .nav-item {
-        padding: 0.5em 1em;
+        padding: 0.5em 0;
     }
     .nav-link {
         padding: 0.5rem 1rem;
     }
     .dropdown-menu {
         margin-top: 0;
+    }
+    .navbar {
+        padding: 5px 0;
     }
 }
 @media only screen and (max-width: 600px) {
