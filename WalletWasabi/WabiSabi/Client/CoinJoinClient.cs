@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
@@ -307,25 +308,33 @@ public class CoinJoinClient
 		await Task.WhenAll(readyRequests).ConfigureAwait(false);
 	}
 
-	private void LogCoinJoinSummary(ImmutableArray<AliceClient> registeredAliceClients, IEnumerable<TxOut> expectedOutputs, Transaction unsignedCoinJoinTransaction, RoundState roundState)
+	private void LogCoinJoinSummary(ImmutableArray<AliceClient> registeredAliceClients, IEnumerable<TxOut> myOutputs, Transaction unsignedCoinJoinTransaction, RoundState roundState)
 	{
 		var feeRate = roundState.FeeRate;
-		var coinJoinOutputs = unsignedCoinJoinTransaction.Outputs.Select(o => (o.Value, o.ScriptPubKey));
-		IEnumerable<(Money TotalAmount, Script Key)>? expectedOutputTuples = expectedOutputs
-			.GroupBy(x => x.ScriptPubKey)
-			.Select(o => (o.Select(x => x.Value).Sum(), o.Key));
 
-		var desiredAmount = Money.Satoshis(registeredAliceClients.Sum(a => a.EffectiveValue));
-		var actualAmount = Money.Satoshis(expectedOutputTuples.Sum(a => a.TotalAmount));
-		var diff = actualAmount - desiredAmount;
+		var totalEffectiveInputAmount = Money.Satoshis(registeredAliceClients.Sum(a => a.EffectiveValue));
+		var totalEffectiveOutputAmount = Money.Satoshis(myOutputs.Sum(a => a.Value - feeRate.GetFee(a.ScriptPubKey.EstimateOutputVsize())));
+		var effectiveDifference = totalEffectiveOutputAmount - totalEffectiveInputAmount;
 
 		var totalInputAmount = Money.Satoshis(registeredAliceClients.Sum(a => a.SmartCoin.Amount));
-		var totalDifference = Money.Satoshis(totalInputAmount - actualAmount);
-		var totalNetworkFee = Money.Satoshis(registeredAliceClients.Sum(a => feeRate.GetFee(a.SmartCoin.Coin.ScriptPubKey.EstimateInputVsize()) + expectedOutputTuples.Sum(o => feeRate.GetFee(o.Key.EstimateOutputVsize()))));
-		var totalCoordinationFee = Money.Satoshis(registeredAliceClients.Where(a => a.IsPayingZeroCoordinationFee).Sum(a => roundState.CoordinationFeeRate.GetFee(a.SmartCoin.Amount)));
-		var totalLoss = Money.Satoshis(totalDifference - totalNetworkFee - totalCoordinationFee);
+		var totalOutputAmount = Money.Satoshis(myOutputs.Sum(a => a.Value));
+		var totalDifference = Money.Satoshis(totalOutputAmount - totalInputAmount);
 
-		Logger.LogDebug($"Round ({roundState.Id}): Total difference is {totalDifference}, that is split into network fee of {totalNetworkFee} and coordination fee of {totalCoordinationFee} and a loss of {totalLoss}.");
+		var inputNetworkFee = Money.Satoshis(registeredAliceClients.Sum(alice => feeRate.GetFee(alice.SmartCoin.Coin.ScriptPubKey.EstimateInputVsize())));
+		var outputNetworkFee = Money.Satoshis(myOutputs.Sum(output => feeRate.GetFee(output.ScriptPubKey.EstimateOutputVsize())));
+		var totalNetworkFee = inputNetworkFee + outputNetworkFee;
+		var totalCoordinationFee = Money.Satoshis(registeredAliceClients.Where(a => a.IsPayingZeroCoordinationFee).Sum(a => roundState.CoordinationFeeRate.GetFee(a.SmartCoin.Amount)));
+
+		string[] summary = new string[] {
+		$"Round ({roundState.Id}):",
+		$"\tInput total: {totalInputAmount.ToString(true)} Eff: {totalEffectiveInputAmount.ToString(true)} NetwFee: {inputNetworkFee.ToString(true)} CoordF: {totalCoordinationFee.ToString(true)}",
+		$"\tOutpu total: {totalOutputAmount.ToString(true)} Eff: {totalEffectiveOutputAmount.ToString(true)} NetwFee: {outputNetworkFee.ToString(true)}",
+		$"\tTotal diff : {totalDifference.ToString(true)}",
+		$"\tEffec diff : {effectiveDifference.ToString(true)}",
+		$"\tTotal fee  : {totalNetworkFee.ToString(true)}"
+		};
+
+		Logger.LogDebug(string.Join(Environment.NewLine, summary));
 	}
 
 	private ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, MultipartyTransactionParameters parameters)
