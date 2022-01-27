@@ -1,131 +1,203 @@
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
-using WalletWasabi.Bases;
 
 namespace WalletWasabi.Blockchain.Blocks;
 
 /// <summary>
 /// High performance chain index and cache.
 /// </summary>
-public class SmartHeaderChain : NotifyPropertyChangedBase
+public class SmartHeaderChain
 {
+	public const int Unlimited = 0;
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private uint _tipHeight;
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private SmartHeader? _tip;
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private uint256? _tipHash;
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private uint _serverTipHeight;
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private int _hashesLeft;
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	private int _hashesCount;
 
-	private Dictionary<uint, SmartHeader> Chain { get; } = new Dictionary<uint, SmartHeader>();
-	private object Lock { get; } = new object();
+	/// <param name="maxChainSize"><see cref="Unlimited"/> for no limit, otherwise the chain is capped to the specified number of elements.</param>
+	public SmartHeaderChain(int maxChainSize = Unlimited)
+	{
+		MaxChainSize = maxChainSize;
+	}
+
+	/// <remarks>Useful to save memory by removing elements at the beginning of the chain.</remarks>
+	private int MaxChainSize { get; }
+
+	private LinkedList<SmartHeader> Chain { get; } = new();
+	private object Lock { get; } = new();
 
 	public SmartHeader? Tip
 	{
-		get => _tip;
-		private set => RaiseAndSetIfChanged(ref _tip, value);
+		get
+		{
+			lock (Lock)
+			{
+				return _tip;
+			}
+		}
 	}
 
 	public uint TipHeight
 	{
-		get => _tipHeight;
-		private set => RaiseAndSetIfChanged(ref _tipHeight, value);
+		get
+		{
+			lock (Lock)
+			{
+				return _tipHeight;
+			}
+		}
 	}
 
 	public uint256? TipHash
 	{
-		get => _tipHash;
-		private set => RaiseAndSetIfChanged(ref _tipHash, value);
+		get
+		{
+			lock (Lock)
+			{
+				return _tipHash;
+			}
+		}
 	}
 
 	public uint ServerTipHeight
 	{
-		get => _serverTipHeight;
-		private set => RaiseAndSetIfChanged(ref _serverTipHeight, value);
+		get
+		{
+			lock (Lock)
+			{
+				return _serverTipHeight;
+			}
+		}
 	}
 
 	public int HashesLeft
 	{
-		get => _hashesLeft;
-		private set => RaiseAndSetIfChanged(ref _hashesLeft, value);
+		get
+		{
+			lock (Lock)
+			{
+				return _hashesLeft;
+			}
+		}
 	}
 
+	/// <summary>Number of hashes in the chain.</summary>
+	/// <remarks>
+	/// Optimizations are taken into account for this value. So if the chain is
+	/// 1000 elements long and we remove first 100 to save memory, the reported
+	/// number will still be 1000.
+	/// </remarks>
 	public int HashCount
 	{
-		get => _hashesCount;
-		private set => RaiseAndSetIfChanged(ref _hashesCount, value);
-	}
-
-	public void AddOrReplace(SmartHeader header)
-	{
-		lock (Lock)
+		get
 		{
-			if (Chain.TryGetValue(TipHeight, out var lastHeader))
+			lock (Lock)
 			{
-				if (lastHeader.BlockHash != header.PrevHash)
-				{
-					throw new InvalidOperationException($"Header doesn't point to previous header. Actual: {lastHeader.PrevHash}. Expected: {header.PrevHash}.");
-				}
-
-				if (lastHeader.Height != header.Height - 1)
-				{
-					throw new InvalidOperationException($"Header height isn't one more than the previous header height. Actual: {lastHeader.Height}. Expected: {header.Height - 1}.");
-				}
-			}
-
-			Chain.Add(header.Height, header);
-			SetTip(header);
-		}
-	}
-
-	private void SetTip(SmartHeader? header)
-	{
-		Tip = header;
-		TipHeight = header?.Height ?? default;
-		TipHash = header?.BlockHash;
-		HashCount = Chain?.Count ?? default;
-		SetHashesLeft();
-	}
-
-	private void SetHashesLeft()
-	{
-		HashesLeft = (int)Math.Max(0, (long)ServerTipHeight - TipHeight);
-	}
-
-	public void RemoveLast()
-	{
-		lock (Lock)
-		{
-			if (Chain.Any())
-			{
-				Chain.Remove(Chain.Last().Key);
-				if (Chain.Any())
-				{
-					var newLast = Chain.Last();
-					SetTip(newLast.Value);
-				}
-				else
-				{
-					SetTip(null);
-				}
+				return _hashesCount;
 			}
 		}
 	}
 
-	public void UpdateServerTipHeight(uint height)
+	/// <summary>
+	/// Adds a new tip to the chain.
+	/// </summary>
+	public void AppendTip(SmartHeader tip)
 	{
 		lock (Lock)
 		{
-			ServerTipHeight = height;
-			SetHashesLeft();
+			if (Chain.Count > 0)
+			{
+				SmartHeader lastHeader = Chain.Last!.Value;
+
+				if (lastHeader.BlockHash != tip.PrevHash)
+				{
+					throw new InvalidOperationException($"Header doesn't point to previous header. Actual: {lastHeader.PrevHash}. Expected: {tip.PrevHash}.");
+				}
+
+				if (lastHeader.Height != tip.Height - 1)
+				{
+					throw new InvalidOperationException($"Header height isn't one more than the previous header height. Actual: {lastHeader.Height}. Expected: {tip.Height - 1}.");
+				}
+			}
+
+			Chain.AddLast(tip);
+			_hashesCount++;
+			SetTipNoLock(tip);
+
+			if (MaxChainSize != Unlimited && Chain.Count > MaxChainSize)
+			{
+				// Intentionally, we do not modify hashes count here.
+				Chain.RemoveFirst();
+			}
 		}
 	}
 
+	public bool RemoveTip()
+	{
+		bool result = false;
+
+		lock (Lock)
+		{
+			if (Chain.Count > 0)
+			{
+				Chain.RemoveLast();
+				_hashesCount--;
+
+				SmartHeader? newTip = (Chain.Count > 0) ? Chain.Last!.Value : null;
+				SetTipNoLock(newTip);
+
+				result = true;
+			}
+		}
+
+		return result;
+	}
+
+	public void SetServerTipHeight(uint height)
+	{
+		lock (Lock)
+		{
+			_serverTipHeight = height;
+			SetHashesLeftNoLock();
+		}
+	}
+
+	/// <remarks>Only for tests.</remarks>
 	public (uint height, SmartHeader header)[] GetChain()
 	{
 		lock (Lock)
 		{
-			return Chain.Select(x => (x.Key, x.Value)).ToArray();
+			return Chain.Select(x => (x.Height, x)).ToArray();
 		}
+	}
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private void SetTipNoLock(SmartHeader? tip)
+	{
+		_tip = tip;
+		_tipHeight = tip?.Height ?? default;
+		_tipHash = tip?.BlockHash;
+		SetHashesLeftNoLock();
+	}
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private void SetHashesLeftNoLock()
+	{
+		_hashesLeft = (int)Math.Max(0, (long)_serverTipHeight - _tipHeight);
 	}
 }

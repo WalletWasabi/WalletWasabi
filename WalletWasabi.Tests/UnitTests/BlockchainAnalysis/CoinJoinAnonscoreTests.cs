@@ -146,7 +146,7 @@ public class CoinJoinAnonScoreTests
 	[Fact]
 	public void SelfAnonsetSanityCheck()
 	{
-		// If we have multiple same denomination in the same CoinJoin, then our anonset would be total coins/our coins.
+		// If we have multiple same denomination in the same coinjoin, then our anonset would be total coins/our coins.
 		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
 		var othersOutputs = new[] { 1, 1, 1 };
 		var ownOutputs = new[] { 1, 1 };
