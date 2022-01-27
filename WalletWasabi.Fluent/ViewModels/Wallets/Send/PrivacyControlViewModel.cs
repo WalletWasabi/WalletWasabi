@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
@@ -22,67 +22,19 @@ public partial class LabelViewModel : ViewModelBase
 
 	public LabelViewModel(PrivacyControlViewModel owner, string label)
 	{
-		Pockets = new List<PocketViewModel>();
 		Value = label;
 
 		this.WhenAnyValue(x => x.IsPointerOver)
-			.Subscribe(isPointerOver =>
-			{
-				var associatedLabels = GetAssociatedLabels();
+			.Skip(1)
+			.Subscribe(isPointerOver => owner.OnPointerOver(this, isPointerOver));
 
-				foreach (var label in associatedLabels)
-				{
-					label.IsHighlighted = isPointerOver;
-				}
-			});
-
-		ClickedCommand = ReactiveCommand.Create(() =>
-		{
-			owner.SwapLabel(this);
-		}, this.WhenAnyValue(x => x.MustHave, x => x.IsBlackListed).Select(x => x.Item2 || !x.Item1 && !x.Item2));
+		ClickedCommand = ReactiveCommand.Create(() => owner.SwapLabel(this),
+			this.WhenAnyValue(x => x.MustHave, x => x.IsBlackListed).Select(x => x.Item2 || !x.Item1 && !x.Item2));
 	}
-
-	public IEnumerable<LabelViewModel> GetAssociatedLabels()
-	{
-		// find every pocket where the label appears.
-		var pockets = Pockets.Distinct();
-
-		// find every label in all the pockets
-		var labels = Pockets.SelectMany(x => x.Labels).Distinct();
-
-		foreach (var label in labels)
-		{
-			// See if the pocket exists in another pocket.
-			var existsInOtherPockets = label.Pockets.Distinct().Any(x => !pockets.Contains(x));
-
-			if(existsInOtherPockets)
-			{
-				continue;
-			}
-
-			yield return label;
-		}
-	}
-
-	public List<PocketViewModel> Pockets { get; }
 
 	public string Value { get; }
 
 	public ICommand ClickedCommand { get; }
-}
-
-public class PocketViewModel : ViewModelBase
-{
-	public PocketViewModel(Pocket pocket)
-	{
-		Labels = new List<LabelViewModel>();
-
-		Pocket = pocket;
-	}
-
-	public Pocket Pocket { get; }
-
-	public List<LabelViewModel> Labels { get; }
 }
 
 [NavigationMetaData(Title = "Privacy Control")]
@@ -98,62 +50,53 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		_transactionInfo = transactionInfo;
 		_isSilent = isSilent;
 
-		Labels = new ObservableCollection<string>();
-
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
 
 		NextCommand = ReactiveCommand.Create(() => Complete(GetUsedPockets()));
 	}
 
-	internal void SwapLabel(LabelViewModel label)
+	public Pocket[] AllPocket { get; set; } = Array.Empty<Pocket>();
+
+	public IEnumerable<LabelViewModel> AllLabelViewModel { get; set; } = Array.Empty<LabelViewModel>();
+
+	public IEnumerable<LabelViewModel> LabelsWhiteList => AllLabelViewModel.Where(x => !x.IsBlackListed);
+
+	public IEnumerable<LabelViewModel> LabelsBlackList => AllLabelViewModel.Where(x => x.IsBlackListed);
+
+	private IEnumerable<Pocket> GetUsedPockets() => AllPocket.Where(x => LabelsWhiteList.Any(y => x.Labels.Contains(y.Value)));
+
+	public LabelViewModel[] GetAssociatedLabels(LabelViewModel labelViewModel)
 	{
-		if (label.IsBlackListed)
+		var associatedPockets = AllPocket.Where(x => x.Labels.Contains(labelViewModel.Value));
+		var notAssociatedPockets = AllPocket.Except(associatedPockets);
+		var allNotAssociatedLabels = SmartLabel.Merge(notAssociatedPockets.Select(x => x.Labels));
+		var affectedLabelViewModels = AllLabelViewModel.Where(x => x.IsBlackListed == labelViewModel.IsBlackListed && !allNotAssociatedLabels.Contains(x.Value));
+
+		return affectedLabelViewModels.ToArray();
+	}
+
+	public void OnPointerOver(LabelViewModel labelViewModel, bool isPointerOver)
+	{
+		var affectedLabelViewModels = GetAssociatedLabels(labelViewModel);
+
+		foreach (var lvm in affectedLabelViewModels)
 		{
-			WhiteListLabels(label.GetAssociatedLabels());
-		}
-		else
-		{
-			BlackListLabels(label.GetAssociatedLabels());
+			lvm.IsHighlighted = isPointerOver;
 		}
 	}
 
-	private void WhiteListLabels(IEnumerable<LabelViewModel> labels)
+	internal void SwapLabel(LabelViewModel labelViewModel)
 	{
-		foreach (var label in labels.Where(x => x.IsBlackListed))
+		var affectedLabelViewModels = GetAssociatedLabels(labelViewModel);
+
+		foreach (var lvm in affectedLabelViewModels)
 		{
-			LabelsBlackList.Remove(label);
-
-			label.IsBlackListed = false;
-
-			LabelsWhiteList.Add(label);
+			lvm.IsBlackListed = !lvm.IsBlackListed;
 		}
 
 		OnSelectionChanged();
 	}
-
-	private void BlackListLabels(IEnumerable<LabelViewModel> labels)
-	{
-		foreach (var label in labels.Where(x => !x.IsBlackListed))
-		{
-			LabelsWhiteList.Remove(label);
-
-			label.IsBlackListed = true;
-
-			LabelsBlackList.Add(label);
-		}
-
-		OnSelectionChanged();
-	}
-
-	public ObservableCollection<LabelViewModel> LabelsWhiteList { get; } = new();
-
-	public ObservableCollection<LabelViewModel> LabelsBlackList { get; } = new();
-
-	public ObservableCollection<string> Labels { get; set; }
-
-	private IEnumerable<Pocket> GetUsedPockets() =>
-		LabelsWhiteList.SelectMany(x => x.Pockets).Distinct().Select(x => x.Pocket);
 
 	private void Complete(IEnumerable<Pocket> pockets)
 	{
@@ -164,59 +107,27 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 	private void OnSelectionChanged()
 	{
-		var sumOfWhiteList = LabelsWhiteList.SelectMany(x => x.Pockets).Distinct().Sum(x => x.Pocket.Amount);
+		var sumOfWhiteList = AllPocket.Where(x => LabelsWhiteList.Any(y => x.Labels.Contains(y.Value))).Sum(x => x.Amount);
 
-		foreach (var label in LabelsWhiteList)
+		foreach (var labelViewModel in LabelsWhiteList)
 		{
-			var sumOfLabelsPockets = label.Pockets.Distinct().Sum(x => x.Pocket.Amount);
+			var sumOfLabelsPockets = AllPocket.Where(x => x.Labels.Contains(labelViewModel.Value)).Sum(x => x.Amount);
 
-			var mustHave = sumOfWhiteList - sumOfLabelsPockets < _transactionInfo.Amount;
-
-			foreach (var pocketLabel in label.Pockets.Distinct().SelectMany(x => x.Labels))
-			{
-				pocketLabel.MustHave = mustHave;
-			}
-		}
-	}
-
-	private void InitializeLabels(IEnumerable<Pocket> pockets)
-	{
-		var labelViewModels = new Dictionary<string, LabelViewModel>();
-
-		var pocketVms = new List<PocketViewModel>();
-
-		foreach (var pocket in pockets)
-		{
-			var pocketVm = new PocketViewModel(pocket);
-
-			pocketVms.Add(pocketVm);
-
-			foreach (var label in pocket.Labels)
-			{
-				if (!labelViewModels.ContainsKey(label))
-				{
-					labelViewModels[label] = new LabelViewModel(this, label) { IsBlackListed = true };
-				}
-
-				pocketVm.Labels.Add(labelViewModels[label]);
-
-				labelViewModels[label].Pockets.Add(pocketVm);
-			}
+			labelViewModel.MustHave = sumOfWhiteList - sumOfLabelsPockets < _transactionInfo.Amount;
 		}
 
-		LabelsWhiteList.Clear();
-		LabelsBlackList.Clear();
-
-		WhiteListLabels(pocketVms.SelectMany(x=>x.Labels).Distinct());
-
-		OnSelectionChanged();
+		this.RaisePropertyChanged(nameof(LabelsWhiteList));
+		this.RaisePropertyChanged(nameof(LabelsBlackList));
 	}
 
 	private void InitializeLabels()
 	{
-		var pockets = _wallet.Coins.GetPockets(_wallet.ServiceConfiguration.MinAnonScoreTarget).Select(x => new Pocket(x));
+		AllPocket = _wallet.Coins.GetPockets(_wallet.ServiceConfiguration.MinAnonScoreTarget).Select(x => new Pocket(x)).ToArray();
 
-		InitializeLabels(pockets);
+		var allLabels = SmartLabel.Merge(AllPocket.Select(x => x.Labels));
+		AllLabelViewModel = allLabels.Select(x => new LabelViewModel(this, x)).ToArray();
+
+		OnSelectionChanged();
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
