@@ -321,11 +321,11 @@ public class CoinJoinClient
 
 		var totalInputAmount = Money.Satoshis(registeredAliceClients.Sum(a => a.SmartCoin.Amount));
 		var totalDifference = Money.Satoshis(totalInputAmount - actualAmount);
-		var totalNetworkfee = Money.Satoshis(registeredAliceClients.Sum(a => feeRate.GetFee(a.SmartCoin.Coin.ScriptPubKey.EstimateInputVsize()) + expectedOutputTuples.Sum(o => feeRate.GetFee(o.Key.EstimateOutputVsize()))));
+		var totalNetworkFee = Money.Satoshis(registeredAliceClients.Sum(a => feeRate.GetFee(a.SmartCoin.Coin.ScriptPubKey.EstimateInputVsize()) + expectedOutputTuples.Sum(o => feeRate.GetFee(o.Key.EstimateOutputVsize()))));
 		var totalCoordinationFee = Money.Satoshis(registeredAliceClients.Where(a => a.IsPayingZeroCoordinationFee).Sum(a => roundState.CoordinationFeeRate.GetFee(a.SmartCoin.Amount)));
-		var totalLoss = Money.Satoshis(totalDifference - totalNetworkfee - totalCoordinationFee);
+		var totalLoss = Money.Satoshis(totalDifference - totalNetworkFee - totalCoordinationFee);
 
-		Logger.LogDebug($"Round ({roundState.Id}): Total difference is {totalDifference}, that is split into networkfee of {totalNetworkfee} and coordination fee of {totalCoordinationFee} and the loss of {totalLoss}.");
+		Logger.LogDebug($"Round ({roundState.Id}): Total difference is {totalDifference}, that is split into network fee of {totalNetworkFee} and coordination fee of {totalCoordinationFee} and a loss of {totalLoss}.");
 	}
 
 	private ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, MultipartyTransactionParameters parameters)
