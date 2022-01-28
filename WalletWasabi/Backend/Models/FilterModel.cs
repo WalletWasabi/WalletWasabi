@@ -1,6 +1,9 @@
 using NBitcoin;
 using NBitcoin.DataEncoders;
+using System.Diagnostics;
+using System.Linq;
 using System.Text;
+using System.Threading;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
 
@@ -10,13 +13,20 @@ public class FilterModel
 {
 	public FilterModel(SmartHeader header, GolombRiceFilter filter)
 	{
-		Header = Guard.NotNull(nameof(header), header);
-		Filter = Guard.NotNull(nameof(filter), filter);
+		Header = header;
+		_filter = new Lazy<GolombRiceFilter>(filter);
+	}
+
+	public FilterModel(SmartHeader header, Lazy<GolombRiceFilter> filter)
+	{
+		Header = header;
+		_filter = filter;
 	}
 
 	public SmartHeader Header { get; }
 
-	public GolombRiceFilter Filter { get; }
+	private Lazy<GolombRiceFilter> _filter;
+	public GolombRiceFilter Filter => _filter.Value;
 
 	// https://github.com/bitcoin/bips/blob/master/bip-0158.mediawiki
 	// The parameter k MUST be set to the first 16 bytes of the hash of the block for which the filter
@@ -25,7 +35,6 @@ public class FilterModel
 
 	public static FilterModel FromLine(string line)
 	{
-		Guard.NotNullOrEmptyOrWhitespace(nameof(line), line);
 		string[] parts = line.Split(':');
 
 		if (parts.Length < 5)
@@ -33,12 +42,12 @@ public class FilterModel
 			throw new ArgumentException(line, nameof(line));
 		}
 
-		var blockHeight = uint.Parse(parts[0]);
-		var blockHash = uint256.Parse(parts[1]);
-		var filterData = Encoders.Hex.DecodeData(parts[2]);
-		GolombRiceFilter filter = new(filterData, 20, 1 << 20);
-		var prevBlockHash = uint256.Parse(parts[3]);
-		var blockTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(parts[4]));
+		uint blockHeight = uint.Parse(parts[0]);
+		uint256 blockHash = uint256.Parse(parts[1]);
+		byte[] filterData = Encoders.Hex.DecodeData(parts[2]);
+		Lazy<GolombRiceFilter> filter = new(() => new GolombRiceFilter(filterData, 20, 1 << 20), LazyThreadSafetyMode.ExecutionAndPublication);
+		uint256 prevBlockHash = uint256.Parse(parts[3]);
+		DateTimeOffset blockTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(parts[4]));
 
 		return new FilterModel(new SmartHeader(blockHash, prevBlockHash, blockHeight, blockTime), filter);
 	}
