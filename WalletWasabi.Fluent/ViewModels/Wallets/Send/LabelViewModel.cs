@@ -34,9 +34,9 @@ public partial class LabelViewModel : ViewModelBase
 
 	public void Swap() => IsBlackListed = !IsBlackListed;
 
-	public void Highlight(LabelViewModel labelViewModel)
+	public void Highlight(LabelViewModel triggerSource)
 	{
-		labelViewModel
+		triggerSource
 			.WhenAnyValue(x => x.IsPointerOver)
 			.TakeUntil(value => value == false)
 			.Subscribe(value => IsHighlighted = value);

@@ -59,7 +59,7 @@ public class LabelSelectionViewModel : ViewModelBase
 
 		foreach (var lvm in affectedLabelViewModels)
 		{
-			lvm.Highlight(labelViewModel);
+			lvm.Highlight(triggerSource: labelViewModel);
 		}
 	}
 
