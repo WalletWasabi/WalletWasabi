@@ -5,14 +5,13 @@ using System.Linq;
 using System.Threading;
 using WalletWasabi.Blockchain.TransactionBuilding.BnB;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding;
 
 public static class ChangelessTransactionCoinSelector
 {
-	/// <summary>Payments are capped to be at most 25% more expensive than the original target.</summary>
-	public const double MaxExtraFee = 1.25;
+	/// <summary>Payments are capped to be at most 25% higher than the original target.</summary>
+	public const double MaxExtraPayment = 1.25;
 
 	/// <summary>
 	/// Select coins in a way that user can pay without a change output (to increase privacy)
@@ -52,8 +51,8 @@ public static class ChangelessTransactionCoinSelector
 
 		if (solution is not null)
 		{
-			// Sanity check: do not return solution that is too expensive.
-			if (solution.Sum() > target * MaxExtraFee)
+			// Sanity check: do not return solution that is much higher than the target.
+			if (solution.Sum() > target * MaxExtraPayment)
 			{
 				return false;
 			}

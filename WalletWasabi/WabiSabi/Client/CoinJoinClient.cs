@@ -166,7 +166,7 @@ public class CoinJoinClient
 
 			// Send signature.
 			await SignTransactionAsync(registeredAliceClients, unsignedCoinJoin, roundState, cancellationToken).ConfigureAwait(false);
-			Logger.LogDebug($"Round ({roundState.Id}): Alices({registeredAliceClients.Length}) successfully signed the CoinJoin tx.");
+			Logger.LogDebug($"Round ({roundState.Id}): Alices({registeredAliceClients.Length}) successfully signed the coinjoin tx.");
 
 			var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundState.Id && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
 			Logger.LogDebug($"Round ({roundState.Id}): Round Ended - WasTransactionBroadcast: '{finalRoundState.WasTransactionBroadcast}'.");
@@ -248,7 +248,9 @@ public class CoinJoinClient
 	private bool SanityCheck(IEnumerable<TxOut> expectedOutputs, Transaction unsignedCoinJoinTransaction)
 	{
 		var coinJoinOutputs = unsignedCoinJoinTransaction.Outputs.Select(o => (o.Value, o.ScriptPubKey));
-		var expectedOutputTuples = expectedOutputs.Select(o => (o.Value, o.ScriptPubKey));
+		var expectedOutputTuples = expectedOutputs
+			.GroupBy(x => x.ScriptPubKey)
+			.Select(o => (o.Select(x => x.Value).Sum(), o.Key));
 		return coinJoinOutputs.IsSuperSetOf(expectedOutputTuples);
 	}
 
@@ -319,7 +321,7 @@ public class CoinJoinClient
 		List<IEnumerable<SmartCoin>> groups = new();
 
 		// I can take more coins those are already reached the minimum privacy threshold.
-		int nonPrivateCoinCount = filteredCoins.Where(x => x.HdPubKey.AnonymitySet < MinAnonScoreTarget).Count();
+		int nonPrivateCoinCount = filteredCoins.Count(x => x.HdPubKey.AnonymitySet < MinAnonScoreTarget);
 		for (int i = 0; i < nonPrivateCoinCount; i++)
 		{
 			// Make sure the group can at least register an output even after paying fees.
@@ -352,7 +354,7 @@ public class CoinJoinClient
 			anonScoreCosts.Add((cost, group));
 		}
 
-		var bestCost = anonScoreCosts.Select(g => g.Cost).Min();
+		var bestCost = anonScoreCosts.Min(g => g.Cost);
 		var bestgroups = anonScoreCosts.Where(x => x.Cost == bestCost).Select(x => x.Group);
 
 		// Select the group where the less coins coming from the same tx.

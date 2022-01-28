@@ -56,16 +56,6 @@ public class CheapestSelectionStrategy
 			selection[depth] = InputValues[depth];
 			newSum = oldSum + selection[depth];
 		}
-		else if (action == NextAction.OmitFirstThenInclude || action == NextAction.Omit)
-		{
-			if (selection[depth] > 0)
-			{
-				_currentInputCosts -= InputCosts[depth];
-			}
-
-			newSum = oldSum - selection[depth];
-			selection[depth] = 0;
-		}
 		else
 		{
 			if (selection[depth] > 0)

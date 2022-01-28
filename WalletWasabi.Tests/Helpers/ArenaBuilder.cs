@@ -22,7 +22,7 @@ public class ArenaBuilder
 	public WabiSabiConfig? Config { get; set; }
 	public IRPCClient? Rpc { get; set; }
 	public Prison? Prison { get; set; }
-	public InMemoryCoinJoinIdStore CoinJoinIdStore { get; set; }
+	public InMemoryCoinJoinIdStore? CoinJoinIdStore { get; set; }
 
 	/// <param name="rounds">Rounds to initialize <see cref="Arena"/> with.</param>
 	public Arena Create(params Round[] rounds)

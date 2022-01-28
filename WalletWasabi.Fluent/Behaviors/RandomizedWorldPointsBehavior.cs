@@ -95,10 +95,15 @@ public class RandomizedWorldPointsBehavior : Behavior<Canvas>
 							cities.Select(x => AnimateCityMarkerAsync(x.control, x.point, cancellationToken)).ToArray(),
 							cancellationToken);
 					}
-					catch (Exception ex) when (ex is not OperationCanceledException)
+					catch (Exception ex)
 					{
+						if (ex is OperationCanceledException)
+						{
+							return;
+						}
+
 						Logger.LogWarning(
-							$"There was a problem while animating in {nameof(RandomizedWorldPointsBehavior)}: '{ex}'.");
+								$"There was a problem while animating in {nameof(RandomizedWorldPointsBehavior)}: '{ex}'.");
 					}
 				}
 			},
