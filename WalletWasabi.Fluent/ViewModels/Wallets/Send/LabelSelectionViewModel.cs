@@ -24,7 +24,8 @@ public class LabelSelectionViewModel : ViewModelBase
 
 	public IEnumerable<LabelViewModel> LabelsBlackList => AllLabelViewModel.Where(x => x.IsBlackListed);
 
-	public IEnumerable<Pocket> GetUsedPockets() => AllPocket.Where(x => LabelsWhiteList.Any(y => x.Labels.Contains(y.Value)));
+	public IEnumerable<Pocket> GetUsedPockets() =>
+		AllPocket.Where(x => x.Labels.All(label => LabelsWhiteList.Any(labelViewModel => labelViewModel.Value == label)));
 
 	public void Reset(Pocket[] pockets)
 	{
