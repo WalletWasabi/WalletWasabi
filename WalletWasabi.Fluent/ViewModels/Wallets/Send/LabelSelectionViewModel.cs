@@ -53,23 +53,13 @@ public class LabelSelectionViewModel : ViewModelBase
 		}
 	}
 
-	public void OnPointerOver(LabelViewModel labelViewModel, bool isPointerOver)
+	public void OnPointerOver(LabelViewModel labelViewModel)
 	{
-		if (!isPointerOver)
-		{
-			foreach (LabelViewModel lvm in AllLabelViewModel)
-			{
-				lvm.IsHighlighted = false;
-			}
-
-			return;
-		}
-
 		var affectedLabelViewModels = GetAssociatedLabels(labelViewModel);
 
 		foreach (var lvm in affectedLabelViewModels)
 		{
-			lvm.IsHighlighted = isPointerOver;
+			lvm.Highlight(labelViewModel);
 		}
 	}
 
@@ -79,7 +69,7 @@ public class LabelSelectionViewModel : ViewModelBase
 
 		foreach (var lvm in affectedLabelViewModels)
 		{
-			lvm.IsBlackListed = !lvm.IsBlackListed;
+			lvm.Swap();
 		}
 
 		OnSelectionChanged();

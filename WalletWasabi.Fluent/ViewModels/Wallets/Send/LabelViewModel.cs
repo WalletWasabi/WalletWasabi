@@ -6,9 +6,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 public partial class LabelViewModel : ViewModelBase
 {
-	[AutoNotify] private bool _isBlackListed;
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	private bool _isBlackListed;
+
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	private bool _isHighlighted;
+
 	[AutoNotify] private bool _isPointerOver;
-	[AutoNotify] private bool _isHighlighted;
 	[AutoNotify] private bool _mustHave;
 
 	public LabelViewModel(LabelSelectionViewModel owner, string label)
@@ -17,7 +21,8 @@ public partial class LabelViewModel : ViewModelBase
 
 		this.WhenAnyValue(x => x.IsPointerOver)
 			.Skip(1)
-			.Subscribe(isPointerOver => owner.OnPointerOver(this, isPointerOver));
+			.Where(value => value == true)
+			.Subscribe(_ => owner.OnPointerOver(this));
 
 		ClickedCommand = ReactiveCommand.Create(() => owner.SwapLabel(this),
 			this.WhenAnyValue(x => x.MustHave, x => x.IsBlackListed).Select(x => x.Item2 || !x.Item1 && !x.Item2));
@@ -26,4 +31,14 @@ public partial class LabelViewModel : ViewModelBase
 	public string Value { get; }
 
 	public ICommand ClickedCommand { get; }
+
+	public void Swap() => IsBlackListed = !IsBlackListed;
+
+	public void Highlight(LabelViewModel labelViewModel)
+	{
+		labelViewModel
+			.WhenAnyValue(x => x.IsPointerOver)
+			.TakeUntil(value => value == false)
+			.Subscribe(value => IsHighlighted = value);
+	}
 }
