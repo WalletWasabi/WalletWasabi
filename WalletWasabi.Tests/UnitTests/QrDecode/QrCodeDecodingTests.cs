@@ -3,6 +3,7 @@ using OpenCvSharp;
 using System.IO;
 using WalletWasabi.Helpers;
 using System.Runtime.InteropServices;
+using ZXing.QrCode;
 
 namespace WalletWasabi.Tests.UnitTests.QrDecode;
 
@@ -18,7 +19,7 @@ public class QrCodeDecodingTests
 		{
 			return;
 		}
-		using QRCodeDetector decoder = new();
+		using QRCodeReader decoder = new();
 		string expectedAddress = "tb1ql27ya3gufs5h0ptgjhjd0tm52fq6q0xrav7xza";
 		string otherExpectedAddress = "tb1qfas0k9rn8daqggu7wzp2yne9qdd5fr5wf2u478";
 
