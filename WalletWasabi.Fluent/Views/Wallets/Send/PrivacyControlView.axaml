@@ -11,86 +11,102 @@
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacyControlView">
-  <c:ContentArea Title="Send - Privacy Control"
-                 Caption="Parts of your wallet are known to certain entities."
+  <c:ContentArea Title="Send - Control your privacy"
+                 Caption="Using unmixed funds can leak information entities you have transacted with in the past. Take control of who could know about this transaction"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="Continue"
                  IsBusy="{Binding IsBusy}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <DockPanel>
-      <DockPanel.Styles>
-        <Style Selector="c|TagControl[DataContext=Private Funds], c|TagControl[DataContext=Private Funds] PathIcon">
-          <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
-          <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
-        </Style>
-        <Style Selector="c|TagControl:disabled">
-          <Setter Property="Opacity" Value="0.5" />
-        </Style>
-      </DockPanel.Styles>
+    <c:ContentArea.Styles>
+      <Style Selector="c|TagControl[DataContext=Private Funds], c|TagControl[DataContext=Private Funds] PathIcon">
+        <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
+      </Style>
+      <Style Selector="c|TagControl:disabled">
+        <Setter Property="Opacity" Value="0.5" />
+      </Style>
+    </c:ContentArea.Styles>
+    <Grid RowDefinitions="*, 40, *" Margin="0 20" VerticalAlignment="Stretch"
+          DataContext="{Binding LabelSelection}">
+      <Border Background="#F5F7EE" CornerRadius="10">
+        <DockPanel>
+          <Border DockPanel.Dock="Top" Padding="20 20 20 0">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <PathIcon Data="{StaticResource shield_regular}" Foreground="Green" Height="20" />
+              <TextBlock VerticalAlignment="Bottom" FontSize="18" Margin="0 2 0 0"
+                         Text="I am comfortable leaking information about this transaction to: ">
+              </TextBlock>
+            </StackPanel>
+          </Border>
 
-      <c:InfoMessage DockPanel.Dock="Bottom" HorizontalAlignment="Center" Margin="0 20" Opacity="0.6"
-                     Content="Even if you left someone there, not all of them will know about this transaction." />
+          <ItemsControl Items="{Binding LabelsWhiteList}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel Orientation="Horizontal" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:LabelViewModel">
+                <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}" Padding="10">
+                  <i:Interaction.Behaviors>
+                    <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
+                  </i:Interaction.Behaviors>
+                  <c:TagControl Content="{Binding Value}" IsHitTestVisible="False">
+                    <c:TagControl.Background>
+                      <Binding Path="IsHighlighted">
+                        <Binding.Converter>
+                          <converters:BoolToBrushConverter TrueBrush="#F28A81" />
+                        </Binding.Converter>
+                      </Binding>
+                    </c:TagControl.Background>
+                  </c:TagControl>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </DockPanel>
+      </Border>
 
-      <TextBlock Text="Remove the entities you cannot tolerate leaking information about this transaction:" DockPanel.Dock="Top" />
+      <Separator Grid.Row="1" VerticalAlignment="Center" />
 
-      <DockPanel DataContext="{Binding LabelSelection}">
-        <ItemsControl DockPanel.Dock="Bottom" Items="{Binding LabelsBlackList}">
-          <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-              <WrapPanel Orientation="Horizontal" />
-            </ItemsPanelTemplate>
-          </ItemsControl.ItemsPanel>
-          <ItemsControl.ItemTemplate>
-            <DataTemplate x:DataType="vm:LabelViewModel">
-              <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}">
-                <i:Interaction.Behaviors>
-                  <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
-                </i:Interaction.Behaviors>
-                <c:TagControl Content="{Binding Value}" IsHitTestVisible="False">
-                  <c:TagControl.Background>
-                    <Binding Path="IsHighlighted">
-                      <Binding.Converter>
-                        <converters:BoolToBrushConverter TrueBrush="Green" />
-                      </Binding.Converter>
-                    </Binding>
-                  </c:TagControl.Background>
-                </c:TagControl>
-              </Button>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
+      <Border Grid.Row="2" Background="#7FF2F2F2" CornerRadius="10">
+        <DockPanel>
+          <Border DockPanel.Dock="Top" Padding="20 20 20 0">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <PathIcon Data="{StaticResource warning_regular}" Height="20" />
+              <TextBlock VerticalAlignment="Bottom" FontSize="18" Margin="0 2 0 0"
+                         Text="I'm NOT comfortable leaking information about this transaction to: ">
+              </TextBlock>
+            </StackPanel>
+          </Border>
 
-        <Separator DockPanel.Dock="Bottom" />
-
-        <ItemsControl Items="{Binding LabelsWhiteList}">
-          <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-              <WrapPanel Orientation="Horizontal" />
-            </ItemsPanelTemplate>
-          </ItemsControl.ItemsPanel>
-          <ItemsControl.ItemTemplate>
-            <DataTemplate x:DataType="vm:LabelViewModel">
-              <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}" Padding="10">
-                <i:Interaction.Behaviors>
-                  <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
-                </i:Interaction.Behaviors>
-                <c:TagControl Content="{Binding Value}" IsHitTestVisible="False">
-                  <c:TagControl.Background>
-                    <Binding Path="IsHighlighted">
-                      <Binding.Converter>
-                        <converters:BoolToBrushConverter TrueBrush="Red" FalseBrush="Green" />
-                      </Binding.Converter>
-                    </Binding>
-                  </c:TagControl.Background>
-                </c:TagControl>
-              </Button>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
-
-      </DockPanel>
-
-
-    </DockPanel>
+          <ItemsControl Items="{Binding LabelsBlackList}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel Orientation="Horizontal" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:LabelViewModel">
+                <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}" Padding="10">
+                  <i:Interaction.Behaviors>
+                    <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
+                  </i:Interaction.Behaviors>
+                  <c:TagControl Content="{Binding Value}" IsHitTestVisible="False">
+                    <c:TagControl.Background>
+                      <Binding Path="IsHighlighted">
+                        <Binding.Converter>
+                          <converters:BoolToBrushConverter TrueBrush="#22B161" />
+                        </Binding.Converter>
+                      </Binding>
+                    </c:TagControl.Background>
+                  </c:TagControl>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </DockPanel>
+      </Border>
+    </Grid>
   </c:ContentArea>
 </UserControl>
