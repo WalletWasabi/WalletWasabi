@@ -196,7 +196,7 @@ namespace ZXing.Common
                 }
                 else
                 {
-                    throw new ArgumentException("illegal character encountered: " + stringRepresentation.Substring(pos));
+                    throw new ArgumentException("illegal character encountered: " + stringRepresentation[pos..]);
                 }
             }
 

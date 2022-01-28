@@ -109,10 +109,9 @@ namespace ZXing.QrCode.Internal
             {
                 return null;
             }
-            int dimension;
-            if (!computeDimension(topLeft, topRight, bottomLeft, moduleSize, out dimension))
-                return null;
-            Internal.Version provisionalVersion = Internal.Version.getProvisionalVersionForDimension(dimension);
+			if (!computeDimension(topLeft, topRight, bottomLeft, moduleSize, out int dimension))
+				return null;
+			Internal.Version provisionalVersion = Internal.Version.getProvisionalVersionForDimension(dimension);
             if (provisionalVersion == null)
                 return null;
             int modulesBetweenFPCenters = provisionalVersion.DimensionForVersion - 7;

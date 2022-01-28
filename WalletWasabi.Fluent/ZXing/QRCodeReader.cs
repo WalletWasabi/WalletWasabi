@@ -91,14 +91,13 @@ namespace ZXing.QrCode
             if (decoderResult == null)
                 return null;
 
-            // If the code was mirrored: swap the bottom-left and the top-right points.
-            var data = decoderResult.Other as QRCodeDecoderMetaData;
-            if (data != null)
-            {
-                data.applyMirroredCorrection(points);
-            }
+			// If the code was mirrored: swap the bottom-left and the top-right points.
+			if (decoderResult.Other is QRCodeDecoderMetaData data)
+			{
+				data.applyMirroredCorrection(points);
+			}
 
-            var result = new Result(decoderResult.Text, decoderResult.RawBytes, points, BarcodeFormat.QR_CODE);
+			var result = new Result(decoderResult.Text, decoderResult.RawBytes, points, BarcodeFormat.QR_CODE);
             var byteSegments = decoderResult.ByteSegments;
             if (byteSegments != null)
             {
@@ -144,11 +143,10 @@ namespace ZXing.QrCode
                 return null;
             }
 
-            float moduleSize;
-            if (!QRCodeReader.moduleSize(leftTopBlack, image, out moduleSize))
-                return null;
+			if (!QRCodeReader.moduleSize(leftTopBlack, image, out float moduleSize))
+				return null;
 
-            int top = leftTopBlack[1];
+			int top = leftTopBlack[1];
             int bottom = rightBottomBlack[1];
             int left = leftTopBlack[0];
             int right = rightBottomBlack[0];

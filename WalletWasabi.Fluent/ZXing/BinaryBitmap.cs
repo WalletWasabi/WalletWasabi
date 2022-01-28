@@ -104,7 +104,7 @@ namespace ZXing
                 // 1. This work will never be done if the caller only installs 1D Reader objects, or if a
                 //    1D Reader finds a barcode before the 2D Readers run.
                 // 2. This work will only be done once even if the caller installs multiple 2D Readers.
-                return matrix ?? (matrix = binarizer.BlackMatrix);
+                return matrix ??= binarizer.BlackMatrix;
             }
         }
 
