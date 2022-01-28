@@ -234,7 +234,7 @@ public class PocketSelectionTests
 		selection.GetLabel("Dan").IsPointerOver = true;
 
 		Assert.True(selection.GetLabel("Dan").IsHighlighted);
-		Assert.True(selection.GetLabel("Roland").IsHighlighted);
+		Assert.False(selection.GetLabel("Roland").IsHighlighted);
 		Assert.True(selection.GetLabel("Target").IsHighlighted);
 	}
 
