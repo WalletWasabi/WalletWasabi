@@ -41,18 +41,15 @@ public class LabelSelectionViewModel : ViewModelBase
 	{
 		if (labelViewModel.IsBlackListed)
 		{
-			var associatedPocket = AllPocket.Where(x => x.Labels.Contains(labelViewModel.Value)).OrderBy(x => x.Labels.Count()).First();
-			var associatedPocketLabels = associatedPocket.Labels;
-			var affectedLabelViewModels = AllLabelViewModel.Where(x => x.IsBlackListed == labelViewModel.IsBlackListed && associatedPocketLabels.Contains(x.Value));
-			return affectedLabelViewModels.ToArray();
+			var associatedPocketLabels = AllPocket.OrderBy(x => x.Labels.Count()).First(x => x.Labels.Contains(labelViewModel.Value)).Labels;
+			return LabelsBlackList.Where(x => associatedPocketLabels.Contains(x.Value)).ToArray();
 		}
 		else
 		{
 			var associatedPockets = AllPocket.Where(x => x.Labels.Contains(labelViewModel.Value));
 			var notAssociatedPockets = AllPocket.Except(associatedPockets);
 			var allNotAssociatedLabels = SmartLabel.Merge(notAssociatedPockets.Select(x => x.Labels));
-			var affectedLabelViewModels = AllLabelViewModel.Where(x => x.IsBlackListed == labelViewModel.IsBlackListed && !allNotAssociatedLabels.Contains(x.Value));
-			return affectedLabelViewModels.ToArray();
+			return LabelsWhiteList.Where(x => !allNotAssociatedLabels.Contains(x.Value)).ToArray();
 		}
 	}
 
