@@ -304,7 +304,7 @@ public class CoinJoinClient
 		await Task.WhenAll(readyRequests).ConfigureAwait(false);
 	}
 
-	internal static ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, MultipartyTransactionParameters parameters, bool consolidationMode, int minAnonScoreTarget, SecureRandom rnd)
+	internal static ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, MultipartyTransactionParameters parameters, bool consolidationMode, int minAnonScoreTarget, WasabiRandom rnd)
 	{
 		var filteredCoins = coins
 			.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
@@ -379,7 +379,7 @@ public class CoinJoinClient
 	/// Note: random biasing is applied.
 	/// </summary>
 	/// <returns>Desired input count.</returns>
-	private static int GetInputTarget(int utxoCount, SecureRandom rnd)
+	private static int GetInputTarget(int utxoCount, WasabiRandom rnd)
 	{
 		const int MaxInputsRegistrableByWallet = 10; // how many
 		int targetInputCount;

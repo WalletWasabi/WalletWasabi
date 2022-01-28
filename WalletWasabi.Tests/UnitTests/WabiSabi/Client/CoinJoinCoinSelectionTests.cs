@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Moq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -18,13 +19,13 @@ public class CoinJoinCoinSelectionTests
 	[Fact]
 	public void SelectEmptySetOfCoins()
 	{
-		using SecureRandom rnd = new();
+		// This test is to make sure no coins are selected when there are no coins.
 		var coins = CoinJoinClient.SelectCoinsForRound(
-				coins: Enumerable.Empty<SmartCoin>(),
-				CreateMultipartyTransactionParameters(),
-				consolidationMode: false,
-				minAnonScoreTarget: 10,
-				rnd);
+			coins: Enumerable.Empty<SmartCoin>(),
+			CreateMultipartyTransactionParameters(),
+			consolidationMode: false,
+			minAnonScoreTarget: 10,
+			ConfigureRng(5));
 
 		Assert.Empty(coins);
 	}
@@ -41,13 +42,12 @@ public class CoinJoinCoinSelectionTests
 			.Select(i => BitcoinFactory.CreateSmartCoin(hdpubkey, Money.Coins(1m), 0, anonymitySet: MinAnonimitySet + 1))
 			.ToList();
 
-		using SecureRandom rnd = new();
 		var coins = CoinJoinClient.SelectCoinsForRound(
-				coins: privateCoins,
-				CreateMultipartyTransactionParameters(),
-				consolidationMode: false,
-				minAnonScoreTarget: MinAnonimitySet,
-				rnd);
+			coins: privateCoins,
+			CreateMultipartyTransactionParameters(),
+			consolidationMode: false,
+			minAnonScoreTarget: MinAnonimitySet,
+			ConfigureRng(5));
 
 		Assert.Empty(coins);
 	}
@@ -65,13 +65,12 @@ public class CoinJoinCoinSelectionTests
 			.Prepend(BitcoinFactory.CreateSmartCoin(hdpubkey, Money.Coins(1m), 0, anonymitySet: MinAnonimitySet - 1))
 			.ToList();
 
-		using SecureRandom rnd = new();
 		var coins = CoinJoinClient.SelectCoinsForRound(
-				coins: privateCoins,
-				CreateMultipartyTransactionParameters(),
-				consolidationMode: true,
-				minAnonScoreTarget: MinAnonimitySet,
-				rnd);
+			coins: privateCoins,
+			CreateMultipartyTransactionParameters(),
+			consolidationMode: true,
+			minAnonScoreTarget: MinAnonimitySet,
+			ConfigureRng(5));
 
 		Assert.Empty(coins);
 	}
@@ -79,7 +78,7 @@ public class CoinJoinCoinSelectionTests
 	[Fact]
 	public void OnlyOneNonPrivateCoinInEmptySetOfCoins()
 	{
-		// This test is to make sure that we don't select the only non-private coin when it is the only coin in the wallaet.
+		// This test is to make sure that we select the only non-private coin when it is the only coin in the wallaet.
 		const int MinAnonimitySet = 10;
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		var hdpubkey = BitcoinFactory.CreateHdPubKey(km);
@@ -88,15 +87,14 @@ public class CoinJoinCoinSelectionTests
 			.Prepend(BitcoinFactory.CreateSmartCoin(hdpubkey, Money.Coins(1m), 0, anonymitySet: MinAnonimitySet - 1))
 			.ToList();
 
-		using SecureRandom rnd = new();
 		var coins = CoinJoinClient.SelectCoinsForRound(
-				coins: privateCoins,
-				CreateMultipartyTransactionParameters(),
-				consolidationMode: false,
-				minAnonScoreTarget: MinAnonimitySet,
-				rnd);
+			coins: privateCoins,
+			CreateMultipartyTransactionParameters(),
+			consolidationMode: false,
+			minAnonScoreTarget: MinAnonimitySet,
+			ConfigureRng(1));
 
-		Assert.Empty(coins);
+		Assert.Single(coins);
 	}
 
 
@@ -113,17 +111,22 @@ public class CoinJoinCoinSelectionTests
 			.Prepend(BitcoinFactory.CreateSmartCoin(hdpubkey, Money.Coins(1m), 0, anonymitySet: MinAnonimitySet - 1))
 			.ToList();
 
-		using SecureRandom rnd = new();
 		var coins = CoinJoinClient.SelectCoinsForRound(
-				coins: privateCoins,
-				CreateMultipartyTransactionParameters(),
-				consolidationMode: false,
-				minAnonScoreTarget: MinAnonimitySet,
-				rnd);
+			coins: privateCoins,
+			CreateMultipartyTransactionParameters(),
+			consolidationMode: false,
+			minAnonScoreTarget: MinAnonimitySet,
+			ConfigureRng(1));
 
 		Assert.Single(coins);
 	}
 
+	private static WasabiRandom ConfigureRng(int returnValue)
+	{
+		var mockWasabiRandom = new Mock<WasabiRandom>();
+		mockWasabiRandom.Setup(r => r.GetInt(It.IsAny<int>(), It.IsAny<int>())).Returns(returnValue);
+		return mockWasabiRandom.Object;
+	}
 
 	private static MultipartyTransactionParameters CreateMultipartyTransactionParameters()
 	{
