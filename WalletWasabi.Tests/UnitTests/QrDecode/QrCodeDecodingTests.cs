@@ -4,6 +4,9 @@ using System.IO;
 using WalletWasabi.Helpers;
 using System.Runtime.InteropServices;
 using ZXing.QrCode;
+using System.Drawing;
+using ZXing;
+using ZXing.Common;
 
 namespace WalletWasabi.Tests.UnitTests.QrDecode;
 
@@ -20,28 +23,36 @@ public class QrCodeDecodingTests
 			return;
 		}
 		QRCodeReader decoder = new();
+
 		string expectedAddress = "tb1ql27ya3gufs5h0ptgjhjd0tm52fq6q0xrav7xza";
 		string otherExpectedAddress = "tb1qfas0k9rn8daqggu7wzp2yne9qdd5fr5wf2u478";
 
 		// First Test
 		string path = Path.Combine(CommonPartialPath, "AddressTest1.png");
-		using var qrImage = new Mat(path);
-		BinaryBitmap bitmap = new();
-		decoder.decode();
-		bool qrFound = decoder.Detect(qrImage, out var points);
-		Assert.True(qrFound);
 
-		string address = decoder.Decode(qrImage, points);
-		Assert.Equal(expectedAddress, address);
+		var image = (Bitmap)Bitmap.FromFile(path);
+		var source = new BitmapLuminanceSource(image);
+		BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
+		var result = decoder.decode(bitmap);
 
-		// Second Test
-		string otherPath = Path.Combine(CommonPartialPath, "AddressTest2.png");
-		using var secondQrImage = new Mat(otherPath);
-		qrFound = decoder.Detect(secondQrImage, out var otherPoints);
-		Assert.True(qrFound);
+		Assert.Equal(expectedAddress, result.Text);
 
-		string secondAddress = decoder.Decode(secondQrImage, otherPoints);
-		Assert.Equal(otherExpectedAddress, secondAddress);
+		//using var qrImage = new Mat(path);
+
+		//bool qrFound = decoder.Detect(qrImage, out var points);
+		//Assert.True(qrFound);
+
+		//string address = decoder.Decode(qrImage, points);
+		//Assert.Equal(expectedAddress, address);
+
+		//// Second Test
+		//string otherPath = Path.Combine(CommonPartialPath, "AddressTest2.png");
+		//using var secondQrImage = new Mat(otherPath);
+		//qrFound = decoder.Detect(secondQrImage, out var otherPoints);
+		//Assert.True(qrFound);
+
+		//string secondAddress = decoder.Decode(secondQrImage, otherPoints);
+		//Assert.Equal(otherExpectedAddress, secondAddress);
 	}
 
 	[Fact]
