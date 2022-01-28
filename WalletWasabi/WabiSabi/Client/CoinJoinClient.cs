@@ -272,7 +272,7 @@ public class CoinJoinClient
 
 		// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to sign.
 		var transactionSigningTimeFrame = roundState.TransactionSigningTimeout - RoundStatusUpdater.Period;
-		Logger.LogDebug($"Round ({roundState.Id}): Signing phase started, it will end in {transactionSigningTimeFrame.TotalMinutes} minutes.");
+		Logger.LogDebug($"Round ({roundState.Id}): Signing phase started, it will end in {transactionSigningTimeFrame:hh\\:mm\\:ss}.");
 
 		var scheduledDates = transactionSigningTimeFrame.SamplePoisson(aliceClients.Count());
 
