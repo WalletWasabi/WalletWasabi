@@ -210,7 +210,12 @@ public static class Program
 		IoHelpers.EnsureDirectoryExists(deliveryPath);
 		Console.WriteLine($"Binaries will be delivered here: {deliveryPath}");
 
-		string buildInfoJson = GetBuildInfoData();
+		string? buildInfoJson = null;
+
+		if (!IsContinuousDelivery)
+		{
+			buildInfoJson = GetBuildInfoData();
+		}
 
 		CheckUncommittedGitChanges();
 
@@ -229,8 +234,11 @@ public static class Program
 				Console.WriteLine($"Created {currentBinDistDirectory}");
 			}
 
-			string buildInfoPath = Path.Combine(currentBinDistDirectory, "BUILDINFO.json");
-			File.WriteAllText(buildInfoPath, buildInfoJson);
+			if (buildInfoJson is not null)
+			{
+				string buildInfoPath = Path.Combine(currentBinDistDirectory, "BUILDINFO.json");
+				File.WriteAllText(buildInfoPath, buildInfoJson);
+			}
 
 			StartProcessAndWaitForExit("dotnet", DesktopProjectDirectory, arguments: "clean");
 
