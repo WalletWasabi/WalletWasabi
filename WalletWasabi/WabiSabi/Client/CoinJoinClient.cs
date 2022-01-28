@@ -22,7 +22,6 @@ namespace WalletWasabi.WabiSabi.Client;
 public class CoinJoinClient
 {
 	private const int MaxInputsRegistrableByWallet = 10; // how many
-
 	private volatile bool _inCriticalCoinJoinState;
 
 	/// <param name="minAnonScoreTarget">Coins those have reached anonymity target, but still can be mixed if desired.</param>
@@ -383,7 +382,6 @@ public class CoinJoinClient
 	/// <returns>Desired input count.</returns>
 	private int GetInputTarget(int utxoCount)
 	{
-		const int MaxInputsRegistrableByWallet = 10; // how many
 		int targetInputCount;
 		if (utxoCount < 35)
 		{
