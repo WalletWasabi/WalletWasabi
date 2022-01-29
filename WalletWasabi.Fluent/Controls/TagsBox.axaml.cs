@@ -252,7 +252,6 @@ public class TagsBox : TemplatedControl
 			.Subscribe(_ =>
 			{
 				InvalidateWatermark();
-				CheckIsCurrentTextValid();
 			})
 			.DisposeWith(_compositeDisposable);
 	}
