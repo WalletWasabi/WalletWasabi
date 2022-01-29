@@ -251,8 +251,20 @@ public class TagsBox : TemplatedControl
 		_autoCompleteBox.WhenAnyValue(x => x.Text)
 			.Subscribe(_ =>
 			{
+				var correctedInput = CurrentText.ParseLabel();
 				InvalidateWatermark();
-				CheckIsCurrentTextValid();
+				if (RestrictInputToSuggestions && Suggestions is { } suggestions)
+				{
+					IsCurrentTextValid = suggestions.Any(x => x.Equals(correctedInput, _stringComparison));
+					return;
+				}
+
+				if (!RestrictInputToSuggestions)
+				{
+					IsCurrentTextValid = !string.IsNullOrEmpty(correctedInput);
+					return;
+				}
+				
 			})
 			.DisposeWith(_compositeDisposable);
 	}
