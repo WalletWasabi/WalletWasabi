@@ -1,5 +1,4 @@
 using NBitcoin;
-using NBitcoin.Policy;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -37,9 +36,7 @@ public class TransactionFactory
 	public bool AllowUnconfirmed { get; }
 	private AllTransactionStore TransactionStore { get; }
 
-	/// <exception cref="ArgumentException"></exception>
-	/// <exception cref="ArgumentNullException"></exception>
-	/// <exception cref="ArgumentOutOfRangeException"></exception>
+	/// <inheritdoc cref="BuildTransaction(PaymentIntent, Func{FeeRate}, IEnumerable{OutPoint}?, Func{LockTime}?, IPayjoinClient?, bool)"/>
 	public BuildTransactionResult BuildTransaction(
 		PaymentIntent payments,
 		FeeRate feeRate,
@@ -47,9 +44,9 @@ public class TransactionFactory
 		IPayjoinClient? payjoinClient = null)
 		=> BuildTransaction(payments, () => feeRate, allowedInputs, () => LockTime.Zero, payjoinClient);
 
-	/// <exception cref="ArgumentException"></exception>
-	/// <exception cref="ArgumentNullException"></exception>
-	/// <exception cref="ArgumentOutOfRangeException"></exception>
+	/// <exception cref="ArgumentException"/>
+	/// <exception cref="ArgumentNullException"/>
+	/// <exception cref="ArgumentOutOfRangeException"/>
 	public BuildTransactionResult BuildTransaction(
 		PaymentIntent payments,
 		Func<FeeRate> feeRateFetcher,
