@@ -241,7 +241,7 @@ public partial class SendViewModel : RoutableViewModel
 				_transactionInfo.UserLabels = new SmartLabel(label.Labels);
 			}
 
-			if (url.UnknowParameters.TryGetValue("pj", out var endPoint))
+			if (url.UnknownParameters.TryGetValue("pj", out var endPoint))
 			{
 				PayJoinEndPoint = endPoint;
 			}
