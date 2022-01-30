@@ -220,7 +220,7 @@
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">
 
-            <Panel Height="20" ToolTip.Tip="{Binding Title}" Background="Transparent">
+            <Panel Height="30" ToolTip.Tip="{Binding Title}" Background="Transparent">
 
               <!-- NavBar collapsed state -->
               <Panel Width="45" Background="Transparent"
