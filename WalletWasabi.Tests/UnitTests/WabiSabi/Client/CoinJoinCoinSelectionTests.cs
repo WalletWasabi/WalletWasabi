@@ -78,7 +78,7 @@ public class CoinJoinCoinSelectionTests
 	[Fact]
 	public void OnlyOneNonPrivateCoinInEmptySetOfCoins()
 	{
-		// This test is to make sure that we select the only non-private coin when it is the only coin in the wallaet.
+		// This test is to make sure that we select the only non-private coin when it is the only coin in the wallet.
 		const int MinAnonimitySet = 10;
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		var hdpubkey = BitcoinFactory.CreateHdPubKey(km);
