@@ -35,10 +35,9 @@ public class CoinJoinCoinSelectionTests
 		// This test is to make sure no coins are selected when all coins are private.
 		const int MinAnonimitySet = 10;
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
-		var hdpubkey = BitcoinFactory.CreateHdPubKey(km);
 		var coinsToSelectFrom = Enumerable
 			.Range(0, 10)
-			.Select(i => BitcoinFactory.CreateSmartCoin(hdpubkey, Money.Coins(1m), 0, anonymitySet: MinAnonimitySet + 1))
+			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: MinAnonimitySet + 1))
 			.ToList();
 
 		var coins = CoinJoinClient.SelectCoinsForRound(
@@ -80,10 +79,9 @@ public class CoinJoinCoinSelectionTests
 		// This test is to make sure that we select the only non-private coin when it is the only coin in the wallet.
 		const int MinAnonimitySet = 10;
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
-		var hdpubkey = BitcoinFactory.CreateHdPubKey(km);
 		var coinsToSelectFrom = Enumerable
 			.Empty<SmartCoin>()
-			.Prepend(BitcoinFactory.CreateSmartCoin(hdpubkey, Money.Coins(1m), 0, anonymitySet: MinAnonimitySet - 1))
+			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: MinAnonimitySet - 1))
 			.ToList();
 
 		var coins = CoinJoinClient.SelectCoinsForRound(
@@ -102,11 +100,10 @@ public class CoinJoinCoinSelectionTests
 		// This test is to make sure that we never select two non-private coins.
 		const int MinAnonimitySet = 10;
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
-		var hdpubkey = BitcoinFactory.CreateHdPubKey(km);
 		var coinsToSelectFrom = Enumerable
 			.Empty<SmartCoin>()
-			.Prepend(BitcoinFactory.CreateSmartCoin(hdpubkey, Money.Coins(1m), 0, anonymitySet: MinAnonimitySet - 1))
-			.Prepend(BitcoinFactory.CreateSmartCoin(hdpubkey, Money.Coins(1m), 0, anonymitySet: MinAnonimitySet - 1))
+			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: MinAnonimitySet - 1))
+			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: MinAnonimitySet - 1))
 			.ToList();
 
 		var coins = CoinJoinClient.SelectCoinsForRound(
