@@ -4,6 +4,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.Wallets;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
@@ -15,7 +16,7 @@ public class KeyChainTests
 	{
 		var keyManager = KeyManager.CreateNew(out _, "", Network.Main);
 		var destinationProvider = new InternalDestinationProvider(keyManager);
-		var keyChain = new KeyChain(keyManager);
+		var keyChain = new KeyChain(keyManager, new Kitchen(""));
 
 		var coinDestination = destinationProvider.GetNextDestinations(1).First();
 		var coin = new Coin(BitcoinFactory.CreateOutPoint(), new TxOut(Money.Coins(1.0m), coinDestination));
