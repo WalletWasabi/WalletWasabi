@@ -251,19 +251,9 @@ public class TagsBox : TemplatedControl
 		_autoCompleteBox.WhenAnyValue(x => x.Text)
 			.Subscribe(_ =>
 			{
-				var correctedInput = CurrentText.ParseLabel();
+				
 				InvalidateWatermark();
-				if (RestrictInputToSuggestions && Suggestions is { } suggestions)
-				{
-					IsCurrentTextValid = suggestions.Any(x => x.Equals(correctedInput, _stringComparison));
-					return;
-				}
-
-				if (!RestrictInputToSuggestions)
-				{
-					IsCurrentTextValid = !string.IsNullOrEmpty(correctedInput);
-					return;
-				}
+				CheckIsCurrentTextValid();
 				
 			})
 			.DisposeWith(_compositeDisposable);
@@ -285,7 +275,6 @@ public class TagsBox : TemplatedControl
 			return;
 		}
 
-		throw new InvalidOperationException($"Invalid configuration! {nameof(Suggestions)} are not set!");
 	}
 
 	private void OnKeyDown(object? sender, KeyEventArgs e)
