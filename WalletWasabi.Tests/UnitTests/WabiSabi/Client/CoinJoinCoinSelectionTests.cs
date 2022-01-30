@@ -51,7 +51,7 @@ public class CoinJoinCoinSelectionTests
 	}
 
 	[Fact]
-	public void OnlyOneNonPrivateCoinInBigSetOfCoins()
+	public void OnlyOneNonPrivateCoinInBigSetOfCoinsConsolidationMode()
 	{
 		const int MinAnonimitySet = 10;
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
@@ -97,7 +97,6 @@ public class CoinJoinCoinSelectionTests
 	[Fact]
 	public void TwoNonPrivateCoinInSetOfCoins()
 	{
-		// This test is to make sure that we never select two non-private coins.
 		const int MinAnonimitySet = 10;
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		var coinsToSelectFrom = Enumerable
@@ -114,6 +113,27 @@ public class CoinJoinCoinSelectionTests
 			ConfigureRng(1));
 
 		Assert.Single(coins);
+	}
+
+	[Fact]
+	public void TwoNonPrivateCoinInSetOfCoinsConsolidationMode()
+	{
+		const int MinAnonimitySet = 10;
+		var km = KeyManager.CreateNew(out _, "", Network.Main);
+		var coinsToSelectFrom = Enumerable
+			.Empty<SmartCoin>()
+			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: MinAnonimitySet - 1))
+			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: MinAnonimitySet - 1))
+			.ToList();
+
+		var coins = CoinJoinClient.SelectCoinsForRound(
+			coins: coinsToSelectFrom,
+			CreateMultipartyTransactionParameters(),
+			consolidationMode: true,
+			minAnonScoreTarget: MinAnonimitySet,
+			ConfigureRng(1));
+
+		Assert.Equal(2, coins.Count);
 	}
 
 	private static WasabiRandom ConfigureRng(int returnValue)
