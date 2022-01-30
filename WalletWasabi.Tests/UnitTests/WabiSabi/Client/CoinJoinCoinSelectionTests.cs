@@ -54,14 +54,13 @@ public class CoinJoinCoinSelectionTests
 	[Fact]
 	public void OnlyOneNonPrivateCoinInBigSetOfCoins()
 	{
-		// This test is to make sure that we don't select any coin when there is only one non-private coin in the set.
 		const int MinAnonimitySet = 10;
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
-		var hdpubkey = BitcoinFactory.CreateHdPubKey(km);
+		SmartCoin smallerAnonCoin = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: MinAnonimitySet - 1);
 		var coinsToSelectFrom = Enumerable
 			.Range(0, 10)
-			.Select(i => BitcoinFactory.CreateSmartCoin(hdpubkey, Money.Coins(1m), 0, anonymitySet: MinAnonimitySet + 1))
-			.Prepend(BitcoinFactory.CreateSmartCoin(hdpubkey, Money.Coins(1m), 0, anonymitySet: MinAnonimitySet - 1))
+			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: MinAnonimitySet + 1))
+			.Prepend(smallerAnonCoin)
 			.ToList();
 
 		var coins = CoinJoinClient.SelectCoinsForRound(
@@ -71,7 +70,8 @@ public class CoinJoinCoinSelectionTests
 			minAnonScoreTarget: MinAnonimitySet,
 			ConfigureRng(5));
 
-		Assert.Empty(coins);
+		Assert.Contains(smallerAnonCoin, coins);
+		Assert.Equal(10, coins.Count);
 	}
 
 	[Fact]
