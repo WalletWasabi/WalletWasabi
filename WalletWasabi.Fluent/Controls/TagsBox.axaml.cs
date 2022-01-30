@@ -251,10 +251,8 @@ public class TagsBox : TemplatedControl
 		_autoCompleteBox.WhenAnyValue(x => x.Text)
 			.Subscribe(_ =>
 			{
-				
 				InvalidateWatermark();
 				CheckIsCurrentTextValid();
-				
 			})
 			.DisposeWith(_compositeDisposable);
 	}
@@ -274,7 +272,6 @@ public class TagsBox : TemplatedControl
 			IsCurrentTextValid = !string.IsNullOrEmpty(correctedInput);
 			return;
 		}
-
 	}
 
 	private void OnKeyDown(object? sender, KeyEventArgs e)
