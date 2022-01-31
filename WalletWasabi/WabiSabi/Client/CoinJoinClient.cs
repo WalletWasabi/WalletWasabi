@@ -206,9 +206,9 @@ public class CoinJoinClient
 		}
 
 		// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to be registered.
-		var remainingTimeForRegistration = (roundState.InputRegistrationEnd - DateTimeOffset.UtcNow) - TimeSpan.FromSeconds(15);
+		var remainingTimeForRegistration = (roundState.InputRegistrationEnd - DateTimeOffset.UtcNow);
 
-		Logger.LogDebug($"Round ({roundState.Id}): Input registration started, it will end in {remainingTimeForRegistration.TotalMinutes} minutes.");
+		Logger.LogDebug($"Round ({roundState.Id}): Input registration started, it will end in {remainingTimeForRegistration:hh\\:mm\\:ss}.");
 
 		var scheduledDates = remainingTimeForRegistration.SamplePoisson(smartCoins.Count());
 
@@ -272,7 +272,7 @@ public class CoinJoinClient
 
 		// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to sign.
 		var transactionSigningTimeFrame = roundState.TransactionSigningTimeout - RoundStatusUpdater.Period;
-		Logger.LogDebug($"Round ({roundState.Id}): Signing phase started, it will end in {transactionSigningTimeFrame.TotalMinutes} minutes.");
+		Logger.LogDebug($"Round ({roundState.Id}): Signing phase started, it will end in {transactionSigningTimeFrame:hh\\:mm\\:ss}.");
 
 		var scheduledDates = transactionSigningTimeFrame.SamplePoisson(aliceClients.Count());
 
