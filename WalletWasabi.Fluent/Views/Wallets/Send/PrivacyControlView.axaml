@@ -12,7 +12,7 @@
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacyControlView">
   <c:ContentArea Title="Send - Control your privacy"
-                 Caption="Using unmixed funds can leak information entities you have transacted with in the past. Take control of who could know about this transaction"
+                 Caption="Choose who could see this transaction"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="Continue"
                  IsBusy="{Binding IsBusy}"
@@ -34,12 +34,12 @@
             <StackPanel Orientation="Horizontal" Spacing="10">
               <PathIcon Data="{StaticResource shield_regular}" Foreground="{DynamicResource PrivacyControlWhiteListHeaderForeground}" Height="20" />
               <TextBlock VerticalAlignment="Bottom" FontSize="18" Margin="0 2 0 0" Foreground="{DynamicResource PrivacyControlWhiteListHeaderForeground}"
-                         Text="I am comfortable leaking information about this transaction to: ">
+                         Text="Could see this transaction: ">
               </TextBlock>
             </StackPanel>
           </Border>
 
-          <ItemsControl Items="{Binding LabelsWhiteList}">
+          <ItemsControl Items="{Binding LabelsWhiteList}" Margin="15,10,15,10">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
                 <WrapPanel Orientation="Horizontal" />
@@ -75,12 +75,12 @@
             <StackPanel Orientation="Horizontal" Spacing="10">
               <PathIcon Data="{StaticResource warning_regular}" Height="20" />
               <TextBlock VerticalAlignment="Bottom" FontSize="18" Margin="0 2 0 0"
-                         Text="I'm NOT comfortable leaking information about this transaction to: ">
+                         Text="Must not see this transaction: ">
               </TextBlock>
             </StackPanel>
           </Border>
 
-          <ItemsControl Items="{Binding LabelsBlackList}">
+          <ItemsControl Items="{Binding LabelsBlackList}" Margin="15,10,15,10">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
                 <WrapPanel Orientation="Horizontal" />
