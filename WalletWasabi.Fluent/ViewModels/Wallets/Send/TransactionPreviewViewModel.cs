@@ -75,8 +75,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				{
 					_info.ChangelessCoins = ca.TransactionResult.SpentCoins;
 					UpdateTransaction(CurrentTransactionSummary, ca.TransactionResult);
-
-					await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, ca.TransactionResult);
 				}
 				else if (x is PocketSuggestionViewModel)
 				{
