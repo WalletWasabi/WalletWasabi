@@ -556,13 +556,13 @@ public static class Program
 		// Get .NET SDK version.
 		if (!TryStartProcessAndWaitForExit("dotnet", workingDirectory: DesktopProjectDirectory, result: out var sdkVersion, arguments: "--version", redirectStandardOutput: true))
 		{
-			sdkVersion = $"Failed to get .NET SDK version.";
+			sdkVersion = "Failed to get .NET SDK version.";
 		}
 
 		// Get git commit ID.
 		if (!TryStartProcessAndWaitForExit("git", workingDirectory: DesktopProjectDirectory, result: out var gitCommitId, arguments: "rev-parse HEAD", redirectStandardOutput: true))
 		{
-			gitCommitId = $"Failed to get git commit ID.";
+			gitCommitId = "Failed to get git commit ID.";
 		}
 
 		return JsonSerializer.Serialize(new BuildInfo(runtimeVersion.ToString(), sdkVersion, gitCommitId), new JsonSerializerOptions() { WriteIndented = true });
