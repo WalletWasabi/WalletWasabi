@@ -55,7 +55,7 @@
                     <c:TagControl.BorderBrush>
                       <Binding Path="IsHighlighted">
                         <Binding.Converter>
-                          <converters:BoolToBrushConverter TrueBrush="#F28A81" FalseBrush="{StaticResource PrivacyControlBlackListItemBackground}" />
+                          <converters:BoolToBrushConverter TrueBrush="#F28A81" FalseBrush="{StaticResource PrivacyControlItemBackground}" />
                         </Binding.Converter>
                       </Binding>
                     </c:TagControl.BorderBrush>
@@ -96,7 +96,7 @@
                     <c:TagControl.BorderBrush>
                       <Binding Path="IsHighlighted">
                         <Binding.Converter>
-                          <converters:BoolToBrushConverter TrueBrush="#22B161" FalseBrush="{StaticResource PrivacyControlBlackListItemBackground}" />
+                          <converters:BoolToBrushConverter TrueBrush="#22B161" FalseBrush="{StaticResource PrivacyControlItemBackground}" />
                         </Binding.Converter>
                       </Binding>
                     </c:TagControl.BorderBrush>

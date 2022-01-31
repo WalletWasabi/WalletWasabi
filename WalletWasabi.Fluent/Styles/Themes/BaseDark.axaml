@@ -58,8 +58,7 @@
     <SolidColorBrush x:Key="PrivacyControlWhiteListHeaderForeground" Color="#FFFFFF" />
     <SolidColorBrush x:Key="PrivacyControlWhiteListBackground" Color="#293c30" />
     <SolidColorBrush x:Key="PrivacyControlBlackListBackground" Color="Transparent" />
-    <SolidColorBrush x:Key="PrivacyControlWhiteListItemBackground" Color="#2FFFFFFF" />
-    <SolidColorBrush x:Key="PrivacyControlBlackListItemBackground" Color="#2FFFFFFF" />
+    <SolidColorBrush x:Key="PrivacyControlItemBackground" Color="#2FFFFFFF" />
 
     <Color x:Key="SliderTrackValueFill">#8093AE</Color>
     <Color x:Key="SliderTrackValueFillPointerOver">#8093AE</Color>
