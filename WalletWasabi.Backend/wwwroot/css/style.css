@@ -393,6 +393,9 @@ footer .white-text {
 .home-text-area h1 {
     font-size: 60px;
 }
+.home-text-area p {
+    font-size: 24px;
+}
 .lh {
     line-height: 1.5em;
 }
@@ -478,7 +481,7 @@ footer .white-text {
     -ms-transition: all 0.5s ease-in-out;
     -o-transition: all 0.5s ease-in-out;
     transition: all 0.5s ease-in-out;
-    border-right: 1px solid var(--light-gray);
+    /*border-right: 1px solid var(--light-gray);*/
 }
 .download-box:last-child {
     border-right: 0;
