@@ -46,7 +46,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 	public BuildTransactionResult TransactionResult { get; }
 
 	public static async IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> GenerateSuggestionsAsync(
-		TransactionInfo transactionInfo, BitcoinAddress destination, Wallet wallet, BuildTransactionResult requestedTransaction, [EnumeratorCancellation] CancellationToken cancellationToken)
+		TransactionInfo transactionInfo, BitcoinAddress destination, Wallet wallet, [EnumeratorCancellation] CancellationToken cancellationToken)
 	{
 		Task<ChangeAvoidanceSuggestionViewModel?> bnbSuggestionTask = Task.Run(() =>
 		{
