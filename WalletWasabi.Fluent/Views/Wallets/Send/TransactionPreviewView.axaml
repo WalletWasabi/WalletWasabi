@@ -24,7 +24,7 @@
         <TextBlock Text="Preview Transaction" />
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center">
           <Image Width="120" Margin="10 4 10 5" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
-                 ToolTip.Tip="Your privacy is being protected with PayJoin."
+                 ToolTip.Tip="Your privacy is being protected with payjoin."
                  IsVisible="{Binding CurrentTransactionSummary.IsPayJoin}" />
 
           <Border Padding="10 0 10 10" Cursor="Hand" IsVisible="{Binding CurrentTransactionSummary.MaxPrivacy}">

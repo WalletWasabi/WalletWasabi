@@ -85,7 +85,8 @@ public class Global
 
 			var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
 			AllTransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
-			IndexStore = new IndexStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, new SmartHeaderChain());
+			SmartHeaderChain smartHeaderChain = new(maxChainSize: 20_000);
+			IndexStore = new IndexStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, smartHeaderChain);
 			var mempoolService = new MempoolService();
 			var blocks = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);
 

@@ -14,7 +14,7 @@ public static class ChangelessTransactionCoinSelector
 	public const double MaxExtraPayment = 1.25;
 
 	/// <summary>
-	/// Select coins in a way that user can pay without a change input (to increase privacy)
+	/// Select coins in a way that user can pay without a change output (to increase privacy)
 	/// and try to find a solution that requires to pay as little extra amount as possible.
 	/// </summary>
 	/// <param name="availableCoins">Coins owned by the user.</param>
@@ -45,7 +45,7 @@ public static class ChangelessTransactionCoinSelector
 
 		var foundExactMatch = branchAndBound.TryGetMatch(strategy, out List<long>? solution, cancellationToken);
 
-		// If we've not found and optimal solution than we will use the best.
+		// If we've not found an optimal solution then we will use the best.
 		if (!foundExactMatch && strategy.GetBestSelectionFound() is long[] bestSolution)
 		{
 			solution = bestSolution.ToList();
@@ -64,7 +64,7 @@ public static class ChangelessTransactionCoinSelector
 
 			foreach ((SmartCoin smartCoin, long effectiveSatoshis) in inputEffectiveValues)
 			{
-				// Both array are in decreasing order so the first match will be the coin we are looking for.
+				// Both arrays are in decreasing order so the first match will be the coin we are looking for.
 				if (effectiveSatoshis == solution[i])
 				{
 					i++;
