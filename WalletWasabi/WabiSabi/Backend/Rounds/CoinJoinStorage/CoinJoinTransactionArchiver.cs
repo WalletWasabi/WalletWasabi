@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace WalletWasabi.WabiSabi.Backend.Rounds.Utils;
+namespace WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 
 public class CoinJoinTransactionArchiver
 {

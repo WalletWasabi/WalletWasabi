@@ -18,8 +18,8 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 		FilteredLabel = new List<string>();
 		IsCoinJoin = true;
 
-		ShowDetailsCommand = ReactiveCommand.Create(() =>
-			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(new CoinJoinDetailsViewModel(this)));
+		ShowDetailsCommand = ReactiveCommand.Create((Action)(() =>
+			RoutableViewModel.Navigate((Fluent.NavigationTarget)Fluent.NavigationTarget.DialogScreen).To(new CoinJoinDetailsViewModel(this))));
 
 		Add(firstItem);
 	}

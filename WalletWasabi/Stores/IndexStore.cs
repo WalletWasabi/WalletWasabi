@@ -140,29 +140,35 @@ public class IndexStore : IAsyncDisposable
 		{
 			if (MatureIndexFileManager.Exists())
 			{
-				using var sr = MatureIndexFileManager.OpenText();
-				if (!sr.EndOfStream)
+				using (BenchmarkLogger.Measure(LogLevel.Debug, "MatureIndexFileManager loading"))
 				{
-					var lineTask = sr.ReadLineAsync();
-					string? line = null;
-					while (lineTask is { })
+					int i = 0;
+					using StreamReader sr = MatureIndexFileManager.OpenText();
+					if (!sr.EndOfStream)
 					{
-						line ??= await lineTask.ConfigureAwait(false);
-						cancel.ThrowIfCancellationRequested();
+						while (true)
+						{
+							i++;
+							cancel.ThrowIfCancellationRequested();
+							string? line = await sr.ReadLineAsync().ConfigureAwait(false);
 
-						lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
+							if (line is null)
+							{
+								break;
+							}
 
-						ProcessLine(line, enqueue: false);
-
-						line = null;
+							ProcessLine(line, enqueue: false);
+						}
 					}
+
+					Logger.LogDebug($"Loaded {i} lines from the mature index file.");
 				}
 			}
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{
 			// We found a corrupted entry. Stop here.
-			// Delete the currupted file.
+			// Delete the corrupted file.
 			// Do not try to autocorrect, because the internal data structures are throwing events that may confuse the consumers of those events.
 			Logger.LogError("Mature index got corrupted. Deleting both mature and immature index...");
 			MatureIndexFileManager.DeleteMe();
@@ -185,7 +191,7 @@ public class IndexStore : IAsyncDisposable
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{
 			// We found a corrupted entry. Stop here.
-			// Delete the currupted file.
+			// Delete the corrupted file.
 			// Do not try to autocorrect, because the internal data structures are throwing events that may confuse the consumers of those events.
 			Logger.LogError("Immature index got corrupted. Deleting it...");
 			ImmatureIndexFileManager.DeleteMe();
@@ -211,7 +217,7 @@ public class IndexStore : IAsyncDisposable
 				return false;
 			}
 
-			SmartHeaderChain.AddOrReplace(filter.Header);
+			SmartHeaderChain.AppendTip(filter.Header);
 			if (enqueue)
 			{
 				ImmatureFilters.Add(filter);
@@ -322,7 +328,7 @@ public class IndexStore : IAsyncDisposable
 			{
 				throw new InvalidOperationException($"{nameof(SmartHeaderChain)} and {nameof(ImmatureFilters)} are not in sync.");
 			}
-			SmartHeaderChain.RemoveLast();
+			SmartHeaderChain.RemoveTip();
 		}
 
 		Reorged?.Invoke(this, filter);

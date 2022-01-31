@@ -93,7 +93,9 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 					.SpentCoins
 					.OrderBy(x => x.Amount)
 					.Skip(1)
-					.Select(x => x.OutPoint)));
+					.Select(x => x.OutPoint),
+				payjoinClient: null,
+				tryToSign: false));
 
 			smallerSuggestion = new ChangeAvoidanceSuggestionViewModel(
 				transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), smallerTransaction,
@@ -109,7 +111,9 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 			intent,
 			FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
 			true,
-			requestedTransaction.SpentCoins.Select(x => x.OutPoint)));
+			requestedTransaction.SpentCoins.Select(x => x.OutPoint),
+			payjoinClient: null,
+			tryToSign: false));
 
 		var largerSuggestion = new ChangeAvoidanceSuggestionViewModel(
 			transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), largerTransaction,
@@ -127,7 +131,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		var results = new List<ChangeAvoidanceSuggestionViewModel>();
 
 		foreach (var suggestion in NormalizeSuggestions(suggestions, defaultSelection)
-			         .Where(x => x != defaultSelection))
+					 .Where(x => x != defaultSelection))
 		{
 			results.Add(suggestion);
 		}
