@@ -32,7 +32,8 @@ public class CoinJoinClient
 		IDestinationProvider destinationProvider,
 		RoundStateUpdater roundStatusUpdater,
 		int minAnonScoreTarget = int.MaxValue,
-		bool consolidationMode = false)
+		bool consolidationMode = false,
+		TimeSpan doNotRegisterInLastMinuteTimeLimit = default)
 	{
 		HttpClientFactory = httpClientFactory;
 		KeyChain = keyChain;
@@ -41,6 +42,7 @@ public class CoinJoinClient
 		MinAnonScoreTarget = minAnonScoreTarget;
 		ConsolidationMode = consolidationMode;
 		SecureRandom = new SecureRandom();
+		DoNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
 	}
 
 	private SecureRandom SecureRandom { get; }
@@ -49,6 +51,7 @@ public class CoinJoinClient
 	private IDestinationProvider DestinationProvider { get; }
 	private RoundStateUpdater RoundStatusUpdater { get; }
 	public int MinAnonScoreTarget { get; }
+	private TimeSpan DoNotRegisterInLastMinuteTimeLimit { get; }
 
 	public bool InCriticalCoinJoinState
 	{
@@ -60,7 +63,10 @@ public class CoinJoinClient
 
 	public async Task<bool> StartCoinJoinAsync(IEnumerable<SmartCoin> coins, CancellationToken cancellationToken)
 	{
-		var currentRoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cancellationToken).ConfigureAwait(false);
+		var currentRoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState =>
+				roundState.Phase == Phase.InputRegistration &&
+				roundState.InputRegistrationEnd - DateTimeOffset.UtcNow > DoNotRegisterInLastMinuteTimeLimit
+			, cancellationToken).ConfigureAwait(false);
 
 		// This should be roughly log(#inputs), it could be set slightly
 		// higher if more inputs are observed but that involves trusting the
