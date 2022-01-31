@@ -16,7 +16,7 @@
 
 using System;
 using System.Collections.Generic;
-
+using System.Drawing;
 using ZXing.Common;
 using ZXing.QrCode.Internal;
 
@@ -258,5 +258,13 @@ namespace ZXing.QrCode
             msize = (x - leftTopBlack[0]) / 7.0f;
             return true;
         }
+
+		public Result DecodeFromImagePath(string path)
+		{
+			var image = (Bitmap)Image.FromFile(path);
+			var source = new BitmapLuminanceSource(image);
+			BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
+			return decode(bitmap);
+		}
     }
 }

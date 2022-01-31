@@ -29,30 +29,15 @@ public class QrCodeDecodingTests
 
 		// First Test
 		string path = Path.Combine(CommonPartialPath, "AddressTest1.png");
-
-		var image = (Bitmap)Bitmap.FromFile(path);
-		var source = new BitmapLuminanceSource(image);
-		BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
-		var result = decoder.decode(bitmap);
+		var result = decoder.DecodeFromImagePath(path);
 
 		Assert.Equal(expectedAddress, result.Text);
 
-		//using var qrImage = new Mat(path);
+		// Second Test
+		string path2 = Path.Combine(CommonPartialPath, "AddressTest2.png");
+		var result2 = decoder.DecodeFromImagePath(path2);
 
-		//bool qrFound = decoder.Detect(qrImage, out var points);
-		//Assert.True(qrFound);
-
-		//string address = decoder.Decode(qrImage, points);
-		//Assert.Equal(expectedAddress, address);
-
-		//// Second Test
-		//string otherPath = Path.Combine(CommonPartialPath, "AddressTest2.png");
-		//using var secondQrImage = new Mat(otherPath);
-		//qrFound = decoder.Detect(secondQrImage, out var otherPoints);
-		//Assert.True(qrFound);
-
-		//string secondAddress = decoder.Decode(secondQrImage, otherPoints);
-		//Assert.Equal(otherExpectedAddress, secondAddress);
+		Assert.Equal(otherExpectedAddress, result2.Text);
 	}
 
 	[Fact]
@@ -62,16 +47,13 @@ public class QrCodeDecodingTests
 		{
 			return;
 		}
-		using QRCodeDetector decoder = new();
+		QRCodeReader decoder = new();
 		string expectedOutput = "tb1qutgpgraaze3hqnvt2xyw5acsmd3urprk3ff27d";
 
 		string path = Path.Combine(CommonPartialPath, "QrByPhone.jpg");
-		using var qrImage = new Mat(path);
-		bool qrFound = decoder.Detect(qrImage, out var points);
-		Assert.True(qrFound);
+		var result = decoder.DecodeFromImagePath(path);
 
-		string address = decoder.Decode(qrImage, points);
-		Assert.Equal(expectedOutput, address);
+		Assert.Equal(expectedOutput, result.Text);
 	}
 
 	[Fact]
@@ -81,16 +63,12 @@ public class QrCodeDecodingTests
 		{
 			return;
 		}
-		using QRCodeDetector decoder = new();
+		QRCodeReader decoder = new();
 		string expectedOutput = "Let's see a Zebra.";
 
 		string path = Path.Combine(CommonPartialPath, "QRwithZebraBackground.png");
-		using var qrImage = new Mat(path);
-		bool qrFound = decoder.Detect(qrImage, out var points);
-		Assert.True(qrFound);
-
-		string address = decoder.Decode(qrImage, points);
-		Assert.Equal(expectedOutput, address);
+		var result = decoder.DecodeFromImagePath(path);
+		Assert.Equal(expectedOutput, result.Text);
 	}
 
 	[Fact]
@@ -100,15 +78,11 @@ public class QrCodeDecodingTests
 		{
 			return;
 		}
-		using QRCodeDetector decoder = new();
+		QRCodeReader decoder = new();
 		string expectedOutput = "https://twitter.com/SimonHearne";
 
 		string path = Path.Combine(CommonPartialPath, "qr-embed-logos.png");
-		using var qrImage = new Mat(path);
-		bool qrFound = decoder.Detect(qrImage, out var points);
-		Assert.True(qrFound);
-
-		string address = decoder.Decode(qrImage, points);
-		Assert.Equal(expectedOutput, address);
+		var result = decoder.DecodeFromImagePath(path);
+		Assert.Equal(expectedOutput, result.Text);
 	}
 }
