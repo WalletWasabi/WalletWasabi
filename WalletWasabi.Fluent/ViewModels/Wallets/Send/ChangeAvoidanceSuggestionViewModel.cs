@@ -50,9 +50,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 	{
 		Task<ChangeAvoidanceSuggestionViewModel?> bnbSuggestionTask = Task.Run(() =>
 		{
-			List<SmartCoin> availableCoins = wallet.Coins.Unspent().ToList();
-
-			if (ChangelessTransactionCoinSelector.TryGetCoins(availableCoins, transactionInfo.FeeRate, new TxOut(transactionInfo.Amount, destination), out IEnumerable<SmartCoin>? selection, cancellationToken))
+			if (ChangelessTransactionCoinSelector.TryGetCoins(transactionInfo.Coins, transactionInfo.FeeRate, new TxOut(transactionInfo.Amount, destination), out IEnumerable<SmartCoin>? selection, cancellationToken))
 			{
 				BuildTransactionResult transaction = TransactionHelpers.BuildChangelessTransaction(
 					wallet,
