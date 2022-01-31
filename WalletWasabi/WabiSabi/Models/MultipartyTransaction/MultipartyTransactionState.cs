@@ -1,5 +1,6 @@
 using NBitcoin;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction;
@@ -28,4 +29,31 @@ public abstract record MultipartyTransactionState
 	// to do for now, but in the future EstimatedVsize should be used
 	// including the shared overhead
 	public FeeRate EffectiveFeeRate => new(Balance, EstimatedInputsVsize + OutputsVsize);
+
+	public ImmutableList<MultipartyTransactionState> PreviousStates { get; init; } = ImmutableList<MultipartyTransactionState>.Empty;
+
+	public MultipartyTransactionState GetConstructionStateSince(int order)
+	{
+		var state = PreviousStates.IsEmpty || order >= PreviousStates.Count
+			? this
+			: PreviousStates[order < 0 ? 0 : order];
+
+		return this with {
+			Inputs = Inputs.GetRange(state.Inputs.Count, Inputs.Count - state.Inputs.Count),
+			Outputs = Outputs.GetRange(state.Outputs.Count, Outputs.Count - state.Outputs.Count)
+		};
+	}
+
+	public MultipartyTransactionState Merge(MultipartyTransactionState diff) =>
+		this with {
+			Inputs = Inputs.AddRange(diff.Inputs),
+			Outputs = Outputs.AddRange(diff.Outputs),
+			PreviousStates = diff.PreviousStates,
+		};
+
+	public MultipartyTransactionState MergeBack(MultipartyTransactionState origin) =>
+		this with {
+			Inputs = origin.Inputs.AddRange(Inputs),
+			Outputs = origin.Outputs.AddRange(Outputs),
+		};
 }

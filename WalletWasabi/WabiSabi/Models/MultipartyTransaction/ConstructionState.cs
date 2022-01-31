@@ -60,7 +60,7 @@ public record ConstructionState : MultipartyTransactionState
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NonUniqueInputs);
 		}
 
-		return this with { Inputs = Inputs.Add(coin) };
+		return this with { Inputs = Inputs.Add(coin), PreviousStates = PreviousStates.Add(this) };
 	}
 
 	public ConstructionState AddOutput(TxOut output)
@@ -93,7 +93,7 @@ public record ConstructionState : MultipartyTransactionState
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.ScriptNotAllowed);
 		}
 
-		return this with { Outputs = Outputs.Add(output) };
+		return this with { Outputs = Outputs.Add(output), PreviousStates = PreviousStates.Add(this) };
 	}
 
 	public SigningState Finalize()
