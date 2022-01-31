@@ -28,12 +28,12 @@
     </c:ContentArea.Styles>
     <Grid RowDefinitions="*, 40, *" Margin="0 20" VerticalAlignment="Stretch"
           DataContext="{Binding LabelSelection}">
-      <Border Background="#F5F7EE" CornerRadius="10">
+      <Border Background="{DynamicResource PrivacyControlWhiteListBackground}" CornerRadius="10">
         <DockPanel>
           <Border DockPanel.Dock="Top" Padding="20 20 20 0">
             <StackPanel Orientation="Horizontal" Spacing="10">
-              <PathIcon Data="{StaticResource shield_regular}" Foreground="Green" Height="20" />
-              <TextBlock VerticalAlignment="Bottom" FontSize="18" Margin="0 2 0 0"
+              <PathIcon Data="{StaticResource shield_regular}" Foreground="{DynamicResource PrivacyControlWhiteListHeaderForeground}" Height="20" />
+              <TextBlock VerticalAlignment="Bottom" FontSize="18" Margin="0 2 0 0" Foreground="{DynamicResource PrivacyControlWhiteListHeaderForeground}"
                          Text="I am comfortable leaking information about this transaction to: ">
               </TextBlock>
             </StackPanel>
@@ -47,18 +47,18 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="vm:LabelViewModel">
-                <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}" Padding="10">
+                <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}">
                   <i:Interaction.Behaviors>
                     <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
                   </i:Interaction.Behaviors>
                   <c:TagControl Content="{Binding Value}" IsHitTestVisible="False">
-                    <c:TagControl.Background>
+                    <c:TagControl.BorderBrush>
                       <Binding Path="IsHighlighted">
                         <Binding.Converter>
-                          <converters:BoolToBrushConverter TrueBrush="#F28A81" />
+                          <converters:BoolToBrushConverter TrueBrush="#F28A81" FalseBrush="{StaticResource PrivacyControlBlackListItemBackground}" />
                         </Binding.Converter>
                       </Binding>
-                    </c:TagControl.Background>
+                    </c:TagControl.BorderBrush>
                   </c:TagControl>
                 </Button>
               </DataTemplate>
@@ -69,7 +69,7 @@
 
       <Separator Grid.Row="1" VerticalAlignment="Center" />
 
-      <Border Grid.Row="2" Background="#7FF2F2F2" CornerRadius="10">
+      <Border Grid.Row="2" Background="{DynamicResource PrivacyControlBlackListBackground}" CornerRadius="10">
         <DockPanel>
           <Border DockPanel.Dock="Top" Padding="20 20 20 0">
             <StackPanel Orientation="Horizontal" Spacing="10">
@@ -88,18 +88,18 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="vm:LabelViewModel">
-                <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}" Padding="10">
+                <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}">
                   <i:Interaction.Behaviors>
                     <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
                   </i:Interaction.Behaviors>
                   <c:TagControl Content="{Binding Value}" IsHitTestVisible="False">
-                    <c:TagControl.Background>
+                    <c:TagControl.BorderBrush>
                       <Binding Path="IsHighlighted">
                         <Binding.Converter>
-                          <converters:BoolToBrushConverter TrueBrush="#22B161" />
+                          <converters:BoolToBrushConverter TrueBrush="#22B161" FalseBrush="{StaticResource PrivacyControlBlackListItemBackground}" />
                         </Binding.Converter>
                       </Binding>
-                    </c:TagControl.Background>
+                    </c:TagControl.BorderBrush>
                   </c:TagControl>
                 </Button>
               </DataTemplate>
