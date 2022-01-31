@@ -627,9 +627,9 @@ public static class Program
 			result = StartProcessAndWaitForExit(command, workingDirectory, writeToStandardInput, arguments, redirectStandardOutput)?.Trim() ?? "";
 			return true;
 		}
-		catch
+		catch (Exception ex)
 		{
-			// Exceptions already displayed in StartProcessAndWaitForExit.
+			Console.WriteLine($"Process failed: '{ex}'.");
 		}
 		return false;
 	}
