@@ -446,7 +446,7 @@ public record DependencyGraph
 
 		if (!unresolvedNodes.Any())
 		{
-			return ResolveZeroCredentialsForTerminalNodes(credentialType); ;
+			return ResolveZeroCredentialsForTerminalNodes(credentialType);
 		}
 
 		// Resolve remaining zero credentials by using nodes with no

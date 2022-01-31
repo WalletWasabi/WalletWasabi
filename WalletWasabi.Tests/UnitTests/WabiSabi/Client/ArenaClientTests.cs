@@ -198,9 +198,10 @@ public class ArenaClientTests
 	{
 		WabiSabiConfig config = new();
 		Round round = WabiSabiFactory.CreateRound(config);
+		var password = "satoshi";
 
-		var km = ServiceFactory.CreateKeyManager("");
-		var keyChain = new KeyChain(km);
+		var km = ServiceFactory.CreateKeyManager(password);
+		var keyChain = new KeyChain(km, new Kitchen(password));
 		var destinationProvider = new InternalDestinationProvider(km);
 
 		var coins = destinationProvider.GetNextDestinations(2)
