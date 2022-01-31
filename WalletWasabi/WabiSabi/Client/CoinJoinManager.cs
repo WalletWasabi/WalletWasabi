@@ -153,7 +153,7 @@ public class CoinJoinManager : BackgroundService
 	private ImmutableDictionary<string, Wallet> GetMixableWallets() =>
 		WalletManager.GetWallets()
 			.Where(x => x.State == WalletState.Started) // Only running wallets
-			.Where(x => (x.KeyManager.AutoCoinJoin && x.ElapsedTimeSinceStartup > AutoCoinJoinDelayAfterWalletLoaded) && (x.NonPrivateCoins.TotalAmount() >= x.KeyManager.PlebStopThreshold)) || x.AllowManualCoinJoin)     // configured to be mixed automatically or manually
+			.Where(x => (x.KeyManager.AutoCoinJoin && x.ElapsedTimeSinceStartup > AutoCoinJoinDelayAfterWalletLoaded && (x.NonPrivateCoins.TotalAmount() >= x.KeyManager.PlebStopThreshold)) || x.AllowManualCoinJoin)     // configured to be mixed automatically or manually
 			.Where(x => !x.KeyManager.IsWatchOnly)      // that are not watch-only wallets
 			.Where(x => x.Kitchen.HasIngredients)
 			.ToImmutableDictionary(x => x.WalletName, x => x);
