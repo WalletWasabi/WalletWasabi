@@ -27,8 +27,6 @@
                  ToolTip.Tip="Your privacy is being protected with PayJoin."
                  IsVisible="{Binding CurrentTransactionSummary.IsPayJoin}" />
 
-          <c:ProgressRing Margin="10 0 10 5" Height="25" Width="25" IsIndeterminate="True" IsVisible="{Binding PrivacySuggestions.IsLoading}" />
-
           <Border Padding="10 0 10 10" Cursor="Hand" IsVisible="{Binding CurrentTransactionSummary.MaxPrivacy}">
             <Interaction.Behaviors>
               <behaviors:ShowFlyoutOnPointerOverBehavior />
@@ -99,7 +97,6 @@
                           <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow1}" />
                         </Style>
 
-
                         <Style Selector="ListBoxItem Border#PART_DecorationBorderHover">
                           <Setter Property="Padding" Value="15 25 15 25" />
                           <Setter Property="CornerRadius" Value="4" />
@@ -111,13 +108,11 @@
                           <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow2}" />
 
                           <Setter Property="Opacity" Value="0" />
-
                         </Style>
 
                         <Style Selector="ListBoxItem:pointerover Border#PART_DecorationBorderHover">
                           <Setter Property="Opacity" Value="1" />
                         </Style>
-
                       </ListBox.Styles>
                       <ListBox.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -139,7 +134,6 @@
             </FlyoutBase.AttachedFlyout>
             <Panel.IsVisible>
               <MultiBinding Converter="{x:Static BoolConverters.And}">
-                <Binding Path="PrivacySuggestions.IsLoading" Converter="{x:Static BoolConverters.Not}"/>
                 <MultiBinding Converter="{x:Static BoolConverters.Or}">
                   <Binding Path="CurrentTransactionSummary.TransactionHasChange" />
                   <Binding Path="CurrentTransactionSummary.TransactionHasPockets" />

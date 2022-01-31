@@ -17,7 +17,6 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	[AutoNotify] private SuggestionViewModel? _previewSuggestion;
 	[AutoNotify] private SuggestionViewModel? _selectedSuggestion;
 	[AutoNotify] private bool _isOpen;
-	[AutoNotify] private bool _isLoading;
 
 	public PrivacySuggestionsFlyoutViewModel()
 	{
@@ -37,8 +36,6 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 	public async Task BuildPrivacySuggestionsAsync(Wallet wallet, TransactionInfo info, BitcoinAddress destination, BuildTransactionResult transaction, CancellationToken cancellationToken = default)
 	{
-		IsLoading = true;
-
 		Suggestions.Clear();
 		SelectedSuggestion = null;
 
@@ -51,8 +48,6 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 		Suggestions.Add(loadingRing);
 
 		var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destination.ScriptPubKey);
-
-		IsLoading = false;
 
 		if (hasChange)
 		{
