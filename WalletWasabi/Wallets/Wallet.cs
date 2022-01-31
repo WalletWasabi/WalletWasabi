@@ -97,6 +97,7 @@ public class Wallet : BackgroundService
 	public bool AllowManualCoinJoin { get; set; }
 
 	public Kitchen Kitchen { get; } = new();
+	public ICoinsView NonPrivateCoins => new CoinsView(Coins.Where(c => c.HdPubKey.AnonymitySet < ServiceConfiguration.MinAnonScoreTarget));
 
 	public bool TryLogin(string password, out string? compatibilityPasswordUsed)
 	{
