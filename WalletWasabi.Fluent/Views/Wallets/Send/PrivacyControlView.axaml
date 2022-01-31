@@ -51,11 +51,18 @@
                   <i:Interaction.Behaviors>
                     <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
                   </i:Interaction.Behaviors>
-                  <c:TagControl Content="{Binding Value}" IsHitTestVisible="False">
+                  <c:TagControl Content="{Binding Value}" IsHitTestVisible="False" Background="{DynamicResource PrivacyControlItemHighlight}">
+                    <c:TagControl.Foreground>
+                    <Binding Path="IsHighlighted">
+                      <Binding.Converter>
+                        <converters:BoolToBrushConverter TrueBrush="{DynamicResource PrivacyControlItemWhiteListHighlight}" />
+                      </Binding.Converter>
+                    </Binding>
+                    </c:TagControl.Foreground>
                     <c:TagControl.BorderBrush>
                       <Binding Path="IsHighlighted">
                         <Binding.Converter>
-                          <converters:BoolToBrushConverter TrueBrush="#F28A81" FalseBrush="{StaticResource PrivacyControlItemBackground}" />
+                          <converters:BoolToBrushConverter TrueBrush="{DynamicResource PrivacyControlItemWhiteListHighlight}" />
                         </Binding.Converter>
                       </Binding>
                     </c:TagControl.BorderBrush>
@@ -92,11 +99,18 @@
                   <i:Interaction.Behaviors>
                     <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
                   </i:Interaction.Behaviors>
-                  <c:TagControl Content="{Binding Value}" IsHitTestVisible="False">
+                  <c:TagControl Content="{Binding Value}" IsHitTestVisible="False" Background="{DynamicResource Pric}">
+                    <c:TagControl.Foreground>
+                      <Binding Path="IsHighlighted">
+                        <Binding.Converter>
+                          <converters:BoolToBrushConverter TrueBrush="{DynamicResource PrivacyControlItemBlackListHighlight}" />
+                        </Binding.Converter>
+                      </Binding>
+                    </c:TagControl.Foreground>
                     <c:TagControl.BorderBrush>
                       <Binding Path="IsHighlighted">
                         <Binding.Converter>
-                          <converters:BoolToBrushConverter TrueBrush="#22B161" FalseBrush="{StaticResource PrivacyControlItemBackground}" />
+                          <converters:BoolToBrushConverter TrueBrush="{DynamicResource PrivacyControlItemBlackListHighlight}" />
                         </Binding.Converter>
                       </Binding>
                     </c:TagControl.BorderBrush>
