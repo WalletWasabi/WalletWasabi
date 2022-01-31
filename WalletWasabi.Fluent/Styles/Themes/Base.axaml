@@ -69,8 +69,8 @@
     <SolidColorBrush x:Key="PrivacyLevelExtremeBrush" Color="#89C67A" />
     <SolidColorBrush x:Key="PrivacyLevelExtremeAltBrush" Color="#5B92D2" />
 
-    <SolidColorBrush x:Key="PrivacyControlItemWhiteListHighlight" Color="#72BD81" />
-    <SolidColorBrush x:Key="PrivacyControlItemBlackListHighlight" Color="#e01e5a" />
+    <SolidColorBrush x:Key="PrivacyControlItemBlackListHighlight" Color="#72BD81" />
+    <SolidColorBrush x:Key="PrivacyControlItemWhiteListHighlight" Color="#e01e5a" />
 
     <SolidColorBrush x:Key="WarningMessageForeground">#DDA73E</SolidColorBrush>
     <StaticResource x:Key="SystemControlErrorTextForegroundBrush" ResourceKey="SystemErrorTextColor" />
