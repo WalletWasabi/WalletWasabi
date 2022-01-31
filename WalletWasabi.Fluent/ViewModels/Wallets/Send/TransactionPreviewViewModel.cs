@@ -268,9 +268,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 		catch (InsufficientBalanceException)
 		{
-			if (_info.IsPayJoin)
+			if (_info.IsPayJoin || _isFixedAmount)
 			{
-				return await HandleInsufficientBalanceWhenPayJoinAsync(_wallet, _info);
+				return await HandleInsufficientBalanceWhenFixedAmountAsync(_wallet, _info);
 			}
 
 			return await HandleInsufficientBalanceWhenNormalAsync(_wallet, _info);
@@ -347,7 +347,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		return null;
 	}
 
-	private async Task<BuildTransactionResult?> HandleInsufficientBalanceWhenPayJoinAsync(Wallet wallet,
+	private async Task<BuildTransactionResult?> HandleInsufficientBalanceWhenFixedAmountAsync(Wallet wallet,
 		TransactionInfo transactionInfo)
 	{
 		if (wallet.Coins.TotalAmount() > transactionInfo.Amount)
