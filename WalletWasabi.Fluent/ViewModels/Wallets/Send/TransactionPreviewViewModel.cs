@@ -42,10 +42,10 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		PreviewTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info, destination, true);
 
 		TransactionSummaries = new List<TransactionSummaryViewModel>
-			{
-				CurrentTransactionSummary,
-				PreviewTransactionSummary
-			};
+		{
+			CurrentTransactionSummary,
+			PreviewTransactionSummary
+		};
 
 		DisplayedTransactionSummary = CurrentTransactionSummary;
 
@@ -159,9 +159,12 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private void UpdateTransaction(TransactionSummaryViewModel summary, BuildTransactionResult transaction)
 	{
-		_transaction = transaction;
+		if (!summary.IsPreview)
+		{
+			_transaction = transaction;
+		}
 
-		summary.UpdateTransaction(_transaction);
+		summary.UpdateTransaction(transaction);
 
 		DisplayedTransactionSummary = summary;
 	}
@@ -171,7 +174,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		var feeRateDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, false));
 
 		if (feeRateDialogResult.Kind == DialogResultKind.Normal && feeRateDialogResult.Result is { } newFeeRate &&
-			newFeeRate != _info.FeeRate)
+		    newFeeRate != _info.FeeRate)
 		{
 			_info.FeeRate = feeRateDialogResult.Result;
 
@@ -194,7 +197,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private async Task OnChangePocketsAsync()
 	{
 		var selectPocketsDialog =
-			await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, false));
+			await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, _transaction?.SpentCoins, false));
 
 		if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
 		{
@@ -209,9 +212,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		if (!_info.Coins.Any())
 		{
 			var privacyControlDialogResult =
-				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, isSilent: true));
+				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, _transaction?.SpentCoins, isSilent: true));
 			if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
-				privacyControlDialogResult.Result is { } coins)
+			    privacyControlDialogResult.Result is { } coins)
 			{
 				_info.Coins = coins;
 			}
@@ -329,11 +332,11 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		if (wallet.Coins.TotalAmount() > transactionInfo.Amount)
 		{
 			var privacyControlDialogResult = await NavigateDialogAsync(
-				new PrivacyControlViewModel(wallet, transactionInfo, isSilent: false),
+				new PrivacyControlViewModel(wallet, transactionInfo, _transaction?.SpentCoins, isSilent: false),
 				NavigationTarget.DialogScreen);
 
 			if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
-				privacyControlDialogResult.Result is { })
+			    privacyControlDialogResult.Result is { })
 			{
 				transactionInfo.Coins = privacyControlDialogResult.Result;
 			}
@@ -367,10 +370,10 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			}
 
 			var privacyControlDialogResult = await NavigateDialogAsync(
-				new PrivacyControlViewModel(wallet, transactionInfo, isSilent: false),
+				new PrivacyControlViewModel(wallet, transactionInfo, _transaction?.SpentCoins, isSilent: false),
 				NavigationTarget.DialogScreen);
 			if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
-				privacyControlDialogResult.Result is { })
+			    privacyControlDialogResult.Result is { })
 			{
 				transactionInfo.Coins = privacyControlDialogResult.Result;
 			}
@@ -467,7 +470,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private async Task<bool> AuthorizeAsync(TransactionAuthorizationInfo transactionAuthorizationInfo)
 	{
 		if (!_wallet.KeyManager.IsHardwareWallet &&
-			string.IsNullOrEmpty(_wallet.Kitchen.SaltSoup())) // Do not show auth dialog when password is empty
+		    string.IsNullOrEmpty(_wallet.Kitchen.SaltSoup())) // Do not show auth dialog when password is empty
 		{
 			return true;
 		}

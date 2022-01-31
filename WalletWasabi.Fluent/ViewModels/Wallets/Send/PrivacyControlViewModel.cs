@@ -17,12 +17,14 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 	private readonly Wallet _wallet;
 	private readonly TransactionInfo _transactionInfo;
 	private readonly bool _isSilent;
+	private readonly IEnumerable<SmartCoin>? _usedCoins;
 
-	public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, bool isSilent)
+	public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, IEnumerable<SmartCoin>? usedCoins, bool isSilent)
 	{
 		_wallet = wallet;
 		_transactionInfo = transactionInfo;
 		_isSilent = isSilent;
+		_usedCoins = usedCoins;
 
 		LabelSelection = new LabelSelectionViewModel(_transactionInfo.Amount);
 
@@ -44,6 +46,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 	private void InitializeLabels()
 	{
 		LabelSelection.Reset(_wallet.Coins.GetPockets(_wallet.ServiceConfiguration.MinAnonScoreTarget).Select(x => new Pocket(x)).ToArray());
+		LabelSelection.SetUsedLabel(_usedCoins);
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)

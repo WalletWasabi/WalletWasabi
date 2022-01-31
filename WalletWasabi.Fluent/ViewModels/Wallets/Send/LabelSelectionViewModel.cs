@@ -3,6 +3,7 @@ using System.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -88,5 +89,25 @@ public class LabelSelectionViewModel : ViewModelBase
 
 		this.RaisePropertyChanged(nameof(LabelsWhiteList));
 		this.RaisePropertyChanged(nameof(LabelsBlackList));
+	}
+
+	public void SetUsedLabel(IEnumerable<SmartCoin>? usedCoins)
+	{
+		if (usedCoins is null)
+		{
+			return;
+		}
+
+		var usedPockets = AllPocket.Where(pocket => pocket.Coins.Any(usedCoins.Contains)).ToArray();
+		var notUsedPockets = AllPocket.Except(usedPockets);
+		var notUsedPocketsLabels = SmartLabel.Merge(notUsedPockets.Select(x => x.Labels));
+		var notUsedLabelViewModels = AllLabelViewModel.Where(x => notUsedPocketsLabels.Contains(x.Value)).ToArray();
+
+		foreach (LabelViewModel label in notUsedLabelViewModels)
+		{
+			label.Swap();
+		}
+
+		OnSelectionChanged();
 	}
 }
