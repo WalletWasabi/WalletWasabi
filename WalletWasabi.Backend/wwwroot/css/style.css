@@ -538,7 +538,7 @@ ol li::marker {
 .timeline li {
     width: 50%;
     padding: 60px 0 5px;
-    padding-right: 20%;
+    padding-right: 15%;
     position: relative;
     display: block;
 }
@@ -558,7 +558,7 @@ ol li::marker {
 }
 .timeline li:nth-child(even) {
     margin-left: calc(50% - 1px);
-    padding-left: 20%;
+    padding-left: 15%;
     padding-right: 0;
 }
 .timeline-title {
