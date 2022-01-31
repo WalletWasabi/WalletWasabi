@@ -141,6 +141,9 @@ public class KeyManager
 	[JsonProperty(Order = 10, PropertyName = "AutoCoinJoin", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool AutoCoinJoin { get; set; }
 
+	/// <summary>
+	/// Won't coinjoin automatically if there are less than this much non-private coins are in the wallet.
+	/// </summary>
 	[JsonProperty(Order = 11, PropertyName = "PlebStopThreshold")]
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
 	public Money PlebStopThreshold { get; internal set; } = DefaultPlebStopThreshold;
