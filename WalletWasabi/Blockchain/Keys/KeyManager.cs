@@ -135,21 +135,21 @@ public class KeyManager
 	[JsonProperty(Order = 8)]
 	private BlockchainState BlockchainState { get; }
 
-	[JsonProperty(Order = 9)]
-	private List<HdPubKey> HdPubKeys { get; }
-
-	[JsonProperty(Order = 10, PropertyName = "Icon")]
-	public string? Icon { get; private set; }
-
-	[JsonProperty(Order = 11, PropertyName = "PreferPsbtWorkflow")]
+	[JsonProperty(Order = 9, PropertyName = "PreferPsbtWorkflow")]
 	public bool PreferPsbtWorkflow { get; set; }
 
-	[JsonProperty(Order = 12, PropertyName = "AutoCoinJoin", DefaultValueHandling = DefaultValueHandling.Populate)]
+	[JsonProperty(Order = 10, PropertyName = "AutoCoinJoin", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool AutoCoinJoin { get; set; }
 
-	[JsonProperty(Order = 13, PropertyName = "PlebStopThreshold")]
+	[JsonProperty(Order = 11, PropertyName = "PlebStopThreshold")]
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
 	public Money PlebStopThreshold { get; internal set; } = DefaultPlebStopThreshold;
+
+	[JsonProperty(Order = 12, PropertyName = "Icon")]
+	public string? Icon { get; private set; }
+
+	[JsonProperty(Order = 999)]
+	private List<HdPubKey> HdPubKeys { get; }
 
 	private object BlockchainStateLock { get; }
 
