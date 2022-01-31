@@ -189,7 +189,14 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			UpdateTransaction(CurrentTransactionSummary, newTransaction);
 
-			await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, newTransaction);
+			// Cancel and dispose old token source.
+			_cancellationTokenSource.Cancel();
+			_cancellationTokenSource.Dispose();
+
+			// Start the new search with a fresh token source.
+			_cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+
+			await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, newTransaction, _cancellationTokenSource.Token);
 		}
 	}
 
