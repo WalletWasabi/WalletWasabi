@@ -12,7 +12,7 @@
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacyControlView">
   <c:ContentArea Title="Send - Control your privacy"
-                 Caption="Choose who could see this transaction"
+                 Caption="Choose who can and can't see this transaction"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="Continue"
                  IsBusy="{Binding IsBusy}"
@@ -34,7 +34,7 @@
             <StackPanel Orientation="Horizontal" Spacing="10">
               <PathIcon Data="{StaticResource shield_regular}" Foreground="{DynamicResource PrivacyControlWhiteListHeaderForeground}" Height="20" />
               <TextBlock VerticalAlignment="Bottom" FontSize="18" Margin="0 2 0 0" Foreground="{DynamicResource PrivacyControlWhiteListHeaderForeground}"
-                         Text="Could see this transaction: ">
+                         Text="Can see this transaction: ">
               </TextBlock>
             </StackPanel>
           </Border>
@@ -82,7 +82,7 @@
             <StackPanel Orientation="Horizontal" Spacing="10">
               <PathIcon Data="{StaticResource warning_regular}" Height="20" />
               <TextBlock VerticalAlignment="Bottom" FontSize="18" Margin="0 2 0 0"
-                         Text="Must not see this transaction: ">
+                         Text="Can't see this transaction: ">
               </TextBlock>
             </StackPanel>
           </Border>
