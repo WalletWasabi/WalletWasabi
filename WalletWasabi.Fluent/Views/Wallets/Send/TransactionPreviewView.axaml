@@ -24,7 +24,7 @@
         <TextBlock Text="Preview Transaction" />
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center">
           <Image Width="120" Margin="10 4 10 5" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
-                 ToolTip.Tip="Your privacy is being protected with PayJoin."
+                 ToolTip.Tip="Your privacy is being protected with payjoin."
                  IsVisible="{Binding CurrentTransactionSummary.IsPayJoin}" />
 
           <c:ProgressRing Margin="10 0 10 5" Height="25" Width="25" IsIndeterminate="True" IsVisible="{Binding PrivacySuggestions.IsLoading}" />
@@ -99,7 +99,6 @@
                           <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow1}" />
                         </Style>
 
-
                         <Style Selector="ListBoxItem Border#PART_DecorationBorderHover">
                           <Setter Property="Padding" Value="15 25 15 25" />
                           <Setter Property="CornerRadius" Value="4" />
@@ -111,13 +110,11 @@
                           <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow2}" />
 
                           <Setter Property="Opacity" Value="0" />
-
                         </Style>
 
                         <Style Selector="ListBoxItem:pointerover Border#PART_DecorationBorderHover">
                           <Setter Property="Opacity" Value="1" />
                         </Style>
-
                       </ListBox.Styles>
                       <ListBox.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -139,7 +136,7 @@
             </FlyoutBase.AttachedFlyout>
             <Panel.IsVisible>
               <MultiBinding Converter="{x:Static BoolConverters.And}">
-                <Binding Path="PrivacySuggestions.IsLoading" Converter="{x:Static BoolConverters.Not}"/>
+                <Binding Path="PrivacySuggestions.IsLoading" Converter="{x:Static BoolConverters.Not}" />
                 <MultiBinding Converter="{x:Static BoolConverters.Or}">
                   <Binding Path="CurrentTransactionSummary.TransactionHasChange" />
                   <Binding Path="CurrentTransactionSummary.TransactionHasPockets" />

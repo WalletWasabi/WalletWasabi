@@ -32,7 +32,7 @@ public class AliceTimeoutTests
 		await roundStateUpdater.StartAsync(CancellationToken.None);
 
 		// Register Alices.
-		var keyChain = new KeyChain(km);
+		var keyChain = new KeyChain(km, new Kitchen(""));
 
 		using CancellationTokenSource cancellationTokenSource = new();
 		var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, smartCoin, keyChain, roundStateUpdater, cancellationTokenSource.Token);
