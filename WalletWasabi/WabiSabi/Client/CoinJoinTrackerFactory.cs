@@ -26,7 +26,7 @@ public class CoinJoinTrackerFactory
 	{
 		var coinJoinClient = new CoinJoinClient(
 			HttpClientFactory,
-			new KeyChain(wallet.KeyManager),
+			new KeyChain(wallet.KeyManager, wallet.Kitchen),
 			new InternalDestinationProvider(wallet.KeyManager),
 			RoundStatusUpdater,
 			wallet.ServiceConfiguration.MinAnonScoreTarget);
