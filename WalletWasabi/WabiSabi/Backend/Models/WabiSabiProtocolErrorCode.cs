@@ -21,6 +21,7 @@ public enum WabiSabiProtocolErrorCode
 	ScriptNotAllowed,
 	IncorrectRequestedAmountCredentials,
 	WrongCoinjoinSignature,
+	SignatureTooLong,
 	AliceAlreadyRegistered,
 	NonStandardInput,
 	NonStandardOutput,
