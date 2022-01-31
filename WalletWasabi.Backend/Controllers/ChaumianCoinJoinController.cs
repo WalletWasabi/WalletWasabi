@@ -550,7 +550,7 @@ public class ChaumianCoinJoinController : ControllerBase
 	}
 
 	/// <summary>
-	/// Alice asks for the final CoinJoin transaction.
+	/// Alice asks for the final coinjoin transaction.
 	/// </summary>
 	/// <param name="uniqueId">Unique identifier, obtained previously.</param>
 	/// <param name="roundId">Round identifier, obtained previously.</param>
@@ -558,8 +558,8 @@ public class ChaumianCoinJoinController : ControllerBase
 	/// <response code="200">Returns the coinjoin transaction.</response>
 	/// <response code="400">The provided uniqueId or roundId was malformed.</response>
 	/// <response code="404">If Alice or the round is not found.</response>
-	/// <response code="409">CoinJoin can only be requested from Signing phase.</response>
-	/// <response code="410">CoinJoin can only be requested from a Running round.</response>
+	/// <response code="409">Coinjoin can only be requested from Signing phase.</response>
+	/// <response code="410">Coinjoin can only be requested from a Running round.</response>
 	[HttpGet("coinjoin")]
 	[ProducesResponseType(200)]
 	[ProducesResponseType(400)]
@@ -597,7 +597,7 @@ public class ChaumianCoinJoinController : ControllerBase
 			default:
 				{
 					TryLogLateRequest(roundId, RoundPhase.Signing);
-					return Conflict($"CoinJoin can only be requested from Signing phase. Current phase: {phase}.");
+					return Conflict($"Coinjoin can only be requested from Signing phase. Current phase: {phase}.");
 				}
 		}
 	}
@@ -609,7 +609,7 @@ public class ChaumianCoinJoinController : ControllerBase
 	/// <param name="roundId">Round identifier, obtained previously.</param>
 	/// <param name="signatures">Dictionary that has an int index as its key and string witness as its value.</param>
 	/// <returns>Hx of the coinjoin transaction.</returns>
-	/// <response code="204">CoinJoin successfully signed.</response>
+	/// <response code="204">Coinjoin successfully signed.</response>
 	/// <response code="400">The provided uniqueId, roundId or witnesses were malformed.</response>
 	/// <response code="409">Signatures can only be provided from Signing phase.</response>
 	/// <response code="410">Signatures can only be provided from a Running round.</response>
@@ -701,15 +701,15 @@ public class ChaumianCoinJoinController : ControllerBase
 			default:
 				{
 					TryLogLateRequest(roundId, RoundPhase.Signing);
-					return Conflict($"CoinJoin can only be requested from Signing phase. Current phase: {phase}.");
+					return Conflict($"Coinjoin can only be requested from Signing phase. Current phase: {phase}.");
 				}
 		}
 	}
 
 	/// <summary>
-	/// Gets the list of unconfirmed CoinJoin transaction Ids.
+	/// Gets the list of unconfirmed coinjoin transaction Ids.
 	/// </summary>
-	/// <returns>The list of CoinJoin transactions in the mempool.</returns>
+	/// <returns>The list of coinjoin transactions in the mempool.</returns>
 	/// <response code="200">An array of transaction Ids</response>
 	[HttpGet("unconfirmed-coinjoins")]
 	[ProducesResponseType(200)]
