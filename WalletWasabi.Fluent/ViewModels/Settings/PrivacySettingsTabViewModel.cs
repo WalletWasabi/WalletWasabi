@@ -14,11 +14,13 @@ public partial class PrivacySettingsTabViewModel : SettingsTabViewModelBase
 {
 	[AutoNotify] private int _minAnonScoreTarget;
 	[AutoNotify] private int _maxAnonScoreTarget;
+	[AutoNotify] private bool _alwaysShowPrivacyControl;
 
 	public PrivacySettingsTabViewModel()
 	{
 		_minAnonScoreTarget = Services.Config.MinAnonScoreTarget;
 		_maxAnonScoreTarget = Services.Config.MaxAnonScoreTarget;
+		_alwaysShowPrivacyControl = Services.UiConfig.AlwaysShowPrivacyControl;
 
 		this.WhenAnyValue(
 				x => x.MinAnonScoreTarget,
@@ -47,6 +49,9 @@ public partial class PrivacySettingsTabViewModel : SettingsTabViewModelBase
 						MinAnonScoreTarget = x - 1;
 					}
 				});
+
+		this.WhenAnyValue(x => x.AlwaysShowPrivacyControl)
+			.Subscribe(x => Services.UiConfig.AlwaysShowPrivacyControl = x);
 	}
 
 	protected override void EditConfigOnSave(Config config)

@@ -9,6 +9,11 @@
              x:CompileBindings="True">
   <StackPanel Classes="settingsLayout">
 
+    <DockPanel>
+      <TextBlock Text="Always show Privacy Control screen" />
+      <ToggleSwitch IsChecked="{Binding AlwaysShowPrivacyControl}" />
+    </DockPanel>
+
     <StackPanel Spacing="10">
       <TextBlock Text="Minimum Anonymity Score Target" />
       <DockPanel>
