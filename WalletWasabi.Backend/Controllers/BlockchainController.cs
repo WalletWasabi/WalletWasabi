@@ -352,7 +352,7 @@ public class BlockchainController : ControllerBase
 			status.FilterCreationActive = true;
 		}
 
-		// Updating the status of CoinJoin
+		// Updating the status of coinjoin
 		var validInterval = TimeSpan.FromSeconds(Global.Coordinator.RoundConfig.InputRegistrationTimeout * 2);
 		if (validInterval < TimeSpan.FromHours(1))
 		{

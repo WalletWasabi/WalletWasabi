@@ -11,6 +11,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Helpers;
 using WalletWasabi.Io;
 using WalletWasabi.JsonConverters;
+using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
@@ -23,6 +24,7 @@ public class KeyManager
 {
 	public const int AbsoluteMinGapLimit = 21;
 	public const int MaxGapLimit = 10_000;
+	public static Money DefaultPlebStopThreshold = Money.Coins(0.01m);
 
 	// BIP84-ish derivation scheme
 	// m / purpose' / coin_type' / account' / change / address_index
@@ -133,17 +135,24 @@ public class KeyManager
 	[JsonProperty(Order = 8)]
 	private BlockchainState BlockchainState { get; }
 
-	[JsonProperty(Order = 9)]
-	private List<HdPubKey> HdPubKeys { get; }
-
-	[JsonProperty(Order = 10, PropertyName = "Icon")]
-	public string? Icon { get; private set; }
-
-	[JsonProperty(Order = 11, PropertyName = "PreferPsbtWorkflow")]
+	[JsonProperty(Order = 9, PropertyName = "PreferPsbtWorkflow")]
 	public bool PreferPsbtWorkflow { get; set; }
 
-	[JsonProperty(Order = 12, PropertyName = "AutoCoinJoin", DefaultValueHandling = DefaultValueHandling.Populate)]
+	[JsonProperty(Order = 10, PropertyName = "AutoCoinJoin", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool AutoCoinJoin { get; set; }
+
+	/// <summary>
+	/// Won't coinjoin automatically if there are less than this much non-private coins are in the wallet.
+	/// </summary>
+	[JsonProperty(Order = 11, PropertyName = "PlebStopThreshold")]
+	[JsonConverter(typeof(MoneyBtcJsonConverter))]
+	public Money PlebStopThreshold { get; internal set; } = DefaultPlebStopThreshold;
+
+	[JsonProperty(Order = 12, PropertyName = "Icon")]
+	public string? Icon { get; private set; }
+
+	[JsonProperty(Order = 999)]
+	private List<HdPubKey> HdPubKeys { get; }
 
 	private object BlockchainStateLock { get; }
 

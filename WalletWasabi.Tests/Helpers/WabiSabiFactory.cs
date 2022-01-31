@@ -262,7 +262,7 @@ public static class WabiSabiFactory
 	public static (IKeyChain, SmartCoin, SmartCoin) CreateCoinKeyPairs()
 	{
 		var km = ServiceFactory.CreateKeyManager("");
-		var keyChain = new KeyChain(km);
+		var keyChain = new KeyChain(km, new Kitchen(""));
 
 		var smartCoin1 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m));
 		var smartCoin2 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(2m));
