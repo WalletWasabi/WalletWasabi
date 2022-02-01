@@ -366,6 +366,71 @@ public class PocketSelectionTests
 		Assert.Contains(selection.GetLabel("Lucas"), selection.LabelsWhiteList);
 		Assert.Contains(selection.GetLabel("Jumar"), selection.LabelsWhiteList);
 	}
+
+	[Fact]
+	public void SingeLabelMarkedAndUnmarkedAsMustHave()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(2.0M, out var pocket1, "Roland");
+		pockets.AddPocket(1.0M, out var pocket2, "Dan");
+
+		selection.Reset(pockets.ToArray());
+
+		selection.SwapLabel(selection.GetLabel("Roland"));
+
+		Assert.True(selection.GetLabel("Dan").MustHave);
+
+		selection.SwapLabel(selection.GetLabel("Roland"));
+
+		Assert.False(selection.GetLabel("Dan").MustHave);
+	}
+
+	[Fact]
+	public void MultipleLabelMarkedAndUnmarkedAsMustHave()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(2.0M, out var pocket1, "Roland");
+		pockets.AddPocket(1.0M, out var pocket2, "Dan", "Jumar");
+
+		selection.Reset(pockets.ToArray());
+
+		selection.SwapLabel(selection.GetLabel("Roland"));
+
+		Assert.True(selection.GetLabel("Dan").MustHave);
+		Assert.True(selection.GetLabel("Jumar").MustHave);
+
+		selection.SwapLabel(selection.GetLabel("Roland"));
+
+		Assert.False(selection.GetLabel("Dan").MustHave);
+		Assert.False(selection.GetLabel("Jumar").MustHave);
+	}
+
+	[Fact]
+	public void MultiplePocketLabelMarkedAndUnmarkedAsMustHave()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(2.0M, out var pocket1, "Roland");
+		pockets.AddPocket(0.5M, out var pocket2, "Dan");
+		pockets.AddPocket(0.5M, out var pocket3, "Jumar");
+
+		selection.Reset(pockets.ToArray());
+
+		selection.SwapLabel(selection.GetLabel("Roland"));
+
+		Assert.True(selection.GetLabel("Dan").MustHave);
+		Assert.True(selection.GetLabel("Jumar").MustHave);
+
+		selection.SwapLabel(selection.GetLabel("Roland"));
+
+		Assert.False(selection.GetLabel("Dan").MustHave);
+		Assert.False(selection.GetLabel("Jumar").MustHave);
+	}
 }
 
 internal static class LabelTestExtensions
