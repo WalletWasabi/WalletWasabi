@@ -103,7 +103,7 @@ public class RegisterOutputTests
 	[Fact]
 	public async Task TooMuchFundsAsync()
 	{
-		WabiSabiConfig cfg = new() { MaxRegistrableAmount = Money.Coins(1.999m) }; // TODO migrate to MultipartyTransactionParameters
+		WabiSabiConfig cfg = new() { MaxRegistrableAmount = Money.Coins(1.993m) }; // TODO migrate to MultipartyTransactionParameters
 		var round = WabiSabiFactory.CreateRound(cfg);
 		round.SetPhase(Phase.OutputRegistration);
 		round.Alices.Add(WabiSabiFactory.CreateAlice(Money.Coins(2), round));

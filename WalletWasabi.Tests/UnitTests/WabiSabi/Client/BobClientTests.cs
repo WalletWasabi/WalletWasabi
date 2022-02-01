@@ -13,6 +13,7 @@ using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.Wallets;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
@@ -48,13 +49,11 @@ public class BobClientTests
 			wabiSabiApi);
 		Assert.Equal(Phase.InputRegistration, round.Phase);
 
-		var bitcoinSecret = km.GetSecrets("", coin1.ScriptPubKey).Single().PrivateKey.GetBitcoinSecret(Network.Main);
-
 		using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), wabiSabiApi);
 		await roundStateUpdater.StartAsync(CancellationToken.None);
 
-		using var identificationKey = new Key();
-		var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), aliceArenaClient, coin1, bitcoinSecret, identificationKey, roundStateUpdater, CancellationToken.None);
+		var keyChain = new KeyChain(km, new Kitchen(""));
+		var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), aliceArenaClient, coin1, keyChain, roundStateUpdater, CancellationToken.None);
 
 		do
 		{

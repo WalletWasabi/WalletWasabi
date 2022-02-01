@@ -44,7 +44,6 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private bool _conversionReversed;
 
 	private bool _parsingUrl;
-	private BitcoinAddress? _currentAddress;
 
 	public SendViewModel(Wallet wallet)
 	{
@@ -109,12 +108,9 @@ public partial class SendViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.Create(() =>
 		{
-			if (_currentAddress is { })
-			{
-				_transactionInfo.Amount = new Money(AmountBtc, MoneyUnit.BTC);
-
-				Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo, _currentAddress));
-			}
+			var address = BitcoinAddress.Create(To, wallet.Network);
+			_transactionInfo.Amount = new Money(AmountBtc, MoneyUnit.BTC);
+			Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo, address, _isFixedAmount));
 		}, nextCommandCanExecute);
 	}
 
@@ -158,20 +154,20 @@ public partial class SendViewModel : RoutableViewModel
 	private IPayjoinClient? GetPayjoinClient(string endPoint)
 	{
 		if (!string.IsNullOrWhiteSpace(endPoint) &&
-			Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
+		    Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
 		{
 			var payjoinEndPointUri = new Uri(endPoint);
 			if (!Services.Config.UseTor)
 			{
 				if (payjoinEndPointUri.DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
 				{
-					Logger.LogWarning("PayJoin server is an onion service but Tor is disabled. Ignoring...");
+					Logger.LogWarning("Payjoin server is an onion service but Tor is disabled. Ignoring...");
 					return null;
 				}
 
 				if (Services.Config.Network == Network.Main && payjoinEndPointUri.Scheme != Uri.UriSchemeHttps)
 				{
-					Logger.LogWarning("PayJoin server is not exposed as an onion service nor https. Ignoring...");
+					Logger.LogWarning("Payjoin server is not exposed as an onion service nor https. Ignoring...");
 					return null;
 				}
 			}
@@ -203,13 +199,13 @@ public partial class SendViewModel : RoutableViewModel
 	private void ValidateToField(IValidationErrors errors)
 	{
 		if (!string.IsNullOrWhiteSpace(To) &&
-			!AddressStringParser.TryParse(To, _wallet.Network, out _))
+		    !AddressStringParser.TryParse(To, _wallet.Network, out _))
 		{
 			errors.Add(ErrorSeverity.Error, "Input a valid BTC address or URL.");
 		}
 		else if (IsPayJoin && _wallet.KeyManager.IsHardwareWallet)
 		{
-			errors.Add(ErrorSeverity.Error, "PayJoin is not possible with hardware wallets.");
+			errors.Add(ErrorSeverity.Error, "Payjoin is not possible with hardware wallets.");
 		}
 	}
 
@@ -255,7 +251,6 @@ public partial class SendViewModel : RoutableViewModel
 
 			if (url.Address is { })
 			{
-				_currentAddress = url.Address;
 				To = url.Address.ToString();
 			}
 

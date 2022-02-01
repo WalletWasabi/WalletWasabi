@@ -92,6 +92,14 @@ public class ConfigTests
 	}
 
 	[Fact]
+	public void LoadConfigFile()
+	{
+		WabiSabiConfig configChanger = new("./conf.txt");
+		configChanger.LoadOrCreateDefaultFile();
+		configChanger.LoadFile();
+	}
+
+	[Fact]
 	public async Task ChecksConfigChangesAsync()
 	{
 		var workDir = Common.GetWorkDir();

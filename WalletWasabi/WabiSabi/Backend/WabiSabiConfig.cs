@@ -2,8 +2,11 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System.ComponentModel;
 using WalletWasabi.Bases;
+using WalletWasabi.Helpers;
+using WalletWasabi.JsonConverters;
 using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.JsonConverters.Timing;
+using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Backend;
 
@@ -24,7 +27,6 @@ public class WabiSabiConfig : ConfigBase
 
 	[DefaultValueTimeSpan("0d 3h 0m 0s")]
 	[JsonProperty(PropertyName = "ReleaseUtxoFromPrisonAfter", DefaultValueHandling = DefaultValueHandling.Populate)]
-	[JsonConverter(typeof(TimeSpanJsonConverter))]
 	public TimeSpan ReleaseUtxoFromPrisonAfter { get; set; } = TimeSpan.FromHours(3);
 
 	[DefaultValueMoneyBtc("0.00005")]
@@ -46,32 +48,26 @@ public class WabiSabiConfig : ConfigBase
 
 	[DefaultValueTimeSpan("0d 1h 0m 0s")]
 	[JsonProperty(PropertyName = "StandardInputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-	[JsonConverter(typeof(TimeSpanJsonConverter))]
 	public TimeSpan StandardInputRegistrationTimeout { get; set; } = TimeSpan.FromHours(1);
 
 	[DefaultValueTimeSpan("0d 0h 3m 0s")]
 	[JsonProperty(PropertyName = "BlameInputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-	[JsonConverter(typeof(TimeSpanJsonConverter))]
 	public TimeSpan BlameInputRegistrationTimeout { get; set; } = TimeSpan.FromMinutes(3);
 
 	[DefaultValueTimeSpan("0d 0h 1m 0s")]
 	[JsonProperty(PropertyName = "ConnectionConfirmationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-	[JsonConverter(typeof(TimeSpanJsonConverter))]
 	public TimeSpan ConnectionConfirmationTimeout { get; set; } = TimeSpan.FromMinutes(1);
 
 	[DefaultValueTimeSpan("0d 0h 1m 0s")]
 	[JsonProperty(PropertyName = "OutputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-	[JsonConverter(typeof(TimeSpanJsonConverter))]
 	public TimeSpan OutputRegistrationTimeout { get; set; } = TimeSpan.FromMinutes(1);
 
 	[DefaultValueTimeSpan("0d 0h 1m 0s")]
 	[JsonProperty(PropertyName = "TransactionSigningTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-	[JsonConverter(typeof(TimeSpanJsonConverter))]
 	public TimeSpan TransactionSigningTimeout { get; set; } = TimeSpan.FromMinutes(1);
 
 	[DefaultValueTimeSpan("0d 0h 5m 0s")]
 	[JsonProperty(PropertyName = "RoundExpiryTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-	[JsonConverter(typeof(TimeSpanJsonConverter))]
 	public TimeSpan RoundExpiryTimeout { get; set; } = TimeSpan.FromMinutes(5);
 
 	[DefaultValue(100)]
@@ -84,11 +80,30 @@ public class WabiSabiConfig : ConfigBase
 
 	public int MinInputCountByRound => Math.Max(1, (int)(MaxInputCountByRound * MinInputCountByRoundMultiplier));
 
+	[DefaultValueCoordinationFeeRate(0.003, 0.01)]
+	[JsonProperty(PropertyName = "CoordinationFeeRate", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public CoordinationFeeRate CoordinationFeeRate { get; set; } = new CoordinationFeeRate(0.003m, Money.Coins(0.01m));
+
+	[JsonProperty(PropertyName = "CoordinatorExtPubKey")]
+	public ExtPubKey CoordinatorExtPubKey { get; } = Constants.WabiSabiFallBackCoordinatorExtPubKey;
+
+	[DefaultValue(1)]
+	[JsonProperty(PropertyName = "CoordinatorExtPubKeyCurrentDepth", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public int CoordinatorExtPubKeyCurrentDepth { get; private set; } = 1;
+
 	/// <summary>
 	/// If money comes to the blame script, then either an attacker lost money or there's a client bug.
 	/// </summary>
-	[DefaultValueScript("0 1251dec2e6a6694a789f0cca6c2a9cfb4c74fb4e")]
-	[JsonProperty(PropertyName = "BlameScript", DefaultValueHandling = DefaultValueHandling.Populate)]
-	[JsonConverter(typeof(ScriptJsonConverter))]
-	public Script BlameScript { get; set; } = new Script("0 1251dec2e6a6694a789f0cca6c2a9cfb4c74fb4e");
+	[JsonIgnore]
+	public Script BlameScript => DeriveCoordinatorScript(0);
+
+	public Script GetNextCleanCoordinatorScript() => DeriveCoordinatorScript(CoordinatorExtPubKeyCurrentDepth);
+
+	public Script DeriveCoordinatorScript(int index) => CoordinatorExtPubKey.Derive(0, false).Derive(index, false).PubKey.WitHash.ScriptPubKey;
+
+	public void MakeNextCoordinatorScriptDirty()
+	{
+		CoordinatorExtPubKeyCurrentDepth++;
+		ToFile();
+	}
 }

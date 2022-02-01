@@ -7,6 +7,7 @@ using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.Wallets;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend;
@@ -31,11 +32,10 @@ public class AliceTimeoutTests
 		await roundStateUpdater.StartAsync(CancellationToken.None);
 
 		// Register Alices.
-		using var identificationKey = new Key();
-		var esk = km.GetSecrets("", smartCoin.ScriptPubKey).Single();
+		var keyChain = new KeyChain(km, new Kitchen(""));
 
 		using CancellationTokenSource cancellationTokenSource = new();
-		var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, smartCoin, esk.PrivateKey.GetBitcoinSecret(round.Network), identificationKey, roundStateUpdater, cancellationTokenSource.Token);
+		var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, smartCoin, keyChain, roundStateUpdater, cancellationTokenSource.Token);
 
 		while (round.Alices.Count == 0)
 		{
