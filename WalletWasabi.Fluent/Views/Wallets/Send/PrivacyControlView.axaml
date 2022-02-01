@@ -39,7 +39,7 @@
         <c:InfoMessage Content="Warning, using both private and non-private funds in the same transaction can destroy your privacy."
                        IsVisible="{Binding IsWarningOpen}" Foreground="{DynamicResource SystemErrorTextColor}" />
 
-        <c:InfoMessage Content="Not in a hurry? Consider making more of your funds private by CoinJoining before making this transaction.">
+        <c:InfoMessage Content="Not in a hurry? Consider making more of your funds private by coinjoining before making this transaction.">
           <c:InfoMessage.IsVisible>
             <MultiBinding Converter="{x:Static BoolConverters.And}">
               <Binding Path="EnoughSelected" />

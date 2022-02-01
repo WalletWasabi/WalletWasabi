@@ -710,7 +710,7 @@ public partial class LineChart : Control
 		{
 			formattedTextLabels[i].Constraint = constraintMax;
 
-			var origin = new Point(originLeft - constraintMax.Width,
+			var origin = new Point(originLeft,
 				i * state.YAxisLabelStep - constraintMax.Height / 2 + state.AreaMargin.Top);
 			var offsetCenter = new Point(constraintMax.Width / 2 - constraintMax.Width / 2, 0);
 			offsetCenter = AlignYAxisLabelOffset(offsetCenter, formattedTextLabels[i].Bounds.Height, i, formattedTextLabels.Count, alignment);
