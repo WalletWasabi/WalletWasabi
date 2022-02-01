@@ -146,6 +146,9 @@ video::-webkit-media-controls {
     font-weight: bold;
     line-height: 1.2em;
 }
+.title-small {
+    font-size: 40px;
+}
 .green-text {
     color: var(--green);
 }
@@ -673,7 +676,7 @@ ol li::marker {
 }
 .feature-list li {
     display: block;
-    margin-bottom: 20px;
+    margin-bottom: 40px;
     position: relative;
     padding-left: 40px;
 }
@@ -696,6 +699,9 @@ ol li::marker {
     background: var(--green);
     padding: 8px;
     border-radius: 50%;
+}
+.feature-list li p, .op-text {
+    opacity: 0.7;
 }
 .pull-img {
     position: absolute;
