@@ -902,6 +902,9 @@ ol li::marker {
     .p-200 {
         padding: 40px 0;
     }
+    .modal-window {
+        width: 90vw;
+    }
 }
 @media only screen and (max-width: 600px) {
     .home-text-area h1 {
