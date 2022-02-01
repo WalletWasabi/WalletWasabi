@@ -321,6 +321,7 @@ footer .white-text {
     position: relative;
     border: 2px solid rgba(73, 88, 107, 0.3);
     border-radius: 10px;
+    height: 100%;
 }
 .feature-box .title {
     font-size: 24px;
