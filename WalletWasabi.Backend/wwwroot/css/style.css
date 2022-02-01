@@ -741,7 +741,7 @@ ol li::marker {
 .icon {
     width: 40px;
     height: 40px;
-    fill: #fff;
+    fill: var(--green);
 }
 .pull-img {
     position: absolute;
@@ -779,8 +779,8 @@ ol li::marker {
 .video-icon-on:hover:after {
     background-color: var(--light-blue);
 }
-.icon-big svg {
-    fill: #fff;
+.icon-big {
+    fill: var(--green);
 }
 @media (min-width: 576px) {
     body {
