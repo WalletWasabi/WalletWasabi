@@ -18,10 +18,6 @@
                  IsBusy="{Binding IsBusy}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <c:ContentArea.Styles>
-      <Style Selector="c|TagControl[DataContext=Private Funds], c|TagControl[DataContext=Private Funds] PathIcon">
-        <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
-      </Style>
       <Style Selector="c|TagControl:disabled">
         <Setter Property="Opacity" Value="0.5" />
       </Style>

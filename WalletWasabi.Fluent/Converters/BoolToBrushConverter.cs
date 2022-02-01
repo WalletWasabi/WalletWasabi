@@ -9,7 +9,6 @@ public class BoolToBrushConverter : AvaloniaObject, IValueConverter
 {
 	public static BoolToBrushConverter Instance { get; } = new();
 
-
 	public static readonly StyledProperty<IBrush?> TrueBrushProperty =
 		AvaloniaProperty.Register<BoolToBrushConverter, IBrush?>(nameof(TrueBrush));
 
