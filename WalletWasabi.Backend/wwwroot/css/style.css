@@ -149,6 +149,17 @@ video::-webkit-media-controls {
 .title-small {
     font-size: 40px;
 }
+.title-lined:after {
+    content: '';
+    width: 50px;
+    height: 3px;
+    background-color: var(--green);
+    display: block;
+    margin: 20px auto;
+}
+.title-lined.left:after {
+    margin: 20px 0;
+}
 .green-text {
     color: var(--green);
 }
