@@ -110,8 +110,7 @@ public partial class SendViewModel : RoutableViewModel
 		{
 			var address = BitcoinAddress.Create(To, wallet.Network);
 			_transactionInfo.Amount = new Money(AmountBtc, MoneyUnit.BTC);
-
-			Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo, address));
+			Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo, address, _isFixedAmount));
 		}, nextCommandCanExecute);
 	}
 
@@ -162,13 +161,13 @@ public partial class SendViewModel : RoutableViewModel
 			{
 				if (payjoinEndPointUri.DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
 				{
-					Logger.LogWarning("PayJoin server is an onion service but Tor is disabled. Ignoring...");
+					Logger.LogWarning("Payjoin server is an onion service but Tor is disabled. Ignoring...");
 					return null;
 				}
 
 				if (Services.Config.Network == Network.Main && payjoinEndPointUri.Scheme != Uri.UriSchemeHttps)
 				{
-					Logger.LogWarning("PayJoin server is not exposed as an onion service nor https. Ignoring...");
+					Logger.LogWarning("Payjoin server is not exposed as an onion service nor https. Ignoring...");
 					return null;
 				}
 			}
@@ -206,7 +205,7 @@ public partial class SendViewModel : RoutableViewModel
 		}
 		else if (IsPayJoin && _wallet.KeyManager.IsHardwareWallet)
 		{
-			errors.Add(ErrorSeverity.Error, "PayJoin is not possible with hardware wallets.");
+			errors.Add(ErrorSeverity.Error, "Payjoin is not possible with hardware wallets.");
 		}
 	}
 
