@@ -353,7 +353,7 @@ public class PocketSelectionTests
 	}
 
 	[Fact]
-	public void Moves_From_WhiteList_Highlights_All_Labels_In_Other_Pockets_That_Contain_TargetLabel()
+	public void MovesFromWhiteListHighlightsAllLabelsInOtherPocketsThatContainTargetLabel()
 	{
 		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
 
