@@ -688,7 +688,7 @@ ol li::marker {
     height: 18px;
     background: var(--green);
     position: absolute;
-    top: 4px;
+    top: 2px;
     left: 0;
     display: block;
 }
