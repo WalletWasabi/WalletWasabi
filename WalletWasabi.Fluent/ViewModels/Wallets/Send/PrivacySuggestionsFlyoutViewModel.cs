@@ -49,7 +49,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 		var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destination.ScriptPubKey);
 
-		if (hasChange)
+		if (hasChange && !isFixedAmount)
 		{
 			try
 			{

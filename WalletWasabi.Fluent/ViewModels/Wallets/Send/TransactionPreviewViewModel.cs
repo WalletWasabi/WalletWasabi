@@ -24,6 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 [NavigationMetaData(Title = "Transaction Preview")]
 public partial class TransactionPreviewViewModel : RoutableViewModel
 {
+	private readonly bool _isFixedAmount;
 	private readonly Wallet _wallet;
 	private readonly TransactionInfo _info;
 	private readonly BitcoinAddress _destination;
@@ -33,11 +34,12 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	[AutoNotify] private bool _adjustFeeAvailable;
 	[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
 
-	public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, BitcoinAddress destination)
+	public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, BitcoinAddress destination, bool isFixedAmount)
 	{
 		_wallet = wallet;
 		_info = info;
 		_destination = destination;
+		_isFixedAmount = isFixedAmount;
 		_cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));
 
 		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel();
@@ -275,9 +277,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 		catch (InsufficientBalanceException)
 		{
-			if (_info.IsPayJoin)
+			if (_info.IsPayJoin || _isFixedAmount)
 			{
-				return await HandleInsufficientBalanceWhenPayJoinAsync(_wallet, _info);
+				return await HandleInsufficientBalanceWhenFixedAmountAsync(_wallet, _info);
 			}
 
 			return await HandleInsufficientBalanceWhenNormalAsync(_wallet, _info);
@@ -354,7 +356,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		return null;
 	}
 
-	private async Task<BuildTransactionResult?> HandleInsufficientBalanceWhenPayJoinAsync(Wallet wallet,
+	private async Task<BuildTransactionResult?> HandleInsufficientBalanceWhenFixedAmountAsync(Wallet wallet,
 		TransactionInfo transactionInfo)
 	{
 		if (wallet.Coins.TotalAmount() > transactionInfo.Amount)
