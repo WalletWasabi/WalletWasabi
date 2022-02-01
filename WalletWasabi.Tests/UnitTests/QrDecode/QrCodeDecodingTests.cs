@@ -3,9 +3,6 @@ using System.IO;
 using WalletWasabi.Helpers;
 using System.Runtime.InteropServices;
 using ZXing.QrCode;
-using System.Drawing;
-using ZXing;
-using ZXing.Common;
 
 namespace WalletWasabi.Tests.UnitTests.QrDecode;
 

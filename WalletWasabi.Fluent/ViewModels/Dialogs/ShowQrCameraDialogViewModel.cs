@@ -8,7 +8,6 @@ using System.Reactive.Linq;
 using System.Threading;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
-using WalletWasabi.Fluent.Views.Dialogs;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 

@@ -1,15 +1,8 @@
 using System.Threading.Tasks;
-using Avalonia;
-using Avalonia.Media;
 using System.Runtime.InteropServices;
-using WalletWasabi.Logging;
 using WalletWasabi.Userfacing;
 using NBitcoin;
-using Nito.AsyncEx;
-using Avalonia.Platform;
 using WalletWasabi.Fluent.Models.Windows;
-using Avalonia.Controls;
-using Microsoft.Extensions.Hosting;
 using System.Threading;
 using ZXing.QrCode;
 using WalletWasabi.Bases;
