@@ -11,6 +11,9 @@ steps:
 - checkout: self
   path: WalletWasabi
 
+- checkout: self
+  path: WalletWasabiClone
+
 - task: UseDotNet@2
   displayName: 'Install .NET'
   inputs:
