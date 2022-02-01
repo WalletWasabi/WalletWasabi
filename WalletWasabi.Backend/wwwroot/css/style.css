@@ -705,6 +705,21 @@ ol li::marker {
 .feature-list li p, .op-text {
    color: #bbb;
 }
+.modal-window {
+    position: fixed;
+    width: 80vw;
+    height: 80vh;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    background: #fff;
+    z-index: 999;
+    display: none;
+    color: #000;
+}
+#video-show:checked + .modal-window {
+    display: block;
+}
 .pull-img {
     position: absolute;
     width: 1000px;
