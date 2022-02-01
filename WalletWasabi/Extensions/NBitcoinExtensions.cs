@@ -478,6 +478,7 @@ public static class NBitcoinExtensions
 		scriptPubKey.GetScriptType() switch
 		{
 			ScriptType.P2WPKH => Constants.P2wpkhInputVirtualSize,
+			ScriptType.Taproot => Constants.P2trInputVirtualSize,
 			_ => throw new NotImplementedException($"Size estimation isn't implemented for provided script type.")
 		};
 

@@ -72,7 +72,8 @@ public record SigningState : MultipartyTransactionState
 		IndexedTxIn currentIndexedInput = cjCopy.Inputs.AsIndexedInputs().Skip(index).First();
 
 		// 6. Verify if currentIndexedInput is correctly signed, if not, return the specific error.
-		if (!currentIndexedInput.VerifyScript(registeredCoin, out ScriptError error))
+		var precomputedTransactionData = cjCopy.PrecomputeTransactionData(SortedInputs.Select(x => x.TxOut).ToArray());
+		if (!currentIndexedInput.VerifyScript(registeredCoin, ScriptVerify.Standard, precomputedTransactionData, out ScriptError error))
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongCoinjoinSignature); // TODO keep script error
 		}
