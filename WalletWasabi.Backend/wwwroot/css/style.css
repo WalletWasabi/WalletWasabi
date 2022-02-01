@@ -478,10 +478,10 @@ footer .white-text {
     -ms-transition: all 0.5s ease-in-out;
     -o-transition: all 0.5s ease-in-out;
     transition: all 0.5s ease-in-out;
-    border: 2px solid var(--light-gray);
+    border: 2px solid rgba(73, 88, 107, 0.3);
     border-radius: 10px;
     margin-bottom: 20px;
-    padding: 20px;
+    padding: 25px;
 }
 .download-box svg {
     height: 40px;
