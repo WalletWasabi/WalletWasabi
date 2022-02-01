@@ -735,6 +735,11 @@ ol li::marker {
 .video-show:checked + label + .modal-window {
     display: block;
 }
+.icon {
+    width: 40px;
+    height: 40px;
+    fill: #fff;
+}
 .pull-img {
     position: absolute;
     width: 1000px;
