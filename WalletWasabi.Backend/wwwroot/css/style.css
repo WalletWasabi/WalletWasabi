@@ -777,6 +777,9 @@ ol li::marker {
 .video-icon-on:hover:after {
     background-color: var(--light-blue);
 }
+.icon-big svg {
+    fill: #fff;
+}
 @media (min-width: 576px) {
     body {
         --breakpoint: 540px;
