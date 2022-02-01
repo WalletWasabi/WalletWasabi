@@ -14,9 +14,9 @@ public partial class TransactionInfo
 
 	[AutoNotify] private Money _amount = Money.Zero;
 
-	public TransactionInfo()
+	public TransactionInfo(int minAnonScoreTarget)
 	{
-		_privateCoinThreshold = Services.Config.MinAnonScoreTarget;
+		_privateCoinThreshold = minAnonScoreTarget;
 
 		this.WhenAnyValue(x => x.Amount)
 			.Subscribe(_ => OnAmountChanged());

@@ -43,7 +43,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 		if (!info.IsPrivate)
 		{
-			Suggestions.Add(new PocketSuggestionViewModel(SmartLabel.Merge(transaction.SpentCoins.Select(x => CoinHelpers.GetLabels(x)))));
+			Suggestions.Add(new PocketSuggestionViewModel(SmartLabel.Merge(transaction.SpentCoins.Select(x => CoinHelpers.GetLabels(x, wallet.KeyManager.MinAnonScoreTarget)))));
 		}
 
 		var suggestions =
