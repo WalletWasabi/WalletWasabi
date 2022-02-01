@@ -208,7 +208,7 @@ public class CoinJoinManager : BackgroundService
 			return false;
 		}
 
-		if (wallet.NonPrivateCoins.TotalAmount() < wallet.KeyManager.PlebStopThreshold)
+		if (wallet.NonPrivateCoins.TotalAmount() <= wallet.KeyManager.PlebStopThreshold)
 		{
 			return false;
 		}
