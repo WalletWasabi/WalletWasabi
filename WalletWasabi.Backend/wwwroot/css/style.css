@@ -317,10 +317,10 @@ footer .white-text {
     background: rgba(0, 0, 0, 0.2);
     padding: 40px;
     color: #fff;
-    margin-bottom: 20px;
     position: relative;
     border: 2px solid rgba(73, 88, 107, 0.3);
     border-radius: 10px;
+    height: 100%;
 }
 .feature-box .title {
     font-size: 24px;
@@ -703,7 +703,22 @@ ol li::marker {
     border-radius: 50%;
 }
 .feature-list li p, .op-text {
-    opacity: 0.7;
+   color: #bbb;
+}
+.modal-window {
+    position: fixed;
+    width: 80vw;
+    height: 80vh;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    background: #fff;
+    z-index: 999;
+    display: none;
+    color: #000;
+}
+#video-show:checked + .modal-window {
+    display: block;
 }
 .pull-img {
     position: absolute;
