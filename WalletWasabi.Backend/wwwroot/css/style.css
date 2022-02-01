@@ -703,21 +703,36 @@ ol li::marker {
     border-radius: 50%;
 }
 .feature-list li p, .op-text {
-   color: #bbb;
+    color: #bbb;
 }
 .modal-window {
     position: fixed;
-    width: 80vw;
-    height: 80vh;
+    width: 70vw;
     top: 50%;
     left: 50%;
-    transform: translate(-50%,-50%);
+    transform: translate(-50%, -50%);
     background: #fff;
     z-index: 999;
     display: none;
     color: #000;
+    padding: 40px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
 }
-#video-show:checked + label + .modal-window {
+.modal-window .ratio {
+    max-height: 100%;
+}
+.close {
+    font-size: 24px;
+    font-weight: lighter;
+    position: absolute;
+    right: 15px;
+    top: 15px;
+    cursor: pointer;
+}
+.close:hover {
+    color: var(--green);
+}
+.video-show:checked + label + .modal-window {
     display: block;
 }
 .pull-img {
