@@ -17,51 +17,39 @@
     <Setter Property="(ToolTip.Tip)" Value="{Binding .}" />
     <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
     <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="ClipToBounds" Value="False" />
     <Setter Property="Template">
       <ControlTemplate>
-        <Panel>
-          <Panel Name="PART_TagPanel">
-            <Border Name="PART_TagItemBorder"
-                    Background="{TemplateBinding Background}"
-                    BorderBrush="{TemplateBinding BorderBrush}"
-                    BorderThickness="{TemplateBinding BorderThickness}"
-                    CornerRadius="2" />
-            <DockPanel Name="PART_DummyPanel"
-                       VerticalAlignment="Top" LastChildFill="True">
-              <LayoutTransformControl DockPanel.Dock="Right" Name="PART_DeleteButtonLayoutTransformer"
-                                      Margin="-8,0,3,0">
-                <Button Name="PART_DeleteButton" VerticalAlignment="Center"
-                        HorizontalAlignment="Center"
-                        IsVisible="{TemplateBinding EnableDelete}"
-                        Width="12"
-                        Height="12"
-                        KeyboardNavigation.IsTabStop="False"
-                        Focusable="{TemplateBinding Focusable}"
-                        Margin="4">
-                  <Button.Transitions>
-                    <Transitions>
-                      <DoubleTransition Property="Opacity" Duration="0:0:0.135" Easing="{StaticResource FluentEasing}" />
-                    </Transitions>
-                  </Button.Transitions>
-                </Button>
-                <LayoutTransformControl.Transitions>
-                  <Transitions>
-                    <TransformOperationsTransition Property="LayoutTransform" Duration="0:0:.135"
-                                                   Easing="{StaticResource FluentEasing}" />
-                  </Transitions>
-                </LayoutTransformControl.Transitions>
-              </LayoutTransformControl>
-              <DockPanel Margin="12,6,12,6" DockPanel.Dock="Left" MaxWidth="260">
-                <TextBlock DockPanel.Dock="Left" Margin="0 0 5 0" Text="{TemplateBinding OrdinalIndex, Converter={x:Static converters:IntConverter.ToOrdinalString}}" IsVisible="{TemplateBinding EnableCounter}"/>
-                <ContentPresenter Name="PART_ContentPresenter"
-                                  DockPanel.Dock="Left"
-                                  Content="{TemplateBinding Content}"
-                                  Padding="{TemplateBinding Padding}"
-                                  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                                  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
-              </DockPanel>
+        <Panel Name="PART_TagPanel" Margin="0,-3,0,0">
+          <Border Name="PART_TagItemBorder"
+                  Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="2" />
+          <DockPanel Name="PART_DummyPanel"
+                     VerticalAlignment="Top" LastChildFill="True">
+            <DockPanel Margin="12,6,12,6" DockPanel.Dock="Left" MaxWidth="260">
+              <TextBlock DockPanel.Dock="Left" Margin="0 0 5 0"
+                         Text="{TemplateBinding OrdinalIndex, Converter={x:Static converters:IntConverter.ToOrdinalString}}"
+                         IsVisible="{TemplateBinding EnableCounter}" />
+              <ContentPresenter Name="PART_ContentPresenter"
+                                DockPanel.Dock="Left"
+                                Content="{TemplateBinding Content}"
+                                Padding="{TemplateBinding Padding}"
+                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
             </DockPanel>
-          </Panel>
+          </DockPanel>
+          <Button Name="PART_DeleteButton"
+                  IsVisible="{TemplateBinding EnableDelete}"
+                  KeyboardNavigation.IsTabStop="False"
+                  Focusable="{TemplateBinding Focusable}">
+            <Button.Transitions>
+              <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.135" Easing="{StaticResource FluentEasing}" />
+              </Transitions>
+            </Button.Transitions>
+          </Button>
         </Panel>
       </ControlTemplate>
     </Setter>
@@ -79,10 +67,18 @@
 
   <Style Selector="c|TagControl Button#PART_DeleteButton">
     <Setter Property="Background" Value="Transparent" />
+    <Setter Property="VerticalAlignment" Value="Top" />
+    <Setter Property="HorizontalAlignment" Value="Right" />
+    <Setter Property="Margin" Value="-4,-3" />
+    <Setter Property="Height" Value="15" />
+    <Setter Property="Width" Value="15" />
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate>
-          <PathIcon Data="{StaticResource dismiss_light}" />
+          <Panel>
+            <Ellipse Fill="Red" />
+            <PathIcon Data="{StaticResource dismiss_light}" Height="10" Width="10" />
+          </Panel>
         </ControlTemplate>
       </Setter.Value>
     </Setter>
