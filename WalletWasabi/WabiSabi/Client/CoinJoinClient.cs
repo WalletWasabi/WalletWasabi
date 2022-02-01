@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
@@ -21,7 +22,7 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public class CoinJoinClient
 {
-	const int MaxInputsRegistrableByWallet = 10; // how many
+	private const int MaxInputsRegistrableByWallet = 10; // how many
 	private volatile bool _inCriticalCoinJoinState;
 
 	/// <param name="minAnonScoreTarget">Coins those have reached anonymity target, but still can be mixed if desired.</param>
@@ -32,7 +33,8 @@ public class CoinJoinClient
 		IDestinationProvider destinationProvider,
 		RoundStateUpdater roundStatusUpdater,
 		int minAnonScoreTarget = int.MaxValue,
-		bool consolidationMode = false)
+		bool consolidationMode = false,
+		TimeSpan doNotRegisterInLastMinuteTimeLimit = default)
 	{
 		HttpClientFactory = httpClientFactory;
 		KeyChain = keyChain;
@@ -41,6 +43,7 @@ public class CoinJoinClient
 		MinAnonScoreTarget = minAnonScoreTarget;
 		ConsolidationMode = consolidationMode;
 		SecureRandom = new SecureRandom();
+		DoNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
 	}
 
 	private SecureRandom SecureRandom { get; }
@@ -49,6 +52,7 @@ public class CoinJoinClient
 	private IDestinationProvider DestinationProvider { get; }
 	private RoundStateUpdater RoundStatusUpdater { get; }
 	public int MinAnonScoreTarget { get; }
+	private TimeSpan DoNotRegisterInLastMinuteTimeLimit { get; }
 
 	public bool InCriticalCoinJoinState
 	{
@@ -60,7 +64,10 @@ public class CoinJoinClient
 
 	public async Task<bool> StartCoinJoinAsync(IEnumerable<SmartCoin> coins, CancellationToken cancellationToken)
 	{
-		var currentRoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cancellationToken).ConfigureAwait(false);
+		var currentRoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState =>
+				roundState.Phase == Phase.InputRegistration &&
+				roundState.InputRegistrationEnd - DateTimeOffset.UtcNow > DoNotRegisterInLastMinuteTimeLimit
+			, cancellationToken).ConfigureAwait(false);
 
 		// This should be roughly log(#inputs), it could be set slightly
 		// higher if more inputs are observed but that involves trusting the
@@ -95,7 +102,7 @@ public class CoinJoinClient
 	{
 		var constructionState = roundState.Assert<ConstructionState>();
 
-		var coinCandidates = SelectCoinsForRound(smartCoins, constructionState.Parameters);
+		var coinCandidates = SelectCoinsForRound(smartCoins, constructionState.Parameters, ConsolidationMode, MinAnonScoreTarget, SecureRandom);
 
 		// Register coins.
 
@@ -171,6 +178,8 @@ public class CoinJoinClient
 			var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundState.Id && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
 			Logger.LogDebug($"Round ({roundState.Id}): Round Ended - WasTransactionBroadcast: '{finalRoundState.WasTransactionBroadcast}'.");
 
+			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, unsignedCoinJoin, roundState);
+
 			return finalRoundState.WasTransactionBroadcast;
 		}
 		finally
@@ -206,9 +215,9 @@ public class CoinJoinClient
 		}
 
 		// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to be registered.
-		var remainingTimeForRegistration = (roundState.InputRegistrationEnd - DateTimeOffset.UtcNow) - TimeSpan.FromSeconds(15);
+		var remainingTimeForRegistration = (roundState.InputRegistrationEnd - DateTimeOffset.UtcNow);
 
-		Logger.LogDebug($"Round ({roundState.Id}): Input registration started, it will end in {remainingTimeForRegistration.TotalMinutes} minutes.");
+		Logger.LogDebug($"Round ({roundState.Id}): Input registration started, it will end in {remainingTimeForRegistration:hh\\:mm\\:ss}.");
 
 		var scheduledDates = remainingTimeForRegistration.SamplePoisson(smartCoins.Count());
 
@@ -248,9 +257,10 @@ public class CoinJoinClient
 	private bool SanityCheck(IEnumerable<TxOut> expectedOutputs, Transaction unsignedCoinJoinTransaction)
 	{
 		var coinJoinOutputs = unsignedCoinJoinTransaction.Outputs.Select(o => (o.Value, o.ScriptPubKey));
-		var expectedOutputTuples = expectedOutputs
+		IEnumerable<(Money TotalAmount, Script Key)>? expectedOutputTuples = expectedOutputs
 			.GroupBy(x => x.ScriptPubKey)
 			.Select(o => (o.Select(x => x.Value).Sum(), o.Key));
+
 		return coinJoinOutputs.IsSuperSetOf(expectedOutputTuples);
 	}
 
@@ -272,7 +282,7 @@ public class CoinJoinClient
 
 		// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to sign.
 		var transactionSigningTimeFrame = roundState.TransactionSigningTimeout - RoundStatusUpdater.Period;
-		Logger.LogDebug($"Round ({roundState.Id}): Signing phase started, it will end in {transactionSigningTimeFrame.TotalMinutes} minutes.");
+		Logger.LogDebug($"Round ({roundState.Id}): Signing phase started, it will end in {transactionSigningTimeFrame:hh\\:mm\\:ss}.");
 
 		var scheduledDates = transactionSigningTimeFrame.SamplePoisson(aliceClients.Count());
 
@@ -304,7 +314,36 @@ public class CoinJoinClient
 		await Task.WhenAll(readyRequests).ConfigureAwait(false);
 	}
 
-	private ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, MultipartyTransactionParameters parameters)
+	private void LogCoinJoinSummary(ImmutableArray<AliceClient> registeredAliceClients, IEnumerable<TxOut> myOutputs, Transaction unsignedCoinJoinTransaction, RoundState roundState)
+	{
+		var feeRate = roundState.FeeRate;
+
+		var totalEffectiveInputAmount = Money.Satoshis(registeredAliceClients.Sum(a => a.EffectiveValue));
+		var totalEffectiveOutputAmount = Money.Satoshis(myOutputs.Sum(a => a.Value - feeRate.GetFee(a.ScriptPubKey.EstimateOutputVsize())));
+		var effectiveDifference = totalEffectiveOutputAmount - totalEffectiveInputAmount;
+
+		var totalInputAmount = Money.Satoshis(registeredAliceClients.Sum(a => a.SmartCoin.Amount));
+		var totalOutputAmount = Money.Satoshis(myOutputs.Sum(a => a.Value));
+		var totalDifference = Money.Satoshis(totalOutputAmount - totalInputAmount);
+
+		var inputNetworkFee = Money.Satoshis(registeredAliceClients.Sum(alice => feeRate.GetFee(alice.SmartCoin.Coin.ScriptPubKey.EstimateInputVsize())));
+		var outputNetworkFee = Money.Satoshis(myOutputs.Sum(output => feeRate.GetFee(output.ScriptPubKey.EstimateOutputVsize())));
+		var totalNetworkFee = inputNetworkFee + outputNetworkFee;
+		var totalCoordinationFee = Money.Satoshis(registeredAliceClients.Where(a => a.IsPayingZeroCoordinationFee).Sum(a => roundState.CoordinationFeeRate.GetFee(a.SmartCoin.Amount)));
+
+		string[] summary = new string[] {
+		$"Round ({roundState.Id}):",
+		$"\tInput total: {totalInputAmount.ToString(true)} Eff: {totalEffectiveInputAmount.ToString(true)} NetwFee: {inputNetworkFee.ToString(true)} CoordF: {totalCoordinationFee.ToString(true)}",
+		$"\tOutpu total: {totalOutputAmount.ToString(true)} Eff: {totalEffectiveOutputAmount.ToString(true)} NetwFee: {outputNetworkFee.ToString(true)}",
+		$"\tTotal diff : {totalDifference.ToString(true)}",
+		$"\tEffec diff : {effectiveDifference.ToString(true)}",
+		$"\tTotal fee  : {totalNetworkFee.ToString(true)}"
+		};
+
+		Logger.LogDebug(string.Join(Environment.NewLine, summary));
+	}
+
+	internal static ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, MultipartyTransactionParameters parameters, bool consolidationMode, int minAnonScoreTarget, WasabiRandom rnd)
 	{
 		var filteredCoins = coins
 			.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
@@ -315,13 +354,13 @@ public class CoinJoinClient
 			.ToArray();
 
 		// How many inputs do we want to provide to the mix?
-		int inputCount = ConsolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(filteredCoins.Length);
+		int inputCount = consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(filteredCoins.Length, rnd);
 
 		// Select a group of coins those are close to each other by Anonimity Score.
 		List<IEnumerable<SmartCoin>> groups = new();
 
 		// I can take more coins those are already reached the minimum privacy threshold.
-		int nonPrivateCoinCount = filteredCoins.Count(x => x.HdPubKey.AnonymitySet < MinAnonScoreTarget);
+		int nonPrivateCoinCount = filteredCoins.Count(x => x.HdPubKey.AnonymitySet < minAnonScoreTarget);
 		for (int i = 0; i < nonPrivateCoinCount; i++)
 		{
 			// Make sure the group can at least register an output even after paying fees.
@@ -354,6 +393,11 @@ public class CoinJoinClient
 			anonScoreCosts.Add((cost, group));
 		}
 
+		if (anonScoreCosts.Count == 0)
+		{
+			return ImmutableList<SmartCoin>.Empty;
+		}
+
 		var bestCost = anonScoreCosts.Min(g => g.Cost);
 		var bestgroups = anonScoreCosts.Where(x => x.Cost == bestCost).Select(x => x.Group);
 
@@ -374,9 +418,8 @@ public class CoinJoinClient
 	/// Note: random biasing is applied.
 	/// </summary>
 	/// <returns>Desired input count.</returns>
-	private int GetInputTarget(int utxoCount)
+	private static int GetInputTarget(int utxoCount, WasabiRandom rnd)
 	{
-		const int MaxInputsRegistrableByWallet = 10; // how many
 		int targetInputCount;
 		if (utxoCount < 35)
 		{
@@ -403,7 +446,7 @@ public class CoinJoinClient
 
 		foreach (var best in distance.OrderBy(x => x.Value))
 		{
-			if (SecureRandom.GetInt(0, 10) < 5)
+			if (rnd.GetInt(0, 10) < 5)
 			{
 				return best.Key;
 			}
