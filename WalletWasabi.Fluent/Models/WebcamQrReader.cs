@@ -1,6 +1,4 @@
-using Avalonia.Media.Imaging;
 using System.Threading.Tasks;
-using OpenCvSharp;
 using Avalonia;
 using Avalonia.Media;
 using System.Runtime.InteropServices;
@@ -17,6 +15,7 @@ using ZXing.QrCode;
 using WalletWasabi.Bases;
 using System.IO;
 using ZXing;
+using Avalonia.Media.Imaging;
 
 namespace WalletWasabi.Fluent.Models;
 

@@ -1,5 +1,4 @@
 using Xunit;
-using OpenCvSharp;
 using System.IO;
 using WalletWasabi.Helpers;
 using System.Runtime.InteropServices;
