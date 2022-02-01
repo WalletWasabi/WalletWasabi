@@ -487,6 +487,9 @@ footer .white-text {
     height: 40px;
     width: 40px;
 }
+.download-box svg {
+    fill: #fff;
+}
 .download-box:hover {
     background-color: rgb(73, 88, 107, 0.2);
 }
