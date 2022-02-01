@@ -203,7 +203,7 @@ public class CoinJoinManager : BackgroundService
 			return false;
 		}
 
-		if (wallet.ElapsedTimeSinceStartup < AutoCoinJoinDelayAfterWalletLoaded)
+		if (wallet.ElapsedTimeSinceStartup <= AutoCoinJoinDelayAfterWalletLoaded)
 		{
 			return false;
 		}
