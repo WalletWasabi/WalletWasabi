@@ -55,7 +55,7 @@
     <Style Selector="c|LineChart.yAxisLabels">
       <Setter Property="YAxisLabelForeground" Value="{DynamicResource TextForegroundColor}" />
       <Setter Property="YAxisLabelAngle" Value="0" />
-      <Setter Property="YAxisLabelOffset" Value="-25,0" />
+      <Setter Property="YAxisLabelOffset" Value="-40,0" />
       <Setter Property="YAxisLabelAlignment" Value="Auto" />
       <Setter Property="YAxisLabelFontSize" Value="12" />
       <Setter Property="YAxisLabelOpacity" Value="0.8" />
