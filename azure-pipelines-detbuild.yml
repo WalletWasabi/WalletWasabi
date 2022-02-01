@@ -25,8 +25,7 @@ steps:
       $env:GIT_REDIRECT_STDERR = '2>&1'
       cd ..
       # Copy the source files to a different location and build from there.
-      robocopy WalletWasabi WalletWasabiClone /COPYALL /S /NFL /NDL /NJH
-      
+      robocopy WalletWasabi WalletWasabiClone /COPYALL /S /NFL /NDL /NJH      
       dotnet run --project WalletWasabi\WalletWasabi.Packager --onlybinaries
       dotnet run --project WalletWasabiClone\WalletWasabi.Packager --cdelivery
 
