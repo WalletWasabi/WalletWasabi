@@ -8,7 +8,8 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 
 namespace WalletWasabi.Fluent.Models.Windows;
-
+#pragma warning disable IDE0019 // Use pattern matching
+#pragma warning disable IDE1006 // Naming Styles
 public class WindowsCapture
 {
 	private static Dictionary<long, byte[]> ArrayBuffer = new();

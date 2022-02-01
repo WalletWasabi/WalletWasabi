@@ -10,10 +10,13 @@ using NBitcoin;
 using Nito.AsyncEx;
 using Avalonia.Platform;
 using WalletWasabi.Fluent.Models.Windows;
+using Avalonia.Controls;
+using Microsoft.Extensions.Hosting;
+using System.Threading;
 
 namespace WalletWasabi.Fluent.Models;
 
-public class WebcamQrReader
+public class WebcamQrReader : BackgroundService
 {
 	private const byte DefaultCameraId = 0;
 
@@ -25,7 +28,7 @@ public class WebcamQrReader
 		Network = network;
 	}
 
-	public event EventHandler<WriteableBitmap>? NewImageArrived;
+	public event EventHandler<Bitmap>? NewImageArrived;
 
 	public event EventHandler<string>? CorrectAddressFound;
 
@@ -113,23 +116,27 @@ public class WebcamQrReader
 
 	private void KeepScanning(WindowsCapture camera)
 	{
-		PixelSize pixelSize = new((int)camera.Size.Width, (int)camera.Size.Height);
-		Vector dpi = new(96, 96);
-		WriteableBitmap writeableBitmap = new(pixelSize, dpi, PixelFormat.Rgba8888, AlphaFormat.Unpremul);
+		//PixelSize pixelSize = new((int)camera.Size.Width, (int)camera.Size.Height);
+		//Vector dpi = new(96, 96);
+		//WriteableBitmap writeableBitmap = new(pixelSize, dpi, PixelFormat.Rgba8888, AlphaFormat.Unpremul);
 
-		int dataSize = (int)(camera.Size.Width * camera.Size.Height);
-		int[] helperArray = new int[dataSize];
-		using QRCodeDetector qRCodeDetector = new();
+		//int dataSize = (int)(camera.Size.Width * camera.Size.Height);
+		//int[] helperArray = new int[dataSize];
+
+		// Immediately after starting the USB camera,
+		// GetBitmap() fails because image buffer is not prepared yet.
+		var bmp = camera.GetBitmap();
 		while (!_requestEnd)
 		{
 			try
 			{
-				writeableBitmap = (WriteableBitmap)camera.GetBitmap();
+				//writeableBitmap = (WriteableBitmap)camera.GetBitmap();
+
 				//if (!gotBackFrame || frame.Width == 0 || frame.Height == 0)
 				//{
 				//	continue;
 				//}
-				NewImageArrived?.Invoke(this, writeableBitmap);
+				NewImageArrived?.Invoke(this, camera.GetBitmap());
 				//string decodedText = qRCodeDetector.Decode(frame, points, tmpMat);
 				//if (string.IsNullOrWhiteSpace(decodedText))
 				//{
@@ -145,10 +152,53 @@ public class WebcamQrReader
 				//	InvalidAddressFound?.Invoke(this, decodedText);
 				//}
 			}
-			catch (OpenCVException)
+			catch (Exception)
 			{
-				throw new OpenCVException("Could not read frames. Please make sure no other program uses your camera.");
+				throw new InvalidOperationException("Could not read frames. Please make sure no other program uses your camera.");
 			}
 		}
+	}
+
+	protected override Task ExecuteAsync(CancellationToken stoppingToken)
+	{
+		ScanningTask = Task.Run(() =>
+		{
+			WindowsCapture? camera = null;
+			try
+			{
+				string[] devices = WindowsCapture.FindDevices();
+				if (devices.Length == 0)
+				{
+					ErrorOccurred?.Invoke(this, new NotSupportedException("Could not open camera."));
+				}
+
+				WindowsCapture.VideoFormat[] formats = WindowsCapture.GetVideoFormat(DefaultCameraId);
+
+				camera = new WindowsCapture(DefaultCameraId, formats[0]);
+				camera.Start();
+
+				var bmp = camera.GetBitmap();
+				ulong cnt = 0;
+				while (!stoppingToken.IsCancellationRequested)
+				{
+					cnt++;
+					if (cnt % 1000 == 0)
+					{
+						Logger.LogInfo("Pic taken");
+						NewImageArrived?.Invoke(this, camera.GetBitmap());
+					}
+				}
+			}
+			catch (Exception)
+			{
+				var ex = new InvalidOperationException("Could not read frames. Please make sure no other program uses your camera.");
+				ErrorOccurred?.Invoke(this, ex);
+			}
+			finally
+			{
+				camera?.Release();
+			}
+		}, stoppingToken);
+		return Task.CompletedTask;
 	}
 }
