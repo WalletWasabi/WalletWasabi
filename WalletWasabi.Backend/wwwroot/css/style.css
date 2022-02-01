@@ -163,6 +163,16 @@ video::-webkit-media-controls {
 .green-text {
     color: var(--green);
 }
+.floating-title {
+    font-size: 50px;
+    font-weight: bold;
+    line-height: 1.2em;
+    position: absolute;
+    top: 30%;
+    left: calc((100% - var(--breakpoint)) / 2);
+    transform: translateY(-50%);
+    text-transform: uppercase;
+}
 .service-line {
     display: flex;
     font-weight: bold;
@@ -927,6 +937,11 @@ ol li::marker {
     }
     .home-text-area, .download-btn-area {
         left: 20px;
+    }
+    .floating-title {
+        font-size: 24px;
+        left: 20px;
+        transform: translateY(-50%);
     }
     .title {
         font-size: 24px;
