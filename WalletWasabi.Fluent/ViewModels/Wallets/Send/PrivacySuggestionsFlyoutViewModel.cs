@@ -33,7 +33,8 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 	public ObservableCollection<SuggestionViewModel> Suggestions { get; }
 
-	public  async Task BuildPrivacySuggestionsAsync(Wallet wallet, TransactionInfo info, BitcoinAddress destination, BuildTransactionResult transaction)
+	public async Task BuildPrivacySuggestionsAsync(Wallet wallet, TransactionInfo info, BitcoinAddress destination,
+		BuildTransactionResult transaction, bool isFixedAmount)
 	{
 		IsLoading = true;
 
@@ -50,7 +51,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 		var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destination.ScriptPubKey);
 
-		if (hasChange)
+		if (hasChange && !isFixedAmount)
 		{
 			foreach (var suggestion in suggestions)
 			{
