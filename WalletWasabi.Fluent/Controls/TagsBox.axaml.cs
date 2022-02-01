@@ -272,8 +272,7 @@ public class TagsBox : TemplatedControl
 			IsCurrentTextValid = !string.IsNullOrEmpty(correctedInput);
 			return;
 		}
-	
-		
+
 		IsCurrentTextValid = false;
 	}
 
