@@ -321,6 +321,7 @@ footer .white-text {
     border: 2px solid rgba(73, 88, 107, 0.3);
     border-radius: 10px;
     height: 100%;
+    margin-bottom: 20px;
 }
 .feature-box .title {
     font-size: 24px;
@@ -716,7 +717,7 @@ ol li::marker {
     display: none;
     color: #000;
     padding: 40px;
-    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
 }
 .modal-window .ratio {
     max-height: 100%;
@@ -872,6 +873,30 @@ ol li::marker {
     .navbar {
         padding: 5px 0;
     }
+    .home-text-area p {
+        font-size: 14px;
+    }
+    .title-small {
+        font-size: 20px;
+    }
+    .feature-box .title {
+        font-size: 18px;
+    }
+    .pull-img {
+        width: 100%;
+        height: auto;
+        position: relative;
+        top: inherit;
+        left: inherit !important;
+        transform: none;
+        margin: 20px 0;
+    }
+    .p-100 {
+        padding: 0;
+    }
+    .p-200 {
+        padding: 40px 0;
+    }
 }
 @media only screen and (max-width: 600px) {
     .home-text-area h1 {
@@ -879,7 +904,7 @@ ol li::marker {
     }
     .download-btn-area {
         transform: translateY(-50%);
-        max-width: 80%;
+        max-width: 100%;
     }
     .home-text-area, .download-btn-area {
         left: 20px;
