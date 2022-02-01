@@ -6,6 +6,7 @@ using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 
 namespace WalletWasabi.Tests.Helpers;
 
@@ -21,6 +22,7 @@ public class ArenaBuilder
 	public WabiSabiConfig? Config { get; set; }
 	public IRPCClient? Rpc { get; set; }
 	public Prison? Prison { get; set; }
+	public InMemoryCoinJoinIdStore? CoinJoinIdStore { get; set; }
 
 	/// <param name="rounds">Rounds to initialize <see cref="Arena"/> with.</param>
 	public Arena Create(params Round[] rounds)
@@ -30,8 +32,9 @@ public class ArenaBuilder
 		WabiSabiConfig config = Config ?? new();
 		IRPCClient rpc = Rpc ?? WabiSabiFactory.CreatePreconfiguredRpcClient().Object;
 		Network network = Network ?? Network.Main;
+		InMemoryCoinJoinIdStore coinJoinIdStore = CoinJoinIdStore ?? new();
 
-		Arena arena = new(period, network, config, rpc, prison);
+		Arena arena = new(period, network, config, rpc, prison, coinJoinIdStore);
 
 		foreach (var round in rounds)
 		{
@@ -60,6 +63,12 @@ public class ArenaBuilder
 		{
 			toDispose?.Dispose();
 		}
+	}
+
+	public ArenaBuilder With(InMemoryCoinJoinIdStore store)
+	{
+		CoinJoinIdStore = store;
+		return this;
 	}
 
 	public ArenaBuilder With(IMock<IRPCClient> rpc) =>

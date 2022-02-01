@@ -15,11 +15,13 @@ public record MultipartyTransactionParameters
 
 	public MultipartyTransactionParameters(
 		FeeRate feeRate,
+		Models.CoordinationFeeRate coordinationFeeRate,
 		MoneyRange allowedInputAmounts,
 		MoneyRange allowedOutputAmounts,
 		Network network)
 	{
 		FeeRate = feeRate;
+		CoordinationFeeRate = coordinationFeeRate;
 		AllowedInputAmounts = allowedInputAmounts;
 		AllowedOutputAmounts = allowedOutputAmounts;
 		Network = network;
@@ -35,6 +37,7 @@ public record MultipartyTransactionParameters
 	public int MaxTransactionSize { get; init; } = StandardTransactionPolicy.MaxTransactionSize!.Value;
 	public FeeRate MinRelayTxFee { get; init; } = StandardTransactionPolicy.MinRelayTxFee;
 	public FeeRate FeeRate { get; init; }
+	public CoordinationFeeRate CoordinationFeeRate { get; init; }
 	public MoneyRange AllowedInputAmounts { get; init; }
 	public MoneyRange AllowedOutputAmounts { get; init; }
 	public Network Network { get; }

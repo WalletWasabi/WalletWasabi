@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -70,6 +71,8 @@ public class Wallet : BackgroundService
 		}
 	}
 
+	public TimeSpan ElapsedTimeSinceStartup => DateTimeOffset.UtcNow - StartupTime;
+	public DateTimeOffset StartupTime { get; private set; }
 	public BitcoinStore BitcoinStore { get; private set; }
 	public KeyManager KeyManager { get; }
 	public WasabiSynchronizer Synchronizer { get; private set; }
@@ -94,6 +97,7 @@ public class Wallet : BackgroundService
 	public bool AllowManualCoinJoin { get; set; }
 
 	public Kitchen Kitchen { get; } = new();
+	public ICoinsView NonPrivateCoins => new CoinsView(Coins.Where(c => c.HdPubKey.AnonymitySet < ServiceConfiguration.MinAnonScoreTarget));
 
 	public bool TryLogin(string password, out string? compatibilityPasswordUsed)
 	{
@@ -189,6 +193,7 @@ public class Wallet : BackgroundService
 			await base.StartAsync(cancel).ConfigureAwait(false);
 
 			State = WalletState.Started;
+			StartupTime = DateTimeOffset.UtcNow;
 		}
 		catch
 		{
@@ -438,7 +443,7 @@ public class Wallet : BackgroundService
 			for (int i = 0; i < currentBlock.Transactions.Count; i++)
 			{
 				Transaction tx = currentBlock.Transactions[i];
-				txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime));
+				txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime, label: BitcoinStore.MempoolService.TryGetLabel(tx.GetHash())));
 			}
 			TransactionProcessor.Process(txsToProcess);
 			KeyManager.SetBestHeight(height);

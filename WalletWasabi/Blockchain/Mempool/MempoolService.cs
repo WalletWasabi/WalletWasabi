@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -34,7 +35,7 @@ public class MempoolService
 	private object BroadcastStoreLock { get; }
 	public bool TrustedNodeMode { get; set; }
 
-	public bool TryAddToBroadcastStore(Transaction transaction, string nodeRemoteSocketEndpoint)
+	public bool TryAddToBroadcastStore(SmartTransaction transaction, string nodeRemoteSocketEndpoint)
 	{
 		lock (BroadcastStoreLock)
 		{
@@ -51,24 +52,6 @@ public class MempoolService
 		}
 	}
 
-	public bool TryRemoveFromBroadcastStore(uint256 transactionHash)
-	{
-		lock (BroadcastStoreLock)
-		{
-			var found = BroadcastStore.FirstOrDefault(x => x.TransactionId == transactionHash);
-
-			if (found is null)
-			{
-				return false;
-			}
-			else
-			{
-				BroadcastStore.RemoveAll(x => x.TransactionId == transactionHash);
-				return true;
-			}
-		}
-	}
-
 	public bool TryGetFromBroadcastStore(uint256 transactionHash, [NotNullWhen(true)] out TransactionBroadcastEntry? entry)
 	{
 		lock (BroadcastStoreLock)
@@ -76,6 +59,17 @@ public class MempoolService
 			entry = BroadcastStore.FirstOrDefault(x => x.TransactionId == transactionHash);
 			return entry is not null;
 		}
+	}
+
+	public SmartLabel TryGetLabel(uint256 txid)
+	{
+		var label = SmartLabel.Empty;
+		if (TryGetFromBroadcastStore(txid, out var entry))
+		{
+			label = entry.Transaction.Label;
+		}
+
+		return label;
 	}
 
 	private int _cleanupInProcess;
@@ -155,18 +149,18 @@ public class MempoolService
 	{
 		SmartTransaction? txAdded = null;
 
-		lock (ProcessedLock)
-		{
-			if (ProcessedTransactionHashes.Add(tx.GetHash()))
+			lock (ProcessedLock)
 			{
-				txAdded = new SmartTransaction(tx, Height.Mempool);
+				if (ProcessedTransactionHashes.Add(tx.GetHash()))
+				{
+					txAdded = new SmartTransaction(tx, Height.Mempool, label: TryGetLabel(tx.GetHash()));
+				}
+				else
+				{
+					Interlocked.Increment(ref _duplicatedReceives);
+				}
+				Interlocked.Increment(ref _totalReceives);
 			}
-			else
-			{
-				Interlocked.Increment(ref _duplicatedReceives);
-			}
-			Interlocked.Increment(ref _totalReceives);
-		}
 
 		if (txAdded is { })
 		{

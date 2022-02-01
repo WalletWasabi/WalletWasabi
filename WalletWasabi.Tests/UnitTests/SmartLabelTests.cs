@@ -84,7 +84,7 @@ public class SmartLabelTests
 		Assert.Equal(label4, label5);
 		Assert.NotEqual(label, label4);
 		Assert.False(label.Equals(label4));
-		Assert.False(label == label4);
+		Assert.NotEqual(label, label4);
 	}
 
 	[Fact]
