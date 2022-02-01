@@ -26,8 +26,8 @@ steps:
       cd ..
       # Copy the source files to a different location and build from there.
       robocopy WalletWasabi WalletWasabiClone /COPYALL /S /XD ".git" /NFL /NDL /NJH
-      dotnet run -p WalletWasabi\WalletWasabi.Packager --onlybinaries
-      dotnet run -p WalletWasabiClone\WalletWasabi.Packager --cdelivery
+      dotnet run --project WalletWasabi\WalletWasabi.Packager --onlybinaries
+      dotnet run --project WalletWasabiClone\WalletWasabi.Packager --cdelivery
 
       Get-ChildItem -Recurse -Path WalletWasabiClone\WalletWasabi.Fluent.Desktop\bin\dist\cdelivery -Filter "*linux-x64.zip" | Expand-Archive -DestinationPath temp\linux-x64
       Get-ChildItem -Recurse -Path WalletWasabiClone\WalletWasabi.Fluent.Desktop\bin\dist\cdelivery -Filter "*osx-x64.zip" | Expand-Archive -DestinationPath temp\osx-x64
