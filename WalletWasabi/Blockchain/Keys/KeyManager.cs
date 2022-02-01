@@ -158,11 +158,11 @@ public class KeyManager
 	public string? Icon { get; private set; }
 
 	[DefaultValue(DefaultMinAnonScoreTarget)]
-	[JsonProperty(PropertyName = "MinAnonScoreTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
+	[JsonProperty(Order = 13, PropertyName = "MinAnonScoreTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public int MinAnonScoreTarget { get; private set; }
 
 	[DefaultValue(DefaultMaxAnonScoreTarget)]
-	[JsonProperty(PropertyName = "MaxAnonScoreTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
+	[JsonProperty(Order = 14, PropertyName = "MaxAnonScoreTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public int MaxAnonScoreTarget { get; private set; }
 
 	[JsonProperty(Order = 999)]
@@ -696,6 +696,17 @@ public class KeyManager
 	public void SetIcon(WalletType type)
 	{
 		SetIcon(type.ToString());
+	}
+
+	public void SetAnonScoreTargets(int minAnonScoreTarget, int maxAnonScoreTarget)
+	{
+		MinAnonScoreTarget = minAnonScoreTarget;
+		if (MaxAnonScoreTarget < MinAnonScoreTarget)
+		{
+			throw new ArgumentException($"{nameof(maxAnonScoreTarget)} should be greater.", nameof(maxAnonScoreTarget));
+		}
+		MaxAnonScoreTarget = maxAnonScoreTarget;
+		ToFile();
 	}
 
 	public void AssertNetworkOrClearBlockState(Network expectedNetwork)
