@@ -72,6 +72,7 @@
     <Setter Property="Margin" Value="-4,-3" />
     <Setter Property="Height" Value="15" />
     <Setter Property="Width" Value="15" />
+    <Setter Property="Cursor" Value="Hand" />
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate>
