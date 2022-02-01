@@ -37,9 +37,7 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(args =>
 			{
-
 				QrImage = args.EventArgs;
-
 			})
 			.DisposeWith(disposables);
 

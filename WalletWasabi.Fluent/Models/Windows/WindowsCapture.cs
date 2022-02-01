@@ -10,11 +10,12 @@ using Avalonia.Platform;
 namespace WalletWasabi.Fluent.Models.Windows;
 #pragma warning disable IDE0019 // Use pattern matching
 #pragma warning disable IDE1006 // Naming Styles
+
 public class WindowsCapture
 {
 	private static Dictionary<long, byte[]> ArrayBuffer = new();
 
-	public WindowsCapture(int cameraIndex, Size size) : this(cameraIndex, new VideoFormat {Size = size})
+	public WindowsCapture(int cameraIndex, Size size) : this(cameraIndex, new VideoFormat { Size = size })
 	{
 	}
 
@@ -62,7 +63,7 @@ public class WindowsCapture
 
 		var grabber = CreateSampleGrabber();
 		graph.AddFilter(grabber, "SampleGrabber");
-		var i_grabber = (DirectShow.ISampleGrabber) grabber;
+		var i_grabber = (DirectShow.ISampleGrabber)grabber;
 		i_grabber.SetBufferSamples(true);
 
 		var renderer = DirectShow.CoCreateInstance(DirectShow.DsGuid.CLSID_NullRenderer) as DirectShow.IBaseFilter;
@@ -79,7 +80,7 @@ public class WindowsCapture
 		var mt = new DirectShow.AM_MEDIA_TYPE();
 		i_grabber.GetConnectedMediaType(mt);
 		var header =
-			(DirectShow.VIDEOINFOHEADER) Marshal.PtrToStructure(mt.pbFormat,
+			(DirectShow.VIDEOINFOHEADER)Marshal.PtrToStructure(mt.pbFormat,
 				typeof(DirectShow.VIDEOINFOHEADER));
 		var width = header.bmiHeader.biWidth;
 		var height = header.bmiHeader.biHeight;
@@ -122,7 +123,7 @@ public class WindowsCapture
 		catch (COMException ex)
 		{
 			const uint VFW_E_WRONG_STATE = 0x80040227;
-			if ((uint) ex.ErrorCode == VFW_E_WRONG_STATE)
+			if ((uint)ex.ErrorCode == VFW_E_WRONG_STATE)
 			{
 				return EmptyBitmap(width, height);
 			}
@@ -193,8 +194,8 @@ public class WindowsCapture
 			{
 				fixed (void* src = &bgraArray[0])
 				{
-					Buffer.MemoryCopy(src, lockedBitmap.Address.ToPointer(), (uint) _backBufferBytes,
-						(uint) _backBufferBytes);
+					Buffer.MemoryCopy(src, lockedBitmap.Address.ToPointer(), (uint)_backBufferBytes,
+						(uint)_backBufferBytes);
 				}
 			}
 		}
@@ -288,12 +289,12 @@ public class WindowsCapture
 			}
 
 			for (var w = item.Caps.MinOutputSize.cx;
-			     w < item.Caps.MaxOutputSize.cx;
-			     w += item.Caps.OutputGranularityX)
+				 w < item.Caps.MaxOutputSize.cx;
+				 w += item.Caps.OutputGranularityX)
 			{
 				for (var h = item.Caps.MinOutputSize.cy;
-				     h < item.Caps.MaxOutputSize.cy;
-				     h += item.Caps.OutputGranularityY)
+					 h < item.Caps.MaxOutputSize.cy;
+					 h += item.Caps.OutputGranularityY)
 				{
 					if (w == format.Size.Width && h == format.Size.Height)
 					{
@@ -385,8 +386,8 @@ public class WindowsCapture
 			var vinfo = PtrToStructure<DirectShow.VIDEOINFOHEADER>(mt.pbFormat);
 			if (!size.IsDefault)
 			{
-				vinfo.bmiHeader.biWidth = (int) size.Width;
-				vinfo.bmiHeader.biHeight = (int) size.Height;
+				vinfo.bmiHeader.biWidth = (int)size.Width;
+				vinfo.bmiHeader.biHeight = (int)size.Height;
 			}
 
 			if (timePerFrame > 0)
@@ -401,8 +402,8 @@ public class WindowsCapture
 			var vinfo = PtrToStructure<DirectShow.VIDEOINFOHEADER2>(mt.pbFormat);
 			if (!size.IsDefault)
 			{
-				vinfo.bmiHeader.biWidth = (int) size.Width;
-				vinfo.bmiHeader.biHeight = (int) size.Height;
+				vinfo.bmiHeader.biWidth = (int)size.Width;
+				vinfo.bmiHeader.biHeight = (int)size.Height;
 			}
 
 			if (timePerFrame > 0)
@@ -428,7 +429,7 @@ public class WindowsCapture
 
 	private static T PtrToStructure<T>(IntPtr ptr)
 	{
-		return (T) Marshal.PtrToStructure(ptr, typeof(T));
+		return (T)Marshal.PtrToStructure(ptr, typeof(T));
 	}
 
 	internal class PropertyItems
@@ -457,7 +458,7 @@ public class WindowsCapture
 							ref flags);
 
 						Action<DirectShow.CameraControlFlags, int> set = (flag, value) =>
-							cam_ctrl.Set(item, value, (int) flag);
+							cam_ctrl.Set(item, value, (int)flag);
 						var get = () =>
 						{
 							var value = 0;
@@ -471,7 +472,7 @@ public class WindowsCapture
 						prop = new Property();
 					}
 
-					return new {Key = item, Value = prop};
+					return new { Key = item, Value = prop };
 				}).ToDictionary(x => x.Key, x => x.Value);
 
 			VideoProcAmp = Enum.GetValues(typeof(DirectShow.VideoProcAmpProperty))
@@ -492,7 +493,7 @@ public class WindowsCapture
 							ref flags);
 
 						Action<DirectShow.CameraControlFlags, int> set = (flag, value) =>
-							vid_ctrl.Set(item, value, (int) flag);
+							vid_ctrl.Set(item, value, (int)flag);
 						var get = () =>
 						{
 							var value = 0;
@@ -506,7 +507,7 @@ public class WindowsCapture
 						prop = new Property();
 					}
 
-					return new {Key = item, Value = prop};
+					return new { Key = item, Value = prop };
 				}).ToDictionary(x => x.Key, x => x.Value);
 		}
 
@@ -529,7 +530,7 @@ public class WindowsCapture
 				Max = max;
 				Step = step;
 				Default = @default;
-				Flags = (DirectShow.CameraControlFlags) flags;
+				Flags = (DirectShow.CameraControlFlags)flags;
 				CanAuto = (Flags & DirectShow.CameraControlFlags.Auto) == DirectShow.CameraControlFlags.Auto;
 				SetValue = set;
 				GetValue = get;
