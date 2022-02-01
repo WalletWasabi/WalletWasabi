@@ -309,25 +309,6 @@ public class PocketSelectionTests
 	}
 
 	[Fact]
-	public void WhiteListHighlightsGroupedLabelsInOtherPocketsThatContainTargetLabelExceptThoseAvailableInOtherPockets()
-	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
-
-		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan");
-		pockets.AddPocket(1.0M, out var pocket2, "Target");
-		pockets.AddPocket(1.0M, out var pocket3, "Target", "Roland");
-
-		selection.Reset(pockets.ToArray());
-
-		selection.GetLabel("Dan").IsPointerOver = true;
-
-		Assert.False(selection.GetLabel("Target").IsHighlighted);
-		Assert.False(selection.GetLabel("Roland").IsHighlighted);
-		Assert.True(selection.GetLabel("Dan").IsHighlighted);
-	}
-
-	[Fact]
 	public void WhiteListSwapsGroupedLabelsInOtherPocketsThatContainTargetLabelExceptThoseAvailableInOtherPockets()
 	{
 		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
