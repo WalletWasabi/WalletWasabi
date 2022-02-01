@@ -233,7 +233,7 @@ public class ArenaClientTests
 		var emptyState = round.Assert<ConstructionState>();
 
 		// We can't use ``emptyState.Finalize()` because this is not a valid transaction so we fake it
-		var finalizedEmptyState = new SigningState(emptyState.Parameters, emptyState.Inputs, emptyState.Outputs);
+		var finalizedEmptyState = new SigningState(emptyState.Parameters, emptyState.Events);
 
 		// No inputs in the coinjoin.
 		await Assert.ThrowsAsync<ArgumentException>(async () =>

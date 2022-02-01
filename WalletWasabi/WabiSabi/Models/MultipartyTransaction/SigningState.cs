@@ -10,34 +10,40 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 public record SigningState : MultipartyTransactionState
 {
-	public SigningState(MultipartyTransactionParameters parameters, IEnumerable<Coin> inputs, IEnumerable<TxOut> outputs)
+	public SigningState(MultipartyTransactionParameters parameters, IEnumerable<IEvent> events)
 		: base(parameters)
 	{
-		Inputs = inputs
+		Events = events.ToImmutableList();
+		SortedInputs = Inputs
 			.OrderByDescending(x => x.Amount)
 			.ThenBy(x => x.Outpoint.ToBytes(), ByteArrayComparer.Comparer)
-			.ToImmutableList();
+			.ToList();
 
-		Outputs = outputs
+		SortedOutputs = Outputs
 			.GroupBy(x => x.ScriptPubKey)
 			.Select(x => new TxOut(x.Sum(y => y.Value), x.Key))
 			.OrderByDescending(x => x.Value)
 			.ThenBy(x => x.ScriptPubKey.ToBytes(true), ByteArrayComparer.Comparer)
-			.ToImmutableList();
+			.ToList();
 	}
 
 	public ImmutableDictionary<int, WitScript> Witnesses { get; init; } = ImmutableDictionary<int, WitScript>.Empty;
 
-	public bool IsFullySigned => Witnesses.Count == Inputs.Count;
+	public bool IsFullySigned => Witnesses.Count == SortedInputs.Count;
 
 	[JsonIgnore]
-	public IEnumerable<Coin> UnsignedInputs => Inputs.Where((_, i) => !IsInputSigned(i));
+	public IEnumerable<Coin> UnsignedInputs => SortedInputs.Where((_, i) => !IsInputSigned(i));
+
+	[JsonIgnore]
+	public List<Coin> SortedInputs { get; }
+	[JsonIgnore]
+	public List<TxOut> SortedOutputs { get; }
 
 	public bool IsInputSigned(int index) => Witnesses.ContainsKey(index);
 
 	public bool IsInputSigned(OutPoint prevout) => IsInputSigned(GetInputIndex(prevout));
 
-	public int GetInputIndex(OutPoint prevout) => Inputs.ToList().FindIndex(coin => coin.Outpoint == prevout); // this is inefficient but is only used in tests, see also dotnet/runtime#45366
+	public int GetInputIndex(OutPoint prevout) => SortedInputs.FindIndex(coin => coin.Outpoint == prevout); // this is inefficient but is only used in tests, see also dotnet/runtime#45366
 
 	public SigningState AddWitness(int index, WitScript witness)
 	{
@@ -57,7 +63,7 @@ public record SigningState : MultipartyTransactionState
 		IndexedTxIn currentIndexedInput = cjCopy.Inputs.AsIndexedInputs().Skip(index).First();
 
 		// 4. Find the corresponding registered input.
-		Coin registeredCoin = Inputs[index];
+		Coin registeredCoin = SortedInputs[index];
 
 		// 5. Verify if currentIndexedInput is correctly signed, if not, return the specific error.
 		if (!currentIndexedInput.VerifyScript(registeredCoin, out ScriptError error))
@@ -72,14 +78,14 @@ public record SigningState : MultipartyTransactionState
 	{
 		var tx = Parameters.CreateTransaction();
 
-		foreach (var coin in Inputs)
+		foreach (var coin in SortedInputs)
 		{
 			// implied:
 			// nSequence = FINAL
 			tx.Inputs.Add(coin.Outpoint);
 		}
 
-		foreach (var txout in Outputs)
+		foreach (var txout in SortedOutputs)
 		{
 			tx.Outputs.Add(txout);
 		}

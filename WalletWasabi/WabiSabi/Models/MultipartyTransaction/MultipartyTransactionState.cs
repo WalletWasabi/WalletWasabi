@@ -1,9 +1,15 @@
 using NBitcoin;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+
+public interface IEvent{};
+public record InputAdded (Coin Coin) : IEvent;
+public record OutputAdded (TxOut Output) : IEvent;
 
 public abstract record MultipartyTransactionState
 {
@@ -14,8 +20,10 @@ public abstract record MultipartyTransactionState
 
 	public MultipartyTransactionParameters Parameters { get; }
 
-	public ImmutableList<Coin> Inputs { get; init; } = ImmutableList<Coin>.Empty;
-	public ImmutableList<TxOut> Outputs { get; init; } = ImmutableList<TxOut>.Empty;
+	[JsonIgnore]
+	public IEnumerable<Coin> Inputs => Events.OfType<InputAdded>().Select(x => x.Coin);
+	[JsonIgnore]
+	public IEnumerable<TxOut> Outputs => Events.OfType<OutputAdded>().Select(x => x.Output);
 
 	public Money Balance => Inputs.Sum(x => x.Amount) - Outputs.Sum(x => x.Value);
 	public int EstimatedInputsVsize => Inputs.Sum(x => x.TxOut.ScriptPubKey.EstimateInputVsize());
@@ -30,30 +38,20 @@ public abstract record MultipartyTransactionState
 	// including the shared overhead
 	public FeeRate EffectiveFeeRate => new(Balance, EstimatedInputsVsize + OutputsVsize);
 
-	public ImmutableList<MultipartyTransactionState> PreviousStates { get; init; } = ImmutableList<MultipartyTransactionState>.Empty;
+	public ImmutableList<IEvent> Events { get; init; } = ImmutableList<IEvent>.Empty;
 
-	public MultipartyTransactionState GetConstructionStateSince(int order)
-	{
-		var state = PreviousStates.IsEmpty || order >= PreviousStates.Count
-			? this
-			: PreviousStates[order < 0 ? 0 : order];
-
-		return this with {
-			Inputs = Inputs.GetRange(state.Inputs.Count, Inputs.Count - state.Inputs.Count),
-			Outputs = Outputs.GetRange(state.Outputs.Count, Outputs.Count - state.Outputs.Count)
+	public MultipartyTransactionState GetConstructionStateSince(int order) =>
+		this with {
+			Events = Events.Skip(order).ToImmutableList()
 		};
-	}
 
 	public MultipartyTransactionState Merge(MultipartyTransactionState diff) =>
 		this with {
-			Inputs = Inputs.AddRange(diff.Inputs),
-			Outputs = Outputs.AddRange(diff.Outputs),
-			PreviousStates = diff.PreviousStates,
+			Events = Events.AddRange(diff.Events)
 		};
 
 	public MultipartyTransactionState MergeBack(MultipartyTransactionState origin) =>
 		this with {
-			Inputs = origin.Inputs.AddRange(Inputs),
-			Outputs = origin.Outputs.AddRange(Outputs),
+			Events = origin.Events.AddRange(Events)
 		};
 }
