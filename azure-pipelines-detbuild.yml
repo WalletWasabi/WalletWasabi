@@ -23,9 +23,7 @@ steps:
     script: |
       # Change git output from stderr to stdout https://github.com/dahlbyk/posh-git/issues/109.
       $env:GIT_REDIRECT_STDERR = '2>&1'
-
       cd ..
-      
       # Copy the source files to a different location and build from there.
       robocopy WalletWasabi WalletWasabiClone /COPYALL /S /NFL /NDL /NJH
       
