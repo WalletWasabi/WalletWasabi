@@ -613,7 +613,9 @@ ol li::marker {
     height: 120px;
 }
 .card {
-    color: var(--black);
+    background: rgba(0, 0, 0, 0.2);
+    color: #fff;
+    border: 2px solid rgba(73, 88, 107, 0.3);
     margin: 20px 0;
 }
 .card-content, .card input {
@@ -703,7 +705,7 @@ ol li::marker {
     padding: 8px;
     border-radius: 50%;
 }
-.feature-list li p, .op-text {
+.feature-list li p, .op-text, .card p {
     color: #bbb;
 }
 .modal-window {
