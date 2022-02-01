@@ -314,11 +314,13 @@ footer .white-text {
     fill: #fff;
 }
 .feature-box {
-    background: #F8F8F8;
+    background: rgba(0, 0, 0, 0.2);
     padding: 40px;
-    color: var(--blue);
+    color: #fff;
     margin-bottom: 20px;
     position: relative;
+    border: 2px solid rgba(73, 88, 107, 0.3);
+    border-radius: 10px;
 }
 .feature-box .title {
     font-size: 24px;
@@ -725,7 +727,7 @@ ol li::marker {
     display: block;
     top: 50%;
     left: 50%;
-    transform: translate(-50%,-50%);
+    transform: translate(-50%, -50%);
     font-size: 80px;
     color: #fff;
     width: 100px;
