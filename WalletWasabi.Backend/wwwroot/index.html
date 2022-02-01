@@ -234,15 +234,16 @@
             <div class="container">
                 <div class="row align-items-center">
                     <div class="col-md-6 position-relative">
-                        <label class="video-icon-on">
+                        <input type="radio" name="video-show" id="video-show" style="margin-top: 630px;">
+                        <label class="video-icon-on" for="video-show">
                             <img src="img/screenshots/PrivacyMode.png" class="pull-img pull-img-to-left">
-                            <input type="radio" name="video-show" id="video-show" class="d-none">
-                            <div class="modal-window">
-                                <div class="ratio ratio-16x9">
-                                    <iframe src="https://www.youtube.com/embed/JLFg3MmxHr8" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                                </div>
-                            </div>
                         </label>
+                        <div class="modal-window">
+                            <label for="video-show">Close</label>
+                            <div class="ratio ratio-16x9">
+                                <iframe src="https://www.youtube.com/embed/JLFg3MmxHr8" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-md-5 offset-md-1">
                         <h2 class="title-small my-5">CoinJoin</h2>

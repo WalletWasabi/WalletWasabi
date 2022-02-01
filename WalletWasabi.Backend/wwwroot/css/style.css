@@ -717,7 +717,7 @@ ol li::marker {
     display: none;
     color: #000;
 }
-#video-show:checked + .modal-window {
+#video-show:checked + label + .modal-window {
     display: block;
 }
 .pull-img {
