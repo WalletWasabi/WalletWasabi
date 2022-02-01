@@ -15,12 +15,15 @@ using Microsoft.Extensions.Hosting;
 using System.Threading;
 using ZXing.QrCode;
 using WalletWasabi.Bases;
+using System.IO;
+using ZXing;
 
 namespace WalletWasabi.Fluent.Models;
 
 public class WebcamQrReader : PeriodicRunner
 {
 	private const byte DefaultCameraId = 0;
+	private QRCodeReader? Decoder { get; set; }
 	private WindowsCapture? Camera { get; set; }
 
 	public WebcamQrReader(Network network) : base(TimeSpan.FromMilliseconds(100))
@@ -41,11 +44,8 @@ public class WebcamQrReader : PeriodicRunner
 
 	public override async Task StartAsync(CancellationToken cancellationToken)
 	{
-		QRCodeReader? decoder = null;
-
 		try
 		{
-			decoder = new QRCodeReader();
 			string[] devices = WindowsCapture.FindDevices();
 			if (devices.Length == 0)
 			{
@@ -54,7 +54,8 @@ public class WebcamQrReader : PeriodicRunner
 
 			WindowsCapture.VideoFormat[] formats = WindowsCapture.GetVideoFormat(DefaultCameraId);
 
-			Camera = new WindowsCapture(DefaultCameraId, formats[0]);
+			Decoder = new();
+			Camera = new(DefaultCameraId, formats[0]);
 			Camera.Start();
 
 			// Immediately after starting the USB camera,
@@ -80,9 +81,23 @@ public class WebcamQrReader : PeriodicRunner
 	{
 		if (Camera is { })
 		{
-			var bmp = Camera.GetBitmap();
+			Bitmap bmp = Camera.GetBitmap();
+			using MemoryStream stream = new();
+			bmp.Save(stream);
+			using System.Drawing.Bitmap bitmap = new(stream);
 			NewImageArrived?.Invoke(this, bmp);
-			//decoder.DecodeBitmap(bmp);
+			Result? result = Decoder?.DecodeBitmap(bitmap);
+			if (result is { })
+			{
+				if (AddressStringParser.TryParse(result.Text, Network, out _))
+				{
+					CorrectAddressFound?.Invoke(this, result.Text);
+				}
+				else
+				{
+					InvalidAddressFound?.Invoke(this, result.Text);
+				}
+			}
 		}
 		return Task.CompletedTask;
 	}
