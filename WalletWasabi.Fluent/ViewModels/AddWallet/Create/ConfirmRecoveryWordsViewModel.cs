@@ -12,7 +12,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 
-[NavigationMetaData(Title = "Confirm recovery words")]
+[NavigationMetaData(Title = "Confirm Recovery Words")]
 public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 {
 	private readonly ReadOnlyObservableCollection<RecoveryWordViewModel> _confirmationWords;

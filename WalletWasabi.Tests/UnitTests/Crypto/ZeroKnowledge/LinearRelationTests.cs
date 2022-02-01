@@ -111,8 +111,8 @@ public class LinearRelationTests
 		// With different witnesses the responses should be different even if the
 		// nonces are the same, but since the first part of the witness is the
 		// same that sub-response should be the same for the same nonce
-		Assert.False(response1 == response2);
-		Assert.True(response1.First() == response2.First());
+		Assert.NotEqual(response1, response2);
+		Assert.Equal(response1.First(), response2.First());
 	}
 
 	[Fact]
