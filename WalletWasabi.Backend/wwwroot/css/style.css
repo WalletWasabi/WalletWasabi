@@ -672,8 +672,20 @@ ol li::marker {
     margin: 0;
 }
 .feature-list li {
-    display: flex;
+    display: block;
     margin-bottom: 20px;
+    position: relative;
+    padding-left: 40px;
+}
+.feature-list li:before {
+    content: '';
+    width: 18px;
+    height: 18px;
+    background: var(--green);
+    position: absolute;
+    top: 4px;
+    left: 0;
+    display: block;
 }
 .feature-list .title {
     font-size: 24px;
