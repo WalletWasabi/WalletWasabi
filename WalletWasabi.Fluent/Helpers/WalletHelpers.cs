@@ -25,12 +25,39 @@ public static class WalletHelpers
 		// Don't refresh wallet list as it may be slow.
 		IEnumerable<SmartLabel> labels = Services.WalletManager.GetWallets(refreshWalletList: false)
 			.Select(x => x.KeyManager)
-			.SelectMany(x => x.GetLabels());
+			.SelectMany(x => x.GetLabels())
+			.Where(x => x.Labels?.Count() > 0);
+
+
+
+		var pastTransactionDays = -30;
+		var dateTimeFilter = DateTimeOffset.Now.AddDays(pastTransactionDays);
+
+
+		var keys = Services.WalletManager.GetWallets(refreshWalletList: false)
+			.SelectMany(x => x.KeyManager.GetKeys());
+
+		var walletTransactions = keys
+			.SelectMany(x => x.Coins)
+			.Select(x => x.Transaction);
+
+		var walletTransactionsLabels = walletTransactions
+			//.Where(x => x.FirstSeen > dateTimeFilter)
+			.Select(x => x.Label)
+			.Where(x => x.Labels?.Count() > 0);
+
 
 		var txStore = Services.BitcoinStore.TransactionStore;
 		if (txStore is { })
 		{
-			labels = labels.Concat(txStore.GetLabels());
+			var transactionLabels = txStore.GetTransactions()
+				.Where(x => x.FirstSeen > dateTimeFilter)
+				.Select(x => x.Label)
+				.Where(x => x.Labels?.Count() > 0);
+
+			//var transactionLabels = txStore.GetLabels();
+
+			labels = labels.Concat(transactionLabels);
 		}
 
 		return labels.SelectMany(x => x.Labels);
