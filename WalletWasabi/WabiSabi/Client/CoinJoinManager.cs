@@ -32,6 +32,7 @@ public class CoinJoinManager : BackgroundService
 	private ImmutableDictionary<string, CoinJoinTracker> TrackedCoinJoins { get; set; } = ImmutableDictionary<string, CoinJoinTracker>.Empty;
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
 	private TimeSpan AutoCoinJoinDelayAfterWalletLoaded { get; } = TimeSpan.FromMinutes(Random.Shared.Next(5, 16));
+	public bool IsUserInSendWorkflow { get; set; }
 
 	public CoinJoinClientState HighestCoinJoinClientState
 	{
@@ -153,7 +154,7 @@ public class CoinJoinManager : BackgroundService
 	private ImmutableDictionary<string, Wallet> GetMixableWallets() =>
 		WalletManager.GetWallets()
 			.Where(x => x.State == WalletState.Started) // Only running wallets
-			.Where(x => (x.KeyManager.AutoCoinJoin && x.ElapsedTimeSinceStartup > AutoCoinJoinDelayAfterWalletLoaded && (x.NonPrivateCoins.TotalAmount() >= x.KeyManager.PlebStopThreshold)) || x.AllowManualCoinJoin) // Configured to be mixed automatically or manually.
+			.Where(x => CanStartAutoCoinJoin(x) || x.AllowManualCoinJoin)
 			.Where(x => !x.KeyManager.IsWatchOnly)      // that are not watch-only wallets
 			.Where(x => x.Kitchen.HasIngredients)
 			.ToImmutableDictionary(x => x.WalletName, x => x);
@@ -186,5 +187,30 @@ public class CoinJoinManager : BackgroundService
 
 		var pcPrivate = totalDecimalAmount == 0M ? 1d : (double)(privateDecimalAmount / totalDecimalAmount);
 		return pcPrivate;
+	}
+
+	private bool CanStartAutoCoinJoin(Wallet wallet)
+	{
+		if (!wallet.KeyManager.AutoCoinJoin)
+		{
+			return false;
+		}
+
+		if (IsUserInSendWorkflow)
+		{
+			return false;
+		}
+
+		if (wallet.ElapsedTimeSinceStartup <= AutoCoinJoinDelayAfterWalletLoaded)
+		{
+			return false;
+		}
+
+		if (wallet.NonPrivateCoins.TotalAmount() <= wallet.KeyManager.PlebStopThreshold)
+		{
+			return false;
+		}
+
+		return true;
 	}
 }
