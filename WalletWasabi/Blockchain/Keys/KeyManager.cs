@@ -701,10 +701,6 @@ public class KeyManager
 	public void SetAnonScoreTargets(int minAnonScoreTarget, int maxAnonScoreTarget)
 	{
 		MinAnonScoreTarget = minAnonScoreTarget;
-		if (MaxAnonScoreTarget < MinAnonScoreTarget)
-		{
-			throw new ArgumentException($"{nameof(maxAnonScoreTarget)} should be greater.", nameof(maxAnonScoreTarget));
-		}
 		MaxAnonScoreTarget = maxAnonScoreTarget;
 		ToFile();
 	}
