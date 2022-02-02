@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
@@ -124,8 +125,10 @@ public class CoinJoinClient
 
 			var availableVsize = registeredAliceClients.SelectMany(x => x.IssuedVsizeCredentials).Sum(x => x.Value);
 
+			// Waiting for OutputRegistration phase, all the Alices confirmed their connections, so the list of the inputs will be complete.
+			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
+
 			// Calculate outputs values
-			roundState = await RoundStatusUpdater.CreateRoundAwaiter(rs => rs.Id == roundState.Id, cancellationToken).ConfigureAwait(false);
 			constructionState = roundState.Assert<ConstructionState>();
 
 			AmountDecomposer amountDecomposer = new(roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min, Constants.P2wpkhOutputSizeInBytes, (int)availableVsize);
@@ -176,6 +179,8 @@ public class CoinJoinClient
 
 			var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundState.Id && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
 			Logger.LogDebug($"Round ({roundState.Id}): Round Ended - WasTransactionBroadcast: '{finalRoundState.WasTransactionBroadcast}'.");
+
+			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, unsignedCoinJoin, roundState);
 
 			return finalRoundState.WasTransactionBroadcast;
 		}
@@ -254,9 +259,10 @@ public class CoinJoinClient
 	private bool SanityCheck(IEnumerable<TxOut> expectedOutputs, Transaction unsignedCoinJoinTransaction)
 	{
 		var coinJoinOutputs = unsignedCoinJoinTransaction.Outputs.Select(o => (o.Value, o.ScriptPubKey));
-		var expectedOutputTuples = expectedOutputs
+		IEnumerable<(Money TotalAmount, Script Key)>? expectedOutputTuples = expectedOutputs
 			.GroupBy(x => x.ScriptPubKey)
 			.Select(o => (o.Select(x => x.Value).Sum(), o.Key));
+
 		return coinJoinOutputs.IsSuperSetOf(expectedOutputTuples);
 	}
 
@@ -308,6 +314,35 @@ public class CoinJoinClient
 		var readyRequests = aliceClients.Select(ReadyToSignTask);
 
 		await Task.WhenAll(readyRequests).ConfigureAwait(false);
+	}
+
+	private void LogCoinJoinSummary(ImmutableArray<AliceClient> registeredAliceClients, IEnumerable<TxOut> myOutputs, Transaction unsignedCoinJoinTransaction, RoundState roundState)
+	{
+		var feeRate = roundState.FeeRate;
+
+		var totalEffectiveInputAmount = Money.Satoshis(registeredAliceClients.Sum(a => a.EffectiveValue));
+		var totalEffectiveOutputAmount = Money.Satoshis(myOutputs.Sum(a => a.Value - feeRate.GetFee(a.ScriptPubKey.EstimateOutputVsize())));
+		var effectiveDifference = totalEffectiveOutputAmount - totalEffectiveInputAmount;
+
+		var totalInputAmount = Money.Satoshis(registeredAliceClients.Sum(a => a.SmartCoin.Amount));
+		var totalOutputAmount = Money.Satoshis(myOutputs.Sum(a => a.Value));
+		var totalDifference = Money.Satoshis(totalOutputAmount - totalInputAmount);
+
+		var inputNetworkFee = Money.Satoshis(registeredAliceClients.Sum(alice => feeRate.GetFee(alice.SmartCoin.Coin.ScriptPubKey.EstimateInputVsize())));
+		var outputNetworkFee = Money.Satoshis(myOutputs.Sum(output => feeRate.GetFee(output.ScriptPubKey.EstimateOutputVsize())));
+		var totalNetworkFee = inputNetworkFee + outputNetworkFee;
+		var totalCoordinationFee = Money.Satoshis(registeredAliceClients.Where(a => a.IsPayingZeroCoordinationFee).Sum(a => roundState.CoordinationFeeRate.GetFee(a.SmartCoin.Amount)));
+
+		string[] summary = new string[] {
+		$"Round ({roundState.Id}):",
+		$"\tInput total: {totalInputAmount.ToString(true)} Eff: {totalEffectiveInputAmount.ToString(true)} NetwFee: {inputNetworkFee.ToString(true)} CoordF: {totalCoordinationFee.ToString(true)}",
+		$"\tOutpu total: {totalOutputAmount.ToString(true)} Eff: {totalEffectiveOutputAmount.ToString(true)} NetwFee: {outputNetworkFee.ToString(true)}",
+		$"\tTotal diff : {totalDifference.ToString(true)}",
+		$"\tEffec diff : {effectiveDifference.ToString(true)}",
+		$"\tTotal fee  : {totalNetworkFee.ToString(true)}"
+		};
+
+		Logger.LogDebug(string.Join(Environment.NewLine, summary));
 	}
 
 	internal static ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, MultipartyTransactionParameters parameters, bool consolidationMode, int minAnonScoreTarget, WasabiRandom rnd)

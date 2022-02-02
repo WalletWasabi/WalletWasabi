@@ -54,7 +54,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(_info.ConfirmationTimeSpan)} ";
 
 		var destinationAmount = _transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
-		var btcAmountText = $"{destinationAmount} bitcoins ";
+		var btcAmountText = $"{destinationAmount} BTC ";
 		var fiatAmountText =
 			destinationAmount.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
 		AmountText = $"{btcAmountText}{fiatAmountText}";
