@@ -49,7 +49,7 @@ public partial class SendViewModel : RoutableViewModel
 	{
 		_to = "";
 		_wallet = wallet;
-		_transactionInfo = new TransactionInfo();
+		_transactionInfo = new TransactionInfo(wallet.KeyManager.MinAnonScoreTarget);
 
 		IsQrButtonVisible = WebcamQrReader.IsOsPlatformSupported;
 
@@ -154,7 +154,7 @@ public partial class SendViewModel : RoutableViewModel
 	private IPayjoinClient? GetPayjoinClient(string endPoint)
 	{
 		if (!string.IsNullOrWhiteSpace(endPoint) &&
-		    Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
+			Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
 		{
 			var payjoinEndPointUri = new Uri(endPoint);
 			if (!Services.Config.UseTor)
@@ -199,7 +199,7 @@ public partial class SendViewModel : RoutableViewModel
 	private void ValidateToField(IValidationErrors errors)
 	{
 		if (!string.IsNullOrWhiteSpace(To) &&
-		    !AddressStringParser.TryParse(To, _wallet.Network, out _))
+			!AddressStringParser.TryParse(To, _wallet.Network, out _))
 		{
 			errors.Add(ErrorSeverity.Error, "Input a valid BTC address or URL.");
 		}
