@@ -49,10 +49,10 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 		var loadingRing = new LoadingSuggestionViewModel();
 		Suggestions.Add(loadingRing);
 
-		var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destination.ScriptPubKey);
-
 		try
 		{
+			var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destination.ScriptPubKey);
+
 			if (hasChange && !isFixedAmount)
 			{
 				var suggestions =
@@ -66,12 +66,11 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 		}
 		catch (OperationCanceledException)
 		{
-			Logger.LogWarning("Suggestion creation has timed out.");
+			Logger.LogWarning("Computing privacy suggestions timed out.");
 		}
 		finally
 		{
 			cancellationTokenSource.Cancel();
-			cancellationTokenSource.Dispose();
 			Suggestions.Remove(loadingRing);
 		}
 	}
