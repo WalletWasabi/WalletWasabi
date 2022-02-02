@@ -1,11 +1,8 @@
 using NBitcoin;
 using NBitcoin.DataEncoders;
-using System.Diagnostics;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Backend.Models;
 
@@ -47,7 +44,7 @@ public class FilterModel
 		byte[] filterData = Encoders.Hex.DecodeData(parts[2]);
 		Lazy<GolombRiceFilter> filter = new(() => new GolombRiceFilter(filterData, 20, 1 << 20), LazyThreadSafetyMode.ExecutionAndPublication);
 		uint256 prevBlockHash = uint256.Parse(parts[3]);
-		DateTimeOffset blockTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(parts[4]));
+		long blockTime = long.Parse(parts[4]);
 
 		return new FilterModel(new SmartHeader(blockHash, prevBlockHash, blockHeight, blockTime), filter);
 	}
@@ -63,7 +60,7 @@ public class FilterModel
 		builder.Append(':');
 		builder.Append(Header.PrevHash);
 		builder.Append(':');
-		builder.Append(Header.BlockTime.ToUnixTimeSeconds());
+		builder.Append(Header.BlockTimeSeconds);
 
 		return builder.ToString();
 	}
