@@ -29,7 +29,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private readonly TransactionInfo _info;
 	private readonly BitcoinAddress _destination;
 	private BuildTransactionResult? _transaction;
-	private CancellationTokenSource _cancellationTokenSource;
 	[AutoNotify] private string _nextButtonText;
 	[AutoNotify] private bool _adjustFeeAvailable;
 	[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
@@ -40,7 +39,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		_info = info;
 		_destination = destination;
 		_isFixedAmount = isFixedAmount;
-		_cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));
 
 		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel();
 		CurrentTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info, destination);
@@ -77,6 +75,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				{
 					_info.ChangelessCoins = ca.TransactionResult.SpentCoins;
 					UpdateTransaction(CurrentTransactionSummary, ca.TransactionResult);
+
+					await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, ca.TransactionResult, _isFixedAmount);
 				}
 				else if (x is PocketSuggestionViewModel)
 				{
@@ -191,14 +191,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			UpdateTransaction(CurrentTransactionSummary, newTransaction);
 
-			// Cancel and dispose old token source.
-			_cancellationTokenSource.Cancel();
-			_cancellationTokenSource.Dispose();
-
-			// Start the new search with a fresh token source.
-			_cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));
-
-			await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, newTransaction, _isFixedAmount, _cancellationTokenSource.Token);
+			await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, newTransaction, _isFixedAmount);
 		}
 	}
 
@@ -403,7 +396,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			UpdateTransaction(CurrentTransactionSummary, initialTransaction);
 
-			await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, initialTransaction, _isFixedAmount, _cancellationTokenSource.Token);
+			await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, initialTransaction, _isFixedAmount);
 		}
 		else
 		{
@@ -428,12 +421,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	protected override void OnNavigatedFrom(bool isInHistory)
 	{
-		if (!isInHistory)
-		{
-			_cancellationTokenSource.Cancel();
-			_cancellationTokenSource.Dispose();
-		}
-
 		base.OnNavigatedFrom(isInHistory);
 
 		DisplayedTransactionSummary = null;
@@ -441,7 +428,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task OnConfirmAsync()
 	{
-		_cancellationTokenSource.Cancel();
 		var labelDialog = new LabelEntryDialogViewModel(_wallet, _info);
 
 		Navigate(NavigationTarget.CompactDialogScreen).To(labelDialog);

@@ -34,8 +34,10 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 	public ObservableCollection<SuggestionViewModel> Suggestions { get; }
 
-	public async Task BuildPrivacySuggestionsAsync(Wallet wallet, TransactionInfo info, BitcoinAddress destination, BuildTransactionResult transaction, bool isFixedAmount, CancellationToken cancellationToken)
+	public async Task BuildPrivacySuggestionsAsync(Wallet wallet, TransactionInfo info, BitcoinAddress destination, BuildTransactionResult transaction, bool isFixedAmount)
 	{
+		using CancellationTokenSource cancellationTokenSource = new(TimeSpan.FromSeconds(15));
+
 		Suggestions.Clear();
 		SelectedSuggestion = null;
 
@@ -49,24 +51,28 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 		var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destination.ScriptPubKey);
 
-		if (hasChange && !isFixedAmount)
+		try
 		{
-			try
+			if (hasChange && !isFixedAmount)
 			{
 				var suggestions =
-					ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, cancellationToken);
+					ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, cancellationTokenSource.Token);
 
 				await foreach (var suggestion in suggestions)
 				{
 					Suggestions.Insert(Suggestions.Count - 1, suggestion);
 				}
 			}
-			catch (OperationCanceledException)
-			{
-				Logger.LogWarning("Suggestion creation has timed out.");
-			}
 		}
-
-		Suggestions.Remove(loadingRing);
+		catch (OperationCanceledException)
+		{
+			Logger.LogWarning("Suggestion creation has timed out.");
+		}
+		finally
+		{
+			cancellationTokenSource.Cancel();
+			cancellationTokenSource.Dispose();
+			Suggestions.Remove(loadingRing);
+		}
 	}
 }
