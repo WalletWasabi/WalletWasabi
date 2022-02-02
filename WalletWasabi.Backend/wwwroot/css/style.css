@@ -805,6 +805,40 @@ ol li::marker {
 .icon-big {
     fill: var(--green);
 }
+blockquote {
+    font-size: 36px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 1.3em;
+}
+blockquote:before {
+    content: '"';
+}
+blockquote:after {
+    content: '"';
+}
+.quoter {
+    text-align: center;
+}
+.quoter:before {
+    content: '';
+    width: 50px;
+    height: 3px;
+    background-color: var(--green);
+    display: block;
+    margin: 20px auto;
+}
+.dark-bg {
+    background: var(--black);
+    border-top: 1px solid;
+    border-bottom: 1px solid;
+    border-color: rgba(73, 88, 107, 0.3);
+}
+.green-bordered-section {
+    border: 1px solid var(--green);
+    border-left: 0;
+    border-right: 0;
+}
 @media (min-width: 576px) {
     body {
         --breakpoint: 540px;
