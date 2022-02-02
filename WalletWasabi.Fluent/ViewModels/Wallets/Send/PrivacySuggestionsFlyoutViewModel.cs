@@ -34,9 +34,10 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 	public ObservableCollection<SuggestionViewModel> Suggestions { get; }
 
-	public async Task BuildPrivacySuggestionsAsync(Wallet wallet, TransactionInfo info, BitcoinAddress destination, BuildTransactionResult transaction, bool isFixedAmount)
+	public async Task BuildPrivacySuggestionsAsync(Wallet wallet, TransactionInfo info, BitcoinAddress destination, BuildTransactionResult transaction, bool isFixedAmount, CancellationToken cancellationToken)
 	{
-		using CancellationTokenSource cancellationTokenSource = new(TimeSpan.FromSeconds(15));
+		using CancellationTokenSource childCTS = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+		childCTS.CancelAfter(15000);
 
 		Suggestions.Clear();
 		SelectedSuggestion = null;
@@ -56,7 +57,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 			if (hasChange && !isFixedAmount)
 			{
 				var suggestions =
-					ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, cancellationTokenSource.Token);
+					ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, childCTS.Token);
 
 				await foreach (var suggestion in suggestions)
 				{
