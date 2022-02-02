@@ -1,11 +1,13 @@
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -15,7 +17,6 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	[AutoNotify] private SuggestionViewModel? _previewSuggestion;
 	[AutoNotify] private SuggestionViewModel? _selectedSuggestion;
 	[AutoNotify] private bool _isOpen;
-	[AutoNotify] private bool _isLoading;
 
 	public PrivacySuggestionsFlyoutViewModel()
 	{
@@ -33,29 +34,36 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 	public ObservableCollection<SuggestionViewModel> Suggestions { get; }
 
-	public async Task BuildPrivacySuggestionsAsync(Wallet wallet, TransactionInfo info, BitcoinAddress destination,
-		BuildTransactionResult transaction, bool isFixedAmount)
+	public async Task BuildPrivacySuggestionsAsync(Wallet wallet, TransactionInfo info, BitcoinAddress destination, BuildTransactionResult transaction, bool isFixedAmount, CancellationToken cancellationToken)
 	{
-		IsLoading = true;
-
 		Suggestions.Clear();
 		SelectedSuggestion = null;
 
-		Suggestions.Add(new PocketSuggestionViewModel(SmartLabel.Merge(transaction.SpentCoins.Select(x => CoinHelpers.GetLabels(x)))));
+		Suggestions.Add(new PocketSuggestionViewModel(SmartLabel.Merge(transaction.SpentCoins.Select(x => CoinHelpers.GetLabels(x, wallet.KeyManager.MinAnonScoreTarget)))));
 
-		var suggestions =
-			await ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, transaction);
+		var loadingRing = new LoadingSuggestionViewModel();
+		Suggestions.Add(loadingRing);
 
 		var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destination.ScriptPubKey);
 
 		if (hasChange && !isFixedAmount)
 		{
-			foreach (var suggestion in suggestions)
+			try
 			{
-				Suggestions.Add(suggestion);
+				var suggestions =
+					ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, cancellationToken);
+
+				await foreach (var suggestion in suggestions)
+				{
+					Suggestions.Insert(Suggestions.Count - 1, suggestion);
+				}
+			}
+			catch (OperationCanceledException)
+			{
+				Logger.LogWarning("Suggestion creation has timed out.");
 			}
 		}
 
-		IsLoading = false;
+		Suggestions.Remove(loadingRing);
 	}
 }

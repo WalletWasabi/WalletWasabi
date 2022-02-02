@@ -2,6 +2,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -22,6 +23,11 @@ namespace WalletWasabi.Blockchain.Keys;
 [JsonObject(MemberSerialization.OptIn)]
 public class KeyManager
 {
+	public const int DefaultMinAnonScoreTarget = 5;
+	public const int DefaultMaxAnonScoreTarget = 10;
+	private int _minAnonScoreTarget;
+	private int _maxAnonScoreTarget;
+
 	public const int AbsoluteMinGapLimit = 21;
 	public const int MaxGapLimit = 10_000;
 	public static Money DefaultPlebStopThreshold = Money.Coins(0.01m);
@@ -150,6 +156,14 @@ public class KeyManager
 
 	[JsonProperty(Order = 12, PropertyName = "Icon")]
 	public string? Icon { get; private set; }
+
+	[DefaultValue(DefaultMinAnonScoreTarget)]
+	[JsonProperty(Order = 13, PropertyName = "MinAnonScoreTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public int MinAnonScoreTarget { get; private set; }
+
+	[DefaultValue(DefaultMaxAnonScoreTarget)]
+	[JsonProperty(Order = 14, PropertyName = "MaxAnonScoreTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public int MaxAnonScoreTarget { get; private set; }
 
 	[JsonProperty(Order = 999)]
 	private List<HdPubKey> HdPubKeys { get; }
@@ -682,6 +696,17 @@ public class KeyManager
 	public void SetIcon(WalletType type)
 	{
 		SetIcon(type.ToString());
+	}
+
+	public void SetAnonScoreTargets(int minAnonScoreTarget, int maxAnonScoreTarget)
+	{
+		MinAnonScoreTarget = minAnonScoreTarget;
+		if (MaxAnonScoreTarget < MinAnonScoreTarget)
+		{
+			throw new ArgumentException($"{nameof(maxAnonScoreTarget)} should be greater.", nameof(maxAnonScoreTarget));
+		}
+		MaxAnonScoreTarget = maxAnonScoreTarget;
+		ToFile();
 	}
 
 	public void AssertNetworkOrClearBlockState(Network expectedNetwork)

@@ -28,7 +28,9 @@ public class ChangelessTransactionCoinSelectorTests
 		List<SmartCoin> coins = GenerateDummySmartCoins(key, 6_025, 6_561, 8_192, 13_122, 50_000, 100_000, 196_939, 524_288);
 		var target = Money.Satoshis(150_000);
 
-		bool found = ChangelessTransactionCoinSelector.TryGetCoins(coins, new FeeRate(satoshiPerByte: 4), target, out IEnumerable<SmartCoin>? selectedCoins);
+		var txOut = new TxOut(target, BitcoinFactory.CreateBitcoinAddress(Network.TestNet, key));
+
+		bool found = ChangelessTransactionCoinSelector.TryGetCoins(coins, new FeeRate(satoshiPerByte: 4), txOut, out IEnumerable<SmartCoin>? selectedCoins);
 		Assert.True(found);
 
 		long[] solution = selectedCoins!.Select(x => x.Amount.Satoshi).ToArray();
@@ -47,7 +49,9 @@ public class ChangelessTransactionCoinSelectorTests
 		List<SmartCoin> coins = GenerateDummySmartCoins(key, 150_000);
 		var target = Money.Satoshis(100_000);
 
-		bool found = ChangelessTransactionCoinSelector.TryGetCoins(coins, new FeeRate(satoshiPerByte: 4), target, out IEnumerable<SmartCoin>? selectedCoins);
+		var txOut = new TxOut(target, BitcoinFactory.CreateBitcoinAddress(Network.TestNet, key));
+
+		bool found = ChangelessTransactionCoinSelector.TryGetCoins(coins, new FeeRate(satoshiPerByte: 4), txOut, out IEnumerable<SmartCoin>? selectedCoins);
 		Assert.False(found);
 	}
 

@@ -5,11 +5,10 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class CoinHelpers
 {
-	public static bool IsPrivate(this SmartCoin coin)
+	public static bool IsPrivate(this SmartCoin coin, int privateThreshold)
 	{
-		var privateThreshold = Services.Config.MinAnonScoreTarget;
 		return coin.HdPubKey.AnonymitySet >= privateThreshold;
 	}
 
-	public static SmartLabel GetLabels(this SmartCoin coin) => coin.IsPrivate() ? SmartLabel.Empty : coin.HdPubKey.Cluster.Labels;
+	public static SmartLabel GetLabels(this SmartCoin coin, int privateThreshold) => coin.IsPrivate(privateThreshold) ? SmartLabel.Empty : coin.HdPubKey.Cluster.Labels;
 }

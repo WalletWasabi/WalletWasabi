@@ -45,7 +45,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 	private void InitializeLabels()
 	{
-		LabelSelection.Reset(_wallet.Coins.GetPockets(_wallet.ServiceConfiguration.MinAnonScoreTarget).Select(x => new Pocket(x)).ToArray());
+		LabelSelection.Reset(_wallet.Coins.GetPockets(_wallet.KeyManager.MinAnonScoreTarget).Select(x => new Pocket(x)).ToArray());
 		LabelSelection.SetUsedLabel(_usedCoins);
 	}
 
