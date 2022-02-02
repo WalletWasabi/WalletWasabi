@@ -2,7 +2,9 @@ using System.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -59,8 +61,11 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 			destinationAmount.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
 		AmountText = $"{btcAmountText}{fiatAmountText}";
 
+		var feeDisplayFormat = (FeeDisplayFormat?)Services.UiConfig.FeeDisplayFormat ?? FeeDisplayFormat.BTC;
+		var btcFeeMoneyUnit = feeDisplayFormat.ToMoneyUnit();
+
 		var fee = _transaction.Fee;
-		var btcFeeText = $"{fee.ToDecimal(MoneyUnit.BTC)} bitcoin ";
+		var btcFeeText = $"{fee.ToDecimal(btcFeeMoneyUnit)} {feeDisplayFormat.FriendlyName() } ";
 		var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC)
 			.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
 
@@ -73,4 +78,6 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 
 		IsCustomFeeUsed = _info.IsCustomFeeUsed;
 	}
+
+	
 }
