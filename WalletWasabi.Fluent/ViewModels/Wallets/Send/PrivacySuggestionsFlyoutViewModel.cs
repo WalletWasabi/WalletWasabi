@@ -41,10 +41,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 		Suggestions.Clear();
 		SelectedSuggestion = null;
 
-		if (!info.IsPrivate)
-		{
-			Suggestions.Add(new PocketSuggestionViewModel(SmartLabel.Merge(transaction.SpentCoins.Select(x => CoinHelpers.GetLabels(x)))));
-		}
+		Suggestions.Add(new PocketSuggestionViewModel(SmartLabel.Merge(transaction.SpentCoins.Select(x => CoinHelpers.GetLabels(x)))));
 
 		var suggestions =
 			await ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, transaction);

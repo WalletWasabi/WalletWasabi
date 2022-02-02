@@ -31,7 +31,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
 
-		NextCommand = ReactiveCommand.Create(() => Complete(LabelSelection.GetUsedPockets()));
+		NextCommand = ReactiveCommand.Create(() => Complete(LabelSelection.GetUsedPockets()), LabelSelection.WhenAnyValue(x => x.EnoughSelected));
 	}
 
 	public LabelSelectionViewModel LabelSelection { get; }
@@ -66,7 +66,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 		if (_isSilent)
 		{
-			var usedPockets = LabelSelection.GetUsedPockets();
+			var usedPockets = LabelSelection.GetAllPockets();
 
 			if (usedPockets.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText) is { } privatePocket &&
 			    privatePocket.Amount >= _transactionInfo.Amount)

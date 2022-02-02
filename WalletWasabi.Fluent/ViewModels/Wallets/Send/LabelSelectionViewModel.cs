@@ -4,13 +4,19 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
-public class LabelSelectionViewModel : ViewModelBase
+public partial class LabelSelectionViewModel : ViewModelBase
 {
 	private readonly Money _targetAmount;
+
+	[AutoNotify] private bool _enoughSelected;
+
+	private Pocket? _privatePocket;
+	private bool _includePrivatePocket;
 
 	public LabelSelectionViewModel(Money targetAmount)
 	{
@@ -25,12 +31,35 @@ public class LabelSelectionViewModel : ViewModelBase
 
 	public IEnumerable<LabelViewModel> LabelsBlackList => AllLabelViewModel.Where(x => x.IsBlackListed);
 
-	public Pocket[] GetUsedPockets() =>
-		AllPocket.Where(x => x.Labels.All(label => LabelsWhiteList.Any(labelViewModel => labelViewModel.Value == label))).ToArray();
+	public Pocket[] GetAllPockets()
+	{
+		var pockets = AllPocket.ToList();
+
+		if (_privatePocket is { } privatePocket)
+		{
+			pockets.Add(privatePocket);
+		}
+
+		return pockets.ToArray();
+	}
+
+	public Pocket[] GetUsedPockets()
+	{
+		var pocketsToReturn = AllPocket.Where(x => x.Labels.All(label => LabelsWhiteList.Any(labelViewModel => labelViewModel.Value == label))).ToList();
+
+		if (_includePrivatePocket && _privatePocket is { } privatePocket)
+		{
+			pocketsToReturn.Add(privatePocket);
+		}
+
+		return pocketsToReturn.ToArray();
+	}
 
 	public void Reset(Pocket[] pockets)
 	{
-		AllPocket = pockets;
+		_privatePocket = pockets.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText);
+
+		AllPocket = pockets.Where(x => x != _privatePocket).ToArray();
 
 		var allLabels = SmartLabel.Merge(AllPocket.Select(x => x.Labels));
 		AllLabelViewModel = allLabels.Select(x => new LabelViewModel(this, x)).ToArray();
@@ -78,13 +107,27 @@ public class LabelSelectionViewModel : ViewModelBase
 
 	private void OnSelectionChanged()
 	{
-		var sumOfWhiteList = AllPocket.Where(x => LabelsWhiteList.Any(y => x.Labels.Contains(y.Value))).Sum(x => x.Amount);
+		Money sumOfWhiteList = AllPocket.Where(x => LabelsWhiteList.Any(y => x.Labels.Contains(y.Value))).Sum(x => x.Amount);
 
-		foreach (var labelViewModel in LabelsWhiteList)
+		if (sumOfWhiteList >= _targetAmount)
 		{
-			var sumOfLabelsPockets = AllPocket.Where(x => x.Labels.Contains(labelViewModel.Value)).Sum(x => x.Amount);
-
-			labelViewModel.MustHave = sumOfWhiteList - sumOfLabelsPockets < _targetAmount;
+			EnoughSelected = true;
+			_includePrivatePocket = false;
+		}
+		else if (!LabelsBlackList.Any() && _privatePocket is { } && sumOfWhiteList + _privatePocket.Amount >= _targetAmount)
+		{
+			EnoughSelected = true;
+			_includePrivatePocket = true;
+		}
+		else if (!LabelsWhiteList.Any() && _privatePocket is { } && _privatePocket.Amount >= _targetAmount)
+		{
+			EnoughSelected = true;
+			_includePrivatePocket = true;
+		}
+		else
+		{
+			EnoughSelected = false;
+			_includePrivatePocket = false;
 		}
 
 		this.RaisePropertyChanged(nameof(LabelsWhiteList));

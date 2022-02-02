@@ -13,7 +13,6 @@ public partial class LabelViewModel : ViewModelBase
 	private bool _isHighlighted;
 
 	[AutoNotify] private bool _isPointerOver;
-	[AutoNotify] private bool _mustHave;
 
 	public LabelViewModel(LabelSelectionViewModel owner, string label)
 	{
@@ -24,8 +23,7 @@ public partial class LabelViewModel : ViewModelBase
 			.Where(value => value == true)
 			.Subscribe(_ => owner.OnPointerOver(this));
 
-		ClickedCommand = ReactiveCommand.Create(() => owner.SwapLabel(this),
-			this.WhenAnyValue(x => x.MustHave, x => x.IsBlackListed).Select(x => x.Item2 || !x.Item1 && !x.Item2));
+		ClickedCommand = ReactiveCommand.Create(() => owner.SwapLabel(this));
 	}
 
 	public string Value { get; }
