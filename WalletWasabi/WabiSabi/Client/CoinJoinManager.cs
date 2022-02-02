@@ -164,11 +164,11 @@ public class CoinJoinManager : BackgroundService
 		var coins = new CoinsView(openedWallet.Coins
 			.Available()
 			.Confirmed()
-			.Where(x => x.HdPubKey.AnonymitySet < ServiceConfiguration.MaxAnonScoreTarget)
+			.Where(x => x.HdPubKey.AnonymitySet < openedWallet.KeyManager.MaxAnonScoreTarget)
 			.Where(x => !CoinRefrigerator.IsFrozen(x)));
 
 		// If a small portion of the wallet isn't private, it's better to wait with mixing.
-		if (GetPrivacyPercentage(coins) > 0.99)
+		if (GetPrivacyPercentage(coins, openedWallet.KeyManager.MinAnonScoreTarget) > 0.99)
 		{
 			return Enumerable.Empty<SmartCoin>();
 		}
@@ -176,10 +176,8 @@ public class CoinJoinManager : BackgroundService
 		return coins;
 	}
 
-	private double GetPrivacyPercentage(CoinsView coins)
+	private double GetPrivacyPercentage(CoinsView coins, int privateThreshold)
 	{
-		var privateThreshold = ServiceConfiguration.MinAnonScoreTarget;
-
 		var privateAmount = coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
 		var normalAmount = coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold).TotalAmount();
 
