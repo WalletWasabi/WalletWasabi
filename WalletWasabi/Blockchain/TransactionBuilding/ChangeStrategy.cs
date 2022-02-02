@@ -1,9 +1,8 @@
-namespace WalletWasabi.Blockchain.TransactionBuilding
+namespace WalletWasabi.Blockchain.TransactionBuilding;
+
+public enum ChangeStrategy
 {
-	public enum ChangeStrategy
-	{
-		Auto,
-		Custom,
-		AllRemainingCustom
-	}
+	Auto,
+	Custom,
+	AllRemainingCustom
 }

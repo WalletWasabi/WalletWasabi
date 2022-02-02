@@ -58,11 +58,11 @@
 
 <br>
 
-# 💻 [Download Wasabi](https://github.com/zkSNACKs/WalletWasabi/releases)
+# [Download Wasabi](https://github.com/zkSNACKs/WalletWasabi/releases)
 
 <br>
 
-# 🏗️ Build From Source Code
+# Build From Source Code
 
 ### Get The Requirements
 

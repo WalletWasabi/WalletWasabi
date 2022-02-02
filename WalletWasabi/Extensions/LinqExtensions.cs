@@ -3,217 +3,216 @@ using System.Collections.Generic;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 
-namespace System.Linq
+namespace System.Linq;
+
+public static class LinqExtensions
 {
-	public static class LinqExtensions
+	public static IEnumerable<IEnumerable<T>> Batch<T>(
+	   this IEnumerable<T> source, int size)
 	{
-		public static IEnumerable<IEnumerable<T>> Batch<T>(
-		   this IEnumerable<T> source, int size)
+		T[]? bucket = null;
+		var count = 0;
+
+		foreach (var item in source)
 		{
-			T[]? bucket = null;
-			var count = 0;
+			bucket ??= new T[size];
 
-			foreach (var item in source)
+			bucket[count++] = item;
+
+			if (count != size)
 			{
-				bucket ??= new T[size];
-
-				bucket[count++] = item;
-
-				if (count != size)
-				{
-					continue;
-				}
-
-				yield return bucket.Select(x => x);
-
-				bucket = null;
-				count = 0;
+				continue;
 			}
 
-			// Return the last bucket with all remaining elements
-			if (bucket is { } && count > 0)
+			yield return bucket.Select(x => x);
+
+			bucket = null;
+			count = 0;
+		}
+
+		// Return the last bucket with all remaining elements
+		if (bucket is { } && count > 0)
+		{
+			Array.Resize(ref bucket, count);
+			yield return bucket.Select(x => x);
+		}
+	}
+
+	public static T? RandomElement<T>(this IEnumerable<T> source)
+	{
+		T? current = default;
+		int count = 0;
+		foreach (T element in source)
+		{
+			count++;
+			if (new Random().Next(count) == 0)
 			{
-				Array.Resize(ref bucket, count);
-				yield return bucket.Select(x => x);
+				current = element;
 			}
 		}
+		return current;
+	}
 
-		public static T? RandomElement<T>(this IEnumerable<T> source)
+	public static IList<T> Shuffle<T>(this IList<T> list)
+	{
+		var rng = new Random();
+		int n = list.Count;
+		while (n > 1)
 		{
-			T? current = default;
-			int count = 0;
-			foreach (T element in source)
-			{
-				count++;
-				if (new Random().Next(count) == 0)
-				{
-					current = element;
-				}
-			}
-			return current;
+			n--;
+			int k = rng.Next(n + 1);
+			T value = list[k];
+			list[k] = list[n];
+			list[n] = value;
 		}
+		return list;
+	}
 
-		public static IList<T> Shuffle<T>(this IList<T> list)
+	public static IList<T> ToShuffled<T>(this IEnumerable<T> list)
+	{
+		return list.ToList().Shuffle();
+	}
+
+	public static void AddToValueList<TKey, TElem>(this Dictionary<TKey, List<TElem>> myDic, TKey key, TElem elem) where TKey : notnull
+	{
+		if (myDic.ContainsKey(key))
 		{
-			var rng = new Random();
-			int n = list.Count;
-			while (n > 1)
-			{
-				n--;
-				int k = rng.Next(n + 1);
-				T value = list[k];
-				list[k] = list[n];
-				list[n] = value;
-			}
-			return list;
+			myDic[key].Add(elem);
 		}
-
-		public static IList<T> ToShuffled<T>(this IEnumerable<T> list)
+		else
 		{
-			return list.ToList().Shuffle();
+			myDic.Add(key, new List<TElem>() { elem });
 		}
+	}
 
-		public static void AddToValueList<TKey, TElem>(this Dictionary<TKey, List<TElem>> myDic, TKey key, TElem elem) where TKey : notnull
+	public static bool NotNullAndNotEmpty<T>(this IEnumerable<T> source)
+		=> source?.Any() is true;
+
+	public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
+		this IEnumerable<T> items,
+		int ofLength)
+	{
+		return (ofLength == 1)
+			? items.Select(item => new[] { item })
+			: items.SelectMany((item, i) => items
+				.Skip(i + 1)
+				.CombinationsWithoutRepetition(ofLength - 1)
+				.Select(result => new T[] { item }
+				.Concat(result)));
+	}
+
+	public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
+		this IEnumerable<T> items,
+		int ofLength,
+		int upToLength)
+	{
+		return Enumerable
+			.Range(ofLength, Math.Max(0, upToLength - ofLength + 1))
+			.SelectMany(len => items.CombinationsWithoutRepetition(ofLength: len));
+	}
+
+	public static IEnumerable<IEnumerable<T>> GetPermutations<T>(this IEnumerable<T> items, int count)
+	{
+		int i = 0;
+		foreach (var item in items)
 		{
-			if (myDic.ContainsKey(key))
+			if (count == 1)
 			{
-				myDic[key].Add(elem);
+				yield return new T[] { item };
 			}
 			else
 			{
-				myDic.Add(key, new List<TElem>() { elem });
-			}
-		}
-
-		public static bool NotNullAndNotEmpty<T>(this IEnumerable<T> source)
-			=> source?.Any() is true;
-
-		public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
-			this IEnumerable<T> items,
-			int ofLength)
-		{
-			return (ofLength == 1)
-				? items.Select(item => new[] { item })
-				: items.SelectMany((item, i) => items
-					.Skip(i + 1)
-					.CombinationsWithoutRepetition(ofLength - 1)
-					.Select(result => new T[] { item }
-					.Concat(result)));
-		}
-
-		public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
-			this IEnumerable<T> items,
-			int ofLength,
-			int upToLength)
-		{
-			return Enumerable
-				.Range(ofLength, Math.Max(0, upToLength - ofLength + 1))
-				.SelectMany(len => items.CombinationsWithoutRepetition(ofLength: len));
-		}
-
-		public static IEnumerable<IEnumerable<T>> GetPermutations<T>(this IEnumerable<T> items, int count)
-		{
-			int i = 0;
-			foreach (var item in items)
-			{
-				if (count == 1)
+				foreach (var result in items.Skip(i + 1).GetPermutations(count - 1))
 				{
-					yield return new T[] { item };
+					yield return new T[] { item }.Concat(result);
 				}
-				else
-				{
-					foreach (var result in items.Skip(i + 1).GetPermutations(count - 1))
-					{
-						yield return new T[] { item }.Concat(result);
-					}
-				}
-
-				++i;
 			}
+
+			++i;
 		}
-
-		public static IEnumerable<IEnumerable<SmartCoin>> GetPermutations(this IEnumerable<SmartCoin> items, int count, Money minAmount)
-		{
-			int i = 0;
-			foreach (var item in items)
-			{
-				if (count == 1)
-				{
-					if (item.Amount >= minAmount)
-					{
-						yield return new SmartCoin[] { item };
-					}
-				}
-				else
-				{
-					foreach (var result in items.Skip(i + 1).GetPermutations(count - 1))
-					{
-						if (item.Amount + result.Sum(x => x.Amount) >= minAmount)
-						{
-							yield return new SmartCoin[] { item }.Concat(result);
-						}
-					}
-				}
-
-				++i;
-			}
-		}
-
-		public static IOrderedEnumerable<SmartTransaction> OrderByBlockchain(this IEnumerable<SmartTransaction> me)
-			=> me
-				.OrderBy(x => x.Height)
-				.ThenBy(x => x.BlockIndex)
-				.ThenBy(x => x.FirstSeen);
-
-		public static IOrderedEnumerable<TransactionSummary> OrderByBlockchain(this IEnumerable<TransactionSummary> me)
-			=> me
-				.OrderBy(x => x.Height)
-				.ThenBy(x => x.BlockIndex)
-				.ThenBy(x => x.DateTime);
-
-		public static IEnumerable<string> ToBlockchainOrderedLines(this IEnumerable<SmartTransaction> me)
-			=> me
-				.OrderByBlockchain()
-				.Select(x => x.ToLine());
-
-		/// <summary>
-		/// Chunks the source list to sub-lists by the specified chunk size.
-		/// Source: https://stackoverflow.com/a/24087164/2061103
-		/// </summary>
-		public static IEnumerable<IEnumerable<T>> ChunkBy<T>(this IEnumerable<T> source, int chunkSize)
-		{
-			return source
-				.Select((x, i) => new { Index = i, Value = x })
-				.GroupBy(x => x.Index / chunkSize)
-				.Select(x => x.Select(v => v.Value));
-		}
-
-		/// <summary>
-		/// Creates a tuple collection from two collections. If lengths differ, exception is thrown.
-		/// </summary>
-		public static IEnumerable<(T1, T2)> ZipForceEqualLength<T1, T2>(this IEnumerable<T1> source, IEnumerable<T2> otherCollection)
-		{
-			if (source.Count() != otherCollection.Count())
-			{
-				throw new InvalidOperationException($"{nameof(source)} and {nameof(otherCollection)} collections must have the same number of elements. {nameof(source)}:{source.Count()}, {nameof(otherCollection)}:{otherCollection.Count()}.");
-			}
-			return source.Zip(otherCollection);
-		}
-
-		public static IEnumerable<TAccumulate> Scan<TSource, TAccumulate>(
-			this IEnumerable<TSource> source,
-			TAccumulate seed,
-			Func<TAccumulate, TSource, TAccumulate> func)
-		{
-			TAccumulate previous = seed;
-			foreach (var item in source)
-			{
-				previous = func(previous, item);
-				yield return previous;
-			}
-		}
-
-		public static bool IsSuperSetOf<T>(this IEnumerable<T> me, IEnumerable<T> other) =>
-			other.All(x => me.Contains(x));
 	}
+
+	public static IEnumerable<IEnumerable<SmartCoin>> GetPermutations(this IEnumerable<SmartCoin> items, int count, Money minAmount)
+	{
+		int i = 0;
+		foreach (var item in items)
+		{
+			if (count == 1)
+			{
+				if (item.Amount >= minAmount)
+				{
+					yield return new SmartCoin[] { item };
+				}
+			}
+			else
+			{
+				foreach (var result in items.Skip(i + 1).GetPermutations(count - 1))
+				{
+					if (item.Amount + result.Sum(x => x.Amount) >= minAmount)
+					{
+						yield return new SmartCoin[] { item }.Concat(result);
+					}
+				}
+			}
+
+			++i;
+		}
+	}
+
+	public static IOrderedEnumerable<SmartTransaction> OrderByBlockchain(this IEnumerable<SmartTransaction> me)
+		=> me
+			.OrderBy(x => x.Height)
+			.ThenBy(x => x.BlockIndex)
+			.ThenBy(x => x.FirstSeen);
+
+	public static IOrderedEnumerable<TransactionSummary> OrderByBlockchain(this IEnumerable<TransactionSummary> me)
+		=> me
+			.OrderBy(x => x.Height)
+			.ThenBy(x => x.BlockIndex)
+			.ThenBy(x => x.DateTime);
+
+	public static IEnumerable<string> ToBlockchainOrderedLines(this IEnumerable<SmartTransaction> me)
+		=> me
+			.OrderByBlockchain()
+			.Select(x => x.ToLine());
+
+	/// <summary>
+	/// Chunks the source list to sub-lists by the specified chunk size.
+	/// Source: https://stackoverflow.com/a/24087164/2061103
+	/// </summary>
+	public static IEnumerable<IEnumerable<T>> ChunkBy<T>(this IEnumerable<T> source, int chunkSize)
+	{
+		return source
+			.Select((x, i) => new { Index = i, Value = x })
+			.GroupBy(x => x.Index / chunkSize)
+			.Select(x => x.Select(v => v.Value));
+	}
+
+	/// <summary>
+	/// Creates a tuple collection from two collections. If lengths differ, exception is thrown.
+	/// </summary>
+	public static IEnumerable<(T1, T2)> ZipForceEqualLength<T1, T2>(this IEnumerable<T1> source, IEnumerable<T2> otherCollection)
+	{
+		if (source.Count() != otherCollection.Count())
+		{
+			throw new InvalidOperationException($"{nameof(source)} and {nameof(otherCollection)} collections must have the same number of elements. {nameof(source)}:{source.Count()}, {nameof(otherCollection)}:{otherCollection.Count()}.");
+		}
+		return source.Zip(otherCollection);
+	}
+
+	public static IEnumerable<TAccumulate> Scan<TSource, TAccumulate>(
+		this IEnumerable<TSource> source,
+		TAccumulate seed,
+		Func<TAccumulate, TSource, TAccumulate> func)
+	{
+		TAccumulate previous = seed;
+		foreach (var item in source)
+		{
+			previous = func(previous, item);
+			yield return previous;
+		}
+	}
+
+	public static bool IsSuperSetOf<T>(this IEnumerable<T> me, IEnumerable<T> other) =>
+		other.All(x => me.Contains(x));
 }

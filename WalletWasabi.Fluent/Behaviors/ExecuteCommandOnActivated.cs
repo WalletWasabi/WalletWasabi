@@ -5,22 +5,24 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 
-namespace WalletWasabi.Fluent.Behaviors
+namespace WalletWasabi.Fluent.Behaviors;
+
+public class ExecuteCommandOnActivated : DisposingBehavior<Control>
 {
-	public class ExecuteCommandOnActivated : DisposingBehavior<Control>
+	public static readonly StyledProperty<ICommand?> CommandProperty =
+		AvaloniaProperty.Register<ExecuteCommandOnActivated, ICommand?>(nameof(Command));
+
+	public ICommand? Command
 	{
-		public static readonly StyledProperty<ICommand?> CommandProperty =
-			AvaloniaProperty.Register<ExecuteCommandOnActivated, ICommand?>(nameof(Command));
+		get => GetValue(CommandProperty);
+		set => SetValue(CommandProperty, value);
+	}
 
-		public ICommand? Command
+	protected override void OnAttached(CompositeDisposable disposables)
+	{
+		if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
 		{
-			get => GetValue(CommandProperty);
-			set => SetValue(CommandProperty, value);
-		}
-
-		protected override void OnAttached(CompositeDisposable disposables)
-		{
-			var mainWindow = ((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).MainWindow;
+			var mainWindow = lifetime.MainWindow;
 
 			Observable
 				.FromEventPattern(mainWindow, nameof(mainWindow.Activated))

@@ -3,40 +3,39 @@ using System.Diagnostics.CodeAnalysis;
 using NBitcoin;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Blockchain.TransactionOutputs
+namespace WalletWasabi.Blockchain.TransactionOutputs;
+
+public interface ICoinsView : IEnumerable<SmartCoin>
 {
-	public interface ICoinsView : IEnumerable<SmartCoin>
-	{
-		ICoinsView AtBlockHeight(Height height);
+	ICoinsView AtBlockHeight(Height height);
 
-		ICoinsView Available();
+	ICoinsView Available();
 
-		ICoinsView ChildrenOf(SmartCoin coin);
+	ICoinsView ChildrenOf(SmartCoin coin);
 
-		ICoinsView CoinJoinInProcess();
+	ICoinsView CoinJoinInProcess();
 
-		ICoinsView Confirmed();
+	ICoinsView Confirmed();
 
-		ICoinsView DescendantOf(SmartCoin coin);
+	ICoinsView DescendantOf(SmartCoin coin);
 
-		ICoinsView DescendantOfAndSelf(SmartCoin coin);
+	ICoinsView DescendantOfAndSelf(SmartCoin coin);
 
-		ICoinsView FilterBy(Func<SmartCoin, bool> expression);
+	ICoinsView FilterBy(Func<SmartCoin, bool> expression);
 
-		ICoinsView OutPoints(ISet<OutPoint> outPoints);
+	ICoinsView OutPoints(ISet<OutPoint> outPoints);
 
-		ICoinsView CreatedBy(uint256 txid);
+	ICoinsView CreatedBy(uint256 txid);
 
-		ICoinsView SpentBy(uint256 txid);
+	ICoinsView SpentBy(uint256 txid);
 
-		SmartCoin[] ToArray();
+	SmartCoin[] ToArray();
 
-		Money TotalAmount();
+	Money TotalAmount();
 
-		ICoinsView Unconfirmed();
+	ICoinsView Unconfirmed();
 
-		ICoinsView Unspent();
+	ICoinsView Unspent();
 
-		bool TryGetByOutPoint(OutPoint outpoint, [NotNullWhen(true)] out SmartCoin? coin);
-	}
+	bool TryGetByOutPoint(OutPoint outpoint, [NotNullWhen(true)] out SmartCoin? coin);
 }

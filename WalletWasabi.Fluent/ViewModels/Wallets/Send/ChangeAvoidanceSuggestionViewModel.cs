@@ -1,10 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -13,141 +15,66 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 {
 	[AutoNotify] private string _amount;
 	[AutoNotify] private string _amountFiat;
-	[AutoNotify] private List<PrivacySuggestionBenefit> _benefits;
-	[AutoNotify] private PrivacyOptimisationLevel _optimisationLevel;
-	[AutoNotify] private bool _optimisationLevelGood;
+	[AutoNotify] private string? _differenceFiat;
 
 	public ChangeAvoidanceSuggestionViewModel(decimal originalAmount,
 		BuildTransactionResult transactionResult,
-		PrivacyOptimisationLevel optimisationLevel,
 		decimal fiatExchangeRate,
-		bool isOriginal,
-		params PrivacySuggestionBenefit[] benefits) : base(transactionResult, isOriginal)
+		bool isOriginal)
 	{
-		_optimisationLevel = optimisationLevel;
-		_benefits = benefits.ToList();
+		TransactionResult = transactionResult;
 
 		decimal total = transactionResult.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
 
 		_amountFiat = total.GenerateFiatText(fiatExchangeRate, "USD");
-		_optimisationLevelGood = optimisationLevel == PrivacyOptimisationLevel.Better;
 
-		if (_optimisationLevelGood)
+		if (!isOriginal)
 		{
 			var fiatTotal = total * fiatExchangeRate;
 			var fiatOriginal = originalAmount * fiatExchangeRate;
 			var fiatDifference = fiatTotal - fiatOriginal;
 
-			var difference = (fiatDifference > 0
+			_differenceFiat = (fiatDifference > 0
 					? $"{fiatDifference.GenerateFiatText("USD")} More"
 					: $"{Math.Abs(fiatDifference).GenerateFiatText("USD")} Less")
 				.Replace("(", "").Replace(")", "");
-
-			_benefits.Add(new PrivacySuggestionBenefit(false, difference));
-		}
-		else
-		{
-			// This is just to pad the control.
-			_benefits.Add(new PrivacySuggestionBenefit(false, " "));
 		}
 
-		_amount = $"{total}";
+		_amount = $"{total} BTC";
 	}
 
-	private static IEnumerable<ChangeAvoidanceSuggestionViewModel> NormalizeSuggestions(
-		IEnumerable<ChangeAvoidanceSuggestionViewModel> suggestions,
-		ChangeAvoidanceSuggestionViewModel defaultSuggestion)
+	public BuildTransactionResult TransactionResult { get; }
+
+	public static async IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> GenerateSuggestionsAsync(
+		TransactionInfo transactionInfo, BitcoinAddress destination, Wallet wallet, [EnumeratorCancellation] CancellationToken cancellationToken)
 	{
-		var normalized = suggestions
-			.OrderBy(x => x.TransactionResult.CalculateDestinationAmount())
-			.ToList();
-
-		if (normalized.Count == 3)
+		Task<ChangeAvoidanceSuggestionViewModel?> bnbSuggestionTask = Task.Run(() =>
 		{
-			var index = normalized.IndexOf(defaultSuggestion);
-
-			switch (index)
+			if (ChangelessTransactionCoinSelector.TryGetCoins(transactionInfo.Coins, transactionInfo.FeeRate, new TxOut(transactionInfo.Amount, destination), out IEnumerable<SmartCoin>? selection, cancellationToken))
 			{
-				case 1:
-					break;
+				BuildTransactionResult transaction = TransactionHelpers.BuildChangelessTransaction(
+					wallet,
+					destination,
+					transactionInfo.UserLabels,
+					transactionInfo.FeeRate,
+					selection,
+					tryToSign: false);
 
-				case 0:
-					normalized = normalized.Take(2).ToList();
-					break;
-
-				case 2:
-					normalized = normalized.Skip(1).ToList();
-					break;
+				return new ChangeAvoidanceSuggestionViewModel(
+					transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
+					transaction,
+					wallet.Synchronizer.UsdExchangeRate,
+					isOriginal: false);
 			}
-		}
 
-		return normalized;
-	}
+			return null;
+		});
 
-	public static async Task<IEnumerable<ChangeAvoidanceSuggestionViewModel>> GenerateSuggestionsAsync(
-			TransactionInfo transactionInfo, Wallet wallet, BuildTransactionResult requestedTransaction)
-	{
-		var intent = new PaymentIntent(
-			transactionInfo.Address,
-			MoneyRequest.CreateAllRemaining(subtractFee: true),
-			transactionInfo.UserLabels);
+		ChangeAvoidanceSuggestionViewModel? bnbSuggestion = await bnbSuggestionTask;
 
-		ChangeAvoidanceSuggestionViewModel? smallerSuggestion = null;
-
-		if (requestedTransaction.SpentCoins.Count() > 1)
+		if (bnbSuggestion is not null)
 		{
-			var smallerTransaction = await Task.Run(() => wallet.BuildTransaction(
-				wallet.Kitchen.SaltSoup(),
-				intent,
-				FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
-				allowUnconfirmed: true,
-				requestedTransaction
-					.SpentCoins
-					.OrderBy(x => x.Amount)
-					.Skip(1)
-					.Select(x => x.OutPoint)));
-
-			smallerSuggestion = new ChangeAvoidanceSuggestionViewModel(
-				transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), smallerTransaction,
-				PrivacyOptimisationLevel.Better, wallet.Synchronizer.UsdExchangeRate, false,
-				new PrivacySuggestionBenefit(true, "Improved Privacy"),
-				new PrivacySuggestionBenefit(false, "No change, less trace"));
+			yield return bnbSuggestion;
 		}
-
-		var defaultSelection = new ChangeAvoidanceSuggestionViewModel(
-			transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), requestedTransaction,
-			PrivacyOptimisationLevel.Standard, wallet.Synchronizer.UsdExchangeRate, true,
-			new PrivacySuggestionBenefit(false, "As Requested"));
-
-		var largerTransaction = await Task.Run(() => wallet.BuildTransaction(
-			wallet.Kitchen.SaltSoup(),
-			intent,
-			FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
-			true,
-			requestedTransaction.SpentCoins.Select(x => x.OutPoint)));
-
-		var largerSuggestion = new ChangeAvoidanceSuggestionViewModel(
-			transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), largerTransaction,
-			PrivacyOptimisationLevel.Better, wallet.Synchronizer.UsdExchangeRate, false,
-			new PrivacySuggestionBenefit(true, "Improved Privacy"),
-			new PrivacySuggestionBenefit(false, "No change, less trace"));
-
-		// There are several scenarios, both the alternate suggestions are <, or >, or 1 < and 1 >.
-		// We sort them and add the suggestions accordingly.
-		var suggestions = new List<ChangeAvoidanceSuggestionViewModel> {defaultSelection, largerSuggestion};
-
-		if (smallerSuggestion is { })
-		{
-			suggestions.Add(smallerSuggestion);
-		}
-
-		var results = new List<ChangeAvoidanceSuggestionViewModel>();
-
-		foreach (var suggestion in NormalizeSuggestions(suggestions, defaultSelection).Where(x => x != defaultSelection))
-		{
-			results.Add(suggestion);
-		}
-
-		return results;
 	}
 }

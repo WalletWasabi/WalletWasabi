@@ -1,10 +1,9 @@
-namespace WalletWasabi.Models
+namespace WalletWasabi.Models;
+
+public enum ErrorSeverity
 {
-	public enum ErrorSeverity
-	{
-		Default,
-		Info,
-		Warning,
-		Error
-	}
+	Default,
+	Info,
+	Warning,
+	Error
 }

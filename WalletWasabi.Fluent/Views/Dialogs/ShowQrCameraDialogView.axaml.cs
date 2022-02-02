@@ -1,22 +1,21 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Dialogs
+namespace WalletWasabi.Fluent.Views.Dialogs;
+
+public class ShowQrCameraDialogView : UserControl
 {
-	public class ShowQrCameraDialogView : UserControl
+	// NASTY HACK! DO NOT USE IN PRODUCTION. kiminuo
+	public static volatile Image? QrImage;
+
+	public ShowQrCameraDialogView()
 	{
-		// NASTY HACK! DO NOT USE IN PRODUCTION. kiminuo
-		public static volatile Image? QrImage;
+		InitializeComponent();
+		QrImage = this.FindControl<Image>("qrImage");
+	}
 
-		public ShowQrCameraDialogView()
-		{
-			InitializeComponent();
-			QrImage = this.FindControl<Image>("qrImage");
-		}
-
-		private void InitializeComponent()
-		{
-			AvaloniaXamlLoader.Load(this);
-		}
+	private void InitializeComponent()
+	{
+		AvaloniaXamlLoader.Load(this);
 	}
 }

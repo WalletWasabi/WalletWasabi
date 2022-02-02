@@ -24,10 +24,8 @@
         <TextBlock Text="Preview Transaction" />
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center">
           <Image Width="120" Margin="10 4 10 5" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
-                 ToolTip.Tip="Your privacy is being protected with PayJoin."
+                 ToolTip.Tip="Your privacy is being protected with payjoin."
                  IsVisible="{Binding CurrentTransactionSummary.IsPayJoin}" />
-
-          <c:ProgressRing Margin="10 0 10 5" Height="25" Width="25" IsIndeterminate="True" IsVisible="{Binding PrivacySuggestions.IsLoading}" />
 
           <Border Padding="10 0 10 10" Cursor="Hand" IsVisible="{Binding CurrentTransactionSummary.MaxPrivacy}">
             <Interaction.Behaviors>
@@ -47,6 +45,11 @@
           </Border>
 
           <Border Cursor="Hand" Padding="10 0 10 10">
+            <Border.Styles>
+              <Style Selector="FlyoutPresenter">
+                <Setter Property="MaxWidth" Value="1000" />
+              </Style>
+            </Border.Styles>
             <Interaction.Behaviors>
               <behaviors:BindableFlyoutOpenBehavior IsOpen="{Binding PrivacySuggestions.IsOpen}" />
             </Interaction.Behaviors>
@@ -55,7 +58,7 @@
                       IsOpen="{Binding PrivacySuggestions.IsOpen, Mode=OneWayToSource}">
                 <Panel DataContext="{Binding PrivacySuggestions}">
                   <DockPanel>
-                    <TextBlock Text="Suggestions to improve your privacy!" DockPanel.Dock="Top" />
+                    <TextBlock Text="Suggestions to improve your privacy" HorizontalAlignment="Center" DockPanel.Dock="Top" />
 
                     <ListBox DockPanel.Dock="Top" Background="Transparent" VerticalAlignment="Center"
                              HorizontalAlignment="Center"
@@ -77,33 +80,37 @@
                         </Style>
 
                         <Style Selector="ListBoxItem Border#PART_MainContentBorder">
-                          <Setter Property="Padding" Value="30,45,30,40" />
+                          <Setter Property="Padding" Value="30,25,30,25" />
                           <Setter Property="CornerRadius" Value="4" />
-                          <Setter Property="Margin" Value="5" />
+                          <Setter Property="MaxWidth" Value="250" />
+                          <Setter Property="MaxHeight" Value="300" />
                         </Style>
 
-                        <Style Selector="ListBoxItem Border#PART_DecorationBorder">
-                          <Setter Property="Padding" Value="15 30 15 30" />
+                        <Style Selector="ListBoxItem Border#PART_DecorationBorderUnselected">
+                          <Setter Property="Padding" Value="15 25 15 25" />
                           <Setter Property="CornerRadius" Value="4" />
-                          <Setter Property="Margin" Value="14" />
+                          <Setter Property="Margin" Value="5" />
 
                           <Setter Property="BorderBrush" Value="#14FFFFFF" />
                           <Setter Property="BorderThickness" Value="1" />
                           <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
                           <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow1}" />
-
-                          <Setter Property="Opacity" Value="0" />
-
-                          <Setter Property="Transitions">
-                            <Transitions>
-                              <DoubleTransition Property="Opacity"
-                                                Easing="{StaticResource FluentEasing}"
-                                                Duration="0:0:0.25" />
-                            </Transitions>
-                          </Setter>
                         </Style>
 
-                        <Style Selector="ListBoxItem:pointerover Border#PART_DecorationBorder">
+                        <Style Selector="ListBoxItem Border#PART_DecorationBorderHover">
+                          <Setter Property="Padding" Value="15 25 15 25" />
+                          <Setter Property="CornerRadius" Value="4" />
+                          <Setter Property="Margin" Value="5" />
+
+                          <Setter Property="BorderBrush" Value="#2AFFFFFF" />
+                          <Setter Property="BorderThickness" Value="1" />
+                          <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
+                          <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow2}" />
+
+                          <Setter Property="Opacity" Value="0" />
+                        </Style>
+
+                        <Style Selector="ListBoxItem:pointerover Border#PART_DecorationBorderHover">
                           <Setter Property="Opacity" Value="1" />
                         </Style>
                       </ListBox.Styles>
@@ -114,7 +121,10 @@
                       </ListBox.ItemsPanel>
                       <ListBox.DataTemplates>
                         <DataTemplate DataType="vm:ChangeAvoidanceSuggestionViewModel">
-                          <send:PrivacySuggestionControl />
+                          <send:ChangeAvoidanceSuggestionControl />
+                        </DataTemplate>
+                        <DataTemplate DataType="vm:PocketSuggestionViewModel">
+                          <send:PocketSuggestionControl />
                         </DataTemplate>
                       </ListBox.DataTemplates>
                     </ListBox>
@@ -124,8 +134,10 @@
             </FlyoutBase.AttachedFlyout>
             <Panel.IsVisible>
               <MultiBinding Converter="{x:Static BoolConverters.And}">
-                <Binding Path="PrivacySuggestions.IsLoading" Converter="{x:Static BoolConverters.Not}"/>
-                <Binding Path="CurrentTransactionSummary.TransactionHasChange" />
+                <MultiBinding Converter="{x:Static BoolConverters.Or}">
+                  <Binding Path="CurrentTransactionSummary.TransactionHasChange" />
+                  <Binding Path="CurrentTransactionSummary.TransactionHasPockets" />
+                </MultiBinding>
                 <Binding Path="CurrentTransactionSummary.IsPayJoin" Converter="{x:Static BoolConverters.Not}" />
               </MultiBinding>
             </Panel.IsVisible>
