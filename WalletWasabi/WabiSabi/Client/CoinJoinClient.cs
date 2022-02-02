@@ -64,10 +64,12 @@ public class CoinJoinClient
 
 	public async Task<bool> StartCoinJoinAsync(IEnumerable<SmartCoin> coins, CancellationToken cancellationToken)
 	{
-		var currentRoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState =>
-				roundState.Phase == Phase.InputRegistration &&
-				roundState.InputRegistrationEnd - DateTimeOffset.UtcNow > DoNotRegisterInLastMinuteTimeLimit
-			, cancellationToken).ConfigureAwait(false);
+		var currentRoundState = await RoundStatusUpdater
+			.CreateRoundAwaiter(
+				Phase.InputRegistration,
+				roundState => roundState.InputRegistrationEnd - DateTimeOffset.UtcNow > DoNotRegisterInLastMinuteTimeLimit,
+				cancellationToken)
+			.ConfigureAwait(false);
 
 		// This should be roughly log(#inputs), it could be set slightly
 		// higher if more inputs are observed but that involves trusting the
@@ -87,7 +89,9 @@ public class CoinJoinClient
 			using CancellationTokenSource linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(waitForBlameRound.Token, cancellationToken);
 
 			var blameRoundState = await RoundStatusUpdater
-				.CreateRoundAwaiter(roundState => roundState.BlameOf == currentRoundState.Id && roundState.Phase == Phase.InputRegistration, linkedTokenSource.Token)
+				.CreateRoundAwaiter(
+					roundState => roundState.BlameOf == currentRoundState.Id && roundState.Phase == Phase.InputRegistration,
+					linkedTokenSource.Token)
 				.ConfigureAwait(false);
 			currentRoundState = blameRoundState;
 		}
@@ -105,7 +109,6 @@ public class CoinJoinClient
 		var coinCandidates = SelectCoinsForRound(smartCoins, constructionState.Parameters, ConsolidationMode, MinAnonScoreTarget, SecureRandom);
 
 		// Register coins.
-
 		using PersonCircuit personCircuit = HttpClientFactory.NewHttpClientWithPersonCircuit(out Tor.Http.IHttpClient httpClient);
 
 		var registeredAliceClients = await CreateRegisterAndConfirmCoinsAsync(httpClient, coinCandidates, roundState, cancellationToken).ConfigureAwait(false);
@@ -126,7 +129,7 @@ public class CoinJoinClient
 			var availableVsize = registeredAliceClients.SelectMany(x => x.IssuedVsizeCredentials).Sum(x => x.Value);
 
 			// Waiting for OutputRegistration phase, all the Alices confirmed their connections, so the list of the inputs will be complete.
-			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
+			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
 
 			// Calculate outputs values
 			constructionState = roundState.Assert<ConstructionState>();
@@ -150,7 +153,7 @@ public class CoinJoinClient
 			await scheduler.StartReissuancesAsync(registeredAliceClients, bobClient, cancellationToken).ConfigureAwait(false);
 
 			// Output registration.
-			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
+			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
 			Logger.LogDebug($"Round ({roundState.Id}): Output registration phase started.");
 
 			await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, cancellationToken).ConfigureAwait(false);
@@ -161,7 +164,7 @@ public class CoinJoinClient
 			Logger.LogDebug($"Round ({roundState.Id}): Alices({registeredAliceClients.Length}) successfully signalled ready to sign.");
 
 			// Signing.
-			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, rs => rs.Phase == Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
+			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
 			Logger.LogDebug($"Round ({roundState.Id}): Transaction signing phase started.");
 
 			var signingState = roundState.Assert<SigningState>();
