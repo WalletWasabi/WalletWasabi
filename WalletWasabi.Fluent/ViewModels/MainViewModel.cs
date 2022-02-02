@@ -183,6 +183,13 @@ public partial class MainViewModel : ViewModelBase
 				return _settingsPage;
 			});
 
+		PrivacySettingsTabViewModel.RegisterLazy(
+			() =>
+			{
+				_settingsPage.SelectedTab = 1;
+				return _settingsPage;
+			});
+
 		NetworkSettingsTabViewModel.RegisterLazy(
 			() =>
 			{

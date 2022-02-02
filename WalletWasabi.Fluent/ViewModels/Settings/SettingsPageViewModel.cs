@@ -12,7 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	Caption = "Manage appearance, privacy and other settings",
 	Order = 1,
 	Category = "General",
-	Keywords = new[] { "Settings", "General", "User", "Interface", "Advanced" },
+	Keywords = new[] { "Settings", "General", "User", "Interface", "Privacy", "Advanced" },
 	IconName = "settings_regular",
 	Searchable = false,
 	NavBarPosition = NavBarPosition.Bottom)]
@@ -26,6 +26,7 @@ public partial class SettingsPageViewModel : NavBarItemViewModel
 		_selectedTab = 0;
 
 		GeneralSettingsTab = new GeneralSettingsTabViewModel();
+		PrivacySettingsTab = new PrivacySettingsTabViewModel();
 		NetworkSettingsTab = new NetworkSettingsTabViewModel();
 		BitcoinTabSettings = new BitcoinTabSettingsViewModel();
 
@@ -35,6 +36,7 @@ public partial class SettingsPageViewModel : NavBarItemViewModel
 	public ICommand RestartCommand { get; }
 
 	public GeneralSettingsTabViewModel GeneralSettingsTab { get; }
+	public PrivacySettingsTabViewModel PrivacySettingsTab { get; }
 	public NetworkSettingsTabViewModel NetworkSettingsTab { get; }
 	public BitcoinTabSettingsViewModel BitcoinTabSettings { get; }
 
