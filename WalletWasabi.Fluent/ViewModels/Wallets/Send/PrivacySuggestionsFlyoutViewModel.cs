@@ -68,10 +68,6 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 		{
 			Logger.LogWarning("Computing privacy suggestions timed out.");
 		}
-		finally
-		{
-			cancellationTokenSource.Cancel();
-			Suggestions.Remove(loadingRing);
-		}
+		Suggestions.Remove(loadingRing);
 	}
 }
