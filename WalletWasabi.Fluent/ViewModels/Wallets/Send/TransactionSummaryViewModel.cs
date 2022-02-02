@@ -3,6 +3,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Extensions;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Wallets;
@@ -78,6 +79,4 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 
 		IsCustomFeeUsed = _info.IsCustomFeeUsed;
 	}
-
-	
 }
