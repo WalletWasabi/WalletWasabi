@@ -9,52 +9,51 @@
              x:DataType="send:TransactionSummaryViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.TransactionSummary">
   <StackPanel Spacing="15">
-      <c:PreviewItem Icon="{StaticResource btc_logo}"
-                     Text="a total of">
-        <TextBlock Text="{Binding AmountText, FallbackValue=0.213 BTC (≈55.34 USD)}" />
-      </c:PreviewItem>
+    <c:PreviewItem Icon="{StaticResource btc_logo}"
+                   Text="a total of">
+      <TextBlock Text="{Binding AmountText, FallbackValue=0.213 BTC (≈55.34 USD)}" />
+    </c:PreviewItem>
 
-      <Separator />
+    <Separator />
 
-      <c:PreviewItem Icon="{StaticResource transceive_regular}"
-                     Text="to the Bitcoin address">
-        <TextBlock Classes="monoSpaced" Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
-      </c:PreviewItem>
+    <c:PreviewItem Icon="{StaticResource transceive_regular}"
+                   Text="to the Bitcoin address">
+      <TextBlock Classes="monoSpaced" Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
+    </c:PreviewItem>
 
-      <Separator />
+    <Separator />
 
-      <DockPanel>
-        <Button Classes="plain"
-                Command="{Binding Parent.AdjustFeeCommand}"
-                ToolTip.Tip="Change transaction fee or confirmation time"
-                DockPanel.Dock="Right"
-                Margin="10 0">
-          <Button.IsVisible>
-            <MultiBinding Converter="{x:Static BoolConverters.And}">
-              <MultiBinding Converter="{x:Static BoolConverters.Or}">
-                <Binding Path="Parent.AdjustFeeAvailable" />
-                <Binding Path="IsCustomFeeUsed" />
-              </MultiBinding>
-              <Binding Path="!IsPreview" />
+    <DockPanel>
+      <Button Classes="plain"
+              Command="{Binding Parent.AdjustFeeCommand}"
+              ToolTip.Tip="Change transaction fee or confirmation time"
+              DockPanel.Dock="Right"
+              Margin="10 0">
+        <Button.IsVisible>
+          <MultiBinding Converter="{x:Static BoolConverters.And}">
+            <MultiBinding Converter="{x:Static BoolConverters.Or}">
+              <Binding Path="Parent.AdjustFeeAvailable" />
+              <Binding Path="IsCustomFeeUsed" />
             </MultiBinding>
-          </Button.IsVisible>
-          <Viewbox Height="20">
-            <PathIcon Data="{StaticResource adjust_fee_regular}" Foreground="{DynamicResource SystemAccentColor}" />
-          </Viewbox>
-        </Button>
+            <Binding Path="!IsPreview" />
+          </MultiBinding>
+        </Button.IsVisible>
+        <Viewbox Height="20">
+          <PathIcon Data="{StaticResource adjust_fee_regular}" Foreground="{DynamicResource SystemAccentColor}" />
+        </Viewbox>
+      </Button>
 
-        <StackPanel Spacing="10">
-          <c:PreviewItem Icon="{StaticResource timer_regular}"
-                         Text="your transaction should be confirmed within"
-                         IsVisible="{Binding !IsCustomFeeUsed}">
-            <TextBlock Text="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
-          </c:PreviewItem>
-          <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
-                         Text="there will be an additional transaction fee of">
-            <TextBlock Text="{Binding FeeText, FallbackValue=0.00000235 bitcoin (≈55.34 USD)}" />
-          </c:PreviewItem>
-        </StackPanel>
-      </DockPanel>
-
-    </StackPanel>
+      <StackPanel Spacing="10">
+        <c:PreviewItem Icon="{StaticResource timer_regular}"
+                       Text="your transaction should be confirmed within"
+                       IsVisible="{Binding !IsCustomFeeUsed}">
+          <TextBlock Text="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
+        </c:PreviewItem>
+        <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
+                       Text="there will be an additional transaction fee of">
+          <TextBlock Text="{Binding FeeText, FallbackValue=0.00000235 BTC (≈55.34 USD)}" />
+        </c:PreviewItem>
+      </StackPanel>
+    </DockPanel>
+  </StackPanel>
 </UserControl>
