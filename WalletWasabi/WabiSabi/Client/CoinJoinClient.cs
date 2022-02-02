@@ -66,8 +66,9 @@ public class CoinJoinClient
 	{
 		var currentRoundState = await RoundStatusUpdater
 			.CreateRoundAwaiter(
-				Phase.InputRegistration,
-				roundState => roundState.InputRegistrationEnd - DateTimeOffset.UtcNow > DoNotRegisterInLastMinuteTimeLimit,
+				roundState =>
+					roundState.InputRegistrationEnd - DateTimeOffset.UtcNow > DoNotRegisterInLastMinuteTimeLimit &&
+					roundState.Phase == Phase.InputRegistration,
 				cancellationToken)
 			.ConfigureAwait(false);
 
@@ -90,7 +91,9 @@ public class CoinJoinClient
 
 			var blameRoundState = await RoundStatusUpdater
 				.CreateRoundAwaiter(
-					roundState => roundState.BlameOf == currentRoundState.Id && roundState.Phase == Phase.InputRegistration,
+					roundState =>
+						roundState.BlameOf == currentRoundState.Id &&
+						roundState.Phase == Phase.InputRegistration,
 					linkedTokenSource.Token)
 				.ConfigureAwait(false);
 			currentRoundState = blameRoundState;

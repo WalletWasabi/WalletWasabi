@@ -78,11 +78,6 @@ public class RoundStateUpdater : PeriodicRunner
 		return CreateRoundAwaiter(null, phase, null, cancellationToken);
 	}
 
-	public Task<RoundState> CreateRoundAwaiter(Phase phase, Predicate<RoundState> predicate, CancellationToken cancellationToken)
-	{
-		return CreateRoundAwaiter(null, phase, predicate, cancellationToken);
-	}
-
 	public override Task StopAsync(CancellationToken cancellationToken)
 	{
 		lock (AwaitersLock)

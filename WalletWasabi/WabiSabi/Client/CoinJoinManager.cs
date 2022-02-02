@@ -31,7 +31,7 @@ public class CoinJoinManager : BackgroundService
 	public ServiceConfiguration ServiceConfiguration { get; }
 	private ImmutableDictionary<string, CoinJoinTracker> TrackedCoinJoins { get; set; } = ImmutableDictionary<string, CoinJoinTracker>.Empty;
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
-	private TimeSpan AutoCoinJoinDelayAfterWalletLoaded { get; } = TimeSpan.FromMinutes(Random.Shared.Next(5, 16));
+	private TimeSpan AutoCoinJoinDelayAfterWalletLoaded { get; } = TimeSpan.FromMinutes(0);
 	public bool IsUserInSendWorkflow { get; set; }
 
 	public CoinJoinClientState HighestCoinJoinClientState
