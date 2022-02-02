@@ -172,6 +172,7 @@ video::-webkit-media-controls {
     left: calc((100% - var(--breakpoint)) / 2);
     transform: translateY(-50%);
     text-transform: uppercase;
+    width: 60%;
 }
 .service-line {
     display: flex;
