@@ -149,8 +149,29 @@ video::-webkit-media-controls {
 .title-small {
     font-size: 40px;
 }
+.title-lined:after {
+    content: '';
+    width: 50px;
+    height: 3px;
+    background-color: var(--green);
+    display: block;
+    margin: 20px auto;
+}
+.title-lined.left:after {
+    margin: 20px 0;
+}
 .green-text {
     color: var(--green);
+}
+.floating-title {
+    font-size: 50px;
+    font-weight: bold;
+    line-height: 1.2em;
+    position: absolute;
+    top: 30%;
+    left: calc((100% - var(--breakpoint)) / 2);
+    transform: translateY(-50%);
+    text-transform: uppercase;
 }
 .service-line {
     display: flex;
@@ -321,9 +342,10 @@ footer .white-text {
     border: 2px solid rgba(73, 88, 107, 0.3);
     border-radius: 10px;
     height: 100%;
+    margin-bottom: 20px;
 }
 .feature-box .title {
-    font-size: 24px;
+    font-size: 22px;
 }
 .scale-svg svg {
     transform: scale(0.8);
@@ -433,7 +455,7 @@ footer .white-text {
 }
 .btn-download {
     font-size: 20px;
-    padding: 15px 25px 9px;
+    padding: 20px 35px 14px;
 }
 .btn-download svg {
     fill: #FFF;
@@ -612,7 +634,9 @@ ol li::marker {
     height: 120px;
 }
 .card {
-    color: var(--black);
+    background: rgba(0, 0, 0, 0.2);
+    color: #fff;
+    border: 2px solid rgba(73, 88, 107, 0.3);
     margin: 20px 0;
 }
 .card-content, .card input {
@@ -702,23 +726,43 @@ ol li::marker {
     padding: 8px;
     border-radius: 50%;
 }
-.feature-list li p, .op-text {
-   color: #bbb;
+.feature-list li p, .op-text, .card p {
+    color: #bbb;
 }
 .modal-window {
     position: fixed;
-    width: 80vw;
-    height: 80vh;
+    width: 70vw;
     top: 50%;
     left: 50%;
-    transform: translate(-50%,-50%);
+    transform: translate(-50%, -50%);
     background: #fff;
     z-index: 999;
     display: none;
     color: #000;
+    padding: 40px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
 }
-#video-show:checked + .modal-window {
+.modal-window .ratio {
+    max-height: 100%;
+}
+.close {
+    font-size: 24px;
+    font-weight: lighter;
+    position: absolute;
+    right: 15px;
+    top: 15px;
+    cursor: pointer;
+}
+.close:hover {
+    color: var(--green);
+}
+.video-show:checked + label + .modal-window {
     display: block;
+}
+.icon {
+    width: 40px;
+    height: 40px;
+    fill: var(--green);
 }
 .pull-img {
     position: absolute;
@@ -755,6 +799,9 @@ ol li::marker {
 }
 .video-icon-on:hover:after {
     background-color: var(--light-blue);
+}
+.icon-big {
+    fill: var(--green);
 }
 @media (min-width: 576px) {
     body {
@@ -852,6 +899,33 @@ ol li::marker {
     .navbar {
         padding: 5px 0;
     }
+    .home-text-area p {
+        font-size: 14px;
+    }
+    .title-small {
+        font-size: 20px;
+    }
+    .feature-box .title {
+        font-size: 18px;
+    }
+    .pull-img {
+        width: 100%;
+        height: auto;
+        position: relative;
+        top: inherit;
+        left: inherit !important;
+        transform: none;
+        margin: 20px 0;
+    }
+    .p-100 {
+        padding: 0;
+    }
+    .p-200 {
+        padding: 40px 0;
+    }
+    .modal-window {
+        width: 90vw;
+    }
 }
 @media only screen and (max-width: 600px) {
     .home-text-area h1 {
@@ -859,10 +933,15 @@ ol li::marker {
     }
     .download-btn-area {
         transform: translateY(-50%);
-        max-width: 80%;
+        max-width: 100%;
     }
     .home-text-area, .download-btn-area {
         left: 20px;
+    }
+    .floating-title {
+        font-size: 24px;
+        left: 20px;
+        transform: translateY(-50%);
     }
     .title {
         font-size: 24px;
