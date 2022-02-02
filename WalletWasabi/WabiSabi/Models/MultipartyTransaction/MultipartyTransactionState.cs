@@ -25,17 +25,23 @@ public abstract record MultipartyTransactionState
 	[JsonIgnore]
 	public IEnumerable<TxOut> Outputs => Events.OfType<OutputAdded>().Select(x => x.Output);
 
+	[JsonIgnore]
 	public Money Balance => Inputs.Sum(x => x.Amount) - Outputs.Sum(x => x.Value);
+	[JsonIgnore]
 	public int EstimatedInputsVsize => Inputs.Sum(x => x.TxOut.ScriptPubKey.EstimateInputVsize());
+	[JsonIgnore]
 	public int OutputsVsize => Outputs.Sum(x => x.ScriptPubKey.EstimateOutputVsize());
 
+	[JsonIgnore]
 	public int EstimatedVsize => MultipartyTransactionParameters.SharedOverhead + EstimatedInputsVsize + OutputsVsize;
+	[JsonIgnore]
 	public int MaxTransactionSize => Parameters.MaxTransactionSize;
 
 	// With no coordinator fees we can't ensure that the shared overhead
 	// of the transaction also pays at the nominal feerate so this will have
 	// to do for now, but in the future EstimatedVsize should be used
 	// including the shared overhead
+	[JsonIgnore]
 	public FeeRate EffectiveFeeRate => new(Balance, EstimatedInputsVsize + OutputsVsize);
 
 	public ImmutableList<IEvent> Events { get; init; } = ImmutableList<IEvent>.Empty;

@@ -14,17 +14,6 @@ public record SigningState : MultipartyTransactionState
 		: base(parameters)
 	{
 		Events = events.ToImmutableList();
-		SortedInputs = Inputs
-			.OrderByDescending(x => x.Amount)
-			.ThenBy(x => x.Outpoint.ToBytes(), ByteArrayComparer.Comparer)
-			.ToList();
-
-		SortedOutputs = Outputs
-			.GroupBy(x => x.ScriptPubKey)
-			.Select(x => new TxOut(x.Sum(y => y.Value), x.Key))
-			.OrderByDescending(x => x.Value)
-			.ThenBy(x => x.ScriptPubKey.ToBytes(true), ByteArrayComparer.Comparer)
-			.ToList();
 	}
 
 	public ImmutableDictionary<int, WitScript> Witnesses { get; init; } = ImmutableDictionary<int, WitScript>.Empty;
@@ -35,9 +24,18 @@ public record SigningState : MultipartyTransactionState
 	public IEnumerable<Coin> UnsignedInputs => SortedInputs.Where((_, i) => !IsInputSigned(i));
 
 	[JsonIgnore]
-	public List<Coin> SortedInputs { get; }
+	public List<Coin> SortedInputs => Inputs
+			.OrderByDescending(x => x.Amount)
+			.ThenBy(x => x.Outpoint.ToBytes(), ByteArrayComparer.Comparer)
+			.ToList();
+
 	[JsonIgnore]
-	public List<TxOut> SortedOutputs { get; }
+	public List<TxOut> SortedOutputs => Outputs
+			.GroupBy(x => x.ScriptPubKey)
+			.Select(x => new TxOut(x.Sum(y => y.Value), x.Key))
+			.OrderByDescending(x => x.Value)
+			.ThenBy(x => x.ScriptPubKey.ToBytes(true), ByteArrayComparer.Comparer)
+			.ToList();
 
 	public bool IsInputSigned(int index) => Witnesses.ContainsKey(index);
 

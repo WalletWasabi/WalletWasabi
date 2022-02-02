@@ -31,7 +31,7 @@ public record RoundState(
 
 	public DateTimeOffset InputRegistrationEnd => InputRegistrationStart + InputRegistrationTimeout;
 
-	public static RoundState FromRound(Round round, int order = -1) =>
+	public static RoundState FromRound(Round round, int order = 0) =>
 		new(
 			round is BlameRound blameRound ? blameRound.BlameOf.Id : uint256.Zero,
 			round.AmountCredentialIssuerParameters,
