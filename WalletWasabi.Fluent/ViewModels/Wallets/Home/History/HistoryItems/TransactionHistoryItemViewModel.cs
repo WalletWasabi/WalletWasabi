@@ -40,4 +40,11 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 
 		DateString = $"{Date.ToLocalTime():MM/dd/yy HH:mm}";
 	}
+
+	public override void Update(HistoryItemViewModelBase item)
+	{
+		FilteredLabel = item.FilteredLabel;
+		Label = item.Label;
+		base.Update(item);
+	}
 }
