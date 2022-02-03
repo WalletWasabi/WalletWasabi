@@ -9,7 +9,7 @@ using WalletWasabi.Fluent.Controls;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
-public class HistoryItemDetailsBehavior : DisposingBehavior<DataBoxRow>
+public class HistoryItemDetailsBehavior : DisposingBehavior<Control>
 {
 	private DataBoxItemDetailsAdorner? _itemDetailsAdorner;
 	private IDisposable? _currentAdornerEvents;
@@ -68,7 +68,7 @@ public class HistoryItemDetailsBehavior : DisposingBehavior<DataBoxRow>
 		base.OnDetaching();
 	}
 
-	private void AddAdorner(DataBoxRow dataBoxRow)
+	private void AddAdorner(Control dataBoxRow)
 	{
 		_currentAdornerEvents?.Dispose();
 		_currentAdornerEvents = null;
@@ -93,7 +93,7 @@ public class HistoryItemDetailsBehavior : DisposingBehavior<DataBoxRow>
 		layer.Children.Add(_itemDetailsAdorner);
 	}
 
-	private void RemoveAdorner(DataBoxRow dataBoxRow)
+	private void RemoveAdorner(Control dataBoxRow)
 	{
 		_currentAdornerEvents?.Dispose();
 		_currentAdornerEvents = null;

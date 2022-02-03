@@ -7,10 +7,10 @@ namespace WalletWasabi.Fluent.Behaviors;
 
 public class DataBoxItemDetailsAdorner : TemplatedControl
 {
-	public static readonly StyledProperty<DataBoxRow?> RowProperty =
-		AvaloniaProperty.Register<DataBoxItemDetailsAdorner, DataBoxRow?>(nameof(Row));
+	public static readonly StyledProperty<Control?> RowProperty =
+		AvaloniaProperty.Register<DataBoxItemDetailsAdorner, Control?>(nameof(Row));
 
-	public DataBoxRow? Row
+	public Control? Row
 	{
 		get => GetValue(RowProperty);
 		set => SetValue(RowProperty, value);
