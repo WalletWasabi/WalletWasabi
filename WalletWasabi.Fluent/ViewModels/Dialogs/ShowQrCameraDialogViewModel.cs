@@ -18,13 +18,11 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 	[AutoNotify] private string _message = "";
 
 	private CancellationTokenSource CancellationTokenSource { get; } = new();
-	private CancellationToken _cancellationToken;
 	private WebcamQrReader _qrReader;
 
 	public ShowQrCameraDialogViewModel(Network network)
 	{
 		_qrReader = new(network);
-		_cancellationToken = CancellationTokenSource.Token;
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}
 
@@ -62,8 +60,8 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 			})
 			.DisposeWith(disposables);
 
-		disposables.Add(Disposable.Create(() => RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StopAsync(_cancellationToken))));
+		disposables.Add(Disposable.Create(() => RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StopAsync(CancellationToken.None))));
 
-		RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StartAsync(_cancellationToken));
+		RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StartAsync(CancellationTokenSource.Token));
 	}
 }
