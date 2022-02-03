@@ -1,21 +1,18 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 
-/// <summary>
-/// Strategy that searches search-space and caches every found selection that minimizes
-/// waste of user's fund by looking for a selection that minimizes inputs' spending costs
-/// and extra cost of paying more than specified target.
-/// </summary>
-public class CheapestSelectionStrategy : ISearchStrategy
+public class LesserSelectionStrategy : ISearchStrategy
 {
 	private long _currentInputCosts = 0;
-	private long _bestTargetSoFar = long.MaxValue;
+	private long _bestTargetSoFar = long.MinValue;
 	private long[]? _bestSelectionSoFar;
 
-	/// <param name="target">Value in satoshis.</param>
-	/// <param name="inputCosts">Costs of spending coins in satoshis.</param>
-	public CheapestSelectionStrategy(long target, long[] inputValues, long[] inputCosts)
+	public LesserSelectionStrategy(long target, long[] inputValues, long[] inputCosts)
 	{
 		InputCosts = inputCosts;
 		InputValues = inputValues;
@@ -34,14 +31,6 @@ public class CheapestSelectionStrategy : ISearchStrategy
 	/// <summary>Gives lowest found value selection whose sum is larger than or equal to <see cref="Target"/>.</summary>
 	public long[]? GetBestSelectionFound() => _bestSelectionSoFar?.Where(x => x > 0).ToArray();
 
-	/// <summary>
-	/// Modifies selection sum so that we don't need to recompute it.
-	/// </summary>
-	/// <param name="action">Current action of the BnB algorithm.</param>
-	/// <param name="selection">Currently selected values. <c>0</c> when the corresponding value is not selected.</param>
-	/// <param name="depth">Index of a <paramref name="selection"/> value that is currently being included / omitted.</param>
-	/// <param name="oldSum">Previous sum value.</param>
-	/// <returns>New selection sum.</returns>
 	public long ProcessAction(NextAction action, long[] selection, int depth, long oldSum)
 	{
 		long newSum;
@@ -70,25 +59,19 @@ public class CheapestSelectionStrategy : ISearchStrategy
 		return newSum;
 	}
 
-	/// <summary>
-	/// Evaluation function that evaluates each step of the Branch and Bound algorithm and
-	/// tells the algorithm what to do next.
-	/// </summary>
-	/// <param name="selection">Currently selected values. <c>0</c> when the corresponding value is not selected.</param>
-	/// <param name="depth">Number of <paramref name="selection"/> elements that contains the current solution.</param>
-	/// <param name="sum">Sum of first <paramref name="depth"/> elements of <paramref name="selection"/>.</param>
 	public EvaluationResult Evaluate(long[] selection, int depth, long sum)
 	{
 		long totalCost = sum + _currentInputCosts;
 
-		if (totalCost > _bestTargetSoFar)
+		if (totalCost > Target)
 		{
 			// Our solution is already better than what we might get here.
 			return EvaluationResult.SkipBranch;
 		}
-		else if (sum >= Target)
+
+		if (totalCost <= Target)
 		{
-			if (_bestTargetSoFar > totalCost)
+			if (_bestTargetSoFar < totalCost)
 			{
 				_bestSelectionSoFar = selection[0..depth];
 				_bestTargetSoFar = totalCost;

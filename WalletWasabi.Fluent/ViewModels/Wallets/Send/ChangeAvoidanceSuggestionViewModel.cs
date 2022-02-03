@@ -50,7 +50,29 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 	{
 		Task<ChangeAvoidanceSuggestionViewModel?> bnbSuggestionTask = Task.Run(() =>
 		{
-			if (ChangelessTransactionCoinSelector.TryGetCoins(transactionInfo.Coins, transactionInfo.FeeRate, new TxOut(transactionInfo.Amount, destination), out IEnumerable<SmartCoin>? selection, cancellationToken))
+			if (ChangelessTransactionCoinSelector.TryGetCoins(transactionInfo.Coins, transactionInfo.FeeRate, new TxOut(transactionInfo.Amount, destination), true, out IEnumerable<SmartCoin>? selection, cancellationToken))
+			{
+				BuildTransactionResult transaction = TransactionHelpers.BuildChangelessTransaction(
+					wallet,
+					destination,
+					transactionInfo.UserLabels,
+					transactionInfo.FeeRate,
+					selection,
+					tryToSign: false);
+
+				return new ChangeAvoidanceSuggestionViewModel(
+					transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
+					transaction,
+					wallet.Synchronizer.UsdExchangeRate,
+					isOriginal: false);
+			}
+
+			return null;
+		});
+
+		Task<ChangeAvoidanceSuggestionViewModel?> lesserSuggestionTask = Task.Run(() =>
+		{
+			if (ChangelessTransactionCoinSelector.TryGetCoins(transactionInfo.Coins, transactionInfo.FeeRate, new TxOut(transactionInfo.Amount, destination), false, out IEnumerable<SmartCoin>? selection, cancellationToken))
 			{
 				BuildTransactionResult transaction = TransactionHelpers.BuildChangelessTransaction(
 					wallet,
@@ -71,10 +93,16 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		});
 
 		ChangeAvoidanceSuggestionViewModel? bnbSuggestion = await bnbSuggestionTask;
+		ChangeAvoidanceSuggestionViewModel? lesserSugg = await lesserSuggestionTask;
 
 		if (bnbSuggestion is not null)
 		{
 			yield return bnbSuggestion;
+		}
+
+		if (lesserSugg is not null)
+		{
+			yield return lesserSugg;
 		}
 	}
 }

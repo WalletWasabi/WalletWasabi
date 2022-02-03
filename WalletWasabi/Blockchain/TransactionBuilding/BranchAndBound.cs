@@ -18,7 +18,7 @@ public class BranchAndBound
 	/// <param name="searchStrategy">Search strategy that affects how the algorithm searches through the options.</param>
 	/// <param name="selectedValues">Solution of the search algorithm based on <paramref name="searchStrategy"/> sorted in descending order.</param>
 	/// <returns><c>true</c> when a match is found, <c>false</c> otherwise.</returns>
-	public bool TryGetMatch(CheapestSelectionStrategy searchStrategy, [NotNullWhen(true)] out List<long>? selectedValues, CancellationToken cancellationToken = default)
+	public bool TryGetMatch(ISearchStrategy searchStrategy, [NotNullWhen(true)] out List<long>? selectedValues, CancellationToken cancellationToken = default)
 	{
 		selectedValues = null;
 
@@ -45,7 +45,7 @@ public class BranchAndBound
 		return false;
 	}
 
-	private bool TryFindSolution(CheapestSelectionStrategy searchStrategy, [NotNullWhen(true)] out long[]? selection, CancellationToken cancellationToken = default)
+	private bool TryFindSolution(ISearchStrategy searchStrategy, [NotNullWhen(true)] out long[]? selection, CancellationToken cancellationToken = default)
 	{
 		// Current selection sum.
 		long sum = 0L;
