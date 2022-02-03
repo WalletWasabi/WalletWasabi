@@ -60,7 +60,7 @@ public class FilterModel
 		builder.Append(':');
 		builder.Append(Header.PrevHash);
 		builder.Append(':');
-		builder.Append(Header.BlockTimeSeconds);
+		builder.Append(Header.EpochBlockTime);
 
 		return builder.ToString();
 	}

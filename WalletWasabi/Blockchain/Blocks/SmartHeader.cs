@@ -11,7 +11,7 @@ public class SmartHeader
 	{
 	}
 
-	public SmartHeader(uint256 blockHash, uint256 prevHash, uint height, long blockTimeSeconds)
+	public SmartHeader(uint256 blockHash, uint256 prevHash, uint height, long epochBlockTime)
 	{
 		BlockHash = Guard.NotNull(nameof(blockHash), blockHash);
 		PrevHash = Guard.NotNull(nameof(prevHash), prevHash);
@@ -21,7 +21,7 @@ public class SmartHeader
 		}
 
 		Height = height;
-		BlockTimeSeconds = blockTimeSeconds;
+		EpochBlockTime = epochBlockTime;
 	}
 
 	public uint256 BlockHash { get; }
@@ -29,9 +29,9 @@ public class SmartHeader
 	public uint Height { get; }
 
 	/// <summary>Timestamp in seconds.</summary>
-	public long BlockTimeSeconds { get; }
+	public long EpochBlockTime { get; }
 
-	public DateTimeOffset BlockTime => DateTimeOffset.FromUnixTimeSeconds(BlockTimeSeconds);
+	public DateTimeOffset BlockTime => DateTimeOffset.FromUnixTimeSeconds(EpochBlockTime);
 
 	#region SpecialHeaders
 
