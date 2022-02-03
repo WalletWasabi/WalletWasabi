@@ -54,10 +54,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Throttle(TimeSpan.FromMilliseconds(1000))
 			.Skip(1)
-			.Subscribe(_ =>
-			{
-				wallet.KeyManager.SetAnonScoreTargets(MinAnonScoreTarget, MaxAnonScoreTarget);
-			});
+			.Subscribe(_ => wallet.KeyManager.SetAnonScoreTargets(MinAnonScoreTarget, MaxAnonScoreTarget));
 
 		this.WhenAnyValue(x => x.MinAnonScoreTarget)
 			.Subscribe(
