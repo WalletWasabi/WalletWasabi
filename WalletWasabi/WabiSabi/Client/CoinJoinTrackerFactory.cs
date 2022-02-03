@@ -29,7 +29,8 @@ public class CoinJoinTrackerFactory
 			new KeyChain(wallet.KeyManager, wallet.Kitchen),
 			new InternalDestinationProvider(wallet.KeyManager),
 			RoundStatusUpdater,
-			wallet.ServiceConfiguration.MinAnonScoreTarget);
+			wallet.KeyManager.MinAnonScoreTarget,
+			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1));
 
 		return new CoinJoinTracker(wallet, coinJoinClient, coinCandidates, CancellationToken);
 	}
