@@ -25,8 +25,6 @@ public class KeyManager
 {
 	public const int DefaultMinAnonScoreTarget = 5;
 	public const int DefaultMaxAnonScoreTarget = 10;
-	private int _minAnonScoreTarget;
-	private int _maxAnonScoreTarget;
 
 	public const int AbsoluteMinGapLimit = 21;
 	public const int MaxGapLimit = 10_000;
