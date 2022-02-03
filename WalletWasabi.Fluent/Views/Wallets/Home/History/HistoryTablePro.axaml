@@ -113,6 +113,9 @@
             </Animation>
           </Style.Animations>
         </Style>
+        <Style Selector="TreeDataGridRow:selected /template/ TreeDataGridCellsPresenter#PART_CellsPresenter">
+          <Setter Property="Background" Value="Transparent" />
+        </Style>
         <Style Selector="TextBlock.hidden">
           <Setter Property="IsVisible" Value="False" />
         </Style>
