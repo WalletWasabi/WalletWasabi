@@ -630,10 +630,7 @@ public partial class LineChart : Control
 		var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
 					 * Matrix.CreateRotation(angleRadians)
 					 * Matrix.CreateTranslation(xPosition, yPosition);
-		//var matrix = Matrix.CreateTranslation(0, 0);
-
 		var labelTransform = context.PushPreTransform(matrix);
-		//var offsetCenter = new Point(size.Width / 2 - formattedText.Bounds.Width / 2, 0);
 		var offsetCenter = new Point(0, 0);
 		var opacityState = context.PushOpacity(opacity);
 		context.DrawText(foreground, origin + offsetCenter, formattedText);
