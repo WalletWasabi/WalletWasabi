@@ -57,7 +57,7 @@ public partial class BitcoinTabSettingsViewModel : SettingsTabViewModelBase
 			.Subscribe(_ => Save());
 	}
 
-	public Task<string> BitcoinKnotsVersion => GetNodeVersionAsync();
+	public Task<string> BitcoinNodeVersion => GetNodeVersionAsync();
 
 	public IEnumerable<Network> Networks { get; } = new[] { Network.Main, Network.TestNet, Network.RegTest };
 

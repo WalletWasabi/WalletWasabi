@@ -28,7 +28,7 @@
 
     <DockPanel>
       <TextBlock VerticalAlignment="Center" Text= "Local Bitcoin Full Node " />
-      <Label Content="{Binding BitcoinKnotsVersion^}" />
+      <Label Content="{Binding BitcoinNodeVersion^}" />
     </DockPanel>
 
     <DockPanel IsVisible="{Binding StartLocalBitcoinCoreOnStartup}">
