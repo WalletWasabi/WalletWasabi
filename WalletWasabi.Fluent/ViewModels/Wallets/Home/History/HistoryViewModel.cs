@@ -13,6 +13,7 @@ using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
@@ -221,6 +222,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 			lock (_transactionListLock)
 			{
+				/*
 				var copyList = Transactions.ToList();
 
 				foreach (var oldItem in copyList)
@@ -242,6 +244,24 @@ public partial class HistoryViewModel : ActivatableViewModel
 						_transactionSourceList.Add(newItem);
 					}
 				}
+				//*/
+
+				//*
+            var rand = new Random(100);
+
+            for (var i = 0; i < 10_000; i++)
+            {
+	            var ts = new TransactionSummary()
+	            {
+		            DateTime = DateTimeOffset.Now,
+		            Label = new SmartLabel("Label1", "Label2"),
+		            Amount = new Money((int)rand.NextDouble())
+	            };
+                var item = new TransactionHistoryItemViewModel(i, ts, _walletViewModel, Money.Zero, _updateTrigger);
+
+                _transactionSourceList.Add(item);
+            }
+				//*/
 
 				if (!IsInitialized)
 				{
