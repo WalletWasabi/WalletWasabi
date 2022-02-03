@@ -27,7 +27,13 @@
                  ToolTip.Tip="Your privacy is being protected with payjoin."
                  IsVisible="{Binding CurrentTransactionSummary.IsPayJoin}" />
 
-          <Border Padding="10 0 10 10" Cursor="Hand" IsVisible="{Binding CurrentTransactionSummary.MaxPrivacy}">
+          <Border Padding="10 0 10 10" Cursor="Hand">
+            <Border.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.Or}">
+                <Binding Path="CurrentTransactionSummary.MaxPrivacy" />
+                <Binding Path="!PrivacySuggestions.Suggestions.Count" />
+              </MultiBinding>
+            </Border.IsVisible>
             <Interaction.Behaviors>
               <behaviors:ShowFlyoutOnPointerOverBehavior />
             </Interaction.Behaviors>
@@ -138,7 +144,7 @@
                   <Binding Path="CurrentTransactionSummary.TransactionHasChange" />
                   <Binding Path="CurrentTransactionSummary.TransactionHasPockets" />
                 </MultiBinding>
-                <Binding Path="CurrentTransactionSummary.IsPayJoin" Converter="{x:Static BoolConverters.Not}" />
+                <Binding Path="!!PrivacySuggestions.Suggestions.Count" />
               </MultiBinding>
             </Panel.IsVisible>
             <Viewbox Height="20">
