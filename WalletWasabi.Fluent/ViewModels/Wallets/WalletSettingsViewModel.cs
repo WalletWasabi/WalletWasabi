@@ -9,6 +9,8 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 {
 	[AutoNotify] private bool _preferPsbtWorkflow;
 	[AutoNotify] private bool _autoCoinJoin;
+	[AutoNotify] private int _minAnonScoreTarget;
+	[AutoNotify] private int _maxAnonScoreTarget;
 
 	public WalletSettingsViewModel(WalletViewModelBase walletViewModelBase)
 	{
@@ -42,6 +44,40 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 				wallet.KeyManager.AutoCoinJoin = x;
 				wallet.KeyManager.ToFile();
 			});
+
+		_minAnonScoreTarget = wallet.KeyManager.MinAnonScoreTarget;
+		_maxAnonScoreTarget = wallet.KeyManager.MaxAnonScoreTarget;
+
+		this.WhenAnyValue(
+				x => x.MinAnonScoreTarget,
+				x => x.MaxAnonScoreTarget)
+			.ObserveOn(RxApp.TaskpoolScheduler)
+			.Throttle(TimeSpan.FromMilliseconds(1000))
+			.Skip(1)
+			.Subscribe(_ =>
+			{
+				wallet.KeyManager.SetAnonScoreTargets(MinAnonScoreTarget, MaxAnonScoreTarget);
+			});
+
+		this.WhenAnyValue(x => x.MinAnonScoreTarget)
+			.Subscribe(
+				x =>
+				{
+					if (x >= MaxAnonScoreTarget)
+					{
+						MaxAnonScoreTarget = x + 1;
+					}
+				});
+
+		this.WhenAnyValue(x => x.MaxAnonScoreTarget)
+			.Subscribe(
+				x =>
+				{
+					if (x <= MinAnonScoreTarget)
+					{
+						MinAnonScoreTarget = x - 1;
+					}
+				});
 	}
 
 	public bool IsHardwareWallet { get; }

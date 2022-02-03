@@ -90,7 +90,7 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 
 	private bool CanCoinJoin()
 	{
-		var privateThreshold = _wallet.ServiceConfiguration.MinAnonScoreTarget;
+		var privateThreshold = _wallet.KeyManager.MinAnonScoreTarget;
 
 		return _wallet.Coins.Any(x => x.HdPubKey.AnonymitySet < privateThreshold);
 	}
@@ -119,7 +119,7 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 
 	private void Update()
 	{
-		var privateThreshold = _wallet.ServiceConfiguration.MinAnonScoreTarget;
+		var privateThreshold = _wallet.KeyManager.MinAnonScoreTarget;
 
 		var privateAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
 		var normalAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold).TotalAmount();
