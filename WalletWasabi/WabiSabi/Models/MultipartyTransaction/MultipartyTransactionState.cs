@@ -46,9 +46,9 @@ public abstract record MultipartyTransactionState
 
 	public ImmutableList<IEvent> Events { get; init; } = ImmutableList<IEvent>.Empty;
 
-	public MultipartyTransactionState GetConstructionStateSince(int order) =>
+	public MultipartyTransactionState GetStateFrom(int stateId) =>
 		this with {
-			Events = Events.Skip(order).ToImmutableList()
+			Events = Events.Skip(stateId).ToImmutableList()
 		};
 
 	public MultipartyTransactionState Merge(MultipartyTransactionState diff) =>
@@ -56,7 +56,7 @@ public abstract record MultipartyTransactionState
 			Events = Events.AddRange(diff.Events)
 		};
 
-	public MultipartyTransactionState MergeBack(MultipartyTransactionState origin) =>
+	public MultipartyTransactionState AddPreviousStates(MultipartyTransactionState origin) =>
 		this with {
 			Events = origin.Events.AddRange(Events)
 		};

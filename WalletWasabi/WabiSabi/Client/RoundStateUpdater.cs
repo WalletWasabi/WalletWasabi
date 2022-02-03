@@ -27,14 +27,16 @@ public class RoundStateUpdater : PeriodicRunner
 
 	protected override async Task ActionAsync(CancellationToken cancellationToken)
 	{
-		var request = new RoundStateRequest(RoundStates.Select(x => (x.Key, x.Value.CoinjoinState.Events.Count)).ToImmutableList());
+		var request = new RoundStateRequest(
+			RoundStates.Select(x => new RoundStateCheckpoint(x.Key, x.Value.CoinjoinState.Events.Count)).ToImmutableList());
+
 		RoundState[] statusResponse = await ArenaRequestHandler.GetStatusAsync(request, cancellationToken).ConfigureAwait(false);
 
 		var updatedRoundStates = statusResponse
 			.Where(rs => RoundStates.ContainsKey(rs.Id))
-			.Select(rs => (Update: rs, CurrentRoundState: RoundStates[rs.Id]))
-			.Select(x => x.Update with {
-				CoinjoinState = x.Update.CoinjoinState.MergeBack(x.CurrentRoundState.CoinjoinState)
+			.Select(rs => (NewRoundState: rs, CurrentRoundState: RoundStates[rs.Id]))
+			.Select(x => x.NewRoundState with {
+				CoinjoinState = x.NewRoundState.CoinjoinState.AddPreviousStates(x.CurrentRoundState.CoinjoinState)
 			}).ToList();
 
 		var newRoundStates = statusResponse
