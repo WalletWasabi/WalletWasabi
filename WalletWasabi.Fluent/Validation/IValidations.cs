@@ -1,21 +1,20 @@
 using System.Collections.Generic;
 
-namespace WalletWasabi.Fluent.Validation
+namespace WalletWasabi.Fluent.Validation;
+
+public interface IValidations
 {
-	public interface IValidations
-	{
-		bool Any { get; }
+	bool Any { get; }
 
-		bool AnyErrors { get; }
+	bool AnyErrors { get; }
 
-		bool AnyWarnings { get; }
+	bool AnyWarnings { get; }
 
-		bool AnyInfos { get; }
+	bool AnyInfos { get; }
 
-		IEnumerable<string> Infos { get; }
+	IEnumerable<string> Infos { get; }
 
-		IEnumerable<string> Warnings { get; }
+	IEnumerable<string> Warnings { get; }
 
-		IEnumerable<string> Errors { get; }
-	}
+	IEnumerable<string> Errors { get; }
 }

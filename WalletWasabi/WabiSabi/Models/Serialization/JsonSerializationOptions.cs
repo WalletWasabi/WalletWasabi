@@ -2,15 +2,16 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.JsonConverters.Bitcoin;
+using WalletWasabi.JsonConverters.Timing;
 using WalletWasabi.WabiSabi.Crypto.Serialization;
 
-namespace WalletWasabi.WabiSabi.Models.Serialization
+namespace WalletWasabi.WabiSabi.Models.Serialization;
+
+public class JsonSerializationOptions
 {
-	public class JsonSerializationOptions
+	private static readonly JsonSerializerSettings CurrentSettings = new()
 	{
-		private static readonly JsonSerializerSettings CurrentSettings = new()
-		{
-			Converters = new List<JsonConverter>()
+		Converters = new List<JsonConverter>()
 			{
 				new ScalarJsonConverter(),
 				new GroupElementJsonConverter(),
@@ -22,15 +23,17 @@ namespace WalletWasabi.WabiSabi.Models.Serialization
 				new FeeRateJsonConverter(),
 				new MoneySatoshiJsonConverter(),
 				new Uint256JsonConverter(),
-				new MultipartyTransactionStateJsonConverter()
+				new MultipartyTransactionStateJsonConverter(),
+				new ExtPubKeyJsonConverter(),
+				new TimeSpanJsonConverter(),
+				new CoinJsonConverter()
 			}
-		};
-		public static readonly JsonSerializationOptions Default = new();
+	};
+	public static readonly JsonSerializationOptions Default = new();
 
-		private JsonSerializationOptions()
-		{
-		}
-
-		public JsonSerializerSettings Settings => CurrentSettings;
+	private JsonSerializationOptions()
+	{
 	}
+
+	public JsonSerializerSettings Settings => CurrentSettings;
 }

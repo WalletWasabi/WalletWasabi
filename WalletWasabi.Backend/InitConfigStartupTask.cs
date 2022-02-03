@@ -10,68 +10,67 @@ using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Logging;
 using WalletWasabi.Userfacing;
 
-namespace WalletWasabi.Backend
+namespace WalletWasabi.Backend;
+
+public class InitConfigStartupTask : IStartupTask
 {
-	public class InitConfigStartupTask : IStartupTask
+	public InitConfigStartupTask(Global global, IMemoryCache cache, IWebHostEnvironment hostingEnvironment)
 	{
-		public InitConfigStartupTask(Global global, IMemoryCache cache, IWebHostEnvironment hostingEnvironment)
+		Global = global;
+		Cache = cache;
+		WebsiteTorifier = new WebsiteTorifier(hostingEnvironment.WebRootPath);
+	}
+
+	public WebsiteTorifier WebsiteTorifier { get; }
+	public Global Global { get; }
+	public IMemoryCache Cache { get; }
+
+	public async Task ExecuteAsync(CancellationToken cancellationToken)
+	{
+		Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
+		Logger.LogSoftwareStarted("Wasabi Backend");
+
+		AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+		TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+		var configFilePath = Path.Combine(Global.DataDir, "Config.json");
+		var config = new Config(configFilePath);
+		config.LoadOrCreateDefaultFile();
+		Logger.LogInfo("Config is successfully initialized.");
+
+		var roundConfigFilePath = Path.Combine(Global.DataDir, "CcjRoundConfig.json");
+		var roundConfig = new CoordinatorRoundConfig(roundConfigFilePath);
+		roundConfig.LoadOrCreateDefaultFile();
+		Logger.LogInfo("RoundConfig is successfully initialized.");
+
+		string host = config.GetBitcoinCoreRpcEndPoint().ToString(config.Network.RPCPort);
+		var rpc = new RPCClient(
+				authenticationString: config.BitcoinRpcConnectionString,
+				hostOrUri: host,
+				network: config.Network);
+
+		var cachedRpc = new CachedRpcClient(rpc, Cache);
+		await Global.InitializeAsync(config, roundConfig, cachedRpc, cancellationToken);
+
+		try
 		{
-			Global = global;
-			Cache = cache;
-			WebsiteTorifier = new WebsiteTorifier(hostingEnvironment.WebRootPath);
+			await WebsiteTorifier.CloneAndUpdateOnionIndexHtmlAsync();
 		}
-
-		public WebsiteTorifier WebsiteTorifier { get; }
-		public Global Global { get; }
-		public IMemoryCache Cache { get; }
-
-		public async Task ExecuteAsync(CancellationToken cancellationToken)
+		catch (Exception ex)
 		{
-			Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
-			Logger.LogSoftwareStarted("Wasabi Backend");
-
-			AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-			TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
-			var configFilePath = Path.Combine(Global.DataDir, "Config.json");
-			var config = new Config(configFilePath);
-			config.LoadOrCreateDefaultFile();
-			Logger.LogInfo("Config is successfully initialized.");
-
-			var roundConfigFilePath = Path.Combine(Global.DataDir, "CcjRoundConfig.json");
-			var roundConfig = new CoordinatorRoundConfig(roundConfigFilePath);
-			roundConfig.LoadOrCreateDefaultFile();
-			Logger.LogInfo("RoundConfig is successfully initialized.");
-
-			string host = config.GetBitcoinCoreRpcEndPoint().ToString(config.Network.RPCPort);
-			var rpc = new RPCClient(
-					authenticationString: config.BitcoinRpcConnectionString,
-					hostOrUri: host,
-					network: config.Network);
-
-			var cachedRpc = new CachedRpcClient(rpc, Cache);
-			await Global.InitializeAsync(config, roundConfig, cachedRpc, cancellationToken);
-
-			try
-			{
-				await WebsiteTorifier.CloneAndUpdateOnionIndexHtmlAsync();
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning(ex);
-			}
+			Logger.LogWarning(ex);
 		}
+	}
 
-		private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
-		{
-			Logger.LogWarning(e.Exception);
-		}
+	private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+	{
+		Logger.LogWarning(e.Exception);
+	}
 
-		private static void CurrentDomain_UnhandledException(object? sender, UnhandledExceptionEventArgs e)
+	private static void CurrentDomain_UnhandledException(object? sender, UnhandledExceptionEventArgs e)
+	{
+		if (e.ExceptionObject is Exception ex)
 		{
-			if (e.ExceptionObject is Exception ex)
-			{
-				Logger.LogWarning(ex);
-			}
+			Logger.LogWarning(ex);
 		}
 	}
 }

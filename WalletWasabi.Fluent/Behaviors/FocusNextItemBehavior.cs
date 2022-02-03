@@ -5,45 +5,44 @@ using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 
-namespace WalletWasabi.Fluent.Behaviors
+namespace WalletWasabi.Fluent.Behaviors;
+
+internal class FocusNextItemBehavior : DisposingBehavior<Control>
 {
-	internal class FocusNextItemBehavior : DisposingBehavior<Control>
+	public static readonly StyledProperty<bool> IsFocusedProperty =
+		AvaloniaProperty.Register<FocusNextItemBehavior, bool>(nameof(IsFocused), true);
+
+	public bool IsFocused
 	{
-		public static readonly StyledProperty<bool> IsFocusedProperty =
-			AvaloniaProperty.Register<FocusNextItemBehavior, bool>(nameof(IsFocused), true);
+		get => GetValue(IsFocusedProperty);
+		set => SetValue(IsFocusedProperty, value);
+	}
 
-		public bool IsFocused
-		{
-			get => GetValue(IsFocusedProperty);
-			set => SetValue(IsFocusedProperty, value);
-		}
+	protected override void OnAttached(CompositeDisposable disposables)
+	{
+		this.WhenAnyValue(x => x.IsFocused)
+			.Where(x => x == false)
+			.Subscribe(
+				_ =>
+				{
+					var parentControl = AssociatedObject.FindLogicalAncestorOfType<ItemsControl>();
 
-		protected override void OnAttached(CompositeDisposable disposables)
-		{
-			this.WhenAnyValue(x => x.IsFocused)
-				.Where(x => x == false)
-				.Subscribe(
-					_ =>
+					if (parentControl is { })
 					{
-						var parentControl = AssociatedObject.FindLogicalAncestorOfType<ItemsControl>();
-
-						if (parentControl is { })
+						foreach (var item in parentControl.GetLogicalChildren())
 						{
-							foreach (var item in parentControl.GetLogicalChildren())
+							var nextToFocus = item.FindLogicalDescendantOfType<TextBox>();
+
+							if (nextToFocus.IsEnabled)
 							{
-								var nextToFocus = item.FindLogicalDescendantOfType<TextBox>();
-
-								if (nextToFocus.IsEnabled)
-								{
-									nextToFocus.Focus();
-									return;
-								}
+								nextToFocus.Focus();
+								return;
 							}
-
-							parentControl.Focus();
 						}
-					})
-				.DisposeWith(disposables);
-		}
+
+						parentControl.Focus();
+					}
+				})
+			.DisposeWith(disposables);
 	}
 }

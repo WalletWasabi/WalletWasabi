@@ -4,96 +4,95 @@ using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using WalletWasabi.Fluent.Models;
 
-namespace WalletWasabi.Fluent.Controls
+namespace WalletWasabi.Fluent.Controls;
+
+public class TileControl : ContentControl
 {
-	public class TileControl : ContentControl
+	private ContentPresenter? _contentPresenter;
+
+	public static readonly StyledProperty<object?> LargeSizeContentProperty =
+		AvaloniaProperty.Register<TileControl, object?>(nameof(LargeSizeContent));
+
+	public static readonly StyledProperty<object?> WideSizeContentProperty =
+		AvaloniaProperty.Register<TileControl, object?>(nameof(WideSizeContent));
+
+	public static readonly StyledProperty<TileSize> TileSizeProperty =
+		AvaloniaProperty.Register<TileControl, TileSize>(nameof(TileSize));
+
+	public object? LargeSizeContent
 	{
-		private ContentPresenter? _contentPresenter;
+		get => GetValue(LargeSizeContentProperty);
+		set => SetValue(LargeSizeContentProperty, value);
+	}
 
-		public static readonly StyledProperty<object?> LargeSizeContentProperty =
-			AvaloniaProperty.Register<TileControl, object?>(nameof(LargeSizeContent));
+	public object? WideSizeContent
+	{
+		get => GetValue(WideSizeContentProperty);
+		set => SetValue(WideSizeContentProperty, value);
+	}
 
-		public static readonly StyledProperty<object?> WideSizeContentProperty =
-			AvaloniaProperty.Register<TileControl, object?>(nameof(WideSizeContent));
+	public TileSize TileSize
+	{
+		get => GetValue(TileSizeProperty);
+		set => SetValue(TileSizeProperty, value);
+	}
 
-		public static readonly StyledProperty<TileSize> TileSizeProperty =
-			AvaloniaProperty.Register<TileControl, TileSize>(nameof(TileSize));
-
-		public object? LargeSizeContent
+	private void UpdateContent()
+	{
+		if (_contentPresenter is { })
 		{
-			get => GetValue(LargeSizeContentProperty);
-			set => SetValue(LargeSizeContentProperty, value);
+			_contentPresenter.Content = GetClosestSizedContent();
 		}
+	}
 
-		public object? WideSizeContent
-		{
-			get => GetValue(WideSizeContentProperty);
-			set => SetValue(WideSizeContentProperty, value);
-		}
+	private object GetClosestSizedContent()
+	{
+		int currentSize = (int)TileSize;
 
-		public TileSize TileSize
+		while (currentSize > 0)
 		{
-			get => GetValue(TileSizeProperty);
-			set => SetValue(TileSizeProperty, value);
-		}
+			var tileSize = (TileSize)currentSize;
 
-		private void UpdateContent()
-		{
-			if (_contentPresenter is { })
+			switch (tileSize)
 			{
-				_contentPresenter.Content = GetClosestSizedContent();
-			}
-		}
+				case TileSize.Wide:
+					if (WideSizeContent is { })
+					{
+						return WideSizeContent;
+					}
+					break;
 
-		private object GetClosestSizedContent()
-		{
-			int currentSize = (int)TileSize;
+				case TileSize.Large:
+					if (LargeSizeContent is { })
+					{
+						return LargeSizeContent;
+					}
+					break;
 
-			while (currentSize > 0)
-			{
-				var tileSize = (TileSize) currentSize;
-
-				switch (tileSize)
-				{
-					case TileSize.Wide:
-						if (WideSizeContent is { })
-						{
-							return WideSizeContent;
-						}
-						break;
-
-					case TileSize.Large:
-						if (LargeSizeContent is { })
-						{
-							return LargeSizeContent;
-						}
-						break;
-
-				}
-
-				currentSize--;
 			}
 
-			return Content;
+			currentSize--;
 		}
 
-		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+		return Content;
+	}
+
+	protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+	{
+		base.OnApplyTemplate(e);
+
+		_contentPresenter = e.NameScope.Find<ContentPresenter>("PART_ContentPresenter");
+
+		UpdateContent();
+	}
+
+	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+	{
+		base.OnPropertyChanged(change);
+
+		if (change.Property == TileSizeProperty)
 		{
-			base.OnApplyTemplate(e);
-
-			_contentPresenter = e.NameScope.Find<ContentPresenter>("PART_ContentPresenter");
-
 			UpdateContent();
-		}
-
-		protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
-		{
-			base.OnPropertyChanged(change);
-
-			if (change.Property == TileSizeProperty)
-			{
-				UpdateContent();
-			}
 		}
 	}
 }

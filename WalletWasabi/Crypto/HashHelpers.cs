@@ -1,29 +1,28 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace WalletWasabi.Crypto
+namespace WalletWasabi.Crypto;
+
+public static class HashHelpers
 {
-	public static class HashHelpers
+	/// <returns>SHA-256 hash. Letters are always in upper-case.</returns>
+	public static string GenerateSha256Hash(string input) => ByteHelpers.ToHex(GenerateSha256Hash(Encoding.UTF8.GetBytes(input)));
+
+	public static byte[] GenerateSha256Hash(byte[] input)
 	{
-		/// <returns>SHA-256 hash. Letters are always in upper-case.</returns>
-		public static string GenerateSha256Hash(string input) => ByteHelpers.ToHex(GenerateSha256Hash(Encoding.UTF8.GetBytes(input)));
+		using var sha256 = SHA256.Create();
+		var hash = sha256.ComputeHash(input);
 
-		public static byte[] GenerateSha256Hash(byte[] input)
+		return hash;
+	}
+
+	public static int ComputeHashCode(params byte[] data)
+	{
+		var hash = new HashCode();
+		foreach (var element in data)
 		{
-			using var sha256 = SHA256.Create();
-			var hash = sha256.ComputeHash(input);
-
-			return hash;
+			hash.Add(element);
 		}
-
-		public static int ComputeHashCode(params byte[] data)
-		{
-			var hash = new HashCode();
-			foreach (var element in data)
-			{
-				hash.Add(element);
-			}
-			return hash.ToHashCode();
-		}
+		return hash.ToHashCode();
 	}
 }

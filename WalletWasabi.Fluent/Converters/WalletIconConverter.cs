@@ -1,40 +1,62 @@
+using System.Globalization;
+using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media.Imaging;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.Converters
+namespace WalletWasabi.Fluent.Converters;
+
+public class WalletIconConverter : IValueConverter
 {
-	public static class WalletIconConverter
+	public static readonly IValueConverter WalletTypeToImage = new WalletIconConverter();
+
+	public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
-		public static readonly IValueConverter WalletTypeToImage =
-			new FuncValueConverter<WalletType, Bitmap>(GetBitmap);
-
-		private static Bitmap GetBitmap(WalletType type)
+		if (value is WalletType type)
 		{
-			Uri uri = new($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/generic.png");
-
-			switch (type)
+			try
 			{
-				case WalletType.Coldcard:
-					uri = new($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/coldcard.png");
-					break;
-
-				case WalletType.Trezor:
-					uri = new($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/trezor.png");
-					break;
-
-				case WalletType.Ledger:
-					uri = new($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/ledger.png");
-					break;
-
-				case WalletType.Normal:
-				case WalletType.Unknown:
-					uri = new($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/normal.png");
-					break;
+				return GetBitmap(type);
 			}
-
-			return AssetHelpers.GetBitmapAsset(uri);
+			catch
+			{
+				// ignored
+			}
 		}
+
+		return AvaloniaProperty.UnsetValue;
+	}
+
+	public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+	{
+		throw new NotImplementedException();
+	}
+
+	private static Bitmap GetBitmap(WalletType type)
+	{
+		Uri uri = new($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/generic.png");
+
+		switch (type)
+		{
+			case WalletType.Coldcard:
+				uri = new($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/coldcard.png");
+				break;
+
+			case WalletType.Trezor:
+				uri = new($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/trezor.png");
+				break;
+
+			case WalletType.Ledger:
+				uri = new($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/ledger.png");
+				break;
+
+			case WalletType.Normal:
+			case WalletType.Unknown:
+				uri = new($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/normal.png");
+				break;
+		}
+
+		return AssetHelpers.GetBitmapAsset(uri);
 	}
 }

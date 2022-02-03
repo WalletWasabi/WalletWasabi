@@ -7,317 +7,316 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.MathNet;
 using WalletWasabi.Fluent.Converters;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
+
+public partial class FeeChartViewModel : ViewModelBase
 {
-	public partial class FeeChartViewModel : ViewModelBase
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMinimum;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMaximum;
+	[AutoNotify] private int _sliderValue;
+	[AutoNotify] private string[]? _satoshiPerByteLabels;
+	[AutoNotify] private double[]? _satoshiPerByteValues;
+	[AutoNotify] private double[]? _confirmationTargetValues;
+	[AutoNotify] private string[]? _confirmationTargetLabels;
+	[AutoNotify] private double _currentConfirmationTarget;
+	[AutoNotify] private decimal _currentSatoshiPerByte;
+	[AutoNotify] private string _currentConfirmationTargetString;
+	private bool _updatingCurrentValue;
+
+	public FeeChartViewModel()
 	{
-		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMinimum;
-		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMaximum;
-		[AutoNotify] private int _sliderValue;
-		[AutoNotify] private string[]? _satoshiPerByteLabels;
-		[AutoNotify] private double[]? _satoshiPerByteValues;
-		[AutoNotify] private double[]? _confirmationTargetValues;
-		[AutoNotify] private string[]? _confirmationTargetLabels;
-		[AutoNotify] private double _currentConfirmationTarget;
-		[AutoNotify] private decimal _currentSatoshiPerByte;
-		[AutoNotify] private string _currentConfirmationTargetString;
-		private bool _updatingCurrentValue;
+		_sliderMinimum = 0;
+		_sliderMaximum = 9;
+		_currentConfirmationTarget = Services.UiConfig.FeeTarget;
+		_currentConfirmationTargetString = "";
 
-		public FeeChartViewModel()
-		{
-			_sliderMinimum = 0;
-			_sliderMaximum = 9;
-			_currentConfirmationTarget = Services.UiConfig.FeeTarget;
-			_currentConfirmationTargetString = "";
-
-			this.WhenAnyValue(x => x.CurrentConfirmationTarget)
-				.Subscribe(x =>
+		this.WhenAnyValue(x => x.CurrentConfirmationTarget)
+			.Subscribe(x =>
+			{
+				if (x > 0)
 				{
-					if (x > 0)
-					{
-						SetSliderValue(x);
-					}
-				});
+					SetSliderValue(x);
+				}
+			});
 
-			this.WhenAnyValue(x => x.SliderValue)
-				.Subscribe(SetXAxisCurrentValue);
-		}
+		this.WhenAnyValue(x => x.SliderValue)
+			.Subscribe(SetXAxisCurrentValue);
+	}
 
-		private void UpdateFeeAndEstimate(double confirmationTarget)
+	private void UpdateFeeAndEstimate(double confirmationTarget)
+	{
+		CurrentSatoshiPerByte = GetSatoshiPerByte(confirmationTarget);
+		CurrentConfirmationTargetString = FeeTargetTimeConverter.Convert((int)Math.Ceiling(confirmationTarget), " minutes", " hour", " hours", " day", " days");
+	}
+
+	private void SetSliderValue(double confirmationTarget)
+	{
+		if (!_updatingCurrentValue)
 		{
-			CurrentSatoshiPerByte = GetSatoshiPerByte(confirmationTarget);
-			CurrentConfirmationTargetString = FeeTargetTimeConverter.Convert((int)Math.Ceiling(confirmationTarget), " minutes", " hour", " hours", " day", " days");
-		}
+			_updatingCurrentValue = true;
+			if (_confirmationTargetValues is not null)
+			{
+				SliderValue = GetSliderValue(confirmationTarget, _confirmationTargetValues);
+				UpdateFeeAndEstimate(confirmationTarget);
+			}
 
-		private void SetSliderValue(double confirmationTarget)
+			_updatingCurrentValue = false;
+		}
+	}
+
+	private void SetXAxisCurrentValue(int sliderValue)
+	{
+		if (_confirmationTargetValues is not null)
 		{
 			if (!_updatingCurrentValue)
 			{
 				_updatingCurrentValue = true;
-				if (_confirmationTargetValues is not null)
-				{
-					SliderValue = GetSliderValue(confirmationTarget, _confirmationTargetValues);
-					UpdateFeeAndEstimate(confirmationTarget);
-				}
-
+				var index = _confirmationTargetValues.Length - sliderValue - 1;
+				CurrentConfirmationTarget = _confirmationTargetValues[index];
+				UpdateFeeAndEstimate(CurrentConfirmationTarget);
 				_updatingCurrentValue = false;
 			}
 		}
+	}
 
-		private void SetXAxisCurrentValue(int sliderValue)
+	private void GetSmoothValuesSubdivide(double[] xs, double[] ys, out List<double> xts, out List<double> yts)
+	{
+		const int Divisions = 256;
+
+		xts = new List<double>();
+		yts = new List<double>();
+
+		if (xs.Length > 2)
 		{
-			if (_confirmationTargetValues is not null)
+			var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
+
+			for (var i = 0; i < xs.Length - 1; i++)
 			{
-				if (!_updatingCurrentValue)
+				var a = xs[i];
+				var b = xs[i + 1];
+				var range = b - a;
+				var step = range / Divisions;
+
+				var x0 = xs[i];
+				xts.Add(x0);
+				var yt0 = spline.Interpolate(xs[i]);
+				yts.Add(yt0);
+
+				for (var xt = a + step; xt < b; xt += step)
 				{
-					_updatingCurrentValue = true;
-					var index = _confirmationTargetValues.Length - sliderValue - 1;
-					CurrentConfirmationTarget = _confirmationTargetValues[index];
-					UpdateFeeAndEstimate(CurrentConfirmationTarget);
-					_updatingCurrentValue = false;
+					var yt = spline.Interpolate(xt);
+					xts.Add(xt);
+					yts.Add(yt);
 				}
+			}
+
+			var xn = xs[^1];
+			xts.Add(xn);
+			var yn = spline.Interpolate(xs[^1]);
+			yts.Add(yn);
+		}
+		else
+		{
+			for (var i = 0; i < xs.Length; i++)
+			{
+				xts.Add(xs[i]);
+				yts.Add(ys[i]);
 			}
 		}
 
-		private void GetSmoothValuesSubdivide(double[] xs, double[] ys, out List<double> xts, out List<double> yts)
-		{
-			const int Divisions = 256;
+		xts.Reverse();
+		yts.Reverse();
+	}
 
-			xts = new List<double>();
-			yts = new List<double>();
+	public decimal GetSatoshiPerByte(double t)
+	{
+		if (_confirmationTargetValues is { } && _satoshiPerByteValues is { })
+		{
+			var xs = _confirmationTargetValues.Reverse().ToArray();
+			var ys = _satoshiPerByteValues.Reverse().ToArray();
 
 			if (xs.Length > 2)
 			{
 				var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
-
-				for (var i = 0; i < xs.Length - 1; i++)
-				{
-					var a = xs[i];
-					var b = xs[i + 1];
-					var range = b - a;
-					var step = range / Divisions;
-
-					var x0 = xs[i];
-					xts.Add(x0);
-					var yt0 = spline.Interpolate(xs[i]);
-					yts.Add(yt0);
-
-					for (var xt = a + step; xt < b; xt += step)
-					{
-						var yt = spline.Interpolate(xt);
-						xts.Add(xt);
-						yts.Add(yt);
-					}
-				}
-
-				var xn = xs[^1];
-				xts.Add(xn);
-				var yn = spline.Interpolate(xs[^1]);
-				yts.Add(yn);
-			}
-			else
-			{
-				for (var i = 0; i < xs.Length; i++)
-				{
-					xts.Add(xs[i]);
-					yts.Add(ys[i]);
-				}
+				var interpolated = (decimal)spline.Interpolate(t);
+				return Math.Clamp(interpolated, (decimal)ys[^1], (decimal)ys[0]);
 			}
 
-			xts.Reverse();
-			yts.Reverse();
-		}
-
-		public decimal GetSatoshiPerByte(double t)
-		{
-			if (_confirmationTargetValues is { } && _satoshiPerByteValues is { })
+			if (xs.Length == 2)
 			{
-				var xs = _confirmationTargetValues.Reverse().ToArray();
-				var ys = _satoshiPerByteValues.Reverse().ToArray();
-
-				if (xs.Length > 2)
-				{
-					var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
-					var interpolated = (decimal)spline.Interpolate(t);
-					return Math.Clamp(interpolated, (decimal)ys[^1], (decimal)ys[0]);
-				}
-
-				if (xs.Length == 2)
-				{
-					if (xs[1] - xs[0] == 0.0)
-					{
-						return (decimal)ys[0];
-					}
-					var slope = (ys[1] - ys[0]) / (xs[1] - xs[0]);
-					var interpolated = (decimal)(ys[0] + (t - xs[0]) * slope);
-					return Math.Clamp(interpolated, (decimal)ys[^1], (decimal)ys[0]);
-				}
-
-				if (xs.Length == 1)
+				if (xs[1] - xs[0] == 0.0)
 				{
 					return (decimal)ys[0];
 				}
+				var slope = (ys[1] - ys[0]) / (xs[1] - xs[0]);
+				var interpolated = (decimal)(ys[0] + (t - xs[0]) * slope);
+				return Math.Clamp(interpolated, (decimal)ys[^1], (decimal)ys[0]);
 			}
 
-			return SliderMaximum;
+			if (xs.Length == 1)
+			{
+				return (decimal)ys[0];
+			}
 		}
 
-		public double GetConfirmationTarget(FeeRate feeRate)
+		return SliderMaximum;
+	}
+
+	public double GetConfirmationTarget(FeeRate feeRate)
+	{
+		if (SatoshiPerByteValues is null || ConfirmationTargetValues is null) // Should not happen
 		{
-			if (SatoshiPerByteValues is null || ConfirmationTargetValues is null) // Should not happen
-			{
-				return 1;
-			}
-
-			var closestValue = SatoshiPerByteValues.OrderBy(x => Math.Abs((decimal)x - feeRate.SatoshiPerByte)).First();
-			var indexOfClosestValue = SatoshiPerByteValues.LastIndexOf(closestValue);
-
-			return ConfirmationTargetValues[indexOfClosestValue];
+			return 1;
 		}
 
-		private int GetSliderValue(double x, double[] xs)
-		{
-			for (var i = 0; i < xs.Length; i++)
-			{
-				if (xs[i] <= x)
-				{
-					var index = xs.Length - i - 1;
-					return index;
-				}
-			}
+		var closestValue = SatoshiPerByteValues.OrderBy(x => Math.Abs((decimal)x - feeRate.SatoshiPerByte)).First();
+		var indexOfClosestValue = SatoshiPerByteValues.LastIndexOf(closestValue);
 
-			return 0;
+		return ConfirmationTargetValues[indexOfClosestValue];
+	}
+
+	private int GetSliderValue(double x, double[] xs)
+	{
+		for (var i = 0; i < xs.Length; i++)
+		{
+			if (xs[i] <= x)
+			{
+				var index = xs.Length - i - 1;
+				return index;
+			}
 		}
 
-		public void UpdateFeeEstimates(Dictionary<int, int> feeEstimates, FeeRate? maxFee = null)
+		return 0;
+	}
+
+	public void UpdateFeeEstimates(Dictionary<int, int> feeEstimates, FeeRate? maxFee = null)
+	{
+		var correctedFeeEstimates = DistinctByValues(feeEstimates);
+
+		var xs = correctedFeeEstimates.Select(x => (double)x.Key).ToArray();
+		var ys = correctedFeeEstimates.Select(x => (double)x.Value).ToArray();
+
+		GetSmoothValuesSubdivide(xs, ys, out var xts, out var yts);
+
+		if (maxFee is { })
 		{
-			var correctedFeeEstimates = DistinctByValues(feeEstimates);
+			RemoveOverpaymentValues(xts, yts, (double)maxFee.SatoshiPerByte);
+		}
 
-			var xs = correctedFeeEstimates.Select(x => (double)x.Key).ToArray();
-			var ys = correctedFeeEstimates.Select(x => (double)x.Value).ToArray();
+		var confirmationTargetValues = xts.ToArray();
+		var confirmationTargetLabels = GetConfirmationTargetLabels(xts).ToArray();
+		var satoshiPerByteValues = yts.ToArray();
 
-			GetSmoothValuesSubdivide(xs, ys, out var xts, out var yts);
+		_updatingCurrentValue = true;
 
-			if (maxFee is { })
+		if (satoshiPerByteValues.Any())
+		{
+			var minY = satoshiPerByteValues.Min();
+			var maxY = satoshiPerByteValues.Max();
+			SatoshiPerByteLabels = new[] { minY.ToString("F0"), (maxY / 2).ToString("F0"), maxY.ToString("F0") };
+		}
+		else
+		{
+			SatoshiPerByteLabels = null;
+		}
+
+		ConfirmationTargetLabels = confirmationTargetLabels;
+		ConfirmationTargetValues = confirmationTargetValues;
+		SatoshiPerByteValues = satoshiPerByteValues;
+
+		SliderMinimum = 0;
+		SliderMaximum = confirmationTargetValues.Length - 1;
+		CurrentConfirmationTarget = Math.Clamp(CurrentConfirmationTarget, ConfirmationTargetValues.Min(), ConfirmationTargetValues.Max());
+		SliderValue = GetSliderValue(CurrentConfirmationTarget, ConfirmationTargetValues);
+		UpdateFeeAndEstimate(CurrentConfirmationTarget);
+
+		_updatingCurrentValue = false;
+	}
+
+	private void RemoveOverpaymentValues(List<double> xts, List<double> yts, double maxFeeSatoshiPerByte)
+	{
+		for (var i = yts.Count - 1; i >= 0; i--)
+		{
+			if (yts[i] > maxFeeSatoshiPerByte)
 			{
-				RemoveOverpaymentValues(xts, yts, (double)maxFee.SatoshiPerByte);
-			}
-
-			var confirmationTargetValues = xts.ToArray();
-			var confirmationTargetLabels = GetConfirmationTargetLabels(xts).ToArray();
-			var satoshiPerByteValues = yts.ToArray();
-
-			_updatingCurrentValue = true;
-
-			if (satoshiPerByteValues.Any())
-			{
-				var minY = satoshiPerByteValues.Min();
-				var maxY = satoshiPerByteValues.Max();
-				SatoshiPerByteLabels = new[] { minY.ToString("F0"), (maxY / 2).ToString("F0"), maxY.ToString("F0") };
+				yts.RemoveAt(i);
+				xts.RemoveAt(i);
 			}
 			else
 			{
-				SatoshiPerByteLabels = null;
+				break;
 			}
-
-			ConfirmationTargetLabels = confirmationTargetLabels;
-			ConfirmationTargetValues = confirmationTargetValues;
-			SatoshiPerByteValues = satoshiPerByteValues;
-
-			SliderMinimum = 0;
-			SliderMaximum = confirmationTargetValues.Length - 1;
-			CurrentConfirmationTarget = Math.Clamp(CurrentConfirmationTarget, ConfirmationTargetValues.Min(), ConfirmationTargetValues.Max());
-			SliderValue = GetSliderValue(CurrentConfirmationTarget, ConfirmationTargetValues);
-			UpdateFeeAndEstimate(CurrentConfirmationTarget);
-
-			_updatingCurrentValue = false;
 		}
+	}
 
-		private void RemoveOverpaymentValues(List<double> xts, List<double> yts, double maxFeeSatoshiPerByte)
+	private IEnumerable<string> GetConfirmationTargetLabels(List<double> confirmationTargets)
+	{
+		var blockTargetCount = confirmationTargets.Count;
+		var interval = blockTargetCount >= 5 ? blockTargetCount / 5 : 1;
+
+		for (int i = 0; i < blockTargetCount; i += interval)
 		{
-			for (var i = yts.Count - 1; i >= 0; i--)
+			var label = FeeTargetTimeConverter.Convert((int)Math.Ceiling(confirmationTargets[i]), "m", "h", "h", "d", "d");
+
+			if (i + interval <= blockTargetCount)
 			{
-				if (yts[i] > maxFeeSatoshiPerByte)
-				{
-					yts.RemoveAt(i);
-					xts.RemoveAt(i);
-				}
-				else
-				{
-					break;
-				}
+				yield return label;
 			}
 		}
 
-		private IEnumerable<string> GetConfirmationTargetLabels(List<double> confirmationTargets)
+		if (interval != 1)
 		{
-			var blockTargetCount = confirmationTargets.Count;
-			var interval = blockTargetCount >= 5 ? blockTargetCount / 5 : 1;
-
-			for (int i = 0; i < blockTargetCount; i += interval)
-			{
-				var label = FeeTargetTimeConverter.Convert((int)Math.Ceiling(confirmationTargets[i]), "m", "h", "h", "d", "d");
-
-				if (i + interval <= blockTargetCount)
-				{
-					yield return label;
-				}
-			}
-
-			if (interval != 1)
-			{
-				yield return FeeTargetTimeConverter.Convert((int)Math.Ceiling(confirmationTargets.Last()), "m", "h", "h", "d", "d");
-			}
+			yield return FeeTargetTimeConverter.Convert((int)Math.Ceiling(confirmationTargets.Last()), "m", "h", "h", "d", "d");
 		}
+	}
 
-		public void InitCurrentConfirmationTarget(FeeRate feeRate)
+	public void InitCurrentConfirmationTarget(FeeRate feeRate)
+	{
+		CurrentConfirmationTarget = GetConfirmationTarget(feeRate);
+	}
+
+	public Dictionary<double, double> GetValues()
+	{
+		Dictionary<double, double> values = new();
+
+		if (ConfirmationTargetValues is null || SatoshiPerByteValues is null)
 		{
-			CurrentConfirmationTarget = GetConfirmationTarget(feeRate);
-		}
-
-		public Dictionary<double, double> GetValues()
-		{
-			Dictionary<double, double> values = new();
-
-			if (ConfirmationTargetValues is null || SatoshiPerByteValues is null)
-			{
-				return values;
-			}
-
-			if (ConfirmationTargetValues.Length != SatoshiPerByteValues.Length)
-			{
-				throw new InvalidDataException("The count of X and Y values are not equal!");
-			}
-
-			var numberOfItems = ConfirmationTargetValues.Length;
-
-			for (var i = 0; i < numberOfItems; i++)
-			{
-				var blockTarget = ConfirmationTargetValues[i];
-				var satPerByte = SatoshiPerByteValues[i];
-
-				values.Add(blockTarget, satPerByte);
-			}
-
 			return values;
 		}
 
-		private Dictionary<int, int> DistinctByValues(Dictionary<int, int> feeEstimates)
+		if (ConfirmationTargetValues.Length != SatoshiPerByteValues.Length)
 		{
-			Dictionary<int, int> valuesToReturn = new();
-
-			foreach (var estimate in feeEstimates)
-			{
-				var similarBlockTargets = feeEstimates.Where(x => x.Value == estimate.Value);
-				var fasterSimilarBlockTarget = similarBlockTargets.First();
-
-				if (fasterSimilarBlockTarget.Key == estimate.Key)
-				{
-					valuesToReturn.Add(estimate.Key, estimate.Value);
-				}
-			}
-
-			return valuesToReturn;
+			throw new InvalidDataException("The count of X and Y values are not equal!");
 		}
+
+		var numberOfItems = ConfirmationTargetValues.Length;
+
+		for (var i = 0; i < numberOfItems; i++)
+		{
+			var blockTarget = ConfirmationTargetValues[i];
+			var satPerByte = SatoshiPerByteValues[i];
+
+			values.Add(blockTarget, satPerByte);
+		}
+
+		return values;
+	}
+
+	private Dictionary<int, int> DistinctByValues(Dictionary<int, int> feeEstimates)
+	{
+		Dictionary<int, int> valuesToReturn = new();
+
+		foreach (var estimate in feeEstimates)
+		{
+			var similarBlockTargets = feeEstimates.Where(x => x.Value == estimate.Value);
+			var fasterSimilarBlockTarget = similarBlockTargets.First();
+
+			if (fasterSimilarBlockTarget.Key == estimate.Key)
+			{
+				valuesToReturn.Add(estimate.Key, estimate.Value);
+			}
+		}
+
+		return valuesToReturn;
 	}
 }

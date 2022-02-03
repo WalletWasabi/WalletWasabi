@@ -4,65 +4,64 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Microservices;
 
-namespace WalletWasabi.Hwi.ProcessBridge
+namespace WalletWasabi.Hwi.ProcessBridge;
+
+public class HwiProcessBridge : IHwiProcessInvoker
 {
-	public class HwiProcessBridge : IHwiProcessInvoker
+	public HwiProcessBridge()
 	{
-		public HwiProcessBridge()
+		ProcessPath = MicroserviceHelpers.GetBinaryPath("hwi");
+	}
+
+	private string ProcessPath { get; }
+
+	public async Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel, Action<StreamWriter>? standardInputWriter = null)
+	{
+		ProcessStartInfo startInfo = ProcessStartInfoFactory.Make(ProcessPath, arguments, openConsole);
+
+		(string rawResponse, int exitCode) = await SendCommandAsync(startInfo, cancel, standardInputWriter).ConfigureAwait(false);
+
+		string response;
+
+		if (!openConsole)
 		{
-			ProcessPath = MicroserviceHelpers.GetBinaryPath("hwi");
+			response = rawResponse;
+		}
+		else
+		{
+			response = exitCode == 0
+				? "{\"success\":\"true\"}"
+				: $"{{\"success\":\"false\",\"error\":\"Process terminated with exit code: {exitCode}.\"}}";
 		}
 
-		private string ProcessPath { get; }
+		return (response, exitCode);
+	}
 
-		public async Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel, Action<StreamWriter>? standardInputWriter = null)
+	private async Task<(string response, int exitCode)> SendCommandAsync(ProcessStartInfo startInfo, CancellationToken token, Action<StreamWriter>? standardInputWriter = null)
+	{
+		using var processAsync = new ProcessAsync(startInfo);
+
+		if (standardInputWriter is { })
 		{
-			ProcessStartInfo startInfo = ProcessStartInfoFactory.Make(ProcessPath, arguments, openConsole);
-
-			(string rawResponse, int exitCode) = await SendCommandAsync(startInfo, cancel, standardInputWriter).ConfigureAwait(false);
-
-			string response;
-
-			if (!openConsole)
-			{
-				response = rawResponse;
-			}
-			else
-			{
-				response = exitCode == 0
-					? "{\"success\":\"true\"}"
-					: $"{{\"success\":\"false\",\"error\":\"Process terminated with exit code: {exitCode}.\"}}";
-			}
-
-			return (response, exitCode);
+			processAsync.StartInfo.RedirectStandardInput = true;
 		}
 
-		private async Task<(string response, int exitCode)> SendCommandAsync(ProcessStartInfo startInfo, CancellationToken token, Action<StreamWriter>? standardInputWriter = null)
+		processAsync.Start();
+
+		if (standardInputWriter is { })
 		{
-			using var processAsync = new ProcessAsync(startInfo);
-
-			if (standardInputWriter is { })
-			{
-				processAsync.StartInfo.RedirectStandardInput = true;
-			}
-
-			processAsync.Start();
-
-			if (standardInputWriter is { })
-			{
-				standardInputWriter(processAsync.StandardInput);
-				processAsync.StandardInput.Close();
-			}
-
-			Task<string> readPipeTask = processAsync.StartInfo.UseShellExecute
-				? Task.FromResult(string.Empty)
-				: processAsync.StandardOutput.ReadToEndAsync();
-
-			await processAsync.WaitForExitAsync(token).ConfigureAwait(false);
-
-			string output = await readPipeTask.ConfigureAwait(false);
-
-			return (output, exitCode: processAsync.ExitCode);
+			standardInputWriter(processAsync.StandardInput);
+			processAsync.StandardInput.Close();
 		}
+
+		Task<string> readPipeTask = processAsync.StartInfo.UseShellExecute
+			? Task.FromResult(string.Empty)
+			: processAsync.StandardOutput.ReadToEndAsync();
+
+		await processAsync.WaitForExitAsync(token).ConfigureAwait(false);
+
+		string output = await readPipeTask.ConfigureAwait(false);
+
+		return (output, exitCode: processAsync.ExitCode);
 	}
 }
