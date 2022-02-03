@@ -4,6 +4,7 @@ using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Models;
@@ -365,6 +366,98 @@ public class PocketSelectionTests
 		Assert.Contains(selection.GetLabel("Adam"), selection.LabelsWhiteList);
 		Assert.Contains(selection.GetLabel("Lucas"), selection.LabelsWhiteList);
 		Assert.Contains(selection.GetLabel("Jumar"), selection.LabelsWhiteList);
+	}
+
+	[Fact]
+	public void PrivatePocketIsHidden()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(1.0M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(2.0M, out var pocket2, "Dan");
+
+		selection.Reset(pockets.ToArray());
+
+		Assert.Contains(selection.GetLabel("Dan"), selection.LabelsWhiteList);
+
+		// Not found.
+		Assert.Throws<InvalidOperationException>(() => selection.GetLabel(CoinPocketHelper.PrivateFundsText));
+	}
+
+	[Fact]
+	public void UseOnlyPrivateFunds()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(1.0M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(2.0M, out var pocket2, "Dan");
+
+		selection.Reset(pockets.ToArray());
+
+		selection.SwapLabel(selection.GetLabel("Dan"));
+
+		Assert.Contains(selection.GetLabel("Dan"), selection.LabelsBlackList);
+		Assert.True(selection.EnoughSelected);
+
+		var output = selection.GetUsedPockets();
+		Assert.DoesNotContain(pocket2, output);
+		Assert.Contains(pocket1, output);
+	}
+
+	[Fact]
+	public void DoNotUsePrivateFunds()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(1.0M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(2.0M, out var pocket2, "Dan");
+
+		selection.Reset(pockets.ToArray());
+
+		Assert.Contains(selection.GetLabel("Dan"), selection.LabelsWhiteList);
+		Assert.True(selection.EnoughSelected);
+
+		var output = selection.GetUsedPockets();
+		Assert.DoesNotContain(pocket1, output);
+		Assert.Contains(pocket2, output);
+	}
+
+	[Fact]
+	public void IncludePrivateFunds()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("2.5"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(1.0M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(2.0M, out var pocket2, "Dan");
+
+		selection.Reset(pockets.ToArray());
+
+		Assert.True(selection.EnoughSelected);
+
+		var output = selection.GetUsedPockets();
+		Assert.Contains(pocket1, output);
+		Assert.Contains(pocket2, output);
+	}
+
+	[Fact]
+	public void NotEnoughSelected()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(1.0M, out var pocket1, "David");
+		pockets.AddPocket(2.0M, out var pocket2, "Dan");
+
+		selection.Reset(pockets.ToArray());
+
+		selection.SwapLabel(selection.GetLabel("David"));
+		selection.SwapLabel(selection.GetLabel("Dan"));
+
+		Assert.False(selection.EnoughSelected);
 	}
 }
 
