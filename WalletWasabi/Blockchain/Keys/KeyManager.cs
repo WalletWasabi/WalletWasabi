@@ -25,8 +25,6 @@ public class KeyManager
 {
 	public const int DefaultMinAnonScoreTarget = 5;
 	public const int DefaultMaxAnonScoreTarget = 10;
-	private int _minAnonScoreTarget;
-	private int _maxAnonScoreTarget;
 
 	public const int AbsoluteMinGapLimit = 21;
 	public const int MaxGapLimit = 10_000;
@@ -700,11 +698,12 @@ public class KeyManager
 
 	public void SetAnonScoreTargets(int minAnonScoreTarget, int maxAnonScoreTarget)
 	{
-		MinAnonScoreTarget = minAnonScoreTarget;
-		if (MaxAnonScoreTarget < MinAnonScoreTarget)
+		if (maxAnonScoreTarget <= minAnonScoreTarget)
 		{
-			throw new ArgumentException($"{nameof(maxAnonScoreTarget)} should be greater.", nameof(maxAnonScoreTarget));
+			throw new ArgumentException($"{nameof(maxAnonScoreTarget)} should be greater than {nameof(minAnonScoreTarget)}.", nameof(maxAnonScoreTarget));
 		}
+
+		MinAnonScoreTarget = minAnonScoreTarget;
 		MaxAnonScoreTarget = maxAnonScoreTarget;
 		ToFile();
 	}
