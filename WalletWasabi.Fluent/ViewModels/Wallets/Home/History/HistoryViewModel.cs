@@ -7,6 +7,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
+using Avalonia.Controls.Selection;
 using Avalonia.Controls.Templates;
 using DynamicData;
 using DynamicData.Binding;
@@ -151,13 +152,33 @@ public partial class HistoryViewModel : ActivatableViewModel
 	                    width: new GridLength(0, GridUnitType.Auto)),
                 }
             };
+
+			Source.RowSelection!.SingleSelect = true;
+			Source.RowSelection!.SelectionChanged += OnSelectionChanged;
 	}
+
 
 	public ObservableCollection<HistoryItemViewModelBase> UnfilteredTransactions => _unfilteredTransactions;
 
 	public ObservableCollection<HistoryItemViewModelBase> Transactions => _transactions;
 
 	public FlatTreeDataGridSource<HistoryItemViewModelBase> Source { get; }
+
+	private void OnSelectionChanged(object? sender, TreeSelectionModelSelectionChangedEventArgs<HistoryItemViewModelBase> e)
+	{
+		if (e.SelectedItems.Count == 1)
+		{
+			var item = e.SelectedItems[0];
+			if (item != SelectedItem)
+			{
+				SelectedItem = item;
+			}
+		}
+		else
+		{
+			SelectedItem = null;
+		}
+	}
 
 	public void SelectTransaction(uint256 txid)
 	{
@@ -175,6 +196,9 @@ public partial class HistoryViewModel : ActivatableViewModel
 		{
 			SelectedItem = txnItem;
 			SelectedItem.IsFlashing = true;
+
+			var index = _transactions.IndexOf(SelectedItem);
+			Source.RowSelection!.Select(new IndexPath(index));
 		}
 	}
 
