@@ -22,7 +22,7 @@
     </DockPanel>
 
     <StackPanel Spacing="10" IsVisible="{Binding StartLocalBitcoinCoreOnStartup}">
-      <TextBlock Text="Bitcoin Core/Knots Data Folder" />
+      <TextBlock Text="Bitcoin Node Data Folder" />
       <TextBox Text="{Binding LocalBitcoinCoreDataDir}" />
     </StackPanel>
 
