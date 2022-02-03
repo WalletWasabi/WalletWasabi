@@ -21,7 +21,6 @@ public class UiConfig : ConfigBase
 	private bool _runOnSystemStartup;
 	private bool _oobe;
 	private bool _hideOnClose;
-	private bool _alwaysShowPrivacyControl;
 	private bool _autoPaste;
 	private int _feeTarget;
 
@@ -45,7 +44,6 @@ public class UiConfig : ConfigBase
 				x => x.HideOnClose,
 				x => x.FeeTarget,
 				(_, _, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
-			.Merge(this.WhenAnyValue(x => x.AlwaysShowPrivacyControl).Select(_ => Unit.Default))
 			.Throttle(TimeSpan.FromMilliseconds(500))
 			.Skip(1) // Won't save on UiConfig creation.
 			.ObserveOn(RxApp.TaskpoolScheduler)
@@ -146,13 +144,5 @@ public class UiConfig : ConfigBase
 	{
 		get => _hideOnClose;
 		set => RaiseAndSetIfChanged(ref _hideOnClose, value);
-	}
-
-	[DefaultValue(false)]
-	[JsonProperty(PropertyName = nameof(AlwaysShowPrivacyControl), DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool AlwaysShowPrivacyControl
-	{
-		get => _alwaysShowPrivacyControl;
-		set => RaiseAndSetIfChanged(ref _alwaysShowPrivacyControl, value);
 	}
 }

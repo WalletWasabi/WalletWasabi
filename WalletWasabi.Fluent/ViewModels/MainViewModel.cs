@@ -183,24 +183,17 @@ public partial class MainViewModel : ViewModelBase
 				return _settingsPage;
 			});
 
-		PrivacySettingsTabViewModel.RegisterLazy(
+		NetworkSettingsTabViewModel.RegisterLazy(
 			() =>
 			{
 				_settingsPage.SelectedTab = 1;
 				return _settingsPage;
 			});
 
-		NetworkSettingsTabViewModel.RegisterLazy(
-			() =>
-			{
-				_settingsPage.SelectedTab = 2;
-				return _settingsPage;
-			});
-
 		BitcoinTabSettingsViewModel.RegisterLazy(
 			() =>
 			{
-				_settingsPage.SelectedTab = 3;
+				_settingsPage.SelectedTab = 2;
 				return _settingsPage;
 			});
 
