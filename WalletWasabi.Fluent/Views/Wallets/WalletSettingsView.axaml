@@ -25,6 +25,8 @@
           <ToggleSwitch IsChecked="{Binding AutoCoinJoin}" />
         </DockPanel>
 
+        <Separator />
+
         <StackPanel Spacing="10">
           <TextBlock Text="Minimum Anonymity Score Target" />
           <DockPanel>
