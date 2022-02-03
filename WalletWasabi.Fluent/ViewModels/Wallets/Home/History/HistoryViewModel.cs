@@ -64,9 +64,9 @@ public partial class HistoryViewModel : ActivatableViewModel
 			IControl IndicatorsColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new IndicatorsColumnView() { Height = 37.5 };
 			IControl DateColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new DateColumnView() { Height = 37.5 };
 			IControl LabelsColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new LabelsColumnView() { Height = 37.5 };
-			IControl IncomingColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new IncomingColumnView() { Height = 37.5, MaxWidth = 150 };
-			IControl OutgoingColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new OutgoingColumnView() { Height = 37.5, MaxWidth = 150 };
-			IControl BalanceColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new BalanceColumnView() { Height = 37.5, MaxWidth = 150 };
+			IControl IncomingColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new IncomingColumnView() { Height = 37.5 };
+			IControl OutgoingColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new OutgoingColumnView() { Height = 37.5 };
+			IControl BalanceColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new BalanceColumnView() { Height = 37.5 };
 
 			Source = new FlatTreeDataGridSource<HistoryItemViewModelBase>(_transactions)
             {
@@ -104,7 +104,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 	                    {
 		                    CanUserResizeColumn = false,
 		                    CanUserSortColumn = false,
-		                    MinWidth = new GridLength(75, GridUnitType.Pixel)
+		                    MinWidth = new GridLength(100, GridUnitType.Pixel)
 	                    },
 	                    width: new GridLength(1, GridUnitType.Star)),
                     // Incoming
