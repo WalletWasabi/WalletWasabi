@@ -21,6 +21,7 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
+using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -35,6 +36,7 @@ public partial class SendViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
 	private readonly TransactionInfo _transactionInfo;
+	private readonly CoinJoinManager? _coinJoinManager;
 	[AutoNotify] private string _to;
 	[AutoNotify] private decimal _amountBtc;
 	[AutoNotify] private decimal _exchangeRate;
@@ -50,6 +52,7 @@ public partial class SendViewModel : RoutableViewModel
 		_to = "";
 		_wallet = wallet;
 		_transactionInfo = new TransactionInfo(wallet.KeyManager.MinAnonScoreTarget);
+		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
 
 		IsQrButtonVisible = WebcamQrReader.IsOsPlatformSupported;
 
@@ -280,6 +283,11 @@ public partial class SendViewModel : RoutableViewModel
 			To = "";
 			AmountBtc = 0;
 			ClearValidations();
+
+			if (_coinJoinManager is { } coinJoinManager)
+			{
+				coinJoinManager.IsUserInSendWorkflow = true;
+			}
 		}
 
 		_wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
@@ -290,5 +298,15 @@ public partial class SendViewModel : RoutableViewModel
 		RxApp.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
 
 		base.OnNavigatedTo(inHistory, disposables);
+	}
+
+	protected override void OnNavigatedFrom(bool isInHistory)
+	{
+		base.OnNavigatedFrom(isInHistory);
+
+		if (!isInHistory && _coinJoinManager is { } coinJoinManager)
+		{
+			coinJoinManager.IsUserInSendWorkflow = false;
+		}
 	}
 }
