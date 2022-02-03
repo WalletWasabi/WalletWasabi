@@ -15,6 +15,8 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	[AutoNotify] private DateTimeOffset _date;
 	[AutoNotify] private string _dateString = "";
 	[AutoNotify] private bool _isConfirmed;
+	[AutoNotify] private List<string>? _label;
+	[AutoNotify] private List<string>? _filteredLabel;
 
 	protected HistoryItemViewModelBase(int orderIndex, TransactionSummary transactionSummary)
 	{
@@ -31,10 +33,6 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	}
 
 	public uint256 Id { get; }
-
-	public List<string>? FilteredLabel { get; protected set; }
-
-	public List<string>? Label { get; protected set; }
 
 	public bool IsCoinJoin { get; protected set; }
 
