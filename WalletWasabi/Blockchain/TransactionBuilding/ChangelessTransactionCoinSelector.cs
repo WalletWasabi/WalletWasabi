@@ -19,13 +19,15 @@ public static class ChangelessTransactionCoinSelector
 	/// </summary>
 	/// <param name="availableCoins">Coins owned by the user.</param>
 	/// <param name="feeRate">Current fee rate to take into account effective values of available coins.</param>
-	/// <param name="targetAmount">Amount the user wants to pay.</param>
+	/// <param name="txOut">Amount the user wants to pay + the type of the output address</param>
 	/// <returns><c>true</c> if a solution was found, <c>false</c> otherwise.</returns>
-	/// <remarks>The implementation gives only the guarantee that user can pay at most 25% more than <paramref name="targetAmount"/>.</remarks>
-	public static bool TryGetCoins(IEnumerable<SmartCoin> availableCoins, FeeRate feeRate, Money targetAmount, [NotNullWhen(true)] out IEnumerable<SmartCoin>? selectedCoins, CancellationToken cancellationToken = default)
+	/// <remarks>The implementation gives only the guarantee that user can pay at most 25% more than <paramref name="txOut.Value"/>.</remarks>
+	public static bool TryGetCoins(IEnumerable<SmartCoin> availableCoins, FeeRate feeRate, TxOut txOut, [NotNullWhen(true)] out IEnumerable<SmartCoin>? selectedCoins, CancellationToken cancellationToken = default)
 	{
 		selectedCoins = null;
-		var target = targetAmount.Satoshi;
+
+		// target = target amount + output cost
+		var target = txOut.Value.Satoshi + feeRate.GetFee(txOut.ScriptPubKey.EstimateOutputVsize()).Satoshi;
 
 		// Keys are effective values of smart coins in satoshis.
 		IOrderedEnumerable<SmartCoin> sortedCoins = availableCoins.OrderByDescending(x => x.EffectiveValue(feeRate).Satoshi);
