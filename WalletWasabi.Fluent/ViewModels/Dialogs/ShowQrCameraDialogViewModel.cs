@@ -17,14 +17,14 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 	[AutoNotify] private Bitmap? _qrImage;
 	[AutoNotify] private string _message = "";
 
-	private CancellationTokenSource Cts { get; } = new();
+	private CancellationTokenSource CancellationTokenSource { get; } = new();
 	private CancellationToken _cancellationToken;
 	private WebcamQrReader _qrReader;
 
 	public ShowQrCameraDialogViewModel(Network network)
 	{
 		_qrReader = new(network);
-		_cancellationToken = Cts.Token;
+		_cancellationToken = CancellationTokenSource.Token;
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}
 
