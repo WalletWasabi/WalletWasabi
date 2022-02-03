@@ -117,22 +117,21 @@ public partial class BitcoinTabSettingsViewModel : SettingsTabViewModelBase
 			config.Network = Network;
 			BitcoinP2PEndPoint = config.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
 		}
+	}
 
-		public static async Task<string> GetNodeVersionAsync()
+	public static async Task<string> GetNodeVersionAsync()
+	{
+		var version = "";
+		try
 		{
-			var version = "";
-			try
-			{
-				using var node = await Node.ConnectAsync(Services.Config.Network, Services.Config.GetBitcoinP2pEndPoint());
-				node.VersionHandshake();
-				version = node.PeerVersion.UserAgent;
-				Logger.LogDebug($"Full Node Version: {version} ");
-			}
-			catch (Exception ex)
-			{
-				Logger.LogDebug(ex);
-			}
-			return version;
+			using var node = await Node.ConnectAsync(Services.Config.Network, Services.Config.GetBitcoinP2pEndPoint());
+			node.VersionHandshake();
+			version = node.PeerVersion.UserAgent;
 		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+		}
+		return version;
 	}
 }
