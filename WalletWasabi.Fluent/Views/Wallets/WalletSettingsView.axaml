@@ -9,7 +9,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletSettingsView">
   <c:ContentArea Title="{Binding Title}"
-                 Caption="Manage your wallet's settings"
+                 Caption=""
                  EnableNext="True" NextContent="Done"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}">
