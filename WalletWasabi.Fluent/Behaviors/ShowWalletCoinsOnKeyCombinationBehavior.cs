@@ -54,14 +54,9 @@ public class ShowWalletCoinsOnKeyCombinationBehavior : DisposingBehavior<Control
 			.Select(x => x.EventArgs)
 			.Subscribe(e =>
 			{
-				if (!TryGetValidSelectedWallet(out var wallet))
-				{
-					return;
-				}
-
 				EvaluateKeyPress(e.Key, isPressed: true);
 
-				if (_key1Active && _key2Active && _key3Active)
+				if (_key1Active && _key2Active && _key3Active && TryGetValidSelectedWallet(out var wallet))
 				{
 					wallet.WalletCoinsCommand.Execute(default);
 				}
@@ -71,15 +66,7 @@ public class ShowWalletCoinsOnKeyCombinationBehavior : DisposingBehavior<Control
 		Observable
 			.FromEventPattern<KeyEventArgs>(AssociatedObject, nameof(AssociatedObject.KeyUp))
 			.Select(x => x.EventArgs)
-			.Subscribe(e =>
-			{
-				if (!TryGetValidSelectedWallet(out _))
-				{
-					return;
-				}
-
-				EvaluateKeyPress(e.Key, isPressed: false);
-			})
+			.Subscribe(e => EvaluateKeyPress(e.Key, isPressed: false))
 			.DisposeWith(disposables);
 	}
 
