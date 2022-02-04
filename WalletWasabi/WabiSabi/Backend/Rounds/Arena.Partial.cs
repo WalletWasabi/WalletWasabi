@@ -1,6 +1,5 @@
 using NBitcoin;
 using Nito.AsyncEx;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -358,11 +357,14 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		return new Coin(input, txOutResponse.TxOut);
 	}
 
-	public async Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken)
+	public async Task<RoundState[]> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
 	{
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			return Rounds.Select(x => RoundState.FromRound(x)).ToArray();
+			return Rounds.Select(x => {
+				var checkPoint = request.RoundCheckpoints.FirstOrDefault(y => y.RoundId == x.Id);
+				return RoundState.FromRound(x, checkPoint == default ? 0 : checkPoint.StateId);
+			}).ToArray();
 		}
 	}
 

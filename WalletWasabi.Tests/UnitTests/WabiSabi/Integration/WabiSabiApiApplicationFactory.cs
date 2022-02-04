@@ -18,6 +18,7 @@ using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
@@ -72,7 +73,7 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 
 	public async Task<ArenaClient> CreateArenaClientAsync(WabiSabiHttpApiClient wabiSabiHttpApiClient)
 	{
-		var rounds = await wabiSabiHttpApiClient.GetStatusAsync(CancellationToken.None);
+		var rounds = await wabiSabiHttpApiClient.GetStatusAsync(RoundStateRequest.Empty, CancellationToken.None);
 		var round = rounds.First(x => x.CoinjoinState is ConstructionState);
 		var insecureRandom = new InsecureRandom();
 		var arenaClient = new ArenaClient(
