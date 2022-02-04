@@ -50,6 +50,13 @@
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:LabelViewModel">
                   <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}" Classes.faded="{Binding IsFaded}">
+                    <Button.Transitions>
+                      <Transitions>
+                        <DoubleTransition Property="Opacity"
+                                          Easing="{StaticResource FluentEasing}"
+                                          Duration="0:0:0.25"/>
+                      </Transitions>
+                    </Button.Transitions>
                     <i:Interaction.Behaviors>
                       <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
                     </i:Interaction.Behaviors>
