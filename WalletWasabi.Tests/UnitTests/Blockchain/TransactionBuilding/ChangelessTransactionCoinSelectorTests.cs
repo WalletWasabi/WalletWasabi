@@ -39,6 +39,23 @@ public class ChangelessTransactionCoinSelectorTests
 		Assert.Equal(Money.Satoshis(6025), solution.Sum() - target); // ~4% more for the privacy.
 	}
 
+	[Fact]
+	public void Good_LesserSuggestion()
+	{
+		using Key key = new();
+
+		List<SmartCoin> coins = GenerateDummySmartCoins(key, 6_025, 6_561, 8_192, 13_122, 50_000, 100_000, 196_939, 524_288);
+		var target = Money.Satoshis(65_000);
+
+		var txOut = new TxOut(target, BitcoinFactory.CreateBitcoinAddress(Network.TestNet, key));
+
+		bool found = ChangelessTransactionCoinSelector.TryGetCoins(coins, new FeeRate(satoshiPerByte: 4), txOut, SuggestionType.Less, out IEnumerable<SmartCoin>? selectedCoins);
+		Assert.True(found);
+
+		long[] solution = selectedCoins!.Select(x => x.Amount.Satoshi).ToArray();
+		Assert.Equal(new long[] { 50_000, 8_192, 6_561 }, solution);
+	}
+
 	/// <summary>
 	/// Tests that solutions respect <see cref="ChangelessTransactionCoinSelector.MaxExtraPayment"/> restriction.
 	/// </summary>
