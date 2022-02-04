@@ -12,9 +12,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	IconName = "settings_privacy_regular")]
 public partial class PrivacySettingsTabViewModel : SettingsTabViewModelBase
 {
-	[AutoNotify] private int _minAnonScoreTarget;
-	[AutoNotify] private int _maxAnonScoreTarget;
-
 	public PrivacySettingsTabViewModel()
 	{
 	}
