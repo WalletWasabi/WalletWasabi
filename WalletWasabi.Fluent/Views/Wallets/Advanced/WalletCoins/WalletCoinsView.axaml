@@ -1,0 +1,99 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:walletcoins="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins"
+             x:DataType="walletcoins:WalletCoinsViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.WalletCoinsView">
+  <c:ContentArea Title="{Binding Title}"
+                 EnableNext="True" NextContent="Done"
+                 EnableCancel="{Binding EnableCancel}"
+                 EnableBack="{Binding EnableBack}">
+    <DataBox Items="{Binding Coins}"
+             CanUserSortColumns="True">
+      <DataBox.Columns>
+
+        <DataBoxTemplateColumn Width="Auto"
+                               CanUserSort="False"
+                               Header="">
+          <DataBoxTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="5" Margin="5 0" x:DataType="walletcoins:WalletCoinViewModel">
+                <Panel>
+                  <!-- Confirmed -->
+                  <PathIcon IsVisible="{Binding Confirmed}"
+                            Data="{StaticResource checkmark_filled}"
+                            Foreground="{DynamicResource SystemAccentColor}"
+                            Height="11"
+                            ToolTip.Tip="Confirmed" />
+                  <!-- Pending -->
+                  <PathIcon IsVisible="{Binding !Confirmed}"
+                            Data="{StaticResource clock_regular}"
+                            Height="14"
+                            Opacity="0.6"
+                            ToolTip.Tip="Pending" />
+                </Panel>
+
+                <Panel>
+                  <!-- CJ active -->
+                  <PathIcon IsVisible="{Binding CoinJoinInProgress}"
+                            Data="{StaticResource link_filled}"
+                            Foreground="{DynamicResource SystemAccentColor}"
+                            Height="9"
+                            ToolTip.Tip="Coinjoining" />
+                  <!-- Pending -->
+                  <PathIcon IsVisible="{Binding !CoinJoinInProgress}"
+                            Data="{StaticResource link_filled}"
+                            Height="9"
+                            Opacity="0.3"
+                            ToolTip.Tip="Not Coinjoining" />
+                </Panel>
+
+
+              </StackPanel>
+            </DataTemplate>
+          </DataBoxTemplateColumn.CellTemplate>
+        </DataBoxTemplateColumn>
+
+        <DataBoxTemplateColumn Width="Auto"
+                               CanUserSort="False"
+                               Header="Amount">
+          <DataBoxTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding Amount}" Margin="5 0 10 0" VerticalAlignment="Center" HorizontalAlignment="Center" x:DataType="walletcoins:WalletCoinViewModel" />
+            </DataTemplate>
+          </DataBoxTemplateColumn.CellTemplate>
+        </DataBoxTemplateColumn>
+
+        <DataBoxTemplateColumn Width="40"
+                               CanUserSort="False">
+          <DataBoxTemplateColumn.Header>
+            <PathIcon Data="{StaticResource shield_regular}" Opacity="0.6" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip.Tip="Anonymity Score" />
+          </DataBoxTemplateColumn.Header>
+          <DataBoxTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding AnonymitySet}" Margin="5 0" VerticalAlignment="Center" HorizontalAlignment="Center" x:DataType="walletcoins:WalletCoinViewModel" />
+            </DataTemplate>
+          </DataBoxTemplateColumn.CellTemplate>
+        </DataBoxTemplateColumn>
+
+        <DataBoxTemplateColumn Width="*"
+                               CanUserSort="False"
+                               Header="Labels">
+          <DataBoxTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <c:TagsBox IsReadOnly="True"
+                         Margin="5 0"
+                         VerticalAlignment="Center"
+                         Items="{Binding SmartLabel}"
+                         x:DataType="walletcoins:WalletCoinViewModel" />
+            </DataTemplate>
+          </DataBoxTemplateColumn.CellTemplate>
+        </DataBoxTemplateColumn>
+      </DataBox.Columns>
+    </DataBox>
+  </c:ContentArea>
+</UserControl>
