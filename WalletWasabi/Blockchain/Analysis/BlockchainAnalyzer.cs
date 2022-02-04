@@ -20,6 +20,8 @@ public class BlockchainAnalyzer
 	/// </summary>
 	public void Analyze(SmartTransaction tx)
 	{
+		bool isLikelyCoinjoin = tx.IsLikelyCoinjoin();
+
 		var inputCount = tx.Transaction.Inputs.Count;
 		var outputCount = tx.Transaction.Outputs.Count;
 
@@ -38,7 +40,7 @@ public class BlockchainAnalyzer
 		{
 			AnalyzeWalletInputs(tx, out HashSet<HdPubKey> distinctWalletInputPubKeys, out int newInputAnonset);
 
-			if (!tx.IsLikelyCoinjoin())
+			if (!isLikelyCoinjoin)
 			{
 				AnalyzeSelfSpend(tx, newInputAnonset);
 			}
@@ -50,7 +52,10 @@ public class BlockchainAnalyzer
 			AdjustWalletInputs(tx, distinctWalletInputPubKeys, newInputAnonset);
 		}
 
-		AnalyzeClusters(tx);
+		if (isLikelyCoinjoin)
+		{
+			AnalyzeClusters(tx);
+		}
 	}
 
 	/// <param name="newInputAnonset">The new anonymity set of the inputs.</param>
@@ -231,6 +236,10 @@ public class BlockchainAnalyzer
 
 	private void AnalyzeClusters(SmartTransaction tx)
 	{
+		if (tx.IsLikelyCoinjoin())
+		{
+			return;
+		}
 		foreach (var newCoin in tx.WalletOutputs)
 		{
 			if (newCoin.HdPubKey.AnonymitySet < PrivacyLevelThreshold)
