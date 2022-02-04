@@ -65,7 +65,13 @@ public class LesserSelectionStrategy : ISearchStrategy
 
 		if (totalCost > Target)
 		{
-			// Our solution is already better than what we might get here.
+			// Excessive funds, cut the branch.
+			return EvaluationResult.SkipBranch;
+		}
+
+		if (depth == selection.Length)
+		{
+			// Leaf reached, no match
 			return EvaluationResult.SkipBranch;
 		}
 
@@ -76,15 +82,6 @@ public class LesserSelectionStrategy : ISearchStrategy
 				_bestSelectionSoFar = selection[0..depth];
 				_bestTargetSoFar = totalCost;
 			}
-
-			// Even if a match occurred we cannot be sure that there isn't
-			// a better selection thanks to input costs.
-			return EvaluationResult.SkipBranch;
-		}
-		else if (depth == selection.Length)
-		{
-			// Leaf reached, no match
-			return EvaluationResult.SkipBranch;
 		}
 
 		return EvaluationResult.Continue;
