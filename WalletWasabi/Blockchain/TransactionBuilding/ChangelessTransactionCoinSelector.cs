@@ -22,7 +22,7 @@ public static class ChangelessTransactionCoinSelector
 	/// <param name="txOut">Amount the user wants to pay + the type of the output address</param>
 	/// <returns><c>true</c> if a solution was found, <c>false</c> otherwise.</returns>
 	/// <remarks>The implementation gives only the guarantee that user can pay at most 25% more than <paramref name="txOut.Value"/>.</remarks>
-	public static bool TryGetCoins(IEnumerable<SmartCoin> availableCoins, FeeRate feeRate, TxOut txOut, bool isMoreSuggestion, [NotNullWhen(true)] out IEnumerable<SmartCoin>? selectedCoins, CancellationToken cancellationToken = default)
+	public static bool TryGetCoins(IEnumerable<SmartCoin> availableCoins, FeeRate feeRate, TxOut txOut, SuggestionType suggestionType, [NotNullWhen(true)] out IEnumerable<SmartCoin>? selectedCoins, CancellationToken cancellationToken = default)
 	{
 		selectedCoins = null;
 
@@ -41,7 +41,7 @@ public static class ChangelessTransactionCoinSelector
 		long[] inputValues = inputEffectiveValues.Values.ToArray();
 
 		BranchAndBound branchAndBound = new();
-		ISearchStrategy strategy = isMoreSuggestion ? new CheapestSelectionStrategy(target, inputValues, inputCosts) : new LesserSelectionStrategy(target, inputValues, inputCosts);
+		ISearchStrategy strategy = suggestionType == SuggestionType.More ? new CheapestSelectionStrategy(target, inputValues, inputCosts) : new LesserSelectionStrategy(target, inputValues, inputCosts);
 
 		var foundExactMatch = branchAndBound.TryGetMatch(strategy, out List<long>? solution, cancellationToken);
 
