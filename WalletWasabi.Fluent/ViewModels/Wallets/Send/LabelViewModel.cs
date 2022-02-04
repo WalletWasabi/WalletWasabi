@@ -22,6 +22,11 @@ public partial class LabelViewModel : ViewModelBase
 		Value = label;
 
 		this.WhenAnyValue(x => x.IsPointerOver)
+			.Skip(1)
+			.Where(value => value == true)
+			.Subscribe(_ => owner.OnPointerOver(this));
+
+		this.WhenAnyValue(x => x.IsPointerOver)
 			.Subscribe(isPointerOver =>
 			{
 				if (isPointerOver)
@@ -33,11 +38,6 @@ public partial class LabelViewModel : ViewModelBase
 					owner.ClearFade(this);
 				}
 			});
-
-		this.WhenAnyValue(x => x.IsPointerOver)
-			.Skip(1)
-			.Where(value => value == true)
-			.Subscribe(_ => owner.OnPointerOver(this));
 
 		ClickedCommand = ReactiveCommand.Create(() => owner.SwapLabel(this));
 	}

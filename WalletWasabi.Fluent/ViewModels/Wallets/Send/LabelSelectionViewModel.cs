@@ -87,7 +87,10 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	{
 		foreach (var lvm in source.IsBlackListed? LabelsBlackList : LabelsWhiteList)
 		{
-			lvm.IsFaded = true;
+			if (!lvm.IsHighlighted)
+			{
+				lvm.IsFaded = true;
+			}
 		}
 	}
 
