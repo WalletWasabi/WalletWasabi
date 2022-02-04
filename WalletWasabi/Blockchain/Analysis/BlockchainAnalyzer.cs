@@ -38,7 +38,7 @@ public class BlockchainAnalyzer
 		{
 			AnalyzeWalletInputs(tx, out HashSet<HdPubKey> distinctWalletInputPubKeys, out int newInputAnonset);
 
-			if (inputCount == ownInputCount)
+			if (!tx.IsLikelyCoinjoin())
 			{
 				AnalyzeSelfSpend(tx, newInputAnonset);
 			}
