@@ -84,7 +84,10 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 				}
 				else
 				{
-					Logger.LogDebug($"Received a response for {action} in {totalTime.TotalSeconds:0.##s}.");
+					if (action != RemoteAction.GetStatus)
+					{
+						Logger.LogDebug($"Received a response for {action} in {totalTime.TotalSeconds:0.##s}.");
+					}
 				}
 
 				return response;
