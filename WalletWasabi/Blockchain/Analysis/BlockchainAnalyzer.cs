@@ -52,7 +52,7 @@ public class BlockchainAnalyzer
 			AdjustWalletInputs(tx, distinctWalletInputPubKeys, newInputAnonset);
 		}
 
-		if (isLikelyCoinjoin)
+		if (!isLikelyCoinjoin)
 		{
 			AnalyzeClusters(tx);
 		}
@@ -236,10 +236,6 @@ public class BlockchainAnalyzer
 
 	private void AnalyzeClusters(SmartTransaction tx)
 	{
-		if (tx.IsLikelyCoinjoin())
-		{
-			return;
-		}
 		foreach (var newCoin in tx.WalletOutputs)
 		{
 			if (newCoin.HdPubKey.AnonymitySet < PrivacyLevelThreshold)
