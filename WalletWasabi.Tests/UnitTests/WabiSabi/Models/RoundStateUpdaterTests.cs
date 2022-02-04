@@ -151,7 +151,7 @@ public class RoundStateUpdaterTests
 		// Each line represents a response for each request.
 		// Exceptions, Problems, Errors everywhere!!!
 		var mockApiClient = new Mock<IWabiSabiApiRequestHandler>();
-		mockApiClient.SetupSequence(apiClient => apiClient.GetStatusAsync(It.IsAny<CancellationToken>()))
+		mockApiClient.SetupSequence(apiClient => apiClient.GetStatusAsync(It.IsAny<RoundStateRequest>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync(() => new[] { roundState with { Phase = Phase.InputRegistration } })
 			.ThrowsAsync(new Exception())
 			.ThrowsAsync(new OperationCanceledException())
