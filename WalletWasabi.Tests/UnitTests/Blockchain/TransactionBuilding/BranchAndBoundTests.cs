@@ -77,22 +77,24 @@ public class BranchAndBoundTests
 	}
 
 	[Fact]
-	public void LesserSelection()
+	public void LesserSelection_NoInputCost()
 	{
 		long[] inputValues = new long[] { 35, 17, 10, 5, 3, 2 };
+		long[] inputCosts = new long[] { 0, 0, 0, 0, 0, 0 };
 
-		// Make the second input very expensive to spend so that it is not selected (not likely in reality).
-		long[] inputCosts = new long[] { 1, 5, 1, 1, 1, 1 };
-
-		long target = 18;
+		long target = 19;
 
 		BranchAndBound algorithm = new();
 		LesserSelectionStrategy strategy = new(target, inputValues, inputCosts);
 		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins);
 
+		Assert.False(wasSuccessful);
+		Assert.Null(selectedCoins);
+
 		long[] actualSelection = strategy.GetBestSelectionFound()!;
 		Assert.NotNull(actualSelection);
 
-		Assert.Equal(new long[] { 10, 5 }, actualSelection);
+		// Target 19, closest match is 18. (10, 5, 3)
+		Assert.Equal(new long[] { 10, 5, 3 }, actualSelection);
 	}
 }
