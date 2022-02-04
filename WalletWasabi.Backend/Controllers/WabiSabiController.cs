@@ -24,10 +24,10 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 	private IdempotencyRequestCache IdempotencyRequestCache { get; }
 	private Arena Arena { get; }
 
-	[HttpGet("status")]
-	public Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken)
+	[HttpPost("status")]
+	public Task<RoundState[]> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
 	{
-		return Arena.GetStatusAsync(cancellationToken);
+		return Arena.GetStatusAsync(request, cancellationToken);
 	}
 
 	[HttpPost("connection-confirmation")]

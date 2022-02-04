@@ -143,7 +143,7 @@ public class AliceClient
 				await roundStatusUpdater
 					.CreateRoundAwaiter(
 						RoundId,
-						roundState => roundState.Phase == Phase.ConnectionConfirmation,
+						Phase.ConnectionConfirmation,
 						cts.Token)
 					.ConfigureAwait(false);
 			}
