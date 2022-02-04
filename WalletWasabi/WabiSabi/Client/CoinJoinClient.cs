@@ -133,6 +133,13 @@ public class CoinJoinClient
 
 			AmountDecomposer amountDecomposer = new(roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min, Constants.P2wpkhOutputSizeInBytes, (int)availableVsize);
 			var theirCoins = constructionState.Inputs.Except(registeredCoins);
+
+			// If I have more coins in the round than all the others then I will not gain privacy.
+			if (theirCoins.Count() < registeredAliceClients.Length)
+			{
+				throw new InvalidOperationException($"Round ({roundState.Id}): I will not gain privacy - bail out. Number of my inputs: '{registeredAliceClients.Length}' others':'{theirCoins.Count()}'.");
+			}
+
 			var registeredCoinEffectiveValues = registeredAliceClients.Select(x => x.EffectiveValue);
 			var theirCoinEffectiveValues = theirCoins.Select(x => x.EffectiveValue(roundState.FeeRate, roundState.CoordinationFeeRate));
 			var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues);
