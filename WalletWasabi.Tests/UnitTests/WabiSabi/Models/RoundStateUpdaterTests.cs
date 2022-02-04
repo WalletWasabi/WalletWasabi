@@ -27,7 +27,7 @@ public class RoundStateUpdaterTests
 		// The coordinator creates two rounds.
 		// Each line represents a response for each request.
 		var mockApiClient = new Mock<IWabiSabiApiRequestHandler>();
-		mockApiClient.SetupSequence(apiClient => apiClient.GetStatusAsync(It.IsAny<CancellationToken>()))
+		mockApiClient.SetupSequence(apiClient => apiClient.GetStatusAsync(It.IsAny<RoundStateRequest>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync(() => new[] { roundState1 with { Phase = Phase.InputRegistration } })
 			.ReturnsAsync(() => new[] { roundState1 with { Phase = Phase.OutputRegistration } })
 			.ReturnsAsync(() => new[] { roundState1 with { Phase = Phase.OutputRegistration }, roundState2 with { Phase = Phase.InputRegistration } })
@@ -103,7 +103,7 @@ public class RoundStateUpdaterTests
 		// Each line represents a response for each request.
 		// Exceptions, Problems, Errors everywhere!!!
 		var mockApiClient = new Mock<IWabiSabiApiRequestHandler>();
-		mockApiClient.SetupSequence(apiClient => apiClient.GetStatusAsync(It.IsAny<CancellationToken>()))
+		mockApiClient.SetupSequence(apiClient => apiClient.GetStatusAsync(It.IsAny<RoundStateRequest>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync(() => new[] { roundState with { Phase = Phase.InputRegistration } })
 			.ThrowsAsync(new Exception())
 			.ThrowsAsync(new OperationCanceledException())

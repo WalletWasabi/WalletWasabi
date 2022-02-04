@@ -31,7 +31,7 @@ public record RoundState(
 
 	public DateTimeOffset InputRegistrationEnd => InputRegistrationStart + InputRegistrationTimeout;
 
-	public static RoundState FromRound(Round round) =>
+	public static RoundState FromRound(Round round, int stateId = 0) =>
 		new(
 			round is BlameRound blameRound ? blameRound.BlameOf.Id : uint256.Zero,
 			round.AmountCredentialIssuerParameters,
@@ -48,7 +48,7 @@ public record RoundState(
 			round.MaxAmountCredentialValue,
 			round.MaxVsizeCredentialValue,
 			round.MaxVsizeAllocationPerAlice,
-			round.CoinjoinState);
+			round.CoinjoinState.GetStateFrom(stateId));
 
 	public TState Assert<TState>() where TState : MultipartyTransactionState =>
 		CoinjoinState switch
