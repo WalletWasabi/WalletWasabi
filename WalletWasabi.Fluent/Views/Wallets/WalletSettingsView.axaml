@@ -9,11 +9,10 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletSettingsView">
   <c:ContentArea Title="{Binding Title}"
-                 Caption=""
                  EnableNext="True" NextContent="Done"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}">
-    <StackPanel Spacing="20">
+    <StackPanel Spacing="20" Margin="0 30">
       <StackPanel Classes="settingsLayout">
         <DockPanel IsVisible="{Binding IsHardwareWallet}">
           <TextBlock Text="PSBT workflow" />
