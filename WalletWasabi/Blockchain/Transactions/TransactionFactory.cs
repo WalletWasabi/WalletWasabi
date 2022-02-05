@@ -240,6 +240,8 @@ public class TransactionFactory
 			psbt.Finalize();
 			tx = psbt.ExtractTransaction();
 
+			builder.CoinFinder = (outpoint) => psbt.Inputs.Select(x => x.GetCoin()).Single(x => x?.Outpoint == outpoint)!;
+
 			var checkResults = builder.Check(tx).ToList();
 			if (checkResults.Count > 0)
 			{
