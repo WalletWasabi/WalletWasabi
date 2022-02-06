@@ -137,6 +137,11 @@ public partial class WalletViewModel : WalletViewModelBase
 			Navigate(NavigationTarget.DialogScreen).To(new WalletInfoViewModel(this));
 		});
 
+		WalletStatisticsCommand = ReactiveCommand.CreateFromTask( async () =>
+		{
+			Navigate(NavigationTarget.DialogScreen).To(new WalletStatsViewModel(this));
+		});
+
 		WalletSettingsCommand = ReactiveCommand.Create((Action)(() => RoutableViewModel.Navigate((Fluent.NavigationTarget)Fluent.NavigationTarget.DialogScreen).To(Settings)));
 	}
 
@@ -151,6 +156,8 @@ public partial class WalletViewModel : WalletViewModelBase
 	public ICommand WalletInfoCommand { get; }
 
 	public ICommand WalletSettingsCommand { get; }
+
+	public ICommand WalletStatisticsCommand { get; }
 
 	private CompositeDisposable Disposables { get; set; }
 
