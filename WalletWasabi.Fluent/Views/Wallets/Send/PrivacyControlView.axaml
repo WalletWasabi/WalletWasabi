@@ -54,7 +54,7 @@
                       <Transitions>
                         <DoubleTransition Property="Opacity"
                                           Easing="{StaticResource FluentEasing}"
-                                          Duration="0:0:0.25"/>
+                                          Duration="0:0:0.1"/>
                       </Transitions>
                     </Button.Transitions>
                     <i:Interaction.Behaviors>
