@@ -229,10 +229,13 @@ public class TransactionFactory
 			builder = builder.AddKeys(signingKeys.ToArray());
 			builder.SignPSBT(psbt);
 
+			var isPayjoin = false;
+
 			// Try to pay using payjoin
 			if (payjoinClient is not null)
 			{
 				psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt, changeHdPubKey);
+				isPayjoin = true;
 				psbt.AddKeyPaths(KeyManager);
 				psbt.AddPrevTxs(TransactionStore);
 			}
@@ -240,7 +243,10 @@ public class TransactionFactory
 			psbt.Finalize();
 			tx = psbt.ExtractTransaction();
 
-			builder.CoinFinder = (outpoint) => psbt.Inputs.Select(x => x.GetCoin()).Single(x => x?.Outpoint == outpoint)!;
+			if (isPayjoin)
+			{
+				builder.CoinFinder = (outpoint) => psbt.Inputs.Select(x => x.GetCoin()).Single(x => x?.Outpoint == outpoint)!;
+			}
 
 			var checkResults = builder.Check(tx).ToList();
 			if (checkResults.Count > 0)
