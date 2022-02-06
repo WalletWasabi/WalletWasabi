@@ -733,12 +733,12 @@ ol li::marker {
 }
 .modal-window {
     position: fixed;
-    width: 70vw;
-    top: 50%;
+    width: 55vw;
+    top: 70px;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translateX(-50%);
     background: #fff;
-    z-index: 999;
+    z-index: 9999;
     display: none;
     color: #000;
     padding: 40px;
