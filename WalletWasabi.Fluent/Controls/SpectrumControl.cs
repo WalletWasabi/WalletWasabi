@@ -18,6 +18,9 @@ public class SpectrumControl : TemplatedControl
 	private const int NumBins = 250;
 	private const int NumAverages = 30;
 
+	public static readonly StyledProperty<bool> IsActiveProperty =
+		AvaloniaProperty.Register<SpectrumControl, bool>(nameof(IsActive));
+
 	public SpectrumControl()
 	{
 		_bins = new double[NumBins];
@@ -34,15 +37,51 @@ public class SpectrumControl : TemplatedControl
 			}
 		};
 
-		DispatcherTimer.Run(() =>
+		_timer = new DispatcherTimer
 		{
-			for (int i = 0; i < NumBins; i++)
-			{
-				_bins[i] = _random.NextDouble();
-			}
-			return true;
-		}, TimeSpan.FromSeconds(0.2));
+			Interval = TimeSpan.FromSeconds(0.2)
+		};
 
+		_timer.Tick += TimerOnTick;
+	}
+
+	private void TimerOnTick(object? sender, EventArgs e)
+	{
+		var isActive = IsActive;
+
+		for (int i = 0; i < NumBins; i++)
+		{
+			_bins[i] = isActive ? _random.NextDouble() : 0;
+		}
+
+		if (!isActive)
+		{
+			_timer.Stop();
+		}
+	}
+
+	private void OnIsActiveChanged()
+	{
+		if (IsActive)
+		{
+			_timer.Start();
+		}
+	}
+
+	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+	{
+		base.OnPropertyChanged(change);
+
+		if (change.Property == IsActiveProperty)
+		{
+			OnIsActiveChanged();
+		}
+	}
+
+	public bool IsActive
+	{
+		get => GetValue(IsActiveProperty);
+		set => SetValue(IsActiveProperty, value);
 	}
 
 	protected override Size ArrangeOverride(Size finalSize)

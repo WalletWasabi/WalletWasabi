@@ -42,15 +42,19 @@
         <DockPanel>
           <Panel Background="{DynamicResource RegionColor}" DockPanel.Dock="Bottom" VerticalAlignment="Bottom"
                  Height="64">
-            <c:SpectrumControl Opacity="0.8" />
+            <c:SpectrumControl Opacity="0.6" IsActive="True" />
             <c:CustomBlurBehind />
             <statusBar:StatusBar DataContext="{Binding StatusBar}" />
             <Border Padding="20 10" CornerRadius="4" BorderThickness="1" Background="#19FFFFFF" BorderBrush="#3CFFFFFF" Height="48" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="40 0">
               <StackPanel Orientation="Horizontal" Spacing="20">
                 <TextBlock Text="Round in progress: 2m 15s remaining" VerticalAlignment="Center" />
                 <Separator Classes="vertical" />
-                <PathIcon Data="{StaticResource pause_regular}" />
-                <PathIcon Data="{StaticResource stop_regular}" />
+                <Button Classes="plain">
+                  <PathIcon Data="{StaticResource pause_regular}" />
+                </Button>
+                <Button Classes="plain">
+                  <PathIcon Data="{StaticResource stop_regular}" />
+                </Button>
               </StackPanel>
             </Border>
           </Panel>
