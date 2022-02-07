@@ -242,8 +242,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 		            var ts = new TransactionSummary()
 		            {
 			            DateTime = DateTimeOffset.Now,
-			            Label = new SmartLabel("Label1", "Label2"),
-			            Amount = new Money((int)rand.NextDouble())
+			            Label = new SmartLabel($"Label{i++}", $"Label{i++}"),
+			            Amount = new Money(rand.NextDouble() < 0.5 ? rand.Next() : -rand.Next()),
 		            };
 	                var item = new TransactionHistoryItemViewModel(i, ts, _walletViewModel, Money.Zero, _updateTrigger);
 
