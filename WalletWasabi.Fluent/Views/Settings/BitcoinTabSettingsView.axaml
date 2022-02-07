@@ -43,7 +43,7 @@
     </DockPanel>
 
     <StackPanel Spacing="10"
-                ToolTip.Tip="Coins under the dust threshold won't appear in the coin lists.">
+                ToolTip.Tip="Coins under the dust threshold won't appear in the coin list.">
       <TextBlock Text= "Dust Threshold (BTC)" />
       <TextBox Text="{Binding DustThreshold}" />
     </StackPanel>
