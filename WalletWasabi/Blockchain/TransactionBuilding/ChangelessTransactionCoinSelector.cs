@@ -13,6 +13,9 @@ public static class ChangelessTransactionCoinSelector
 	/// <summary>Payments are capped to be at most 25% higher than the original target.</summary>
 	public const double MaxExtraPayment = 1.25;
 
+	/// <summary>Payments are capped to be at most 25% lower than the original target.</summary>
+	public const double MinPaymentThreshold = 0.75;
+
 	/// <summary>
 	/// Select coins in a way that user can pay without a change output (to increase privacy)
 	/// and try to find a solution that requires to pay as little extra amount as possible.
@@ -53,8 +56,8 @@ public static class ChangelessTransactionCoinSelector
 
 		if (solution is not null)
 		{
-			// Sanity check: do not return solution that is much higher than the target.
-			if (solution.Sum() > target * MaxExtraPayment)
+			// Sanity check: do not return solution that is much higher or lower than the target.
+			if (solution.Sum() > target * MaxExtraPayment || solution.Sum() < target * MinPaymentThreshold)
 			{
 				return false;
 			}
