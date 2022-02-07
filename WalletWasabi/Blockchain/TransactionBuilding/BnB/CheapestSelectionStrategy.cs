@@ -12,6 +12,7 @@ public class CheapestSelectionStrategy
 	private long _currentInputCosts = 0;
 	private long _bestTargetSoFar;
 	private long[]? _bestSelectionSoFar;
+	private long _remainingAmount;
 
 	/// <param name="target">Value in satoshis.</param>
 	/// <param name="inputCosts">Costs of spending coins in satoshis.</param>
@@ -22,6 +23,7 @@ public class CheapestSelectionStrategy
 		Target = target;
 		SuggestionType = suggestionType;
 		_bestTargetSoFar = suggestionType == SuggestionType.More ? long.MaxValue : long.MinValue;
+		_remainingAmount = InputValues.Sum();
 	}
 
 	/// <summary>Costs corresponding to <see cref="InputValues"/> values.</summary>
@@ -56,6 +58,7 @@ public class CheapestSelectionStrategy
 			if (selection[depth] == 0)
 			{
 				_currentInputCosts += InputCosts[depth];
+				_remainingAmount -= InputValues[depth];
 			}
 
 			selection[depth] = InputValues[depth];
@@ -66,6 +69,7 @@ public class CheapestSelectionStrategy
 			if (selection[depth] > 0)
 			{
 				_currentInputCosts -= InputCosts[depth];
+				_remainingAmount += InputValues[depth];
 			}
 
 			newSum = oldSum - selection[depth];
@@ -91,6 +95,11 @@ public class CheapestSelectionStrategy
 			if (totalCost > _bestTargetSoFar)
 			{
 				// Our solution is already better than what we might get here.
+				return EvaluationResult.SkipBranch;
+			}
+			else if (sum + _remainingAmount < Target)
+			{
+				// The remaining coins cannot sum up to required target, cut the branch.
 				return EvaluationResult.SkipBranch;
 			}
 			else if (sum >= Target)
@@ -124,6 +133,12 @@ public class CheapestSelectionStrategy
 			if (depth == selection.Length)
 			{
 				// Leaf reached, no match
+				return EvaluationResult.SkipBranch;
+			}
+
+			if (sum + _remainingAmount < _bestTargetSoFar)
+			{
+				// The remaining coins cannot sum up to our solution, so cut the branch.
 				return EvaluationResult.SkipBranch;
 			}
 
