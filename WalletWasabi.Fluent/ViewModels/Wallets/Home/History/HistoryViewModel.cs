@@ -91,27 +91,30 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 			lock (_transactionListLock)
 			{
-				var copyList = Transactions.ToList();
-
-				foreach (var oldItem in copyList)
+				_transactionSourceList.Edit(x =>
 				{
-					if (newHistoryList.All(x => x.Id != oldItem.Id))
-					{
-						_transactionSourceList.Remove(oldItem);
-					}
-				}
+					var copyList = Transactions.ToList();
 
-				foreach (var newItem in newHistoryList)
-				{
-					if (_transactions.FirstOrDefault(x => x.Id == newItem.Id) is { } item)
+					foreach (var oldItem in copyList)
 					{
-						item.Update(newItem);
+						if (newHistoryList.All(x => x.Id != oldItem.Id))
+						{
+							x.Remove(oldItem);
+						}
 					}
-					else
+
+					foreach (var newItem in newHistoryList)
 					{
-						_transactionSourceList.Add(newItem);
+						if (_transactions.FirstOrDefault(x => x.Id == newItem.Id) is { } item)
+						{
+							item.Update(newItem);
+						}
+						else
+						{
+							x.Add(newItem);
+						}
 					}
-				}
+				});
 
 				if (!IsInitialized)
 				{
