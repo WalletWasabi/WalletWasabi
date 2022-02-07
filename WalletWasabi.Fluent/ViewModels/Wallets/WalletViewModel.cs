@@ -138,11 +138,6 @@ public partial class WalletViewModel : WalletViewModelBase
 			Navigate(NavigationTarget.DialogScreen).To(new WalletInfoViewModel(this));
 		});
     
-		WalletStatisticsCommand = ReactiveCommand.CreateFromTask(async () =>
-		{
-			Navigate(NavigationTarget.DialogScreen).To(new WalletStatsViewModel(this));
-		});
-    
 		WalletStatisticsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletStatsViewModel(this)));
 
 		WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(Settings));
