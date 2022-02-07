@@ -60,7 +60,22 @@
                     <i:Interaction.Behaviors>
                       <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
                     </i:Interaction.Behaviors>
-                    <c:TagControl Content="{Binding Value}" IsHitTestVisible="False" Background="{DynamicResource PrivacyControlItemBackground}" />
+                    <c:TagControl Content="{Binding Value}" IsHitTestVisible="False" Background="{DynamicResource PrivacyControlItemBackground}">
+                      <c:TagControl.Foreground>
+                        <Binding Path="IsHighlighted">
+                          <Binding.Converter>
+                            <converters:BoolToBrushConverter TrueBrush="{DynamicResource PrivacyControlItemWhiteListHighlight}" />
+                          </Binding.Converter>
+                        </Binding>
+                      </c:TagControl.Foreground>
+                      <c:TagControl.BorderBrush>
+                        <Binding Path="IsHighlighted">
+                          <Binding.Converter>
+                            <converters:BoolToBrushConverter TrueBrush="{DynamicResource PrivacyControlItemWhiteListHighlight}" />
+                          </Binding.Converter>
+                        </Binding>
+                      </c:TagControl.BorderBrush>
+                    </c:TagControl>
                   </Button>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
