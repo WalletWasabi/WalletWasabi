@@ -22,6 +22,8 @@ public static class EnvironmentHelpers
 		ES_SYSTEM_REQUIRED = 0x00000001
 	}
 
+	private static string WASABI_BITCOIND_READY_FLAG { get; } = "wasabi_bitcoind_ready_flag"; 
+
 	// appName, dataDir
 	private static ConcurrentDictionary<string, string> DataDirDict { get; } = new ConcurrentDictionary<string, string>();
 
@@ -258,4 +260,31 @@ public static class EnvironmentHelpers
 			await ShellExecAsync(shellCommand, waitForExit: true).ConfigureAwait(false);
 		}
 	}
+
+	public static string GetStartupNotifyCommand()
+	{
+		string startupNotify = $"export {WASABI_BITCOIND_READY_FLAG}=1"; 
+		
+		if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		{
+			startupNotify = $"setx {WASABI_BITCOIND_READY_FLAG} 1";
+		}
+		
+		return startupNotify;
+	}
+
+	public static void SetBitcoindReadyFlag()
+	{
+		Environment.SetEnvironmentVariable(WASABI_BITCOIND_READY_FLAG,"0");
+	}
+
+	public static async Task WhenBitcoindReady()
+	{
+		string? result = Environment.GetEnvironmentVariable(WASABI_BITCOIND_READY_FLAG);
+		while (string.IsNullOrEmpty(result) || result != "1")
+		{
+			await Task.Delay(3000);
+			result = Environment.GetEnvironmentVariable(WASABI_BITCOIND_READY_FLAG);
+		}
+	} 
 }

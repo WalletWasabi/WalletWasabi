@@ -25,8 +25,11 @@ public class RegTestFixture : IDisposable
 
 	public RegTestFixture()
 	{
+		EnvironmentHelpers.SetBitcoindReadyFlag();
+
 		RuntimeParams.SetDataDir(Path.Combine(Common.DataDir, "RegTests", "Backend"));
 		RuntimeParams.LoadAsync().GetAwaiter().GetResult();
+		
 		BackendRegTestNode = TestNodeBuilder.CreateAsync(callerFilePath: "RegTests", callerMemberName: "BitcoinCoreData").GetAwaiter().GetResult();
 
 		var walletName = "wallet";
@@ -85,6 +88,11 @@ public class RegTestFixture : IDisposable
 		// Wait for server to initialize
 		var delayTask = Task.Delay(3000);
 		Task.WaitAny(delayTask, hostInitializationTask);
+
+		Logger.LogDebug($"Waiting for bitcoind to be ready");
+		EnvironmentHelpers.WhenBitcoindReady().GetAwaiter().GetResult();
+
+		Logger.LogInfo("Fixture is initialized.");
 	}
 
 	/// <summary>String representation of backend URI: <c>http://localhost:RANDOM_PORT</c>.</summary>
@@ -147,10 +155,14 @@ public class RegTestFixture : IDisposable
 		{
 			if (disposing)
 			{
+				Logger.LogTrace("About to dispose fixture.");
+
 				BackendHost?.StopAsync().GetAwaiter().GetResult();
 				BackendHost?.Dispose();
 				BackendRegTestNode?.TryStopAsync().GetAwaiter().GetResult();
 				HttpClient.Dispose();
+
+				Logger.LogTrace("Fixture is disposed.");
 			}
 
 			_disposedValue = true;

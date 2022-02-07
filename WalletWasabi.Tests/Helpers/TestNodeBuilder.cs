@@ -2,6 +2,7 @@ using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
@@ -17,24 +18,24 @@ public static class TestNodeBuilder
 	{
 		var dataDir = Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName), additionalFolder);
 
-		CoreNodeParams nodeParameters = CreateDefaultCoreNodeParams(mempoolService ?? new MempoolService(), dataDir);
-		return await CoreNode.CreateAsync(
-			nodeParameters,
-			CancellationToken.None);
+		string? startupNotify = null;
+		
+		startupNotify = EnvironmentHelpers.GetStartupNotifyCommand();
+
+		CoreNodeParams nodeParameters = CreateDefaultCoreNodeParams(mempoolService , dataDir, startupNotify);
+		return await CoreNode.CreateAsync(nodeParameters, CancellationToken.None);
 	}
 
 	public static async Task<CoreNode> CreateForHeavyConcurrencyAsync([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", string additionalFolder = "", MempoolService? mempoolService = null)
 	{
 		var dataDir = Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName), additionalFolder);
 
-		CoreNodeParams nodeParameters = CreateDefaultCoreNodeParams(mempoolService ?? new MempoolService(), dataDir);
+		CoreNodeParams nodeParameters = CreateDefaultCoreNodeParams(mempoolService, dataDir);
 		nodeParameters.RpcWorkQueue = 32;
-		return await CoreNode.CreateAsync(
-			nodeParameters,
-			CancellationToken.None);
+		return await CoreNode.CreateAsync(nodeParameters, CancellationToken.None);
 	}
 
-	private static CoreNodeParams CreateDefaultCoreNodeParams(MempoolService mempoolService, string dataDir)
+	private static CoreNodeParams CreateDefaultCoreNodeParams(MempoolService? mempoolService, string dataDir, string? startupNotify = null)
 	{
 		var nodeParameters = new CoreNodeParams(
 				Network.RegTest,
@@ -49,7 +50,8 @@ public static class TestNodeBuilder
 				mempoolReplacement: "fee,optin",
 				userAgent: $"/WasabiClient:{Constants.ClientVersion}/",
 				fallbackFee: Money.Coins(0.0002m), // https://github.com/bitcoin/bitcoin/pull/16524
-				new MemoryCache(new MemoryCacheOptions()));
+				new MemoryCache(new MemoryCacheOptions()),
+				startupNotify);
 		nodeParameters.ListenOnion = 0;
 		nodeParameters.Discover = 0;
 		nodeParameters.DnsSeed = 0;
