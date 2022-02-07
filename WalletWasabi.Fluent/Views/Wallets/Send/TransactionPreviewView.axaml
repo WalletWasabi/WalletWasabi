@@ -127,10 +127,14 @@
                       </ListBox.ItemsPanel>
                       <ListBox.DataTemplates>
                         <DataTemplate DataType="vm:ChangeAvoidanceSuggestionViewModel">
-                          <send:ChangeAvoidanceSuggestionControl />
+                          <c:SuggestionItem>
+                            <send:ChangeAvoidanceSuggestionControl />
+                          </c:SuggestionItem>
                         </DataTemplate>
                         <DataTemplate DataType="vm:PocketSuggestionViewModel">
-                          <send:PocketSuggestionControl />
+                          <c:SuggestionItem>
+                            <send:PocketSuggestionControl />
+                          </c:SuggestionItem>
                         </DataTemplate>
                       </ListBox.DataTemplates>
                     </ListBox>

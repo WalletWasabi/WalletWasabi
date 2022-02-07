@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
@@ -395,13 +396,30 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		return null;
 	}
 
+	private async Task<bool> NavigateConfirmLabelsDialog(BuildTransactionResult transaction)
+	{
+		return (await NavigateDialogAsync(
+			new ConfirmLabelsDialogViewModel(
+				new PocketSuggestionViewModel(SmartLabel.Merge(
+					transaction.SpentCoins.Select(
+						x => x.GetLabels(_wallet.KeyManager.MinAnonScoreTarget))))),
+			NavigationTarget.CompactDialogScreen)).Result;
+	}
+
 	private async Task InitialiseViewModelAsync()
 	{
 		if (await BuildTransactionAsync() is { } initialTransaction)
 		{
 			UpdateTransaction(CurrentTransactionSummary, initialTransaction);
 
-			await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, initialTransaction, _isFixedAmount, _cancellationTokenSource.Token);
+			if (CurrentTransactionSummary.TransactionHasPockets && !await NavigateConfirmLabelsDialog(initialTransaction))
+			{
+				await OnChangePocketsAsync();
+			}
+			else
+			{
+				await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, initialTransaction, _isFixedAmount, _cancellationTokenSource.Token);
+			}
 		}
 		else
 		{

@@ -18,7 +18,29 @@
                  IsBusy="{Binding IsBusy}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <c:ContentArea.Styles>
+      <Style Selector="Button.faded" >
+        <Style.Animations>
+          <Animation Duration="0:0:0.1" FillMode="Both">
+            <KeyFrame Cue="100%">
+              <Setter Property="Opacity" Value="0.3" />
+            </KeyFrame>
+          </Animation>
+        </Style.Animations>
+      </Style>
+      <Style Selector="Button:not(.faded)">
+        <Style.Animations>
+          <Animation Duration="0:0:0.1" FillMode="Both">
+            <KeyFrame Cue="100%">
+              <Setter Property="Opacity" Value="1" />
+            </KeyFrame>
+          </Animation>
+        </Style.Animations>
+      </Style>
+
       <Style Selector="c|TagControl:disabled">
+        <Setter Property="Opacity" Value="0.5" />
+      </Style>
+      <Style Selector="Button.faded">
         <Setter Property="Opacity" Value="0.5" />
       </Style>
     </c:ContentArea.Styles>
@@ -37,11 +59,6 @@
 
           <ScrollViewer Margin="15,10,15,10">
             <ItemsControl Items="{Binding LabelsWhiteList}">
-              <ItemsControl.Styles>
-                <Style Selector="Button.faded">
-                  <Setter Property="Opacity" Value="0.5" />
-                </Style>
-              </ItemsControl.Styles>
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                   <WrapPanel Orientation="Horizontal" />
@@ -50,17 +67,25 @@
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:LabelViewModel">
                   <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}" Classes.faded="{Binding IsFaded}">
-                    <Button.Transitions>
-                      <Transitions>
-                        <DoubleTransition Property="Opacity"
-                                          Easing="{StaticResource FluentEasing}"
-                                          Duration="0:0:0.1"/>
-                      </Transitions>
-                    </Button.Transitions>
                     <i:Interaction.Behaviors>
                       <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
                     </i:Interaction.Behaviors>
-                    <c:TagControl Content="{Binding Value}" IsHitTestVisible="False" Background="{DynamicResource PrivacyControlItemBackground}" />
+                    <c:TagControl Content="{Binding Value}" IsHitTestVisible="False" Background="{DynamicResource PrivacyControlItemBackground}">
+                      <c:TagControl.Foreground>
+                        <Binding Path="IsHighlighted">
+                          <Binding.Converter>
+                            <converters:BoolToBrushConverter TrueBrush="{DynamicResource PrivacyControlItemWhiteListHighlight}" />
+                          </Binding.Converter>
+                        </Binding>
+                      </c:TagControl.Foreground>
+                      <c:TagControl.BorderBrush>
+                        <Binding Path="IsHighlighted">
+                          <Binding.Converter>
+                            <converters:BoolToBrushConverter TrueBrush="{DynamicResource PrivacyControlItemWhiteListHighlight}" />
+                          </Binding.Converter>
+                        </Binding>
+                      </c:TagControl.BorderBrush>
+                    </c:TagControl>
                   </Button>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
@@ -92,7 +117,7 @@
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:LabelViewModel">
-                  <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}">
+                  <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}" Classes.faded="{Binding IsFaded}">
                     <i:Interaction.Behaviors>
                       <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
                     </i:Interaction.Behaviors>

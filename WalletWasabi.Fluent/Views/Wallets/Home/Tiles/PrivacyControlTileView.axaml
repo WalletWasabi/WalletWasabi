@@ -59,7 +59,8 @@
         <Panel IsVisible="{Binding !FullyMixed}">
           <controls:RingChartControl DataPoints="{Binding TestDataPoints}" Classes.visible="{Binding !ShowBoostingAnimation}"
                                      HorizontalAlignment="Center" VerticalAlignment="Center" />
-          <controls:ProgressRing IsIndeterminate="True" Classes.visible="{Binding ShowBoostingAnimation}" />
+          <controls:ProgressRing IsIndeterminate="{Binding ShowBoostingAnimation}"
+                                 Classes.visible="{Binding ShowBoostingAnimation}" />
         </Panel>
 
         <TextBlock IsVisible="{Binding !FullyMixed}" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding PercentText}" FontSize="36" />
@@ -119,7 +120,8 @@
           <controls:RingChartControl DataPoints="{Binding TestDataPoints}"
                                      Classes.visible="{Binding !ShowBoostingAnimation}"
                                      HorizontalAlignment="Center" VerticalAlignment="Center" />
-          <controls:ProgressRing IsIndeterminate="True" Classes.visible="{Binding ShowBoostingAnimation}" />
+          <controls:ProgressRing IsIndeterminate="{Binding ShowBoostingAnimation}"
+                                 Classes.visible="{Binding ShowBoostingAnimation}" />
         </Panel>
         <Panel>
           <TextBlock IsVisible="{Binding !FullyMixed}"
