@@ -42,8 +42,9 @@
       <TextBox Text="{Binding BitcoinP2PEndPoint}" />
     </DockPanel>
 
-    <StackPanel Spacing="10">
-      <TextBlock ToolTip.Tip="Coins under the dust threshold won't appear in the coin lists." Text= "Dust Threshold (BTC)" />
+    <StackPanel Spacing="10"
+                ToolTip.Tip="Coins under the dust threshold won't appear in the coin lists.">
+      <TextBlock Text= "Dust Threshold (BTC)" />
       <TextBox Text="{Binding DustThreshold}" />
     </StackPanel>
 
