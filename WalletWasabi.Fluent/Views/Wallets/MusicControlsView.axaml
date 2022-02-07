@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.MusicControlsView">
+  <Border Padding="20 10" CornerRadius="4" BorderThickness="1" Background="#19FFFFFF" BorderBrush="#3CFFFFFF" Height="48">
+    <StackPanel Orientation="Horizontal" Spacing="20">
+      <TextBlock Text="Round in progress: 2m 15s remaining" VerticalAlignment="Center" />
+      <Separator Classes="vertical" />
+      <Button Classes="plain">
+        <PathIcon Data="{StaticResource pause_regular}" />
+      </Button>
+      <Button Classes="plain">
+        <PathIcon Data="{StaticResource stop_regular}" />
+      </Button>
+      <Separator Classes="vertical" />
+      <ProgressBar Minimum="0" Maximum="100" Value="33" />
+    </StackPanel>
+  </Border>
+</UserControl>
