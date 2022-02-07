@@ -1,0 +1,58 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:send="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:CompileBindings="True"
+             x:DataType="send:ConfirmLabelsDialogViewModel"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.ConfirmLabelsDialogView">
+  <controls:ContentArea>
+    <controls:QuestionControl HighlightButton="YesButton"
+                              YesCommand="{Binding NextCommand}"
+                              NoCommand="{Binding CancelCommand}">
+      <StackPanel Spacing="20" DataContext="{Binding Suggestion}">
+        <PathIcon DockPanel.Dock="Top" Data="{StaticResource incognito_filled}" Height="25" Width="25"
+                  Foreground="{DynamicResource SystemAccentColor}" />
+
+        <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap"
+                   Text="Some people or companies could know about this:" />
+
+        <DockPanel LastChildFill="False" HorizontalAlignment="Center">
+          <controls:TagsBox Padding="0"
+                            Margin="0"
+                            MinWidth="0"
+                            BorderThickness="0"
+                            DockPanel.Dock="Left"
+                            IsReadOnly="True"
+                            Items="{Binding Labels}"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Center" />
+          <Button Classes="labelFlyout"
+                  DockPanel.Dock="Left"
+                  IsVisible="{Binding !!FilteredLabels.Count}"
+                  Content="..."
+                  Margin="0 4 0 0">
+            <Button.Flyout>
+              <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="TransientWithDismissOnPointerMoveAway">
+                <controls:TagsBox IsReadOnly="True"
+                                  Items="{Binding FilteredLabels}" />
+              </Flyout>
+            </Button.Flyout>
+            <ToolTip.Tip>
+              <Panel>
+                <controls:TagsBox IsReadOnly="True"
+                                  Margin="4,6,0,0"
+                                  Items="{Binding FilteredLabels}" />
+              </Panel>
+            </ToolTip.Tip>
+          </Button>
+        </DockPanel>
+
+        <TextBlock Text="Control your privacy?" TextWrapping="Wrap" HorizontalAlignment="Center" />
+
+      </StackPanel>
+    </controls:QuestionControl>
+  </controls:ContentArea>
+</UserControl>
