@@ -62,7 +62,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 			destinationAmount.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
 		AmountText = $"{btcAmountText}{fiatAmountText}";
 
-		var feeDisplayFormat = (FeeDisplayFormat?)Services.UiConfig.FeeDisplayFormat ?? FeeDisplayFormat.BTC;
+		var feeDisplayFormat = Services.UiConfig.FeeDisplayFormat.GetEnumValueOrDefault(FeeDisplayFormat.BTC);
 		var btcFeeMoneyUnit = feeDisplayFormat.ToMoneyUnit();
 
 		var fee = _transaction.Fee;

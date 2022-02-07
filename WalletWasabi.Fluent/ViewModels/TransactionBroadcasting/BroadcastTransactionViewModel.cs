@@ -89,7 +89,7 @@ public partial class BroadcastTransactionViewModel : RoutableViewModel
 			? null
 			: totalInputValue - totalOutputValue;
 
-		var feeDisplayFormat = (FeeDisplayFormat?)Services.UiConfig.FeeDisplayFormat ?? FeeDisplayFormat.BTC;
+		var feeDisplayFormat = Services.UiConfig.FeeDisplayFormat.GetEnumValueOrDefault(FeeDisplayFormat.BTC);
 		var feeMoneyUnit = feeDisplayFormat.ToMoneyUnit();
 
 		FeeString =
