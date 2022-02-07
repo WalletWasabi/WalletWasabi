@@ -11,7 +11,7 @@ public record CoinJoinInputCommitmentData
 	private byte[] _roundIdentifier;
 
 	public CoinJoinInputCommitmentData(string coordinatorIdentifier, uint256 roundIdentifier)
-		: this(Encoding.ASCII.GetBytes(coordinatorIdentifier), roundIdentifier.ToBytes())
+		: this(Encoding.ASCII.GetBytes(coordinatorIdentifier), roundIdentifier.ToBytes(false))
 	{
 	}
 
