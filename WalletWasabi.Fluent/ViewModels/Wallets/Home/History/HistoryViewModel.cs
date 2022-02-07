@@ -208,7 +208,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 			lock (_transactionListLock)
 			{
-				/*
+				// NOTE: Original wasabi code
+				//*
 				var copyList = Transactions.ToList();
 
 				foreach (var oldItem in copyList)
@@ -232,21 +233,22 @@ public partial class HistoryViewModel : ActivatableViewModel
 				}
 				//*/
 
-				//*
-            var rand = new Random(100);
+				// NOTE: Repro for TreeDataGrid scrolling issues
+				/*
+	            var rand = new Random(100);
 
-            for (var i = 0; i < 10_000; i++)
-            {
-	            var ts = new TransactionSummary()
+	            for (var i = 0; i < 10_000; i++)
 	            {
-		            DateTime = DateTimeOffset.Now,
-		            Label = new SmartLabel("Label1", "Label2"),
-		            Amount = new Money((int)rand.NextDouble())
-	            };
-                var item = new TransactionHistoryItemViewModel(i, ts, _walletViewModel, Money.Zero, _updateTrigger);
+		            var ts = new TransactionSummary()
+		            {
+			            DateTime = DateTimeOffset.Now,
+			            Label = new SmartLabel("Label1", "Label2"),
+			            Amount = new Money((int)rand.NextDouble())
+		            };
+	                var item = new TransactionHistoryItemViewModel(i, ts, _walletViewModel, Money.Zero, _updateTrigger);
 
-                _transactionSourceList.Add(item);
-            }
+	                _transactionSourceList.Add(item);
+	            }
 				//*/
 
 				if (!IsInitialized)
