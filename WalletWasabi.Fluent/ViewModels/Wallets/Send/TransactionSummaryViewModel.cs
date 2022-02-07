@@ -63,14 +63,14 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		AmountText = $"{btcAmountText}{fiatAmountText}";
 
 		var feeDisplayFormat = Services.UiConfig.FeeDisplayFormat.GetEnumValueOrDefault(FeeDisplayFormat.BTC);
-		var btcFeeMoneyUnit = feeDisplayFormat.ToMoneyUnit();
+		var feeMoneyUnit = feeDisplayFormat.ToMoneyUnit();
 
 		var fee = _transaction.Fee;
-		var btcFeeText = $"{fee.ToDecimal(btcFeeMoneyUnit)} {feeDisplayFormat.FriendlyName() } ";
+		var feeText = $"{fee.ToDecimal(feeMoneyUnit)} {feeDisplayFormat.FriendlyName() } ";
 		var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC)
 			.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
 
-		FeeText = $"{btcFeeText}{fiatFeeText}";
+		FeeText = $"{feeText}{fiatFeeText}";
 
 		TransactionHasChange =
 			_transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != _address.ScriptPubKey);
