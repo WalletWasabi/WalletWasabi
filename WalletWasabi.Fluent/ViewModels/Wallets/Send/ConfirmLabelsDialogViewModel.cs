@@ -5,6 +5,7 @@ using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
+[NavigationMetaData(Title = "Control your Privacy?")]
 public class ConfirmLabelsDialogViewModel : DialogViewModelBase<bool>
 {
 	public ConfirmLabelsDialogViewModel(PocketSuggestionViewModel suggestion)
@@ -18,6 +19,4 @@ public class ConfirmLabelsDialogViewModel : DialogViewModelBase<bool>
 	}
 
 	public PocketSuggestionViewModel Suggestion { get; }
-
-	public override string Title { get; protected set; }
 }
