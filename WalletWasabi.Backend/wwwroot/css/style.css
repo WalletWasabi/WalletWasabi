@@ -61,6 +61,9 @@ section {
     width: 100%;
     overflow: hidden;
 }
+nav li.active a {
+    color: var(--green) !important;
+}
 .logo img {
     height: 30px;
 }
