@@ -70,6 +70,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 			IControl OutgoingColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new OutgoingColumnView();
 			IControl BalanceColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new BalanceColumnView();
 
+			//*
 			Source = new FlatTreeDataGridSource<HistoryItemViewModelBase>(_transactions)
             {
                 Columns =
@@ -153,6 +154,93 @@ public partial class HistoryViewModel : ActivatableViewModel
 	                    width: new GridLength(0, GridUnitType.Auto)),
                 }
             };
+            //*/
+
+			/*
+		Source = new FlatTreeDataGridSource<HistoryItemViewModelBase>(_transactions)
+         {
+             Columns =
+             {
+              // Indicators
+                 ////new TemplateColumn<HistoryItemViewModelBase>(
+                 ////    null,
+                 ////    new FuncDataTemplate<HistoryItemViewModelBase>(IndicatorsColumnTemplate, true),
+                 ////    options: new ColumnOptions<HistoryItemViewModelBase>
+                 ////    {
+                 ////        CanUserResizeColumn = false,
+                 ////        CanUserSortColumn = false,
+                 ////        MinWidth = new GridLength(80, GridUnitType.Pixel)
+                 ////    },
+                 ////    width: new GridLength(0, GridUnitType.Auto)),
+                 // Date
+                 new TextColumn<HistoryItemViewModelBase, string>(
+                  "Date / Time",
+                  x => x.DateString,
+                  options: new TextColumnOptions<HistoryItemViewModelBase>
+                  {
+                   CanUserResizeColumn = false,
+                   CanUserSortColumn = true,
+                   CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Date),
+                   CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Date),
+                   MinWidth = new GridLength(150, GridUnitType.Pixel)
+                  },
+                  width: new GridLength(0, GridUnitType.Auto)),
+                 // Labels
+                 ////new TemplateColumn<HistoryItemViewModelBase>(
+                 //// "Labels",
+                 //// new FuncDataTemplate<HistoryItemViewModelBase>(LabelsColumnTemplate, true),
+                 //// options: new ColumnOptions<HistoryItemViewModelBase>
+                 //// {
+                 ////  CanUserResizeColumn = false,
+                 ////  CanUserSortColumn = false,
+                 ////  MinWidth = new GridLength(100, GridUnitType.Pixel)
+                 //// },
+                 //// width: new GridLength(1, GridUnitType.Star)),
+                 // Incoming
+                 new TextColumn<HistoryItemViewModelBase, Money?>(
+                  "Incoming (₿)",
+                  x => x.IncomingAmount,
+                  options: new TextColumnOptions<HistoryItemViewModelBase>
+                  {
+                   CanUserResizeColumn = false,
+                   CanUserSortColumn = true,
+                   CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.IncomingAmount),
+                   CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.IncomingAmount),
+                   MinWidth = new GridLength(120, GridUnitType.Pixel),
+                   MaxWidth = new GridLength(150, GridUnitType.Pixel)
+                  },
+                  width: new GridLength(0, GridUnitType.Auto)),
+                 // Outgoing
+                 new TextColumn<HistoryItemViewModelBase, Money?>(
+                  "Outgoing (₿)",
+                  x => x.OutgoingAmount,
+                  options: new TextColumnOptions<HistoryItemViewModelBase>
+                  {
+                   CanUserResizeColumn = false,
+                   CanUserSortColumn = true,
+                   CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.OutgoingAmount),
+                   CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.OutgoingAmount),
+                   MinWidth = new GridLength(120, GridUnitType.Pixel),
+                   MaxWidth = new GridLength(150, GridUnitType.Pixel)
+                  },
+                  width: new GridLength(0, GridUnitType.Auto)),
+                 // Balance
+                 new TextColumn<HistoryItemViewModelBase, Money?>(
+                  "Balance (₿)",
+                  x => x.Balance,
+                  options: new TextColumnOptions<HistoryItemViewModelBase>
+                  {
+                   CanUserResizeColumn = false,
+                   CanUserSortColumn = true,
+                   CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Balance),
+                   CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Balance),
+                   MinWidth = new GridLength(120, GridUnitType.Pixel),
+                   MaxWidth = new GridLength(150, GridUnitType.Pixel)
+                  },
+                  width: new GridLength(0, GridUnitType.Auto)),
+             }
+         };
+			*/
 
 			Source.RowSelection!.SingleSelect = true;
 
