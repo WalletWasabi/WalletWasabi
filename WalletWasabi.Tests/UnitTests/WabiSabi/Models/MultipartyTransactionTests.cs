@@ -49,14 +49,14 @@ public class MultipartyTransactionTests
 
 		var twoInputs = oneInput.AddInput(alice2Coin);
 
-		Assert.Equal(2, twoInputs.Inputs.Count);
+		Assert.Equal(2, twoInputs.Inputs.Count());
 		Assert.Empty(twoInputs.Outputs);
 
 		// address reuse bad
 		var bob1 = new TxOut(Money.Coins(1), alice1Coin.ScriptPubKey);
 		var withOutput = twoInputs.AddOutput(bob1);
 
-		Assert.Equal(2, withOutput.Inputs.Count);
+		Assert.Equal(2, withOutput.Inputs.Count());
 		Assert.Single(withOutput.Outputs);
 
 		var bob2 = new TxOut(Money.Coins(1), alice2Coin.ScriptPubKey);
@@ -184,7 +184,7 @@ public class MultipartyTransactionTests
 		var bob1 = new TxOut(Money.Coins(1), alice1Coin.ScriptPubKey);
 		var withOutput = state.AddOutput(bob1);
 
-		Assert.Equal(2, withOutput.Inputs.Count);
+		Assert.Equal(2, withOutput.Inputs.Count());
 		Assert.Single(withOutput.Outputs);
 
 		var bob2 = new TxOut(Money.Coins(1), alice2Coin.ScriptPubKey);

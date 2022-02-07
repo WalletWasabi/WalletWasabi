@@ -18,6 +18,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
+using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -137,7 +138,9 @@ public partial class WalletViewModel : WalletViewModelBase
 			Navigate(NavigationTarget.DialogScreen).To(new WalletInfoViewModel(this));
 		});
 
-		WalletSettingsCommand = ReactiveCommand.Create((Action)(() => RoutableViewModel.Navigate((Fluent.NavigationTarget)Fluent.NavigationTarget.DialogScreen).To(Settings)));
+		WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(Settings));
+
+		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this, balanceChanged)));
 	}
 
 	public WalletSettingsViewModel Settings { get; }
@@ -151,6 +154,8 @@ public partial class WalletViewModel : WalletViewModelBase
 	public ICommand WalletInfoCommand { get; }
 
 	public ICommand WalletSettingsCommand { get; }
+
+	public ICommand WalletCoinsCommand { get; }
 
 	private CompositeDisposable Disposables { get; set; }
 

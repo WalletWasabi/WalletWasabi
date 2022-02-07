@@ -36,37 +36,42 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 	public async Task BuildPrivacySuggestionsAsync(Wallet wallet, TransactionInfo info, BitcoinAddress destination, BuildTransactionResult transaction, bool isFixedAmount, CancellationToken cancellationToken)
 	{
+		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(15));
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
+
 		Suggestions.Clear();
 		SelectedSuggestion = null;
 
 		if (!info.IsPrivate)
 		{
-			Suggestions.Add(new PocketSuggestionViewModel(SmartLabel.Merge(transaction.SpentCoins.Select(x => CoinHelpers.GetLabels(x)))));
+			Suggestions.Add(new PocketSuggestionViewModel(SmartLabel.Merge(transaction.SpentCoins.Select(x => CoinHelpers.GetLabels(x, wallet.KeyManager.MinAnonScoreTarget)))));
 		}
 
 		var loadingRing = new LoadingSuggestionViewModel();
 		Suggestions.Add(loadingRing);
 
-		var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destination.ScriptPubKey);
-
-		if (hasChange && !isFixedAmount)
+		try
 		{
-			try
+			var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destination.ScriptPubKey);
+
+			if (hasChange && !isFixedAmount)
 			{
 				var suggestions =
-					ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, cancellationToken);
+					ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, linkedCts.Token);
 
 				await foreach (var suggestion in suggestions)
 				{
 					Suggestions.Insert(Suggestions.Count - 1, suggestion);
 				}
 			}
-			catch (OperationCanceledException)
-			{
-				Logger.LogWarning("Suggestion creation has timed out.");
-			}
 		}
-
-		Suggestions.Remove(loadingRing);
+		catch (OperationCanceledException)
+		{
+			Logger.LogWarning("Computing privacy suggestions timed out.");
+		}
+		finally
+		{
+			Suggestions.Remove(loadingRing);
+		}
 	}
 }

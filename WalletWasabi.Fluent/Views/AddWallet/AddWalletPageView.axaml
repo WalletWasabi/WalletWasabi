@@ -17,7 +17,7 @@
                  EnableNext="True" NextContent="Continue">
     <StackPanel DockPanel.Dock="Top" Margin="0 0 0 20">
       <Label Content="Wallet _Name:" Target="walletNameTb" />
-      <TextBox x:Name="walletNameTb" MaxLength="250" Text="{Binding WalletName}" Watermark="(e.g. My Wallet)">
+      <TextBox x:Name="walletNameTb" MaxLength="50" Text="{Binding WalletName}" Watermark="(e.g. My Wallet)">
         <i:Interaction.Behaviors>
           <behaviors:FocusOnAttachedBehavior />
         </i:Interaction.Behaviors>
