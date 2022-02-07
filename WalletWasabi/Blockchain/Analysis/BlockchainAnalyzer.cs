@@ -52,10 +52,7 @@ public class BlockchainAnalyzer
 			AdjustWalletInputs(tx, distinctWalletInputPubKeys, newInputAnonset);
 		}
 
-		if (!isLikelyCoinjoin)
-		{
-			AnalyzeClusters(tx);
-		}
+		AnalyzeClusters(tx);
 	}
 
 	/// <param name="newInputAnonset">The new anonymity set of the inputs.</param>
