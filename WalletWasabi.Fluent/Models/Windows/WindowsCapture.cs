@@ -110,8 +110,7 @@ public class WindowsCapture
 		return () => sampler.GetBitmap(width, height, stride);
 	}
 
-	private Bitmap
-		GetBitmapFromSampleGrabberBuffer(ISampleGrabber i_grabber, int width, int height, int stride)
+	private Bitmap? GetBitmapFromSampleGrabberBuffer(ISampleGrabber i_grabber, int width, int height, int stride)
 	{
 		try
 		{
@@ -129,8 +128,7 @@ public class WindowsCapture
 		}
 	}
 
-	private Bitmap?
-		GetBitmapFromSampleGrabberBufferMain(ISampleGrabber i_grabber, int width, int height, int stride)
+	private Bitmap? GetBitmapFromSampleGrabberBufferMain(ISampleGrabber i_grabber, int width, int height, int stride)
 	{
 		var sz = 0;
 		i_grabber.GetCurrentBuffer(ref sz, IntPtr.Zero);
