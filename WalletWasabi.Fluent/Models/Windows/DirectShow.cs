@@ -18,7 +18,7 @@ public static class DirectShow
 	{
 		if (com != null)
 		{
-			_ = Marshal.ReleaseComObject(com);
+			Marshal.ReleaseComObject(com);
 			com = null;
 		}
 	}
@@ -197,7 +197,7 @@ public static class DirectShow
 			filter.EnumPins(ref pins);
 
 			int fetched = 0;
-			while (pins.Next(1, ref ipin, ref fetched) == 0)
+			while (pins?.Next(1, ref ipin, ref fetched) == 0)
 			{
 				if (fetched == 0)
 				{
@@ -207,7 +207,7 @@ public static class DirectShow
 				var info = new PIN_INFO();
 				try
 				{
-					ipin.QueryPinInfo(info);
+					ipin?.QueryPinInfo(info);
 					var rc = func(info);
 					if (rc)
 					{
@@ -450,7 +450,7 @@ public static class DirectShow
 
 		int GetSyncSource([In, Out] ref IReferenceClock pClock);
 
-		int EnumPins([In, Out] ref IEnumPins ppEnum);
+		int EnumPins([In, Out] ref IEnumPins? ppEnum);
 
 		int FindPin([In, MarshalAs(UnmanagedType.LPWStr)] string id, [In, Out] ref IPin ppPin);
 
@@ -592,7 +592,7 @@ public static class DirectShow
 	 InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 	public interface IEnumPins
 	{
-		int Next([In] int cPins, [In, Out] ref IPin ppPins, [In, Out] ref int pcFetched);
+		int Next([In] int cPins, [In, Out] ref IPin? ppPins, [In, Out] ref int pcFetched);
 
 		int Skip([In] int cPins);
 
@@ -918,7 +918,7 @@ public static class DirectShow
 		public static readonly Guid PIN_CATEGORY_PREVIEW = new("{fb6c4282-0353-11d1-905f-0000c0cc16ba}");
 		public static readonly Guid PIN_CATEGORY_STILL = new("{fb6c428a-0353-11d1-905f-0000c0cc16ba}");
 
-		private static Dictionary<Guid, string> NicknameCache = null;
+		private static Dictionary<Guid, string>? NicknameCache = null;
 
 		public static string GetNickname(Guid guid)
 		{
