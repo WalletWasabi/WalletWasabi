@@ -21,7 +21,6 @@
     <Style Selector="c|ContentArea">
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
         <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
-        <Setter Property="Background" Value="{DynamicResource RegionColor}" />
         <Setter Property="IsHitTestVisible" Value="{Binding IsActive}" />
         <Setter Property="Template">
             <ControlTemplate>
