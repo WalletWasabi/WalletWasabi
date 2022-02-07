@@ -176,8 +176,8 @@ public partial class Arena : PeriodicRunner
 				{
 					var coinjoin = round.Assert<ConstructionState>();
 
-					round.LogInfo($"{coinjoin.Inputs.Count} inputs were added.");
-					round.LogInfo($"{coinjoin.Outputs.Count} outputs were added.");
+					round.LogInfo($"{coinjoin.Inputs.Count()} inputs were added.");
+					round.LogInfo($"{coinjoin.Outputs.Count()} outputs were added.");
 
 					coinjoin = AddCoordinationFee(round, coinjoin);
 

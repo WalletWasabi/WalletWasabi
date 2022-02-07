@@ -40,7 +40,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		_info = info;
 		_destination = destination;
 		_isFixedAmount = isFixedAmount;
-		_cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+		_cancellationTokenSource = new CancellationTokenSource();
 
 		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel();
 		CurrentTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info, destination);
@@ -77,6 +77,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				{
 					_info.ChangelessCoins = ca.TransactionResult.SpentCoins;
 					UpdateTransaction(CurrentTransactionSummary, ca.TransactionResult);
+
+					await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, ca.TransactionResult, _isFixedAmount, _cancellationTokenSource.Token);
 				}
 				else if (x is PocketSuggestionViewModel)
 				{
@@ -190,13 +192,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		if (newTransaction is { })
 		{
 			UpdateTransaction(CurrentTransactionSummary, newTransaction);
-
-			// Cancel and dispose old token source.
-			_cancellationTokenSource.Cancel();
-			_cancellationTokenSource.Dispose();
-
-			// Start the new search with a fresh token source.
-			_cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));
 
 			await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, newTransaction, _isFixedAmount, _cancellationTokenSource.Token);
 		}
