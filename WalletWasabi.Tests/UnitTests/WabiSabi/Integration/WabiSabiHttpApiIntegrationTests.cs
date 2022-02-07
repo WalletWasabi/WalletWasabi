@@ -23,16 +23,19 @@ using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
 public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicationFactory<Startup>>
 {
 	private readonly WabiSabiApiApplicationFactory<Startup> _apiApplicationFactory;
+	private readonly ITestOutputHelper _output;
 
-	public WabiSabiHttpApiIntegrationTests(WabiSabiApiApplicationFactory<Startup> apiApplicationFactory)
+	public WabiSabiHttpApiIntegrationTests(WabiSabiApiApplicationFactory<Startup> apiApplicationFactory, ITestOutputHelper output)
 	{
 		_apiApplicationFactory = apiApplicationFactory;
+        _output = output;
 	}
 
 	[Fact]
@@ -41,7 +44,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var httpClient = _apiApplicationFactory.CreateClient();
 
 		var apiClient = await _apiApplicationFactory.CreateArenaClientAsync(httpClient);
-		var rounds = await apiClient.GetStatusAsync(CancellationToken.None);
+		var rounds = await apiClient.GetStatusAsync(RoundStateRequest.Empty, CancellationToken.None);
 		var round = rounds.First(x => x.CoinjoinState is ConstructionState);
 
 		// If an output is not in the utxo dataset then it is not unspent, this
@@ -67,12 +70,14 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var transactionCompleted = new TaskCompletionSource<Transaction>();
 
 		// Create a key manager and use it to create fake coins.
+		_output.WriteLine("Creating key manager...");
 		var keyManager = KeyManager.CreateNew(out var _, password: "", Network.Main);
 		keyManager.AssertCleanKeysIndexed();
 		var coins = keyManager.GetKeys()
 			.Take(inputCount)
 			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, amounts[i]))
 			.ToArray();
+		_output.WriteLine("Coins were created successfully");
 
 		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
 			builder.ConfigureServices(services =>
@@ -122,7 +127,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 				);
 				// Emulate that the first coin is coming from a coinjoin.
-				services.AddScoped(s => new InMemoryCoinJoinIdStore(new[] { coins.First().Coin.Outpoint.Hash }));
+				services.AddScoped(s => new InMemoryCoinJoinIdStore(new[] { coins[0].Coin.Outpoint.Hash }));
 			})).CreateClient();
 
 		// Create the coinjoin client
@@ -430,7 +435,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			})).CreateClient();
 
 		ArenaClient apiClient = await _apiApplicationFactory.CreateArenaClientAsync(new StuttererHttpClient(httpClient));
-		RoundState[] rounds = await apiClient.GetStatusAsync(CancellationToken.None);
+		RoundState[] rounds = await apiClient.GetStatusAsync(RoundStateRequest.Empty, CancellationToken.None);
 		RoundState round = rounds.First(x => x.CoinjoinState is ConstructionState);
 
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(signingKey, round.Id);
