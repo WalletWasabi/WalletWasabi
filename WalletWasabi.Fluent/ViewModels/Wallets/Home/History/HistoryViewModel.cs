@@ -296,7 +296,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 			lock (_transactionListLock)
 			{
-				// NOTE: Original wasabi code with perfomrance fix
+				// NOTE: Original wasabi code with performance fix
 				//*
 				_transactionSourceList.Edit(x =>
 				{
