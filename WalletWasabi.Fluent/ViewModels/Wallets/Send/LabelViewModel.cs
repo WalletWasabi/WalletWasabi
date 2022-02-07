@@ -12,6 +12,9 @@ public partial class LabelViewModel : ViewModelBase
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private bool _isHighlighted;
 
+	[AutoNotify(SetterModifier = AccessModifier.Internal)]
+	private bool _isFaded;
+
 	[AutoNotify] private bool _isPointerOver;
 
 	public LabelViewModel(LabelSelectionViewModel owner, string label)
@@ -22,6 +25,19 @@ public partial class LabelViewModel : ViewModelBase
 			.Skip(1)
 			.Where(value => value == true)
 			.Subscribe(_ => owner.OnPointerOver(this));
+
+		this.WhenAnyValue(x => x.IsPointerOver)
+			.Subscribe(isPointerOver =>
+			{
+				if (isPointerOver)
+				{
+					owner.Fade(this);
+				}
+				else
+				{
+					owner.ClearFade(this);
+				}
+			});
 
 		ClickedCommand = ReactiveCommand.Create(() => owner.SwapLabel(this));
 	}
@@ -34,6 +50,8 @@ public partial class LabelViewModel : ViewModelBase
 
 	public void Highlight(LabelViewModel triggerSource)
 	{
+		IsFaded = false;
+
 		triggerSource
 			.WhenAnyValue(x => x.IsPointerOver)
 			.TakeUntil(value => value == false)

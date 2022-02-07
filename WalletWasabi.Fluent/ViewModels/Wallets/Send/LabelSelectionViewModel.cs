@@ -83,6 +83,25 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		}
 	}
 
+	public void Fade(LabelViewModel source)
+	{
+		foreach (var lvm in source.IsBlackListed? LabelsBlackList : LabelsWhiteList)
+		{
+			if (!lvm.IsHighlighted)
+			{
+				lvm.IsFaded = true;
+			}
+		}
+	}
+
+	public void ClearFade(LabelViewModel source)
+	{
+		foreach (var lvm in source.IsBlackListed? LabelsBlackList : LabelsWhiteList)
+		{
+			lvm.IsFaded = false;
+		}
+	}
+
 	public void OnPointerOver(LabelViewModel labelViewModel)
 	{
 		var affectedLabelViewModels = GetAssociatedLabels(labelViewModel);

@@ -30,13 +30,18 @@
             <StackPanel Orientation="Horizontal" Spacing="10">
               <PathIcon Data="{StaticResource shield_regular}" Foreground="{DynamicResource PrivacyControlWhiteListHeaderForeground}" Height="20" />
               <TextBlock VerticalAlignment="Bottom" FontSize="18" Margin="0 2 0 0" Foreground="{DynamicResource PrivacyControlWhiteListHeaderForeground}"
-                         Text="Can see this transaction: ">
+                         Text="Could see this transaction: ">
               </TextBlock>
             </StackPanel>
           </Border>
 
           <ScrollViewer Margin="15,10,15,10">
             <ItemsControl Items="{Binding LabelsWhiteList}">
+              <ItemsControl.Styles>
+                <Style Selector="Button.faded">
+                  <Setter Property="Opacity" Value="0.5" />
+                </Style>
+              </ItemsControl.Styles>
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                   <WrapPanel Orientation="Horizontal" />
@@ -44,26 +49,18 @@
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:LabelViewModel">
-                  <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}">
+                  <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}" Classes.faded="{Binding IsFaded}">
+                    <Button.Transitions>
+                      <Transitions>
+                        <DoubleTransition Property="Opacity"
+                                          Easing="{StaticResource FluentEasing}"
+                                          Duration="0:0:0.1"/>
+                      </Transitions>
+                    </Button.Transitions>
                     <i:Interaction.Behaviors>
                       <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
                     </i:Interaction.Behaviors>
-                    <c:TagControl Content="{Binding Value}" IsHitTestVisible="False" Background="{DynamicResource PrivacyControlItemBackground}">
-                      <c:TagControl.Foreground>
-                        <Binding Path="IsHighlighted">
-                          <Binding.Converter>
-                            <converters:BoolToBrushConverter TrueBrush="{DynamicResource PrivacyControlItemWhiteListHighlight}" />
-                          </Binding.Converter>
-                        </Binding>
-                      </c:TagControl.Foreground>
-                      <c:TagControl.BorderBrush>
-                        <Binding Path="IsHighlighted">
-                          <Binding.Converter>
-                            <converters:BoolToBrushConverter TrueBrush="{DynamicResource PrivacyControlItemWhiteListHighlight}" />
-                          </Binding.Converter>
-                        </Binding>
-                      </c:TagControl.BorderBrush>
-                    </c:TagControl>
+                    <c:TagControl Content="{Binding Value}" IsHitTestVisible="False" Background="{DynamicResource PrivacyControlItemBackground}" />
                   </Button>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
