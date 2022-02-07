@@ -21,6 +21,9 @@
       <Style Selector="c|TagControl:disabled">
         <Setter Property="Opacity" Value="0.5" />
       </Style>
+      <Style Selector="Button.faded">
+        <Setter Property="Opacity" Value="0.5" />
+      </Style>
     </c:ContentArea.Styles>
     <Grid RowDefinitions="*, 40, *" Margin="0 20" VerticalAlignment="Stretch"
           DataContext="{Binding LabelSelection}">
@@ -37,11 +40,6 @@
 
           <ScrollViewer Margin="15,10,15,10">
             <ItemsControl Items="{Binding LabelsWhiteList}">
-              <ItemsControl.Styles>
-                <Style Selector="Button.faded">
-                  <Setter Property="Opacity" Value="0.5" />
-                </Style>
-              </ItemsControl.Styles>
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                   <WrapPanel Orientation="Horizontal" />
@@ -50,13 +48,6 @@
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:LabelViewModel">
                   <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}" Classes.faded="{Binding IsFaded}">
-                    <Button.Transitions>
-                      <Transitions>
-                        <DoubleTransition Property="Opacity"
-                                          Easing="{StaticResource FluentEasing}"
-                                          Duration="0:0:0.1"/>
-                      </Transitions>
-                    </Button.Transitions>
                     <i:Interaction.Behaviors>
                       <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
                     </i:Interaction.Behaviors>
@@ -107,7 +98,7 @@
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:LabelViewModel">
-                  <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}">
+                  <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}" Classes.faded="{Binding IsFaded}">
                     <i:Interaction.Behaviors>
                       <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
                     </i:Interaction.Behaviors>
