@@ -9,21 +9,21 @@ namespace WalletWasabi.Fluent.Models.Windows;
 
 public static class DirectShow
 {
-	public static object CoCreateInstance(Guid clsid)
+	public static object? CoCreateInstance(Guid clsid)
 	{
-		return Activator.CreateInstance(Type.GetTypeFromCLSID(clsid));
+		return Activator.CreateInstance(type: Type.GetTypeFromCLSID(clsid));
 	}
 
-	public static void ReleaseInstance<T>(ref T com) where T : class
+	public static void ReleaseInstance<T>(ref T? com) where T : class
 	{
 		if (com != null)
 		{
-			Marshal.ReleaseComObject(com);
+			_ = Marshal.ReleaseComObject(com);
 			com = null;
 		}
 	}
 
-	public static IGraphBuilder CreateGraph()
+	public static IGraphBuilder? CreateGraph()
 	{
 		return CoCreateInstance(DsGuid.CLSID_FilterGraph) as IGraphBuilder;
 	}
@@ -69,14 +69,14 @@ public static class DirectShow
 		return result;
 	}
 
-	public static IBaseFilter CreateFilter(Guid clsid)
+	public static IBaseFilter? CreateFilter(Guid clsid)
 	{
 		return CoCreateInstance(clsid) as IBaseFilter;
 	}
 
 	public static IBaseFilter CreateFilter(Guid category, int index)
 	{
-		IBaseFilter result = null;
+		IBaseFilter? result = null;
 
 		int curr_index = 0;
 		EnumMonikers(category, (moniker, prop) =>
@@ -101,15 +101,14 @@ public static class DirectShow
 
 	private static void EnumMonikers(Guid category, Func<IMoniker, IPropertyBag, bool> func)
 	{
-		IEnumMoniker enumerator = null;
-		ICreateDevEnum device = null;
+		IEnumMoniker? enumerator = null;
+		ICreateDevEnum? device = null;
 
 		try
 		{
-			device = (ICreateDevEnum)Activator.CreateInstance(
-				Type.GetTypeFromCLSID(DsGuid.CLSID_SystemDeviceEnum));
+			device = Activator.CreateInstance(Type.GetTypeFromCLSID(DsGuid.CLSID_SystemDeviceEnum)) as ICreateDevEnum;
 
-			device.CreateClassEnumerator(ref category, ref enumerator, 0);
+			device?.CreateClassEnumerator(ref category, ref enumerator, 0);
 
 			if (enumerator == null)
 			{
@@ -188,10 +187,10 @@ public static class DirectShow
 		return result;
 	}
 
-	private static IPin EnumPins(IBaseFilter filter, Func<PIN_INFO, bool> func)
+	private static IPin? EnumPins(IBaseFilter filter, Func<PIN_INFO, bool> func)
 	{
-		IEnumPins pins = null;
-		IPin ipin = null;
+		IEnumPins? pins = null;
+		IPin? ipin = null;
 
 		try
 		{
@@ -251,8 +250,13 @@ public static class DirectShow
 		graph.Connect(out_pin, inp_pin);
 	}
 
-	public static void DeleteMediaType(ref AM_MEDIA_TYPE mt)
+	public static void DeleteMediaType(ref AM_MEDIA_TYPE? mt)
 	{
+		if (mt == null)
+		{
+			return;
+		}
+
 		if (mt.lSampleSize != 0)
 		{
 			Marshal.FreeCoTaskMem(mt.pbFormat);
@@ -682,18 +686,18 @@ public static class DirectShow
 		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
 		public string? achName;
 
-		[MarshalAs(UnmanagedType.IUnknown)] public object pGraph;
+		[MarshalAs(UnmanagedType.IUnknown)] public object? pGraph;
 	}
 
 	[Serializable]
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode), ComVisible(false)]
 	public class PIN_INFO
 	{
-		public IBaseFilter pFilter;
+		public IBaseFilter? pFilter;
 		public PIN_DIRECTION dir;
 
 		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
-		public string achName;
+		public string? achName;
 	}
 
 	[Serializable]
