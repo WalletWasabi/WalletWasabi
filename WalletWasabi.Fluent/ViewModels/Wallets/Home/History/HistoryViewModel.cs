@@ -296,29 +296,32 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 			lock (_transactionListLock)
 			{
-				// NOTE: Original wasabi code
-				/*
-				var copyList = Transactions.ToList();
-
-				foreach (var oldItem in copyList)
+				// NOTE: Original wasabi code with perfomrance fix
+				//*
+				_transactionSourceList.Edit(x =>
 				{
-					if (newHistoryList.All(x => x.Id != oldItem.Id))
-					{
-						_transactionSourceList.Remove(oldItem);
-					}
-				}
+					var copyList = Transactions.ToList();
 
-				foreach (var newItem in newHistoryList)
-				{
-					if (_transactions.FirstOrDefault(x => x.Id == newItem.Id) is { } item)
+					foreach (var oldItem in copyList)
 					{
-						item.Update(newItem);
+						if (newHistoryList.All(x => x.Id != oldItem.Id))
+						{
+							x.Remove(oldItem);
+						}
 					}
-					else
+
+					foreach (var newItem in newHistoryList)
 					{
-						_transactionSourceList.Add(newItem);
+						if (_transactions.FirstOrDefault(x => x.Id == newItem.Id) is { } item)
+						{
+							item.Update(newItem);
+						}
+						else
+						{
+							x.Add(newItem);
+						}
 					}
-				}
+				});
 				//*/
 
 				// NOTE: Repro for TreeDataGrid scrolling issues
@@ -340,7 +343,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 				//*/
 
 				// NOTE: Repro for TreeDataGrid scrolling issues
-				//*
+				/*
 				_transactionSourceList.Edit(x =>
 				{
 					var rand = new Random(100);
