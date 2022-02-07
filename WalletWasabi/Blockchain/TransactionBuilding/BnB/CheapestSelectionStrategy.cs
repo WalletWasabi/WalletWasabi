@@ -127,13 +127,10 @@ public class CheapestSelectionStrategy
 				return EvaluationResult.SkipBranch;
 			}
 
-			if (totalCost <= Target)
+			if (_bestTargetSoFar < totalCost)
 			{
-				if (_bestTargetSoFar < totalCost)
-				{
-					_bestSelectionSoFar = selection[0..depth];
-					_bestTargetSoFar = totalCost;
-				}
+				_bestSelectionSoFar = selection[0..depth];
+				_bestTargetSoFar = totalCost;
 			}
 
 			return EvaluationResult.Continue;
