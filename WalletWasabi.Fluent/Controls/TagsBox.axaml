@@ -181,7 +181,8 @@
         <Setter Property="MaxDropDownHeight" Value="90" />
         <Setter Property="MinimumPrefixLength" Value="1" />
         <Setter Property="Focusable" Value="False" />
-        <Setter Property="IsTextCompletionEnabled" Value="False" />
+            <Setter Property="IsTextCompletionEnabled" Value="{Binding Path=RestrictInputToSuggestions, RelativeSource={RelativeSource AncestorType={x:Type c:TagsBox}}}" />
+
         <Setter Property="Template">
             <ControlTemplate>
                 <Grid Name="PART_LayoutRoot">
