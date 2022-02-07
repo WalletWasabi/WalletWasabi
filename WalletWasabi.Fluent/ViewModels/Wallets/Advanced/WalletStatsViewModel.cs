@@ -3,19 +3,20 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 
-[NavigationMetaData(Title = "Wallet Stats")]
+[NavigationMetaData(Title = "Wallet Statistics")]
 public partial class WalletStatsViewModel : RoutableViewModel
 {
 	[AutoNotify] private int _coinCount;
 	[AutoNotify] private bool _showSensitiveData = true;
-	[AutoNotify] private Money _balance;
-	[AutoNotify] private Money _confirmedBalance;
-	[AutoNotify] private Money _unconfirmedBalance;
+	[AutoNotify] private string _balance;
+	[AutoNotify] private string _confirmedBalance;
+	[AutoNotify] private string _unconfirmedBalance;
 
 	private readonly Wallet _wallet;
 
@@ -41,15 +42,16 @@ public partial class WalletStatsViewModel : RoutableViewModel
 	private void UpdateProps()
 	{
 		// Number of coins in the wallet.
- 		CoinCount = _wallet.Coins.Unspent().Count();
+        CoinCount = _wallet.Coins.Unspent().Count();
 
-		// Total amount of money in the wallet.
- 		Balance = _wallet.Coins.Unspent().TotalAmount();
+        // Total amount of money in the wallet.
+        Balance = $"{_wallet.Coins.TotalAmount().ToFormattedString()} ₿";
 
-		// Total amount of confirmed money in the wallet.
- 		ConfirmedBalance = _wallet.Coins.Confirmed().TotalAmount();
+        // Total amount of confirmed money in the wallet.
+        ConfirmedBalance = $"{_wallet.Coins.Confirmed().TotalAmount().ToFormattedString()} ₿";
 
-		// Total amount of unconfirmed money in the wallet.
- 		UnconfirmedBalance = _wallet.Coins.Unconfirmed().TotalAmount();
+        // Total amount of unconfirmed money in the wallet.
+        UnconfirmedBalance = $"{_wallet.Coins.Unconfirmed().TotalAmount().ToFormattedString()} ₿";
+
 	}
 }

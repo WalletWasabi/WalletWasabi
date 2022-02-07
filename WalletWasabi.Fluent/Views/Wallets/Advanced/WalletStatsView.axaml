@@ -12,29 +12,25 @@
   <c:ContentArea Title="{Binding Title}"
                  EnableNext="True" NextContent="Done">
     <StackPanel>
-      <c:PreviewItem Icon="{StaticResource private_key_regular}"
-                     Text="Extended Master Private Key"
-                     CopyParameter="{Binding CoinCount}"
-                     PrivacyModeEnabled="{Binding !ShowSensitiveData}">
+      <c:PreviewItem  Text="UTXO Count"
+                      CopyParameter="{Binding CoinCount}"
+                      PrivacyModeEnabled="{Binding !ShowSensitiveData}">
         <TextBlock Classes="monoSpaced" Text="{Binding CoinCount}" />
       </c:PreviewItem>
 
-      <c:PreviewItem Icon="{StaticResource private_key_regular}"
-                     Text="Extended Master Private Key"
+      <c:PreviewItem Text="Total Balance"
                      CopyParameter="{Binding Balance}"
                      PrivacyModeEnabled="{Binding !ShowSensitiveData}">
         <TextBlock Classes="monoSpaced" Text="{Binding Balance}" />
       </c:PreviewItem>
 
-      <c:PreviewItem Icon="{StaticResource private_key_regular}"
-                     Text="Extended Master Private Key"
+      <c:PreviewItem Text="Confirmed Balance"
                      CopyParameter="{Binding ConfirmedBalance}"
                      PrivacyModeEnabled="{Binding !ShowSensitiveData}">
         <TextBlock Classes="monoSpaced" Text="{Binding ConfirmedBalance}" />
       </c:PreviewItem>
 
-      <c:PreviewItem Icon="{StaticResource private_key_regular}"
-                     Text="Extended Master Private Key"
+      <c:PreviewItem Text="Unconfirmed Balance"
                      CopyParameter="{Binding UnconfirmedBalance}"
                      PrivacyModeEnabled="{Binding !ShowSensitiveData}">
         <TextBlock Classes="monoSpaced" Text="{Binding UnconfirmedBalance}" />
