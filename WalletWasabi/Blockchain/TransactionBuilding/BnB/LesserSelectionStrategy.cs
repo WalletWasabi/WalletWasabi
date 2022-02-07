@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 
@@ -28,7 +24,7 @@ public class LesserSelectionStrategy : ISearchStrategy
 	/// <summary>Input values sorted in descending orders.</summary>
 	public long[] InputValues { get; }
 
-	/// <summary>Gives lowest found value selection whose sum is larger than or equal to <see cref="Target"/>.</summary>
+	/// <summary>Gives highest found value selection whose sum is smaller than or equal to <see cref="Target"/>.</summary>
 	public long[]? GetBestSelectionFound() => _bestSelectionSoFar?.Where(x => x > 0).ToArray();
 
 	public long ProcessAction(NextAction action, long[] selection, int depth, long oldSum)
