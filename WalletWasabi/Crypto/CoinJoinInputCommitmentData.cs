@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Text;
 using NBitcoin;
+using NBitcoin.Protocol;
 
 namespace WalletWasabi.Crypto;
 
@@ -21,7 +22,7 @@ public record CoinJoinInputCommitmentData
 	}
 
 	public byte[] ToBytes() =>
-		BitConverter.GetBytes(_coordinatorIdentifier.Length)
+		new VarInt((ulong)_coordinatorIdentifier.Length).ToBytes()
 			.Concat(_coordinatorIdentifier)
 			.Concat(_roundIdentifier)
 			.ToArray();
