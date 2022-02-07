@@ -20,8 +20,6 @@ public class BlockchainAnalyzer
 	/// </summary>
 	public void Analyze(SmartTransaction tx)
 	{
-		bool isLikelyCoinjoin = tx.IsLikelyCoinjoin();
-
 		var inputCount = tx.Transaction.Inputs.Count;
 		var outputCount = tx.Transaction.Outputs.Count;
 
@@ -40,7 +38,7 @@ public class BlockchainAnalyzer
 		{
 			AnalyzeWalletInputs(tx, out HashSet<HdPubKey> distinctWalletInputPubKeys, out int newInputAnonset);
 
-			if (!isLikelyCoinjoin)
+			if (!tx.IsLikelyCoinjoin())
 			{
 				AnalyzeSelfSpend(tx, newInputAnonset);
 			}
