@@ -868,59 +868,55 @@ public static class DirectShow
 
 	public static class DsGuid
 	{
-		public static readonly Guid MEDIATYPE_Video = new Guid("{73646976-0000-0010-8000-00AA00389B71}");
+		public static readonly Guid MEDIATYPE_Video = new("{73646976-0000-0010-8000-00AA00389B71}");
 
-		public static readonly Guid MEDIATYPE_Audio = new Guid("{73647561-0000-0010-8000-00AA00389B71}");
+		public static readonly Guid MEDIATYPE_Audio = new("{73647561-0000-0010-8000-00AA00389B71}");
 
-		public static readonly Guid MEDIASUBTYPE_None = new Guid("{E436EB8E-524F-11CE-9F53-0020AF0BA770}");
+		public static readonly Guid MEDIASUBTYPE_None = new("{E436EB8E-524F-11CE-9F53-0020AF0BA770}");
 
-		public static readonly Guid MEDIASUBTYPE_YUYV = new Guid("{56595559-0000-0010-8000-00AA00389B71}");
-		public static readonly Guid MEDIASUBTYPE_IYUV = new Guid("{56555949-0000-0010-8000-00AA00389B71}");
-		public static readonly Guid MEDIASUBTYPE_YVU9 = new Guid("{39555659-0000-0010-8000-00AA00389B71}");
-		public static readonly Guid MEDIASUBTYPE_YUY2 = new Guid("{32595559-0000-0010-8000-00AA00389B71}");
-		public static readonly Guid MEDIASUBTYPE_YVYU = new Guid("{55595659-0000-0010-8000-00AA00389B71}");
-		public static readonly Guid MEDIASUBTYPE_UYVY = new Guid("{59565955-0000-0010-8000-00AA00389B71}");
-		public static readonly Guid MEDIASUBTYPE_MJPG = new Guid("{47504A4D-0000-0010-8000-00AA00389B71}");
-		public static readonly Guid MEDIASUBTYPE_RGB565 = new Guid("{E436EB7B-524F-11CE-9F53-0020AF0BA770}");
-		public static readonly Guid MEDIASUBTYPE_RGB555 = new Guid("{E436EB7C-524F-11CE-9F53-0020AF0BA770}");
-		public static readonly Guid MEDIASUBTYPE_RGB24 = new Guid("{E436EB7D-524F-11CE-9F53-0020AF0BA770}");
-		public static readonly Guid MEDIASUBTYPE_RGB32 = new Guid("{E436EB7E-524F-11CE-9F53-0020AF0BA770}");
-		public static readonly Guid MEDIASUBTYPE_ARGB32 = new Guid("{773C9AC0-3274-11D0-B724-00AA006C1A01}");
-		public static readonly Guid MEDIASUBTYPE_PCM = new Guid("{00000001-0000-0010-8000-00AA00389B71}");
-		public static readonly Guid MEDIASUBTYPE_WAVE = new Guid("{E436EB8B-524F-11CE-9F53-0020AF0BA770}");
+		public static readonly Guid MEDIASUBTYPE_YUYV = new("{56595559-0000-0010-8000-00AA00389B71}");
+		public static readonly Guid MEDIASUBTYPE_IYUV = new("{56555949-0000-0010-8000-00AA00389B71}");
+		public static readonly Guid MEDIASUBTYPE_YVU9 = new("{39555659-0000-0010-8000-00AA00389B71}");
+		public static readonly Guid MEDIASUBTYPE_YUY2 = new("{32595559-0000-0010-8000-00AA00389B71}");
+		public static readonly Guid MEDIASUBTYPE_YVYU = new("{55595659-0000-0010-8000-00AA00389B71}");
+		public static readonly Guid MEDIASUBTYPE_UYVY = new("{59565955-0000-0010-8000-00AA00389B71}");
+		public static readonly Guid MEDIASUBTYPE_MJPG = new("{47504A4D-0000-0010-8000-00AA00389B71}");
+		public static readonly Guid MEDIASUBTYPE_RGB565 = new("{E436EB7B-524F-11CE-9F53-0020AF0BA770}");
+		public static readonly Guid MEDIASUBTYPE_RGB555 = new("{E436EB7C-524F-11CE-9F53-0020AF0BA770}");
+		public static readonly Guid MEDIASUBTYPE_RGB24 = new("{E436EB7D-524F-11CE-9F53-0020AF0BA770}");
+		public static readonly Guid MEDIASUBTYPE_RGB32 = new("{E436EB7E-524F-11CE-9F53-0020AF0BA770}");
+		public static readonly Guid MEDIASUBTYPE_ARGB32 = new("{773C9AC0-3274-11D0-B724-00AA006C1A01}");
+		public static readonly Guid MEDIASUBTYPE_PCM = new("{00000001-0000-0010-8000-00AA00389B71}");
+		public static readonly Guid MEDIASUBTYPE_WAVE = new("{E436EB8B-524F-11CE-9F53-0020AF0BA770}");
 
-		public static readonly Guid FORMAT_None = new Guid("{0F6417D6-C318-11D0-A43F-00A0C9223196}");
+		public static readonly Guid FORMAT_None = new("{0F6417D6-C318-11D0-A43F-00A0C9223196}");
 
-		public static readonly Guid FORMAT_VideoInfo = new Guid("{05589F80-C356-11CE-BF01-00AA0055595A}");
-		public static readonly Guid FORMAT_VideoInfo2 = new Guid("{F72A76A0-EB0A-11d0-ACE4-0000C0CC16BA}");
-		public static readonly Guid FORMAT_WaveFormatEx = new Guid("{05589F81-C356-11CE-BF01-00AA0055595A}");
+		public static readonly Guid FORMAT_VideoInfo = new("{05589F80-C356-11CE-BF01-00AA0055595A}");
+		public static readonly Guid FORMAT_VideoInfo2 = new("{F72A76A0-EB0A-11d0-ACE4-0000C0CC16BA}");
+		public static readonly Guid FORMAT_WaveFormatEx = new("{05589F81-C356-11CE-BF01-00AA0055595A}");
 
-		public static readonly Guid CLSID_AudioInputDeviceCategory =
-			new Guid("{33D9A762-90C8-11d0-BD43-00A0C911CE86}");
+		public static readonly Guid CLSID_AudioInputDeviceCategory = new("{33D9A762-90C8-11d0-BD43-00A0C911CE86}");
 
-		public static readonly Guid CLSID_AudioRendererCategory =
-			new Guid("{E0F158E1-CB04-11d0-BD4E-00A0C911CE86}");
+		public static readonly Guid CLSID_AudioRendererCategory = new("{E0F158E1-CB04-11d0-BD4E-00A0C911CE86}");
 
-		public static readonly Guid CLSID_VideoInputDeviceCategory =
-			new Guid("{860BB310-5D01-11d0-BD3B-00A0C911CE86}");
+		public static readonly Guid CLSID_VideoInputDeviceCategory = new("{860BB310-5D01-11d0-BD3B-00A0C911CE86}");
 
-		public static readonly Guid CLSID_VideoCompressorCategory =
-			new Guid("{33D9A760-90C8-11d0-BD43-00A0C911CE86}");
+		public static readonly Guid CLSID_VideoCompressorCategory = new("{33D9A760-90C8-11d0-BD43-00A0C911CE86}");
 
-		public static readonly Guid CLSID_NullRenderer = new Guid("{C1F400A4-3F08-11D3-9F0B-006008039E37}");
-		public static readonly Guid CLSID_SampleGrabber = new Guid("{C1F400A0-3F08-11D3-9F0B-006008039E37}");
+		public static readonly Guid CLSID_NullRenderer = new("{C1F400A4-3F08-11D3-9F0B-006008039E37}");
+		public static readonly Guid CLSID_SampleGrabber = new("{C1F400A0-3F08-11D3-9F0B-006008039E37}");
 
-		public static readonly Guid CLSID_FilterGraph = new Guid("{E436EBB3-524F-11CE-9F53-0020AF0BA770}");
-		public static readonly Guid CLSID_SystemDeviceEnum = new Guid("{62BE5D10-60EB-11d0-BD3B-00A0C911CE86}");
-		public static readonly Guid CLSID_CaptureGraphBuilder2 = new Guid("{BF87B6E1-8C27-11d0-B3F0-00AA003761C5}");
+		public static readonly Guid CLSID_FilterGraph = new("{E436EBB3-524F-11CE-9F53-0020AF0BA770}");
+		public static readonly Guid CLSID_SystemDeviceEnum = new("{62BE5D10-60EB-11d0-BD3B-00A0C911CE86}");
+		public static readonly Guid CLSID_CaptureGraphBuilder2 = new("{BF87B6E1-8C27-11d0-B3F0-00AA003761C5}");
 
-		public static readonly Guid IID_IPropertyBag = new Guid("{55272A00-42CB-11CE-8135-00AA004BB851}");
-		public static readonly Guid IID_IBaseFilter = new Guid("{56a86895-0ad4-11ce-b03a-0020af0ba770}");
-		public static readonly Guid IID_IAMStreamConfig = new Guid("{C6E13340-30AC-11d0-A18C-00A0C9118956}");
+		public static readonly Guid IID_IPropertyBag = new("{55272A00-42CB-11CE-8135-00AA004BB851}");
+		public static readonly Guid IID_IBaseFilter = new("{56a86895-0ad4-11ce-b03a-0020af0ba770}");
+		public static readonly Guid IID_IAMStreamConfig = new("{C6E13340-30AC-11d0-A18C-00A0C9118956}");
 
-		public static readonly Guid PIN_CATEGORY_CAPTURE = new Guid("{fb6c4281-0353-11d1-905f-0000c0cc16ba}");
-		public static readonly Guid PIN_CATEGORY_PREVIEW = new Guid("{fb6c4282-0353-11d1-905f-0000c0cc16ba}");
-		public static readonly Guid PIN_CATEGORY_STILL = new Guid("{fb6c428a-0353-11d1-905f-0000c0cc16ba}");
+		public static readonly Guid PIN_CATEGORY_CAPTURE = new("{fb6c4281-0353-11d1-905f-0000c0cc16ba}");
+		public static readonly Guid PIN_CATEGORY_PREVIEW = new("{fb6c4282-0353-11d1-905f-0000c0cc16ba}");
+		public static readonly Guid PIN_CATEGORY_STILL = new("{fb6c428a-0353-11d1-905f-0000c0cc16ba}");
 
 		private static Dictionary<Guid, string> NicknameCache = null;
 
