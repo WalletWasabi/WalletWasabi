@@ -140,7 +140,7 @@ public class CheapestSelectionStrategy
 		}
 		else
 		{
-			throw new NotImplementedException("");
+			throw new NotImplementedException($"{SuggestionType} is not supported.");
 		}
 	}
 }
