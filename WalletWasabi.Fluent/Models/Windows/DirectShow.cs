@@ -59,9 +59,8 @@ public static class DirectShow
 		{
 			object? value = null;
 			_ = prop.Read("FriendlyName", ref value, 0);
-			var name = (string)value;
 
-			result.Add(name);
+			result.Add((string)value);
 
 			return false;
 		});
@@ -619,14 +618,14 @@ public static class DirectShow
 	public interface ICreateDevEnum
 	{
 		int CreateClassEnumerator([In] ref Guid pType,
-			[In, Out] ref IEnumMoniker ppEnumMoniker, [In] int dwFlags);
+			[In, Out] ref IEnumMoniker? ppEnumMoniker, [In] int dwFlags);
 	}
 
 	[ComVisible(true), ComImport(), Guid("55272A00-42CB-11CE-8135-00AA004BB851"),
 	 InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 	public interface IPropertyBag
 	{
-		int Read([MarshalAs(UnmanagedType.LPWStr)] string propName, ref object var, int errorLog);
+		int Read([MarshalAs(UnmanagedType.LPWStr)] string propName, ref object? var, int errorLog);
 
 		int Write(string propName, ref object var);
 	}
