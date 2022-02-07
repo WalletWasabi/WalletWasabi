@@ -7,19 +7,21 @@ namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 /// waste of user's fund by looking for a selection that minimizes inputs' spending costs
 /// and extra cost of paying more than specified target.
 /// </summary>
-public class CheapestSelectionStrategy : ISearchStrategy
+public class CheapestSelectionStrategy
 {
 	private long _currentInputCosts = 0;
-	private long _bestTargetSoFar = long.MaxValue;
+	private long _bestTargetSoFar;
 	private long[]? _bestSelectionSoFar;
 
 	/// <param name="target">Value in satoshis.</param>
 	/// <param name="inputCosts">Costs of spending coins in satoshis.</param>
-	public CheapestSelectionStrategy(long target, long[] inputValues, long[] inputCosts)
+	public CheapestSelectionStrategy(long target, SuggestionType suggestionType, long[] inputValues, long[] inputCosts)
 	{
 		InputCosts = inputCosts;
 		InputValues = inputValues;
 		Target = target;
+		SuggestionType = suggestionType;
+		_bestTargetSoFar = suggestionType == SuggestionType.More ? long.MaxValue : long.MinValue;
 	}
 
 	/// <summary>Costs corresponding to <see cref="InputValues"/> values.</summary>
@@ -33,6 +35,9 @@ public class CheapestSelectionStrategy : ISearchStrategy
 
 	/// <summary>Gives lowest found value selection whose sum is larger than or equal to <see cref="Target"/>.</summary>
 	public long[]? GetBestSelectionFound() => _bestSelectionSoFar?.Where(x => x > 0).ToArray();
+
+	// <summary>The type of suggestion we want. (Less/More)</summary>
+	private SuggestionType SuggestionType { get; }
 
 	/// <summary>
 	/// Modifies selection sum so that we don't need to recompute it.
@@ -81,29 +86,61 @@ public class CheapestSelectionStrategy : ISearchStrategy
 	{
 		long totalCost = sum + _currentInputCosts;
 
-		if (totalCost > _bestTargetSoFar)
+		if (SuggestionType is SuggestionType.More)
 		{
-			// Our solution is already better than what we might get here.
-			return EvaluationResult.SkipBranch;
-		}
-		else if (sum >= Target)
-		{
-			if (_bestTargetSoFar > totalCost)
+			if (totalCost > _bestTargetSoFar)
 			{
-				_bestSelectionSoFar = selection[0..depth];
-				_bestTargetSoFar = totalCost;
+				// Our solution is already better than what we might get here.
+				return EvaluationResult.SkipBranch;
+			}
+			else if (sum >= Target)
+			{
+				if (_bestTargetSoFar > totalCost)
+				{
+					_bestSelectionSoFar = selection[0..depth];
+					_bestTargetSoFar = totalCost;
+				}
+
+				// Even if a match occurred we cannot be sure that there isn't
+				// a better selection thanks to input costs.
+				return EvaluationResult.SkipBranch;
+			}
+			else if (depth == selection.Length)
+			{
+				// Leaf reached, no match
+				return EvaluationResult.SkipBranch;
 			}
 
-			// Even if a match occurred we cannot be sure that there isn't
-			// a better selection thanks to input costs.
-			return EvaluationResult.SkipBranch;
+			return EvaluationResult.Continue;
 		}
-		else if (depth == selection.Length)
+		else if (SuggestionType is SuggestionType.Less)
 		{
-			// Leaf reached, no match
-			return EvaluationResult.SkipBranch;
-		}
+			if (totalCost > Target)
+			{
+				// Excessive funds, cut the branch.
+				return EvaluationResult.SkipBranch;
+			}
 
-		return EvaluationResult.Continue;
+			if (depth == selection.Length)
+			{
+				// Leaf reached, no match
+				return EvaluationResult.SkipBranch;
+			}
+
+			if (totalCost <= Target)
+			{
+				if (_bestTargetSoFar < totalCost)
+				{
+					_bestSelectionSoFar = selection[0..depth];
+					_bestTargetSoFar = totalCost;
+				}
+			}
+
+			return EvaluationResult.Continue;
+		}
+		else
+		{
+			throw new NotImplementedException("");
+		}
 	}
 }
