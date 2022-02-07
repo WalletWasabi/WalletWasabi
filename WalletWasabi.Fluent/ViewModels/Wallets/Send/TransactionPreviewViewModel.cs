@@ -396,26 +396,29 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		return null;
 	}
 
+	private async Task<bool> NavigateConfirmLabelsDialog(BuildTransactionResult transaction)
+	{
+		return (await NavigateDialogAsync(
+			new ConfirmLabelsDialogViewModel(
+				new PocketSuggestionViewModel(SmartLabel.Merge(
+					transaction.SpentCoins.Select(
+						x => x.GetLabels(_wallet.KeyManager.MinAnonScoreTarget))))),
+			NavigationTarget.CompactDialogScreen)).Result;
+	}
+
 	private async Task InitialiseViewModelAsync()
 	{
 		if (await BuildTransactionAsync() is { } initialTransaction)
 		{
 			UpdateTransaction(CurrentTransactionSummary, initialTransaction);
 
-			var showDialogTask = CurrentTransactionSummary.TransactionHasPockets
-				? NavigateDialogAsync(
-					new ConfirmLabelsDialogViewModel(
-						new PocketSuggestionViewModel(SmartLabel.Merge(initialTransaction.SpentCoins.Select(x => x.GetLabels(_wallet.KeyManager.MinAnonScoreTarget)))))
-					, NavigationTarget.CompactDialogScreen)
-				: Task.FromResult(new DialogResult<bool>(true, DialogResultKind.Normal));
-
-			var buildSuggestionsTask = PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, initialTransaction, _isFixedAmount, _cancellationTokenSource.Token);
-
-			await Task.WhenAll(showDialogTask, buildSuggestionsTask);
-
-			if(!(await showDialogTask).Result)
+			if (CurrentTransactionSummary.TransactionHasPockets && !await NavigateConfirmLabelsDialog(initialTransaction))
 			{
 				await OnChangePocketsAsync();
+			}
+			else
+			{
+				await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, initialTransaction, _isFixedAmount, _cancellationTokenSource.Token);
 			}
 		}
 		else
