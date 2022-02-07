@@ -7,7 +7,6 @@ namespace WalletWasabi.Models;
 public class ServiceConfiguration
 {
 	public ServiceConfiguration(
-
 		EndPoint bitcoinCoreEndPoint,
 		Money dustThreshold)
 	{
