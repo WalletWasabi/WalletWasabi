@@ -1,5 +1,7 @@
 using NBitcoin;
 using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
@@ -124,6 +126,18 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "CoordinatorIdentifier", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public string CoordinatorIdentifier { get; set; } = "CoinJoinCoordinatorIdentifier";
 
+	[DefaultValue(true)]
+	[JsonProperty(PropertyName = "AllowP2wpkhInputs", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool AllowP2wpkhInputs { get; set; } = true;
+
+	[DefaultValue(true)]
+	[JsonProperty(PropertyName = "AllowP2wpkhOutputs", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool AllowP2wpkhOutputs { get; set; } = true;
+
+	public ImmutableSortedSet<ScriptType> AllowedInputScriptTypes => GetScriptTypes(AllowP2wpkhInputs);
+
+	public ImmutableSortedSet<ScriptType> AllowedOutputScriptTypes => GetScriptTypes(AllowP2wpkhOutputs);
+
 	public Script GetNextCleanCoordinatorScript() => DeriveCoordinatorScript(CoordinatorExtPubKeyCurrentDepth);
 
 	public Script DeriveCoordinatorScript(int index) => CoordinatorExtPubKey.Derive(0, false).Derive(index, false).PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
@@ -135,5 +149,19 @@ public class WabiSabiConfig : ConfigBase
 		{
 			ToFile();
 		}
+	}
+
+	private static ImmutableSortedSet<ScriptType> GetScriptTypes(bool p2wpkh)
+	{
+		var scriptTypes = new List<ScriptType>();
+		if (p2wpkh)
+		{
+			scriptTypes.Add(ScriptType.P2WPKH);
+		}
+
+		// When adding new script types, please see
+		// https://github.com/zkSNACKs/WalletWasabi/issues/5440
+
+		return scriptTypes.ToImmutableSortedSet();
 	}
 }
