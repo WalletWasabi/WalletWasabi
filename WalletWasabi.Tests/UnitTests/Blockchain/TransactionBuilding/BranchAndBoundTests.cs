@@ -20,7 +20,7 @@ public class BranchAndBoundTests
 		long target = 27; // Target that we cannot get as a sum of input values.
 
 		BranchAndBound algorithm = new();
-		CheapestSelectionStrategy strategy = new(target, SuggestionType.More, inputValues, inputCosts);
+		CheapestSelectionStrategy strategy = new(SuggestionType.More, target, inputValues, inputCosts);
 		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins);
 
 		Assert.False(wasSuccessful);
@@ -39,7 +39,7 @@ public class BranchAndBoundTests
 		long target = 27;
 
 		BranchAndBound algorithm = new();
-		CheapestSelectionStrategy strategy = new(target, SuggestionType.More, inputValues, inputCosts);
+		CheapestSelectionStrategy strategy = new(SuggestionType.More, target, inputValues, inputCosts);
 		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins);
 
 		Assert.False(wasSuccessful);
@@ -62,7 +62,7 @@ public class BranchAndBoundTests
 		long target = 27; // Target that we cannot get as a sum of input values.
 
 		BranchAndBound algorithm = new();
-		CheapestSelectionStrategy strategy = new(target, SuggestionType.More, inputValues, inputCosts);
+		CheapestSelectionStrategy strategy = new(SuggestionType.More, target, inputValues, inputCosts);
 		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins);
 
 		Assert.False(wasSuccessful);
@@ -85,7 +85,7 @@ public class BranchAndBoundTests
 		long target = 19;
 
 		BranchAndBound algorithm = new();
-		CheapestSelectionStrategy strategy = new(target, SuggestionType.Less, inputValues, inputCosts);
+		CheapestSelectionStrategy strategy = new(SuggestionType.Less, target, inputValues, inputCosts);
 		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins);
 
 		Assert.False(wasSuccessful);

@@ -51,7 +51,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 	{
 		Task<ChangeAvoidanceSuggestionViewModel?> moreSuggestionTask = Task.Run(() =>
 		{
-			if (ChangelessTransactionCoinSelector.TryGetCoins(transactionInfo.Coins, transactionInfo.FeeRate, new TxOut(transactionInfo.Amount, destination), SuggestionType.More, out IEnumerable<SmartCoin>? selection, cancellationToken))
+			if (ChangelessTransactionCoinSelector.TryGetCoins(SuggestionType.More, transactionInfo.Coins, transactionInfo.FeeRate, new TxOut(transactionInfo.Amount, destination), out IEnumerable<SmartCoin>? selection, cancellationToken))
 			{
 				BuildTransactionResult transaction = TransactionHelpers.BuildChangelessTransaction(
 					wallet,
@@ -73,7 +73,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 		Task<ChangeAvoidanceSuggestionViewModel?> lesserSuggestionTask = Task.Run(() =>
 		{
-			if (ChangelessTransactionCoinSelector.TryGetCoins(transactionInfo.Coins, transactionInfo.FeeRate, new TxOut(transactionInfo.Amount, destination), SuggestionType.Less, out IEnumerable<SmartCoin>? selection, cancellationToken))
+			if (ChangelessTransactionCoinSelector.TryGetCoins(SuggestionType.Less, transactionInfo.Coins, transactionInfo.FeeRate, new TxOut(transactionInfo.Amount, destination), out IEnumerable<SmartCoin>? selection, cancellationToken))
 			{
 				BuildTransactionResult transaction = TransactionHelpers.BuildChangelessTransaction(
 					wallet,

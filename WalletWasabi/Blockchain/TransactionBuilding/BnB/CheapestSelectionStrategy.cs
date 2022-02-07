@@ -15,7 +15,7 @@ public class CheapestSelectionStrategy
 
 	/// <param name="target">Value in satoshis.</param>
 	/// <param name="inputCosts">Costs of spending coins in satoshis.</param>
-	public CheapestSelectionStrategy(long target, SuggestionType suggestionType, long[] inputValues, long[] inputCosts)
+	public CheapestSelectionStrategy(SuggestionType suggestionType, long target, long[] inputValues, long[] inputCosts)
 	{
 		InputCosts = inputCosts;
 		InputValues = inputValues;
@@ -36,7 +36,7 @@ public class CheapestSelectionStrategy
 	/// <summary>Gives lowest found value selection whose sum is larger than or equal to <see cref="Target"/>.</summary>
 	public long[]? GetBestSelectionFound() => _bestSelectionSoFar?.Where(x => x > 0).ToArray();
 
-	// <summary>The type of suggestion we want. (Less/More)</summary>
+	// <summary>Suggestion type affecting whether selection sums to a larger or a smaller sum than the target.</summary>
 	private SuggestionType SuggestionType { get; }
 
 	/// <summary>
