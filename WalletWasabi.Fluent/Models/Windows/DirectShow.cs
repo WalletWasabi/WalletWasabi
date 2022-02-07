@@ -5,10 +5,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 
-#pragma warning disable IDE0011 // Add braces
-#pragma warning disable IDE0019 // Use pattern matching
-#pragma warning disable IDE1006 // Naming Styles
-
 namespace WalletWasabi.Fluent.Models.Windows;
 
 public static class DirectShow
@@ -34,8 +30,10 @@ public static class DirectShow
 
 	public static void PlayGraph(IGraphBuilder graph, FILTER_STATE state)
 	{
-		var mediaControl = graph as IMediaControl;
-		if (mediaControl == null) return;
+		if (graph is not IMediaControl mediaControl)
+		{
+			return;
+		}
 
 		switch (state)
 		{
@@ -59,13 +57,13 @@ public static class DirectShow
 
 		EnumMonikers(category, (moniker, prop) =>
 		{
-			object value = null;
-			prop.Read("FriendlyName", ref value, 0);
+			object? value = null;
+			_ = prop.Read("FriendlyName", ref value, 0);
 			var name = (string)value;
 
 			result.Add(name);
 
-			return false; // 継続。
+			return false;
 		});
 
 		return result;
@@ -83,17 +81,21 @@ public static class DirectShow
 		int curr_index = 0;
 		EnumMonikers(category, (moniker, prop) =>
 		{
-			if (index != curr_index++) return false;
-
+			if (index != curr_index++)
 			{
-				Guid guid = DsGuid.IID_IBaseFilter;
-				moniker.BindToObject(null, null, ref guid, out object value);
-				result = value as IBaseFilter;
-				return true;
+				return false;
 			}
+
+			Guid guid = DsGuid.IID_IBaseFilter;
+			moniker.BindToObject(null, null, ref guid, out object value);
+			result = value as IBaseFilter;
+			return true;
 		});
 
-		if (result == null) throw new ArgumentException("can't create filter.");
+		if (result == null)
+		{
+			throw new ArgumentException("can't create filter.");
+		}
 		return result;
 	}
 
@@ -109,8 +111,10 @@ public static class DirectShow
 
 			device.CreateClassEnumerator(ref category, ref enumerator, 0);
 
-			if (enumerator == null) return;
-
+			if (enumerator == null)
+			{
+				return;
+			}
 			var monikers = new IMoniker[1];
 			var fetched = IntPtr.Zero;
 
@@ -125,20 +129,32 @@ public static class DirectShow
 				try
 				{
 					var rc = func(moniker, prop);
-					if (rc == true) break;
+					if (rc == true)
+					{
+						break;
+					}
 				}
 				finally
 				{
 					Marshal.ReleaseComObject(prop);
 
-					if (moniker != null) Marshal.ReleaseComObject(moniker);
+					if (moniker != null)
+					{
+						Marshal.ReleaseComObject(moniker);
+					}
 				}
 			}
 		}
 		finally
 		{
-			if (enumerator != null) Marshal.ReleaseComObject(enumerator);
-			if (device != null) Marshal.ReleaseComObject(device);
+			if (enumerator != null)
+			{
+				Marshal.ReleaseComObject(enumerator);
+			}
+			if (device != null)
+			{
+				Marshal.ReleaseComObject(device);
+			}
 		}
 	}
 
@@ -146,7 +162,10 @@ public static class DirectShow
 	{
 		var result = EnumPins(filter, (info) => { return info.achName == name; });
 
-		if (result == null) throw new ArgumentException("can't fild pin.");
+		if (result == null)
+		{
+			throw new ArgumentException("can't fild pin.");
+		}
 		return result;
 	}
 
@@ -155,12 +174,17 @@ public static class DirectShow
 		int curr_index = 0;
 		var result = EnumPins(filter, (info) =>
 		{
-			if (info.dir != direction) return false;
-
+			if (info.dir != direction)
+			{
+				return false;
+			}
 			return index == curr_index++;
 		});
 
-		if (result == null) throw new ArgumentException("can't fild pin.");
+		if (result == null)
+		{
+			throw new ArgumentException("can't fild pin.");
+		}
 		return result;
 	}
 
@@ -176,29 +200,44 @@ public static class DirectShow
 			int fetched = 0;
 			while (pins.Next(1, ref ipin, ref fetched) == 0)
 			{
-				if (fetched == 0) break;
+				if (fetched == 0)
+				{
+					break;
+				}
 
 				var info = new PIN_INFO();
 				try
 				{
 					ipin.QueryPinInfo(info);
 					var rc = func(info);
-					if (rc) return ipin;
+					if (rc)
+					{
+						return ipin;
+					}
 				}
 				finally
 				{
-					if (info.pFilter != null) Marshal.ReleaseComObject(info.pFilter);
+					if (info.pFilter != null)
+					{
+						Marshal.ReleaseComObject(info.pFilter);
+					}
 				}
 			}
 		}
 		catch
 		{
-			if (ipin != null) Marshal.ReleaseComObject(ipin);
+			if (ipin != null)
+			{
+				Marshal.ReleaseComObject(ipin);
+			}
 			throw;
 		}
 		finally
 		{
-			if (pins != null) Marshal.ReleaseComObject(pins);
+			if (pins != null)
+			{
+				Marshal.ReleaseComObject(pins);
+			}
 		}
 
 		return null;
@@ -214,8 +253,14 @@ public static class DirectShow
 
 	public static void DeleteMediaType(ref AM_MEDIA_TYPE mt)
 	{
-		if (mt.lSampleSize != 0) Marshal.FreeCoTaskMem(mt.pbFormat);
-		if (mt.pUnk != IntPtr.Zero) Marshal.FreeCoTaskMem(mt.pUnk);
+		if (mt.lSampleSize != 0)
+		{
+			Marshal.FreeCoTaskMem(mt.pbFormat);
+		}
+		if (mt.pUnk != IntPtr.Zero)
+		{
+			Marshal.FreeCoTaskMem(mt.pUnk);
+		}
 		mt = null;
 	}
 
@@ -280,10 +325,10 @@ public static class DirectShow
 		int AddSourceFilter([In] string strFilename, [In, Out, MarshalAs(UnmanagedType.IDispatch)]
 				ref object ppUnk);
 
-		int get_FilterCollection([In, Out, MarshalAs(UnmanagedType.IDispatch)]
+		int Get_FilterCollection([In, Out, MarshalAs(UnmanagedType.IDispatch)]
 				ref object ppUnk);
 
-		int get_RegFilterCollection([In, Out, MarshalAs(UnmanagedType.IDispatch)]
+		int Get_RegFilterCollection([In, Out, MarshalAs(UnmanagedType.IDispatch)]
 				ref object ppUnk);
 
 		int StopWhenReady();
@@ -344,24 +389,24 @@ public static class DirectShow
 	 InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 	public interface IAMCameraControl
 	{
-		int GetRange([In] CameraControlProperty Property, [In, Out] ref int pMin, [In, Out] ref int pMax,
+		int GetRange([In] CameraControlProperty property, [In, Out] ref int pMin, [In, Out] ref int pMax,
 			[In, Out] ref int pSteppingDelta, [In, Out] ref int pDefault, [In, Out] ref int pCapsFlag);
 
-		int Set([In] CameraControlProperty Property, [In] int lValue, [In] int Flags);
+		int Set([In] CameraControlProperty property, [In] int lValue, [In] int flags);
 
-		int Get([In] CameraControlProperty Property, [In, Out] ref int lValue, [In, Out] ref int Flags);
+		int Get([In] CameraControlProperty property, [In, Out] ref int lValue, [In, Out] ref int flags);
 	}
 
 	[ComVisible(true), ComImport(), Guid("C6E13360-30AC-11d0-A18C-00A0C9118956"),
 	 InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 	public interface IAMVideoProcAmp
 	{
-		int GetRange([In] VideoProcAmpProperty Property, [In, Out] ref int pMin, [In, Out] ref int pMax,
+		int GetRange([In] VideoProcAmpProperty property, [In, Out] ref int pMin, [In, Out] ref int pMax,
 			[In, Out] ref int pSteppingDelta, [In, Out] ref int pDefault, [In, Out] ref int pCapsFlag);
 
-		int Set([In] VideoProcAmpProperty Property, [In] int lValue, [In] int Flags);
+		int Set([In] VideoProcAmpProperty property, [In] int lValue, [In] int flags);
 
-		int Get([In] VideoProcAmpProperty Property, [In, Out] ref int lValue, [In, Out] ref int Flags);
+		int Get([In] VideoProcAmpProperty property, [In, Out] ref int lValue, [In, Out] ref int flags);
 	}
 
 	[ComVisible(true), ComImport(), Guid("6A2E0670-28E4-11D0-A18C-00A0C9118956"),
@@ -370,17 +415,17 @@ public static class DirectShow
 	{
 		int GetCaps([In] IPin pPin, [Out] out int pCapsFlags);
 
-		int SetMode([In] IPin pPin, [In] int Mode);
+		int SetMode([In] IPin pPin, [In] int mode);
 
-		int GetMode([In] IPin pPin, [Out] out int Mode);
+		int GetMode([In] IPin pPin, [Out] out int mode);
 
-		int GetCurrentActualFrameRate([In] IPin pPin, [Out] out long ActualFrameRate);
+		int GetCurrentActualFrameRate([In] IPin pPin, [Out] out long actualFrameRate);
 
-		int GetMaxAvailableFrameRate([In] IPin pPin, [In] int iIndex, [In] Size Dimensions,
-			[Out] out long MaxAvailableFrameRate);
+		int GetMaxAvailableFrameRate([In] IPin pPin, [In] int iIndex, [In] Size dimensions,
+			[Out] out long maxAvailableFrameRate);
 
-		int GetFrameRateList([In] IPin pPin, [In] int iIndex, [In] Size Dimensions, [Out] out int ListSize,
-			[Out] out IntPtr FrameRates);
+		int GetFrameRateList([In] IPin pPin, [In] int iIndex, [In] Size dimensions, [Out] out int listSize,
+			[Out] out IntPtr frameRates);
 	}
 
 	[ComVisible(true), ComImport(), Guid("56a86895-0ad4-11ce-b03a-0020af0ba770"),
@@ -403,7 +448,7 @@ public static class DirectShow
 
 		int EnumPins([In, Out] ref IEnumPins ppEnum);
 
-		int FindPin([In, MarshalAs(UnmanagedType.LPWStr)] string Id, [In, Out] ref IPin ppPin);
+		int FindPin([In, MarshalAs(UnmanagedType.LPWStr)] string id, [In, Out] ref IPin ppPin);
 
 		int QueryFilterInfo([Out] FILTER_INFO pInfo);
 
@@ -521,7 +566,7 @@ public static class DirectShow
 		int QueryDirection(ref PIN_DIRECTION pPinDir);
 
 		int QueryId([In, Out, MarshalAs(UnmanagedType.LPWStr)]
-				ref string Id);
+				ref string id);
 
 		int QueryAccept([In, MarshalAs(UnmanagedType.LPStruct)]
 				AM_MEDIA_TYPE pmt);
@@ -577,16 +622,16 @@ public static class DirectShow
 	 InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 	public interface IPropertyBag
 	{
-		int Read([MarshalAs(UnmanagedType.LPWStr)] string PropName, ref object Var, int ErrorLog);
+		int Read([MarshalAs(UnmanagedType.LPWStr)] string propName, ref object var, int errorLog);
 
-		int Write(string PropName, ref object Var);
+		int Write(string propName, ref object var);
 	}
 
 	[ComVisible(true), ComImport(), Guid("6B652FFF-11FE-4fce-92AD-0266B5D7C78F"),
 	 InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 	public interface ISampleGrabber
 	{
-		int SetOneShot([In, MarshalAs(UnmanagedType.Bool)] bool OneShot);
+		int SetOneShot([In, MarshalAs(UnmanagedType.Bool)] bool oneShot);
 
 		int SetMediaType([In, MarshalAs(UnmanagedType.LPStruct)]
 				AM_MEDIA_TYPE pmt);
@@ -594,13 +639,13 @@ public static class DirectShow
 		int GetConnectedMediaType([Out, MarshalAs(UnmanagedType.LPStruct)]
 				AM_MEDIA_TYPE pmt);
 
-		int SetBufferSamples([In, MarshalAs(UnmanagedType.Bool)] bool BufferThem);
+		int SetBufferSamples([In, MarshalAs(UnmanagedType.Bool)] bool bufferThem);
 
 		int GetCurrentBuffer(ref int pBufferSize, IntPtr pBuffer);
 
 		int GetCurrentSample(IntPtr ppSample);
 
-		int SetCallback(ISampleGrabberCB pCallback, int WhichMethodToCallback);
+		int SetCallback(ISampleGrabberCB pCallback, int whichMethodToCallback);
 	}
 
 	[ComVisible(true), ComImport(), Guid("0579154A-2B53-4994-B0D0-E773148EFF85"),
@@ -608,16 +653,17 @@ public static class DirectShow
 	public interface ISampleGrabberCB
 	{
 		[PreserveSig()]
-		int SampleCB(double SampleTime, IMediaSample pSample);
+		int SampleCB(double sampleTime, IMediaSample pSample);
 
 		[PreserveSig()]
-		int BufferCB(double SampleTime, IntPtr pBuffer, int BufferLen);
+		int BufferCB(double sampleTime, IntPtr pBuffer, int bufferLen);
 	}
 
 	[Serializable]
 	[StructLayout(LayoutKind.Sequential), ComVisible(false)]
 	public class AM_MEDIA_TYPE
 	{
+#pragma warning disable IDE1006 // Naming Styles
 		public Guid MajorType;
 		public Guid SubType;
 		[MarshalAs(UnmanagedType.Bool)] public bool bFixedSizeSamples;
@@ -634,7 +680,7 @@ public static class DirectShow
 	public class FILTER_INFO
 	{
 		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
-		public string achName;
+		public string? achName;
 
 		[MarshalAs(UnmanagedType.IUnknown)] public object pGraph;
 	}
@@ -764,6 +810,8 @@ public static class DirectShow
 			return $"{{{Left}, {Top}, {Right}, {Bottom}}}";
 		} // for debugging.
 	}
+
+#pragma warning restore IDE1006 // Naming Styles
 
 	[ComVisible(false)]
 	public enum PIN_DIRECTION
@@ -902,7 +950,3 @@ public static class DirectShow
 		}
 	}
 }
-
-#pragma warning restore IDE0019 // Use pattern matching
-#pragma warning restore IDE1006 // Naming Styles
-#pragma warning restore IDE0011 // Add braces
