@@ -18,6 +18,25 @@
                  IsBusy="{Binding IsBusy}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <c:ContentArea.Styles>
+      <Style Selector="Button.faded" >
+        <Style.Animations>
+          <Animation Duration="0:0:0.1" FillMode="Both">
+            <KeyFrame Cue="100%">
+              <Setter Property="Opacity" Value="0.3" />
+            </KeyFrame>
+          </Animation>
+        </Style.Animations>
+      </Style>
+      <Style Selector="Button:not(.faded)">
+        <Style.Animations>
+          <Animation Duration="0:0:0.1" FillMode="Both">
+            <KeyFrame Cue="100%">
+              <Setter Property="Opacity" Value="1" />
+            </KeyFrame>
+          </Animation>
+        </Style.Animations>
+      </Style>
+
       <Style Selector="c|TagControl:disabled">
         <Setter Property="Opacity" Value="0.5" />
       </Style>
