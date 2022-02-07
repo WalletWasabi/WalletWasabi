@@ -8,8 +8,6 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 
 namespace WalletWasabi.Fluent.Models.Windows;
-#pragma warning disable IDE0019 // Use pattern matching
-#pragma warning disable IDE1006 // Naming Styles
 
 public class WindowsCapture
 {
@@ -163,9 +161,9 @@ public class WindowsCapture
 
 	private static Bitmap BufferToBitmap(byte[] buffer, int width, int height, int stride)
 	{
-		const double dpi = 96.0;
+		const double DPI = 96.0;
 
-		var result = new WriteableBitmap(new PixelSize(width, height), new Vector(dpi, dpi),
+		var result = new WriteableBitmap(new PixelSize(width, height), new Vector(DPI, DPI),
 			PixelFormat.Bgra8888, AlphaFormat.Premul);
 
 		var lenght = height * stride;
@@ -189,13 +187,13 @@ public class WindowsCapture
 
 		using (var lockedBitmap = result.Lock())
 		{
-			var _backBufferBytes = height * width * 4;
+			var backBufferBytes = height * width * 4;
 			unsafe
 			{
 				fixed (void* src = &bgraArray[0])
 				{
-					Buffer.MemoryCopy(src, lockedBitmap.Address.ToPointer(), (uint)_backBufferBytes,
-						(uint)_backBufferBytes);
+					Buffer.MemoryCopy(src, lockedBitmap.Address.ToPointer(), (uint)backBufferBytes,
+						(uint)backBufferBytes);
 				}
 			}
 		}
@@ -362,8 +360,7 @@ public class WindowsCapture
 
 	private static void SetVideoOutputFormat(DirectShow.IPin pin, int index, Size size, long timePerFrame)
 	{
-		var config = pin as DirectShow.IAMStreamConfig;
-		if (config == null)
+		if (pin is not DirectShow.IAMStreamConfig config)
 		{
 			throw new InvalidOperationException("no IAMStreamConfig interface.");
 		}
@@ -434,21 +431,20 @@ public class WindowsCapture
 
 	internal class PropertyItems
 	{
-		private readonly Dictionary<DirectShow.CameraControlProperty, Property> CameraControl;
+		private readonly Dictionary<DirectShow.CameraControlProperty, Property> _cameraControl;
 
-		private readonly Dictionary<DirectShow.VideoProcAmpProperty, Property> VideoProcAmp;
+		private readonly Dictionary<DirectShow.VideoProcAmpProperty, Property> _videoProcAmp;
 
 		public PropertyItems(DirectShow.IBaseFilter vcap_source)
 		{
-			CameraControl = Enum.GetValues(typeof(DirectShow.CameraControlProperty))
+			_cameraControl = Enum.GetValues(typeof(DirectShow.CameraControlProperty))
 				.Cast<DirectShow.CameraControlProperty>()
 				.Select(item =>
 				{
 					Property prop = null;
 					try
 					{
-						var cam_ctrl = vcap_source as DirectShow.IAMCameraControl;
-						if (cam_ctrl == null)
+						if (vcap_source is not DirectShow.IAMCameraControl cam_ctrl)
 						{
 							throw new NotSupportedException("no IAMCameraControl Interface.");
 						}
@@ -475,15 +471,14 @@ public class WindowsCapture
 					return new { Key = item, Value = prop };
 				}).ToDictionary(x => x.Key, x => x.Value);
 
-			VideoProcAmp = Enum.GetValues(typeof(DirectShow.VideoProcAmpProperty))
+			_videoProcAmp = Enum.GetValues(typeof(DirectShow.VideoProcAmpProperty))
 				.Cast<DirectShow.VideoProcAmpProperty>()
 				.Select(item =>
 				{
 					Property prop = null;
 					try
 					{
-						var vid_ctrl = vcap_source as DirectShow.IAMVideoProcAmp;
-						if (vid_ctrl == null)
+						if (vcap_source is not DirectShow.IAMVideoProcAmp vid_ctrl)
 						{
 							throw new NotSupportedException("no IAMVideoProcAmp Interface.");
 						}
@@ -511,9 +506,9 @@ public class WindowsCapture
 				}).ToDictionary(x => x.Key, x => x.Value);
 		}
 
-		public Property this[DirectShow.CameraControlProperty item] => CameraControl[item];
+		public Property this[DirectShow.CameraControlProperty item] => _cameraControl[item];
 
-		public Property this[DirectShow.VideoProcAmpProperty item] => VideoProcAmp[item];
+		public Property this[DirectShow.VideoProcAmpProperty item] => _videoProcAmp[item];
 
 		public class Property
 		{
@@ -557,25 +552,25 @@ public class WindowsCapture
 
 	private class SampleGrabberCallback : DirectShow.ISampleGrabberCB
 	{
-		private byte[] Buffer;
-		private readonly object BufferLock = new();
+		private byte[]? _buffer;
+		private readonly object _bufferLock = new();
 
-		public int BufferCB(double SampleTime, IntPtr pBuffer, int BufferLen)
+		public int BufferCB(double sampleTime, IntPtr pBuffer, int bufferLen)
 		{
-			if (Buffer == null || Buffer.Length != BufferLen)
+			if (_buffer == null || _buffer.Length != bufferLen)
 			{
-				Buffer = new byte[BufferLen];
+				_buffer = new byte[bufferLen];
 			}
 
-			lock (BufferLock)
+			lock (_bufferLock)
 			{
-				Marshal.Copy(pBuffer, Buffer, 0, BufferLen);
+				Marshal.Copy(pBuffer, _buffer, 0, bufferLen);
 			}
 
 			return 0;
 		}
 
-		public int SampleCB(double SampleTime, DirectShow.IMediaSample pSample)
+		public int SampleCB(double sampleTime, DirectShow.IMediaSample pSample)
 		{
 			return 0;
 			//throw new NotImplementedException();
@@ -584,14 +579,14 @@ public class WindowsCapture
 		public Bitmap
 			GetBitmap(int width, int height, int stride)
 		{
-			if (Buffer == null)
+			if (_buffer == null)
 			{
 				return EmptyBitmap(width, height);
 			}
 
-			lock (BufferLock)
+			lock (_bufferLock)
 			{
-				return BufferToBitmap(Buffer, width, height, stride);
+				return BufferToBitmap(_buffer, width, height, stride);
 			}
 		}
 	}
@@ -599,6 +594,8 @@ public class WindowsCapture
 	[StructLayout(LayoutKind.Explicit)]
 	public readonly struct BgraColor
 	{
+#pragma warning disable IDE1006 // Naming Styles
+
 		[FieldOffset(3)] public readonly byte A;
 
 		[FieldOffset(2)] public readonly byte R;
@@ -606,6 +603,7 @@ public class WindowsCapture
 		[FieldOffset(1)] public readonly byte G;
 
 		[FieldOffset(0)] public readonly byte B;
+#pragma warning restore IDE1006 // Naming Styles
 
 		public BgraColor(byte r, byte g, byte b, byte a = byte.MaxValue)
 		{
@@ -618,8 +616,8 @@ public class WindowsCapture
 
 	public class VideoFormat
 	{
-		public string MajorType { get; set; }
-		public string SubType { get; set; }
+		public string? MajorType { get; set; }
+		public string? SubType { get; set; }
 		public Size Size { get; set; }
 		public long TimePerFrame { get; set; }
 		public DirectShow.VIDEO_STREAM_CONFIG_CAPS Caps { get; set; }
