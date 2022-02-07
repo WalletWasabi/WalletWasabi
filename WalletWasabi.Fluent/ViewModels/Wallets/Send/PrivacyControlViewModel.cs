@@ -1,13 +1,11 @@
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
-using DynamicData;
-using DynamicData.Aggregation;
-using NBitcoin;
+using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Wallets;
 
@@ -19,56 +17,36 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 	private readonly Wallet _wallet;
 	private readonly TransactionInfo _transactionInfo;
 	private readonly bool _isSilent;
-	private readonly SourceList<PocketViewModel> _pocketSource;
-	private readonly ReadOnlyObservableCollection<PocketViewModel> _pockets;
-	private readonly IObservableList<PocketViewModel> _selectedPockets;
+	private readonly IEnumerable<SmartCoin>? _usedCoins;
 
-	[AutoNotify] private decimal _stillNeeded;
-	[AutoNotify] private bool _enoughSelected;
-	[AutoNotify] private bool _isWarningOpen;
-
-	public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, bool isSilent)
+	public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, IEnumerable<SmartCoin>? usedCoins, bool isSilent)
 	{
 		_wallet = wallet;
 		_transactionInfo = transactionInfo;
 		_isSilent = isSilent;
+		_usedCoins = usedCoins;
 
-		_pocketSource = new SourceList<PocketViewModel>();
-
-		_pocketSource.Connect()
-			.Bind(out _pockets)
-			.Subscribe();
-
-		var selected = _pocketSource.Connect()
-			.AutoRefresh()
-			.Filter(x => x.IsSelected);
-
-		_selectedPockets = selected.AsObservableList();
-
-		selected.Sum(x => x.TotalBtc)
-			.Subscribe(x =>
-			{
-				IsWarningOpen = _selectedPockets.Count > 1 && _selectedPockets.Items.Any(x => x.Labels == CoinPocketHelper.PrivateFundsText);
-
-				StillNeeded = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC) - x;
-				EnoughSelected = StillNeeded <= 0;
-			});
-
-		StillNeeded = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC);
+		LabelSelection = new LabelSelectionViewModel(_transactionInfo.Amount);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
 
-		NextCommand = ReactiveCommand.Create(Complete, this.WhenAnyValue(x => x.EnoughSelected));
-
-		EnableAutoBusyOn(NextCommand);
+		NextCommand = ReactiveCommand.Create(() => Complete(LabelSelection.GetUsedPockets()), LabelSelection.WhenAnyValue(x => x.EnoughSelected));
 	}
 
-	public ReadOnlyObservableCollection<PocketViewModel> Pockets => _pockets;
+	public LabelSelectionViewModel LabelSelection { get; }
 
-	private void Complete()
+	private void Complete(IEnumerable<Pocket> pockets)
 	{
-		Close(DialogResultKind.Normal, _selectedPockets.Items.SelectMany(x => x.Coins).ToArray());
+		var coins = pockets.SelectMany(x => x.Coins);
+
+		Close(DialogResultKind.Normal, coins);
+	}
+
+	private void InitializeLabels()
+	{
+		LabelSelection.Reset(_wallet.Coins.GetPockets(_wallet.KeyManager.MinAnonScoreTarget).Select(x => new Pocket(x)).ToArray());
+		LabelSelection.SetUsedLabel(_usedCoins);
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -77,28 +55,32 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 		if (!isInHistory)
 		{
-			var pockets = _wallet.Coins.GetPockets(_wallet.KeyManager.MinAnonScoreTarget).Select(x => new PocketViewModel(x));
-
-			_pocketSource.AddRange(pockets);
+			InitializeLabels();
 		}
 
-		foreach (var pocket in _pockets)
-		{
-			pocket.IsSelected = false;
-		}
+		Observable
+			.FromEventPattern(_wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(_ => InitializeLabels())
+			.DisposeWith(disposables);
 
-		if (_pocketSource.Count == 1)
+		if (_isSilent)
 		{
-			_pocketSource.Items.First().IsSelected = true;
+			var usedPockets = LabelSelection.GetAllPockets();
 
-			Complete();
-		}
-		else if (_isSilent &&
-				 _pocketSource.Items.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText) is { } privatePocket &&
-				 privatePocket.Coins.TotalAmount() >= _transactionInfo.Amount)
-		{
-			privatePocket.IsSelected = true;
-			Complete();
+			if (usedPockets.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText) is { } privatePocket &&
+			    privatePocket.Amount >= _transactionInfo.Amount)
+			{
+				Complete(usedPockets.Where(x => x.Labels == CoinPocketHelper.PrivateFundsText));
+			}
+			else if (usedPockets.Where(x => x.Labels != CoinPocketHelper.PrivateFundsText).Sum(x => x.Amount) >= _transactionInfo.Amount)
+			{
+				Complete(usedPockets.Where(x => x.Labels != CoinPocketHelper.PrivateFundsText));
+			}
+			else
+			{
+				Complete(usedPockets);
+			}
 		}
 	}
 }
