@@ -23,7 +23,7 @@ public class WindowsCapture
 		var camera_list = FindDevices();
 		if (cameraIndex >= camera_list.Length)
 		{
-			throw new ArgumentException("USB camera is not available.", "cameraIndex");
+			throw new ArgumentException("USB camera is not available.", nameof(cameraIndex));
 		}
 
 		Init(cameraIndex, format);
@@ -129,7 +129,7 @@ public class WindowsCapture
 		}
 	}
 
-	private Bitmap
+	private Bitmap?
 		GetBitmapFromSampleGrabberBufferMain(ISampleGrabber i_grabber, int width, int height, int stride)
 	{
 		var sz = 0;
@@ -206,15 +206,15 @@ public class WindowsCapture
 			AlphaFormat.Opaque);
 	}
 
-	private IBaseFilter CreateSampleGrabber()
+	private IBaseFilter? CreateSampleGrabber()
 	{
 		var filter = CreateFilter(DsGuid.CLSID_SampleGrabber);
-		var ismp = filter as ISampleGrabber;
+		ISampleGrabber? ismp = filter as ISampleGrabber;
 
 		var mt = new AM_MEDIA_TYPE();
 		mt.MajorType = DsGuid.MEDIATYPE_Video;
 		mt.SubType = DsGuid.MEDIASUBTYPE_RGB24;
-		ismp.SetMediaType(mt);
+		ismp?.SetMediaType(mt);
 		return filter;
 	}
 
@@ -327,7 +327,7 @@ public class WindowsCapture
 		{
 			var entry = new VideoFormat();
 
-			AM_MEDIA_TYPE mt = null;
+			AM_MEDIA_TYPE? mt = null;
 			config.GetStreamCaps(i, ref mt, cap_data);
 			entry.Caps = PtrToStructure<VIDEO_STREAM_CONFIG_CAPS>(cap_data);
 
@@ -373,11 +373,11 @@ public class WindowsCapture
 
 		var cap_data = Marshal.AllocHGlobal(cap_size);
 
-		AM_MEDIA_TYPE mt = null;
+		AM_MEDIA_TYPE? mt = null;
 		config.GetStreamCaps(index, ref mt, cap_data);
-		var cap = PtrToStructure<VIDEO_STREAM_CONFIG_CAPS>(cap_data);
+		_ = PtrToStructure<VIDEO_STREAM_CONFIG_CAPS>(cap_data);
 
-		if (mt.FormatType == DsGuid.FORMAT_VideoInfo)
+		if (mt?.FormatType == DsGuid.FORMAT_VideoInfo)
 		{
 			var vinfo = PtrToStructure<VIDEOINFOHEADER>(mt.pbFormat);
 			if (!size.IsDefault)
@@ -393,7 +393,7 @@ public class WindowsCapture
 
 			Marshal.StructureToPtr(vinfo, mt.pbFormat, true);
 		}
-		else if (mt.FormatType == DsGuid.FORMAT_VideoInfo2)
+		else if (mt?.FormatType == DsGuid.FORMAT_VideoInfo2)
 		{
 			var vinfo = PtrToStructure<VIDEOINFOHEADER2>(mt.pbFormat);
 			if (!size.IsDefault)
@@ -423,10 +423,7 @@ public class WindowsCapture
 		}
 	}
 
-	private static T PtrToStructure<T>(IntPtr ptr)
-	{
-		return (T)Marshal.PtrToStructure(ptr, typeof(T));
-	}
+	private static T? PtrToStructure<T>(IntPtr ptr) => (T)Marshal.PtrToStructure(ptr, typeof(T));
 
 	internal class PropertyItems
 	{
@@ -440,7 +437,7 @@ public class WindowsCapture
 				.Cast<CameraControlProperty>()
 				.Select(item =>
 				{
-					Property prop = null;
+					Property? prop = null;
 					try
 					{
 						if (vcap_source is not IAMCameraControl cam_ctrl)
@@ -474,7 +471,7 @@ public class WindowsCapture
 				.Cast<VideoProcAmpProperty>()
 				.Select(item =>
 				{
-					Property prop = null;
+					Property? prop = null;
 					try
 					{
 						if (vcap_source is not IAMVideoProcAmp vid_ctrl)
@@ -537,7 +534,7 @@ public class WindowsCapture
 			public int Default { get; }
 			public CameraControlFlags Flags { get; }
 			public Action<CameraControlFlags, int> SetValue { get; }
-			public Func<int> GetValue { get; }
+			public Func<int>? GetValue { get; }
 			public bool Available { get; }
 			public bool CanAuto { get; }
 

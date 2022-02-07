@@ -479,7 +479,7 @@ public static class DirectShow
 	public interface IAMStreamConfig
 	{
 		int SetFormat([In, MarshalAs(UnmanagedType.LPStruct)]
-				AM_MEDIA_TYPE pmt);
+				AM_MEDIA_TYPE? pmt);
 
 		int GetFormat([In, Out, MarshalAs(UnmanagedType.LPStruct)]
 				ref AM_MEDIA_TYPE ppmt);
@@ -487,7 +487,7 @@ public static class DirectShow
 		int GetNumberOfCapabilities(ref int piCount, ref int piSize);
 
 		int GetStreamCaps(int iIndex, [In, Out, MarshalAs(UnmanagedType.LPStruct)]
-				ref AM_MEDIA_TYPE ppmt, IntPtr pSCC);
+				ref AM_MEDIA_TYPE? ppmt, IntPtr pSCC);
 	}
 
 	[ComVisible(true), ComImport(), Guid("56a8689a-0ad4-11ce-b03a-0020af0ba770"),
