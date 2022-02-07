@@ -271,7 +271,7 @@ public static class DirectShow
 	 InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 	public interface IFilterGraph
 	{
-		int AddFilter([In] IBaseFilter pFilter, [In, MarshalAs(UnmanagedType.LPWStr)] string pName);
+		int AddFilter([In] IBaseFilter? pFilter, [In, MarshalAs(UnmanagedType.LPWStr)] string pName);
 
 		int RemoveFilter([In] IBaseFilter pFilter);
 

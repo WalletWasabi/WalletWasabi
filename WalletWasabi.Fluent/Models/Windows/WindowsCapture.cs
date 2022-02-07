@@ -68,19 +68,17 @@ public class WindowsCapture
 		var renderer = CoCreateInstance(DsGuid.CLSID_NullRenderer) as IBaseFilter;
 		graph.AddFilter(renderer, "NullRenderer");
 
-		var builder =
+		ICaptureGraphBuilder2? builder =
 			CoCreateInstance(DsGuid.CLSID_CaptureGraphBuilder2) as
 				ICaptureGraphBuilder2;
-		builder.SetFiltergraph(graph);
+		builder?.SetFiltergraph(graph);
 		var pinCategory = DsGuid.PIN_CATEGORY_CAPTURE;
 		var mediaType = DsGuid.MEDIATYPE_Video;
-		builder.RenderStream(ref pinCategory, ref mediaType, vcap_source, grabber, renderer);
+		builder?.RenderStream(ref pinCategory, ref mediaType, vcap_source, grabber, renderer);
 
 		var mt = new AM_MEDIA_TYPE();
 		i_grabber.GetConnectedMediaType(mt);
-		var header =
-			(VIDEOINFOHEADER)Marshal.PtrToStructure(mt.pbFormat,
-				typeof(VIDEOINFOHEADER));
+		VIDEOINFOHEADER header = (VIDEOINFOHEADER)Marshal.PtrToStructure(mt.pbFormat, typeof(VIDEOINFOHEADER));
 		var width = header.bmiHeader.biWidth;
 		var height = header.bmiHeader.biHeight;
 		var stride = width * (header.bmiHeader.biBitCount / 8);
