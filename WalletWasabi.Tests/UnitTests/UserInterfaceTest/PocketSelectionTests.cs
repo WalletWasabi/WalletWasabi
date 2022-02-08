@@ -459,6 +459,26 @@ public class PocketSelectionTests
 
 		Assert.False(selection.EnoughSelected);
 	}
+
+	[Fact]
+	public void NotEnoughSelectedWhenSameLabelFoundInSeveralPocket()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(0.4M, out var pocket1, "Dan");
+		pockets.AddPocket(2.0M, out var pocket2, "Dan", "David");
+
+		selection.Reset(pockets.ToArray());
+
+		selection.SwapLabel(selection.GetLabel("Dan"));
+		selection.SwapLabel(selection.GetLabel("Dan"));
+
+		Assert.DoesNotContain(selection.GetLabel("Dan"), selection.LabelsBlackList);
+		Assert.DoesNotContain(selection.GetLabel("David"), selection.LabelsWhiteList);
+
+		Assert.False(selection.EnoughSelected);
+	}
 }
 
 internal static class LabelTestExtensions
