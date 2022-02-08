@@ -603,7 +603,7 @@ public partial class LineChart : Control
 		}
 
 		if (state.AreaWidth <= 0
-			|| state.AreaHeight <= 00
+			|| state.AreaHeight <= 0
 			|| state.AreaWidth < XAxisMinViableWidth
 			|| state.AreaHeight < XAxisMinViableHeight)
 		{
