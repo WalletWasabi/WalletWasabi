@@ -58,6 +58,16 @@
           </Border>
 
           <ScrollViewer Margin="15,10,15,10">
+            <ScrollViewer.Styles>
+              <Style Selector="c|TagControl.highlighted">
+                <Setter Property="Foreground" Value="{DynamicResource PrivacyControlItemWhiteListHighlight}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource PrivacyControlItemWhiteListHighlight}" />
+              </Style>
+              <Style Selector="c|TagControl.highlighted.dangerous">
+                <Setter Property="Foreground" Value="{DynamicResource WarningMessageForeground}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource WarningMessageForeground}" />
+              </Style>
+              </ScrollViewer.Styles>
             <ItemsControl Items="{Binding LabelsWhiteList}">
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
@@ -70,22 +80,11 @@
                     <i:Interaction.Behaviors>
                       <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
                     </i:Interaction.Behaviors>
-                    <c:TagControl Content="{Binding Value}" IsHitTestVisible="False" Background="{DynamicResource PrivacyControlItemBackground}">
-                      <c:TagControl.Foreground>
-                        <Binding Path="IsHighlighted">
-                          <Binding.Converter>
-                            <converters:BoolToBrushConverter TrueBrush="{DynamicResource PrivacyControlItemWhiteListHighlight}" />
-                          </Binding.Converter>
-                        </Binding>
-                      </c:TagControl.Foreground>
-                      <c:TagControl.BorderBrush>
-                        <Binding Path="IsHighlighted">
-                          <Binding.Converter>
-                            <converters:BoolToBrushConverter TrueBrush="{DynamicResource PrivacyControlItemWhiteListHighlight}" />
-                          </Binding.Converter>
-                        </Binding>
-                      </c:TagControl.BorderBrush>
-                    </c:TagControl>
+                    <c:TagControl Classes.highlighted="{Binding IsHighlighted}"
+                                  Classes.dangerous="{Binding IsDangerous}"
+                                  Content="{Binding Value}"
+                                  IsHitTestVisible="False"
+                                  Background="{DynamicResource PrivacyControlItemBackground}" />
                   </Button>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
@@ -109,6 +108,16 @@
           </Border>
 
           <ScrollViewer Margin="15,10,15,10">
+            <ScrollViewer.Styles>
+              <Style Selector="c|TagControl.highlighted">
+                <Setter Property="Foreground" Value="{DynamicResource PrivacyControlItemBlackListHighlight}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource PrivacyControlItemBlackListHighlight}" />
+              </Style>
+              <Style Selector="c|TagControl.highlighted.dangerous">
+                <Setter Property="Foreground" Value="{DynamicResource WarningMessageForeground}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource WarningMessageForeground}" />
+              </Style>
+            </ScrollViewer.Styles>
             <ItemsControl Items="{Binding LabelsBlackList}">
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
@@ -121,22 +130,12 @@
                     <i:Interaction.Behaviors>
                       <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
                     </i:Interaction.Behaviors>
-                    <c:TagControl Content="{Binding Value}" IsHitTestVisible="False" Background="{DynamicResource PrivacyControlItemBackground}">
-                      <c:TagControl.Foreground>
-                        <Binding Path="IsHighlighted">
-                          <Binding.Converter>
-                            <converters:BoolToBrushConverter TrueBrush="{DynamicResource PrivacyControlItemBlackListHighlight}" />
-                          </Binding.Converter>
-                        </Binding>
-                      </c:TagControl.Foreground>
-                      <c:TagControl.BorderBrush>
-                        <Binding Path="IsHighlighted">
-                          <Binding.Converter>
-                            <converters:BoolToBrushConverter TrueBrush="{DynamicResource PrivacyControlItemBlackListHighlight}" />
-                          </Binding.Converter>
-                        </Binding>
-                      </c:TagControl.BorderBrush>
-                    </c:TagControl>
+                    <c:TagControl
+                      Classes.highlighted="{Binding IsHighlighted}"
+                      Classes.dangerous="{Binding IsDangerous}"
+                      Content="{Binding Value}"
+                      IsHitTestVisible="False"
+                      Background="{DynamicResource PrivacyControlItemBackground}" />
                   </Button>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
