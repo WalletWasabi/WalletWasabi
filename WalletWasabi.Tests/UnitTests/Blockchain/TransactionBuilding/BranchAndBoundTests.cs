@@ -82,7 +82,7 @@ public class BranchAndBoundTests
 		long[] inputValues = new long[] { 35, 17, 10, 5, 3, 2 };
 		long[] inputCosts = new long[] { 0, 0, 0, 0, 0, 0 };
 
-		long target = 19;
+		long target = 26;
 
 		BranchAndBound algorithm = new();
 		CheapestSelectionStrategy strategy = new(SuggestionType.Less, target, inputValues, inputCosts);
@@ -94,7 +94,7 @@ public class BranchAndBoundTests
 		long[] actualSelection = strategy.GetBestSelectionFound()!;
 		Assert.NotNull(actualSelection);
 
-		// Target 19, closest match is 18. (10, 5, 3)
-		Assert.Equal(new long[] { 10, 5, 3 }, actualSelection);
+		// Target 26, closest match is 25. (17, 5, 3)
+		Assert.Equal(new long[] { 17, 5, 3 }, actualSelection);
 	}
 }
