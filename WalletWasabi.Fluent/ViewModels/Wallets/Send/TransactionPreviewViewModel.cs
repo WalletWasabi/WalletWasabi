@@ -416,10 +416,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			{
 				await OnChangePocketsAsync();
 			}
-			else
-			{
-				await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, initialTransaction, _isFixedAmount, _cancellationTokenSource.Token);
-			}
+
+			await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, initialTransaction, _isFixedAmount, _cancellationTokenSource.Token);
 		}
 		else
 		{
