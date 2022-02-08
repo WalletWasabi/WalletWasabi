@@ -465,7 +465,7 @@ internal static class LabelTestExtensions
 {
 	public static LabelViewModel GetLabel(this LabelSelectionViewModel selection, string label)
 	{
-		return selection.AllLabelViewModel.Single(x => x.Value == label);
+		return selection.AllLabelsViewModel.Single(x => x.Value == label);
 	}
 
 	public static void AddPocket(this List<Pocket> pockets, decimal amount, out Pocket pocket, params string[] labels)
