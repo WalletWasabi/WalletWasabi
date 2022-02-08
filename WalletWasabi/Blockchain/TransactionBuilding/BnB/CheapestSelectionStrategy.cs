@@ -130,12 +130,6 @@ public class CheapestSelectionStrategy
 				return EvaluationResult.SkipBranch;
 			}
 
-			if (depth == selection.Length)
-			{
-				// Leaf reached, no match
-				return EvaluationResult.SkipBranch;
-			}
-
 			if (sum + _remainingAmount < _bestTargetSoFar)
 			{
 				// The remaining coins cannot sum up to our solution, so cut the branch.
@@ -146,6 +140,12 @@ public class CheapestSelectionStrategy
 			{
 				_bestSelectionSoFar = selection[0..depth];
 				_bestTargetSoFar = totalCost;
+			}
+
+			if (depth == selection.Length)
+			{
+				// Leaf reached, no match
+				return EvaluationResult.SkipBranch;
 			}
 
 			return EvaluationResult.Continue;
