@@ -167,7 +167,10 @@ public partial class MainViewModel : ViewModelBase
 
 		if (Services.HostedServices.GetOrDefault<CoinJoinManager>() is { } coinJoinManager)
 		{
-			IsCoinJoinActive = coinJoinManager.HighestCoinJoinClientState != CoinJoinClientState.Idle;
+			coinJoinManager.WalletStatusChanged += (sender, args) =>
+			{
+				IsCoinJoinActive = coinJoinManager.HighestCoinJoinClientState != CoinJoinClientState.Idle;
+			};
 		}
 
 		if (Services.Config.Network != Network.Main)
