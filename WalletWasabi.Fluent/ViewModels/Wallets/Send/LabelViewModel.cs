@@ -36,6 +36,8 @@ public partial class LabelViewModel : ViewModelBase
 		_toolTip = label;
 	}
 
+	public  bool IsDangerous { get; set; }
+
 	public string Value { get; }
 
 	public ICommand ClickedCommand { get; }
