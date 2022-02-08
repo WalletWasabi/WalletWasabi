@@ -51,6 +51,16 @@ public class CoinJoinManager : BackgroundService
 		}
 	}
 
+	public bool IsWalletCoinJoining(Wallet wallet)
+	{
+		if (TrackedCoinJoins.ContainsKey(wallet.WalletName))
+		{
+			return true;
+		}
+
+		return false;
+	}
+
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
 		if (WalletManager.Network == Network.Main)
