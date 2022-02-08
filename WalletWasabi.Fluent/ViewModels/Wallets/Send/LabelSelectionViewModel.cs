@@ -85,7 +85,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 
 	public void OnFade(LabelViewModel source)
 	{
-		foreach (var lvm in source.IsBlackListed? LabelsBlackList : LabelsWhiteList)
+		foreach (var lvm in source.IsBlackListed ? LabelsBlackList : LabelsWhiteList)
 		{
 			if (!lvm.IsHighlighted)
 			{
@@ -118,7 +118,10 @@ public partial class LabelSelectionViewModel : ViewModelBase
 
 	private void OnSelectionChanged()
 	{
-		Money sumOfWhiteList = AllPocket.Where(x => x.Labels.All(y => LabelsWhiteList.Any(z => y == z.Value))).Sum(x => x.Amount);
+		Money sumOfWhiteList =
+			AllPocket
+				.Where(pocket => pocket.Labels.All(pocketLabel => LabelsWhiteList.Any(labelViewModel => pocketLabel == labelViewModel.Value)))
+				.Sum(x => x.Amount);
 
 		if (sumOfWhiteList >= _targetAmount)
 		{
