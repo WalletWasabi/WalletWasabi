@@ -4,18 +4,31 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.MusicControlsView">
-  <Border Padding="20 10" CornerRadius="4" BorderThickness="1" Background="#19FFFFFF" BorderBrush="#3CFFFFFF" Height="48">
+  <UserControl.Styles>
+    <Style Selector="TextBlock">
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+  </UserControl.Styles>
+  <Border
+    TextBlock.FontFamily="{StaticResource MonospacedFont}"
+    Padding="20 10" CornerRadius="4 4 0 0" BorderThickness="1 1 1 0" Background="#19FFFFFF" BorderBrush="#3CFFFFFF">
     <StackPanel Orientation="Horizontal" Spacing="20">
-      <TextBlock Text="Round in progress: 2m 15s remaining" VerticalAlignment="Center" />
+      <TextBlock Text="Round in progress" />
+
       <Separator Classes="vertical" />
+
+      <ProgressBar Minimum="0" Maximum="100" Value="89" Foreground="White" />
+
+      <TextBlock Text="09:59" />
+
+      <Separator Classes="vertical" />
+
       <Button Classes="plain">
         <PathIcon Data="{StaticResource pause_regular}" />
       </Button>
       <Button Classes="plain">
         <PathIcon Data="{StaticResource stop_regular}" />
       </Button>
-      <Separator Classes="vertical" />
-      <ProgressBar Minimum="0" Maximum="100" Value="33" />
     </StackPanel>
   </Border>
 </UserControl>
