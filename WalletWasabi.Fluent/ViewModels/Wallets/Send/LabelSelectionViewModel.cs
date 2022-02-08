@@ -132,7 +132,10 @@ public partial class LabelSelectionViewModel : ViewModelBase
 
 	private void OnSelectionChanged()
 	{
-		Money sumOfWhiteList = AllPockets.Where(x => LabelsWhiteList.Any(y => x.Labels.Contains(y.Value))).Sum(x => x.Amount);
+		Money sumOfWhiteList =
+			AllPockets
+				.Where(pocket => pocket.Labels.All(pocketLabel => LabelsWhiteList.Any(labelViewModel => pocketLabel == labelViewModel.Value)))
+				.Sum(x => x.Amount);
 
 		if (sumOfWhiteList >= _targetAmount)
 		{
