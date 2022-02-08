@@ -27,6 +27,8 @@ public class WabiSabiCoordinator : BackgroundService
 
 		var inMemoryCoinJoinIdStore = InMemoryCoinJoinIdStore.LoadFromFile(parameters.CoinJoinIdStoreFilePath);
 
+		CoinJoinFeeRateStatistics = CoinJoinFeeRateStatistics.LoadFromCoinJoinTransactionArchiver(transactionArchiver);
+
 		Arena = new(parameters.RoundProgressSteppingPeriod, rpc.Network, Config, rpc, Warden.Prison, inMemoryCoinJoinIdStore, transactionArchiver);
 		Arena.CoinJoinBroadcast += Arena_CoinJoinBroadcast;
 	}
@@ -35,18 +37,21 @@ public class WabiSabiCoordinator : BackgroundService
 	public Warden Warden { get; }
 
 	public CoordinatorParameters Parameters { get; }
+	public CoinJoinFeeRateStatistics CoinJoinFeeRateStatistics { get; }
 	public Arena Arena { get; }
 
 	public WabiSabiConfig Config => Parameters.RuntimeCoordinatorConfig;
 
-	private void Arena_CoinJoinBroadcast(object? sender, Transaction e)
+	private void Arena_CoinJoinBroadcast(object? sender, (Transaction transaction, FeeRate feeRate) e)
 	{
 		if (!File.Exists(Parameters.CoinJoinIdStoreFilePath))
 		{
 			IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinIdStoreFilePath);
 		}
 
-		File.AppendAllLines(Parameters.CoinJoinIdStoreFilePath, new[] { e.GetHash().ToString() });
+		File.AppendAllLines(Parameters.CoinJoinIdStoreFilePath, new[] { e.transaction.GetHash().ToString() });
+
+		CoinJoinFeeRateStatistics.Add(e.feeRate);
 	}
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)

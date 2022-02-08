@@ -53,7 +53,7 @@ public class CoinJoinTransactionArchiver
 		return filePath;
 	}
 
-	public async IAsyncEnumerable<TransactionInfo> ReadJsonAsync(DateTimeOffset from, DateTimeOffset to, [EnumeratorCancellation] CancellationToken cancellationToken)
+	public IEnumerable<TransactionInfo> ReadJson(DateTimeOffset from, DateTimeOffset to)
 	{
 		if (to < from)
 		{
@@ -72,23 +72,21 @@ public class CoinJoinTransactionArchiver
 			}
 			dirsToRead.Add(Path.Combine(BaseStoragePath, $"{date:yyyy-MM}"));
 			monthOffset++;
-
-			cancellationToken.ThrowIfCancellationRequested();
 		}
 		while (true);
 
-		foreach (var montlyCoinJoinDirectory in dirsToRead.Select(d => new DirectoryInfo(d)))
+		foreach (var montlyCoinJoinDirectory in dirsToRead.Select(d => new DirectoryInfo(d)).Where(di => di.Exists))
 		{
 			foreach (var file in montlyCoinJoinDirectory.GetFiles("*.json"))
 			{
-				var json = await File.ReadAllTextAsync(file.FullName, cancellationToken).ConfigureAwait(false);
+				var json = File.ReadAllText(file.FullName);
 				TransactionInfo? ti = JsonSerializer.Deserialize<TransactionInfo>(json, Options);
 				if (ti is null)
 				{
 					continue;
 				}
 
-				var txTime = DateTimeOffset.FromUnixTimeSeconds(ti.Created);
+				var txTime = DateTimeOffset.FromUnixTimeMilliseconds(ti.Created);
 				if (txTime < from && txTime > to)
 				{
 					continue;
