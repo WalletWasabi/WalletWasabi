@@ -14,6 +14,7 @@ using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.OpenDirectory;
 using WalletWasabi.Logging;
 using WalletWasabi.Fluent.ViewModels.StatusBar;
+using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
@@ -34,6 +35,7 @@ public partial class MainViewModel : ViewModelBase
 	[AutoNotify] private string _title = "Wasabi Wallet";
 	[AutoNotify] private WindowState _windowState;
 	[AutoNotify] private bool _isOobeBackgroundVisible;
+	[AutoNotify] private bool _isCoinJoinActive;
 
 	public MainViewModel()
 	{
@@ -162,6 +164,11 @@ public partial class MainViewModel : ViewModelBase
 	public void Initialize()
 	{
 		StatusBar.Initialize();
+
+		if (Services.HostedServices.GetOrDefault<CoinJoinManager>() is { } coinJoinManager)
+		{
+			IsCoinJoinActive = coinJoinManager.HighestCoinJoinClientState != CoinJoinClientState.Idle;
+		}
 
 		if (Services.Config.Network != Network.Main)
 		{

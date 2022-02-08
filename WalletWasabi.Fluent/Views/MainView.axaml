@@ -43,7 +43,7 @@
           <Border Background="{DynamicResource RegionColor}" IsHitTestVisible="False" />
           <Panel Background="{DynamicResource RegionColor}" VerticalAlignment="Bottom"
                  Height="64">
-            <c:SpectrumControl Opacity="0.6" IsActive="True" />
+            <c:SpectrumControl Opacity="0.6" IsActive="{Binding IsCoinJoinActive}" />
             <c:CustomBlurBehind />
             <statusBar:StatusBar DataContext="{Binding StatusBar}" />
           </Panel>
