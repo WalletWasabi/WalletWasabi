@@ -1,6 +1,5 @@
-namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport
+namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
+
+public partial class SeparatorViewModel : ViewModelBase
 {
-	public partial class SeparatorViewModel : ViewModelBase
-	{
-	}
 }

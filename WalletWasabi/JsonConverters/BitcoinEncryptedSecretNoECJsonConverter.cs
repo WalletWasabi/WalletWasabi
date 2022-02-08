@@ -1,34 +1,27 @@
 using NBitcoin;
 using Newtonsoft.Json;
-using System;
 
-namespace WalletWasabi.JsonConverters
+namespace WalletWasabi.JsonConverters;
+
+public class BitcoinEncryptedSecretNoECJsonConverter : JsonConverter<BitcoinEncryptedSecretNoEC>
 {
-	public class BitcoinEncryptedSecretNoECJsonConverter : JsonConverter
+	/// <inheritdoc />
+	public override BitcoinEncryptedSecretNoEC? ReadJson(JsonReader reader, Type objectType, BitcoinEncryptedSecretNoEC? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
-		/// <inheritdoc />
-		public override bool CanConvert(Type objectType)
+		var value = reader.Value as string;
+
+		if (string.IsNullOrWhiteSpace(value))
 		{
-			return objectType == typeof(BitcoinEncryptedSecretNoEC);
+			return null;
 		}
 
-		/// <inheritdoc />
-		public override object? ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-		{
-			var value = reader.Value as string;
+		return new BitcoinEncryptedSecretNoEC(value, Network.Main); // The `network` is required but the encoding doesn't depend on it.
+	}
 
-			if (string.IsNullOrWhiteSpace(value))
-			{
-				return null;
-			}
-
-			return new BitcoinEncryptedSecretNoEC(value);
-		}
-
-		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-		{
-			writer.WriteValue(((BitcoinEncryptedSecretNoEC)value).ToWif());
-		}
+	/// <inheritdoc />
+	public override void WriteJson(JsonWriter writer, BitcoinEncryptedSecretNoEC? value, JsonSerializer serializer)
+	{
+		var stringValue = value?.ToWif() ?? throw new ArgumentNullException(nameof(value));
+		writer.WriteValue(stringValue);
 	}
 }

@@ -75,7 +75,8 @@
                                         <c:ConcatenatingWrapPanel Focusable="False" VerticalAlignment="Center">
                                             <c:ConcatenatingWrapPanel.ConcatenatedChildren>
                                                 <AutoCompleteBox x:Name="PART_AutoCompleteBox"
-                                                                 Items="{Binding #PART_DockPanel.TemplatedParent.Suggestions}" />
+                                                                 Items="{Binding #PART_DockPanel.TemplatedParent.Suggestions}"
+                                                                 FilterMode="StartsWith"/>
                                             </c:ConcatenatingWrapPanel.ConcatenatedChildren>
                                         </c:ConcatenatingWrapPanel>
                                     </ItemsPanelTemplate>
@@ -226,6 +227,7 @@
         <Setter Property="Margin" Value="0" />
         <Setter Property="Focusable" Value="True" />
         <Setter Property="KeyboardNavigation.IsTabStop" Value="True" />
+        <Setter Property="MaxLength" Value="{Binding Path=MaxTextLength, RelativeSource={RelativeSource AncestorType={x:Type c:TagsBox}}}" />
     </Style>
 
     <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox">

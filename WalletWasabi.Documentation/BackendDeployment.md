@@ -33,7 +33,7 @@ sudo service nginx start
 rm -rf WalletWasabi/WalletWasabi.Backend/bin && dotnet publish ~/WalletWasabi/WalletWasabi.Backend --configuration Release --self-contained false
 sudo systemctl start walletwasabi.service
 echo -n 'Tor: '; systemctl is-active tor; echo -n 'Wasabi: '; systemctl is-active walletwasabi; echo -n 'Bitcoind: '; ps -C bitcoind >/dev/null && echo "active" || echo "incative";
-tail -200 ~/.walletwasabi/backend/Logs.txt
+tail -200 /home/user/.walletwasabi/backend/Logs.txt
 
 # Advanced status checks
 systemctl status nginx
@@ -69,7 +69,7 @@ https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubunt
 Putty (Copypaste with Ctrl+Insert and Shift+Insert)
 https://www.digitalocean.com/community/tutorials/how-to-use-ssh-keys-with-putty-on-digitalocean-droplets-windows-users
 
-Make sure the new user's SSH pubkey added to ~/.ssh/authorized_keys on the server as well. 
+Make sure the new user's SSH pubkey added to ~/.ssh/authorized_keys on the server as well.
 
 ### Create a New User and Grant Administrative Privileges
 
@@ -135,6 +135,15 @@ sudo apt-get install tor
 pgrep -ilfa tor
 sudo killall tor
 ```
+
+### Update Tor
+
+```sh
+sudo apt update
+apt list --upgradable | grep tor
+sudo apt install --only-upgrade tor
+```
+
 
 Create torrc:
 
@@ -249,8 +258,8 @@ sudo pico /etc/systemd/system/walletwasabi.service
 Description=WalletWasabi Backend API
 
 [Service]
-WorkingDirectory=/home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/net5.0/publish
-ExecStart=/usr/bin/dotnet /home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/net5.0/publish/WalletWasabi.Backend.dll
+WorkingDirectory=/home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/net6.0/publish
+ExecStart=/usr/bin/dotnet /home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/net6.0/publish/WalletWasabi.Backend.dll
 Restart=always
 RestartSec=10  # Restart service after 10 seconds if dotnet service crashes
 SyslogIdentifier=walletwasabi-backend
@@ -492,6 +501,8 @@ Check all of the certificates that you’ve obtained and tries to renew any that
 
 `sudo certbot renew`
 
+!Be aware that after 5 failures you will be suspended for an hour - for debugging use `certbot renew --dry-run`.
+
 Detailed instuctions about configuration [here](https://certbot.eff.org/lets-encrypt/ubuntubionic-nginx).
 
 ## Accessing Software Logs
@@ -530,4 +541,10 @@ For example, if your website is `https://www.wasabiwallet.co`, type `wasabiwalle
 3. Replace the current/default nameserver records in your registrar account with the information you copied from Cloudflare
 4. Wait some hours (max 24) while your registrar updates your nameservers and the DNS propagates
 You will receive an email when your site is active on Cloudflare
+
+## DEBUG
+
+- Find PID `ps aufx | grep 'WalletWasabi.Backend`
+- Creating a core dump: `dotnet dump collect -p 21600`
+- Cound threads for dotnet process `pstree -tpl 21600 | wc -l` usually around 109
 

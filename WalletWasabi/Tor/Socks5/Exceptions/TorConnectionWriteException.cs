@@ -1,18 +1,15 @@
-using System;
+namespace WalletWasabi.Tor.Socks5.Exceptions;
 
-namespace WalletWasabi.Tor.Socks5.Exceptions
+/// <summary>
+/// For any failures in sending data to Tor SOCKS5 endpoint.
+/// </summary>
+public class TorConnectionWriteException : TorConnectionException
 {
-	/// <summary>
-	/// For any failures in sending data to Tor SOCKS5 endpoint.
-	/// </summary>
-	public class TorConnectionWriteException : TorConnectionException
+	public TorConnectionWriteException(string message) : base(message)
 	{
-		public TorConnectionWriteException(string message) : base(message)
-		{
-		}
+	}
 
-		public TorConnectionWriteException(string message, Exception innerException) : base(message, innerException)
-		{
-		}
+	public TorConnectionWriteException(string message, Exception innerException) : base(message, innerException)
+	{
 	}
 }

@@ -46,9 +46,18 @@
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
 
+    <Color x:Key="WelcomeScreenButtonBackground">#DADFE7</Color>
+    <Color x:Key="WelcomeScreenButtonBackgroundPressed">#C1CBD7</Color>
+    <Color x:Key="WelcomeScreenButtonBackgroundPointerOver">#CDD5DF</Color>
+
     <SolidColorBrush x:Key="TextControlBorderBrush" Color="#CED7E2" />
     <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#A9B2BC" />
     <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#0B2545" />
+
+    <SolidColorBrush x:Key="PrivacyControlWhiteListHeaderForeground" Color="#394A1B" />
+    <SolidColorBrush x:Key="PrivacyControlWhiteListBackground" Color="#F5F8EE" />
+    <SolidColorBrush x:Key="PrivacyControlBlackListBackground" Color="Transparent" />
+    <SolidColorBrush x:Key="PrivacyControlItemBackground" Color="#FFFFFF" />
 
     <Color x:Key="SliderTrackValueFill">#0B2545</Color>
     <Color x:Key="SliderTrackValueFillPointerOver">#0B2545</Color>
@@ -75,13 +84,16 @@
     <BoxShadows x:Key="InfoBoxShadow">0 1 1.5 #3F000000</BoxShadows>
     <BoxShadows x:Key="BoxShadow">0 1 4 #D1D1D1</BoxShadows>
     <BoxShadows x:Key="OptionButtonShadow">0 2 2 #D1D1D1</BoxShadows>
-    <BoxShadows x:Key="OptimizePrivacyOptionBoxShadow1">0 12 32 0 #49556726</BoxShadows>
+
+    <BoxShadows x:Key="OptimizePrivacyOptionBoxShadow1">0 6 16 0 #22000000</BoxShadows>
+    <BoxShadows x:Key="OptimizePrivacyOptionBoxShadow2">0 9 23 0 #4A000000</BoxShadows>
 
   </Styles.Resources>
   <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentLight.xaml" />
 
   <!-- Needs to be here because of dependency reason -->
   <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
+  <StyleInclude Source="avares://DataBox/Themes/Fluent.axaml" />
 
   <StyleInclude Source="avares://Avalonia.Xaml.Interactions/Draggable/Styles.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Base.axaml" />

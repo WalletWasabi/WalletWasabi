@@ -1,15 +1,12 @@
-using System;
+namespace WalletWasabi.Tor.Control.Exceptions;
 
-namespace WalletWasabi.Tor.Control.Exceptions
+public class TorControlException : Exception
 {
-	public class TorControlException : Exception
+	public TorControlException(string message) : base(message)
 	{
-		public TorControlException(string message) : base(message)
-		{
-		}
+	}
 
-		public TorControlException(string message, Exception innerException) : base(message, innerException)
-		{
-		}
+	public TorControlException(string message, Exception innerException) : base(message, innerException)
+	{
 	}
 }

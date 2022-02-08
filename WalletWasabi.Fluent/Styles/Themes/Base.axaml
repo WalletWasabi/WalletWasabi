@@ -1,5 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:system="clr-namespace:System;assembly=System.Runtime">
   <Styles.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
@@ -16,6 +17,7 @@
 
     <Color x:Key="NavBarTintColor">#134074</Color>
     <Color x:Key="AcrylicFallbackColor">#1F1F1F</Color>
+    <Color x:Key="OrangeCoinColor">#F2994A</Color>
 
     <SolidColorBrush x:Key="InvisibleButtonBackgroundColor" Opacity="0" Color="{DynamicResource SystemBaseHighColor}" />
     <SolidColorBrush x:Key="InvisibleButtonPointerOverBackgroundColor" Opacity="0.15"
@@ -55,6 +57,7 @@
     <SolidColorBrush x:Key="NavBarItemSelectedPressedBrush">#FFFFFFFF</SolidColorBrush>
     <SolidColorBrush x:Key="NavBarItemForegroundBrush">#FFFFFFFF</SolidColorBrush>
     <SolidColorBrush x:Key="NavBarSeparatorBrush">#FFFFFFFF</SolidColorBrush>
+    <SolidColorBrush x:Key="PrivacyIndicatorWalletNotchBrush">#FF99A3B5</SolidColorBrush>
 
     <Color x:Key="LogoFixedAccentColor">#97D234</Color>
     <Color x:Key="LogoFixedForegroundColor">#D8DED7</Color>
@@ -65,6 +68,9 @@
     <SolidColorBrush x:Key="PrivacyLevelStrongBrush" Color="#72BD81" />
     <SolidColorBrush x:Key="PrivacyLevelExtremeBrush" Color="#89C67A" />
     <SolidColorBrush x:Key="PrivacyLevelExtremeAltBrush" Color="#5B92D2" />
+
+    <SolidColorBrush x:Key="PrivacyControlItemBlackListHighlight" Color="#72BD81" />
+    <SolidColorBrush x:Key="PrivacyControlItemWhiteListHighlight" Color="#72BD81" />
 
     <SolidColorBrush x:Key="WarningMessageForeground">#DDA73E</SolidColorBrush>
     <StaticResource x:Key="SystemControlErrorTextForegroundBrush" ResourceKey="SystemErrorTextColor" />
@@ -79,7 +85,7 @@
     <x:Double x:Key="DataGridRowSelectedBackgroundOpacity">1.0</x:Double>
     <x:Double x:Key="DataGridRowSelectedUnfocusedBackgroundOpacity">1.0</x:Double>
 
-    <x:String x:Key="LabelsWatermarkText">i.e. Alice, Bob, Wasabi Inc, Exchange</x:String>
+    <x:String x:Key="LabelsWatermarkText">Person or Company i.e. Alice, Bob, Pizza Inc</x:String>
 
     <StaticResource x:Key="NotificationCardInformationBackgroundBrush" ResourceKey="SystemAccentColor" />
     <StaticResource x:Key="TextControlForeground" ResourceKey="SystemBaseHighColor" />
@@ -99,5 +105,23 @@
         <GradientStop Color="#BDBDBD" Offset="0.993" />
       </LinearGradientBrush.GradientStops>
     </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="PrivacyIndicatorWalletGradientBrush" StartPoint="0,2.5" EndPoint="66.8942,36.3931">
+      <LinearGradientBrush.GradientStops>
+        <GradientStop Offset="0" Color="#FF646A74" />
+        <GradientStop Offset="1.0000001" Color="#FF545E6F" />
+      </LinearGradientBrush.GradientStops>
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="PrivacyIndicatorShieldGradientBrush0" StartPoint="46.4998,1.7628994" EndPoint="0,45.3796">
+      <LinearGradientBrush.GradientStops>
+        <GradientStop Offset="0" Color="#FF97D234" />
+        <GradientStop Offset="1" Color="#FF7FAF2F" />
+      </LinearGradientBrush.GradientStops>
+    </LinearGradientBrush>
+
+    <system:Double x:Key="HistoryTableRowHeight">36.5</system:Double>
+    <system:Double x:Key="HistoryTablePlaceholderTextOpacity">0.5</system:Double>
+    <Thickness x:Key="HistoryTablePlaceholderPanelMargin">0 42 0 0</Thickness>
+
   </Styles.Resources>
 </Styles>

@@ -7,7 +7,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.App" CanShutdownProvider="{Binding .}">
   <Application.DataTemplates>
-    <local:ViewLocator/>
+    <local:ViewLocator />
     <DataTemplate DataType="models:ErrorDescriptor" x:DataType="models:ErrorDescriptor">
       <TextBlock x:CompileBindings="True" Text="{Binding Message}" Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}" TextWrapping="Wrap" />
     </DataTemplate>
@@ -37,17 +37,20 @@
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/TileControl.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/StatusItem.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/PrivacyContentControl.axaml" />
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/SuggestionItem.axaml" />
   </Application.Styles>
 
-  <TrayIcon.TrayIcons>
+  <TrayIcon.Icons>
     <TrayIcons>
-      <TrayIcon Icon="/Assets/WasabiLogo.ico">
+      <TrayIcon Icon="{Binding TrayIcon}" Clicked="TrayIcon_OnClicked">
         <NativeMenu.Menu>
           <NativeMenu>
-            <NativeMenuItem Header="Quit Wasabi Wallet" Command="{Binding QuitCommand}" />
+            <NativeMenuItem Header="Show" Command="{Binding ShowCommand} " />
+            <NativeMenuItemSeparator />
+            <NativeMenuItem Header="Quit" Command="{Binding QuitCommand}" />
           </NativeMenu>
         </NativeMenu.Menu>
       </TrayIcon>
     </TrayIcons>
-  </TrayIcon.TrayIcons>
+  </TrayIcon.Icons>
 </Application>

@@ -1,11 +1,8 @@
-using System;
+namespace WalletWasabi.WebClients.PayJoin;
 
-namespace WalletWasabi.WebClients.PayJoin
+public class PayjoinException : Exception
 {
-	public class PayjoinException : Exception
+	public PayjoinException(string message) : base(message)
 	{
-		public PayjoinException(string message) : base(message)
-		{
-		}
 	}
 }

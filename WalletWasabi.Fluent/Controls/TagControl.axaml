@@ -1,6 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:WalletWasabi.Fluent.Controls">
+        xmlns:c="using:WalletWasabi.Fluent.Controls"
+        xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters">
   <Design.PreviewWith>
     <Border Padding="10">
       <c:TagControl Content="Test" />
@@ -26,7 +27,6 @@
                     BorderThickness="{TemplateBinding BorderThickness}"
                     CornerRadius="2" />
             <DockPanel Name="PART_DummyPanel"
-                       MaxWidth="260"
                        VerticalAlignment="Top" LastChildFill="True">
               <LayoutTransformControl DockPanel.Dock="Right" Name="PART_DeleteButtonLayoutTransformer"
                                       Margin="-8,0,3,0">
@@ -51,14 +51,15 @@
                   </Transitions>
                 </LayoutTransformControl.Transitions>
               </LayoutTransformControl>
-              <StackPanel Margin="12,6,12,6" DockPanel.Dock="Left" Spacing="5" Orientation="Horizontal">
-                <TextBlock Name="PART_Index" IsVisible="{TemplateBinding EnableCounter}"/>
+              <DockPanel Margin="12,6,12,6" DockPanel.Dock="Left" MaxWidth="260">
+                <TextBlock DockPanel.Dock="Left" Margin="0 0 5 0" Text="{TemplateBinding OrdinalIndex, Converter={x:Static converters:IntConverter.ToOrdinalString}}" IsVisible="{TemplateBinding EnableCounter}"/>
                 <ContentPresenter Name="PART_ContentPresenter"
+                                  DockPanel.Dock="Left"
                                   Content="{TemplateBinding Content}"
                                   Padding="{TemplateBinding Padding}"
                                   VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
                                   HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
-              </StackPanel>
+              </DockPanel>
             </DockPanel>
           </Panel>
         </Panel>
@@ -70,6 +71,7 @@
     <Setter Property="ContentTemplate">
       <DataTemplate DataType="x:String">
         <TextBlock Text="{Binding .}"
+                   MaxWidth="120"
                    TextTrimming="CharacterEllipsis" />
       </DataTemplate>
     </Setter>

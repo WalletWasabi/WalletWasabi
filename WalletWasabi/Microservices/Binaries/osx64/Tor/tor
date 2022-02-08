@@ -9,4 +9,4 @@ export DYLD_LIBRARY_PATH=.:$DYLD_LIBRARY_PATH
 # https://trac.torproject.org/projects/tor/ticket/10030
 cd "$(dirname "$0")"
 exec ./tor.real "$@"
-# Random Comment Dump to change the digest "je202kjnfoj2iuwkekjjreiejra"
+# Random Comment Dump to change the digest "je202kjnfoj2iuwkekjjreiejrb"

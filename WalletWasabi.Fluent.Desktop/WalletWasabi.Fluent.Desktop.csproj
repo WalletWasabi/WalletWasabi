@@ -9,13 +9,16 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<TargetFramework>net5.0</TargetFramework>
+		<TargetFramework>net6.0</TargetFramework>
+		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
 		<AnalysisLevel>latest</AnalysisLevel>
 		<LangVersion>latest</LangVersion>
 		<NoWarn>1701;1702;1705;1591;1573;CA1031;CA1822</NoWarn>
 		<Nullable>enable</Nullable>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 		<DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
+		<InvariantGlobalization>true</InvariantGlobalization>
 		<RuntimeIdentifiers>win7-x64;linux-x64;osx-x64</RuntimeIdentifiers>
 		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Fluent.Desktop</PathMap>
 	</PropertyGroup>
@@ -26,7 +29,7 @@
 		<NeutralLanguage>en-US</NeutralLanguage>
 		<AssemblyTitle>Wasabi Wallet Fluent</AssemblyTitle>
 		<Description>
-			Open-source, non-custodial, privacy focused Bitcoin wallet for Windows, Linux, and Mac. Built-in Tor, CoinJoin, PayJoin and coin control features.
+			Open-source, non-custodial, privacy focused Bitcoin wallet for Windows, Linux, and Mac. Built-in Tor, coinjoin, payjoin and coin control features.
 		</Description>
 		<Copyright>MIT</Copyright>
 		<PackageId>Wasabi Wallet Fluent</PackageId>
@@ -41,19 +44,18 @@
 		<PackageIcon>Assets\WasabiLogo.ico</PackageIcon>
 		<Product>Wasabi Wallet Fluent</Product>
 		<!-- owners is not supported in MSBuild -->
+		<AvaloniaVersion>0.10.12</AvaloniaVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<AvaloniaResource Include="Assets\**" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Avalonia" Version="0.10.999-cibuild0015644-beta" />
-		<PackageReference Include="Avalonia.Desktop" Version="0.10.999-cibuild0015644-beta" />
-		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0015644-beta" />
+		<PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
+		<PackageReference Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi.Fluent\WalletWasabi.Fluent.csproj" />
-		<ProjectReference Include="..\WalletWasabi.Gui\WalletWasabi.Gui.csproj" />
 		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
 	</ItemGroup>
 

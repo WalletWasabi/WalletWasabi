@@ -1,5 +1,4 @@
 using NBitcoin;
-using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -71,7 +70,7 @@ public class BitcoindRpcProcessBridge
 			{
 				try
 				{
-					TimeSpan timeSpan = await RpcClient.UptimeAsync().ConfigureAwait(false);
+					TimeSpan timeSpan = await RpcClient.UptimeAsync(cancel).ConfigureAwait(false);
 
 					Logger.LogInfo("RPC connection is successfully established.");
 					Logger.LogDebug($"RPC uptime is: {timeSpan}.");

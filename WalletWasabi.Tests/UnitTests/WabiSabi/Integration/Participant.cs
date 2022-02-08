@@ -1,98 +1,126 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
 using WalletWasabi.WabiSabi.Client;
-using WalletWasabi.Wallets;
+using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WebClients.Wasabi;
 
-namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
+namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
+
+internal class Participant: IDisposable
 {
-	internal class Participant
+	private bool _disposedValue;
+
+	public Participant(string name, IRPCClient rpc, IWasabiHttpClientFactory httpClientFactory)
 	{
-		public Participant(IRPCClient rpc, WabiSabiHttpApiClient apiClient)
-		{
-			Rpc = rpc;
-			ApiClient = apiClient;
+		HttpClientFactory = httpClientFactory;
 
-			KeyManager = KeyManager.CreateNew(out var _, password: "");
-			KeyManager.AssertCleanKeysIndexed();
+		Wallet = new TestWallet(name, rpc);
+	}
+
+	private TestWallet Wallet { get; }
+	public IWasabiHttpClientFactory HttpClientFactory { get; }
+	private SmartTransaction? SplitTransaction { get; set; }
+
+	public async Task GenerateSourceCoinAsync(CancellationToken cancellationToken)
+	{
+		ThrowIfDisposed();
+		await Wallet.GenerateAsync(1, cancellationToken).ConfigureAwait(false);
+	}
+
+	public async Task GenerateCoinsAsync(int numberOfCoins, int seed, CancellationToken cancellationToken)
+	{
+		ThrowIfDisposed();
+		var feeRate = new FeeRate(4.0m);
+		var (splitTx, spendingCoin) = Wallet.CreateTemplateTransaction();
+		var availableAmount = spendingCoin.EffectiveValue(feeRate, CoordinationFeeRate.Zero);
+
+		var rnd = new Random(seed);
+		double NextNotTooSmall() => 0.00001 + (rnd.NextDouble() * 0.99999);
+		var sampling = Enumerable
+			.Range(0, numberOfCoins - 1)
+			.Select(_ => NextNotTooSmall())
+			.Prepend(0)
+			.Prepend(1)
+			.OrderBy(x => x)
+			.ToArray();
+
+		var amounts = sampling
+			.Zip(sampling.Skip(1), (x, y) => y - x)
+			.Select(x => x * availableAmount.Satoshi)
+			.Select(x => Money.Satoshis((long)x));
+
+		var scriptPubKey = Wallet.ScriptPubKey;
+		foreach (var amount in amounts)
+		{
+			var effectiveOutputValue = amount - feeRate.GetFee(scriptPubKey.EstimateOutputVsize());
+			splitTx.Outputs.Add(new TxOut(effectiveOutputValue, scriptPubKey));
 		}
 
-		public KeyManager KeyManager { get; }
-		public List<SmartCoin> Coins { get; } = new();
-		public IRPCClient Rpc { get; }
-		public WabiSabiHttpApiClient ApiClient { get; }
+		await Wallet.SendRawTransactionAsync(Wallet.SignTransaction(splitTx), cancellationToken).ConfigureAwait(false);
+		SplitTransaction = new SmartTransaction(splitTx, new Height(1));
+	}
 
-		private Coin? SourceCoin { get; set; }
+	public async Task StartParticipatingAsync(CancellationToken cancellationToken)
+	{
+		ThrowIfDisposed();
+		var apiClient = new WabiSabiHttpApiClient(HttpClientFactory.NewHttpClientWithDefaultCircuit());
+		using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(3), apiClient);
+		await roundStateUpdater.StartAsync(cancellationToken).ConfigureAwait(false);
 
-		public async Task GenerateSourceCoinAsync(CancellationToken cancellationToken)
+		var coinJoinClient = new CoinJoinClient(
+			HttpClientFactory,
+			Wallet,
+			Wallet,
+			roundStateUpdater,
+			consolidationMode: true);
+
+		// Run the coinjoin client task.
+		var walletHdPubKey = new HdPubKey(Wallet.PubKey, KeyPath.Parse("m/84'/0/0/0/0"), SmartLabel.Empty, KeyState.Clean);
+		walletHdPubKey.SetAnonymitySet(1); // bug if not settled
+
+		if (SplitTransaction is null)
 		{
-			var minerKey = KeyManager.GetNextReceiveKey("coinbase", out _);
-			var blockIds = await Rpc.GenerateToAddressAsync(1, minerKey.GetP2wpkhAddress(Rpc.Network)).ConfigureAwait(false);
-			var block = await Rpc.GetBlockAsync(blockIds.First()).ConfigureAwait(false);
-			SourceCoin = block.Transactions[0].Outputs.GetCoins(minerKey.P2wpkhScript).First();
-			minerKey.SetKeyState(KeyState.Used);
+			throw new InvalidOperationException($"{nameof(GenerateCoinsAsync)} has to be called first.");
 		}
 
-		public async Task GenerateCoinsAsync(int numberOfCoins, int seed, CancellationToken cancellationToken)
+		var smartCoins = SplitTransaction.Transaction.Outputs.AsIndexedOutputs()
+			.Select(x => new SmartCoin(SplitTransaction, x.N, walletHdPubKey))
+			.ToList();
+
+		// Run the coinjoin client task.
+		await coinJoinClient.StartCoinJoinAsync(smartCoins, cancellationToken).ConfigureAwait(false);
+
+		await roundStateUpdater.StopAsync(cancellationToken).ConfigureAwait(false);
+	}
+
+	private void ThrowIfDisposed()
+	{
+		if (_disposedValue)
 		{
-			var feeRate = new FeeRate(4.0m);
-			var splitTx = Transaction.Create(Rpc.Network);
-			splitTx.Inputs.Add(new TxIn(SourceCoin!.Outpoint));
-
-			var rnd = new Random(seed);
-			double NextNotTooSmall() => 0.00001 + (rnd.NextDouble() * 0.99999);
-			var sampling = Enumerable
-				.Range(0, numberOfCoins - 1)
-				.Select(_ => NextNotTooSmall())
-				.Prepend(0)
-				.Prepend(1)
-				.OrderBy(x => x)
-				.ToArray();
-
-			var amounts = sampling
-				.Zip(sampling.Skip(1), (x, y) => y - x)
-				.Select(x => x * SourceCoin.Amount.Satoshi)
-				.Select(x => Money.Satoshis((long)x));
-
-			var keys = Enumerable.Range(0, amounts.Count()).Select(x => KeyManager.GetNextReceiveKey("no-label", out _)).ToImmutableList();
-			foreach (var (amount, key) in amounts.Zip(keys))
-			{
-				var scriptPubKey = key.P2wpkhScript;
-				var effectiveOutputValue = amount - feeRate.GetFee(scriptPubKey.EstimateOutputVsize());
-				splitTx.Outputs.Add(new TxOut(effectiveOutputValue, scriptPubKey));
-			}
-			var minerKey = KeyManager.GetSecrets("", SourceCoin.ScriptPubKey).First();
-			splitTx.Sign(minerKey.PrivateKey.GetBitcoinSecret(Rpc.Network), SourceCoin);
-			var stx = new SmartTransaction(splitTx, new Height(500_000));
-
-			var smartCoins = keys.Select((k, i) => new SmartCoin(stx, (uint)i, k));
-			Coins.AddRange(smartCoins);
-			await Rpc.SendRawTransactionAsync(splitTx).ConfigureAwait(false);
+			throw new ObjectDisposedException(nameof(TestWallet));
 		}
+	}
 
-		public async Task StartParticipatingAsync(CancellationToken cancellationToken)
+	protected virtual void Dispose(bool disposing)
+	{
+		if (!_disposedValue)
 		{
-			using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(3), ApiClient);
-			await roundStateUpdater.StartAsync(cancellationToken).ConfigureAwait(false);
-
-			var kitchen = new Kitchen();
-			kitchen.Cook("");
-
-			var coinJoinClient = new CoinJoinClient(ApiClient, kitchen, KeyManager, roundStateUpdater);
-
-			// Run the coinjoin client task.
-			await coinJoinClient.StartCoinJoinAsync(Coins, cancellationToken).ConfigureAwait(false);
-
-			await roundStateUpdater.StopAsync(cancellationToken).ConfigureAwait(false);
+			Wallet.Dispose();
+			_disposedValue = true;
 		}
+	}
+
+	public void Dispose()
+	{
+		Dispose(disposing: true);
+		GC.SuppressFinalize(this);
 	}
 }

@@ -1,10 +1,7 @@
-using System;
+namespace WalletWasabi.Crypto;
 
-namespace WalletWasabi.Crypto
+[Flags]
+public enum ProofBodyFlags : byte
 {
-	[Flags]
-	public enum ProofBodyFlags : byte
-	{
-		UserConfirmation = 1
-	}
+	UserConfirmation = 1
 }

@@ -1,62 +1,95 @@
 using NBitcoin;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.CoinJoin.Common.Models;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
 
-namespace WalletWasabi.WabiSabi.Client
+namespace WalletWasabi.WabiSabi.Client;
+
+public record RoundStateAwaiter
 {
-	public record RoundStateAwaiter
+	public RoundStateAwaiter(
+		Predicate<RoundState>? predicate,
+		uint256? roundId,
+		Phase? phase,
+		CancellationToken cancellationToken)
 	{
-		public RoundStateAwaiter(
-			Predicate<RoundState> predicate,
-			uint256? roundId,
-			CancellationToken cancellationToken)
+		if (predicate is null && phase is null)
 		{
-			TaskCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
-			Predicate = predicate;
-			RoundId = roundId;
-			cancellationToken.Register(() => Cancel());
+			throw new ArgumentNullException(nameof(predicate));
 		}
 
-		private TaskCompletionSource<RoundState> TaskCompletionSource { get; }
-		private Predicate<RoundState> Predicate { get; }
-		private uint256? RoundId { get; }
+		TaskCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
+		Predicate = predicate;
+		RoundId = roundId;
+		Phase = phase;
+		cancellationToken.Register(() => Cancel());
+	}
 
-		public Task<RoundState> Task => TaskCompletionSource.Task;
+	private TaskCompletionSource<RoundState> TaskCompletionSource { get; }
+	private Predicate<RoundState>? Predicate { get; }
+	private uint256? RoundId { get; }
+	private Phase? Phase { get; }
 
-		public bool IsCompleted(Dictionary<uint256, RoundState> allRoundStates)
+	public Task<RoundState> Task => TaskCompletionSource.Task;
+
+	public bool IsCompleted(Dictionary<uint256, RoundState> allRoundStates)
+	{
+		if (Task.IsCompleted)
 		{
-			if (Task.IsCompleted)
-			{
-				return true;
-			}
+			return true;
+		}
 
-			if (RoundId is not null && !allRoundStates.ContainsKey(RoundId))
-			{
-				TaskCompletionSource.TrySetException(new InvalidOperationException($"Round {RoundId} is not running anymore."));
-				return true;
-			}
+		if (RoundId is not null && !allRoundStates.ContainsKey(RoundId))
+		{
+			TaskCompletionSource.TrySetException(new InvalidOperationException($"Round {RoundId} is not running anymore."));
+			return true;
+		}
 
-			var relevantRoundStates = RoundId is null ? allRoundStates.Values.ToArray() : new[] { allRoundStates[RoundId] };
-
-			foreach (var roundState in relevantRoundStates)
+		foreach (var roundState in allRoundStates.Values.ToArray())
+		{
+			if (RoundId is { })
 			{
-				if (Predicate(roundState))
+				if (roundState.Id != RoundId)
 				{
-					TaskCompletionSource.TrySetResult(roundState);
-					return true;
+					continue;
 				}
 			}
 
-			return false;
+			if (Phase is { })
+			{
+				if (roundState.Phase > Phase)
+				{
+					TaskCompletionSource.TrySetException(new InvalidOperationException($"Round {RoundId} unexpected phase change. Waiting for '{Phase}' but the round is in '{roundState.Phase}'."));
+					return true;
+				}
+
+				if (roundState.Phase != Phase)
+				{
+					continue;
+				}
+			}
+
+			if (Predicate is { })
+			{
+				if (!Predicate(roundState))
+				{
+					continue;
+				}
+			}
+
+			TaskCompletionSource.SetResult(roundState);
+			return true;
 		}
 
-		public void Cancel()
-		{
-			TaskCompletionSource.TrySetCanceled();
-		}
+		return false;
+	}
+
+	public void Cancel()
+	{
+		TaskCompletionSource.TrySetCanceled();
 	}
 }

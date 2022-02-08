@@ -11,14 +11,14 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.RecoverWalletView">
   <c:ContentArea x:Name="RecoveryPageRoot"
-                 Title="{Binding Title}" Caption="Type in your 12 recovery words and click Finish."
+                 Title="{Binding Title}" Caption="Type in your Recovery Words and click Finish."
                  CancelContent="Cancel"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="Finish"
                  IsBusy="{Binding IsBusy}">
     <DockPanel>
-      <Label Content="_Type in your recovery words here:" Target="SeedTagsBox" DockPanel.Dock="Top" />
+      <Label Content="_Type in your Recovery Words here:" Target="SeedTagsBox" DockPanel.Dock="Top" />
       <DockPanel DockPanel.Dock="Top">
         <PathIcon Name="IconCheckmark"
                   Margin="15 0 0 0"
@@ -33,7 +33,6 @@
                    RestrictInputToSuggestions="True"
                    Items="{Binding Mnemonics}"
                    Suggestions="{Binding Suggestions}"
-                   CompletedCommand="{Binding NextCommand}"
                    AllowDuplication="True"
                    EnableCounter="True"
                    EnableDelete="False">
@@ -47,7 +46,7 @@
               HorizontalAlignment="Center"
               VerticalAlignment="Bottom"
               Command="{Binding AdvancedRecoveryOptionsDialogCommand}"
-              Content="Advanced Recovery Options..."/>
+              Content="Advanced Recovery Options..." />
     </DockPanel>
   </c:ContentArea>
 </UserControl>
