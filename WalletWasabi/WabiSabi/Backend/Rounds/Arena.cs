@@ -230,7 +230,7 @@ public partial class Arena : PeriodicRunner
 					// Store transaction.
 					if (TransactionArchiver is not null)
 					{
-						await TransactionArchiver.StoreJsonAsync(coinjoin).ConfigureAwait(false);
+						await TransactionArchiver.StoreJsonAsync(coinjoin, feeRate).ConfigureAwait(false);
 					}
 
 					// Broadcasting.
