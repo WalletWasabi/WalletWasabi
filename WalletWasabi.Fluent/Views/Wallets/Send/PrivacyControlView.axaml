@@ -18,7 +18,7 @@
                  IsBusy="{Binding IsBusy}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <c:ContentArea.Styles>
-      <Style Selector="Button.faded" >
+      <Style Selector="Button.faded">
         <Style.Animations>
           <Animation Duration="0:0:0.1" FillMode="Both">
             <KeyFrame Cue="100%">
@@ -66,7 +66,7 @@
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:LabelViewModel">
-                  <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}" Classes.faded="{Binding IsFaded}">
+                  <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}" Classes.faded="{Binding IsFaded}" ToolTip.Tip="{Binding ToolTip}">
                     <i:Interaction.Behaviors>
                       <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
                     </i:Interaction.Behaviors>
@@ -117,7 +117,7 @@
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:LabelViewModel">
-                  <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}" Classes.faded="{Binding IsFaded}">
+                  <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}" Classes.faded="{Binding IsFaded}" ToolTip.Tip="{Binding ToolTip}">
                     <i:Interaction.Behaviors>
                       <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
                     </i:Interaction.Behaviors>

@@ -72,6 +72,11 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		var allLabels = SmartLabel.Merge(AllPocket.Select(x => x.Labels));
 		AllLabelViewModel = allLabels.Select(x => new LabelViewModel(this, x)).ToArray();
 
+		if (AllLabelViewModel.FirstOrDefault(x => x.Value == CoinPocketHelper.UnlabelledFundsText) is { } unlabelledViewModel)
+		{
+			unlabelledViewModel.ToolTip = "There is no information about these people, only use it when necessary!";
+		}
+
 		OnSelectionChanged();
 	}
 
