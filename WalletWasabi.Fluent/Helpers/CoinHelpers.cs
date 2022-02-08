@@ -10,5 +10,18 @@ public static class CoinHelpers
 		return coin.HdPubKey.AnonymitySet >= privateThreshold;
 	}
 
-	public static SmartLabel GetLabels(this SmartCoin coin, int privateThreshold) => coin.IsPrivate(privateThreshold) ? SmartLabel.Empty : coin.HdPubKey.Cluster.Labels;
+	public static SmartLabel GetLabels(this SmartCoin coin, int privateThreshold)
+	{
+		if (coin.IsPrivate(privateThreshold))
+		{
+			return SmartLabel.Empty;
+		}
+
+		if (coin.HdPubKey.Cluster.Labels == SmartLabel.Empty)
+		{
+			return CoinPocketHelper.UnlabelledFundsText;
+		}
+
+		return coin.HdPubKey.Cluster.Labels;
+	}
 }
