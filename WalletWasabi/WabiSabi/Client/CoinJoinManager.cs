@@ -213,4 +213,13 @@ public class CoinJoinManager : BackgroundService
 
 		return true;
 	}
+
+	public DateTimeOffset WhenWalletCanStartAutoCoinJoin(Wallet wallet)
+	{
+		if (wallet.State < WalletState.Started)
+		{
+			throw new InvalidOperationException("Wallet is not started yet.");
+		}
+		return wallet.StartupTime + AutoCoinJoinDelayAfterWalletLoaded;
+	}
 }
