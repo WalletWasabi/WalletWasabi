@@ -31,13 +31,21 @@ public partial class LabelSelectionViewModel : ViewModelBase
 
 	public IEnumerable<LabelViewModel> LabelsBlackList => AllLabelViewModel.Where(x => x.IsBlackListed);
 
-	public Pocket[] GetAllPockets()
+	public Pocket[] GetSafeToUsePockets()
 	{
 		var pockets = AllPocket.ToList();
 
 		if (_privatePocket is { } privatePocket)
 		{
 			pockets.Add(privatePocket);
+		}
+
+		var unlabelledPocket = pockets.FirstOrDefault(x => x.Labels == CoinPocketHelper.UnlabelledFundsText);
+
+		if (unlabelledPocket is { } && pockets.Where(x => x != unlabelledPocket).Sum(x => x.Amount) >= _targetAmount)
+		{
+			var copyPocketArray = pockets.Where(x => x != unlabelledPocket).ToArray();
+			return copyPocketArray;
 		}
 
 		return pockets.ToArray();
@@ -85,7 +93,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 
 	public void OnFade(LabelViewModel source)
 	{
-		foreach (var lvm in source.IsBlackListed? LabelsBlackList : LabelsWhiteList)
+		foreach (var lvm in source.IsBlackListed ? LabelsBlackList : LabelsWhiteList)
 		{
 			if (!lvm.IsHighlighted)
 			{
