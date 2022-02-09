@@ -167,15 +167,16 @@ video::-webkit-media-controls {
     color: var(--green);
 }
 .floating-title {
-    font-size: 50px;
+    font-size: 100px;
     font-weight: bold;
     line-height: 1.2em;
     position: absolute;
-    top: 30%;
+    top: calc(30% - 50px);
     left: calc((100% - var(--breakpoint)) / 2);
     transform: translateY(-50%);
     text-transform: uppercase;
-    width: 60%;
+    width: var(--breakpoint);
+    text-shadow: 0 0 20px rgba(255,255,255,0.3);
 }
 .service-line {
     display: flex;
@@ -964,6 +965,9 @@ blockquote:after {
     }
     .modal-window {
         width: 90vw;
+    }
+    .floating-title {
+        font-size: 60px;
     }
 }
 @media only screen and (max-width: 600px) {
