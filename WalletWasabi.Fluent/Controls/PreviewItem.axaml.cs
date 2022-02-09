@@ -22,7 +22,6 @@ public class PreviewItem : ContentControl
 	public static readonly StyledProperty<bool> IsIconVisibleProperty =
 		AvaloniaProperty.Register<PreviewItem, bool>(nameof(IsIconVisible));
 
-
 	public static readonly StyledProperty<object?> CopyParameterProperty =
 		AvaloniaProperty.Register<PreviewItem, object?>(nameof(CopyParameter));
 
