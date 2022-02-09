@@ -35,7 +35,6 @@ public static class AutoBringIntoViewExtension
 							if (ie is IControl ic)
 							{
 								// HACK: Temporary hack to disable TreeDataGrid scrolling issue.
-								// https://github.com/AvaloniaUI/Avalonia.ProControls/issues/77
 								if (ic is not TreeDataGridRowsPresenter)
 								{
 									ic.BringIntoView();
