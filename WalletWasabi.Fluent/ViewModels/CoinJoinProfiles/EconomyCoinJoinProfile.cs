@@ -10,11 +10,11 @@ namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
 internal class EconomyCoinJoinProfile : CoinJoinProfileViewModel
 {
-	public override string Title => "Speedy";
+	public override string Title => "Economy";
 
-	public override string Description => "very speedy";
+	public override string Description => "very Economy";
 
-	public override IImage Icon => AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/PasswordFinder/{ThemeHelper.CurrentTheme}/numbers.png");
+	public override IImage Icon => AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/ledger.png");
 
 	public override int FeeTargetAvarageTimeFrameHours => 168; // One week avarage.
 }

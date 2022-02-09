@@ -14,7 +14,7 @@ internal class SpeedyCoinJoinProfile : CoinJoinProfileViewModel
 
 	public override string Description => "very speedy";
 
-	public override IImage Icon => AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/PasswordFinder/{ThemeHelper.CurrentTheme}/numbers.png");
+	public override IImage Icon => AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/trezor.png");
 
 	public override int FeeTargetAvarageTimeFrameHours => 0;
 }
