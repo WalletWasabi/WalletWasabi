@@ -214,7 +214,10 @@ public class TransactionProcessor
 			{
 				if (!foundKey.IsInternal)
 				{
-					tx.Label = SmartLabel.Merge(tx.Label, foundKey.Label);
+					if (tx.Label != foundKey.Label)
+					{
+						tx.Label = SmartLabel.Merge(tx.Label, foundKey.Label);
+					}
 				}
 
 				foundKey.SetKeyState(KeyState.Used, KeyManager);
