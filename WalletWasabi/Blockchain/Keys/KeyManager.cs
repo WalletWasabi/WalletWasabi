@@ -26,6 +26,7 @@ public class KeyManager
 	public const int DefaultMinAnonScoreTarget = 5;
 	public const int DefaultMaxAnonScoreTarget = 10;
 	public const bool DefaultAutoCoinjoin = false;
+	public const int DefaultFeeTargetAvarageTimeFrameHours = 24;
 
 	public const int AbsoluteMinGapLimit = 21;
 	public const int MaxGapLimit = 10_000;
@@ -161,6 +162,9 @@ public class KeyManager
 
 	[JsonProperty(Order = 14, PropertyName = "MaxAnonScoreTarget")]
 	public int MaxAnonScoreTarget { get; private set; } = DefaultMaxAnonScoreTarget;
+
+	[JsonProperty(Order = 15, PropertyName = "FeeTargetAvarageTimeFrameHours")]
+	public int FeeTargetAvarageTimeFrameHours { get; private set; } = DefaultFeeTargetAvarageTimeFrameHours;
 
 	[JsonProperty(Order = 999)]
 	private List<HdPubKey> HdPubKeys { get; }
@@ -695,7 +699,7 @@ public class KeyManager
 		SetIcon(type.ToString());
 	}
 
-	public void SetAnonScoreTargets(int minAnonScoreTarget, int maxAnonScoreTarget)
+	public void SetAnonScoreTargets(int minAnonScoreTarget, int maxAnonScoreTarget, bool toFile = true)
 	{
 		if (maxAnonScoreTarget <= minAnonScoreTarget)
 		{
@@ -704,7 +708,19 @@ public class KeyManager
 
 		MinAnonScoreTarget = minAnonScoreTarget;
 		MaxAnonScoreTarget = maxAnonScoreTarget;
-		ToFile();
+		if (toFile)
+		{
+			ToFile();
+		}
+	}
+
+	public void SetFeeTargetAvarageTimeFrame(int hours, bool toFile = true)
+	{
+		FeeTargetAvarageTimeFrameHours = hours;
+		if (toFile)
+		{
+			ToFile();
+		}
 	}
 
 	public void AssertNetworkOrClearBlockState(Network expectedNetwork)

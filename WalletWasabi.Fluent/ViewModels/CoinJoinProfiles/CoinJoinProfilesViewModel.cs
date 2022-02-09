@@ -1,4 +1,5 @@
 using ReactiveUI;
+using System.Collections.Generic;
 using System.Reactive.Disposables;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
@@ -9,14 +10,34 @@ namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 [NavigationMetaData(Title = "CoinJoin Profiles")]
 public partial class CoinJoinProfilesViewModel : RoutableViewModel
 {
+	[AutoNotify] private CoinJoinProfileViewModel _selectedProfile;
+
 	public CoinJoinProfilesViewModel(KeyManager keyManager)
 	{
 		NextCommand = ReactiveCommand.Create(() => OnNext(keyManager));
 		EnableBack = true;
+
+		var privateProfile = new PrivateCoinJoinProfile();
+
+		Profiles = new()
+		{
+			new SpeedyCoinJoinProfile(),
+			new EconomyCoinJoinProfile(),
+			privateProfile
+		};
+
+		_selectedProfile = privateProfile;
 	}
+
+	public List<CoinJoinProfileViewModel> Profiles { get; }
 
 	private void OnNext(KeyManager keyManager)
 	{
+		var selected = SelectedProfile;
+
+		keyManager.SetAnonScoreTargets(selected.MinAnonScoreTarget, selected.MaxAnonScoreTarget, toFile: false);
+		keyManager.SetFeeTargetAvarageTimeFrame(selected.FeeTargetAvarageTimeFrameHours, toFile: false);
+
 		Navigate().To(new AddedWalletPageViewModel(keyManager));
 	}
 
