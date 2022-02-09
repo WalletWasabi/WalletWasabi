@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -9,56 +8,6 @@ using Avalonia.Media;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent.TreeDataGrid;
-
-internal class PrivacyTextCell : ICell
-{
-	public PrivacyTextCell(string? value, int numberOfPrivacyChars)
-	{
-		Value = value;
-		NumberOfPrivacyChars = numberOfPrivacyChars;
-	}
-	public bool CanEdit => false;
-	public string? Value { get; }
-	public int NumberOfPrivacyChars { get;  }
-	object? ICell.Value => Value;
-}
-
-internal class PrivacyTextColumn<T> : ColumnBase<T>
-{
-	private readonly Func<T, string?> _getter;
-	private readonly Comparison<T?>? _sortAscending;
-	private readonly Comparison<T?>? _sortDescending;
-	private readonly int _numberOfPrivacyChars;
-
-	public PrivacyTextColumn(
-		object? header,
-		Func<T, string?> getter,
-		GridLength? width,
-		ColumnOptions<T>? options,
-		int numberOfPrivacyChars = 0)
-		: base(header, width, options)
-	{
-		_sortAscending = options?.CompareAscending;
-		_sortDescending = options?.CompareDescending;
-		_getter = getter;
-		_numberOfPrivacyChars = numberOfPrivacyChars;
-	}
-
-	public override ICell CreateCell(IRow<T> row)
-	{
-		return new PrivacyTextCell(_getter(row.Model), _numberOfPrivacyChars);
-	}
-
-	public override Comparison<T?>? GetComparison(ListSortDirection direction)
-	{
-		return direction switch
-		{
-			ListSortDirection.Ascending => _sortAscending,
-			ListSortDirection.Descending => _sortDescending,
-			_ => null,
-		};
-	}
-}
 
 internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 {
@@ -154,21 +103,3 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 		}
 	}
 }
-
-internal class HistoryElementFactory : TreeDataGridElementFactory
-{
-	protected override IControl CreateElement(object? data)
-	{
-		return data is PrivacyTextCell ?
-			new TreeDataGridPrivacyTextCell() :
-			base.CreateElement(data);
-	}
-
-	protected override string GetDataRecycleKey(object data)
-	{
-		return data is PrivacyTextCell ?
-			typeof(TreeDataGridPrivacyTextCell).FullName! :
-			base.GetDataRecycleKey(data);
-	}
-}
-

@@ -20,7 +20,7 @@
                   CanUserResizeColumns="False"
                   Margin="0 0 0 0">
       <TreeDataGrid.ElementFactory>
-        <treeDataGrid:HistoryElementFactory />
+        <treeDataGrid:CustomElementFactory />
       </TreeDataGrid.ElementFactory>
       <TreeDataGrid.Styles>
         <Style Selector="treeDataGrid|TreeDataGridPrivacyTextCell">
