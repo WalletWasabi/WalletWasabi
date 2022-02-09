@@ -18,6 +18,6 @@ public static class TransactionSummaryExtension
 		{
 			FeeDisplayFormat.BTC => MoneyUnit.BTC,
 			FeeDisplayFormat.Satoshis => MoneyUnit.Satoshi,
-			_ => MoneyUnit.BTC
+			_ => throw new InvalidOperationException($"Invalid Fee Display Format value: {feeDisplayFormat}")
 		};
 }
