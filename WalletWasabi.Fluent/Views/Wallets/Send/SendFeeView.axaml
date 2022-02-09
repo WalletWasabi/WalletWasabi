@@ -135,6 +135,8 @@
     <!-- Current Value-->
     <Style Selector="TextBlock.currentValue">
       <Setter Property="TextAlignment" Value="Center"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}"/>
+      <Setter Property="Opacity" Value="0.5"/>
     </Style>
   </UserControl.Styles>
   <c:ContentArea Title="{Binding Title}"
