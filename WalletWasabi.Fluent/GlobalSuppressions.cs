@@ -11,3 +11,4 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("Style", "IDE0011:Add braces", Justification = "<Pending>", Scope = "namespaceanddescendants", Target = "~N:ZXing")]
 [assembly: SuppressMessage("Style", "IDE0004:Remove Unnecessary Cast", Justification = "<Pending>", Scope = "namespaceanddescendants", Target = "~N:ZXing")]
 [assembly: SuppressMessage("Style", "IDE0003:Remove qualification", Justification = "<Pending>", Scope = "namespaceanddescendants", Target = "~N:ZXing")]
+[assembly: SuppressMessage("Interoperability", "CA1416: Validate platform compatibility", Justification = "<Pending>", Scope = "namespaceanddescendants", Target = "~N:ZXing")]
