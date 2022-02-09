@@ -98,6 +98,10 @@ public abstract class PeriodicRunner : BackgroundService
 				{
 					Logger.LogError(info.Exception);
 				}
+				else
+				{
+					Logger.LogTrace(ex);
+				}
 			}
 
 			// Wait for the next round.
