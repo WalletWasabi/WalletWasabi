@@ -13,7 +13,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 public partial class WalletStatsViewModel : RoutableViewModel
 {
 	[AutoNotify] private int _coinCount;
-	[AutoNotify] private bool _showSensitiveData = true;
 	[AutoNotify] private string _balance;
 	[AutoNotify] private string _confirmedBalance;
 	[AutoNotify] private string _unconfirmedBalance;
@@ -52,6 +51,5 @@ public partial class WalletStatsViewModel : RoutableViewModel
 
         // Total amount of unconfirmed money in the wallet.
         UnconfirmedBalance = $"{_wallet.Coins.Unconfirmed().TotalAmount().ToFormattedString()} ₿";
-
 	}
 }
