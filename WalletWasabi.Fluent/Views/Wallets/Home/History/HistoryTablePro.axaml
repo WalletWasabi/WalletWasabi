@@ -8,6 +8,7 @@
              xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:columns="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Home.History.Columns"
+             xmlns:treeDataGrid="clr-namespace:WalletWasabi.Fluent.TreeDataGrid"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="history:HistoryViewModel"
              x:CompileBindings="True"
@@ -19,10 +20,10 @@
                   CanUserResizeColumns="False"
                   Margin="0 0 0 0">
       <TreeDataGrid.ElementFactory>
-        <columns:HistoryElementFactory />
+        <treeDataGrid:HistoryElementFactory />
       </TreeDataGrid.ElementFactory>
       <TreeDataGrid.Styles>
-        <Style Selector="columns|TreeDataGridPrivacyTextCell">
+        <Style Selector="treeDataGrid|TreeDataGridPrivacyTextCell">
           <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
           <Setter Property="FontSize" Value="15" />
           <Setter Property="Margin" Value="10 0" />

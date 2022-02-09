@@ -8,7 +8,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using ReactiveUI;
 
-namespace WalletWasabi.Fluent.Views.Wallets.Home.History.Columns;
+namespace WalletWasabi.Fluent.TreeDataGrid;
 
 internal class PrivacyTextCell : ICell
 {
