@@ -1,6 +1,7 @@
 using ReactiveUI;
 using System.Collections.Generic;
 using System.Reactive.Disposables;
+using System.Windows.Input;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -27,9 +28,18 @@ public partial class CoinJoinProfilesViewModel : RoutableViewModel
 		};
 
 		_selectedProfile = privateProfile;
+
+		ManualSetupCommand = ReactiveCommand.Create(OnManualSetup);
 	}
 
+	public ICommand ManualSetupCommand { get; }
+
 	public List<CoinJoinProfileViewModel> Profiles { get; }
+
+	private void OnManualSetup()
+	{
+
+	}
 
 	private void OnNext(KeyManager keyManager)
 	{

@@ -8,7 +8,7 @@
              ClipToBounds="False"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.CoinJoinProfiles.CoinJoinProfileControl">
-  <StackPanel Spacing="20">
+  <StackPanel Spacing="20" Width="110" Height="180">
     <TextBlock Text="{Binding Title}" HorizontalAlignment="Center" />
     <Viewbox HorizontalAlignment="Center" Height="70">
       <Image Source="{Binding Icon}" />
