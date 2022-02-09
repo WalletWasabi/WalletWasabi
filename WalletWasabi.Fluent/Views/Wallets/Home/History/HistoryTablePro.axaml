@@ -22,6 +22,11 @@
         <columns:HistoryElementFactory />
       </TreeDataGrid.ElementFactory>
       <TreeDataGrid.Styles>
+        <Style Selector="columns|TreeDataGridPrivacyTextCell">
+          <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
+          <Setter Property="FontSize" Value="15" />
+          <Setter Property="Margin" Value="10 0" />
+        </Style>
         <Style Selector="PathIcon">
           <Setter Property="Height" Value="13" />
           <Setter Property="VerticalAlignment" Value="Center" />
