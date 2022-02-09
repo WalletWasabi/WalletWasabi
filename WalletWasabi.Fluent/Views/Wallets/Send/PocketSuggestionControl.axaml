@@ -9,66 +9,44 @@
              ClipToBounds="False"
              x:DataType="send:PocketSuggestionViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PocketSuggestionControl">
-  <Panel>
-    <Border Name="PART_DecorationBorderUnselected" >
-      <Border.Transitions>
-        <Transitions>
-          <DoubleTransition Property="Opacity"
-                            Easing="{StaticResource FluentEasing}"
-                            Duration="0:0:0.25" />
-        </Transitions>
-      </Border.Transitions>
-    </Border>
-    <Border Name="PART_DecorationBorderHover" >
-      <Border.Transitions>
-        <Transitions>
-          <DoubleTransition Property="Opacity"
-                            Easing="{StaticResource FluentEasing}"
-                            Duration="0:0:0.25" />
-        </Transitions>
-      </Border.Transitions>
-    </Border>
-    <Border Name="PART_MainContentBorder">
-      <StackPanel Spacing="20">
-        <PathIcon DockPanel.Dock="Top" Data="{StaticResource incognito_filled}" Height="25" Width="25"
-                  Foreground="{DynamicResource SystemAccentColor}" />
+  <StackPanel Spacing="20">
+    <PathIcon DockPanel.Dock="Top" Data="{StaticResource incognito_filled}" Height="25" Width="25"
+              Foreground="{DynamicResource SystemAccentColor}" />
 
-        <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap" Text="Some people or companies could know about this:" />
+    <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap" Text="Some people or companies could know about this:" />
 
-        <DockPanel LastChildFill="False" HorizontalAlignment="Center">
-          <c:TagsBox Padding="0"
-                     Margin="0"
-                     MinWidth="0"
-                     BorderThickness="0"
-                     DockPanel.Dock="Left"
-                     IsReadOnly="True"
-                     Items="{Binding Labels}"
-                     HorizontalAlignment="Stretch"
-                     VerticalAlignment="Center" />
-          <Button Classes="labelFlyout"
-                  DockPanel.Dock="Left"
-                  IsVisible="{Binding !!FilteredLabels.Count}"
-                  Content="..."
-                  Margin="0 4 0 0">
-            <Button.Flyout>
-              <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="TransientWithDismissOnPointerMoveAway">
-                <c:TagsBox IsReadOnly="True"
-                           Items="{Binding FilteredLabels}" />
-              </Flyout>
-            </Button.Flyout>
-            <ToolTip.Tip>
-              <Panel>
-                <c:TagsBox IsReadOnly="True"
-                           Margin="4,6,0,0"
-                           Items="{Binding FilteredLabels}" />
-              </Panel>
-            </ToolTip.Tip>
-          </Button>
-        </DockPanel>
+    <DockPanel LastChildFill="False" HorizontalAlignment="Center">
+      <c:TagsBox Padding="0"
+                 Margin="0"
+                 MinWidth="0"
+                 BorderThickness="0"
+                 DockPanel.Dock="Left"
+                 IsReadOnly="True"
+                 Items="{Binding Labels}"
+                 HorizontalAlignment="Stretch"
+                 VerticalAlignment="Center" />
+      <Button Classes="labelFlyout"
+              DockPanel.Dock="Left"
+              IsVisible="{Binding !!FilteredLabels.Count}"
+              Content="..."
+              Margin="0 4 0 0">
+        <Button.Flyout>
+          <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="TransientWithDismissOnPointerMoveAway">
+            <c:TagsBox IsReadOnly="True"
+                       Items="{Binding FilteredLabels}" />
+          </Flyout>
+        </Button.Flyout>
+        <ToolTip.Tip>
+          <Panel>
+            <c:TagsBox IsReadOnly="True"
+                       Margin="4,6,0,0"
+                       Items="{Binding FilteredLabels}" />
+          </Panel>
+        </ToolTip.Tip>
+      </Button>
+    </DockPanel>
 
-        <TextBlock Text="Customize this?" TextWrapping="Wrap" HorizontalAlignment="Center" />
+    <TextBlock Text="Control your privacy?" TextWrapping="Wrap" HorizontalAlignment="Center" />
 
-      </StackPanel>
-    </Border>
-  </Panel>
+  </StackPanel>
 </UserControl>

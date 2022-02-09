@@ -31,7 +31,7 @@
                    DockPanel.Dock="Bottom">
       <StackPanel Orientation="Horizontal">
         <TextBlock Text="Changes will be applied after restarting the application." />
-        <Button Content="Restart Wasabi" Classes="activeHyperLink plain" Margin="5 0 0 0" Command="{Binding RestartCommand}"/>
+        <Button Content="Restart Wasabi" Classes="activeHyperLink plain" Margin="5 0 0 0" Command="{Binding RestartCommand}" />
       </StackPanel>
     </c:InfoMessage>
 
@@ -42,10 +42,6 @@
         <TabControl SelectedIndex="{Binding SelectedTab, Mode=TwoWay}">
           <TabItem Header="General">
             <v:GeneralSettingsTabView DataContext="{Binding GeneralSettingsTab}" />
-          </TabItem>
-
-          <TabItem Header="Privacy">
-            <v:PrivacySettingsTabView DataContext="{Binding PrivacySettingsTab}" />
           </TabItem>
 
           <TabItem Header="Network">

@@ -55,6 +55,11 @@
     <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#4A5970" />
     <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#8093AE" />
 
+    <SolidColorBrush x:Key="PrivacyControlWhiteListHeaderForeground" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="PrivacyControlWhiteListBackground" Color="#293C30" />
+    <SolidColorBrush x:Key="PrivacyControlBlackListBackground" Color="Transparent" />
+    <SolidColorBrush x:Key="PrivacyControlItemBackground" Color="#2FFFFFFF" />
+
     <Color x:Key="SliderTrackValueFill">#8093AE</Color>
     <Color x:Key="SliderTrackValueFillPointerOver">#8093AE</Color>
     <Color x:Key="SliderTrackValueFillPressed">#8093AE</Color>
@@ -89,8 +94,7 @@
 
   <!-- Needs to be here because of dependency reason -->
   <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
-  <StyleInclude Source="avares://DataBox/Themes/Fluent.axaml"/>
-  <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
+  <StyleInclude Source="avares://DataBox/Themes/Fluent.axaml" />
 
   <StyleInclude Source="avares://Avalonia.Xaml.Interactions/Draggable/Styles.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Base.axaml" />

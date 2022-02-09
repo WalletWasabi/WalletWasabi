@@ -75,7 +75,7 @@ public record ConstructionState : MultipartyTransactionState
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
 		}
 
-		if (output.IsDust(Parameters.MinRelayTxFee))
+		if (output.IsDust())
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.DustOutput);
 		}
