@@ -65,7 +65,7 @@ public class CoinJoinTransactionArchiver
 
 		do
 		{
-			DateTimeOffset date = new(from.Year, from.Month + monthOffset, from.Day, 0, 0, 0, from.Offset);
+			DateTimeOffset date = new(from.Year, from.Month + monthOffset, 1, 0, 0, 0, from.Offset);
 			if (date > to)
 			{
 				break;
