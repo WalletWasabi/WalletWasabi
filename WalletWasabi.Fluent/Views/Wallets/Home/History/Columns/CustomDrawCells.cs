@@ -26,6 +26,8 @@ internal class PrivacyTextCell : ICell
 internal class PrivacyTextColumn : ColumnBase<HistoryItemViewModelBase>
 {
 	private readonly Func<HistoryItemViewModelBase, string?> _getter;
+	private readonly Comparison<HistoryItemViewModelBase?>? _sortAscending;
+	private readonly Comparison<HistoryItemViewModelBase?>? _sortDescending;
 
 	public PrivacyTextColumn(
 		object? header,
@@ -34,6 +36,8 @@ internal class PrivacyTextColumn : ColumnBase<HistoryItemViewModelBase>
 		ColumnOptions<HistoryItemViewModelBase>? options)
 		: base(header, width, options)
 	{
+		_sortAscending = options?.CompareAscending;
+		_sortDescending = options?.CompareDescending;
 		_getter = getter;
 	}
 
@@ -44,8 +48,12 @@ internal class PrivacyTextColumn : ColumnBase<HistoryItemViewModelBase>
 
 	public override Comparison<HistoryItemViewModelBase?>? GetComparison(ListSortDirection direction)
 	{
-		// TODO
-		return null;
+		return direction switch
+		{
+			ListSortDirection.Ascending => _sortAscending,
+			ListSortDirection.Descending => _sortDescending,
+			_ => null,
+		};
 	}
 }
 
