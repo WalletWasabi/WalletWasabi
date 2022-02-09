@@ -8,7 +8,7 @@ using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
-internal class PrivateCoinJoinProfile : CoinJoinProfileViewModel
+internal class PrivateCoinJoinProfile : CoinJoinProfileViewModelBase
 {
 	public override string Title => "Private";
 
@@ -18,5 +18,5 @@ internal class PrivateCoinJoinProfile : CoinJoinProfileViewModel
 	public override int MinAnonScoreTarget => 50;
 	public override int MaxAnonScoreTarget => 100;
 
-	public override int FeeTargetAvarageTimeFrameHours => 0;
+	public override int FeeTargetAverageTimeFrameHours => 0;
 }

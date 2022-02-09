@@ -1,9 +1,11 @@
 using ReactiveUI;
 using System.Collections.Generic;
 using System.Reactive.Disposables;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
@@ -11,7 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 [NavigationMetaData(Title = "CoinJoin Profiles")]
 public partial class CoinJoinProfilesViewModel : RoutableViewModel
 {
-	[AutoNotify] private CoinJoinProfileViewModel _selectedProfile;
+	[AutoNotify] private CoinJoinProfileViewModelBase _selectedProfile;
 
 	public CoinJoinProfilesViewModel(KeyManager keyManager)
 	{
@@ -29,16 +31,22 @@ public partial class CoinJoinProfilesViewModel : RoutableViewModel
 
 		_selectedProfile = privateProfile;
 
-		ManualSetupCommand = ReactiveCommand.Create(OnManualSetup);
+		ManualSetupCommand = ReactiveCommand.CreateFromTask(async () => await OnManualSetupAsync());
 	}
 
 	public ICommand ManualSetupCommand { get; }
 
-	public List<CoinJoinProfileViewModel> Profiles { get; }
+	public List<CoinJoinProfileViewModelBase> Profiles { get; }
 
-	private void OnManualSetup()
+	private async Task OnManualSetupAsync()
 	{
+		var dialog = new ManualCoinJoinProfileDialogViewModel();
 
+		var dialogResult = await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen);
+
+		if (dialogResult.Result is { })
+		{
+		}
 	}
 
 	private void OnNext(KeyManager keyManager)
@@ -46,7 +54,7 @@ public partial class CoinJoinProfilesViewModel : RoutableViewModel
 		var selected = SelectedProfile;
 
 		keyManager.SetAnonScoreTargets(selected.MinAnonScoreTarget, selected.MaxAnonScoreTarget, toFile: false);
-		keyManager.SetFeeTargetAvarageTimeFrame(selected.FeeTargetAvarageTimeFrameHours, toFile: false);
+		keyManager.SetFeeTargetAvarageTimeFrame(selected.FeeTargetAverageTimeFrameHours, toFile: false);
 
 		Navigate().To(new AddedWalletPageViewModel(keyManager));
 	}
