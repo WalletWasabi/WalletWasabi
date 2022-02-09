@@ -5,6 +5,7 @@
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.CoinJoinProfiles"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
+             xmlns:prof="clr-namespace:WalletWasabi.Fluent.Views.CoinJoinProfiles"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="vm:CoinJoinProfilesViewModel"
              x:CompileBindings="True"
@@ -14,5 +15,19 @@
                  EnableBack="{Binding EnableBack}"
                  NextContent="Continue" EnableNext="True"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <ListBox Items="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}">
+      <ListBox.ItemsPanel>
+        <ItemsPanelTemplate>
+          <WrapPanel Orientation="Horizontal" />
+        </ItemsPanelTemplate>
+      </ListBox.ItemsPanel>
+      <ListBox.DataTemplates>
+        <DataTemplate DataType="vm:CoinJoinProfileViewModel">
+          <c:SuggestionItem>
+            <prof:CoinJoinProfileControl />
+          </c:SuggestionItem>
+        </DataTemplate>
+      </ListBox.DataTemplates>
+    </ListBox>
   </c:ContentArea>
 </UserControl>

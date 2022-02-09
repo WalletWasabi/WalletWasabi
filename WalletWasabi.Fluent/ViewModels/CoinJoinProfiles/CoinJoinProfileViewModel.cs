@@ -1,18 +1,16 @@
 using Avalonia.Media;
-using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Blockchain.Keys;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
-public class CoinJoinProfileViewModel : ViewModelBase
+public abstract class CoinJoinProfileViewModel : ViewModelBase
 {
-	public string Title { get; }
-	public string Description { get; }
-	public IImage Icon { get; }
+	public abstract string Title { get; }
+	public abstract string Description { get; }
+	public abstract IImage Icon { get; }
 
-	public CoinJoinProfileViewModel(string title, string description)
-	{
-		Title = title;
-		Description = description;
-		Icon = AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/PasswordFinder/{ThemeHelper.CurrentTheme}/numbers.png");
-	}
+	public virtual int MinAnonScoreTarget { get; } = 5;
+
+	public virtual int MaxAnonScoreTarget { get; } = 10;
+	public abstract int FeeTargetAvarageTimeFrameHours { get; }
 }
