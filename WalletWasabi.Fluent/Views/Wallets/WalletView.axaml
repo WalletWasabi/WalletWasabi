@@ -62,7 +62,7 @@
                   </MenuItem>
                   <MenuItem Header="Wallet Statistics" Command="{Binding WalletStatisticsCommand}">
                     <MenuItem.Icon>
-                      <PathIcon Data="{StaticResource settings_wallet_regular}" />
+                      <PathIcon Data="{StaticResource stats_wallet_regular}" />
                     </MenuItem.Icon>
                   </MenuItem>
                 </MenuFlyout>
