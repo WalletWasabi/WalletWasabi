@@ -1,9 +1,5 @@
-using Avalonia.Controls.Models.TreeDataGrid;
-using System.ComponentModel;
-using Avalonia.Controls;
-using Avalonia.Controls.Models.TreeDataGrid;
-using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -11,7 +7,6 @@ using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using ReactiveUI;
-using WalletWasabi.Fluent.ViewModels.Wallets;
 
 namespace WalletWasabi.Fluent.Views.Wallets.Home.History.Columns;
 
@@ -28,18 +23,18 @@ internal class PrivacyTextCell : ICell
 	object? ICell.Value => Value;
 }
 
-internal class PrivacyTextColumn : ColumnBase<HistoryItemViewModelBase>
+internal class PrivacyTextColumn<T> : ColumnBase<T>
 {
-	private readonly Func<HistoryItemViewModelBase, string?> _getter;
-	private readonly Comparison<HistoryItemViewModelBase?>? _sortAscending;
-	private readonly Comparison<HistoryItemViewModelBase?>? _sortDescending;
+	private readonly Func<T, string?> _getter;
+	private readonly Comparison<T?>? _sortAscending;
+	private readonly Comparison<T?>? _sortDescending;
 	private readonly int _numberOfPrivacyChars;
 
 	public PrivacyTextColumn(
 		object? header,
-		Func<HistoryItemViewModelBase, string?> getter,
+		Func<T, string?> getter,
 		GridLength? width,
-		ColumnOptions<HistoryItemViewModelBase>? options,
+		ColumnOptions<T>? options,
 		int numberOfPrivacyChars = 0)
 		: base(header, width, options)
 	{
@@ -49,12 +44,12 @@ internal class PrivacyTextColumn : ColumnBase<HistoryItemViewModelBase>
 		_numberOfPrivacyChars = numberOfPrivacyChars;
 	}
 
-	public override ICell CreateCell(IRow<HistoryItemViewModelBase> row)
+	public override ICell CreateCell(IRow<T> row)
 	{
 		return new PrivacyTextCell(_getter(row.Model), _numberOfPrivacyChars);
 	}
 
-	public override Comparison<HistoryItemViewModelBase?>? GetComparison(ListSortDirection direction)
+	public override Comparison<T?>? GetComparison(ListSortDirection direction)
 	{
 		return direction switch
 		{
@@ -67,7 +62,7 @@ internal class PrivacyTextColumn : ColumnBase<HistoryItemViewModelBase>
 
 internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 {
-	private static List<TreeDataGridPrivacyTextCell> Realized = new();
+	private static readonly List<TreeDataGridPrivacyTextCell> Realized = new();
 	private static IDisposable? Subscription;
 	private static bool IsContentVisible = true;
 	private string? _value;

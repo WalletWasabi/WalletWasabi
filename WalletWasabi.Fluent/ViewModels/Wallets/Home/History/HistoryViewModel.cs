@@ -89,7 +89,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 
                     // Date
                     // new TemplateColumn<HistoryItemViewModelBase>(
-                    new PrivacyTextColumn(
+                    new PrivacyTextColumn<HistoryItemViewModelBase>(
 	                    "Date / Time",
 	                    // new FuncDataTemplate<HistoryItemViewModelBase>(DateColumnTemplate, true),
 	                    x => x.DateString,
@@ -118,7 +118,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 
                     // Incoming
                     // new TemplateColumn<HistoryItemViewModelBase>(
-                    new PrivacyTextColumn(
+                    new PrivacyTextColumn<HistoryItemViewModelBase>(
 	                    "Incoming (₿)",
 	                    // new FuncDataTemplate<HistoryItemViewModelBase>(IncomingColumnTemplate, true),
 	                    x => x.IncomingAmount?.ToFormattedString(),
@@ -136,7 +136,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 
                     // Outgoing
                     // new TemplateColumn<HistoryItemViewModelBase>(
-                    new PrivacyTextColumn(
+                    new PrivacyTextColumn<HistoryItemViewModelBase>(
 	                    "Outgoing (₿)",
 	                    // new FuncDataTemplate<HistoryItemViewModelBase>(OutgoingColumnTemplate, true),
 	                    x => x.OutgoingAmount?.ToFormattedString(),
@@ -154,7 +154,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 
                     // Balance
                     // new TemplateColumn<HistoryItemViewModelBase>(
-                    new PrivacyTextColumn(
+                    new PrivacyTextColumn<HistoryItemViewModelBase>(
 	                    "Balance (₿)",
 	                    // new FuncDataTemplate<HistoryItemViewModelBase>(BalanceColumnTemplate, true),
 	                    x => x.Balance?.ToFormattedString(),
