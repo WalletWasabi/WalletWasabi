@@ -24,10 +24,10 @@
           <Setter Property="Background" Value="Transparent" />
         </Style>
 
-        <Style
+        <!--<Style
           Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
           <Setter Property="Background" Value="Transparent" />
-        </Style>
+        </Style>-->
 
         <Style Selector="ListBoxItem Border#PART_MainContentBorder">
           <Setter Property="Padding" Value="30,25,30,25" />
