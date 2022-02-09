@@ -8,7 +8,7 @@ using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
-internal class SpeedyCoinJoinProfile : CoinJoinProfileViewModel
+internal class SpeedyCoinJoinProfile : CoinJoinProfileViewModelBase
 {
 	public override string Title => "Speedy";
 
@@ -16,5 +16,5 @@ internal class SpeedyCoinJoinProfile : CoinJoinProfileViewModel
 
 	public override IImage Icon => AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/trezor.png");
 
-	public override int FeeTargetAvarageTimeFrameHours => 0;
+	public override int FeeTargetAverageTimeFrameHours => 0;
 }

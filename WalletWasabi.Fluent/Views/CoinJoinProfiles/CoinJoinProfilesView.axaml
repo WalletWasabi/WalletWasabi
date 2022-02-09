@@ -76,7 +76,7 @@
           </ItemsPanelTemplate>
         </ListBox.ItemsPanel>
         <ListBox.DataTemplates>
-          <DataTemplate DataType="vm:CoinJoinProfileViewModel">
+          <DataTemplate DataType="vm:CoinJoinProfileViewModelBase">
             <c:SuggestionItem>
               <prof:CoinJoinProfileControl />
             </c:SuggestionItem>
