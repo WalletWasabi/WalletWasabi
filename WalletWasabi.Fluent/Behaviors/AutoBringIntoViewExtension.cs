@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using ReactiveUI;
 using System.Reactive.Linq;
+using Avalonia.Controls.Primitives;
 using Avalonia.VisualTree;
 
 namespace WalletWasabi.Fluent.Behaviors;
@@ -33,7 +34,11 @@ public static class AutoBringIntoViewExtension
 
 							if (ie is IControl ic)
 							{
-								ic.BringIntoView();
+								// HACK: Temporary hack to disable TreeDataGrid scrolling issue.
+								if (ic is not TreeDataGridRowsPresenter)
+								{
+									ic.BringIntoView();
+								}
 							}
 						}
 
