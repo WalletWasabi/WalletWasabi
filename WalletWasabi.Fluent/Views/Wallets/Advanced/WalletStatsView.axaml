@@ -13,26 +13,22 @@
                  EnableNext="True" NextContent="Done">
     <StackPanel Spacing="10" Margin="0 20 20 0">
       <c:PreviewItem Text="UTXO Count"
-                     CopyParameter="{Binding CoinCount}"
-                     PrivacyModeEnabled="{Binding !ShowSensitiveData}">
+                     CopyParameter="{Binding CoinCount}">
         <TextBlock Classes="monoSpaced" Text="{Binding CoinCount}" />
       </c:PreviewItem>
       <Separator />
       <c:PreviewItem Text="Total Balance"
-                     CopyParameter="{Binding Balance}"
-                     PrivacyModeEnabled="{Binding !ShowSensitiveData}">
+                     CopyParameter="{Binding Balance}">
         <TextBlock Classes="monoSpaced" Text="{Binding Balance}" />
       </c:PreviewItem>
       <Separator />
       <c:PreviewItem Text="Confirmed Balance"
-                     CopyParameter="{Binding ConfirmedBalance}"
-                     PrivacyModeEnabled="{Binding !ShowSensitiveData}">
+                     CopyParameter="{Binding ConfirmedBalance}">
         <TextBlock Classes="monoSpaced" Text="{Binding ConfirmedBalance}" />
       </c:PreviewItem>
       <Separator />
       <c:PreviewItem Text="Unconfirmed Balance"
-                     CopyParameter="{Binding UnconfirmedBalance}"
-                     PrivacyModeEnabled="{Binding !ShowSensitiveData}">
+                     CopyParameter="{Binding UnconfirmedBalance}">
         <TextBlock Classes="monoSpaced" Text="{Binding UnconfirmedBalance}" />
       </c:PreviewItem>
     </StackPanel>
