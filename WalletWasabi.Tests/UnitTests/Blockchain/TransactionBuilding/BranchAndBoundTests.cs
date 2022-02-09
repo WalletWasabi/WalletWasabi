@@ -32,8 +32,6 @@ public class BranchAndBoundTests
 	public void CheapestSelection_ExactMatchIsAlsoCheapest()
 	{
 		long[] inputValues = new long[] { 35, 17, 10, 5, 3, 2 };
-
-		// Make the second input very expensive to spend so that it is not selected (not likely in reality).
 		long[] inputCosts = new long[] { 1, 5, 1, 1, 1, 1 };
 
 		long target = 27;
@@ -77,7 +75,7 @@ public class BranchAndBoundTests
 	}
 
 	[Fact]
-	public void LesserSelection_NoInputCost()
+	public void LesserSelection_NoInputCosts()
 	{
 		long[] inputValues = new long[] { 35, 17, 10, 5, 3, 2 };
 		long[] inputCosts = new long[] { 0, 0, 0, 0, 0, 0 };
@@ -95,6 +93,28 @@ public class BranchAndBoundTests
 		Assert.NotNull(actualSelection);
 
 		// Target 26, closest match is 25. (17, 5, 3)
+		Assert.Equal(new long[] { 17, 5, 3 }, actualSelection);
+	}
+
+	[Fact]
+	public void LesserSelection_WithInputCosts()
+	{
+		long[] inputValues = new long[] { 35, 17, 10, 5, 3, 2 };
+		long[] inputCosts = new long[] { 1, 2, 1, 3, 1, 1 };
+
+		long target = 32;
+
+		BranchAndBound algorithm = new();
+		CheapestSelectionStrategy strategy = new(SuggestionType.Less, target, inputValues, inputCosts);
+		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins);
+
+		Assert.False(wasSuccessful);
+		Assert.Null(selectedCoins);
+
+		long[] actualSelection = strategy.GetBestSelectionFound()!;
+		Assert.NotNull(actualSelection);
+
+		// Target 32, closest match is 31: (17 + 2) + (5 + 3) + (3 + 1) = 31
 		Assert.Equal(new long[] { 17, 5, 3 }, actualSelection);
 	}
 }

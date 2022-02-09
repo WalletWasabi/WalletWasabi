@@ -56,7 +56,7 @@ public static class ChangelessTransactionCoinSelector
 
 		if (solution is not null)
 		{
-			// Sanity check: do not return solution that is much higher or lower than the target.
+			// Sanity check: do not return solution that is much higher or much lower than the target.
 			if (solution.Sum() > target * MaxExtraPayment || solution.Sum() < target * MinPaymentThreshold)
 			{
 				return false;
