@@ -16,6 +16,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 using WalletWasabi.Fluent.Views.Wallets.Home.History.Columns;
 using WalletWasabi.Logging;
@@ -85,10 +86,13 @@ public partial class HistoryViewModel : ActivatableViewModel
                             MinWidth = new GridLength(80, GridUnitType.Pixel)
                         },
                         width: new GridLength(0, GridUnitType.Auto)),
+
                     // Date
-                    new TemplateColumn<HistoryItemViewModelBase>(
+                    // new TemplateColumn<HistoryItemViewModelBase>(
+                    new PrivacyTextColumn(
 	                    "Date / Time",
-	                    new FuncDataTemplate<HistoryItemViewModelBase>(DateColumnTemplate, true),
+	                    // new FuncDataTemplate<HistoryItemViewModelBase>(DateColumnTemplate, true),
+	                    x => x.DateString,
 	                    options: new ColumnOptions<HistoryItemViewModelBase>
 	                    {
 		                    CanUserResizeColumn = false,
@@ -98,6 +102,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 		                    MinWidth = new GridLength(150, GridUnitType.Pixel)
 	                    },
 	                    width: new GridLength(0, GridUnitType.Auto)),
+
                     // Labels
                     new TemplateColumn<HistoryItemViewModelBase>(
 	                    "Labels",
@@ -109,10 +114,13 @@ public partial class HistoryViewModel : ActivatableViewModel
 		                    MinWidth = new GridLength(100, GridUnitType.Pixel)
 	                    },
 	                    width: new GridLength(1, GridUnitType.Star)),
+
                     // Incoming
-                    new TemplateColumn<HistoryItemViewModelBase>(
+                    // new TemplateColumn<HistoryItemViewModelBase>(
+                    new PrivacyTextColumn(
 	                    "Incoming (₿)",
-	                    new FuncDataTemplate<HistoryItemViewModelBase>(IncomingColumnTemplate, true),
+	                    // new FuncDataTemplate<HistoryItemViewModelBase>(IncomingColumnTemplate, true),
+	                    x => x.IncomingAmount?.ToFormattedString(),
 	                    options: new ColumnOptions<HistoryItemViewModelBase>
 	                    {
 		                    CanUserResizeColumn = false,
@@ -123,10 +131,13 @@ public partial class HistoryViewModel : ActivatableViewModel
 		                    MaxWidth = new GridLength(150, GridUnitType.Pixel)
 	                    },
 	                    width: new GridLength(0, GridUnitType.Auto)),
+
                     // Outgoing
-                    new TemplateColumn<HistoryItemViewModelBase>(
+                    // new TemplateColumn<HistoryItemViewModelBase>(
+                    new PrivacyTextColumn(
 	                    "Outgoing (₿)",
-	                    new FuncDataTemplate<HistoryItemViewModelBase>(OutgoingColumnTemplate, true),
+	                    // new FuncDataTemplate<HistoryItemViewModelBase>(OutgoingColumnTemplate, true),
+	                    x => x.OutgoingAmount?.ToFormattedString(),
 	                    options: new ColumnOptions<HistoryItemViewModelBase>
 	                    {
 		                    CanUserResizeColumn = false,
@@ -137,10 +148,13 @@ public partial class HistoryViewModel : ActivatableViewModel
 		                    MaxWidth = new GridLength(150, GridUnitType.Pixel)
 	                    },
 	                    width: new GridLength(0, GridUnitType.Auto)),
+
                     // Balance
-                    new TemplateColumn<HistoryItemViewModelBase>(
+                    // new TemplateColumn<HistoryItemViewModelBase>(
+                    new PrivacyTextColumn(
 	                    "Balance (₿)",
-	                    new FuncDataTemplate<HistoryItemViewModelBase>(BalanceColumnTemplate, true),
+	                    // new FuncDataTemplate<HistoryItemViewModelBase>(BalanceColumnTemplate, true),
+	                    x => x.Balance?.ToFormattedString(),
 	                    options: new ColumnOptions<HistoryItemViewModelBase>
 	                    {
 		                    CanUserResizeColumn = false,
