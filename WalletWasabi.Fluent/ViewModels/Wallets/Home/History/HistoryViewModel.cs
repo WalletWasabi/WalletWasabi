@@ -101,7 +101,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 		                    CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Date),
 		                    MinWidth = new GridLength(150, GridUnitType.Pixel)
 	                    },
-	                    width: new GridLength(0, GridUnitType.Auto)),
+	                    width: new GridLength(0, GridUnitType.Auto),
+	                    numberOfPrivacyChars: 15),
 
                     // Labels
                     new TemplateColumn<HistoryItemViewModelBase>(
@@ -130,7 +131,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 		                    MinWidth = new GridLength(120, GridUnitType.Pixel),
 		                    MaxWidth = new GridLength(150, GridUnitType.Pixel)
 	                    },
-	                    width: new GridLength(0, GridUnitType.Auto)),
+	                    width: new GridLength(0, GridUnitType.Auto),
+	                    numberOfPrivacyChars: 9),
 
                     // Outgoing
                     // new TemplateColumn<HistoryItemViewModelBase>(
@@ -147,7 +149,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 		                    MinWidth = new GridLength(120, GridUnitType.Pixel),
 		                    MaxWidth = new GridLength(150, GridUnitType.Pixel)
 	                    },
-	                    width: new GridLength(0, GridUnitType.Auto)),
+	                    width: new GridLength(0, GridUnitType.Auto),
+	                    numberOfPrivacyChars: 9),
 
                     // Balance
                     // new TemplateColumn<HistoryItemViewModelBase>(
@@ -161,10 +164,11 @@ public partial class HistoryViewModel : ActivatableViewModel
 		                    CanUserSortColumn = true,
 		                    CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Balance),
 		                    CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Balance),
-		                    MinWidth = new GridLength(120, GridUnitType.Pixel),
+		                    MinWidth = new GridLength(150, GridUnitType.Pixel),
 		                    MaxWidth = new GridLength(150, GridUnitType.Pixel)
 	                    },
-	                    width: new GridLength(0, GridUnitType.Auto)),
+	                    width: new GridLength(0, GridUnitType.Auto),
+	                    numberOfPrivacyChars: 9),
                 }
             };
 

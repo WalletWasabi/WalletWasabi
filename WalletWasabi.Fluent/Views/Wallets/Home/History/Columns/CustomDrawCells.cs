@@ -17,9 +17,14 @@ namespace WalletWasabi.Fluent.Views.Wallets.Home.History.Columns;
 
 internal class PrivacyTextCell : ICell
 {
-	public PrivacyTextCell(string? value) => Value = value;
+	public PrivacyTextCell(string? value, int numberOfPrivacyChars)
+	{
+		Value = value;
+		NumberOfPrivacyChars = numberOfPrivacyChars;
+	}
 	public bool CanEdit => false;
 	public string? Value { get; }
+	public int NumberOfPrivacyChars { get;  }
 	object? ICell.Value => Value;
 }
 
@@ -28,22 +33,25 @@ internal class PrivacyTextColumn : ColumnBase<HistoryItemViewModelBase>
 	private readonly Func<HistoryItemViewModelBase, string?> _getter;
 	private readonly Comparison<HistoryItemViewModelBase?>? _sortAscending;
 	private readonly Comparison<HistoryItemViewModelBase?>? _sortDescending;
+	private readonly int _numberOfPrivacyChars;
 
 	public PrivacyTextColumn(
 		object? header,
 		Func<HistoryItemViewModelBase, string?> getter,
 		GridLength? width,
-		ColumnOptions<HistoryItemViewModelBase>? options)
+		ColumnOptions<HistoryItemViewModelBase>? options,
+		int numberOfPrivacyChars = 0)
 		: base(header, width, options)
 	{
 		_sortAscending = options?.CompareAscending;
 		_sortDescending = options?.CompareDescending;
 		_getter = getter;
+		_numberOfPrivacyChars = numberOfPrivacyChars;
 	}
 
 	public override ICell CreateCell(IRow<HistoryItemViewModelBase> row)
 	{
-		return new PrivacyTextCell(_getter(row.Model));
+		return new PrivacyTextCell(_getter(row.Model), _numberOfPrivacyChars);
 	}
 
 	public override Comparison<HistoryItemViewModelBase?>? GetComparison(ListSortDirection direction)
@@ -59,17 +67,21 @@ internal class PrivacyTextColumn : ColumnBase<HistoryItemViewModelBase>
 
 internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 {
-	private static List<TreeDataGridPrivacyTextCell> Realized = new List<TreeDataGridPrivacyTextCell>();
+	private static List<TreeDataGridPrivacyTextCell> Realized = new();
 	private static IDisposable? Subscription;
 	private static bool IsContentVisible = true;
 	private string? _value;
 	private FormattedText? _formattedText;
+	private int _numberOfPrivacyChars;
 
-	public string? Text => IsContentVisible ? _value : new string('#', _value?.Length ?? 0);
+	public string? Text => IsContentVisible ? _value : new string('#', _value is not null ? _numberOfPrivacyChars : 0);
 
 	public override void Realize(IElementFactory factory, ICell model, int columnIndex, int rowIndex)
 	{
-		var text = ((PrivacyTextCell)model).Value;
+		var privacyTextCell = (PrivacyTextCell)model;
+		var text = privacyTextCell.Value;
+
+		_numberOfPrivacyChars = privacyTextCell.NumberOfPrivacyChars;
 
 		if (text != _value)
 		{
