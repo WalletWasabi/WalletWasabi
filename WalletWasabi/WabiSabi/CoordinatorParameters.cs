@@ -36,6 +36,11 @@ public class CoordinatorParameters
 	public string CoinJoinIdStoreFilePath => Path.Combine(CoordinatorDataDir, "CoinJoinIdStore.txt");
 
 	/// <summary>
+	/// File that is storing the feeRate statistics.
+	/// </summary>
+	public string FeeRateStatStoreFilePath => Path.Combine(CoordinatorDataDir, "FeeRateStatStore.txt");
+
+	/// <summary>
 	/// Runtime adjustable configuration of the coordinator.
 	/// </summary>
 	public WabiSabiConfig RuntimeCoordinatorConfig { get; }
