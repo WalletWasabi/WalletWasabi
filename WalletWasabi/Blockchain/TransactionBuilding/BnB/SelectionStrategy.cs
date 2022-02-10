@@ -9,10 +9,14 @@ namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 /// </summary>
 public abstract class SelectionStrategy
 {
+#pragma warning disable IDE1006
+
 	public long _currentInputCosts = 0;
 	public long _bestTargetSoFar;
 	public long _remainingAmount;
 	public long[]? _bestSelectionSoFar;
+
+#pragma warning restore IDE1006
 
 	public SelectionStrategy(long target, long[] inputValues, long[] inputCosts)
 	{
