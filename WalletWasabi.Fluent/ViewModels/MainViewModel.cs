@@ -1,8 +1,10 @@
+using System.Linq;
 using System.Reactive.Concurrency;
 using NBitcoin;
 using ReactiveUI;
 using System.Reactive.Linq;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.NavBar;
@@ -65,6 +67,8 @@ public partial class MainViewModel : ViewModelBase
 		_privacyMode = new PrivacyModeViewModel();
 		_searchPage = new SearchPageViewModel();
 		_navBar = new NavBarViewModel(MainScreen);
+
+		MusicControls = new MusicControlsViewModel();
 
 		NavigationManager.RegisterType(_navBar);
 
@@ -166,6 +170,8 @@ public partial class MainViewModel : ViewModelBase
 
 	public TargettedNavigationStack MainScreen { get; }
 
+	public MusicControlsViewModel MusicControls { get; }
+
 	public static MainViewModel Instance { get; } = new();
 
 	public void ClearStacks()
@@ -176,17 +182,16 @@ public partial class MainViewModel : ViewModelBase
 		CompactDialogScreen.Clear();
 	}
 
+	public void InvalidateIsCoinJoinActive()
+	{
+		IsCoinJoinActive = UiServices.WalletManager.Wallets.OfType<WalletViewModel>()
+			.Any(x => x.IsCoinJoining);
+	}
+
 	public void Initialize()
 	{
 		StatusBar.Initialize();
-
-		if (Services.HostedServices.GetOrDefault<CoinJoinManager>() is { } coinJoinManager)
-		{
-			coinJoinManager.WalletStatusChanged += (sender, args) =>
-			{
-				IsCoinJoinActive = coinJoinManager.HighestCoinJoinClientState != CoinJoinClientState.Idle;
-			};
-		}
+		MusicControls.Initialize();
 
 		if (Services.Config.Network != Network.Main)
 		{

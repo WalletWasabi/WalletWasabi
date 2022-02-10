@@ -46,10 +46,13 @@
 
       <Separator Classes="vertical" />
 
-      <Button Classes="plain">
+      <Button Classes="plain" Command="{Binding PlayCommand}">
+        <PathIcon Data="{StaticResource play_regular}" />
+      </Button>
+      <Button Classes="plain" Command="{Binding PauseCommand}">
         <PathIcon Data="{StaticResource pause_regular}" />
       </Button>
-      <Button Classes="plain">
+      <Button Classes="plain" Command="{Binding StopCommand}">
         <PathIcon Data="{StaticResource stop_regular}" />
       </Button>
     </StackPanel>
