@@ -17,7 +17,8 @@
       <Setter Property="Transitions">
         <Transitions>
           <TransformOperationsTransition Property="RenderTransform"
-                                         Duration="0:0:0.6"
+                                         Delay="0:0:0.5"
+                                         Duration="0:0:1.25"
                                          Easing="{StaticResource FluentEasing}"/>
         </Transitions>
       </Setter>
