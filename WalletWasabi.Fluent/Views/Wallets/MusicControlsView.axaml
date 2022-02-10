@@ -3,11 +3,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             x:DataType="wallets:MusicControlsViewModel"
+             x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.MusicControlsView">
-  <UserControl.DataContext>
-    <wallets:MusicControlsViewModel/>
-  </UserControl.DataContext>
   <UserControl.Styles>
     <Style Selector="TextBlock">
       <Setter Property="VerticalAlignment" Value="Center" />
@@ -15,36 +15,41 @@
 
     <Style Selector="Border#PART_MainBorder.IsActive">
       <Style.Animations>
-        <Animation Duration="0:0:0.2" Easing="{StaticResource FluentEasing}" FillMode="Both">
-          <KeyFrame Cue="100%">
+        <Animation Duration="0:0:2" Easing="{StaticResource FluentEasing}" FillMode="Both">
+          <KeyFrame Cue="50%">
             <Setter Property="(TranslateTransform.Y)" Value="120" />
           </KeyFrame>
-        </Animation>
-      </Style.Animations>
-    </Style>
-    <Style Selector="Border#PART_MainBorder:not(.IsActive)">
-      <Style.Animations>
-        <Animation Duration="0:0:0.2" Easing="{StaticResource FluentEasing}" FillMode="Both">
           <KeyFrame Cue="100%">
             <Setter Property="(TranslateTransform.Y)" Value="0" />
           </KeyFrame>
         </Animation>
       </Style.Animations>
     </Style>
+    <Style Selector="Border#PART_MainBorder:not(.IsActive)">
+      <Style.Animations>
+        <Animation Duration="0:0:2" Easing="{StaticResource FluentEasing}" FillMode="Both">
+          <KeyFrame Cue="50%">
+            <Setter Property="(TranslateTransform.Y)" Value="0" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="(TranslateTransform.Y)" Value="120" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
   </UserControl.Styles>
   <Border Name="PART_MainBorder"
-          Classes.IsActive="{Binding IsActive}"
+          Classes.IsActive="{Binding IsActive, FallbackValue=false}"
           TextBlock.FontFamily="{StaticResource MonospacedFont}"
           Padding="20 10" CornerRadius="4 4 0 0" BorderThickness="1 1 1 0" Background="#19FFFFFF"
           BorderBrush="#3CFFFFFF">
     <StackPanel Orientation="Horizontal" Spacing="20">
-      <TextBlock Text="Round in progress" />
+
+      <controls:ScrollingTextBlock MaxWidth="350" Text="{Binding CurrentStatus}" />
 
       <Separator Classes="vertical" />
 
       <ProgressBar Minimum="0" Maximum="100" Value="89" Foreground="White" />
-
-      <TextBlock Text="09:59" />
 
       <Separator Classes="vertical" />
 

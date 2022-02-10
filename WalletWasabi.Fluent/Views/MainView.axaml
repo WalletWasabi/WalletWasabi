@@ -8,6 +8,7 @@
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
              xmlns:statusBar="clr-namespace:WalletWasabi.Fluent.Views.StatusBar"
+             xmlns:wallets="clr-namespace:WalletWasabi.Fluent.Views.Wallets"
              mc:Ignorable="d" d:DesignWidth="536" d:DesignHeight="459"
              x:DataType="vm:MainViewModel"
              x:CompileBindings="True"
@@ -58,6 +59,7 @@
               </Style>
             </Panel.Styles>
             <ContentControl ClipToBounds="False" Content="{Binding MainScreen.CurrentPage}" />
+            <wallets:MusicControlsView DataContext="{Binding CurrentWallet.MusicControls}" VerticalAlignment="Bottom" HorizontalAlignment="Center" Height="64" />
           </Panel>
         </Panel>
       </Panel>
