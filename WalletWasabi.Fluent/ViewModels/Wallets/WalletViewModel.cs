@@ -146,11 +146,7 @@ public partial class WalletViewModel : WalletViewModelBase
 		WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(Settings));
 
 		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this, balanceChanged)));
-
-		MusicControls = new MusicControlsViewModel(wallet);
 	}
-
-	public MusicControlsViewModel MusicControls { get; }
 
 	public WalletSettingsViewModel Settings { get; }
 
@@ -233,6 +229,8 @@ public partial class WalletViewModel : WalletViewModelBase
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
+
+		disposables.Add(MainViewModel.Instance.MusicControls.SetWallet(Wallet));
 
 		foreach (var tile in _tiles)
 		{

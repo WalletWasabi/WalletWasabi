@@ -58,7 +58,7 @@
                 <Setter Property="Margin" Value="31 36 31 0" />
               </Style>
             </DockPanel.Styles>
-            <wallets:MusicControlsView DockPanel.Dock="Bottom" DataContext="{Binding CurrentWallet.MusicControls}" HorizontalAlignment="Center" Height="64" />
+            <wallets:MusicControlsView DockPanel.Dock="Bottom" DataContext="{Binding MusicControls}" HorizontalAlignment="Center" Height="64" />
             <ContentControl ClipToBounds="False" Content="{Binding MainScreen.CurrentPage}" />
           </DockPanel>
         </Panel>
