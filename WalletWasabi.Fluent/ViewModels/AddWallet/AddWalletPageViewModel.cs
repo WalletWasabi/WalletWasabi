@@ -68,7 +68,7 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 			var walletName = Path.GetFileNameWithoutExtension(filePath);
 
 			var validationError = WalletHelpers.ValidateWalletName(walletName);
-			if (validationError is { } err)
+			if (validationError is { })
 			{
 				Navigate().To(new WalletNamePageViewModel(WalletCreationOption.ImportWallet, filePath));
 				return;
@@ -80,8 +80,7 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
-			await ShowErrorAsync(Title, ex.ToUserFriendlyString(),
-				"The wallet file was not valid or compatible with Wasabi.");
+			await ShowErrorAsync("Import wallet", ex.ToUserFriendlyString(), "Wasabi was unable to import your wallet.");
 		}
 	}
 

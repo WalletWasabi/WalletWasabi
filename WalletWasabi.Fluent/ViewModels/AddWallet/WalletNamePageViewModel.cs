@@ -23,6 +23,8 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 
 	public WalletNamePageViewModel(WalletCreationOption creationOption, string? importFilePath = null)
 	{
+		_importFilePath = importFilePath;
+
 		EnableBack = true;
 
 		var canExecute = this.WhenAnyValue(x => x.WalletName)
@@ -32,7 +34,6 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(WalletName, creationOption), canExecute);
 
 		this.ValidateProperty(x => x.WalletName, ValidateWalletName);
-		_importFilePath = importFilePath;
 	}
 
 	private async Task OnNextAsync(string walletName, WalletCreationOption creationOption)
@@ -48,7 +49,7 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 			case WalletCreationOption.RecoverWallet:
 				Navigate().To(new RecoverWalletViewModel(walletName));
 				break;
-			case WalletCreationOption.ImportWallet when _importFilePath is string:
+			case WalletCreationOption.ImportWallet when _importFilePath is { }:
 				await ImportWalletAsync(walletName, _importFilePath);
 				break;
 			default:
@@ -65,7 +66,7 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 		}
 		catch(Exception ex)
 		{
-			await ShowErrorAsync("Import wallet", ex.ToUserFriendlyString(), "Error");
+			await ShowErrorAsync("Import wallet", ex.ToUserFriendlyString(), "Wasabi was unable to import your wallet.");
 			BackCommand.Execute(null);
 		}
 	}
