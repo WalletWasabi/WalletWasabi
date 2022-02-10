@@ -111,11 +111,9 @@ public partial class WalletViewModel : WalletViewModelBase
 		this.WhenAnyValue(x => x.HeightSource)
 			.Subscribe(x => LayoutSelector(_widthSource, x));
 
-		SendCommand = ReactiveCommand.Create(() => RoutableViewModel.Navigate(NavigationTarget.DialogScreen)
-				.To(new SendViewModel(wallet)));
+		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(wallet)));
 
-		ReceiveCommand = ReactiveCommand.Create(() => RoutableViewModel.Navigate(NavigationTarget.DialogScreen)
-				.To(new ReceiveViewModel(wallet)));
+		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new ReceiveViewModel(wallet)));
 
 		WalletInfoCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
