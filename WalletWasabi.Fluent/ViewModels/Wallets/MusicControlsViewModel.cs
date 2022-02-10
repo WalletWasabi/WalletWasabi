@@ -19,16 +19,14 @@ public partial class MusicControlsViewModel : ViewModelBase
 
 		var coinJoinManager = Services.HostedServices.Get<CoinJoinManager>();
 
-		CurrentStatus = $"CoinJoin will auto-start in this is a very long message";
+		Observable.Interval(TimeSpan.FromSeconds(1))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(x =>
+			{
+				CurrentStatus = $"CoinJoin will auto-start in this is a very long message: {(DateTime.Now - coinJoinManager.WhenWalletCanStartAutoCoinJoin(wallet)):mm\\:ss}";
 
-		// Observable.Interval(TimeSpan.FromSeconds(1))
-		// 	.ObserveOn(RxApp.MainThreadScheduler)
-		// 	.Subscribe(x =>
-		// 	{
-		// 		CurrentStatus = $"CoinJoin will auto-start in this is a very long message: {(DateTime.Now - coinJoinManager.WhenWalletCanStartAutoCoinJoin(wallet)):mm\\:ss}";
-		//
-		//
-		//
-		// 	});
+
+
+			});
 	}
 }
