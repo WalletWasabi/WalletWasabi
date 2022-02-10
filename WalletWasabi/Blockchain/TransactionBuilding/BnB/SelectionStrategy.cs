@@ -11,10 +11,10 @@ public abstract class SelectionStrategy
 {
 #pragma warning disable IDE1006
 
-	public long _currentInputCosts = 0;
-	public long _bestTargetSoFar;
-	public long _remainingAmount;
-	public long[]? _bestSelectionSoFar;
+	protected long _currentInputCosts = 0;
+	protected long _bestTargetSoFar;
+	protected long _remainingAmount;
+	protected long[]? _bestSelectionSoFar;
 
 #pragma warning restore IDE1006
 
