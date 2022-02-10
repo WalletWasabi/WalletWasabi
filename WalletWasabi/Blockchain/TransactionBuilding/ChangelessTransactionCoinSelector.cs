@@ -44,7 +44,7 @@ public static class ChangelessTransactionCoinSelector
 		long[] inputValues = inputEffectiveValues.Values.ToArray();
 
 		BranchAndBound branchAndBound = new();
-		CheapestSelectionStrategy strategy = new(suggestionType, target, inputValues, inputCosts);
+		SelectionStrategy strategy = suggestionType == SuggestionType.More ? new MoreSelectionStrategy(target, inputValues, inputCosts) : new LessSelectionStrategy(target, inputValues, inputCosts);
 
 		var foundExactMatch = branchAndBound.TryGetMatch(strategy, out List<long>? solution, cancellationToken);
 
