@@ -9,7 +9,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.MusicControlsView">
   <UserControl.Styles>
-    <Style Selector="TextBlock">
+    <Style Selector=":is(TextBlock)">
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
