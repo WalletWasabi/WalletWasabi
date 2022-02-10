@@ -1,16 +1,17 @@
 using ReactiveUI;
-using System.IO;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Validation;
-using WalletWasabi.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Models;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
@@ -18,8 +19,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 public partial class WalletNamePageViewModel : RoutableViewModel
 {
 	[AutoNotify] private string _walletName = "";
+	private readonly string? _importFilePath;
 
-	public WalletNamePageViewModel(WalletCreationOption creationOption)
+	public WalletNamePageViewModel(WalletCreationOption creationOption, string? importFilePath = null)
 	{
 		EnableBack = true;
 
@@ -29,7 +31,8 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(WalletName, creationOption), canExecute);
 
-		this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, WalletName));
+		this.ValidateProperty(x => x.WalletName, ValidateWalletName);
+		_importFilePath = importFilePath;
 	}
 
 	private async Task OnNextAsync(string walletName, WalletCreationOption creationOption)
@@ -45,8 +48,25 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 			case WalletCreationOption.RecoverWallet:
 				Navigate().To(new RecoverWalletViewModel(walletName));
 				break;
+			case WalletCreationOption.ImportWallet when _importFilePath is string:
+				await ImportWalletAsync(walletName, _importFilePath);
+				break;
 			default:
 				throw new InvalidOperationException($"WalletCreationOption not supported: {creationOption}");
+		}
+	}
+
+	private async Task ImportWalletAsync(string walletName, string filePath)
+	{
+		try
+		{
+			var keyManager = await ImportWalletHelper.ImportWalletAsync(Services.WalletManager, walletName, filePath);
+			Navigate().To(new AddedWalletPageViewModel(keyManager));
+		}
+		catch(Exception ex)
+		{
+			await ShowErrorAsync("Import wallet", ex.ToUserFriendlyString(), "Error");
+			BackCommand.Execute(null);
 		}
 	}
 
@@ -78,32 +98,12 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 		}
 	}
 
-	private static void ValidateWalletName(IValidationErrors errors, string walletName)
+	private void ValidateWalletName(IValidationErrors errors)
 	{
-		string walletFilePath = Path.Combine(Services.WalletManager.WalletDirectories.WalletsDir, $"{walletName}.json");
-
-		if (string.IsNullOrEmpty(walletName))
+		var error = WalletHelpers.ValidateWalletName(WalletName);
+		if (error is { } e)
 		{
-			return;
-		}
-
-		if (walletName.IsTrimmable())
-		{
-			errors.Add(ErrorSeverity.Error, "Leading and trailing white spaces are not allowed!");
-			return;
-		}
-
-		if (File.Exists(walletFilePath))
-		{
-			errors.Add(
-				ErrorSeverity.Error,
-				$"A wallet named {walletName} already exists. Please try a different name.");
-			return;
-		}
-
-		if (!WalletGenerator.ValidateWalletName(walletName))
-		{
-			errors.Add(ErrorSeverity.Error, "Selected Wallet is not valid. Please try a different name.");
+			errors.Add(e.Severity, e.Message);
 		}
 	}
 

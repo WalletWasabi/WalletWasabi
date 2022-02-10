@@ -7,7 +7,6 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
@@ -67,9 +66,11 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 
 			var walletName = Path.GetFileNameWithoutExtension(filePath);
 
-			var keyManager = await ImportWalletHelper.ImportWalletAsync(Services.WalletManager, walletName, filePath);
-
-			Navigate().To(new AddedWalletPageViewModel(keyManager));
+			var validationError = WalletHelpers.ValidateWalletName(walletName);
+			if (validationError is { } err)
+			{
+				Navigate().To(new WalletNamePageViewModel(WalletCreationOption.ImportWallet, filePath));
+			}
 		}
 		catch (Exception ex)
 		{
