@@ -135,13 +135,17 @@ public partial class WalletViewModel : WalletViewModelBase
 
 			Navigate(NavigationTarget.DialogScreen).To(new WalletInfoViewModel(this));
 		});
-    
+
 		WalletStatisticsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletStatsViewModel(this)));
 
 		WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(Settings));
 
 		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this, balanceChanged)));
+
+		MusicControls = new MusicControlsViewModel(wallet);
 	}
+
+	public MusicControlsViewModel MusicControls { get; }
 
 	public WalletSettingsViewModel Settings { get; }
 
