@@ -38,7 +38,7 @@ public class CoordinatorParameters
 	/// <summary>
 	/// File that is storing the feeRate statistics.
 	/// </summary>
-	public string FeeRateStatStoreFilePath => Path.Combine(CoordinatorDataDir, "FeeRateStatStore.txt");
+	public string CoinJoinFeeRateStatStoreFilePath => Path.Combine(CoordinatorDataDir, "CoinJoinFeeRateStatStore.txt");
 
 	/// <summary>
 	/// Runtime adjustable configuration of the coordinator.

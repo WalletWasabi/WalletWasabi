@@ -2,7 +2,7 @@ using NBitcoin;
 
 namespace WalletWasabi.WabiSabi.Backend.Statistics;
 
-public record FeeRateStatRecord(
+public record CoinJoinFeeRateStatRecord(
 	DateTimeOffset DateTimeOffset,
 	uint ConfirmationTarget,
 	FeeRate FeeRate)
@@ -12,7 +12,7 @@ public record FeeRateStatRecord(
 		return $"{DateTimeOffset.ToUnixTimeSeconds()},{ConfirmationTarget},{(uint)Math.Ceiling(FeeRate.SatoshiPerByte)}";
 	}
 
-	public static FeeRateStatRecord FromLine(string line)
+	public static CoinJoinFeeRateStatRecord FromLine(string line)
 	{
 		var parts = line.Split(",");
 		var date = DateTimeOffset.FromUnixTimeSeconds(long.Parse(parts[0]));
