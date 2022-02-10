@@ -1,4 +1,5 @@
 # For all files.
 [*]
 
+# This is a hack to suppress all warnings in the ZXing folder (3rd party code)
 generated_code = true
