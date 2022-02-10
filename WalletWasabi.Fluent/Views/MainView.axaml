@@ -8,6 +8,7 @@
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
              xmlns:statusBar="clr-namespace:WalletWasabi.Fluent.Views.StatusBar"
+             xmlns:wallets="clr-namespace:WalletWasabi.Fluent.Views.Wallets"
              mc:Ignorable="d" d:DesignWidth="536" d:DesignHeight="459"
              x:DataType="vm:MainViewModel"
              x:CompileBindings="True"
@@ -47,8 +48,8 @@
             <c:CustomBlurBehind />
             <statusBar:StatusBar DataContext="{Binding StatusBar}" />
           </Panel>
-          <Panel>
-            <Panel.Styles>
+          <DockPanel>
+            <DockPanel.Styles>
               <Style Selector="ContentControl c|ContentArea /template/ Panel#PART_ButtonArea">
                 <Setter Property="IsVisible" Value="False" />
               </Style>
@@ -56,9 +57,10 @@
               <Style Selector="c|ContentArea /template/ StackPanel#PART_Header">
                 <Setter Property="Margin" Value="31 36 31 0" />
               </Style>
-            </Panel.Styles>
+            </DockPanel.Styles>
+            <wallets:MusicControlsView DockPanel.Dock="Bottom" DataContext="{Binding CurrentWallet.MusicControls}" HorizontalAlignment="Center" Height="64" />
             <ContentControl ClipToBounds="False" Content="{Binding MainScreen.CurrentPage}" />
-          </Panel>
+          </DockPanel>
         </Panel>
       </Panel>
     </SplitView>

@@ -61,6 +61,11 @@
                       <PathIcon Data="{StaticResource settings_wallet_regular}" />
                     </MenuItem.Icon>
                   </MenuItem>
+                  <MenuItem Header="Wallet Statistics" Command="{Binding WalletStatisticsCommand}">
+                    <MenuItem.Icon>
+                      <PathIcon Data="{StaticResource stats_wallet_regular}" />
+                    </MenuItem.Icon>
+                  </MenuItem>
                 </MenuFlyout>
               </Button.Flyout>
               <PathIcon Data="{StaticResource more_regular}" Foreground="{DynamicResource TextForegroundColor}" />
@@ -108,7 +113,6 @@
         </Panel.Styles>
         <home:WalletTiles />
       </Panel>
-      <controls:MusicControlsView DockPanel.Dock="Bottom" HorizontalAlignment="Center" Margin="0 20 0 -22" Height="64" />
       <Panel>
         <history:HistoryTable Name="HistoryTable"
                               DataContext="{Binding History}"

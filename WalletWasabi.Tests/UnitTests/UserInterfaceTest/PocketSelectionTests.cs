@@ -459,13 +459,64 @@ public class PocketSelectionTests
 
 		Assert.False(selection.EnoughSelected);
 	}
+
+	[Fact]
+	public void UnlabelledPocketUsed()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("0.7"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(0.5M, out var pocket1, CoinPocketHelper.UnlabelledFundsText);
+		pockets.AddPocket(0.5M, out var pocket2, "Dan");
+
+		selection.Reset(pockets.ToArray());
+
+		var output = selection.GetSafeToUsePockets();
+		Assert.Contains(pocket1, output);
+		Assert.Contains(pocket2, output);
+	}
+
+	[Fact]
+	public void UnlabelledPocketNotUsed()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("0.4"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(0.5M, out var pocket1, CoinPocketHelper.UnlabelledFundsText);
+		pockets.AddPocket(0.5M, out var pocket2, "Dan");
+
+		selection.Reset(pockets.ToArray());
+
+		var output = selection.GetSafeToUsePockets();
+		Assert.DoesNotContain(pocket1, output);
+		Assert.Contains(pocket2, output);
+	}
+
+	public void NotEnoughSelectedWhenSameLabelFoundInSeveralPocket()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(0.4M, out var pocket1, "Dan");
+		pockets.AddPocket(2.0M, out var pocket2, "Dan", "David");
+
+		selection.Reset(pockets.ToArray());
+
+		selection.SwapLabel(selection.GetLabel("Dan"));
+		selection.SwapLabel(selection.GetLabel("Dan"));
+
+		Assert.DoesNotContain(selection.GetLabel("Dan"), selection.LabelsBlackList);
+		Assert.DoesNotContain(selection.GetLabel("David"), selection.LabelsWhiteList);
+
+		Assert.False(selection.EnoughSelected);
+	}
 }
 
 internal static class LabelTestExtensions
 {
 	public static LabelViewModel GetLabel(this LabelSelectionViewModel selection, string label)
 	{
-		return selection.AllLabelViewModel.Single(x => x.Value == label);
+		return selection.AllLabelsViewModel.Single(x => x.Value == label);
 	}
 
 	public static void AddPocket(this List<Pocket> pockets, decimal amount, out Pocket pocket, params string[] labels)

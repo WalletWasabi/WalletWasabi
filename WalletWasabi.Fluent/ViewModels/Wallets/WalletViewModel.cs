@@ -111,11 +111,9 @@ public partial class WalletViewModel : WalletViewModelBase
 		this.WhenAnyValue(x => x.HeightSource)
 			.Subscribe(x => LayoutSelector(_widthSource, x));
 
-		SendCommand = ReactiveCommand.Create((Action)(() => RoutableViewModel.Navigate((Fluent.NavigationTarget)Fluent.NavigationTarget.DialogScreen)
-				.To(new SendViewModel(wallet))));
+		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(wallet)));
 
-		ReceiveCommand = ReactiveCommand.Create((Action)(() => RoutableViewModel.Navigate((Fluent.NavigationTarget)Fluent.NavigationTarget.DialogScreen)
-				.To(new ReceiveViewModel(wallet))));
+		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new ReceiveViewModel(wallet)));
 
 		WalletInfoCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
@@ -138,10 +136,16 @@ public partial class WalletViewModel : WalletViewModelBase
 			Navigate(NavigationTarget.DialogScreen).To(new WalletInfoViewModel(this));
 		});
 
+		WalletStatisticsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletStatsViewModel(this)));
+
 		WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(Settings));
 
 		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this, balanceChanged)));
+
+		MusicControls = new MusicControlsViewModel(wallet);
 	}
+
+	public MusicControlsViewModel MusicControls { get; }
 
 	public WalletSettingsViewModel Settings { get; }
 
@@ -154,6 +158,8 @@ public partial class WalletViewModel : WalletViewModelBase
 	public ICommand WalletInfoCommand { get; }
 
 	public ICommand WalletSettingsCommand { get; }
+
+	public ICommand WalletStatisticsCommand { get; }
 
 	public ICommand WalletCoinsCommand { get; }
 
