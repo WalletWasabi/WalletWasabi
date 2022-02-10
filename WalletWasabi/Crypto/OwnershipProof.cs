@@ -44,7 +44,7 @@ public record OwnershipProof : IBitcoinSerializable
 	private static OwnershipProof GenerateOwnershipProof(Key key, byte[] commitmentData, ProofBody proofBody, ScriptPubKeyType scriptPubKeyType) =>
 		new(
 			proofBody,
-			Bip322Signature.Generate(key, proofBody.SignatureHash(key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), commitmentData), scriptPubKeyType));
+			Bip322Signature.Generate(key, proofBody.SignatureHash(key.PubKey.GetScriptPubKey(scriptPubKeyType), commitmentData), scriptPubKeyType));
 
 	public bool VerifyOwnership(Script scriptPubKey, byte[] commitmentData, bool requireUserConfirmation) =>
 		scriptPubKey.GetScriptType() switch
@@ -65,11 +65,11 @@ public record OwnershipProof : IBitcoinSerializable
 		return _proofSignature.Verify(hash, scriptPubKey);
 	}
 
-	public static OwnershipProof GenerateCoinJoinInputProof(Key key, OwnershipIdentifier ownershipIdentifier, CoinJoinInputCommitmentData coinJoinInputsCommitmentData) =>
-		Generate(key, new[] { ownershipIdentifier }, coinJoinInputsCommitmentData.ToBytes(), true, ScriptPubKeyType.Segwit);
+	public static OwnershipProof GenerateCoinJoinInputProof(Key key, OwnershipIdentifier ownershipIdentifier, CoinJoinInputCommitmentData coinJoinInputsCommitmentData, ScriptPubKeyType scriptPubKeyType) =>
+		Generate(key, new[] { ownershipIdentifier }, coinJoinInputsCommitmentData.ToBytes(), true, scriptPubKeyType);
 
-	public static OwnershipProof GenerateCoinJoinInputProof(Key key, IEnumerable<OwnershipIdentifier> ownershipIdentifiers, CoinJoinInputCommitmentData coinJoinInputsCommitmentData) =>
-		Generate(key, ownershipIdentifiers, coinJoinInputsCommitmentData.ToBytes(), true, ScriptPubKeyType.Segwit);
+	public static OwnershipProof GenerateCoinJoinInputProof(Key key, IEnumerable<OwnershipIdentifier> ownershipIdentifiers, CoinJoinInputCommitmentData coinJoinInputsCommitmentData, ScriptPubKeyType scriptPubKeyType) =>
+		Generate(key, ownershipIdentifiers, coinJoinInputsCommitmentData.ToBytes(), true, scriptPubKeyType);
 
 	public static bool VerifyCoinJoinInputProof(OwnershipProof ownershipProofBytes, Script scriptPubKey, CoinJoinInputCommitmentData coinJoinInputsCommitmentData) =>
 		ownershipProofBytes.VerifyOwnership(scriptPubKey, coinJoinInputsCommitmentData.ToBytes(), true);

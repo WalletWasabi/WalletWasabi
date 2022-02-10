@@ -330,7 +330,7 @@ public class RegisterInputFailureTests
 	[Fact]
 	public async Task WrongCoordinatorIdentifierInOwnershipProofAsync()
 	{
-		await TestOwnershipProof((key, roundId) => OwnershipProof.GenerateCoinJoinInputProof(key, new OwnershipIdentifier(key, key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit)), new CoinJoinInputCommitmentData("test", roundId)));
+		await TestOwnershipProof((key, roundId) => OwnershipProof.GenerateCoinJoinInputProof(key, new OwnershipIdentifier(key, key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit)), new CoinJoinInputCommitmentData("test", roundId), ScriptPubKeyType.Segwit));
 	}
 
 	[Fact]
