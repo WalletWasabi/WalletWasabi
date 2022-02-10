@@ -25,7 +25,7 @@ public class KeyManager
 {
 	public const int DefaultMinAnonScoreTarget = 5;
 	public const int DefaultMaxAnonScoreTarget = 10;
-	public const bool DefaultAutoCoinjoin = true;
+	public const bool DefaultAutoCoinjoin = false;
 
 	public const int AbsoluteMinGapLimit = 21;
 	public const int MaxGapLimit = 10_000;
