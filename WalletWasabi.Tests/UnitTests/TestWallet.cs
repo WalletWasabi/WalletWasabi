@@ -119,7 +119,8 @@ public class TestWallet : IKeyChain, IDestinationProvider
 		return OwnershipProof.GenerateCoinJoinInputProof(
 				extKey.PrivateKey,
 				new OwnershipIdentifier(identificationKey, destination.ScriptPubKey),
-				committedData);
+				committedData,
+				ScriptPubKeyType.Segwit);
 	}
 
 	/// <remarks>Test wallet assumes that the ownership proof is always correct.</remarks>

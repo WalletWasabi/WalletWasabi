@@ -33,7 +33,8 @@ public class KeyChain : IKeyChain
 		var ownershipProof = OwnershipProof.GenerateCoinJoinInputProof(
 				signingKey,
 				new OwnershipIdentifier(identificationKey, destination.ScriptPubKey),
-				commitmentData);
+				commitmentData,
+				ScriptPubKeyType.Segwit);
 		return ownershipProof;
 	}
 
