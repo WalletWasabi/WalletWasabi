@@ -67,9 +67,9 @@
 
       <!-- CJ fee  -->
       <c:PreviewItem Icon="{StaticResource btc_logo}"
-                     Text="Mining fee paid"
+                     Text="Coinjoin fee:"
                      CopyParameter="{Binding CoinJoinFee}">
-        <TextBlock Text="{Binding CoinJoinFee, StringFormat={}{0} BTC, Mode=OneWay}" />
+        <TextBlock Text="{Binding CoinJoinFeeString, Mode=OneWay}" />
       </c:PreviewItem>
 
     </StackPanel>

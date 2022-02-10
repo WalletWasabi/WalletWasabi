@@ -40,7 +40,14 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	#region Members
 
+	/// <summary>
+	/// Coins those are on the input side of the tx and belongs to ANY loaded wallet. Later if more wallets are loaded this list can increase.
+	/// </summary>
 	public HashSet<SmartCoin> WalletInputs { get; }
+
+	/// <summary>
+	/// Coins those are on the output side of the tx and belongs to ANY loaded wallet. Later if more wallets are loaded this list can increase.
+	/// </summary>
 	public HashSet<SmartCoin> WalletOutputs { get; }
 
 	[JsonProperty]
@@ -166,8 +173,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 				return heightCompareResult;
 			}
 
-				// If mempool this should be 0, so they should be equal so no worry about it.
-				var blockIndexCompareResult = a.BlockIndex.CompareTo(b.BlockIndex);
+			// If mempool this should be 0, so they should be equal so no worry about it.
+			var blockIndexCompareResult = a.BlockIndex.CompareTo(b.BlockIndex);
 			if (blockIndexCompareResult != 0)
 			{
 				return blockIndexCompareResult;
