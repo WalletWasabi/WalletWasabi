@@ -13,6 +13,7 @@ using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
+using WalletWasabi.WabiSabi.Backend.Statistics;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -25,6 +26,7 @@ public partial class Arena : PeriodicRunner
 		IRPCClient rpc,
 		Prison prison,
 		InMemoryCoinJoinIdStore inMemoryCoinJoinIdStore,
+		CoinJoinFeeRateStatStore coinJoinFeeRateStatStore,
 		CoinJoinTransactionArchiver? archiver = null) : base(period)
 	{
 		Network = network;
@@ -34,6 +36,7 @@ public partial class Arena : PeriodicRunner
 		TransactionArchiver = archiver;
 		Random = new SecureRandom();
 		InMemoryCoinJoinIdStore = inMemoryCoinJoinIdStore;
+		CoinJoinFeeRateStatStore = coinJoinFeeRateStatStore;
 	}
 
 	public HashSet<Round> Rounds { get; } = new();
@@ -45,6 +48,7 @@ public partial class Arena : PeriodicRunner
 	private SecureRandom Random { get; }
 	private CoinJoinTransactionArchiver? TransactionArchiver { get; }
 	private InMemoryCoinJoinIdStore InMemoryCoinJoinIdStore { get; }
+	private CoinJoinFeeRateStatStore CoinJoinFeeRateStatStore { get; }
 
 	public event EventHandler<Transaction>? CoinJoinBroadcast;
 

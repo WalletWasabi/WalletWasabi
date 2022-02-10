@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Backend.Statistics;
 
@@ -14,6 +15,8 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 {
 	private const int MaximumDaysToStore = 30;
 	private List<CoinJoinFeeRateStatRecord> CoinJoinFeeRateStatRecords { get; }
+
+	private CoinJoinFeeRateAvarage[] DefaultAvarages { get; set; } = Array.Empty<CoinJoinFeeRateAvarage>();
 
 	public CoinJoinFeeRateStatStore(WabiSabiConfig config, IRPCClient rpc, IEnumerable<CoinJoinFeeRateStatRecord> feeRateStatRecords) :
 		base(TimeSpan.FromMinutes(10))
@@ -41,6 +44,15 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 	{
 		CoinJoinFeeRateStatRecords.Add(feeRateStatRecord);
 
+		var timeFrames = new[]
+{
+			TimeSpan.FromDays(1),
+			TimeSpan.FromDays(7),
+			TimeSpan.FromDays(30),
+		};
+
+		DefaultAvarages = timeFrames.Select(t => new CoinJoinFeeRateAvarage((int)Math.Floor(t.TotalHours), GetAvarage(t))).ToArray();
+
 		// Prune old items.
 		DateTimeOffset removeBefore = DateTimeOffset.UtcNow - TimeSpan.FromDays(MaximumDaysToStore);
 		while (CoinJoinFeeRateStatRecords.Any() && CoinJoinFeeRateStatRecords[0].DateTimeOffset < removeBefore)
@@ -53,6 +65,11 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 	{
 		var from = DateTimeOffset.UtcNow - timeFrame;
 		return new FeeRate(CoinJoinFeeRateStatRecords.Where(x => x.DateTimeOffset >= from).Average(x => x.FeeRate.SatoshiPerByte));
+	}
+
+	public CoinJoinFeeRateAvarage[] GetDefaultAvarages()
+	{
+		return DefaultAvarages;
 	}
 
 	public static CoinJoinFeeRateStatStore LoadFromFile(string filePath, WabiSabiConfig config, IRPCClient rpc)

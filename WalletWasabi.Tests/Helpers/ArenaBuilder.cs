@@ -1,5 +1,7 @@
 using Moq;
 using NBitcoin;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
@@ -7,6 +9,7 @@ using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
+using WalletWasabi.WabiSabi.Backend.Statistics;
 
 namespace WalletWasabi.Tests.Helpers;
 
@@ -23,6 +26,7 @@ public class ArenaBuilder
 	public IRPCClient? Rpc { get; set; }
 	public Prison? Prison { get; set; }
 	public InMemoryCoinJoinIdStore? CoinJoinIdStore { get; set; }
+	public CoinJoinFeeRateStatStore? CoinJoinFeeRateStatStore { get; set; }
 
 	/// <param name="rounds">Rounds to initialize <see cref="Arena"/> with.</param>
 	public Arena Create(params Round[] rounds)
@@ -33,8 +37,9 @@ public class ArenaBuilder
 		IRPCClient rpc = Rpc ?? WabiSabiFactory.CreatePreconfiguredRpcClient().Object;
 		Network network = Network ?? Network.Main;
 		InMemoryCoinJoinIdStore coinJoinIdStore = CoinJoinIdStore ?? new();
+		CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = CoinJoinFeeRateStatStore ?? new(config, rpc, Enumerable.Empty<CoinJoinFeeRateStatRecord>());
 
-		Arena arena = new(period, network, config, rpc, prison, coinJoinIdStore);
+		Arena arena = new(period, network, config, rpc, prison, coinJoinIdStore, coinJoinFeeRateStatStore);
 
 		foreach (var round in rounds)
 		{

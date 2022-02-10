@@ -26,13 +26,13 @@ public class WabiSabiCoordinator : BackgroundService
 
 		CoinJoinTransactionArchiver transactionArchiver = new(Path.Combine(parameters.CoordinatorDataDir, "CoinJoinTransactions"));
 
-		var inMemoryCoinJoinIdStore = InMemoryCoinJoinIdStore.LoadFromFile(parameters.CoinJoinIdStoreFilePath);
-
-		Arena = new(parameters.RoundProgressSteppingPeriod, rpc.Network, Config, rpc, Warden.Prison, inMemoryCoinJoinIdStore, transactionArchiver);
-		Arena.CoinJoinBroadcast += Arena_CoinJoinBroadcast;
-
 		CoinJoinFeeRateStatStore = CoinJoinFeeRateStatStore.LoadFromFile(parameters.CoinJoinFeeRateStatStoreFilePath, Config, rpc);
 		CoinJoinFeeRateStatStore.NewStat += FeeRateStatStore_NewStat;
+
+		var inMemoryCoinJoinIdStore = InMemoryCoinJoinIdStore.LoadFromFile(parameters.CoinJoinIdStoreFilePath);
+
+		Arena = new(parameters.RoundProgressSteppingPeriod, rpc.Network, Config, rpc, Warden.Prison, inMemoryCoinJoinIdStore, CoinJoinFeeRateStatStore, transactionArchiver);
+		Arena.CoinJoinBroadcast += Arena_CoinJoinBroadcast;
 	}
 
 	public ConfigWatcher ConfigWatcher { get; }

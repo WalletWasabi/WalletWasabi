@@ -25,7 +25,7 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 	private Arena Arena { get; }
 
 	[HttpPost("status")]
-	public Task<RoundState[]> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
+	public Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
 	{
 		return Arena.GetStatusAsync(request, cancellationToken);
 	}
