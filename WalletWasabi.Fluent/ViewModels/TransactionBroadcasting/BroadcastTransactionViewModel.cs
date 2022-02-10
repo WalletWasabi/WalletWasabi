@@ -89,13 +89,7 @@ public partial class BroadcastTransactionViewModel : RoutableViewModel
 			? null
 			: totalInputValue - totalOutputValue;
 
-		var feeDisplayFormat = Services.UiConfig.FeeDisplayFormat.GetEnumValueOrDefault(FeeDisplayFormat.BTC);
-		var feeMoneyUnit = feeDisplayFormat.ToMoneyUnit();
-
-		FeeString =
-			networkFee is null
-			? "Unknown"
-			: $"{networkFee.ToDecimal(feeMoneyUnit)} {feeDisplayFormat.FriendlyName()}";
+		FeeString = networkFee?.ToFeeDisplayFormatString() ?? "Unknown";
 	}
 
 	private async Task OnNextAsync(SmartTransaction transaction)

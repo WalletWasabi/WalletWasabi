@@ -1,5 +1,6 @@
 using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Models;
 
@@ -20,4 +21,19 @@ public static class TransactionSummaryExtension
 			FeeDisplayFormat.Satoshis => MoneyUnit.Satoshi,
 			_ => throw new InvalidOperationException($"Invalid Fee Display Format value: {feeDisplayFormat}")
 		};
+
+	public static string? ToFeeDisplayFormatString(this Money? fee)
+	{
+		if (fee == null)
+		{
+			return null;
+		}
+
+		var displayFormat = Services.UiConfig.FeeDisplayFormat.GetEnumValueOrDefault(FeeDisplayFormat.BTC);
+		var moneyUnit = displayFormat.ToMoneyUnit();
+		
+		var feeText = $"{fee.ToDecimal(moneyUnit)} {displayFormat.FriendlyName() } ";
+
+		return feeText;
+	}
 }
