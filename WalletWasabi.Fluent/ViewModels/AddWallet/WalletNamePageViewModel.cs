@@ -113,12 +113,5 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 
 		var enableCancel = Services.WalletManager.HasWallet();
 		SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
-
-		this.RaisePropertyChanged(WalletName);
-
-		if (!isInHistory)
-		{
-			WalletName = "";
-		}
 	}
 }
