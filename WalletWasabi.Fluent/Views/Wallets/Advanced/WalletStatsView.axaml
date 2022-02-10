@@ -12,7 +12,7 @@
   <c:ContentArea Title="{Binding Title}"
                  EnableNext="True" NextContent="Done">
     <StackPanel Spacing="10" Margin="0 20 20 0">
-      <c:PreviewItem Text="UTXO Count"
+      <c:PreviewItem Text="Coins Count"
                      CopyParameter="{Binding CoinCount}">
         <c:PrivacyContentControl Classes="monoSpaced"
                                  NumberOfPrivacyChars="8"
