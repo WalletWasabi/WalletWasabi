@@ -29,25 +29,11 @@ public class ScrollingTextBlock : TextBlock
 
 	public ScrollingTextBlock()
 	{
-		this.WhenAnyValue(x => x.Text)
-			.Subscribe(OnTextChanged);
-
 		new Clock().Subscribe(Tick);
 
 		TextWrapping = TextWrapping.NoWrap;
 
 		AffectsRender<ScrollingTextBlock>(TextProperty);
-	}
-
-	private void OnTextChanged(string? obj)
-	{
-		if (obj is null || obj.Length >= _offset)
-		{
-			_offset = 0;
-			_waiting = true;
-			_waitCounter = TimeSpan.Zero;
-			Dispatcher.UIThread.Post(InvalidateVisual, DispatcherPriority.Background);
-		}
 	}
 
 	/// <summary>
