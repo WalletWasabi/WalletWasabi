@@ -37,9 +37,8 @@ public class ArenaBuilder
 		IRPCClient rpc = Rpc ?? WabiSabiFactory.CreatePreconfiguredRpcClient().Object;
 		Network network = Network ?? Network.Main;
 		InMemoryCoinJoinIdStore coinJoinIdStore = CoinJoinIdStore ?? new();
-		CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = CoinJoinFeeRateStatStore ?? new(config, rpc, Enumerable.Empty<CoinJoinFeeRateStatRecord>());
 
-		Arena arena = new(period, network, config, rpc, prison, coinJoinIdStore, coinJoinFeeRateStatStore);
+		Arena arena = new(period, network, config, rpc, prison, coinJoinIdStore);
 
 		foreach (var round in rounds)
 		{

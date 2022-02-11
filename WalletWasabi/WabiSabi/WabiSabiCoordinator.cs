@@ -31,7 +31,7 @@ public class WabiSabiCoordinator : BackgroundService
 
 		var inMemoryCoinJoinIdStore = InMemoryCoinJoinIdStore.LoadFromFile(parameters.CoinJoinIdStoreFilePath);
 
-		Arena = new(parameters.RoundProgressSteppingPeriod, rpc.Network, Config, rpc, Warden.Prison, inMemoryCoinJoinIdStore, CoinJoinFeeRateStatStore, transactionArchiver);
+		Arena = new(parameters.RoundProgressSteppingPeriod, rpc.Network, Config, rpc, Warden.Prison, inMemoryCoinJoinIdStore, transactionArchiver);
 		Arena.CoinJoinBroadcast += Arena_CoinJoinBroadcast;
 	}
 

@@ -52,7 +52,7 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 	{
 		CoinJoinFeeRateStatRecords.Add(feeRateStatRecord);
 
-		DefaultAvarages = TimeFrames.Select(t => new CoinJoinFeeRateAvarage((int)Math.Floor(t.TotalHours), GetAvarage(t))).ToArray();
+		DefaultAvarages = TimeFrames.Select(t => new CoinJoinFeeRateAvarage(t, GetAvarage(t))).ToArray();
 
 		// Prune old items.
 		DateTimeOffset removeBefore = DateTimeOffset.UtcNow - MaximumTimeToStore;

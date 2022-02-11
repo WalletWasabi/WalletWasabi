@@ -367,7 +367,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 				return RoundState.FromRound(x, checkPoint == default ? 0 : checkPoint.StateId);
 			}).ToArray();
 
-			return new RoundStateResponse(roundStates, CoinJoinFeeRateStatStore.GetDefaultAvarages());
+			return new RoundStateResponse(roundStates, Array.Empty<CoinJoinFeeRateAvarage>());
 		}
 	}
 
