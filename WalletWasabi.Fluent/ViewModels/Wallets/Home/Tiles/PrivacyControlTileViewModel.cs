@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Windows.Input;
 using Avalonia.Threading;
 using NBitcoin;
@@ -44,6 +45,11 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 		};
 
 		walletVm.Settings.WhenAnyValue(x => x.AutoCoinJoin).Subscribe(x => IsAutoCoinJoinEnabled = x);
+
+		walletVm.Settings.WhenAnyValue(x => x.MinAnonScoreTarget, x => x.MaxAnonScoreTarget)
+			.Throttle(TimeSpan.FromMilliseconds(3000))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(_ => Update());
 
 		walletVm.WhenAnyValue(x => x.IsCoinJoining)
 			.Subscribe(x =>
