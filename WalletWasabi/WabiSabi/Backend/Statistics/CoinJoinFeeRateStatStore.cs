@@ -67,6 +67,10 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 		return new FeeRate(CoinJoinFeeRateStatRecords.Where(x => x.DateTimeOffset >= from).Average(x => x.FeeRate.SatoshiPerByte));
 	}
 
+	/// <summary>
+	/// The avagares are calculated periodically in every <see cref="PeriodicRunner.Period"/> time span.
+	/// </summary>
+	/// <returns></returns>
 	public CoinJoinFeeRateAvarage[] GetDefaultAvarages()
 	{
 		return DefaultAvarages;
