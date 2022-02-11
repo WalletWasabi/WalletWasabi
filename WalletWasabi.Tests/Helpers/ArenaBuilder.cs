@@ -26,7 +26,6 @@ public class ArenaBuilder
 	public IRPCClient? Rpc { get; set; }
 	public Prison? Prison { get; set; }
 	public InMemoryCoinJoinIdStore? CoinJoinIdStore { get; set; }
-	public CoinJoinFeeRateStatStore? CoinJoinFeeRateStatStore { get; set; }
 
 	/// <param name="rounds">Rounds to initialize <see cref="Arena"/> with.</param>
 	public Arena Create(params Round[] rounds)

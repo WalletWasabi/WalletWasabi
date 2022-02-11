@@ -34,6 +34,11 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 		CoinJoinFeeRateStatRecords = new(feeRateStatRecords.OrderBy(x => x.DateTimeOffset));
 	}
 
+	public CoinJoinFeeRateStatStore(WabiSabiConfig config, IRPCClient rpc) :
+		this(config, rpc, Enumerable.Empty<CoinJoinFeeRateStatRecord>())
+	{
+	}
+
 	private WabiSabiConfig Config { get; }
 	private IRPCClient Rpc { get; }
 
