@@ -9,6 +9,7 @@
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
              xmlns:statusBar="clr-namespace:WalletWasabi.Fluent.Views.StatusBar"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.Views.Wallets"
+             xmlns:spectrum="clr-namespace:WalletWasabi.Fluent.Controls.Spectrum"
              mc:Ignorable="d" d:DesignWidth="536" d:DesignHeight="459"
              x:DataType="vm:MainViewModel"
              x:CompileBindings="True"
@@ -44,7 +45,7 @@
           <Border Background="{DynamicResource RegionColor}" IsHitTestVisible="False" />
           <Panel Background="{DynamicResource RegionColor}" VerticalAlignment="Bottom"
                  Height="64">
-            <c:SpectrumControl Opacity="0.6" IsActive="{Binding IsCoinJoinActive}" />
+            <spectrum:SpectrumControl Opacity="0.6" IsActive="{Binding IsCoinJoinActive}" IsDockEffectVisible="{Binding MusicControls.IsActive}" />
             <c:CustomBlurBehind />
             <statusBar:StatusBar DataContext="{Binding StatusBar}" />
           </Panel>

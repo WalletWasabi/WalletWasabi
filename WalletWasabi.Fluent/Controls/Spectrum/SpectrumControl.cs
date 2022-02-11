@@ -1,33 +1,43 @@
+using System.Collections.Generic;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using Avalonia.Threading;
 
-namespace WalletWasabi.Fluent.Controls;
+namespace WalletWasabi.Fluent.Controls.Spectrum;
 
 public class SpectrumControl : TemplatedControl
 {
-	private readonly Random _random;
+
 	private Pen _linePen;
 	private ISolidColorBrush _lineBrush;
 	private IConicGradientBrush _gradientBrush;
-	private DispatcherTimer _timer;
-	private double[] _bins;
-	private double[] _averaged;
+
+	private readonly AuraSpectrumDataSource _auraSpectrumDataSource;
+	private readonly SplashEffectDataSource _splashEffectDataSource;
+
+	private readonly SpectrumDataSource[] _sources;
+
+	private float[] _data;
 	private const int NumBins = 250;
-	private const int NumAverages = 30;
 
 	public static readonly StyledProperty<bool> IsActiveProperty =
 		AvaloniaProperty.Register<SpectrumControl, bool>(nameof(IsActive));
 
+	public static readonly StyledProperty<bool> IsDockEffectVisibleProperty =
+		AvaloniaProperty.Register<SpectrumControl, bool>(nameof(IsDockEffectVisible));
+
 	public SpectrumControl()
 	{
-		_bins = new double[NumBins];
-		_averaged = new double[NumBins];
 
-		_random = new Random(DateTime.Now.Millisecond);
+		_data = new float[NumBins];
+		_auraSpectrumDataSource = new AuraSpectrumDataSource(NumBins);
+		_splashEffectDataSource = new SplashEffectDataSource(NumBins);
+
+		_sources = new SpectrumDataSource[] { _auraSpectrumDataSource, _splashEffectDataSource };
+
 		_lineBrush = SolidColorBrush.Parse("#97D234");
+
 		Background = new RadialGradientBrush()
 		{
 			GradientStops =
@@ -36,35 +46,15 @@ public class SpectrumControl : TemplatedControl
 				new GradientStop { Color = Color.Parse("#FF000D21"), Offset = 1 }
 			}
 		};
-
-		_timer = new DispatcherTimer
-		{
-			Interval = TimeSpan.FromSeconds(0.2)
-		};
-
-		_timer.Tick += TimerOnTick;
-	}
-
-	private void TimerOnTick(object? sender, EventArgs e)
-	{
-		var isActive = IsActive;
-
-		for (int i = 0; i < NumBins; i++)
-		{
-			_bins[i] = isActive ? _random.NextDouble() : 0;
-		}
-
-		if (!isActive)
-		{
-			_timer.Stop();
-		}
 	}
 
 	private void OnIsActiveChanged()
 	{
+		_auraSpectrumDataSource.IsActive = IsActive;
+
 		if (IsActive)
 		{
-			_timer.Start();
+			_auraSpectrumDataSource.Start();
 		}
 	}
 
@@ -76,12 +66,25 @@ public class SpectrumControl : TemplatedControl
 		{
 			OnIsActiveChanged();
 		}
+		else if (change.Property == IsDockEffectVisibleProperty)
+		{
+			if (change.NewValue.GetValueOrDefault<bool>())
+			{
+				_splashEffectDataSource.Start();
+			}
+		}
 	}
 
 	public bool IsActive
 	{
 		get => GetValue(IsActiveProperty);
 		set => SetValue(IsActiveProperty, value);
+	}
+
+	public bool IsDockEffectVisible
+	{
+		get => GetValue(IsDockEffectVisibleProperty);
+		set => SetValue(IsDockEffectVisibleProperty, value);
 	}
 
 	protected override Size ArrangeOverride(Size finalSize)
@@ -102,14 +105,22 @@ public class SpectrumControl : TemplatedControl
 
 		for (int i = 0; i < NumBins; i++)
 		{
-			_averaged[i] -= _averaged[i] / NumAverages;
-			_averaged[i] += _bins[i] / NumAverages;
+			_data[i] = 0;
+		}
 
+		foreach (var source in _sources)
+		{
+			source.Render(ref _data);
+		}
+
+		for (int i = 0; i < NumBins; i++)
+		{
 			var dCenter = Math.Abs(x - center);
 			var multiplier = 1 - (dCenter / center);
 
 			context.DrawLine(_linePen, new Point(x, Bounds.Height),
-				new Point(x, Bounds.Height - multiplier * _averaged[i] *  (Bounds.Height * 0.95)));
+				new Point(x, Bounds.Height - multiplier * _data[i] *  (Bounds.Height * 0.95)));
+
 			x += thickness;
 		}
 
