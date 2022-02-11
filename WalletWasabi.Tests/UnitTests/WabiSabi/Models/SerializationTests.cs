@@ -160,6 +160,17 @@ public class SerializationTests
 		Assert.Equal(expectedJson, serializedCoin);
 	}
 
+	[Fact]
+	public void RoundStateResponseSerialization()
+	{
+		var round = WabiSabiFactory.CreateRound(new WalletWasabi.WabiSabi.Backend.WabiSabiConfig());
+		var roundState = RoundState.FromRound(round);
+		CoinJoinFeeRateAvarage avarage = new(TimeSpan.FromHours(24), new FeeRate(120m));
+		RoundStateResponse response = new(new[] { roundState }, new[] { avarage });
+
+		AssertSerialization(response);
+	}
+
 	private static void AssertSerialization<T>(T message)
 	{
 		var serializedMessage = JsonConvert.SerializeObject(message, JsonSerializationOptions.Default.Settings);
