@@ -13,7 +13,7 @@ namespace WalletWasabi.WabiSabi.Backend.Statistics;
 
 public class CoinJoinFeeRateStatStore : PeriodicRunner
 {
-	private const int MaximumDaysToStore = 30;
+	private static TimeSpan MaximumTimeToStore = TimeSpan.FromDays(30);
 	private List<CoinJoinFeeRateStatRecord> CoinJoinFeeRateStatRecords { get; }
 
 	private CoinJoinFeeRateAvarage[] DefaultAvarages { get; set; } = Array.Empty<CoinJoinFeeRateAvarage>();
@@ -54,7 +54,7 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 		DefaultAvarages = timeFrames.Select(t => new CoinJoinFeeRateAvarage((int)Math.Floor(t.TotalHours), GetAvarage(t))).ToArray();
 
 		// Prune old items.
-		DateTimeOffset removeBefore = DateTimeOffset.UtcNow - TimeSpan.FromDays(MaximumDaysToStore);
+		DateTimeOffset removeBefore = DateTimeOffset.UtcNow - MaximumTimeToStore;
 		while (CoinJoinFeeRateStatRecords.Any() && CoinJoinFeeRateStatRecords[0].DateTimeOffset < removeBefore)
 		{
 			CoinJoinFeeRateStatRecords.RemoveAt(0);
@@ -78,8 +78,7 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 
 	public static CoinJoinFeeRateStatStore LoadFromFile(string filePath, WabiSabiConfig config, IRPCClient rpc)
 	{
-		var now = DateTimeOffset.UtcNow;
-		var from = now - TimeSpan.FromDays(MaximumDaysToStore);
+		var from = DateTimeOffset.UtcNow - MaximumTimeToStore;
 
 		var records = !File.Exists(filePath) ?
 			Enumerable.Empty<CoinJoinFeeRateStatRecord>() :
