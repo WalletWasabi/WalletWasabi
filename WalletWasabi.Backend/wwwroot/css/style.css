@@ -167,11 +167,11 @@ video::-webkit-media-controls {
     color: var(--green);
 }
 .floating-title {
-    font-size: 100px;
+    font-size: 50px;
     font-weight: bold;
     line-height: 1.2em;
     position: absolute;
-    top: calc(30% - 50px);
+    top: calc(35% - 50px);
     left: calc((100% - var(--breakpoint)) / 2);
     transform: translateY(-50%);
     text-transform: uppercase;
