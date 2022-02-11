@@ -55,14 +55,14 @@ public class WabiSabiCoordinator : BackgroundService
 		File.AppendAllLines(Parameters.CoinJoinIdStoreFilePath, new[] { e.GetHash().ToString() });
 	}
 
-	private void FeeRateStatStore_NewStat(object? sender, CoinJoinFeeRateStat record)
+	private void FeeRateStatStore_NewStat(object? sender, CoinJoinFeeRateStat feeRateStat)
 	{
 		if (!File.Exists(Parameters.CoinJoinFeeRateStatStoreFilePath))
 		{
 			IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinFeeRateStatStoreFilePath);
 		}
 
-		File.AppendAllLines(Parameters.CoinJoinFeeRateStatStoreFilePath, new[] { record.ToLine() });
+		File.AppendAllLines(Parameters.CoinJoinFeeRateStatStoreFilePath, new[] { feeRateStat.ToLine() });
 	}
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)

@@ -48,9 +48,9 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 	{
 		var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancel).ConfigureAwait(false)).FeeRate;
 
-		CoinJoinFeeRateStat record = new(DateTimeOffset.UtcNow, Config.ConfirmationTarget, feeRate);
-		Add(record);
-		NewStat?.Invoke(this, record);
+		CoinJoinFeeRateStat feeRateStat = new(DateTimeOffset.UtcNow, Config.ConfirmationTarget, feeRate);
+		Add(feeRateStat);
+		NewStat?.Invoke(this, feeRateStat);
 	}
 
 	public void Add(CoinJoinFeeRateStat feeRateStat)
