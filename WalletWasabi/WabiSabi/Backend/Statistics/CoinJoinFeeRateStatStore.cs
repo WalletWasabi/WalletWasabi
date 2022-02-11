@@ -22,55 +22,55 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 
 	private static TimeSpan MaximumTimeToStore { get; } = TimeFrames.Max();
 
-	private List<CoinJoinFeeRateStatRecord> CoinJoinFeeRateStatRecords { get; }
+	private List<CoinJoinFeeRateStat> CoinJoinFeeRateStats { get; }
 
 	private CoinJoinFeeRateAvarage[] DefaultAvarages { get; set; } = Array.Empty<CoinJoinFeeRateAvarage>();
 
-	public CoinJoinFeeRateStatStore(WabiSabiConfig config, IRPCClient rpc, IEnumerable<CoinJoinFeeRateStatRecord> feeRateStatRecords) :
+	public CoinJoinFeeRateStatStore(WabiSabiConfig config, IRPCClient rpc, IEnumerable<CoinJoinFeeRateStat> feeRateStats) :
 		base(TimeSpan.FromMinutes(10))
 	{
 		Config = config;
 		Rpc = rpc;
-		CoinJoinFeeRateStatRecords = new(feeRateStatRecords.OrderBy(x => x.DateTimeOffset));
+		CoinJoinFeeRateStats = new(feeRateStats.OrderBy(x => x.DateTimeOffset));
 	}
 
 	public CoinJoinFeeRateStatStore(WabiSabiConfig config, IRPCClient rpc) :
-		this(config, rpc, Enumerable.Empty<CoinJoinFeeRateStatRecord>())
+		this(config, rpc, Enumerable.Empty<CoinJoinFeeRateStat>())
 	{
 	}
 
 	private WabiSabiConfig Config { get; }
 	private IRPCClient Rpc { get; }
 
-	public event EventHandler<CoinJoinFeeRateStatRecord>? NewStat;
+	public event EventHandler<CoinJoinFeeRateStat>? NewStat;
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
 		var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancel).ConfigureAwait(false)).FeeRate;
 
-		CoinJoinFeeRateStatRecord record = new(DateTimeOffset.UtcNow, Config.ConfirmationTarget, feeRate);
+		CoinJoinFeeRateStat record = new(DateTimeOffset.UtcNow, Config.ConfirmationTarget, feeRate);
 		Add(record);
 		NewStat?.Invoke(this, record);
 	}
 
-	public void Add(CoinJoinFeeRateStatRecord feeRateStatRecord)
+	public void Add(CoinJoinFeeRateStat feeRateStat)
 	{
-		CoinJoinFeeRateStatRecords.Add(feeRateStatRecord);
+		CoinJoinFeeRateStats.Add(feeRateStat);
 
 		DefaultAvarages = TimeFrames.Select(t => new CoinJoinFeeRateAvarage(t, GetAvarage(t))).ToArray();
 
 		// Prune old items.
 		DateTimeOffset removeBefore = DateTimeOffset.UtcNow - MaximumTimeToStore;
-		while (CoinJoinFeeRateStatRecords.Any() && CoinJoinFeeRateStatRecords[0].DateTimeOffset < removeBefore)
+		while (CoinJoinFeeRateStats.Any() && CoinJoinFeeRateStats[0].DateTimeOffset < removeBefore)
 		{
-			CoinJoinFeeRateStatRecords.RemoveAt(0);
+			CoinJoinFeeRateStats.RemoveAt(0);
 		}
 	}
 
 	public FeeRate GetAvarage(TimeSpan timeFrame)
 	{
 		var from = DateTimeOffset.UtcNow - timeFrame;
-		return new FeeRate(CoinJoinFeeRateStatRecords.Where(x => x.DateTimeOffset >= from).Average(x => x.FeeRate.SatoshiPerByte));
+		return new FeeRate(CoinJoinFeeRateStats.Where(x => x.DateTimeOffset >= from).Average(x => x.FeeRate.SatoshiPerByte));
 	}
 
 	/// <summary>
@@ -87,9 +87,9 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 		var from = DateTimeOffset.UtcNow - MaximumTimeToStore;
 
 		var records = !File.Exists(filePath) ?
-			Enumerable.Empty<CoinJoinFeeRateStatRecord>() :
+			Enumerable.Empty<CoinJoinFeeRateStat>() :
 			File.ReadAllLines(filePath)
-				.Select(x => CoinJoinFeeRateStatRecord.FromLine(x))
+				.Select(x => CoinJoinFeeRateStat.FromLine(x))
 				.Where(x => x.DateTimeOffset >= from);
 
 		var store = new CoinJoinFeeRateStatStore(config, rpc, records);

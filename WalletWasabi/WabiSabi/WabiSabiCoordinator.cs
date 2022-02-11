@@ -55,7 +55,7 @@ public class WabiSabiCoordinator : BackgroundService
 		File.AppendAllLines(Parameters.CoinJoinIdStoreFilePath, new[] { e.GetHash().ToString() });
 	}
 
-	private void FeeRateStatStore_NewStat(object? sender, CoinJoinFeeRateStatRecord record)
+	private void FeeRateStatStore_NewStat(object? sender, CoinJoinFeeRateStat record)
 	{
 		if (!File.Exists(Parameters.CoinJoinFeeRateStatStoreFilePath))
 		{
