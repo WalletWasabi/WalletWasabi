@@ -9,7 +9,7 @@ public record CoinJoinFeeRateStatRecord(
 {
 	public string ToLine()
 	{
-		return $"{DateTimeOffset.ToUnixTimeSeconds()},{ConfirmationTarget},{(uint)Math.Ceiling(FeeRate.SatoshiPerByte)}";
+		return $"{DateTimeOffset.ToUnixTimeSeconds()},{ConfirmationTarget},{FeeRate.FeePerK.Satoshi}";
 	}
 
 	public static CoinJoinFeeRateStatRecord FromLine(string line)
@@ -17,7 +17,7 @@ public record CoinJoinFeeRateStatRecord(
 		var parts = line.Split(",");
 		var date = DateTimeOffset.FromUnixTimeSeconds(long.Parse(parts[0]));
 		var confirmationTarget = uint.Parse(parts[1]);
-		var feeRate = new FeeRate((decimal)uint.Parse(parts[2]));
+		var feeRate = new FeeRate(Money.Satoshis(long.Parse(parts[2])));
 		return new(date, confirmationTarget, feeRate);
 	}
 }
