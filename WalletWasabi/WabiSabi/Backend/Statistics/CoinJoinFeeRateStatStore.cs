@@ -13,7 +13,15 @@ namespace WalletWasabi.WabiSabi.Backend.Statistics;
 
 public class CoinJoinFeeRateStatStore : PeriodicRunner
 {
-	private static TimeSpan MaximumTimeToStore = TimeSpan.FromDays(30);
+	private static TimeSpan[] TimeFrames { get; } = new[]
+	{
+		TimeSpan.FromDays(1),
+		TimeSpan.FromDays(7),
+		TimeSpan.FromDays(30),
+	};
+
+	private static TimeSpan MaximumTimeToStore { get; } = TimeFrames.Max();
+
 	private List<CoinJoinFeeRateStatRecord> CoinJoinFeeRateStatRecords { get; }
 
 	private CoinJoinFeeRateAvarage[] DefaultAvarages { get; set; } = Array.Empty<CoinJoinFeeRateAvarage>();
@@ -44,14 +52,7 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 	{
 		CoinJoinFeeRateStatRecords.Add(feeRateStatRecord);
 
-		var timeFrames = new[]
-{
-			TimeSpan.FromDays(1),
-			TimeSpan.FromDays(7),
-			TimeSpan.FromDays(30),
-		};
-
-		DefaultAvarages = timeFrames.Select(t => new CoinJoinFeeRateAvarage((int)Math.Floor(t.TotalHours), GetAvarage(t))).ToArray();
+		DefaultAvarages = TimeFrames.Select(t => new CoinJoinFeeRateAvarage((int)Math.Floor(t.TotalHours), GetAvarage(t))).ToArray();
 
 		// Prune old items.
 		DateTimeOffset removeBefore = DateTimeOffset.UtcNow - MaximumTimeToStore;
