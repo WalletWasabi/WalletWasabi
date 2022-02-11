@@ -13,6 +13,19 @@ namespace WalletWasabi.WabiSabi.Backend.Statistics;
 
 public class CoinJoinFeeRateStatStore : PeriodicRunner
 {
+	public CoinJoinFeeRateStatStore(WabiSabiConfig config, IRPCClient rpc, IEnumerable<CoinJoinFeeRateStat> feeRateStats)
+		: base(TimeSpan.FromMinutes(10))
+	{
+		Config = config;
+		Rpc = rpc;
+		CoinJoinFeeRateStats = new(feeRateStats.OrderBy(x => x.DateTimeOffset));
+	}
+
+	public CoinJoinFeeRateStatStore(WabiSabiConfig config, IRPCClient rpc)
+		: this(config, rpc, Enumerable.Empty<CoinJoinFeeRateStat>())
+	{
+	}
+
 	private static TimeSpan[] TimeFrames { get; } = new[]
 	{
 		TimeSpan.FromDays(1),
@@ -25,19 +38,6 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 	private List<CoinJoinFeeRateStat> CoinJoinFeeRateStats { get; }
 
 	private CoinJoinFeeRateAvarage[] DefaultAvarages { get; set; } = Array.Empty<CoinJoinFeeRateAvarage>();
-
-	public CoinJoinFeeRateStatStore(WabiSabiConfig config, IRPCClient rpc, IEnumerable<CoinJoinFeeRateStat> feeRateStats) :
-		base(TimeSpan.FromMinutes(10))
-	{
-		Config = config;
-		Rpc = rpc;
-		CoinJoinFeeRateStats = new(feeRateStats.OrderBy(x => x.DateTimeOffset));
-	}
-
-	public CoinJoinFeeRateStatStore(WabiSabiConfig config, IRPCClient rpc) :
-		this(config, rpc, Enumerable.Empty<CoinJoinFeeRateStat>())
-	{
-	}
 
 	private WabiSabiConfig Config { get; }
 	private IRPCClient Rpc { get; }
@@ -86,13 +86,13 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 	{
 		var from = DateTimeOffset.UtcNow - MaximumTimeToStore;
 
-		var records = !File.Exists(filePath) ?
-			Enumerable.Empty<CoinJoinFeeRateStat>() :
-			File.ReadAllLines(filePath)
+		var stats = !File.Exists(filePath)
+			? Enumerable.Empty<CoinJoinFeeRateStat>()
+			: File.ReadAllLines(filePath)
 				.Select(x => CoinJoinFeeRateStat.FromLine(x))
 				.Where(x => x.DateTimeOffset >= from);
 
-		var store = new CoinJoinFeeRateStatStore(config, rpc, records);
+		var store = new CoinJoinFeeRateStatStore(config, rpc, stats);
 
 		return store;
 	}
