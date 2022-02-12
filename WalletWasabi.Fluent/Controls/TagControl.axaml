@@ -20,7 +20,7 @@
     <Setter Property="ClipToBounds" Value="False" />
     <Setter Property="Template">
       <ControlTemplate>
-        <Panel Name="PART_TagPanel" Margin="0,-3,0,0">
+        <Panel Name="PART_TagPanel" Margin="0,-3,2,0">
           <Border Name="PART_TagItemBorder"
                   Background="{TemplateBinding Background}"
                   BorderBrush="{TemplateBinding BorderBrush}"
@@ -47,6 +47,7 @@
             <Button.Transitions>
               <Transitions>
                 <DoubleTransition Property="Opacity" Duration="0:0:0.135" Easing="{StaticResource FluentEasing}" />
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.135" Easing="{StaticResource FluentEasing}" />
               </Transitions>
             </Button.Transitions>
           </Button>
@@ -69,7 +70,7 @@
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="VerticalAlignment" Value="Top" />
     <Setter Property="HorizontalAlignment" Value="Right" />
-    <Setter Property="Margin" Value="-4,-3" />
+    <Setter Property="Margin" Value="0,-5,-5,0" />
     <Setter Property="Height" Value="15" />
     <Setter Property="Width" Value="15" />
     <Setter Property="Cursor" Value="Hand" />
@@ -77,31 +78,22 @@
       <Setter.Value>
         <ControlTemplate>
           <Panel>
-            <Ellipse Fill="Red" />
-            <PathIcon Data="{StaticResource dismiss_light}" Height="10" Width="10" />
+            <Image Source="{StaticResource tagcontrol_dismiss}" />
           </Panel>
         </ControlTemplate>
       </Setter.Value>
     </Setter>
   </Style>
 
-  <Style
-    Selector="c|TagControl /template/ Panel#PART_TagPanel LayoutTransformControl#PART_DeleteButtonLayoutTransformer">
-    <Setter Property="LayoutTransform" Value="scaleX(0)" />
-  </Style>
-
   <Style Selector="c|TagControl /template/ Panel#PART_TagPanel Button#PART_DeleteButton">
     <Setter Property="Opacity" Value="0" />
     <Setter Property="Focusable" Value="False" />
-  </Style>
-
-  <Style
-    Selector="c|TagsBox:not(:readonly) c|TagControl /template/ Panel#PART_TagPanel:pointerover LayoutTransformControl#PART_DeleteButtonLayoutTransformer">
-    <Setter Property="LayoutTransform" Value="scaleX(1)" />
+    <Setter Property="RenderTransform" Value="scale(0.8,0.8)" />
   </Style>
 
   <Style
     Selector="c|TagsBox:not(:readonly) c|TagControl /template/ Panel#PART_TagPanel:pointerover Button#PART_DeleteButton">
     <Setter Property="Opacity" Value="1" />
+    <Setter Property="RenderTransform" Value="scale(1,1)" />
   </Style>
 </Styles>
