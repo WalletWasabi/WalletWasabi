@@ -27,9 +27,13 @@
                  ToolTip.Tip="Your privacy is being protected with payjoin."
                  IsVisible="{Binding CurrentTransactionSummary.IsPayJoin}" />
 
-          <c:ProgressRing Margin="10 0 10 5" Height="25" Width="25" IsIndeterminate="True" IsVisible="{Binding PrivacySuggestions.IsLoading}" />
-
-          <Border Padding="10 0 10 10" Cursor="Hand" IsVisible="{Binding CurrentTransactionSummary.MaxPrivacy}">
+          <Border Padding="10 0 10 10" Cursor="Hand">
+            <Border.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.Or}">
+                <Binding Path="CurrentTransactionSummary.MaxPrivacy" />
+                <Binding Path="!PrivacySuggestions.Suggestions.Count" />
+              </MultiBinding>
+            </Border.IsVisible>
             <Interaction.Behaviors>
               <behaviors:ShowFlyoutOnPointerOverBehavior />
             </Interaction.Behaviors>
@@ -123,10 +127,14 @@
                       </ListBox.ItemsPanel>
                       <ListBox.DataTemplates>
                         <DataTemplate DataType="vm:ChangeAvoidanceSuggestionViewModel">
-                          <send:ChangeAvoidanceSuggestionControl />
+                          <c:SuggestionItem>
+                            <send:ChangeAvoidanceSuggestionControl />
+                          </c:SuggestionItem>
                         </DataTemplate>
                         <DataTemplate DataType="vm:PocketSuggestionViewModel">
-                          <send:PocketSuggestionControl />
+                          <c:SuggestionItem>
+                            <send:PocketSuggestionControl />
+                          </c:SuggestionItem>
                         </DataTemplate>
                       </ListBox.DataTemplates>
                     </ListBox>
@@ -136,12 +144,11 @@
             </FlyoutBase.AttachedFlyout>
             <Panel.IsVisible>
               <MultiBinding Converter="{x:Static BoolConverters.And}">
-                <Binding Path="PrivacySuggestions.IsLoading" Converter="{x:Static BoolConverters.Not}" />
                 <MultiBinding Converter="{x:Static BoolConverters.Or}">
                   <Binding Path="CurrentTransactionSummary.TransactionHasChange" />
                   <Binding Path="CurrentTransactionSummary.TransactionHasPockets" />
                 </MultiBinding>
-                <Binding Path="CurrentTransactionSummary.IsPayJoin" Converter="{x:Static BoolConverters.Not}" />
+                <Binding Path="!!PrivacySuggestions.Suggestions.Count" />
               </MultiBinding>
             </Panel.IsVisible>
             <Viewbox Height="20">

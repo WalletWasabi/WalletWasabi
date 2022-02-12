@@ -26,7 +26,6 @@
         <TextBox x:Name="transactionFeeTb" MaxLength="250" Text="{Binding CustomFee}" Watermark="Enter a custom fee rate (sat/vByte)">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
-            <behaviors:NumberBoxBehavior />
           </i:Interaction.Behaviors>
         </TextBox>
       </DockPanel>

@@ -1,11 +1,12 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Settings;
+namespace WalletWasabi.Fluent.Views.Wallets.Send;
 
-public class PrivacySettingsTabView : UserControl
+public class ConfirmLabelsDialogView : UserControl
 {
-	public PrivacySettingsTabView()
+	public ConfirmLabelsDialogView()
 	{
 		InitializeComponent();
 	}

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.CoinJoin.Common.Models;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client;
@@ -10,19 +12,27 @@ namespace WalletWasabi.WabiSabi.Client;
 public record RoundStateAwaiter
 {
 	public RoundStateAwaiter(
-		Predicate<RoundState> predicate,
+		Predicate<RoundState>? predicate,
 		uint256? roundId,
+		Phase? phase,
 		CancellationToken cancellationToken)
 	{
+		if (predicate is null && phase is null)
+		{
+			throw new ArgumentNullException(nameof(predicate));
+		}
+
 		TaskCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
 		Predicate = predicate;
 		RoundId = roundId;
+		Phase = phase;
 		cancellationToken.Register(() => Cancel());
 	}
 
 	private TaskCompletionSource<RoundState> TaskCompletionSource { get; }
-	private Predicate<RoundState> Predicate { get; }
+	private Predicate<RoundState>? Predicate { get; }
 	private uint256? RoundId { get; }
+	private Phase? Phase { get; }
 
 	public Task<RoundState> Task => TaskCompletionSource.Task;
 
@@ -39,15 +49,40 @@ public record RoundStateAwaiter
 			return true;
 		}
 
-		var relevantRoundStates = RoundId is null ? allRoundStates.Values.ToArray() : new[] { allRoundStates[RoundId] };
-
-		foreach (var roundState in relevantRoundStates)
+		foreach (var roundState in allRoundStates.Values.ToArray())
 		{
-			if (Predicate(roundState))
+			if (RoundId is { })
 			{
-				TaskCompletionSource.SetResult(roundState);
-				return true;
+				if (roundState.Id != RoundId)
+				{
+					continue;
+				}
 			}
+
+			if (Phase is { })
+			{
+				if (roundState.Phase > Phase)
+				{
+					TaskCompletionSource.TrySetException(new InvalidOperationException($"Round {RoundId} unexpected phase change. Waiting for '{Phase}' but the round is in '{roundState.Phase}'."));
+					return true;
+				}
+
+				if (roundState.Phase != Phase)
+				{
+					continue;
+				}
+			}
+
+			if (Predicate is { })
+			{
+				if (!Predicate(roundState))
+				{
+					continue;
+				}
+			}
+
+			TaskCompletionSource.SetResult(roundState);
+			return true;
 		}
 
 		return false;
