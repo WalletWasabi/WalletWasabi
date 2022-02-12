@@ -15,10 +15,20 @@ public class CustomBlurBehind : Control
 		AvaloniaProperty.Register<CustomBlurBehind, ExperimentalAcrylicMaterial>(
 			"Material");
 
+	public static readonly StyledProperty<Vector> BlurRadiusProperty =
+		AvaloniaProperty.Register<CustomBlurBehind, Vector>(
+			"BlurRadius", defaultValue: new Vector(10, 10));
+
 	public ExperimentalAcrylicMaterial Material
 	{
 		get => GetValue(MaterialProperty);
 		set => SetValue(MaterialProperty, value);
+	}
+
+	public Vector BlurRadius
+	{
+		get => GetValue(BlurRadiusProperty);
+		set => SetValue(BlurRadiusProperty, value);
 	}
 
 	static ImmutableExperimentalAcrylicMaterial DefaultAcrylicMaterial =
@@ -41,11 +51,13 @@ public class CustomBlurBehind : Control
 	{
 		private readonly ImmutableExperimentalAcrylicMaterial _material;
 		private readonly Rect _bounds;
+		private readonly Vector _blurRadius;
 
-		public BlurBehindRenderOperation(ImmutableExperimentalAcrylicMaterial material, Rect bounds)
+		public BlurBehindRenderOperation(ImmutableExperimentalAcrylicMaterial material, Rect bounds, Vector blurRadius)
 		{
 			_material = material;
 			_bounds = bounds;
+			_blurRadius = blurRadius;
 		}
 
 		public void Dispose()
@@ -92,7 +104,7 @@ public class CustomBlurBehind : Control
 			using var blurred = SKSurface.Create(skia.GrContext, false, new SKImageInfo(
 				(int)Math.Ceiling(_bounds.Width),
 				(int)Math.Ceiling(_bounds.Height), SKImageInfo.PlatformColorType, SKAlphaType.Premul));
-			using (var filter = SKImageFilter.CreateBlur(10, 10, SKShaderTileMode.Clamp))
+			using (var filter = SKImageFilter.CreateBlur((int)_blurRadius.X, (int)_blurRadius.Y, SKShaderTileMode.Clamp))
 			using (var blurPaint = new SKPaint
 			       {
 				       Shader = backdropShader,
@@ -128,6 +140,6 @@ public class CustomBlurBehind : Control
 		var mat = Material != null
 			? (ImmutableExperimentalAcrylicMaterial)Material.ToImmutable()
 			: DefaultAcrylicMaterial;
-		context.Custom(new BlurBehindRenderOperation(mat, new Rect(default, Bounds.Size)));
+		context.Custom(new BlurBehindRenderOperation(mat, new Rect(default, Bounds.Size), BlurRadius));
 	}
 }
