@@ -117,10 +117,10 @@ public class PocketSelectionTests
 		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan", "Roland");
-		pockets.AddPocket(1.0M, out var pocket2, "Target");
-		pockets.AddPocket(1.0M, out var pocket3, "David", "Adam", "Lucas");
-		pockets.AddPocket(1.0M, out var pocket4, "Jumar");
+		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
+		pockets.AddPocket(1.0M, out _, "Target");
+		pockets.AddPocket(1.0M, out _, "David", "Adam", "Lucas");
+		pockets.AddPocket(1.0M, out _, "Jumar");
 
 		selection.Reset(pockets.ToArray());
 
@@ -163,8 +163,8 @@ public class PocketSelectionTests
 		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan", "Roland");
-		pockets.AddPocket(1.0M, out var pocket2, "Dan");
+		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
+		pockets.AddPocket(1.0M, out _, "Dan");
 
 		selection.Reset(pockets.ToArray());
 
@@ -181,8 +181,8 @@ public class PocketSelectionTests
 		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan", "Roland");
-		pockets.AddPocket(1.0M, out var pocket2, "Dan");
+		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
+		pockets.AddPocket(1.0M, out _, "Dan");
 
 		selection.Reset(pockets.ToArray());
 
@@ -199,8 +199,8 @@ public class PocketSelectionTests
 		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan", "Roland");
-		pockets.AddPocket(1.0M, out var pocket2, "Dan");
+		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
+		pockets.AddPocket(1.0M, out _, "Dan");
 
 		selection.Reset(pockets.ToArray());
 
@@ -296,9 +296,9 @@ public class PocketSelectionTests
 		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan");
-		pockets.AddPocket(1.0M, out var pocket2, "Target");
-		pockets.AddPocket(1.0M, out var pocket3, "Target", "Roland");
+		pockets.AddPocket(1.0M, out _, "Target", "Dan");
+		pockets.AddPocket(1.0M, out _, "Target");
+		pockets.AddPocket(1.0M, out _, "Target", "Roland");
 
 		selection.Reset(pockets.ToArray());
 
@@ -340,10 +340,10 @@ public class PocketSelectionTests
 		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan", "Roland");
-		pockets.AddPocket(1.0M, out var pocket2, "Target");
-		pockets.AddPocket(1.0M, out var pocket3, "David", "Adam", "Lucas");
-		pockets.AddPocket(1.0M, out var pocket4, "Jumar");
+		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
+		pockets.AddPocket(1.0M, out _, "Target");
+		pockets.AddPocket(1.0M, out _, "David", "Adam", "Lucas");
+		pockets.AddPocket(1.0M, out _, "Jumar");
 
 		selection.Reset(pockets.ToArray());
 
@@ -449,8 +449,8 @@ public class PocketSelectionTests
 		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out var pocket1, "David");
-		pockets.AddPocket(2.0M, out var pocket2, "Dan");
+		pockets.AddPocket(1.0M, out _, "David");
+		pockets.AddPocket(2.0M, out _, "Dan");
 
 		selection.Reset(pockets.ToArray());
 
@@ -498,8 +498,8 @@ public class PocketSelectionTests
 		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(0.4M, out var pocket1, "Dan");
-		pockets.AddPocket(2.0M, out var pocket2, "Dan", "David");
+		pockets.AddPocket(0.4M, out _, "Dan");
+		pockets.AddPocket(2.0M, out _, "Dan", "David");
 
 		selection.Reset(pockets.ToArray());
 
