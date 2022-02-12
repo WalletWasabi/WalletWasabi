@@ -12,7 +12,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.UserInterfaceTest;
 
-class TestCoinsView : ICoinsView
+internal class TestCoinsView : ICoinsView
 {
 	private Money _total;
 
@@ -492,6 +492,7 @@ public class PocketSelectionTests
 		Assert.Contains(pocket2, output);
 	}
 
+	[Fact]
 	public void NotEnoughSelectedWhenSameLabelFoundInSeveralPocket()
 	{
 		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
