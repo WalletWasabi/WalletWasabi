@@ -34,27 +34,32 @@
   <Border Name="PART_MainBorder"
           Classes.IsActive="{Binding IsActive, FallbackValue=false}"
           TextBlock.FontFamily="{StaticResource MonospacedFont}"
-          Padding="20 10" CornerRadius="4 4 0 0" BorderThickness="1 1 1 0" Background="#19FFFFFF"
+          CornerRadius="4 4 0 0" BorderThickness="1 1 1 0"
+          Background="#19FFFFFF"
           BorderBrush="#3CFFFFFF">
-    <StackPanel Orientation="Horizontal" Spacing="20">
+    <Panel >
+      <controls:CustomBlurBehind BlurRadius="20,20"/>
+      <StackPanel Margin="20 10" Orientation="Horizontal" Spacing="20">
 
-      <controls:ScrollingTextBlock MaxWidth="350" Text="{Binding CurrentStatus}" />
+        <controls:ScrollingTextBlock MaxWidth="350" Text="{Binding CurrentStatus}" />
 
-      <Separator Classes="vertical" />
+        <Separator Classes="vertical" />
 
-      <ProgressBar Minimum="0" Maximum="100" Value="89" Foreground="White" />
+        <ProgressBar Minimum="0" Maximum="100" Value="89" Foreground="White" />
 
-      <Separator Classes="vertical" />
+        <Separator Classes="vertical" />
 
-      <Button Classes="plain" Command="{Binding PlayCommand}">
-        <PathIcon Data="{StaticResource play_regular}" />
-      </Button>
-      <Button Classes="plain" Command="{Binding PauseCommand}">
-        <PathIcon Data="{StaticResource pause_regular}" />
-      </Button>
-      <Button Classes="plain" Command="{Binding StopCommand}">
-        <PathIcon Data="{StaticResource stop_regular}" />
-      </Button>
-    </StackPanel>
+        <Button Classes="plain" Command="{Binding PlayCommand}">
+          <PathIcon Data="{StaticResource play_regular}" />
+        </Button>
+        <Button Classes="plain" Command="{Binding PauseCommand}">
+          <PathIcon Data="{StaticResource pause_regular}" />
+        </Button>
+        <Button Classes="plain" Command="{Binding StopCommand}">
+          <PathIcon Data="{StaticResource stop_regular}" />
+        </Button>
+      </StackPanel>
+
+    </Panel>
   </Border>
 </UserControl>
