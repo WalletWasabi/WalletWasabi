@@ -26,6 +26,11 @@ public class SplashEffectDataSource : SpectrumDataSource
 		{
 			_currentEffectIndex = 0;
 
+			for (var i = 0; i < NumBins; i++)
+			{
+				Bins[i] = 0;
+			}
+
 			Stop();
 		}
 	}
