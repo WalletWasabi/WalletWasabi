@@ -493,7 +493,7 @@ public class PocketSelectionTests
 	}
 
 	[Fact]
-	public void NotEnoughSelectedWhenSameLabelFoundInSeveralPocket()
+	public void NotEnoughSelectedWhenSameLabelFoundInSeveralPockets()
 	{
 		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
 
