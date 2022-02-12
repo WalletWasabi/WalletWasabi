@@ -37,7 +37,7 @@ public class CustomBlurBehind : Control
 
 	[CanBeNull] private static SKShader s_acrylicNoiseShader;
 
-	class BlurBehindRenderOperation : ICustomDrawOperation
+	private class BlurBehindRenderOperation : ICustomDrawOperation
 	{
 		private readonly ImmutableExperimentalAcrylicMaterial _material;
 		private readonly Rect _bounds;
@@ -54,7 +54,6 @@ public class CustomBlurBehind : Control
 		}
 
 		public bool HitTest(Point p) => _bounds.Contains(p);
-
 
 		static SKColorFilter CreateAlphaColorFilter(double opacity)
 		{
@@ -85,7 +84,6 @@ public class CustomBlurBehind : Control
 			{
 				return;
 			}
-
 
 			using var backgroundSnapshot = skia.SkSurface.Snapshot();
 			using var backdropShader = SKShader.CreateImage(backgroundSnapshot, SKShaderTileMode.Clamp,
