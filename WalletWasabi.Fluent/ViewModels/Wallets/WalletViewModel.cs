@@ -113,7 +113,7 @@ public partial class WalletViewModel : WalletViewModelBase
 			.Subscribe(x => LayoutSelector(_widthSource, x));
 
 		this.WhenAnyValue(x => x.IsWalletBalanceZero)
-			.Subscribe(_ => IsSendVisible = !wallet.KeyManager.IsWatchOnly && !IsWalletBalanceZero);
+			.Subscribe(_ => IsSendVisible = !IsWalletBalanceZero && (!wallet.KeyManager.IsWatchOnly || wallet.KeyManager.IsHardwareWallet));
 
 		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(wallet)));
 
