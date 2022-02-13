@@ -266,7 +266,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 			if (!result)
 			{
-				await ShowErrorAsync("Transaction Building", "The transaction can not be send. It is not possible to select a transaction fee that is more than the payment amount.",
+				await ShowErrorAsync("Transaction Building", "The transaction can not be sent. It is not possible to select a transaction fee that is more than the payment amount.",
 					"Wasabi was unable to create your transaction.");
 
 				return null;
