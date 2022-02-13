@@ -24,7 +24,6 @@
               <Button.IsVisible>
                 <MultiBinding Converter="{x:Static BoolConverters.And}">
                   <Binding Path="PreferPsbtWorkflow" />
-                  <Binding Path="IsWalletBalanceZero" Converter="{x:Static BoolConverters.Not}" />
                 </MultiBinding>
               </Button.IsVisible>
               <StackPanel Orientation="Horizontal" Spacing="15">
@@ -33,7 +32,7 @@
               </StackPanel>
             </Button>
             <Button Classes="function"
-                    IsVisible="{Binding !IsWalletBalanceZero}"
+                    IsVisible="{Binding IsSendVisible}"
                     Command="{Binding SendCommand}">
               <StackPanel Orientation="Horizontal" Spacing="15">
                 <PathIcon Data="{StaticResource wallet_action_send}" />
