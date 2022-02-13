@@ -19,6 +19,9 @@ public class PreviewItem : ContentControl
 	public static readonly StyledProperty<double> IconSizeProperty =
 		AvaloniaProperty.Register<PreviewItem, double>(nameof(IconSize), 24);
 
+	public static readonly StyledProperty<bool> IsIconVisibleProperty =
+		AvaloniaProperty.Register<PreviewItem, bool>(nameof(IsIconVisible));
+
 	public static readonly StyledProperty<object?> CopyParameterProperty =
 		AvaloniaProperty.Register<PreviewItem, object?>(nameof(CopyParameter));
 
@@ -47,6 +50,9 @@ public class PreviewItem : ContentControl
 				}
 			}
 		});
+
+		this.WhenAnyValue(x => x.Icon)
+			.Subscribe(x => IsIconVisible = x is not null);
 
 		this.WhenAnyValue(
 				x => x.CopyParameter,
@@ -89,6 +95,12 @@ public class PreviewItem : ContentControl
 	{
 		get => GetValue(IconSizeProperty);
 		set => SetValue(IconSizeProperty, value);
+	}
+
+	public bool IsIconVisible
+	{
+		get => GetValue(IsIconVisibleProperty);
+		set => SetValue(IsIconVisibleProperty, value);
 	}
 
 	public object? CopyParameter
