@@ -849,7 +849,7 @@ blockquote:after {
     left: 15px;
     transform: translateY(-50%);
     width: calc(100% - 30px);
-    filter: blur(4px);
+    filter: blur(8px);
     z-index: 99;
 }
 .z-index-100 {
