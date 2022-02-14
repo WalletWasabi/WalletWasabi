@@ -36,7 +36,7 @@ public class CoordinatorParameters
 	public string CoinJoinIdStoreFilePath => Path.Combine(CoordinatorDataDir, "CoinJoinIdStore.txt");
 
 	/// <summary>
-	/// File that is storing the feeRate statistics.
+	/// File that is storing the fee rate statistics.
 	/// </summary>
 	public string CoinJoinFeeRateStatStoreFilePath => Path.Combine(CoordinatorDataDir, "CoinJoinFeeRateStatStore.txt");
 
