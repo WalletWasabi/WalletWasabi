@@ -53,7 +53,7 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 		NewStat?.Invoke(this, feeRateStat);
 	}
 
-	public void Add(CoinJoinFeeRateStat feeRateStat)
+	private void Add(CoinJoinFeeRateStat feeRateStat)
 	{
 		CoinJoinFeeRateStats.Add(feeRateStat);
 
