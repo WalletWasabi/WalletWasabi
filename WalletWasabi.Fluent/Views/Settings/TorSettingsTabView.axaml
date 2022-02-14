@@ -5,7 +5,7 @@
              xmlns:settings="using:WalletWasabi.Fluent.ViewModels.Settings"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="settings:NetworkSettingsTabViewModel"
-             x:Class="WalletWasabi.Fluent.Views.Settings.NetworkSettingsTabView"
+             x:Class="WalletWasabi.Fluent.Views.Settings.TorSettingsTabView"
              x:CompileBindings="True">
   <StackPanel Classes="settingsLayout">
 
