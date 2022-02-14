@@ -6,29 +6,29 @@ public class MoreSelectionStrategy : SelectionStrategy
 	/// <param name="inputCosts">Costs of spending coins in satoshis.</param>
 	public MoreSelectionStrategy(long target, long[] inputValues, long[] inputCosts) : base(target, inputValues, inputCosts)
 	{
-		_bestTargetSoFar = long.MaxValue;
+		BestTargetSoFar = long.MaxValue;
 	}
 
 	public override EvaluationResult Evaluate(long[] selection, int depth, long sum)
 	{
-		long totalCost = sum + _currentInputCosts;
+		long totalCost = sum + CurrentInputCosts;
 
-		if (totalCost > _bestTargetSoFar)
+		if (totalCost > BestTargetSoFar)
 		{
 			// Our solution is already better than what we might get here.
 			return EvaluationResult.SkipBranch;
 		}
-		else if (sum + _remainingAmount < Target)
+		else if (sum + RemainingAmount < Target)
 		{
 			// The remaining coins cannot sum up to required target, cut the branch.
 			return EvaluationResult.SkipBranch;
 		}
 		else if (sum >= Target)
 		{
-			if (_bestTargetSoFar > totalCost)
+			if (BestTargetSoFar > totalCost)
 			{
-				_bestSelectionSoFar = selection[0..depth];
-				_bestTargetSoFar = totalCost;
+				BestSelectionSoFar = selection[0..depth];
+				BestTargetSoFar = totalCost;
 			}
 
 			// Even if a match occurred we cannot be sure that there isn't

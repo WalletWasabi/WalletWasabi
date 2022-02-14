@@ -9,21 +9,12 @@ namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 /// </summary>
 public abstract class SelectionStrategy
 {
-#pragma warning disable IDE1006
-
-	protected long _currentInputCosts = 0;
-	protected long _bestTargetSoFar;
-	protected long _remainingAmount;
-	protected long[]? _bestSelectionSoFar;
-
-#pragma warning restore IDE1006
-
 	public SelectionStrategy(long target, long[] inputValues, long[] inputCosts)
 	{
 		InputCosts = inputCosts;
 		InputValues = inputValues;
 		Target = target;
-		_remainingAmount = InputValues.Sum();
+		RemainingAmount = InputValues.Sum();
 	}
 
 	/// <summary>Costs corresponding to <see cref="InputValues"/> values.</summary>
@@ -36,7 +27,19 @@ public abstract class SelectionStrategy
 	public long[] InputValues { get; }
 
 	/// <summary>Gives lowest found value selection whose sum is larger than or equal to <see cref="Target"/>.</summary>
-	public long[]? GetBestSelectionFound() => _bestSelectionSoFar?.Where(x => x > 0).ToArray();
+	public long[]? GetBestSelectionFound() => BestSelectionSoFar?.Where(x => x > 0).ToArray();
+
+	/// <summary>Input cost(s) of the current selection.</summary>
+	protected long CurrentInputCosts { get; set; } = 0;
+
+	/// <summary>Sum of the selectable/remaining coins.</summary>
+	protected long RemainingAmount { get; set; }
+
+	/// <summary>Sum of the best found selection.</summary>
+	protected long BestTargetSoFar { get; set; }
+
+	/// <summary>Best coin selection so far.</summary>
+	protected long[]? BestSelectionSoFar { get; set; }
 
 	/// <summary>
 	/// Modifies selection sum so that we don't need to recompute it.
@@ -54,8 +57,8 @@ public abstract class SelectionStrategy
 		{
 			if (selection[depth] == 0)
 			{
-				_currentInputCosts += InputCosts[depth];
-				_remainingAmount -= InputValues[depth];
+				CurrentInputCosts += InputCosts[depth];
+				RemainingAmount -= InputValues[depth];
 			}
 
 			selection[depth] = InputValues[depth];
@@ -65,8 +68,8 @@ public abstract class SelectionStrategy
 		{
 			if (selection[depth] > 0)
 			{
-				_currentInputCosts -= InputCosts[depth];
-				_remainingAmount += InputValues[depth];
+				CurrentInputCosts -= InputCosts[depth];
+				RemainingAmount += InputValues[depth];
 			}
 
 			newSum = oldSum - selection[depth];

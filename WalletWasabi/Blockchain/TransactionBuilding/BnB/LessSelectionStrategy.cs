@@ -4,12 +4,12 @@ public class LessSelectionStrategy : SelectionStrategy
 {
 	public LessSelectionStrategy(long target, long[] inputValues, long[] inputCosts) : base(target, inputValues, inputCosts)
 	{
-		_bestTargetSoFar = long.MinValue;
+		BestTargetSoFar = long.MinValue;
 	}
 
 	public override EvaluationResult Evaluate(long[] selection, int depth, long sum)
 	{
-		long totalCost = sum + _currentInputCosts;
+		long totalCost = sum + CurrentInputCosts;
 
 		if (totalCost > Target)
 		{
@@ -17,16 +17,16 @@ public class LessSelectionStrategy : SelectionStrategy
 			return EvaluationResult.SkipBranch;
 		}
 
-		if (sum + _remainingAmount < _bestTargetSoFar)
+		if (sum + RemainingAmount < BestTargetSoFar)
 		{
 			// The remaining coins cannot sum up to our solution, so cut the branch.
 			return EvaluationResult.SkipBranch;
 		}
 
-		if (_bestTargetSoFar < totalCost)
+		if (BestTargetSoFar < totalCost)
 		{
-			_bestSelectionSoFar = selection[0..depth];
-			_bestTargetSoFar = totalCost;
+			BestSelectionSoFar = selection[0..depth];
+			BestTargetSoFar = totalCost;
 		}
 
 		if (depth == selection.Length)
