@@ -74,7 +74,7 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 	}
 
 	/// <summary>
-	/// The avagares are calculated periodically in every <see cref="PeriodicRunner.Period"/> time span.
+	/// The avegares are calculated periodically in every <see cref="PeriodicRunner.Period"/> time span.
 	/// </summary>
 	public CoinJoinFeeRateAverage[] GetDefaultAverages()
 	{
