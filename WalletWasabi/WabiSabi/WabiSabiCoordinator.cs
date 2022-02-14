@@ -47,22 +47,37 @@ public class WabiSabiCoordinator : BackgroundService
 
 	private void Arena_CoinJoinBroadcast(object? sender, Transaction e)
 	{
-		if (!File.Exists(Parameters.CoinJoinIdStoreFilePath))
+		var filePath = Parameters.CoinJoinIdStoreFilePath;
+		try
 		{
-			IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinIdStoreFilePath);
-		}
+			if (!File.Exists(filePath))
+			{
+				IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinIdStoreFilePath);
+			}
 
-		File.AppendAllLines(Parameters.CoinJoinIdStoreFilePath, new[] { e.GetHash().ToString() });
+			File.AppendAllLines(filePath, new[] { e.GetHash().ToString() });
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError($"Could not write file {filePath}.", ex);
+		}
 	}
 
 	private void FeeRateStatStore_NewStat(object? sender, CoinJoinFeeRateStat feeRateStat)
 	{
-		if (!File.Exists(Parameters.CoinJoinFeeRateStatStoreFilePath))
+		var filePath = Parameters.CoinJoinFeeRateStatStoreFilePath;
+		try
 		{
-			IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinFeeRateStatStoreFilePath);
+			if (!File.Exists(filePath))
+			{
+				IoHelpers.EnsureContainingDirectoryExists(filePath);
+			}
+			File.AppendAllLines(filePath, new[] { feeRateStat.ToLine() });
 		}
-
-		File.AppendAllLines(Parameters.CoinJoinFeeRateStatStoreFilePath, new[] { feeRateStat.ToLine() });
+		catch (Exception ex)
+		{
+			Logger.LogError($"Could not write file {filePath}.", ex);
+		}
 	}
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
