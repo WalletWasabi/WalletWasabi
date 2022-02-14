@@ -145,7 +145,7 @@ video::-webkit-media-controls {
     background: linear-gradient(143deg, rgba(73, 88, 107, 1) 0%, rgba(0, 16, 31, 1) 55%);
 }
 .title {
-    font-size: 60px;
+    font-size: 56px;
     font-weight: bold;
     line-height: 1.2em;
 }
@@ -176,7 +176,7 @@ video::-webkit-media-controls {
     transform: translateY(-50%);
     text-transform: uppercase;
     width: var(--breakpoint);
-    text-shadow: 0 0 20px rgba(255,255,255,0.3);
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
 }
 .service-line {
     display: flex;
@@ -842,6 +842,19 @@ blockquote:after {
     border: 1px solid var(--green);
     border-left: 0;
     border-right: 0;
+}
+.blured-img {
+    position: absolute;
+    top: 50%;
+    left: 15px;
+    transform: translateY(-50%);
+    width: calc(100% - 30px);
+    filter: blur(4px);
+    z-index: 99;
+}
+.z-index-100 {
+    position: relative;
+    z-index: 100;
 }
 @media (min-width: 576px) {
     body {
