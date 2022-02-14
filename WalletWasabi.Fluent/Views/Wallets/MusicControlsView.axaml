@@ -49,9 +49,12 @@
 
         <Separator Classes="vertical" />
 
-        <Button Classes="plain" Command="{Binding PlayCommand}">
-          <PathIcon Data="{StaticResource play_regular}" />
-        </Button>
+        <StackPanel>
+          <Button Classes="plain" Command="{Binding PlayCommand}">
+            <PathIcon Data="{StaticResource play_regular}" />
+          </Button>
+          <TextBlock Text="{Binding CountDown}" FontSize="8" />
+        </StackPanel>
         <Button Classes="plain" Command="{Binding PauseCommand}">
           <PathIcon Data="{StaticResource pause_regular}" />
         </Button>
