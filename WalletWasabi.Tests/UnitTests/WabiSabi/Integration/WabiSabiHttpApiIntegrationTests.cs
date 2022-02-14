@@ -147,7 +147,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			.Returns(httpClientWrapper);
 
 		// Total test timeout.
-		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(200));
 		cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
 
 		using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(1), apiClient);
