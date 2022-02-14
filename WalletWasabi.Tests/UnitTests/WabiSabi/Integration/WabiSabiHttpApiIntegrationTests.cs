@@ -401,7 +401,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			var coinjoin = await rpc.GetRawTransactionAsync(mempool.Single());
 
 			Assert.True(coinjoin.Outputs.Count <= ExpectedInputNumber);
-			Assert.True(coinjoin.Inputs.Count == ExpectedInputNumber);
+			Assert.Equal(ExpectedInputNumber, coinjoin.Inputs.Count);
 		}
 		finally
 		{
