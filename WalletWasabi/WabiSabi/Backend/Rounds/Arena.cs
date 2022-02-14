@@ -181,8 +181,10 @@ public partial class Arena : PeriodicRunner
 
 					coinjoin = AddCoordinationFee(round, coinjoin);
 
-					coinjoin = AddBlameScript(round, coinjoin, allReady);
-
+					if (!allReady)
+					{
+						coinjoin = AddBlameScript(round, coinjoin);
+					}
 					round.CoinjoinState = coinjoin.Finalize();
 
 					round.SetPhase(Phase.TransactionSigning);
@@ -354,7 +356,7 @@ public partial class Arena : PeriodicRunner
 		}
 	}
 
-	private ConstructionState AddBlameScript(Round round, ConstructionState coinjoin, bool allReady)
+	private ConstructionState AddBlameScript(Round round, ConstructionState coinjoin)
 	{
 		long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate));
 		long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
@@ -363,25 +365,14 @@ public partial class Arena : PeriodicRunner
 		// If timeout we must fill up the outputs to build a reasonable transaction.
 		// This won't be signed by the alice who failed to provide output, so we know who to ban.
 		var diffMoney = Money.Satoshis(diff) - coinjoin.Parameters.FeeRate.GetFee(Config.BlameScript.EstimateOutputVsize());
-		if (diffMoney > coinjoin.Parameters.AllowedOutputAmounts.Min)
-		{
-			coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, Config.BlameScript));
-
-			if (allReady)
-			{
-				round.LogInfo($"Filled up the outputs to build a reasonable transaction, all Alices signalled ready. Added amount: '{diffMoney}'.");
-			}
-			else
-			{
-				round.LogWarning($"Filled up the outputs to build a reasonable transaction because some alice failed to provide its output. Added amount: '{diffMoney}'.");
-			}
-		}
-		else if (!allReady)
+		if (diffMoney < coinjoin.Parameters.AllowedOutputAmounts.Min)
 		{
 			round.LogWarning($"Could not add blame script, because the amount was too small: {nameof(diffMoney)}: {diffMoney}.");
+			return coinjoin;
 		}
 
-		return coinjoin;
+		round.LogWarning($"Filled up the outputs to build a reasonable transaction because some alice failed to provide its output. Added amount: '{diffMoney}'.");
+		return coinjoin.AddOutput(new TxOut(diffMoney, Config.BlameScript));
 	}
 
 	private ConstructionState AddCoordinationFee(Round round, ConstructionState coinjoin)
