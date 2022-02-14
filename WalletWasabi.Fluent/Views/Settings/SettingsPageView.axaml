@@ -45,7 +45,7 @@
           </TabItem>
 
           <TabItem Header="Network">
-            <v:NetworkSettingsTabView DataContext="{Binding NetworkSettingsTab}" />
+            <v:TorSettingsTabView DataContext="{Binding TorSettingsTab}" />
           </TabItem>
 
           <TabItem Header="Bitcoin">
