@@ -28,6 +28,8 @@ using Xunit.Abstractions;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
+/// <seealso cref="XunitConfiguration.SerialCollectionDefinition"/>
+[Collection("Serial unit tests collection")]
 public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicationFactory<Startup>>
 {
 	private readonly WabiSabiApiApplicationFactory<Startup> _apiApplicationFactory;
