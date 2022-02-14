@@ -46,6 +46,8 @@ public partial class WalletViewModel : WalletViewModelBase
 			? new CompositeDisposable()
 			: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
+		Settings = new WalletSettingsViewModel(this);
+
 		var balanceChanged =
 			Observable.FromEventPattern(
 					Wallet.TransactionProcessor,
@@ -60,8 +62,6 @@ public partial class WalletViewModel : WalletViewModelBase
 				.ObserveOn(RxApp.MainThreadScheduler));
 
 		History = new HistoryViewModel(this, balanceChanged);
-
-		Settings = new WalletSettingsViewModel(this);
 
 		balanceChanged
 			.Subscribe(_ => IsWalletBalanceZero = wallet.Coins.TotalAmount() == Money.Zero)
