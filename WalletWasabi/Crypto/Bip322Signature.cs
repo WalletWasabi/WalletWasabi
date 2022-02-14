@@ -41,10 +41,10 @@ public record Bip322Signature : IBitcoinSerializable
 		NBitcoinExtensions.FromBytes<Bip322Signature>(bip322SignatureBytes);
 
 	public bool Verify(uint256 hash, Script scriptPubKey) =>
-		scriptPubKey.IsScriptType(ScriptType.P2WPKH) switch
+		scriptPubKey.GetScriptType() switch
 		{
-			true => VerifySegwit(hash, scriptPubKey),
-			false => throw new NotImplementedException("Only P2WPKH scripts are supported.")
+			ScriptType.P2WPKH => VerifySegwit(hash, scriptPubKey),
+			_ => throw new NotImplementedException("Only P2WPKH scripts are supported.")
 		};
 
 	public static Bip322Signature Generate(Key key, uint256 hash, ScriptPubKeyType scriptPubKeyType) =>
