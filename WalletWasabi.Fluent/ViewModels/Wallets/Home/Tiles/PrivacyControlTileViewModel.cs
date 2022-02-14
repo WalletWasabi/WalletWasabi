@@ -46,11 +46,6 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 
 		walletVm.Settings.WhenAnyValue(x => x.AutoCoinJoin).Subscribe(x => IsAutoCoinJoinEnabled = x);
 
-		walletVm.Settings.WhenAnyValue(x => x.MinAnonScoreTarget, x => x.MaxAnonScoreTarget)
-			.Throttle(TimeSpan.FromMilliseconds(3000))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ => Update());
-
 		walletVm.WhenAnyValue(x => x.IsCoinJoining)
 			.Subscribe(x =>
 			{
