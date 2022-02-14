@@ -31,8 +31,8 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 	public async Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
 	{
 		var response = await Arena.GetStatusAsync(request, cancellationToken);
-		var avarages = CoinJoinFeeRateStatStore.GetDefaultAvarages();
-		return new RoundStateResponse(response.RoundStates, avarages);
+		var averages = CoinJoinFeeRateStatStore.GetDefaultAverages();
+		return new RoundStateResponse(response.RoundStates, averages);
 	}
 
 	[HttpPost("connection-confirmation")]

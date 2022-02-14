@@ -1,3 +1,3 @@
 namespace WalletWasabi.WabiSabi.Models;
 
-public record RoundStateResponse(RoundState[] RoundStates, CoinJoinFeeRateAvarage[] CoinJoinFeeRateAvarages);
+public record RoundStateResponse(RoundState[] RoundStates, CoinJoinFeeRateAverage[] CoinJoinFeeRateAverages);

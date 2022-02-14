@@ -37,7 +37,7 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 
 	private List<CoinJoinFeeRateStat> CoinJoinFeeRateStats { get; }
 
-	private CoinJoinFeeRateAvarage[] DefaultAvarages { get; set; } = Array.Empty<CoinJoinFeeRateAvarage>();
+	private CoinJoinFeeRateAverage[] DefaultAverages { get; set; } = Array.Empty<CoinJoinFeeRateAverage>();
 
 	private WabiSabiConfig Config { get; }
 	private IRPCClient Rpc { get; }
@@ -57,7 +57,7 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 	{
 		CoinJoinFeeRateStats.Add(feeRateStat);
 
-		DefaultAvarages = TimeFrames.Select(t => new CoinJoinFeeRateAvarage(t, GetAvarage(t))).ToArray();
+		DefaultAverages = TimeFrames.Select(t => new CoinJoinFeeRateAverage(t, GetAverage(t))).ToArray();
 
 		// Prune old items.
 		DateTimeOffset removeBefore = DateTimeOffset.UtcNow - MaximumTimeToStore;
@@ -67,7 +67,7 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 		}
 	}
 
-	public FeeRate GetAvarage(TimeSpan timeFrame)
+	private FeeRate GetAverage(TimeSpan timeFrame)
 	{
 		var from = DateTimeOffset.UtcNow - timeFrame;
 		return new FeeRate(CoinJoinFeeRateStats.Where(x => x.DateTimeOffset >= from).Average(x => x.FeeRate.SatoshiPerByte));
@@ -76,9 +76,9 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 	/// <summary>
 	/// The avagares are calculated periodically in every <see cref="PeriodicRunner.Period"/> time span.
 	/// </summary>
-	public CoinJoinFeeRateAvarage[] GetDefaultAvarages()
+	public CoinJoinFeeRateAverage[] GetDefaultAverages()
 	{
-		return DefaultAvarages;
+		return DefaultAverages;
 	}
 
 	public static CoinJoinFeeRateStatStore LoadFromFile(string filePath, WabiSabiConfig config, IRPCClient rpc)

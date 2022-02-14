@@ -175,8 +175,8 @@ public class SerializationTests
 	{
 		var round = WabiSabiFactory.CreateRound(new WalletWasabi.WabiSabi.Backend.WabiSabiConfig());
 		var roundState = RoundState.FromRound(round);
-		CoinJoinFeeRateAvarage avarage = new(TimeSpan.FromHours(24), new FeeRate(120m));
-		RoundStateResponse response = new(new[] { roundState }, new[] { avarage });
+		CoinJoinFeeRateAverage average = new(TimeSpan.FromHours(24), new FeeRate(120m));
+		RoundStateResponse response = new(new[] { roundState }, new[] { average });
 
 		AssertSerialization(response);
 	}
