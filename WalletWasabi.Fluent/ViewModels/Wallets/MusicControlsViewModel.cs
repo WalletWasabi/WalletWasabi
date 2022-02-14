@@ -25,6 +25,7 @@ public partial class MusicControlsViewModel : ViewModelBase
 	[AutoNotify (SetterModifier = AccessModifier.Private)] private bool _isActive;
 	[AutoNotify] private TimeSpan _autoStartCountdown;
 	[AutoNotify] private string? _currentStatus;
+	[AutoNotify] private string? _countDown;
 	[AutoNotify] private bool _playVisible = true;
 	[AutoNotify] private bool _pauseVisible;
 	[AutoNotify] private bool _stopVisible;
@@ -115,11 +116,15 @@ public partial class MusicControlsViewModel : ViewModelBase
 	{
 		if (_currentWallet is { })
 		{
+			CountDown = null;
 			switch (_currentState)
 			{
 				case CoinJoinUIState.AutoStart:
 					CurrentStatus =
 						$"CoinJoin will auto-start in: {(DateTime.Now - _coinJoinManager.WhenWalletCanStartAutoCoinJoin(_currentWallet)):mm\\:ss}";
+
+					CountDown =
+						$"{(DateTime.Now - _coinJoinManager.WhenWalletCanStartAutoCoinJoin(_currentWallet)):mm\\:ss}";
 					break;
 
 				case CoinJoinUIState.Starting:
