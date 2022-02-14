@@ -10,6 +10,7 @@ using Moq;
 using NBitcoin;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Logging;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
@@ -64,6 +65,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 	[InlineData(new long[] { 10_000_000, 20_000_000, 30_000_000, 40_000_000, 100_000_000 })]
 	public async Task SoloCoinJoinTestAsync(long[] amounts)
 	{
+		Common.GetWorkDir();
+		Logger.SetMinimumLevel(LogLevel.Trace);
+
 		int inputCount = amounts.Length;
 
 		// At the end of the test a coinjoin transaction has to be created and broadcasted.
@@ -145,7 +149,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			.Returns(httpClientWrapper);
 
 		// Total test timeout.
-		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(200));
+		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
 		cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
 
 		using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(1), apiClient);
