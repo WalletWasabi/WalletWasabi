@@ -41,12 +41,12 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	#region Members
 
 	/// <summary>
-	/// Coins those are on the input side of the tx and belongs to ANY loaded wallet. Later if more wallets are loaded this list can increase.
+	/// Coins those are on the input side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.
 	/// </summary>
 	public HashSet<SmartCoin> WalletInputs { get; }
 
 	/// <summary>
-	/// Coins those are on the output side of the tx and belongs to ANY loaded wallet. Later if more wallets are loaded this list can increase.
+	/// Coins those are on the output side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.
 	/// </summary>
 	public HashSet<SmartCoin> WalletOutputs { get; }
 

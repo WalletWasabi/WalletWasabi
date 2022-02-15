@@ -120,7 +120,7 @@ public class CoinJoinManager : BackgroundService
 					if (success)
 					{
 						CoinRefrigerator.Freeze(finishedCoinJoin.CoinCandidates);
-						Logger.LogInfo($"{logPrefix} finished successfully!");
+						Logger.LogInfo($"{logPrefix} finished!");
 					}
 					else
 					{
