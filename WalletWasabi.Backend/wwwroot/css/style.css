@@ -889,6 +889,11 @@ blockquote:after {
     text-transform: uppercase;
     font-weight: 100;
 }
+.blured-section {
+    background: rgba(0, 0, 0, 0.3);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+}
 @media (min-width: 576px) {
     body {
         --breakpoint: 540px;
