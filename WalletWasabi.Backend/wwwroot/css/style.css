@@ -891,6 +891,7 @@ blockquote:after {
 }
 .blured-section {
     background: rgba(0, 0, 0, 0.3);
+    background: linear-gradient(180deg, rgba(0, 16, 31, 0) 0%, rgba(0, 16, 31, 1) 80%);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
     backdrop-filter: saturate(180%) blur(20px);
 }
