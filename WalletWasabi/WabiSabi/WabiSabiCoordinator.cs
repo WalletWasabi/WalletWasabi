@@ -27,11 +27,13 @@ public class WabiSabiCoordinator : BackgroundService
 		CoinJoinTransactionArchiver transactionArchiver = new(Path.Combine(parameters.CoordinatorDataDir, "CoinJoinTransactions"));
 
 		CoinJoinFeeRateStatStore = CoinJoinFeeRateStatStore.LoadFromFile(parameters.CoinJoinFeeRateStatStoreFilePath, Config, rpc);
+		IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinFeeRateStatStoreFilePath);
 		CoinJoinFeeRateStatStore.NewStat += FeeRateStatStore_NewStat;
 
 		var inMemoryCoinJoinIdStore = InMemoryCoinJoinIdStore.LoadFromFile(parameters.CoinJoinIdStoreFilePath);
 
 		Arena = new(parameters.RoundProgressSteppingPeriod, rpc.Network, Config, rpc, Warden.Prison, inMemoryCoinJoinIdStore, transactionArchiver);
+		IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinIdStoreFilePath);
 		Arena.CoinJoinBroadcast += Arena_CoinJoinBroadcast;
 	}
 
@@ -50,11 +52,6 @@ public class WabiSabiCoordinator : BackgroundService
 		var filePath = Parameters.CoinJoinIdStoreFilePath;
 		try
 		{
-			if (!File.Exists(filePath))
-			{
-				IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinIdStoreFilePath);
-			}
-
 			File.AppendAllLines(filePath, new[] { e.GetHash().ToString() });
 		}
 		catch (Exception ex)
@@ -68,10 +65,6 @@ public class WabiSabiCoordinator : BackgroundService
 		var filePath = Parameters.CoinJoinFeeRateStatStoreFilePath;
 		try
 		{
-			if (!File.Exists(filePath))
-			{
-				IoHelpers.EnsureContainingDirectoryExists(filePath);
-			}
 			File.AppendAllLines(filePath, new[] { feeRateStat.ToLine() });
 		}
 		catch (Exception ex)
