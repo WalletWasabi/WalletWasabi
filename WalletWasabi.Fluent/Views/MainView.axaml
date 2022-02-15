@@ -44,9 +44,8 @@
         <Panel>
           <Border Background="{DynamicResource RegionColor}" IsHitTestVisible="False" />
           <Panel Background="{DynamicResource RegionColor}" VerticalAlignment="Bottom"
-                 Height="64">
+                 Height="100">
             <spectrum:SpectrumControl Opacity="0.6" IsActive="{Binding IsCoinJoinActive}" IsDockEffectVisible="{Binding MusicControls.IsActive}" />
-            <c:CustomBlurBehind />
             <statusBar:StatusBar DataContext="{Binding StatusBar}" />
           </Panel>
           <DockPanel>
