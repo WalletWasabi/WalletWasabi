@@ -38,7 +38,7 @@
           Background="#19FFFFFF"
           BorderBrush="#3CFFFFFF">
     <Panel >
-      <controls:CustomBlurBehind BlurRadius="20,20"/>
+      <controls:BlurBehind BlurRadius="20,20"/>
       <StackPanel Margin="20 10" Orientation="Horizontal" Spacing="20">
 
         <controls:ScrollingTextBlock MaxWidth="350" Text="{Binding CurrentStatus}" />
@@ -62,7 +62,6 @@
           <PathIcon Data="{StaticResource stop_regular}" />
         </Button>
       </StackPanel>
-
     </Panel>
   </Border>
 </UserControl>
