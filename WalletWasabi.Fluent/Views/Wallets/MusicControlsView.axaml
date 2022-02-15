@@ -41,7 +41,7 @@
       <controls:BlurBehind BlurRadius="20,20"/>
       <StackPanel Margin="20 10" Orientation="Horizontal" Spacing="20">
 
-        <controls:ScrollingTextBlock MaxWidth="350" Text="{Binding CurrentStatus}" />
+        <TransitioningContentControl Width="350" Content="{Binding CurrentStatus}" />
 
         <Separator Classes="vertical" />
 
