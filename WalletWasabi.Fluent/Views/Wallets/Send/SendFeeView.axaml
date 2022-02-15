@@ -55,7 +55,7 @@
     <Style Selector="c|LineChart.yAxisLabels">
       <Setter Property="YAxisLabelForeground" Value="{DynamicResource TextForegroundColor}" />
       <Setter Property="YAxisLabelAngle" Value="0" />
-      <Setter Property="YAxisLabelOffset" Value="-25,0" />
+      <Setter Property="YAxisLabelOffset" Value="-40,0" />
       <Setter Property="YAxisLabelAlignment" Value="Auto" />
       <Setter Property="YAxisLabelFontSize" Value="12" />
       <Setter Property="YAxisLabelOpacity" Value="0.8" />
@@ -180,7 +180,7 @@
             <Setter Property="AreaMinViableWidth" Value="40"/>
             <Setter Property="AreaMinViableHeight" Value="20"/>
             <Setter Property="Focusable" Value="True"/>
-            <Setter Property="YAxisTitle" Value="Increasing Cost (sat/vByte)"/>
+            <Setter Property="YAxisTitle" Value="Fee Rate (sat/vByte)"/>
           </Style>
           <Style Selector="c|LineChart.narrow">
             <Setter Property="AreaMargin" Value="30,0,10,45"/>

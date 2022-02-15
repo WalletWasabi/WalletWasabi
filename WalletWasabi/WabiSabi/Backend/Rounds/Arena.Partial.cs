@@ -1,6 +1,5 @@
 using NBitcoin;
 using Nito.AsyncEx;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,8 +55,8 @@ public partial class Arena : IWabiSabiApiRequestHandler
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputNotWhitelisted);
 			}
 
-			// Compute but don't commit updated CoinJoin to round state, it will
-			// be re-calculated on input confirmation. This is computed it here
+			// Compute but don't commit updated coinjoin to round state, it will
+			// be re-calculated on input confirmation. This is computed in here
 			// for validation purposes.
 			_ = round.Assert<ConstructionState>().AddInput(coin);
 
@@ -233,7 +232,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 							await amountRealCredentialTask.ConfigureAwait(false),
 							await vsizeRealCredentialTask.ConfigureAwait(false));
 
-						// Update the CoinJoin state, adding the confirmed input.
+						// Update the coinjoin state, adding the confirmed input.
 						round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice.Coin);
 						alice.ConfirmedConnection = true;
 
@@ -358,11 +357,14 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		return new Coin(input, txOutResponse.TxOut);
 	}
 
-	public async Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken)
+	public async Task<RoundState[]> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
 	{
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			return Rounds.Select(x => RoundState.FromRound(x)).ToArray();
+			return Rounds.Select(x => {
+				var checkPoint = request.RoundCheckpoints.FirstOrDefault(y => y.RoundId == x.Id);
+				return RoundState.FromRound(x, checkPoint == default ? 0 : checkPoint.StateId);
+			}).ToArray();
 		}
 	}
 

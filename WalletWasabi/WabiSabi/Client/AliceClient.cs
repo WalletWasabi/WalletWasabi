@@ -49,7 +49,7 @@ public class AliceClient
 	public IEnumerable<Credential> IssuedVsizeCredentials { get; private set; }
 	private long MaxVsizeAllocationPerAlice { get; }
 	private TimeSpan ConfirmationTimeout { get; }
-	private bool IsPayingZeroCoordinationFee { get; }
+	public bool IsPayingZeroCoordinationFee { get; }
 
 	public static async Task<AliceClient> CreateRegisterAndConfirmInputAsync(
 		RoundState roundState,
@@ -80,7 +80,7 @@ public class AliceClient
 		return aliceClient;
 	}
 
-		private static async Task<AliceClient> RegisterInputAsync(RoundState roundState, ArenaClient arenaClient, SmartCoin coin, IKeyChain keyChain, CancellationToken cancellationToken)
+	private static async Task<AliceClient> RegisterInputAsync(RoundState roundState, ArenaClient arenaClient, SmartCoin coin, IKeyChain keyChain, CancellationToken cancellationToken)
 	{
 		AliceClient? aliceClient;
 		try
@@ -143,7 +143,7 @@ public class AliceClient
 				await roundStatusUpdater
 					.CreateRoundAwaiter(
 						RoundId,
-						roundState => roundState.Phase == Phase.ConnectionConfirmation,
+						Phase.ConnectionConfirmation,
 						cts.Token)
 					.ConfigureAwait(false);
 			}
@@ -228,7 +228,7 @@ public class AliceClient
 
 	public async Task SignTransactionAsync(Transaction unsignedCoinJoin, IKeyChain keyChain, CancellationToken cancellationToken)
 	{
-			await ArenaClient.SignTransactionAsync(RoundId, SmartCoin.Coin, OwnershipProof, keyChain, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
+		await ArenaClient.SignTransactionAsync(RoundId, SmartCoin.Coin, OwnershipProof, keyChain, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
 
 		Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Posted a signature.");
 	}

@@ -10,7 +10,7 @@
   <StackPanel Classes="settingsLayout">
 
     <DockPanel>
-      <TextBlock Text="Network Encryption (Tor)" />
+      <TextBlock Text="Network anonymization (Tor)" />
       <ToggleSwitch IsChecked="{Binding UseTor}" />
     </DockPanel>
 

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -468,7 +469,7 @@ public static class Program
 					$"License: Open Source (MIT)\n" +
 					$"Installed-Size: {installedSizeKb}\n" +
 					$"Description: open-source, non-custodial, privacy focused Bitcoin wallet\n" +
-					$"  Built-in Tor, CoinJoin, PayJoin and Coin Control features.\n";
+					$"  Built-in Tor, coinjoin, payjoin and coin control features.\n";
 
 				File.WriteAllText(controlFilePath, controlFileContent, Encoding.ASCII);
 
@@ -528,9 +529,8 @@ public static class Program
 	/// <remarks>This is important to really release a build that corresponds with a git hash.</remarks>
 	private static void CheckUncommittedGitChanges()
 	{
-		string? gitStatus = StartProcessAndWaitForExit("git", workingDirectory: DesktopProjectDirectory, arguments: "status --porcelain", redirectStandardOutput: true)?.Trim();
+		if (TryStartProcessAndWaitForExit("git", workingDirectory: SolutionDirectory, out var gitStatus, arguments: "status --porcelain", redirectStandardOutput: true) && !string.IsNullOrEmpty(gitStatus))
 
-		if (!string.IsNullOrEmpty(gitStatus))
 		{
 			Console.WriteLine("BEWARE: There are uncommitted changes in the repository. Do you want to continue? (Y/N)");
 			int i = Console.Read();
@@ -554,19 +554,15 @@ public static class Program
 		Version runtimeVersion = Environment.Version;
 
 		// Get .NET SDK version.
-		string? sdkVersion = StartProcessAndWaitForExit("dotnet", workingDirectory: DesktopProjectDirectory, arguments: "--version", redirectStandardOutput: true)?.Trim();
-
-		if (sdkVersion is null)
+		if (!TryStartProcessAndWaitForExit("dotnet", workingDirectory: SolutionDirectory, result: out var sdkVersion, arguments: "--version", redirectStandardOutput: true))
 		{
-			throw new InvalidOperationException($"Failed to get .NET SDK version.");
+			sdkVersion = "Failed to get .NET SDK version.";
 		}
 
 		// Get git commit ID.
-		string? gitCommitId = StartProcessAndWaitForExit("git", workingDirectory: DesktopProjectDirectory, arguments: "rev-parse HEAD", redirectStandardOutput: true)?.Trim();
-
-		if (gitCommitId is null)
+		if (!TryStartProcessAndWaitForExit("git", workingDirectory: SolutionDirectory, result: out var gitCommitId, arguments: "rev-parse HEAD", redirectStandardOutput: true))
 		{
-			throw new InvalidOperationException($"Failed to get git commit ID.");
+			gitCommitId = "Failed to get git commit ID.";
 		}
 
 		return JsonSerializer.Serialize(new BuildInfo(runtimeVersion.ToString(), sdkVersion, gitCommitId), new JsonSerializerOptions() { WriteIndented = true });
@@ -621,5 +617,20 @@ public static class Program
 		}
 
 		return output;
+	}
+
+	private static bool TryStartProcessAndWaitForExit(string command, string workingDirectory, [NotNullWhen(true)] out string? result, string? writeToStandardInput = null, string? arguments = null, bool redirectStandardOutput = false)
+	{
+		result = null;
+		try
+		{
+			result = StartProcessAndWaitForExit(command, workingDirectory, writeToStandardInput, arguments, redirectStandardOutput)?.Trim() ?? "";
+			return true;
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"Process failed: '{ex}'.");
+		}
+		return false;
 	}
 }

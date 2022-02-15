@@ -79,6 +79,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 							walletFilePath,
 							MinGapLimit);
 
+						result.AutoCoinJoin = true;
 						result.SetNetwork(Services.WalletManager.Network);
 
 						return result;

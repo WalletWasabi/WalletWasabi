@@ -198,9 +198,10 @@ public class ArenaClientTests
 	{
 		WabiSabiConfig config = new();
 		Round round = WabiSabiFactory.CreateRound(config);
+		var password = "satoshi";
 
-		var km = ServiceFactory.CreateKeyManager("");
-		var keyChain = new KeyChain(km);
+		var km = ServiceFactory.CreateKeyManager(password);
+		var keyChain = new KeyChain(km, new Kitchen(password));
 		var destinationProvider = new InternalDestinationProvider(km);
 
 		var coins = destinationProvider.GetNextDestinations(2)
@@ -232,16 +233,16 @@ public class ArenaClientTests
 		var emptyState = round.Assert<ConstructionState>();
 
 		// We can't use ``emptyState.Finalize()` because this is not a valid transaction so we fake it
-		var finalizedEmptyState = new SigningState(emptyState.Parameters, emptyState.Inputs, emptyState.Outputs);
+		var finalizedEmptyState = new SigningState(emptyState.Parameters, emptyState.Events);
 
-		// No inputs in the CoinJoin.
+		// No inputs in the coinjoin.
 		await Assert.ThrowsAsync<ArgumentException>(async () =>
 				await apiClient.SignTransactionAsync(round.Id, alice1.Coin, coins[0].OwnershipProof, keyChain, finalizedEmptyState.CreateUnsignedTransaction(), CancellationToken.None));
 
 		var oneInput = emptyState.AddInput(alice1.Coin).Finalize();
 		round.CoinjoinState = oneInput;
 
-		// Trying to sign coins those are not in the CoinJoin.
+		// Trying to sign coins those are not in the coinjoin.
 		await Assert.ThrowsAsync<InvalidOperationException>(async () =>
 				await apiClient.SignTransactionAsync(round.Id, alice2.Coin, coins[1].OwnershipProof, keyChain, oneInput.CreateUnsignedTransaction(), CancellationToken.None));
 

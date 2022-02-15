@@ -73,7 +73,7 @@ public class TestWallet : IKeyChain, IDestinationProvider, IDisposable
 
 		if (tx.Outputs[0].Value < effectiveOutputCost)
 		{
-			throw new ArgumentException("Not enought satoshis in input.");
+			throw new ArgumentException("Not enough satoshis in input.");
 		}
 
 		tx.Outputs[0].Value -= effectiveOutputCost;
@@ -99,7 +99,7 @@ public class TestWallet : IKeyChain, IDestinationProvider, IDisposable
 		return signedTx;
 	}
 
-	public OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData commitedData)
+	public OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData committedData)
 	{
 		ThrowIfDisposed();
 		if (destination.ScriptPubKey != ScriptPubKey)
@@ -111,10 +111,10 @@ public class TestWallet : IKeyChain, IDestinationProvider, IDisposable
 		return OwnershipProof.GenerateCoinJoinInputProof(
 				Key,
 				new OwnershipIdentifier(identificationKey, ScriptPubKey),
-				commitedData);
+				committedData);
 	}
 
-    /// <remarks>Test wallet assumes that the ownership proof is always correct.</remarks>
+	/// <remarks>Test wallet assumes that the ownership proof is always correct.</remarks>
 	public Transaction Sign(Transaction transaction, Coin coin, OwnershipProof ownershipProof)
 	{
 		ThrowIfDisposed();

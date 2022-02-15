@@ -1,3 +1,4 @@
+using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Input;
 using Avalonia;
@@ -6,6 +7,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Providers;
+using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.WabiSabi.Client;
 
@@ -38,6 +40,21 @@ public class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 		ShowCommand = ReactiveCommand.Create(() => ShowRequested?.Invoke(this, EventArgs.Empty));
 
+		var dialogScreen = MainViewModel.Instance.DialogScreen;
+
+		AboutCommand = ReactiveCommand.Create(
+			() => dialogScreen.To(new AboutViewModel(navigateBack: dialogScreen.CurrentPage is not null)),
+			canExecute: dialogScreen.WhenAnyValue(x => x.CurrentPage)
+				.SelectMany(x =>
+				{
+					return x switch
+					{
+						null => Observable.Return(true),
+						AboutViewModel => Observable.Return(false),
+						_ => x.WhenAnyValue(page => page.IsBusy).Select(isBusy => !isBusy)
+					};
+				}));
+
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 		{
 			using var bitmap = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo_white.ico");
@@ -56,8 +73,9 @@ public class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 	public event EventHandler? ShowRequested;
 
-	public ICommand QuitCommand { get; }
+	public ICommand AboutCommand { get; }
 	public ICommand ShowCommand { get; }
+	public ICommand QuitCommand { get; }
 
 	public bool CanShutdown()
 	{
