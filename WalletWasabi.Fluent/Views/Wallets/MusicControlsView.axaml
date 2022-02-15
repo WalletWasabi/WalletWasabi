@@ -49,7 +49,7 @@
 
         <Separator Classes="vertical" />
 
-        <StackPanel>
+        <StackPanel VerticalAlignment="Center">
           <Button Classes="plain" Command="{Binding PlayCommand}">
             <PathIcon Data="{StaticResource play_regular}" />
           </Button>
