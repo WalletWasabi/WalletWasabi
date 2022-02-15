@@ -1,13 +1,13 @@
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
+using NBitcoin;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using Moq;
-using NBitcoin;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Tests.Helpers;
@@ -27,6 +27,8 @@ using Xunit.Abstractions;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
+/// <seealso cref="XunitConfiguration.SerialCollectionDefinition"/>
+[Collection("Serial unit tests collection")]
 public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicationFactory<Startup>>
 {
 	private readonly WabiSabiApiApplicationFactory<Startup> _apiApplicationFactory;
@@ -35,7 +37,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 	public WabiSabiHttpApiIntegrationTests(WabiSabiApiApplicationFactory<Startup> apiApplicationFactory, ITestOutputHelper output)
 	{
 		_apiApplicationFactory = apiApplicationFactory;
-        _output = output;
+		_output = output;
 	}
 
 	[Fact]
@@ -399,7 +401,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			var coinjoin = await rpc.GetRawTransactionAsync(mempool.Single());
 
 			Assert.True(coinjoin.Outputs.Count <= ExpectedInputNumber);
-			Assert.True(coinjoin.Inputs.Count == ExpectedInputNumber);
+			Assert.Equal(ExpectedInputNumber, coinjoin.Inputs.Count);
 		}
 		finally
 		{

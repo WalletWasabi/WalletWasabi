@@ -11,54 +11,53 @@ using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
+
+[NavigationMetaData(Title = "Wallet Coins")]
+public partial class WalletCoinsViewModel : RoutableViewModel
 {
-	[NavigationMetaData(Title = "Wallet Coins")]
-	public partial class WalletCoinsViewModel : RoutableViewModel
+	private readonly WalletViewModel _walletViewModel;
+	private readonly IObservable<Unit> _balanceChanged;
+
+	private readonly ReadOnlyObservableCollection<WalletCoinViewModel> _coins;
+	private readonly SourceList<WalletCoinViewModel> _confirmationWordsSourceList = new();
+
+	public WalletCoinsViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
 	{
-		private readonly WalletViewModel _walletViewModel;
-		private readonly IObservable<Unit> _balanceChanged;
+		SetupCancel(false, true, true);
+		NextCommand = CancelCommand;
+		_walletViewModel = walletViewModel;
+		_balanceChanged = balanceChanged;
 
-		private readonly ReadOnlyObservableCollection<WalletCoinViewModel> _coins;
-		private readonly SourceList<WalletCoinViewModel> _confirmationWordsSourceList = new();
+		_confirmationWordsSourceList
+			.Connect()
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Bind(out _coins)
+			.Subscribe();
+	}
 
-		public WalletCoinsViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
-		{
-			SetupCancel(false, true, true);
-			NextCommand = CancelCommand;
-			_walletViewModel = walletViewModel;
-			_balanceChanged = balanceChanged;
+	public ReadOnlyObservableCollection<WalletCoinViewModel> Coins => _coins;
 
-			_confirmationWordsSourceList
-				.Connect()
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Bind(out _coins)
-				.Subscribe();
-		}
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
 
-		public ReadOnlyObservableCollection<WalletCoinViewModel> Coins => _coins;
+		Observable.Merge(
+			_balanceChanged.Select(_ => Unit.Default),
+			_walletViewModel.WhenAnyValue(w => w.IsCoinJoining).Select(_ => Unit.Default))
+			.Subscribe(_ =>
+			{
+				Update();
+			});
 
-		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-		{
-			base.OnNavigatedTo(isInHistory, disposables);
+		disposables.Add(_confirmationWordsSourceList);
+	}
 
-			Observable.Merge(
-				_balanceChanged.Select(_ => Unit.Default),
-				_walletViewModel.WhenAnyValue(w => w.IsCoinJoining).Select(_ => Unit.Default))
-				.Subscribe(_ =>
-				{
-					Update();
-				});
+	private void Update()
+	{
+		var coins = _walletViewModel.Wallet.Coins.Select(c => new WalletCoinViewModel(c));
 
-			disposables.Add(_confirmationWordsSourceList);
-		}
-
-		private void Update()
-		{
-			var coins = _walletViewModel.Wallet.Coins.Select(c => new WalletCoinViewModel(c));
-
-			_confirmationWordsSourceList.Clear();
-			_confirmationWordsSourceList.AddRange(coins);
-		}
+		_confirmationWordsSourceList.Clear();
+		_confirmationWordsSourceList.AddRange(coins);
 	}
 }
