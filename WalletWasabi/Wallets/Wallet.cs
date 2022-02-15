@@ -27,6 +27,7 @@ namespace WalletWasabi.Wallets;
 public class Wallet : BackgroundService
 {
 	private volatile WalletState _state;
+	private bool _isInitializingTxs = false;
 
 	public Wallet(string dataDir, Network network, string filePath) : this(dataDir, network, KeyManager.FromFile(filePath))
 	{
@@ -282,6 +283,10 @@ public class Wallet : BackgroundService
 	{
 		try
 		{
+			if (!_isInitializingTxs)
+			{
+				TransactionProcessor.UpdateRelevantTxs(e.Transaction);
+			}
 			WalletRelevantTransactionProcessed?.Invoke(this, e);
 		}
 		catch (Exception ex)
@@ -370,6 +375,7 @@ public class Wallet : BackgroundService
 
 	private async Task LoadWalletStateAsync(CancellationToken cancel)
 	{
+		_isInitializingTxs = true;
 		KeyManager.AssertNetworkOrClearBlockState(Network);
 		Height bestKeyManagerHeight = KeyManager.GetBestHeight();
 
@@ -381,6 +387,7 @@ public class Wallet : BackgroundService
 		// Go through the filters and queue to download the matches.
 		await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) => await ProcessFilterModelAsync(filterModel, cancel).ConfigureAwait(false),
 		new Height(bestKeyManagerHeight.Value + 1), cancel).ConfigureAwait(false);
+		_isInitializingTxs = false;
 	}
 
 	private async Task LoadDummyMempoolAsync()

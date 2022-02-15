@@ -291,4 +291,32 @@ public class TransactionProcessor
 	{
 		Coins.SwitchToUnconfirmFromBlock(blockHeight);
 	}
+
+	internal void UpdateRelevantTxs(SmartTransaction tx)
+	{
+		var labels = tx.Label.Select(x => x);
+		var transactions = TransactionStore.GetTransactions().ToList();
+		List<SmartTransaction> relevantTxs = new();
+		foreach (var label in labels)
+		{
+			transactions.Where(tx => tx.Label.Contains(label)).ToList().ForEach(transaction => relevantTxs.Add(transaction));
+		}
+
+		foreach (var relevantTx in relevantTxs)
+		{
+			SmartCoin[] outputs = relevantTx.WalletOutputs.ToArray();
+			for (var i = 0; i < outputs.Length; i++)
+			{
+				var output = outputs[i];
+
+				if (KeyManager.TryGetKeyForScriptPubKey(output.ScriptPubKey, out HdPubKey? foundKey))
+				{
+					if (!foundKey.IsInternal)
+					{
+						relevantTx.Label = SmartLabel.Merge(relevantTx.Label, foundKey.Label);
+					}
+				}
+			}
+		}
+	}
 }
