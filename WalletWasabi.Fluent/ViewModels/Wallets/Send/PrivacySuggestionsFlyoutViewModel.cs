@@ -44,7 +44,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 		if (!info.IsPrivate)
 		{
-			Suggestions.Add(new PocketSuggestionViewModel(SmartLabel.Merge(transaction.SpentCoins.Select(x => CoinHelpers.GetLabels(x, wallet.KeyManager.MinAnonScoreTarget)))));
+			Suggestions.Add(new PocketSuggestionViewModel(SmartLabel.Merge(transaction.SpentCoins.Select(x => x.GetLabels(wallet.KeyManager.MinAnonScoreTarget)))));
 		}
 
 		var loadingRing = new LoadingSuggestionViewModel();
@@ -54,7 +54,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 		{
 			var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destination.ScriptPubKey);
 
-			if (hasChange && !isFixedAmount)
+			if (hasChange && !isFixedAmount && !info.IsPayJoin)
 			{
 				var suggestions =
 					ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, linkedCts.Token);

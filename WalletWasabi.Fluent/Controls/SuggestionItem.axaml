@@ -1,0 +1,46 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:WalletWasabi.Fluent.Controls">
+  <Design.PreviewWith>
+    <controls:SuggestionItem />
+  </Design.PreviewWith>
+
+  <Style Selector="controls|SuggestionItem">
+    <!-- Set Defaults -->
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Panel>
+          <Border Name="PART_DecorationBorderUnselected" >
+            <Border.Transitions>
+              <Transitions>
+                <DoubleTransition Property="Opacity"
+                                  Easing="{StaticResource FluentEasing}"
+                                  Duration="0:0:0.25" />
+              </Transitions>
+            </Border.Transitions>
+          </Border>
+          <Border Name="PART_DecorationBorderHover" >
+            <Border.Transitions>
+              <Transitions>
+                <DoubleTransition Property="Opacity"
+                                  Easing="{StaticResource FluentEasing}"
+                                  Duration="0:0:0.25" />
+              </Transitions>
+            </Border.Transitions>
+          </Border>
+          <Border Name="PART_MainContentBorder">
+            <ContentControl Name="PART_ContentPresenter"
+                            ClipToBounds="{TemplateBinding ClipToBounds}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Content="{TemplateBinding Content}"
+                            Padding="{TemplateBinding Padding}"
+                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
+          </Border>
+        </Panel>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+</Styles>
