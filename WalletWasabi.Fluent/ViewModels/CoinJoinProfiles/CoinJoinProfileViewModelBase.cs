@@ -14,5 +14,5 @@ public abstract class CoinJoinProfileViewModelBase : ViewModelBase
 
 	public virtual int MaxAnonScoreTarget { get; } = 10;
 
-	public abstract int FeeTargetAverageTimeFrameHours { get; }
+	public abstract int FeeRateAverageTimeFrameHours { get; }
 }

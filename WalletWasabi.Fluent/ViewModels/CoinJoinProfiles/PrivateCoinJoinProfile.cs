@@ -1,9 +1,4 @@
 using Avalonia.Media;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
@@ -18,5 +13,5 @@ internal class PrivateCoinJoinProfile : CoinJoinProfileViewModelBase
 	public override int MinAnonScoreTarget => 50;
 	public override int MaxAnonScoreTarget => 100;
 
-	public override int FeeTargetAverageTimeFrameHours => 0;
+	public override int FeeRateAverageTimeFrameHours => 0;
 }

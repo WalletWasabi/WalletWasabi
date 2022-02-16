@@ -2,7 +2,6 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -26,7 +25,7 @@ public class KeyManager
 	public const int DefaultMinAnonScoreTarget = 5;
 	public const int DefaultMaxAnonScoreTarget = 10;
 	public const bool DefaultAutoCoinjoin = false;
-	public const int DefaultFeeTargetAvarageTimeFrameHours = 24;
+	public const int DefaultFeeRateAverageTimeFrameHours = 24;
 
 	public const int AbsoluteMinGapLimit = 21;
 	public const int MaxGapLimit = 10_000;
@@ -163,8 +162,8 @@ public class KeyManager
 	[JsonProperty(Order = 14, PropertyName = "MaxAnonScoreTarget")]
 	public int MaxAnonScoreTarget { get; private set; } = DefaultMaxAnonScoreTarget;
 
-	[JsonProperty(Order = 15, PropertyName = "FeeTargetAvarageTimeFrameHours")]
-	public int FeeTargetAvarageTimeFrameHours { get; private set; } = DefaultFeeTargetAvarageTimeFrameHours;
+	[JsonProperty(Order = 15, PropertyName = "FeeRateAverageTimeFrameHours")]
+	public int FeeRateAverageTimeFrameHours { get; private set; } = DefaultFeeRateAverageTimeFrameHours;
 
 	[JsonProperty(Order = 999)]
 	private List<HdPubKey> HdPubKeys { get; }
@@ -714,9 +713,9 @@ public class KeyManager
 		}
 	}
 
-	public void SetFeeTargetAvarageTimeFrame(int hours, bool toFile = true)
+	public void SetFeeRateAverageTimeFrame(int hours, bool toFile = true)
 	{
-		FeeTargetAvarageTimeFrameHours = hours;
+		FeeRateAverageTimeFrameHours = hours;
 		if (toFile)
 		{
 			ToFile();

@@ -54,7 +54,7 @@ public partial class CoinJoinProfilesViewModel : RoutableViewModel
 		var selected = SelectedProfile;
 
 		keyManager.SetAnonScoreTargets(selected.MinAnonScoreTarget, selected.MaxAnonScoreTarget, toFile: false);
-		keyManager.SetFeeTargetAvarageTimeFrame(selected.FeeTargetAverageTimeFrameHours, toFile: false);
+		keyManager.SetFeeRateAverageTimeFrame(selected.FeeRateAverageTimeFrameHours, toFile: false);
 
 		Navigate().To(new AddedWalletPageViewModel(keyManager));
 	}

@@ -32,7 +32,7 @@ public class CoinJoinClient
 		RoundStateUpdater roundStatusUpdater,
 		int minAnonScoreTarget = int.MaxValue,
 		bool consolidationMode = false,
-		TimeSpan feeTargetAvarageTimeFrame = default,
+		TimeSpan feeRateAverageTimeFrame = default,
 		TimeSpan doNotRegisterInLastMinuteTimeLimit = default)
 	{
 		HttpClientFactory = httpClientFactory;
@@ -41,7 +41,7 @@ public class CoinJoinClient
 		RoundStatusUpdater = roundStatusUpdater;
 		MinAnonScoreTarget = minAnonScoreTarget;
 		ConsolidationMode = consolidationMode;
-		FeeTargetAvarageTimeFrame = feeTargetAvarageTimeFrame;
+		FeeRateAverageTimeFrame = feeRateAverageTimeFrame;
 		SecureRandom = new SecureRandom();
 		DoNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
 	}
@@ -61,7 +61,7 @@ public class CoinJoinClient
 	}
 
 	public bool ConsolidationMode { get; private set; }
-	private TimeSpan FeeTargetAvarageTimeFrame { get; }
+	private TimeSpan FeeRateAverageTimeFrame { get; }
 
 	public async Task<bool> StartCoinJoinAsync(IEnumerable<SmartCoin> coins, CancellationToken cancellationToken)
 	{
@@ -424,17 +424,17 @@ public class CoinJoinClient
 
 	public bool IsRoundEconomic(FeeRate roundFeeRate)
 	{
-		if (FeeTargetAvarageTimeFrame == default)
+		if (FeeRateAverageTimeFrame == default)
 		{
 			return true;
 		}
 
-		if (RoundStatusUpdater.CoinJoinFeeRateAverages.TryGetValue(FeeTargetAvarageTimeFrame, out var feeRate))
+		if (RoundStatusUpdater.CoinJoinFeeRateAverages.TryGetValue(FeeRateAverageTimeFrame, out var feeRate))
 		{
 			return roundFeeRate <= feeRate;
 		}
 
-		throw new InvalidOperationException($"Could not find average feeRate for timeframe: {FeeTargetAvarageTimeFrame}.");
+		throw new InvalidOperationException($"Could not find average feeRate for timeframe: {FeeRateAverageTimeFrame}.");
 	}
 
 	/// <summary>

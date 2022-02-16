@@ -1,20 +1,15 @@
 using Avalonia.Media;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
 public class ManualCoinJoinProfile : CoinJoinProfileViewModelBase
 {
-	public ManualCoinJoinProfile(int minAnonScoreTarget, int maxAnonScoreTarget, int feeTargetAverageTimeFrameHours)
+	public ManualCoinJoinProfile(int minAnonScoreTarget, int maxAnonScoreTarget, int feeRateAverageTimeFrameHours)
 	{
 		MinAnonScoreTarget = minAnonScoreTarget;
 		MaxAnonScoreTarget = maxAnonScoreTarget;
-		FeeTargetAverageTimeFrameHours = feeTargetAverageTimeFrameHours;
+		FeeRateAverageTimeFrameHours = feeRateAverageTimeFrameHours;
 	}
 
 	public override string Title => "Economy";
@@ -27,5 +22,5 @@ public class ManualCoinJoinProfile : CoinJoinProfileViewModelBase
 
 	public override int MaxAnonScoreTarget { get; }
 
-	public override int FeeTargetAverageTimeFrameHours { get; }
+	public override int FeeRateAverageTimeFrameHours { get; }
 }
