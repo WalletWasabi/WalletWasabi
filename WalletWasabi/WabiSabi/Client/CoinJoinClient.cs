@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
@@ -34,6 +32,7 @@ public class CoinJoinClient
 		RoundStateUpdater roundStatusUpdater,
 		int minAnonScoreTarget = int.MaxValue,
 		bool consolidationMode = false,
+		TimeSpan feeTargetAvarageTimeFrame = default,
 		TimeSpan doNotRegisterInLastMinuteTimeLimit = default)
 	{
 		HttpClientFactory = httpClientFactory;
@@ -42,6 +41,7 @@ public class CoinJoinClient
 		RoundStatusUpdater = roundStatusUpdater;
 		MinAnonScoreTarget = minAnonScoreTarget;
 		ConsolidationMode = consolidationMode;
+		FeeTargetAvarageTimeFrame = feeTargetAvarageTimeFrame;
 		SecureRandom = new SecureRandom();
 		DoNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
 	}
@@ -61,6 +61,7 @@ public class CoinJoinClient
 	}
 
 	public bool ConsolidationMode { get; private set; }
+	private TimeSpan FeeTargetAvarageTimeFrame { get; }
 
 	public async Task<bool> StartCoinJoinAsync(IEnumerable<SmartCoin> coins, CancellationToken cancellationToken)
 	{
@@ -68,7 +69,8 @@ public class CoinJoinClient
 			.CreateRoundAwaiter(
 				roundState =>
 					roundState.InputRegistrationEnd - DateTimeOffset.UtcNow > DoNotRegisterInLastMinuteTimeLimit &&
-					roundState.Phase == Phase.InputRegistration,
+					roundState.Phase == Phase.InputRegistration &&
+					IsRoundEconomic(roundState.FeeRate),
 				cancellationToken)
 			.ConfigureAwait(false);
 
@@ -418,6 +420,21 @@ public class CoinJoinClient
 			.MinBy(i => i.Reps).Group;
 
 		return bestgroup.ToShuffled().ToImmutableList();
+	}
+
+	public bool IsRoundEconomic(FeeRate roundFeeRate)
+	{
+		if (FeeTargetAvarageTimeFrame == default)
+		{
+			return true;
+		}
+
+		if (RoundStatusUpdater.CoinJoinFeeRateAverages.TryGetValue(FeeTargetAvarageTimeFrame, out var feeRate))
+		{
+			return roundFeeRate <= feeRate;
+		}
+
+		throw new InvalidOperationException($"Could not find average feeRate for timeframe: {FeeTargetAvarageTimeFrame}.");
 	}
 
 	/// <summary>
