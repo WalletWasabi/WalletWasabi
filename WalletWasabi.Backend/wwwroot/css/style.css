@@ -884,7 +884,7 @@ blockquote:after {
     border: 1px solid var(--green);
 }
 .epic-text {
-    font-size: 60px;
+    font-size: 54px;
     line-height: 1.3em;
     text-transform: uppercase;
     font-weight: 100;
@@ -927,6 +927,9 @@ blockquote:after {
     .navbar-expand-lg .navbar-nav .nav-item {
         padding-left: 0.5em;
         padding-right: 0.5em;
+    }
+    .epic-text {
+        font-size: 40px;
     }
 }
 @media only screen and (max-width: 991px) {
@@ -1067,6 +1070,9 @@ blockquote:after {
     .timeline li:nth-child(even):before {
         left: inherit;
         right: calc(15% - 8px);
+    }
+    .epic-text {
+        font-size: 20px;
     }
 }
 @media only screen and (max-width: 400px) {} @media only screen and (max-width: 320px) {
