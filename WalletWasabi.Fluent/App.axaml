@@ -39,7 +39,11 @@
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/PrivacyContentControl.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/SuggestionItem.axaml" />
   </Application.Styles>
-
+  <NativeMenu.Menu>
+    <NativeMenu>
+      <NativeMenuItem Header="About Wasabi Wallet" Command="{Binding AboutCommand}" />
+    </NativeMenu>
+  </NativeMenu.Menu>
   <TrayIcon.Icons>
     <TrayIcons>
       <TrayIcon Icon="{Binding TrayIcon}" Clicked="TrayIcon_OnClicked">

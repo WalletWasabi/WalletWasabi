@@ -40,7 +40,7 @@ public partial class Arena : PeriodicRunner
 	private AsyncLock AsyncLock { get; } = new();
 	private Network Network { get; }
 	private WabiSabiConfig Config { get; }
-	private IRPCClient Rpc { get; }
+	internal IRPCClient Rpc { get; }
 	private Prison Prison { get; }
 	private SecureRandom Random { get; }
 	private CoinJoinTransactionArchiver? TransactionArchiver { get; }
