@@ -202,7 +202,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 	}
 
-	private async Task<bool> OnChangePocketsAsync()
+	private async Task OnChangePocketsAsync()
 	{
 		var selectPocketsDialog =
 			await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, _transaction?.SpentCoins, false));
@@ -212,11 +212,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			_info.Coins = selectPocketsDialog.Result;
 			_info.ChangelessCoins = Enumerable.Empty<SmartCoin>();  // Clear ChangelessCoins on pocket change, so we calculate the suggestions with the new pocket.
 			await BuildAndUpdateAsync();
-
-			return true;
 		}
-
-		return false;
 	}
 
 	private async Task<bool> InitialiseTransactionAsync()
@@ -417,18 +413,11 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			UpdateTransaction(CurrentTransactionSummary, initialTransaction);
 
+			await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, initialTransaction, _isFixedAmount, _cancellationTokenSource.Token);
+
 			if (CurrentTransactionSummary.TransactionHasPockets && !await NavigateConfirmLabelsDialogAsync(initialTransaction))
 			{
-				if (!await OnChangePocketsAsync())
-				{
-					// If the user chose to control their privacy, but cancelled the dialog, call suggestion creation manually. Otherwise BuildAndUpdate will call it.
-					await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, initialTransaction, _isFixedAmount, _cancellationTokenSource.Token);
-				}
-			}
-			else
-			{
-				// If the user does not wish to control his/her privacy, call suggestion creation manually.
-				await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, initialTransaction, _isFixedAmount, _cancellationTokenSource.Token);
+				await OnChangePocketsAsync();
 			}
 		}
 		else
