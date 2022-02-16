@@ -53,7 +53,7 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 				await ImportWalletAsync(walletName, _importFilePath);
 				break;
 			default:
-				throw new InvalidOperationException($"WalletCreationOption not supported: {creationOption}");
+				throw new InvalidOperationException($"{nameof(WalletCreationOption)} not supported: {creationOption}");
 		}
 	}
 
