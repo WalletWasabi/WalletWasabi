@@ -19,6 +19,8 @@
     <Color x:Key="AcrylicFallbackColor">#1F1F1F</Color>
     <Color x:Key="OrangeCoinColor">#F2994A</Color>
 
+    <SolidColorBrush x:Key="DismissColor" Color="#DD4343" />
+
     <SolidColorBrush x:Key="InvisibleButtonBackgroundColor" Opacity="0" Color="{DynamicResource SystemBaseHighColor}" />
     <SolidColorBrush x:Key="InvisibleButtonPointerOverBackgroundColor" Opacity="0.15"
                      Color="{DynamicResource SystemBaseHighColor}" />
