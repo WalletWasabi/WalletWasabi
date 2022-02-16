@@ -69,8 +69,9 @@ public class CoinJoinClient
 			.CreateRoundAwaiter(
 				roundState =>
 					roundState.InputRegistrationEnd - DateTimeOffset.UtcNow > DoNotRegisterInLastMinuteTimeLimit &&
+					roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min < Money.Coins(0.0001m) && // ignore rounds with too big minimum denominations
 					roundState.Phase == Phase.InputRegistration &&
-					IsRoundEconomic(roundState.FeeRate),
+          IsRoundEconomic(roundState.FeeRate),
 				cancellationToken)
 			.ConfigureAwait(false);
 
