@@ -18,16 +18,11 @@ namespace WalletWasabi.Fluent;
 [JsonObject(MemberSerialization.OptIn)]
 public class Config : ConfigBase
 {
-	public const int DefaultMinAnonScoreTarget = 5;
-	public const int DefaultMaxAnonScoreTarget = 10;
-
 	public const int DefaultJsonRpcServerPort = 37128;
 	public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);
 
 	private Uri? _backendUri = null;
 	private Uri? _fallbackBackendUri;
-	private int _minAnonScoreTarget;
-	private int _maxAnonScoreTarget;
 
 	/// <summary>
 	/// Constructor for config population using Newtonsoft.JSON.
@@ -39,7 +34,7 @@ public class Config : ConfigBase
 
 	public Config(string filePath) : base(filePath)
 	{
-		ServiceConfiguration = new ServiceConfiguration(MinAnonScoreTarget, MaxAnonScoreTarget, GetBitcoinP2pEndPoint(), DustThreshold);
+		ServiceConfiguration = new ServiceConfiguration(GetBitcoinP2pEndPoint(), DustThreshold);
 	}
 
 	[JsonProperty(PropertyName = "Network")]
@@ -115,42 +110,6 @@ public class Config : ConfigBase
 			"http://127.0.0.1:37128/",
 			"http://localhost:37128/"
 		};
-
-	[DefaultValue(DefaultMinAnonScoreTarget)]
-	[JsonProperty(PropertyName = "MinAnonScoreTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public int MinAnonScoreTarget
-	{
-		get => _minAnonScoreTarget;
-		internal set
-		{
-			if (_minAnonScoreTarget != value)
-			{
-				_minAnonScoreTarget = value;
-				if (ServiceConfiguration is { })
-				{
-					ServiceConfiguration.MinAnonScoreTarget = value;
-				}
-			}
-		}
-	}
-
-	[DefaultValue(DefaultMaxAnonScoreTarget)]
-	[JsonProperty(PropertyName = "MaxAnonScoreTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public int MaxAnonScoreTarget
-	{
-		get => _maxAnonScoreTarget;
-		internal set
-		{
-			if (_maxAnonScoreTarget != value)
-			{
-				_maxAnonScoreTarget = value;
-				if (ServiceConfiguration is { })
-				{
-					ServiceConfiguration.MaxAnonScoreTarget = value;
-				}
-			}
-		}
-	}
 
 	[JsonProperty(PropertyName = "DustThreshold")]
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
@@ -262,7 +221,7 @@ public class Config : ConfigBase
 	{
 		base.LoadFile();
 
-		ServiceConfiguration = new ServiceConfiguration(MinAnonScoreTarget, MaxAnonScoreTarget, GetBitcoinP2pEndPoint(), DustThreshold);
+		ServiceConfiguration = new ServiceConfiguration(GetBitcoinP2pEndPoint(), DustThreshold);
 
 		// Just debug convenience.
 		_backendUri = GetCurrentBackendUri();

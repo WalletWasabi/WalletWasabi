@@ -17,7 +17,7 @@
       <Separator />
 
       <c:PreviewItem Icon="{StaticResource transceive_regular}"
-                     Text="to the Bitcoin address">
+                     Text="will be sent to the Bitcoin address">
         <TextBlock Classes="monoSpaced" Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
       </c:PreviewItem>
 

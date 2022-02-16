@@ -5,6 +5,7 @@ using WalletWasabi.Backend.Controllers.WabiSabi;
 using WalletWasabi.Backend.Filters;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Backend.Statistics;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.Backend.Controllers;
@@ -15,60 +16,64 @@ namespace WalletWasabi.Backend.Controllers;
 [Produces("application/json")]
 public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 {
-	public WabiSabiController(IdempotencyRequestCache idempotencyRequestCache, Arena arena)
+	public WabiSabiController(IdempotencyRequestCache idempotencyRequestCache, Arena arena, CoinJoinFeeRateStatStore coinJoinFeeRateStatStore)
 	{
 		IdempotencyRequestCache = idempotencyRequestCache;
 		Arena = arena;
+		CoinJoinFeeRateStatStore = coinJoinFeeRateStatStore;
 	}
 
 	private IdempotencyRequestCache IdempotencyRequestCache { get; }
 	private Arena Arena { get; }
+	private CoinJoinFeeRateStatStore CoinJoinFeeRateStatStore { get; }
 
-	[HttpGet("status")]
-	public Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken)
+	[HttpPost("status")]
+	public async Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
 	{
-		return Arena.GetStatusAsync(cancellationToken);
+		var response = await Arena.GetStatusAsync(request, cancellationToken);
+		var averages = CoinJoinFeeRateStatStore.GetDefaultAverages();
+		return new RoundStateResponse(response.RoundStates, averages);
 	}
 
 	[HttpPost("connection-confirmation")]
-	public Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken)
+	public async Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken)
 	{
-		return IdempotencyRequestCache.GetCachedResponseAsync(request, action: (request, token) => Arena.ConfirmConnectionAsync(request, token), cancellationToken);
+		return await IdempotencyRequestCache.GetCachedResponseAsync(request, action: (request, token) => Arena.ConfirmConnectionAsync(request, token), cancellationToken);
 	}
 
 	[HttpPost("input-registration")]
-	public Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
+	public async Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 	{
-		return IdempotencyRequestCache.GetCachedResponseAsync(request, action: (request, token) => Arena.RegisterInputAsync(request, token), cancellationToken);
+		return await IdempotencyRequestCache.GetCachedResponseAsync(request, action: (request, token) => Arena.RegisterInputAsync(request, token), cancellationToken);
 	}
 
 	[HttpPost("output-registration")]
-	public Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
+	public async Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
 	{
-		return IdempotencyRequestCache.GetCachedResponseAsync(request, action: (request, token) => Arena.RegisterOutputCoreAsync(request, token), cancellationToken);
+		await IdempotencyRequestCache.GetCachedResponseAsync(request, action: (request, token) => Arena.RegisterOutputCoreAsync(request, token), cancellationToken);
 	}
 
 	[HttpPost("credential-issuance")]
-	public Task<ReissueCredentialResponse> ReissuanceAsync(ReissueCredentialRequest request, CancellationToken cancellationToken)
+	public async Task<ReissueCredentialResponse> ReissuanceAsync(ReissueCredentialRequest request, CancellationToken cancellationToken)
 	{
-		return IdempotencyRequestCache.GetCachedResponseAsync(request, action: (request, token) => Arena.ReissuanceAsync(request, token), cancellationToken);
+		return await IdempotencyRequestCache.GetCachedResponseAsync(request, action: (request, token) => Arena.ReissuanceAsync(request, token), cancellationToken);
 	}
 
 	[HttpPost("input-unregistration")]
-	public Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellableToken)
+	public async Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellableToken)
 	{
-		return Arena.RemoveInputAsync(request, cancellableToken);
+		await Arena.RemoveInputAsync(request, cancellableToken);
 	}
 
 	[HttpPost("transaction-signature")]
-	public Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellableToken)
+	public async Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellableToken)
 	{
-		return Arena.SignTransactionAsync(request, cancellableToken);
+		await Arena.SignTransactionAsync(request, cancellableToken);
 	}
 
 	[HttpPost("ready-to-sign")]
-	public Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellableToken)
+	public async Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellableToken)
 	{
-		return Arena.ReadyToSignAsync(request, cancellableToken);
+		await Arena.ReadyToSignAsync(request, cancellableToken);
 	}
 }

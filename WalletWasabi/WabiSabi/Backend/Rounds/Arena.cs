@@ -40,7 +40,7 @@ public partial class Arena : PeriodicRunner
 	private AsyncLock AsyncLock { get; } = new();
 	private Network Network { get; }
 	private WabiSabiConfig Config { get; }
-	private IRPCClient Rpc { get; }
+	internal IRPCClient Rpc { get; }
 	private Prison Prison { get; }
 	private SecureRandom Random { get; }
 	private CoinJoinTransactionArchiver? TransactionArchiver { get; }
@@ -176,8 +176,8 @@ public partial class Arena : PeriodicRunner
 				{
 					var coinjoin = round.Assert<ConstructionState>();
 
-					round.LogInfo($"{coinjoin.Inputs.Count} inputs were added.");
-					round.LogInfo($"{coinjoin.Outputs.Count} outputs were added.");
+					round.LogInfo($"{coinjoin.Inputs.Count()} inputs were added.");
+					round.LogInfo($"{coinjoin.Outputs.Count()} outputs were added.");
 
 					coinjoin = AddCoordinationFee(round, coinjoin);
 

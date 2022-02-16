@@ -9,11 +9,10 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletSettingsView">
   <c:ContentArea Title="{Binding Title}"
-                 Caption="Manage your wallet's settings"
                  EnableNext="True" NextContent="Done"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}">
-    <StackPanel Spacing="20">
+    <StackPanel Spacing="20" Margin="0 30">
       <StackPanel Classes="settingsLayout">
         <DockPanel IsVisible="{Binding IsHardwareWallet}">
           <TextBlock Text="PSBT workflow" />
@@ -24,6 +23,27 @@
           <TextBlock Text="Auto CoinJoin" />
           <ToggleSwitch IsChecked="{Binding AutoCoinJoin}" />
         </DockPanel>
+
+        <Separator />
+
+        <StackPanel Spacing="10">
+          <TextBlock Text="Minimum Anonymity Score Target" />
+          <DockPanel>
+            <PathIcon ToolTip.Tip="Min" DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMinimalBrush}"
+                      Data="{StaticResource privacy_minimal}" />
+            <TextBlock MinWidth="24" DockPanel.Dock="Right" Text="{Binding MinAnonScoreTarget}" VerticalAlignment="Center" />
+            <Slider Minimum="2" Maximum="98" Value="{Binding MinAnonScoreTarget}" Margin="10 0" />
+          </DockPanel>
+        </StackPanel>
+        <StackPanel Spacing="10">
+          <TextBlock Text="Maximum Anonymity Score Target" />
+          <DockPanel>
+            <PathIcon ToolTip.Tip="Max" DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMediumBrush}"
+                      Data="{StaticResource privacy_medium}" />
+            <TextBlock MinWidth="24" DockPanel.Dock="Right" Text="{Binding MaxAnonScoreTarget}" VerticalAlignment="Center" />
+            <Slider Minimum="3" Maximum="99" Value="{Binding MaxAnonScoreTarget}" Margin="10 0" />
+          </DockPanel>
+        </StackPanel>
       </StackPanel>
 
       <Separator />
