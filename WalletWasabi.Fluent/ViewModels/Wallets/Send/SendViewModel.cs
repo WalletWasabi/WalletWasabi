@@ -201,8 +201,7 @@ public partial class SendViewModel : RoutableViewModel
 
 	private void ValidateToField(IValidationErrors errors)
 	{
-		if (!string.IsNullOrWhiteSpace(To) &&
-			!AddressStringParser.TryParse(To, _wallet.Network, out _))
+		if (!string.IsNullOrEmpty(To) && (To.IsTrimmable() || !AddressStringParser.TryParse(To, _wallet.Network, out _)))
 		{
 			errors.Add(ErrorSeverity.Error, "Input a valid BTC address or URL.");
 		}
@@ -224,13 +223,17 @@ public partial class SendViewModel : RoutableViewModel
 		Dispatcher.UIThread.Post(() =>
 		{
 			TryParseUrl(s);
-
 			_parsingUrl = false;
 		});
 	}
 
 	private bool TryParseUrl(string text)
 	{
+		if (text.IsTrimmable())
+		{
+			return false;
+		}
+
 		bool result = false;
 
 		if (AddressStringParser.TryParse(text, _wallet.Network, out BitcoinUrlBuilder? url))
