@@ -11,7 +11,9 @@
   <c:ContentArea Title="{Binding Title}"
                  EnableNext="True" NextContent="Done"
                  EnableCancel="{Binding EnableCancel}"
-                 EnableBack="{Binding EnableBack}">
+                 EnableBack="{Binding EnableBack}"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
     <DataBox Items="{Binding Coins}"
              CanUserSortColumns="True">
       <DataBox.Columns>
