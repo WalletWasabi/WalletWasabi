@@ -360,8 +360,8 @@ footer .white-text {
 }
 .scale-svg {
     width: 100%;
-    max-width: 100px;
-    height: auto;
+    max-width: 150px;
+    height: 100px;
     margin: 0 auto;
 }
 .scale-svg img {
