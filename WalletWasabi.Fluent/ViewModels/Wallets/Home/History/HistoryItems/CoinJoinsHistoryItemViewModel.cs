@@ -27,7 +27,7 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 
 	public void Add(TransactionSummary item)
 	{
-		if (!item.IsLikelyOwnCoinjoin)
+		if (!item.IsOwnCoinjoin)
 		{
 			throw new InvalidOperationException("Not a coinjoin item!");
 		}
