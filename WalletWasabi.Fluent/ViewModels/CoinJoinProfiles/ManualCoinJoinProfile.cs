@@ -12,11 +12,11 @@ public class ManualCoinJoinProfile : CoinJoinProfileViewModelBase
 		FeeRateAverageTimeFrameHours = feeRateAverageTimeFrameHours;
 	}
 
-	public override string Title => "Economy";
+	public override string Title => "Manual";
 
-	public override string Description => "very Economy";
+	public override string Description => "very Manual";
 
-	public override IImage Icon => AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/ledger.png");
+	public override IImage Icon => AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/normal.png");
 
 	public override int MinAnonScoreTarget { get; }
 
