@@ -299,12 +299,12 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 			balance += item.Amount;
 
-			if (!item.IsLikelyCoinJoinOutput)
+			if (!item.IsOwnCoinjoin)
 			{
 				yield return new TransactionHistoryItemViewModel(i, item, _walletViewModel, balance, _updateTrigger);
 			}
 
-			if (item.IsLikelyCoinJoinOutput)
+			if (item.IsOwnCoinjoin)
 			{
 				if (coinJoinGroup is null)
 				{
@@ -317,7 +317,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 			}
 
 			if (coinJoinGroup is { } cjg &&
-				(i + 1 < txRecordList.Count && !txRecordList[i + 1].IsLikelyCoinJoinOutput || // The next item is not CJ so add the group.
+				(i + 1 < txRecordList.Count && !txRecordList[i + 1].IsOwnCoinjoin || // The next item is not CJ so add the group.
 				 i == txRecordList.Count - 1)) // There is no following item in the list so add the group.
 			{
 				cjg.SetBalance(balance);

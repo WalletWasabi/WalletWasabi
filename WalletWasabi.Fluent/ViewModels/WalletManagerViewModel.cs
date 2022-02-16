@@ -101,7 +101,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 				if (_walletDictionary.TryGetValue(wallet, out var walletViewModel) && walletViewModel is WalletViewModel wvm)
 				{
-					if (!e.IsLikelyOwnCoinJoin)
+					if (!e.IsOwnCoinJoin)
 					{
 						NotificationHelpers.Show(wallet.WalletName, e, onClick: () => wvm.NavigateAndHighlight(e.Transaction.GetHash()));
 					}

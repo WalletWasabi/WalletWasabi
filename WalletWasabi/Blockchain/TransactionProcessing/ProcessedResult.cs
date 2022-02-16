@@ -9,12 +9,12 @@ namespace WalletWasabi.Blockchain.TransactionProcessing;
 
 public class ProcessedResult
 {
-	private Lazy<bool> _isLikelyOwnCoinJoin;
+	private Lazy<bool> _isOwnCoinJoin;
 
 	public ProcessedResult(SmartTransaction transaction)
 	{
 		Transaction = Guard.NotNull(nameof(transaction), transaction);
-		_isLikelyOwnCoinJoin = new Lazy<bool>(() => Transaction.WalletInputs.Any() && Transaction.IsLikelyCoinjoin(), true);
+		_isOwnCoinJoin = new Lazy<bool>(() => Transaction.IsOwnCoinjoin(), true);
 	}
 
 	public SmartTransaction Transaction { get; }
@@ -29,7 +29,7 @@ public class ProcessedResult
 		|| NewlyConfirmedSpentCoins.Any()
 		|| ReceivedDusts.Any(); // To be fair it isn't necessarily news, the algorithm of the processor can be improved for that. Not sure it is worth it though.
 
-	public bool IsLikelyOwnCoinJoin => _isLikelyOwnCoinJoin.Value;
+	public bool IsOwnCoinJoin => _isOwnCoinJoin.Value;
 
 	/// <summary>
 	/// Gets the dust outputs we received in this transaction. We may or may not have known about
