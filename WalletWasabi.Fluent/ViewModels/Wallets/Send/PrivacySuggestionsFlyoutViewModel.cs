@@ -17,6 +17,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	[AutoNotify] private SuggestionViewModel? _previewSuggestion;
 	[AutoNotify] private SuggestionViewModel? _selectedSuggestion;
 	[AutoNotify] private bool _isOpen;
+	private CancellationTokenSource? _suggestionCancellationTokenSource;
 
 	public PrivacySuggestionsFlyoutViewModel()
 	{
@@ -36,6 +37,12 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 	public async Task BuildPrivacySuggestionsAsync(Wallet wallet, TransactionInfo info, BitcoinAddress destination, BuildTransactionResult transaction, bool isFixedAmount, CancellationToken cancellationToken)
 	{
+		_suggestionCancellationTokenSource?.Cancel();
+		_suggestionCancellationTokenSource?.Dispose();
+
+		_suggestionCancellationTokenSource = new(TimeSpan.FromSeconds(15));
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_suggestionCancellationTokenSource.Token, cancellationToken);
+
 		Suggestions.Clear();
 		SelectedSuggestion = null;
 
@@ -54,7 +61,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 			if (hasChange && !isFixedAmount && !info.IsPayJoin)
 			{
 				var suggestions =
-					ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, cancellationToken);
+					ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, linkedCts.Token);
 
 				await foreach (var suggestion in suggestions)
 				{
@@ -64,7 +71,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 		}
 		catch (OperationCanceledException)
 		{
-			Logger.LogWarning("Computing privacy suggestions timed out.");
+			Logger.LogWarning("Computing privacy suggestions was cancelled or timed out.");
 		}
 		finally
 		{

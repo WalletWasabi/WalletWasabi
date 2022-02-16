@@ -32,7 +32,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private readonly BitcoinAddress _destination;
 	private BuildTransactionResult? _transaction;
 	private CancellationTokenSource _cancellationTokenSource;
-	private CancellationTokenSource? _suggestionCancellationTokenSource;
 	[AutoNotify] private string _nextButtonText;
 	[AutoNotify] private bool _adjustFeeAvailable;
 	[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
@@ -81,7 +80,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 					_info.ChangelessCoins = ca.TransactionResult.SpentCoins;
 					UpdateTransaction(CurrentTransactionSummary, ca.TransactionResult);
 
-					await BuildSuggestionsAsync();
+					await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, ca.TransactionResult, _isFixedAmount, _cancellationTokenSource.Token);
 				}
 				else if (x is PocketSuggestionViewModel)
 				{
@@ -199,7 +198,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			UpdateTransaction(CurrentTransactionSummary, newTransaction);
 
-			await BuildSuggestionsAsync();
+			await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, newTransaction, _isFixedAmount, _cancellationTokenSource.Token);
 		}
 	}
 
@@ -414,7 +413,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			UpdateTransaction(CurrentTransactionSummary, initialTransaction);
 
-			await BuildSuggestionsAsync();
+			await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, initialTransaction, _isFixedAmount, _cancellationTokenSource.Token);
 
 			if (CurrentTransactionSummary.TransactionHasPockets && !await NavigateConfirmLabelsDialogAsync(initialTransaction))
 			{
@@ -448,9 +447,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			_cancellationTokenSource.Cancel();
 			_cancellationTokenSource.Dispose();
-
-			_suggestionCancellationTokenSource?.Dispose();
-
 			_info.ChangelessCoins = Enumerable.Empty<SmartCoin>();  // Clear ChangelessCoins on cancel, so the user can undo the optimization.
 		}
 
@@ -544,21 +540,5 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 
 		return transaction;
-	}
-
-	private async Task BuildSuggestionsAsync()
-	{
-		if (_transaction is null)
-		{
-			return;
-		}
-
-		_suggestionCancellationTokenSource?.Cancel();
-		_suggestionCancellationTokenSource?.Dispose();
-
-		_suggestionCancellationTokenSource = new(TimeSpan.FromSeconds(15));
-		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_suggestionCancellationTokenSource.Token, _cancellationTokenSource.Token);
-
-		await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, _transaction, _isFixedAmount, linkedCts.Token);
 	}
 }
