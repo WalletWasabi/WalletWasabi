@@ -40,7 +40,14 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	#region Members
 
+	/// <summary>
+	/// Coins those are on the input side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.
+	/// </summary>
 	public HashSet<SmartCoin> WalletInputs { get; }
+
+	/// <summary>
+	/// Coins those are on the output side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.
+	/// </summary>
 	public HashSet<SmartCoin> WalletOutputs { get; }
 
 	[JsonProperty]
@@ -166,8 +173,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 				return heightCompareResult;
 			}
 
-				// If mempool this should be 0, so they should be equal so no worry about it.
-				var blockIndexCompareResult = a.BlockIndex.CompareTo(b.BlockIndex);
+			// If mempool this should be 0, so they should be equal so no worry about it.
+			var blockIndexCompareResult = a.BlockIndex.CompareTo(b.BlockIndex);
 			if (blockIndexCompareResult != 0)
 			{
 				return blockIndexCompareResult;
@@ -184,6 +191,10 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		BlockHash = null;
 		BlockIndex = 0;
 	}
+
+	public bool IsOwnCoinjoin()
+	   => WalletInputs.Any() // We must be a participant in order to be this transaction our coinjoin.
+	   && Transaction.Inputs.Count != WalletInputs.Count; // Some inputs must not be ours for it to be a coinjoin.
 
 	#region LineSerialization
 

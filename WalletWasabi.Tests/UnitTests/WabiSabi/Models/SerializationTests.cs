@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using NBitcoin;
 using NBitcoin.Secp256k1;
@@ -138,7 +139,8 @@ public class SerializationTests
 		AssertSerialization(RoundState.FromRound(round));
 
 		var state = round.Assert<ConstructionState>();
-		round.CoinjoinState = new SigningState(state.Parameters, state.Inputs, state.Outputs);
+		state = state.AddInput(CreateCoin());
+		round.CoinjoinState = new SigningState(state.Parameters, state.Events);
 		AssertSerialization(RoundState.FromRound(round));
 	}
 
@@ -157,6 +159,26 @@ public class SerializationTests
 		var serializedCoin = JsonConvert.SerializeObject(coin, JsonSerializationOptions.Default.Settings);
 		var expectedJson = "{\"Outpoint\":\"0100000000000000000000000000000000000000000000000000000000000000D2040000\",\"TxOut\":{\"ScriptPubKey\":\"0 bf3593d140d512eb607b3ddb5c5ee085f1e3a210\",\"Value\":100000000}}";
 		Assert.Equal(expectedJson, serializedCoin);
+	}
+
+	[Fact]
+	public void RoundStateRequestSerialization()
+	{
+		RoundStateCheckpoint stateCheckpoint = new(uint256.One, 0);
+		RoundStateRequest request = new(ImmutableList.Create(stateCheckpoint));
+
+		AssertSerialization(request);
+	}
+
+	[Fact]
+	public void RoundStateResponseSerialization()
+	{
+		var round = WabiSabiFactory.CreateRound(new WalletWasabi.WabiSabi.Backend.WabiSabiConfig());
+		var roundState = RoundState.FromRound(round);
+		CoinJoinFeeRateAverage average = new(TimeSpan.FromHours(24), new FeeRate(120m));
+		RoundStateResponse response = new(new[] { roundState }, new[] { average });
+
+		AssertSerialization(response);
 	}
 
 	private static void AssertSerialization<T>(T message)
@@ -184,4 +206,10 @@ public class SerializationTests
 		new(
 			new[] { MAC.ComputeMAC(IssuerKey, Points.First(), Scalars.First()) },
 			new[] { new Proof(new GroupElementVector(Points.Take(2)), new ScalarVector(Scalars.Take(2))) });
+
+	private static Coin CreateCoin()
+	{
+		using var key = new Key();
+		return WabiSabiFactory.CreateCoin(key);
+	}
 }

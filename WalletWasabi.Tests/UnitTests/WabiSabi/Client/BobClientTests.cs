@@ -11,6 +11,7 @@ using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Backend.Statistics;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Wallets;
@@ -35,7 +36,9 @@ public class BobClientTests
 
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
-		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena);
+
+		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
+		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore);
 
 		using var insecureRandom = new InsecureRandom();
 		var roundState = RoundState.FromRound(round);
@@ -52,8 +55,8 @@ public class BobClientTests
 		using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), wabiSabiApi);
 		await roundStateUpdater.StartAsync(CancellationToken.None);
 
-			var keyChain = new KeyChain(km);
-			var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), aliceArenaClient, coin1, keyChain, roundStateUpdater, CancellationToken.None);
+		var keyChain = new KeyChain(km, new Kitchen(""));
+		var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), aliceArenaClient, coin1, keyChain, roundStateUpdater, CancellationToken.None);
 
 		do
 		{

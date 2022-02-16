@@ -1,6 +1,5 @@
 using NBitcoin;
 using Nito.AsyncEx;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,7 +56,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			}
 
 			// Compute but don't commit updated coinjoin to round state, it will
-			// be re-calculated on input confirmation. This is computed it here
+			// be re-calculated on input confirmation. This is computed in here
 			// for validation purposes.
 			_ = round.Assert<ConstructionState>().AddInput(coin);
 
@@ -358,11 +357,17 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		return new Coin(input, txOutResponse.TxOut);
 	}
 
-	public async Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken)
+	public async Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
 	{
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			return Rounds.Select(x => RoundState.FromRound(x)).ToArray();
+			var roundStates = Rounds.Select(x =>
+			{
+				var checkPoint = request.RoundCheckpoints.FirstOrDefault(y => y.RoundId == x.Id);
+				return RoundState.FromRound(x, checkPoint == default ? 0 : checkPoint.StateId);
+			}).ToArray();
+
+			return new RoundStateResponse(roundStates, Array.Empty<CoinJoinFeeRateAverage>());
 		}
 	}
 
