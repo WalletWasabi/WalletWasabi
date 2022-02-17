@@ -165,10 +165,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		Console.WriteLine($@"Event: {transition.Trigger} triggered: State changed from: {transition.Source} to: {transition.Destination}");
 	}
 
-	public State CurrentState => _machine.State;
-
-	public bool IsInState(State state) => _machine.IsInState(state);
-
 	private void OnTimerTick()
 	{
 		if (_coinJoinManager.WhenWalletCanStartAutoCoinJoin(_wallet) < DateTimeOffset.Now)
