@@ -65,11 +65,10 @@ public static class ChangelessTransactionCoinSelector
 	/// Select coins in a way that user can pay without a change output (to increase privacy)
 	/// and try to find a solution that requires to pay as little extra amount as possible.
 	/// </summary>
-	/// <param name="availableCoins">Coins owned by the user.</param>
-	/// <param name="feeRate">Current fee rate to take into account effective values of available coins.</param>
-	/// <param name="txOut">Amount the user wants to pay + the type of the output address</param>
+	/// <param name="strategy">The strategy determines what the algorithm is looking for.</param>
+	/// <param name="target">Target value we want to, ideally, sum up from the input values. </param>
+	/// <param name="inputEffectiveValues">Dictionary to map back the effective values to their original SmartCoin. </param>
 	/// <returns><c>true</c> if a solution was found, <c>false</c> otherwise.</returns>
-	/// <remarks>The implementation gives only the guarantee that user can pay at most 25% more than <paramref name="txOut.Value"/>.</remarks>
 	private static bool TryGetCoins(SelectionStrategy strategy, long target, Dictionary<SmartCoin, long> inputEffectiveValues, [NotNullWhen(true)] out IEnumerable<SmartCoin>? selectedCoins, CancellationToken cancellationToken = default)
 	{
 		selectedCoins = null;
