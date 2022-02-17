@@ -163,7 +163,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 		if (Services.WalletManager.WalletExists(device.Fingerprint))
 		{
 			ExistingWallet = Wallets.FirstOrDefault(x => x.Wallet.KeyManager.MasterFingerprint == device.Fingerprint);
-			Message = "The connected hardware wallet is already added to the software, click below to open it or click Continue to search again.";
+			Message = "The connected hardware wallet is already added to the software, click below to open it or click Rescan to search again.";
 			ExistingWalletFound = true;
 			return;
 		}
