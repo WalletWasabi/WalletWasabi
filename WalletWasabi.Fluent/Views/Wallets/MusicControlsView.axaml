@@ -63,7 +63,7 @@
 
         <Separator Classes="vertical" />
 
-        <ProgressBar Minimum="0" Maximum="100" Value="89" Foreground="White" />
+        <ProgressBar Minimum="0" Maximum="100" Value="{Binding ProgressValue}" Foreground="White" />
 
         <Separator Classes="vertical" />
 
