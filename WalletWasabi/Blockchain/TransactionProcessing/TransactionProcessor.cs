@@ -292,7 +292,7 @@ public class TransactionProcessor
 		Coins.SwitchToUnconfirmFromBlock(blockHeight);
 	}
 
-	internal void UpdateRelevantTxs(SmartTransaction tx)
+	public void UpdateRelevantTransactions(SmartTransaction tx)
 	{
 		var transactions = TransactionStore.GetTransactions().ToList();
 

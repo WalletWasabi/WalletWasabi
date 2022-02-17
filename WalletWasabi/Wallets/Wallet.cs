@@ -285,7 +285,7 @@ public class Wallet : BackgroundService
 		{
 			if (!_isInitializingTxs)
 			{
-				TransactionProcessor.UpdateRelevantTxs(e.Transaction);
+				TransactionProcessor.UpdateRelevantTransactions(e.Transaction);
 			}
 			WalletRelevantTransactionProcessed?.Invoke(this, e);
 		}
