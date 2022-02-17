@@ -51,7 +51,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	[AutoNotify] private bool _stopVisible;
 	[AutoNotify] private MusicStatusMessageViewModel? _currentStatus;
 
-	private readonly AutoUpdateMusicStatusMessageViewModel _countDownMessage;
 	private readonly MusicStatusMessageViewModel _coinJoiningMessage = new() { Message = "Coinjoin in progress" };
 	private readonly MusicStatusMessageViewModel _plebStopMessage = new() { Message = "Auto Coinjoin paused, due to PlebStop" };
 	private readonly MusicStatusMessageViewModel _pauseMessage = new() { Message = "Auto Coinjoin is paused" };
@@ -63,7 +62,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		_coinJoinManager = Services.HostedServices.Get<CoinJoinManager>();
 
-		_countDownMessage = new(() =>
+		AutoUpdateMusicStatusMessageViewModel countDownMessage = new(() =>
 			$"CoinJoin will auto-start in: {DateTime.Now - _coinJoinManager.WhenWalletCanStartAutoCoinJoin(_wallet):mm\\:ss}");
 
 		_machine = new StateMachine<State, Trigger>(walletVm.Settings.AutoCoinJoin
@@ -83,6 +82,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.SubstateOf(State.ManualCoinJoin)
 			.OnEntry(()=>
 			{
+				StopVisible = false;
+				PlayVisible = true;
 				_wallet.AllowManualCoinJoin = false;
 				CurrentStatus = _stoppedMessage;
 			})
@@ -131,8 +132,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.OnEntry(() =>
 			{
 				IsAutoWaiting = true;
-				_countDownMessage.Update();
-				CurrentStatus = _countDownMessage;
+				countDownMessage.Update();
+				CurrentStatus = countDownMessage;
 			})
 			.OnExit(() => IsAutoWaiting = false);
 
