@@ -9,11 +9,10 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletSettingsView">
   <c:ContentArea Title="{Binding Title}"
-                 Caption="Manage your wallet's settings"
                  EnableNext="True" NextContent="Done"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}">
-    <StackPanel Spacing="20">
+    <StackPanel Spacing="20" Margin="0 30">
       <StackPanel Classes="settingsLayout">
         <DockPanel IsVisible="{Binding IsHardwareWallet}">
           <TextBlock Text="PSBT workflow" />
@@ -24,6 +23,8 @@
           <TextBlock Text="Auto CoinJoin" />
           <ToggleSwitch IsChecked="{Binding AutoCoinJoin}" />
         </DockPanel>
+
+        <Separator />
 
         <StackPanel Spacing="10">
           <TextBlock Text="Minimum Anonymity Score Target" />

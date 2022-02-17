@@ -1,10 +1,13 @@
 using NBitcoin;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
+using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client;
@@ -26,8 +29,24 @@ public class RoundStateUpdater : PeriodicRunner
 
 	protected override async Task ActionAsync(CancellationToken cancellationToken)
 	{
-		var statusResponse = await ArenaRequestHandler.GetStatusAsync(cancellationToken).ConfigureAwait(false);
-		RoundStates = statusResponse.ToDictionary(round => round.Id);
+		var request = new RoundStateRequest(
+			RoundStates.Select(x => new RoundStateCheckpoint(x.Key, x.Value.CoinjoinState.Events.Count)).ToImmutableList());
+
+		var response = await ArenaRequestHandler.GetStatusAsync(request, cancellationToken).ConfigureAwait(false);
+		RoundState[] statusResponse = response.RoundStates;
+
+		var updatedRoundStates = statusResponse
+			.Where(rs => RoundStates.ContainsKey(rs.Id))
+			.Select(rs => (NewRoundState: rs, CurrentRoundState: RoundStates[rs.Id]))
+			.Select(x => x.NewRoundState with
+			{
+				CoinjoinState = x.NewRoundState.CoinjoinState.AddPreviousStates(x.CurrentRoundState.CoinjoinState)
+			}).ToList();
+
+		var newRoundStates = statusResponse
+			.Where(rs => !RoundStates.ContainsKey(rs.Id));
+
+		RoundStates = newRoundStates.Concat(updatedRoundStates).ToDictionary(x => x.Id, x => x);
 
 		lock (AwaitersLock)
 		{
@@ -40,13 +59,13 @@ public class RoundStateUpdater : PeriodicRunner
 		}
 	}
 
-	public Task<RoundState> CreateRoundAwaiter(uint256? roundId, Predicate<RoundState> predicate, CancellationToken cancellationToken)
+	private Task<RoundState> CreateRoundAwaiter(uint256? roundId, Phase? phase, Predicate<RoundState>? predicate, CancellationToken cancellationToken)
 	{
 		RoundStateAwaiter? roundStateAwaiter = null;
 
 		lock (AwaitersLock)
 		{
-			roundStateAwaiter = new RoundStateAwaiter(predicate, roundId, cancellationToken);
+			roundStateAwaiter = new RoundStateAwaiter(predicate, roundId, phase, cancellationToken);
 			Awaiters.Add(roundStateAwaiter);
 		}
 
@@ -63,7 +82,17 @@ public class RoundStateUpdater : PeriodicRunner
 
 	public Task<RoundState> CreateRoundAwaiter(Predicate<RoundState> predicate, CancellationToken cancellationToken)
 	{
-		return CreateRoundAwaiter(null, predicate, cancellationToken);
+		return CreateRoundAwaiter(null, null, predicate, cancellationToken);
+	}
+
+	public Task<RoundState> CreateRoundAwaiter(uint256 roundId, Phase phase, CancellationToken cancellationToken)
+	{
+		return CreateRoundAwaiter(roundId, phase, null, cancellationToken);
+	}
+
+	public Task<RoundState> CreateRoundAwaiter(Phase phase, CancellationToken cancellationToken)
+	{
+		return CreateRoundAwaiter(null, phase, null, cancellationToken);
 	}
 
 	public override Task StopAsync(CancellationToken cancellationToken)
