@@ -179,9 +179,10 @@ public partial class Arena : PeriodicRunner
 					round.LogInfo($"{coinjoin.Inputs.Count()} inputs were added.");
 					round.LogInfo($"{coinjoin.Outputs.Count()} outputs were added.");
 
-					coinjoin = AddCoordinationFee(round, coinjoin);
+					Script coordinatorScriptPubKey = GetCoordinatorScriptPreventReuse(round);
+					coinjoin = AddCoordinationFee(round, coinjoin, coordinatorScriptPubKey);
 
-					coinjoin = AddBlameScript(round, coinjoin, allReady);
+					coinjoin = AddBlameScript(round, coinjoin, allReady, coordinatorScriptPubKey);
 
 					round.CoinjoinState = coinjoin.Finalize();
 
@@ -354,7 +355,7 @@ public partial class Arena : PeriodicRunner
 		}
 	}
 
-	private ConstructionState AddBlameScript(Round round, ConstructionState coinjoin, bool allReady)
+	private ConstructionState AddBlameScript(Round round, ConstructionState coinjoin, bool allReady, Script coordinatorScriptPubKey)
 	{
 		long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate));
 		long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
@@ -365,15 +366,15 @@ public partial class Arena : PeriodicRunner
 		var diffMoney = Money.Satoshis(diff) - coinjoin.Parameters.FeeRate.GetFee(Config.BlameScript.EstimateOutputVsize());
 		if (diffMoney > coinjoin.Parameters.AllowedOutputAmounts.Min)
 		{
-			coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, Config.BlameScript));
-
 			if (allReady)
 			{
-				round.LogInfo($"Filled up the outputs to build a reasonable transaction, all Alices signalled ready. Added amount: '{diffMoney}'.");
+				coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, coordinatorScriptPubKey));
+				round.LogInfo($"Filled up the outputs with coordinator script to build a reasonable transaction, all Alices signalled ready. Added amount: '{diffMoney}'.");
 			}
 			else
 			{
-				round.LogWarning($"Filled up the outputs to build a reasonable transaction because some alice failed to provide its output. Added amount: '{diffMoney}'.");
+				coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, Config.BlameScript));
+				round.LogWarning($"Filled up the outputs with blame script to build a reasonable transaction because some alice failed to provide its output. Added amount: '{diffMoney}'.");
 			}
 		}
 		else if (!allReady)
@@ -384,10 +385,8 @@ public partial class Arena : PeriodicRunner
 		return coinjoin;
 	}
 
-	private ConstructionState AddCoordinationFee(Round round, ConstructionState coinjoin)
+	private ConstructionState AddCoordinationFee(Round round, ConstructionState coinjoin, Script coordinatorScriptPubKey)
 	{
-		Script coordinatorScriptPubKey = GetCoordinatorScriptPreventReuse(round);
-
 		var coordinationFee = round.Alices.Where(a => !a.IsPayingZeroCoordinationFee).Sum(x => round.CoordinationFeeRate.GetFee(x.Coin.Amount));
 		if (coordinationFee == 0)
 		{
