@@ -25,6 +25,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 	[AutoNotify] private bool _isSearching;
 	[AutoNotify] private bool _existingWalletFound;
 	[AutoNotify] private bool _confirmationRequired;
+	[AutoNotify] private string _nextLabel;
 
 	public ConnectHardwareWalletViewModel(string walletName)
 	{
@@ -46,6 +47,10 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 		this.WhenAnyValue(x => x.Message)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(message => ConfirmationRequired = !string.IsNullOrEmpty(message));
+
+		this.WhenAnyValue(x => x.DetectedDevice)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(x => NextLabel = x is { } ? "Continue" : "Rescan");
 	}
 
 	private HwiEnumerateEntry? DetectedDevice { get; set; }
