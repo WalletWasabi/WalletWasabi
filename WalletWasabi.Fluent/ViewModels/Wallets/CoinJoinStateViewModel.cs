@@ -209,9 +209,22 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private void OnTimerTick()
 	{
-		if (_coinJoinManager.WhenWalletCanStartAutoCoinJoin(_wallet) < DateTimeOffset.Now)
+		if (_machine.State == State.AutoStarting)
 		{
-			_machine.Fire(Trigger.AutoPlayTimeout);
+			var whenCanAutoStart = _coinJoinManager.WhenWalletCanStartAutoCoinJoin(_wallet);
+
+			if (whenCanAutoStart < DateTimeOffset.Now)
+			{
+				_machine.Fire(Trigger.AutoPlayTimeout);
+			}
+			else
+			{
+				var end = whenCanAutoStart;
+				var total = (end - _countDownStartTime).TotalSeconds;
+
+				var percentage = (DateTime.Now - _countDownStartTime).TotalSeconds * 100 / total;
+				ProgressValue = percentage;
+			}
 		}
 	}
 
