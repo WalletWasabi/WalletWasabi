@@ -5,8 +5,6 @@ using Stateless;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
-#nullable enable
-
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public partial class CoinJoinStateViewModel : ViewModelBase
