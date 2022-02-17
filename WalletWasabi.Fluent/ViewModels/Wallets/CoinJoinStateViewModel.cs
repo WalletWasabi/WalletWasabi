@@ -48,6 +48,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	[AutoNotify] private bool _isAutoWaiting;
 	[AutoNotify] private bool _isAuto;
+	[AutoNotify] private bool _playVisible = true;
+	[AutoNotify] private bool _pauseVisible;
+	[AutoNotify] private bool _stopVisible;
 	[AutoNotify] private MusicStatusMessageViewModel? _currentStatus;
 
 	private readonly AutoUpdateMusicStatusMessageViewModel _countDownMessage;
