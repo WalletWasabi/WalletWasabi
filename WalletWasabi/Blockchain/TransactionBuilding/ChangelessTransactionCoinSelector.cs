@@ -69,7 +69,7 @@ public static class ChangelessTransactionCoinSelector
 	/// <param name="target">Target value we want to, ideally, sum up from the input values. </param>
 	/// <param name="inputEffectiveValues">Dictionary to map back the effective values to their original SmartCoin. </param>
 	/// <returns><c>true</c> if a solution was found, <c>false</c> otherwise.</returns>
-	private static bool TryGetCoins(SelectionStrategy strategy, long target, Dictionary<SmartCoin, long> inputEffectiveValues, [NotNullWhen(true)] out IEnumerable<SmartCoin>? selectedCoins, CancellationToken cancellationToken = default)
+	internal static bool TryGetCoins(SelectionStrategy strategy, long target, Dictionary<SmartCoin, long> inputEffectiveValues, [NotNullWhen(true)] out IEnumerable<SmartCoin>? selectedCoins, CancellationToken cancellationToken = default)
 	{
 		selectedCoins = null;
 
