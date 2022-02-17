@@ -3,9 +3,9 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.AddWallet;
 
-public class SelectWalletCreationOptionView : UserControl
+public class WalletNamePageView : UserControl
 {
-	public SelectWalletCreationOptionView()
+	public WalletNamePageView()
 	{
 		InitializeComponent();
 	}
