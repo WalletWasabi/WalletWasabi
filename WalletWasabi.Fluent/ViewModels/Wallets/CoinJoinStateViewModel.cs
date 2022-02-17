@@ -1,8 +1,10 @@
-﻿using System.Windows.Input;
+﻿using System.Threading;
+using System.Windows.Input;
 using Avalonia.Threading;
 using ReactiveUI;
 using Stateless;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
@@ -58,6 +60,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private readonly MusicStatusMessageViewModel _pauseMessage = new() { Message = "Auto Coinjoin is paused" };
 	private readonly MusicStatusMessageViewModel _stoppedMessage = new() { Message = "Coinjoin is stopped" };
 	private readonly DateTime _countDownStartTime;
+	private DateTime _playStartTime;
 
 	public CoinJoinStateViewModel(WalletViewModel walletVm)
 	{
@@ -86,6 +89,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.SubstateOf(State.ManualCoinJoin)
 			.OnEntry(()=>
 			{
+				ProgressValue = 0;
 				StopVisible = false;
 				PlayVisible = true;
 				_wallet.AllowManualCoinJoin = false;
@@ -100,6 +104,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.RoundComplete, State.ManualLoading)
 			.OnEntry(() =>
 			{
+				_playStartTime = DateTime.Now;
 				PlayVisible = false;
 				StopVisible = true;
 				_wallet.AllowManualCoinJoin = true;
@@ -155,6 +160,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.RoundComplete, State.AutoLoading)
 			.OnEntry(()=>
 			{
+				_playStartTime = DateTime.Now;
 				IsAutoWaiting = false;
 				PauseVisible = true;
 				PlayVisible = false;
@@ -188,9 +194,21 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		walletVm.Settings.WhenAnyValue(x => x.AutoCoinJoin)
 			.Subscribe(SetAutoCoinJoin);
 
-		//_coinJoinManager.WalletStatusChanged += CoinJoinManagerOnWalletStatusChanged;
+		_coinJoinManager.RoundStatusUpdater.CreateRoundAwaiter(OnRoundStatusUpdated, CancellationToken.None);
+	}
 
-		//_coinJoinManager.RoundStatusUpdater.CreateRoundAwaiter(OnRoundStatusUpdated, CancellationToken.None);
+	private bool OnRoundStatusUpdated(RoundState roundState)
+	{
+		if (_machine.State == State.AutoPlaying || _machine.State == State.ManualPlaying)
+		{
+			var timeout = roundState.ConnectionConfirmationTimeout;
+			var total = timeout.TotalSeconds;
+
+			var percentage = (DateTime.Now - _playStartTime).TotalSeconds * 100 / total;
+			ProgressValue = percentage;
+		}
+
+		return true;
 	}
 
 	private void OnEnterManualCoinJoin()
