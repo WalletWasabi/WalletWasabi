@@ -49,49 +49,9 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 	public static async IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> GenerateSuggestionsAsync(
 		TransactionInfo transactionInfo, BitcoinAddress destination, Wallet wallet, [EnumeratorCancellation] CancellationToken cancellationToken)
 	{
-		Task<ChangeAvoidanceSuggestionViewModel?> moreSuggestionTask = Task.Run(() =>
-		{
-			if (ChangelessTransactionCoinSelector.TryGetCoins(SuggestionType.More, transactionInfo.Coins, transactionInfo.FeeRate, new TxOut(transactionInfo.Amount, destination), out IEnumerable<SmartCoin>? selection, cancellationToken))
-			{
-				BuildTransactionResult transaction = TransactionHelpers.BuildChangelessTransaction(
-					wallet,
-					destination,
-					transactionInfo.UserLabels,
-					transactionInfo.FeeRate,
-					selection,
-					tryToSign: false);
+		Task<ChangeAvoidanceSuggestionViewModel?> moreSuggestionTask = Task.Run(() => GetSuggestion(SuggestionType.More, transactionInfo, destination, wallet, cancellationToken));
 
-				return new ChangeAvoidanceSuggestionViewModel(
-					transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
-					transaction,
-					wallet.Synchronizer.UsdExchangeRate,
-					isOriginal: false);
-			}
-
-			return null;
-		});
-
-		Task<ChangeAvoidanceSuggestionViewModel?> lesserSuggestionTask = Task.Run(() =>
-		{
-			if (ChangelessTransactionCoinSelector.TryGetCoins(SuggestionType.Less, transactionInfo.Coins, transactionInfo.FeeRate, new TxOut(transactionInfo.Amount, destination), out IEnumerable<SmartCoin>? selection, cancellationToken))
-			{
-				BuildTransactionResult transaction = TransactionHelpers.BuildChangelessTransaction(
-					wallet,
-					destination,
-					transactionInfo.UserLabels,
-					transactionInfo.FeeRate,
-					selection,
-					tryToSign: false);
-
-				return new ChangeAvoidanceSuggestionViewModel(
-					transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
-					transaction,
-					wallet.Synchronizer.UsdExchangeRate,
-					isOriginal: false);
-			}
-
-			return null;
-		});
+		Task<ChangeAvoidanceSuggestionViewModel?> lesserSuggestionTask = Task.Run(() => GetSuggestion(SuggestionType.Less, transactionInfo, destination, wallet, cancellationToken));
 
 		ChangeAvoidanceSuggestionViewModel? moreSuggestion = await moreSuggestionTask;
 
@@ -106,5 +66,27 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		{
 			yield return lesserSuggestion;
 		}
+	}
+
+	private static ChangeAvoidanceSuggestionViewModel? GetSuggestion(SuggestionType suggestionType, TransactionInfo transactionInfo, BitcoinAddress destination, Wallet wallet, CancellationToken cancellationToken)
+	{
+		if (ChangelessTransactionCoinSelector.TryGetCoins(suggestionType, transactionInfo.Coins, transactionInfo.FeeRate, new TxOut(transactionInfo.Amount, destination), out IEnumerable<SmartCoin>? selection, cancellationToken))
+		{
+			BuildTransactionResult transaction = TransactionHelpers.BuildChangelessTransaction(
+				wallet,
+				destination,
+				transactionInfo.UserLabels,
+				transactionInfo.FeeRate,
+				selection,
+				tryToSign: false);
+
+			return new ChangeAvoidanceSuggestionViewModel(
+				transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
+				transaction,
+				wallet.Synchronizer.UsdExchangeRate,
+				isOriginal: false);
+		}
+
+		return null;
 	}
 }
