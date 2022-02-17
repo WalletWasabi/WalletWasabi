@@ -67,14 +67,21 @@
 
         <Separator Classes="vertical" />
 
-        <Button Classes="plain" Command="{Binding PlayCommand}">
+        <Button Classes="plain"
+                IsVisible="{Binding PlayVisible}"
+                Command="{Binding PlayCommand}">
           <PathIcon Data="{StaticResource play_regular}" />
         </Button>
 
-        <Button Classes="plain" Command="{Binding PauseCommand}">
+        <Button Classes="plain"
+                IsVisible="{Binding PauseVisible}"
+                Command="{Binding PauseCommand}">
           <PathIcon Data="{StaticResource pause_regular}" />
         </Button>
-        <Button Classes="plain" Command="{Binding StopCommand}">
+
+        <Button Classes="plain"
+                IsVisible="{Binding StopVisible}"
+                Command="{Binding StopCommand}">
           <PathIcon Data="{StaticResource stop_regular}" />
         </Button>
 
