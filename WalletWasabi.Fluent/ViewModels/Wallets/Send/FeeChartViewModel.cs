@@ -43,8 +43,8 @@ public partial class FeeChartViewModel : ViewModelBase
 		this.WhenAnyValue(x => x.SliderValue)
 			.Subscribe(SetXAxisCurrentValue);
 
-		MoveSliderRightCommand = ReactiveCommand.Create(() => SliderValue -= 10);
-		MoveSliderLeftCommand  = ReactiveCommand.Create(() => SliderValue += 10);
+		MoveSliderRightCommand = ReactiveCommand.Create(() => SliderValue = Math.Max(SliderMinimum, SliderValue - 10));
+		MoveSliderLeftCommand  = ReactiveCommand.Create(() => SliderValue = Math.Min(SliderMaximum, SliderValue + 10));
 	}
 
 	public ICommand MoveSliderRightCommand { get; }
