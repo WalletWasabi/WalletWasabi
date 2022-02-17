@@ -146,7 +146,11 @@ public partial class WalletViewModel : WalletViewModelBase
 		WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(Settings));
 
 		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this, balanceChanged)));
+
+		CoinJoinStateViewModel = new CoinJoinStateViewModel(this);
 	}
+
+	internal CoinJoinStateViewModel CoinJoinStateViewModel { get; }
 
 	public WalletSettingsViewModel Settings { get; }
 
@@ -230,7 +234,7 @@ public partial class WalletViewModel : WalletViewModelBase
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		disposables.Add(MainViewModel.Instance.MusicControls.SetWallet(Wallet));
+		disposables.Add(MainViewModel.Instance.MusicControls.SetWallet(this));
 
 		foreach (var tile in _tiles)
 		{

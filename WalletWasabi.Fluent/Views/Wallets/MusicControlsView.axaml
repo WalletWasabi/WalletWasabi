@@ -37,11 +37,29 @@
           CornerRadius="4 4 0 0" BorderThickness="1 1 1 0"
           Background="#19FFFFFF"
           BorderBrush="#3CFFFFFF">
-    <Panel >
+    <Panel DataContext="{Binding CurrentWallet.CoinJoinStateViewModel}">
       <controls:BlurBehind BlurRadius="20,20"/>
       <StackPanel Margin="20 10" Orientation="Horizontal" Spacing="20">
 
-        <TransitioningContentControl Width="350" Content="{Binding CurrentStatus}" />
+        <TransitioningContentControl MinWidth="350" MaxWidth="350" Content="{Binding CurrentStatus}">
+          <TransitioningContentControl.PageTransition>
+            <CrossFade Duration="0:0:0.125" FadeInEasing="0.4,0,0.6,1" FadeOutEasing="0.4,0,0.6,1" />
+          </TransitioningContentControl.PageTransition>
+          <TransitioningContentControl.DataTemplates>
+            <DataTemplate DataType="wallets:MusicStatusMessageViewModel">
+              <TextBlock Text="{Binding Message}">
+                <TextBlock.OpacityMask>
+                  <LinearGradientBrush StartPoint="100%,0%" EndPoint="80%,0%">
+                    <LinearGradientBrush.GradientStops>
+                      <GradientStop Color="#00FFFFFF" Offset="0.1" />
+                      <GradientStop Color="#FFFFFFFF" Offset="1" />
+                    </LinearGradientBrush.GradientStops>
+                  </LinearGradientBrush>
+                </TextBlock.OpacityMask>
+              </TextBlock>
+            </DataTemplate>
+          </TransitioningContentControl.DataTemplates>
+        </TransitioningContentControl>
 
         <Separator Classes="vertical" />
 
@@ -49,18 +67,33 @@
 
         <Separator Classes="vertical" />
 
-        <StackPanel VerticalAlignment="Center">
-          <Button Classes="plain" Command="{Binding PlayCommand}">
-            <PathIcon Data="{StaticResource play_regular}" />
-          </Button>
-          <TextBlock Text="{Binding CountDown}" FontSize="8" />
-        </StackPanel>
+        <Button Classes="plain" Command="{Binding PlayCommand}">
+          <PathIcon Data="{StaticResource play_regular}" />
+        </Button>
+
         <Button Classes="plain" Command="{Binding PauseCommand}">
           <PathIcon Data="{StaticResource pause_regular}" />
         </Button>
         <Button Classes="plain" Command="{Binding StopCommand}">
           <PathIcon Data="{StaticResource stop_regular}" />
         </Button>
+
+        <Ellipse Height="12" Width="12"
+                 Classes.disabled="{Binding !IsAuto}"
+                 Classes.waiting="{Binding IsAutoWaiting}">
+          <Ellipse.Styles>
+            <Style Selector="Ellipse">
+              <Setter Property="Fill" Value="{DynamicResource SystemAccentColor}" />
+            </Style>
+            <Style Selector="Ellipse.waiting">
+              <Setter Property="Fill" Value="Orange" />
+            </Style>
+            <Style Selector="Ellipse.disabled">
+              <Setter Property="Fill" Value="#7F000000" />
+            </Style>
+          </Ellipse.Styles>
+        </Ellipse>
+
       </StackPanel>
     </Panel>
   </Border>
