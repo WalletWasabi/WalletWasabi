@@ -38,6 +38,11 @@
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/StatusItem.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/PrivacyContentControl.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/SuggestionItem.axaml" />
+
+    <Style Selector="ToolTip > TextBlock">
+      <Setter Property="ClipToBounds" Value="False"/>
+    </Style>
+
   </Application.Styles>
   <NativeMenu.Menu>
     <NativeMenu>
