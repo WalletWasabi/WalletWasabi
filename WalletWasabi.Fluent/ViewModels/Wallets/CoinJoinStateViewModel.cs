@@ -50,15 +50,19 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	[AutoNotify] private bool _pauseVisible;
 	[AutoNotify] private bool _stopVisible;
 	[AutoNotify] private MusicStatusMessageViewModel? _currentStatus;
+	[AutoNotify] private bool _isProgressReversed;
+	[AutoNotify] private double _progressValue;
 
 	private readonly MusicStatusMessageViewModel _coinJoiningMessage = new() { Message = "Coinjoin in progress" };
 	private readonly MusicStatusMessageViewModel _plebStopMessage = new() { Message = "Auto Coinjoin paused, due to PlebStop" };
 	private readonly MusicStatusMessageViewModel _pauseMessage = new() { Message = "Auto Coinjoin is paused" };
 	private readonly MusicStatusMessageViewModel _stoppedMessage = new() { Message = "Coinjoin is stopped" };
+	private readonly DateTime _countDownStartTime;
 
 	public CoinJoinStateViewModel(WalletViewModel walletVm)
 	{
 		_wallet = walletVm.Wallet;
+		_countDownStartTime = DateTime.Now;
 
 		_coinJoinManager = Services.HostedServices.Get<CoinJoinManager>();
 
