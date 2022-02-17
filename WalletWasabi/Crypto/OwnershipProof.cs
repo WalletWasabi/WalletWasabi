@@ -37,8 +37,8 @@ public record OwnershipProof : IBitcoinSerializable
 	public static OwnershipProof Generate(Key key, IEnumerable<OwnershipIdentifier> ownershipIdentifiers, byte[] commitmentData, bool userConfirmation, ScriptPubKeyType scriptPubKeyType) =>
 		scriptPubKeyType switch
 		{
-			ScriptPubKeyType.Segwit => GenerateOwnershipProof(key, commitmentData, new ProofBody(userConfirmation ? ProofBodyFlags.UserConfirmation : 0, ownershipIdentifiers.ToArray()), scriptPubKeyType),
-			_ => throw new NotImplementedException("Only P2WPKH script is supported."),
+			ScriptPubKeyType.Segwit or ScriptPubKeyType.TaprootBIP86 => GenerateOwnershipProof(key, commitmentData, new ProofBody(userConfirmation ? ProofBodyFlags.UserConfirmation : 0, ownershipIdentifiers.ToArray()), scriptPubKeyType),
+			_ => throw new NotImplementedException("Only P2WPKH and P2TR scripts are supported."),
 		};
 
 	private static OwnershipProof GenerateOwnershipProof(Key key, byte[] commitmentData, ProofBody proofBody, ScriptPubKeyType scriptPubKeyType) =>
@@ -49,8 +49,8 @@ public record OwnershipProof : IBitcoinSerializable
 	public bool VerifyOwnership(Script scriptPubKey, byte[] commitmentData, bool requireUserConfirmation) =>
 		scriptPubKey.GetScriptType() switch
 		{
-			ScriptType.P2WPKH => VerifyOwnershipProof(scriptPubKey, commitmentData, requireUserConfirmation),
-			_ => throw new NotImplementedException("Only P2WPKH script is supported."),
+			ScriptType.P2WPKH or ScriptType.Taproot => VerifyOwnershipProof(scriptPubKey, commitmentData, requireUserConfirmation),
+			_ => throw new NotImplementedException("Only P2WPKH and P2TR scripts are supported."),
 		};
 
 	private bool VerifyOwnershipProof(Script scriptPubKey, byte[] commitmentData, bool requireUserConfirmation)
