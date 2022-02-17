@@ -150,10 +150,6 @@ public static class NBitcoinExtensions
 		return anonsets;
 	}
 
-	public static bool IsLikelyCoinjoin(this Transaction me)
-		=> me.Inputs.Count > 1 // The tx must have more than one input in order to be a coinjoin.
-		&& me.HasIndistinguishableOutputs(); // The tx must have more than one equal output in order to be a coinjoin.
-
 	/// <summary>
 	/// Careful, if it's in a legacy block then this won't work.
 	/// </summary>

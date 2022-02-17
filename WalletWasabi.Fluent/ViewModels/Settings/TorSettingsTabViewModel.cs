@@ -4,21 +4,21 @@ using ReactiveUI;
 namespace WalletWasabi.Fluent.ViewModels.Settings;
 
 [NavigationMetaData(
-	Title = "Network",
-	Caption = "Manage network settings",
+	Title = "Tor",
+	Caption = "Manage Tor settings",
 	Order = 2,
 	Category = "Settings",
 	Keywords = new[]
 	{
-			"Settings", "Network", "Encryption", "Tor", "Terminate", "Wasabi", "Shutdown", "SOCKS5", "Endpoint"
+			"Settings", "Network", "Anonymization", "Tor", "Terminate", "Wasabi", "Shutdown", "SOCKS5", "Endpoint"
 	},
 	IconName = "settings_network_regular")]
-public partial class NetworkSettingsTabViewModel : SettingsTabViewModelBase
+public partial class TorSettingsTabViewModel : SettingsTabViewModelBase
 {
 	[AutoNotify] private bool _useTor;
 	[AutoNotify] private bool _terminateTorOnExit;
 
-	public NetworkSettingsTabViewModel()
+	public TorSettingsTabViewModel()
 	{
 		_useTor = Services.Config.UseTor;
 		_terminateTorOnExit = Services.Config.TerminateTorOnExit;

@@ -26,7 +26,8 @@ public class JsonSerializationOptions
 				new MultipartyTransactionStateJsonConverter(),
 				new ExtPubKeyJsonConverter(),
 				new TimeSpanJsonConverter(),
-				new CoinJsonConverter()
+				new CoinJsonConverter(),
+				new CoinJoinEventJsonConverter(),
 			}
 	};
 	public static readonly JsonSerializationOptions Default = new();
