@@ -21,7 +21,7 @@ public class DragWindowBehavior : AttachedToVisualTreeBehavior<Control>
 		}
 
 		Observable.FromEventPattern<PointerPressedEventArgs>(AssociatedObject, nameof(Control.PointerPressed))
-					.Where(e => e.EventArgs.InputModifiers == InputModifiers.LeftMouseButton)
+					.Where(e => e.EventArgs.GetCurrentPoint(AssociatedObject).Properties.IsLeftButtonPressed)
 				    .Subscribe(e => window.BeginMoveDrag(e.EventArgs))
 					.DisposeWith(disposable);
 	}
