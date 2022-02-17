@@ -91,16 +91,18 @@
           <Ellipse.Styles>
             <Style Selector="Ellipse">
               <Setter Property="Fill" Value="{DynamicResource SystemAccentColor}" />
+              <Setter Property="ToolTip.Tip" Value="Automatic Coinjoin Enabled" />
             </Style>
             <Style Selector="Ellipse.waiting">
               <Setter Property="Fill" Value="Orange" />
+              <Setter Property="ToolTip.Tip" Value="Automatic Coinjoin Enabled, Waiting to start. Press Play to start immediately." />
             </Style>
             <Style Selector="Ellipse.disabled">
-              <Setter Property="Fill" Value="#7F000000" />
+              <Setter Property="Fill" Value="#7FFFFFFF" />
+              <Setter Property="ToolTip.Tip" Value="Automatic Coinjoin Disabled" />
             </Style>
           </Ellipse.Styles>
         </Ellipse>
-
       </StackPanel>
     </Panel>
   </Border>
