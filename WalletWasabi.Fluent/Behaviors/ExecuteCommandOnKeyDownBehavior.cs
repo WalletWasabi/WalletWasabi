@@ -71,7 +71,7 @@ public class ExecuteCommandOnKeyDownBehavior : AttachedToVisualTreeBehavior<Cont
 
 		if (Key is { } && e.Key == Key && control.IsVisible && control.IsEnabled && IsEnabled)
 		{
-			if (!e.Handled && Command.CanExecute(CommandParameter))
+			if (!e.Handled && Command?.CanExecute(CommandParameter) == true)
 			{
 				Command.Execute(CommandParameter);
 				e.Handled = true;
