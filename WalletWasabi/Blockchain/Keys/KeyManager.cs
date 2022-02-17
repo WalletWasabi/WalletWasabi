@@ -25,8 +25,7 @@ public class KeyManager
 {
 	public const int DefaultMinAnonScoreTarget = 5;
 	public const int DefaultMaxAnonScoreTarget = 10;
-	private int _minAnonScoreTarget;
-	private int _maxAnonScoreTarget;
+	public const bool DefaultAutoCoinjoin = false;
 
 	public const int AbsoluteMinGapLimit = 21;
 	public const int MaxGapLimit = 10_000;
@@ -144,11 +143,11 @@ public class KeyManager
 	[JsonProperty(Order = 9, PropertyName = "PreferPsbtWorkflow")]
 	public bool PreferPsbtWorkflow { get; set; }
 
-	[JsonProperty(Order = 10, PropertyName = "AutoCoinJoin", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool AutoCoinJoin { get; set; }
+	[JsonProperty(Order = 10, PropertyName = "AutoCoinJoin")]
+	public bool AutoCoinJoin { get; set; } = DefaultAutoCoinjoin;
 
 	/// <summary>
-	/// Won't coinjoin automatically if there are less than this much non-private coins are in the wallet.
+	/// Won't coinjoin automatically if there are less than this much non-private coins in the wallet.
 	/// </summary>
 	[JsonProperty(Order = 11, PropertyName = "PlebStopThreshold")]
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
@@ -157,13 +156,11 @@ public class KeyManager
 	[JsonProperty(Order = 12, PropertyName = "Icon")]
 	public string? Icon { get; private set; }
 
-	[DefaultValue(DefaultMinAnonScoreTarget)]
-	[JsonProperty(Order = 13, PropertyName = "MinAnonScoreTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public int MinAnonScoreTarget { get; private set; }
+	[JsonProperty(Order = 13, PropertyName = "MinAnonScoreTarget")]
+	public int MinAnonScoreTarget { get; private set; } = DefaultMinAnonScoreTarget;
 
-	[DefaultValue(DefaultMaxAnonScoreTarget)]
-	[JsonProperty(Order = 14, PropertyName = "MaxAnonScoreTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public int MaxAnonScoreTarget { get; private set; }
+	[JsonProperty(Order = 14, PropertyName = "MaxAnonScoreTarget")]
+	public int MaxAnonScoreTarget { get; private set; } = DefaultMaxAnonScoreTarget;
 
 	[JsonProperty(Order = 999)]
 	private List<HdPubKey> HdPubKeys { get; }
@@ -700,11 +697,12 @@ public class KeyManager
 
 	public void SetAnonScoreTargets(int minAnonScoreTarget, int maxAnonScoreTarget)
 	{
-		MinAnonScoreTarget = minAnonScoreTarget;
-		if (MaxAnonScoreTarget < MinAnonScoreTarget)
+		if (maxAnonScoreTarget <= minAnonScoreTarget)
 		{
-			throw new ArgumentException($"{nameof(maxAnonScoreTarget)} should be greater.", nameof(maxAnonScoreTarget));
+			throw new ArgumentException($"{nameof(maxAnonScoreTarget)} should be greater than {nameof(minAnonScoreTarget)}.", nameof(maxAnonScoreTarget));
 		}
+
+		MinAnonScoreTarget = minAnonScoreTarget;
 		MaxAnonScoreTarget = maxAnonScoreTarget;
 		ToFile();
 	}
