@@ -191,7 +191,6 @@ public partial class MainViewModel : ViewModelBase
 	public void Initialize()
 	{
 		StatusBar.Initialize();
-		MusicControls.Initialize();
 
 		if (Services.Config.Network != Network.Main)
 		{
