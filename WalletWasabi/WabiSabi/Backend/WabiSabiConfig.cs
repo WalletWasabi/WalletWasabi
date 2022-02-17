@@ -130,13 +130,21 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "AllowP2wpkhInputs", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool AllowP2wpkhInputs { get; set; } = true;
 
+	[DefaultValue(false)]
+	[JsonProperty(PropertyName = "AllowP2trInputs", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool AllowP2trInputs { get; set; } = false;
+
 	[DefaultValue(true)]
 	[JsonProperty(PropertyName = "AllowP2wpkhOutputs", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool AllowP2wpkhOutputs { get; set; } = true;
 
-	public ImmutableSortedSet<ScriptType> AllowedInputScriptTypes => GetScriptTypes(AllowP2wpkhInputs);
+	[DefaultValue(false)]
+	[JsonProperty(PropertyName = "AllowP2trOutputs", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool AllowP2trOutputs { get; set; } = false;
 
-	public ImmutableSortedSet<ScriptType> AllowedOutputScriptTypes => GetScriptTypes(AllowP2wpkhOutputs);
+	public ImmutableSortedSet<ScriptType> AllowedInputScriptTypes => GetScriptTypes(AllowP2wpkhInputs, AllowP2trInputs);
+
+	public ImmutableSortedSet<ScriptType> AllowedOutputScriptTypes => GetScriptTypes(AllowP2wpkhOutputs, AllowP2trOutputs);
 
 	public Script GetNextCleanCoordinatorScript() => DeriveCoordinatorScript(CoordinatorExtPubKeyCurrentDepth);
 
@@ -151,12 +159,16 @@ public class WabiSabiConfig : ConfigBase
 		}
 	}
 
-	private static ImmutableSortedSet<ScriptType> GetScriptTypes(bool p2wpkh)
+	private static ImmutableSortedSet<ScriptType> GetScriptTypes(bool p2wpkh, bool p2tr)
 	{
 		var scriptTypes = new List<ScriptType>();
 		if (p2wpkh)
 		{
 			scriptTypes.Add(ScriptType.P2WPKH);
+		}
+		if (p2tr)
+		{
+			scriptTypes.Add(ScriptType.Taproot);
 		}
 
 		// When adding new script types, please see
