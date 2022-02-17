@@ -8,6 +8,8 @@ namespace WalletWasabi.Fluent.Behaviors;
 
 public class DragWindowBehavior : AttachedToVisualTreeBehavior<Control>
 {
+	private IDisposable? _onDrag;
+
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
 		if (AssociatedObject is null)
@@ -20,8 +22,14 @@ public class DragWindowBehavior : AttachedToVisualTreeBehavior<Control>
 			return;
 		}
 
-		Observable.FromEventPattern<PointerPressedEventArgs>(AssociatedObject, nameof(Control.PointerPressed))
-			      .Where(e => e.EventArgs.InputModifiers == InputModifiers.LeftMouseButton)
-				  .Subscribe(e => window.BeginMoveDrag(e.EventArgs));
+		_onDrag =
+			Observable.FromEventPattern<PointerPressedEventArgs>(AssociatedObject, nameof(Control.PointerPressed))
+					  .Where(e => e.EventArgs.InputModifiers == InputModifiers.LeftMouseButton)
+				      .Subscribe(e => window.BeginMoveDrag(e.EventArgs));
+	}
+
+	protected override void OnDetaching()
+	{
+		_onDrag?.Dispose();
 	}
 }
