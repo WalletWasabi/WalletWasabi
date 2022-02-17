@@ -296,7 +296,7 @@ public class TransactionProcessor
 	{
 		var transactions = TransactionStore.GetTransactions().ToList();
 
-		List<SmartTransaction> relevantTxs = new();
+		HashSet<SmartTransaction> relevantTxs = new();
 		foreach (var label in tx.Label)
 		{
 			transactions.Where(tx => tx.Label.Contains(label)).ToList().ForEach(transaction => relevantTxs.Add(transaction));
