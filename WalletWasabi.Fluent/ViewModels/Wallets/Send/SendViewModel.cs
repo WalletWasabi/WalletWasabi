@@ -230,9 +230,9 @@ public partial class SendViewModel : RoutableViewModel
 		});
 	}
 
-	private bool TryParseUrl(string text)
+	private bool TryParseUrl(string? text)
 	{
-		if (text.IsTrimmable())
+		if (text is null || text.IsTrimmable())
 		{
 			return false;
 		}
