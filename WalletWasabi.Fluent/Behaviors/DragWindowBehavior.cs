@@ -1,9 +1,8 @@
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
+using Avalonia.VisualTree;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
@@ -16,13 +15,13 @@ public class DragWindowBehavior : AttachedToVisualTreeBehavior<Control>
 			return;
 		}
 
-		if (Application.Current?.ApplicationLifetime is not ClassicDesktopStyleApplicationLifetime desktop)
+		if (AssociatedObject.FindAncestorOfType<Window>() is not { } window)
 		{
 			return;
 		}
-		
+
 		Observable.FromEventPattern<PointerPressedEventArgs>(AssociatedObject, nameof(Control.PointerPressed))
 			      .Where(e => e.EventArgs.InputModifiers == InputModifiers.LeftMouseButton)
-				  .Subscribe(e => desktop.MainWindow.BeginMoveDrag(e.EventArgs));
+				  .Subscribe(e => window.BeginMoveDrag(e.EventArgs));
 	}
 }
