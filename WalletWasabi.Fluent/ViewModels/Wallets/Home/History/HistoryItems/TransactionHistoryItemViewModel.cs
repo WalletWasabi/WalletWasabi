@@ -43,6 +43,10 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 
 	public override void Update(HistoryItemViewModelBase item)
 	{
+		if (item is not TransactionHistoryItemViewModel)
+		{
+			throw new InvalidOperationException("Not the same type!");
+		}
 		FilteredLabel = item.FilteredLabel;
 		Label = item.Label;
 		base.Update(item);
