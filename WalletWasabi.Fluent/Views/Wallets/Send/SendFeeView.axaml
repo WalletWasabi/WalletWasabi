@@ -10,7 +10,8 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:CompileBindings="True"
              x:DataType="vm:SendFeeViewModel"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendFeeView">
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendFeeView"
+             x:Name="SendFeeView">
   <UserControl.Styles>
     <!-- Slider Fee -->
     <Style Selector="Slider.cursor">
@@ -162,8 +163,8 @@
           </Style>
         </Slider.Styles>
         <i:Interaction.Behaviors>
-          <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding MoveSliderRightCommand}" Key="Right"/>
-          <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding MoveSliderLeftCommand}"  Key="Left"/>
+          <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding MoveSliderRightCommand}" IsEnabled="{Binding #SendFeeView.DataContext.IsActive}" x:CompileBindings="False" Key="Right"/>
+          <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding MoveSliderLeftCommand}"  IsEnabled="{Binding #SendFeeView.DataContext.IsActive}" x:CompileBindings="False" Key="Left"/>
         </i:Interaction.Behaviors>
       </Slider>
       <c:LineChart Classes="cursor border xAxisLabels yAxis yAxisLabels yAxisTitle area"
