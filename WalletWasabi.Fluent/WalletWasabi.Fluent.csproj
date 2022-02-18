@@ -32,7 +32,7 @@
 		<PackageReference Include="DataBox" Version="0.10.11.1" />
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\..\Avalonia.ProControls\src\Avalonia.Controls.TreeDataGrid\Avalonia.Controls.TreeDataGrid.csproj" />
+		<ProjectReference Include="..\..\Avalonia.Controls.TreeDataGrid\src\Avalonia.Controls.TreeDataGrid\Avalonia.Controls.TreeDataGrid.csproj" />
 		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
 		<ProjectReference Include="..\WalletWasabi.Fluent.Generators\WalletWasabi.Fluent.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
