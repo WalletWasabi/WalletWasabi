@@ -43,7 +43,8 @@ public class CheapestSelectionStrategy
 	/// <summary>Input cost(s) of the current selection.</summary>
 	private long CurrentInputCosts { get; set; } = 0;
 
-	/// <summary>Sum of the selectable/remaining coins.</summary>
+	/// <summary>Sums of the remaining coins.</summary>
+	/// <remarks>i-th element represents a sum of all <c>i+1, i+2, ..., n</c> input values.</remarks>
 	private long[] RemainingAmounts { get; set; }
 
 	/// <summary>Sum of the best found selection.</summary>
