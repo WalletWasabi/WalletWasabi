@@ -75,4 +75,42 @@ public class BranchAndBoundTests
 
 		Assert.Equal(new long[] { 35 }, actualSelection);
 	}
+
+	/// <summary>
+	/// The goal of the test is to verify that we prune branches at points when it is clear that
+	/// the sum of remaining coins is less than what we need to hit our target.
+	/// </summary>
+	/// <remarks>
+	/// This is especially important for cases where user has many coins.
+	/// <para>If the optimization is not in place, you should observe that this test does not really finish fast.</para>
+	/// </remarks>
+	[Fact]
+	public void CheapestSelection_RemainingAmountOptimization()
+	{
+		List<long> inputValues = new();
+		inputValues.Add(1_000_000);
+
+		for (int i = 0; i < 1000; i++)
+		{
+			inputValues.Add(1);
+		}
+
+		// All inputs cost the same.
+		long[] inputCosts = inputValues.Select(x => 1L).ToArray();
+		
+		long target = 999_999; // Target that we cannot get as a sum of input values.
+
+		BranchAndBound algorithm = new();
+		CheapestSelectionStrategy strategy = new(target, inputValues.ToArray(), inputCosts);
+		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins);
+
+		Assert.False(wasSuccessful);
+		Assert.Null(selectedCoins);
+
+		// Assert that we get expected best solution.
+		long[] actualSelection = strategy.GetBestSelectionFound()!;
+		Assert.NotNull(actualSelection);
+
+		Assert.Equal(new long[] { 1_000_000 }, actualSelection);
+	}
 }
