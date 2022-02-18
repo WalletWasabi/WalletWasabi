@@ -58,7 +58,7 @@ public partial class Arena : PeriodicRunner
 
 			await StepTransactionSigningPhaseAsync(cancel).ConfigureAwait(false);
 
-			StepOutputRegistrationPhase();
+			await StepOutputRegistrationPhaseAsync(cancel).ConfigureAwait(false);
 
 			await StepConnectionConfirmationPhaseAsync(cancel).ConfigureAwait(false);
 
@@ -164,7 +164,7 @@ public partial class Arena : PeriodicRunner
 		}
 	}
 
-	private void StepOutputRegistrationPhase()
+	private async Task StepOutputRegistrationPhaseAsync(CancellationToken cancellationToken)
 	{
 		foreach (var round in Rounds.Where(x => x.Phase == Phase.OutputRegistration).ToArray())
 		{
@@ -182,7 +182,7 @@ public partial class Arena : PeriodicRunner
 					round.CoordinatorScript = GetCoordinatorScriptPreventReuse(round);
 					coinjoin = AddCoordinationFee(round, coinjoin, round.CoordinatorScript);
 
-					coinjoin = AddBlameScript(round, coinjoin, allReady, round.CoordinatorScript);
+					coinjoin = await TryAddBlameScriptAsync(round, coinjoin, allReady, round.CoordinatorScript, cancellationToken).ConfigureAwait(false);
 
 					round.CoinjoinState = coinjoin.Finalize();
 
@@ -355,7 +355,7 @@ public partial class Arena : PeriodicRunner
 		}
 	}
 
-	private ConstructionState AddBlameScript(Round round, ConstructionState coinjoin, bool allReady, Script blameScript)
+	private async Task<ConstructionState> TryAddBlameScriptAsync(Round round, ConstructionState coinjoin, bool allReady, Script blameScript, CancellationToken cancellationToken)
 	{
 		long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate));
 		long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
@@ -366,15 +366,25 @@ public partial class Arena : PeriodicRunner
 		var diffMoney = Money.Satoshis(diff) - coinjoin.Parameters.FeeRate.GetFee(blameScript.EstimateOutputVsize());
 		if (diffMoney > coinjoin.Parameters.AllowedOutputAmounts.Min)
 		{
-			coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, blameScript));
-
-			if (allReady)
+			// If diff is smaller than max feerate of a tx, then add it as fee.
+			var highestFeeRate = (await Rpc.EstimateSmartFeeAsync(2, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
+			// ToDo: This condition could be more sophisticated by always trying to max out the miner fees to target 2 and only deal with the remaining diffMoney.
+			if (coinjoin.EffectiveFeeRate > highestFeeRate)
 			{
-				round.LogInfo($"Filled up the outputs to build a reasonable transaction, all Alices signalled ready. Added amount: '{diffMoney}'.");
+				coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, blameScript));
+
+				if (allReady)
+				{
+					round.LogInfo($"Filled up the outputs to build a reasonable transaction, all Alices signalled ready. Added amount: '{diffMoney}'.");
+				}
+				else
+				{
+					round.LogWarning($"Filled up the outputs to build a reasonable transaction because some alice failed to provide its output. Added amount: '{diffMoney}'.");
+				}
 			}
 			else
 			{
-				round.LogWarning($"Filled up the outputs to build a reasonable transaction because some alice failed to provide its output. Added amount: '{diffMoney}'.");
+				round.LogWarning($"There were some leftover satoshis. Added amount to miner fees: '{diffMoney}'.");
 			}
 		}
 		else if (!allReady)
