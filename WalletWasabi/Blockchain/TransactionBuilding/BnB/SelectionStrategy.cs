@@ -7,11 +7,11 @@ namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 /// waste of user's fund by looking for a selection that minimizes inputs' spending costs
 /// and extra cost of paying more than specified target.
 /// </summary>
-public class CheapestSelectionStrategy
+public abstract class SelectionStrategy
 {
 	/// <param name="target">Value in satoshis.</param>
 	/// <param name="inputCosts">Costs of spending coins in satoshis.</param>
-	public CheapestSelectionStrategy(long target, long[] inputValues, long[] inputCosts)
+	public SelectionStrategy(long target, long[] inputValues, long[] inputCosts)
 	{
 		InputCosts = inputCosts;
 		InputValues = inputValues;
@@ -41,17 +41,17 @@ public class CheapestSelectionStrategy
 	public long[]? GetBestSelectionFound() => BestSelectionSoFar?.Where(x => x > 0).ToArray();
 
 	/// <summary>Input cost(s) of the current selection.</summary>
-	private long CurrentInputCosts { get; set; } = 0;
+	protected long CurrentInputCosts { get; set; } = 0;
 
 	/// <summary>Sums of the remaining coins.</summary>
 	/// <remarks>i-th element represents a sum of all <c>i+1, i+2, ..., n</c> input values.</remarks>
-	private long[] RemainingAmounts { get; set; }
+	protected long[] RemainingAmounts { get; set; }
 
 	/// <summary>Sum of the best found selection.</summary>
-	private long BestTargetSoFar { get; set; }
+	protected long BestTargetSoFar { get; set; }
 
 	/// <summary>Best coin selection so far.</summary>
-	private long[]? BestSelectionSoFar { get; set; }
+	protected long[]? BestSelectionSoFar { get; set; }
 
 	/// <summary>
 	/// Modifies selection sum so that we don't need to recompute it.
@@ -61,7 +61,7 @@ public class CheapestSelectionStrategy
 	/// <param name="depth">Index of a <paramref name="selection"/> value that is currently being included / omitted.</param>
 	/// <param name="oldSum">Previous sum value.</param>
 	/// <returns>New selection sum.</returns>
-	public long ProcessAction(NextAction action, long[] selection, int depth, long oldSum)
+	public virtual long ProcessAction(NextAction action, long[] selection, int depth, long oldSum)
 	{
 		long newSum;
 
@@ -96,41 +96,5 @@ public class CheapestSelectionStrategy
 	/// <param name="selection">Currently selected values. <c>0</c> when the corresponding value is not selected.</param>
 	/// <param name="depth">Number of <paramref name="selection"/> elements that contains the current solution.</param>
 	/// <param name="sum">Sum of first <paramref name="depth"/> elements of <paramref name="selection"/>.</param>
-	public EvaluationResult Evaluate(long[] selection, int depth, long sum)
-	{
-		long totalCost = sum + CurrentInputCosts;
-
-		if (totalCost > BestTargetSoFar)
-		{
-			// Our solution is already better than what we might get here.
-			return EvaluationResult.SkipBranch;
-		}
-
-		if (sum >= Target)
-		{
-			if (BestTargetSoFar > totalCost)
-			{
-				BestSelectionSoFar = selection[0..depth];
-				BestTargetSoFar = totalCost;
-			}
-
-			// Even if a match occurred we cannot be sure that there isn't
-			// a better selection thanks to input costs.
-			return EvaluationResult.SkipBranch;
-		}
-
-		if (sum + RemainingAmounts[depth - 1] < Target)
-		{
-			// The remaining coins cannot sum up to required target, cut the branch.
-			return EvaluationResult.SkipBranch;
-		}
-
-		if (depth == selection.Length)
-		{
-			// Leaf reached, no match
-			return EvaluationResult.SkipBranch;
-		}
-
-		return EvaluationResult.Continue;
-	}
+	public abstract EvaluationResult Evaluate(long[] selection, int depth, long sum);
 }
