@@ -111,7 +111,7 @@ public class BranchAndBound
 			// Micro optimization: Do not check cancellation token every time as it requires accessing volatile memory.
 			if (i % 10_000 == 0 && cancellationToken.IsCancellationRequested)
 			{
-				cancellationToken.ThrowIfCancellationRequested();
+				return false;
 			}
 		}
 		while (depth >= 0);
