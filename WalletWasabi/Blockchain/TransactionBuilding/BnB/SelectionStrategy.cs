@@ -14,7 +14,6 @@ public abstract class SelectionStrategy
 		InputCosts = inputCosts;
 		InputValues = inputValues;
 		Target = target;
-		RemainingAmount = InputValues.Sum();
 	}
 
 	/// <summary>Costs corresponding to <see cref="InputValues"/> values.</summary>
@@ -31,9 +30,6 @@ public abstract class SelectionStrategy
 
 	/// <summary>Input cost(s) of the current selection.</summary>
 	protected long CurrentInputCosts { get; set; } = 0;
-
-	/// <summary>Sum of the selectable/remaining coins.</summary>
-	protected long RemainingAmount { get; set; }
 
 	/// <summary>Sum of the best found selection.</summary>
 	protected long BestTargetSoFar { get; set; }
@@ -58,7 +54,6 @@ public abstract class SelectionStrategy
 			if (selection[depth] == 0)
 			{
 				CurrentInputCosts += InputCosts[depth];
-				RemainingAmount -= InputValues[depth];
 			}
 
 			selection[depth] = InputValues[depth];
@@ -69,7 +64,6 @@ public abstract class SelectionStrategy
 			if (selection[depth] > 0)
 			{
 				CurrentInputCosts -= InputCosts[depth];
-				RemainingAmount += InputValues[depth];
 			}
 
 			newSum = oldSum - selection[depth];

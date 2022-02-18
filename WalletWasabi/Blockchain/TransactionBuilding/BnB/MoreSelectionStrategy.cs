@@ -18,11 +18,6 @@ public class MoreSelectionStrategy : SelectionStrategy
 			// Our solution is already better than what we might get here.
 			return EvaluationResult.SkipBranch;
 		}
-		else if (sum + RemainingAmount < Target)
-		{
-			// The remaining coins cannot sum up to required target, cut the branch.
-			return EvaluationResult.SkipBranch;
-		}
 		else if (sum >= Target)
 		{
 			if (BestTargetSoFar > totalCost)

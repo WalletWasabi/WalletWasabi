@@ -17,12 +17,6 @@ public class LessSelectionStrategy : SelectionStrategy
 			return EvaluationResult.SkipBranch;
 		}
 
-		if (sum + RemainingAmount < BestTargetSoFar)
-		{
-			// The remaining coins cannot sum up to our solution, so cut the branch.
-			return EvaluationResult.SkipBranch;
-		}
-
 		if (BestTargetSoFar < totalCost)
 		{
 			BestSelectionSoFar = selection[0..depth];
