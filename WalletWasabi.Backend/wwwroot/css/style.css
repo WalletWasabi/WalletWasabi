@@ -476,9 +476,10 @@ footer .white-text {
     font-size: 20px;
     padding: 20px 35px 14px;
 }
-.btn-download svg {
+.btn-download img {
     fill: #FFF;
-    height: 26px;
+    height: 14px;
+    margin-bottom: 6px;
 }
 .btn-primary:hover {
     background-color: var(--light-blue);
