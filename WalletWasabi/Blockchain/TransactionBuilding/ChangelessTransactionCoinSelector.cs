@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding.BnB;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding;
 
@@ -75,7 +76,17 @@ public static class ChangelessTransactionCoinSelector
 
 		BranchAndBound branchAndBound = new();
 
-		var foundExactMatch = branchAndBound.TryGetMatch(strategy, out List<long>? solution, cancellationToken);
+		bool foundExactMatch = false;
+		List<long>? solution = null;
+
+		try
+		{
+			foundExactMatch = branchAndBound.TryGetMatch(strategy, out solution, cancellationToken);
+		}
+		catch (OperationCanceledException)
+		{
+			Logger.LogWarning("Computing privacy suggestions was cancelled or timed out.");
+		}
 
 		// If we've not found an optimal solution then we will use the best.
 		if (!foundExactMatch && strategy.GetBestSelectionFound() is long[] bestSolution)
