@@ -1,5 +1,6 @@
 using ReactiveUI;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -13,7 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 [NavigationMetaData(Title = "CoinJoin Profiles")]
 public partial class CoinJoinProfilesViewModel : RoutableViewModel
 {
-	[AutoNotify] private CoinJoinProfileViewModelBase _selectedProfile;
+	[AutoNotify] private CoinJoinProfileViewModelBase? _selectedProfile;
 
 	public CoinJoinProfilesViewModel(KeyManager keyManager)
 	{
@@ -38,20 +39,25 @@ public partial class CoinJoinProfilesViewModel : RoutableViewModel
 
 	public List<CoinJoinProfileViewModelBase> Profiles { get; }
 
+	public ManualCoinJoinProfile? SelectedManualProfile { get; private set; }
+
 	private async Task OnManualSetupAsync()
 	{
-		var dialog = new ManualCoinJoinProfileDialogViewModel();
+		var current = SelectedProfile ?? SelectedManualProfile ?? Profiles.First();
+		var dialog = new ManualCoinJoinProfileDialogViewModel(current);
 
 		var dialogResult = await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen);
 
-		if (dialogResult.Result is { })
+		if (dialogResult.Result is ManualCoinJoinProfile profile)
 		{
+			SelectedProfile = null;
+			SelectedManualProfile = profile;
 		}
 	}
 
 	private void OnNext(KeyManager keyManager)
 	{
-		var selected = SelectedProfile;
+		var selected = SelectedProfile ?? SelectedManualProfile ?? Profiles.First();
 
 		keyManager.SetAnonScoreTargets(selected.MinAnonScoreTarget, selected.MaxAnonScoreTarget, toFile: false);
 		keyManager.SetFeeRateAverageTimeFrame(selected.FeeRateAverageTimeFrameHours, toFile: false);
