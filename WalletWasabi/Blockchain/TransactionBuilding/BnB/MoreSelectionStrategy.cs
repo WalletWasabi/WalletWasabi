@@ -1,9 +1,13 @@
 namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 
+/// <summary>
+/// Strategy that searches search-space and caches every found selection that minimizes
+/// waste of user's fund by looking for a selection that minimizes inputs' spending costs
+/// and extra cost of paying more than specified target.
+/// </summary>
 public class MoreSelectionStrategy : SelectionStrategy
 {
-	/// <param name="target">Value in satoshis.</param>
-	/// <param name="inputCosts">Costs of spending coins in satoshis.</param>
+	/// <inheritdoc/>
 	public MoreSelectionStrategy(long target, long[] inputValues, long[] inputCosts) : base(target, inputValues, inputCosts)
 	{
 		BestTargetSoFar = long.MaxValue;

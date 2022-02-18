@@ -2,14 +2,10 @@ using System.Linq;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 
-/// <summary>
-/// Strategy that searches search-space and caches every found selection that minimizes
-/// waste of user's fund by looking for a selection that minimizes inputs' spending costs
-/// and extra cost of paying more than specified target.
-/// </summary>
 public abstract class SelectionStrategy
 {
 	/// <param name="target">Value in satoshis.</param>
+	/// <param name="inputValues">Values in satoshis of the coins the user has (in descending order).</param>
 	/// <param name="inputCosts">Costs of spending coins in satoshis.</param>
 	public SelectionStrategy(long target, long[] inputValues, long[] inputCosts)
 	{
