@@ -8,11 +8,17 @@
              ClipToBounds="False"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.CoinJoinProfiles.CoinJoinProfileControl">
-  <StackPanel Spacing="20" Width="110" Height="180">
+  <StackPanel Spacing="20" Width="150" Height="210">
     <TextBlock Text="{Binding Title}" HorizontalAlignment="Center" />
     <Viewbox HorizontalAlignment="Center" Height="70">
       <Image Source="{Binding Icon}" />
     </Viewbox>
-    <TextBlock Text="{Binding Description}" HorizontalAlignment="Center" />
+    <ItemsControl Items="{Binding Description}" HorizontalAlignment="Center">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate>
+          <TextBlock x:CompileBindings="False" Text="{Binding . , Mode=OneWay, StringFormat={}- {0}}" />
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
   </StackPanel>
 </UserControl>

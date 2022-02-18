@@ -14,7 +14,7 @@ public class ManualCoinJoinProfile : CoinJoinProfileViewModelBase
 
 	public override string Title => "Manual";
 
-	public override string Description => "very Manual";
+	public override string[] Description => Array.Empty<string>();
 
 	public override IImage Icon => AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/normal.png");
 

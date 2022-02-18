@@ -7,9 +7,9 @@ internal class EconomyCoinJoinProfile : CoinJoinProfileViewModelBase
 {
 	public override string Title => "Economy";
 
-	public override string Description => "very Economy";
+	public override string[] Description => new[] { "Sufficient privacy", "Slow but cheaper", "Automatic CoinJoin" };
 
-	public override IImage Icon => AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/ledger.png");
+	public override IImage Icon => AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/normal.png");
 
 	public override int FeeRateAverageTimeFrameHours => 168; // One week average.
 }
