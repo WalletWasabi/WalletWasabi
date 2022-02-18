@@ -112,7 +112,10 @@ public partial class SendViewModel : RoutableViewModel
 		NextCommand = ReactiveCommand.Create(() =>
 		{
 			var address = BitcoinAddress.Create(To, wallet.Network);
+
+			_transactionInfo.Reset();
 			_transactionInfo.Amount = new Money(AmountBtc, MoneyUnit.BTC);
+
 			Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo, address, _isFixedAmount));
 		}, nextCommandCanExecute);
 	}
@@ -227,9 +230,9 @@ public partial class SendViewModel : RoutableViewModel
 		});
 	}
 
-	private bool TryParseUrl(string text)
+	private bool TryParseUrl(string? text)
 	{
-		if (text.IsTrimmable())
+		if (text is null || text.IsTrimmable())
 		{
 			return false;
 		}

@@ -12,19 +12,17 @@ public partial class TransactionInfo
 {
 	private readonly int _privateCoinThreshold;
 
-	[AutoNotify] private Money _amount = Money.Zero;
 	[AutoNotify] private FeeRate _feeRate = FeeRate.Zero;
 
 	public TransactionInfo(int minAnonScoreTarget)
 	{
 		_privateCoinThreshold = minAnonScoreTarget;
 
-		this.WhenAnyValue(x => x.Amount)
-			.Subscribe(_ => OnAmountChanged());
-
 		this.WhenAnyValue(x => x.FeeRate)
 			.Subscribe(_ => OnFeeChanged());
 	}
+
+	public Money Amount { get; set; } = Money.Zero;
 
 	public SmartLabel UserLabels { get; set; } = SmartLabel.Empty;
 
@@ -48,20 +46,19 @@ public partial class TransactionInfo
 
 	public bool SubtractFee { get; set; }
 
-	private void OnAmountChanged()
+	public void Reset()
 	{
-		SubtractFee = default;
-		ChangelessCoins = Enumerable.Empty<SmartCoin>();
+		Amount = Money.Zero;
+		UserLabels = SmartLabel.Empty;
 		MaximumPossibleFeeRate = null;
+		ConfirmationTimeSpan = TimeSpan.Zero;
+		Coins = Enumerable.Empty<SmartCoin>();
+		ChangelessCoins = Enumerable.Empty<SmartCoin>();
+		SubtractFee = default;
 
 		if (!IsCustomFeeUsed)
 		{
 			FeeRate = FeeRate.Zero;
-		}
-
-		if (Coins.Sum(x => x.Amount) < Amount) // Reset coins if the selected cluster is not enough for the new amount
-		{
-			Coins = Enumerable.Empty<SmartCoin>();
 		}
 	}
 

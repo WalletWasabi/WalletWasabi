@@ -17,7 +17,7 @@
                  CancelContent="Cancel"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
-                 EnableNext="{Binding ConfirmationRequired}" NextContent="Continue"
+                 EnableNext="{Binding ConfirmationRequired}" NextContent="Rescan"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel>
       <Viewbox MaxHeight="150" DockPanel.Dock="Top" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0 30 0 0">
