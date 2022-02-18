@@ -3,6 +3,7 @@ using System.Linq;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -22,9 +23,9 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 		_timeFrames = new[]
 		{
 			new TimeFrameItem("None", TimeSpan.Zero),
-			new TimeFrameItem("Daily", TimeSpan.FromDays(1)),
-			new TimeFrameItem("Weekly", TimeSpan.FromDays(7)),
-			new TimeFrameItem("Monthly", TimeSpan.FromDays(30))
+			new TimeFrameItem("Daily", TimeSpan.FromHours(Constants.CoinJoinFeeRateAverageTimeFrames[0])),
+			new TimeFrameItem("Weekly", TimeSpan.FromHours(Constants.CoinJoinFeeRateAverageTimeFrames[1])),
+			new TimeFrameItem("Monthly", TimeSpan.FromHours(Constants.CoinJoinFeeRateAverageTimeFrames[2]))
 		};
 
 		_selectedTimeFrame = _timeFrames.FirstOrDefault(tf => tf.TimeFrame == TimeSpan.FromHours(current.FeeRateAverageTimeFrameHours)) ?? _timeFrames.First();

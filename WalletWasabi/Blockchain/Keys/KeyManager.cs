@@ -715,6 +715,11 @@ public class KeyManager
 
 	public void SetFeeRateAverageTimeFrame(int hours, bool toFile = true)
 	{
+		if (hours != 0 && !Constants.CoinJoinFeeRateAverageTimeFrames.Contains(hours))
+		{
+			throw new ArgumentOutOfRangeException(nameof(hours), $"Hours can be only on of {string.Join(",", Constants.CoinJoinFeeRateAverageTimeFrames)}.");
+		}
+
 		FeeRateAverageTimeFrameHours = hours;
 		if (toFile)
 		{

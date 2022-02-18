@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Backend.Statistics;
@@ -26,12 +27,7 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 	{
 	}
 
-	private static TimeSpan[] TimeFrames { get; } = new[]
-	{
-		TimeSpan.FromDays(1),
-		TimeSpan.FromDays(7),
-		TimeSpan.FromDays(30),
-	};
+	private static TimeSpan[] TimeFrames { get; } = Constants.CoinJoinFeeRateAverageTimeFrames.Select(tf => TimeSpan.FromHours(tf)).ToArray();
 
 	private static TimeSpan MaximumTimeToStore { get; } = TimeFrames.Max();
 
