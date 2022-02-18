@@ -162,7 +162,7 @@ public static class DirectShow
 
 		if (result == null)
 		{
-			throw new ArgumentException("can't fild pin.");
+			throw new ArgumentException("Can't find pin.");
 		}
 		return result;
 	}
@@ -181,7 +181,7 @@ public static class DirectShow
 
 		if (result == null)
 		{
-			throw new ArgumentException("can't fild pin.");
+			throw new ArgumentException("Can't find pin.");
 		}
 		return result;
 	}

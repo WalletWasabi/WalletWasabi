@@ -9,7 +9,7 @@ public class GenericInterfaceJsonConverter<T> : JsonConverter<T>
 {
 	// This converter is a bit unusual because we need to add a new property to the
 	// serialized json string but the converter is called recursively and fails with
-	// an "Self referencing loop" exception.
+	// a "Self referencing loop" exception.
 	// The workaround is detect it and prevent reentering by setting CanRead and
 	// CanWrite to false immediately after entering.
 	// see: https://github.com/JamesNK/Newtonsoft.Json/issues/386
@@ -57,7 +57,7 @@ public class GenericInterfaceJsonConverter<T> : JsonConverter<T>
 
 			var jsonObject = JObject.Load(reader);
 			var typeName = jsonObject.Value<string>("Type");
-			var stateType =  Types.Single(t => t.Name == typeName);
+			var stateType = Types.Single(t => t.Name == typeName);
 			return (T?)serializer.Deserialize(jsonObject.CreateReader(), stateType);
 		}
 		finally
