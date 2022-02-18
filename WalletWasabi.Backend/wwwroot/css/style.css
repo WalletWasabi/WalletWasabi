@@ -895,6 +895,24 @@ blockquote:after {
     -webkit-backdrop-filter: saturate(180%) blur(20px);
     backdrop-filter: saturate(180%) blur(20px);
 }
+/* Image hover animation
+.pull-img {
+    -webkit-transition: all 0.5s ease-in-out;
+    -moz-transition: all 0.5s ease-in-out;
+    -ms-transition: all 0.5s ease-in-out;
+    -o-transition: all 0.5s ease-in-out;
+    transition: all 0.5s ease-in-out;
+}
+.pull-img-to-right {
+    transform: translate(100%, -50%);
+}
+.pull-img-to-left {
+    transform: translate(-100%, -50%);
+}
+section:hover .pull-img-to-right, section:hover .pull-img-to-left {
+    transform: translate(0, -50%);
+}
+*/
 @media (min-width: 576px) {
     body {
         --breakpoint: 540px;
