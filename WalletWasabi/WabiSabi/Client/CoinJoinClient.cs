@@ -71,7 +71,7 @@ public class CoinJoinClient
 					roundState.InputRegistrationEnd - DateTimeOffset.UtcNow > DoNotRegisterInLastMinuteTimeLimit &&
 					roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min < Money.Coins(0.0001m) && // ignore rounds with too big minimum denominations
 					roundState.Phase == Phase.InputRegistration &&
-          IsRoundEconomic(roundState.FeeRate),
+		  IsRoundEconomic(roundState.FeeRate),
 				cancellationToken)
 			.ConfigureAwait(false);
 
@@ -430,9 +430,10 @@ public class CoinJoinClient
 			return true;
 		}
 
-		if (RoundStatusUpdater.CoinJoinFeeRateAverages.TryGetValue(FeeRateAverageTimeFrame, out var feeRate))
+		if (RoundStatusUpdater.CoinJoinFeeRateAverages.TryGetValue(FeeRateAverageTimeFrame, out var averageFeeRate))
 		{
-			return roundFeeRate <= feeRate;
+			// 0.5 satoshi difference is allowable, to avoid rounding errors.
+			return roundFeeRate.SatoshiPerByte <= averageFeeRate.SatoshiPerByte + 0.5m;
 		}
 
 		throw new InvalidOperationException($"Could not find average feeRate for timeframe: {FeeRateAverageTimeFrame}.");
