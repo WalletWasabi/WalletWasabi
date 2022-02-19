@@ -78,7 +78,7 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 	private async Task CreatePasswordAsync(string walletName)
 	{
 		var dialogResult = await NavigateDialogAsync(
-			new CreatePasswordDialogViewModel("Create Password", "Enter a password for your wallet.", enableEmpty: true),
+			new CreatePasswordDialogViewModel("Create Password", enableEmpty: true),
 			NavigationTarget.CompactDialogScreen);
 
 		if (dialogResult.Result is { } password)
