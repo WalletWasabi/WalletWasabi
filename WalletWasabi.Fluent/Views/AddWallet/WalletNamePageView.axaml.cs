@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Settings;
+namespace WalletWasabi.Fluent.Views.AddWallet;
 
-public class NetworkSettingsTabView : UserControl
+public class WalletNamePageView : UserControl
 {
-	public NetworkSettingsTabView()
+	public WalletNamePageView()
 	{
 		InitializeComponent();
 	}

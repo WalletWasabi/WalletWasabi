@@ -183,7 +183,7 @@ public partial class MainViewModel : ViewModelBase
 				return _settingsPage;
 			});
 
-		NetworkSettingsTabViewModel.RegisterLazy(
+		TorSettingsTabViewModel.RegisterLazy(
 			() =>
 			{
 				_settingsPage.SelectedTab = 1;
