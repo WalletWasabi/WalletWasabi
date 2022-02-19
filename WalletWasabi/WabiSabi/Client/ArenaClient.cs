@@ -195,7 +195,7 @@ public class ArenaClient
 		await RequestHandler.SignTransactionAsync(new TransactionSignaturesRequest(roundId, txInput.Index, txInput.WitScript), cancellationToken).ConfigureAwait(false);
 	}
 
-	public async Task<RoundState[]> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
+	public async Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
 	{
 		return await RequestHandler.GetStatusAsync(request, cancellationToken).ConfigureAwait(false);
 	}

@@ -41,12 +41,12 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	#region Members
 
 	/// <summary>
-	/// Coins those are on the input side of the tx and belongs to ANY loaded wallet. Later if more wallets are loaded this list can increase.
+	/// Coins those are on the input side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.
 	/// </summary>
 	public HashSet<SmartCoin> WalletInputs { get; }
 
 	/// <summary>
-	/// Coins those are on the output side of the tx and belongs to ANY loaded wallet. Later if more wallets are loaded this list can increase.
+	/// Coins those are on the output side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.
 	/// </summary>
 	public HashSet<SmartCoin> WalletOutputs { get; }
 
@@ -191,6 +191,10 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		BlockHash = null;
 		BlockIndex = 0;
 	}
+
+	public bool IsOwnCoinjoin()
+	   => WalletInputs.Any() // We must be a participant in order to be this transaction our coinjoin.
+	   && Transaction.Inputs.Count != WalletInputs.Count; // Some inputs must not be ours for it to be a coinjoin.
 
 	#region LineSerialization
 
