@@ -59,6 +59,7 @@ public partial class CoinJoinProfilesViewModel : RoutableViewModel
 	{
 		var selected = SelectedProfile ?? SelectedManualProfile ?? Profiles.First();
 
+		keyManager.AutoCoinJoin = selected.AutoCoinjoin;
 		keyManager.SetAnonScoreTargets(selected.MinAnonScoreTarget, selected.MaxAnonScoreTarget, toFile: false);
 		keyManager.SetFeeRateAverageTimeFrame(selected.FeeRateAverageTimeFrameHours, toFile: false);
 

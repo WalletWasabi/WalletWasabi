@@ -8,9 +8,10 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
-[NavigationMetaData(Title = "Manual CoinJoin Profile")]
+[NavigationMetaData(Title = "Coinjoin Settings")]
 public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<ManualCoinJoinProfile?>
 {
+	[AutoNotify] private bool _autoCoinjoin;
 	[AutoNotify] private string _minAnonScoreTarget;
 	[AutoNotify] private string _maxAnonScoreTarget;
 	[AutoNotify] private TimeFrameItem[] _timeFrames;
@@ -18,6 +19,7 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 
 	public ManualCoinJoinProfileDialogViewModel(CoinJoinProfileViewModelBase current)
 	{
+		_autoCoinjoin = true;
 		_minAnonScoreTarget = current.MinAnonScoreTarget.ToString();
 		_maxAnonScoreTarget = current.MaxAnonScoreTarget.ToString();
 		_timeFrames = new[]
@@ -35,11 +37,12 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 
 		NextCommand = ReactiveCommand.Create(() =>
 		{
+			var auto = AutoCoinjoin;
 			var min = int.Parse(MinAnonScoreTarget);
 			var max = int.Parse(MaxAnonScoreTarget);
 			var hours = (int)Math.Floor(SelectedTimeFrame.TimeFrame.TotalHours);
 
-			Close(DialogResultKind.Normal, new ManualCoinJoinProfile(min, max, hours));
+			Close(DialogResultKind.Normal, new ManualCoinJoinProfile(auto, min, max, hours));
 		});
 
 		this.ValidateProperty(x => x.MinAnonScoreTarget, errors => ValidateInteger(MinAnonScoreTarget, nameof(MinAnonScoreTarget), errors));

@@ -23,13 +23,16 @@
         <RowDefinition />
         <RowDefinition />
         <RowDefinition />
+        <RowDefinition />
       </Grid.RowDefinitions>
-      <TextBlock Grid.Row="0" Grid.Column="0" Text="MinAnonScoreTarget" />
-      <TextBlock Grid.Row="1" Grid.Column="0" Text="MaxAnonScoreTarget" />
-      <TextBlock Grid.Row="2" Grid.Column="0" Text="Average time frame" />
-      <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding MinAnonScoreTarget}" />
-      <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding MaxAnonScoreTarget}" />
-      <ComboBox Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch"
+      <TextBlock Grid.Row="0" Grid.Column="0" Text="Auto Coinjoin" />
+      <TextBlock Grid.Row="1" Grid.Column="0" Text="MinAnonScoreTarget" />
+      <TextBlock Grid.Row="2" Grid.Column="0" Text="MaxAnonScoreTarget" />
+      <TextBlock Grid.Row="3" Grid.Column="0" Text="Average time frame" />
+      <ToggleSwitch Grid.Row="0" Grid.Column="1" IsChecked="{Binding AutoCoinjoin}" />
+      <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding MinAnonScoreTarget}" />
+      <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding MaxAnonScoreTarget}" />
+      <ComboBox Grid.Row="3" Grid.Column="1" HorizontalAlignment="Stretch"
           Items="{Binding TimeFrames}"
           SelectedItem="{Binding SelectedTimeFrame}" />
     </Grid>
