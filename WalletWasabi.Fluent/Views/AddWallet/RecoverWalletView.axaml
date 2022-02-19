@@ -45,7 +45,7 @@
               HorizontalAlignment="Center"
               VerticalAlignment="Bottom"
               Command="{Binding AdvancedRecoveryOptionsDialogCommand}"
-              Content="Advanced Recovery Options..." />
+              Content="Advanced Recovery Options" />
     </DockPanel>
   </c:ContentArea>
 </UserControl>
