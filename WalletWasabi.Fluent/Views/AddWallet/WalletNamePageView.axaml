@@ -16,7 +16,7 @@
                  IsBusy="{Binding IsBusy}"
                  EnableNext="True" NextContent="Continue">
     <StackPanel DockPanel.Dock="Top" Margin="0 20 0 20">
-      <TextBox MaxLength="50" Text="{Binding WalletName}" Watermark="(e.g. My Wallet)">
+      <TextBox MaxLength="50" Text="{Binding WalletName}" Watermark="Type in your wallet name here...">
         <i:Interaction.Behaviors>
           <behaviors:FocusOnAttachedBehavior />
         </i:Interaction.Behaviors>

@@ -31,7 +31,7 @@
                    RestrictInputToSuggestions="True"
                    Items="{Binding Mnemonics}"
                    Suggestions="{Binding Suggestions}"
-                   Watermark="Type in your Recovery Words here..."
+                   Watermark="Type in your recovery words here..."
                    AllowDuplication="True"
                    EnableCounter="True"
                    EnableDelete="False">
