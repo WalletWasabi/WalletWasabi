@@ -43,7 +43,7 @@
                           HorizontalAlignment="Stretch">
               <i:Interaction.Behaviors>
                 <ir:AdaptiveBehavior>
-                  <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="500" ClassName="narrow"/>
+                  <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="500" ClassName="narrow" />
                 </ir:AdaptiveBehavior>
               </i:Interaction.Behaviors>
               <ItemsControl.Styles>
@@ -81,7 +81,7 @@
                     Command="{Binding AboutAdvancedInfoDialogCommand}">
               <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
                 <PathIcon Data="{StaticResource info_regular}" />
-                <TextBlock Text="Advanced Information..." Classes="Hyperlink" />
+                <TextBlock Text="Advanced Information" Classes="Hyperlink" />
               </StackPanel>
             </Button>
             <!-- License -->

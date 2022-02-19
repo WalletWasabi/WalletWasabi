@@ -26,7 +26,7 @@
           <DataTemplate>
             <DockPanel>
               <Label Content="{Binding Index, StringFormat=Recovery word {0}, Mode=OneWay}" DockPanel.Dock="Top" />
-              <TextBox Watermark="Type the word here..." Classes="hasCheckMarkBoolean" validation:CheckMarkStatus.IsEnabled="{Binding IsConfirmed}" Text="{Binding Input}" IsEnabled="{Binding !IsConfirmed}" DockPanel.Dock="Top">
+              <TextBox Watermark="Type in the word" Classes="hasCheckMarkBoolean" validation:CheckMarkStatus.IsEnabled="{Binding IsConfirmed}" Text="{Binding Input}" IsEnabled="{Binding !IsConfirmed}" DockPanel.Dock="Top">
                 <i:Interaction.Behaviors>
                   <behaviors:FocusNextItemBehavior IsFocused="{Binding !IsConfirmed}" />
                 </i:Interaction.Behaviors>
