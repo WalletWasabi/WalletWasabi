@@ -11,7 +11,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
-[NavigationMetaData(Title = "CoinJoin Profiles")]
+[NavigationMetaData(Title = "Wallet Priority")]
 public partial class CoinJoinProfilesViewModel : RoutableViewModel
 {
 	[AutoNotify] private CoinJoinProfileViewModelBase? _selectedProfile;
@@ -21,16 +21,16 @@ public partial class CoinJoinProfilesViewModel : RoutableViewModel
 		NextCommand = ReactiveCommand.Create(() => OnNext(keyManager));
 		EnableBack = true;
 
-		var privateProfile = new PrivateCoinJoinProfile();
+		var speedyProfile = new SpeedyCoinJoinProfile();
 
 		Profiles = new()
 		{
-			privateProfile,
-			new SpeedyCoinJoinProfile(),
-			new EconomyCoinJoinProfile()
+			new EconomyCoinJoinProfile(),
+			speedyProfile,
+			new PrivateCoinJoinProfile()
 		};
 
-		_selectedProfile = privateProfile;
+		_selectedProfile = speedyProfile;
 
 		ManualSetupCommand = ReactiveCommand.CreateFromTask(async () => await OnManualSetupAsync());
 	}

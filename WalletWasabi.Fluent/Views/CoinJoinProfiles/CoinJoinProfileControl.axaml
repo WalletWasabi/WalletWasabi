@@ -13,12 +13,6 @@
     <Viewbox HorizontalAlignment="Center" Height="70">
       <Image Source="{Binding Icon}" />
     </Viewbox>
-    <ItemsControl Items="{Binding Description}" HorizontalAlignment="Center">
-      <ItemsControl.ItemTemplate>
-        <DataTemplate>
-          <TextBlock x:CompileBindings="False" Text="{Binding . , Mode=OneWay, StringFormat={}- {0}}" />
-        </DataTemplate>
-      </ItemsControl.ItemTemplate>
-    </ItemsControl>
+    <TextBlock Text="{Binding Description}" HorizontalAlignment="Center" TextWrapping="Wrap" />
   </StackPanel>
 </UserControl>

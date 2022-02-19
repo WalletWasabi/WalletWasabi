@@ -21,7 +21,7 @@
               Command="{Binding ManualSetupCommand}"
               HorizontalAlignment="Center"
               VerticalAlignment="Bottom"
-              Content="Manual setup" />
+              Content="Customize..." />
 
       <ListBox Items="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}" Background="Transparent">
         <ListBox.Styles>
@@ -84,6 +84,5 @@
         </ListBox.DataTemplates>
       </ListBox>
     </DockPanel>
-
   </c:ContentArea>
 </UserControl>

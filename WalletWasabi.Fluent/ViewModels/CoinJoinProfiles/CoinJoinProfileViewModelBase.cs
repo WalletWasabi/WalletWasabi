@@ -6,7 +6,7 @@ public abstract class CoinJoinProfileViewModelBase : ViewModelBase
 {
 	public abstract string Title { get; }
 
-	public abstract string[] Description { get; }
+	public abstract string Description { get; }
 
 	public abstract IImage Icon { get; }
 
