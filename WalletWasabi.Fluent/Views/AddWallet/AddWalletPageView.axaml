@@ -8,30 +8,39 @@
              x:DataType="vm:AddWalletPageViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.AddWalletPageView">
+  <UserControl.Styles>
+    <Style Selector="c|TileButton.prominent">
+      <Setter Property="Width" Value="470"/>
+      <Setter Property="IconSize" Value="70"/>
+    </Style>
+  </UserControl.Styles>
   <c:ContentArea Title="{Binding Title}"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  IsBusy="{Binding IsBusy}">
-    <WrapPanel Orientation="Horizontal" Margin="0 0 0 20" HorizontalAlignment="Center">
-      <WrapPanel.Styles>
-        <Style Selector="c|TileButton">
-          <Setter Property="Margin" Value="4"/>
-        </Style>
-      </WrapPanel.Styles>
+    <StackPanel VerticalAlignment="Center">
       <c:TileButton Text="Create a new wallet"
-                    Classes="action"
-                    Icon="{StaticResource add_regular}"
-                    Command="{Binding CreateWalletCommand}"
-                    IsDefault="{Binding IsActive}" />
-      <c:TileButton Text="Connect to hardware wallet"
-                    Icon="{StaticResource calculator_regular}"
-                    Command="{Binding ConnectHardwareWalletCommand}" />
-      <c:TileButton Text="Import a wallet"
-                    Icon="{StaticResource import_regular}"
-                    Command="{Binding ImportWalletCommand}" />
-      <c:TileButton Text="Recover a wallet"
-                    Icon="{StaticResource recover_arrow_right_regular}"
-                    Command="{Binding RecoverWalletCommand}" />
-    </WrapPanel>
+                          Classes="action prominent"
+                          Icon="{StaticResource add_regular}"
+                          Command="{Binding CreateWalletCommand}"
+                          IsDefault="{Binding IsActive}"/>
+      <WrapPanel Orientation="Horizontal" Margin="0 10 0 20" HorizontalAlignment="Center">
+        <WrapPanel.Styles>
+          <Style Selector="c|TileButton">
+            <Setter Property="Margin" Value="4"/>
+          </Style>
+        </WrapPanel.Styles>
+
+        <c:TileButton Text="Connect to hardware wallet"
+                      Icon="{StaticResource calculator_regular}"
+                      Command="{Binding ConnectHardwareWalletCommand}" />
+        <c:TileButton Text="Import a wallet"
+                      Icon="{StaticResource import_regular}"
+                      Command="{Binding ImportWalletCommand}" />
+        <c:TileButton Text="Recover a wallet"
+                      Icon="{StaticResource recover_arrow_right_regular}"
+                      Command="{Binding RecoverWalletCommand}" />
+      </WrapPanel>
+    </StackPanel>
   </c:ContentArea>
 </UserControl>
