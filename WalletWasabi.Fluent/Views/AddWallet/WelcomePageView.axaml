@@ -12,14 +12,14 @@
              x:CompileBindings="True">
   <UserControl.KeyBindings>
     <KeyBinding Gesture="Right" Command="{Binding NextCommand}" />
-    <KeyBinding Gesture="Left" Command="{Binding PrevCommand}" />
   </UserControl.KeyBindings>
   <i:Interaction.Behaviors>
     <behaviors:FocusOnAttachedBehavior />
   </i:Interaction.Behaviors>
-  <controls:ContentArea EnableCancel="{Binding EnableCancel}"
-                        EnableBack="{Binding EnableBack}"
-                        EnableNext="False"
+  <controls:ContentArea EnableCancel="False"
+                        EnableBack="False"
+                        EnableNext="True"
+                        NextContent="{Binding NextLabel}"
                         ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel LastChildFill="True" x:DataType="addWallet:WelcomePageViewModel">
 
@@ -89,12 +89,6 @@
               <Setter Property="Width" Value="5" />
             </Style>
           </StackPanel.Styles>
-          <Button Command="{Binding PrevCommand}">
-            <PathIcon Data="{StaticResource chevron_left}" />
-          </Button>
-          <Button Command="{Binding NextCommand}">
-            <PathIcon Data="{StaticResource chevron_right}" />
-          </Button>
         </StackPanel>
       </Panel>
 
@@ -153,9 +147,6 @@
             <TextBlock Classes="text" Text="If you don't control your private keys, then you are not the true owner of your funds. Wasabi is non-custodial: the developers cannot steal or freeze your funds." />
             <TextBlock Text="Non-Custodial"
                        Classes="title" />
-            <Viewbox Classes="icon">
-              <PathIcon Data="{StaticResource shield_regular}" Foreground="{DynamicResource SliderTrackValueFill}" />
-            </Viewbox>
           </DockPanel>
           <Viewbox Grid.Column="1" VerticalAlignment="Center">
             <Image Source="{Binding TrustlessImage}" />
@@ -168,9 +159,6 @@
             <TextBlock Classes="text" Text="Wasabi provides privacy by default, it protects your financial information through coinjoins, client-side block filtering, and communication over the Tor anonymity network. Neither the public nor the developers can breach your privacy." />
             <TextBlock Text="Anonymous"
                        Classes="title" />
-            <Viewbox Classes="icon">
-              <PathIcon Data="{StaticResource incognito_regular}" Foreground="{DynamicResource SliderTrackValueFill}" />
-            </Viewbox>
           </DockPanel>
           <Viewbox Grid.Column="1" VerticalAlignment="Center">
             <Image Source="{Binding AnonymousImage}" />
@@ -183,9 +171,6 @@
             <TextBlock Classes="text" Text="To ensure the code - running on your computer - can indeed protect you from the developers and the public, Wasabi is free, open-source and deterministically reproducible software." />
             <TextBlock Text="Open-Source"
                        Classes="title" />
-            <Viewbox Classes="icon">
-              <PathIcon Data="{StaticResource heart_regular}" Foreground="{DynamicResource SliderTrackValueFill}" />
-            </Viewbox>
           </DockPanel>
           <Viewbox Grid.Column="1" VerticalAlignment="Center">
             <Image Source="{Binding OpensourceImage}" />
@@ -194,12 +179,6 @@
 
         <!-- Get started -->
         <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-          <Button HorizontalAlignment="Center"
-                  Classes="action"
-                  Content="Get Started"
-                  Command="{Binding GetStartedCommand}"
-                  IsDefault="{Binding IsActive}"
-                  DockPanel.Dock="Bottom" />
           <TextBlock TextAlignment="Center"
                      Text="The 1st Rule of Wasabi: Wasabi is for self defense and self defense only"
                      Opacity="0.6"
