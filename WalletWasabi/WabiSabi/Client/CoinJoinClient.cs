@@ -430,7 +430,7 @@ public class CoinJoinClient
 			return true;
 		}
 
-		if (RoundStatusUpdater.CoinJoinFeeRateAverages.TryGetValue(FeeRateAverageTimeFrame, out var averageFeeRate))
+		if (RoundStatusUpdater.CoinJoinFeeRateMedians.TryGetValue(FeeRateAverageTimeFrame, out var averageFeeRate))
 		{
 			// 0.5 satoshi difference is allowable, to avoid rounding errors.
 			return roundFeeRate.SatoshiPerByte <= averageFeeRate.SatoshiPerByte + 0.5m;

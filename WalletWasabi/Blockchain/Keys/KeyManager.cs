@@ -25,7 +25,7 @@ public class KeyManager
 	public const int DefaultMinAnonScoreTarget = 5;
 	public const int DefaultMaxAnonScoreTarget = 10;
 	public const bool DefaultAutoCoinjoin = false;
-	public const int DefaultFeeRateAverageTimeFrameHours = 24;
+	public const int DefaultFeeRateMedianTimeFrameHours = 24;
 
 	public const int AbsoluteMinGapLimit = 21;
 	public const int MaxGapLimit = 10_000;
@@ -162,8 +162,8 @@ public class KeyManager
 	[JsonProperty(Order = 14, PropertyName = "MaxAnonScoreTarget")]
 	public int MaxAnonScoreTarget { get; private set; } = DefaultMaxAnonScoreTarget;
 
-	[JsonProperty(Order = 15, PropertyName = "FeeRateAverageTimeFrameHours")]
-	public int FeeRateAverageTimeFrameHours { get; private set; } = DefaultFeeRateAverageTimeFrameHours;
+	[JsonProperty(Order = 15, PropertyName = "FeeRateMedianTimeFrameHours")]
+	public int FeeRateMedianTimeFrameHours { get; private set; } = DefaultFeeRateMedianTimeFrameHours;
 
 	[JsonProperty(Order = 999)]
 	private List<HdPubKey> HdPubKeys { get; }
@@ -713,14 +713,14 @@ public class KeyManager
 		}
 	}
 
-	public void SetFeeRateAverageTimeFrame(int hours, bool toFile = true)
+	public void SetFeeRateMedianTimeFrame(int hours, bool toFile = true)
 	{
-		if (hours != 0 && !Constants.CoinJoinFeeRateAverageTimeFrames.Contains(hours))
+		if (hours != 0 && !Constants.CoinJoinFeeRateMedianTimeFrames.Contains(hours))
 		{
-			throw new ArgumentOutOfRangeException(nameof(hours), $"Hours can be only on of {string.Join(",", Constants.CoinJoinFeeRateAverageTimeFrames)}.");
+			throw new ArgumentOutOfRangeException(nameof(hours), $"Hours can be only on of {string.Join(",", Constants.CoinJoinFeeRateMedianTimeFrames)}.");
 		}
 
-		FeeRateAverageTimeFrameHours = hours;
+		FeeRateMedianTimeFrameHours = hours;
 		if (toFile)
 		{
 			ToFile();

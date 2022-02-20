@@ -25,9 +25,9 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 		_timeFrames = new[]
 		{
 			new TimeFrameItem("None", TimeSpan.Zero),
-			new TimeFrameItem("Daily", TimeSpan.FromHours(Constants.CoinJoinFeeRateAverageTimeFrames[0])),
-			new TimeFrameItem("Weekly", TimeSpan.FromHours(Constants.CoinJoinFeeRateAverageTimeFrames[1])),
-			new TimeFrameItem("Monthly", TimeSpan.FromHours(Constants.CoinJoinFeeRateAverageTimeFrames[2]))
+			new TimeFrameItem("Daily", TimeSpan.FromHours(Constants.CoinJoinFeeRateMedianTimeFrames[0])),
+			new TimeFrameItem("Weekly", TimeSpan.FromHours(Constants.CoinJoinFeeRateMedianTimeFrames[1])),
+			new TimeFrameItem("Monthly", TimeSpan.FromHours(Constants.CoinJoinFeeRateMedianTimeFrames[2]))
 		};
 
 		_selectedTimeFrame = _timeFrames.FirstOrDefault(tf => tf.TimeFrame == TimeSpan.FromHours(current.FeeRateAverageTimeFrameHours)) ?? _timeFrames.First();

@@ -27,13 +27,13 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 	{
 	}
 
-	private static TimeSpan[] TimeFrames { get; } = Constants.CoinJoinFeeRateAverageTimeFrames.Select(tf => TimeSpan.FromHours(tf)).ToArray();
+	private static TimeSpan[] TimeFrames { get; } = Constants.CoinJoinFeeRateMedianTimeFrames.Select(tf => TimeSpan.FromHours(tf)).ToArray();
 
 	private static TimeSpan MaximumTimeToStore { get; } = TimeFrames.Max();
 
 	private List<CoinJoinFeeRateStat> CoinJoinFeeRateStats { get; }
 
-	private CoinJoinFeeRateAverage[] DefaultAverages { get; set; } = Array.Empty<CoinJoinFeeRateAverage>();
+	private CoinJoinFeeRateMedian[] DefaultMedians { get; set; } = Array.Empty<CoinJoinFeeRateMedian>();
 
 	private WabiSabiConfig Config { get; }
 	private IRPCClient Rpc { get; }
@@ -53,7 +53,7 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 	{
 		CoinJoinFeeRateStats.Add(feeRateStat);
 
-		DefaultAverages = TimeFrames.Select(t => new CoinJoinFeeRateAverage(t, GetAverage(t))).ToArray();
+		DefaultMedians = TimeFrames.Select(t => new CoinJoinFeeRateMedian(t, GetMedian(t))).ToArray();
 
 		// Prune old items.
 		DateTimeOffset removeBefore = DateTimeOffset.UtcNow - MaximumTimeToStore;
@@ -63,18 +63,28 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 		}
 	}
 
-	private FeeRate GetAverage(TimeSpan timeFrame)
+	private FeeRate GetMedian(TimeSpan timeFrame)
 	{
 		var from = DateTimeOffset.UtcNow - timeFrame;
-		return new FeeRate(CoinJoinFeeRateStats.Where(x => x.DateTimeOffset >= from).Average(x => x.FeeRate.SatoshiPerByte));
+		var feeRates = CoinJoinFeeRateStats
+			.Where(x => x.DateTimeOffset >= from)
+			.OrderByDescending(x => x.FeeRate.SatoshiPerByte)
+			.ToArray();
+
+		// If the median is even, then it's the average of the middle two numbers.
+		FeeRate med = feeRates.Length % 2 == 0
+			? new FeeRate((feeRates[feeRates.Length / 2].FeeRate.SatoshiPerByte + feeRates[(feeRates.Length / 2) + 1].FeeRate.SatoshiPerByte) / 2)
+			: feeRates[feeRates.Length / 2].FeeRate;
+
+		return med;
 	}
 
 	/// <summary>
-	/// The avegares are calculated periodically in every <see cref="PeriodicRunner.Period"/> time span.
+	/// The medians are calculated periodically in every <see cref="PeriodicRunner.Period"/> time span.
 	/// </summary>
-	public CoinJoinFeeRateAverage[] GetDefaultAverages()
+	public CoinJoinFeeRateMedian[] GetDefaultMedians()
 	{
-		return DefaultAverages;
+		return DefaultMedians;
 	}
 
 	public static CoinJoinFeeRateStatStore LoadFromFile(string filePath, WabiSabiConfig config, IRPCClient rpc)

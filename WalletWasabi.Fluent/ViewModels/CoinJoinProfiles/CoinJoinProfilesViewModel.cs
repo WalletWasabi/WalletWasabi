@@ -61,7 +61,7 @@ public partial class CoinJoinProfilesViewModel : RoutableViewModel
 
 		keyManager.AutoCoinJoin = selected.AutoCoinjoin;
 		keyManager.SetAnonScoreTargets(selected.MinAnonScoreTarget, selected.MaxAnonScoreTarget, toFile: false);
-		keyManager.SetFeeRateAverageTimeFrame(selected.FeeRateAverageTimeFrameHours, toFile: false);
+		keyManager.SetFeeRateMedianTimeFrame(selected.FeeRateAverageTimeFrameHours, toFile: false);
 
 		Navigate().To(new AddedWalletPageViewModel(keyManager));
 	}
