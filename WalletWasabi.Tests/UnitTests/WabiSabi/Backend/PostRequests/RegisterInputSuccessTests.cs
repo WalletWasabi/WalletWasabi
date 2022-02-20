@@ -125,4 +125,25 @@ public class RegisterInputSuccessTests
 
 		await arena.StopAsync(CancellationToken.None);
 	}
+
+	[Fact]
+	public async Task TaprootSuccessAsync()
+	{
+		WabiSabiConfig cfg = new() { AllowP2trInputs = true };
+		var round = WabiSabiFactory.CreateRound(cfg);
+
+		using Key key = new();
+		var coin = WabiSabiFactory.CreateCoin(key, scriptPubKeyType: ScriptPubKeyType.TaprootBIP86);
+		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);
+		using Arena arena = await ArenaBuilder.From(cfg).With(rpc).CreateAndStartAsync(round);
+
+		var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
+		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
+		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id, ScriptPubKeyType.TaprootBIP86);
+
+		var (resp, _) = await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None);
+		AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);
+
+		await arena.StopAsync(CancellationToken.None);
+	}
 }

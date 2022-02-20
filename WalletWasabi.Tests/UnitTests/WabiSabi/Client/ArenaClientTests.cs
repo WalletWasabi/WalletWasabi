@@ -37,6 +37,12 @@ public class ArenaClientTests
 	}
 
 	[Fact]
+	public async Task FullP2trCoinjoinTestAsync()
+	{
+		await TestFullCoinjoinAsync(ScriptPubKeyType.TaprootBIP86, Constants.P2trInputVirtualSize);
+	}
+
+	[Fact]
 	public async Task RemoveInputAsyncTestAsync()
 	{
 		var config = new WabiSabiConfig();
@@ -138,7 +144,7 @@ public class ArenaClientTests
 
 	private async Task TestFullCoinjoinAsync(ScriptPubKeyType scriptPubKeyType, int inputVirtualSize)
 	{
-		var config = new WabiSabiConfig { MaxInputCountByRound = 1 };
+		var config = new WabiSabiConfig { MaxInputCountByRound = 1, AllowP2trInputs = true, AllowP2trOutputs = true };
 		var round = WabiSabiFactory.CreateRound(WabiSabiFactory.CreateRoundParameters(config));
 		using var key = new Key();
 		var outpoint = BitcoinFactory.CreateOutPoint();
