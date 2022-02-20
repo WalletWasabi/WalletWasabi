@@ -10,7 +10,7 @@
              x:Class="WalletWasabi.Fluent.Views.AddWallet.AddWalletPageView">
   <UserControl.Styles>
     <Style Selector="c|TileButton.prominent">
-      <Setter Property="Width" Value="470"/>
+      <Setter Property="Width" Value="225"/>
       <Setter Property="IconSize" Value="70"/>
     </Style>
   </UserControl.Styles>
@@ -33,14 +33,15 @@
 
         <c:TileButton Text="Connect to hardware wallet"
                       Icon="{StaticResource calculator_regular}"
-                      Command="{Binding ConnectHardwareWalletCommand}" />
+                      Command="{Binding ConnectHardwareWalletCommand}"/>
         <c:TileButton Text="Import a wallet"
                       Icon="{StaticResource import_regular}"
-                      Command="{Binding ImportWalletCommand}" />
+                      Command="{Binding ImportWalletCommand}"/>
         <c:TileButton Text="Recover a wallet"
                       Icon="{StaticResource recover_arrow_right_regular}"
-                      Command="{Binding RecoverWalletCommand}" />
+                      Command="{Binding RecoverWalletCommand}"/>
       </WrapPanel>
     </StackPanel>
   </c:ContentArea>
 </UserControl>
+
