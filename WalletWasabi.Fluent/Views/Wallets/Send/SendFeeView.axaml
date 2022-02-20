@@ -105,7 +105,7 @@
       <Setter Property="XAxisTitleForeground" Value="{DynamicResource TextForegroundColor}" />
       <Setter Property="XAxisTitleOpacity" Value="0.5" />
       <Setter Property="XAxisTitleAngle" Value="0" />
-      <Setter Property="XAxisTitleOffset" Value="0,0" />
+      <Setter Property="XAxisTitleOffset" Value="0,10" />
       <Setter Property="XAxisTitleSize" Value="90,20" />
       <Setter Property="XAxisTitleAlignment" Value="Center" />
       <Setter Property="XAxisTitleFontFamily" Value="Arial" />
@@ -147,7 +147,7 @@
         <GridLength x:Key="SliderPostContentMargin">0</GridLength>
       </DockPanel.Resources>
       <Slider x:Name="CursorValue2"
-              Margin="38,2,18,0"
+              Margin="38,12,18,0"
               KeyboardNavigation.IsTabStop="False"
               DockPanel.Dock="Bottom"
               Classes="cursor"
@@ -194,6 +194,7 @@
             <Setter Property="AreaMinViableHeight" Value="20"/>
             <Setter Property="Focusable" Value="True"/>
             <Setter Property="YAxisTitle" Value="Fee Rate (sat/vByte)"/>
+            <Setter Property="XAxisTitle" Value="Estimated Confirmation Time"/>
           </Style>
           <Style Selector="c|LineChart.narrow">
             <Setter Property="AreaMargin" Value="30,0,10,45"/>
