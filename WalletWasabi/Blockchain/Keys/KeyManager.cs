@@ -25,7 +25,7 @@ public class KeyManager
 {
 	public const int DefaultMinAnonScoreTarget = 5;
 	public const int DefaultMaxAnonScoreTarget = 10;
-	public const bool DefaultAutoCoinjoin = true;
+	public const bool DefaultAutoCoinjoin = false;
 
 	public const int AbsoluteMinGapLimit = 21;
 	public const int MaxGapLimit = 10_000;
@@ -147,7 +147,7 @@ public class KeyManager
 	public bool AutoCoinJoin { get; set; } = DefaultAutoCoinjoin;
 
 	/// <summary>
-	/// Won't coinjoin automatically if there are less than this much non-private coins are in the wallet.
+	/// Won't coinjoin automatically if there are less than this much non-private coins in the wallet.
 	/// </summary>
 	[JsonProperty(Order = 11, PropertyName = "PlebStopThreshold")]
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]

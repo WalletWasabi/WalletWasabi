@@ -41,7 +41,7 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 		_hideOnClose = Services.UiConfig.HideOnClose;
 		_selectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), Services.UiConfig.FeeDisplayFormat)
 			? (FeeDisplayFormat)Services.UiConfig.FeeDisplayFormat
-			: FeeDisplayFormat.SatoshiPerByte;
+			: FeeDisplayFormat.Satoshis;
 
 		this.WhenAnyValue(x => x.DarkModeEnabled)
 			.Skip(1)

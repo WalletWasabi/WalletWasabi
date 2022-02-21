@@ -24,8 +24,10 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class AboutViewModel : RoutableViewModel
 {
-	public AboutViewModel()
+	public AboutViewModel(bool navigateBack = false)
 	{
+		EnableBack = navigateBack;
+
 		Links = new List<ViewModelBase>()
 			{
 				new LinkViewModel()

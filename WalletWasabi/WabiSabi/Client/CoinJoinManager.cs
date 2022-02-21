@@ -120,7 +120,7 @@ public class CoinJoinManager : BackgroundService
 					if (success)
 					{
 						CoinRefrigerator.Freeze(finishedCoinJoin.CoinCandidates);
-						Logger.LogInfo($"{logPrefix} finished successfully!");
+						Logger.LogInfo($"{logPrefix} finished!");
 					}
 					else
 					{
@@ -212,5 +212,14 @@ public class CoinJoinManager : BackgroundService
 		}
 
 		return true;
+	}
+
+	public DateTimeOffset WhenWalletCanStartAutoCoinJoin(Wallet wallet)
+	{
+		if (wallet.State < WalletState.Started)
+		{
+			throw new InvalidOperationException("Wallet is not started yet.");
+		}
+		return wallet.StartupTime + AutoCoinJoinDelayAfterWalletLoaded;
 	}
 }

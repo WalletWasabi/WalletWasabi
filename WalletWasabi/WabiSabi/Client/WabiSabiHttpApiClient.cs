@@ -55,8 +55,8 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 	public virtual Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<TransactionSignaturesRequest>(RemoteAction.SignTransaction, request, cancellationToken);
 
-	public Task<RoundState[]> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<RoundStateRequest, RoundState[]>(RemoteAction.GetStatus, request, cancellationToken);
+	public Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken) =>
+		SendAndReceiveAsync<RoundStateRequest, RoundStateResponse>(RemoteAction.GetStatus, request, cancellationToken);
 
 	public Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<ReadyToSignRequestRequest>(RemoteAction.ReadyToSign, request, cancellationToken);

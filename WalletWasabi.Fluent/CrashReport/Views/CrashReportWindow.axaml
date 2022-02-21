@@ -5,7 +5,6 @@
         x:Class="WalletWasabi.Fluent.CrashReport.Views.CrashReportWindow"
         Width="640" Height="480"
         MinWidth="640" MinHeight="480"
-        MaxWidth="640" MaxHeight="480"
         Title="{Binding Title}"
         WindowStartupLocation="CenterScreen"
         ExtendClientAreaToDecorationsHint="True"
@@ -39,7 +38,7 @@
                                        Command="{Binding CopyTraceCommand}"
                                        NormalIcon="{StaticResource copy_regular}"
                                        ClickIcon="{StaticResource copy_confirmed}"
-                                       InitialOpacity="1.0"/>
+                                       InitialOpacity="1.0" />
               <TextBlock Text="to copy the above text and post an issue tracker on our" />
               <Button Margin="5 0" Classes="activeHyperLink" Content="GitHub repo here"
                       Command="{Binding OpenGitHubRepoCommand}" />

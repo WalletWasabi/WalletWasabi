@@ -196,7 +196,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			amount = x.Amount.Satoshi,
 			label = x.Label,
 			tx = x.TransactionId,
-			islikelycoinjoin = x.IsLikelyCoinJoinOutput
+			islikelycoinjoin = x.IsOwnCoinjoin
 		}).ToArray();
 	}
 

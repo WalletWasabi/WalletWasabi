@@ -108,7 +108,7 @@ public class TransactionProcessorTests
 		var res3 = results[2];
 		var res4 = results[3];
 
-		Assert.False(res1.IsLikelyOwnCoinJoin);
+		Assert.False(res1.IsOwnCoinJoin);
 		Assert.Empty(res1.NewlyConfirmedReceivedCoins);
 		Assert.Empty(res1.NewlyConfirmedSpentCoins);
 		Assert.Single(res1.NewlyReceivedCoins);
@@ -122,7 +122,7 @@ public class TransactionProcessorTests
 		Assert.True(res1.IsNews);
 		Assert.NotNull(res1.Transaction);
 
-		Assert.False(res2.IsLikelyOwnCoinJoin);
+		Assert.False(res2.IsOwnCoinJoin);
 		Assert.Single(res2.NewlyConfirmedReceivedCoins);
 		Assert.Empty(res2.NewlyConfirmedSpentCoins);
 		Assert.Empty(res2.NewlyReceivedCoins);
@@ -136,7 +136,7 @@ public class TransactionProcessorTests
 		Assert.True(res2.IsNews);
 		Assert.NotNull(res2.Transaction);
 
-		Assert.False(res3.IsLikelyOwnCoinJoin);
+		Assert.False(res3.IsOwnCoinJoin);
 		Assert.Empty(res3.NewlyConfirmedReceivedCoins);
 		Assert.Empty(res3.NewlyConfirmedSpentCoins);
 		Assert.Empty(res3.NewlyReceivedCoins);
@@ -150,7 +150,7 @@ public class TransactionProcessorTests
 		Assert.True(res3.IsNews);
 		Assert.NotNull(res3.Transaction);
 
-		Assert.False(res4.IsLikelyOwnCoinJoin);
+		Assert.False(res4.IsOwnCoinJoin);
 		Assert.Empty(res4.NewlyConfirmedReceivedCoins);
 		Assert.Single(res4.NewlyConfirmedSpentCoins);
 		Assert.Empty(res4.NewlyReceivedCoins);
