@@ -1,4 +1,5 @@
 using System.Reactive;
+using System.Reactive.Linq;
 using Avalonia.Media.Imaging;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
@@ -13,19 +14,33 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 	private readonly AddWalletPageViewModel _addWalletPage;
 	[AutoNotify] private int _selectedIndex;
 	[AutoNotify] private string? _nextLabel;
+	[AutoNotify] private bool _enableNextKey = true;
 
 	public WelcomePageViewModel(AddWalletPageViewModel addWalletPage)
 	{
 		_addWalletPage = addWalletPage;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
-		EnableBack = false;
 		
 		SelectedIndex = 0;
 		NextCommand = ReactiveCommand.Create(OnNext);
-
+		BackCommand = ReactiveCommand.Create(OnBack, this.WhenAnyValue(x => x.SelectedIndex).Select(x => x > 0));
 		this.WhenAnyValue(x => x.SelectedIndex)
-			.Subscribe(x => NextLabel = x < NumberOfPages - 1 ? "Continue" : "Get Started");
+			.Subscribe(x =>
+			{
+				NextLabel = x < NumberOfPages - 1 ? "Continue" : "Get Started";
+				EnableBack = x > 0;
+				EnableNextKey = x < NumberOfPages - 1;
+			});
+
+		this.WhenAnyValue(x => x.IsActive)
+			.Skip(1)
+			.Where(x => !x)
+			.Subscribe(x =>
+			{
+				EnableNextKey = false;
+				EnableBack = false;
+			});
 	}
 
 	public Bitmap WelcomeImage { get; } = AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WelcomeScreen/{ThemeHelper.CurrentTheme}/welcome.png");
@@ -49,6 +64,14 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 		else
 		{
 			Close();
+		}
+	}
+
+	private void OnBack()
+	{
+		if (SelectedIndex > 0)
+		{
+			SelectedIndex--;
 		}
 	}
 }
