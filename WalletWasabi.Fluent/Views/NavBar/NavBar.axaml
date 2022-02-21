@@ -93,13 +93,9 @@
     </Style>
   </UserControl.Styles>
   <DockPanel Margin="0 0 0 4">
-    <StackPanel DockPanel.Dock="Top" Spacing="5" Background="Transparent">
-      <Panel Height="30" Background="#01FFFFFF">
-        <i:Interaction.Behaviors>
-          <behaviors:DragWindowBehavior/>
-        </i:Interaction.Behaviors>
-      </Panel>
-      <Border Padding="12 12 12 5" Margin="0,-3 ,0,4">
+    <StackPanel DockPanel.Dock="Top" Spacing="5">
+      <Panel Height="30" IsHitTestVisible="False"/>
+      <Border Padding="12 12 12 5" Margin="0,-3 ,0,4" Background="Transparent">
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
           <Panel Margin="13,0,0,0" VerticalAlignment="Center">
             <Panel.Styles>
