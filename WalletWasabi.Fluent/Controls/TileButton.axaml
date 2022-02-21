@@ -52,6 +52,7 @@
     <Setter Property="BorderThickness" Value="0" />
     <Setter Property="Background" Value="{DynamicResource TileRegionColor}" />
     <Setter Property="BorderBrush" Value="{DynamicResource OptionButtonBorderBrush}" />
+    <Setter Property="Cursor" Value="Hand"/>
   </Style>
 
   <!-- Pointerover -->
