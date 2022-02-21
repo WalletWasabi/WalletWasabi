@@ -85,7 +85,7 @@ public static class ChangelessTransactionCoinSelector
 		}
 		catch (OperationCanceledException)
 		{
-			Logger.LogWarning("Computing privacy suggestions was cancelled or timed out.");
+			Logger.LogInfo("Computing privacy suggestions was cancelled or timed out.");
 		}
 
 		// If we've not found an optimal solution then we will use the best.
