@@ -5,7 +5,7 @@ namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
 internal class SpeedyCoinJoinProfile : CoinJoinProfileViewModelBase
 {
-	public override string Title => "Maximize Speed";
+	public override string Title => "Maximize Convenience";
 
 	public override string Description => "Getting things done. Geared toward speed and convenience.";
 
