@@ -21,6 +21,7 @@
                         EnableNext="True"
                         NextContent="{Binding NextLabel}"
                         ScrollViewer.VerticalScrollBarVisibility="Disabled">
+
     <DockPanel LastChildFill="True" x:DataType="addWallet:WelcomePageViewModel">
 
       <!-- Indicator & Buttons -->
@@ -128,13 +129,13 @@
 
         <!-- Welcome to Wasabi -->
         <Grid ColumnDefinitions="*,*">
+          <Viewbox Classes="icon" HorizontalAlignment="Left" VerticalAlignment="Top" Height="48" Width="48">
+            <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
+          </Viewbox>
           <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
             <TextBlock Classes="text" Text="Satoshi brought scarcity, while Wasabi is bringing fungibility. As inflation is running rampant, vigilant individuals are opting out. Bitcoin is rapidly becoming the world's reserve currency, but its fungibility - a property of good money - is still unsatisfactory. Wasabi Wallet is a bastion of hope in the quest to qualitatively improve the money of the future." />
             <TextBlock Text="Welcome to Wasabi"
                        Classes="title" />
-            <Viewbox Classes="icon">
-              <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
-            </Viewbox>
           </DockPanel>
           <Viewbox Grid.Column="1" VerticalAlignment="Center">
             <Image Source="{Binding WelcomeImage}" />
@@ -143,6 +144,9 @@
 
         <!-- Trustless by design -->
         <Grid ColumnDefinitions="*,*">
+          <Viewbox Classes="icon" HorizontalAlignment="Left" VerticalAlignment="Top" Height="48" Width="48">
+            <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
+          </Viewbox>
           <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
             <TextBlock Classes="text" Text="If you don't control your private keys, then you are not the true owner of your funds. Wasabi is non-custodial: the developers cannot steal or freeze your funds." />
             <TextBlock Text="Non-Custodial"
@@ -155,6 +159,9 @@
 
         <!-- Anonymous -->
         <Grid ColumnDefinitions="*,*">
+          <Viewbox Classes="icon" HorizontalAlignment="Left" VerticalAlignment="Top" Height="48" Width="48">
+            <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
+          </Viewbox>
           <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
             <TextBlock Classes="text" Text="Wasabi provides privacy by default, it protects your financial information through coinjoins, client-side block filtering, and communication over the Tor anonymity network. Neither the public nor the developers can breach your privacy." />
             <TextBlock Text="Anonymous"
@@ -167,6 +174,9 @@
 
         <!-- Free and Open Source -->
         <Grid ColumnDefinitions="*,*">
+          <Viewbox Classes="icon" HorizontalAlignment="Left" VerticalAlignment="Top" Height="48" Width="48">
+            <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
+          </Viewbox>
           <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
             <TextBlock Classes="text" Text="To ensure the code - running on your computer - can indeed protect you from the developers and the public, Wasabi is free, open-source and deterministically reproducible software." />
             <TextBlock Text="Open-Source"
