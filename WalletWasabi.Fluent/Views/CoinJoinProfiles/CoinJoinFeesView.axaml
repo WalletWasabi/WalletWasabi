@@ -15,8 +15,11 @@
                  EnableBack="{Binding EnableBack}"
                  NextContent="Continue" EnableNext="True"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <DockPanel>
-      <TextBlock Text="Wasabi takes care of your financial privacy by automatically coinjoining all your received funds by default. A 0.3% coordinator fee is charged on your receiving amount when you take part in the first coinjoin. You pay only after received amounts, coinjoining the same funds repeatedly DOES NOT incur additional coordinator fees. Amounts under 0.01 BTC DO NOT have to pay either. Furthermore, coordinator fees DO NOT apply if you receive coinjoined funds from other Wasabi Wallet users. Other than this, Bitcoin network fees incur after coinjoins. Note: the more money you're planning to receive, the least significant the network fees are for you." TextWrapping="Wrap" />
-    </DockPanel>
+    <StackPanel Orientation="Vertical">
+      <TextBlock Text="Wasabi takes care of your financial privacy by automatically coinjoining all your received funds by default." TextWrapping="Wrap" />
+      <TextBlock Text="A 0.3% coordinator fee is charged on your receiving amount when you take part in the first coinjoin. You pay only after received amounts, coinjoining the same funds repeatedly DOES NOT incur additional coordinator fees." TextWrapping="Wrap" />
+      <TextBlock Text="Amounts under 0.01 BTC DO NOT have to pay either. " TextWrapping="Wrap" />
+      <TextBlock Text="Furthermore, coordinator fees DO NOT apply if you receive coinjoined funds from other Wasabi Wallet users." TextWrapping="Wrap" />
+    </StackPanel>
   </c:ContentArea>
 </UserControl>
