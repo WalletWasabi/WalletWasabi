@@ -63,6 +63,7 @@ public class Round
 	public int RemainingInputVsizeAllocation => InitialInputVsizeAllocation - (InputCount * MaxVsizeAllocationPerAlice);
 
 	protected RoundParameters RoundParameters { get; }
+	public Script CoordinatorScript { get; set; }
 
 	public TState Assert<TState>() where TState : MultipartyTransactionState =>
 		CoinjoinState switch
