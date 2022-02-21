@@ -66,21 +66,9 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 		if (_isSilent)
 		{
-			var safeToUsePockets = LabelSelection.GetSafeToUsePockets();
+			var autoSelectedPockets = LabelSelection.AutoSelectPockets();
 
-			if (safeToUsePockets.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText) is { } privatePocket &&
-			    privatePocket.Amount >= _transactionInfo.Amount)
-			{
-				Complete(safeToUsePockets.Where(x => x.Labels == CoinPocketHelper.PrivateFundsText));
-			}
-			else if (safeToUsePockets.Where(x => x.Labels != CoinPocketHelper.PrivateFundsText).Sum(x => x.Amount) >= _transactionInfo.Amount)
-			{
-				Complete(safeToUsePockets.Where(x => x.Labels != CoinPocketHelper.PrivateFundsText));
-			}
-			else
-			{
-				Complete(safeToUsePockets);
-			}
+			Complete(autoSelectedPockets);
 		}
 	}
 }

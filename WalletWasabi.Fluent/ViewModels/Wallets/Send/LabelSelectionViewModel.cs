@@ -23,7 +23,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		_targetAmount = targetAmount;
 	}
 
-	public Pocket[] AllPockets { get; set; } = Array.Empty<Pocket>();
+	public Pocket[] NonPrivatePockets { get; set; } = Array.Empty<Pocket>();
 
 	public IEnumerable<LabelViewModel> AllLabelsViewModel { get; set; } = Array.Empty<LabelViewModel>();
 
@@ -31,29 +31,37 @@ public partial class LabelSelectionViewModel : ViewModelBase
 
 	public IEnumerable<LabelViewModel> LabelsBlackList => AllLabelsViewModel.Where(x => x.IsBlackListed);
 
-	public Pocket[] GetSafeToUsePockets()
+	public Pocket[] AutoSelectPockets()
 	{
-		var pockets = AllPockets.ToList();
+		var knownPockets = NonPrivatePockets.Where(x => x.Labels != CoinPocketHelper.UnlabelledFundsText).ToArray();
+		var allPockets = NonPrivatePockets.ToList();
 
 		if (_privatePocket is { } privatePocket)
 		{
-			pockets.Add(privatePocket);
+			allPockets.Add(privatePocket);
 		}
 
-		var unlabelledPocket = pockets.FirstOrDefault(x => x.Labels == CoinPocketHelper.UnlabelledFundsText);
-
-		if (unlabelledPocket is { } && pockets.Where(x => x != unlabelledPocket).Sum(x => x.Amount) >= _targetAmount)
+		if (_privatePocket is { } && _privatePocket.Amount >= _targetAmount)
 		{
-			var copyPocketArray = pockets.Where(x => x != unlabelledPocket).ToArray();
-			return copyPocketArray;
+			return new[] { _privatePocket };
 		}
 
-		return pockets.ToArray();
+		if (knownPockets.Sum(x => x.Amount) >= _targetAmount)
+		{
+			return knownPockets;
+		}
+
+		if (NonPrivatePockets.Sum(x => x.Amount) >= _targetAmount)
+		{
+			return NonPrivatePockets;
+		}
+
+		return allPockets.ToArray();
 	}
 
 	public Pocket[] GetUsedPockets()
 	{
-		var pocketsToReturn = AllPockets.Where(x => x.Labels.All(label => LabelsWhiteList.Any(labelViewModel => labelViewModel.Value == label))).ToList();
+		var pocketsToReturn = NonPrivatePockets.Where(x => x.Labels.All(label => LabelsWhiteList.Any(labelViewModel => labelViewModel.Value == label))).ToList();
 
 		if (_includePrivatePocket && _privatePocket is { } privatePocket)
 		{
@@ -67,9 +75,9 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	{
 		_privatePocket = pockets.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText);
 
-		AllPockets = pockets.Where(x => x != _privatePocket).ToArray();
+		NonPrivatePockets = pockets.Where(x => x != _privatePocket).ToArray();
 
-		var allLabels = SmartLabel.Merge(AllPockets.Select(x => x.Labels));
+		var allLabels = SmartLabel.Merge(NonPrivatePockets.Select(x => x.Labels));
 		AllLabelsViewModel = allLabels.Select(x => new LabelViewModel(this, x)).ToArray();
 
 		if (AllLabelsViewModel.FirstOrDefault(x => x.Value == CoinPocketHelper.UnlabelledFundsText) is { } unlabelledViewModel)
@@ -85,13 +93,13 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	{
 		if (labelViewModel.IsBlackListed)
 		{
-			var associatedPocketLabels = AllPockets.OrderBy(x => x.Labels.Count()).First(x => x.Labels.Contains(labelViewModel.Value)).Labels;
+			var associatedPocketLabels = NonPrivatePockets.OrderBy(x => x.Labels.Count()).First(x => x.Labels.Contains(labelViewModel.Value)).Labels;
 			return LabelsBlackList.Where(x => associatedPocketLabels.Contains(x.Value)).ToArray();
 		}
 		else
 		{
-			var associatedPockets = AllPockets.Where(x => x.Labels.Contains(labelViewModel.Value));
-			var notAssociatedPockets = AllPockets.Except(associatedPockets);
+			var associatedPockets = NonPrivatePockets.Where(x => x.Labels.Contains(labelViewModel.Value));
+			var notAssociatedPockets = NonPrivatePockets.Except(associatedPockets);
 			var allNotAssociatedLabels = SmartLabel.Merge(notAssociatedPockets.Select(x => x.Labels));
 			return LabelsWhiteList.Where(x => !allNotAssociatedLabels.Contains(x.Value)).ToArray();
 		}
@@ -133,7 +141,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	private void OnSelectionChanged()
 	{
 		Money sumOfWhiteList =
-			AllPockets
+			NonPrivatePockets
 				.Where(pocket => pocket.Labels.All(pocketLabel => LabelsWhiteList.Any(labelViewModel => pocketLabel == labelViewModel.Value)))
 				.Sum(x => x.Amount);
 
@@ -169,8 +177,8 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			return;
 		}
 
-		var usedPockets = AllPockets.Where(pocket => pocket.Coins.Any(usedCoins.Contains)).ToArray();
-		var notUsedPockets = AllPockets.Except(usedPockets);
+		var usedPockets = NonPrivatePockets.Where(pocket => pocket.Coins.Any(usedCoins.Contains)).ToArray();
+		var notUsedPockets = NonPrivatePockets.Except(usedPockets);
 		var notUsedPocketsLabels = SmartLabel.Merge(notUsedPockets.Select(x => x.Labels));
 		var notUsedLabelViewModels = AllLabelsViewModel.Where(x => notUsedPocketsLabels.Contains(x.Value)).ToArray();
 
