@@ -73,7 +73,7 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 
 		// If the median is even, then it's the average of the middle two numbers.
 		FeeRate med = feeRates.Length % 2 == 0
-			? new FeeRate((feeRates[feeRates.Length / 2].FeeRate.SatoshiPerByte + feeRates[(feeRates.Length / 2) + 1].FeeRate.SatoshiPerByte) / 2)
+			? new FeeRate((feeRates[feeRates.Length / 2].FeeRate.SatoshiPerByte + feeRates[(feeRates.Length / 2) - 1].FeeRate.SatoshiPerByte) / 2)
 			: feeRates[feeRates.Length / 2].FeeRate;
 
 		return med;
