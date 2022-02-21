@@ -424,9 +424,7 @@ public partial class Arena : PeriodicRunner
 		var coordinatorScriptPubKey = Config.GetNextCleanCoordinatorScript();
 
 		// Prevent coord script reuse.
-		if (Rounds.Any(r =>
-			r.Phase is Phase.TransactionSigning &&
-			r.Assert<SigningState>().Outputs.Any(o => o.ScriptPubKey == coordinatorScriptPubKey)))
+		if (Rounds.Any(r => r.CoordinatorScript == coordinatorScriptPubKey))
 		{
 			Config.MakeNextCoordinatorScriptDirty();
 			coordinatorScriptPubKey = Config.GetNextCleanCoordinatorScript();
