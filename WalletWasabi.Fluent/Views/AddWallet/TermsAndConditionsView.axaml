@@ -11,7 +11,7 @@
              x:DataType="vm:TermsAndConditionsViewModel"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.TermsAndConditionsView">
   <c:ContentArea Title="{Binding Title}"
-                 Caption="To continue using Wasabi please accept the terms and conditions"
+                 Caption="To continue using Wasabi, Please accept the terms and conditions"
                  EnableNext="True" NextContent="Continue" FocusNext="True"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
         <DockPanel>
