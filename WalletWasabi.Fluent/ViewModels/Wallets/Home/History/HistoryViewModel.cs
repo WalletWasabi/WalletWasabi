@@ -107,7 +107,15 @@ public partial class HistoryViewModel : ActivatableViewModel
 					{
 						if (_transactions.FirstOrDefault(x => x.Id == newItem.Id) is { } item)
 						{
-							item.Update(newItem);
+							if (item.GetType() != newItem.GetType())
+							{
+								x.Remove(item);
+								x.Add(newItem);
+							}
+							else
+							{
+								item.Update(newItem);
+							}
 						}
 						else
 						{
