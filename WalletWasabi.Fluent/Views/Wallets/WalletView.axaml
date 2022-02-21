@@ -33,7 +33,7 @@
               </StackPanel>
             </Button>
             <Button Classes="function"
-                    IsVisible="{Binding !IsWalletBalanceZero}"
+                    IsVisible="{Binding IsSendButtonVisible}"
                     Command="{Binding SendCommand}">
               <StackPanel Orientation="Horizontal" Spacing="15">
                 <PathIcon Data="{StaticResource wallet_action_send}" />
