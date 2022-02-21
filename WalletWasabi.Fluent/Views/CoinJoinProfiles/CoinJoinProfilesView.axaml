@@ -16,6 +16,9 @@
                  NextContent="Continue" EnableNext="True"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel>
+
+      <TextBlock DockPanel.Dock="Top" Text="Bitcoin network fees incur after coinjoins. Note: the more money you're planning to receive, the least significant the network fees are for you." TextWrapping="Wrap" />
+
       <Button Classes="h8 plain activeHyperLink" Margin="0 10 0 0"
               DockPanel.Dock="Bottom"
               Command="{Binding ManualSetupCommand}"
