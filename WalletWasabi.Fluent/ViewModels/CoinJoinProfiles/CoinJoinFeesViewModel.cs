@@ -11,7 +11,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
-[NavigationMetaData(Title = "Wallet Strategy")]
+[NavigationMetaData(Title = "CoinJoin Coordination fees")]
 public partial class CoinJoinFeesViewModel : RoutableViewModel
 {
 	public CoinJoinFeesViewModel(KeyManager keyManager)
