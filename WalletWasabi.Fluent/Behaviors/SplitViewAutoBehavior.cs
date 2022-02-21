@@ -44,6 +44,7 @@ public class SplitViewAutoBehavior : DisposingBehavior<SplitView>
 			.Subscribe(SplitViewBoundsChanged)
 			.DisposeWith(disposables);
 
+		AssociatedObject!.DisplayMode = SplitViewDisplayMode.CompactOverlay;
 		ToggleAction = OnToggleAction;
 		CollapseOnClickAction = OnCollapseOnClickAction;
 	}
@@ -73,23 +74,9 @@ public class SplitViewAutoBehavior : DisposingBehavior<SplitView>
 			return;
 		}
 
-		if (x.Width <= CollapseThreshold)
+		if (!_sidebarWasForceClosed && AssociatedObject.IsPaneOpen)
 		{
-			AssociatedObject.DisplayMode = SplitViewDisplayMode.CompactOverlay;
-
-			if (!_sidebarWasForceClosed && AssociatedObject.IsPaneOpen)
-			{
-				AssociatedObject.IsPaneOpen = false;
-			}
-		}
-		else
-		{
-			AssociatedObject.DisplayMode = SplitViewDisplayMode.CompactInline;
-
-			if (!_sidebarWasForceClosed && !AssociatedObject.IsPaneOpen)
-			{
-				AssociatedObject.IsPaneOpen = true;
-			}
+			AssociatedObject.IsPaneOpen = false;
 		}
 	}
 }

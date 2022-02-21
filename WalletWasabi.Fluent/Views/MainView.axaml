@@ -13,6 +13,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.MainView">
   <Panel>
+    <Panel Background="{DynamicResource RegionColor}" />
     <SplitView
       IsEnabled="{Binding IsMainContentEnabled}"
       CompactPaneLength="{Binding NavBar.CurrentCompactPaneLength}"
@@ -26,15 +27,9 @@
 
       <SplitView.Pane>
         <Panel>
-          <ExperimentalAcrylicBorder DockPanel.Dock="Left" IsHitTestVisible="False">
-            <ExperimentalAcrylicBorder.Material>
-              <ExperimentalAcrylicMaterial BackgroundSource="Digger"
-                                           TintColor="{DynamicResource NavBarTintColor}"
-                                           TintOpacity="1"
-                                           FallbackColor="{DynamicResource AcrylicFallbackColor}"
-                                           MaterialOpacity="0.8" />
-            </ExperimentalAcrylicBorder.Material>
-          </ExperimentalAcrylicBorder>
+          <c:BlurBehind />
+          <Panel Background="#134074" Opacity="0.5"></Panel>
+          <!-- <Panel Background="#2F88EF" Opacity="0.3"></Panel> -->
           <navbar:NavBar DataContext="{Binding NavBar}" />
         </Panel>
       </SplitView.Pane>
