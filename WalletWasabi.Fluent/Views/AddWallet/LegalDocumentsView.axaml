@@ -14,7 +14,7 @@
                  EnableBack="{Binding EnableBack}"
                  FocusCancel="True">
     <Panel>
-      <TextBlock TextWrapping="Wrap" Text="{Binding Content}" IsVisible="{Binding !IsBusy}" />
+      <TextBlock TextWrapping="Wrap" Classes="monoSpaced" Text="{Binding Content}" IsVisible="{Binding !IsBusy}" />
       <c:ProgressRing IsVisible="{Binding IsBusy}" Margin="15" IsIndeterminate="True" Height="100" Width="100" VerticalAlignment="Center" HorizontalAlignment="Center" />
     </Panel>
   </c:ContentArea>

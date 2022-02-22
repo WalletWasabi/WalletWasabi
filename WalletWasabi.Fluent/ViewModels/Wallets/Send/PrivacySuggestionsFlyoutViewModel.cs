@@ -17,6 +17,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	[AutoNotify] private SuggestionViewModel? _previewSuggestion;
 	[AutoNotify] private SuggestionViewModel? _selectedSuggestion;
 	[AutoNotify] private bool _isOpen;
+	private CancellationTokenSource? _suggestionCancellationTokenSource;
 
 	public PrivacySuggestionsFlyoutViewModel()
 	{
@@ -36,8 +37,11 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 	public async Task BuildPrivacySuggestionsAsync(Wallet wallet, TransactionInfo info, BitcoinAddress destination, BuildTransactionResult transaction, bool isFixedAmount, CancellationToken cancellationToken)
 	{
-		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(15));
-		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
+		_suggestionCancellationTokenSource?.Cancel();
+		_suggestionCancellationTokenSource?.Dispose();
+
+		_suggestionCancellationTokenSource = new(TimeSpan.FromSeconds(15));
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_suggestionCancellationTokenSource.Token, cancellationToken);
 
 		Suggestions.Clear();
 		SelectedSuggestion = null;
@@ -50,28 +54,19 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 		var loadingRing = new LoadingSuggestionViewModel();
 		Suggestions.Add(loadingRing);
 
-		try
+		var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destination.ScriptPubKey);
+
+		if (hasChange && !isFixedAmount && !info.IsPayJoin)
 		{
-			var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destination.ScriptPubKey);
+			var suggestions =
+				ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, linkedCts.Token);
 
-			if (hasChange && !isFixedAmount && !info.IsPayJoin)
+			await foreach (var suggestion in suggestions)
 			{
-				var suggestions =
-					ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, linkedCts.Token);
-
-				await foreach (var suggestion in suggestions)
-				{
-					Suggestions.Insert(Suggestions.Count - 1, suggestion);
-				}
+				Suggestions.Insert(Suggestions.Count - 1, suggestion);
 			}
 		}
-		catch (OperationCanceledException)
-		{
-			Logger.LogWarning("Computing privacy suggestions timed out.");
-		}
-		finally
-		{
-			Suggestions.Remove(loadingRing);
-		}
+
+		Suggestions.Remove(loadingRing);
 	}
 }
