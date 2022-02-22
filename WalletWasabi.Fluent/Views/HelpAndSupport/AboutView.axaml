@@ -22,7 +22,9 @@
     </Style>
   </UserControl.Styles>
   <Panel>
-    <controls:ContentArea EnableNext="True" NextContent="Close">
+    <controls:ContentArea EnableNext="{Binding !EnableBack}"
+                          NextContent="Close"
+                          EnableBack="{Binding EnableBack}">
       <DockPanel LastChildFill="True">
         <Viewbox DockPanel.Dock="Top" Margin="25,25,25,50" Width="112" VerticalAlignment="Center"
                  HorizontalAlignment="Center">

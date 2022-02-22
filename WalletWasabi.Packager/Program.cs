@@ -529,7 +529,7 @@ public static class Program
 	/// <remarks>This is important to really release a build that corresponds with a git hash.</remarks>
 	private static void CheckUncommittedGitChanges()
 	{
-		if (TryStartProcessAndWaitForExit("git", workingDirectory: DesktopProjectDirectory, out var gitStatus, arguments: "status --porcelain", redirectStandardOutput: true) && !string.IsNullOrEmpty(gitStatus))
+		if (TryStartProcessAndWaitForExit("git", workingDirectory: SolutionDirectory, out var gitStatus, arguments: "status --porcelain", redirectStandardOutput: true) && !string.IsNullOrEmpty(gitStatus))
 
 		{
 			Console.WriteLine("BEWARE: There are uncommitted changes in the repository. Do you want to continue? (Y/N)");
@@ -554,13 +554,13 @@ public static class Program
 		Version runtimeVersion = Environment.Version;
 
 		// Get .NET SDK version.
-		if (!TryStartProcessAndWaitForExit("dotnet", workingDirectory: DesktopProjectDirectory, result: out var sdkVersion, arguments: "--version", redirectStandardOutput: true))
+		if (!TryStartProcessAndWaitForExit("dotnet", workingDirectory: SolutionDirectory, result: out var sdkVersion, arguments: "--version", redirectStandardOutput: true))
 		{
 			sdkVersion = "Failed to get .NET SDK version.";
 		}
 
 		// Get git commit ID.
-		if (!TryStartProcessAndWaitForExit("git", workingDirectory: DesktopProjectDirectory, result: out var gitCommitId, arguments: "rev-parse HEAD", redirectStandardOutput: true))
+		if (!TryStartProcessAndWaitForExit("git", workingDirectory: SolutionDirectory, result: out var gitCommitId, arguments: "rev-parse HEAD", redirectStandardOutput: true))
 		{
 			gitCommitId = "Failed to get git commit ID.";
 		}

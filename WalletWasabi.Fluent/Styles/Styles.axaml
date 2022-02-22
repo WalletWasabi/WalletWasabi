@@ -28,4 +28,5 @@
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/RadioButton.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/SettingsLayout.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Slider.axaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ToolTip.axaml" />
 </Styles>

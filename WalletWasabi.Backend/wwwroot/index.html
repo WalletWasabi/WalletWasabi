@@ -4,29 +4,29 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="title" content="Wasabi Wallet - Bitcoin privacy wallet with built-in CoinJoin">
-    <meta name="description" content="Wasabi is an open-source, non-custodial, privacy-focused Bitcoin wallet for Desktop, that implements trustless CoinJoin over the Tor anonymity network.">
+    <meta name="title" content="Wasabi Wallet - Bitcoin privacy wallet with built-in coinjoin">
+    <meta name="description" content="Wasabi is an open-source, non-custodial, privacy-focused Bitcoin wallet for desktop, that implements trustless coinjoin over the Tor anonymity network.">
     <meta http-equiv="onion-location" content="http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion" />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://wasabiwallet.io">
-    <meta property="og:title" content="Wasabi Wallet - Bitcoin privacy wallet with built-in CoinJoin">
-    <meta property="og:description" content="Wasabi is an open-source, non-custodial, privacy-focused Bitcoin wallet for Desktop, it implements trustless CoinJoin over the Tor anonymity network.">
+    <meta property="og:title" content="Wasabi Wallet - Bitcoin privacy wallet with built-in coinjoin">
+    <meta property="og:description" content="Wasabi is an open-source, non-custodial, privacy-focused Bitcoin wallet for desktop, it implements trustless coinjoin over the Tor anonymity network.">
     <meta property="og:image" content="https://wasabiwallet.io/img/wasabi-social.jpg">
-    <meta property="og:site_name" content="Wasabi Wallet - Bitcoin privacy wallet with built-in CoinJoin">
+    <meta property="og:site_name" content="Wasabi Wallet - Bitcoin privacy wallet with built-in coinjoin">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://wasabiwallet.io">
-    <meta property="twitter:title" content="Wasabi Wallet - Bitcoin privacy wallet with built-in CoinJoin">
-    <meta property="twitter:description" content="Wasabi is an open-source, non-custodial, privacy-focused Bitcoin wallet for Desktop, it implements trustless CoinJoin over the Tor anonymity network.">
+    <meta property="twitter:title" content="Wasabi Wallet - Bitcoin privacy wallet with built-in coinjoin">
+    <meta property="twitter:description" content="Wasabi is an open-source, non-custodial, privacy-focused Bitcoin wallet for desktop, it implements trustless coinjoin over the Tor anonymity network.">
     <meta property="twitter:image" content="https://wasabiwallet.io/img/wasabi-social.jpg">
 
     <link rel="stylesheet" href="css/bootstrap.css">
     <link rel="stylesheet" href="css/style.css">
     <link rel="shortcut icon" href="img/favicon.ico">
-    <title>Wasabi Wallet - Bitcoin privacy wallet with built-in CoinJoin</title>
+    <title>Wasabi Wallet - Bitcoin privacy wallet with built-in coinjoin</title>
 </head>
 
 <body class="pt-100vh">
@@ -40,9 +40,11 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    <!--
                     <li class="nav-item">
                         <a class="nav-link" href="thewallet.html">The Wallet</a>
                     </li>
+                    -->
                     <li class="nav-item">
                         <a class="nav-link" href="https://blog.wasabiwallet.io" target="_blank">Blog</a>
                     </li>
@@ -51,9 +53,6 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="about.html">About us</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="careers.html">Careers</a>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#">Help</a>
@@ -78,50 +77,49 @@
 
     <div class="content">
         <section class="video-homepage">
-            <video autoplay muted playsinline class="d-none d-md-block" poster="img/video_bg.png">
-                <source src="img/homepage_anim.mp4" type="video/mp4">
+            <video autoplay=autoplay muted=muted playsinline=playsinline class="d-none d-md-block" poster="img/video_bg.png">
+                <source src="img/homepage_anim.mp4" type="video/mp4" />
             </video>
-            <img class="mobile_video_bg d-block d-md-none" src="img/video_bg.png" alt="Wasabi Wallet - video">
+            <img class="mobile_video_bg d-block d-md-none" src="img/video_bg.png" alt="Wasabi Wallet - video" />
 
             <div class="download-btn-area">
                 <div class="home-text-area">
                     <h1>Reclaim your <span class="green-text d-block">privacy now</span></h1>
-                    <p>Open-source, non-custodial,
-                        <br>private <strong>Bitcoin Wallet</strong> for Desktop</p>
+                    <p>
+                        Open-source, non-custodial
+                        <br /><strong>Bitcoin Wallet</strong> for desktop
+                    </p>
                 </div>
                 <a href="#download" class="btn btn-primary btn-download d-block d-md-inline">
-                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 512 512" xml:space="preserve">
-                        <g>
-                            <path d="M408.6,382.9c57.1,0,103.3-46.3,103.4-103.4c0-57.1-46.3-103.3-103.4-103.4h-23v23l22.4,5c2.1-9.4,3.1-18.8,3.1-28.1
-        c0-33.1-13-64.2-34.6-88.2c-21.7-24.1-52.1-41.5-87.6-47.9h0c-10-1.8-19.9-2.7-29.8-2.7c-34.9,0-68,11-94.5,30.3
-        c-26.5,19.3-46.6,47.3-54.1,80.7l22.4,5l0.9-22.9l-5.4-0.1c-34,0-65.3,12.8-88.5,34.1c-23.2,21.2-38.5,51.2-40,84.7L0,254.2
-        c0,48.9,29.9,93.1,75.6,113c11.6,5.1,25.2-0.2,30.2-11.9c5.1-11.6-0.2-25.2-11.9-30.2c-29.8-13-48.1-40.9-48.1-70.9L46,251
-        c0.9-20.8,10.2-39.2,25.1-52.8c14.9-13.6,35.1-22,57.5-22l3.6,0.1c11.1,0.4,20.9-7.1,23.3-17.9c4.9-21.6,17.8-40.1,36.3-53.6
-        c18.5-13.5,42.3-21.5,67.5-21.5c7.1,0,14.3,0.6,21.5,1.9h0c25.7,4.7,46.9,17.1,61.6,33.4c14.7,16.4,22.9,36.5,22.9,57.5
-        c0,5.9-0.6,12-2,18.1c-1.5,6.8,0.1,13.9,4.5,19.4c4.4,5.4,11,8.6,17.9,8.6h23c31.7,0.1,57.4,25.7,57.4,57.4
-        c-0.1,31.7-25.7,57.4-57.4,57.4c-12.7,0-23,10.3-23,23C385.7,372.6,396,382.9,408.6,382.9L408.6,382.9z" />
-                            <path d="M224.9,245.1v206.7c0,12.7,10.3,23,23,23s23-10.3,23-23V245.1c0-12.7-10.3-23-23-23S224.9,232.4,224.9,245.1" />
-                            <path d="M162.7,399.1l68.9,68.9c4.3,4.3,10.2,6.7,16.2,6.7c6,0,12-2.5,16.2-6.7l68.9-68.9c9-9,9-23.5,0-32.5s-23.5-9-32.5,0
-        l-52.7,52.7l-52.7-52.7c-9-9-23.5-9-32.5,0S153.8,390.2,162.7,399.1L162.7,399.1z" />
-                        </g>
-                    </svg>
-                    DOWNLOAD
+                    DOWNLOAD <img src="img/download-arrow.svg">
                 </a>
+            </div>
+        </section>
+
+        <section class="blured-section p-200">
+            <div class="container">
+                <div class="row align-items-center position-relative">
+                    <div class="col-lg-12">
+                        <div class="text-center">
+                            <div class="epic-text title-lined mb-4"><strong>Privacy</strong> is your <strong>ability</strong> to <strong>selectively reveal</strong> yourself to the world</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
         <section class="home p-100">
             <div class="container">
                 <div class="row">
                     <div class="col-xl-10 offset-xl-1 text-center">
-                        <h2 class="title-small title-lined mt-5">The only Bitcoin Wallet offering Effortless Privacy</h2>
+                        <h2 class="title-small title-lined mt-5">A Bitcoin Wallet that provides<br>privacy by default</h2>
                         <div class="mb-5">
-                            <p class="op-text">Manage your Bitcoin in the most easy to use privacy enabling wallet with automatic CoinJoin, built in Tor and privacy-centric development.Use Wasabi Wallet to retain your individuality, regain your identity and ultimately, reclaim your privacy. We let you control what you reveal.</p>
+                            <p class="op-text">Bitcoin is an open ledger and you can't rely on others to protect your financial privacy. Take matters in to your own hands. Manage your bitcoin in the most easy to use privacy wallet with automatic coinjoin and built-in Tor.</p>
                         </div>
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col">
-                        <img src="img/screenshots/MainPage_montage.png" class="w-100">
+                    <div class="col-xl-10 offset-xl-1">
+                        <img src="img/screenshots/MainPage_montage.png" class="w-100" />
                         <div class="text-center my-5">
                             <a href="index.html#download" class="btn btn-primary btn-download">Download NOW</a>
                         </div>
@@ -140,506 +138,30 @@
                     <div class="col-md-5">
                         <ul class="feature-list">
                             <li>
-                                <h2 class="title">Automatic CoinJoin</h2>
-                                <p>We do all the work for you.You just have to choose how private you want your Bitcoin life to be.</p>
-                            </li>
-                            <li>
-                                <h2 class="title">Privacy Tips</h2>
-                                <p>Avoid making privacy degrading mistakes with our privacy suggestions.</p>
+                                <h2 class="title">Open Source</h2>
+                                <p>Wasabi is <a href="https://github.com/zkSNACKs/WalletWasabi" target="_blank">free, open-source</a> and <a href="https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/DeterministicBuildGuide.md" target="_blank">deterministically reproducible</a> software. Anyone can see, verify and even contribute to the code, demonstrating that there is nothing to hide.</p>
                             </li>
                             <li>
                                 <h2 class="title">Trustless by Design</h2>
-                                <p>The software is designed so that neither the public nor the developers can breach your privacy.</p>
+                                <p>The software is designed so that neither the public nor the developers can breach your privacy. This is done through <a href="https://github.com/zkSNACKs/WabiSabi/" target="_blank">coinjoins</a>, <a href="https://nopara73.medium.com/bitcoin-core-vs-wasabi-wallet-network-level-privacy-bdca1d501387" target="_blank">client-side block filtering</a>, and communication over the <a href="https://www.torproject.org/" target="_blank">Tor anonymity network</a>.</p>
                             </li>
                             <li>
-                                <h2 class="title">Open Source</h2>
-                                <p>Anyone can read and even contribute to the code demonstrating that there is nothing to hide.</p>
+                                <h2 class="title">Non-custodial</h2>
+                                <p>Not your keys, not your coins. Wasabi Wallet lets you control your private keys, offering you true financial self sovereignty.</p>
                             </li>
                             <li>
-                                <h2 class="title">Use Bitcoin as Satoshi Intended</h2>
-                                <p>Wasabi is one of the only software wallets letting you control your private keys offering you true financial self sovereignty.</p>
+                                <h2 class="title">Automatic CoinJoin</h2>
+                                <p>The wallet does all the work for you. You just have to choose how private you want your Bitcoin life to be.</p>
                             </li>
                         </ul>
                     </div>
                     <div class="col-md-6 offset-md-1 position-relative">
-                        <img src="img/screenshots/PreviewYourTransaction.png" class="pull-img pull-img-to-right">
-                    </div>
-                </div>
-                <div class="row mt-5">
-                    <div class="col-md-12 text-center">
-                        <h2 class="title-small title-lined">Bringing Privacy to the Masses</h2>
-                    </div>
-                </div>
-                <div class="row p-100 pt-4">
-                    <div class="col-md-4 mb-4">
-                        <div class="feature-box">
-                                <div class="icon mb-4">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-                                        <g>
-                                            <path d="M32,51A10,10,0,1,1,42,41,10.011,10.011,0,0,1,32,51Zm0-18a8,8,0,1,0,8,8A8.009,8.009,0,0,0,32,33Z" />
-                                            <path d="M33,42H29a1,1,0,0,1-1-1V37a1,1,0,0,1,1-1h4a3,3,0,0,1,0,6Zm-3-2h3a1,1,0,0,0,0-2H30Z" />
-                                            <path d="M33,46H29a1,1,0,0,1-1-1V41a1,1,0,0,1,1-1h4a3,3,0,0,1,0,6Zm-3-2h3a1,1,0,0,0,0-2H30Z" />
-                                            <rect x="29" y="35" width="2" height="2" />
-                                            <rect x="32" y="35" width="2" height="2" />
-                                            <rect x="29" y="45" width="2" height="2" />
-                                            <rect x="32" y="45" width="2" height="2" />
-                                            <path d="M38,64H26c-5.229,0-14-2.208-14-17h2c0,9.813,4.149,15,12,15H38c7.851,0,12-5.187,12-15,0-10.034-5.4-17.554-9.73-23.6-.711-.991-1.39-1.937-2.007-2.842l1.652-1.127c.609.892,1.278,1.825,1.98,2.8C46.4,28.513,52,36.322,52,47,52,61.792,43.229,64,38,64Z" />
-                                            <path d="M14.611,41.208l-1.957-.416c1.623-7.644,5.963-13.692,9.45-18.553C24.731,18.577,27,15.415,27,13a1,1,0,0,1,1-1h8a1,1,0,0,1,1,1,9.278,9.278,0,0,0,1.657,4.487l-1.715,1.028A12.848,12.848,0,0,1,35.079,14H28.921c-.432,2.77-2.566,5.744-5.192,9.405C20.351,28.114,16.146,33.974,14.611,41.208Z" />
-                                            <path d="M14.066,45.07l-1.994-.141c.049-.7.122-1.394.218-2.069l1.981.28C14.182,43.77,14.113,44.418,14.066,45.07Z" />
-                                            <path d="M37,13H35V10H29v3H27V9a1,1,0,0,1,1-1h8a1,1,0,0,1,1,1Z" />
-                                            <path d="M37,9H35a11.365,11.365,0,0,1,1.851-5.27c.327-.594.661-1.2.883-1.73H26.266c.222.53.556,1.136.883,1.73A11.365,11.365,0,0,1,29,9H27a9.972,9.972,0,0,0-1.6-4.306A8.471,8.471,0,0,1,24,1a1,1,0,0,1,1-1H39a1,1,0,0,1,1,1,8.471,8.471,0,0,1-1.4,3.694A9.972,9.972,0,0,0,37,9Z" />
-                                            <path d="M55,21H53V12a1,1,0,0,1,1-1h1.586L52,7.414,48.414,11H50a1,1,0,0,1,1,1v9H49V13H46a1,1,0,0,1-.707-1.707l6-6a1,1,0,0,1,1.414,0l6,6A1,1,0,0,1,58,13H55Z" />
-                                            <path d="M15,29H13V20a1,1,0,0,1,1-1h1.586L12,15.414,8.414,19H10a1,1,0,0,1,1,1v9H9V21H6a1,1,0,0,1-.707-1.707l6-6a1,1,0,0,1,1.414,0l6,6A1,1,0,0,1,18,21H15Z" />
-                                            <rect x="53" y="24" width="2" height="6" />
-                                            <rect x="51" y="26" width="6" height="2" />
-                                            <rect x="16" y="4" width="2" height="6" />
-                                            <rect x="14" y="6" width="6" height="2" />
-                                        </g>
-                                    </svg>
-                                </div>
-                                <h2 class="title mb-0 mt-2">Plebs Don't Pay</h2>
-                            <p class="my-4 op-text">Game changing access to privacy: CoinJoins being run with up to 1 million satoshi (pinky finger to mouth - evil laugh) do not incur any coordinator fees*!</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-4">
-                        <div class="feature-box">
-                                <div class="icon mb-4">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-                                        <g>
-                                            <path d="M11,33H9V31a5.006,5.006,0,0,1,5-5v2a3,3,0,0,0-3,3Z" />
-                                            <rect x="9" y="35" width="2" height="2" />
-                                            <path d="M50,64H14a5.006,5.006,0,0,1-5-5V39h2V59a3,3,0,0,0,3,3H50a3,3,0,0,0,3-3V31a3,3,0,0,0-3-3V26a5.006,5.006,0,0,1,5,5V59A5.006,5.006,0,0,1,50,64Z" />
-                                            <path d="M54,51H48a5.006,5.006,0,0,1-5-5V44a5.006,5.006,0,0,1,5-5h6a1,1,0,0,1,1,1V50A1,1,0,0,1,54,51ZM48,41a3,3,0,0,0-3,3v2a3,3,0,0,0,3,3h5V41Z" />
-                                            <path d="M22,20A10,10,0,1,1,32,10,10.011,10.011,0,0,1,22,20ZM22,2a8,8,0,1,0,8,8A8.009,8.009,0,0,0,22,2Z" />
-                                            <path d="M23,11H19a1,1,0,0,1-1-1V6a1,1,0,0,1,1-1h4a3,3,0,0,1,0,6ZM20,9h3a1,1,0,0,0,0-2H20Z" />
-                                            <path d="M23,15H19a1,1,0,0,1-1-1V10a1,1,0,0,1,1-1h4a3,3,0,0,1,0,6Zm-3-2h3a1,1,0,0,0,0-2H20Z" />
-                                            <rect x="19" y="4" width="2" height="2" />
-                                            <rect x="22" y="4" width="2" height="2" />
-                                            <rect x="19" y="14" width="2" height="2" />
-                                            <rect x="22" y="14" width="2" height="2" />
-                                            <path d="M42,33A10,10,0,1,1,52,23,10.011,10.011,0,0,1,42,33Zm0-18a8,8,0,1,0,8,8A8.009,8.009,0,0,0,42,15Z" />
-                                            <path d="M43,24H39a1,1,0,0,1-1-1V19a1,1,0,0,1,1-1h4a3,3,0,0,1,0,6Zm-3-2h3a1,1,0,0,0,0-2H40Z" />
-                                            <path d="M43,28H39a1,1,0,0,1-1-1V23a1,1,0,0,1,1-1h4a3,3,0,0,1,0,6Zm-3-2h3a1,1,0,0,0,0-2H40Z" />
-                                            <rect x="39" y="17" width="2" height="2" />
-                                            <rect x="42" y="17" width="2" height="2" />
-                                            <rect x="39" y="27" width="2" height="2" />
-                                            <rect x="42" y="27" width="2" height="2" />
-                                            <rect x="21" y="19" width="2" height="17" />
-                                            <path d="M22,41a3,3,0,1,1,3-3A3,3,0,0,1,22,41Zm0-4a1,1,0,1,0,1,1A1,1,0,0,0,22,37Z" />
-                                            <path d="M36,47a3,3,0,1,1,3-3A3,3,0,0,1,36,47Zm0-4a1,1,0,1,0,1,1A1,1,0,0,0,36,43Z" />
-                                            <path d="M29,52a3,3,0,1,1,3-3A3,3,0,0,1,29,52Zm0-4a1,1,0,1,0,1,1A1,1,0,0,0,29,48Z" />
-                                            <path d="M30,47H28V32H22V30h7a1,1,0,0,1,1,1Z" />
-                                            <path d="M17,34H15V27a1,1,0,0,1,1-1h6v2H17Z" />
-                                            <rect x="15" y="36" width="2" height="2" />
-                                            <path d="M37,42H35V37a1,1,0,0,1,1-1h5V32h2v5a1,1,0,0,1-1,1H37Z" />
-                                            <rect x="25" y="26" width="6" height="2" />
-                                            <rect x="49" y="2" width="2" height="6" />
-                                            <rect x="47" y="4" width="6" height="2" />
-                                            <rect x="37" y="5" width="2" height="6" />
-                                            <rect x="35" y="7" width="6" height="2" />
-                                        </g>
-                                    </svg>
-                                </div>
-                                <h2 class="title mb-0 mt-2">Friends Don't Pay</h2>
-                            <p class="my-4 op-text">We agree that Bitcoin should be as private as using cash. So anybody you send CoinJoined coins to can then CoinJoin those coins completely free of coordinator fees*!</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-4">
-                        <div class="feature-box">
-                                <div class="icon mb-4">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-                                        <g>
-                                            <path d="M44,22V20a4,4,0,0,0,0-8h-.262a1,1,0,0,1-.968-.75,7.018,7.018,0,0,0-4.823-4.969,1,1,0,0,1-.544-.392A9,9,0,0,0,21,11a1,1,0,0,1-1,1,4,4,0,0,0,0,8v2a6,6,0,0,1-.962-11.923A11,11,0,0,1,38.844,4.465a9.037,9.037,0,0,1,5.64,5.555A6,6,0,0,1,44,22Z" />
-                                            <path d="M19,60H3a3,3,0,0,1-3-3V47a3,3,0,0,1,3-3H19a3,3,0,0,1,3,3V57A3,3,0,0,1,19,60ZM3,46a1,1,0,0,0-1,1V57a1,1,0,0,0,1,1H19a1,1,0,0,0,1-1V47a1,1,0,0,0-1-1Z" />
-                                            <rect x="5" y="62" width="12" height="2" />
-                                            <path d="M14,64H8a1,1,0,0,1-.97-1.243l1-4,1.94.486L9.281,62h3.438l-.689-2.757,1.94-.486,1,4A1,1,0,0,1,14,64Z" />
-                                            <rect x="6" y="54" width="15" height="2" />
-                                            <rect x="1" y="54" width="3" height="2" />
-                                            <path d="M61,60H45a3,3,0,0,1-3-3V47a3,3,0,0,1,3-3H61a3,3,0,0,1,3,3V57A3,3,0,0,1,61,60ZM45,46a1,1,0,0,0-1,1V57a1,1,0,0,0,1,1H61a1,1,0,0,0,1-1V47a1,1,0,0,0-1-1Z" />
-                                            <rect x="47" y="62" width="12" height="2" />
-                                            <path d="M56,64H50a1,1,0,0,1-.97-1.243l1-4,1.94.486L51.281,62h3.438l-.689-2.757,1.94-.486,1,4A1,1,0,0,1,56,64Z" />
-                                            <rect x="48" y="54" width="15" height="2" />
-                                            <rect x="43" y="54" width="3" height="2" />
-                                            <path d="M32,31A10,10,0,1,1,42,21,10.011,10.011,0,0,1,32,31Zm0-18a8,8,0,1,0,8,8A8.009,8.009,0,0,0,32,13Z" />
-                                            <path d="M33,22H29a1,1,0,0,1-1-1V17a1,1,0,0,1,1-1h4a3,3,0,0,1,0,6Zm-3-2h3a1,1,0,0,0,0-2H30Z" />
-                                            <path d="M33,26H29a1,1,0,0,1-1-1V21a1,1,0,0,1,1-1h4a3,3,0,0,1,0,6Zm-3-2h3a1,1,0,0,0,0-2H30Z" />
-                                            <rect x="29" y="15" width="2" height="2" />
-                                            <rect x="32" y="15" width="2" height="2" />
-                                            <rect x="29" y="25" width="2" height="2" />
-                                            <rect x="32" y="25" width="2" height="2" />
-                                            <path d="M26,39a3,3,0,1,1,3-3A3,3,0,0,1,26,39Zm0-4a1,1,0,1,0,1,1A1,1,0,0,0,26,35Z" />
-                                            <path d="M12,27a3,3,0,1,1,3-3A3,3,0,0,1,12,27Zm0-4a1,1,0,1,0,1,1A1,1,0,0,0,12,23Z" />
-                                            <path d="M3,35a3,3,0,1,1,3-3A3,3,0,0,1,3,35Zm0-4a1,1,0,1,0,1,1A1,1,0,0,0,3,31Z" />
-                                            <rect x="11" y="26" width="2" height="16" />
-                                            <path d="M24,37H19a1,1,0,0,1-1-1V32H12V30h7a1,1,0,0,1,1,1v4h4Z" />
-                                            <path d="M12,40H3a1,1,0,0,1-1-1V34H4v4h8Z" />
-                                            <path d="M38,39a3,3,0,1,1,3-3A3,3,0,0,1,38,39Zm0-4a1,1,0,1,0,1,1A1,1,0,0,0,38,35Z" />
-                                            <path d="M52,27a3,3,0,1,1,3-3A3,3,0,0,1,52,27Zm0-4a1,1,0,1,0,1,1A1,1,0,0,0,52,23Z" />
-                                            <path d="M61,35a3,3,0,1,1,3-3A3,3,0,0,1,61,35Zm0-4a1,1,0,1,0,1,1A1,1,0,0,0,61,31Z" />
-                                            <rect x="51" y="26" width="2" height="16" />
-                                            <path d="M45,37H40V35h4V31a1,1,0,0,1,1-1h7v2H46v4A1,1,0,0,1,45,37Z" />
-                                            <path d="M61,40H52V38h8V34h2v5A1,1,0,0,1,61,40Z" />
-                                        </g>
-                                    </svg>
-                                </div>
-                                <h2 class="title mb-0 mt-2">Unlimited Free Remixes</h2>
-                            <p class="my-4 op-text">Want even more privacy? So do we! Every remix (multiple coinjoins of the same coin) is free of any and all coordinator fees*. It's like making it rain with your Bitcoin privacy!</p>
-                        </div>
-                    </div>
-                    <div class="col-12 text-center mt-5">
-                        <p class="small-text op-text">*Transaction fees still apply.</p>
-                    </div>
-                    <div class="col-12 text-center my-5">
-                        <input type="checkbox" name="ww-video" id="ww-video" class="video-show d-none">
-                        <label for="ww-video" class="btn btn-secondary btn-download me-md-4 mb-4 d-block d-md-inline">
-                            How it works?
-                        </label>
-                        <div class="modal-window">
-                            <label for="ww-video" class="close">X</label>
-                            <div class="ratio ratio-16x9">
-                                <iframe src="https://www.youtube.com/embed/HPWo7xmGSoc" title="Wasabi Wallet Privacy video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                            </div>
-                        </div>
-                        <a href="index.html#download" class="btn btn-primary btn-download mb-4 d-block d-md-inline">Download NOW</a>
+                        <img src="img/screenshots/PreviewYourTransaction.png" class="pull-img pull-img-to-right" />
                     </div>
                 </div>
             </div>
         </section>
-        <section class="home p-100">
-            <div class="container">
-                <div class="row align-items-center">
-                    <div class="col-lg-6">
-                        <h2 class="title mt-5 title-lined left">Better money, Better world</h2>
-                        <p class="my-4 op-text">Satoshi brought scarcity, while Wasabi is bringing <a href="https://nopara73.medium.com/privacy-fungibility-anonymity-451d029355f7" target="_blank">fungibility</a>. As inflation is running rampant, vigilant individuals are opting out. Bitcoin is rapidly becoming the world's reserve currency, but its fungibility - a property of good money - is still unsatisfactory. Wasabi Wallet is a bastion of hope in the quest to qualitatively improve the money of the future.</p>
-                    </div>
-                    <div class="col-lg-6">
-                        <img src="img/btc-artwork.svg" class="w-100">
-                    </div>
-                </div>
-                <div class="row mt-5">
-                    <div class="col-md-4 mb-4">
-                        <div class="feature-box">
-                                <div class="icon mb-4">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-                                        <g>
-                                            <path d="M28,50H5a5.006,5.006,0,0,1-5-5V5A5.006,5.006,0,0,1,5,0H47a5.006,5.006,0,0,1,5,5V24H50V5a3,3,0,0,0-3-3H5A3,3,0,0,0,2,5V45a3,3,0,0,0,3,3H28Z" />
-                                            <rect x="50" y="26" width="2" height="2" />
-                                            <rect x="1" y="6" width="50" height="2" />
-                                            <rect x="4" y="3" width="2" height="2" />
-                                            <rect x="8" y="3" width="2" height="2" />
-                                            <rect x="12" y="3" width="2" height="2" />
-                                            <path d="M60,64H42a3,3,0,0,1-3-3V47a3,3,0,0,1,3-3H60a3,3,0,0,1,3,3V61A3,3,0,0,1,60,64ZM42,46a1,1,0,0,0-1,1V61a1,1,0,0,0,1,1H60a1,1,0,0,0,1-1V47a1,1,0,0,0-1-1Z" />
-                                            <path d="M60,45H58V39a7,7,0,0,0-14,0v6H42V39a9,9,0,0,1,18,0Z" />
-                                            <path d="M56,45H54V39a3,3,0,0,0-6,0v6H46V39a5,5,0,0,1,10,0Z" />
-                                            <path d="M51,55a3,3,0,1,1,3-3A3,3,0,0,1,51,55Zm0-4a1,1,0,1,0,1,1A1,1,0,0,0,51,51Z" />
-                                            <rect x="50" y="54" width="2" height="4" />
-                                            <path d="M27,39a3,3,0,1,1,3-3A3,3,0,0,1,27,39Zm0-4a1,1,0,1,0,1,1A1,1,0,0,0,27,35Z" />
-                                            <path d="M37,25a3,3,0,1,1,3-3A3,3,0,0,1,37,25Zm0-4a1,1,0,1,0,1,1A1,1,0,0,0,37,21Z" />
-                                            <path d="M61,22a3,3,0,1,1,3-3A3,3,0,0,1,61,22Zm0-4a1,1,0,1,0,1,1A1,1,0,0,0,61,18Z" />
-                                            <path d="M31,57a3,3,0,1,1,3-3A3,3,0,0,1,31,57Zm0-4a1,1,0,1,0,1,1A1,1,0,0,0,31,53Z" />
-                                            <path d="M32,52H30V45a1,1,0,0,1,1-1h7v2H32Z" />
-                                            <path d="M31,46H27a1,1,0,0,1-1-1V38h2v6h3Z" />
-                                            <path d="M43,33H37a1,1,0,0,1-1-1V24h2v7h5Z" />
-                                            <rect x="30" y="27" width="7" height="2" />
-                                            <rect x="26" y="27" width="2" height="2" />
-                                            <path d="M14,20H10a1,1,0,0,1-1-1V15a1,1,0,0,1,1-1h4a3,3,0,0,1,0,6Zm-3-2h3a1,1,0,0,0,0-2H11Z" />
-                                            <path d="M14,24H10a1,1,0,0,1-1-1V19a1,1,0,0,1,1-1h4a3,3,0,0,1,0,6Zm-3-2h3a1,1,0,0,0,0-2H11Z" />
-                                            <rect x="10" y="13" width="2" height="2" />
-                                            <rect x="13" y="13" width="2" height="2" />
-                                            <rect x="10" y="23" width="2" height="2" />
-                                            <rect x="13" y="23" width="2" height="2" />
-                                            <path d="M21,28H5a1,1,0,0,1-1-1V11a1,1,0,0,1,1-1H21a1,1,0,0,1,1,1V27A1,1,0,0,1,21,28ZM6,26H20V12H6Z" />
-                                            <rect x="4" y="31" width="2" height="2" />
-                                            <path d="M28,43H21a1,1,0,0,1-1-1V39h2v2h6Z" />
-                                            <rect x="20" y="35" width="2" height="2" />
-                                            <rect x="8" y="31" width="2" height="2" />
-                                            <rect x="12" y="31" width="2" height="2" />
-                                            <path d="M57,28H55V25a1,1,0,0,1,1-1h4V21h2v4a1,1,0,0,1-1,1H57Z" />
-                                            <rect x="46" y="10" width="2" height="2" />
-                                            <rect x="36" y="10" width="8" height="2" />
-                                            <rect x="34" y="48" width="6" height="2" />
-                                        </g>
-                                    </svg>
-                                </div>
-                                <h2 class="title">Not your keys, not your coins</h2>
-                            <p class="my-4 op-text">If you don't control your private keys, then you are not the true owner of your funds. Wasabi is <a href="https://docs.wasabiwallet.io/glossary/Glossary-GeneralBitcoin.html#non-custodial-wallet-or-mixer" target="_blank">non-custodial:</a> the developers cannot steal or freeze your funds.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-4">
-                        <div class="feature-box">
-                                <div class="icon mb-4">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-                                        <g>
-                                            <path d="M37,48H3a3,3,0,0,1-3-3V19a3,3,0,0,1,3-3H37v2H3a1,1,0,0,0-1,1V45a1,1,0,0,0,1,1H37Z" />
-                                            <rect x="18" y="20" width="15" height="2" />
-                                            <rect x="14" y="20" width="2" height="2" />
-                                            <path d="M29,44H9a1,1,0,0,1-.707-.293l-4-4A1,1,0,0,1,4,39V25a1,1,0,0,1,.293-.707l4-4A1,1,0,0,1,9,20h3v2H9.414L6,25.414V38.586L9.414,42H29Z" />
-                                            <rect x="31" y="42" width="2" height="2" />
-                                            <rect x="20" y="31" width="2" height="2" />
-                                            <rect x="8" y="31" width="10" height="2" />
-                                            <path d="M37,52H33a1,1,0,0,1-1-1V49h2v1h2V14H34v1H32V13a1,1,0,0,1,1-1h4a1,1,0,0,1,1,1V51A1,1,0,0,1,37,52Z" />
-                                            <path d="M54,42A10,10,0,1,1,64,32,10.011,10.011,0,0,1,54,42Zm0-18a8,8,0,1,0,8,8A8.009,8.009,0,0,0,54,24Z" />
-                                            <path d="M55,33H51a1,1,0,0,1-1-1V28a1,1,0,0,1,1-1h4a3,3,0,0,1,0,6Zm-3-2h3a1,1,0,0,0,0-2H52Z" />
-                                            <path d="M55,37H51a1,1,0,0,1-1-1V32a1,1,0,0,1,1-1h4a3,3,0,0,1,0,6Zm-3-2h3a1,1,0,0,0,0-2H52Z" />
-                                            <rect x="51" y="26" width="2" height="2" />
-                                            <rect x="54" y="26" width="2" height="2" />
-                                            <rect x="51" y="36" width="2" height="2" />
-                                            <rect x="54" y="36" width="2" height="2" />
-                                            <path d="M61,11a3,3,0,1,1,3-3A3,3,0,0,1,61,11Zm0-4a1,1,0,1,0,1,1A1,1,0,0,0,61,7Z" />
-                                            <path d="M49,14a3,3,0,1,1,3-3A3,3,0,0,1,49,14Zm0-4a1,1,0,1,0,1,1A1,1,0,0,0,49,10Z" />
-                                            <path d="M49,22H37V20H48V13h2v8A1,1,0,0,1,49,22Z" />
-                                            <path d="M61,18H49V16H60V10h2v7A1,1,0,0,1,61,18Z" />
-                                            <path d="M61,59a3,3,0,1,1,3-3A3,3,0,0,1,61,59Zm0-4a1,1,0,1,0,1,1A1,1,0,0,0,61,55Z" />
-                                            <path d="M49,56a3,3,0,1,1,3-3A3,3,0,0,1,49,56Zm0-4a1,1,0,1,0,1,1A1,1,0,0,0,49,52Z" />
-                                            <path d="M50,51H48V44H37V42H49a1,1,0,0,1,1,1Z" />
-                                            <path d="M62,54H60V48H49V46H61a1,1,0,0,1,1,1Z" />
-                                            <rect x="37" y="31" width="8" height="2" />
-                                            <rect x="37" y="25" width="3" height="2" />
-                                            <rect x="42" y="25" width="2" height="2" />
-                                            <rect x="37" y="37" width="3" height="2" />
-                                            <rect x="42" y="37" width="2" height="2" />
-                                            <path d="M33,41a9,9,0,0,1,0-18v2a7,7,0,0,0,0,14Z" />
-                                        </g>
-                                    </svg>
-                                </div>
-                                <h2 class="title">Always be coinjoining</h2>
-                            <p class="my-4 op-text">Wasabi provides privacy by default, it protects your financial information through <a href="https://github.com/zkSNACKs/WabiSabi/" target="_blank">coinjoins</a>, <a href="https://nopara73.medium.com/bitcoin-core-vs-wasabi-wallet-network-level-privacy-bdca1d501387" target="_blank">client-side block filtering</a>, and communication over the <a href="https://www.torproject.org/" target="_blank">Tor anonymity network</a>. Neither the public nor the developers can breach your privacy.</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-4">
-                        <div class="feature-box">
-                                <div class="icon mb-4">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-                                        <g>
-                                            <path d="M34,54A20,20,0,1,1,54,34H52a17.989,17.989,0,1,0-.1,1.9l1.989.208A19.942,19.942,0,0,1,34,54Z" />
-                                            <path d="M20.123,32.132l-1.982-.264a15.9,15.9,0,0,1,.434-2.135l1.928.534A13.944,13.944,0,0,0,20.123,32.132Z" />
-                                            <path d="M34,50A16.019,16.019,0,0,1,18,34h2a13.986,13.986,0,1,0,1.164-5.6l-1.832-.8A16,16,0,1,1,34,50Z" />
-                                            <path d="M34,44A10,10,0,1,1,44,34,10.011,10.011,0,0,1,34,44Zm0-18a8,8,0,1,0,8,8A8.009,8.009,0,0,0,34,26Z" />
-                                            <path d="M35,35H31a1,1,0,0,1-1-1V30a1,1,0,0,1,1-1h4a3,3,0,0,1,0,6Zm-3-2h3a1,1,0,0,0,0-2H32Z" />
-                                            <path d="M35,39H31a1,1,0,0,1-1-1V34a1,1,0,0,1,1-1h4a3,3,0,0,1,0,6Zm-3-2h3a1,1,0,0,0,0-2H32Z" />
-                                            <rect x="31" y="28" width="2" height="2" />
-                                            <rect x="34" y="28" width="2" height="2" />
-                                            <rect x="31" y="38" width="2" height="2" />
-                                            <rect x="34" y="38" width="2" height="2" />
-                                            <path d="M58,64a1,1,0,0,1-.707-.293l-9-9a1,1,0,0,1,0-1.414l5-5a1,1,0,0,1,1.414,0l9,9a1,1,0,0,1,0,1.414l-5,5A1,1,0,0,1,58,64ZM50.414,54,58,61.586,61.586,58,54,50.414Z" />
-                                            <rect x="50.964" y="53.5" width="7.071" height="2" transform="translate(-22.575 54.5) rotate(-45)" />
-                                            <rect x="47.5" y="46.964" width="2" height="7.071" transform="translate(-21.504 49.086) rotate(-45)" />
-                                            <rect x="49.5" y="44.964" width="2" height="7.071" transform="translate(-19.504 49.914) rotate(-45)" />
-                                            <path d="M39,12H1a1,1,0,0,1-1-1V1A1,1,0,0,1,1,0H39a1,1,0,0,1,1,1V11A1,1,0,0,1,39,12ZM2,10H38V2H2Z" />
-                                            <path d="M10,26H1a1,1,0,0,1-1-1V15a1,1,0,0,1,1-1H23v2H2v8h8Z" />
-                                            <rect x="12" y="24" width="2" height="2" />
-                                            <path d="M13,40H1a1,1,0,0,1-1-1V29a1,1,0,0,1,1-1H13v2H2v8H13Z" />
-                                            <rect x="2" y="11" width="2" height="4" />
-                                            <rect x="36" y="11" width="2" height="4" />
-                                            <rect x="2" y="25" width="2" height="4" />
-                                            <path d="M22,9H4A1,1,0,0,1,3,8V4A1,1,0,0,1,4,3H22a1,1,0,0,1,1,1V8A1,1,0,0,1,22,9ZM5,7H21V5H5Z" />
-                                            <rect x="25" y="5" width="2" height="2" />
-                                            <rect x="29" y="5" width="7" height="2" />
-                                            <rect x="4" y="18" width="2" height="4" />
-                                            <rect x="8" y="18" width="2" height="4" />
-                                            <rect x="12" y="18" width="2" height="4" />
-                                            <rect x="1" y="34" width="12" height="2" />
-                                            <path d="M55,17H53V8a1,1,0,0,1,1-1h1.586L52,3.414,48.414,7H50a1,1,0,0,1,1,1v9H49V9H46a1,1,0,0,1-.707-1.707l6-6a1,1,0,0,1,1.414,0l6,6A1,1,0,0,1,58,9H55Z" />
-                                            <path d="M13,59H11V50a1,1,0,0,1,1-1h1.586L10,45.414,6.414,49H8a1,1,0,0,1,1,1v9H7V51H4a1,1,0,0,1-.707-1.707l6-6a1,1,0,0,1,1.414,0l6,6A1,1,0,0,1,16,51H13Z" />
-                                        </g>
-                                    </svg>
-                                </div>
-                                <h2 class="title">Don't trust, verify</h2>
-                            <p class="my-4 op-text">To ensure the code running on your computer can indeed protect you from the developers and the public, Wasabi is <a href="https://github.com/zkSNACKs/WalletWasabi" target="_blank">free, open-source</a> and <a href="https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/DeterministicBuildGuide.md" target="_blank">deterministically reproducible</a> software.
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        <section class="home p-100">
-            <div class="container">
-                <div class="row align-items-center">
-                    <div class="col-md-6 position-relative">
-                        <input type="checkbox" name="cj-video" id="cj-video" class="video-show d-none">
-                        <label class="video-icon-on" for="cj-video">
-                            <img src="img/screenshots/PrivacyMode.png" class="pull-img pull-img-to-left">
-                        </label>
-                        <div class="modal-window">
-                            <label for="cj-video" class="close">X</label>
-                            <div class="ratio ratio-16x9">
-                                <iframe src="https://www.youtube.com/embed/JLFg3MmxHr8" title="Wasabi Wallet - CoinJoin video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-5 offset-md-1">
-                        <h2 class="title-small my-5">CoinJoin</h2>
-                        <ul class="feature-list">
-                            <li>
-                                <h2 class="title">Open Ledger</h2>
-                                <p>Do you want the world to see every single transaction you have made and will ever make? Make it so that the world minds their own business, not yours.</p>
-                            </li>
-                            <li>
-                                <h2 class="title">Just say No!</h2>
-                                <p>Be honest? Who isn't creeped out by targeted advertising based on your spending habits? Opt out of this form of surveilance!</p>
-                            </li>
-                            <li>
-                                <h2 class="title">Don't be a Target</h2>
-                                <p>Thieves are more likely to target those who are worth the risk. Don't let them see how much your worth to avoid becoming a target.</p>
-                            </li>
-                            <li>
-                                <h2 class="title">Reclaim your Privacy</h2>
-                                <p>Are you comfortable revealing your income to your colleagues, neighbors and future employers? There are some things you don't want the world seeing.Your finances should be one of them.</p>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
-        <section class="home p-100">
-            <div class="container">
-                <div class="row mb-5">
-                    <div class="col-xl-8 offset-xl-2">
-                        <div class="text-center">
-                            <h2 class="title mt-5">Reclaim your <span class="green-text d-block">privacy now</span></h2>
-                            <h3>Get started in 3 simple steps</h3>
-                        </div>
-                        <div class="row text-center p-100">
-                            <div class="col-md-4">
-                                <div class="icon-big w-25 mx-auto">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-                                        <g>
-                                            <path d="M59,60H5a5.006,5.006,0,0,1-5-5V9A5.006,5.006,0,0,1,5,4h9V6H5A3,3,0,0,0,2,9V55a3,3,0,0,0,3,3H59a3,3,0,0,0,3-3V9a3,3,0,0,0-3-3H23V4H59a5.006,5.006,0,0,1,5,5V55A5.006,5.006,0,0,1,59,60Z" />
-                                            <rect x="19" y="4" width="2" height="2" />
-                                            <rect x="1" y="12" width="62" height="2" />
-                                            <rect x="4" y="8" width="2" height="2" />
-                                            <rect x="8" y="8" width="2" height="2" />
-                                            <rect x="12" y="8" width="2" height="2" />
-                                            <path d="M18,13H16V9c0-2.966-1.918-3-2-3V4c1.384,0,4,1.045,4,5Z" />
-                                            <path d="M32,39A10,10,0,1,1,42,29,10.011,10.011,0,0,1,32,39Zm0-18a8,8,0,1,0,8,8A8.009,8.009,0,0,0,32,21Z" />
-                                            <path d="M32,42A13,13,0,1,1,45,29,13.015,13.015,0,0,1,32,42Zm0-24A11,11,0,1,0,43,29,11.013,11.013,0,0,0,32,18Z" />
-                                            <path d="M33,30H29a1,1,0,0,1-1-1V25a1,1,0,0,1,1-1h4a3,3,0,0,1,0,6Zm-3-2h3a1,1,0,0,0,0-2H30Z" />
-                                            <path d="M33,34H29a1,1,0,0,1-1-1V29a1,1,0,0,1,1-1h4a3,3,0,0,1,0,6Zm-3-2h3a1,1,0,0,0,0-2H30Z" />
-                                            <rect x="29" y="23" width="2" height="2" />
-                                            <rect x="32" y="23" width="2" height="2" />
-                                            <rect x="29" y="33" width="2" height="2" />
-                                            <rect x="32" y="33" width="2" height="2" />
-                                            <rect x="31" y="17" width="2" height="3" />
-                                            <rect x="31" y="38" width="2" height="3" />
-                                            <rect x="41" y="28" width="3" height="2" />
-                                            <rect x="20" y="28" width="3" height="2" />
-                                            <rect x="37.925" y="20.576" width="3" height="2" transform="translate(-3.709 34.197) rotate(-45)" />
-                                            <rect x="23.075" y="35.425" width="3" height="2" transform="translate(-18.558 28.046) rotate(-45)" />
-                                            <rect x="38.425" y="34.925" width="2" height="3" transform="translate(-14.209 38.54) rotate(-44.993)" />
-                                            <rect x="23.575" y="20.075" width="2" height="3" transform="translate(-8.058 23.693) rotate(-44.993)" />
-                                            <path d="M27,51H15a3,3,0,0,1-3-3V46a3,3,0,0,1,3-3H27a3,3,0,0,1,3,3v2A3,3,0,0,1,27,51ZM15,45a1,1,0,0,0-1,1v2a1,1,0,0,0,1,1H27a1,1,0,0,0,1-1V46a1,1,0,0,0-1-1Z" />
-                                            <path d="M46,51H37a3,3,0,0,1-3-3V46a3,3,0,0,1,3-3H49v2H37a1,1,0,0,0-1,1v2a1,1,0,0,0,1,1h9Z" />
-                                            <path d="M53.333,56a1,1,0,0,1-.707-.293l-2.753-2.754-1.318.879A1,1,0,0,1,47,53V47a1,1,0,0,1,1-1h6a1,1,0,0,1,.832,1.555l-.878,1.318,2.753,2.753a1,1,0,0,1,0,1.415L54.04,55.707A1,1,0,0,1,53.333,56ZM50,50.667a1,1,0,0,1,.707.292l2.626,2.627,1.253-1.253L51.96,49.707a1,1,0,0,1-.125-1.262l.3-.445H49v3.131l.445-.3A1,1,0,0,1,50,50.667Z" />
-                                        </g>
-                                    </svg>
-                                </div>
-                                <p class="mt-4 mb-0"><strong>1. Download Wasabi Wallet</strong>
-                                </p>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="icon-big w-25 mx-auto">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-                                        <g>
-                                            <path d="M11,33H9V31a5.006,5.006,0,0,1,5-5v2a3,3,0,0,0-3,3Z" />
-                                            <rect x="9" y="35" width="2" height="2" />
-                                            <path d="M50,64H14a5.006,5.006,0,0,1-5-5V39h2V59a3,3,0,0,0,3,3H50a3,3,0,0,0,3-3V31a3,3,0,0,0-3-3V26a5.006,5.006,0,0,1,5,5V59A5.006,5.006,0,0,1,50,64Z" />
-                                            <path d="M54,51H48a5.006,5.006,0,0,1-5-5V44a5.006,5.006,0,0,1,5-5h6a1,1,0,0,1,1,1V50A1,1,0,0,1,54,51ZM48,41a3,3,0,0,0-3,3v2a3,3,0,0,0,3,3h5V41Z" />
-                                            <path d="M22,20A10,10,0,1,1,32,10,10.011,10.011,0,0,1,22,20ZM22,2a8,8,0,1,0,8,8A8.009,8.009,0,0,0,22,2Z" />
-                                            <path d="M23,11H19a1,1,0,0,1-1-1V6a1,1,0,0,1,1-1h4a3,3,0,0,1,0,6ZM20,9h3a1,1,0,0,0,0-2H20Z" />
-                                            <path d="M23,15H19a1,1,0,0,1-1-1V10a1,1,0,0,1,1-1h4a3,3,0,0,1,0,6Zm-3-2h3a1,1,0,0,0,0-2H20Z" />
-                                            <rect x="19" y="4" width="2" height="2" />
-                                            <rect x="22" y="4" width="2" height="2" />
-                                            <rect x="19" y="14" width="2" height="2" />
-                                            <rect x="22" y="14" width="2" height="2" />
-                                            <path d="M42,33A10,10,0,1,1,52,23,10.011,10.011,0,0,1,42,33Zm0-18a8,8,0,1,0,8,8A8.009,8.009,0,0,0,42,15Z" />
-                                            <path d="M43,24H39a1,1,0,0,1-1-1V19a1,1,0,0,1,1-1h4a3,3,0,0,1,0,6Zm-3-2h3a1,1,0,0,0,0-2H40Z" />
-                                            <path d="M43,28H39a1,1,0,0,1-1-1V23a1,1,0,0,1,1-1h4a3,3,0,0,1,0,6Zm-3-2h3a1,1,0,0,0,0-2H40Z" />
-                                            <rect x="39" y="17" width="2" height="2" />
-                                            <rect x="42" y="17" width="2" height="2" />
-                                            <rect x="39" y="27" width="2" height="2" />
-                                            <rect x="42" y="27" width="2" height="2" />
-                                            <rect x="21" y="19" width="2" height="17" />
-                                            <path d="M22,41a3,3,0,1,1,3-3A3,3,0,0,1,22,41Zm0-4a1,1,0,1,0,1,1A1,1,0,0,0,22,37Z" />
-                                            <path d="M36,47a3,3,0,1,1,3-3A3,3,0,0,1,36,47Zm0-4a1,1,0,1,0,1,1A1,1,0,0,0,36,43Z" />
-                                            <path d="M29,52a3,3,0,1,1,3-3A3,3,0,0,1,29,52Zm0-4a1,1,0,1,0,1,1A1,1,0,0,0,29,48Z" />
-                                            <path d="M30,47H28V32H22V30h7a1,1,0,0,1,1,1Z" />
-                                            <path d="M17,34H15V27a1,1,0,0,1,1-1h6v2H17Z" />
-                                            <rect x="15" y="36" width="2" height="2" />
-                                            <path d="M37,42H35V37a1,1,0,0,1,1-1h5V32h2v5a1,1,0,0,1-1,1H37Z" />
-                                            <rect x="25" y="26" width="6" height="2" />
-                                            <rect x="49" y="2" width="2" height="6" />
-                                            <rect x="47" y="4" width="6" height="2" />
-                                            <rect x="37" y="5" width="2" height="6" />
-                                            <rect x="35" y="7" width="6" height="2" />
-                                        </g>
-                                    </svg>
-                                </div>
-                                <p class="mt-4 mb-0"><strong>2. Create a new wallet</strong>
-                                </p>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="icon-big w-25 mx-auto">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-                                        <g>
-                                            <path d="M32,64A32,32,0,1,1,64,32,32.036,32.036,0,0,1,32,64ZM32,2A30,30,0,1,0,62,32,30.034,30.034,0,0,0,32,2Z" />
-                                            <path d="M32,57A25,25,0,1,1,57,32,25.028,25.028,0,0,1,32,57ZM32,9A23,23,0,1,0,55,32,23.025,23.025,0,0,0,32,9Z" />
-                                            <path d="M32,54A22.025,22.025,0,0,1,10,32h2a20,20,0,0,0,40,0h2A22.025,22.025,0,0,1,32,54Z" />
-                                            <path d="M51.911,30.094A19.9,19.9,0,0,0,32,12,20.122,20.122,0,0,0,12.827,26.285l-1.916-.57A22.132,22.132,0,0,1,32,10,21.9,21.9,0,0,1,53.9,29.906Z" />
-                                            <path d="M12.089,30.1l-1.99-.19c.066-.705.168-1.41.3-2.1l1.963.378C12.242,28.812,12.15,29.453,12.089,30.1Z" />
-                                            <rect x="31" y="1" width="2" height="7" />
-                                            <rect x="21.595" y="2.658" width="1.999" height="7" transform="translate(-0.744 8.1) rotate(-20.002)" />
-                                            <rect x="13.324" y="7.434" width="1.999" height="7" transform="translate(-3.677 11.766) rotate(-40.003)" />
-                                            <rect x="7.184" y="14.75" width="2" height="7" transform="translate(-11.713 16.214) rotate(-60.001)" />
-                                            <rect x="3.918" y="23.725" width="1.999" height="7" transform="translate(-22.747 27.343) rotate(-80.005)" />
-                                            <rect x="1.418" y="35.776" width="7" height="1.999" transform="translate(-6.32 1.415) rotate(-10.014)" />
-                                            <rect x="4.684" y="44.75" width="7" height="2" transform="translate(-21.775 10.219) rotate(-29.995)" />
-                                            <rect x="10.823" y="52.066" width="7" height="1.999" transform="translate(-35.532 29.923) rotate(-49.994)" />
-                                            <rect x="19.095" y="56.842" width="7" height="1.999" transform="translate(-39.486 59.299) rotate(-70.007)" />
-                                            <rect x="31" y="56" width="2" height="7" />
-                                            <rect x="40.406" y="54.342" width="1.999" height="7" transform="translate(-17.288 17.652) rotate(-20.002)" />
-                                            <rect x="48.677" y="49.566" width="1.999" height="7" transform="translate(-22.488 44.351) rotate(-40.003)" />
-                                            <rect x="54.815" y="42.25" width="2" height="7" transform="translate(-11.712 71.214) rotate(-60.001)" />
-                                            <rect x="58.083" y="33.275" width="1.999" height="7" transform="translate(12.611 88.579) rotate(-80.005)" />
-                                            <rect x="55.583" y="26.225" width="7" height="1.999" transform="translate(-3.834 10.689) rotate(-10.014)" />
-                                            <rect x="52.315" y="17.25" width="7" height="2" transform="translate(-1.648 30.347) rotate(-29.995)" />
-                                            <rect x="46.177" y="9.935" width="7" height="1.999" transform="translate(9.366 41.956) rotate(-49.994)" />
-                                            <rect x="37.905" y="5.159" width="7" height="1.999" transform="translate(21.462 42.963) rotate(-70.007)" />
-                                            <path d="M34,33H26a1,1,0,0,1-1-1V24a1,1,0,0,1,1-1h8a5,5,0,0,1,0,10Zm-7-2h7a3,3,0,0,0,0-6H27Z" />
-                                            <path d="M34,41H26a1,1,0,0,1-1-1V32a1,1,0,0,1,1-1h8a5,5,0,0,1,0,10Zm-7-2h7a3,3,0,0,0,0-6H27Z" />
-                                            <rect x="28" y="21" width="2" height="3" />
-                                            <rect x="32" y="21" width="2" height="3" />
-                                            <rect x="28" y="40" width="2" height="3" />
-                                            <rect x="32" y="40" width="2" height="3" />
-                                            <path d="M47,35a3,3,0,1,1,3-3A3,3,0,0,1,47,35Zm0-4a1,1,0,1,0,1,1A1,1,0,0,0,47,31Z" />
-                                            <rect x="40" y="31" width="5" height="2" />
-                                            <path d="M44,24a3,3,0,1,1,3-3A3,3,0,0,1,44,24Zm0-4a1,1,0,1,0,1,1A1,1,0,0,0,44,20Z" />
-                                            <path d="M44,27H40V25h3V23h2v3A1,1,0,0,1,44,27Z" />
-                                            <path d="M44,46a3,3,0,1,1,3-3A3,3,0,0,1,44,46Zm0-4a1,1,0,1,0,1,1A1,1,0,0,0,44,42Z" />
-                                            <path d="M45,41H43V39H40V37h4a1,1,0,0,1,1,1Z" />
-                                            <path d="M17,35a3,3,0,1,1,3-3A3,3,0,0,1,17,35Zm0-4a1,1,0,1,0,1,1A1,1,0,0,0,17,31Z" />
-                                            <rect x="19" y="31" width="5" height="2" />
-                                            <path d="M20,24a3,3,0,1,1,3-3A3,3,0,0,1,20,24Zm0-4a1,1,0,1,0,1,1A1,1,0,0,0,20,20Z" />
-                                            <path d="M24,27H20a1,1,0,0,1-1-1V23h2v2h3Z" />
-                                            <path d="M20,46a3,3,0,1,1,3-3A3,3,0,0,1,20,46Zm0-4a1,1,0,1,0,1,1A1,1,0,0,0,20,42Z" />
-                                            <path d="M21,41H19V38a1,1,0,0,1,1-1h4v2H21Z" />
-                                        </g>
-                                    </svg>
-
-                                </div>
-                                <p class="mt-4 mb-0"><strong>3. Deposit your Bitcoin</strong>
-                                </p>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col text-center">
-                                <a href="index.html#download" class="btn btn-primary btn-download">Download NOW</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        <section class="home p-100" id="download">
+        <section class="home p-100 green-bordered-section" id="download">
             <div class="container">
                 <div class="row align-items-center mt-5 mt-md-0">
                     <div class="col-xl-6 offset-xl-3">
@@ -651,104 +173,55 @@
                         <div class="version-content">
                             <div class="text-center lh mb-5">
                                 <a href="https://github.com/zkSNACKs/WalletWasabi#build-from-source-code" target="_blank"><i class="muted-text">Or build it from source</i></a>
-                                <br> <a href="https://github.com/zkSNACKs/WalletWasabi/blob/master/PGP.txt" target="_blank">PGP</a> <span class="cursor-select">(6FB3 872B 5D42 292F 5992 0797 8563 4832 8949 861E)</span>
-                                <br> <a href="https://github.com/zkSNACKs/WalletWasabi/releases" target="_blank">RELEASE NOTES</a>
+                                <br /> <a href="https://github.com/zkSNACKs/WalletWasabi/blob/master/PGP.txt" target="_blank">PGP</a> <span class="cursor-select">(6FB3 872B 5D42 292F 5992 0797 8563 4832 8949 861E)</span>
+                                <br /> <a href="https://github.com/zkSNACKs/WalletWasabi/releases" target="_blank">RELEASE NOTES</a>
                             </div>
                             <div class="row align-items-end">
                                 <div class="col-lg-3">
                                     <div class="download-box">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="33.299" height="34.141" viewBox="0 0 33.299 41.141">
-                                            <g transform="translate(-202.457 -604.129)">
-                                                <path d="M227.4,604.129a9.65,9.65,0,0,1-.58,3.795,8.573,8.573,0,0,1-5.981,5.556,10.179,10.179,0,0,1-1.23.156c-.384.052-.536-.089-.547-.495a8.192,8.192,0,0,1,1.207-4.408,9.206,9.206,0,0,1,6.437-4.519,1.3,1.3,0,0,0,.215-.085Z" />
-                                                <path d="M234.711,618.086c-.752.713-1.512,1.349-2.171,2.076a8.463,8.463,0,0,0-2.049,7.241,8.627,8.627,0,0,0,4.817,6.609c.465.251.537.451.359.945a24.741,24.741,0,0,1-4.931,8.181c-1.944,2.172-4.084,2.581-6.791,1.48a16.638,16.638,0,0,0-3.043-.951,7.742,7.742,0,0,0-4.255.606,15.741,15.741,0,0,1-3.043.95,4.5,4.5,0,0,1-3.9-1.551,23.96,23.96,0,0,1-4.9-7.136,24.26,24.26,0,0,1-2.339-9.641,13.665,13.665,0,0,1,2.3-8.473c2.3-3.271,6.932-5.308,11.009-3.6.72.3,1.467.539,2.193.827a3.845,3.845,0,0,0,2.887,0,23.28,23.28,0,0,1,4.122-1.369,9.453,9.453,0,0,1,9.656,3.663A.806.806,0,0,1,234.711,618.086Z" />
-                                            </g>
-                                        </svg>
+                                        <img src="img/icon_mac.svg">
                                         <div class="my-4">
                                             <strong>MACOS 10.13+</strong>
                                         </div>
                                         <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.13.0/Wasabi-1.1.13.dmg" target="_blank" class="btn btn-primary w-100">Download</a>
-                                        <div class="small-text mt-4">.dmg <span class="float-end"><a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.13.0/Wasabi-1.1.13.dmg.asc" target="_blank">signature</a> / <a href="https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html#macos" target="_blank">guide</a></span>
+                                        <div class="small-text mt-4">
+                                            .dmg <span class="float-end"><a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.13.0/Wasabi-1.1.13.dmg.asc" target="_blank">signature</a> / <a href="https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html#macos" target="_blank">guide</a></span>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-lg-3">
                                     <div class="download-box">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="33.551" height="33.519" viewBox="0 0 33.551 33.519">
-                                            <g transform="translate(-202.331 -688.463)">
-                                                <rect width="16.203" height="16.203" transform="translate(202.331 688.463)" />
-                                                <rect width="16.203" height="16.203" transform="translate(219.68 688.463)" />
-                                                <rect width="16.203" height="16.203" transform="translate(202.331 705.779)" />
-                                                <rect width="16.203" height="16.203" transform="translate(219.68 705.779)" />
-                                            </g>
-                                        </svg>
+                                        <img src="img/icon_windows.svg">
                                         <div class="my-4">
                                             <strong>WINDOWS 10+</strong>
                                         </div>
                                         <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.13.0/Wasabi-1.1.13.msi" target="_blank" class="btn btn-primary w-100">Download</a>
-                                        <div class="small-text mt-4">.msi <span class="float-end"><a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.13.0/Wasabi-1.1.13.msi.asc" target="_blank">signature</a> / <a href="https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html#windows" target="_blank">guide</a></span>
+                                        <div class="small-text mt-4">
+                                            .msi <span class="float-end"><a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.13.0/Wasabi-1.1.13.msi.asc" target="_blank">signature</a> / <a href="https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html#windows" target="_blank">guide</a></span>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-lg-3">
                                     <div class="download-box">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="36.224" height="36.235" viewBox="0 0 36.224 36.235">
-                                            <path d="M219.115,848.149a18.117,18.117,0,1,0,18.1,18.117A18.116,18.116,0,0,0,219.115,848.149Zm6.154,5.013a2.432,2.432,0,1,1-2.434,2.427A2.427,2.427,0,0,1,225.269,853.162ZM206.78,868.7a2.432,2.432,0,1,1,2.431-2.429A2.438,2.438,0,0,1,206.78,868.7Zm6.5,6.321c-.049-.03-.093-.054-.134-.082a10.518,10.518,0,0,1-4.188-5.877.222.222,0,0,1,.076-.267,3.377,3.377,0,0,0,0-5.058.2.2,0,0,1-.08-.24,10.524,10.524,0,0,1,4.21-5.91c.034-.024.072-.044.124-.075l1.774,2.971-.141.108a7.065,7.065,0,0,0,.016,11.36c.1.077.115.125.048.236-.543.9-1.079,1.8-1.617,2.7C213.337,874.929,213.31,874.968,213.276,875.021Zm11.993,4.353a2.432,2.432,0,1,1,2.428-2.43A2.443,2.443,0,0,1,225.269,879.374Zm4.328-12.3a10.318,10.318,0,0,1-.371,2.077,10.517,10.517,0,0,1-2.644,4.521.2.2,0,0,1-.246.061,3.373,3.373,0,0,0-4.384,2.539.186.186,0,0,1-.152.172,10.457,10.457,0,0,1-7.259-.7c-.03-.014-.057-.031-.1-.055.028-.056.048-.1.07-.138.514-.922,1.03-1.842,1.54-2.765.055-.1.1-.116.207-.069a7.051,7.051,0,0,0,9.764-5.058c.044-.212.072-.428.1-.644.011-.1.038-.141.145-.14q1.611.03,3.222.05C229.6,866.931,229.6,866.988,229.6,867.073Zm-.127-1.466q-1.6.02-3.207.047c-.1,0-.132-.027-.143-.125a7.033,7.033,0,0,0-5.492-6.151,6.905,6.905,0,0,0-4.358.431c-.118.052-.168.032-.228-.077-.5-.9-1-1.8-1.505-2.7-.032-.057-.062-.115-.113-.209.413-.167.8-.337,1.192-.478a10.316,10.316,0,0,1,3.917-.591,10.756,10.756,0,0,1,2.269.34.182.182,0,0,1,.148.16,3.361,3.361,0,0,0,2.806,2.689,3.234,3.234,0,0,0,1.582-.136.191.191,0,0,1,.234.05,10.447,10.447,0,0,1,2.938,5.862c.038.247.056.5.087.746C229.609,865.563,229.582,865.606,229.47,865.607Z" transform="translate(-200.995 -848.149)" />
-                                        </svg>
+                                        <img src="img/icon_ubuntu.svg">
                                         <div class="my-4">
                                             <strong>UBUNTU / DEBIAN</strong>
                                         </div>
                                         <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.13.0/Wasabi-1.1.13.deb" target="_blank" class="btn btn-primary w-100">Download</a>
-                                        <div class="small-text mt-4">.deb <span class="float-end"><a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.13.0/Wasabi-1.1.13.deb.asc" target="_blank">signature</a> / <a href="https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html#debian-and-ubuntu" target="_blank">guide</a></span>
+                                        <div class="small-text mt-4">
+                                            .deb <span class="float-end"><a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.13.0/Wasabi-1.1.13.deb.asc" target="_blank">signature</a> / <a href="https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html#debian-and-ubuntu" target="_blank">guide</a></span>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-lg-3">
                                     <div class="download-box">
-                                        <?xml version="1.0" encoding="utf-8" ?>
-                                        <!-- Generator: Adobe Illustrator 26.0.3, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36.2 36.2" s>
-                                            <path class="st0" d="M18.1,36.2C8.1,36.2,0,28.1,0,18.1C0,8.1,8.1,0,18.1,0c10,0,18.1,8.1,18.1,18.1C36.2,28.1,28.1,36.2,18.1,36.2z
-     M18.1,2.9C9.7,2.9,2.9,9.7,2.9,18.1c0,8.4,6.8,15.2,15.2,15.2c8.4,0,15.2-6.8,15.2-15.2l0,0C33.4,9.7,26.5,2.9,18.1,2.9L18.1,2.9z" />
-                                            <g>
-                                                <path class="st0" d="M26.7,19.6c-0.4-1.5-1-2.8-1.9-4c-0.5-0.7-1-1.4-1.5-2.1c-0.8-1.4-1.3-2.8-1.2-4.5c0-0.5-0.1-1.1-0.2-1.6
-        c-0.3-1.2-1-2.2-2.2-2.7c-1.3-0.6-2.5-0.5-3.8,0.1c-0.7,0.3-1.1,0.9-1.3,1.6c-0.2,0.6-0.2,1.2-0.2,1.9c0,1.1,0.1,2.3,0.2,3.4
-        c0,0.3,0,0.6,0,0.9c0,0.5-0.3,0.9-0.6,1.3c-0.4,0.5-0.8,1-1.2,1.6c-0.7,1-1.3,2.1-1.7,3.3c-0.2,0.5-0.4,1.1-0.6,1.7
-        c-0.1,0.4-0.1,0.7,0,1.1c0.5-0.3,0.9-0.5,1.4-0.2c0.1,0,0.2,0.1,0.4,0.2c0,0,0,0,0,0c0,0,0,0,0,0c0.1,0,0.1,0.1,0.2,0.1
-        c0,0,0,0,0,0c0,0,0,0,0,0c-0.1-1.1,0.1-2.2,0.5-3.2c0.2-0.5,0.5-1,0.7-1.5c0,0,0,0,0-0.1c0.2-0.3,0.5-0.5,0.9-0.6
-        c0.1,0,0.2-0.1,0.3-0.1c0.1-0.1,0.1-0.1,0-0.2c-0.1-0.1-0.2-0.1-0.3-0.2c-0.4-0.2-0.5-0.5-0.2-0.9c0.2-0.3,0.4-0.7,0.7-1
-        c0.1-0.1,0.2-0.3,0.2-0.5c0-0.2,0-0.4,0-0.5c0.1-0.3,0-0.5-0.2-0.8c-0.4-0.5-0.3-1,0.1-1.4c0.1-0.1,0.2-0.1,0.3-0.2
-        c-0.2-0.3-0.3-0.6-0.3-1c0-0.4,0-0.8,0.2-1.2c0.2-0.4,0.7-0.5,1-0.2c0.3,0.2,0.5,0.5,0.5,0.9c0,0.2,0,0.4,0,0.5h1
-        c0-0.1,0-0.2,0-0.3c0-0.4,0.1-0.7,0.4-1C18.4,8,18.7,7.9,19,7.9c0.3,0,0.6,0,0.8,0.2c0.3,0.4,0.6,0.9,0.6,1.4c0,0.4-0.1,0.7-0.3,1
-        c0.1,0,0.1,0.1,0.2,0.1c0.2,0.1,0.3,0.3,0.3,0.5c0,0.3-0.1,0.7-0.2,1c0,0,0,0.1,0,0.1c0.1,0.3,0.3,0.7,0.4,1
-        c0.2,0.4,0.4,0.7,0.5,1.1c0.3,0.9,0.6,1.7,1.1,2.5c0.1,0.3,0.3,0.6,0.4,0.8c0.4,1.1,0.4,2.1,0.4,3.2c0,0.2,0,0.5,0,0.7
-        c0,0,0,0,0.1,0c0.4,0.1,0.5,0.3,0.5,0.7c0,0.1,0,0.3,0,0.4c0,0,0,0.1,0,0.1c0.3,0.4,0.9,0.4,1.3,0.2c0.4-0.3,0.7-0.7,1-1.1
-        c0.1,0,0.1-0.1,0.1-0.2c0,0,0,0,0,0c0.2,0,0.3,0,0.5,0c0,0,0.1,0,0.1-0.1c0.1-0.2,0.2-0.4,0.2-0.6C27,20.7,26.9,20.2,26.7,19.6z" />
-                                                <path class="st0" d="M15.8,27.7c-0.1-0.4-0.3-0.7-0.5-1c-0.3-0.4-0.6-0.8-0.9-1.2c-0.6-0.9-1.1-1.7-1.7-2.6
-        c-0.3-0.4-0.6-0.7-0.9-1.1c-0.4-0.3-0.7-0.3-1.1,0c-0.2,0.2-0.4,0.4-0.5,0.6c-0.2,0.2-0.3,0.4-0.4,0.6c-0.2,0.3-0.5,0.5-0.8,0.5
-        c-0.3,0.1-0.6,0.1-0.9,0.2c-0.5,0.1-0.6,0.4-0.6,0.9c0,0,0,0,0,0.1c0.1,0.5,0.2,1,0.1,1.6c0,0.3-0.1,0.6-0.1,0.9
-        c-0.1,0.5,0.1,0.8,0.5,1c0.1,0,0.2,0.1,0.2,0.1c0.4,0.1,0.8,0.2,1.2,0.3c0.9,0.2,1.7,0.4,2.5,0.7c0.5,0.2,0.9,0.4,1.4,0.5
-        c0.6,0.2,1.1,0.1,1.6-0.4c0.2-0.2,0.3-0.3,0.5-0.4c0.2-0.1,0.3-0.3,0.3-0.6c0-0.1,0-0.2,0-0.3c0,0,0,0,0,0
-        C15.8,27.9,15.8,27.8,15.8,27.7z" />
-                                                <path class="st0" d="M28.6,25.4c-0.1,0-0.1-0.1-0.2-0.1c-0.5-0.3-1-0.8-1.3-1.3C27,23.9,27,23.8,27,23.7c0-0.2,0-0.4,0-0.6
-        c0-0.2-0.1-0.3-0.1-0.5c-0.2-0.3-0.5-0.3-0.7,0c0,0-0.1,0.1-0.1,0.1c-0.2,0.4-0.6,0.7-0.9,0.9c-0.1,0.1-0.2,0.1-0.3,0.1
-        c-0.5,0.1-1,0-1.4-0.4c-0.1-0.1-0.2-0.3-0.2-0.5c0-0.1,0-0.3,0-0.4c0-0.2-0.1-0.3-0.3-0.4c-0.2,0-0.4,0-0.6,0
-        c-0.3,0-0.5,0.2-0.5,0.5c0,0.3,0,0.6,0,1c0,1.2-0.1,2.4-0.3,3.5c-0.1,0.5-0.1,1,0,1.5c0.1,0.7,0.5,1,1.1,1.1c0.2,0,0.4,0,0.6,0.1
-        c0.7,0,1.3-0.2,1.8-0.7c0.3-0.3,0.6-0.5,0.9-0.8c0.7-0.6,1.6-1,2.4-1.5c0.2-0.1,0.4-0.2,0.5-0.4C29,26.1,29,25.6,28.6,25.4z" />
-                                                <path class="st0" d="M16.7,13.4c0.5,0.1,1,0.2,1.4-0.1c0.2-0.1,0.5-0.3,0.7-0.4c0.3-0.2,0.6-0.3,0.9-0.5c0.4-0.2,0.6-0.4,0.6-0.8
-        c0-0.1,0-0.2,0-0.3c0-0.2-0.1-0.4-0.2-0.5c-0.2-0.1-0.3-0.2-0.5-0.2c-0.1,0-0.2-0.1-0.4-0.1c0.3-0.1,0.5-0.3,0.6-0.6
-        c0-0.2,0-0.5-0.2-0.7c-0.2-0.3-0.4-0.3-0.7-0.3c-0.3,0-0.4,0.2-0.5,0.5c0,0.1,0,0.2,0,0.3c0,0.2,0,0.4,0,0.5
-        c-0.7-0.4-1.4-0.4-2.1-0.1c0,0,0,0,0,0c0,0,0-0.1,0-0.1c0-0.3,0-0.6-0.2-0.8c-0.1-0.2-0.3-0.3-0.5-0.2c-0.2,0-0.3,0.2-0.3,0.4
-        c0,0.2,0,0.5,0.1,0.7c0.1,0.2,0.2,0.3,0.4,0.5c-0.2,0.1-0.3,0.3-0.5,0.4c-0.3,0.3-0.4,0.6-0.2,1c0.1,0.1,0.2,0.3,0.3,0.4
-        c0.3,0.3,0.7,0.6,1,0.9C16.5,13.3,16.6,13.4,16.7,13.4z" />
-                                                <path class="st0" d="M16.1,27.2c0.2,0.4,0.2,0.9,0.1,1.4c0.1,0,0.2,0,0.3,0c0.7,0,1.5-0.1,2.2-0.1c0.6,0,1.2,0,1.8,0.1
-        c0.2,0,0.4,0.1,0.6,0.1c0-0.3,0-0.7,0-1c0.1-0.5,0.2-1,0.2-1.4c0-0.2,0.1-0.4,0.1-0.5c0,0,0,0,0,0C19.8,27,18,27.5,16.1,27.2z" />
-                                            </g>
-                                        </svg>
+                                        <img src="img/icon_linux.svg">
                                         <div class="my-4">
                                             <strong>OTHER LINUX</strong>
                                         </div>
                                         <a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.13.0/Wasabi-1.1.13.tar.gz" target="_blank" class="btn btn-primary w-100">Download</a>
-                                        <div class="small-text mt-4">.tar.gz <span class="float-end"><a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.13.0/Wasabi-1.1.13.tar.gz.asc" target="_blank">signature</a> / <a href="https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html#other-linux" target="_blank">guide</a></span>
+                                        <div class="small-text mt-4">
+                                            .tar.gz <span class="float-end"><a href="https://github.com/zkSNACKs/WalletWasabi/releases/download/v1.1.13.0/Wasabi-1.1.13.tar.gz.asc" target="_blank">signature</a> / <a href="https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html#other-linux" target="_blank">guide</a></span>
                                         </div>
                                     </div>
                                 </div>
@@ -758,54 +231,12 @@
                 </div>
             </div>
         </section>
-        <!--
-        <section>
-            <div class="service-line">
-                <div class="service service-wallet">
-                    <div class="service-link-holder">
-                        <a href="thewallet.html" class="stretched-link">The Wallet</a>
-                    </div>
-                </div>
-                <div class="service service-about">
-                    <div class="service-link-holder">
-                        <a href="about.html" class="stretched-link">About us</a>
-                    </div>
-                </div>
-            </div>
-            <div class="service-line">
-                <div class="service service-blog">
-                    <div class="service-link-holder">
-                        <a href="https://blog.wasabiwallet.io/" target="_blank" class="stretched-link">Blog</a>
-                    </div>
-                </div>
-                <div class="service service-contribution">
-                    <div class="service-link-holder">
-                        <a href="contribution.html" class="stretched-link">Contribution</a>
-                    </div>
-                </div>
-            </div>
-            <div class="service-line">
-                <div class="service service-presskit">
-                    <div class="service-link-holder">
-                        <a href="https://docs.wasabiwallet.io/" target="_blank" class="stretched-link">Docs</a>
-                    </div>
-                </div>
-                <div class="service service-support">
-                    <div class="service-link-holder">
-                        <a href="https://github.com/zkSNACKs/WalletWasabi/discussions" target="_blank" class="stretched-link">Support</a>
-                    </div>
-                </div>
-            </div>
-        </section>
-    -->
-
     </div>
-
     <footer>
         <div class="container">
             <div class="row">
                 <div class="col-md-4 py-2">
-                    <div class="white-text">zkSNACKs Ltd.</div>
+                    <a href="https://zksnacks.com" target="_blank" class="white-text">zkSNACKs Ltd.</a>
                 </div>
                 <div class="col-md-4 py-2">
                     <ul class="social-icons white-fill justify-content-md-center">
@@ -840,6 +271,22 @@
                                         <path d="M20.1,0H9.9C4.4,0,0,4.4,0,9.9c0,0,0,0,0,0v10.3C0,25.6,4.4,30,9.9,30c0,0,0,0,0,0h10.3c5.4,0,9.9-4.4,9.9-9.9V9.9
         C30,4.4,25.6,0,20.1,0z M11.6,20c0-3.4,0.1-6.7,0.1-10.1l8.8,5.1L11.6,20z" />
                                     </g>
+                                </svg>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.facebook.com/officialwasabiwallet/" target="_blank">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">
+                                    <path d="M155.963,247.306v11.548a9.226,9.226,0,0,1-9.226,9.226h-3.844V257.62h3.61l.52-4.22h-4.04v-3a1.794,1.794,0,0,1,.44-1.14,1.675,1.675,0,0,1,1.1-.43h2.64v-3.84h-3.88a4.385,4.385,0,0,0-3.17,1.32,5.47,5.47,0,0,0-1.48,3.45v3.71h-3.61v4.2h3.61v10.41h-3.444a9.225,9.225,0,0,1-9.226-9.226V247.306a9.226,9.226,0,0,1,9.226-9.226h11.548A9.226,9.226,0,0,1,155.963,247.306Z" transform="translate(-125.963 -238.08)" />
+                                </svg>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.instagram.com/wasabi_wallet/" target="_blank">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="29.984" height="29.943" viewBox="0 0 29.984 29.943">
+                                    <path d="M119.766,253.421c-.061,2.158-.075,4.319-.194,6.474a8.274,8.274,0,0,1-2.627,5.922,8.012,8.012,0,0,1-4.725,2.043c-1.4.14-2.819.191-4.231.2-2.631.024-5.263.028-7.894-.032a19.92,19.92,0,0,1-3.831-.362,7.7,7.7,0,0,1-6.255-7.021,43.089,43.089,0,0,1-.215-4.4c-.025-2.609-.008-5.218.026-7.826a15.519,15.519,0,0,1,.473-4.3,7.569,7.569,0,0,1,6.442-5.664,33.4,33.4,0,0,1,4.842-.3c2.608-.039,5.217-.012,7.826.022a15.35,15.35,0,0,1,4.468.513,7.553,7.553,0,0,1,5.531,6.4,41.1,41.1,0,0,1,.3,4.946c.042,1.124.008,2.252.008,3.378Zm-27.317-.313H92.5c0,1.207-.024,2.414.007,3.619s.065,2.414.189,3.612a5.087,5.087,0,0,0,4.475,4.752,29.536,29.536,0,0,0,3.914.253c2.435.038,4.872.03,7.308,0,1.193-.013,2.392-.057,3.577-.187a5.072,5.072,0,0,0,4.763-4.5,27.934,27.934,0,0,0,.25-3.914c.031-2.688.019-5.378-.019-8.066a20.97,20.97,0,0,0-.238-3.19,4.9,4.9,0,0,0-3.683-4.2,8.078,8.078,0,0,0-2.033-.324q-5.031-.092-10.064-.094a30.45,30.45,0,0,0-3.4.185,5.126,5.126,0,0,0-4.136,2.57A6.735,6.735,0,0,0,92.6,246.8C92.532,248.9,92.5,251.006,92.449,253.108Z" transform="translate(-89.782 -238.138)" />
+                                    <path d="M104.75,260.8a7.692,7.692,0,1,1,7.691-7.735A7.694,7.694,0,0,1,104.75,260.8Zm4.972-7.667a4.973,4.973,0,1,0-4.894,4.948A4.964,4.964,0,0,0,109.722,253.133Z" transform="translate(-89.782 -238.138)" />
+                                    <path d="M112.726,246.921a1.8,1.8,0,0,1,0-3.6,1.8,1.8,0,1,1,0,3.6Z" transform="translate(-89.782 -238.138)" />
                                 </svg>
                             </a>
                         </li>

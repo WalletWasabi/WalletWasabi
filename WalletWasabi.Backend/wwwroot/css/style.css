@@ -1,5 +1,10 @@
 @font-face {
     font-family: Objectivity;
+    src: url('../fonts/objectivity.thin.otf');
+    font-weight: 100;
+}
+@font-face {
+    font-family: Objectivity;
     src: url('../fonts/objectivity.regular.otf');
     font-weight: normal;
 }
@@ -60,6 +65,9 @@ h2 {
 section {
     width: 100%;
     overflow: hidden;
+}
+nav li.active a {
+    color: var(--green) !important;
 }
 .logo img {
     height: 30px;
@@ -142,7 +150,7 @@ video::-webkit-media-controls {
     background: linear-gradient(143deg, rgba(73, 88, 107, 1) 0%, rgba(0, 16, 31, 1) 55%);
 }
 .title {
-    font-size: 60px;
+    font-size: 56px;
     font-weight: bold;
     line-height: 1.2em;
 }
@@ -168,11 +176,12 @@ video::-webkit-media-controls {
     font-weight: bold;
     line-height: 1.2em;
     position: absolute;
-    top: 30%;
+    top: calc(35% - 50px);
     left: calc((100% - var(--breakpoint)) / 2);
     transform: translateY(-50%);
     text-transform: uppercase;
-    width: 60%;
+    width: var(--breakpoint);
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
 }
 .service-line {
     display: flex;
@@ -310,6 +319,7 @@ footer .white-text {
     width: 100%;
     height: 100vh;
     object-fit: cover;
+    opacity: 0.6;
 }
 .content {
     position: relative;
@@ -348,8 +358,16 @@ footer .white-text {
 .feature-box .title {
     font-size: 22px;
 }
-.scale-svg svg {
-    transform: scale(0.8);
+.scale-svg {
+    width: 100%;
+    max-width: 150px;
+    height: 100px;
+    margin: 0 auto;
+}
+.scale-svg img {
+    object-fit: contain;
+    width: 100%;
+    height: 100%;
 }
 .wallet-cubes .cube {
     position: absolute;
@@ -458,9 +476,10 @@ footer .white-text {
     font-size: 20px;
     padding: 20px 35px 14px;
 }
-.btn-download svg {
+.btn-download img {
     fill: #FFF;
-    height: 26px;
+    height: 14px;
+    margin-bottom: 6px;
 }
 .btn-primary:hover {
     background-color: var(--light-blue);
@@ -732,12 +751,12 @@ ol li::marker {
 }
 .modal-window {
     position: fixed;
-    width: 70vw;
-    top: 50%;
+    width: 55vw;
+    top: 70px;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translateX(-50%);
     background: #fff;
-    z-index: 999;
+    z-index: 9999;
     display: none;
     color: #000;
     padding: 40px;
@@ -761,9 +780,14 @@ ol li::marker {
     display: block;
 }
 .icon {
-    width: 40px;
-    height: 40px;
+    width: 60px;
+    height: 60px;
     fill: var(--green);
+}
+.icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 .pull-img {
     position: absolute;
@@ -803,7 +827,93 @@ ol li::marker {
 }
 .icon-big {
     fill: var(--green);
+    height: 80px;
 }
+.icon-big img {
+    object-fit: contain;
+    height: 100%;
+    width: 100%;
+}
+blockquote {
+    font-size: 36px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 1.3em;
+}
+blockquote:before {
+    content: '"';
+}
+blockquote:after {
+    content: '"';
+}
+.quoter {
+    text-align: center;
+}
+.quoter:before {
+    content: '';
+    width: 50px;
+    height: 3px;
+    background-color: var(--green);
+    display: block;
+    margin: 20px auto;
+}
+.dark-bg {
+    background: var(--black);
+    border-top: 1px solid;
+    border-bottom: 1px solid;
+    border-color: rgba(73, 88, 107, 0.3);
+}
+.green-bordered-section {
+    border: 1px solid var(--green);
+    border-left: 0;
+    border-right: 0;
+}
+.blured-img {
+    position: absolute;
+    top: 50%;
+    left: 15px;
+    transform: translateY(-50%);
+    width: calc(100% - 30px);
+    filter: blur(10px);
+    z-index: 99;
+}
+.z-index-100 {
+    position: relative;
+    z-index: 100;
+}
+.border-green {
+    border: 1px solid var(--green);
+}
+.epic-text {
+    font-size: 54px;
+    line-height: 1.3em;
+    text-transform: uppercase;
+    font-weight: 100;
+}
+.blured-section {
+    background: rgba(0, 0, 0, 0.3);
+    background: linear-gradient(180deg, rgba(0, 16, 31, 0) 0%, rgba(0, 16, 31, 1) 80%);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+}
+/* Image hover animation
+.pull-img {
+    -webkit-transition: all 0.5s ease-in-out;
+    -moz-transition: all 0.5s ease-in-out;
+    -ms-transition: all 0.5s ease-in-out;
+    -o-transition: all 0.5s ease-in-out;
+    transition: all 0.5s ease-in-out;
+}
+.pull-img-to-right {
+    transform: translate(100%, -50%);
+}
+.pull-img-to-left {
+    transform: translate(-100%, -50%);
+}
+section:hover .pull-img-to-right, section:hover .pull-img-to-left {
+    transform: translate(0, -50%);
+}
+*/
 @media (min-width: 576px) {
     body {
         --breakpoint: 540px;
@@ -836,6 +946,9 @@ ol li::marker {
     .navbar-expand-lg .navbar-nav .nav-item {
         padding-left: 0.5em;
         padding-right: 0.5em;
+    }
+    .epic-text {
+        font-size: 40px;
     }
 }
 @media only screen and (max-width: 991px) {
@@ -927,6 +1040,9 @@ ol li::marker {
     .modal-window {
         width: 90vw;
     }
+    .floating-title {
+        font-size: 60px;
+    }
 }
 @media only screen and (max-width: 600px) {
     .home-text-area h1 {
@@ -973,6 +1089,9 @@ ol li::marker {
     .timeline li:nth-child(even):before {
         left: inherit;
         right: calc(15% - 8px);
+    }
+    .epic-text {
+        font-size: 20px;
     }
 }
 @media only screen and (max-width: 400px) {} @media only screen and (max-width: 320px) {

@@ -6,6 +6,7 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.MathNet;
 using WalletWasabi.Fluent.Converters;
+using System.Windows.Input;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -41,7 +42,13 @@ public partial class FeeChartViewModel : ViewModelBase
 
 		this.WhenAnyValue(x => x.SliderValue)
 			.Subscribe(SetXAxisCurrentValue);
+
+		MoveSliderRightCommand = ReactiveCommand.Create(() => SliderValue = Math.Max(SliderMinimum, SliderValue - 10));
+		MoveSliderLeftCommand  = ReactiveCommand.Create(() => SliderValue = Math.Min(SliderMaximum, SliderValue + 10));
 	}
+
+	public ICommand MoveSliderRightCommand { get; }
+	public ICommand MoveSliderLeftCommand { get; }
 
 	private void UpdateFeeAndEstimate(double confirmationTarget)
 	{

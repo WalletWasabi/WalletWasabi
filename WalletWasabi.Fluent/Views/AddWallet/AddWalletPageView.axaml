@@ -4,24 +4,34 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.AddWallet"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="vm:AddWalletPageViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.AddWalletPageView">
-  <c:ContentArea Title="{Binding Title}" Caption="Type in your wallet's name"
+  <c:ContentArea Title="{Binding Title}"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
-                 IsBusy="{Binding IsBusy}"
-                 EnableNext="True" NextContent="Continue">
-    <StackPanel DockPanel.Dock="Top" Margin="0 0 0 20">
-      <Label Content="Wallet _Name:" Target="walletNameTb" />
-      <TextBox x:Name="walletNameTb" MaxLength="250" Text="{Binding WalletName}" Watermark="(e.g. My Wallet)">
-        <i:Interaction.Behaviors>
-          <behaviors:FocusOnAttachedBehavior />
-        </i:Interaction.Behaviors>
-      </TextBox>
-    </StackPanel>
+                 IsBusy="{Binding IsBusy}">
+    <WrapPanel Orientation="Horizontal" Margin="0 0 0 20" HorizontalAlignment="Center">
+      <WrapPanel.Styles>
+        <Style Selector="c|TileButton">
+          <Setter Property="Margin" Value="4"/>
+        </Style>
+      </WrapPanel.Styles>
+      <c:TileButton Text="Create a new wallet"
+                    Classes="action"
+                    Icon="{StaticResource add_regular}"
+                    Command="{Binding CreateWalletCommand}"
+                    IsDefault="{Binding IsActive}" />
+      <c:TileButton Text="Connect to hardware wallet"
+                    Icon="{StaticResource calculator_regular}"
+                    Command="{Binding ConnectHardwareWalletCommand}" />
+      <c:TileButton Text="Import a wallet"
+                    Icon="{StaticResource import_regular}"
+                    Command="{Binding ImportWalletCommand}" />
+      <c:TileButton Text="Recover a wallet"
+                    Icon="{StaticResource recover_arrow_right_regular}"
+                    Command="{Binding RecoverWalletCommand}" />
+    </WrapPanel>
   </c:ContentArea>
 </UserControl>
