@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionBuilding.BnB;
 using Xunit;
@@ -93,6 +94,8 @@ public class BranchAndBoundTests
 			inputValues.Add(1);
 		}
 
+		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
+
 		// All inputs cost the same.
 		long[] inputCosts = inputValues.Select(x => 1L).ToArray();
 		
@@ -100,7 +103,7 @@ public class BranchAndBoundTests
 
 		BranchAndBound algorithm = new();
 		MoreSelectionStrategy strategy = new(target, inputValues.ToArray(), inputCosts);
-		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins);
+		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins, cts.Token);
 
 		Assert.False(wasSuccessful);
 		Assert.Null(selectedCoins);
@@ -111,7 +114,37 @@ public class BranchAndBoundTests
 
 		Assert.Equal(new long[] { 1_000_000 }, actualSelection);
 	}
-	
+
+	[Fact]
+	public void LessSelection_RemainingAmountOptimization()
+	{
+		List<long> inputValues = new();
+		inputValues.Add(1_000_000);
+
+		for (int i = 0; i < 1000; i++)
+		{
+			inputValues.Add(1);
+		}
+
+		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
+
+		// All inputs cost the same.
+		long[] inputCosts = inputValues.Select(x => 1L).ToArray();
+
+		long target = 999_999; // Target that we cannot get as a sum of input values.
+
+		BranchAndBound algorithm = new();
+		LessSelectionStrategy strategy = new(target, inputValues.ToArray(), inputCosts);
+		bool wasSuccessful = algorithm.TryGetMatch(strategy, out List<long>? selectedCoins, cts.Token);
+
+		Assert.False(wasSuccessful);
+		Assert.Null(selectedCoins);
+
+		// Assert that we get expected best solution.
+		long[] actualSelection = strategy.GetBestSelectionFound()!;
+		Assert.NotNull(actualSelection);
+	}
+
 	[Fact]
 	public void LesserSelection_NoInputCosts()
 	{

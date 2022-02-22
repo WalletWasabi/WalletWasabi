@@ -29,6 +29,12 @@ public class LessSelectionStrategy : SelectionStrategy
 			BestTargetSoFar = totalCost;
 		}
 
+		if (totalCost + RemainingAmounts[depth - 1] < BestTargetSoFar)
+		{
+			// The remaining coins cannot sum up to our best solution, cut the branch.
+			return EvaluationResult.SkipBranch;
+		}
+
 		if (depth == selection.Length)
 		{
 			// Leaf reached, no match
