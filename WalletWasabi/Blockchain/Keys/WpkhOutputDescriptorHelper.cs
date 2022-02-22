@@ -29,6 +29,24 @@ public class WpkhOutputDescriptorHelper
 		return new(internalPublicDescriptor, externalPublicDescriptor, privateInternalDescriptor, privateExternalDescriptor);
 	}
 
+	public static WpkhDescriptors GetOutputDescriptorsForWatchOnlyWallet(Network network, HDFingerprint masterFingerprint, ExtPubKey notDerivedAccountKey, KeyPath accountKeyPath)
+	{
+		// Optional part looks like this, for example: [2fc4a4f3/84'/0'/0']
+		string optionalPart = $"[{masterFingerprint}/{accountKeyPath}]";
+
+		// Optional part is followed by the actual public key: "tprv8ghYQhz7XQhoqDZG8SzbkqGCDTwAzyVVmUN3cUerPhUgK91Xvc4FaMJpYwrjuQ48WD7KdQ7Y6znKnaY9PXP8SiDLv1srjjs8NVYGuM7Hrrk"
+		string publicDescriptor = $"{optionalPart}{notDerivedAccountKey.ToString(network)}";
+
+		FlatSigningRepository internalRepo = new();
+		FlatSigningRepository externalRepo = new();
+
+		// Descriptor for all unhardened children (`/*`)
+		OutputDescriptor internalPublicDescriptor = OutputDescriptor.Parse($"wpkh({publicDescriptor}/1/*)", network, requireCheckSum: false, internalRepo);
+		OutputDescriptor externalPublicDescriptor = OutputDescriptor.Parse($"wpkh({publicDescriptor}/0/*)", network, requireCheckSum: false, externalRepo);
+
+		return new(internalPublicDescriptor, externalPublicDescriptor, null, null);
+	}
+
 	/// <summary>
 	/// Set of public and private + internal and external descriptors.
 	/// </summary>
