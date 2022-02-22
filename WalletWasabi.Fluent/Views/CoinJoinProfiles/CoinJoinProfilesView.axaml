@@ -10,7 +10,7 @@
              x:DataType="vm:CoinJoinProfilesViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.CoinJoinProfiles.CoinJoinProfilesView">
-  <c:ContentArea Title="{Binding Title}"
+  <c:ContentArea Title="{Binding Title}" Caption="Select the preference that's most important for you."
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  NextContent="Continue" EnableNext="True"
