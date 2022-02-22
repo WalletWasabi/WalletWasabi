@@ -54,28 +54,19 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 		var loadingRing = new LoadingSuggestionViewModel();
 		Suggestions.Add(loadingRing);
 
-		try
+		var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destination.ScriptPubKey);
+
+		if (hasChange && !isFixedAmount && !info.IsPayJoin)
 		{
-			var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destination.ScriptPubKey);
+			var suggestions =
+				ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, linkedCts.Token);
 
-			if (hasChange && !isFixedAmount && !info.IsPayJoin)
+			await foreach (var suggestion in suggestions)
 			{
-				var suggestions =
-					ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, linkedCts.Token);
-
-				await foreach (var suggestion in suggestions)
-				{
-					Suggestions.Insert(Suggestions.Count - 1, suggestion);
-				}
+				Suggestions.Insert(Suggestions.Count - 1, suggestion);
 			}
 		}
-		catch (OperationCanceledException)
-		{
-			Logger.LogWarning("Computing privacy suggestions was cancelled or timed out.");
-		}
-		finally
-		{
-			Suggestions.Remove(loadingRing);
-		}
+
+		Suggestions.Remove(loadingRing);
 	}
 }

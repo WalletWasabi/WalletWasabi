@@ -39,6 +39,7 @@ public partial class WalletViewModel : WalletViewModelBase
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWideLayout;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWalletBalanceZero;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isEmptyWallet;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSendButtonVisible;
 
 	protected WalletViewModel(Wallet wallet) : base(wallet)
 	{
@@ -111,6 +112,9 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		this.WhenAnyValue(x => x.HeightSource)
 			.Subscribe(x => LayoutSelector(_widthSource, x));
+
+		this.WhenAnyValue(x => x.IsWalletBalanceZero)
+			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!wallet.KeyManager.IsWatchOnly || wallet.KeyManager.IsHardwareWallet));
 
 		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(wallet)));
 
