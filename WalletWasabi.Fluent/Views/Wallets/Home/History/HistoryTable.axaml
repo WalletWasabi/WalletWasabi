@@ -223,10 +223,10 @@
                           DockPanel.Dock="Left"
                           HorizontalAlignment="Stretch"
                           VerticalAlignment="Center"
-                          IsVisible="{Binding !!Label.Count}"
+                          IsVisible="{Binding !!Label}"
                           IsHitTestVisible="False"
                           Margin="0 4 4 0">
-                    <TextBlock Text="{Binding Label[0], FallbackValue=''}"
+                    <TextBlock Text="{Binding Label}"
                                MaxWidth="120"
                                TextTrimming="CharacterEllipsis" />
                   </Button>
