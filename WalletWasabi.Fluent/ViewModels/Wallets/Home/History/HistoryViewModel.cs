@@ -7,7 +7,6 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
-using Avalonia.Controls.Selection;
 using Avalonia.Controls.Templates;
 using DynamicData;
 using DynamicData.Binding;
@@ -15,7 +14,6 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
@@ -56,7 +54,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 			.Bind(_transactions)
 			.Subscribe();
 
-
 			// [Column]			[View]						[Header]		[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
 			// Indicators		IndicatorsColumnView		-				Auto		80				-			false
 			// Date				DateColumnView				Date / Time		Auto		150				-			true
@@ -66,11 +63,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 			// Balance			BalanceColumnView			Balance (₿)		Auto		120				150			true
 
 			IControl IndicatorsColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new IndicatorsColumnView();
-			IControl DateColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new DateColumnView();
 			IControl LabelsColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new LabelsColumnView();
-			IControl IncomingColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new IncomingColumnView();
-			IControl OutgoingColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new OutgoingColumnView();
-			IControl BalanceColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new BalanceColumnView();
 
 			Source = new FlatTreeDataGridSource<HistoryItemViewModelBase>(_transactions)
             {
@@ -89,10 +82,8 @@ public partial class HistoryViewModel : ActivatableViewModel
                         width: new GridLength(0, GridUnitType.Auto)),
 
                     // Date
-                    // new TemplateColumn<HistoryItemViewModelBase>(
                     new PrivacyTextColumn<HistoryItemViewModelBase>(
 	                    "Date / Time",
-	                    // new FuncDataTemplate<HistoryItemViewModelBase>(DateColumnTemplate, true),
 	                    x => x.DateString,
 	                    options: new ColumnOptions<HistoryItemViewModelBase>
 	                    {
@@ -118,10 +109,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 	                    width: new GridLength(1, GridUnitType.Star)),
 
                     // Incoming
-                    // new TemplateColumn<HistoryItemViewModelBase>(
                     new PrivacyTextColumn<HistoryItemViewModelBase>(
 	                    "Incoming (₿)",
-	                    // new FuncDataTemplate<HistoryItemViewModelBase>(IncomingColumnTemplate, true),
 	                    x => x.IncomingAmount?.ToFormattedString(),
 	                    options: new ColumnOptions<HistoryItemViewModelBase>
 	                    {
@@ -136,10 +125,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 	                    numberOfPrivacyChars: 9),
 
                     // Outgoing
-                    // new TemplateColumn<HistoryItemViewModelBase>(
                     new PrivacyTextColumn<HistoryItemViewModelBase>(
 	                    "Outgoing (₿)",
-	                    // new FuncDataTemplate<HistoryItemViewModelBase>(OutgoingColumnTemplate, true),
 	                    x => x.OutgoingAmount?.ToFormattedString(),
 	                    options: new ColumnOptions<HistoryItemViewModelBase>
 	                    {
@@ -154,10 +141,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 	                    numberOfPrivacyChars: 9),
 
                     // Balance
-                    // new TemplateColumn<HistoryItemViewModelBase>(
                     new PrivacyTextColumn<HistoryItemViewModelBase>(
 	                    "Balance (₿)",
-	                    // new FuncDataTemplate<HistoryItemViewModelBase>(BalanceColumnTemplate, true),
 	                    x => x.Balance?.ToFormattedString(),
 	                    options: new ColumnOptions<HistoryItemViewModelBase>
 	                    {
