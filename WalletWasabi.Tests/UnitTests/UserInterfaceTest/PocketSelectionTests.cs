@@ -471,7 +471,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.GetSafeToUsePockets();
+		var output = selection.AutoSelectPockets();
 		Assert.Contains(pocket1, output);
 		Assert.Contains(pocket2, output);
 	}
@@ -487,7 +487,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.GetSafeToUsePockets();
+		var output = selection.AutoSelectPockets();
 		Assert.DoesNotContain(pocket1, output);
 		Assert.Contains(pocket2, output);
 	}
