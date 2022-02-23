@@ -17,6 +17,5 @@ public class MainWindow : Window
 #if DEBUG
 		this.AttachDevTools();
 #endif
-		Renderer.DrawFps = true;
 	}
 }
