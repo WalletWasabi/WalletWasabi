@@ -16,34 +16,20 @@
                   BorderThickness="2 0 0 0"
                   DockPanel.Dock="Left"
                   VerticalAlignment="Stretch" />
-          <DataGridFrozenGrid Name="PART_Root"
-                              RowDefinitions="*,Auto,Auto"
-                              ColumnDefinitions="Auto,*">
-
+          <Grid Name="PART_Root"
+                RowDefinitions="*,Auto,Auto"
+                ColumnDefinitions="Auto,*">
             <Rectangle Name="BackgroundRectangle"
                        Grid.RowSpan="2"
                        Grid.ColumnSpan="2" />
-            <!--<Rectangle x:Name="InvalidVisualElement"
-                       Grid.ColumnSpan="2"
-                       Fill="{DynamicResource DataGridRowInvalidBrush}" />-->
-
-            <!--<DataBoxRowHeader Name="PART_RowHeader"
-                              Grid.RowSpan="3"
-                              DataGridFrozenGrid.IsFrozen="True" />-->
             <DataBoxCellsPresenter Name="PART_CellsPresenter"
-                                   Grid.Column="1"
-                                   DataGridFrozenGrid.IsFrozen="True" />
-            <!--<DataBoxDetailsPresenter Name="PART_DetailsPresenter"
-                                     Grid.Row="1"
-                                     Grid.Column="1"
-                                     Background="{DynamicResource DataGridDetailsPresenterBackgroundBrush}" />-->
+                                   Grid.Column="1" />
             <Rectangle Name="PART_BottomGridLine"
                        Grid.Row="2"
                        Grid.Column="1"
                        HorizontalAlignment="Stretch"
                        Height="1" />
-
-          </DataGridFrozenGrid>
+          </Grid>
         </DockPanel>
       </ControlTemplate>
     </Setter>
