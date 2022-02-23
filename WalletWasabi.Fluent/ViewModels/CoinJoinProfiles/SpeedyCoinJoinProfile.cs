@@ -11,5 +11,5 @@ internal class SpeedyCoinJoinProfile : CoinJoinProfileViewModelBase
 
 	public override IImage Icon => AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/normal.png");
 
-	public override int FeeRateAverageTimeFrameHours => 0;
+	public override int FeeRateMedianTimeFrameHours => 0;
 }

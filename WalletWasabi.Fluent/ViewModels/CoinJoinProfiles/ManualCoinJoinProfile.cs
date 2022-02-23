@@ -10,7 +10,7 @@ public class ManualCoinJoinProfile : CoinJoinProfileViewModelBase
 		AutoCoinjoin = autoCoinjoin;
 		MinAnonScoreTarget = minAnonScoreTarget;
 		MaxAnonScoreTarget = maxAnonScoreTarget;
-		FeeRateAverageTimeFrameHours = feeRateAverageTimeFrameHours;
+		FeeRateMedianTimeFrameHours = feeRateAverageTimeFrameHours;
 	}
 
 	public override string Title => "Manual";
@@ -24,5 +24,5 @@ public class ManualCoinJoinProfile : CoinJoinProfileViewModelBase
 
 	public override int MaxAnonScoreTarget { get; }
 
-	public override int FeeRateAverageTimeFrameHours { get; }
+	public override int FeeRateMedianTimeFrameHours { get; }
 }

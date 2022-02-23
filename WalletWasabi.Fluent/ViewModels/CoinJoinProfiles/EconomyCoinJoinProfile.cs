@@ -11,5 +11,5 @@ internal class EconomyCoinJoinProfile : CoinJoinProfileViewModelBase
 
 	public override IImage Icon => AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/normal.png");
 
-	public override int FeeRateAverageTimeFrameHours => 168; // One week average.
+	public override int FeeRateMedianTimeFrameHours => 168; // One week average.
 }
