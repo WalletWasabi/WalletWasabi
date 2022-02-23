@@ -62,9 +62,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 		// Outgoing			OutgoingColumnView			Outgoing (₿)	Auto		120				150			true
 		// Balance			BalanceColumnView			Balance (₿)		Auto		120				150			true
 
-		IControl IndicatorsColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new IndicatorsColumnView();
-		IControl LabelsColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new LabelsColumnView();
-
 		Source = new FlatTreeDataGridSource<HistoryItemViewModelBase>(_transactions)
 		{
 			Columns =
@@ -72,7 +69,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 				// Indicators
 				new TemplateColumn<HistoryItemViewModelBase>(
 					null,
-					new FuncDataTemplate<HistoryItemViewModelBase>(IndicatorsColumnTemplate, true),
+					new FuncDataTemplate<HistoryItemViewModelBase>((node, ns) => new IndicatorsColumnView(), true),
 					options: new ColumnOptions<HistoryItemViewModelBase>
 					{
 						CanUserResizeColumn = false,
@@ -99,7 +96,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 				// Labels
 				new TemplateColumn<HistoryItemViewModelBase>(
 					"Labels",
-					new FuncDataTemplate<HistoryItemViewModelBase>(LabelsColumnTemplate, true),
+					new FuncDataTemplate<HistoryItemViewModelBase>((node, ns) => new LabelsColumnView(), true),
 					options: new ColumnOptions<HistoryItemViewModelBase>
 					{
 						CanUserResizeColumn = false,
