@@ -33,12 +33,12 @@ public class WalletCoinJoinManager
 	{
 		get
 		{
-			if (CoinJoinTracker is not { } coinJoinTracker || coinJoinTracker.IsCompleted)
+			if (WalletCoinJoinState is not Playing state)
 			{
 				return CoinJoinClientState.Idle;
 			}
 
-			return coinJoinTracker.InCriticalCoinJoinState
+			return state.InCriticalPhase
 				? CoinJoinClientState.InCriticalPhase
 				: CoinJoinClientState.InProgress;
 		}
