@@ -19,7 +19,7 @@
       <TreeDataGrid.Styles>
         <Style Selector="TreeDataGridRow">
           <Setter Property="Focusable" Value="False" />
-          <Setter Property="Height" Value="37.5" />
+          <Setter Property="Height" Value="47.5" />
         </Style>
       </TreeDataGrid.Styles>
     </TreeDataGrid>
