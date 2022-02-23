@@ -13,6 +13,11 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.MainView">
   <Panel>
+    <Panel.Styles>
+      <Style Selector="SplitView:open /template/ Rectangle#LightDismissLayer">
+        <Setter Property="IsHitTestVisible" Value="False" />
+      </Style>
+    </Panel.Styles>
     <SplitView
       IsEnabled="{Binding IsMainContentEnabled}"
       CompactPaneLength="{Binding NavBar.CurrentCompactPaneLength}"
