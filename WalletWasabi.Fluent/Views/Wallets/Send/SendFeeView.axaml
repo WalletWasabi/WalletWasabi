@@ -92,7 +92,7 @@
       <Setter Property="YAxisTitleForeground" Value="{DynamicResource TextForegroundColor}" />
       <Setter Property="YAxisTitleOpacity" Value="0.5" />
       <Setter Property="YAxisTitleAngle" Value="-90" />
-      <Setter Property="YAxisTitleOffset" Value="-53,-75" />
+      <Setter Property="YAxisTitleOffset" Value="-57,-75" />
       <Setter Property="YAxisTitleSize" Value="90,20" />
       <Setter Property="YAxisTitleAlignment" Value="Center" />
       <Setter Property="YAxisTitleFontFamily" Value="Arial" />
@@ -183,30 +183,30 @@
                    YAxisValues="{Binding SatoshiPerByteValues}">
         <c:LineChart.Styles>
           <Style Selector="c|LineChart">
-            <Setter Property="XAxisPlotMode" Value="EvenlySpaced"/>
-            <Setter Property="Margin" Value="18,10,18,0"/>
-            <Setter Property="MinHeight" Value="150"/>
-            <Setter Property="YAxisLogarithmicScale" Value="False"/>
-            <Setter Property="AreaMargin" Value="30,0,10,32"/>
-            <Setter Property="AreaStrokeThickness" Value="2"/>
-            <Setter Property="AreaStrokeLineCap" Value="Round"/>
-            <Setter Property="AreaMinViableWidth" Value="40"/>
-            <Setter Property="AreaMinViableHeight" Value="20"/>
-            <Setter Property="Focusable" Value="True"/>
-            <Setter Property="YAxisTitle" Value="Fee Rate (sat/vByte)"/>
-            <Setter Property="XAxisTitle" Value="Estimated Confirmation Time"/>
+            <Setter Property="XAxisPlotMode" Value="EvenlySpaced" />
+            <Setter Property="Margin" Value="18,10,18,0" />
+            <Setter Property="MinHeight" Value="150" />
+            <Setter Property="YAxisLogarithmicScale" Value="False" />
+            <Setter Property="AreaMargin" Value="30,0,10,32" />
+            <Setter Property="AreaStrokeThickness" Value="2" />
+            <Setter Property="AreaStrokeLineCap" Value="Round" />
+            <Setter Property="AreaMinViableWidth" Value="40" />
+            <Setter Property="AreaMinViableHeight" Value="20" />
+            <Setter Property="Focusable" Value="True" />
+            <Setter Property="YAxisTitle" Value="Fee Rate (sat/vByte)" />
+            <Setter Property="XAxisTitle" Value="Estimated Confirmation Time" />
           </Style>
           <Style Selector="c|LineChart.narrow">
-            <Setter Property="AreaMargin" Value="30,0,10,45"/>
-            <Setter Property="MinHeight" Value="170"/>
+            <Setter Property="AreaMargin" Value="30,0,10,45" />
+            <Setter Property="MinHeight" Value="170" />
             <Setter Property="XAxisLabelAngle" Value="45" />
             <Setter Property="XAxisLabelOffset" Value="-18,54" />
           </Style>
         </c:LineChart.Styles>
         <i:Interaction.Behaviors>
-          <behaviors:ShowSliderThumbToolTipBehavior Slider="{Binding #CursorValue2}"/>
+          <behaviors:ShowSliderThumbToolTipBehavior Slider="{Binding #CursorValue2}" />
           <ir:AdaptiveBehavior>
-            <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="550" ClassName="narrow"/>
+            <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="550" ClassName="narrow" />
           </ir:AdaptiveBehavior>
         </i:Interaction.Behaviors>
       </c:LineChart>
