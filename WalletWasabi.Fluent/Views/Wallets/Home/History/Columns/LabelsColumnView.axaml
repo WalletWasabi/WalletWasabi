@@ -13,10 +13,10 @@
               DockPanel.Dock="Left"
               HorizontalAlignment="Stretch"
               VerticalAlignment="Center"
-              IsVisible="{Binding !!Label.Count}"
+              IsVisible="{Binding !!Label}"
               IsHitTestVisible="False"
-              Margin="0 0 4 0">
-        <TextBlock Text="{Binding Label[0], FallbackValue=''}"
+              Margin="0 4 4 0">
+        <TextBlock Text="{Binding Label}"
                    MaxWidth="120"
                    TextTrimming="CharacterEllipsis" />
       </Button>
@@ -24,7 +24,7 @@
               DockPanel.Dock="Left"
               IsVisible="{Binding !!FilteredLabel.Count}"
               Content="..."
-              Margin="0 0 0 0">
+              Margin="0 4 0 0">
         <Button.Flyout>
           <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="TransientWithDismissOnPointerMoveAway">
             <c:TagsBox IsReadOnly="True"
