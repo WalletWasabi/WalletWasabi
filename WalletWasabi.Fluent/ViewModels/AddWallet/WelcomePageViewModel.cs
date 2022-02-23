@@ -24,12 +24,11 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 		
 		SelectedIndex = 0;
 		NextCommand = ReactiveCommand.Create(OnNext);
-		BackCommand = ReactiveCommand.Create(OnBack, this.WhenAnyValue(x => x.SelectedIndex).Select(x => x > 0));
+		
 		this.WhenAnyValue(x => x.SelectedIndex)
 			.Subscribe(x =>
 			{
 				NextLabel = x < NumberOfPages - 1 ? "Continue" : "Get Started";
-				EnableBack = x > 0;
 				EnableNextKey = x < NumberOfPages - 1;
 			});
 
@@ -39,7 +38,6 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 			.Subscribe(x =>
 			{
 				EnableNextKey = false;
-				EnableBack = false;
 			});
 	}
 
