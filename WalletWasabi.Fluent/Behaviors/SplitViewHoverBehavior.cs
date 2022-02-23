@@ -45,22 +45,15 @@ public class SplitViewHoverBehavior : DisposingBehavior<SplitView>
 		Observable
 			.FromEventPattern<PointerEventArgs>(AssociatedObject, nameof(InputElement.PointerMoved))
 			.Select(x => x.EventArgs.GetPosition(AssociatedObject))
+			.Select(x => (x.X <= 100))
+			.DistinctUntilChanged()
 			.Subscribe(x =>
 			{
 				var navState = AssociatedObject.IsPaneOpen;
-				if (x.X <= 100)
+
+				if (!navState && x)
 				{
-					if (!navState)
-					{
-						AssociatedObject.IsPaneOpen = true;
-					}
-				}
-				else
-				{
-					if (x.X > OpenPaneLength && navState)
-					{
-						AssociatedObject.IsPaneOpen = false;
-					}
+					AssociatedObject.IsPaneOpen = true;
 				}
 			})
 			.DisposeWith(disposables);
