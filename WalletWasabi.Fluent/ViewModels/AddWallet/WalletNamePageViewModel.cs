@@ -25,10 +25,7 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 	{
 		_importFilePath = importFilePath;
 
-		if (creationOption == WalletCreationOption.AddNewWallet)
-		{
-			_walletName = Services.WalletManager.WalletDirectories.GetNextWalletName("Wallet");
-		}
+		_walletName = Services.WalletManager.WalletDirectories.GetNextWalletName("Wallet");
 
 		EnableBack = true;
 
