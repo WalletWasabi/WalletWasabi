@@ -16,17 +16,9 @@ namespace WalletWasabi.Fluent.Behaviors;
 
 public class SplitViewHoverBehavior : DisposingBehavior<SplitView>
 {
-	public static readonly StyledProperty<Action> ToggleActionProperty =
-		AvaloniaProperty.Register<SplitViewHoverBehavior, Action>(nameof(ToggleAction));
-
 	public static readonly StyledProperty<double> OpenPaneLengthProperty =
 		AvaloniaProperty.Register<SplitViewHoverBehavior, double>(nameof(OpenPaneLength));
 
-	public Action ToggleAction
-	{
-		get => GetValue(ToggleActionProperty);
-		set => SetValue(ToggleActionProperty, value);
-	}
 
 	public double OpenPaneLength
 	{
