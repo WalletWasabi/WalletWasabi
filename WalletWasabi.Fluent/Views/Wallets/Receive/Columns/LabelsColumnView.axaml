@@ -5,7 +5,7 @@
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="receive:ReceiveAddressesViewModel"
+             x:DataType="receive:AddressViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.Columns.LabelsColumnView">
   <DockPanel LastChildFill="True" Margin="10 0 30 0" x:DataType="receive:AddressViewModel">

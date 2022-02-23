@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
-             xmlns:columns="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Receive.Columns"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="receive:ReceiveAddressesViewModel"
              x:CompileBindings="True"
@@ -13,9 +12,9 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <DataBox Items="{Binding Addresses}"
-             CanUserSortColumns="True">
-      <DataBox.Styles>
+    <TreeDataGrid Source="{Binding Source}"
+                  CanUserSortColumns="True">
+      <TreeDataGrid.Styles>
         <Style Selector="c|AnimatedButton.addressActionButton">
           <Setter Property="DockPanel.Dock" Value="Right" />
           <Setter Property="Margin" Value="5 0 0 0" />
@@ -32,37 +31,7 @@
           <Setter Property="Height" Value="15" />
           <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
         </Style>
-      </DataBox.Styles>
-      <DataBox.Columns>
-        <DataBoxTemplateColumn Width="90"
-                               CanUserSort="False">
-          <DataBoxTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <columns:ActionsColumnView />
-            </DataTemplate>
-          </DataBoxTemplateColumn.CellTemplate>
-        </DataBoxTemplateColumn>
-
-        <DataBoxTemplateColumn Header="Address"
-                               Width="2*"
-                               CanUserSort="True">
-          <DataBoxTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <columns:AddressColumnView />
-            </DataTemplate>
-          </DataBoxTemplateColumn.CellTemplate>
-        </DataBoxTemplateColumn>
-
-        <DataBoxTemplateColumn Header="Labels"
-                               Width="210"
-                               CanUserSort="True">
-          <DataBoxTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <columns:LabelsColumnView />
-            </DataTemplate>
-          </DataBoxTemplateColumn.CellTemplate>
-        </DataBoxTemplateColumn>
-      </DataBox.Columns>
-    </DataBox>
+      </TreeDataGrid.Styles>
+    </TreeDataGrid>
   </c:ContentArea>
 </UserControl>
