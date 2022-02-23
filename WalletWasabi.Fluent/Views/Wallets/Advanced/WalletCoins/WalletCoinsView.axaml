@@ -15,6 +15,13 @@
                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
     <TreeDataGrid Source="{Binding Source}"
-                  CanUserSortColumns="True" />
+                  CanUserSortColumns="True">
+      <TreeDataGrid.Styles>
+        <Style Selector="TreeDataGridRow">
+          <Setter Property="Focusable" Value="False" />
+          <Setter Property="Height" Value="37.5" />
+        </Style>
+      </TreeDataGrid.Styles>
+    </TreeDataGrid>
   </c:ContentArea>
 </UserControl>
