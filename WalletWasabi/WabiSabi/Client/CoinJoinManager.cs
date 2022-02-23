@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.WabiSabi.Client.CoinJoin;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -53,6 +54,11 @@ public class CoinJoinManager : BackgroundService
 		while (!stoppingToken.IsCancellationRequested)
 		{
 			await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
+
+			foreach (var walletCoinJoinManager in WalletCoinJoinManagers.Values)
+			{
+				walletCoinJoinManager.Step();
+			}
 
 			var mixableWallets = RoundStatusUpdater.AnyRound
 				? GetMixableWallets()
@@ -140,7 +146,7 @@ public class CoinJoinManager : BackgroundService
 	private ImmutableDictionary<string, Wallet> GetMixableWallets() =>
 		WalletCoinJoinManagers.Values
 			.Where(x => x.Wallet.State == WalletState.Started) // Only running wallets
-			.Where(x => x.CanStartAutoCoinJoin)
+			.Where(x => x.WalletCoinJoinState is Playing)
 			.Where(x => !x.Wallet.KeyManager.IsWatchOnly)      // that are not watch-only wallets
 			.Where(x => x.Wallet.Kitchen.HasIngredients)
 			.ToImmutableDictionary(x => x.Wallet.WalletName, x => x.Wallet);

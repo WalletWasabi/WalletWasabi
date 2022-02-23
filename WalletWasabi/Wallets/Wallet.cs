@@ -95,7 +95,7 @@ public class Wallet : BackgroundService
 	public bool IsLoggedIn { get; private set; }
 
 	public Kitchen Kitchen { get; } = new();
-	public ICoinsView NonPrivateCoins => new CoinsView(Coins.Where(c => c.HdPubKey.AnonymitySet < KeyManager.MinAnonScoreTarget));
+	public ICoinsView NonPrivateCoins => new CoinsView(Coins?.Where(c => c.HdPubKey.AnonymitySet < KeyManager.MinAnonScoreTarget) ?? Enumerable.Empty<SmartCoin>());
 
 	public bool TryLogin(string password, out string? compatibilityPasswordUsed)
 	{

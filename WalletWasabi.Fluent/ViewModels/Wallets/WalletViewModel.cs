@@ -19,6 +19,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
+using WalletWasabi.WabiSabi.Client.CoinJoin;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -71,10 +72,10 @@ public partial class WalletViewModel : WalletViewModelBase
 		if (Services.HostedServices.GetOrDefault<CoinJoinManager>() is { } coinJoinManager)
 		{
 			Observable
-				.FromEventPattern<WalletStatusChangedEventArgs>(coinJoinManager.WalletCoinJoinManagers[Wallet.WalletName], nameof(WalletCoinJoinManager.WalletStatusChanged))
+				.FromEventPattern<IWalletCoinJoinState>(coinJoinManager.WalletCoinJoinManagers[Wallet.WalletName], nameof(WalletCoinJoinManager.StateChanged))
 				.Select(args => args.EventArgs)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(e => IsCoinJoining = e.IsCoinJoining)
+				.Subscribe(e => IsCoinJoining = e is Playing)
 				.DisposeWith(Disposables);
 		}
 
