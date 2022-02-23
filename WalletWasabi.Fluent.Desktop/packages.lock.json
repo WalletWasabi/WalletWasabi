@@ -159,14 +159,6 @@
           "Avalonia": "0.10.12"
         }
       },
-      "DataBox": {
-        "type": "Transitive",
-        "resolved": "0.10.11.1",
-        "contentHash": "cEAKQ6gEDLY8NVHl8HX6cZUpk+SVZyvozxK9KaXhmU+I0jg62E0FecXK/p768lPUpyCqsD0aX2NtzDpgaVV7Mg==",
-        "dependencies": {
-          "Avalonia": "0.10.11"
-        }
-      },
       "DynamicData": {
         "type": "Transitive",
         "resolved": "7.1.1",
@@ -682,12 +674,10 @@
         "type": "Project",
         "dependencies": {
           "Avalonia": "0.10.12",
-          "Avalonia.Controls.DataGrid": "0.10.12",
           "Avalonia.Controls.TreeDataGrid": "0.10.10-cibuild0018875-beta",
           "Avalonia.Diagnostics": "0.10.12",
           "Avalonia.ReactiveUI": "0.10.12",
           "Avalonia.Xaml.Behaviors": "0.10.12.2",
-          "DataBox": "0.10.11.1",
           "System.Drawing.Common": "6.0.0",
           "System.Reactive": "5.0.0",
           "System.Runtime": "4.3.1",
