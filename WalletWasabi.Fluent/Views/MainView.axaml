@@ -19,6 +19,7 @@
       OpenPaneLength="{Binding NavBar.CurrentOpenPaneLength}"
       IsPaneOpen="{Binding NavBar.IsOpen, Mode=TwoWay}">
       <i:Interaction.Behaviors>
+        <behaviors:SplitViewHoverBehavior OpenPaneLength="{Binding NavBar.CurrentOpenPaneLength}" ToggleAction="{Binding NavBar.ToggleAction, Mode=OneWay}"  />
         <behaviors:SplitViewAutoBehavior ToggleAction="{Binding NavBar.ToggleAction, Mode=OneWayToSource}"
                                          CollapseOnClickAction="{Binding NavBar.CollapseOnClickAction, Mode=OneWayToSource}"
                                          CollapseThreshold="{StaticResource SplitViewCollapseThreshold}" />
