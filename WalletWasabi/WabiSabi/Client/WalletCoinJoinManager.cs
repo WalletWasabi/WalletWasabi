@@ -2,12 +2,12 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.WabiSabi.Client;
 
-public class WalletCoinJoinState
+public class WalletCoinJoinManager
 {
 	public static bool IsUserInSendWorkflow { get; set; }
 	private static TimeSpan AutoCoinJoinDelayAfterWalletLoaded { get; } = TimeSpan.FromMinutes(Random.Shared.Next(5, 16));
 
-	public WalletCoinJoinState(Wallet wallet)
+	public WalletCoinJoinManager(Wallet wallet)
 	{
 		Wallet = wallet;
 	}
@@ -16,7 +16,7 @@ public class WalletCoinJoinState
 
 	public Wallet Wallet { get; }
 	private CoinJoinTracker? CoinJoinTracker { get; set; }
-	public bool OverrideAutoCoinJoinStartTime { get; set; }
+	private bool OverrideAutoCoinJoinStartTime { get; set; }
 
 	public CoinJoinClientState CoinJoinClientState
 	{
@@ -83,5 +83,18 @@ public class WalletCoinJoinState
 
 			return true;
 		}
+	}
+
+	public void Play()
+	{
+		OverrideAutoCoinJoinStartTime = true;
+	}
+
+	public void Pause()
+	{
+	}
+
+	public void Stop()
+	{
 	}
 }

@@ -290,7 +290,7 @@ public partial class SendViewModel : RoutableViewModel
 			AmountBtc = 0;
 			ClearValidations();
 
-			WalletCoinJoinState.IsUserInSendWorkflow = true;
+			WalletCoinJoinManager.IsUserInSendWorkflow = true;
 		}
 
 		_wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
@@ -309,7 +309,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		if (!isInHistory)
 		{
-			WalletCoinJoinState.IsUserInSendWorkflow = false;
+			WalletCoinJoinManager.IsUserInSendWorkflow = false;
 		}
 	}
 }

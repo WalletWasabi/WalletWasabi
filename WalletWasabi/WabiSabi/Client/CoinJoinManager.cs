@@ -22,22 +22,22 @@ public class CoinJoinManager : BackgroundService
 		RoundStatusUpdater = roundStatusUpdater;
 		ServiceConfiguration = serviceConfiguration;
 		walletManager.WalletAdded += WalletManager_WalletAdded;
-		WalletCoinJoinStates = walletManager.GetWallets().ToDictionary(w => w.WalletName, w => new WalletCoinJoinState(w));
+		WalletCoinJoinManagers = walletManager.GetWallets().ToDictionary(w => w.WalletName, w => new WalletCoinJoinManager(w));
 	}
 
 	private void WalletManager_WalletAdded(object? sender, Wallet w)
 	{
-		WalletCoinJoinStates.Add(w.WalletName, new WalletCoinJoinState(w));
+		WalletCoinJoinManagers.Add(w.WalletName, new WalletCoinJoinManager(w));
 	}
 
 	public WalletManager WalletManager { get; }
 	public IWasabiHttpClientFactory HttpClientFactory { get; }
 	public RoundStateUpdater RoundStatusUpdater { get; }
 	public ServiceConfiguration ServiceConfiguration { get; }
-	public Dictionary<string, WalletCoinJoinState> WalletCoinJoinStates { get; private set; }
+	public Dictionary<string, WalletCoinJoinManager> WalletCoinJoinManagers { get; private set; }
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
 
-	public CoinJoinClientState HighestCoinJoinClientState => WalletCoinJoinStates.Values.Select(w => w.CoinJoinClientState).MaxBy(s => (int)s);
+	public CoinJoinClientState HighestCoinJoinClientState => WalletCoinJoinManagers.Values.Select(w => w.CoinJoinClientState).MaxBy(s => (int)s);
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
@@ -71,7 +71,7 @@ public class CoinJoinManager : BackgroundService
 				CoinJoinTracker coinJoinTracker = coinJoinTrackerFactory.CreateAndStart(openedWallet, coinCandidates);
 
 				trackedCoinJoins.Add(openedWallet.WalletName, coinJoinTracker);
-				WalletCoinJoinStates[openedWallet.WalletName].SetCoinJoinTracker(coinJoinTracker);
+				WalletCoinJoinManagers[openedWallet.WalletName].SetCoinJoinTracker(coinJoinTracker);
 			}
 
 			foreach (var closedWallet in closedWallets.Select(x => x.Value))
@@ -93,7 +93,7 @@ public class CoinJoinManager : BackgroundService
 				}
 				else
 				{
-					WalletCoinJoinStates[walletToRemove.WalletName].ClearCoinJoinTracker();
+					WalletCoinJoinManagers[walletToRemove.WalletName].ClearCoinJoinTracker();
 					finishedCoinJoin.Dispose();
 				}
 			}
@@ -138,9 +138,9 @@ public class CoinJoinManager : BackgroundService
 	}
 
 	private ImmutableDictionary<string, Wallet> GetMixableWallets() =>
-		WalletCoinJoinStates.Values
+		WalletCoinJoinManagers.Values
 			.Where(x => x.Wallet.State == WalletState.Started) // Only running wallets
-			.Where(x => x.CanStartAutoCoinJoin || x.Wallet.AllowManualCoinJoin)
+			.Where(x => x.CanStartAutoCoinJoin)
 			.Where(x => !x.Wallet.KeyManager.IsWatchOnly)      // that are not watch-only wallets
 			.Where(x => x.Wallet.Kitchen.HasIngredients)
 			.ToImmutableDictionary(x => x.Wallet.WalletName, x => x.Wallet);

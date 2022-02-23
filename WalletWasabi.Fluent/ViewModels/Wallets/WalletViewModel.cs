@@ -71,7 +71,7 @@ public partial class WalletViewModel : WalletViewModelBase
 		if (Services.HostedServices.GetOrDefault<CoinJoinManager>() is { } coinJoinManager)
 		{
 			Observable
-				.FromEventPattern<WalletStatusChangedEventArgs>(coinJoinManager.WalletCoinJoinStates[Wallet.WalletName], nameof(WalletCoinJoinState.WalletStatusChanged))
+				.FromEventPattern<WalletStatusChangedEventArgs>(coinJoinManager.WalletCoinJoinManagers[Wallet.WalletName], nameof(WalletCoinJoinManager.WalletStatusChanged))
 				.Select(args => args.EventArgs)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(e => IsCoinJoining = e.IsCoinJoining)

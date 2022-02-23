@@ -7,6 +7,7 @@ using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
@@ -15,6 +16,7 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 {
 	private readonly IObservable<Unit> _balanceChanged;
 	private readonly Wallet _wallet;
+	private readonly WalletCoinJoinManager _walletCoinJoinManager;
 	private readonly DispatcherTimer _animationTimer;
 	[AutoNotify] private bool _isAutoCoinJoinEnabled;
 	[AutoNotify] private bool _isBoosting;
@@ -28,6 +30,7 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 	public PrivacyControlTileViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
 	{
 		_wallet = walletVm.Wallet;
+		_walletCoinJoinManager = Services.HostedServices.Get<CoinJoinManager>().WalletCoinJoinManagers[walletVm.WalletName];
 		_balanceChanged = balanceChanged;
 		_percentText = "";
 
@@ -73,7 +76,16 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 
 		BoostPrivacyCommand = ReactiveCommand.Create(() =>
 		{
-			var isBoosting = IsBoosting = _wallet.AllowManualCoinJoin = !IsBoosting;
+			var isBoosting = IsBoosting = !IsBoosting;
+
+			if (isBoosting)
+			{
+				_walletCoinJoinManager.Play();
+			}
+			else
+			{
+				_walletCoinJoinManager.Stop();
+			}
 
 			if (isBoosting)
 			{
