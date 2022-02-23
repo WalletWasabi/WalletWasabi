@@ -12,7 +12,6 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Login.LoginView">
   <c:ContentArea Title="{Binding Title}"
-                 Caption="Enter your password to access your wallet"
                  HorizontalAlignment="Stretch"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
                  IsBusy="{Binding IsBusy}">
