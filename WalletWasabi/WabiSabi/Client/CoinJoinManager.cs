@@ -36,7 +36,6 @@ public class CoinJoinManager : BackgroundService
 	public ServiceConfiguration ServiceConfiguration { get; }
 	public Dictionary<string, WalletCoinJoinState> WalletCoinJoinStates { get; private set; }
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
-	private TimeSpan AutoCoinJoinDelayAfterWalletLoaded { get; } = TimeSpan.FromMinutes(Random.Shared.Next(5, 16));
 
 	public CoinJoinClientState HighestCoinJoinClientState => WalletCoinJoinStates.Values.Select(w => w.CoinJoinClientState).MaxBy(s => (int)s);
 
@@ -139,12 +138,12 @@ public class CoinJoinManager : BackgroundService
 	}
 
 	private ImmutableDictionary<string, Wallet> GetMixableWallets() =>
-		WalletManager.GetWallets()
-			.Where(x => x.State == WalletState.Started) // Only running wallets
-			.Where(x => CanStartAutoCoinJoin(x) || x.AllowManualCoinJoin)
-			.Where(x => !x.KeyManager.IsWatchOnly)      // that are not watch-only wallets
-			.Where(x => x.Kitchen.HasIngredients)
-			.ToImmutableDictionary(x => x.WalletName, x => x);
+		WalletCoinJoinStates.Values
+			.Where(x => x.Wallet.State == WalletState.Started) // Only running wallets
+			.Where(x => x.CanStartAutoCoinJoin || x.Wallet.AllowManualCoinJoin)
+			.Where(x => !x.Wallet.KeyManager.IsWatchOnly)      // that are not watch-only wallets
+			.Where(x => x.Wallet.Kitchen.HasIngredients)
+			.ToImmutableDictionary(x => x.Wallet.WalletName, x => x.Wallet);
 
 	private IEnumerable<SmartCoin> SelectCandidateCoins(Wallet openedWallet)
 	{
@@ -174,40 +173,6 @@ public class CoinJoinManager : BackgroundService
 
 		var pcPrivate = totalDecimalAmount == 0M ? 1d : (double)(privateDecimalAmount / totalDecimalAmount);
 		return pcPrivate;
-	}
-
-	private bool CanStartAutoCoinJoin(Wallet wallet)
-	{
-		if (!wallet.KeyManager.AutoCoinJoin)
-		{
-			return false;
-		}
-
-		if (WalletCoinJoinState.IsUserInSendWorkflow)
-		{
-			return false;
-		}
-
-		if (wallet.ElapsedTimeSinceStartup <= AutoCoinJoinDelayAfterWalletLoaded)
-		{
-			return false;
-		}
-
-		if (wallet.NonPrivateCoins.TotalAmount() <= wallet.KeyManager.PlebStopThreshold)
-		{
-			return false;
-		}
-
-		return true;
-	}
-
-	public DateTimeOffset WhenWalletCanStartAutoCoinJoin(Wallet wallet)
-	{
-		if (wallet.State < WalletState.Started)
-		{
-			throw new InvalidOperationException("Wallet is not started yet.");
-		}
-		return wallet.StartupTime + AutoCoinJoinDelayAfterWalletLoaded;
 	}
 
 	public override void Dispose()
