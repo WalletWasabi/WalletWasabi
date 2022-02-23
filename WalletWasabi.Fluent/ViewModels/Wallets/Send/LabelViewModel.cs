@@ -16,6 +16,7 @@ public partial class LabelViewModel : ViewModelBase
 	private bool _isFaded;
 
 	[AutoNotify] private bool _isPointerOver;
+	[AutoNotify] private string _toolTip;
 
 	public LabelViewModel(LabelSelectionViewModel owner, string label)
 	{
@@ -31,7 +32,11 @@ public partial class LabelViewModel : ViewModelBase
 			});
 
 		ClickedCommand = ReactiveCommand.Create(() => owner.SwapLabel(this));
+
+		_toolTip = label;
 	}
+
+	public  bool IsDangerous { get; set; }
 
 	public string Value { get; }
 

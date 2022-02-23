@@ -12,7 +12,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.UserInterfaceTest;
 
-class TestCoinsView : ICoinsView
+internal class TestCoinsView : ICoinsView
 {
 	private Money _total;
 
@@ -117,10 +117,10 @@ public class PocketSelectionTests
 		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan", "Roland");
-		pockets.AddPocket(1.0M, out var pocket2, "Target");
-		pockets.AddPocket(1.0M, out var pocket3, "David", "Adam", "Lucas");
-		pockets.AddPocket(1.0M, out var pocket4, "Jumar");
+		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
+		pockets.AddPocket(1.0M, out _, "Target");
+		pockets.AddPocket(1.0M, out _, "David", "Adam", "Lucas");
+		pockets.AddPocket(1.0M, out _, "Jumar");
 
 		selection.Reset(pockets.ToArray());
 
@@ -163,8 +163,8 @@ public class PocketSelectionTests
 		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan", "Roland");
-		pockets.AddPocket(1.0M, out var pocket2, "Dan");
+		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
+		pockets.AddPocket(1.0M, out _, "Dan");
 
 		selection.Reset(pockets.ToArray());
 
@@ -181,8 +181,8 @@ public class PocketSelectionTests
 		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan", "Roland");
-		pockets.AddPocket(1.0M, out var pocket2, "Dan");
+		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
+		pockets.AddPocket(1.0M, out _, "Dan");
 
 		selection.Reset(pockets.ToArray());
 
@@ -199,8 +199,8 @@ public class PocketSelectionTests
 		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan", "Roland");
-		pockets.AddPocket(1.0M, out var pocket2, "Dan");
+		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
+		pockets.AddPocket(1.0M, out _, "Dan");
 
 		selection.Reset(pockets.ToArray());
 
@@ -296,9 +296,9 @@ public class PocketSelectionTests
 		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan");
-		pockets.AddPocket(1.0M, out var pocket2, "Target");
-		pockets.AddPocket(1.0M, out var pocket3, "Target", "Roland");
+		pockets.AddPocket(1.0M, out _, "Target", "Dan");
+		pockets.AddPocket(1.0M, out _, "Target");
+		pockets.AddPocket(1.0M, out _, "Target", "Roland");
 
 		selection.Reset(pockets.ToArray());
 
@@ -340,10 +340,10 @@ public class PocketSelectionTests
 		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan", "Roland");
-		pockets.AddPocket(1.0M, out var pocket2, "Target");
-		pockets.AddPocket(1.0M, out var pocket3, "David", "Adam", "Lucas");
-		pockets.AddPocket(1.0M, out var pocket4, "Jumar");
+		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
+		pockets.AddPocket(1.0M, out _, "Target");
+		pockets.AddPocket(1.0M, out _, "David", "Adam", "Lucas");
+		pockets.AddPocket(1.0M, out _, "Jumar");
 
 		selection.Reset(pockets.ToArray());
 
@@ -449,13 +449,65 @@ public class PocketSelectionTests
 		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out var pocket1, "David");
-		pockets.AddPocket(2.0M, out var pocket2, "Dan");
+		pockets.AddPocket(1.0M, out _, "David");
+		pockets.AddPocket(2.0M, out _, "Dan");
 
 		selection.Reset(pockets.ToArray());
 
 		selection.SwapLabel(selection.GetLabel("David"));
 		selection.SwapLabel(selection.GetLabel("Dan"));
+
+		Assert.False(selection.EnoughSelected);
+	}
+
+	[Fact]
+	public void UnlabelledPocketUsed()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("0.7"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(0.5M, out var pocket1, CoinPocketHelper.UnlabelledFundsText);
+		pockets.AddPocket(0.5M, out var pocket2, "Dan");
+
+		selection.Reset(pockets.ToArray());
+
+		var output = selection.GetSafeToUsePockets();
+		Assert.Contains(pocket1, output);
+		Assert.Contains(pocket2, output);
+	}
+
+	[Fact]
+	public void UnlabelledPocketNotUsed()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("0.4"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(0.5M, out var pocket1, CoinPocketHelper.UnlabelledFundsText);
+		pockets.AddPocket(0.5M, out var pocket2, "Dan");
+
+		selection.Reset(pockets.ToArray());
+
+		var output = selection.GetSafeToUsePockets();
+		Assert.DoesNotContain(pocket1, output);
+		Assert.Contains(pocket2, output);
+	}
+
+	[Fact]
+	public void NotEnoughSelectedWhenSameLabelFoundInSeveralPockets()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(0.4M, out _, "Dan");
+		pockets.AddPocket(2.0M, out _, "Dan", "David");
+
+		selection.Reset(pockets.ToArray());
+
+		selection.SwapLabel(selection.GetLabel("Dan"));
+		selection.SwapLabel(selection.GetLabel("Dan"));
+
+		Assert.DoesNotContain(selection.GetLabel("Dan"), selection.LabelsBlackList);
+		Assert.DoesNotContain(selection.GetLabel("David"), selection.LabelsWhiteList);
 
 		Assert.False(selection.EnoughSelected);
 	}
@@ -465,7 +517,7 @@ internal static class LabelTestExtensions
 {
 	public static LabelViewModel GetLabel(this LabelSelectionViewModel selection, string label)
 	{
-		return selection.AllLabelViewModel.Single(x => x.Value == label);
+		return selection.AllLabelsViewModel.Single(x => x.Value == label);
 	}
 
 	public static void AddPocket(this List<Pocket> pockets, decimal amount, out Pocket pocket, params string[] labels)

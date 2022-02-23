@@ -4,13 +4,13 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:settings="using:WalletWasabi.Fluent.ViewModels.Settings"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
-             x:DataType="settings:NetworkSettingsTabViewModel"
-             x:Class="WalletWasabi.Fluent.Views.Settings.NetworkSettingsTabView"
+             x:DataType="settings:TorSettingsTabViewModel"
+             x:Class="WalletWasabi.Fluent.Views.Settings.TorSettingsTabView"
              x:CompileBindings="True">
   <StackPanel Classes="settingsLayout">
 
     <DockPanel>
-      <TextBlock Text="Network Encryption (Tor)" />
+      <TextBlock Text="Network anonymization (Tor)" />
       <ToggleSwitch IsChecked="{Binding UseTor}" />
     </DockPanel>
 
