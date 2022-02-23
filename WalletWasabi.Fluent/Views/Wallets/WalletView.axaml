@@ -112,14 +112,9 @@
         </Panel.Styles>
         <home:WalletTiles />
       </Panel>
-      <Panel>
-        <!--<history:HistoryTable Name="HistoryTable"
-                              DataContext="{Binding History}"
-                              HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />-->
-        <history:HistoryTablePro Name="HistoryTable"
-                                 DataContext="{Binding History}"
-                                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
-      </Panel>
+      <history:HistoryTable Name="HistoryTable"
+                            DataContext="{Binding History}"
+                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
     </DockPanel>
   </c:ContentArea>
 </UserControl>

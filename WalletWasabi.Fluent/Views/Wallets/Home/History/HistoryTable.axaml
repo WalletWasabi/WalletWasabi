@@ -7,19 +7,26 @@
              xmlns:history="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History"
              xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
-             xmlns:columns="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Home.History.Columns"
+             xmlns:treeDataGrid="clr-namespace:WalletWasabi.Fluent.TreeDataGrid"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="history:HistoryViewModel"
              x:CompileBindings="True"
              ClipToBounds="False"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.HistoryTable">
   <Panel>
-    <DataBox Items="{Binding Transactions}"
-             SelectedItem="{Binding SelectedItem}"
-             CanUserResizeColumns="False"
-             Margin="0 0 0 0"
-             DockPanel.Dock="Bottom">
-      <DataBox.Styles>
+
+    <TreeDataGrid Source="{Binding Source}"
+                  CanUserResizeColumns="False"
+                  Margin="0 0 0 0">
+      <TreeDataGrid.ElementFactory>
+        <treeDataGrid:CustomElementFactory />
+      </TreeDataGrid.ElementFactory>
+      <TreeDataGrid.Styles>
+        <Style Selector="treeDataGrid|TreeDataGridPrivacyTextCell">
+          <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
+          <Setter Property="FontSize" Value="15" />
+          <Setter Property="Margin" Value="10 0" />
+        </Style>
         <Style Selector="PathIcon">
           <Setter Property="Height" Value="13" />
           <Setter Property="VerticalAlignment" Value="Center" />
@@ -33,13 +40,13 @@
           <Setter Property="Spacing" Value="10" />
           <Setter Property="Margin" Value="10 0" />
         </Style>
-        <Style Selector="DataBoxRow Button.historyDetails">
+        <Style Selector="TreeDataGridRow Button.historyDetails">
           <Setter Property="Opacity" Value="0"></Setter>
         </Style>
-        <Style Selector="DataBoxRow:pointerover Button.historyDetails">
+        <Style Selector="TreeDataGridRow:pointerover Button.historyDetails">
           <Setter Property="Opacity" Value="1"></Setter>
         </Style>
-        <Style Selector="DataBoxRow">
+        <Style Selector="TreeDataGridRow">
           <Setter Property="Focusable" Value="False" />
           <Setter Property="Height" Value="37.5" />
           <Setter Property="Template">
@@ -64,9 +71,13 @@
                   <!--<DataGridRowHeader Name="PART_RowHeader"
                                    Grid.RowSpan="3"
                                    DataGridFrozenGrid.IsFrozen="True" />-->
-                  <DataBoxCellsPresenter Name="PART_CellsPresenter"
-                                         Grid.Column="1"
-                                         DataGridFrozenGrid.IsFrozen="True" />
+                  <!--<DataBoxCellsPresenter Name="PART_CellsPresenter"
+                                         DataGridFrozenGrid.IsFrozen="True" />-->
+                  <TreeDataGridCellsPresenter Name="PART_CellsPresenter"
+                                              Grid.Column="1"
+                                              ElementFactory="{TemplateBinding ElementFactory}"
+                                              Items="{TemplateBinding Columns}"
+                                              Rows="{TemplateBinding Rows}"/>
                   <!--<DataGridDetailsPresenter Name="PART_DetailsPresenter"
                                           Grid.Row="1"
                                           Grid.Column="1"
@@ -82,7 +93,7 @@
             </ControlTemplate>
           </Setter>
         </Style>
-        <Style Selector="DataBoxRow /template/ Rectangle#BackgroundRectangle.selectAnimation">
+        <Style Selector="TreeDataGridRow /template/ Rectangle#BackgroundRectangle.selectAnimation">
           <Setter Property="Fill" Value="{DynamicResource SystemAccentColor}" />
           <Setter Property="Opacity" Value="0" />
           <Style.Animations>
@@ -111,6 +122,9 @@
             </Animation>
           </Style.Animations>
         </Style>
+        <Style Selector="TreeDataGridRow:selected /template/ TreeDataGridCellsPresenter#PART_CellsPresenter">
+          <Setter Property="Background" Value="Transparent" />
+        </Style>
         <Style Selector="TextBlock.hidden">
           <Setter Property="IsVisible" Value="False" />
         </Style>
@@ -121,7 +135,7 @@
           <Setter Property="IsVisible" Value="False" />
         </Style>
 
-        <Style Selector="DataBoxRow">
+        <Style Selector="TreeDataGridRow">
           <Setter Property="(i:Interaction.Behaviors)">
             <i:BehaviorCollectionTemplate>
               <i:BehaviorCollection>
@@ -149,91 +163,17 @@
           </Setter>
         </Style>
 
-      </DataBox.Styles>
-
-      <DataBox.Columns>
-        <!-- Indicators -->
-        <DataBoxTemplateColumn Width="Auto"
-                               MinWidth="80"
-                               CanUserSort="False">
-          <DataBoxTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <columns:IndicatorsColumnView />
-            </DataTemplate>
-          </DataBoxTemplateColumn.CellTemplate>
-        </DataBoxTemplateColumn>
-
-        <!-- Date -->
-        <DataBoxTemplateColumn Header="Date / Time"
-                               Width="Auto"
-                               MinWidth="150">
-          <DataBoxTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <columns:DateColumnView />
-            </DataTemplate>
-          </DataBoxTemplateColumn.CellTemplate>
-        </DataBoxTemplateColumn>
-
-        <!-- Labels -->
-        <DataBoxTemplateColumn Header="Labels"
-                               MinWidth="75"
-                               Width="*"
-                               CanUserSort="False">
-          <DataBoxTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <columns:LabelsColumnView />
-            </DataTemplate>
-          </DataBoxTemplateColumn.CellTemplate>
-        </DataBoxTemplateColumn>
-
-        <!-- Incoming -->
-        <DataBoxTemplateColumn Header="Incoming (₿)"
-                               Width="Auto"
-                               MinWidth="120"
-                               MaxWidth="150">
-          <DataBoxTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <columns:IncomingColumnView />
-            </DataTemplate>
-          </DataBoxTemplateColumn.CellTemplate>
-        </DataBoxTemplateColumn>
-
-        <!-- Outgoing -->
-        <DataBoxTemplateColumn Header="Outgoing (₿)"
-                               Width="Auto"
-                               MinWidth="120"
-                               MaxWidth="150">
-          <DataBoxTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <columns:OutgoingColumnView />
-            </DataTemplate>
-          </DataBoxTemplateColumn.CellTemplate>
-        </DataBoxTemplateColumn>
-
-        <!-- Balance -->
-        <DataBoxTemplateColumn Header="Balance (₿)"
-                               Width="Auto"
-                               MinWidth="120"
-                               MaxWidth="150">
-          <DataBoxTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <columns:BalanceColumnView />
-            </DataTemplate>
-          </DataBoxTemplateColumn.CellTemplate>
-        </DataBoxTemplateColumn>
-      </DataBox.Columns>
-    </DataBox>
+      </TreeDataGrid.Styles>
+    </TreeDataGrid>
     <Panel IsVisible="{Binding IsTransactionHistoryEmpty}">
       <c:HistoryPlaceholderPanel Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
-                                 RowHeight="{StaticResource HistoryTableRowHeight}" />
+                                 RowHeight="{StaticResource HistoryTableRowHeight}"/>
       <Panel Background="{DynamicResource RegionColor}" Opacity="0.4" />
 
       <TextBlock Classes="h5 bold"
                  VerticalAlignment="Center"
                  HorizontalAlignment="Center"
-                 Opacity="{StaticResource HistoryTablePlaceholderTextOpacity}">
-        Nothing to see here yet.
-      </TextBlock>
+                 Opacity="{StaticResource HistoryTablePlaceholderTextOpacity}">Nothing to see here yet.</TextBlock>
 
     </Panel>
   </Panel>
