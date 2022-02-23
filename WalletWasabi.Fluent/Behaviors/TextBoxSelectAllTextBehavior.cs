@@ -7,9 +7,6 @@ internal class TextBoxSelectAllTextBehavior : AttachedToVisualTreeBehavior<TextB
 {
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
-		if (AssociatedObject is { })
-		{
-			AssociatedObject.SelectAll();
-		}
+		AssociatedObject?.SelectAll();
 	}
 }
