@@ -54,115 +54,115 @@ public partial class HistoryViewModel : ActivatableViewModel
 			.Bind(_transactions)
 			.Subscribe();
 
-			// [Column]			[View]						[Header]		[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
-			// Indicators		IndicatorsColumnView		-				Auto		80				-			false
-			// Date				DateColumnView				Date / Time		Auto		150				-			true
-			// Labels			LabelsColumnView			Labels			*			75				-			false
-			// Incoming			IncomingColumnView			Incoming (₿)	Auto		120				150			true
-			// Outgoing			OutgoingColumnView			Outgoing (₿)	Auto		120				150			true
-			// Balance			BalanceColumnView			Balance (₿)		Auto		120				150			true
+		// [Column]			[View]						[Header]		[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
+		// Indicators		IndicatorsColumnView		-				Auto		80				-			false
+		// Date				DateColumnView				Date / Time		Auto		150				-			true
+		// Labels			LabelsColumnView			Labels			*			75				-			false
+		// Incoming			IncomingColumnView			Incoming (₿)	Auto		120				150			true
+		// Outgoing			OutgoingColumnView			Outgoing (₿)	Auto		120				150			true
+		// Balance			BalanceColumnView			Balance (₿)		Auto		120				150			true
 
-			IControl IndicatorsColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new IndicatorsColumnView();
-			IControl LabelsColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new LabelsColumnView();
+		IControl IndicatorsColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new IndicatorsColumnView();
+		IControl LabelsColumnTemplate(HistoryItemViewModelBase node, INameScope ns) => new LabelsColumnView();
 
-			Source = new FlatTreeDataGridSource<HistoryItemViewModelBase>(_transactions)
-            {
-                Columns =
-                {
-	                // Indicators
-                    new TemplateColumn<HistoryItemViewModelBase>(
-                        null,
-                        new FuncDataTemplate<HistoryItemViewModelBase>(IndicatorsColumnTemplate, true),
-                        options: new ColumnOptions<HistoryItemViewModelBase>
-                        {
-                            CanUserResizeColumn = false,
-                            CanUserSortColumn = false,
-                            MinWidth = new GridLength(80, GridUnitType.Pixel)
-                        },
-                        width: new GridLength(0, GridUnitType.Auto)),
+		Source = new FlatTreeDataGridSource<HistoryItemViewModelBase>(_transactions)
+		{
+			Columns =
+			{
+				// Indicators
+				new TemplateColumn<HistoryItemViewModelBase>(
+					null,
+					new FuncDataTemplate<HistoryItemViewModelBase>(IndicatorsColumnTemplate, true),
+					options: new ColumnOptions<HistoryItemViewModelBase>
+					{
+						CanUserResizeColumn = false,
+						CanUserSortColumn = false,
+						MinWidth = new GridLength(80, GridUnitType.Pixel)
+					},
+					width: new GridLength(0, GridUnitType.Auto)),
 
-                    // Date
-                    new PrivacyTextColumn<HistoryItemViewModelBase>(
-	                    "Date / Time",
-	                    x => x.DateString,
-	                    options: new ColumnOptions<HistoryItemViewModelBase>
-	                    {
-		                    CanUserResizeColumn = false,
-		                    CanUserSortColumn = true,
-		                    CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Date),
-		                    CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Date),
-		                    MinWidth = new GridLength(150, GridUnitType.Pixel)
-	                    },
-	                    width: new GridLength(0, GridUnitType.Auto),
-	                    numberOfPrivacyChars: 15),
+				// Date
+				new PrivacyTextColumn<HistoryItemViewModelBase>(
+					"Date / Time",
+					x => x.DateString,
+					options: new ColumnOptions<HistoryItemViewModelBase>
+					{
+						CanUserResizeColumn = false,
+						CanUserSortColumn = true,
+						CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Date),
+						CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Date),
+						MinWidth = new GridLength(150, GridUnitType.Pixel)
+					},
+					width: new GridLength(0, GridUnitType.Auto),
+					numberOfPrivacyChars: 15),
 
-                    // Labels
-                    new TemplateColumn<HistoryItemViewModelBase>(
-	                    "Labels",
-	                    new FuncDataTemplate<HistoryItemViewModelBase>(LabelsColumnTemplate, true),
-	                    options: new ColumnOptions<HistoryItemViewModelBase>
-	                    {
-		                    CanUserResizeColumn = false,
-		                    CanUserSortColumn = false,
-		                    MinWidth = new GridLength(100, GridUnitType.Pixel)
-	                    },
-	                    width: new GridLength(1, GridUnitType.Star)),
+				// Labels
+				new TemplateColumn<HistoryItemViewModelBase>(
+					"Labels",
+					new FuncDataTemplate<HistoryItemViewModelBase>(LabelsColumnTemplate, true),
+					options: new ColumnOptions<HistoryItemViewModelBase>
+					{
+						CanUserResizeColumn = false,
+						CanUserSortColumn = false,
+						MinWidth = new GridLength(100, GridUnitType.Pixel)
+					},
+					width: new GridLength(1, GridUnitType.Star)),
 
-                    // Incoming
-                    new PrivacyTextColumn<HistoryItemViewModelBase>(
-	                    "Incoming (₿)",
-	                    x => x.IncomingAmount?.ToFormattedString(),
-	                    options: new ColumnOptions<HistoryItemViewModelBase>
-	                    {
-		                    CanUserResizeColumn = false,
-		                    CanUserSortColumn = true,
-		                    CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.IncomingAmount),
-		                    CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.IncomingAmount),
-		                    MinWidth = new GridLength(120, GridUnitType.Pixel),
-		                    MaxWidth = new GridLength(150, GridUnitType.Pixel)
-	                    },
-	                    width: new GridLength(0, GridUnitType.Auto),
-	                    numberOfPrivacyChars: 9),
+				// Incoming
+				new PrivacyTextColumn<HistoryItemViewModelBase>(
+					"Incoming (₿)",
+					x => x.IncomingAmount?.ToFormattedString(),
+					options: new ColumnOptions<HistoryItemViewModelBase>
+					{
+						CanUserResizeColumn = false,
+						CanUserSortColumn = true,
+						CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.IncomingAmount),
+						CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.IncomingAmount),
+						MinWidth = new GridLength(120, GridUnitType.Pixel),
+						MaxWidth = new GridLength(150, GridUnitType.Pixel)
+					},
+					width: new GridLength(0, GridUnitType.Auto),
+					numberOfPrivacyChars: 9),
 
-                    // Outgoing
-                    new PrivacyTextColumn<HistoryItemViewModelBase>(
-	                    "Outgoing (₿)",
-	                    x => x.OutgoingAmount?.ToFormattedString(),
-	                    options: new ColumnOptions<HistoryItemViewModelBase>
-	                    {
-		                    CanUserResizeColumn = false,
-		                    CanUserSortColumn = true,
-		                    CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.OutgoingAmount),
-		                    CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.OutgoingAmount),
-		                    MinWidth = new GridLength(120, GridUnitType.Pixel),
-		                    MaxWidth = new GridLength(150, GridUnitType.Pixel)
-	                    },
-	                    width: new GridLength(0, GridUnitType.Auto),
-	                    numberOfPrivacyChars: 9),
+				// Outgoing
+				new PrivacyTextColumn<HistoryItemViewModelBase>(
+					"Outgoing (₿)",
+					x => x.OutgoingAmount?.ToFormattedString(),
+					options: new ColumnOptions<HistoryItemViewModelBase>
+					{
+						CanUserResizeColumn = false,
+						CanUserSortColumn = true,
+						CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.OutgoingAmount),
+						CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.OutgoingAmount),
+						MinWidth = new GridLength(120, GridUnitType.Pixel),
+						MaxWidth = new GridLength(150, GridUnitType.Pixel)
+					},
+					width: new GridLength(0, GridUnitType.Auto),
+					numberOfPrivacyChars: 9),
 
-                    // Balance
-                    new PrivacyTextColumn<HistoryItemViewModelBase>(
-	                    "Balance (₿)",
-	                    x => x.Balance?.ToFormattedString(),
-	                    options: new ColumnOptions<HistoryItemViewModelBase>
-	                    {
-		                    CanUserResizeColumn = false,
-		                    CanUserSortColumn = true,
-		                    CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Balance),
-		                    CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Balance),
-		                    MinWidth = new GridLength(150, GridUnitType.Pixel),
-		                    MaxWidth = new GridLength(150, GridUnitType.Pixel)
-	                    },
-	                    width: new GridLength(0, GridUnitType.Auto),
-	                    numberOfPrivacyChars: 9),
-                }
-            };
+				// Balance
+				new PrivacyTextColumn<HistoryItemViewModelBase>(
+					"Balance (₿)",
+					x => x.Balance?.ToFormattedString(),
+					options: new ColumnOptions<HistoryItemViewModelBase>
+					{
+						CanUserResizeColumn = false,
+						CanUserSortColumn = true,
+						CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Balance),
+						CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Balance),
+						MinWidth = new GridLength(150, GridUnitType.Pixel),
+						MaxWidth = new GridLength(150, GridUnitType.Pixel)
+					},
+					width: new GridLength(0, GridUnitType.Auto),
+					numberOfPrivacyChars: 9),
+			}
+		};
 
-			Source.RowSelection!.SingleSelect = true;
+		Source.RowSelection!.SingleSelect = true;
 
-			Source.RowSelection
-				.WhenAnyValue(x => x.SelectedItem)
-				.Subscribe(x => SelectedItem = x);
+		Source.RowSelection
+			.WhenAnyValue(x => x.SelectedItem)
+			.Subscribe(x => SelectedItem = x);
 	}
 
 	public ObservableCollection<HistoryItemViewModelBase> UnfilteredTransactions => _unfilteredTransactions;
