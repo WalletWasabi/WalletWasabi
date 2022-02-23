@@ -69,7 +69,7 @@
     </Style>
     <!-- LineChart XAxis -->
     <Style Selector="c|LineChart.xAxis">
-      <Setter Property="XAxisOffset" Value="160,0" />
+      <Setter Property="XAxisOffset" Value="180,0" />
       <Setter Property="XAxisOpacity" Value="0.5" />
       <Setter Property="XAxisStroke" Value="{DynamicResource TextForegroundColor}" />
       <Setter Property="XAxisStrokeThickness" Value="0.7" />
@@ -105,7 +105,7 @@
       <Setter Property="XAxisTitleForeground" Value="{DynamicResource TextForegroundColor}" />
       <Setter Property="XAxisTitleOpacity" Value="0.5" />
       <Setter Property="XAxisTitleAngle" Value="0" />
-      <Setter Property="XAxisTitleOffset" Value="0,-40" />
+      <Setter Property="XAxisTitleOffset" Value="10,-40" />
       <Setter Property="XAxisTitleSize" Value="90,20" />
       <Setter Property="XAxisTitleAlignment" Value="Left" />
       <Setter Property="XAxisTitleFontFamily" Value="Arial" />
