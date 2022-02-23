@@ -25,10 +25,10 @@
         <RowDefinition />
         <RowDefinition />
       </Grid.RowDefinitions>
-      <TextBlock Grid.Row="0" Grid.Column="0" Text="Auto Coinjoin" />
-      <TextBlock Grid.Row="1" Grid.Column="0" Text="MinAnonScoreTarget" />
-      <TextBlock Grid.Row="2" Grid.Column="0" Text="MaxAnonScoreTarget" />
-      <TextBlock Grid.Row="3" Grid.Column="0" Text="Average time frame" />
+      <TextBlock Grid.Row="0" Grid.Column="0" Text="Automatic Coinjoin" />
+      <TextBlock Grid.Row="1" Grid.Column="0" Text="Privacy Threshold" />
+      <TextBlock Grid.Row="2" Grid.Column="0" Text="Privacy Sanity Check" />
+      <TextBlock Grid.Row="3" Grid.Column="0" Text="Coinjoin Time Preference" />
       <ToggleSwitch Grid.Row="0" Grid.Column="1" IsChecked="{Binding AutoCoinjoin}" />
       <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding MinAnonScoreTarget}" />
       <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding MaxAnonScoreTarget}" />

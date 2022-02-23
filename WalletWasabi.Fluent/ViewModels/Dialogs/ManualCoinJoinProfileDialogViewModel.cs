@@ -24,10 +24,10 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 		_maxAnonScoreTarget = current.MaxAnonScoreTarget.ToString();
 		_timeFrames = new[]
 		{
-			new TimeFrameItem("None", TimeSpan.Zero),
-			new TimeFrameItem("Daily", TimeSpan.FromHours(Constants.CoinJoinFeeRateMedianTimeFrames[0])),
-			new TimeFrameItem("Weekly", TimeSpan.FromHours(Constants.CoinJoinFeeRateMedianTimeFrames[1])),
-			new TimeFrameItem("Monthly", TimeSpan.FromHours(Constants.CoinJoinFeeRateMedianTimeFrames[2]))
+			new TimeFrameItem("Hours", TimeSpan.Zero),
+			new TimeFrameItem("Days", TimeSpan.FromHours(Constants.CoinJoinFeeRateMedianTimeFrames[0])),
+			new TimeFrameItem("Weeks", TimeSpan.FromHours(Constants.CoinJoinFeeRateMedianTimeFrames[1])),
+			new TimeFrameItem("Months", TimeSpan.FromHours(Constants.CoinJoinFeeRateMedianTimeFrames[2]))
 		};
 
 		_selectedTimeFrame = _timeFrames.FirstOrDefault(tf => tf.TimeFrame == TimeSpan.FromHours(current.FeeRateAverageTimeFrameHours)) ?? _timeFrames.First();
