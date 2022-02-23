@@ -145,7 +145,7 @@
           </Setter>
         </Style>
 
-        <Style Selector="behaviors|DataBoxItemDetailsAdorner">
+        <Style Selector="behaviors|TreeDataGridItemDetailsAdorner">
           <Setter Property="Margin" Value="-31,0,0,0" />
           <Setter Property="HorizontalAlignment" Value="Left" />
           <Setter Property="VerticalAlignment" Value="Top" />
