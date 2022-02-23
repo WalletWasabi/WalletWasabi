@@ -37,7 +37,6 @@ public class CoinJoinManager : BackgroundService
 	public Dictionary<string, WalletCoinJoinState> WalletCoinJoinStates { get; private set; }
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
 	private TimeSpan AutoCoinJoinDelayAfterWalletLoaded { get; } = TimeSpan.FromMinutes(Random.Shared.Next(5, 16));
-	public bool IsUserInSendWorkflow { get; set; }
 
 	public CoinJoinClientState HighestCoinJoinClientState => WalletCoinJoinStates.Values.Select(w => w.CoinJoinClientState).MaxBy(s => (int)s);
 
@@ -184,7 +183,7 @@ public class CoinJoinManager : BackgroundService
 			return false;
 		}
 
-		if (IsUserInSendWorkflow)
+		if (WalletCoinJoinState.IsUserInSendWorkflow)
 		{
 			return false;
 		}

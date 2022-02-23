@@ -4,6 +4,8 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public class WalletCoinJoinState
 {
+	public static bool IsUserInSendWorkflow { get; set; }
+
 	public WalletCoinJoinState(Wallet wallet)
 	{
 		Wallet = wallet;
