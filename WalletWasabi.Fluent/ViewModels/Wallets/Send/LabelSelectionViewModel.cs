@@ -15,8 +15,9 @@ public partial class LabelSelectionViewModel : ViewModelBase
 
 	[AutoNotify] private bool _enoughSelected;
 
-	private Pocket? _privatePocket;
+	private Pocket _privatePocket = Pocket.Empty;
 	private bool _includePrivatePocket;
+	private Pocket[] _allPockets = Array.Empty<Pocket>();
 
 	public LabelSelectionViewModel(Money targetAmount)
 	{
@@ -34,14 +35,8 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	public Pocket[] AutoSelectPockets()
 	{
 		var knownPockets = NonPrivatePockets.Where(x => x.Labels != CoinPocketHelper.UnlabelledFundsText).ToArray();
-		var allPockets = NonPrivatePockets.ToList();
 
-		if (_privatePocket is { } privatePocket)
-		{
-			allPockets.Add(privatePocket);
-		}
-
-		if (_privatePocket is { } && _privatePocket.Amount >= _targetAmount)
+		if (_privatePocket.Amount >= _targetAmount)
 		{
 			return new[] { _privatePocket };
 		}
@@ -56,7 +51,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			return NonPrivatePockets;
 		}
 
-		return allPockets.ToArray();
+		return _allPockets.ToArray();
 	}
 
 	public Pocket[] GetUsedPockets()
@@ -73,7 +68,12 @@ public partial class LabelSelectionViewModel : ViewModelBase
 
 	public void Reset(Pocket[] pockets)
 	{
-		_privatePocket = pockets.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText);
+		_allPockets = pockets;
+
+		if (pockets.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText) is { } privatePocket)
+		{
+			_privatePocket = privatePocket;
+		}
 
 		NonPrivatePockets = pockets.Where(x => x != _privatePocket).ToArray();
 
@@ -150,12 +150,12 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			EnoughSelected = true;
 			_includePrivatePocket = false;
 		}
-		else if (!LabelsBlackList.Any() && _privatePocket is { } && sumOfWhiteList + _privatePocket.Amount >= _targetAmount)
+		else if (!LabelsBlackList.Any() && sumOfWhiteList + _privatePocket.Amount >= _targetAmount)
 		{
 			EnoughSelected = true;
 			_includePrivatePocket = true;
 		}
-		else if (!LabelsWhiteList.Any() && _privatePocket is { } && _privatePocket.Amount >= _targetAmount)
+		else if (!LabelsWhiteList.Any() && _privatePocket.Amount >= _targetAmount)
 		{
 			EnoughSelected = true;
 			_includePrivatePocket = true;
