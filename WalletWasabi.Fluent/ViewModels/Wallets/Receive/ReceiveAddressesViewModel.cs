@@ -47,7 +47,7 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 			{
 				// Actions
 				new TemplateColumn<AddressViewModel>(
-					"Labels",
+					null,
 					new FuncDataTemplate<AddressViewModel>((node, ns) => new ActionsColumnView(), true),
 					options: new ColumnOptions<AddressViewModel>
 					{
@@ -58,7 +58,7 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 
 				// Address
 				new TemplateColumn<AddressViewModel>(
-					"Labels",
+					"Address",
 					new FuncDataTemplate<AddressViewModel>((node, ns) => new AddressColumnView(), true),
 					options: new ColumnOptions<AddressViewModel>
 					{
