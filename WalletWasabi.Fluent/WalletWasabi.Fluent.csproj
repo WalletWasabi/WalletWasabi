@@ -25,7 +25,7 @@
 		<PackageReference Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
 		<PackageReference Include="Avalonia.Controls.DataGrid" Version="$(AvaloniaVersion)" />
 		<PackageReference Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
-		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.11.5" />
+		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.12.2" />
 		<PackageReference Include="System.Drawing.Common" Version="6.0.0" />
 		<PackageReference Include="System.Reactive" Version="5.0.0" />
 		<PackageReference Include="System.Runtime" Version="4.3.1" />

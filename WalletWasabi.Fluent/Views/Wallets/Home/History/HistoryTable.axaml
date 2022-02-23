@@ -225,13 +225,15 @@
     </DataBox>
     <Panel IsVisible="{Binding IsTransactionHistoryEmpty}">
       <c:HistoryPlaceholderPanel Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
-                                 RowHeight="{StaticResource HistoryTableRowHeight}"/>
+                                 RowHeight="{StaticResource HistoryTableRowHeight}" />
       <Panel Background="{DynamicResource RegionColor}" Opacity="0.4" />
 
       <TextBlock Classes="h5 bold"
                  VerticalAlignment="Center"
                  HorizontalAlignment="Center"
-                 Opacity="{StaticResource HistoryTablePlaceholderTextOpacity}">Nothing to see here yet.</TextBlock>
+                 Opacity="{StaticResource HistoryTablePlaceholderTextOpacity}">
+        Nothing to see here yet.
+      </TextBlock>
 
     </Panel>
   </Panel>
