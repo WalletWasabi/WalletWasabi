@@ -14,7 +14,6 @@
              ClipToBounds="False"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.HistoryTable">
   <Panel>
-
     <TreeDataGrid Source="{Binding Source}"
                   CanUserResizeColumns="False"
                   Margin="0 0 0 0">
@@ -59,7 +58,6 @@
                 <DataGridFrozenGrid Name="PART_Root"
                                     RowDefinitions="*,Auto,Auto"
                                     ColumnDefinitions="Auto,*">
-
                   <Rectangle Name="BackgroundRectangle"
                              Grid.RowSpan="2"
                              Grid.ColumnSpan="2" x:CompileBindings="False"
@@ -134,7 +132,6 @@
         <Style Selector="PathIcon.hidden">
           <Setter Property="IsVisible" Value="False" />
         </Style>
-
         <Style Selector="TreeDataGridRow">
           <Setter Property="(i:Interaction.Behaviors)">
             <i:BehaviorCollectionTemplate>
@@ -144,7 +141,6 @@
             </i:BehaviorCollectionTemplate>
           </Setter>
         </Style>
-
         <Style Selector="behaviors|TreeDataGridItemDetailsAdorner">
           <Setter Property="Margin" Value="-31,0,0,0" />
           <Setter Property="HorizontalAlignment" Value="Left" />
@@ -162,14 +158,12 @@
             </ControlTemplate>
           </Setter>
         </Style>
-
       </TreeDataGrid.Styles>
     </TreeDataGrid>
     <Panel IsVisible="{Binding IsTransactionHistoryEmpty}">
       <c:HistoryPlaceholderPanel Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
                                  RowHeight="{StaticResource HistoryTableRowHeight}"/>
       <Panel Background="{DynamicResource RegionColor}" Opacity="0.4" />
-
       <TextBlock Classes="h5 bold"
                  VerticalAlignment="Center"
                  HorizontalAlignment="Center"
