@@ -132,15 +132,15 @@
                                 WHAT IS A “COINJOIN”?
                             </label>
                             <div class="card-content">
-                                <p>A mechanism by which multiple participants combine their coins (or UTXOs, to be more precise) into one large transaction with multiple inputs and multiple outputs. An observer cannot determine which output belongs to which input, and neither can the participants themselves. This makes it difficult for outside parties to trace where a particular coin originated from and where it was sent to (as opposed to regular bitcoin transactions, where there is usually one sender and one receiver).</p>
+                                <p> CoinJoin is a mechanism by which multiple participants combine their coins (or UTXOs, to be more precise) into one large transaction with multiple inputs and multiple outputs. An observer cannot determine which output belongs to which input, and neither can the participants themselves. This makes it difficult for outside parties to trace where a particular coin originated from and where it was sent to (as opposed to regular bitcoin transactions, where there is usually one sender and one receiver).</p>
 
-                                <p>This can be done with non-custodial software like Wasabi that eliminates the risk of funds disappearing or being stolen. Each of the signatures are created on the participants’ computers, so anyone trying to connect the signatures is unable to alter the transaction or redirect the funds. The funds will always be in a Bitcoin address that you control. </p>
+                                <p>This can be done with non-custodial software like Wasabi Wallet that eliminates the risk of funds disappearing or being stolen. Each of the signatures are created on the participants’ computers, so anyone trying to connect the signatures is unable to alter the transaction or redirect the funds. The funds will always be in a Bitcoin address that you control. </p>
 
                                 <p>It’s possible to do this in a decentralized way so that the service does not rely on external parties or centralized servers. It just needs the participants of the transaction. </p>
 
                                 <p>CoinJoin can be applied multiple times, and as many transactions are grouped together, participants may save on transaction fees. CoinJoin is the preferred method of gaining privacy in the Bitcoin network.</p>
 
-                                <p>CoinJoin means: “when you want to make a transaction, find someone else who also wants to make a transaction and make a joint transaction together”. </p>
+                                </p>
                             </div>
                         </div>
                         <div class="card">
@@ -149,7 +149,7 @@
                                 DO I NEED TO TRUST WASABI WITH MY COINS?
                             </label>
                             <div class="card-content">
-                                <p>No, Wasabi’s coinjoin implementation is trustless by design. The participants do not need to trust each other or any third party. Both the sending address (the coinjoin input) and the receiving address (the coinjoin output) are controlled by your own private keys. Wasabi merely coordinates the process of combining the inputs of the participants into one single transaction, but the wallet can neither steal your coins, nor figure out which outputs belong to which inputs.</p>
+                                <p>No, Wasabi’s coinjoin implementation is trustless by design. The participants do not need to trust each other or any third party. Both the sending address (the coinjoin input) and the receiving address (the coinjoin output) are controlled by your own private keys. Wasabi merely coordinates the process of combining the inputs of the participants into one single transaction. The wallet can neither steal your coins, nor figure out which outputs belong to which inputs.</p>
                             </div>
                         </div>
                         <div class="card">
@@ -158,7 +158,7 @@
                                 DO I NEED TO RUN TOR?
                             </label>
                             <div class="card-content">
-                                <p>All Wasabi network traffic goes via Tor by default - no need to set up Tor yourself. If you do already have Tor, and it is running, then Wasabi will try to use that first. </p>
+                                <p>All Wasabi network traffic goes via Tor by default -there's no need to set up Tor by yourself. If you do already have Tor, and it is running, then Wasabi will try to use that first. </p>
                                 <p> You can turn off Tor in the Settings. Note that in this case you are still private, except when you coinjoin and when you broadcast a transaction. In the first case, the coordinator would know the links between your inputs and outputs based on your IP address. In the second case, if you happen to broadcast a transaction of yours to a full node that is spying on you, it will know the link between your transaction and your IP address.</p>
                             </div>
                         </div>
@@ -169,7 +169,7 @@
                                 <br>- WHAT WALLETS CAN I USE INSTEAD?
                             </label>
                             <div class="card-content">
-                                <p>Wasabi generates Bech32 addresses only, also known as native SegWit addresses or bc1 addresses, because these addresses start with the characters bc1… Some wallets/exchanges do not yet support this type of address and may give an error message (e.g. “unknown bitcoin address”). The hack is to manage your funds with a wallet which does support Bech32. To check Bech32 adoption and exchange/wallet support you can follow <a href="#" target="_blank">Bitcoin.it Wiki</a> and <a href="#" target="_blank">When Segwit? website</a>.</p>
+                                <p>Wasabi generates Bech32 addresses only, also known as native SegWit addresses or bc1 addresses. Since these addresses start with the characters "bc1…", some wallets/exchanges do not yet support this type of address and may give an error message (e.g. “unknown bitcoin address”). The hack is to manage your funds with a wallet that does support Bech32. To check Bech32 adoption and exchange/wallet support you can follow <a href="#" target="_blank">Bitcoin.it Wiki</a> and <a href="#" target="_blank">When Segwit? website</a>.</p>
                             </div>
                         </div>
                         <div class="card">
@@ -245,7 +245,7 @@
                     <div class="col-md-4">
                         <div class="feature-box h-auto">
                             <h2 class="title green-text">Bitcoin</h2>
-                            <p class="my-4">Bitcoin is a digital currency which operates free of any central control or the oversight of banks or governments. Instead it relies on peer-to-peer software and cryptography. A public ledger records all bitcoin transactions and copies are held on servers around the world. Bitcoin is a decentralized digital currency that you can buy, sell and exchange directly, without an intermediary like a bank.</p>
+                            <p class="my-4">Bitcoin is a digital currency that operates free of any central control or the oversight of banks or governments. Instead, it relies on peer-to-peer software and cryptography. A public ledger records all bitcoin transactions and copies are held on servers worldwide. Bitcoin is a decentralized digital currency that you can buy, sell and exchange directly, without an intermediary like a bank.</p>
                         </div>
                         <div class="feature-box h-auto">
                             <h2 class="title green-text">Trustless</h2>
