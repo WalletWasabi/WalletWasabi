@@ -11,7 +11,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
-[NavigationMetaData(Title = "Set CoinJoin Preference")]
+[NavigationMetaData(Title = "Coinjoin Strategy")]
 public partial class CoinJoinProfilesViewModel : RoutableViewModel
 {
 	[AutoNotify] private CoinJoinProfileViewModelBase? _selectedProfile;

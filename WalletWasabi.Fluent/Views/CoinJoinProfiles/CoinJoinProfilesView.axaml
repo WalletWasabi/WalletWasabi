@@ -10,14 +10,14 @@
              x:DataType="vm:CoinJoinProfilesViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.CoinJoinProfiles.CoinJoinProfilesView">
-  <c:ContentArea Title="{Binding Title}" Caption="Select the preference that's most important for you."
+  <c:ContentArea Title="{Binding Title}" Caption=""
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  NextContent="Continue" EnableNext="True"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel>
 
-      <TextBlock DockPanel.Dock="Top" Text="Wasabi takes care of your financial privacy by automatically coinjoining all your funds by default. The coordination fee of 0.3% is charged only once after the first coinjoin. However, variable Bitcoin network fees incur after every coinjoin." TextWrapping="Wrap" />
+      <TextBlock DockPanel.Dock="Top" Text="Wasabi takes care of your financial privacy by automatically coinjoining all your funds for a 0.3% coordination fee and for variable Bitcoin network fees. Select a coinjoin strategy that fits you best!" TextWrapping="Wrap" />
 
       <Button Classes="h8 plain activeHyperLink" Margin="0 10 0 0"
               DockPanel.Dock="Bottom"
