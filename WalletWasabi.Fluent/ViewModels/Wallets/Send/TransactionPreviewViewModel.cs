@@ -281,64 +281,21 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 		catch (InsufficientBalanceException ex)
 		{
-			var maximumPossibleFeeRate = FeeRate.Zero;
-			var selectedFee = ex.Minimum - _info.Amount;
-			var maxPossibleFeeWithCurrentCoins = ex.Actual - _info.Amount;
-			var differenceOfFeePercentage = maxPossibleFeeWithCurrentCoins == Money.Zero ? 0M : (decimal)selectedFee.Satoshi / maxPossibleFeeWithCurrentCoins.Satoshi * 100;
+			var failedTransactionFee = ex.Minimum - _info.Amount;
+			var maxPossibleFeeWithSelectedCoins = ex.Actual - _info.Amount;
+			var differenceOfFeePercentage = maxPossibleFeeWithSelectedCoins == Money.Zero ? 0M : (decimal)failedTransactionFee.Satoshi / maxPossibleFeeWithSelectedCoins.Satoshi * 100;
 
-			if (TransactionFeeHelper.TryGetMaximumPossibleFeeRate(differenceOfFeePercentage, _wallet, _info.FeeRate, out var feeRate))
+			var result = await TryHandleInsufficientBalanceCaseAsync(differenceOfFeePercentage, isFirstTransaction, ex.Minimum);
+
+			if (!result)
 			{
-				maximumPossibleFeeRate = feeRate;
+				await ShowErrorAsync("Transaction Building", "The transaction cannot be sent at the moment.",
+					"Wasabi was unable to create your transaction.");
+
+				return null;
 			}
 
-			if (differenceOfFeePercentage <= TransactionFeeHelper.FeePercentageThreshold)
-			{
-				_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
-				_info.FeeRate = maximumPossibleFeeRate;
-				_info.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(maximumPossibleFeeRate, _wallet);
-
-				return await BuildTransactionAsync(isFirstTransaction);
-			}
-
-			var totalBalanceUsed = _info.Coins.Sum(x => x.Amount) == _wallet.Coins.TotalAmount();
-
-			if (totalBalanceUsed)
-			{
-				if (_info.Coins.Sum(x => x.Amount) == _info.Amount && !(_isFixedAmount || _info.IsPayJoin))
-				{
-					_info.SubtractFee = true;
-					return await BuildTransactionAsync(isFirstTransaction);
-				}
-				else if (_info.Coins.Sum(x => x.Amount) != _info.Amount && maximumPossibleFeeRate != FeeRate.Zero)
-				{
-					_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
-					_info.FeeRate = maximumPossibleFeeRate;
-					_info.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(maximumPossibleFeeRate, _wallet);
-					return await BuildTransactionAsync(isFirstTransaction);
-				}
-			}
-			else
-			{
-				if (isFirstTransaction)
-				{
-					// show error
-				}
-
-				var selectPocketsDialog =
-					await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, usedCoins: null, isSilent: isFirstTransaction, targetAmount: ex.Minimum));
-
-				if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
-				{
-					_info.Coins = selectPocketsDialog.Result;
-
-					return await BuildTransactionAsync(isFirstTransaction);
-				}
-			}
-
-			await ShowErrorAsync("Transaction Building", "The transaction cannot be sent at the moment.",
-				"Wasabi was unable to create your transaction.");
-
-			return null;
+			return await BuildTransactionAsync(isFirstTransaction);
 		}
 		catch (Exception ex)
 		{
@@ -353,6 +310,63 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			IsBusy = false;
 		}
+	}
+
+	private async Task<bool> TryHandleInsufficientBalanceCaseAsync(decimal differenceOfFeePercentage, bool isFirstTransaction, Money targetAmount)
+	{
+		var maximumPossibleFeeRate =
+			TransactionFeeHelper.TryGetMaximumPossibleFeeRate(differenceOfFeePercentage, _wallet, _info.FeeRate, out var feeRate)
+				? feeRate
+				: FeeRate.Zero;
+
+		if (differenceOfFeePercentage <= TransactionFeeHelper.FeePercentageThreshold)
+		{
+			_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
+			_info.FeeRate = maximumPossibleFeeRate;
+			_info.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(maximumPossibleFeeRate, _wallet);
+
+			return true;
+		}
+
+		var selectedAmount = _info.Coins.Sum(x => x.Amount);
+		var totalBalanceUsed = selectedAmount == _wallet.Coins.TotalAmount();
+
+		if (totalBalanceUsed)
+		{
+			if (selectedAmount == _info.Amount && !(_isFixedAmount || _info.IsPayJoin))
+			{
+				_info.SubtractFee = true;
+				return true;
+			}
+			else if (selectedAmount != _info.Amount && maximumPossibleFeeRate != FeeRate.Zero)
+			{
+				_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
+				_info.FeeRate = maximumPossibleFeeRate;
+				_info.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(maximumPossibleFeeRate, _wallet);
+				return true;
+			}
+		}
+		else
+		{
+			if (!isFirstTransaction)
+			{
+				await ShowErrorAsync(
+					title: "Transaction Building",
+					message: "Fancy message here.", // TODO add a relevant message here
+					caption: "Wasabi was unable to create your transaction.");
+			}
+
+			var selectPocketsDialog =
+				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, usedCoins: _transaction?.SpentCoins, isSilent: isFirstTransaction, targetAmount: targetAmount));
+
+			if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
+			{
+				_info.Coins = selectPocketsDialog.Result;
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private async Task<bool> NavigateConfirmLabelsDialogAsync(BuildTransactionResult transaction)
