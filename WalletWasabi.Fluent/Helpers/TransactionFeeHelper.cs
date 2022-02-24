@@ -48,9 +48,10 @@ public static class TransactionFeeHelper
 	{
 		var feeChartViewModel = new FeeChartViewModel();
 		feeChartViewModel.UpdateFeeEstimates(GetFeeEstimates(wallet));
-		var blockTarget = feeChartViewModel.GetConfirmationTarget(feeRate);
 
-		return CalculateConfirmationTime(blockTarget);
+		return feeChartViewModel.TryGetConfirmationTarget(feeRate, out var target)
+			? CalculateConfirmationTime(target)
+			: TimeSpan.Zero;
 	}
 
 	public static TimeSpan CalculateConfirmationTime(double targetBlock)
@@ -75,9 +76,12 @@ public static class TransactionFeeHelper
 		var feeChartViewModel = new FeeChartViewModel();
 		feeChartViewModel.UpdateFeeEstimates(GetFeeEstimates(wallet));
 
-		var blockTarget = feeChartViewModel.GetConfirmationTarget(maximumPossibleFeeRate);
-		var newFeeRate = new FeeRate(feeChartViewModel.GetSatoshiPerByte(blockTarget));
+		if (!feeChartViewModel.TryGetConfirmationTarget(maximumPossibleFeeRate, out var blockTarget))
+		{
+			return false;
+		}
 
+		var newFeeRate = new FeeRate(feeChartViewModel.GetSatoshiPerByte(blockTarget));
 		return newFeeRate <= maximumPossibleFeeRate;
 	}
 }

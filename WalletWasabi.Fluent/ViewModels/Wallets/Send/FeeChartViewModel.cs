@@ -12,8 +12,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 public partial class FeeChartViewModel : ViewModelBase
 {
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMinimum;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMaximum;
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	private int _sliderMinimum;
+
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	private int _sliderMaximum;
+
 	[AutoNotify] private int _sliderValue;
 	[AutoNotify] private string[]? _satoshiPerByteLabels;
 	[AutoNotify] private double[]? _satoshiPerByteValues;
@@ -170,17 +174,28 @@ public partial class FeeChartViewModel : ViewModelBase
 		return SliderMaximum;
 	}
 
-	public double GetConfirmationTarget(FeeRate feeRate)
+	public bool TryGetConfirmationTarget(FeeRate feeRate, out double target)
 	{
+		target = -1;
+
 		if (SatoshiPerByteValues is null || ConfirmationTargetValues is null) // Should not happen
 		{
-			return 1;
+			return false;
 		}
 
-		var closestValue = SatoshiPerByteValues.Last(x => (decimal)x <= feeRate.SatoshiPerByte);
-		var indexOfClosestValue = SatoshiPerByteValues.LastIndexOf(closestValue);
+		try
+		{
+			var closestValue = SatoshiPerByteValues.Last(x => (decimal)x <= feeRate.SatoshiPerByte);
+			var indexOfClosestValue = SatoshiPerByteValues.LastIndexOf(closestValue);
 
-		return ConfirmationTargetValues[indexOfClosestValue];
+			target = ConfirmationTargetValues[indexOfClosestValue];
+		}
+		catch (Exception)
+		{
+			// Ignored.
+		}
+
+		return target > -1;
 	}
 
 	private int GetSliderValue(double x, double[] xs)
@@ -280,7 +295,7 @@ public partial class FeeChartViewModel : ViewModelBase
 
 	public void InitCurrentConfirmationTarget(FeeRate feeRate)
 	{
-		CurrentConfirmationTarget = GetConfirmationTarget(feeRate);
+		CurrentConfirmationTarget = TryGetConfirmationTarget(feeRate, out var target) ? target : 1;
 	}
 
 	public Dictionary<double, double> GetValues()
