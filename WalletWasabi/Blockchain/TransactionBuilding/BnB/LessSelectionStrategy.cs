@@ -8,31 +8,30 @@ namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 public class LessSelectionStrategy : SelectionStrategy
 {
 	/// <inheritdoc/>
-	public LessSelectionStrategy(long target, long[] inputValues, long[] inputCosts) : base(target, inputValues, inputCosts)
+	public LessSelectionStrategy(long target, long[] inputValues, long[] inputCosts)
+		: base(target, inputValues, inputCosts, new CoinSelection(long.MinValue, long.MinValue))
 	{
-		BestTargetSoFar = long.MinValue;
 	}
 
 	public override EvaluationResult Evaluate(long[] selection, int depth, long sum)
 	{
 		long totalCost = sum + CurrentInputCosts;
 
-		if (totalCost > Target)
+		if (sum > Target)
 		{
 			// Excessive funds, cut the branch.
 			return EvaluationResult.SkipBranch;
 		}
 
-		if (BestTargetSoFar < totalCost)
-		{
-			BestSelectionSoFar = selection[0..depth];
-			BestTargetSoFar = totalCost;
-		}
-
-		if (totalCost + RemainingAmounts[depth - 1] < BestTargetSoFar)
+		if (sum + RemainingAmounts[depth - 1] < BestSelection.PaymentAmount)
 		{
 			// The remaining coins cannot sum up to our best solution, cut the branch.
 			return EvaluationResult.SkipBranch;
+		}
+
+		if (sum > BestSelection.PaymentAmount || (sum == BestSelection.PaymentAmount && totalCost < BestSelection.TotalCosts))
+		{
+			BestSelection.Update(sum, totalCost, selection[0..depth]);
 		}
 
 		if (depth == selection.Length)

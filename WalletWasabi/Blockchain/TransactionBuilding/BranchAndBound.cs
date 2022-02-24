@@ -111,7 +111,7 @@ public class BranchAndBound
 			// Micro optimization: Do not check cancellation token every time as it requires accessing volatile memory.
 			if (i % 10_000 == 0 && cancellationToken.IsCancellationRequested)
 			{
-				cancellationToken.ThrowIfCancellationRequested();
+				//cancellationToken.ThrowIfCancellationRequested();
 			}
 		}
 		while (depth >= 0);
@@ -121,7 +121,7 @@ public class BranchAndBound
 
 	private NextAction GetRandomNextAction()
 	{
-		return _random.Next(0, 2) == 1 ? NextAction.IncludeFirstThenOmit : NextAction.OmitFirstThenInclude;
+		return _random.Next(1, 500) < 250 ? NextAction.IncludeFirstThenOmit : NextAction.OmitFirstThenInclude;
 	}
 
 	private static NextAction GetNextStep(NextAction action)
