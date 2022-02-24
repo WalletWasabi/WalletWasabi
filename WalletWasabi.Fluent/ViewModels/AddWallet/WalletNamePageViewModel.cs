@@ -25,11 +25,14 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 	{
 		_importFilePath = importFilePath;
 
+		_walletName = Services.WalletManager.WalletDirectories.GetNextWalletName("Wallet");
+
 		EnableBack = true;
 
-		var canExecute = this.WhenAnyValue(x => x.WalletName)
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Select(x => !string.IsNullOrWhiteSpace(x) && !Validations.Any);
+		var canExecute =
+			this.WhenAnyValue(x => x.WalletName)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Select(x => !string.IsNullOrWhiteSpace(x) && !Validations.Any);
 
 		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(WalletName, creationOption), canExecute);
 

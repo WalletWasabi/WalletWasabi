@@ -20,6 +20,7 @@
       <TextBox x:Name="walletNameTb" MaxLength="50" Text="{Binding WalletName}" Watermark="(e.g. My Wallet)">
         <i:Interaction.Behaviors>
           <behaviors:FocusOnAttachedBehavior />
+          <behaviors:TextBoxSelectAllTextBehavior/>
         </i:Interaction.Behaviors>
       </TextBox>
     </StackPanel>
