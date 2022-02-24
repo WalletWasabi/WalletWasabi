@@ -97,7 +97,7 @@ public class WalletCoinJoinManager
 		IsPlaying = false;
 	}
 
-	public void Step()
+	public void UpdateState()
 	{
 		switch (WalletCoinJoinState)
 		{
@@ -122,7 +122,6 @@ public class WalletCoinJoinManager
 					return;
 				}
 
-				// Can we start automatic CoinJoin?
 				if (IsUserInSendWorkflow || IsPaused || IsDelay || IsPlebStop)
 				{
 					WalletCoinJoinState = new AutoStarting(

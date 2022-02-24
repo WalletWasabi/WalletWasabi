@@ -57,7 +57,7 @@ public class CoinJoinManager : BackgroundService
 
 			foreach (var walletCoinJoinManager in WalletCoinJoinManagers.Values)
 			{
-				walletCoinJoinManager.Step();
+				walletCoinJoinManager.UpdateState();
 			}
 
 			var mixableWallets = RoundStatusUpdater.AnyRound
