@@ -44,7 +44,7 @@ public partial class FeeChartViewModel : ViewModelBase
 			.Subscribe(SetXAxisCurrentValue);
 
 		MoveSliderRightCommand = ReactiveCommand.Create(() => SliderValue = Math.Max(SliderMinimum, SliderValue - 10));
-		MoveSliderLeftCommand  = ReactiveCommand.Create(() => SliderValue = Math.Min(SliderMaximum, SliderValue + 10));
+		MoveSliderLeftCommand = ReactiveCommand.Create(() => SliderValue = Math.Min(SliderMaximum, SliderValue + 10));
 	}
 
 	public ICommand MoveSliderRightCommand { get; }
@@ -155,6 +155,7 @@ public partial class FeeChartViewModel : ViewModelBase
 				{
 					return (decimal)ys[0];
 				}
+
 				var slope = (ys[1] - ys[0]) / (xs[1] - xs[0]);
 				var interpolated = (decimal)(ys[0] + (t - xs[0]) * slope);
 				return Math.Clamp(interpolated, (decimal)ys[^1], (decimal)ys[0]);
@@ -176,7 +177,7 @@ public partial class FeeChartViewModel : ViewModelBase
 			return 1;
 		}
 
-		var closestValue = SatoshiPerByteValues.OrderBy(x => Math.Abs((decimal)x - feeRate.SatoshiPerByte)).First();
+		var closestValue = SatoshiPerByteValues.Last(x => (decimal)x <= feeRate.SatoshiPerByte);
 		var indexOfClosestValue = SatoshiPerByteValues.LastIndexOf(closestValue);
 
 		return ConfirmationTargetValues[indexOfClosestValue];
