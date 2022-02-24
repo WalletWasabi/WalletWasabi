@@ -385,11 +385,6 @@
         "resolved": "10.0.1",
         "contentHash": "N8BMGVuUBnVLAHSVbna/st8XiLd8ulF3BfkKUSGCPqYpDCis3ELvM+aFaZQLBUIBEcweCYVLq3HFEBqHkCKFyA=="
       },
-      "stateless": {
-        "type": "Transitive",
-        "resolved": "5.11.0",
-        "contentHash": "5XXmdEQBOpgE90vqxfZH0ekdqfGB6xLe0Uyb7EyHr/fgv/zkZtDcru4KxRvAvWxE1u4c8MOZnOnXoRfQOfFnTg=="
-      },
       "System.Collections": {
         "type": "Transitive",
         "resolved": "4.0.11",
@@ -688,8 +683,7 @@
           "System.Drawing.Common": "6.0.0",
           "System.Reactive": "5.0.0",
           "System.Runtime": "4.3.1",
-          "WalletWasabi": "1.0.0",
-          "stateless": "5.11.0"
+          "WalletWasabi": "1.0.0"
         }
       }
     },
