@@ -64,19 +64,14 @@ public class SleepInhibitor : PeriodicRunner
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
-		switch (CoinJoinManager.HighestCoinJoinClientState)
+		if (CoinJoinManager.IsAnyCoinJoinInProgress)
 		{
-			case CoinJoinClientState.Idle:
-				Logger.LogTrace("Computer idle state is allowed again.");
-				await StopTaskAsync().ConfigureAwait(false);
-				break;
-
-			case CoinJoinClientState.InProgress or CoinJoinClientState.InCriticalPhase:
-				await PreventSleepAsync().ConfigureAwait(false);
-				break;
-
-			default:
-				throw new NotSupportedException($"Unsupported {CoinJoinManager.HighestCoinJoinClientState} value.");
+			await PreventSleepAsync().ConfigureAwait(false);
+		}
+		else
+		{
+			Logger.LogTrace("Computer idle state is allowed again.");
+			await StopTaskAsync().ConfigureAwait(false);
 		}
 	}
 
