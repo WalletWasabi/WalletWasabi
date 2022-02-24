@@ -29,21 +29,6 @@ public class WalletCoinJoinManager
 
 	public bool AutoCoinJoin => Wallet.KeyManager.AutoCoinJoin;
 
-	public CoinJoinClientState CoinJoinClientState
-	{
-		get
-		{
-			if (WalletCoinJoinState is not Playing state)
-			{
-				return CoinJoinClientState.Idle;
-			}
-
-			return state.InCriticalPhase
-				? CoinJoinClientState.InCriticalPhase
-				: CoinJoinClientState.InProgress;
-		}
-	}
-
 	public IWalletCoinJoinState WalletCoinJoinState
 	{
 		get => _walletCoinJoinState;

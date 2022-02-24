@@ -83,12 +83,10 @@ public class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 		if (cjManager is { })
 		{
-			return cjManager.HighestCoinJoinClientState switch
+			if (cjManager.IsAnyCoinJoinInCriticalPhase)
 			{
-				CoinJoinClientState.InCriticalPhase => false,
-				CoinJoinClientState.Idle or CoinJoinClientState.InProgress => true,
-				_ => throw new ArgumentOutOfRangeException(),
-			};
+				return false;
+			}
 		}
 
 		return true;

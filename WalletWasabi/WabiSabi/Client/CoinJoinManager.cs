@@ -38,7 +38,8 @@ public class CoinJoinManager : BackgroundService
 	public Dictionary<string, WalletCoinJoinManager> WalletCoinJoinManagers { get; private set; }
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
 
-	public CoinJoinClientState HighestCoinJoinClientState => WalletCoinJoinManagers.Values.Select(w => w.CoinJoinClientState).MaxBy(s => (int)s);
+	public bool IsAnyCoinJoinInProgress => WalletCoinJoinManagers.Values.Any(w => w.WalletCoinJoinState is Playing);
+	public bool IsAnyCoinJoinInCriticalPhase => WalletCoinJoinManagers.Values.Any(w => w.WalletCoinJoinState is Playing state && state.InCriticalPhase);
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
