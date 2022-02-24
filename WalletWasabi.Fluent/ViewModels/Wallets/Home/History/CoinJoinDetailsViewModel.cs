@@ -20,7 +20,7 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 	[AutoNotify] private string _date = "";
 	[AutoNotify] private string _status = "";
 	[AutoNotify] private Money? _coinJoinFee;
-	[AutoNotify] private string _coinJoinFeeString;
+	[AutoNotify] private string _coinJoinFeeString = string.Empty;
 	[AutoNotify] private ObservableCollection<uint256>? _transactionIds;
 
 	public CoinJoinDetailsViewModel(CoinJoinsHistoryItemViewModel coinJoinGroup)
