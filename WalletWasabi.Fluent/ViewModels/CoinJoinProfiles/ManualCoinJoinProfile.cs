@@ -5,12 +5,12 @@ namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
 public class ManualCoinJoinProfile : CoinJoinProfileViewModelBase
 {
-	public ManualCoinJoinProfile(bool autoCoinjoin, int minAnonScoreTarget, int maxAnonScoreTarget, int feeRateAverageTimeFrameHours)
+	public ManualCoinJoinProfile(bool autoCoinjoin, int minAnonScoreTarget, int maxAnonScoreTarget, int feeRateMedianTimeFrameHours)
 	{
 		AutoCoinjoin = autoCoinjoin;
 		MinAnonScoreTarget = minAnonScoreTarget;
 		MaxAnonScoreTarget = maxAnonScoreTarget;
-		FeeRateMedianTimeFrameHours = feeRateAverageTimeFrameHours;
+		FeeRateMedianTimeFrameHours = feeRateMedianTimeFrameHours;
 	}
 
 	public override string Title => "Manual";
