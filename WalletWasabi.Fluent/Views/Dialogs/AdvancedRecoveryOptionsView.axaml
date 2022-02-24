@@ -20,7 +20,7 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="OK">
-    <StackPanel HorizontalAlignment="Center" Spacing="20" MinWidth="380" Margin="20 20 0 0">
+    <StackPanel HorizontalAlignment="Center" Spacing="20" MinWidth="380">
       <StackPanel>
         <Label Content="Account Key _Derivation Path:" Target="TbKeyPath" />
         <TextBox Name="TbKeyPath"

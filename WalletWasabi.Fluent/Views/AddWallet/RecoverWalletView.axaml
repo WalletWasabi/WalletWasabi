@@ -18,7 +18,7 @@
                  EnableNext="True" NextContent="Finish"
                  IsBusy="{Binding IsBusy}">
     <DockPanel>
-      <DockPanel DockPanel.Dock="Top" Margin="0 20 0 20">
+      <DockPanel DockPanel.Dock="Top">
         <PathIcon Name="IconCheckmark"
                   Margin="15 0 0 0"
                   Classes="checkMark"

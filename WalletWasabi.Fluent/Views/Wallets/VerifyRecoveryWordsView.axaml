@@ -12,7 +12,7 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.VerifyRecoveryWordsView">
   <controls:ContentArea Title="{Binding Title}"
                         NextContent="Verify" EnableNext="True" EnableCancel="True">
-    <DockPanel VerticalAlignment="Top" Margin="0 20 0 20">
+    <DockPanel VerticalAlignment="Top">
       <PathIcon Name="IconCheckmark"
                 Margin="15 0 0 0"
                 Classes="checkMark"
