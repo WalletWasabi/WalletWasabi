@@ -13,6 +13,7 @@ internal class PrivateCoinJoinProfile : CoinJoinProfileViewModelBase
 	public override IImage Icon => AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/normal.png");
 
 	public override int MinAnonScoreTarget { get; } = GetRandom(40, 61);
+
 	public override int MaxAnonScoreTarget { get; } = GetRandom(90, 111);
 
 	public override int FeeRateMedianTimeFrameHours => 0;

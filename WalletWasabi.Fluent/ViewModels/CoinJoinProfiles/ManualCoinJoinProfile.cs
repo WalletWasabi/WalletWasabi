@@ -20,6 +20,7 @@ public class ManualCoinJoinProfile : CoinJoinProfileViewModelBase
 	public override IImage Icon => AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/normal.png");
 
 	public override bool AutoCoinjoin { get; }
+
 	public override int MinAnonScoreTarget { get; }
 
 	public override int MaxAnonScoreTarget { get; }
