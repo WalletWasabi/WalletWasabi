@@ -24,7 +24,7 @@ public class WalletCoinJoinManager
 	private bool IsPaused { get; set; }
 	private bool IsPlaying { get; set; }
 
-	private bool IsDelay => !OverrideAutoCoinJoinDelay && Wallet.ElapsedTimeSinceStartup <= AutoCoinJoinDelayAfterWalletLoaded;
+	private bool IsDelay => !OverrideAutoCoinJoinDelay && (Wallet.State < WalletState.Started || Wallet.ElapsedTimeSinceStartup <= AutoCoinJoinDelayAfterWalletLoaded);
 	private bool IsPlebStop => Wallet.NonPrivateCoins is { } coins && coins.TotalAmount() <= Wallet.KeyManager.PlebStopThreshold;
 
 	public bool AutoCoinJoin => Wallet.KeyManager.AutoCoinJoin;
