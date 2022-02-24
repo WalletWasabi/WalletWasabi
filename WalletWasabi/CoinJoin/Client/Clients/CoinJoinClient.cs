@@ -146,14 +146,14 @@ public class CoinJoinClient
 						{
 							await DequeueSpentCoinsFromMixNoLockAsync().ConfigureAwait(false);
 
-								// If stop was requested return.
-								if (!IsRunning)
+							// If stop was requested return.
+							if (!IsRunning)
 							{
 								return;
 							}
 
-								// if mixing >= connConf
-								if (State.GetActivelyMixingRounds().Any())
+							// if mixing >= connConf
+							if (State.GetActivelyMixingRounds().Any())
 							{
 								int delaySeconds = new Random().Next(2, 7);
 								Synchronizer.MaxRequestIntervalForMixing = TimeSpan.FromSeconds(delaySeconds);
@@ -161,12 +161,12 @@ public class CoinJoinClient
 							else if (Interlocked.Read(ref _frequentStatusProcessingIfNotMixing) == 1 || State.GetPassivelyMixingRounds().Any() || State.GetWaitingListCount() > 0)
 							{
 								double rand = double.Parse($"0.{new Random().Next(2, 6)}"); // randomly between every 0.2 * connConfTimeout - 7 and 0.6 * connConfTimeout
-									int delaySeconds = Math.Max(0, (int)((rand * State.GetSmallestRegistrationTimeout()) - 7));
+								int delaySeconds = Math.Max(0, (int)((rand * State.GetSmallestRegistrationTimeout()) - 7));
 
 								Synchronizer.MaxRequestIntervalForMixing = TimeSpan.FromSeconds(delaySeconds);
 							}
 							else // dormant
-								{
+							{
 								Synchronizer.MaxRequestIntervalForMixing = TimeSpan.FromMinutes(3);
 							}
 						}
@@ -191,7 +191,7 @@ public class CoinJoinClient
 			finally
 			{
 				Interlocked.CompareExchange(ref _running, StateStopped, StateStopping); // If IsStopping, make it stopped.
-				}
+			}
 		});
 	}
 
