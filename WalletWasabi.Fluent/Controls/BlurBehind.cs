@@ -4,6 +4,7 @@ using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
+using Avalonia.Skia.Helpers;
 using SkiaSharp;
 
 namespace WalletWasabi.Fluent.Controls;
@@ -55,29 +56,21 @@ public class BlurBehind : Control
 			using var backdropShader = SKShader.CreateImage(backgroundSnapshot, SKShaderTileMode.Clamp,
 				SKShaderTileMode.Clamp, currentInvertedTransform);
 
-			using var blurred = SKSurface.Create(skia.GrContext, false, new SKImageInfo(
-				(int)Math.Ceiling(_bounds.Width),
-				(int)Math.Ceiling(_bounds.Height), SKImageInfo.PlatformColorType, SKAlphaType.Premul));
-			using (var filter =
-			       SKImageFilter.CreateBlur((int)_blurRadius.X, (int)_blurRadius.Y, SKShaderTileMode.Clamp))
-			using (var blurPaint = new SKPaint
-			       {
-				       Shader = backdropShader,
-				       ImageFilter = filter
-			       })
+			using (var blurred =
+			       DrawingContextHelper.CreateDrawingContext(_bounds.Size, new Vector(96, 96), skia.GrContext))
 			{
-				blurred.Canvas.DrawRect(0, 0, (float)_bounds.Width, (float)_bounds.Height, blurPaint);
-			}
+				using (var filter =
+				       SKImageFilter.CreateBlur((int)_blurRadius.X, (int)_blurRadius.Y, SKShaderTileMode.Clamp))
+				using (var blurPaint = new SKPaint
+				       {
+					       Shader = backdropShader,
+					       ImageFilter = filter,
+				       })
+				{
+					blurred.SkSurface.Canvas.DrawRect(0, 0, (float)_bounds.Width, (float)_bounds.Height, blurPaint);
+				}
 
-			using (var blurSnap = blurred.Snapshot())
-			using (var blurSnapShader = SKShader.CreateImage(blurSnap))
-			using (var blurSnapPaint = new SKPaint
-			       {
-				       Shader = blurSnapShader,
-				       IsAntialias = true
-			       })
-			{
-				skia.SkCanvas.DrawRect(0, 0, (float)_bounds.Width, (float)_bounds.Height, blurSnapPaint);
+				blurred.DrawTo(skia);
 			}
 		}
 
