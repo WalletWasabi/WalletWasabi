@@ -27,7 +27,6 @@
 		<PackageReference Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
 		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.11.5" />
 		<PackageReference Include="Avalonia.Skia" Version="$(AvaloniaVersion)" />
-		<PackageReference Include="stateless" Version="5.11.0" />
 		<PackageReference Include="System.Drawing.Common" Version="6.0.0" />
 		<PackageReference Include="System.Reactive" Version="5.0.0" />
 		<PackageReference Include="System.Runtime" Version="4.3.1" />

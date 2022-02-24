@@ -87,12 +87,6 @@
           "Avalonia": "0.10.11"
         }
       },
-      "stateless": {
-        "type": "Direct",
-        "requested": "[5.11.0, )",
-        "resolved": "5.11.0",
-        "contentHash": "5XXmdEQBOpgE90vqxfZH0ekdqfGB6xLe0Uyb7EyHr/fgv/zkZtDcru4KxRvAvWxE1u4c8MOZnOnXoRfQOfFnTg=="
-      },
       "System.Drawing.Common": {
         "type": "Direct",
         "requested": "[6.0.0, )",
