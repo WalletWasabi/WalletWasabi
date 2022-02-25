@@ -53,24 +53,43 @@ public class BlurBehind : Control
 			}
 
 			using var backgroundSnapshot = skia.SkSurface.Snapshot();
-			using var backdropShader = SKShader.CreateImage(backgroundSnapshot, SKShaderTileMode.Clamp,
-				SKShaderTileMode.Clamp, currentInvertedTransform);
 
-			using (var blurred =
-			       DrawingContextHelper.CreateDrawingContext(_bounds.Size, new Vector(96, 96), skia.GrContext))
+			using (var preBlur =
+			       DrawingContextHelper.CreateDrawingContext(
+				       new Size(backgroundSnapshot.Width, backgroundSnapshot.Height), new Vector(96, 96),
+				       skia.GrContext))
 			{
 				using (var filter =
-				       SKImageFilter.CreateBlur((int)_blurRadius.X, (int)_blurRadius.Y, SKShaderTileMode.Clamp))
+				       SKImageFilter.CreateBlur((int) _blurRadius.X, (int) _blurRadius.Y, SKShaderTileMode.Clamp))
 				using (var blurPaint = new SKPaint
 				       {
-					       Shader = backdropShader,
 					       ImageFilter = filter,
 				       })
 				{
-					blurred.SkSurface.Canvas.DrawRect(0, 0, (float)_bounds.Width, (float)_bounds.Height, blurPaint);
+					var canvas = preBlur.SkSurface.Canvas;
+					canvas.DrawSurface(skia.SkSurface, 0f, 0f, blurPaint);
+					canvas.Flush();
 				}
 
-				blurred.DrawTo(skia);
+				using var preBlurredSnapshot = preBlur.SkSurface.Snapshot();
+
+				using var backdropShader = SKShader.CreateImage(preBlurredSnapshot, SKShaderTileMode.Clamp,
+					SKShaderTileMode.Clamp, currentInvertedTransform);
+
+				using (var blurred =
+				       DrawingContextHelper.CreateDrawingContext(_bounds.Size, new Vector(96, 96), skia.GrContext))
+				{
+					using (var blurPaint = new SKPaint
+					       {
+						       Shader = backdropShader,
+					       })
+					{
+						blurred.SkSurface.Canvas.DrawRect(0, 0, (float) _bounds.Width, (float) _bounds.Height,
+							blurPaint);
+					}
+
+					blurred.DrawTo(skia);
+				}
 			}
 		}
 
