@@ -8,7 +8,7 @@
              x:CompileBindings="True" x:DataType="vm:WalletBalanceTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalance.WalletBalanceMediumTileView">
   <DockPanel>
-    <TextBlock Text="Balance" DockPanel.Dock="Top" />
+    <TextBlock Text="BALANCE" DockPanel.Dock="Top" Classes="h8 bold" />
     <StackPanel DockPanel.Dock="Bottom" Spacing="10" Margin="0 5 0 0">
       <Separator  />
       <StackPanel Orientation="Horizontal" Spacing="10">
@@ -24,17 +24,12 @@
     </StackPanel>
 
     <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Spacing="16">
-      <Viewbox Height="40" Width="40" DockPanel.Dock="Left">
-        <Panel>
-          <Ellipse Stroke="{DynamicResource SystemAccentColor}" StrokeThickness="4"
-                   Height="115" Width="115" />
-          <Ellipse Stroke="{DynamicResource SystemAccentColor}" StrokeThickness="4" StrokeDashArray="2, 1"
-                   Height="100" Width="100" />
-          <PathIcon Data="{StaticResource btc_logo}"
-                    Height="50" Width="50"
-                    Foreground="{DynamicResource SystemAccentColor}" />
-        </Panel>
-      </Viewbox>
+      <!-- <Viewbox Height="30" Width="30" DockPanel.Dock="Left"> -->
+      <!--   <Panel> -->
+      <!--     <PathIcon Data="{StaticResource btc_logo_fluent}" -->
+      <!--               Height="30" Width="30" Foreground="{DynamicResource SystemAccentColor}" /> -->
+      <!--   </Panel> -->
+      <!-- </Viewbox> -->
       <StackPanel VerticalAlignment="Center">
         <controls:PrivacyContentControl Content="{Binding BalanceBtc, FallbackValue='1.21230001 BTC'}"
                                         FontSize="24"
