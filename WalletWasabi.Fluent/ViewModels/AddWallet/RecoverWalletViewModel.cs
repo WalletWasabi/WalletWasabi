@@ -19,7 +19,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
-[NavigationMetaData(Title = "Enter Recovery Words")]
+[NavigationMetaData(Title = "Recovery Words")]
 public partial class RecoverWalletViewModel : RoutableViewModel
 {
 	[AutoNotify] private IEnumerable<string>? _suggestions;
@@ -56,7 +56,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 	private async Task OnNextAsync(string? walletName)
 	{
 		var dialogResult = await NavigateDialogAsync(
-			new CreatePasswordDialogViewModel("Password", "Type the password of the wallet if there is one.")
+			new CreatePasswordDialogViewModel("Add Password", "Type the password of the wallet if there is one")
 			, NavigationTarget.CompactDialogScreen);
 
 		if (dialogResult.Result is { } password)
