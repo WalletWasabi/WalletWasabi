@@ -148,7 +148,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		if (result.Kind == DialogResultKind.Normal)
 		{
-			await BuildAndUpdateAsync();
+			await BuildAndUpdateAsync(BuildTransactionReason.FeeChanged);
 		}
 	}
 
@@ -186,13 +186,13 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			_info.FeeRate = feeRateDialogResult.Result;
 
-			await BuildAndUpdateAsync();
+			await BuildAndUpdateAsync(BuildTransactionReason.FeeChanged);
 		}
 	}
 
-	private async Task BuildAndUpdateAsync()
+	private async Task BuildAndUpdateAsync(BuildTransactionReason reason)
 	{
-		var newTransaction = await BuildTransactionAsync(isFirstTransaction: false);
+		var newTransaction = await BuildTransactionAsync(reason);
 
 		if (newTransaction is { })
 		{
@@ -211,7 +211,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			_info.Coins = selectPocketsDialog.Result;
 			_info.ChangelessCoins = Enumerable.Empty<SmartCoin>(); // Clear ChangelessCoins on pocket change, so we calculate the suggestions with the new pocket.
-			await BuildAndUpdateAsync();
+			await BuildAndUpdateAsync(BuildTransactionReason.PocketChanged);
 		}
 	}
 
@@ -248,7 +248,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		return true;
 	}
 
-	private async Task<BuildTransactionResult?> BuildTransactionAsync(bool isFirstTransaction)
+	private async Task<BuildTransactionResult?> BuildTransactionAsync(BuildTransactionReason reason)
 	{
 		if (!await InitialiseTransactionAsync())
 		{
@@ -277,7 +277,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			_info.FeeRate = maximumPossibleFeeRate;
 			_info.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(maximumPossibleFeeRate, _wallet);
 
-			return await BuildTransactionAsync(isFirstTransaction);
+			return await BuildTransactionAsync(reason);
 		}
 		catch (InsufficientBalanceException ex)
 		{
@@ -285,17 +285,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			var maxPossibleFeeWithSelectedCoins = ex.Actual - _info.Amount;
 			var differenceOfFeePercentage = maxPossibleFeeWithSelectedCoins == Money.Zero ? 0M : (decimal)failedTransactionFee.Satoshi / maxPossibleFeeWithSelectedCoins.Satoshi * 100;
 
-			var result = await TryHandleInsufficientBalanceCaseAsync(differenceOfFeePercentage, isFirstTransaction, ex.Minimum);
+			var result = await TryHandleInsufficientBalanceCaseAsync(differenceOfFeePercentage, ex.Minimum, reason);
 
-			if (!result)
-			{
-				await ShowErrorAsync("Transaction Building", "The transaction cannot be sent at the moment.",
-					"Wasabi was unable to create your transaction.");
-
-				return null;
-			}
-
-			return await BuildTransactionAsync(isFirstTransaction);
+			return result ? await BuildTransactionAsync(reason) : null;
 		}
 		catch (Exception ex)
 		{
@@ -312,14 +304,15 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 	}
 
-	private async Task<bool> TryHandleInsufficientBalanceCaseAsync(decimal differenceOfFeePercentage, bool isFirstTransaction, Money targetAmount)
+	private async Task<bool> TryHandleInsufficientBalanceCaseAsync(decimal differenceOfFeePercentage, Money targetAmount, BuildTransactionReason reason)
 	{
 		var maximumPossibleFeeRate =
 			TransactionFeeHelper.TryGetMaximumPossibleFeeRate(differenceOfFeePercentage, _wallet, _info.FeeRate, out var feeRate)
 				? feeRate
 				: FeeRate.Zero;
 
-		if (differenceOfFeePercentage is > 0 and TransactionFeeHelper.FeePercentageThreshold)
+		if (differenceOfFeePercentage is > 0 and TransactionFeeHelper.FeePercentageThreshold ||
+		    (differenceOfFeePercentage > 0 && reason == BuildTransactionReason.FeeChanged))
 		{
 			_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
 			_info.FeeRate = maximumPossibleFeeRate;
@@ -348,23 +341,24 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 		else
 		{
-			if (!isFirstTransaction)
-			{
-				await ShowErrorAsync(
-					title: "Transaction Building",
-					message: "Fancy message here.", // TODO add a relevant message here
-					caption: "Wasabi was unable to create your transaction.");
-			}
+			var doSilentPocketSelection = reason == BuildTransactionReason.Initialization;
 
 			var selectPocketsDialog =
-				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, usedCoins: _transaction?.SpentCoins, isSilent: isFirstTransaction, targetAmount: targetAmount));
+				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, usedCoins: _transaction?.SpentCoins, isSilent: doSilentPocketSelection, targetAmount: targetAmount));
 
 			if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
 			{
 				_info.Coins = selectPocketsDialog.Result;
 				return true;
 			}
+			else if (selectPocketsDialog.Kind != DialogResultKind.Normal)
+			{
+				return false;
+			}
 		}
+
+		await ShowErrorAsync("Transaction Building", "The transaction cannot be sent at the moment.",
+			"Wasabi was unable to create your transaction.");
 
 		return false;
 	}
@@ -381,7 +375,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task InitialiseViewModelAsync()
 	{
-		if (await BuildTransactionAsync(isFirstTransaction: true) is { } initialTransaction)
+		if (await BuildTransactionAsync(BuildTransactionReason.Initialization) is { } initialTransaction)
 		{
 			UpdateTransaction(CurrentTransactionSummary, initialTransaction);
 
