@@ -123,8 +123,7 @@ public class WalletCoinJoinManager
 				break;
 
 			case Playing state:
-
-				if (!IsPlaying && CoinJoinTracker?.InCriticalCoinJoinState is not true)
+				if ((!IsPlaying || IsPaused) && CoinJoinTracker?.InCriticalCoinJoinState is not true)
 				{
 					WalletCoinJoinState = new Stopped();
 					return;
