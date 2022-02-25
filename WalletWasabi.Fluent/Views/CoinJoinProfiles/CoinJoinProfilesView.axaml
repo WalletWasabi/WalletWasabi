@@ -24,7 +24,7 @@
               Command="{Binding ManualSetupCommand}"
               HorizontalAlignment="Center"
               VerticalAlignment="Bottom"
-              Content="Customize..." />
+              Content="Customize" />
 
       <ListBox Items="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}" Background="Transparent">
         <ListBox.Styles>
