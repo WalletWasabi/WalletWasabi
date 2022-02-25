@@ -74,12 +74,14 @@ public class WalletCoinJoinManager
 	public void Pause()
 	{
 		IsPaused = true;
+		OverrideAutoCoinJoinDelay = false;
 	}
 
 	public void Stop()
 	{
 		IsPaused = false;
 		IsPlaying = false;
+		OverrideAutoCoinJoinDelay = false;
 	}
 
 	public void UpdateState()
