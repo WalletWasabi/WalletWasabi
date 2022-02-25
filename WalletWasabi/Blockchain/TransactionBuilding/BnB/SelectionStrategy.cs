@@ -68,8 +68,6 @@ public abstract class SelectionStrategy
 
 			selection[depth] = InputValues[depth];
 			newSum = oldSum + selection[depth];
-
-			VerifyInputCostsSum(selection);
 		}
 		else
 		{
@@ -80,28 +78,9 @@ public abstract class SelectionStrategy
 
 			newSum = oldSum - selection[depth];
 			selection[depth] = 0;
-
-			VerifyInputCostsSum(selection);
 		}
 
 		return newSum;
-	}
-
-	private void VerifyInputCostsSum(long[] selection)
-	{
-		long inputCostsSum = 0;
-		for (int i = 0; i < selection.Length; i++)
-		{
-			if (selection[i] > 0)
-			{
-				inputCostsSum += InputCosts[i];
-			}
-		}
-
-		if (CurrentInputCosts != inputCostsSum)
-		{
-			throw new Exception("...");
-		}
 	}
 
 	/// <summary>
