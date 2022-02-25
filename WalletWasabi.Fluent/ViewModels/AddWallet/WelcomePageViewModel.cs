@@ -35,10 +35,7 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 		this.WhenAnyValue(x => x.IsActive)
 			.Skip(1)
 			.Where(x => !x)
-			.Subscribe(x =>
-			{
-				EnableNextKey = false;
-			});
+			.Subscribe(x => EnableNextKey = false);
 	}
 
 	public Bitmap WelcomeImage { get; } = AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WelcomeScreen/{ThemeHelper.CurrentTheme}/welcome.png");
@@ -62,14 +59,6 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 		else
 		{
 			Close();
-		}
-	}
-
-	private void OnBack()
-	{
-		if (SelectedIndex > 0)
-		{
-			SelectedIndex--;
 		}
 	}
 }
