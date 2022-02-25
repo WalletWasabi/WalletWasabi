@@ -1,8 +1,4 @@
-using Moq;
 using NBitcoin;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client;
@@ -54,16 +50,16 @@ public class WalletCoinJoinManagerTests
 
 		WalletCoinJoinManager man = new(wallet);
 
-		Assert.True(man.WalletCoinJoinState is Stopped);
+		Assert.True(man.WalletCoinJoinState is AutoStarting);
 
 		man.UpdateState();
 		Assert.True(man.WalletCoinJoinState is AutoStarting);
 		if (man.WalletCoinJoinState is AutoStarting s1)
 		{
 			Assert.False(s1.IsSending);
-			Assert.False(s1.IsDelay);
+			Assert.True(s1.IsDelay);
 			Assert.False(s1.IsPaused);
-			Assert.False(s1.IsPlebStop);
+			Assert.True(s1.IsPlebStop);
 		}
 
 		WalletCoinJoinManager.IsUserInSendWorkflow = true;

@@ -13,7 +13,7 @@ public class WalletCoinJoinManager
 	public WalletCoinJoinManager(Wallet wallet)
 	{
 		Wallet = wallet;
-		_walletCoinJoinState = new Stopped();
+		_walletCoinJoinState = GetZeroState();
 	}
 
 	public event EventHandler<IWalletCoinJoinState>? StateChanged;
@@ -103,7 +103,7 @@ public class WalletCoinJoinManager
 			case AutoStarting:
 				if (AutoCoinJoin is false)
 				{
-					WalletCoinJoinState = new Stopped();
+					WalletCoinJoinState = GetZeroState();
 					return;
 				}
 
@@ -142,12 +142,22 @@ public class WalletCoinJoinManager
 				break;
 
 			case Finished:
-				WalletCoinJoinState = AutoCoinJoin ? new AutoStarting() : new Stopped();
+				WalletCoinJoinState = GetZeroState();
 				break;
 
 			default:
-				WalletCoinJoinState = new Stopped();
+				WalletCoinJoinState = GetZeroState();
 				break;
 		}
+	}
+
+	private IWalletCoinJoinState GetZeroState()
+	{
+		if (AutoCoinJoin)
+		{
+			return new AutoStarting(IsUserInSendWorkflow, IsPlebStop, IsDelay, IsPaused);
+		}
+
+		return IsPlaying ? new Playing() : new Stopped();
 	}
 }

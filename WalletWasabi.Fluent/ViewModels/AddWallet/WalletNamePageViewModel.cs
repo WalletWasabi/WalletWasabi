@@ -15,7 +15,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
-[NavigationMetaData(Title = "Enter wallet name")]
+[NavigationMetaData(Title = "Wallet Name")]
 public partial class WalletNamePageViewModel : RoutableViewModel
 {
 	[AutoNotify] private string _walletName = "";
@@ -25,11 +25,14 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 	{
 		_importFilePath = importFilePath;
 
+		_walletName = Services.WalletManager.WalletDirectories.GetNextWalletName("Wallet");
+
 		EnableBack = true;
 
-		var canExecute = this.WhenAnyValue(x => x.WalletName)
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Select(x => !string.IsNullOrWhiteSpace(x) && !Validations.Any);
+		var canExecute =
+			this.WhenAnyValue(x => x.WalletName)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Select(x => !string.IsNullOrWhiteSpace(x) && !Validations.Any);
 
 		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(WalletName, creationOption), canExecute);
 
@@ -43,15 +46,19 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 			case WalletCreationOption.AddNewWallet:
 				await CreatePasswordAsync(walletName);
 				break;
+
 			case WalletCreationOption.ConnectToHardwareWallet:
 				Navigate().To(new ConnectHardwareWalletViewModel(walletName));
 				break;
+
 			case WalletCreationOption.RecoverWallet:
 				Navigate().To(new RecoverWalletViewModel(walletName));
 				break;
+
 			case WalletCreationOption.ImportWallet when _importFilePath is { }:
 				await ImportWalletAsync(walletName, _importFilePath);
 				break;
+
 			default:
 				throw new InvalidOperationException($"{nameof(WalletCreationOption)} not supported: {creationOption}");
 		}
@@ -64,7 +71,7 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 			var keyManager = await ImportWalletHelper.ImportWalletAsync(Services.WalletManager, walletName, filePath);
 			Navigate().To(new AddedWalletPageViewModel(keyManager));
 		}
-		catch(Exception ex)
+		catch (Exception ex)
 		{
 			await ShowErrorAsync("Import wallet", ex.ToUserFriendlyString(), "Wasabi was unable to import your wallet.");
 			BackCommand.Execute(null);
@@ -74,7 +81,7 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 	private async Task CreatePasswordAsync(string walletName)
 	{
 		var dialogResult = await NavigateDialogAsync(
-			new CreatePasswordDialogViewModel("Create Password", "Enter a password for your wallet.", enableEmpty: true),
+			new CreatePasswordDialogViewModel("Add Password", enableEmpty: true),
 			NavigationTarget.CompactDialogScreen);
 
 		if (dialogResult.Result is { } password)
