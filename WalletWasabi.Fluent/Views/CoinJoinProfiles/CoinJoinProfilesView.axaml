@@ -17,7 +17,7 @@
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel>
 
-      <TextBlock DockPanel.Dock="Top" Text="Wasabi takes care of your financial privacy by automatically coinjoining all your funds for a 0.3% coordination fee and for variable Bitcoin network fees. Select a coinjoin strategy that fits you best!" TextWrapping="Wrap" />
+      <TextBlock DockPanel.Dock="Top" Text="Wasabi takes care of your financial privacy by automatically coinjoining all your funds for a fixed 0.3% coordination fee plus the Bitcoin network fee. Select a coinjoin strategy that fits you best!" TextWrapping="Wrap" />
 
       <Button Classes="h8 plain activeHyperLink" Margin="0 10 0 0"
               DockPanel.Dock="Bottom"
