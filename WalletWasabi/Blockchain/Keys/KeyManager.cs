@@ -717,7 +717,7 @@ public class KeyManager
 	{
 		if (hours != 0 && !Constants.CoinJoinFeeRateMedianTimeFrames.Contains(hours))
 		{
-			throw new ArgumentOutOfRangeException(nameof(hours), $"Hours can be only on of {string.Join(",", Constants.CoinJoinFeeRateMedianTimeFrames)}.");
+			throw new ArgumentOutOfRangeException(nameof(hours), $"Hours can be only one of {string.Join(",", Constants.CoinJoinFeeRateMedianTimeFrames)}.");
 		}
 
 		FeeRateMedianTimeFrameHours = hours;

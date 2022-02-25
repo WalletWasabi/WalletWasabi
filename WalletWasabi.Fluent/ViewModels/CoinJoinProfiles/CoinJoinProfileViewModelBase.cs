@@ -11,6 +11,7 @@ public abstract class CoinJoinProfileViewModelBase : ViewModelBase
 	public abstract IImage Icon { get; }
 
 	public virtual bool AutoCoinjoin { get; } = true;
+
 	public virtual int MinAnonScoreTarget { get; } = 5;
 
 	public virtual int MaxAnonScoreTarget { get; } = 10;
