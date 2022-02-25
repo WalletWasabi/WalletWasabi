@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
@@ -34,6 +32,7 @@ public class CoinJoinClient
 		RoundStateUpdater roundStatusUpdater,
 		int minAnonScoreTarget = int.MaxValue,
 		bool consolidationMode = false,
+		TimeSpan feeRateMedianTimeFrame = default,
 		TimeSpan doNotRegisterInLastMinuteTimeLimit = default)
 	{
 		HttpClientFactory = httpClientFactory;
@@ -42,6 +41,7 @@ public class CoinJoinClient
 		RoundStatusUpdater = roundStatusUpdater;
 		MinAnonScoreTarget = minAnonScoreTarget;
 		ConsolidationMode = consolidationMode;
+		FeeRateMedianTimeFrame = feeRateMedianTimeFrame;
 		SecureRandom = new SecureRandom();
 		DoNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
 	}
@@ -61,6 +61,7 @@ public class CoinJoinClient
 	}
 
 	public bool ConsolidationMode { get; private set; }
+	private TimeSpan FeeRateMedianTimeFrame { get; }
 
 	public async Task<bool> StartCoinJoinAsync(IEnumerable<SmartCoin> coins, CancellationToken cancellationToken)
 	{
@@ -69,7 +70,8 @@ public class CoinJoinClient
 				roundState =>
 					roundState.InputRegistrationEnd - DateTimeOffset.UtcNow > DoNotRegisterInLastMinuteTimeLimit &&
 					roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min < Money.Coins(0.0001m) && // ignore rounds with too big minimum denominations
-					roundState.Phase == Phase.InputRegistration,
+					roundState.Phase == Phase.InputRegistration &&
+		  IsRoundEconomic(roundState.FeeRate),
 				cancellationToken)
 			.ConfigureAwait(false);
 
@@ -419,6 +421,22 @@ public class CoinJoinClient
 			.MinBy(i => i.Reps).Group;
 
 		return bestgroup.ToShuffled().ToImmutableList();
+	}
+
+	public bool IsRoundEconomic(FeeRate roundFeeRate)
+	{
+		if (FeeRateMedianTimeFrame == default)
+		{
+			return true;
+		}
+
+		if (RoundStatusUpdater.CoinJoinFeeRateMedians.TryGetValue(FeeRateMedianTimeFrame, out var medianFeeRate))
+		{
+			// 0.5 satoshi difference is allowable, to avoid rounding errors.
+			return roundFeeRate.SatoshiPerByte <= medianFeeRate.SatoshiPerByte + 0.5m;
+		}
+
+		throw new InvalidOperationException($"Could not find median feeRate for timeframe: {FeeRateMedianTimeFrame}.");
 	}
 
 	/// <summary>
