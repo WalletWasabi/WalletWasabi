@@ -166,7 +166,7 @@ public class Program
 
 	private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
 	{
-		Logger.LogWarning(e.Exception);
+		Logger.LogDebug(e.Exception);
 	}
 
 	private static void CurrentDomain_UnhandledException(object? sender, UnhandledExceptionEventArgs e)

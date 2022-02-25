@@ -13,6 +13,12 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.WabiSabi.Client;
 
+enum CoinJoinCommand
+{
+	Start,
+	Stop,
+}
+
 public class CoinJoinManager : BackgroundService
 {
 	public CoinJoinManager(WalletManager walletManager, RoundStateUpdater roundStatusUpdater, IWasabiHttpClientFactory backendHttpClientFactory, ServiceConfiguration serviceConfiguration)
@@ -33,6 +39,19 @@ public class CoinJoinManager : BackgroundService
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
 	private TimeSpan AutoCoinJoinDelayAfterWalletLoaded { get; } = TimeSpan.FromMinutes(Random.Shared.Next(5, 16));
 	public bool IsUserInSendWorkflow { get; set; }
+
+	private List<(string WalletName, CoinJoinCommand Action)> WalletActions { get; } = new();
+	public void Start(string walletName)
+	{
+		WalletActions.Add((walletName, CoinJoinCommand.Start));
+	}
+
+	public void Stop(string walletName)
+	{
+		WalletActions.Add((walletName, CoinJoinCommand.Start));
+	}
+
+	public EventHandler<StatusChangedEventArgs>? StatusChanged;
 
 	public CoinJoinClientState HighestCoinJoinClientState
 	{
@@ -77,6 +96,7 @@ public class CoinJoinManager : BackgroundService
 				var coinCandidates = SelectCandidateCoins(openedWallet).ToArray();
 				if (coinCandidates.Length == 0)
 				{
+					NotifyCoinJoinStartError(openedWallet, CoinjoinError.NoCoinsToMix);
 					continue;
 				}
 
@@ -84,11 +104,13 @@ public class CoinJoinManager : BackgroundService
 
 				trackedCoinJoins.Add(openedWallet.WalletName, coinJoinTracker);
 				WalletStatusChanged?.Invoke(this, new WalletStatusChangedEventArgs(openedWallet, IsCoinJoining: true));
+				NotifyMixableWalletLoaded(openedWallet);
 			}
 
 			foreach (var closedWallet in closedWallets.Select(x => x.Value))
 			{
 				closedWallet.Cancel();
+				NotifyMixableWalletUnloaded(closedWallet);
 			}
 
 			var finishedCoinJoins = trackedCoinJoins
@@ -98,6 +120,8 @@ public class CoinJoinManager : BackgroundService
 
 			foreach (var finishedCoinJoin in finishedCoinJoins)
 			{
+				NotifyCoinJoinCompletion(finishedCoinJoin);
+
 				var walletToRemove = finishedCoinJoin.Wallet;
 				if (!trackedCoinJoins.Remove(walletToRemove.WalletName))
 				{
@@ -151,13 +175,46 @@ public class CoinJoinManager : BackgroundService
 		}
 	}
 
+	private void NotifyCoinJoinStartError(Wallet openedWallet, CoinjoinError error)
+	{
+		StatusChanged?.Invoke(this, new StartErrorEventArgs(openedWallet, error));
+	}
+
+	private void NotifyMixableWalletUnloaded(CoinJoinTracker closedWallet)
+	{
+		StatusChanged?.Invoke(this, new StopedEventArgs(closedWallet.Wallet, StopReason.WalletUnloaded));
+	}
+
+	private void NotifyMixableWalletLoaded(Wallet openedWallet)
+	{
+		StatusChanged?.Invoke(this, new LoadedEventArgs(openedWallet, AutoCoinJoinDelayAfterWalletLoaded));
+	}
+
+	private void NotifyCoinJoinCompletion(CoinJoinTracker finishedCoinJoin)
+	{
+		var completionStatus = finishedCoinJoin.CoinJoinTask.Status switch
+		{
+			TaskStatus.RanToCompletion when finishedCoinJoin.CoinJoinTask.Result => CompletionStatus.Success,
+			TaskStatus.Canceled => CompletionStatus.Canceled,
+			TaskStatus.Faulted => CompletionStatus.Failed,
+			_ => CompletionStatus.Unknown,
+		};
+		StatusChanged?.Invoke(this, new CoinJoinCompletedEventArgs(finishedCoinJoin.Wallet, completionStatus));
+	}
+
 	private ImmutableDictionary<string, Wallet> GetMixableWallets() =>
 		WalletManager.GetWallets()
 			.Where(x => x.State == WalletState.Started) // Only running wallets
-			.Where(x => CanStartAutoCoinJoin(x) || x.AllowManualCoinJoin)
 			.Where(x => !x.KeyManager.IsWatchOnly)      // that are not watch-only wallets
 			.Where(x => x.Kitchen.HasIngredients)
+			.Where(x => CanStartAutoCoinJoin(x) || MustStart(x))
+			.Where(x => !MustStop(x))
 			.ToImmutableDictionary(x => x.WalletName, x => x);
+
+	private bool MustStart(Wallet wallet) =>
+		 WalletActions.Any(a => a.WalletName == wallet.WalletName && a.Action == CoinJoinCommand.Start);
+	private bool MustStop(Wallet wallet) =>
+		 WalletActions.Any(a => a.WalletName == wallet.WalletName && a.Action == CoinJoinCommand.Stop);
 
 	private IEnumerable<SmartCoin> SelectCandidateCoins(Wallet openedWallet)
 	{
@@ -212,14 +269,5 @@ public class CoinJoinManager : BackgroundService
 		}
 
 		return true;
-	}
-
-	public DateTimeOffset WhenWalletCanStartAutoCoinJoin(Wallet wallet)
-	{
-		if (wallet.State < WalletState.Started)
-		{
-			throw new InvalidOperationException("Wallet is not started yet.");
-		}
-		return wallet.StartupTime + AutoCoinJoinDelayAfterWalletLoaded;
 	}
 }
