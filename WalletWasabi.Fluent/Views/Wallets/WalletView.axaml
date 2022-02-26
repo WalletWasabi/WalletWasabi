@@ -52,7 +52,7 @@
                 <MenuFlyout Placement="Bottom">
                   <MenuItem Header="Wallet Info" Command="{Binding WalletInfoCommand}">
                     <MenuItem.Icon>
-                      <PathIcon Data="{StaticResource info_regular}" />
+                      <PathIcon Data="{StaticResource info_regular_16}" />
                     </MenuItem.Icon>
                   </MenuItem>
                   <MenuItem Header="Wallet Settings" Command="{Binding WalletSettingsCommand}">

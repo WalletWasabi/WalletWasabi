@@ -8,7 +8,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 	Order = 3,
 	Category = "General",
 	Keywords = new[] { "View", "Legal", "Docs", "Documentation", "Terms", "Conditions", "Help" },
-	IconName = "info_regular",
+	IconName = "info_regular_16",
 	Searchable = true,
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class LegalDocumentsViewModel : RoutableViewModel
