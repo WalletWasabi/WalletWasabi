@@ -466,14 +466,14 @@ public class PocketSelectionTests
 		var selection = new LabelSelectionViewModel(Money.Parse("0.7"));
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(0.5M, out var pocket1, CoinPocketHelper.PrivateFundsText);
-		pockets.AddPocket(0.5M, out var pocket2, "Dan");
+		pockets.AddPocket(0.7M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(0.7M, out var pocket2, "Dan");
 
 		selection.Reset(pockets.ToArray());
 
 		var output = selection.AutoSelectPockets();
 		Assert.Contains(pocket1, output);
-		Assert.Contains(pocket2, output);
+		Assert.DoesNotContain(pocket2, output);
 	}
 
 	[Fact]
