@@ -35,6 +35,9 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	public Pocket[] AutoSelectPockets()
 	{
 		var knownPockets = NonPrivatePockets.Where(x => x.Labels != CoinPocketHelper.UnlabelledFundsText).ToArray();
+		var unknownPockets = NonPrivatePockets.Except(knownPockets).ToArray();
+		var privateAndUnknownPockets = _allPockets.Except(knownPockets).ToArray();
+		var privateAndKnownPockets = _allPockets.Except(unknownPockets).ToArray();
 
 		if (_privatePocket.Amount >= _targetAmount)
 		{
@@ -46,9 +49,24 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			return knownPockets;
 		}
 
+		if (unknownPockets.Sum(x => x.Amount) >= _targetAmount)
+		{
+			return unknownPockets;
+		}
+
 		if (NonPrivatePockets.Sum(x => x.Amount) >= _targetAmount)
 		{
 			return NonPrivatePockets;
+		}
+
+		if (privateAndKnownPockets.Sum(x => x.Amount) >= _targetAmount)
+		{
+			return privateAndKnownPockets;
+		}
+
+		if (privateAndUnknownPockets.Sum(x => x.Amount) >= _targetAmount)
+		{
+			return privateAndUnknownPockets;
 		}
 
 		return _allPockets.ToArray();
