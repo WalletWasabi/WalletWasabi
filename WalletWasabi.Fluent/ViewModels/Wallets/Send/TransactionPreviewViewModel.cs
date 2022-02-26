@@ -182,7 +182,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		var feeRateDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, false));
 
 		if (feeRateDialogResult.Kind == DialogResultKind.Normal && feeRateDialogResult.Result is { } newFeeRate &&
-			newFeeRate != _info.FeeRate)
+		    newFeeRate != _info.FeeRate)
 		{
 			_info.FeeRate = feeRateDialogResult.Result;
 
@@ -210,7 +210,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
 		{
 			_info.Coins = selectPocketsDialog.Result;
-			_info.ChangelessCoins = Enumerable.Empty<SmartCoin>();  // Clear ChangelessCoins on pocket change, so we calculate the suggestions with the new pocket.
+			_info.ChangelessCoins = Enumerable.Empty<SmartCoin>(); // Clear ChangelessCoins on pocket change, so we calculate the suggestions with the new pocket.
 			await BuildAndUpdateAsync();
 		}
 	}
@@ -222,7 +222,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			var privacyControlDialogResult =
 				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, _transaction?.SpentCoins, isSilent: true));
 			if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
-				privacyControlDialogResult.Result is { } coins)
+			    privacyControlDialogResult.Result is { } coins)
 			{
 				_info.Coins = coins;
 			}
@@ -344,7 +344,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				NavigationTarget.DialogScreen);
 
 			if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
-				privacyControlDialogResult.Result is { })
+			    privacyControlDialogResult.Result is { })
 			{
 				transactionInfo.Coins = privacyControlDialogResult.Result;
 			}
@@ -381,7 +381,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				new PrivacyControlViewModel(wallet, transactionInfo, _transaction?.SpentCoins, isSilent: false),
 				NavigationTarget.DialogScreen);
 			if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
-				privacyControlDialogResult.Result is { })
+			    privacyControlDialogResult.Result is { })
 			{
 				transactionInfo.Coins = privacyControlDialogResult.Result;
 			}
@@ -449,7 +449,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			_cancellationTokenSource.Cancel();
 			_cancellationTokenSource.Dispose();
-			_info.ChangelessCoins = Enumerable.Empty<SmartCoin>();  // Clear ChangelessCoins on cancel, so the user can undo the optimization.
+			_info.ChangelessCoins = Enumerable.Empty<SmartCoin>(); // Clear ChangelessCoins on cancel, so the user can undo the optimization.
 		}
 
 		base.OnNavigatedFrom(isInHistory);
@@ -460,27 +460,12 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private async Task OnConfirmAsync()
 	{
 		_cancellationTokenSource.Cancel();
-		var labelDialog = new LabelEntryDialogViewModel(_wallet, _info);
-
-		Navigate(NavigationTarget.CompactDialogScreen).To(labelDialog);
-
-		var result = await labelDialog.GetDialogResultAsync();
-
-		if (result.Result is null)
-		{
-			Navigate(NavigationTarget.CompactDialogScreen).Back(); // manually close the LabelEntryDialog when user cancels it. TODO: refactor.
-			return;
-		}
-
-		_info.UserLabels = result.Result;
 
 		var transaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info, _destination));
 		var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
 		var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
 		if (authResult)
 		{
-			Navigate(NavigationTarget.CompactDialogScreen).Back(); // manually close the LabelEntryDialog when the authorization dialog never popped (empty password case). TODO: refactor.
-
 			IsBusy = true;
 
 			try
@@ -503,7 +488,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private async Task<bool> AuthorizeAsync(TransactionAuthorizationInfo transactionAuthorizationInfo)
 	{
 		if (!_wallet.KeyManager.IsHardwareWallet &&
-			string.IsNullOrEmpty(_wallet.Kitchen.SaltSoup())) // Do not show auth dialog when password is empty
+		    string.IsNullOrEmpty(_wallet.Kitchen.SaltSoup())) // Do not show auth dialog when password is empty
 		{
 			return true;
 		}
