@@ -29,7 +29,7 @@
         </Style>
       </DockPanel.Styles>
 
-      <TextBlock Text="Privacy Level" DockPanel.Dock="Top" />
+      <TextBlock Text="PRIVACY LEVEL" DockPanel.Dock="Top" Classes="h8 bold" />
 
       <StackPanel Spacing="10" DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center">
         <Button Classes="plain" Cursor="Hand" Command="{Binding BoostPrivacyCommand}"
@@ -88,7 +88,7 @@
         </Style>
       </DockPanel.Styles>
 
-      <TextBlock Text="Privacy Level" DockPanel.Dock="Top" />
+      <TextBlock Text="PRIVACY LEVEL" DockPanel.Dock="Top" Classes="h8 bold" />
 
       <StackPanel Spacing="10" DockPanel.Dock="Right" Orientation="Horizontal"
                   HorizontalAlignment="Center" VerticalAlignment="Center">

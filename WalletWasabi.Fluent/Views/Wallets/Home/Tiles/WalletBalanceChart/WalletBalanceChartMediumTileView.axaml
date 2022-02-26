@@ -13,7 +13,7 @@
   </UserControl.Styles>
   <DockPanel>
     <DockPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch">
-      <TextBlock Text="Balance over time" DockPanel.Dock="Left" />
+      <TextBlock Text="BALANCE OVER TIME" DockPanel.Dock="Left" Classes="h8 bold" />
       <Button Classes="plain"
               DockPanel.Dock="Right"
               HorizontalAlignment="Right"

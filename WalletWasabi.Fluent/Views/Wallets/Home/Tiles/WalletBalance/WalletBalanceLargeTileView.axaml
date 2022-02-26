@@ -8,7 +8,7 @@
              x:CompileBindings="True" x:DataType="vm:WalletBalanceTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalance.WalletBalanceLargeTileView">
   <DockPanel>
-    <TextBlock Text="Balance" DockPanel.Dock="Top" />
+    <TextBlock Text="BALANCE" DockPanel.Dock="Top" Classes="h8 bold" />
     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="16" Margin="0,20">
       <Viewbox Height="47" Width="47" DockPanel.Dock="Left">
         <Panel>
