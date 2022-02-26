@@ -15,7 +15,7 @@
       <TextBlock Text="Downloading and processing blockchain data" TextAlignment="Center" FontSize="22"
                  DockPanel.Dock="Bottom" />
       <TextBlock
-        Text="This is done over Tor making it very difficult to trace the internet activity to the user."
+        Text="Wasabi does this without any third party knowing about your balance and financial activity."
         TextAlignment="Center" TextWrapping="Wrap" Opacity="0.6" />
 
       <TextBlock
