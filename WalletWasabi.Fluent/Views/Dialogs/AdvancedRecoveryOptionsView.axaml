@@ -16,12 +16,11 @@
     </Style>
   </UserControl.Styles>
   <c:ContentArea Title="{Binding Title}"
-                 Caption="Type your wallet-specific recovery options and click OK."
                  CancelContent="Cancel"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="OK">
-    <StackPanel HorizontalAlignment="Center" Spacing="20" MinWidth="380" Margin="30 0 0 0">
+    <StackPanel HorizontalAlignment="Center" Spacing="20" MinWidth="380">
       <StackPanel>
         <Label Content="Account Key _Derivation Path:" Target="TbKeyPath" />
         <TextBox Name="TbKeyPath"
@@ -40,7 +39,7 @@
                  Text="{Binding MinGapLimit}"
                  DockPanel.Dock="Top"
                  Width="350"
-                 Classes="hasCheckMark"/>
+                 Classes="hasCheckMark" />
       </StackPanel>
     </StackPanel>
   </c:ContentArea>
