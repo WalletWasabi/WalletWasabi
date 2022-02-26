@@ -11,7 +11,7 @@
       <PathIcon Data="{StaticResource settings_bitcoin_regular}" />
       <PathIcon Data="{StaticResource home_regular}" />
       <PathIcon Data="{StaticResource add_circle_regular}" />
-      <PathIcon Data="{StaticResource navigation_regular}" />
+      <PathIcon Data="{StaticResource navigation_regular_20}" />
       <PathIcon Data="{StaticResource arrow_left_regular}" />
       <PathIcon Data="{StaticResource add_regular}" />
       <PathIcon Data="{StaticResource recover_arrow_right_regular}" />

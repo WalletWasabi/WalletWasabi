@@ -122,7 +122,7 @@
                   <Setter Property="Background" Value="Transparent" />
                 </Style>
               </Button.Styles>
-              <PathIcon Margin="0 0 3 0" Height="16" Data="{StaticResource navigation_regular}" />
+              <PathIcon Margin="0 0 3 0" Height="16" Data="{StaticResource navigation_regular_20}" />
             </Button>
           </Panel>
           <ContentControl Template="{DynamicResource wasabi_logo_text_fixed}" Margin="22,0,0,0"
