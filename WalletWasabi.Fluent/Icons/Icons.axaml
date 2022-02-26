@@ -22,7 +22,7 @@
       <PathIcon Data="{StaticResource warning_filled}" />
       <PathIcon Data="{StaticResource options_regular}" />
       <PathIcon Data="{StaticResource search_regular}" />
-      <PathIcon Data="{StaticResource info_regular}" />
+      <PathIcon Data="{StaticResource info_regular_16}" />
       <PathIcon Data="{StaticResource live_regular}" />
       <PathIcon Data="{StaticResource folder_move_regular}" />
       <PathIcon Data="{StaticResource clipboard_text_regular}" />
