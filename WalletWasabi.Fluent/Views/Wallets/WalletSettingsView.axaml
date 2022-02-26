@@ -20,14 +20,14 @@
         </DockPanel>
 
         <DockPanel IsVisible="{Binding !IsWatchOnly}">
-          <TextBlock Text="Auto CoinJoin" />
+          <TextBlock Text="Automatic Coinjoin" />
           <ToggleSwitch IsChecked="{Binding AutoCoinJoin}" />
         </DockPanel>
 
         <Separator />
 
         <StackPanel Spacing="10">
-          <TextBlock Text="Minimum Anonymity Score Target" />
+          <TextBlock Text="Privacy Threshold" />
           <DockPanel>
             <PathIcon ToolTip.Tip="Min" DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMinimalBrush}"
                       Data="{StaticResource privacy_minimal}" />
@@ -36,7 +36,7 @@
           </DockPanel>
         </StackPanel>
         <StackPanel Spacing="10">
-          <TextBlock Text="Maximum Anonymity Score Target" />
+          <TextBlock Text="Privacy Sanity Check" />
           <DockPanel>
             <PathIcon ToolTip.Tip="Max" DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMediumBrush}"
                       Data="{StaticResource privacy_medium}" />

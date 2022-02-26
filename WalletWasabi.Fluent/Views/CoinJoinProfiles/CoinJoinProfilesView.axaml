@@ -1,0 +1,91 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.CoinJoinProfiles"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:conv="using:WalletWasabi.Fluent.Converters"
+             xmlns:prof="clr-namespace:WalletWasabi.Fluent.Views.CoinJoinProfiles"
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
+             x:DataType="vm:CoinJoinProfilesViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.CoinJoinProfiles.CoinJoinProfilesView">
+  <c:ContentArea Title="{Binding Title}"
+                 EnableCancel="{Binding EnableCancel}"
+                 EnableBack="{Binding EnableBack}"
+                 NextContent="Continue" EnableNext="True"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <DockPanel>
+
+      <TextBlock DockPanel.Dock="Top" Text="Wasabi takes care of your financial privacy by automatically coinjoining all your funds for a fixed 0.3% coordination fee plus the Bitcoin network fee. Select a coinjoin strategy that fits you best!" TextWrapping="Wrap" />
+
+      <Button Classes="h8 plain activeHyperLink" Margin="0 10 0 0"
+              DockPanel.Dock="Bottom"
+              Command="{Binding ManualSetupCommand}"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Bottom"
+              Content="Customize" />
+
+      <ListBox Items="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}" Background="Transparent">
+        <ListBox.Styles>
+          <Style Selector="ListBoxItem">
+            <Setter Property="Cursor" Value="Hand" />
+          </Style>
+          <Style Selector="ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+          </Style>
+
+          <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+          </Style>
+          <Style Selector="ListBoxItem:selected Border#PART_DecorationBorderHover, ListBoxItem:selected Border#PART_DecorationBorderUnselected">
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
+          </Style>
+
+          <Style Selector="ListBoxItem Border#PART_MainContentBorder">
+            <Setter Property="Padding" Value="20,25,20,25" />
+            <Setter Property="CornerRadius" Value="4" />
+          </Style>
+
+          <Style Selector="ListBoxItem Border#PART_DecorationBorderUnselected">
+            <Setter Property="Padding" Value="15 25 15 25" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Margin" Value="5" />
+            <Setter Property="BorderBrush" Value="#14FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
+            <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow1}" />
+          </Style>
+
+          <Style Selector="ListBoxItem Border#PART_DecorationBorderHover">
+            <Setter Property="Padding" Value="15 25 15 25" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Margin" Value="5" />
+            <Setter Property="BorderBrush" Value="#2AFFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
+            <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow2}" />
+
+            <Setter Property="Opacity" Value="0" />
+          </Style>
+
+          <Style Selector="ListBoxItem:pointerover Border#PART_DecorationBorderHover">
+            <Setter Property="Opacity" Value="1" />
+          </Style>
+        </ListBox.Styles>
+        <ListBox.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </ItemsPanelTemplate>
+        </ListBox.ItemsPanel>
+        <ListBox.DataTemplates>
+          <DataTemplate DataType="vm:CoinJoinProfileViewModelBase">
+            <c:SuggestionItem>
+              <prof:CoinJoinProfileControl />
+            </c:SuggestionItem>
+          </DataTemplate>
+        </ListBox.DataTemplates>
+      </ListBox>
+    </DockPanel>
+  </c:ContentArea>
+</UserControl>
