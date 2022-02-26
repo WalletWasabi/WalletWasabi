@@ -80,7 +80,7 @@
             <Button HorizontalAlignment="Center" Classes="plain obscured"
                     Command="{Binding AboutAdvancedInfoDialogCommand}">
               <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
-                <PathIcon Data="{StaticResource info_regular}" />
+                <PathIcon Data="{StaticResource info_regular_16}" />
                 <TextBlock Text="Advanced Information" Classes="Hyperlink" />
               </StackPanel>
             </Button>
