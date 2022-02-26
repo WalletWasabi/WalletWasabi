@@ -230,7 +230,7 @@
                 <PathIcon HorizontalAlignment="Left"
                           Data="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
                 <!-- Logged in indicator -->
-                <Ellipse Fill="{StaticResource OrangeCoinColor}" Width="9" Height="9" Margin="15,0,0,-13">
+                <Ellipse Fill="{StaticResource OrangeCoinColor}" Width="9" Height="9" Margin="16,0,0,-14">
                   <Ellipse.IsVisible>
                     <MultiBinding Converter="{x:Static BoolConverters.And}">
                       <Binding Path="IsLoggedIn" />
