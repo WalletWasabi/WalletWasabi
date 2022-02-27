@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -40,15 +41,15 @@ public class CoinJoinManager : BackgroundService
 	private TimeSpan AutoCoinJoinDelayAfterWalletLoaded { get; } = TimeSpan.FromMinutes(Random.Shared.Next(5, 16));
 	public bool IsUserInSendWorkflow { get; set; }
 
-	private List<(string WalletName, CoinJoinCommand Action)> WalletActions { get; } = new();
-	public void Start(string walletName)
+	private ConcurrentDictionary<Wallet, CoinJoinCommand> WalletManualState { get; } = new();
+	public void Start(Wallet wallet)
 	{
-		WalletActions.Add((walletName, CoinJoinCommand.Start));
+		WalletManualState.AddOrUpdate(wallet, CoinJoinCommand.Start, (_,_) => CoinJoinCommand.Start);
 	}
 
-	public void Stop(string walletName)
+	public void Stop(Wallet wallet)
 	{
-		WalletActions.Add((walletName, CoinJoinCommand.Start));
+		WalletManualState.AddOrUpdate(wallet, CoinJoinCommand.Stop, (_,_) => CoinJoinCommand.Stop);
 	}
 
 	public EventHandler<StatusChangedEventArgs>? StatusChanged;
@@ -212,9 +213,10 @@ public class CoinJoinManager : BackgroundService
 			.ToImmutableDictionary(x => x.WalletName, x => x);
 
 	private bool MustStart(Wallet wallet) =>
-		 WalletActions.Any(a => a.WalletName == wallet.WalletName && a.Action == CoinJoinCommand.Start);
+		WalletManualState.TryGetValue(wallet, out var state) && state == CoinJoinCommand.Start;
+
 	private bool MustStop(Wallet wallet) =>
-		 WalletActions.Any(a => a.WalletName == wallet.WalletName && a.Action == CoinJoinCommand.Stop);
+		WalletManualState.TryGetValue(wallet, out var state) && state == CoinJoinCommand.Stop;
 
 	private IEnumerable<SmartCoin> SelectCandidateCoins(Wallet openedWallet)
 	{
