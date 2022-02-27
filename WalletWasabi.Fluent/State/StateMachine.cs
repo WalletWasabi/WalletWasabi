@@ -103,7 +103,7 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 			_permittedTransitions = new();
 		}
 
-		public StateContext SubStateOf(TState parent)
+		public StateContext SubstateOf(TState parent)
 		{
 			_parent = _owner._states[parent];
 
