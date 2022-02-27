@@ -59,14 +59,19 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private readonly MusicStatusMessageViewModel _pauseMessage = new() { Message = "Coinjoin is paused" };
 	private readonly MusicStatusMessageViewModel _stoppedMessage = new() { Message = "Coinjoin is stopped" };
-	private readonly DateTime _countDownStartTime;
+	private DateTime _autoStartTime;
 	private WalletCoinjoinState _lastState = WalletCoinjoinState.Stopped();
 
 	public CoinJoinStateViewModel(WalletViewModel walletVm)
 	{
-		_countDownStartTime = DateTime.Now;
-
 		var coinJoinManager = Services.HostedServices.Get<CoinJoinManager>();
+
+		coinJoinManager.StatusChanged += StatusChanged;
+
+		_autoStartTime = DateTime.Now;
+
+		_countDownMessage = new(() =>
+			$"CoinJoin will auto-start in: {DateTime.Now - _autoStartTime:mm\\:ss}");
 
 		_machine =
 			new StateMachine<State, Trigger>(walletVm.Settings.AutoCoinJoin
@@ -90,7 +95,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PlayVisible = true;
 				//_wallet.AllowManualCoinJoin = false;
 				CurrentStatus = _stoppedMessage;
-				coinJoinManager.Stop(walletVm.WalletName);
+				coinJoinManager.Stop(walletVm.Wallet);
 			})
 			.Permit(Trigger.Play, State.ManualPlaying);
 
@@ -105,7 +110,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				StopVisible = true;
 				//_wallet.AllowManualCoinJoin = true;
 				CurrentStatus = _coinJoiningMessage;
-				coinJoinManager.Start(walletVm.WalletName);
+				coinJoinManager.Start(walletVm.Wallet);
 			});
 
 		_machine.Configure(State.ManualLoading)
@@ -122,7 +127,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		// AutoCj State
 		_machine.Configure(State.AutoCoinJoin)
 			.Permit(Trigger.AutoCoinJoinOff, State.ManualCoinJoin)
-			.Permit(Trigger.AutoCoinJoinEntered, State.Paused)
+			.Permit(Trigger.AutoCoinJoinEntered, State.AutoStarting)
 			.OnEntry(OnEnterAutoCoinJoin);
 
 		_machine.Configure(State.AutoStarting)
@@ -140,7 +145,11 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		_machine.Configure(State.Paused)
 			.SubstateOf(State.AutoCoinJoin)
-			.Permit(Trigger.Play, State.AutoPlaying);
+			.Permit(Trigger.Play, State.AutoPlaying)
+			.OnEntry(() =>
+			{
+				coinJoinManager.Stop(walletVm.Wallet);
+			});
 			//.OnEntryFrom(Trigger.PlebStop, OnPauseFromPlebStop)
 			//.OnEntryFrom(Trigger.Pause, OnPause);
 
@@ -193,6 +202,28 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_machine.Start();
 
 		//WalletCoinJoinManagerOnStateChanged(this, _walletCoinJoinManager.WalletCoinjoinState);
+	}
+
+	private void StatusChanged(object? sender, StatusChangedEventArgs e)
+	{
+		switch (e)
+		{
+			case CoinJoinCompletedEventArgs coinJoinCompletedEventArgs:
+				break;
+			case LoadedEventArgs loadedEventArgs:
+				_autoStartTime = DateTime.Now + loadedEventArgs.AutoStartDelay;
+				break;
+			case StartedEventArgs startedEventArgs:
+				break;
+			case StartErrorEventArgs startErrorEventArgs:
+				break;
+			case StopedEventArgs stopedEventArgs:
+				break;
+			default:
+				throw new ArgumentOutOfRangeException(nameof(e));
+		}
+
+		Console.WriteLine($"CjStatus: {e.GetType()}");
 	}
 
 	public void SetAutoCoinJoin(bool enabled)
