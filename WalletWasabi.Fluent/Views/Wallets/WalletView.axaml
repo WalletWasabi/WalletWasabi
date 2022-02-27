@@ -42,6 +42,7 @@
             </Button>
             <Button Classes="function"
                     Classes.pulsate="{Binding !IsSendButtonVisible}"
+                    Classes.active="{Binding IsViewActive}"
                     Command="{Binding ReceiveCommand}">
               <Panel>
                 <Ellipse Classes="pulsateRect" />

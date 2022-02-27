@@ -40,6 +40,7 @@ public partial class WalletViewModel : WalletViewModelBase
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWalletBalanceZero;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isEmptyWallet;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSendButtonVisible;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isViewActive;
 
 	protected WalletViewModel(Wallet wallet) : base(wallet)
 	{
@@ -66,6 +67,10 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		balanceChanged
 			.Subscribe(_ => IsWalletBalanceZero = wallet.Coins.TotalAmount() == Money.Zero)
+			.DisposeWith(Disposables);
+
+		MainViewModel.Instance.DialogScreen.WhenAnyValue(x=>x.IsDialogOpen)
+			.Subscribe(x => IsViewActive = !x)
 			.DisposeWith(Disposables);
 
 		if (Services.HostedServices.GetOrDefault<CoinJoinManager>() is { } coinJoinManager)
