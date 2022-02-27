@@ -8,8 +8,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public partial class CoinJoinStateViewModel : ViewModelBase
 {
-	private readonly WalletCoinJoinManager _walletCoinJoinManager;
-
 	[AutoNotify] private bool _isAutoWaiting;
 	[AutoNotify] private bool _isAuto;
 	[AutoNotify] private bool _playVisible = true;
@@ -33,18 +31,14 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		var coinJoinManager = Services.HostedServices.Get<CoinJoinManager>();
 
-		_walletCoinJoinManager = coinJoinManager.WalletCoinJoinManagers[walletVm.WalletName];
+		//_countDownMessage = new(() =>
+		//	$"Coinjoin starts in {DateTime.Now - _walletCoinJoinManager.AutoCoinJoinStartTime:mm\\:ss}");
 
-		_walletCoinJoinManager.StateChanged += WalletCoinJoinManagerOnStateChanged;
+		//PlayCommand = ReactiveCommand.Create(() => _walletCoinJoinManager.Play());
 
-		_countDownMessage = new(() =>
-			$"Coinjoin starts in {DateTime.Now - _walletCoinJoinManager.AutoCoinJoinStartTime:mm\\:ss}");
+		//PauseCommand = ReactiveCommand.Create(() => _walletCoinJoinManager.Pause());
 
-		PlayCommand = ReactiveCommand.Create(() => _walletCoinJoinManager.Play());
-
-		PauseCommand = ReactiveCommand.Create(() => _walletCoinJoinManager.Pause());
-
-		StopCommand = ReactiveCommand.Create(() => _walletCoinJoinManager.Stop());
+		//StopCommand = ReactiveCommand.Create(() => _walletCoinJoinManager.Stop());
 
 		DispatcherTimer.Run(() =>
 		{
@@ -52,14 +46,14 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			return true;
 		}, TimeSpan.FromSeconds(1));
 
-		WalletCoinJoinManagerOnStateChanged(this, _walletCoinJoinManager.WalletCoinjoinState);
+		//WalletCoinJoinManagerOnStateChanged(this, _walletCoinJoinManager.WalletCoinjoinState);
 	}
 
 	private void WalletCoinJoinManagerOnStateChanged(object? sender, WalletCoinjoinState e)
 	{
 		Console.WriteLine($@"Entered state: {e}");
 
-		if (IsAuto != _walletCoinJoinManager.AutoCoinJoin)
+		/*if (IsAuto != _walletCoinJoinManager.AutoCoinJoin)
 		{
 			IsAuto = _walletCoinJoinManager.AutoCoinJoin;
 
@@ -71,7 +65,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			{
 				OnEnterManualCoinJoin();
 			}
-		}
+		}*/
 
 		switch (_lastState.Status)
 		{
@@ -190,7 +184,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private void OnTimerTick()
 	{
-		if (_walletCoinJoinManager.WalletCoinjoinState.Status == WalletCoinjoinState.State.AutoStarting)
+		/*if (_walletCoinJoinManager.WalletCoinjoinState.Status == WalletCoinjoinState.State.AutoStarting)
 		{
 			var whenCanAutoStart = _walletCoinJoinManager.AutoCoinJoinStartTime;
 
@@ -202,7 +196,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				var percentage = (DateTime.Now - _countDownStartTime).TotalSeconds * 100 / total;
 				ProgressValue = percentage;
 			}
-		}
+		}*/
 	}
 
 	public ICommand PlayCommand { get; }
