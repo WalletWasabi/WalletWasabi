@@ -58,7 +58,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 
 				// Amount
 				new TemplateColumn<WalletCoinViewModel>(
-					new AnonymitySetHeaderView(),
+					"Amount",
 					new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new AmountColumnView(), true),
 					options: new ColumnOptions<WalletCoinViewModel>
 					{
@@ -71,7 +71,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 
 				// AnonymitySet
 				new TemplateColumn<WalletCoinViewModel>(
-					"AnonymitySet",
+					new AnonymitySetHeaderView(),
 					new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new AnonymitySetColumnView(), true),
 					options: new ColumnOptions<WalletCoinViewModel>
 					{
