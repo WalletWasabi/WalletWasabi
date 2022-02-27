@@ -7,17 +7,25 @@ namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 /// </summary>
 public class MoreSelectionStrategy : SelectionStrategy
 {
+	/// <summary>Payments are capped to be at most 25% higher than the original target.</summary>
+	public const double MaxExtraPayment = 1.25;
+
 	/// <inheritdoc/>
 	public MoreSelectionStrategy(long target, long[] inputValues, long[] inputCosts)
 		: base(target, inputValues, inputCosts, new CoinSelection(long.MaxValue, long.MaxValue))
-	{		
+	{
+		MaximumTarget = (long)(target * MaxExtraPayment);
 	}
+
+	/// <summary>Maximum acceptable target (inclusive).</summary>
+	/// <seealso cref="SelectionStrategy.Target"/>
+	public long MaximumTarget { get; }
 
 	public override EvaluationResult Evaluate(long[] selection, int depth, long sum)
 	{
 		long totalCost = sum + CurrentInputCosts;
 
-		if (sum > BestSelection.PaymentAmount)
+		if (sum > BestSelection.PaymentAmount || sum > MaximumTarget)
 		{
 			// Our solution is already better than what we might get here.
 			return EvaluationResult.SkipBranch;
@@ -33,7 +41,7 @@ public class MoreSelectionStrategy : SelectionStrategy
 			// Even if a match occurred we cannot be sure that there isn't
 			// a better selection thanks to input costs.
 			return EvaluationResult.SkipBranch;
-		}
+		}		
 
 		if (sum + RemainingAmounts[depth - 1] < Target)
 		{

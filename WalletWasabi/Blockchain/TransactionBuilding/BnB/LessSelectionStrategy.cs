@@ -7,11 +7,19 @@ namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 /// </summary>
 public class LessSelectionStrategy : SelectionStrategy
 {
+	/// <summary>Payments are capped to be at most 25% lower than the original target.</summary>
+	public const double MinPaymentThreshold = 0.75;
+
 	/// <inheritdoc/>
 	public LessSelectionStrategy(long target, long[] inputValues, long[] inputCosts)
 		: base(target, inputValues, inputCosts, new CoinSelection(long.MinValue, long.MinValue))
 	{
+		MinimumTarget = (long)(target * MinPaymentThreshold);
 	}
+
+	/// <summary>Minimum acceptable target (inclusive).</summary>
+	/// <seealso cref="SelectionStrategy.Target"/>
+	public long MinimumTarget { get; }
 
 	public override EvaluationResult Evaluate(long[] selection, int depth, long sum)
 	{
@@ -23,9 +31,11 @@ public class LessSelectionStrategy : SelectionStrategy
 			return EvaluationResult.SkipBranch;
 		}
 
-		if (sum + RemainingAmounts[depth - 1] < BestSelection.PaymentAmount)
+		long maximumSum = sum + RemainingAmounts[depth - 1];
+
+		if (maximumSum < BestSelection.PaymentAmount || maximumSum < MinimumTarget)
 		{
-			// The remaining coins cannot sum up to our best solution, cut the branch.
+			// The remaining coins cannot sum up to our best solution, or it is less than minimum acceptable target value.
 			return EvaluationResult.SkipBranch;
 		}
 

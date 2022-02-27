@@ -115,7 +115,7 @@ public class BranchAndBoundTests
 		Assert.Equal(new long[] { 1_000_000 }, actualSelection);
 	}
 
-	[Fact(Skip = "If the first coin is not selected the test fails to finish. TODO.")]
+	[Fact]
 	public void LessSelection_RemainingAmountOptimization()
 	{
 		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
@@ -140,6 +140,25 @@ public class BranchAndBoundTests
 		// Assert that we get expected best solution.
 		long[] actualSelection = strategy.GetBestSelectionFound()!;
 		Assert.NotNull(actualSelection);
+	}
+
+	[Fact]
+	public void LesserSelection_CoinSumIsLowerThanTarget()
+	{
+		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
+
+		long[] inputValues = new long[] { 5, 4, 3, 2, 1 };
+		long[] inputCosts = new long[] { 1, 1, 1, 1, 1 };
+
+		long target = 16;
+
+		BranchAndBound algorithm = new();
+		LessSelectionStrategy strategy = new(target, inputValues, inputCosts);
+		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
+
+		long[] actualSelection = strategy.GetBestSelectionFound()!;
+		Assert.NotNull(actualSelection);
+		Assert.Equal(new long[] { 5, 4, 3, 2, 1 }, actualSelection);
 	}
 
 	[Fact]
