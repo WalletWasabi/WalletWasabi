@@ -1,13 +1,50 @@
+using System.Collections.Generic;
 using System.Windows.Input;
 using Avalonia.Threading;
 using ReactiveUI;
+using WalletWasabi.Fluent.State;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
+public enum State
+{
+	AutoCoinJoin,
+	ManualCoinJoin,
+
+	AutoStarting,
+	Paused,
+	AutoPlaying,
+	AutoLoading,
+	AutoFinished,
+
+	Stopped,
+	ManualPlaying,
+	ManualLoading,
+	ManualFinished
+}
+
+public enum Trigger
+{
+	AutoCoinJoinOn,
+	AutoCoinJoinOff,
+	AutoCoinJoinEntered,
+	ManualCoinJoinEntered,
+	Pause,
+	Play,
+	Stop,
+	AutoPlayTimeout,
+	PlebStop,
+	CoinReceive,
+	RoundComplete,
+	RoundStart
+}
+
 public partial class CoinJoinStateViewModel : ViewModelBase
 {
+	private readonly StateMachine<State, Trigger> _machine;
+
 	[AutoNotify] private bool _isAutoWaiting;
 	[AutoNotify] private bool _isAuto;
 	[AutoNotify] private bool _playVisible = true;
@@ -31,14 +68,134 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		var coinJoinManager = Services.HostedServices.Get<CoinJoinManager>();
 
+		_machine =
+			new StateMachine<State, Trigger>(walletVm.Settings.AutoCoinJoin
+				? State.AutoCoinJoin
+				: State.ManualCoinJoin);
+
+
+		// See diagram in the developer docs.
+		// Manual Cj State
+		_machine.Configure(State.ManualCoinJoin)
+			.Permit(Trigger.AutoCoinJoinOn, State.AutoCoinJoin)
+			.Permit(Trigger.ManualCoinJoinEntered, State.Stopped)
+			.OnEntry(OnEnterManualCoinJoin);
+
+		_machine.Configure(State.AutoCoinJoin)
+			.Permit(Trigger.AutoCoinJoinOff, State.ManualCoinJoin)
+			.Permit(Trigger.AutoCoinJoinEntered, State.Paused)
+			.OnEntry(OnEnterAutoCoinJoin);
+
+		_machine.Configure(State.Paused)
+			.SubStateOf(State.AutoCoinJoin);
+
+		_machine.Configure(State.Stopped)
+			.SubStateOf(State.ManualCoinJoin)
+			.OnEntry(()=>
+			{
+				ProgressValue = 0;
+				StopVisible = false;
+				PlayVisible = true;
+				//_wallet.AllowManualCoinJoin = false;
+				CurrentStatus = _stoppedMessage;
+			})
+			.Permit(Trigger.Play, State.ManualPlaying);
+
+		_machine.Configure(State.ManualPlaying)
+			.Permit(Trigger.Stop, State.Stopped)
+			.Permit(Trigger.RoundComplete, State.ManualFinished)
+			.Permit(Trigger.RoundComplete, State.ManualLoading)
+			.OnEntry(() =>
+			{
+				//_playStartTime = DateTime.Now;
+				PlayVisible = false;
+				StopVisible = true;
+				//_wallet.AllowManualCoinJoin = true;
+				CurrentStatus = _coinJoiningMessage;
+			});
+
+		_machine.Configure(State.ManualLoading)
+			.Permit(Trigger.RoundStart, State.ManualPlaying);
+
+		_machine.Configure(State.ManualFinished);
+
+
+		_machine.OnTransitioned((trigger, source, destination) =>
+		{
+			Console.WriteLine($"Trigger: {trigger} caused state to change from: {source} to {destination}");
+		});
+			//.InitialTransition(State.Stopped);
+
+
+		// AutoCj State
+		/*_machine.Configure(State.AutoCoinJoin)
+			.Permit(Trigger.AutoCoinJoinOff, State.ManualCoinJoin)
+			.OnEntry(()=>
+			{
+				IsAuto = true;
+				StopVisible = false;
+				PlayVisible = true;
+				PauseVisible = false;
+			})
+			.InitialTransition(State.AutoStarting);
+
+		_machine.Configure(State.AutoStarting)
+			.SubstateOf(State.AutoCoinJoin)
+			.Permit(Trigger.Pause, State.Paused)
+			.Permit(Trigger.AutoPlayTimeout, State.AutoPlaying)
+			.Permit(Trigger.Play, State.AutoPlaying)
+			.OnEntry(() =>
+			{
+				IsAutoWaiting = true;
+				countDownMessage.Update();
+				CurrentStatus = countDownMessage;
+			})
+			.OnExit(() => IsAutoWaiting = false);
+
+		_machine.Configure(State.Paused)
+			.SubstateOf(State.AutoCoinJoin)
+			.Permit(Trigger.Play, State.AutoPlaying)
+			.OnEntryFrom(Trigger.PlebStop, OnPauseFromPlebStop)
+			.OnEntryFrom(Trigger.Pause, OnPause);
+
+		_machine.Configure(State.AutoPlaying)
+			.SubstateOf(State.AutoCoinJoin)
+			.Permit(Trigger.Pause, State.Paused)
+			.Permit(Trigger.PlebStop, State.Paused)
+			.Permit(Trigger.RoundComplete, State.AutoFinished)
+			.Permit(Trigger.RoundComplete, State.AutoLoading)
+			.OnEntry(()=>
+			{
+				_playStartTime = DateTime.Now;
+				IsAutoWaiting = false;
+				PauseVisible = true;
+				PlayVisible = false;
+				CurrentStatus = _coinJoiningMessage;
+			});
+
+		_machine.Configure(State.AutoLoading)
+			.SubstateOf(State.AutoCoinJoin)
+			.Permit(Trigger.RoundStart, State.AutoPlaying)
+			.OnEntry(OnLoading);
+
+		_machine.Configure(State.AutoFinished)
+			.SubstateOf(State.AutoCoinJoin)
+			.Permit(Trigger.CoinReceive, State.AutoPlaying)
+			.OnEntry(OnFinished);
+
+		_machine.OnTransitioned(OnStateTransition);*/
+
+
+		/*
+
 		//_countDownMessage = new(() =>
-		//	$"Coinjoin starts in {DateTime.Now - _walletCoinJoinManager.AutoCoinJoinStartTime:mm\\:ss}");
+		//	$"Coinjoin starts in {DateTime.Now - _walletCoinJoinManager.AutoCoinJoinStartTime:mm\\:ss}");*/
 
-		//PlayCommand = ReactiveCommand.Create(() => _walletCoinJoinManager.Play());
+		PlayCommand = ReactiveCommand.Create(() => _machine.Fire(Trigger.Play));
 
-		//PauseCommand = ReactiveCommand.Create(() => _walletCoinJoinManager.Pause());
+		PauseCommand = ReactiveCommand.Create(() => _machine.Fire(Trigger.Pause));
 
-		//StopCommand = ReactiveCommand.Create(() => _walletCoinJoinManager.Stop());
+		StopCommand = ReactiveCommand.Create(() => _machine.Fire(Trigger.Stop));
 
 		DispatcherTimer.Run(() =>
 		{
@@ -46,76 +203,17 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			return true;
 		}, TimeSpan.FromSeconds(1));
 
+		walletVm.Settings.WhenAnyValue(x => x.AutoCoinJoin)
+			.Subscribe(SetAutoCoinJoin);
+
+		_machine.Start();
+
 		//WalletCoinJoinManagerOnStateChanged(this, _walletCoinJoinManager.WalletCoinjoinState);
 	}
 
-	private void WalletCoinJoinManagerOnStateChanged(object? sender, WalletCoinjoinState e)
+	public void SetAutoCoinJoin(bool enabled)
 	{
-		Console.WriteLine($@"Entered state: {e}");
-
-		/*if (IsAuto != _walletCoinJoinManager.AutoCoinJoin)
-		{
-			IsAuto = _walletCoinJoinManager.AutoCoinJoin;
-
-			if (IsAuto)
-			{
-				OnEnterAutoCoinJoin();
-			}
-			else
-			{
-				OnEnterManualCoinJoin();
-			}
-		}*/
-
-		switch (_lastState.Status)
-		{
-			case WalletCoinjoinState.State.AutoStarting:
-				OnExitAutoStarting();
-				break;
-
-			case WalletCoinjoinState.State.LoadingTrack:
-				break;
-
-			case WalletCoinjoinState.State.Paused:
-				break;
-
-			case WalletCoinjoinState.State.Playing:
-
-				break;
-
-			case WalletCoinjoinState.State.Stopped:
-
-				break;
-
-			case WalletCoinjoinState.State.Finished:
-				break;
-		}
-
-		var state = e;
-		switch (state.Status)
-		{
-			case WalletCoinjoinState.State.AutoStarting:
-				OnEnterAutoStarting(state);
-				break;
-
-			case WalletCoinjoinState.State.LoadingTrack:
-				break;
-
-			case WalletCoinjoinState.State.Paused:
-				OnEnterPause();
-				break;
-
-			case WalletCoinjoinState.State.Playing:
-				OnEnterPlaying();
-				break;
-
-			case WalletCoinjoinState.State.Stopped:
-				OnEnterStopped();
-				break;
-
-			case WalletCoinjoinState.State.Finished:
-				break;
-		}
+		_machine.Fire(enabled ? Trigger.AutoCoinJoinOn : Trigger.AutoCoinJoinOff);
 	}
 
 	private void OnEnterStopped()
@@ -171,6 +269,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		StopVisible = false;
 		PauseVisible = false;
 		PlayVisible = true;
+
+		_machine.Fire(Trigger.AutoCoinJoinEntered);
 	}
 
 	private void OnEnterManualCoinJoin()
@@ -180,6 +280,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		PlayVisible = true;
 		StopVisible = false;
 		PauseVisible = false;
+
+		_machine.Fire(Trigger.ManualCoinJoinEntered);
 	}
 
 	private void OnTimerTick()
