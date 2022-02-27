@@ -41,7 +41,7 @@ public class MoreSelectionStrategy : SelectionStrategy
 			// Even if a match occurred we cannot be sure that there isn't
 			// a better selection thanks to input costs.
 			return EvaluationResult.SkipBranch;
-		}		
+		}
 
 		if (sum + RemainingAmounts[depth - 1] < Target)
 		{
