@@ -38,8 +38,8 @@ public class CoinJoinManager : BackgroundService
 	public Dictionary<string, WalletCoinJoinManager> WalletCoinJoinManagers { get; private set; }
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
 
-	public bool IsAnyCoinJoinInProgress => WalletCoinJoinManagers.Values.Any(w => w.WalletCoinJoinState is Playing);
-	public bool IsAnyCoinJoinInCriticalPhase => WalletCoinJoinManagers.Values.Any(w => w.WalletCoinJoinState is Playing state && state.InCriticalPhase);
+	public bool IsAnyCoinJoinInProgress => WalletCoinJoinManagers.Values.Any(w => w.WalletCoinjoinState.Status == WalletCoinjoinState.State.Playing);
+	public bool IsAnyCoinJoinInCriticalPhase => WalletCoinJoinManagers.Values.Any(w => w.WalletCoinjoinState.Status == WalletCoinjoinState.State.Playing && w.WalletCoinjoinState.InCriticalPhase);
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
@@ -147,7 +147,7 @@ public class CoinJoinManager : BackgroundService
 	private ImmutableDictionary<string, Wallet> GetMixableWallets() =>
 		WalletCoinJoinManagers.Values
 			.Where(x => x.Wallet.State == WalletState.Started) // Only running wallets
-			.Where(x => x.WalletCoinJoinState is Playing)
+			.Where(x => x.WalletCoinjoinState.Status == WalletCoinjoinState.State.Playing)
 			.Where(x => !x.Wallet.KeyManager.IsWatchOnly)      // that are not watch-only wallets
 			.Where(x => x.Wallet.Kitchen.HasIngredients)
 			.ToImmutableDictionary(x => x.Wallet.WalletName, x => x.Wallet);

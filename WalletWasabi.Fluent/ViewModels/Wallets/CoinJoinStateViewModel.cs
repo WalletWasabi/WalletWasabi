@@ -1,4 +1,4 @@
-﻿using System.Windows.Input;
+using System.Windows.Input;
 using Avalonia.Threading;
 using ReactiveUI;
 using WalletWasabi.WabiSabi.Client;
@@ -23,12 +23,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private readonly MusicStatusMessageViewModel _coinJoiningMessage = new() { Message = "Coinjoin in progress" };
 
 	private readonly MusicStatusMessageViewModel _plebStopMessage = new()
-		{ Message = "Auto Coinjoin paused, due to PlebStop" };
+	{ Message = "Auto Coinjoin paused, due to PlebStop" };
 
 	private readonly MusicStatusMessageViewModel _pauseMessage = new() { Message = "Auto Coinjoin is paused" };
 	private readonly MusicStatusMessageViewModel _stoppedMessage = new() { Message = "Coinjoin is stopped" };
 	private readonly DateTime _countDownStartTime;
-	private IWalletCoinJoinState _lastState = new Stopped();
+	private WalletCoinjoinState _lastState = WalletCoinjoinState.Stopped();
 
 	public CoinJoinStateViewModel(WalletViewModel walletVm)
 	{
@@ -43,7 +43,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_countDownMessage = new(() =>
 			$"CoinJoin will auto-start in: {DateTime.Now - _walletCoinJoinManager.AutoCoinJoinStartTime:mm\\:ss}");
 
-
 		PlayCommand = ReactiveCommand.Create(() => _walletCoinJoinManager.Play());
 
 		PauseCommand = ReactiveCommand.Create(() => _walletCoinJoinManager.Pause());
@@ -56,10 +55,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			return true;
 		}, TimeSpan.FromSeconds(1));
 
-		WalletCoinJoinManagerOnStateChanged(this, _walletCoinJoinManager.WalletCoinJoinState);
+		WalletCoinJoinManagerOnStateChanged(this, _walletCoinJoinManager.WalletCoinjoinState);
 	}
 
-	private void WalletCoinJoinManagerOnStateChanged(object? sender, IWalletCoinJoinState e)
+	private void WalletCoinJoinManagerOnStateChanged(object? sender, WalletCoinjoinState e)
 	{
 		Console.WriteLine($@"Entered state: {e}");
 
@@ -77,52 +76,53 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			}
 		}
 
-		switch (_lastState)
+		switch (_lastState.Status)
 		{
-			case AutoStarting autoStarting:
+			case WalletCoinjoinState.State.AutoStarting:
 				OnExitAutoStarting();
 				break;
 
-			case LoadingTrack loadingTrack:
+			case WalletCoinjoinState.State.LoadingTrack:
 				break;
 
-			case Paused paused:
+			case WalletCoinjoinState.State.Paused:
 				break;
 
-			case Playing playing:
-
-				break;
-
-			case Stopped stopped:
+			case WalletCoinjoinState.State.Playing:
 
 				break;
 
-			case Finished finished:
+			case WalletCoinjoinState.State.Stopped:
+
+				break;
+
+			case WalletCoinjoinState.State.Finished:
 				break;
 		}
 
-		switch (e)
+		var state = e;
+		switch (state.Status)
 		{
-			case AutoStarting autoStarting:
-				OnEnterAutoStarting(autoStarting);
+			case WalletCoinjoinState.State.AutoStarting:
+				OnEnterAutoStarting(state);
 				break;
 
-			case LoadingTrack loadingTrack:
+			case WalletCoinjoinState.State.LoadingTrack:
 				break;
 
-			case Paused paused:
+			case WalletCoinjoinState.State.Paused:
 				OnEnterPause();
 				break;
 
-			case Playing playing:
+			case WalletCoinjoinState.State.Playing:
 				OnEnterPlaying();
 				break;
 
-			case Stopped stopped:
+			case WalletCoinjoinState.State.Stopped:
 				OnEnterStopped();
 				break;
 
-			case Finished finished:
+			case WalletCoinjoinState.State.Finished:
 				break;
 		}
 	}
@@ -153,8 +153,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		IsAutoWaiting = true;
 	}
 
-	private void OnEnterAutoStarting(AutoStarting autoStarting)
+	private void OnEnterAutoStarting(WalletCoinjoinState autoStarting)
 	{
+		if (autoStarting.Status != WalletCoinjoinState.State.AutoStarting)
+		{
+			throw new InvalidOperationException($"{nameof(autoStarting.Status)} must be {nameof(WalletCoinjoinState.State.AutoStarting)}.");
+		}
 		IsAutoWaiting = true;
 		_countDownMessage.Update();
 		CurrentStatus = _countDownMessage;
@@ -189,7 +193,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private void OnTimerTick()
 	{
-		if (_walletCoinJoinManager.WalletCoinJoinState is AutoStarting)
+		if (_walletCoinJoinManager.WalletCoinjoinState.Status == WalletCoinjoinState.State.AutoStarting)
 		{
 			var whenCanAutoStart = _walletCoinJoinManager.AutoCoinJoinStartTime;
 

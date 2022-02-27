@@ -5,7 +5,7 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public class WalletCoinJoinManager
 {
-	private IWalletCoinJoinState _walletCoinJoinState;
+	private WalletCoinjoinState _walletCoinJoinState;
 
 	public static bool IsUserInSendWorkflow { get; set; }
 	private static TimeSpan AutoCoinJoinDelayAfterWalletLoaded { get; } = TimeSpan.FromMinutes(Random.Shared.Next(5, 16));
@@ -16,7 +16,7 @@ public class WalletCoinJoinManager
 		_walletCoinJoinState = GetZeroState();
 	}
 
-	public event EventHandler<IWalletCoinJoinState>? StateChanged;
+	public event EventHandler<WalletCoinjoinState>? StateChanged;
 
 	public Wallet Wallet { get; }
 	private CoinJoinTracker? CoinJoinTracker { get; set; }
@@ -29,7 +29,7 @@ public class WalletCoinJoinManager
 
 	public bool AutoCoinJoin => Wallet.KeyManager.AutoCoinJoin;
 
-	public IWalletCoinJoinState WalletCoinJoinState
+	public WalletCoinjoinState WalletCoinjoinState
 	{
 		get => _walletCoinJoinState;
 		private set
@@ -74,6 +74,7 @@ public class WalletCoinJoinManager
 	public void Pause()
 	{
 		IsPaused = true;
+		IsPlaying = false;
 		OverrideAutoCoinJoinDelay = false;
 	}
 
@@ -86,12 +87,13 @@ public class WalletCoinJoinManager
 
 	public void UpdateState()
 	{
-		switch (WalletCoinJoinState)
+		var state = WalletCoinjoinState;
+		switch (state.Status)
 		{
-			case Stopped:
+			case WalletCoinjoinState.State.Stopped:
 				if (AutoCoinJoin is true)
 				{
-					WalletCoinJoinState = new AutoStarting();
+					WalletCoinjoinState = WalletCoinjoinState.AutoStarting();
 					return;
 				}
 				if (!IsPlaying)
@@ -99,66 +101,66 @@ public class WalletCoinJoinManager
 					return;
 				}
 
-				WalletCoinJoinState = new Playing();
+				WalletCoinjoinState = WalletCoinjoinState.Playing();
 				break;
 
-			case AutoStarting:
+			case WalletCoinjoinState.State.AutoStarting:
 				if (AutoCoinJoin is false)
 				{
-					WalletCoinJoinState = GetZeroState();
+					WalletCoinjoinState = GetZeroState();
 					return;
 				}
 
 				if (IsUserInSendWorkflow || IsPaused || IsDelay || IsPlebStop)
 				{
-					WalletCoinJoinState = new AutoStarting(
-						IsPlebStop: IsPlebStop,
-						IsPaused: IsPaused,
-						IsDelay: IsDelay,
-						IsSending: IsUserInSendWorkflow);
+					WalletCoinjoinState = WalletCoinjoinState.AutoStarting(
+						isPlebStop: IsPlebStop,
+						isPaused: IsPaused,
+						isDelay: IsDelay,
+						isSending: IsUserInSendWorkflow);
 					return;
 				}
 
-				WalletCoinJoinState = new Playing();
+				WalletCoinjoinState = WalletCoinjoinState.Playing();
 				break;
 
-			case Playing state:
+			case WalletCoinjoinState.State.Playing:
 				if ((!IsPlaying || IsPaused) && CoinJoinTracker?.InCriticalCoinJoinState is not true)
 				{
-					WalletCoinJoinState = new Stopped();
+					WalletCoinjoinState = WalletCoinjoinState.Stopped();
 					return;
 				}
 
-				if (!state.IsInRound && CoinJoinTracker is { } cjt)
+				if (!state.InRound && CoinJoinTracker is { } cjt)
 				{
-					WalletCoinJoinState = new Playing(IsInRound: true, InCriticalPhase: cjt.InCriticalCoinJoinState);
+					WalletCoinjoinState = WalletCoinjoinState.Playing(inRound: true, inCriticalPhase: cjt.InCriticalCoinJoinState);
 					return;
 				}
 
-				if (state.IsInRound && CoinJoinTracker is null)
+				if (state.InRound && CoinJoinTracker is null)
 				{
-					WalletCoinJoinState = new Finished();
+					WalletCoinjoinState = WalletCoinjoinState.Finished();
 					return;
 				}
 				break;
 
-			case Finished:
-				WalletCoinJoinState = GetZeroState();
+			case WalletCoinjoinState.State.Finished:
+				WalletCoinjoinState = GetZeroState();
 				break;
 
 			default:
-				WalletCoinJoinState = GetZeroState();
+				WalletCoinjoinState = GetZeroState();
 				break;
 		}
 	}
 
-	private IWalletCoinJoinState GetZeroState()
+	private WalletCoinjoinState GetZeroState()
 	{
 		if (AutoCoinJoin)
 		{
-			return new AutoStarting(IsUserInSendWorkflow, IsPlebStop, IsDelay, IsPaused);
+			return WalletCoinjoinState.AutoStarting(IsUserInSendWorkflow, IsPlebStop, IsDelay, IsPaused);
 		}
 
-		return IsPlaying ? new Playing() : new Stopped();
+		return IsPlaying ? WalletCoinjoinState.Playing() : WalletCoinjoinState.Stopped();
 	}
 }
