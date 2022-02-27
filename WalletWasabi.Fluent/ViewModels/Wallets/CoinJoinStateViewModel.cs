@@ -20,12 +20,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	[AutoNotify] private double _progressValue;
 
 	private readonly AutoUpdateMusicStatusMessageViewModel _countDownMessage;
-	private readonly MusicStatusMessageViewModel _coinJoiningMessage = new() { Message = "Coinjoin in progress" };
+	private readonly MusicStatusMessageViewModel _coinJoiningMessage = new() { Message = "Coinjoining" };
 
-	private readonly MusicStatusMessageViewModel _plebStopMessage = new()
-	{ Message = "Auto Coinjoin paused, due to PlebStop" };
-
-	private readonly MusicStatusMessageViewModel _pauseMessage = new() { Message = "Auto Coinjoin is paused" };
+	private readonly MusicStatusMessageViewModel _pauseMessage = new() { Message = "Coinjoin is paused" };
 	private readonly MusicStatusMessageViewModel _stoppedMessage = new() { Message = "Coinjoin is stopped" };
 	private readonly DateTime _countDownStartTime;
 	private WalletCoinjoinState _lastState = WalletCoinjoinState.Stopped();
@@ -41,7 +38,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_walletCoinJoinManager.StateChanged += WalletCoinJoinManagerOnStateChanged;
 
 		_countDownMessage = new(() =>
-			$"CoinJoin will auto-start in: {DateTime.Now - _walletCoinJoinManager.AutoCoinJoinStartTime:mm\\:ss}");
+			$"Coinjoin starts in {DateTime.Now - _walletCoinJoinManager.AutoCoinJoinStartTime:mm\\:ss}");
 
 		PlayCommand = ReactiveCommand.Create(() => _walletCoinJoinManager.Play());
 
@@ -165,7 +162,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		if (autoStarting.IsPlebStop)
 		{
-			CurrentStatus = _plebStopMessage;
+			CurrentStatus = _pauseMessage;
 		}
 	}
 
