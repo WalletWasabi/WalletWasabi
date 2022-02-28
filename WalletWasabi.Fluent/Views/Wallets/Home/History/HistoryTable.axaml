@@ -256,9 +256,9 @@
         </DataBoxTemplateColumn>
 
         <!-- Incoming -->
-        <DataBoxTemplateColumn Header="Incoming (₿)"
+        <DataBoxTemplateColumn Header="Incoming (BTC)"
                                Width="Auto"
-                               MinWidth="120"
+                               MinWidth="130"
                                MaxWidth="150">
           <DataBoxTemplateColumn.CellTemplate>
             <DataTemplate>
@@ -277,9 +277,9 @@
         </DataBoxTemplateColumn>
 
         <!-- Outgoing -->
-        <DataBoxTemplateColumn Header="Outgoing (₿)"
+        <DataBoxTemplateColumn Header="Outgoing (BTC)"
                                Width="Auto"
-                               MinWidth="120"
+                               MinWidth="130"
                                MaxWidth="150">
           <DataBoxTemplateColumn.CellTemplate>
             <DataTemplate>
@@ -298,9 +298,9 @@
         </DataBoxTemplateColumn>
 
         <!-- Balance -->
-        <DataBoxTemplateColumn Header="Balance (₿)"
+        <DataBoxTemplateColumn Header="Balance (BTC)"
                                Width="Auto"
-                               MinWidth="120"
+                               MinWidth="130"
                                MaxWidth="150">
           <DataBoxTemplateColumn.CellTemplate>
             <DataTemplate>

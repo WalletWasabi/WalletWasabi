@@ -51,7 +51,7 @@ public partial class WalletBalanceTileViewModel : TileViewModel
 
 	private void UpdateBalance()
 	{
-		BalanceBtc = $"{_wallet.Coins.TotalAmount().ToFormattedString()} ₿";
+		BalanceBtc = $"{_wallet.Coins.TotalAmount().ToFormattedString()} BTC";
 
 		BalanceFiat = _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC)
 			.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
