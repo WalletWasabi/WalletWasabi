@@ -1,0 +1,33 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.CoinJoinProfiles"
+             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="450"
+             x:DataType="vm:CoinJoinProfileViewModelBase"
+             ClipToBounds="False"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.CoinJoinProfiles.CoinJoinProfileControl">
+  <StackPanel Spacing="20" Width="150" Height="210">
+    <TextBlock Text="{Binding Title}" HorizontalAlignment="Center" />
+    <Viewbox HorizontalAlignment="Center" Height="70">
+      <ContentControl Content="{Binding .}">
+        <ContentControl.DataTemplates>
+          <DataTemplate DataType="vm:EconomicCoinJoinProfileViewModel">
+            <Image Source="/Assets/CoinJoinProfiles/cost.png" />
+          </DataTemplate>
+          <DataTemplate DataType="vm:SpeedyCoinJoinProfileViewModel">
+            <Image Source="/Assets/CoinJoinProfiles/speed.png" />
+          </DataTemplate>
+          <DataTemplate DataType="vm:PrivateCoinJoinProfileViewModel">
+            <Image Source="/Assets/CoinJoinProfiles/private.png" />
+          </DataTemplate>
+          <DataTemplate DataType="vm:ManualCoinJoinProfileViewModel">
+            <Image Source="/Assets/CoinJoinProfiles/speed.png" />
+          </DataTemplate>
+        </ContentControl.DataTemplates>
+      </ContentControl>
+    </Viewbox>
+    <TextBlock Text="{Binding Description}" HorizontalAlignment="Center" TextWrapping="Wrap" />
+  </StackPanel>
+</UserControl>
