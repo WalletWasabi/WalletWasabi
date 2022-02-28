@@ -80,9 +80,9 @@ public static class TileHelper
 	{
 		return new ObservableCollection<TileLayoutViewModel>()
 			{
-				new("Small", columnDefinitions: "330,330,330", rowDefinitions: "150"),
-				new("Normal", columnDefinitions: "330,330,330", rowDefinitions: "150"),
-				new("Wide", columnDefinitions: "330,330,330", rowDefinitions: "150")
+				new("Small", columnDefinitions: "316,316", rowDefinitions: "150"),
+				new("Normal", columnDefinitions: "316,316", rowDefinitions: "150"),
+				new("Wide", columnDefinitions: "316,316", rowDefinitions: "150")
 			};
 	}
 
@@ -90,9 +90,9 @@ public static class TileHelper
 	{
 		return new ObservableCollection<TileLayoutViewModel>()
 			{
-				new("Small", columnDefinitions: "330,330,330", rowDefinitions: "150"),
-				new("Normal", columnDefinitions: "330,330,330", rowDefinitions: "150"),
-				new("Wide", columnDefinitions: "330,330,330", rowDefinitions: "150")
+				new("Small", columnDefinitions: "316,316,316", rowDefinitions: "150"),
+				new("Normal", columnDefinitions: "316,316,316", rowDefinitions: "150"),
+				new("Wide", columnDefinitions: "316,316,316", rowDefinitions: "150")
 			};
 	}
 }
