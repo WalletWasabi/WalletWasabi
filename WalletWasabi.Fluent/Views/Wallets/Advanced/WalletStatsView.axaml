@@ -12,32 +12,26 @@
   <c:ContentArea Title="{Binding Title}"
                  EnableNext="True" NextContent="Done">
     <StackPanel Spacing="10" Margin="0 20 20 0">
-      <c:PreviewItem Text="Coins Count"
+      <c:PreviewItem Text="Number of Coins"
                      CopyParameter="{Binding CoinCount}">
         <c:PrivacyContentControl Classes="monoSpaced"
                                  NumberOfPrivacyChars="8"
                                  Content="{Binding CoinCount}" />
       </c:PreviewItem>
       <Separator />
-      <c:PreviewItem Text="Total Balance"
-                     CopyParameter="{Binding Balance}">
-        <c:PrivacyContentControl Classes="monoSpaced"
-                                 NumberOfPrivacyChars="11"
-                                 Content="{Binding Balance}" />
+      <c:PreviewItem Text="Unconfirmed Balance"
+                     CopyParameter="{Binding UnconfirmedBalance}">
+        <c:PrivacyContentControl NumberOfPrivacyChars="11" Content="{Binding UnconfirmedBalance, StringFormat={}{0} ₿, Mode=OneWay}" Classes="monoSpaced" />
       </c:PreviewItem>
       <Separator />
       <c:PreviewItem Text="Confirmed Balance"
                      CopyParameter="{Binding ConfirmedBalance}">
-        <c:PrivacyContentControl Classes="monoSpaced"
-                                 NumberOfPrivacyChars="11"
-                                 Content="{Binding ConfirmedBalance}" />
+        <c:PrivacyContentControl NumberOfPrivacyChars="11" Content="{Binding ConfirmedBalance, StringFormat={}{0} ₿, Mode=OneWay}" Classes="monoSpaced" />
       </c:PreviewItem>
       <Separator />
-      <c:PreviewItem Text="Unconfirmed Balance"
-                     CopyParameter="{Binding UnconfirmedBalance}">
-        <c:PrivacyContentControl Classes="monoSpaced"
-                                 NumberOfPrivacyChars="11"
-                                 Content="{Binding UnconfirmedBalance}" />
+      <c:PreviewItem Text="Total Balance"
+                     CopyParameter="{Binding Balance}">
+        <c:PrivacyContentControl NumberOfPrivacyChars="11" Content="{Binding Balance, StringFormat={}{0} ₿, Mode=OneWay}" Classes="monoSpaced" />
       </c:PreviewItem>
     </StackPanel>
   </c:ContentArea>

@@ -1,16 +1,15 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using DataBox;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
-public class DataBoxItemDetailsAdorner : TemplatedControl
+public class TreeDataGridItemDetailsAdorner : TemplatedControl
 {
-	public static readonly StyledProperty<DataBoxRow?> RowProperty =
-		AvaloniaProperty.Register<DataBoxItemDetailsAdorner, DataBoxRow?>(nameof(Row));
+	public static readonly StyledProperty<TreeDataGridRow?> RowProperty =
+		AvaloniaProperty.Register<TreeDataGridItemDetailsAdorner, TreeDataGridRow?>(nameof(Row));
 
-	public DataBoxRow? Row
+	public TreeDataGridRow? Row
 	{
 		get => GetValue(RowProperty);
 		set => SetValue(RowProperty, value);
