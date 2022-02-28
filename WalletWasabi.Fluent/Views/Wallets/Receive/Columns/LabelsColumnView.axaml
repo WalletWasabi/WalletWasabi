@@ -1,0 +1,57 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="receive:AddressViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.Columns.LabelsColumnView">
+  <DockPanel LastChildFill="True" Margin="10 0 30 0" x:DataType="receive:AddressViewModel">
+    <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15"
+                             VerticalAlignment="Center">
+      <DockPanel LastChildFill="False">
+        <Button Classes="labelFlyout"
+                DockPanel.Dock="Left"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Center"
+                IsVisible="{Binding !!Label.Count}"
+                IsHitTestVisible="False"
+                Margin="0 0 4 0">
+          <TextBlock Text="{Binding Label[0], FallbackValue=''}"
+                     MaxWidth="120"
+                     TextTrimming="CharacterEllipsis" />
+        </Button>
+        <Button Classes="labelFlyout"
+                DockPanel.Dock="Left"
+                IsVisible="{Binding !!FilteredLabel.Count}"
+                Content="..."
+                Margin="0 0 0 0">
+          <Button.Flyout>
+            <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="TransientWithDismissOnPointerMoveAway">
+              <c:TagsBox IsReadOnly="True"
+                         Items="{Binding FilteredLabel}" />
+            </Flyout>
+          </Button.Flyout>
+          <ToolTip.Tip>
+            <Panel>
+              <c:TagsBox IsReadOnly="True"
+                         Margin="4,6,0,0"
+                         Items="{Binding FilteredLabel}" />
+            </Panel>
+          </ToolTip.Tip>
+        </Button>
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Margin="-5 0 0 0" Spacing="5" Orientation="Horizontal"
+                    x:DataType="receive:AddressViewModel"
+                    DockPanel.Dock="Right">
+          <Button Classes="plain addressActionButton" ToolTip.Tip="Edit"
+                  Command="{Binding EditLabelCommand}">
+            <PathIcon Data="{StaticResource edit_regular}" Classes="addressActionIcon" />
+          </Button>
+        </StackPanel>
+      </DockPanel>
+    </c:PrivacyContentControl>
+  </DockPanel>
+</UserControl>

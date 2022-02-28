@@ -50,4 +50,50 @@ public partial class AddressViewModel : ViewModelBase
 	public List<string> FilteredLabel { get; }
 
 	public List<string> Label { get; }
+
+	public static Comparison<AddressViewModel?> SortAscending<T>(Func<AddressViewModel, T> selector)
+	{
+		return (x, y) =>
+		{
+			if (x is null && y is null)
+			{
+				return 0;
+			}
+			else if (x is null)
+			{
+				return -1;
+			}
+			else if (y is null)
+			{
+				return 1;
+			}
+			else
+			{
+				return Comparer<T>.Default.Compare(selector(x), selector(y));
+			}
+		};
+	}
+
+	public static Comparison<AddressViewModel?> SortDescending<T>(Func<AddressViewModel, T> selector)
+	{
+		return (x, y) =>
+		{
+			if (x is null && y is null)
+			{
+				return 0;
+			}
+			else if (x is null)
+			{
+				return 1;
+			}
+			else if (y is null)
+			{
+				return -1;
+			}
+			else
+			{
+				return Comparer<T>.Default.Compare(selector(y), selector(x));
+			}
+		};
+	}
 }

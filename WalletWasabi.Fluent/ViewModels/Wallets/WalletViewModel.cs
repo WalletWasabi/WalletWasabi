@@ -82,8 +82,8 @@ public partial class WalletViewModel : WalletViewModelBase
 		this.WhenAnyValue(x => x.History.IsTransactionHistoryEmpty)
 			.Subscribe(x => IsEmptyWallet = x);
 
-		_smallLayoutHeightBreakpoint = 650;
-		_wideLayoutWidthBreakpoint = 1400;
+		_smallLayoutHeightBreakpoint = double.MaxValue;
+		_wideLayoutWidthBreakpoint = double.MaxValue;
 
 		_smallLayoutIndex = 0;
 		_normalLayoutIndex = 1;

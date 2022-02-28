@@ -4,62 +4,71 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public class StatusChangedEventArgs : EventArgs
 {
-	public Wallet Wallet { get; }
-
 	public StatusChangedEventArgs(Wallet wallet)
 	{
 		Wallet = wallet;
 	}
+	public Wallet Wallet { get; }
 }
 
 public class LoadedEventArgs : StatusChangedEventArgs
 {
-	public TimeSpan AutoStartDelay { get; }
-	public LoadedEventArgs(Wallet wallet, TimeSpan autoStartDelay)
+	public LoadedEventArgs(Wallet wallet)
 		: base(wallet)
 	{
-		AutoStartDelay = autoStartDelay;
 	}
+}
+
+public class StartingEventArgs : StatusChangedEventArgs
+{
+	public StartingEventArgs(Wallet wallet, TimeSpan startingIn)
+		: base(wallet)
+	{
+		StartingIn = startingIn;
+	}
+	public TimeSpan StartingIn { get; }
 }
 
 public class StartedEventArgs : StatusChangedEventArgs
 {
-	public StartedEventArgs(Wallet wallet)
+	public StartedEventArgs(Wallet wallet, TimeSpan registrationTimeout)
 		: base(wallet)
 	{
+		RegistrationTimeout = registrationTimeout;
 	}
+
+	public TimeSpan RegistrationTimeout { get; }
 }
 
 public class CoinJoinCompletedEventArgs : StatusChangedEventArgs
 {
-	public CompletionStatus CompletionStatus { get; }
-
 	public CoinJoinCompletedEventArgs(Wallet wallet, CompletionStatus completionStatus)
 		: base(wallet)
 	{
 		CompletionStatus = completionStatus;
 	}
+	public CompletionStatus CompletionStatus { get; }
 }
 
 public class StoppedEventArgs : StatusChangedEventArgs
 {
-	public StopReason Reason { get; }
 	public StoppedEventArgs(Wallet wallet, StopReason reason)
 		: base(wallet)
 	{
 		Reason = reason;
 	}
+	public StopReason Reason { get; }
 }
 
 public class StartErrorEventArgs : StatusChangedEventArgs
 {
-	public CoinjoinError Error;
 
 	public StartErrorEventArgs(Wallet wallet, CoinjoinError error)
 		: base(wallet)
 	{
 		Error = error;
 	}
+	public CoinjoinError Error;
 }
 
 public enum StopReason
@@ -77,5 +86,8 @@ public enum CompletionStatus
 
 public enum CoinjoinError
 {
-	NoCoinsToMix
+	NoCoinsToMix,
+	AutoConjoinDisabled,
+	UserInSendWorkflow,
+	NotEnoughUnprivateBalance
 }
