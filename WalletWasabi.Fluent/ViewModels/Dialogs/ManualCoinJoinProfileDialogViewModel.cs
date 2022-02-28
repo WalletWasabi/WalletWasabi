@@ -12,16 +12,18 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<ManualCoinJoinProfileViewModel?>
 {
 	[AutoNotify] private bool _autoCoinjoin;
-	[AutoNotify] private string _minAnonScoreTarget;
-	[AutoNotify] private string _maxAnonScoreTarget;
+	[AutoNotify] private int _minAnonScoreTarget;
+	[AutoNotify] private int _maxAnonScoreTarget;
 	[AutoNotify] private TimeFrameItem[] _timeFrames;
 	[AutoNotify] private TimeFrameItem _selectedTimeFrame;
 
 	public ManualCoinJoinProfileDialogViewModel(CoinJoinProfileViewModelBase current)
 	{
 		_autoCoinjoin = true;
-		_minAnonScoreTarget = current.MinAnonScoreTarget.ToString();
-		_maxAnonScoreTarget = current.MaxAnonScoreTarget.ToString();
+
+		_minAnonScoreTarget = current.MinAnonScoreTarget;
+		_maxAnonScoreTarget = current.MaxAnonScoreTarget;
+
 		_timeFrames = new[]
 		{
 			new TimeFrameItem("Hours", TimeSpan.Zero),
@@ -33,30 +35,39 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 		_selectedTimeFrame = _timeFrames.FirstOrDefault(tf => tf.TimeFrame == TimeSpan.FromHours(current.FeeRateMedianTimeFrameHours)) ?? _timeFrames.First();
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+
 		EnableBack = false;
+
+		this.WhenAnyValue(x => x.MinAnonScoreTarget)
+			.Subscribe(
+				x =>
+				{
+					if (x >= MaxAnonScoreTarget)
+					{
+						MaxAnonScoreTarget = x + 1;
+					}
+				});
+
+		this.WhenAnyValue(x => x.MaxAnonScoreTarget)
+			.Subscribe(
+				x =>
+				{
+					if (x <= MinAnonScoreTarget)
+					{
+						MinAnonScoreTarget = x - 1;
+					}
+				});
+
 
 		NextCommand = ReactiveCommand.Create(() =>
 		{
 			var auto = AutoCoinjoin;
-			var min = int.Parse(MinAnonScoreTarget);
-			var max = int.Parse(MaxAnonScoreTarget);
+			var min = MinAnonScoreTarget;
+			var max = MaxAnonScoreTarget;
 			var hours = (int)Math.Floor(SelectedTimeFrame.TimeFrame.TotalHours);
 
 			Close(DialogResultKind.Normal, new ManualCoinJoinProfileViewModel(auto, min, max, hours));
 		});
-
-		this.ValidateProperty(x => x.MinAnonScoreTarget, errors => ValidateInteger(MinAnonScoreTarget, nameof(MinAnonScoreTarget), errors));
-		this.ValidateProperty(x => x.MaxAnonScoreTarget, errors => ValidateInteger(MaxAnonScoreTarget, nameof(MaxAnonScoreTarget), errors));
-	}
-
-	private void ValidateInteger(string text, string propertyName, IValidationErrors errors)
-	{
-		if (int.TryParse(text, out _))
-		{
-			return;
-		}
-
-		errors.Add(ErrorSeverity.Error, $"Field {propertyName} is not an integer.");
 	}
 
 	public record TimeFrameItem(string Name, TimeSpan TimeFrame)
