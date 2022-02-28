@@ -100,6 +100,11 @@ public class KeyManager
 			throw new InvalidOperationException($"{nameof(MasterFingerprint)} is not defined.");
 		}
 
+		if (IsWatchOnly || IsHardwareWallet)
+		{
+			return WpkhOutputDescriptorHelper.GetOutputDescriptors(network, MasterFingerprint.Value, ExtPubKey, AccountKeyPath);
+		}
+
 		return WpkhOutputDescriptorHelper.GetOutputDescriptors(network, MasterFingerprint.Value, GetMasterExtKey(password), AccountKeyPath);
 	}
 

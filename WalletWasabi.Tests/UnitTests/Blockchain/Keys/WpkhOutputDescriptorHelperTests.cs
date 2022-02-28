@@ -28,10 +28,15 @@ public class WpkhOutputDescriptorHelperTests
 	public void VerifyGenerateCorrectScript()
 	{
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
-		var hdkey = km.GetNextReceiveKey("dummy", out _);
-		var od = km.GetOutputDescriptors("", Network.Main);
-		var s = od.PublicExternal.TryExpand(0, new FlatSigningRepository(), new FlatSigningRepository(), out var scripts);
-		Assert.True(s);
-		Assert.Equal(hdkey.P2wpkhScript, scripts[0]);
+		HDFingerprint masterFingerprint = new(0x2fc4a4f3);
+
+		var watchOnlyKm = KeyManager.CreateNewHardwareWalletWatchOnly(masterFingerprint, km.ExtPubKey, Network.Main);
+		var hdPubKey = watchOnlyKm.GetNextReceiveKey("dummy", out _);
+
+		var outputDesc = watchOnlyKm.GetOutputDescriptors("", Network.Main);
+		var success = outputDesc.PublicExternal.TryExpand(0, new FlatSigningRepository(), new FlatSigningRepository(), out var scripts);
+
+		Assert.True(success);
+		Assert.Equal(hdPubKey.P2wpkhScript, scripts[0]);
 	}
 }
