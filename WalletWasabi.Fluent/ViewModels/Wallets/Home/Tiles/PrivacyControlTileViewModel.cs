@@ -6,6 +6,7 @@ using System.Windows.Input;
 using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Wallets;
 
@@ -24,6 +25,7 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 	[AutoNotify] private IList<(string color, double percentShare)>? _testDataPoints;
 	[AutoNotify] private IList<DataLegend>? _testDataPointsLegend;
 	[AutoNotify] private string _percentText;
+	[AutoNotify] private string _balancePrivateBtc;
 
 	public PrivacyControlTileViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
 	{
@@ -134,6 +136,8 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 		PercentText = $"\u205F{pcPrivate*100:N1}\u205F/\u205F{100}";
 
 		FullyMixed = pcPrivate >= 1d;
+
+		BalancePrivateBtc = $"{privateAmount.ToFormattedString()} BTC";
 
 		TestDataPoints = new List<(string, double)>
 			{

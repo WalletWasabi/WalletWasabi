@@ -3,18 +3,27 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
-             xmlns:wb="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalance"
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:CompileBindings="True" x:DataType="vm:WalletBalanceTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalanceTileView">
   <controls:TileControl TileSize="{Binding CurrentTileSize}">
-    <wb:WalletBalanceMediumTileView />
-    <controls:TileControl.LargeSizeContent>
-      <wb:WalletBalanceLargeTileView ClipToBounds="False" />
-    </controls:TileControl.LargeSizeContent>
-    <controls:TileControl.WideSizeContent>
-      <wb:WalletBalanceWideTileView ClipToBounds="False" />
-    </controls:TileControl.WideSizeContent>
+
+    <DockPanel>
+      <TextBlock Text="BALANCE" DockPanel.Dock="Top" Classes="h8 bold" />
+      <StackPanel DockPanel.Dock="Bottom" Height="25" Spacing="8">
+        <Separator />
+        <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+          <controls:PrivacyContentControl Classes="h9 bold" NumberOfPrivacyChars="9" Margin="4"
+                                          VerticalAlignment="Center"
+                                          Opacity="0.5"
+                                          Content="{Binding BalanceFiat}" />
+        </StackPanel>
+      </StackPanel>
+
+      <controls:PrivacyContentControl Margin="0 3" NumberOfPrivacyChars="9"
+                                      VerticalAlignment="Center" HorizontalAlignment="Center"
+                                      Content="{Binding BalanceBtc}" Classes="h2" />
+    </DockPanel>
   </controls:TileControl>
 </UserControl>

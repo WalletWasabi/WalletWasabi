@@ -9,24 +9,34 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyControlTileView">
   <controls:TileControl TileSize="{Binding CurrentTileSize}">
     <DockPanel>
-      <DockPanel.Styles>
-        <Style Selector="Button">
-          <Setter Property="HorizontalAlignment" Value="Center" />
-          <Setter Property="VerticalAlignment" Value="Center" />
-        </Style>
-      </DockPanel.Styles>
-
       <TextBlock Text="PRIVACY LEVEL" DockPanel.Dock="Top" Classes="h8 bold" />
+      <StackPanel DockPanel.Dock="Bottom" Height="25" Spacing="8">
+        <Separator />
+        <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+          <controls:PrivacyContentControl Classes="h9 bold" NumberOfPrivacyChars="9"
+                                          VerticalAlignment="Center"
+                                          Opacity="0.5"
+                                          Content="{Binding BalancePrivateBtc}" />
 
-      <StackPanel VerticalAlignment="Center" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 8 0 0">
-        <Image Height="48" Width="48"  VerticalAlignment="Center" HorizontalAlignment="Center"
+          <Border VerticalAlignment="Center" BorderThickness="1" CornerRadius="2"
+                  BorderBrush="{StaticResource SystemAccentColor}">
+
+            <TextBlock
+              Text="PRIVATE" Classes="h9 bold" Margin="4 2 " VerticalAlignment="Center" HorizontalAlignment="Center"
+              Foreground="{StaticResource SystemAccentColor}" />
+
+          </Border>
+        </StackPanel>
+      </StackPanel>
+
+      <StackPanel VerticalAlignment="Center" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 3">
+        <Image Height="36" Width="36" VerticalAlignment="Center" HorizontalAlignment="Center"
                Source="{StaticResource privacy_indicator_good}" />
         <TextBlock
           VerticalAlignment="Center" HorizontalAlignment="Center"
           TextAlignment="Center"
-          Text="{Binding PercentText}" Classes="h1" Foreground="{StaticResource SystemAccentColor}" />
+          Text="{Binding PercentText}" Classes="h2" Foreground="{StaticResource SystemAccentColor}" />
       </StackPanel>
-
 
     </DockPanel>
   </controls:TileControl>
