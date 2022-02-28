@@ -28,9 +28,9 @@
             </Style>
 
             <Style Selector="Button.function.pulse Ellipse.pulseRect">
-              <Setter Property="Fill" Value="{StaticResource SystemAccentColorLight3}" />
+              <Setter Property="Fill" Value="{StaticResource SystemAccentColor}" />
               <Style.Animations>
-                <Animation IterationCount="Infinite" Duration="0:0:2.3" Easing="{StaticResource FluentEasing}">
+                <Animation IterationCount="6" Duration="0:0:1.5" Easing="{StaticResource FluentEasing}">
                   <KeyFrame Cue="0%">
                     <Setter Property="Opacity" Value="0" />
                     <Setter Property="(ScaleTransform.ScaleX)" Value="0" />
@@ -79,7 +79,9 @@
                     Classes.pulse="{Binding PulseAnimationActive}"
                     Command="{Binding ReceiveCommand}">
               <Panel>
-                <Ellipse Classes="pulseRect" />
+                <Border CornerRadius="5" ClipToBounds="True" Margin="-20">
+                  <Ellipse Classes="pulseRect" />
+                </Border>
                 <StackPanel Orientation="Horizontal" Spacing="15">
                   <PathIcon Data="{StaticResource wallet_action_receive}" />
                   <TextBlock Text="Receive" />
