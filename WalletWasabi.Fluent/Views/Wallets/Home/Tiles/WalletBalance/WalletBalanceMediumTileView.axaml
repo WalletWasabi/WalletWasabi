@@ -24,12 +24,6 @@
     </StackPanel>
 
     <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Spacing="16">
-      <!-- <Viewbox Height="30" Width="30" DockPanel.Dock="Left"> -->
-      <!--   <Panel> -->
-      <!--     <PathIcon Data="{StaticResource btc_logo_fluent}" -->
-      <!--               Height="30" Width="30" Foreground="{DynamicResource SystemAccentColor}" /> -->
-      <!--   </Panel> -->
-      <!-- </Viewbox> -->
       <StackPanel VerticalAlignment="Center">
         <controls:PrivacyContentControl Content="{Binding BalanceBtc, FallbackValue='1.21230001 BTC'}"
                                         FontSize="24"
