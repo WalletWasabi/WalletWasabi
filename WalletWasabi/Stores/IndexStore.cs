@@ -95,19 +95,6 @@ public class IndexStore : IAsyncDisposable
 		}
 	}
 
-	private async Task DeleteIfDeprecatedAsync()
-	{
-		if (MatureIndexFileManager.Exists())
-		{
-			await DeleteIfDeprecatedAsync(MatureIndexFileManager).ConfigureAwait(false);
-		}
-
-		if (ImmatureIndexFileManager.Exists())
-		{
-			await DeleteIfDeprecatedAsync(ImmatureIndexFileManager).ConfigureAwait(false);
-		}
-	}
-
 	private async Task DeleteIfDeprecatedAsync(DigestableSafeIoManager ioManager)
 	{
 		string? firstLine;
@@ -279,7 +266,15 @@ public class IndexStore : IAsyncDisposable
 				File.Delete(oldIndexFilePath);
 			}
 
-			await DeleteIfDeprecatedAsync().ConfigureAwait(false);
+			if (MatureIndexFileManager.Exists())
+			{
+				await DeleteIfDeprecatedAsync(MatureIndexFileManager).ConfigureAwait(false);
+			}
+
+			if (ImmatureIndexFileManager.Exists())
+			{
+				await DeleteIfDeprecatedAsync(ImmatureIndexFileManager).ConfigureAwait(false);
+			}
 		}
 		catch (Exception ex)
 		{
