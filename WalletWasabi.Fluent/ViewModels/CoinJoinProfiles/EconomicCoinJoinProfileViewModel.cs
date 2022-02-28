@@ -9,7 +9,5 @@ internal class EconomicCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 
 	public override string Description => "For savers. Only participates in coinjoins during the cheapest parts of the week.";
 
-	public override IImage Icon => AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/CoinJoinProfiles/cost.png");
-
 	public override int FeeRateMedianTimeFrameHours => 168; // One week median.
 }

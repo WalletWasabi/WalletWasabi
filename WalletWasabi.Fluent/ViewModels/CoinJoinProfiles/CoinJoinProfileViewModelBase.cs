@@ -8,8 +8,6 @@ public abstract class CoinJoinProfileViewModelBase : ViewModelBase
 
 	public abstract string Description { get; }
 
-	public virtual IImage? Icon { get; }
-
 	public virtual bool AutoCoinjoin { get; } = true;
 
 	public virtual int MinAnonScoreTarget { get; } = 5;
