@@ -15,13 +15,9 @@ public enum State
 	AutoStarting,
 	Paused,
 	AutoPlaying,
-	AutoLoading,
-	AutoFinished,
 
 	Stopped,
 	ManualPlaying,
-	ManualLoading,
-	ManualFinished
 }
 
 public enum Trigger
@@ -34,7 +30,6 @@ public enum Trigger
 	Play,
 	Stop,
 	PlebStop,
-	CoinReceive,
 	RoundStartFailed,
 	RoundStart
 }
@@ -113,8 +108,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		_machine.Configure(State.ManualPlaying)
 			.Permit(Trigger.Stop, State.Stopped)
-			.Permit(Trigger.RoundStartFailed, State.ManualFinished)
-			.Permit(Trigger.RoundStart, State.ManualLoading)
 			.OnEntry(() =>
 			{
 				PlayVisible = false;
@@ -122,11 +115,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				CurrentStatus = _coinJoiningMessage;
 				coinJoinManager.Start(walletVm.Wallet);
 			});
-
-		_machine.Configure(State.ManualLoading)
-			.Permit(Trigger.RoundStart, State.ManualPlaying);
-
-		_machine.Configure(State.ManualFinished);
 
 		_machine.OnTransitioned((trigger, source, destination) =>
 		{
@@ -189,7 +177,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.SubstateOf(State.AutoCoinJoin)
 			.Permit(Trigger.Pause, State.Paused)
 			.Permit(Trigger.PlebStop, State.Paused)
-			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
+			.Permit(Trigger.RoundStartFailed, State.Paused)
 			.Permit(Trigger.RoundStart, State.AutoPlaying)
 			.OnEntry(() =>
 			{
@@ -198,23 +186,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PlayVisible = false;
 				CurrentStatus = _coinJoiningMessage;
 				coinJoinManager.Start(walletVm.Wallet);
-			});
-
-		_machine.Configure(State.AutoLoading)
-			.SubstateOf(State.AutoCoinJoin)
-			.Permit(Trigger.RoundStart, State.AutoPlaying);
-
-		_machine.Configure(State.AutoFinished)
-			.SubstateOf(State.AutoCoinJoin)
-			.Permit(Trigger.CoinReceive, State.AutoPlaying)
-			.OnEntry(() =>
-			{
-				PauseVisible = false;
-				IsAutoWaiting = true;
-
-				_startErrorMessage.Message = "Coinjoin stopped. No coins to mix.";
-
-				CurrentStatus = _startErrorMessage;
 			});
 
 		PlayCommand = ReactiveCommand.Create(() => _machine.Fire(Trigger.Play));
