@@ -24,27 +24,27 @@ public static class TileHelper
 					TilePresetIndex = walletViewModel.LayoutIndex
 				},
 
-				new BtcPriceTileViewModel(walletViewModel.Wallet)
-				{
-					TilePresets = new ObservableCollection<TilePresetViewModel>()
-					{
-						new(column: 2, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
-						new(column: 0, row: 1, columnSpan: 1, rowSpan: 1, TileSize.Medium),
-						new(column: 0, row: 1, columnSpan: 1, rowSpan: 1, TileSize.Medium)
-					},
-					TilePresetIndex = walletViewModel.LayoutIndex
-				},
-
 				new PrivacyControlTileViewModel(walletViewModel, balanceChanged)
 				{
 					TilePresets = new ObservableCollection<TilePresetViewModel>()
 					{
 						new(column: 1, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
-						new(column: 1, row: 0, columnSpan: 1, rowSpan: 2, TileSize.Large),
-						new(column: 1, row: 0, columnSpan: 1, rowSpan: 2, TileSize.Large)
+						new(column: 1, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
+						new(column: 1, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
 					},
 					TilePresetIndex = walletViewModel.LayoutIndex
-				}
+				},
+
+				new BtcPriceTileViewModel(walletViewModel.Wallet)
+				{
+					TilePresets = new ObservableCollection<TilePresetViewModel>()
+					{
+						new(column: 2, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
+						new(column: 2, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
+						new(column: 2, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
+					},
+					TilePresetIndex = walletViewModel.LayoutIndex
+				},
 			};
 	}
 
@@ -80,9 +80,9 @@ public static class TileHelper
 	{
 		return new ObservableCollection<TileLayoutViewModel>()
 			{
-				new("Small", columnDefinitions:"330,330", rowDefinitions:"150"),
-				new("Normal", columnDefinitions:"330,660", rowDefinitions:"150,150"),
-				new("Wide", columnDefinitions: "330,330", rowDefinitions: "150,300")
+				new("Small", columnDefinitions: "330,330,330", rowDefinitions: "150"),
+				new("Normal", columnDefinitions: "330,330,330", rowDefinitions: "150"),
+				new("Wide", columnDefinitions: "330,330,330", rowDefinitions: "150")
 			};
 	}
 
@@ -90,9 +90,9 @@ public static class TileHelper
 	{
 		return new ObservableCollection<TileLayoutViewModel>()
 			{
-				new("Small", columnDefinitions: "330,330", rowDefinitions: "150"),
-				new("Normal", columnDefinitions: "330,330", rowDefinitions: "150,150"),
-				new("Wide", columnDefinitions: "330,330", rowDefinitions: "150,150")
+				new("Small", columnDefinitions: "330,330,330", rowDefinitions: "150"),
+				new("Normal", columnDefinitions: "330,330,330", rowDefinitions: "150"),
+				new("Wide", columnDefinitions: "330,330,330", rowDefinitions: "150")
 			};
 	}
 }
