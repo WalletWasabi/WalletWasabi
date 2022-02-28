@@ -55,7 +55,7 @@
               </i:Interaction.Behaviors>
             </TextBox>
             <Panel Margin="0 -20 0 0 ">
-              <Button Classes="activeHyperLink skip" Content="Forgot password?" HorizontalAlignment="Left" Command="{Binding ForgotPasswordCommand}" />
+              <Button Classes="activeHyperLink skip" IsVisible="{Binding IsForgotPasswordVisible}" Content="Forgot password?" HorizontalAlignment="Left" Command="{Binding ForgotPasswordCommand}" />
               <Button Content="Open" Focusable="False" Classes="action" HorizontalAlignment="Right" Command="{Binding NextCommand}">
                 <Button.IsDefault>
                   <MultiBinding Converter="{x:Static BoolConverters.And}">

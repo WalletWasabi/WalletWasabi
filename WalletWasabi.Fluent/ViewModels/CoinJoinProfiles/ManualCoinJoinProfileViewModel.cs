@@ -1,11 +1,8 @@
-using Avalonia.Media;
-using WalletWasabi.Fluent.Helpers;
-
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
-public class ManualCoinJoinProfile : CoinJoinProfileViewModelBase
+public class ManualCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 {
-	public ManualCoinJoinProfile(bool autoCoinjoin, int minAnonScoreTarget, int maxAnonScoreTarget, int feeRateMedianTimeFrameHours)
+	public ManualCoinJoinProfileViewModel(bool autoCoinjoin, int minAnonScoreTarget, int maxAnonScoreTarget, int feeRateMedianTimeFrameHours)
 	{
 		AutoCoinjoin = autoCoinjoin;
 		MinAnonScoreTarget = minAnonScoreTarget;
@@ -16,8 +13,6 @@ public class ManualCoinJoinProfile : CoinJoinProfileViewModelBase
 	public override string Title => "Manual";
 
 	public override string Description => "";
-
-	public override IImage Icon => AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/normal.png");
 
 	public override bool AutoCoinjoin { get; }
 
