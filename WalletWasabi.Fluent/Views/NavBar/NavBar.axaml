@@ -242,12 +242,12 @@
                 <!-- CJ indicator -->
                 <PathIcon Data="{StaticResource link_filled}" HorizontalAlignment="Left" Margin="20 0 0 -12" Height="8"
                           VerticalAlignment="Center" IsVisible="{Binding IsCoinJoining}"
-                          Foreground="{StaticResource NavBarAccentColor}" />
+                          Foreground="{StaticResource SystemAccentColor}" />
                 <!-- Loading Indicator -->
                 <Viewbox HorizontalAlignment="Left" Height="12" VerticalAlignment="Center" Margin="25 0 0 -14"
                          ClipToBounds="False" IsVisible="{Binding IsLoading}">
                   <c:ProgressRing Height="40" IsIndeterminate="True" ClipToBounds="False" Background="Transparent"
-                                  Foreground="{StaticResource NavBarAccentColor}" />
+                                  Foreground="{StaticResource SystemAccentColor}" />
                 </Viewbox>
               </Panel>
 
@@ -258,11 +258,11 @@
                 <!-- Big status indicators -->
                 <DockPanel DockPanel.Dock="Right" HorizontalAlignment="Right">
                   <PathIcon Data="{StaticResource link_filled}" HorizontalAlignment="Center" VerticalAlignment="Center"
-                            IsVisible="{Binding IsCoinJoining}" Foreground="{StaticResource NavBarAccentColor}" />
+                            IsVisible="{Binding IsCoinJoining}" Foreground="{StaticResource SystemAccentColor}" />
                   <Viewbox HorizontalAlignment="Center" VerticalAlignment="Center" Margin="3" ClipToBounds="False"
                            IsVisible="{Binding IsLoading}">
                     <c:ProgressRing Height="60" IsIndeterminate="True" ClipToBounds="False" Background="Transparent"
-                                    Foreground="{StaticResource NavBarAccentColor}" />
+                                    Foreground="{StaticResource SystemAccentColor}" />
                   </Viewbox>
                 </DockPanel>
 
