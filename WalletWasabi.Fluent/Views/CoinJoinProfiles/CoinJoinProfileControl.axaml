@@ -11,7 +11,23 @@
   <StackPanel Spacing="20" Width="150" Height="210">
     <TextBlock Text="{Binding Title}" HorizontalAlignment="Center" />
     <Viewbox HorizontalAlignment="Center" Height="70">
-      <Image Source="{Binding Icon}" />
+      <ContentControl Content="{Binding .}">
+        <ContentControl.DataTemplates>
+          <DataTemplate DataType="vm:EconomicCoinJoinProfileViewModel">
+            <Image Source="/Assets/CoinJoinProfiles/cost.png" />
+          </DataTemplate>
+          <DataTemplate DataType="vm:SpeedyCoinJoinProfileViewModel">
+            <Image Source="/Assets/CoinJoinProfiles/speed.png" />
+          </DataTemplate>
+          <DataTemplate DataType="vm:PrivateCoinJoinProfileViewModel">
+            <Image Source="/Assets/CoinJoinProfiles/private.png" />
+          </DataTemplate>
+          <DataTemplate DataType="vm:ManualCoinJoinProfileViewModel">
+            <Image Source="/Assets/CoinJoinProfiles/speed.png" />
+          </DataTemplate>
+        </ContentControl.DataTemplates>
+      </ContentControl>
+
     </Viewbox>
     <TextBlock Text="{Binding Description}" HorizontalAlignment="Center" TextWrapping="Wrap" />
   </StackPanel>
