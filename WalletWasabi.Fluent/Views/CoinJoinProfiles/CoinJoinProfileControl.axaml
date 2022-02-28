@@ -27,7 +27,6 @@
           </DataTemplate>
         </ContentControl.DataTemplates>
       </ContentControl>
-
     </Viewbox>
     <TextBlock Text="{Binding Description}" HorizontalAlignment="Center" TextWrapping="Wrap" />
   </StackPanel>
