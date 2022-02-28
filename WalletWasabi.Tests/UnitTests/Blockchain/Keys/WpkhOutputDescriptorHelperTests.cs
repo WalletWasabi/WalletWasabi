@@ -23,4 +23,15 @@ public class WpkhOutputDescriptorHelperTests
 		Assert.Equal("wpkh([f3a4c42f/84'/0'/0']tprv8ghYQhz7XQhoqDZG8SzbkqGCDTwAzyVVmUN3cUerPhUgK91Xvc4FaMJpYwrjuQ48WD7KdQ7Y6znKnaY9PXP8SiDLv1srjjs8NVYGuM7Hrrk/1/*)#ktc4yfd7", descriptors.PrivateInternal);
 		Assert.Equal("wpkh([f3a4c42f/84'/0'/0']tprv8ghYQhz7XQhoqDZG8SzbkqGCDTwAzyVVmUN3cUerPhUgK91Xvc4FaMJpYwrjuQ48WD7KdQ7Y6znKnaY9PXP8SiDLv1srjjs8NVYGuM7Hrrk/0/*)#8la5euax", descriptors.PrivateExternal);
 	}
+
+	[Fact]
+	public void VerifyGenerateCorrectScript()
+	{
+		var km = KeyManager.CreateNew(out _, "", Network.Main);
+		var hdkey = km.GetNextReceiveKey("dummy", out _);
+		var od = km.GetOutputDescriptors("", Network.Main);
+		var s = od.PublicExternal.TryExpand(0, new FlatSigningRepository(), new FlatSigningRepository(), out var scripts);
+		Assert.True(s);
+		Assert.Equal(hdkey.P2wpkhScript, scripts[0]);
+	}
 }

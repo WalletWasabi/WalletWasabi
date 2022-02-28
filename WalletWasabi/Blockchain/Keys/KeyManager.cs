@@ -95,11 +95,6 @@ public class KeyManager
 
 	public WpkhDescriptors GetOutputDescriptors(string password, Network network)
 	{
-		if (IsWatchOnly)
-		{
-			return WpkhOutputDescriptorHelper.GetOutputDescriptorsForWatchOnlyWallet(network, ExtPubKey.PubKey.GetHDFingerPrint(), ExtPubKey, AccountKeyPath);
-		}
-
 		if (!MasterFingerprint.HasValue)
 		{
 			throw new InvalidOperationException($"{nameof(MasterFingerprint)} is not defined.");
