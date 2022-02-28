@@ -96,6 +96,7 @@ public class CoinJoinManager : BackgroundService
 				{
 					if (openedWallet.ElapsedTimeSinceStartup <= AutoCoinJoinDelayAfterWalletLoaded)
 					{
+						NotifyCoinJoinStarting(openedWallet);
 						continue;
 					}
 					if (!openedWallet.KeyManager.AutoCoinJoin)
@@ -124,6 +125,8 @@ public class CoinJoinManager : BackgroundService
 				CoinJoinTracker coinJoinTracker = coinJoinTrackerFactory.CreateAndStart(openedWallet, coinCandidates);
 
 				trackedCoinJoins.Add(openedWallet.WalletName, coinJoinTracker);
+				var registrationTimeout = TimeSpan.MaxValue;
+				NotifyCoinJoinStarted(openedWallet, registrationTimeout);
 				WalletStatusChanged?.Invoke(this, new WalletStatusChangedEventArgs(openedWallet, IsCoinJoining: true));
 			}
 
@@ -195,6 +198,13 @@ public class CoinJoinManager : BackgroundService
 		}
 	}
 
+	private void NotifyCoinJoinStarting(Wallet openedWallet) =>
+		StatusChanged?.Invoke(this, new StartingEventArgs(
+			openedWallet,
+			AutoCoinJoinDelayAfterWalletLoaded - openedWallet.ElapsedTimeSinceStartup));
+
+	private void NotifyCoinJoinStarted(Wallet openedWallet, TimeSpan registrationTimeout) =>
+		StatusChanged?.Invoke(this, new StartedEventArgs(openedWallet, registrationTimeout));
 	private void NotifyCoinJoinStartError(Wallet openedWallet, CoinjoinError error) =>
 		StatusChanged?.Invoke(this, new StartErrorEventArgs(openedWallet, error));
 
@@ -202,7 +212,7 @@ public class CoinJoinManager : BackgroundService
 		StatusChanged?.Invoke(this, new StoppedEventArgs(closedWallet.Wallet, StopReason.WalletUnloaded));
 
 	private void NotifyMixableWalletLoaded(Wallet openedWallet) =>
-		StatusChanged?.Invoke(this, new LoadedEventArgs(openedWallet, AutoCoinJoinDelayAfterWalletLoaded));
+		StatusChanged?.Invoke(this, new LoadedEventArgs(openedWallet));
 
 	private void NotifyCoinJoinCompletion(CoinJoinTracker finishedCoinJoin) =>
 		StatusChanged?.Invoke(this, new CoinJoinCompletedEventArgs(
