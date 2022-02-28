@@ -24,7 +24,7 @@
         <TextBlock Text="Privacy Threshold" />
         <DockPanel>
           <TextBlock MinWidth="24" DockPanel.Dock="Right" Text="{Binding MinAnonScoreTarget}" VerticalAlignment="Center" />
-          <Slider Minimum="2" Maximum="98" Value="{Binding MinAnonScoreTarget}" Margin="10 0" />
+          <Slider Minimum="2" Maximum="98" Value="{Binding MinAnonScoreTarget}" />
         </DockPanel>
       </StackPanel>
 
@@ -32,7 +32,7 @@
         <TextBlock Text="Privacy Sanity Check" />
         <DockPanel>
           <TextBlock MinWidth="24" DockPanel.Dock="Right" Text="{Binding MaxAnonScoreTarget}" VerticalAlignment="Center" />
-          <Slider Minimum="3" Maximum="99" Value="{Binding MaxAnonScoreTarget}" Margin="10 0" />
+          <Slider Minimum="3" Maximum="99" Value="{Binding MaxAnonScoreTarget}" />
         </DockPanel>
       </StackPanel>
 
