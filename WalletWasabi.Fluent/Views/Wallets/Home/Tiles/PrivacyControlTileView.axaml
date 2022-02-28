@@ -10,7 +10,7 @@
   <controls:TileControl TileSize="{Binding CurrentTileSize}">
     <DockPanel>
       <TextBlock Text="PRIVACY LEVEL" DockPanel.Dock="Top" Classes="h8 bold" />
-      <StackPanel DockPanel.Dock="Bottom" Height="25" Spacing="8">
+      <StackPanel DockPanel.Dock="Bottom" Height="25" Spacing="8" IsVisible="{Binding HasPrivateBalance}" >
         <Separator />
         <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
           <controls:PrivacyContentControl Classes="h9 bold" NumberOfPrivacyChars="9"

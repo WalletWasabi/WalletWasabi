@@ -26,6 +26,7 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 	[AutoNotify] private IList<DataLegend>? _testDataPointsLegend;
 	[AutoNotify] private string _percentText;
 	[AutoNotify] private string _balancePrivateBtc;
+	[AutoNotify] private bool _hasPrivateBalance;
 
 	public PrivacyControlTileViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
 	{
@@ -136,6 +137,8 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 		PercentText = $"\u205F{pcPrivate*100:N1}\u205F/\u205F{100}";
 
 		FullyMixed = pcPrivate >= 1d;
+
+		HasPrivateBalance = privateAmount > Money.Zero;
 
 		BalancePrivateBtc = $"{privateAmount.ToFormattedString()} BTC";
 
