@@ -20,49 +20,27 @@ public class WindowsCapture
 	{
 	}
 
-	public WindowsCapture(int cameraIndex, VideoFormat format)
+	public WindowsCapture(int index, VideoFormat format)
 	{
 		var camera_list = FindDevices();
-		if (cameraIndex >= camera_list.Length)
+		if (index >= camera_list.Length)
 		{
-			throw new ArgumentException("USB camera is not available.", nameof(cameraIndex));
+			throw new ArgumentException("USB camera is not available.", nameof(index));
 		}
 
-		Init(cameraIndex, format);
-	}
-
-	public Size Size { get; private set; }
-
-	public Action Start { get; private set; }
-
-	public Action Stop { get; private set; }
-
-	public Action Release { get; private set; }
-
-	public Func<Bitmap> GetBitmap { get; private set; }
-
-	internal PropertyItems Properties { get; private set; }
-
-	public static string[] FindDevices()
-	{
-		return GetFilters(DsGuid.CLSID_VideoInputDeviceCategory).ToArray();
-	}
-
-	public static VideoFormat[] GetVideoFormat(int cameraIndex)
-	{
-		var filter = CreateFilter(DsGuid.CLSID_VideoInputDeviceCategory, cameraIndex);
-		var pin = FindPin(filter, 0, PIN_DIRECTION.PINDIR_OUTPUT);
-		return GetVideoOutputFormat(pin);
-	}
-
-	private void Init(int index, VideoFormat format)
-	{
 		IGraphBuilder? graph = CreateGraph();
-
+		if (graph is not { })
+		{
+			throw new ArgumentException(nameof(graph));
+		}
 		var vcap_source = CreateVideoCaptureSource(index, format);
 		graph.AddFilter(vcap_source, "VideoCapture");
 
-		var grabber = CreateSampleGrabber();
+		IBaseFilter? grabber = CreateSampleGrabber();
+		if (grabber is not { })
+		{
+			throw new ArgumentException(nameof(grabber));
+		}
 		graph.AddFilter(grabber, "SampleGrabber");
 		var i_grabber = (ISampleGrabber)grabber;
 		i_grabber.SetBufferSamples(true);
@@ -102,6 +80,30 @@ public class WindowsCapture
 		};
 
 		Properties = new PropertyItems(vcap_source);
+	}
+
+	public Size Size { get; private set; }
+
+	public Action Start { get; private set; }
+
+	public Action Stop { get; private set; }
+
+	public Action Release { get; private set; }
+
+	public Func<Bitmap> GetBitmap { get; private set; }
+
+	internal PropertyItems Properties { get; private set; }
+
+	public static string[] FindDevices()
+	{
+		return GetFilters(DsGuid.CLSID_VideoInputDeviceCategory).ToArray();
+	}
+
+	public static VideoFormat[] GetVideoFormat(int cameraIndex)
+	{
+		var filter = CreateFilter(DsGuid.CLSID_VideoInputDeviceCategory, cameraIndex);
+		var pin = FindPin(filter, 0, PIN_DIRECTION.PINDIR_OUTPUT);
+		return GetVideoOutputFormat(pin);
 	}
 
 	private Func<Bitmap> GetBitmapFromSampleGrabberCallback(ISampleGrabber i_grabber, int width,

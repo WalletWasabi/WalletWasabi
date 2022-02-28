@@ -355,7 +355,7 @@ public static class DirectShow
 				ref object ppint);
 
 		int RenderStream([In] ref Guid pCategory, [In] ref Guid pType, [In, MarshalAs(UnmanagedType.IUnknown)]
-				object pSource, [In] IBaseFilter pfCompressor, [In] IBaseFilter pfRenderer);
+				object pSource, [In] IBaseFilter pfCompressor, [In] IBaseFilter? pfRenderer);
 
 		int ControlStream([In] ref Guid pCategory, [In] ref Guid pType, [In] IBaseFilter pFilter,
 			[In] IntPtr pstart, [In] IntPtr pstop, [In] short wStartCookie, [In] short wStopCookie);
