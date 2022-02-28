@@ -58,7 +58,7 @@ public partial class Arena : PeriodicRunner
 
 			await StepTransactionSigningPhaseAsync(cancel).ConfigureAwait(false);
 
-			StepOutputRegistrationPhase();
+			await StepOutputRegistrationPhaseAsync(cancel).ConfigureAwait(false);
 
 			await StepConnectionConfirmationPhaseAsync(cancel).ConfigureAwait(false);
 
@@ -164,7 +164,7 @@ public partial class Arena : PeriodicRunner
 		}
 	}
 
-	private void StepOutputRegistrationPhase()
+	private async Task StepOutputRegistrationPhaseAsync(CancellationToken cancellationToken)
 	{
 		foreach (var round in Rounds.Where(x => x.Phase == Phase.OutputRegistration).ToArray())
 		{
@@ -179,9 +179,10 @@ public partial class Arena : PeriodicRunner
 					round.LogInfo($"{coinjoin.Inputs.Count()} inputs were added.");
 					round.LogInfo($"{coinjoin.Outputs.Count()} outputs were added.");
 
-					coinjoin = AddCoordinationFee(round, coinjoin);
+					round.CoordinatorScript = GetCoordinatorScriptPreventReuse(round);
+					coinjoin = AddCoordinationFee(round, coinjoin, round.CoordinatorScript);
 
-					coinjoin = AddBlameScript(round, coinjoin, allReady);
+					coinjoin = await TryAddBlameScriptAsync(round, coinjoin, allReady, round.CoordinatorScript, cancellationToken).ConfigureAwait(false);
 
 					round.CoinjoinState = coinjoin.Finalize();
 
@@ -354,7 +355,7 @@ public partial class Arena : PeriodicRunner
 		}
 	}
 
-	private ConstructionState AddBlameScript(Round round, ConstructionState coinjoin, bool allReady)
+	private async Task<ConstructionState> TryAddBlameScriptAsync(Round round, ConstructionState coinjoin, bool allReady, Script blameScript, CancellationToken cancellationToken)
 	{
 		long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate));
 		long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
@@ -362,18 +363,28 @@ public partial class Arena : PeriodicRunner
 
 		// If timeout we must fill up the outputs to build a reasonable transaction.
 		// This won't be signed by the alice who failed to provide output, so we know who to ban.
-		var diffMoney = Money.Satoshis(diff) - coinjoin.Parameters.FeeRate.GetFee(Config.BlameScript.EstimateOutputVsize());
+		var diffMoney = Money.Satoshis(diff) - coinjoin.Parameters.FeeRate.GetFee(blameScript.EstimateOutputVsize());
 		if (diffMoney > coinjoin.Parameters.AllowedOutputAmounts.Min)
 		{
-			coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, Config.BlameScript));
-
-			if (allReady)
+			// If diff is smaller than max feerate of a tx, then add it as fee.
+			var highestFeeRate = (await Rpc.EstimateSmartFeeAsync(2, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
+			// ToDo: This condition could be more sophisticated by always trying to max out the miner fees to target 2 and only deal with the remaining diffMoney.
+			if (coinjoin.EffectiveFeeRate > highestFeeRate)
 			{
-				round.LogInfo($"Filled up the outputs to build a reasonable transaction, all Alices signalled ready. Added amount: '{diffMoney}'.");
+				coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, blameScript));
+
+				if (allReady)
+				{
+					round.LogInfo($"Filled up the outputs to build a reasonable transaction, all Alices signalled ready. Added amount: '{diffMoney}'.");
+				}
+				else
+				{
+					round.LogWarning($"Filled up the outputs to build a reasonable transaction because some alice failed to provide its output. Added amount: '{diffMoney}'.");
+				}
 			}
 			else
 			{
-				round.LogWarning($"Filled up the outputs to build a reasonable transaction because some alice failed to provide its output. Added amount: '{diffMoney}'.");
+				round.LogWarning($"There were some leftover satoshis. Added amount to miner fees: '{diffMoney}'.");
 			}
 		}
 		else if (!allReady)
@@ -384,10 +395,8 @@ public partial class Arena : PeriodicRunner
 		return coinjoin;
 	}
 
-	private ConstructionState AddCoordinationFee(Round round, ConstructionState coinjoin)
+	private ConstructionState AddCoordinationFee(Round round, ConstructionState coinjoin, Script coordinatorScriptPubKey)
 	{
-		Script coordinatorScriptPubKey = GetCoordinatorScriptPreventReuse(round);
-
 		var coordinationFee = round.Alices.Where(a => !a.IsPayingZeroCoordinationFee).Sum(x => round.CoordinationFeeRate.GetFee(x.Coin.Amount));
 		if (coordinationFee == 0)
 		{
@@ -415,9 +424,7 @@ public partial class Arena : PeriodicRunner
 		var coordinatorScriptPubKey = Config.GetNextCleanCoordinatorScript();
 
 		// Prevent coord script reuse.
-		if (Rounds.Any(r =>
-			r.Phase is Phase.TransactionSigning &&
-			r.Assert<SigningState>().Outputs.Any(o => o.ScriptPubKey == coordinatorScriptPubKey)))
+		if (Rounds.Any(r => r.CoordinatorScript == coordinatorScriptPubKey))
 		{
 			Config.MakeNextCoordinatorScriptDirty();
 			coordinatorScriptPubKey = Config.GetNextCleanCoordinatorScript();

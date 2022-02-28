@@ -91,12 +91,6 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "CoordinatorExtPubKeyCurrentDepth", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public int CoordinatorExtPubKeyCurrentDepth { get; private set; } = 1;
 
-	/// <summary>
-	/// If money comes to the blame script, then either an attacker lost money or there's a client bug.
-	/// </summary>
-	[JsonIgnore]
-	public Script BlameScript => DeriveCoordinatorScript(0);
-
 	public Script GetNextCleanCoordinatorScript() => DeriveCoordinatorScript(CoordinatorExtPubKeyCurrentDepth);
 
 	public Script DeriveCoordinatorScript(int index) => CoordinatorExtPubKey.Derive(0, false).Derive(index, false).PubKey.WitHash.ScriptPubKey;
@@ -104,6 +98,9 @@ public class WabiSabiConfig : ConfigBase
 	public void MakeNextCoordinatorScriptDirty()
 	{
 		CoordinatorExtPubKeyCurrentDepth++;
-		ToFile();
+		if (FilePath is { })
+		{
+			ToFile();
+		}
 	}
 }

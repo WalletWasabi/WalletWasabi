@@ -14,7 +14,7 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 		: base(orderIndex, firstItem)
 	{
 		CoinJoinTransactions = new List<TransactionSummary>();
-		Label = new List<string> { "Privacy Boost" };
+		Label = "Coinjoins";
 		FilteredLabel = new List<string>();
 		IsCoinJoin = true;
 
