@@ -27,9 +27,13 @@ public class App : Application
 	public App()
 	{
 		Name = "Wasabi Wallet";
-		ApplicationViewModel applicationViewModel = new();
-		DataContext = applicationViewModel;
-		applicationViewModel.ShowRequested += (sender, args) => ShowRequested?.Invoke(sender, args);
+
+		if (!Design.IsDesignMode)
+		{
+			ApplicationViewModel applicationViewModel = new();
+			DataContext = applicationViewModel;
+			applicationViewModel.ShowRequested += (sender, args) => ShowRequested?.Invoke(sender, args);
+		}
 	}
 
 	public App(Func<Task> backendInitialiseAsync) : this()
