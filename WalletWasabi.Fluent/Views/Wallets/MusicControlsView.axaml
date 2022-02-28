@@ -54,7 +54,7 @@
               <DataTemplate DataType="wallets:MusicStatusMessageViewModel">
                 <TextBlock Text="{Binding Message}">
                   <TextBlock.OpacityMask>
-                    <LinearGradientBrush StartPoint="100%,0%" EndPoint="80%,0%">
+                    <LinearGradientBrush StartPoint="100%,0%" EndPoint="90%,0%">
                       <LinearGradientBrush.GradientStops>
                         <GradientStop Color="#00FFFFFF" Offset="0.1" />
                         <GradientStop Color="#FFFFFFFF" Offset="1" />
@@ -69,8 +69,8 @@
           <ProgressBar Minimum="0" Maximum="100" Value="{Binding ProgressValue}" Foreground="White" />
 
           <DockPanel LastChildFill="False">
-            <TextBlock Text="0:00" />
-            <TextBlock Text="0:00" DockPanel.Dock="Right" />
+            <TextBlock Text="{Binding ElapsedTime}" />
+            <TextBlock Text="{Binding RemainingTime}" DockPanel.Dock="Right" />
           </DockPanel>
         </StackPanel>
 

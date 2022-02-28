@@ -51,11 +51,13 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	[AutoNotify] private MusicStatusMessageViewModel? _currentStatus;
 	[AutoNotify] private bool _isProgressReversed;
 	[AutoNotify] private double _progressValue;
+	[AutoNotify] private string _elapsedTime;
+	[AutoNotify] private string _remainingTime;
 
-	private readonly AutoUpdateMusicStatusMessageViewModel _countDownMessage;
+	private readonly MusicStatusMessageViewModel _countDownMessage = new () {Message = "Waiting to auto-start coinjoin"};
 	private readonly MusicStatusMessageViewModel _coinJoiningMessage = new() { Message = "Coinjoining" };
 
-	private readonly MusicStatusMessageViewModel _pauseMessage = new() { Message = "Coinjoin is paused" };
+	private readonly MusicStatusMessageViewModel _pauseMessage = new() { Message = "Coinjoin is paused until the next round" };
 	private readonly MusicStatusMessageViewModel _stoppedMessage = new() { Message = "Coinjoin is stopped" };
 	private DateTime _autoStartTime;
 	private DateTime _countDownStarted;
@@ -65,9 +67,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		var coinJoinManager = Services.HostedServices.Get<CoinJoinManager>();
 
 		coinJoinManager.StatusChanged += StatusChanged;
-
-		_countDownMessage = new(() =>
-			$"CoinJoin will auto-start in: {DateTime.Now - _autoStartTime:mm\\:ss}");
 
 		_machine =
 			new StateMachine<State, Trigger>(walletVm.Settings.AutoCoinJoin
@@ -80,7 +79,16 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_machine.Configure(State.ManualCoinJoin)
 			.Permit(Trigger.AutoCoinJoinOn, State.AutoCoinJoin)
 			.Permit(Trigger.ManualCoinJoinEntered, State.Stopped)
-			.OnEntry(OnEnterManualCoinJoin);
+			.OnEntry(()=>
+			{
+				IsAuto = false;
+				IsAutoWaiting = false;
+				PlayVisible = true;
+				StopVisible = false;
+				PauseVisible = false;
+
+				_machine.Fire(Trigger.ManualCoinJoinEntered);
+			});
 
 		_machine.Configure(State.Stopped)
 			.SubstateOf(State.ManualCoinJoin)
@@ -112,7 +120,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		_machine.Configure(State.ManualFinished);
 
-
 		_machine.OnTransitioned((trigger, source, destination) =>
 		{
 			Console.WriteLine($"Trigger: {trigger} caused state to change from: {source} to {destination}");
@@ -122,7 +129,17 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_machine.Configure(State.AutoCoinJoin)
 			.Permit(Trigger.AutoCoinJoinOff, State.ManualCoinJoin)
 			.Permit(Trigger.AutoCoinJoinEntered, State.AutoStarting)
-			.OnEntry(OnEnterAutoCoinJoin);
+			.OnEntry(()=>
+			{
+				_autoStartTime = DateTime.Now + TimeSpan.FromSeconds(Random.Shared.Next(1 * 60, 2 * 60));
+
+				IsAuto = true;
+				StopVisible = false;
+				PauseVisible = false;
+				PlayVisible = true;
+
+				_machine.Fire(Trigger.AutoCoinJoinEntered);
+			});
 
 		_machine.Configure(State.AutoStarting)
 			.SubstateOf(State.AutoCoinJoin)
@@ -133,8 +150,21 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			{
 				_countDownStarted = DateTime.Now;
 				IsAutoWaiting = true;
-				_countDownMessage.Update();
 				CurrentStatus = _countDownMessage;
+			})
+			.OnProcess(() =>
+			{
+				ElapsedTime = $"{DateTime.Now - _countDownStarted:mm\\:ss}";
+				RemainingTime = $"-{_autoStartTime - DateTime.Now:mm\\:ss}";
+
+				var total = (_autoStartTime - _countDownStarted).TotalSeconds;
+				var percentage = (DateTime.Now - _countDownStarted).TotalSeconds * 100 / total;
+				ProgressValue = percentage;
+
+				if (DateTime.Now > _autoStartTime)
+				{
+					_machine.Fire(Trigger.AutoPlayTimeout);
+				}
 			})
 			.OnExit(() => IsAutoWaiting = false);
 
@@ -143,6 +173,14 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.Play, State.AutoPlaying)
 			.OnEntry(() =>
 			{
+				IsAutoWaiting = true;
+
+				CurrentStatus = _pauseMessage;
+				ProgressValue = 0;
+
+				PauseVisible = false;
+				PlayVisible = true;
+
 				coinJoinManager.Stop(walletVm.Wallet);
 			});
 
@@ -177,7 +215,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		DispatcherTimer.Run(() =>
 		{
-			OnTimerTick();
+			_machine.Process();
 			return true;
 		}, TimeSpan.FromSeconds(1));
 
@@ -199,7 +237,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				break;
 			case StartErrorEventArgs startErrorEventArgs:
 				break;
-			case StopedEventArgs stopedEventArgs:
+			case StoppedEventArgs stoppedEventArgs:
 				break;
 			default:
 				throw new ArgumentOutOfRangeException(nameof(e));
@@ -211,80 +249,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	public void SetAutoCoinJoin(bool enabled)
 	{
 		_machine.Fire(enabled ? Trigger.AutoCoinJoinOn : Trigger.AutoCoinJoinOff);
-	}
-
-	private void OnEnterStopped()
-	{
-		ProgressValue = 0;
-		StopVisible = false;
-		PlayVisible = true;
-
-		CurrentStatus = _stoppedMessage;
-	}
-
-	private void OnEnterPlaying()
-	{
-		IsAutoWaiting = false;
-		PauseVisible = IsAuto;
-		StopVisible = !IsAuto;
-		PlayVisible = false;
-		CurrentStatus = _coinJoiningMessage;
-	}
-
-	private void OnEnterPause()
-	{
-		CurrentStatus = _pauseMessage;
-		PauseVisible = false;
-		PlayVisible = true;
-		IsAutoWaiting = true;
-	}
-
-	private void OnExitAutoStarting()
-	{
-		IsAutoWaiting = false;
-	}
-
-	private void OnEnterAutoCoinJoin()
-	{
-		_autoStartTime = DateTime.Now + TimeSpan.FromSeconds(Random.Shared.Next(1 * 60, 2 * 60));
-		_countDownMessage.Update();
-
-		IsAuto = true;
-		StopVisible = false;
-		PauseVisible = false;
-		PlayVisible = true;
-
-		_machine.Fire(Trigger.AutoCoinJoinEntered);
-	}
-
-	private void OnEnterManualCoinJoin()
-	{
-		IsAuto = false;
-		IsAutoWaiting = false;
-		PlayVisible = true;
-		StopVisible = false;
-		PauseVisible = false;
-
-		_machine.Fire(Trigger.ManualCoinJoinEntered);
-	}
-
-	private void OnTimerTick()
-	{
-		if (DateTime.Now > _autoStartTime)
-		{
-			_machine.Fire(Trigger.AutoPlayTimeout);
-		}
-
-		if (_machine.CurrentState == State.AutoStarting)
-		{
-			if (_autoStartTime > DateTimeOffset.Now)
-			{
-				var total = (_autoStartTime - _countDownStarted).TotalSeconds;
-
-				var percentage = (DateTime.Now - _countDownStarted).TotalSeconds * 100 / total;
-				ProgressValue = percentage;
-			}
-		}
 	}
 
 	public ICommand PlayCommand { get; }
