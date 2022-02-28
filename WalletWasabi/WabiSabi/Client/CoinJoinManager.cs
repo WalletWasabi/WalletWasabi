@@ -91,9 +91,28 @@ public class CoinJoinManager : BackgroundService
 			foreach (var openedWallet in openedWallets.Select(x => x.Value))
 			{
 				NotifyMixableWalletLoaded(openedWallet);
-				if (!CanStartAutoCoinJoin(openedWallet) && !MustStart(openedWallet))
+
+				if (!MustStart(openedWallet))
 				{
-					continue;
+					if (openedWallet.ElapsedTimeSinceStartup <= AutoCoinJoinDelayAfterWalletLoaded)
+					{
+						continue;
+					}
+					if (!openedWallet.KeyManager.AutoCoinJoin)
+					{
+						NotifyCoinJoinStartError(openedWallet, CoinjoinError.AutoConjoinDisabled);
+						continue;
+					}
+					if (IsUserInSendWorkflow)
+					{
+						NotifyCoinJoinStartError(openedWallet, CoinjoinError.UserInSendWorkflow);
+						continue;
+					}
+					if (openedWallet.NonPrivateCoins.TotalAmount() <= openedWallet.KeyManager.PlebStopThreshold)
+					{
+						NotifyCoinJoinStartError(openedWallet, CoinjoinError.NotEnoughUnprivateBalance);
+						continue;
+					}
 				}
 				var coinCandidates = SelectCandidateCoins(openedWallet).ToArray();
 				if (coinCandidates.Length == 0)
@@ -239,30 +258,5 @@ public class CoinJoinManager : BackgroundService
 
 		var pcPrivate = totalDecimalAmount == 0M ? 1d : (double)(privateDecimalAmount / totalDecimalAmount);
 		return pcPrivate;
-	}
-
-	private bool CanStartAutoCoinJoin(Wallet wallet)
-	{
-		if (!wallet.KeyManager.AutoCoinJoin)
-		{
-			return false;
-		}
-
-		if (IsUserInSendWorkflow)
-		{
-			return false;
-		}
-
-		if (wallet.ElapsedTimeSinceStartup <= AutoCoinJoinDelayAfterWalletLoaded)
-		{
-			return false;
-		}
-
-		if (wallet.NonPrivateCoins.TotalAmount() <= wallet.KeyManager.PlebStopThreshold)
-		{
-			return false;
-		}
-
-		return true;
 	}
 }
