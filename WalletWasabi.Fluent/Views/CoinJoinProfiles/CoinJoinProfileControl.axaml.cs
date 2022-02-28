@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Wallets.Home.Tiles;
+namespace WalletWasabi.Fluent.Views.CoinJoinProfiles;
 
-public class WalletBalanceChartTileView : UserControl
+public class CoinJoinProfileControl : UserControl
 {
-	public WalletBalanceChartTileView()
+	public CoinJoinProfileControl()
 	{
 		InitializeComponent();
 	}
