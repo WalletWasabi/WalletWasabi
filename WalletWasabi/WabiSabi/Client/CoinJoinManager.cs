@@ -199,23 +199,23 @@ public class CoinJoinManager : BackgroundService
 	}
 
 	private void NotifyCoinJoinStarting(Wallet openedWallet) =>
-		StatusChanged?.Invoke(this, new StartingEventArgs(
+		SafeRaiseEvent(StatusChanged, new StartingEventArgs(
 			openedWallet,
 			AutoCoinJoinDelayAfterWalletLoaded - openedWallet.ElapsedTimeSinceStartup));
 
 	private void NotifyCoinJoinStarted(Wallet openedWallet, TimeSpan registrationTimeout) =>
-		StatusChanged?.Invoke(this, new StartedEventArgs(openedWallet, registrationTimeout));
+		SafeRaiseEvent(StatusChanged, new StartedEventArgs(openedWallet, registrationTimeout));
 	private void NotifyCoinJoinStartError(Wallet openedWallet, CoinjoinError error) =>
-		StatusChanged?.Invoke(this, new StartErrorEventArgs(openedWallet, error));
+		SafeRaiseEvent(StatusChanged, new StartErrorEventArgs(openedWallet, error));
 
 	private void NotifyMixableWalletUnloaded(CoinJoinTracker closedWallet) =>
-		StatusChanged?.Invoke(this, new StoppedEventArgs(closedWallet.Wallet, StopReason.WalletUnloaded));
+		SafeRaiseEvent(StatusChanged, new StoppedEventArgs(closedWallet.Wallet, StopReason.WalletUnloaded));
 
 	private void NotifyMixableWalletLoaded(Wallet openedWallet) =>
-		StatusChanged?.Invoke(this, new LoadedEventArgs(openedWallet));
+		SafeRaiseEvent(StatusChanged, new LoadedEventArgs(openedWallet));
 
 	private void NotifyCoinJoinCompletion(CoinJoinTracker finishedCoinJoin) =>
-		StatusChanged?.Invoke(this, new CoinJoinCompletedEventArgs(
+		SafeRaiseEvent(StatusChanged, new CoinJoinCompletedEventArgs(
 			finishedCoinJoin.Wallet,
 			finishedCoinJoin.CoinJoinTask.Status switch
 			{
@@ -233,6 +233,18 @@ public class CoinJoinManager : BackgroundService
 			.Where(x => x.KeyManager.AutoCoinJoin || MustStart(x))
 			.Where(x => !MustStop(x))
 			.ToImmutableDictionary(x => x.WalletName, x => x);
+
+	private void SafeRaiseEvent(EventHandler<StatusChangedEventArgs>? evnt, StatusChangedEventArgs args)
+	{
+		try
+		{
+			evnt?.Invoke(this, args);
+		}
+		catch (Exception e)
+		{
+			Logger.LogError(e);
+		}
+	}
 
 	private bool MustStart(Wallet wallet) =>
 		WalletManualState.TryGetValue(wallet, out var state) && state == CoinJoinCommand.Start;
