@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Text;
 using Avalonia;
 using Avalonia.Media.Imaging;
@@ -10,6 +11,7 @@ using static WalletWasabi.Fluent.Models.Windows.DirectShow;
 
 namespace WalletWasabi.Fluent.Models.Windows;
 
+[SupportedOSPlatform("windows")]
 public class WindowsCapture
 {
 	private static Dictionary<long, byte[]> ArrayBuffer = new();

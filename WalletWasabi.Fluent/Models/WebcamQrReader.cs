@@ -36,6 +36,11 @@ public class WebcamQrReader : PeriodicRunner
 
 	public override async Task StartAsync(CancellationToken cancellationToken)
 	{
+		if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		{
+			throw new InvalidOperationException("OS not supported.");
+		}
+
 		try
 		{
 			string[] devices = WindowsCapture.FindDevices();
@@ -64,6 +69,10 @@ public class WebcamQrReader : PeriodicRunner
 
 	public override async Task StopAsync(CancellationToken cancellationToken)
 	{
+		if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		{
+			throw new InvalidOperationException("OS not supported.");
+		}
 		Camera?.Release();
 
 		await base.StopAsync(cancellationToken);
@@ -71,6 +80,11 @@ public class WebcamQrReader : PeriodicRunner
 
 	protected override Task ActionAsync(CancellationToken cancel)
 	{
+		if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		{
+			throw new InvalidOperationException("OS not supported.");
+		}
+
 		if (Camera is { })
 		{
 			Bitmap bmp = Camera.GetBitmap();
