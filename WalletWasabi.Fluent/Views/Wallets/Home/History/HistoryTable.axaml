@@ -63,7 +63,6 @@
                                               ElementFactory="{TemplateBinding ElementFactory}"
                                               Items="{TemplateBinding Columns}"
                                               Rows="{TemplateBinding Rows}"/>
-
                 </Panel>
               </DockPanel>
             </ControlTemplate>
