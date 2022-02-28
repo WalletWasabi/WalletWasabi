@@ -1,3 +1,4 @@
+using System.Reactive.Linq;
 using System.Windows.Input;
 using Avalonia.Threading;
 using ReactiveUI;
@@ -70,7 +71,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	{
 		var coinJoinManager = Services.HostedServices.Get<CoinJoinManager>();
 
-		coinJoinManager.StatusChanged += StatusChanged;
+		Observable.FromEventPattern<StatusChangedEventArgs>(coinJoinManager, nameof(coinJoinManager.StatusChanged))
+			.Where(x => x.EventArgs.Wallet == walletVm.Wallet)
+			.Select(x=>x.EventArgs)
+			.Subscribe(StatusChanged);
 
 		_machine =
 			new StateMachine<State, Trigger>(walletVm.Settings.AutoCoinJoin
@@ -231,7 +235,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_machine.Start();
 	}
 
-	private void StatusChanged(object? sender, StatusChangedEventArgs e)
+	private void StatusChanged(StatusChangedEventArgs e)
 	{
 		switch (e)
 		{
