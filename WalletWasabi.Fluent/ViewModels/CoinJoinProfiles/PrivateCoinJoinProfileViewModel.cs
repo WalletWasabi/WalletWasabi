@@ -4,7 +4,7 @@ using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
-internal class PrivateCoinJoinProfile : CoinJoinProfileViewModelBase
+internal class PrivateCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 {
 	public override string Title => "Maximize Privacy";
 

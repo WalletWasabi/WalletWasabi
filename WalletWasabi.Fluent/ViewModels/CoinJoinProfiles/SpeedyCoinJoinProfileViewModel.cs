@@ -3,7 +3,7 @@ using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
-internal class SpeedyCoinJoinProfile : CoinJoinProfileViewModelBase
+internal class SpeedyCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 {
 	public override string Title => "Maximize Speed";
 

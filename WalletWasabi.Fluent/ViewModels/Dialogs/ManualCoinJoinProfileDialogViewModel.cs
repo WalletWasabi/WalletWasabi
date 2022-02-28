@@ -9,7 +9,7 @@ using WalletWasabi.Models;
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
 [NavigationMetaData(Title = "Coinjoin Settings")]
-public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<ManualCoinJoinProfile?>
+public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<ManualCoinJoinProfileViewModel?>
 {
 	[AutoNotify] private bool _autoCoinjoin;
 	[AutoNotify] private string _minAnonScoreTarget;
@@ -42,7 +42,7 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 			var max = int.Parse(MaxAnonScoreTarget);
 			var hours = (int)Math.Floor(SelectedTimeFrame.TimeFrame.TotalHours);
 
-			Close(DialogResultKind.Normal, new ManualCoinJoinProfile(auto, min, max, hours));
+			Close(DialogResultKind.Normal, new ManualCoinJoinProfileViewModel(auto, min, max, hours));
 		});
 
 		this.ValidateProperty(x => x.MinAnonScoreTarget, errors => ValidateInteger(MinAnonScoreTarget, nameof(MinAnonScoreTarget), errors));

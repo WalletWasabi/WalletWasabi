@@ -3,7 +3,7 @@ using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
-internal class EconomyCoinJoinProfile : CoinJoinProfileViewModelBase
+internal class EconomicCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 {
 	public override string Title => "Minimize Costs";
 
