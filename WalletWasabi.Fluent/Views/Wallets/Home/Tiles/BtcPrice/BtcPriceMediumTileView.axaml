@@ -7,7 +7,7 @@
              x:CompileBindings="True" x:DataType="vm:BtcPriceTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.BtcPrice.BtcPriceMediumTileView">
   <DockPanel>
-    <TextBlock Text="BTC EXCHANGE RATE" DockPanel.Dock="Top" Classes="h8 bold"/>
+    <TextBlock Text="EXCHANGE RATE" DockPanel.Dock="Top" Classes="h8 bold"/>
     <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
       <TextBlock Text="{Binding BtcPrice, FallbackValue='53 540.00'}" FontSize="24" />
       <TextBlock Text="USD" FontSize="24" />
