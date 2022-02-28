@@ -8,7 +8,11 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Columns.LabelsColumnView">
   <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15"
                            Classes="monoSpacedPrivacyReplacement">
-    <DockPanel LastChildFill="False" x:DataType="historyItems:HistoryItemViewModelBase">
+    <c:LabelsListBox Items="{Binding Label}"
+                     HorizontalAlignment="Left"
+                     VerticalAlignment="Center"
+                     x:DataType="historyItems:HistoryItemViewModelBase" />
+    <!--<DockPanel LastChildFill="False" x:DataType="historyItems:HistoryItemViewModelBase">
       <Button Classes="labelFlyout"
               DockPanel.Dock="Left"
               HorizontalAlignment="Stretch"
@@ -39,6 +43,6 @@
           </Panel>
         </ToolTip.Tip>
       </Button>
-    </DockPanel>
+    </DockPanel>-->
   </c:PrivacyContentControl>
 </UserControl>

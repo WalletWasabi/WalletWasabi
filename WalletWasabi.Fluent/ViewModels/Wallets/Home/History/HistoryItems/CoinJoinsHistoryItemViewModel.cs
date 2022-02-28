@@ -14,7 +14,7 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 		: base(orderIndex, firstItem)
 	{
 		CoinJoinTransactions = new List<TransactionSummary>();
-		Label = "Coinjoins";
+		Label = new [] {"Coinjoins"}.ToList();
 		FilteredLabel = new List<string>();
 		IsCoinJoin = true;
 
