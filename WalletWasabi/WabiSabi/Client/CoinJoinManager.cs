@@ -42,15 +42,11 @@ public class CoinJoinManager : BackgroundService
 	public bool IsUserInSendWorkflow { get; set; }
 
 	private ConcurrentDictionary<Wallet, CoinJoinCommand> WalletManualState { get; } = new();
-	public void Start(Wallet wallet)
-	{
+	public void Start(Wallet wallet) =>
 		WalletManualState.AddOrUpdate(wallet, CoinJoinCommand.Start, (_,_) => CoinJoinCommand.Start);
-	}
 
-	public void Stop(Wallet wallet)
-	{
+	public void Stop(Wallet wallet) =>
 		WalletManualState.AddOrUpdate(wallet, CoinJoinCommand.Stop, (_,_) => CoinJoinCommand.Stop);
-	}
 
 	public EventHandler<StatusChangedEventArgs>? StatusChanged;
 
@@ -94,6 +90,11 @@ public class CoinJoinManager : BackgroundService
 
 			foreach (var openedWallet in openedWallets.Select(x => x.Value))
 			{
+				NotifyMixableWalletLoaded(openedWallet);
+				if (!CanStartAutoCoinJoin(openedWallet) && !MustStart(openedWallet))
+				{
+					continue;
+				}
 				var coinCandidates = SelectCandidateCoins(openedWallet).ToArray();
 				if (coinCandidates.Length == 0)
 				{
@@ -105,7 +106,6 @@ public class CoinJoinManager : BackgroundService
 
 				trackedCoinJoins.Add(openedWallet.WalletName, coinJoinTracker);
 				WalletStatusChanged?.Invoke(this, new WalletStatusChangedEventArgs(openedWallet, IsCoinJoining: true));
-				NotifyMixableWalletLoaded(openedWallet);
 			}
 
 			foreach (var closedWallet in closedWallets.Select(x => x.Value))
@@ -176,39 +176,32 @@ public class CoinJoinManager : BackgroundService
 		}
 	}
 
-	private void NotifyCoinJoinStartError(Wallet openedWallet, CoinjoinError error)
-	{
+	private void NotifyCoinJoinStartError(Wallet openedWallet, CoinjoinError error) =>
 		StatusChanged?.Invoke(this, new StartErrorEventArgs(openedWallet, error));
-	}
 
-	private void NotifyMixableWalletUnloaded(CoinJoinTracker closedWallet)
-	{
-		StatusChanged?.Invoke(this, new StopedEventArgs(closedWallet.Wallet, StopReason.WalletUnloaded));
-	}
+	private void NotifyMixableWalletUnloaded(CoinJoinTracker closedWallet) =>
+		StatusChanged?.Invoke(this, new StoppedEventArgs(closedWallet.Wallet, StopReason.WalletUnloaded));
 
-	private void NotifyMixableWalletLoaded(Wallet openedWallet)
-	{
+	private void NotifyMixableWalletLoaded(Wallet openedWallet) =>
 		StatusChanged?.Invoke(this, new LoadedEventArgs(openedWallet, AutoCoinJoinDelayAfterWalletLoaded));
-	}
 
-	private void NotifyCoinJoinCompletion(CoinJoinTracker finishedCoinJoin)
-	{
-		var completionStatus = finishedCoinJoin.CoinJoinTask.Status switch
-		{
-			TaskStatus.RanToCompletion when finishedCoinJoin.CoinJoinTask.Result => CompletionStatus.Success,
-			TaskStatus.Canceled => CompletionStatus.Canceled,
-			TaskStatus.Faulted => CompletionStatus.Failed,
-			_ => CompletionStatus.Unknown,
-		};
-		StatusChanged?.Invoke(this, new CoinJoinCompletedEventArgs(finishedCoinJoin.Wallet, completionStatus));
-	}
+	private void NotifyCoinJoinCompletion(CoinJoinTracker finishedCoinJoin) =>
+		StatusChanged?.Invoke(this, new CoinJoinCompletedEventArgs(
+			finishedCoinJoin.Wallet,
+			finishedCoinJoin.CoinJoinTask.Status switch
+			{
+				TaskStatus.RanToCompletion when finishedCoinJoin.CoinJoinTask.Result => CompletionStatus.Success,
+				TaskStatus.Canceled => CompletionStatus.Canceled,
+				TaskStatus.Faulted => CompletionStatus.Failed,
+				_ => CompletionStatus.Unknown,
+			}));
 
 	private ImmutableDictionary<string, Wallet> GetMixableWallets() =>
 		WalletManager.GetWallets()
 			.Where(x => x.State == WalletState.Started) // Only running wallets
 			.Where(x => !x.KeyManager.IsWatchOnly)      // that are not watch-only wallets
 			.Where(x => x.Kitchen.HasIngredients)
-			.Where(x => CanStartAutoCoinJoin(x) || MustStart(x))
+			.Where(x => x.KeyManager.AutoCoinJoin || MustStart(x))
 			.Where(x => !MustStop(x))
 			.ToImmutableDictionary(x => x.WalletName, x => x);
 

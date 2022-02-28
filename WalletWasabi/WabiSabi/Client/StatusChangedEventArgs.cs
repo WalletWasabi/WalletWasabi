@@ -41,10 +41,10 @@ public class CoinJoinCompletedEventArgs : StatusChangedEventArgs
 	}
 }
 
-public class StopedEventArgs : StatusChangedEventArgs
+public class StoppedEventArgs : StatusChangedEventArgs
 {
 	public StopReason Reason { get; }
-	public StopedEventArgs(Wallet wallet, StopReason reason)
+	public StoppedEventArgs(Wallet wallet, StopReason reason)
 		: base(wallet)
 	{
 		Reason = reason;
