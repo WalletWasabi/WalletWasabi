@@ -48,7 +48,7 @@ public class CoinJoinManager : BackgroundService
 	public void Stop(Wallet wallet) =>
 		WalletManualState.AddOrUpdate(wallet, CoinJoinCommand.Stop, (_,_) => CoinJoinCommand.Stop);
 
-	public EventHandler<StatusChangedEventArgs>? StatusChanged;
+	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
 
 	public CoinJoinClientState HighestCoinJoinClientState
 	{
