@@ -70,9 +70,10 @@ public partial class WalletViewModel : WalletViewModelBase
 			.Subscribe(_ => IsWalletBalanceZero = wallet.Coins.TotalAmount() == Money.Zero)
 			.DisposeWith(Disposables);
 
-		Observable.Merge(this.WhenAnyValue(x => x.IsActive))
+		Observable
+			.Merge(this.WhenAnyValue(x => x.IsActive))
 			.Merge(this.WhenAnyValue(x => x.IsSendButtonVisible))
-			.Select(x => IsActive && !IsSendButtonVisible && !_receiveButtonClickedOnce)
+			.Select(_ => IsActive && !IsSendButtonVisible && !_receiveButtonClickedOnce)
 			.Subscribe(x => PulseAnimationActive = x)
 			.DisposeWith(Disposables);
 
