@@ -17,6 +17,9 @@ public class ManualCoinJoinProfile : CoinJoinProfileViewModelBase
 
 	public override string Description => "";
 
+	/// <summary>
+	/// Not used.
+	/// </summary>
 	public override IImage Icon => AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/normal.png");
 
 	public override bool AutoCoinjoin { get; }

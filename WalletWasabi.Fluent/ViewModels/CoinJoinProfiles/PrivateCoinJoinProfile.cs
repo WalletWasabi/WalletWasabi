@@ -10,7 +10,7 @@ internal class PrivateCoinJoinProfile : CoinJoinProfileViewModelBase
 
 	public override string Description => "Choice of the paranoid. Optimizes for privacy at all costs.";
 
-	public override IImage Icon => AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/normal.png");
+	public override IImage Icon => AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/CoinJoinProfiles/{ThemeHelper.CurrentTheme}/private.png");
 
 	public override int MinAnonScoreTarget { get; } = GetRandom(40, 61);
 
