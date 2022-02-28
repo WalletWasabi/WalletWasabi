@@ -6,7 +6,6 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data;
 using Avalonia.Markup.Xaml;
 using ReactiveUI;
-using WalletWasabi.Fluent.Behaviors;
 using WalletWasabi.Fluent.Providers;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.Views;
@@ -56,8 +55,6 @@ public class App : Application
 
 	public override void OnFrameworkInitializationCompleted()
 	{
-		AutoBringIntoViewExtension.Initialise();
-
 		if (!Design.IsDesignMode)
 		{
 			if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
