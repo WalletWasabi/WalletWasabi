@@ -58,9 +58,9 @@ public partial class HistoryViewModel : ActivatableViewModel
 		// Indicators		IndicatorsColumnView		-				Auto		80				-			false
 		// Date				DateColumnView				Date / Time		Auto		150				-			true
 		// Labels			LabelsColumnView			Labels			*			75				-			false
-		// Incoming			IncomingColumnView			Incoming (₿)	Auto		120				150			true
-		// Outgoing			OutgoingColumnView			Outgoing (₿)	Auto		120				150			true
-		// Balance			BalanceColumnView			Balance (₿)		Auto		120				150			true
+		// Incoming			IncomingColumnView			Incoming (BTC)	Auto		130				150			true
+		// Outgoing			OutgoingColumnView			Outgoing (BTC)	Auto		130				150			true
+		// Balance			BalanceColumnView			Balance (BTC)		Auto		130				150			true
 
 		Source = new FlatTreeDataGridSource<HistoryItemViewModelBase>(_transactions)
 		{
@@ -109,7 +109,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 				// Incoming
 				new PrivacyTextColumn<HistoryItemViewModelBase>(
-					"Incoming (₿)",
+					"Incoming (BTC)",
 					x => x.IncomingAmount?.ToFormattedString(),
 					options: new ColumnOptions<HistoryItemViewModelBase>
 					{
@@ -117,7 +117,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 						CanUserSortColumn = true,
 						CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.IncomingAmount),
 						CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.IncomingAmount),
-						MinWidth = new GridLength(120, GridUnitType.Pixel),
+						MinWidth = new GridLength(130, GridUnitType.Pixel),
 						MaxWidth = new GridLength(150, GridUnitType.Pixel)
 					},
 					width: new GridLength(0, GridUnitType.Auto),
@@ -125,7 +125,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 				// Outgoing
 				new PrivacyTextColumn<HistoryItemViewModelBase>(
-					"Outgoing (₿)",
+					"Outgoing (BTC)",
 					x => x.OutgoingAmount?.ToFormattedString(),
 					options: new ColumnOptions<HistoryItemViewModelBase>
 					{
@@ -133,7 +133,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 						CanUserSortColumn = true,
 						CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.OutgoingAmount),
 						CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.OutgoingAmount),
-						MinWidth = new GridLength(120, GridUnitType.Pixel),
+						MinWidth = new GridLength(130, GridUnitType.Pixel),
 						MaxWidth = new GridLength(150, GridUnitType.Pixel)
 					},
 					width: new GridLength(0, GridUnitType.Auto),
@@ -141,7 +141,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 				// Balance
 				new PrivacyTextColumn<HistoryItemViewModelBase>(
-					"Balance (₿)",
+					"Balance (BTC)",
 					x => x.Balance?.ToFormattedString(),
 					options: new ColumnOptions<HistoryItemViewModelBase>
 					{
