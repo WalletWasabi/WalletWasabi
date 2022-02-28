@@ -58,6 +58,11 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 		_currentState.Enter();
 	}
 
+	public void Process()
+	{
+		_currentState.Process();
+	}
+
 	private void Goto(TTrigger trigger, TState state, bool exit = true, bool enter = true)
 	{
 		if (_states.ContainsKey(state))
@@ -77,6 +82,8 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 			{
 				_currentState.Enter();
 			}
+
+			_currentState.Process();
 		}
 	}
 
@@ -88,6 +95,7 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 		private StateContext? _parent;
 		private List<Action> _entryActions;
 		private List<Action> _exitActions;
+		private List<Action> _onProcessActions;
 
 		public TState StateId { get; }
 
@@ -100,6 +108,7 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 			_entryActions = new();
 			_exitActions = new();
+			_onProcessActions = new();
 			_permittedTransitions = new();
 		}
 
@@ -124,6 +133,14 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 			return this;
 		}
 
+		public StateContext OnProcess(Action action)
+		{
+			_onProcessActions.Add(action);
+
+			return this;
+		}
+
+
 		public StateContext OnExit(Action action)
 		{
 			_exitActions.Add(action);
@@ -142,6 +159,14 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 		internal void Exit()
 		{
 			foreach (var action in _exitActions)
+			{
+				action();
+			}
+		}
+
+		internal void Process()
+		{
+			foreach (var action in _onProcessActions)
 			{
 				action();
 			}
