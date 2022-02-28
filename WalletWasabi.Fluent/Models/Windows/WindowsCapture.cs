@@ -58,7 +58,7 @@ public class WindowsCapture
 
 		var mt = new AM_MEDIA_TYPE();
 		i_grabber.GetConnectedMediaType(mt);
-		VIDEOINFOHEADER header = (VIDEOINFOHEADER)Marshal.PtrToStructure(mt.pbFormat, typeof(VIDEOINFOHEADER));
+		VIDEOINFOHEADER header = (VIDEOINFOHEADER)Marshal.PtrToStructure(mt.pbFormat, typeof(VIDEOINFOHEADER))!;
 		var width = header.bmiHeader.biWidth;
 		var height = header.bmiHeader.biHeight;
 		var stride = width * (header.bmiHeader.biBitCount / 8);
@@ -333,6 +333,10 @@ public class WindowsCapture
 			config.GetStreamCaps(i, ref mt, cap_data);
 			entry.Caps = PtrToStructure<VIDEO_STREAM_CONFIG_CAPS>(cap_data);
 
+			if (mt is not { })
+			{
+				continue;
+			}
 			entry.MajorType = DsGuid.GetNickname(mt.MajorType);
 			entry.SubType = DsGuid.GetNickname(mt.SubType);
 
@@ -425,7 +429,7 @@ public class WindowsCapture
 		}
 	}
 
-	private static T? PtrToStructure<T>(IntPtr ptr) => (T)Marshal.PtrToStructure(ptr, typeof(T));
+	private static T? PtrToStructure<T>(IntPtr ptr) => (T?)Marshal.PtrToStructure(ptr, typeof(T));
 
 	internal class PropertyItems
 	{
