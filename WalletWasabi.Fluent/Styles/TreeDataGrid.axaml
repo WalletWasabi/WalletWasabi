@@ -16,23 +16,14 @@
                   BorderThickness="2 0 0 0"
                   DockPanel.Dock="Left"
                   VerticalAlignment="Stretch" />
-          <Grid Name="PART_Root"
-                RowDefinitions="*,Auto,Auto"
-                ColumnDefinitions="Auto,*">
-            <Rectangle Name="BackgroundRectangle"
-                       Grid.RowSpan="2"
-                       Grid.ColumnSpan="2" />
+          <Panel>
+            <Rectangle Name="BackgroundRectangle" />
             <TreeDataGridCellsPresenter Name="PART_CellsPresenter"
-                                        Grid.Column="1"
                                         ElementFactory="{TemplateBinding ElementFactory}"
                                         Items="{TemplateBinding Columns}"
                                         Rows="{TemplateBinding Rows}"/>
-            <Rectangle Name="PART_BottomGridLine"
-                       Grid.Row="2"
-                       Grid.Column="1"
-                       HorizontalAlignment="Stretch"
-                       Height="1" />
-          </Grid>
+
+          </Panel>
         </DockPanel>
       </ControlTemplate>
     </Setter>
