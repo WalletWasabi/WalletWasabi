@@ -12,9 +12,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
 public partial class WalletCoinViewModel : ViewModelBase
 {
-	[AutoNotify] private Money _amount;
+	[AutoNotify] private Money _amount = Money.Zero;
 	[AutoNotify] private int _anonymitySet;
-	[AutoNotify] private SmartLabel _smartLabel;
+	[AutoNotify] private SmartLabel _smartLabel = "";
 	[AutoNotify] private bool _confirmed;
 	[AutoNotify] private bool _coinJoinInProgress;
 
