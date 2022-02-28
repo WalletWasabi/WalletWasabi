@@ -4,37 +4,44 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:dialogs="clr-namespace:WalletWasabi.Fluent.ViewModels.Dialogs"
-             mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="270"
+             mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="470"
              x:DataType="dialogs:ManualCoinJoinProfileDialogViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.ManualCoinJoinProfileDialogView">
-  <c:ContentArea Width="500" Height="400"
-                 Title="{Binding Title}"
-                 CancelContent="Cancel"
-                 EnableCancel="{Binding EnableCancel}"
-                 EnableBack="{Binding EnableBack}"
-                 EnableNext="True" NextContent="Done">
-    <Grid>
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="200" />
-        <ColumnDefinition Width="200" />
-      </Grid.ColumnDefinitions>
-      <Grid.RowDefinitions>
-        <RowDefinition />
-        <RowDefinition />
-        <RowDefinition />
-        <RowDefinition />
-      </Grid.RowDefinitions>
-      <TextBlock Grid.Row="0" Grid.Column="0" Text="Automatic Coinjoin" />
-      <TextBlock Grid.Row="1" Grid.Column="0" Text="Privacy Threshold" />
-      <TextBlock Grid.Row="2" Grid.Column="0" Text="Privacy Sanity Check" />
-      <TextBlock Grid.Row="3" Grid.Column="0" Text="Coinjoin Time Preference" />
-      <ToggleSwitch Grid.Row="0" Grid.Column="1" IsChecked="{Binding AutoCoinjoin}" />
-      <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding MinAnonScoreTarget}" />
-      <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding MaxAnonScoreTarget}" />
-      <ComboBox Grid.Row="3" Grid.Column="1" HorizontalAlignment="Stretch"
-          Items="{Binding TimeFrames}"
-          SelectedItem="{Binding SelectedTimeFrame}" />
-    </Grid>
+  <c:ContentArea
+    Title="{Binding Title}"
+    CancelContent="Cancel"
+    EnableCancel="{Binding EnableCancel}"
+    EnableBack="{Binding EnableBack}"
+    EnableNext="True" NextContent="Done">
+    <StackPanel Classes="settingsLayout">
+      <DockPanel>
+        <TextBlock Text="Automatic Coinjoin" />
+        <ToggleSwitch IsChecked="{Binding AutoCoinjoin}" />
+      </DockPanel>
+
+      <StackPanel Spacing="10">
+        <TextBlock Text="Privacy Threshold" />
+        <DockPanel>
+          <TextBlock MinWidth="24" DockPanel.Dock="Right" Text="{Binding MinAnonScoreTarget}" VerticalAlignment="Center" />
+          <Slider Minimum="2" Maximum="98" Value="{Binding MinAnonScoreTarget}" Margin="10 0" />
+        </DockPanel>
+      </StackPanel>
+
+      <StackPanel Spacing="10">
+        <TextBlock Text="Privacy Sanity Check" />
+        <DockPanel>
+          <TextBlock MinWidth="24" DockPanel.Dock="Right" Text="{Binding MaxAnonScoreTarget}" VerticalAlignment="Center" />
+          <Slider Minimum="3" Maximum="99" Value="{Binding MaxAnonScoreTarget}" Margin="10 0" />
+        </DockPanel>
+      </StackPanel>
+
+      <DockPanel>
+        <TextBlock Text="Coinjoin Time Preference" />
+        <ComboBox HorizontalAlignment="Stretch"
+                  Items="{Binding TimeFrames}"
+                  SelectedItem="{Binding SelectedTimeFrame}" />
+      </DockPanel>
+    </StackPanel>
   </c:ContentArea>
 </UserControl>
