@@ -26,9 +26,7 @@
       <Separator />
       <c:PreviewItem Text="Confirmed Balance"
                      CopyParameter="{Binding ConfirmedBalance}">
-        <c:PrivacyContentControl NumberOfPrivacyChars="11">
-          <TextBlock Text="{Binding ConfirmedBalance, StringFormat={}{0} ₿, Mode=OneWay}" Classes="monoSpaced" />
-        </c:PrivacyContentControl>
+        <c:PrivacyContentControl NumberOfPrivacyChars="11" Content="{Binding ConfirmedBalance, StringFormat={}{0} ₿, Mode=OneWay}" Classes="monoSpaced" />
       </c:PreviewItem>
       <Separator />
       <c:PreviewItem Text="Total Balance"
