@@ -29,6 +29,7 @@ public partial class WalletViewModel : WalletViewModelBase
 	private readonly int _smallLayoutIndex;
 	private readonly int _normalLayoutIndex;
 	private readonly int _wideLayoutIndex;
+	private bool _receiveButtonClickedOnce;
 	[AutoNotify] private IList<TileViewModel> _tiles;
 	[AutoNotify] private IList<TileLayoutViewModel>? _layouts;
 	[AutoNotify] private int _layoutIndex;
@@ -40,7 +41,7 @@ public partial class WalletViewModel : WalletViewModelBase
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWalletBalanceZero;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isEmptyWallet;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSendButtonVisible;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isViewActive;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _pulseAnimationActive;
 
 	protected WalletViewModel(Wallet wallet) : base(wallet)
 	{
@@ -69,8 +70,10 @@ public partial class WalletViewModel : WalletViewModelBase
 			.Subscribe(_ => IsWalletBalanceZero = wallet.Coins.TotalAmount() == Money.Zero)
 			.DisposeWith(Disposables);
 
-		MainViewModel.Instance.DialogScreen.WhenAnyValue(x=>x.IsDialogOpen)
-			.Subscribe(x => IsViewActive = !x)
+		Observable.Merge(this.WhenAnyValue(x => x.IsActive))
+			.Merge(this.WhenAnyValue(x => x.IsSendButtonVisible))
+			.Select(x => IsActive && !IsSendButtonVisible && !_receiveButtonClickedOnce)
+			.Subscribe(x => PulseAnimationActive = x)
 			.DisposeWith(Disposables);
 
 		if (Services.HostedServices.GetOrDefault<CoinJoinManager>() is { } coinJoinManager)
@@ -123,7 +126,11 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(wallet)));
 
-		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new ReceiveViewModel(wallet)));
+		ReceiveCommand = ReactiveCommand.Create(() =>
+		{
+			_receiveButtonClickedOnce = true;
+			Navigate(NavigationTarget.DialogScreen).To(new ReceiveViewModel(wallet));
+		});
 
 		WalletInfoCommand = ReactiveCommand.CreateFromTask(async () =>
 		{

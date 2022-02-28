@@ -18,6 +18,41 @@
     <c:ContentArea.Title>
       <StackPanel>
         <DockPanel>
+          <DockPanel.Styles>
+            <Style Selector="Button.function Ellipse.pulseRect">
+              <Setter Property="VerticalAlignment" Value="Center" />
+              <Setter Property="HorizontalAlignment" Value="Center" />
+              <Setter Property="Width" Value="5" />
+              <Setter Property="Height" Value="5" />
+              <Setter Property="RenderTransformOrigin" Value="50%,50%" />
+            </Style>
+
+            <Style Selector="Button.function.pulse Ellipse.pulseRect">
+              <Setter Property="Fill" Value="{StaticResource SystemAccentColorLight3}" />
+              <Style.Animations>
+                <Animation IterationCount="Infinite" Duration="0:0:2.3" Easing="{StaticResource FluentEasing}">
+                  <KeyFrame Cue="0%">
+                    <Setter Property="Opacity" Value="0" />
+                    <Setter Property="(ScaleTransform.ScaleX)" Value="0" />
+                    <Setter Property="(ScaleTransform.ScaleY)" Value="0" />
+                  </KeyFrame>
+                  <KeyFrame Cue="60%">
+                    <Setter Property="Opacity" Value="1" />
+                  </KeyFrame>
+                  <KeyFrame Cue="90%">
+                    <Setter Property="Opacity" Value="1" />
+                    <Setter Property="(ScaleTransform.ScaleX)" Value="40" />
+                    <Setter Property="(ScaleTransform.ScaleY)" Value="40" />
+                  </KeyFrame>
+                  <KeyFrame Cue="100%">
+                    <Setter Property="Opacity" Value="0" />
+                    <Setter Property="(ScaleTransform.ScaleX)" Value="40" />
+                    <Setter Property="(ScaleTransform.ScaleY)" Value="40" />
+                  </KeyFrame>
+                </Animation>
+              </Style.Animations>
+            </Style>
+          </DockPanel.Styles>
           <StackPanel HorizontalAlignment="Right" Margin="0 -5 0 0" DockPanel.Dock="Right" Orientation="Horizontal" Spacing="10">
             <Button Classes="function"
                     Command="{Binding BroadcastPsbtCommand}">
@@ -41,11 +76,10 @@
               </StackPanel>
             </Button>
             <Button Classes="function"
-                    Classes.pulsate="{Binding !IsSendButtonVisible}"
-                    Classes.active="{Binding IsViewActive}"
+                    Classes.pulse="{Binding PulseAnimationActive}"
                     Command="{Binding ReceiveCommand}">
               <Panel>
-                <Ellipse Classes="pulsateRect" />
+                <Ellipse Classes="pulseRect" />
                 <StackPanel Orientation="Horizontal" Spacing="15">
                   <PathIcon Data="{StaticResource wallet_action_receive}" />
                   <TextBlock Text="Receive" />

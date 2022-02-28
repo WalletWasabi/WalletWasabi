@@ -63,40 +63,6 @@
     <Setter Property="Background" Value="Transparent" />
   </Style>
 
-  <Style Selector="Button.function Ellipse.pulsateRect">
-    <Setter Property="VerticalAlignment" Value="Center" />
-    <Setter Property="HorizontalAlignment" Value="Center" />
-    <Setter Property="Width" Value="5" />
-    <Setter Property="Height" Value="5" />
-    <Setter Property="RenderTransformOrigin" Value="50%,50%" />
-  </Style>
-
-  <Style Selector="Button.function.pulsate.active Ellipse.pulsateRect">
-    <Setter Property="Fill" Value="{StaticResource SystemAccentColorLight3}" />
-    <Style.Animations>
-      <Animation IterationCount="Infinite" Duration="0:0:2.3" Easing="{StaticResource FluentEasing}">
-        <KeyFrame Cue="0%">
-          <Setter Property="Opacity" Value="0" />
-          <Setter Property="(ScaleTransform.ScaleX)" Value="0" />
-          <Setter Property="(ScaleTransform.ScaleY)" Value="0" />
-        </KeyFrame>
-        <KeyFrame Cue="60%">
-          <Setter Property="Opacity" Value="1" />
-        </KeyFrame>
-        <KeyFrame Cue="90%">
-          <Setter Property="Opacity" Value="1" />
-          <Setter Property="(ScaleTransform.ScaleX)" Value="40" />
-          <Setter Property="(ScaleTransform.ScaleY)" Value="40" />
-        </KeyFrame>
-        <KeyFrame Cue="100%">
-          <Setter Property="Opacity" Value="0" />
-          <Setter Property="(ScaleTransform.ScaleX)" Value="40" />
-          <Setter Property="(ScaleTransform.ScaleY)" Value="40" />
-        </KeyFrame>
-      </Animation>
-    </Style.Animations>
-  </Style>
-
   <Style Selector="Button.invisible">
     <Setter Property="Padding" Value="{StaticResource InvisibleButtonPadding}" />
     <Setter Property="Cursor" Value="Hand" />
