@@ -185,7 +185,6 @@ public partial class NavBarViewModel : ViewModelBase
 
 		if (value.SelectionMode == NavBarItemSelectionMode.Toggle)
 		{
-			Select(null);
 			_isNavigating = true;
 			var previous = _selectedItem;
 			RaiseAndChangeSelectedItem(null);
