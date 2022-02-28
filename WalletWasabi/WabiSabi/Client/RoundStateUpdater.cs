@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
-using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
@@ -21,6 +20,7 @@ public class RoundStateUpdater : PeriodicRunner
 
 	private IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
 	private Dictionary<uint256, RoundState> RoundStates { get; set; } = new();
+	public Dictionary<TimeSpan, FeeRate> CoinJoinFeeRateMedians { get; private set; } = new();
 
 	private List<RoundStateAwaiter> Awaiters { get; } = new();
 	private object AwaitersLock { get; } = new();
@@ -32,12 +32,16 @@ public class RoundStateUpdater : PeriodicRunner
 		var request = new RoundStateRequest(
 			RoundStates.Select(x => new RoundStateCheckpoint(x.Key, x.Value.CoinjoinState.Events.Count)).ToImmutableList());
 
-		RoundState[] statusResponse = await ArenaRequestHandler.GetStatusAsync(request, cancellationToken).ConfigureAwait(false);
+		var response = await ArenaRequestHandler.GetStatusAsync(request, cancellationToken).ConfigureAwait(false);
+		RoundState[] statusResponse = response.RoundStates;
+
+		CoinJoinFeeRateMedians = response.CoinJoinFeeRateMedians.ToDictionary(a => a.TimeFrame, a => a.MedianFeeRate);
 
 		var updatedRoundStates = statusResponse
 			.Where(rs => RoundStates.ContainsKey(rs.Id))
 			.Select(rs => (NewRoundState: rs, CurrentRoundState: RoundStates[rs.Id]))
-			.Select(x => x.NewRoundState with {
+			.Select(x => x.NewRoundState with
+			{
 				CoinjoinState = x.NewRoundState.CoinjoinState.AddPreviousStates(x.CurrentRoundState.CoinjoinState)
 			}).ToList();
 

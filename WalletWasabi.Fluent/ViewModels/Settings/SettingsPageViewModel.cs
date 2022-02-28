@@ -26,7 +26,7 @@ public partial class SettingsPageViewModel : NavBarItemViewModel
 		_selectedTab = 0;
 
 		GeneralSettingsTab = new GeneralSettingsTabViewModel();
-		NetworkSettingsTab = new NetworkSettingsTabViewModel();
+		TorSettingsTab = new TorSettingsTabViewModel();
 		BitcoinTabSettings = new BitcoinTabSettingsViewModel();
 
 		RestartCommand = ReactiveCommand.Create(AppLifetimeHelper.Restart);
@@ -35,7 +35,7 @@ public partial class SettingsPageViewModel : NavBarItemViewModel
 	public ICommand RestartCommand { get; }
 
 	public GeneralSettingsTabViewModel GeneralSettingsTab { get; }
-	public NetworkSettingsTabViewModel NetworkSettingsTab { get; }
+	public TorSettingsTabViewModel TorSettingsTab { get; }
 	public BitcoinTabSettingsViewModel BitcoinTabSettings { get; }
 
 	private void OnRestartNeeded(object? sender, RestartNeededEventArgs e)

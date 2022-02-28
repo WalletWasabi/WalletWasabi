@@ -357,14 +357,17 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		return new Coin(input, txOutResponse.TxOut);
 	}
 
-	public async Task<RoundState[]> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
+	public async Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
 	{
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			return Rounds.Select(x => {
+			var roundStates = Rounds.Select(x =>
+			{
 				var checkPoint = request.RoundCheckpoints.FirstOrDefault(y => y.RoundId == x.Id);
 				return RoundState.FromRound(x, checkPoint == default ? 0 : checkPoint.StateId);
 			}).ToArray();
+
+			return new RoundStateResponse(roundStates, Array.Empty<CoinJoinFeeRateMedian>());
 		}
 	}
 

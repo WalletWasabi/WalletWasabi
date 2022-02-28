@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.AddWallet;
+namespace WalletWasabi.Fluent.Views.CoinJoinProfiles;
 
-public class SelectWalletCreationOptionView : UserControl
+public class CoinJoinProfilesView : UserControl
 {
-	public SelectWalletCreationOptionView()
+	public CoinJoinProfilesView()
 	{
 		InitializeComponent();
 	}

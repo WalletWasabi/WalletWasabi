@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.TransactionBuilding.BnB;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
@@ -46,11 +47,20 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 	public BuildTransactionResult TransactionResult { get; }
 
 	public static async IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> GenerateSuggestionsAsync(
-		TransactionInfo transactionInfo, BitcoinAddress destination, Wallet wallet, [EnumeratorCancellation] CancellationToken cancellationToken)
+		TransactionInfo transactionInfo,
+		BitcoinAddress destination,
+		Wallet wallet,
+		[EnumeratorCancellation] CancellationToken cancellationToken)
 	{
-		Task<ChangeAvoidanceSuggestionViewModel?> bnbSuggestionTask = Task.Run(() =>
+		var selections = ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(
+			transactionInfo.Coins,
+			transactionInfo.FeeRate,
+			new TxOut(transactionInfo.Amount, destination),
+			cancellationToken).ConfigureAwait(false);
+
+		await foreach (var selection in selections)
 		{
-			if (ChangelessTransactionCoinSelector.TryGetCoins(transactionInfo.Coins, transactionInfo.FeeRate, new TxOut(transactionInfo.Amount, destination), out IEnumerable<SmartCoin>? selection, cancellationToken))
+			if (selection.Any())
 			{
 				BuildTransactionResult transaction = TransactionHelpers.BuildChangelessTransaction(
 					wallet,
@@ -60,21 +70,12 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 					selection,
 					tryToSign: false);
 
-				return new ChangeAvoidanceSuggestionViewModel(
+				yield return new ChangeAvoidanceSuggestionViewModel(
 					transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
 					transaction,
 					wallet.Synchronizer.UsdExchangeRate,
 					isOriginal: false);
 			}
-
-			return null;
-		});
-
-		ChangeAvoidanceSuggestionViewModel? bnbSuggestion = await bnbSuggestionTask;
-
-		if (bnbSuggestion is not null)
-		{
-			yield return bnbSuggestion;
 		}
 	}
 }

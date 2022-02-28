@@ -17,6 +17,7 @@ using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Backend.Statistics;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models;
@@ -65,7 +66,9 @@ public class ArenaClientTests
 
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
-		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena);
+
+		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
+		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore);
 
 		var insecureRandom = new InsecureRandom();
 		var roundState = RoundState.FromRound(round);
@@ -183,7 +186,8 @@ public class ArenaClientTests
 
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
-		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena);
+		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
+		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore);
 
 		var apiClient = new ArenaClient(null!, null!, wabiSabiApi);
 
@@ -221,9 +225,11 @@ public class ArenaClientTests
 		var mockRpc = new Mock<IRPCClient>();
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
-		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena);
 
-		var rnd = new InsecureRandom();
+		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
+		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore);
+
+		using var rnd = new InsecureRandom();
 		var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, rnd, 4300000000000L);
 		var vsizeClient = new WabiSabiClient(round.VsizeCredentialIssuerParameters, rnd, 2000L);
 		var apiClient = new ArenaClient(amountClient, vsizeClient, wabiSabiApi);

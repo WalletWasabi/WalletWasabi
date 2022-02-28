@@ -8,6 +8,7 @@ using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
@@ -57,7 +58,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 	private void OnNext(KeyManager keyManager)
 	{
-		Navigate().To(new AddedWalletPageViewModel(keyManager));
+		Navigate().To(new CoinJoinProfilesViewModel(keyManager));
 	}
 
 	private void OnCancel()

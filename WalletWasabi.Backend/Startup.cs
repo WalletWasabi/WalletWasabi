@@ -75,6 +75,12 @@ public class Startup
 			var coordinator = global.HostedServices.Get<WabiSabiCoordinator>();
 			return coordinator.Arena;
 		});
+		services.AddSingleton(serviceProvider =>
+		{
+			var global = serviceProvider.GetRequiredService<Global>();
+			var coordinator = global.HostedServices.Get<WabiSabiCoordinator>();
+			return coordinator.CoinJoinFeeRateStatStore;
+		});
 		services.AddStartupTask<InitConfigStartupTask>();
 
 		services.AddResponseCompression();

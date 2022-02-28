@@ -112,7 +112,10 @@ public partial class SendViewModel : RoutableViewModel
 		NextCommand = ReactiveCommand.Create(() =>
 		{
 			var address = BitcoinAddress.Create(To, wallet.Network);
+
+			_transactionInfo.Reset();
 			_transactionInfo.Amount = new Money(AmountBtc, MoneyUnit.BTC);
+
 			Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo, address, _isFixedAmount));
 		}, nextCommandCanExecute);
 	}
@@ -201,8 +204,7 @@ public partial class SendViewModel : RoutableViewModel
 
 	private void ValidateToField(IValidationErrors errors)
 	{
-		if (!string.IsNullOrWhiteSpace(To) &&
-			!AddressStringParser.TryParse(To, _wallet.Network, out _))
+		if (!string.IsNullOrEmpty(To) && (To.IsTrimmable() || !AddressStringParser.TryParse(To, _wallet.Network, out _)))
 		{
 			errors.Add(ErrorSeverity.Error, "Input a valid BTC address or URL.");
 		}
@@ -224,23 +226,25 @@ public partial class SendViewModel : RoutableViewModel
 		Dispatcher.UIThread.Post(() =>
 		{
 			TryParseUrl(s);
-
 			_parsingUrl = false;
 		});
 	}
 
-	private bool TryParseUrl(string text)
+	private bool TryParseUrl(string? text)
 	{
+		if (text is null || text.IsTrimmable())
+		{
+			return false;
+		}
+
 		bool result = false;
 
 		if (AddressStringParser.TryParse(text, _wallet.Network, out BitcoinUrlBuilder? url))
 		{
 			result = true;
-			SmartLabel label = url.Label;
-
-			if (!label.IsEmpty)
+			if (url.Label is { } label)
 			{
-				_transactionInfo.UserLabels = new SmartLabel(label.Labels);
+				_transactionInfo.UserLabels = new SmartLabel(label);
 			}
 
 			if (url.UnknownParameters.TryGetValue("pj", out var endPoint))
