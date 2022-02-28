@@ -242,10 +242,9 @@ public partial class SendViewModel : RoutableViewModel
 		if (AddressStringParser.TryParse(text, _wallet.Network, out BitcoinUrlBuilder? url))
 		{
 			result = true;
-			if (url.Label is { })
+			if (url.Label is { } label)
 			{
-				SmartLabel label = url.Label;
-				_transactionInfo.UserLabels = new SmartLabel(label.Labels);
+				_transactionInfo.UserLabels = new SmartLabel(label);
 			}
 
 			if (url.UnknownParameters.TryGetValue("pj", out var endPoint))
