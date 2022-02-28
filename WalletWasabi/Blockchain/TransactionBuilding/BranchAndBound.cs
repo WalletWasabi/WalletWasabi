@@ -114,7 +114,7 @@ public class BranchAndBound
 
 	private NextAction GetRandomNextAction()
 	{
-		return _random.Next(1, 500) < 250 ? NextAction.IncludeFirstThenOmit : NextAction.OmitFirstThenInclude;
+		return _random.Next() > (int.MaxValue / 2) ? NextAction.IncludeFirstThenOmit : NextAction.OmitFirstThenInclude;
 	}
 
 	private static NextAction GetNextStep(NextAction action)
