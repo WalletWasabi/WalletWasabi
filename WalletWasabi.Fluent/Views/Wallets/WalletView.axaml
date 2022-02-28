@@ -30,7 +30,7 @@
             <Style Selector="Button.function.pulse Ellipse.pulseRect">
               <Setter Property="Fill" Value="{StaticResource SystemAccentColor}" />
               <Style.Animations>
-                <Animation IterationCount="6" Duration="0:0:1.5" Easing="{StaticResource FluentEasing}">
+                <Animation IterationCount="3" Duration="0:0:0.925" Easing="{StaticResource FluentEasing}">
                   <KeyFrame Cue="0%">
                     <Setter Property="Opacity" Value="0" />
                     <Setter Property="(ScaleTransform.ScaleX)" Value="0" />
