@@ -32,7 +32,6 @@ public enum Trigger
 	Pause,
 	Play,
 	Stop,
-	AutoPlayTimeout,
 	PlebStop,
 	CoinReceive,
 	RoundStartFailed,
@@ -60,7 +59,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private readonly MusicStatusMessageViewModel _coinJoiningMessage = new() { Message = "Coinjoining" };
 
 	private readonly MusicStatusMessageViewModel _pauseMessage = new()
-		{ Message = "Coinjoin is paused until the next round" };
+		{ Message = "Coinjoin is paused" };
 
 	private readonly MusicStatusMessageViewModel _stoppedMessage = new() { Message = "Coinjoin is stopped" };
 	private readonly MusicStatusMessageViewModel _startErrorMessage = new() { };
@@ -147,7 +146,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_machine.Configure(State.AutoStarting)
 			.SubstateOf(State.AutoCoinJoin)
 			.Permit(Trigger.Pause, State.Paused)
-			.Permit(Trigger.AutoPlayTimeout, State.AutoPlaying)
+			.Permit(Trigger.RoundStart, State.AutoPlaying)
 			.Permit(Trigger.Play, State.AutoPlaying)
 			.OnEntry(() =>
 			{
@@ -163,11 +162,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				var total = (_autoStartTime - _countDownStarted).TotalSeconds;
 				var percentage = (DateTime.Now - _countDownStarted).TotalSeconds * 100 / total;
 				ProgressValue = percentage;
-
-				if (DateTime.Now > _autoStartTime)
-				{
-					_machine.Fire(Trigger.AutoPlayTimeout);
-				}
 			})
 			.OnExit(() => IsAutoWaiting = false);
 
@@ -247,11 +241,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 			case StartingEventArgs startingEventArgs:
 				_autoStartTime = DateTimeOffset.Now + startingEventArgs.StartingIn;
-				//startingEventArgs.StartingIn
 				break;
 
 			case StartedEventArgs startedEventArgs:
-				var regTimeout = DateTimeOffset.Now + startedEventArgs.RegistrationTimeout;
+				//var regTimeout = DateTimeOffset.Now + startedEventArgs.RegistrationTimeout;
 				_machine.Fire(Trigger.RoundStart);
 				break;
 
