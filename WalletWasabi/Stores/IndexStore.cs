@@ -23,7 +23,7 @@ public class IndexStore : IAsyncDisposable
 {
 	private int _throttleId;
 
-	public IndexStore(string workFolderPath, Network network, SmartHeaderChain hashChain)
+	public IndexStore(string workFolderPath, Network network, SmartHeaderChain smartHeaderChain)
 	{
 		WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 		IoHelpers.EnsureDirectoryExists(WorkFolderPath);
@@ -32,11 +32,9 @@ public class IndexStore : IAsyncDisposable
 		var immatureIndexFilePath = Path.Combine(WorkFolderPath, "ImmatureIndex.dat");
 		ImmatureIndexFileManager = new DigestableSafeIoManager(immatureIndexFilePath, digestRandomIndex: -1);
 
-		Network = Guard.NotNull(nameof(network), network);
-
+		Network = network;
 		StartingFilter = StartingFilters.GetStartingFilter(Network);
-
-		SmartHeaderChain = Guard.NotNull(nameof(hashChain), hashChain);
+		SmartHeaderChain = smartHeaderChain;
 	}
 
 	public event EventHandler<FilterModel>? Reorged;
