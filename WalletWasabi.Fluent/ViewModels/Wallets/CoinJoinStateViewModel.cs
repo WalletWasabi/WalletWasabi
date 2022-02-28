@@ -35,7 +35,7 @@ public enum Trigger
 	AutoPlayTimeout,
 	PlebStop,
 	CoinReceive,
-	RoundComplete,
+	RoundStartFailed,
 	RoundStart
 }
 
@@ -54,11 +54,16 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	[AutoNotify] private string _elapsedTime;
 	[AutoNotify] private string _remainingTime;
 
-	private readonly MusicStatusMessageViewModel _countDownMessage = new () {Message = "Waiting to auto-start coinjoin"};
+	private readonly MusicStatusMessageViewModel _countDownMessage = new()
+		{ Message = "Waiting to auto-start coinjoin" };
+
 	private readonly MusicStatusMessageViewModel _coinJoiningMessage = new() { Message = "Coinjoining" };
 
-	private readonly MusicStatusMessageViewModel _pauseMessage = new() { Message = "Coinjoin is paused until the next round" };
+	private readonly MusicStatusMessageViewModel _pauseMessage = new()
+		{ Message = "Coinjoin is paused until the next round" };
+
 	private readonly MusicStatusMessageViewModel _stoppedMessage = new() { Message = "Coinjoin is stopped" };
+	private readonly MusicStatusMessageViewModel _startErrorMessage = new() { };
 	private DateTime _autoStartTime;
 	private DateTime _countDownStarted;
 
@@ -79,7 +84,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_machine.Configure(State.ManualCoinJoin)
 			.Permit(Trigger.AutoCoinJoinOn, State.AutoCoinJoin)
 			.Permit(Trigger.ManualCoinJoinEntered, State.Stopped)
-			.OnEntry(()=>
+			.OnEntry(() =>
 			{
 				IsAuto = false;
 				IsAutoWaiting = false;
@@ -92,7 +97,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		_machine.Configure(State.Stopped)
 			.SubstateOf(State.ManualCoinJoin)
-			.OnEntry(()=>
+			.OnEntry(() =>
 			{
 				ProgressValue = 0;
 				StopVisible = false;
@@ -105,8 +110,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		_machine.Configure(State.ManualPlaying)
 			.Permit(Trigger.Stop, State.Stopped)
-			.Permit(Trigger.RoundComplete, State.ManualFinished)
-			.Permit(Trigger.RoundComplete, State.ManualLoading)
+			.Permit(Trigger.RoundStartFailed, State.ManualFinished)
+			.Permit(Trigger.RoundStart, State.ManualLoading)
 			.OnEntry(() =>
 			{
 				PlayVisible = false;
@@ -129,7 +134,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_machine.Configure(State.AutoCoinJoin)
 			.Permit(Trigger.AutoCoinJoinOff, State.ManualCoinJoin)
 			.Permit(Trigger.AutoCoinJoinEntered, State.AutoStarting)
-			.OnEntry(()=>
+			.OnEntry(() =>
 			{
 				_autoStartTime = DateTime.Now + TimeSpan.FromSeconds(Random.Shared.Next(1 * 60, 2 * 60));
 
@@ -188,9 +193,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.SubstateOf(State.AutoCoinJoin)
 			.Permit(Trigger.Pause, State.Paused)
 			.Permit(Trigger.PlebStop, State.Paused)
-			.Permit(Trigger.RoundComplete, State.AutoFinished)
-			.Permit(Trigger.RoundComplete, State.AutoLoading)
-			.OnEntry(()=>
+			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
+			.Permit(Trigger.RoundStart, State.AutoPlaying)
+			.OnEntry(() =>
 			{
 				IsAutoWaiting = false;
 				PauseVisible = true;
@@ -203,9 +208,18 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.SubstateOf(State.AutoCoinJoin)
 			.Permit(Trigger.RoundStart, State.AutoPlaying);
 
-			_machine.Configure(State.AutoFinished)
-				.SubstateOf(State.AutoCoinJoin)
-				.Permit(Trigger.CoinReceive, State.AutoPlaying);
+		_machine.Configure(State.AutoFinished)
+			.SubstateOf(State.AutoCoinJoin)
+			.Permit(Trigger.CoinReceive, State.AutoPlaying)
+			.OnEntry(() =>
+			{
+				PauseVisible = false;
+				IsAutoWaiting = true;
+
+				_startErrorMessage.Message = "Coinjoin stopped. No coins to mix.";
+
+				CurrentStatus = _startErrorMessage;
+			});
 
 		PlayCommand = ReactiveCommand.Create(() => _machine.Fire(Trigger.Play));
 
@@ -230,15 +244,19 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		switch (e)
 		{
 			case CoinJoinCompletedEventArgs coinJoinCompletedEventArgs:
-				break;
-			case LoadedEventArgs loadedEventArgs:
+				// TODO implement a message to show success / failure.
 				break;
 			case StartedEventArgs startedEventArgs:
+				_machine.Fire(Trigger.RoundStart);
 				break;
+
 			case StartErrorEventArgs startErrorEventArgs:
+				_machine.Fire(Trigger.RoundStartFailed);
 				break;
+
 			case StoppedEventArgs stoppedEventArgs:
 				break;
+
 			default:
 				throw new ArgumentOutOfRangeException(nameof(e));
 		}
