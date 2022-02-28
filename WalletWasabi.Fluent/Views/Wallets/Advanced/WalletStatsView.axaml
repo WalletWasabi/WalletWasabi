@@ -31,9 +31,7 @@
       <Separator />
       <c:PreviewItem Text="Total Balance"
                      CopyParameter="{Binding Balance}">
-        <c:PrivacyContentControl NumberOfPrivacyChars="11">
-          <TextBlock Text="{Binding Balance, StringFormat={}{0} ₿, Mode=OneWay}" Classes="monoSpaced" />
-        </c:PrivacyContentControl>
+        <c:PrivacyContentControl NumberOfPrivacyChars="11" Content="{Binding Balance, StringFormat={}{0} ₿, Mode=OneWay}" Classes="monoSpaced" />
       </c:PreviewItem>
     </StackPanel>
   </c:ContentArea>
