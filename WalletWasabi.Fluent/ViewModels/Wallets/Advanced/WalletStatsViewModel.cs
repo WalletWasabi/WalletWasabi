@@ -13,9 +13,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 public partial class WalletStatsViewModel : RoutableViewModel
 {
 	[AutoNotify] private int _coinCount;
-	[AutoNotify] private string _balance;
-	[AutoNotify] private string _confirmedBalance;
-	[AutoNotify] private string _unconfirmedBalance;
+	[AutoNotify] private string _balance = "";
+	[AutoNotify] private string _confirmedBalance = "";
+	[AutoNotify] private string _unconfirmedBalance = "";
 
 	private readonly Wallet _wallet;
 
