@@ -64,8 +64,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private readonly MusicStatusMessageViewModel _stoppedMessage = new() { Message = "Coinjoin is stopped" };
 	private readonly MusicStatusMessageViewModel _startErrorMessage = new() { };
-	private DateTime _autoStartTime;
-	private DateTime _countDownStarted;
+	private DateTimeOffset _autoStartTime;
+	private DateTimeOffset _countDownStarted;
 
 	public CoinJoinStateViewModel(WalletViewModel walletVm)
 	{
@@ -136,8 +136,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.AutoCoinJoinEntered, State.AutoStarting)
 			.OnEntry(() =>
 			{
-				_autoStartTime = DateTime.Now + TimeSpan.FromSeconds(Random.Shared.Next(1 * 60, 2 * 60));
-
 				IsAuto = true;
 				StopVisible = false;
 				PauseVisible = false;
@@ -246,7 +244,14 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			case CoinJoinCompletedEventArgs coinJoinCompletedEventArgs:
 				// TODO implement a message to show success / failure.
 				break;
+
+			case StartingEventArgs startingEventArgs:
+				_autoStartTime = DateTimeOffset.Now + startingEventArgs.StartingIn;
+				//startingEventArgs.StartingIn
+				break;
+
 			case StartedEventArgs startedEventArgs:
+				var regTimeout = DateTimeOffset.Now + startedEventArgs.RegistrationTimeout;
 				_machine.Fire(Trigger.RoundStart);
 				break;
 
@@ -257,8 +262,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			case StoppedEventArgs stoppedEventArgs:
 				break;
 
-			default:
-				throw new ArgumentOutOfRangeException(nameof(e));
+			case LoadedEventArgs loadedEventArgs:
+
+				break;
 		}
 
 		Console.WriteLine($"CjStatus: {e.GetType()}");
