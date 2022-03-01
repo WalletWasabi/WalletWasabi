@@ -21,7 +21,7 @@
                 ClipToBounds="False">
           <DockPanel>
 
-            <PathIcon Data="{StaticResource info_regular_16}"
+            <PathIcon Data="{StaticResource info_regular}"
                       Foreground="{TemplateBinding Foreground}"
                       DockPanel.Dock="Left"
                       VerticalAlignment="Center"

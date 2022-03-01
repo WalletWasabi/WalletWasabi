@@ -45,7 +45,7 @@
           <!-- Warning message TODO: use InfoMessage control-->
           <DockPanel
             IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.ConnectionIssueDetected}}">
-            <PathIcon Data="{StaticResource info_regular_16}"
+            <PathIcon Data="{StaticResource info_regular}"
                       DockPanel.Dock="Top"
                       HorizontalAlignment="Center"
                       Height="30" />

@@ -122,7 +122,7 @@
                   <Setter Property="Background" Value="Transparent" />
                 </Style>
               </Button.Styles>
-              <PathIcon Margin="0 0 3 0" Height="16" Data="{StaticResource navigation_regular_20}" />
+              <PathIcon Margin="0 0 3 0" Height="16" Data="{StaticResource navigation_regular}" />
             </Button>
           </Panel>
           <ContentControl Template="{DynamicResource wasabi_logo_text_fixed}" Margin="22,0,0,0"
@@ -230,7 +230,7 @@
                 <PathIcon HorizontalAlignment="Left"
                           Data="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
                 <!-- Logged in indicator -->
-                <Ellipse Fill="{StaticResource OrangeCoinColor}" Width="9" Height="9" Margin="16,0,0,-14">
+                <Ellipse Fill="{StaticResource OrangeCoinColor}" Width="9" Height="9" Margin="15,0,0,-13">
                   <Ellipse.IsVisible>
                     <MultiBinding Converter="{x:Static BoolConverters.And}">
                       <Binding Path="IsLoggedIn" />

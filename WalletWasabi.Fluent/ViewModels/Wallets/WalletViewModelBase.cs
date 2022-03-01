@@ -80,7 +80,7 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 		}
 		else
 		{
-			IconName = "wallet_icon_20";
+			IconName = "default_wallet_icon";
 		}
 	}
 

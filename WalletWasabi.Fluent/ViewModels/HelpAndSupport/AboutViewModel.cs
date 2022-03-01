@@ -12,7 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 [NavigationMetaData(
 	Title = "About Wasabi",
 	Caption = "Displays all the current info about the app",
-	IconName = "info_regular_16",
+	IconName = "info_regular",
 	Order = 4,
 	Category = "Help & Support",
 	Keywords = new[]
