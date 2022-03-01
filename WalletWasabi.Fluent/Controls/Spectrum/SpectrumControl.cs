@@ -14,7 +14,6 @@ namespace WalletWasabi.Fluent.Controls.Spectrum;
 
 public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 {
-
 	private ImmutablePen _linePen;
 	private IBrush _lineBrush;
 
@@ -139,6 +138,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 	void IDisposable.Dispose()
 	{
+		// nothing to do.
 	}
 
 	bool IDrawOperation.HitTest(Point p) => Bounds.Contains(p);

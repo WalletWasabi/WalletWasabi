@@ -36,6 +36,7 @@ public class BlurBehind : Control
 
 		public void Dispose()
 		{
+			// nothing to do.
 		}
 
 		public bool HitTest(Point p) => _bounds.Contains(p);
