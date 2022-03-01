@@ -314,13 +314,13 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				_stateMachine.Fire(Trigger.RoundStart);
 				break;
 
-			case StartErrorEventArgs startErrorEventArgs:
+			case StartErrorEventArgs:
 				_stateMachine.Fire(Trigger.RoundStartFailed);
 				break;
 		}
 	}
 
-	public void SetAutoCoinJoin(bool enabled)
+	private void SetAutoCoinJoin(bool enabled)
 	{
 		_stateMachine.Fire(enabled ? Trigger.AutoCoinJoinOn : Trigger.AutoCoinJoinOff);
 	}
