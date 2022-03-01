@@ -17,6 +17,7 @@ namespace WalletWasabi.WabiSabi.Client;
 enum CoinJoinCommand
 {
 	Start,
+	AutoStart,
 	Stop,
 }
 
@@ -49,7 +50,7 @@ public class CoinJoinManager : BackgroundService
 		WalletManualState.AddOrUpdate(wallet, CoinJoinCommand.Stop, (_,_) => CoinJoinCommand.Stop);
 
 	public void AutoStart(Wallet wallet) =>
-		WalletManualState.Remove(wallet, out _);
+		WalletManualState.AddOrUpdate(wallet, CoinJoinCommand.AutoStart, (_,_) => CoinJoinCommand.AutoStart);
 
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
 
@@ -137,6 +138,7 @@ public class CoinJoinManager : BackgroundService
 			{
 				closedWallet.Cancel();
 				NotifyMixableWalletUnloaded(closedWallet);
+				ResetToAutoStart(closedWallet.Wallet);
 			}
 
 			var finishedCoinJoins = trackedCoinJoins
@@ -253,7 +255,15 @@ public class CoinJoinManager : BackgroundService
 		WalletManualState.TryGetValue(wallet, out var state) && state == CoinJoinCommand.Start;
 
 	private bool MustStop(Wallet wallet) =>
-		WalletManualState.TryGetValue(wallet, out var state) && state == CoinJoinCommand.Stop;
+		WalletManualState.TryGetValue(wallet, out var state) && state is CoinJoinCommand.Stop or CoinJoinCommand.AutoStart;
+
+	private void ResetToAutoStart(Wallet wallet)
+	{
+		if (WalletManualState.TryGetValue(wallet, out var state) && state == CoinJoinCommand.AutoStart)
+		{
+			WalletManualState.Remove(wallet, out _);
+		}
+	}
 
 	private IEnumerable<SmartCoin> SelectCandidateCoins(Wallet openedWallet)
 	{
