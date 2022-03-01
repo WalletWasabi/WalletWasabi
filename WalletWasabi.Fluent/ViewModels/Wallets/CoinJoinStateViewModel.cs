@@ -76,10 +76,11 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		_wallet = walletVm.Wallet;
 
-		var timer = new DispatcherTimer
+		DispatcherTimer.Run(() =>
 		{
-			Interval = TimeSpan.FromSeconds(1),
-		};
+			TimerOnTick();
+			return true;
+		}, TimeSpan.FromSeconds(1));
 
 		var coinJoinManager = Services.HostedServices.Get<CoinJoinManager>();
 
@@ -171,7 +172,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			{
 				IsAutoWaiting = true;
 				CurrentStatus = _countDownMessage;
-				timer.Start();
 			})
 			.OnProcess(() =>
 			{
@@ -185,7 +185,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.OnExit(() =>
 			{
 				IsAutoWaiting = false;
-				timer.Stop();
 			});
 
 		_machine.Configure(State.Paused)
@@ -229,17 +228,18 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		StopCommand = ReactiveCommand.Create(() => _machine.Fire(Trigger.Stop));
 
-		timer.Tick += TimerOnTick;
-
 		walletVm.Settings.WhenAnyValue(x => x.AutoCoinJoin)
 			.Subscribe(SetAutoCoinJoin);
 
 		_machine.Start();
 	}
 
-	private void TimerOnTick(object? sender, EventArgs e)
+	private void TimerOnTick()
 	{
-		_machine.Process();
+		if (_machine.CurrentState == State.AutoStarting)
+		{
+			_machine.Process();
+		}
 	}
 
 	private void UpdateWalletMixedProgress()
