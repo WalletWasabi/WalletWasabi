@@ -268,7 +268,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				_machine.Fire(Trigger.RoundStart);
 				break;
 
-			case StartErrorEventArgs:
+			case StartErrorEventArgs startErrorEventArgs:
+				Console.WriteLine(startErrorEventArgs.Error);
 				_machine.Fire(Trigger.RoundStartFailed);
 				break;
 		}
