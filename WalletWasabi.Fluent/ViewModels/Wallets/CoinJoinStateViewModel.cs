@@ -156,6 +156,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PauseVisible = false;
 				PlayVisible = true;
 
+				coinJoinManager.Stop(walletVm.Wallet);
 				coinJoinManager.AutoStart(walletVm.Wallet);
 
 				_machine.Fire(Trigger.AutoCoinJoinEntered);
