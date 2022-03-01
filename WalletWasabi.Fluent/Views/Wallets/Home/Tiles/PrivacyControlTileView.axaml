@@ -8,81 +8,32 @@
              x:CompileBindings="True" x:DataType="tiles:PrivacyControlTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyControlTileView">
   <controls:TileControl TileSize="{Binding CurrentTileSize}">
-    <controls:TileControl.LargeSizeContent>
-      <DockPanel>
-      <DockPanel.Styles>
-        <Style Selector="controls|ProgressRing.visible, controls|RingChartControl.visible">
-          <Setter Property="Opacity" Value="1" />
-        </Style>
-        <Style Selector="controls|ProgressRing, controls|RingChartControl">
-          <Setter Property="Opacity" Value="0" />
-          <Setter Property="Transitions">
-            <Transitions>
-              <DoubleTransition Property="Opacity" Duration="0:0:0.5" />
-            </Transitions>
-          </Setter>
-        </Style>
-      </DockPanel.Styles>
-
-      <TextBlock Text="Privacy Level" DockPanel.Dock="Top" />
-
-      <StackPanel Spacing="10" DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center">
-        <TextBlock Text="Your Privacy is protected"
-                   IsVisible="{Binding FullyMixed}" />
-      </StackPanel>
-
-      <Panel>
-        <Panel IsVisible="{Binding !FullyMixed}">
-          <controls:RingChartControl DataPoints="{Binding TestDataPoints}" Classes.visible="{Binding !ShowBoostingAnimation}"
-                                     HorizontalAlignment="Center" VerticalAlignment="Center" />
-          <controls:ProgressRing IsIndeterminate="{Binding ShowBoostingAnimation}"
-                                 Classes.visible="{Binding ShowBoostingAnimation}" />
-        </Panel>
-
-        <TextBlock IsVisible="{Binding !FullyMixed}" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding PercentText}" FontSize="36" />
-        <Image Height="160" Width="160" IsVisible="{Binding FullyMixed}" Source="{StaticResource privacy_indicator_good}" />
-      </Panel>
-    </DockPanel>
-    </controls:TileControl.LargeSizeContent>
     <DockPanel>
-      <DockPanel.Styles>
-        <Style Selector="controls|ProgressRing.visible, controls|RingChartControl.visible">
-          <Setter Property="Opacity" Value="1" />
-        </Style>
-        <Style Selector="controls|ProgressRing, controls|RingChartControl">
-          <Setter Property="Opacity" Value="0" />
-          <Setter Property="Transitions">
-            <Transitions>
-              <DoubleTransition Property="Opacity" Duration="0:0:0.5" />
-            </Transitions>
-          </Setter>
-        </Style>
-      </DockPanel.Styles>
+      <TextBlock Text="PRIVACY LEVEL" DockPanel.Dock="Top" Classes="h8 bold" />
+      <StackPanel DockPanel.Dock="Bottom" Height="25" Spacing="8" IsVisible="{Binding HasPrivateBalance}">
+        <Separator />
+        <StackPanel Opacity="0.8" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+          <Border VerticalAlignment="Center" BorderThickness="1" CornerRadius="2"
+                  BorderBrush="{StaticResource ButtonForeground}">
+            <TextBlock
+              Text="PRIVATE" Classes="h9 bold" Margin="4 2 " VerticalAlignment="Center" HorizontalAlignment="Center" />
+          </Border>
+          <controls:PrivacyContentControl Classes="h9 bold" NumberOfPrivacyChars="9"
+                                          VerticalAlignment="Center"
 
-      <TextBlock Text="Privacy Level" DockPanel.Dock="Top" />
-
-      <StackPanel Spacing="10" DockPanel.Dock="Right" Orientation="Horizontal"
-                  HorizontalAlignment="Center" VerticalAlignment="Center">
-        <TextBlock Text="Your Privacy is protected"
-                   IsVisible="{Binding FullyMixed}" />
+                                          Content="{Binding BalancePrivateBtc}" />
+        </StackPanel>
       </StackPanel>
 
-      <DockPanel>
-        <Panel IsVisible="{Binding !FullyMixed}" DockPanel.Dock="Left" Margin="5 8 0 -8">
-          <controls:RingChartControl DataPoints="{Binding TestDataPoints}"
-                                     Classes.visible="{Binding !ShowBoostingAnimation}"
-                                     HorizontalAlignment="Center" VerticalAlignment="Center" />
-          <controls:ProgressRing IsIndeterminate="{Binding ShowBoostingAnimation}"
-                                 Classes.visible="{Binding ShowBoostingAnimation}" />
-        </Panel>
-        <Panel>
-          <TextBlock IsVisible="{Binding !FullyMixed}"
-                     TextAlignment="Center"
-                     VerticalAlignment="Center"
-                     Text="{Binding PercentText}" FontSize="24" Opacity="0.8" />
-          <Image Height="75" Width="75" IsVisible="{Binding FullyMixed}" Source="{StaticResource privacy_indicator_good}" />
-        </Panel>
-      </DockPanel>
+      <StackPanel VerticalAlignment="Center" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 3">
+        <Image Height="36" Width="36" VerticalAlignment="Center" HorizontalAlignment="Center"
+               Source="{StaticResource privacy_indicator_good}" />
+        <TextBlock
+          VerticalAlignment="Center" HorizontalAlignment="Center"
+          TextAlignment="Center"
+          Text="{Binding PercentText}" Classes="h2" />
+      </StackPanel>
+
     </DockPanel>
   </controls:TileControl>
 </UserControl>
