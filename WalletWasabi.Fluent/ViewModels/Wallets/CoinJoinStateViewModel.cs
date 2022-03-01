@@ -107,6 +107,24 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_stateMachine =
 			new StateMachine<State, Trigger>(initialState);
 
+		ConfigureStateMachine(coinJoinManager);
+
+		balanceChanged.Subscribe(_ => _stateMachine.Process());
+
+		PlayCommand = ReactiveCommand.Create(() => _stateMachine.Fire(Trigger.Play));
+
+		PauseCommand = ReactiveCommand.Create(() => _stateMachine.Fire(Trigger.Pause));
+
+		StopCommand = ReactiveCommand.Create(() => _stateMachine.Fire(Trigger.Stop));
+
+		walletVm.Settings.WhenAnyValue(x => x.AutoCoinJoin)
+			.Subscribe(SetAutoCoinJoin);
+
+		_stateMachine.Start();
+	}
+
+	private void ConfigureStateMachine(CoinJoinManager coinJoinManager)
+	{
 		// See diagram in the developer docs.
 		_stateMachine.Configure(State.Disabled);
 
@@ -134,9 +152,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				ProgressValue = 0;
 				StopVisible = false;
 				PlayVisible = true;
-				walletVm.Wallet.AllowManualCoinJoin = false;
+				_wallet.AllowManualCoinJoin = false;
 				CurrentStatus = _stoppedMessage;
-				coinJoinManager.Stop(walletVm.Wallet);
+				coinJoinManager.Stop(_wallet);
 			})
 			.OnProcess(UpdateWalletMixedProgress);
 
@@ -149,7 +167,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PlayVisible = false;
 				StopVisible = true;
 				CurrentStatus = _coinJoiningMessage;
-				coinJoinManager.Start(walletVm.Wallet);
+				coinJoinManager.Start(_wallet);
 			})
 			.OnProcess(UpdateWalletMixedProgress);
 
@@ -179,8 +197,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 				CurrentStatus = _initialisingMessage;
 
-				coinJoinManager.Stop(walletVm.Wallet);
-				coinJoinManager.AutoStart(walletVm.Wallet);
+				coinJoinManager.Stop(_wallet);
+				coinJoinManager.AutoStart(_wallet);
 			});
 
 		_stateMachine.Configure(State.AutoStarting)
@@ -221,7 +239,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PauseVisible = false;
 				PlayVisible = true;
 
-				coinJoinManager.Stop(walletVm.Wallet);
+				coinJoinManager.Stop(_wallet);
 			})
 			.OnProcess(UpdateWalletMixedProgress);
 
@@ -237,7 +255,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PauseVisible = true;
 				PlayVisible = false;
 				CurrentStatus = _coinJoiningMessage;
-				coinJoinManager.Start(walletVm.Wallet);
+				coinJoinManager.Start(_wallet);
 			})
 			.OnProcess(UpdateWalletMixedProgress);
 
@@ -255,19 +273,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 				CurrentStatus = _finishedMessage;
 			});
-
-		balanceChanged.Subscribe(_ => _stateMachine.Process());
-
-		PlayCommand = ReactiveCommand.Create(() => _stateMachine.Fire(Trigger.Play));
-
-		PauseCommand = ReactiveCommand.Create(() => _stateMachine.Fire(Trigger.Pause));
-
-		StopCommand = ReactiveCommand.Create(() => _stateMachine.Fire(Trigger.Stop));
-
-		walletVm.Settings.WhenAnyValue(x => x.AutoCoinJoin)
-			.Subscribe(SetAutoCoinJoin);
-
-		_stateMachine.Start();
 	}
 
 	private void TimerOnTick()
