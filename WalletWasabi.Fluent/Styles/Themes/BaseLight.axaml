@@ -4,7 +4,6 @@
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary>
-          <Color x:Key="SystemAccentColor">#FF78A827</Color>
           <Color x:Key="SystemAltHighColor">#FFFFFFFF</Color>
           <Color x:Key="SystemAltLowColor">#FFFFFFFF</Color>
           <Color x:Key="SystemAltMediumColor">#FFFFFFFF</Color>
@@ -34,12 +33,14 @@
           <Color x:Key="SystemChromeAltHighColor">#FFE3E8F0</Color>
           <Color x:Key="SystemRevealListLowColor">#FFEEF3FC</Color>
           <Color x:Key="SystemRevealListMediumColor">#FFE3E8F0</Color>
+
           <Color x:Key="SystemAccentColorLight1">#FF88B340</Color>
           <Color x:Key="SystemAccentColorLight2">#FF99BF59</Color>
           <Color x:Key="SystemAccentColorLight3">#FFA9CA73</Color>
           <Color x:Key="SystemAccentColorDark1">#FF65951F</Color>
           <Color x:Key="SystemAccentColorDark2">#FF528217</Color>
           <Color x:Key="SystemAccentColorDark3">#FF3F6F10</Color>
+
           <Color x:Key="RegionColor">#FCFDFF</Color>
           <Color x:Key="TileRegionColor">#FFFFFF</Color>
         </ResourceDictionary>
