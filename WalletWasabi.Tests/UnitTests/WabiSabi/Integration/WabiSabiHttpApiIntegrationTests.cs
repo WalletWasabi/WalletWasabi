@@ -315,99 +315,100 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		await roundStateUpdater.StopAsync(CancellationToken.None);
 	}
 
-	[Theory]
-	[InlineData(123456)]
-	public async Task MultiClientsCoinJoinTestAsync(int seed)
-	{
-		const int NumberOfParticipants = 10;
-		const int NumberOfCoinsPerParticipant = 2;
-		const int ExpectedInputNumber = (NumberOfParticipants * NumberOfCoinsPerParticipant) / 2;
+	// ToDo: Fix this test. It's incorrect, because the TestWallet class doesn't simulate multipe keys, only a single one.
+	//[Theory]
+	//[InlineData(123456)]
+	//public async Task MultiClientsCoinJoinTestAsync(int seed)
+	//{
+	//	const int NumberOfParticipants = 10;
+	//	const int NumberOfCoinsPerParticipant = 2;
+	//	const int ExpectedInputNumber = (NumberOfParticipants * NumberOfCoinsPerParticipant) / 2;
 
-		var node = await TestNodeBuilder.CreateForHeavyConcurrencyAsync();
-		try
-		{
-			var rpc = node.RpcClient;
+	//	var node = await TestNodeBuilder.CreateForHeavyConcurrencyAsync();
+	//	try
+	//	{
+	//		var rpc = node.RpcClient;
 
-			var app = _apiApplicationFactory.WithWebHostBuilder(builder =>
-				builder.ConfigureServices(services =>
-				{
-					// Instruct the coordinator DI container to use these two scoped
-					// services to build everything (WabiSabi controller, arena, etc)
-					services.AddScoped<IRPCClient>(s => rpc);
-					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig(Path.GetTempFileName())
-					{
-						MaxRegistrableAmount = Money.Coins(500m),
-						MaxInputCountByRound = ExpectedInputNumber,
-						StandardInputRegistrationTimeout = TimeSpan.FromSeconds(10 * ExpectedInputNumber),
-						ConnectionConfirmationTimeout = TimeSpan.FromSeconds(20 * ExpectedInputNumber),
-						OutputRegistrationTimeout = TimeSpan.FromSeconds(20 * ExpectedInputNumber),
-					});
-				}));
+	//		var app = _apiApplicationFactory.WithWebHostBuilder(builder =>
+	//			builder.ConfigureServices(services =>
+	//			{
+	//				// Instruct the coordinator DI container to use these two scoped
+	//				// services to build everything (WabiSabi controller, arena, etc)
+	//				services.AddScoped<IRPCClient>(s => rpc);
+	//				services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig(Path.GetTempFileName())
+	//				{
+	//					MaxRegistrableAmount = Money.Coins(500m),
+	//					MaxInputCountByRound = ExpectedInputNumber,
+	//					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(10 * ExpectedInputNumber),
+	//					ConnectionConfirmationTimeout = TimeSpan.FromSeconds(20 * ExpectedInputNumber),
+	//					OutputRegistrationTimeout = TimeSpan.FromSeconds(20 * ExpectedInputNumber),
+	//				});
+	//			}));
 
-			using PersonCircuit personCircuit = new();
-			IHttpClient httpClientWrapper = new HttpClientWrapper(app.CreateClient());
+	//		using PersonCircuit personCircuit = new();
+	//		IHttpClient httpClientWrapper = new HttpClientWrapper(app.CreateClient());
 
-			var mockHttpClientFactory = new Mock<IWasabiHttpClientFactory>(MockBehavior.Strict);
-			mockHttpClientFactory
-				.Setup(factory => factory.NewHttpClientWithPersonCircuit(out httpClientWrapper))
-				.Returns(personCircuit);
+	//		var mockHttpClientFactory = new Mock<IWasabiHttpClientFactory>(MockBehavior.Strict);
+	//		mockHttpClientFactory
+	//			.Setup(factory => factory.NewHttpClientWithPersonCircuit(out httpClientWrapper))
+	//			.Returns(personCircuit);
 
-			mockHttpClientFactory
-				.Setup(factory => factory.NewHttpClientWithCircuitPerRequest())
-				.Returns(httpClientWrapper);
+	//		mockHttpClientFactory
+	//			.Setup(factory => factory.NewHttpClientWithCircuitPerRequest())
+	//			.Returns(httpClientWrapper);
 
-			mockHttpClientFactory
-				.Setup(factory => factory.NewHttpClientWithDefaultCircuit())
-				.Returns(httpClientWrapper);
+	//		mockHttpClientFactory
+	//			.Setup(factory => factory.NewHttpClientWithDefaultCircuit())
+	//			.Returns(httpClientWrapper);
 
-			// Total test timeout.
-			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(40 * ExpectedInputNumber));
+	//		// Total test timeout.
+	//		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(40 * ExpectedInputNumber));
 
-			var participants = Enumerable
-				.Range(0, NumberOfParticipants)
-				.Select(i => new Participant($"participant{i}", rpc, mockHttpClientFactory.Object))
-				.ToArray();
+	//		var participants = Enumerable
+	//			.Range(0, NumberOfParticipants)
+	//			.Select(i => new Participant($"participant{i}", rpc, mockHttpClientFactory.Object))
+	//			.ToArray();
 
-			using var disposableParticipants = new CompositeDisposable(participants);
-			foreach (var participant in participants)
-			{
-				await participant.GenerateSourceCoinAsync(cts.Token);
-			}
-			using var dummyWallet = new TestWallet("dummy", rpc);
-			await dummyWallet.GenerateAsync(101, cts.Token);
-			foreach (var participant in participants)
-			{
-				await participant.GenerateCoinsAsync(NumberOfCoinsPerParticipant, seed, cts.Token);
-			}
-			await dummyWallet.GenerateAsync(101, cts.Token);
+	//		using var disposableParticipants = new CompositeDisposable(participants);
+	//		foreach (var participant in participants)
+	//		{
+	//			await participant.GenerateSourceCoinAsync(cts.Token);
+	//		}
+	//		using var dummyWallet = new TestWallet("dummy", rpc);
+	//		await dummyWallet.GenerateAsync(101, cts.Token);
+	//		foreach (var participant in participants)
+	//		{
+	//			await participant.GenerateCoinsAsync(NumberOfCoinsPerParticipant, seed, cts.Token);
+	//		}
+	//		await dummyWallet.GenerateAsync(101, cts.Token);
 
-			var tasks = participants.Select(x => x.StartParticipatingAsync(cts.Token)).ToArray();
+	//		var tasks = participants.Select(x => x.StartParticipatingAsync(cts.Token)).ToArray();
 
-			while ((await rpc.GetRawMempoolAsync()).Length == 0)
-			{
-				if (cts.IsCancellationRequested)
-				{
-					throw new TimeoutException("Coinjoin was not propagated.");
-				}
+	//		while ((await rpc.GetRawMempoolAsync()).Length == 0)
+	//		{
+	//			if (cts.IsCancellationRequested)
+	//			{
+	//				throw new TimeoutException("Coinjoin was not propagated.");
+	//			}
 
-				await Task.Delay(500, cts.Token);
+	//			await Task.Delay(500, cts.Token);
 
-				if (tasks.FirstOrDefault(t => t.IsFaulted)?.Exception is { } exc)
-				{
-					throw exc;
-				}
-			}
-			var mempool = await rpc.GetRawMempoolAsync();
-			var coinjoin = await rpc.GetRawTransactionAsync(mempool.Single());
+	//			if (tasks.FirstOrDefault(t => t.IsFaulted)?.Exception is { } exc)
+	//			{
+	//				throw exc;
+	//			}
+	//		}
+	//		var mempool = await rpc.GetRawMempoolAsync();
+	//		var coinjoin = await rpc.GetRawTransactionAsync(mempool.Single());
 
-			Assert.True(coinjoin.Outputs.Count <= ExpectedInputNumber);
-			Assert.Equal(ExpectedInputNumber, coinjoin.Inputs.Count);
-		}
-		finally
-		{
-			await node.TryStopAsync();
-		}
-	}
+	//		Assert.True(coinjoin.Outputs.Count <= ExpectedInputNumber);
+	//		Assert.Equal(ExpectedInputNumber, coinjoin.Inputs.Count);
+	//	}
+	//	finally
+	//	{
+	//		await node.TryStopAsync();
+	//	}
+	//}
 
 	[Fact]
 	public async Task RegisterCoinIdempotencyAsync()
