@@ -36,7 +36,12 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 
 		RecoverWalletCommand = ReactiveCommand.Create(OnRecoverWallet);
 
-		OpenCommand = ReactiveCommand.Create(async () => await NavigateDialogAsync(this, NavigationTarget.DialogScreen));
+		OpenCommand = ReactiveCommand.Create(async () =>
+		{
+			MainViewModel.Instance.IsOobeBackgroundVisible = true;
+			await NavigateDialogAsync(this, NavigationTarget.DialogScreen);
+			MainViewModel.Instance.IsOobeBackgroundVisible = false;
+		});
 	}
 
 	public ICommand CreateWalletCommand { get; }
