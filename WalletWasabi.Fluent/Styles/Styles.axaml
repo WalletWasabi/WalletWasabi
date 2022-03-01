@@ -28,5 +28,4 @@
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/SettingsLayout.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Slider.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ToolTip.axaml" />
-  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ScrollViewer.axaml" />
 </Styles>
