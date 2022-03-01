@@ -175,7 +175,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				IsAuto = true;
 				StopVisible = false;
 				PauseVisible = false;
-				PlayVisible = true;
+				PlayVisible = false;
 
 				CurrentStatus = _initialisingMessage;
 
@@ -190,6 +190,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.Play, State.AutoPlaying)
 			.OnEntry(() =>
 			{
+				PlayVisible = true;
 				IsAutoWaiting = true;
 				CurrentStatus = _countDownMessage;
 			})
