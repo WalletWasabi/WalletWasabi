@@ -207,10 +207,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.SubstateOf(State.AutoCoinJoin)
 			.Permit(Trigger.Pause, State.Paused)
 			.Permit(Trigger.RoundStart, State.AutoPlaying)
+			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
 			.Permit(Trigger.Play, State.AutoPlaying)
 			.OnEntry(() =>
 			{
-				PlayVisible = true;
 				IsAutoWaiting = true;
 				CurrentStatus = _countDownMessage;
 			})
@@ -267,7 +267,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.OnEntry(() =>
 			{
 				PauseVisible = false;
-				PlayVisible = true;
 
 				ProgressValue = 100;
 				ElapsedTime = "";
