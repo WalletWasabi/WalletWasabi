@@ -73,7 +73,7 @@ public partial class WalletViewModel : WalletViewModelBase
 		Observable
 			.Merge(this.WhenAnyValue(x => x.IsActive))
 			.Merge(this.WhenAnyValue(x => x.IsSendButtonVisible))
-			.Select(_ => IsActive && !IsSendButtonVisible && !_receiveButtonClickedOnce)
+			.Select(_ => !IsSendButtonVisible && !_receiveButtonClickedOnce)
 			.Subscribe(x => PulseAnimationActive = x)
 			.DisposeWith(Disposables);
 
