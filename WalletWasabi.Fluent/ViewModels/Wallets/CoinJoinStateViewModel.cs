@@ -134,6 +134,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.OnProcess(UpdateWalletMixedProgress);
 
 		_machine.Configure(State.ManualPlaying)
+			.SubstateOf(State.ManualCoinJoin)
 			.Permit(Trigger.Stop, State.Stopped)
 			.OnEntry(() =>
 			{
