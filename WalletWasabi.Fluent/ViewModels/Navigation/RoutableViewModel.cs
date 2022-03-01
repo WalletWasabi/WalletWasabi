@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -125,17 +126,21 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 
 	protected void EnableAutoBusyOn(params ICommand[] commands)
 	{
-		foreach (var command in commands)
-		{
-			(command as IReactiveCommand)?.IsExecuting
-				.ObserveOn(RxApp.MainThreadScheduler)
+		var updaters = commands
+			.OfType<IReactiveCommand>()
+			.Select(command => command.IsExecuting
 				.Skip(1)
-				.Subscribe(x => IsBusy = x);
-		}
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(isBusy => IsBusy = isBusy))
+			.ToList();
+
+		updaters.ForEach(subscription => _currentDisposable?.Add(subscription));
 	}
 
 	public async Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog)
-		=> await NavigateDialogAsync(dialog, CurrentTarget);
+	{
+		return await NavigateDialogAsync(dialog, CurrentTarget);
+	}
 
 	public async Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target, NavigationMode navigationMode = NavigationMode.Normal)
 	{
