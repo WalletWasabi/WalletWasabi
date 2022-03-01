@@ -11,38 +11,37 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-public enum State
-{
-	AutoCoinJoin,
-	ManualCoinJoin,
-
-	AutoStarting,
-	Paused,
-	AutoPlaying,
-
-	Stopped,
-	ManualPlaying,
-}
-
-public enum Trigger
-{
-	AutoCoinJoinOn,
-	AutoCoinJoinOff,
-	AutoCoinJoinEntered,
-	ManualCoinJoinEntered,
-	Pause,
-	Play,
-	Stop,
-	PlebStop,
-	RoundStartFailed,
-	RoundStart
-}
-
 public partial class CoinJoinStateViewModel : ViewModelBase
 {
+	enum State
+	{
+		AutoCoinJoin,
+		ManualCoinJoin,
+
+		AutoStarting,
+		Paused,
+		AutoPlaying,
+
+		Stopped,
+		ManualPlaying,
+	}
+
+	enum Trigger
+	{
+		AutoCoinJoinOn,
+		AutoCoinJoinOff,
+		AutoCoinJoinEntered,
+		ManualCoinJoinEntered,
+		Pause,
+		Play,
+		Stop,
+		PlebStop,
+		RoundStartFailed,
+		RoundStart
+	}
+
 	private readonly StateMachine<State, Trigger> _machine;
 	private readonly Wallet _wallet;
-	private readonly DispatcherTimer _timer;
 
 	[AutoNotify] private bool _isAutoWaiting;
 	[AutoNotify] private bool _isAuto;
@@ -64,13 +63,22 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		{ Message = "Coinjoin is paused" };
 
 	private readonly MusicStatusMessageViewModel _stoppedMessage = new() { Message = "Coinjoin is stopped" };
-	private readonly MusicStatusMessageViewModel _startErrorMessage = new() { };
+
 	private DateTimeOffset _autoStartTime;
 	private DateTimeOffset _countDownStarted;
 
 	public CoinJoinStateViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
 	{
+		_elapsedTime = "";
+		_remainingTime = "";
+
 		_wallet = walletVm.Wallet;
+
+		var timer = new DispatcherTimer
+		{
+			Interval = TimeSpan.FromSeconds(1),
+		};
+
 		var coinJoinManager = Services.HostedServices.Get<CoinJoinManager>();
 
 		Observable.FromEventPattern<StatusChangedEventArgs>(coinJoinManager, nameof(coinJoinManager.StatusChanged))
@@ -155,7 +163,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			{
 				IsAutoWaiting = true;
 				CurrentStatus = _countDownMessage;
-				_timer.Start();
+				timer.Start();
 			})
 			.OnProcess(() =>
 			{
@@ -169,7 +177,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.OnExit(() =>
 			{
 				IsAutoWaiting = false;
-				_timer.Stop();
+				timer.Stop();
 			});
 
 		_machine.Configure(State.Paused)
@@ -213,12 +221,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		StopCommand = ReactiveCommand.Create(() => _machine.Fire(Trigger.Stop));
 
-		_timer = new DispatcherTimer
-		{
-			Interval = TimeSpan.FromSeconds(1),
-		};
-
-		_timer.Tick += TimerOnTick;
+		timer.Tick += TimerOnTick;
 
 		walletVm.Settings.WhenAnyValue(x => x.AutoCoinJoin)
 			.Subscribe(SetAutoCoinJoin);
@@ -251,33 +254,19 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	{
 		switch (e)
 		{
-			case CoinJoinCompletedEventArgs coinJoinCompletedEventArgs:
-				// TODO implement a message to show success / failure.
-				break;
-
 			case StartingEventArgs startingEventArgs:
 				_countDownStarted = DateTimeOffset.Now;
 				_autoStartTime = _countDownStarted + startingEventArgs.StartingIn;
 				break;
 
-			case StartedEventArgs startedEventArgs:
-				//var regTimeout = DateTimeOffset.Now + startedEventArgs.RegistrationTimeout;
+			case StartedEventArgs:
 				_machine.Fire(Trigger.RoundStart);
 				break;
 
-			case StartErrorEventArgs startErrorEventArgs:
+			case StartErrorEventArgs:
 				_machine.Fire(Trigger.RoundStartFailed);
 				break;
-
-			case StoppedEventArgs stoppedEventArgs:
-				break;
-
-			case LoadedEventArgs loadedEventArgs:
-
-				break;
 		}
-
-		Console.WriteLine($"CjStatus: {e.GetType()}");
 	}
 
 	public void SetAutoCoinJoin(bool enabled)
