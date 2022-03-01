@@ -23,9 +23,11 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		AutoStarting,
 		Paused,
 		AutoPlaying,
+		AutoFinished,
 
 		Stopped,
 		ManualPlaying,
+		ManualFinished,
 	}
 
 	enum Trigger
@@ -67,6 +69,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private readonly MusicStatusMessageViewModel _stoppedMessage = new() { Message = "Coinjoin is stopped" };
 
 	private readonly MusicStatusMessageViewModel _initialisingMessage = new() { Message = "Coinjoin is initialising" };
+
+	private readonly MusicStatusMessageViewModel _finishedMessage = new() { Message = "No balance to coinjoin" };
 
 	private DateTimeOffset _autoStartTime;
 	private DateTimeOffset _countDownStarted;
@@ -139,6 +143,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_machine.Configure(State.ManualPlaying)
 			.SubstateOf(State.ManualCoinJoin)
 			.Permit(Trigger.Stop, State.Stopped)
+			.Permit(Trigger.RoundStartFailed, State.ManualFinished)
 			.OnEntry(() =>
 			{
 				PlayVisible = false;
@@ -147,6 +152,19 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				coinJoinManager.Start(walletVm.Wallet);
 			})
 			.OnProcess(UpdateWalletMixedProgress);
+
+		_machine.Configure(State.ManualFinished)
+			.SubstateOf(State.ManualCoinJoin)
+			.Permit(Trigger.Play, State.ManualPlaying)
+			.OnEntry(() =>
+			{
+				StopVisible = false;
+				PlayVisible = true;
+				CurrentStatus = _finishedMessage;
+				ProgressValue = 100;
+				ElapsedTime = "";
+				RemainingTime = "";
+			});
 
 		// AutoCj State
 		_machine.Configure(State.AutoCoinJoin)
@@ -210,7 +228,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.SubstateOf(State.AutoCoinJoin)
 			.Permit(Trigger.Pause, State.Paused)
 			.Permit(Trigger.PlebStop, State.Paused)
-			.Permit(Trigger.RoundStartFailed, State.Paused)
+			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
 			.Permit(Trigger.RoundStart, State.AutoPlaying)
 			.OnEntry(() =>
 			{
@@ -221,6 +239,21 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				coinJoinManager.Start(walletVm.Wallet);
 			})
 			.OnProcess(UpdateWalletMixedProgress);
+
+		_machine.Configure(State.AutoFinished)
+			.SubstateOf(State.AutoCoinJoin)
+			.Permit(Trigger.RoundStart, State.AutoPlaying)
+			.OnEntry(() =>
+			{
+				PauseVisible = false;
+				PlayVisible = true;
+
+				ProgressValue = 100;
+				ElapsedTime = "";
+				RemainingTime = "";
+
+				CurrentStatus = _finishedMessage;
+			});
 
 		balanceChanged.Subscribe(_ => _machine.Process());
 
@@ -274,7 +307,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					_autoStartTime = _countDownStarted + startingEventArgs.StartingIn;
 					_machine.Fire(Trigger.AutoCoinJoinEntered);
 				}
-
 				break;
 
 			case StartedEventArgs:
