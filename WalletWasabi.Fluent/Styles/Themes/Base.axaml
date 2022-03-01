@@ -41,14 +41,14 @@
                      Color="{DynamicResource SystemBaseMediumLowColor}" />
 
     <SolidColorBrush x:Key="ActionButtonForegroundColor" Color="White" />
-    <SolidColorBrush x:Key="ActionButtonBackgroundColor" Color="{DynamicResource SystemAccentLowColor}" />
+    <SolidColorBrush x:Key="ActionButtonBackgroundColor" Color="{DynamicResource SystemAccentColor}" />
     <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Color="{DynamicResource SystemAccentColorDark1}" />
     <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="{DynamicResource SystemAccentColorLight1}" />
     <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="{DynamicResource SystemChromeDisabledLowColor}" />
 
-    <x:Double x:Key="NavBarAccentColorPressedOpacity">0.6</x:Double>
-    <x:Double x:Key="NavBarItemPressedAccentOpacity">0.3</x:Double>
-
+    <SolidColorBrush x:Key="NavBarAccentColor">#97D234</SolidColorBrush>
+    <SolidColorBrush x:Key="NavBarAccentColorPressed">#719B2A</SolidColorBrush>
+    <SolidColorBrush x:Key="NavBarItemPressedAccentColor">#719B2A</SolidColorBrush>
     <SolidColorBrush x:Key="NavBarItemDisabledBrush">#66FFFFFF</SolidColorBrush>
     <SolidColorBrush x:Key="NavBarItemPointerOverBrush">#FFFFFFFF</SolidColorBrush>
     <SolidColorBrush x:Key="NavBarItemPointerOverBackgroundBrush">#19FFFFFF</SolidColorBrush>

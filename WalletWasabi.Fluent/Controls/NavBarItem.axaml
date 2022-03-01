@@ -79,7 +79,7 @@
 
   <Style Selector="c|NavBarItem /template/ Rectangle#SelectionIndicator">
     <Setter Property="Opacity" Value="0"/>
-    <Setter Property="Fill" Value="{DynamicResource SystemAccentColor}" />
+    <Setter Property="Fill" Value="{DynamicResource NavBarAccentColor}" />
   </Style>
 
   <Style Selector="c|NavBarItem /template/ Border#SelectionBackground">
@@ -113,7 +113,7 @@
 
   <!-- Pressed State -->
   <Style Selector="c|NavBarItem:pressed /template/ Rectangle#SelectionIndicator">
-    <Setter Property="Opacity" Value="{DynamicResource NavBarItemPressedAccentOpacity}" />
+    <Setter Property="Fill" Value="{DynamicResource NavBarItemPressedAccentColor}" />
   </Style>
   <Style Selector="c|NavBarItem:pressed /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource NavBarItemPressedBrush}" />
@@ -140,7 +140,7 @@
 
   <!-- Selected PointerOver State -->
   <Style Selector="c|NavBarItem:selected:pointerover /template/ Border">
-    <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource NavBarAccentColor}" />
   </Style>
   <Style Selector="c|NavBarItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource NavBarItemSelectedPointerOverBrush}" />
@@ -148,7 +148,7 @@
 
   <!-- Selected Pressed State -->
   <Style Selector="c|NavBarItem:selected:pressed /template/ Border">
-    <Setter Property="Opacity" Value="{DynamicResource NavBarAccentColorPressedOpacity}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource NavBarAccentColorPressed}" />
   </Style>
   <Style Selector="c|NavBarItem:selected:pressed /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource NavBarItemSelectedPressedBrush}" />
