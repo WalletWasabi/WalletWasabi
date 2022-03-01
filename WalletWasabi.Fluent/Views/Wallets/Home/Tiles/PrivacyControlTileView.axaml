@@ -12,12 +12,15 @@
       <TextBlock Text="PRIVACY LEVEL" DockPanel.Dock="Top" Classes="h8 bold" />
       <StackPanel DockPanel.Dock="Bottom" Height="25" Spacing="8" IsVisible="{Binding HasPrivateBalance}">
         <Separator />
-        <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
-          <TextBlock Text="PRIVATE" Classes="h9 bold" Margin="4 2 " VerticalAlignment="Center"
-                     HorizontalAlignment="Center" />
+        <StackPanel Opacity="0.8" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+          <Border VerticalAlignment="Center" BorderThickness="1" CornerRadius="2"
+                  BorderBrush="{StaticResource ButtonForeground}">
+            <TextBlock
+              Text="PRIVATE" Classes="h9 bold" Margin="4 2 " VerticalAlignment="Center" HorizontalAlignment="Center" />
+          </Border>
           <controls:PrivacyContentControl Classes="h9 bold" NumberOfPrivacyChars="9"
                                           VerticalAlignment="Center"
-                                          Opacity="0.8"
+
                                           Content="{Binding BalancePrivateBtc}" />
         </StackPanel>
       </StackPanel>
@@ -28,7 +31,7 @@
         <TextBlock
           VerticalAlignment="Center" HorizontalAlignment="Center"
           TextAlignment="Center"
-          Text="{Binding PercentText}" Classes="h2"   />
+          Text="{Binding PercentText}" Classes="h2" />
       </StackPanel>
 
     </DockPanel>
