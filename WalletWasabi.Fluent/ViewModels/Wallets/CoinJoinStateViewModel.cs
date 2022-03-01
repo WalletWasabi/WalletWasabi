@@ -66,6 +66,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private readonly MusicStatusMessageViewModel _stoppedMessage = new() { Message = "Coinjoin is stopped" };
 
+	private readonly MusicStatusMessageViewModel _initialisingMessage = new() { Message = "Coinjoin is initialising" };
+
 	private DateTimeOffset _autoStartTime;
 	private DateTimeOffset _countDownStarted;
 
@@ -157,10 +159,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PauseVisible = false;
 				PlayVisible = true;
 
+				CurrentStatus = _initialisingMessage;
+
 				coinJoinManager.Stop(walletVm.Wallet);
 				coinJoinManager.AutoStart(walletVm.Wallet);
-
-				_machine.Fire(Trigger.AutoCoinJoinEntered);
 			});
 
 		_machine.Configure(State.AutoStarting)
@@ -266,8 +268,13 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		switch (e)
 		{
 			case StartingEventArgs startingEventArgs:
-				_countDownStarted = DateTimeOffset.Now;
-				_autoStartTime = _countDownStarted + startingEventArgs.StartingIn;
+				if (_machine.CurrentState == State.AutoCoinJoin)
+				{
+					_countDownStarted = DateTimeOffset.Now;
+					_autoStartTime = _countDownStarted + startingEventArgs.StartingIn;
+					_machine.Fire(Trigger.AutoCoinJoinEntered);
+				}
+
 				break;
 
 			case StartedEventArgs:
