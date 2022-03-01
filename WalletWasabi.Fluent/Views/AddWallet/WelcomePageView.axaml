@@ -10,17 +10,15 @@
              x:Class="WalletWasabi.Fluent.Views.AddWallet.WelcomePageView"
              x:DataType="addWallet:WelcomePageViewModel"
              x:CompileBindings="True">
-  <UserControl.KeyBindings>
-    <KeyBinding Gesture="Right" Command="{Binding NextCommand}" />
-    <KeyBinding Gesture="Left" Command="{Binding PrevCommand}" />
-  </UserControl.KeyBindings>
   <i:Interaction.Behaviors>
     <behaviors:FocusOnAttachedBehavior />
   </i:Interaction.Behaviors>
-  <controls:ContentArea EnableCancel="{Binding EnableCancel}"
-                        EnableBack="{Binding EnableBack}"
-                        EnableNext="False"
+  <controls:ContentArea EnableCancel="False"
+                        EnableBack="False"
+                        EnableNext="True"
+                        NextContent="{Binding NextLabel}"
                         ScrollViewer.VerticalScrollBarVisibility="Disabled">
+
     <DockPanel LastChildFill="True" x:DataType="addWallet:WelcomePageViewModel">
 
       <!-- Indicator & Buttons -->
@@ -89,12 +87,6 @@
               <Setter Property="Width" Value="5" />
             </Style>
           </StackPanel.Styles>
-          <Button Command="{Binding PrevCommand}">
-            <PathIcon Data="{StaticResource chevron_left}" />
-          </Button>
-          <Button Command="{Binding NextCommand}">
-            <PathIcon Data="{StaticResource chevron_right}" />
-          </Button>
         </StackPanel>
       </Panel>
 
@@ -102,6 +94,9 @@
       <Carousel SelectedIndex="{Binding SelectedIndex}"
                 DockPanel.Dock="Top"
                 Margin="0 10">
+        <i:Interaction.Behaviors>
+          <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding NextCommand}" IsEnabled="{Binding EnableNextKey}" Key="Right"/>
+        </i:Interaction.Behaviors>
         <Carousel.Styles>
           <Style Selector="TextBlock.text">
             <Setter Property="DockPanel.Dock" Value="Bottom" />
@@ -134,13 +129,13 @@
 
         <!-- Welcome to Wasabi -->
         <Grid ColumnDefinitions="*,*">
+          <Viewbox Classes="icon" HorizontalAlignment="Left" VerticalAlignment="Top" Height="48" Width="48">
+            <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
+          </Viewbox>
           <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
             <TextBlock Classes="text" Text="Satoshi brought scarcity, while Wasabi is bringing fungibility. As inflation is running rampant, vigilant individuals are opting out. Bitcoin is rapidly becoming the world's reserve currency, but its fungibility - a property of good money - is still unsatisfactory. Wasabi Wallet is a bastion of hope in the quest to qualitatively improve the money of the future." />
             <TextBlock Text="Welcome to Wasabi"
                        Classes="title" />
-            <Viewbox Classes="icon">
-              <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
-            </Viewbox>
           </DockPanel>
           <Viewbox Grid.Column="1" VerticalAlignment="Center">
             <Image Source="{Binding WelcomeImage}" />
@@ -149,13 +144,13 @@
 
         <!-- Trustless by design -->
         <Grid ColumnDefinitions="*,*">
+          <Viewbox Classes="icon" HorizontalAlignment="Left" VerticalAlignment="Top" Height="48" Width="48">
+            <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
+          </Viewbox>
           <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
             <TextBlock Classes="text" Text="If you don't control your private keys, then you are not the true owner of your funds. Wasabi is non-custodial: the developers cannot steal or freeze your funds." />
             <TextBlock Text="Non-Custodial"
                        Classes="title" />
-            <Viewbox Classes="icon">
-              <PathIcon Data="{StaticResource shield_regular}" Foreground="{DynamicResource SliderTrackValueFill}" />
-            </Viewbox>
           </DockPanel>
           <Viewbox Grid.Column="1" VerticalAlignment="Center">
             <Image Source="{Binding TrustlessImage}" />
@@ -164,13 +159,13 @@
 
         <!-- Anonymous -->
         <Grid ColumnDefinitions="*,*">
+          <Viewbox Classes="icon" HorizontalAlignment="Left" VerticalAlignment="Top" Height="48" Width="48">
+            <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
+          </Viewbox>
           <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
             <TextBlock Classes="text" Text="Wasabi provides privacy by default, it protects your financial information through coinjoins, client-side block filtering, and communication over the Tor anonymity network. Neither the public nor the developers can breach your privacy." />
             <TextBlock Text="Anonymous"
                        Classes="title" />
-            <Viewbox Classes="icon">
-              <PathIcon Data="{StaticResource incognito_regular}" Foreground="{DynamicResource SliderTrackValueFill}" />
-            </Viewbox>
           </DockPanel>
           <Viewbox Grid.Column="1" VerticalAlignment="Center">
             <Image Source="{Binding AnonymousImage}" />
@@ -179,13 +174,13 @@
 
         <!-- Free and Open Source -->
         <Grid ColumnDefinitions="*,*">
+          <Viewbox Classes="icon" HorizontalAlignment="Left" VerticalAlignment="Top" Height="48" Width="48">
+            <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
+          </Viewbox>
           <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
             <TextBlock Classes="text" Text="To ensure the code - running on your computer - can indeed protect you from the developers and the public, Wasabi is free, open-source and deterministically reproducible software." />
             <TextBlock Text="Open-Source"
                        Classes="title" />
-            <Viewbox Classes="icon">
-              <PathIcon Data="{StaticResource heart_regular}" Foreground="{DynamicResource SliderTrackValueFill}" />
-            </Viewbox>
           </DockPanel>
           <Viewbox Grid.Column="1" VerticalAlignment="Center">
             <Image Source="{Binding OpensourceImage}" />
@@ -194,12 +189,6 @@
 
         <!-- Get started -->
         <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-          <Button HorizontalAlignment="Center"
-                  Classes="action"
-                  Content="Get Started"
-                  Command="{Binding GetStartedCommand}"
-                  IsDefault="{Binding IsActive}"
-                  DockPanel.Dock="Bottom" />
           <TextBlock TextAlignment="Center"
                      Text="The 1st Rule of Wasabi: Wasabi is for self defense and self defense only"
                      Opacity="0.6"
