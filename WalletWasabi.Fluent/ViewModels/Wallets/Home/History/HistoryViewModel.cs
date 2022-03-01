@@ -149,7 +149,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 						CanUserSortColumn = true,
 						CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Balance),
 						CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Balance),
-						MinWidth = new GridLength(150, GridUnitType.Pixel),
+						MinWidth = new GridLength(130, GridUnitType.Pixel),
 						MaxWidth = new GridLength(150, GridUnitType.Pixel)
 					},
 					width: new GridLength(0, GridUnitType.Auto),
