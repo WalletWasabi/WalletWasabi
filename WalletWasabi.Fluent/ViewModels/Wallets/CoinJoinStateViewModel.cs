@@ -72,7 +72,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private readonly MusicStatusMessageViewModel _initialisingMessage = new() { Message = "Coinjoin is initialising" };
 
-	private readonly MusicStatusMessageViewModel _finishedMessage = new() { Message = "No balance to coinjoin" };
+	private readonly MusicStatusMessageViewModel _finishedMessage = new() { Message = "Waiting for confirmation" };
 
 	private DateTimeOffset _autoStartTime;
 	private DateTimeOffset _countDownStarted;
