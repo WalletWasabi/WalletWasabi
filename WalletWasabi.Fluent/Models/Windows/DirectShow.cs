@@ -4,9 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
+using System.Runtime.Versioning;
 
 namespace WalletWasabi.Fluent.Models.Windows;
 
+[SupportedOSPlatform("windows")]
 public static class DirectShow
 {
 	public static object? CoCreateInstance(Guid clsid)

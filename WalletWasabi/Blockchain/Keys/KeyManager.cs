@@ -2,7 +2,6 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -26,6 +25,7 @@ public class KeyManager
 	public const int DefaultMinAnonScoreTarget = 5;
 	public const int DefaultMaxAnonScoreTarget = 10;
 	public const bool DefaultAutoCoinjoin = false;
+	public const int DefaultFeeRateMedianTimeFrameHours = 0;
 
 	public const int AbsoluteMinGapLimit = 21;
 	public const int MaxGapLimit = 10_000;
@@ -161,6 +161,9 @@ public class KeyManager
 
 	[JsonProperty(Order = 14, PropertyName = "MaxAnonScoreTarget")]
 	public int MaxAnonScoreTarget { get; private set; } = DefaultMaxAnonScoreTarget;
+
+	[JsonProperty(Order = 15, PropertyName = "FeeRateMedianTimeFrameHours")]
+	public int FeeRateMedianTimeFrameHours { get; private set; } = DefaultFeeRateMedianTimeFrameHours;
 
 	[JsonProperty(Order = 999)]
 	private List<HdPubKey> HdPubKeys { get; }
@@ -695,7 +698,7 @@ public class KeyManager
 		SetIcon(type.ToString());
 	}
 
-	public void SetAnonScoreTargets(int minAnonScoreTarget, int maxAnonScoreTarget)
+	public void SetAnonScoreTargets(int minAnonScoreTarget, int maxAnonScoreTarget, bool toFile = true)
 	{
 		if (maxAnonScoreTarget <= minAnonScoreTarget)
 		{
@@ -704,7 +707,24 @@ public class KeyManager
 
 		MinAnonScoreTarget = minAnonScoreTarget;
 		MaxAnonScoreTarget = maxAnonScoreTarget;
-		ToFile();
+		if (toFile)
+		{
+			ToFile();
+		}
+	}
+
+	public void SetFeeRateMedianTimeFrame(int hours, bool toFile = true)
+	{
+		if (hours != 0 && !Constants.CoinJoinFeeRateMedianTimeFrames.Contains(hours))
+		{
+			throw new ArgumentOutOfRangeException(nameof(hours), $"Hours can be only one of {string.Join(",", Constants.CoinJoinFeeRateMedianTimeFrames)}.");
+		}
+
+		FeeRateMedianTimeFrameHours = hours;
+		if (toFile)
+		{
+			ToFile();
+		}
 	}
 
 	public void AssertNetworkOrClearBlockState(Network expectedNetwork)

@@ -34,7 +34,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public List<string>? FilteredLabel { get; protected set; }
 
-	public List<string>? Label { get; protected set; }
+	public string? Label { get; protected set; }
 
 	public bool IsCoinJoin { get; protected set; }
 
@@ -55,4 +55,50 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	}
 
 	public bool IsSimilar(HistoryItemViewModelBase item) => Id == item.Id;
+
+	public static Comparison<HistoryItemViewModelBase?> SortAscending<T>(Func<HistoryItemViewModelBase, T> selector)
+	{
+		return (x, y) =>
+		{
+			if (x is null && y is null)
+			{
+				return 0;
+			}
+			else if (x is null)
+			{
+				return -1;
+			}
+			else if (y is null)
+			{
+				return 1;
+			}
+			else
+			{
+				return Comparer<T>.Default.Compare(selector(x), selector(y));
+			}
+		};
+	}
+
+	public static Comparison<HistoryItemViewModelBase?> SortDescending<T>(Func<HistoryItemViewModelBase, T> selector)
+	{
+		return (x, y) =>
+		{
+			if (x is null && y is null)
+			{
+				return 0;
+			}
+			else if (x is null)
+			{
+				return 1;
+			}
+			else if (y is null)
+			{
+				return -1;
+			}
+			else
+			{
+				return Comparer<T>.Default.Compare(selector(y), selector(x));
+			}
+		};
+	}
 }

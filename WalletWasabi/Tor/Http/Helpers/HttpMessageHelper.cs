@@ -8,7 +8,9 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Logging;
 using WalletWasabi.Tor.Http.Models;
+using WalletWasabi.Tor.Socks5.Exceptions;
 using static WalletWasabi.Tor.Http.Constants;
 
 namespace WalletWasabi.Tor.Http.Helpers;
@@ -32,6 +34,14 @@ public static class HttpMessageHelper
 		while (read >= 0)
 		{
 			read = await stream.ReadByteAsync(ctsToken).ConfigureAwait(false);
+
+			// End of stream has been reached.
+			if (read == -1)
+			{
+				Logger.LogTrace($"End of stream has been reached during reading HTTP start-line. Read bytes: '{ByteHelpers.ToHex(bab.ToArray())}'.");
+				throw new TorConnectionReadException("HTTP start-line is incomplete. Tor circuit probably died.");
+			}
+
 			bab.Append((byte)read);
 			if (LF == (byte)read)
 			{
