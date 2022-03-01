@@ -258,6 +258,17 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			var credentialAmount = -request.AmountCredentialRequests.Delta;
 
+			if (CoinJoinScriptStore?.Contains(request.Script) is true)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script.");
+			}
+
+			var inputScripts = round.Alices.Select(a => a.Coin.ScriptPubKey).ToHashSet();
+			if (inputScripts.Contains(request.Script))
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script.");
+			}
+
 			Bob bob = new(request.Script, credentialAmount);
 
 			var outputValue = bob.CalculateOutputAmount(round.FeeRate);

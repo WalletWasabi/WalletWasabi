@@ -32,7 +32,19 @@ public class WabiSabiCoordinator : BackgroundService
 
 		var inMemoryCoinJoinIdStore = InMemoryCoinJoinIdStore.LoadFromFile(parameters.CoinJoinIdStoreFilePath);
 
-		Arena = new(parameters.RoundProgressSteppingPeriod, rpc.Network, Config, rpc, Warden.Prison, inMemoryCoinJoinIdStore, transactionArchiver);
+		var coinJoinScriptStore = CoinJoinScriptStore.LoadFromFile(parameters.CoinJoinScriptStoreFilePath);
+		IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinScriptStoreFilePath);
+
+		Arena = new(
+			parameters.RoundProgressSteppingPeriod,
+			rpc.Network,
+			Config,
+			rpc,
+			Warden.Prison,
+			inMemoryCoinJoinIdStore,
+			transactionArchiver,
+			coinJoinScriptStore);
+
 		IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinIdStoreFilePath);
 		Arena.CoinJoinBroadcast += Arena_CoinJoinBroadcast;
 	}
@@ -49,14 +61,24 @@ public class WabiSabiCoordinator : BackgroundService
 
 	private void Arena_CoinJoinBroadcast(object? sender, Transaction e)
 	{
-		var filePath = Parameters.CoinJoinIdStoreFilePath;
+		var coinJoinIdStoreFilePath = Parameters.CoinJoinIdStoreFilePath;
 		try
 		{
-			File.AppendAllLines(filePath, new[] { e.GetHash().ToString() });
+			File.AppendAllLines(coinJoinIdStoreFilePath, new[] { e.GetHash().ToString() });
 		}
 		catch (Exception ex)
 		{
-			Logger.LogError($"Could not write file {filePath}.", ex);
+			Logger.LogError($"Could not write file {coinJoinIdStoreFilePath}.", ex);
+		}
+
+		var coinJoinScriptStoreFilePath = Parameters.CoinJoinScriptStoreFilePath;
+		try
+		{
+			File.AppendAllLines(coinJoinScriptStoreFilePath, e.Outputs.Select(x => x.ScriptPubKey.ToHex()));
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError($"Could not write file {coinJoinScriptStoreFilePath}.", ex);
 		}
 	}
 
