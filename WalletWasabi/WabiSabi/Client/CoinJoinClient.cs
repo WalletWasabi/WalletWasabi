@@ -278,38 +278,18 @@ public class CoinJoinClient
 
 	private async Task SignTransactionAsync(IEnumerable<AliceClient> aliceClients, Transaction unsignedCoinJoinTransaction, RoundState roundState, CancellationToken cancellationToken)
 	{
-		async Task SignTransactionAsync(AliceClient aliceClient)
+		foreach (var aliceClient in aliceClients)
 		{
-			try
-			{
-				await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
-			}
-			catch (Exception e)
-			{
-				Logger.LogWarning($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Could not sign, reason:'{e}'.");
-				throw;
-			}
+			await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
 		}
-
-		var transactionSigningTimeFrame = roundState.TransactionSigningTimeout - RoundStatusUpdater.Period;
-		Logger.LogDebug($"Round ({roundState.Id}): Signing phase started, it will end in {transactionSigningTimeFrame:hh\\:mm\\:ss}.");
-
-		var signingRequestTasks = aliceClients.Select(SignTransactionAsync)
-			.ToImmutableArray();
-
-		await Task.WhenAll(signingRequestTasks).ConfigureAwait(false);
 	}
 
 	private async Task ReadyToSignAsync(IEnumerable<AliceClient> aliceClients, CancellationToken cancellationToken)
 	{
-		async Task ReadyToSignTask(AliceClient aliceClient)
+		foreach (var aliceClient in aliceClients)
 		{
 			await aliceClient.ReadyToSignAsync(cancellationToken).ConfigureAwait(false);
 		}
-
-		var readyRequests = aliceClients.Select(ReadyToSignTask);
-
-		await Task.WhenAll(readyRequests).ConfigureAwait(false);
 	}
 
 	private void LogCoinJoinSummary(ImmutableArray<AliceClient> registeredAliceClients, IEnumerable<TxOut> myOutputs, Transaction unsignedCoinJoinTransaction, RoundState roundState)

@@ -178,10 +178,9 @@ public class DependencyGraphTaskScheduler
 						throw exception;
 					}
 				}, linkedCts.Token);
-			outputTasks.Add(task);
-		}
 
-		await Task.WhenAll(outputTasks).ConfigureAwait(false);
+			await task.ConfigureAwait(false);
+		}
 	}
 
 	private IEnumerable<(AliceClient AliceClient, InputNode Node)> PairAliceClientAndRequestNodes(IEnumerable<AliceClient> aliceClients, DependencyGraph graph)
