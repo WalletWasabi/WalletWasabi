@@ -78,6 +78,7 @@
                                     <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
                                 </DockPanel>
                                 <ContentPresenter Name="PART_CaptionPresenter" Content="{TemplateBinding Caption}" />
+                                <Panel Height="6" IsVisible="{Binding !EnableBack}"/>
                             </StackPanel>
                         </Panel>
 
