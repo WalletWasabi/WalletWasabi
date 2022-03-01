@@ -15,6 +15,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 {
 	enum State
 	{
+		Disabled,
 		AutoCoinJoin,
 		ManualCoinJoin,
 
@@ -86,12 +87,21 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Select(x=>x.EventArgs)
 			.Subscribe(StatusChanged);
 
+		var initialState = walletVm.Settings.AutoCoinJoin
+			? State.AutoCoinJoin
+			: State.ManualCoinJoin;
+
+		if (walletVm.Wallet.KeyManager.IsHardwareWallet || walletVm.Wallet.KeyManager.IsWatchOnly)
+		{
+			initialState = State.Disabled;
+		}
+
 		_machine =
-			new StateMachine<State, Trigger>(walletVm.Settings.AutoCoinJoin
-				? State.AutoCoinJoin
-				: State.ManualCoinJoin);
+			new StateMachine<State, Trigger>(initialState);
 
 		// See diagram in the developer docs.
+		_machine.Configure(State.Disabled);
+
 		// Manual Cj State
 		_machine.Configure(State.ManualCoinJoin)
 			.Permit(Trigger.AutoCoinJoinOn, State.AutoCoinJoin)
@@ -132,11 +142,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				coinJoinManager.Start(walletVm.Wallet);
 			})
 			.OnProcess(UpdateWalletMixedProgress);
-
-		_machine.OnTransitioned((trigger, source, destination) =>
-		{
-			Console.WriteLine($"Trigger: {trigger} caused state to change from: {source} to {destination}");
-		});
 
 		// AutoCj State
 		_machine.Configure(State.AutoCoinJoin)
