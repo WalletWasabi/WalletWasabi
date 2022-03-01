@@ -44,7 +44,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		RoundStart
 	}
 
-	private readonly StateMachine<State, Trigger> _machine;
+	private readonly StateMachine<State, Trigger> _stateMachine;
 	private readonly Wallet _wallet;
 
 	[AutoNotify] private bool _isAutoWaiting;
@@ -104,14 +104,14 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			initialState = State.Disabled;
 		}
 
-		_machine =
+		_stateMachine =
 			new StateMachine<State, Trigger>(initialState);
 
 		// See diagram in the developer docs.
-		_machine.Configure(State.Disabled);
+		_stateMachine.Configure(State.Disabled);
 
 		// Manual Cj State
-		_machine.Configure(State.ManualCoinJoin)
+		_stateMachine.Configure(State.ManualCoinJoin)
 			.Permit(Trigger.AutoCoinJoinOn, State.AutoCoinJoin)
 			.Permit(Trigger.ManualCoinJoinEntered, State.Stopped)
 			.OnEntry(() =>
@@ -122,11 +122,11 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				StopVisible = false;
 				PauseVisible = false;
 
-				_machine.Fire(Trigger.ManualCoinJoinEntered);
+				_stateMachine.Fire(Trigger.ManualCoinJoinEntered);
 			})
 			.OnProcess(UpdateWalletMixedProgress);
 
-		_machine.Configure(State.Stopped)
+		_stateMachine.Configure(State.Stopped)
 			.SubstateOf(State.ManualCoinJoin)
 			.Permit(Trigger.Play, State.ManualPlaying)
 			.OnEntry(() =>
@@ -140,7 +140,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			})
 			.OnProcess(UpdateWalletMixedProgress);
 
-		_machine.Configure(State.ManualPlaying)
+		_stateMachine.Configure(State.ManualPlaying)
 			.SubstateOf(State.ManualCoinJoin)
 			.Permit(Trigger.Stop, State.Stopped)
 			.Permit(Trigger.RoundStartFailed, State.ManualFinished)
@@ -153,7 +153,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			})
 			.OnProcess(UpdateWalletMixedProgress);
 
-		_machine.Configure(State.ManualFinished)
+		_stateMachine.Configure(State.ManualFinished)
 			.SubstateOf(State.ManualCoinJoin)
 			.Permit(Trigger.Play, State.ManualPlaying)
 			.OnEntry(() =>
@@ -167,7 +167,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			});
 
 		// AutoCj State
-		_machine.Configure(State.AutoCoinJoin)
+		_stateMachine.Configure(State.AutoCoinJoin)
 			.Permit(Trigger.AutoCoinJoinOff, State.ManualCoinJoin)
 			.Permit(Trigger.AutoCoinJoinEntered, State.AutoStarting)
 			.OnEntry(() =>
@@ -183,7 +183,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				coinJoinManager.AutoStart(walletVm.Wallet);
 			});
 
-		_machine.Configure(State.AutoStarting)
+		_stateMachine.Configure(State.AutoStarting)
 			.SubstateOf(State.AutoCoinJoin)
 			.Permit(Trigger.Pause, State.Paused)
 			.Permit(Trigger.RoundStart, State.AutoPlaying)
@@ -207,7 +207,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				IsAutoWaiting = false;
 			});
 
-		_machine.Configure(State.Paused)
+		_stateMachine.Configure(State.Paused)
 			.SubstateOf(State.AutoCoinJoin)
 			.Permit(Trigger.Play, State.AutoPlaying)
 			.OnEntry(() =>
@@ -224,7 +224,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			})
 			.OnProcess(UpdateWalletMixedProgress);
 
-		_machine.Configure(State.AutoPlaying)
+		_stateMachine.Configure(State.AutoPlaying)
 			.SubstateOf(State.AutoCoinJoin)
 			.Permit(Trigger.Pause, State.Paused)
 			.Permit(Trigger.PlebStop, State.Paused)
@@ -240,7 +240,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			})
 			.OnProcess(UpdateWalletMixedProgress);
 
-		_machine.Configure(State.AutoFinished)
+		_stateMachine.Configure(State.AutoFinished)
 			.SubstateOf(State.AutoCoinJoin)
 			.Permit(Trigger.RoundStart, State.AutoPlaying)
 			.OnEntry(() =>
@@ -255,25 +255,25 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				CurrentStatus = _finishedMessage;
 			});
 
-		balanceChanged.Subscribe(_ => _machine.Process());
+		balanceChanged.Subscribe(_ => _stateMachine.Process());
 
-		PlayCommand = ReactiveCommand.Create(() => _machine.Fire(Trigger.Play));
+		PlayCommand = ReactiveCommand.Create(() => _stateMachine.Fire(Trigger.Play));
 
-		PauseCommand = ReactiveCommand.Create(() => _machine.Fire(Trigger.Pause));
+		PauseCommand = ReactiveCommand.Create(() => _stateMachine.Fire(Trigger.Pause));
 
-		StopCommand = ReactiveCommand.Create(() => _machine.Fire(Trigger.Stop));
+		StopCommand = ReactiveCommand.Create(() => _stateMachine.Fire(Trigger.Stop));
 
 		walletVm.Settings.WhenAnyValue(x => x.AutoCoinJoin)
 			.Subscribe(SetAutoCoinJoin);
 
-		_machine.Start();
+		_stateMachine.Start();
 	}
 
 	private void TimerOnTick()
 	{
-		if (_machine.CurrentState == State.AutoStarting)
+		if (_stateMachine.CurrentState == State.AutoStarting)
 		{
-			_machine.Process();
+			_stateMachine.Process();
 		}
 	}
 
@@ -301,27 +301,27 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		switch (e)
 		{
 			case StartingEventArgs startingEventArgs:
-				if (_machine.CurrentState == State.AutoCoinJoin)
+				if (_stateMachine.CurrentState == State.AutoCoinJoin)
 				{
 					_countDownStarted = DateTimeOffset.Now;
 					_autoStartTime = _countDownStarted + startingEventArgs.StartingIn;
-					_machine.Fire(Trigger.AutoCoinJoinEntered);
+					_stateMachine.Fire(Trigger.AutoCoinJoinEntered);
 				}
 				break;
 
 			case StartedEventArgs:
-				_machine.Fire(Trigger.RoundStart);
+				_stateMachine.Fire(Trigger.RoundStart);
 				break;
 
 			case StartErrorEventArgs startErrorEventArgs:
-				_machine.Fire(Trigger.RoundStartFailed);
+				_stateMachine.Fire(Trigger.RoundStartFailed);
 				break;
 		}
 	}
 
 	public void SetAutoCoinJoin(bool enabled)
 	{
-		_machine.Fire(enabled ? Trigger.AutoCoinJoinOn : Trigger.AutoCoinJoinOff);
+		_stateMachine.Fire(enabled ? Trigger.AutoCoinJoinOn : Trigger.AutoCoinJoinOff);
 	}
 
 	public ICommand PlayCommand { get; }
