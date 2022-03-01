@@ -4,7 +4,6 @@
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary>
-          <Color x:Key="SystemAccentColor">#FF78A827</Color>
           <Color x:Key="SystemAltHighColor">#FFFFFFFF</Color>
           <Color x:Key="SystemAltLowColor">#FFFFFFFF</Color>
           <Color x:Key="SystemAltMediumColor">#FFFFFFFF</Color>
