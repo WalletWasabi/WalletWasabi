@@ -144,7 +144,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.Play, State.AutoPlaying)
 			.OnEntry(() =>
 			{
-				_countDownStarted = DateTime.Now;
 				IsAutoWaiting = true;
 				CurrentStatus = _countDownMessage;
 			})
@@ -217,7 +216,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				break;
 
 			case StartingEventArgs startingEventArgs:
-				_autoStartTime = DateTimeOffset.Now + startingEventArgs.StartingIn;
+				_countDownStarted = DateTimeOffset.Now;
+				_autoStartTime = _countDownStarted + startingEventArgs.StartingIn;
 				break;
 
 			case StartedEventArgs startedEventArgs:
