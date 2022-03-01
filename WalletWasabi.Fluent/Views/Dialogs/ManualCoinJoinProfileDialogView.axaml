@@ -1,0 +1,47 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:dialogs="clr-namespace:WalletWasabi.Fluent.ViewModels.Dialogs"
+             mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="470"
+             x:DataType="dialogs:ManualCoinJoinProfileDialogViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Dialogs.ManualCoinJoinProfileDialogView">
+  <c:ContentArea
+    Title="{Binding Title}"
+    CancelContent="Cancel"
+    EnableCancel="{Binding EnableCancel}"
+    EnableBack="{Binding EnableBack}"
+    EnableNext="True" NextContent="Done">
+    <StackPanel Classes="settingsLayout">
+      <DockPanel>
+        <TextBlock Text="Automatic Coinjoin" />
+        <ToggleSwitch IsChecked="{Binding AutoCoinjoin}" />
+      </DockPanel>
+
+      <StackPanel Spacing="10">
+        <TextBlock Text="Privacy Threshold" />
+        <DockPanel>
+          <TextBlock MinWidth="24" DockPanel.Dock="Right" Text="{Binding MinAnonScoreTarget}" VerticalAlignment="Center" />
+          <Slider Minimum="2" Maximum="98" Value="{Binding MinAnonScoreTarget}" />
+        </DockPanel>
+      </StackPanel>
+
+      <StackPanel Spacing="10">
+        <TextBlock Text="Privacy Sanity Check" />
+        <DockPanel>
+          <TextBlock MinWidth="24" DockPanel.Dock="Right" Text="{Binding MaxAnonScoreTarget}" VerticalAlignment="Center" />
+          <Slider Minimum="3" Maximum="99" Value="{Binding MaxAnonScoreTarget}" />
+        </DockPanel>
+      </StackPanel>
+
+      <DockPanel>
+        <TextBlock Text="Coinjoin Time Preference" />
+        <ComboBox HorizontalAlignment="Stretch"
+                  Items="{Binding TimeFrames}"
+                  SelectedItem="{Binding SelectedTimeFrame}" />
+      </DockPanel>
+    </StackPanel>
+  </c:ContentArea>
+</UserControl>
