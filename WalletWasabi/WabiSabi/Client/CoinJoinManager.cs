@@ -14,7 +14,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.WabiSabi.Client;
 
-enum CoinJoinCommand
+internal enum CoinJoinCommand
 {
 	Start,
 	Stop,
@@ -38,15 +38,16 @@ public class CoinJoinManager : BackgroundService
 	public ServiceConfiguration ServiceConfiguration { get; }
 	private ImmutableDictionary<string, CoinJoinTracker> TrackedCoinJoins { get; set; } = ImmutableDictionary<string, CoinJoinTracker>.Empty;
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
-	private TimeSpan AutoCoinJoinDelayAfterWalletLoaded { get; } = TimeSpan.FromSeconds(Random.Shared.Next(5 * 60, 16 * 60));
+	private TimeSpan AutoCoinJoinDelayAfterWalletLoaded { get; } = TimeSpan.FromSeconds(60);
 	public bool IsUserInSendWorkflow { get; set; }
 
 	private ConcurrentDictionary<Wallet, CoinJoinCommand> WalletManualState { get; } = new();
+
 	public void Start(Wallet wallet) =>
-		WalletManualState.AddOrUpdate(wallet, CoinJoinCommand.Start, (_,_) => CoinJoinCommand.Start);
+		WalletManualState.AddOrUpdate(wallet, CoinJoinCommand.Start, (_, _) => CoinJoinCommand.Start);
 
 	public void Stop(Wallet wallet) =>
-		WalletManualState.AddOrUpdate(wallet, CoinJoinCommand.Stop, (_,_) => CoinJoinCommand.Stop);
+		WalletManualState.AddOrUpdate(wallet, CoinJoinCommand.Stop, (_, _) => CoinJoinCommand.Stop);
 
 	public void AutoStart(Wallet wallet) =>
 		WalletManualState.Remove(wallet, out _);
@@ -208,6 +209,7 @@ public class CoinJoinManager : BackgroundService
 
 	private void NotifyCoinJoinStarted(Wallet openedWallet, TimeSpan registrationTimeout) =>
 		SafeRaiseEvent(StatusChanged, new StartedEventArgs(openedWallet, registrationTimeout));
+
 	private void NotifyCoinJoinStartError(Wallet openedWallet, CoinjoinError error) =>
 		SafeRaiseEvent(StatusChanged, new StartErrorEventArgs(openedWallet, error));
 
