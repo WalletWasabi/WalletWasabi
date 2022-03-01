@@ -19,7 +19,7 @@ public class CoinJoinProcessor : IDisposable
 {
 	private volatile bool _disposedValue = false; // To detect redundant calls
 
-	public CoinJoinProcessor(Network network, WasabiSynchronizer synchronizer, WalletManager walletManager, IRPCClient rpc)
+	public CoinJoinProcessor(Network network, WasabiSynchronizer synchronizer, WalletManager walletManager, IRPCClient? rpc)
 	{
 		Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
 		WalletManager = Guard.NotNull(nameof(walletManager), walletManager);
@@ -32,7 +32,7 @@ public class CoinJoinProcessor : IDisposable
 	public WasabiSynchronizer Synchronizer { get; }
 	public WalletManager WalletManager { get; }
 	public Network Network { get; }
-	public IRPCClient RpcClient { get; private set; }
+	public IRPCClient? RpcClient { get; private set; }
 	private AsyncLock ProcessLock { get; }
 
 	private async void Synchronizer_ResponseArrivedAsync(object? sender, SynchronizeResponse response)
@@ -73,6 +73,10 @@ public class CoinJoinProcessor : IDisposable
 	{
 		try
 		{
+			if (RpcClient is null)
+			{
+				throw new InvalidOperationException("RpcClient is not available");
+			}
 			await RpcClient.SendRawTransactionAsync(transaction.Transaction).ConfigureAwait(false);
 			Logger.LogInfo($"Transaction is successfully broadcasted with RPC: {transaction.GetHash()}.");
 
