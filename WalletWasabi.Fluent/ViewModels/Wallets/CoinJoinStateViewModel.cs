@@ -16,6 +16,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 {
 	enum State
 	{
+		Invalid = 0,
 		Disabled,
 		AutoCoinJoin,
 		ManualCoinJoin,
@@ -32,6 +33,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	enum Trigger
 	{
+		Invalid = 0,
 		AutoCoinJoinOn,
 		AutoCoinJoinOff,
 		AutoCoinJoinEntered,
