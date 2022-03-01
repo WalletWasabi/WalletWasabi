@@ -83,6 +83,8 @@ public class CoinJoinClient
 		// FIXME should smaller rounds abort earlier?
 		var tryLimit = 6;
 
+		coins = SelectCoinsForRound(coins, currentRoundState.CoinjoinState.Parameters, ConsolidationMode, MinAnonScoreTarget, SecureRandom);
+
 		for (var tries = 0; tries < tryLimit; tries++)
 		{
 			if (await StartRoundAsync(coins, currentRoundState, cancellationToken).ConfigureAwait(false))
@@ -113,12 +115,10 @@ public class CoinJoinClient
 	{
 		var constructionState = roundState.Assert<ConstructionState>();
 
-		var coinCandidates = SelectCoinsForRound(smartCoins, constructionState.Parameters, ConsolidationMode, MinAnonScoreTarget, SecureRandom);
-
 		// Register coins.
 		using PersonCircuit personCircuit = HttpClientFactory.NewHttpClientWithPersonCircuit(out Tor.Http.IHttpClient httpClient);
 
-		var registeredAliceClients = await CreateRegisterAndConfirmCoinsAsync(httpClient, coinCandidates, roundState, cancellationToken).ConfigureAwait(false);
+		var registeredAliceClients = await CreateRegisterAndConfirmCoinsAsync(httpClient, smartCoins, roundState, cancellationToken).ConfigureAwait(false);
 		if (!registeredAliceClients.Any())
 		{
 			Logger.LogInfo($"Round ({roundState.Id}): There is no available alices to participate with.");
