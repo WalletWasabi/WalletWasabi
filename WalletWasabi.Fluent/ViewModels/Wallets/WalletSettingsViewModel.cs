@@ -2,7 +2,6 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -44,11 +43,6 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 			{
 				wallet.KeyManager.AutoCoinJoin = x;
 				wallet.KeyManager.ToFile();
-				if (x)
-				{
-					var coinJoinManager = Services.HostedServices.Get<CoinJoinManager>();
-					coinJoinManager.AutoStart(wallet);
-				}
 			});
 
 		_minAnonScoreTarget = wallet.KeyManager.MinAnonScoreTarget;
