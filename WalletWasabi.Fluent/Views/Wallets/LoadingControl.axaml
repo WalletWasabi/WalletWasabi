@@ -15,11 +15,11 @@
       <TextBlock Text="Downloading and processing blockchain data" TextAlignment="Center" FontSize="22"
                  DockPanel.Dock="Bottom" />
       <TextBlock
-        Text="This is done over an untraceable network making your activity appear from random locations throughout the world."
+        Text="Wasabi does this without any third party knowing about your balance and financial activity."
         TextAlignment="Center" TextWrapping="Wrap" Opacity="0.6" />
 
       <TextBlock
-        Text="This process may take some time depending on the size of your wallet. Grab a coffee or watch a movie."
+        Text="This process may take some time depending on the size of your wallet."
         TextAlignment="Center" TextWrapping="Wrap" Opacity="0.6" />
 
       <ProgressBar Value="{Binding Percent}" IsIndeterminate="{Binding !Percent}" Margin="0 20 0 0" />
@@ -42,12 +42,12 @@
           <i:Interaction.Behaviors>
             <behaviors:RandomizedWorldPointsBehavior />
           </i:Interaction.Behaviors>
-          <Image Source="{StaticResource loading_control_world_map}"/>
-          <Image Source="{StaticResource loading_control_city_marker}" Classes="City"/>
-          <Image Source="{StaticResource loading_control_city_marker}" Classes="City"/>
-          <Image Source="{StaticResource loading_control_city_marker}" Classes="City"/>
-          <Image Source="{StaticResource loading_control_city_marker}" Classes="City"/>
-         </Canvas>
+          <Image Source="{StaticResource loading_control_world_map}" />
+          <Image Source="{StaticResource loading_control_city_marker}" Classes="City" />
+          <Image Source="{StaticResource loading_control_city_marker}" Classes="City" />
+          <Image Source="{StaticResource loading_control_city_marker}" Classes="City" />
+          <Image Source="{StaticResource loading_control_city_marker}" Classes="City" />
+        </Canvas>
       </Viewbox>
     </Panel>
   </DockPanel>
