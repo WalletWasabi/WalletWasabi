@@ -1,9 +1,13 @@
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using Avalonia.Threading;
+using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -37,6 +41,8 @@ public enum Trigger
 public partial class CoinJoinStateViewModel : ViewModelBase
 {
 	private readonly StateMachine<State, Trigger> _machine;
+	private readonly Wallet _wallet;
+	private readonly DispatcherTimer _timer;
 
 	[AutoNotify] private bool _isAutoWaiting;
 	[AutoNotify] private bool _isAuto;
@@ -62,8 +68,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private DateTimeOffset _autoStartTime;
 	private DateTimeOffset _countDownStarted;
 
-	public CoinJoinStateViewModel(WalletViewModel walletVm)
+	public CoinJoinStateViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
 	{
+		_wallet = walletVm.Wallet;
 		var coinJoinManager = Services.HostedServices.Get<CoinJoinManager>();
 
 		Observable.FromEventPattern<StatusChangedEventArgs>(coinJoinManager, nameof(coinJoinManager.StatusChanged))
@@ -75,7 +82,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			new StateMachine<State, Trigger>(walletVm.Settings.AutoCoinJoin
 				? State.AutoCoinJoin
 				: State.ManualCoinJoin);
-
 
 		// See diagram in the developer docs.
 		// Manual Cj State
@@ -91,10 +97,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PauseVisible = false;
 
 				_machine.Fire(Trigger.ManualCoinJoinEntered);
-			});
+			})
+			.OnProcess(UpdateWalletMixedProgress);
 
 		_machine.Configure(State.Stopped)
 			.SubstateOf(State.ManualCoinJoin)
+			.Permit(Trigger.Play, State.ManualPlaying)
 			.OnEntry(() =>
 			{
 				ProgressValue = 0;
@@ -104,7 +112,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				CurrentStatus = _stoppedMessage;
 				coinJoinManager.Stop(walletVm.Wallet);
 			})
-			.Permit(Trigger.Play, State.ManualPlaying);
+			.OnProcess(UpdateWalletMixedProgress);
 
 		_machine.Configure(State.ManualPlaying)
 			.Permit(Trigger.Stop, State.Stopped)
@@ -114,7 +122,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				StopVisible = true;
 				CurrentStatus = _coinJoiningMessage;
 				coinJoinManager.Start(walletVm.Wallet);
-			});
+			})
+			.OnProcess(UpdateWalletMixedProgress);
 
 		_machine.OnTransitioned((trigger, source, destination) =>
 		{
@@ -146,6 +155,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			{
 				IsAutoWaiting = true;
 				CurrentStatus = _countDownMessage;
+				_timer.Start();
 			})
 			.OnProcess(() =>
 			{
@@ -156,7 +166,11 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				var percentage = (DateTime.Now - _countDownStarted).TotalSeconds * 100 / total;
 				ProgressValue = percentage;
 			})
-			.OnExit(() => IsAutoWaiting = false);
+			.OnExit(() =>
+			{
+				IsAutoWaiting = false;
+				_timer.Stop();
+			});
 
 		_machine.Configure(State.Paused)
 			.SubstateOf(State.AutoCoinJoin)
@@ -172,7 +186,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PlayVisible = true;
 
 				coinJoinManager.Stop(walletVm.Wallet);
-			});
+			})
+			.OnProcess(UpdateWalletMixedProgress);
 
 		_machine.Configure(State.AutoPlaying)
 			.SubstateOf(State.AutoCoinJoin)
@@ -187,7 +202,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PlayVisible = false;
 				CurrentStatus = _coinJoiningMessage;
 				coinJoinManager.Start(walletVm.Wallet);
-			});
+			})
+			.OnProcess(UpdateWalletMixedProgress);
+
+		balanceChanged.Subscribe(_ => _machine.Process());
 
 		PlayCommand = ReactiveCommand.Create(() => _machine.Fire(Trigger.Play));
 
@@ -195,16 +213,38 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		StopCommand = ReactiveCommand.Create(() => _machine.Fire(Trigger.Stop));
 
-		DispatcherTimer.Run(() =>
+		_timer = new DispatcherTimer
 		{
-			_machine.Process();
-			return true;
-		}, TimeSpan.FromSeconds(1));
+			Interval = TimeSpan.FromSeconds(1),
+		};
+
+		_timer.Tick += TimerOnTick;
 
 		walletVm.Settings.WhenAnyValue(x => x.AutoCoinJoin)
 			.Subscribe(SetAutoCoinJoin);
 
 		_machine.Start();
+	}
+
+	private void TimerOnTick(object? sender, EventArgs e)
+	{
+		_machine.Process();
+	}
+
+	private void UpdateWalletMixedProgress()
+	{
+		var privateThreshold = _wallet.KeyManager.MinAnonScoreTarget;
+
+		var privateAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
+		var normalAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold).TotalAmount();
+		var total = _wallet.Coins.TotalAmount();
+
+		ElapsedTime = "Balance to coinjoin:";
+		RemainingTime = normalAmount.ToFormattedString() + "BTC";
+
+		var percentage = privateAmount.ToDecimal(MoneyUnit.BTC) / total.ToDecimal(MoneyUnit.BTC) * 100;
+
+		ProgressValue = (double)percentage;
 	}
 
 	private void StatusChanged(StatusChangedEventArgs e)
