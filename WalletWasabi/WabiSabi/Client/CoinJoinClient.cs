@@ -68,10 +68,11 @@ public class CoinJoinClient
 		var currentRoundState = await RoundStatusUpdater
 			.CreateRoundAwaiter(
 				roundState =>
-					roundState.InputRegistrationEnd - DateTimeOffset.UtcNow > DoNotRegisterInLastMinuteTimeLimit &&
-					roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min < Money.Coins(0.0001m) && // ignore rounds with too big minimum denominations
-					roundState.Phase == Phase.InputRegistration &&
-		  IsRoundEconomic(roundState.FeeRate),
+					roundState.InputRegistrationEnd - DateTimeOffset.UtcNow > DoNotRegisterInLastMinuteTimeLimit
+					&& roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min < Money.Coins(0.0001m) // ignore rounds with too big minimum denominations
+					&& roundState.Phase == Phase.InputRegistration
+					&& roundState.BlameOf == uint256.Zero
+					&& IsRoundEconomic(roundState.FeeRate),
 				cancellationToken)
 			.ConfigureAwait(false);
 
@@ -277,40 +278,26 @@ public class CoinJoinClient
 
 	private async Task SignTransactionAsync(IEnumerable<AliceClient> aliceClients, Transaction unsignedCoinJoinTransaction, RoundState roundState, CancellationToken cancellationToken)
 	{
-		async Task<AliceClient?> SignTransactionAsync(AliceClient aliceClient, CancellationToken cancellationToken)
+		async Task SignTransactionAsync(AliceClient aliceClient)
 		{
 			try
 			{
 				await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
-				return aliceClient;
 			}
 			catch (Exception e)
 			{
 				Logger.LogWarning($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Could not sign, reason:'{e}'.");
-				return default;
+				throw;
 			}
 		}
 
-		// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to sign.
 		var transactionSigningTimeFrame = roundState.TransactionSigningTimeout - RoundStatusUpdater.Period;
 		Logger.LogDebug($"Round ({roundState.Id}): Signing phase started, it will end in {transactionSigningTimeFrame:hh\\:mm\\:ss}.");
 
-		var scheduledDates = transactionSigningTimeFrame.SamplePoisson(aliceClients.Count());
+		var signingRequestTasks = aliceClients.Select(SignTransactionAsync)
+			.ToImmutableArray();
 
-		// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
-		var signingRequests = aliceClients.Zip(
-			scheduledDates,
-			async (alice, date) =>
-			{
-				var delay = date - DateTimeOffset.UtcNow;
-				if (delay > TimeSpan.Zero)
-				{
-					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
-				}
-				return await SignTransactionAsync(alice, cancellationToken).ConfigureAwait(false);
-			}).ToImmutableArray();
-
-		await Task.WhenAll(signingRequests).ConfigureAwait(false);
+		await Task.WhenAll(signingRequestTasks).ConfigureAwait(false);
 	}
 
 	private async Task ReadyToSignAsync(IEnumerable<AliceClient> aliceClients, CancellationToken cancellationToken)
