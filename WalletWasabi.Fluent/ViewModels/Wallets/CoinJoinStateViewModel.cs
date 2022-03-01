@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Windows.Input;
@@ -241,18 +242,21 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private void UpdateWalletMixedProgress()
 	{
-		var privateThreshold = _wallet.KeyManager.MinAnonScoreTarget;
+		if (_wallet.Coins.Any())
+		{
+			var privateThreshold = _wallet.KeyManager.MinAnonScoreTarget;
 
-		var privateAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
-		var normalAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold).TotalAmount();
-		var total = _wallet.Coins.TotalAmount();
+			var privateAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
+			var normalAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold).TotalAmount();
+			var total = _wallet.Coins.TotalAmount();
 
-		ElapsedTime = "Balance to coinjoin:";
-		RemainingTime = normalAmount.ToFormattedString() + "BTC";
+			ElapsedTime = "Balance to coinjoin:";
+			RemainingTime = normalAmount.ToFormattedString() + "BTC";
 
-		var percentage = privateAmount.ToDecimal(MoneyUnit.BTC) / total.ToDecimal(MoneyUnit.BTC) * 100;
+			var percentage = privateAmount.ToDecimal(MoneyUnit.BTC) / total.ToDecimal(MoneyUnit.BTC) * 100;
 
-		ProgressValue = (double)percentage;
+			ProgressValue = (double)percentage;
+		}
 	}
 
 	private void StatusChanged(StatusChangedEventArgs e)
