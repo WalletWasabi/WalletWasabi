@@ -16,7 +16,7 @@
         <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
           <controls:PrivacyContentControl Classes="h9 bold" NumberOfPrivacyChars="9" Margin="4"
                                           VerticalAlignment="Center"
-                                          Opacity="0.5"
+                                          Opacity="0.8"
                                           Content="{Binding BalanceFiat}" />
         </StackPanel>
       </StackPanel>

@@ -134,7 +134,7 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 		var pcPrivate = totalDecimalAmount == 0M ? 1d : (double)(privateDecimalAmount / totalDecimalAmount);
 		var pcNormal = 1 - pcPrivate;
 
-		var percentString = $"{pcPrivate*100:N2}".TrimEnd('0').TrimEnd('.');
+		var percentString = $"{pcPrivate*100:N0}".TrimEnd('0').TrimEnd('.');
 		PercentText = $"\u205F{percentString}\u205F/\u205F{100}";
 
 		FullyMixed = pcPrivate >= 1d;
