@@ -55,7 +55,7 @@ public class Global
 	public WasabiSynchronizer Synchronizer { get; private set; }
 	public WalletManager WalletManager { get; }
 	public TransactionBroadcaster TransactionBroadcaster { get; set; }
-	public CoinJoinProcessor CoinJoinProcessor { get; set; }
+	public CoinJoinProcessor? CoinJoinProcessor { get; set; }
 	private TorProcessManager? TorManager { get; set; }
 	public CoreNode? BitcoinCoreNode { get; private set; }
 	public HostedServices HostedServices { get; }
