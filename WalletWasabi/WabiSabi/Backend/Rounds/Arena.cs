@@ -13,6 +13,7 @@ using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
+using WalletWasabi.WabiSabi.Backend.Statistics;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -25,7 +26,8 @@ public partial class Arena : PeriodicRunner
 		IRPCClient rpc,
 		Prison prison,
 		InMemoryCoinJoinIdStore inMemoryCoinJoinIdStore,
-		CoinJoinTransactionArchiver? archiver = null) : base(period)
+		CoinJoinTransactionArchiver? archiver = null,
+		CoinJoinScriptStore? coinJoinScriptStore = null) : base(period)
 	{
 		Network = network;
 		Config = config;
@@ -34,6 +36,7 @@ public partial class Arena : PeriodicRunner
 		TransactionArchiver = archiver;
 		Random = new SecureRandom();
 		InMemoryCoinJoinIdStore = inMemoryCoinJoinIdStore;
+		CoinJoinScriptStore = coinJoinScriptStore;
 	}
 
 	public HashSet<Round> Rounds { get; } = new();
@@ -44,6 +47,7 @@ public partial class Arena : PeriodicRunner
 	private Prison Prison { get; }
 	private SecureRandom Random { get; }
 	private CoinJoinTransactionArchiver? TransactionArchiver { get; }
+	public CoinJoinScriptStore? CoinJoinScriptStore { get; }
 	private InMemoryCoinJoinIdStore InMemoryCoinJoinIdStore { get; }
 
 	public event EventHandler<Transaction>? CoinJoinBroadcast;
@@ -248,6 +252,7 @@ public partial class Arena : PeriodicRunner
 					round.LogInfo($"Successfully broadcast the CoinJoin: {coinjoin.GetHash()}.");
 
 					InMemoryCoinJoinIdStore.Add(coinjoin.GetHash());
+					CoinJoinScriptStore?.AddRange(coinjoin.Outputs.Select(x => x.ScriptPubKey));
 					CoinJoinBroadcast?.Invoke(this, coinjoin);
 				}
 				else if (round.TransactionSigningTimeFrame.HasExpired)

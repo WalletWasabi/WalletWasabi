@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto.ZeroKnowledge;
+using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
 
 namespace WalletWasabi.WabiSabi.Client;
@@ -57,8 +59,8 @@ public class DependencyGraphTaskScheduler
 				{
 					if (t.IsFaulted && t.Exception is { } exception)
 					{
-							// If one task is failing, cancel all the tasks and throw.
-							ctsOnError.Cancel();
+						// If one task is failing, cancel all the tasks and throw.
+						ctsOnError.Cancel();
 						throw exception;
 					}
 				}, linkedCts.Token);
@@ -119,8 +121,8 @@ public class DependencyGraphTaskScheduler
 			{
 				if (t.IsFaulted && t.Exception is { } exception)
 				{
-						// If one task is failing, cancel all the tasks and throw.
-						ctsOnError.Cancel();
+					// If one task is failing, cancel all the tasks and throw.
+					ctsOnError.Cancel();
 					throw exception;
 				}
 			}, linkedCts.Token);
@@ -139,7 +141,7 @@ public class DependencyGraphTaskScheduler
 		}
 	}
 
-	public async Task StartOutputRegistrationsAsync(IEnumerable<TxOut> txOuts, BobClient bobClient, CancellationToken cancellationToken)
+	public async Task StartOutputRegistrationsAsync(IEnumerable<TxOut> txOuts, BobClient bobClient, IKeyChain keyChain, CancellationToken cancellationToken)
 	{
 		List<Task> outputTasks = new();
 
@@ -163,8 +165,16 @@ public class DependencyGraphTaskScheduler
 				{
 					if (t.IsFaulted && t.Exception is { } exception)
 					{
-							// If one task is failing, cancel all the tasks and throw.
-							ctsOnError.Cancel();
+						if (exception.InnerExceptions.Select(e => e.InnerException).Any(x => x is WabiSabiProtocolException wabisabiexc
+							&& wabisabiexc.ErrorCode == WabiSabiProtocolErrorCode.AlreadyRegisteredScript))
+						{
+							if (keyChain is KeyChain { KeyManager: var keyManager }
+								&& keyManager.TryGetKeyForScriptPubKey(txOut.ScriptPubKey, out var hdPubKey))
+							{
+								hdPubKey.SetKeyState(KeyState.Used);
+							}
+						}
+
 						throw exception;
 					}
 				}, linkedCts.Token);
