@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.CoinJoinProfiles"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:conv="using:WalletWasabi.Fluent.Converters"
              xmlns:prof="clr-namespace:WalletWasabi.Fluent.Views.CoinJoinProfiles"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="vm:CoinJoinProfilesViewModel"

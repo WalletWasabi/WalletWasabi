@@ -5,13 +5,19 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Avalonia.Controls;
+using Avalonia.Controls.Models.TreeDataGrid;
+using Avalonia.Controls.Templates;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
+using WalletWasabi.Fluent.Views.Wallets.Home.History.Columns;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
@@ -47,11 +53,122 @@ public partial class HistoryViewModel : ActivatableViewModel
 			.Bind(_unfilteredTransactions)
 			.Bind(_transactions)
 			.Subscribe();
+
+		// [Column]			[View]						[Header]		[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
+		// Indicators		IndicatorsColumnView		-				Auto		80				-			false
+		// Date				DateColumnView				Date / Time		Auto		150				-			true
+		// Labels			LabelsColumnView			Labels			*			75				-			false
+		// Incoming			IncomingColumnView			Incoming (₿)	Auto		120				150			true
+		// Outgoing			OutgoingColumnView			Outgoing (₿)	Auto		120				150			true
+		// Balance			BalanceColumnView			Balance (₿)		Auto		120				150			true
+
+		Source = new FlatTreeDataGridSource<HistoryItemViewModelBase>(_transactions)
+		{
+			Columns =
+			{
+				// Indicators
+				new TemplateColumn<HistoryItemViewModelBase>(
+					null,
+					new FuncDataTemplate<HistoryItemViewModelBase>((node, ns) => new IndicatorsColumnView(), true),
+					options: new ColumnOptions<HistoryItemViewModelBase>
+					{
+						CanUserResizeColumn = false,
+						CanUserSortColumn = true,
+						CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.IsCoinJoin),
+						CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.IsCoinJoin),
+						MinWidth = new GridLength(80, GridUnitType.Pixel)
+					},
+					width: new GridLength(0, GridUnitType.Auto)),
+
+				// Date
+				new PrivacyTextColumn<HistoryItemViewModelBase>(
+					"Date / Time",
+					x => x.DateString,
+					options: new ColumnOptions<HistoryItemViewModelBase>
+					{
+						CanUserResizeColumn = false,
+						CanUserSortColumn = true,
+						CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Date),
+						CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Date),
+						MinWidth = new GridLength(150, GridUnitType.Pixel)
+					},
+					width: new GridLength(0, GridUnitType.Auto),
+					numberOfPrivacyChars: 15),
+
+				// Labels
+				new TemplateColumn<HistoryItemViewModelBase>(
+					"Labels",
+					new FuncDataTemplate<HistoryItemViewModelBase>((node, ns) => new LabelsColumnView(), true),
+					options: new ColumnOptions<HistoryItemViewModelBase>
+					{
+						CanUserResizeColumn = false,
+						CanUserSortColumn = false,
+						MinWidth = new GridLength(100, GridUnitType.Pixel)
+					},
+					width: new GridLength(1, GridUnitType.Star)),
+
+				// Incoming
+				new PrivacyTextColumn<HistoryItemViewModelBase>(
+					"Incoming (₿)",
+					x => x.IncomingAmount?.ToFormattedString(),
+					options: new ColumnOptions<HistoryItemViewModelBase>
+					{
+						CanUserResizeColumn = false,
+						CanUserSortColumn = true,
+						CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.IncomingAmount),
+						CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.IncomingAmount),
+						MinWidth = new GridLength(120, GridUnitType.Pixel),
+						MaxWidth = new GridLength(150, GridUnitType.Pixel)
+					},
+					width: new GridLength(0, GridUnitType.Auto),
+					numberOfPrivacyChars: 9),
+
+				// Outgoing
+				new PrivacyTextColumn<HistoryItemViewModelBase>(
+					"Outgoing (₿)",
+					x => x.OutgoingAmount?.ToFormattedString(),
+					options: new ColumnOptions<HistoryItemViewModelBase>
+					{
+						CanUserResizeColumn = false,
+						CanUserSortColumn = true,
+						CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.OutgoingAmount),
+						CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.OutgoingAmount),
+						MinWidth = new GridLength(120, GridUnitType.Pixel),
+						MaxWidth = new GridLength(150, GridUnitType.Pixel)
+					},
+					width: new GridLength(0, GridUnitType.Auto),
+					numberOfPrivacyChars: 9),
+
+				// Balance
+				new PrivacyTextColumn<HistoryItemViewModelBase>(
+					"Balance (₿)",
+					x => x.Balance?.ToFormattedString(),
+					options: new ColumnOptions<HistoryItemViewModelBase>
+					{
+						CanUserResizeColumn = false,
+						CanUserSortColumn = true,
+						CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Balance),
+						CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Balance),
+						MinWidth = new GridLength(150, GridUnitType.Pixel),
+						MaxWidth = new GridLength(150, GridUnitType.Pixel)
+					},
+					width: new GridLength(0, GridUnitType.Auto),
+					numberOfPrivacyChars: 9),
+			}
+		};
+
+		Source.RowSelection!.SingleSelect = true;
+
+		Source.RowSelection
+			.WhenAnyValue(x => x.SelectedItem)
+			.Subscribe(x => SelectedItem = x);
 	}
 
 	public ObservableCollection<HistoryItemViewModelBase> UnfilteredTransactions => _unfilteredTransactions;
 
 	public ObservableCollection<HistoryItemViewModelBase> Transactions => _transactions;
+
+	public FlatTreeDataGridSource<HistoryItemViewModelBase> Source { get; }
 
 	public void SelectTransaction(uint256 txid)
 	{
@@ -69,6 +186,9 @@ public partial class HistoryViewModel : ActivatableViewModel
 		{
 			SelectedItem = txnItem;
 			SelectedItem.IsFlashing = true;
+
+			var index = _transactions.IndexOf(SelectedItem);
+			Source.RowSelection!.SelectedIndex = new IndexPath(index);
 		}
 	}
 
@@ -91,35 +211,38 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 			lock (_transactionListLock)
 			{
-				var copyList = Transactions.ToList();
-
-				foreach (var oldItem in copyList)
+				_transactionSourceList.Edit(x =>
 				{
-					if (newHistoryList.All(x => x.Id != oldItem.Id))
-					{
-						_transactionSourceList.Remove(oldItem);
-					}
-				}
+					var copyList = Transactions.ToList();
 
-				foreach (var newItem in newHistoryList)
-				{
-					if (_transactions.FirstOrDefault(x => x.Id == newItem.Id) is { } item)
+					foreach (var oldItem in copyList)
 					{
-						if (item.GetType() != newItem.GetType())
+						if (newHistoryList.All(x => x.Id != oldItem.Id))
 						{
-							_transactionSourceList.Remove(item);
-							_transactionSourceList.Add(newItem);
+							x.Remove(oldItem);
+						}
+					}
+
+					foreach (var newItem in newHistoryList)
+					{
+						if (_transactions.FirstOrDefault(x => x.Id == newItem.Id) is { } item)
+						{
+							if (item.GetType() != newItem.GetType())
+							{
+								x.Remove(item);
+								x.Add(newItem);
+							}
+							else
+							{
+								item.Update(newItem);
+							}
 						}
 						else
 						{
-							item.Update(newItem);
+							x.Add(newItem);
 						}
 					}
-					else
-					{
-						_transactionSourceList.Add(newItem);
-					}
-				}
+				});
 
 				if (!IsInitialized)
 				{

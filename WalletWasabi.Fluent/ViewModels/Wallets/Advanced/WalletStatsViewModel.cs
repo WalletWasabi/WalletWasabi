@@ -43,13 +43,13 @@ public partial class WalletStatsViewModel : RoutableViewModel
 		// Number of coins in the wallet.
 		CoinCount = _wallet.Coins.Unspent().Count();
 
-		// Total amount of money in the wallet.
-		Balance = $"{_wallet.Coins.TotalAmount().ToFormattedString()} ₿";
+        // Total amount of money in the wallet.
+        Balance = $"{_wallet.Coins.TotalAmount().ToFormattedString()}";
 
-		// Total amount of confirmed money in the wallet.
-		ConfirmedBalance = $"{_wallet.Coins.Confirmed().TotalAmount().ToFormattedString()} ₿";
+        // Total amount of confirmed money in the wallet.
+        ConfirmedBalance = $"{_wallet.Coins.Confirmed().TotalAmount().ToFormattedString()}";
 
-		// Total amount of unconfirmed money in the wallet.
-		UnconfirmedBalance = $"{_wallet.Coins.Unconfirmed().TotalAmount().ToFormattedString()} ₿";
+        // Total amount of unconfirmed money in the wallet.
+        UnconfirmedBalance = $"{_wallet.Coins.Unconfirmed().TotalAmount().ToFormattedString()}";
 	}
 }
