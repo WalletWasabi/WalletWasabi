@@ -47,16 +47,15 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 			Goto(trigger, _currentState.Parent.StateId, true, false);
 			Goto(trigger, _currentState.GetDestination(trigger));
 		}
+		else
+		{
+			_currentState.Process(trigger);
+		}
 	}
 
 	public void Start()
 	{
 		_currentState.Enter();
-	}
-
-	public void Process()
-	{
-		_currentState.Process();
 	}
 
 	private void RegisterState(TState state)
@@ -88,8 +87,6 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 			{
 				_currentState.Enter();
 			}
-
-			_currentState.Process();
 		}
 	}
 
@@ -101,7 +98,7 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 		private StateContext? _parent;
 		private List<Action> _entryActions;
 		private List<Action> _exitActions;
-		private List<Action> _onProcessActions;
+		private Dictionary<TTrigger, List<Action>?> _triggerActions;
 
 		public TState StateId { get; }
 
@@ -114,7 +111,7 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 			_entryActions = new();
 			_exitActions = new();
-			_onProcessActions = new();
+			_triggerActions = new();
 			_permittedTransitions = new();
 		}
 
@@ -139,9 +136,14 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 			return this;
 		}
 
-		public StateContext OnProcess(Action action)
+		public StateContext OnTrigger(TTrigger trigger, Action action)
 		{
-			_onProcessActions.Add(action);
+			if (_triggerActions[trigger] is null)
+			{
+				_triggerActions[trigger] = new();
+			}
+
+			_triggerActions[trigger]?.Add(action);
 
 			return this;
 		}
@@ -170,11 +172,14 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 			}
 		}
 
-		internal void Process()
+		internal void Process(TTrigger trigger)
 		{
-			foreach (var action in _onProcessActions)
+			if (_triggerActions.ContainsKey(trigger) && _triggerActions[trigger] is { } actions)
 			{
-				action();
+				foreach (var action in actions)
+				{
+					action();
+				}
 			}
 		}
 
