@@ -280,7 +280,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private void TimerOnTick()
 	{
-		if (_stateMachine.CurrentState == State.AutoStarting)
+		if (_stateMachine.State == State.AutoStarting)
 		{
 			_stateMachine.Process();
 		}
@@ -310,12 +310,13 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		switch (e)
 		{
 			case StartingEventArgs startingEventArgs:
-				if (_stateMachine.CurrentState == State.AutoCoinJoin)
+				if (_stateMachine.State == State.AutoCoinJoin)
 				{
 					_countDownStarted = DateTimeOffset.Now;
 					_autoStartTime = _countDownStarted + startingEventArgs.StartingIn;
 					_stateMachine.Fire(Trigger.AutoCoinJoinEntered);
 				}
+
 				break;
 
 			case StartedEventArgs:

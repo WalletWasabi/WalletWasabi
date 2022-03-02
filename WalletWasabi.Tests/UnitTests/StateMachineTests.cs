@@ -1,5 +1,5 @@
 using FluentAssertions;
-using Stateless;
+using WalletWasabi.Fluent.State;
 using Xunit;
 using Xunit.Abstractions;
 

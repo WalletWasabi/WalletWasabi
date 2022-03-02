@@ -10,7 +10,7 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 	public delegate void OnTransitionedDelegate(TTrigger trigger, TState from, TState to);
 
-	public TState CurrentState => _currentState.StateId;
+	public TState State => _currentState.StateId;
 
 	public StateMachine(TState initialState)
 	{
