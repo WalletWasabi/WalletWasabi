@@ -1,5 +1,5 @@
 using FluentAssertions;
-using WalletWasabi.Fluent.State;
+using Stateless;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -81,6 +81,32 @@ public class StateMachineTests
 		entered.Should().BeTrue();
 	}
 
+	[Fact]
+	public void Substate()
+	{
+		var hasDisconnected = false;
+
+		StateMachine<PhoneState, PhoneTrigger> sut = new(PhoneState.Disconnected);
+		sut.Configure(PhoneState.Disconnected)
+			.Permit(PhoneTrigger.Connect, PhoneState.Connected);
+		sut.Configure(PhoneState.OnHold)
+			.SubstateOf(PhoneState.Connected)
+			.OnExit(() => hasDisconnected = true);
+		sut.Configure(PhoneState.Connected)
+			.Permit(PhoneTrigger.PutOnHold, PhoneState.OnHold);
+
+		sut.Fire(PhoneTrigger.Connect);
+		sut.Fire(PhoneTrigger.PutOnHold);
+
+		hasDisconnected.Should().BeFalse();
+	}
+
+	public enum PhoneState
+	{
+		Disconnected,
+		OnHold,
+		Connected
+	}
 
 	public enum Trigger
 	{
@@ -92,5 +118,11 @@ public class StateMachineTests
 	{
 		Locked,
 		Unlocked
+	}
+
+	public enum PhoneTrigger
+	{
+		Connect,
+		PutOnHold
 	}
 }
