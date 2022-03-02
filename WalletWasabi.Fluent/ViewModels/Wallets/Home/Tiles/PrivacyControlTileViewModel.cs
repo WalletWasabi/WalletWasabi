@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using NBitcoin;
@@ -38,21 +39,18 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 	private void Update()
 	{
 		var privateThreshold = _wallet.KeyManager.MinAnonScoreTarget;
+		var privacyScore = _wallet.Coins.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC) * Math.Min(x.HdPubKey.AnonymitySet - 1, privateThreshold - 1));
+		var idealPrivacyScore = _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC) * (privateThreshold - 1);
 
-		var privateAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
-		var normalAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold).TotalAmount();
-
-		var privateDecimalAmount = privateAmount.ToDecimal(MoneyUnit.BTC);
-		var normalDecimalAmount = normalAmount.ToDecimal(MoneyUnit.BTC);
-		var totalDecimalAmount = privateDecimalAmount + normalDecimalAmount;
-
-		var pcPrivate = totalDecimalAmount == 0M ? 1d : (double)(privateDecimalAmount / totalDecimalAmount);
+		var pcPrivate = idealPrivacyScore == 0M ? 1d : (double)(privacyScore / idealPrivacyScore);
 		var pcNormal = 1 - pcPrivate;
 
 		PercentText = $"\u205F{(int)Math.Floor(pcPrivate * 100)}\u205F/\u205F{100}";
 
 		FullyMixed = pcPrivate >= 1d;
 
+		var privateAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
+		var normalAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold).TotalAmount();
 		HasPrivateBalance = privateAmount > Money.Zero;
 
 		BalancePrivateBtc = $"{privateAmount.ToFormattedString()} BTC";
