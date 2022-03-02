@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace WalletWasabi.Fluent.State;
 
-public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState : Enum
+public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState : struct, Enum
 {
 	private StateContext _currentState;
 	private readonly Dictionary<TState, StateContext> _states;
@@ -16,6 +16,11 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 	{
 		_states = new Dictionary<TState, StateContext>();
 
+		foreach (var state in Enum.GetValues<TState>())
+		{
+			RegisterState(state);
+		}
+
 		_currentState = Configure(initialState);
 	}
 
@@ -28,15 +33,6 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 	public StateContext Configure(TState state)
 	{
-		if (!_states.ContainsKey(state))
-		{
-			var result = new StateContext(this, state);
-
-			_states.Add(state, result);
-
-			return result;
-		}
-
 		return _states[state];
 	}
 
@@ -61,6 +57,16 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 	public void Process()
 	{
 		_currentState.Process();
+	}
+
+	private void RegisterState(TState state)
+	{
+		if (!_states.ContainsKey(state))
+		{
+			var result = new StateContext(this, state);
+
+			_states.Add(state, result);
+		}
 	}
 
 	private void Goto(TTrigger trigger, TState state, bool exit = true, bool enter = true)
