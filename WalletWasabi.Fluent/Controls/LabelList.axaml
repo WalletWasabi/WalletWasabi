@@ -1,0 +1,49 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:WalletWasabi.Fluent.Controls"
+        xmlns:generic="clr-namespace:System.Collections.Generic;assembly=System.Collections"
+        xmlns:system="clr-namespace:System;assembly=System.Runtime">
+  <Design.PreviewWith>
+    <Panel Margin="10">
+      <c:LabelList DisplayThreshold="1">
+        <c:LabelList.Items>
+          <generic:List x:TypeArguments="system:String">
+            <system:String>Label1</system:String>
+            <system:String>Label2</system:String>
+            <system:String>Label3</system:String>
+          </generic:List>
+        </c:LabelList.Items>
+      </c:LabelList>
+    </Panel>
+  </Design.PreviewWith>
+  <Style Selector="c|LabelList">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <StackPanel Orientation="Horizontal">
+
+          <ItemsControl Items="{TemplateBinding MainItems}" />
+          <!-- <ItemsControl Items="{TemplateBinding SubItems}" Background="Red" /> -->
+
+          <c:TagControl Content="..." IsVisible="{TemplateBinding ShowSubItems}">
+            <ToolTip.Tip>
+              <ItemsControl Items="{TemplateBinding SubItems}" />
+            </ToolTip.Tip>
+          </c:TagControl>
+        </StackPanel>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+
+  <Style Selector="c|LabelList ItemsControl">
+    <Setter Property="ItemsPanel">
+      <ItemsPanelTemplate>
+        <WrapPanel Orientation="Horizontal" />
+      </ItemsPanelTemplate>
+    </Setter>
+    <Setter Property="ItemTemplate">
+      <DataTemplate>
+        <c:TagControl Content="{Binding .}" />
+      </DataTemplate>
+    </Setter>
+  </Style>
+</Styles>
