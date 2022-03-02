@@ -27,10 +27,10 @@ public class WpkhOutputDescriptorHelperTests
 	[Fact]
 	public void VerifyGenerateCorrectScript()
 	{
-		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		HDFingerprint masterFingerprint = new(0x2fc4a4f3);
+		ExtPubKey extPubKey = new ExtKey().Neuter();
 
-		var watchOnlyKm = KeyManager.CreateNewHardwareWalletWatchOnly(masterFingerprint, km.ExtPubKey, Network.Main);
+		var watchOnlyKm = KeyManager.CreateNewHardwareWalletWatchOnly(masterFingerprint, extPubKey, Network.Main);
 		var hdPubKey = watchOnlyKm.GetNextReceiveKey("dummy", out _);
 
 		var outputDesc = watchOnlyKm.GetOutputDescriptors("", Network.Main);
