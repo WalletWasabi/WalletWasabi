@@ -11,6 +11,7 @@ using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -260,13 +261,15 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			if (CoinJoinScriptStore?.Contains(request.Script) is true)
 			{
+				Logger.LogWarning($"Round ({request.RoundId}): Already registered script.");
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script.");
 			}
 
 			var inputScripts = round.Alices.Select(a => a.Coin.ScriptPubKey).ToHashSet();
 			if (inputScripts.Contains(request.Script))
 			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script.");
+				Logger.LogWarning($"Round ({request.RoundId}): Already registered script in the round.");
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script in round.");
 			}
 
 			Bob bob = new(request.Script, credentialAmount);
