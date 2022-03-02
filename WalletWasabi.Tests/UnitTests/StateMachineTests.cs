@@ -81,7 +81,6 @@ public class StateMachineTests
 	public void Entering_substate_does_not_execute_exit_actions_on_parent()
 	{
 		var hasExited = false;
-
 		StateMachine<PhoneState, PhoneTrigger> sut = new(PhoneState.Disconnected);
 		sut.Configure(PhoneState.Disconnected)
 			.Permit(PhoneTrigger.Connect, PhoneState.Connected);
@@ -101,17 +100,14 @@ public class StateMachineTests
 	public void Exiting_substate_does_not_call_entry_actions_on_parent()
 	{
 		var connectedCount = 0;
-
 		StateMachine<PhoneState, PhoneTrigger> sut = new(PhoneState.Disconnected);
 		sut.Configure(PhoneState.Disconnected)
 			.Permit(PhoneTrigger.Connect, PhoneState.Connected);
-
 		sut.Configure(PhoneState.OnHold)
 			.SubstateOf(PhoneState.Connected)
 			.OnEntry(() => connectedCount++);
 		sut.Configure(PhoneState.Connected)
 			.Permit(PhoneTrigger.PutOnHold, PhoneState.OnHold);
-
 		sut.Configure(PhoneState.OnHold)
 			.Permit(PhoneTrigger.ReleaseOnHold, PhoneState.Connected);
 
