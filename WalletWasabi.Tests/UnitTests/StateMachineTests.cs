@@ -37,6 +37,19 @@ public class StateMachineTests
 	}
 
 	[Fact]
+	public void Starting_after_initialization_executes_entry_actions()
+	{
+		StateMachine<PhoneState, PhoneTrigger> sut = new(PhoneState.Disconnected);
+		var entered = false;
+		sut.Configure(PhoneState.Disconnected)
+			.OnEntry(() => entered = true);
+
+		sut.Start();
+
+		entered.Should().BeTrue();
+	}
+
+	[Fact]
 	public void Exiting_state_with_exit_action_should_execute_it()
 	{
 		StateMachine<PhoneState, PhoneTrigger> sut = new(PhoneState.Disconnected);
