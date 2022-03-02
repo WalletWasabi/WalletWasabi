@@ -1,88 +1,72 @@
 using FluentAssertions;
 using Stateless;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace WalletWasabi.Tests.UnitTests;
 
 public class StateMachineTests
 {
-	private readonly ITestOutputHelper _output;
-
-	public StateMachineTests(ITestOutputHelper output)
+	[Fact]
+	public void Initialization_has_initial_state()
 	{
-		_output = output;
+		StateMachine<PhoneState, PhoneState> sut = new(PhoneState.Disconnected);
+		sut.State.Should().Be(PhoneState.Disconnected);
 	}
 
 	[Fact]
-	public void Non_started_machine_has_default_state()
+	public void Permitted_trigger_transitions_to_next_state()
 	{
-		StateMachine<State, Trigger> sut = new(State.Locked);
+		StateMachine<PhoneState, PhoneTrigger> sut = new(PhoneState.Disconnected);
+		sut.Configure(PhoneState.Disconnected)
+			.Permit(PhoneTrigger.Connect, PhoneState.Connected);
 
-		sut.State.Should().Be(State.Locked);
+		sut.Fire(PhoneTrigger.Connect);
+
+		sut.State.Should().Be(PhoneState.Connected);
 	}
 
 	[Fact]
-	public void After_start_has_default_state()
+	public void Initialization_should_not_execute_entry_actions()
 	{
-		StateMachine<State, Trigger> sut = new(State.Locked);
-		sut.State.Should().Be(State.Locked);
-	}
-
-	[Fact]
-	public void Permitted_trigger_sets_next_state()
-	{
-		StateMachine<State, Trigger> sut = new(State.Locked);
-		sut.Configure(State.Locked)
-			.Permit(Trigger.Coin, State.Unlocked);
-
-		sut.Fire(Trigger.Coin);
-
-		sut.State.Should().Be(State.Unlocked);
-	}
-
-	[Fact]
-	public void Just_initialized_should_not_execute_entry_action()
-	{
-		StateMachine<State, Trigger> sut = new(State.Locked);
+		StateMachine<PhoneState, PhoneTrigger> sut = new(PhoneState.Disconnected);
 		var entered = false;
-		sut.Configure(State.Locked)
+		sut.Configure(PhoneState.Disconnected)
 			.OnEntry(() => entered = true);
 
 		entered.Should().BeFalse();
 	}
 
 	[Fact]
-	public void State_with_exit_action_should_execute_action_when_transitioned()
+	public void Exiting_state_with_exit_action_should_execute_it()
 	{
-		StateMachine<State, Trigger> sut = new(State.Locked);
+		StateMachine<PhoneState, PhoneTrigger> sut = new(PhoneState.Disconnected);
 		var entered = false;
-		sut.Configure(State.Locked)
-			.Permit(Trigger.Coin, State.Unlocked)
+		sut.Configure(PhoneState.Disconnected)
+			.Permit(PhoneTrigger.Connect, PhoneState.Connected)
 			.OnExit(() => entered = true);
 
-		sut.Fire(Trigger.Coin);
+		sut.Fire(PhoneTrigger.Connect);
 
 		entered.Should().BeTrue();
 	}
 
 	[Fact]
-	public void Transitioning_to_state_with_entry_action_should_execute_the_entry_action()
+	public void Entering_state_with_entry_action_should_execute_it()
 	{
-		StateMachine<State, Trigger> sut = new(State.Locked);
+		StateMachine<PhoneState, PhoneTrigger> sut = new(PhoneState.Disconnected);
 		var entered = false;
-		sut.Configure(State.Locked)
-			.Permit(Trigger.Coin, State.Unlocked);
-		sut.Configure(State.Unlocked)
+		sut.Configure(PhoneState.Disconnected)
+			.Permit(PhoneTrigger.Connect, PhoneState.Connected);
+		sut.Configure(PhoneState.Connected)
 			.OnEntry(() => entered = true);
 
-		sut.Fire(Trigger.Coin);
+		sut.Fire(PhoneTrigger.Connect);
 
 		entered.Should().BeTrue();
 	}
 
 	[Fact]
-	public void Substate()
+	public void Entering_substate_does_not_execute_exit_actions_on_parent()
 	{
 		var hasDisconnected = false;
 
@@ -101,28 +85,42 @@ public class StateMachineTests
 		hasDisconnected.Should().BeFalse();
 	}
 
-	public enum PhoneState
+	[Fact]
+	public void Exiting_substate_does_not_call_entry_actions_on_parent()
+	{
+		var connections = 0;
+
+		StateMachine<PhoneState, PhoneTrigger> sut = new(PhoneState.Disconnected);
+		sut.Configure(PhoneState.Disconnected)
+			.Permit(PhoneTrigger.Connect, PhoneState.Connected);
+
+		sut.Configure(PhoneState.OnHold)
+			.SubstateOf(PhoneState.Connected)
+			.OnEntry(() => connections++);
+		sut.Configure(PhoneState.Connected)
+			.Permit(PhoneTrigger.PutOnHold, PhoneState.OnHold);
+
+		sut.Configure(PhoneState.OnHold)
+			.Permit(PhoneTrigger.ReleaseOnHold, PhoneState.Connected);
+
+		sut.Fire(PhoneTrigger.Connect);
+		sut.Fire(PhoneTrigger.PutOnHold);
+		sut.Fire(PhoneTrigger.ReleaseOnHold);
+
+		connections.Should().Be(1);
+	}
+
+	private enum PhoneState
 	{
 		Disconnected,
 		OnHold,
 		Connected
 	}
 
-	public enum Trigger
-	{
-		Coin,
-		Pass
-	}
-
-	public enum State
-	{
-		Locked,
-		Unlocked
-	}
-
-	public enum PhoneTrigger
+	private enum PhoneTrigger
 	{
 		Connect,
-		PutOnHold
+		PutOnHold,
+		ReleaseOnHold
 	}
 }
