@@ -15,36 +15,7 @@
 
     <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap" Text="Some people or companies could know about this:" />
 
-    <DockPanel LastChildFill="False" HorizontalAlignment="Center">
-      <c:TagsBox Padding="0"
-                 Margin="0"
-                 MinWidth="0"
-                 BorderThickness="0"
-                 DockPanel.Dock="Left"
-                 IsReadOnly="True"
-                 Items="{Binding Labels}"
-                 HorizontalAlignment="Stretch"
-                 VerticalAlignment="Center" />
-      <Button Classes="labelFlyout"
-              DockPanel.Dock="Left"
-              IsVisible="{Binding !!FilteredLabels.Count}"
-              Content="..."
-              Margin="0 4 0 0">
-        <Button.Flyout>
-          <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="TransientWithDismissOnPointerMoveAway">
-            <c:TagsBox IsReadOnly="True"
-                       Items="{Binding FilteredLabels}" />
-          </Flyout>
-        </Button.Flyout>
-        <ToolTip.Tip>
-          <Panel>
-            <c:TagsBox IsReadOnly="True"
-                       Margin="4,6,0,0"
-                       Items="{Binding FilteredLabels}" />
-          </Panel>
-        </ToolTip.Tip>
-      </Button>
-    </DockPanel>
+    <c:LabelList Items="{Binding Labels}" DisplayThreshold="1" HorizontalAlignment="Center" />
 
     <TextBlock Text="Control your privacy?" TextWrapping="Wrap" HorizontalAlignment="Center" />
 
