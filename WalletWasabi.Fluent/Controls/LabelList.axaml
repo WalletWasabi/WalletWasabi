@@ -22,11 +22,13 @@
         <StackPanel Orientation="Horizontal">
 
           <ItemsControl Items="{TemplateBinding MainItems}" />
-          <!-- <ItemsControl Items="{TemplateBinding SubItems}" Background="Red" /> -->
+
+          <!-- Hack alert -->
+          <ItemsControl Items="{TemplateBinding SubItems}" Name="SubItems" IsVisible="False" />
 
           <c:TagControl Content="..." IsVisible="{TemplateBinding ShowSubItems}">
             <ToolTip.Tip>
-              <ItemsControl Items="{TemplateBinding SubItems}" />
+              <ItemsControl Items="{Binding #SubItems.Items}" />
             </ToolTip.Tip>
           </c:TagControl>
         </StackPanel>
