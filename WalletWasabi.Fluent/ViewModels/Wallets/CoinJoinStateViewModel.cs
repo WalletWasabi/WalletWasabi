@@ -43,7 +43,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		Stop,
 		PlebStop,
 		RoundStartFailed,
-		RoundStart
+		RoundStart,
+		BalanceChanged,
+		Timer
 	}
 
 	private readonly StateMachine<State, Trigger> _stateMachine;
@@ -111,7 +113,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		ConfigureStateMachine(coinJoinManager);
 
-		balanceChanged.Subscribe(_ => _stateMachine.Process());
+		balanceChanged.Subscribe(_ => _stateMachine.Fire(Trigger.BalanceChanged));
 
 		PlayCommand = ReactiveCommand.Create(() => _stateMachine.Fire(Trigger.Play));
 
@@ -144,7 +146,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 				_stateMachine.Fire(Trigger.ManualCoinJoinEntered);
 			})
-			.OnProcess(UpdateWalletMixedProgress);
+			.OnEntry(UpdateWalletMixedProgress)
+			.OnTrigger(Trigger.BalanceChanged, UpdateWalletMixedProgress);
 
 		_stateMachine.Configure(State.Stopped)
 			.SubstateOf(State.ManualCoinJoin)
@@ -158,7 +161,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				CurrentStatus = _stoppedMessage;
 				coinJoinManager.Stop(_wallet);
 			})
-			.OnProcess(UpdateWalletMixedProgress);
+			.OnEntry(UpdateWalletMixedProgress)
+			.OnTrigger(Trigger.BalanceChanged, UpdateWalletMixedProgress);
 
 		_stateMachine.Configure(State.ManualPlaying)
 			.SubstateOf(State.ManualCoinJoin)
@@ -171,7 +175,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				CurrentStatus = _coinJoiningMessage;
 				coinJoinManager.Start(_wallet);
 			})
-			.OnProcess(UpdateWalletMixedProgress);
+			.OnEntry(UpdateWalletMixedProgress)
+			.OnTrigger(Trigger.BalanceChanged, UpdateWalletMixedProgress);
 
 		_stateMachine.Configure(State.ManualFinished)
 			.SubstateOf(State.ManualCoinJoin)
@@ -216,15 +221,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				IsAutoWaiting = true;
 				CurrentStatus = _countDownMessage;
 			})
-			.OnProcess(() =>
-			{
-				ElapsedTime = $"{DateTime.Now - _countDownStarted:mm\\:ss}";
-				RemainingTime = $"-{_autoStartTime - DateTime.Now:mm\\:ss}";
-
-				var total = (_autoStartTime - _countDownStarted).TotalSeconds;
-				var percentage = (DateTime.Now - _countDownStarted).TotalSeconds * 100 / total;
-				ProgressValue = percentage;
-			})
+			.OnEntry(UpdateCountDown)
+			.OnTrigger(Trigger.Timer, UpdateCountDown)
 			.OnExit(() =>
 			{
 				IsAutoWaiting = false;
@@ -245,7 +243,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 				coinJoinManager.Stop(_wallet);
 			})
-			.OnProcess(UpdateWalletMixedProgress);
+			.OnEntry(UpdateWalletMixedProgress)
+			.OnTrigger(Trigger.BalanceChanged, UpdateWalletMixedProgress);
 
 		_stateMachine.Configure(State.AutoPlaying)
 			.SubstateOf(State.AutoCoinJoin)
@@ -261,7 +260,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				CurrentStatus = _coinJoiningMessage;
 				coinJoinManager.Start(_wallet);
 			})
-			.OnProcess(UpdateWalletMixedProgress);
+			.OnEntry(UpdateWalletMixedProgress)
+			.OnTrigger(Trigger.BalanceChanged, UpdateWalletMixedProgress);
 
 		_stateMachine.Configure(State.AutoFinished)
 			.SubstateOf(State.AutoCoinJoin)
@@ -278,12 +278,19 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			});
 	}
 
+	private void UpdateCountDown()
+	{
+		ElapsedTime = $"{DateTime.Now - _countDownStarted:mm\\:ss}";
+		RemainingTime = $"-{_autoStartTime - DateTime.Now:mm\\:ss}";
+
+		var total = (_autoStartTime - _countDownStarted).TotalSeconds;
+		var percentage = (DateTime.Now - _countDownStarted).TotalSeconds * 100 / total;
+		ProgressValue = percentage;
+	}
+
 	private void TimerOnTick()
 	{
-		if (_stateMachine.State == State.AutoStarting)
-		{
-			_stateMachine.Process();
-		}
+		_stateMachine.Fire(Trigger.Timer);
 	}
 
 	private void UpdateWalletMixedProgress()
