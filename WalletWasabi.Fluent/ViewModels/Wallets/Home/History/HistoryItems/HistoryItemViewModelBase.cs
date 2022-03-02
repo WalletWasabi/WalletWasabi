@@ -32,9 +32,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public uint256 Id { get; }
 
-	public List<string>? FilteredLabel { get; protected set; }
-
-	public string? Label { get; protected set; }
+	public IEnumerable<string>? Labels { get; protected set; }
 
 	public bool IsCoinJoin { get; protected set; }
 

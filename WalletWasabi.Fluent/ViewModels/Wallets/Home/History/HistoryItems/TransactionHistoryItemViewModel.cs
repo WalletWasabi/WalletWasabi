@@ -18,8 +18,7 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		IObservable<Unit> updateTrigger)
 		: base(orderIndex, transactionSummary)
 	{
-		Label = transactionSummary.Label.Take(1).FirstOrDefault();
-		FilteredLabel = transactionSummary.Label.Skip(1).ToList();
+		Labels = transactionSummary.Label.Labels;
 		IsConfirmed = transactionSummary.IsConfirmed();
 		Date = transactionSummary.DateTime.ToLocalTime();
 		Balance = balance;
