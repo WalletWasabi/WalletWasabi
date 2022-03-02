@@ -1,4 +1,3 @@
-using FluentAssertions;
 using WalletWasabi.Fluent.State;
 using Xunit;
 
@@ -10,7 +9,7 @@ public class StateMachineTests
 	public void Initialization_has_initial_state()
 	{
 		StateMachine<PhoneState, PhoneState> sut = new(PhoneState.Disconnected);
-		sut.State.Should().Be(PhoneState.Disconnected);
+		Assert.Equal(PhoneState.Disconnected, sut.State);
 	}
 
 	[Fact]
@@ -22,7 +21,7 @@ public class StateMachineTests
 
 		sut.Fire(PhoneTrigger.Connect);
 
-		sut.State.Should().Be(PhoneState.Connected);
+		Assert.Equal(PhoneState.Connected, sut.State);
 	}
 
 	[Fact]
@@ -33,7 +32,7 @@ public class StateMachineTests
 		sut.Configure(PhoneState.Disconnected)
 			.OnEntry(() => hasEntered = true);
 
-		hasEntered.Should().BeFalse();
+		Assert.False(hasEntered);
 	}
 
 	[Fact]
@@ -46,7 +45,7 @@ public class StateMachineTests
 
 		sut.Start();
 
-		hasEntered.Should().BeTrue();
+		Assert.True(hasEntered);
 	}
 
 	[Fact]
@@ -60,7 +59,7 @@ public class StateMachineTests
 
 		sut.Fire(PhoneTrigger.Connect);
 
-		hasExited.Should().BeTrue();
+		Assert.True(hasExited);
 	}
 
 	[Fact]
@@ -75,7 +74,7 @@ public class StateMachineTests
 
 		sut.Fire(PhoneTrigger.Connect);
 
-		hasEntered.Should().BeTrue();
+		Assert.True(hasEntered);
 	}
 
 	[Fact]
@@ -95,7 +94,7 @@ public class StateMachineTests
 		sut.Fire(PhoneTrigger.Connect);
 		sut.Fire(PhoneTrigger.PutOnHold);
 
-		hasExited.Should().BeFalse();
+		Assert.False(hasExited);
 	}
 
 	[Fact]
@@ -120,7 +119,7 @@ public class StateMachineTests
 		sut.Fire(PhoneTrigger.PutOnHold);
 		sut.Fire(PhoneTrigger.ReleaseOnHold);
 
-		connectedCount.Should().Be(1);
+		Assert.Equal(1, connectedCount);
 	}
 
 	private enum PhoneState
