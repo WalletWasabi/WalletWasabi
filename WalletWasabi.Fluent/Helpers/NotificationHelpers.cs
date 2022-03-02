@@ -54,7 +54,7 @@ public static class NotificationHelpers
 			bool isReceived = result.NewlyReceivedCoins.Any();
 			bool isConfirmedReceive = result.NewlyConfirmedReceivedCoins.Any();
 			bool isConfirmedSpent = result.NewlyConfirmedReceivedCoins.Any();
-			Money miningFee = result.Transaction.Transaction.GetFee(result.SpentCoins.Select(x => x.Coin).ToArray());
+			Money miningFee = result.Transaction.Transaction.GetFee(result.SpentCoins.Select(x => x.Coin).ToArray()) ?? Money.Zero;
 
 			if (isReceived || isSpent)
 			{
@@ -75,7 +75,6 @@ public static class NotificationHelpers
 				else if (incoming > Money.Zero)
 				{
 					message = $"{amountString} BTC received";
-
 				}
 				else if (incoming < Money.Zero)
 				{
