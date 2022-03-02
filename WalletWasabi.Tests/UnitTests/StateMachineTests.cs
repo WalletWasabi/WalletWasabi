@@ -118,6 +118,52 @@ public class StateMachineTests
 		Assert.Equal(1, connectedCount);
 	}
 
+	[Fact]
+	public void Firing_special_trigger_executes_given_action()
+	{
+		StateMachine<PhoneState, PhoneTrigger> sut = new(PhoneState.Disconnected);
+		var triggered = false;
+		sut.Configure(PhoneState.Disconnected)
+			.OnTrigger(PhoneTrigger.Ping, () => triggered = true);
+
+		sut.Fire(PhoneTrigger.Ping);
+
+		Assert.True(triggered);
+	}
+
+	[Fact]
+	public void Firing_special_trigger_executes_given_multiple_actions()
+	{
+		StateMachine<PhoneState, PhoneTrigger> sut = new(PhoneState.Disconnected);
+		int count = 0;
+		sut.Configure(PhoneState.Disconnected)
+			.OnTrigger(PhoneTrigger.Ping, () => count++)
+			.OnTrigger(PhoneTrigger.Ping, () => count++)
+			.OnTrigger(PhoneTrigger.Ping, () => count++);
+
+		sut.Fire(PhoneTrigger.Ping);
+
+		Assert.Equal(3, count);
+	}
+
+	
+	[Fact]
+	public void Firing_special_trigger_executes_correct_action()
+	{
+		StateMachine<PhoneState, PhoneTrigger> sut = new(PhoneState.Disconnected);
+		var executedAction = "none";
+		sut.Configure(PhoneState.Disconnected)
+			.Permit(PhoneTrigger.Connect, PhoneState.Connected)
+			.OnTrigger(PhoneTrigger.Ping, () => executedAction = "first");
+		sut.Configure(PhoneState.Connected)
+			.OnTrigger(PhoneTrigger.Ping, () => executedAction = "second");
+
+		sut.Fire(PhoneTrigger.Connect);
+		sut.Fire(PhoneTrigger.Ping);
+
+		Assert.Equal("second", executedAction);
+	}
+
 	private enum PhoneState
 	{
 		Disconnected,
@@ -129,6 +175,7 @@ public class StateMachineTests
 	{
 		Connect,
 		PutOnHold,
-		ReleaseOnHold
+		ReleaseOnHold,
+		Ping
 	}
 }

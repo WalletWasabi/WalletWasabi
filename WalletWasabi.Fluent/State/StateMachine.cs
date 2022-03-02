@@ -138,12 +138,14 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 		public StateContext OnTrigger(TTrigger trigger, Action action)
 		{
-			if (_triggerActions[trigger] is null)
+			if (_triggerActions.TryGetValue(trigger, out var t))
 			{
-				_triggerActions[trigger] = new();
+				t?.Add(action);
 			}
-
-			_triggerActions[trigger]?.Add(action);
+			else
+			{
+				_triggerActions.Add(trigger, new List<Action> { action });
+			}
 
 			return this;
 		}
