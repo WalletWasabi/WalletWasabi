@@ -29,79 +29,79 @@ public class StateMachineTests
 	public void Initialization_should_not_execute_entry_actions()
 	{
 		StateMachine<PhoneState, PhoneTrigger> sut = new(PhoneState.Disconnected);
-		var entered = false;
+		var hasEntered = false;
 		sut.Configure(PhoneState.Disconnected)
-			.OnEntry(() => entered = true);
+			.OnEntry(() => hasEntered = true);
 
-		entered.Should().BeFalse();
+		hasEntered.Should().BeFalse();
 	}
 
 	[Fact]
 	public void Starting_after_initialization_executes_entry_actions()
 	{
 		StateMachine<PhoneState, PhoneTrigger> sut = new(PhoneState.Disconnected);
-		var entered = false;
+		var hasEntered = false;
 		sut.Configure(PhoneState.Disconnected)
-			.OnEntry(() => entered = true);
+			.OnEntry(() => hasEntered = true);
 
 		sut.Start();
 
-		entered.Should().BeTrue();
+		hasEntered.Should().BeTrue();
 	}
 
 	[Fact]
 	public void Exiting_state_with_exit_action_should_execute_it()
 	{
 		StateMachine<PhoneState, PhoneTrigger> sut = new(PhoneState.Disconnected);
-		var entered = false;
+		var hasExited = false;
 		sut.Configure(PhoneState.Disconnected)
 			.Permit(PhoneTrigger.Connect, PhoneState.Connected)
-			.OnExit(() => entered = true);
+			.OnExit(() => hasExited = true);
 
 		sut.Fire(PhoneTrigger.Connect);
 
-		entered.Should().BeTrue();
+		hasExited.Should().BeTrue();
 	}
 
 	[Fact]
 	public void Entering_state_with_entry_action_should_execute_it()
 	{
 		StateMachine<PhoneState, PhoneTrigger> sut = new(PhoneState.Disconnected);
-		var entered = false;
+		var hasEntered = false;
 		sut.Configure(PhoneState.Disconnected)
 			.Permit(PhoneTrigger.Connect, PhoneState.Connected);
 		sut.Configure(PhoneState.Connected)
-			.OnEntry(() => entered = true);
+			.OnEntry(() => hasEntered = true);
 
 		sut.Fire(PhoneTrigger.Connect);
 
-		entered.Should().BeTrue();
+		hasEntered.Should().BeTrue();
 	}
 
 	[Fact]
 	public void Entering_substate_does_not_execute_exit_actions_on_parent()
 	{
-		var hasDisconnected = false;
+		var hasExited = false;
 
 		StateMachine<PhoneState, PhoneTrigger> sut = new(PhoneState.Disconnected);
 		sut.Configure(PhoneState.Disconnected)
 			.Permit(PhoneTrigger.Connect, PhoneState.Connected);
 		sut.Configure(PhoneState.OnHold)
 			.SubstateOf(PhoneState.Connected)
-			.OnExit(() => hasDisconnected = true);
+			.OnExit(() => hasExited = true);
 		sut.Configure(PhoneState.Connected)
 			.Permit(PhoneTrigger.PutOnHold, PhoneState.OnHold);
 
 		sut.Fire(PhoneTrigger.Connect);
 		sut.Fire(PhoneTrigger.PutOnHold);
 
-		hasDisconnected.Should().BeFalse();
+		hasExited.Should().BeFalse();
 	}
 
 	[Fact]
 	public void Exiting_substate_does_not_call_entry_actions_on_parent()
 	{
-		var connections = 0;
+		var connectedCount = 0;
 
 		StateMachine<PhoneState, PhoneTrigger> sut = new(PhoneState.Disconnected);
 		sut.Configure(PhoneState.Disconnected)
@@ -109,7 +109,7 @@ public class StateMachineTests
 
 		sut.Configure(PhoneState.OnHold)
 			.SubstateOf(PhoneState.Connected)
-			.OnEntry(() => connections++);
+			.OnEntry(() => connectedCount++);
 		sut.Configure(PhoneState.Connected)
 			.Permit(PhoneTrigger.PutOnHold, PhoneState.OnHold);
 
@@ -120,7 +120,7 @@ public class StateMachineTests
 		sut.Fire(PhoneTrigger.PutOnHold);
 		sut.Fire(PhoneTrigger.ReleaseOnHold);
 
-		connections.Should().Be(1);
+		connectedCount.Should().Be(1);
 	}
 
 	private enum PhoneState
