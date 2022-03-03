@@ -21,13 +21,13 @@ public partial class CoinJoinProfilesViewModel : RoutableViewModel
 		NextCommand = ReactiveCommand.Create(() => OnNext(keyManager));
 		EnableBack = true;
 
-		var speedyProfile = new SpeedyCoinJoinProfile();
+		var speedyProfile = new SpeedyCoinJoinProfileViewModel();
 
 		Profiles = new()
 		{
-			new EconomyCoinJoinProfile(),
+			new EconomicCoinJoinProfileViewModel(),
 			speedyProfile,
-			new PrivateCoinJoinProfile()
+			new PrivateCoinJoinProfileViewModel()
 		};
 
 		_selectedProfile = speedyProfile;
@@ -39,7 +39,7 @@ public partial class CoinJoinProfilesViewModel : RoutableViewModel
 
 	public List<CoinJoinProfileViewModelBase> Profiles { get; }
 
-	public ManualCoinJoinProfile? SelectedManualProfile { get; private set; }
+	public ManualCoinJoinProfileViewModel? SelectedManualProfile { get; private set; }
 
 	private async Task OnManualSetupAsync()
 	{
@@ -48,7 +48,7 @@ public partial class CoinJoinProfilesViewModel : RoutableViewModel
 
 		var dialogResult = await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen);
 
-		if (dialogResult.Result is ManualCoinJoinProfile profile)
+		if (dialogResult.Result is ManualCoinJoinProfileViewModel profile)
 		{
 			SelectedProfile = null;
 			SelectedManualProfile = profile;
