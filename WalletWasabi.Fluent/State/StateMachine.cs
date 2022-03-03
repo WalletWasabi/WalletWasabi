@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace WalletWasabi.Fluent.State;
 
@@ -16,12 +17,18 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 	{
 		_states = new Dictionary<TState, StateContext>();
 
-		foreach (var state in Enum.GetValues<TState>())
-		{
-			RegisterState(state);
-		}
+		AddNonConfiguredStates();
 
 		_currentState = Configure(initialState);
+	}
+
+	private void AddNonConfiguredStates()
+	{
+		var nonConfigured = Enum.GetValues<TState>().Where(s => !_states.ContainsKey(s));
+		foreach (var state in nonConfigured)
+		{
+			_states.Add(state, new StateContext(this, state));
+		}
 	}
 
 	public StateMachine<TState, TTrigger> OnTransitioned(OnTransitionedDelegate onTransitioned)
@@ -58,15 +65,6 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 		_currentState.Enter();
 	}
 
-	private void RegisterState(TState state)
-	{
-		if (!_states.ContainsKey(state))
-		{
-			var result = new StateContext(this, state);
-
-			_states.Add(state, result);
-		}
-	}
 
 	private void Goto(TTrigger trigger, TState state, bool exit = true, bool enter = true)
 	{
@@ -92,17 +90,15 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 	public class StateContext
 	{
-		private Dictionary<TTrigger, TState> _permittedTransitions;
+		private readonly Dictionary<TTrigger, TState> _permittedTransitions;
 		private readonly StateMachine<TState, TTrigger> _owner;
-
-		private StateContext? _parent;
-		private List<Action> _entryActions;
-		private List<Action> _exitActions;
-		private Dictionary<TTrigger, List<Action>?> _triggerActions;
+		private readonly List<Action> _entryActions;
+		private readonly List<Action> _exitActions;
+		private readonly Dictionary<TTrigger, List<Action>> _triggerActions;
 
 		public TState StateId { get; }
 
-		public StateContext? Parent => _parent;
+		public StateContext? Parent { get; private set; }
 
 		public StateContext(StateMachine<TState, TTrigger> owner, TState state)
 		{
@@ -117,7 +113,7 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 		public StateContext SubstateOf(TState parent)
 		{
-			_parent = _owner._states[parent];
+			Parent = _owner._states[parent];
 
 			return this;
 		}
