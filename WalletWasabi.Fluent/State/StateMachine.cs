@@ -136,7 +136,7 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 		{
 			if (_triggerActions.TryGetValue(trigger, out var t))
 			{
-				t?.Add(action);
+				t.Add(action);
 			}
 			else
 			{
