@@ -617,11 +617,11 @@ public class PocketSelectionTests
 		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
 		pockets.AddPocket(1.1M, out var pocket2, "Dan");
 		pockets.AddPocket(0.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
-		pockets.AddPocket(1.1M, out var pocket4, "David, Lucas");
+		pockets.AddPocket(1.1M, out var pocket4, "David", "Lucas");
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets("David, Lucas");
+		var output = selection.AutoSelectPockets(new SmartLabel("David", "Lucas"));
 		Assert.DoesNotContain(pocket1, output);
 		Assert.DoesNotContain(pocket2, output);
 		Assert.DoesNotContain(pocket3, output);
@@ -637,7 +637,7 @@ public class PocketSelectionTests
 		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
 		pockets.AddPocket(1.1M, out var pocket2, "Dan");
 		pockets.AddPocket(0.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
-		pockets.AddPocket(1.1M, out var pocket4, "David, Lucas");
+		pockets.AddPocket(1.1M, out var pocket4, "David", "Lucas");
 
 		selection.Reset(pockets.ToArray());
 
