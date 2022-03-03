@@ -32,16 +32,28 @@ public partial class LabelSelectionViewModel : ViewModelBase
 
 	public IEnumerable<LabelViewModel> LabelsBlackList => AllLabelsViewModel.Where(x => x.IsBlackListed);
 
-	public Pocket[] AutoSelectPockets()
+	public Pocket[] AutoSelectPockets(SmartLabel recipient)
 	{
 		var knownPockets = NonPrivatePockets.Where(x => x.Labels != CoinPocketHelper.UnlabelledFundsText).ToArray();
 		var unknownPockets = NonPrivatePockets.Except(knownPockets).ToArray();
 		var privateAndUnknownPockets = _allPockets.Except(knownPockets).ToArray();
 		var privateAndKnownPockets = _allPockets.Except(unknownPockets).ToArray();
+		var knownByRecipientPockets = knownPockets.Where(x => x.Labels.Any(label => recipient.Labels.Contains(label))).ToArray();
+		var onlyKnownByRecipientPockets = knownByRecipientPockets.Where(x => x.Labels.All(label => recipient.Labels.Contains(label))).ToArray();
 
 		if (_privatePocket.Amount >= _targetAmount)
 		{
 			return new[] { _privatePocket };
+		}
+
+		if (onlyKnownByRecipientPockets.Sum(x => x.Amount) >= _targetAmount)
+		{
+			return onlyKnownByRecipientPockets;
+		}
+
+		if (knownByRecipientPockets.Sum(x => x.Amount) >= _targetAmount)
+		{
+			return knownByRecipientPockets;
 		}
 
 		if (knownPockets.Sum(x => x.Amount) >= _targetAmount)
