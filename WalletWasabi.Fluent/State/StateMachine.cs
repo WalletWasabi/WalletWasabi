@@ -17,14 +17,14 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 	{
 		_states = new Dictionary<TState, StateContext>();
 
-		AddNonConfiguredStates();
+		RegisterStates();
 
 		_currentState = Configure(initialState);
 	}
 
-	private void AddNonConfiguredStates()
+	private void RegisterStates()
 	{
-		var nonConfigured = Enum.GetValues<TState>().Where(s => !_states.ContainsKey(s));
+		var nonConfigured = Enum.GetValues<TState>();
 		foreach (var state in nonConfigured)
 		{
 			_states.Add(state, new StateContext(this, state));
@@ -145,7 +145,6 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 			return this;
 		}
-
 
 		public StateContext OnExit(Action action)
 		{
