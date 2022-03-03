@@ -472,7 +472,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets();
+		var output = selection.AutoSelectPockets("");
 		Assert.Contains(pocket1, output);
 		Assert.DoesNotContain(pocket2, output);
 		Assert.DoesNotContain(pocket3, output);
@@ -491,7 +491,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets();
+		var output = selection.AutoSelectPockets("");
 		Assert.DoesNotContain(pocket1, output);
 		Assert.DoesNotContain(pocket4, output);
 		Assert.Contains(pocket2, output);
@@ -510,7 +510,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets();
+		var output = selection.AutoSelectPockets("");
 		Assert.DoesNotContain(pocket1, output);
 		Assert.DoesNotContain(pocket2, output);
 		Assert.Contains(pocket3, output);
@@ -528,7 +528,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets();
+		var output = selection.AutoSelectPockets("");
 		Assert.DoesNotContain(pocket1, output);
 		Assert.Contains(pocket2, output);
 		Assert.Contains(pocket3, output);
@@ -546,7 +546,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets();
+		var output = selection.AutoSelectPockets("");
 		Assert.Contains(pocket1, output);
 		Assert.Contains(pocket2, output);
 		Assert.DoesNotContain(pocket3, output);
@@ -564,7 +564,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets();
+		var output = selection.AutoSelectPockets("");
 		Assert.Contains(pocket1, output);
 		Assert.DoesNotContain(pocket2, output);
 		Assert.Contains(pocket3, output);
@@ -582,7 +582,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets();
+		var output = selection.AutoSelectPockets("");
 		Assert.Contains(pocket1, output);
 		Assert.Contains(pocket2, output);
 		Assert.Contains(pocket3, output);
