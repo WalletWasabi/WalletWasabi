@@ -63,12 +63,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	[AutoNotify] private string _remainingTime;
 
 	private readonly MusicStatusMessageViewModel _countDownMessage = new()
-		{ Message = "Waiting to auto-start coinjoin" };
+	{ Message = "Waiting to auto-start coinjoin" };
 
 	private readonly MusicStatusMessageViewModel _coinJoiningMessage = new() { Message = "Coinjoining" };
 
 	private readonly MusicStatusMessageViewModel _pauseMessage = new()
-		{ Message = "Coinjoin is paused" };
+	{ Message = "Coinjoin is paused" };
 
 	private readonly MusicStatusMessageViewModel _stoppedMessage = new() { Message = "Coinjoin is stopped" };
 
@@ -96,7 +96,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		Observable.FromEventPattern<StatusChangedEventArgs>(coinJoinManager, nameof(coinJoinManager.StatusChanged))
 			.Where(x => x.EventArgs.Wallet == walletVm.Wallet)
-			.Select(x=>x.EventArgs)
+			.Select(x => x.EventArgs)
 			.Subscribe(StatusChanged);
 
 		var initialState = walletVm.Settings.AutoCoinJoin
@@ -280,13 +280,14 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private void UpdateCountDown()
 	{
-		ElapsedTime = $"{DateTime.Now - _countDownStarted:mm\\:ss}";
-		RemainingTime = $"-{_autoStartTime - DateTime.Now:mm\\:ss}";
-
-		var total = (_autoStartTime - _countDownStarted).TotalSeconds;
-		var percentage = (DateTime.Now - _countDownStarted).TotalSeconds * 100 / total;
-		ProgressValue = percentage;
+		ElapsedTime = $"{GetElapsedTime():g}";
+		RemainingTime = $"-{GetRemainingTime():g}";
+		ProgressValue = GetPercentage();
 	}
+
+	private TimeSpan GetElapsedTime() => DateTimeOffset.Now - _countDownStarted;
+	private TimeSpan GetRemainingTime() => _autoStartTime - DateTimeOffset.Now;
+	private double GetPercentage() => GetElapsedTime().TotalSeconds / GetRemainingTime().TotalSeconds * 100;
 
 	private void TimerOnTick()
 	{
@@ -295,21 +296,23 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private void UpdateWalletMixedProgress()
 	{
-		if (_wallet.Coins.Any())
+		if (!_wallet.Coins.Any())
 		{
-			var privateThreshold = _wallet.KeyManager.MinAnonScoreTarget;
-
-			var privateAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
-			var normalAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold).TotalAmount();
-			var total = _wallet.Coins.TotalAmount();
-
-			ElapsedTime = "Balance to coinjoin:";
-			RemainingTime = normalAmount.ToFormattedString() + "BTC";
-
-			var percentage = privateAmount.ToDecimal(MoneyUnit.BTC) / total.ToDecimal(MoneyUnit.BTC) * 100;
-
-			ProgressValue = (double)percentage;
+			return;
 		}
+
+		var privateThreshold = _wallet.KeyManager.MinAnonScoreTarget;
+
+		var privateAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
+		var normalAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold).TotalAmount();
+		var total = _wallet.Coins.TotalAmount();
+
+		ElapsedTime = "Balance to coinjoin:";
+		RemainingTime = normalAmount.ToFormattedString() + "BTC";
+
+		var percentage = privateAmount.ToDecimal(MoneyUnit.BTC) / total.ToDecimal(MoneyUnit.BTC) * 100;
+
+		ProgressValue = (double)percentage;
 	}
 
 	private void StatusChanged(StatusChangedEventArgs e)
