@@ -251,7 +251,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.Pause, State.Paused)
 			.Permit(Trigger.PlebStop, State.Paused)
 			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
-			.Permit(Trigger.RoundStart, State.AutoPlaying)
 			.OnEntry(() =>
 			{
 				IsAutoWaiting = false;
