@@ -120,6 +120,11 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 		public StateContext Permit(TTrigger trigger, TState state)
 		{
+			if (StateId.Equals(state))
+			{
+				throw new InvalidOperationException("Configuring state re-entry is not allowed");
+			}
+
 			_permittedTransitions[trigger] = state;
 
 			return this;

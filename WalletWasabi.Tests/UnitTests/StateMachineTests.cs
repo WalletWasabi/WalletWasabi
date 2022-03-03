@@ -164,6 +164,18 @@ public class StateMachineTests
 		Assert.Equal("second", executedAction);
 	}
 
+	[Fact]
+	public void Permitting_trigger_to_same_transition_should_not_be_allowed()
+	{
+		StateMachine<PhoneState, PhoneTrigger> sut = new(PhoneState.Disconnected);
+
+		void ConfigureForReEntry() => sut
+			.Configure(PhoneState.Disconnected)
+			.Permit(PhoneTrigger.Ping, PhoneState.Disconnected);
+
+		Assert.Throws<InvalidOperationException>(ConfigureForReEntry);
+	}
+
 	private enum PhoneState
 	{
 		Disconnected,
