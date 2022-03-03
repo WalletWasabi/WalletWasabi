@@ -24,8 +24,7 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 	private void RegisterStates()
 	{
-		var nonConfigured = Enum.GetValues<TState>();
-		foreach (var state in nonConfigured)
+		foreach (var state in Enum.GetValues<TState>())
 		{
 			_states.Add(state, new StateContext(this, state));
 		}
