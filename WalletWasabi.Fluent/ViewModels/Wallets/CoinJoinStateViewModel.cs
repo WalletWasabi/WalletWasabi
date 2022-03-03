@@ -279,8 +279,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private void UpdateCountDown()
 	{
-		ElapsedTime = $"{GetElapsedTime():g}";
-		RemainingTime = $"-{GetRemainingTime():g}";
+		var format = @"hh\:mm\:ss";
+		ElapsedTime = $"{GetElapsedTime().ToString(format)}";
+		RemainingTime = $"-{GetRemainingTime():hh:mm:ss}";
 		ProgressValue = GetPercentage();
 	}
 
