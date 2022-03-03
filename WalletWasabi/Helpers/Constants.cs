@@ -80,7 +80,7 @@ public static class Constants
 	};
 
 	public static readonly ExtPubKey FallBackCoordinatorExtPubKey = NBitcoinHelpers.BetterParseExtPubKey("xpub6BgAZqHhxw6pgEi2F38w5RBqctqCEoVWqcMdrn1epQZceKHtn8f8zHBduM3fwYQEKEGUf4efD6qRPc9wvDF4neoc6JjDbHNiaHbs3we5qL3");
-	public static readonly ExtPubKey WabiSabiFallBackCoordinatorExtPubKey = NBitcoinHelpers.BetterParseExtPubKey("xpub6BgAZqHhxw6pgEi2F38w5RBqctqCEoVWqcMdrn1epQZceKHtn8f8zHBduM3fwYQEKEGUf4efD6qRPc9wvDF4neoc6JjDbHNiaHbs3we5qL3");
+	public static readonly ExtPubKey WabiSabiFallBackCoordinatorExtPubKey = NBitcoinHelpers.BetterParseExtPubKey("xpub6C13JhXzjAhVRgeTcRSWqKEPe1vHi3Tmh2K9PN1cZaZFVjjSaj76y5NNyqYjc2bugj64LVDFYu8NZWtJsXNYKFb9J94nehLAPAKqKiXcebC");
 
 	public static readonly string[] UserAgents = new[]
 	{
