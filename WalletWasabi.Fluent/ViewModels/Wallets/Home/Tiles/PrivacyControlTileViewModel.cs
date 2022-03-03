@@ -34,18 +34,16 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 	private void Update()
 	{
 		var privateThreshold = _wallet.KeyManager.MinAnonScoreTarget;
-		var privacyScore = _wallet.Coins.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC) * Math.Min(x.HdPubKey.AnonymitySet - 1, privateThreshold - 1));
-		var idealPrivacyScore = _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC) * (privateThreshold - 1);
 
-		var pcPrivate = idealPrivacyScore == 0M ? 1d : (double)(privacyScore / idealPrivacyScore);
-
+		var currentPrivacyScore = _wallet.Coins.Sum(x => x.Amount.Satoshi * Math.Min(x.HdPubKey.AnonymitySet - 1, privateThreshold - 1));
+		var maxPrivacyScore = _wallet.Coins.TotalAmount().Satoshi * (privateThreshold - 1);
+		var pcPrivate = maxPrivacyScore == 0M ? 1d : (double)currentPrivacyScore / maxPrivacyScore;
 		PercentText = $"\u205F{(int)Math.Floor(pcPrivate * 100)}\u205F/\u205F{100}";
 
 		FullyMixed = pcPrivate >= 1d;
 
 		var privateAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
 		HasPrivateBalance = privateAmount > Money.Zero;
-
 		BalancePrivateBtc = $"{privateAmount.ToFormattedString()} BTC";
 	}
 }
