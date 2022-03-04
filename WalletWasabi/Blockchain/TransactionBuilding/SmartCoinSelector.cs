@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using System.Collections.Immutable;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding;
 
@@ -44,14 +45,13 @@ public class SmartCoinSelector : ICoinSelector
 		// This operation is doing super advanced grouping on the coin clusters and adding properties to each of them.
 		var sayajinCoinClusters = coinClusters
 			.Select(coins => (Coins: coins, Privacy: 1.0m / (1 + coins.Sum(x => x.HdPubKey.Cluster.Labels.Count()))))
-			.Select(group => new
-			{
-				group.Coins,
-				Unconfirmed = group.Coins.Any(x => !x.Confirmed),    // If group has an unconfirmed, then the whole group is unconfirmed.
-					AnonymitySet = group.Coins.Min(x => x.HdPubKey.AnonymitySet), // The group is as anonymous as its weakest member.
-					ClusterPrivacy = group.Privacy, // The number people/entities that know the cluster.
-					Amount = group.Coins.Sum(x => x.Amount)
-			});
+			.Select(group => (
+				Coins: group.Coins,
+				Unconfirmed: group.Coins.Any(x => !x.Confirmed),    // If group has an unconfirmed, then the whole group is unconfirmed.
+				AnonymitySet: group.Coins.Min(x => x.HdPubKey.AnonymitySet), // The group is as anonymous as its weakest member.
+				ClusterPrivacy: group.Privacy, // The number people/entities that know the cluster.
+				Amount: group.Coins.Sum(x => x.Amount)
+			));
 
 		// Find the best coin cluster that we are going to use.
 		IEnumerable<SmartCoin> bestCoinCluster = sayajinCoinClusters
@@ -65,21 +65,20 @@ public class SmartCoinSelector : ICoinSelector
 
 		var coinsInBestClusterByScript = bestCoinCluster
 			.GroupBy(c => c.ScriptPubKey)
-			.Select(group => new { Coins = group });
+			.Select(group => (ScriptPubKey: group.Key, Coins: group.ToList()))
+			.ToImmutableList();
 
-		var coinsToSpend = new List<SmartCoin>();
+		var coinsGroup = coinsInBestClusterByScript.Count < 10
+			? coinsInBestClusterByScript.CombinationsWithoutRepetition(1, 5).Select(x => x.ToImmutableList())
+			: coinsInBestClusterByScript.Select(x => ImmutableList.Create(x))
+				.Concat(coinsInBestClusterByScript.Scan(ImmutableList<(Script ScriptPubKey, List<SmartCoin> Coins)>.Empty, (acc, coinGroup) => acc.Add(coinGroup)));
 
-		foreach (IGrouping<Script, SmartCoin> coinsGroup in coinsInBestClusterByScript
-			.Select(group => group.Coins))
-		{
-			coinsToSpend.AddRange(coinsGroup);
+		var candidates = coinsGroup
+			.Select(x => x.SelectMany(y => y.Coins))
+			.Select(x => (Coins: x, Total: x.Sum(y => y.Amount)))
+			.Where(x => x.Total >= targetMoney) // filter combinations below target
+			.OrderBy(x => x.Coins.Count());
 
-			if (coinsToSpend.Sum(x => x.Amount) >= targetMoney)
-			{
-				break;
-			}
-		}
-
-		return coinsToSpend.Select(c => c.Coin);
+		return candidates.First().Coins.Select(x => x.Coin);
 	}
 }
