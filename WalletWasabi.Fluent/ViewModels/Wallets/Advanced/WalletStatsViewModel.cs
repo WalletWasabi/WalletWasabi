@@ -40,8 +40,8 @@ public partial class WalletStatsViewModel : RoutableViewModel
 
 	private void UpdateProps()
 	{
-        // Number of coins in the wallet.
-        CoinCount = _wallet.Coins.Unspent().Count();
+		// Number of coins in the wallet.
+		CoinCount = _wallet.Coins.Unspent().Count();
 
         // Total amount of money in the wallet.
         Balance = $"{_wallet.Coins.TotalAmount().ToFormattedString()}";
