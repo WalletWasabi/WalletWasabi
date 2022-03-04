@@ -38,8 +38,8 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		var unknownPockets = NonPrivatePockets.Except(knownPockets).ToArray();
 		var privateAndUnknownPockets = _allPockets.Except(knownPockets).ToArray();
 		var privateAndKnownPockets = _allPockets.Except(unknownPockets).ToArray();
-		var knownByRecipientPockets = knownPockets.Where(x => x.Labels.Any(label => recipient.Labels.Contains(label))).ToArray();
-		var onlyKnownByRecipientPockets = knownByRecipientPockets.Where(x => x.Labels.All(label => recipient.Labels.Contains(label))).ToArray();
+		var knownByRecipientPockets = knownPockets.Where(pocket => pocket.Labels.Any(recipient.Contains)).ToArray();
+		var onlyKnownByRecipientPockets = knownByRecipientPockets.Where(pocket => pocket.Labels == recipient).ToArray();
 
 		if (_privatePocket.Amount >= _targetAmount)
 		{

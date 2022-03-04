@@ -618,6 +618,8 @@ public class PocketSelectionTests
 		pockets.AddPocket(1.1M, out var pocket2, "Dan");
 		pockets.AddPocket(0.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
 		pockets.AddPocket(1.1M, out var pocket4, "David", "Lucas");
+		pockets.AddPocket(1.1M, out var pocket5, "David");
+		pockets.AddPocket(1.1M, out var pocket6, "Lucas");
 
 		selection.Reset(pockets.ToArray());
 
@@ -626,6 +628,8 @@ public class PocketSelectionTests
 		Assert.DoesNotContain(pocket2, output);
 		Assert.DoesNotContain(pocket3, output);
 		Assert.Contains(pocket4, output);
+		Assert.DoesNotContain(pocket5, output);
+		Assert.DoesNotContain(pocket6, output);
 	}
 
 	[Fact]
