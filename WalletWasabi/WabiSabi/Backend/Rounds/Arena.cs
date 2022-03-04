@@ -243,9 +243,23 @@ public partial class Arena : PeriodicRunner
 					round.WasTransactionBroadcast = true;
 
 					var coordinatorScriptPubKey = Config.GetNextCleanCoordinatorScript();
-					if (coinjoin.Outputs.Any(x => x.ScriptPubKey == coordinatorScriptPubKey))
+					if (round.CoordinatorScript == coordinatorScriptPubKey)
 					{
 						Config.MakeNextCoordinatorScriptDirty();
+					}
+
+					foreach (var address in coinjoin.Outputs
+						.Select(x => x.ScriptPubKey)
+						.Where(script => CoinJoinScriptStore?.Contains(script) is true))
+					{
+						if (address == round.CoordinatorScript)
+						{
+							round.LogError($"Coordinator script pub key reuse detected: {round.CoordinatorScript.ToHex()}");
+						}
+						else
+						{
+							round.LogError($"Outpup script pub key reuse detected: {address.ToHex()}");
+						}
 					}
 
 					round.SetPhase(Phase.Ended);
