@@ -171,8 +171,8 @@ public class CoinJoinClient
 			var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues);
 
 			// Get as many destinations as outputs we need.
-			Destinations = DestinationProvider.GetNextDestinations(outputValues.Count()).ToArray();
-			var outputTxOuts = outputValues.Zip(Destinations, (amount, destination) => new TxOut(amount, destination.ScriptPubKey));
+			var destinations = DestinationProvider.GetNextDestinations(outputValues.Count()).ToArray();
+			var outputTxOuts = outputValues.Zip(destinations, (amount, destination) => new TxOut(amount, destination.ScriptPubKey));
 
 			DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(inputEffectiveValuesAndSizes, outputTxOuts, roundState.FeeRate, roundState.CoordinationFeeRate, roundState.MaxVsizeAllocationPerAlice);
 			DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
@@ -185,6 +185,7 @@ public class CoinJoinClient
 			// Output registration.
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
 			Logger.LogDebug($"Round ({roundState.Id}): Output registration phase started.");
+			Destinations = destinations;
 
 			await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, cancellationToken).ConfigureAwait(false);
 			Logger.LogDebug($"Round ({roundState.Id}): Outputs({outputTxOuts.Count()}) successfully registered.");
