@@ -31,8 +31,8 @@ public class MultipartyTransactionTests
 		using Key key1 = new();
 		using Key key2 = new();
 
-		var alice1Coin = CreateCoin(script: key1.PubKey.WitHash.ScriptPubKey);
-		var alice2Coin = CreateCoin(script: key2.PubKey.WitHash.ScriptPubKey);
+		var alice1Coin = WabiSabiFactory.CreateCoin(key1);
+		var alice2Coin = WabiSabiFactory.CreateCoin(key2);
 
 		var state = new ConstructionState(DefaultParameters);
 
@@ -107,7 +107,7 @@ public class MultipartyTransactionTests
 	[Fact]
 	public void AddWithOptimize()
 	{
-		var coin = CreateCoin();
+		var coin = WabiSabiFactory.CreateCoin();
 
 		var state = new ConstructionState(DefaultParameters).AddInput(coin);
 
@@ -128,8 +128,8 @@ public class MultipartyTransactionTests
 		using Key key1 = new();
 		using Key key2 = new();
 
-		var alice1Coin = CreateCoin(script: key1.PubKey.WitHash.ScriptPubKey);
-		var alice2Coin = CreateCoin(script: key2.PubKey.WitHash.ScriptPubKey);
+		var alice1Coin = WabiSabiFactory.CreateCoin(key1);
+		var alice2Coin = WabiSabiFactory.CreateCoin(key2);
 
 		var state = new ConstructionState(DefaultParameters).AddInput(alice1Coin).AddInput(alice2Coin);
 
@@ -182,8 +182,8 @@ public class MultipartyTransactionTests
 		using Key key1 = new();
 		using Key key2 = new();
 
-		var alice1Coin = CreateCoin(script: key1.PubKey.WitHash.ScriptPubKey);
-		var alice2Coin = CreateCoin(script: key2.PubKey.WitHash.ScriptPubKey);
+		var alice1Coin = WabiSabiFactory.CreateCoin(key1);
+		var alice2Coin = WabiSabiFactory.CreateCoin(key2);
 
 		var state = new ConstructionState(DefaultParameters with { MiningFeeRate = feeRate })
 			.AddInput(alice1Coin)
@@ -238,7 +238,7 @@ public class MultipartyTransactionTests
 	[Fact]
 	public void NoDuplicateInputs()
 	{
-		var coin = CreateCoin();
+		var coin = WabiSabiFactory.CreateCoin();
 		var state = new ConstructionState(DefaultParameters).AddInput(coin);
 		ThrowsProtocolException(WabiSabiProtocolErrorCode.NonUniqueInputs, () => state.AddInput(coin));
 		Assert.Single(state.Inputs);
@@ -250,14 +250,14 @@ public class MultipartyTransactionTests
 	public void OnlyAllowedInputTypes()
 	{
 		var legacyOnly = new ConstructionState(DefaultParameters with { AllowedInputTypes = ImmutableSortedSet.Create<ScriptType>(ScriptType.P2PKH) });
-		var coin = CreateCoin();
+		var coin = WabiSabiFactory.CreateCoin();
 		ThrowsProtocolException(WabiSabiProtocolErrorCode.ScriptNotAllowed, () => legacyOnly.AddInput(coin));
 	}
 
 	[Fact]
 	public void InputAmountRanges()
 	{
-		var coin = CreateCoin();
+		var coin = WabiSabiFactory.CreateCoin();
 
 		var exact = new ConstructionState(DefaultParameters with { AllowedInputAmounts = new MoneyRange(coin.Amount, coin.Amount) });
 		var above = new ConstructionState(DefaultParameters with { AllowedInputAmounts = new MoneyRange(2 * coin.Amount, 3 * coin.Amount) });
@@ -273,8 +273,8 @@ public class MultipartyTransactionTests
 	[Fact]
 	public void UneconomicalInputs()
 	{
-		var alice1Coin = CreateCoin(new Money(1000L));
-		var alice2Coin = CreateCoin(new Money(1001L));
+		var alice1Coin = WabiSabiFactory.CreateCoin(amount: new Money(1000L));
+		var alice2Coin = WabiSabiFactory.CreateCoin(amount: new Money(1001L));
 
 		// requires 1k sats per input in sat/vKB
 		var inputVsize = alice1Coin.ScriptPubKey.EstimateInputVsize();
@@ -331,9 +331,4 @@ public class MultipartyTransactionTests
 		var updated = state.AddOutput(output);
 		Assert.Equal(output, Assert.Single(updated.Outputs));
 	}
-
-	private Coin CreateCoin(Money? amount = null, Script? script = null)
-		=> new Coin(
-			BitcoinFactory.CreateOutPoint(),
-			new TxOut(amount ?? Money.Coins(1), script ?? BitcoinFactory.CreateScript()));
 }

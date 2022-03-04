@@ -4,7 +4,6 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
 
@@ -18,19 +17,13 @@ public class MultipartyTransactionStateTests
 		var cfg = new WabiSabiConfig();
 		var round = WabiSabiFactory.CreateRound(cfg);
 
-		static Coin CreateCoin()
-		{
-			using var key = new Key();
-			return WabiSabiFactory.CreateCoin(key);
-		}
-
 		Coin coin1, coin2, coin3;
 
 		// Three events / three states
 		var state0 = round.Assert<ConstructionState>();
-		var state1 = state0.AddInput(coin1 = CreateCoin());
-		var state2 = state1.AddInput(coin2 = CreateCoin());
-		var state3 = state2.AddInput(coin3 = CreateCoin());
+		var state1 = state0.AddInput(coin1 = WabiSabiFactory.CreateCoin());
+		var state2 = state1.AddInput(coin2 = WabiSabiFactory.CreateCoin());
+		var state3 = state2.AddInput(coin3 = WabiSabiFactory.CreateCoin());
 
 		// Unknown state. Assumes full state is required
 		var diffd30 = state3.GetStateFrom(-1);

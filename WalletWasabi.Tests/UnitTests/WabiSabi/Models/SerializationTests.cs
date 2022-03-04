@@ -139,7 +139,7 @@ public class SerializationTests
 		AssertSerialization(RoundState.FromRound(round));
 
 		var state = round.Assert<ConstructionState>();
-		state = state.AddInput(CreateCoin());
+		state = state.AddInput(WabiSabiFactory.CreateCoin());
 		round.CoinjoinState = new SigningState(round.Parameters, state.Events);
 		AssertSerialization(RoundState.FromRound(round));
 	}
@@ -206,10 +206,4 @@ public class SerializationTests
 		new(
 			new[] { MAC.ComputeMAC(IssuerKey, Points.First(), Scalars.First()) },
 			new[] { new Proof(new GroupElementVector(Points.Take(2)), new ScalarVector(Scalars.Take(2))) });
-
-	private static Coin CreateCoin()
-	{
-		using var key = new Key();
-		return WabiSabiFactory.CreateCoin(key);
-	}
 }

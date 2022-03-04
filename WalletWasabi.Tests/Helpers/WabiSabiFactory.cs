@@ -30,13 +30,12 @@ namespace WalletWasabi.Tests.Helpers;
 
 public static class WabiSabiFactory
 {
-	public static Coin CreateCoin(Key key)
-		=> CreateCoin(key, Money.Coins(1));
-
-	public static Coin CreateCoin(Key key, Money amount)
-		=> new(
-			new OutPoint(Hashes.DoubleSHA256(key.PubKey.ToBytes()), 0),
-			new TxOut(amount, key.PubKey.WitHash.ScriptPubKey));
+	public static Coin CreateCoin(Key? key = null, Money? amount = null)
+	{
+		key ??= new();
+		amount ??= Money.Coins(1);
+		return new(new OutPoint(Hashes.DoubleSHA256(key.PubKey.ToBytes()), 0), new TxOut(amount, key.PubKey.WitHash.ScriptPubKey));
+	}
 
 	public static OwnershipProof CreateOwnershipProof(Key key, uint256? roundHash = null)
 		=> OwnershipProof.GenerateCoinJoinInputProof(
