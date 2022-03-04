@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public partial class CoinJoinStateViewModel : ViewModelBase
 {
-	enum State
+	private enum State
 	{
 		Invalid = 0,
 		Disabled,
@@ -31,7 +31,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		ManualFinished,
 	}
 
-	enum Trigger
+	private enum Trigger
 	{
 		Invalid = 0,
 		AutoCoinJoinOn,
@@ -279,13 +279,16 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private void UpdateCountDown()
 	{
-		ElapsedTime = $"{GetElapsedTime():g}";
-		RemainingTime = $"-{GetRemainingTime():g}";
+		var format = @"hh\:mm\:ss";
+		ElapsedTime = $"{GetElapsedTime().ToString(format)}";
+		RemainingTime = $"-{GetRemainingTime().ToString(format)}";
 		ProgressValue = GetPercentage();
 	}
 
 	private TimeSpan GetElapsedTime() => DateTimeOffset.Now - _countDownStarted;
+
 	private TimeSpan GetRemainingTime() => _autoStartTime - DateTimeOffset.Now;
+
 	private double GetPercentage() => GetElapsedTime().TotalSeconds / GetRemainingTime().TotalSeconds * 100;
 
 	private void TimerOnTick()
