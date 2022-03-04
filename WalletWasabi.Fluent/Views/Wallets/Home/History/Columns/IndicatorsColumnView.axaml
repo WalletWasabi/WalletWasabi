@@ -33,7 +33,7 @@
       <Panel x:DataType="historyItems:HistoryItemViewModelBase">
         <PathIcon ToolTip.Tip="Transaction" Data="{StaticResource normal_transaction}" Opacity="0.6"
                   IsVisible="{Binding !IsCoinJoin}" />
-        <PathIcon ToolTip.Tip="CoinJoin" Data="{StaticResource shield_regular}" Height="15" Opacity="0.6"
+        <PathIcon ToolTip.Tip="Coinjoin" Data="{StaticResource shield_regular}" Height="15" Opacity="0.6"
                   IsVisible="{Binding IsCoinJoin}" />
       </Panel>
     </c:PrivacyContentControl>

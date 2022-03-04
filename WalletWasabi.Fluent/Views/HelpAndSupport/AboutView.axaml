@@ -30,11 +30,12 @@
                  HorizontalAlignment="Center">
           <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
         </Viewbox>
-        <Viewbox ClipToBounds="False" DockPanel.Dock="Top" Width="220" Margin="0,0,0,50" VerticalAlignment="Center"
+        <Viewbox ClipToBounds="False" DockPanel.Dock="Top" Width="220" VerticalAlignment="Center"
                  HorizontalAlignment="Center">
           <ContentControl Template="{DynamicResource wasabi_logo_text_dynamic}"
                           VerticalAlignment="Center" ClipToBounds="False" />
         </Viewbox>
+        <TextBlock DockPanel.Dock="Top" HorizontalAlignment="Center" Text="{Binding ClientVersion}" Margin="0,5,0,50" Opacity="0.5" />
         <DockPanel>
           <StackPanel Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Orientation="Vertical">
             <!-- Links -->

@@ -13,7 +13,12 @@ public static class DirectShow
 {
 	public static object? CoCreateInstance(Guid clsid)
 	{
-		return Activator.CreateInstance(type: Type.GetTypeFromCLSID(clsid));
+		Type? type = Type.GetTypeFromCLSID(clsid);
+		if (type is { })
+		{
+			return Activator.CreateInstance(type);
+		}
+		return null;
 	}
 
 	public static void ReleaseInstance<T>(ref T? com) where T : class
@@ -61,8 +66,10 @@ public static class DirectShow
 		{
 			object? value = null;
 			_ = prop.Read("FriendlyName", ref value, 0);
-
-			result.Add((string)value);
+			if (value is { })
+			{
+				result.Add((string)value);
+			}
 
 			return false;
 		});
@@ -88,7 +95,9 @@ public static class DirectShow
 			}
 
 			Guid guid = DsGuid.IID_IBaseFilter;
+#pragma warning disable CS8625 // The intention of using null is clear and is working.
 			moniker.BindToObject(null, null, ref guid, out object value);
+#pragma warning restore CS8625
 			result = value as IBaseFilter;
 			return true;
 		});
@@ -107,7 +116,12 @@ public static class DirectShow
 
 		try
 		{
-			device = Activator.CreateInstance(Type.GetTypeFromCLSID(DsGuid.CLSID_SystemDeviceEnum)) as ICreateDevEnum;
+			Type? type = Type.GetTypeFromCLSID(DsGuid.CLSID_SystemDeviceEnum);
+			if (type is null)
+			{
+				return;
+			}
+			device = Activator.CreateInstance(type) as ICreateDevEnum;
 
 			device?.CreateClassEnumerator(ref category, ref enumerator, 0);
 
@@ -123,7 +137,9 @@ public static class DirectShow
 				var moniker = monikers[0];
 
 				Guid guid = DsGuid.IID_IPropertyBag;
+#pragma warning disable CS8625 // The intention of using null is clear and is working.
 				moniker.BindToStorage(null, null, ref guid, out object value);
+#pragma warning restore CS8625
 				var prop = (IPropertyBag)value;
 
 				try
@@ -355,7 +371,7 @@ public static class DirectShow
 				ref object ppint);
 
 		int RenderStream([In] ref Guid pCategory, [In] ref Guid pType, [In, MarshalAs(UnmanagedType.IUnknown)]
-				object pSource, [In] IBaseFilter pfCompressor, [In] IBaseFilter pfRenderer);
+				object pSource, [In] IBaseFilter pfCompressor, [In] IBaseFilter? pfRenderer);
 
 		int ControlStream([In] ref Guid pCategory, [In] ref Guid pType, [In] IBaseFilter pFilter,
 			[In] IntPtr pstart, [In] IntPtr pstop, [In] short wStartCookie, [In] short wStopCookie);
@@ -928,7 +944,7 @@ public static class DirectShow
 				NicknameCache = typeof(DsGuid)
 					.GetFields(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public)
 					.Where(x => x.FieldType == typeof(Guid))
-					.ToDictionary(x => (Guid)x.GetValue(null), x => x.Name);
+					.ToDictionary(x => (Guid)x.GetValue(null)!, x => x.Name);
 			}
 
 			if (NicknameCache.ContainsKey(guid))

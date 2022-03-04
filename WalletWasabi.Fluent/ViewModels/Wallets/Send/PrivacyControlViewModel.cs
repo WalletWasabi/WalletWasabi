@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
@@ -15,18 +16,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<SmartCoin>>
 {
 	private readonly Wallet _wallet;
-	private readonly TransactionInfo _transactionInfo;
 	private readonly bool _isSilent;
 	private readonly IEnumerable<SmartCoin>? _usedCoins;
 
-	public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, IEnumerable<SmartCoin>? usedCoins, bool isSilent)
+	public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, IEnumerable<SmartCoin>? usedCoins, bool isSilent, Money? targetAmount = null)
 	{
 		_wallet = wallet;
-		_transactionInfo = transactionInfo;
 		_isSilent = isSilent;
 		_usedCoins = usedCoins;
 
-		LabelSelection = new LabelSelectionViewModel(_transactionInfo.Amount);
+		LabelSelection = new LabelSelectionViewModel(targetAmount ?? transactionInfo.Amount);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
@@ -68,21 +67,9 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 		if (_isSilent)
 		{
-			var safeToUsePockets = LabelSelection.GetSafeToUsePockets();
+			var autoSelectedPockets = LabelSelection.AutoSelectPockets();
 
-			if (safeToUsePockets.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText) is { } privatePocket &&
-			    privatePocket.Amount >= _transactionInfo.Amount)
-			{
-				Complete(safeToUsePockets.Where(x => x.Labels == CoinPocketHelper.PrivateFundsText));
-			}
-			else if (safeToUsePockets.Where(x => x.Labels != CoinPocketHelper.PrivateFundsText).Sum(x => x.Amount) >= _transactionInfo.Amount)
-			{
-				Complete(safeToUsePockets.Where(x => x.Labels != CoinPocketHelper.PrivateFundsText));
-			}
-			else
-			{
-				Complete(safeToUsePockets);
-			}
+			Complete(autoSelectedPockets);
 		}
 	}
 }

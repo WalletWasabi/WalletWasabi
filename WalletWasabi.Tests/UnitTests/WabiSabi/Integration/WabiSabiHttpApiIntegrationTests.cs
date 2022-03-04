@@ -300,9 +300,10 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		var badCoinsTask = Task.Run(async () => await badCoinJoinClient.StartRoundAsync(badCoins, roundState, cts.Token).ConfigureAwait(false), cts.Token);
 
-		await Task.WhenAll(new Task[] { badCoinsTask, coinJoinTask });
+		// BadCoinsTask will throw.
+		await Assert.ThrowsAsync<AggregateException>(async () => await Task.WhenAll(new Task[] { badCoinsTask, coinJoinTask }));
 
-		Assert.False(badCoinsTask.Result);
+		Assert.True(badCoinsTask.IsFaulted);
 		Assert.True(coinJoinTask.Result);
 
 		var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
@@ -368,12 +369,11 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				.Select(i => new Participant($"participant{i}", rpc, mockHttpClientFactory.Object))
 				.ToArray();
 
-			using var disposableParticipants = new CompositeDisposable(participants);
 			foreach (var participant in participants)
 			{
 				await participant.GenerateSourceCoinAsync(cts.Token);
 			}
-			using var dummyWallet = new TestWallet("dummy", rpc);
+			var dummyWallet = new TestWallet("dummy", rpc);
 			await dummyWallet.GenerateAsync(101, cts.Token);
 			foreach (var participant in participants)
 			{
