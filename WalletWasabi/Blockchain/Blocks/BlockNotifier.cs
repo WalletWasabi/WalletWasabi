@@ -17,6 +17,7 @@ public class BlockNotifier : PeriodicRunner
 		RpcClient = Guard.NotNull(nameof(rpcClient), rpcClient);
 		P2pNode = p2pNode;
 		ProcessedBlocks = new List<uint256>();
+		BestBlockHash = uint256.Zero;
 		if (p2pNode is { })
 		{
 			p2pNode.BlockInv += P2pNode_BlockInv;
