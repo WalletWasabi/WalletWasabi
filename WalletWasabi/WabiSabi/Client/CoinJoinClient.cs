@@ -22,6 +22,7 @@ public class CoinJoinClient
 {
 	private const int MaxInputsRegistrableByWallet = 10; // how many
 	private volatile bool _inCriticalCoinJoinState;
+	private static readonly Money MinimumOutputAmountSanity = Money.Coins(0.0001m); // ignore rounds with too big minimum denominations
 
 	/// <param name="minAnonScoreTarget">Coins those have reached anonymity target, but still can be mixed if desired.</param>
 	/// <param name="consolidationMode">If true, then aggressively try to consolidate as many coins as it can.</param>
@@ -63,24 +64,22 @@ public class CoinJoinClient
 	public bool ConsolidationMode { get; private set; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
 
-	private async Task<RoundState> WaitForRoundAsync(CancellationToken token, uint256? blameRoundId = null)
+	private async Task<RoundState> WaitForRoundAsync(CancellationToken token)
 	{
-		Money minimumOutputAmountSanity = Money.Coins(0.0001m); // ignore rounds with too big minimum denominations
+		return await RoundStatusUpdater
+			.CreateRoundAwaiter(
+				roundState =>
+					roundState.InputRegistrationEnd - DateTimeOffset.UtcNow > DoNotRegisterInLastMinuteTimeLimit
+					&& roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min < MinimumOutputAmountSanity
+					&& roundState.Phase == Phase.InputRegistration
+					&& roundState.BlameOf == uint256.Zero
+					&& IsRoundEconomic(roundState.FeeRate),
+				token)
+			.ConfigureAwait(false);
+	}
 
-		if (blameRoundId is null || blameRoundId == uint256.Zero)
-		{
-			return await RoundStatusUpdater
-				.CreateRoundAwaiter(
-					roundState =>
-						roundState.InputRegistrationEnd - DateTimeOffset.UtcNow > DoNotRegisterInLastMinuteTimeLimit
-						&& roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min < minimumOutputAmountSanity
-						&& roundState.Phase == Phase.InputRegistration
-						&& roundState.BlameOf == uint256.Zero
-						&& IsRoundEconomic(roundState.FeeRate),
-					token)
-				.ConfigureAwait(false);
-		}
-
+	private async Task<RoundState> WaitForBlameRoundAsync(uint256 blameRoundId, CancellationToken token)
+	{
 		using CancellationTokenSource waitForBlameRound = new(TimeSpan.FromMinutes(5));
 		using CancellationTokenSource linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(waitForBlameRound.Token, token);
 
@@ -92,7 +91,7 @@ public class CoinJoinClient
 					token)
 				.ConfigureAwait(false);
 
-		if (roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min >= minimumOutputAmountSanity)
+		if (roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min >= MinimumOutputAmountSanity)
 		{
 			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: minimum output amount is too high.");
 		}
@@ -124,7 +123,7 @@ public class CoinJoinClient
 				return true;
 			}
 
-			currentRoundState = await WaitForRoundAsync(cancellationToken, blameRoundId: currentRoundState.Id).ConfigureAwait(false);
+			currentRoundState = await WaitForBlameRoundAsync(currentRoundState.Id, cancellationToken).ConfigureAwait(false);
 		}
 
 		return false;
