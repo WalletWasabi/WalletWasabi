@@ -22,6 +22,7 @@ public class CoinJoinClient
 {
 	private const int MaxInputsRegistrableByWallet = 10; // how many
 	private volatile bool _inCriticalCoinJoinState;
+	private static readonly Money MinimumOutputAmountSanity = Money.Coins(0.0001m); // ignore rounds with too big minimum denominations
 
 	/// <param name="minAnonScoreTarget">Coins those have reached anonymity target, but still can be mixed if desired.</param>
 	/// <param name="consolidationMode">If true, then aggressively try to consolidate as many coins as it can.</param>
@@ -63,27 +64,57 @@ public class CoinJoinClient
 	public bool ConsolidationMode { get; private set; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
 
-	public async Task<bool> StartCoinJoinAsync(IEnumerable<SmartCoin> coins, CancellationToken cancellationToken)
+	private async Task<RoundState> WaitForRoundAsync(CancellationToken token)
 	{
-		var currentRoundState = await RoundStatusUpdater
+		return await RoundStatusUpdater
 			.CreateRoundAwaiter(
 				roundState =>
 					roundState.InputRegistrationEnd - DateTimeOffset.UtcNow > DoNotRegisterInLastMinuteTimeLimit
-					&& roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min < Money.Coins(0.0001m) // ignore rounds with too big minimum denominations
+					&& roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min < MinimumOutputAmountSanity
 					&& roundState.Phase == Phase.InputRegistration
 					&& roundState.BlameOf == uint256.Zero
 					&& IsRoundEconomic(roundState.FeeRate),
-				cancellationToken)
+				token)
 			.ConfigureAwait(false);
+	}
 
-		// This should be roughly log(#inputs), it could be set slightly
-		// higher if more inputs are observed but that involves trusting the
-		// coordinator with those values. Therefore, conservatively set this
-		// so that a maximum of 6 blame rounds are executed.
-		// FIXME should smaller rounds abort earlier?
+	private async Task<RoundState> WaitForBlameRoundAsync(uint256 blameRoundId, CancellationToken token)
+	{
+		using CancellationTokenSource waitForBlameRound = new(TimeSpan.FromMinutes(5));
+		using CancellationTokenSource linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(waitForBlameRound.Token, token);
+
+		var roundState = await RoundStatusUpdater
+				.CreateRoundAwaiter(
+					roundState =>
+						roundState.Phase == Phase.InputRegistration
+						&& roundState.BlameOf == blameRoundId,
+					token)
+				.ConfigureAwait(false);
+
+		if (roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min >= MinimumOutputAmountSanity)
+		{
+			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: minimum output amount is too high.");
+		}
+
+		if (!IsRoundEconomic(roundState.FeeRate))
+		{
+			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the round is not economic.");
+		}
+
+		return roundState;
+	}
+
+	public async Task<bool> StartCoinJoinAsync(IEnumerable<SmartCoin> coinCandidates, CancellationToken cancellationToken)
+	{
 		var tryLimit = 6;
 
-		coins = SelectCoinsForRound(coins, currentRoundState.CoinjoinState.Parameters, ConsolidationMode, MinAnonScoreTarget, SecureRandom);
+		var currentRoundState = await WaitForRoundAsync(cancellationToken).ConfigureAwait(false);
+		var coins = SelectCoinsForRound(coinCandidates, currentRoundState.CoinjoinState.Parameters, ConsolidationMode, MinAnonScoreTarget, SecureRandom);
+
+		if (coins.IsEmpty)
+		{
+			throw new InvalidOperationException($"No coin was selected from '{coinCandidates.Count()}' number of coins.");
+		}
 
 		for (var tries = 0; tries < tryLimit; tries++)
 		{
@@ -92,17 +123,7 @@ public class CoinJoinClient
 				return true;
 			}
 
-			using CancellationTokenSource waitForBlameRound = new(TimeSpan.FromMinutes(5));
-			using CancellationTokenSource linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(waitForBlameRound.Token, cancellationToken);
-
-			var blameRoundState = await RoundStatusUpdater
-				.CreateRoundAwaiter(
-					roundState =>
-						roundState.BlameOf == currentRoundState.Id &&
-						roundState.Phase == Phase.InputRegistration,
-					linkedTokenSource.Token)
-				.ConfigureAwait(false);
-			currentRoundState = blameRoundState;
+			currentRoundState = await WaitForBlameRoundAsync(currentRoundState.Id, cancellationToken).ConfigureAwait(false);
 		}
 
 		return false;
