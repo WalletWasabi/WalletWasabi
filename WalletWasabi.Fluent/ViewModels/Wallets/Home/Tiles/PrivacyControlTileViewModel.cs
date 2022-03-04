@@ -16,7 +16,7 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 	[AutoNotify] private IList<(string color, double percentShare)>? _testDataPoints;
 	[AutoNotify] private IList<DataLegend>? _testDataPointsLegend;
 	[AutoNotify] private string _percentText;
-	[AutoNotify] private string _balancePrivateBtc;
+	[AutoNotify] private string _balancePrivateBtc = "";
 	[AutoNotify] private bool _hasPrivateBalance;
 
 	public PrivacyControlTileViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
