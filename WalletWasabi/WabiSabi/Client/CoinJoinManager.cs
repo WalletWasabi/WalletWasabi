@@ -172,19 +172,7 @@ public class CoinJoinManager : BackgroundService
 					if (success)
 					{
 						CoinRefrigerator.Freeze(finishedCoinJoin.CoinCandidates);
-
-						// Mark all the outputs we had in any of our wallets used.
-						foreach (var k in WalletManager
-							.GetWallets(false)
-							.SelectMany(w => w
-								.KeyManager
-								.GetKeys(k => finishedCoinJoin
-									.Destinations
-									.Select(d => d.ScriptPubKey)
-									.Contains(k.P2wpkhScript))))
-						{
-							k.SetKeyState(KeyState.Used);
-						}
+						MarkDestinationsUsed(finishedCoinJoin);
 						Logger.LogInfo($"{logPrefix} finished!");
 					}
 					else
@@ -213,6 +201,24 @@ public class CoinJoinManager : BackgroundService
 			}
 
 			TrackedCoinJoins = trackedCoinJoins.ToImmutableDictionary();
+		}
+	}
+
+	/// <summary>
+	/// Mark all the outputs we had in any of our wallets used.
+	/// </summary>
+	private void MarkDestinationsUsed(CoinJoinTracker finishedCoinJoin)
+	{
+		foreach (var k in WalletManager
+			.GetWallets(false)
+			.SelectMany(w => w
+				.KeyManager
+				.GetKeys(k => finishedCoinJoin
+					.Destinations
+					.Select(d => d.ScriptPubKey)
+					.Contains(k.P2wpkhScript))))
+		{
+			k.SetKeyState(KeyState.Used);
 		}
 	}
 
