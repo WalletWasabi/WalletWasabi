@@ -172,7 +172,16 @@ public class CoinJoinManager : BackgroundService
 					if (success)
 					{
 						CoinRefrigerator.Freeze(finishedCoinJoin.CoinCandidates);
-						foreach (var k in finishedCoinJoin.Wallet.KeyManager.GetKeys(x => finishedCoinJoin.Destinations.Select(x => x.ScriptPubKey).Contains(x.P2wpkhScript)))
+
+						// Mark all the outputs we had in any of our wallets used.
+						foreach (var k in WalletManager
+							.GetWallets(false)
+							.SelectMany(w => w
+								.KeyManager
+								.GetKeys(k => finishedCoinJoin
+									.Destinations
+									.Select(d => d.ScriptPubKey)
+									.Contains(k.P2wpkhScript))))
 						{
 							k.SetKeyState(KeyState.Used);
 						}
