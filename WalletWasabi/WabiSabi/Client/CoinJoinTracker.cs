@@ -1,6 +1,8 @@
+using NBitcoin;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Wallets;
 
@@ -29,6 +31,7 @@ public class CoinJoinTracker : IDisposable
 	public Wallet Wallet { get; }
 	public Task<bool> CoinJoinTask { get; }
 	public IEnumerable<SmartCoin> CoinCandidates { get; }
+	public IEnumerable<IDestination> Destinations => CoinJoinClient.Destinations;
 	public bool IsCompleted => CoinJoinTask.IsCompleted;
 	public bool InCriticalCoinJoinState => CoinJoinClient.InCriticalCoinJoinState;
 

@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -171,6 +172,10 @@ public class CoinJoinManager : BackgroundService
 					if (success)
 					{
 						CoinRefrigerator.Freeze(finishedCoinJoin.CoinCandidates);
+						foreach (var k in finishedCoinJoin.Wallet.KeyManager.GetKeys(x => finishedCoinJoin.Destinations.Select(x => x.ScriptPubKey).Contains(x.P2wpkhScript)))
+						{
+							k.SetKeyState(KeyState.Used);
+						}
 						Logger.LogInfo($"{logPrefix} finished!");
 					}
 					else
