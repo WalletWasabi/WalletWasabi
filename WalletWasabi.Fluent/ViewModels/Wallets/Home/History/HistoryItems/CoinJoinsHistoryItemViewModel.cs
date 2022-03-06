@@ -15,7 +15,7 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 	{
 		CoinJoinTransactions = new List<TransactionSummary>();
 		Label = new [] {"Coinjoins"}.ToList();
-		FilteredLabel = new List<string>();
+		FilteredLabel = new [] {"Coinjoins"}.ToList();
 		IsCoinJoin = true;
 
 		ShowDetailsCommand = ReactiveCommand.Create(() => RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(new CoinJoinDetailsViewModel(this)));
