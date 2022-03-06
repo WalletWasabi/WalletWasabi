@@ -12,37 +12,5 @@
                      HorizontalAlignment="Left"
                      VerticalAlignment="Center"
                      x:DataType="historyItems:HistoryItemViewModelBase" />
-    <!--<DockPanel LastChildFill="False" x:DataType="historyItems:HistoryItemViewModelBase">
-      <Button Classes="labelFlyout"
-              DockPanel.Dock="Left"
-              HorizontalAlignment="Stretch"
-              VerticalAlignment="Center"
-              IsVisible="{Binding !!Label}"
-              IsHitTestVisible="False"
-              Margin="0 0 4 0">
-        <TextBlock Text="{Binding Label}"
-                   MaxWidth="120"
-                   TextTrimming="CharacterEllipsis" />
-      </Button>
-      <Button Classes="labelFlyout"
-              DockPanel.Dock="Left"
-              IsVisible="{Binding !!FilteredLabel.Count}"
-              Content="..."
-              Margin="0 0 0 0">
-        <Button.Flyout>
-          <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="TransientWithDismissOnPointerMoveAway">
-            <c:TagsBox IsReadOnly="True"
-                       Items="{Binding FilteredLabel}" />
-          </Flyout>
-        </Button.Flyout>
-        <ToolTip.Tip>
-          <Panel>
-            <c:TagsBox IsReadOnly="True"
-                       Margin="4,6,0,0"
-                       Items="{Binding FilteredLabel}" />
-          </Panel>
-        </ToolTip.Tip>
-      </Button>
-    </DockPanel>-->
   </c:PrivacyContentControl>
 </UserControl>
