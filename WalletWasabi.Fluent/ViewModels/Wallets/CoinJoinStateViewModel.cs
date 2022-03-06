@@ -310,7 +310,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		var total = _wallet.Coins.TotalAmount();
 
 		ElapsedTime = "Balance to coinjoin:";
-		RemainingTime = normalAmount.ToFormattedString() + "BTC";
+		RemainingTime = normalAmount.ToFormattedString() + " BTC";
 
 		var percentage = privateAmount.ToDecimal(MoneyUnit.BTC) / total.ToDecimal(MoneyUnit.BTC) * 100;
 
