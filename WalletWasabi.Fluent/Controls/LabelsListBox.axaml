@@ -1,24 +1,24 @@
 ﻿<Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:g="clr-namespace:System.Collections.Generic;assembly=System.Collections"
-        xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls">
+        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
 
   <Design.PreviewWith>
     <Border BorderBrush="Black" BorderThickness="1" Width="250" Height="50">
-      <controls:LabelsListBox HorizontalAlignment="Left" VerticalAlignment="Center">
-        <controls:LabelsListBox.Items>
+      <c:LabelsListBox HorizontalAlignment="Left" VerticalAlignment="Center">
+        <c:LabelsListBox.Items>
           <g:List x:TypeArguments="x:String">
             <x:String>Label 1</x:String>
             <x:String>Label 2</x:String>
             <x:String>Label 3</x:String>
             <x:String>Label 4</x:String>
           </g:List>
-        </controls:LabelsListBox.Items>
-      </controls:LabelsListBox>
+        </c:LabelsListBox.Items>
+      </c:LabelsListBox>
     </Border>
   </Design.PreviewWith>
 
-  <Style Selector="controls|LabelsListBox">
+  <Style Selector="c|LabelsListBox">
     <Setter Property="Template">
       <ControlTemplate>
         <ScrollViewer Name="PART_ScrollViewer"
@@ -31,13 +31,29 @@
                           VirtualizationMode="Simple">
             <ItemsPresenter.ItemsPanel>
               <ItemsPanelTemplate>
-                <controls:LabelsPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Left">
-                  <controls:LabelsPanel.EllipsisControl>
-                    <Border Classes="label">
-                      <TextBlock Text="..." />
-                    </Border>
-                  </controls:LabelsPanel.EllipsisControl>
-                </controls:LabelsPanel>
+                <c:LabelsPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Left">
+                  <c:LabelsPanel.EllipsisControl>
+                    <Button Classes="labelFlyout"
+                            DockPanel.Dock="Left"
+                            IsVisible="{Binding !!FilteredLabel.Count}"
+                            Content="..."
+                            Margin="0 0 0 0">
+                      <Button.Flyout>
+                        <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="TransientWithDismissOnPointerMoveAway">
+                          <c:TagsBox IsReadOnly="True"
+                                     Items="{Binding FilteredLabel}" />
+                        </Flyout>
+                      </Button.Flyout>
+                      <ToolTip.Tip>
+                        <Panel>
+                          <c:TagsBox IsReadOnly="True"
+                                     Margin="4,6,0,0"
+                                     Items="{Binding FilteredLabel}" />
+                        </Panel>
+                      </ToolTip.Tip>
+                    </Button>
+                  </c:LabelsPanel.EllipsisControl>
+                </c:LabelsPanel>
               </ItemsPanelTemplate>
             </ItemsPresenter.ItemsPanel>
           </ItemsPresenter>
