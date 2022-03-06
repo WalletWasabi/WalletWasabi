@@ -10,14 +10,27 @@
     <Setter Property="Margin" Value="0" />
     <Setter Property="Template">
       <ControlTemplate>
-        <Border BorderBrush="Black" BorderThickness="1" CornerRadius="2">
+        <Border Name="PART_Border" Classes="label">
           <TextBlock Text="{Binding}"
-                     Margin="5"
                      TextTrimming="CharacterEllipsis"
                      MaxWidth="120" />
         </Border>
       </ControlTemplate>
     </Setter>
+  </Style>
+
+  <Style Selector="Border.label">
+    <Setter Property="Margin" Value="0" />
+    <Setter Property="Padding" Value="12,5,12,5" />
+    <Setter Property="VerticalAlignment" Value="Top" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="MinWidth" Value="38" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxBorderBrush}" />
+    <Setter Property="Background" Value="{DynamicResource InvisibleButtonBackgroundColor}" />
+    <Setter Property="CornerRadius" Value="2" />
   </Style>
 
 </Styles>

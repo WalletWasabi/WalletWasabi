@@ -33,8 +33,8 @@
               <ItemsPanelTemplate>
                 <controls:LabelsPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Left">
                   <controls:LabelsPanel.EllipsisControl>
-                    <Border BorderBrush="Black" BorderThickness="1" CornerRadius="2">
-                      <TextBlock Text="..." Margin="5" />
+                    <Border Classes="label">
+                      <TextBlock Text="..." />
                     </Border>
                   </controls:LabelsPanel.EllipsisControl>
                 </controls:LabelsPanel>
