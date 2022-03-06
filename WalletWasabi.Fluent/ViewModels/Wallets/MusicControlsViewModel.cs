@@ -11,7 +11,7 @@ public partial class MusicControlsViewModel : ViewModelBase
 	{
 		CurrentWallet = wallet;
 
-		IsActive =  !(wallet.Wallet.KeyManager.IsWatchOnly || wallet.Wallet.KeyManager.IsHardwareWallet);
+		IsActive = !(wallet.Wallet.KeyManager.IsWatchOnly || wallet.Wallet.KeyManager.IsHardwareWallet || wallet.IsWalletBalanceZero);
 
 		return new CompositeDisposable(
 			Disposable.Create(() => IsActive = false));
