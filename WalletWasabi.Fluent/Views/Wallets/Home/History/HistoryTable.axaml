@@ -8,19 +8,20 @@
              xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:treeDataGrid="clr-namespace:WalletWasabi.Fluent.TreeDataGrid"
+             xmlns:h="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Home.History"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="history:HistoryViewModel"
              x:CompileBindings="True"
              ClipToBounds="False"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.HistoryTable">
   <Panel>
-    <TreeDataGrid Source="{Binding Source}"
-                  CanUserResizeColumns="False"
-                  Margin="0 0 0 0">
-      <TreeDataGrid.ElementFactory>
+    <h:CustomTreeDataGrid Source="{Binding Source}"
+                        CanUserResizeColumns="False"
+                        Margin="0 0 0 0">
+      <h:CustomTreeDataGrid.ElementFactory>
         <treeDataGrid:CustomElementFactory />
-      </TreeDataGrid.ElementFactory>
-      <TreeDataGrid.Styles>
+      </h:CustomTreeDataGrid.ElementFactory>
+      <h:CustomTreeDataGrid.Styles>
         <Style Selector="treeDataGrid|TreeDataGridPrivacyTextCell">
           <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
           <Setter Property="FontSize" Value="15" />
@@ -59,10 +60,10 @@
                   <Rectangle Name="BackgroundRectangle"
                              x:CompileBindings="False"
                              Classes.selectAnimation="{Binding IsFlashing}" />
-                  <TreeDataGridCellsPresenter Name="PART_CellsPresenter"
-                                              ElementFactory="{TemplateBinding ElementFactory}"
-                                              Items="{TemplateBinding Columns}"
-                                              Rows="{TemplateBinding Rows}"/>
+                  <h:CustomTreeDataGridCellsPresenter Name="PART_CellsPresenter"
+                                                    ElementFactory="{TemplateBinding ElementFactory}"
+                                                    Items="{TemplateBinding Columns}"
+                                                    Rows="{TemplateBinding Rows}"/>
                 </Panel>
               </DockPanel>
             </ControlTemplate>
@@ -135,8 +136,8 @@
             </ControlTemplate>
           </Setter>
         </Style>
-      </TreeDataGrid.Styles>
-    </TreeDataGrid>
+      </h:CustomTreeDataGrid.Styles>
+    </h:CustomTreeDataGrid>
     <Panel IsVisible="{Binding IsTransactionHistoryEmpty}">
       <c:HistoryPlaceholderPanel Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
                                  RowHeight="{StaticResource HistoryTableRowHeight}"/>

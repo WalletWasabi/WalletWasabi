@@ -18,4 +18,36 @@ public class MainWindow : Window
 		this.AttachDevTools();
 #endif
 	}
+
+	protected override Size MeasureOverride(Size availableSize)
+	{
+		Console.WriteLine($"[MainWindow.MeasureOverride] availableSize='{availableSize}'");
+		try
+		{
+			var result = base.MeasureOverride(availableSize);
+			Console.WriteLine($"[MainWindow.MeasureOverride] result='{result}'");
+			return result;
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e);
+			throw;
+		}
+	}
+
+	protected override Size ArrangeOverride(Size finalSize)
+	{
+		Console.WriteLine($"[MainWindow.ArrangeOverride] finalSize='{finalSize}'");
+		try
+		{
+			var result = base.ArrangeOverride(finalSize);
+			Console.WriteLine($"[MainWindow.ArrangeOverride] result='{result}'");
+			return result;
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e);
+			throw;
+		}
+	}
 }
