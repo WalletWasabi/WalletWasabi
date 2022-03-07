@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using NBitcoin;
 using ReactiveUI;
@@ -51,9 +52,9 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			return new[] { _privatePocket };
 		}
 
-		if (knownByRecipientPockets.Sum(x => x.Amount) >= _targetAmount)
+		if (GetBestKnownByRecipientPockets(knownByRecipientPockets, _targetAmount, recipient) is { } pockets)
 		{
-			return knownByRecipientPockets;
+			return pockets;
 		}
 
 		if (knownPockets.Sum(x => x.Amount) >= _targetAmount)
@@ -82,6 +83,61 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		}
 
 		return _allPockets.ToArray();
+	}
+
+	private Pocket[]? GetBestKnownByRecipientPockets(Pocket[] knownByRecipientPockets, Money targetAmount, SmartLabel recipient)
+	{
+		var rankedPockets =
+			knownByRecipientPockets
+				.OrderByDescending(pocket => pocket.Labels.Count(recipient.Contains))
+				.ThenBy(pocket => pocket.Labels.Count())
+				.ToArray();
+
+		if (rankedPockets.FirstOrDefault(pocket => pocket.Amount >= targetAmount) is { } pocket)
+		{
+			return new[] { pocket };
+		}
+
+		var privacyRankedPockets =
+			knownByRecipientPockets
+				.Select(pocket =>
+				{
+					var containedLabelsCount = pocket.Labels.Count(recipient.Contains);
+					var notContainedLabelsCount = pocket.Labels.Count() - containedLabelsCount;
+					return (acceptabilityIndex: (double)notContainedLabelsCount / containedLabelsCount, pocket);
+				})
+				.OrderBy(tup => tup.acceptabilityIndex) // the lower the better
+				.ThenBy(tup => tup.pocket.Labels.Count())
+				.ThenByDescending(tup => tup.pocket.Amount)
+				.Select(tup => tup.pocket)
+				.ToArray();
+
+		var pockets = new List<Pocket>();
+		foreach (var p in privacyRankedPockets)
+		{
+			if (pockets.Sum(x => x.Amount) < targetAmount)
+			{
+				pockets.Add(p);
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		foreach (var p in pockets.OrderBy(x => x.Amount).ToImmutableArray())
+		{
+			if (pockets.Sum(x => x.Amount) - p.Amount >= targetAmount)
+			{
+				pockets.Remove(p);
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		return pockets.Any() ? pockets.ToArray() : null;
 	}
 
 	public Pocket[] GetUsedPockets()

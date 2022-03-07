@@ -653,6 +653,62 @@ public class PocketSelectionTests
 	}
 
 	[Fact]
+	public void AutoSelectKnownByMultipleRecipientPockets()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(1.1M, out var pocket2, "Dan");
+		pockets.AddPocket(0.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
+		pockets.AddPocket(1.1M, out var pocket4, "David", "Lucas", "Dan");
+		pockets.AddPocket(1.1M, out var pocket5, "David");
+		pockets.AddPocket(1.1M, out var pocket6, "Lucas");
+		pockets.AddPocket(1.1M, out var pocket7, "David", "Lucas", "Dan", "Roland");
+		pockets.AddPocket(1.1M, out var pocket8, "David", "Dan");
+
+		selection.Reset(pockets.ToArray());
+
+		var output = selection.AutoSelectPockets("David, Lucas");
+		Assert.DoesNotContain(pocket1, output);
+		Assert.DoesNotContain(pocket2, output);
+		Assert.DoesNotContain(pocket3, output);
+		Assert.Contains(pocket4, output);
+		Assert.DoesNotContain(pocket5, output);
+		Assert.DoesNotContain(pocket6, output);
+		Assert.DoesNotContain(pocket7, output);
+		Assert.DoesNotContain(pocket8, output);
+	}
+
+	[Fact]
+	public void AutoSelectMultipleKnownByMultipleRecipientPockets()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(1.1M, out var pocket2, "Dan");
+		pockets.AddPocket(0.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
+		pockets.AddPocket(0.5M, out var pocket4, "David", "Lucas", "Dan");
+		pockets.AddPocket(0.6M, out var pocket5, "David");
+		pockets.AddPocket(0.2M, out var pocket6, "Lucas");
+		pockets.AddPocket(0.1M, out var pocket7, "David", "Lucas", "Dan", "Roland");
+		pockets.AddPocket(0.3M, out var pocket8, "David", "Dan");
+
+		selection.Reset(pockets.ToArray());
+
+		var output = selection.AutoSelectPockets("David, Lucas");
+		Assert.DoesNotContain(pocket1, output);
+		Assert.DoesNotContain(pocket2, output);
+		Assert.DoesNotContain(pocket3, output);
+		Assert.Contains(pocket4, output);
+		Assert.Contains(pocket5, output);
+		Assert.DoesNotContain(pocket6, output);
+		Assert.DoesNotContain(pocket7, output);
+		Assert.DoesNotContain(pocket8, output);
+	}
+
+	[Fact]
 	public void NotEnoughSelectedWhenSameLabelFoundInSeveralPockets()
 	{
 		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
