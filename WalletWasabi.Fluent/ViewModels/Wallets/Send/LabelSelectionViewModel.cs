@@ -41,14 +41,14 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		var knownByRecipientPockets = knownPockets.Where(pocket => pocket.Labels.Any(recipient.Contains)).ToArray();
 		var onlyKnownByRecipientPockets = knownByRecipientPockets.Where(pocket => pocket.Labels == recipient).ToArray();
 
-		if (_privatePocket.Amount >= _targetAmount)
-		{
-			return new[] { _privatePocket };
-		}
-
 		if (onlyKnownByRecipientPockets.Sum(x => x.Amount) >= _targetAmount)
 		{
 			return onlyKnownByRecipientPockets;
+		}
+
+		if (_privatePocket.Amount >= _targetAmount)
+		{
+			return new[] { _privatePocket };
 		}
 
 		if (knownByRecipientPockets.Sum(x => x.Amount) >= _targetAmount)
