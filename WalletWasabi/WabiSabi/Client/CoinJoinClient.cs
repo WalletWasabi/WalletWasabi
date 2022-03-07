@@ -64,7 +64,7 @@ public class CoinJoinClient
 
 	public bool ConsolidationMode { get; private set; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
-	public IEnumerable<IDestination> Destinations { get; private set; }
+	public IEnumerable<IDestination> Destinations { get; private set; } = Enumerable.Empty<IDestination>();
 
 	private async Task<RoundState> WaitForRoundAsync(CancellationToken token)
 	{
