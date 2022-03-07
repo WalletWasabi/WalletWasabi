@@ -34,6 +34,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private enum Trigger
 	{
 		Invalid = 0,
+		AutoStartTimeout,
 		AutoCoinJoinOn,
 		AutoCoinJoinOff,
 		AutoCoinJoinEntered,
@@ -76,13 +77,15 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private readonly MusicStatusMessageViewModel _finishedMessage = new() { Message = "No balance to coinjoin" };
 
-	private DateTimeOffset _autoStartTime;
+	private TimeSpan _autoStartTime;
 	private DateTimeOffset _countDownStarted;
 
 	public CoinJoinStateViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
 	{
 		_elapsedTime = "";
 		_remainingTime = "";
+		_countDownStarted = DateTimeOffset.Now;
+		_autoStartTime = TimeSpan.FromSeconds(Random.Shared.Next(1 * 60, 1 * 60));
 
 		_wallet = walletVm.Wallet;
 
@@ -208,6 +211,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 				coinJoinManager.Stop(_wallet);
 				coinJoinManager.AutoStart(_wallet);
+
+				_stateMachine.Fire(Trigger.AutoCoinJoinEntered);
 			});
 
 		_stateMachine.Configure(State.AutoStarting)
@@ -215,9 +220,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.Pause, State.Paused)
 			.Permit(Trigger.RoundStart, State.AutoPlaying)
 			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
+			.Permit(Trigger.AutoStartTimeout, State.AutoPlaying)
 			.Permit(Trigger.Play, State.AutoPlaying)
 			.OnEntry(() =>
 			{
+				UpdateCountDown();
+
 				IsAutoWaiting = true;
 				CurrentStatus = _countDownMessage;
 			})
@@ -283,11 +291,16 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		ElapsedTime = $"{GetElapsedTime().ToString(format)}";
 		RemainingTime = $"-{GetRemainingTime().ToString(format)}";
 		ProgressValue = GetPercentage();
+
+		if (GetRemainingTime() <= TimeSpan.Zero)
+		{
+			_stateMachine.Fire(Trigger.AutoStartTimeout);
+		}
 	}
 
 	private TimeSpan GetElapsedTime() => DateTimeOffset.Now - _countDownStarted;
 
-	private TimeSpan GetRemainingTime() => _autoStartTime - DateTimeOffset.Now;
+	private TimeSpan GetRemainingTime() => (_countDownStarted + _autoStartTime) - DateTimeOffset.Now;
 
 	private double GetPercentage() => GetElapsedTime().TotalSeconds / GetRemainingTime().TotalSeconds * 100;
 
@@ -321,16 +334,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	{
 		switch (e)
 		{
-			case StartingEventArgs startingEventArgs:
-				if (_stateMachine.State == State.AutoCoinJoin)
-				{
-					_countDownStarted = DateTimeOffset.Now;
-					_autoStartTime = _countDownStarted + startingEventArgs.StartingIn;
-					_stateMachine.Fire(Trigger.AutoCoinJoinEntered);
-				}
-
-				break;
-
 			case StartedEventArgs:
 				_stateMachine.Fire(Trigger.RoundStart);
 				break;

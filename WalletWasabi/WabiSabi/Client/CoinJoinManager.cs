@@ -39,7 +39,6 @@ public class CoinJoinManager : BackgroundService
 	public ServiceConfiguration ServiceConfiguration { get; }
 	private ImmutableDictionary<string, CoinJoinTracker> TrackedCoinJoins { get; set; } = ImmutableDictionary<string, CoinJoinTracker>.Empty;
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
-	private TimeSpan AutoCoinJoinDelayAfterWalletLoaded { get; } = TimeSpan.FromSeconds(60);
 	public bool IsUserInSendWorkflow { get; set; }
 
 	private ConcurrentDictionary<Wallet, CoinJoinCommand> WalletManualState { get; } = new();
@@ -99,11 +98,6 @@ public class CoinJoinManager : BackgroundService
 
 				if (!MustStart(openedWallet))
 				{
-					if (openedWallet.ElapsedTimeSinceStartup <= AutoCoinJoinDelayAfterWalletLoaded)
-					{
-						NotifyCoinJoinStarting(openedWallet);
-						continue;
-					}
 					if (!openedWallet.KeyManager.AutoCoinJoin)
 					{
 						NotifyCoinJoinStartError(openedWallet, CoinjoinError.AutoConjoinDisabled);
@@ -221,11 +215,6 @@ public class CoinJoinManager : BackgroundService
 			k.SetKeyState(KeyState.Used);
 		}
 	}
-
-	private void NotifyCoinJoinStarting(Wallet openedWallet) =>
-		SafeRaiseEvent(StatusChanged, new StartingEventArgs(
-			openedWallet,
-			AutoCoinJoinDelayAfterWalletLoaded - openedWallet.ElapsedTimeSinceStartup));
 
 	private void NotifyCoinJoinStarted(Wallet openedWallet, TimeSpan registrationTimeout) =>
 		SafeRaiseEvent(StatusChanged, new StartedEventArgs(openedWallet, registrationTimeout));

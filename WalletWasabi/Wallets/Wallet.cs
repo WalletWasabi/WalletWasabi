@@ -70,8 +70,7 @@ public class Wallet : BackgroundService
 			StateChanged?.Invoke(this, _state);
 		}
 	}
-
-	public TimeSpan ElapsedTimeSinceStartup => DateTimeOffset.UtcNow - StartupTime;
+	
 	public DateTimeOffset StartupTime { get; private set; }
 	public BitcoinStore BitcoinStore { get; private set; }
 	public KeyManager KeyManager { get; }
