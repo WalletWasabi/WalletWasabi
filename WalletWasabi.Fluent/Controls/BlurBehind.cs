@@ -75,8 +75,7 @@ public class BlurBehind : Control
 			using var blurred = DrawingContextHelper.CreateDrawingContext(_bounds.Size, new Vector(96, 96), skia.GrContext);
 			using (var blurPaint = new SKPaint { Shader = backdropShader })
 			{
-				blurred.SkSurface.Canvas.DrawRect(0, 0, (float)_bounds.Width, (float)_bounds.Height,
-					blurPaint);
+				blurred.SkSurface.Canvas.DrawRect(0, 0, (float)_bounds.Width, (float)_bounds.Height, blurPaint);
 			}
 
 			blurred.DrawTo(skia);
