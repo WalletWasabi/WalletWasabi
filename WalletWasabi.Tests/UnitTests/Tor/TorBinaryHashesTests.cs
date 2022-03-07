@@ -17,9 +17,9 @@ public class TorBinaryHashesTests
 
 		Dictionary<OSPlatform, string> expectedHashes = new()
 		{
-			{ OSPlatform.Windows, "f6c8a3bd07b939e7c736a1e811df907611b763d0f8dbfafa721d8bf6ebfec691" },
-			{ OSPlatform.Linux, "5d5f175bf154f5f4cd2c460b9d4ea80c8219d07441f626e13a4d01c1408a0c28" },
-			{ OSPlatform.OSX, "52e7b209f4994018d6671749eee236475ed448163aef7e5d02456a2d3a9cf6da" },
+			{ OSPlatform.Windows, "55840749c2c42b8079c2890b9ffdcff91cb93c40b378b43320fb9e4a72321842" },
+			{ OSPlatform.Linux, "c53e24524b639635cddd4faea94ca2746ceb50352c4f1d2580e9e3115ec36c79" },
+			{ OSPlatform.OSX, "7b67e9367d7b5fde64f4f0af5a2215be5e22112dbd29d0784e6d7e745cba7c5f" },
 		};
 
 		foreach ((OSPlatform platform, string expectedHash) in expectedHashes)
@@ -28,7 +28,9 @@ public class TorBinaryHashesTests
 
 			using SHA256 sha256 = SHA256.Create();
 			using FileStream fileStream = File.OpenRead(filePath);
-			Assert.Equal(expectedHash, ByteHelpers.ToHex(sha256.ComputeHash(fileStream)).ToLowerInvariant());
+
+			string actualHash = ByteHelpers.ToHex(sha256.ComputeHash(fileStream)).ToLowerInvariant();
+			Assert.Equal(expectedHash, actualHash);
 		}
 	}
 }
