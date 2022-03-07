@@ -95,17 +95,17 @@ public class KeyManager
 
 	public WpkhDescriptors GetOutputDescriptors(string password, Network network)
 	{
-		if (!MasterFingerprint.HasValue)
+		if (IsWatchOnly)
 		{
-			throw new InvalidOperationException($"{nameof(MasterFingerprint)} is not defined.");
+			return WpkhOutputDescriptorHelper.GetOutputDescriptors(network, ExtPubKey.PubKey.GetHDFingerPrint(), ExtPubKey, AccountKeyPath);
 		}
 
-		if (IsWatchOnly || IsHardwareWallet)
+		if (IsHardwareWallet)
 		{
 			return WpkhOutputDescriptorHelper.GetOutputDescriptors(network, MasterFingerprint.Value, ExtPubKey, AccountKeyPath);
 		}
 
-		return WpkhOutputDescriptorHelper.GetOutputDescriptors(network, MasterFingerprint.Value, GetMasterExtKey(password), AccountKeyPath);
+		return WpkhOutputDescriptorHelper.GetOutputDescriptors(network, MasterFingerprint!.Value, GetMasterExtKey(password), AccountKeyPath);
 	}
 
 	[JsonProperty(Order = 1)]
