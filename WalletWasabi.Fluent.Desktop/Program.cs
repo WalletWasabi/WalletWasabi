@@ -1,11 +1,15 @@
+using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Dialogs;
 using Avalonia.ReactiveUI;
 using Splat;
 using System.IO;
+using System.Reactive;
+using System.Reactive.Concurrency;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using ReactiveUI;
 using WalletWasabi.Fluent.CrashReport;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels;
@@ -70,6 +74,18 @@ public class Program
 				Locator.CurrentMutable.RegisterConstant(Global);
 
 				Services.Initialize(Global, singleInstanceChecker);
+
+				RxApp.DefaultExceptionHandler = Observer.Create<Exception>(ex =>
+				{
+					if (Debugger.IsAttached)
+					{
+						Debugger.Break();
+					}
+
+					Logger.LogError(ex);
+
+					RxApp.MainThreadScheduler.Schedule(() => throw ex);
+				});
 
 				Logger.LogSoftwareStarted("Wasabi GUI");
 				BuildAvaloniaApp()
