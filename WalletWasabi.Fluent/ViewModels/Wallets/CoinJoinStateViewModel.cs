@@ -289,8 +289,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private TimeSpan GetRemainingTime() => _autoStartTime - DateTimeOffset.Now;
 
-	private double GetPercentage() => GetElapsedTime().TotalSeconds / GetRemainingTime().TotalSeconds * 100;
+	private TimeSpan GetTotalTime() => _autoStartTime - _countDownStarted;
 
+	private double GetPercentage() => GetElapsedTime().TotalSeconds / GetTotalTime().TotalSeconds * 100;
+	
 	private void TimerOnTick()
 	{
 		_stateMachine.Fire(Trigger.Timer);
