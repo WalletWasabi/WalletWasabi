@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
@@ -63,6 +64,7 @@ public class CoinJoinClient
 
 	public bool ConsolidationMode { get; private set; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
+	public IEnumerable<IDestination> Destinations { get; private set; }
 
 	private async Task<RoundState> WaitForRoundAsync(CancellationToken token)
 	{
@@ -182,6 +184,7 @@ public class CoinJoinClient
 
 			// Output registration.
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
+			Destinations = destinations;
 
 			var remainingTime = roundState.OutputRegistrationTimeout - RoundStatusUpdater.Period;
 			var outputRegistrationEndTime = DateTimeOffset.UtcNow + (remainingTime * 0.8);
