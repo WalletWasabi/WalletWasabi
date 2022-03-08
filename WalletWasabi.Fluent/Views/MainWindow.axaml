@@ -11,7 +11,7 @@
         MinWidth="640" MinHeight="480"
         WindowStartupLocation="CenterScreen"
         Background="{x:Null}"
-        TransparencyLevelHint="AcrylicBlur"
+        TransparencyLevelHint="Mica"
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaChromeHints="PreferSystemChrome"
         Title="Wasabi Wallet"

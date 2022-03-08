@@ -11,6 +11,7 @@ using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -258,6 +259,19 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			var credentialAmount = -request.AmountCredentialRequests.Delta;
 
+			if (CoinJoinScriptStore?.Contains(request.Script) is true)
+			{
+				Logger.LogWarning($"Round ({request.RoundId}): Already registered script.");
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script.");
+			}
+
+			var inputScripts = round.Alices.Select(a => a.Coin.ScriptPubKey).ToHashSet();
+			if (inputScripts.Contains(request.Script))
+			{
+				Logger.LogWarning($"Round ({request.RoundId}): Already registered script in the round.");
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script in round.");
+			}
+
 			Bob bob = new(request.Script, credentialAmount);
 
 			var outputValue = bob.CalculateOutputAmount(round.FeeRate);
@@ -367,7 +381,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 				return RoundState.FromRound(x, checkPoint == default ? 0 : checkPoint.StateId);
 			}).ToArray();
 
-			return new RoundStateResponse(roundStates, Array.Empty<CoinJoinFeeRateAverage>());
+			return new RoundStateResponse(roundStates, Array.Empty<CoinJoinFeeRateMedian>());
 		}
 	}
 
