@@ -225,10 +225,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			{
 				UpdateCountDown();
 
+				PlayVisible = true;
 				IsAutoWaiting = true;
 				CurrentStatus = _countDownMessage;
 			})
-			.OnEntry(UpdateCountDown)
 			.OnTrigger(Trigger.Timer, UpdateCountDown)
 			.OnExit(() =>
 			{
@@ -260,10 +260,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
 			.OnEntry(() =>
 			{
+				CurrentStatus = _coinJoiningMessage;
 				IsAutoWaiting = false;
 				PauseVisible = true;
 				PlayVisible = false;
-				CurrentStatus = _coinJoiningMessage;
+				_autoStartTime = TimeSpan.Zero;
+				_countDownStarted = DateTimeOffset.Now;
 				coinJoinManager.Start(_wallet);
 			})
 			.OnEntry(UpdateWalletMixedProgress)
