@@ -1,8 +1,9 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace WalletWasabi.Fluent.State;
 
-public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState : Enum
+public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState : struct, Enum
 {
 	private StateContext _currentState;
 	private readonly Dictionary<TState, StateContext> _states;
@@ -10,13 +11,23 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 	public delegate void OnTransitionedDelegate(TTrigger trigger, TState from, TState to);
 
-	public TState CurrentState => _currentState.StateId;
+	public TState State => _currentState.StateId;
 
 	public StateMachine(TState initialState)
 	{
 		_states = new Dictionary<TState, StateContext>();
 
+		RegisterStates();
+
 		_currentState = Configure(initialState);
+	}
+
+	private void RegisterStates()
+	{
+		foreach (var state in Enum.GetValues<TState>())
+		{
+			_states.Add(state, new StateContext(this, state));
+		}
 	}
 
 	public StateMachine<TState, TTrigger> OnTransitioned(OnTransitionedDelegate onTransitioned)
@@ -28,15 +39,6 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 	public StateContext Configure(TState state)
 	{
-		if (!_states.ContainsKey(state))
-		{
-			var result = new StateContext(this, state);
-
-			_states.Add(state, result);
-
-			return result;
-		}
-
 		return _states[state];
 	}
 
@@ -51,6 +53,10 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 			Goto(trigger, _currentState.Parent.StateId, true, false);
 			Goto(trigger, _currentState.GetDestination(trigger));
 		}
+		else
+		{
+			_currentState.Process(trigger);
+		}
 	}
 
 	public void Start()
@@ -58,10 +64,6 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 		_currentState.Enter();
 	}
 
-	public void Process()
-	{
-		_currentState.Process();
-	}
 
 	private void Goto(TTrigger trigger, TState state, bool exit = true, bool enter = true)
 	{
@@ -82,24 +84,20 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 			{
 				_currentState.Enter();
 			}
-
-			_currentState.Process();
 		}
 	}
 
 	public class StateContext
 	{
-		private Dictionary<TTrigger, TState> _permittedTransitions;
+		private readonly Dictionary<TTrigger, TState> _permittedTransitions;
 		private readonly StateMachine<TState, TTrigger> _owner;
-
-		private StateContext? _parent;
-		private List<Action> _entryActions;
-		private List<Action> _exitActions;
-		private List<Action> _onProcessActions;
+		private readonly List<Action> _entryActions;
+		private readonly List<Action> _exitActions;
+		private readonly Dictionary<TTrigger, List<Action>> _triggerActions;
 
 		public TState StateId { get; }
 
-		public StateContext? Parent => _parent;
+		public StateContext? Parent { get; private set; }
 
 		public StateContext(StateMachine<TState, TTrigger> owner, TState state)
 		{
@@ -108,19 +106,24 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 			_entryActions = new();
 			_exitActions = new();
-			_onProcessActions = new();
+			_triggerActions = new();
 			_permittedTransitions = new();
 		}
 
 		public StateContext SubstateOf(TState parent)
 		{
-			_parent = _owner._states[parent];
+			Parent = _owner._states[parent];
 
 			return this;
 		}
 
 		public StateContext Permit(TTrigger trigger, TState state)
 		{
+			if (StateId.Equals(state))
+			{
+				throw new InvalidOperationException("Configuring state re-entry is not allowed");
+			}
+
 			_permittedTransitions[trigger] = state;
 
 			return this;
@@ -133,13 +136,19 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 			return this;
 		}
 
-		public StateContext OnProcess(Action action)
+		public StateContext OnTrigger(TTrigger trigger, Action action)
 		{
-			_onProcessActions.Add(action);
+			if (_triggerActions.TryGetValue(trigger, out var t))
+			{
+				t.Add(action);
+			}
+			else
+			{
+				_triggerActions.Add(trigger, new List<Action> { action });
+			}
 
 			return this;
 		}
-
 
 		public StateContext OnExit(Action action)
 		{
@@ -164,11 +173,14 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 			}
 		}
 
-		internal void Process()
+		internal void Process(TTrigger trigger)
 		{
-			foreach (var action in _onProcessActions)
+			if (_triggerActions.ContainsKey(trigger) && _triggerActions[trigger] is { } actions)
 			{
-				action();
+				foreach (var action in actions)
+				{
+					action();
+				}
 			}
 		}
 
