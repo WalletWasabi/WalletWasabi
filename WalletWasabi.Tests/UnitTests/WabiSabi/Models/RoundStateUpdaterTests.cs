@@ -183,6 +183,6 @@ public class RoundStateUpdaterTests
 		roundStatusUpdater.TriggerRound();
 
 		// We are expecting output registration phase but the round unexpectedly ends.
-		await Assert.ThrowsAsync<InvalidOperationException>(async () => await roundORTask);
+		await Assert.ThrowsAsync<UnexpectedRoundPhaseException>(async () => await roundORTask);
 	}
 }

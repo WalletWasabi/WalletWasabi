@@ -302,8 +302,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private TimeSpan GetRemainingTime() => (_countDownStarted + _autoStartTime) - DateTimeOffset.Now;
 
-	private double GetPercentage() => GetElapsedTime().TotalSeconds / GetRemainingTime().TotalSeconds * 100;
+	private TimeSpan GetTotalTime() => _autoStartTime - _countDownStarted;
 
+	private double GetPercentage() => GetElapsedTime().TotalSeconds / GetTotalTime().TotalSeconds * 100;
+	
 	private void TimerOnTick()
 	{
 		_stateMachine.Fire(Trigger.Timer);
@@ -323,13 +325,13 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		var total = _wallet.Coins.TotalAmount();
 
 		ElapsedTime = "Balance to coinjoin:";
-		RemainingTime = normalAmount.ToFormattedString() + " BTC";
+		RemainingTime = Services.UiConfig.PrivacyMode ? TextHelpers.GetPrivacyMask(4) : normalAmount.ToFormattedString() + " BTC";
 
 		var percentage = privateAmount.ToDecimal(MoneyUnit.BTC) / total.ToDecimal(MoneyUnit.BTC) * 100;
 
 		ProgressValue = (double)percentage;
 	}
-
+	
 	private void StatusChanged(StatusChangedEventArgs e)
 	{
 		switch (e)
