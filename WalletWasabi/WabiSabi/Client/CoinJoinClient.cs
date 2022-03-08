@@ -145,7 +145,7 @@ public class CoinJoinClient
 		{
 			registeredAliceClients = await CreateRegisterAndConfirmCoinsAsync(httpClient, smartCoins, roundState, cancellationToken).ConfigureAwait(false);
 		}
-		catch (InvalidOperationException ex)
+		catch (UnexpectedRoundPhaseException ex)
 		{
 			Logger.LogInfo($"Round ({roundState.Id}): Registration phase ended by the coordinator: '{ex.Message}'.");
 			return true;
