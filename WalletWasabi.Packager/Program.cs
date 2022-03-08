@@ -402,7 +402,7 @@ public static class Program
 
 				var linuxPath = $"/mnt/{driveLetterLower}/{Tools.LinuxPath(BinDistDirectory[3..])}";
 
-				var chmodExecutablesArgs = "-type f \\( -name 'wassabee' -o -name 'hwi' -o -name 'bitcoind' -o -name 'tor' \\) -exec chmod u+x {} \\;";
+				var chmodExecutablesArgs = "-type f \\( -name 'wassabee' -o -name 'hwi' -o -name 'bitcoind' -o -name 'tor' \\) -exec chmod +x {} \\;";
 
 				var commands = new[]
 				{
