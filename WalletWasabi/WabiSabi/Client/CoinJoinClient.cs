@@ -188,7 +188,7 @@ public class CoinJoinClient
 
 			var remainingTime = roundState.OutputRegistrationTimeout - RoundStatusUpdater.Period;
 			var outputRegistrationEndTime = DateTimeOffset.UtcNow + (remainingTime * 0.8);
-			Logger.LogDebug($"Round ({roundState.Id}): Output registration phase started - it will end in: {outputRegistrationEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}");
+			Logger.LogDebug($"Round ({roundState.Id}): Output registration started - it will end in: {outputRegistrationEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}");
 
 			await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationEndTime, cancellationToken).ConfigureAwait(false);
 			Logger.LogDebug($"Round ({roundState.Id}): Outputs({outputTxOuts.Count()}) successfully registered.");
