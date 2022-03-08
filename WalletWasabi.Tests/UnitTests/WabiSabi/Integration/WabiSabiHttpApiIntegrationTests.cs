@@ -124,10 +124,10 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				services.AddScoped(s => new WabiSabiConfig
 				{
 					MaxInputCountByRound = inputCount,
-					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(20),
-					ConnectionConfirmationTimeout = TimeSpan.FromSeconds(20),
-					OutputRegistrationTimeout = TimeSpan.FromSeconds(20),
-					TransactionSigningTimeout = TimeSpan.FromSeconds(20)
+					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(40),
+					ConnectionConfirmationTimeout = TimeSpan.FromSeconds(40),
+					OutputRegistrationTimeout = TimeSpan.FromSeconds(40),
+					TransactionSigningTimeout = TimeSpan.FromSeconds(40)
 				}
 
 				);
@@ -238,10 +238,10 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig
 			{
 				MaxInputCountByRound = 2 * inputCount,
-				StandardInputRegistrationTimeout = TimeSpan.FromSeconds(20),
-				BlameInputRegistrationTimeout = TimeSpan.FromSeconds(20),
-				ConnectionConfirmationTimeout = TimeSpan.FromSeconds(20),
-				OutputRegistrationTimeout = TimeSpan.FromSeconds(20),
+				StandardInputRegistrationTimeout = TimeSpan.FromSeconds(40),
+				BlameInputRegistrationTimeout = TimeSpan.FromSeconds(40),
+				ConnectionConfirmationTimeout = TimeSpan.FromSeconds(40),
+				OutputRegistrationTimeout = TimeSpan.FromSeconds(40),
 				TransactionSigningTimeout = TimeSpan.FromSeconds(5 * inputCount)
 			});
 		})).CreateClient();
