@@ -100,6 +100,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		Observable.FromEventPattern<StatusChangedEventArgs>(coinJoinManager, nameof(coinJoinManager.StatusChanged))
 			.Where(x => x.EventArgs.Wallet == walletVm.Wallet)
 			.Select(x => x.EventArgs)
+			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(StatusChanged);
 
 		var initialState = walletVm.Settings.AutoCoinJoin
