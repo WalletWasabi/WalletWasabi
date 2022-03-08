@@ -17,7 +17,7 @@ public class SmartCoinSelector : ICoinSelector
 
 	private IEnumerable<SmartCoin> UnspentCoins { get; }
 
-	public IEnumerable<ICoin> Select(IEnumerable<ICoin> coins, IMoney target)
+	public IEnumerable<ICoin> Select(IEnumerable<ICoin> unused, IMoney target)
 	{
 		var targetMoney = target as Money;
 
@@ -66,6 +66,7 @@ public class SmartCoinSelector : ICoinSelector
 		var coinsInBestClusterByScript = bestCoinCluster
 			.GroupBy(c => c.ScriptPubKey)
 			.Select(group => (ScriptPubKey: group.Key, Coins: group.ToList()))
+			.OrderBy(x => x.Coins.Sum(c => c.Amount))
 			.ToImmutableList();
 
 		var coinsGroup = coinsInBestClusterByScript.Count < 10
