@@ -6,6 +6,14 @@ namespace WalletWasabi.Wallets;
 
 public class Kitchen
 {
+	public Kitchen(string? ingredients = null)
+	{
+		if (ingredients is { })
+		{
+			Cook(ingredients);
+		}
+	}
+
 	private string? Salt { get; set; } = null;
 	private string? Soup { get; set; } = null;
 	private object RefrigeratorLock { get; } = new object();

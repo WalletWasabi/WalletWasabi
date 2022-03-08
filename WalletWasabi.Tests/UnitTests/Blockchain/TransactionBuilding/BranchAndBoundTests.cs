@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.TransactionBuilding.BnB;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Blockchain.TransactionBuilding;
@@ -10,95 +12,199 @@ namespace WalletWasabi.Tests.UnitTests.Blockchain.TransactionBuilding;
 /// </summary>
 public class BranchAndBoundTests
 {
-	private static Random Random { get; } = new();
-
+	/// <summary>Tests that a best found selection is found when an exact solution does not exist.</summary>
 	[Fact]
-	public void RandomizedTest()
+	public void MoreSelection_NoInputCosts()
 	{
-		List<long> inputValues = GenerateListOfRandomValues();
-		BranchAndBound selector = new(inputValues);
-		long target = 100_000_000;
+		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
 
-		bool successful = selector.TryGetExactMatch(target, out List<long>? selectedValues);
+		long[] inputValues = new long[] { 11, 7, 5, 3, 2 }; // Sum is 28.
+		long[] inputCosts = new long[] { 0, 0, 0, 0, 0 }; // No input costs. Idealized.
+		long target = 27; // Target that we cannot get as a sum of input values.
 
-		Assert.True(successful);
-		Assert.NotNull(selectedValues);
-		Assert.Equal(target, selectedValues!.Sum());
+		BranchAndBound algorithm = new();
+		MoreSelectionStrategy strategy = new(target, inputValues, inputCosts);
+		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
+
+		Assert.Equal(new long[] { 11, 7, 5, 3, 2 }, strategy.GetBestSelectionFound());
 	}
 
 	[Fact]
-	public void SimpleSelectionTest()
+	public void MoreSelection_ExactMatchIsAlsoCheapest()
 	{
-		List<long> inputValues = new() { 120_000, 100_000, 100_000, 50_000, 40_000 };
-		BranchAndBound selector = new(inputValues);
-		List<long> expectedValues = new() { 100_000, 50_000, 40_000 };
-		long target = 190_000;
+		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
 
-		bool wasSuccessful = selector.TryGetExactMatch(target, out List<long>? selectedCoins);
+		long[] inputValues = new long[] { 35, 17, 10, 5, 3, 2 };
+		long[] inputCosts = new long[] { 1, 5, 1, 1, 1, 1 };
 
-		Assert.True(wasSuccessful);
-		Assert.NotNull(selectedCoins);
-		Assert.Equal(expectedValues, selectedCoins);
-	}
+		long target = 27;
 
-	[Fact]
-	public void CanSelectEveryCoin()
-	{
-		List<long> inputValues = new() { 120_000, 100_000, 100_000 };
-		BranchAndBound selector = new(inputValues);
-		List<long> expectedValues = new() { 120_000, 100_000, 100_000 };
-		long target = 320000;
+		BranchAndBound algorithm = new();
+		MoreSelectionStrategy strategy = new(target, inputValues, inputCosts);
+		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
 
-		bool wasSuccessful = selector.TryGetExactMatch(target, out List<long>? selectedCoins);
+		long[] actualSelection = strategy.GetBestSelectionFound()!;
+		Assert.NotNull(actualSelection);
 
-		Assert.True(wasSuccessful);
-		Assert.NotNull(selectedCoins);
-		Assert.Equal(expectedValues, selectedCoins);
+		Assert.Equal(new long[] { 17, 10 }, actualSelection);
 	}
 
 	/// <summary>
-	/// Tests that sum of input values must be larger or equal to the target otherwise we end up searching all options in vain.
+	/// Effective bitcoin value received by the payee is more important than
+	/// payer's total costs.
 	/// </summary>
 	[Fact]
-	public void TargetIsBiggerThanBalance()
+	public void MoreSelection_ExactMatchIsMoreExpensiveButStillSelected()
 	{
-		long target = 5_000;
-		List<long> inputValues = new();
+		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
 
-		for (int i = 0; i < target - 1; i++)
+		long[] inputValues = new long[] { 35, 17, 10, 5, 3, 2 };
+
+		// Make the second input very expensive to spend so that it is not selected (not likely in reality).
+		long[] inputCosts = new long[] { 1, 10, 1, 1, 1, 1 };
+
+		long target = 27; // Target that we cannot get as a sum of input values.
+
+		BranchAndBound algorithm = new();
+		MoreSelectionStrategy strategy = new(target, inputValues, inputCosts);
+		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
+
+		// Selection (35) costs us 35 + 1 = 36.
+		// Selection (17, 10) is actually more expensive: (17 + 10) + (10 + 1) = 38, but
+		// we use that selection sa 27 is exactly the amount a payee expects.
+		long[] actualSelection = strategy.GetBestSelectionFound()!;
+		Assert.NotNull(actualSelection);
+
+		Assert.Equal(new long[] { 17, 10 }, actualSelection);
+	}
+
+	/// <summary>
+	/// The goal of the test is to verify that we prune branches at points when it is clear that
+	/// the sum of remaining coins is less than what we need to hit our target.
+	/// </summary>
+	/// <remarks>
+	/// This is especially important for cases where user has many coins.
+	/// <para>If the optimization is not in place, you should observe that this test does not really finish fast.</para>
+	/// </remarks>
+	[Fact]
+	public void MoreSelection_RemainingAmountOptimization()
+	{
+		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
+
+		List<long> inputValues = new();
+		inputValues.Add(1_000_000);
+
+		for (int i = 0; i < 1000; i++)
 		{
 			inputValues.Add(1);
 		}
 
-		BranchAndBound selector = new(inputValues);
-		bool wasSuccessful = selector.TryGetExactMatch(target, out List<long>? selectedCoins);
+		// All inputs cost the same.
+		long[] inputCosts = inputValues.Select(x => 1L).ToArray();
 
-		Assert.False(wasSuccessful);
-		Assert.Null(selectedCoins);
+		long target = 999_999; // Target that we cannot get as a sum of input values.
+
+		BranchAndBound algorithm = new();
+		MoreSelectionStrategy strategy = new(target, inputValues.ToArray(), inputCosts);
+		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
+
+		// Assert that we get expected best solution.
+		long[] actualSelection = strategy.GetBestSelectionFound()!;
+		Assert.NotNull(actualSelection);
+
+		Assert.Equal(new long[] { 1_000_000 }, actualSelection);
 	}
 
 	[Fact]
-	public void ReturnNullIfNoExactMatchFoundTest()
+	public void LessSelection_RemainingAmountOptimization()
 	{
-		List<long> inputValues = new() { 120_000, 100_000, 100_000, 50_000, 40_000 };
-		BranchAndBound selector = new(inputValues);
-		long target = 300000;
+		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
 
-		bool wasSuccessful = selector.TryGetExactMatch(target, out List<long>? selectedCoins);
+		List<long> inputValues = new();
+		inputValues.Add(999_999);
 
-		Assert.False(wasSuccessful);
-		Assert.Null(selectedCoins);
-	}
-
-	private List<long> GenerateListOfRandomValues(int count = 1000)
-	{
-		List<long> values = new();
-
-		for (int i = 0; i < count; i++)
+		for (int i = 0; i < 1000; i++)
 		{
-			values.Add(Random.Next(1000, 99999999));
+			inputValues.Add(1);
 		}
 
-		return values;
+		// All inputs cost the same.
+		long[] inputCosts = inputValues.Select(x => 1L).ToArray();
+
+		long target = 1_000_000; // Target that we cannot get as a sum of input values.
+
+		BranchAndBound algorithm = new();
+		LessSelectionStrategy strategy = new(target, inputValues.ToArray(), inputCosts);
+		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
+
+		// Assert that we get expected best solution.
+		long[] actualSelection = strategy.GetBestSelectionFound()!;
+		Assert.NotNull(actualSelection);
+	}
+
+	[Fact]
+	public void LesserSelection_CoinSumIsLowerThanTarget()
+	{
+		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
+
+		long[] inputValues = new long[] { 5, 4, 3, 2, 1 };
+		long[] inputCosts = new long[] { 1, 1, 1, 1, 1 };
+
+		long target = 16;
+
+		BranchAndBound algorithm = new();
+		LessSelectionStrategy strategy = new(target, inputValues, inputCosts);
+		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
+
+		long[] actualSelection = strategy.GetBestSelectionFound()!;
+		Assert.NotNull(actualSelection);
+		Assert.Equal(new long[] { 5, 4, 3, 2, 1 }, actualSelection);
+	}
+
+	[Fact]
+	public void LesserSelection_NoInputCosts()
+	{
+		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
+
+		long[] inputValues = new long[] { 35, 17, 10, 5, 3, 2 };
+		long[] inputCosts = new long[] { 0, 0, 0, 0, 0, 0 };
+
+		long target = 26;
+
+		BranchAndBound algorithm = new();
+		LessSelectionStrategy strategy = new(target, inputValues, inputCosts);
+		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
+
+		long[] actualSelection = strategy.GetBestSelectionFound()!;
+		Assert.NotNull(actualSelection);
+
+		// Target 26.
+		// Closest match is 25, i.e. 17 + 5 + 3 = 25.
+		// Total costs: 25 (input costs are zeros).
+		Assert.Equal(new long[] { 17, 5, 3 }, actualSelection);
+	}
+
+	[Fact]
+	public void LesserSelection_WithInputCosts()
+	{
+		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
+
+		long[] inputValues = new long[] { 35, 17, 10, 5, 3, 2 };
+		long[] inputCosts = new long[] { 1, 2, 1, 3, 1, 1 };
+
+		long target = 33;
+
+		BranchAndBound algorithm = new();
+		LessSelectionStrategy strategy = new(target, inputValues, inputCosts);
+		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
+
+		long[] actualSelection = strategy.GetBestSelectionFound()!;
+		Assert.NotNull(actualSelection);
+
+		// Target 33.
+		// Closest match is 32.
+		// Total costs: (17 + 2) + (10 + 3) + (5 + 3) = 40
+		// Total costs: (17 + 2) + (10 + 3) + (3 + 1) + (2 + 1) = 39
+		Assert.Equal(new long[] { 17, 10, 3, 2 }, actualSelection);
 	}
 }

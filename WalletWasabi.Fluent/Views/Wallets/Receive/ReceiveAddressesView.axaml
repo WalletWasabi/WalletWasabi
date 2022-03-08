@@ -4,8 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
-             xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="receive:ReceiveAddressesViewModel"
              x:CompileBindings="True"
@@ -14,9 +12,13 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <DataBox Items="{Binding Addresses}"
-             CanUserSortColumns="True">
-      <DataBox.Styles>
+    <TreeDataGrid Source="{Binding Source}"
+                  CanUserSortColumns="True">
+      <TreeDataGrid.Styles>
+        <Style Selector="TreeDataGridRow">
+          <Setter Property="Focusable" Value="False" />
+          <Setter Property="Height" Value="37.5" />
+        </Style>
         <Style Selector="c|AnimatedButton.addressActionButton">
           <Setter Property="DockPanel.Dock" Value="Right" />
           <Setter Property="Margin" Value="5 0 0 0" />
@@ -33,111 +35,7 @@
           <Setter Property="Height" Value="15" />
           <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
         </Style>
-      </DataBox.Styles>
-      <DataBox.Columns>
-        <DataBoxTemplateColumn Width="90"
-                               CanUserSort="False">
-          <DataBoxTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <Panel>
-                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
-                            Margin="-5 0 0 0" Spacing="5" Orientation="Horizontal"
-                            x:DataType="receive:AddressViewModel">
-                  <Button Classes="plain addressActionButton"
-                             Margin="0"
-                             Command="{Binding HideAddressCommand}"
-                             ToolTip.Tip="Hide address">
-                    <PathIcon Data="{StaticResource dismiss_light}" Classes=" addressActionIcon" />
-                  </Button>
-                  
-                  <c:AnimatedButton Classes="addressActionButton" DockPanel.Dock="Right"
-                                    Margin="0"
-                                    ToolTip.Tip="Copy"
-                                    Command="{Binding CopyAddressCommand}"
-                                    NormalIcon="{StaticResource copy_regular}"
-                                    ClickIcon="{StaticResource copy_confirmed}"
-                                    InitialOpacity="1.0" />
-
-                  <Button Classes="plain addressActionButton"
-                          Margin="0"
-                          Command="{Binding NavigateCommand}"
-                          DockPanel.Dock="Right"
-                          ToolTip.Tip="QR Code">
-                    <PathIcon Data="{StaticResource qr_code_regular}" Classes=" addressActionIcon" />
-                  </Button>
-                </StackPanel>
-              </Panel>
-            </DataTemplate>
-          </DataBoxTemplateColumn.CellTemplate>
-        </DataBoxTemplateColumn>
-
-        <DataBoxTemplateColumn Header="Address"
-                               Width="2*"
-                               CanUserSort="True">
-          <DataBoxTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
-                <c:PrivacyContentControl Content="{Binding Address}" VerticalAlignment="Center"
-                                         Classes="monoSpaced"
-                                         NumberOfPrivacyChars="38" />
-              </DockPanel>
-            </DataTemplate>
-          </DataBoxTemplateColumn.CellTemplate>
-        </DataBoxTemplateColumn>
-
-        <DataBoxTemplateColumn Header="Labels"
-                               Width="210"
-                               CanUserSort="True">
-          <DataBoxTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <DockPanel LastChildFill="True" Margin="10 0 30 0" x:DataType="receive:AddressViewModel">
-                <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15"
-                                         VerticalAlignment="Center">
-                  <DockPanel LastChildFill="False">
-                    <c:TagsBox Padding="0"
-                               Margin="0"
-                               MinWidth="0"
-                               BorderThickness="0"
-                               DockPanel.Dock="Left"
-                               IsReadOnly="True"
-                               Items="{Binding Label}"
-                               HorizontalAlignment="Stretch"
-                               VerticalAlignment="Center" />
-                    <Button Classes="labelFlyout"
-                            DockPanel.Dock="Left"
-                            IsVisible="{Binding !!FilteredLabel.Count}"
-                            Content="..."
-                            Margin="0 4 5 0">
-                      <Button.Flyout>
-                        <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="TransientWithDismissOnPointerMoveAway">
-                          <c:TagsBox IsReadOnly="True"
-                                     Items="{Binding FilteredLabel}" />
-                        </Flyout>
-                      </Button.Flyout>
-                      <ToolTip.Tip>
-                        <Panel>
-                          <c:TagsBox IsReadOnly="True"
-                                     Margin="4,6,0,0"
-                                     Items="{Binding FilteredLabel}" />
-                        </Panel>
-                      </ToolTip.Tip>
-                    </Button>
-                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
-                                Margin="-5 0 0 0" Spacing="5" Orientation="Horizontal"
-                                x:DataType="receive:AddressViewModel"
-                                DockPanel.Dock="Right">
-                      <Button Classes="plain addressActionButton" ToolTip.Tip="Edit"
-                              Command="{Binding EditLabelCommand}">
-                        <PathIcon Data="{StaticResource edit_regular}" Classes="addressActionIcon" />
-                      </Button>
-                    </StackPanel>
-                  </DockPanel>
-                </c:PrivacyContentControl>
-              </DockPanel>
-            </DataTemplate>
-          </DataBoxTemplateColumn.CellTemplate>
-        </DataBoxTemplateColumn>
-      </DataBox.Columns>
-    </DataBox>
+      </TreeDataGrid.Styles>
+    </TreeDataGrid>
   </c:ContentArea>
 </UserControl>

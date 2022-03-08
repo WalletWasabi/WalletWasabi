@@ -30,7 +30,7 @@
       <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
     </Style>
   </UserControl.Styles>
-  <Panel HorizontalAlignment="Right" VerticalAlignment="Stretch">
+  <Panel HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0 0 0 5">
     <Interaction.Behaviors>
       <behaviors:ShowFlyoutOnPointerOverBehavior />
     </Interaction.Behaviors>
@@ -145,7 +145,7 @@
               Height="30"
               Margin="10 0"
               IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.Loading}}"
-              Classes="rotate" />
+              Classes.rotate="{Binding $self.IsVisible}" />
 
   </Panel>
 </UserControl>

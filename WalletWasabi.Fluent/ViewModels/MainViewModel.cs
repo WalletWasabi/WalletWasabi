@@ -1,8 +1,10 @@
+using System.Linq;
 using System.Reactive.Concurrency;
 using NBitcoin;
 using ReactiveUI;
 using System.Reactive.Linq;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.NavBar;
@@ -14,6 +16,8 @@ using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.OpenDirectory;
 using WalletWasabi.Logging;
 using WalletWasabi.Fluent.ViewModels.StatusBar;
+using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
@@ -34,6 +38,7 @@ public partial class MainViewModel : ViewModelBase
 	[AutoNotify] private string _title = "Wasabi Wallet";
 	[AutoNotify] private WindowState _windowState;
 	[AutoNotify] private bool _isOobeBackgroundVisible;
+	[AutoNotify] private bool _isCoinJoinActive;
 
 	public MainViewModel()
 	{
@@ -61,6 +66,8 @@ public partial class MainViewModel : ViewModelBase
 		_privacyMode = new PrivacyModeViewModel();
 		_searchPage = new SearchPageViewModel();
 		_navBar = new NavBarViewModel(MainScreen);
+
+		MusicControls = new MusicControlsViewModel();
 
 		NavigationManager.RegisterType(_navBar);
 
@@ -149,6 +156,8 @@ public partial class MainViewModel : ViewModelBase
 
 	public TargettedNavigationStack MainScreen { get; }
 
+	public MusicControlsViewModel MusicControls { get; }
+
 	public static MainViewModel Instance { get; } = new();
 
 	public void ClearStacks()
@@ -157,6 +166,12 @@ public partial class MainViewModel : ViewModelBase
 		DialogScreen.Clear();
 		FullScreen.Clear();
 		CompactDialogScreen.Clear();
+	}
+
+	public void InvalidateIsCoinJoinActive()
+	{
+		IsCoinJoinActive = UiServices.WalletManager.Wallets.OfType<WalletViewModel>()
+			.Any(x => x.IsCoinJoining);
 	}
 
 	public void Initialize()
@@ -183,24 +198,17 @@ public partial class MainViewModel : ViewModelBase
 				return _settingsPage;
 			});
 
-		PrivacySettingsTabViewModel.RegisterLazy(
+		TorSettingsTabViewModel.RegisterLazy(
 			() =>
 			{
 				_settingsPage.SelectedTab = 1;
 				return _settingsPage;
 			});
 
-		NetworkSettingsTabViewModel.RegisterLazy(
-			() =>
-			{
-				_settingsPage.SelectedTab = 2;
-				return _settingsPage;
-			});
-
 		BitcoinTabSettingsViewModel.RegisterLazy(
 			() =>
 			{
-				_settingsPage.SelectedTab = 3;
+				_settingsPage.SelectedTab = 2;
 				return _settingsPage;
 			});
 

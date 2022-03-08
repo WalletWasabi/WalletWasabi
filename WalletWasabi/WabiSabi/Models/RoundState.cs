@@ -12,6 +12,7 @@ public record RoundState(
 	CredentialIssuerParameters AmountCredentialIssuerParameters,
 	CredentialIssuerParameters VsizeCredentialIssuerParameters,
 	FeeRate FeeRate,
+	CoordinationFeeRate CoordinationFeeRate,
 	Phase Phase,
 	bool WasTransactionBroadcast,
 	DateTimeOffset InputRegistrationStart,
@@ -30,12 +31,13 @@ public record RoundState(
 
 	public DateTimeOffset InputRegistrationEnd => InputRegistrationStart + InputRegistrationTimeout;
 
-	public static RoundState FromRound(Round round) =>
+	public static RoundState FromRound(Round round, int stateId = 0) =>
 		new(
 			round is BlameRound blameRound ? blameRound.BlameOf.Id : uint256.Zero,
 			round.AmountCredentialIssuerParameters,
 			round.VsizeCredentialIssuerParameters,
 			round.FeeRate,
+			round.CoordinationFeeRate,
 			round.Phase,
 			round.WasTransactionBroadcast,
 			round.InputRegistrationTimeFrame.StartTime,
@@ -46,7 +48,7 @@ public record RoundState(
 			round.MaxAmountCredentialValue,
 			round.MaxVsizeCredentialValue,
 			round.MaxVsizeAllocationPerAlice,
-			round.CoinjoinState);
+			round.CoinjoinState.GetStateFrom(stateId));
 
 	public TState Assert<TState>() where TState : MultipartyTransactionState =>
 		CoinjoinState switch
@@ -74,6 +76,7 @@ public record RoundState(
 			CoinjoinState.Parameters.AllowedOutputTypes,
 			CoinjoinState.Parameters.Network,
 			CoinjoinState.Parameters.FeeRate.FeePerK,
+			CoinjoinState.Parameters.CoordinationFeeRate,
 			CoinjoinState.Parameters.MaxTransactionSize,
 			CoinjoinState.Parameters.MinRelayTxFee.FeePerK,
 			MaxAmountCredentialValue,

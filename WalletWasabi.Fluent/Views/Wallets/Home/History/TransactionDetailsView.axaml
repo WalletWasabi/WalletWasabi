@@ -16,7 +16,7 @@
       <!-- Date -->
       <c:PreviewItem Icon="{StaticResource timer_regular}"
                      Text="Date / Time"
-                     CopyParameter="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}' Mode=OneWay}">
+                     CopyParameter="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}', Mode=OneWay}">
         <TextBlock Text="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}', Mode=OneWay}"  Classes="monoSpaced"/>
       </c:PreviewItem>
       <Separator />

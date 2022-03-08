@@ -12,25 +12,27 @@ public partial class TransactionInfo
 {
 	private readonly int _privateCoinThreshold;
 
-	[AutoNotify] private Money _amount = Money.Zero;
+	[AutoNotify] private FeeRate _feeRate = FeeRate.Zero;
+	[AutoNotify] private IEnumerable<SmartCoin> _coins = Enumerable.Empty<SmartCoin>();
 
-	public TransactionInfo()
+	public TransactionInfo(int minAnonScoreTarget)
 	{
-		_privateCoinThreshold = Services.Config.MinAnonScoreTarget;
+		_privateCoinThreshold = minAnonScoreTarget;
 
-		this.WhenAnyValue(x => x.Amount)
-			.Subscribe(_ => OnAmountChanged());
+		this.WhenAnyValue(x => x.FeeRate)
+			.Subscribe(_ => OnFeeChanged());
+
+		this.WhenAnyValue(x => x.Coins)
+			.Subscribe(_ => OnCoinsChanged());
 	}
 
-	public SmartLabel UserLabels { get; set; } = SmartLabel.Empty;
+	public Money Amount { get; set; } = Money.Zero;
 
-	public FeeRate FeeRate { get; set; } = FeeRate.Zero;
+	public SmartLabel UserLabels { get; set; } = SmartLabel.Empty;
 
 	public FeeRate? MaximumPossibleFeeRate { get; set; }
 
 	public TimeSpan ConfirmationTimeSpan { get; set; }
-
-	public IEnumerable<SmartCoin> Coins { get; set; } = Enumerable.Empty<SmartCoin>();
 
 	public IEnumerable<SmartCoin> ChangelessCoins { get; set; } = Enumerable.Empty<SmartCoin>();
 
@@ -46,20 +48,29 @@ public partial class TransactionInfo
 
 	public bool SubtractFee { get; set; }
 
-	private void OnAmountChanged()
+	public void Reset()
 	{
-		SubtractFee = default;
-		ChangelessCoins = Enumerable.Empty<SmartCoin>();
+		Amount = Money.Zero;
+		UserLabels = SmartLabel.Empty;
 		MaximumPossibleFeeRate = null;
+		ConfirmationTimeSpan = TimeSpan.Zero;
+		Coins = Enumerable.Empty<SmartCoin>();
+		ChangelessCoins = Enumerable.Empty<SmartCoin>();
+		SubtractFee = default;
 
 		if (!IsCustomFeeUsed)
 		{
 			FeeRate = FeeRate.Zero;
 		}
+	}
 
-		if (Coins.Sum(x => x.Amount) < Amount) // Reset coins if the selected cluster is not enough for the new amount
-		{
-			Coins = Enumerable.Empty<SmartCoin>();
-		}
+	private void OnFeeChanged()
+	{
+		ChangelessCoins = Enumerable.Empty<SmartCoin>();
+	}
+
+	private void OnCoinsChanged()
+	{
+		MaximumPossibleFeeRate = null;
 	}
 }

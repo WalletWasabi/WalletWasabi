@@ -9,6 +9,7 @@
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:home="using:WalletWasabi.Fluent.Views.Wallets.Home"
              xmlns:history="using:WalletWasabi.Fluent.Views.Wallets.Home.History"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Views.Wallets"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="850"
              x:DataType="wallets:WalletViewModel"
              x:CompileBindings="True"
@@ -23,8 +24,8 @@
                     Command="{Binding BroadcastPsbtCommand}">
               <Button.IsVisible>
                 <MultiBinding Converter="{x:Static BoolConverters.And}">
-                  <Binding Path="PreferPsbtWorkflow"/>
-                  <Binding Path="IsWalletBalanceZero" Converter="{x:Static BoolConverters.Not}"/>
+                  <Binding Path="PreferPsbtWorkflow" />
+                  <Binding Path="IsWalletBalanceZero" Converter="{x:Static BoolConverters.Not}" />
                 </MultiBinding>
               </Button.IsVisible>
               <StackPanel Orientation="Horizontal" Spacing="15">
@@ -33,7 +34,7 @@
               </StackPanel>
             </Button>
             <Button Classes="function"
-                    IsVisible="{Binding !IsWalletBalanceZero}"
+                    IsVisible="{Binding IsSendButtonVisible}"
                     Command="{Binding SendCommand}">
               <StackPanel Orientation="Horizontal" Spacing="15">
                 <PathIcon Data="{StaticResource wallet_action_send}" />
@@ -57,7 +58,12 @@
                   </MenuItem>
                   <MenuItem Header="Wallet Settings" Command="{Binding WalletSettingsCommand}">
                     <MenuItem.Icon>
-                      <PathIcon Data="{StaticResource settings_regular}" />
+                      <PathIcon Data="{StaticResource settings_wallet_regular}" />
+                    </MenuItem.Icon>
+                  </MenuItem>
+                  <MenuItem Header="Wallet Statistics" Command="{Binding WalletStatisticsCommand}">
+                    <MenuItem.Icon>
+                      <PathIcon Data="{StaticResource stats_wallet_regular}" />
                     </MenuItem.Icon>
                   </MenuItem>
                 </MenuFlyout>
@@ -75,7 +81,7 @@
         <behaviors:BoundsObserverBehavior Bounds="{Binding #Panel.Bounds, Mode=OneWay}"
                                           Width="{Binding WidthSource, Mode=TwoWay}"
                                           Height="{Binding HeightSource, Mode=TwoWay}"
-                                          x:CompileBindings="False"/>
+                                          x:CompileBindings="False" />
       </i:Interaction.Behaviors>
       <Panel Classes.smallLayout="{Binding IsSmallLayout}"
              Classes.normalLayout="{Binding IsNormalLayout}"
@@ -83,35 +89,33 @@
              Classes.isEmptyWallet="{Binding IsEmptyWallet}">
         <Panel.Styles>
           <Style Selector="Panel.smallLayout">
-            <Setter Property="HorizontalAlignment" Value="Left"/>
-            <Setter Property="VerticalAlignment" Value="Top"/>
-            <Setter Property="Margin" Value="0,0,0,11"/>
-            <Setter Property="(DockPanel.Dock)" Value="Top"/>
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="Margin" Value="0,0,0,11" />
+            <Setter Property="(DockPanel.Dock)" Value="Top" />
           </Style>
           <Style Selector="Panel.normalLayout">
-            <Setter Property="HorizontalAlignment" Value="Stretch"/>
-            <Setter Property="VerticalAlignment" Value="Top"/>
-            <Setter Property="Margin" Value="0,0,0,11"/>
-            <Setter Property="(DockPanel.Dock)" Value="Top"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="Margin" Value="0,0,0,11" />
+            <Setter Property="(DockPanel.Dock)" Value="Top" />
           </Style>
           <Style Selector="Panel.wideLayout">
-            <Setter Property="HorizontalAlignment" Value="Left"/>
-            <Setter Property="VerticalAlignment" Value="Stretch"/>
-            <Setter Property="Margin" Value="0,0,11,0"/>
-            <Setter Property="(DockPanel.Dock)" Value="Left"/>
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+            <Setter Property="Margin" Value="0,0,11,0" />
+            <Setter Property="(DockPanel.Dock)" Value="Left" />
           </Style>
           <Style Selector="Panel.isEmptyWallet">
-            <Setter Property="HorizontalAlignment" Value="Stretch"/>
-            <Setter Property="VerticalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="VerticalAlignment" Value="Stretch" />
           </Style>
         </Panel.Styles>
         <home:WalletTiles />
       </Panel>
-      <Panel>
-        <history:HistoryTable Name="HistoryTable"
-                              DataContext="{Binding History}"
-                              HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
-      </Panel>
+      <history:HistoryTable Name="HistoryTable"
+                            DataContext="{Binding History}"
+                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
     </DockPanel>
   </c:ContentArea>
 </UserControl>

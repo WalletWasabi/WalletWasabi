@@ -6,13 +6,18 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.MathNet;
 using WalletWasabi.Fluent.Converters;
+using System.Windows.Input;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 public partial class FeeChartViewModel : ViewModelBase
 {
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMinimum;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMaximum;
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	private int _sliderMinimum;
+
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	private int _sliderMaximum;
+
 	[AutoNotify] private int _sliderValue;
 	[AutoNotify] private string[]? _satoshiPerByteLabels;
 	[AutoNotify] private double[]? _satoshiPerByteValues;
@@ -41,7 +46,13 @@ public partial class FeeChartViewModel : ViewModelBase
 
 		this.WhenAnyValue(x => x.SliderValue)
 			.Subscribe(SetXAxisCurrentValue);
+
+		MoveSliderRightCommand = ReactiveCommand.Create(() => SliderValue = Math.Max(SliderMinimum, SliderValue - 10));
+		MoveSliderLeftCommand = ReactiveCommand.Create(() => SliderValue = Math.Min(SliderMaximum, SliderValue + 10));
 	}
+
+	public ICommand MoveSliderRightCommand { get; }
+	public ICommand MoveSliderLeftCommand { get; }
 
 	private void UpdateFeeAndEstimate(double confirmationTarget)
 	{
@@ -148,6 +159,7 @@ public partial class FeeChartViewModel : ViewModelBase
 				{
 					return (decimal)ys[0];
 				}
+
 				var slope = (ys[1] - ys[0]) / (xs[1] - xs[0]);
 				var interpolated = (decimal)(ys[0] + (t - xs[0]) * slope);
 				return Math.Clamp(interpolated, (decimal)ys[^1], (decimal)ys[0]);
@@ -162,17 +174,28 @@ public partial class FeeChartViewModel : ViewModelBase
 		return SliderMaximum;
 	}
 
-	public double GetConfirmationTarget(FeeRate feeRate)
+	public bool TryGetConfirmationTarget(FeeRate feeRate, out double target)
 	{
+		target = -1;
+
 		if (SatoshiPerByteValues is null || ConfirmationTargetValues is null) // Should not happen
 		{
-			return 1;
+			return false;
 		}
 
-		var closestValue = SatoshiPerByteValues.OrderBy(x => Math.Abs((decimal)x - feeRate.SatoshiPerByte)).First();
-		var indexOfClosestValue = SatoshiPerByteValues.LastIndexOf(closestValue);
+		try
+		{
+			var closestValue = SatoshiPerByteValues.Last(x => (decimal)x <= feeRate.SatoshiPerByte);
+			var indexOfClosestValue = SatoshiPerByteValues.LastIndexOf(closestValue);
 
-		return ConfirmationTargetValues[indexOfClosestValue];
+			target = ConfirmationTargetValues[indexOfClosestValue];
+		}
+		catch (Exception)
+		{
+			// Ignored.
+		}
+
+		return target > -1;
 	}
 
 	private int GetSliderValue(double x, double[] xs)
@@ -272,7 +295,7 @@ public partial class FeeChartViewModel : ViewModelBase
 
 	public void InitCurrentConfirmationTarget(FeeRate feeRate)
 	{
-		CurrentConfirmationTarget = GetConfirmationTarget(feeRate);
+		CurrentConfirmationTarget = TryGetConfirmationTarget(feeRate, out var target) ? target : 1;
 	}
 
 	public Dictionary<double, double> GetValues()

@@ -93,7 +93,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 				var (sender, e) = arg;
 
 				if (Services.UiConfig.PrivacyMode ||
-					!e.IsNews ||
+					!e!.IsNews ||
 					sender is not Wallet { IsLoggedIn: true, State: WalletState.Started } wallet)
 				{
 					return;
@@ -101,7 +101,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 				if (_walletDictionary.TryGetValue(wallet, out var walletViewModel) && walletViewModel is WalletViewModel wvm)
 				{
-					if (!e.IsLikelyOwnCoinJoin)
+					if (!e.IsOwnCoinJoin)
 					{
 						NotificationHelpers.Show(wallet.WalletName, e, onClick: () => wvm.NavigateAndHighlight(e.Transaction.GetHash()));
 					}

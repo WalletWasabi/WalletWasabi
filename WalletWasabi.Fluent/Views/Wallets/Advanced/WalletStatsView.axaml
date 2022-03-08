@@ -1,0 +1,38 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:advanced="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Advanced"
+             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
+             x:DataType="advanced:WalletStatsViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Advanced.WalletStatsView">
+  <c:ContentArea Title="{Binding Title}"
+                 EnableNext="True" NextContent="Done">
+    <StackPanel Spacing="10" Margin="0 20 20 0">
+      <c:PreviewItem Text="Number of Coins"
+                     CopyParameter="{Binding CoinCount}">
+        <c:PrivacyContentControl Classes="monoSpaced"
+                                 NumberOfPrivacyChars="8"
+                                 Content="{Binding CoinCount}" />
+      </c:PreviewItem>
+      <Separator />
+      <c:PreviewItem Text="Unconfirmed Balance"
+                     CopyParameter="{Binding UnconfirmedBalance}">
+        <c:PrivacyContentControl NumberOfPrivacyChars="11" Content="{Binding UnconfirmedBalance, StringFormat={}{0} BTC, Mode=OneWay}" Classes="monoSpaced" />
+      </c:PreviewItem>
+      <Separator />
+      <c:PreviewItem Text="Confirmed Balance"
+                     CopyParameter="{Binding ConfirmedBalance}">
+        <c:PrivacyContentControl NumberOfPrivacyChars="11" Content="{Binding ConfirmedBalance, StringFormat={}{0} BTC, Mode=OneWay}" Classes="monoSpaced" />
+      </c:PreviewItem>
+      <Separator />
+      <c:PreviewItem Text="Total Balance"
+                     CopyParameter="{Binding Balance}">
+        <c:PrivacyContentControl NumberOfPrivacyChars="11" Content="{Binding Balance, StringFormat={}{0} BTC, Mode=OneWay}" Classes="monoSpaced" />
+      </c:PreviewItem>
+    </StackPanel>
+  </c:ContentArea>
+</UserControl>

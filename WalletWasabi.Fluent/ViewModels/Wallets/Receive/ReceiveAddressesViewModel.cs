@@ -5,11 +5,15 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.Models.TreeDataGrid;
+using Avalonia.Controls.Templates;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.Views.Wallets.Receive.Columns;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
@@ -19,9 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 public partial class ReceiveAddressesViewModel : RoutableViewModel
 {
 	private readonly HashSet<string> _suggestions;
-
-	[AutoNotify] private ObservableCollection<AddressViewModel> _addresses;
-	[AutoNotify] private AddressViewModel? _selectedAddress;
+	private ObservableCollection<AddressViewModel> _addresses;
 
 	public ReceiveAddressesViewModel(Wallet wallet, HashSet<string> suggestions)
 	{
@@ -34,12 +36,62 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 
 		EnableBack = true;
 
+		// [Column]		[View]				[Header]	[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
+		// Actions		ActionsColumnView	-			90			-				-			false
+		// Address		AddressColumnView	Address		2*			-				-			true
+		// Labels		LabelsColumnView	Labels		210			-				-			false
+
+		Source = new FlatTreeDataGridSource<AddressViewModel>(_addresses)
+		{
+			Columns =
+			{
+				// Actions
+				new TemplateColumn<AddressViewModel>(
+					null,
+					new FuncDataTemplate<AddressViewModel>((node, ns) => new ActionsColumnView(), true),
+					options: new ColumnOptions<AddressViewModel>
+					{
+						CanUserResizeColumn = false,
+						CanUserSortColumn = false
+					},
+					width: new GridLength(90, GridUnitType.Pixel)),
+
+				// Address
+				new TemplateColumn<AddressViewModel>(
+					"Address",
+					new FuncDataTemplate<AddressViewModel>((node, ns) => new AddressColumnView(), true),
+					options: new ColumnOptions<AddressViewModel>
+					{
+						CanUserResizeColumn = false,
+						CanUserSortColumn = true,
+						CompareAscending = AddressViewModel.SortAscending(x => x.Address),
+						CompareDescending = AddressViewModel.SortDescending(x => x.Address)
+					},
+					width: new GridLength(2, GridUnitType.Star)),
+
+				// Labels
+				new TemplateColumn<AddressViewModel>(
+					"Labels",
+					new FuncDataTemplate<AddressViewModel>((node, ns) => new LabelsColumnView(), true),
+					options: new ColumnOptions<AddressViewModel>
+					{
+						CanUserResizeColumn = false,
+						CanUserSortColumn = false
+					},
+					width: new GridLength(210, GridUnitType.Pixel))
+			}
+		};
+
+		Source.RowSelection!.SingleSelect = true;
+
 		InitializeAddresses();
 	}
 
 	public Wallet Wallet { get; }
 
 	public Network Network { get; }
+
+	public FlatTreeDataGridSource<AddressViewModel> Source { get; }
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
@@ -56,13 +108,13 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 	{
 		try
 		{
-			Addresses.Clear();
+			_addresses.Clear();
 
 			IEnumerable<HdPubKey> keys = Wallet.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Reverse();
 
 			foreach (HdPubKey key in keys)
 			{
-				Addresses.Add(new AddressViewModel(this, Wallet, key, Network));
+				_addresses.Add(new AddressViewModel(this, Wallet, key, Network));
 			}
 		}
 		catch (Exception ex)

@@ -1,8 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.TransactionBuilding.BnB;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
 
@@ -16,8 +20,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 	public ChangeAvoidanceSuggestionViewModel(decimal originalAmount,
 		BuildTransactionResult transactionResult,
-		decimal fiatExchangeRate,
-		bool isOriginal)
+		decimal fiatExchangeRate)
 	{
 		TransactionResult = transactionResult;
 
@@ -25,113 +28,49 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 		_amountFiat = total.GenerateFiatText(fiatExchangeRate, "USD");
 
-		if (!isOriginal)
-		{
-			var fiatTotal = total * fiatExchangeRate;
-			var fiatOriginal = originalAmount * fiatExchangeRate;
-			var fiatDifference = fiatTotal - fiatOriginal;
+		var fiatTotal = total * fiatExchangeRate;
+		var fiatOriginal = originalAmount * fiatExchangeRate;
+		var fiatDifference = fiatTotal - fiatOriginal;
 
-			_differenceFiat = (fiatDifference > 0
-					? $"{fiatDifference.GenerateFiatText("USD")} More"
-					: $"{Math.Abs(fiatDifference).GenerateFiatText("USD")} Less")
-				.Replace("(", "").Replace(")", "");
-		}
+		_differenceFiat = (fiatDifference > 0
+				? $"{fiatDifference.GenerateFiatText("USD")} More"
+				: $"{Math.Abs(fiatDifference).GenerateFiatText("USD")} Less")
+			.Replace("(", "").Replace(")", "");
 
 		_amount = $"{total} BTC";
 	}
 
 	public BuildTransactionResult TransactionResult { get; }
 
-	private static IEnumerable<ChangeAvoidanceSuggestionViewModel> NormalizeSuggestions(
-		IEnumerable<ChangeAvoidanceSuggestionViewModel> suggestions,
-		ChangeAvoidanceSuggestionViewModel defaultSuggestion)
+	public static async IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> GenerateSuggestionsAsync(
+		TransactionInfo transactionInfo,
+		BitcoinAddress destination,
+		Wallet wallet,
+		[EnumeratorCancellation] CancellationToken cancellationToken)
 	{
-		var normalized = suggestions
-			.OrderBy(x => x.TransactionResult.CalculateDestinationAmount())
-			.ToList();
+		var selections = ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(
+			transactionInfo.Coins,
+			transactionInfo.FeeRate,
+			new TxOut(transactionInfo.Amount, destination),
+			cancellationToken).ConfigureAwait(false);
 
-		if (normalized.Count == 3)
+		await foreach (var selection in selections)
 		{
-			var index = normalized.IndexOf(defaultSuggestion);
-
-			switch (index)
+			if (selection.Any())
 			{
-				case 1:
-					break;
+				BuildTransactionResult transaction = TransactionHelpers.BuildChangelessTransaction(
+					wallet,
+					destination,
+					transactionInfo.UserLabels,
+					transactionInfo.FeeRate,
+					selection,
+					tryToSign: false);
 
-				case 0:
-					normalized = normalized.Take(2).ToList();
-					break;
-
-				case 2:
-					normalized = normalized.Skip(1).ToList();
-					break;
+				yield return new ChangeAvoidanceSuggestionViewModel(
+					transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
+					transaction,
+					wallet.Synchronizer.UsdExchangeRate);
 			}
 		}
-
-		return normalized;
-	}
-
-	public static async Task<IEnumerable<ChangeAvoidanceSuggestionViewModel>> GenerateSuggestionsAsync(
-		TransactionInfo transactionInfo, BitcoinAddress destination, Wallet wallet, BuildTransactionResult requestedTransaction)
-	{
-		var intent = new PaymentIntent(
-			destination,
-			MoneyRequest.CreateAllRemaining(subtractFee: true),
-			transactionInfo.UserLabels);
-
-		ChangeAvoidanceSuggestionViewModel? smallerSuggestion = null;
-
-		if (requestedTransaction.SpentCoins.Count() > 1)
-		{
-			var smallerTransaction = await Task.Run(() => wallet.BuildTransaction(
-				wallet.Kitchen.SaltSoup(),
-				intent,
-				FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
-				allowUnconfirmed: true,
-				requestedTransaction
-					.SpentCoins
-					.OrderBy(x => x.Amount)
-					.Skip(1)
-					.Select(x => x.OutPoint)));
-
-			smallerSuggestion = new ChangeAvoidanceSuggestionViewModel(
-				transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), smallerTransaction,
-				wallet.Synchronizer.UsdExchangeRate, false);
-		}
-
-		var defaultSelection = new ChangeAvoidanceSuggestionViewModel(
-			transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), requestedTransaction,
-			wallet.Synchronizer.UsdExchangeRate, true);
-
-		var largerTransaction = await Task.Run(() => wallet.BuildTransaction(
-			wallet.Kitchen.SaltSoup(),
-			intent,
-			FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
-			true,
-			requestedTransaction.SpentCoins.Select(x => x.OutPoint)));
-
-		var largerSuggestion = new ChangeAvoidanceSuggestionViewModel(
-			transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), largerTransaction,
-			wallet.Synchronizer.UsdExchangeRate, false);
-
-		// There are several scenarios, both the alternate suggestions are <, or >, or 1 < and 1 >.
-		// We sort them and add the suggestions accordingly.
-		var suggestions = new List<ChangeAvoidanceSuggestionViewModel> { defaultSelection, largerSuggestion };
-
-		if (smallerSuggestion is { })
-		{
-			suggestions.Add(smallerSuggestion);
-		}
-
-		var results = new List<ChangeAvoidanceSuggestionViewModel>();
-
-		foreach (var suggestion in NormalizeSuggestions(suggestions, defaultSelection)
-			         .Where(x => x != defaultSelection))
-		{
-			results.Add(suggestion);
-		}
-
-		return results;
 	}
 }
