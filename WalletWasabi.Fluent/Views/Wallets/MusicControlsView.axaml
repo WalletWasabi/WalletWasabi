@@ -70,7 +70,20 @@
 
           <DockPanel LastChildFill="False">
             <TextBlock Text="{Binding ElapsedTime}" />
-            <TextBlock Text="{Binding RemainingTime}" DockPanel.Dock="Right" />
+            <TransitioningContentControl Content="{Binding Remaining}" DockPanel.Dock="Right">
+              <TransitioningContentControl.DataTemplates>
+                <DataTemplate DataType="wallets:EmptyViewModel" />
+                <DataTemplate DataType="wallets:AmountViewModel">
+                  <controls:PrivacyContentControl Content="{Binding Text}" />
+                </DataTemplate>
+                <DataTemplate DataType="wallets:RemainingTimeViewModel">
+                  <TextBlock Text="{Binding Text}" />
+                </DataTemplate>
+              </TransitioningContentControl.DataTemplates>
+              <TransitioningContentControl.PageTransition>
+                <CrossFade Duration="0:0:0.125" FadeInEasing="0.4,0,0.6,1" FadeOutEasing="0.4,0,0.6,1" />
+              </TransitioningContentControl.PageTransition>
+            </TransitioningContentControl>
           </DockPanel>
         </StackPanel>
 

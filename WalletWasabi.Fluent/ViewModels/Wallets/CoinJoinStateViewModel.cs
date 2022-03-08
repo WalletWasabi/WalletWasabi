@@ -14,6 +14,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public partial class CoinJoinStateViewModel : ViewModelBase
 {
+	public const string TimespanFormat = @"hh\:mm\:ss";
+
 	private enum State
 	{
 		Invalid = 0,
@@ -60,7 +62,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	[AutoNotify] private bool _isProgressReversed;
 	[AutoNotify] private double _progressValue;
 	[AutoNotify] private string _elapsedTime;
-	[AutoNotify] private string _remainingTime;
+	[AutoNotify] private RemainingPartViewModel _remaining;
 
 	private readonly MusicStatusMessageViewModel _countDownMessage = new()
 	{ Message = "Waiting to auto-start coinjoin" };
@@ -82,7 +84,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	public CoinJoinStateViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
 	{
 		_elapsedTime = "";
-		_remainingTime = "";
+		_remaining = new EmptyViewModel();
 
 		_wallet = walletVm.Wallet;
 
@@ -188,7 +190,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				CurrentStatus = _finishedMessage;
 				ProgressValue = 100;
 				ElapsedTime = "";
-				RemainingTime = "";
+				Remaining = new EmptyViewModel();
 			});
 
 		// AutoCj State
@@ -271,7 +273,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 				ProgressValue = 100;
 				ElapsedTime = "";
-				RemainingTime = "";
+				Remaining = new EmptyViewModel();
 
 				CurrentStatus = _finishedMessage;
 			});
@@ -279,9 +281,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private void UpdateCountDown()
 	{
-		var format = @"hh\:mm\:ss";
-		ElapsedTime = $"{GetElapsedTime().ToString(format)}";
-		RemainingTime = $"-{GetRemainingTime().ToString(format)}";
+		ElapsedTime = $"{GetElapsedTime().ToString(TimespanFormat)}";
+		Remaining = new RemainingTimeViewModel(GetRemainingTime());
 		ProgressValue = GetPercentage();
 	}
 
@@ -310,13 +311,13 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		var total = _wallet.Coins.TotalAmount();
 
 		ElapsedTime = "Balance to coinjoin:";
-		RemainingTime = Services.UiConfig.PrivacyMode ? TextHelpers.GetPrivacyMask(4) : normalAmount.ToFormattedString() + " BTC";
+		Remaining = new AmountViewModel(normalAmount);
 
 		var percentage = privateAmount.ToDecimal(MoneyUnit.BTC) / total.ToDecimal(MoneyUnit.BTC) * 100;
 
 		ProgressValue = (double)percentage;
 	}
-	
+
 	private void StatusChanged(StatusChangedEventArgs e)
 	{
 		switch (e)
@@ -351,4 +352,34 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	public ICommand PauseCommand { get; }
 
 	public ICommand StopCommand { get; }
+}
+
+public abstract class RemainingPartViewModel
+{
+}
+
+internal class EmptyViewModel : RemainingPartViewModel
+{
+}
+
+internal class AmountViewModel : RemainingPartViewModel
+{
+	public AmountViewModel(Money amount)
+	{
+		Text = amount.ToFormattedString() + " BTC";
+	}
+
+	public string Text { get; }
+}
+
+internal class RemainingTimeViewModel : RemainingPartViewModel
+{
+	public TimeSpan Time { get; }
+
+	public RemainingTimeViewModel(TimeSpan time)
+	{
+		Time = time;
+	}
+
+	public string Text => $"-{Time.ToString(CoinJoinStateViewModel.TimespanFormat)}";
 }
