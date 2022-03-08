@@ -49,9 +49,6 @@ public class CoinJoinManager : BackgroundService
 	public void Stop(Wallet wallet) =>
 		WalletManualState.AddOrUpdate(wallet, CoinJoinCommand.Stop, (_, _) => CoinJoinCommand.Stop);
 
-	public void AutoStart(Wallet wallet) =>
-		WalletManualState.Remove(wallet, out _);
-
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
 
 	public CoinJoinClientState HighestCoinJoinClientState
@@ -98,11 +95,11 @@ public class CoinJoinManager : BackgroundService
 
 				if (!MustStart(openedWallet))
 				{
-					if (!openedWallet.KeyManager.AutoCoinJoin)
-					{
-						NotifyCoinJoinStartError(openedWallet, CoinjoinError.AutoConjoinDisabled);
-						continue;
-					}
+					continue;
+				}
+
+				if (openedWallet.KeyManager.AutoCoinJoin)
+				{
 					if (IsUserInSendWorkflow)
 					{
 						NotifyCoinJoinStartError(openedWallet, CoinjoinError.UserInSendWorkflow);
@@ -114,6 +111,7 @@ public class CoinJoinManager : BackgroundService
 						continue;
 					}
 				}
+
 				var coinCandidates = SelectCandidateCoins(openedWallet).ToArray();
 				if (coinCandidates.Length == 0)
 				{

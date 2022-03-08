@@ -210,7 +210,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				CurrentStatus = _initialisingMessage;
 
 				coinJoinManager.Stop(_wallet);
-				coinJoinManager.AutoStart(_wallet);
 
 				_stateMachine.Fire(Trigger.AutoCoinJoinEntered);
 			});
@@ -302,10 +301,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private TimeSpan GetRemainingTime() => (_countDownStarted + _autoStartTime) - DateTimeOffset.Now;
 
-	private TimeSpan GetTotalTime() => _autoStartTime - _countDownStarted;
+	private TimeSpan GetTotalTime() => _autoStartTime;
 
 	private double GetPercentage() => GetElapsedTime().TotalSeconds / GetTotalTime().TotalSeconds * 100;
-	
+
 	private void TimerOnTick()
 	{
 		_stateMachine.Fire(Trigger.Timer);
@@ -331,7 +330,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		ProgressValue = (double)percentage;
 	}
-	
+
 	private void StatusChanged(StatusChangedEventArgs e)
 	{
 		switch (e)
