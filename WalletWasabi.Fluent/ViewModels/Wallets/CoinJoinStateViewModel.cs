@@ -224,11 +224,18 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.Play, State.AutoPlaying)
 			.OnEntry(() =>
 			{
-				UpdateCountDown();
-
 				PlayVisible = true;
 				IsAutoWaiting = true;
-				CurrentStatus = _countDownMessage;
+
+				if (AutoStartTimedOut)
+				{
+					_stateMachine.Fire(Trigger.AutoStartTimeout);
+				}
+				else
+				{
+					CurrentStatus = _countDownMessage;
+					UpdateCountDown();
+				}
 			})
 			.OnTrigger(Trigger.Timer, UpdateCountDown)
 			.OnExit(() =>
@@ -287,6 +294,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			});
 	}
 
+	private bool AutoStartTimedOut => GetRemainingTime() <= TimeSpan.Zero;
+
 	private void UpdateCountDown()
 	{
 		var format = @"hh\:mm\:ss";
@@ -294,7 +303,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		RemainingTime = $"-{GetRemainingTime().ToString(format)}";
 		ProgressValue = GetPercentage();
 
-		if (GetRemainingTime() <= TimeSpan.Zero)
+		if (AutoStartTimedOut)
 		{
 			_stateMachine.Fire(Trigger.AutoStartTimeout);
 		}
