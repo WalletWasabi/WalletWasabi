@@ -317,11 +317,6 @@ public class CoinJoinClient
 	private async Task ReadyToSignAsync(IEnumerable<AliceClient> aliceClients, DateTimeOffset readyToSignEndTime, CancellationToken cancellationToken)
 	{
 		var remainingTime = readyToSignEndTime - DateTimeOffset.UtcNow;
-		if (remainingTime < TimeSpan.FromSeconds(3))
-		{
-			throw new InvalidOperationException("No time to signal ready, aborting.");
-		}
-
 		var delays = remainingTime.SamplePoissonDelays(aliceClients.Count());
 
 		var tasks = Enumerable.Zip(aliceClients, delays,
