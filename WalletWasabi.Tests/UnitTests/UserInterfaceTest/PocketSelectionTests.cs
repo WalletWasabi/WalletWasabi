@@ -505,6 +505,24 @@ public class PocketSelectionTests
 	}
 
 	[Fact]
+	public void AutoSelectOnlyKnownPocketsCaseInsensitive()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(2.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(1.1M, out var pocket2, "Dan");
+		pockets.AddPocket(1.1M, out var pocket3, "Lucas");
+
+		selection.Reset(pockets.ToArray());
+
+		var output = selection.AutoSelectPockets(new SmartLabel("dAN"));
+		Assert.DoesNotContain(pocket1, output);
+		Assert.Contains(pocket2, output);
+		Assert.DoesNotContain(pocket3, output);
+	}
+
+	[Fact]
 	public void AutoSelectOnlyUnknownPocket()
 	{
 		var selection = new LabelSelectionViewModel(Money.Parse("0.7"));

@@ -39,8 +39,13 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		var unknownPockets = NonPrivatePockets.Except(knownPockets).ToArray();
 		var privateAndUnknownPockets = _allPockets.Except(knownPockets).ToArray();
 		var privateAndKnownPockets = _allPockets.Except(unknownPockets).ToArray();
-		var knownByRecipientPockets = knownPockets.Where(pocket => pocket.Labels.Any(recipient.Contains)).ToArray();
-		var onlyKnownByRecipientPockets = knownByRecipientPockets.Where(pocket => pocket.Labels == recipient).ToArray();
+		var knownByRecipientPockets = knownPockets.Where(pocket => pocket.Labels.Any(label => recipient.Contains(label, StringComparer.OrdinalIgnoreCase))).ToArray();
+		var onlyKnownByRecipientPockets =
+			knownByRecipientPockets
+				.Where(pocket =>
+					pocket.Labels.Count() == recipient.Count() &&
+					pocket.Labels.All(label => recipient.Contains(label, StringComparer.OrdinalIgnoreCase)))
+				.ToArray();
 
 		if (onlyKnownByRecipientPockets.Sum(x => x.Amount) >= _targetAmount)
 		{
@@ -91,7 +96,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			knownByRecipientPockets
 				.Select(pocket =>
 				{
-					var containedRecipientLabelsCount = pocket.Labels.Count(recipient.Contains);
+					var containedRecipientLabelsCount = pocket.Labels.Count(label => recipient.Contains(label, StringComparer.OrdinalIgnoreCase));
 					var totalPocketLabelsCount = pocket.Labels.Count();
 					var totalRecipientLabelsCount = recipient.Count();
 					var index = ((double)containedRecipientLabelsCount / totalPocketLabelsCount) + ((double)containedRecipientLabelsCount / totalRecipientLabelsCount);
