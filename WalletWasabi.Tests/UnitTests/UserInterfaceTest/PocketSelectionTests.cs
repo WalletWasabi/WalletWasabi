@@ -467,12 +467,12 @@ public class PocketSelectionTests
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.7M, out var pocket1, CoinPocketHelper.PrivateFundsText);
-		pockets.AddPocket(0.7M, out var pocket2, "Dan");
+		pockets.AddPocket(0.6M, out var pocket2, "Dan");
 		pockets.AddPocket(0.7M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets("");
+		var output = selection.AutoSelectPockets("Dan");
 		Assert.Contains(pocket1, output);
 		Assert.DoesNotContain(pocket2, output);
 		Assert.DoesNotContain(pocket3, output);
@@ -516,7 +516,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets("");
+		var output = selection.AutoSelectPockets("Dan");
 		Assert.DoesNotContain(pocket1, output);
 		Assert.DoesNotContain(pocket2, output);
 		Assert.Contains(pocket3, output);
@@ -534,7 +534,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets("");
+		var output = selection.AutoSelectPockets("Dan");
 		Assert.DoesNotContain(pocket1, output);
 		Assert.Contains(pocket2, output);
 		Assert.Contains(pocket3, output);
@@ -552,7 +552,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets("");
+		var output = selection.AutoSelectPockets("Dan");
 		Assert.Contains(pocket1, output);
 		Assert.Contains(pocket2, output);
 		Assert.DoesNotContain(pocket3, output);
@@ -570,7 +570,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets("");
+		var output = selection.AutoSelectPockets("Dan");
 		Assert.Contains(pocket1, output);
 		Assert.DoesNotContain(pocket2, output);
 		Assert.Contains(pocket3, output);
@@ -588,7 +588,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets("");
+		var output = selection.AutoSelectPockets("Dan");
 		Assert.Contains(pocket1, output);
 		Assert.Contains(pocket2, output);
 		Assert.Contains(pocket3, output);
