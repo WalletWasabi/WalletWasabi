@@ -199,12 +199,12 @@ public class KeyManager
 
 	public static KeyManager CreateNewWatchOnly(ExtPubKey extPubKey, string? filePath = null)
 	{
-		return new KeyManager(null, null, null, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(), filePath);
+		return new KeyManager(new BitcoinEncryptedSecretNoEC(""), new byte[1], null, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(), filePath);
 	}
 
 	public static KeyManager CreateNewHardwareWalletWatchOnly(HDFingerprint masterFingerprint, ExtPubKey extPubKey, Network network, string? filePath = null)
 	{
-		return new KeyManager(null, null, masterFingerprint, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(network), filePath);
+		return new KeyManager(new BitcoinEncryptedSecretNoEC(""), new byte[1], masterFingerprint, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(network), filePath);
 	}
 
 	public static KeyManager Recover(Mnemonic mnemonic, string password, Network network, KeyPath accountKeyPath, string? filePath = null, int minGapLimit = AbsoluteMinGapLimit)
