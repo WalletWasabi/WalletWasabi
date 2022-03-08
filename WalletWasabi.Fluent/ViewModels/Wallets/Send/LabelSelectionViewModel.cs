@@ -87,26 +87,18 @@ public partial class LabelSelectionViewModel : ViewModelBase
 
 	private Pocket[]? GetBestKnownByRecipientPockets(Pocket[] knownByRecipientPockets, Money targetAmount, SmartLabel recipient)
 	{
-		var rankedPockets =
-			knownByRecipientPockets
-				.OrderByDescending(pocket => pocket.Labels.Count(recipient.Contains))
-				.ThenBy(pocket => pocket.Labels.Count())
-				.ToArray();
-
-		if (rankedPockets.FirstOrDefault(pocket => pocket.Amount >= targetAmount) is { } pocket)
-		{
-			return new[] { pocket };
-		}
-
 		var privacyRankedPockets =
 			knownByRecipientPockets
 				.Select(pocket =>
 				{
-					var containedLabelsCount = pocket.Labels.Count(recipient.Contains);
-					var notContainedLabelsCount = pocket.Labels.Count() - containedLabelsCount;
-					return (acceptabilityIndex: (double)notContainedLabelsCount / containedLabelsCount, pocket);
+					var containedRecipientLabelsCount = pocket.Labels.Count(recipient.Contains);
+					var totalPocketLabelsCount = pocket.Labels.Count();
+					var totalRecipientLabelsCount = recipient.Count();
+					var index = ((double)containedRecipientLabelsCount / totalPocketLabelsCount) + ((double)containedRecipientLabelsCount / totalRecipientLabelsCount);
+
+					return (acceptabilityIndex: index, pocket);
 				})
-				.OrderBy(tup => tup.acceptabilityIndex) // the lower the better
+				.OrderByDescending(tup => tup.acceptabilityIndex)
 				.ThenBy(tup => tup.pocket.Labels.Count())
 				.ThenByDescending(tup => tup.pocket.Amount)
 				.Select(tup => tup.pocket)
