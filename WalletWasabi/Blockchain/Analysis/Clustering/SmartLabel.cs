@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 
 namespace WalletWasabi.Blockchain.Analysis.Clustering;
@@ -68,7 +67,7 @@ public class SmartLabel : IEquatable<SmartLabel>, IEquatable<string>, IEnumerabl
 	public override bool Equals(object? obj) => Equals(obj as SmartLabel) || Equals(obj as string);
 
 	public bool Equals(SmartLabel? other) => this == other;
-	
+
 	public bool Equals(string? other) => this == other;
 
 	public override int GetHashCode() => ((IStructuralEquatable)Labels).GetHashCode(EqualityComparer<string>.Default);
