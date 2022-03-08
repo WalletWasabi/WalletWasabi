@@ -129,7 +129,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			}
 		}
 
-		return pockets.Any() ? pockets.ToArray() : null;
+		return pockets.Sum(x => x.Amount) >= targetAmount ? pockets.ToArray() : null;
 	}
 
 	public Pocket[] GetUsedPockets()
