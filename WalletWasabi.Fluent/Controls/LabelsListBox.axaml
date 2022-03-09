@@ -31,7 +31,7 @@
                           VirtualizationMode="Simple">
             <ItemsPresenter.ItemsPanel>
               <ItemsPanelTemplate>
-                <c:LabelsPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Left">
+                <c:LabelsPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Left">
                   <c:LabelsPanel.EllipsisControl>
                     <Button Classes="labelFlyout"
                             Content="..."
