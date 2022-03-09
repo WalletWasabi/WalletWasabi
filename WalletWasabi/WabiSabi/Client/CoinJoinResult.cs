@@ -11,4 +11,8 @@ public record CoinJoinResult(
 	ImmutableList<SmartCoin> RegisteredCoins,
 	ImmutableList<Script> RegisteredOutputs)
 {
+	public CoinJoinResult(bool goForBlameRound) :
+		this(goForBlameRound, false, ImmutableList<SmartCoin>.Empty, ImmutableList<Script>.Empty)
+	{
+	}
 }

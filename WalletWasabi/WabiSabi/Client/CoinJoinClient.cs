@@ -149,22 +149,14 @@ public class CoinJoinClient
 		catch (UnexpectedRoundPhaseException ex)
 		{
 			Logger.LogInfo($"Round ({roundState.Id}): Registration phase ended by the coordinator: '{ex.Message}'.");
-			return new CoinJoinResult(
-				GoForBlameRound: false,
-				SuccessfulBroadcast: false,
-				RegisteredCoins: ImmutableList<SmartCoin>.Empty,
-				RegisteredOutputs: ImmutableList<Script>.Empty);
+			return new CoinJoinResult(false);
 		}
 
 		if (!registeredAliceClients.Any())
 		{
 			Logger.LogInfo($"Round ({roundState.Id}): There is no available alices to participate with.");
 
-			return new CoinJoinResult(
-				GoForBlameRound: false,
-				SuccessfulBroadcast: false,
-				RegisteredCoins: ImmutableList<SmartCoin>.Empty,
-				RegisteredOutputs: ImmutableList<Script>.Empty);
+			return new CoinJoinResult(false);
 		}
 
 		try
