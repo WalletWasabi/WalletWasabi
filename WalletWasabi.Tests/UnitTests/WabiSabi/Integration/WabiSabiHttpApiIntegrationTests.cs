@@ -265,8 +265,6 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		var roundState = await roundStateUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cts.Token);
 
-		CoinJoinClient.MaximumRequestDelay = TimeSpan.Zero;
-
 		var coinJoinClient = new CoinJoinClient(mockHttpClientFactory.Object,
 			new KeyChain(keyManager1, new Kitchen("")),
 			new InternalDestinationProvider(keyManager1),

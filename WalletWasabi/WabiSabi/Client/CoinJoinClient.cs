@@ -29,7 +29,7 @@ public class CoinJoinClient
 	/// Maximum delay when spreading the requests in time, except input registration requests which timings only depends on the input-reg timeout.
 	/// This is a maximum cap the delay can be smaller if the remaining time is less.
 	/// </summary>
-	public static TimeSpan MaximumRequestDelay { get; set; } = TimeSpan.FromSeconds(30);
+	private static TimeSpan MaximumRequestDelay { get; set; } = TimeSpan.FromSeconds(30);
 
 	/// <param name="minAnonScoreTarget">Coins those have reached anonymity target, but still can be mixed if desired.</param>
 	/// <param name="consolidationMode">If true, then aggressively try to consolidate as many coins as it can.</param>
