@@ -236,7 +236,7 @@ public class KeyManager
 
 		var km = JsonConvert.DeserializeObject<KeyManager>(jsonString);
 
-		km.SetFilePath(filePath);
+		km!.SetFilePath(filePath);
 		lock (km.HdPubKeyScriptBytesLock)
 		{
 			km.HdPubKeyScriptBytes.AddRange(km.GetKeys(x => true).Select(x => x.P2wpkhScript.ToCompressedBytes()));
