@@ -164,7 +164,7 @@ public class CoinJoinManager : BackgroundService
 					if (result.SuccessfulBroadcast)
 					{
 						CoinRefrigerator.Freeze(result.RegisteredCoins);
-						MarkDestinationsUsed(finishedCoinJoin);
+						MarkDestinationsUsed(finishedCoinJoin.Wallet, result.RegisteredOutputs);
 						Logger.LogInfo($"{logPrefix} finished!");
 					}
 					else
@@ -199,16 +199,11 @@ public class CoinJoinManager : BackgroundService
 	/// <summary>
 	/// Mark all the outputs we had in any of our wallets used.
 	/// </summary>
-	private void MarkDestinationsUsed(CoinJoinTracker finishedCoinJoin)
+	private void MarkDestinationsUsed(Wallet wallet, ImmutableList<Script> outputs)
 	{
-		foreach (var k in WalletManager
-			.GetWallets(false)
-			.SelectMany(w => w
-				.KeyManager
-				.GetKeys(k => finishedCoinJoin
-					.Destinations
-					.Select(d => d.ScriptPubKey)
-					.Contains(k.P2wpkhScript))))
+		var hashSet = outputs.ToHashSet();
+
+		foreach (var k in wallet.KeyManager.GetKeys(k => hashSet.Contains(k.P2wpkhScript)))
 		{
 			k.SetKeyState(KeyState.Used);
 		}

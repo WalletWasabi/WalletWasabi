@@ -152,7 +152,8 @@ public class CoinJoinClient
 			return new CoinJoinResult(
 				GoForBlameRound: false,
 				SuccessfulBroadcast: false,
-				RegisteredCoins: Enumerable.Empty<SmartCoin>());
+				RegisteredCoins: ImmutableList<SmartCoin>.Empty,
+				RegisteredOutputs: ImmutableList<Script>.Empty);
 		}
 
 		if (!registeredAliceClients.Any())
@@ -162,7 +163,8 @@ public class CoinJoinClient
 			return new CoinJoinResult(
 				GoForBlameRound: false,
 				SuccessfulBroadcast: false,
-				RegisteredCoins: Enumerable.Empty<SmartCoin>());
+				RegisteredCoins: ImmutableList<SmartCoin>.Empty,
+				RegisteredOutputs: ImmutableList<Script>.Empty);
 		}
 
 		try
@@ -242,7 +244,8 @@ public class CoinJoinClient
 			return new CoinJoinResult(
 				GoForBlameRound: !finalRoundState.WasTransactionBroadcast,
 				SuccessfulBroadcast: finalRoundState.WasTransactionBroadcast,
-				RegisteredCoins: registeredAliceClients.Select(a => a.SmartCoin));
+				RegisteredCoins: registeredAliceClients.Select(a => a.SmartCoin).ToImmutableList(),
+				RegisteredOutputs: outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList());
 		}
 		finally
 		{
