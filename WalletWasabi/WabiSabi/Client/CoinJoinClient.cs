@@ -132,9 +132,6 @@ public class CoinJoinClient
 		throw new InvalidOperationException($"Blame rounds were not successful.");
 	}
 
-	/// <summary>Attempt to participate in a specified round.</summary>
-	/// <param name="roundState">Defines the round parameter and state information to use.</param>
-	/// <returns><c>True</c>: client should end the current CoinJoin progress. <c>False</c>: continue with the blame rounds.</returns>
 	public async Task<CoinJoinResult> StartRoundAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 	{
 		var constructionState = roundState.Assert<ConstructionState>();
