@@ -80,7 +80,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 						MinWidth = new GridLength(80, GridUnitType.Pixel)
 					},
 					width: new GridLength(0, GridUnitType.Auto)),
-				x => null,
+				x => x.Children,
 				x => x.IsCoinJoin,
 				x => x.IsExpanded),
 
