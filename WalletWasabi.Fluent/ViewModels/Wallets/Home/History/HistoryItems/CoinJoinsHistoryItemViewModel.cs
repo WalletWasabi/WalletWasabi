@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
@@ -10,9 +12,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 {
-	public CoinJoinsHistoryItemViewModel(int orderIndex, TransactionSummary firstItem)
+	private readonly WalletViewModel _walletViewModel;
+	private readonly IObservable<Unit> _updateTrigger;
+
+	public CoinJoinsHistoryItemViewModel(
+		int orderIndex,
+		TransactionSummary firstItem,
+		WalletViewModel walletViewModel,
+		IObservable<Unit> updateTrigger)
 		: base(orderIndex, firstItem)
 	{
+		_walletViewModel = walletViewModel;
+		_updateTrigger = updateTrigger;
+
 		CoinJoinTransactions = new List<TransactionSummary>();
 		Label = "Coinjoins";
 		FilteredLabel = new List<string>();

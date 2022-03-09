@@ -280,7 +280,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 			{
 				if (coinJoinGroup is null)
 				{
-					coinJoinGroup = new CoinJoinsHistoryItemViewModel(i, item);
+					coinJoinGroup = new CoinJoinsHistoryItemViewModel(i, item, _walletViewModel, _updateTrigger);
 				}
 				else
 				{
