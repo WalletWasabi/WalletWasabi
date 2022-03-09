@@ -1,5 +1,6 @@
 using System.Reactive.Linq;
 using System.Windows.Input;
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
@@ -77,6 +78,14 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 						MinAnonScoreTarget = x - 1;
 					}
 				});
+
+		this.WhenAnyValue(x => x.PlebStopThreshold)
+			.Subscribe(
+			x =>
+			{
+				wallet.KeyManager.PlebStopThreshold = Money.FromUnit(x, MoneyUnit.BTC);
+				wallet.KeyManager.ToFile();
+			});
 	}
 
 	public bool IsHardwareWallet { get; }
