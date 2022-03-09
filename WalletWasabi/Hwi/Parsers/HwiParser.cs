@@ -116,7 +116,7 @@ public static class HwiParser
 		return false;
 	}
 
-	public static bool TryParseHardwareWalletVendor(JToken token, out HardwareWalletModels vendor)
+	public static bool TryParseHardwareWalletVendor(JToken? token, out HardwareWalletModels vendor)
 	{
 		vendor = HardwareWalletModels.Unknown;
 
@@ -220,8 +220,8 @@ public static class HwiParser
 
 	public static HwiEnumerateEntry ParseHwiEnumerateEntry(JObject json)
 	{
-		JToken modelToken = json["model"];
-		var pathString = json["path"]?.ToString()?.Trim();
+		JToken modelToken = json["model"]!;
+		var pathString = json["path"]!.ToString().Trim();
 		var serialNumberString = json["serial_number"]?.ToString()?.Trim();
 		var fingerprintString = json["fingerprint"]?.ToString()?.Trim();
 		var needsPinSentString = json["needs_pin_sent"]?.ToString()?.Trim();
