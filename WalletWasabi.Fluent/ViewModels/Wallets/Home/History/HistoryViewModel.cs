@@ -62,11 +62,12 @@ public partial class HistoryViewModel : ActivatableViewModel
 		// Outgoing			OutgoingColumnView			Outgoing (BTC)	Auto		130				150			true
 		// Balance			BalanceColumnView			Balance (BTC)		Auto		130				150			true
 
-		Source = new FlatTreeDataGridSource<HistoryItemViewModelBase>(_transactions)
+		Source = new HierarchicalTreeDataGridSource<HistoryItemViewModelBase>(_transactions)
 		{
 			Columns =
 			{
 				// Indicators
+				new HierarchicalExpanderColumn<HistoryItemViewModelBase>(
 				new TemplateColumn<HistoryItemViewModelBase>(
 					null,
 					new FuncDataTemplate<HistoryItemViewModelBase>((node, ns) => new IndicatorsColumnView(), true),
@@ -79,6 +80,9 @@ public partial class HistoryViewModel : ActivatableViewModel
 						MinWidth = new GridLength(80, GridUnitType.Pixel)
 					},
 					width: new GridLength(0, GridUnitType.Auto)),
+				x => null,
+				x => x.IsCoinJoin,
+				x => x.IsExpanded),
 
 				// Date
 				new PrivacyTextColumn<HistoryItemViewModelBase>(
@@ -168,7 +172,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 	public ObservableCollection<HistoryItemViewModelBase> Transactions => _transactions;
 
-	public FlatTreeDataGridSource<HistoryItemViewModelBase> Source { get; }
+	public HierarchicalTreeDataGridSource<HistoryItemViewModelBase> Source { get; }
 
 	public void SelectTransaction(uint256 txid)
 	{
