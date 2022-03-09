@@ -2,7 +2,9 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -12,7 +14,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	[AutoNotify] private bool _autoCoinJoin;
 	[AutoNotify] private int _minAnonScoreTarget;
 	[AutoNotify] private int _maxAnonScoreTarget;
-	[AutoNotify] private decimal _plebStopThreshold;
+	[AutoNotify] private string _plebStopThreshold;
 
 	public WalletSettingsViewModel(WalletViewModelBase walletViewModelBase)
 	{
@@ -22,7 +24,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 		_autoCoinJoin = wallet.KeyManager.AutoCoinJoin;
 		IsHardwareWallet = wallet.KeyManager.IsHardwareWallet;
 		IsWatchOnly = wallet.KeyManager.IsWatchOnly;
-		PlebStopThreshold = wallet.KeyManager.PlebStopThreshold.ToUnit(MoneyUnit.BTC);
+		_plebStopThreshold = wallet.KeyManager.PlebStopThreshold.ToString();
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -79,12 +81,16 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 					}
 				});
 
+		this.ValidateProperty(x => x.PlebStopThreshold, ValidatePlebStopThreshold);
 		this.WhenAnyValue(x => x.PlebStopThreshold)
 			.Subscribe(
 			x =>
 			{
-				wallet.KeyManager.PlebStopThreshold = Money.FromUnit(x, MoneyUnit.BTC);
-				wallet.KeyManager.ToFile();
+				if (Money.TryParse(x, out Money result))
+				{
+					wallet.KeyManager.PlebStopThreshold = result;
+					wallet.KeyManager.ToFile();
+				}
 			});
 	}
 
@@ -95,4 +101,25 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	public override sealed string Title { get; protected set; }
 
 	public ICommand VerifyRecoveryWordsCommand { get; }
+
+	private void ValidatePlebStopThreshold(IValidationErrors errors) =>
+		ValidatePlebStopThreshold(errors, PlebStopThreshold, whiteSpaceOk: false);
+
+	private static void ValidatePlebStopThreshold(IValidationErrors errors, string plebStopThreshold, bool whiteSpaceOk)
+	{
+		if (!whiteSpaceOk || !string.IsNullOrWhiteSpace(plebStopThreshold))
+		{
+			if (!string.IsNullOrEmpty(plebStopThreshold) && plebStopThreshold.Contains(
+				',',
+				StringComparison.InvariantCultureIgnoreCase))
+			{
+				errors.Add(ErrorSeverity.Error, "Use decimal point instead of comma.");
+			}
+
+			if (!decimal.TryParse(plebStopThreshold, out _))
+			{
+				errors.Add(ErrorSeverity.Error, "Invalid coinjoin threshold.");
+			}
+		}
+	}
 }

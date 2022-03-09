@@ -24,11 +24,11 @@
           <ToggleSwitch IsChecked="{Binding AutoCoinJoin}" />
         </DockPanel>
 
-        <StackPanel Spacing="10"
+        <DockPanel
             ToolTip.Tip="Won't coinjoin automatically if there are less than this much non-private coins in the wallet.">
           <TextBlock Text= "Coinjoin Threshold (BTC)" />
           <TextBox Text="{Binding PlebStopThreshold}" />
-        </StackPanel>
+        </DockPanel>
 
         <Separator />
 
