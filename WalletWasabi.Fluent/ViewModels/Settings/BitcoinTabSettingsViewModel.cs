@@ -10,16 +10,6 @@ using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
 
-[NavigationMetaData(
-	Title = "Bitcoin",
-	Caption = "Manage Bitcoin settings",
-	Order = 3,
-	Category = "Settings",
-	Keywords = new[]
-	{
-			"Settings", "Bitcoin", "Network", "Main", "TestNet", "RegTest", "Run", "Knots", "Startup", "P2P", "Endpoint"
-	},
-	IconName = "settings_bitcoin_regular")]
 public partial class BitcoinTabSettingsViewModel : SettingsTabViewModelBase
 {
 	[AutoNotify] private Network _network;

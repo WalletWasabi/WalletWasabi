@@ -3,12 +3,13 @@ using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
 
 [NavigationMetaData(Title = "")]
-public partial class ThemeChangeViewModel : RoutableViewModel
+public partial class ThemeChangeViewModel : DialogViewModelBase<bool>
 {
 	private readonly Theme _newTheme;
 

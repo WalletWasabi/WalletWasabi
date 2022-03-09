@@ -1,26 +1,19 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Logging;
 using System.Windows.Input;
-using DynamicData;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
 
-[NavigationMetaData(
-	Title = "General",
-	Caption = "Manage general settings",
-	Order = 0,
-	Category = "Settings",
-	Keywords = new[]
-	{
-			"Settings", "General", "Dark", "Mode", "Bitcoin", "Addresses", "Manual", "Entry", "Fee", "Custom", "Change",
-			"Address", "Display", "Format", "Dust", "Threshold", "BTC", "Start", "System"
-	},
-	IconName = "settings_general_regular")]
 public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 {
 	[AutoNotify] private bool _darkModeEnabled;
@@ -43,14 +36,18 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 			? (FeeDisplayFormat)Services.UiConfig.FeeDisplayFormat
 			: FeeDisplayFormat.Satoshis;
 
+		ChangeTheme =
+			ReactiveCommand.CreateFromTask(async () =>
+			{
+				var light = DarkModeEnabled ? Theme.Dark : Theme.Light;
+				Services.UiConfig.DarkModeEnabled = DarkModeEnabled;
+				await MainViewModel.Instance.CompactDialogScreen.NavigateDialogAsync(new ThemeChangeViewModel(light));
+			});
+
 		this.WhenAnyValue(x => x.DarkModeEnabled)
 			.Skip(1)
-			.Subscribe(
-				x =>
-				{
-					Services.UiConfig.DarkModeEnabled = x;
-					Navigate(NavigationTarget.CompactDialogScreen).To(new ThemeChangeViewModel(x ? Theme.Dark : Theme.Light));
-				});
+			.Select(b => Unit.Default)
+			.InvokeCommand(ChangeTheme);
 
 		this.WhenAnyValue(x => x.AutoCopy)
 			.ObserveOn(RxApp.TaskpoolScheduler)
@@ -62,7 +59,7 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 			.Skip(1)
 			.Subscribe(x => Services.UiConfig.AutoPaste = x);
 
-		StartupCommand = ReactiveCommand.Create(async () =>
+		RunOnSystemStartupCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
 			try
 			{
@@ -73,7 +70,7 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 			{
 				Logger.LogError(ex);
 				RunOnSystemStartup = !RunOnSystemStartup;
-				await ShowErrorAsync(Title, "Couldn't save your change, please see the logs for further information.", "Error occurred.");
+				await ShowError("Error occurred", "Couldn't save your change, please see the logs for further information.", "");
 			}
 		});
 
@@ -93,7 +90,15 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 			.Subscribe(x => Services.UiConfig.HideOnClose = x);
 	}
 
-	public ICommand StartupCommand { get; }
+	private static Task<DialogResult<bool>> ShowError(string caption, string message, string title)
+	{
+		var error = new ShowErrorDialogViewModel(message, title, caption);
+		return MainViewModel.Instance.CompactDialogScreen.NavigateDialogAsync(error);
+	}
+
+	public ICommand ChangeTheme { get; }
+
+	public ICommand RunOnSystemStartupCommand { get; }
 
 	public IEnumerable<FeeDisplayFormat> FeeDisplayFormats =>
 		Enum.GetValues(typeof(FeeDisplayFormat)).Cast<FeeDisplayFormat>();

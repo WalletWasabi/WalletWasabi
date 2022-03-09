@@ -191,26 +191,6 @@ public partial class MainViewModel : ViewModelBase
 		AddWalletPageViewModel.Register(_addWalletPage);
 		SettingsPageViewModel.Register(_settingsPage);
 
-		GeneralSettingsTabViewModel.RegisterLazy(
-			() =>
-			{
-				_settingsPage.SelectedTab = 0;
-				return _settingsPage;
-			});
-
-		TorSettingsTabViewModel.RegisterLazy(
-			() =>
-			{
-				_settingsPage.SelectedTab = 1;
-				return _settingsPage;
-			});
-
-		BitcoinTabSettingsViewModel.RegisterLazy(
-			() =>
-			{
-				_settingsPage.SelectedTab = 2;
-				return _settingsPage;
-			});
 
 		AboutViewModel.RegisterLazy(() => new AboutViewModel());
 

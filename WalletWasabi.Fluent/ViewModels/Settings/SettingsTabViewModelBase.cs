@@ -1,12 +1,11 @@
 using System.Reactive.Concurrency;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
 
-public abstract class SettingsTabViewModelBase : RoutableViewModel
+public abstract class SettingsTabViewModelBase : ViewModelBase
 {
 	protected const int ThrottleTime = 500;
 
