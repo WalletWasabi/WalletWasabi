@@ -52,8 +52,8 @@ public static class ImportWalletHelper
 
 	private static KeyManager GetKeyManagerByColdcardJson(WalletManager manager, JObject jsonWallet, string walletFullPath)
 	{
-		var xpubString = jsonWallet["ExtPubKey"].ToString();
-		var mfpString = jsonWallet["MasterFingerprint"].ToString();
+		var xpubString = jsonWallet["ExtPubKey"]!.ToString();
+		var mfpString = jsonWallet["MasterFingerprint"]!.ToString();
 
 		// https://github.com/zkSNACKs/WalletWasabi/pull/1663#issuecomment-508073066
 		// Coldcard 2.1.0 improperly implemented Wasabi skeleton fingerprint at first, so we must reverse byte order.
