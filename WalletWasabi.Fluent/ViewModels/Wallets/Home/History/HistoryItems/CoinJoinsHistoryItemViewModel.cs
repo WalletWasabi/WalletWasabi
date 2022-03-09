@@ -41,6 +41,8 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 	{
 		var result = new ObservableCollection<HistoryItemViewModelBase>();
 
+		var balance = Balance ?? Money.Zero;
+
 		for (var i = 0; i < CoinJoinTransactions.Count; i++)
 		{
 			var item = CoinJoinTransactions[i];
@@ -49,8 +51,10 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 				i,
 				item,
 				_walletViewModel,
-				Balance ?? Money.Zero,
+				balance,
 				_updateTrigger);
+
+			balance -= item.Amount;
 
 			result.Add(transaction);
 		}
