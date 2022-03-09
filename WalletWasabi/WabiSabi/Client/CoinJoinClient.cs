@@ -25,6 +25,12 @@ public class CoinJoinClient
 	private volatile bool _inCriticalCoinJoinState;
 	private static readonly Money MinimumOutputAmountSanity = Money.Coins(0.0001m); // ignore rounds with too big minimum denominations
 
+	/// <summary>
+	/// Maximum delay when spreading the requests in time, except input registration requests which timings only depends on the input-reg timeout.
+	/// This is a maximum cap the delay can be smaller if the remaining time is less.
+	/// </summary>
+	public static TimeSpan MaximumRequestDelay { get; set; } = TimeSpan.FromSeconds(30);
+
 	/// <param name="minAnonScoreTarget">Coins those have reached anonymity target, but still can be mixed if desired.</param>
 	/// <param name="consolidationMode">If true, then aggressively try to consolidate as many coins as it can.</param>
 	public CoinJoinClient(
@@ -318,11 +324,12 @@ public class CoinJoinClient
 	private async Task SignTransactionAsync(IEnumerable<AliceClient> aliceClients, Transaction unsignedCoinJoinTransaction, DateTimeOffset signingEndTime, CancellationToken cancellationToken)
 	{
 		var remainingTime = signingEndTime - DateTimeOffset.UtcNow;
-		var delays = remainingTime.SamplePoissonDelays(aliceClients.Count());
+		var scheduledDates = GetDelaysForRequests(aliceClients.Count(), signingEndTime);
 
-		var tasks = Enumerable.Zip(aliceClients, delays,
-			async (aliceClient, delay) =>
+		var tasks = Enumerable.Zip(aliceClients, scheduledDates,
+			async (aliceClient, scheduledDate) =>
 			{
+				var delay = scheduledDate - DateTimeOffset.UtcNow;
 				if (delay > TimeSpan.Zero)
 				{
 					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
@@ -336,12 +343,12 @@ public class CoinJoinClient
 
 	private async Task ReadyToSignAsync(IEnumerable<AliceClient> aliceClients, DateTimeOffset readyToSignEndTime, CancellationToken cancellationToken)
 	{
-		var remainingTime = readyToSignEndTime - DateTimeOffset.UtcNow;
-		var delays = remainingTime.SamplePoissonDelays(aliceClients.Count());
+		var scheduledDates = GetDelaysForRequests(aliceClients.Count(), readyToSignEndTime);
 
-		var tasks = Enumerable.Zip(aliceClients, delays,
-			async (aliceClient, delay) =>
+		var tasks = Enumerable.Zip(aliceClients, scheduledDates,
+			async (aliceClient, scheduledDate) =>
 			{
+				var delay = scheduledDate - DateTimeOffset.UtcNow;
 				if (delay > TimeSpan.Zero)
 				{
 					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
@@ -351,6 +358,18 @@ public class CoinJoinClient
 		).ToImmutableArray();
 
 		await Task.WhenAll(tasks).ConfigureAwait(false);
+	}
+
+	public static ImmutableList<DateTimeOffset> GetDelaysForRequests(int howMany, DateTimeOffset endTime)
+	{
+		var remainingTime = endTime - DateTimeOffset.UtcNow;
+
+		if (remainingTime > MaximumRequestDelay)
+		{
+			remainingTime = MaximumRequestDelay;
+		}
+
+		return remainingTime.SamplePoisson(howMany);
 	}
 
 	private void LogCoinJoinSummary(ImmutableArray<AliceClient> registeredAliceClients, IEnumerable<TxOut> myOutputs, Transaction unsignedCoinJoinTransaction, RoundState roundState)
