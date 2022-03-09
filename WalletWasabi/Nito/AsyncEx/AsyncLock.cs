@@ -162,9 +162,7 @@ public sealed class AsyncLock
 			}
 			else
 			{
-				var key = new Key(this);
-				_queue.Dequeue(key);
-				key.Dispose();
+				_queue.Dequeue(new Key(this));
 			}
 		}
 	}
