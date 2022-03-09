@@ -39,7 +39,6 @@ public class CoinJoinManager : BackgroundService
 	public ServiceConfiguration ServiceConfiguration { get; }
 	private ImmutableDictionary<string, CoinJoinTracker> TrackedCoinJoins { get; set; } = ImmutableDictionary<string, CoinJoinTracker>.Empty;
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
-	private TimeSpan AutoCoinJoinDelayAfterWalletLoaded { get; } = TimeSpan.FromSeconds(60);
 	public bool IsUserInSendWorkflow { get; set; }
 
 	private ConcurrentDictionary<Wallet, CoinJoinCommand> WalletManualState { get; } = new();
@@ -49,9 +48,6 @@ public class CoinJoinManager : BackgroundService
 
 	public void Stop(Wallet wallet) =>
 		WalletManualState.AddOrUpdate(wallet, CoinJoinCommand.Stop, (_, _) => CoinJoinCommand.Stop);
-
-	public void AutoStart(Wallet wallet) =>
-		WalletManualState.Remove(wallet, out _);
 
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
 
@@ -99,16 +95,11 @@ public class CoinJoinManager : BackgroundService
 
 				if (!MustStart(openedWallet))
 				{
-					if (openedWallet.ElapsedTimeSinceStartup <= AutoCoinJoinDelayAfterWalletLoaded)
-					{
-						NotifyCoinJoinStarting(openedWallet);
-						continue;
-					}
-					if (!openedWallet.KeyManager.AutoCoinJoin)
-					{
-						NotifyCoinJoinStartError(openedWallet, CoinjoinError.AutoConjoinDisabled);
-						continue;
-					}
+					continue;
+				}
+
+				if (openedWallet.KeyManager.AutoCoinJoin)
+				{
 					if (IsUserInSendWorkflow)
 					{
 						NotifyCoinJoinStartError(openedWallet, CoinjoinError.UserInSendWorkflow);
@@ -120,6 +111,7 @@ public class CoinJoinManager : BackgroundService
 						continue;
 					}
 				}
+
 				var coinCandidates = SelectCandidateCoins(openedWallet).ToArray();
 				if (coinCandidates.Length == 0)
 				{
@@ -221,11 +213,6 @@ public class CoinJoinManager : BackgroundService
 			k.SetKeyState(KeyState.Used);
 		}
 	}
-
-	private void NotifyCoinJoinStarting(Wallet openedWallet) =>
-		SafeRaiseEvent(StatusChanged, new StartingEventArgs(
-			openedWallet,
-			AutoCoinJoinDelayAfterWalletLoaded - openedWallet.ElapsedTimeSinceStartup));
 
 	private void NotifyCoinJoinStarted(Wallet openedWallet, TimeSpan registrationTimeout) =>
 		SafeRaiseEvent(StatusChanged, new StartedEventArgs(openedWallet, registrationTimeout));
