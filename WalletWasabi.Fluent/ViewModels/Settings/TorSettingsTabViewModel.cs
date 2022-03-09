@@ -10,7 +10,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	Category = "Settings",
 	Keywords = new[]
 	{
-			"Settings", "Network", "Anonymization", "Tor", "Terminate", "Wasabi", "Shutdown", "SOCKS5", "Endpoint"
+			"Settings", "Network", "Anonymization", "Tor", "Terminate", "Wasabi", "Shutdown"
 	},
 	IconName = "settings_network_regular")]
 public partial class TorSettingsTabViewModel : SettingsTabViewModelBase
