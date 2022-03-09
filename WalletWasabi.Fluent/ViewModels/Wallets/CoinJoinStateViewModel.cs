@@ -85,7 +85,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_elapsedTime = "";
 		_remainingTime = "";
 		_countDownStarted = DateTimeOffset.Now;
-		_autoStartTime = TimeSpan.FromSeconds(Random.Shared.Next(1 * 60, 1 * 60));
+		_autoStartTime = TimeSpan.FromSeconds(Random.Shared.Next(5 * 60, 16 * 60));
 
 		_wallet = walletVm.Wallet;
 
