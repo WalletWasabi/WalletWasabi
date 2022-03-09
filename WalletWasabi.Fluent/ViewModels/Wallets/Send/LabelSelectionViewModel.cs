@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NBitcoin;
 using ReactiveUI;
@@ -57,7 +58,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			return new[] { _privatePocket };
 		}
 
-		if (GetBestKnownByRecipientPockets(knownByRecipientPockets, _targetAmount, recipient) is { } pockets)
+		if (TryGetBestKnownByRecipientPockets(knownByRecipientPockets, _targetAmount, recipient, out var pockets))
 		{
 			return pockets;
 		}
@@ -90,8 +91,15 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		return _allPockets.ToArray();
 	}
 
-	private Pocket[]? GetBestKnownByRecipientPockets(Pocket[] knownByRecipientPockets, Money targetAmount, SmartLabel recipient)
+	private bool TryGetBestKnownByRecipientPockets(Pocket[] knownByRecipientPockets, Money targetAmount, SmartLabel recipient, [NotNullWhen(true)] out Pocket[]? pockets)
 	{
+		pockets = null;
+
+		if (knownByRecipientPockets.Sum(x => x.Amount) < _targetAmount)
+		{
+			return false;
+		}
+
 		var privacyRankedPockets =
 			knownByRecipientPockets
 				.Select(pocket =>
@@ -109,22 +117,22 @@ public partial class LabelSelectionViewModel : ViewModelBase
 				.Select(tup => tup.pocket)
 				.ToArray();
 
-		var pockets = new List<Pocket>();
+		var bestPockets = new List<Pocket>();
 		foreach (var p in privacyRankedPockets)
 		{
-			pockets.Add(p);
+			bestPockets.Add(p);
 
-			if (pockets.Sum(x => x.Amount) >= targetAmount)
+			if (bestPockets.Sum(x => x.Amount) >= targetAmount)
 			{
 				break;
 			}
 		}
 
-		foreach (var p in pockets.OrderBy(x => x.Amount).ToImmutableArray())
+		foreach (var p in bestPockets.OrderBy(x => x.Amount).ToImmutableArray())
 		{
-			if (pockets.Sum(x => x.Amount) - p.Amount >= targetAmount)
+			if (bestPockets.Sum(x => x.Amount) - p.Amount >= targetAmount)
 			{
-				pockets.Remove(p);
+				bestPockets.Remove(p);
 			}
 			else
 			{
@@ -132,7 +140,8 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			}
 		}
 
-		return pockets.Sum(x => x.Amount) >= targetAmount ? pockets.ToArray() : null;
+		pockets = bestPockets.ToArray();
+		return true;
 	}
 
 	public Pocket[] GetUsedPockets()
