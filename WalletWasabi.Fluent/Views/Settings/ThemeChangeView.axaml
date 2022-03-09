@@ -16,7 +16,6 @@
   <DockPanel VerticalAlignment="Center" Margin="40">
     <TextBlock Text="Wasabi is changing theme..."
                FontSize="20"
-               FontWeight="ExtraLight"
                DockPanel.Dock="Bottom"
                Margin="10 20 10 0"
                TextAlignment="Center"

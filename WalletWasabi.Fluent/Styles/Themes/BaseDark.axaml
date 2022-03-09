@@ -4,7 +4,6 @@
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary>
-          <Color x:Key="SystemAccentColor">#FF7FAF2E</Color>
           <Color x:Key="SystemAltHighColor">#FF000000</Color>
           <Color x:Key="SystemAltLowColor">#FF000000</Color>
           <Color x:Key="SystemAltMediumColor">#FF000000</Color>
@@ -93,8 +92,7 @@
   <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentDark.xaml" />
 
   <!-- Needs to be here because of dependency reason -->
-  <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
-  <StyleInclude Source="avares://DataBox/Themes/Fluent.axaml" />
+  <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
 
   <StyleInclude Source="avares://Avalonia.Xaml.Interactions/Draggable/Styles.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Base.axaml" />

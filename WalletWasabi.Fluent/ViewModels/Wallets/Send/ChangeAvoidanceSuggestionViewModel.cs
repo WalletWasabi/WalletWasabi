@@ -20,8 +20,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 	public ChangeAvoidanceSuggestionViewModel(decimal originalAmount,
 		BuildTransactionResult transactionResult,
-		decimal fiatExchangeRate,
-		bool isOriginal)
+		decimal fiatExchangeRate)
 	{
 		TransactionResult = transactionResult;
 
@@ -29,17 +28,14 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 		_amountFiat = total.GenerateFiatText(fiatExchangeRate, "USD");
 
-		if (!isOriginal)
-		{
-			var fiatTotal = total * fiatExchangeRate;
-			var fiatOriginal = originalAmount * fiatExchangeRate;
-			var fiatDifference = fiatTotal - fiatOriginal;
+		var fiatTotal = total * fiatExchangeRate;
+		var fiatOriginal = originalAmount * fiatExchangeRate;
+		var fiatDifference = fiatTotal - fiatOriginal;
 
-			_differenceFiat = (fiatDifference > 0
-					? $"{fiatDifference.GenerateFiatText("USD")} More"
-					: $"{Math.Abs(fiatDifference).GenerateFiatText("USD")} Less")
-				.Replace("(", "").Replace(")", "");
-		}
+		_differenceFiat = (fiatDifference > 0
+				? $"{fiatDifference.GenerateFiatText("USD")} More"
+				: $"{Math.Abs(fiatDifference).GenerateFiatText("USD")} Less")
+			.Replace("(", "").Replace(")", "");
 
 		_amount = $"{total} BTC";
 	}
@@ -73,8 +69,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 				yield return new ChangeAvoidanceSuggestionViewModel(
 					transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
 					transaction,
-					wallet.Synchronizer.UsdExchangeRate,
-					isOriginal: false);
+					wallet.Synchronizer.UsdExchangeRate);
 			}
 		}
 	}

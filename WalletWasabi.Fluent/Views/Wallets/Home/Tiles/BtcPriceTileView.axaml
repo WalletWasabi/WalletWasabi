@@ -9,12 +9,14 @@
              x:CompileBindings="True" x:DataType="vm:BtcPriceTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.BtcPriceTileView">
   <controls:TileControl TileSize="{Binding CurrentTileSize}">
-    <bp:BtcPriceMediumTileView />
-    <controls:TileControl.LargeSizeContent>
-      <bp:BtcPriceLargeTileView />
-    </controls:TileControl.LargeSizeContent>
-    <controls:TileControl.WideSizeContent>
-      <bp:BtcPriceWideTileView />
-    </controls:TileControl.WideSizeContent>
+
+    <DockPanel>
+      <TextBlock Text="EXCHANGE RATE" DockPanel.Dock="Top" Classes="h8 bold" />
+      <TextBlock Margin="0 3"
+                 VerticalAlignment="Center" HorizontalAlignment="Center"
+                 TextAlignment="Center"
+                 Text="{Binding BtcPrice, FallbackValue='53 540.00'}" Classes="h2" />
+    </DockPanel>
   </controls:TileControl>
+
 </UserControl>

@@ -189,17 +189,16 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		this.RaisePropertyChanged(nameof(LabelsBlackList));
 	}
 
-	public void SetUsedLabel(IEnumerable<SmartCoin>? usedCoins)
+	public void SetUsedLabel(IEnumerable<SmartCoin>? usedCoins, int privateThreshold)
 	{
 		if (usedCoins is null)
 		{
 			return;
 		}
 
-		var usedPockets = NonPrivatePockets.Where(pocket => pocket.Coins.Any(usedCoins.Contains)).ToArray();
-		var notUsedPockets = NonPrivatePockets.Except(usedPockets);
-		var notUsedPocketsLabels = SmartLabel.Merge(notUsedPockets.Select(x => x.Labels));
-		var notUsedLabelViewModels = AllLabelsViewModel.Where(x => notUsedPocketsLabels.Contains(x.Value)).ToArray();
+		var usedLabels = SmartLabel.Merge(usedCoins.Select(x => x.GetLabels(privateThreshold)));
+		var usedLabelViewModels = AllLabelsViewModel.Where(x => usedLabels.Contains(x.Value)).ToArray();
+		var notUsedLabelViewModels = AllLabelsViewModel.Except(usedLabelViewModels);
 
 		foreach (LabelViewModel label in notUsedLabelViewModels)
 		{

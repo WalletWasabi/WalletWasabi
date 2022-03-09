@@ -1,12 +1,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Helpers;
 
 public static class TransactionFeeHelper
 {
+	public const decimal FeePercentageThreshold = 125;
+
 	private static readonly Dictionary<int, int> TestNetFeeEstimates = new()
 	{
 		[1] = 17,
@@ -41,10 +44,44 @@ public static class TransactionFeeHelper
 		return first.Value == last.Value;
 	}
 
+	public static TimeSpan CalculateConfirmationTime(FeeRate feeRate, Wallet wallet)
+	{
+		var feeChartViewModel = new FeeChartViewModel();
+		feeChartViewModel.UpdateFeeEstimates(GetFeeEstimates(wallet));
+
+		return feeChartViewModel.TryGetConfirmationTarget(feeRate, out var target)
+			? CalculateConfirmationTime(target)
+			: TimeSpan.Zero;
+	}
+
 	public static TimeSpan CalculateConfirmationTime(double targetBlock)
 	{
 		var timeInMinutes = Math.Ceiling(targetBlock) * 10;
 		var time = TimeSpan.FromMinutes(timeInMinutes);
 		return time;
+	}
+
+	public static bool TryGetMaximumPossibleFeeRate(decimal percentageOfOverpayment, Wallet wallet, FeeRate currentFeeRate, out FeeRate maximumPossibleFeeRate)
+	{
+		maximumPossibleFeeRate = FeeRate.Zero;
+
+		if (percentageOfOverpayment <= 0)
+		{
+			return false;
+		}
+
+		var maxPossibleFeeRateInSatoshiPerByte = (currentFeeRate.SatoshiPerByte / percentageOfOverpayment) * 100;
+		maximumPossibleFeeRate = new FeeRate(maxPossibleFeeRateInSatoshiPerByte);
+
+		var feeChartViewModel = new FeeChartViewModel();
+		feeChartViewModel.UpdateFeeEstimates(GetFeeEstimates(wallet));
+
+		if (!feeChartViewModel.TryGetConfirmationTarget(maximumPossibleFeeRate, out var blockTarget))
+		{
+			return false;
+		}
+
+		var newFeeRate = new FeeRate(feeChartViewModel.GetSatoshiPerByte(blockTarget));
+		return newFeeRate <= maximumPossibleFeeRate;
 	}
 }

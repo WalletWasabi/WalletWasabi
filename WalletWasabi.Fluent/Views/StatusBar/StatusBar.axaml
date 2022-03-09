@@ -30,7 +30,7 @@
       <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
     </Style>
   </UserControl.Styles>
-  <Panel HorizontalAlignment="Right" VerticalAlignment="Stretch">
+  <Panel HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0 0 0 5">
     <Interaction.Behaviors>
       <behaviors:ShowFlyoutOnPointerOverBehavior />
     </Interaction.Behaviors>

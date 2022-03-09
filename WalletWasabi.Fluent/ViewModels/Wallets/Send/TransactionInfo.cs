@@ -13,6 +13,7 @@ public partial class TransactionInfo
 	private readonly int _privateCoinThreshold;
 
 	[AutoNotify] private FeeRate _feeRate = FeeRate.Zero;
+	[AutoNotify] private IEnumerable<SmartCoin> _coins = Enumerable.Empty<SmartCoin>();
 
 	public TransactionInfo(int minAnonScoreTarget)
 	{
@@ -20,6 +21,9 @@ public partial class TransactionInfo
 
 		this.WhenAnyValue(x => x.FeeRate)
 			.Subscribe(_ => OnFeeChanged());
+
+		this.WhenAnyValue(x => x.Coins)
+			.Subscribe(_ => OnCoinsChanged());
 	}
 
 	public Money Amount { get; set; } = Money.Zero;
@@ -29,8 +33,6 @@ public partial class TransactionInfo
 	public FeeRate? MaximumPossibleFeeRate { get; set; }
 
 	public TimeSpan ConfirmationTimeSpan { get; set; }
-
-	public IEnumerable<SmartCoin> Coins { get; set; } = Enumerable.Empty<SmartCoin>();
 
 	public IEnumerable<SmartCoin> ChangelessCoins { get; set; } = Enumerable.Empty<SmartCoin>();
 
@@ -65,5 +67,10 @@ public partial class TransactionInfo
 	private void OnFeeChanged()
 	{
 		ChangelessCoins = Enumerable.Empty<SmartCoin>();
+	}
+
+	private void OnCoinsChanged()
+	{
+		MaximumPossibleFeeRate = null;
 	}
 }

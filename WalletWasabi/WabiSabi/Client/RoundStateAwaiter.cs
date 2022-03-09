@@ -59,15 +59,15 @@ public record RoundStateAwaiter
 				}
 			}
 
-			if (Phase is { })
+			if (Phase is { } expectedPhase)
 			{
-				if (roundState.Phase > Phase)
+				if (roundState.Phase > expectedPhase)
 				{
-					TaskCompletionSource.TrySetException(new InvalidOperationException($"Round {RoundId} unexpected phase change. Waiting for '{Phase}' but the round is in '{roundState.Phase}'."));
+					TaskCompletionSource.TrySetException(new UnexpectedRoundPhaseException(RoundId ?? uint256.Zero, expectedPhase, roundState.Phase));
 					return true;
 				}
 
-				if (roundState.Phase != Phase)
+				if (roundState.Phase != expectedPhase)
 				{
 					continue;
 				}

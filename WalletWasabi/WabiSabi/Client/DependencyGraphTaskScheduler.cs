@@ -1,9 +1,12 @@
 using NBitcoin;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto.ZeroKnowledge;
+using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
 
 namespace WalletWasabi.WabiSabi.Client;
@@ -57,8 +60,8 @@ public class DependencyGraphTaskScheduler
 				{
 					if (t.IsFaulted && t.Exception is { } exception)
 					{
-							// If one task is failing, cancel all the tasks and throw.
-							ctsOnError.Cancel();
+						// If one task is failing, cancel all the tasks and throw.
+						ctsOnError.Cancel();
 						throw exception;
 					}
 				}, linkedCts.Token);
@@ -119,8 +122,8 @@ public class DependencyGraphTaskScheduler
 			{
 				if (t.IsFaulted && t.Exception is { } exception)
 				{
-						// If one task is failing, cancel all the tasks and throw.
-						ctsOnError.Cancel();
+					// If one task is failing, cancel all the tasks and throw.
+					ctsOnError.Cancel();
 					throw exception;
 				}
 			}, linkedCts.Token);
@@ -139,14 +142,12 @@ public class DependencyGraphTaskScheduler
 		}
 	}
 
-	public async Task StartOutputRegistrationsAsync(IEnumerable<TxOut> txOuts, BobClient bobClient, CancellationToken cancellationToken)
+	public async Task StartOutputRegistrationsAsync(IEnumerable<TxOut> txOuts, BobClient bobClient, IKeyChain keyChain, DateTimeOffset outputRegistrationEndTime, CancellationToken cancellationToken)
 	{
-		List<Task> outputTasks = new();
-
 		using CancellationTokenSource ctsOnError = new();
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctsOnError.Token);
 
-		foreach (var (node, txOut) in Enumerable.Zip(Graph.Outputs, txOuts))
+		var nodes = Graph.Outputs.Select(node =>
 		{
 			var amountCredsToPresentTasks = Graph.InEdges(node, CredentialType.Amount).Select(edge => DependencyTasks[edge].Task);
 			var vsizeCredsToPresentTasks = Graph.InEdges(node, CredentialType.Vsize).Select(edge => DependencyTasks[edge].Task);
@@ -156,22 +157,37 @@ public class DependencyGraphTaskScheduler
 				vsizeCredsToPresentTasks,
 				Array.Empty<TaskCompletionSource<Credential>>(),
 				Array.Empty<TaskCompletionSource<Credential>>());
+			return smartRequestNode;
+		});
 
-			var task = smartRequestNode
-				.StartOutputRegistrationAsync(bobClient, txOut.ScriptPubKey, cancellationToken)
-				.ContinueWith((t) =>
-				{
-					if (t.IsFaulted && t.Exception is { } exception)
-					{
-							// If one task is failing, cancel all the tasks and throw.
-							ctsOnError.Cancel();
-						throw exception;
-					}
-				}, linkedCts.Token);
-			outputTasks.Add(task);
+		var remainingTime = outputRegistrationEndTime - DateTimeOffset.UtcNow;
+		if (remainingTime < TimeSpan.FromSeconds(5))
+		{
+			throw new InvalidOperationException("No time to register the outputs, aborting.");
 		}
 
-		await Task.WhenAll(outputTasks).ConfigureAwait(false);
+		var delays = remainingTime.SamplePoissonDelays(txOuts.Count());
+
+		var tasks = txOuts.Zip(nodes, delays,
+			async (txOut, smartRequestNode, delay) =>
+			{
+				try
+				{
+					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+					await smartRequestNode.StartOutputRegistrationAsync(bobClient, txOut.ScriptPubKey, cancellationToken).ConfigureAwait(false);
+				}
+				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.AlreadyRegisteredScript)
+				{
+					if (keyChain is KeyChain { KeyManager: var keyManager }
+						&& keyManager.TryGetKeyForScriptPubKey(txOut.ScriptPubKey, out var hdPubKey))
+					{
+						hdPubKey.SetKeyState(KeyState.Used);
+					}
+				}
+			}
+		).ToImmutableArray();
+
+		await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
 
 	private IEnumerable<(AliceClient AliceClient, InputNode Node)> PairAliceClientAndRequestNodes(IEnumerable<AliceClient> aliceClients, DependencyGraph graph)

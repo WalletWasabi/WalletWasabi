@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Text;
 using Avalonia;
 using Avalonia.Media.Imaging;
@@ -10,6 +11,7 @@ using static WalletWasabi.Fluent.Models.Windows.DirectShow;
 
 namespace WalletWasabi.Fluent.Models.Windows;
 
+[SupportedOSPlatform("windows")]
 public class WindowsCapture
 {
 	private static Dictionary<long, byte[]> ArrayBuffer = new();
@@ -18,15 +20,66 @@ public class WindowsCapture
 	{
 	}
 
-	public WindowsCapture(int cameraIndex, VideoFormat format)
+	public WindowsCapture(int index, VideoFormat format)
 	{
 		var camera_list = FindDevices();
-		if (cameraIndex >= camera_list.Length)
+		if (index >= camera_list.Length)
 		{
-			throw new ArgumentException("USB camera is not available.", nameof(cameraIndex));
+			throw new ArgumentException("USB camera is not available.", nameof(index));
 		}
 
-		Init(cameraIndex, format);
+		IGraphBuilder? graph = CreateGraph();
+		if (graph is not { })
+		{
+			throw new ArgumentException(nameof(graph));
+		}
+		var vcap_source = CreateVideoCaptureSource(index, format);
+		graph.AddFilter(vcap_source, "VideoCapture");
+
+		IBaseFilter? grabber = CreateSampleGrabber();
+		if (grabber is not { })
+		{
+			throw new ArgumentException(nameof(grabber));
+		}
+		graph.AddFilter(grabber, "SampleGrabber");
+		var i_grabber = (ISampleGrabber)grabber;
+		i_grabber.SetBufferSamples(true);
+
+		var renderer = CoCreateInstance(DsGuid.CLSID_NullRenderer) as IBaseFilter;
+		graph.AddFilter(renderer, "NullRenderer");
+
+		ICaptureGraphBuilder2? builder =
+			CoCreateInstance(DsGuid.CLSID_CaptureGraphBuilder2) as
+				ICaptureGraphBuilder2;
+		builder?.SetFiltergraph(graph);
+		var pinCategory = DsGuid.PIN_CATEGORY_CAPTURE;
+		var mediaType = DsGuid.MEDIATYPE_Video;
+		builder?.RenderStream(ref pinCategory, ref mediaType, vcap_source, grabber, renderer);
+
+		var mt = new AM_MEDIA_TYPE();
+		i_grabber.GetConnectedMediaType(mt);
+		VIDEOINFOHEADER header = (VIDEOINFOHEADER)Marshal.PtrToStructure(mt.pbFormat, typeof(VIDEOINFOHEADER))!;
+		var width = header.bmiHeader.biWidth;
+		var height = header.bmiHeader.biHeight;
+		var stride = width * (header.bmiHeader.biBitCount / 8);
+		DeleteMediaType(ref mt);
+
+		Size = new Size(width, height);
+
+		GetBitmap = GetBitmapFromSampleGrabberCallback(i_grabber, width, height, stride);
+
+		Start = () => PlayGraph(graph, FILTER_STATE.Running);
+		Stop = () => PlayGraph(graph, FILTER_STATE.Stopped);
+		Release = () =>
+		{
+			Stop();
+
+			ReleaseInstance(ref i_grabber);
+			ReleaseInstance(ref builder);
+			ReleaseInstance(ref graph);
+		};
+
+		Properties = new PropertyItems(vcap_source);
 	}
 
 	public Size Size { get; private set; }
@@ -51,55 +104,6 @@ public class WindowsCapture
 		var filter = CreateFilter(DsGuid.CLSID_VideoInputDeviceCategory, cameraIndex);
 		var pin = FindPin(filter, 0, PIN_DIRECTION.PINDIR_OUTPUT);
 		return GetVideoOutputFormat(pin);
-	}
-
-	private void Init(int index, VideoFormat format)
-	{
-		IGraphBuilder? graph = CreateGraph();
-
-		var vcap_source = CreateVideoCaptureSource(index, format);
-		graph.AddFilter(vcap_source, "VideoCapture");
-
-		var grabber = CreateSampleGrabber();
-		graph.AddFilter(grabber, "SampleGrabber");
-		var i_grabber = (ISampleGrabber)grabber;
-		i_grabber.SetBufferSamples(true);
-
-		var renderer = CoCreateInstance(DsGuid.CLSID_NullRenderer) as IBaseFilter;
-		graph.AddFilter(renderer, "NullRenderer");
-
-		ICaptureGraphBuilder2? builder =
-			CoCreateInstance(DsGuid.CLSID_CaptureGraphBuilder2) as
-				ICaptureGraphBuilder2;
-		builder?.SetFiltergraph(graph);
-		var pinCategory = DsGuid.PIN_CATEGORY_CAPTURE;
-		var mediaType = DsGuid.MEDIATYPE_Video;
-		builder?.RenderStream(ref pinCategory, ref mediaType, vcap_source, grabber, renderer);
-
-		var mt = new AM_MEDIA_TYPE();
-		i_grabber.GetConnectedMediaType(mt);
-		VIDEOINFOHEADER header = (VIDEOINFOHEADER)Marshal.PtrToStructure(mt.pbFormat, typeof(VIDEOINFOHEADER));
-		var width = header.bmiHeader.biWidth;
-		var height = header.bmiHeader.biHeight;
-		var stride = width * (header.bmiHeader.biBitCount / 8);
-		DeleteMediaType(ref mt);
-
-		Size = new Size(width, height);
-
-		GetBitmap = GetBitmapFromSampleGrabberCallback(i_grabber, width, height, stride);
-
-		Start = () => PlayGraph(graph, FILTER_STATE.Running);
-		Stop = () => PlayGraph(graph, FILTER_STATE.Stopped);
-		Release = () =>
-		{
-			Stop();
-
-			ReleaseInstance(ref i_grabber);
-			ReleaseInstance(ref builder);
-			ReleaseInstance(ref graph);
-		};
-
-		Properties = new PropertyItems(vcap_source);
 	}
 
 	private Func<Bitmap> GetBitmapFromSampleGrabberCallback(ISampleGrabber i_grabber, int width,
@@ -329,6 +333,10 @@ public class WindowsCapture
 			config.GetStreamCaps(i, ref mt, cap_data);
 			entry.Caps = PtrToStructure<VIDEO_STREAM_CONFIG_CAPS>(cap_data);
 
+			if (mt is not { })
+			{
+				continue;
+			}
 			entry.MajorType = DsGuid.GetNickname(mt.MajorType);
 			entry.SubType = DsGuid.GetNickname(mt.SubType);
 
@@ -421,7 +429,7 @@ public class WindowsCapture
 		}
 	}
 
-	private static T? PtrToStructure<T>(IntPtr ptr) => (T)Marshal.PtrToStructure(ptr, typeof(T));
+	private static T? PtrToStructure<T>(IntPtr ptr) => (T?)Marshal.PtrToStructure(ptr, typeof(T));
 
 	internal class PropertyItems
 	{

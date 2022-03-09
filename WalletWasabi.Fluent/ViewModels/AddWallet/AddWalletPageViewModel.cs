@@ -7,6 +7,7 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
@@ -25,6 +26,8 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 {
 	public AddWalletPageViewModel()
 	{
+		SelectionMode = NavBarItemSelectionMode.Button;
+
 		CreateWalletCommand = ReactiveCommand.Create(OnCreateWallet);
 
 		ConnectHardwareWalletCommand = ReactiveCommand.Create(OnConnectHardwareWallet);
@@ -33,7 +36,12 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 
 		RecoverWalletCommand = ReactiveCommand.Create(OnRecoverWallet);
 
-		OpenCommand = ReactiveCommand.Create(async () => await NavigateDialogAsync(this, NavigationTarget.DialogScreen));
+		OpenCommand = ReactiveCommand.Create(async () =>
+		{
+			MainViewModel.Instance.IsOobeBackgroundVisible = true;
+			await NavigateDialogAsync(this, NavigationTarget.DialogScreen);
+			MainViewModel.Instance.IsOobeBackgroundVisible = false;
+		});
 	}
 
 	public ICommand CreateWalletCommand { get; }
@@ -73,7 +81,7 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 				Navigate().To(new WalletNamePageViewModel(WalletCreationOption.ImportWallet, filePath));
 				return;
 			}
-		
+
 			var keyManager = await ImportWalletHelper.ImportWalletAsync(Services.WalletManager, walletName, filePath);
 			Navigate().To(new AddedWalletPageViewModel(keyManager));
 		}
