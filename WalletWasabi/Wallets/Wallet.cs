@@ -71,7 +71,6 @@ public class Wallet : BackgroundService
 		}
 	}
 	
-	public DateTimeOffset StartupTime { get; private set; }
 	public BitcoinStore BitcoinStore { get; private set; }
 	public KeyManager KeyManager { get; }
 	public WasabiSynchronizer Synchronizer { get; private set; }
@@ -192,7 +191,6 @@ public class Wallet : BackgroundService
 			await base.StartAsync(cancel).ConfigureAwait(false);
 
 			State = WalletState.Started;
-			StartupTime = DateTimeOffset.UtcNow;
 		}
 		catch
 		{
