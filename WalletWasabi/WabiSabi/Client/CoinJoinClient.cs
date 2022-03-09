@@ -323,6 +323,10 @@ public class CoinJoinClient
 		var tasks = Enumerable.Zip(aliceClients, delays,
 			async (aliceClient, delay) =>
 			{
+				if (delay > TimeSpan.Zero)
+				{
+					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+				}
 				await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
 			}
 		).ToImmutableArray();
@@ -338,6 +342,10 @@ public class CoinJoinClient
 		var tasks = Enumerable.Zip(aliceClients, delays,
 			async (aliceClient, delay) =>
 			{
+				if (delay > TimeSpan.Zero)
+				{
+					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+				}
 				await aliceClient.ReadyToSignAsync(cancellationToken).ConfigureAwait(false);
 			}
 		).ToImmutableArray();
