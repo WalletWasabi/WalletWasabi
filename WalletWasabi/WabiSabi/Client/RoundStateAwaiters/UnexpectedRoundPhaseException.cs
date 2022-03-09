@@ -1,9 +1,7 @@
 using NBitcoin;
-using System.Collections;
 using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.WabiSabi.Models;
 
-namespace WalletWasabi.WabiSabi.Client;
+namespace WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 
 public class UnexpectedRoundPhaseException : Exception
 {

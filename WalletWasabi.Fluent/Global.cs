@@ -28,6 +28,7 @@ using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
+using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 
 namespace WalletWasabi.Fluent;
 
