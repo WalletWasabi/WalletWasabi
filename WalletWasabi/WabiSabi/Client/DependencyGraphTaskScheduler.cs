@@ -1,5 +1,6 @@
 using NBitcoin;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -141,14 +142,12 @@ public class DependencyGraphTaskScheduler
 		}
 	}
 
-	public async Task StartOutputRegistrationsAsync(IEnumerable<TxOut> txOuts, BobClient bobClient, IKeyChain keyChain, CancellationToken cancellationToken)
+	public async Task StartOutputRegistrationsAsync(IEnumerable<TxOut> txOuts, BobClient bobClient, IKeyChain keyChain, DateTimeOffset outputRegistrationEndTime, CancellationToken cancellationToken)
 	{
-		List<Task> outputTasks = new();
-
 		using CancellationTokenSource ctsOnError = new();
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctsOnError.Token);
 
-		foreach (var (node, txOut) in Enumerable.Zip(Graph.Outputs, txOuts))
+		var nodes = Graph.Outputs.Select(node =>
 		{
 			var amountCredsToPresentTasks = Graph.InEdges(node, CredentialType.Amount).Select(edge => DependencyTasks[edge].Task);
 			var vsizeCredsToPresentTasks = Graph.InEdges(node, CredentialType.Vsize).Select(edge => DependencyTasks[edge].Task);
@@ -158,29 +157,37 @@ public class DependencyGraphTaskScheduler
 				vsizeCredsToPresentTasks,
 				Array.Empty<TaskCompletionSource<Credential>>(),
 				Array.Empty<TaskCompletionSource<Credential>>());
+			return smartRequestNode;
+		});
 
-			var task = smartRequestNode
-				.StartOutputRegistrationAsync(bobClient, txOut.ScriptPubKey, cancellationToken)
-				.ContinueWith((t) =>
-				{
-					if (t.IsFaulted && t.Exception is { } exception)
-					{
-						if (exception.InnerExceptions.Select(e => e.InnerException).Any(x => x is WabiSabiProtocolException wabisabiexc
-							&& wabisabiexc.ErrorCode == WabiSabiProtocolErrorCode.AlreadyRegisteredScript))
-						{
-							if (keyChain is KeyChain { KeyManager: var keyManager }
-								&& keyManager.TryGetKeyForScriptPubKey(txOut.ScriptPubKey, out var hdPubKey))
-							{
-								hdPubKey.SetKeyState(KeyState.Used);
-							}
-						}
-
-						throw exception;
-					}
-				}, linkedCts.Token);
-
-			await task.ConfigureAwait(false);
+		var remainingTime = outputRegistrationEndTime - DateTimeOffset.UtcNow;
+		if (remainingTime < TimeSpan.FromSeconds(5))
+		{
+			throw new InvalidOperationException("No time to register the outputs, aborting.");
 		}
+
+		var delays = remainingTime.SamplePoissonDelays(txOuts.Count());
+
+		var tasks = txOuts.Zip(nodes, delays,
+			async (txOut, smartRequestNode, delay) =>
+			{
+				try
+				{
+					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+					await smartRequestNode.StartOutputRegistrationAsync(bobClient, txOut.ScriptPubKey, cancellationToken).ConfigureAwait(false);
+				}
+				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.AlreadyRegisteredScript)
+				{
+					if (keyChain is KeyChain { KeyManager: var keyManager }
+						&& keyManager.TryGetKeyForScriptPubKey(txOut.ScriptPubKey, out var hdPubKey))
+					{
+						hdPubKey.SetKeyState(KeyState.Used);
+					}
+				}
+			}
+		).ToImmutableArray();
+
+		await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
 
 	private IEnumerable<(AliceClient AliceClient, InputNode Node)> PairAliceClientAndRequestNodes(IEnumerable<AliceClient> aliceClients, DependencyGraph graph)
