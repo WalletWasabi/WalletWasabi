@@ -15,6 +15,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	[AutoNotify] private DateTimeOffset _date;
 	[AutoNotify] private string _dateString = "";
 	[AutoNotify] private bool _isConfirmed;
+	[AutoNotify] private bool _isExpanded;
 
 	protected HistoryItemViewModelBase(int orderIndex, TransactionSummary transactionSummary)
 	{
