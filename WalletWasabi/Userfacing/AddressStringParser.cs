@@ -59,7 +59,7 @@ public static class AddressStringParser
 			}
 
 			var bitcoinUrl = new BitcoinUrlBuilder(text, expectedNetwork);
-			if (bitcoinUrl?.Address is { } && bitcoinUrl.Address.Network == expectedNetwork)
+			if (bitcoinUrl?.Address is { } address && address.Network == expectedNetwork)
 			{
 				url = bitcoinUrl;
 				return true;
