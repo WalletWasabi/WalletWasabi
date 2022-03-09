@@ -22,7 +22,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 		_autoCoinJoin = wallet.KeyManager.AutoCoinJoin;
 		IsHardwareWallet = wallet.KeyManager.IsHardwareWallet;
 		IsWatchOnly = wallet.KeyManager.IsWatchOnly;
-		PlebStopThreshold = wallet.KeyManager.PlebStopThreshold.ToUnit(NBitcoin.MoneyUnit.BTC);
+		PlebStopThreshold = wallet.KeyManager.PlebStopThreshold.ToUnit(MoneyUnit.BTC);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
