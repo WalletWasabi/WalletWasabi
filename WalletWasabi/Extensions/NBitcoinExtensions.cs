@@ -353,13 +353,19 @@ public static class NBitcoinExtensions
 
 	public static ScriptPubKeyType? GetInputScriptPubKeyType(this PSBTInput i)
 	{
+		if (i.WitnessUtxo is not { })
+		{
+			return null;
+		}
+
 		if (i.WitnessUtxo.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
 		{
 			return ScriptPubKeyType.Segwit;
 		}
 
 		if (i.WitnessUtxo.ScriptPubKey.IsScriptType(ScriptType.P2SH) &&
-			i.FinalScriptWitness.ToScript().IsScriptType(ScriptType.P2WPKH))
+			i.FinalScriptWitness is { } witness &&
+			witness.ToScript().IsScriptType(ScriptType.P2WPKH))
 		{
 			return ScriptPubKeyType.SegwitP2SH;
 		}
