@@ -37,6 +37,27 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 
 	public List<TransactionSummary> CoinJoinTransactions { get; private set; }
 
+	protected override ObservableCollection<HistoryItemViewModelBase> LoadChildren()
+	{
+		var result = new ObservableCollection<HistoryItemViewModelBase>();
+
+		for (var i = 0; i < CoinJoinTransactions.Count; i++)
+		{
+			var item = CoinJoinTransactions[i];
+
+			var transaction = new TransactionHistoryItemViewModel(
+				i,
+				item,
+				_walletViewModel,
+				Balance ?? Money.Zero,
+				_updateTrigger);
+
+			result.Add(transaction);
+		}
+
+		return result;
+	}
+
 	public void Add(TransactionSummary item)
 	{
 		if (!item.IsOwnCoinjoin)
