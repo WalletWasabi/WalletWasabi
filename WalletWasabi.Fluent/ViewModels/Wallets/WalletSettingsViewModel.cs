@@ -11,6 +11,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	[AutoNotify] private bool _autoCoinJoin;
 	[AutoNotify] private int _minAnonScoreTarget;
 	[AutoNotify] private int _maxAnonScoreTarget;
+	[AutoNotify] private decimal _plebStopThreshold;
 
 	public WalletSettingsViewModel(WalletViewModelBase walletViewModelBase)
 	{
@@ -20,6 +21,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 		_autoCoinJoin = wallet.KeyManager.AutoCoinJoin;
 		IsHardwareWallet = wallet.KeyManager.IsHardwareWallet;
 		IsWatchOnly = wallet.KeyManager.IsWatchOnly;
+		PlebStopThreshold = wallet.KeyManager.PlebStopThreshold.ToUnit(NBitcoin.MoneyUnit.BTC);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
