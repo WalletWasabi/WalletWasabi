@@ -34,6 +34,8 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public List<string>? FilteredLabel { get; protected set; }
 
+	public string? SortLabel { get; protected set; }
+
 	public string? Label { get; protected set; }
 
 	public bool IsCoinJoin { get; protected set; }
