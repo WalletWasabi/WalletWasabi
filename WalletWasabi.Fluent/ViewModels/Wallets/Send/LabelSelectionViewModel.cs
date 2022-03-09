@@ -112,11 +112,9 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		var pockets = new List<Pocket>();
 		foreach (var p in privacyRankedPockets)
 		{
-			if (pockets.Sum(x => x.Amount) < targetAmount)
-			{
-				pockets.Add(p);
-			}
-			else
+			pockets.Add(p);
+
+			if (pockets.Sum(x => x.Amount) >= targetAmount)
 			{
 				break;
 			}
