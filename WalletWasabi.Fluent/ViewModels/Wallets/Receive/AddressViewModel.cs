@@ -18,8 +18,8 @@ public partial class AddressViewModel : ViewModelBase
 	{
 		_address = model.GetP2wpkhAddress(network).ToString();
 
-		Label = model.Label.Take(1).ToList();
-		FilteredLabel = model.Label.Skip(1).ToList();
+		Label = model.Label.ToList();
+		FilteredLabel = model.Label.ToList();
 
 		CopyAddressCommand =
 				ReactiveCommand.CreateFromTask(async () =>
