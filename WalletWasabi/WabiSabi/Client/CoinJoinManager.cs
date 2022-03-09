@@ -160,10 +160,10 @@ public class CoinJoinManager : BackgroundService
 
 				try
 				{
-					var success = await finishedCoinJoin.CoinJoinTask.ConfigureAwait(false);
-					if (success)
+					var result = await finishedCoinJoin.CoinJoinTask.ConfigureAwait(false);
+					if (result.SuccessfulBroadcast)
 					{
-						CoinRefrigerator.Freeze(finishedCoinJoin.CoinCandidates);
+						CoinRefrigerator.Freeze(result.RegisteredCoins);
 						MarkDestinationsUsed(finishedCoinJoin);
 						Logger.LogInfo($"{logPrefix} finished!");
 					}
@@ -231,7 +231,7 @@ public class CoinJoinManager : BackgroundService
 			finishedCoinJoin.Wallet,
 			finishedCoinJoin.CoinJoinTask.Status switch
 			{
-				TaskStatus.RanToCompletion when finishedCoinJoin.CoinJoinTask.Result => CompletionStatus.Success,
+				TaskStatus.RanToCompletion when finishedCoinJoin.CoinJoinTask.Result.SuccessfulBroadcast => CompletionStatus.Success,
 				TaskStatus.Canceled => CompletionStatus.Canceled,
 				TaskStatus.Faulted => CompletionStatus.Failed,
 				_ => CompletionStatus.Unknown,

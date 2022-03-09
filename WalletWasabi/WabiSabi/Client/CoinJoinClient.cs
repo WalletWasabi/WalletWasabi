@@ -106,7 +106,7 @@ public class CoinJoinClient
 		return roundState;
 	}
 
-	public async Task<bool> StartCoinJoinAsync(IEnumerable<SmartCoin> coinCandidates, CancellationToken cancellationToken)
+	public async Task<CoinJoinResult> StartCoinJoinAsync(IEnumerable<SmartCoin> coinCandidates, CancellationToken cancellationToken)
 	{
 		var tryLimit = 6;
 
@@ -120,21 +120,22 @@ public class CoinJoinClient
 
 		for (var tries = 0; tries < tryLimit; tries++)
 		{
-			if (await StartRoundAsync(coins, currentRoundState, cancellationToken).ConfigureAwait(false))
+			CoinJoinResult result = await StartRoundAsync(coins, currentRoundState, cancellationToken).ConfigureAwait(false);
+			if (!result.GoForBlameRound)
 			{
-				return true;
+				return result;
 			}
 
 			currentRoundState = await WaitForBlameRoundAsync(currentRoundState.Id, cancellationToken).ConfigureAwait(false);
 		}
 
-		return false;
+		throw new InvalidOperationException($"Blame rounds were not successful.");
 	}
 
 	/// <summary>Attempt to participate in a specified round.</summary>
 	/// <param name="roundState">Defines the round parameter and state information to use.</param>
 	/// <returns><c>True</c>: client should end the current CoinJoin progress. <c>False</c>: continue with the blame rounds.</returns>
-	public async Task<bool> StartRoundAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
+	public async Task<CoinJoinResult> StartRoundAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 	{
 		var constructionState = roundState.Assert<ConstructionState>();
 
@@ -148,13 +149,20 @@ public class CoinJoinClient
 		catch (UnexpectedRoundPhaseException ex)
 		{
 			Logger.LogInfo($"Round ({roundState.Id}): Registration phase ended by the coordinator: '{ex.Message}'.");
-			return true;
+			return new CoinJoinResult(
+				GoForBlameRound: false,
+				SuccessfulBroadcast: false,
+				RegisteredCoins: Enumerable.Empty<SmartCoin>());
 		}
 
 		if (!registeredAliceClients.Any())
 		{
 			Logger.LogInfo($"Round ({roundState.Id}): There is no available alices to participate with.");
-			return true;
+
+			return new CoinJoinResult(
+				GoForBlameRound: false,
+				SuccessfulBroadcast: false,
+				RegisteredCoins: Enumerable.Empty<SmartCoin>());
 		}
 
 		try
@@ -231,7 +239,10 @@ public class CoinJoinClient
 
 			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, unsignedCoinJoin, roundState);
 
-			return finalRoundState.WasTransactionBroadcast;
+			return new CoinJoinResult(
+				GoForBlameRound: !finalRoundState.WasTransactionBroadcast,
+				SuccessfulBroadcast: finalRoundState.WasTransactionBroadcast,
+				RegisteredCoins: registeredAliceClients.Select(a => a.SmartCoin));
 		}
 		finally
 		{
