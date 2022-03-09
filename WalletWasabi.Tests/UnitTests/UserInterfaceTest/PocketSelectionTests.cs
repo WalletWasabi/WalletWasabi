@@ -628,7 +628,7 @@ public class PocketSelectionTests
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(2.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
 		pockets.AddPocket(1.1M, out var pocket2, "Dan");
-		pockets.AddPocket(1.1M, out var pocket3, "Lucas");
+		pockets.AddPocket(1.1M, out var pocket3, "Lucas", "Dan");
 		pockets.AddPocket(1.1M, out var pocket4, "dan");
 
 		selection.Reset(pockets.ToArray());
@@ -648,7 +648,7 @@ public class PocketSelectionTests
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
 		pockets.AddPocket(1.1M, out var pocket2, "Dan");
-		pockets.AddPocket(0.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
+		pockets.AddPocket(1.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
 		pockets.AddPocket(1.1M, out var pocket4, "David", "Lucas");
 
 		selection.Reset(pockets.ToArray());
@@ -699,9 +699,9 @@ public class PocketSelectionTests
 		pockets.AddPocket(0.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
 		pockets.AddPocket(0.5M, out var pocket4, "David", "Lucas", "Dan");
 		pockets.AddPocket(0.6M, out var pocket5, "David");
-		pockets.AddPocket(0.2M, out var pocket6, "Lucas");
-		pockets.AddPocket(0.1M, out var pocket7, "David", "Lucas", "Dan", "Roland");
-		pockets.AddPocket(0.3M, out var pocket8, "David", "Dan");
+		pockets.AddPocket(0.5M, out var pocket6, "Lucas");
+		pockets.AddPocket(0.5M, out var pocket7, "David", "Lucas", "Dan", "Roland");
+		pockets.AddPocket(0.5M, out var pocket8, "David", "Dan");
 
 		selection.Reset(pockets.ToArray());
 
