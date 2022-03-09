@@ -25,7 +25,7 @@
         </DockPanel>
 
         <StackPanel Spacing="10"
-            ToolTip.Tip="Won't participate in automatic coinjoin if wallet balance is lower than this.">
+            ToolTip.Tip="Won't coinjoin automatically if there are less than this much non-private coins in the wallet.">
           <TextBlock Text= "Coinjoin Threshold (BTC)" />
           <TextBox Text="{Binding PlebStopThreshold}" />
         </StackPanel>
