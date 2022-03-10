@@ -82,11 +82,14 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 				});
 
 		this.ValidateProperty(x => x.PlebStopThreshold, ValidatePlebStopThreshold);
+
 		this.WhenAnyValue(x => x.PlebStopThreshold)
-			.Subscribe(
-			x =>
+			.Skip(1)
+			.Throttle(TimeSpan.FromMilliseconds(1000))
+			.ObserveOn(RxApp.TaskpoolScheduler)
+			.Subscribe(x =>
 			{
-				if (Money.TryParse(x, out Money result))
+				if (Money.TryParse(x, out Money result) && result != wallet.KeyManager.PlebStopThreshold)
 				{
 					wallet.KeyManager.PlebStopThreshold = result;
 					wallet.KeyManager.ToFile();
