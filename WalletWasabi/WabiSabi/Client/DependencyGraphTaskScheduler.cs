@@ -160,20 +160,18 @@ public class DependencyGraphTaskScheduler
 			return smartRequestNode;
 		});
 
-		var remainingTime = outputRegistrationEndTime - DateTimeOffset.UtcNow;
-		if (remainingTime < TimeSpan.FromSeconds(5))
-		{
-			throw new InvalidOperationException("No time to register the outputs, aborting.");
-		}
+		var scheduledDates = CoinJoinClient.GetDelaysForRequests(txOuts.Count(), outputRegistrationEndTime);
 
-		var delays = remainingTime.SamplePoissonDelays(txOuts.Count());
-
-		var tasks = txOuts.Zip(nodes, delays,
-			async (txOut, smartRequestNode, delay) =>
+		var tasks = txOuts.Zip(nodes, scheduledDates,
+			async (txOut, smartRequestNode, scheduledDate) =>
 			{
 				try
 				{
-					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+					var delay = scheduledDate - DateTimeOffset.UtcNow;
+					if (delay > TimeSpan.Zero)
+					{
+						await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+					}
 					await smartRequestNode.StartOutputRegistrationAsync(bobClient, txOut.ScriptPubKey, cancellationToken).ConfigureAwait(false);
 				}
 				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.AlreadyRegisteredScript)

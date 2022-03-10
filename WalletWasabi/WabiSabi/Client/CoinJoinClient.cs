@@ -26,6 +26,12 @@ public class CoinJoinClient
 	private volatile bool _inCriticalCoinJoinState;
 	private static readonly Money MinimumOutputAmountSanity = Money.Coins(0.0001m); // ignore rounds with too big minimum denominations
 
+	/// <summary>
+	/// Maximum delay when spreading the requests in time, except input registration requests which timings only depends on the input-reg timeout.
+	/// This is a maximum cap the delay can be smaller if the remaining time is less.
+	/// </summary>
+	private static TimeSpan MaximumRequestDelay { get; set; } = TimeSpan.FromSeconds(30);
+
 	/// <param name="minAnonScoreTarget">Coins those have reached anonymity target, but still can be mixed if desired.</param>
 	/// <param name="consolidationMode">If true, then aggressively try to consolidate as many coins as it can.</param>
 	public CoinJoinClient(
@@ -211,6 +217,7 @@ public class CoinJoinClient
 
 			// Signing.
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
+			var signingEndTime = DateTimeOffset.UtcNow + roundState.TransactionSigningTimeout - RoundStatusUpdater.Period;
 			Logger.LogDebug($"Round ({roundState.Id}): Transaction signing phase started.");
 
 			var signingState = roundState.Assert<SigningState>();
@@ -223,8 +230,7 @@ public class CoinJoinClient
 			}
 
 			// Send signature.
-			await SignTransactionAsync(registeredAliceClients, unsignedCoinJoin, roundState, cancellationToken).ConfigureAwait(false);
-			Logger.LogDebug($"Round ({roundState.Id}): Alices({registeredAliceClients.Length}) successfully signed the coinjoin tx.");
+			await SignTransactionAsync(registeredAliceClients, unsignedCoinJoin, signingEndTime, cancellationToken).ConfigureAwait(false); Logger.LogDebug($"Round ({roundState.Id}): Alices({registeredAliceClients.Length}) successfully signed the coinjoin tx.");
 
 			var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundState.Id && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
 			Logger.LogDebug($"Round ({roundState.Id}): Round Ended - WasTransactionBroadcast: '{finalRoundState.WasTransactionBroadcast}'.");
@@ -319,27 +325,55 @@ public class CoinJoinClient
 		return coinJoinOutputs.IsSuperSetOf(expectedOutputTuples);
 	}
 
-	private async Task SignTransactionAsync(IEnumerable<AliceClient> aliceClients, Transaction unsignedCoinJoinTransaction, RoundState roundState, CancellationToken cancellationToken)
+	private async Task SignTransactionAsync(IEnumerable<AliceClient> aliceClients, Transaction unsignedCoinJoinTransaction, DateTimeOffset signingEndTime, CancellationToken cancellationToken)
 	{
-		foreach (var aliceClient in aliceClients)
-		{
-			await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
-		}
+		var remainingTime = signingEndTime - DateTimeOffset.UtcNow;
+		var scheduledDates = GetDelaysForRequests(aliceClients.Count(), signingEndTime);
+
+		var tasks = Enumerable.Zip(aliceClients, scheduledDates,
+			async (aliceClient, scheduledDate) =>
+			{
+				var delay = scheduledDate - DateTimeOffset.UtcNow;
+				if (delay > TimeSpan.Zero)
+				{
+					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+				}
+				await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
+			}
+		).ToImmutableArray();
+
+		await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
 
 	private async Task ReadyToSignAsync(IEnumerable<AliceClient> aliceClients, DateTimeOffset readyToSignEndTime, CancellationToken cancellationToken)
 	{
-		var remainingTime = readyToSignEndTime - DateTimeOffset.UtcNow;
-		var delays = remainingTime.SamplePoissonDelays(aliceClients.Count());
+		var scheduledDates = GetDelaysForRequests(aliceClients.Count(), readyToSignEndTime);
 
-		var tasks = Enumerable.Zip(aliceClients, delays,
-			async (aliceClient, delay) =>
+		var tasks = Enumerable.Zip(aliceClients, scheduledDates,
+			async (aliceClient, scheduledDate) =>
 			{
+				var delay = scheduledDate - DateTimeOffset.UtcNow;
+				if (delay > TimeSpan.Zero)
+				{
+					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+				}
 				await aliceClient.ReadyToSignAsync(cancellationToken).ConfigureAwait(false);
 			}
 		).ToImmutableArray();
 
 		await Task.WhenAll(tasks).ConfigureAwait(false);
+	}
+
+	public static ImmutableList<DateTimeOffset> GetDelaysForRequests(int howMany, DateTimeOffset endTime)
+	{
+		var remainingTime = endTime - DateTimeOffset.UtcNow;
+
+		if (remainingTime > MaximumRequestDelay)
+		{
+			remainingTime = MaximumRequestDelay;
+		}
+
+		return remainingTime.SamplePoisson(howMany);
 	}
 
 	private void LogCoinJoinSummary(ImmutableArray<AliceClient> registeredAliceClients, IEnumerable<TxOut> myOutputs, Transaction unsignedCoinJoinTransaction, RoundState roundState)
