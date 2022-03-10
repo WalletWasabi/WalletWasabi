@@ -103,11 +103,11 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	public ICommand VerifyRecoveryWordsCommand { get; }
 
 	private void ValidatePlebStopThreshold(IValidationErrors errors) =>
-		ValidatePlebStopThreshold(errors, PlebStopThreshold, whiteSpaceOk: false);
+		ValidatePlebStopThreshold(errors, PlebStopThreshold);
 
-	private static void ValidatePlebStopThreshold(IValidationErrors errors, string plebStopThreshold, bool whiteSpaceOk)
+	private static void ValidatePlebStopThreshold(IValidationErrors errors, string plebStopThreshold)
 	{
-		if (!whiteSpaceOk || !string.IsNullOrWhiteSpace(plebStopThreshold))
+		if (!string.IsNullOrWhiteSpace(plebStopThreshold))
 		{
 			if (!string.IsNullOrEmpty(plebStopThreshold) && plebStopThreshold.Contains(
 				',',
