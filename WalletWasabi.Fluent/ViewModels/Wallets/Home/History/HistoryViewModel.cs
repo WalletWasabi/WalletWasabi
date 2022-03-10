@@ -81,7 +81,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 					},
 					width: new GridLength(0, GridUnitType.Auto)),
 				x => x.Children,
-				x => x.IsCoinJoin,
+				x => x is CoinJoinsHistoryItemViewModel,
 				x => x.IsExpanded),
 
 				// Date

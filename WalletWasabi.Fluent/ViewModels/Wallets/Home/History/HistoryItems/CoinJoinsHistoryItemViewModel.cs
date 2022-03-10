@@ -47,7 +47,7 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 		{
 			var item = CoinJoinTransactions[i];
 
-			var transaction = new TransactionHistoryItemViewModel(
+			var transaction = new CoinJoinHistoryItemViewModel(
 				i,
 				item,
 				_walletViewModel,
