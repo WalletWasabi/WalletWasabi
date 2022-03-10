@@ -16,7 +16,7 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 {
-	private const int MaxRetries = 3;
+	private const int MaxRetries = 20;
 
 	private IHttpClient _client;
 
@@ -108,6 +108,8 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 					throw;
 				}
 			}
+
+			await Task.Delay(100, cancellationToken).ConfigureAwait(false);
 		}
 
 		throw new AggregateException(exceptions);
