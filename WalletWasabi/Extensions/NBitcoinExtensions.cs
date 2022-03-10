@@ -353,9 +353,9 @@ public static class NBitcoinExtensions
 
 	public static ScriptPubKeyType? GetInputScriptPubKeyType(this PSBTInput i)
 	{
-		if (i.WitnessUtxo is not { })
+		if (i.WitnessUtxo is null)
 		{
-			return null;
+			throw new ArgumentNullException($"{nameof(i.WitnessUtxo)} was null, can't get it's ScriptPubKey type.");
 		}
 
 		if (i.WitnessUtxo.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))

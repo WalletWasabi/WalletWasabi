@@ -235,8 +235,12 @@ public class KeyManager
 		string jsonString = safeIoManager.ReadAllText(Encoding.UTF8);
 
 		var km = JsonConvert.DeserializeObject<KeyManager>(jsonString);
+		if (km is null)
+		{
+			throw new FormatException($"Wallet file at: `{filePath}` is not a valid wallet file or it is corrupted.");
+		}
 
-		km!.SetFilePath(filePath);
+		km.SetFilePath(filePath);
 		lock (km.HdPubKeyScriptBytesLock)
 		{
 			km.HdPubKeyScriptBytes.AddRange(km.GetKeys(x => true).Select(x => x.P2wpkhScript.ToCompressedBytes()));
