@@ -220,8 +220,16 @@ public static class HwiParser
 
 	public static HwiEnumerateEntry ParseHwiEnumerateEntry(JObject json)
 	{
-		JToken modelToken = json["model"]!;
-		var pathString = json["path"]!.ToString().Trim();
+		JToken? modelToken = json["model"];
+		if (modelToken == null)
+		{
+			throw new ArgumentNullException($"{nameof(modelToken)} can't be null;");
+		}
+		var pathString = json["path"]?.ToString().Trim();
+		if (pathString == null)
+		{
+			throw new ArgumentNullException($"Path can't be null;");
+		}
 		var serialNumberString = json["serial_number"]?.ToString()?.Trim();
 		var fingerprintString = json["fingerprint"]?.ToString()?.Trim();
 		var needsPinSentString = json["needs_pin_sent"]?.ToString()?.Trim();
