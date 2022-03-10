@@ -202,7 +202,8 @@ public class CoinJoinClient
 			var outputRegistrationEndTime = DateTimeOffset.UtcNow + (remainingTime * 0.8);
 			Logger.LogDebug($"Round ({roundState.Id}): Output registration started - it will end in: {outputRegistrationEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}");
 
-			await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationEndTime, cancellationToken).ConfigureAwait(false);
+			var outputRegistrationScheduledDates = GetDelaysForRequests(outputTxOuts.Count(), outputRegistrationEndTime);
+			await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationScheduledDates, cancellationToken).ConfigureAwait(false);
 			Logger.LogDebug($"Round ({roundState.Id}): Outputs({outputTxOuts.Count()}) successfully registered.");
 
 			// ReadyToSign.
@@ -361,7 +362,7 @@ public class CoinJoinClient
 		await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
 
-	public static ImmutableList<DateTimeOffset> GetDelaysForRequests(int howMany, DateTimeOffset endTime)
+	private ImmutableList<DateTimeOffset> GetDelaysForRequests(int howMany, DateTimeOffset endTime)
 	{
 		var remainingTime = endTime - DateTimeOffset.UtcNow;
 
