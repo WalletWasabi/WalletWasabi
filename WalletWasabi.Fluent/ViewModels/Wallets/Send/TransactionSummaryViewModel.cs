@@ -13,7 +13,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 public partial class TransactionSummaryViewModel : ViewModelBase
 {
 	private readonly Wallet _wallet;
-	private readonly TransactionInfo _info;
 	private readonly BitcoinAddress _address;
 	private BuildTransactionResult? _transaction;
 	[AutoNotify] private string _amountText = "";
@@ -28,7 +27,6 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	{
 		Parent = parent;
 		_wallet = wallet;
-		_info = info;
 		_address = address;
 		IsPreview = isPreview;
 
@@ -36,6 +34,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 			.Subscribe(_ => MaxPrivacy = !TransactionHasPockets && !TransactionHasChange);
 
 		AddressText = _address.ToString();
+
 		PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
 		IsPayJoin = PayJoinUrl is not null;
 	}
@@ -50,11 +49,11 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 
 	public bool IsPayJoin { get; }
 
-	public void UpdateTransaction(BuildTransactionResult transactionResult)
+	public void UpdateTransaction(BuildTransactionResult transactionResult, TransactionInfo info)
 	{
 		_transaction = transactionResult;
 
-		ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(_info.ConfirmationTimeSpan)} ";
+		ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(info.ConfirmationTimeSpan)} ";
 
 		var destinationAmount = _transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
 		var btcAmountText = $"{destinationAmount} BTC ";
@@ -72,8 +71,8 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		TransactionHasChange =
 			_transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != _address.ScriptPubKey);
 
-		TransactionHasPockets = !_info.IsPrivate;
+		TransactionHasPockets = !info.IsPrivate;
 
-		IsCustomFeeUsed = _info.IsCustomFeeUsed;
+		IsCustomFeeUsed = info.IsCustomFeeUsed;
 	}
 }
