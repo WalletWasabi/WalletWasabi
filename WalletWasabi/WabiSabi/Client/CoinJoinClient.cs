@@ -174,6 +174,10 @@ public class CoinJoinClient
 			// Waiting for OutputRegistration phase, all the Alices confirmed their connections, so the list of the inputs will be complete.
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
 
+			var remainingTime = roundState.OutputRegistrationTimeout - RoundStatusUpdater.Period;
+			var outputRegistrationEndTime = DateTimeOffset.UtcNow + (remainingTime * 0.8);
+			var readyToSignEndTime = outputRegistrationEndTime + remainingTime * 0.2;
+
 			// Calculate outputs values
 			constructionState = roundState.Assert<ConstructionState>();
 
@@ -196,19 +200,12 @@ public class CoinJoinClient
 			await scheduler.StartReissuancesAsync(registeredAliceClients, bobClient, cancellationToken).ConfigureAwait(false);
 
 			// Output registration.
-			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
-
-			var remainingTime = roundState.OutputRegistrationTimeout - RoundStatusUpdater.Period;
-			var outputRegistrationEndTime = DateTimeOffset.UtcNow + (remainingTime * 0.8);
 			Logger.LogDebug($"Round ({roundState.Id}): Output registration started - it will end in: {outputRegistrationEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}");
-
 			await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationEndTime, cancellationToken).ConfigureAwait(false);
 			Logger.LogDebug($"Round ({roundState.Id}): Outputs({outputTxOuts.Count()}) successfully registered.");
 
 			// ReadyToSign.
-			var readyToSignEndTime = outputRegistrationEndTime + remainingTime * 0.2;
 			Logger.LogDebug($"Round ({roundState.Id}): ReadyToSign phase started - it will end in: {readyToSignEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}");
-
 			await ReadyToSignAsync(registeredAliceClients, readyToSignEndTime, cancellationToken).ConfigureAwait(false);
 			Logger.LogDebug($"Round ({roundState.Id}): Alices({registeredAliceClients.Length}) successfully signalled ready to sign.");
 
