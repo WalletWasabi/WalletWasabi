@@ -27,7 +27,7 @@ public class TagsBox : TemplatedControl
 	private IControl? _containerControl;
 	private StringComparison _stringComparison;
 	private bool _isInputEnabled = true;
-	private IEnumerable<string>? _suggestions;
+	private IList<string>? _suggestions;
 	private IEnumerable<string>? _items;
 	private IEnumerable<string>? _topItems;
 	private bool _requestAdd;
@@ -70,8 +70,8 @@ public class TagsBox : TemplatedControl
 			o => o.TopItems,
 			(o, v) => o.TopItems = v);
 
-	public static readonly DirectProperty<TagsBox, IEnumerable<string>?> SuggestionsProperty =
-		AvaloniaProperty.RegisterDirect<TagsBox, IEnumerable<string>?>(
+	public static readonly DirectProperty<TagsBox, IList<string>?> SuggestionsProperty =
+		AvaloniaProperty.RegisterDirect<TagsBox, IList<string>?>(
 			nameof(Suggestions),
 			o => o.Suggestions,
 			(o, v) => o.Suggestions = v);
@@ -134,7 +134,7 @@ public class TagsBox : TemplatedControl
 		set => SetValue(TagSeparatorProperty, value);
 	}
 
-	public IEnumerable<string>? Suggestions
+	public IList<string>? Suggestions
 	{
 		get => _suggestions;
 		set => SetAndRaise(SuggestionsProperty, ref _suggestions, value);
