@@ -393,7 +393,6 @@ public class TagsBox : TemplatedControl
 			autoCompleteBox.Text = autoCompleteBox.SearchText;
 			RequestAdd = true;
 			e.Handled = true;
-			return;
 		}
 	}
 
