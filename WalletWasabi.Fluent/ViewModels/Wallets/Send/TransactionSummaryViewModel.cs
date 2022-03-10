@@ -34,7 +34,6 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 			.Subscribe(_ => MaxPrivacy = !TransactionHasPockets && !TransactionHasChange);
 
 		AddressText = _address.ToString();
-
 		PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
 		IsPayJoin = PayJoinUrl is not null;
 	}
