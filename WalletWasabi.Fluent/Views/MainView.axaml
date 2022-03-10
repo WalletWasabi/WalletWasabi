@@ -15,37 +15,26 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.MainView">
   <Panel>
-    <SplitView
-      IsEnabled="{Binding IsMainContentEnabled}"
-      CompactPaneLength="{Binding NavBar.CurrentCompactPaneLength}"
-      OpenPaneLength="{Binding NavBar.CurrentOpenPaneLength}"
-      IsPaneOpen="{Binding NavBar.IsOpen, Mode=TwoWay}">
-      <i:Interaction.Behaviors>
-        <behaviors:SplitViewAutoBehavior ToggleAction="{Binding NavBar.ToggleAction, Mode=OneWayToSource}"
-                                         CollapseOnClickAction="{Binding NavBar.CollapseOnClickAction, Mode=OneWayToSource}"
-                                         CollapseThreshold="{StaticResource SplitViewCollapseThreshold}" />
-      </i:Interaction.Behaviors>
-
-      <SplitView.Pane>
-        <Panel>
-          <ExperimentalAcrylicBorder DockPanel.Dock="Left" IsHitTestVisible="False">
-            <ExperimentalAcrylicBorder.Material>
-              <ExperimentalAcrylicMaterial BackgroundSource="Digger"
-                                           TintColor="{DynamicResource NavBarTintColor}"
-                                           TintOpacity="1"
-                                           FallbackColor="{DynamicResource AcrylicFallbackColor}"
-                                           MaterialOpacity="0.8" />
-            </ExperimentalAcrylicBorder.Material>
-          </ExperimentalAcrylicBorder>
-          <navbar:NavBar DataContext="{Binding NavBar}" />
-        </Panel>
-      </SplitView.Pane>
+    <Panel>
       <Panel>
+        <ExperimentalAcrylicBorder DockPanel.Dock="Left" IsHitTestVisible="False">
+          <ExperimentalAcrylicBorder.Material>
+            <ExperimentalAcrylicMaterial BackgroundSource="Digger"
+                                         TintColor="{DynamicResource NavBarTintColor}"
+                                         TintOpacity="1"
+                                         FallbackColor="{DynamicResource AcrylicFallbackColor}"
+                                         MaterialOpacity="0.8" />
+          </ExperimentalAcrylicBorder.Material>
+        </ExperimentalAcrylicBorder>
+        <navbar:NavBar DataContext="{Binding NavBar}" />
+      </Panel>
+      <Border Margin="64 32 0 0" CornerRadius="10, 0 , 0, 0" ClipToBounds="True">
         <Panel>
           <Border Background="{DynamicResource RegionColor}" IsHitTestVisible="False" />
           <Panel Background="{DynamicResource RegionColor}" VerticalAlignment="Bottom"
                  Height="100">
-            <spectrum:SpectrumControl Opacity="0.6" IsActive="{Binding IsCoinJoinActive}" IsDockEffectVisible="{Binding MusicControls.IsActive}" />
+            <spectrum:SpectrumControl Opacity="0.6" IsActive="{Binding IsCoinJoinActive}"
+                                      IsDockEffectVisible="{Binding MusicControls.IsActive}" />
             <statusBar:StatusBar DataContext="{Binding StatusBar}" />
           </Panel>
           <DockPanel>
@@ -58,79 +47,81 @@
                 <Setter Property="Margin" Value="31 36 31 0" />
               </Style>
             </DockPanel.Styles>
-            <wallets:MusicControlsView DockPanel.Dock="Bottom" DataContext="{Binding MusicControls}" HorizontalAlignment="Center" Height="64" />
+            <wallets:MusicControlsView DockPanel.Dock="Bottom" DataContext="{Binding MusicControls}"
+                                       HorizontalAlignment="Center" Height="64" />
             <ContentControl ClipToBounds="False" Content="{Binding MainScreen.CurrentPage}" />
           </DockPanel>
         </Panel>
-      </Panel>
-    </SplitView>
-    <ExperimentalAcrylicBorder DockPanel.Dock="Left" IsHitTestVisible="False" IsVisible="{Binding IsOobeBackgroundVisible}">
-      <ExperimentalAcrylicBorder.Material>
-        <ExperimentalAcrylicMaterial BackgroundSource="Digger"
-                                     TintColor="{DynamicResource SystemAltHighColor}"
-                                     TintOpacity="0.8"
-                                     FallbackColor="{DynamicResource AcrylicFallbackColor}"
-                                     MaterialOpacity="0.2" />
-      </ExperimentalAcrylicBorder.Material>
-      <Viewbox Stretch="Uniform" ClipToBounds="False">
-        <ContentControl Template="{StaticResource WelcomeBg}" ClipToBounds="False" />
-      </Viewbox>
+      </Border>
+      <ExperimentalAcrylicBorder DockPanel.Dock="Left" IsHitTestVisible="False"
+                                 IsVisible="{Binding IsOobeBackgroundVisible}">
+        <ExperimentalAcrylicBorder.Material>
+          <ExperimentalAcrylicMaterial BackgroundSource="Digger"
+                                       TintColor="{DynamicResource SystemAltHighColor}"
+                                       TintOpacity="0.8"
+                                       FallbackColor="{DynamicResource AcrylicFallbackColor}"
+                                       MaterialOpacity="0.2" />
+        </ExperimentalAcrylicBorder.Material>
+        <Viewbox Stretch="Uniform" ClipToBounds="False">
+          <ContentControl Template="{StaticResource WelcomeBg}" ClipToBounds="False" />
+        </Viewbox>
 
-    </ExperimentalAcrylicBorder>
-    <c:AdornerCanvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
-    <c:Dialog x:CompileBindings="False"
-              DataContext="{Binding FullScreen}"
-              IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
-              IsActive="{Binding CurrentPage.IsActive}"
-              IsBusy="{Binding CurrentPage.IsBusy, FallbackValue=False}"
-              IsBackEnabled="{Binding CurrentPage.EnableBack, FallbackValue=False}"
-              IsCancelEnabled="{Binding CurrentPage.EnableCancel, FallbackValue=False}"
-              EnableCancelOnPressed="{Binding CurrentPage.EnableCancelOnPressed, FallbackValue=True}"
-              EnableCancelOnEscape="{Binding CurrentPage.EnableCancelOnEscape, FallbackValue=True}"
-              IsEnabled="{Binding $parent.DataContext.IsFullScreenEnabled}"
-              HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
-              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-              IncreasedWidthThreshold="740" IncreasedHeightThreshold="580" FullScreenHeightThreshold="580">
-      <c:Dialog.Styles>
-        <Style Selector="c|Dialog /template/ Panel#PART_Overlay">
-          <Setter Property="Background" Value="{DynamicResource RegionColor}" />
-        </Style>
-        <Style Selector="c|Dialog /template/ Border#PART_Border">
-          <Setter Property="Margin" Value="0" />
-          <Setter Property="CornerRadius" Value="0" />
-          <Setter Property="BoxShadow" Value="" />
-        </Style>
-      </c:Dialog.Styles>
-      <ContentControl Content="{Binding CurrentPage}" />
-    </c:Dialog>
-    <c:Dialog x:CompileBindings="False"
-              DataContext="{Binding DialogScreen}"
-              IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
-              IsActive="{Binding CurrentPage.IsActive}"
-              IsBusy="{Binding CurrentPage.IsBusy, FallbackValue=False}"
-              IsBackEnabled="{Binding CurrentPage.EnableBack, FallbackValue=False}"
-              IsCancelEnabled="{Binding CurrentPage.EnableCancel, FallbackValue=False}"
-              EnableCancelOnPressed="{Binding CurrentPage.EnableCancelOnPressed, FallbackValue=True}"
-              EnableCancelOnEscape="{Binding CurrentPage.EnableCancelOnEscape, FallbackValue=True}"
-              IsEnabled="{Binding $parent.DataContext.IsDialogScreenEnabled}"
-              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-              HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
-              MaxContentWidth="800" MaxContentHeight="700"
-              IncreasedWidthThreshold="740" IncreasedHeightThreshold="580" FullScreenHeightThreshold="580">
-      <ContentControl Content="{Binding CurrentPage}" />
-    </c:Dialog>
-    <c:Dialog x:CompileBindings="False"
-              DataContext="{Binding CompactDialogScreen}"
-              IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
-              IsActive="{Binding CurrentPage.IsActive}"
-              IsBusy="{Binding CurrentPage.IsBusy, FallbackValue=False}"
-              IsBackEnabled="{Binding CurrentPage.EnableBack, FallbackValue=False}"
-              IsCancelEnabled="{Binding CurrentPage.EnableCancel, FallbackValue=False}"
-              EnableCancelOnPressed="{Binding CurrentPage.EnableCancelOnPressed, FallbackValue=True}"
-              EnableCancelOnEscape="{Binding CurrentPage.EnableCancelOnEscape, FallbackValue=True}"
-              IsEnabled="{Binding $parent.DataContext.IsDialogScreenEnabled}"
-              HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-      <ContentControl Content="{Binding CurrentPage}" />
-    </c:Dialog>
+      </ExperimentalAcrylicBorder>
+      <c:AdornerCanvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+      <c:Dialog x:CompileBindings="False"
+                DataContext="{Binding FullScreen}"
+                IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
+                IsActive="{Binding CurrentPage.IsActive}"
+                IsBusy="{Binding CurrentPage.IsBusy, FallbackValue=False}"
+                IsBackEnabled="{Binding CurrentPage.EnableBack, FallbackValue=False}"
+                IsCancelEnabled="{Binding CurrentPage.EnableCancel, FallbackValue=False}"
+                EnableCancelOnPressed="{Binding CurrentPage.EnableCancelOnPressed, FallbackValue=True}"
+                EnableCancelOnEscape="{Binding CurrentPage.EnableCancelOnEscape, FallbackValue=True}"
+                IsEnabled="{Binding $parent.DataContext.IsFullScreenEnabled}"
+                HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                IncreasedWidthThreshold="740" IncreasedHeightThreshold="580" FullScreenHeightThreshold="580">
+        <c:Dialog.Styles>
+          <Style Selector="c|Dialog /template/ Panel#PART_Overlay">
+            <Setter Property="Background" Value="{DynamicResource RegionColor}" />
+          </Style>
+          <Style Selector="c|Dialog /template/ Border#PART_Border">
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="BoxShadow" Value="" />
+          </Style>
+        </c:Dialog.Styles>
+        <ContentControl Content="{Binding CurrentPage}" />
+      </c:Dialog>
+      <c:Dialog x:CompileBindings="False"
+                DataContext="{Binding DialogScreen}"
+                IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
+                IsActive="{Binding CurrentPage.IsActive}"
+                IsBusy="{Binding CurrentPage.IsBusy, FallbackValue=False}"
+                IsBackEnabled="{Binding CurrentPage.EnableBack, FallbackValue=False}"
+                IsCancelEnabled="{Binding CurrentPage.EnableCancel, FallbackValue=False}"
+                EnableCancelOnPressed="{Binding CurrentPage.EnableCancelOnPressed, FallbackValue=True}"
+                EnableCancelOnEscape="{Binding CurrentPage.EnableCancelOnEscape, FallbackValue=True}"
+                IsEnabled="{Binding $parent.DataContext.IsDialogScreenEnabled}"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+                MaxContentWidth="800" MaxContentHeight="700"
+                IncreasedWidthThreshold="740" IncreasedHeightThreshold="580" FullScreenHeightThreshold="580">
+        <ContentControl Content="{Binding CurrentPage}" />
+      </c:Dialog>
+      <c:Dialog x:CompileBindings="False"
+                DataContext="{Binding CompactDialogScreen}"
+                IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
+                IsActive="{Binding CurrentPage.IsActive}"
+                IsBusy="{Binding CurrentPage.IsBusy, FallbackValue=False}"
+                IsBackEnabled="{Binding CurrentPage.EnableBack, FallbackValue=False}"
+                IsCancelEnabled="{Binding CurrentPage.EnableCancel, FallbackValue=False}"
+                EnableCancelOnPressed="{Binding CurrentPage.EnableCancelOnPressed, FallbackValue=True}"
+                EnableCancelOnEscape="{Binding CurrentPage.EnableCancelOnEscape, FallbackValue=True}"
+                IsEnabled="{Binding $parent.DataContext.IsDialogScreenEnabled}"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <ContentControl Content="{Binding CurrentPage}" />
+      </c:Dialog>
+    </Panel>
   </Panel>
 </UserControl>
