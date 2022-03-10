@@ -18,6 +18,7 @@ using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Wallets.Send.PreviewWarning;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
@@ -46,6 +47,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		_cancellationTokenSource = new CancellationTokenSource();
 
 		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel();
+		TransactionWarnings = new TransactionWarningsViewModel();
 		CurrentTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info, destination);
 		PreviewTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info, destination, true);
 
@@ -138,6 +140,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	public List<TransactionSummaryViewModel> TransactionSummaries { get; }
 
 	public PrivacySuggestionsFlyoutViewModel PrivacySuggestions { get; }
+
+	public TransactionWarningsViewModel TransactionWarnings { get; }
 
 	public bool PreferPsbtWorkflow => _wallet.KeyManager.PreferPsbtWorkflow;
 
