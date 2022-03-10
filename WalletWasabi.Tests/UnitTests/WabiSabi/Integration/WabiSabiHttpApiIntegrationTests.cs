@@ -18,6 +18,7 @@ using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Wallets;
@@ -124,7 +125,10 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				services.AddScoped(s => new WabiSabiConfig
 				{
 					MaxInputCountByRound = inputCount,
-					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(10)
+					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(60),
+					ConnectionConfirmationTimeout = TimeSpan.FromSeconds(60),
+					OutputRegistrationTimeout = TimeSpan.FromSeconds(60),
+					TransactionSigningTimeout = TimeSpan.FromSeconds(60)
 				}
 
 				);
@@ -161,7 +165,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			consolidationMode: true);
 
 		// Run the coinjoin client task.
-		Assert.True(await coinJoinClient.StartCoinJoinAsync(coins, cts.Token));
+		Assert.True((await coinJoinClient.StartCoinJoinAsync(coins, cts.Token)).SuccessfulBroadcast);
 
 		var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
 		Assert.NotNull(broadcastedTx);
@@ -235,9 +239,11 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig
 			{
 				MaxInputCountByRound = 2 * inputCount,
-				StandardInputRegistrationTimeout = TimeSpan.FromSeconds(20),
-				BlameInputRegistrationTimeout = TimeSpan.FromSeconds(20),
-				TransactionSigningTimeout = TimeSpan.FromSeconds(5 * inputCount),
+				StandardInputRegistrationTimeout = TimeSpan.FromSeconds(60),
+				BlameInputRegistrationTimeout = TimeSpan.FromSeconds(60),
+				ConnectionConfirmationTimeout = TimeSpan.FromSeconds(60),
+				OutputRegistrationTimeout = TimeSpan.FromSeconds(60),
+				TransactionSigningTimeout = TimeSpan.FromSeconds(5 * inputCount)
 			});
 		})).CreateClient();
 
@@ -304,7 +310,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		await Assert.ThrowsAsync<AggregateException>(async () => await Task.WhenAll(new Task[] { badCoinsTask, coinJoinTask }));
 
 		Assert.True(badCoinsTask.IsFaulted);
-		Assert.True(coinJoinTask.Result);
+		Assert.True(coinJoinTask.Result.SuccessfulBroadcast);
 
 		var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
 		Assert.NotNull(broadcastedTx);
@@ -342,6 +348,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 						StandardInputRegistrationTimeout = TimeSpan.FromSeconds(10 * ExpectedInputNumber),
 						ConnectionConfirmationTimeout = TimeSpan.FromSeconds(20 * ExpectedInputNumber),
 						OutputRegistrationTimeout = TimeSpan.FromSeconds(20 * ExpectedInputNumber),
+						TransactionSigningTimeout = TimeSpan.FromSeconds(20 * ExpectedInputNumber)
 					});
 				}));
 
