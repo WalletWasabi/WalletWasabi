@@ -544,24 +544,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private void AddToUndoHistory()
 	{
-		_undoHistory.Push((_transaction!, CloneTransactionInfo()));
+		_undoHistory.Push((_transaction!, _info.Clone()));
 		CanUndo = true;
-	}
-
-	private TransactionInfo CloneTransactionInfo()
-	{
-		return new TransactionInfo(_wallet.KeyManager.MinAnonScoreTarget)
-		{
-			Amount = _info.Amount,
-			ChangelessCoins = _info.ChangelessCoins,
-			Coins = _info.Coins,
-			ConfirmationTimeSpan = _info.ConfirmationTimeSpan,
-			FeeRate = _info.FeeRate,
-			IsCustomFeeUsed = _info.IsCustomFeeUsed,
-			MaximumPossibleFeeRate = _info.MaximumPossibleFeeRate,
-			PayJoinClient = _info.PayJoinClient,
-			SubtractFee = _info.SubtractFee,
-			UserLabels = _info.UserLabels
-		};
 	}
 }
