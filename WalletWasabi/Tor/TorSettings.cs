@@ -77,7 +77,7 @@ public class TorSettings
 		List<string> arguments = new()
 		{
 			$"--LogTimeGranularity 1",
-			$"--SOCKSPort {SocksEndpoint}",
+			$"--SOCKSPort \"{SocksEndpoint} ExtendedErrors\"",
 			$"--CookieAuthentication 1",
 			$"--ControlPort {ControlEndpoint.Port}",
 			$"--CookieAuthFile \"{CookieAuthFilePath}\"",
