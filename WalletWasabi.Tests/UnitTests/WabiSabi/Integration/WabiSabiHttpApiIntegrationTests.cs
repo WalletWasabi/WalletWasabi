@@ -39,6 +39,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 	{
 		_apiApplicationFactory = apiApplicationFactory;
 		_output = output;
+		CoinJoinClient.AsapMode = true;
 	}
 
 	[Fact]

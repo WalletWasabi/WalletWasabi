@@ -30,7 +30,9 @@ public class CoinJoinClient
 	/// Maximum delay when spreading the requests in time, except input registration requests which timings only depends on the input-reg timeout.
 	/// This is a maximum cap the delay can be smaller if the remaining time is less.
 	/// </summary>
-	private static TimeSpan MaximumRequestDelay { get; set; } = TimeSpan.FromSeconds(30);
+	private static TimeSpan MaximumRequestDelay => AsapMode ? TimeSpan.Zero : TimeSpan.FromSeconds(30);
+
+	public static bool AsapMode { get; set; }
 
 	/// <param name="minAnonScoreTarget">Coins those have reached anonymity target, but still can be mixed if desired.</param>
 	/// <param name="consolidationMode">If true, then aggressively try to consolidate as many coins as it can.</param>
@@ -288,7 +290,7 @@ public class CoinJoinClient
 			async (coin, date) =>
 			{
 				var delay = date - DateTimeOffset.UtcNow;
-				if (delay > TimeSpan.Zero)
+				if (delay > TimeSpan.Zero && !AsapMode)
 				{
 					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
 				}
