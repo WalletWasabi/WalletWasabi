@@ -128,7 +128,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			}
 		}
 
-		foreach (var p in bestPockets.OrderBy(x => x.Amount).ToImmutableArray())
+		foreach (var p in bestPockets.OrderBy(x => x.Amount).ThenByDescending(x => x.Labels.Count()).ToImmutableArray())
 		{
 			if (bestPockets.Sum(x => x.Amount) - p.Amount >= targetAmount)
 			{
