@@ -164,7 +164,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			consolidationMode: true);
 
 		// Run the coinjoin client task.
-		Assert.True(await coinJoinClient.StartCoinJoinAsync(coins, cts.Token));
+		Assert.True((await coinJoinClient.StartCoinJoinAsync(coins, cts.Token)).SuccessfulBroadcast);
 
 		var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
 		Assert.NotNull(broadcastedTx);
@@ -309,7 +309,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		await Assert.ThrowsAsync<AggregateException>(async () => await Task.WhenAll(new Task[] { badCoinsTask, coinJoinTask }));
 
 		Assert.True(badCoinsTask.IsFaulted);
-		Assert.True(coinJoinTask.Result);
+		Assert.True(coinJoinTask.Result.SuccessfulBroadcast);
 
 		var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
 		Assert.NotNull(broadcastedTx);
