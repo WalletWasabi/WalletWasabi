@@ -1,3 +1,4 @@
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using NBitcoin;
@@ -5,6 +6,7 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -16,28 +18,30 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	[AutoNotify] private int _maxAnonScoreTarget;
 	[AutoNotify] private string _plebStopThreshold;
 
+	private Wallet _wallet;
+
 	public WalletSettingsViewModel(WalletViewModelBase walletViewModelBase)
 	{
-		var wallet = walletViewModelBase.Wallet;
-		Title = $"{wallet.WalletName} - Wallet Settings";
-		_preferPsbtWorkflow = wallet.KeyManager.PreferPsbtWorkflow;
-		_autoCoinJoin = wallet.KeyManager.AutoCoinJoin;
-		IsHardwareWallet = wallet.KeyManager.IsHardwareWallet;
-		IsWatchOnly = wallet.KeyManager.IsWatchOnly;
-		_plebStopThreshold = wallet.KeyManager.PlebStopThreshold.ToString();
+		_wallet = walletViewModelBase.Wallet;
+		Title = $"{_wallet.WalletName} - Wallet Settings";
+		_preferPsbtWorkflow = _wallet.KeyManager.PreferPsbtWorkflow;
+		_autoCoinJoin = _wallet.KeyManager.AutoCoinJoin;
+		IsHardwareWallet = _wallet.KeyManager.IsHardwareWallet;
+		IsWatchOnly = _wallet.KeyManager.IsWatchOnly;
+		_plebStopThreshold = _wallet.KeyManager.PlebStopThreshold.ToString();
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		NextCommand = CancelCommand;
 
-		VerifyRecoveryWordsCommand = ReactiveCommand.Create(() => Navigate().To(new VerifyRecoveryWordsViewModel(wallet)));
+		VerifyRecoveryWordsCommand = ReactiveCommand.Create(() => Navigate().To(new VerifyRecoveryWordsViewModel(_wallet)));
 
 		this.WhenAnyValue(x => x.PreferPsbtWorkflow)
 			.Skip(1)
 			.Subscribe(value =>
 			{
-				wallet.KeyManager.PreferPsbtWorkflow = value;
-				wallet.KeyManager.ToFile();
+				_wallet.KeyManager.PreferPsbtWorkflow = value;
+				_wallet.KeyManager.ToFile();
 				walletViewModelBase.RaisePropertyChanged(nameof(walletViewModelBase.PreferPsbtWorkflow));
 			});
 
@@ -46,12 +50,12 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 			.Skip(1)
 			.Subscribe(x =>
 			{
-				wallet.KeyManager.AutoCoinJoin = x;
-				wallet.KeyManager.ToFile();
+				_wallet.KeyManager.AutoCoinJoin = x;
+				_wallet.KeyManager.ToFile();
 			});
 
-		_minAnonScoreTarget = wallet.KeyManager.MinAnonScoreTarget;
-		_maxAnonScoreTarget = wallet.KeyManager.MaxAnonScoreTarget;
+		_minAnonScoreTarget = _wallet.KeyManager.MinAnonScoreTarget;
+		_maxAnonScoreTarget = _wallet.KeyManager.MaxAnonScoreTarget;
 
 		this.WhenAnyValue(
 				x => x.MinAnonScoreTarget,
@@ -59,7 +63,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Throttle(TimeSpan.FromMilliseconds(1000))
 			.Skip(1)
-			.Subscribe(_ => wallet.KeyManager.SetAnonScoreTargets(MinAnonScoreTarget, MaxAnonScoreTarget));
+			.Subscribe(_ => _wallet.KeyManager.SetAnonScoreTargets(MinAnonScoreTarget, MaxAnonScoreTarget));
 
 		this.WhenAnyValue(x => x.MinAnonScoreTarget)
 			.Subscribe(
@@ -89,12 +93,18 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Subscribe(x =>
 			{
-				if (Money.TryParse(x, out Money result) && result != wallet.KeyManager.PlebStopThreshold)
+				if (Money.TryParse(x, out Money result) && result != _wallet.KeyManager.PlebStopThreshold)
 				{
-					wallet.KeyManager.PlebStopThreshold = result;
-					wallet.KeyManager.ToFile();
+					_wallet.KeyManager.PlebStopThreshold = result;
+					_wallet.KeyManager.ToFile();
 				}
 			});
+	}
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
+		PlebStopThreshold = _wallet.KeyManager.PlebStopThreshold.ToString();
 	}
 
 	public bool IsHardwareWallet { get; }
@@ -110,7 +120,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 	private static void ValidatePlebStopThreshold(IValidationErrors errors, string plebStopThreshold)
 	{
-		if (!string.IsNullOrWhiteSpace(plebStopThreshold))
+		if (string.IsNullOrWhiteSpace(plebStopThreshold))
 		{
 			return;
 		}
