@@ -109,17 +109,19 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	{
 		if (!string.IsNullOrWhiteSpace(plebStopThreshold))
 		{
-			if (!string.IsNullOrEmpty(plebStopThreshold) && plebStopThreshold.Contains(
-				',',
-				StringComparison.InvariantCultureIgnoreCase))
-			{
-				errors.Add(ErrorSeverity.Error, "Use decimal point instead of comma.");
-			}
+			return;
+		}
 
-			if (!decimal.TryParse(plebStopThreshold, out _))
-			{
-				errors.Add(ErrorSeverity.Error, "Invalid coinjoin threshold.");
-			}
+		if (!string.IsNullOrEmpty(plebStopThreshold) && plebStopThreshold.Contains(
+			',',
+			StringComparison.InvariantCultureIgnoreCase))
+		{
+			errors.Add(ErrorSeverity.Error, "Use decimal point instead of comma.");
+		}
+
+		if (!decimal.TryParse(plebStopThreshold, out _))
+		{
+			errors.Add(ErrorSeverity.Error, "Invalid coinjoin threshold.");
 		}
 	}
 }
