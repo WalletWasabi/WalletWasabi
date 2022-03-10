@@ -40,7 +40,6 @@ public class CoinJoinManager : BackgroundService
 	public ServiceConfiguration ServiceConfiguration { get; }
 	private ImmutableDictionary<string, CoinJoinTracker> TrackedCoinJoins { get; set; } = ImmutableDictionary<string, CoinJoinTracker>.Empty;
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
-	private TimeSpan AutoCoinJoinDelayAfterWalletLoaded { get; } = TimeSpan.FromSeconds(60);
 	public bool IsUserInSendWorkflow { get; set; }
 
 	private ConcurrentDictionary<Wallet, CoinJoinCommand> WalletManualState { get; } = new();
@@ -50,9 +49,6 @@ public class CoinJoinManager : BackgroundService
 
 	public void Stop(Wallet wallet) =>
 		WalletManualState.AddOrUpdate(wallet, CoinJoinCommand.Stop, (_, _) => CoinJoinCommand.Stop);
-
-	public void AutoStart(Wallet wallet) =>
-		WalletManualState.Remove(wallet, out _);
 
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
 
@@ -100,16 +96,11 @@ public class CoinJoinManager : BackgroundService
 
 				if (!MustStart(openedWallet))
 				{
-					if (openedWallet.ElapsedTimeSinceStartup <= AutoCoinJoinDelayAfterWalletLoaded)
-					{
-						NotifyCoinJoinStarting(openedWallet);
-						continue;
-					}
-					if (!openedWallet.KeyManager.AutoCoinJoin)
-					{
-						NotifyCoinJoinStartError(openedWallet, CoinjoinError.AutoConjoinDisabled);
-						continue;
-					}
+					continue;
+				}
+
+				if (openedWallet.KeyManager.AutoCoinJoin)
+				{
 					if (IsUserInSendWorkflow)
 					{
 						NotifyCoinJoinStartError(openedWallet, CoinjoinError.UserInSendWorkflow);
@@ -121,6 +112,7 @@ public class CoinJoinManager : BackgroundService
 						continue;
 					}
 				}
+
 				var coinCandidates = SelectCandidateCoins(openedWallet).ToArray();
 				if (coinCandidates.Length == 0)
 				{
@@ -169,11 +161,11 @@ public class CoinJoinManager : BackgroundService
 
 				try
 				{
-					var success = await finishedCoinJoin.CoinJoinTask.ConfigureAwait(false);
-					if (success)
+					var result = await finishedCoinJoin.CoinJoinTask.ConfigureAwait(false);
+					if (result.SuccessfulBroadcast)
 					{
-						CoinRefrigerator.Freeze(finishedCoinJoin.CoinCandidates);
-						MarkDestinationsUsed(finishedCoinJoin);
+						CoinRefrigerator.Freeze(result.RegisteredCoins);
+						MarkDestinationsUsed(result.RegisteredOutputs);
 						Logger.LogInfo($"{logPrefix} finished!");
 					}
 					else
@@ -208,25 +200,18 @@ public class CoinJoinManager : BackgroundService
 	/// <summary>
 	/// Mark all the outputs we had in any of our wallets used.
 	/// </summary>
-	private void MarkDestinationsUsed(CoinJoinTracker finishedCoinJoin)
+	private void MarkDestinationsUsed(ImmutableList<Script> outputs)
 	{
+		var hashSet = outputs.ToHashSet();
+
 		foreach (var k in WalletManager
 			.GetWallets(false)
-			.SelectMany(w => w
-				.KeyManager
-				.GetKeys(k => finishedCoinJoin
-					.Destinations
-					.Select(d => d.ScriptPubKey)
-					.Contains(k.P2wpkhScript))))
+			.Select(w => w.KeyManager)
+			.SelectMany(k => k.GetKeys(k => hashSet.Contains(k.P2wpkhScript))))
 		{
 			k.SetKeyState(KeyState.Used);
 		}
 	}
-
-	private void NotifyCoinJoinStarting(Wallet openedWallet) =>
-		SafeRaiseEvent(StatusChanged, new StartingEventArgs(
-			openedWallet,
-			AutoCoinJoinDelayAfterWalletLoaded - openedWallet.ElapsedTimeSinceStartup));
 
 	private void NotifyCoinJoinStarted(Wallet openedWallet, TimeSpan registrationTimeout) =>
 		SafeRaiseEvent(StatusChanged, new StartedEventArgs(openedWallet, registrationTimeout));
@@ -245,7 +230,7 @@ public class CoinJoinManager : BackgroundService
 			finishedCoinJoin.Wallet,
 			finishedCoinJoin.CoinJoinTask.Status switch
 			{
-				TaskStatus.RanToCompletion when finishedCoinJoin.CoinJoinTask.Result => CompletionStatus.Success,
+				TaskStatus.RanToCompletion when finishedCoinJoin.CoinJoinTask.Result.SuccessfulBroadcast => CompletionStatus.Success,
 				TaskStatus.Canceled => CompletionStatus.Canceled,
 				TaskStatus.Faulted => CompletionStatus.Failed,
 				_ => CompletionStatus.Unknown,
