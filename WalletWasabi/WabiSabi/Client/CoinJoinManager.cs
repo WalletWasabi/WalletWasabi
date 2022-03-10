@@ -198,7 +198,7 @@ public class CoinJoinManager : BackgroundService
 	}
 
 	/// <summary>
-	/// Mark all the outputs we had in any of our wallets used.
+	/// Mark all the registered outputs we had in any of our wallets used.
 	/// </summary>
 	private void MarkDestinationsUsed(ImmutableList<Script> outputs)
 	{
