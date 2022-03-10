@@ -442,6 +442,8 @@ public class TagsBox : TemplatedControl
 
 	public void AddTag(string tag)
 	{
+		var inputTag = tag;
+
 		if (Items is not IList items)
 		{
 			return;
@@ -457,14 +459,26 @@ public class TagsBox : TemplatedControl
 			return;
 		}
 
-		if (RestrictInputToSuggestions &&
-			Suggestions is { } suggestions &&
-			!suggestions.Any(x => x.Equals(tag, _stringComparison)))
+		if (Suggestions is { } suggestions)
 		{
-			return;
+			if (RestrictInputToSuggestions &&
+			    !suggestions.Any(x => x.Equals(tag, _stringComparison)))
+			{
+				return;
+			}
+
+			// When user tries to commit a tag,
+			// check if it's already in the suggestions list
+			// by comparing it case-insensitively.
+			var result = suggestions.FirstOrDefault(x => x.Equals(tag, StringComparison.CurrentCultureIgnoreCase));
+
+			if (result is not null)
+			{
+				inputTag = result;
+			}
 		}
 
-		items.Add(tag);
+		items.Add(inputTag);
 		CheckIsInputEnabled();
 		InvalidateWatermark();
 	}
