@@ -124,18 +124,25 @@ public partial class WalletViewModel : WalletViewModelBase
 		{
 			if (!string.IsNullOrEmpty(wallet.Kitchen.SaltSoup()))
 			{
-				var pwAuthDialog = new PasswordAuthDialogViewModel(wallet);
-				var res = await NavigateDialogAsync(pwAuthDialog, NavigationTarget.CompactDialogScreen);
+				PasswordAuthDialogViewModel pwAuthDialog;
+				DialogResult<bool> result;
 
-				if (!res.Result && res.Kind == DialogResultKind.Normal)
+				do
 				{
-					await ShowErrorAsync("Wallet Info", "The password is incorrect! Try Again.", "");
-					return;
+					pwAuthDialog = new PasswordAuthDialogViewModel(wallet);
+					result = await NavigateDialogAsync(pwAuthDialog, NavigationTarget.CompactDialogScreen);
+
+					if (!result.Result && result.Kind == DialogResultKind.Normal)
+					{
+						await ShowErrorAsync("Wallet Info", "The password is incorrect! Try Again.", "");
+						continue;
+					}
+					else if (result.Kind is DialogResultKind.Back or DialogResultKind.Cancel)
+					{
+						return;
+					}
 				}
-				else if (res.Kind is DialogResultKind.Back or DialogResultKind.Cancel)
-				{
-					return;
-				}
+				while (!result.Result);
 			}
 
 			Navigate(NavigationTarget.DialogScreen).To(new WalletInfoViewModel(this));
