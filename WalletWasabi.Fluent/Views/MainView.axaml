@@ -67,7 +67,7 @@
                                            HorizontalAlignment="Center" Height="64" />
                 <ContentControl ClipToBounds="False" Content="{Binding MainScreen.CurrentPage}" />
               </DockPanel>
-              <Border CornerRadius="10 0 0 0" BoxShadow="inset 0 0 5 0 #000000" ClipToBounds="True" IsHitTestVisible="False" />
+              <Border CornerRadius="10 0 0 0" BoxShadow="inset 0 0 5 0 #000000" ClipToBounds="True" IsHitTestVisible="False" Margin="0 0 -5 -5" />
             </Panel>
           </Border>
         </Grid>
