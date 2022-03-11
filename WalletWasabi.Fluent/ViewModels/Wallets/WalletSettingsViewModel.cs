@@ -3,6 +3,7 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
@@ -28,7 +29,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 		_autoCoinJoin = _wallet.KeyManager.AutoCoinJoin;
 		IsHardwareWallet = _wallet.KeyManager.IsHardwareWallet;
 		IsWatchOnly = _wallet.KeyManager.IsWatchOnly;
-		_plebStopThreshold = _wallet.KeyManager.PlebStopThreshold.ToString();
+		_plebStopThreshold = _wallet.KeyManager.PlebStopThreshold?.ToString() ?? KeyManager.DefaultPlebStopThreshold.ToString();
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -120,14 +121,12 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 	private static void ValidatePlebStopThreshold(IValidationErrors errors, string plebStopThreshold)
 	{
-		if (string.IsNullOrWhiteSpace(plebStopThreshold))
+		if (string.IsNullOrWhiteSpace(plebStopThreshold) || string.IsNullOrEmpty(plebStopThreshold))
 		{
 			return;
 		}
 
-		if (!string.IsNullOrEmpty(plebStopThreshold) && plebStopThreshold.Contains(
-			',',
-			StringComparison.InvariantCultureIgnoreCase))
+		if (plebStopThreshold.Contains(',', StringComparison.InvariantCultureIgnoreCase))
 		{
 			errors.Add(ErrorSeverity.Error, "Use decimal point instead of comma.");
 		}
