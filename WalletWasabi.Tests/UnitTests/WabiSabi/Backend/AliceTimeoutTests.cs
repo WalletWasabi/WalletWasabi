@@ -51,9 +51,15 @@ public class AliceTimeoutTests
 		Assert.Empty(round.Alices);
 
 		cancellationTokenSource.Cancel();
-		var exc = await Assert.ThrowsAsync<Exception>(async () => await task);
 
-		Assert.True(exc is OperationCanceledException or WabiSabiProtocolException);
+		try
+		{
+			await task;
+		}
+		catch (Exception exc)
+		{
+			Assert.True(exc is OperationCanceledException or WabiSabiProtocolException);
+		}
 
 		await roundStateUpdater.StopAsync(CancellationToken.None);
 		await arena.StopAsync(CancellationToken.None);
