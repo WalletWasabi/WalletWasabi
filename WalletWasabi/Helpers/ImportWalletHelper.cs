@@ -52,13 +52,13 @@ public static class ImportWalletHelper
 
 	private static KeyManager GetKeyManagerByColdcardJson(WalletManager manager, JObject jsonWallet, string walletFullPath)
 	{
-		var xpubString = jsonWallet["ExtPubKey"]!.ToString();
+		var xpubString = jsonWallet["ExtPubKey"]?.ToString();
 		if (xpubString is null)
 		{
 			throw new ArgumentNullException($"Can't get KeyManager, ExtPubKey was null.");
 		}
 
-		var mfpString = jsonWallet["MasterFingerprint"]!.ToString();
+		var mfpString = jsonWallet["MasterFingerprint"]?.ToString();
 		if (mfpString is null)
 		{
 			throw new ArgumentNullException($"Can't get KeyManager, MasterFingerprint was null.");
