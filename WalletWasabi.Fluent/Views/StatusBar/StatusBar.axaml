@@ -30,12 +30,12 @@
       <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
     </Style>
   </UserControl.Styles>
-  <Panel HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0 0 0 5">
+  <Panel HorizontalAlignment="Right" VerticalAlignment="Bottom">
     <Interaction.Behaviors>
       <behaviors:ShowFlyoutOnPointerOverBehavior />
     </Interaction.Behaviors>
     <FlyoutBase.AttachedFlyout>
-      <Flyout Placement="Top" ShowMode="TransientWithDismissOnPointerMoveAway">
+      <Flyout Placement="BottomEdgeAlignedRight" ShowMode="TransientWithDismissOnPointerMoveAway">
         <StackPanel TextBlock.Foreground="{DynamicResource TextControlForeground}"
                     TextBlock.FontSize="14"
                     MaxWidth="160"
@@ -126,7 +126,7 @@
     <PathIcon Data="{StaticResource checkmark_circle_filled}"
               Foreground="{StaticResource SystemAccentColor}"
               VerticalAlignment="Center" HorizontalAlignment="Right"
-              Height="30"
+              Height="40"
               Margin="10 0"
               IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.Ready}}" />
 
@@ -142,7 +142,7 @@
     <PathIcon Data="{StaticResource arrow_sync_regular}"
               Foreground="{StaticResource SystemAccentColor}"
               VerticalAlignment="Center" HorizontalAlignment="Right"
-              Height="30"
+              Height="40"
               Margin="10 0"
               IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.Loading}}"
               Classes.rotate="{Binding $self.IsVisible}" />
