@@ -40,8 +40,8 @@
           <Color x:Key="SystemAccentColorLight1">#FF6B9C25</Color>
           <Color x:Key="SystemAccentColorLight2">#FF57881C</Color>
           <Color x:Key="SystemAccentColorLight3">#FF447512</Color>
-          <Color x:Key="RegionColor">#010D20</Color>
-          <Color x:Key="TileRegionColor">#152032</Color>
+          <Color x:Key="RegionColor">#212d40</Color>
+          <Color x:Key="TileRegionColor">#253244</Color>
         </ResourceDictionary>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
