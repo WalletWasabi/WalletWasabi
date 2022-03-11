@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
+using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
@@ -50,7 +51,9 @@ public class AliceTimeoutTests
 		Assert.Empty(round.Alices);
 
 		cancellationTokenSource.Cancel();
-		await Assert.ThrowsAsync<OperationCanceledException>(async () => await task);
+		var exc = await Assert.ThrowsAsync<Exception>(async () => await task);
+
+		Assert.True(exc is OperationCanceledException or WabiSabiProtocolException);
 
 		await roundStateUpdater.StopAsync(CancellationToken.None);
 		await arena.StopAsync(CancellationToken.None);
