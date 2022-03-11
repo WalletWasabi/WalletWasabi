@@ -17,7 +17,7 @@
   <Panel>
     <Panel>
       <Panel>
-        <ExperimentalAcrylicBorder DockPanel.Dock="Left" IsHitTestVisible="False">
+        <ExperimentalAcrylicBorder IsHitTestVisible="False">
           <ExperimentalAcrylicBorder.Material>
             <ExperimentalAcrylicMaterial BackgroundSource="Digger"
                                          TintColor="{DynamicResource NavBarTintColor}"
@@ -26,45 +26,48 @@
                                          MaterialOpacity="0.8" />
           </ExperimentalAcrylicBorder.Material>
         </ExperimentalAcrylicBorder>
-        <navbar:NavBar DataContext="{Binding NavBar}" HorizontalAlignment="Left" Width="64" />
-      </Panel>
-      <Border Margin="64 32 0 0" CornerRadius="10, 0 , 0, 0" ClipToBounds="True">
-        <Panel>
-          <Border Background="{DynamicResource RegionColor}" IsHitTestVisible="False" />
-          <Panel Background="{DynamicResource RegionColor}" VerticalAlignment="Bottom"
-                 Height="100">
-            <spectrum:SpectrumControl Opacity="0.6" IsActive="{Binding IsCoinJoinActive}"
-                                      IsDockEffectVisible="{Binding MusicControls.IsActive}" />
-            <statusBar:StatusBar DataContext="{Binding StatusBar}" />
-          </Panel>
-          <DockPanel>
-            <DockPanel.Styles>
-              <Style Selector="ContentControl c|ContentArea /template/ Panel#PART_ButtonArea">
-                <Setter Property="IsVisible" Value="False" />
-              </Style>
 
-              <Style Selector="c|ContentArea /template/ StackPanel#PART_Header">
-                <Setter Property="Margin" Value="31 36 31 0" />
-              </Style>
-            </DockPanel.Styles>
-            <wallets:MusicControlsView DockPanel.Dock="Bottom" DataContext="{Binding MusicControls}"
-                                       HorizontalAlignment="Center" Height="64" />
-            <ContentControl ClipToBounds="False" Content="{Binding MainScreen.CurrentPage}" />
-          </DockPanel>
-        </Panel>
-      </Border>
-      <ExperimentalAcrylicBorder DockPanel.Dock="Left" IsHitTestVisible="False"
-                                 IsVisible="{Binding IsOobeBackgroundVisible}">
-        <ExperimentalAcrylicBorder.Material>
-          <ExperimentalAcrylicMaterial BackgroundSource="Digger"
-                                       TintColor="{DynamicResource SystemAltHighColor}"
-                                       TintOpacity="0.8"
-                                       FallbackColor="{DynamicResource AcrylicFallbackColor}"
-                                       MaterialOpacity="0.2" />
-        </ExperimentalAcrylicBorder.Material>
-        <Viewbox Stretch="Uniform" ClipToBounds="False">
-          <ContentControl Template="{StaticResource WelcomeBg}" ClipToBounds="False" />
-        </Viewbox>
+        <Grid ColumnDefinitions="68, *" RowDefinitions="42, *">
+
+          <Panel Grid.Row="0" Grid.Column="1">
+            <StackPanel Orientation="Horizontal"  VerticalAlignment="Center" HorizontalAlignment="Left">
+              <Panel Width="16"></Panel>
+              <ContentControl Template="{DynamicResource wasabi_logo_fixed}" />
+              <Panel Width="8"></Panel>
+              <TextBlock Classes="h10 bold">Wasabi Wallet</TextBlock>
+              <Panel Width="15"></Panel>
+              <TextBlock Classes="h10 " Opacity="0.5">Testnet Preview</TextBlock>
+            </StackPanel>
+          </Panel>
+
+          <navbar:NavBar Grid.Row="1" Grid.Column="0" DataContext="{Binding NavBar}" />
+
+          <Border Grid.Row="1" Grid.Column="1" CornerRadius="10, 0 , 0, 0" ClipToBounds="True">
+            <Panel>
+              <Border Background="{DynamicResource RegionColor}" IsHitTestVisible="False" />
+              <Panel Background="{DynamicResource RegionColor}" VerticalAlignment="Bottom"
+                     Height="100">
+                <spectrum:SpectrumControl Opacity="0.6" IsActive="{Binding IsCoinJoinActive}"
+                                          IsDockEffectVisible="{Binding MusicControls.IsActive}" />
+                <statusBar:StatusBar DataContext="{Binding StatusBar}" />
+              </Panel>
+              <DockPanel>
+                <DockPanel.Styles>
+                  <Style Selector="ContentControl c|ContentArea /template/ Panel#PART_ButtonArea">
+                    <Setter Property="IsVisible" Value="False" />
+                  </Style>
+
+                  <Style Selector="c|ContentArea /template/ StackPanel#PART_Header">
+                    <Setter Property="Margin" Value="31 36 31 0" />
+                  </Style>
+                </DockPanel.Styles>
+                <wallets:MusicControlsView DockPanel.Dock="Bottom" DataContext="{Binding MusicControls}"
+                                           HorizontalAlignment="Center" Height="64" />
+                <ContentControl ClipToBounds="False" Content="{Binding MainScreen.CurrentPage}" />
+              </DockPanel>
+            </Panel>
+          </Border>
+
 
       </ExperimentalAcrylicBorder>
       <c:AdornerCanvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
