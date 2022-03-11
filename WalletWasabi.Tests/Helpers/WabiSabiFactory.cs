@@ -3,25 +3,27 @@ using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.RPC;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Wallets;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Tests.Helpers;
 
@@ -267,5 +269,44 @@ public static class WabiSabiFactory
 		var smartCoin1 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m));
 		var smartCoin2 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(2m));
 		return (keyChain, smartCoin1, smartCoin2);
+	}
+
+	public static CoinJoinClient CreateTestCoinJoinClient(
+		IWasabiHttpClientFactory httpClientFactory,
+		KeyManager keyManager,
+		RoundStateUpdater roundStateUpdater)
+	{
+		return CreateTestCoinJoinClient(
+			httpClientFactory,
+			new KeyChain(keyManager, new Kitchen("")),
+			new InternalDestinationProvider(keyManager),
+			roundStateUpdater);
+	}
+
+	public static CoinJoinClient CreateTestCoinJoinClient(
+		IWasabiHttpClientFactory httpClientFactory,
+		IKeyChain keyChain,
+		IDestinationProvider destinationProvider,
+		RoundStateUpdater roundStateUpdater)
+	{
+		var mock = new Mock<CoinJoinClient>(
+			httpClientFactory,
+			keyChain,
+			destinationProvider,
+			roundStateUpdater,
+			int.MaxValue,
+			true,
+			TimeSpan.Zero,
+			TimeSpan.Zero);
+
+		mock.Setup(m => m.GetScheduledDates(It.IsAny<int>(), It.IsAny<DateTimeOffset>(), It.IsAny<TimeSpan?>()))
+			.Returns((int howMany, DateTimeOffset endTime, TimeSpan maximumRequestDelay) =>
+			{
+				var now = DateTimeOffset.UtcNow;
+				return Enumerable.Repeat(now, howMany).ToImmutableList();
+			});
+		mock.CallBase = true;
+
+		return mock.Object;
 	}
 }
