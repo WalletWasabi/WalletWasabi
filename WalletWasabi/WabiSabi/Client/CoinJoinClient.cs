@@ -201,7 +201,7 @@ public class CoinJoinClient
 			// Output registration.
 			Logger.LogDebug($"Round ({roundState.Id}): Output registration started - it will end in: {outputRegistrationEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}");
 
-			var outputRegistrationScheduledDates = GetDelaysForRequests(outputTxOuts.Count(), outputRegistrationEndTime);
+			var outputRegistrationScheduledDates = GetScheduledDates(outputTxOuts.Count(), outputRegistrationEndTime);
 			await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationScheduledDates, cancellationToken).ConfigureAwait(false);
 			Logger.LogDebug($"Round ({roundState.Id}): Outputs({outputTxOuts.Count()}) successfully registered.");
 
@@ -276,7 +276,7 @@ public class CoinJoinClient
 
 		Logger.LogDebug($"Round ({roundState.Id}): Input registration started, it will end in {remainingTimeForRegistration:hh\\:mm\\:ss}.");
 
-		var scheduledDates = GetDelaysForRequests(smartCoins.Count(), roundState.InputRegistrationEnd, MaximumRequestDelay);
+		var scheduledDates = GetScheduledDates(smartCoins.Count(), roundState.InputRegistrationEnd, MaximumRequestDelay);
 
 		// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
 		var aliceClients = smartCoins.Zip(
@@ -323,7 +323,7 @@ public class CoinJoinClient
 
 	private async Task SignTransactionAsync(IEnumerable<AliceClient> aliceClients, Transaction unsignedCoinJoinTransaction, DateTimeOffset signingEndTime, CancellationToken cancellationToken)
 	{
-		var scheduledDates = GetDelaysForRequests(aliceClients.Count(), signingEndTime, MaximumRequestDelay);
+		var scheduledDates = GetScheduledDates(aliceClients.Count(), signingEndTime, MaximumRequestDelay);
 
 		var tasks = Enumerable.Zip(aliceClients, scheduledDates,
 			async (aliceClient, scheduledDate) =>
@@ -342,7 +342,7 @@ public class CoinJoinClient
 
 	private async Task ReadyToSignAsync(IEnumerable<AliceClient> aliceClients, DateTimeOffset readyToSignEndTime, CancellationToken cancellationToken)
 	{
-		var scheduledDates = GetDelaysForRequests(aliceClients.Count(), readyToSignEndTime, MaximumRequestDelay);
+		var scheduledDates = GetScheduledDates(aliceClients.Count(), readyToSignEndTime, MaximumRequestDelay);
 
 		var tasks = Enumerable.Zip(aliceClients, scheduledDates,
 			async (aliceClient, scheduledDate) =>
@@ -359,7 +359,7 @@ public class CoinJoinClient
 		await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
 
-	private ImmutableList<DateTimeOffset> GetDelaysForRequests(int howMany, DateTimeOffset endTime, TimeSpan? maximumRequestDelay = null)
+	private ImmutableList<DateTimeOffset> GetScheduledDates(int howMany, DateTimeOffset endTime, TimeSpan? maximumRequestDelay = null)
 	{
 		var remainingTime = endTime - DateTimeOffset.UtcNow;
 
