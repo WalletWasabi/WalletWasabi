@@ -25,6 +25,11 @@ public class CoinJoinClient
 	private volatile bool _inCriticalCoinJoinState;
 	private static readonly Money MinimumOutputAmountSanity = Money.Coins(0.0001m); // ignore rounds with too big minimum denominations
 
+	// Maximum delay when spreading the requests in time, except input registration requests which
+	// timings only depends on the input-reg timeout.
+	// This is a maximum cap the delay can be smaller if the remaining time is less.
+	private static readonly TimeSpan MaximumRequestDelay = TimeSpan.FromSeconds(10);
+
 	/// <param name="minAnonScoreTarget">Coins those have reached anonymity target, but still can be mixed if desired.</param>
 	/// <param name="consolidationMode">If true, then aggressively try to consolidate as many coins as it can.</param>
 	public CoinJoinClient(
@@ -195,7 +200,9 @@ public class CoinJoinClient
 
 			// Output registration.
 			Logger.LogDebug($"Round ({roundState.Id}): Output registration started - it will end in: {outputRegistrationEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}");
-			await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationEndTime, cancellationToken).ConfigureAwait(false);
+
+			var outputRegistrationScheduledDates = GetScheduledDates(outputTxOuts.Count(), outputRegistrationEndTime);
+			await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationScheduledDates, cancellationToken).ConfigureAwait(false);
 			Logger.LogDebug($"Round ({roundState.Id}): Outputs({outputTxOuts.Count()}) successfully registered.");
 
 			// ReadyToSign.
@@ -269,7 +276,7 @@ public class CoinJoinClient
 
 		Logger.LogDebug($"Round ({roundState.Id}): Input registration started, it will end in {remainingTimeForRegistration:hh\\:mm\\:ss}.");
 
-		var scheduledDates = remainingTimeForRegistration.SamplePoisson(smartCoins.Count());
+		var scheduledDates = GetScheduledDates(smartCoins.Count(), roundState.InputRegistrationEnd, MaximumRequestDelay);
 
 		// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
 		var aliceClients = smartCoins.Zip(
@@ -316,7 +323,7 @@ public class CoinJoinClient
 
 	private async Task SignTransactionAsync(IEnumerable<AliceClient> aliceClients, Transaction unsignedCoinJoinTransaction, DateTimeOffset signingEndTime, CancellationToken cancellationToken)
 	{
-		var scheduledDates = GetDelaysForRequests(aliceClients.Count(), signingEndTime);
+		var scheduledDates = GetScheduledDates(aliceClients.Count(), signingEndTime, MaximumRequestDelay);
 
 		var tasks = Enumerable.Zip(aliceClients, scheduledDates,
 			async (aliceClient, scheduledDate) =>
@@ -335,7 +342,7 @@ public class CoinJoinClient
 
 	private async Task ReadyToSignAsync(IEnumerable<AliceClient> aliceClients, DateTimeOffset readyToSignEndTime, CancellationToken cancellationToken)
 	{
-		var scheduledDates = GetDelaysForRequests(aliceClients.Count(), readyToSignEndTime);
+		var scheduledDates = GetScheduledDates(aliceClients.Count(), readyToSignEndTime, MaximumRequestDelay);
 
 		var tasks = Enumerable.Zip(aliceClients, scheduledDates,
 			async (aliceClient, scheduledDate) =>
@@ -352,15 +359,14 @@ public class CoinJoinClient
 		await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
 
-	public static ImmutableList<DateTimeOffset> GetDelaysForRequests(int howMany, DateTimeOffset endTime)
+	private ImmutableList<DateTimeOffset> GetScheduledDates(int howMany, DateTimeOffset endTime, TimeSpan? maximumRequestDelay = null)
 	{
-		// Maximum delay when spreading the requests in time, except input registration requests which
-		// timings only depends on the input-reg timeout.
-		// This is a maximum cap the delay can be smaller if the remaining time is less.
-		var maximumRequestDelay = TimeSpan.FromSeconds(10);
-
 		var remainingTime = endTime - DateTimeOffset.UtcNow;
-		remainingTime = remainingTime > maximumRequestDelay ? maximumRequestDelay : remainingTime;
+
+		if (maximumRequestDelay is { } max && remainingTime > max)
+		{
+			remainingTime = max;
+		}
 
 		return remainingTime.SamplePoisson(howMany);
 	}
