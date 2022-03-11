@@ -42,10 +42,10 @@
 
           <navbar:NavBar Grid.Row="1" Grid.Column="0" DataContext="{Binding NavBar}" />
 
-          <Border Grid.Row="1" Grid.Column="1" CornerRadius="10, 0 , 0, 0" ClipToBounds="True">
+          <Border Grid.Row="1" Grid.Column="1" CornerRadius="10 0 0 0" ClipToBounds="True">
             <Panel>
-              <Border Background="{DynamicResource RegionColor}" IsHitTestVisible="False" />
-              <Panel Background="{DynamicResource RegionColor}" VerticalAlignment="Bottom"
+              <Border CornerRadius="10 0 0 0" Background="{DynamicResource RegionColor}" ClipToBounds="True" IsHitTestVisible="False" />
+              <Panel VerticalAlignment="Bottom"
                      Height="100">
                 <spectrum:SpectrumControl Opacity="0.6" IsActive="{Binding IsCoinJoinActive}"
                                           IsDockEffectVisible="{Binding MusicControls.IsActive}" />
@@ -58,13 +58,14 @@
                   </Style>
 
                   <Style Selector="c|ContentArea /template/ StackPanel#PART_Header">
-                    <Setter Property="Margin" Value="31 36 31 0" />
+                    <Setter Property="Margin" Value="31 26 31 0" />
                   </Style>
                 </DockPanel.Styles>
                 <wallets:MusicControlsView DockPanel.Dock="Bottom" DataContext="{Binding MusicControls}"
                                            HorizontalAlignment="Center" Height="64" />
                 <ContentControl ClipToBounds="False" Content="{Binding MainScreen.CurrentPage}" />
               </DockPanel>
+              <Border CornerRadius="10 0 0 0" BoxShadow="inset 0 0 5 0 #000000" ClipToBounds="True" IsHitTestVisible="False" />
             </Panel>
           </Border>
         </Grid>
