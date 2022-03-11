@@ -17,7 +17,7 @@ public class BlockNotifier : PeriodicRunner
 		RpcClient = Guard.NotNull(nameof(rpcClient), rpcClient);
 		P2pNode = p2pNode;
 		ProcessedBlocks = new List<uint256>();
-		BestBlockHash = uint256.Zero;
+
 		if (p2pNode is { })
 		{
 			p2pNode.BlockInv += P2pNode_BlockInv;
@@ -34,7 +34,7 @@ public class BlockNotifier : PeriodicRunner
 	private List<uint256> ProcessedBlocks { get; }
 
 	public P2pNode? P2pNode { get; }
-	public uint256 BestBlockHash { get; private set; }
+	public uint256 BestBlockHash { get; private set; } = uint256.Zero;
 
 	private uint256? LastInv { get; set; } = null;
 	private object LastInvLock { get; } = new object();
