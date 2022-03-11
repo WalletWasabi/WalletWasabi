@@ -151,7 +151,7 @@ public class KeyManager
 	/// </summary>
 	[JsonProperty(Order = 11, PropertyName = "PlebStopThreshold")]
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
-	public Money PlebStopThreshold { get; internal set; } = DefaultPlebStopThreshold;
+	public Money PlebStopThreshold { get; set; } = DefaultPlebStopThreshold;
 
 	[JsonProperty(Order = 12, PropertyName = "Icon")]
 	public string? Icon { get; private set; }
