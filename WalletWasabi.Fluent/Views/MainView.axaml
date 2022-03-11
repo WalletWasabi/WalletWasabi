@@ -70,7 +70,7 @@
         </Grid>
       </Panel>
       <ExperimentalAcrylicBorder DockPanel.Dock="Left" IsHitTestVisible="False"
-                                 IsVisible="{Binding IsOobeBackgroundVisible}">
+                                 IsVisible="{Binding IsOobeBackgroundVisible, FallbackValue=False}">
         <ExperimentalAcrylicBorder.Material>
           <ExperimentalAcrylicMaterial BackgroundSource="Digger"
                                        TintColor="{DynamicResource SystemAltHighColor}"
