@@ -131,10 +131,10 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 		{
 			errors.Add(ErrorSeverity.Error, "Use decimal point instead of comma.");
 		}
-
-		if (!decimal.TryParse(plebStopThreshold, out _))
+		else if (!decimal.TryParse(plebStopThreshold, out _))
 		{
 			errors.Add(ErrorSeverity.Error, "Invalid coinjoin threshold.");
+			return;
 		}
 	}
 }
