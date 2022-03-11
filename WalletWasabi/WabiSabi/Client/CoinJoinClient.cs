@@ -25,12 +25,6 @@ public class CoinJoinClient
 	private volatile bool _inCriticalCoinJoinState;
 	private static readonly Money MinimumOutputAmountSanity = Money.Coins(0.0001m); // ignore rounds with too big minimum denominations
 
-	/// <summary>
-	/// Maximum delay when spreading the requests in time, except input registration requests which timings only depends on the input-reg timeout.
-	/// This is a maximum cap the delay can be smaller if the remaining time is less.
-	/// </summary>
-	private static TimeSpan MaximumRequestDelay { get; set; } = TimeSpan.FromSeconds(30);
-
 	/// <param name="minAnonScoreTarget">Coins those have reached anonymity target, but still can be mixed if desired.</param>
 	/// <param name="consolidationMode">If true, then aggressively try to consolidate as many coins as it can.</param>
 	public CoinJoinClient(
@@ -324,7 +318,6 @@ public class CoinJoinClient
 
 	private async Task SignTransactionAsync(IEnumerable<AliceClient> aliceClients, Transaction unsignedCoinJoinTransaction, DateTimeOffset signingEndTime, CancellationToken cancellationToken)
 	{
-		var remainingTime = signingEndTime - DateTimeOffset.UtcNow;
 		var scheduledDates = GetDelaysForRequests(aliceClients.Count(), signingEndTime);
 
 		var tasks = Enumerable.Zip(aliceClients, scheduledDates,
@@ -363,12 +356,13 @@ public class CoinJoinClient
 
 	public static ImmutableList<DateTimeOffset> GetDelaysForRequests(int howMany, DateTimeOffset endTime)
 	{
-		var remainingTime = endTime - DateTimeOffset.UtcNow;
+		// Maximum delay when spreading the requests in time, except input registration requests which
+		// timings only depends on the input-reg timeout.
+		// This is a maximum cap the delay can be smaller if the remaining time is less.
+		var maximumRequestDelay = TimeSpan.FromSeconds(10);
 
-		if (remainingTime > MaximumRequestDelay)
-		{
-			remainingTime = MaximumRequestDelay;
-		}
+		var remainingTime = endTime - DateTimeOffset.UtcNow;
+		remainingTime = remainingTime > maximumRequestDelay ? maximumRequestDelay : remainingTime;
 
 		return remainingTime.SamplePoisson(howMany);
 	}
