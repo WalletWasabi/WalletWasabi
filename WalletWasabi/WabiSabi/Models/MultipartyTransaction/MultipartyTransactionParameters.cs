@@ -35,7 +35,7 @@ public record MultipartyTransactionParameters
 	public ImmutableSortedSet<ScriptType> AllowedOutputTypes { get; init; } = OnlyP2WPKH;
 
 	public int MaxTransactionSize { get; init; } = StandardTransactionPolicy.MaxTransactionSize!.Value;
-	public FeeRate MinRelayTxFee { get; init; } = StandardTransactionPolicy.MinRelayTxFee;
+	public FeeRate MinRelayTxFee { get; init; } = StandardTransactionPolicy.MinRelayTxFee ?? FeeRate.Zero;
 	public FeeRate FeeRate { get; init; }
 	public CoordinationFeeRate CoordinationFeeRate { get; init; }
 	public MoneyRange AllowedInputAmounts { get; init; }
