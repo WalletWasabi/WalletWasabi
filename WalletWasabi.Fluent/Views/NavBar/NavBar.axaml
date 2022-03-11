@@ -92,9 +92,8 @@
       <Setter Property="Background" Value="{DynamicResource NavBarItemPointerOverBackgroundBrush}" />
     </Style>
   </UserControl.Styles>
-  <DockPanel Margin="0 0 0 4">
+  <DockPanel Margin="0 -4 0 4">
     <StackPanel DockPanel.Dock="Top" Spacing="5" Background="Transparent">
-      <Panel Height="10" />
       <c:NavBarListBox Items="{Binding TopItems}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                        Name="TopListBox"
@@ -183,8 +182,8 @@
         </i:Interaction.Behaviors>
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">
-            <Panel Height="50" ToolTip.Tip="{Binding Title}" Background="Transparent">
-              <DockPanel Width="50" Background="Transparent"
+            <Panel Height="48" Width="48" ToolTip.Tip="{Binding Title}" Background="Transparent">
+              <DockPanel  Background="Transparent"
                          x:CompileBindings="False">
                 <TextBlock DockPanel.Dock="Bottom" Text="{Binding Title}"
                            TextTrimming="CharacterEllipsis" Classes="h9" TextAlignment="Center" />

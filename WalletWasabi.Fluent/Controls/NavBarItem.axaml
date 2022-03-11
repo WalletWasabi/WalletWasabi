@@ -34,7 +34,8 @@
     <Setter Property="Padding" Value="{StaticResource ListBoxItemPadding}" />
     <Setter Property="Template">
       <ControlTemplate>
-        <Panel ClipToBounds="False">
+        <!-- The margin here should be compensated with the same amount in the NavBar's topmost content-->
+        <Panel Margin="4" ClipToBounds="False">
           <Rectangle Name="SelectionIndicator" />
           <Border Name="SelectionBackground" />
           <ContentPresenter Name="PART_ContentPresenter"
