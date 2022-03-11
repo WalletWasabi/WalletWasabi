@@ -134,7 +134,6 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 		else if (!decimal.TryParse(plebStopThreshold, out _))
 		{
 			errors.Add(ErrorSeverity.Error, "Invalid coinjoin threshold.");
-			return;
 		}
 	}
 }
