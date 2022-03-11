@@ -27,7 +27,7 @@
           </ExperimentalAcrylicBorder.Material>
         </ExperimentalAcrylicBorder>
 
-        <Grid ColumnDefinitions="68, *" RowDefinitions="42, *">
+        <Grid ColumnDefinitions="68, *" RowDefinitions="38, *">
 
           <Panel Grid.Row="0" Grid.Column="1">
             <StackPanel Orientation="Horizontal"  VerticalAlignment="Center" HorizontalAlignment="Left">
