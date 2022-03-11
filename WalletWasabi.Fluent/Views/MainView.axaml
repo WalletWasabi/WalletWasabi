@@ -6,6 +6,7 @@
              xmlns:navbar="using:WalletWasabi.Fluent.Views.NavBar"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+             xmlns:ext="using:WalletWasabi.Fluent.Helpers"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
              xmlns:statusBar="clr-namespace:WalletWasabi.Fluent.Views.StatusBar"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.Views.Wallets"
@@ -23,20 +24,19 @@
                                          TintColor="{DynamicResource NavBarTintColor}"
                                          TintOpacity="1"
                                          FallbackColor="{DynamicResource AcrylicFallbackColor}"
-                                         MaterialOpacity="0.8" />
+                                         MaterialOpacity="0.7" />
           </ExperimentalAcrylicBorder.Material>
         </ExperimentalAcrylicBorder>
 
-        <Grid ColumnDefinitions="68, *" RowDefinitions="38, *">
+        <Grid ColumnDefinitions="75, *" RowDefinitions="50, *">
 
-          <Panel Grid.Row="0" Grid.Column="1">
-            <StackPanel Orientation="Horizontal"  VerticalAlignment="Center" HorizontalAlignment="Left">
-              <Panel Width="16"></Panel>
-              <ContentControl Template="{DynamicResource wasabi_logo_fixed}" />
-              <Panel Width="8"></Panel>
-              <TextBlock Classes="h7 bold">Wasabi Wallet</TextBlock>
-              <Panel Width="15"></Panel>
-              <TextBlock Classes="h7" Opacity="0.5">Testnet Preview</TextBlock>
+          <Panel Grid.Row="0" Grid.Column="{ext:Platform 0, Osx=1}" Grid.ColumnSpan="{ext:Platform 2, Osx=1}" TextBlock.Foreground="{DynamicResource NavBarItemForegroundBrush}">
+            <StackPanel Orientation="Horizontal"  VerticalAlignment="Center" HorizontalAlignment="Left" Margin="20 0 0 0">
+              <Viewbox Height="18" Width="18">
+                <ContentControl Template="{DynamicResource wasabi_logo_fixed}" />
+              </Viewbox>
+              <TextBlock Classes="h8" FontSize="11" Text="Wasabi Wallet" Margin="20 0 0 0" IsHitTestVisible="False" />
+              <TextBlock Classes="h8" FontSize="11" Opacity="0.6" Text="TESTNET PREVIEW" IsHitTestVisible="False" Margin="5 0 0 0" />
             </StackPanel>
           </Panel>
 
