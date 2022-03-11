@@ -138,7 +138,7 @@ public class CoinJoinClient
 
 	public async Task<CoinJoinResult> StartRoundAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 	{
-		var constructionState = roundState.Assert<ConstructionState>();
+		var roundId = roundState.Id;
 
 		// Register coins.
 		using PersonCircuit personCircuit = HttpClientFactory.NewHttpClientWithPersonCircuit(out Tor.Http.IHttpClient httpClient);
@@ -149,13 +149,13 @@ public class CoinJoinClient
 		}
 		catch (UnexpectedRoundPhaseException ex)
 		{
-			Logger.LogInfo($"Round ({roundState.Id}): Registration phase ended by the coordinator: '{ex.Message}'.");
+			Logger.LogInfo($"Round ({roundId}): Registration phase ended by the coordinator: '{ex.Message}'.");
 			return new CoinJoinResult(false);
 		}
 
 		if (!registeredAliceClients.Any())
 		{
-			Logger.LogInfo($"Round ({roundState.Id}): There is no available alices to participate with.");
+			Logger.LogInfo($"Round ({roundId}): There is no available alices to participate with.");
 
 			return new CoinJoinResult(false);
 		}
@@ -164,56 +164,12 @@ public class CoinJoinClient
 		{
 			InCriticalCoinJoinState = true;
 
-			// Calculate outputs values
-			var registeredCoins = registeredAliceClients.Select(x => x.SmartCoin.Coin);
-			var inputEffectiveValuesAndSizes = registeredAliceClients.Select(x => (x.EffectiveValue, x.SmartCoin.ScriptPubKey.EstimateInputVsize()));
-
-			var availableVsize = registeredAliceClients.SelectMany(x => x.IssuedVsizeCredentials).Sum(x => x.Value);
-
-			// Waiting for OutputRegistration phase, all the Alices confirmed their connections, so the list of the inputs will be complete.
-			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
-
-			var remainingTime = roundState.OutputRegistrationTimeout - RoundStatusUpdater.Period;
-			var outputRegistrationEndTime = DateTimeOffset.UtcNow + (remainingTime * 0.8);
-			var readyToSignEndTime = outputRegistrationEndTime + remainingTime * 0.2;
-
-			// Calculate outputs values
-			constructionState = roundState.Assert<ConstructionState>();
-
-			AmountDecomposer amountDecomposer = new(roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min, Constants.P2wpkhOutputSizeInBytes, (int)availableVsize);
-			var theirCoins = constructionState.Inputs.Except(registeredCoins);
-			var registeredCoinEffectiveValues = registeredAliceClients.Select(x => x.EffectiveValue);
-			var theirCoinEffectiveValues = theirCoins.Select(x => x.EffectiveValue(roundState.FeeRate, roundState.CoordinationFeeRate));
-			var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues);
-
-			// Get as many destinations as outputs we need.
-			var destinations = DestinationProvider.GetNextDestinations(outputValues.Count()).ToArray();
-			var outputTxOuts = outputValues.Zip(destinations, (amount, destination) => new TxOut(amount, destination.ScriptPubKey));
-
-			DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(inputEffectiveValuesAndSizes, outputTxOuts, roundState.FeeRate, roundState.CoordinationFeeRate, roundState.MaxVsizeAllocationPerAlice);
-			DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
-
-			// Re-issuances.
-			var bobClient = CreateBobClient(roundState);
-			Logger.LogInfo($"Round ({roundState.Id}), Starting reissuances.");
-			await scheduler.StartReissuancesAsync(registeredAliceClients, bobClient, cancellationToken).ConfigureAwait(false);
-
-			// Output registration.
-			Logger.LogDebug($"Round ({roundState.Id}): Output registration started - it will end in: {outputRegistrationEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}");
-
-			var outputRegistrationScheduledDates = GetScheduledDates(outputTxOuts.Count(), outputRegistrationEndTime, MaximumRequestDelay);
-			await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationScheduledDates, cancellationToken).ConfigureAwait(false);
-			Logger.LogDebug($"Round ({roundState.Id}): Outputs({outputTxOuts.Count()}) successfully registered.");
-
-			// ReadyToSign.
-			Logger.LogDebug($"Round ({roundState.Id}): ReadyToSign phase started - it will end in: {readyToSignEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}");
-			await ReadyToSignAsync(registeredAliceClients, readyToSignEndTime, cancellationToken).ConfigureAwait(false);
-			Logger.LogDebug($"Round ({roundState.Id}): Alices({registeredAliceClients.Length}) successfully signalled ready to sign.");
+			var outputTxOuts = await ProgressOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
 
 			// Signing.
-			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState.Id, Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
+			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundId, Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
 			var signingEndTime = DateTimeOffset.UtcNow + roundState.TransactionSigningTimeout - RoundStatusUpdater.Period;
-			Logger.LogDebug($"Round ({roundState.Id}): Transaction signing phase started.");
+			Logger.LogDebug($"Round ({roundId}): Transaction signing phase started.");
 
 			var signingState = roundState.Assert<SigningState>();
 			var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
@@ -226,10 +182,10 @@ public class CoinJoinClient
 
 			// Send signature.
 			await SignTransactionAsync(registeredAliceClients, unsignedCoinJoin, signingEndTime, cancellationToken).ConfigureAwait(false);
-			Logger.LogDebug($"Round ({roundState.Id}): Alices({registeredAliceClients.Length}) successfully signed the coinjoin tx.");
+			Logger.LogDebug($"Round ({roundId}): Alices({registeredAliceClients.Length}) successfully signed the coinjoin tx.");
 
-			var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundState.Id && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
-			Logger.LogDebug($"Round ({roundState.Id}): Round Ended - WasTransactionBroadcast: '{finalRoundState.WasTransactionBroadcast}'.");
+			var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundId && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
+			Logger.LogDebug($"Round ({roundId}): Round Ended - WasTransactionBroadcast: '{finalRoundState.WasTransactionBroadcast}'.");
 
 			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, unsignedCoinJoin, roundState);
 
@@ -526,5 +482,57 @@ public class CoinJoinClient
 		}
 
 		return targetInputCount;
+	}
+
+	private async Task<IEnumerable<TxOut>> ProgressOutputRegistrationPhaseAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, CancellationToken abortToken)
+	{
+		// Waiting for OutputRegistration phase, all the Alices confirmed their connections, so the list of the inputs will be complete.
+		var roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundId, Phase.OutputRegistration, abortToken).ConfigureAwait(false);
+		var remainingTime = roundState.OutputRegistrationTimeout - RoundStatusUpdater.Period;
+		var outputRegistrationEndTime = DateTimeOffset.UtcNow + (remainingTime * 0.8);
+		var readyToSignEndTime = outputRegistrationEndTime + remainingTime * 0.2;
+
+		using CancellationTokenSource outputRegPhaseTimeoutCts = new(remainingTime + TimeSpan.FromMinutes(1));
+		using CancellationTokenSource combinedCts = CancellationTokenSource.CreateLinkedTokenSource(abortToken, outputRegPhaseTimeoutCts.Token);
+		var cancellationToken = combinedCts.Token;
+
+		// Calculate outputs values
+		var registeredCoins = registeredAliceClients.Select(x => x.SmartCoin.Coin);
+		var inputEffectiveValuesAndSizes = registeredAliceClients.Select(x => (x.EffectiveValue, x.SmartCoin.ScriptPubKey.EstimateInputVsize()));
+		var availableVsize = registeredAliceClients.SelectMany(x => x.IssuedVsizeCredentials).Sum(x => x.Value);
+
+		// Calculate outputs values
+		var constructionState = roundState.Assert<ConstructionState>();
+
+		AmountDecomposer amountDecomposer = new(roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min, Constants.P2wpkhOutputSizeInBytes, (int)availableVsize);
+		var theirCoins = constructionState.Inputs.Except(registeredCoins);
+		var registeredCoinEffectiveValues = registeredAliceClients.Select(x => x.EffectiveValue);
+		var theirCoinEffectiveValues = theirCoins.Select(x => x.EffectiveValue(roundState.FeeRate, roundState.CoordinationFeeRate));
+		var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues);
+
+		// Get as many destinations as outputs we need.
+		var destinations = DestinationProvider.GetNextDestinations(outputValues.Count()).ToArray();
+		var outputTxOuts = outputValues.Zip(destinations, (amount, destination) => new TxOut(amount, destination.ScriptPubKey));
+
+		DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(inputEffectiveValuesAndSizes, outputTxOuts, roundState.FeeRate, roundState.CoordinationFeeRate, roundState.MaxVsizeAllocationPerAlice);
+		DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
+
+		// Re-issuances.
+		var bobClient = CreateBobClient(roundState);
+		Logger.LogInfo($"Round ({roundState.Id}), Starting reissuances.");
+		await scheduler.StartReissuancesAsync(registeredAliceClients, bobClient, cancellationToken).ConfigureAwait(false);
+
+		// Output registration.
+		Logger.LogDebug($"Round ({roundState.Id}): Output registration started - it will end in: {outputRegistrationEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}");
+
+		var outputRegistrationScheduledDates = GetScheduledDates(outputTxOuts.Count(), outputRegistrationEndTime, MaximumRequestDelay);
+		await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationScheduledDates, cancellationToken).ConfigureAwait(false);
+		Logger.LogDebug($"Round ({roundState.Id}): Outputs({outputTxOuts.Count()}) successfully registered.");
+
+		// ReadyToSign.
+		Logger.LogDebug($"Round ({roundState.Id}): ReadyToSign phase started - it will end in: {readyToSignEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}");
+		await ReadyToSignAsync(registeredAliceClients, readyToSignEndTime, cancellationToken).ConfigureAwait(false);
+		Logger.LogDebug($"Round ({roundState.Id}): Alices({registeredAliceClients.Length}) successfully signalled ready to sign.");
+		return outputTxOuts;
 	}
 }
