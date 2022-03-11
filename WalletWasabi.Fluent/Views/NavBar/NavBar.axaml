@@ -94,42 +94,7 @@
   </UserControl.Styles>
   <DockPanel Margin="0 0 0 4">
     <StackPanel DockPanel.Dock="Top" Spacing="5" Background="Transparent">
-      <Panel Height="30" />
-      <Border Padding="12 12 12 5" Margin="0,-3 ,0,4">
-        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-          <Panel Margin="13,0,0,0" VerticalAlignment="Center">
-            <Panel.Styles>
-              <Style Selector="ContentControl,Button">
-                <Setter Property="Transitions">
-                  <Transitions>
-                    <DoubleTransition Property="Opacity" Duration="0:0:0.3" Easing="{StaticResource FluentEasing}" />
-                  </Transitions>
-                </Setter>
-              </Style>
-              <Style Selector="ContentControl[IsVisible=True], Button[IsVisible=True]">
-                <Setter Property="Opacity" Value="1" />
-              </Style>
-              <Style Selector="ContentControl[IsVisible=False], Button[IsVisible=False]">
-                <Setter Property="Opacity" Value="0" />
-              </Style>
-            </Panel.Styles>
-            <ContentControl Template="{DynamicResource wasabi_logo_fixed}"
-                            IsVisible="{Binding !#NavBarUserControl.IsPointerOver}" />
-            <Button Classes="plain" x:CompileBindings="False" Command="{Binding ToggleAction}"
-                    IsVisible="{Binding #NavBarUserControl.IsPointerOver}">
-              <Button.Styles>
-                <Style Selector=":is(Button):pointerover /template/ ContentPresenter#PART_ContentPresenter">
-                  <Setter Property="Background" Value="Transparent" />
-                </Style>
-              </Button.Styles>
-              <PathIcon Margin="0 0 3 0" Height="16" Data="{StaticResource navigation_regular}" />
-            </Button>
-          </Panel>
-          <ContentControl Template="{DynamicResource wasabi_logo_text_fixed}" Margin="22,0,0,0"
-                          VerticalAlignment="Center" ClipToBounds="False" />
-        </StackPanel>
-      </Border>
-      <!-- TopItems List -->
+      <Panel Height="10" />
       <c:NavBarListBox Items="{Binding TopItems}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                        Name="TopListBox"
@@ -149,7 +114,6 @@
           </DataTemplate>
         </c:NavBarListBox.ItemTemplate>
       </c:NavBarListBox>
-      <Separator />
     </StackPanel>
     <StackPanel DockPanel.Dock="Bottom" Background="Transparent">
       <Separator />
