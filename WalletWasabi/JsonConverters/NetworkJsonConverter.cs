@@ -16,9 +16,13 @@ public class NetworkJsonConverter : JsonConverter
 	}
 
 	/// <inheritdoc />
-	public override object? ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+	public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
 	{
 		// check additional strings that are not checked by GetNetwork
+		if (reader.Value is null)
+		{
+			throw new ArgumentNullException("Can't read json, value was null.");
+		}
 		string networkString = ((string)reader.Value).Trim();
 		if ("regression".Equals(networkString, StringComparison.OrdinalIgnoreCase))
 		{
@@ -29,8 +33,12 @@ public class NetworkJsonConverter : JsonConverter
 	}
 
 	/// <inheritdoc />
-	public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+	public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
 	{
+		if (value is null)
+		{
+			throw new ArgumentNullException("Can't write to json, value was null.");
+		}
 		writer.WriteValue(((Network)value).ToString());
 	}
 }
