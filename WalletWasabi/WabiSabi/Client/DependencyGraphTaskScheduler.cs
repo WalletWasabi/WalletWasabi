@@ -142,7 +142,7 @@ public class DependencyGraphTaskScheduler
 		}
 	}
 
-	public async Task StartOutputRegistrationsAsync(IEnumerable<TxOut> txOuts, BobClient bobClient, IKeyChain keyChain, DateTimeOffset outputRegistrationEndTime, CancellationToken cancellationToken)
+	public async Task StartOutputRegistrationsAsync(IEnumerable<TxOut> txOuts, BobClient bobClient, IKeyChain keyChain, ImmutableList<DateTimeOffset> outputRegistrationScheduledDates, CancellationToken cancellationToken)
 	{
 		using CancellationTokenSource ctsOnError = new();
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctsOnError.Token);
@@ -160,9 +160,7 @@ public class DependencyGraphTaskScheduler
 			return smartRequestNode;
 		});
 
-		var scheduledDates = CoinJoinClient.GetDelaysForRequests(txOuts.Count(), outputRegistrationEndTime);
-
-		var tasks = txOuts.Zip(nodes, scheduledDates,
+		var tasks = txOuts.Zip(nodes, outputRegistrationScheduledDates,
 			async (txOut, smartRequestNode, scheduledDate) =>
 			{
 				try

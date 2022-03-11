@@ -151,7 +151,7 @@ public class KeyManager
 	/// </summary>
 	[JsonProperty(Order = 11, PropertyName = "PlebStopThreshold")]
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
-	public Money PlebStopThreshold { get; internal set; } = DefaultPlebStopThreshold;
+	public Money PlebStopThreshold { get; set; } = DefaultPlebStopThreshold;
 
 	[JsonProperty(Order = 12, PropertyName = "Icon")]
 	public string? Icon { get; private set; }
@@ -234,7 +234,8 @@ public class KeyManager
 		SafeIoManager safeIoManager = new(filePath);
 		string jsonString = safeIoManager.ReadAllText(Encoding.UTF8);
 
-		var km = JsonConvert.DeserializeObject<KeyManager>(jsonString);
+		KeyManager km = JsonConvert.DeserializeObject<KeyManager>(jsonString)
+			?? throw new JsonSerializationException($"Wallet file at: `{filePath}` is not a valid wallet file or it is corrupted.");
 
 		km.SetFilePath(filePath);
 		lock (km.HdPubKeyScriptBytesLock)

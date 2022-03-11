@@ -11,6 +11,7 @@
              xmlns:statusBar="clr-namespace:WalletWasabi.Fluent.Views.StatusBar"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.Views.Wallets"
              xmlns:spectrum="clr-namespace:WalletWasabi.Fluent.Controls.Spectrum"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="536" d:DesignHeight="459"
              x:DataType="vm:MainViewModel"
              x:CompileBindings="True"
