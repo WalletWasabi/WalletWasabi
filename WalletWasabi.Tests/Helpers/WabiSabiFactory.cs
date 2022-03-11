@@ -299,12 +299,9 @@ public static class WabiSabiFactory
 			TimeSpan.Zero,
 			TimeSpan.Zero);
 
-		mock.Setup(m => m.GetScheduledDates(It.IsAny<int>(), It.IsAny<DateTimeOffset>(), It.IsAny<TimeSpan?>()))
-			.Returns((int howMany, DateTimeOffset endTime, TimeSpan maximumRequestDelay) =>
-			{
-				var now = DateTimeOffset.UtcNow;
-				return Enumerable.Repeat(now, howMany).ToImmutableList();
-			});
+		mock.Setup(m => m.GetScheduledDates(It.IsAny<int>(), It.IsAny<DateTimeOffset>(), It.IsNotIn<TimeSpan?>(TimeSpan.FromSeconds(1))))
+			.Returns((int howMany, DateTimeOffset endTime, TimeSpan maximumRequestDelay) => mock.Object.GetScheduledDates(howMany, endTime, TimeSpan.FromSeconds(1)));
+
 		mock.CallBase = true;
 
 		return mock.Object;
