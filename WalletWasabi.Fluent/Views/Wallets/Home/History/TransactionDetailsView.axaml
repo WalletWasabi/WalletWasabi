@@ -2,16 +2,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:history="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:history="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History"
              x:DataType="history:TransactionDetailsViewModel"
              x:CompileBindings="True"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.TransactionDetailsView">
-  <c:ContentArea Title="{Binding Title}"
-                 NextContent="Done" EnableNext="True"
-                 EnableCancel="{Binding EnableCancel}">
-    <StackPanel Spacing="15">
+
+  <StackPanel Spacing="15">
 
       <!-- Date -->
       <c:PreviewItem Icon="{StaticResource timer_regular}"
@@ -19,6 +17,7 @@
                      CopyParameter="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}', Mode=OneWay}">
         <TextBlock Text="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}', Mode=OneWay}"  Classes="monoSpaced"/>
       </c:PreviewItem>
+
       <Separator />
 
       <!-- Transaction ID -->
@@ -30,7 +29,7 @@
         </c:PrivacyContentControl>
       </c:PreviewItem>
 
-        <Separator />
+      <Separator />
 
       <!-- Status -->
       <c:PreviewItem Icon="{StaticResource status_regular}"
@@ -59,6 +58,7 @@
                      IsVisible="{Binding IsConfirmed}">
         <TextBlock Text="{Binding BlockHeight}" />
       </c:PreviewItem>
+
       <Separator IsVisible="{Binding IsConfirmed}" />
 
       <!-- Confirmations -->
@@ -78,6 +78,7 @@
           <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Labels}" />
         </c:PrivacyContentControl>
       </c:PreviewItem>
+
     </StackPanel>
-  </c:ContentArea>
+
 </UserControl>

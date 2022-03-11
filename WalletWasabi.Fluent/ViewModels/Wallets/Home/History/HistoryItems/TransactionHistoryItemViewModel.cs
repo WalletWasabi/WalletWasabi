@@ -15,7 +15,7 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		TransactionSummary transactionSummary,
 		WalletViewModel walletViewModel,
 		Money balance,
-		IObservable<Unit> updateTrigger)
+		IObservable<Unit> balanceChanged)
 		: base(orderIndex, transactionSummary)
 	{
 		Label = transactionSummary.Label.Take(1).FirstOrDefault();
@@ -36,7 +36,7 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 
 		ShowDetailsCommand = ReactiveCommand.Create(() =>
 			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(
-				new TransactionDetailsViewModel(transactionSummary, walletViewModel.Wallet, updateTrigger)));
+				new TransactionDetailsHostViewModel(transactionSummary, walletViewModel.Wallet, balanceChanged)));
 
 		DateString = $"{Date.ToLocalTime():MM/dd/yy HH:mm}";
 	}

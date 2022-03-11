@@ -1,11 +1,11 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets.Home.History;
-public partial class TransactionDetailsView : UserControl
+
+public class TransactionDetailsHostView : UserControl
 {
-	public TransactionDetailsView()
+	public TransactionDetailsHostView()
 	{
 		InitializeComponent();
 	}
