@@ -30,7 +30,6 @@ public class CoreNode
 	public string DataDir { get; private set; }
 	public Network Network { get; private set; }
 	public MempoolService MempoolService { get; private set; }
-
 	public CoreConfig Config { get; private set; }
 	public P2pNode P2pNode { get; private set; }
 
@@ -90,6 +89,10 @@ public class CoreNode
 			}
 
 			EndPointParser.TryParse($"{rpcHost}:{rpcPort}", coreNode.Network.RPCPort, out EndPoint? rpce);
+			if (rpce is null)
+			{
+				throw new InvalidOperationException($"Failed to get RPC endpoint on {rpcHost}:{rpcPort}.");
+			}
 			coreNode.RpcEndPoint = rpce;
 
 			var rpcClient = new RPCClient(
