@@ -299,6 +299,7 @@ public static class WabiSabiFactory
 			TimeSpan.Zero,
 			TimeSpan.Zero);
 
+		// Overwrite Maximum Request Delay parameter but still use the original method.
 		mock.Setup(m => m.GetScheduledDates(It.IsAny<int>(), It.IsAny<DateTimeOffset>(), It.IsNotIn<TimeSpan?>(TimeSpan.FromSeconds(1))))
 			.Returns((int howMany, DateTimeOffset endTime, TimeSpan maximumRequestDelay) => mock.Object.GetScheduledDates(howMany, endTime, TimeSpan.FromSeconds(1)));
 
