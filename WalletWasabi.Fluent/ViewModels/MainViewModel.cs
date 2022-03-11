@@ -18,6 +18,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Fluent.ViewModels.StatusBar;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.WabiSabi.Client;
+using Avalonia;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
@@ -39,10 +40,22 @@ public partial class MainViewModel : ViewModelBase
 	[AutoNotify] private WindowState _windowState;
 	[AutoNotify] private bool _isOobeBackgroundVisible;
 	[AutoNotify] private bool _isCoinJoinActive;
+	[AutoNotify] private double _windowWidth;
+	[AutoNotify] private double _windowHeight;
+	[AutoNotify] private PixelPoint _windowPosition;
 
 	public MainViewModel()
 	{
 		_windowState = (WindowState)Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
+		_windowWidth = Services.UiConfig.WindowWidth ?? 1280;
+		_windowHeight = Services.UiConfig.WindowHeight ?? 960;
+
+		var (x, y) = (Services.UiConfig.WindowX, Services.UiConfig.WindowY);
+		if (x != null && y != null)
+		{
+			_windowPosition = new PixelPoint(x.Value, y.Value);
+		}
+
 		_dialogScreen = new DialogScreenViewModel();
 
 		_fullScreen = new DialogScreenViewModel(NavigationTarget.FullScreen);
@@ -75,13 +88,20 @@ public partial class MainViewModel : ViewModelBase
 		RegisterViewModels();
 
 		RxApp.MainThreadScheduler.Schedule(async () => await _navBar.InitialiseAsync());
-
+		
 		_searchPage.Initialise();
 
-		this.WhenAnyValue(x => x.WindowState)
-			.Where(x => x != WindowState.Minimized)
+		this.WhenAnyValue(x => x.WindowState, x => x.WindowPosition, x => x.WindowWidth, x => x.WindowHeight)
+			.Where(x => x.Item1 != WindowState.Minimized)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(windowState => Services.UiConfig.WindowState = windowState.ToString());
+			.Subscribe(t =>
+			{
+				Services.UiConfig.WindowState = t.Item1.ToString();
+				Services.UiConfig.WindowX = t.Item2.X;
+				Services.UiConfig.WindowY = t.Item2.Y;
+				Services.UiConfig.WindowWidth = t.Item3;
+				Services.UiConfig.WindowHeight = t.Item4;
+			});
 
 		this.WhenAnyValue(
 				x => x.DialogScreen!.IsDialogOpen,
