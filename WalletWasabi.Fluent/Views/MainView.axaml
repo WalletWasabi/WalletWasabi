@@ -26,7 +26,7 @@
                                          MaterialOpacity="0.8" />
           </ExperimentalAcrylicBorder.Material>
         </ExperimentalAcrylicBorder>
-        <navbar:NavBar DataContext="{Binding NavBar}" />
+        <navbar:NavBar DataContext="{Binding NavBar}" HorizontalAlignment="Left" Width="64" />
       </Panel>
       <Border Margin="64 32 0 0" CornerRadius="10, 0 , 0, 0" ClipToBounds="True">
         <Panel>
