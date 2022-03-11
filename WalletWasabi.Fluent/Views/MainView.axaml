@@ -34,9 +34,9 @@
               <Panel Width="16"></Panel>
               <ContentControl Template="{DynamicResource wasabi_logo_fixed}" />
               <Panel Width="8"></Panel>
-              <TextBlock Classes="h10 bold">Wasabi Wallet</TextBlock>
+              <TextBlock Classes="h7 bold">Wasabi Wallet</TextBlock>
               <Panel Width="15"></Panel>
-              <TextBlock Classes="h10 " Opacity="0.5">Testnet Preview</TextBlock>
+              <TextBlock Classes="h7" Opacity="0.5">Testnet Preview</TextBlock>
             </StackPanel>
           </Panel>
 
@@ -67,7 +67,20 @@
               </DockPanel>
             </Panel>
           </Border>
-
+        </Grid>
+      </Panel>
+      <ExperimentalAcrylicBorder DockPanel.Dock="Left" IsHitTestVisible="False"
+                                 IsVisible="{Binding IsOobeBackgroundVisible}">
+        <ExperimentalAcrylicBorder.Material>
+          <ExperimentalAcrylicMaterial BackgroundSource="Digger"
+                                       TintColor="{DynamicResource SystemAltHighColor}"
+                                       TintOpacity="0.8"
+                                       FallbackColor="{DynamicResource AcrylicFallbackColor}"
+                                       MaterialOpacity="0.2" />
+        </ExperimentalAcrylicBorder.Material>
+        <Viewbox Stretch="Uniform" ClipToBounds="False">
+          <ContentControl Template="{StaticResource WelcomeBg}" ClipToBounds="False" />
+        </Viewbox>
 
       </ExperimentalAcrylicBorder>
       <c:AdornerCanvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
