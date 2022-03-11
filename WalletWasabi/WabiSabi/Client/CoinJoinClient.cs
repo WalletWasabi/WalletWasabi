@@ -359,13 +359,18 @@ public class CoinJoinClient
 		await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
 
-	internal virtual ImmutableList<DateTimeOffset> GetScheduledDates(int howMany, DateTimeOffset endTime, TimeSpan? maximumRequestDelay = null)
+	private ImmutableList<DateTimeOffset> GetScheduledDates(int howMany, DateTimeOffset endTime)
+	{
+		return GetScheduledDates(howMany, endTime, TimeSpan.MaxValue);
+	}
+
+	internal virtual ImmutableList<DateTimeOffset> GetScheduledDates(int howMany, DateTimeOffset endTime, TimeSpan maximumRequestDelay)
 	{
 		var remainingTime = endTime - DateTimeOffset.UtcNow;
 
-		if (maximumRequestDelay is { } max && remainingTime > max)
+		if (remainingTime > maximumRequestDelay)
 		{
-			remainingTime = max;
+			remainingTime = maximumRequestDelay;
 		}
 
 		return remainingTime.SamplePoisson(howMany);
