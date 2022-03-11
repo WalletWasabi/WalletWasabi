@@ -63,6 +63,7 @@ public class LinuxInhibitorTask : IPowerSavingInhibitorTask
 
 	/// <summary>Reason why the power saving is inhibited.</summary>
 	public string Reason { get; }
+
 	private ProcessAsync Process { get; }
 	private CancellationTokenSource Cts { get; }
 	private TaskCompletionSource StoppedTcs { get; } = new();
@@ -216,19 +217,19 @@ public class LinuxInhibitorTask : IPowerSavingInhibitorTask
 		if (gui == GraphicalEnvironment.Gnome)
 		{
 			string inhibitArgument = ConstructInhibitArgument(what);
-			command = "gnome-session-inhibit";
+			command = "sudo gnome-session-inhibit";
 			arguments = $"--reason \"{reason}\" --inhibit {inhibitArgument} {innerCommand}";
 		}
 		else if (gui == GraphicalEnvironment.Mate)
 		{
 			string inhibitArgument = ConstructInhibitArgument(what);
-			command = $"mate-session-inhibit";
+			command = $"sudo mate-session-inhibit";
 			arguments = $"--reason \"{reason}\" --inhibit {inhibitArgument} {innerCommand}";
 		}
 		else
 		{
 			string whatArgument = ConstructSystemdWhatArgument(what);
-			command = $"systemd-inhibit";
+			command = $"sudo systemd-inhibit";
 			arguments = $"--why=\"{reason}\" --what=\"{whatArgument}\" --mode=block {innerCommand}";
 		}
 
