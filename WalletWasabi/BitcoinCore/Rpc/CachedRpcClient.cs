@@ -27,8 +27,9 @@ public class CachedRpcClient : RpcClientBase
 		{
 			lock (CancellationTokenSourceLock)
 			{
-				if (_tipChangeCancellationTokenSource is null || _tipChangeCancellationTokenSource.IsCancellationRequested)
+				if (_tipChangeCancellationTokenSource.IsCancellationRequested)
 				{
+					_tipChangeCancellationTokenSource.Dispose();
 					_tipChangeCancellationTokenSource = new CancellationTokenSource();
 				}
 			}
