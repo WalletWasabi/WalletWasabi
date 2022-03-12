@@ -4,44 +4,49 @@
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary>
+          <Color x:Key="SystemAccentColor">#FF4E8200</Color>
+          <Color x:Key="SystemAccentNeutralColor">#FF4E8200</Color>
           <Color x:Key="SystemAltHighColor">#FF000000</Color>
           <Color x:Key="SystemAltLowColor">#FF000000</Color>
           <Color x:Key="SystemAltMediumColor">#FF000000</Color>
           <Color x:Key="SystemAltMediumHighColor">#FF000000</Color>
           <Color x:Key="SystemAltMediumLowColor">#FF000000</Color>
           <Color x:Key="SystemBaseHighColor">#FFFFFFFF</Color>
-          <Color x:Key="SystemBaseLowColor">#FF1A283D</Color>
-          <Color x:Key="SystemBaseMediumColor">#FF8895A7</Color>
-          <Color x:Key="SystemBaseMediumHighColor">#FFA3B0C2</Color>
-          <Color x:Key="SystemBaseMediumLowColor">#FF515E72</Color>
-          <Color x:Key="SystemChromeAltLowColor">#FFA3B0C2</Color>
+          <Color x:Key="SystemBaseLowColor">#FF1E2D42</Color>
+          <Color x:Key="SystemBaseMediumColor">#FF8A97AA</Color>
+          <Color x:Key="SystemBaseMediumHighColor">#FFA5B2C4</Color>
+          <Color x:Key="SystemBaseMediumLowColor">#FF546276</Color>
+          <Color x:Key="SystemChromeAltLowColor">#FFA5B2C4</Color>
           <Color x:Key="SystemChromeBlackHighColor">#FF000000</Color>
-          <Color x:Key="SystemChromeBlackLowColor">#FFA3B0C2</Color>
+          <Color x:Key="SystemChromeBlackLowColor">#FFA5B2C4</Color>
           <Color x:Key="SystemChromeBlackMediumColor">#FF000000</Color>
           <Color x:Key="SystemChromeBlackMediumLowColor">#FF000000</Color>
-          <Color x:Key="SystemChromeDisabledHighColor">#2F1A283D</Color>
-          <Color x:Key="SystemChromeDisabledLowColor">#2F8895A7</Color>
-          <Color x:Key="SystemChromeGrayColor">#FF6C7A8D</Color>
-          <Color x:Key="SystemChromeHighColor">#FF6C7A8D</Color>
-          <Color x:Key="SystemChromeLowColor">#FF05122F</Color>
-          <Color x:Key="SystemChromeMediumColor">#FF0A1832</Color>
-          <Color x:Key="SystemChromeMediumLowColor">#FF152339</Color>
+          <Color x:Key="SystemChromeDisabledHighColor">#FF1E2D42</Color>
+          <Color x:Key="SystemChromeDisabledLowColor">#FF8A97AA</Color>
+          <Color x:Key="SystemChromeGrayColor">#FF6F7D90</Color>
+          <Color x:Key="SystemChromeHighColor">#FF6F7D90</Color>
+          <Color x:Key="SystemChromeLowColor">#FF061330</Color>
+          <Color x:Key="SystemChromeMediumColor">#FF0C1A35</Color>
+          <Color x:Key="SystemChromeMediumLowColor">#FF18273E</Color>
           <Color x:Key="SystemChromeWhiteColor">#FFFFFFFF</Color>
-          <Color x:Key="SystemListLowColor">#FF0A1832</Color>
-          <Color x:Key="SystemListMediumColor">#FF1A283D</Color>
-          <Color x:Key="SystemChromeAltMediumHighColor">#CC010D20</Color>
-          <Color x:Key="SystemChromeAltHighColor">#FF1A283D</Color>
-          <Color x:Key="SystemRevealListLowColor">#FF0A1832</Color>
-          <Color x:Key="SystemRevealListMediumColor">#FF1A283D</Color>
-          <Color x:Key="SystemErrorTextColor">#C50500</Color>
-          <Color x:Key="SystemAccentColorDark1">#FF8FB946</Color>
-          <Color x:Key="SystemAccentColorDark2">#FF9EC45F</Color>
-          <Color x:Key="SystemAccentColorDark3">#FFAECE77</Color>
-          <Color x:Key="SystemAccentColorLight1">#FF6B9C25</Color>
-          <Color x:Key="SystemAccentColorLight2">#FF57881C</Color>
-          <Color x:Key="SystemAccentColorLight3">#FF447512</Color>
-          <Color x:Key="RegionColor">#212d40</Color>
-          <Color x:Key="TileRegionColor">#253244</Color>
+          <Color x:Key="SystemListLowColor">#FF0C1A35</Color>
+          <Color x:Key="SystemListMediumColor">#FF1E2D42</Color>
+          <Color x:Key="SystemChromeAltMediumHighColor">#CC141414</Color>
+          <Color x:Key="SystemChromeAltHighColor">#FF1E2D42</Color>
+          <Color x:Key="SystemRevealListLowColor">#FF0C1A35</Color>
+          <Color x:Key="SystemRevealListMediumColor">#FF1E2D42</Color>
+          <Color x:Key="SystemAccentColorDark1">#FF64921E</Color>
+          <Color x:Key="SystemAccentColorDark2">#FF7AA23C</Color>
+          <Color x:Key="SystemAccentColorDark3">#FF8FB35B</Color>
+          <Color x:Key="SystemAccentColorLight1">#FF417100</Color>
+          <Color x:Key="SystemAccentColorLight2">#FF346000</Color>
+          <Color x:Key="SystemAccentColorLight3">#FF265000</Color>
+          <Color x:Key="RegionColor">#FF141414</Color>
+
+          <!-- <Color x:Key="RegionColor">#212d40</Color> -->
+          <Color x:Key="TileRegionColor">#FF1E2D42</Color>
+
+
         </ResourceDictionary>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
@@ -50,26 +55,14 @@
     <Color x:Key="WelcomeScreenButtonBackgroundPressed">#141B2A</Color>
     <Color x:Key="WelcomeScreenButtonBackgroundPointerOver">#1A2337</Color>
 
-    <SolidColorBrush x:Key="TextControlBorderBrush" Color="#303F54" />
-    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#4A5970" />
-    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#8093AE" />
+    <!-- <SolidColorBrush x:Key="TextControlBorderBrush" Color="#303F54" /> -->
+    <!-- <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#4A5970" /> -->
+    <!-- <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#8093AE" /> -->
 
     <SolidColorBrush x:Key="PrivacyControlWhiteListHeaderForeground" Color="#FFFFFF" />
     <SolidColorBrush x:Key="PrivacyControlWhiteListBackground" Color="#293C30" />
     <SolidColorBrush x:Key="PrivacyControlBlackListBackground" Color="Transparent" />
     <SolidColorBrush x:Key="PrivacyControlItemBackground" Color="#2FFFFFFF" />
-
-    <Color x:Key="SliderTrackValueFill">#8093AE</Color>
-    <Color x:Key="SliderTrackValueFillPointerOver">#8093AE</Color>
-    <Color x:Key="SliderTrackValueFillPressed">#8093AE</Color>
-    <Color x:Key="SliderThumbBackground">#8093AE</Color>
-    <Color x:Key="SliderThumbBackgroundPointerOver">#8093AE</Color>
-    <Color x:Key="SliderThumbBackgroundPressed">#8093AE</Color>
-    <Color x:Key="SliderThumbBorderBrushPointerOver">#414F67</Color>
-
-    <Color x:Key="SliderTrackFill">#344359</Color>
-    <Color x:Key="SliderTrackFillPointerOver">#344359</Color>
-    <Color x:Key="SliderTrackFillPressed">#344359</Color>
 
     <Color x:Key="LineChartAreaGradientStartStopColor">#FF7FAF2E</Color>
     <Color x:Key="LineChartAreaGradientEndStopColor">#007FAF2E</Color>
@@ -92,7 +85,7 @@
   <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentDark.xaml" />
 
   <!-- Needs to be here because of dependency reason -->
-  <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
+  <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml" />
 
   <StyleInclude Source="avares://Avalonia.Xaml.Interactions/Draggable/Styles.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Base.axaml" />
