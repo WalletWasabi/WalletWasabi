@@ -140,12 +140,10 @@ public class CoinJoinClient
 	{
 		var roundId = roundState.Id;
 
-		// Register coins.
-		using PersonCircuit personCircuit = HttpClientFactory.NewHttpClientWithPersonCircuit(out Tor.Http.IHttpClient httpClient);
 		ImmutableArray<AliceClient> registeredAliceClients = ImmutableArray<AliceClient>.Empty;
 		try
 		{
-			registeredAliceClients = await CreateRegisterAndConfirmCoinsAsync(httpClient, smartCoins, roundState, cancellationToken).ConfigureAwait(false);
+			registeredAliceClients = await ProgressInputRegistrationPhaseAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
 		}
 		catch (UnexpectedRoundPhaseException ex)
 		{
@@ -539,5 +537,18 @@ public class CoinJoinClient
 		await ReadyToSignAsync(registeredAliceClients, readyToSignEndTime, cancellationToken).ConfigureAwait(false);
 		Logger.LogDebug($"Round ({roundState.Id}): Alices({registeredAliceClients.Length}) successfully signalled ready to sign.");
 		return outputTxOuts;
+	}
+
+	private async Task<ImmutableArray<AliceClient>> ProgressInputRegistrationPhaseAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken abortToken)
+	{
+		var remainingTime = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
+
+		using CancellationTokenSource phaseTimeoutCts = new(remainingTime + TimeSpan.FromMinutes(1));
+		using CancellationTokenSource combinedCts = CancellationTokenSource.CreateLinkedTokenSource(abortToken, phaseTimeoutCts.Token);
+		var cancellationToken = combinedCts.Token;
+
+		// Register coins.
+		using PersonCircuit personCircuit = HttpClientFactory.NewHttpClientWithPersonCircuit(out Tor.Http.IHttpClient httpClient);
+		return await CreateRegisterAndConfirmCoinsAsync(httpClient, smartCoins, roundState, cancellationToken).ConfigureAwait(false);
 	}
 }
