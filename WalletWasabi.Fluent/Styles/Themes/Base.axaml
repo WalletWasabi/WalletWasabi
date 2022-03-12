@@ -26,6 +26,8 @@
     <SolidColorBrush x:Key="InvisibleButtonPressedBackgroundColor" Opacity="0.25"
                      Color="{DynamicResource SystemBaseHighColor}" />
 
+    <Color x:Key="StatusForegroundColor">White</Color>
+
     <SolidColorBrush x:Key="TextControlBackground" Color="{DynamicResource SystemChromeMediumColor}" />
     <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="{DynamicResource SystemChromeMediumColor}" />
     <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="{DynamicResource SystemChromeMediumColor}" />

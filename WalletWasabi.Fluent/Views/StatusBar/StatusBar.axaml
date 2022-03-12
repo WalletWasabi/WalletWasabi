@@ -87,8 +87,8 @@
             <Button Classes="plain" Command="{Binding UpdateCommand}">
               <StackPanel Spacing="5" Orientation="Horizontal">
                 <PathIcon Data="{StaticResource arrow_download_regular}" Height="13"
-                          Foreground="{StaticResource SystemAccentColor}" />
-                <TextBlock Text="Update now" Foreground="{StaticResource SystemAccentColor}" />
+                          Foreground="{StaticResource StatusForegroundColor}" />
+                <TextBlock Text="Update now" Foreground="{StaticResource StatusForegroundColor}" />
               </StackPanel>
             </Button>
 
@@ -124,7 +124,7 @@
 
     <!-- Ready -->
     <PathIcon Data="{StaticResource checkmark_circle_filled}"
-              Foreground="{StaticResource SystemAccentColor}"
+              Foreground="{StaticResource StatusForegroundColor}"
               VerticalAlignment="Center" HorizontalAlignment="Right"
               Height="40"
               Margin="10 0"
@@ -140,7 +140,7 @@
 
     <!-- Loading -->
     <PathIcon Data="{StaticResource arrow_sync_regular}"
-              Foreground="{StaticResource SystemAccentColor}"
+              Foreground="{StaticResource StatusForegroundColor}"
               VerticalAlignment="Center" HorizontalAlignment="Right"
               Height="40"
               Margin="10 0"
