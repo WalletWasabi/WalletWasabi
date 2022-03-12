@@ -43,7 +43,7 @@
           <Color x:Key="SystemRevealListLowColor">#FF0A1832</Color>
           <Color x:Key="SystemRevealListMediumColor">#FF1A283D</Color>
           <Color x:Key="SystemErrorTextColor">#C50500</Color>
-          <Color x:Key="RegionColor">#010D20</Color>
+          <Color x:Key="RegionColor">#212d40</Color>
         </ResourceDictionary>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
