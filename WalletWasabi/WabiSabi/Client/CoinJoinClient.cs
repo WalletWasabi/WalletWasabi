@@ -166,28 +166,12 @@ public class CoinJoinClient
 
 			var outputTxOuts = await ProgressOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
 
-			// Signing.
-			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundId, Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
-			var signingEndTime = DateTimeOffset.UtcNow + roundState.TransactionSigningTimeout - RoundStatusUpdater.Period;
-			Logger.LogDebug($"Round ({roundId}): Transaction signing phase started.");
-
-			var signingState = roundState.Assert<SigningState>();
-			var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
-
-			// Sanity check.
-			if (!SanityCheck(outputTxOuts, unsignedCoinJoin))
-			{
-				throw new InvalidOperationException($"Round ({roundState.Id}): My output is missing.");
-			}
-
-			// Send signature.
-			await SignTransactionAsync(registeredAliceClients, unsignedCoinJoin, signingEndTime, cancellationToken).ConfigureAwait(false);
-			Logger.LogDebug($"Round ({roundId}): Alices({registeredAliceClients.Length}) successfully signed the coinjoin tx.");
+			var unsignedCoinJoin = await ProgressSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
 
 			var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundId && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
 			Logger.LogDebug($"Round ({roundId}): Round Ended - WasTransactionBroadcast: '{finalRoundState.WasTransactionBroadcast}'.");
 
-			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, unsignedCoinJoin, roundState);
+			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, unsignedCoinJoin, finalRoundState);
 
 			return new CoinJoinResult(
 				GoForBlameRound: !finalRoundState.WasTransactionBroadcast,
@@ -539,5 +523,34 @@ public class CoinJoinClient
 		await ReadyToSignAsync(registeredAliceClients, readyToSignEndTime, cancellationToken).ConfigureAwait(false);
 		Logger.LogDebug($"Round ({roundState.Id}): Alices({registeredAliceClients.Length}) successfully signalled ready to sign.");
 		return outputTxOuts;
+	}
+
+	private async Task<Transaction> ProgressSigningStateAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, IEnumerable<TxOut> outputTxOuts, CancellationToken abortToken)
+	{
+		// Signing.
+		var roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundId, Phase.TransactionSigning, abortToken).ConfigureAwait(false);
+		var remainingTime = roundState.TransactionSigningTimeout - RoundStatusUpdater.Period;
+		var phasenEndTime = DateTimeOffset.UtcNow + remainingTime;
+
+		using CancellationTokenSource phaseTimeoutCts = new(remainingTime + TimeSpan.FromMinutes(1));
+		using CancellationTokenSource combinedCts = CancellationTokenSource.CreateLinkedTokenSource(abortToken, phaseTimeoutCts.Token);
+		var cancellationToken = combinedCts.Token;
+
+		Logger.LogDebug($"Round ({roundId}): Transaction signing phase started.");
+
+		var signingState = roundState.Assert<SigningState>();
+		var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
+
+		// Sanity check.
+		if (!SanityCheck(outputTxOuts, unsignedCoinJoin))
+		{
+			throw new InvalidOperationException($"Round ({roundState.Id}): My output is missing.");
+		}
+
+		// Send signature.
+		await SignTransactionAsync(registeredAliceClients, unsignedCoinJoin, phasenEndTime, cancellationToken).ConfigureAwait(false);
+		Logger.LogDebug($"Round ({roundId}): Alices({registeredAliceClients.Length}) successfully signed the coinjoin tx.");
+
+		return unsignedCoinJoin;
 	}
 }
