@@ -39,7 +39,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 		_sources = new SpectrumDataSource[] { _auraSpectrumDataSource, _splashEffectDataSource };
 
-		_lineBrush = SolidColorBrush.Parse("#97D234").ToImmutable();
+		_lineBrush = SolidColorBrush.Parse("#238636").ToImmutable();
 
 		Background = new RadialGradientBrush()
 		{
