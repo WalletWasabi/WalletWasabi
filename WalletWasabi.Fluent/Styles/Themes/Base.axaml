@@ -95,6 +95,12 @@
                     ResourceKey="DataGridRowSelectedBackgroundColor" />
     <StaticResource x:Key="NotificationCardBackgroundBrush" ResourceKey="TileRegionColor" />
 
+    <StaticResource x:Key="TileRegionColor" ResourceKey="SystemBaseLowColor" />
+    <StaticResource x:Key="SystemAccentNeutralColor" ResourceKey="SystemAccentColor" />
+    <StaticResource x:Key="TextControlBorderBrush" ResourceKey="SystemBaseLowColor" />
+    <StaticResource x:Key="TextControlBorderBrushPointerOver" ResourceKey="SystemBaseMediumLowColor" />
+    <StaticResource x:Key="TextControlBorderBrushFocused" ResourceKey="SystemBaseMediumHighColor" />
+
     <BoxShadows x:Key="EmptyBoxShadow">0 0 0 0 #000000</BoxShadows>
 
     <LinearGradientBrush x:Key="LogoGradientFixed" StartPoint="62%,31%" EndPoint="24%,81%">
@@ -104,19 +110,6 @@
         <GradientStop Color="#D4D4D4" Offset="0.4862" />
         <GradientStop Color="#C3C3C3" Offset="0.775" />
         <GradientStop Color="#BDBDBD" Offset="0.993" />
-      </LinearGradientBrush.GradientStops>
-    </LinearGradientBrush>
-
-    <LinearGradientBrush x:Key="PrivacyIndicatorWalletGradientBrush" StartPoint="0,2.5" EndPoint="66.8942,36.3931">
-      <LinearGradientBrush.GradientStops>
-        <GradientStop Offset="0" Color="#FF646A74" />
-        <GradientStop Offset="1.0000001" Color="#FF545E6F" />
-      </LinearGradientBrush.GradientStops>
-    </LinearGradientBrush>
-    <LinearGradientBrush x:Key="PrivacyIndicatorShieldGradientBrush0" StartPoint="46.4998,1.7628994" EndPoint="0,45.3796">
-      <LinearGradientBrush.GradientStops>
-        <GradientStop Offset="0" Color="#FF97D234" />
-        <GradientStop Offset="1" Color="#FF7FAF2F" />
       </LinearGradientBrush.GradientStops>
     </LinearGradientBrush>
 
