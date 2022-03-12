@@ -36,8 +36,8 @@
               <Viewbox Height="18" Width="18">
                 <ContentControl Template="{DynamicResource wasabi_logo_fixed}" />
               </Viewbox>
-              <TextBlock Classes="h8" FontSize="11" Text="Wasabi Wallet" Margin="20 0 0 0" IsHitTestVisible="False" />
-              <TextBlock Classes="h8" FontSize="11" Opacity="0.6" Text="TESTNET PREVIEW" IsHitTestVisible="False" Margin="5 0 0 0" />
+              <TextBlock Classes="h8" VerticalAlignment="Center" Text="Wasabi Wallet" Margin="20 0 0 0" IsHitTestVisible="False" />
+              <TextBlock Classes="h8" VerticalAlignment="Center" Opacity="0.6" Text="TESTNET PREVIEW" IsHitTestVisible="False" Margin="5 0 0 0" />
             </StackPanel>
 
             <statusBar:StatusBar DataContext="{Binding StatusBar}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0 0 10 0" />
