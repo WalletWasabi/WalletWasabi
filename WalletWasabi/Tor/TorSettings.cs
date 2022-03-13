@@ -76,7 +76,8 @@ public class TorSettings
 		// `--SafeLogging 0` is useful for debugging to avoid "[scrubbed]" redactions in Tor log.
 		List<string> arguments = new()
 		{
-			$"--SOCKSPort {SocksEndpoint}",
+			$"--LogTimeGranularity 1",
+			$"--SOCKSPort \"{SocksEndpoint} ExtendedErrors\"",
 			$"--CookieAuthentication 1",
 			$"--ControlPort {ControlEndpoint.Port}",
 			$"--CookieAuthFile \"{CookieAuthFilePath}\"",

@@ -17,7 +17,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	Category = "Settings",
 	Keywords = new[]
 	{
-			"Settings", "Bitcoin", "Network", "Main", "TestNet", "RegTest", "Run", "Knots", "Startup", "P2P", "Endpoint"
+			"Settings", "Bitcoin", "Network", "Main", "TestNet", "RegTest", "Run", "Node", "Core", "Knots", "Version", "Startup",
+			"P2P", "Endpoint", "Dust", "Threshold", "BTC"
 	},
 	IconName = "settings_bitcoin_regular")]
 public partial class BitcoinTabSettingsViewModel : SettingsTabViewModelBase
