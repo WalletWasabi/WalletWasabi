@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -9,31 +9,32 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyControlTileView">
   <controls:TileControl TileSize="{Binding CurrentTileSize}">
     <DockPanel>
-      <TextBlock Text="PRIVACY LEVEL" DockPanel.Dock="Top" Classes="h8 bold" />
-      <StackPanel DockPanel.Dock="Bottom" Height="25" Spacing="8" IsVisible="{Binding HasPrivateBalance}">
-        <Separator />
-        <StackPanel Opacity="0.8" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+      <StackPanel DockPanel.Dock="Top" Height="24" Spacing="8">
+        <StackPanel Opacity="0.8" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
           <Border VerticalAlignment="Center" BorderThickness="1" CornerRadius="2"
                   BorderBrush="{StaticResource ButtonForeground}">
             <TextBlock
-              Text="PRIVATE" Classes="h9 bold" Margin="4 2 " VerticalAlignment="Center" HorizontalAlignment="Center" />
+              Text="Private" Classes="h9" Margin="4 2 " VerticalAlignment="Center" HorizontalAlignment="Right" />
           </Border>
-          <controls:PrivacyContentControl Classes="h9 bold" NumberOfPrivacyChars="9"
+          <controls:PrivacyContentControl Classes="h7 bold" NumberOfPrivacyChars="9"
                                           VerticalAlignment="Center"
-
                                           Content="{Binding BalancePrivateBtc}" />
         </StackPanel>
       </StackPanel>
 
-      <StackPanel VerticalAlignment="Center" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 3">
-        <Image Height="36" Width="36" VerticalAlignment="Center" HorizontalAlignment="Center"
-               Source="{StaticResource privacy_indicator_good}" />
-        <TextBlock
-          VerticalAlignment="Center" HorizontalAlignment="Center"
-          TextAlignment="Center"
-          Text="{Binding PercentText}" Classes="h2" />
+      <StackPanel DockPanel.Dock="Bottom" Height="24" Spacing="8">
+        <Separator />
+        <StackPanel Opacity="0.8" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+          <Border VerticalAlignment="Center" BorderThickness="1" CornerRadius="2"
+                  BorderBrush="{StaticResource ButtonForeground}">
+            <TextBlock
+              Text="Partially Private" Classes="h9" Margin="4 2 " VerticalAlignment="Center" HorizontalAlignment="Right" />
+          </Border>
+          <controls:PrivacyContentControl Classes="h7 bold" NumberOfPrivacyChars="9"
+                                          VerticalAlignment="Center"
+                                          Content="{Binding BalancePartiallyPrivateBtc}" />
+        </StackPanel>
       </StackPanel>
-
     </DockPanel>
   </controls:TileControl>
 </UserControl>

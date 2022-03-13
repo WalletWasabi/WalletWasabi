@@ -11,10 +11,9 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 {
 	private readonly IObservable<Unit> _balanceChanged;
 	private readonly Wallet _wallet;
-	[AutoNotify] private bool _fullyMixed;
-	[AutoNotify] private string _percentText = "";
+
 	[AutoNotify] private string _balancePrivateBtc = "";
-	[AutoNotify] private bool _hasPrivateBalance;
+	[AutoNotify] private string _balancePartiallyPrivateBtc = "";
 
 	public PrivacyControlTileViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
 	{
@@ -34,17 +33,16 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 	private void Update()
 	{
 		var privateThreshold = _wallet.KeyManager.MinAnonScoreTarget;
-
-		var currentPrivacyScore = _wallet.Coins.Sum(x => x.Amount.Satoshi * Math.Min(x.HdPubKey.AnonymitySet - 1, privateThreshold - 1));
 		var maxPrivacyScore = _wallet.Coins.TotalAmount().Satoshi * (privateThreshold - 1);
-		int pcPrivate = maxPrivacyScore == 0M ? 100 : (int)(currentPrivacyScore * 100 / maxPrivacyScore);
 
-		PercentText = $"{pcPrivate} %";
+		var privateCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold);
+		var privateScore = privateCoins.Sum(x => x.Amount.Satoshi * Math.Min(x.HdPubKey.AnonymitySet - 1, privateThreshold - 1));
+		int pcPrivate = maxPrivacyScore == 0M ? 100 : (int)(privateScore * 100 / maxPrivacyScore);
+		BalancePrivateBtc = $"{privateCoins.TotalAmount().ToFormattedString()} BTC | {pcPrivate} %";
 
-		FullyMixed = pcPrivate >= 100;
-
-		var privateAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
-		HasPrivateBalance = privateAmount > Money.Zero;
-		BalancePrivateBtc = $"{privateAmount.ToFormattedString()} BTC";
+		var partiallyPrivateCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet > 1 && x.HdPubKey.AnonymitySet < privateThreshold);
+		var partiallyPrivateScore = partiallyPrivateCoins.Sum(x => x.Amount.Satoshi * Math.Min(x.HdPubKey.AnonymitySet - 1, privateThreshold - 1));
+		int pcPartiallyPrivate = maxPrivacyScore == 0M ? 100 : (int)(partiallyPrivateScore * 100 / maxPrivacyScore);
+		BalancePartiallyPrivateBtc = $"{partiallyPrivateCoins.TotalAmount().ToFormattedString()} BTC | {pcPartiallyPrivate} %";
 	}
 }
