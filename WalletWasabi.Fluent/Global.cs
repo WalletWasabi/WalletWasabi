@@ -41,14 +41,10 @@ public class Global
 	public TorSettings TorSettings { get; }
 	public BitcoinStore BitcoinStore { get; }
 
-	/// <summary>
-	/// HTTP client factory for communicating with the Wasabi backend.
-	/// </summary>
+	/// <summary>HTTP client factory for communicating with the Wasabi backend.</summary>
 	public HttpClientFactory BackendHttpClientFactory { get; }
 
-	/// <summary>
-	/// HTTP client factory for communicating with external third parties.
-	/// </summary>
+	/// <summary>HTTP client factory for communicating with external third parties.</summary>
 	public HttpClientFactory ExternalHttpClientFactory { get; }
 
 	public LegalChecker LegalChecker { get; private set; }
