@@ -259,7 +259,6 @@ public class TorHttpPool : IDisposable
 	private async Task<TorTcpConnection?> CreateNewConnectionAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken cancellationToken)
 	{
 		TorTcpConnection? connection;
-		string host = GetRequestHost(request);
 
 		try
 		{
@@ -268,17 +267,17 @@ public class TorHttpPool : IDisposable
 		}
 		catch (TorException e)
 		{
-			Logger.LogDebug($"['{host}'][ERROR] Failed to create a new pool connection.", e);
+			Logger.LogDebug($"['{request.RequestUri}'][ERROR] Failed to create a new pool connection.", e);
 			throw;
 		}
 		catch (OperationCanceledException)
 		{
-			Logger.LogTrace($"['{host}'] Operation was canceled.");
+			Logger.LogTrace($"['{request.RequestUri}'] Operation was canceled.");
 			throw;
 		}
 		catch (Exception e)
 		{
-			Logger.LogTrace($"['{host}'][EXCEPTION] {e}");
+			Logger.LogTrace($"['{request.RequestUri}'][EXCEPTION] {e}");
 			throw;
 		}
 
