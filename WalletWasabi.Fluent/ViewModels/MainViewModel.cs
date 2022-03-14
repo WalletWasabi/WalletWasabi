@@ -42,7 +42,7 @@ public partial class MainViewModel : ViewModelBase
 	[AutoNotify] private bool _isCoinJoinActive;
 	[AutoNotify] private double _windowWidth;
 	[AutoNotify] private double _windowHeight;
-	[AutoNotify] private PixelPoint _windowPosition;
+	[AutoNotify] private PixelPoint? _windowPosition;
 
 	public MainViewModel()
 	{
@@ -97,8 +97,12 @@ public partial class MainViewModel : ViewModelBase
 			.Subscribe(t =>
 			{
 				Services.UiConfig.WindowState = t.Item1.ToString();
-				Services.UiConfig.WindowX = t.Item2.X;
-				Services.UiConfig.WindowY = t.Item2.Y;
+				if (t.Item2 is { })
+				{
+					Services.UiConfig.WindowX = t.Item2.Value.X;
+					Services.UiConfig.WindowY = t.Item2.Value.Y;
+				}
+				
 				Services.UiConfig.WindowWidth = t.Item3;
 				Services.UiConfig.WindowHeight = t.Item4;
 			});

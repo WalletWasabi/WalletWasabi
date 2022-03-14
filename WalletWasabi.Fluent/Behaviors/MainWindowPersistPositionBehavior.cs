@@ -31,7 +31,8 @@ public class MainWindowBindPositionBehavior : DisposingBehavior<Window>
 				  .DisposeWith(disposables);
 
 			vm.WhenAnyValue(x => x.WindowPosition)
-			  .Subscribe(x => AssociatedObject.Position = x)
+			  .Where(x => x is { })
+			  .Subscribe(x => AssociatedObject.Position = x.Value)
 			  .DisposeWith(disposables);
 
 			SetInitialPosition(vm);
@@ -43,9 +44,14 @@ public class MainWindowBindPositionBehavior : DisposingBehavior<Window>
 		if (vm.WindowState != WindowState.Normal)
 		{
 			return;
-		}	
+		}
 
-		var position = vm.WindowPosition;
+		var centerX = (int)((AssociatedObject!.Screens.Primary.Bounds.Width - vm.WindowWidth) / 2);
+		var centerY = (int)((AssociatedObject!.Screens.Primary.Bounds.Height - vm.WindowHeight) / 2);
+
+		var position =
+			vm.WindowPosition
+			??= new PixelPoint(centerX, centerY);
 
 		var isValidLeft =
 			AssociatedObject!.Screens.All.Any(s => s.Bounds.X <= position.X);
@@ -62,12 +68,12 @@ public class MainWindowBindPositionBehavior : DisposingBehavior<Window>
 		var x =
 			isValidLeft && isValidRight
 			? position.X
-			: (int)((AssociatedObject.Screens.Primary.Bounds.Width - vm.WindowWidth) / 2);
+			: centerX;
 
 		var y =
 			isValidTop && isValidBottom
 			? position.Y
-			: (int)((AssociatedObject.Screens.Primary.Bounds.Height - vm.WindowHeight) / 2);
+			: centerY;
 
 		AssociatedObject.Position = new PixelPoint(x, y);
 
