@@ -69,17 +69,19 @@ public class SmartCoinSelector : ICoinSelector
 			.OrderBy(x => x.Coins.Sum(c => c.Amount))
 			.ToImmutableList();
 
-		var coinsGroup = coinsInBestClusterByScript.Count < 10
-			? coinsInBestClusterByScript.CombinationsWithoutRepetition(1, 5).Select(x => x.ToImmutableList())
-			: coinsInBestClusterByScript.Select(x => ImmutableList.Create(x))
+		// {1} {2} ... {n} {1, 2} {1, 2, 3} {1, 2, 3, 4} ... {1, 2, 3, 4, 5 ... n}
+		var coinsGroup = coinsInBestClusterByScript.Select(x => ImmutableList.Create(x))
 				.Concat(coinsInBestClusterByScript.Scan(ImmutableList<(Script ScriptPubKey, List<SmartCoin> Coins)>.Empty, (acc, coinGroup) => acc.Add(coinGroup)));
 
+		// Flattens the groups of coins and filters out the ones that are too small.
+		// Finally it sorts the solutions by number or coins (those with less coins on the top).
 		var candidates = coinsGroup
 			.Select(x => x.SelectMany(y => y.Coins))
 			.Select(x => (Coins: x, Total: x.Sum(y => y.Amount)))
 			.Where(x => x.Total >= targetMoney) // filter combinations below target
 			.OrderBy(x => x.Coins.Count());
 
+		// Select the best solution.
 		return candidates.First().Coins.Select(x => x.Coin);
 	}
 }
