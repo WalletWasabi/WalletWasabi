@@ -18,7 +18,7 @@ public static class Decomposer
 		}
 		if (target <= 0)
 		{
-			throw new ArgumentException("Only possitive numbers can be decomposed.", nameof(target));
+			throw new ArgumentException("Only positive numbers can be decomposed.", nameof(target));
 		}
 
 		var denoms = StdDenoms.SkipWhile(x => x > target).ToArray();
