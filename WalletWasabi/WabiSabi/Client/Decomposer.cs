@@ -14,7 +14,7 @@ public static class Decomposer
 	{
 		if (maxCount is <= 1 or > 8)
 		{
-			throw new ArgumentOutOfRangeException(nameof(maxCount), "The maximum decomposition lenght cannot be greater than 8 or smaller than 1.");
+			throw new ArgumentOutOfRangeException(nameof(maxCount), "The maximum decomposition length cannot be greater than 8 or smaller than 2.");
 		}
 		if (target <= 0)
 		{
@@ -25,7 +25,7 @@ public static class Decomposer
 
 		if (denoms.Length > 255)
 		{
-			throw new ArgumentException("Too many denominations. Maximum number is 256.", nameof(target));
+			throw new ArgumentException("Too many denominations. Maximum number is 255.", nameof(target));
 		}
 		return denoms.SelectMany(_ => InternalCombinations(target, tolerance: tolerance, maxCount, denoms)).Take(10_000).ToList();
 	}
