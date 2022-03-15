@@ -495,8 +495,8 @@ public class CoinJoinClient
 		// Waiting for OutputRegistration phase, all the Alices confirmed their connections, so the list of the inputs will be complete.
 		var roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundId, Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
 		var remainingTime = roundState.OutputRegistrationTimeout - RoundStatusUpdater.Period;
-		var outputRegistrationEndTime = DateTimeOffset.UtcNow + (remainingTime * 0.8);
-		var readyToSignEndTime = outputRegistrationEndTime + remainingTime * 0.2;
+		var outputRegistrationEndTime = DateTimeOffset.UtcNow + (remainingTime * 0.8); // 80% of the time.
+		var readyToSignEndTime = outputRegistrationEndTime + remainingTime * 0.2; // 20% of the time.
 
 		using CancellationTokenSource phaseTimeoutCts = new(remainingTime + ExtraPhaseTimeoutMargin);
 		using CancellationTokenSource combinedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, phaseTimeoutCts.Token);
