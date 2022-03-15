@@ -24,6 +24,7 @@ public class CoinJoinClient
 	private const int MaxInputsRegistrableByWallet = 10; // how many
 	private volatile bool _inCriticalCoinJoinState;
 	private static readonly Money MinimumOutputAmountSanity = Money.Coins(0.0001m); // ignore rounds with too big minimum denominations
+	private static readonly TimeSpan ExtraPhaseTimeoutMargin = TimeSpan.FromMinutes(1);
 
 	// Maximum delay when spreading the requests in time, except input registration requests which
 	// timings only depends on the input-reg timeout.
@@ -497,7 +498,7 @@ public class CoinJoinClient
 		var outputRegistrationEndTime = DateTimeOffset.UtcNow + (remainingTime * 0.8);
 		var readyToSignEndTime = outputRegistrationEndTime + remainingTime * 0.2;
 
-		using CancellationTokenSource phaseTimeoutCts = new(remainingTime + TimeSpan.FromMinutes(1));
+		using CancellationTokenSource phaseTimeoutCts = new(remainingTime + ExtraPhaseTimeoutMargin);
 		using CancellationTokenSource combinedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, phaseTimeoutCts.Token);
 
 		var registeredCoins = registeredAliceClients.Select(x => x.SmartCoin.Coin);
