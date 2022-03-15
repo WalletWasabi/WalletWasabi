@@ -543,7 +543,7 @@ public class CoinJoinClient
 	{
 		var remainingTime = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
 
-		using CancellationTokenSource phaseTimeoutCts = new(remainingTime + TimeSpan.FromMinutes(1));
+		using CancellationTokenSource phaseTimeoutCts = new(remainingTime + ExtraPhaseTimeoutMargin);
 		using CancellationTokenSource combinedCts = CancellationTokenSource.CreateLinkedTokenSource(abortToken, phaseTimeoutCts.Token);
 		var cancellationToken = combinedCts.Token;
 
