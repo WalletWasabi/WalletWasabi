@@ -165,9 +165,9 @@ public class CoinJoinClient
 		{
 			InCriticalCoinJoinState = true;
 
-			var outputTxOuts = await ProgressOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
+			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
 
-			var unsignedCoinJoin = await ProgressSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
+			var unsignedCoinJoin = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
 
 			var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundId && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
 			Logger.LogDebug($"Round ({roundId}): Round Ended - WasTransactionBroadcast: '{finalRoundState.WasTransactionBroadcast}'.");
@@ -474,7 +474,7 @@ public class CoinJoinClient
 		return targetInputCount;
 	}
 
-	private async Task<IEnumerable<TxOut>> ProgressOutputRegistrationPhaseAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, CancellationToken cancellationToken)
+	private async Task<IEnumerable<TxOut>> ProceedWithOutputRegistrationPhaseAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, CancellationToken cancellationToken)
 	{
 		// Waiting for OutputRegistration phase, all the Alices confirmed their connections, so the list of the inputs will be complete.
 		var roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundId, Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
@@ -525,7 +525,7 @@ public class CoinJoinClient
 		return outputTxOuts;
 	}
 
-	private async Task<Transaction> ProgressSigningStateAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, IEnumerable<TxOut> outputTxOuts, CancellationToken cancellationToken)
+	private async Task<Transaction> ProceedWithSigningStateAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, IEnumerable<TxOut> outputTxOuts, CancellationToken cancellationToken)
 	{
 		// Signing.
 		var roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundId, Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
