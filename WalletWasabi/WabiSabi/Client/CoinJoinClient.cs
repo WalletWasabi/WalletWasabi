@@ -499,9 +499,7 @@ public class CoinJoinClient
 
 		using CancellationTokenSource phaseTimeoutCts = new(remainingTime + TimeSpan.FromMinutes(1));
 		using CancellationTokenSource combinedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, phaseTimeoutCts.Token);
-		var combinedToken = combinedCts.Token;
 
-		// Calculate outputs values
 		var registeredCoins = registeredAliceClients.Select(x => x.SmartCoin.Coin);
 		var inputEffectiveValuesAndSizes = registeredAliceClients.Select(x => (x.EffectiveValue, x.SmartCoin.ScriptPubKey.EstimateInputVsize()));
 		var availableVsize = registeredAliceClients.SelectMany(x => x.IssuedVsizeCredentials).Sum(x => x.Value);
@@ -525,6 +523,7 @@ public class CoinJoinClient
 		// Re-issuances.
 		var bobClient = CreateBobClient(roundState);
 		Logger.LogInfo($"Round ({roundState.Id}), Starting reissuances.");
+		var combinedToken = combinedCts.Token;
 		await scheduler.StartReissuancesAsync(registeredAliceClients, bobClient, combinedToken).ConfigureAwait(false);
 
 		// Output registration.
