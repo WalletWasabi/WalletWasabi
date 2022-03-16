@@ -14,7 +14,6 @@ using WalletWasabi.Io;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Nito.AsyncEx;
-
 namespace WalletWasabi.Stores;
 
 /// <summary>
@@ -44,33 +43,27 @@ public class IndexStore : IAsyncDisposable
 
 	public event EventHandler<FilterModel>? NewFilter;
 
-	private AbandonedTasks AbandonedTasks { get; } = new AbandonedTasks();
+	private AbandonedTasks AbandonedTasks { get; } = new();
 
 	private string WorkFolderPath { get; }
 	private Network Network { get; }
 	private DigestableSafeIoManager MatureIndexFileManager { get; }
 	private DigestableSafeIoManager ImmatureIndexFileManager { get; }
 
-	/// <summary>
-	/// Lock for accessing MatureIndex file. This should be lock #2.
-	/// </summary>
-	private AsyncLock MatureIndexAsyncLock { get; } = new AsyncLock();
+	/// <summary>Lock for modifying <see cref="ImmatureFilters"/>. This should be lock #1.</summary>
+	private AsyncLock IndexLock { get; } = new();
 
-	/// <summary>
-	/// Lock for accessing ImmatureIndex file. This should be lock #3.
-	/// </summary>
-	private AsyncLock ImmatureIndexAsyncLock { get; } = new AsyncLock();
+	/// <summary>Lock for accessing <see cref="MatureIndexFileManager"/>. This should be lock #2.</summary>
+	private AsyncLock MatureIndexAsyncLock { get; } = new();
+
+	/// <summary>Lock for accessing <see cref="ImmatureIndexFileManager"/>. This should be lock #3.</summary>
+	private AsyncLock ImmatureIndexAsyncLock { get; } = new();
 
 	public SmartHeaderChain SmartHeaderChain { get; }
 
 	private FilterModel StartingFilter { get; }
 	private uint StartingHeight => StartingFilter.Header.Height;
-	private List<FilterModel> ImmatureFilters { get; } = new List<FilterModel>(150);
-
-	/// <summary>
-	/// Lock for modifying SmartHeaderChain or ImmatureFilters. This should be lock #1.
-	/// </summary>
-	private AsyncLock IndexLock { get; } = new AsyncLock();
+	private List<FilterModel> ImmatureFilters { get; } = new(150);
 
 	public async Task InitializeAsync(CancellationToken cancel = default)
 	{
@@ -87,12 +80,14 @@ public class IndexStore : IAsyncDisposable
 					MatureIndexFileManager.DeleteMe(); // RegTest is not a global ledger, better to delete it.
 					ImmatureIndexFileManager.DeleteMe();
 				}
+
 				cancel.ThrowIfCancellationRequested();
 
 				if (!MatureIndexFileManager.Exists())
 				{
 					await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToLine() }, CancellationToken.None).ConfigureAwait(false);
 				}
+
 				cancel.ThrowIfCancellationRequested();
 
 				await InitializeFiltersAsync(cancel).ConfigureAwait(false);
@@ -175,6 +170,7 @@ public class IndexStore : IAsyncDisposable
 			ImmatureIndexFileManager.DeleteMe();
 			throw;
 		}
+
 		cancel.ThrowIfCancellationRequested();
 
 		try
@@ -415,12 +411,22 @@ public class IndexStore : IAsyncDisposable
 				var currentImmatureLines = ImmatureFilters.Select(x => x.ToLine()).ToArray(); // So we do not read on ImmatureFilters while removing them.
 				var matureLinesToAppend = currentImmatureLines.SkipLast(100);
 				var immatureLines = currentImmatureLines.TakeLast(100);
-				var tasks = new Task[] { MatureIndexFileManager.AppendAllLinesAsync(matureLinesToAppend, CancellationToken.None), ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines, CancellationToken.None) };
+
+				// The order of the following lines is important.
+
+				// 1) First delete the immature index. If we lose it because the mature index writing fails, we are OK with that.
+				ImmatureIndexFileManager.DeleteMe();
+
+				// 2) Attempt to update the mature index.
+				await MatureIndexFileManager.AppendAllLinesAsync(matureLinesToAppend, CancellationToken.None).ConfigureAwait(false);
+
+				// 3) Create new immature index.
+				await ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines, CancellationToken.None).ConfigureAwait(false);
+
 				while (ImmatureFilters.Count > 100)
 				{
 					ImmatureFilters.RemoveFirst();
 				}
-				await Task.WhenAll(tasks).ConfigureAwait(false);
 			}
 		}
 		catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)

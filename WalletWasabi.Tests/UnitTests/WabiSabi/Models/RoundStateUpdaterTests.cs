@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
 

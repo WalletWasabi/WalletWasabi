@@ -99,7 +99,7 @@ public partial class Arena : PeriodicRunner
 						continue;
 					}
 					round.SetPhase(Phase.Ended);
-					round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase.");
+					round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase. The minimum is ({Config.MinInputCountByRound}).");
 				}
 				else if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
 				{
@@ -152,7 +152,7 @@ public partial class Arena : PeriodicRunner
 					if (round.InputCount < Config.MinInputCountByRound)
 					{
 						round.SetPhase(Phase.Ended);
-						round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.ConnectionConfirmation)} phase.");
+						round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.ConnectionConfirmation)} phase. The minimum is ({Config.MinInputCountByRound}).");
 					}
 					else
 					{
@@ -447,7 +447,7 @@ public partial class Arena : PeriodicRunner
 		{
 			Config.MakeNextCoordinatorScriptDirty();
 			coordinatorScriptPubKey = Config.GetNextCleanCoordinatorScript();
-			round.LogWarning($"Coordinator script pub key was already used by another round, making it dirty and taking a new one.");
+			round.LogWarning("Coordinator script pub key was already used by another round, making it dirty and taking a new one.");
 		}
 
 		return coordinatorScriptPubKey;

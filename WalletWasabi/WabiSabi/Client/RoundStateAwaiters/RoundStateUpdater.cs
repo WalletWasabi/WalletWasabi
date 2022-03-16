@@ -9,7 +9,7 @@ using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
 
-namespace WalletWasabi.WabiSabi.Client;
+namespace WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 
 public class RoundStateUpdater : PeriodicRunner
 {
