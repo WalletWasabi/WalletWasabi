@@ -88,12 +88,12 @@ public class CoreNode
 				coreNodeParams.RpcEndPointStrategy.EndPoint.TryGetPort(out rpcPort);
 			}
 
-			EndPointParser.TryParse($"{rpcHost}:{rpcPort}", coreNode.Network.RPCPort, out EndPoint? rpce);
-			if (rpce is null)
+			bool isParsed = EndPointParser.TryParse($"{rpcHost}:{rpcPort}", coreNode.Network.RPCPort, out EndPoint? rpce);
+			if (!isParsed)
 			{
 				throw new InvalidOperationException($"Failed to get RPC endpoint on {rpcHost}:{rpcPort}.");
 			}
-			coreNode.RpcEndPoint = rpce;
+			coreNode.RpcEndPoint = rpce!;
 
 			var rpcClient = new RPCClient(
 				$"{authString}",
