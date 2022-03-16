@@ -11,6 +11,7 @@ using Avalonia.Threading;
 using SkiaSharp;
 
 namespace WalletWasabi.Fluent.Controls.Spectrum;
+#pragma warning disable CS0612
 
 public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 {
