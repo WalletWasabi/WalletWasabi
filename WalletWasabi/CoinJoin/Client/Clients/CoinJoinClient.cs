@@ -46,6 +46,7 @@ public class CoinJoinClient
 	private long _running;
 
 	private long _statusProcessing;
+#pragma warning disable
 
 	public CoinJoinClient(
 		WasabiSynchronizer synchronizer,
