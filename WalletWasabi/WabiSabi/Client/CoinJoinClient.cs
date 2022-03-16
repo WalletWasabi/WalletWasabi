@@ -144,7 +144,7 @@ public class CoinJoinClient
 		ImmutableArray<AliceClient> registeredAliceClients = ImmutableArray<AliceClient>.Empty;
 		try
 		{
-			registeredAliceClients = await ProgressInputRegistrationPhaseAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
+			registeredAliceClients = await ProceedWithInputRegistrationPhaseAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
 		}
 		catch (UnexpectedRoundPhaseException ex)
 		{
@@ -539,7 +539,7 @@ public class CoinJoinClient
 		return outputTxOuts;
 	}
 
-	private async Task<ImmutableArray<AliceClient>> ProgressInputRegistrationPhaseAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken abortToken)
+	private async Task<ImmutableArray<AliceClient>> ProceedWithInputRegistrationPhaseAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken abortToken)
 	{
 		var remainingTime = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
 
