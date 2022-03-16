@@ -32,6 +32,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private readonly BitcoinAddress _destination;
 	private BuildTransactionResult? _transaction;
 	private TransactionInfo _info;
+	private TransactionInfo _currentTransactionInfo;
 	private CancellationTokenSource _cancellationTokenSource;
 	[AutoNotify] private string _nextButtonText;
 	[AutoNotify] private bool _adjustFeeAvailable;
@@ -43,6 +44,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		_undoHistory = new();
 		_wallet = wallet;
 		_info = info;
+		_currentTransactionInfo = info.Clone();
 		_destination = destination;
 		_isFixedAmount = isFixedAmount;
 		_cancellationTokenSource = new CancellationTokenSource();
@@ -80,10 +82,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 				if (x is ChangeAvoidanceSuggestionViewModel ca)
 				{
-					AddToUndoHistory();
 					_info.ChangelessCoins = ca.TransactionResult.SpentCoins;
-					_info.Amount = ca.TransactionResult.CalculateDestinationAmount();
-					UpdateTransaction(CurrentTransactionSummary, ca.TransactionResult, false);
+					UpdateTransaction(CurrentTransactionSummary, ca.TransactionResult);
 
 					await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, ca.TransactionResult, _isFixedAmount, _cancellationTokenSource.Token);
 				}
@@ -187,12 +187,13 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		if (!summary.IsPreview)
 		{
-			if (addToUndoHistory && _transaction is { })
+			if (addToUndoHistory)
 			{
 				AddToUndoHistory();
 			}
 
 			_transaction = transaction;
+			_currentTransactionInfo = _info.Clone();
 		}
 
 		summary.UpdateTransaction(transaction, _info);
@@ -202,8 +203,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task OnAdjustFeeAsync()
 	{
-		AddToUndoHistory();
-
 		var feeRateDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, false));
 
 		if (feeRateDialogResult.Kind == DialogResultKind.Normal && feeRateDialogResult.Result is { } newFeeRate &&
@@ -211,23 +210,17 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			_info.FeeRate = feeRateDialogResult.Result;
 
-			await BuildAndUpdateAsync(BuildTransactionReason.FeeChanged, false);
+			await BuildAndUpdateAsync(BuildTransactionReason.FeeChanged);
 		}
-		else
-		{
-			_undoHistory.Pop();
-		}
-
-		CanUndo = _undoHistory.Any();
 	}
 
-	private async Task BuildAndUpdateAsync(BuildTransactionReason reason, bool addToUndoHistory = true)
+	private async Task BuildAndUpdateAsync(BuildTransactionReason reason)
 	{
 		var newTransaction = await BuildTransactionAsync(reason);
 
 		if (newTransaction is { })
 		{
-			UpdateTransaction(CurrentTransactionSummary, newTransaction, addToUndoHistory);
+			UpdateTransaction(CurrentTransactionSummary, newTransaction);
 
 			await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, newTransaction, _isFixedAmount, _cancellationTokenSource.Token);
 		}
@@ -240,10 +233,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
 		{
-			AddToUndoHistory();
 			_info.Coins = selectPocketsDialog.Result;
 			_info.ChangelessCoins = Enumerable.Empty<SmartCoin>(); // Clear ChangelessCoins on pocket change, so we calculate the suggestions with the new pocket.
-			await BuildAndUpdateAsync(BuildTransactionReason.PocketChanged, false);
+			await BuildAndUpdateAsync(BuildTransactionReason.PocketChanged);
 		}
 	}
 
@@ -544,7 +536,10 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private void AddToUndoHistory()
 	{
-		_undoHistory.Push((_transaction!, _info.Clone()));
-		CanUndo = true;
+		if (_transaction is { })
+		{
+			_undoHistory.Push((_transaction, _currentTransactionInfo));
+			CanUndo = true;
+		}
 	}
 }
