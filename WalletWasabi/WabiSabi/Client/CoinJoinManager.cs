@@ -40,13 +40,9 @@ public class CoinJoinManager : BackgroundService
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
 	public bool IsUserInSendWorkflow { get; set; }
 
-	private ConcurrentDictionary<Wallet, CoinJoinCommand> WalletManualState { get; } = new();
+	public void Start(Wallet wallet){}
 
-	public void Start(Wallet wallet) =>
-		WalletManualState.AddOrUpdate(wallet, CoinJoinCommand.Start, (_, _) => CoinJoinCommand.Start);
-
-	public void Stop(Wallet wallet) =>
-		WalletManualState.AddOrUpdate(wallet, CoinJoinCommand.Stop, (_, _) => CoinJoinCommand.Stop);
+	public void Stop(Wallet wallet){}
 
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
 
@@ -91,38 +87,6 @@ public class CoinJoinManager : BackgroundService
 			foreach (var openedWallet in openedWallets.Select(x => x.Value))
 			{
 				NotifyMixableWalletLoaded(openedWallet);
-
-				if (!MustStart(openedWallet))
-				{
-					continue;
-				}
-
-				if (openedWallet.KeyManager.AutoCoinJoin)
-				{
-					if (IsUserInSendWorkflow)
-					{
-						NotifyCoinJoinStartError(openedWallet, CoinjoinError.UserInSendWorkflow);
-						continue;
-					}
-					if (openedWallet.NonPrivateCoins.TotalAmount() <= openedWallet.KeyManager.PlebStopThreshold)
-					{
-						NotifyCoinJoinStartError(openedWallet, CoinjoinError.NotEnoughUnprivateBalance);
-						continue;
-					}
-				}
-
-				var coinCandidates = SelectCandidateCoins(openedWallet).ToArray();
-				if (coinCandidates.Length == 0)
-				{
-					NotifyCoinJoinStartError(openedWallet, CoinjoinError.NoCoinsToMix);
-					continue;
-				}
-
-				CoinJoinTracker coinJoinTracker = coinJoinTrackerFactory.CreateAndStart(openedWallet, coinCandidates);
-
-				trackedCoinJoins.Add(openedWallet.WalletName, coinJoinTracker);
-				var registrationTimeout = TimeSpan.MaxValue;
-				NotifyCoinJoinStarted(openedWallet, registrationTimeout);
 			}
 
 			foreach (var closedWallet in closedWallets.Select(x => x.Value))
@@ -234,8 +198,7 @@ public class CoinJoinManager : BackgroundService
 			.Where(x => x.State == WalletState.Started) // Only running wallets
 			.Where(x => !x.KeyManager.IsWatchOnly)      // that are not watch-only wallets
 			.Where(x => x.Kitchen.HasIngredients)
-			.Where(x => x.KeyManager.AutoCoinJoin || MustStart(x))
-			.Where(x => !MustStop(x))
+			.Where(x => x.KeyManager.AutoCoinJoin)
 			.ToImmutableDictionary(x => x.WalletName, x => x);
 
 	private void SafeRaiseEvent(EventHandler<StatusChangedEventArgs>? evnt, StatusChangedEventArgs args)
@@ -249,12 +212,6 @@ public class CoinJoinManager : BackgroundService
 			Logger.LogError(e);
 		}
 	}
-
-	private bool MustStart(Wallet wallet) =>
-		WalletManualState.TryGetValue(wallet, out var state) && state == CoinJoinCommand.Start;
-
-	private bool MustStop(Wallet wallet) =>
-		WalletManualState.TryGetValue(wallet, out var state) && state == CoinJoinCommand.Stop;
 
 	private IEnumerable<SmartCoin> SelectCandidateCoins(Wallet openedWallet)
 	{
