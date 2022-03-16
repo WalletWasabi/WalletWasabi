@@ -130,7 +130,7 @@ public sealed class Deque<T> : IList<T>, IReadOnlyList<T>, IList
 
 		set
 		{
-			if (value is null)
+			if (value is null && default(T) is not null)
 			{
 				throw new ArgumentNullException(nameof(value), $"{nameof(value)} cannot be null.");
 			}

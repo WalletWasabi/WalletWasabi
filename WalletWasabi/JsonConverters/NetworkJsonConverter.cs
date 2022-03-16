@@ -21,7 +21,7 @@ public class NetworkJsonConverter : JsonConverter
 		// check additional strings that are not checked by GetNetwork
 		if (reader.Value is null)
 		{
-			throw new ArgumentNullException("Can't read json, value was null.");
+			throw new ArgumentNullException(nameof(reader.Value), "Can't read json, value was null.");
 		}
 		string networkString = ((string)reader.Value).Trim();
 		if ("regression".Equals(networkString, StringComparison.OrdinalIgnoreCase))
@@ -37,7 +37,7 @@ public class NetworkJsonConverter : JsonConverter
 	{
 		if (value is null)
 		{
-			throw new ArgumentNullException("Can't write to json, value was null.");
+			throw new ArgumentNullException(nameof(value), "Can't write to json, value was null.");
 		}
 		writer.WriteValue(((Network)value).ToString());
 	}

@@ -93,7 +93,7 @@ public class CoinJoinClient
 
 	private ClientRoundRegistration? DelayedRoundRegistration { get; set; }
 
-	public Func<Uri>? CcjHostUriAction { get; private set; }
+	public Func<Uri> CcjHostUriAction { get; private set; }
 	public WasabiSynchronizer Synchronizer { get; private set; }
 
 	private decimal? CoordinatorFeepercentToCheck { get; set; }
@@ -247,7 +247,7 @@ public class CoinJoinClient
 					}
 				}
 			}
-			StateUpdated?.Invoke(this, null);
+			StateUpdated?.Invoke(this, EventArgs.Empty);
 
 			int delaySeconds = new Random().Next(0, 7); // delay the response to defend timing attack privacy.
 

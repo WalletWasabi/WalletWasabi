@@ -16,7 +16,7 @@ public class KeyPathJsonConverter : JsonConverter
 	{
 		if (reader.Value is null)
 		{
-			throw new ArgumentNullException("Can't read json, value was null.");
+			throw new ArgumentNullException(nameof(reader.Value), "Can't read json, value was null.");
 		}
 		var s = (string)reader.Value;
 		if (string.IsNullOrWhiteSpace(s))
@@ -33,7 +33,7 @@ public class KeyPathJsonConverter : JsonConverter
 	{
 		if (value is null)
 		{
-			throw new ArgumentNullException("Can't write to json, value was null.");
+			throw new ArgumentNullException(nameof(value), "Can't write to json, value was null.");
 		}
 		var kp = (KeyPath)value;
 
