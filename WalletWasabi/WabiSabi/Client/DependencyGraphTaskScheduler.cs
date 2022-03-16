@@ -142,7 +142,7 @@ public class DependencyGraphTaskScheduler
 		}
 	}
 
-	public async Task StartOutputRegistrationsAsync(IEnumerable<TxOut> txOuts, BobClient bobClient, IKeyChain keyChain, DateTimeOffset outputRegistrationEndTime, CancellationToken cancellationToken)
+	public async Task StartOutputRegistrationsAsync(IEnumerable<TxOut> txOuts, BobClient bobClient, IKeyChain keyChain, ImmutableList<DateTimeOffset> outputRegistrationScheduledDates, CancellationToken cancellationToken)
 	{
 		using CancellationTokenSource ctsOnError = new();
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctsOnError.Token);
@@ -160,20 +160,16 @@ public class DependencyGraphTaskScheduler
 			return smartRequestNode;
 		});
 
-		var remainingTime = outputRegistrationEndTime - DateTimeOffset.UtcNow;
-		if (remainingTime < TimeSpan.FromSeconds(5))
-		{
-			throw new InvalidOperationException("No time to register the outputs, aborting.");
-		}
-
-		var delays = remainingTime.SamplePoissonDelays(txOuts.Count());
-
-		var tasks = txOuts.Zip(nodes, delays,
-			async (txOut, smartRequestNode, delay) =>
+		var tasks = txOuts.Zip(nodes, outputRegistrationScheduledDates,
+			async (txOut, smartRequestNode, scheduledDate) =>
 			{
 				try
 				{
-					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+					var delay = scheduledDate - DateTimeOffset.UtcNow;
+					if (delay > TimeSpan.Zero)
+					{
+						await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+					}
 					await smartRequestNode.StartOutputRegistrationAsync(bobClient, txOut.ScriptPubKey, cancellationToken).ConfigureAwait(false);
 				}
 				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.AlreadyRegisteredScript)
