@@ -141,12 +141,10 @@ public class CoinJoinClient
 	{
 		var roundId = roundState.Id;
 
-		// Register coins.
-		using PersonCircuit personCircuit = HttpClientFactory.NewHttpClientWithPersonCircuit(out Tor.Http.IHttpClient httpClient);
 		ImmutableArray<AliceClient> registeredAliceClients = ImmutableArray<AliceClient>.Empty;
 		try
 		{
-			registeredAliceClients = await CreateRegisterAndConfirmCoinsAsync(httpClient, smartCoins, roundState, cancellationToken).ConfigureAwait(false);
+			registeredAliceClients = await ProceedWithInputRegistrationPhaseAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
 		}
 		catch (UnexpectedRoundPhaseException ex)
 		{
@@ -157,7 +155,6 @@ public class CoinJoinClient
 		if (!registeredAliceClients.Any())
 		{
 			Logger.LogInfo($"Round ({roundId}): There is no available alices to participate with.");
-
 			return new CoinJoinResult(false);
 		}
 
@@ -552,5 +549,18 @@ public class CoinJoinClient
 		Logger.LogDebug($"Round ({roundId}): Alices({registeredAliceClients.Length}) successfully signed the coinjoin tx.");
 
 		return unsignedCoinJoin;
+	}
+
+	private async Task<ImmutableArray<AliceClient>> ProceedWithInputRegistrationPhaseAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
+	{
+		var remainingTime = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
+
+		using CancellationTokenSource phaseTimeoutCts = new(remainingTime + ExtraPhaseTimeoutMargin);
+		using CancellationTokenSource combinedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, phaseTimeoutCts.Token);
+		var combinedToken = combinedCts.Token;
+
+		// Register coins.
+		using PersonCircuit personCircuit = HttpClientFactory.NewHttpClientWithPersonCircuit(out Tor.Http.IHttpClient httpClient);
+		return await CreateRegisterAndConfirmCoinsAsync(httpClient, smartCoins, roundState, combinedToken).ConfigureAwait(false);
 	}
 }
