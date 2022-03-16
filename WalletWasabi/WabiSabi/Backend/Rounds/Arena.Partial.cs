@@ -12,6 +12,7 @@ using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Logging;
+using System.Runtime.CompilerServices;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -36,7 +37,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			var round = GetRound(request.RoundId);
+			Round round = GetRound(request.RoundId);
 
 			var registeredCoins = Rounds.Where(x => !(x.Phase == Phase.Ended && !x.WasTransactionBroadcast))
 				.SelectMany(r => r.Alices.Select(a => a.Coin));
@@ -48,6 +49,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
 			{
+				LogLateRequest(request.RoundId, request);
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
 			}
 
@@ -132,7 +134,17 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	{
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			var round = GetRound(request.RoundId);
+			Round round;
+			try
+			{
+				round = GetRound(request.RoundId, Phase.OutputRegistration);
+			}
+			catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WrongPhase)
+			{
+				LogLateRequest(request.RoundId, request);
+				throw;
+			}
+
 			var alice = GetAlice(request.AliceId, round);
 			alice.ReadyToSign = true;
 		}
@@ -172,7 +184,15 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			round = GetRound(request.RoundId, Phase.InputRegistration, Phase.ConnectionConfirmation);
+			try
+			{
+				round = GetRound(request.RoundId, Phase.InputRegistration, Phase.ConnectionConfirmation);
+			}
+			catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WrongPhase)
+			{
+				LogLateRequest(request.RoundId, request);
+				throw;
+			}
 
 			alice = GetAlice(request.AliceId, round);
 
@@ -255,7 +275,16 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	{
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			var round = GetRound(request.RoundId, Phase.OutputRegistration);
+			Round round;
+			try
+			{
+				round = GetRound(request.RoundId, Phase.OutputRegistration);
+			}
+			catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WrongPhase)
+			{
+				LogLateRequest(request.RoundId, request);
+				throw;
+			}
 
 			var credentialAmount = -request.AmountCredentialRequests.Delta;
 
@@ -301,7 +330,16 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	{
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			var round = GetRound(request.RoundId, Phase.TransactionSigning);
+			Round round;
+			try
+			{
+				round = GetRound(request.RoundId, Phase.TransactionSigning);
+			}
+			catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WrongPhase)
+			{
+				LogLateRequest(request.RoundId, request);
+				throw;
+			}
 
 			var state = round.Assert<SigningState>().AddWitness((int)request.InputIndex, request.Witness);
 
@@ -315,7 +353,15 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		Round round;
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			round = GetRound(request.RoundId, Phase.ConnectionConfirmation, Phase.OutputRegistration);
+			try
+			{
+				round = GetRound(request.RoundId, Phase.ConnectionConfirmation, Phase.OutputRegistration);
+			}
+			catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WrongPhase)
+			{
+				LogLateRequest(request.RoundId, request);
+				throw;
+			}
 		}
 
 		if (request.RealAmountCredentialRequests.Delta != 0)
@@ -403,4 +449,26 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 	private static bool IsUserCheating(Exception e) =>
 		e is WabiSabiCryptoException || (e is WabiSabiProtocolException wpe && wpe.ErrorCode.IsEvidencingClearMisbehavior());
+
+	private void LogLateRequest(uint256 roundId, object request, [CallerMemberName] string callerName = "")
+	{
+		var round = Rounds.FirstOrDefault(r => r.Id == roundId);
+		if (round is null)
+		{
+			return;
+		}
+
+		var now = DateTimeOffset.UtcNow;
+
+		(Phase phase, TimeSpan late) = request switch
+		{
+			InputRegistrationRequest inputRegistrationRequest => (Phase.InputRegistration, now - round.InputRegistrationTimeFrame.EndTime),
+			ConnectionConfirmationRequest => (Phase.ConnectionConfirmation, now - round.ConnectionConfirmationTimeFrame.EndTime),
+			ReissueCredentialRequest or OutputRegistrationRequest or ReadyToSignRequestRequest => (Phase.OutputRegistration, now - round.OutputRegistrationTimeFrame.EndTime),
+			TransactionSignaturesRequest => (Phase.TransactionSigning, now - round.TransactionSigningTimeFrame.EndTime),
+			_ => (Phase.Ended, TimeSpan.MaxValue)
+		};
+
+		Logger.LogInfo($"Request '{callerName}' missing the phase '{phase}' by '{late}'. Round id '{roundId}' is in phase '{round.Phase}'.");
+	}
 }
