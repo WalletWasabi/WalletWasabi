@@ -258,7 +258,7 @@
                 <!-- Big status indicators -->
                 <DockPanel DockPanel.Dock="Right" HorizontalAlignment="Right">
                   <PathIcon Data="{StaticResource link_filled}" HorizontalAlignment="Center" VerticalAlignment="Center"
-                            IsVisible="{Binding IsCoinJoining}" Foreground="{StaticResource NavBarAccentColor}" />
+                            IsVisible="{Binding IsCoinJoining}" Foreground="{StaticResource NavBarAccentColor}" ToolTip.Tip="This wallet is coinjoining" />
                   <Viewbox HorizontalAlignment="Center" VerticalAlignment="Center" Margin="3" ClipToBounds="False"
                            IsVisible="{Binding IsLoading}">
                     <c:ProgressRing Height="60" IsIndeterminate="True" ClipToBounds="False" Background="Transparent"
