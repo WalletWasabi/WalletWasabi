@@ -19,6 +19,7 @@
     <Button Classes="plain"
             Command="{Binding OpenBrowserCommand}"
             CommandParameter="{Binding Link}"
+            ToolTip.Tip="{Binding Link}"
             IsVisible="{Binding IsClickable}">
       <TextBlock Text="{Binding Description}" Classes="Hyperlink" />
     </Button>

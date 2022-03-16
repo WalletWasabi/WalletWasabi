@@ -19,16 +19,6 @@ public class LoadedEventArgs : StatusChangedEventArgs
 	}
 }
 
-public class StartingEventArgs : StatusChangedEventArgs
-{
-	public StartingEventArgs(Wallet wallet, TimeSpan startingIn)
-		: base(wallet)
-	{
-		StartingIn = startingIn;
-	}
-	public TimeSpan StartingIn { get; }
-}
-
 public class StartedEventArgs : StatusChangedEventArgs
 {
 	public StartedEventArgs(Wallet wallet, TimeSpan registrationTimeout)

@@ -40,7 +40,7 @@ public partial class AboutViewModel : RoutableViewModel
 				new LinkViewModel()
 				{
 					Link = SourceCodeLink,
-					Description = "Source Code (Github)",
+					Description = "Source Code (GitHub)",
 					IsClickable = true
 				},
 				new SeparatorViewModel(),
