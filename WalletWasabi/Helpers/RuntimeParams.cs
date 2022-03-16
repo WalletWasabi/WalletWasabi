@@ -82,10 +82,10 @@ public class RuntimeParams
 			}
 
 			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8).ConfigureAwait(false);
-			RuntimeParams runtimeParams = JsonConvert.DeserializeObject<RuntimeParams>(jsonString)
+
+			InternalInstance = JsonConvert.DeserializeObject<RuntimeParams>(jsonString)
 				?? throw new InvalidOperationException($"Couldn't deserialize {nameof(InternalInstance)} from {FilePath}.");
 
-			InternalInstance = runtimeParams;
 			return;
 		}
 		catch (Exception ex)
