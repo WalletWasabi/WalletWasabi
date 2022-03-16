@@ -24,7 +24,7 @@ public class MainWindowBindPositionBehavior : DisposingBehavior<Window>
 
 	private void BindPosition(CompositeDisposable disposables)
 	{
-		if (AssociatedObject!.DataContext is MainViewModel vm)
+		if (AssociatedObject?.DataContext is MainViewModel vm)
 		{
 			Observable.FromEventPattern(AssociatedObject, nameof(Window.PositionChanged))
 				  .Subscribe(_ => vm.WindowPosition = AssociatedObject.Position)
