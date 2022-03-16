@@ -149,10 +149,7 @@ public class CoinJoinManager : BackgroundService
 				{
 					finishedCoinJoin.Dispose();
 				}
-			}
 
-			foreach (var finishedCoinJoin in finishedCoinJoins)
-			{
 				var logPrefix = $"Wallet: `{finishedCoinJoin.Wallet.WalletName}` - Coinjoin client";
 
 				try
