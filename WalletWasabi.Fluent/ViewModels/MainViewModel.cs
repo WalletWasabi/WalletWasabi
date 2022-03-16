@@ -93,6 +93,7 @@ public partial class MainViewModel : ViewModelBase
 
 		this.WhenAnyValue(x => x.WindowState, x => x.WindowPosition, x => x.WindowWidth, x => x.WindowHeight)
 			.Where(x => x.Item1 != WindowState.Minimized)
+			.Where(x => x.Item2 != new PixelPoint(-32000,-32000)) // value when minimized
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(t =>
 			{
