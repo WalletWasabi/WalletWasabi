@@ -241,7 +241,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 					}
 
 				default:
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({request.RoundId}): Wrong phase ({round.Phase}).");
+					throw new WrongPhaseException(round, Phase.InputRegistration, Phase.ConnectionConfirmation);
 			}
 		}
 	}
