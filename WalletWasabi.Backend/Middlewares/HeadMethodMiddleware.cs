@@ -44,7 +44,7 @@ public class HeadMethodMiddleware
 		}
 		catch (Exception)
 		{
-		https://stackoverflow.com/a/41123756/1844347
+		// https://stackoverflow.com/a/41123756/1844347
 			// Shallow the exception.
 		}
 
