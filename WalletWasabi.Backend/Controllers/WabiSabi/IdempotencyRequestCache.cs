@@ -63,7 +63,9 @@ public class IdempotencyRequestCache
 				catch (Exception e)
 				{
 					responseTcs.SetException(e);
-					throw;
+
+					// To avoid unobserved exception.
+					await responseTcs.Task.ConfigureAwait(false);
 				}
 			}
 			else
