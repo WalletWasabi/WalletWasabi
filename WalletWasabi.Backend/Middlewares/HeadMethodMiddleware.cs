@@ -38,8 +38,15 @@ public class HeadMethodMiddleware
 			context.Request.Method = HttpMethods.Get;
 			context.Response.Body = Stream.Null;
 		}
-
-		await _next(context);
+		try
+		{
+			await _next(context);
+		}
+		catch (Exception)
+		{
+		https://stackoverflow.com/a/41123756/1844347
+			// Shallow the exception.
+		}
 
 		if (methodSwitched)
 		{

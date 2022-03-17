@@ -32,5 +32,7 @@ public class ExceptionTranslateAttribute : ExceptionFilterAttribute
 			},
 			_ => new StatusCodeResult((int)HttpStatusCode.InternalServerError)
 		};
+
+		context.ExceptionHandled = true;
 	}
 }

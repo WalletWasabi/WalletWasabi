@@ -47,6 +47,8 @@ public partial class Arena : IWabiSabiApiRequestHandler
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
 			}
 
+			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
+
 			if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
 			{
 				LogLateRequest(request.RoundId, request);
