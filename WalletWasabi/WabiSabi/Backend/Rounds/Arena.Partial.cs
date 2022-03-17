@@ -48,7 +48,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
 			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
+				throw new WrongPhaseException(round, Phase.InputRegistration);
 			}
 
 			if (round is BlameRound blameRound && !blameRound.BlameWhitelist.Contains(coin.Outpoint))

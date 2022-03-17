@@ -15,7 +15,7 @@ public class WrongPhaseException : WabiSabiProtocolException
 	public Phase[] ExpectedPhases { get; }
 	public uint256 RoundId { get; }
 
-	public WrongPhaseException(Round round, Phase[] expectedPhases) : base(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({round.Id}): Wrong phase ({round.Phase}).")
+	public WrongPhaseException(Round round, params Phase[] expectedPhases) : base(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({round.Id}): Wrong phase ({round.Phase}).")
 	{
 		var latestExpectedPhase = expectedPhases.OrderBy(p => (int)p).Last();
 		var now = DateTimeOffset.UtcNow;
