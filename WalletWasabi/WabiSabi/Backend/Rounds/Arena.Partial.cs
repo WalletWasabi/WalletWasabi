@@ -392,7 +392,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	private Round InPhase(Round round, Phase[] phases) =>
 		phases.Contains(round.Phase)
 		? round
-		: throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({round.Id}): Wrong phase ({round.Phase}).");
+		: throw new WrongPhaseException(round, phases);
 
 	private Round GetRound(uint256 roundId, params Phase[] phases) =>
 		InPhase(GetRound(roundId), phases);
