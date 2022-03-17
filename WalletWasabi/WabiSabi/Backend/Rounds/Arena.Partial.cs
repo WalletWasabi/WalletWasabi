@@ -132,7 +132,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	{
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			var round = GetRound(request.RoundId);
+			var round = GetRound(request.RoundId, Phase.OutputRegistration);
 			var alice = GetAlice(request.AliceId, round);
 			alice.ReadyToSign = true;
 		}
