@@ -111,7 +111,7 @@
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vm:NavBarItemViewModel">
             <Panel  Width="64" Height="64" ToolTip.Tip="{Binding Title}" Background="Transparent">
-              <DockPanel Background="Transparent"
+              <DockPanel Background="Transparent" Margin="4"
                          x:CompileBindings="False">
                 <TextBlock DockPanel.Dock="Bottom" Text="{Binding Title}"
                            TextTrimming="CharacterEllipsis" Classes="h9" TextAlignment="Center" Margin="3, 0"  />
