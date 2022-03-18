@@ -87,7 +87,7 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 		}
 		else
 		{
-			IconName = "default_wallet_icon";
+			IconName = "nav_wallet_regular";
 		}
 	}
 

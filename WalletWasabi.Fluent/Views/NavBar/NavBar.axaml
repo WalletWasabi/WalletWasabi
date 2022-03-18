@@ -159,13 +159,16 @@
         </c:NavBarListBox.Styles>
         <c:NavBarListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:NavBarItemViewModel">
-            <Panel Width="45" Background="Transparent" HorizontalAlignment="Center" ToolTip.Tip="{Binding Title}"
-                   ToolTip.VerticalOffset="-17" ToolTip.Placement="Top">
-              <PathIcon HorizontalAlignment="Left">
-                <PathIcon.Data>
-                  <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
-                </PathIcon.Data>
-              </PathIcon>
+           <Panel   ToolTip.Tip="{Binding Title}" Background="Transparent">
+              <DockPanel  Background="Transparent"
+                         x:CompileBindings="False">
+                <TextBlock DockPanel.Dock="Bottom" Text="{Binding Title}"
+                           TextTrimming="CharacterEllipsis" Classes="h9" TextAlignment="Center" />
+                <Panel>
+                  <Image Opacity="0.7" Width="28" Height="28" VerticalAlignment="Center" HorizontalAlignment="Center"
+                         Source="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
+                </Panel>
+              </DockPanel>
             </Panel>
           </DataTemplate>
         </c:NavBarListBox.ItemTemplate>
@@ -183,7 +186,7 @@
                        VerticalAlignment="Stretch">
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">
-            <Panel Height="48" Width="48" ToolTip.Tip="{Binding Title}" Background="Transparent">
+            <Panel ToolTip.Tip="{Binding Title}" Background="Transparent">
               <DockPanel  Background="Transparent"
                          x:CompileBindings="False">
                 <TextBlock DockPanel.Dock="Bottom" Text="{Binding Title}"

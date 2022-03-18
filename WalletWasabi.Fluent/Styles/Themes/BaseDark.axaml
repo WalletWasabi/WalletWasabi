@@ -54,6 +54,9 @@
     <StaticResource x:Key="TextControlBorderBrush" ResourceKey="SystemBaseLowColor" />
     <StaticResource x:Key="TextControlBorderBrushPointerOver" ResourceKey="SystemBaseMediumLowColor" />
     <StaticResource x:Key="TextControlBorderBrushFocused" ResourceKey="SystemBaseMediumHighColor" />
+    <StaticResource x:Key="NavBarForeground" ResourceKey="SystemBaseHighColor" />
+
+
 
     <Color x:Key="WelcomeScreenButtonBackground">#1D273E</Color>
     <Color x:Key="WelcomeScreenButtonBackgroundPressed">#141B2A</Color>

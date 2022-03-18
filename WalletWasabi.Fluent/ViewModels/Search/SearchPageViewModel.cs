@@ -12,7 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search;
 
 [NavigationMetaData(
 	Title = "Action Center",
-	IconName = "officeapps_regular",
+	IconName = "nav_grid_dots_regular",
 	Searchable = false,
 	NavBarPosition = NavBarPosition.Bottom)]
 public partial class SearchPageViewModel : NavBarItemViewModel
