@@ -199,8 +199,7 @@ public class CoinJoinManager : BackgroundService
 		WalletManager.GetWallets()
 			.Where(x => x.State == WalletState.Started // Only running wallets
 					&& !x.KeyManager.IsWatchOnly // that are not watch-only wallets
-					&& x.Kitchen.HasIngredients
-					&& x.KeyManager.AutoCoinJoin)
+					&& x.Kitchen.HasIngredients)
 			.ToImmutableDictionary(x => x.WalletName, x => x);
 
 	private void SafeRaiseEvent(EventHandler<StatusChangedEventArgs>? evnt, StatusChangedEventArgs args)
