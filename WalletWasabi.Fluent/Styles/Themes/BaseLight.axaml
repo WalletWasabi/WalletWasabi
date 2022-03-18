@@ -4,6 +4,14 @@
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary>
+          <Color x:Key="SystemAccentColor">#FF238636</Color>
+          <Color x:Key="SystemAccentColorDark1">#FF3D964E</Color>
+          <Color x:Key="SystemAccentColorDark2">#FF57A666</Color>
+          <Color x:Key="SystemAccentColorDark3">#FF71B57F</Color>
+          <Color x:Key="SystemAccentColorLight1">#FF1C752B</Color>
+          <Color x:Key="SystemAccentColorLight2">#FF156420</Color>
+          <Color x:Key="SystemAccentColorLight3">#FF0E5416</Color>
+
           <Color x:Key="SystemAltHighColor">#FFFFFFFF</Color>
           <Color x:Key="SystemAltLowColor">#FFFFFFFF</Color>
           <Color x:Key="SystemAltMediumColor">#FFFFFFFF</Color>
@@ -34,43 +42,27 @@
           <Color x:Key="SystemRevealListLowColor">#FFEEF3FC</Color>
           <Color x:Key="SystemRevealListMediumColor">#FFE3E8F0</Color>
 
-          <Color x:Key="SystemAccentColorLight1">#FF88B340</Color>
-          <Color x:Key="SystemAccentColorLight2">#FF99BF59</Color>
-          <Color x:Key="SystemAccentColorLight3">#FFA9CA73</Color>
-          <Color x:Key="SystemAccentColorDark1">#FF65951F</Color>
-          <Color x:Key="SystemAccentColorDark2">#FF528217</Color>
-          <Color x:Key="SystemAccentColorDark3">#FF3F6F10</Color>
-
           <Color x:Key="RegionColor">#FCFDFF</Color>
-          <Color x:Key="TileRegionColor">#FFFFFF</Color>
         </ResourceDictionary>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
+
+    <StaticResource x:Key="TileRegionColor" ResourceKey="SystemBaseLowColor" />
+    <StaticResource x:Key="SystemAccentNeutralColor" ResourceKey="SystemAccentColor" />
+    <StaticResource x:Key="TextControlBorderBrush" ResourceKey="SystemBaseLowColor" />
+    <StaticResource x:Key="TextControlBorderBrushPointerOver" ResourceKey="SystemBaseMediumLowColor" />
+    <StaticResource x:Key="TextControlBorderBrushFocused" ResourceKey="SystemBaseMediumHighColor" />
+    <StaticResource x:Key="NavBarForeground" ResourceKey="SystemChromeBlackLowColor" />
+    <StaticResource x:Key="NavBarBackground" ResourceKey="SystemChromeBlackMediumColor" />
 
     <Color x:Key="WelcomeScreenButtonBackground">#DADFE7</Color>
     <Color x:Key="WelcomeScreenButtonBackgroundPressed">#C1CBD7</Color>
     <Color x:Key="WelcomeScreenButtonBackgroundPointerOver">#CDD5DF</Color>
 
-    <SolidColorBrush x:Key="TextControlBorderBrush" Color="#CED7E2" />
-    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#A9B2BC" />
-    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#0B2545" />
-
     <SolidColorBrush x:Key="PrivacyControlWhiteListHeaderForeground" Color="#394A1B" />
     <SolidColorBrush x:Key="PrivacyControlWhiteListBackground" Color="#F5F8EE" />
     <SolidColorBrush x:Key="PrivacyControlBlackListBackground" Color="Transparent" />
     <SolidColorBrush x:Key="PrivacyControlItemBackground" Color="#FFFFFF" />
-
-    <Color x:Key="SliderTrackValueFill">#0B2545</Color>
-    <Color x:Key="SliderTrackValueFillPointerOver">#0B2545</Color>
-    <Color x:Key="SliderTrackValueFillPressed">#0B2545</Color>
-    <Color x:Key="SliderThumbBackground">#0B2545</Color>
-    <Color x:Key="SliderThumbBackgroundPointerOver">#0B2545</Color>
-    <Color x:Key="SliderThumbBackgroundPressed">#0B2545</Color>
-    <Color x:Key="SliderThumbBorderBrushPointerOver">#8093AE</Color>
-
-    <Color x:Key="SliderTrackFill">#BEC7D6</Color>
-    <Color x:Key="SliderTrackFillPointerOver">#BEC7D6</Color>
-    <Color x:Key="SliderTrackFillPressed">#BEC7D6</Color>
 
     <Color x:Key="LineChartAreaGradientStartStopColor">#FF78A827</Color>
     <Color x:Key="LineChartAreaGradientEndStopColor">#0078A827</Color>

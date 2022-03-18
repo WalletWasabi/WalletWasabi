@@ -5,7 +5,6 @@
       <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary>
           <Color x:Key="SystemAccentColor">#FF238636</Color>
-
           <Color x:Key="SystemAccentColorDark1">#FF3D964E</Color>
           <Color x:Key="SystemAccentColorDark2">#FF57A666</Color>
           <Color x:Key="SystemAccentColorDark3">#FF71B57F</Color>
@@ -48,15 +47,13 @@
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
 
-
     <StaticResource x:Key="TileRegionColor" ResourceKey="SystemBaseLowColor" />
     <StaticResource x:Key="SystemAccentNeutralColor" ResourceKey="SystemAccentColor" />
     <StaticResource x:Key="TextControlBorderBrush" ResourceKey="SystemBaseLowColor" />
     <StaticResource x:Key="TextControlBorderBrushPointerOver" ResourceKey="SystemBaseMediumLowColor" />
     <StaticResource x:Key="TextControlBorderBrushFocused" ResourceKey="SystemBaseMediumHighColor" />
-    <StaticResource x:Key="NavBarForeground" ResourceKey="SystemBaseHighColor" />
-
-
+    <StaticResource x:Key="NavBarForeground" ResourceKey="SystemChromeWhiteColor" />
+    <StaticResource x:Key="NavBarBackground" ResourceKey="SystemChromeBlackMediumColor" />
 
     <Color x:Key="WelcomeScreenButtonBackground">#1D273E</Color>
     <Color x:Key="WelcomeScreenButtonBackgroundPressed">#141B2A</Color>

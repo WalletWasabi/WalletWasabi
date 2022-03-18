@@ -22,9 +22,9 @@
         <ExperimentalAcrylicBorder IsHitTestVisible="False">
           <ExperimentalAcrylicBorder.Material>
             <ExperimentalAcrylicMaterial BackgroundSource="Digger"
-                                         TintColor="{DynamicResource NavBarTintColor}"
+                                         TintColor="{DynamicResource NavBarBackground}"
                                          TintOpacity="1"
-                                         FallbackColor="{DynamicResource AcrylicFallbackColor}"
+                                         FallbackColor="{DynamicResource NavBarBackground}"
                                          MaterialOpacity="0.7" />
           </ExperimentalAcrylicBorder.Material>
         </ExperimentalAcrylicBorder>
