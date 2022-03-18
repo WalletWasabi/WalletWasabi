@@ -36,7 +36,6 @@
       <ControlTemplate>
         <!-- The margin here should be compensated with the same amount in the NavBar's topmost content-->
         <Panel Margin="4" Height="64" Width="60" ClipToBounds="False">
-          <Rectangle Name="SelectionIndicator" />
           <Border Name="SelectionBackground" />
           <ContentPresenter Name="PART_ContentPresenter"
                             Background="{TemplateBinding Background}"
@@ -47,12 +46,13 @@
                             Padding="{TemplateBinding Padding}"
                             VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
                             HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
+          <Border Name="SelectionIndicator" />
         </Panel>
       </ControlTemplate>
     </Setter>
   </Style>
 
-  <Style Selector="c|NavBarItem /template/ Rectangle#SelectionIndicator" x:DataType="Rectangle" x:CompileBindings="True">
+  <Style Selector="c|NavBarItem /template/ Border#SelectionIndicator" x:DataType="Border" x:CompileBindings="True">
     <Setter Property="(id:Interaction.Behaviors)">
       <id:BehaviorCollectionTemplate>
         <id:BehaviorCollection>
@@ -64,23 +64,18 @@
     <Setter Property="(behaviors:NavBarSelectedIndicatorChildBehavior.NavBarItemParent)" Value="{Binding $parent[c:NavBarItem], Mode=OneWay}"/>
   </Style>
 
-  <Style Selector="c|NavBarItem:vertical /template/ Rectangle#SelectionIndicator">
+  <Style Selector="c|NavBarItem:vertical /template/ Border#SelectionIndicator">
     <Setter Property="VerticalAlignment" Value="Stretch" />
     <Setter Property="HorizontalAlignment" Value="Left" />
-    <Setter Property="Width" Value="3" />
-    <Setter Property="Height" Value="NaN" />
+    <Setter Property="IsHitTestVisible" Value="False"/>
+    <Setter Property="Width" Value="4" />
+    <Setter Property="Height" Value="30" />
+    <Setter Property="CornerRadius" Value="3" />
   </Style>
 
-  <Style Selector="c|NavBarItem:horizontal /template/ Rectangle#SelectionIndicator">
-    <Setter Property="VerticalAlignment" Value="Bottom" />
-    <Setter Property="HorizontalAlignment" Value="Stretch" />
-    <Setter Property="Width" Value="NaN" />
-    <Setter Property="Height" Value="3" />
-  </Style>
-
-  <Style Selector="c|NavBarItem /template/ Rectangle#SelectionIndicator">
+  <Style Selector="c|NavBarItem /template/ Border#SelectionIndicator">
     <Setter Property="Opacity" Value="0"/>
-    <Setter Property="Fill" Value="{DynamicResource NavBarAccentColor}" />
+    <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
   </Style>
 
   <Style Selector="c|NavBarItem /template/ Border#SelectionBackground">
@@ -113,9 +108,6 @@
   </Style>
 
   <!-- Pressed State -->
-  <Style Selector="c|NavBarItem:pressed /template/ Rectangle#SelectionIndicator">
-    <Setter Property="Fill" Value="{DynamicResource NavBarItemPressedAccentColor}" />
-  </Style>
   <Style Selector="c|NavBarItem:pressed /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource NavBarItemPressedBrush}" />
   </Style>
@@ -124,9 +116,6 @@
   </Style>
 
   <!-- Selected State -->
-  <Style Selector="c|NavBarItem:selected /template/ Rectangle#SelectionIndicator">
-    <Setter Property="Opacity" Value="1"/>
-  </Style>
   <Style Selector="c|NavBarItem:selected /template/ Border#SelectionBackground">
     <Setter Property="Opacity" Value="0.1"/>
   </Style>

@@ -111,12 +111,12 @@
         </c:NavBarListBox.ItemsPanel>
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vm:NavBarItemViewModel">
-            <Panel ToolTip.Tip="{Binding Title}" Background="Transparent">
+            <Panel  Width="64" Height="64" ToolTip.Tip="{Binding Title}" Background="Transparent">
               <DockPanel Background="Transparent"
                          x:CompileBindings="False">
                 <TextBlock DockPanel.Dock="Bottom" Text="{Binding Title}"
-                           TextTrimming="CharacterEllipsis" Classes="h9" TextAlignment="Center" Margin="-5 0" />
-                <Panel Background="Red" Width="28" Height="28" VerticalAlignment="Center" HorizontalAlignment="Center">
+                           TextTrimming="CharacterEllipsis" Classes="h9" TextAlignment="Center" Margin="3, 0"  />
+                <Panel Width="28" Height="28" VerticalAlignment="Center" HorizontalAlignment="Center">
                   <Image Source="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
                 </Panel>
               </DockPanel>
@@ -136,12 +136,17 @@
                        VerticalAlignment="Stretch">
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">
-            <Panel ToolTip.Tip="{Binding Title}" Background="Transparent">
-              <DockPanel Background="Transparent"
+            <Panel Width="64" Height="64" ToolTip.Tip="{Binding Title}" Background="Transparent">
+              <Ellipse Width="8" Height="8"
+                       HorizontalAlignment="Right"
+                       VerticalAlignment="Top" Margin="6,4"
+                       Fill="{DynamicResource SystemAccentColorDark3}"
+                       IsVisible="{Binding IsLoggedIn}"/>
+              <DockPanel Background="Transparent" Margin="4"
                          x:CompileBindings="False">
                 <TextBlock DockPanel.Dock="Bottom" Text="{Binding Title}"
-                           TextTrimming="CharacterEllipsis" Classes="h9" TextAlignment="Center" Margin="-5 0" />
-                <Panel Background="Red" Width="28" Height="28" VerticalAlignment="Center" HorizontalAlignment="Center">
+                           TextTrimming="CharacterEllipsis" Classes="h9" TextAlignment="Center" Margin="3, 0"  />
+                <Panel Width="28" Height="28" VerticalAlignment="Center" HorizontalAlignment="Center">
                   <Image Source="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
                 </Panel>
               </DockPanel>
