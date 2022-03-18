@@ -10,17 +10,6 @@
              x:DataType="vm:AboutViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.HelpAndSupport.AboutView">
-  <UserControl.Styles>
-    <Style Selector="TextBlock.Hyperlink">
-      <Setter Property="TextDecorations" Value="Underline" />
-      <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
-      <Setter Property="VerticalAlignment" Value="Center" />
-    </Style>
-    <Style Selector="TextBlock.LinkSeparatorPadding">
-      <Setter Property="Margin" Value="5 -0.5" />
-      <Setter Property="VerticalAlignment" Value="Center" />
-    </Style>
-  </UserControl.Styles>
   <Panel>
     <controls:ContentArea EnableNext="{Binding !EnableBack}"
                           NextContent="Close"
@@ -35,9 +24,10 @@
           <ContentControl Template="{DynamicResource wasabi_logo_text_dynamic}"
                           VerticalAlignment="Center" ClipToBounds="False" />
         </Viewbox>
-        <TextBlock DockPanel.Dock="Top" HorizontalAlignment="Center" Text="{Binding ClientVersion}" Margin="0,5,0,50" Opacity="0.5" />
+        <TextBlock DockPanel.Dock="Top" HorizontalAlignment="Center" Text="{Binding ClientVersion}" Margin="0,5,0,50"
+                   Opacity="0.5" />
         <DockPanel>
-          <StackPanel Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Orientation="Vertical">
+          <StackPanel Spacing="10" DockPanel.Dock="Bottom" Orientation="Vertical">
             <!-- Links -->
             <ItemsControl Items="{Binding Links}"
                           Margin="0 0 0 25"
@@ -71,20 +61,19 @@
               </ItemsControl.Styles>
               <ItemsControl.DataTemplates>
                 <DataTemplate DataType="vm:SeparatorViewModel">
-                  <TextBlock Classes="LinkSeparatorPadding"
+                  <TextBlock VerticalAlignment="Center"
+                             Margin="5 -0.5"
                              Text="-"
                              IsVisible="True" />
                 </DataTemplate>
               </ItemsControl.DataTemplates>
             </ItemsControl>
             <!-- Advanced -->
-            <Button HorizontalAlignment="Center" Classes="plain obscured"
-                    Command="{Binding AboutAdvancedInfoDialogCommand}">
-              <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
-                <PathIcon Data="{StaticResource info_regular}" />
-                <TextBlock Text="Advanced Information" Classes="Hyperlink" />
-              </StackPanel>
-            </Button>
+            <StackPanel Spacing="5" Orientation="Horizontal" HorizontalAlignment="Center">
+              <PathIcon Data="{StaticResource info_regular}" />
+              <Button Classes="activeHyperLink" Content="Advanced Information"
+                      Command="{Binding AboutAdvancedInfoDialogCommand}" />
+            </StackPanel>
             <!-- License -->
             <WrapPanel HorizontalAlignment="Center">
               <TextBlock Margin=" 0 0 0 -0.5"
@@ -92,7 +81,7 @@
                          Text="This open source software is licensed with " />
               <ContentControl Content="{Binding License}" />
             </WrapPanel>
-          </StackPanel>
+            </StackPanel>
         </DockPanel>
       </DockPanel>
     </controls:ContentArea>
