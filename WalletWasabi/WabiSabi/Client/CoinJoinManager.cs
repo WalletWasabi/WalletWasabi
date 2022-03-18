@@ -197,10 +197,10 @@ public class CoinJoinManager : BackgroundService
 
 	private ImmutableDictionary<string, Wallet> GetMixableWallets() =>
 		WalletManager.GetWallets()
-			.Where(x => x.State == WalletState.Started) // Only running wallets
-			.Where(x => !x.KeyManager.IsWatchOnly)      // that are not watch-only wallets
-			.Where(x => x.Kitchen.HasIngredients)
-			.Where(x => x.KeyManager.AutoCoinJoin)
+			.Where(x => x.State == WalletState.Started // Only running wallets
+					&& !x.KeyManager.IsWatchOnly // that are not watch-only wallets
+					&& x.Kitchen.HasIngredients
+					&& x.KeyManager.AutoCoinJoin)
 			.ToImmutableDictionary(x => x.WalletName, x => x);
 
 	private void SafeRaiseEvent(EventHandler<StatusChangedEventArgs>? evnt, StatusChangedEventArgs args)
@@ -220,8 +220,8 @@ public class CoinJoinManager : BackgroundService
 		var coins = new CoinsView(openedWallet.Coins
 			.Available()
 			.Confirmed()
-			.Where(x => x.HdPubKey.AnonymitySet < openedWallet.KeyManager.MaxAnonScoreTarget)
-			.Where(x => !CoinRefrigerator.IsFrozen(x)));
+			.Where(x => x.HdPubKey.AnonymitySet < openedWallet.KeyManager.MaxAnonScoreTarget
+					&& !CoinRefrigerator.IsFrozen(x)));
 
 		// If a small portion of the wallet isn't private, it's better to wait with mixing.
 		if (GetPrivacyPercentage(coins, openedWallet.KeyManager.MinAnonScoreTarget) > 0.99)
