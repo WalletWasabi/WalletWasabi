@@ -138,6 +138,35 @@ public class TorProcessManager : IAsyncDisposable
 				setNewTcs = false;
 				break;
 			}
+			catch (TorControlException ex)
+			{
+				Logger.LogDebug("Tor control failed to initialize. Attempt to recover by killing Tor process.", ex);
+
+				// If Tor control fails to initialize, we want to try to start Tor again and initialize Tor control again.
+				if (process is not null)
+				{
+					process.Kill();
+				}
+				else
+				{
+					// If Tor was already started, we don't have Tor process ID (pid), so it's harder to kill it.
+					foreach (Process torProcess in Process.GetProcessesByName(TorSettings.TorBinaryFileName))
+					{
+						try
+						{
+							// This throws if we can't access MainModule of an elevated process from a non elevated one.
+							if (torProcess.MainModule?.FileName == Settings.TorBinaryFilePath)
+							{
+								Logger.LogInfo("Kill running Tor process to restart it again.");
+								torProcess.Kill();
+							}
+						}
+						catch
+						{
+						}						
+					}
+				}
+			}
 			catch (Exception ex)
 			{
 				Logger.LogError("Unexpected problem in starting Tor.", ex);
@@ -233,7 +262,7 @@ public class TorProcessManager : IAsyncDisposable
 			Logger.LogDebug($"Environment variable 'LD_LIBRARY_PATH' set to: '{env["LD_LIBRARY_PATH"]}'.");
 		}
 
-		Logger.LogInfo("Starting Tor process ...");
+		Logger.LogInfo("Starting Tor process…");
 		ProcessAsync process = new(startInfo);
 		process.Start();
 
@@ -245,6 +274,12 @@ public class TorProcessManager : IAsyncDisposable
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">This method follows instructions in 3.23. TAKEOWNERSHIP.</seealso>
 	internal virtual async Task<TorControlClient> InitTorControlAsync(CancellationToken token = default)
 	{
+		// If the cookie file does not exist, we know our Tor starting procedure is corrupted somehow. Best to start from scratch.
+		if (!File.Exists(Settings.CookieAuthFilePath))
+		{
+			throw new TorControlException("Cookie file does not exist.");
+		}
+
 		// Get cookie.
 		string cookieString = ByteHelpers.ToHex(File.ReadAllBytes(Settings.CookieAuthFilePath));
 
