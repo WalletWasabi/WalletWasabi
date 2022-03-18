@@ -36,7 +36,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	[AutoNotify] private string _nextButtonText;
 	[AutoNotify] private bool _adjustFeeAvailable;
 	[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
-	[AutoNotify] private bool _changePocketAvailable;
 
 	public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, BitcoinAddress destination, bool isFixedAmount)
 	{
@@ -47,7 +46,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		_cancellationTokenSource = new CancellationTokenSource();
 
 		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel();
-		TransactionWarnings = new TransactionWarningsViewModel();
+		TransactionWarnings = new TransactionWarningsViewModel(_wallet.KeyManager.MinAnonScoreTarget);
 		CurrentTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info, destination);
 		PreviewTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info, destination, true);
 
@@ -175,9 +174,10 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		if (!summary.IsPreview)
 		{
 			_transaction = transaction;
+			CheckChangePocketAvailable(transaction);
+			TransactionWarnings.EvaluateTransaction(transaction);
 		}
 
-		CheckChangePocketAvailable(_info.Amount, transaction);
 		summary.UpdateTransaction(transaction);
 
 		DisplayedTransactionSummary = summary;
@@ -387,7 +387,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 			var suggestionTask = PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, initialTransaction, _isFixedAmount, _cancellationTokenSource.Token);
 
-			if (ChangePocketAvailable && !await NavigateConfirmLabelsDialogAsync(initialTransaction))
+			if (_info.IsOtherPocketSelectionPossible && !await NavigateConfirmLabelsDialogAsync(initialTransaction))
 			{
 				await OnChangePocketsAsync();
 			}
@@ -516,13 +516,13 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		return transaction;
 	}
 
-	private void CheckChangePocketAvailable(Money amount, BuildTransactionResult transaction)
+	private void CheckChangePocketAvailable(BuildTransactionResult transaction)
 	{
 		var usedCoins = transaction.SpentCoins;
+		var pockets = _wallet.GetPockets().ToArray();
+		var labelSelection = new LabelSelectionViewModel(_info.Amount);
+		labelSelection.Reset(pockets);
 
-		var labelSelection = new LabelSelectionViewModel(amount);
-		labelSelection.Reset(_wallet.Coins.GetPockets(_wallet.KeyManager.MinAnonScoreTarget).Select(x => new Pocket(x)).ToArray());
-
-		ChangePocketAvailable = labelSelection.IsOtherSelectionPossible(usedCoins);
+		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins);
 	}
 }

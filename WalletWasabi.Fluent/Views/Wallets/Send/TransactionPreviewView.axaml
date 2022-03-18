@@ -7,6 +7,8 @@
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:send="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Send"
+             xmlns:pwwm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Send.PreviewWarning"
+             xmlns:pww="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Send.PreviewWarning"
              mc:Ignorable="d"
              x:DataType="vm:TransactionPreviewViewModel"
              x:CompileBindings="True"
@@ -28,21 +30,24 @@
                  IsVisible="{Binding CurrentTransactionSummary.IsPayJoin}" />
 
           <!-- Transaction warning -->
-          <Border Padding="10 0 10 10" Cursor="Hand">
-            <!-- <Border.IsVisible> -->
-            <!--   <MultiBinding Converter="{x:Static BoolConverters.Or}"> -->
-            <!--     <Binding Path="CurrentTransactionSummary.MaxPrivacy" /> -->
-            <!--     <Binding Path="!PrivacySuggestions.Suggestions.Count" /> -->
-            <!--   </MultiBinding> -->
-            <!-- </Border.IsVisible> -->
+          <Border Padding="10 0 10 10" DataContext="{Binding TransactionWarnings}" IsVisible="{Binding !!Warnings.Count}">
+            <Border.Styles>
+              <Style Selector="FlyoutPresenter">
+                <Setter Property="MaxWidth" Value="1000" />
+              </Style>
+            </Border.Styles>
             <Interaction.Behaviors>
               <behaviors:ShowFlyoutOnPointerOverBehavior />
             </Interaction.Behaviors>
             <FlyoutBase.AttachedFlyout>
               <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway">
-                <DockPanel>
-
-                </DockPanel>
+                <ItemsRepeater Items="{Binding Warnings}">
+                  <ItemsRepeater.ItemTemplate>
+                    <DataTemplate DataType="pwwm:LabelTransactionWarningViewModel">
+                      <pww:LabelTransactionWarningControl />
+                    </DataTemplate>
+                  </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
               </Flyout>
             </FlyoutBase.AttachedFlyout>
             <Viewbox Height="20">

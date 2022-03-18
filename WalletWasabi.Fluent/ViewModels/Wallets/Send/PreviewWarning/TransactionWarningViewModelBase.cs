@@ -2,13 +2,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send.PreviewWarning;
 
 public abstract class TransactionWarningViewModelBase : ViewModelBase
 {
-	protected TransactionWarningViewModelBase(string title, string message)
-	{
-		Title = title;
-		Message = message;
-	}
+	public abstract string Title { get; }
 
-	public string Title { get; }
-
-	public string Message { get; }
+	public abstract string Message { get; }
 }

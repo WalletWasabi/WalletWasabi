@@ -48,6 +48,8 @@ public partial class TransactionInfo
 
 	public bool SubtractFee { get; set; }
 
+	public bool IsOtherPocketSelectionPossible { get; set; }
+
 	public void Reset()
 	{
 		Amount = Money.Zero;
@@ -57,6 +59,7 @@ public partial class TransactionInfo
 		Coins = Enumerable.Empty<SmartCoin>();
 		ChangelessCoins = Enumerable.Empty<SmartCoin>();
 		SubtractFee = default;
+		IsOtherPocketSelectionPossible = default;
 
 		if (!IsCustomFeeUsed)
 		{
