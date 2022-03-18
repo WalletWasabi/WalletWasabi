@@ -1,6 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Style Selector="Button.activeHyperLink">
+    <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
     <Setter Property="Cursor" Value="Hand" />
     <Setter Property="BorderThickness" Value="0" />
     <Setter Property="Padding" Value="0" />
@@ -15,13 +16,13 @@
     <Setter Property="Background" Value="Transparent" />
   </Style>
 
-  <Style Selector="Button.activeHyperLink:pointerover /template/ TextBlock">
+  <Style Selector="Button.activeHyperLink:pointerover /template/ AccessText">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="Opacity" Value="1" />
 
   </Style>
 
-  <Style Selector="Button.activeHyperLink:pressed /template/ TextBlock">
+  <Style Selector="Button.activeHyperLink:pressed /template/ AccessText">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="Opacity" Value="0.5" />
   </Style>
