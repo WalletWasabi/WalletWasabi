@@ -81,25 +81,21 @@ public class CoinJoinManager : BackgroundService
 			var mixableWallets = RoundStatusUpdater.AnyRound
 				? GetMixableWallets()
 				: ImmutableDictionary<string, Wallet>.Empty;
-			var openedWallets = mixableWallets.Where(x => !trackedCoinJoins.ContainsKey(x.Key)).ToImmutableList();
-			var closedWallets = trackedCoinJoins.Where(x => !mixableWallets.ContainsKey(x.Key)).ToImmutableList();
 
+			var openedWallets = mixableWallets.Where(x => !trackedCoinJoins.ContainsKey(x.Key)).ToImmutableList();
 			foreach (var openedWallet in openedWallets.Select(x => x.Value))
 			{
 				NotifyMixableWalletLoaded(openedWallet);
 			}
 
+			var closedWallets = trackedCoinJoins.Where(x => !mixableWallets.ContainsKey(x.Key)).ToImmutableList();
 			foreach (var closedWallet in closedWallets.Select(x => x.Value))
 			{
 				closedWallet.Cancel();
 				NotifyMixableWalletUnloaded(closedWallet);
 			}
 
-			var finishedCoinJoins = trackedCoinJoins
-				.Where(x => x.Value.IsCompleted)
-				.Select(x => x.Value)
-				.ToImmutableArray();
-
+			var finishedCoinJoins = trackedCoinJoins.Where(x => x.Value.IsCompleted).Select(x => x.Value).ToImmutableArray();
 			foreach (var finishedCoinJoin in finishedCoinJoins)
 			{
 				NotifyCoinJoinCompletion(finishedCoinJoin);
