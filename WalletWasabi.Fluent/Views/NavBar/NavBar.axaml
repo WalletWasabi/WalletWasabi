@@ -101,8 +101,7 @@
       <c:NavBarListBox Items="{Binding BottomItems}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                        Name="BottomListBox"
-                       Classes="vertical   narrowItemPadding"
-                       RenderTransformOrigin="0%,50%"
+                       Classes="vertical narrowItemPadding"
                        VerticalAlignment="Stretch">
         <c:NavBarListBox.ItemsPanel>
           <ItemsPanelTemplate>
@@ -132,7 +131,6 @@
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                        Name="ItemsListBox"
                        Classes="vertical draggable narrowItemPadding"
-                       RenderTransformOrigin="0%,50%"
                        VerticalAlignment="Stretch">
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">
