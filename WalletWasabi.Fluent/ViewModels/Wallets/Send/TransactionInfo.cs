@@ -28,6 +28,12 @@ public partial class TransactionInfo
 
 	public Money Amount { get; set; } = Money.Zero;
 
+	/// <summary>
+	/// In the case when InsufficientBalanceException happens, this amount should be
+	/// taken into account when selecting pockets.
+	/// </summary>
+	public Money MinimumRequiredAmount { get; set; } = Money.Zero;
+
 	public SmartLabel UserLabels { get; set; } = SmartLabel.Empty;
 
 	public FeeRate? MaximumPossibleFeeRate { get; set; }
@@ -53,6 +59,7 @@ public partial class TransactionInfo
 	public void Reset()
 	{
 		Amount = Money.Zero;
+		MinimumRequiredAmount = Money.Zero;
 		UserLabels = SmartLabel.Empty;
 		MaximumPossibleFeeRate = null;
 		ConfirmationTimeSpan = TimeSpan.Zero;
@@ -70,6 +77,7 @@ public partial class TransactionInfo
 	private void OnFeeChanged()
 	{
 		ChangelessCoins = Enumerable.Empty<SmartCoin>();
+		MinimumRequiredAmount = Money.Zero;
 	}
 
 	private void OnCoinsChanged()
