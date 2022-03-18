@@ -35,7 +35,7 @@
     <Setter Property="Template">
       <ControlTemplate>
         <!-- The margin here should be compensated with the same amount in the NavBar's topmost content-->
-        <Panel Margin="4" ClipToBounds="False">
+        <Panel Margin="4" Height="64" Width="60" ClipToBounds="False">
           <Rectangle Name="SelectionIndicator" />
           <Border Name="SelectionBackground" />
           <ContentPresenter Name="PART_ContentPresenter"
