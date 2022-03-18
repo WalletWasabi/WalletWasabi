@@ -64,7 +64,8 @@ public class SleepInhibitor : PeriodicRunner
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
-		switch (CoinJoinManager.HighestCoinJoinClientState)
+		var highestCoinJoinClientState = CoinJoinManager.GetHighestCoinJoinClientState();
+		switch (highestCoinJoinClientState)
 		{
 			case CoinJoinClientState.Idle:
 				Logger.LogTrace("Computer idle state is allowed again.");
@@ -76,7 +77,7 @@ public class SleepInhibitor : PeriodicRunner
 				break;
 
 			default:
-				throw new NotSupportedException($"Unsupported {CoinJoinManager.HighestCoinJoinClientState} value.");
+				throw new NotSupportedException($"Unsupported {highestCoinJoinClientState} value.");
 		}
 	}
 

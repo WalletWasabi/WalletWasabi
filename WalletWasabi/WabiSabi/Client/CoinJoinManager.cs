@@ -45,21 +45,18 @@ public class CoinJoinManager : BackgroundService
 
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
 
-	public CoinJoinClientState HighestCoinJoinClientState
+	public CoinJoinClientState GetHighestCoinJoinClientState()
 	{
-		get
+		var inProgress = TrackedCoinJoins.Values.Where(wtd => !wtd.IsCompleted).ToImmutableArray();
+
+		if (inProgress.IsEmpty)
 		{
-			var inProgress = TrackedCoinJoins.Values.Where(wtd => !wtd.IsCompleted).ToImmutableArray();
-
-			if (inProgress.IsEmpty)
-			{
-				return CoinJoinClientState.Idle;
-			}
-
-			return inProgress.Any(wtd => wtd.InCriticalCoinJoinState)
-				? CoinJoinClientState.InCriticalPhase
-				: CoinJoinClientState.InProgress;
+			return CoinJoinClientState.Idle;
 		}
+
+		return inProgress.Any(wtd => wtd.InCriticalCoinJoinState)
+			? CoinJoinClientState.InCriticalPhase
+			: CoinJoinClientState.InProgress;
 	}
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
