@@ -39,8 +39,6 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 		_sources = new SpectrumDataSource[] { _auraSpectrumDataSource, _splashEffectDataSource };
 
-		_lineBrush = SolidColorBrush.Parse("#238636").ToImmutable();
-
 		Background = new RadialGradientBrush()
 		{
 			GradientStops =
@@ -75,6 +73,11 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			{
 				_splashEffectDataSource.Start();
 			}
+		}
+		else if (change.Property == ForegroundProperty)
+		{
+			_lineBrush = Foreground ?? Brushes.Magenta;
+			InvalidateArrange();
 		}
 	}
 
@@ -151,11 +154,12 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			return;
 		}
 
-		using var barsLayer = DrawingContextHelper.CreateDrawingContext(bounds.Size, new Vector(96, 96), skia.GrContext);
+		using var barsLayer =
+			DrawingContextHelper.CreateDrawingContext(bounds.Size, new Vector(96, 96), skia.GrContext);
 		RenderBars(barsLayer);
 
 		using var filter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp);
-		using var paint = new SKPaint { ImageFilter = filter };
+		using var paint = new SKPaint {ImageFilter = filter};
 		barsLayer.DrawTo(skia, paint);
 	}
 
