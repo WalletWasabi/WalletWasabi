@@ -15,6 +15,10 @@
              mc:Ignorable="d" d:DesignWidth="280" d:DesignHeight="459"
              x:Class="WalletWasabi.Fluent.Views.NavBar.NavBar" UseLayoutRounding="False"
              Name="NavBarUserControl">
+
+  <i:Interaction.Behaviors>
+    <behaviors:NavBarSelectedIndicatorParentBehavior />
+  </i:Interaction.Behaviors>
   <UserControl.Styles>
     <Style Selector="PathIcon">
       <Setter Property="Margin" Value="13 0 0 0" />
@@ -177,9 +181,6 @@
                        Classes="vertical draggable narrowItemPadding"
                        RenderTransformOrigin="0%,50%"
                        VerticalAlignment="Stretch">
-        <i:Interaction.Behaviors>
-          <behaviors:NavBarSelectedIndicatorParentBehavior />
-        </i:Interaction.Behaviors>
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">
             <Panel Height="48" Width="48" ToolTip.Tip="{Binding Title}" Background="Transparent">

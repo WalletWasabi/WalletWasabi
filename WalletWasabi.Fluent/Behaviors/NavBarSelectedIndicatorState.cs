@@ -69,9 +69,11 @@ public class NavBarSelectedIndicatorState : IDisposable
 			return;
 		}
 
+		var oldZ = next.ZIndex;
+
 		var prevIndicator = _activeIndicator;
 		var nextIndicator = next;
-
+		nextIndicator.ZIndex = int.MaxValue;
 		// user clicked twice
 		if (prevIndicator is null || prevIndicator.Equals(nextIndicator))
 		{
@@ -155,6 +157,7 @@ public class NavBarSelectedIndicatorState : IDisposable
 
 		prevIndicator.Opacity = 0;
 		nextIndicator.Opacity = 1;
+		nextIndicator.ZIndex = oldZ;
 	}
 
 	public void SetActive(Rectangle initial)
