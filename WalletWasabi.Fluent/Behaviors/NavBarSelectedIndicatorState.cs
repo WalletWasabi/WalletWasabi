@@ -2,6 +2,7 @@ using System.Threading;
 using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
+using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -17,7 +18,7 @@ public class NavBarSelectedIndicatorState : IDisposable
 	private readonly TimeSpan _totalDuration = TimeSpan.FromSeconds(0.4);
 
 	private CancellationTokenSource _currentAnimationCts = new();
-	private Rectangle? _activeIndicator;
+	private Control? _activeIndicator;
 
 	private bool _isDisposed;
 	private bool _previousAnimationOngoing;
@@ -62,7 +63,7 @@ public class NavBarSelectedIndicatorState : IDisposable
 		return identity;
 	}
 
-	public async void AnimateIndicatorAsync(Rectangle next)
+	public async void AnimateIndicatorAsync(Control next)
 	{
 		if (_isDisposed)
 		{
@@ -160,7 +161,7 @@ public class NavBarSelectedIndicatorState : IDisposable
 		nextIndicator.ZIndex = oldZ;
 	}
 
-	public void SetActive(Rectangle initial)
+	public void SetActive(Control initial)
 	{
 		if (_activeIndicator is not null)
 		{
