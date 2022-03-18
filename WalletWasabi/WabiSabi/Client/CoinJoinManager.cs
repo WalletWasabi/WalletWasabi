@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -82,12 +81,14 @@ public class CoinJoinManager : BackgroundService
 				? GetMixableWallets()
 				: ImmutableDictionary<string, Wallet>.Empty;
 
+			// Nofify when a wallet meets the criteria for participating in a coinjoin.
 			var openedWallets = mixableWallets.Where(x => !trackedCoinJoins.ContainsKey(x.Key)).ToImmutableList();
 			foreach (var openedWallet in openedWallets.Select(x => x.Value))
 			{
 				NotifyMixableWalletLoaded(openedWallet);
 			}
 
+			// Nofitify when a wallet is no longer meet the criteria for participating in a coinjoin.
 			var closedWallets = trackedCoinJoins.Where(x => !mixableWallets.ContainsKey(x.Key)).ToImmutableList();
 			foreach (var closedWallet in closedWallets.Select(x => x.Value))
 			{
@@ -95,58 +96,63 @@ public class CoinJoinManager : BackgroundService
 				NotifyMixableWalletUnloaded(closedWallet);
 			}
 
+			// Handles coinjoin finalization and notification.
 			var finishedCoinJoins = trackedCoinJoins.Where(x => x.Value.IsCompleted).Select(x => x.Value).ToImmutableArray();
 			foreach (var finishedCoinJoin in finishedCoinJoins)
 			{
 				NotifyCoinJoinCompletion(finishedCoinJoin);
-
-				var walletToRemove = finishedCoinJoin.Wallet;
-				if (!trackedCoinJoins.Remove(walletToRemove.WalletName))
-				{
-					Logger.LogWarning($"Wallet: `{walletToRemove.WalletName}` was not removed from tracked wallet list. Will retry in a few seconds.");
-				}
-				else
-				{
-					finishedCoinJoin.Dispose();
-				}
-
-				var logPrefix = $"Wallet: `{finishedCoinJoin.Wallet.WalletName}` - Coinjoin client";
-
-				try
-				{
-					var result = await finishedCoinJoin.CoinJoinTask.ConfigureAwait(false);
-					if (result.SuccessfulBroadcast)
-					{
-						CoinRefrigerator.Freeze(result.RegisteredCoins);
-						MarkDestinationsUsed(result.RegisteredOutputs);
-						Logger.LogInfo($"{logPrefix} finished!");
-					}
-					else
-					{
-						Logger.LogInfo($"{logPrefix} finished with error. Transaction not broadcasted.");
-					}
-				}
-				catch (InvalidOperationException ioe)
-				{
-					Logger.LogError(ioe);
-					await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken).ConfigureAwait(false);
-				}
-				catch (OperationCanceledException)
-				{
-					Logger.LogInfo($"{logPrefix} was cancelled.");
-				}
-				catch (Exception e)
-				{
-					Logger.LogError($"{logPrefix} failed with exception:", e);
-				}
-
-				foreach (var coins in finishedCoinJoin.CoinCandidates)
-				{
-					coins.CoinJoinInProgress = false;
-				}
+				await HandleCoinJoinFinalizationAsync(finishedCoinJoin, trackedCoinJoins, stoppingToken).ConfigureAwait(false);
 			}
 
 			TrackedCoinJoins = trackedCoinJoins.ToImmutableDictionary();
+		}
+	}
+
+	private async Task HandleCoinJoinFinalizationAsync(CoinJoinTracker finishedCoinJoin, Dictionary<string, CoinJoinTracker> trackedCoinJoins, CancellationToken cancellationToken)
+	{
+		var walletToRemove = finishedCoinJoin.Wallet;
+		if (!trackedCoinJoins.Remove(walletToRemove.WalletName))
+		{
+			Logger.LogWarning($"Wallet: `{walletToRemove.WalletName}` was not removed from tracked wallet list. Will retry in a few seconds.");
+		}
+		else
+		{
+			finishedCoinJoin.Dispose();
+		}
+
+		var logPrefix = $"Wallet: `{finishedCoinJoin.Wallet.WalletName}` - Coinjoin client";
+
+		try
+		{
+			var result = await finishedCoinJoin.CoinJoinTask.ConfigureAwait(false);
+			if (result.SuccessfulBroadcast)
+			{
+				CoinRefrigerator.Freeze(result.RegisteredCoins);
+				MarkDestinationsUsed(result.RegisteredOutputs);
+				Logger.LogInfo($"{logPrefix} finished!");
+			}
+			else
+			{
+				Logger.LogInfo($"{logPrefix} finished with error. Transaction not broadcasted.");
+			}
+		}
+		catch (InvalidOperationException ioe)
+		{
+			Logger.LogError(ioe);
+			await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken).ConfigureAwait(false);
+		}
+		catch (OperationCanceledException)
+		{
+			Logger.LogInfo($"{logPrefix} was cancelled.");
+		}
+		catch (Exception e)
+		{
+			Logger.LogError($"{logPrefix} failed with exception:", e);
+		}
+
+		foreach (var coins in finishedCoinJoin.CoinCandidates)
+		{
+			coins.CoinJoinInProgress = false;
 		}
 	}
 
