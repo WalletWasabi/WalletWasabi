@@ -15,8 +15,6 @@
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
 
-    <Color x:Key="NavBarTintColor">#000000</Color>
-    <Color x:Key="AcrylicFallbackColor">#1F1F1F</Color>
     <Color x:Key="OrangeCoinColor">#F2994A</Color>
     <SolidColorBrush x:Key="DismissColor" Color="#DD4343" />
 

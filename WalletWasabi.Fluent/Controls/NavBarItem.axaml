@@ -16,7 +16,7 @@
 
   <Style Selector="c|NavBarItem">
     <Setter Property="Background" Value="Transparent" />
-    <Setter Property="TextBlock.Foreground" Value="{DynamicResource NavBarItemForegroundBrush}" />
+    <Setter Property="TextBlock.Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
   </Style>
 
   <Style Selector="c|NavBarItem:not(:dragging)">
@@ -96,21 +96,15 @@
 
   <!-- Disabled State -->
   <Style Selector="c|NavBarItem:disabled /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="TextBlock.Foreground" Value="{DynamicResource NavBarItemDisabledBrush}" />
+    <Setter Property="Opacity" Value="0.5"/>
   </Style>
 
   <!-- PointerOver State -->
-  <Style Selector="c|NavBarItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="TextBlock.Foreground" Value="{DynamicResource NavBarItemPointerOverBrush}" />
-  </Style>
   <Style Selector="c|NavBarItem:pointerover /template/ Border#SelectionBackground">
     <Setter Property="Opacity" Value="0.05"/>
   </Style>
 
   <!-- Pressed State -->
-  <Style Selector="c|NavBarItem:pressed /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="TextBlock.Foreground" Value="{DynamicResource NavBarItemPressedBrush}" />
-  </Style>
   <Style Selector="c|NavBarItem:pressed">
     <Setter Property="RenderTransform" Value="scale(0.98)" />
   </Style>
@@ -119,28 +113,14 @@
   <Style Selector="c|NavBarItem:selected /template/ Border#SelectionBackground">
     <Setter Property="Opacity" Value="0.1"/>
   </Style>
-  <Style Selector="c|NavBarItem:selected /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="TextBlock.Foreground" Value="{DynamicResource NavBarItemSelectedBrush}" />
-  </Style>
-
-  <!-- Selected Unfocused State -->
-  <Style Selector="c|NavBarItem:selected:not(:focus) /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="TextBlock.Foreground" Value="{DynamicResource NavBarItemSelectedUnfocusedBrush}" />
-  </Style>
 
   <!-- Selected PointerOver State -->
   <Style Selector="c|NavBarItem:selected:pointerover /template/ Border">
     <Setter Property="BorderBrush" Value="{DynamicResource NavBarAccentColor}" />
   </Style>
-  <Style Selector="c|NavBarItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="TextBlock.Foreground" Value="{DynamicResource NavBarItemSelectedPointerOverBrush}" />
-  </Style>
 
   <!-- Selected Pressed State -->
   <Style Selector="c|NavBarItem:selected:pressed /template/ Border">
     <Setter Property="BorderBrush" Value="{DynamicResource NavBarAccentColorPressed}" />
-  </Style>
-  <Style Selector="c|NavBarItem:selected:pressed /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="TextBlock.Foreground" Value="{DynamicResource NavBarItemSelectedPressedBrush}" />
   </Style>
 </Styles>

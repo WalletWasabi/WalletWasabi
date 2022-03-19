@@ -36,11 +36,11 @@
               <Viewbox Height="18" Width="18">
                 <Image Source="{DynamicResource wasabi_logo_dynamic}" />
               </Viewbox>
-              <TextBlock Classes="h8" VerticalAlignment="Center" Text="Wasabi Wallet" Margin="20 0 0 0" IsHitTestVisible="False" />
-              <TextBlock Classes="h8" VerticalAlignment="Center" Opacity="0.6" Text="TESTNET PREVIEW" IsHitTestVisible="False" Margin="5 0 0 0" />
+              <TextBlock Foreground="{DynamicResource AcrylicTrimForeground}" Classes="h8" VerticalAlignment="Center" Text="Wasabi Wallet" Margin="20 0 0 0" IsHitTestVisible="False" />
+              <TextBlock Foreground="{DynamicResource AcrylicTrimForeground}" Classes="h8" VerticalAlignment="Center" Opacity="0.6" Text="TESTNET PREVIEW" IsHitTestVisible="False" Margin="5 0 0 0" />
             </StackPanel>
 
-            <statusBar:StatusBar DataContext="{Binding StatusBar}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0 0 150 0" />
+            <statusBar:StatusBar Foreground="{DynamicResource AcrylicTrimForeground}" DataContext="{Binding StatusBar}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0 0 150 0" />
           </Panel>
 
           <navbar:NavBar Grid.Row="1" Grid.Column="0" DataContext="{Binding NavBar}" />

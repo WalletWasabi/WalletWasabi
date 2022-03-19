@@ -22,8 +22,8 @@
                 TextBlock.FontFamily="{StaticResource MonospacedFont}"
                 CornerRadius="5" BorderThickness="1 1 1 1"
                 Margin="6"
-                Background="#19FFFFFF"
-                BorderBrush="#3CFFFFFF">
+                Background="{DynamicResource TileRegionColor}"
+                BorderBrush="{DynamicResource OptionButtonBorderBrush}">
           <Panel>
             <Border Padding="16">
               <ContentPresenter Name="PART_ContentPresenter"
