@@ -138,7 +138,7 @@
               <Ellipse Width="8" Height="8"
                        HorizontalAlignment="Right"
                        VerticalAlignment="Top" Margin="6,4"
-                       Fill="{DynamicResource SystemAccentColorDark3}"
+                       Fill="{DynamicResource SystemAccentColor}"
                        IsVisible="{Binding IsLoggedIn}"/>
               <DockPanel Background="Transparent" Margin="4"
                          x:CompileBindings="False">
