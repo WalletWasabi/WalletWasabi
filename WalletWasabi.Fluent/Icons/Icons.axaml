@@ -2,8 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Design.PreviewWith>
     <WrapPanel Margin="10" Orientation="Vertical" ItemHeight="50" ItemWidth="50" MaxHeight="400">
-      <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
-      <ContentControl Template="{DynamicResource wasabi_logo_fixed}" />
+      <Image Source="{DynamicResource wasabi_logo_dynamic}" />
       <PathIcon Data="{StaticResource settings_general_regular}" />
       <PathIcon Data="{StaticResource settings_privacy_regular}" />
       <PathIcon Data="{StaticResource settings_network_regular}" />
@@ -338,20 +337,16 @@
       </ControlTemplate>
 
       <!-- Logo Templates -->
-      <ControlTemplate x:Key="wasabi_logo_fixed">
-        <Canvas Width="21" Height="16">
-          <Path Fill="{StaticResource LogoGradientFixed}"
-                Data="M14.9852 7.56906C12.9957 4.56736 12.2647 1.64471 11.9692 0C10.7768 0.7258 9.58445 1.4516 8.39206 2.1774C8.73293 3.60826 9.37967 5.73382 10.6407 8.05767H6.9275C6.81474 7.89826 6.70198 7.73755 6.59182 7.57035C4.60235 4.56736 3.87266 1.64471 3.57716 0C2.38477 0.7258 1.19239 1.4516 0 2.1774C0.440664 4.02171 1.38291 7.02341 3.50458 10.1145C5.60551 13.1746 7.96177 15.0098 9.45873 16C10.4412 15.0603 11.4236 14.122 12.406 13.1823C11.723 12.7702 10.7768 12.1364 9.74516 11.2162H12.7041C14.5808 13.6243 16.5431 15.1342 17.8508 15.9987C18.8332 15.0591 19.8156 14.1207 20.7981 13.181C20.115 12.7689 19.1689 12.1351 18.1372 11.2149H20.7981V8.05767H15.3196C15.2081 7.89826 15.0953 7.73625 14.9852 7.56906Z" />
-          <Path Fill="{StaticResource LogoFixedAccentColor}" Data="M20.857 0H17.6855V3.17149H20.857V0Z" />
-        </Canvas>
-      </ControlTemplate>
-      <ControlTemplate x:Key="wasabi_logo_dynamic">
-        <Canvas Width="21" Height="16">
-          <Path Fill="{StaticResource TextForegroundColor}"
-                Data="M14.9852 7.56906C12.9957 4.56736 12.2647 1.64471 11.9692 0C10.7768 0.7258 9.58445 1.4516 8.39206 2.1774C8.73293 3.60826 9.37967 5.73382 10.6407 8.05767H6.9275C6.81474 7.89826 6.70198 7.73755 6.59182 7.57035C4.60235 4.56736 3.87266 1.64471 3.57716 0C2.38477 0.7258 1.19239 1.4516 0 2.1774C0.440664 4.02171 1.38291 7.02341 3.50458 10.1145C5.60551 13.1746 7.96177 15.0098 9.45873 16C10.4412 15.0603 11.4236 14.122 12.406 13.1823C11.723 12.7702 10.7768 12.1364 9.74516 11.2162H12.7041C14.5808 13.6243 16.5431 15.1342 17.8508 15.9987C18.8332 15.0591 19.8156 14.1207 20.7981 13.181C20.115 12.7689 19.1689 12.1351 18.1372 11.2149H20.7981V8.05767H15.3196C15.2081 7.89826 15.0953 7.73625 14.9852 7.56906Z" />
-          <Path Fill="{StaticResource LogoFixedAccentColor}" Data="M20.857 0H17.6855V3.17149H20.857V0Z" />
-        </Canvas>
-      </ControlTemplate>
+      <DrawingImage x:Key="wasabi_logo_dynamic">
+        <DrawingGroup>
+          <GeometryDrawing Brush="Transparent" Geometry="F1M0,0L1080,0L1080,1080L0,1080z" />
+          <GeometryDrawing Brush="{DynamicResource LogoBaseColor}"
+                           Geometry="F1 M765.26 565.26C665 414 628.21 266.74 613.31 183.85L433.08 293.55Q437.695 312.891 442.942 332.071Q448.188 351.251 454.059 370.249Q459.931 389.247 466.421 408.042Q472.911 426.838 480.013 445.411Q487.116 463.983 494.822 482.314Q502.529 500.644 510.831 518.712Q519.134 536.781 528.023 554.567Q536.913 572.354 546.38 589.84L359.27 589.84C353.59 581.84 347.93 573.69 342.34 565.26C242.08 414 205.29 266.74 190.4 183.85L10.17 293.55C32.35 386.55 79.85 537.74 186.79 693.55C292.67 847.77 411.35 940.21 486.79 990.11L635.32 848.11Q617.46 837.315 600.12 825.704Q582.78 814.093 565.997 801.69Q549.213 789.288 533.023 776.121Q516.833 762.953 501.27 749.05L650.36 749.05C744.9 870.4 843.8 946.47 909.7 990.06L1058.24 848.11Q1040.38 837.316 1023.04 825.706Q1005.69 814.095 988.91 801.693Q972.125 789.29 955.934 776.122Q939.743 762.955 924.18 749.05L1058.24 749.05L1058.24 589.84L782.18 589.84C776.5 581.82 770.84 573.69 765.26 565.26Z" />
+          <GeometryDrawing Brush="{DynamicResource LogoAccentColor}"
+                           Geometry="F1 M857.83 183.85L1062.09 183.85L1062.09 388.11L857.83 388.11L857.83 183.85Z" />
+        </DrawingGroup>
+      </DrawingImage>
+
       <ControlTemplate x:Key="wasabi_logo_text_fixed">
         <StackPanel Margin="0,0,0,-5" TextBlock.FontFamily="{StaticResource WasabiLogoTextFont}"
                     TextBlock.FontWeight="Light" Orientation="Horizontal" ClipToBounds="False">
