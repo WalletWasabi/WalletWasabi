@@ -178,8 +178,7 @@ public partial class SendViewModel : RoutableViewModel
 				}
 			}
 
-			IHttpClient httpClient =
-				Services.ExternalHttpClientFactory.NewHttpClient(() => payjoinEndPointUri, Mode.DefaultCircuit);
+			IHttpClient httpClient = Services.HttpClientFactory.NewHttpClient(() => payjoinEndPointUri, Mode.DefaultCircuit);
 			return new PayjoinClient(payjoinEndPointUri, httpClient);
 		}
 
