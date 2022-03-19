@@ -47,14 +47,15 @@
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
 
-    <StaticResource x:Key="TileRegionColor" ResourceKey="SystemBaseLowColor" />
     <StaticResource x:Key="SystemAccentNeutralColor" ResourceKey="SystemAccentColor" />
     <StaticResource x:Key="TextControlBorderBrush" ResourceKey="SystemBaseLowColor" />
     <StaticResource x:Key="TextControlBorderBrushPointerOver" ResourceKey="SystemBaseMediumLowColor" />
     <StaticResource x:Key="TextControlBorderBrushFocused" ResourceKey="SystemBaseMediumHighColor" />
 
-    <StaticResource x:Key="AcrylicTrimForeground" ResourceKey="SystemBaseHighColor" />
-    <StaticResource x:Key="AcrylicTrimBackground" ResourceKey="SystemBaseLowColor" />
+    <Color x:Key="TileRegionColor">#FF1A283D</Color>
+    <Color x:Key="TileBorderColor">#2ee6ebed</Color>
+    <Color x:Key="AcrylicTrimForeground">White</Color>
+    <Color x:Key="AcrylicTrimBackground">#FF1A283D</Color>
 
     <Color x:Key="WelcomeScreenButtonBackground">#1D273E</Color>
     <Color x:Key="WelcomeScreenButtonBackgroundPressed">#141B2A</Color>
