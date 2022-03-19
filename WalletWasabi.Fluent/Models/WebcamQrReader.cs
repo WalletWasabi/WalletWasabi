@@ -1,170 +1,110 @@
-using Avalonia.Media.Imaging;
 using System.Threading.Tasks;
-using OpenCvSharp;
-using Avalonia;
-using Avalonia.Media;
 using System.Runtime.InteropServices;
-using WalletWasabi.Logging;
 using WalletWasabi.Userfacing;
 using NBitcoin;
-using Nito.AsyncEx;
-using Avalonia.Platform;
+using WalletWasabi.Fluent.Models.Windows;
+using System.Threading;
+using ZXing.QrCode;
+using WalletWasabi.Bases;
+using System.IO;
+using ZXing;
+using Avalonia.Media.Imaging;
 
 namespace WalletWasabi.Fluent.Models;
 
-public class WebcamQrReader
+public class WebcamQrReader : PeriodicRunner
 {
 	private const byte DefaultCameraId = 0;
+	private QRCodeReader? Decoder { get; set; }
+	private WindowsCapture? Camera { get; set; }
 
-	/// <summary>Whether user requested to stop webcamera to scan for QR codes.</summary>
-	private volatile bool _requestEnd;
-
-	public WebcamQrReader(Network network)
+	public WebcamQrReader(Network network) : base(TimeSpan.FromMilliseconds(100))
 	{
 		Network = network;
 	}
 
-	public event EventHandler<WriteableBitmap>? NewImageArrived;
+	public event EventHandler<Bitmap>? NewImageArrived;
 
 	public event EventHandler<string>? CorrectAddressFound;
 
 	public event EventHandler<string>? InvalidAddressFound;
 
-	public event EventHandler<Exception>? ErrorOccured;
+	public event EventHandler<Exception>? ErrorOccurred;
 
-	private AsyncLock ScanningTaskLock { get; } = new();
 	private Network Network { get; }
-	private Task? ScanningTask { get; set; }
 	public static bool IsOsPlatformSupported => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
-	public async Task StartScanningAsync()
+	public override async Task StartAsync(CancellationToken cancellationToken)
 	{
-		using (await ScanningTaskLock.LockAsync().ConfigureAwait(false))
+		if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
-			if (ScanningTask is { })
+			throw new InvalidOperationException("OS not supported.");
+		}
+
+		try
+		{
+			string[] devices = WindowsCapture.FindDevices();
+			if (devices.Length == 0)
 			{
-				return;
+				ErrorOccurred?.Invoke(this, new NotSupportedException("Could not open camera."));
 			}
-			_requestEnd = false;
-			ScanningTask = Task.Run(() =>
-			{
-				VideoCapture? camera = null;
-				try
-				{
-					if (!IsOsPlatformSupported)
-					{
-						throw new NotImplementedException("This operating system is not supported.");
-					}
-					camera = new();
-					camera.SetExceptionMode(true);
-						// Setting VideoCaptureAPI to DirectShow, to remove warning logs,
-						// might need to be changed in the future for other operating systems
-						if (!camera.Open(DefaultCameraId, VideoCaptureAPIs.DSHOW))
-					{
-						throw new InvalidOperationException("Could not open webcamera.");
-					}
-					KeepScanning(camera);
-				}
-				catch (OpenCVException ex)
-				{
-					Logger.LogError("Could not open camera. Reason: " + ex);
-					ErrorOccured?.Invoke(this, new NotSupportedException("Could not open camera."));
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError("QR scanning stopped. Reason:", ex);
-					ErrorOccured?.Invoke(this, ex);
-				}
-				finally
-				{
-					camera?.Release();
-					camera?.Dispose();
-				}
-			});
+
+			WindowsCapture.VideoFormat[] formats = WindowsCapture.GetVideoFormat(DefaultCameraId);
+
+			Decoder = new();
+			Camera = new(DefaultCameraId, formats[0]);
+			Camera.Start();
+
+			// Immediately after starting the USB camera,
+			// GetBitmap() fails because image buffer is not prepared yet.
+			_ = Camera.GetBitmap();
+			await base.StartAsync(cancellationToken);
+		}
+		catch (Exception)
+		{
+			var ex = new InvalidOperationException("Could not read frames. Please make sure no other program uses your camera.");
+			ErrorOccurred?.Invoke(this, ex);
 		}
 	}
 
-	public async Task StopScanningAsync()
+	public override async Task StopAsync(CancellationToken cancellationToken)
 	{
-		using (await ScanningTaskLock.LockAsync().ConfigureAwait(false))
+		if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
-			if (ScanningTask is { } task)
-			{
-				_requestEnd = true;
-				await task;
-
-				ScanningTask = null;
-			}
+			throw new InvalidOperationException("OS not supported.");
 		}
+		Camera?.Release();
+
+		await base.StopAsync(cancellationToken);
 	}
 
-	private void KeepScanning(VideoCapture camera)
+	protected override Task ActionAsync(CancellationToken cancel)
 	{
-		PixelSize pixelSize = new(camera.FrameWidth, camera.FrameHeight);
-		Vector dpi = new(96, 96);
-		using WriteableBitmap writeableBitmap = new(pixelSize, dpi, PixelFormat.Rgba8888, AlphaFormat.Unpremul);
-
-		int dataSize = camera.FrameWidth * camera.FrameHeight;
-		int[] helperArray = new int[dataSize];
-		using QRCodeDetector qRCodeDetector = new();
-		using Mat frame = new();
-		while (!_requestEnd)
+		if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
-			try
-			{
-				bool gotBackFrame = camera.Read(frame);
-				if (!gotBackFrame || frame.Width == 0 || frame.Height == 0)
-				{
-					continue;
-				}
-				ConvertMatToWriteableBitmap(frame, writeableBitmap, helperArray);
-
-				NewImageArrived?.Invoke(this, writeableBitmap);
-
-				if (qRCodeDetector.Detect(frame, out Point2f[] points))
-				{
-					using Mat tmpMat = new();
-					string decodedText = qRCodeDetector.Decode(frame, points, tmpMat);
-					if (string.IsNullOrWhiteSpace(decodedText))
-					{
-						continue;
-					}
-					if (AddressStringParser.TryParse(decodedText, Network, out _))
-					{
-						CorrectAddressFound?.Invoke(this, decodedText);
-						break;
-					}
-					else
-					{
-						InvalidAddressFound?.Invoke(this, decodedText);
-					}
-				}
-			}
-			catch (OpenCVException)
-			{
-				throw new OpenCVException("Could not read frames. Please make sure no other program uses your camera.");
-			}
-		}
-	}
-
-	private void ConvertMatToWriteableBitmap(Mat frame, WriteableBitmap writeableBitmap, int[] helperArray)
-	{
-		using ILockedFramebuffer fb = writeableBitmap.Lock();
-		Mat.Indexer<Vec3b> indexer = frame.GetGenericIndexer<Vec3b>();
-
-		for (int y = 0; y < frame.Height; y++)
-		{
-			int rowIndex = y * fb.Size.Width;
-
-			for (int x = 0; x < frame.Width; x++)
-			{
-				(byte r, byte g, byte b) = indexer[y, x];
-				Color color = new(255, r, g, b);
-
-				helperArray[rowIndex + x] = (int)color.ToUint32();
-			}
+			throw new InvalidOperationException("OS not supported.");
 		}
 
-		Marshal.Copy(helperArray, 0, fb.Address, helperArray.Length);
+		if (Camera is { })
+		{
+			Bitmap bmp = Camera.GetBitmap();
+			using MemoryStream stream = new();
+			bmp.Save(stream);
+			using System.Drawing.Bitmap bitmap = new(stream);
+			NewImageArrived?.Invoke(this, bmp);
+			Result? result = Decoder?.DecodeBitmap(bitmap);
+			if (result is { })
+			{
+				if (AddressStringParser.TryParse(result.Text, Network, out _))
+				{
+					CorrectAddressFound?.Invoke(this, result.Text);
+				}
+				else
+				{
+					InvalidAddressFound?.Invoke(this, result.Text);
+				}
+			}
+		}
+		return Task.CompletedTask;
 	}
 }

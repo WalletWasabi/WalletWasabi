@@ -19,7 +19,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
-[NavigationMetaData(Title = "Enter recovery words")]
+[NavigationMetaData(Title = "Recovery Words")]
 public partial class RecoverWalletViewModel : RoutableViewModel
 {
 	[AutoNotify] private IEnumerable<string>? _suggestions;
@@ -56,7 +56,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 	private async Task OnNextAsync(string? walletName)
 	{
 		var dialogResult = await NavigateDialogAsync(
-			new CreatePasswordDialogViewModel("Password", "Type the password of the wallet if there is one.")
+			new CreatePasswordDialogViewModel("Add Password", "Type the password of the wallet if there is one")
 			, NavigationTarget.CompactDialogScreen);
 
 		if (dialogResult.Result is { } password)
@@ -79,6 +79,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 							walletFilePath,
 							MinGapLimit);
 
+						result.AutoCoinJoin = true;
 						result.SetNetwork(Services.WalletManager.Network);
 
 						return result;
@@ -121,7 +122,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 	private KeyPath AccountKeyPath { get; set; } = KeyManager.GetAccountKeyPath(Services.WalletManager.Network);
 
-	private int MinGapLimit { get; set; } = 63;
+	private int MinGapLimit { get; set; } = 100;
 
 	public ObservableCollection<string> Mnemonics { get; } = new();
 
@@ -137,7 +138,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 			return;
 		}
 
-		errors.Add(ErrorSeverity.Error, "Recovery words are not valid.");
+		errors.Add(ErrorSeverity.Error, "Recovery Words are not valid.");
 	}
 
 	private string GetTagsAsConcatString()

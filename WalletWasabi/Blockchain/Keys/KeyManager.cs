@@ -11,6 +11,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Helpers;
 using WalletWasabi.Io;
 using WalletWasabi.JsonConverters;
+using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
@@ -21,8 +22,14 @@ namespace WalletWasabi.Blockchain.Keys;
 [JsonObject(MemberSerialization.OptIn)]
 public class KeyManager
 {
+	public const int DefaultMinAnonScoreTarget = 5;
+	public const int DefaultMaxAnonScoreTarget = 10;
+	public const bool DefaultAutoCoinjoin = false;
+	public const int DefaultFeeRateMedianTimeFrameHours = 0;
+
 	public const int AbsoluteMinGapLimit = 21;
 	public const int MaxGapLimit = 10_000;
+	public static Money DefaultPlebStopThreshold = Money.Coins(0.0001m);
 
 	// BIP84-ish derivation scheme
 	// m / purpose' / coin_type' / account' / change / address_index
@@ -133,17 +140,33 @@ public class KeyManager
 	[JsonProperty(Order = 8)]
 	private BlockchainState BlockchainState { get; }
 
-	[JsonProperty(Order = 9)]
-	private List<HdPubKey> HdPubKeys { get; }
-
-	[JsonProperty(Order = 10, PropertyName = "Icon")]
-	public string? Icon { get; private set; }
-
-	[JsonProperty(Order = 11, PropertyName = "PreferPsbtWorkflow")]
+	[JsonProperty(Order = 9, PropertyName = "PreferPsbtWorkflow")]
 	public bool PreferPsbtWorkflow { get; set; }
 
-	[JsonProperty(Order = 12, PropertyName = "AutoCoinJoin", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool AutoCoinJoin { get; set; }
+	[JsonProperty(Order = 10, PropertyName = "AutoCoinJoin")]
+	public bool AutoCoinJoin { get; set; } = DefaultAutoCoinjoin;
+
+	/// <summary>
+	/// Won't coinjoin automatically if there are less than this much non-private coins in the wallet.
+	/// </summary>
+	[JsonProperty(Order = 11, PropertyName = "PlebStopThreshold")]
+	[JsonConverter(typeof(MoneyBtcJsonConverter))]
+	public Money PlebStopThreshold { get; set; } = DefaultPlebStopThreshold;
+
+	[JsonProperty(Order = 12, PropertyName = "Icon")]
+	public string? Icon { get; private set; }
+
+	[JsonProperty(Order = 13, PropertyName = "MinAnonScoreTarget")]
+	public int MinAnonScoreTarget { get; private set; } = DefaultMinAnonScoreTarget;
+
+	[JsonProperty(Order = 14, PropertyName = "MaxAnonScoreTarget")]
+	public int MaxAnonScoreTarget { get; private set; } = DefaultMaxAnonScoreTarget;
+
+	[JsonProperty(Order = 15, PropertyName = "FeeRateMedianTimeFrameHours")]
+	public int FeeRateMedianTimeFrameHours { get; private set; } = DefaultFeeRateMedianTimeFrameHours;
+
+	[JsonProperty(Order = 999)]
+	private List<HdPubKey> HdPubKeys { get; }
 
 	private object BlockchainStateLock { get; }
 
@@ -211,7 +234,8 @@ public class KeyManager
 		SafeIoManager safeIoManager = new(filePath);
 		string jsonString = safeIoManager.ReadAllText(Encoding.UTF8);
 
-		var km = JsonConvert.DeserializeObject<KeyManager>(jsonString);
+		KeyManager km = JsonConvert.DeserializeObject<KeyManager>(jsonString)
+			?? throw new JsonSerializationException($"Wallet file at: `{filePath}` is not a valid wallet file or it is corrupted.");
 
 		km.SetFilePath(filePath);
 		lock (km.HdPubKeyScriptBytesLock)
@@ -673,6 +697,35 @@ public class KeyManager
 	public void SetIcon(WalletType type)
 	{
 		SetIcon(type.ToString());
+	}
+
+	public void SetAnonScoreTargets(int minAnonScoreTarget, int maxAnonScoreTarget, bool toFile = true)
+	{
+		if (maxAnonScoreTarget <= minAnonScoreTarget)
+		{
+			throw new ArgumentException($"{nameof(maxAnonScoreTarget)} should be greater than {nameof(minAnonScoreTarget)}.", nameof(maxAnonScoreTarget));
+		}
+
+		MinAnonScoreTarget = minAnonScoreTarget;
+		MaxAnonScoreTarget = maxAnonScoreTarget;
+		if (toFile)
+		{
+			ToFile();
+		}
+	}
+
+	public void SetFeeRateMedianTimeFrame(int hours, bool toFile = true)
+	{
+		if (hours != 0 && !Constants.CoinJoinFeeRateMedianTimeFrames.Contains(hours))
+		{
+			throw new ArgumentOutOfRangeException(nameof(hours), $"Hours can be only one of {string.Join(",", Constants.CoinJoinFeeRateMedianTimeFrames)}.");
+		}
+
+		FeeRateMedianTimeFrameHours = hours;
+		if (toFile)
+		{
+			ToFile();
+		}
 	}
 
 	public void AssertNetworkOrClearBlockState(Network expectedNetwork)

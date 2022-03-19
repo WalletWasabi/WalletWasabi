@@ -3,23 +3,27 @@ using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.RPC;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+using WalletWasabi.Wallets;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Tests.Helpers;
 
@@ -51,7 +55,8 @@ public static class WabiSabiFactory
 			cfg,
 			Network.Main,
 			new InsecureRandom(),
-			new FeeRate(100m)));
+			new FeeRate(100m),
+			new CoordinationFeeRate(0.003m, Money.Zero)));
 		round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
 		return round;
 	}
@@ -78,6 +83,9 @@ public static class WabiSabiFactory
 					Confirmations = 120,
 					TxOut = coin.TxOut,
 				});
+
+			mockRpc.Setup(rpc => rpc.GetRawTransactionAsync(coin.Outpoint.Hash, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+				.ReturnsAsync(BitcoinFactory.CreateTransaction());
 		}
 		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), It.IsAny<EstimateSmartFeeMode>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync(new EstimateSmartFeeResponse
@@ -95,30 +103,8 @@ public static class WabiSabiFactory
 		return mockRpc;
 	}
 
-	public static async Task<Arena> CreateAndStartArenaAsync()
-		=> await CreateAndStartArenaAsync(
-			new WabiSabiConfig(),
-			CreatePreconfiguredRpcClient());
-
-	public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig cfg, params Round[] rounds)
-		=> await CreateAndStartArenaAsync(
-			cfg,
-			CreatePreconfiguredRpcClient(),
-			rounds);
-
-	public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig cfg, IMock<IRPCClient> mockRpc, params Round[] rounds)
-	{
-		Arena arena = new(TimeSpan.FromHours(1), Network.Main, cfg, mockRpc.Object, new Prison());
-		foreach (var round in rounds)
-		{
-			arena.Rounds.Add(round);
-		}
-		await arena.StartAsync(CancellationToken.None).ConfigureAwait(false);
-		return arena;
-	}
-
 	public static Alice CreateAlice(Coin coin, OwnershipProof ownershipProof, Round round)
-		=> new(coin, ownershipProof, round, Guid.NewGuid()) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
+		=> new(coin, ownershipProof, round, Guid.NewGuid(), false) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
 
 	public static Alice CreateAlice(Key key, Money amount, Round round)
 		=> CreateAlice(CreateCoin(key, amount), CreateOwnershipProof(key), round);
@@ -208,7 +194,7 @@ public static class WabiSabiFactory
 
 		var alice = round.Alices.FirstOrDefault() ?? CreateAlice(round);
 		var (realAmountCredentialRequest, _) = amClient.CreateRequest(
-			new[] { amount?.Satoshi ?? alice.CalculateRemainingAmountCredentials(round.FeeRate).Satoshi },
+			new[] { amount?.Satoshi ?? alice.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate).Satoshi },
 			amZeroCredentials,
 			CancellationToken.None);
 		var (realVsizeCredentialRequest, _) = vsClient.CreateRequest(
@@ -242,7 +228,7 @@ public static class WabiSabiFactory
 
 		var alice = round.Alices.FirstOrDefault() ?? CreateAlice(round);
 		var (amCredentialRequest, amValid) = amClient.CreateRequest(
-			new[] { alice.CalculateRemainingAmountCredentials(round.FeeRate).Satoshi },
+			new[] { alice.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate).Satoshi },
 			amZeroCredentials, // FIXME doesn't make much sense
 			CancellationToken.None);
 		long startingVsizeCredentialAmount = vsize ?? alice.CalculateRemainingVsizeCredentials(round.MaxVsizeAllocationPerAlice);
@@ -273,15 +259,52 @@ public static class WabiSabiFactory
 	}
 
 	public static BlameRound CreateBlameRound(Round round, WabiSabiConfig cfg)
-		=> new(new(cfg, round.Network, new InsecureRandom(), round.FeeRate), round, round.Alices.Select(x => x.Coin.Outpoint).ToHashSet());
+		=> new(new(cfg, round.Network, new InsecureRandom(), round.FeeRate, round.CoordinationFeeRate), round, round.Alices.Select(x => x.Coin.Outpoint).ToHashSet());
 
-	public static (Key, SmartCoin, Key, SmartCoin) CreateCoinKeyPairs()
+	public static (IKeyChain, SmartCoin, SmartCoin) CreateCoinKeyPairs()
 	{
 		var km = ServiceFactory.CreateKeyManager("");
+		var keyChain = new KeyChain(km, new Kitchen(""));
+
 		var smartCoin1 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m));
 		var smartCoin2 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(2m));
-		var sk1 = km.GetSecrets("", smartCoin1.ScriptPubKey).Single();
-		var sk2 = km.GetSecrets("", smartCoin2.ScriptPubKey).Single();
-		return (sk1.PrivateKey, smartCoin1, sk2.PrivateKey, smartCoin2);
+		return (keyChain, smartCoin1, smartCoin2);
+	}
+
+	public static CoinJoinClient CreateTestCoinJoinClient(
+		IWasabiHttpClientFactory httpClientFactory,
+		KeyManager keyManager,
+		RoundStateUpdater roundStateUpdater)
+	{
+		return CreateTestCoinJoinClient(
+			httpClientFactory,
+			new KeyChain(keyManager, new Kitchen("")),
+			new InternalDestinationProvider(keyManager),
+			roundStateUpdater);
+	}
+
+	public static CoinJoinClient CreateTestCoinJoinClient(
+		IWasabiHttpClientFactory httpClientFactory,
+		IKeyChain keyChain,
+		IDestinationProvider destinationProvider,
+		RoundStateUpdater roundStateUpdater)
+	{
+		var mock = new Mock<CoinJoinClient>(
+			httpClientFactory,
+			keyChain,
+			destinationProvider,
+			roundStateUpdater,
+			int.MaxValue,
+			true,
+			TimeSpan.Zero,
+			TimeSpan.Zero);
+
+		// Overwrite Maximum Request Delay parameter but still use the original method.
+		mock.Setup(m => m.GetScheduledDates(It.IsAny<int>(), It.IsAny<DateTimeOffset>(), It.IsNotIn(TimeSpan.FromSeconds(1))))
+			.Returns((int howMany, DateTimeOffset endTime, TimeSpan maximumRequestDelay) => mock.Object.GetScheduledDates(howMany, endTime, TimeSpan.FromSeconds(1)));
+
+		mock.CallBase = true;
+
+		return mock.Object;
 	}
 }

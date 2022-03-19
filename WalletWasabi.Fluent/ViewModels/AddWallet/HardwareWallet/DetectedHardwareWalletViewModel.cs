@@ -64,7 +64,7 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
-			await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "Error occured during adding your wallet.");
+			await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "Error occurred during adding your wallet.");
 			Navigate().Back();
 		}
 	}

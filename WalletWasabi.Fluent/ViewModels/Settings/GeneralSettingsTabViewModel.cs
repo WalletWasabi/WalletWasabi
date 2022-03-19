@@ -17,8 +17,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	Category = "Settings",
 	Keywords = new[]
 	{
-			"Settings", "General", "Dark", "Mode", "Bitcoin", "Addresses", "Manual", "Entry", "Fee", "Custom", "Change",
-			"Address", "Display", "Format", "Dust", "Threshold", "BTC", "Start", "System"
+			"Settings", "General", "Bitcoin", "Dark", "Mode", "Run", "Wasabi", "Computer", "System", "Start", "Background", "Close",
+			"Auto", "Copy", "Paste", "Addresses", "Custom", "Change", "Address", "Fee", "Display", "Format", "BTC", "sats"
 	},
 	IconName = "settings_general_regular")]
 public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
@@ -41,7 +41,7 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 		_hideOnClose = Services.UiConfig.HideOnClose;
 		_selectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), Services.UiConfig.FeeDisplayFormat)
 			? (FeeDisplayFormat)Services.UiConfig.FeeDisplayFormat
-			: FeeDisplayFormat.SatoshiPerByte;
+			: FeeDisplayFormat.Satoshis;
 
 		this.WhenAnyValue(x => x.DarkModeEnabled)
 			.Skip(1)

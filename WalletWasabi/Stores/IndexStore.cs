@@ -14,7 +14,6 @@ using WalletWasabi.Io;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Nito.AsyncEx;
-
 namespace WalletWasabi.Stores;
 
 /// <summary>
@@ -44,33 +43,27 @@ public class IndexStore : IAsyncDisposable
 
 	public event EventHandler<FilterModel>? NewFilter;
 
-	private AbandonedTasks AbandonedTasks { get; } = new AbandonedTasks();
+	private AbandonedTasks AbandonedTasks { get; } = new();
 
 	private string WorkFolderPath { get; }
 	private Network Network { get; }
 	private DigestableSafeIoManager MatureIndexFileManager { get; }
 	private DigestableSafeIoManager ImmatureIndexFileManager { get; }
 
-	/// <summary>
-	/// Lock for accessing MatureIndex file. This should be lock #2.
-	/// </summary>
-	private AsyncLock MatureIndexAsyncLock { get; } = new AsyncLock();
+	/// <summary>Lock for modifying <see cref="ImmatureFilters"/>. This should be lock #1.</summary>
+	private AsyncLock IndexLock { get; } = new();
 
-	/// <summary>
-	/// Lock for accessing ImmatureIndex file. This should be lock #3.
-	/// </summary>
-	private AsyncLock ImmatureIndexAsyncLock { get; } = new AsyncLock();
+	/// <summary>Lock for accessing <see cref="MatureIndexFileManager"/>. This should be lock #2.</summary>
+	private AsyncLock MatureIndexAsyncLock { get; } = new();
+
+	/// <summary>Lock for accessing <see cref="ImmatureIndexFileManager"/>. This should be lock #3.</summary>
+	private AsyncLock ImmatureIndexAsyncLock { get; } = new();
 
 	public SmartHeaderChain SmartHeaderChain { get; }
 
 	private FilterModel StartingFilter { get; }
 	private uint StartingHeight => StartingFilter.Header.Height;
-	private List<FilterModel> ImmatureFilters { get; } = new List<FilterModel>(150);
-
-	/// <summary>
-	/// Lock for modifying SmartHeaderChain or ImmatureFilters. This should be lock #1.
-	/// </summary>
-	private AsyncLock IndexLock { get; } = new AsyncLock();
+	private List<FilterModel> ImmatureFilters { get; } = new(150);
 
 	public async Task InitializeAsync(CancellationToken cancel = default)
 	{
@@ -87,12 +80,14 @@ public class IndexStore : IAsyncDisposable
 					MatureIndexFileManager.DeleteMe(); // RegTest is not a global ledger, better to delete it.
 					ImmatureIndexFileManager.DeleteMe();
 				}
+
 				cancel.ThrowIfCancellationRequested();
 
 				if (!MatureIndexFileManager.Exists())
 				{
 					await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToLine() }, CancellationToken.None).ConfigureAwait(false);
 				}
+
 				cancel.ThrowIfCancellationRequested();
 
 				await InitializeFiltersAsync(cancel).ConfigureAwait(false);
@@ -140,35 +135,42 @@ public class IndexStore : IAsyncDisposable
 		{
 			if (MatureIndexFileManager.Exists())
 			{
-				using var sr = MatureIndexFileManager.OpenText();
-				if (!sr.EndOfStream)
+				using (BenchmarkLogger.Measure(LogLevel.Debug, "MatureIndexFileManager loading"))
 				{
-					var lineTask = sr.ReadLineAsync();
-					string? line = null;
-					while (lineTask is { })
+					int i = 0;
+					using StreamReader sr = MatureIndexFileManager.OpenText();
+					if (!sr.EndOfStream)
 					{
-						line ??= await lineTask.ConfigureAwait(false);
-						cancel.ThrowIfCancellationRequested();
+						while (true)
+						{
+							i++;
+							cancel.ThrowIfCancellationRequested();
+							string? line = await sr.ReadLineAsync().ConfigureAwait(false);
 
-						lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
+							if (line is null)
+							{
+								break;
+							}
 
-						ProcessLine(line, enqueue: false);
-
-						line = null;
+							ProcessLine(line, enqueue: false);
+						}
 					}
+
+					Logger.LogDebug($"Loaded {i} lines from the mature index file.");
 				}
 			}
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{
 			// We found a corrupted entry. Stop here.
-			// Delete the currupted file.
+			// Delete the corrupted file.
 			// Do not try to autocorrect, because the internal data structures are throwing events that may confuse the consumers of those events.
 			Logger.LogError("Mature index got corrupted. Deleting both mature and immature index...");
 			MatureIndexFileManager.DeleteMe();
 			ImmatureIndexFileManager.DeleteMe();
 			throw;
 		}
+
 		cancel.ThrowIfCancellationRequested();
 
 		try
@@ -185,7 +187,7 @@ public class IndexStore : IAsyncDisposable
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{
 			// We found a corrupted entry. Stop here.
-			// Delete the currupted file.
+			// Delete the corrupted file.
 			// Do not try to autocorrect, because the internal data structures are throwing events that may confuse the consumers of those events.
 			Logger.LogError("Immature index got corrupted. Deleting it...");
 			ImmatureIndexFileManager.DeleteMe();
@@ -211,7 +213,7 @@ public class IndexStore : IAsyncDisposable
 				return false;
 			}
 
-			SmartHeaderChain.AddOrReplace(filter.Header);
+			SmartHeaderChain.AppendTip(filter.Header);
 			if (enqueue)
 			{
 				ImmatureFilters.Add(filter);
@@ -322,7 +324,7 @@ public class IndexStore : IAsyncDisposable
 			{
 				throw new InvalidOperationException($"{nameof(SmartHeaderChain)} and {nameof(ImmatureFilters)} are not in sync.");
 			}
-			SmartHeaderChain.RemoveLast();
+			SmartHeaderChain.RemoveTip();
 		}
 
 		Reorged?.Invoke(this, filter);
@@ -409,12 +411,22 @@ public class IndexStore : IAsyncDisposable
 				var currentImmatureLines = ImmatureFilters.Select(x => x.ToLine()).ToArray(); // So we do not read on ImmatureFilters while removing them.
 				var matureLinesToAppend = currentImmatureLines.SkipLast(100);
 				var immatureLines = currentImmatureLines.TakeLast(100);
-				var tasks = new Task[] { MatureIndexFileManager.AppendAllLinesAsync(matureLinesToAppend, CancellationToken.None), ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines, CancellationToken.None) };
+
+				// The order of the following lines is important.
+
+				// 1) First delete the immature index. If we lose it because the mature index writing fails, we are OK with that.
+				ImmatureIndexFileManager.DeleteMe();
+
+				// 2) Attempt to update the mature index.
+				await MatureIndexFileManager.AppendAllLinesAsync(matureLinesToAppend, CancellationToken.None).ConfigureAwait(false);
+
+				// 3) Create new immature index.
+				await ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines, CancellationToken.None).ConfigureAwait(false);
+
 				while (ImmatureFilters.Count > 100)
 				{
 					ImmatureFilters.RemoveFirst();
 				}
-				await Task.WhenAll(tasks).ConfigureAwait(false);
 			}
 		}
 		catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)

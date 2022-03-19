@@ -7,7 +7,7 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class CoinPocketHelper
 {
-	public static readonly SmartLabel UnlabelledFundsText = new("Unlabelled Funds");
+	public static readonly SmartLabel UnlabelledFundsText = new("Unknown People");
 	public static readonly SmartLabel PrivateFundsText = new("Private Funds");
 
 	public static IEnumerable<(SmartLabel SmartLabel, ICoinsView Coins)> GetPockets(this ICoinsView allCoins, int privateAnonSetThreshold)

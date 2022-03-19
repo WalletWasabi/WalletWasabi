@@ -16,7 +16,7 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 {
-	private const int MaxRetries = 3;
+	private const int MaxRetries = 20;
 
 	private IHttpClient _client;
 
@@ -55,17 +55,8 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 	public virtual Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<TransactionSignaturesRequest>(RemoteAction.SignTransaction, request, cancellationToken);
 
-	public async Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken)
-	{
-		using var response = await _client.SendAsync(HttpMethod.Get, GetUriEndPoint(RemoteAction.GetStatus), cancel: cancellationToken).ConfigureAwait(false);
-
-		if (!response.IsSuccessStatusCode)
-		{
-			await response.ThrowRequestExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
-		}
-		var jsonString = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-		return Deserialize<RoundState[]>(jsonString);
-	}
+	public Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken) =>
+		SendAndReceiveAsync<RoundStateRequest, RoundStateResponse>(RemoteAction.GetStatus, request, cancellationToken);
 
 	public Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<ReadyToSignRequestRequest>(RemoteAction.ReadyToSign, request, cancellationToken);
@@ -93,7 +84,10 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 				}
 				else
 				{
-					Logger.LogDebug($"Received a response for {action} in {totalTime.TotalSeconds:0.##s}.");
+					if (action != RemoteAction.GetStatus)
+					{
+						Logger.LogDebug($"Received a response for {action} in {totalTime.TotalSeconds:0.##s}.");
+					}
 				}
 
 				return response;
@@ -114,6 +108,9 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 					throw;
 				}
 			}
+
+			// Wait before the next try.
+			await Task.Delay(250, cancellationToken).ConfigureAwait(false);
 		}
 
 		throw new AggregateException(exceptions);

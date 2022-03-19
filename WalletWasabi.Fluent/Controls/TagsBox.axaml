@@ -1,6 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:WalletWasabi.Fluent.Controls"
+        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
         xmlns:generic="clr-namespace:System.Collections.Generic;assembly=System.Collections"
         xmlns:system="clr-namespace:System;assembly=System.Runtime">
   <Design.PreviewWith>
@@ -162,7 +162,7 @@
     </Style>
 
     <Style Selector="c|TagsBox c|TagControl">
-        <Setter Property="Margin" Value="0,0,4,0" />
+        <Setter Property="Margin" Value="0,0,4,3" />
     </Style>
 
     <Style Selector="c|TagsBox c|ConcatenatingWrapPanel:wrapped c|TagControl,
@@ -181,7 +181,7 @@
         <Setter Property="MaxDropDownHeight" Value="90" />
         <Setter Property="MinimumPrefixLength" Value="1" />
         <Setter Property="Focusable" Value="False" />
-        <Setter Property="IsTextCompletionEnabled" Value="True" />
+        <Setter Property="IsTextCompletionEnabled" Value="{Binding $parent[c:TagsBox].RestrictInputToSuggestions}" />
         <Setter Property="Template">
             <ControlTemplate>
                 <Grid Name="PART_LayoutRoot">

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using NBitcoin;
 
@@ -150,18 +149,35 @@ public class AmountDecomposer
 		return denominations.OrderByDescending(x => x);
 	}
 
-	public IEnumerable<Money> Decompose(IEnumerable<Coin> myInputCoins, IEnumerable<Coin> othersInputCoins)
+	public IEnumerable<Money> Decompose(IEnumerable<Money> myInputCoinEffectiveValues, IEnumerable<Money> othersInputCoinEffectiveValues)
 	{
-		var histogram = GetDenominationFrequencies(othersInputCoins.Concat(myInputCoins));
+		var histogram = GetDenominationFrequencies(othersInputCoinEffectiveValues.Concat(myInputCoinEffectiveValues));
 
-		// Filter out and order denominations those have occured in the frequency table at least twice.
-		var denoms = histogram
+		// Filter out and order denominations those have occurred in the frequency table at least twice.
+		var preFilteredDenoms = histogram
 			.Where(x => x.Value > 1)
 			.OrderByDescending(x => x.Key)
 			.Select(x => x.Key)
 			.ToArray();
 
-		var myInputs = myInputCoins.Select(x => x.EffectiveValue(FeeRate)).ToArray();
+		// Filter out denominations very close to each other.
+		// Heavy filtering on the top, little to no filtering on the bottom,
+		// because in smaller denom levels larger users are expected to participate,
+		// but on larger denom levels there's little chance of finding each other.
+		var increment = 0.5 / preFilteredDenoms.Length;
+		List<ulong> denoms = new();
+		var currentLength = preFilteredDenoms.Length;
+		foreach (var denom in preFilteredDenoms)
+		{
+			var filterSeverity = 1 + currentLength * increment;
+			if (!denoms.Any() || denom <= (denoms.Last() / filterSeverity))
+			{
+				denoms.Add(denom);
+			}
+			currentLength--;
+		}
+
+		var myInputs = myInputCoinEffectiveValues.ToArray();
 		var myInputSum = myInputs.Sum();
 		var remaining = myInputSum;
 		var remainingVsize = AvailableVsize;
@@ -175,7 +191,7 @@ public class AmountDecomposer
 		// Create the most naive decomposition for starter.
 		List<Money> naiveSet = new();
 		bool end = false;
-		foreach (var denomPlusFee in denoms.Where(x => x <= remaining))
+		foreach (var denomPlusFee in preFilteredDenoms.Where(x => x <= remaining))
 		{
 			var denomUsage = 0;
 			while (denomPlusFee <= remaining)
@@ -234,69 +250,23 @@ public class AmountDecomposer
 			(naiveSet, loss + (ulong)naiveSet.Count * OutputFee)); // The cost is the remaining + output cost.
 
 		// Create many decompositions for optimization.
-		var before = DateTimeOffset.UtcNow;
-		do
+		Decomposer.StdDenoms = denoms.Where(x => x <= myInputSum).Select(x => (long)x).ToArray();
+		foreach (var (sum, count, decomp) in Decomposer.Decompose((long)myInputSum, (long)Math.Max(loss, 0.5 * (ulong)MinAllowedOutputAmountPlusFee), Math.Min(8, Math.Max(5, naiveSet.Count))))
 		{
-			var currSet = new List<Money>();
-			remaining = myInputs.Sum();
-			remainingVsize = AvailableVsize;
-			do
+			var currentSet = Decomposer.ToRealValuesArray(
+				decomp,
+				count,
+				Decomposer.StdDenoms).Select(Money.Satoshis).ToList();
+
+			hash = new();
+			foreach (var item in currentSet.OrderBy(x => x))
 			{
-				var denomPlusFees = denoms.Where(x => x <= remaining && x >= (remaining / 3)).ToList();
-				if (!denomPlusFees.Any())
-				{
-					break;
-				}
-
-				var denomPlusFee = denomPlusFees.RandomElement();
-				if (remaining < MinAllowedOutputAmountPlusFee || remainingVsize < 2 * OutputSize)
-				{
-					break;
-				}
-
-				if (denomPlusFee <= remaining)
-				{
-					currSet.Add(denomPlusFee);
-					remaining -= denomPlusFee;
-					remainingVsize -= OutputSize;
-				}
+				hash.Add(item);
 			}
-			while (currSet.Count <= naiveSet.Count || currSet.Count <= 3);
-
-			// If currSet.Count <= 3 then we still generate sets to add ambiguity.
-			if (currSet.Count <= naiveSet.Count || currSet.Count <= 3)
-			{
-				loss = 0;
-				if (remaining >= MinAllowedOutputAmountPlusFee)
-				{
-					currSet.Add(remaining);
-				}
-				else
-				{
-					loss = remaining;
-				}
-
-				// When not even the minimum denom is reached.
-				if (currSet.Count == 0)
-				{
-					currSet.Add(remaining);
-					loss = 0;
-				}
-
-				hash = new();
-				foreach (var item in currSet.OrderBy(x => x))
-				{
-					hash.Add(item);
-				}
-
-				setCandidates.TryAdd(
-					hash.ToHashCode(),
-					(currSet, loss + (ulong)currSet.Count * OutputFee));
-			}
+			setCandidates.TryAdd(hash.ToHashCode(), (currentSet, myInputSum - (ulong)currentSet.Sum() + (ulong)count * OutputFee)); // The cost is the remaining + output cost.
 		}
-		while ((DateTimeOffset.UtcNow - before).TotalMilliseconds <= 500);
 
-		var denomHashSet = denoms.ToHashSet();
+		var denomHashSet = preFilteredDenoms.ToHashSet();
 		var finalCandidates = setCandidates.Select(x => x.Value).ToList();
 		finalCandidates.Shuffle();
 
@@ -336,13 +306,13 @@ public class AmountDecomposer
 	}
 
 	/// <returns>Pair of denomination and the number of times we found it in a breakdown.</returns>
-	private Dictionary<ulong, long> GetDenominationFrequencies(IEnumerable<Coin> inputs)
+	private Dictionary<ulong, long> GetDenominationFrequencies(IEnumerable<Money> inputEffectiveValues)
 	{
-		var secondLargestInput = inputs.OrderByDescending(x => x.Amount).Skip(1).First();
-		IEnumerable<ulong> demonsForBreakDown = DenominationsPlusFees.Where(x => x <= (ulong)secondLargestInput.EffectiveValue(FeeRate).Satoshi);
+		var secondLargestInput = inputEffectiveValues.OrderByDescending(x => x).Skip(1).First();
+		IEnumerable<ulong> demonsForBreakDown = DenominationsPlusFees.Where(x => x <= (ulong)secondLargestInput.Satoshi);
 
 		Dictionary<ulong, long> denomFrequencies = new();
-		foreach (var input in inputs)
+		foreach (var input in inputEffectiveValues)
 		{
 			foreach (var denom in BreakDown(input, demonsForBreakDown))
 			{
@@ -359,9 +329,9 @@ public class AmountDecomposer
 	/// <summary>
 	/// Greedily decomposes an amount to the given denominations.
 	/// </summary>
-	private IEnumerable<ulong> BreakDown(Coin coin, IEnumerable<ulong> denominations)
+	private IEnumerable<ulong> BreakDown(Money coininputEffectiveValue, IEnumerable<ulong> denominations)
 	{
-		var remaining = coin.EffectiveValue(FeeRate);
+		var remaining = coininputEffectiveValue;
 
 		foreach (var denomPlusFee in denominations)
 		{
