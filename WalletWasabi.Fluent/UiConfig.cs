@@ -60,7 +60,7 @@ public class UiConfig : ConfigBase
 				x => x.WindowWidth,
 				x => x.WindowHeight,
 				(_, _, _, _, _) => Unit.Default)
-			.Throttle(TimeSpan.FromMilliseconds(500))
+			.Throttle(TimeSpan.FromMilliseconds(750))
 			.Skip(1) // Won't save on UiConfig creation.
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Subscribe(_ => ToFile());
