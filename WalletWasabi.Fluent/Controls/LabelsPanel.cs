@@ -8,10 +8,23 @@ public class LabelsPanel : VirtualizingStackPanel
 	public static readonly StyledProperty<Control?> EllipsisControlProperty =
 		AvaloniaProperty.Register<LabelsPanel, Control?>(nameof(EllipsisControl));
 
+	public static readonly DirectProperty<LabelsPanel, int> VisibleItemsProperty =
+		AvaloniaProperty.RegisterDirect<LabelsPanel, int>(
+			nameof(VisibleItems),
+			o => o.VisibleItems);
+
+	private int _visibleItems;
+
 	public Control? EllipsisControl
 	{
 		get => GetValue(EllipsisControlProperty);
 		set => SetValue(EllipsisControlProperty, value);
+	}
+
+	public int VisibleItems
+	{
+		get => _visibleItems;
+		private set => SetAndRaise(VisibleItemsProperty, ref _visibleItems, value);
 	}
 
 	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -126,6 +139,8 @@ public class LabelsPanel : VirtualizingStackPanel
 				EllipsisControl.Arrange(new Rect(-10000, -10000, 0, 0));
 			}
 		}
+
+		VisibleItems = count;
 
 		return new Size(width, height);
 	}
