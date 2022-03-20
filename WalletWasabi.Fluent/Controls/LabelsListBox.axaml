@@ -23,7 +23,7 @@
       <ControlTemplate>
         <ScrollViewer Name="PART_ScrollViewer"
                       HorizontalScrollBarVisibility="Disabled"
-                      VerticalScrollBarVisibility="Auto"
+                      VerticalScrollBarVisibility="Disabled"
                       AllowAutoHide="False">
           <ItemsPresenter Name="PART_ItemsPresenter"
                           Items="{TemplateBinding Items}"
