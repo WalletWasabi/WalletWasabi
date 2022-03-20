@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using NBitcoin;
@@ -18,8 +19,8 @@ public class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 		IObservable<Unit> updateTrigger)
 		: base(orderIndex, transactionSummary)
 	{
-		Label = transactionSummary.Label.Take(1).FirstOrDefault();
-		FilteredLabel = transactionSummary.Label.Skip(1).ToList();
+		Label = "Coinjoin";
+		FilteredLabel = new List<string>();
 		IsConfirmed = transactionSummary.IsConfirmed();
 		Date = transactionSummary.DateTime.ToLocalTime();
 		Balance = balance;
