@@ -100,7 +100,7 @@ public class DigestableSafeIoManager : SafeIoManager
 			{
 				while (true)
 				{
-					string? line = await sr.ReadLineAsync().ConfigureAwait(false);
+					string? line = sr.ReadLine();
 
 
 					// End of stream.
