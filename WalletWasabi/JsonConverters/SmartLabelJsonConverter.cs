@@ -3,24 +3,19 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 
 namespace WalletWasabi.JsonConverters;
 
-public class SmartLabelJsonConverter : JsonConverter
+public class SmartLabelJsonConverter : JsonConverter<SmartLabel>
 {
-	public override bool CanConvert(Type objectType)
-	{
-		return objectType == typeof(SmartLabel);
-	}
-
 	/// <inheritdoc />
-	public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+	public override SmartLabel? ReadJson(JsonReader reader, Type objectType, SmartLabel? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
 		var s = reader.Value as string;
 		return new SmartLabel(s);
 	}
 
 	/// <inheritdoc />
-	public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+	public override void WriteJson(JsonWriter writer, SmartLabel? value, JsonSerializer serializer)
 	{
-		var label = value as SmartLabel;
+		var label = value;
 		writer.WriteValue(label ?? "");
 	}
 }
