@@ -11,7 +11,7 @@ public record TimeFrame
 	public static TimeFrame Create(TimeSpan duration) =>
 		new(DateTimeOffset.MinValue, duration);
 
-	private DateTimeOffset EndTime => StartTime + Duration;
+	public DateTimeOffset EndTime => StartTime + Duration;
 	public DateTimeOffset StartTime { get; init; }
 	public TimeSpan Duration { get; init; }
 	public bool HasStarted => StartTime > DateTimeOffset.MinValue && StartTime < DateTimeOffset.UtcNow;
