@@ -27,7 +27,7 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 	[AutoNotify] private bool _autoCopy;
 	[AutoNotify] private bool _autoPaste;
 	[AutoNotify] private bool _customChangeAddress;
-	[AutoNotify] private FeeDisplayFormat _selectedFeeDisplayFormat;
+	[AutoNotify] private FeeDisplayUnit _selectedFeeDisplayUnit;
 	[AutoNotify] private bool _runOnSystemStartup;
 	[AutoNotify] private bool _hideOnClose;
 
@@ -39,9 +39,9 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 		_customChangeAddress = Services.UiConfig.IsCustomChangeAddress;
 		_runOnSystemStartup = Services.UiConfig.RunOnSystemStartup;
 		_hideOnClose = Services.UiConfig.HideOnClose;
-		_selectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), Services.UiConfig.FeeDisplayFormat)
-			? (FeeDisplayFormat)Services.UiConfig.FeeDisplayFormat
-			: FeeDisplayFormat.Satoshis;
+		_selectedFeeDisplayUnit = Enum.IsDefined(typeof(FeeDisplayUnit), Services.UiConfig.FeeDisplayUnit)
+			? (FeeDisplayUnit)Services.UiConfig.FeeDisplayUnit
+			: FeeDisplayUnit.Satoshis;
 
 		this.WhenAnyValue(x => x.DarkModeEnabled)
 			.Skip(1)
@@ -82,10 +82,10 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 			.Skip(1)
 			.Subscribe(x => Services.UiConfig.IsCustomChangeAddress = x);
 
-		this.WhenAnyValue(x => x.SelectedFeeDisplayFormat)
+		this.WhenAnyValue(x => x.SelectedFeeDisplayUnit)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Skip(1)
-			.Subscribe(x => Services.UiConfig.FeeDisplayFormat = (int)x);
+			.Subscribe(x => Services.UiConfig.FeeDisplayUnit = (int)x);
 
 		this.WhenAnyValue(x => x.HideOnClose)
 			.ObserveOn(RxApp.TaskpoolScheduler)
@@ -95,8 +95,8 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 
 	public ICommand StartupCommand { get; }
 
-	public IEnumerable<FeeDisplayFormat> FeeDisplayFormats =>
-		Enum.GetValues(typeof(FeeDisplayFormat)).Cast<FeeDisplayFormat>();
+	public IEnumerable<FeeDisplayUnit> FeeDisplayUnit =>
+		Enum.GetValues(typeof(FeeDisplayUnit)).Cast<FeeDisplayUnit>();
 
 	protected override void EditConfigOnSave(Config config)
 	{
