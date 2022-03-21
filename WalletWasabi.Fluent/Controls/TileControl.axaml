@@ -20,10 +20,10 @@
         <Border Name="PART_MainBorder"
                 Classes.IsActive="{Binding IsActive, FallbackValue=false}"
                 TextBlock.FontFamily="{StaticResource MonospacedFont}"
-                CornerRadius="5" BorderThickness="1 1 1 1"
+                CornerRadius="2" BorderThickness="1"
                 Margin="6"
-                Background="#19FFFFFF"
-                BorderBrush="#3CFFFFFF">
+                Background="{DynamicResource TileRegionColor}"
+                BorderBrush="{DynamicResource TileBorderColor}">
           <Panel>
             <Border Padding="16">
               <ContentPresenter Name="PART_ContentPresenter"

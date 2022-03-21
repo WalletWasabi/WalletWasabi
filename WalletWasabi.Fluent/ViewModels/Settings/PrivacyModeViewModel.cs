@@ -29,7 +29,7 @@ public partial class PrivacyModeViewModel : NavBarItemViewModel
 			});
 	}
 
-	public override string IconName => _privacyMode ? "incognito_filled" : "incognito_regular";
+	public override string IconName => _privacyMode ? "nav_incognito_filled" : "nav_incognito_regular";
 
 	public override void Toggle()
 	{

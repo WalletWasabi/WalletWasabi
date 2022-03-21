@@ -5,7 +5,6 @@
       <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary>
           <Color x:Key="SystemAccentColor">#FF238636</Color>
-
           <Color x:Key="SystemAccentColorDark1">#FF3D964E</Color>
           <Color x:Key="SystemAccentColorDark2">#FF57A666</Color>
           <Color x:Key="SystemAccentColorDark3">#FF71B57F</Color>
@@ -48,12 +47,15 @@
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
 
-
-    <StaticResource x:Key="TileRegionColor" ResourceKey="SystemBaseLowColor" />
     <StaticResource x:Key="SystemAccentNeutralColor" ResourceKey="SystemAccentColor" />
     <StaticResource x:Key="TextControlBorderBrush" ResourceKey="SystemBaseLowColor" />
     <StaticResource x:Key="TextControlBorderBrushPointerOver" ResourceKey="SystemBaseMediumLowColor" />
     <StaticResource x:Key="TextControlBorderBrushFocused" ResourceKey="SystemBaseMediumHighColor" />
+
+    <Color x:Key="TileRegionColor">#FF1A283D</Color>
+    <Color x:Key="TileBorderColor">#2ee6ebed</Color>
+    <Color x:Key="AcrylicTrimForeground">White</Color>
+    <Color x:Key="AcrylicTrimBackground">#FF1A283D</Color>
 
     <Color x:Key="WelcomeScreenButtonBackground">#1D273E</Color>
     <Color x:Key="WelcomeScreenButtonBackgroundPressed">#141B2A</Color>
@@ -80,6 +82,18 @@
 
     <BoxShadows x:Key="OptimizePrivacyOptionBoxShadow1">0 6 16 0 #22000000</BoxShadows>
     <BoxShadows x:Key="OptimizePrivacyOptionBoxShadow2">0 9 23 0 #4A000000</BoxShadows>
+
+    <LinearGradientBrush x:Key="LogoBaseColor" StartPoint="616.03,205.77002" EndPoint="371.41003,625.12">
+      <LinearGradientBrush.GradientStops>
+        <GradientStop Offset="0" Color="#FFFFFFFF" />
+        <GradientStop Offset="0.25" Color="#FFE1E1E1" />
+        <GradientStop Offset="0.54" Color="#FFC6C6C6" />
+        <GradientStop Offset="0.79999995" Color="#FFB5B5B5" />
+        <GradientStop Offset="0.99" Color="#FFAFAFAF" />
+      </LinearGradientBrush.GradientStops>
+    </LinearGradientBrush>
+
+    <SolidColorBrush x:Key="LogoAccentColor" Color="#FF77C600" />
 
   </Styles.Resources>
   <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentDark.xaml" />

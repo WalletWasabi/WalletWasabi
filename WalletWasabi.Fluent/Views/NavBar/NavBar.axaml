@@ -15,6 +15,10 @@
              mc:Ignorable="d" d:DesignWidth="280" d:DesignHeight="459"
              x:Class="WalletWasabi.Fluent.Views.NavBar.NavBar" UseLayoutRounding="False"
              Name="NavBarUserControl">
+
+  <i:Interaction.Behaviors>
+    <behaviors:NavBarSelectedIndicatorParentBehavior />
+  </i:Interaction.Behaviors>
   <UserControl.Styles>
     <Style Selector="PathIcon">
       <Setter Property="Margin" Value="13 0 0 0" />
@@ -93,104 +97,55 @@
     </Style>
   </UserControl.Styles>
   <DockPanel Margin="0 -4 0 4">
-    <StackPanel DockPanel.Dock="Top" Spacing="5" Background="Transparent">
-      <c:NavBarListBox Items="{Binding TopItems}"
-                       SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                       Name="TopListBox"
-                       Classes="vertical">
-        <c:NavBarListBox.ItemTemplate>
-          <DataTemplate x:DataType="vm:NavBarItemViewModel" x:CompileBindings="False">
-            <Panel>
-              <Panel Width="45" Background="Transparent" HorizontalAlignment="Left" ToolTip.Tip="{Binding Title}">
-                <PathIcon HorizontalAlignment="Left">
-                  <PathIcon.Data>
-                    <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
-                  </PathIcon.Data>
-                </PathIcon>
-              </Panel>
-              <TextBlock Text="{Binding Title}" Margin="55 0 0 0" />
-            </Panel>
-          </DataTemplate>
-        </c:NavBarListBox.ItemTemplate>
-      </c:NavBarListBox>
-    </StackPanel>
-    <StackPanel DockPanel.Dock="Bottom" Background="Transparent">
-      <Separator />
-      <!-- BottomItems List -->
+    <DockPanel Background="Transparent" DockPanel.Dock="Bottom">
       <c:NavBarListBox Items="{Binding BottomItems}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                       Classes="horizontal"
-                       Name="BottomListBox">
-
-        <i:Interaction.Behaviors>
-          <ia:DataTriggerBehavior Binding="{Binding IsOpen}" ComparisonCondition="Equal" Value="True">
-            <iac:AddClassAction StyledElement="{Binding #BottomListBox}" ClassName="horizontal" RemoveIfExists="True" />
-            <iac:RemoveClassAction StyledElement="{Binding #BottomListBox}" ClassName="vertical" />
-          </ia:DataTriggerBehavior>
-          <ia:DataTriggerBehavior Binding="{Binding IsOpen}" ComparisonCondition="Equal" Value="False">
-            <iac:AddClassAction StyledElement="{Binding #BottomListBox}" ClassName="vertical" RemoveIfExists="True" />
-            <iac:RemoveClassAction StyledElement="{Binding #BottomListBox}" ClassName="horizontal" />
-          </ia:DataTriggerBehavior>
-        </i:Interaction.Behaviors>
-        <c:NavBarListBox.Styles>
-          <Style Selector=":is(ListBox).vertical /template/ #PART_ItemsPresenter > ReversibleStackPanel">
-            <Setter Property="Orientation" Value="Vertical" />
-            <Setter Property="HorizontalAlignment" Value="Left" />
-            <Setter Property="ReverseOrder" Value="True" />
-          </Style>
-          <Style Selector=":is(ListBox).horizontal /template/ #PART_ItemsPresenter > ReversibleStackPanel">
-            <Setter Property="Orientation" Value="Horizontal" />
-            <Setter Property="HorizontalAlignment" Value="Left" />
-            <Setter Property="ReverseOrder" Value="False" />
-          </Style>
-          <Style Selector=":is(ListBox)">
-            <Setter Property="ItemsPanel">
-              <Setter.Value>
-                <ItemsPanelTemplate>
-                  <ReversibleStackPanel />
-                </ItemsPanelTemplate>
-              </Setter.Value>
-            </Setter>
-          </Style>
-        </c:NavBarListBox.Styles>
-        <c:NavBarListBox.ItemTemplate>
-          <DataTemplate x:DataType="vm:NavBarItemViewModel">
-            <Panel Width="45" Background="Transparent" HorizontalAlignment="Center" ToolTip.Tip="{Binding Title}"
-                   ToolTip.VerticalOffset="-17" ToolTip.Placement="Top">
-              <PathIcon HorizontalAlignment="Left">
-                <PathIcon.Data>
-                  <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
-                </PathIcon.Data>
-              </PathIcon>
+                       Name="BottomListBox"
+                       Classes="vertical narrowItemPadding"
+                       VerticalAlignment="Stretch">
+        <c:NavBarListBox.ItemsPanel>
+          <ItemsPanelTemplate>
+            <ReversibleStackPanel ReverseOrder="True" />
+          </ItemsPanelTemplate>
+        </c:NavBarListBox.ItemsPanel>
+        <c:NavBarListBox.DataTemplates>
+          <DataTemplate DataType="vm:NavBarItemViewModel">
+            <Panel  Width="64" Height="64" ToolTip.Tip="{Binding Title}" Background="Transparent">
+              <DockPanel Background="Transparent" Margin="4"
+                         x:CompileBindings="False">
+                <TextBlock DockPanel.Dock="Bottom" Text="{Binding Title}"
+                           TextTrimming="CharacterEllipsis" Classes="h9" TextAlignment="Center" Margin="3, 0"  />
+                <Panel Width="28" Height="28" VerticalAlignment="Center" HorizontalAlignment="Center">
+                  <Image Source="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
+                </Panel>
+              </DockPanel>
             </Panel>
           </DataTemplate>
-        </c:NavBarListBox.ItemTemplate>
+        </c:NavBarListBox.DataTemplates>
       </c:NavBarListBox>
-    </StackPanel>
-    <!-- Items List -->
+    </DockPanel>
+    <Separator DockPanel.Dock="Bottom" />
+    <!-- Wallet List -->
     <DockPanel Background="Transparent">
-
-      <TextBlock Classes="headerText" DockPanel.Dock="Top" Text="Wallets" IsVisible="{Binding IsOpen}" />
       <c:NavBarListBox Items="{Binding Wallets}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                        Name="ItemsListBox"
                        Classes="vertical draggable narrowItemPadding"
-                       RenderTransformOrigin="0%,50%"
                        VerticalAlignment="Stretch">
-        <i:Interaction.Behaviors>
-          <behaviors:NavBarSelectedIndicatorParentBehavior />
-        </i:Interaction.Behaviors>
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">
-            <Panel Height="48" Width="48" ToolTip.Tip="{Binding Title}" Background="Transparent">
-              <DockPanel  Background="Transparent"
+            <Panel Width="64" Height="64" ToolTip.Tip="{Binding Title}" Background="Transparent">
+              <Ellipse Width="8" Height="8"
+                       HorizontalAlignment="Right"
+                       VerticalAlignment="Top" Margin="6,4"
+                       Fill="{DynamicResource SystemAccentColor}"
+                       IsVisible="{Binding IsLoggedIn}"/>
+              <DockPanel Background="Transparent" Margin="4"
                          x:CompileBindings="False">
                 <TextBlock DockPanel.Dock="Bottom" Text="{Binding Title}"
-                           TextTrimming="CharacterEllipsis" Classes="h9" TextAlignment="Center" />
-                <Panel>
-                  <!-- Wallet Icon -->
-                  <Image Opacity="0.7" Width="28" Height="28" VerticalAlignment="Center" HorizontalAlignment="Center"
-                         Source="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
+                           TextTrimming="CharacterEllipsis" Classes="h9" TextAlignment="Center" Margin="3, 0"  />
+                <Panel Width="28" Height="28" VerticalAlignment="Center" HorizontalAlignment="Center">
+                  <Image Source="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
                 </Panel>
               </DockPanel>
             </Panel>

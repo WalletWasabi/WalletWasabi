@@ -7,6 +7,7 @@
              xmlns:statusBar="clr-namespace:WalletWasabi.Fluent.ViewModels.StatusBar"
              xmlns:converters="using:WalletWasabi.Fluent.Converters"
              xmlns:models="clr-namespace:WalletWasabi.Fluent.Models"
+             xmlns:sb="clr-namespace:WalletWasabi.Fluent.Views.StatusBar"
              mc:Ignorable="d" d:DesignWidth="671" d:DesignHeight="32"
              x:DataType="statusBar:StatusBarViewModel"
              x:CompileBindings="True"
@@ -118,13 +119,13 @@
                 IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.CriticalUpdateAvailable}}">
       <TextBlock Text="Critical update available" VerticalAlignment="Center" FontSize="14" Foreground="IndianRed" />
       <PathIcon Data="{StaticResource critical_update}"
-                Foreground="IndianRed"
+                Foreground="{DynamicResource SystemErrorTextColor}"
                 Height="30" />
     </StackPanel>
 
     <!-- Ready -->
     <PathIcon Data="{StaticResource checkmark_circle_filled}"
-              Foreground="{StaticResource StatusForegroundColor}"
+              Foreground="{Binding $parent[sb:StatusBar].Foreground}"
               VerticalAlignment="Center" HorizontalAlignment="Right"
               Height="40"
               Margin="10 0"
@@ -140,7 +141,7 @@
 
     <!-- Loading -->
     <PathIcon Data="{StaticResource arrow_sync_regular}"
-              Foreground="{StaticResource StatusForegroundColor}"
+              Foreground="{Binding $parent[sb:StatusBar].Foreground}"
               VerticalAlignment="Center" HorizontalAlignment="Right"
               Height="40"
               Margin="10 0"

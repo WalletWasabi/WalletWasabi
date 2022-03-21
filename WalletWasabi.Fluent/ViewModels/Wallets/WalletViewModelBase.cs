@@ -2,6 +2,7 @@ using ReactiveUI;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using Avalonia;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
@@ -77,7 +78,7 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 
 	private void SetIcon()
 	{
-		if (Wallet.KeyManager.Icon is { } iconString)
+		if (Wallet.KeyManager.Icon is { } iconString && Application.Current?.Styles is { } styles && styles.TryGetResource(iconString, out _))
 		{
 			IconName = iconString;
 		}
@@ -87,7 +88,7 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 		}
 		else
 		{
-			IconName = "default_wallet_icon";
+			IconName = "nav_wallet_regular";
 		}
 	}
 
