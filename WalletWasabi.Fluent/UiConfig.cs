@@ -14,7 +14,7 @@ public class UiConfig : ConfigBase
 	private bool _privacyMode;
 	private bool _isCustomChangeAddress;
 	private bool _autocopy;
-	private int _feeDisplayFormat;
+	private int _feeDisplayUnit;
 	private bool _darkModeEnabled;
 	private string? _lastSelectedWallet;
 	private string _windowState = "Normal";
@@ -35,7 +35,7 @@ public class UiConfig : ConfigBase
 				x => x.AutoPaste,
 				x => x.IsCustomChangeAddress,
 				x => x.DarkModeEnabled,
-				x => x.FeeDisplayFormat,
+				x => x.FeeDisplayUnit,
 				x => x.LastSelectedWallet,
 				x => x.WindowState,
 				x => x.Oobe,
@@ -75,11 +75,11 @@ public class UiConfig : ConfigBase
 	}
 
 	[DefaultValue(0)]
-	[JsonProperty(PropertyName = "FeeDisplayFormat", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public int FeeDisplayFormat
+	[JsonProperty(PropertyName = "FeeDisplayUnit", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public int FeeDisplayUnit
 	{
-		get => _feeDisplayFormat;
-		set => RaiseAndSetIfChanged(ref _feeDisplayFormat, value);
+		get => _feeDisplayUnit;
+		set => RaiseAndSetIfChanged(ref _feeDisplayUnit, value);
 	}
 
 	[DefaultValue(true)]
