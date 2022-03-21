@@ -3,3 +3,6 @@
 
 # Workaround to suppress all warnings in the Nito folder
 generated_code = true
+
+# Suppress remaining nullable warnings
+dotnet_diagnostic.cs8669.severity = none
