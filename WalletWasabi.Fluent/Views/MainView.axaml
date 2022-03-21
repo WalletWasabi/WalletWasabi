@@ -29,7 +29,7 @@
           </ExperimentalAcrylicBorder.Material>
         </ExperimentalAcrylicBorder>
 
-        <Grid ColumnDefinitions="75, *" RowDefinitions="50, *">
+        <Grid ColumnDefinitions="75, *, 150" RowDefinitions="50, *">
 
           <Panel Grid.Row="0" Grid.Column="{ext:Platform 0, Osx=1}" Grid.ColumnSpan="{ext:Platform 2, Osx=1}" TextBlock.Foreground="{DynamicResource NavBarItemForegroundBrush}">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="20 0 0 0">
@@ -39,13 +39,13 @@
               <TextBlock Classes="h8" VerticalAlignment="Center" Text="Wasabi Wallet" Margin="20 0 0 0" IsHitTestVisible="False" />
               <TextBlock Classes="h8" VerticalAlignment="Center" Opacity="0.6" Text="TESTNET PREVIEW" IsHitTestVisible="False" Margin="5 0 0 0" />
             </StackPanel>
-
-            <statusBar:StatusBar DataContext="{Binding StatusBar}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0 0 150 0" />
           </Panel>
+
+          <statusBar:StatusBar Grid.Column="{ext:Platform 1, Osx=2}" DataContext="{Binding StatusBar}" HorizontalAlignment="Right" VerticalAlignment="Center" />
 
           <navbar:NavBar Grid.Row="1" Grid.Column="0" DataContext="{Binding NavBar}" />
 
-          <Border Grid.Row="1" Grid.Column="1" CornerRadius="10 0 0 0" ClipToBounds="True">
+          <Border Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" CornerRadius="10 0 0 0" ClipToBounds="True">
             <Panel>
               <Border CornerRadius="10 0 0 0" Background="{DynamicResource RegionColor}" ClipToBounds="True" IsHitTestVisible="False" />
               <Panel VerticalAlignment="Bottom"
