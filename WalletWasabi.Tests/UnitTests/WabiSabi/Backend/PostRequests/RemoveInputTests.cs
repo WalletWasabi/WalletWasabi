@@ -66,7 +66,7 @@ public class RemoveInputTests
 			if (phase != Phase.InputRegistration)
 			{
 				round.SetPhase(phase);
-				var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.RemoveInputAsync(req, CancellationToken.None));
+				var ex = await Assert.ThrowsAsync<WrongPhaseException>(async () => await arena.RemoveInputAsync(req, CancellationToken.None));
 				Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 			}
 		}

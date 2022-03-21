@@ -48,7 +48,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
 			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
+				throw new WrongPhaseException(round, Phase.InputRegistration);
 			}
 
 			if (round is BlameRound blameRound && !blameRound.BlameWhitelist.Contains(coin.Outpoint))
@@ -132,7 +132,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	{
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			var round = GetRound(request.RoundId);
+			var round = GetRound(request.RoundId, Phase.OutputRegistration);
 			var alice = GetAlice(request.AliceId, round);
 			alice.ReadyToSign = true;
 		}
@@ -241,7 +241,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 					}
 
 				default:
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({request.RoundId}): Wrong phase ({round.Phase}).");
+					throw new WrongPhaseException(round, Phase.InputRegistration, Phase.ConnectionConfirmation);
 			}
 		}
 	}
@@ -392,7 +392,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	private Round InPhase(Round round, Phase[] phases) =>
 		phases.Contains(round.Phase)
 		? round
-		: throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({round.Id}): Wrong phase ({round.Phase}).");
+		: throw new WrongPhaseException(round, phases);
 
 	private Round GetRound(uint256 roundId, params Phase[] phases) =>
 		InPhase(GetRound(roundId), phases);

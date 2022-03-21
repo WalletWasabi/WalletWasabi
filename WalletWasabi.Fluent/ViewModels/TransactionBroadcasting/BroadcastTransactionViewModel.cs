@@ -89,7 +89,7 @@ public partial class BroadcastTransactionViewModel : RoutableViewModel
 			? null
 			: totalInputValue - totalOutputValue;
 
-		FeeString = networkFee?.ToFeeDisplayFormatString() ?? "Unknown";
+		FeeString = networkFee?.ToFeeDisplayUnitString() ?? "Unknown";
 	}
 
 	private async Task OnNextAsync(SmartTransaction transaction)
