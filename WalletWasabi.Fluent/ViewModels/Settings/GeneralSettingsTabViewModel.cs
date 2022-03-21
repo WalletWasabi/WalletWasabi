@@ -95,7 +95,7 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 
 	public ICommand StartupCommand { get; }
 
-	public IEnumerable<FeeDisplayUnit> FeeDisplayUnit =>
+	public IEnumerable<FeeDisplayUnit> FeeDisplayUnits =>
 		Enum.GetValues(typeof(FeeDisplayUnit)).Cast<FeeDisplayUnit>();
 
 	protected override void EditConfigOnSave(Config config)
