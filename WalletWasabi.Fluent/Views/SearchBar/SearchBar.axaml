@@ -20,9 +20,9 @@
         <ia:EventTriggerBehavior EventName="GotFocus">
           <ia:ChangePropertyAction TargetObject="{Binding #Popup}" PropertyName="IsOpen" Value="True" />
         </ia:EventTriggerBehavior>
-        <ia:EventTriggerBehavior EventName="LostFocus">
+        <!--<ia:EventTriggerBehavior EventName="LostFocus">
           <ia:ChangePropertyAction TargetObject="{Binding #Popup}" PropertyName="IsOpen" Value="False" />
-        </ia:EventTriggerBehavior>
+        </ia:EventTriggerBehavior>-->
       </i:Interaction.Behaviors>
     </TextBox>
     <Popup x:Name="Popup" PlacementTarget="{Binding #Parent}">

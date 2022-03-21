@@ -6,6 +6,7 @@
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              x:Class="WalletWasabi.Fluent.Views.SearchBar.SearchBarDropdown"
              xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar"
+             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters">
 
   <Design.DataContext>
@@ -40,12 +41,12 @@
             <TextBlock FontWeight="ExtraLight" VerticalAlignment="Center" Text="{Binding Description}" />
           </DockPanel.Children>
 
-          <!--<i:Interaction.Behaviors>
+          <i:Interaction.Behaviors>
             <ia:EventTriggerBehavior EventName="PointerPressed">
               <ia:InvokeCommandAction Command="{Binding Command}" />
-              <ia:ChangePropertyAction TargetObject="{Binding #Popup}" PropertyName="IsOpen" Value="False"></ia:ChangePropertyAction>
+              <!--<ia:ChangePropertyAction TargetObject="{Binding #Popup}" PropertyName="IsOpen" Value="False"></ia:ChangePropertyAction>-->
             </ia:EventTriggerBehavior>
-          </i:Interaction.Behaviors>-->
+          </i:Interaction.Behaviors>
 
         </DockPanel>
       </DataTemplate>
