@@ -119,13 +119,6 @@ public class Startup
 
 	private async Task CleanupAsync(Global global)
 	{
-		var coordinator = global.Coordinator;
-		if (coordinator is { })
-		{
-			coordinator.Dispose();
-			Logger.LogInfo($"{nameof(coordinator)} is disposed.");
-		}
-
 		var indexBuilderService = global.IndexBuilderService;
 		if (indexBuilderService is { })
 		{

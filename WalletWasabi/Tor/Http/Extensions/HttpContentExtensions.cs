@@ -17,7 +17,6 @@ public static class HttpContentExtensions
 
 		var settings = new JsonSerializerSettings
 		{
-			Converters = new[] { new RoundStateResponseJsonConverter(WasabiClient.ApiVersion) }
 		};
 		var jsonString = await me.ReadAsStringAsync().ConfigureAwait(false);
 		return JsonConvert.DeserializeObject<T>(jsonString, settings)

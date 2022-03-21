@@ -20,10 +20,9 @@ namespace WalletWasabi.Backend.Controllers;
 [Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 public class BatchController : ControllerBase
 {
-	public BatchController(BlockchainController blockchainController, ChaumianCoinJoinController chaumianCoinJoinController, HomeController homeController, OffchainController offchainController, Global global)
+	public BatchController(BlockchainController blockchainController, HomeController homeController, OffchainController offchainController, Global global)
 	{
 		BlockchainController = blockchainController;
-		ChaumianCoinJoinController = chaumianCoinJoinController;
 		HomeController = homeController;
 		OffchainController = offchainController;
 		Global = global;
@@ -31,7 +30,6 @@ public class BatchController : ControllerBase
 
 	public Global Global { get; }
 	public BlockchainController BlockchainController { get; }
-	public ChaumianCoinJoinController ChaumianCoinJoinController { get; }
 	public HomeController HomeController { get; }
 	public OffchainController OffchainController { get; }
 
@@ -71,8 +69,6 @@ public class BatchController : ControllerBase
 			response.Filters = filters;
 		}
 
-		response.CcjRoundStates = ChaumianCoinJoinController.GetStatesCollection();
-
 		if (estimateSmartFee)
 		{
 			try
@@ -86,8 +82,6 @@ public class BatchController : ControllerBase
 		}
 
 		response.ExchangeRates = await OffchainController.GetExchangeRatesCollectionAsync();
-
-		response.UnconfirmedCoinJoins = ChaumianCoinJoinController.GetUnconfirmedCoinJoinCollection();
 
 		return Ok(response);
 	}

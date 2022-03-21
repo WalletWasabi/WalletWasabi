@@ -2,7 +2,6 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
-using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.Backend.Models.Responses;
@@ -15,8 +14,6 @@ public class SynchronizeResponse
 	public IEnumerable<FilterModel> Filters { get; set; }
 
 	public int BestHeight { get; set; }
-
-	public IEnumerable<RoundStateResponseBase> CcjRoundStates { get; set; }
 
 	public AllFeeEstimate? AllFeeEstimate { get; set; }
 

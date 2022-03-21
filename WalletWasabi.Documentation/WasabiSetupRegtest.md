@@ -78,7 +78,7 @@ Linux: "/home/{your username}/.walletwasabi/backend"
 ```
 7. Start Bitcoin Core in RegTest.
 8. Go to WalletWasabi folder
-9. Open the command line and enter. This will build all the projects under this directory. 
+9. Open the command line and enter. This will build all the projects under this directory.
 `dotnet build`
 10. Go to WalletWasabi\WalletWasabi.Backend folder.
 `dotnet run --no-build`

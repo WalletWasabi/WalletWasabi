@@ -10,7 +10,6 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -41,11 +40,6 @@ public class WalletManager
 	/// Triggered if any of the Wallets processes a transaction. The sender of the event will be the Wallet.
 	/// </summary>
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
-
-	/// <summary>
-	/// Triggered if any of the Wallets dequeues one or more coins. The sender of the event will be the Wallet.
-	/// </summary>
-	public event EventHandler<DequeueResult>? OnDequeue;
 
 	/// <summary>
 	/// Triggered if any of the Wallets changes its state. The sender of the event will be the Wallet.
@@ -245,18 +239,12 @@ public class WalletManager
 		}
 
 		wallet.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
-		wallet.OnDequeue += ChaumianClient_OnDequeue;
 		wallet.StateChanged += Wallet_StateChanged;
 
 		WalletAdded?.Invoke(this, wallet);
 	}
 
 	public bool WalletExists(HDFingerprint? fingerprint) => GetWallets().Any(x => fingerprint is { } && x.KeyManager.MasterFingerprint == fingerprint);
-
-	private void ChaumianClient_OnDequeue(object? sender, DequeueResult e)
-	{
-		OnDequeue?.Invoke(sender, e);
-	}
 
 	private void TransactionProcessor_WalletRelevantTransactionProcessed(object? sender, ProcessedResult e)
 	{
@@ -298,7 +286,6 @@ public class WalletManager
 				cancel.ThrowIfCancellationRequested();
 
 				wallet.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
-				wallet.OnDequeue -= ChaumianClient_OnDequeue;
 				wallet.StateChanged -= Wallet_StateChanged;
 
 				lock (Lock)
