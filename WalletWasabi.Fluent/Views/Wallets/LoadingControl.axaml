@@ -23,7 +23,7 @@
         TextAlignment="Center" TextWrapping="Wrap" Opacity="0.6" />
 
       <ProgressBar Value="{Binding Percent}" IsIndeterminate="{Binding !Percent}" Margin="0 20 0 0" />
-      <TextBlock Text="{Binding StatusText, StringFormat={}{0}⠀}" TextAlignment="Center" Opacity="0.6"  />
+      <TextBlock Text="{Binding StatusText, StringFormat={}{0}⠀}" TextAlignment="Center" Opacity="0.6" />
     </StackPanel>
 
     <Panel Margin="80 40">
