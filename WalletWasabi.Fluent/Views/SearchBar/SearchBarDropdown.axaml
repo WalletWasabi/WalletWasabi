@@ -1,0 +1,59 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             x:Class="WalletWasabi.Fluent.Views.SearchBar.SearchBarDropdown"
+             xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar"
+             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters">
+
+  <Design.DataContext>
+    <searchBar:SearchBarDesignViewModel />
+  </Design.DataContext>
+
+  <ListBox Items="{Binding Items}">
+
+    <ListBox.Styles>
+      <Style Selector="ListBox:empty">
+        <Setter Property="Template">
+          <Setter.Value>
+            <ControlTemplate>
+              <TextBlock>No results</TextBlock>
+            </ControlTemplate>
+          </Setter.Value>
+        </Setter>
+      </Style>
+    </ListBox.Styles>
+
+    <ListBox.ItemTemplate>
+      <DataTemplate x:DataType="searchBar:SearchItem">
+        <DockPanel Background="Transparent">
+
+          <DockPanel.Children>
+            <PathIcon DockPanel.Dock="Left" Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center">
+              <PathIcon.Data>
+                <Binding Path="Icon" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+              </PathIcon.Data>
+            </PathIcon>
+            <TextBlock Margin="10 0" VerticalAlignment="Center" DockPanel.Dock="Left" Text="{Binding Name}" />
+            <TextBlock FontWeight="ExtraLight" VerticalAlignment="Center" Text="{Binding Description}" />
+          </DockPanel.Children>
+
+          <!--<i:Interaction.Behaviors>
+            <ia:EventTriggerBehavior EventName="PointerPressed">
+              <ia:InvokeCommandAction Command="{Binding Command}" />
+              <ia:ChangePropertyAction TargetObject="{Binding #Popup}" PropertyName="IsOpen" Value="False"></ia:ChangePropertyAction>
+            </ia:EventTriggerBehavior>
+          </i:Interaction.Behaviors>-->
+
+        </DockPanel>
+      </DataTemplate>
+    </ListBox.ItemTemplate>
+
+    <i:Interaction.Behaviors>
+      <searchBar:AutoSelectFirstItemBehavior />
+    </i:Interaction.Behaviors>
+
+  </ListBox>
+</UserControl>

@@ -4,11 +4,15 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.SearchBar.SearchBar"
-             x:DataType="searchBar:SearchBarViewModel"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
              xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar"
-             x:CompileBindings="True" x:Name="UserControl">
+             xmlns:searchBar1="clr-namespace:WalletWasabi.Fluent.Views.SearchBar"
+             x:Name="UserControl">
+
+  <Design.DataContext>
+    <searchBar:SearchBarDesignViewModel />
+  </Design.DataContext>
 
   <Panel>
     <TextBox Classes="" x:Name="Parent" DockPanel.Dock="Top" Text="{Binding SearchText, Mode=TwoWay}">
@@ -22,45 +26,7 @@
       </i:Interaction.Behaviors>
     </TextBox>
     <Popup x:Name="Popup" PlacementTarget="{Binding #Parent}">
-      <ListBox Items="{Binding Items}">
-
-        <ListBox.Styles>
-          <Style Selector="ListBox:empty">
-            <Setter Property="Template">
-              <Setter.Value>
-                <ControlTemplate>
-                  <TextBlock>No results</TextBlock>
-                </ControlTemplate>
-              </Setter.Value>
-            </Setter>
-          </Style>
-        </ListBox.Styles>
-
-        <ListBox.ItemTemplate>
-          <DataTemplate x:DataType="searchBar:SearchItem">
-            <DockPanel Background="Transparent">
-
-              <DockPanel.Children>
-                <TextBlock Text="{Binding Name}" Width="100" />
-                <TextBlock Text="{Binding Description}" />
-              </DockPanel.Children>
-
-              <i:Interaction.Behaviors>
-                <ia:EventTriggerBehavior EventName="PointerPressed">
-                  <ia:InvokeCommandAction Command="{Binding Command}" />
-                  <ia:ChangePropertyAction TargetObject="{Binding #Popup}" PropertyName="IsOpen" Value="False"></ia:ChangePropertyAction>
-                </ia:EventTriggerBehavior>
-              </i:Interaction.Behaviors>
-
-            </DockPanel>
-          </DataTemplate>
-        </ListBox.ItemTemplate>
-
-        <i:Interaction.Behaviors>
-          <searchBar:AutoSelectFirstItemBehavior />
-        </i:Interaction.Behaviors>
-
-      </ListBox>
+      <searchBar1:SearchBarDropdown MaxHeight="500" />
     </Popup>
   </Panel>
 </UserControl>

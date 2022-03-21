@@ -1,4 +1,4 @@
-﻿using System.Windows.Input;
+using System.Windows.Input;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar
 {
@@ -16,5 +16,6 @@ namespace WalletWasabi.Fluent.ViewModels.SearchBar
         public string Name { get; }
         public string Description { get; }
         public ComposedKey Key => new(Name);
+        public string Icon { get; set; }
     }
 }

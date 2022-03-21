@@ -24,7 +24,7 @@ public class SearchBar : UserControl
 			{
 				var reactiveCommand = ReactiveCommand.Create(
 					() => { });
-				var searchItem = new SearchItem(m.Title, m.Caption, reactiveCommand);
+				var searchItem = new SearchItem(m.Title, m.Caption, reactiveCommand){ Icon = m.IconName };
 				return searchItem;
 			});
 
