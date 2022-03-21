@@ -89,6 +89,14 @@
         </DockPanel>
       </DockPanel>
 
+      <!-- Balance -->
+      <c:PrivacyContentControl PrivacyReplacementMode="Text" DataContext="{Binding Balance}" DockPanel.Dock="Top" HorizontalAlignment="Center" NumberOfPrivacyChars="0">
+        <StackPanel  Spacing="5" Orientation="Horizontal">
+          <TextBlock Text="{Binding BalanceBtc, StringFormat=Current Balance: {0}}" Opacity="0.6"/>
+          <TextBlock Text="{Binding BalanceFiat}" Opacity="0.6"/>
+        </StackPanel>
+      </c:PrivacyContentControl>
+
       <!-- Advanced -->
       <Button Classes="h8 plain activeHyperLink" Margin="0 10 0 0"
               Command="{Binding AdvancedOptionsCommand}"
