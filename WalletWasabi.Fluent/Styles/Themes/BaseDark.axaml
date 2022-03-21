@@ -55,7 +55,7 @@
     <Color x:Key="TileRegionColor">#FF1A283D</Color>
     <Color x:Key="TileBorderColor">#2ee6ebed</Color>
     <Color x:Key="AcrylicTrimForeground">White</Color>
-    <Color x:Key="AcrylicTrimBackground">#FF1A283D</Color>
+    <Color x:Key="AcrylicTrimBackground">#000000</Color>
 
     <Color x:Key="WelcomeScreenButtonBackground">#1D273E</Color>
     <Color x:Key="WelcomeScreenButtonBackgroundPressed">#141B2A</Color>
