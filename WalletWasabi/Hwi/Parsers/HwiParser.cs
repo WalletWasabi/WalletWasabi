@@ -53,7 +53,7 @@ public static class HwiParser
 		}
 
 		var errToken = token["error"];
-		var codeToken = token["code"];
+		JToken? codeToken = token["code"];
 		var successToken = token["success"];
 
 		string err = "";
@@ -90,7 +90,7 @@ public static class HwiParser
 		return error is not null;
 	}
 
-	public static bool TryParseErrorCode(JToken codeToken, out HwiErrorCode code)
+	public static bool TryParseErrorCode(JToken? codeToken, out HwiErrorCode code)
 	{
 		code = default;
 
@@ -161,8 +161,11 @@ public static class HwiParser
 		if (JsonHelpers.TryParseJToken(json, out JToken? token))
 		{
 			var extPubKeyString = token["xpub"]?.ToString().Trim();
-			var extPubKey = string.IsNullOrWhiteSpace(extPubKeyString) ? null : NBitcoinHelpers.BetterParseExtPubKey(extPubKeyString);
-			return extPubKey;
+			if (string.IsNullOrWhiteSpace(extPubKeyString))
+			{
+				throw new ArgumentNullException(nameof(ExtPubKey), "ExtPubKey parameter was null.");
+			}
+			return NBitcoinHelpers.BetterParseExtPubKey(extPubKeyString);
 		}
 		else
 		{
@@ -181,6 +184,10 @@ public static class HwiParser
 		if (JsonHelpers.TryParseJToken(json, out JToken? token))
 		{
 			var addressString = token["address"]?.ToString()?.Trim() ?? null;
+			if (string.IsNullOrWhiteSpace(addressString))
+			{
+				throw new ArgumentNullException(nameof(addressString), "Bitcoin address string to parse was invalid.");
+			}
 			try
 			{
 				var address = BitcoinAddress.Create(addressString, network);
@@ -209,6 +216,10 @@ public static class HwiParser
 		if (JsonHelpers.TryParseJToken(json, out JToken? token))
 		{
 			var psbtString = token["psbt"]?.ToString()?.Trim() ?? null;
+			if (string.IsNullOrWhiteSpace(psbtString))
+			{
+				throw new ArgumentNullException(nameof(psbtString), "Failed to parse PSBT, parameter was null.");
+			}
 			var psbt = PSBT.Parse(psbtString, network);
 			return psbt;
 		}
@@ -370,7 +381,7 @@ public static class HwiParser
 			{
 				argumentBuilder.Append(' ');
 			}
-			argumentBuilder.Append(command.ToString().ToLowerInvariant());
+			argumentBuilder.Append(command.ToString()?.ToLowerInvariant());
 		}
 
 		commandArguments = Guard.Correct(commandArguments);
