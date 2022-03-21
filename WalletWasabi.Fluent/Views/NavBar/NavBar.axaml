@@ -34,7 +34,7 @@
       <Setter Property="Foreground" Value="{DynamicResource NavBarItemForegroundBrush}" />
     </Style>
     <Style Selector="Separator">
-      <Setter Property="Background" Value="{DynamicResource NavBarSeparatorBrush}" />
+      <Setter Property="Background" Value="{DynamicResource AcrylicTrimForeground}" />
       <Setter Property="HorizontalAlignment" Value="Stretch" />
       <Setter Property="Margin" Value="{DynamicResource MenuFlyoutSeparatorThemePadding}" />
       <Setter Property="Height" Value="{DynamicResource MenuFlyoutSeparatorThemeHeight}" />
