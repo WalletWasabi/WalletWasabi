@@ -99,7 +99,7 @@ public class ConfirmConnectionTests
 			if (phase != Phase.InputRegistration && phase != Phase.ConnectionConfirmation)
 			{
 				round.SetPhase(phase);
-				var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
+				var ex = await Assert.ThrowsAsync<WrongPhaseException>(
 					async () => await arena.ConfirmConnectionAsync(req, CancellationToken.None));
 
 				Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
