@@ -76,7 +76,7 @@ public partial class AboutViewModel : RoutableViewModel
 				new LinkViewModel()
 				{
 					Link = BugReportLink,
-					Description = "Bug Reporting",
+					Description = "Bug Report",
 					IsClickable = true
 				},
 				new SeparatorViewModel(),
