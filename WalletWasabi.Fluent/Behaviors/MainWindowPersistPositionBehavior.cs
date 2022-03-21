@@ -31,8 +31,8 @@ public class MainWindowBindPositionBehavior : DisposingBehavior<Window>
 				  .DisposeWith(disposables);
 
 			vm.WhenAnyValue(x => x.WindowPosition)
-			  .Where(x => x is { })
-			  .Subscribe(x => AssociatedObject.Position = x.Value)
+			  .WhereNotNull()
+			  .Subscribe(x => AssociatedObject.Position = x!.Value)
 			  .DisposeWith(disposables);
 
 			SetInitialPosition(vm);
