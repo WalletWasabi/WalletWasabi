@@ -47,20 +47,20 @@ public class MainWindowBindPositionBehavior : DisposingBehavior<Window>
 		}
 
 		var centerX = (int)((AssociatedObject!.Screens.Primary.WorkingArea.Width - vm.WindowWidth) / 2);
-		var centerY = (int)((AssociatedObject!.Screens.Primary.WorkingArea.Height - vm.WindowHeight) / 2);
+		var centerY = (int)((AssociatedObject.Screens.Primary.WorkingArea.Height - vm.WindowHeight) / 2);
 
 		var position =
 			vm.WindowPosition
 			??= new PixelPoint(centerX, centerY);
 
 		var isValidLeft =
-			AssociatedObject!.Screens.All.Any(s => s.Bounds.X <= position.X);
+			AssociatedObject.Screens.All.Any(s => s.Bounds.X <= position.X);
 
 		var isValidRight =
 			AssociatedObject.Screens.All.Any(s => s.Bounds.Right >= position.X);
 
 		var isValidTop =
-			AssociatedObject!.Screens.All.Any(s => s.Bounds.TopLeft.Y <= position.Y);
+			AssociatedObject.Screens.All.Any(s => s.Bounds.TopLeft.Y <= position.Y);
 
 		var isValidBottom =
 			AssociatedObject.Screens.All.Any(s => s.Bounds.BottomRight.Y >= position.Y);
