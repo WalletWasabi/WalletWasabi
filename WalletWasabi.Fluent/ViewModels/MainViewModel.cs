@@ -97,15 +97,17 @@ public partial class MainViewModel : ViewModelBase
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(t =>
 			{
-				Services.UiConfig.WindowState = t.Item1.ToString();
-				if (t.Item2 is { })
+				var (state, position, width, height) = t;
+				
+				Services.UiConfig.WindowState = state.ToString();
+				if (position is { })
 				{
-					Services.UiConfig.WindowX = t.Item2.Value.X;
-					Services.UiConfig.WindowY = t.Item2.Value.Y;
+					Services.UiConfig.WindowX = position.Value.X;
+					Services.UiConfig.WindowY = position.Value.Y;
 				}
 				
-				Services.UiConfig.WindowWidth = t.Item3;
-				Services.UiConfig.WindowHeight = t.Item4;
+				Services.UiConfig.WindowWidth = width;
+				Services.UiConfig.WindowHeight = height;
 			});
 
 		this.WhenAnyValue(
