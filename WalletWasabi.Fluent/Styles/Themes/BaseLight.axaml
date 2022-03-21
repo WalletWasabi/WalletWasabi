@@ -49,8 +49,8 @@
 
     <Color x:Key="TileRegionColor">White</Color>
     <Color x:Key="TileBorderColor">#EDF0F3</Color>
-    <Color x:Key="AcrylicTrimForeground">#5a5c5d</Color>
-    <Color x:Key="AcrylicTrimBackground">#e6ebed</Color>
+    <Color x:Key="AcrylicTrimForeground">#FCFCFC</Color>
+    <Color x:Key="AcrylicTrimBackground">#285687</Color>
 
     <StaticResource x:Key="SystemAccentNeutralColor" ResourceKey="SystemAccentColor" />
     <StaticResource x:Key="TextControlBorderBrush" ResourceKey="SystemBaseLowColor" />
