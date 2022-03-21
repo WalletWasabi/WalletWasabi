@@ -7,6 +7,7 @@ namespace WalletWasabi.Blockchain.Blocks;
 /// <summary>
 /// High performance chain index and cache.
 /// </summary>
+/// <remarks>Class is thread-safe.</remarks>
 public class SmartHeaderChain
 {
 	public const int Unlimited = 0;
