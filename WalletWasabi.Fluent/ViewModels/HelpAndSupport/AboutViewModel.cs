@@ -83,7 +83,7 @@ public partial class AboutViewModel : RoutableViewModel
 				new LinkViewModel()
 				{
 					Link = FAQLink,
-					Description = "FAQs",
+					Description = "FAQ",
 					IsClickable = true
 				},
 			};
