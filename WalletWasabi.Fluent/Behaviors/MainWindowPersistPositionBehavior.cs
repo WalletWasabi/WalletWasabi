@@ -46,8 +46,8 @@ public class MainWindowBindPositionBehavior : DisposingBehavior<Window>
 			return;
 		}
 
-		var centerX = (int)((AssociatedObject!.Screens.Primary.Bounds.Width - vm.WindowWidth) / 2);
-		var centerY = (int)((AssociatedObject!.Screens.Primary.Bounds.Height - vm.WindowHeight) / 2);
+		var centerX = (int)((AssociatedObject!.Screens.Primary.WorkingArea.Width - vm.WindowWidth) / 2);
+		var centerY = (int)((AssociatedObject!.Screens.Primary.WorkingArea.Height - vm.WindowHeight) / 2);
 
 		var position =
 			vm.WindowPosition
