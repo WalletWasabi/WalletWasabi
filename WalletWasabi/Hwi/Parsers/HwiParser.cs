@@ -52,9 +52,9 @@ public static class HwiParser
 			return false;
 		}
 
-		var errToken = token["error"];
+		JToken? errToken = token["error"];
 		JToken? codeToken = token["code"];
-		var successToken = token["success"];
+		JToken? successToken = token["success"];
 
 		string err = "";
 		if (errToken is { })
@@ -63,9 +63,12 @@ public static class HwiParser
 		}
 
 		HwiErrorCode? code = null;
-		if (TryParseErrorCode(codeToken, out HwiErrorCode c))
+		if (codeToken is { })
 		{
-			code = c;
+			if (TryParseErrorCode(codeToken, out HwiErrorCode? c))
+			{
+				code = c;
+			}
 		}
 		// HWI bug: it does not give error code.
 		// https://github.com/bitcoin-core/HWI/issues/216
@@ -90,14 +93,9 @@ public static class HwiParser
 		return error is not null;
 	}
 
-	public static bool TryParseErrorCode(JToken? codeToken, out HwiErrorCode code)
+	public static bool TryParseErrorCode(JToken codeToken, [NotNullWhen(true)] out HwiErrorCode? code)
 	{
 		code = default;
-
-		if (codeToken is null)
-		{
-			return false;
-		}
 
 		try
 		{
@@ -186,7 +184,7 @@ public static class HwiParser
 			var addressString = token["address"]?.ToString()?.Trim() ?? null;
 			if (string.IsNullOrWhiteSpace(addressString))
 			{
-				throw new ArgumentNullException(nameof(addressString), "Bitcoin address string to parse was invalid.");
+				throw new ArgumentNullException(nameof(addressString), "Bitcoin address parameter was null.");
 			}
 			try
 			{
@@ -218,7 +216,7 @@ public static class HwiParser
 			var psbtString = token["psbt"]?.ToString()?.Trim() ?? null;
 			if (string.IsNullOrWhiteSpace(psbtString))
 			{
-				throw new ArgumentNullException(nameof(psbtString), "Failed to parse PSBT, parameter was null.");
+				throw new ArgumentNullException(nameof(psbtString), "PSBT parameter was null.");
 			}
 			var psbt = PSBT.Parse(psbtString, network);
 			return psbt;
@@ -381,7 +379,7 @@ public static class HwiParser
 			{
 				argumentBuilder.Append(' ');
 			}
-			argumentBuilder.Append(command.ToString()?.ToLowerInvariant());
+			argumentBuilder.Append(command.Value.ToString().ToLowerInvariant());
 		}
 
 		commandArguments = Guard.Correct(commandArguments);
