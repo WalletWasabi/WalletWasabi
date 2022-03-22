@@ -16,7 +16,7 @@ public static class Services
 
 	public static BitcoinStore BitcoinStore { get; private set; } = null!;
 
-	public static HttpClientFactory ExternalHttpClientFactory { get; private set; } = null!;
+	public static HttpClientFactory HttpClientFactory { get; private set; } = null!;
 
 	public static LegalChecker LegalChecker { get; private set; } = null!;
 
@@ -45,7 +45,7 @@ public static class Services
 		Guard.NotNull(nameof(global.DataDir), global.DataDir);
 		Guard.NotNull(nameof(global.TorSettings), global.TorSettings);
 		Guard.NotNull(nameof(global.BitcoinStore), global.BitcoinStore);
-		Guard.NotNull(nameof(global.ExternalHttpClientFactory), global.ExternalHttpClientFactory);
+		Guard.NotNull(nameof(global.HttpClientFactory), global.HttpClientFactory);
 		Guard.NotNull(nameof(global.LegalChecker), global.LegalChecker);
 		Guard.NotNull(nameof(global.Config), global.Config);
 		Guard.NotNull(nameof(global.WalletManager), global.WalletManager);
@@ -56,7 +56,7 @@ public static class Services
 		DataDir = global.DataDir;
 		TorSettings = global.TorSettings;
 		BitcoinStore = global.BitcoinStore;
-		ExternalHttpClientFactory = global.ExternalHttpClientFactory;
+		HttpClientFactory = global.HttpClientFactory;
 		LegalChecker = global.LegalChecker;
 		Config = global.Config;
 		Synchronizer = global.Synchronizer;

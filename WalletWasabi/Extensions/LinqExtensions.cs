@@ -215,4 +215,14 @@ public static class LinqExtensions
 
 	public static bool IsSuperSetOf<T>(this IEnumerable<T> me, IEnumerable<T> other) =>
 		other.All(x => me.Contains(x));
+
+	public static ulong Sum(this IEnumerable<ulong> me)
+	{
+		ulong inputSum = 0;
+		foreach (var item in me)
+		{
+			inputSum += item;
+		}
+		return inputSum;
+	}
 }

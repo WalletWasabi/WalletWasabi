@@ -10,13 +10,28 @@
              x:DataType="vm:SendViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendView">
-  <c:ContentArea Title="Send" Caption=""
+  <c:ContentArea 
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True"
                  NextContent="Continue"
                  EnableCancel="{Binding EnableCancel}"
                  IsBusy="{Binding IsBusy}"
                  ScrollViewer.VerticalScrollBarVisibility="Auto">
+    <c:ContentArea.Title>
+      <DockPanel>
+        <TextBlock Text="Send" />
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center">
+          <!-- Balance -->
+          <c:PrivacyContentControl PrivacyReplacementMode="Text" DataContext="{Binding Balance}" DockPanel.Dock="Top" HorizontalAlignment="Center" NumberOfPrivacyChars="0">
+            <StackPanel Spacing="5" Orientation="Horizontal" VerticalAlignment="Top">
+              <TextBlock Opacity="0.6" Classes="h8" Text="Balance: "/>
+              <TextBlock Opacity="0.6" Classes="h8" Text="{Binding BalanceBtc}"/>
+              <TextBlock Opacity="0.6" Classes="h8" Text="{Binding BalanceFiat}"/>
+            </StackPanel>
+          </c:PrivacyContentControl>
+        </StackPanel>
+      </DockPanel>
+    </c:ContentArea.Title>
     <DockPanel LastChildFill="False">
       <DockPanel.Styles>
         <Style Selector="DockPanel > Label">
@@ -41,6 +56,7 @@
           </Style.Animations>
         </Style>
       </DockPanel.Styles>
+
       <!-- To -->
       <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
         <Label DockPanel.Dock="Left" Content="_To:" Target="toTb" />

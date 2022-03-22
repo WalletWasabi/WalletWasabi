@@ -13,6 +13,7 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -72,7 +73,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			});
 
 		PrivacySuggestions.WhenAnyValue(x => x.SelectedSuggestion)
-			.Subscribe(async x =>
+			.SubscribeAsync(async x =>
 			{
 				PrivacySuggestions.IsOpen = false;
 				PrivacySuggestions.SelectedSuggestion = null;

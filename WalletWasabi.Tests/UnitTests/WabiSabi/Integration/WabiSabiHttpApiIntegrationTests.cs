@@ -5,7 +5,6 @@ using NBitcoin;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
@@ -18,9 +17,9 @@ using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
-using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 using Xunit.Abstractions;
@@ -157,14 +156,10 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		await roundStateUpdater.StartAsync(CancellationToken.None);
 
-		var coinJoinClient = new CoinJoinClient(mockHttpClientFactory.Object,
-			new KeyChain(keyManager, new Kitchen("")),
-			new InternalDestinationProvider(keyManager),
-			roundStateUpdater,
-			consolidationMode: true);
+		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(mockHttpClientFactory.Object, keyManager, roundStateUpdater);
 
 		// Run the coinjoin client task.
-		Assert.True(await coinJoinClient.StartCoinJoinAsync(coins, cts.Token));
+		Assert.True((await coinJoinClient.StartCoinJoinAsync(coins, cts.Token)).SuccessfulBroadcast);
 
 		var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
 		Assert.NotNull(broadcastedTx);
@@ -265,11 +260,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		var roundState = await roundStateUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cts.Token);
 
-		var coinJoinClient = new CoinJoinClient(mockHttpClientFactory.Object,
-			new KeyChain(keyManager1, new Kitchen("")),
-			new InternalDestinationProvider(keyManager1),
-			roundStateUpdater,
-			consolidationMode: true);
+		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(mockHttpClientFactory.Object, keyManager1, roundStateUpdater);
 
 		// Run the coinjoin client task.
 		var coinJoinTask = Task.Run(async () => await coinJoinClient.StartCoinJoinAsync(coins, cts.Token).ConfigureAwait(false), cts.Token);
@@ -297,11 +288,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			.Setup(factory => factory.NewHttpClientWithCircuitPerRequest())
 			.Returns(nonSigningHttpClient);
 
-		var badCoinJoinClient = new CoinJoinClient(mockNonSigningHttpClientFactory.Object,
-			new KeyChain(keyManager2, new Kitchen("")),
-			new InternalDestinationProvider(keyManager2),
-			roundStateUpdater,
-			consolidationMode: true);
+		var badCoinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(mockNonSigningHttpClientFactory.Object, keyManager2, roundStateUpdater);
 
 		var badCoinsTask = Task.Run(async () => await badCoinJoinClient.StartRoundAsync(badCoins, roundState, cts.Token).ConfigureAwait(false), cts.Token);
 
@@ -309,7 +296,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		await Assert.ThrowsAsync<AggregateException>(async () => await Task.WhenAll(new Task[] { badCoinsTask, coinJoinTask }));
 
 		Assert.True(badCoinsTask.IsFaulted);
-		Assert.True(coinJoinTask.Result);
+		Assert.True(coinJoinTask.Result.SuccessfulBroadcast);
 
 		var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
 		Assert.NotNull(broadcastedTx);

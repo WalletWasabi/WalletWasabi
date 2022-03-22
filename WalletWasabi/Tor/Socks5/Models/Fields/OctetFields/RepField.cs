@@ -24,7 +24,7 @@ public class RepField : OctetSerializableBase
 
 	public static readonly RepField GeneralSocksServerFailure = new((byte)ReplyType.GeneralSocksServerFailure);
 
-	public static readonly RepField CconnectionNotAllowedByRuleset = new((byte)ReplyType.ConnectionNotAllowedByRuleset);
+	public static readonly RepField ConnectionNotAllowedByRuleset = new((byte)ReplyType.ConnectionNotAllowedByRuleset);
 
 	public static readonly RepField NetworkUnreachable = new((byte)ReplyType.NetworkUnreachable);
 
