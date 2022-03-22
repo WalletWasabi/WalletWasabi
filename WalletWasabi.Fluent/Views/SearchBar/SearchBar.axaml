@@ -17,7 +17,7 @@
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate>
-            <TextBlock>No results</TextBlock>
+            <TextBlock Margin="10">No results</TextBlock>
           </ControlTemplate>
         </Setter.Value>
       </Setter>
