@@ -42,4 +42,6 @@ public class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 
 		DateString = $"{Date.ToLocalTime():MM/dd/yy HH:mm}";
 	}
+
+	public bool IsCoinJoinTransaction => true;
 }

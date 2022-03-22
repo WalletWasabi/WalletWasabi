@@ -62,7 +62,9 @@
                   <TreeDataGridCellsPresenter Name="PART_CellsPresenter"
                                               ElementFactory="{TemplateBinding ElementFactory}"
                                               Items="{TemplateBinding Columns}"
-                                              Rows="{TemplateBinding Rows}"/>
+                                              Rows="{TemplateBinding Rows}"
+                                              Classes.coinJoinTransaction="{Binding IsCoinJoinTransaction}"
+                                              x:CompileBindings="False"/>
                 </Panel>
               </DockPanel>
             </ControlTemplate>
@@ -99,6 +101,9 @@
         </Style>
         <Style Selector="TreeDataGridRow:selected /template/ TreeDataGridCellsPresenter#PART_CellsPresenter">
           <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="TreeDataGridRow /template/ TreeDataGridCellsPresenter#PART_CellsPresenter.coinJoinTransaction">
+          <Setter Property="Background" Value="{DynamicResource SystemListMediumColor}"/>
         </Style>
         <Style Selector="TextBlock.hidden">
           <Setter Property="IsVisible" Value="False" />
