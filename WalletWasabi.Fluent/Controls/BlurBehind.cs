@@ -8,6 +8,7 @@ using Avalonia.Skia.Helpers;
 using SkiaSharp;
 
 namespace WalletWasabi.Fluent.Controls;
+#pragma warning disable CS0612
 
 public class BlurBehind : Control
 {
