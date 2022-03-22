@@ -365,12 +365,11 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task<bool> NavigateConfirmLabelsDialogAsync(BuildTransactionResult transaction)
 	{
-		return (await NavigateDialogAsync(
-			new ConfirmLabelsDialogViewModel(
-				new PocketSuggestionViewModel(SmartLabel.Merge(
-					transaction.SpentCoins.Select(
-						x => x.GetLabels(_wallet.KeyManager.MinAnonScoreTarget))))),
-			NavigationTarget.CompactDialogScreen)).Result;
+		var labels = SmartLabel.Merge(transaction.SpentCoins.Select(x => x.GetLabels(_wallet.KeyManager.MinAnonScoreTarget)));
+		var suggestionViewModel = new PocketSuggestionViewModel(labels);
+		var dialog = new ConfirmLabelsDialogViewModel(suggestionViewModel);
+
+		return (await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen)).Result;
 	}
 
 	private async Task InitialiseViewModelAsync()
@@ -381,7 +380,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 			var suggestionTask = PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, initialTransaction, _isFixedAmount, _cancellationTokenSource.Token);
 
-			if (CurrentTransactionSummary.TransactionHasPockets && !await NavigateConfirmLabelsDialogAsync(initialTransaction))
+			if (CurrentTransactionSummary.TransactionHasPockets && await NavigateConfirmLabelsDialogAsync(initialTransaction))
 			{
 				await OnChangePocketsAsync();
 			}
