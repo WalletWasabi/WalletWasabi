@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -76,74 +77,83 @@ public class DigestableSafeIoManager : SafeIoManager
 			return;
 		}
 
-		IoHelpers.EnsureContainingDirectoryExists(NewFilePath);
-		if (File.Exists(NewFilePath))
+		Stopwatch stopWatchAll = Stopwatch.StartNew();
+		
+		try
 		{
-			File.Delete(NewFilePath);
-		}
-
-		var byteArrayBuilder = new ByteArrayBuilder();
-
-		var linesArray = lines.ToArray();
-		var linesIndex = 0;
-
-		using (var sr = OpenText())
-		using (var fs = File.OpenWrite(NewFilePath))
-		using (var sw = new StreamWriter(fs, Encoding.ASCII, Constants.BigFileReadWriteBufferSize))
-		{
-			// 1. First copy.
-			if (!sr.EndOfStream)
+			IoHelpers.EnsureContainingDirectoryExists(NewFilePath);
+			if (File.Exists(NewFilePath))
 			{
-				var lineTask = sr.ReadLineAsync();
-				Task wTask = Task.CompletedTask;
-				string? line = null;
-				while (lineTask is { })
+				File.Delete(NewFilePath);
+			}
+
+			var byteArrayBuilder = new ByteArrayBuilder();
+
+			var linesArray = lines.ToArray();
+			var linesIndex = 0;
+
+			using (var sr = OpenText())
+			using (var fs = File.OpenWrite(NewFilePath))
+			using (var sw = new StreamWriter(fs, Encoding.ASCII, Constants.BigFileReadWriteBufferSize))
+			{
+				// 1. First copy.
+				if (!sr.EndOfStream)
 				{
-					line ??= await lineTask.ConfigureAwait(false);
-
-					lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
-
-					// If the line is a line we want to write, then we know that someone else have worked into the file.
-					if (linesArray[linesIndex] == line)
+					var lineTask = sr.ReadLineAsync();
+					Task wTask = Task.CompletedTask;
+					string? line = null;
+					while (lineTask is { })
 					{
-						linesIndex++;
-						continue;
-					}
+						line ??= await lineTask.ConfigureAwait(false);
 
+						lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
+
+						// If the line is a line we want to write, then we know that someone else have worked into the file.
+						if (linesArray[linesIndex] == line)
+						{
+							linesIndex++;
+							continue;
+						}
+
+						await wTask.ConfigureAwait(false);
+						wTask = sw.WriteLineAsync(line);
+
+						ContinueBuildHash(byteArrayBuilder, line);
+
+						cancellationToken.ThrowIfCancellationRequested();
+
+						line = null;
+					}
 					await wTask.ConfigureAwait(false);
-					wTask = sw.WriteLineAsync(line);
+				}
+				await sw.FlushAsync().ConfigureAwait(false);
+
+				// 2. Then append.
+				foreach (var line in linesArray)
+				{
+					await sw.WriteLineAsync(line).ConfigureAwait(false);
 
 					ContinueBuildHash(byteArrayBuilder, line);
 
 					cancellationToken.ThrowIfCancellationRequested();
-
-					line = null;
 				}
-				await wTask.ConfigureAwait(false);
-			}
-			await sw.FlushAsync().ConfigureAwait(false);
 
-			// 2. Then append.
-			foreach (var line in linesArray)
+				await sw.FlushAsync().ConfigureAwait(false);
+			}
+
+			var (same, hash) = await WorkWithHashAsync(byteArrayBuilder, cancellationToken).ConfigureAwait(false);
+			if (same)
 			{
-				await sw.WriteLineAsync(line).ConfigureAwait(false);
-
-				ContinueBuildHash(byteArrayBuilder, line);
-
-				cancellationToken.ThrowIfCancellationRequested();
+				return;
 			}
 
-			await sw.FlushAsync().ConfigureAwait(false);
+			SafeMoveNewToOriginal();
+			await WriteOutHashAsync(hash).ConfigureAwait(false);
 		}
-
-		var (same, hash) = await WorkWithHashAsync(byteArrayBuilder, cancellationToken).ConfigureAwait(false);
-		if (same)
+		finally
 		{
-			return;
-		}
-
-		SafeMoveNewToOriginal();
-		await WriteOutHashAsync(hash).ConfigureAwait(false);
+			Logger.LogDebug($"TODO-DELETE-ME: Total time: {stopWatchAll.Elapsed}");
+		}		
 	}
 
 	#endregion IoOperations
