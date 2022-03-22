@@ -1,5 +1,6 @@
 namespace WalletWasabi.Tor.Control.Messages.CircuitStatus;
 
+/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">4.1.1. Circuit status changed</seealso>
 public enum CircStatus
 {
 	/// <summary>Circuit ID assigned to new circuit</summary>

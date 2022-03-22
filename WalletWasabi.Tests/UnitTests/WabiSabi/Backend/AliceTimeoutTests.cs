@@ -55,6 +55,7 @@ public class AliceTimeoutTests
 		try
 		{
 			await task;
+			throw new InvalidOperationException("The operation should throw!");
 		}
 		catch (Exception exc)
 		{
