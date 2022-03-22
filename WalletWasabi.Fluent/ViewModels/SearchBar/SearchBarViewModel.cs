@@ -40,5 +40,5 @@ public class SearchBarViewModel : ReactiveObject
 		set => this.RaiseAndSetIfChanged(ref _searchText, value);
 	}
 
-	Func<SearchItem, bool> SearchItemFilterFunc(string text) => searchItem => string.IsNullOrEmpty(text) || searchItem.Name.ToLower().Contains(text.ToLower());
+	private static Func<SearchItem, bool> SearchItemFilterFunc(string text) => searchItem => string.IsNullOrEmpty(text) || searchItem.Name.ToLower().Contains(text.ToLower());
 }

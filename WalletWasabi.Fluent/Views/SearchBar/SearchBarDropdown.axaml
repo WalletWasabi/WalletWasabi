@@ -25,19 +25,20 @@
 
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="searchBar:SearchItem">
-                  <DockPanel Background="Transparent">
+                  <Button Background="Transparent" Command="{Binding Command}">
+                    <DockPanel Background="Transparent">
 
-                    <DockPanel.Children>
-                      <PathIcon DockPanel.Dock="Left" Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center">
-                        <PathIcon.Data>
-                          <Binding Path="Icon" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
-                        </PathIcon.Data>
-                      </PathIcon>
-                      <TextBlock Margin="10 0" VerticalAlignment="Center" DockPanel.Dock="Left" Text="{Binding Name}" />
-                      <TextBlock FontWeight="ExtraLight" VerticalAlignment="Center" Text="{Binding Description}" />
-                    </DockPanel.Children>
-
-                  </DockPanel>
+                      <DockPanel.Children>
+                        <PathIcon DockPanel.Dock="Left" Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center">
+                          <PathIcon.Data>
+                            <Binding Path="Icon" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                          </PathIcon.Data>
+                        </PathIcon>
+                        <TextBlock Margin="10 0" VerticalAlignment="Center" DockPanel.Dock="Left" Text="{Binding Name}" />
+                        <TextBlock FontWeight="ExtraLight" VerticalAlignment="Center" Text="{Binding Description}" />
+                      </DockPanel.Children>
+                    </DockPanel>
+                  </Button>
                 </DataTemplate>
               </ListBox.ItemTemplate>
 
