@@ -8,6 +8,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
 using WalletWasabi.Fluent.Controls;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.Behaviors;
@@ -47,13 +48,13 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 				.Merge(this.WhenAnyValue(x => x.CurrentAddress).Select(_ => Unit.Default))
 				.Throttle(TimeSpan.FromMilliseconds(100))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(async _ => await CheckClipboardForValidAddressAsync(forceCheck: true))
+				.SubscribeAsync(async _ => await CheckClipboardForValidAddressAsync(forceCheck: true))
 				.DisposeWith(disposables);
 
 			Observable
 				.Interval(TimeSpan.FromMilliseconds(500))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(async _ =>
+				.SubscribeAsync(async _ =>
 				{
 					if (!mainWindow.IsActive)
 					{

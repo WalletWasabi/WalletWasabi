@@ -6,6 +6,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
@@ -31,7 +32,7 @@ public class NumberBoxBehavior : DisposingBehavior<TextBox>
 		Observable
 			.FromEventPattern<RoutedEventArgs>(AssociatedObject, nameof(AssociatedObject.PastingFromClipboard))
 			.Select(x => x.EventArgs)
-			.Subscribe(async e =>
+			.SubscribeAsync(async e =>
 			{
 				e.Handled = true;
 

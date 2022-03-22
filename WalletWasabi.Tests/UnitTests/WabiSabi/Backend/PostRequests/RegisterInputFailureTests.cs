@@ -18,7 +18,7 @@ public class RegisterInputFailureTests
 {
 	private static async Task RegisterAndAssertWrongPhaseAsync(InputRegistrationRequest req, Arena handler)
 	{
-		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req, CancellationToken.None));
+		var ex = await Assert.ThrowsAsync<WrongPhaseException>(async () => await handler.RegisterInputAsync(req, CancellationToken.None));
 		Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 	}
 
@@ -75,7 +75,7 @@ public class RegisterInputFailureTests
 		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
 
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
-		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
+		var ex = await Assert.ThrowsAsync<WrongPhaseException>(
 			async () => await arenaClient.RegisterInputAsync(round.Id, BitcoinFactory.CreateOutPoint(), ownershipProof, CancellationToken.None));
 		Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 		Assert.Equal(Phase.InputRegistration, round.Phase);
@@ -100,7 +100,7 @@ public class RegisterInputFailureTests
 		arena.Rounds.Add(round);
 
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
-		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
+		var ex = await Assert.ThrowsAsync<WrongPhaseException>(
 			async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None));
 		Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 		Assert.Equal(Phase.InputRegistration, round.Phase);
@@ -125,7 +125,7 @@ public class RegisterInputFailureTests
 		round.InputRegistrationTimeFrame = round.InputRegistrationTimeFrame with { Duration = TimeSpan.Zero };
 
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
-		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
+		var ex = await Assert.ThrowsAsync<WrongPhaseException>(
 			async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None));
 		Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 		Assert.Equal(Phase.InputRegistration, round.Phase);

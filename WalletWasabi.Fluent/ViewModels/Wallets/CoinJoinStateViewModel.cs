@@ -62,6 +62,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	[AutoNotify] private double _progressValue;
 	[AutoNotify] private string _elapsedTime;
 	[AutoNotify] private string _remainingTime;
+	[AutoNotify] private bool _isBalanceDisplayed;
 
 	private readonly MusicStatusMessageViewModel _countDownMessage = new()
 	{ Message = "Waiting to auto-start coinjoin" };
@@ -102,6 +103,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Select(x => x.EventArgs)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(StatusChanged);
+
+		this.WhenAnyValue(x => x.RemainingTime)
+			.Subscribe(text => IsBalanceDisplayed = text.Contains("BTC"));
 
 		var initialState = walletVm.Settings.AutoCoinJoin
 			? State.AutoCoinJoin
@@ -336,7 +340,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		var total = _wallet.Coins.TotalAmount();
 
 		ElapsedTime = "Balance to coinjoin:";
-		RemainingTime = Services.UiConfig.PrivacyMode ? TextHelpers.GetPrivacyMask(4) : normalAmount.ToFormattedString() + " BTC";
+		RemainingTime = normalAmount.ToFormattedString() + " BTC";
 
 		var percentage = privateAmount.ToDecimal(MoneyUnit.BTC) / total.ToDecimal(MoneyUnit.BTC) * 100;
 
