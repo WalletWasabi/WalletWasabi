@@ -12,6 +12,7 @@ namespace WalletWasabi.Backend.Controllers;
 
 [ApiController]
 [ExceptionTranslate]
+[LateResponseLoggerFilter]
 [Route("[controller]")]
 [Produces("application/json")]
 public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler

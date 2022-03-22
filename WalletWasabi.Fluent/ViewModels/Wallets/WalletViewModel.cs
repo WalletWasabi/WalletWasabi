@@ -116,7 +116,7 @@ public partial class WalletViewModel : WalletViewModelBase
 		this.WhenAnyValue(x => x.IsWalletBalanceZero)
 			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!wallet.KeyManager.IsWatchOnly || wallet.KeyManager.IsHardwareWallet));
 
-		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(wallet)));
+		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(wallet, balanceChanged, History.UnfilteredTransactions)));
 
 		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new ReceiveViewModel(wallet)));
 
