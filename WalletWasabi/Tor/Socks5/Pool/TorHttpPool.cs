@@ -106,14 +106,24 @@ public class TorHttpPool : IDisposable
 		int i = 0;
 		int attemptsNo = 3;
 		TorTcpConnection? connection = null;
-
+		TorTcpConnection? connectionToDispose = null;
+		ICircuit currentCircuit = circuit;
 		try
 		{
 			do
 			{
-				i++;
-				connection = await ObtainFreeConnectionAsync(request, circuit, cancellationToken).ConfigureAwait(false);
-				TorTcpConnection? connectionToDispose = connection;
+				try
+				{
+					i++;
+					connection = await ObtainFreeConnectionAsync(request, currentCircuit, cancellationToken).ConfigureAwait(false);
+					connectionToDispose = connection;
+				}
+				catch (Exception e)
+				{
+					Logger.LogWarning("Tor circuit was not valid anymore, creating new one...");
+					currentCircuit = new PersonCircuit();
+					continue;
+				}
 
 				try
 				{
