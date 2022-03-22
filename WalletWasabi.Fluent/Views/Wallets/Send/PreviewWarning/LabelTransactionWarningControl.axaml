@@ -12,7 +12,6 @@
   <DockPanel>
     <TextBlock Text="{Binding Title}" DockPanel.Dock="Top"/>
     <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" Spacing="5">
-      <TextBlock Text="Some people or companies could know about this, do coinjoin to avoid them:" VerticalAlignment="Center" Opacity="0.6" />
       <DockPanel LastChildFill="False" HorizontalAlignment="Center" VerticalAlignment="Center">
         <c:TagsBox Padding="0"
                    Margin="0"
@@ -43,6 +42,7 @@
           </ToolTip.Tip>
         </Button>
       </DockPanel>
+      <TextBlock Text="{Binding Message}" VerticalAlignment="Center" Opacity="0.6" />
     </StackPanel>
   </DockPanel>
 </UserControl>

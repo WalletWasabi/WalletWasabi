@@ -18,5 +18,5 @@ public class LabelTransactionWarningViewModel : TransactionWarningViewModelBase
 
 	public override string Title => "Transaction is not protected!";
 
-	public override string Message => "could know about it. Do coinjoin to avoid them!";
+	public override string Message => "Could know about the transaction, do coinjoin to avoid them!";
 }
