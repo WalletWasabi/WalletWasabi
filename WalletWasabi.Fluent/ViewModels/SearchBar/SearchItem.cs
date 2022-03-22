@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Input;
 
-namespace WalletWasabi.Fluent.ViewModels.SearchBar;
+namespace WalletWasabi.Fluent.ViewModels.SearchBarTextPart;
 
 public class SearchItem
 {

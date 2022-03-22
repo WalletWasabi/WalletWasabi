@@ -14,6 +14,7 @@ using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.OpenDirectory;
+using WalletWasabi.Fluent.ViewModels.SearchBarTextPart;
 using WalletWasabi.Logging;
 using WalletWasabi.Fluent.ViewModels.StatusBar;
 using WalletWasabi.Fluent.ViewModels.Wallets;
@@ -79,7 +80,7 @@ public partial class MainViewModel : ViewModelBase
 		_privacyMode = new PrivacyModeViewModel();
 		_searchPage = new SearchPageViewModel();
 		_navBar = new NavBarViewModel(MainScreen);
-
+		
 		MusicControls = new MusicControlsViewModel();
 
 		NavigationManager.RegisterType(_navBar);
@@ -179,11 +180,15 @@ public partial class MainViewModel : ViewModelBase
 				}
 			}
 		});
+
+		SearchBar = new SearchBarViewModel(SearchItemProvider.GetSearchItems());
 	}
 
 	public TargettedNavigationStack MainScreen { get; }
 
 	public MusicControlsViewModel MusicControls { get; }
+
+	public SearchBarViewModel SearchBar { get; }
 
 	public static MainViewModel Instance { get; } = new();
 

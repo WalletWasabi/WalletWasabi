@@ -8,7 +8,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Xaml.Interactivity;
 using ReactiveUI;
 
-namespace WalletWasabi.Fluent.ViewModels.SearchBar;
+namespace WalletWasabi.Fluent.ViewModels.SearchBarTextPart;
 
 public class AutoSelectFirstItemBehavior : Behavior<SelectingItemsControl>
 {

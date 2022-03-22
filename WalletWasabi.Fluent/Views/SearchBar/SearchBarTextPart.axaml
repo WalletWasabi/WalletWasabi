@@ -2,10 +2,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" 
              x:Class="WalletWasabi.Fluent.Views.SearchBar.SearchBar"
-             xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar"
-             xmlns:s="clr-namespace:WalletWasabi.Fluent.Views.SearchBar"
+             xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBarTextPart"
              x:Name="UserControl">
 
   <Design.DataContext>
@@ -34,10 +33,19 @@
       <Setter Property="BorderBrush" Value="White" />
       <Setter Property="BorderThickness" Value="1 1 1 1" />
       <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Margin" Value="0" />
+      <Setter Property="FontSize" Value="12"></Setter>
+      <Setter Property="Padding" Value="6 3"></Setter>
+      <Setter Property="VerticalContentAlignment" Value="Center"></Setter>
+      <Setter Property="MinHeight" Value="8"></Setter>
     </Style>
 
     <Style Selector="TextBox#SearchBox /template/ Border#PART_BorderElement">
       <Setter Property="CornerRadius" Value="5" />
+    </Style>
+
+    <Style Selector="TextBox#SearchBox /template/ DataValidationErrors">
+      <Setter Property="IsVisible" Value="False"></Setter>
     </Style>
 
     <Style Selector="TextBox:pointerover">
@@ -71,8 +79,6 @@
     </Style>
   </UserControl.Styles>
 
-  <StackPanel>
-    <TextBox x:Name="SearchBox" DockPanel.Dock="Top" Watermark="Search for settings and advanced features" Text="{Binding SearchText, Mode=TwoWay}" />
-    <s:SearchBarDropdown MaxHeight="500" IsVisible="{Binding #UserControl.IsKeyboardFocusWithin}" />
-  </StackPanel>
+  <TextBox x:Name="SearchBox" Watermark="Search for settings and advanced features" Text="{Binding SearchText, Mode=TwoWay}" />
+
 </UserControl>

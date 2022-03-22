@@ -3,7 +3,7 @@ using System.Reactive.Linq;
 using DynamicData;
 using ReactiveUI;
 
-namespace WalletWasabi.Fluent.ViewModels.SearchBar;
+namespace WalletWasabi.Fluent.ViewModels.SearchBarTextPart;
 
 public class SearchItemGroup
 {

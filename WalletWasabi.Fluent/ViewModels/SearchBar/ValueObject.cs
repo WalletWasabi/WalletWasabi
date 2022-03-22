@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace WalletWasabi.Fluent.ViewModels.SearchBar
+namespace WalletWasabi.Fluent.ViewModels.SearchBarTextPart
 {
     [Serializable]
     public abstract class ValueObject : IComparable, IComparable<ValueObject>

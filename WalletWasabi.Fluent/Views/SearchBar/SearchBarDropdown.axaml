@@ -5,9 +5,8 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              x:Class="WalletWasabi.Fluent.Views.SearchBar.SearchBarDropdown"
-             xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar"
-             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
-             x:CompileBindings="True"
+             xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBarTextPart"
+             x:CompileBindings="False"
              x:DataType="searchBar:SearchBarViewModel"
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters" Background="{StaticResource SystemBaseLowColor}">
 

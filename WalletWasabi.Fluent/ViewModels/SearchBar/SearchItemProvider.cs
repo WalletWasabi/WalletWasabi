@@ -4,7 +4,7 @@ using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
-namespace WalletWasabi.Fluent.ViewModels.SearchBar;
+namespace WalletWasabi.Fluent.ViewModels.SearchBarTextPart;
 
 public static class SearchItemProvider
 {

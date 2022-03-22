@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace WalletWasabi.Fluent.ViewModels.SearchBar
+namespace WalletWasabi.Fluent.ViewModels.SearchBarTextPart
 {
     public class ComposedKey : ValueObject
     {

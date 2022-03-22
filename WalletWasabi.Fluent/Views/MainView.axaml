@@ -13,7 +13,7 @@
              xmlns:spectrum="clr-namespace:WalletWasabi.Fluent.Controls.Spectrum"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.Views.SearchBar"
-             mc:Ignorable="d" d:DesignWidth="536" d:DesignHeight="459"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="459"
              x:DataType="vm:MainViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.MainView">
@@ -73,7 +73,10 @@
             </Panel>
           </Border>
 
-          <searchBar:SearchBar Grid.RowSpan="2" Grid.Column="{ext:Platform 0, Osx=1}" Grid.ColumnSpan="2" HorizontalAlignment="Center" Width="250" />
+          <searchBar:SearchBar x:Name="SearchBar" VerticalAlignment="Center" DataContext="{Binding SearchBar}" Grid.Column="1"
+                               HorizontalAlignment="Center" Width="250" />
+          <searchBar:SearchBarDropdown Width="400" MaxHeight="500" VerticalAlignment="Top" IsVisible="{Binding #SearchBar.IsKeyboardFocusWithin}" Grid.Row="1"
+                                       Grid.Column="1" DataContext="{Binding SearchBar}" />
         </Grid>
       </Panel>
       <ExperimentalAcrylicBorder DockPanel.Dock="Left" IsHitTestVisible="False"
