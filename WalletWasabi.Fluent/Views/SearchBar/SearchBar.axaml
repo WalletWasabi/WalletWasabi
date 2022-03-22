@@ -12,6 +12,12 @@
     <searchBar:SearchBarDesignViewModel />
   </Design.DataContext>
 
+  <UserControl.Resources>
+    <Thickness x:Key="TextControlBorderThemeThickness">1</Thickness>
+    <Thickness x:Key="TextControlBorderThemeThicknessFocused">1</Thickness>
+    <Thickness x:Key="TextControlThemePadding">15,10,15,8</Thickness>
+  </UserControl.Resources>
+
   <UserControl.Styles>
     <Style Selector="ItemsControl:empty">
       <Setter Property="Template">
@@ -22,10 +28,51 @@
         </Setter.Value>
       </Setter>
     </Style>
+
+    <Style Selector="TextBox#SearchBox">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="White" />
+      <Setter Property="BorderThickness" Value="1 1 1 1" />
+      <Setter Property="CornerRadius" Value="4" />
+    </Style>
+
+    <Style Selector="TextBox#SearchBox /template/ Border#PART_BorderElement">
+      <Setter Property="CornerRadius" Value="5" />
+    </Style>
+
+    <Style Selector="TextBox:pointerover">
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+      <Setter Property="BorderBrush" Value="White"/>
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="TextBox:pointerover /template/ TextBlock#PART_Watermark, TextBox:pointerover /template/ TextBlock#PART_FloatingWatermark">
+      <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundPointerOver}" />
+    </Style>
+
+    <!-- Focused State -->
+    <Style Selector="TextBox:focus">
+      <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundFocused}" />
+      <Setter Property="Cursor" Value="Arrow" />
+    </Style>
+
+    <Style Selector="TextBox:focus /template/ TextBlock#PART_Watermark, TextBox:focus /template/ TextBlock#PART_FloatingWatermark">
+      <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundFocused}" />
+    </Style>
+
+    <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderBrush" Value="White"/>
+      <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThicknessFocused}" />
+    </Style>
   </UserControl.Styles>
 
   <StackPanel>
-    <TextBox x:Name="SearchBox" DockPanel.Dock="Top" Text="{Binding SearchText, Mode=TwoWay}" />
+    <TextBox x:Name="SearchBox" DockPanel.Dock="Top" Watermark="Search for settings and advanced features" Text="{Binding SearchText, Mode=TwoWay}" />
     <s:SearchBarDropdown MaxHeight="500" IsVisible="{Binding #UserControl.IsKeyboardFocusWithin}" />
   </StackPanel>
 </UserControl>
