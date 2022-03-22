@@ -73,7 +73,7 @@
             <controls:PrivacyContentControl
               Content="{Binding RemainingTime}"
               DockPanel.Dock="Right"
-              ForceShow="{Binding IsAutoWaiting}" />
+              ForceShow="{Binding !IsBalanceDisplayed}" />
           </DockPanel>
         </StackPanel>
 
