@@ -35,7 +35,6 @@ public class CoinJoinManager : BackgroundService
 	public IWasabiHttpClientFactory HttpClientFactory { get; }
 	public RoundStateUpdater RoundStatusUpdater { get; }
 	public ServiceConfiguration ServiceConfiguration { get; }
-	private ImmutableDictionary<string, CoinJoinTracker> TrackedCoinJoins { get; } = ImmutableDictionary<string, CoinJoinTracker>.Empty;
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
 	public bool IsUserInSendWorkflow { get; set; }
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
@@ -62,20 +61,7 @@ public class CoinJoinManager : BackgroundService
 		await _channel.Writer.WriteAsync(new StopCoinJoinCommand(wallet), cancellationToken).ConfigureAwait(false);
 	}
 
-
-	public CoinJoinClientState GetHighestCoinJoinClientState()
-	{
-		var inProgress = TrackedCoinJoins.Values.Where(wtd => !wtd.IsCompleted).ToImmutableArray();
-
-		if (inProgress.IsEmpty)
-		{
-			return CoinJoinClientState.Idle;
-		}
-
-		return inProgress.Any(wtd => wtd.InCriticalCoinJoinState)
-			? CoinJoinClientState.InCriticalPhase
-			: CoinJoinClientState.InProgress;
-	}
+	public CoinJoinClientState HighestCoinJoinClientState { get; private set; }
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
@@ -169,6 +155,17 @@ public class CoinJoinManager : BackgroundService
 						NotifyCoinJoinCompletion(finishedCoinJoin);
 						await HandleCoinJoinFinalizationAsync(finishedCoinJoin, trackedCoinJoins, stoppingToken).ConfigureAwait(false);
 					}
+
+					// Updates the highest coinjoin client state.
+					var inProgress = trackedCoinJoins.Values.Where(wtd => !wtd.IsCompleted).ToImmutableArray();
+
+					HighestCoinJoinClientState = inProgress.IsEmpty
+						? CoinJoinClientState.Idle
+						: inProgress.Any(wtd => wtd.InCriticalCoinJoinState)
+							? CoinJoinClientState.InCriticalPhase
+							: CoinJoinClientState.InProgress;
+
+					await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
 				}
 			});
 		}, stoppingToken);

@@ -83,7 +83,7 @@ public class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 		if (cjManager is { })
 		{
-			return cjManager.GetHighestCoinJoinClientState() switch
+			return cjManager.HighestCoinJoinClientState switch
 			{
 				CoinJoinClientState.InCriticalPhase => false,
 				CoinJoinClientState.Idle or CoinJoinClientState.InProgress => true,
