@@ -14,7 +14,10 @@ public static class SearchItemProvider
 			.Select(m =>
 			{
 				var command = CreateCommand(m);
-				var searchItem = new SearchItem(m.Title, m.Caption, command, m.Category ?? "No category"){ Icon = m.IconName };
+				var searchItem = new SearchItem(m.Title, m.Caption, command, m.Category ?? "No category", m.Keywords)
+				{
+					Icon = m.IconName,
+				};
 				return searchItem;
 			});
 
@@ -28,6 +31,10 @@ public static class SearchItemProvider
 		return ReactiveCommand.CreateFromTask(async () =>
 		{
 			var vm = await NavigationManager.MaterialiseViewModelAsync(navigationMetaData);
+			if (vm is null)
+			{
+				return;
+			}
 			Navigate(vm.DefaultTarget).To(vm);
 		});
 	}

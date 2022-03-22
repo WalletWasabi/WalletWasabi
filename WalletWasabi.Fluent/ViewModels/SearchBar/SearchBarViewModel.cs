@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reactive.Linq;
 using DynamicData;
 using ReactiveUI;
@@ -40,5 +41,18 @@ public class SearchBarViewModel : ReactiveObject
 		set => this.RaiseAndSetIfChanged(ref _searchText, value);
 	}
 
-	private static Func<SearchItem, bool> SearchItemFilterFunc(string text) => searchItem => string.IsNullOrEmpty(text) || searchItem.Name.ToLower().Contains(text.ToLower());
+	private static Func<SearchItem, bool> SearchItemFilterFunc(string? text)
+	{
+		return searchItem =>
+		{
+			if (text is null)
+			{
+				return true;
+			}
+
+			var containsName = searchItem.Name.Contains(text, StringComparison.InvariantCultureIgnoreCase);
+			var containsAnyTag = searchItem.Keywords.Any(s => s.Contains(text, StringComparison.InvariantCultureIgnoreCase));
+			return containsName || containsAnyTag;
+		};
+	}
 }
