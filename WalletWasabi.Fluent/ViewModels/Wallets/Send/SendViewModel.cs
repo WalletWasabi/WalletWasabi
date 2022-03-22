@@ -22,6 +22,11 @@ using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
+using System.Reactive;
+using System.Collections.ObjectModel;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -47,7 +52,7 @@ public partial class SendViewModel : RoutableViewModel
 
 	private bool _parsingUrl;
 
-	public SendViewModel(Wallet wallet)
+	public SendViewModel(Wallet wallet, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModelBase> history)
 	{
 		_to = "";
 		_wallet = wallet;
@@ -57,6 +62,8 @@ public partial class SendViewModel : RoutableViewModel
 		IsQrButtonVisible = WebcamQrReader.IsOsPlatformSupported;
 
 		ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
+
+		Balance = new WalletBalanceTileViewModel(wallet, balanceChanged, history);
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -129,6 +136,8 @@ public partial class SendViewModel : RoutableViewModel
 	public ICommand QrCommand { get; }
 
 	public ICommand AdvancedOptionsCommand { get; }
+
+	public WalletBalanceTileViewModel Balance { get; }
 
 	private async Task OnAutoPasteAsync()
 	{
@@ -299,6 +308,8 @@ public partial class SendViewModel : RoutableViewModel
 			.DisposeWith(disposables);
 
 		RxApp.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
+
+		Balance.Activate(disposables);
 
 		base.OnNavigatedTo(inHistory, disposables);
 	}
