@@ -10,9 +10,9 @@ using Xunit;
 
 namespace WalletWasabi.Tests.IntegrationTests;
 
-public class BlockstreamInfoTests : IAsyncLifetime
+public class BlockstreamInfoClientTests : IAsyncLifetime
 {
-	public BlockstreamInfoTests()
+	public BlockstreamInfoClientTests()
 	{
 		ClearnetHttpClientFactory = new(torEndPoint: null, backendUriGetter: null);
 		TorHttpClientFactory = new(Common.TorSocks5Endpoint, backendUriGetter: null);

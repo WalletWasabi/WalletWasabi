@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
 
-namespace WalletWasabi.WabiSabi.Client;
+namespace WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 
 public record RoundStateAwaiter
 {
@@ -59,15 +58,15 @@ public record RoundStateAwaiter
 				}
 			}
 
-			if (Phase is { })
+			if (Phase is { } expectedPhase)
 			{
-				if (roundState.Phase > Phase)
+				if (roundState.Phase > expectedPhase)
 				{
-					TaskCompletionSource.TrySetException(new InvalidOperationException($"Round {RoundId} unexpected phase change. Waiting for '{Phase}' but the round is in '{roundState.Phase}'."));
+					TaskCompletionSource.TrySetException(new UnexpectedRoundPhaseException(RoundId ?? uint256.Zero, expectedPhase, roundState.Phase));
 					return true;
 				}
 
-				if (roundState.Phase != Phase)
+				if (roundState.Phase != expectedPhase)
 				{
 					continue;
 				}

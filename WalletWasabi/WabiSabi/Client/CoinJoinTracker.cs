@@ -27,7 +27,7 @@ public class CoinJoinTracker : IDisposable
 	private CancellationTokenSource CancellationTokenSource { get; }
 
 	public Wallet Wallet { get; }
-	public Task<bool> CoinJoinTask { get; }
+	public Task<CoinJoinResult> CoinJoinTask { get; }
 	public IEnumerable<SmartCoin> CoinCandidates { get; }
 	public bool IsCompleted => CoinJoinTask.IsCompleted;
 	public bool InCriticalCoinJoinState => CoinJoinClient.InCriticalCoinJoinState;

@@ -11,6 +11,7 @@ using Avalonia.Threading;
 using SkiaSharp;
 
 namespace WalletWasabi.Fluent.Controls.Spectrum;
+#pragma warning disable CS0612
 
 public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 {
@@ -33,7 +34,6 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 	public SpectrumControl()
 	{
-
 		_data = new float[NumBins];
 		_auraSpectrumDataSource = new AuraSpectrumDataSource(NumBins);
 		_splashEffectDataSource = new SplashEffectDataSource(NumBins);
@@ -41,6 +41,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		_sources = new SpectrumDataSource[] { _auraSpectrumDataSource, _splashEffectDataSource };
 
 		_lineBrush = SolidColorBrush.Parse("#97D234").ToImmutable();
+		_linePen = new(_lineBrush);
 
 		Background = new RadialGradientBrush()
 		{
@@ -130,7 +131,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			var multiplier = 1 - (dCenter / center);
 
 			context.DrawLine(_linePen, new Point(x, Bounds.Height),
-				new Point(x, Bounds.Height - multiplier * _data[i] *  (Bounds.Height * 0.8)));
+				new Point(x, Bounds.Height - multiplier * _data[i] * (Bounds.Height * 0.8)));
 
 			x += thickness;
 		}
@@ -152,17 +153,12 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			return;
 		}
 
-		using (var barsLayer =
-		       DrawingContextHelper.CreateDrawingContext(bounds.Size, new Vector(96, 96), skia.GrContext))
-		{
-			RenderBars(barsLayer);
+		using var barsLayer = DrawingContextHelper.CreateDrawingContext(bounds.Size, new Vector(96, 96), skia.GrContext);
+		RenderBars(barsLayer);
 
-			using (var filter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp))
-			using (var paint = new SKPaint { ImageFilter = filter })
-			{
-				barsLayer.DrawTo(skia, paint);
-			}
-		}
+		using var filter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp);
+		using var paint = new SKPaint { ImageFilter = filter };
+		barsLayer.DrawTo(skia, paint);
 	}
 
 	bool IEquatable<ICustomDrawOperation>.Equals(ICustomDrawOperation? other) => false;

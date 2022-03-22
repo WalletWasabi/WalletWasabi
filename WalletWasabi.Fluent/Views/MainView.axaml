@@ -10,6 +10,7 @@
              xmlns:statusBar="clr-namespace:WalletWasabi.Fluent.Views.StatusBar"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.Views.Wallets"
              xmlns:spectrum="clr-namespace:WalletWasabi.Fluent.Controls.Spectrum"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="536" d:DesignHeight="459"
              x:DataType="vm:MainViewModel"
              x:CompileBindings="True"
@@ -77,7 +78,7 @@
       </Viewbox>
 
     </ExperimentalAcrylicBorder>
-    <c:AdornerCanvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+    <c:AdornerCanvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="{Binding $parent[Window].OffScreenMargin, Converter={x:Static converters:ThicknessConverters.Negate}}" />
     <c:Dialog x:CompileBindings="False"
               DataContext="{Binding FullScreen}"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"

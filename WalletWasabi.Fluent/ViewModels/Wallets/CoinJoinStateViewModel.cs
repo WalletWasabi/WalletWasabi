@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public partial class CoinJoinStateViewModel : ViewModelBase
 {
-	enum State
+	private enum State
 	{
 		Invalid = 0,
 		Disabled,
@@ -31,9 +31,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		ManualFinished,
 	}
 
-	enum Trigger
+	private enum Trigger
 	{
 		Invalid = 0,
+		AutoStartTimeout,
 		AutoCoinJoinOn,
 		AutoCoinJoinOff,
 		AutoCoinJoinEntered,
@@ -61,6 +62,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	[AutoNotify] private double _progressValue;
 	[AutoNotify] private string _elapsedTime;
 	[AutoNotify] private string _remainingTime;
+	[AutoNotify] private bool _isBalanceDisplayed;
 
 	private readonly MusicStatusMessageViewModel _countDownMessage = new()
 	{ Message = "Waiting to auto-start coinjoin" };
@@ -76,13 +78,15 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private readonly MusicStatusMessageViewModel _finishedMessage = new() { Message = "No balance to coinjoin" };
 
-	private DateTimeOffset _autoStartTime;
+	private TimeSpan _autoStartTime;
 	private DateTimeOffset _countDownStarted;
 
 	public CoinJoinStateViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
 	{
 		_elapsedTime = "";
 		_remainingTime = "";
+		_countDownStarted = DateTimeOffset.Now;
+		_autoStartTime = TimeSpan.FromSeconds(Random.Shared.Next(5 * 60, 16 * 60));
 
 		_wallet = walletVm.Wallet;
 
@@ -97,7 +101,11 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		Observable.FromEventPattern<StatusChangedEventArgs>(coinJoinManager, nameof(coinJoinManager.StatusChanged))
 			.Where(x => x.EventArgs.Wallet == walletVm.Wallet)
 			.Select(x => x.EventArgs)
+			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(StatusChanged);
+
+		this.WhenAnyValue(x => x.RemainingTime)
+			.Subscribe(text => IsBalanceDisplayed = text.Contains("BTC"));
 
 		var initialState = walletVm.Settings.AutoCoinJoin
 			? State.AutoCoinJoin
@@ -207,7 +215,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				CurrentStatus = _initialisingMessage;
 
 				coinJoinManager.Stop(_wallet);
-				coinJoinManager.AutoStart(_wallet);
+
+				_stateMachine.Fire(Trigger.AutoCoinJoinEntered);
 			});
 
 		_stateMachine.Configure(State.AutoStarting)
@@ -215,13 +224,23 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.Pause, State.Paused)
 			.Permit(Trigger.RoundStart, State.AutoPlaying)
 			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
+			.Permit(Trigger.AutoStartTimeout, State.AutoPlaying)
 			.Permit(Trigger.Play, State.AutoPlaying)
 			.OnEntry(() =>
 			{
+				PlayVisible = true;
 				IsAutoWaiting = true;
-				CurrentStatus = _countDownMessage;
+
+				if (AutoStartTimedOut)
+				{
+					_stateMachine.Fire(Trigger.AutoStartTimeout);
+				}
+				else
+				{
+					CurrentStatus = _countDownMessage;
+					UpdateCountDown();
+				}
 			})
-			.OnEntry(UpdateCountDown)
 			.OnTrigger(Trigger.Timer, UpdateCountDown)
 			.OnExit(() =>
 			{
@@ -253,10 +272,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
 			.OnEntry(() =>
 			{
+				CurrentStatus = _coinJoiningMessage;
 				IsAutoWaiting = false;
 				PauseVisible = true;
 				PlayVisible = false;
-				CurrentStatus = _coinJoiningMessage;
+				_autoStartTime = TimeSpan.Zero;
+				_countDownStarted = DateTimeOffset.Now;
 				coinJoinManager.Start(_wallet);
 			})
 			.OnEntry(UpdateWalletMixedProgress)
@@ -277,16 +298,28 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			});
 	}
 
+	private bool AutoStartTimedOut => GetRemainingTime() <= TimeSpan.Zero;
+
 	private void UpdateCountDown()
 	{
-		ElapsedTime = $"{GetElapsedTime():g}";
-		RemainingTime = $"-{GetRemainingTime():g}";
+		var format = @"hh\:mm\:ss";
+		ElapsedTime = $"{GetElapsedTime().ToString(format)}";
+		RemainingTime = $"-{GetRemainingTime().ToString(format)}";
 		ProgressValue = GetPercentage();
+
+		if (AutoStartTimedOut)
+		{
+			_stateMachine.Fire(Trigger.AutoStartTimeout);
+		}
 	}
 
 	private TimeSpan GetElapsedTime() => DateTimeOffset.Now - _countDownStarted;
-	private TimeSpan GetRemainingTime() => _autoStartTime - DateTimeOffset.Now;
-	private double GetPercentage() => GetElapsedTime().TotalSeconds / GetRemainingTime().TotalSeconds * 100;
+
+	private TimeSpan GetRemainingTime() => (_countDownStarted + _autoStartTime) - DateTimeOffset.Now;
+
+	private TimeSpan GetTotalTime() => _autoStartTime;
+
+	private double GetPercentage() => GetElapsedTime().TotalSeconds / GetTotalTime().TotalSeconds * 100;
 
 	private void TimerOnTick()
 	{
@@ -307,7 +340,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		var total = _wallet.Coins.TotalAmount();
 
 		ElapsedTime = "Balance to coinjoin:";
-		RemainingTime = normalAmount.ToFormattedString() + "BTC";
+		RemainingTime = normalAmount.ToFormattedString() + " BTC";
 
 		var percentage = privateAmount.ToDecimal(MoneyUnit.BTC) / total.ToDecimal(MoneyUnit.BTC) * 100;
 
@@ -318,16 +351,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	{
 		switch (e)
 		{
-			case StartingEventArgs startingEventArgs:
-				if (_stateMachine.State == State.AutoCoinJoin)
-				{
-					_countDownStarted = DateTimeOffset.Now;
-					_autoStartTime = _countDownStarted + startingEventArgs.StartingIn;
-					_stateMachine.Fire(Trigger.AutoCoinJoinEntered);
-				}
-
-				break;
-
 			case StartedEventArgs:
 				_stateMachine.Fire(Trigger.RoundStart);
 				break;
