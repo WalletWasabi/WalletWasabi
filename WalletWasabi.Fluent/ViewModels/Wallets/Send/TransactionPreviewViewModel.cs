@@ -426,27 +426,12 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private async Task OnConfirmAsync()
 	{
 		_cancellationTokenSource.Cancel();
-		var labelDialog = new LabelEntryDialogViewModel(_wallet, _info);
-
-		Navigate(NavigationTarget.CompactDialogScreen).To(labelDialog);
-
-		var result = await labelDialog.GetDialogResultAsync();
-
-		if (result.Result is null)
-		{
-			Navigate(NavigationTarget.CompactDialogScreen).Back(); // manually close the LabelEntryDialog when user cancels it. TODO: refactor.
-			return;
-		}
-
-		_info.UserLabels = result.Result;
 
 		var transaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info, _destination));
 		var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
 		var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
 		if (authResult)
 		{
-			Navigate(NavigationTarget.CompactDialogScreen).Back(); // manually close the LabelEntryDialog when the authorization dialog never popped (empty password case). TODO: refactor.
-
 			IsBusy = true;
 
 			try
