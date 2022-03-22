@@ -19,7 +19,7 @@ public class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 		IObservable<Unit> updateTrigger)
 		: base(orderIndex, transactionSummary)
 	{
-		Label = "Coinjoin";
+		Label = "";
 		FilteredLabel = new List<string>();
 		IsConfirmed = transactionSummary.IsConfirmed();
 		Date = transactionSummary.DateTime.ToLocalTime();
