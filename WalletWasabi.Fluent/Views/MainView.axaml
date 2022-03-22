@@ -40,7 +40,6 @@
               </Viewbox>
               <TextBlock Foreground="{DynamicResource AcrylicTrimForeground}" Classes="h8" VerticalAlignment="Center" Text="Wasabi Wallet" Margin="20 0 0 0" IsHitTestVisible="False" />
               <TextBlock Foreground="{DynamicResource AcrylicTrimForeground}" Classes="h8" VerticalAlignment="Center" Opacity="0.6" Text="TESTNET PREVIEW" IsHitTestVisible="False" Margin="5 0 0 0" />
-              <searchBar:SearchBar Width="150" Margin="10 0" />
             </StackPanel>
           </Panel>
 
@@ -73,6 +72,8 @@
               <Border CornerRadius="10 0 0 0" BoxShadow="inset 0 0 5 0 #000000" ClipToBounds="True" IsHitTestVisible="False" Margin="0 0 -5 -5" />
             </Panel>
           </Border>
+
+          <searchBar:SearchBar Grid.RowSpan="2" Grid.Column="{ext:Platform 0, Osx=1}" Grid.ColumnSpan="2" HorizontalAlignment="Center" Width="250" />
         </Grid>
       </Panel>
       <ExperimentalAcrylicBorder DockPanel.Dock="Left" IsHitTestVisible="False"

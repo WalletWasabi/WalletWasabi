@@ -24,11 +24,8 @@
     </Style>
   </UserControl.Styles>
 
-  <Panel>
+  <StackPanel>
     <TextBox x:Name="SearchBox" DockPanel.Dock="Top" Text="{Binding SearchText, Mode=TwoWay}" />
-    <Popup x:Name="Popup" IsLightDismissEnabled="True" IsOpen="{Binding #UserControl.IsKeyboardFocusWithin}"
-           PlacementTarget="{Binding #SearchBox}">
-      <s:SearchBarDropdown MaxHeight="500" />
-    </Popup>
-  </Panel>
+    <s:SearchBarDropdown MaxHeight="500" IsVisible="{Binding #UserControl.IsKeyboardFocusWithin}" />
+  </StackPanel>
 </UserControl>
