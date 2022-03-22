@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Windows.Input;
 using Avalonia.Threading;
 using NBitcoin;
@@ -160,14 +161,14 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_stateMachine.Configure(State.Stopped)
 			.SubstateOf(State.ManualCoinJoin)
 			.Permit(Trigger.Play, State.ManualPlaying)
-			.OnEntry(() =>
+			.OnEntry(async () =>
 			{
 				ProgressValue = 0;
 				StopVisible = false;
 				PlayVisible = true;
 				_wallet.AllowManualCoinJoin = false;
 				CurrentStatus = _stoppedMessage;
-				coinJoinManager.Stop(_wallet);
+				await coinJoinManager.StopAsync(_wallet, CancellationToken.None);
 			})
 			.OnEntry(UpdateWalletMixedProgress)
 			.OnTrigger(Trigger.BalanceChanged, UpdateWalletMixedProgress);
@@ -176,12 +177,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.SubstateOf(State.ManualCoinJoin)
 			.Permit(Trigger.Stop, State.Stopped)
 			.Permit(Trigger.RoundStartFailed, State.ManualFinished)
-			.OnEntry(() =>
+			.OnEntry(async () =>
 			{
 				PlayVisible = false;
 				StopVisible = true;
 				CurrentStatus = _coinJoiningMessage;
-				coinJoinManager.Start(_wallet);
+				await coinJoinManager.StartAsync(_wallet, CancellationToken.None);
 			})
 			.OnEntry(UpdateWalletMixedProgress)
 			.OnTrigger(Trigger.BalanceChanged, UpdateWalletMixedProgress);
@@ -205,7 +206,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.AutoCoinJoinEntered, State.AutoStarting)
 			.Permit(Trigger.RoundStart, State.AutoPlaying)
 			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
-			.OnEntry(() =>
+			.OnEntry(async () =>
 			{
 				IsAuto = true;
 				StopVisible = false;
@@ -214,7 +215,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 				CurrentStatus = _initialisingMessage;
 
-				coinJoinManager.Stop(_wallet);
+				await coinJoinManager.StopAsync(_wallet, CancellationToken.None);
 
 				_stateMachine.Fire(Trigger.AutoCoinJoinEntered);
 			});
@@ -250,7 +251,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_stateMachine.Configure(State.Paused)
 			.SubstateOf(State.AutoCoinJoin)
 			.Permit(Trigger.Play, State.AutoPlaying)
-			.OnEntry(() =>
+			.OnEntry(async () =>
 			{
 				IsAutoWaiting = true;
 
@@ -260,7 +261,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PauseVisible = false;
 				PlayVisible = true;
 
-				coinJoinManager.Stop(_wallet);
+				await coinJoinManager.StopAsync(_wallet, CancellationToken.None);
 			})
 			.OnEntry(UpdateWalletMixedProgress)
 			.OnTrigger(Trigger.BalanceChanged, UpdateWalletMixedProgress);
@@ -270,7 +271,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.Pause, State.Paused)
 			.Permit(Trigger.PlebStop, State.Paused)
 			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
-			.OnEntry(() =>
+			.OnEntry(async () =>
 			{
 				CurrentStatus = _coinJoiningMessage;
 				IsAutoWaiting = false;
@@ -278,7 +279,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PlayVisible = false;
 				_autoStartTime = TimeSpan.Zero;
 				_countDownStarted = DateTimeOffset.Now;
-				coinJoinManager.Start(_wallet);
+				await coinJoinManager.StartAsync(_wallet, CancellationToken.None);
 			})
 			.OnEntry(UpdateWalletMixedProgress)
 			.OnTrigger(Trigger.BalanceChanged, UpdateWalletMixedProgress);
