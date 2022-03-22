@@ -56,6 +56,7 @@ public class CustomTreeDataGrid : Avalonia.Controls.TreeDataGrid, IStyleable
 		}
 		catch (Exception e)
 		{
+			Console.WriteLine($"[TreeDataGrid.MeasureOverride] catch(Exception)");
 			Console.WriteLine(e);
 			throw;
 		}
@@ -72,6 +73,7 @@ public class CustomTreeDataGrid : Avalonia.Controls.TreeDataGrid, IStyleable
 		}
 		catch (Exception e)
 		{
+			Console.WriteLine($"[TreeDataGrid.ArrangeOverride] catch(Exception)");
 			Console.WriteLine(e);
 			throw;
 		}
