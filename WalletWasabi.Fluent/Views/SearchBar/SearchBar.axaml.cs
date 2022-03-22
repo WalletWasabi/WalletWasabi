@@ -28,7 +28,7 @@ public class SearchBar : UserControl
 			.Select(m =>
 			{
 				var reactiveCommand = ReactiveCommand.Create(() => MainViewModel.Instance.MainScreen.To(new AboutViewModel()));
-				var searchItem = new SearchItem(m.Title, m.Caption, reactiveCommand){ Icon = m.IconName };
+				var searchItem = new SearchItem(m.Title, m.Caption, reactiveCommand, m.Category ?? "No category"){ Icon = m.IconName };
 				return searchItem;
 			});
 

@@ -4,29 +4,31 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.SearchBar.SearchBar"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
              xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar"
-             xmlns:searchBar1="clr-namespace:WalletWasabi.Fluent.Views.SearchBar"
+             xmlns:s="clr-namespace:WalletWasabi.Fluent.Views.SearchBar"
              x:Name="UserControl">
 
   <Design.DataContext>
     <searchBar:SearchBarDesignViewModel />
   </Design.DataContext>
 
+  <UserControl.Styles>
+    <Style Selector="ItemsControl:empty">
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate>
+            <TextBlock>No results</TextBlock>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+  </UserControl.Styles>
+
   <Panel>
-    <TextBox Classes="" x:Name="Parent" DockPanel.Dock="Top" Text="{Binding SearchText, Mode=TwoWay}">
-      <i:Interaction.Behaviors>
-        <ia:EventTriggerBehavior EventName="GotFocus">
-          <ia:ChangePropertyAction TargetObject="{Binding #Popup}" PropertyName="IsOpen" Value="True" />
-        </ia:EventTriggerBehavior>
-        <!--<ia:EventTriggerBehavior EventName="LostFocus">
-          <ia:ChangePropertyAction TargetObject="{Binding #Popup}" PropertyName="IsOpen" Value="False" />
-        </ia:EventTriggerBehavior>-->
-      </i:Interaction.Behaviors>
-    </TextBox>
-    <Popup x:Name="Popup" PlacementTarget="{Binding #Parent}">
-      <searchBar1:SearchBarDropdown MaxHeight="500" />
+    <TextBox x:Name="SearchBox" DockPanel.Dock="Top" Text="{Binding SearchText, Mode=TwoWay}" />
+    <Popup x:Name="Popup" IsLightDismissEnabled="True" IsOpen="{Binding #UserControl.IsKeyboardFocusWithin}"
+           PlacementTarget="{Binding #SearchBox}">
+      <s:SearchBarDropdown MaxHeight="500" />
     </Popup>
   </Panel>
 </UserControl>

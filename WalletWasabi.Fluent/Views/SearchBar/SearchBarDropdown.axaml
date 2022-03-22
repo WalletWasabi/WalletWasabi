@@ -7,54 +7,49 @@
              x:Class="WalletWasabi.Fluent.Views.SearchBar.SearchBarDropdown"
              xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar"
              xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
-             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters">
+             x:CompileBindings="True"
+             x:DataType="searchBar:SearchBarViewModel"
+             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters" Background="{StaticResource SystemBaseLowColor}">
 
   <Design.DataContext>
     <searchBar:SearchBarDesignViewModel />
   </Design.DataContext>
 
-  <ListBox Items="{Binding Items}">
+  <ScrollViewer>
+    <ItemsControl Items="{Binding Groups}">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate DataType="{x:Type searchBar:SearchItemGroup}">
+          <DockPanel>
+            <TextBlock Text="{Binding Title}" DockPanel.Dock="Top" />
+            <ListBox Items="{Binding Items}">
 
-    <ListBox.Styles>
-      <Style Selector="ListBox:empty">
-        <Setter Property="Template">
-          <Setter.Value>
-            <ControlTemplate>
-              <TextBlock>No results</TextBlock>
-            </ControlTemplate>
-          </Setter.Value>
-        </Setter>
-      </Style>
-    </ListBox.Styles>
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="searchBar:SearchItem">
+                  <DockPanel Background="Transparent">
 
-    <ListBox.ItemTemplate>
-      <DataTemplate x:DataType="searchBar:SearchItem">
-        <DockPanel Background="Transparent">
+                    <DockPanel.Children>
+                      <PathIcon DockPanel.Dock="Left" Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center">
+                        <PathIcon.Data>
+                          <Binding Path="Icon" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                        </PathIcon.Data>
+                      </PathIcon>
+                      <TextBlock Margin="10 0" VerticalAlignment="Center" DockPanel.Dock="Left" Text="{Binding Name}" />
+                      <TextBlock FontWeight="ExtraLight" VerticalAlignment="Center" Text="{Binding Description}" />
+                    </DockPanel.Children>
 
-          <DockPanel.Children>
-            <PathIcon DockPanel.Dock="Left" Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center">
-              <PathIcon.Data>
-                <Binding Path="Icon" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
-              </PathIcon.Data>
-            </PathIcon>
-            <TextBlock Margin="10 0" VerticalAlignment="Center" DockPanel.Dock="Left" Text="{Binding Name}" />
-            <TextBlock FontWeight="ExtraLight" VerticalAlignment="Center" Text="{Binding Description}" />
-          </DockPanel.Children>
+                  </DockPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
 
-          <i:Interaction.Behaviors>
-            <ia:EventTriggerBehavior EventName="PointerPressed">
-              <ia:InvokeCommandAction Command="{Binding Command}" />
-              <!--<ia:ChangePropertyAction TargetObject="{Binding #Popup}" PropertyName="IsOpen" Value="False"></ia:ChangePropertyAction>-->
-            </ia:EventTriggerBehavior>
-          </i:Interaction.Behaviors>
+              <i:Interaction.Behaviors>
+                <searchBar:AutoSelectFirstItemBehavior />
+              </i:Interaction.Behaviors>
 
-        </DockPanel>
-      </DataTemplate>
-    </ListBox.ItemTemplate>
+            </ListBox>
+          </DockPanel>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+  </ScrollViewer>
 
-    <i:Interaction.Behaviors>
-      <searchBar:AutoSelectFirstItemBehavior />
-    </i:Interaction.Behaviors>
-
-  </ListBox>
 </UserControl>
