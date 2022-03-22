@@ -18,10 +18,10 @@ public class DigestableSafeIoManager : SafeIoManager
 {
 	private const string DigestExtension = ".dig";
 
-	/// <param name="digestRandomIndex">Use the random index of the line to create digest faster. -1 is special value, it means the last character. If null then hash whole file.</param>
-	public DigestableSafeIoManager(string filePath, int? digestRandomIndex = null) : base(filePath)
+	/// <param name="useLastCharacterDigest">Use the random index of the line to create digest faster. -1 is special value, it means the last character. If null then hash whole file.</param>
+	public DigestableSafeIoManager(string filePath, bool useLastCharacterDigest = false) : base(filePath)
 	{
-		DigestRandomIndex = digestRandomIndex;
+		UseLastCharacterDigest = useLastCharacterDigest;
 
 		DigestFilePath = $"{FilePath}{DigestExtension}";
 	}
@@ -31,7 +31,7 @@ public class DigestableSafeIoManager : SafeIoManager
 	/// <summary>
 	/// Gets a random index of the line to create digest faster. -1 is special value, it means the last character. If null then hash whole file.
 	/// </summary>
-	private int? DigestRandomIndex { get; }
+	private bool UseLastCharacterDigest { get; }
 
 	#region IoOperations
 
@@ -78,7 +78,7 @@ public class DigestableSafeIoManager : SafeIoManager
 		}
 
 		Stopwatch stopWatchAll = Stopwatch.StartNew();
-		
+
 		try
 		{
 			IoHelpers.EnsureContainingDirectoryExists(NewFilePath);
@@ -87,49 +87,38 @@ public class DigestableSafeIoManager : SafeIoManager
 				File.Delete(NewFilePath);
 			}
 
-			var byteArrayBuilder = new ByteArrayBuilder();
+			Logger.LogDebug($"TODO-DELETE-ME: lines={lines.Count()}, NewFilePath='{NewFilePath}'");
 
-			var linesArray = lines.ToArray();
-			var linesIndex = 0;
+			ByteArrayBuilder byteArrayBuilder = new();
+			string[] linesArray = lines.ToArray();
 
-			using (var sr = OpenText())
-			using (var fs = File.OpenWrite(NewFilePath))
-			using (var sw = new StreamWriter(fs, Encoding.ASCII, Constants.BigFileReadWriteBufferSize))
+			// 1. First copy.
+			File.Copy(GetSafestFilePath(), NewFilePath, overwrite: true);
+
+			// 2. Compute digest.				
+			using (StreamReader sr = OpenText())
 			{
-				// 1. First copy.
-				if (!sr.EndOfStream)
+				while (true)
 				{
-					var lineTask = sr.ReadLineAsync();
-					Task wTask = Task.CompletedTask;
-					string? line = null;
-					while (lineTask is { })
+					string? line = await sr.ReadLineAsync().ConfigureAwait(false);
+
+
+					// End of stream.
+					if (line is null)
 					{
-						line ??= await lineTask.ConfigureAwait(false);
-
-						lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
-
-						// If the line is a line we want to write, then we know that someone else have worked into the file.
-						if (linesArray[linesIndex] == line)
-						{
-							linesIndex++;
-							continue;
-						}
-
-						await wTask.ConfigureAwait(false);
-						wTask = sw.WriteLineAsync(line);
-
-						ContinueBuildHash(byteArrayBuilder, line);
-
-						cancellationToken.ThrowIfCancellationRequested();
-
-						line = null;
+						break;
 					}
-					await wTask.ConfigureAwait(false);
-				}
-				await sw.FlushAsync().ConfigureAwait(false);
 
-				// 2. Then append.
-				foreach (var line in linesArray)
+					ContinueBuildHash(byteArrayBuilder, line);
+					cancellationToken.ThrowIfCancellationRequested();
+				}
+			}
+
+			// 3. Then append.
+			using (FileStream fs = File.Open(NewFilePath, FileMode.Append))
+			using (StreamWriter sw = new(fs, Encoding.ASCII, Constants.BigFileReadWriteBufferSize))
+			{
+				foreach (string line in linesArray)
 				{
 					await sw.WriteLineAsync(line).ConfigureAwait(false);
 
@@ -149,11 +138,12 @@ public class DigestableSafeIoManager : SafeIoManager
 
 			SafeMoveNewToOriginal();
 			await WriteOutHashAsync(hash).ConfigureAwait(false);
+
 		}
 		finally
 		{
 			Logger.LogDebug($"TODO-DELETE-ME: Total time: {stopWatchAll.Elapsed}");
-		}		
+		}
 	}
 
 	#endregion IoOperations
@@ -210,15 +200,10 @@ public class DigestableSafeIoManager : SafeIoManager
 		}
 		else
 		{
-			if (DigestRandomIndex.HasValue)
+			if (UseLastCharacterDigest)
 			{
-				int index = DigestRandomIndex == -1 || DigestRandomIndex >= line.Length // Last char.
-					? line.Length - 1
-					: DigestRandomIndex.Value;
-
-				var c = line[index];
-				var b = (byte)c;
-				byteArrayBuilder.Append(b);
+				char c = line[^1];
+				byteArrayBuilder.Append((byte)c);
 			}
 			else
 			{
