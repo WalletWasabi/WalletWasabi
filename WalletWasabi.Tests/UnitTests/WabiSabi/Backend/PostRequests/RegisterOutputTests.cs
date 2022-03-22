@@ -151,7 +151,7 @@ public class RegisterOutputTests
 			{
 				var req = WabiSabiFactory.CreateOutputRegistrationRequest(round);
 				round.SetPhase(phase);
-				var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.RegisterOutputAsync(req, CancellationToken.None));
+				var ex = await Assert.ThrowsAsync<WrongPhaseException>(async () => await arena.RegisterOutputAsync(req, CancellationToken.None));
 				Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 			}
 		}
