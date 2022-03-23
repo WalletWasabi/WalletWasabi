@@ -170,7 +170,10 @@ public class CoinJoinClient
 			var unsignedCoinJoin = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
 
 			var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundId && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
-			Logger.LogDebug($"Round ({roundId}): Round Ended - WasTransactionBroadcast: '{finalRoundState.WasTransactionBroadcast}'.");
+			var wasTxBroadcast = finalRoundState.WasTransactionBroadcast
+				? $"'True', Coinjoin TxId: ({unsignedCoinJoin.GetHash()})"
+				: "'False'";
+			Logger.LogDebug($"Round ({roundId}): Round Ended - WasTransactionBroadcast: {wasTxBroadcast}.");
 
 			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, unsignedCoinJoin, finalRoundState);
 
