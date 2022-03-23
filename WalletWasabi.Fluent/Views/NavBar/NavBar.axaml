@@ -98,6 +98,7 @@
       <Setter Property="Transitions">
         <Transitions>
           <TransformOperationsTransition Property="LayoutTransform" Duration="0:0:0.175" />
+          <DoubleTransition Property="Opacity" Duration="0:0:0.175" Easing="1,0,1,0"/>
         </Transitions>
       </Setter>
     </Style>
