@@ -29,7 +29,7 @@
           </ExperimentalAcrylicBorder.Material>
         </ExperimentalAcrylicBorder>
 
-        <Grid ColumnDefinitions="75, *, 150" RowDefinitions="50, *">
+        <Grid ColumnDefinitions="68, *, 150" RowDefinitions="48, *">
 
           <Panel Grid.Row="0" Grid.Column="{ext:Platform 0, Osx=1}" Grid.ColumnSpan="{ext:Platform 2, Osx=1}" TextBlock.Foreground="{DynamicResource NavBarItemForegroundBrush}">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="20 0 0 0">
