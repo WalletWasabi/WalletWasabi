@@ -17,7 +17,6 @@ public class DigestableSafeIoManager : SafeIoManager
 {
 	private const string DigestExtension = ".dig";
 
-	/// <param name="useLastCharacterDigest">Use the random index of the line to create digest faster. -1 is special value, it means the last character. If null then hash whole file.</param>
 	public DigestableSafeIoManager(string filePath, bool useLastCharacterDigest = false) : base(filePath)
 	{
 		UseLastCharacterDigest = useLastCharacterDigest;
@@ -27,9 +26,6 @@ public class DigestableSafeIoManager : SafeIoManager
 
 	public string DigestFilePath { get; }
 
-	/// <summary>
-	/// Gets a random index of the line to create digest faster. -1 is special value, it means the last character. If null then hash whole file.
-	/// </summary>
 	private bool UseLastCharacterDigest { get; }
 
 	#region IoOperations
