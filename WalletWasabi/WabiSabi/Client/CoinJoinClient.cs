@@ -530,12 +530,12 @@ public class CoinJoinClient
 
 		var outputRegistrationScheduledDates = GetScheduledDates(outputTxOuts.Count(), outputRegistrationEndTime, MaximumRequestDelay);
 		await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationScheduledDates, combinedToken).ConfigureAwait(false);
-		Logger.LogDebug($"Round ({roundState.Id}): Outputs({outputTxOuts.Count()}) successfully registered.");
+		Logger.LogDebug($"Round ({roundState.Id}): Outputs({outputTxOuts.Count()}) were registered.");
 
 		// ReadyToSign.
 		Logger.LogDebug($"Round ({roundState.Id}): ReadyToSign phase started - it will end in: {readyToSignEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.");
 		await ReadyToSignAsync(registeredAliceClients, readyToSignEndTime, combinedToken).ConfigureAwait(false);
-		Logger.LogDebug($"Round ({roundState.Id}): Alices({registeredAliceClients.Length}) successfully signalled ready to sign.");
+		Logger.LogDebug($"Round ({roundState.Id}): Alices({registeredAliceClients.Length}) are ready to sign.");
 		return outputTxOuts;
 	}
 
@@ -563,7 +563,7 @@ public class CoinJoinClient
 		// Send signature.
 		var combinedToken = combinedCts.Token;
 		await SignTransactionAsync(registeredAliceClients, unsignedCoinJoin, signingStateEndTime, combinedToken).ConfigureAwait(false);
-		Logger.LogDebug($"Round ({roundId}): Alices({registeredAliceClients.Length}) successfully signed the coinjoin tx.");
+		Logger.LogDebug($"Round ({roundId}): Alices({registeredAliceClients.Length}) have signed the coinjoin tx.");
 
 		return unsignedCoinJoin;
 	}
