@@ -16,6 +16,8 @@ using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 using WalletWasabi.Tor.Socks5.Pool;
+using WalletWasabi.Tor.Socks5.Pool.Circuits;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Tor;
 
@@ -24,11 +26,12 @@ public class TorMonitor : PeriodicRunner
 {
 	public static readonly TimeSpan CheckIfRunningAfterTorMisbehavedFor = TimeSpan.FromSeconds(7);
 
-	public TorMonitor(TimeSpan period, Uri fallbackBackendUri, TorHttpClient httpClient, TorProcessManager torProcessManager) : base(period)
+	public TorMonitor(TimeSpan period, Uri fallbackBackendUri, TorProcessManager torProcessManager, HttpClientFactory backendHttpClientFactory) : base(period)
 	{
 		FallbackBackendUri = fallbackBackendUri;
-		HttpClient = httpClient;
 		TorProcessManager = torProcessManager;
+		TorHttpPool = backendHttpClientFactory.TorHttpPool!;
+		HttpClient = backendHttpClientFactory.NewTorHttpClient(Mode.DefaultCircuit);
 	}
 
 	private CancellationTokenSource LoopCts { get; } = new();
@@ -37,6 +40,7 @@ public class TorMonitor : PeriodicRunner
 	private Uri FallbackBackendUri { get; }
 	private TorHttpClient HttpClient { get; }
 	private TorProcessManager TorProcessManager { get; }
+	private TorHttpPool TorHttpPool { get; }
 
 	private Task? BootstrapTask { get; set; }
 
@@ -94,26 +98,26 @@ public class TorMonitor : PeriodicRunner
 					}
 					else if (asyncEvent is StatusEvent statusEvent)
 					{
-						if (statusEvent.Action == StatusEvent.ActionCircuitEstablished)
+						if (!circuitEstablished && statusEvent.Action == StatusEvent.ActionCircuitEstablished)
 						{
-							if (!circuitEstablished)
-							{
-								Logger.LogInfo("Tor circuit was established.");
-								circuitEstablished = true;
-							}
+							Logger.LogInfo("Tor circuit was established.");
+							circuitEstablished = true;
 						}
 					}
 					else if (asyncEvent is CircEvent circEvent)
 					{
 						CircuitInfo info = circEvent.CircuitInfo;
 
-						if (info.CircStatus is CircStatus.BUILT or CircStatus.EXTENDED or CircStatus.GUARD_WAIT)
+						if (!circuitEstablished && info.CircStatus is CircStatus.BUILT or CircStatus.EXTENDED or CircStatus.GUARD_WAIT)
 						{
-							if (!circuitEstablished)
-							{
-								Logger.LogInfo("Tor circuit was established.");
-								circuitEstablished = true;
-							}
+							Logger.LogInfo("Tor circuit was established.");
+							circuitEstablished = true;
+						}
+
+						if (info.CircStatus == CircStatus.CLOSED && info.UserName is not null)
+						{
+							Logger.LogTrace($"Tor circuit #{info.CircuitID} ('{info.UserName}') was closed.");
+							await TorHttpPool.ReportCircuitClosedAsync(info.UserName, linkedCts.Token).ConfigureAwait(false);
 						}
 					}
 				}
