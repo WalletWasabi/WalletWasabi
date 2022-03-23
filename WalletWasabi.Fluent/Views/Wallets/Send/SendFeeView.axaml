@@ -176,8 +176,8 @@
           </Style>
         </Slider.Styles>
         <i:Interaction.Behaviors>
-          <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding MoveSliderRightCommand}" IsEnabled="{Binding #SendFeeView.DataContext.IsActive}" x:CompileBindings="False" Key="Right"/>
-          <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding MoveSliderLeftCommand}"  IsEnabled="{Binding #SendFeeView.DataContext.IsActive}" x:CompileBindings="False" Key="Left"/>
+          <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding MoveSliderRightCommand}" IsEnabled="{Binding #SendFeeView.DataContext.IsActive}" x:CompileBindings="False" Key="Right" EventRoutingStrategy="Tunnel"/>
+          <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding MoveSliderLeftCommand}"  IsEnabled="{Binding #SendFeeView.DataContext.IsActive}" x:CompileBindings="False" Key="Left" EventRoutingStrategy="Tunnel"/>
         </i:Interaction.Behaviors>
       </Slider>
       <c:LineChart Classes="cursor border xAxis yAxis xAxisLabels yAxisLabels xAxisTitle yAxisTitle area"
