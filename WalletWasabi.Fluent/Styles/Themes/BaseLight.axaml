@@ -4,45 +4,44 @@
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary>
+          <Color x:Key="SystemAccentColor">#FF78A827</Color>
+          <Color x:Key="SystemAltHighColor">#FFFFFFFF</Color>
+          <Color x:Key="SystemAltLowColor">#FFFFFFFF</Color>
+          <Color x:Key="SystemAltMediumColor">#FFFFFFFF</Color>
+          <Color x:Key="SystemAltMediumHighColor">#FFFFFFFF</Color>
+          <Color x:Key="SystemAltMediumLowColor">#FFFFFFFF</Color>
+          <Color x:Key="SystemBaseHighColor">#FF000000</Color>
+          <Color x:Key="SystemBaseLowColor">#FFE6EAED</Color>
+          <Color x:Key="SystemBaseMediumColor">#FF88A3B3</Color>
+          <Color x:Key="SystemBaseMediumHighColor">#FF4A748D</Color>
+          <Color x:Key="SystemBaseMediumLowColor">#FF698CA0</Color>
+          <Color x:Key="SystemChromeAltLowColor">#FF4A748D</Color>
+          <Color x:Key="SystemChromeBlackHighColor">#FF000000</Color>
+          <Color x:Key="SystemChromeBlackLowColor">#FFE6EAED</Color>
+          <Color x:Key="SystemChromeBlackMediumColor">#FF4A748D</Color>
+          <Color x:Key="SystemChromeBlackMediumLowColor">#FF88A3B3</Color>
+          <Color x:Key="SystemChromeDisabledHighColor">#FFE6EAED</Color>
+          <Color x:Key="SystemChromeDisabledLowColor">#FF88A3B3</Color>
+          <Color x:Key="SystemChromeGrayColor">#FF698CA0</Color>
+          <Color x:Key="SystemChromeHighColor">#FFE6EAED</Color>
+          <Color x:Key="SystemChromeLowColor">#FFEDF8FF</Color>
+          <Color x:Key="SystemChromeMediumColor">#FFECF5FB</Color>
+          <Color x:Key="SystemChromeMediumLowColor">#FFEDF8FF</Color>
+          <Color x:Key="SystemChromeWhiteColor">#FFFFFFFF</Color>
+          <Color x:Key="SystemListLowColor">#FFECF5FB</Color>
+          <Color x:Key="SystemListMediumColor">#FFE6EAED</Color>
+          <Color x:Key="SystemChromeAltMediumHighColor">#CCF8F9FB</Color>
+          <Color x:Key="SystemChromeAltHighColor">#FFE6EAED</Color>
+          <Color x:Key="SystemRevealListLowColor">#FFECF5FB</Color>
+          <Color x:Key="SystemRevealListMediumColor">#FFE6EAED</Color>
 
-                    <Color x:Key="SystemAccentColor">#FF78A827</Color>
-                    <Color x:Key="SystemAltHighColor">#FFFFFFFF</Color>
-                    <Color x:Key="SystemAltLowColor">#FFFFFFFF</Color>
-                    <Color x:Key="SystemAltMediumColor">#FFFFFFFF</Color>
-                    <Color x:Key="SystemAltMediumHighColor">#FFFFFFFF</Color>
-                    <Color x:Key="SystemAltMediumLowColor">#FFFFFFFF</Color>
-                    <Color x:Key="SystemBaseHighColor">#FF000000</Color>
-                    <Color x:Key="SystemBaseLowColor">#FFE6EAED</Color>
-                    <Color x:Key="SystemBaseMediumColor">#FF88A3B3</Color>
-                    <Color x:Key="SystemBaseMediumHighColor">#FF4A748D</Color>
-                    <Color x:Key="SystemBaseMediumLowColor">#FF698CA0</Color>
-                    <Color x:Key="SystemChromeAltLowColor">#FF4A748D</Color>
-                    <Color x:Key="SystemChromeBlackHighColor">#FF000000</Color>
-                    <Color x:Key="SystemChromeBlackLowColor">#FFE6EAED</Color>
-                    <Color x:Key="SystemChromeBlackMediumColor">#FF4A748D</Color>
-                    <Color x:Key="SystemChromeBlackMediumLowColor">#FF88A3B3</Color>
-                    <Color x:Key="SystemChromeDisabledHighColor">#FFE6EAED</Color>
-                    <Color x:Key="SystemChromeDisabledLowColor">#FF88A3B3</Color>
-                    <Color x:Key="SystemChromeGrayColor">#FF698CA0</Color>
-                    <Color x:Key="SystemChromeHighColor">#FFE6EAED</Color>
-                    <Color x:Key="SystemChromeLowColor">#FFEDF8FF</Color>
-                    <Color x:Key="SystemChromeMediumColor">#FFECF5FB</Color>
-                    <Color x:Key="SystemChromeMediumLowColor">#FFEDF8FF</Color>
-                    <Color x:Key="SystemChromeWhiteColor">#FFFFFFFF</Color>
-                    <Color x:Key="SystemListLowColor">#FFECF5FB</Color>
-                    <Color x:Key="SystemListMediumColor">#FFE6EAED</Color>
-                    <Color x:Key="SystemChromeAltMediumHighColor">#CCF8F9FB</Color>
-                    <Color x:Key="SystemChromeAltHighColor">#FFE6EAED</Color>
-                    <Color x:Key="SystemRevealListLowColor">#FFECF5FB</Color>
-                    <Color x:Key="SystemRevealListMediumColor">#FFE6EAED</Color>
-
-                    <Color x:Key="SystemAccentColorLight1">#FF88B340</Color>
-                    <Color x:Key="SystemAccentColorLight2">#FF99BF59</Color>
-                    <Color x:Key="SystemAccentColorLight3">#FFA9CA73</Color>
-                    <Color x:Key="SystemAccentColorDark1">#FF65951F</Color>
-                    <Color x:Key="SystemAccentColorDark2">#FF528217</Color>
-                    <Color x:Key="SystemAccentColorDark3">#FF3F6F10</Color>
-                     <Color x:Key="RegionColor">#FFF8F9FB</Color>
+          <Color x:Key="SystemAccentColorLight1">#FF88B340</Color>
+          <Color x:Key="SystemAccentColorLight2">#FF99BF59</Color>
+          <Color x:Key="SystemAccentColorLight3">#FFA9CA73</Color>
+          <Color x:Key="SystemAccentColorDark1">#FF65951F</Color>
+          <Color x:Key="SystemAccentColorDark2">#FF528217</Color>
+          <Color x:Key="SystemAccentColorDark3">#FF3F6F10</Color>
+          <Color x:Key="RegionColor">#FFF8F9FB</Color>
         </ResourceDictionary>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
@@ -98,10 +97,8 @@
   <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentLight.xaml" />
 
   <!-- Needs to be here because of dependency reason -->
-  <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
+  <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml" />
 
   <StyleInclude Source="avares://Avalonia.Xaml.Interactions/Draggable/Styles.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Base.axaml" />
 </Styles>
-
-
