@@ -221,14 +221,14 @@ public class Global
 		}
 	}
 
-	private async Task StartTorProcessManagerAsync(CancellationToken cancel)
+	private async Task StartTorProcessManagerAsync(CancellationToken cancellationToken)
 	{
 		if (Config.UseTor && Network != Network.RegTest)
 		{
 			using (BenchmarkLogger.Measure(operationName: "TorProcessManager.Start"))
 			{
 				TorManager = new TorProcessManager(TorSettings);
-				await TorManager.StartAsync(cancel).ConfigureAwait(false);
+				await TorManager.StartAsync(attempts: 3, cancellationToken).ConfigureAwait(false);
 				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
 			}
 

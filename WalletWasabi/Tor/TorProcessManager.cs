@@ -51,16 +51,38 @@ public class TorProcessManager : IAsyncDisposable
 	/// <remarks>Guarded by <see cref="StateLock"/>.</remarks>
 	private TorControlClient? TorControlClient { get; set; }
 
+	/// <inheritdoc cref="StartAsync(int, CancellationToken)"/>
+	public Task<(CancellationToken, TorControlClient)> StartAsync(CancellationToken cancellationToken = default)
+	{		
+		return StartAsync(attempts: 1, cancellationToken);
+	}
+
 	/// <summary>Starts loop which makes sure that Tor process is started.</summary>
 	/// <param name="cancellationToken">Application lifetime cancellation token.</param>
 	/// <returns>Cancellation token which is canceled once Tor process terminates (either forcefully or gracefully).</returns>
 	/// <remarks>This method must be called exactly once.</remarks>		
-	/// <exception cref="OperationCanceledException"/>
-	public async Task<(CancellationToken, TorControlClient)> StartAsync(CancellationToken cancellationToken = default)
+	/// <exception cref="OperationCanceledException">When all attempts are tried.</exception>
+	public async Task<(CancellationToken, TorControlClient)> StartAsync(int attempts, CancellationToken cancellationToken = default)
 	{
 		LoopTask = RestartingLoopAsync(cancellationToken);
 
-		return await WaitForNextAttemptAsync(cancellationToken).ConfigureAwait(false);
+		for (int i = 0; i < attempts; i++)
+		{
+			try
+			{
+				Logger.LogDebug($"Attempt #{i} to start Tor.");
+				return await WaitForNextAttemptAsync(cancellationToken).ConfigureAwait(false);
+			}
+			catch (OperationCanceledException)
+			{
+				if (cancellationToken.IsCancellationRequested)
+				{
+					throw;
+				}
+			}
+		}
+
+		throw new OperationCanceledException("No attempt to start Tor was successful.");
 	}
 
 	/// <summary>Waits until Tor process is fully started or until it is stopped for some reason.</summary>
