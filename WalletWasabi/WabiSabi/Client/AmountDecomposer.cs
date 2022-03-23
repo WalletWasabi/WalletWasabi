@@ -257,10 +257,21 @@ public class AmountDecomposer
 
 		foreach (var (sum, count, decomp) in Decomposer.Decompose((long)myInputSum, (long)tolerance, maxCount))
 		{
-			var currentSet = Decomposer.ToRealValuesArray(
-				decomp,
-				count,
-				Decomposer.StdDenoms).Select(Money.Satoshis).ToList();
+			List<Money>? currentSet = null;
+			try
+			{
+				currentSet = Decomposer.ToRealValuesArray(
+					decomp,
+					count,
+					Decomposer.StdDenoms).Select(Money.Satoshis).ToList();
+			}
+			catch (IndexOutOfRangeException)
+			{
+				Logger.LogWarning("The decomposer is IndexOutOfRangeException.");
+				Logger.LogInfo($"ToRealValuesArray: '{decomp}', '{count}'.");
+				Logger.LogInfo($"StdDenoms: '{string.Join(" ", Decomposer.StdDenoms)}'.");
+				break;
+			}
 
 			hash = new();
 			foreach (var item in currentSet.OrderBy(x => x))
