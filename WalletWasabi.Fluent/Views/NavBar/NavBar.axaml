@@ -48,11 +48,14 @@
     </Style>
 
     <Style Selector=":is(Panel).NavBarItemPanel DockPanel TextBlock">
-      <Setter Property="Margin" Value="8,5,8, 0" />
-      <Setter Property="DockPanel.Dock" Value="Bottom" />
       <Setter Property="TextTrimming" Value="CharacterEllipsis" />
       <Setter Property="TextAlignment" Value="Center" />
+      <Setter Property="Margin" Value="8,5,8, 0" />
       <Setter Property="FontSize" Value="{StaticResource FontSizeH9}" />
+    </Style>
+
+    <Style Selector=":is(Panel).NavBarItemPanel DockPanel LayoutTransformControl">
+      <Setter Property="DockPanel.Dock" Value="Bottom" />
     </Style>
 
     <Style Selector=":is(Panel).NavBarItemPanel DockPanel Panel">
@@ -89,6 +92,21 @@
       <Setter Property="ToolTip.Tip" Value="{Binding Title}" />
     </Style>
 
+    <Style Selector="c|NavBarItem :is(Panel).NavBarItemPanel DockPanel LayoutTransformControl">
+      <Setter Property="LayoutTransform" Value="scaleY(1)" />
+      <Setter Property="Opacity" Value="1" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <TransformOperationsTransition Property="LayoutTransform" Duration="0:0:0.175" />
+        </Transitions>
+      </Setter>
+    </Style>
+
+    <Style Selector="c|NavBarItem:selected :is(Panel).NavBarItemPanel DockPanel LayoutTransformControl">
+      <Setter Property="LayoutTransform" Value="scaleY(0)" />
+      <Setter Property="Opacity" Value="0" />
+    </Style>
+
   </UserControl.Styles>
   <DockPanel Margin="0 -4 0 4">
     <DockPanel Background="Transparent" DockPanel.Dock="Bottom">
@@ -106,7 +124,9 @@
           <DataTemplate DataType="vm:NavBarItemViewModel">
             <Panel Classes="NavBarItemPanel Utilities">
               <DockPanel>
-                <TextBlock />
+                <LayoutTransformControl>
+                  <TextBlock />
+                </LayoutTransformControl>
                 <Panel>
                   <Image Source="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
                 </Panel>
@@ -129,7 +149,9 @@
             <Panel Classes="NavBarItemPanel Wallets">
               <Ellipse />
               <DockPanel>
-                <TextBlock />
+                <LayoutTransformControl>
+                  <TextBlock />
+                </LayoutTransformControl>
                 <Panel>
                   <Image Source="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
                 </Panel>
