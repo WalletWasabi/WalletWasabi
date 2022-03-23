@@ -46,8 +46,8 @@
     <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="{DynamicResource ActionColorLight1}" />
     <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="{DynamicResource SystemChromeDisabledLowColor}" />
 
-    <SolidColorBrush x:Key="NavBarAccentColor" Color="{StaticResource SystemAccentNeutralColor}"/>
-    <SolidColorBrush x:Key="NavBarAccentColorPressed" Opacity="0.5" Color="{StaticResource SystemAccentNeutralColor}"/>
+    <SolidColorBrush x:Key="NavBarAccentColor" Color="{StaticResource SystemAccentColor}"/>
+    <SolidColorBrush x:Key="NavBarAccentColorPressed" Opacity="0.5" Color="{StaticResource SystemAccentColor}"/>
     <SolidColorBrush x:Key="NavBarItemPressedAccentColor">#719B2A</SolidColorBrush>
     <SolidColorBrush x:Key="NavBarItemDisabledBrush">#66FFFFFF</SolidColorBrush>
     <SolidColorBrush x:Key="NavBarItemPointerOverBrush">#FFFFFFFF</SolidColorBrush>
@@ -97,7 +97,7 @@
     <StaticResource x:Key="NotificationCardBackgroundBrush" ResourceKey="TileRegionColor" />
 
     <StaticResource x:Key="TileRegionColor" ResourceKey="SystemBaseLowColor" />
-    <StaticResource x:Key="SystemAccentNeutralColor" ResourceKey="SystemAccentColor" />
+    <StaticResource x:Key="SystemAccentColor" ResourceKey="SystemAccentColor" />
     <StaticResource x:Key="TextControlBorderBrush" ResourceKey="SystemBaseLowColor" />
     <StaticResource x:Key="TextControlBorderBrushPointerOver" ResourceKey="SystemBaseMediumLowColor" />
     <StaticResource x:Key="TextControlBorderBrushFocused" ResourceKey="SystemBaseMediumHighColor" />

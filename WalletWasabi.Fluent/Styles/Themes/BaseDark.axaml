@@ -46,7 +46,6 @@
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
 
-    <StaticResource x:Key="SystemAccentNeutralColor" ResourceKey="SystemAccentColor" />
     <StaticResource x:Key="TextControlBorderBrush" ResourceKey="SystemBaseLowColor" />
     <StaticResource x:Key="TextControlBorderBrushPointerOver" ResourceKey="SystemBaseMediumLowColor" />
     <StaticResource x:Key="TextControlBorderBrushFocused" ResourceKey="SystemBaseMediumHighColor" />
