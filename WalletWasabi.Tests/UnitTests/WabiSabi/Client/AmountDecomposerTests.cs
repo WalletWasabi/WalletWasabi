@@ -46,6 +46,33 @@ public class AmountDecomposerTests
 		Assert.All(outputValues, v => Assert.InRange(v.Satoshi, minOutputAmount, totalEffectiveValue));
 	}
 
+	[Fact]
+	public void DecompositionTest()
+	{
+		Decomposer.StdDenoms = new[] { 20062L, 16446, 13184, 10062, 8254, 6623, 5062 };
+		var target = 9862L;
+		var tolerance = 2531L;
+		var maxCount = 5;
+
+		foreach (var (sum, count, decomp) in Decomposer.Decompose(target, tolerance, maxCount))
+		{
+			var currentSet = Decomposer.ToRealValuesArray(
+				decomp,
+				count,
+				Decomposer.StdDenoms).Select(Money.Satoshis).ToList();
+
+			if (currentSet.Sum() > target)
+			{
+				throw new InvalidOperationException("The decomposer is creating money. Aborting.");
+			}
+
+			if (currentSet.Count > maxCount)
+			{
+				throw new InvalidOperationException("The decomposer created more outputs than it can. Aborting.");
+			}
+		}
+	}
+
 	private static IEnumerable<Coin> GenerateRandomCoins()
 	{
 		using var key = new Key();
