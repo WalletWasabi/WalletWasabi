@@ -97,13 +97,6 @@
 
     <Style Selector=":is(Panel).NavBarItemPanel.wallets Ellipse.isLoggedIn.isCoinjoining">
       <Setter Property="Fill" Value="{DynamicResource CoinjoinActiveColor}" />
-      <Style.Animations>
-        <Animation IterationCount="Infinite" Duration="0:0:1">
-          <KeyFrame Cue="50%">
-            <Setter Property="Opacity" Value="1" />
-          </KeyFrame>
-        </Animation>
-      </Style.Animations>
     </Style>
 
     <Style Selector=":is(Panel).NavBarItemPanel.wallets  DockPanel TextBlock" x:DataType="vmw:WalletViewModelBase">
@@ -132,7 +125,6 @@
         </Transitions>
       </Setter>
     </Style>
-
 
     <Style Selector="c|NavBarItem:selected :is(Panel).NavBarItemPanel DockPanel LayoutTransformControl">
       <Setter Property="LayoutTransform" Value="scaleY(0)" />
