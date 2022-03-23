@@ -279,7 +279,8 @@ public class AmountDecomposer
 			.ThenBy(x => x.Decomp.All(x => denomHashSet.Contains(x)) ? 0 : 1) // Prefer no change.
 			.Select(x => x).ToList();
 
-		var finalCandidate = orderedCandidates.First().Decomp;
+		var naiveCandidate = orderedCandidates.First().Decomp;
+		var finalCandidate = naiveCandidate;
 
 		foreach (var candidate in orderedCandidates)
 		{
@@ -296,6 +297,7 @@ public class AmountDecomposer
 					Logger.LogInfo($"StdDenoms: '{string.Join(" ", Decomposer.StdDenoms)}'.");
 					Logger.LogInfo($"FinalCandidate: '{string.Join(" ", finalCandidate)}'.");
 					Logger.LogInfo($"AvailableVsize: '{vsize}', '{AvailableVsize}'.");
+					finalCandidate = naiveCandidate;
 					continue;
 				}
 
