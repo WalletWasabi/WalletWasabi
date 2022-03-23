@@ -16,6 +16,7 @@
     </ResourceDictionary>
 
     <Color x:Key="OrangeCoinColor">#F2994A</Color>
+    <Color x:Key="CoinjoinActiveColor">Orange</Color>
     <SolidColorBrush x:Key="DismissColor" Color="#DD4343" />
 
     <SolidColorBrush x:Key="InvisibleButtonBackgroundColor" Opacity="0" Color="{DynamicResource SystemBaseHighColor}" />

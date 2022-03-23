@@ -82,12 +82,12 @@
         </StackPanel>
 
         <Separator Classes="vertical" />
- 
+
           <Button Classes="plain"
                   IsVisible="{Binding PlayVisible}"
                   Command="{Binding PlayCommand}">
             <PathIcon Data="{StaticResource play_regular}" />
-          </Button> 
+          </Button>
 
           <Button Classes="plain"
                   IsVisible="{Binding PauseVisible}"
@@ -110,7 +110,7 @@
                 <Setter Property="ToolTip.Tip" Value="Automatic Coinjoin Enabled" />
               </Style>
               <Style Selector="Ellipse.waiting">
-                <Setter Property="Fill" Value="Orange" />
+                <Setter Property="Fill" Value="{DynamicResource CoinjoinActiveColor}" />
                 <Setter Property="ToolTip.Tip"
                         Value="Automatic Coinjoin Enabled. Press Play to start immediately." />
               </Style>
