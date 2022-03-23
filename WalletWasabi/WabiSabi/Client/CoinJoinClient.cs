@@ -100,7 +100,7 @@ public class CoinJoinClient
 
 		if (roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min >= MinimumOutputAmountSanity)
 		{
-			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: minimum output amount is too high.");
+			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the minimum output amount is too high.");
 		}
 
 		if (!IsRoundEconomic(roundState.FeeRate))
@@ -134,7 +134,7 @@ public class CoinJoinClient
 			currentRoundState = await WaitForBlameRoundAsync(currentRoundState.Id, cancellationToken).ConfigureAwait(false);
 		}
 
-		throw new InvalidOperationException($"Blame rounds were not successful.");
+		throw new InvalidOperationException("Blame rounds were not successful.");
 	}
 
 	public async Task<CoinJoinResult> StartRoundAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
@@ -157,7 +157,7 @@ public class CoinJoinClient
 
 			if (!registeredAliceClientAndCircuits.Any())
 			{
-				Logger.LogInfo($"Round ({roundId}): There is no available alices to participate with.");
+				Logger.LogInfo($"Round ({roundId}): There are no available alices to participate with.");
 				return new CoinJoinResult(false);
 			}
 
@@ -170,7 +170,8 @@ public class CoinJoinClient
 			var unsignedCoinJoin = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
 
 			var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundId && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
-			Logger.LogDebug($"Round ({roundId}): Round Ended - WasTransactionBroadcast: '{finalRoundState.WasTransactionBroadcast}'.");
+
+			Logger.LogDebug($"Round ({roundId}): Round ended - WasTransactionBroadcast: '{finalRoundState.WasTransactionBroadcast}'.");
 
 			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, unsignedCoinJoin, finalRoundState);
 
@@ -225,9 +226,9 @@ public class CoinJoinClient
 		}
 
 		// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to be registered.
-		var remainingTimeForRegistration = (roundState.InputRegistrationEnd - DateTimeOffset.UtcNow);
+		var remainingTimeForRegistration = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
 
-		Logger.LogDebug($"Round ({roundState.Id}): Input registration started, it will end in {remainingTimeForRegistration:hh\\:mm\\:ss}.");
+		Logger.LogDebug($"Round ({roundState.Id}): Input registration started - it will end in: {remainingTimeForRegistration:hh\\:mm\\:ss}.");
 
 		var scheduledDates = GetScheduledDates(smartCoins.Count(), roundState.InputRegistrationEnd);
 
@@ -349,7 +350,7 @@ public class CoinJoinClient
 
 		string[] summary = new string[] {
 		$"Round ({roundState.Id}):",
-		$"\tInput total: {totalInputAmount.ToString(true)} Eff: {totalEffectiveInputAmount.ToString(true)} NetwFee: {inputNetworkFee.ToString(true)} CoordF: {totalCoordinationFee.ToString(true)}",
+		$"\tInput total: {totalInputAmount.ToString(true)} Eff: {totalEffectiveInputAmount.ToString(true)} NetwFee: {inputNetworkFee.ToString(true)} CoordFee: {totalCoordinationFee.ToString(true)}",
 		$"\tOutpu total: {totalOutputAmount.ToString(true)} Eff: {totalEffectiveOutputAmount.ToString(true)} NetwFee: {outputNetworkFee.ToString(true)}",
 		$"\tTotal diff : {totalDifference.ToString(true)}",
 		$"\tEffec diff : {effectiveDifference.ToString(true)}",
@@ -441,7 +442,7 @@ public class CoinJoinClient
 			return roundFeeRate.SatoshiPerByte <= medianFeeRate.SatoshiPerByte + 0.5m;
 		}
 
-		throw new InvalidOperationException($"Could not find median feeRate for timeframe: {FeeRateMedianTimeFrame}.");
+		throw new InvalidOperationException($"Could not find median fee rate for time frame: {FeeRateMedianTimeFrame}.");
 	}
 
 	/// <summary>
@@ -520,7 +521,7 @@ public class CoinJoinClient
 
 		// Re-issuances.
 		var bobClient = CreateBobClient(roundState);
-		Logger.LogInfo($"Round ({roundState.Id}), Starting reissuances.");
+		Logger.LogInfo($"Round ({roundState.Id}): Starting reissuances.");
 		var combinedToken = combinedCts.Token;
 		await scheduler.StartReissuancesAsync(registeredAliceClients, bobClient, combinedToken).ConfigureAwait(false);
 
