@@ -5,6 +5,7 @@ using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
@@ -23,7 +24,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 		this.WhenAnyValue(x => x.IsFlashing)
 			.Where(x => x)
-			.Subscribe(async _ =>
+			.SubscribeAsync(async _ =>
 			{
 				await Task.Delay(1260);
 				IsFlashing = false;

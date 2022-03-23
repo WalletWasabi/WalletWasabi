@@ -141,25 +141,28 @@ public class CoinJoinClient
 	{
 		var roundId = roundState.Id;
 
-		ImmutableArray<AliceClient> registeredAliceClients = ImmutableArray<AliceClient>.Empty;
-		try
-		{
-			registeredAliceClients = await ProceedWithInputRegistrationPhaseAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
-		}
-		catch (UnexpectedRoundPhaseException ex)
-		{
-			Logger.LogInfo($"Round ({roundId}): Registration phase ended by the coordinator: '{ex.Message}'.");
-			return new CoinJoinResult(false);
-		}
-
-		if (!registeredAliceClients.Any())
-		{
-			Logger.LogInfo($"Round ({roundId}): There is no available alices to participate with.");
-			return new CoinJoinResult(false);
-		}
+		ImmutableArray<(AliceClient AliceClient, PersonCircuit PersonCircuit)> registeredAliceClientAndCircuits = ImmutableArray<(AliceClient, PersonCircuit)>.Empty;
 
 		try
 		{
+			try
+			{
+				registeredAliceClientAndCircuits = await ProceedWithInputRegistrationPhaseAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
+			}
+			catch (UnexpectedRoundPhaseException ex)
+			{
+				Logger.LogInfo($"Round ({roundId}): Registration phase ended by the coordinator: '{ex.Message}'.");
+				return new CoinJoinResult(false);
+			}
+
+			if (!registeredAliceClientAndCircuits.Any())
+			{
+				Logger.LogInfo($"Round ({roundId}): There is no available alices to participate with.");
+				return new CoinJoinResult(false);
+			}
+
+			var registeredAliceClients = registeredAliceClientAndCircuits.Select(x => x.AliceClient).ToImmutableArray();
+
 			InCriticalCoinJoinState = true;
 
 			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
@@ -179,20 +182,24 @@ public class CoinJoinClient
 		}
 		finally
 		{
-			foreach (var aliceClient in registeredAliceClients)
+			foreach (var aliceClientAndCircuit in registeredAliceClientAndCircuits)
 			{
-				aliceClient.Finish();
+				aliceClientAndCircuit.AliceClient.Finish();
+				aliceClientAndCircuit.PersonCircuit.Dispose();
 			}
 			InCriticalCoinJoinState = false;
 		}
 	}
 
-	private async Task<ImmutableArray<AliceClient>> CreateRegisterAndConfirmCoinsAsync(Tor.Http.IHttpClient httpClient, IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
+	private async Task<ImmutableArray<(AliceClient AliceClient, PersonCircuit PersonCircuit)>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 	{
-		async Task<AliceClient?> RegisterInputAsync(SmartCoin coin, CancellationToken cancellationToken)
+		async Task<(AliceClient? AliceClient, PersonCircuit? PersonCircuit)> RegisterInputAsync(SmartCoin coin, CancellationToken cancellationToken)
 		{
+			PersonCircuit? personCircuit = null;
 			try
 			{
+				personCircuit = HttpClientFactory.NewHttpClientWithPersonCircuit(out Tor.Http.IHttpClient httpClient);
+
 				// Alice client requests are inherently linkable to each other, so the circuit can be reused
 				var arenaRequestHandler = new WabiSabiHttpApiClient(httpClient);
 
@@ -201,11 +208,19 @@ public class CoinJoinClient
 					roundState.CreateVsizeCredentialClient(SecureRandom),
 					arenaRequestHandler);
 
-				return await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, KeyChain, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
+				var aliceClient = await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, KeyChain, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
+
+				return (aliceClient, personCircuit);
 			}
 			catch (HttpRequestException)
 			{
-				return null;
+				personCircuit?.Dispose();
+				return (null, null);
+			}
+			catch (Exception)
+			{
+				personCircuit?.Dispose();
+				throw;
 			}
 		}
 
@@ -232,8 +247,9 @@ public class CoinJoinClient
 		await Task.WhenAll(aliceClients).ConfigureAwait(false);
 
 		return aliceClients
-			.Where(x => x.Result is not null)
-			.Select(x => x.Result!)
+			.Select(x => x.Result)
+			.Where(r => r.AliceClient is not null && r.PersonCircuit is not null)
+			.Select(r => (r.AliceClient!, r.PersonCircuit!))
 			.ToImmutableArray();
 	}
 
@@ -551,7 +567,7 @@ public class CoinJoinClient
 		return unsignedCoinJoin;
 	}
 
-	private async Task<ImmutableArray<AliceClient>> ProceedWithInputRegistrationPhaseAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
+	private async Task<ImmutableArray<(AliceClient, PersonCircuit)>> ProceedWithInputRegistrationPhaseAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 	{
 		var remainingTime = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
 
@@ -560,7 +576,6 @@ public class CoinJoinClient
 		var combinedToken = combinedCts.Token;
 
 		// Register coins.
-		using PersonCircuit personCircuit = HttpClientFactory.NewHttpClientWithPersonCircuit(out Tor.Http.IHttpClient httpClient);
-		return await CreateRegisterAndConfirmCoinsAsync(httpClient, smartCoins, roundState, combinedToken).ConfigureAwait(false);
+		return await CreateRegisterAndConfirmCoinsAsync(smartCoins, roundState, combinedToken).ConfigureAwait(false);
 	}
 }

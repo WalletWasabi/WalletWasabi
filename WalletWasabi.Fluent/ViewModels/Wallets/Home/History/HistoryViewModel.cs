@@ -14,6 +14,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
@@ -197,7 +198,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 		base.OnActivated(disposables);
 
 		_updateTrigger
-			.Subscribe(async _ => await UpdateAsync())
+			.SubscribeAsync(async _ => await UpdateAsync())
 			.DisposeWith(disposables);
 	}
 

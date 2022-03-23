@@ -7,6 +7,7 @@ using Avalonia;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
@@ -76,7 +77,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		_updateTrigger
-			.Subscribe(async _ => await UpdateCurrentTransactionAsync())
+			.SubscribeAsync(async _ => await UpdateCurrentTransactionAsync())
 			.DisposeWith(disposables);
 	}
 
