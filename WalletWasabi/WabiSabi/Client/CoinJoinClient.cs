@@ -157,7 +157,7 @@ public class CoinJoinClient
 
 			if (!registeredAliceClientAndCircuits.Any())
 			{
-				Logger.LogInfo($"Round ({roundId}): There are no available alices to participate with.");
+				Logger.LogInfo($"Round ({roundId}): There are no available Alices to participate with.");
 				return new CoinJoinResult(false);
 			}
 
