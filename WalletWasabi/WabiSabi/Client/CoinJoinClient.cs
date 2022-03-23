@@ -975,6 +975,11 @@ public class CoinJoinClient
 		var now = DateTimeOffset.UtcNow;
 		var outputRegistrationPhaseEndTime = now + remainingTime;
 
+		// Abort if detects own inputs registered by someone else
+		var allRegisteredScriptPubKeys = roundState.CoinjoinState.Inputs.Select(x => x.ScriptPubKey).ToImmutableList();
+		var alicesRegisteredScriptPubkeys = registeredAliceClients.Select(x => x.SmartCoin.ScriptPubKey).ToImmutableList();
+		AssertAllInputsWereRegisteredByOurAlices(allRegisteredScriptPubKeys, alicesRegisteredScriptPubkeys);
+		
 		// Splitting the remaining time.
 		// Both operations are done under output registration phase, so we have to do the random timing taking that into account.
 		var outputRegistrationEndTime = now + (remainingTime * 0.8); // 80% of the time.
@@ -1091,5 +1096,19 @@ public class CoinJoinClient
 		CoinJoinClientProgress.SafeInvoke(this, new EnteringConnectionConfirmationPhase(newRoundState, estimatedRemainingFromConnectionConfirmation));
 
 		return result;
+	}
+	
+	private void AssertAllInputsWereRegisteredByOurAlices(ImmutableList<Script> allRegisteredScriptPubKeys, ImmutableList<Script> myAlicesScriptPubKeys)
+	{
+		// Verify there are no coins registered by someone else (another instance using the same wallet).
+		var myRegisteredScriptPubKeys = KeyChain.FilterMine(allRegisteredScriptPubKeys);
+		if (myRegisteredScriptPubKeys.Except(myAlicesScriptPubKeys).Any())
+		{
+			throw new InvalidOperationException("Some of the my coins are registered by someone else.");
+		}
+		if (myAlicesScriptPubKeys.Except(myRegisteredScriptPubKeys).Any())
+		{
+			throw new InvalidOperationException("Some of the my coins are not registered. This should never happen.");
+		}
 	}
 }

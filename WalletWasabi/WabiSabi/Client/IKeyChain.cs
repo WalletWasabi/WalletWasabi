@@ -12,4 +12,6 @@ public interface IKeyChain
 	Transaction Sign(Transaction transaction, Coin coin, OwnershipProof ownershipProof);
 
 	void TrySetScriptStates(KeyState state, IEnumerable<Script> scripts);
+
+	IEnumerable<Script> FilterMine(IEnumerable<Script> scriptPubKeys);
 }

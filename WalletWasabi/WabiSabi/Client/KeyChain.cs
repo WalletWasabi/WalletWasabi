@@ -31,7 +31,7 @@ public class KeyChain : BaseKeyChain
 			hdPubKey.SetKeyState(state);
 		}
 	}
-
+	
 	protected override BitcoinSecret GetBitcoinSecret(Script scriptPubKey)
 	{
 		var hdKey = KeyManager.GetSecrets(Kitchen.SaltSoup(), scriptPubKey).Single();
@@ -45,5 +45,12 @@ public class KeyChain : BaseKeyChain
 		}
 		var secret = hdKey.PrivateKey.GetBitcoinSecret(KeyManager.GetNetwork());
 		return secret;
+	}
+
+	public override IEnumerable<Script> FilterMine(IEnumerable<Script> scriptPubKeys)
+	{
+		return KeyManager
+			.GetSecrets(Kitchen.SaltSoup(), scriptPubKeys.ToArray())
+			.Select(x => x.PrivateKey.PubKey.WitHash.ScriptPubKey);
 	}
 }

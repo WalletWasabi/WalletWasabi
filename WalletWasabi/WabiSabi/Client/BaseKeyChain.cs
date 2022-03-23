@@ -57,6 +57,8 @@ public abstract class BaseKeyChain : IKeyChain
 		return transaction;
 	}
 
+	public abstract IEnumerable<Script> FilterMine(IEnumerable<Script> scriptPubKeys);
+	
 	public abstract void TrySetScriptStates(KeyState state, IEnumerable<Script> scripts);
 
 	protected abstract BitcoinSecret GetBitcoinSecret(Script scriptPubKey);

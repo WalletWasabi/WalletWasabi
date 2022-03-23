@@ -124,6 +124,11 @@ public class TestWallet : IKeyChain, IDestinationProvider
 				ScriptPubKeyType.Segwit);
 	}
 
+	public IEnumerable<Script> FilterMine(IEnumerable<Script> scriptPubKeys)
+	{
+		return scriptPubKeys.Where(x => ScriptPubKeys.ContainsKey(x));
+	}
+
 	/// <remarks>Test wallet assumes that the ownership proof is always correct.</remarks>
 	public Transaction Sign(Transaction transaction, Coin coin, OwnershipProof ownershipProof)
 	{
