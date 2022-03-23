@@ -26,14 +26,13 @@
       </StackPanel>
 
       <StackPanel VerticalAlignment="Center" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 3">
-        <Image Height="36" Width="36" VerticalAlignment="Center" HorizontalAlignment="Center"
+        <Image Height="36" Width="36" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0 0 10 0"
                Source="{StaticResource privacy_indicator_good}" />
         <TextBlock
           VerticalAlignment="Center" HorizontalAlignment="Center"
           TextAlignment="Center"
           Text="{Binding PercentText}" Classes="h2" />
       </StackPanel>
-
     </DockPanel>
   </controls:TileControl>
 </UserControl>

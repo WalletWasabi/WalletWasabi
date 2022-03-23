@@ -72,22 +72,22 @@
 
             <ProgressBar Minimum="0" Maximum="100" Value="{Binding ProgressValue}" Foreground="White" />
 
-            <DockPanel LastChildFill="False">
-              <TextBlock Text="{Binding ElapsedTime}" />
-              <controls:PrivacyContentControl
-                Content="{Binding RemainingTime}"
-                DockPanel.Dock="Right"
-                ForceShow="{Binding IsAutoWaiting}" />
-            </DockPanel>
-          </StackPanel>
+          <DockPanel LastChildFill="False">
+            <TextBlock Text="{Binding ElapsedTime}" />
+            <controls:PrivacyContentControl
+              Content="{Binding RemainingTime}"
+              DockPanel.Dock="Right"
+              ForceShow="{Binding !IsBalanceDisplayed}" />
+          </DockPanel>
+        </StackPanel>
 
-          <Separator Classes="vertical" />
-
+        <Separator Classes="vertical" />
+ 
           <Button Classes="plain"
                   IsVisible="{Binding PlayVisible}"
                   Command="{Binding PlayCommand}">
             <PathIcon Data="{StaticResource play_regular}" />
-          </Button>
+          </Button> 
 
           <Button Classes="plain"
                   IsVisible="{Binding PauseVisible}"
