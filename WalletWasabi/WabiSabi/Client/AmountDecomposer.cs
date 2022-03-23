@@ -280,6 +280,7 @@ public class AmountDecomposer
 			.Select(x => x).ToList();
 
 		var finalCandidate = orderedCandidates.First().Decomp;
+
 		foreach (var candidate in orderedCandidates)
 		{
 			if (random.NextDouble() < 0.5)
@@ -287,12 +288,14 @@ public class AmountDecomposer
 				finalCandidate = candidate.Decomp;
 
 				// TODO: for debugging purposes, remove later.
-				if (finalCandidate.Sum() > myInputSum)
+				var vsize = finalCandidate.Count() * OutputSize;
+				if (finalCandidate.Sum() > myInputSum || vsize > AvailableVsize)
 				{
 					Logger.LogWarning("The decomposer is creating money. Selecting next candidate.");
 					Logger.LogInfo($"Decompose: '{myInputSum}', '{tolerance}', '{maxCount}'.");
 					Logger.LogInfo($"StdDenoms: '{string.Join(" ", Decomposer.StdDenoms)}'.");
 					Logger.LogInfo($"FinalCandidate: '{string.Join(" ", finalCandidate)}'.");
+					Logger.LogInfo($"AvailableVsize: '{vsize}', '{AvailableVsize}'.");
 					continue;
 				}
 
