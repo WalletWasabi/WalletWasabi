@@ -250,13 +250,13 @@ public class AmountDecomposer
 			(naiveSet, loss + (ulong)naiveSet.Count * OutputFee)); // The cost is the remaining + output cost.
 
 		// Create many decompositions for optimization.
-		Decomposer.StdDenoms = denoms.Where(x => x <= myInputSum).Select(x => (long)x).ToArray();
-		foreach (var (sum, count, decomp) in Decomposer.Decompose((long)myInputSum, (long)Math.Max(loss, 0.5 * (ulong)MinAllowedOutputAmountPlusFee), Math.Min(8, Math.Max(5, naiveSet.Count))))
+		var stdDenoms = denoms.Where(x => x <= myInputSum).Select(x => (long)x).ToArray();
+		foreach (var (sum, count, decomp) in Decomposer.Decompose((long)myInputSum, (long)Math.Max(loss, 0.5 * (ulong)MinAllowedOutputAmountPlusFee), Math.Min(8, Math.Max(5, naiveSet.Count)), stdDenoms))
 		{
 			var currentSet = Decomposer.ToRealValuesArray(
 				decomp,
 				count,
-				Decomposer.StdDenoms).Select(Money.Satoshis).ToList();
+				stdDenoms).Select(Money.Satoshis).ToList();
 
 			hash = new();
 			foreach (var item in currentSet.OrderBy(x => x))
