@@ -232,8 +232,7 @@ public class Global
 				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
 			}
 
-			Tor.Http.TorHttpClient torHttpClient = HttpClientFactory.NewTorHttpClient(Mode.DefaultCircuit);
-			HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromSeconds(3), fallbackBackendUri: Config.GetFallbackBackendUri(), torHttpClient, TorManager), nameof(TorMonitor));
+			HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromSeconds(3), Config.GetFallbackBackendUri(), TorManager, HttpClientFactory), nameof(TorMonitor));
 		}
 	}
 
