@@ -349,11 +349,11 @@ public class CoinJoinClient
 
 		string[] summary = new string[] {
 		$"Round ({roundState.Id}):",
-		$"\tInput total: {totalInputAmount.ToString(true)} Eff: {totalEffectiveInputAmount.ToString(true)} NetwFee: {inputNetworkFee.ToString(true)} CoordF: {totalCoordinationFee.ToString(true)}",
-		$"\tOutpu total: {totalOutputAmount.ToString(true)} Eff: {totalEffectiveOutputAmount.ToString(true)} NetwFee: {outputNetworkFee.ToString(true)}",
-		$"\tTotal diff : {totalDifference.ToString(true)}",
-		$"\tEffec diff : {effectiveDifference.ToString(true)}",
-		$"\tTotal fee  : {totalNetworkFee.ToString(true)}"
+		$"\tInput total: {totalInputAmount.ToString(true, false)} Eff: {totalEffectiveInputAmount.ToString(true, false)} NetwFee: {inputNetworkFee.ToString(true, false)} CoordF: {totalCoordinationFee.ToString(true)}",
+		$"\tOutpu total: {totalOutputAmount.ToString(true, false)} Eff: {totalEffectiveOutputAmount.ToString(true, false)} NetwFee: {outputNetworkFee.ToString(true, false)}",
+		$"\tTotal diff : {totalDifference.ToString(true, false)}",
+		$"\tEffec diff : {effectiveDifference.ToString(true, false)}",
+		$"\tTotal fee  : {totalNetworkFee.ToString(true, false)}"
 		};
 
 		Logger.LogDebug(string.Join(Environment.NewLine, summary));
