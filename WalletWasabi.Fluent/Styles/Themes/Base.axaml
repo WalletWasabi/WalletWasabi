@@ -40,10 +40,10 @@
     <SolidColorBrush x:Key="DataGridRowSelectedBackgroundColor" Opacity="0.25"
                      Color="{DynamicResource SystemBaseMediumLowColor}" />
 
-    <SolidColorBrush x:Key="ActionButtonForegroundColor" Color="White" />
-    <SolidColorBrush x:Key="ActionButtonBackgroundColor" Color="{DynamicResource SystemAccentColor}" />
-    <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Color="{DynamicResource SystemAccentColorDark1}" />
-    <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="{DynamicResource SystemAccentColorLight1}" />
+    <SolidColorBrush x:Key="ActionButtonForegroundColor" Color="{DynamicResource ActionForegroundColor}" />
+    <SolidColorBrush x:Key="ActionButtonBackgroundColor" Color="{DynamicResource ActionColor}" />
+    <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Color="{DynamicResource ActionColorDark1}" />
+    <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="{DynamicResource ActionColorLight1}" />
     <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="{DynamicResource SystemChromeDisabledLowColor}" />
 
     <SolidColorBrush x:Key="NavBarAccentColor" Color="{StaticResource SystemAccentNeutralColor}"/>

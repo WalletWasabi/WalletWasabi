@@ -41,9 +41,9 @@
         <ExperimentalAcrylicBorder IsHitTestVisible="False">
           <ExperimentalAcrylicBorder.Material>
             <ExperimentalAcrylicMaterial BackgroundSource="Digger"
-                                         TintColor="{DynamicResource TileRegionColor}"
+                                         TintColor="{DynamicResource AcrylicTrimBackground}"
                                          TintOpacity="1"
-                                         FallbackColor="{DynamicResource TileRegionColor}"
+                                         FallbackColor="{DynamicResource AcrylicTrimBackground}"
                                          MaterialOpacity="0.7" />
           </ExperimentalAcrylicBorder.Material>
         </ExperimentalAcrylicBorder>
