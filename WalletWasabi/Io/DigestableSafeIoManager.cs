@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -77,73 +76,61 @@ public class DigestableSafeIoManager : SafeIoManager
 			return;
 		}
 
-		Stopwatch stopWatchAll = Stopwatch.StartNew();
-
-		try
+		IoHelpers.EnsureContainingDirectoryExists(NewFilePath);
+		if (File.Exists(NewFilePath))
 		{
-			IoHelpers.EnsureContainingDirectoryExists(NewFilePath);
-			if (File.Exists(NewFilePath))
+			File.Delete(NewFilePath);
+		}
+
+		ByteArrayBuilder byteArrayBuilder = new();
+		string[] linesArray = lines.ToArray();
+
+		// 1. First copy.
+		File.Copy(GetSafestFilePath(), NewFilePath, overwrite: true);
+
+		// 2. Compute digest.				
+		using (StreamReader sr = OpenText())
+		{
+			while (true)
 			{
-				File.Delete(NewFilePath);
-			}
+				string? line = sr.ReadLine();
 
-			Logger.LogDebug($"TODO-DELETE-ME: lines={lines.Count()}, NewFilePath='{NewFilePath}'");
 
-			ByteArrayBuilder byteArrayBuilder = new();
-			string[] linesArray = lines.ToArray();
-
-			// 1. First copy.
-			File.Copy(GetSafestFilePath(), NewFilePath, overwrite: true);
-
-			// 2. Compute digest.				
-			using (StreamReader sr = OpenText())
-			{
-				while (true)
+				// End of stream.
+				if (line is null)
 				{
-					string? line = sr.ReadLine();
-
-
-					// End of stream.
-					if (line is null)
-					{
-						break;
-					}
-
-					ContinueBuildHash(byteArrayBuilder, line);
-					cancellationToken.ThrowIfCancellationRequested();
-				}
-			}
-
-			// 3. Then append.
-			using (FileStream fs = File.Open(NewFilePath, FileMode.Append))
-			using (StreamWriter sw = new(fs, Encoding.ASCII, Constants.BigFileReadWriteBufferSize))
-			{
-				foreach (string line in linesArray)
-				{
-					await sw.WriteLineAsync(line).ConfigureAwait(false);
-
-					ContinueBuildHash(byteArrayBuilder, line);
-
-					cancellationToken.ThrowIfCancellationRequested();
+					break;
 				}
 
-				await sw.FlushAsync().ConfigureAwait(false);
+				ContinueBuildHash(byteArrayBuilder, line);
+				cancellationToken.ThrowIfCancellationRequested();
 			}
-
-			var (same, hash) = await WorkWithHashAsync(byteArrayBuilder, cancellationToken).ConfigureAwait(false);
-			if (same)
-			{
-				return;
-			}
-
-			SafeMoveNewToOriginal();
-			await WriteOutHashAsync(hash).ConfigureAwait(false);
-
 		}
-		finally
+
+		// 3. Then append.
+		using (FileStream fs = File.Open(NewFilePath, FileMode.Append))
+		using (StreamWriter sw = new(fs, Encoding.ASCII, Constants.BigFileReadWriteBufferSize))
 		{
-			Logger.LogDebug($"TODO-DELETE-ME: Total time: {stopWatchAll.Elapsed}");
+			foreach (string line in linesArray)
+			{
+				await sw.WriteLineAsync(line).ConfigureAwait(false);
+
+				ContinueBuildHash(byteArrayBuilder, line);
+
+				cancellationToken.ThrowIfCancellationRequested();
+			}
+
+			await sw.FlushAsync().ConfigureAwait(false);
 		}
+
+		var (same, hash) = await WorkWithHashAsync(byteArrayBuilder, cancellationToken).ConfigureAwait(false);
+		if (same)
+		{
+			return;
+		}
+
+		SafeMoveNewToOriginal();
+		await WriteOutHashAsync(hash).ConfigureAwait(false);
 	}
 
 	#endregion IoOperations
