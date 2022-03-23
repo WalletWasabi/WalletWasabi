@@ -13,7 +13,7 @@ using WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.Columns;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
-[NavigationMetaData(Title = "Wallet Coins")]
+[NavigationMetaData(Title = "Wallet Coins (UTXOs)")]
 public partial class WalletCoinsViewModel : RoutableViewModel
 {
 	private readonly WalletViewModel _walletViewModel;

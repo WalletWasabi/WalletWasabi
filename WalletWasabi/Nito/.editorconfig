@@ -1,0 +1,5 @@
+# For all files.
+[*]
+
+# Workaround to suppress all warnings in the Nito folder
+generated_code = true

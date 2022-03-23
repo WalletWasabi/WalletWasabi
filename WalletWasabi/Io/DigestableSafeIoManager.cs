@@ -46,7 +46,7 @@ public class DigestableSafeIoManager : SafeIoManager
 
 	public new async Task WriteAllLinesAsync(IEnumerable<string> lines, CancellationToken cancellationToken = default)
 	{
-		if (lines is null || !lines.Any())
+		if (!lines.Any())
 		{
 			return;
 		}
@@ -54,7 +54,6 @@ public class DigestableSafeIoManager : SafeIoManager
 		var byteArrayBuilder = new ByteArrayBuilder();
 
 		foreach (var line in lines)
-
 		{
 			ContinueBuildHash(byteArrayBuilder, line);
 		}
@@ -72,7 +71,7 @@ public class DigestableSafeIoManager : SafeIoManager
 
 	public new async Task AppendAllLinesAsync(IEnumerable<string> lines, CancellationToken cancellationToken = default)
 	{
-		if (lines is null || !lines.Any())
+		if (!lines.Any())
 		{
 			return;
 		}

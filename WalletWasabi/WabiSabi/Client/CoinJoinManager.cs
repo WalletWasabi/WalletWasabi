@@ -10,6 +10,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -160,11 +161,11 @@ public class CoinJoinManager : BackgroundService
 
 				try
 				{
-					var success = await finishedCoinJoin.CoinJoinTask.ConfigureAwait(false);
-					if (success)
+					var result = await finishedCoinJoin.CoinJoinTask.ConfigureAwait(false);
+					if (result.SuccessfulBroadcast)
 					{
-						CoinRefrigerator.Freeze(finishedCoinJoin.CoinCandidates);
-						MarkDestinationsUsed(finishedCoinJoin);
+						CoinRefrigerator.Freeze(result.RegisteredCoins);
+						MarkDestinationsUsed(result.RegisteredOutputs);
 						Logger.LogInfo($"{logPrefix} finished!");
 					}
 					else
@@ -199,16 +200,14 @@ public class CoinJoinManager : BackgroundService
 	/// <summary>
 	/// Mark all the outputs we had in any of our wallets used.
 	/// </summary>
-	private void MarkDestinationsUsed(CoinJoinTracker finishedCoinJoin)
+	private void MarkDestinationsUsed(ImmutableList<Script> outputs)
 	{
+		var hashSet = outputs.ToHashSet();
+
 		foreach (var k in WalletManager
 			.GetWallets(false)
-			.SelectMany(w => w
-				.KeyManager
-				.GetKeys(k => finishedCoinJoin
-					.Destinations
-					.Select(d => d.ScriptPubKey)
-					.Contains(k.P2wpkhScript))))
+			.Select(w => w.KeyManager)
+			.SelectMany(k => k.GetKeys(k => hashSet.Contains(k.P2wpkhScript))))
 		{
 			k.SetKeyState(KeyState.Used);
 		}
@@ -231,7 +230,7 @@ public class CoinJoinManager : BackgroundService
 			finishedCoinJoin.Wallet,
 			finishedCoinJoin.CoinJoinTask.Status switch
 			{
-				TaskStatus.RanToCompletion when finishedCoinJoin.CoinJoinTask.Result => CompletionStatus.Success,
+				TaskStatus.RanToCompletion when finishedCoinJoin.CoinJoinTask.Result.SuccessfulBroadcast => CompletionStatus.Success,
 				TaskStatus.Canceled => CompletionStatus.Canceled,
 				TaskStatus.Faulted => CompletionStatus.Failed,
 				_ => CompletionStatus.Unknown,
