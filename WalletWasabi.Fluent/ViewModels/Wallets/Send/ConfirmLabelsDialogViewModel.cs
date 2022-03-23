@@ -10,10 +10,10 @@ public partial class ConfirmLabelsDialogViewModel : DialogViewModelBase<bool>
 {
 	public ConfirmLabelsDialogViewModel(PocketSuggestionViewModel suggestion)
 	{
-		SetupCancel(true, false, false);
+		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
 
-		NextCommand = ReactiveCommand.Create(() => Close());
-		CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Normal, true));
+		CancelCommand = ReactiveCommand.Create(() => Close());
+		NextCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Normal, true));
 
 		Suggestion = suggestion;
 	}

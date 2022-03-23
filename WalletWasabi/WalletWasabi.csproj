@@ -71,12 +71,6 @@
 		<None Update="Tor\Geoip\geoip6">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="Tor\OnionSeeds\MainOnionSeeds.txt">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Tor\OnionSeeds\TestNetOnionSeeds.txt">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
 	</ItemGroup>
 
 	<ItemGroup>
