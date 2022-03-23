@@ -17,7 +17,7 @@
       <DockPanel LastChildFill="True">
         <Viewbox DockPanel.Dock="Top" Margin="25,25,25,50" Width="112" VerticalAlignment="Center"
                  HorizontalAlignment="Center">
-          <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
+          <Image Source="{DynamicResource wasabi_logo_dynamic}" />
         </Viewbox>
         <Viewbox ClipToBounds="False" DockPanel.Dock="Top" Width="220" VerticalAlignment="Center"
                  HorizontalAlignment="Center">
