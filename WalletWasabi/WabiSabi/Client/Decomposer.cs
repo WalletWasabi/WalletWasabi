@@ -8,9 +8,7 @@ namespace WalletWasabi.WabiSabi.Client;
 /// </summary>
 public static class Decomposer
 {
-	public static long[] StdDenoms;
-
-	public static IEnumerable<(long Sum, int Count, ulong Decomposition)> Decompose(long target, long tolerance, int maxCount)
+	public static IEnumerable<(long Sum, int Count, ulong Decomposition)> Decompose(long target, long tolerance, int maxCount, long[] stdDenoms)
 	{
 		if (maxCount is <= 1 or > 8)
 		{
@@ -21,7 +19,7 @@ public static class Decomposer
 			throw new ArgumentException("Only positive numbers can be decomposed.", nameof(target));
 		}
 
-		var denoms = StdDenoms.SkipWhile(x => x > target).ToArray();
+		var denoms = stdDenoms.SkipWhile(x => x > target).ToArray();
 
 		if (denoms.Length > 255)
 		{
@@ -95,6 +93,7 @@ public static class LinqEx
 public class ReverseComparer : IComparer<long>
 {
 	public static readonly ReverseComparer Default = new();
+
 	public int Compare(long x, long y)
 	{
 		// Compare y and x in reverse order.

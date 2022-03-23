@@ -250,20 +250,28 @@ public class AmountDecomposer
 			(naiveSet, loss + (ulong)naiveSet.Count * OutputFee)); // The cost is the remaining + output cost.
 
 		// Create many decompositions for optimization.
-		Decomposer.StdDenoms = denoms.Where(x => x <= myInputSum).Select(x => (long)x).ToArray();
-		foreach (var (sum, count, decomp) in Decomposer.Decompose((long)myInputSum, (long)Math.Max(loss, 0.5 * (ulong)MinAllowedOutputAmountPlusFee), Math.Min(8, Math.Max(5, naiveSet.Count))))
+		var stdDenoms = denoms.Where(x => x <= myInputSum).Select(x => (long)x).ToArray();
+		var maxNumberOfOutputsAllowed = Math.Min(AvailableVsize / OutputSize, 8);
+		if (maxNumberOfOutputsAllowed > 1)
 		{
-			var currentSet = Decomposer.ToRealValuesArray(
-				decomp,
-				count,
-				Decomposer.StdDenoms).Select(Money.Satoshis).ToList();
-
-			hash = new();
-			foreach (var item in currentSet.OrderBy(x => x))
+			foreach (var (sum, count, decomp) in Decomposer.Decompose(
+				target: (long)myInputSum,
+				tolerance: (long)Math.Max(loss, 0.5 * (ulong)MinAllowedOutputAmountPlusFee),
+				maxCount: Math.Min(maxNumberOfOutputsAllowed, Math.Max(5, naiveSet.Count)),
+				stdDenoms: stdDenoms))
 			{
-				hash.Add(item);
+				var currentSet = Decomposer.ToRealValuesArray(
+					decomp,
+					count,
+					stdDenoms).Select(Money.Satoshis).ToList();
+
+				hash = new();
+				foreach (var item in currentSet.OrderBy(x => x))
+				{
+					hash.Add(item);
+				}
+				setCandidates.TryAdd(hash.ToHashCode(), (currentSet, myInputSum - (ulong)currentSet.Sum() + (ulong)count * OutputFee)); // The cost is the remaining + output cost.
 			}
-			setCandidates.TryAdd(hash.ToHashCode(), (currentSet, myInputSum - (ulong)currentSet.Sum() + (ulong)count * OutputFee)); // The cost is the remaining + output cost.
 		}
 
 		var denomHashSet = preFilteredDenoms.ToHashSet();
