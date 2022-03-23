@@ -4,7 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:navbar="using:WalletWasabi.Fluent.Views.NavBar"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:ext="using:WalletWasabi.Fluent.Helpers"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
@@ -13,6 +14,7 @@
              xmlns:spectrum="clr-namespace:WalletWasabi.Fluent.Controls.Spectrum"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.Views.SearchBar"
+             xmlns:system="clr-namespace:System;assembly=System.Runtime"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="459"
              x:DataType="vm:MainViewModel"
              x:CompileBindings="True"
@@ -73,10 +75,27 @@
             </Panel>
           </Border>
 
+          <Border x:Name="SearchDropDownDismissArea" Background="Transparent" Grid.RowSpan="2" Grid.ColumnSpan="3" IsVisible="False">
+            <i:Interaction.Behaviors>
+              <ia:EventTriggerBehavior EventName="PointerPressed">
+                <ia:ChangePropertyAction TargetObject="{Binding #SearchBarDropdown}" PropertyName="IsVisible" Value="False" />
+                <ia:ChangePropertyAction TargetObject="{Binding #SearchDropDownDismissArea}" PropertyName="IsVisible" Value="False" />
+              </ia:EventTriggerBehavior>
+            </i:Interaction.Behaviors>
+          </Border>
           <searchBar:SearchBar x:Name="SearchBar" VerticalAlignment="Center" DataContext="{Binding SearchBar}" Grid.Column="1"
-                               HorizontalAlignment="Center" Width="250" />
-          <searchBar:SearchBarDropdown Width="400" MaxHeight="500" VerticalAlignment="Top" IsVisible="{Binding #SearchBar.IsKeyboardFocusWithin}" Grid.Row="1"
-                                       Grid.Column="1" DataContext="{Binding SearchBar}" />
+                               HorizontalAlignment="Center" Width="280">
+            <i:Interaction.Behaviors>
+              <behaviors:PointerPressTriggerBehavior>
+                <ia:ChangePropertyAction TargetObject="{Binding #SearchBarDropdown}" PropertyName="IsVisible" Value="True" />
+                <ia:ChangePropertyAction TargetObject="{Binding #SearchDropDownDismissArea}" PropertyName="IsVisible" Value="True" />
+              </behaviors:PointerPressTriggerBehavior>
+            </i:Interaction.Behaviors>
+          </searchBar:SearchBar>
+          <searchBar:SearchBarDropdown x:Name="SearchBarDropdown" Width="500" MaxHeight="500" VerticalAlignment="Top" IsVisible="False" Grid.Row="1"
+                                       Grid.Column="1" DataContext="{Binding SearchBar}">
+           
+          </searchBar:SearchBarDropdown>
         </Grid>
       </Panel>
       <ExperimentalAcrylicBorder DockPanel.Dock="Left" IsHitTestVisible="False"

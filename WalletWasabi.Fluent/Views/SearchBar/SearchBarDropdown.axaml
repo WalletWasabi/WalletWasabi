@@ -4,9 +4,11 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
              x:Class="WalletWasabi.Fluent.Views.SearchBar.SearchBarDropdown"
              xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBarTextPart"
              x:CompileBindings="False"
+             x:Name="UserControl"
              x:DataType="searchBar:SearchBarViewModel"
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters" Background="{StaticResource SystemBaseLowColor}">
 
@@ -39,20 +41,29 @@
 
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="searchBar:SearchItem">
-                  <Button Background="Transparent" Command="{Binding Command}">
-                    <DockPanel Background="Transparent">
+                  <DockPanel Background="Transparent">
 
-                      <DockPanel.Children>
-                        <PathIcon DockPanel.Dock="Left" Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center">
-                          <PathIcon.Data>
-                            <Binding Path="Icon" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
-                          </PathIcon.Data>
-                        </PathIcon>
-                        <TextBlock Margin="10 0" VerticalAlignment="Center" DockPanel.Dock="Left" Text="{Binding Name}" />
-                        <TextBlock FontWeight="ExtraLight" VerticalAlignment="Center" Text="{Binding Description}" />
-                      </DockPanel.Children>
-                    </DockPanel>
-                  </Button>
+                    <DockPanel.Children>
+                      <PathIcon DockPanel.Dock="Left" Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center">
+                        <PathIcon.Data>
+                          <Binding Path="Icon" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                        </PathIcon.Data>
+                      </PathIcon>
+                      <TextBlock Margin="10 0" VerticalAlignment="Center" DockPanel.Dock="Left" Text="{Binding Name}" />
+                      <TextBlock FontWeight="ExtraLight" VerticalAlignment="Center" Text="{Binding Description}" />
+                    </DockPanel.Children>
+
+                    <i:Interaction.Behaviors>
+                      <EventTriggerBehavior EventName="PointerPressed">
+                        <ia:InvokeCommandAction Command="{Binding Command}" />
+                      </EventTriggerBehavior>
+                      <EventTriggerBehavior EventName="PointerReleased">
+                        <ChangePropertyAction TargetObject="{Binding #UserControl}" PropertyName="IsVisible" Value="False" />
+                      </EventTriggerBehavior>
+                    </i:Interaction.Behaviors>
+
+                  </DockPanel>
+
                 </DataTemplate>
               </ListBox.ItemTemplate>
 
