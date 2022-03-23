@@ -10,7 +10,9 @@
              x:CompileBindings="False"
              x:Name="UserControl"
              x:DataType="searchBar:SearchBarViewModel"
-             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters" Background="{StaticResource SystemBaseLowColor}">
+             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:b="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             Background="{StaticResource SystemBaseLowColor}">
 
   <Design.DataContext>
     <searchBar:SearchBarDesignViewModel />
@@ -47,15 +49,15 @@
                     </DockPanel>
 
                     <i:Interaction.Behaviors>
-                      <EventTriggerBehavior EventName="PointerPressed">
+                      <b:RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerPressedEvent}">
                         <ia:InvokeCommandAction Command="{Binding Command}" />
-                      </EventTriggerBehavior>
-                      <EventTriggerBehavior EventName="PointerReleased">
+                      </b:RoutedEventTriggerBehavior>
+                      <b:RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerReleasedEvent}">
                         <ChangePropertyAction TargetObject="{Binding #UserControl}" PropertyName="IsVisible"
                                               Value="False" />
                         <ChangePropertyAction TargetObject="{Binding #ListBox}" PropertyName="SelectedItem"
                                               Value="{x:Null}" />
-                      </EventTriggerBehavior>
+                      </b:RoutedEventTriggerBehavior>
                     </i:Interaction.Behaviors>
 
                   </Panel>
