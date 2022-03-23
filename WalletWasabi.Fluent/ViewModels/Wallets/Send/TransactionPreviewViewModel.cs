@@ -176,7 +176,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			_transaction = transaction;
 			CheckChangePocketAvailable(transaction);
-			TransactionWarnings.EvaluateTransaction(transaction);
+			TransactionWarnings.EvaluateTransaction(transaction, _info);
 		}
 
 		summary.UpdateTransaction(transaction);
@@ -510,6 +510,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		var labelSelection = new LabelSelectionViewModel(amount);
 		labelSelection.Reset(pockets);
 
-		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins);
+		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.UserLabels);
 	}
 }

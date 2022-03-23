@@ -58,9 +58,12 @@
           <!-- Green shield -->
           <Border Padding="10 0 10 10" Cursor="Hand">
             <Border.IsVisible>
-              <MultiBinding Converter="{x:Static BoolConverters.Or}">
-                <Binding Path="CurrentTransactionSummary.MaxPrivacy" />
-                <Binding Path="!PrivacySuggestions.Suggestions.Count" />
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <MultiBinding Converter="{x:Static BoolConverters.Or}">
+                  <Binding Path="CurrentTransactionSummary.MaxPrivacy" />
+                  <Binding Path="!PrivacySuggestions.Suggestions.Count" />
+                </MultiBinding>
+                <Binding Path="!TransactionWarnings.Warnings.Count" />
               </MultiBinding>
             </Border.IsVisible>
             <Interaction.Behaviors>

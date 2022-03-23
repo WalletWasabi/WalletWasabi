@@ -19,12 +19,14 @@ public class TransactionWarningsViewModel
 
 	public ObservableCollection<TransactionWarningViewModelBase> Warnings { get; }
 
-	public void EvaluateTransaction(BuildTransactionResult transaction)
+	public void EvaluateTransaction(BuildTransactionResult transaction, TransactionInfo info)
 	{
 		Warnings.Clear();
 
 		var labels = SmartLabel.Merge(transaction.SpentCoins.Select(x => x.GetLabels(_privacyThreshold)));
-		if (labels.Any())
+		var exactPocketUsed = labels.Count() == info.UserLabels.Count() && labels.All(label => info.UserLabels.Contains(label, StringComparer.OrdinalIgnoreCase));
+
+		if (labels.Any() && !exactPocketUsed)
 		{
 			Warnings.Add(new LabelTransactionWarningViewModel(labels));
 		}

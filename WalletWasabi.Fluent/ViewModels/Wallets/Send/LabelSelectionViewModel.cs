@@ -279,7 +279,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		OnSelectionChanged();
 	}
 
-	public bool IsOtherSelectionPossible(IEnumerable<SmartCoin> usedCoins)
+	public bool IsOtherSelectionPossible(IEnumerable<SmartCoin> usedCoins, SmartLabel recipient)
 	{
 		var usedPockets = _allPockets.Where(pocket => pocket.Coins.Any(usedCoins.Contains)).ToImmutableArray();
 		var remainingUsablePockets = _allPockets.Except(usedPockets).ToList();
@@ -295,6 +295,12 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		}
 
 		if (!remainingUsablePockets.Any())
+		{
+			return false;
+		}
+
+		var labels = SmartLabel.Merge(usedPockets.Select(x => x.Labels));
+		if (labels.Count() == recipient.Count() && labels.All(label => recipient.Contains(label, StringComparer.OrdinalIgnoreCase)))
 		{
 			return false;
 		}
