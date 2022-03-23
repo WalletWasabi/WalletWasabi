@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.WabiSabi.Client;
 
@@ -251,7 +252,10 @@ public class AmountDecomposer
 
 		// Create many decompositions for optimization.
 		Decomposer.StdDenoms = denoms.Where(x => x <= myInputSum).Select(x => (long)x).ToArray();
-		foreach (var (sum, count, decomp) in Decomposer.Decompose((long)myInputSum, (long)Math.Max(loss, 0.5 * (ulong)MinAllowedOutputAmountPlusFee), Math.Min(8, Math.Max(5, naiveSet.Count))))
+		var tolerance = Math.Max(loss, 0.5 * (ulong)MinAllowedOutputAmountPlusFee);
+		int maxCount = Math.Min(8, Math.Max(5, naiveSet.Count));
+
+		foreach (var (sum, count, decomp) in Decomposer.Decompose((long)myInputSum, (long)tolerance, maxCount))
 		{
 			var currentSet = Decomposer.ToRealValuesArray(
 				decomp,
@@ -281,6 +285,17 @@ public class AmountDecomposer
 			if (random.NextDouble() < 0.5)
 			{
 				finalCandidate = candidate.Decomp;
+
+				// TODO: for debugging purposes, remove later.
+				if (finalCandidate.Sum() > myInputSum)
+				{
+					Logger.LogWarning("The decomposer is creating money. Selecting next candidate.");
+					Logger.LogInfo($"Decompose: '{myInputSum}', '{tolerance}', '{maxCount}'.");
+					Logger.LogInfo($"StdDenoms: '{string.Join(" ", Decomposer.StdDenoms)}'.");
+					Logger.LogInfo($"FinalCandidate: '{string.Join(" ", finalCandidate)}'.");
+					continue;
+				}
+
 				break;
 			}
 		}
