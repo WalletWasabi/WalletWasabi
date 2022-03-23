@@ -17,33 +17,25 @@
   </Design.DataContext>
 
   <UserControl.Styles>
-    <Style Selector="Button">
-      <Setter Property="Background" Value="Transparent" />
-      <Setter Property="HorizontalAlignment" Value="Stretch" />
-      <Setter Property="VerticalAlignment" Value="Stretch" />
-      <Setter Property="Template">
-        <Setter.Value>
-          <ControlTemplate>
-            <ContentPresenter Content="{TemplateBinding Content}" />
-          </ControlTemplate>
-        </Setter.Value>
-      </Setter>
+    <Style Selector="ListBoxItem">
+      <Setter Property="Padding" Value="0" />
     </Style>
+
   </UserControl.Styles>
 
   <ScrollViewer>
     <ItemsControl Items="{Binding Groups}">
       <ItemsControl.ItemTemplate>
         <DataTemplate DataType="{x:Type searchBar:SearchItemGroup}">
-          <DockPanel>
+          <DockPanel Margin="10 ">
             <TextBlock Text="{Binding Title}" DockPanel.Dock="Top" />
-            <ListBox Items="{Binding Items}">
+            <ListBox x:Name="ListBox" Items="{Binding Items}">
 
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="searchBar:SearchItem">
-                  <DockPanel Background="Transparent">
+                  <Panel Background="Transparent">
+                    <DockPanel Background="Transparent" Margin="10">
 
-                    <DockPanel.Children>
                       <PathIcon DockPanel.Dock="Left" Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center">
                         <PathIcon.Data>
                           <Binding Path="Icon" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
@@ -51,25 +43,29 @@
                       </PathIcon>
                       <TextBlock Margin="10 0" VerticalAlignment="Center" DockPanel.Dock="Left" Text="{Binding Name}" />
                       <TextBlock FontWeight="ExtraLight" VerticalAlignment="Center" Text="{Binding Description}" />
-                    </DockPanel.Children>
+
+                    </DockPanel>
 
                     <i:Interaction.Behaviors>
                       <EventTriggerBehavior EventName="PointerPressed">
                         <ia:InvokeCommandAction Command="{Binding Command}" />
                       </EventTriggerBehavior>
                       <EventTriggerBehavior EventName="PointerReleased">
-                        <ChangePropertyAction TargetObject="{Binding #UserControl}" PropertyName="IsVisible" Value="False" />
+                        <ChangePropertyAction TargetObject="{Binding #UserControl}" PropertyName="IsVisible"
+                                              Value="False" />
+                        <ChangePropertyAction TargetObject="{Binding #ListBox}" PropertyName="SelectedItem"
+                                              Value="{x:Null}" />
                       </EventTriggerBehavior>
                     </i:Interaction.Behaviors>
 
-                  </DockPanel>
+                  </Panel>
 
                 </DataTemplate>
               </ListBox.ItemTemplate>
 
-              <i:Interaction.Behaviors>
+              <!--<i:Interaction.Behaviors>
                 <searchBar:AutoSelectFirstItemBehavior />
-              </i:Interaction.Behaviors>
+              </i:Interaction.Behaviors>-->
 
             </ListBox>
           </DockPanel>
