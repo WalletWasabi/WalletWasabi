@@ -16,12 +16,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<SmartCoin>>
 {
 	private readonly Wallet _wallet;
+	private readonly TransactionInfo _transactionInfo;
 	private readonly bool _isSilent;
 	private readonly IEnumerable<SmartCoin>? _usedCoins;
 
 	public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, IEnumerable<SmartCoin>? usedCoins, bool isSilent)
 	{
 		_wallet = wallet;
+		_transactionInfo = transactionInfo;
 		_isSilent = isSilent;
 		_usedCoins = usedCoins;
 
@@ -68,7 +70,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 		if (_isSilent)
 		{
-			var autoSelectedPockets = LabelSelection.AutoSelectPockets();
+			var autoSelectedPockets = LabelSelection.AutoSelectPockets(_transactionInfo.UserLabels);
 
 			Complete(autoSelectedPockets);
 		}
