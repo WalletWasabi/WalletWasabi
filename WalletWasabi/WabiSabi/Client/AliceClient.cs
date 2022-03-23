@@ -180,8 +180,6 @@ public class AliceClient
 		IssuedVsizeCredentials = response.IssuedVsizeCredentials;
 
 		var isConfirmed = response.Value;
-
-		Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Connection confirmed.");
 		return isConfirmed;
 	}
 
