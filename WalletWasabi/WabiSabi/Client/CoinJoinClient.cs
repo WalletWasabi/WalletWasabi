@@ -336,11 +336,11 @@ public class CoinJoinClient
 
 		var totalEffectiveInputAmount = Money.Satoshis(registeredAliceClients.Sum(a => a.EffectiveValue));
 		var totalEffectiveOutputAmount = Money.Satoshis(myOutputs.Sum(a => a.Value - feeRate.GetFee(a.ScriptPubKey.EstimateOutputVsize())));
-		var effectiveDifference = totalEffectiveOutputAmount - totalEffectiveInputAmount;
+		var effectiveDifference = totalEffectiveInputAmount - totalEffectiveOutputAmount;
 
 		var totalInputAmount = Money.Satoshis(registeredAliceClients.Sum(a => a.SmartCoin.Amount));
 		var totalOutputAmount = Money.Satoshis(myOutputs.Sum(a => a.Value));
-		var totalDifference = Money.Satoshis(totalOutputAmount - totalInputAmount);
+		var totalDifference = Money.Satoshis(totalInputAmount - totalOutputAmount);
 
 		var inputNetworkFee = Money.Satoshis(registeredAliceClients.Sum(alice => feeRate.GetFee(alice.SmartCoin.Coin.ScriptPubKey.EstimateInputVsize())));
 		var outputNetworkFee = Money.Satoshis(myOutputs.Sum(output => feeRate.GetFee(output.ScriptPubKey.EstimateOutputVsize())));
