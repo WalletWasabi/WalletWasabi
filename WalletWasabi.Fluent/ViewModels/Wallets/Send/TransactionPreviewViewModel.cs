@@ -13,6 +13,7 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -70,7 +71,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			});
 
 		PrivacySuggestions.WhenAnyValue(x => x.SelectedSuggestion)
-			.Subscribe(async x =>
+			.SubscribeAsync(async x =>
 			{
 				PrivacySuggestions.IsOpen = false;
 				PrivacySuggestions.SelectedSuggestion = null;
@@ -365,12 +366,11 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task<bool> NavigateConfirmLabelsDialogAsync(BuildTransactionResult transaction)
 	{
-		return (await NavigateDialogAsync(
-			new ConfirmLabelsDialogViewModel(
-				new PocketSuggestionViewModel(SmartLabel.Merge(
-					transaction.SpentCoins.Select(
-						x => x.GetLabels(_wallet.KeyManager.MinAnonScoreTarget))))),
-			NavigationTarget.CompactDialogScreen)).Result;
+		var labels = SmartLabel.Merge(transaction.SpentCoins.Select(x => x.GetLabels(_wallet.KeyManager.MinAnonScoreTarget)));
+		var suggestionViewModel = new PocketSuggestionViewModel(labels);
+		var dialog = new ConfirmLabelsDialogViewModel(suggestionViewModel);
+
+		return (await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen)).Result;
 	}
 
 	private async Task InitialiseViewModelAsync()
@@ -381,7 +381,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 			var suggestionTask = PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, initialTransaction, _isFixedAmount, _cancellationTokenSource.Token);
 
-			if (CurrentTransactionSummary.TransactionHasPockets && !await NavigateConfirmLabelsDialogAsync(initialTransaction))
+			if (CurrentTransactionSummary.TransactionHasPockets && await NavigateConfirmLabelsDialogAsync(initialTransaction))
 			{
 				await OnChangePocketsAsync();
 			}
@@ -426,27 +426,12 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private async Task OnConfirmAsync()
 	{
 		_cancellationTokenSource.Cancel();
-		var labelDialog = new LabelEntryDialogViewModel(_wallet, _info);
-
-		Navigate(NavigationTarget.CompactDialogScreen).To(labelDialog);
-
-		var result = await labelDialog.GetDialogResultAsync();
-
-		if (result.Result is null)
-		{
-			Navigate(NavigationTarget.CompactDialogScreen).Back(); // manually close the LabelEntryDialog when user cancels it. TODO: refactor.
-			return;
-		}
-
-		_info.UserLabels = result.Result;
 
 		var transaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info, _destination));
 		var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
 		var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
 		if (authResult)
 		{
-			Navigate(NavigationTarget.CompactDialogScreen).Back(); // manually close the LabelEntryDialog when the authorization dialog never popped (empty password case). TODO: refactor.
-
 			IsBusy = true;
 
 			try

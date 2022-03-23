@@ -5,6 +5,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -59,7 +60,7 @@ public class PreviewItem : ContentControl
 				x => x.IsPointerOver,
 				x => x.PrivacyModeEnabled,
 				(copyParameter, isPointerOver, privacyModeEnabled) => !string.IsNullOrEmpty(copyParameter?.ToString()) && isPointerOver && !privacyModeEnabled)
-			.Subscribe(async value =>
+			.SubscribeAsync(async value =>
 			{
 				if (_copyButtonPressedStopwatch is { } sw)
 				{
