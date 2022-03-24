@@ -3,7 +3,6 @@ using System.Reactive;
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.SearchBarTextPart;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar;
 

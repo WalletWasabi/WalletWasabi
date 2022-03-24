@@ -7,16 +7,15 @@
              xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
              xmlns:ic="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions"
              x:Class="WalletWasabi.Fluent.Views.SearchBar.SearchBarDropdown"
-             xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBarTextPart"
-             x:CompileBindings="False"
+             x:CompileBindings="True"
              x:Name="UserControl"
-             x:DataType="searchBar:SearchBarViewModel"
+             x:DataType="sb:SearchBarViewModel"
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
-             xmlns:b="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:sb="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar"
              Background="{StaticResource SystemBaseLowColor}">
 
   <Design.DataContext>
-    <searchBar:SearchBarDesignViewModel />
+    <sb:SearchBarDesignViewModel />
   </Design.DataContext>
 
   <UserControl.Styles>
@@ -40,13 +39,13 @@
   <ScrollViewer>
     <ItemsControl Items="{Binding Groups}">
       <ItemsControl.ItemTemplate>
-        <DataTemplate DataType="{x:Type searchBar:SearchItemGroup}">
+        <DataTemplate DataType="{x:Type sb:SearchItemGroup}">
           <DockPanel Margin="10 ">
             <TextBlock Text="{Binding Title}" DockPanel.Dock="Top" />
             <ListBox x:Name="ListBox" Items="{Binding Items}">
 
               <ListBox.ItemTemplate>
-                <DataTemplate x:DataType="searchBar:SearchItem">
+                <DataTemplate x:DataType="sb:SearchItem">
                   <Panel Background="Transparent">
                     <DockPanel Background="Transparent" Margin="10">
 
@@ -76,10 +75,6 @@
 
                 </DataTemplate>
               </ListBox.ItemTemplate>
-
-              <!--<i:Interaction.Behaviors>
-                <searchBar:AutoSelectFirstItemBehavior />
-              </i:Interaction.Behaviors>-->
 
             </ListBox>
           </DockPanel>

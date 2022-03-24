@@ -73,7 +73,8 @@
             </Panel>
           </Border>
 
-          <searchBar:SearchBar DataContext="{Binding SearchBar}" Grid.RowSpan="2" Grid.ColumnSpan="3" />
+          <searchBar:SearchBar DataContext="{Binding SearchBar}" Margin="0 15 0 0" Grid.Row="0" Grid.RowSpan="2" Grid.ColumnSpan="3"
+                               Grid.Column="0" />
 
         </Grid>
       </Panel>

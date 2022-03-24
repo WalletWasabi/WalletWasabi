@@ -3,17 +3,15 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:s="clr-namespace:WalletWasabi.Fluent.Views.SearchBar"
-             xmlns:searchBarTextPart="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBarTextPart"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
-             xmlns:ic="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar"
+             x:CompileBindings="True"
+             x:DataType="searchBar:SearchBarViewModel"
              x:Class="WalletWasabi.Fluent.Views.SearchBar.SearchBar">
   <UserControl.Resources>
-    <Thickness x:Key="TextControlBorderThemeThickness">1</Thickness>
     <Thickness x:Key="TextControlBorderThemeThicknessFocused">1</Thickness>
-    <Thickness x:Key="TextControlThemePadding">15,10,15,8</Thickness>
   </UserControl.Resources>
 
   <UserControl.Styles>
@@ -24,10 +22,10 @@
       <Setter Property="BorderThickness" Value="1 1 1 1" />
       <Setter Property="CornerRadius" Value="4" />
       <Setter Property="Margin" Value="0" />
-      <Setter Property="FontSize" Value="12"></Setter>
-      <Setter Property="Padding" Value="6 3"></Setter>
-      <Setter Property="VerticalContentAlignment" Value="Center"></Setter>
-      <Setter Property="MinHeight" Value="8"></Setter>
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Padding" Value="6 3" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="MinHeight" Value="8" />
     </Style>
 
     <Style Selector="TextBox#SearchBox /template/ Border#PART_BorderElement">
@@ -35,7 +33,7 @@
     </Style>
 
     <Style Selector="TextBox#SearchBox /template/ DataValidationErrors">
-      <Setter Property="IsVisible" Value="False"></Setter>
+      <Setter Property="IsVisible" Value="False" />
     </Style>
 
     <Style Selector="TextBox:pointerover">
@@ -44,11 +42,12 @@
     </Style>
 
     <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
-      <Setter Property="BorderBrush" Value="White"/>
+      <Setter Property="BorderBrush" Value="White" />
       <Setter Property="Background" Value="Transparent" />
     </Style>
 
-    <Style Selector="TextBox:pointerover /template/ TextBlock#PART_Watermark, TextBox:pointerover /template/ TextBlock#PART_FloatingWatermark">
+    <Style
+      Selector="TextBox:pointerover /template/ TextBlock#PART_Watermark, TextBox:pointerover /template/ TextBlock#PART_FloatingWatermark">
       <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundPointerOver}" />
     </Style>
 
@@ -58,30 +57,31 @@
       <Setter Property="Cursor" Value="Arrow" />
     </Style>
 
-    <Style Selector="TextBox:focus /template/ TextBlock#PART_Watermark, TextBox:focus /template/ TextBlock#PART_FloatingWatermark">
+    <Style
+      Selector="TextBox:focus /template/ TextBlock#PART_Watermark, TextBox:focus /template/ TextBlock#PART_FloatingWatermark">
       <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundFocused}" />
     </Style>
 
     <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
-      <Setter Property="Background" Value="Transparent"/>
-      <Setter Property="BorderBrush" Value="White"/>
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="White" />
       <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThicknessFocused}" />
     </Style>
   </UserControl.Styles>
-
-
 
   <i:Interaction.Behaviors>
     <behaviors:SearchBarBehavior SearchBox="SearchBox" SearchPanel="SearchBarDropdown" />
   </i:Interaction.Behaviors>
 
   <Design.DataContext>
-    <searchBarTextPart:SearchBarDesignViewModel />
+    <searchBar:SearchBarDesignViewModel />
   </Design.DataContext>
 
-  <StackPanel Margin="400 0" VerticalAlignment="Top">
-    <TextBox x:Name="SearchBox" Watermark="Search settings / advanced features" Text="{Binding SearchText, Mode=TwoWay}" VerticalAlignment="Top" />
-
-    <s:SearchBarDropdown x:Name="SearchBarDropdown" IsVisible="False" HorizontalAlignment="Left" MinWidth="400" MaxHeight="500" />
+  <StackPanel Margin="300 0" VerticalAlignment="Top">
+    <TextBox x:Name="SearchBox" Watermark="Search settings / advanced features" HorizontalAlignment="Left"
+             Text="{Binding SearchText, Mode=TwoWay}" MaxWidth="300" VerticalAlignment="Top" />
+    <s:SearchBarDropdown x:Name="SearchBarDropdown" IsVisible="False" HorizontalAlignment="Left" MinWidth="400"
+                         MaxHeight="500" />
   </StackPanel>
+
 </UserControl>

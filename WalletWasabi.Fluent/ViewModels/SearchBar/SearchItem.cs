@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Input;
 
-namespace WalletWasabi.Fluent.ViewModels.SearchBarTextPart;
+namespace WalletWasabi.Fluent.ViewModels.SearchBar;
 
 public class SearchItem
 {
@@ -20,7 +20,7 @@ public class SearchItem
 	public string Name { get; }
 	public string Description { get; }
 	public ComposedKey Key => new(Name);
-	public string Icon { get; set; }
+	public string? Icon { get; set; }
 	public string Category { get; }
 	public IEnumerable<string> Keywords { get; }
 }

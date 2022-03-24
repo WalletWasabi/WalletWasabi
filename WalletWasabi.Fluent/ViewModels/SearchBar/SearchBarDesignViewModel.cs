@@ -4,7 +4,7 @@ using System.Reactive.Linq;
 using DynamicData;
 using ReactiveUI;
 
-namespace WalletWasabi.Fluent.ViewModels.SearchBarTextPart;
+namespace WalletWasabi.Fluent.ViewModels.SearchBar;
 
 public class SearchBarDesignViewModel : ReactiveObject
 {
