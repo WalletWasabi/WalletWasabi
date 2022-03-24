@@ -24,9 +24,9 @@
           <Color x:Key="SystemChromeDisabledHighColor">#282828</Color>
           <Color x:Key="SystemChromeDisabledLowColor">#FF8D95A3</Color>
           <Color x:Key="SystemChromeGrayColor">#FF737A87</Color>
-          <Color x:Key="SystemChromeHighColor">#FF737A87</Color>
-          <Color x:Key="SystemChromeLowColor">#FF071329</Color>
-          <Color x:Key="SystemChromeMediumColor">#171717</Color>
+          <Color x:Key="SystemChromeHighColor">#0A8093AE</Color>
+          <Color x:Key="SystemChromeLowColor">#208093AE</Color>
+          <Color x:Key="SystemChromeMediumColor">#1A8093AE</Color>
           <Color x:Key="SystemChromeMediumLowColor">#232323</Color>
           <Color x:Key="SystemChromeWhiteColor">#FFFFFFFF</Color>
           <Color x:Key="SystemListLowColor">#FF0E192C</Color>
@@ -57,6 +57,18 @@
     <StaticResource x:Key="TextControlBorderBrush" ResourceKey="SystemBaseLowColor" />
     <StaticResource x:Key="TextControlBorderBrushPointerOver" ResourceKey="SystemBaseMediumLowColor" />
     <StaticResource x:Key="TextControlBorderBrushFocused" ResourceKey="SystemBaseMediumHighColor" />
+
+    <StaticResource x:Key="TextControlBackground" ResourceKey="SystemChromeMediumColor" />
+    <StaticResource x:Key="TextControlBackgroundFocused" ResourceKey="SystemChromeMediumColor" />
+    <StaticResource x:Key="TextControlBackgroundPointerOver" ResourceKey="SystemChromeMediumColor" />
+
+    <StaticResource x:Key="ComboBoxItemBackground" ResourceKey="SystemChromeMediumColor" />
+    <StaticResource x:Key="ComboBoxItemBackgroundPressed" ResourceKey="SystemChromeHighColor" />
+    <StaticResource x:Key="ComboBoxItemBackgroundPointerOver" ResourceKey="SystemChromeLowColor" />
+
+    <StaticResource x:Key="ComboBoxBackground" ResourceKey="SystemChromeMediumColor" />
+    <StaticResource x:Key="ComboBoxBackgroundPressed" ResourceKey="SystemChromeHighColor" />
+    <StaticResource x:Key="ComboBoxBackgroundPointerOver" ResourceKey="SystemChromeLowColor" />
 
     <Color x:Key="TileRegionColor">#09ffffff</Color>
     <Color x:Key="TileBorderColor">#66757575</Color>

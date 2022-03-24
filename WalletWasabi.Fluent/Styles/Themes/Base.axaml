@@ -27,10 +27,6 @@
 
     <Color x:Key="StatusForegroundColor">White</Color>
 
-    <SolidColorBrush x:Key="TextControlBackground" Color="{DynamicResource SystemChromeMediumColor}" />
-    <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="{DynamicResource SystemChromeMediumColor}" />
-    <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="{DynamicResource SystemChromeMediumColor}" />
-
     <SolidColorBrush x:Key="PopupBackground" Color="{DynamicResource SystemBaseLowColor}" />
     <SolidColorBrush x:Key="OptionButtonBackground" Color="{DynamicResource TileRegionColor}" />
     <SolidColorBrush x:Key="OptionButtonBorderBrush" Opacity="0.5" Color="{DynamicResource SystemBaseHighColor}" />
