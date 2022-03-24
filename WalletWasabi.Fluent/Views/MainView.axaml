@@ -73,8 +73,8 @@
             </Panel>
           </Border>
 
-          <searchBar:SearchBar DataContext="{Binding SearchBar}" HorizontalAlignment="Center" VerticalAlignment="Stretch"
-                               Grid.Row="0" Grid.Column="1" />
+          <searchBar:SearchBar DataContext="{Binding SearchBar}" Width="400" VerticalAlignment="Stretch"
+                               Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" />
 
         </Grid>
       </Panel>

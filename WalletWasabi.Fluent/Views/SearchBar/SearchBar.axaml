@@ -75,7 +75,7 @@
   </Design.DataContext>
 
   <TextBox x:Name="SearchBox" Watermark="Search settings / advanced features" HorizontalAlignment="Left"
-           Text="{Binding SearchText, Mode=TwoWay}" MaxWidth="400" VerticalAlignment="Center">
+           Text="{Binding SearchText, Mode=TwoWay}" Width="400" VerticalAlignment="Center">
     <TextBox.InnerLeftContent>
       <PathIcon Data="{StaticResource action_center_regular}" Margin="10 0" />
     </TextBox.InnerLeftContent>
