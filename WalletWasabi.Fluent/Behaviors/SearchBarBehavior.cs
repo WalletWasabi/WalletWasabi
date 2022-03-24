@@ -4,12 +4,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Threading;
 using Avalonia.VisualTree;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
-public class SearchBarBehavior : DisposingBehavior<UserControl>
+public class SearchBarBehavior : AttachedToVisualTreeBehavior<UserControl>
 {
 	public static readonly StyledProperty<TextBox?> SearchBoxProperty =
 		AvaloniaProperty.Register<SearchBarBehavior, TextBox?>(nameof(SearchBox));
@@ -31,29 +30,25 @@ public class SearchBarBehavior : DisposingBehavior<UserControl>
 		set => SetValue(SearchPanelProperty, value);
 	}
 
-	protected override void OnAttached(CompositeDisposable disposables)
+	protected override void OnAttachedToVisualTree(CompositeDisposable disposables)
 	{
-		Dispatcher.UIThread.Post(() =>
+		if (AssociatedObject.GetVisualRoot() is TopLevel topLevel)
 		{
-			if (AssociatedObject.GetVisualRoot() is TopLevel topLevel)
-			{
-				topLevel.AddHandler(InputElement.PointerPressedEvent, Handler, RoutingStrategies.Tunnel);
+			topLevel.AddHandler(InputElement.PointerPressedEvent, OnTopLevelPointerPressed, RoutingStrategies.Tunnel);
 
-				disposables.Add(Disposable.Create(()=>topLevel.RemoveHandler(InputElement.PointerPressedEvent, Handler)));
-			}
+			disposables.Add(Disposable.Create(()=>topLevel.RemoveHandler(InputElement.PointerPressedEvent, OnTopLevelPointerPressed)));
+		}
 
-			var searchBox = SearchBox;
-			var searchPanel = SearchPanel;
-
-			disposables.Add(Observable.FromEventPattern(searchBox, nameof(searchBox.GotFocus)).Subscribe(x =>
+		if (SearchBox is { } && SearchPanel is { })
+		{
+			disposables.Add(Observable.FromEventPattern(SearchBox, nameof(SearchBox.GotFocus)).Subscribe(x =>
 			{
 				SearchPanel.IsVisible = true;
 			}));
-
-		});
+		}
 	}
 
-	private void Handler(object? sender, PointerPressedEventArgs e)
+	private void OnTopLevelPointerPressed(object? sender, PointerPressedEventArgs e)
 	{
 		if (!AssociatedObject.IsPointerOver)
 		{
