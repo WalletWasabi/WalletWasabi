@@ -29,7 +29,7 @@ public class KeyManager
 
 	public const int AbsoluteMinGapLimit = 21;
 	public const int MaxGapLimit = 10_000;
-	public static Money DefaultPlebStopThreshold = Money.Coins(0.01m);
+	public static Money DefaultPlebStopThreshold = Money.Coins(0.0001m);
 
 	// BIP84-ish derivation scheme
 	// m / purpose' / coin_type' / account' / change / address_index
@@ -151,7 +151,7 @@ public class KeyManager
 	/// </summary>
 	[JsonProperty(Order = 11, PropertyName = "PlebStopThreshold")]
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
-	public Money PlebStopThreshold { get; internal set; } = DefaultPlebStopThreshold;
+	public Money PlebStopThreshold { get; set; } = DefaultPlebStopThreshold;
 
 	[JsonProperty(Order = 12, PropertyName = "Icon")]
 	public string? Icon { get; private set; }
@@ -234,7 +234,8 @@ public class KeyManager
 		SafeIoManager safeIoManager = new(filePath);
 		string jsonString = safeIoManager.ReadAllText(Encoding.UTF8);
 
-		var km = JsonConvert.DeserializeObject<KeyManager>(jsonString);
+		KeyManager km = JsonConvert.DeserializeObject<KeyManager>(jsonString)
+			?? throw new JsonSerializationException($"Wallet file at: `{filePath}` is not a valid wallet file or it is corrupted.");
 
 		km.SetFilePath(filePath);
 		lock (km.HdPubKeyScriptBytesLock)

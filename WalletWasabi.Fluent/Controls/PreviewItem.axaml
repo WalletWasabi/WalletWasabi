@@ -7,7 +7,9 @@
             <ControlTemplate>
                 <DockPanel Background="Transparent">
                     <PathIcon Width="{TemplateBinding IconSize}" Height="{TemplateBinding IconSize}"
-                              Data="{TemplateBinding Icon}" Opacity="0.6" Foreground="{DynamicResource SystemAccentColor}"
+                              Data="{TemplateBinding Icon}"
+                              Opacity="0.5"
+                              Foreground="{StaticResource SystemAccentNeutralColor}"
                               IsVisible="{TemplateBinding IsIconVisible}" DockPanel.Dock="Left" />
                     <DockPanel DockPanel.Dock="Right" Margin="30 0 0 0">
                         <TextBlock Name="PART_Text" Text="{TemplateBinding Text}" DockPanel.Dock="Top" Margin="0 0 0 5" Opacity="0.6" />

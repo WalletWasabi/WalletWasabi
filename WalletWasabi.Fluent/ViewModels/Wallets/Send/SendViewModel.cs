@@ -22,6 +22,11 @@ using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
+using System.Reactive;
+using System.Collections.ObjectModel;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -47,7 +52,7 @@ public partial class SendViewModel : RoutableViewModel
 
 	private bool _parsingUrl;
 
-	public SendViewModel(Wallet wallet)
+	public SendViewModel(Wallet wallet, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModelBase> history)
 	{
 		_to = "";
 		_wallet = wallet;
@@ -57,6 +62,8 @@ public partial class SendViewModel : RoutableViewModel
 		IsQrButtonVisible = WebcamQrReader.IsOsPlatformSupported;
 
 		ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
+
+		Balance = new WalletBalanceTileViewModel(wallet, balanceChanged, history);
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -109,12 +116,21 @@ public partial class SendViewModel : RoutableViewModel
 					return allFilled && !hasError;
 				});
 
-		NextCommand = ReactiveCommand.Create(() =>
+		NextCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
 			var address = BitcoinAddress.Create(To, wallet.Network);
 
 			_transactionInfo.Reset();
 			_transactionInfo.Amount = new Money(AmountBtc, MoneyUnit.BTC);
+
+			var labelDialog = new LabelEntryDialogViewModel(_wallet, _transactionInfo);
+			var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
+			if (result.Result is not { } label)
+			{
+				return;
+			}
+
+			_transactionInfo.UserLabels = label;
 
 			Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo, address, _isFixedAmount));
 		}, nextCommandCanExecute);
@@ -129,6 +145,8 @@ public partial class SendViewModel : RoutableViewModel
 	public ICommand QrCommand { get; }
 
 	public ICommand AdvancedOptionsCommand { get; }
+
+	public WalletBalanceTileViewModel Balance { get; }
 
 	private async Task OnAutoPasteAsync()
 	{
@@ -160,7 +178,7 @@ public partial class SendViewModel : RoutableViewModel
 	private IPayjoinClient? GetPayjoinClient(string endPoint)
 	{
 		if (!string.IsNullOrWhiteSpace(endPoint) &&
-			Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
+		    Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
 		{
 			var payjoinEndPointUri = new Uri(endPoint);
 			if (!Services.Config.UseTor)
@@ -178,8 +196,7 @@ public partial class SendViewModel : RoutableViewModel
 				}
 			}
 
-			IHttpClient httpClient =
-				Services.ExternalHttpClientFactory.NewHttpClient(() => payjoinEndPointUri, Mode.DefaultCircuit);
+			IHttpClient httpClient = Services.HttpClientFactory.NewHttpClient(() => payjoinEndPointUri, Mode.DefaultCircuit);
 			return new PayjoinClient(payjoinEndPointUri, httpClient);
 		}
 
@@ -242,11 +259,9 @@ public partial class SendViewModel : RoutableViewModel
 		if (AddressStringParser.TryParse(text, _wallet.Network, out BitcoinUrlBuilder? url))
 		{
 			result = true;
-			SmartLabel label = url.Label;
-
-			if (!label.IsEmpty)
+			if (url.Label is { } label)
 			{
-				_transactionInfo.UserLabels = new SmartLabel(label.Labels);
+				_transactionInfo.UserLabels = new SmartLabel(label);
 			}
 
 			if (url.UnknownParameters.TryGetValue("pj", out var endPoint))
@@ -302,6 +317,8 @@ public partial class SendViewModel : RoutableViewModel
 			.DisposeWith(disposables);
 
 		RxApp.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
+
+		Balance.Activate(disposables);
 
 		base.OnNavigatedTo(inHistory, disposables);
 	}

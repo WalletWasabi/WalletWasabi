@@ -39,7 +39,7 @@ public class Config : ConfigBase
 
 	[JsonProperty(PropertyName = "Network")]
 	[JsonConverter(typeof(NetworkJsonConverter))]
-	public Network Network { get; internal set; } = Network.Main;
+	public Network Network { get; internal set; } = Network.TestNet;
 
 	[DefaultValue("http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/")]
 	[JsonProperty(PropertyName = "MainNetBackendUriV3", DefaultValueHandling = DefaultValueHandling.Populate)]

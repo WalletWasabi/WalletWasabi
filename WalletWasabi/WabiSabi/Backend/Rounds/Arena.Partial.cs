@@ -11,6 +11,7 @@ using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -47,7 +48,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
 			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
+				throw new WrongPhaseException(round, Phase.InputRegistration);
 			}
 
 			if (round is BlameRound blameRound && !blameRound.BlameWhitelist.Contains(coin.Outpoint))
@@ -131,7 +132,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	{
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			var round = GetRound(request.RoundId);
+			var round = GetRound(request.RoundId, Phase.OutputRegistration);
 			var alice = GetAlice(request.AliceId, round);
 			alice.ReadyToSign = true;
 		}
@@ -240,7 +241,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 					}
 
 				default:
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({request.RoundId}): Wrong phase ({round.Phase}).");
+					throw new WrongPhaseException(round, Phase.InputRegistration, Phase.ConnectionConfirmation);
 			}
 		}
 	}
@@ -257,6 +258,19 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			var round = GetRound(request.RoundId, Phase.OutputRegistration);
 
 			var credentialAmount = -request.AmountCredentialRequests.Delta;
+
+			if (CoinJoinScriptStore?.Contains(request.Script) is true)
+			{
+				Logger.LogWarning($"Round ({request.RoundId}): Already registered script.");
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script.");
+			}
+
+			var inputScripts = round.Alices.Select(a => a.Coin.ScriptPubKey).ToHashSet();
+			if (inputScripts.Contains(request.Script))
+			{
+				Logger.LogWarning($"Round ({request.RoundId}): Already registered script in the round.");
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script in round.");
+			}
 
 			Bob bob = new(request.Script, credentialAmount);
 
@@ -378,7 +392,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	private Round InPhase(Round round, Phase[] phases) =>
 		phases.Contains(round.Phase)
 		? round
-		: throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({round.Id}): Wrong phase ({round.Phase}).");
+		: throw new WrongPhaseException(round, phases);
 
 	private Round GetRound(uint256 roundId, params Phase[] phases) =>
 		InPhase(GetRound(roundId), phases);

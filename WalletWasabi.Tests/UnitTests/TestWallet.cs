@@ -1,5 +1,6 @@
 using NBitcoin;
 using NBitcoin.Crypto;
+using NBitcoin.DataEncoders;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,27 +13,24 @@ using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Tests.UnitTests;
 
-public class TestWallet : IKeyChain, IDestinationProvider, IDisposable
+public class TestWallet : IKeyChain, IDestinationProvider
 {
-	private bool _disposedValue;
-
 	public TestWallet(string name, IRPCClient rpc)
 	{
 		Rpc = rpc;
-		Key = new Key(Hashes.SHA256(Encoding.UTF8.GetBytes(name)));
+		ExtKey = new ExtKey(Encoders.Hex.EncodeData(Encoding.UTF8.GetBytes(name)));
 	}
 
 	private IRPCClient Rpc { get; }
 	private List<Coin> Utxos { get; } = new();
-	private Key Key { get; }
-	public PubKey PubKey => Key.PubKey;
-	public Script ScriptPubKey => Key.GetScriptPubKey(ScriptPubKeyType.Segwit);
-	public BitcoinAddress Address => Key.PubKey.GetAddress(ScriptPubKeyType.Segwit, Rpc.Network);
+	private ExtKey ExtKey { get; }
+	private Dictionary<Script, ExtKey> ScriptPubKeys { get; } = new();
+	private uint NextKeyIndex { get; set; } = 0;
 
 	public async Task GenerateAsync(int blocks, CancellationToken cancellationToken)
 	{
-		ThrowIfDisposed();
-		var blockIds = await Rpc.GenerateToAddressAsync(blocks, Address, cancellationToken).ConfigureAwait(false);
+		var miningAddress = CreateNewAddress();
+		var blockIds = await Rpc.GenerateToAddressAsync(blocks, miningAddress, cancellationToken).ConfigureAwait(false);
 		foreach (var blockId in blockIds)
 		{
 			var block = await Rpc.GetBlockAsync(blockId, cancellationToken).ConfigureAwait(false);
@@ -41,9 +39,16 @@ public class TestWallet : IKeyChain, IDestinationProvider, IDisposable
 		}
 	}
 
+	public BitcoinAddress CreateNewAddress()
+	{
+		var key = CreateNewKey();
+		var scriptPubKey = key.PrivateKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
+		ScriptPubKeys.Add(scriptPubKey, key);
+		return scriptPubKey.GetDestinationAddress(Rpc.Network);
+	}
+
 	public (Transaction, Coin) CreateTemplateTransaction()
 	{
-		ThrowIfDisposed();
 		var biggestUtxo = Utxos.MaxBy(x => x.Amount);
 
 		if (biggestUtxo is null)
@@ -58,15 +63,13 @@ public class TestWallet : IKeyChain, IDestinationProvider, IDisposable
 
 	public Transaction CreateSelfTransfer(FeeRate feeRate)
 	{
-		ThrowIfDisposed();
 		var (tx, spendingCoin) = CreateTemplateTransaction();
-		tx.Outputs.Add(spendingCoin.Amount - feeRate.GetFee(Constants.P2wpkhOutputSizeInBytes), Address);
+		tx.Outputs.Add(spendingCoin.Amount - feeRate.GetFee(Constants.P2wpkhOutputSizeInBytes), CreateNewAddress());
 		return tx;
 	}
 
 	public async Task<uint256> SendToAsync(Money amount, Script scriptPubKey, FeeRate feeRate, CancellationToken cancellationToken)
 	{
-		ThrowIfDisposed();
 		const int FinalSignedTxVirtualSize = 222;
 		var effectiveOutputCost = amount + feeRate.GetFee(FinalSignedTxVirtualSize);
 		var tx = CreateSelfTransfer(FeeRate.Zero);
@@ -83,7 +86,6 @@ public class TestWallet : IKeyChain, IDestinationProvider, IDisposable
 
 	public async Task<uint256> SendRawTransactionAsync(Transaction tx, CancellationToken cancellationToken)
 	{
-		ThrowIfDisposed();
 		var txid = await Rpc.SendRawTransactionAsync(tx, cancellationToken).ConfigureAwait(false);
 		ScanTransaction(tx);
 		return txid;
@@ -91,73 +93,60 @@ public class TestWallet : IKeyChain, IDestinationProvider, IDisposable
 
 	public Transaction SignTransaction(Transaction tx)
 	{
-		ThrowIfDisposed();
 		var signedTx = tx.Clone();
 		var inputTable = signedTx.Inputs.Select(x => x.PrevOut).ToHashSet();
 		var inputsToSign = Utxos.Where(x => inputTable.Contains(x.Outpoint));
-		signedTx.Sign(Key.GetBitcoinSecret(Rpc.Network), inputsToSign);
+		var scriptsToSign = inputsToSign.Select(x => x.ScriptPubKey).ToHashSet();
+		var secrets = ScriptPubKeys
+			.Where(x => scriptsToSign.Contains(x.Key))
+			.Select(x => x.Value.PrivateKey.GetBitcoinSecret(Rpc.Network))
+			.ToList();
+		signedTx.Sign(secrets, inputsToSign);
 		return signedTx;
 	}
 
+	public ExtPubKey GetExtPubKey(Script scriptPubKey) =>
+		ScriptPubKeys[scriptPubKey].Neuter();
+
 	public OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData committedData)
 	{
-		ThrowIfDisposed();
-		if (destination.ScriptPubKey != ScriptPubKey)
+		if (!ScriptPubKeys.TryGetValue(destination.ScriptPubKey, out var extKey))
 		{
 			throw new ArgumentException("Destination doesn't belong to this wallet.");
 		}
 
 		using var identificationKey = new Key();
 		return OwnershipProof.GenerateCoinJoinInputProof(
-				Key,
-				new OwnershipIdentifier(identificationKey, ScriptPubKey),
+				extKey.PrivateKey,
+				new OwnershipIdentifier(identificationKey, destination.ScriptPubKey),
 				committedData);
 	}
 
 	/// <remarks>Test wallet assumes that the ownership proof is always correct.</remarks>
 	public Transaction Sign(Transaction transaction, Coin coin, OwnershipProof ownershipProof)
 	{
-		ThrowIfDisposed();
-		transaction.Sign(Key.GetBitcoinSecret(Rpc.Network), coin);
+		if (!ScriptPubKeys.TryGetValue(coin.ScriptPubKey, out var extKey))
+		{
+			throw new ArgumentException("Destination doesn't belong to this wallet.");
+		}
+
+		transaction.Sign(extKey.PrivateKey.GetBitcoinSecret(Rpc.Network), coin);
 		return transaction;
 	}
 
-	public IEnumerable<IDestination> GetNextDestinations(int count)
-	{
-		ThrowIfDisposed();
-		return Enumerable.Repeat(Address, count);
-	}
+	public IEnumerable<IDestination> GetNextDestinations(int count) =>
+		Enumerable.Repeat(CreateNewAddress(), count);
 
 	private void ScanTransaction(Transaction tx)
 	{
 		var receivedCoins = tx.Outputs.AsIndexedOutputs()
-			.Where(x => x.TxOut.ScriptPubKey == ScriptPubKey)
+			.Where(x => ScriptPubKeys.ContainsKey(x.TxOut.ScriptPubKey))
 			.Select(x => x.ToCoin());
 
 		Utxos.AddRange(receivedCoins);
 		Utxos.RemoveAll(x => tx.Inputs.Any(y => y.PrevOut == x.Outpoint));
 	}
 
-	private void ThrowIfDisposed()
-	{
-		if (_disposedValue)
-		{
-			throw new ObjectDisposedException(nameof(TestWallet));
-		}
-	}
-
-	protected virtual void Dispose(bool disposing)
-	{
-		if (!_disposedValue)
-		{
-			Key.Dispose();
-			_disposedValue = true;
-		}
-	}
-
-	public void Dispose()
-	{
-		Dispose(disposing: true);
-		GC.SuppressFinalize(this);
-	}
+	private ExtKey CreateNewKey() =>
+		ExtKey.Derive(NextKeyIndex++);
 }
