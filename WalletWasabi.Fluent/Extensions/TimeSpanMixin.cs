@@ -38,6 +38,4 @@ public static class TimeSpanMixin
 	{
 		return TimeSpan.FromMinutes(input.Minutes);
 	}
-
-	
 }

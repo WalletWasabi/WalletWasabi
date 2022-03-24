@@ -15,5 +15,4 @@ public class MathUtilsTests
 	{
 		Assert.Equal(expected, MathUtils.Round(actual, precision));
 	}
-
 }
