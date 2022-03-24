@@ -3,14 +3,16 @@ using System.Reactive;
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.SearchBarTextPart;
 
-namespace WalletWasabi.Fluent.ViewModels.SearchBarTextPart;
+namespace WalletWasabi.Fluent.ViewModels.SearchBar;
 
 public static class SearchItemProvider
 {
 	public static IObservable<SearchItem> GetSearchItems()
 	{
 		var data = NavigationManager.MetaData
+			.Where(m => m.Searchable)
 			.Select(m =>
 			{
 				var command = CreateCommand(m);

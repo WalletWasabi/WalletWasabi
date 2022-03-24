@@ -14,6 +14,7 @@ using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.OpenDirectory;
+using WalletWasabi.Fluent.ViewModels.SearchBar;
 using WalletWasabi.Fluent.ViewModels.SearchBarTextPart;
 using WalletWasabi.Logging;
 using WalletWasabi.Fluent.ViewModels.StatusBar;
