@@ -73,8 +73,8 @@
             </Panel>
           </Border>
 
-          <searchBar:SearchBar DataContext="{Binding SearchBar}" Grid.RowSpan="3" Grid.ColumnSpan="3"></searchBar:SearchBar>
-          
+          <searchBar:SearchBar DataContext="{Binding SearchBar}" Grid.RowSpan="3" Grid.ColumnSpan="3" />
+
         </Grid>
       </Panel>
       <ExperimentalAcrylicBorder DockPanel.Dock="Left" IsHitTestVisible="False"
