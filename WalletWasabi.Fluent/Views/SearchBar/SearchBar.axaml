@@ -8,33 +8,80 @@
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
              xmlns:ic="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              x:Class="WalletWasabi.Fluent.Views.SearchBar.SearchBar">
+  <UserControl.Resources>
+    <Thickness x:Key="TextControlBorderThemeThickness">1</Thickness>
+    <Thickness x:Key="TextControlBorderThemeThicknessFocused">1</Thickness>
+    <Thickness x:Key="TextControlThemePadding">15,10,15,8</Thickness>
+  </UserControl.Resources>
+
+  <UserControl.Styles>
+
+    <Style Selector="TextBox#SearchBox">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="White" />
+      <Setter Property="BorderThickness" Value="1 1 1 1" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Margin" Value="0" />
+      <Setter Property="FontSize" Value="12"></Setter>
+      <Setter Property="Padding" Value="6 3"></Setter>
+      <Setter Property="VerticalContentAlignment" Value="Center"></Setter>
+      <Setter Property="MinHeight" Value="8"></Setter>
+    </Style>
+
+    <Style Selector="TextBox#SearchBox /template/ Border#PART_BorderElement">
+      <Setter Property="CornerRadius" Value="5" />
+    </Style>
+
+    <Style Selector="TextBox#SearchBox /template/ DataValidationErrors">
+      <Setter Property="IsVisible" Value="False"></Setter>
+    </Style>
+
+    <Style Selector="TextBox:pointerover">
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+      <Setter Property="BorderBrush" Value="White"/>
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="TextBox:pointerover /template/ TextBlock#PART_Watermark, TextBox:pointerover /template/ TextBlock#PART_FloatingWatermark">
+      <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundPointerOver}" />
+    </Style>
+
+    <!-- Focused State -->
+    <Style Selector="TextBox:focus">
+      <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundFocused}" />
+      <Setter Property="Cursor" Value="Arrow" />
+    </Style>
+
+    <Style Selector="TextBox:focus /template/ TextBlock#PART_Watermark, TextBox:focus /template/ TextBlock#PART_FloatingWatermark">
+      <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundFocused}" />
+    </Style>
+
+    <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderBrush" Value="White"/>
+      <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThicknessFocused}" />
+    </Style>
+  </UserControl.Styles>
+
+
+
+  <i:Interaction.Behaviors>
+    <behaviors:SearchBarBehavior SearchBox="SearchBox" SearchPanel="SearchBarDropdown" />
+  </i:Interaction.Behaviors>
 
   <Design.DataContext>
     <searchBarTextPart:SearchBarDesignViewModel />
   </Design.DataContext>
 
-  <Panel>
-    <Panel x:Name="DismissArea" Background="Transparent" IsVisible="False">
-      <i:Interaction.Behaviors>
-        <ic:RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerPressedEvent}">
-          <ia:ChangePropertyAction TargetObject="SearchBarDropdown" PropertyName="IsVisible" Value="False" />
-          <ia:ChangePropertyAction TargetObject="DismissArea" PropertyName="IsVisible" Value="False" />
-        </ic:RoutedEventTriggerBehavior>
-      </i:Interaction.Behaviors>
-    </Panel>
-    <StackPanel Margin="400 0" VerticalAlignment="Top">
-      <Panel Height="50">
-        <s:SearchBarTextPart HorizontalAlignment="Left" Margin="10" Width="240">
-          <i:Interaction.Behaviors>
-            <ic:RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerPressedEvent}"
-                                           RoutingStrategies="Tunnel">
-              <ia:ChangePropertyAction TargetObject="SearchBarDropdown" PropertyName="IsVisible" Value="True" />
-              <ia:ChangePropertyAction TargetObject="DismissArea" PropertyName="IsVisible" Value="True" />
-            </ic:RoutedEventTriggerBehavior>
-          </i:Interaction.Behaviors>
-        </s:SearchBarTextPart></Panel>
-      <s:SearchBarDropdown x:Name="SearchBarDropdown" IsVisible="False" HorizontalAlignment="Left" MinWidth="400" MaxHeight="500" />
-    </StackPanel>
-  </Panel>
+  <StackPanel Margin="400 0" VerticalAlignment="Top">
+    <TextBox x:Name="SearchBox" Watermark="Search settings / advanced features" Text="{Binding SearchText, Mode=TwoWay}" VerticalAlignment="Top" />
+
+    <s:SearchBarDropdown x:Name="SearchBarDropdown" IsVisible="False" HorizontalAlignment="Left" MinWidth="400" MaxHeight="500" />
+  </StackPanel>
 </UserControl>
