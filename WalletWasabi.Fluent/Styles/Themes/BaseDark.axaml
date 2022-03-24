@@ -42,6 +42,14 @@
           <Color x:Key="SystemAccentColorLight2">#FF3872C7</Color>
           <Color x:Key="SystemAccentColorLight3">#FF265FB3</Color>
           <Color x:Key="RegionColor">#1c1c1c</Color>
+          <Color x:Key="ActionForegroundColor">Black</Color>
+          <Color x:Key="ActionColorDark1">#FF4BD894</Color>
+          <Color x:Key="ActionColorDark2">#FF62DEA3</Color>
+          <Color x:Key="ActionColorDark3">#FF79E5B1</Color>
+          <Color x:Key="ActionColorLight1">#FF2ABC71</Color>
+          <Color x:Key="ActionColorLight2">#FF1FA75D</Color>
+          <Color x:Key="ActionColorLight3">#FF159148</Color>
+          <Color x:Key="ActionColor">#34D286</Color>
         </ResourceDictionary>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
@@ -54,15 +62,6 @@
     <Color x:Key="TileBorderColor">#09ffffff</Color>
     <Color x:Key="AcrylicTrimForeground">White</Color>
     <Color x:Key="AcrylicTrimBackground">#232A33</Color>
-
-    <Color x:Key="ActionForegroundColor">Black</Color>
-    <Color x:Key="ActionColorDark1">#FF4BD894</Color>
-    <Color x:Key="ActionColorDark2">#FF62DEA3</Color>
-    <Color x:Key="ActionColorDark3">#FF79E5B1</Color>
-    <Color x:Key="ActionColorLight1">#FF2ABC71</Color>
-    <Color x:Key="ActionColorLight2">#FF1FA75D</Color>
-    <Color x:Key="ActionColorLight3">#FF159148</Color>
-    <Color x:Key="ActionColor">#34D286</Color>
 
     <Color x:Key="WelcomeScreenButtonBackground">#1D273E</Color>
     <Color x:Key="WelcomeScreenButtonBackgroundPressed">#141B2A</Color>

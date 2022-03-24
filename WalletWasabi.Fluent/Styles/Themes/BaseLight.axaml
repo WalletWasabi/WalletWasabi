@@ -34,7 +34,6 @@
           <Color x:Key="SystemChromeAltHighColor">#FFE6EAED</Color>
           <Color x:Key="SystemRevealListLowColor">#FFECF5FB</Color>
           <Color x:Key="SystemRevealListMediumColor">#FFE6EAED</Color>
-
           <Color x:Key="SystemAccentColorLight1">#FF88B340</Color>
           <Color x:Key="SystemAccentColorLight2">#FF99BF59</Color>
           <Color x:Key="SystemAccentColorLight3">#FFA9CA73</Color>
@@ -42,6 +41,14 @@
           <Color x:Key="SystemAccentColorDark2">#FF528217</Color>
           <Color x:Key="SystemAccentColorDark3">#FF3F6F10</Color>
           <Color x:Key="RegionColor">#FFF8F9FB</Color>
+          <Color x:Key="ActionForegroundColor">Black</Color>
+          <Color x:Key="ActionColorDark1">#FF4BD894</Color>
+          <Color x:Key="ActionColorDark2">#FF62DEA3</Color>
+          <Color x:Key="ActionColorDark3">#FF79E5B1</Color>
+          <Color x:Key="ActionColorLight1">#FF2ABC71</Color>
+          <Color x:Key="ActionColorLight2">#FF1FA75D</Color>
+          <Color x:Key="ActionColorLight3">#FF159148</Color>
+          <Color x:Key="ActionColor">#34D286</Color>
         </ResourceDictionary>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
