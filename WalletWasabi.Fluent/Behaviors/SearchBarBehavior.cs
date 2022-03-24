@@ -1,7 +1,7 @@
 ﻿using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
@@ -55,19 +55,16 @@ public class SearchBarBehavior : AttachedToVisualTreeBehavior<UserControl>
 
 	private void SearchBoxOnGotFocus(object? sender, GotFocusEventArgs e)
 	{
-		if (SearchPanel is { })
-		{
-			SearchPanel.IsVisible = true;
-		}
+		FlyoutBase.ShowAttachedFlyout(AssociatedObject);
 	}
 
 	private void AssociatedObjectOnLostFocus(object? sender, RoutedEventArgs e)
 	{
 		if (AssociatedObject is { } && SearchPanel is { })
 		{
-			if (!AssociatedObject.IsKeyboardFocusWithin)
+			if (!AssociatedObject.IsKeyboardFocusWithin && !SearchPanel.IsKeyboardFocusWithin)
 			{
-				SearchPanel.IsVisible = false;
+				FlyoutBase.GetAttachedFlyout(AssociatedObject).Hide();
 			}
 		}
 	}

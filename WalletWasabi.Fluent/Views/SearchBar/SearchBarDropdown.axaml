@@ -8,20 +8,21 @@
              xmlns:ic="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions"
              x:Class="WalletWasabi.Fluent.Views.SearchBar.SearchBarDropdown"
              x:CompileBindings="True"
-             x:Name="UserControl"
              x:DataType="sb:SearchBarViewModel"
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
-             xmlns:sb="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar"
-             Background="{StaticResource SystemBaseLowColor}">
-
+             xmlns:sb="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar">
   <Design.DataContext>
     <sb:SearchBarDesignViewModel />
   </Design.DataContext>
 
   <UserControl.Styles>
-
     <Style Selector="ListBoxItem">
       <Setter Property="Padding" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="ListBox">
+      <Setter Property="Background" Value="Transparent" />
     </Style>
 
     <Style Selector="ItemsControl:empty">
@@ -33,54 +34,41 @@
         </Setter.Value>
       </Setter>
     </Style>
-
   </UserControl.Styles>
 
-  <ScrollViewer>
-    <ItemsControl Items="{Binding Groups}">
-      <ItemsControl.ItemTemplate>
-        <DataTemplate DataType="{x:Type sb:SearchItemGroup}">
-          <DockPanel Margin="10 ">
-            <TextBlock Text="{Binding Title}" DockPanel.Dock="Top" />
-            <ListBox x:Name="ListBox" Items="{Binding Items}">
+  <ItemsControl Items="{Binding Groups}" Margin="10">
+    <ItemsControl.ItemTemplate>
+      <DataTemplate DataType="{x:Type sb:SearchItemGroup}">
+        <DockPanel Margin="10 ">
+          <TextBlock Text="{Binding Title}" DockPanel.Dock="Top" />
+          <ListBox x:Name="ListBox" Items="{Binding Items}">
 
-              <ListBox.ItemTemplate>
-                <DataTemplate x:DataType="sb:SearchItem">
-                  <Panel Background="Transparent">
-                    <DockPanel Background="Transparent" Margin="10">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="sb:SearchItem">
+                <Panel Background="Transparent">
+                  <DockPanel Background="Transparent" Margin="10">
+                    <PathIcon DockPanel.Dock="Left" Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center">
+                      <PathIcon.Data>
+                        <Binding Path="Icon" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                      </PathIcon.Data>
+                    </PathIcon>
+                    <TextBlock Margin="10 0" VerticalAlignment="Center" DockPanel.Dock="Left" Text="{Binding Name}" />
+                    <TextBlock FontWeight="ExtraLight" VerticalAlignment="Center" Text="{Binding Description}" />
+                  </DockPanel>
 
-                      <PathIcon DockPanel.Dock="Left" Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center">
-                        <PathIcon.Data>
-                          <Binding Path="Icon" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
-                        </PathIcon.Data>
-                      </PathIcon>
-                      <TextBlock Margin="10 0" VerticalAlignment="Center" DockPanel.Dock="Left" Text="{Binding Name}" />
-                      <TextBlock FontWeight="ExtraLight" VerticalAlignment="Center" Text="{Binding Description}" />
+                  <i:Interaction.Behaviors>
+                    <ic:RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerPressedEvent}">
+                      <ia:InvokeCommandAction Command="{Binding Command}" />
+                    </ic:RoutedEventTriggerBehavior>
+                  </i:Interaction.Behaviors>
+                </Panel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
 
-                    </DockPanel>
-
-                    <i:Interaction.Behaviors>
-                      <ic:RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerPressedEvent}">
-                        <ia:InvokeCommandAction Command="{Binding Command}" />
-                      </ic:RoutedEventTriggerBehavior>
-                      <ic:RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerReleasedEvent}">
-                        <ChangePropertyAction TargetObject="UserControl" PropertyName="IsVisible"
-                                              Value="False" />
-                        <ChangePropertyAction TargetObject="ListBox" PropertyName="SelectedItem"
-                                              Value="{x:Null}" />
-                      </ic:RoutedEventTriggerBehavior>
-                    </i:Interaction.Behaviors>
-
-                  </Panel>
-
-                </DataTemplate>
-              </ListBox.ItemTemplate>
-
-            </ListBox>
-          </DockPanel>
-        </DataTemplate>
-      </ItemsControl.ItemTemplate>
-    </ItemsControl>
-  </ScrollViewer>
+          </ListBox>
+        </DockPanel>
+      </DataTemplate>
+    </ItemsControl.ItemTemplate>
+  </ItemsControl>
 
 </UserControl>

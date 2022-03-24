@@ -18,14 +18,12 @@
 
     <Style Selector="TextBox#SearchBox">
       <Setter Property="Background" Value="Transparent" />
-      <Setter Property="BorderBrush" Value="White" />
+      <Setter Property="BorderBrush" Value="{DynamicResource TileBorderColor}" />
       <Setter Property="BorderThickness" Value="1 1 1 1" />
-      <Setter Property="CornerRadius" Value="4" />
       <Setter Property="Margin" Value="0" />
       <Setter Property="FontSize" Value="12" />
       <Setter Property="Padding" Value="6 3" />
       <Setter Property="VerticalContentAlignment" Value="Center" />
-      <Setter Property="MinHeight" Value="8" />
     </Style>
 
     <Style Selector="TextBox#SearchBox /template/ Border#PART_BorderElement">
@@ -77,17 +75,12 @@
     <searchBar:SearchBarDesignViewModel />
   </Design.DataContext>
 
-  <StackPanel Margin="300 0" VerticalAlignment="Top">
-    <TextBox x:Name="SearchBox" Watermark="Search settings / advanced features" HorizontalAlignment="Left"
-             Text="{Binding SearchText, Mode=TwoWay}" MaxWidth="300" VerticalAlignment="Top" />
+  <TextBox x:Name="SearchBox" Watermark="Search settings / advanced features" HorizontalAlignment="Left"
+           Text="{Binding SearchText, Mode=TwoWay}" MaxWidth="300" VerticalAlignment="Center" />
 
-    <FlyoutBase.AttachedFlyout>
-      <Flyout Placement="BottomEdgeAlignedRight" IsOpen="False" ShowMode="TransientWithDismissOnPointerMoveAway">
-        <s:SearchBarDropdown x:Name="SearchBarDropdown" IsVisible="False" HorizontalAlignment="Left" MinWidth="400"
-                             MaxHeight="500" />
-      </Flyout>
-    </FlyoutBase.AttachedFlyout>
-
-  </StackPanel>
-
+  <FlyoutBase.AttachedFlyout>
+    <Flyout Placement="Bottom" ShowMode="Transient" FlyoutPresenterClasses="search">
+      <s:SearchBarDropdown x:Name="SearchBarDropdown" Width="300" />
+    </Flyout>
+  </FlyoutBase.AttachedFlyout>
 </UserControl>
