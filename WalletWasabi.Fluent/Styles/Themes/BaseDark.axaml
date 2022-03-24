@@ -41,7 +41,7 @@
           <Color x:Key="SystemAccentColorLight1">#FF4B84DA</Color>
           <Color x:Key="SystemAccentColorLight2">#FF3872C7</Color>
           <Color x:Key="SystemAccentColorLight3">#FF265FB3</Color>
-          <Color x:Key="RegionColor">#1c1c1c</Color>
+          <Color x:Key="RegionColor">#191D24</Color>
           <Color x:Key="ActionForegroundColor">Black</Color>
           <Color x:Key="ActionColorDark1">#FF4BD894</Color>
           <Color x:Key="ActionColorDark2">#FF62DEA3</Color>
