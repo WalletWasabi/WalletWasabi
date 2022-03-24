@@ -48,10 +48,10 @@ public class CoinJoinManager : BackgroundService
 
 	public async Task StartAutomaticallyAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
-		if (wallet.NonPrivateCoins.TotalAmount() <= wallet.KeyManager.PlebStopThreshold)
+		while (!cancellationToken.IsCancellationRequested && wallet.NonPrivateCoins.TotalAmount() <= wallet.KeyManager.PlebStopThreshold)
 		{
 			NotifyCoinJoinStartError(wallet, CoinjoinError.NotEnoughUnprivateBalance);
-			return;
+			await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken).ConfigureAwait(false);
 		}
 		await _channel.Writer.WriteAsync(new StartCoinJoinCommand(wallet, true), cancellationToken).ConfigureAwait(false);
 	}
@@ -218,6 +218,7 @@ public class CoinJoinManager : BackgroundService
 			coins.CoinJoinInProgress = false;
 		}
 
+		Logger.LogInfo($"{logPrefix} Restart automatically {finishedCoinJoin.RestartAutomatically} was cancelled {finishedCoinJoin.CoinJoinTask.IsCanceled}.");
 		if (finishedCoinJoin.RestartAutomatically && !finishedCoinJoin.CoinJoinTask.IsCanceled)
 		{
 			await StartAutomaticallyAsync(finishedCoinJoin.Wallet, cancellationToken).ConfigureAwait(false);
