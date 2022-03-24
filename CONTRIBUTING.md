@@ -13,7 +13,7 @@ Wasabi's CodeMaid settings [can be found in the root of the repository](https://
 
 In Rider, you can achieve similar functionality by going to `Settings -> Tools -> Action on Save` and enabling `Reformat and Cleanup Code` and changing `Profile` to `Reformat Code`.
 
-And also enable the `Enable EditorConfig support` in `Settings -> Editor -> Code Style`.
+And also enable `Enable EditorConfig support` in `Settings -> Editor -> Code Style`.
 
 ![image](https://user-images.githubusercontent.com/16364053/159900227-627f4b67-e793-421b-836a-09660971c807.png)
 ![image](https://user-images.githubusercontent.com/16364053/159900956-539868b7-9fd2-44ed-9ec6-d58569bd9dbb.png)
