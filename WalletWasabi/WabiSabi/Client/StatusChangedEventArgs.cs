@@ -30,9 +30,9 @@ public class StartedEventArgs : StatusChangedEventArgs
 	public TimeSpan RegistrationTimeout { get; }
 }
 
-public class CoinJoinCompletedEventArgs : StatusChangedEventArgs
+public class CompletedEventArgs : StatusChangedEventArgs
 {
-	public CoinJoinCompletedEventArgs(Wallet wallet, CompletionStatus completionStatus)
+	public CompletedEventArgs(Wallet wallet, CompletionStatus completionStatus)
 		: base(wallet)
 	{
 		CompletionStatus = completionStatus;

@@ -138,7 +138,6 @@ public class CoinJoinManager : BackgroundService
 							if (trackedCoinJoins.TryGetValue(walletToStop.WalletName, out var coinJoinTrackerToStop))
 							{
 								coinJoinTrackerToStop.Cancel();
-								trackedCoinJoins.Remove(walletToStop.WalletName);
 							}
 							break;
 					}
@@ -155,7 +154,6 @@ public class CoinJoinManager : BackgroundService
 						NotifyCoinJoinCompletion(finishedCoinJoin);
 						await HandleCoinJoinFinalizationAsync(finishedCoinJoin, trackedCoinJoins, stoppingToken).ConfigureAwait(false);
 					}
-
 					// Updates the highest coinjoin client state.
 					var inProgress = trackedCoinJoins.Values.Where(wtd => !wtd.IsCompleted).ToImmutableArray();
 
@@ -255,7 +253,7 @@ public class CoinJoinManager : BackgroundService
 		SafeRaiseEvent(StatusChanged, new LoadedEventArgs(openedWallet));
 
 	private void NotifyCoinJoinCompletion(CoinJoinTracker finishedCoinJoin) =>
-		SafeRaiseEvent(StatusChanged, new CoinJoinCompletedEventArgs(
+		SafeRaiseEvent(StatusChanged, new CompletedEventArgs(
 			finishedCoinJoin.Wallet,
 			finishedCoinJoin.CoinJoinTask.Status switch
 			{
