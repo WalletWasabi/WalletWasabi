@@ -64,6 +64,7 @@
                       VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
                     <DockPanel>
                       <TextBlock Name="PART_ConversionWatermark"
+                                 Classes="watermark"
                                  DockPanel.Dock="Right"
                                  Opacity="0.5"
                                  Text="{TemplateBinding ConversionText}"
@@ -178,6 +179,18 @@
         </DockPanel>
       </ControlTemplate>
     </Setter>
+  </Style>
+
+  <Style Selector="c|CurrencyEntryBox:disabled /template/ TextBlock.watermark">
+    <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundDisabled}" />
+  </Style>
+
+  <Style Selector="c|CurrencyEntryBox:pointerover /template/ TextBlock.watermark">
+    <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundPointerOver}" />
+  </Style>
+
+  <Style Selector="c|CurrencyEntryBox:focus /template/ TextBlock.watermark">
+    <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundFocused}" />
   </Style>
 
   <Style Selector="c|CurrencyEntryBox:noexchangerate Button#PART_SwapButton">
