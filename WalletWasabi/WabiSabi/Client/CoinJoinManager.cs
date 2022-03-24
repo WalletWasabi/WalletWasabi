@@ -32,8 +32,6 @@ public class CoinJoinManager : BackgroundService
 		ServiceConfiguration = serviceConfiguration;
 	}
 
-	public event EventHandler<WalletStatusChangedEventArgs>? WalletStatusChanged;
-
 	public WalletManager WalletManager { get; }
 	public IWasabiHttpClientFactory HttpClientFactory { get; }
 	public RoundStateUpdater RoundStatusUpdater { get; }
@@ -125,7 +123,6 @@ public class CoinJoinManager : BackgroundService
 				trackedCoinJoins.Add(openedWallet.WalletName, coinJoinTracker);
 				var registrationTimeout = TimeSpan.MaxValue;
 				NotifyCoinJoinStarted(openedWallet, registrationTimeout);
-				WalletStatusChanged?.Invoke(this, new WalletStatusChangedEventArgs(openedWallet, IsCoinJoining: true));
 			}
 
 			foreach (var closedWallet in closedWallets.Select(x => x.Value))
@@ -150,7 +147,6 @@ public class CoinJoinManager : BackgroundService
 				}
 				else
 				{
-					WalletStatusChanged?.Invoke(this, new WalletStatusChangedEventArgs(walletToRemove, IsCoinJoining: false));
 					finishedCoinJoin.Dispose();
 				}
 			}

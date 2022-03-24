@@ -70,12 +70,19 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		if (Services.HostedServices.GetOrDefault<CoinJoinManager>() is { } coinJoinManager)
 		{
+			static bool? MaybeCoinjoining(StatusChangedEventArgs args) =>
+				args switch {
+					StartedEventArgs _ => true,
+					StoppedEventArgs _ => false,
+					_ => null
+				};
+
 			Observable
-				.FromEventPattern<WalletStatusChangedEventArgs>(coinJoinManager, nameof(CoinJoinManager.WalletStatusChanged))
+				.FromEventPattern<StatusChangedEventArgs>(coinJoinManager, nameof(CoinJoinManager.StatusChanged))
 				.Select(args => args.EventArgs)
 				.Where(e => e.Wallet == Wallet)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(e => IsCoinJoining = e.IsCoinJoining)
+				.Subscribe(e => IsCoinJoining = MaybeCoinjoining(e) ?? IsCoinJoining)
 				.DisposeWith(Disposables);
 		}
 
