@@ -38,5 +38,5 @@ public class SearchBarDesignViewModel : ReactiveObject
 			return new SearchItemGroup(g.Key, sourceCache);
 		})));
 
-	public string SearchText => "Sample text";
+	public string SearchText => "";
 }

@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:s="clr-namespace:WalletWasabi.Fluent.Views.SearchBar"
+             xmlns:searchBarTextPart="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBarTextPart"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
+             xmlns:ic="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions"
+             x:Class="WalletWasabi.Fluent.Views.SearchBar.SearchBar">
+
+  <Design.DataContext>
+    <searchBarTextPart:SearchBarDesignViewModel />
+  </Design.DataContext>
+
+  <Panel>
+    <Panel x:Name="DismissArea" Background="Transparent" IsVisible="False">
+      <i:Interaction.Behaviors>
+        <ic:RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerPressedEvent}">
+          <ia:ChangePropertyAction TargetObject="SearchBarDropdown" PropertyName="IsVisible" Value="False" />
+          <ia:ChangePropertyAction TargetObject="DismissArea" PropertyName="IsVisible" Value="False" />
+        </ic:RoutedEventTriggerBehavior>
+      </i:Interaction.Behaviors>
+    </Panel>
+    <StackPanel Margin="400 0" VerticalAlignment="Top">
+      <Panel Height="50">
+        <s:SearchBarTextPart HorizontalAlignment="Left" Margin="10" Width="240">
+          <i:Interaction.Behaviors>
+            <ic:RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerPressedEvent}"
+                                           RoutingStrategies="Tunnel">
+              <ia:ChangePropertyAction TargetObject="SearchBarDropdown" PropertyName="IsVisible" Value="True" />
+              <ia:ChangePropertyAction TargetObject="DismissArea" PropertyName="IsVisible" Value="True" />
+            </ic:RoutedEventTriggerBehavior>
+          </i:Interaction.Behaviors>
+        </s:SearchBarTextPart></Panel>
+      <s:SearchBarDropdown x:Name="SearchBarDropdown" IsVisible="False" HorizontalAlignment="Left" MinWidth="400" MaxHeight="500" />
+    </StackPanel>
+  </Panel>
+</UserControl>

@@ -20,8 +20,19 @@
   </Design.DataContext>
 
   <UserControl.Styles>
+
     <Style Selector="ListBoxItem">
       <Setter Property="Padding" Value="0" />
+    </Style>
+
+    <Style Selector="ItemsControl:empty">
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate>
+            <TextBlock Margin="10">No results</TextBlock>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
     </Style>
 
   </UserControl.Styles>

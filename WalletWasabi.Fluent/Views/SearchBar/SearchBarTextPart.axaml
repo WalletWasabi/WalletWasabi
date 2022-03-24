@@ -3,10 +3,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
-             x:Class="WalletWasabi.Fluent.Views.SearchBar.SearchBar"
+             x:Class="WalletWasabi.Fluent.Views.SearchBar.SearchBarTextPart"
              xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBarTextPart"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
              x:Name="UserControl">
 
   <Design.DataContext>
@@ -20,15 +18,6 @@
   </UserControl.Resources>
 
   <UserControl.Styles>
-    <Style Selector="ItemsControl:empty">
-      <Setter Property="Template">
-        <Setter.Value>
-          <ControlTemplate>
-            <TextBlock Margin="10">No results</TextBlock>
-          </ControlTemplate>
-        </Setter.Value>
-      </Setter>
-    </Style>
 
     <Style Selector="TextBox#SearchBox">
       <Setter Property="Background" Value="Transparent" />

@@ -81,7 +81,7 @@
               </ic:RoutedEventTriggerBehavior>
             </i:Interaction.Behaviors>
           </Border>
-          <searchBar:SearchBar x:Name="SearchBar" VerticalAlignment="Center" DataContext="{Binding SearchBar}" Grid.Column="1"
+          <searchBar:SearchBarTextPart x:Name="SearchBar" VerticalAlignment="Center" DataContext="{Binding SearchBar}" Grid.Column="1"
                                HorizontalAlignment="Center" Width="280">
             <i:Interaction.Behaviors>
               <ic:RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerPressedEvent}" RoutingStrategies="Tunnel">
@@ -89,7 +89,7 @@
                 <ia:ChangePropertyAction TargetObject="SearchDropDownDismissArea" PropertyName="IsVisible" Value="True" />
               </ic:RoutedEventTriggerBehavior>
             </i:Interaction.Behaviors>
-          </searchBar:SearchBar>
+          </searchBar:SearchBarTextPart>
           <searchBar:SearchBarDropdown x:Name="SearchBarDropdown" Width="500" MaxHeight="500" VerticalAlignment="Top" IsVisible="False" Grid.Row="1"
                                        Grid.Column="1" DataContext="{Binding SearchBar}">
            
