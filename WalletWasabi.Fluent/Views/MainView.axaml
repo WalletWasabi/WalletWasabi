@@ -6,15 +6,13 @@
              xmlns:navbar="using:WalletWasabi.Fluent.Views.NavBar"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
-             xmlns:b="using:WalletWasabi.Fluent.Behaviors"
+             xmlns:ic="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions"
              xmlns:ext="using:WalletWasabi.Fluent.Helpers"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
              xmlns:statusBar="clr-namespace:WalletWasabi.Fluent.Views.StatusBar"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.Views.Wallets"
              xmlns:spectrum="clr-namespace:WalletWasabi.Fluent.Controls.Spectrum"
-             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.Views.SearchBar"
-             xmlns:system="clr-namespace:System;assembly=System.Runtime"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="459"
              x:DataType="vm:MainViewModel"
              x:CompileBindings="True"
@@ -77,19 +75,19 @@
 
           <Border x:Name="SearchDropDownDismissArea" Background="Transparent" Grid.RowSpan="2" Grid.ColumnSpan="3" IsVisible="False">
             <i:Interaction.Behaviors>
-              <b:RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerPressedEvent}">
-                <ia:ChangePropertyAction TargetObject="{Binding #SearchBarDropdown}" PropertyName="IsVisible" Value="False" />
-                <ia:ChangePropertyAction TargetObject="{Binding #SearchDropDownDismissArea}" PropertyName="IsVisible" Value="False" />
-              </b:RoutedEventTriggerBehavior>
+              <ic:RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerPressedEvent}">
+                <ia:ChangePropertyAction TargetObject="SearchBarDropdown" PropertyName="IsVisible" Value="False" />
+                <ia:ChangePropertyAction TargetObject="SearchDropDownDismissArea" PropertyName="IsVisible" Value="False" />
+              </ic:RoutedEventTriggerBehavior>
             </i:Interaction.Behaviors>
           </Border>
           <searchBar:SearchBar x:Name="SearchBar" VerticalAlignment="Center" DataContext="{Binding SearchBar}" Grid.Column="1"
                                HorizontalAlignment="Center" Width="280">
             <i:Interaction.Behaviors>
-              <b:RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerPressedEvent}" RoutingStrategies="Tunnel">
-                <ia:ChangePropertyAction TargetObject="{Binding #SearchBarDropdown}" PropertyName="IsVisible" Value="True" />
-                <ia:ChangePropertyAction TargetObject="{Binding #SearchDropDownDismissArea}" PropertyName="IsVisible" Value="True" />
-              </b:RoutedEventTriggerBehavior>
+              <ic:RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerPressedEvent}" RoutingStrategies="Tunnel">
+                <ia:ChangePropertyAction TargetObject="SearchBarDropdown" PropertyName="IsVisible" Value="True" />
+                <ia:ChangePropertyAction TargetObject="SearchDropDownDismissArea" PropertyName="IsVisible" Value="True" />
+              </ic:RoutedEventTriggerBehavior>
             </i:Interaction.Behaviors>
           </searchBar:SearchBar>
           <searchBar:SearchBarDropdown x:Name="SearchBarDropdown" Width="500" MaxHeight="500" VerticalAlignment="Top" IsVisible="False" Grid.Row="1"

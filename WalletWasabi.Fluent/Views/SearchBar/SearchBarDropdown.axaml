@@ -5,6 +5,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
+             xmlns:ic="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions"
              x:Class="WalletWasabi.Fluent.Views.SearchBar.SearchBarDropdown"
              xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBarTextPart"
              x:CompileBindings="False"
@@ -49,15 +50,15 @@
                     </DockPanel>
 
                     <i:Interaction.Behaviors>
-                      <b:RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerPressedEvent}">
+                      <ic:RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerPressedEvent}">
                         <ia:InvokeCommandAction Command="{Binding Command}" />
-                      </b:RoutedEventTriggerBehavior>
-                      <b:RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerReleasedEvent}">
-                        <ChangePropertyAction TargetObject="{Binding #UserControl}" PropertyName="IsVisible"
+                      </ic:RoutedEventTriggerBehavior>
+                      <ic:RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerReleasedEvent}">
+                        <ChangePropertyAction TargetObject="UserControl" PropertyName="IsVisible"
                                               Value="False" />
-                        <ChangePropertyAction TargetObject="{Binding #ListBox}" PropertyName="SelectedItem"
+                        <ChangePropertyAction TargetObject="ListBox" PropertyName="SelectedItem"
                                               Value="{x:Null}" />
-                      </b:RoutedEventTriggerBehavior>
+                      </ic:RoutedEventTriggerBehavior>
                     </i:Interaction.Behaviors>
 
                   </Panel>
