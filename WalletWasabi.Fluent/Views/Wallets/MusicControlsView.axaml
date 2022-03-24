@@ -29,7 +29,6 @@
     <Style Selector="Border#PART_MainBorder:not(.IsActive)">
       <Setter Property="RenderTransform" Value="translateY(120px)" />
     </Style>
-
   </UserControl.Styles>
   <Border Name="PART_MainBorder" Margin="3 3 3 0"
           Classes.IsActive="{Binding IsActive, FallbackValue=false}"

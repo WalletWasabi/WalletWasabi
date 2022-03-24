@@ -99,7 +99,6 @@
     </LinearGradientBrush>
 
     <SolidColorBrush x:Key="LogoAccentColor" Color="#FF77C600" />
-
   </Styles.Resources>
   <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentLight.xaml" />
 

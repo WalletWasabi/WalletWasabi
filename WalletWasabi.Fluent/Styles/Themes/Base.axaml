@@ -42,8 +42,8 @@
     <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="{DynamicResource ActionColorLight1}" />
     <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="{DynamicResource SystemChromeDisabledLowColor}" />
 
-    <SolidColorBrush x:Key="NavBarAccentColor" Color="{StaticResource SystemAccentColor}"/>
-    <SolidColorBrush x:Key="NavBarAccentColorPressed" Opacity="0.5" Color="{StaticResource SystemAccentColor}"/>
+    <SolidColorBrush x:Key="NavBarAccentColor" Color="{StaticResource SystemAccentColor}" />
+    <SolidColorBrush x:Key="NavBarAccentColorPressed" Opacity="0.5" Color="{StaticResource SystemAccentColor}" />
     <SolidColorBrush x:Key="NavBarItemPressedAccentColor">#719B2A</SolidColorBrush>
     <SolidColorBrush x:Key="NavBarItemDisabledBrush">#66FFFFFF</SolidColorBrush>
     <SolidColorBrush x:Key="NavBarItemPointerOverBrush">#FFFFFFFF</SolidColorBrush>
@@ -113,6 +113,5 @@
     <system:Double x:Key="HistoryTableRowHeight">36.5</system:Double>
     <system:Double x:Key="HistoryTablePlaceholderTextOpacity">0.5</system:Double>
     <Thickness x:Key="HistoryTablePlaceholderPanelMargin">0 42 0 0</Thickness>
-
   </Styles.Resources>
 </Styles>

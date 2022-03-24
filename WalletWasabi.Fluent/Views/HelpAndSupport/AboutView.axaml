@@ -81,7 +81,7 @@
                          Text="This open source software is licensed with " />
               <ContentControl Content="{Binding License}" />
             </WrapPanel>
-            </StackPanel>
+          </StackPanel>
         </DockPanel>
       </DockPanel>
     </controls:ContentArea>

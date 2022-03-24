@@ -76,7 +76,7 @@
       <Setter Property="Opacity" Value="0" />
       <Setter Property="Transitions">
         <Transitions>
-          <BrushTransition Property="Fill" Duration="0:0:2"/>
+          <BrushTransition Property="Fill" Duration="0:0:2" />
         </Transitions>
       </Setter>
     </Style>
@@ -130,7 +130,6 @@
       <Setter Property="LayoutTransform" Value="scaleY(0)" />
       <Setter Property="Opacity" Value="0" />
     </Style>
-
   </UserControl.Styles>
   <DockPanel Margin="0 -4 0 4">
     <DockPanel Background="Transparent" DockPanel.Dock="Bottom">
@@ -173,7 +172,7 @@
             <Panel Classes="NavBarItemPanel wallets">
               <Ellipse Classes.isLoading="{Binding IsLoading}"
                        Classes.isLoggedIn="{Binding IsLoggedIn}"
-                       Classes.isCoinjoining="{Binding IsCoinJoining}"/>
+                       Classes.isCoinjoining="{Binding IsCoinJoining}" />
               <DockPanel>
                 <LayoutTransformControl>
                   <TextBlock />

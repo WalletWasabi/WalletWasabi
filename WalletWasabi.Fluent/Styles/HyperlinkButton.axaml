@@ -19,7 +19,6 @@
   <Style Selector="Button.activeHyperLink:pointerover /template/ AccessText">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="Opacity" Value="1" />
-
   </Style>
 
   <Style Selector="Button.activeHyperLink:pressed /template/ AccessText">
@@ -31,5 +30,4 @@
     <Setter Property="TextDecorations" Value="{x:Null}" />
     <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
   </Style>
-
 </Styles>
