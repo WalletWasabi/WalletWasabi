@@ -13,7 +13,6 @@
   <UserControl.Resources>
     <Thickness x:Key="TextControlBorderThemeThicknessFocused">1</Thickness>
   </UserControl.Resources>
-
   <UserControl.Styles>
 
     <Style Selector="TextBox#SearchBox">
@@ -76,11 +75,18 @@
   </Design.DataContext>
 
   <TextBox x:Name="SearchBox" Watermark="Search settings / advanced features" HorizontalAlignment="Left"
-           Text="{Binding SearchText, Mode=TwoWay}" MaxWidth="300" VerticalAlignment="Center" />
+           Text="{Binding SearchText, Mode=TwoWay}" MaxWidth="400" VerticalAlignment="Center">
+    <TextBox.InnerLeftContent>
+      <PathIcon Data="{StaticResource action_center_regular}" Margin="10 0" />
+    </TextBox.InnerLeftContent>
+    <TextBox.InnerRightContent>
+      <PathIcon Data="{StaticResource search_regular}" Margin="10 0" />
+    </TextBox.InnerRightContent>
+  </TextBox>
 
   <FlyoutBase.AttachedFlyout>
     <Flyout Placement="Bottom" ShowMode="Transient" FlyoutPresenterClasses="search">
-      <s:SearchBarDropdown x:Name="SearchBarDropdown" Width="300" />
+      <s:SearchBarDropdown x:Name="SearchBarDropdown" />
     </Flyout>
   </FlyoutBase.AttachedFlyout>
 </UserControl>
