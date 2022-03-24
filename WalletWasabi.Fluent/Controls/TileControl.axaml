@@ -18,7 +18,6 @@
     <Setter Property="Template">
       <ControlTemplate>
         <Border Name="PART_MainBorder"
-                Classes.IsActive="{Binding IsActive, FallbackValue=false}"
                 TextBlock.FontFamily="{StaticResource MonospacedFont}"
                 CornerRadius="2" BorderThickness="1"
                 Margin="6"
